@@ -19,16 +19,21 @@ sig
   val restore_visible_global: theory -> theory -> theory
   val is_reported_generic: Context.generic -> Position.T -> bool
   val is_reported: Proof.context -> Position.T -> bool
+  val is_reported_global: theory -> Position.T -> bool
   val report_generic: Context.generic -> Position.T -> Markup.T -> unit
   val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
   val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
   val report: Proof.context -> Position.T -> Markup.T -> unit
   val reports_text: Proof.context -> Position.report_text list -> unit
+  val reports_generic: Context.generic -> Position.report list -> unit
   val reports: Proof.context -> Position.report list -> unit
+  val reports_global: theory -> Position.report list -> unit
 end;
 
 structure Context_Position: CONTEXT_POSITION =
 struct
+
+(* visible context *)
 
 structure Data = Generic_Data
 (
@@ -54,8 +59,13 @@ val restore_visible_generic = Data.put o Data.get;
 val restore_visible = Context.proof_map o Data.put o Data.get o Context.Proof;
 val restore_visible_global = Context.theory_map o Data.put o Data.get o Context.Theory;
 
+
+(* PIDE reports *)
+
 fun is_reported_generic context pos = is_visible_generic context andalso Position.is_reported pos;
-fun is_reported ctxt pos = is_visible ctxt andalso Position.is_reported pos;
+
+val is_reported = is_reported_generic o Context.Proof;
+val is_reported_global = is_reported_generic o Context.Theory;
 
 fun report_generic context pos markup =
   if is_reported_generic context pos then
@@ -69,6 +79,9 @@ fun report_text ctxt pos markup txt = Output.report [reported_text ctxt pos mark
 fun report ctxt pos markup = report_text ctxt pos markup "";
 
 fun reports_text ctxt reps = if is_visible ctxt then Position.reports_text reps else ();
-fun reports ctxt reps = if is_visible ctxt then Position.reports reps else ();
+fun reports_generic context reps = if is_visible_generic context then Position.reports reps else ();
+
+val reports = reports_generic o Context.Proof;
+val reports_global = reports_generic o Context.Theory;
 
 end;

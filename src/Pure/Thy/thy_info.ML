@@ -352,7 +352,9 @@ fun load_thy context initiators update_time deps text (name, pos) keywords paren
     val dir = Path.dir thy_path;
     val header = Thy_Header.make (name, pos) imports keywords;
 
-    val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
+    val _ =
+      (imports ~~ parents) |> List.app (fn ((_, pos), thy) =>
+        Context_Position.reports_global thy [(pos, Theory.get_markup thy)]);
 
     val exec_id = Document_ID.make ();
     val _ =

@@ -475,7 +475,7 @@ fun read_class ctxt text =
   let
     val source = Syntax.read_input text;
     val (c, reports) = check_class ctxt (Input.source_content source);
-    val _ = Position.reports reports;
+    val _ = Context_Position.reports ctxt reports;
   in c end;
 
 
@@ -536,11 +536,11 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
         | Type.Nonterminal => if strict then err () else 0);
     in (Type (d, replicate args dummyT), reports) end;
 
-fun read_type_name ctxt flags text =
+fun read_type_name flags ctxt text =
   let
     val source = Syntax.read_input text;
-    val (T, reports) = check_type_name ctxt flags (Input.source_content source);
-    val _ = Position.reports reports;
+    val (T, reports) = check_type_name flags ctxt (Input.source_content source);
+    val _ = Context_Position.reports ctxt reports;
   in T end;
 
 
@@ -583,12 +583,12 @@ fun check_const {proper, strict} ctxt (c, ps) =
       | _ => ());
   in (t, reports) end;
 
-fun read_const ctxt flags text =
+fun read_const flags ctxt text =
   let
     val source = Syntax.read_input text;
     val (c, pos) = Input.source_content source;
-    val (t, reports) = check_const ctxt flags (c, [pos]);
-    val _ = Position.reports reports;
+    val (t, reports) = check_const flags ctxt (c, [pos]);
+    val _ = Context_Position.reports ctxt reports;
   in t end;
 
 

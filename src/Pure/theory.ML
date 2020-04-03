@@ -130,7 +130,7 @@ fun theory_markup def name id pos =
 fun init_markup (name, pos) thy =
   let
     val id = serial ();
-    val _ = Position.report pos (theory_markup true name id pos);
+    val _ = Context_Position.reports_global thy [(pos, theory_markup true name id pos)];
   in map_thy (fn (_, _, axioms, defs, wrappers) => (pos, id, axioms, defs, wrappers)) thy end;
 
 fun get_markup thy =

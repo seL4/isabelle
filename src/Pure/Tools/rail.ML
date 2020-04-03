@@ -309,7 +309,7 @@ fun read ctxt source =
     val toks = tokenize (Input.source_explode source);
     val _ = Context_Position.reports ctxt (maps reports_of_token toks);
     val rules = parse_rules (filter is_proper toks);
-    val _ = Position.reports (maps (reports_of_tree ctxt o #2) rules);
+    val _ = Context_Position.reports ctxt (maps (reports_of_tree ctxt o #2) rules);
   in map (apsnd prepare_tree) rules end;
 
 
