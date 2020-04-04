@@ -181,7 +181,7 @@ class JEdit_Editor extends Editor[View]
     if (path.is_file)
       goto_file(true, view, File.platform_path(path))
     else {
-      Standard_Thread.fork("documentation") {
+      Standard_Thread.fork(name = "documentation") {
         try { Doc.view(path) }
         catch {
           case exn: Throwable =>
@@ -211,7 +211,7 @@ class JEdit_Editor extends Editor[View]
     new Hyperlink {
       override val external = true
       def follow(view: View): Unit =
-        Standard_Thread.fork("hyperlink_url") {
+        Standard_Thread.fork(name = "hyperlink_url") {
           try { Isabelle_System.open(Url.escape_name(name)) }
           catch {
             case exn: Throwable =>

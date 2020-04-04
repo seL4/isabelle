@@ -135,7 +135,7 @@ private class Thread_Future[A](name: String, daemon: Boolean, body: => A) extend
 {
   private val result = Future.promise[A]
   private val thread =
-    Standard_Thread.fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
+    Standard_Thread.fork(name = name, daemon = daemon) { result.fulfill_result(Exn.capture(body)) }
 
   def peek: Option[Exn.Result[A]] = result.peek
   def join_result: Exn.Result[A] = result.join_result

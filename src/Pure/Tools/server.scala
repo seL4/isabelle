@@ -292,7 +292,7 @@ object Server
     val progress: Connection_Progress = context.progress(ident)
     def cancel { progress.stop }
 
-    private lazy val thread = Standard_Thread.fork("server_task")
+    private lazy val thread = Standard_Thread.fork(name = "server_task")
     {
       Exn.capture { body(task) } match {
         case Exn.Res(res) =>
@@ -601,12 +601,12 @@ class Server private(_port: Int, val log: Logger)
   }
 
   private lazy val server_thread: Thread =
-    Standard_Thread.fork("server") {
+    Standard_Thread.fork(name = "server") {
       var finished = false
       while (!finished) {
         Exn.capture(server_socket.accept) match {
           case Exn.Res(socket) =>
-            Standard_Thread.fork("server_connection")
+            Standard_Thread.fork(name = "server_connection")
               { using(Server.Connection(socket))(handle) }
           case Exn.Exn(_) => finished = true
         }

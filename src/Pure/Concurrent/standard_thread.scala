@@ -21,10 +21,17 @@ object Standard_Thread
 
   def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
 
-  def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Standard_Thread =
+  def fork(
+    name: String = "",
+    group: ThreadGroup = current_thread_group,
+    pri: Int = Thread.NORM_PRIORITY,
+    daemon: Boolean = false,
+    inherit_locals: Boolean = false)(body: => Unit): Standard_Thread =
   {
     val main = new Runnable { override def run { body } }
-    val thread = new Standard_Thread(current_thread_group, main, make_name(name = name), daemon)
+    val thread =
+      new Standard_Thread(main, name = make_name(name = name), group = group,
+        pri = pri, daemon = daemon, inherit_locals = inherit_locals)
     thread.start
     thread
   }
@@ -32,19 +39,13 @@ object Standard_Thread
 
   /* self */
 
-  def self: Option[Standard_Thread] =
+  def self: Standard_Thread =
     Thread.currentThread match {
-      case thread: Standard_Thread => Some(thread)
-      case _ => None
+      case thread: Standard_Thread => thread
+      case _ => error("Expected to run on Isabelle/Scala standard thread")
     }
 
-  def uninterruptible[A](body: => A): A =
-  {
-    self match {
-      case Some(thread) => thread.uninterruptible(body)
-      case None => error("Cannot change interrupts --- running on non-standard thread")
-    }
-  }
+  def uninterruptible[A](body: => A): A = self.uninterruptible(body)
 
 
   /* pool */
@@ -56,7 +57,7 @@ object Standard_Thread
       val executor =
         new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
       executor.setThreadFactory(
-        new Standard_Thread(current_thread_group, _, make_name(base = "worker"), false))
+        new Standard_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
       executor
     }
 
@@ -120,11 +121,18 @@ object Standard_Thread
     new Delay(false, delay, log, event)
 }
 
-class Standard_Thread private(group: ThreadGroup, main: Runnable, name: String, daemon: Boolean)
-  extends Thread(group, null, name)
+class Standard_Thread private(
+    main: Runnable,
+    name: String = "",
+    group: ThreadGroup = null,
+    pri: Int = Thread.NORM_PRIORITY,
+    daemon: Boolean = false,
+    inherit_locals: Boolean = false)
+  extends Thread(group, null, name, 0L, inherit_locals)
 {
   thread =>
 
+  thread.setPriority(pri)
   thread.setDaemon(daemon)
 
   override def run { main.run() }

@@ -90,7 +90,7 @@ object File_Watcher
       handle(changed)
     }
 
-    private val watcher_thread = Standard_Thread.fork("File_Watcher", daemon = true)
+    private val watcher_thread = Standard_Thread.fork(name = "File_Watcher", daemon = true)
     {
       try {
         while (true) {
