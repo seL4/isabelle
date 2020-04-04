@@ -23,16 +23,20 @@ object Command_Line
 
   var debug = false
 
-  def tool(body: => Unit): Nothing =
+  def tool(body: => Unit)
   {
-    val rc =
-      try { body; 0 }
-      catch {
-        case exn: Throwable =>
-          Output.error_message(Exn.message(exn) + (if (debug) "\n" + Exn.trace(exn) else ""))
-          Exn.return_code(exn, 2)
+    val thread =
+      Standard_Thread.fork(name = "isabelle", inherit_locals = true) {
+        val rc =
+          try { body; 0 }
+          catch {
+            case exn: Throwable =>
+              Output.error_message(Exn.message(exn) + (if (debug) "\n" + Exn.trace(exn) else ""))
+              Exn.return_code(exn, 2)
+          }
+        sys.exit(rc)
       }
-    sys.exit(rc)
+    thread.join
   }
 
   def ML_tool(body: List[String]): String =
