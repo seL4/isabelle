@@ -17,8 +17,17 @@ object Future
   def value[A](x: A): Future[A] = new Value_Future(x)
   def fork[A](body: => A): Future[A] = new Task_Future[A](body)
   def promise[A]: Promise[A] = new Promise_Future[A]
-  def thread[A](name: String = "", daemon: Boolean = false)(body: => A): Future[A] =
-    new Thread_Future[A](name, daemon, body)
+
+  def thread[A](
+    name: String = "",
+    group: ThreadGroup = Standard_Thread.current_thread_group,
+    pri: Int = Thread.NORM_PRIORITY,
+    daemon: Boolean = false,
+    inherit_locals: Boolean = false,
+    uninterruptible: Boolean = false)(body: => A): Future[A] =
+    {
+      new Thread_Future[A](name, group, pri, daemon, inherit_locals, uninterruptible, body)
+    }
 }
 
 trait Future[A]
@@ -131,11 +140,20 @@ private class Promise_Future[A] extends Promise[A]
 
 /* thread future */
 
-private class Thread_Future[A](name: String, daemon: Boolean, body: => A) extends Future[A]
+private class Thread_Future[A](
+  name: String,
+  group: ThreadGroup,
+  pri: Int,
+  daemon: Boolean,
+  inherit_locals: Boolean,
+  uninterruptible: Boolean,
+  body: => A) extends Future[A]
 {
   private val result = Future.promise[A]
   private val thread =
-    Standard_Thread.fork(name = name, daemon = daemon) { result.fulfill_result(Exn.capture(body)) }
+    Standard_Thread.fork(name = name, group = group, pri = pri, daemon = daemon,
+      inherit_locals = inherit_locals, uninterruptible = uninterruptible)
+    { result.fulfill_result(Exn.capture(body)) }
 
   def peek: Option[Exn.Result[A]] = result.peek
   def join_result: Exn.Result[A] = result.join_result
