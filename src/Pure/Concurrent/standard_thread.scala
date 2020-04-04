@@ -30,8 +30,8 @@ object Standard_Thread
     uninterruptible: Boolean = false)(body: => Unit): Standard_Thread =
   {
     val main =
-      if (uninterruptible) new Runnable { override def run { body } }
-      else new Runnable { override def run { Standard_Thread.uninterruptible { body } } }
+      if (uninterruptible) new Runnable { override def run { Standard_Thread.uninterruptible { body } } }
+      else new Runnable { override def run { body } }
     val thread =
       new Standard_Thread(main, name = make_name(name = name), group = group,
         pri = pri, daemon = daemon, inherit_locals = inherit_locals)
