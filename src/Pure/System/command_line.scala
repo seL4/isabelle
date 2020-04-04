@@ -26,7 +26,7 @@ object Command_Line
   def tool(body: => Unit)
   {
     val thread =
-      Standard_Thread.fork(name = "isabelle", inherit_locals = true) {
+      Standard_Thread.fork(name = "command_line", inherit_locals = true) {
         val rc =
           try { body; 0 }
           catch {
