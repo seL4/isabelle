@@ -12,18 +12,36 @@ import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, 
 
 object Standard_Thread
 {
+  /* fork */
+
+  private val counter = Counter.make()
+
+  def make_name(name: String, base: String = "thread"): String =
+    proper_string(name).getOrElse(base + counter())
+
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Standard_Thread =
   {
-    val thread = new Standard_Thread(name, daemon, body)
+    val group = Thread.currentThread.getThreadGroup
+    val main = new Runnable { override def run { body } }
+    val thread = new Standard_Thread(group, main, make_name(name), daemon)
     thread.start
     thread
   }
 
+
+  /* self */
+
+  def self: Option[Standard_Thread] =
+    Thread.currentThread match {
+      case thread: Standard_Thread => Some(thread)
+      case _ => None
+    }
+
   def uninterruptible[A](body: => A): A =
   {
-    Thread.currentThread match {
-      case thread: Standard_Thread => thread.uninterruptible(body)
-      case thread => error("uninterruptible: not a standard managed thread: " + thread)
+    self match {
+      case Some(thread) => thread.uninterruptible(body)
+      case None => error("Cannot change interrupts --- running on non-standard thread")
     }
   }
 
@@ -109,15 +127,14 @@ object Standard_Thread
     new Delay(false, delay, log, event)
 }
 
-class Standard_Thread private(name: String, daemon: Boolean, main: => Unit)
-  extends Thread()
+class Standard_Thread private(group: ThreadGroup, main: Runnable, name: String, daemon: Boolean)
+  extends Thread(group, null, name)
 {
   thread =>
 
-  proper_string(name).foreach(thread.setName)
   thread.setDaemon(daemon)
 
-  override def run { main }
+  override def run { main.run() }
 
   private var interruptible: Boolean = true
   private var interrupt_pending: Boolean = false
@@ -128,8 +145,10 @@ class Standard_Thread private(name: String, daemon: Boolean, main: => Unit)
     else { interrupt_pending = true }
   }
 
-  private def uninterruptible[A](body: => A): A =
+  def uninterruptible[A](body: => A): A =
   {
+    require(Thread.currentThread == thread)
+
     val interruptible0 = synchronized { val b = interruptible; interruptible = false; b }
     try { body }
     finally {
