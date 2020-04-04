@@ -115,7 +115,7 @@ object Bash
       while (running && count > 0) {
         if (kill(signal)) {
           Exn.Interrupt.postpone {
-            Thread.sleep(100)
+            Time.seconds(0.1).sleep
             count -= 1
           }
         }

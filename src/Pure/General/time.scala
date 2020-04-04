@@ -65,4 +65,6 @@ final class Time private(val ms: Long) extends AnyVal
   }
 
   def instant: Instant = Instant.ofEpochMilli(ms)
+
+  def sleep { Thread.sleep(ms) }
 }

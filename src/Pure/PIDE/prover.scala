@@ -129,7 +129,7 @@ class Prover(
           }
           catch { case _: IOException => finished = Some(false) }
         }
-        Thread.sleep(50)
+        Time.seconds(0.05).sleep
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
@@ -170,7 +170,7 @@ class Prover(
 
     var count = 10
     while (!process_result.is_finished && count > 0) {
-      Thread.sleep(100)
+      Time.seconds(0.1).sleep
       count -= 1
     }
     if (!process_result.is_finished) terminate_process()

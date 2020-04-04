@@ -514,7 +514,7 @@ object Isabelle_Cronjob
         {
           running.partition(_.is_finished) match {
             case (Nil, Nil) =>
-            case (Nil, _ :: _) => Thread.sleep(500); join(running)
+            case (Nil, _ :: _) => Time.seconds(0.5).sleep; join(running)
             case (_ :: _, remaining) => join(remaining)
           }
         }

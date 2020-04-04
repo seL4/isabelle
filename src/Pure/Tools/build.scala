@@ -584,7 +584,7 @@ object Build
 
     def sleep()
     {
-      try { Thread.sleep(500) }
+      try { Time.seconds(0.5).sleep }
       catch { case Exn.Interrupt() => Exn.Interrupt.impose() }
     }
 

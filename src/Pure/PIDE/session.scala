@@ -687,7 +687,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
-      Thread.sleep(output_delay.ms)
+      output_delay.sleep
       await_stable_snapshot()
     }
     else snapshot
