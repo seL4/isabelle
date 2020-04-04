@@ -160,6 +160,7 @@ class Standard_Thread private(
           super.interrupt()
         }
       }
+      Exn.Interrupt.expose()
     }
   }
 }
