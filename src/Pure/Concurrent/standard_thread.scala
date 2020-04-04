@@ -16,14 +16,15 @@ object Standard_Thread
 
   private val counter = Counter.make()
 
-  def make_name(name: String, base: String = "thread"): String =
+  def make_name(name: String = "", base: String = "thread"): String =
     proper_string(name).getOrElse(base + counter())
+
+  def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
 
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Standard_Thread =
   {
-    val group = Thread.currentThread.getThreadGroup
     val main = new Runnable { override def run { body } }
-    val thread = new Standard_Thread(group, main, make_name(name), daemon)
+    val thread = new Standard_Thread(current_thread_group, main, make_name(name = name), daemon)
     thread.start
     thread
   }
@@ -54,16 +55,8 @@ object Standard_Thread
       val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
       val executor =
         new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
-      val old_thread_factory = executor.getThreadFactory
       executor.setThreadFactory(
-        new ThreadFactory {
-          def newThread(r: Runnable) =
-          {
-            val thread = old_thread_factory.newThread(r)
-            thread.setDaemon(true)
-            thread
-          }
-        })
+        new Standard_Thread(current_thread_group, _, make_name(base = "worker"), false))
       executor
     }
 
