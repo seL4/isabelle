@@ -7,22 +7,24 @@ Standard thread operations.
 package isabelle
 
 
-import java.lang.Thread
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, ThreadFactory}
 
 
 object Standard_Thread
 {
-  /* fork */
-
-  def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =
+  def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Standard_Thread =
   {
-    val thread =
-      if (name == null || name == "") new Thread() { override def run = body }
-      else new Thread(name) { override def run = body }
-    thread.setDaemon(daemon)
+    val thread = new Standard_Thread(name, daemon, body)
     thread.start
     thread
+  }
+
+  def uninterruptible[A](body: => A): A =
+  {
+    Thread.currentThread match {
+      case thread: Standard_Thread => thread.uninterruptible(body)
+      case thread => error("uninterruptible: not a standard managed thread: " + thread)
+    }
   }
 
 
@@ -105,4 +107,39 @@ object Standard_Thread
   // delayed event after last invocation
   def delay_last(delay: => Time, log: Logger = No_Logger)(event: => Unit): Delay =
     new Delay(false, delay, log, event)
+}
+
+class Standard_Thread private(name: String, daemon: Boolean, main: => Unit)
+  extends Thread()
+{
+  thread =>
+
+  proper_string(name).foreach(thread.setName)
+  thread.setDaemon(daemon)
+
+  override def run { main }
+
+  private var interruptible: Boolean = true
+  private var interrupt_pending: Boolean = false
+
+  override def interrupt: Unit = synchronized
+  {
+    if (interruptible) super.interrupt()
+    else { interrupt_pending = true }
+  }
+
+  private def uninterruptible[A](body: => A): A =
+  {
+    val interruptible0 = synchronized { val b = interruptible; interruptible = false; b }
+    try { body }
+    finally {
+      synchronized {
+        interruptible = interruptible0
+        if (interruptible && interrupt_pending) {
+          interrupt_pending = false
+          super.interrupt()
+        }
+      }
+    }
+  }
 }
