@@ -1975,31 +1975,39 @@ text \<open>Legacy -- use @{thm [source] mult_neg_pos}.\<close>
 lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
   by (drule mult_strict_right_mono [of b 0]) auto
 
-lemma zero_less_mult_pos: "0 < a * b \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
-  apply (cases "b \<le> 0")
-   apply (auto simp add: le_less not_less)
-  apply (drule_tac mult_pos_neg [of a b])
-   apply (auto dest: less_not_sym)
-  done
+lemma zero_less_mult_pos: 
+  assumes "0 < a * b" "0 < a" shows "0 < b"
+proof (cases "b \<le> 0")
+  case True
+  then show ?thesis
+    using assms by (auto simp: le_less dest: less_not_sym mult_pos_neg [of a b])
+qed (auto simp add: le_less not_less)
 
-lemma zero_less_mult_pos2: "0 < b * a \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
-  apply (cases "b \<le> 0")
-   apply (auto simp add: le_less not_less)
-  apply (drule_tac mult_pos_neg2 [of a b])
-   apply (auto dest: less_not_sym)
-  done
+
+lemma zero_less_mult_pos2: 
+  assumes "0 < b * a" "0 < a" shows "0 < b"
+proof (cases "b \<le> 0")
+  case True
+  then show ?thesis
+    using assms by (auto simp: le_less dest: less_not_sym mult_pos_neg2 [of a b])
+qed (auto simp add: le_less not_less)
 
 text \<open>Strict monotonicity in both arguments\<close>
 lemma mult_strict_mono:
-  assumes "a < b" and "c < d" and "0 < b" and "0 \<le> c"
+  assumes "a < b" "c < d" "0 < b" "0 \<le> c"
   shows "a * c < b * d"
-  using assms
-  apply (cases "c = 0")
-   apply simp
-  apply (erule mult_strict_right_mono [THEN less_trans])
-   apply (auto simp add: le_less)
-  apply (erule (1) mult_strict_left_mono)
-  done
+proof (cases "c = 0")
+  case True
+  with assms show ?thesis
+    by simp
+next
+  case False
+  with assms have "a*c < b*c"
+    by (simp add: mult_strict_right_mono [OF \<open>a < b\<close>])
+  also have "\<dots> < b*d"
+    by (simp add: assms mult_strict_left_mono)
+  finally show ?thesis .
+qed
 
 text \<open>This weaker variant has more natural premises\<close>
 lemma mult_strict_mono':
@@ -2010,24 +2018,24 @@ lemma mult_strict_mono':
 lemma mult_less_le_imp_less:
   assumes "a < b" and "c \<le> d" and "0 \<le> a" and "0 < c"
   shows "a * c < b * d"
-  using assms
-  apply (subgoal_tac "a * c < b * c")
-   apply (erule less_le_trans)
-   apply (erule mult_left_mono)
-   apply simp
-  apply (erule (1) mult_strict_right_mono)
-  done
+proof -
+  have "a * c < b * c"
+    by (simp add: assms mult_strict_right_mono)
+  also have "... \<le> b * d"
+    by (intro mult_left_mono) (use assms in auto)
+  finally show ?thesis .
+qed
 
 lemma mult_le_less_imp_less:
   assumes "a \<le> b" and "c < d" and "0 < a" and "0 \<le> c"
   shows "a * c < b * d"
-  using assms
-  apply (subgoal_tac "a * c \<le> b * c")
-   apply (erule le_less_trans)
-   apply (erule mult_strict_left_mono)
-   apply simp
-  apply (erule (1) mult_right_mono)
-  done
+proof -
+  have "a * c \<le> b * c"
+    by (simp add: assms mult_right_mono)
+  also have "... < b * d"
+    by (intro mult_strict_left_mono) (use assms in auto)
+  finally show ?thesis .
+qed
 
 end
 
@@ -2114,14 +2122,10 @@ lemma le_add_iff2: "a * e + c \<le> b * e + d \<longleftrightarrow> c \<le> (b -
   by (simp add: algebra_simps)
 
 lemma mult_left_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c * a \<le> c * b"
-  apply (drule mult_left_mono [of _ _ "- c"])
-  apply simp_all
-  done
+  by (auto dest: mult_left_mono [of _ _ "- c"])
 
 lemma mult_right_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a * c \<le> b * c"
-  apply (drule mult_right_mono [of _ _ "- c"])
-  apply simp_all
-  done
+  by (auto dest: mult_right_mono [of _ _ "- c"])
 
 lemma mult_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
   using mult_right_mono_neg [of a 0 b] by simp
