@@ -45,7 +45,7 @@ object Isabelle_Thread
   def self: Isabelle_Thread =
     Thread.currentThread match {
       case thread: Isabelle_Thread => thread
-      case _ => error("Expected to run on Isabelle/Scala standard thread")
+      case _ => error("Isabelle-specific thread required")
     }
 
   def uninterruptible[A](body: => A): A = self.uninterruptible(body)
