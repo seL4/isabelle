@@ -17,7 +17,7 @@ object Isabelle_Thread
   private val counter = Counter.make()
 
   def make_name(name: String = "", base: String = "thread"): String =
-    proper_string(name).getOrElse(base + counter())
+    "Isabelle." + proper_string(name).getOrElse(base + counter())
 
   def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
 

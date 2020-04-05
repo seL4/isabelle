@@ -39,7 +39,7 @@ fun the_name () =
   | SOME name => name);
 
 fun set_name base =
-  Thread_Data.put name_var (SOME (base ^ "/" ^ string_of_int (count ())));
+  Thread_Data.put name_var (SOME ("Isabelle." ^ base ^ "-" ^ string_of_int (count ())));
 
 end;
 
