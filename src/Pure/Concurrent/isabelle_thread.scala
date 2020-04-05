@@ -48,7 +48,16 @@ object Isabelle_Thread
       case _ => error("Isabelle-specific thread required")
     }
 
-  def uninterruptible[A](body: => A): A = self.uninterruptible(body)
+
+  /* interrupts */
+
+  type Interrupt_Handler = Isabelle_Thread => Unit
+
+  def interrupt_handler[A](handler: Interrupt_Handler)(body: => A): A =
+    self.interrupt_handler(handler)(body)
+
+  def interruptible[A](body: => A): A = interrupt_handler(_.raise_interrupt)(body)
+  def uninterruptible[A](body: => A): A = interrupt_handler(_.postpone_interrupt)(body)
 
 
   /* pool */
@@ -140,28 +149,41 @@ class Isabelle_Thread private(
 
   override def run { main.run() }
 
-  private var interruptible: Boolean = true
+
+  /* interrupt state */
+
   private var interrupt_pending: Boolean = false
 
-  override def interrupt: Unit = synchronized
+  def raise_interrupt: Unit = synchronized
   {
-    if (interruptible) super.interrupt()
-    else { interrupt_pending = true }
+    interrupt_pending = false
+    super.interrupt()
   }
 
-  def uninterruptible[A](body: => A): A =
+  def postpone_interrupt: Unit = synchronized
+  {
+    interrupt_pending = true
+    Exn.Interrupt.dispose()
+  }
+
+
+  /* interrupt handler */
+
+  private var handler: Isabelle_Thread.Interrupt_Handler = (_.raise_interrupt)
+
+  override def interrupt: Unit = (synchronized { handler })(thread)
+
+  def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
   {
     require(Thread.currentThread == thread)
 
-    val interruptible0 = synchronized { val b = interruptible; interruptible = false; b }
+    val old_handler = handler
+    handler = new_handler
     try { body }
     finally {
       synchronized {
-        interruptible = interruptible0
-        if (interruptible && interrupt_pending) {
-          interrupt_pending = false
-          super.interrupt()
-        }
+        handler = old_handler
+        if (isInterrupted || interrupt_pending) thread.interrupt
       }
       Exn.Interrupt.expose()
     }
