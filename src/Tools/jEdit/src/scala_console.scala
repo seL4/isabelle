@@ -152,7 +152,7 @@ class Scala_Console extends Shell("Scala")
           }
           finally {
             running.change(_ => None)
-            Thread.interrupted
+            Exn.Interrupt.dispose()
           }
           GUI_Thread.later {
             if (err != null) err.commandDone()

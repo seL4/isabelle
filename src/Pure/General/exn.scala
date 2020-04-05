@@ -96,6 +96,7 @@ object Exn
     def apply(): Throwable = new InterruptedException
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
+    def dispose() { Thread.interrupted }
     def expose() { if (Thread.interrupted) throw apply() }
     def impose() { Thread.currentThread.interrupt }
 
