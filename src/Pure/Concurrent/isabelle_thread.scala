@@ -1,7 +1,7 @@
-/*  Title:      Pure/Concurrent/standard_thread.scala
+/*  Title:      Pure/Concurrent/isabelle_thread.scala
     Author:     Makarius
 
-Standard thread operations.
+Isabelle-specific thread management.
 */
 
 package isabelle
@@ -10,7 +10,7 @@ package isabelle
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, ThreadFactory}
 
 
-object Standard_Thread
+object Isabelle_Thread
 {
   /* fork */
 
@@ -27,13 +27,13 @@ object Standard_Thread
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
-    uninterruptible: Boolean = false)(body: => Unit): Standard_Thread =
+    uninterruptible: Boolean = false)(body: => Unit): Isabelle_Thread =
   {
     val main =
-      if (uninterruptible) new Runnable { override def run { Standard_Thread.uninterruptible { body } } }
+      if (uninterruptible) new Runnable { override def run { Isabelle_Thread.uninterruptible { body } } }
       else new Runnable { override def run { body } }
     val thread =
-      new Standard_Thread(main, name = make_name(name = name), group = group,
+      new Isabelle_Thread(main, name = make_name(name = name), group = group,
         pri = pri, daemon = daemon, inherit_locals = inherit_locals)
     thread.start
     thread
@@ -42,9 +42,9 @@ object Standard_Thread
 
   /* self */
 
-  def self: Standard_Thread =
+  def self: Isabelle_Thread =
     Thread.currentThread match {
-      case thread: Standard_Thread => thread
+      case thread: Isabelle_Thread => thread
       case _ => error("Expected to run on Isabelle/Scala standard thread")
     }
 
@@ -60,14 +60,14 @@ object Standard_Thread
       val executor =
         new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
       executor.setThreadFactory(
-        new Standard_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
+        new Isabelle_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
       executor
     }
 
 
   /* delayed events */
 
-  final class Delay private[Standard_Thread](
+  final class Delay private[Isabelle_Thread](
     first: Boolean, delay: => Time, log: Logger, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None
@@ -124,7 +124,7 @@ object Standard_Thread
     new Delay(false, delay, log, event)
 }
 
-class Standard_Thread private(
+class Isabelle_Thread private(
     main: Runnable,
     name: String = "",
     group: ThreadGroup = null,

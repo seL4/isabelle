@@ -127,12 +127,12 @@ class Server(
 
   /* input from client or file-system */
 
-  private val delay_input: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
+  private val delay_input: Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { resources.flush_input(session, channel) }
 
-  private val delay_load: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
+  private val delay_load: Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
       val (invoke_input, invoke_load) =
         resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) delay_input.invoke()
@@ -183,8 +183,8 @@ class Server(
 
   /* caret handling */
 
-  private val delay_caret_update: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
+  private val delay_caret_update: Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { session.caret_focus.post(Session.Caret_Focus) }
 
   private def update_caret(caret: Option[(JFile, Line.Position)])
@@ -199,8 +199,8 @@ class Server(
 
   private lazy val preview_panel = new Preview_Panel(resources)
 
-  private lazy val delay_preview: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
+  private lazy val delay_preview: Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
@@ -214,8 +214,8 @@ class Server(
 
   /* output to client */
 
-  private val delay_output: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
+  private val delay_output: Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
       if (resources.flush_output(channel)) delay_output.invoke()
     }

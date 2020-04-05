@@ -58,9 +58,9 @@ object GUI_Thread
 
   /* delayed events */
 
-  def delay_first(delay: => Time)(event: => Unit): Standard_Thread.Delay =
-    Standard_Thread.delay_first(delay) { later { event } }
+  def delay_first(delay: => Time)(event: => Unit): Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_first(delay) { later { event } }
 
-  def delay_last(delay: => Time)(event: => Unit): Standard_Thread.Delay =
-    Standard_Thread.delay_last(delay) { later { event } }
+  def delay_last(delay: => Time)(event: => Unit): Isabelle_Thread.Delay =
+    Isabelle_Thread.delay_last(delay) { later { event } }
 }

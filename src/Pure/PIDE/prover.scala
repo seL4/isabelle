@@ -112,7 +112,7 @@ class Prover(
     }
   }
 
-  private val process_manager = Standard_Thread.fork(name = "process_manager")
+  private val process_manager = Isabelle_Thread.fork(name = "process_manager")
   {
     val stdout = physical_output(false)
 
@@ -218,7 +218,7 @@ class Prover(
       if (err) ("standard_error", process.stderr, Markup.STDERR)
       else ("standard_output", process.stdout, Markup.STDOUT)
 
-    Standard_Thread.fork(name = name) {
+    Isabelle_Thread.fork(name = name) {
       try {
         var result = new StringBuilder(100)
         var finished = false
@@ -256,7 +256,7 @@ class Prover(
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
-    Standard_Thread.fork(name = name) {
+    Isabelle_Thread.fork(name = name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 

@@ -20,7 +20,7 @@ object Future
 
   def thread[A](
     name: String = "",
-    group: ThreadGroup = Standard_Thread.current_thread_group,
+    group: ThreadGroup = Isabelle_Thread.current_thread_group,
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
@@ -96,7 +96,7 @@ private class Task_Future[A](body: => A) extends Future[A]
       status.change(_ => Finished(if (Thread.interrupted) Exn.Exn(Exn.Interrupt()) else result))
     }
   }
-  private val task = Standard_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
+  private val task = Isabelle_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
 
   def join_result: Exn.Result[A] =
   {
@@ -151,7 +151,7 @@ private class Thread_Future[A](
 {
   private val result = Future.promise[A]
   private val thread =
-    Standard_Thread.fork(name = name, group = group, pri = pri, daemon = daemon,
+    Isabelle_Thread.fork(name = name, group = group, pri = pri, daemon = daemon,
       inherit_locals = inherit_locals, uninterruptible = uninterruptible)
     { result.fulfill_result(Exn.capture(body)) }
 

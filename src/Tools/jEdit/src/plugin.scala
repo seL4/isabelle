@@ -154,7 +154,7 @@ class Plugin extends EBPlugin
         }
         if (required_files.nonEmpty) {
           try {
-            Standard_Thread.fork(name = "resolve_dependencies") {
+            Isabelle_Thread.fork(name = "resolve_dependencies") {
               val loaded_files =
                 for {
                   name <- required_files

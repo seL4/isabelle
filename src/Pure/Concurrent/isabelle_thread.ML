@@ -1,10 +1,10 @@
-(*  Title:      Pure/Concurrent/standard_thread.ML
+(*  Title:      Pure/Concurrent/isabelle_thread.ML
     Author:     Makarius
 
-Standard thread operations.
+Isabelle-specific thread management.
 *)
 
-signature STANDARD_THREAD =
+signature ISABELLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
   val get_name: unit -> string option
@@ -16,7 +16,7 @@ sig
   val interrupt_unsynchronized: Thread.thread -> unit
 end;
 
-structure Standard_Thread: STANDARD_THREAD =
+structure Isabelle_Thread: ISABELLE_THREAD =
 struct
 
 (* self *)

@@ -304,12 +304,12 @@ object Headless
       val consumer =
       {
         val delay_nodes_status =
-          Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
+          Isabelle_Thread.delay_first(nodes_status_delay max Time.zero) {
             progress.nodes_status(use_theories_state.value.nodes_status)
           }
 
         val delay_commit_clean =
-          Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
+          Isabelle_Thread.delay_first(commit_cleanup_delay max Time.zero) {
             val clean_theories = use_theories_state.change_result(_.clean_theories)
             if (clean_theories.nonEmpty) {
               progress.echo("Removing " + clean_theories.length + " theories ...")
