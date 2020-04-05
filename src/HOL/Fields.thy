@@ -125,11 +125,14 @@ proof
 qed
 
 lemma inverse_zero_imp_zero:
-  "inverse a = 0 \<Longrightarrow> a = 0"
-apply (rule classical)
-apply (drule nonzero_imp_inverse_nonzero)
-apply auto
-done
+  assumes "inverse a = 0" shows "a = 0"
+proof (rule ccontr)
+  assume "a \<noteq> 0"
+  then have "inverse a \<noteq> 0"
+    by (simp add: nonzero_imp_inverse_nonzero)
+  with assms show False
+    by auto
+qed
 
 lemma inverse_unique:
   assumes ab: "a * b = 1"
@@ -209,10 +212,10 @@ lemma times_divide_eq_right [simp]: "a * (b / c) = (a * b) / c"
 lemma minus_divide_left: "- (a / b) = (-a) / b"
   by (simp add: divide_inverse)
 
-lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
+lemma nonzero_minus_divide_right: "b \<noteq> 0 \<Longrightarrow> - (a / b) = a / (- b)"
   by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
-lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
+lemma nonzero_minus_divide_divide: "b \<noteq> 0 \<Longrightarrow> (-a) / (-b) = a / b"
   by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
 lemma divide_minus_left [simp]: "(-a) / b = - (a / b)"
@@ -712,10 +715,16 @@ proof (rule ccontr)
 qed
 
 lemma inverse_less_imp_less:
-  "inverse a < inverse b \<Longrightarrow> 0 < a \<Longrightarrow> b < a"
-apply (simp add: less_le [of "inverse a"] less_le [of "b"])
-apply (force dest!: inverse_le_imp_le nonzero_inverse_eq_imp_eq)
-done
+  assumes "inverse a < inverse b" "0 < a"
+  shows "b < a"
+proof -
+  have "a \<noteq> b"
+    using assms by (simp add: less_le)
+  moreover have "b \<le> a"
+    using assms by (force simp: less_le dest: inverse_le_imp_le)
+  ultimately show ?thesis
+    by (simp add: less_le)
+qed
 
 text\<open>Both premises are essential. Consider -1 and 1.\<close>
 lemma inverse_less_iff_less [simp]:
@@ -734,41 +743,44 @@ lemma inverse_le_iff_le [simp]:
 text\<open>These results refer to both operands being negative.  The opposite-sign
 case is trivial, since inverse preserves signs.\<close>
 lemma inverse_le_imp_le_neg:
-  "inverse a \<le> inverse b \<Longrightarrow> b < 0 \<Longrightarrow> b \<le> a"
-apply (rule classical)
-apply (subgoal_tac "a < 0")
- prefer 2 apply force
-apply (insert inverse_le_imp_le [of "-b" "-a"])
-apply (simp add: nonzero_inverse_minus_eq)
-done
+  assumes "inverse a \<le> inverse b" "b < 0"
+  shows "b \<le> a"
+proof (rule classical)
+  assume "\<not> b \<le> a"
+  with \<open>b < 0\<close> have "a < 0"
+    by force
+  with assms show "b \<le> a"
+    using inverse_le_imp_le [of "-b" "-a"] by (simp add: nonzero_inverse_minus_eq)
+qed
 
 lemma less_imp_inverse_less_neg:
-   "a < b \<Longrightarrow> b < 0 \<Longrightarrow> inverse b < inverse a"
-apply (subgoal_tac "a < 0")
- prefer 2 apply (blast intro: less_trans)
-apply (insert less_imp_inverse_less [of "-b" "-a"])
-apply (simp add: nonzero_inverse_minus_eq)
-done
+  assumes "a < b" "b < 0"
+  shows "inverse b < inverse a"
+proof -
+  have "a < 0"
+    using assms by (blast intro: less_trans)
+  with less_imp_inverse_less [of "-b" "-a"] show ?thesis
+    by (simp add: nonzero_inverse_minus_eq assms)
+qed
 
 lemma inverse_less_imp_less_neg:
-   "inverse a < inverse b \<Longrightarrow> b < 0 \<Longrightarrow> b < a"
-apply (rule classical)
-apply (subgoal_tac "a < 0")
- prefer 2
- apply force
-apply (insert inverse_less_imp_less [of "-b" "-a"])
-apply (simp add: nonzero_inverse_minus_eq)
-done
+  assumes "inverse a < inverse b" "b < 0"
+  shows "b < a"
+proof (rule classical)
+  assume "\<not> b < a"
+  with \<open>b < 0\<close> have "a < 0"
+    by force
+  with inverse_less_imp_less [of "-b" "-a"] show ?thesis
+    by (simp add: nonzero_inverse_minus_eq assms)
+qed
 
 lemma inverse_less_iff_less_neg [simp]:
   "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> inverse a < inverse b \<longleftrightarrow> b < a"
-apply (insert inverse_less_iff_less [of "-b" "-a"])
-apply (simp del: inverse_less_iff_less
-            add: nonzero_inverse_minus_eq)
-done
+  using inverse_less_iff_less [of "-b" "-a"]
+  by (simp del: inverse_less_iff_less add: nonzero_inverse_minus_eq)
 
 lemma le_imp_inverse_le_neg:
-  "a \<le> b \<Longrightarrow> b < 0 ==> inverse b \<le> inverse a"
+  "a \<le> b \<Longrightarrow> b < 0 \<Longrightarrow> inverse b \<le> inverse a"
   by (force simp add: le_less less_imp_inverse_less_neg)
 
 lemma inverse_le_iff_le_neg [simp]:
@@ -907,113 +919,125 @@ lemma frac_le_eq:
   by (subst le_iff_diff_le_0) (simp add: diff_frac_eq )
 
 lemma divide_pos_pos[simp]:
-  "0 < x ==> 0 < y ==> 0 < x / y"
+  "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> 0 < x / y"
 by(simp add:field_simps)
 
 lemma divide_nonneg_pos:
-  "0 <= x ==> 0 < y ==> 0 <= x / y"
+  "0 \<le> x \<Longrightarrow> 0 < y \<Longrightarrow> 0 \<le> x / y"
 by(simp add:field_simps)
 
 lemma divide_neg_pos:
-  "x < 0 ==> 0 < y ==> x / y < 0"
-by(simp add:field_simps)
+  "x < 0 \<Longrightarrow> 0 < y \<Longrightarrow> x / y < 0"
+  by(simp add:field_simps)
 
 lemma divide_nonpos_pos:
-  "x <= 0 ==> 0 < y ==> x / y <= 0"
-by(simp add:field_simps)
+  "x \<le> 0 \<Longrightarrow> 0 < y \<Longrightarrow> x / y \<le> 0"
+  by(simp add:field_simps)
 
 lemma divide_pos_neg:
-  "0 < x ==> y < 0 ==> x / y < 0"
-by(simp add:field_simps)
+  "0 < x \<Longrightarrow> y < 0 \<Longrightarrow> x / y < 0"
+  by(simp add:field_simps)
 
 lemma divide_nonneg_neg:
-  "0 <= x ==> y < 0 ==> x / y <= 0"
-by(simp add:field_simps)
+  "0 \<le> x \<Longrightarrow> y < 0 \<Longrightarrow> x / y \<le> 0"
+  by(simp add:field_simps)
 
 lemma divide_neg_neg:
-  "x < 0 ==> y < 0 ==> 0 < x / y"
-by(simp add:field_simps)
+  "x < 0 \<Longrightarrow> y < 0 \<Longrightarrow> 0 < x / y"
+  by(simp add:field_simps)
 
 lemma divide_nonpos_neg:
-  "x <= 0 ==> y < 0 ==> 0 <= x / y"
-by(simp add:field_simps)
+  "x \<le> 0 \<Longrightarrow> y < 0 \<Longrightarrow> 0 \<le> x / y"
+  by(simp add:field_simps)
 
 lemma divide_strict_right_mono:
-     "[|a < b; 0 < c|] ==> a / c < b / c"
-by (simp add: less_imp_not_eq2 divide_inverse mult_strict_right_mono
-              positive_imp_inverse_positive)
+  "\<lbrakk>a < b; 0 < c\<rbrakk> \<Longrightarrow> a / c < b / c"
+  by (simp add: less_imp_not_eq2 divide_inverse mult_strict_right_mono
+      positive_imp_inverse_positive)
 
 
 lemma divide_strict_right_mono_neg:
-     "[|b < a; c < 0|] ==> a / c < b / c"
-apply (drule divide_strict_right_mono [of _ _ "-c"], simp)
-apply (simp add: less_imp_not_eq nonzero_minus_divide_right [symmetric])
-done
+  assumes "b < a" "c < 0" shows "a / c < b / c"
+proof -
+  have "b / - c < a / - c"
+    by (rule divide_strict_right_mono) (use assms in auto)
+  then show ?thesis
+    by (simp add: less_imp_not_eq)
+qed
 
 text\<open>The last premise ensures that \<^term>\<open>a\<close> and \<^term>\<open>b\<close>
       have the same sign\<close>
 lemma divide_strict_left_mono:
-  "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / b"
+  "\<lbrakk>b < a; 0 < c; 0 < a*b\<rbrakk> \<Longrightarrow> c / a < c / b"
   by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono)
 
 lemma divide_left_mono:
-  "[|b \<le> a; 0 \<le> c; 0 < a*b|] ==> c / a \<le> c / b"
+  "\<lbrakk>b \<le> a; 0 \<le> c; 0 < a*b\<rbrakk> \<Longrightarrow> c / a \<le> c / b"
   by (auto simp: field_simps zero_less_mult_iff mult_right_mono)
 
 lemma divide_strict_left_mono_neg:
-  "[|a < b; c < 0; 0 < a*b|] ==> c / a < c / b"
+  "\<lbrakk>a < b; c < 0; 0 < a*b\<rbrakk> \<Longrightarrow> c / a < c / b"
   by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono_neg)
 
-lemma mult_imp_div_pos_le: "0 < y ==> x <= z * y ==>
-    x / y <= z"
+lemma mult_imp_div_pos_le: "0 < y \<Longrightarrow> x \<le> z * y \<Longrightarrow> x / y \<le> z"
 by (subst pos_divide_le_eq, assumption+)
 
-lemma mult_imp_le_div_pos: "0 < y ==> z * y <= x ==>
-    z <= x / y"
+lemma mult_imp_le_div_pos: "0 < y \<Longrightarrow> z * y \<le> x \<Longrightarrow> z \<le> x / y"
 by(simp add:field_simps)
 
-lemma mult_imp_div_pos_less: "0 < y ==> x < z * y ==>
-    x / y < z"
+lemma mult_imp_div_pos_less: "0 < y \<Longrightarrow> x < z * y \<Longrightarrow> x / y < z"
 by(simp add:field_simps)
 
-lemma mult_imp_less_div_pos: "0 < y ==> z * y < x ==>
-    z < x / y"
+lemma mult_imp_less_div_pos: "0 < y \<Longrightarrow> z * y < x \<Longrightarrow> z < x / y"
 by(simp add:field_simps)
 
-lemma frac_le: "0 <= x ==>
-    x <= y ==> 0 < w ==> w <= z  ==> x / z <= y / w"
-  apply (rule mult_imp_div_pos_le)
-  apply simp
-  apply (subst times_divide_eq_left)
-  apply (rule mult_imp_le_div_pos, assumption)
-  apply (rule mult_mono)
-  apply simp_all
-done
+lemma frac_le:
+  assumes "0 \<le> y" "x \<le> y" "0 < w" "w \<le> z"
+  shows "x / z \<le> y / w"
+proof (rule mult_imp_div_pos_le)
+  show "z > 0"
+    using assms by simp
+  have "x \<le> y * z / w"
+  proof (rule mult_imp_le_div_pos [OF \<open>0 < w\<close>])
+    show "x * w \<le> y * z"
+      using assms by (auto intro: mult_mono)
+  qed
+  also have "... = y / w * z"
+    by simp
+  finally show "x \<le> y / w * z" .
+qed
 
-lemma frac_less: "0 <= x ==>
-    x < y ==> 0 < w ==> w <= z  ==> x / z < y / w"
-  apply (rule mult_imp_div_pos_less)
-  apply simp
-  apply (subst times_divide_eq_left)
-  apply (rule mult_imp_less_div_pos, assumption)
-  apply (erule mult_less_le_imp_less)
-  apply simp_all
-done
+lemma frac_less:
+  assumes "0 \<le> x" "x < y" "0 < w" "w \<le> z"
+  shows "x / z < y / w"
+proof (rule mult_imp_div_pos_less)
+  show "z > 0"
+    using assms by simp
+  have "x < y * z / w"
+  proof (rule mult_imp_less_div_pos [OF \<open>0 < w\<close>])
+    show "x * w < y * z"
+      using assms by (auto intro: mult_less_le_imp_less)
+  qed
+  also have "... = y / w * z"
+    by simp
+  finally show "x < y / w * z" .
+qed
 
-lemma frac_less2: "0 < x ==>
-    x <= y ==> 0 < w ==> w < z  ==> x / z < y / w"
-  apply (rule mult_imp_div_pos_less)
-  apply simp_all
-  apply (rule mult_imp_less_div_pos, assumption)
-  apply (erule mult_le_less_imp_less)
-  apply simp_all
-done
+lemma frac_less2:
+  assumes "0 < x" "x \<le> y" "0 < w" "w < z"
+  shows "x / z < y / w"
+proof (rule mult_imp_div_pos_less)
+  show "z > 0"
+    using assms by simp
+  show "x < y / w * z"
+    using assms by (force intro: mult_imp_less_div_pos mult_le_less_imp_less)
+qed
 
-lemma less_half_sum: "a < b ==> a < (a+b) / (1+1)"
-by (simp add: field_simps zero_less_two)
+lemma less_half_sum: "a < b \<Longrightarrow> a < (a+b) / (1+1)"
+  by (simp add: field_simps zero_less_two)
 
-lemma gt_half_sum: "a < b ==> (a+b)/(1+1) < b"
-by (simp add: field_simps zero_less_two)
+lemma gt_half_sum: "a < b \<Longrightarrow> (a+b)/(1+1) < b"
+  by (simp add: field_simps zero_less_two)
 
 subclass unbounded_dense_linorder
 proof
@@ -1037,11 +1061,11 @@ lemma divide_sgn [simp]:
   by (cases b 0 rule: linorder_cases) simp_all
 
 lemma nonzero_abs_inverse:
-  "a \<noteq> 0 ==> \<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
+  "a \<noteq> 0 \<Longrightarrow> \<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
   by (rule abs_inverse)
 
 lemma nonzero_abs_divide:
-  "b \<noteq> 0 ==> \<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
+  "b \<noteq> 0 \<Longrightarrow> \<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
   by (rule abs_divide)
 
 lemma field_le_epsilon:
@@ -1055,24 +1079,24 @@ proof (rule dense_le)
   then show "t \<le> y" by (simp add: algebra_simps)
 qed
 
-lemma inverse_positive_iff_positive [simp]:
-  "(0 < inverse a) = (0 < a)"
-apply (cases "a = 0", simp)
-apply (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
-done
+lemma inverse_positive_iff_positive [simp]: "(0 < inverse a) = (0 < a)"
+proof (cases "a = 0")
+  case False
+  then show ?thesis
+    by (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
+qed auto
 
-lemma inverse_negative_iff_negative [simp]:
-  "(inverse a < 0) = (a < 0)"
-apply (cases "a = 0", simp)
-apply (blast intro: inverse_negative_imp_negative negative_imp_inverse_negative)
-done
+lemma inverse_negative_iff_negative [simp]: "(inverse a < 0) = (a < 0)"
+proof (cases "a = 0")
+  case False
+  then show ?thesis
+    by (blast intro: inverse_negative_imp_negative negative_imp_inverse_negative)
+qed auto
 
-lemma inverse_nonnegative_iff_nonnegative [simp]:
-  "0 \<le> inverse a \<longleftrightarrow> 0 \<le> a"
+lemma inverse_nonnegative_iff_nonnegative [simp]: "0 \<le> inverse a \<longleftrightarrow> 0 \<le> a"
   by (simp add: not_less [symmetric])
 
-lemma inverse_nonpositive_iff_nonpositive [simp]:
-  "inverse a \<le> 0 \<longleftrightarrow> a \<le> 0"
+lemma inverse_nonpositive_iff_nonpositive [simp]: "inverse a \<le> 0 \<longleftrightarrow> a \<le> 0"
   by (simp add: not_less [symmetric])
 
 lemma one_less_inverse_iff: "1 < inverse x \<longleftrightarrow> 0 < x \<and> x < 1"
@@ -1144,20 +1168,14 @@ lemma divide_less_0_1_iff [simp]:
   by (simp add: divide_less_0_iff)
 
 lemma divide_right_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> a/c \<le> b/c"
-by (force simp add: divide_strict_right_mono le_less)
+  "\<lbrakk>a \<le> b; 0 \<le> c\<rbrakk> \<Longrightarrow> a/c \<le> b/c"
+  by (force simp add: divide_strict_right_mono le_less)
 
-lemma divide_right_mono_neg: "a <= b
-    ==> c <= 0 ==> b / c <= a / c"
-apply (drule divide_right_mono [of _ _ "- c"])
-apply auto
-done
+lemma divide_right_mono_neg: "a \<le> b \<Longrightarrow> c \<le> 0 \<Longrightarrow> b / c \<le> a / c"
+  by (auto dest: divide_right_mono [of _ _ "- c"])
 
-lemma divide_left_mono_neg: "a <= b
-    ==> c <= 0 ==> 0 < a * b ==> c / a <= c / b"
-  apply (drule divide_left_mono [of _ _ "- c"])
-  apply (auto simp add: mult.commute)
-done
+lemma divide_left_mono_neg: "a \<le> b \<Longrightarrow> c \<le> 0 \<Longrightarrow> 0 < a * b \<Longrightarrow> c / a \<le> c / b"
+  by (auto simp add: mult.commute dest: divide_left_mono [of _ _ "- c"])
 
 lemma inverse_le_iff: "inverse a \<le> inverse b \<longleftrightarrow> (0 < a * b \<longrightarrow> b \<le> a) \<and> (a * b \<le> 0 \<longrightarrow> a \<le> b)"
   by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
@@ -1176,19 +1194,19 @@ text\<open>Simplify quotients that are compared with the value 1.\<close>
 
 lemma le_divide_eq_1:
   "(1 \<le> b / a) = ((0 < a \<and> a \<le> b) \<or> (a < 0 \<and> b \<le> a))"
-by (auto simp add: le_divide_eq)
+  by (auto simp add: le_divide_eq)
 
 lemma divide_le_eq_1:
   "(b / a \<le> 1) = ((0 < a \<and> b \<le> a) \<or> (a < 0 \<and> a \<le> b) \<or> a=0)"
-by (auto simp add: divide_le_eq)
+  by (auto simp add: divide_le_eq)
 
 lemma less_divide_eq_1:
   "(1 < b / a) = ((0 < a \<and> a < b) \<or> (a < 0 \<and> b < a))"
-by (auto simp add: less_divide_eq)
+  by (auto simp add: less_divide_eq)
 
 lemma divide_less_eq_1:
   "(b / a < 1) = ((0 < a \<and> b < a) \<or> (a < 0 \<and> a < b) \<or> a=0)"
-by (auto simp add: divide_less_eq)
+  by (auto simp add: divide_less_eq)
 
 lemma divide_nonneg_nonneg [simp]:
   "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> x / y"
@@ -1210,55 +1228,52 @@ text \<open>Conditional Simplification Rules: No Case Splits\<close>
 
 lemma le_divide_eq_1_pos [simp]:
   "0 < a \<Longrightarrow> (1 \<le> b/a) = (a \<le> b)"
-by (auto simp add: le_divide_eq)
+  by (auto simp add: le_divide_eq)
 
 lemma le_divide_eq_1_neg [simp]:
   "a < 0 \<Longrightarrow> (1 \<le> b/a) = (b \<le> a)"
-by (auto simp add: le_divide_eq)
+  by (auto simp add: le_divide_eq)
 
 lemma divide_le_eq_1_pos [simp]:
   "0 < a \<Longrightarrow> (b/a \<le> 1) = (b \<le> a)"
-by (auto simp add: divide_le_eq)
+  by (auto simp add: divide_le_eq)
 
 lemma divide_le_eq_1_neg [simp]:
   "a < 0 \<Longrightarrow> (b/a \<le> 1) = (a \<le> b)"
-by (auto simp add: divide_le_eq)
+  by (auto simp add: divide_le_eq)
 
 lemma less_divide_eq_1_pos [simp]:
   "0 < a \<Longrightarrow> (1 < b/a) = (a < b)"
-by (auto simp add: less_divide_eq)
+  by (auto simp add: less_divide_eq)
 
 lemma less_divide_eq_1_neg [simp]:
   "a < 0 \<Longrightarrow> (1 < b/a) = (b < a)"
-by (auto simp add: less_divide_eq)
+  by (auto simp add: less_divide_eq)
 
 lemma divide_less_eq_1_pos [simp]:
   "0 < a \<Longrightarrow> (b/a < 1) = (b < a)"
-by (auto simp add: divide_less_eq)
+  by (auto simp add: divide_less_eq)
 
 lemma divide_less_eq_1_neg [simp]:
   "a < 0 \<Longrightarrow> b/a < 1 \<longleftrightarrow> a < b"
-by (auto simp add: divide_less_eq)
+  by (auto simp add: divide_less_eq)
 
 lemma eq_divide_eq_1 [simp]:
   "(1 = b/a) = ((a \<noteq> 0 \<and> a = b))"
-by (auto simp add: eq_divide_eq)
+  by (auto simp add: eq_divide_eq)
 
 lemma divide_eq_eq_1 [simp]:
   "(b/a = 1) = ((a \<noteq> 0 \<and> a = b))"
-by (auto simp add: divide_eq_eq)
+  by (auto simp add: divide_eq_eq)
 
-lemma abs_div_pos: "0 < y ==>
-    \<bar>x\<bar> / y = \<bar>x / y\<bar>"
-  apply (subst abs_divide)
-  apply (simp add: order_less_imp_le)
-done
+lemma abs_div_pos: "0 < y \<Longrightarrow> \<bar>x\<bar> / y = \<bar>x / y\<bar>"
+  by (simp add: order_less_imp_le)
 
 lemma zero_le_divide_abs_iff [simp]: "(0 \<le> a / \<bar>b\<bar>) = (0 \<le> a \<or> b = 0)"
-by (auto simp: zero_le_divide_iff)
+  by (auto simp: zero_le_divide_iff)
 
 lemma divide_le_0_abs_iff [simp]: "(a / \<bar>b\<bar> \<le> 0) = (a \<le> 0 \<or> b = 0)"
-by (auto simp: divide_le_0_iff)
+  by (auto simp: divide_le_0_iff)
 
 lemma field_le_mult_one_interval:
   assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
@@ -1279,13 +1294,14 @@ qed
 text\<open>For creating values between \<^term>\<open>u\<close> and \<^term>\<open>v\<close>.\<close>
 lemma scaling_mono:
   assumes "u \<le> v" "0 \<le> r" "r \<le> s"
-    shows "u + r * (v - u) / s \<le> v"
+  shows "u + r * (v - u) / s \<le> v"
 proof -
   have "r/s \<le> 1" using assms
     using divide_le_eq_1 by fastforce
-  then have "(r/s) * (v - u) \<le> 1 * (v - u)"
-    apply (rule mult_right_mono)
+  moreover have "0 \<le> v - u"
     using assms by simp
+  ultimately have "(r/s) * (v - u) \<le> 1 * (v - u)"
+    by (rule mult_right_mono)
   then show ?thesis
     by (simp add: field_simps)
 qed
