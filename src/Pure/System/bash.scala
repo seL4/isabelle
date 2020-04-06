@@ -100,13 +100,11 @@ object Bash
 
     private val pid = stdout.readLine
 
-    def interrupt()
-    { Exn.Interrupt.postpone { Isabelle_System.kill("INT", pid) } }
-
     private def kill(signal: String): Boolean =
-      Exn.Interrupt.postpone {
-        Isabelle_System.kill(signal, pid)
-        Isabelle_System.kill("0", pid)._2 == 0 } getOrElse true
+    {
+      Isabelle_System.kill(signal, pid)
+      Isabelle_System.kill("0", pid)._2 == 0
+    }
 
     private def multi_kill(signal: String): Boolean =
     {
@@ -114,21 +112,24 @@ object Bash
       var count = 10
       while (running && count > 0) {
         if (kill(signal)) {
-          Exn.Interrupt.postpone {
-            Time.seconds(0.1).sleep
-            count -= 1
-          }
+          Time.seconds(0.1).sleep
+          count -= 1
         }
         else running = false
       }
       running
     }
 
-    def terminate()
+    def terminate(): Unit = Isabelle_Thread.uninterruptible
     {
       multi_kill("INT") && multi_kill("TERM") && kill("KILL")
       proc.destroy
       do_cleanup()
+    }
+
+    def interrupt(): Unit = Isabelle_Thread.uninterruptible
+    {
+      Isabelle_System.kill("INT", pid)
     }
 
 
