@@ -162,7 +162,6 @@ class Isabelle_Thread private(
     finally {
       handler = old_handler
       if (clear_interrupt) interrupt
-      Exn.Interrupt.expose()
     }
   }
 }
