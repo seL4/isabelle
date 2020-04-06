@@ -1058,9 +1058,7 @@ proof -
     done
   also have "\<dots> =
       (fact (m + r + k) div (fact k * fact (m + r)) * (fact (m + r) div (fact r * fact m)))"
-    apply (subst div_mult_div_if_dvd)
-    apply (auto simp: fact_fact_dvd_fact algebra_simps)
-    done
+    by (auto simp: div_mult_div_if_dvd fact_fact_dvd_fact algebra_simps)
   finally show ?thesis
     by (simp add: binomial_altdef_nat mult.commute)
 qed
@@ -1179,17 +1177,13 @@ proof -
   have 2: "xs \<noteq> [] \<Longrightarrow> sum_list(tl xs) = sum_list xs - hd xs" for xs :: "nat list"
     by (auto simp add: neq_Nil_conv)
   have f: "bij_betw ?f ?A ?A'"
-    apply (rule bij_betw_byWitness[where f' = tl])
-    using assms
-    apply (auto simp: 2 length_0_conv[symmetric] 1 simp del: length_0_conv)
-    done
+    by (rule bij_betw_byWitness[where f' = tl]) (use assms in \<open>auto simp: 2 1 simp flip: length_0_conv\<close>)
   have 3: "xs \<noteq> [] \<Longrightarrow> hd xs + (sum_list xs - hd xs) = sum_list xs" for xs :: "nat list"
     by (metis 1 sum_list_simps(2) 2)
   have g: "bij_betw ?g ?B ?B'"
     apply (rule bij_betw_byWitness[where f' = "\<lambda>l. (hd l - 1) # tl l"])
     using assms
-    by (auto simp: 2 length_0_conv[symmetric] intro!: 3
-        simp del: length_greater_0_conv length_0_conv)
+    by (auto simp: 2 simp flip: length_0_conv intro!: 3)
   have fin: "finite {xs. size xs = M \<and> set xs \<subseteq> {0..<N}}" for M N :: nat
     using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto
   have fin_A: "finite ?A" using fin[of _ "N+1"]

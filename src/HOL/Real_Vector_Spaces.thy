@@ -62,14 +62,10 @@ global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> '
     and span_raw_def: span = real_vector.span
     and extend_basis_raw_def: extend_basis = real_vector.extend_basis
     and dim_raw_def: dim = real_vector.dim
-    apply unfold_locales
-       apply (rule scaleR_add_right)
-      apply (rule scaleR_add_left)
-     apply (rule scaleR_scaleR)
-    apply (rule scaleR_one)
-   apply (force simp: linear_def)
-  apply (force simp: linear_def real_scaleR_def[abs_def])
-  done
+proof unfold_locales
+  show "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear" "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
+    by (force simp: linear_def real_scaleR_def[abs_def])+
+qed (use scaleR_add_right scaleR_add_left scaleR_scaleR scaleR_one in auto)
 
 hide_const (open)\<comment> \<open>locale constants\<close>
   real_vector.dependent
@@ -86,9 +82,10 @@ global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<
   rewrites  "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
     and "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
   defines construct_raw_def: construct = real_vector.construct
-  apply unfold_locales
-  unfolding linear_def real_scaleR_def
-  by (rule refl)+
+proof unfold_locales
+  show "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
+  unfolding linear_def real_scaleR_def by auto
+qed (auto simp: linear_def)
 
 hide_const (open)\<comment> \<open>locale constants\<close>
   real_vector.construct
@@ -390,8 +387,7 @@ lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
   by (auto simp: Reals_def)
 
 lemma Reals_minus_iff [simp]: "- a \<in> \<real> \<longleftrightarrow> a \<in> \<real>"
-  apply (auto simp: Reals_def)
-  by (metis add.inverse_inverse of_real_minus rangeI)
+  using Reals_minus by fastforce
 
 lemma Reals_diff [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a - b \<in> \<real>"
   by (metis Reals_add Reals_minus_iff add_uminus_conv_diff)
@@ -514,10 +510,8 @@ lemma pos_minus_divideR_less_eq [field_simps]:
   using that by (simp add: less_le_not_le pos_le_minus_divideR_eq pos_minus_divideR_le_eq) 
 
 lemma scaleR_image_atLeastAtMost: "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {c *\<^sub>R x..c *\<^sub>R y}"
-  apply (auto intro!: scaleR_left_mono)
-  apply (rule_tac x = "inverse c *\<^sub>R xa" in image_eqI)
-   apply (simp_all add: pos_le_divideR_eq[symmetric] scaleR_scaleR scaleR_one)
-  done
+  apply (auto intro!: scaleR_left_mono simp: image_iff Bex_def)
+  by (meson local.eq_iff pos_divideR_le_eq pos_le_divideR_eq)
 
 end
 
@@ -1273,13 +1267,12 @@ proof
     assume "open S"
     then obtain f where "\<forall>x\<in>S. 0 < f x \<and> (\<forall>y. dist y x < f x \<longrightarrow> y \<in> S)"
       unfolding open_dist bchoice_iff ..
-    then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
+    then have *: "(\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x}) = S" (is "?S = S")
       by (fastforce simp: dist_real_def)
-    show "generate_topology (range lessThan \<union> range greaterThan) S"
-      apply (subst *)
-      apply (intro generate_topology_Union generate_topology.Int)
-       apply (auto intro: generate_topology.Basis)
-      done
+    moreover have "generate_topology (range lessThan \<union> range greaterThan) ?S"
+      by (force intro: generate_topology.Basis generate_topology_Union generate_topology.Int)
+    ultimately show "generate_topology (range lessThan \<union> range greaterThan) S"
+      by simp
   next
     fix S :: "real set"
     assume "generate_topology (range lessThan \<union> range greaterThan) S"
@@ -1548,9 +1541,10 @@ lemma prod_diff_prod: "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a
   by (simp add: diff_left diff_right)
 
 lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
-  apply standard
-      apply (simp_all add: add_right add_left scaleR_right scaleR_left)
-  by (metis bounded mult.commute)
+proof
+  show "\<exists>K. \<forall>a b. norm (b ** a) \<le> norm a * norm b * K"
+    by (metis bounded mult.commute)
+qed (simp_all add: add_right add_left scaleR_right scaleR_left)
 
 lemma comp1:
   assumes "bounded_linear g"
@@ -1653,11 +1647,10 @@ proof -
 qed
 
 lemma bounded_bilinear_mult: "bounded_bilinear ((*) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
-  apply (rule bounded_bilinear.intro)
-      apply (auto simp: algebra_simps)
-  apply (rule_tac x=1 in exI)
-  apply (simp add: norm_mult_ineq)
-  done
+proof (rule bounded_bilinear.intro)
+  show "\<exists>K. \<forall>a b::'a. norm (a * b) \<le> norm a * norm b * K"
+    by (rule_tac x=1 in exI) (simp add: norm_mult_ineq)
+qed (auto simp: algebra_simps)
 
 lemma bounded_linear_mult_left: "bounded_linear (\<lambda>x::'a::real_normed_algebra. x * y)"
   using bounded_bilinear_mult
@@ -1678,10 +1671,10 @@ lemma bounded_linear_divide: "bounded_linear (\<lambda>x. x / y)"
   unfolding divide_inverse by (rule bounded_linear_mult_left)
 
 lemma bounded_bilinear_scaleR: "bounded_bilinear scaleR"
-  apply (rule bounded_bilinear.intro)
-      apply (auto simp: algebra_simps)
-  apply (rule_tac x=1 in exI, simp)
-  done
+proof (rule bounded_bilinear.intro)
+  show "\<exists>K. \<forall>a b. norm (a *\<^sub>R b) \<le> norm a * norm b * K"
+    using less_eq_real_def by auto
+qed (auto simp: algebra_simps)
 
 lemma bounded_linear_scaleR_left: "bounded_linear (\<lambda>r. scaleR r x)"
   using bounded_bilinear_scaleR
@@ -1716,11 +1709,11 @@ qed
 
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
-  show "\<not> open {x}" for x :: 'a
-    apply (clarsimp simp: open_dist dist_norm)
-    apply (rule_tac x = "x + of_real (e/2)" in exI)
-    apply simp
-    done
+  fix x::'a
+  have "\<And>e. 0 < e \<Longrightarrow> \<exists>y. norm (y - x) < e \<and> y \<noteq> x"
+    by (rule_tac x = "x + of_real (e/2)" in exI) auto
+  then show "\<not> open {x}" 
+    by (clarsimp simp: open_dist dist_norm)
 qed
 
 
@@ -1793,9 +1786,11 @@ proof (rule tendstoI)
 qed
 
 lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
-  apply (clarsimp simp: filterlim_at_top)
-  apply (rule_tac c="nat \<lceil>Z + 1\<rceil>" in eventually_sequentiallyI, linarith)
-  done
+proof (clarsimp simp: filterlim_at_top)
+  fix Z
+  show "\<forall>\<^sub>F x in sequentially. Z \<le> real x"
+    by (meson eventually_sequentiallyI nat_ceiling_le_eq)
+qed
 
 lemma filterlim_nat_sequentially: "filterlim nat sequentially at_top"
 proof -
@@ -1814,17 +1809,20 @@ proof -
 qed
 
 lemma filterlim_sequentially_iff_filterlim_real:
-  "filterlim f sequentially F \<longleftrightarrow> filterlim (\<lambda>x. real (f x)) at_top F"
-  apply (rule iffI)
-  subgoal using filterlim_compose filterlim_real_sequentially by blast
-  subgoal premises prems
+  "filterlim f sequentially F \<longleftrightarrow> filterlim (\<lambda>x. real (f x)) at_top F" (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using filterlim_compose filterlim_real_sequentially by blast
+next
+  assume R: ?rhs
+  show ?lhs
   proof -
     have "filterlim (\<lambda>x. nat (floor (real (f x)))) sequentially F"
       by (intro filterlim_compose[OF filterlim_nat_sequentially]
-          filterlim_compose[OF filterlim_floor_sequentially] prems)
+          filterlim_compose[OF filterlim_floor_sequentially] R)
     then show ?thesis by simp
   qed
-  done
+qed
 
 
 subsubsection \<open>Limits of Sequences\<close>
@@ -1899,10 +1897,8 @@ lemma metric_LIM_equal2:
   shows "f \<midarrow>a\<rightarrow> l"
 proof -
   have "\<And>S. \<lbrakk>open S; l \<in> S; \<forall>\<^sub>F x in at a. g x \<in> S\<rbrakk> \<Longrightarrow> \<forall>\<^sub>F x in at a. f x \<in> S"
-    apply (clarsimp simp add: eventually_at)
-    apply (rule_tac x="min d R" in exI)
-     apply (auto simp: assms)
-    done
+    apply (simp add: eventually_at)
+    by (metis assms(2) assms(3) dual_order.strict_trans linorder_neqE_linordered_idom)
   then show ?thesis
     using assms by (simp add: tendsto_def)
 qed
@@ -2171,16 +2167,19 @@ proof -
       have "dist (u n) l \<le> dist (u n) ((u \<circ> r) n) + dist ((u \<circ> r) n) l"
         by (rule dist_triangle)
       also have "\<dots> < e/2 + e/2"
-        apply (intro add_strict_mono)
-        using N1[of n "r n"] N2[of n] that unfolding comp_def
-        by (auto simp: less_imp_le) (meson assms(2) less_imp_le order.trans seq_suble)
+      proof (intro add_strict_mono)
+        show "dist (u n) ((u \<circ> r) n) < e / 2"
+          using N1[of n "r n"] N2[of n] that unfolding comp_def
+          by (meson assms(2) le_trans max.bounded_iff strict_mono_imp_increasing)
+        show "dist ((u \<circ> r) n) l < e / 2"
+          using N2 that by auto
+      qed
       finally show ?thesis by simp
     qed 
     then show ?thesis unfolding eventually_sequentially by blast
   qed
   have "(\<lambda>n. dist (u n) l) \<longlonglongrightarrow> 0"
-    apply (rule order_tendstoI)
-    using * by auto (meson eventually_sequentiallyI less_le_trans zero_le_dist)
+    by (simp add: less_le_trans * order_tendstoI)
   then show ?thesis using tendsto_dist_iff by auto
 qed
 
