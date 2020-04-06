@@ -2255,21 +2255,39 @@ text \<open>
   an assumption, but effectively four when the comparison is a goal.
 \<close>
 
-lemma mult_less_cancel_right_disj: "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
-  apply (cases "c = 0")
-   apply (auto simp add: neq_iff mult_strict_right_mono mult_strict_right_mono_neg)
-     apply (auto simp add: not_less not_le [symmetric, of "a*c"] not_le [symmetric, of a])
-     apply (erule_tac [!] notE)
-     apply (auto simp add: less_imp_le mult_right_mono mult_right_mono_neg)
-  done
+lemma mult_less_cancel_right_disj: "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and> b < a"
+proof (cases "c = 0")
+  case False
+  show ?thesis (is "?lhs \<longleftrightarrow> ?rhs")
+  proof
+    assume ?lhs
+    then have "c < 0 \<Longrightarrow> b < a" "c > 0 \<Longrightarrow> b > a"
+      by (auto simp flip: not_le intro: mult_right_mono mult_right_mono_neg)
+    with False show ?rhs 
+      by (auto simp add: neq_iff)
+  next
+    assume ?rhs
+    with False show ?lhs 
+      by (auto simp add: mult_strict_right_mono mult_strict_right_mono_neg)
+  qed
+qed auto
 
-lemma mult_less_cancel_left_disj: "c * a < c * b \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
-  apply (cases "c = 0")
-   apply (auto simp add: neq_iff mult_strict_left_mono mult_strict_left_mono_neg)
-     apply (auto simp add: not_less not_le [symmetric, of "c * a"] not_le [symmetric, of a])
-     apply (erule_tac [!] notE)
-     apply (auto simp add: less_imp_le mult_left_mono mult_left_mono_neg)
-  done
+lemma mult_less_cancel_left_disj: "c * a < c * b \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and> b < a"
+proof (cases "c = 0")
+  case False
+  show ?thesis (is "?lhs \<longleftrightarrow> ?rhs")
+  proof
+    assume ?lhs
+    then have "c < 0 \<Longrightarrow> b < a" "c > 0 \<Longrightarrow> b > a"
+      by (auto simp flip: not_le intro: mult_left_mono mult_left_mono_neg)
+    with False show ?rhs 
+      by (auto simp add: neq_iff)
+  next
+    assume ?rhs
+    with False show ?lhs 
+      by (auto simp add: mult_strict_left_mono mult_strict_left_mono_neg)
+  qed
+qed auto
 
 text \<open>
   The ``conjunction of implication'' lemmas produce two cases when the
@@ -2368,29 +2386,29 @@ lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
 lemma add_diff_inverse: "\<not> a < b \<Longrightarrow> b + (a - b) = a"
   by simp
 
-lemma add_le_imp_le_diff: "i + k \<le> n \<Longrightarrow> i \<le> n - k"
-  apply (subst add_le_cancel_right [where c=k, symmetric])
-  apply (frule le_add_diff_inverse2)
-  apply (simp only: add.assoc [symmetric])
-  using add_implies_diff
-  apply fastforce
-  done
+lemma add_le_imp_le_diff: 
+  assumes "i + k \<le> n" shows "i \<le> n - k"
+proof -
+  have "n - (i + k) + i + k = n"
+    by (simp add: assms add.assoc)
+  with assms add_implies_diff have "i + k \<le> n - k + k"
+    by fastforce
+  then show ?thesis
+    by simp
+qed
 
 lemma add_le_add_imp_diff_le:
   assumes 1: "i + k \<le> n"
     and 2: "n \<le> j + k"
   shows "i + k \<le> n \<Longrightarrow> n \<le> j + k \<Longrightarrow> n - k \<le> j"
 proof -
-  have "n - (i + k) + (i + k) = n"
-    using 1 by simp
+  have "n - (i + k) + i + k = n"
+    using 1 by (simp add: add.assoc)
   moreover have "n - k = n - k - i + i"
     using 1 by (simp add: add_le_imp_le_diff)
   ultimately show ?thesis
-    using 2
-    apply (simp add: add.assoc [symmetric])
-    apply (rule add_le_imp_le_diff [of _ k "j + k", simplified add_diff_cancel_right'])
-    apply (simp add: add.commute diff_diff_add)
-    done
+    using 2 add_le_imp_le_diff [of "n-k" k "j + k"]
+    by (simp add: add.commute diff_diff_add)
 qed
 
 lemma less_1_mult: "1 < m \<Longrightarrow> 1 < n \<Longrightarrow> 1 < m * n"
