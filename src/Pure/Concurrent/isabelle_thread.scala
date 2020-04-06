@@ -40,7 +40,7 @@ object Isabelle_Thread
   }
 
 
-  /* self */
+  /* self-thread */
 
   def self: Isabelle_Thread =
     Thread.currentThread match {
@@ -49,18 +49,41 @@ object Isabelle_Thread
     }
 
 
-  /* interrupts */
+  /* interrupt handlers */
 
-  type Interrupt_Handler = Isabelle_Thread => Unit
+  object Interrupt_Handler
+  {
+    def apply(handle: Isabelle_Thread => Unit, name: String = "handler"): Interrupt_Handler =
+      new Interrupt_Handler(handle, name)
+
+    val interruptible: Interrupt_Handler =
+      Interrupt_Handler(_.raise_interrupt, name = "interruptible")
+
+    val uninterruptible: Interrupt_Handler =
+      Interrupt_Handler(_.postpone_interrupt, name = "uninterruptible")
+  }
+
+  class Interrupt_Handler private(handle: Isabelle_Thread => Unit, name: String)
+    extends Function[Isabelle_Thread, Unit]
+  {
+    def apply(thread: Isabelle_Thread) { handle(thread) }
+    override def toString: String = name
+  }
 
   def interrupt_handler[A](handler: Interrupt_Handler)(body: => A): A =
     self.interrupt_handler(handler)(body)
 
-  def interruptible[A](body: => A): A = interrupt_handler(_.raise_interrupt)(body)
-  def uninterruptible[A](body: => A): A = interrupt_handler(_.postpone_interrupt)(body)
+  def interrupt_handler[A](handle: Isabelle_Thread => Unit)(body: => A): A =
+    self.interrupt_handler(Interrupt_Handler(handle))(body)
+
+  def interruptible[A](body: => A): A =
+    interrupt_handler(Interrupt_Handler.interruptible)(body)
+
+  def uninterruptible[A](body: => A): A =
+    interrupt_handler(Interrupt_Handler.uninterruptible)(body)
 
 
-  /* pool */
+  /* thread pool */
 
   lazy val pool: ThreadPoolExecutor =
     {
@@ -149,42 +172,55 @@ class Isabelle_Thread private(
 
   override def run { main.run() }
 
+  def is_self: Boolean = Thread.currentThread == thread
+
 
   /* interrupt state */
 
-  private var interrupt_pending: Boolean = false
+  // synchronized, with concurrent changes
+  private var interrupt_postponed: Boolean = false
+
+  def clear_interrupt: Boolean = synchronized
+  {
+    val was_interrupted = isInterrupted || interrupt_postponed
+    Exn.Interrupt.dispose()
+    interrupt_postponed = false
+    was_interrupted
+  }
 
   def raise_interrupt: Unit = synchronized
   {
-    interrupt_pending = false
+    interrupt_postponed = false
     super.interrupt()
   }
 
   def postpone_interrupt: Unit = synchronized
   {
-    interrupt_pending = true
+    interrupt_postponed = true
     Exn.Interrupt.dispose()
   }
 
 
   /* interrupt handler */
 
-  private var handler: Isabelle_Thread.Interrupt_Handler = (_.raise_interrupt)
+  // non-synchronized, only changed on self-thread
+  @volatile private var handler = Isabelle_Thread.Interrupt_Handler.interruptible
 
-  override def interrupt: Unit = (synchronized { handler })(thread)
+  override def interrupt: Unit = handler(thread)
 
   def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
   {
-    require(Thread.currentThread == thread)
+    require(is_self)
 
     val old_handler = handler
     handler = new_handler
-    try { body }
+    try {
+      if (clear_interrupt) interrupt
+      body
+    }
     finally {
-      synchronized {
-        handler = old_handler
-        if (isInterrupted || interrupt_pending) thread.interrupt
-      }
+      handler = old_handler
+      if (clear_interrupt) interrupt
       Exn.Interrupt.expose()
     }
   }
