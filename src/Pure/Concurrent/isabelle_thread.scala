@@ -20,6 +20,9 @@ object Isabelle_Thread
       case _ => error("Isabelle-specific thread required")
     }
 
+  def check_self: Boolean =
+    Thread.currentThread.isInstanceOf[Isabelle_Thread]
+
 
   /* create threads */
 
@@ -107,6 +110,10 @@ object Isabelle_Thread
 
   def uninterruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.uninterruptible)(body)
+
+  def try_uninterruptible[A](body: => A): A =
+    if (check_self) interrupt_handler(Interrupt_Handler.uninterruptible)(body)
+    else body
 }
 
 class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,

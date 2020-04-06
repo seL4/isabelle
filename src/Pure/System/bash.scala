@@ -116,14 +116,14 @@ object Bash
       }
     }
 
-    def terminate(): Unit = Isabelle_Thread.uninterruptible
+    def terminate(): Unit = Isabelle_Thread.try_uninterruptible
     {
       kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
       proc.destroy
       do_cleanup()
     }
 
-    def interrupt(): Unit = Isabelle_Thread.uninterruptible
+    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
       Isabelle_System.kill("INT", pid)
     }
@@ -131,7 +131,7 @@ object Bash
 
     // JVM shutdown hook
 
-    private val shutdown_hook = new Thread { override def run = terminate() }
+    private val shutdown_hook = Isabelle_Thread.create(() => terminate())
 
     try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }
