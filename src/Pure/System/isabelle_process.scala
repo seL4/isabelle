@@ -76,4 +76,6 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
     session.stop()
     result
   }
+
+  def terminate { process.terminate }
 }

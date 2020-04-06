@@ -174,7 +174,7 @@ object Build
       Export.consumer(store.open_database(session_name, output = true), cache = store.xz_cache)
 
     private val future_result: Future[Process_Result] =
-      Future.thread("build") {
+      Future.thread("build", uninterruptible = true) {
         val parent = info.parent.getOrElse("")
         val base = deps(parent)
         val args_yxml =
@@ -321,14 +321,17 @@ object Build
               cwd = info.dir.file, env = env)
 
           val errors =
-            Exn.capture { process.await_startup } match {
-              case Exn.Res(_) =>
-                session.protocol_command("build_session", args_yxml)
-                build_session_errors.join
-              case Exn.Exn(exn) => List(Exn.message(exn))
+            Isabelle_Thread.interrupt_handler(_ => process.terminate) {
+              Exn.capture { process.await_startup } match {
+                case Exn.Res(_) =>
+                  session.protocol_command("build_session", args_yxml)
+                  build_session_errors.join_result
+                case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
+              }
             }
 
-          val process_result = process.await_shutdown
+          val process_result =
+            Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
           val process_output =
             stdout.toString :: messages.toList :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
@@ -337,11 +340,16 @@ object Build
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 
           val result = process_result.output(process_output)
-          if (errors.isEmpty) result
-          else {
-            result.error_rc.output(
-              errors.flatMap(s => split_lines(Output.error_message_text(s))) :::
-              errors.map(Protocol.Error_Message_Marker.apply))
+
+          errors match {
+            case Exn.Res(Nil) => result
+            case Exn.Res(errs) =>
+              result.error_rc.output(
+                errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                  errs.map(Protocol.Error_Message_Marker.apply))
+            case Exn.Exn(Exn.Interrupt()) =>
+              if (result.ok) result.copy(rc = Exn.Interrupt.return_code) else result
+            case Exn.Exn(exn) => throw exn
           }
         }
         else {
@@ -358,28 +366,30 @@ object Build
               use_prelude = use_prelude, eval_main = eval_main,
               cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
 
-          process.result(
-            progress_stdout =
-              {
-                case Protocol.Loading_Theory_Marker(theory) =>
-                  progress.theory(Progress.Theory(theory, session = session_name))
-                case Protocol.Export.Marker((args, path)) =>
-                  val body =
-                    try { Bytes.read(path) }
-                    catch {
-                      case ERROR(msg) =>
-                        error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
-                    }
-                  path.file.delete
-                  export_consumer(session_name, args, body)
-                case _ =>
-              },
-            progress_limit =
-              options.int("process_output_limit") match {
-                case 0 => None
-                case m => Some(m * 1000000L)
-              },
-            strict = false)
+          Isabelle_Thread.interrupt_handler(_ => process.terminate) {
+            process.result(
+              progress_stdout =
+                {
+                  case Protocol.Loading_Theory_Marker(theory) =>
+                    progress.theory(Progress.Theory(theory, session = session_name))
+                  case Protocol.Export.Marker((args, path)) =>
+                    val body =
+                      try { Bytes.read(path) }
+                      catch {
+                        case ERROR(msg) =>
+                          error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
+                      }
+                    path.file.delete
+                    export_consumer(session_name, args, body)
+                  case _ =>
+                },
+              progress_limit =
+                options.int("process_output_limit") match {
+                  case 0 => None
+                  case m => Some(m * 1000000L)
+                },
+              strict = false)
+          }
         }
       }
 
