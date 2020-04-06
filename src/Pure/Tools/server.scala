@@ -490,7 +490,7 @@ Usage: isabelle server [OPTIONS]
 
       if (operation_list) {
         for {
-          server_info <- using(SQLite.open_database(Data.database))(list(_))
+          server_info <- using(SQLite.open_database(Data.database))(list)
           if server_info.active
         } Output.writeln(server_info.toString, stdout = true)
       }
