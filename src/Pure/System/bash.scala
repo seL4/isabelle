@@ -118,7 +118,7 @@ object Bash
 
     def terminate(): Unit = Isabelle_Thread.uninterruptible
     {
-      kill("INT", count = 10) && kill("TERM", count = 10) && kill("KILL")
+      kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
       proc.destroy
       do_cleanup()
     }
