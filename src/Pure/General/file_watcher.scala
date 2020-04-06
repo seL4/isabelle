@@ -84,7 +84,7 @@ object File_Watcher
 
     /* changed directory entries */
 
-    private val delay_changed = Isabelle_Thread.delay_last(delay)
+    private val delay_changed = Delay.last(delay)
     {
       val changed = state.change_result(st => (st.changed, st.copy(changed = Set.empty)))
       handle(changed)

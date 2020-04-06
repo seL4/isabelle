@@ -320,7 +320,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     }
 
   private val delay_resize =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

@@ -32,10 +32,10 @@ class JEdit_Editor extends Editor[View]
   def purge() { flush_edits(purge = true) }
 
   private val delay1_flush =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
+    Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) { flush() }
 
   private val delay2_flush =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_generated_input_delay")) { flush() }
+    Delay.first(PIDE.options.seconds("editor_generated_input_delay"), gui = true) { flush() }
 
   def invoke(): Unit = delay1_flush.invoke()
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }

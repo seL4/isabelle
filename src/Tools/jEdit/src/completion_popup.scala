@@ -373,7 +373,7 @@ object Completion_Popup
     }
 
     private val input_delay =
-      GUI_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
+      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
         action()
       }
 
@@ -530,7 +530,7 @@ object Completion_Popup
     }
 
     private val process_delay =
-      GUI_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
+      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
         action()
       }
 

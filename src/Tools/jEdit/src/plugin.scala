@@ -107,7 +107,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   lazy val delay_init =
-    GUI_Thread.delay_last(options.seconds("editor_load_delay"))
+    Delay.last(options.seconds("editor_load_delay"), gui = true)
     {
       init_models()
     }
@@ -178,7 +178,7 @@ class Plugin extends EBPlugin
   }
 
   private lazy val delay_load =
-    GUI_Thread.delay_last(options.seconds("editor_load_delay")) { delay_load_action() }
+    Delay.last(options.seconds("editor_load_delay"), gui = true) { delay_load_action() }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
     if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()

@@ -268,7 +268,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       nodes = Set.empty
       commands = Set.empty
     }
-    private val delay_flush = Isabelle_Thread.delay_first(output_delay) { flush() }
+    private val delay_flush = Delay.first(output_delay) { flush() }
 
     def invoke(assign: Boolean, edited_nodes: List[Document.Node.Name], cmds: List[Command]): Unit =
       synchronized {
@@ -313,7 +313,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private object consolidation
   {
     private val delay =
-      Isabelle_Thread.delay_first(consolidate_delay) { manager.send(Consolidate_Execution) }
+      Delay.first(consolidate_delay) { manager.send(Consolidate_Execution) }
 
     private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
     private val state = Synchronized(init_state)
@@ -382,7 +382,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   /* manager thread */
 
   private val delay_prune =
-    Isabelle_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
+    Delay.first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] =
   {

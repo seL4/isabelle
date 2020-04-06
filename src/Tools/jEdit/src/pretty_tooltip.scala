@@ -77,7 +77,7 @@ object Pretty_Tooltip
   private var active = true
 
   private val pending_delay =
-    GUI_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+    Delay.last(PIDE.options.seconds("jedit_tooltip_delay"), gui = true) {
       pending match {
         case Some(body) => pending = None; body()
         case None =>
@@ -99,7 +99,7 @@ object Pretty_Tooltip
     }
 
   private lazy val reactivate_delay =
-    GUI_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+    Delay.last(PIDE.options.seconds("jedit_tooltip_delay"), gui = true) {
       active = true
     }
 
@@ -113,7 +113,7 @@ object Pretty_Tooltip
 
   /* dismiss */
 
-  private lazy val focus_delay = GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+  private lazy val focus_delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true)
   {
     dismiss_unfocused()
   }

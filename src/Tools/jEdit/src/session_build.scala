@@ -102,7 +102,7 @@ object Session_Build
       }
 
     private val delay_exit =
-      GUI_Thread.delay_first(Time.seconds(1.0))
+      Delay.first(Time.seconds(1.0), gui = true)
       {
         if (can_auto_close) conclude()
         else {

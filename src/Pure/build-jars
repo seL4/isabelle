@@ -28,6 +28,7 @@ declare -a SOURCES=(
   src/Pure/Admin/other_isabelle.scala
   src/Pure/Concurrent/consumer_thread.scala
   src/Pure/Concurrent/counter.scala
+  src/Pure/Concurrent/delay.scala
   src/Pure/Concurrent/event_timer.scala
   src/Pure/Concurrent/future.scala
   src/Pure/Concurrent/isabelle_thread.scala

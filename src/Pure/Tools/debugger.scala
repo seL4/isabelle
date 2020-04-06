@@ -155,7 +155,7 @@ class Debugger private(session: Session)
   private val state = Synchronized(Debugger.State())
 
   private val delay_update =
-    Isabelle_Thread.delay_first(session.output_delay) {
+    Delay.first(session.output_delay) {
       session.debugger_updates.post(Debugger.Update)
     }
 
