@@ -12,7 +12,16 @@ import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, 
 
 object Isabelle_Thread
 {
-  /* fork */
+  /* self-thread */
+
+  def self: Isabelle_Thread =
+    Thread.currentThread match {
+      case thread: Isabelle_Thread => thread
+      case _ => error("Isabelle-specific thread required")
+    }
+
+
+  /* fork threads */
 
   private val counter = Counter.make()
 
@@ -40,13 +49,18 @@ object Isabelle_Thread
   }
 
 
-  /* self-thread */
+  /* thread pool */
 
-  def self: Isabelle_Thread =
-    Thread.currentThread match {
-      case thread: Isabelle_Thread => thread
-      case _ => error("Isabelle-specific thread required")
-    }
+  lazy val pool: ThreadPoolExecutor =
+  {
+    val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
+    val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
+    val executor =
+      new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+    executor.setThreadFactory(
+      new Isabelle_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
+    executor
+  }
 
 
   /* interrupt handlers */
@@ -81,20 +95,6 @@ object Isabelle_Thread
 
   def uninterruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.uninterruptible)(body)
-
-
-  /* thread pool */
-
-  lazy val pool: ThreadPoolExecutor =
-    {
-      val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-      val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
-      val executor =
-        new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
-      executor.setThreadFactory(
-        new Isabelle_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
-      executor
-    }
 
 
   /* delayed events */
