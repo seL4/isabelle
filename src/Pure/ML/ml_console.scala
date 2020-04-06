@@ -74,16 +74,11 @@ Usage: isabelle console [OPTIONS]
             else Some(Sessions.base_info(
               options, logic, dirs = dirs, include_sessions = include_sessions).check_base))
 
-      val tty_loop = new TTY_Loop(process.stdin, process.stdout, Some(process.interrupt _))
-      val process_result = Future.thread[Int]("process_result") {
+      POSIX_Interrupt.handler { process.interrupt } {
+        new TTY_Loop(process.stdin, process.stdout).join
         val rc = process.join
-        tty_loop.cancel  // FIXME does not quite work, cannot interrupt blocking read on System.in
-        rc
+        if (rc != 0) sys.exit(rc)
       }
-      tty_loop.join
-
-      val rc = process_result.join
-      if (rc != 0) sys.exit(rc)
     }
   }
 }

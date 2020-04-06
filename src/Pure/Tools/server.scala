@@ -173,12 +173,11 @@ object Server
     private val out = new BufferedOutputStream(socket.getOutputStream)
     private val out_lock: AnyRef = new Object
 
-    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
+    def tty_loop(): TTY_Loop =
       new TTY_Loop(
         new OutputStreamWriter(out),
         new InputStreamReader(in),
-        writer_lock = out_lock,
-        interrupt = interrupt)
+        writer_lock = out_lock)
 
     def read_password(password: String): Boolean =
       try { Byte_Message.read_line(in).map(_.text) == Some(password) }
