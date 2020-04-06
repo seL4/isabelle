@@ -21,7 +21,7 @@ object Isabelle_Thread
     }
 
 
-  /* fork threads */
+  /* create threads */
 
   private val counter = Counter.make()
 
@@ -29,6 +29,18 @@ object Isabelle_Thread
     "Isabelle." + proper_string(name).getOrElse(base + counter())
 
   def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
+
+  def create(
+    main: Runnable,
+    name: String = "",
+    group: ThreadGroup = current_thread_group,
+    pri: Int = Thread.NORM_PRIORITY,
+    daemon: Boolean = false,
+    inherit_locals: Boolean = false): Isabelle_Thread =
+  {
+    new Isabelle_Thread(main, name = make_name(name = name), group = group,
+      pri = pri, daemon = daemon, inherit_locals = inherit_locals)
+  }
 
   def fork(
     name: String = "",
@@ -38,12 +50,12 @@ object Isabelle_Thread
     inherit_locals: Boolean = false,
     uninterruptible: Boolean = false)(body: => Unit): Isabelle_Thread =
   {
-    val main =
-      if (uninterruptible) new Runnable { override def run { Isabelle_Thread.uninterruptible { body } } }
-      else new Runnable { override def run { body } }
+    val main: Runnable =
+      if (uninterruptible) { () => Isabelle_Thread.uninterruptible { body } }
+      else { () => body }
     val thread =
-      new Isabelle_Thread(main, name = make_name(name = name), group = group,
-        pri = pri, daemon = daemon, inherit_locals = inherit_locals)
+      create(main, name = name, group = group, pri = pri,
+        daemon = daemon, inherit_locals = inherit_locals)
     thread.start
     thread
   }
@@ -57,8 +69,7 @@ object Isabelle_Thread
     val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
-    executor.setThreadFactory(
-      new Isabelle_Thread(_, name = make_name(base = "worker"), group = current_thread_group))
+    executor.setThreadFactory(create(_, name = make_name(base = "worker"), group = current_thread_group))
     executor
   }
 
@@ -98,13 +109,8 @@ object Isabelle_Thread
     interrupt_handler(Interrupt_Handler.uninterruptible)(body)
 }
 
-class Isabelle_Thread private(
-    main: Runnable,
-    name: String = "",
-    group: ThreadGroup = null,
-    pri: Int = Thread.NORM_PRIORITY,
-    daemon: Boolean = false,
-    inherit_locals: Boolean = false)
+class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
+    pri: Int, daemon: Boolean, inherit_locals: Boolean)
   extends Thread(group, null, name, 0L, inherit_locals)
 {
   thread =>
