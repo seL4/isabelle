@@ -85,7 +85,8 @@ object Isabelle_Thread
   }
 
   def interrupt_handler[A](handler: Interrupt_Handler)(body: => A): A =
-    self.interrupt_handler(handler)(body)
+    if (handler == null) body
+    else self.interrupt_handler(handler)(body)
 
   def interrupt_handler[A](handle: Isabelle_Thread => Unit)(body: => A): A =
     self.interrupt_handler(Interrupt_Handler(handle))(body)
@@ -150,18 +151,19 @@ class Isabelle_Thread private(
   override def interrupt: Unit = handler(thread)
 
   def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
-  {
-    require(is_self)
+    if (new_handler == null) body
+    else {
+      require(is_self)
 
-    val old_handler = handler
-    handler = new_handler
-    try {
-      if (clear_interrupt) interrupt
-      body
+      val old_handler = handler
+      handler = new_handler
+      try {
+        if (clear_interrupt) interrupt
+        body
+      }
+      finally {
+        handler = old_handler
+        if (clear_interrupt) interrupt
+      }
     }
-    finally {
-      handler = old_handler
-      if (clear_interrupt) interrupt
-    }
-  }
 }
