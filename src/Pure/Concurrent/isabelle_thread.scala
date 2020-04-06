@@ -17,7 +17,7 @@ object Isabelle_Thread
   def self: Isabelle_Thread =
     Thread.currentThread match {
       case thread: Isabelle_Thread => thread
-      case _ => error("Isabelle-specific thread required")
+      case thread => error("Isabelle-specific thread required: " + thread)
     }
 
   def check_self: Boolean =
