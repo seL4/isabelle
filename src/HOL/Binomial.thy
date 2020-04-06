@@ -121,21 +121,35 @@ lemma choose_reduce_nat:
   using binomial_Suc_Suc [of "n - 1" "k - 1"] by simp
 
 lemma Suc_times_binomial_eq: "Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-  apply (induct n arbitrary: k)
-   apply simp
-   apply arith
-  apply (case_tac k)
-   apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
-  done
+proof (induction n arbitrary: k)
+  case 0
+  then show ?case
+    by auto
+next
+  case (Suc n)
+  show ?case 
+  proof (cases k)
+    case (Suc k')
+    then show ?thesis
+      using Suc.IH
+      by (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
+  qed auto
+qed
 
 lemma binomial_le_pow2: "n choose k \<le> 2^n"
-  apply (induct n arbitrary: k)
-   apply (case_tac k)
-    apply simp_all
-  apply (case_tac k)
-   apply auto
-  apply (simp add: add_le_mono mult_2)
-  done
+proof (induction n arbitrary: k)
+  case 0
+  then show ?case
+    using le_less less_le_trans by fastforce
+next
+  case (Suc n)
+  show ?case
+  proof (cases k)
+    case (Suc k')
+    then show ?thesis
+      using Suc.IH by (simp add: add_le_mono mult_2)
+  qed auto
+qed
 
 text \<open>The absorption property.\<close>
 lemma Suc_times_binomial: "Suc k * (Suc n choose Suc k) = Suc n * (n choose k)"
@@ -246,9 +260,7 @@ lemma binomial_fact:
   assumes kn: "k \<le> n"
   shows "(of_nat (n choose k) :: 'a::field_char_0) = fact n / (fact k * fact (n - k))"
   using binomial_fact_lemma[OF kn]
-  apply (simp add: field_simps)
-  apply (metis mult.commute of_nat_fact of_nat_mult)
-  done
+  by (metis (mono_tags, lifting) fact_nonzero mult_eq_0_iff nonzero_mult_div_cancel_left of_nat_fact of_nat_mult)
 
 lemma fact_binomial:
   assumes "k \<le> n"
@@ -361,11 +373,11 @@ lemma gbinomial_pochhammer: "a gchoose k = (- 1) ^ k * pochhammer (- a) k / fact
   for a :: "'a::field_char_0"
 proof (cases k)
   case (Suc k')
+  then have "a gchoose k = pochhammer (a - of_nat k') (Suc k') / ((1 + of_nat k') * fact k')"
+    by (simp add: gbinomial_prod_rev pochhammer_prod_rev atLeastLessThanSuc_atLeastAtMost
+        prod.atLeast_Suc_atMost_Suc_shift of_nat_diff flip: power_mult_distrib prod.cl_ivl_Suc)
   then show ?thesis
-    apply (simp add: pochhammer_minus)
-    apply (simp add: gbinomial_prod_rev pochhammer_prod_rev power_mult_distrib [symmetric] atLeastLessThanSuc_atLeastAtMost
-        prod.atLeast_Suc_atMost_Suc_shift of_nat_diff del: prod.cl_ivl_Suc)
-    done
+    by (simp add: pochhammer_minus Suc)
 qed auto
 
 lemma gbinomial_pochhammer': "a gchoose k = pochhammer (a - of_nat k + 1) k / fact k"
@@ -437,10 +449,8 @@ lemma gbinomial_mult_1:
   (is "?l = ?r")
 proof -
   have "?r = ((- 1) ^k * pochhammer (- a) k / fact k) * (of_nat k - (- a + of_nat k))"
-    apply (simp only: gbinomial_pochhammer pochhammer_Suc right_diff_distrib power_Suc)
-    apply (simp del: of_nat_Suc fact_Suc)
-    apply (auto simp add: field_simps simp del: of_nat_Suc)
-    done
+    unfolding gbinomial_pochhammer pochhammer_Suc right_diff_distrib power_Suc
+    by (auto simp add: field_simps simp del: of_nat_Suc)
   also have "\<dots> = ?l"
     by (simp add: field_simps gbinomial_pochhammer)
   finally show ?thesis ..
@@ -459,17 +469,17 @@ proof (cases k)
 next
   case (Suc h)
   have eq0: "(\<Prod>i\<in>{1..k}. (a + 1) - of_nat i) = (\<Prod>i\<in>{0..h}. a - of_nat i)"
-    apply (rule prod.reindex_cong [where l = Suc])
-      using Suc
-      apply (auto simp add: image_Suc_atMost)
-    done
+  proof (rule prod.reindex_cong)
+    show "{1..k} = Suc ` {0..h}"
+      using Suc by (auto simp add: image_Suc_atMost)
+  qed auto
   have "fact (Suc k) * (a gchoose k + (a gchoose (Suc k))) =
       (a gchoose Suc h) * (fact (Suc (Suc h))) +
       (a gchoose Suc (Suc h)) * (fact (Suc (Suc h)))"
     by (simp add: Suc field_simps del: fact_Suc)
   also have "\<dots> =
     (a gchoose Suc h) * of_nat (Suc (Suc h) * fact (Suc h)) + (\<Prod>i=0..Suc h. a - of_nat i)"
-    apply (simp del: fact_Suc prod.op_ivl_Suc add: gbinomial_mult_fact field_simps mult.left_commute [of _ "2"])
+    apply (simp only: gbinomial_mult_fact field_simps mult.left_commute [of _ "2"])
     apply (simp del: fact_Suc add: fact_Suc [of "Suc h"] field_simps gbinomial_mult_fact
       mult.left_commute [of _ "2"] atLeastLessThanSuc_atLeastAtMost)
     done
@@ -608,10 +618,8 @@ next
   also have "(\<Sum>i\<le>n. of_nat (n choose Suc i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
         pochhammer b (Suc n) =
       (\<Sum>i=0..Suc n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
-    apply (subst sum.atLeast_Suc_atMost)
-    apply simp
-    apply (subst sum.shift_bounds_cl_Suc_ivl)
-    apply (simp add: atLeast0AtMost)
+    apply (subst sum.atLeast_Suc_atMost, simp)
+    apply (simp add: sum.shift_bounds_cl_Suc_ivl atLeast0AtMost del: sum.cl_ivl_Suc)
     done
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
     using Suc by (intro sum.mono_neutral_right) (auto simp: not_le binomial_eq_0)
@@ -641,12 +649,11 @@ proof -
     using assms of_nat_0_le_iff order_trans by blast
   have "(a / of_nat k :: 'a) ^ k = (\<Prod>i = 0..<k. a / of_nat k :: 'a)"
     by simp
-  also have "\<dots> \<le> a gchoose k" (* FIXME *)
-    unfolding gbinomial_altdef_of_nat
-    apply (safe intro!: prod_mono)
-    apply simp_all
-    prefer 2
-    subgoal premises for i
+  also have "\<dots> \<le> a gchoose k"
+  proof -
+    have "\<And>i. i < k \<Longrightarrow> 0 \<le> a / of_nat k"
+      by (simp add: x zero_le_divide_iff)
+    moreover have "a / of_nat k \<le> (a - of_nat i) / of_nat (k - i)" if "i < k" for i
     proof -
       from assms have "a * of_nat i \<ge> of_nat (i * k)"
         by (metis mult.commute mult_le_cancel_right of_nat_less_0_iff of_nat_mult)
@@ -655,12 +662,14 @@ proof -
       then have "a * of_nat (k - i) \<le> (a - of_nat i) * of_nat k"
         using \<open>i < k\<close> by (simp add: algebra_simps zero_less_mult_iff of_nat_diff)
       then have "a * of_nat (k - i) \<le> (a - of_nat i) * (of_nat k :: 'a)"
-        by (simp only: of_nat_mult[symmetric] of_nat_le_iff)
+        by blast
       with assms show ?thesis
         using \<open>i < k\<close> by (simp add: field_simps)
     qed
-    apply (simp add: x zero_le_divide_iff)
-    done
+    ultimately show ?thesis
+      unfolding gbinomial_altdef_of_nat
+      by (intro prod_mono) auto
+  qed
   finally show ?thesis .
 qed
 
@@ -919,12 +928,16 @@ qed
 
 lemma gbinomial_partial_sum_poly_xpos:
     "(\<Sum>k\<le>m. (of_nat m + a gchoose k) * x^k * y^(m-k)) =
-     (\<Sum>k\<le>m. (of_nat k + a - 1 gchoose k) * x^k * (x + y)^(m-k))"
-  apply (subst gbinomial_partial_sum_poly)
-  apply (subst gbinomial_negated_upper)
-  apply (intro sum.cong, rule refl)
-  apply (simp add: power_mult_distrib [symmetric])
-  done
+     (\<Sum>k\<le>m. (of_nat k + a - 1 gchoose k) * x^k * (x + y)^(m-k))" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<Sum>k\<le>m. (- a gchoose k) * (- x) ^ k * (x + y) ^ (m - k))"
+    by (simp add: gbinomial_partial_sum_poly)
+  also have "... = (\<Sum>k\<le>m. (-1) ^ k * (of_nat k - - a - 1 gchoose k) * (- x) ^ k * (x + y) ^ (m - k))"
+    by (metis (no_types, hide_lams) gbinomial_negated_upper)
+  also have "... = ?rhs"
+    by (intro sum.cong) (auto simp flip: power_mult_distrib)
+  finally show ?thesis .
+qed
 
 lemma binomial_r_part_sum: "(\<Sum>k\<le>m. (2 * m + 1 choose k)) = 2 ^ (2 * m)"
 proof -
@@ -1012,12 +1025,12 @@ lemma binomial_altdef_nat: "k \<le> n \<Longrightarrow> n choose k = fact n div 
   by (subst binomial_fact_lemma [symmetric]) auto
 
 lemma choose_dvd:
-  "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd (fact n :: 'a::linordered_semidom)"
+  assumes "k \<le> n" shows "fact k * fact (n - k) dvd (fact n :: 'a::linordered_semidom)"
   unfolding dvd_def
-  apply (rule exI [where x="of_nat (n choose k)"])
-  using binomial_fact_lemma [of k n, THEN arg_cong [where f = of_nat and 'b='a]]
-  apply auto
-  done
+proof
+  show "fact n = fact k * fact (n - k) * of_nat (n choose k)"
+    by (metis assms binomial_fact_lemma of_nat_fact of_nat_mult) 
+qed
 
 lemma fact_fact_dvd_fact:
   "fact k * fact n dvd (fact (k + n) :: 'a::linordered_semidom)"
@@ -1030,11 +1043,14 @@ proof -
   have "?lhs =
       fact (m + r + k) div (fact (m + k) * fact (m + r - m)) * (fact (m + k) div (fact k * fact m))"
     by (simp add: binomial_altdef_nat)
-  also have "\<dots> = fact (m + r + k) div (fact r * (fact k * fact m))"
+  also have "... = fact (m + r + k) * fact (m + k) div
+                 (fact (m + k) * fact (m + r - m) * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
-    apply (auto simp: algebra_simps fact_fact_dvd_fact)
+      apply (auto simp: algebra_simps fact_fact_dvd_fact)
     apply (metis add.assoc add.commute fact_fact_dvd_fact)
     done
+  also have "\<dots> = fact (m + r + k) div (fact r * (fact k * fact m))"
+    by (auto simp: algebra_simps fact_fact_dvd_fact)
   also have "\<dots> = (fact (m + r + k) * fact (m + r)) div (fact r * (fact k * fact m) * fact (m + r))"
     apply (subst div_mult_div_if_dvd [symmetric])
     apply (auto simp add: algebra_simps)
