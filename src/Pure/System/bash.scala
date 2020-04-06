@@ -10,6 +10,8 @@ package isabelle
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
 
+import scala.annotation.tailrec
+
 
 object Bash
 {
@@ -106,18 +108,16 @@ object Bash
       Isabelle_System.kill("0", pid)._2 == 0
     }
 
-    private def multi_kill(signal: String): Boolean =
+    @tailrec private def multi_kill(signal: String, count: Int = 10): Boolean =
     {
-      var running = true
-      var count = 10
-      while (running && count > 0) {
+      count <= 0 ||
+      {
         if (kill(signal)) {
           Time.seconds(0.1).sleep
-          count -= 1
+          multi_kill(signal, count - 1)
         }
-        else running = false
+        else false
       }
-      running
     }
 
     def terminate(): Unit = Isabelle_Thread.uninterruptible
