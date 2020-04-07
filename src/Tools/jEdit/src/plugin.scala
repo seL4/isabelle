@@ -291,8 +291,8 @@ class Plugin extends EBPlugin
 
   private def init_editor(view: View)
   {
-    Session_Build.check_dialog(view)
     Keymap_Merge.check_dialog(view)
+    Session_Build.check_dialog(view)
   }
 
   private def init_title(view: View)

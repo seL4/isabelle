@@ -23,18 +23,18 @@ object Session_Build
 {
   def check_dialog(view: View)
   {
-    GUI_Thread.require {}
-
     val options = PIDE.options.value
-    try {
-      if (JEdit_Sessions.session_no_build ||
+    Isabelle_Thread.fork() {
+      try {
+        if (JEdit_Sessions.session_no_build ||
           JEdit_Sessions.session_build(options, no_build = true) == 0)
-            JEdit_Sessions.session_start(options)
-      else new Dialog(view)
-    }
-    catch {
-      case exn: Throwable =>
-        GUI.dialog(view, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+          JEdit_Sessions.session_start(options)
+        else GUI_Thread.later { new Dialog(view) }
+      }
+      catch {
+        case exn: Throwable =>
+          GUI.dialog(view, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+      }
     }
   }
 
