@@ -594,8 +594,7 @@ object Build
 
     def sleep()
     {
-      try { Time.seconds(0.5).sleep }
-      catch { case Exn.Interrupt() => Exn.Interrupt.impose() }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop) { Time.seconds(0.5).sleep }
     }
 
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
@@ -750,7 +749,7 @@ object Build
         progress.echo_warning("Nothing to build")
         Map.empty[String, Result]
       }
-      else loop(queue, Map.empty, Map.empty)
+      else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
 
     val results =
       new Results(
