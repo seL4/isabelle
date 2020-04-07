@@ -10,7 +10,7 @@ package isabelle
 object Update
 {
   def update(options: Options, logic: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,

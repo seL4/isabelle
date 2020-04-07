@@ -30,7 +30,7 @@ object Export_Theory
     store: Sessions.Store,
     sessions_structure: Sessions.Structure,
     session_name: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =

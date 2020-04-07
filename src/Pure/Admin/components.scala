@@ -45,7 +45,7 @@ object Components
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
-  def unpack(dir: Path, archive: Path, progress: Progress = No_Progress): String =
+  def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String =
   {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
@@ -56,7 +56,7 @@ object Components
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     Isabelle_System.mkdirs(base_dir)
     for (name <- names) {
@@ -135,7 +135,7 @@ object Components
   def build_components(
     options: Options,
     components: List[Path],
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     publish: Boolean = false,
     force: Boolean = false,
     update_components_sha1: Boolean = false)

@@ -126,7 +126,7 @@ object JEdit_Sessions
       session_requirements = logic_requirements)
 
   def session_build(
-    options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =
+    options: Options, progress: Progress = new Progress, no_build: Boolean = false): Int =
   {
     Build.build(session_options(options), progress = progress, build_heap = true,
       no_build = no_build, dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,

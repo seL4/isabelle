@@ -299,7 +299,7 @@ object Export
     store: Sessions.Store,
     session_name: String,
     export_dir: Path,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     export_prune: Int = 0,
     export_list: Boolean = false,
     export_patterns: List[String] = Nil)

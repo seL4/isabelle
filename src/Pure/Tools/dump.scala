@@ -94,7 +94,7 @@ object Dump
     def apply(
       options: Options,
       aspects: List[Aspect] = Nil,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       dirs: List[Path] = Nil,
       select_dirs: List[Path] = Nil,
       selection: Sessions.Selection = Sessions.Selection.empty,
@@ -395,7 +395,7 @@ object Dump
     options: Options,
     logic: String,
     aspects: List[Aspect] = Nil,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,

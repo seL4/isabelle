@@ -265,10 +265,10 @@ class Resources(
 
   def dependencies(
       thys: List[(Document.Node.Name, Position.T)],
-      progress: Progress = No_Progress): Dependencies[Unit] =
+      progress: Progress = new Progress): Dependencies[Unit] =
     Dependencies.empty[Unit].require_thys((), thys, progress = progress)
 
-  def session_dependencies(info: Sessions.Info, progress: Progress = No_Progress)
+  def session_dependencies(info: Sessions.Info, progress: Progress = new Progress)
     : Dependencies[Options] =
   {
     (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
@@ -303,7 +303,7 @@ class Resources(
     def require_thy(adjunct: A,
       thy: (Document.Node.Name, Position.T),
       initiators: List[Document.Node.Name] = Nil,
-      progress: Progress = No_Progress): Dependencies[A] =
+      progress: Progress = new Progress): Dependencies[A] =
     {
       val (name, pos) = thy
 
@@ -337,7 +337,7 @@ class Resources(
 
     def require_thys(adjunct: A,
         thys: List[(Document.Node.Name, Position.T)],
-        progress: Progress = No_Progress,
+        progress: Progress = new Progress,
         initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
       (this /: thys)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
 

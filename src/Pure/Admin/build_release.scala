@@ -265,7 +265,7 @@ directory individually.
   def build_release(base_dir: Path,
     options: Options,
     components_base: Path = Components.default_components_base,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     rev: String = "",
     afp_rev: String = "",
     official_release: Boolean = false,

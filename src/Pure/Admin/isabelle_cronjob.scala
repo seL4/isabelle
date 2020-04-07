@@ -394,7 +394,7 @@ object Isabelle_Cronjob
 
   object Log_Service
   {
-    def apply(options: Options, progress: Progress = No_Progress): Log_Service =
+    def apply(options: Options, progress: Progress = new Progress): Log_Service =
       new Log_Service(SSH.init_context(options), progress)
   }
 
@@ -599,7 +599,7 @@ Usage: Admin/cronjob/main [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val progress = if (verbose) new Console_Progress() else No_Progress
+      val progress = if (verbose) new Console_Progress() else new Progress
 
       if (force) cronjob(progress, exclude_task)
       else error("Need to apply force to do anything")

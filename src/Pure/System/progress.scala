@@ -36,8 +36,15 @@ class Progress
   def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
     Timing.timeit(message, enabled, echo)(e)
 
-  def stopped: Boolean = false
-  def interrupt_handler[A](e: => A): A = e
+  @volatile protected var is_stopped = false
+  def stop { is_stopped = true }
+  def stopped: Boolean =
+  {
+    if (Thread.interrupted) is_stopped = true
+    is_stopped
+  }
+
+  def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop } { e }
   def expose_interrupt() { if (stopped) throw Exn.Interrupt() }
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
@@ -55,8 +62,6 @@ class Progress
   }
 }
 
-object No_Progress extends Progress
-
 class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress
 {
   override def echo(msg: String): Unit =
@@ -64,15 +69,6 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
 
   override def theory(theory: Progress.Theory): Unit =
     if (verbose) echo(theory.message)
-
-  @volatile private var is_stopped = false
-  override def interrupt_handler[A](e: => A): A =
-    POSIX_Interrupt.handler { is_stopped = true } { e }
-  override def stopped: Boolean =
-  {
-    if (Thread.interrupted) is_stopped = true
-    is_stopped
-  }
 }
 
 class File_Progress(path: Path, verbose: Boolean = false) extends Progress

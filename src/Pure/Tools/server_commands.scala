@@ -45,7 +45,7 @@ object Server_Commands
           include_sessions = include_sessions, verbose = verbose)
       }
 
-    def command(args: Args, progress: Progress = No_Progress)
+    def command(args: Args, progress: Progress = new Progress)
       : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.preferences, opts = args.options)
@@ -103,7 +103,7 @@ object Server_Commands
       }
       yield Args(build = build, print_mode = print_mode)
 
-    def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
+    def command(args: Args, progress: Progress = new Progress, log: Logger = No_Logger)
       : (JSON.Object.T, (UUID.T, Headless.Session)) =
     {
       val (_, _, options, base_info) =
@@ -179,7 +179,7 @@ object Server_Commands
     def command(args: Args,
       session: Headless.Session,
       id: UUID.T = UUID.random(),
-      progress: Progress = No_Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
+      progress: Progress = new Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
     {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,

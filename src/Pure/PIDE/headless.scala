@@ -244,7 +244,7 @@ object Headless
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
-      progress: Progress = No_Progress): Use_Theories_Result =
+      progress: Progress = new Progress): Use_Theories_Result =
     {
       val dependencies =
       {
@@ -404,7 +404,7 @@ object Headless
       session_name: String,
       session_dirs: List[Path] = Nil,
       include_sessions: List[String] = Nil,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       log: Logger = No_Logger): Resources =
     {
       val base_info =
@@ -567,7 +567,7 @@ object Headless
 
     /* session */
 
-    def start_session(print_mode: List[String] = Nil, progress: Progress = No_Progress): Session =
+    def start_session(print_mode: List[String] = Nil, progress: Progress = new Progress): Session =
     {
       val session = new Session(session_base_info.session, options, resources)
 

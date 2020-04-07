@@ -461,7 +461,7 @@ object Build
 
   def build(
     options: Options,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
@@ -611,8 +611,9 @@ object Build
 
       if (pending.is_empty) results
       else {
-        if (progress.stopped)
+        if (progress.stopped) {
           for ((_, (_, job)) <- running) job.terminate
+        }
 
         running.find({ case (_, (_, job)) => job.is_finished }) match {
           case Some((session_name, (input_heaps, job))) =>
@@ -763,7 +764,7 @@ object Build
           progress.echo("Exporting " + info.name + " ...")
           for ((dir, prune, pats) <- info.export_files) {
             Export.export_files(store, name, info.dir + dir,
-              progress = if (verbose) progress else No_Progress,
+              progress = if (verbose) progress else new Progress,
               export_prune = prune,
               export_patterns = pats)
           }
@@ -937,7 +938,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   /* build logic image */
 
   def build_logic(options: Options, logic: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
     fresh: Boolean = false,

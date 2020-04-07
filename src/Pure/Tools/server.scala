@@ -274,10 +274,6 @@ object Server
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 
-    @volatile private var is_stopped = false
-    override def stopped: Boolean = is_stopped
-    def stop { is_stopped = true }
-
     override def toString: String = context.toString
   }
 

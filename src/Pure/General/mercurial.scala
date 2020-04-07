@@ -230,7 +230,7 @@ object Mercurial
     remote_name: String = "",
     path_name: String = default_path_name,
     remote_exists: Boolean = false,
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     /* local repository */
 

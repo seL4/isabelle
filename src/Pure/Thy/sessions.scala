@@ -116,7 +116,7 @@ object Sessions
   }
 
   def deps(sessions_structure: Structure,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
       list_files: Boolean = false,
@@ -345,7 +345,7 @@ object Sessions
 
   def base_info(options: Options,
     session: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
@@ -708,7 +708,7 @@ object Sessions
     def selection_deps(
       options: Options,
       selection: Selection,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       loading_sessions: Boolean = false,
       inlined_files: Boolean = false,
       verbose: Boolean = false): Deps =

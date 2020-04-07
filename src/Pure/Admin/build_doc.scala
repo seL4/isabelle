@@ -16,7 +16,7 @@ object Build_Doc
 
   def build_doc(
     options: Options,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
     docs: List[String] = Nil): Int =

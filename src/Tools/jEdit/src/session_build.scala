@@ -57,8 +57,6 @@ object Session_Build
 
     /* progress */
 
-    @volatile private var is_stopped = false
-
     private val progress = new Progress {
       override def echo(txt: String): Unit =
         GUI_Thread.later {
@@ -68,8 +66,6 @@ object Session_Build
         }
 
       override def theory(theory: Progress.Theory): Unit = echo(theory.message)
-
-      override def stopped: Boolean = is_stopped
     }
 
 
@@ -132,7 +128,7 @@ object Session_Build
 
     private def stopping()
     {
-      is_stopped = true
+      progress.stop
       set_actions(new Label("Stopping ..."))
     }
 
