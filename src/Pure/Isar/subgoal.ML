@@ -44,6 +44,7 @@ type focus =
 fun gen_focus (do_prems, do_concl) ctxt i bindings raw_st =
   let
     val st = raw_st
+      |> Thm.solve_constraints
       |> Thm.transfer' ctxt
       |> Raw_Simplifier.norm_hhf_protect ctxt;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
