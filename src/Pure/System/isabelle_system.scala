@@ -380,7 +380,9 @@ object Isabelle_System
       def err(msg: String): Nothing =
         error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
 
-      try { Class.forName(name).asInstanceOf[Class[A]].newInstance() }
+      try {
+        Class.forName(name).asInstanceOf[Class[A]].getDeclaredConstructor().newInstance()
+      }
       catch {
         case _: ClassNotFoundException => err("Class not found")
         case exn: Throwable => err(Exn.message(exn))
