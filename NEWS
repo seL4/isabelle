@@ -18,8 +18,9 @@ instead.
 
 * General support for Isabelle/Scala system services, configured via the
 shell function "isabelle_scala_service" in etc/settings (e.g. of an
-Isabelle component); e.g. see isabelle.Bibtex.File_Format. This
-supersedes former "isabelle_file_format": minor INCOMPATIBILITY.
+Isabelle component). For example, see isabelle.Bibtex.File_Format. This
+supersedes former "isabelle_scala_tools" and "isabelle_file_format":
+minor INCOMPATIBILITY.
 
 
 
