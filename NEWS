@@ -12,8 +12,14 @@ New in this Isabelle version
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
-* The Isabelle/Scala "Progress" interface has changed slightly and
-"No_Progress" discontinued. INCOMPATIBILITY, use "new Progress" instead.
+* The Isabelle/Scala "Progress" interface changed slightly and
+"No_Progress" has been discontinued. INCOMPATIBILITY, use "new Progress"
+instead.
+
+* General support for Isabelle/Scala system services, configured via the
+shell function "isabelle_scala_service" in etc/settings (e.g. of an
+Isabelle component); e.g. see isabelle.Bibtex.File_Format. This
+supersedes former "isabelle_file_format": minor INCOMPATIBILITY.
 
 
 

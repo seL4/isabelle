@@ -160,21 +160,21 @@ function isabelle_fonts_hidden ()
 }
 export -f isabelle_fonts_hidden
 
-#file formats
-function isabelle_file_format ()
+#Isabelle/Scala services
+function isabelle_scala_service ()
 {
   local X=""
   for X in "$@"
   do
-    if [ -z "$ISABELLE_FILE_FORMATS" ]; then
-      ISABELLE_FILE_FORMATS="$X"
+    if [ -z "$ISABELLE_SCALA_SERVICES" ]; then
+      ISABELLE_SCALA_SERVICES="$X"
     else
-      ISABELLE_FILE_FORMATS="$ISABELLE_FILE_FORMATS:$X"
+      ISABELLE_SCALA_SERVICES="$ISABELLE_SCALA_SERVICES:$X"
     fi
   done
-  export ISABELLE_FILE_FORMATS
+  export ISABELLE_SCALA_SERVICES
 }
-export -f isabelle_file_format
+export -f isabelle_scala_service
 
 #administrative build
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then

@@ -54,7 +54,7 @@ object Isabelle_System
     _settings.get
   }
 
-  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
+  private def init_settings(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
     if (_settings.isEmpty) {
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
@@ -125,6 +125,12 @@ object Isabelle_System
       _settings = Some(settings)
       set_cygwin_root()
     }
+  }
+
+  def init()
+  {
+    init_settings()
+    services
   }
 
 
@@ -381,6 +387,13 @@ object Isabelle_System
       }
     }
   }
+
+
+  /*  user-defined services */
+
+  abstract class Service
+
+  lazy val services: List[Service] = init_classes[Service]("ISABELLE_SCALA_SERVICES")
 
 
   /* default logic */
