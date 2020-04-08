@@ -18,7 +18,7 @@ class Mutator_Container(val available: List[Mutator])
   val events = new Mutator_Event.Bus
 
   private var _mutators : List[Mutator.Info] = Nil
-  def apply() = _mutators
+  def apply(): List[Mutator.Info] = _mutators
   def apply(mutators: List[Mutator.Info])
   {
     _mutators = mutators

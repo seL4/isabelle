@@ -193,7 +193,7 @@ final class Outer_Syntax private(
       if (tok.is_ignored) ignored += tok
       else if (keywords.is_before_command(tok) ||
         tok.is_command &&
-          (!content.exists(keywords.is_before_command(_)) || content.exists(_.is_command)))
+          (!content.exists(keywords.is_before_command) || content.exists(_.is_command)))
       { flush(); content += tok }
       else { content ++= ignored; ignored.clear; content += tok }
     }

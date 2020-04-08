@@ -287,7 +287,7 @@ object Isabelle_System
         proc.getInputStream.close
         proc.getErrorStream.close
         proc.destroy
-        Thread.interrupted
+        Exn.Interrupt.dispose()
       }
     (output, rc)
   }

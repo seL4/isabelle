@@ -7,6 +7,9 @@ Support for command-line options as in GNU bash.
 package isabelle
 
 
+import scala.annotation.tailrec
+
+
 object Getopts
 {
   def apply(usage_text: String, option_specs: (String, String => Unit)*): Getopts =
@@ -44,7 +47,7 @@ class Getopts private(usage_text: String, options: Map[Char, (Boolean, String =>
         cat_error(msg, "The error(s) above occurred in command-line option " + print_option(opt))
     }
 
-  private def getopts(args: List[List[Char]]): List[List[Char]] =
+  @tailrec private def getopts(args: List[List[Char]]): List[List[Char]] =
     args match {
       case List('-', '-') :: rest_args => rest_args
       case ('-' :: opt :: rest_opts) :: rest_args if is_option0(opt) && rest_opts.nonEmpty =>

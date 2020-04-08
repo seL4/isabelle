@@ -23,14 +23,14 @@ object Export_Theory
       else None
 
     def theories: List[Theory] =
-      theory_graph.topological_order.flatMap(theory(_))
+      theory_graph.topological_order.flatMap(theory)
   }
 
   def read_session(
     store: Sessions.Store,
     sessions_structure: Sessions.Structure,
     session_name: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =

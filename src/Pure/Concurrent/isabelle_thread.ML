@@ -1,14 +1,13 @@
-(*  Title:      Pure/Concurrent/standard_thread.ML
+(*  Title:      Pure/Concurrent/isabelle_thread.ML
     Author:     Makarius
 
-Standard thread operations.
+Isabelle-specific thread management.
 *)
 
-signature STANDARD_THREAD =
+signature ISABELLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
-  val get_name: unit -> string option
-  val the_name: unit -> string
+  val get_name: unit -> string
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> Thread.thread
@@ -16,7 +15,7 @@ sig
   val interrupt_unsynchronized: Thread.thread -> unit
 end;
 
-structure Standard_Thread: STANDARD_THREAD =
+structure Isabelle_Thread: ISABELLE_THREAD =
 struct
 
 (* self *)
@@ -31,15 +30,13 @@ local
   val count = Counter.make ();
 in
 
-fun get_name () = Thread_Data.get name_var;
-
-fun the_name () =
-  (case get_name () of
-    NONE => raise Fail "Unknown thread name"
-  | SOME name => name);
+fun get_name () =
+  (case Thread_Data.get name_var of
+    SOME name => name
+  | NONE => raise Fail "Isabelle-specific thread required");
 
 fun set_name base =
-  Thread_Data.put name_var (SOME (base ^ "/" ^ string_of_int (count ())));
+  Thread_Data.put name_var (SOME ("Isabelle." ^ base ^ "-" ^ string_of_int (count ())));
 
 end;
 

@@ -12,7 +12,7 @@ object Other_Isabelle
   def apply(isabelle_home: Path,
       isabelle_identifier: String = "",
       user_home: Path = Path.explode("$USER_HOME"),
-      progress: Progress = No_Progress): Other_Isabelle =
+      progress: Progress = new Progress): Other_Isabelle =
     new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
 }
 
@@ -62,7 +62,7 @@ class Other_Isabelle(
   val etc_preferences: Path = etc + Path.explode("preferences")
 
   def copy_fonts(target_dir: Path): Unit =
-    Isabelle_Fonts.make_entries(getenv = getenv(_), hidden = true).
+    Isabelle_Fonts.make_entries(getenv = getenv, hidden = true).
       foreach(entry => File.copy(entry.path, target_dir))
 
 

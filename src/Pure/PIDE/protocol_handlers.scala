@@ -58,7 +58,7 @@ object Protocol_Handlers
 
     def invoke(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
-        case Markup.Function(a) if functions.isDefinedAt(a) =>
+        case (Markup.FUNCTION, a) :: _ if functions.isDefinedAt(a) =>
           try { functions(a)(msg) }
           catch {
             case exn: Throwable =>

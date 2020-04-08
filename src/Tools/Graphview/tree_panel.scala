@@ -112,7 +112,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
   private val selection_field_foreground = selection_field.foreground
 
   private val selection_delay =
-    GUI_Thread.delay_last(graphview.options.seconds("editor_input_delay")) {
+    Delay.last(graphview.options.seconds("editor_input_delay"), gui = true) {
       val (pattern, ok) =
         selection_field.text match {
           case null | "" => (None, true)

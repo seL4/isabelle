@@ -3682,7 +3682,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
       qed
       show "disjoint \<V>"
         apply (clarsimp simp add: \<V>_def pairwise_def disjnt_def add.commute [of _ "x*y" for x y]
-                        image_add_ball ball_eq_ball_iff)
+                        ball_eq_ball_iff)
         apply (rule disjoint_ballI)
         apply (auto simp: dist_norm neq_iff)
         by (metis norm_minus_commute xy)+
@@ -5321,7 +5321,7 @@ lemma connected_frontier_component_complement:
   assumes "connected S" and C: "C \<in> components(- S)" shows "connected(frontier C)"
   apply (rule connected_frontier_simple)
   using C in_components_connected apply blast
-  by (metis Compl_eq_Diff_UNIV connected_UNIV assms top_greatest component_complement_connected)
+  by (metis assms component_complement_connected)
 
 lemma connected_frontier_disjoint:
   fixes S :: "'a :: euclidean_space set"

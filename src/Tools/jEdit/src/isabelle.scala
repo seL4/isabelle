@@ -406,8 +406,8 @@ object Isabelle
 
   private def enclose_input(text_area: JEditTextArea, s1: String, s2: String)
   {
-    s1.foreach(text_area.userInput(_))
-    s2.foreach(text_area.userInput(_))
+    s1.foreach(text_area.userInput)
+    s2.foreach(text_area.userInput)
     s2.foreach(_ => text_area.goToPrevCharacter(false))
   }
 

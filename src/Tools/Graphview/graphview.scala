@@ -82,7 +82,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
       }
       else node.toString
 
-    _layout = Layout.make(options, metrics, node_text _, visible_graph)
+    _layout = Layout.make(options, metrics, node_text, visible_graph)
   }
 
 

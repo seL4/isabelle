@@ -94,7 +94,7 @@ object Dump
     def apply(
       options: Options,
       aspects: List[Aspect] = Nil,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       dirs: List[Path] = Nil,
       select_dirs: List[Path] = Nil,
       selection: Sessions.Selection = Sessions.Selection.empty,
@@ -106,9 +106,9 @@ object Dump
         val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
         val options1 =
           options0 +
-            "completion_limit=0" +
             "ML_statistics=false" +
             "parallel_proofs=0" +
+            "completion_limit=0" +
             "editor_tracing_messages=0" +
             "editor_presentation"
         (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
@@ -363,7 +363,7 @@ object Dump
           session.use_theories(used_theories.map(_.theory),
             unicode_symbols = unicode_symbols,
             progress = progress,
-            commit = Some(Consumer.apply _))
+            commit = Some(Consumer.apply))
 
         val bad_theories = Consumer.shutdown()
         val bad_msgs =
@@ -395,7 +395,7 @@ object Dump
     options: Options,
     logic: String,
     aspects: List[Aspect] = Nil,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
@@ -463,7 +463,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Dump cumulative PIDE session database, with the following aspects:
 
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
-      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
+      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect)),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),

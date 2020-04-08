@@ -677,10 +677,10 @@ proof -
       path_image(linepath(pathfinish g)(vector[(pathfinish g)$1,a$2 - 1])) \<union>
       path_image(linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1])) \<union>
       path_image(linepath(vector[b$1 + 1,a$2 - 1])(vector[b$1 + 1,b$2 + 3]))" using assms(1-2)
-      by(auto simp add: path_image_join path_linepath)
+      by(auto simp add: path_image_join)
   have abab: "cbox a b \<subseteq> cbox ?a ?b"
     unfolding interval_cbox_cart[symmetric]
-    by (auto simp add:less_eq_vec_def forall_2 vector_2)
+    by (auto simp add:less_eq_vec_def forall_2)
   obtain z where
     "z \<in> path_image
           (linepath (vector [a $ 1 - 2, a $ 2 - 2]) (vector [pathstart f $ 1, a $ 2 - 2]) +++

@@ -61,7 +61,10 @@ object Session
   /* events */
 
   //{{{
-  case class Statistics(props: Properties.T)
+  case class Command_Timing(props: Properties.T)
+  case class Theory_Timing(props: Properties.T)
+  case class Runtime_Statistics(props: Properties.T)
+  case class Task_Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
@@ -175,7 +178,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* outlets */
 
-  val statistics = new Session.Outlet[Session.Statistics](dispatcher)
+  val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
+  val theory_timings = new Session.Outlet[Session.Theory_Timing](dispatcher)
+  val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
+  val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher)
   val global_options = new Session.Outlet[Session.Global_Options](dispatcher)
   val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher)
   val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher)
@@ -213,7 +219,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val _phase = Synchronized[Session.Phase](Session.Inactive)
   private def phase_=(new_phase: Session.Phase): Unit = _phase.change(_ => post_phase(new_phase))
 
-  def phase = _phase.value
+  def phase: Session.Phase = _phase.value
   def is_ready: Boolean = phase == Session.Ready
 
 
@@ -262,7 +268,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       nodes = Set.empty
       commands = Set.empty
     }
-    private val delay_flush = Standard_Thread.delay_first(output_delay) { flush() }
+    private val delay_flush = Delay.first(output_delay) { flush() }
 
     def invoke(assign: Boolean, edited_nodes: List[Document.Node.Name], cmds: List[Command]): Unit =
       synchronized {
@@ -307,7 +313,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private object consolidation
   {
     private val delay =
-      Standard_Thread.delay_first(consolidate_delay) { manager.send(Consolidate_Execution) }
+      Delay.first(consolidate_delay) { manager.send(Consolidate_Execution) }
 
     private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
     private val state = Synchronized(init_state)
@@ -376,7 +382,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   /* manager thread */
 
   private val delay_prune =
-    Standard_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
+    Delay.first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] =
   {
@@ -479,20 +485,27 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Markup.Protocol_Handler(name) if prover.defined =>
                 init_protocol_handler(name)
 
-              case Protocol.Command_Timing(state_id, timing) if prover.defined =>
+              case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
+                command_timings.post(Session.Command_Timing(props))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
 
-              case Protocol.Theory_Timing(_, _) =>
-                // FIXME
+              case Markup.Theory_Timing(props) =>
+                theory_timings.post(Session.Theory_Timing(props))
 
-              case Markup.Export(args)
+              case Markup.ML_Statistics(props) =>
+                runtime_statistics.post(Session.Runtime_Statistics(props))
+
+              case Markup.Task_Statistics(props) =>
+                task_statistics.post(Session.Task_Statistics(props))
+
+              case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
                 change_command(_.add_export(id, (args.serial, export)))
 
-              case Markup.Commands_Accepted =>
+              case List(Markup.Commands_Accepted.PROPERTY) =>
                 msg.text match {
                   case Protocol.Commands_Accepted(ids) =>
                     ids.foreach(id =>
@@ -500,7 +513,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                   case _ => bad_output()
                 }
 
-              case Markup.Assign_Update =>
+              case List(Markup.Assign_Update.PROPERTY) =>
                 msg.text match {
                   case Protocol.Assign_Update(id, edited, update) =>
                     try {
@@ -514,7 +527,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 }
                 delay_prune.invoke()
 
-              case Markup.Removed_Versions =>
+              case List(Markup.Removed_Versions.PROPERTY) =>
                 msg.text match {
                   case Protocol.Removed(removed) =>
                     try {
@@ -524,12 +537,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                     catch { case _: Document.State.Fail => bad_output() }
                   case _ => bad_output()
                 }
-
-              case Markup.ML_Statistics(props) =>
-                statistics.post(Session.Statistics(props))
-
-              case Markup.Task_Statistics(props) =>
-                // FIXME
 
               case _ => bad_output()
             }
@@ -566,14 +573,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         //{{{
         arg match {
           case output: Prover.Output =>
-            if (output.is_stdout || output.is_stderr)
-              raw_output_messages.post(output)
-            else handle_output(output)
-
             if (output.is_syslog) {
               syslog += output.message
               syslog_messages.post(output)
             }
+
+            if (output.is_stdout || output.is_stderr)
+              raw_output_messages.post(output)
+            else handle_output(output)
 
             all_messages.post(output)
 
@@ -645,7 +652,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
           case Session.Change_Flush if prover.defined =>
             val state = global_state.value
             if (!state.removing_versions)
-              postponed_changes.flush(state).foreach(handle_change(_))
+              postponed_changes.flush(state).foreach(handle_change)
 
           case bad =>
             if (verbose) Output.warning("Ignoring bad message: " + bad.toString)
@@ -680,7 +687,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
-      Thread.sleep(output_delay.ms)
+      output_delay.sleep
       await_stable_snapshot()
     }
     else snapshot
@@ -698,22 +705,17 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       })
   }
 
-  def send_stop()
+  def stop(): Process_Result =
   {
     val was_ready =
-      _phase.guarded_access(phase =>
-        phase match {
+      _phase.guarded_access(
+        {
           case Session.Startup | Session.Shutdown => None
           case Session.Terminated(_) => Some((false, phase))
           case Session.Inactive => Some((false, post_phase(Session.Terminated(Process_Result(0)))))
           case Session.Ready => Some((true, post_phase(Session.Shutdown)))
         })
     if (was_ready) manager.send(Stop)
-  }
-
-  def stop(): Process_Result =
-  {
-    send_stop()
     prover.await_reset()
 
     change_parser.shutdown()

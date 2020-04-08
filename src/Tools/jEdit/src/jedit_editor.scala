@@ -32,10 +32,10 @@ class JEdit_Editor extends Editor[View]
   def purge() { flush_edits(purge = true) }
 
   private val delay1_flush =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
+    Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) { flush() }
 
   private val delay2_flush =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_generated_input_delay")) { flush() }
+    Delay.first(PIDE.options.seconds("editor_generated_input_delay"), gui = true) { flush() }
 
   def invoke(): Unit = delay1_flush.invoke()
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
@@ -181,7 +181,7 @@ class JEdit_Editor extends Editor[View]
     if (path.is_file)
       goto_file(true, view, File.platform_path(path))
     else {
-      Standard_Thread.fork("documentation") {
+      Isabelle_Thread.fork(name = "documentation") {
         try { Doc.view(path) }
         catch {
           case exn: Throwable =>
@@ -202,7 +202,7 @@ class JEdit_Editor extends Editor[View]
       case doc: Doc.Text_File if doc.name == name => doc.path
       case doc: Doc.Doc if doc.name == name => doc.path}).map(path =>
         new Hyperlink {
-          override val external = !path.is_file
+          override val external: Boolean = !path.is_file
           def follow(view: View): Unit = goto_doc(view, path)
           override def toString: String = "doc " + quote(name)
         })
@@ -211,7 +211,7 @@ class JEdit_Editor extends Editor[View]
     new Hyperlink {
       override val external = true
       def follow(view: View): Unit =
-        Standard_Thread.fork("hyperlink_url") {
+        Isabelle_Thread.fork(name = "hyperlink_url") {
           try { Isabelle_System.open(Url.escape_name(name)) }
           catch {
             case exn: Throwable =>

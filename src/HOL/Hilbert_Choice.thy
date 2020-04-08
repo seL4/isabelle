@@ -49,27 +49,25 @@ lemma Eps_cong:
   using ext[of P Q, OF assms] by simp
 
 text \<open>
-  Easier to apply than \<open>someI\<close> if the witness comes from an
+  Easier to use than \<open>someI\<close> if the witness comes from an
   existential formula.
 \<close>
 lemma someI_ex [elim?]: "\<exists>x. P x \<Longrightarrow> P (SOME x. P x)"
-  apply (erule exE)
-  apply (erule someI)
-  done
+  by (elim exE someI)
 
 lemma some_eq_imp:
   assumes "Eps P = a" "P b" shows "P a"
   using assms someI_ex by force
 
 text \<open>
-  Easier to apply than \<open>someI\<close> because the conclusion has only one
+  Easier to use than \<open>someI\<close> because the conclusion has only one
   occurrence of \<^term>\<open>P\<close>.
 \<close>
 lemma someI2: "P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (SOME x. P x)"
   by (blast intro: someI)
 
 text \<open>
-  Easier to apply than \<open>someI2\<close> if the witness comes from an
+  Easier to use than \<open>someI2\<close> if the witness comes from an
   existential formula.
 \<close>
 lemma someI2_ex: "\<exists>a. P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (SOME x. P x)"
@@ -94,10 +92,7 @@ lemma some_eq_trivial [simp]: "(SOME y. y = x) = x"
   by (rule some_equality) (rule refl)
 
 lemma some_sym_eq_trivial [simp]: "(SOME y. x = y) = x"
-  apply (rule some_equality)
-   apply (rule refl)
-  apply (erule sym)
-  done
+  by (iprover intro: some_equality)
 
 
 subsection \<open>Axiom of Choice, Proved Using the Description Operator\<close>
@@ -240,11 +235,16 @@ lemma surj_iff: "surj f \<longleftrightarrow> f \<circ> inv f = id"
 lemma surj_iff_all: "surj f \<longleftrightarrow> (\<forall>x. f (inv f x) = x)"
   by (simp add: o_def surj_iff fun_eq_iff)
 
-lemma surj_imp_inv_eq: "surj f \<Longrightarrow> \<forall>x. g (f x) = x \<Longrightarrow> inv f = g"
-  apply (rule ext)
-  apply (drule_tac x = "inv f x" in spec)
-  apply (simp add: surj_f_inv_f)
-  done
+lemma surj_imp_inv_eq:
+  assumes "surj f" and gf: "\<And>x. g (f x) = x"
+  shows "inv f = g"
+proof (rule ext)
+  fix x
+  have "g (f (inv f x)) = inv f x"
+    by (rule gf)
+  then show "inv f x = g x"
+    by (simp add: surj_f_inv_f \<open>surj f\<close>)
+qed
 
 lemma bij_imp_bij_inv: "bij f \<Longrightarrow> bij (inv f)"
   by (simp add: bij_def inj_imp_surj_inv surj_imp_inj_inv)
@@ -266,11 +266,7 @@ text \<open>
 lemma inv_into_comp:
   "inj_on f (g ` A) \<Longrightarrow> inj_on g A \<Longrightarrow> x \<in> f ` g ` A \<Longrightarrow>
     inv_into A (f \<circ> g) x = (inv_into A g \<circ> inv_into (g ` A) f) x"
-  apply (rule inv_into_f_eq)
-    apply (fast intro: comp_inj_on)
-   apply (simp add: inv_into_into)
-  apply (simp add: f_inv_into_f inv_into_into)
-  done
+  by (auto simp: f_inv_into_f inv_into_into intro: inv_into_f_eq comp_inj_on)
 
 lemma o_inv_distrib: "bij f \<Longrightarrow> bij g \<Longrightarrow> inv (f \<circ> g) = inv g \<circ> inv f"
   by (rule inv_equality) (auto simp add: bij_def surj_f_inv_f)
@@ -281,16 +277,25 @@ lemma image_f_inv_f: "surj f \<Longrightarrow> f ` (inv f ` A) = A"
 lemma image_inv_f_f: "inj f \<Longrightarrow> inv f ` (f ` A) = A"
   by simp
 
-lemma bij_image_Collect_eq: "bij f \<Longrightarrow> f ` Collect P = {y. P (inv f y)}"
-  apply auto
-   apply (force simp add: bij_is_inj)
-  apply (blast intro: bij_is_surj [THEN surj_f_inv_f, symmetric])
-  done
+lemma bij_image_Collect_eq:
+  assumes "bij f"
+  shows "f ` Collect P = {y. P (inv f y)}"
+proof
+  show "f ` Collect P \<subseteq> {y. P (inv f y)}"
+    using assms by (force simp add: bij_is_inj)
+  show "{y. P (inv f y)} \<subseteq> f ` Collect P"
+    using assms by (blast intro: bij_is_surj [THEN surj_f_inv_f, symmetric])
+qed
 
-lemma bij_vimage_eq_inv_image: "bij f \<Longrightarrow> f -` A = inv f ` A"
-  apply (auto simp add: bij_is_surj [THEN surj_f_inv_f])
-  apply (blast intro: bij_is_inj [THEN inv_into_f_f, symmetric])
-  done
+lemma bij_vimage_eq_inv_image:
+  assumes "bij f"
+  shows "f -` A = inv f ` A"
+proof
+  show "f -` A \<subseteq> inv f ` A"
+    using assms by (blast intro: bij_is_inj [THEN inv_into_f_f, symmetric])
+  show "inv f ` A \<subseteq> f -` A"
+    using assms by (auto simp add: bij_is_surj [THEN surj_f_inv_f])
+qed
 
 lemma inv_fn_o_fn_is_id:
   fixes f::"'a \<Rightarrow> 'a"
@@ -338,10 +343,15 @@ lemma inv_fn:
   shows "inv (f^^n) = ((inv f)^^n)"
 proof -
   have "inv (f^^n) x = ((inv f)^^n) x" for x
-  apply (rule inv_into_f_eq, auto simp add: inj_fn[OF bij_is_inj[OF assms]])
-  using fn_o_inv_fn_is_id[OF assms, of n, THEN fun_cong] by (simp)
+  proof (rule inv_into_f_eq)
+    show "inj (f ^^ n)"
+      by (simp add: inj_fn[OF bij_is_inj [OF assms]])
+    show "(f ^^ n) ((inv f ^^ n) x) = x"
+      using fn_o_inv_fn_is_id[OF assms, THEN fun_cong] by force
+  qed auto
   then show ?thesis by auto
 qed
+
 
 lemma mono_inv:
   fixes f::"'a::linorder \<Rightarrow> 'b::linorder"
@@ -746,13 +756,16 @@ proof -
   qed
   then have "N \<le> card (f N)" by simp
   also have "\<dots> \<le> card S" using S by (intro card_mono)
-  finally have "f (card S) = f N" using eq by auto
-  then show ?thesis
-    using eq inj [of N]
-    apply auto
-    apply (case_tac "n < N")
-     apply (auto simp: not_less)
-    done
+  finally have \<section>: "f (card S) = f N" using eq by auto
+  moreover have "\<Union> (range f) \<subseteq> f N"
+  proof clarify
+    fix x n
+    assume "x \<in> f n"
+    with eq inj [of N] show "x \<in> f N"
+      by (cases "n < N") (auto simp: not_less)
+  qed
+  ultimately show ?thesis
+    by auto
 qed
 
 
@@ -822,28 +835,13 @@ next
   case True
   with infinite have "\<not> finite (A - {a})" by auto
   with infinite_iff_countable_subset[of "A - {a}"]
-  obtain f :: "nat \<Rightarrow> 'a" where 1: "inj f" and 2: "f ` UNIV \<subseteq> A - {a}" by blast
+  obtain f :: "nat \<Rightarrow> 'a" where "inj f" and f: "f ` UNIV \<subseteq> A - {a}" by blast
   define g where "g n = (if n = 0 then a else f (Suc n))" for n
   define A' where "A' = g ` UNIV"
-  have *: "\<forall>y. f y \<noteq> a" using 2 by blast
+  have *: "\<forall>y. f y \<noteq> a" using f by blast
   have 3: "inj_on g UNIV \<and> g ` UNIV \<subseteq> A \<and> a \<in> g ` UNIV"
-    apply (auto simp add: True g_def [abs_def])
-     apply (unfold inj_on_def)
-     apply (intro ballI impI)
-     apply (case_tac "x = 0")
-      apply (auto simp add: 2)
-  proof -
-    fix y
-    assume "a = (if y = 0 then a else f (Suc y))"
-    then show "y = 0" by (cases "y = 0") (use * in auto)
-  next
-    fix x y
-    assume "f (Suc x) = (if y = 0 then a else f (Suc y))"
-    with 1 * show "x = y" by (cases "y = 0") (auto simp: inj_on_def)
-  next
-    fix n
-    from 2 show "f (Suc n) \<in> A" by blast
-  qed
+    using \<open>inj f\<close> f * unfolding inj_on_def g_def
+    by (auto simp add: True image_subset_iff)
   then have 4: "bij_betw g UNIV A' \<and> a \<in> A' \<and> A' \<subseteq> A"
     using inj_on_imp_bij_betw[of g] by (auto simp: A'_def)
   then have 5: "bij_betw (inv g) A' UNIV"
@@ -852,38 +850,14 @@ next
   have 6: "bij_betw g (UNIV - {n}) (A' - {a})"
     by (rule bij_betw_subset) (use 3 4 n in \<open>auto simp: image_set_diff A'_def\<close>)
   define v where "v m = (if m < n then m else Suc m)" for m
-  have 7: "bij_betw v UNIV (UNIV - {n})"
-  proof (unfold bij_betw_def inj_on_def, intro conjI, clarify)
-    fix m1 m2
-    assume "v m1 = v m2"
-    then show "m1 = m2"
-      apply (cases "m1 < n")
-       apply (cases "m2 < n")
-        apply (auto simp: inj_on_def v_def [abs_def])
-      apply (cases "m2 < n")
-       apply auto
-      done
-  next
-    show "v ` UNIV = UNIV - {n}"
-    proof (auto simp: v_def [abs_def])
-      fix m
-      assume "m \<noteq> n"
-      assume *: "m \<notin> Suc ` {m'. \<not> m' < n}"
-      have False if "n \<le> m"
-      proof -
-        from \<open>m \<noteq> n\<close> that have **: "Suc n \<le> m" by auto
-        from Suc_le_D [OF this] obtain m' where m': "m = Suc m'" ..
-        with ** have "n \<le> m'" by auto
-        with m' * show ?thesis by auto
-      qed
-      then show "m < n" by force
-    qed
-  qed
+  have "m < n \<or> m = n" if "\<And>k. k < n \<or> m \<noteq> Suc k" for m
+    using that [of "m-1"] by auto
+  then have 7: "bij_betw v UNIV (UNIV - {n})"
+    unfolding bij_betw_def inj_on_def v_def by auto
   define h' where "h' = g \<circ> v \<circ> (inv g)"
   with 5 6 7 have 8: "bij_betw h' A' (A' - {a})"
     by (auto simp add: bij_betw_trans)
   define h where "h b = (if b \<in> A' then h' b else b)" for b
-  then have "\<forall>b \<in> A'. h b = h' b" by simp
   with 8 have "bij_betw h  A' (A' - {a})"
     using bij_betw_cong[of A' h] by auto
   moreover
@@ -943,14 +917,14 @@ begin
 lemma Sup_Inf: "\<Squnion> (Inf ` A) = \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
 proof (rule antisym)
   show "\<Squnion> (Inf ` A) \<le> \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
-    apply (rule Sup_least, rule INF_greatest)
-    using Inf_lower2 Sup_upper by auto
+    using Inf_lower2 Sup_upper
+    by (fastforce simp add: intro: Sup_least INF_greatest)
 next
   show "\<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B}) \<le> \<Squnion> (Inf ` A)"
   proof (simp add:  Inf_Sup, rule SUP_least, simp, safe)
     fix f
     assume "\<forall>Y. (\<exists>f. Y = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<longrightarrow> f Y \<in> Y"
-    from this have B: "\<And> F . (\<forall> Y \<in> A . F Y \<in> Y) \<Longrightarrow> \<exists> Z \<in> A . f (F ` A) = F Z"
+    then have B: "\<And> F . (\<forall> Y \<in> A . F Y \<in> Y) \<Longrightarrow> \<exists> Z \<in> A . f (F ` A) = F Z"
       by auto
     show "\<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> \<Squnion>(Inf ` A)"
     proof (cases "\<exists> Z \<in> A . \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> Inf Z")
@@ -963,21 +937,20 @@ next
         by simp
     next
       case False
-      from this have X: "\<And> Z . Z \<in> A \<Longrightarrow> \<exists> x . x \<in> Z \<and> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> x"
+      then have X: "\<And> Z . Z \<in> A \<Longrightarrow> \<exists> x . x \<in> Z \<and> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> x"
         using Inf_greatest by blast
       define F where "F = (\<lambda> Z . SOME x . x \<in> Z \<and> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> x)"
-      have C: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
+      have C: "\<And>Y. Y \<in> A \<Longrightarrow> F Y \<in> Y"
         using X by (simp add: F_def, rule someI2_ex, auto)
-      have E: "\<And> Y . Y \<in> A \<Longrightarrow> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> F Y"
+      have E: "\<And>Y. Y \<in> A \<Longrightarrow> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> F Y"
         using X by (simp add: F_def, rule someI2_ex, auto)
       from C and B obtain  Z where D: "Z \<in> A " and Y: "f (F ` A) = F Z"
         by blast
       from E and D have W: "\<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> F Z"
         by simp
       have "\<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> f (F ` A)"
-        apply (rule INF_lower)
-        using C by blast
-      from this and W and Y show ?thesis
+        using C by (blast intro: INF_lower)
+      with W Y show ?thesis
         by simp
     qed
   qed
@@ -985,15 +958,13 @@ qed
   
 lemma dual_complete_distrib_lattice:
   "class.complete_distrib_lattice Sup Inf sup (\<ge>) (>) inf \<top> \<bottom>"
-  apply (rule class.complete_distrib_lattice.intro)
-   apply (fact dual_complete_lattice)
-  by (simp add: class.complete_distrib_lattice_axioms_def Sup_Inf)
+  by (simp add: class.complete_distrib_lattice.intro [OF dual_complete_lattice] 
+                class.complete_distrib_lattice_axioms_def Sup_Inf)
 
 lemma sup_Inf: "a \<squnion> \<Sqinter>B = \<Sqinter>((\<squnion>) a ` B)"
 proof (rule antisym)
   show "a \<squnion> \<Sqinter>B \<le> \<Sqinter>((\<squnion>) a ` B)"
-    apply (rule INF_greatest)
-    using Inf_lower sup.mono by fastforce
+    using Inf_lower sup.mono by (fastforce intro: INF_greatest)
 next
   have "\<Sqinter>((\<squnion>) a ` B) \<le> \<Sqinter>(Sup ` {{f {a}, f B} |f. f {a} = a \<and> f B \<in> B})"
     by (rule INF_greatest, auto simp add: INF_lower)
@@ -1034,8 +1005,7 @@ next
         have "(INF x\<in>{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> f {uu. \<exists>x. uu = P x y}"
           by (rule INF_lower, blast)
         also have "... \<le> P (SOME x. f {uu . \<exists>x. uu = P x y} = P x y) y"
-          apply (rule someI2_ex)
-          using A by auto
+          by (rule someI2_ex) (use A in auto)
         finally show "\<Sqinter>(f ` {uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}) \<le>
           P (SOME x. f {uu. \<exists>x. uu = P x y} = P x y) y"
           by simp
@@ -1050,70 +1020,46 @@ next
 qed
 
 lemma INF_SUP_set: "(\<Sqinter>B\<in>A. \<Squnion>(g ` B)) = (\<Squnion>B\<in>{f ` A |f. \<forall>C\<in>A. f C \<in> C}. \<Sqinter>(g ` B))"
+                    (is "_ = (\<Squnion>B\<in>?F. _)")
 proof (rule antisym)
-  have "\<Sqinter> ((g \<circ> f) ` A) \<le> \<Squnion> (g ` B)" if "\<And>B. B \<in> A \<Longrightarrow> f B \<in> B" and "B \<in> A"
-    for f and B
+  have "\<Sqinter> ((g \<circ> f) ` A) \<le> \<Squnion> (g ` B)" if "\<And>B. B \<in> A \<Longrightarrow> f B \<in> B" "B \<in> A" for f B
     using that by (auto intro: SUP_upper2 INF_lower2)
-  then show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
+  then show "(\<Squnion>x\<in>?F. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
     by (auto intro!: SUP_least INF_greatest simp add: image_comp)
 next
-  show "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
+  show "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Squnion>x\<in>?F. \<Sqinter>a\<in>x. g a)"
   proof (cases "{} \<in> A")
     case True
     then show ?thesis 
       by (rule INF_lower2) simp_all
   next
     case False
-    have *: "\<And>f B. B \<in> A \<Longrightarrow> f B \<in> B \<Longrightarrow>
-      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>) \<le> g (f B)"
-      by (rule INF_lower2, auto)
-    have **: "\<And>f B. B \<in> A \<Longrightarrow> f B \<notin> B \<Longrightarrow>
-      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>) \<le> g (SOME x. x \<in> B)"
-      by (rule INF_lower2, auto)
-    have ****: "\<And>f B. B \<in> A \<Longrightarrow>
-      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>)
-        \<le> (if f B \<in> B then g (f B) else g (SOME x. x \<in> B))"
-      by (rule INF_lower2) auto
-    have ***: "\<And>x. (\<Sqinter>B. if B \<in> A then if x B \<in> B then g (x B) else \<bottom> else \<top>)
-        \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
-    proof -
-      fix x
-      define F where "F = (\<lambda> (y::'b set) . if x y \<in> y then x y else (SOME x . x \<in>y))"
-      have B: "(\<forall>Y\<in>A. F Y \<in> Y)"
-        using False some_in_eq F_def by auto
-      have A: "F ` A \<in> {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
-        using B by blast
-      show "(\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
-        using A apply (rule SUP_upper2)
-        apply (rule INF_greatest)
-        using * **
-        apply (auto simp add: F_def)
-        done
-    qed
-
     {fix x
-      have "(\<Sqinter>x\<in>A. \<Squnion>x\<in>x. g x) \<le> (\<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
+      have "(\<Sqinter>x\<in>A. \<Squnion>x\<in>x. g x) \<le> (\<Squnion>u. if x \<in> A then if u \<in> x then g u else \<bottom> else \<top>)"
       proof (cases "x \<in> A")
         case True
         then show ?thesis
-          apply (rule INF_lower2)
-          apply (rule SUP_least)
-          apply (rule SUP_upper2)
-           apply auto
-          done
-      next
-        case False
-        then show ?thesis by simp
-      qed
+          by (intro INF_lower2 SUP_least SUP_upper2) auto
+      qed auto
     }
-    from this have "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Sqinter>x. \<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
+    then have "(\<Sqinter>Y\<in>A. \<Squnion>a\<in>Y. g a) \<le> (\<Sqinter>Y. \<Squnion>y. if Y \<in> A then if y \<in> Y then g y else \<bottom> else \<top>)"
       by (rule INF_greatest)
-    also have "... = (\<Squnion>x. \<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>)"
+    also have "... = (\<Squnion>x. \<Sqinter>Y. if Y \<in> A then if x Y \<in> Y then g (x Y) else \<bottom> else \<top>)"
       by (simp only: INF_SUP)
-    also have "... \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
-      apply (rule SUP_least)
-      using *** apply simp
-      done
+    also have "... \<le> (\<Squnion>x\<in>?F. \<Sqinter>a\<in>x. g a)"
+    proof (rule SUP_least)
+      show "(\<Sqinter>B. if B \<in> A then if x B \<in> B then g (x B) else \<bottom> else \<top>)
+               \<le> (\<Squnion>x\<in>?F. \<Sqinter>x\<in>x. g x)" for x
+      proof -
+        define G where "G \<equiv> \<lambda>Y. if x Y \<in> Y then x Y else (SOME x. x \<in>Y)"
+        have "\<forall>Y\<in>A. G Y \<in> Y"
+          using False some_in_eq G_def by auto
+        then have A: "G ` A \<in> ?F"
+          by blast
+        show "(\<Sqinter>Y. if Y \<in> A then if x Y \<in> Y then g (x Y) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>?F. \<Sqinter>x\<in>x. g x)"
+          by (fastforce simp: G_def intro: SUP_upper2 [OF A] INF_greatest INF_lower2)
+      qed
+    qed
     finally show ?thesis by simp
   qed
 qed
@@ -1181,22 +1127,15 @@ begin
 instance proof (standard, clarsimp)
   fix A :: "(('a set) set) set"
   fix x::'a
-  define F where "F = (\<lambda> Y . (SOME X . (Y \<in> A \<and> X \<in> Y \<and> x \<in> X)))"
-  assume A: "\<forall>xa\<in>A. \<exists>X\<in>xa. x \<in> X"
-    
-  from this have B: " (\<forall>xa \<in> F ` A. x \<in> xa)"
-    apply (safe, simp add: F_def)
-    by (rule someI2_ex, auto)
-
-  have C: "(\<forall>Y\<in>A. F Y \<in> Y)"
-    apply (simp  add: F_def, safe)
-    apply (rule someI2_ex)
-    using A by auto
-
-  have "(\<exists>f. F ` A  = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y))"
-    using C by blast
-    
-  from B and this show "\<exists>X. (\<exists>f. X = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>xa\<in>X. x \<in> xa)"
+  assume A: "\<forall>\<S>\<in>A. \<exists>X\<in>\<S>. x \<in> X"
+  define F where "F \<equiv> \<lambda>Y. SOME X. Y \<in> A \<and> X \<in> Y \<and> x \<in> X"
+  have "(\<forall>S \<in> F ` A. x \<in> S)"
+    using A unfolding F_def by (fastforce intro: someI2_ex)
+  moreover have "\<forall>Y\<in>A. F Y \<in> Y"
+    using A unfolding F_def by (fastforce intro: someI2_ex)
+  then have "\<exists>f. F ` A  = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)"
+    by blast
+  ultimately show "\<exists>X. (\<exists>f. X = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>S\<in>X. x \<in> S)"
     by auto
 qed
 end
@@ -1212,85 +1151,56 @@ instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
 context complete_linorder
 begin
-  
+
 subclass complete_distrib_lattice
 proof (standard, rule ccontr)
-  fix A
-  assume "\<not> \<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-  then have C: "\<Sqinter>(Sup ` A) > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+  fix A :: "'a set set"
+  let ?F = "{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
+  assume "\<not> \<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` ?F)"
+  then have C: "\<Sqinter>(Sup ` A) > \<Squnion>(Inf ` ?F)"
     by (simp add: not_le)
   show False
-    proof (cases "\<exists> z . \<Sqinter>(Sup ` A) > z \<and> z > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})")
-      case True
-      from this obtain z where A: "z < \<Sqinter>(Sup ` A)" and X: "z > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        by blast
-          
-      from A have "\<And> Y . Y \<in> A \<Longrightarrow> z < Sup Y"
-        by (simp add: less_INF_D)
-    
-      from this have B: "\<And> Y . Y \<in> A \<Longrightarrow> \<exists> k \<in>Y . z < k"
-        using local.less_Sup_iff by blast
-          
-      define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> z < k)"
-        
-      have D: "\<And> Y . Y \<in> A \<Longrightarrow> z < F Y"
-        using B apply (simp add: F_def)
-        by (rule someI2_ex, auto)
+  proof (cases "\<exists> z . \<Sqinter>(Sup ` A) > z \<and> z > \<Squnion>(Inf ` ?F)")
+    case True
+    then obtain z where A: "z < \<Sqinter>(Sup ` A)" and X: "z > \<Squnion>(Inf ` ?F)"
+      by blast
+    then have B: "\<And>Y. Y \<in> A \<Longrightarrow> \<exists>k \<in>Y . z < k"
+      using local.less_Sup_iff by(force dest: less_INF_D)
 
-    
-      have E: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
-        using B apply (simp add: F_def)
-        by (rule someI2_ex, auto)
-    
-      have "z \<le> Inf (F ` A)"
-        by (simp add: D local.INF_greatest local.order.strict_implies_order)
-    
-      also have "... \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        apply (rule SUP_upper, safe)
-        using E by blast
-      finally have "z \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        by simp
-          
-      from X and this show ?thesis
-        using local.not_less by blast
-    next
-      case False
-      from this have A: "\<And> z . \<Sqinter>(Sup ` A) \<le> z \<or> z \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        using local.le_less_linear by blast
-
-      from C have "\<And> Y . Y \<in> A \<Longrightarrow> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < Sup Y"
-        by (simp add: less_INF_D)
-
-      from this have B: "\<And> Y . Y \<in> A \<Longrightarrow> \<exists> k \<in>Y . \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < k"
-        using local.less_Sup_iff by blast
-          
-      define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < k)"
-
-      have D: "\<And> Y . Y \<in> A \<Longrightarrow> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < F Y"
-        using B apply (simp add: F_def)
-        by (rule someI2_ex, auto)
-    
-      have E: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
-        using B apply (simp add: F_def)
-        by (rule someI2_ex, auto)
-          
-      have "\<And> Y . Y \<in> A \<Longrightarrow> \<Sqinter>(Sup ` A) \<le> F Y"
-        using D False local.leI by blast
-         
-      from this have "\<Sqinter>(Sup ` A) \<le> Inf (F ` A)"
-        by (simp add: local.INF_greatest)
-          
-      also have "Inf (F ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        apply (rule SUP_upper, safe)
-        using E by blast
-
-      finally have "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        by simp
-        
-      from C and this show ?thesis
-        using not_less by blast
+    define G where "G \<equiv> \<lambda>Y. SOME k . k \<in> Y \<and> z < k"
+    have E: "\<And>Y. Y \<in> A \<Longrightarrow> G Y \<in> Y"
+      using B unfolding G_def by (fastforce intro: someI2_ex)
+    have "z \<le> Inf (G ` A)"
+    proof (rule INF_greatest)
+      show  "\<And>Y. Y \<in> A \<Longrightarrow> z \<le> G Y"
+        using B unfolding G_def by (fastforce intro: someI2_ex)
     qed
+    also have "... \<le> \<Squnion>(Inf ` ?F)"
+      by (rule SUP_upper) (use E in blast)
+    finally have "z \<le> \<Squnion>(Inf ` ?F)"
+      by simp
+
+    with X show ?thesis
+      using local.not_less by blast
+  next
+    case False
+    have B: "\<And>Y. Y \<in> A \<Longrightarrow> \<exists> k \<in>Y . \<Squnion>(Inf ` ?F) < k"
+      using C local.less_Sup_iff by(force dest: less_INF_D)
+    define G where "G \<equiv> \<lambda> Y . SOME k . k \<in> Y \<and> \<Squnion>(Inf ` ?F) < k"
+    have E: "\<And>Y. Y \<in> A \<Longrightarrow> G Y \<in> Y"
+      using B unfolding G_def by (fastforce intro: someI2_ex)
+    have "\<And>Y. Y \<in> A \<Longrightarrow> \<Sqinter>(Sup ` A) \<le> G Y"
+      using B False local.leI unfolding G_def by (fastforce intro: someI2_ex)
+    then have "\<Sqinter>(Sup ` A) \<le> Inf (G ` A)"
+      by (simp add: local.INF_greatest)
+    also have "Inf (G ` A) \<le> \<Squnion>(Inf ` ?F)"
+      by (rule SUP_upper) (use E in blast)
+    finally have "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` ?F)"
+      by simp
+    with C show ?thesis
+      using not_less by blast
   qed
+qed
 end
 
 

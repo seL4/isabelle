@@ -32,20 +32,20 @@ object Prover
     def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
 
-    def is_init = kind == Markup.INIT
-    def is_exit = kind == Markup.EXIT
-    def is_stdout = kind == Markup.STDOUT
-    def is_stderr = kind == Markup.STDERR
-    def is_system = kind == Markup.SYSTEM
-    def is_status = kind == Markup.STATUS
-    def is_report = kind == Markup.REPORT
-    def is_syslog = is_init || is_exit || is_system || is_stderr
+    def is_init: Boolean = kind == Markup.INIT
+    def is_exit: Boolean = kind == Markup.EXIT
+    def is_stdout: Boolean = kind == Markup.STDOUT
+    def is_stderr: Boolean = kind == Markup.STDERR
+    def is_system: Boolean = kind == Markup.SYSTEM
+    def is_status: Boolean = kind == Markup.STATUS
+    def is_report: Boolean = kind == Markup.REPORT
+    def is_syslog: Boolean = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
-        else Pretty.string_of(message.body)
+        else Pretty.string_of(message.body, metric = Symbol.Metric)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
       else
@@ -112,8 +112,10 @@ class Prover(
     }
   }
 
-  private val process_manager = Standard_Thread.fork("process_manager")
+  private val process_manager = Isabelle_Thread.fork(name = "process_manager")
   {
+    val stdout = physical_output(false)
+
     val (startup_failed, startup_errors) =
     {
       var finished: Option[Boolean] = None
@@ -127,7 +129,7 @@ class Prover(
           }
           catch { case _: IOException => finished = Some(false) }
         }
-        Thread.sleep(10)
+        Time.seconds(0.05).sleep
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
@@ -136,13 +138,13 @@ class Prover(
     if (startup_failed) {
       terminate_process()
       process_result.join
+      stdout.join
       exit_message(Process_Result(127))
     }
     else {
       val (command_stream, message_stream) = channel.rendezvous()
 
       command_input_init(command_stream)
-      val stdout = physical_output(false)
       val stderr = physical_output(true)
       val message = message_output(message_stream)
 
@@ -168,7 +170,7 @@ class Prover(
 
     var count = 10
     while (!process_result.is_finished && count > 0) {
-      Thread.sleep(100)
+      Time.seconds(0.1).sleep
       count -= 1
     }
     if (!process_result.is_finished) terminate_process()
@@ -216,7 +218,7 @@ class Prover(
       if (err) ("standard_error", process.stderr, Markup.STDERR)
       else ("standard_output", process.stdout, Markup.STDOUT)
 
-    Standard_Thread.fork(name) {
+    Isabelle_Thread.fork(name = name) {
       try {
         var result = new StringBuilder(100)
         var finished = false
@@ -254,7 +256,7 @@ class Prover(
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
-    Standard_Thread.fork(name) {
+    Isabelle_Thread.fork(name = name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 

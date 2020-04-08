@@ -59,10 +59,10 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
 
   private val input_delay =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_input_delay")) { update_chart }
+    Delay.first(PIDE.options.seconds("editor_input_delay"), gui = true) { update_chart }
 
   private val update_delay =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) { update_chart }
+    Delay.first(PIDE.options.seconds("editor_chart_delay"), gui = true) { update_chart }
 
 
   /* controls */
@@ -108,7 +108,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
-      case stats: Session.Statistics =>
+      case stats: Session.Runtime_Statistics =>
         add_statistics(stats.props)
         update_delay.invoke()
 
@@ -118,13 +118,13 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   override def init()
   {
-    PIDE.session.statistics += main
+    PIDE.session.runtime_statistics += main
     PIDE.session.global_options += main
   }
 
   override def exit()
   {
-    PIDE.session.statistics -= main
+    PIDE.session.runtime_statistics -= main
     PIDE.session.global_options -= main
   }
 }

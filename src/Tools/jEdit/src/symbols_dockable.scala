@@ -28,7 +28,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private val abbrevs_panel = new Abbrevs_Panel
 
   private val abbrevs_refresh_delay =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_update_delay")) { abbrevs_panel.refresh }
+    Delay.last(PIDE.options.seconds("editor_update_delay"), gui = true) { abbrevs_panel.refresh }
 
   private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button
   {
@@ -129,7 +129,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
     val search_space = for ((sym, _) <- Symbol.codes) yield (sym, Word.lowercase(sym))
     val search_delay =
-      GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+      Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
         val search_words = Word.explode(Word.lowercase(search_field.text))
         val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
         val results =
@@ -174,7 +174,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     }
 
     for (page <- pages)
-      page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalize(_)))
+      page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalize))
   }
   set_content(group_tabs)
 
@@ -200,7 +200,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
                 }
               case _ =>
             })
-          comp.revalidate
+          comp.revalidate()
           comp.repaint()
         }
       case _: Session.Commands_Changed => abbrevs_refresh_delay.invoke()

@@ -65,15 +65,15 @@ lemma Suc_Rep_inject': "Suc_Rep x = Suc_Rep y \<longleftrightarrow> x = y"
   by (rule iffI, rule Suc_Rep_inject) simp_all
 
 lemma nat_induct0:
-  assumes "P 0"
-    and "\<And>n. P n \<Longrightarrow> P (Suc n)"
+  assumes "P 0" and "\<And>n. P n \<Longrightarrow> P (Suc n)"
   shows "P n"
-  using assms
-  apply (unfold Zero_nat_def Suc_def)
-  apply (rule Rep_Nat_inverse [THEN subst]) \<comment> \<open>types force good instantiation\<close>
-  apply (erule Nat_Rep_Nat [THEN Nat.induct])
-  apply (iprover elim: Nat_Abs_Nat_inverse [THEN subst])
-  done
+proof -
+  have "P (Abs_Nat (Rep_Nat n))"
+    using assms unfolding Zero_nat_def Suc_def
+    by (iprover intro:  Nat_Rep_Nat [THEN Nat.induct] elim: Nat_Abs_Nat_inverse [THEN subst])
+  then show ?thesis
+    by (simp add: Rep_Nat_inverse)
+qed
 
 free_constructors case_nat for "0 :: nat" | Suc pred
   where "pred (0 :: nat) = (0 :: nat)"
@@ -87,11 +87,7 @@ free_constructors case_nat for "0 :: nat" | Suc pred
 setup \<open>Sign.mandatory_path "old"\<close>
 
 old_rep_datatype "0 :: nat" Suc
-    apply (erule nat_induct0)
-    apply assumption
-   apply (rule nat.inject)
-  apply (rule nat.distinct(1))
-  done
+  by (erule nat_induct0) auto
 
 setup \<open>Sign.parent_path\<close>
 
@@ -356,18 +352,11 @@ next
 qed
 
 lemma one_eq_mult_iff [simp]: "Suc 0 = m * n \<longleftrightarrow> m = Suc 0 \<and> n = Suc 0"
-  apply (rule trans)
-   apply (rule_tac [2] mult_eq_1_iff)
-  apply fastforce
-  done
+  by (simp add: eq_commute flip: mult_eq_1_iff)
 
-lemma nat_mult_eq_1_iff [simp]: "m * n = 1 \<longleftrightarrow> m = 1 \<and> n = 1"
-  for m n :: nat
-  unfolding One_nat_def by (rule mult_eq_1_iff)
-
-lemma nat_1_eq_mult_iff [simp]: "1 = m * n \<longleftrightarrow> m = 1 \<and> n = 1"
-  for m n :: nat
-  unfolding One_nat_def by (rule one_eq_mult_iff)
+lemma nat_mult_eq_1_iff [simp]: "m * n = 1 \<longleftrightarrow> m = 1 \<and> n = 1" 
+  and nat_1_eq_mult_iff [simp]: "1 = m * n \<longleftrightarrow> m = 1 \<and> n = 1" for m n :: nat
+  by auto
 
 lemma mult_cancel1 [simp]: "k * m = k * n \<longleftrightarrow> m = n \<or> k = 0"
   for k m n :: nat
@@ -584,22 +573,23 @@ lemma less_SucE:
     and less: "m < n \<Longrightarrow> P"
     and eq: "m = n \<Longrightarrow> P"
   shows P
-  apply (rule major [THEN lessE])
-   apply (rule eq)
-   apply blast
-  apply (rule less)
-  apply blast
-  done
+proof (rule major [THEN lessE])
+  show "Suc n = Suc m \<Longrightarrow> P"
+    using eq by blast
+  show "\<And>j. \<lbrakk>m < j; Suc n = Suc j\<rbrakk> \<Longrightarrow> P"
+    by (blast intro: less)
+qed
 
 lemma Suc_lessE:
   assumes major: "Suc i < k"
     and minor: "\<And>j. i < j \<Longrightarrow> k = Suc j \<Longrightarrow> P"
   shows P
-  apply (rule major [THEN lessE])
-   apply (erule lessI [THEN minor])
-  apply (erule Suc_lessD [THEN minor])
-  apply assumption
-  done
+proof (rule major [THEN lessE])
+  show "k = Suc (Suc i) \<Longrightarrow> P"
+    using lessI minor by iprover
+  show "\<And>j. \<lbrakk>Suc i < j; k = Suc j\<rbrakk> \<Longrightarrow> P"
+    using Suc_lessD minor by iprover
+qed
 
 lemma Suc_less_SucD: "Suc m < Suc n \<Longrightarrow> m < n"
   by simp
@@ -786,12 +776,16 @@ lemma add_less_mono1: "i < j \<Longrightarrow> i + k < j + k"
   by (induct k) simp_all
 
 text \<open>strict, in both arguments\<close>
-lemma add_less_mono: "i < j \<Longrightarrow> k < l \<Longrightarrow> i + k < j + l"
-  for i j k l :: nat
-  apply (rule add_less_mono1 [THEN less_trans], assumption+)
-  apply (induct j)
-   apply simp_all
-  done
+lemma add_less_mono: 
+  fixes i j k l :: nat
+  assumes "i < j" "k < l" shows "i + k < j + l"
+proof -
+  have "i + k < j + k"
+    by (simp add: add_less_mono1 assms)
+  also have "...  < j + l"
+    using \<open>i < j\<close> by (induction j) (auto simp: assms)
+  finally show ?thesis .
+qed
 
 lemma less_imp_Suc_add: "m < n \<Longrightarrow> \<exists>k. n = Suc (m + k)"
 proof (induct n)
@@ -969,42 +963,55 @@ lemma Least_eq_0[simp]: "P 0 \<Longrightarrow> Least P = 0"
   for P :: "nat \<Rightarrow> bool"
   by (rule Least_equality[OF _ le0])
 
-lemma Least_Suc: "P n \<Longrightarrow> \<not> P 0 \<Longrightarrow> (LEAST n. P n) = Suc (LEAST m. P (Suc m))"
-  apply (cases n)
-   apply auto
-  apply (frule LeastI)
-  apply (drule_tac P = "\<lambda>x. P (Suc x)" in LeastI)
-  apply (subgoal_tac " (LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))")
-   apply (erule_tac [2] Least_le)
-  apply (cases "LEAST x. P x")
-   apply auto
-  apply (drule_tac P = "\<lambda>x. P (Suc x)" in Least_le)
-  apply (blast intro: order_antisym)
-  done
+lemma Least_Suc:
+  assumes "P n" "\<not> P 0" 
+  shows "(LEAST n. P n) = Suc (LEAST m. P (Suc m))"
+proof (cases n)
+  case (Suc m)
+  show ?thesis
+  proof (rule antisym)
+    show "(LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))"
+      using assms Suc by (force intro: LeastI Least_le)
+    have \<section>: "P (LEAST x. P x)"
+      by (blast intro: LeastI assms)
+    show "Suc (LEAST m. P (Suc m)) \<le> (LEAST n. P n)"
+    proof (cases "(LEAST n. P n)")
+      case 0
+      then show ?thesis
+        using \<section> by (simp add: assms)
+    next
+      case Suc
+      with \<section> show ?thesis
+        by (auto simp: Least_le)
+    qed
+  qed
+qed (use assms in auto)
 
 lemma Least_Suc2: "P n \<Longrightarrow> Q m \<Longrightarrow> \<not> P 0 \<Longrightarrow> \<forall>k. P (Suc k) = Q k \<Longrightarrow> Least P = Suc (Least Q)"
   by (erule (1) Least_Suc [THEN ssubst]) simp
 
-lemma ex_least_nat_le: "\<not> P 0 \<Longrightarrow> P n \<Longrightarrow> \<exists>k\<le>n. (\<forall>i<k. \<not> P i) \<and> P k"
-  for P :: "nat \<Rightarrow> bool"
-  apply (cases n)
-   apply blast
-  apply (rule_tac x="LEAST k. P k" in exI)
-  apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
-  done
+lemma ex_least_nat_le:
+  fixes P :: "nat \<Rightarrow> bool"
+  assumes "P n" "\<not> P 0" 
+  shows "\<exists>k\<le>n. (\<forall>i<k. \<not> P i) \<and> P k"
+proof (cases n)
+  case (Suc m)
+  with assms show ?thesis
+    by (blast intro: Least_le LeastI_ex dest: not_less_Least)
+qed (use assms in auto)
 
-lemma ex_least_nat_less: "\<not> P 0 \<Longrightarrow> P n \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not> P i) \<and> P (k + 1)"
-  for P :: "nat \<Rightarrow> bool"
-  apply (cases n)
-   apply blast
-  apply (frule (1) ex_least_nat_le)
-  apply (erule exE)
-  apply (case_tac k)
-   apply simp
-  apply (rename_tac k1)
-  apply (rule_tac x=k1 in exI)
-  apply (auto simp add: less_eq_Suc_le)
-  done
+lemma ex_least_nat_less:
+  fixes P :: "nat \<Rightarrow> bool"
+  assumes "P n" "\<not> P 0" 
+  shows "\<exists>k<n. (\<forall>i\<le>k. \<not> P i) \<and> P (Suc k)"
+proof (cases n)
+  case (Suc m)
+  then obtain k where k: "k \<le> n" "\<forall>i<k. \<not> P i" "P k"
+    using ex_least_nat_le [OF assms] by blast
+  show ?thesis 
+    by (cases k) (use assms k less_eq_Suc_le in auto)
+qed (use assms in auto)
+
 
 lemma nat_less_induct:
   fixes P :: "nat \<Rightarrow> bool"
@@ -1070,11 +1077,10 @@ lemma infinite_descent0 [case_names 0 smaller]:
   assumes "P 0"
     and "\<And>n. n > 0 \<Longrightarrow> \<not> P n \<Longrightarrow> \<exists>m. m < n \<and> \<not> P m"
   shows "P n"
-  apply (rule infinite_descent)
-  using assms
-  apply (case_tac "n > 0")
-   apply auto
-  done
+proof (rule infinite_descent)
+  show "\<And>n. \<not> P n \<Longrightarrow> \<exists>m<n. \<not> P m"
+  using assms by (case_tac "n > 0") auto
+qed
 
 text \<open>
   Infinite descent using a mapping to \<open>nat\<close>:
@@ -1178,14 +1184,11 @@ lemma add_lessD1: "i + j < k \<Longrightarrow> i < k"
 
 lemma not_add_less1 [iff]: "\<not> i + j < i"
   for i j :: nat
-  apply (rule notI)
-  apply (drule add_lessD1)
-  apply (erule less_irrefl [THEN notE])
-  done
+  by simp
 
 lemma not_add_less2 [iff]: "\<not> j + i < i"
   for i j :: nat
-  by (simp add: add.commute)
+  by simp
 
 lemma add_leD1: "m + k \<le> n \<Longrightarrow> m \<le> n"
   for k m n :: nat
@@ -1193,9 +1196,7 @@ lemma add_leD1: "m + k \<le> n \<Longrightarrow> m \<le> n"
 
 lemma add_leD2: "m + k \<le> n \<Longrightarrow> k \<le> n"
   for k m n :: nat
-  apply (simp add: add.commute)
-  apply (erule add_leD1)
-  done
+  by (force simp add: add.commute dest: add_leD1)
 
 lemma add_leE: "m + k \<le> n \<Longrightarrow> (m \<le> n \<Longrightarrow> k \<le> n \<Longrightarrow> R) \<Longrightarrow> R"
   for k m n :: nat
@@ -1213,10 +1214,7 @@ lemma Suc_diff_le: "n \<le> m \<Longrightarrow> Suc m - n = Suc (m - n)"
   by (induct m n rule: diff_induct) simp_all
 
 lemma diff_less_Suc: "m - n < Suc m"
-  apply (induct m n rule: diff_induct)
-    apply (erule_tac [3] less_SucE)
-     apply (simp_all add: less_Suc_eq)
-  done
+  by (induct m n rule: diff_induct) (auto simp: less_Suc_eq)
 
 lemma diff_le_self [simp]: "m - n \<le> m"
   for m n :: nat
@@ -1345,12 +1343,26 @@ qed
 
 lemma mult_less_cancel2 [simp]: "m * k < n * k \<longleftrightarrow> 0 < k \<and> m < n"
   for k m n :: nat
-  apply (safe intro!: mult_less_mono1)
-   apply (cases k)
-    apply auto
-  apply (simp add: linorder_not_le [symmetric])
-  apply (blast intro: mult_le_mono1)
-  done
+proof (intro iffI conjI)
+  assume m: "m * k < n * k"
+  then show "0 < k"
+    by (cases k) auto
+  show "m < n"
+  proof (cases k)
+    case 0
+    then show ?thesis
+      using m by auto
+  next
+    case (Suc k')
+    then show ?thesis
+      using m
+      by (simp flip: linorder_not_le) (blast intro: add_mono mult_le_mono1)
+  qed
+next
+  assume "0 < k \<and> m < n"
+  then show "m * k < n * k"
+    by (blast intro: mult_less_mono1)
+qed
 
 lemma mult_less_cancel1 [simp]: "k * m < k * n \<longleftrightarrow> 0 < k \<and> m < n"
   for k m n :: nat
@@ -1379,16 +1391,18 @@ lemma le_cube: "m \<le> m * (m * m)"
   by (cases m) (auto intro: le_add1)
 
 text \<open>Lemma for \<open>gcd\<close>\<close>
-lemma mult_eq_self_implies_10: "m = m * n \<Longrightarrow> n = 1 \<or> m = 0"
-  for m n :: nat
-  apply (drule sym)
-  apply (rule disjCI)
-  apply (rule linorder_cases)
-    defer
-    apply assumption
-   apply (drule mult_less_mono2)
-    apply auto
-  done
+lemma mult_eq_self_implies_10: 
+  fixes m n :: nat
+  assumes "m = m * n" shows "n = 1 \<or> m = 0"
+proof (rule disjCI)
+  assume "m \<noteq> 0"
+  show "n = 1"
+  proof (cases n "1::nat" rule: linorder_cases)
+    case greater
+    show ?thesis
+      using assms mult_less_mono2 [OF greater, of m] \<open>m \<noteq> 0\<close> by auto
+  qed (use assms \<open>m \<noteq> 0\<close> in auto)
+qed
 
 lemma mono_times_nat:
   fixes n :: nat
@@ -1849,28 +1863,20 @@ lemma of_nat_in_Nats [simp]: "of_nat n \<in> \<nat>"
   by (simp add: Nats_def)
 
 lemma Nats_0 [simp]: "0 \<in> \<nat>"
-  apply (simp add: Nats_def)
-  apply (rule range_eqI)
-  apply (rule of_nat_0 [symmetric])
-  done
+  using of_nat_0 [symmetric] unfolding Nats_def
+  by (rule range_eqI)
 
 lemma Nats_1 [simp]: "1 \<in> \<nat>"
-  apply (simp add: Nats_def)
-  apply (rule range_eqI)
-  apply (rule of_nat_1 [symmetric])
-  done
+  using of_nat_1 [symmetric] unfolding Nats_def
+  by (rule range_eqI)
 
 lemma Nats_add [simp]: "a \<in> \<nat> \<Longrightarrow> b \<in> \<nat> \<Longrightarrow> a + b \<in> \<nat>"
-  apply (auto simp add: Nats_def)
-  apply (rule range_eqI)
-  apply (rule of_nat_add [symmetric])
-  done
+  unfolding Nats_def using of_nat_add [symmetric]
+  by (blast intro: range_eqI)
 
 lemma Nats_mult [simp]: "a \<in> \<nat> \<Longrightarrow> b \<in> \<nat> \<Longrightarrow> a * b \<in> \<nat>"
-  apply (auto simp add: Nats_def)
-  apply (rule range_eqI)
-  apply (rule of_nat_mult [symmetric])
-  done
+  unfolding Nats_def using of_nat_mult [symmetric]
+  by (blast intro: range_eqI)
 
 lemma Nats_cases [cases set: Nats]:
   assumes "x \<in> \<nat>"
@@ -2303,21 +2309,21 @@ proof (induction "b-k" arbitrary: b k rule: less_induct)
   qed
 qed
 
-lemma GreatestI_nat:
-  "\<lbrakk> P(k::nat); \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
-apply(drule (1) ex_has_greatest_nat)
-using GreatestI2_order by auto
-
-lemma Greatest_le_nat:
-  "\<lbrakk> P(k::nat);  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> k \<le> (Greatest P)"
-apply(frule (1) ex_has_greatest_nat)
-using GreatestI2_order[where P=P and Q=\<open>\<lambda>x. k \<le> x\<close>] by auto
+lemma
+  fixes k::nat
+  assumes "P k" and minor: "\<And>y. P y \<Longrightarrow> y \<le> b"
+  shows GreatestI_nat: "P (Greatest P)" 
+    and Greatest_le_nat: "k \<le> Greatest P"
+proof -
+  obtain x where "P x" "\<And>y. P y \<Longrightarrow> y \<le> x"
+    using assms ex_has_greatest_nat by blast
+  with \<open>P k\<close> show "P (Greatest P)" "k \<le> Greatest P"
+    using GreatestI2_order by blast+
+qed
 
 lemma GreatestI_ex_nat:
-  "\<lbrakk> \<exists>k::nat. P k;  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
-apply (erule exE)
-apply (erule (1) GreatestI_nat)
-done
+  "\<lbrakk> \<exists>k::nat. P k;  \<And>y. P y \<Longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
+  by (blast intro: GreatestI_nat)
 
 
 subsection \<open>Monotonicity of \<open>funpow\<close>\<close>
@@ -2363,11 +2369,16 @@ lemma dvd_diff_nat [simp]: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> 
   for k m n :: nat
   unfolding dvd_def by (blast intro: right_diff_distrib' [symmetric])
 
-lemma dvd_diffD: "k dvd m - n \<Longrightarrow> k dvd n \<Longrightarrow> n \<le> m \<Longrightarrow> k dvd m"
-  for k m n :: nat
-  apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
-  apply (blast intro: dvd_add)
-  done
+lemma dvd_diffD: 
+  fixes k m n :: nat
+  assumes "k dvd m - n" "k dvd n" "n \<le> m"
+  shows "k dvd m"
+proof -
+  have "k dvd n + (m - n)"
+    using assms by (blast intro: dvd_add)
+  with assms show ?thesis
+    by simp
+qed
 
 lemma dvd_diffD1: "k dvd m - n \<Longrightarrow> k dvd m \<Longrightarrow> n \<le> m \<Longrightarrow> k dvd n"
   for k m n :: nat
@@ -2384,13 +2395,19 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_mult_cancel1: "0 < m \<Longrightarrow> m * n dvd m \<longleftrightarrow> n = 1"
-  for m n :: nat
-  apply auto
-  apply (subgoal_tac "m * n dvd m * 1")
-   apply (drule dvd_mult_cancel)
-    apply auto
-  done
+lemma dvd_mult_cancel1:
+  fixes m n :: nat
+  assumes "0 < m"
+  shows "m * n dvd m \<longleftrightarrow> n = 1"
+proof 
+  assume "m * n dvd m"
+  then have "m * n dvd m * 1"
+    by simp
+  then have "n dvd 1"
+    by (iprover intro: assms dvd_mult_cancel)
+  then show "n = 1"
+    by auto
+qed auto
 
 lemma dvd_mult_cancel2: "0 < m \<Longrightarrow> n * m dvd m \<longleftrightarrow> n = 1"
   for m n :: nat
@@ -2442,14 +2459,6 @@ lemma nat_mult_1_right: "n * 1 = n"
   for n :: nat
   by (fact mult_1_right)
 
-lemma nat_add_left_cancel: "k + m = k + n \<longleftrightarrow> m = n"
-  for k m n :: nat
-  by (fact add_left_cancel)
-
-lemma nat_add_right_cancel: "m + k = n + k \<longleftrightarrow> m = n"
-  for k m n :: nat
-  by (fact add_right_cancel)
-
 lemma diff_mult_distrib: "(m - n) * k = (m * k) - (n * k)"
   for k m n :: nat
   by (fact left_diff_distrib')
@@ -2458,13 +2467,10 @@ lemma diff_mult_distrib2: "k * (m - n) = (k * m) - (k * n)"
   for k m n :: nat
   by (fact right_diff_distrib')
 
-lemma le_add_diff: "k \<le> n \<Longrightarrow> m \<le> n + m - k"
-  for k m n :: nat
-  by (fact le_add_diff)  (* FIXME delete *)
-
+(*Used in AUTO2 and Groups.le_diff_conv2 (with variables renamed) doesn't work for some reason*)
 lemma le_diff_conv2: "k \<le> j \<Longrightarrow> (i \<le> j - k) = (i + k \<le> j)"
   for i j k :: nat
-  by (fact le_diff_conv2) (* FIXME delete *)
+  by (fact le_diff_conv2) 
 
 lemma diff_self_eq_0 [simp]: "m - m = 0"
   for m :: nat

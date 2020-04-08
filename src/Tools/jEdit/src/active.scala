@@ -31,14 +31,14 @@ object Active
             // FIXME avoid hard-wired stuff
             elem match {
               case XML.Elem(Markup(Markup.BROWSER, _), body) =>
-                Standard_Thread.fork("browser") {
+                Isabelle_Thread.fork(name = "browser") {
                   val graph_file = Isabelle_System.tmp_file("graph")
                   File.write(graph_file, XML.content(body))
                   Isabelle_System.bash("isabelle browser -c " + File.bash_path(graph_file) + " &")
                 }
 
               case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
-                Standard_Thread.fork("graphview") {
+                Isabelle_Thread.fork(name = "graphview") {
                   val graph =
                     Exn.capture { Graph_Display.decode_graph(body).transitive_reduction_acyclic }
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }

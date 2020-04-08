@@ -4,6 +4,16 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** System ***
+
+* The command-line tool "isabelle console" now supports interrupts
+properly (on Linux and macOS).
+
+
+
 New in Isabelle2020 (April 2020)
 --------------------------------
 

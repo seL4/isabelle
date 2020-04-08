@@ -23,24 +23,24 @@ object Session_Build
 {
   def check_dialog(view: View)
   {
-    GUI_Thread.require {}
-
     val options = PIDE.options.value
-    try {
-      if (JEdit_Sessions.session_no_build ||
+    Isabelle_Thread.fork() {
+      try {
+        if (JEdit_Sessions.session_no_build ||
           JEdit_Sessions.session_build(options, no_build = true) == 0)
-            JEdit_Sessions.session_start(options)
-      else new Dialog(view)
-    }
-    catch {
-      case exn: Throwable =>
-        GUI.dialog(view, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+          JEdit_Sessions.session_start(options)
+        else GUI_Thread.later { new Dialog(view) }
+      }
+      catch {
+        case exn: Throwable =>
+          GUI.dialog(view, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+      }
     }
   }
 
   private class Dialog(view: View) extends JDialog(view)
   {
-    val options = PIDE.options.value
+    val options: Options = PIDE.options.value
 
 
     /* text */
@@ -57,8 +57,6 @@ object Session_Build
 
     /* progress */
 
-    @volatile private var is_stopped = false
-
     private val progress = new Progress {
       override def echo(txt: String): Unit =
         GUI_Thread.later {
@@ -68,8 +66,6 @@ object Session_Build
         }
 
       override def theory(theory: Progress.Theory): Unit = echo(theory.message)
-
-      override def stopped: Boolean = is_stopped
     }
 
 
@@ -102,7 +98,7 @@ object Session_Build
       }
 
     private val delay_exit =
-      GUI_Thread.delay_first(Time.seconds(1.0))
+      Delay.first(Time.seconds(1.0), gui = true)
       {
         if (can_auto_close) conclude()
         else {
@@ -132,7 +128,7 @@ object Session_Build
 
     private def stopping()
     {
-      is_stopped = true
+      progress.stop
       set_actions(new Label("Stopping ..."))
     }
 
@@ -165,7 +161,7 @@ object Session_Build
     setLocationRelativeTo(view)
     setVisible(true)
 
-    Standard_Thread.fork("session_build") {
+    Isabelle_Thread.fork(name = "session_build") {
       progress.echo("Build started for Isabelle/" + PIDE.resources.session_name + " ...")
 
       val (out, rc) =

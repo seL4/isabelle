@@ -251,7 +251,7 @@ proof (rule pair_measure_eqI)
   have fg[simp]: "\<And>A. inj_on (map_prod f g) A" "\<And>A. inj_on f A" "\<And>A. inj_on g A"
     using f g by (auto simp: inj_on_def)
 
-  note complete_lattice_class.Sup_insert[simp del] ccSup_insert[simp del] SUP_insert[simp del]
+  note complete_lattice_class.Sup_insert[simp del] ccSup_insert[simp del]
      ccSUP_insert[simp del]
   show sets: "sets ?L = sets (embed_measure (M \<Otimes>\<^sub>M N) (map_prod f g))"
     unfolding map_prod_def[symmetric]

@@ -67,7 +67,7 @@ object Properties
         XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress(cache = cache).text))
       xml_cache match {
         case None => ps
-        case Some(cache) => ps.map(cache.props(_))
+        case Some(cache) => ps.map(cache.props)
       }
     }
   }

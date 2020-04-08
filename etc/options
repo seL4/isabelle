@@ -148,6 +148,15 @@ public option ML_process_policy : string = ""
   -- "ML process command prefix (process policy)"
 
 
+section "PIDE Build"
+
+option pide_build : bool = false
+  -- "build session heaps via PIDE"
+
+option pide_reports : bool = true
+  -- "report PIDE markup"
+
+
 section "Editor Session"
 
 public option editor_load_delay : real = 0.5

@@ -17,7 +17,7 @@ object Document_ID
   type Exec = Generic
 
   val none: Generic = 0
-  val make = Counter.make()
+  val make: Counter = Counter.make()
 
   def apply(id: Generic): String = Value.Long.apply(id)
   def unapply(s: String): Option[Generic] = Value.Long.unapply(s)

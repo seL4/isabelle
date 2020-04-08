@@ -18,7 +18,7 @@ struct
 (* report *)
 
 fun report ctxt =
-  if Context_Position.is_visible ctxt then
+  if Context_Position.reports_enabled ctxt then
     Output.report [Markup.markup (Markup.bad ()) "Skipped proof"]
   else ();
 

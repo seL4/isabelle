@@ -198,7 +198,7 @@ proof
   have "(\<Pi>\<^sub>E i\<in>I. topspace (T i)) \<in> {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
     using openin_topspace not_finite_existsD by auto
   then show "(\<Pi>\<^sub>E i\<in>I. topspace (T i)) \<subseteq> topspace (product_topology T I)"
-    unfolding product_topology_def using PiE_def by (auto simp add: topology_generated_by_topspace)
+    unfolding product_topology_def using PiE_def by (auto)
 qed
 
 lemma product_topology_basis:

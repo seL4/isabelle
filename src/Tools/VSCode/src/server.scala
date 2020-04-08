@@ -127,12 +127,12 @@ class Server(
 
   /* input from client or file-system */
 
-  private val delay_input: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
+  private val delay_input: Delay =
+    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { resources.flush_input(session, channel) }
 
-  private val delay_load: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
+  private val delay_load: Delay =
+    Delay.last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
       val (invoke_input, invoke_load) =
         resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) delay_input.invoke()
@@ -140,7 +140,7 @@ class Server(
     }
 
   private val file_watcher =
-    File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
+    File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private def close_document(file: JFile)
   {
@@ -183,8 +183,8 @@ class Server(
 
   /* caret handling */
 
-  private val delay_caret_update: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
+  private val delay_caret_update: Delay =
+    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { session.caret_focus.post(Session.Caret_Focus) }
 
   private def update_caret(caret: Option[(JFile, Line.Position)])
@@ -199,8 +199,8 @@ class Server(
 
   private lazy val preview_panel = new Preview_Panel(resources)
 
-  private lazy val delay_preview: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
+  private lazy val delay_preview: Delay =
+    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
@@ -214,8 +214,8 @@ class Server(
 
   /* output to client */
 
-  private val delay_output: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
+  private val delay_output: Delay =
+    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
       if (resources.flush_output(channel)) delay_output.invoke()
     }
@@ -305,21 +305,12 @@ class Server(
 
       dynamic_output.init()
 
-      var session_phase: Session.Consumer[Session.Phase] = null
-      session_phase =
-        Session.Consumer(getClass.getName) {
-          case Session.Ready =>
-            session.phase_changed -= session_phase
-            reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
-          case Session.Terminated(result) if !result.ok =>
-            session.phase_changed -= session_phase
-            reply_error("Prover startup failed: return code " + result.rc)
-          case _ =>
-        }
-      session.phase_changed += session_phase
-
-      Isabelle_Process.start(session, options, modes = modes,
-        sessions_structure = Some(base_info.sessions_structure), logic = base_info.session)
+      try {
+        Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
+          modes = modes, logic = base_info.session).await_startup
+        reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
+      }
+      catch { case ERROR(msg) => reply_error(msg) }
     }
   }
 
@@ -485,7 +476,7 @@ class Server(
       channel.read() match {
         case Some(json) =>
           json match {
-            case bulk: List[_] => bulk.foreach(handle(_))
+            case bulk: List[_] => bulk.foreach(handle)
             case _ => handle(json)
           }
           loop()

@@ -55,7 +55,7 @@ object Options
           case word :: rest if word == strip => rest
           case _ => words
         }
-      Word.implode(words1.map(Word.perhaps_capitalize(_)))
+      Word.implode(words1.map(Word.perhaps_capitalize))
     }
 
     def unknown: Boolean = typ == Unknown
@@ -70,19 +70,19 @@ object Options
   private val OPTIONS = Path.explode("etc/options")
   private val PREFS = Path.explode("$ISABELLE_HOME_USER/etc/preferences")
 
-  val options_syntax =
+  val options_syntax: Outer_Syntax =
     Outer_Syntax.empty + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
       (SECTION, Keyword.DOCUMENT_HEADING) +
       (PUBLIC, Keyword.BEFORE_COMMAND) +
       (OPTION, Keyword.THY_DECL)
 
-  val prefs_syntax = Outer_Syntax.empty + "="
+  val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
   trait Parser extends Parse.Parser
   {
-    val option_name = atom("option name", _.is_name)
-    val option_type = atom("option type", _.is_name)
-    val option_value =
+    val option_name: Parser[String] = atom("option name", _.is_name)
+    val option_type: Parser[String] = atom("option type", _.is_name)
+    val option_value: Parser[String] =
       opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
       atom("option value", tok => tok.is_name || tok.is_float)

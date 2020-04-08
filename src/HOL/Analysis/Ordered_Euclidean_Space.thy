@@ -48,7 +48,7 @@ qed (force intro!: cInf_lower cSup_upper
 
 lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
   and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
-  by (simp_all add: eucl_inf eucl_sup inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.delta
+  by (simp_all add: eucl_inf eucl_sup inner_sum_left inner_Basis if_distrib
       cong: if_cong)
 
 lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x\<in>X. f x) \<bullet> i = (INF x\<in>X. f x \<bullet> i)"
@@ -118,7 +118,7 @@ proof atomize_elim
   hence "Inf ?proj = x \<bullet> b"
     by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
   hence "x \<bullet> b = Inf X \<bullet> b"
-    by (auto simp: eucl_Inf inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> sum.delta
+    by (auto simp: eucl_Inf inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close>
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
 qed
@@ -140,7 +140,7 @@ proof atomize_elim
   hence "Sup ?proj = x \<bullet> b"
     by (auto intro!: cSup_eq_maximum)
   hence "x \<bullet> b = Sup X \<bullet> b"
-    by (auto simp: eucl_Sup[where 'a='a] inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> sum.delta
+    by (auto simp: eucl_Sup[where 'a='a] inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close>
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed

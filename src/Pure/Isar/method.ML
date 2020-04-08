@@ -659,7 +659,9 @@ fun reports_of ((text, (pos, _)): text_range) =
     maps (fn p => map (pair p) (Markup.keyword3 :: Completion.suppress_abbrevs ""))
       (keyword_positions text);
 
-val report = Position.reports o reports_of;
+fun report text_range =
+  if Context_Position.pide_reports ()
+  then Position.reports (reports_of text_range) else ();
 
 end;
 

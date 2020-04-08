@@ -33,7 +33,7 @@ object Date
     }
 
     def apply(pats: String*): Format =
-      make(pats.toList.map(Date.Formatter.pattern(_)))
+      make(pats.toList.map(Date.Formatter.pattern))
 
     val default: Format = Format("dd-MMM-uuuu HH:mm:ss xx")
     val date: Format = Format("dd-MMM-uuuu")
@@ -56,7 +56,7 @@ object Date
     def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
       pats.flatMap(pat => {
         val fmt = pattern(pat)
-        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale(_))
+        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale)
       })
 
     @tailrec def try_variants(fmts: List[DateTimeFormatter], str: String,

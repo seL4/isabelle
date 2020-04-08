@@ -169,7 +169,7 @@ object Keyword
       val kinds1 = kinds + (name -> kind)
       val load_commands1 =
         if (kind == THY_LOAD) {
-          if (!Symbol.iterator(name).forall(Symbol.is_ascii(_)))
+          if (!Symbol.iterator(name).forall(Symbol.is_ascii))
             error("Bad theory load command " + quote(name))
           load_commands + (name -> exts)
         }

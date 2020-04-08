@@ -501,10 +501,9 @@ val make_bold = make_style bold;
 (* length *)
 
 fun sym_len s =
-  if not (is_printable s) then (0: int)
-  else if String.isPrefix "\092<long" s then 2
-  else if String.isPrefix "\092<Long" s then 2
-  else 1;
+  if String.isPrefix "\092<long" s orelse String.isPrefix "\092<Long" s then 2
+  else if is_printable s then 1
+  else 0;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
 

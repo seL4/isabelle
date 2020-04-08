@@ -45,11 +45,11 @@ object Server_Commands
           include_sessions = include_sessions, verbose = verbose)
       }
 
-    def command(args: Args, progress: Progress = No_Progress)
-      : (JSON.Object.T, Build.Results, Sessions.Base_Info) =
+    def command(args: Args, progress: Progress = new Progress)
+      : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.preferences, opts = args.options)
-      val dirs = args.dirs.map(Path.explode(_))
+      val dirs = args.dirs.map(Path.explode)
 
       val base_info =
         Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
@@ -85,7 +85,7 @@ object Server_Commands
                   "timing" -> result.timing.json)
               }))
 
-      if (results.ok) (results_json, results, base_info)
+      if (results.ok) (results_json, results, options, base_info)
       else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
     }
   }
@@ -103,14 +103,14 @@ object Server_Commands
       }
       yield Args(build = build, print_mode = print_mode)
 
-    def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
+    def command(args: Args, progress: Progress = new Progress, log: Logger = No_Logger)
       : (JSON.Object.T, (UUID.T, Headless.Session)) =
     {
-      val base_info =
-        try { Session_Build.command(args.build, progress = progress)._3 }
+      val (_, _, options, base_info) =
+        try { Session_Build.command(args.build, progress = progress) }
         catch { case exn: Server.Error => error(exn.message) }
 
-      val resources = Headless.Resources(base_info, log = log)
+      val resources = Headless.Resources(options, base_info, log = log)
 
       val session = resources.start_session(print_mode = args.print_mode, progress = progress)
 
@@ -179,7 +179,7 @@ object Server_Commands
     def command(args: Args,
       session: Headless.Session,
       id: UUID.T = UUID.random(),
-      progress: Progress = No_Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
+      progress: Progress = new Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
     {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,

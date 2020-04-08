@@ -38,7 +38,7 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
     val _ = cleanup_files ();
 
     val system_thread =
-      Standard_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
+      Isabelle_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
         Thread_Attributes.with_attributes Thread_Attributes.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
@@ -86,7 +86,7 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
           in () end;
 
     fun cleanup () =
-     (Standard_Thread.interrupt_unsynchronized system_thread;
+     (Isabelle_Thread.interrupt_unsynchronized system_thread;
       cleanup_files ());
   in
     let
@@ -132,7 +132,7 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
     val _ = cleanup_files ();
 
     val system_thread =
-      Standard_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
+      Isabelle_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
         Thread_Attributes.with_attributes Thread_Attributes.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
@@ -182,7 +182,7 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
           in () end;
 
     fun cleanup () =
-     (Standard_Thread.interrupt_unsynchronized system_thread;
+     (Isabelle_Thread.interrupt_unsynchronized system_thread;
       cleanup_files ());
   in
     let

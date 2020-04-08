@@ -24,7 +24,7 @@ fun apply timeout f x =
 
       val request =
         Event_Timer.request {physical = false} (start + timeout)
-          (fn () => Standard_Thread.interrupt_unsynchronized self);
+          (fn () => Isabelle_Thread.interrupt_unsynchronized self);
       val result =
         Exn.capture (fn () => Thread_Attributes.with_attributes orig_atts (fn _ => f x)) ();
 

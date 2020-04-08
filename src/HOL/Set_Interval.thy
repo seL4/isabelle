@@ -812,10 +812,10 @@ lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
     greaterThanLessThan_def)
 
 lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
-by (auto simp add: atLeastAtMost_def)
+  by auto
 
 lemma atLeastAtMost_insertL: "m \<le> n \<Longrightarrow> insert m {Suc m..n} = {m ..n}"
-by auto
+  by auto
 
 text \<open>The analogous result is useful on \<^typ>\<open>int\<close>:\<close>
 (* here, because we don't have an own int section *)

@@ -126,7 +126,7 @@ object JEdit_Sessions
       session_requirements = logic_requirements)
 
   def session_build(
-    options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =
+    options: Options, progress: Progress = new Progress, no_build: Boolean = false): Int =
   {
     Build.build(session_options(options), progress = progress, build_heap = true,
       no_build = no_build, dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,
@@ -135,15 +135,17 @@ object JEdit_Sessions
 
   def session_start(options0: Options)
   {
+    val session = PIDE.session
     val options = session_options(options0)
+    val sessions_structure = PIDE.resources.session_base_info.sessions_structure
+    val store = Sessions.store(options)
 
-    Isabelle_Process.start(PIDE.session, options,
-      sessions_structure = Some(PIDE.resources.session_base_info.sessions_structure),
+    session.phase_changed += PIDE.plugin.session_phase_changed
+
+    Isabelle_Process(session, options, sessions_structure, store,
       logic = PIDE.resources.session_name,
-      store = Some(Sessions.store(options)),
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
-         space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse,
-      phase_changed = PIDE.plugin.session_phase_changed)
+         space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
   }
 }

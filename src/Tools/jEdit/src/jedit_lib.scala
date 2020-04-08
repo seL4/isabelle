@@ -160,7 +160,7 @@ object JEdit_Lib
     else view.getEditPanes().iterator.filter(_ != null).map(_.getTextArea).filter(_ != null)
 
   def jedit_text_areas(): Iterator[JEditTextArea] =
-    jedit_views().flatMap(jedit_text_areas(_))
+    jedit_views().flatMap(jedit_text_areas)
 
   def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
     jedit_text_areas().filter(_.getBuffer == buffer)
@@ -319,8 +319,8 @@ object JEdit_Lib
       def string_width(s: String): Double =
         painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
 
-      val unit = string_width(Symbol.space) max 1.0
-      val average = string_width("mix") / (3 * unit)
+      val unit: Double = string_width(Symbol.space) max 1.0
+      val average: Double = string_width("mix") / (3 * unit)
       def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
     }
 

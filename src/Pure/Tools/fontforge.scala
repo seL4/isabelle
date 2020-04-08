@@ -38,7 +38,7 @@ object Fontforge
     }
 
     if (s.nonEmpty && s(0) == '\\') err('\\')
-    s.iterator.map(escape(_)).mkString(q.toString, "", q.toString)
+    s.iterator.map(escape).mkString(q.toString, "", q.toString)
   }
 
   def file_name(path: Path): Script = string(File.standard_path(path))
@@ -121,7 +121,7 @@ object Fontforge
     }
 
     def set: Script =
-      List(fontname, familyname, fullname, weight, copyright, fontversion).map(string(_)).
+      List(fontname, familyname, fullname, weight, copyright, fontversion).map(string).
         mkString("SetFontNames(", ",", ")")
   }
 

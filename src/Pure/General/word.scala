@@ -53,11 +53,11 @@ object Word
       }
     def unapply(str: String): Option[Case] =
       if (str.nonEmpty) {
-        if (Codepoint.iterator(str).forall(Character.isLowerCase(_))) Some(Lowercase)
-        else if (Codepoint.iterator(str).forall(Character.isUpperCase(_))) Some(Uppercase)
+        if (Codepoint.iterator(str).forall(Character.isLowerCase)) Some(Lowercase)
+        else if (Codepoint.iterator(str).forall(Character.isUpperCase)) Some(Uppercase)
         else {
           val it = Codepoint.iterator(str)
-          if (Character.isUpperCase(it.next) && it.forall(Character.isLowerCase(_)))
+          if (Character.isUpperCase(it.next) && it.forall(Character.isLowerCase))
             Some(Capitalized)
           else None
         }

@@ -58,8 +58,8 @@ object Markup
 
   /* basic markup */
 
-  val Empty = Markup("", Nil)
-  val Broken = Markup("broken", Nil)
+  val Empty: Markup = Markup("", Nil)
+  val Broken: Markup = Markup("broken", Nil)
 
   class Markup_String(val name: String, prop: String)
   {
@@ -549,133 +549,72 @@ object Markup
   /* protocol message functions */
 
   val FUNCTION = "function"
-  val Function = new Properties.String(FUNCTION)
 
-  val COMMAND_TIMING: Properties.Entry = (FUNCTION, "command_timing")
-  val THEORY_TIMING: Properties.Entry = (FUNCTION, "theory_timing")
+  class Function(val name: String)
+  {
+    val PROPERTY: Properties.Entry = (FUNCTION, name)
+  }
 
-  val Commands_Accepted: Properties.T = List((FUNCTION, "commands_accepted"))
-  val Assign_Update: Properties.T = List((FUNCTION, "assign_update"))
-  val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
+  class Properties_Function(name: String) extends Function(name)
+  {
+    def unapply(props: Properties.T): Option[Properties.T] =
+      props match {
+        case PROPERTY :: args => Some(args)
+        case _ => None
+      }
+  }
 
-  object Protocol_Handler
+  class Name_Function(name: String) extends Function(name)
   {
     def unapply(props: Properties.T): Option[(String)] =
       props match {
-        case List((FUNCTION, "protocol_handler"), (NAME, name)) => Some(name)
+        case List(PROPERTY, (NAME, a)) => Some(a)
         case _ => None
       }
   }
 
-  val INVOKE_SCALA = "invoke_scala"
-  object Invoke_Scala
+  object Command_Timing extends Properties_Function("command_timing")
+  object Theory_Timing extends Properties_Function("theory_timing")
+  object ML_Statistics extends Properties_Function("ML_statistics")
+  object Task_Statistics extends Properties_Function("task_statistics")
+
+  object Loading_Theory extends Name_Function("loading_theory")
+  object Build_Session_Finished extends Function("build_session_finished")
+
+  object Protocol_Handler extends Name_Function("protocol_handler")
+
+  object Commands_Accepted extends Function("commands_accepted")
+  object Assign_Update extends Function("assign_update")
+  object Removed_Versions extends Function("removed_versions")
+
+  object Invoke_Scala extends Function("invoke_scala")
   {
     def unapply(props: Properties.T): Option[(String, String)] =
       props match {
-        case List((FUNCTION, INVOKE_SCALA), (NAME, name), (ID, id)) => Some((name, id))
+        case List(PROPERTY, (NAME, name), (ID, id)) => Some((name, id))
         case _ => None
       }
   }
 
-  val CANCEL_SCALA = "cancel_scala"
-  object Cancel_Scala
+  object Cancel_Scala extends Function("cancel_scala")
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, CANCEL_SCALA), (ID, id)) => Some(id)
+        case List(PROPERTY, (ID, id)) => Some(id)
         case _ => None
       }
   }
-
-  object ML_Statistics
-  {
-    def unapply(props: Properties.T): Option[Properties.T] =
-      props match {
-        case (FUNCTION, "ML_statistics") :: props => Some(props)
-        case _ => None
-      }
-  }
-
-  object Task_Statistics
-  {
-    def unapply(props: Properties.T): Option[Properties.T] =
-      props match {
-        case (FUNCTION, "task_statistics") :: props => Some(props)
-        case _ => None
-      }
-  }
-
-  val LOADING_THEORY = "loading_theory"
-  object Loading_Theory
-  {
-    def unapply(props: Properties.T): Option[String] =
-      props match {
-        case List((FUNCTION, LOADING_THEORY), (NAME, name)) => Some(name)
-        case _ => None
-      }
-  }
-
-  val BUILD_SESSION_FINISHED = "build_session_finished"
-  val Build_Session_Finished: Properties.T = List((FUNCTION, BUILD_SESSION_FINISHED))
 
   val PRINT_OPERATIONS = "print_operations"
-
 
 
   /* export */
 
   val EXPORT = "export"
-
-  object Export
-  {
-    sealed case class Args(
-      id: Option[String],
-      serial: Long,
-      theory_name: String,
-      name: String,
-      executable: Boolean,
-      compress: Boolean,
-      strict: Boolean)
-    {
-      def compound_name: String = isabelle.Export.compound_name(theory_name, name)
-    }
-
-    val THEORY_NAME = "theory_name"
-    val EXECUTABLE = "executable"
-    val COMPRESS = "compress"
-    val STRICT = "strict"
-
-    def dest_inline(props: Properties.T): Option[(Args, Path)] =
-      props match {
-        case
-          List(
-            (SERIAL, Value.Long(serial)),
-            (THEORY_NAME, theory_name),
-            (NAME, name),
-            (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress)),
-            (STRICT, Value.Boolean(strict)),
-            (FILE, file)) if isabelle.Path.is_valid(file) =>
-          val args = Args(None, serial, theory_name, name, executable, compress, strict)
-          Some((args, isabelle.Path.explode(file)))
-        case _ => None
-      }
-
-    def unapply(props: Properties.T): Option[Args] =
-      props match {
-        case List(
-            (FUNCTION, EXPORT),
-            (ID, id),
-            (SERIAL, Value.Long(serial)),
-            (THEORY_NAME, theory_name),
-            (NAME, name),
-            (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress)),
-            (STRICT, Value.Boolean(strict))) =>
-          Some(Args(proper_string(id), serial, theory_name, name, executable, compress, strict))
-        case _ => None
-      }
-  }
+  val THEORY_NAME = "theory_name"
+  val EXECUTABLE = "executable"
+  val COMPRESS = "compress"
+  val STRICT = "strict"
 
 
   /* debugger output */

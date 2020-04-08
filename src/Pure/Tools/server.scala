@@ -35,8 +35,8 @@ object Server
 
     def split(msg: String): (String, String) =
     {
-      val name = msg.takeWhile(is_name_char(_))
-      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank(_))
+      val name = msg.takeWhile(is_name_char)
+      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank)
       (name, argument)
     }
 
@@ -173,12 +173,11 @@ object Server
     private val out = new BufferedOutputStream(socket.getOutputStream)
     private val out_lock: AnyRef = new Object
 
-    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
+    def tty_loop(): TTY_Loop =
       new TTY_Loop(
         new OutputStreamWriter(out),
         new InputStreamReader(in),
-        writer_lock = out_lock,
-        interrupt = interrupt)
+        writer_lock = out_lock)
 
     def read_password(password: String): Boolean =
       try { Byte_Message.read_line(in).map(_.text) == Some(password) }
@@ -275,10 +274,6 @@ object Server
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 
-    @volatile private var is_stopped = false
-    override def stopped: Boolean = is_stopped
-    def stop { is_stopped = true }
-
     override def toString: String = context.toString
   }
 
@@ -292,7 +287,7 @@ object Server
     val progress: Connection_Progress = context.progress(ident)
     def cancel { progress.stop }
 
-    private lazy val thread = Standard_Thread.fork("server_task")
+    private lazy val thread = Isabelle_Thread.fork(name = "server_task")
     {
       Exn.capture { body(task) } match {
         case Exn.Res(res) =>
@@ -442,7 +437,7 @@ object Server
         find(db, name) match {
           case Some(server_info) =>
             using(server_info.connection())(_.write_message("shutdown"))
-            while(server_info.active) { Thread.sleep(50) }
+            while(server_info.active) { Time.seconds(0.05).sleep }
             true
           case None => false
         }
@@ -491,7 +486,7 @@ Usage: isabelle server [OPTIONS]
 
       if (operation_list) {
         for {
-          server_info <- using(SQLite.open_database(Data.database))(list(_))
+          server_info <- using(SQLite.open_database(Data.database))(list)
           if server_info.active
         } Output.writeln(server_info.toString, stdout = true)
       }
@@ -601,13 +596,13 @@ class Server private(_port: Int, val log: Logger)
   }
 
   private lazy val server_thread: Thread =
-    Standard_Thread.fork("server") {
+    Isabelle_Thread.fork(name = "server") {
       var finished = false
       while (!finished) {
         Exn.capture(server_socket.accept) match {
           case Exn.Res(socket) =>
-            Standard_Thread.fork("server_connection")
-              { using(Server.Connection(socket))(handle(_)) }
+            Isabelle_Thread.fork(name = "server_connection")
+              { using(Server.Connection(socket))(handle) }
           case Exn.Exn(_) => finished = true
         }
       }

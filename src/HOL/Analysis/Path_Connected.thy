@@ -511,7 +511,7 @@ proof -
    } note ** = this
   show ?thesis
     using assms
-    apply (simp add: arc_def simple_path_def path_join, clarify)
+    apply (simp add: arc_def simple_path_def, clarify)
     apply (simp add: joinpaths_def split: if_split_asm)
     apply (force dest: inj_onD [OF injg1])
     apply (metis *)

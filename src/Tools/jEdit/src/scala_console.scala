@@ -30,7 +30,7 @@ class Scala_Console extends Shell("Scala")
     def find_jars(start: String): List[String] =
       if (start != null)
         File.find_files(new JFile(start), file => file.getName.endsWith(".jar")).
-          map(File.absolute_name(_))
+          map(File.absolute_name)
       else Nil
 
     val initial_class_path =
@@ -64,7 +64,7 @@ class Scala_Console extends Shell("Scala")
         if (global_out == null) System.out.print(str)
         else global_out.writeAttrs(null, str)
       }
-      Thread.sleep(10)  // FIXME adhoc delay to avoid loosing output
+      Time.seconds(0.01).sleep  // FIXME adhoc delay to avoid loosing output
     }
 
     override def close() { flush () }
@@ -152,7 +152,7 @@ class Scala_Console extends Shell("Scala")
           }
           finally {
             running.change(_ => None)
-            Thread.interrupted
+            Exn.Interrupt.dispose()
           }
           GUI_Thread.later {
             if (err != null) err.commandDone()

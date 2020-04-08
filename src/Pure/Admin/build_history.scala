@@ -18,7 +18,6 @@ object Build_History
 
   val engine = "build_history"
   val log_prefix = engine + "_"
-  val META_INFO_MARKER = "\fmeta_info = "
 
 
   /* augment settings */
@@ -107,7 +106,7 @@ object Build_History
     options: Options,
     root: Path,
     user_home: Path = default_user_home,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     rev: String = default_rev,
     afp_rev: Option[String] = None,
     afp_partition: Int = 0,
@@ -282,8 +281,7 @@ object Build_History
                 val theory_timings =
                   try {
                     store.read_theory_timings(db, session_name).map(ps =>
-                      Build_Log.Log_File.print_props(Build_Log.THEORY_TIMING_MARKER,
-                        (Build_Log.SESSION_NAME, session_name) :: ps))
+                      Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
                   }
                   catch { case ERROR(_) => Nil }
 
@@ -357,10 +355,10 @@ object Build_History
       build_out_progress.echo("Writing log file " + log_path.ext("xz") + " ...")
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
-          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
+          Protocol.Meta_Info_Marker(meta_info) :: build_result.out_lines :::
           session_build_info :::
-          ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
-          session_errors.map(Build_Log.Log_File.print_props(Build_Log.ERROR_MESSAGE_MARKER, _)) :::
+          ml_statistics.map(Protocol.ML_Statistics_Marker.apply) :::
+          session_errors.map(Protocol.Error_Message_Marker.apply) :::
           heap_sizes), XZ.options(6))
 
 
@@ -395,7 +393,7 @@ object Build_History
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       var afp_rev: Option[String] = None
       var multicore_base = false
       var components_base: Path = Components.default_components_base
@@ -454,7 +452,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = Path.explode(arg)),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
-        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
+        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
         "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
@@ -521,7 +519,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     afp_repos_source: String = AFP.repos_source,
     isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     rev: String = "",
     afp_rev: Option[String] = None,
     options: String = "",

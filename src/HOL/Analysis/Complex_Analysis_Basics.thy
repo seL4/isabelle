@@ -489,7 +489,7 @@ by (induct n) (auto simp: analytic_on_mult)
 
 lemma analytic_on_sum [analytic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on S"
-  by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
+  by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_add)
 
 lemma deriv_left_inverse:
   assumes "f holomorphic_on S" and "g holomorphic_on T"
@@ -579,11 +579,11 @@ qed
 
 lemma deriv_cmult_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. c * f w) z = c * deriv f z"
-by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
+by (auto simp: complex_derivative_mult_at)
 
 lemma deriv_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
-by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
+by (auto simp: complex_derivative_mult_at)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Complex differentiation of sequences and series\<close>
 
@@ -758,7 +758,7 @@ proof -
     apply (rule field_differentiable_bound
       [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
          and S = "closed_segment w z", OF convex_closed_segment])
-    apply (auto simp: ends_in_segment DERIV_subset [OF sum_deriv wzs]
+    apply (auto simp: DERIV_subset [OF sum_deriv wzs]
                   norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
     done
   also have "...  \<le> B * norm (z - w) ^ Suc n / (fact n)"

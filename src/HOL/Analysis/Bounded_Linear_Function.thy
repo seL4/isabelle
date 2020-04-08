@@ -420,7 +420,7 @@ proof (transfer, rule,  rule euclidean_eqI)
     using b
     by (simp add: inner_sum_left inner_Basis if_distrib cong: if_cong) (simp add: sum.swap)
   also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> b)))"
-    using b by (simp add: sum.delta)
+    using b by (simp)
   also have "\<dots> = f x \<bullet> b"
     by (metis (mono_tags, lifting) Linear_Algebra.linear_componentwise linear_axioms)
   finally show "(\<Sum>j\<in>Basis. \<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j)) *\<^sub>R j) \<bullet> b = f x \<bullet> b" .

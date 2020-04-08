@@ -39,7 +39,7 @@ object Phabricator
 
   val daemon_user = "phabricator"
 
-  val sshd_config = Path.explode("/etc/ssh/sshd_config")
+  val sshd_config: Path = Path.explode("/etc/ssh/sshd_config")
 
 
   /* installation parameters */
@@ -59,7 +59,7 @@ object Phabricator
 
   val default_mailers: Path = Path.explode("mailers.json")
 
-  val default_system_port = SSH.default_port
+  val default_system_port: Int = SSH.default_port
   val alternative_system_port = 222
   val default_server_port = 2222
 
@@ -69,7 +69,7 @@ object Phabricator
 
   /** global configuration **/
 
-  val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
+  val global_config: Path = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
   def global_config_script(
     init: String = "",
@@ -193,7 +193,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     command
   }
 
-  def mercurial_setup(mercurial_source: String, progress: Progress = No_Progress)
+  def mercurial_setup(mercurial_source: String, progress: Progress = new Progress)
   {
     progress.echo("\nMercurial installation from source " + quote(mercurial_source) + " ...")
     Isabelle_System.with_tmp_dir("mercurial")(tmp_dir =>
@@ -226,7 +226,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     repo: String = "",
     package_update: Boolean = false,
     mercurial_source: String = "",
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     /* system environment */
 
@@ -599,7 +599,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     name: String = default_name,
     config_file: Option[Path] = None,
     test_user: String = "",
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     Linux.check_system_root()
 
@@ -717,7 +717,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   def phabricator_setup_ssh(
     server_port: Int = default_server_port,
     system_port: Int = default_system_port,
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     Linux.check_system_root()
 

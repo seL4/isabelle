@@ -575,7 +575,7 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
 fun check context table (xname, pos) =
   let
     val ((name, reports), x) = check_reports context table (xname, [pos]);
-    val _ = Position.reports reports;
+    val _ = Context_Position.reports_generic context reports;
   in (name, x) end;
 
 fun defined (Table (_, tab)) name = Change_Table.defined tab name;

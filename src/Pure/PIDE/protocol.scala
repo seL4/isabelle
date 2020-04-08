@@ -9,6 +9,19 @@ package isabelle
 
 object Protocol
 {
+  /* markers for inlined messages */
+
+  val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
+  val Export_Marker = Protocol_Message.Marker("export")
+  val Meta_Info_Marker = Protocol_Message.Marker("meta_info")
+  val Timing_Marker = Protocol_Message.Marker("Timing")
+  val Command_Timing_Marker = Protocol_Message.Marker("command_timing")
+  val Theory_Timing_Marker = Protocol_Message.Marker("theory_timing")
+  val ML_Statistics_Marker = Protocol_Message.Marker("ML_statistics")
+  val Task_Statistics_Marker = Protocol_Message.Marker("task_statistics")
+  val Error_Message_Marker = Protocol_Message.Marker("error_message")
+
+
   /* document editing */
 
   object Commands_Accepted
@@ -32,7 +45,7 @@ object Protocol
             case a :: bs => (a, bs)
             case _ => throw new XML.XML_Body(body)
           }
-        Some(triple(long, list(string), list(decode_upd _))(Symbol.decode_yxml(text)))
+        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None
@@ -59,11 +72,11 @@ object Protocol
 
   object Command_Timing
   {
-    def unapply(props: Properties.T): Option[(Document_ID.Generic, isabelle.Timing)] =
+    def unapply(props: Properties.T): Option[(Properties.T, Document_ID.Generic, isabelle.Timing)] =
       props match {
-        case Markup.COMMAND_TIMING :: args =>
+        case Markup.Command_Timing(args) =>
           (args, args) match {
-            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((id, timing))
+            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((args, id, timing))
             case _ => None
           }
         case _ => None
@@ -77,7 +90,7 @@ object Protocol
   {
     def unapply(props: Properties.T): Option[(String, isabelle.Timing)] =
       props match {
-        case Markup.THEORY_TIMING :: args =>
+        case Markup.Theory_Timing(args) =>
           (args, args) match {
             case (Markup.Name(name), Markup.Timing_Properties(timing)) => Some((name, timing))
             case _ => None
@@ -88,6 +101,12 @@ object Protocol
 
 
   /* result messages */
+
+  def is_message(pred: XML.Elem => Boolean, body: XML.Body): Boolean =
+    body match {
+      case List(elem: XML.Elem) => pred(elem)
+      case _ => false
+    }
 
   def is_result(msg: XML.Tree): Boolean =
     msg match {
@@ -150,12 +169,76 @@ object Protocol
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
-  def message_text(msg: XML.Tree): String =
+  def message_text(body: XML.Body,
+    margin: Double = Pretty.default_margin,
+    breakgain: Double = Pretty.default_breakgain,
+    metric: Pretty.Metric = Pretty.Default_Metric): String =
   {
-    val text = Pretty.string_of(List(msg))
-    if (is_warning(msg) || is_legacy(msg)) Library.prefix_lines("### ", text)
-    else if (is_error(msg)) Library.prefix_lines("*** ", text)
+    val text =
+      Pretty.string_of(Protocol_Message.expose_no_reports(body),
+        margin = margin, breakgain = breakgain, metric = metric)
+
+    if (is_message(is_warning, body) || is_message(is_legacy, body)) Output.warning_prefix(text)
+    else if (is_message(is_error, body)) Output.error_prefix(text)
     else text
+  }
+
+
+  /* export */
+
+  object Export
+  {
+    sealed case class Args(
+      id: Option[String],
+      serial: Long,
+      theory_name: String,
+      name: String,
+      executable: Boolean,
+      compress: Boolean,
+      strict: Boolean)
+    {
+      def compound_name: String = isabelle.Export.compound_name(theory_name, name)
+    }
+
+    object Marker
+    {
+      def unapply(line: String): Option[(Args, Path)] =
+        line match {
+          case Export_Marker(text) =>
+            val props = XML.Decode.properties(YXML.parse_body(text))
+            props match {
+              case
+                List(
+                  (Markup.SERIAL, Value.Long(serial)),
+                  (Markup.THEORY_NAME, theory_name),
+                  (Markup.NAME, name),
+                  (Markup.EXECUTABLE, Value.Boolean(executable)),
+                  (Markup.COMPRESS, Value.Boolean(compress)),
+                  (Markup.STRICT, Value.Boolean(strict)),
+                  (Markup.FILE, file)) if isabelle.Path.is_valid(file) =>
+                val args = Args(None, serial, theory_name, name, executable, compress, strict)
+                Some((args, isabelle.Path.explode(file)))
+              case _ => None
+            }
+          case _ => None
+        }
+    }
+
+    def unapply(props: Properties.T): Option[Args] =
+      props match {
+        case
+          List(
+            (Markup.FUNCTION, Markup.EXPORT),
+            (Markup.ID, id),
+            (Markup.SERIAL, Value.Long(serial)),
+            (Markup.THEORY_NAME, theory_name),
+            (Markup.NAME, name),
+            (Markup.EXECUTABLE, Value.Boolean(executable)),
+            (Markup.COMPRESS, Value.Boolean(compress)),
+            (Markup.STRICT, Value.Boolean(strict))) =>
+          Some(Args(proper_string(id), serial, theory_name, name, executable, compress, strict))
+        case _ => None
+      }
   }
 
 
@@ -310,7 +393,7 @@ trait Protocol
   def define_commands_bulk(commands: List[Command])
   {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
-    irregular.foreach(define_command(_))
+    irregular.foreach(define_command)
     regular match {
       case Nil =>
       case List(command) => define_command(command)

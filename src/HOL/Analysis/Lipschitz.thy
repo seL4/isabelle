@@ -684,13 +684,16 @@ proof -
       from this elim d[of "rx (ry (rt n))"]
       have "\<dots> < dist (f (?t n) (?y n)) (f (?t n) (?x n)) / rx (ry (rt (n)))"
         using lx'(2) ly'(2) lt'(2) \<open>0 < rx _\<close>
-        by (auto simp add: field_split_simps algebra_simps strict_mono_def)
+        by (auto simp add: field_split_simps strict_mono_def)
       also have "\<dots> \<le> diameter ?S / n"
-        by (force intro!: \<open>0 < n\<close> strict_mono_def xy diameter_bounded_bound frac_le
-          compact_imp_bounded compact t
-          intro: le_trans[OF seq_suble[OF lt'(2)]]
-            le_trans[OF seq_suble[OF ly'(2)]]
-            le_trans[OF seq_suble[OF lx'(2)]])
+      proof (rule frac_le)
+        show "diameter ?S \<ge> 0"
+          using compact compact_imp_bounded diameter_ge_0 by blast
+        show "dist (f (?t n) (?y n)) (f (?t n) (?x n)) \<le> diameter ((\<lambda>(t,x). f t x) ` (T \<times> X))"
+          by (metis (no_types) compact compact_imp_bounded diameter_bounded_bound image_eqI mem_Sigma_iff o_apply split_conv t xy(1) xy(2))
+        show "real n \<le> real (rx (ry (rt n)))"
+          by (meson le_trans lt'(2) lx'(2) ly'(2) of_nat_mono strict_mono_imp_increasing)
+      qed (use \<open>n > 0\<close> in auto)
       also have "\<dots> \<le> abs (diameter ?S) / n"
         by (auto intro!: divide_right_mono)
       finally show ?case by simp

@@ -53,7 +53,7 @@ proof -
     hence "1/n > 0" "e * 2 powr - n > 0" by (auto)
     from M_space[OF \<open>1/n>0\<close>]
     have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) \<longlonglongrightarrow> measure M (space M)"
-      unfolding emeasure_eq_measure by (auto simp: measure_nonneg)
+      unfolding emeasure_eq_measure by (auto)
     from metric_LIMSEQ_D[OF this \<open>0 < e * 2 powr -n\<close>]
     obtain k where "dist (measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) (measure M (space M)) <
       e * 2 powr -n"
@@ -95,7 +95,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>n. emeasure M (space M - B n))"
       by (rule emeasure_subadditive_countably) (auto simp: summable_def)
     also have "\<dots> \<le> (\<Sum>n. ennreal (e*2 powr - real (Suc n)))"
-      using B_compl_le by (intro suminf_le) (simp_all add: measure_nonneg emeasure_eq_measure ennreal_leI)
+      using B_compl_le by (intro suminf_le) (simp_all add: emeasure_eq_measure ennreal_leI)
     also have "\<dots> \<le> (\<Sum>n. ennreal (e * (1 / 2) ^ Suc n))"
       by (simp add: powr_minus powr_realpow field_simps del: of_nat_Suc)
     also have "\<dots> = ennreal e * (\<Sum>n. ennreal ((1 / 2) ^ Suc n))"
@@ -268,7 +268,7 @@ proof -
     also have "(\<lambda>n. \<Sum>i<n. M (D i)) \<longlonglongrightarrow> (\<Sum>i. M (D i))"
       by (intro summable_LIMSEQ) auto
     finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) \<longlonglongrightarrow> measure M (\<Union>i. D i)"
-      by (simp add: emeasure_eq_measure measure_nonneg sum_nonneg)
+      by (simp add: emeasure_eq_measure sum_nonneg)
     have "(\<Union>i. D i) \<in> sets M" using \<open>range D \<subseteq> sets M\<close> by auto
 
     case 1
@@ -282,12 +282,12 @@ proof -
       then obtain n0 where n0: "\<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>i. D i)\<bar> < e/2"
         unfolding choice_iff by blast
       have "ennreal (\<Sum>i<n0. measure M (D i)) = (\<Sum>i<n0. M (D i))"
-        by (auto simp add: emeasure_eq_measure sum_nonneg measure_nonneg)
+        by (auto simp add: emeasure_eq_measure)
       also have "\<dots> \<le> (\<Sum>i. M (D i))" by (rule sum_le_suminf) auto
       also have "\<dots> = M (\<Union>i. D i)" by (simp add: M)
       also have "\<dots> = measure M (\<Union>i. D i)" by (simp add: emeasure_eq_measure)
       finally have n0: "measure M (\<Union>i. D i) - (\<Sum>i<n0. measure M (D i)) < e/2"
-        using n0 by (auto simp: measure_nonneg sum_nonneg)
+        using n0 by (auto simp: sum_nonneg)
       have "\<forall>i. \<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
       proof
         fix i
@@ -351,7 +351,7 @@ proof -
       have "ennreal (measure M ?U - measure M (\<Union>i. D i)) = M ?U - M (\<Union>i. D i)"
         using U(1,2)
         by (subst ennreal_minus[symmetric])
-           (auto intro!: finite_measure_mono simp: sb measure_nonneg emeasure_eq_measure)
+           (auto intro!: finite_measure_mono simp: sb emeasure_eq_measure)
       also have "\<dots> = M (?U - (\<Union>i. D i))" using U  \<open>(\<Union>i. D i) \<in> sets M\<close>
         by (subst emeasure_Diff) (auto simp: sb)
       also have "\<dots> \<le> M (\<Union>i. U i - D i)" using U  \<open>range D \<subseteq> sets M\<close>
@@ -361,7 +361,7 @@ proof -
       also have "\<dots> \<le> (\<Sum>i. ennreal e/(2 powr Suc i))" using U \<open>range D \<subseteq> sets M\<close>
         using \<open>0<e\<close>
         by (intro suminf_le, subst emeasure_Diff)
-           (auto simp: emeasure_Diff emeasure_eq_measure sb measure_nonneg ennreal_minus
+           (auto simp: emeasure_Diff emeasure_eq_measure sb ennreal_minus
                        finite_measure_mono divide_ennreal ennreal_less_iff
                  intro: less_imp_le)
       also have "\<dots> \<le> (\<Sum>n. ennreal (e * (1 / 2) ^ Suc n))"

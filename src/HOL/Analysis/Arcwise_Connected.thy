@@ -1789,13 +1789,13 @@ proof -
             have "False" if "\<xi> \<in> F n" "u < \<xi>" "\<xi> < v" for \<xi>
             proof -
               have "\<xi> \<notin> {z..v}"
-                by (metis DiffI disjoint_iff_not_equal less_irrefl singletonD that v(3))
+                by (metis DiffI disjoint_iff_not_equal less_irrefl singletonD that(1,3) v(3))
               moreover have "\<xi> \<notin> {w..z} \<inter> F n"
                 by (metis equals0D wzF_null)
               ultimately have "\<xi> \<in> {u..w}"
                 using that by auto
               then show ?thesis
-                by (metis DiffI disjoint_iff_not_equal less_eq_real_def not_le singletonD that u(3))
+                by (metis DiffI disjoint_iff_not_equal less_eq_real_def not_le singletonD that(1,2) u(3))
             qed
             moreover
             have "\<lbrakk>\<xi> \<in> F n; v < \<xi>; \<xi> < u\<rbrakk> \<Longrightarrow> False" for \<xi>
@@ -1811,7 +1811,7 @@ proof -
           by (metis dist_norm dist_triangle_half_r less_irrefl)
       qed (auto simp: open_segment_commute)
       show ?thesis
-        unfolding \<phi>_def by (metis (no_types, hide_lams) INT_I Inf_lower2 rangeI that F01 subsetCE pqF)
+        unfolding \<phi>_def by (metis (no_types, hide_lams) INT_I Inf_lower2 rangeI that(3) F01 subsetCE pqF)
     qed
     show "closed {0..1::real}" by auto
   qed (meson \<phi>_def)
@@ -1972,7 +1972,7 @@ proof -
     show "pathstart (subpath u v g) = a" "pathfinish (subpath u v g) = b"
       by (simp_all add: \<open>a = g u\<close> \<open>b = g v\<close>)
     show "path_image (subpath u v g) \<subseteq> path_image p"
-      by (metis \<open>arc g\<close> \<open>u \<in> {0..1}\<close> \<open>v \<in> {0..1}\<close> arc_imp_path order_trans pag path_image_def path_image_subpath_subset ph)
+      by (metis \<open>u \<in> {0..1}\<close> \<open>v \<in> {0..1}\<close> order_trans pag path_image_def path_image_subpath_subset ph)
     show "arc (subpath u v g)"
       using \<open>arc g\<close> \<open>a = g u\<close> \<open>b = g v\<close> \<open>u \<in> {0..1}\<close> \<open>v \<in> {0..1}\<close> arc_subpath_arc \<open>a \<noteq> b\<close> by blast
   qed
@@ -2049,7 +2049,7 @@ proof -
                                  and g: "pathstart g = y" "pathfinish g = z"
     using \<open>y \<noteq> z\<close> by (force simp: path_connected_arcwise)
   have "compact (g -` frontier S \<inter> {0..1})"
-    apply (simp add: compact_eq_bounded_closed bounded_Int bounded_closed_interval)
+    apply (simp add: compact_eq_bounded_closed bounded_Int)
      apply (rule closed_vimage_Int)
     using \<open>arc g\<close> apply (auto simp: arc_def path_def)
     done

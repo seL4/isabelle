@@ -53,11 +53,11 @@ object Isabelle_Sidekick
     }
     override def getLongString: String = _name
     override def getName: String = _name
-    override def setName(name: String) = _name = name
+    override def setName(name: String): Unit = _name = name
     override def getStart: Position = _start
-    override def setStart(start: Position) = _start = start
+    override def setStart(start: Position): Unit = _start = start
     override def getEnd: Position = _end
-    override def setEnd(end: Position) = _end = end
+    override def setEnd(end: Position): Unit = _end = end
     override def toString: String = _name
   }
 
@@ -148,19 +148,19 @@ class Isabelle_Sidekick_Structure(
 
 class Isabelle_Sidekick_Default extends
   Isabelle_Sidekick_Structure("isabelle",
-    PIDE.resources.theory_node_name, Document_Structure.parse_sections _)
+    PIDE.resources.theory_node_name, Document_Structure.parse_sections)
 
 class Isabelle_Sidekick_Context extends
   Isabelle_Sidekick_Structure("isabelle-context",
-    PIDE.resources.theory_node_name, Document_Structure.parse_blocks _)
+    PIDE.resources.theory_node_name, Document_Structure.parse_blocks)
 
 class Isabelle_Sidekick_Options extends
   Isabelle_Sidekick_Structure("isabelle-options",
-    _ => Some(Document.Node.Name("options")), Document_Structure.parse_sections _)
+    _ => Some(Document.Node.Name("options")), Document_Structure.parse_sections)
 
 class Isabelle_Sidekick_Root extends
   Isabelle_Sidekick_Structure("isabelle-root",
-    _ => Some(Document.Node.Name("ROOT")), Document_Structure.parse_sections _)
+    _ => Some(Document.Node.Name("ROOT")), Document_Structure.parse_sections)
 
 class Isabelle_Sidekick_ML extends
   Isabelle_Sidekick_Structure("isabelle-ml",
@@ -257,7 +257,7 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
         case _ =>
       }
       offset += line.length + 1
-      if (!line.forall(Character.isSpaceChar(_))) end_offset = offset
+      if (!line.forall(Character.isSpaceChar)) end_offset = offset
     }
     if (!stopped) { close2; close1 }
 

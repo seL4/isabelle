@@ -950,7 +950,7 @@ in
 fun check_typs ctxt raw_tys =
   let
     val (sorting_report, tys) = Proof_Context.prepare_sortsT ctxt raw_tys;
-    val _ = if Context_Position.is_visible ctxt then Output.report sorting_report else ();
+    val _ = if Context_Position.reports_enabled ctxt then Output.report sorting_report else ();
   in
     tys
     |> apply_typ_check ctxt
@@ -974,8 +974,8 @@ fun check_terms ctxt raw_ts =
         else I) ps tys' [];
 
     val _ =
-      if Context_Position.is_visible ctxt then Output.report (sorting_report @ typing_report)
-      else ();
+      if Context_Position.reports_enabled ctxt
+      then Output.report (sorting_report @ typing_report) else ();
   in Term_Sharing.terms (Proof_Context.theory_of ctxt) ts' end;
 
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;

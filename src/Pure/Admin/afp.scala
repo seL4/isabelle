@@ -166,7 +166,7 @@ class AFP private(options: Options, val base_dir: Path)
   /* dependency graph */
 
   private def sessions_deps(entry: AFP.Entry): List[String] =
-    entry.sessions.flatMap(sessions_structure.imports_graph.imm_preds(_)).distinct.sorted
+    entry.sessions.flatMap(sessions_structure.imports_graph.imm_preds).distinct.sorted
 
   lazy val entries_graph: Graph[String, Unit] =
   {
@@ -214,7 +214,7 @@ class AFP private(options: Options, val base_dir: Path)
       case 1 | 2 =>
         val graph = sessions_structure.build_graph.restrict(sessions.toSet)
         val force_part1 =
-          graph.all_preds(graph.all_succs(AFP.force_partition1.filter(graph.defined(_)))).toSet
+          graph.all_preds(graph.all_succs(AFP.force_partition1.filter(graph.defined))).toSet
         val (part1, part2) = graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
         if (n == 1) part1 else part2
       case _ => error("Bad AFP partition: " + n + " (should be 0, 1, 2)")
