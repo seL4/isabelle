@@ -46,16 +46,28 @@ object Isabelle_System
 
   /** implicit settings environment **/
 
+  abstract class Service
+
   @volatile private var _settings: Option[Map[String, String]] = None
+  @volatile private var _services: Option[List[Service]] = None
+
+  private def uninitialized: Boolean = _services.isEmpty   // unsynchronized check
 
   def settings(): Map[String, String] =
   {
-    if (_settings.isEmpty) init()  // unsynchronized check
+    if (uninitialized) init()
     _settings.get
   }
 
-  private def init_settings(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
-    if (_settings.isEmpty) {
+  def services(): List[Service] =
+  {
+    if (uninitialized) init()
+    _services.get
+  }
+
+  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
+  {
+    if (uninitialized) {
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
@@ -124,17 +136,31 @@ object Isabelle_System
       }
       _settings = Some(settings)
       set_cygwin_root()
-    }
-  }
 
-  def init()
-  {
-    init_settings()
-    services
+      val variable = "ISABELLE_SCALA_SERVICES"
+      val services =
+        for (name <- space_explode(':', settings.getOrElse(variable, getenv_error(variable))))
+        yield {
+          def err(msg: String): Nothing =
+            error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
+          try {
+            Class.forName(name).asInstanceOf[Class[Service]]
+              .getDeclaredConstructor().newInstance()
+          }
+          catch {
+            case _: ClassNotFoundException => err("Class not found")
+            case exn: Throwable => err(Exn.message(exn))
+          }
+        }
+      _services = Some(services)
+    }
   }
 
 
   /* getenv */
+
+  private def getenv_error(name: String): Nothing =
+    error("Undefined Isabelle environment variable: " + quote(name))
 
   def getenv(name: String, env: Map[String, String] = settings()): String =
     env.getOrElse(name, "")
@@ -369,33 +395,6 @@ object Isabelle_System
 
   def components(): List[Path] =
     Path.split(getenv_strict("ISABELLE_COMPONENTS"))
-
-
-  /* classes */
-
-  def init_classes[A](variable: String): List[A] =
-  {
-    for (name <- space_explode(':', Isabelle_System.getenv_strict(variable)))
-    yield {
-      def err(msg: String): Nothing =
-        error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
-
-      try {
-        Class.forName(name).asInstanceOf[Class[A]].getDeclaredConstructor().newInstance()
-      }
-      catch {
-        case _: ClassNotFoundException => err("Class not found")
-        case exn: Throwable => err(Exn.message(exn))
-      }
-    }
-  }
-
-
-  /*  user-defined services */
-
-  abstract class Service
-
-  lazy val services: List[Service] = init_classes[Service]("ISABELLE_SCALA_SERVICES")
 
 
   /* default logic */
