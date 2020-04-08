@@ -389,7 +389,7 @@ object File_Model
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
-    val node_required1 = node_required || session.resources.file_formats.is_theory(node_name)
+    val node_required1 = node_required || File_Format.registry.is_theory(node_name)
     File_Model(session, node_name, file, content, node_required1, last_perspective, pending_edits)
   }
 }
@@ -454,7 +454,7 @@ case class File_Model(
 
   def purge_edits(doc_blobs: Document.Blobs): Option[List[Document.Edit_Text]] =
     if (pending_edits.nonEmpty ||
-        !session.resources.file_formats.is_theory(node_name) &&
+        !File_Format.registry.is_theory(node_name) &&
           (node_required || !Document.Node.is_no_perspective_text(last_perspective))) None
     else {
       val text_edits = List(Text.Edit.remove(0, content.text))

@@ -98,7 +98,7 @@ object Isabelle_Tool
   /* internal tools */
 
   private lazy val internal_tools: List[Isabelle_Tool] =
-    Isabelle_System.init_classes[Isabelle_Scala_Tools]("ISABELLE_SCALA_TOOLS")
+    Isabelle_System.services.collect { case c: Isabelle_Scala_Tools => c }
       .flatMap(_.tools.toList)
 
   private def list_internal(): List[(String, String)] =
@@ -140,7 +140,7 @@ Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
 
 sealed case class Isabelle_Tool(name: String, description: String, body: List[String] => Unit)
 
-class Isabelle_Scala_Tools(val tools: Isabelle_Tool*)
+class Isabelle_Scala_Tools(val tools: Isabelle_Tool*) extends Isabelle_System.Service
 
 class Tools extends Isabelle_Scala_Tools(
   Build.isabelle_tool,

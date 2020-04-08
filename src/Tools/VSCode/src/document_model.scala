@@ -60,7 +60,7 @@ object Document_Model
 
   def init(session: Session, editor: Server.Editor, node_name: Document.Node.Name): Document_Model =
     Document_Model(session, editor, node_name, Content.empty,
-      node_required = session.resources.file_formats.is_theory(node_name))
+      node_required = File_Format.registry.is_theory(node_name))
 }
 
 sealed case class Document_Model(

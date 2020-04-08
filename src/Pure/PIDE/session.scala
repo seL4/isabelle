@@ -354,7 +354,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   /* file formats */
 
   lazy val file_formats: File_Format.Session =
-    resources.file_formats.start_session(session)
+    File_Format.registry.start_session(session)
 
 
   /* protocol handlers */
