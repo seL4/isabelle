@@ -56,7 +56,7 @@ object File_Format
 trait File_Format extends Isabelle_System.Service
 {
   def format_name: String
-  override def toString: String = format_name
+  override def toString: String = "File_Format(" + format_name + ")"
 
   def file_ext: String
   def detect(name: String): Boolean = name.endsWith("." + file_ext)
