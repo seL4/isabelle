@@ -39,13 +39,30 @@ object Graphview_Dockable
   private def reset_implicit(): Unit =
     set_implicit(Document.Snapshot.init, no_graph)
 
-  def apply(view: View, snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph])
+  class Handler extends Active.Handler
   {
-    set_implicit(snapshot, graph)
-    view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")
+    override def handle(
+      view: View, text: String, elem: XML.Elem,
+      doc_view: Document_View, snapshot: Document.Snapshot): Boolean =
+    {
+      elem match {
+        case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
+          Isabelle_Thread.fork(name = "graphview") {
+            val graph =
+              Exn.capture {
+                Graph_Display.decode_graph(body).transitive_reduction_acyclic
+              }
+            GUI_Thread.later {
+              set_implicit(snapshot, graph)
+              view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")
+            }
+          }
+          true
+        case _ => false
+      }
+    }
   }
 }
-
 
 class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
 {

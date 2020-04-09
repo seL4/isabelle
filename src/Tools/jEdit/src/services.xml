@@ -44,4 +44,10 @@
   <SERVICE CLASS="console.Shell" NAME="Scala">
     new isabelle.jedit.Scala_Console();
   </SERVICE>
+  <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="misc">
+    new isabelle.jedit.Active$Misc_Handler();
+  </SERVICE>
+  <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="graphview">
+    new isabelle.jedit.Graphview_Dockable$Handler()
+  </SERVICE>
 </SERVICES>
