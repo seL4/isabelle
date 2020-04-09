@@ -98,8 +98,7 @@ object Isabelle_Tool
   /* internal tools */
 
   private lazy val internal_tools: List[Isabelle_Tool] =
-    Isabelle_System.services.collect { case c: Isabelle_Scala_Tools => c }
-      .flatMap(_.tools.toList)
+    Isabelle_System.services.collect { case c: Isabelle_Scala_Tools => c.tools.toList }.flatten
 
   private def list_internal(): List[(String, String)] =
     for (tool <- internal_tools.toList)
