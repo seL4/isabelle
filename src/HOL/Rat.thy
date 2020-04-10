@@ -463,16 +463,12 @@ lemma positive_zero: "\<not> positive 0"
 
 lemma positive_add: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x + y)"
   apply transfer
-  apply (simp add: zero_less_mult_iff)
-  apply (elim disjE)
-     apply (simp_all add: add_pos_pos add_neg_neg mult_pos_neg mult_neg_pos mult_neg_neg)
+     apply (auto simp add: zero_less_mult_iff add_pos_pos add_neg_neg mult_pos_neg mult_neg_pos mult_neg_neg)
   done
 
 lemma positive_mult: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
   apply transfer
-  apply (drule (1) mult_pos_pos)
-  apply (simp add: ac_simps)
-  done
+  by (metis fst_conv mult.commute mult_pos_neg2 snd_conv zero_less_mult_iff)
 
 lemma positive_minus: "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
   by transfer (auto simp: neq_iff zero_less_mult_iff mult_less_0_iff)
@@ -495,24 +491,15 @@ proof
     by (rule abs_rat_def)
   show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
     unfolding less_eq_rat_def less_rat_def
-    apply auto
-     apply (drule (1) positive_add)
-     apply (simp_all add: positive_zero)
-    done
+    using positive_add positive_zero by force
   show "a \<le> a"
     unfolding less_eq_rat_def by simp
   show "a \<le> b \<Longrightarrow> b \<le> c \<Longrightarrow> a \<le> c"
     unfolding less_eq_rat_def less_rat_def
-    apply auto
-    apply (drule (1) positive_add)
-    apply (simp add: algebra_simps)
-    done
+    using positive_add by fastforce
   show "a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> a = b"
     unfolding less_eq_rat_def less_rat_def
-    apply auto
-    apply (drule (1) positive_add)
-    apply (simp add: positive_zero)
-    done
+    using positive_add positive_zero by fastforce
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
     unfolding less_eq_rat_def less_rat_def by auto
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
@@ -522,9 +509,7 @@ proof
     by (auto dest!: positive_minus)
   show "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
     unfolding less_rat_def
-    apply (drule (1) positive_mult)
-    apply (simp add: algebra_simps)
-    done
+    by (metis diff_zero positive_mult right_diff_distrib')
 qed
 
 end
@@ -712,8 +697,7 @@ lemma of_rat_power: "(of_rat (a ^ n) :: 'a::field_char_0) = of_rat a ^ n"
 
 lemma of_rat_eq_iff [simp]: "of_rat a = of_rat b \<longleftrightarrow> a = b"
   apply transfer
-  apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
-  apply (simp only: of_int_mult [symmetric] of_int_eq_iff)
+  apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq flip: of_int_mult)
   done
 
 lemma of_rat_eq_0_iff [simp]: "of_rat a = 0 \<longleftrightarrow> a = 0"
@@ -856,46 +840,28 @@ lemma Rats_1 [simp]: "1 \<in> \<rat>"
   unfolding Rats_def by (rule range_eqI) (rule of_rat_1 [symmetric])
 
 lemma Rats_add [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a + b \<in> \<rat>"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_add [symmetric])
-  done
+  by (metis Rats_cases Rats_of_rat of_rat_add)
 
 lemma Rats_minus_iff [simp]: "- a \<in> \<rat> \<longleftrightarrow> a \<in> \<rat>"
-by (metis Rats_cases Rats_of_rat add.inverse_inverse of_rat_minus)
+  by (metis Rats_cases Rats_of_rat add.inverse_inverse of_rat_minus)
 
 lemma Rats_diff [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a - b \<in> \<rat>"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_diff [symmetric])
-  done
+  by (metis Rats_add Rats_minus_iff diff_conv_add_uminus)
 
 lemma Rats_mult [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a * b \<in> \<rat>"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_mult [symmetric])
-  done
+  by (metis Rats_cases Rats_of_rat of_rat_mult)
 
 lemma Rats_inverse [simp]: "a \<in> \<rat> \<Longrightarrow> inverse a \<in> \<rat>"
   for a :: "'a::field_char_0"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_inverse [symmetric])
-  done
+  by (metis Rats_cases Rats_of_rat of_rat_inverse)
 
 lemma Rats_divide [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a / b \<in> \<rat>"
   for a b :: "'a::field_char_0"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_divide [symmetric])
-  done
+  by (simp add: divide_inverse)
 
 lemma Rats_power [simp]: "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>"
   for a :: "'a::field_char_0"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_power [symmetric])
-  done
+  by (metis Rats_cases Rats_of_rat of_rat_power)
 
 lemma Rats_induct [case_names of_rat, induct set: Rats]: "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto

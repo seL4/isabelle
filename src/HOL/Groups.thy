@@ -635,9 +635,7 @@ lemma add_right_mono: "a \<le> b \<Longrightarrow> a + c \<le> b + c"
 
 text \<open>non-strict, in both arguments\<close>
 lemma add_mono: "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \<le> b + d"
-  apply (erule add_right_mono [THEN order_trans])
-  apply (simp add: add.commute add_left_mono)
-  done
+  by (simp add: add.commute add_left_mono add_right_mono [THEN order_trans])
 
 end
 
@@ -656,20 +654,16 @@ lemma add_strict_right_mono: "a < b \<Longrightarrow> a + c < b + c"
   by (simp add: add.commute [of _ c] add_strict_left_mono)
 
 subclass strict_ordered_ab_semigroup_add
-  apply standard
-  apply (erule add_strict_right_mono [THEN less_trans])
-  apply (erule add_strict_left_mono)
-  done
+proof
+  show "\<And>a b c d. \<lbrakk>a < b; c < d\<rbrakk> \<Longrightarrow> a + c < b + d"
+    by (iprover intro: add_strict_left_mono add_strict_right_mono less_trans)
+qed
 
 lemma add_less_le_mono: "a < b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c < b + d"
-  apply (erule add_strict_right_mono [THEN less_le_trans])
-  apply (erule add_left_mono)
-  done
+  by (iprover intro: add_left_mono add_strict_right_mono less_le_trans)
 
 lemma add_le_less_mono: "a \<le> b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
-  apply (erule add_right_mono [THEN le_less_trans])
-  apply (erule add_strict_left_mono)
-  done
+  by (iprover intro: add_strict_left_mono add_right_mono less_le_trans)
 
 end
 
@@ -684,12 +678,7 @@ proof -
   from less have le: "c + a \<le> c + b"
     by (simp add: order_le_less)
   have "a \<le> b"
-    apply (insert le)
-    apply (drule add_le_imp_le_left)
-    apply (insert le)
-    apply (drule add_le_imp_le_left)
-    apply assumption
-    done
+    using add_le_imp_le_left [OF le] .
   moreover have "a \<noteq> b"
   proof (rule ccontr)
     assume "\<not> ?thesis"
@@ -711,10 +700,7 @@ lemma add_less_cancel_right [simp]: "a + c < b + c \<longleftrightarrow> a < b"
   by (blast intro: add_less_imp_less_right add_strict_right_mono)
 
 lemma add_le_cancel_left [simp]: "c + a \<le> c + b \<longleftrightarrow> a \<le> b"
-  apply auto
-   apply (drule add_le_imp_le_left)
-   apply (simp_all add: add_left_mono)
-  done
+  by (auto simp: dest: add_le_imp_le_left add_left_mono)
 
 lemma add_le_cancel_right [simp]: "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
   by (simp add: add.commute [of a c] add.commute [of b c])
@@ -927,17 +913,7 @@ proof -
 qed
 
 lemma le_minus_iff: "a \<le> - b \<longleftrightarrow> b \<le> - a"
-proof -
-  have mm: "- (- a) < - b \<Longrightarrow> - (- b) < -a" for a b :: 'a
-    by (simp only: minus_less_iff)
-  have "- (- a) \<le> - b \<longleftrightarrow> b \<le> - a"
-    apply (auto simp only: le_less)
-      apply (drule mm)
-      apply (simp_all)
-    apply (drule mm[simplified], assumption)
-    done
-  then show ?thesis by simp
-qed
+  by (auto simp: order.order_iff_strict less_minus_iff)
 
 lemma minus_le_iff: "- a \<le> b \<longleftrightarrow> - b \<le> a"
   by (auto simp add: le_less minus_less_iff)
@@ -955,17 +931,17 @@ lemmas less_iff_diff_less_0 = diff_less_0_iff_less [symmetric]
 
 lemma diff_less_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
   "a - b < c \<longleftrightarrow> a < c + b"
-  apply (subst less_iff_diff_less_0 [of a])
-  apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
-  apply (simp add: algebra_simps)
-  done
+proof (subst less_iff_diff_less_0 [of a])
+  show "(a - b < c) = (a - (c + b) < 0)"
+    by (simp add: algebra_simps less_iff_diff_less_0 [of _ c])
+qed
 
 lemma less_diff_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
   "a < c - b \<longleftrightarrow> a + b < c"
-  apply (subst less_iff_diff_less_0 [of "a + b"])
-  apply (subst less_iff_diff_less_0 [of a])
-  apply (simp add: algebra_simps)
-  done
+proof (subst less_iff_diff_less_0 [of "a + b"])
+  show "(a < c - b) = (a + b - c < 0)"
+    by (simp add: algebra_simps less_iff_diff_less_0 [of a])
+qed
 
 lemma diff_gt_0_iff_gt [simp]: "a - b > 0 \<longleftrightarrow> a > b"
   by (simp add: less_diff_eq)
@@ -1070,11 +1046,10 @@ proof
     assume *: "\<not> ?thesis"
     then have "b \<le> a" by (simp add: linorder_not_le)
     then have "c + b \<le> c + a" by (rule add_left_mono)
-    with le1 have "a = b"
-      apply -
-      apply (drule antisym)
-       apply simp_all
-      done
+    then have "c + a = c + b"
+      using le1 by (iprover intro: antisym)
+    then have "a = b"
+      by simp
     with * show False
       by (simp add: linorder_not_le [symmetric])
   qed
@@ -1146,10 +1121,7 @@ next
 qed
 
 lemma double_zero_sym [simp]: "0 = a + a \<longleftrightarrow> a = 0"
-  apply (rule iffI)
-   apply (drule sym)
-   apply simp_all
-  done
+  using double_zero [of a] by (simp only: eq_commute)
 
 lemma zero_less_double_add_iff_zero_less_single_add [simp]: "0 < a + a \<longleftrightarrow> 0 < a"
 proof
@@ -1358,13 +1330,17 @@ end
 
 lemma dense_eq0_I:
   fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
-  shows "(\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e) \<Longrightarrow> x = 0"
-  apply (cases "\<bar>x\<bar> = 0")
-   apply simp
-  apply (simp only: zero_less_abs_iff [symmetric])
-  apply (drule dense)
-  apply (auto simp add: not_less [symmetric])
-  done
+  assumes "\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e"
+  shows "x = 0"
+proof (cases "\<bar>x\<bar> = 0")
+  case False
+  then have "\<bar>x\<bar> > 0"
+    by simp
+  then obtain z where "0 < z" "z < \<bar>x\<bar>"
+    using dense by force
+  then show ?thesis
+    using assms by (simp flip: not_less)
+qed auto
 
 hide_fact (open) ab_diff_conv_add_uminus add_0 mult_1 ab_left_minus
 
