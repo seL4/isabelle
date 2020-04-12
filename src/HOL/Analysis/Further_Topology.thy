@@ -239,14 +239,14 @@ proof -
   obtain c where homhc: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) h (\<lambda>x. c)"
     apply (rule_tac c="-d" in that)
     apply (rule homotopic_with_eq)
-       apply (rule homotopic_compose_continuous_left [OF hom_hd conT0 sub0T])
+       apply (rule homotopic_with_compose_continuous_left [OF hom_hd conT0 sub0T])
     using d apply (auto simp: h_def)
     done
   show ?thesis
     apply (rule_tac x=c in exI)
     apply (rule homotopic_with_trans [OF _ homhc])
     apply (rule homotopic_with_eq)
-       apply (rule homotopic_compose_continuous_left [OF homfg conT0 sub0T])
+       apply (rule homotopic_with_compose_continuous_left [OF homfg conT0 sub0T])
       apply (auto simp: h_def)
     done
 qed
@@ -4221,7 +4221,7 @@ next
       using fim him by force
   qed auto
   then have "homotopic_with_canon (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
-    by (rule homotopic_compose_continuous_left [OF _ contk kim])
+    by (rule homotopic_with_compose_continuous_left [OF _ contk kim])
   then have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
     apply (rule homotopic_with_eq, auto)
     by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)

@@ -149,7 +149,7 @@ next
     apply (rule_tac x=r in exI, simp)
      apply (rule homotopic_with_trans, assumption)
      apply (rule_tac f = "r \<circ> f" and g="r \<circ> id" in homotopic_with_eq)
-        apply (rule_tac Y=S in homotopic_compose_continuous_left)
+        apply (rule_tac Y=S in homotopic_with_compose_continuous_left)
          apply (auto simp: homotopic_with_sym)
     done
 qed
