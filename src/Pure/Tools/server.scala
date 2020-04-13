@@ -534,7 +534,7 @@ class Server private(_port: Int, val log: Logger)
     for ((_, session) <- sessions) {
       try {
         val result = session.stop()
-        if (!result.ok) log("Session shutdown failed: return code " + result.rc)
+        if (!result.ok) log("Session shutdown failed: " + result.print_rc)
       }
       catch { case ERROR(msg) => log("Session shutdown failed: " + msg) }
     }

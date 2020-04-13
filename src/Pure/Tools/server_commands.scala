@@ -86,7 +86,10 @@ object Server_Commands
               }))
 
       if (results.ok) (results_json, results, options, base_info)
-      else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
+      else {
+        throw new Server.Error("Session build failed: " + Process_Result.print_rc(results.rc),
+          results_json)
+      }
     }
   }
 
@@ -136,7 +139,7 @@ object Server_Commands
       val result_json = JSON.Object("ok" -> result.ok, "return_code" -> result.rc)
 
       if (result.ok) (result_json, result)
-      else throw new Server.Error("Session shutdown failed: return code " + result.rc, result_json)
+      else throw new Server.Error("Session shutdown failed: " + result.print_rc, result_json)
     }
   }
 

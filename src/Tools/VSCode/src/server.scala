@@ -333,7 +333,8 @@ class Server(
         delay_preview.revoke()
 
         val result = session.stop()
-        if (result.ok) reply("") else reply("Prover shutdown failed: return code " + result.rc)
+        if (result.ok) reply("")
+        else reply("Prover shutdown failed: " + result.rc)
         None
       case None =>
         reply("Prover inactive")

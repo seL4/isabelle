@@ -90,7 +90,7 @@ class Prover(
   private def exit_message(result: Process_Result)
   {
     output(Markup.EXIT, Markup.Process_Result(result),
-      List(XML.Text("Return code: " + result.rc.toString)))
+      List(XML.Text(result.print_return_code)))
   }
 
 

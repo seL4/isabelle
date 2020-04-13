@@ -6,6 +6,12 @@ Result of system process.
 
 package isabelle
 
+object Process_Result
+{
+  def print_return_code(rc: Int): String = "Return code: " + rc
+  def print_rc(rc: Int): String = "return code " + rc
+}
+
 final case class Process_Result(
   rc: Int,
   out_lines: List[String] = Nil,
@@ -35,6 +41,9 @@ final case class Process_Result(
     else Exn.error(err)
 
   def check: Process_Result = check_rc(_ == 0)
+
+  def print_return_code: String = Process_Result.print_return_code(rc)
+  def print_rc: String = Process_Result.print_rc(rc)
 
   def print: Process_Result =
   {

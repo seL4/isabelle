@@ -171,7 +171,7 @@ object Session_Build
             (Output.error_message_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
         }
 
-      progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
+      progress.echo(out + (if (rc == 0) "OK" else Process_Result.print_return_code(rc)) + "\n")
 
       if (rc == 0) JEdit_Sessions.session_start(options)
       else progress.echo("Session build failed -- prover process remains inactive!")
