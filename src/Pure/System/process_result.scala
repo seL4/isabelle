@@ -8,7 +8,23 @@ package isabelle
 
 object Process_Result
 {
-  def print_return_code(rc: Int): String = "Return code: " + rc
+  val return_code_text: Map[Int, String] =
+    Map(0 -> "OK",
+      1 -> "ERROR",
+      2 -> "FAILURE",
+      130 -> "INTERRUPT",
+      131 -> "QUIT SIGNAL",
+      137 -> "KILL SIGNAL",
+      138 -> "BUS ERROR",
+      139 -> "SEGMENTATION VIOLATION",
+      143 -> "TERMINATION SIGNAL")
+
+  def print_return_code(rc: Int): String =
+  {
+    val text = return_code_text.get(rc)
+    "Return code: " + rc + (if (text.isEmpty) "" else " (" + text.get + ")")
+  }
+
   def print_rc(rc: Int): String = "return code " + rc
 }
 
