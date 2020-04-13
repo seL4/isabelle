@@ -234,7 +234,7 @@ potentially indexed, such as "foo" for singleton facts, or "bar(1)",
 "bar(2)", "bar(3)" for multi-facts. Theorem dependencies are now
 exported as well: this spans an overall dependency graph of internal
 inferences; it might help to reconstruct the formal structure of theory
-libraries. See also the module Export_Theory in Isabelle/Scala.
+libraries. See also the module isabelle.Export_Theory in Isabelle/Scala.
 
 * Theory export of structured specifications, based on internal
 declarations of Spec_Rules by packages like 'definition', 'inductive',
