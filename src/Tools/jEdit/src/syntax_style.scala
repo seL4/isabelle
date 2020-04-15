@@ -99,9 +99,9 @@ object Syntax_Style
   }
 
   private def control_style(sym: String): Option[Byte => Byte] =
-    if (sym == Symbol.sub_decoded) Some(subscript(_))
-    else if (sym == Symbol.sup_decoded) Some(superscript(_))
-    else if (sym == Symbol.bold_decoded) Some(bold(_))
+    if (sym == Symbol.sub_decoded) Some(subscript)
+    else if (sym == Symbol.sup_decoded) Some(superscript)
+    else if (sym == Symbol.bold_decoded) Some(bold)
     else None
 
   def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] =

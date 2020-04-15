@@ -37,13 +37,13 @@ object ML_Syntax
 
   private def print_symbol(s: Symbol.Symbol): String =
     if (s.startsWith("\\<")) s
-    else UTF8.bytes(s).iterator.map(print_byte(_)).mkString
+    else UTF8.bytes(s).iterator.map(print_byte).mkString
 
   def print_string_bytes(str: String): String =
-    quote(UTF8.bytes(str).iterator.map(print_byte(_)).mkString)
+    quote(UTF8.bytes(str).iterator.map(print_byte).mkString)
 
   def print_string_symbols(str: String): String =
-    quote(Symbol.iterator(str).map(print_symbol(_)).mkString)
+    quote(Symbol.iterator(str).map(print_symbol).mkString)
 
 
   /* pair */
@@ -61,5 +61,5 @@ object ML_Syntax
   /* properties */
 
   def print_properties(props: Properties.T): String =
-    print_list(print_pair(print_string_bytes(_), print_string_bytes(_))(_))(props)
+    print_list(print_pair(print_string_bytes, print_string_bytes))(props)
 }

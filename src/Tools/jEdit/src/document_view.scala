@@ -137,7 +137,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
         JEdit_Lib.buffer_lock(buffer) {
           val rendering = get_rendering()
 
-          for (i <- 0 until physical_lines.length) {
+          for (i <- physical_lines.indices) {
             if (physical_lines(i) != -1) {
               val line_range = Text.Range(start(i), end(i))
 
@@ -184,7 +184,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
   /* caret handling */
 
   private val delay_caret_update =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+    Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
       session.caret_focus.post(Session.Caret_Focus)
       JEdit_Lib.invalidate(text_area)
     }
@@ -241,7 +241,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     text_area.revalidate()
     text_area.repaint()
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
-      foreach(text_area.addStructureMatcher(_))
+      foreach(text_area.addStructureMatcher)
     session.raw_edits += main
     session.commands_changed += main
   }
@@ -253,7 +253,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     session.raw_edits -= main
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
-      foreach(text_area.removeStructureMatcher(_))
+      foreach(text_area.removeStructureMatcher)
     text_overview.foreach(_.revoke())
     text_overview.foreach(text_area.removeLeftOfScrollBar(_))
     text_area.removeCaretListener(caret_listener)

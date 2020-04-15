@@ -10,6 +10,8 @@ package isabelle
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
 
+import scala.annotation.tailrec
+
 
 object Bash
 {
@@ -35,10 +37,10 @@ object Bash
 
   def string(s: String): String =
     if (s == "") "\"\""
-    else UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
+    else UTF8.bytes(s).iterator.map(bash_chr).mkString
 
   def strings(ss: List[String]): String =
-    ss.iterator.map(Bash.string(_)).mkString(" ")
+    ss.iterator.map(Bash.string).mkString(" ")
 
 
   /* process and result */
@@ -100,41 +102,36 @@ object Bash
 
     private val pid = stdout.readLine
 
-    def interrupt()
-    { Exn.Interrupt.postpone { Isabelle_System.kill("INT", pid) } }
-
-    private def kill(signal: String): Boolean =
-      Exn.Interrupt.postpone {
-        Isabelle_System.kill(signal, pid)
-        Isabelle_System.kill("0", pid)._2 == 0 } getOrElse true
-
-    private def multi_kill(signal: String): Boolean =
+    @tailrec private def kill(signal: String, count: Int = 1): Boolean =
     {
-      var running = true
-      var count = 10
-      while (running && count > 0) {
-        if (kill(signal)) {
-          Exn.Interrupt.postpone {
-            Thread.sleep(100)
-            count -= 1
-          }
+      count <= 0 ||
+      {
+        Isabelle_System.kill(signal, pid)
+        val running = Isabelle_System.kill("0", pid)._2 == 0
+        if (running) {
+          Time.seconds(0.1).sleep
+          kill(signal, count - 1)
         }
-        else running = false
+        else false
       }
-      running
     }
 
-    def terminate()
+    def terminate(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      multi_kill("INT") && multi_kill("TERM") && kill("KILL")
+      kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
       proc.destroy
       do_cleanup()
+    }
+
+    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
+    {
+      Isabelle_System.kill("INT", pid)
     }
 
 
     // JVM shutdown hook
 
-    private val shutdown_hook = new Thread { override def run = terminate() }
+    private val shutdown_hook = Isabelle_Thread.create(() => terminate())
 
     try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }

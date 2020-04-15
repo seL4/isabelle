@@ -216,7 +216,7 @@ object Build_Fonts
     target_prefix: String = "Isabelle",
     target_version: String = "",
     target_dir: Path = default_target_dir,
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     progress.echo("Directory " + target_dir)
     hinting.foreach(hinted => Isabelle_System.mkdirs(target_dir + hinted_path(hinted)))
@@ -284,7 +284,7 @@ object Build_Fonts
       val domain =
         (for ((name, index) <- targets if index == 0)
           yield Fontforge.font_domain(target_dir + hinted_path(false) + name))
-        .flatten.toSet.toList.sorted
+        .flatten.distinct.sorted
 
       Fontforge.execute(
         Fontforge.commands(

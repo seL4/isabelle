@@ -46,7 +46,7 @@ fun get_timings timings tr =
 
 (* session timing *)
 
-fun session_timing name verbose f x =
+fun session_timing session_name verbose f x =
   let
     val start = Timing.start ();
     val y = f x;
@@ -58,10 +58,10 @@ fun session_timing name verbose f x =
 
     val timing_props =
       [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
-    val _ = writeln ("\fTiming = " ^ YXML.string_of_body (XML.Encode.properties timing_props));
+    val _ = Protocol_Message.marker "Timing" timing_props;
     val _ =
       if verbose then
-        Output.physical_stderr ("Timing " ^ name ^ " (" ^
+        Output.physical_stderr ("Timing " ^ session_name ^ " (" ^
           threads ^ " threads, " ^ Timing.message timing ^ ", factor " ^ factor ^ ")\n")
       else ();
   in y end;
@@ -73,7 +73,7 @@ fun protocol_message props output =
   (case props of
     function :: args =>
       if function = Markup.ML_statistics orelse function = Markup.task_statistics then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.marker (#2 function) args
       else if function = Markup.command_timing then
         let
           val name = the_default "" (Properties.get args Markup.nameN);
@@ -86,15 +86,16 @@ fun protocol_message props output =
           if is_significant then
             (case approximative_id name pos of
               SOME id =>
-                Protocol_Message.inline (#2 function) (Markup.command_timing_properties id elapsed)
+                Protocol_Message.marker (#2 function)
+                  (Markup.command_timing_properties id elapsed)
             | NONE => ())
           else ()
         end
       else if function = Markup.theory_timing then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.marker (#2 function) args
       else
         (case Markup.dest_loading_theory props of
-          SOME name => writeln ("\floading_theory = " ^ name)
+          SOME name => Protocol_Message.marker_text "loading_theory" name
         | NONE => Export.protocol_message props output)
   | [] => raise Output.Protocol_Message props);
 
@@ -133,14 +134,13 @@ fun build_theories symbols bibtex_entries last_timing qualifier master_dir (opti
 datatype args = Args of
  {symbol_codes: (string * int) list,
   command_timings: Properties.T list,
-  do_output: bool,
   verbose: bool,
   browser_info: Path.T,
   document_files: (Path.T * Path.T) list,
   graph_file: Path.T,
   parent_name: string,
   chapter: string,
-  name: string,
+  session_name: string,
   master_dir: Path.T,
   theories: (Options.T * (string * Position.T) list) list,
   session_positions: (string * Properties.T) list,
@@ -154,31 +154,31 @@ fun decode_args yxml =
   let
     open XML.Decode;
     val position = Position.of_properties o properties;
-    val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
-      (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
+    val (symbol_codes, (command_timings, (verbose, (browser_info,
+      (document_files, (graph_file, (parent_name, (chapter, (session_name, (master_dir,
       (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-      (loaded_theories, bibtex_entries))))))))))))))))) =
-      pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
+      (loaded_theories, bibtex_entries)))))))))))))))) =
+      pair (list (pair string int)) (pair (list properties) (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
               (pair (list (pair string properties))
                 (pair (list (pair string string)) (pair (list string)
-                  (pair (list (pair string string)) (pair (list string) (list string)))))))))))))))))
+                  (pair (list (pair string string)) (pair (list string) (list string))))))))))))))))
       (YXML.parse_body yxml);
   in
-    Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
+    Args {symbol_codes = symbol_codes, command_timings = command_timings,
       verbose = verbose, browser_info = Path.explode browser_info,
       document_files = map (apply2 Path.explode) document_files,
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
-      name = name, master_dir = Path.explode master_dir, theories = theories,
+      session_name = session_name, master_dir = Path.explode master_dir, theories = theories,
       session_positions = session_positions, session_directories = session_directories,
       doc_names = doc_names, global_theories = global_theories, loaded_theories = loaded_theories,
       bibtex_entries = bibtex_entries}
   end;
 
-fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
-    document_files, graph_file, parent_name, chapter, name, master_dir, theories, session_positions,
+fun build_session (Args {symbol_codes, command_timings, verbose, browser_info, document_files,
+    graph_file, parent_name, chapter, session_name, master_dir, theories, session_positions,
     session_directories, doc_names, global_theories, loaded_theories, bibtex_entries}) =
   let
     val symbols = HTML.make_symbols symbol_codes;
@@ -194,7 +194,6 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
     val _ =
       Session.init
         symbols
-        do_output
         (Options.default_bool "browser_info")
         browser_info
         (Options.default_string "document")
@@ -203,48 +202,69 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
         document_files
         graph_file
         parent_name
-        (chapter, name)
+        (chapter, session_name)
         verbose;
 
     val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
     val res1 =
       theories |>
-        (List.app (build_theories symbols bibtex_entries last_timing name master_dir)
-          |> session_timing name verbose
+        (List.app (build_theories symbols bibtex_entries last_timing session_name master_dir)
+          |> session_timing session_name verbose
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
 
     val _ = Resources.finish_session_base ();
     val _ = Par_Exn.release_all [res1, res2];
+    val _ =
+      if session_name = Context.PureN
+      then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
   in () end;
 
-(*command-line tool*)
+
+(* command-line tool *)
+
+fun inline_errors exn =
+  Runtime.exn_message_list exn
+  |> List.app (fn msg => Protocol_Message.marker_text "error_message" (YXML.content_of msg));
+
 fun build args_file =
   let
     val _ = SHA1.test_samples ();
     val _ = Options.load_default ();
     val _ = Isabelle_Process.init_options ();
     val args = decode_args (File.read (Path.explode args_file));
-    fun error_message msg = writeln ("\ferror_message = " ^ encode_lines (YXML.content_of msg));
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
-      handle exn => (List.app error_message (Runtime.exn_message_list exn); Exn.reraise exn);
+      handle exn => (inline_errors exn; Exn.reraise exn);
     val _ = Private_Output.protocol_message_fn := Output.protocol_message_undefined;
     val _ = Options.reset_default ();
   in () end;
 
-(*PIDE version*)
+
+(* PIDE version *)
+
+fun build_session_finished errs =
+  XML.Encode.list XML.Encode.string errs
+  |> Output.protocol_message Markup.build_session_finished;
+
 val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
         let
           val args = decode_args args_yxml;
-          val result = (build_session args; "") handle exn =>
-            (Runtime.exn_message exn handle _ (*sic!*) =>
-              "Exception raised, but failed to print details!");
-        in Output.protocol_message Markup.build_session_finished [XML.Text result] end
+          val errs =
+            Future.interruptible_task (fn () => (build_session args; [])) () handle exn =>
+              (Runtime.exn_message_list exn handle _ (*sic!*) =>
+                (build_session_finished ["CRASHED"];
+                  raise Isabelle_Process.EXIT 2));
+          val _ = build_session_finished errs;
+        in
+          if null errs
+          then raise Isabelle_Process.STOP
+          else raise Isabelle_Process.EXIT 1
+        end
       | _ => raise Match);
 
 end;

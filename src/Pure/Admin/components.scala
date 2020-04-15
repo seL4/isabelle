@@ -38,14 +38,14 @@ object Components
 
   /* component collections */
 
-  val default_components_base = Path.explode("$ISABELLE_COMPONENTS_BASE")
+  val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
 
   def admin(dir: Path): Path = dir + Path.explode("Admin/components")
 
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
-  def unpack(dir: Path, archive: Path, progress: Progress = No_Progress): String =
+  def unpack(dir: Path, archive: Path, progress: Progress = new Progress): String =
   {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
@@ -56,7 +56,7 @@ object Components
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
-    progress: Progress = No_Progress)
+    progress: Progress = new Progress)
   {
     Isabelle_System.mkdirs(base_dir)
     for (name <- names) {
@@ -125,7 +125,7 @@ object Components
         case _ => error("Bad components.sha1 entry: " + quote(line))
       })
 
-  def write_components_sha1(entries: List[SHA1_Digest]) =
+  def write_components_sha1(entries: List[SHA1_Digest]): Unit =
     File.write(components_sha1, entries.sortBy(_.file_name).mkString("", "\n", "\n"))
 
 
@@ -135,7 +135,7 @@ object Components
   def build_components(
     options: Options,
     components: List[Path],
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     publish: Boolean = false,
     force: Boolean = false,
     update_components_sha1: Boolean = false)

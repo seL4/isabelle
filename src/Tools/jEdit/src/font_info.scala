@@ -56,7 +56,7 @@ object Font_Info
 
     // owned by GUI thread
     private var steps = 0
-    private val delay = GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+    private val delay = Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true)
     {
       change_size(size =>
         {

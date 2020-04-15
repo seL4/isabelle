@@ -18,14 +18,14 @@ object Isabelle_Cronjob
   /* global resources: owned by main cronjob */
 
   val backup = "lxbroy10:cronjob"
-  val main_dir = Path.explode("~/cronjob")
-  val main_state_file = main_dir + Path.explode("run/main.state")
-  val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
-  val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
+  val main_dir: Path = Path.explode("~/cronjob")
+  val main_state_file: Path = main_dir + Path.explode("run/main.state")
+  val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
+  val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
   val isabelle_repos_source = "https://isabelle.sketis.net/repos/isabelle"
-  val isabelle_repos = main_dir + Path.explode("isabelle")
-  val afp_repos = main_dir + Path.explode("AFP")
+  val isabelle_repos: Path = main_dir + Path.explode("isabelle")
+  val afp_repos: Path = main_dir + Path.explode("AFP")
 
   val build_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
@@ -42,7 +42,7 @@ object Isabelle_Cronjob
   def get_rev(): String = Mercurial.repository(isabelle_repos).id()
   def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
 
-  val init =
+  val init: Logger_Task =
     Logger_Task("init", logger =>
       {
         Isabelle_Devel.make_index()
@@ -61,7 +61,7 @@ object Isabelle_Cronjob
           Files.createSymbolicLink(Isabelle_Devel.cronjob_log.file.toPath, current_log.file.toPath)
       })
 
-  val exit =
+  val exit: Logger_Task =
     Logger_Task("exit", logger =>
       {
         Isabelle_System.bash(
@@ -72,7 +72,7 @@ object Isabelle_Cronjob
 
   /* build release */
 
-  val build_release =
+  val build_release: Logger_Task =
     Logger_Task("build_release", logger =>
       {
         Isabelle_Devel.release_snapshot(logger.options, rev = get_rev(), afp_rev = get_afp_rev())
@@ -81,7 +81,7 @@ object Isabelle_Cronjob
 
   /* integrity test of build_history vs. build_history_base */
 
-  val build_history_base =
+  val build_history_base: Logger_Task =
     Logger_Task("build_history_base", logger =>
       {
         using(logger.ssh_context.open_session("lxbroy10"))(ssh =>
@@ -147,9 +147,9 @@ object Isabelle_Cronjob
   sealed case class Remote_Build(
     description: String,
     host: String,
+    actual_host: String = "",
     user: String = "",
     port: Int = 0,
-    ssh_host: String = "",
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
@@ -166,7 +166,7 @@ object Isabelle_Cronjob
     active: Boolean = true)
   {
     def ssh_session(context: SSH.Context): SSH.Session =
-      context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
+      context.open_session(host = host, user = user, port = port, actual_host = actual_host,
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
@@ -216,7 +216,6 @@ object Isabelle_Cronjob
     List(
       Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
-        ssh_host = "10.155.208.96",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
         afp = true,
@@ -291,18 +290,18 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
           history_base = "2c0f24e927dd")),
       List(
-        Remote_Build("macOS 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
+        Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
-      List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
+      List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
         options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("macOS 10.14 Mojave", "lapnipkow3",
+      List(Remote_Build("Mac OS X 10.14 Mojave", "lapnipkow3",
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
+      List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
-        self_update = true, options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
+        self_update = true, options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
@@ -339,9 +338,8 @@ object Isabelle_Cronjob
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP2", "lrzcloud2", self_update = true,
+        Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m32 -M1x8 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
@@ -350,9 +348,8 @@ object Isabelle_Cronjob
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-        Remote_Build("AFP bulky2", "lrzcloud2", self_update = true,
+        Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
           afp = true,
@@ -397,7 +394,7 @@ object Isabelle_Cronjob
 
   object Log_Service
   {
-    def apply(options: Options, progress: Progress = No_Progress): Log_Service =
+    def apply(options: Options, progress: Progress = new Progress): Log_Service =
       new Log_Service(SSH.init_context(options), progress)
   }
 
@@ -417,7 +414,7 @@ object Isabelle_Cronjob
 
     def shutdown() { thread.shutdown() }
 
-    val hostname = Isabelle_System.hostname()
+    val hostname: String = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
       if (task_name != "")
@@ -517,7 +514,7 @@ object Isabelle_Cronjob
         {
           running.partition(_.is_finished) match {
             case (Nil, Nil) =>
-            case (Nil, _ :: _) => Thread.sleep(500); join(running)
+            case (Nil, _ :: _) => Time.seconds(0.5).sleep; join(running)
             case (_ :: _, remaining) => join(remaining)
           }
         }
@@ -582,7 +579,7 @@ object Isabelle_Cronjob
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       var force = false
       var verbose = false
       var exclude_task = Set.empty[String]
@@ -602,7 +599,7 @@ Usage: Admin/cronjob/main [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val progress = if (verbose) new Console_Progress() else No_Progress
+      val progress = if (verbose) new Console_Progress() else new Progress
 
       if (force) cronjob(progress, exclude_task)
       else error("Need to apply force to do anything")

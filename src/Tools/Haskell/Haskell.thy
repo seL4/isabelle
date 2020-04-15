@@ -1715,20 +1715,20 @@ read_line_message socket = do
         Just n -> fmap trim_line . fst <$> read_block socket n
 \<close>
 
-generate_file "Isabelle/Standard_Thread.hs" = \<open>
-{-  Title:      Isabelle/Standard_Thread.hs
+generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
+{-  Title:      Isabelle/Isabelle_Thread.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
-Standard thread operations.
+Isabelle-specific thread management.
 
-See \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/standard_thread.ML\<close>
-and \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/standard_thread.scala\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/isabelle_thread.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/isabelle_thread.scala\<close>.
 -}
 
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Isabelle.Standard_Thread (
+module Isabelle.Isabelle_Thread (
   ThreadId, Result,
   find_id,
   properties, change_properties,
@@ -1912,7 +1912,7 @@ import qualified System.IO as IO
 import Isabelle.Library
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
-import qualified Isabelle.Standard_Thread as Standard_Thread
+import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
 
 
 {- server address -}
@@ -1953,7 +1953,7 @@ server publish handle =
     loop :: Socket -> ByteString -> IO ()
     loop server_socket password = forever $ do
       (connection, _) <- Socket.accept server_socket
-      Standard_Thread.fork_finally
+      Isabelle_Thread.fork_finally
         (do
           line <- Byte_Message.read_line connection
           when (line == Just password) $ handle connection)

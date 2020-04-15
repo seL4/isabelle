@@ -10,6 +10,7 @@ package isabelle
 import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
   OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
@@ -21,7 +22,7 @@ object SSH
 
   object Target
   {
-    val User_Host = "^([^@]+)@(.+)$".r
+    val User_Host: Regex = "^([^@]+)@(.+)$".r
 
     def parse(s: String): (String, String) =
       s match {
@@ -76,17 +77,19 @@ object SSH
     jsch.setKnownHosts(File.platform_path(known_hosts))
 
     val identity_files =
-      space_explode(':', options.string("ssh_identity_files")).map(Path.explode(_))
+      space_explode(':', options.string("ssh_identity_files")).map(Path.explode)
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 
     new Context(options, jsch)
   }
 
-  def open_session(options: Options, host: String, user: String = "", port: Int = 0,
+  def open_session(options: Options,
+      host: String, user: String = "", port: Int = 0, actual_host: String = "",
       proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
       permissive: Boolean = false): Session =
-    init_context(options).open_session(host = host, user = user, port = port,
+    init_context(options).open_session(
+      host = host, user = user, port = port, actual_host = actual_host,
       proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
       permissive = permissive)
 
@@ -120,16 +123,18 @@ object SSH
         proper_string(nominal_user) getOrElse user)
     }
 
-    def open_session(host: String, user: String = "", port: Int = 0,
+    def open_session(
+      host: String, user: String = "", port: Int = 0, actual_host: String = "",
       proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
       permissive: Boolean = false): Session =
     {
-      if (proxy_host == "") connect_session(host = host, user = user, port = port)
+      val connect_host = proper_string(actual_host) getOrElse host
+      if (proxy_host == "") connect_session(host = connect_host, user = user, port = port)
       else {
         val proxy = connect_session(host = proxy_host, port = proxy_port, user = proxy_user)
 
         val fw =
-          try { proxy.port_forwarding(remote_host = host, remote_port = make_port(port)) }
+          try { proxy.port_forwarding(remote_host = connect_host, remote_port = make_port(port)) }
           catch { case exn: Throwable => proxy.close; throw exn }
 
         try {
@@ -232,7 +237,7 @@ object SSH
 
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
-        while (!channel.isClosed) Thread.sleep(exec_wait_delay.ms)
+        while (!channel.isClosed) exec_wait_delay.sleep
         channel.getExitStatus
       }
 
@@ -271,7 +276,7 @@ object SSH
             if (line_buffer.size > 0) line_flush()
             finished = true
           }
-          else Thread.sleep(exec_wait_delay.ms)
+          else exec_wait_delay.sleep
         }
 
         result.toList
@@ -316,9 +321,6 @@ object SSH
 
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
-
-    override def prefix: String =
-      user_prefix(session.getUserName) + host + port_suffix(session.getPort) + ":"
 
     override def toString: String =
       user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
@@ -430,12 +432,12 @@ object SSH
     def read_file(path: Path, local_path: Path): Unit =
       sftp.get(remote_path(path), File.platform_path(local_path))
     def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
-    def read(path: Path): String = using(open_input(path))(File.read_stream(_))
+    def read(path: Path): String = using(open_input(path))(File.read_stream)
 
     def write_file(path: Path, local_path: Path): Unit =
       sftp.put(File.platform_path(local_path), remote_path(path))
     def write_bytes(path: Path, bytes: Bytes): Unit =
-      using(open_output(path))(bytes.write_stream(_))
+      using(open_output(path))(bytes.write_stream)
     def write(path: Path, text: String): Unit =
       using(open_output(path))(stream => Bytes(text).write_stream(stream))
 
@@ -480,7 +482,6 @@ object SSH
   trait System
   {
     def hg_url: String = ""
-    def prefix: String = ""
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)

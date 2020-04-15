@@ -187,7 +187,7 @@ proof -
     have "dist x y \<le> 2 * Max {dist (x (from_nat n)) (y (from_nat n))|n. n \<le> N} + (1/2)^N"
       by (rule dist_fun_le_dist_first_terms)
     also have "... \<le> 2 * f + e / 8"
-      apply (rule add_mono) using ** \<open>2^N > 8/e\<close> by(auto simp add: algebra_simps field_split_simps)
+      apply (rule add_mono) using ** \<open>2^N > 8/e\<close> by(auto simp add: field_split_simps)
     also have "... \<le> e/2 + e/8"
       unfolding f_def by auto
     also have "... < e"
@@ -331,7 +331,7 @@ proof
       also have "... < (1/2)^k * min e 1"
         using C \<open>m \<ge> N\<close> \<open>n \<ge> N\<close> by auto
       finally have "min (dist (u m i) (u n i)) 1 < min e 1"
-        by (auto simp add: algebra_simps field_split_simps)
+        by (auto simp add: field_split_simps)
       then show "dist (u m i) (u n i) < e" by auto
     qed
     then show "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (u m i) (u n i) < e"
@@ -371,7 +371,7 @@ proof
         using dist_fun_le_dist_first_terms by auto
       also have "... \<le> 2 * e/4 + e/4"
         apply (rule add_mono)
-        using ** \<open>2^N > 4/e\<close> less_imp_le by (auto simp add: algebra_simps field_split_simps)
+        using ** \<open>2^N > 4/e\<close> less_imp_le by (auto simp add: field_split_simps)
       also have "... < e" by auto
       finally show ?thesis by simp
     qed

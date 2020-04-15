@@ -50,6 +50,9 @@ Usage: isabelle console [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
 
+      val sessions_structure = Sessions.load_structure(options, dirs = dirs)
+      val store = Sessions.store(options)
+
       // build logic
       if (!no_build && !raw_ml_system) {
         val progress = new Console_Progress()
@@ -62,23 +65,20 @@ Usage: isabelle console [OPTIONS]
 
       // process loop
       val process =
-        ML_Process(options, logic = logic, args = List("-i"), dirs = dirs, redirect = true,
+        ML_Process(options, sessions_structure, store,
+          logic = logic, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
           raw_ml_system = raw_ml_system,
-          store = Some(Sessions.store(options)),
           session_base =
             if (raw_ml_system) None
             else Some(Sessions.base_info(
               options, logic, dirs = dirs, include_sessions = include_sessions).check_base))
 
-      val tty_loop = new TTY_Loop(process.stdin, process.stdout, Some(process.interrupt _))
-      val process_result = Future.thread[Int]("process_result") {
+      POSIX_Interrupt.handler { process.interrupt } {
+        new TTY_Loop(process.stdin, process.stdout).join
         val rc = process.join
-        tty_loop.cancel  // FIXME does not quite work, cannot interrupt blocking read on System.in
-        rc
+        if (rc != 0) sys.exit(rc)
       }
-      tty_loop.join
-      process_result.join
     }
   }
 }

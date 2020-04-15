@@ -98,8 +98,7 @@ object Isabelle_Tool
   /* internal tools */
 
   private lazy val internal_tools: List[Isabelle_Tool] =
-    Isabelle_System.init_classes[Isabelle_Scala_Tools]("ISABELLE_SCALA_TOOLS")
-      .flatMap(_.tools.toList)
+    Isabelle_System.services.collect { case c: Isabelle_Scala_Tools => c.tools.toList }.flatten
 
   private def list_internal(): List[(String, String)] =
     for (tool <- internal_tools.toList)
@@ -108,7 +107,7 @@ object Isabelle_Tool
   private def find_internal(name: String): Option[List[String] => Unit] =
     internal_tools.collectFirst({
       case tool if tool.name == name =>
-        args => Command_Line.tool0 { tool.body(args) }
+        args => Command_Line.tool { tool.body(args) }
       })
 
 
@@ -116,7 +115,7 @@ object Isabelle_Tool
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       args.toList match {
         case Nil | List("-?") =>
           val tool_descriptions =
@@ -140,7 +139,7 @@ Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
 
 sealed case class Isabelle_Tool(name: String, description: String, body: List[String] => Unit)
 
-class Isabelle_Scala_Tools(val tools: Isabelle_Tool*)
+class Isabelle_Scala_Tools(val tools: Isabelle_Tool*) extends Isabelle_System.Service
 
 class Tools extends Isabelle_Scala_Tools(
   Build.isabelle_tool,

@@ -55,7 +55,7 @@ object Document_Status
         runs = runs)
     }
 
-    val empty = make(Iterator.empty)
+    val empty: Command_Status = make(Iterator.empty)
 
     def merge(status_iterator: Iterator[Command_Status]): Command_Status =
       if (status_iterator.hasNext) {

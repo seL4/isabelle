@@ -30,7 +30,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
-  override def detach_operation = pretty_text_area.detach_operation
+  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
 
   /* query operation */
@@ -50,7 +50,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val sledgehammer =
-    new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status _,
+    new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status,
       (snapshot, results, body) =>
         pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
@@ -58,7 +58,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   /* resize */
 
   private val delay_resize =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

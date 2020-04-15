@@ -191,7 +191,7 @@ class Pretty_Text_Area(
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search")
       {
         private val input_delay =
-          GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+          Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) {
             search_action(this)
           }
         getDocument.addDocumentListener(new DocumentListener {

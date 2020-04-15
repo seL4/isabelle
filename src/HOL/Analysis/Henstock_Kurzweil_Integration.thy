@@ -1526,7 +1526,7 @@ proof -
     apply (rule sum.cong)
     using assms
     apply simp
-    apply (metis abs_of_nonneg assms(1) content_pos_le division_ofD(4))
+    apply (metis abs_of_nonneg content_pos_le)
     done
   have e: "0 \<le> e"
     using assms(2) norm_ge_zero order_trans by blast

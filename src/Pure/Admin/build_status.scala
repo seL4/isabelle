@@ -49,7 +49,7 @@ object Build_Status
   /* build status */
 
   def build_status(options: Options,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     verbose: Boolean = false,
@@ -200,7 +200,7 @@ object Build_Status
   }
 
   def read_data(options: Options,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
@@ -362,7 +362,7 @@ object Build_Status
   /* present data */
 
   def present_data(data: Data,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     target_dir: Path = default_target_dir,
     image_size: (Int, Int) = default_image_size)
   {

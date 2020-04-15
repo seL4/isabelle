@@ -224,7 +224,7 @@ object Headless
           }
           else result
 
-        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory(_))
+        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory)
 
         (load_theories,
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
@@ -244,7 +244,7 @@ object Headless
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
-      progress: Progress = No_Progress): Use_Theories_Result =
+      progress: Progress = new Progress): Use_Theories_Result =
     {
       val dependencies =
       {
@@ -304,12 +304,12 @@ object Headless
       val consumer =
       {
         val delay_nodes_status =
-          Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
+          Delay.first(nodes_status_delay max Time.zero) {
             progress.nodes_status(use_theories_state.value.nodes_status)
           }
 
         val delay_commit_clean =
-          Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
+          Delay.first(commit_cleanup_delay max Time.zero) {
             val clean_theories = use_theories_state.change_result(_.clean_theories)
             if (clean_theories.nonEmpty) {
               progress.echo("Removing " + clean_theories.length + " theories ...")
@@ -350,7 +350,7 @@ object Headless
                     (theory_progress, st.update(nodes_status1))
                   })
 
-              theory_progress.foreach(progress.theory(_))
+              theory_progress.foreach(progress.theory)
 
               check_state()
 
@@ -396,21 +396,21 @@ object Headless
 
   object Resources
   {
-    def apply(base_info: Sessions.Base_Info, log: Logger = No_Logger): Resources =
-      new Resources(base_info, log = log)
+    def apply(options: Options, base_info: Sessions.Base_Info, log: Logger = No_Logger): Resources =
+      new Resources(options, base_info, log = log)
 
     def make(
       options: Options,
       session_name: String,
       session_dirs: List[Path] = Nil,
       include_sessions: List[String] = Nil,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       log: Logger = No_Logger): Resources =
     {
       val base_info =
         Sessions.base_info(options, session_name, dirs = session_dirs,
           include_sessions = include_sessions, progress = progress)
-      apply(base_info, log = log)
+      apply(options, base_info, log = log)
     }
 
     final class Theory private[Headless](
@@ -496,7 +496,7 @@ object Headless
       lazy val theory_graph: Document.Node.Name.Graph[Unit] =
         Document.Node.Name.make_graph(
           for ((name, theory) <- theories.toList)
-          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_))))
+          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt)))
 
       def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
 
@@ -542,7 +542,7 @@ object Headless
         : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) =
       {
         val all_nodes = theory_graph.topological_order
-        val purge = nodes.getOrElse(all_nodes).filterNot(is_required(_)).toSet
+        val purge = nodes.getOrElse(all_nodes).filterNot(is_required).toSet
 
         val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
         val (retained, purged) = all_nodes.partition(retain)
@@ -554,6 +554,7 @@ object Headless
   }
 
   class Resources private[Headless](
+      val options: Options,
       val session_base_info: Sessions.Base_Info,
       log: Logger = No_Logger)
     extends isabelle.Resources(
@@ -561,37 +562,20 @@ object Headless
   {
     resources =>
 
-    def options: Options = session_base_info.options
+    val store: Sessions.Store = Sessions.store(options)
 
 
     /* session */
 
-    def start_session(print_mode: List[String] = Nil, progress: Progress = No_Progress): Session =
+    def start_session(print_mode: List[String] = Nil, progress: Progress = new Progress): Session =
     {
       val session = new Session(session_base_info.session, options, resources)
 
-      val session_error = Future.promise[String]
-      var session_phase: Session.Consumer[Session.Phase] = null
-      session_phase =
-        Session.Consumer(getClass.getName) {
-          case Session.Ready =>
-            session.phase_changed -= session_phase
-            session_error.fulfill("")
-          case Session.Terminated(result) if !result.ok =>
-            session.phase_changed -= session_phase
-            session_error.fulfill("Session start failed: return code " + result.rc)
-          case _ =>
-        }
-      session.phase_changed += session_phase
-
       progress.echo("Starting session " + session_base_info.session + " ...")
-      Isabelle_Process.start(session, options,
-        logic = session_base_info.session, dirs = session_base_info.dirs, modes = print_mode)
+      Isabelle_Process(session, options, session_base_info.sessions_structure, store,
+        logic = session_base_info.session, modes = print_mode).await_startup
 
-      session_error.join match {
-        case "" => session
-        case msg => session.stop(); error(msg)
-      }
+      session
     }
 
 

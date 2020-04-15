@@ -83,7 +83,7 @@ fun protocol_message props body =
         let
           val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
           val _ = YXML.write_body path body;
-        in Protocol_Message.inline (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
+        in Protocol_Message.marker (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
       else raise Output.Protocol_Message props
   | [] => raise Output.Protocol_Message props);
 

@@ -51,14 +51,17 @@ object Protocol_Handlers
     def init(name: String): State =
     {
       val new_handler =
-        try { Some(Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]) }
+        try {
+          Some(Class.forName(name).getDeclaredConstructor().newInstance()
+            .asInstanceOf[Session.Protocol_Handler])
+        }
         catch { case exn: Throwable => bad_handler(exn, name); None }
       new_handler match { case Some(handler) => init(handler) case None => this }
     }
 
     def invoke(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
-        case Markup.Function(a) if functions.isDefinedAt(a) =>
+        case (Markup.FUNCTION, a) :: _ if functions.isDefinedAt(a) =>
           try { functions(a)(msg) }
           catch {
             case exn: Throwable =>

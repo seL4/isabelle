@@ -123,9 +123,9 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     (Map.empty[Key, Long] /: xs)(reach(0))
   }
   def node_height(count: Key => Long): Map[Key, Long] =
-    reachable_length(count, imm_preds(_), maximals)
+    reachable_length(count, imm_preds, maximals)
   def node_depth(count: Key => Long): Map[Key, Long] =
-    reachable_length(count, imm_succs(_), minimals)
+    reachable_length(count, imm_succs, minimals)
 
   /*reachable nodes with size limit*/
   def reachable_limit(
@@ -138,7 +138,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     {
       val (n, rs) = res
       if (rs.contains(x)) res
-      else ((n + count(x), rs + x) /: next(x))(reach _)
+      else ((n + count(x), rs + x) /: next(x))(reach)
     }
 
     @tailrec def reachs(size: Long, rs: Keys, rest: List[Key]): Keys =

@@ -6,6 +6,8 @@ Generic pretty printing module.
 
 package isabelle
 
+import scala.annotation.tailrec
+
 
 object Pretty
 {
@@ -69,7 +71,7 @@ object Pretty
   {
     val indent1 = force_nat(indent)
 
-    def body_length(prts: List[Tree], len: Double): Double =
+    @tailrec def body_length(prts: List[Tree], len: Double): Double =
     {
       val (line, rest) =
         Library.take_prefix[Tree]({ case Break(true, _, _) => false case _ => true }, prts)
@@ -104,7 +106,7 @@ object Pretty
 
   private def force_break(tree: Tree): Tree =
     tree match { case Break(false, wd, ind) => Break(true, wd, ind) case _ => tree }
-  private def force_all(trees: List[Tree]): List[Tree] = trees.map(force_break(_))
+  private def force_all(trees: List[Tree]): List[Tree] = trees.map(force_break)
 
   private def force_next(trees: List[Tree]): List[Tree] =
     trees match {
@@ -113,8 +115,8 @@ object Pretty
       case t :: ts => t :: force_next(ts)
     }
 
-  val default_margin = 76.0
-  val default_breakgain = default_margin / 20
+  val default_margin: Double = 76.0
+  val default_breakgain: Double = default_margin / 20
 
   def formatted(input: XML.Body,
     margin: Double = default_margin,

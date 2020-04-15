@@ -166,7 +166,7 @@ proof -
     (if y = f x then y * indicator (f -` {y} \<inter> space M) x else 0))"
     by (auto intro!: sum.cong)
   also have "... =  f x *  indicator (f -` {f x} \<inter> space M) x"
-    using assms by (auto dest: simple_functionD simp: sum.delta)
+    using assms by (auto dest: simple_functionD)
   also have "... = f x" using x by (auto simp: indicator_def)
   finally show ?thesis by auto
 qed
@@ -327,10 +327,10 @@ proof -
     { fix d :: nat
       have "\<lfloor>2^d::real\<rfloor> * \<lfloor>2^m * enn2real (min (of_nat m) (u x))\<rfloor> \<le>
         \<lfloor>2^d * (2^m * enn2real (min (of_nat m) (u x)))\<rfloor>"
-        by (rule le_mult_floor) (auto simp: enn2real_nonneg)
+        by (rule le_mult_floor) (auto)
       also have "\<dots> \<le> \<lfloor>2^d * (2^m * enn2real (min (of_nat d + of_nat m) (u x)))\<rfloor>"
         by (intro floor_mono mult_mono enn2real_mono min.mono)
-           (auto simp: enn2real_nonneg min_less_iff_disj of_nat_less_top)
+           (auto simp: min_less_iff_disj of_nat_less_top)
       finally have "f m x \<le> f (m + d) x"
         unfolding f_def
         by (auto simp: field_simps power_add * simp del: of_int_mult) }
@@ -348,7 +348,7 @@ proof -
       by (cases "u x" rule: ennreal_cases)
          (auto split: split_min intro!: floor_mono)
     then have "f i ` space M \<subseteq> (\<lambda>n. real_of_int n / 2^i) ` {0 .. of_nat i * 2^i}"
-      unfolding floor_of_int by (auto simp: f_def enn2real_nonneg intro!: imageI)
+      unfolding floor_of_int by (auto simp: f_def intro!: imageI)
     then show "finite (f i ` space M)"
       by (rule finite_subset) auto
     show "f i \<in> borel_measurable M"
@@ -680,7 +680,7 @@ lemma simple_integral_sum[simp]:
 proof cases
   assume "finite P"
   from this assms show ?thesis
-    by induct (auto simp: simple_function_sum simple_integral_add sum_nonneg)
+    by induct (auto)
 qed auto
 
 lemma simple_integral_mult[simp]:
@@ -1090,8 +1090,7 @@ lemma nn_integral_indicator[simp]: "A \<in> sets M \<Longrightarrow> (\<integral
   by (subst nn_integral_eq_simple_integral) (auto simp: simple_integral_indicator)
 
 lemma nn_integral_cmult_indicator: "A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. c * indicator A x \<partial>M) = c * emeasure M A"
-  by (subst nn_integral_eq_simple_integral)
-     (auto simp: simple_function_indicator simple_integral_indicator)
+  by (subst nn_integral_eq_simple_integral) (auto)
 
 lemma nn_integral_indicator':
   assumes [measurable]: "A \<inter> space M \<in> sets M"
@@ -1120,7 +1119,7 @@ lemma nn_integral_set_ennreal:
 lemma nn_integral_indicator_singleton'[simp]:
   assumes [measurable]: "{y} \<in> sets M"
   shows "(\<integral>\<^sup>+x. ennreal (f x * indicator {y} x) \<partial>M) = f y * emeasure M {y}"
-  by (subst nn_integral_set_ennreal[symmetric]) (simp add: nn_integral_indicator_singleton)
+  by (subst nn_integral_set_ennreal[symmetric]) (simp)
 
 lemma nn_integral_add:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<integral>\<^sup>+ x. f x + g x \<partial>M) = integral\<^sup>N M f + integral\<^sup>N M g"

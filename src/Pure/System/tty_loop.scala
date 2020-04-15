@@ -10,13 +10,14 @@ package isabelle
 import java.io.{IOException, Writer, Reader, InputStreamReader, BufferedReader}
 
 
-class TTY_Loop(writer: Writer, reader: Reader,
-  writer_lock: AnyRef = new Object,
-  interrupt: Option[() => Unit] = None)
+class TTY_Loop(
+  writer: Writer,
+  reader: Reader,
+  writer_lock: AnyRef = new Object)
 {
-  private val console_output = Future.thread[Unit]("console_output") {
+  private val console_output = Future.thread[Unit]("console_output", uninterruptible = true) {
     try {
-      var result = new StringBuilder(100)
+      val result = new StringBuilder(100)
       var finished = false
       while (!finished) {
         var c = -1
@@ -40,32 +41,25 @@ class TTY_Loop(writer: Writer, reader: Reader,
     catch { case e: IOException => case Exn.Interrupt() => }
   }
 
-  private val console_input = Future.thread[Unit]("console_input") {
+  private val console_input = Future.thread[Unit]("console_input", uninterruptible = true) {
     val console_reader = new BufferedReader(new InputStreamReader(System.in))
-    def body
-    {
-      try {
-        var finished = false
-        while (!finished) {
-          console_reader.readLine() match {
-            case null =>
-              writer.close()
-              finished = true
-            case line =>
-              writer_lock.synchronized {
-                writer.write(line)
-                writer.write("\n")
-                writer.flush()
-              }
-          }
+    try {
+      var finished = false
+      while (!finished) {
+        console_reader.readLine() match {
+          case null =>
+            writer.close()
+            finished = true
+          case line =>
+            writer_lock.synchronized {
+              writer.write(line)
+              writer.write("\n")
+              writer.flush()
+            }
         }
       }
-      catch { case e: IOException => case Exn.Interrupt() => }
     }
-    interrupt match {
-      case None => body
-      case Some(int) => POSIX_Interrupt.handler { int() } { body }
-    }
+    catch { case e: IOException => case Exn.Interrupt() => }
   }
 
   def join { console_output.join; console_input.join }

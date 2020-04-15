@@ -84,13 +84,13 @@ object File_Watcher
 
     /* changed directory entries */
 
-    private val delay_changed = Standard_Thread.delay_last(delay)
+    private val delay_changed = Delay.last(delay)
     {
       val changed = state.change_result(st => (st.changed, st.copy(changed = Set.empty)))
       handle(changed)
     }
 
-    private val watcher_thread = Standard_Thread.fork("File_Watcher", daemon = true)
+    private val watcher_thread = Isabelle_Thread.fork(name = "file_watcher", daemon = true)
     {
       try {
         while (true) {

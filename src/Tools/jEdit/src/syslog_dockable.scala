@@ -21,7 +21,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val syslog = new TextArea()
 
-  private def syslog_delay = GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay"))
+  private def syslog_delay = Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true)
   {
     val text = PIDE.session.syslog_content()
     if (text != syslog.text) syslog.text = text

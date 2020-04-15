@@ -624,7 +624,7 @@ proof -
         then show "connected (- closure (inside (?\<Theta>1 \<union> ?\<Theta>)))"
           by (metis Compl_Un outside_inside co_out1c closure_Un_frontier)
         have if2: "- (inside (?\<Theta>2 \<union> ?\<Theta>) \<union> frontier (inside (?\<Theta>2 \<union> ?\<Theta>))) = - ?\<Theta>2 \<inter> - ?\<Theta> \<inter> - inside (?\<Theta>2 \<union> ?\<Theta>)"
-          by (metis (no_types, lifting) Int_commute Jordan_inside_outside c c2 compl_sup path_image_join path_image_reversepath pathfinish_join pathfinish_reversepath pathstart_join pathstart_reversepath sp closure_Un_frontier fr_out(2))
+          by (metis (no_types, lifting) Int_commute Jordan_inside_outside c c2 compl_sup path_image_join path_image_reversepath pathfinish_join pathfinish_reversepath pathstart_join pathstart_reversepath sp(3) closure_Un_frontier fr_out(2))
         then show "connected (- closure (inside (?\<Theta>2 \<union> ?\<Theta>)))"
           by (metis Compl_Un outside_inside co_out2c closure_Un_frontier)
         have "connected(?\<Theta>)"

@@ -32,24 +32,22 @@ object Profiling_Report
   val isabelle_tool =
     Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files", args =>
     {
-      Command_Line.tool0 {
-        val getopts =
-          Getopts("""
+      val getopts =
+        Getopts("""
 Usage: isabelle profiling_report [LOGS ...]
 
   Report Poly/ML profiling output from log files (potentially compressed).
 """)
-        val log_names = getopts(args)
-        for (name <- log_names) {
-          val log_file = Build_Log.Log_File(Path.explode(name))
-          val results =
-            for ((count, fun) <- profiling_report(log_file))
-              yield
-                String.format(Locale.ROOT, "%14d %s",
-                  count.asInstanceOf[AnyRef], fun.asInstanceOf[AnyRef])
-          if (results.nonEmpty)
-            Output.writeln(cat_lines((log_file.name + ":") :: results))
-        }
+      val log_names = getopts(args)
+      for (name <- log_names) {
+        val log_file = Build_Log.Log_File(Path.explode(name))
+        val results =
+          for ((count, fun) <- profiling_report(log_file))
+            yield
+              String.format(Locale.ROOT, "%14d %s",
+                count.asInstanceOf[AnyRef], fun.asInstanceOf[AnyRef])
+        if (results.nonEmpty)
+          Output.writeln(cat_lines((log_file.name + ":") :: results))
       }
     })
 }

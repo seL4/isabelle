@@ -159,15 +159,15 @@ class Rich_Text_Area(
 
   private val highlight_area =
     new Active_Area[Color](
-      (rendering: JEdit_Rendering) => rendering.highlight _, None)
+      (rendering: JEdit_Rendering) => rendering.highlight, None)
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
-      (rendering: JEdit_Rendering) => rendering.hyperlink _, Some(Cursor.HAND_CURSOR))
+      (rendering: JEdit_Rendering) => rendering.hyperlink, Some(Cursor.HAND_CURSOR))
 
   private val active_area =
     new Active_Area[XML.Elem](
-      (rendering: JEdit_Rendering) => rendering.active _, Some(Cursor.DEFAULT_CURSOR))
+      (rendering: JEdit_Rendering) => rendering.active, Some(Cursor.DEFAULT_CURSOR))
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
@@ -292,7 +292,7 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         val fm = text_area.getPainter.getFontMetrics
 
-        for (i <- 0 until physical_lines.length) {
+        for (i <- physical_lines.indices) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
@@ -479,7 +479,7 @@ class Rich_Text_Area(
           ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
         }
 
-        for (i <- 0 until physical_lines.length) {
+        for (i <- physical_lines.indices) {
           val line = physical_lines(i)
           if (line != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
@@ -525,7 +525,7 @@ class Rich_Text_Area(
     {
       robust_rendering { rendering =>
         val search_pattern = get_search_pattern()
-        for (i <- 0 until physical_lines.length) {
+        for (i <- physical_lines.indices) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 

@@ -62,12 +62,12 @@ object Linux
   def check_reboot_required(): Unit =
     if (reboot_required()) error("Reboot required")
 
-  def package_update(progress: Progress = No_Progress): Unit =
+  def package_update(progress: Progress = new Progress): Unit =
     progress.bash(
       """apt-get update -y && apt-get upgrade -y && apt autoremove -y""",
       echo = true).check
 
-  def package_install(packages: List[String], progress: Progress = No_Progress): Unit =
+  def package_install(packages: List[String], progress: Progress = new Progress): Unit =
     progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
 
   def package_installed(name: String): Boolean =

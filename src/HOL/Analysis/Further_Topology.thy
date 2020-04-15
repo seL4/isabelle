@@ -239,14 +239,14 @@ proof -
   obtain c where homhc: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) h (\<lambda>x. c)"
     apply (rule_tac c="-d" in that)
     apply (rule homotopic_with_eq)
-       apply (rule homotopic_compose_continuous_left [OF hom_hd conT0 sub0T])
+       apply (rule homotopic_with_compose_continuous_left [OF hom_hd conT0 sub0T])
     using d apply (auto simp: h_def)
     done
   show ?thesis
     apply (rule_tac x=c in exI)
     apply (rule homotopic_with_trans [OF _ homhc])
     apply (rule homotopic_with_eq)
-       apply (rule homotopic_compose_continuous_left [OF homfg conT0 sub0T])
+       apply (rule homotopic_with_compose_continuous_left [OF homfg conT0 sub0T])
       apply (auto simp: h_def)
     done
 qed
@@ -3682,7 +3682,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
       qed
       show "disjoint \<V>"
         apply (clarsimp simp add: \<V>_def pairwise_def disjnt_def add.commute [of _ "x*y" for x y]
-                        image_add_ball ball_eq_ball_iff)
+                        ball_eq_ball_iff)
         apply (rule disjoint_ballI)
         apply (auto simp: dist_norm neq_iff)
         by (metis norm_minus_commute xy)+
@@ -4221,7 +4221,7 @@ next
       using fim him by force
   qed auto
   then have "homotopic_with_canon (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
-    by (rule homotopic_compose_continuous_left [OF _ contk kim])
+    by (rule homotopic_with_compose_continuous_left [OF _ contk kim])
   then have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
     apply (rule homotopic_with_eq, auto)
     by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)
@@ -5321,7 +5321,7 @@ lemma connected_frontier_component_complement:
   assumes "connected S" and C: "C \<in> components(- S)" shows "connected(frontier C)"
   apply (rule connected_frontier_simple)
   using C in_components_connected apply blast
-  by (metis Compl_eq_Diff_UNIV connected_UNIV assms top_greatest component_complement_connected)
+  by (metis assms component_complement_connected)
 
 lemma connected_frontier_disjoint:
   fixes S :: "'a :: euclidean_space set"

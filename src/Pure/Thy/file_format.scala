@@ -12,12 +12,12 @@ object File_Format
   sealed case class Theory_Context(name: Document.Node.Name, content: String)
 
 
-  /* environment */
+  /* registry */
 
-  def environment(): Environment =
-    new Environment(Isabelle_System.init_classes[File_Format]("ISABELLE_FILE_FORMATS"))
+  lazy val registry: Registry =
+    new Registry(Isabelle_System.services.collect { case c: File_Format => c })
 
-  final class Environment private [File_Format](file_formats: List[File_Format])
+  final class Registry private [File_Format](file_formats: List[File_Format])
   {
     override def toString: String = file_formats.mkString("File_Format.Environment(", ",", ")")
 
@@ -53,10 +53,10 @@ object File_Format
   object No_Agent extends Agent
 }
 
-trait File_Format
+trait File_Format extends Isabelle_System.Service
 {
   def format_name: String
-  override def toString = format_name
+  override def toString: String = "File_Format(" + format_name + ")"
 
   def file_ext: String
   def detect(name: String): Boolean = name.endsWith("." + file_ext)

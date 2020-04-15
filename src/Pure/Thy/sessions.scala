@@ -116,7 +116,7 @@ object Sessions
   }
 
   def deps(sessions_structure: Structure,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
       list_files: Boolean = false,
@@ -143,21 +143,19 @@ object Sessions
 
     val doc_names = Doc.doc_names()
 
+    val bootstrap =
+      Sessions.Base.bootstrap(
+        sessions_structure.session_directories,
+        sessions_structure.global_theories)
+
     val session_bases =
-      (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
+      (Map("" -> bootstrap) /: sessions_structure.imports_topological_order)({
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
           val info = sessions_structure(session_name)
           try {
-            val parent_base: Sessions.Base =
-              info.parent match {
-                case None =>
-                  Base.bootstrap(
-                    sessions_structure.session_directories,
-                    sessions_structure.global_theories)
-                case Some(parent) => session_bases(parent)
-              }
+            val parent_base = session_bases(info.parent.getOrElse(""))
 
             val imports_base: Sessions.Base =
             {
@@ -235,7 +233,7 @@ object Sessions
                 (Graph_Display.empty_graph /: required_subgraph.topological_order)(
                   { case (g, session) =>
                       val a = session_node(session)
-                      val bs = required_subgraph.imm_preds(session).toList.map(session_node(_))
+                      val bs = required_subgraph.imm_preds(session).toList.map(session_node)
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
               (graph0 /: dependencies.entries)(
@@ -271,7 +269,7 @@ object Sessions
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
                 } yield (path1, name)).toList
-              val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).toSet.toList.sorted
+              val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).distinct.sorted
 
               val errs1 =
                 for { (path1, name) <- bad }
@@ -336,8 +334,6 @@ object Sessions
   /* base info */
 
   sealed case class Base_Info(
-    options: Options,
-    dirs: List[Path],
     session: String,
     sessions_structure: Structure,
     errors: List[String],
@@ -349,7 +345,7 @@ object Sessions
 
   def base_info(options: Options,
     session: String,
-    progress: Progress = No_Progress,
+    progress: Progress = new Progress,
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
@@ -371,7 +367,7 @@ object Sessions
           deps.get(ancestor.get) match {
             case Some(ancestor_base)
             if !selected_sessions.imports_requirements(List(ancestor.get)).contains(session) =>
-              ancestor_base.loaded_theories.defined(_)
+              ancestor_base.loaded_theories.defined _
             case _ =>
               error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
           }
@@ -420,7 +416,7 @@ object Sessions
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(options, dirs, session1, full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(session1, full_sessions1, deps1.errors, deps1(session1), infos1)
   }
 
 
@@ -654,7 +650,7 @@ object Sessions
 
     def check_sessions(names: List[String])
     {
-      val bad_sessions = SortedSet(names.filterNot(defined(_)): _*).toList
+      val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
       if (bad_sessions.nonEmpty)
         error("Undefined session(s): " + commas_quote(bad_sessions))
     }
@@ -712,7 +708,7 @@ object Sessions
     def selection_deps(
       options: Options,
       selection: Selection,
-      progress: Progress = No_Progress,
+      progress: Progress = new Progress,
       loading_sessions: Boolean = false,
       inlined_files: Boolean = false,
       verbose: Boolean = false): Deps =
@@ -746,8 +742,8 @@ object Sessions
 
   /* parser */
 
-  val ROOT = Path.explode("ROOT")
-  val ROOTS = Path.explode("ROOTS")
+  val ROOT: Path = Path.explode("ROOT")
+  val ROOTS: Path = Path.explode("ROOTS")
 
   private val CHAPTER = "chapter"
   private val SESSION = "session"
@@ -761,7 +757,7 @@ object Sessions
   private val DOCUMENT_FILES = "document_files"
   private val EXPORT_FILES = "export_files"
 
-  val root_syntax =
+  val root_syntax: Outer_Syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       GLOBAL + IN +
       (CHAPTER, Keyword.THY_DECL) +
@@ -897,7 +893,7 @@ object Sessions
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
+    val default_dirs = Isabelle_System.components().filter(is_session_dir)
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }
@@ -1075,7 +1071,7 @@ object Sessions
       input_dirs.map(_ + heap(name)).find(_.is_file)
 
     def find_heap_digest(name: String): Option[String] =
-      find_heap(name).flatMap(read_heap_digest(_))
+      find_heap(name).flatMap(read_heap_digest)
 
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
@@ -1107,7 +1103,7 @@ object Sessions
         if (output || has_session_info(db, name)) Some(db) else { db.close; None }
       }
       else if (output) Some(SQLite.open_database(output_database(name)))
-      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database(_))
+      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database)
     }
 
     def open_database(name: String, output: Boolean = false): SQL.Database =

@@ -760,7 +760,7 @@ fun syntax_generic scan src context =
     val old_reports = maps reports_of_value src;
     val args1 = map init_assignable (args_of_src src);
     fun reported_text () =
-      if Context_Position.is_visible_generic context then
+      if Context_Position.reports_enabled_generic context then
         let val new_reports = maps (reports_of_value o closure) args1 in
           if old_reports <> new_reports then
             map (fn (p, m) => Position.reported_text p m "") new_reports

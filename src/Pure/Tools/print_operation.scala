@@ -38,6 +38,6 @@ object Print_Operation
       true
     }
 
-    val functions = List(Markup.PRINT_OPERATIONS -> put _)
+    val functions = List(Markup.PRINT_OPERATIONS -> put)
   }
 }

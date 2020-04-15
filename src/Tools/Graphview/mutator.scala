@@ -173,6 +173,6 @@ trait Mutator
 
 trait Filter extends Mutator
 {
-  def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph) = filter(graph)
+  def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph = filter(graph)
   def filter(graph: Graph_Display.Graph): Graph_Display.Graph
 }

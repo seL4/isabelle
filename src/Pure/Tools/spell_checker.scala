@@ -66,8 +66,8 @@ object Spell_Checker
 
   class Dictionary private[Spell_Checker](val path: Path)
   {
-    val lang = path.drop_ext.file_name
-    val user_path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
+    val lang: String = path.drop_ext.file_name
+    val user_path: Path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
     override def toString: String = lang
   }
 
@@ -141,9 +141,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
         permanent_updates
 
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
-    val factory_cons = factory_class.getConstructor()
-    factory_cons.setAccessible(true)
-    val factory = factory_cons.newInstance()
+    val factory_constructor = factory_class.getConstructor()
+    factory_constructor.setAccessible(true)
+    val factory = factory_constructor.newInstance()
 
     val add = Untyped.method(factory_class, "add", classOf[String])
 

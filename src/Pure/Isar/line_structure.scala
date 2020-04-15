@@ -9,7 +9,7 @@ package isabelle
 
 object Line_Structure
 {
-  val init = Line_Structure()
+  val init: Line_Structure = Line_Structure()
 }
 
 sealed case class Line_Structure(

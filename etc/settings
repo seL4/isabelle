@@ -20,10 +20,10 @@ ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -nowarn -target:jvm-1.8 -Xmax-classfile
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
-isabelle_scala_tools 'isabelle.Tools'
-[ -d "$ISABELLE_HOME/Admin" ] && isabelle_scala_tools 'isabelle.Admin_Tools'
+isabelle_scala_service 'isabelle.Tools'
+[ -d "$ISABELLE_HOME/Admin" ] && isabelle_scala_service 'isabelle.Admin_Tools'
 
-isabelle_file_format 'isabelle.Bibtex$File_Format'
+isabelle_scala_service 'isabelle.Bibtex$File_Format'
 
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"

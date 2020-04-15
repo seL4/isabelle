@@ -4,6 +4,27 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** System ***
+
+* The command-line tool "isabelle console" now supports interrupts
+properly (on Linux and macOS).
+
+* The Isabelle/Scala "Progress" interface changed slightly and
+"No_Progress" has been discontinued. INCOMPATIBILITY, use "new Progress"
+instead.
+
+* General support for Isabelle/Scala system services, configured via the
+shell function "isabelle_scala_service" in etc/settings (e.g. of an
+Isabelle component); see implementations of class
+Isabelle_System.Service in Isabelle/Scala. This supersedes former
+"isabelle_scala_tools" and "isabelle_file_format": minor
+INCOMPATIBILITY.
+
+
+
 New in Isabelle2020 (April 2020)
 --------------------------------
 

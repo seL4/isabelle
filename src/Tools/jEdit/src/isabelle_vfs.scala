@@ -77,7 +77,7 @@ class Isabelle_VFS(prefix: String,
     else {
       val files = _listFiles(vfs_session, parent, component)
       if (files == null) null
-      else files.find(_.getPath == url) getOrElse null
+      else files.find(_.getPath == url).orNull
     }
   }
 }

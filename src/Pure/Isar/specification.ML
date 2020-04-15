@@ -323,7 +323,7 @@ val abbreviation_cmd = gen_abbrev read_spec_open;
 fun gen_alias decl check (b, arg) lthy =
   let
     val (c, reports) = check {proper = true, strict = false} lthy arg;
-    val _ = Position.reports reports;
+    val _ = Context_Position.reports lthy reports;
   in decl b c lthy end;
 
 val alias =

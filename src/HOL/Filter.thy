@@ -300,20 +300,15 @@ lemma eventually_inf:
   "eventually P (inf F F') \<longleftrightarrow>
    (\<exists>Q R. eventually Q F \<and> eventually R F' \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
   unfolding inf_filter_def
-  apply (rule eventually_Abs_filter, rule is_filter.intro)
-  apply (fast intro: eventually_True)
-  apply clarify
-  apply (intro exI conjI)
-  apply (erule (1) eventually_conj)
-  apply (erule (1) eventually_conj)
-  apply simp
-  apply auto
+  apply (rule eventually_Abs_filter [OF is_filter.intro])
+  apply (blast intro: eventually_True)
+   apply (force elim!: eventually_conj)+
   done
 
 lemma eventually_Sup:
   "eventually P (Sup S) \<longleftrightarrow> (\<forall>F\<in>S. eventually P F)"
   unfolding Sup_filter_def
-  apply (rule eventually_Abs_filter, rule is_filter.intro)
+  apply (rule eventually_Abs_filter [OF is_filter.intro])
   apply (auto intro: eventually_conj elim!: eventually_rev_mp)
   done
 
@@ -557,8 +552,7 @@ definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightar
 lemma eventually_filtermap:
   "eventually P (filtermap f F) = eventually (\<lambda>x. P (f x)) F"
   unfolding filtermap_def
-  apply (rule eventually_Abs_filter)
-  apply (rule is_filter.intro)
+  apply (rule eventually_Abs_filter [OF is_filter.intro])
   apply (auto elim!: eventually_rev_mp)
   done
 
@@ -746,10 +740,7 @@ lemma principal_le_iff[iff]: "principal A \<le> principal B \<longleftrightarrow
 
 lemma le_principal: "F \<le> principal A \<longleftrightarrow> eventually (\<lambda>x. x \<in> A) F"
   unfolding le_filter_def eventually_principal
-  apply safe
-  apply (erule_tac x="\<lambda>x. x \<in> A" in allE)
-  apply (auto elim: eventually_mono)
-  done
+  by (force elim: eventually_mono)
 
 lemma principal_inject[iff]: "principal A = principal B \<longleftrightarrow> A = B"
   unfolding eq_iff by simp
@@ -1172,11 +1163,7 @@ qed (intro prod_filter_mono)
 
 lemma eventually_prod_same: "eventually P (F \<times>\<^sub>F F) \<longleftrightarrow>
     (\<exists>Q. eventually Q F \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y)))"
-  unfolding eventually_prod_filter
-  apply safe
-  apply (rule_tac x="inf Pf Pg" in exI)
-  apply (auto simp: inf_fun_def intro!: eventually_conj)
-  done
+  unfolding eventually_prod_filter by (blast intro!: eventually_conj)
 
 lemma eventually_prod_sequentially:
   "eventually P (sequentially \<times>\<^sub>F sequentially) \<longleftrightarrow> (\<exists>N. \<forall>m \<ge> N. \<forall>n \<ge> N. P (n, m))"
@@ -1227,13 +1214,15 @@ lemma prod_filter_INF2: "J \<noteq> {} \<Longrightarrow> A \<times>\<^sub>F (\<S
   using prod_filter_INF[of "{A}" J "\<lambda>x. x" B] by simp
 
 lemma prod_filtermap1: "prod_filter (filtermap f F) G = filtermap (apfst f) (prod_filter F G)"
-  apply(clarsimp simp add: filter_eq_iff eventually_filtermap eventually_prod_filter; safe)
+  unfolding filter_eq_iff eventually_filtermap eventually_prod_filter
+  apply safe
   subgoal by auto
   subgoal for P Q R by(rule exI[where x="\<lambda>y. \<exists>x. y = f x \<and> Q x"])(auto intro: eventually_mono)
   done
 
 lemma prod_filtermap2: "prod_filter F (filtermap g G) = filtermap (apsnd g) (prod_filter F G)"
-  apply(clarsimp simp add: filter_eq_iff eventually_filtermap eventually_prod_filter; safe)
+  unfolding filter_eq_iff eventually_filtermap eventually_prod_filter
+  apply safe
   subgoal by auto
   subgoal for P Q R  by(auto intro: exI[where x="\<lambda>y. \<exists>x. y = g x \<and> R x"] eventually_mono)
   done
@@ -1291,10 +1280,12 @@ lemma filterlim_mono_eventually:
   assumes "filterlim f F G" and ord: "F \<le> F'" "G' \<le> G"
   assumes eq: "eventually (\<lambda>x. f x = f' x) G'"
   shows "filterlim f' F' G'"
-  apply (rule filterlim_cong[OF refl refl eq, THEN iffD1])
-  apply (rule filterlim_mono[OF _ ord])
-  apply fact
-  done
+proof -
+  have "filterlim f F' G'"
+    by (simp add: filterlim_mono[OF _ ord] assms)
+  then show ?thesis
+    by (rule filterlim_cong[OF refl refl eq, THEN iffD1])
+qed
 
 lemma filtermap_mono_strong: "inj f \<Longrightarrow> filtermap f F \<le> filtermap f G \<longleftrightarrow> F \<le> G"
   apply (safe intro!: filtermap_mono)
@@ -1458,8 +1449,7 @@ proof (auto simp add: filterlim_at_bot[of f F])
   assume "\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F"
   hence "eventually (\<lambda>x. f x \<le> Z') F" by auto
   thus "eventually (\<lambda>x. f x < Z) F"
-    apply (rule eventually_mono)
-    using 1 by auto
+    by (rule eventually_mono) (use 1 in auto)
   next
     fix Z :: 'b
     show "\<forall>Z. eventually (\<lambda>x. f x < Z) F \<Longrightarrow> eventually (\<lambda>x. f x \<le> Z) F"

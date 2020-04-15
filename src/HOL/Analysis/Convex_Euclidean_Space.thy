@@ -346,7 +346,7 @@ lemma interior_atLeastAtMost_real [simp]: "interior {a..b} = {a<..<b :: real}"
 proof-
   have "{a..b} = {a..} \<inter> {..b}" by auto
   also have "interior \<dots> = {a<..} \<inter> {..<b}"
-    by (simp add: interior_real_atLeast interior_real_atMost)
+    by (simp)
   also have "\<dots> = {a<..<b}" by auto
   finally show ?thesis .
 qed

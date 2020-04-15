@@ -742,7 +742,7 @@ proof -
       show "continuous_on UNIV (g \<circ> (\<theta> n))" for n :: nat
         unfolding \<theta>_def
         apply (intro continuous_on_compose2 [OF contg] continuous_intros conth)
-        apply (auto simp: aibi * mem_box less_max_iff_disj min_less_iff_disj algebra_simps field_split_simps)
+        apply (auto simp: aibi * mem_box less_max_iff_disj min_less_iff_disj field_split_simps)
         done
       show "(\<lambda>n. (g \<circ> \<theta> n) x) \<longlonglongrightarrow> g (f x)"
         if "x \<notin> N" for x

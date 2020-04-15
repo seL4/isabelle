@@ -23,6 +23,7 @@ object Symbol
 
   /* spaces */
 
+  val space_char = ' '
   val space = " "
 
   private val static_spaces = space * 4000
@@ -36,6 +37,8 @@ object Symbol
 
 
   /* ASCII characters */
+
+  def is_ascii_printable(c: Char): Boolean = space_char <= c && c <= '~'
 
   def is_ascii_letter(c: Char): Boolean = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
 
@@ -113,8 +116,8 @@ object Symbol
     {
       private val matcher = new Matcher(text)
       private var i = 0
-      def hasNext = i < text.length
-      def next =
+      def hasNext: Boolean = i < text.length
+      def next: Symbol =
       {
         val n = matcher(i, text.length)
         val s =
@@ -135,10 +138,10 @@ object Symbol
   def length(text: CharSequence): Int = iterator(text).length
 
   def trim_blanks(text: CharSequence): String =
-    Library.trim(is_blank(_), explode(text)).mkString
+    Library.trim(is_blank, explode(text)).mkString
 
   def all_blank(str: String): Boolean =
-    iterator(str).forall(is_blank(_))
+    iterator(str).forall(is_blank)
 
   def trim_blank_lines(text: String): String =
     cat_lines(split_lines(text).dropWhile(all_blank).reverse.dropWhile(all_blank).reverse)
@@ -191,7 +194,7 @@ object Symbol
       if (i < 0) sym
       else index(i).chr + sym - index(i).sym
     }
-    def decode(symbol_range: Range): Text.Range = symbol_range.map(decode(_))
+    def decode(symbol_range: Range): Text.Range = symbol_range.map(decode)
 
     override def hashCode: Int = hash
     override def equals(that: Any): Boolean =
@@ -448,7 +451,7 @@ object Symbol
 
     /* classification */
 
-    val letters = recode_set(
+    val letters: Set[String] = recode_set(
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
       "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
@@ -481,12 +484,12 @@ object Symbol
       "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
       "\\<Psi>", "\\<Omega>")
 
-    val blanks = recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n")
+    val blanks: Set[String] = recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n")
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
 
-    val symbolic = recode_set((for { (sym, _) <- symbols; if raw_symbolic(sym) } yield sym): _*)
+    val symbolic: Set[String] = recode_set((for {(sym, _) <- symbols; if raw_symbolic(sym)} yield sym): _*)
 
 
     /* misc symbols */
@@ -654,4 +657,23 @@ object Symbol
   def esub_decoded: Symbol = symbols.esub_decoded
   def bsup_decoded: Symbol = symbols.bsup_decoded
   def esup_decoded: Symbol = symbols.esup_decoded
+
+
+  /* metric */
+
+  def is_printable(sym: Symbol): Boolean =
+    if (is_ascii(sym)) is_ascii_printable(sym(0))
+    else !is_control(sym)
+
+  object Metric extends Pretty.Metric
+  {
+    val unit = 1.0
+    def apply(str: String): Double =
+      (for (s <- iterator(str)) yield {
+        val sym = encode(s)
+        if (sym.startsWith("\\<long") || sym.startsWith("\\<Long")) 2
+        else if (is_printable(sym)) 1
+        else 0
+      }).sum
+  }
 }

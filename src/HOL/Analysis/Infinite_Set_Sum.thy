@@ -154,7 +154,7 @@ lemma abs_summable_on_altdef: "f abs_summable_on A \<longleftrightarrow> set_int
 lemma abs_summable_on_altdef':
   "A \<subseteq> B \<Longrightarrow> f abs_summable_on A \<longleftrightarrow> set_integrable (count_space B) A f"
   unfolding abs_summable_on_def set_integrable_def
-  by (metis (no_types) Pow_iff abs_summable_on_def inf.orderE integrable_restrict_space restrict_count_space_subset set_integrable_def sets_count_space space_count_space)
+  by (metis (no_types) Pow_iff abs_summable_on_def inf.orderE integrable_restrict_space restrict_count_space_subset sets_count_space space_count_space)
 
 lemma abs_summable_on_norm_iff [simp]:
   "(\<lambda>x. norm (f x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on A"

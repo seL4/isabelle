@@ -140,7 +140,7 @@ object Library
     else s
 
   def trim_split_lines(s: String): List[String] =
-    split_lines(trim_line(s)).map(trim_line(_))
+    split_lines(trim_line(s)).map(trim_line)
 
   def isolate_substring(s: String): String = new String(s.toCharArray)
 
@@ -204,7 +204,7 @@ object Library
   def is_regex_meta(c: Char): Boolean = """()[]{}\^$|?*+.<>-=!""".contains(c)
 
   def escape_regex(s: String): String =
-    if (s.exists(is_regex_meta(_))) {
+    if (s.exists(is_regex_meta)) {
       (for (c <- s.iterator)
        yield { if (is_regex_meta(c)) "\\" + c.toString else c.toString }).mkString
     }

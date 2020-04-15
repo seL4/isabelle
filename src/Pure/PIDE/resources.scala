@@ -23,19 +23,17 @@ class Resources(
 
   /* file formats */
 
-  val file_formats: File_Format.Environment = File_Format.environment()
-
   def make_theory_name(name: Document.Node.Name): Option[Document.Node.Name] =
-    file_formats.get(name).flatMap(_.make_theory_name(resources, name))
+    File_Format.registry.get(name).flatMap(_.make_theory_name(resources, name))
 
   def make_theory_content(thy_name: Document.Node.Name): Option[String] =
-    file_formats.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
+    File_Format.registry.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
 
   def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] =
-    file_formats.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
+    File_Format.registry.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
 
   def is_hidden(name: Document.Node.Name): Boolean =
-    !name.is_theory || name.theory == Sessions.root_name || file_formats.is_theory(name)
+    !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
   def thy_path(path: Path): Path = path.ext("thy")
 
@@ -265,10 +263,10 @@ class Resources(
 
   def dependencies(
       thys: List[(Document.Node.Name, Position.T)],
-      progress: Progress = No_Progress): Dependencies[Unit] =
+      progress: Progress = new Progress): Dependencies[Unit] =
     Dependencies.empty[Unit].require_thys((), thys, progress = progress)
 
-  def session_dependencies(info: Sessions.Info, progress: Progress = No_Progress)
+  def session_dependencies(info: Sessions.Info, progress: Progress = new Progress)
     : Dependencies[Options] =
   {
     (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
@@ -303,7 +301,7 @@ class Resources(
     def require_thy(adjunct: A,
       thy: (Document.Node.Name, Position.T),
       initiators: List[Document.Node.Name] = Nil,
-      progress: Progress = No_Progress): Dependencies[A] =
+      progress: Progress = new Progress): Dependencies[A] =
     {
       val (name, pos) = thy
 
@@ -337,7 +335,7 @@ class Resources(
 
     def require_thys(adjunct: A,
         thys: List[(Document.Node.Name, Position.T)],
-        progress: Progress = No_Progress,
+        progress: Progress = new Progress,
         initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
       (this /: thys)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
 

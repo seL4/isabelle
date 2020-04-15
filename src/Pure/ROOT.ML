@@ -96,15 +96,16 @@ ML_file "PIDE/document_id.ML";
 ML_file "General/change_table.ML";
 ML_file "General/graph.ML";
 
+ML_file "System/options.ML";
+
 
 subsection "Fundamental structures";
 
 ML_file "name.ML";
 ML_file "term.ML";
 ML_file "context.ML";
-ML_file "context_position.ML";
-ML_file "System/options.ML";
 ML_file "config.ML";
+ML_file "context_position.ML";
 ML_file "soft_type_system.ML";
 
 
@@ -116,7 +117,7 @@ ML_file_no_debug "ML/exn_debugger.ML";
 ML_file "ML/ml_statistics.ML";
 
 ML_file "Concurrent/thread_data_virtual.ML";
-ML_file "Concurrent/standard_thread.ML";
+ML_file "Concurrent/isabelle_thread.ML";
 ML_file "Concurrent/single_assignment.ML";
 
 ML_file "Concurrent/par_exn.ML";
