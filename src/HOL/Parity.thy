@@ -152,6 +152,10 @@ proof
   then show False by simp
 qed
 
+lemma odd_numeral_BitM [simp]:
+  \<open>odd (numeral (Num.BitM w))\<close>
+  by (cases w) simp_all
+
 lemma even_power [simp]: "even (a ^ n) \<longleftrightarrow> even a \<and> n > 0"
   by (induct n) auto
 
