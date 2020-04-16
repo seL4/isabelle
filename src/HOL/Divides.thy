@@ -1130,6 +1130,14 @@ lemma divmod_BitM_2_eq [simp]:
   \<open>divmod (Num.BitM m) (Num.Bit0 Num.One) = (numeral m - 1, (1 :: int))\<close>
   by (cases m) simp_all
 
+lemma bit_numeral_Bit0_Suc_iff [simp]:
+  \<open>bit (numeral (Num.Bit0 m) :: int) (Suc n) \<longleftrightarrow> bit (numeral m :: int) n\<close>
+  by (simp add: bit_Suc)
+
+lemma bit_numeral_Bit1_Suc_iff [simp]:
+  \<open>bit (numeral (Num.Bit1 m) :: int) (Suc n) \<longleftrightarrow> bit (numeral m :: int) n\<close>
+  by (simp add: bit_Suc)
+
 lemma div_positive_int:
   "k div l > 0" if "k \<ge> l" and "l > 0" for k l :: int
   using that div_positive [of l k] by blast

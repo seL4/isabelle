@@ -938,6 +938,10 @@ lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
   by (simp add: bit_def even_mask_div_iff not_le)
 
+lemma bit_Numeral1_iff [simp]:
+  \<open>bit (numeral Num.One) n \<longleftrightarrow> n = 0\<close>
+  by (simp add: bit_rec)
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
