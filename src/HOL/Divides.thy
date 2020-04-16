@@ -889,9 +889,7 @@ qed
 text \<open>The division rewrite proper -- first, trivial results involving \<open>1\<close>\<close>
 
 lemma divmod_trivial [simp]:
-  "divmod Num.One Num.One = (numeral Num.One, 0)"
-  "divmod (Num.Bit0 m) Num.One = (numeral (Num.Bit0 m), 0)"
-  "divmod (Num.Bit1 m) Num.One = (numeral (Num.Bit1 m), 0)"
+  "divmod m Num.One = (numeral m, 0)"
   "divmod num.One (num.Bit0 n) = (0, Numeral1)"
   "divmod num.One (num.Bit1 n) = (0, Numeral1)"
   using divmod_divmod_step [of "Num.One"] by (simp_all add: divmod_def)
@@ -1127,6 +1125,10 @@ lemma one_mod_minus_numeral [simp]:
   using numeral_mod_minus_numeral [of Num.One n] by simp
 
 end
+
+lemma divmod_BitM_2_eq [simp]:
+  \<open>divmod (Num.BitM m) (Num.Bit0 Num.One) = (numeral m - 1, (1 :: int))\<close>
+  by (cases m) simp_all
 
 lemma div_positive_int:
   "k div l > 0" if "k \<ge> l" and "l > 0" for k l :: int

@@ -102,7 +102,7 @@ lemma bin_last_numeral_simps [simp]:
   "bin_last (numeral (Num.Bit1 w))"
   "\<not> bin_last (- numeral (Num.Bit0 w))"
   "bin_last (- numeral (Num.Bit1 w))"
-  by (simp_all add: bin_last_def zmod_zminus1_eq_if) (auto simp add: divmod_def)
+  by (simp_all add: bin_last_def zmod_zminus1_eq_if)
 
 lemma bin_rest_numeral_simps [simp]:
   "bin_rest 0 = 0"
@@ -113,7 +113,7 @@ lemma bin_rest_numeral_simps [simp]:
   "bin_rest (numeral (Num.Bit1 w)) = numeral w"
   "bin_rest (- numeral (Num.Bit0 w)) = - numeral w"
   "bin_rest (- numeral (Num.Bit1 w)) = - numeral (w + Num.One)"
-  by (simp_all add: bin_rest_def zdiv_zminus1_eq_if) (auto simp add: divmod_def)
+  by (simp_all add: bin_rest_def zdiv_zminus1_eq_if)
 
 lemma less_Bits: "v BIT b < w BIT c \<longleftrightarrow> v < w \<or> v \<le> w \<and> \<not> b \<and> c"
   by (auto simp: Bit_def)
