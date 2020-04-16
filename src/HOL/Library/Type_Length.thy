@@ -107,4 +107,14 @@ lemma length_not_greater_eq_2_iff [simp]:
   \<open>\<not> 2 \<le> LENGTH('a::len) \<longleftrightarrow> LENGTH('a) = 1\<close>
   by (auto simp add: not_le dest: less_2_cases)
 
+context linordered_idom
+begin
+
+lemma two_less_eq_exp_length [simp]:
+  \<open>2 \<le> 2 ^ LENGTH('b::len)\<close>
+  using mult_left_mono [of 1 \<open>2 ^ (LENGTH('b::len) - 1)\<close> 2]
+		  by (cases \<open>LENGTH('b::len)\<close>) simp_all
+
+end
+
 end

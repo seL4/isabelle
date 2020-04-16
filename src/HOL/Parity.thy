@@ -1218,6 +1218,10 @@ lemma take_bit_rec:
   \<open>take_bit n a = (if n = 0 then 0 else take_bit (n - 1) (a div 2) * 2 + of_bool (odd a))\<close>
   by (cases n) (simp_all add: take_bit_Suc)
 
+lemma take_bit_Suc_0 [simp]:
+  \<open>take_bit (Suc 0) a = a mod 2\<close>
+  by (simp add: take_bit_eq_mod)
+
 lemma take_bit_of_0 [simp]:
   "take_bit n 0 = 0"
   by (simp add: take_bit_eq_mod)
@@ -1535,6 +1539,24 @@ lemma take_bit_nonnegative [simp]:
   "take_bit n k \<ge> 0"
     for k :: int
   by (simp add: take_bit_eq_mod)
+
+lemma take_bit_minus_small_eq:
+  \<open>take_bit n (- k) = 2 ^ n - k\<close> if \<open>0 < k\<close> \<open>k \<le> 2 ^ n\<close> for k :: int
+proof -
+  define m where \<open>m = nat k\<close>
+  with that have \<open>k = int m\<close> and \<open>0 < m\<close> and \<open>m \<le> 2 ^ n\<close>
+    by simp_all
+  have \<open>(2 ^ n - m) mod 2 ^ n = 2 ^ n - m\<close>
+    using \<open>0 < m\<close> by simp
+  then have \<open>int ((2 ^ n - m) mod 2 ^ n) = int (2 ^ n - m)\<close>
+    by simp
+  then have \<open>(2 ^ n - int m) mod 2 ^ n = 2 ^ n - int m\<close>
+    using \<open>m \<le> 2 ^ n\<close> by (simp only: of_nat_mod of_nat_diff) simp
+  with \<open>k = int m\<close> have \<open>(2 ^ n - k) mod 2 ^ n = 2 ^ n - k\<close>
+    by simp
+  then show ?thesis
+    by (simp add: take_bit_eq_mod)
+qed
 
 lemma drop_bit_push_bit_int:
   \<open>drop_bit m (push_bit n k) = drop_bit (m - n) (push_bit (n - m) k)\<close> for k :: int
