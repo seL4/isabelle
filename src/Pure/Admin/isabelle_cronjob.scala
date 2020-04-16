@@ -338,7 +338,7 @@ object Isabelle_Cronjob
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
+        Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           options = "-m32 -M1x8 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
@@ -348,7 +348,7 @@ object Isabelle_Cronjob
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-        Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
+        Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
