@@ -543,28 +543,6 @@ subclass semiring_numeral ..
 lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
   by (induct n) (simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
-lemma numeral_unfold_funpow:
-  "numeral k = ((+) 1 ^^ numeral k) 0"
-  unfolding of_nat_def [symmetric] by simp
-
-end
-
-context
-  includes lifting_syntax
-begin
-
-lemma transfer_rule_numeral:
-  "((=) ===> R) numeral numeral"
-    if [transfer_rule]: "R 0 0" "R 1 1"
-      "(R ===> R ===> R) (+) (+)"
-    for R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
-proof -
-  have "((=) ===> R) (\<lambda>k. ((+) 1 ^^ numeral k) 0) (\<lambda>k. ((+) 1 ^^ numeral k) 0)"
-    by transfer_prover
-  then show ?thesis
-    by (simp flip: numeral_unfold_funpow [abs_def])
-qed
-
 end
 
 lemma nat_of_num_numeral [code_abbrev]: "nat_of_num = numeral"
@@ -1135,6 +1113,60 @@ lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
   by simp
 
 lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
+
+context semiring_numeral
+begin
+
+lemma numeral_add_unfold_funpow:
+  \<open>numeral k + a = ((+) 1 ^^ numeral k) a\<close>
+proof (rule sym, induction k arbitrary: a)
+  case One
+  then show ?case
+    by (simp add: numeral_One Num.numeral_One)
+next
+  case (Bit0 k)
+  then show ?case
+    by (simp add: numeral_Bit0 Num.numeral_Bit0 ac_simps funpow_add)
+next
+  case (Bit1 k)
+  then show ?case
+    by (simp add: numeral_Bit1 Num.numeral_Bit1 ac_simps funpow_add)
+qed
+
+end
+
+context semiring_1
+begin
+
+lemma numeral_unfold_funpow:
+  \<open>numeral k = ((+) 1 ^^ numeral k) 0\<close>
+  using numeral_add_unfold_funpow [of k 0] by simp
+
+end
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_numeral:
+  \<open>((=) ===> R) numeral numeral\<close>
+    if [transfer_rule]: \<open>R 0 0\<close> \<open>R 1 1\<close>
+      \<open>(R ===> R ===> R) (+) (+)\<close>
+    for R :: \<open>'a::{semiring_numeral,monoid_add} \<Rightarrow> 'b::{semiring_numeral,monoid_add} \<Rightarrow> bool\<close>
+proof -
+  have "((=) ===> R) (\<lambda>k. ((+) 1 ^^ numeral k) 0) (\<lambda>k. ((+) 1 ^^ numeral k) 0)"
+    by transfer_prover
+  moreover have \<open>numeral = (\<lambda>k. ((+) (1::'a) ^^ numeral k) 0)\<close>
+    using numeral_add_unfold_funpow [where ?'a = 'a, of _ 0]
+    by (simp add: fun_eq_iff)
+  moreover have \<open>numeral = (\<lambda>k. ((+) (1::'b) ^^ numeral k) 0)\<close>
+    using numeral_add_unfold_funpow [where ?'a = 'b, of _ 0]
+    by (simp add: fun_eq_iff)
+  ultimately show ?thesis
+    by simp
+qed
+
+end
 
 
 subsection \<open>Particular lemmas concerning \<^term>\<open>2\<close>\<close>

@@ -157,7 +157,7 @@ lemma [transfer_rule]:
   by transfer_prover
 
 lemma [transfer_rule]:
-  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len0 word \<Rightarrow> bool)) numeral numeral"
   by transfer_prover
 
 lemma [transfer_rule]:
