@@ -739,6 +739,17 @@ lemma mult_minus1 [simp]: "- 1 * z = - z"
 lemma mult_minus1_right [simp]: "z * - 1 = - z"
   by (simp add: numeral.simps)
 
+lemma minus_sub_one_diff_one [simp]:
+  \<open>- sub m One - 1 = - numeral m\<close>
+proof -
+  have \<open>sub m One + 1 = numeral m\<close>
+    by (simp flip: eq_diff_eq add: diff_numeral_special)
+  then have \<open>- (sub m One + 1) = - numeral m\<close>
+    by simp
+  then show ?thesis
+    by simp
+qed
+
 end
 
 
