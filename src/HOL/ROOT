@@ -32,6 +32,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     (*conflicting type class instantiations and dependent applications*)
     Finite_Lattice
     List_Lexorder
+    List_Lenlexorder
     Prefix_Order
     Product_Lexorder
     Product_Order

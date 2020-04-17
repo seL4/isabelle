@@ -6178,6 +6178,13 @@ lemma Cons_lenlex_iff:
   \<or> (m = n \<and> (ms,ns) \<in> lenlex r)"
   by (auto simp: lenlex_def)
 
+lemma lenlex_irreflexive: "(\<And>x. (x,x) \<notin> r) \<Longrightarrow> (xs,xs) \<notin> lenlex r"
+  by (induction xs) (auto simp add: Cons_lenlex_iff)
+
+lemma lenlex_trans:
+    "\<lbrakk>(x,y) \<in> lenlex r; (y,z) \<in> lenlex r; trans r\<rbrakk> \<Longrightarrow> (x,z) \<in> lenlex r"
+  by (meson lenlex_transI transD)
+
 lemma lenlex_length: "(ms, ns) \<in> lenlex r \<Longrightarrow> length ms \<le> length ns"
   by (auto simp: lenlex_def)
 
@@ -6316,15 +6323,27 @@ by(auto simp: trans_def intro:lexord_partial_trans)
 lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
 by (rule transI, drule lexord_trans, blast)
 
-lemma lexord_linear: "(\<forall>a b. (a,b) \<in> r \<or> a = b \<or> (b,a) \<in> r) \<Longrightarrow> (x,y) \<in> lexord r \<or> x = y \<or> (y,x) \<in> lexord r"
-proof (induction x arbitrary: y)
-  case Nil
-  then show ?case
-    by (metis lexord_Nil_left list.exhaust)
-next
-  case (Cons a x y) then show ?case
-    by (cases y) (force+)
+lemma total_lexord: "total r \<Longrightarrow> total (lexord r)"
+  unfolding total_on_def
+proof clarsimp
+  fix x y
+  assume "\<forall>x y. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r"
+    and "(x::'a list) \<noteq> y"
+    and "(y, x) \<notin> lexord r"
+  then
+  show "(x, y) \<in> lexord r"
+  proof (induction x arbitrary: y)
+    case Nil
+    then show ?case
+      by (metis lexord_Nil_left list.exhaust)
+  next
+    case (Cons a x y) then show ?case
+      by (cases y) (force+)
+  qed
 qed
+
+corollary lexord_linear: "(\<forall>a b. (a,b) \<in> r \<or> a = b \<or> (b,a) \<in> r) \<Longrightarrow> (x,y) \<in> lexord r \<or> x = y \<or> (y,x) \<in> lexord r"
+  using total_lexord by (metis UNIV_I total_on_def) 
 
 lemma lexord_irrefl:
   "irrefl R \<Longrightarrow> irrefl (lexord R)"

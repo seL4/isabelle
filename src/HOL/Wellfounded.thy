@@ -580,8 +580,8 @@ lemma trans_less_than [iff]: "trans less_than"
 lemma less_than_iff [iff]: "((x,y) \<in> less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
 
-lemma total_less_than: "total less_than"
-  using total_on_def by force
+lemma total_less_than: "total less_than" and total_on_less_than [simp]: "total_on A less_than"
+  using total_on_def by force+
 
 lemma wf_less: "wf {(x, y::nat). x < y}"
   by (rule Wellfounded.wellorder_class.wf)
