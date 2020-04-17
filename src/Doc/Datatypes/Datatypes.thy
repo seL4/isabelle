@@ -124,8 +124,8 @@ Bounded Natural Functors,'' explains how to use the @{command bnf} command
 to register arbitrary type constructors as BNFs.
 
 \item Section
-\ref{sec:deriving-destructors-and-theorems-for-free-constructors},
-``Deriving Destructors and Theorems for Free Constructors,'' explains how to
+\ref{sec:deriving-destructors-and-constructor-theorems},
+``Deriving Destructors and Constructor Theorems,'' explains how to
 use the command @{command free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by
 @{command datatype} and @{command codatatype}.
@@ -3229,8 +3229,8 @@ text \<open>
 \<close>
 
 
-section \<open>Deriving Destructors and Theorems for Free Constructors
-  \label{sec:deriving-destructors-and-theorems-for-free-constructors}\<close>
+section \<open>Deriving Destructors and Constructor Theorems
+  \label{sec:deriving-destructors-and-constructor-theorems}\<close>
 
 text \<open>
 The derivation of convenience theorems for types equipped with free constructors,
