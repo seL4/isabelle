@@ -1,18 +1,18 @@
-(*  Title:      HOL/Library/List_Lexorder.thy
-    Author:     Norbert Voelker
+(*  Title:      HOL/Library/List_Lenlexorder.thy
 *)
 
 section \<open>Lexicographic order on lists\<close>
 
-theory List_Lexorder
+theory List_Lenlexorder
 imports Main
 begin
+
 
 instantiation list :: (ord) ord
 begin
 
 definition
-  list_less_def: "xs < ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u, v). u < v}"
+  list_less_def: "xs < ys \<longleftrightarrow> (xs, ys) \<in> lenlex {(u, v). u < v}"
 
 definition
   list_le_def: "(xs :: _ list) \<le> ys \<longleftrightarrow> xs < ys \<or> xs = ys"
@@ -23,20 +23,19 @@ end
 
 instance list :: (order) order
 proof
-  let ?r = "{(u, v::'a). u < v}"
-  have tr: "trans ?r"
+  have tr: "trans {(u, v::'a). u < v}"
     using trans_def by fastforce
   have \<section>: False
-    if "(xs,ys) \<in> lexord ?r" "(ys,xs) \<in> lexord ?r" for xs ys :: "'a list"
+    if "(xs,ys) \<in> lenlex {(u, v). u < v}" "(ys,xs) \<in> lenlex {(u, v). u < v}" for xs ys :: "'a list"
   proof -
-    have "(xs,xs) \<in> lexord ?r"
-      using that transD [OF lexord_transI [OF tr]] by blast
+    have "(xs,xs) \<in> lenlex {(u, v). u < v}"
+      using that transD [OF lenlex_transI [OF tr]] by blast
     then show False
-      by (meson case_prodD lexord_irreflexive less_irrefl mem_Collect_eq)
+      by (meson case_prodD lenlex_irreflexive less_irrefl mem_Collect_eq)
   qed
   show "xs \<le> xs" for xs :: "'a list" by (simp add: list_le_def)
   show "xs \<le> zs" if "xs \<le> ys" and "ys \<le> zs" for xs ys zs :: "'a list"
-    using that transD [OF lexord_transI [OF tr]] by (auto simp add: list_le_def list_less_def)
+    using that transD [OF lenlex_transI [OF tr]] by (auto simp add: list_le_def list_less_def)
   show "xs = ys" if "xs \<le> ys" "ys \<le> xs" for xs ys :: "'a list"
     using \<section> that list_le_def list_less_def by blast
   show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" for xs ys :: "'a list"
@@ -46,8 +45,8 @@ qed
 instance list :: (linorder) linorder
 proof
   fix xs ys :: "'a list"
-  have "total (lexord {(u, v::'a). u < v})"
-    by (rule total_lexord) (auto simp: total_on_def)
+  have "total (lenlex {(u, v::'a). u < v})"
+    by (rule total_lenlex) (auto simp: total_on_def)
   then show "xs \<le> ys \<or> ys \<le> xs"
     by (auto simp add: total_on_def list_le_def list_less_def)
 qed
@@ -70,8 +69,9 @@ lemma not_less_Nil [simp]: "\<not> x < []"
 lemma Nil_less_Cons [simp]: "[] < a # x"
   by (simp add: list_less_def)
 
-lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> a < b \<or> a = b \<and> x < y"
-  by (simp add: list_less_def)
+lemma Cons_less_Cons: "a # x < b # y \<longleftrightarrow> length x < length y \<or> length x = length y \<and> (a < b \<or> a = b \<and> x < y)"
+  using lenlex_length
+  by (fastforce simp: list_less_def Cons_lenlex_iff)
 
 lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
   unfolding list_le_def by (cases x) auto
@@ -79,8 +79,8 @@ lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
 lemma Nil_le_Cons [simp]: "[] \<le> x"
   unfolding list_le_def by (cases x) auto
 
-lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
-  unfolding list_le_def by auto
+lemma Cons_le_Cons: "a # x \<le> b # y \<longleftrightarrow> length x < length y \<or> length x = length y \<and> (a < b \<or> a = b \<and> x \<le> y)"
+  by (auto simp: list_le_def Cons_less_Cons)
 
 instantiation list :: (order) order_bot
 begin
@@ -91,17 +91,5 @@ instance
   by standard (simp add: bot_list_def)
 
 end
-
-lemma less_list_code [code]:
-  "xs < ([]::'a::{equal, order} list) \<longleftrightarrow> False"
-  "[] < (x::'a::{equal, order}) # xs \<longleftrightarrow> True"
-  "(x::'a::{equal, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
-  by simp_all
-
-lemma less_eq_list_code [code]:
-  "x # xs \<le> ([]::'a::{equal, order} list) \<longleftrightarrow> False"
-  "[] \<le> (xs::'a::{equal, order} list) \<longleftrightarrow> True"
-  "(x::'a::{equal, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
-  by simp_all
 
 end
