@@ -5,7 +5,7 @@
 section \<open>Homotopy of Maps\<close>
 
 theory Homotopy
-  imports Path_Connected Continuum_Not_Denumerable Product_Topology Sketch_and_Explore
+  imports Path_Connected Continuum_Not_Denumerable Product_Topology
 begin
 
 definition\<^marker>\<open>tag important\<close> homotopic_with
