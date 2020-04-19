@@ -2913,7 +2913,7 @@ lemma cell_subdivision_lemma:
   assumes "finite \<F>"
       and "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> d"
-      and "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X \<and> (X \<inter> Y) face_of Y"
+      and "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and "finite I"
     shows "\<exists>\<G>. \<Union>\<G> = \<Union>\<F> \<and>
                  finite \<G> \<and>
@@ -2921,7 +2921,7 @@ lemma cell_subdivision_lemma:
                  (\<forall>C \<in> \<F>. \<forall>x \<in> C. \<exists>D. D \<in> \<G> \<and> x \<in> D \<and> D \<subseteq> C) \<and>
                  (\<forall>X \<in> \<G>. polytope X) \<and>
                  (\<forall>X \<in> \<G>. aff_dim X \<le> d) \<and>
-                 (\<forall>X \<in> \<G>. \<forall>Y \<in> \<G>. X \<inter> Y face_of X \<and> X \<inter> Y face_of Y) \<and>
+                 (\<forall>X \<in> \<G>. \<forall>Y \<in> \<G>. X \<inter> Y face_of X) \<and>
                  (\<forall>X \<in> \<G>. \<forall>x \<in> X. \<forall>y \<in> X. \<forall>a b.
                           (a,b) \<in> I \<longrightarrow> a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or>
                                         a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b)"
@@ -2937,7 +2937,7 @@ next
                    and sub2: "\<And>C x. C \<in> \<F> \<and> x \<in> C \<Longrightarrow> \<exists>D. D \<in> \<G> \<and> x \<in> D \<and> D \<subseteq> C"
                    and poly: "\<And>X. X \<in> \<G> \<Longrightarrow> polytope X"
                    and aff: "\<And>X. X \<in> \<G> \<Longrightarrow> aff_dim X \<le> d"
-                   and face: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+                   and face: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
                    and I: "\<And>X x y a b.  \<lbrakk>X \<in> \<G>; x \<in> X; y \<in> X; (a,b) \<in> I\<rbrakk> \<Longrightarrow>
                                     a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or> a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
     by (auto simp: that)
@@ -2960,7 +2960,7 @@ next
                           (a,b) \<in> insert ab I \<longrightarrow> a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or>
                                                   a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
       using \<open>ab = (a, b)\<close> I by fastforce
-    show "\<forall>X \<in> ?\<G>. \<forall>Y \<in> ?\<G>. X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+    show "\<forall>X \<in> ?\<G>. \<forall>Y \<in> ?\<G>. X \<inter> Y face_of X"
       by (auto simp: eqInt halfspace_Int_eq face_of_Int_Int face face_of_halfspace_le face_of_halfspace_ge)
     show "\<forall>C \<in> ?\<G>. \<exists>D. D \<in> \<F> \<and> C \<subseteq> D"
       using sub1 by force
@@ -2984,10 +2984,10 @@ proposition cell_complex_subdivision_exists:
   assumes "0 < e" "finite \<F>"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> d"
-      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
   obtains "\<F>'" where "finite \<F>'" "\<Union>\<F>' = \<Union>\<F>" "\<And>X. X \<in> \<F>' \<Longrightarrow> diameter X < e"
                 "\<And>X. X \<in> \<F>' \<Longrightarrow> polytope X" "\<And>X. X \<in> \<F>' \<Longrightarrow> aff_dim X \<le> d"
-                "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+                "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
                 "\<And>C. C \<in> \<F>' \<Longrightarrow> \<exists>D. D \<in> \<F> \<and> C \<subseteq> D"
                 "\<And>C x. C \<in> \<F> \<and> x \<in> C \<Longrightarrow> \<exists>D. D \<in> \<F>' \<and> x \<in> D \<and> D \<subseteq> C"
 proof -
@@ -3009,7 +3009,7 @@ proof -
   obtain \<F>' where eq: "\<Union>\<F>' = \<Union>\<F>" and "finite \<F>'"
               and poly: "\<And>X. X \<in> \<F>' \<Longrightarrow> polytope X"
               and aff: "\<And>X. X \<in> \<F>' \<Longrightarrow> aff_dim X \<le> d"
-              and face: "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+              and face: "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
               and I: "\<And>X x y a b.  \<lbrakk>X \<in> \<F>'; x \<in> X; y \<in> X; (a,b) \<in> I\<rbrakk> \<Longrightarrow>
                                      a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or> a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
               and sub1: "\<And>C. C \<in> \<F>' \<Longrightarrow> \<exists>D. D \<in> \<F> \<and> C \<subseteq> D"
@@ -3214,15 +3214,13 @@ definition\<^marker>\<open>tag important\<close> simplicial_complex where
         finite \<C> \<and>
         (\<forall>S \<in> \<C>. \<exists>n. n simplex S) \<and>
         (\<forall>F S. S \<in> \<C> \<and> F face_of S \<longrightarrow> F \<in> \<C>) \<and>
-        (\<forall>S S'. S \<in> \<C> \<and> S' \<in> \<C>
-                \<longrightarrow> (S \<inter> S') face_of S \<and> (S \<inter> S') face_of S')"
+        (\<forall>S S'. S \<in> \<C> \<and> S' \<in> \<C> \<longrightarrow> (S \<inter> S') face_of S)"
 
 definition\<^marker>\<open>tag important\<close> triangulation where
  "triangulation \<T> \<equiv>
         finite \<T> \<and>
         (\<forall>T \<in> \<T>. \<exists>n. n simplex T) \<and>
-        (\<forall>T T'. T \<in> \<T> \<and> T' \<in> \<T>
-                \<longrightarrow> (T \<inter> T') face_of T \<and> (T \<inter> T') face_of T')"
+        (\<forall>T T'. T \<in> \<T> \<and> T' \<in> \<T> \<longrightarrow> (T \<inter> T') face_of T)"
 
 
 subsection\<open>Refining a cell complex to a simplicial complex\<close>
@@ -3312,7 +3310,7 @@ lemma simplicial_subdivision_aux:
       and "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> of_nat n"
       and "\<And>C F. \<lbrakk>C \<in> \<M>; F face_of C\<rbrakk> \<Longrightarrow> F \<in> \<M>"
-      and "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      and "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
     shows "\<exists>\<T>. simplicial_complex \<T> \<and>
                 (\<forall>K \<in> \<T>. aff_dim K \<le> of_nat n) \<and>
                 \<Union>\<T> = \<Union>\<M> \<and>
@@ -3322,9 +3320,9 @@ lemma simplicial_subdivision_aux:
 proof (induction n arbitrary: \<M> rule: less_induct)
   case (less n)
   then have poly\<M>: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
-      and aff\<M>:    "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> of_nat n"
-      and face\<M>:   "\<And>C F. \<lbrakk>C \<in> \<M>; F face_of C\<rbrakk> \<Longrightarrow> F \<in> \<M>"
-      and intface\<M>: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+    and aff\<M>:    "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> of_nat n"
+    and face\<M>:   "\<And>C F. \<lbrakk>C \<in> \<M>; F face_of C\<rbrakk> \<Longrightarrow> F \<in> \<M>"
+    and intface\<M>: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
     by metis+
   show ?case
   proof (cases "n \<le> 1")
@@ -3339,22 +3337,22 @@ proof (induction n arbitrary: \<M> rule: less_induct)
     case False
     define \<S> where "\<S> \<equiv> {C \<in> \<M>. aff_dim C < n}"
     have "finite \<S>" "\<And>C. C \<in> \<S> \<Longrightarrow> polytope C" "\<And>C. C \<in> \<S> \<Longrightarrow> aff_dim C \<le> int (n - 1)"
-         "\<And>C F. \<lbrakk>C \<in> \<S>; F face_of C\<rbrakk> \<Longrightarrow> F \<in> \<S>"
-         "\<And>C1 C2. \<lbrakk>C1 \<in> \<S>; C2 \<in> \<S>\<rbrakk>  \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      "\<And>C F. \<lbrakk>C \<in> \<S>; F face_of C\<rbrakk> \<Longrightarrow> F \<in> \<S>"
+      "\<And>C1 C2. \<lbrakk>C1 \<in> \<S>; C2 \<in> \<S>\<rbrakk>  \<Longrightarrow> C1 \<inter> C2 face_of C1"
       using less.prems
-      apply (auto simp: \<S>_def)
+          apply (auto simp: \<S>_def)
       by (metis aff_dim_subset face_of_imp_subset less_le not_le)
     with less.IH [of "n-1" \<S>] False
     obtain \<U> where "simplicial_complex \<U>"
-           and aff_dim\<U>: "\<And>K. K \<in> \<U> \<Longrightarrow> aff_dim K \<le> int (n - 1)"
-           and        "\<Union>\<U> = \<Union>\<S>"
-           and fin\<U>:  "\<And>C. C \<in> \<S> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<U> \<and> C = \<Union>F"
-           and C\<U>:    "\<And>K. K \<in> \<U> \<Longrightarrow> \<exists>C. C \<in> \<S> \<and> K \<subseteq> C"
+      and aff_dim\<U>: "\<And>K. K \<in> \<U> \<Longrightarrow> aff_dim K \<le> int (n - 1)"
+      and        "\<Union>\<U> = \<Union>\<S>"
+      and fin\<U>:  "\<And>C. C \<in> \<S> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<U> \<and> C = \<Union>F"
+      and C\<U>:    "\<And>K. K \<in> \<U> \<Longrightarrow> \<exists>C. C \<in> \<S> \<and> K \<subseteq> C"
       by auto
     then have "finite \<U>"
-         and simpl\<U>: "\<And>S. S \<in> \<U> \<Longrightarrow> \<exists>n. n simplex S"
-         and face\<U>:  "\<And>F S. \<lbrakk>S \<in> \<U>; F face_of S\<rbrakk> \<Longrightarrow> F \<in> \<U>"
-         and faceI\<U>: "\<And>S S'. \<lbrakk>S \<in> \<U>; S' \<in> \<U>\<rbrakk> \<Longrightarrow> (S \<inter> S') face_of S \<and> (S \<inter> S') face_of S'"
+      and simpl\<U>: "\<And>S. S \<in> \<U> \<Longrightarrow> \<exists>n. n simplex S"
+      and face\<U>:  "\<And>F S. \<lbrakk>S \<in> \<U>; F face_of S\<rbrakk> \<Longrightarrow> F \<in> \<U>"
+      and faceI\<U>: "\<And>S S'. \<lbrakk>S \<in> \<U>; S' \<in> \<U>\<rbrakk> \<Longrightarrow> (S \<inter> S') face_of S"
       by (auto simp: simplicial_complex_def)
     define \<N> where "\<N> \<equiv> {C \<in> \<M>. aff_dim C = n}"
     have "finite \<N>"
@@ -3364,7 +3362,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
       and closed\<N>: "\<And>C. C \<in> \<N> \<Longrightarrow> closed C"
       by (auto simp: \<N>_def poly\<M> polytope_imp_convex polytope_imp_closed)
     have in_rel_interior: "(SOME z. z \<in> rel_interior C) \<in> rel_interior C" if "C \<in> \<N>" for C
-        using that poly\<M> polytope_imp_convex rel_interior_aff_dim some_in_eq by (fastforce simp: \<N>_def)
+      using that poly\<M> polytope_imp_convex rel_interior_aff_dim some_in_eq by (fastforce simp: \<N>_def)
     have *: "\<exists>T. \<not> affine_dependent T \<and> card T \<le> n \<and> aff_dim K < n \<and> K = convex hull T"
       if "K \<in> \<U>" for K
     proof -
@@ -3392,7 +3390,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
           by (simp add: \<open>closed C\<close> rel_frontier_def subset_iff)
         finally have "K \<subseteq> C" .
         have "L \<inter> C face_of C"
-          using \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>L \<in> \<S>\<close> intface\<M> by auto
+          using \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>L \<in> \<S>\<close> intface\<M> by (simp add: inf_commute)
         moreover have "L \<inter> C \<noteq> C"
           using \<open>C \<in> \<N>\<close> \<open>L \<in> \<S>\<close>
           apply (clarsimp simp: \<N>_def \<S>_def)
@@ -3480,192 +3478,185 @@ proof (induction n arbitrary: \<M> rule: less_induct)
           ultimately show ?thesis
             using that by auto
         qed
-        have "(S \<inter> S' face_of S) \<and> (S \<inter> S' face_of S')"
-          if "S \<in> \<U> \<union> ?\<T>" "S' \<in> \<U> \<union> ?\<T>" for S S'
+        have \<section>: "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+          if XY: "X \<in> \<U>" "Y \<in> ?\<T>" for X Y
         proof -
-          have symmy: "\<lbrakk>\<And>X Y. R X Y \<Longrightarrow> R Y X;
-                        \<And>X Y. \<lbrakk>X \<in> \<U>; Y \<in> \<U>\<rbrakk> \<Longrightarrow> R X Y;
-                        \<And>X Y. \<lbrakk>X \<in> \<U>; Y \<in> ?\<T>\<rbrakk> \<Longrightarrow> R X Y;
-                        \<And>X Y. \<lbrakk>X \<in> ?\<T>; Y \<in> ?\<T>\<rbrakk> \<Longrightarrow> R X Y\<rbrakk> \<Longrightarrow> R S S'" for R
-            using that by (metis (no_types, lifting) Un_iff)
-          show ?thesis
-          proof (rule symmy)
-            show "Y \<inter> X face_of Y \<and> Y \<inter> X face_of X"
-              if "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y" for X Y :: "'a set"
-              by (simp add: inf_commute that)
-          next
-            show "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
-              if "X \<in> \<U>" and "Y \<in> \<U>" for X Y
-              by (simp add: faceI\<U> that)
-          next
-            show "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
-              if XY: "X \<in> \<U>" "Y \<in> ?\<T>" for X Y
-            proof -
-              obtain C K
-                where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
-                and Y: "Y = convex hull insert (SOME z. z \<in> rel_interior C) K"
-                using XY by blast
-              have "convex C"
-                by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
-              have "K \<subseteq> C"
-                by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_iff)
-              let ?z = "(SOME z. z \<in> rel_interior C)"
-              have z: "?z \<in> rel_interior C"
-                using \<open>C \<in> \<N>\<close> in_rel_interior by blast
-              obtain D where "D \<in> \<S>" "X \<subseteq> D"
-                using C\<U> \<open>X \<in> \<U>\<close> by blast
-              have "D \<inter> rel_interior C = (C \<inter> D) \<inter> rel_interior C"
-                using rel_interior_subset by blast
-              also have "(C \<inter> D) \<inter> rel_interior C = {}"
-              proof (rule face_of_disjoint_rel_interior)
-                show "C \<inter> D face_of C"
-                  using \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<S>\<close> intface\<M> by blast
-                show "C \<inter> D \<noteq> C"
-                  by (metis (mono_tags, lifting) Int_lower2 \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<S>\<close> aff_dim_subset mem_Collect_eq not_le)
-              qed
-              finally have DC: "D \<inter> rel_interior C = {}" .
-              have eq: "X \<inter> convex hull (insert ?z K) = X \<inter> convex hull K"
-                apply (rule Int_convex_hull_insert_rel_exterior [OF \<open>convex C\<close> \<open>K \<subseteq> C\<close> z])
-                using DC by (meson \<open>X \<subseteq> D\<close> disjnt_def disjnt_subset1)
-              obtain I where I: "\<not> affine_dependent I"
-                         and Keq: "K = convex hull I" and [simp]: "convex hull K = K"
-                using "*" \<open>K \<in> \<U>\<close> by force
-              then have "?z \<notin> affine hull I"
-                using ahK_C_disjoint \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>K \<subseteq> rel_frontier C\<close> affine_hull_convex_hull z by blast
-              have "X \<inter> K face_of K"
-                by (simp add: \<open>K \<in> \<U>\<close> faceI\<U> \<open>X \<in> \<U>\<close>)
-              also have "... face_of convex hull insert ?z K"
-                by (metis I Keq \<open>?z \<notin> affine hull I\<close> aff_independent_finite convex_convex_hull face_of_convex_hull_insert face_of_refl hull_insert)
-              finally have "X \<inter> K face_of convex hull insert ?z K" .
-              then show ?thesis
-                using "*" \<open>K \<in> \<U>\<close> faceI\<U> that(1) by (fastforce simp add: Y eq)
-            qed
-          next
-            show "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
-              if XY: "X \<in> ?\<T>" "Y \<in> ?\<T>" for X Y
-            proof -
-              obtain C K D L
-                where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
+          obtain C K
+            where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
+              and Y: "Y = convex hull insert (SOME z. z \<in> rel_interior C) K"
+            using XY by blast
+          have "convex C"
+            by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
+          have "K \<subseteq> C"
+            by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_iff)
+          let ?z = "(SOME z. z \<in> rel_interior C)"
+          have z: "?z \<in> rel_interior C"
+            using \<open>C \<in> \<N>\<close> in_rel_interior by blast
+          obtain D where "D \<in> \<S>" "X \<subseteq> D"
+            using C\<U> \<open>X \<in> \<U>\<close> by blast
+          have "D \<inter> rel_interior C = (C \<inter> D) \<inter> rel_interior C"
+            using rel_interior_subset by blast
+          also have "(C \<inter> D) \<inter> rel_interior C = {}"
+          proof (rule face_of_disjoint_rel_interior)
+            show "C \<inter> D face_of C"
+              using \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<S>\<close> intface\<M> by blast
+            show "C \<inter> D \<noteq> C"
+              by (metis (mono_tags, lifting) Int_lower2 \<N>_def \<S>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<S>\<close> aff_dim_subset mem_Collect_eq not_le)
+          qed
+          finally have DC: "D \<inter> rel_interior C = {}" .
+          have eq: "X \<inter> convex hull (insert ?z K) = X \<inter> convex hull K"
+            apply (rule Int_convex_hull_insert_rel_exterior [OF \<open>convex C\<close> \<open>K \<subseteq> C\<close> z])
+            using DC by (meson \<open>X \<subseteq> D\<close> disjnt_def disjnt_subset1)
+          obtain I where I: "\<not> affine_dependent I"
+            and Keq: "K = convex hull I" and [simp]: "convex hull K = K"
+            using "*" \<open>K \<in> \<U>\<close> by force
+          then have "?z \<notin> affine hull I"
+            using ahK_C_disjoint \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>K \<subseteq> rel_frontier C\<close> affine_hull_convex_hull z by blast
+          have "X \<inter> K face_of K"
+            by (simp add: XY(1) \<open>K \<in> \<U>\<close> faceI\<U> inf_commute)
+          also have "... face_of convex hull insert ?z K"
+            by (metis I Keq \<open>?z \<notin> affine hull I\<close> aff_independent_finite convex_convex_hull face_of_convex_hull_insert face_of_refl hull_insert)
+          finally have "X \<inter> K face_of convex hull insert ?z K" .
+          then show ?thesis
+            by (simp add: XY(1) Y \<open>K \<in> \<U>\<close> eq faceI\<U>)
+        qed
+
+        show "S \<inter> S' face_of S"
+          if "S \<in> \<U> \<union> ?\<T> \<and> S' \<in> \<U> \<union> ?\<T>" for S S'
+          using that
+        proof (elim conjE UnE)
+          fix X Y
+          assume "X \<in> \<U>" and "Y \<in> \<U>"
+          then show "X \<inter> Y face_of X"
+            by (simp add: faceI\<U>)
+        next
+          fix X Y
+          assume XY: "X \<in> \<U>" "Y \<in> ?\<T>"
+          then show "X \<inter> Y face_of X" "Y \<inter> X face_of Y"
+            using \<section> [OF XY] by (auto simp: Int_commute)
+        next
+          fix X Y
+          assume XY: "X \<in> ?\<T>" "Y \<in> ?\<T>"
+          show "X \<inter> Y face_of X"
+          proof -
+            obtain C K D L
+              where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
                 and X: "X = convex hull insert (SOME z. z \<in> rel_interior C) K"
                 and "D \<in> \<N>" "L \<in> \<U>" "L \<subseteq> rel_frontier D"
                 and Y: "Y = convex hull insert (SOME z. z \<in> rel_interior D) L"
-                using XY by blast
-              let ?z = "(SOME z. z \<in> rel_interior C)"
-              have z: "?z \<in> rel_interior C"
-                using \<open>C \<in> \<N>\<close> in_rel_interior by blast
+              using XY by blast
+            let ?z = "(SOME z. z \<in> rel_interior C)"
+            have z: "?z \<in> rel_interior C"
+              using \<open>C \<in> \<N>\<close> in_rel_interior by blast
+            have "convex C"
+              by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
+            have "convex K"
+              using "*" \<open>K \<in> \<U>\<close> by blast
+            have "convex L"
+              by (meson \<open>L \<in> \<U>\<close> convex_simplex simpl\<U>)
+            show ?thesis
+            proof (cases "D=C")
+              case True
+              then have "L \<subseteq> rel_frontier C"
+                using \<open>L \<subseteq> rel_frontier D\<close> by auto
+              show ?thesis
+                apply (simp add: X Y True)
+                apply (simp add: convex_hull_insert_Int_eq [OF z] \<open>K \<subseteq> rel_frontier C\<close> \<open>L \<subseteq> rel_frontier C\<close> \<open>convex C\<close> \<open>convex K\<close> \<open>convex L\<close>)
+                using face_of_polytope_insert2
+                by (metis "*" IntI \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close>\<open>K \<subseteq> rel_frontier C\<close> \<open>L \<subseteq> rel_frontier C\<close> aff_independent_finite ahK_C_disjoint empty_iff faceI\<U> polytope_convex_hull z)
+            next
+              case False
+              have "convex D"
+                by (simp add: \<open>D \<in> \<N>\<close> convex\<N>)
+              have "K \<subseteq> C"
+                by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
+              have "L \<subseteq> D"
+                by (metis DiffE \<open>D \<in> \<N>\<close> \<open>L \<subseteq> rel_frontier D\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
+              let ?w = "(SOME w. w \<in> rel_interior D)"
+              have w: "?w \<in> rel_interior D"
+                using \<open>D \<in> \<N>\<close> in_rel_interior by blast
+              have "C \<inter> rel_interior D = (D \<inter> C) \<inter> rel_interior D"
+                using rel_interior_subset by blast
+              also have "(D \<inter> C) \<inter> rel_interior D = {}"
+              proof (rule face_of_disjoint_rel_interior)
+                show "D \<inter> C face_of D"
+                  using \<N>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<N>\<close> intface\<M> by blast
+                have "D \<in> \<M> \<and> aff_dim D = int n"
+                  using \<N>_def \<open>D \<in> \<N>\<close> by blast
+                moreover have "C \<in> \<M> \<and> aff_dim C = int n"
+                  using \<N>_def \<open>C \<in> \<N>\<close> by blast
+                ultimately show "D \<inter> C \<noteq> D"
+                  by (metis Int_commute False face_of_aff_dim_lt inf.idem inf_le1 intface\<M> not_le poly\<M> polytope_imp_convex)
+              qed
+              finally have CD: "C \<inter> (rel_interior D) = {}" .
+              have zKC: "(convex hull insert ?z K) \<subseteq> C"
+                by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed convex\<N> hull_minimal insert_subset rel_frontier_def rel_interior_subset subset_iff z)
+              have eq: "convex hull (insert ?z K) \<inter> convex hull (insert ?w L) =
+                          convex hull (insert ?z K) \<inter> convex hull L"
+                apply (rule Int_convex_hull_insert_rel_exterior [OF \<open>convex D\<close> \<open>L \<subseteq> D\<close> w])
+                using zKC CD apply (force simp: disjnt_def)
+                done
+              have ch_id: "convex hull K = K" "convex hull L = L"
+                using "*" \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> hull_same by auto
               have "convex C"
                 by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
-              have "convex K"
-                using "*" \<open>K \<in> \<U>\<close> by blast
-              have "convex L"
-                by (meson \<open>L \<in> \<U>\<close> convex_simplex simpl\<U>)
-              show ?thesis
-              proof (cases "D=C")
-                case True
-                then have "L \<subseteq> rel_frontier C"
-                  using \<open>L \<subseteq> rel_frontier D\<close> by auto
-                show ?thesis
-                  apply (simp add: X Y True)
-                  apply (simp add: convex_hull_insert_Int_eq [OF z] \<open>K \<subseteq> rel_frontier C\<close> \<open>L \<subseteq> rel_frontier C\<close> \<open>convex C\<close> \<open>convex K\<close> \<open>convex L\<close>)
-                  using face_of_polytope_insert2
-                  by (metis "*" IntI \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close>\<open>K \<subseteq> rel_frontier C\<close> \<open>L \<subseteq> rel_frontier C\<close> aff_independent_finite ahK_C_disjoint empty_iff faceI\<U> polytope_convex_hull z)
-              next
-                case False
-                have "convex D"
-                  by (simp add: \<open>D \<in> \<N>\<close> convex\<N>)
-                have "K \<subseteq> C"
-                  by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
-                have "L \<subseteq> D"
-                  by (metis DiffE \<open>D \<in> \<N>\<close> \<open>L \<subseteq> rel_frontier D\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
-                let ?w = "(SOME w. w \<in> rel_interior D)"
-                have w: "?w \<in> rel_interior D"
-                  using \<open>D \<in> \<N>\<close> in_rel_interior by blast
-                have "C \<inter> rel_interior D = (D \<inter> C) \<inter> rel_interior D"
-                  using rel_interior_subset by blast
-                also have "(D \<inter> C) \<inter> rel_interior D = {}"
+              have "convex hull (insert ?z K) \<inter> L = L \<inter> convex hull (insert ?z K)"
+                by blast
+              also have "... = convex hull K \<inter> L"
+              proof (subst Int_convex_hull_insert_rel_exterior [OF \<open>convex C\<close> \<open>K \<subseteq> C\<close> z])
+                have "(C \<inter> D) \<inter> rel_interior C = {}"
                 proof (rule face_of_disjoint_rel_interior)
-                  show "D \<inter> C face_of D"
+                  show "C \<inter> D face_of C"
                     using \<N>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<N>\<close> intface\<M> by blast
-                  have "D \<in> \<M> \<and> aff_dim D = int n"
-                    using \<N>_def \<open>D \<in> \<N>\<close> by blast
-                  moreover have "C \<in> \<M> \<and> aff_dim C = int n"
-                    using \<N>_def \<open>C \<in> \<N>\<close> by blast
-                  ultimately show "D \<inter> C \<noteq> D"
-                    by (metis False face_of_aff_dim_lt inf.idem inf_le1 intface\<M> not_le poly\<M> polytope_imp_convex)
+                  have "D \<in> \<M>" "aff_dim D = int n"
+                    using \<N>_def \<open>D \<in> \<N>\<close> by fastforce+
+                  moreover have "C \<in> \<M>" "aff_dim C = int n"
+                    using \<N>_def \<open>C \<in> \<N>\<close> by fastforce+
+                  ultimately have "aff_dim D + - 1 * aff_dim C \<le> 0"
+                    by fastforce
+                  then have "\<not> C face_of D"
+                    using False \<open>convex D\<close> face_of_aff_dim_lt by fastforce
+                  show "C \<inter> D \<noteq> C"
+                    by (metis inf_commute \<open>C \<in> \<M>\<close> \<open>D \<in> \<M>\<close> \<open>\<not> C face_of D\<close> intface\<M>)
                 qed
-                finally have CD: "C \<inter> (rel_interior D) = {}" .
-                have zKC: "(convex hull insert ?z K) \<subseteq> C"
-                  by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed convex\<N> hull_minimal insert_subset rel_frontier_def rel_interior_subset subset_iff z)
-                have eq: "convex hull (insert ?z K) \<inter> convex hull (insert ?w L) =
-                          convex hull (insert ?z K) \<inter> convex hull L"
-                  apply (rule Int_convex_hull_insert_rel_exterior [OF \<open>convex D\<close> \<open>L \<subseteq> D\<close> w])
-                  using zKC CD apply (force simp: disjnt_def)
-                  done
-                have ch_id: "convex hull K = K" "convex hull L = L"
-                  using "*" \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> hull_same by auto
-                have "convex C"
-                  by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
-                have "convex hull (insert ?z K) \<inter> L = L \<inter> convex hull (insert ?z K)"
-                  by blast
-                also have "... = convex hull K \<inter> L"
-                proof (subst Int_convex_hull_insert_rel_exterior [OF \<open>convex C\<close> \<open>K \<subseteq> C\<close> z])
-                  have "(C \<inter> D) \<inter> rel_interior C = {}"
-                  proof (rule face_of_disjoint_rel_interior)
-                    show "C \<inter> D face_of C"
-                      using \<N>_def \<open>C \<in> \<N>\<close> \<open>D \<in> \<N>\<close> intface\<M> by blast
-                    have "D \<in> \<M>" "aff_dim D = int n"
-                      using \<N>_def \<open>D \<in> \<N>\<close> by fastforce+
-                    moreover have "C \<in> \<M>" "aff_dim C = int n"
-                      using \<N>_def \<open>C \<in> \<N>\<close> by fastforce+
-                    ultimately have "aff_dim D + - 1 * aff_dim C \<le> 0"
-                      by fastforce
-                    then have "\<not> C face_of D"
-                      using False \<open>convex D\<close> face_of_aff_dim_lt by fastforce
-                    show "C \<inter> D \<noteq> C"
-                      using \<open>C \<in> \<M>\<close> \<open>D \<in> \<M>\<close> \<open>\<not> C face_of D\<close> intface\<M> by fastforce
-                  qed
-                  then have "D \<inter> rel_interior C = {}"
-                    by (metis inf.absorb_iff2 inf_assoc inf_sup_aci(1) rel_interior_subset)
-                  then show "disjnt L (rel_interior C)"
-                    by (meson \<open>L \<subseteq> D\<close> disjnt_def disjnt_subset1)
-                next
-                  show "L \<inter> convex hull K = convex hull K \<inter> L"
-                    by force
-                qed
-                finally have chKL: "convex hull (insert ?z K) \<inter> L = convex hull K \<inter> L" .
-                have "convex hull insert ?z K \<inter> convex hull L face_of K"
-                  by (simp add: \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> ch_id chKL faceI\<U>)
-                also have "... face_of convex hull insert ?z K"
-                proof -
-                  obtain I where I: "\<not> affine_dependent I" "K = convex hull I"
-                    using * [OF \<open>K \<in> \<U>\<close>] by auto
-                  then have "\<And>a. a \<notin> rel_interior C \<or> a \<notin> affine hull I"
-                    using ahK_C_disjoint \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>K \<subseteq> rel_frontier C\<close> affine_hull_convex_hull by blast
-                  then show ?thesis
-                    by (metis I affine_independent_insert face_of_convex_hull_affine_independent hull_insert subset_insertI z)
-                qed
-                finally have 1: "convex hull insert ?z K \<inter> convex hull L face_of convex hull insert ?z K" .
-                have "convex hull insert ?z K \<inter> convex hull L face_of L"
-                  by (simp add: \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> ch_id chKL faceI\<U>)
-                also have "... face_of convex hull insert ?w L"
-                proof -
-                  obtain I where I: "\<not> affine_dependent I" "L = convex hull I"
-                    using * [OF \<open>L \<in> \<U>\<close>] by auto
-                  then have "\<And>a. a \<notin> rel_interior D \<or> a \<notin> affine hull I"
-                    using \<open>D \<in> \<N>\<close> \<open>L \<in> \<U>\<close> \<open>L \<subseteq> rel_frontier D\<close> affine_hull_convex_hull ahK_C_disjoint by blast
-                  then show ?thesis
-                    by (metis I aff_independent_finite convex_convex_hull face_of_convex_hull_insert face_of_refl hull_insert w)
-                qed
-                finally have 2: "convex hull insert ?z K \<inter> convex hull L face_of convex hull insert ?w L" .
-                show ?thesis
-                  by (simp add: X Y eq 1 2)
+                then have "D \<inter> rel_interior C = {}"
+                  by (metis inf.absorb_iff2 inf_assoc inf_sup_aci(1) rel_interior_subset)
+                then show "disjnt L (rel_interior C)"
+                  by (meson \<open>L \<subseteq> D\<close> disjnt_def disjnt_subset1)
+              next
+                show "L \<inter> convex hull K = convex hull K \<inter> L"
+                  by force
               qed
+              finally have chKL: "convex hull (insert ?z K) \<inter> L = convex hull K \<inter> L" .
+              have "convex hull insert ?z K \<inter> convex hull L face_of K"
+                by (simp add: \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> ch_id chKL faceI\<U>)
+              also have "... face_of convex hull insert ?z K"
+              proof -
+                obtain I where I: "\<not> affine_dependent I" "K = convex hull I"
+                  using * [OF \<open>K \<in> \<U>\<close>] by auto
+                then have "\<And>a. a \<notin> rel_interior C \<or> a \<notin> affine hull I"
+                  using ahK_C_disjoint \<open>C \<in> \<N>\<close> \<open>K \<in> \<U>\<close> \<open>K \<subseteq> rel_frontier C\<close> affine_hull_convex_hull by blast
+                then show ?thesis
+                  by (metis I affine_independent_insert face_of_convex_hull_affine_independent hull_insert subset_insertI z)
+              qed
+              finally have 1: "convex hull insert ?z K \<inter> convex hull L face_of convex hull insert ?z K" .
+              have "convex hull insert ?z K \<inter> convex hull L face_of L"
+                by (metis \<open>K \<in> \<U>\<close> \<open>L \<in> \<U>\<close> chKL ch_id faceI\<U> inf_commute)
+              also have "... face_of convex hull insert ?w L"
+              proof -
+                obtain I where I: "\<not> affine_dependent I" "L = convex hull I"
+                  using * [OF \<open>L \<in> \<U>\<close>] by auto
+                then have "\<And>a. a \<notin> rel_interior D \<or> a \<notin> affine hull I"
+                  using \<open>D \<in> \<N>\<close> \<open>L \<in> \<U>\<close> \<open>L \<subseteq> rel_frontier D\<close> affine_hull_convex_hull ahK_C_disjoint by blast
+                then show ?thesis
+                  by (metis I aff_independent_finite convex_convex_hull face_of_convex_hull_insert face_of_refl hull_insert w)
+              qed
+              finally have 2: "convex hull insert ?z K \<inter> convex hull L face_of convex hull insert ?w L" .
+              show ?thesis
+                by (simp add: X Y eq 1 2)
             qed
           qed
-        qed
-        then
-        show "S \<inter> S' face_of S" "S \<inter> S' face_of S'" if "S \<in> \<U> \<union> ?\<T> \<and> S' \<in> \<U> \<union> ?\<T>" for S S'
-          using that by auto
+        qed 
       qed
       show "\<exists>F \<subseteq> \<U> \<union> ?\<T>. C = \<Union>F" if "C \<in> \<M>" for C
       proof (cases "C \<in> \<S>")
@@ -3772,7 +3763,7 @@ qed
 lemma simplicial_subdivision_of_cell_complex_lowdim:
   assumes "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
-      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
       and aff: "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> d"
   obtains \<T> where "simplicial_complex \<T>" "\<And>K. K \<in> \<T> \<Longrightarrow> aff_dim K \<le> d"
                   "\<Union>\<T> = \<Union>\<M>"
@@ -3800,10 +3791,13 @@ proof (cases "d \<ge> 0")
       if "G \<in> (\<Union>C\<in>\<M>. {F. F face_of C})" and "F face_of G" for F G
       using that face_of_trans by blast
   next
-    show "F1 \<inter> F2 face_of F1 \<and> F1 \<inter> F2 face_of F2"
-      if "F1 \<in> (\<Union>C\<in>\<M>. {F. F face_of C})" and "F2 \<in> (\<Union>C\<in>\<M>. {F. F face_of C})" for F1 F2
-      using that
-      by safe (meson face face_of_Int_subface)+
+    fix F1 F2
+    assume "F1 \<in> (\<Union>C\<in>\<M>. {F. F face_of C})" and "F2 \<in> (\<Union>C\<in>\<M>. {F. F face_of C})"
+    then obtain C1 C2 where "C1 \<in> \<M>" "C2 \<in> \<M>" and F: "F1 face_of C1" "F2 face_of C2"
+      by auto
+    show "F1 \<inter> F2 face_of F1"
+      using face_of_Int_subface [OF _ _ F]
+      by (metis \<open>C1 \<in> \<M>\<close> \<open>C2 \<in> \<M>\<close> face inf_commute)
   qed
   moreover
   have "\<Union>(\<Union>C\<in>\<M>. {F. F face_of C}) = \<Union>\<M>"
@@ -3838,7 +3832,7 @@ qed
 proposition simplicial_subdivision_of_cell_complex:
   assumes "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
-      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
   obtains \<T> where "simplicial_complex \<T>"
                   "\<Union>\<T> = \<Union>\<M>"
                   "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F"
@@ -3848,7 +3842,7 @@ proposition simplicial_subdivision_of_cell_complex:
 corollary fine_simplicial_subdivision_of_cell_complex:
   assumes "0 < e" "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
-      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
   obtains \<T> where "simplicial_complex \<T>"
                   "\<And>K. K \<in> \<T> \<Longrightarrow> diameter K < e"
                   "\<Union>\<T> = \<Union>\<M>"
@@ -3857,7 +3851,7 @@ corollary fine_simplicial_subdivision_of_cell_complex:
 proof -
   obtain \<N> where \<N>: "finite \<N>" "\<Union>\<N> = \<Union>\<M>" 
               and diapoly: "\<And>X. X \<in> \<N> \<Longrightarrow> diameter X < e" "\<And>X. X \<in> \<N> \<Longrightarrow> polytope X"
-               and      "\<And>X Y. \<lbrakk>X \<in> \<N>; Y \<in> \<N>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+               and      "\<And>X Y. \<lbrakk>X \<in> \<N>; Y \<in> \<N>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
                and \<N>covers: "\<And>C x. C \<in> \<M> \<and> x \<in> C \<Longrightarrow> \<exists>D. D \<in> \<N> \<and> x \<in> D \<and> D \<subseteq> C"
                and \<N>covered: "\<And>C. C \<in> \<N> \<Longrightarrow> \<exists>D. D \<in> \<M> \<and> C \<subseteq> D"
     by (blast intro: cell_complex_subdivision_exists [OF \<open>0 < e\<close> \<open>finite \<M>\<close> poly aff_dim_le_DIM face])
@@ -3952,7 +3946,7 @@ proposition fine_triangular_subdivision_of_cell_complex:
   assumes "0 < e" "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and aff: "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C = d"
-      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1"
   obtains \<T> where "triangulation \<T>" "\<And>k. k \<in> \<T> \<Longrightarrow> diameter k < e"
                  "\<And>k. k \<in> \<T> \<Longrightarrow> aff_dim k = d" "\<Union>\<T> = \<Union>\<M>"
                  "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>f. finite f \<and> f \<subseteq> \<T> \<and> C = \<Union>f"

@@ -4,6 +4,7 @@ text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
 theory Further_Topology
   imports Weierstrass_Theorems Polytope Complex_Transcendental Equivalence_Lebesgue_Henstock_Integration Retracts
+Sketch_and_Explore
 begin
 
 subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
@@ -28,10 +29,10 @@ proof
     by (rule diff_f' derivative_intros differentiable_on_compose [where f=f] | force)+
   have geq: "g ` (S - {0}) = T - {0}"
   proof
-    have "g ` (S - {0}) \<subseteq> T"
-      apply (auto simp: g_def subspace_mul [OF \<open>subspace T\<close>])
-      apply (metis (mono_tags, lifting) DiffI subS01 subspace_mul [OF \<open>subspace T\<close>] fim image_subset_iff inf_le2 singletonD)
-      done
+    have "\<And>u. \<lbrakk>u \<in> S; norm u *\<^sub>R f (u /\<^sub>R norm u) \<notin> T\<rbrakk> \<Longrightarrow> u = 0"
+      by (metis (mono_tags, lifting) DiffI subS01 subspace_mul [OF \<open>subspace T\<close>] fim image_subset_iff inf_le2 singletonD)
+    then have "g ` (S - {0}) \<subseteq> T"
+      using g_def by blast
     moreover have "g ` (S - {0}) \<subseteq> UNIV - {0}"
     proof (clarsimp simp: g_def)
       fix y
@@ -51,12 +52,14 @@ proof
     proof -
       have "x /\<^sub>R norm x \<in> T"
         using \<open>subspace T\<close> subspace_mul that by blast
-      then show ?thesis
-        using * [THEN subsetD, of "x /\<^sub>R norm x"] that apply clarsimp
-        apply (rule_tac x="norm x *\<^sub>R xa" in image_eqI, simp)
-        apply (metis norm_eq_zero right_inverse scaleR_one scaleR_scaleR)
-        using \<open>subspace S\<close> subspace_mul apply force
-        done
+      then obtain u where u: "f u \<in> T" "x /\<^sub>R norm x = f u" "norm u = 1" "u \<in> S"
+        using * [THEN subsetD, of "x /\<^sub>R norm x"] \<open>x \<noteq> 0\<close> by auto
+      with that have [simp]: "norm x *\<^sub>R f u = x"
+        by (metis divideR_right norm_eq_zero)
+      moreover have "norm x *\<^sub>R u \<in> S - {0}"
+        using \<open>subspace S\<close> subspace_scale that(2) u by auto
+      with u show ?thesis
+        by (simp add: image_eqI [where x="norm x *\<^sub>R u"])
     qed
     then have "T - {0} \<subseteq> (\<lambda>x. norm x *\<^sub>R f (x /\<^sub>R norm x)) ` (S - {0})"
       by force
@@ -107,12 +110,10 @@ proof
   qed (auto simp: p1span p2 span_base span_add)
   ultimately have "linear p1" "linear p2"
     by unfold_locales auto
-  have "(\<lambda>z. g (p1 z)) differentiable_on {x + y |x y. x \<in> S - {0} \<and> y \<in> T'}"
-    apply (rule differentiable_on_compose [where f=g])
-    apply (rule linear_imp_differentiable_on [OF \<open>linear p1\<close>])
-    apply (rule differentiable_on_subset [OF gdiff])
-    using p12_eq \<open>S \<subseteq> T\<close> apply auto
-    done
+  have "g differentiable_on p1 ` {x + y |x y. x \<in> S - {0} \<and> y \<in> T'}"
+    using p12_eq \<open>S \<subseteq> T\<close>  by (force intro: differentiable_on_subset [OF gdiff])
+  then have "(\<lambda>z. g (p1 z)) differentiable_on {x + y |x y. x \<in> S - {0} \<and> y \<in> T'}"
+    by (rule differentiable_on_compose [OF linear_imp_differentiable_on [OF \<open>linear p1\<close>]])
   then have diff: "(\<lambda>x. g (p1 x) + p2 x) differentiable_on {x + y |x y. x \<in> S - {0} \<and> y \<in> T'}"
     by (intro derivative_intros linear_imp_differentiable_on [OF \<open>linear p2\<close>])
   have "dim {x + y |x y. x \<in> S - {0} \<and> y \<in> T'} \<le> dim {x + y |x y. x \<in> S  \<and> y \<in> T'}"
@@ -141,10 +142,7 @@ proof
   proof clarsimp
     fix z assume "z \<notin> T'"
     show "\<exists>x y. z = x + y \<and> x \<in> g ` (S - {0}) \<and> y \<in> T'"
-      apply (rule_tac x="p1 z" in exI)
-      apply (rule_tac x="p2 z" in exI)
-      apply (simp add: p1 eq p2 geq)
-      by (metis \<open>z \<notin> T'\<close> add.left_neutral eq p2)
+      by (metis Diff_iff \<open>z \<notin> T'\<close> add.left_neutral eq geq p1 p2 singletonD)
   qed
   ultimately have "negligible (-T')"
     using negligible_subset by blast
@@ -173,8 +171,7 @@ proof -
   then obtain g where pfg: "polynomial_function g" and gim: "g ` (sphere 0 1 \<inter> S) \<subseteq> T"
                 and g12: "\<And>x. x \<in> sphere 0 1 \<inter> S \<Longrightarrow> norm(f x - g x) < 1/2"
     apply (rule Stone_Weierstrass_polynomial_function_subspace [OF _ contf _ \<open>subspace T\<close>, of "1/2"])
-    using fim apply auto
-    done
+    using fim by auto
   have gnz: "g x \<noteq> 0" if "x \<in> sphere 0 1 \<inter> S" for x
   proof -
     have "norm (f x) = 1"
@@ -190,10 +187,8 @@ proof -
     using gnz [of x]
     by (auto simp: subspace_mul [OF \<open>subspace T\<close>] subsetD [OF gim])
   have diffh: "h differentiable_on sphere 0 1 \<inter> S"
-    unfolding h_def
-    apply (intro derivative_intros diffg differentiable_on_compose [OF diffg])
-    using gnz apply auto
-    done
+    unfolding h_def using gnz
+    by (fastforce intro: derivative_intros diffg differentiable_on_compose [OF diffg])
   have homfg: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) f g"
   proof (rule homotopic_with_linear [OF contf])
     show "continuous_on (sphere 0 1 \<inter> S) g"
@@ -204,18 +199,19 @@ proof -
       have "f x \<in> sphere 0 1"
         using fim that by (simp add: image_subset_iff)
       moreover have "norm(f x - g x) < 1/2"
-        apply (rule g12)
-        using that by force
+        using g12 that by auto
       ultimately show ?thesis
         by (auto simp: norm_minus_commute dest: segment_bound)
     qed
-    show "\<And>x. x \<in> sphere 0 1 \<inter> S \<Longrightarrow> closed_segment (f x) (g x) \<subseteq> T - {0}"
-      apply (simp add: subset_Diff_insert non0fg)
-      apply (simp add: segment_convex_hull)
-      apply (rule hull_minimal)
-       using fim image_eqI gim apply force
-      apply (rule subspace_imp_convex [OF \<open>subspace T\<close>])
-      done
+    show "closed_segment (f x) (g x) \<subseteq> T - {0}" if "x \<in> sphere 0 1 \<inter> S" for x
+    proof -
+      have "convex T"
+        by (simp add: \<open>subspace T\<close> subspace_imp_convex)
+      then have "convex hull {f x, g x} \<subseteq> T"
+        by (metis IntD2 closed_segment_subset fim gim image_subset_iff segment_convex_hull that)
+      then show ?thesis
+        using that non0fg segment_convex_hull by fastforce
+    qed
   qed
   obtain d where d: "d \<in> (sphere 0 1 \<inter> T) - h ` (sphere 0 1 \<inter> S)"
     using h spheremap_lemma1 [OF ST \<open>S \<subseteq> T\<close> diffh] by force
@@ -225,13 +221,17 @@ proof -
   have conth: "continuous_on (sphere 0 1 \<inter> S) h"
     using differentiable_imp_continuous_on diffh by blast
   have hom_hd: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) h (\<lambda>x. -d)"
-    apply (rule homotopic_with_linear [OF conth continuous_on_const])
-    apply (simp add: subset_Diff_insert non0hd)
-    apply (simp add: segment_convex_hull)
-    apply (rule hull_minimal)
-     using h d apply (force simp: subspace_neg [OF \<open>subspace T\<close>])
-    apply (rule subspace_imp_convex [OF \<open>subspace T\<close>])
-    done
+  proof (rule homotopic_with_linear [OF conth continuous_on_const])
+    fix x
+    assume x: "x \<in> sphere 0 1 \<inter> S"
+    have "convex hull {h x, - d} \<subseteq> T"
+    proof (rule hull_minimal)
+      show "{h x, - d} \<subseteq> T"
+        using h d x by (force simp: subspace_neg [OF \<open>subspace T\<close>])
+    qed (simp add: subspace_imp_convex [OF \<open>subspace T\<close>])
+    with x segment_convex_hull show "closed_segment (h x) (- d) \<subseteq> T - {0}"
+      by (auto simp add: subset_Diff_insert non0hd)
+  qed
   have conT0: "continuous_on (T - {0}) (\<lambda>y. inverse(norm y) *\<^sub>R y)"
     by (intro continuous_intros) auto
   have sub0T: "(\<lambda>y. y /\<^sub>R norm y) ` (T - {0}) \<subseteq> sphere 0 1 \<inter> T"
@@ -242,13 +242,11 @@ proof -
        apply (rule homotopic_with_compose_continuous_left [OF hom_hd conT0 sub0T])
     using d apply (auto simp: h_def)
     done
-  show ?thesis
-    apply (rule_tac x=c in exI)
-    apply (rule homotopic_with_trans [OF _ homhc])
-    apply (rule homotopic_with_eq)
-       apply (rule homotopic_with_compose_continuous_left [OF homfg conT0 sub0T])
-      apply (auto simp: h_def)
-    done
+  have "homotopic_with_canon (\<lambda>x. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) f h"
+    apply (rule homotopic_with_eq [OF homotopic_with_compose_continuous_left [OF homfg conT0 sub0T]])
+    by (auto simp: h_def)
+  then show ?thesis
+    by (metis homotopic_with_trans [OF _ homhc])
 qed
 
 
@@ -283,15 +281,21 @@ next
       then have affS_eq: "aff_dim S = aff_dim (ball 0 1 \<inter> T)"
         using \<open>aff_dim T = aff_dim S\<close> by simp
       have "rel_frontier S homeomorphic rel_frontier(ball 0 1 \<inter> T)"
-        apply (rule homeomorphic_rel_frontiers_convex_bounded_sets [OF \<open>convex S\<close> \<open>bounded S\<close>])
-          apply (simp add: \<open>subspace T\<close> convex_Int subspace_imp_convex)
-         apply (simp add: bounded_Int)
-        apply (rule affS_eq)
-        done
+      proof (rule homeomorphic_rel_frontiers_convex_bounded_sets [OF \<open>convex S\<close> \<open>bounded S\<close>])
+        show "convex (ball 0 1 \<inter> T)"
+          by (simp add: \<open>subspace T\<close> convex_Int subspace_imp_convex)
+        show "bounded (ball 0 1 \<inter> T)"
+          by (simp add: bounded_Int)
+        show "aff_dim S = aff_dim (ball 0 1 \<inter> T)"
+          by (rule affS_eq)
+      qed
       also have "... = frontier (ball 0 1) \<inter> T"
-        apply (rule convex_affine_rel_frontier_Int [OF convex_ball])
-         apply (simp add: \<open>subspace T\<close> subspace_imp_affine)
-        using \<open>subspace T\<close> subspace_0 by force
+      proof (rule convex_affine_rel_frontier_Int [OF convex_ball])
+        show "affine T"
+          by (simp add: \<open>subspace T\<close> subspace_imp_affine)
+        show "interior (ball 0 1) \<inter> T \<noteq> {}"
+          using \<open>subspace T\<close> subspace_0 by force
+      qed
       also have "... = sphere 0 1 \<inter> T"
         by auto
       finally show ?thesis .
@@ -367,11 +371,10 @@ next
   next
     case False
     with \<open>\<not> s \<le> 0\<close> have "r > 0" "s > 0" by auto
-    show ?thesis
+    show thesis
       apply (rule inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f])
-      using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1)
-             apply (simp_all add: f aff_dim_cball)
-      using that by blast
+      using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1) that
+      by (simp_all add: f aff_dim_cball inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f])
   qed
 qed
 
@@ -404,7 +407,6 @@ next
   show ?case
     apply (rule_tac x="\<lambda>x. if x \<in> S then f x else g x" in exI, simp)
     apply (intro conjI continuous_on_cases)
-    apply (simp_all add: insert closed_Union contf contg)
     using fim gim feq geq
     apply (force simp: insert closed_Union contf contg inf_commute intro: fg)+
     done
@@ -426,18 +428,18 @@ lemma extend_map_lemma:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> - \<G> \<Longrightarrow> aff_dim X < aff_dim T"
-      and face: "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S \<and> (S \<inter> T) face_of T"
+      and face: "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S"
       and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g" "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
 proof (cases "\<F> - \<G> = {}")
   case True
-  then have "\<Union>\<F> \<subseteq> \<Union>\<G>"
-    by (simp add: Union_mono)
-  then show ?thesis
-    apply (rule_tac g=f in that)
-      using contf continuous_on_subset apply blast
-     using fim apply blast
-    by simp
+  show ?thesis
+  proof
+    show "continuous_on (\<Union> \<F>) f"
+      using True \<open>\<G> \<subseteq> \<F>\<close> contf by auto
+    show "f ` \<Union> \<F> \<subseteq> rel_frontier T"
+      using True fim by auto
+  qed auto
 next
   case False
   then have "0 \<le> aff_dim T"
@@ -446,19 +448,17 @@ next
     by (metis nonneg_eq_int)
   have Union_empty_eq: "\<Union>{D. D = {} \<and> P D} = {}" for P :: "'a set \<Rightarrow> bool"
     by auto
+  have face': "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S \<and> (S \<inter> T) face_of T"
+    by (metis face inf_commute)
   have extendf: "\<exists>g. continuous_on (\<Union>(\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < i})) g \<and>
                      g ` (\<Union> (\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < i})) \<subseteq> rel_frontier T \<and>
                      (\<forall>x \<in> \<Union>\<G>. g x = f x)"
        if "i \<le> aff_dim T" for i::nat
   using that
   proof (induction i)
-    case 0 then show ?case
-      apply (simp add: Union_empty_eq)
-      apply (rule_tac x=f in exI)
-      apply (intro conjI)
-      using contf continuous_on_subset apply blast
-      using fim apply blast
-      by simp
+    case 0
+    show ?case
+      using 0 contf fim by (auto simp add: Union_empty_eq)
   next
     case (Suc p)
     with \<open>bounded T\<close> have "rel_frontier T \<noteq> {}"
@@ -477,12 +477,12 @@ next
       if D: "D \<in> \<G> \<union> ?Faces" for D
     proof (cases "D \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < p})")
       case True
-      then show ?thesis
-        apply (rule_tac x=h in exI)
-        apply (intro conjI)
-        apply (blast intro: continuous_on_subset [OF conth])
-        using him apply blast
-        by simp
+      have "continuous_on D h"
+        using True conth continuous_on_subset by blast
+      moreover have "h ` D \<subseteq> rel_frontier T"
+        using True him by blast
+      ultimately show ?thesis
+        by blast
     next
       case False
       note notDsub = False
@@ -507,9 +507,7 @@ next
         then have [simp]: "\<not> affine D"
           using affine_bounded_eq_trivial False \<open>D \<noteq> {}\<close> \<open>bounded D\<close> by blast
         have "{F. F facet_of D} \<subseteq> {E. E face_of C \<and> aff_dim E < int p}"
-          apply clarify
-          apply (metis \<open>D face_of C\<close> affD eq_iff face_of_trans facet_of_def zle_diff1_eq)
-          done
+          by clarify (metis \<open>D face_of C\<close> affD eq_iff face_of_trans facet_of_def zle_diff1_eq)
         moreover have "polyhedron D"
           using \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> face_of_polytope_polytope poly polytope_imp_polyhedron by auto
         ultimately have relf_sub: "rel_frontier D \<subseteq> \<Union> {E. E face_of C \<and> aff_dim E < p}"
@@ -540,30 +538,39 @@ next
              if "E \<in> \<G> \<union> {D. Bex \<F> ((face_of) D) \<and> aff_dim D < int p}" for E
         proof (rule face_of_subset_rel_frontier)
           show "D \<inter> E face_of D"
-            using that \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> face
-            apply auto
-            apply (meson face_of_Int_subface \<open>\<G> \<subseteq> \<F>\<close> face_of_refl_eq poly polytope_imp_convex subsetD)
-            using face_of_Int_subface apply blast
-            done
+            using that
+          proof safe
+            assume "E \<in> \<G>"
+            then show "D \<inter> E face_of D"
+              by (meson \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> assms(2) face' face_of_Int_subface face_of_refl_eq poly polytope_imp_convex subsetD)
+          next
+            fix x
+            assume "aff_dim E < int p" "x \<in> \<F>" "E face_of x"
+            then show "D \<inter> E face_of D"
+              by (meson \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> face' face_of_Int_subface that)
+          qed
           show "D \<inter> E \<noteq> D"
             using that notDsub by auto
         qed
-        then show ?thesis
-          apply (rule_tac x=g in exI)
-          apply (intro conjI ballI)
-            using continuous_on_subset contg apply blast
-           using gim apply blast
-          using gh by fastforce
+        moreover have "continuous_on D g"
+          using contg continuous_on_subset by blast
+        ultimately show ?thesis
+          by (rule_tac x=g in exI) (use gh gim in fastforce)
       qed
     qed
     have intle: "i < 1 + int j \<longleftrightarrow> i \<le> int j" for i j
       by auto
     have "finite \<G>"
       using \<open>finite \<F>\<close> \<open>\<G> \<subseteq> \<F>\<close> rev_finite_subset by blast
-    then have fin: "finite (\<G> \<union> ?Faces)"
-      apply simp
-      apply (rule_tac B = "\<Union>{{D. D face_of C}| C. C \<in> \<F>}" in finite_subset)
-       by (auto simp: \<open>finite \<F>\<close> finite_polytope_faces poly)
+    moreover have "finite (?Faces)"
+    proof -
+      have \<section>: "finite (\<Union> {{D. D face_of C} |C. C \<in> \<F>})"
+        by (auto simp: \<open>finite \<F>\<close> finite_polytope_faces poly)
+      show ?thesis
+        by (auto intro: finite_subset [OF _ \<section>])
+    qed
+    ultimately have fin: "finite (\<G> \<union> ?Faces)"
+      by simp
     have clo: "closed S" if "S \<in> \<G> \<union> ?Faces" for S
       using that \<open>\<G> \<subseteq> \<F>\<close> face_of_polytope_polytope poly polytope_imp_closed by blast
     have K: "X \<inter> Y \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int p})"
@@ -571,9 +578,7 @@ next
     proof -
       have ff: "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
         if XY: "X face_of D" "Y face_of E" and DE: "D \<in> \<F>" "E \<in> \<F>" for D E
-        apply (rule face_of_Int_subface [OF _ _ XY])
-        apply (auto simp: face DE)
-        done
+        by (rule face_of_Int_subface [OF _ _ XY]) (auto simp: face' DE)
       show ?thesis
         using that
         apply auto
@@ -586,22 +591,19 @@ next
                    "g ` \<Union>(\<G> \<union> ?Faces) \<subseteq> rel_frontier T"
                    "(\<forall>x \<in> \<Union>(\<G> \<union> ?Faces) \<inter>
                           \<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < p}). g x = h x)"
-      apply (rule exE [OF extending_maps_Union [OF fin extendh clo K]], blast+)
-      done
+      by (rule exE [OF extending_maps_Union [OF fin extendh clo K]], blast+)
     then show ?case
-      apply (simp add: intle local.heq [symmetric], blast)
-      done
+      by (simp add: intle local.heq [symmetric], blast)
   qed
   have eq: "\<Union>(\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < i}) = \<Union>\<F>"
   proof
     show "\<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int i}) \<subseteq> \<Union>\<F>"
-      apply (rule Union_subsetI)
-      using \<open>\<G> \<subseteq> \<F>\<close> face_of_imp_subset  apply force
-      done
+      using \<open>\<G> \<subseteq> \<F>\<close> face_of_imp_subset by fastforce
     show "\<Union>\<F> \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < i})"
-      apply (rule Union_mono)
-      using face  apply (fastforce simp: aff i)
-      done
+    proof (rule Union_mono)
+      show "\<F> \<subseteq> \<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int i}"
+        using face by (fastforce simp: aff i)
+    qed
   qed
   have "int i \<le> aff_dim T" by (simp add: i)
   then show ?thesis
@@ -647,13 +649,15 @@ next
       by (simp add: C card_insert_if insert.hyps le_SucI)
     have "closed (\<Union>\<F>)"
       using clo insert.hyps by blast
+    have "continuous_on (X - insert a C) f"
+      using contf by (force simp: elim: continuous_on_subset)
+    moreover have "continuous_on (\<Union> \<F> - insert a C) g"
+      using contg by (force simp: elim: continuous_on_subset)
+    ultimately
     have "continuous_on (X - insert a C \<union> (\<Union>\<F> - insert a C)) (\<lambda>x. if x \<in> X then f x else g x)"
-       apply (rule continuous_on_cases_local)
-          apply (simp_all add: closedin_closed)
+      apply (intro continuous_on_cases_local; simp add: closedin_closed)
         using \<open>closed X\<close> apply blast
         using \<open>closed (\<Union>\<F>)\<close> apply blast
-        using contf apply (force simp: elim: continuous_on_subset)
-        using contg apply (force simp: elim: continuous_on_subset)
         using fh gh insert.hyps pwX by fastforce
     then show "continuous_on (\<Union>(insert X \<F>) - insert a C) (\<lambda>a. if a \<in> X then f a else g a)"
       by (blast intro: continuous_on_subset)
@@ -687,9 +691,7 @@ proof -
   obtain C g where "finite C \<and> disjnt C U \<and> card C \<le> card ?\<F> \<and>
                  continuous_on (\<Union>?\<F> - C) g \<and> g ` (\<Union>?\<F> - C) \<subseteq> T
                   \<and> (\<forall>x \<in> (\<Union>?\<F> - C) \<inter> K. g x = h x)"
-    apply (rule exE [OF extend_map_lemma_cofinite0 [OF fin pw, of U T h]])
-      apply (fastforce intro!:  clo \<F>)+
-    done
+    using extend_map_lemma_cofinite0 [OF fin pw, of U T h] by (fastforce intro!: clo \<F>)
   ultimately show ?thesis
     by (rule_tac C=C and g=g in that) auto
 qed
@@ -699,7 +701,7 @@ lemma extend_map_lemma_cofinite:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
-      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X \<and> (X \<inter> Y) face_of Y"
+      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and aff: "\<And>X. X \<in> \<F> - \<G> \<Longrightarrow> aff_dim X \<le> aff_dim T"
   obtains C g where
      "finite C" "disjnt C (\<Union>\<G>)" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
@@ -708,28 +710,23 @@ proof -
   define \<H> where "\<H> \<equiv> \<G> \<union> {D. \<exists>C \<in> \<F> - \<G>. D face_of C \<and> aff_dim D < aff_dim T}"
   have "finite \<G>"
     using assms finite_subset by blast
-  moreover have "finite (\<Union>{{D. D face_of C} |C. C \<in> \<F>})"
-    apply (rule finite_Union)
-     apply (simp add: \<open>finite \<F>\<close>)
-    using finite_polytope_faces poly by auto
-  ultimately have "finite \<H>"
-    apply (simp add: \<H>_def)
-    apply (rule finite_subset [of _ "\<Union> {{D. D face_of C} | C. C \<in> \<F>}"], auto)
-    done
-  have *: "\<And>X Y. \<lbrakk>X \<in> \<H>; Y \<in> \<H>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+  have *: "finite (\<Union>{{D. D face_of C} |C. C \<in> \<F>})"
+    using finite_polytope_faces poly \<open>finite \<F>\<close> by force
+  then have "finite \<H>"
+    by (auto simp: \<H>_def \<open>finite \<G>\<close> intro: finite_subset [OF _ *])
+  have face': "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S \<and> (S \<inter> T) face_of T"
+    by (metis face inf_commute)
+  have *: "\<And>X Y. \<lbrakk>X \<in> \<H>; Y \<in> \<H>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
     unfolding \<H>_def
-    apply (elim UnE bexE CollectE DiffE)
-    using subsetD [OF \<open>\<G> \<subseteq> \<F>\<close>] apply (simp_all add: face)
-      apply (meson subsetD [OF \<open>\<G> \<subseteq> \<F>\<close>] face face_of_Int_subface face_of_imp_subset face_of_refl poly polytope_imp_convex)+
+    using subsetD [OF \<open>\<G> \<subseteq> \<F>\<close>] apply (auto simp add: face)
+    apply (meson face' face_of_Int_subface face_of_refl_eq poly polytope_imp_convex)+
     done
   obtain h where conth: "continuous_on (\<Union>\<H>) h" and him: "h ` (\<Union>\<H>) \<subseteq> rel_frontier T"
-             and hf: "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> h x = f x"
-    using \<open>finite \<H>\<close>
-    unfolding \<H>_def
-    apply (rule extend_map_lemma [OF _ Un_upper1 T _ _ _ contf fim])
-    using \<open>\<G> \<subseteq> \<F>\<close> face_of_polytope_polytope poly apply fastforce
-    using * apply (auto simp: \<H>_def)
-    done
+             and hf: "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> h x = f x" 
+  proof (rule extend_map_lemma [OF \<open>finite \<H>\<close> [unfolded \<H>_def] Un_upper1 T])
+    show "\<And>X. \<lbrakk>X \<in> \<G> \<union> {D. \<exists>C\<in>\<F> - \<G>. D face_of C \<and> aff_dim D < aff_dim T}\<rbrakk> \<Longrightarrow> polytope X"
+      using \<open>\<G> \<subseteq> \<F>\<close> face_of_polytope_polytope poly by fastforce
+  qed (use * \<H>_def contf fim in auto)
   have "bounded (\<Union>\<G>)"
     using \<open>finite \<G>\<close> \<open>\<G> \<subseteq> \<F>\<close> poly polytope_imp_bounded by blast
   then have "\<Union>\<G> \<noteq> UNIV"
@@ -783,7 +780,7 @@ proof -
             fix E
             assume "b \<in> E" "E \<in> \<G>"
             then have "E \<inter> D face_of E \<and> E \<inter> D face_of D"
-              using \<open>\<G> \<subseteq> \<F>\<close> face that by auto
+              using \<open>\<G> \<subseteq> \<F>\<close> face' that by auto
             with face_of_subset_rel_frontier \<open>E \<in> \<G>\<close> \<open>b \<in> E\<close> brelD rel_interior_subset [of D]
                  D_not_subset rel_frontier_def \<H>_def
             show False
@@ -824,11 +821,10 @@ proof -
             next
               case 2 show ?thesis
               proof (rule face_of_subset_rel_frontier [THEN subsetD])
-                show "D \<inter> A face_of D"
-                  apply (rule face_of_Int_subface [of D B _ A, THEN conjunct1])
-                     apply (simp_all add: 2 \<open>D \<in> \<F>\<close> face)
-                   apply (simp add: \<open>polyhedron D\<close> polyhedron_imp_convex face_of_refl)
-                  done
+                have "D face_of D"
+                  by (simp add: \<open>polyhedron D\<close> polyhedron_imp_convex face_of_refl)
+                then show "D \<inter> A face_of D"
+                  by (meson "2"(2) "2"(3) \<open>D \<in> \<F>\<close> face' face_of_Int_Int face_of_face)
                 show "D \<inter> A \<noteq> D"
                   using "2" D_not_subset \<H>_def by blast
               qed (auto simp: 2)
@@ -873,7 +869,7 @@ theorem extend_map_cell_complex_to_sphere:
   assumes "finite \<F>" and S: "S \<subseteq> \<Union>\<F>" "closed S" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X < aff_dim T"
-      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X \<and> (X \<inter> Y) face_of Y"
+      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g"
      "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -888,7 +884,7 @@ proof -
              and diaG: "\<And>X. X \<in> \<G> \<Longrightarrow> diameter X < d"
              and polyG: "\<And>X. X \<in> \<G> \<Longrightarrow> polytope X"
              and affG: "\<And>X. X \<in> \<G> \<Longrightarrow> aff_dim X \<le> aff_dim T - 1"
-             and faceG: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+             and faceG: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
   proof (rule cell_complex_subdivision_exists [OF \<open>d>0\<close> \<open>finite \<F>\<close> poly _ face])
     show "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> aff_dim T - 1"
       by (simp add: aff)
@@ -928,7 +924,7 @@ theorem extend_map_cell_complex_to_sphere_cofinite:
   assumes "finite \<F>" and S: "S \<subseteq> \<Union>\<F>" "closed S" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> aff_dim T"
-      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X \<and> (X \<inter> Y) face_of Y"
+      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
   obtains C g where "finite C" "disjnt C S" "continuous_on (\<Union>\<F> - C) g"
      "g ` (\<Union>\<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -943,7 +939,7 @@ proof -
              and diaG: "\<And>X. X \<in> \<G> \<Longrightarrow> diameter X < d"
              and polyG: "\<And>X. X \<in> \<G> \<Longrightarrow> polytope X"
              and affG: "\<And>X. X \<in> \<G> \<Longrightarrow> aff_dim X \<le> aff_dim T"
-             and faceG: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+             and faceG: "\<And>X Y. \<lbrakk>X \<in> \<G>; Y \<in> \<G>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
     by (rule cell_complex_subdivision_exists [OF \<open>d>0\<close> \<open>finite \<F>\<close> poly aff face]) auto
   obtain C h where "finite C" and dis: "disjnt C (\<Union>(\<G> \<inter> Pow V))"
                and card: "card C \<le> card \<G>" and conth: "continuous_on (\<Union>\<G> - C) h"
@@ -978,8 +974,7 @@ proof -
     show "h x = f x" if "x \<in> S" for x
     proof -
       have "h x = g x"
-        apply (rule hg)
-        using Ssub that by blast
+        using Ssub hg that by blast
       also have "... = f x"
         by (simp add: gf that)
       finally show "h x = f x" .
@@ -1054,7 +1049,7 @@ proof -
         using \<open>compact S\<close> compact_eq_bounded_closed by auto
       show poly: "\<And>X. X \<in> {bbox \<inter> T} \<Longrightarrow> polytope X"
         by (simp add: polytope_Int_polyhedron bbox_def polytope_interval affine_imp_polyhedron \<open>affine T\<close>)
-      show "\<And>X Y. \<lbrakk>X \<in> {bbox \<inter> T}; Y \<in> {bbox \<inter> T}\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+      show "\<And>X Y. \<lbrakk>X \<in> {bbox \<inter> T}; Y \<in> {bbox \<inter> T}\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
         by (simp add:poly face_of_refl polytope_imp_convex)
       show "\<And>X. X \<in> {bbox \<inter> T} \<Longrightarrow> aff_dim X \<le> aff_dim U"
         by (simp add: \<open>aff_dim (bbox \<inter> T) \<le> aff_dim U\<close>)
@@ -3886,7 +3881,7 @@ proof -
       by (auto simp: homotopic_with_imp_continuous dest: homotopic_with_imp_subset1 homotopic_with_imp_subset2)
   next
     assume ?rhs then show ?lhs
-      by (force simp: elim: homotopic_with_eq dest: homotopic_with_sphere_times [where h=g])
+      by (elim conjE homotopic_with_eq [OF homotopic_with_sphere_times]; force)
   qed
   then show ?thesis
     by (simp add: *)
