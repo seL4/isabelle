@@ -4,7 +4,6 @@ text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
 theory Further_Topology
   imports Weierstrass_Theorems Polytope Complex_Transcendental Equivalence_Lebesgue_Henstock_Integration Retracts
-Sketch_and_Explore
 begin
 
 subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
