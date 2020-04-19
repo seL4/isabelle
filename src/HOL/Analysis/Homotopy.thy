@@ -5,7 +5,7 @@
 section \<open>Homotopy of Maps\<close>
 
 theory Homotopy
-  imports Path_Connected Continuum_Not_Denumerable Product_Topology
+  imports Path_Connected Continuum_Not_Denumerable Product_Topology Sketch_and_Explore
 begin
 
 definition\<^marker>\<open>tag important\<close> homotopic_with
@@ -1627,7 +1627,7 @@ lemma locallyE:
   using assms unfolding locally_def by meson
 
 lemma locally_mono:
-  assumes "locally P S" "\<And>t. P t \<Longrightarrow> Q t"
+  assumes "locally P S" "\<And>T. P T \<Longrightarrow> Q T"
     shows "locally Q S"
 by (metis assms locally_def)
 
@@ -2631,8 +2631,8 @@ qed
 
 proposition locally_path_connected:
   "locally path_connected S \<longleftrightarrow>
-   (\<forall>v x. openin (top_of_set S) v \<and> x \<in> v
-          \<longrightarrow> (\<exists>u. openin (top_of_set S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
+   (\<forall>V x. openin (top_of_set S) V \<and> x \<in> V
+          \<longrightarrow> (\<exists>U. openin (top_of_set S) U \<and> path_connected U \<and> x \<in> U \<and> U \<subseteq> V))"
   by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
 proposition locally_path_connected_open_path_component:
@@ -2682,10 +2682,7 @@ next
       using G u by auto
   qed
   show ?lhs
-    apply (clarsimp simp add: locally_connected_open_component)
-    apply (subst openin_subopen)
-    apply (blast intro: *)
-    done
+    unfolding locally_connected_open_component by (meson "*" openin_subopen)
 qed
 
 proposition locally_path_connected_im_kleinen:
@@ -2716,16 +2713,11 @@ next
        (\<forall>y. y \<in> U \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> u \<and> pathstart p = x \<and> pathfinish p = y))"
        by blast
     show ?thesis
-      apply (rule_tac x=U in exI)
-      apply (auto simp: U)
-      apply (metis U c path_component_trans path_component_def)
-      done
+      by (metis U c mem_Collect_eq path_component_def path_component_eq subsetI)
   qed
   show ?lhs
-    apply (clarsimp simp add: locally_path_connected_open_path_component)
-    apply (subst openin_subopen)
-    apply (blast intro: *)
-    done
+    unfolding locally_path_connected_open_path_component
+    using "*" openin_subopen by fastforce
 qed
 
 lemma locally_path_connected_imp_locally_connected:
@@ -2746,11 +2738,15 @@ by (metis components_iff connected_component_eq_empty locally_empty locally_path
 
 lemma open_imp_locally_path_connected:
   fixes S :: "'a :: real_normed_vector set"
-  shows "open S \<Longrightarrow> locally path_connected S"
-apply (rule locally_mono [of convex])
-apply (simp_all add: locally_def openin_open_eq convex_imp_path_connected)
-apply (meson open_ball centre_in_ball convex_ball openE order_trans)
-done
+  assumes "open S"
+  shows "locally path_connected S"
+proof (rule locally_mono)
+  show "locally convex S"
+    using assms unfolding locally_def
+    by (meson open_ball centre_in_ball convex_ball openE open_subset openin_imp_subset openin_open_trans subset_trans)
+  show "\<And>T::'a set. convex T \<Longrightarrow> path_connected T"
+    using convex_imp_path_connected by blast
+qed
 
 lemma open_imp_locally_connected:
   fixes S :: "'a :: real_normed_vector set"
@@ -2766,8 +2762,7 @@ lemma locally_connected_UNIV: "locally connected (UNIV::'a :: real_normed_vector
 lemma openin_connected_component_locally_connected:
     "locally connected S
      \<Longrightarrow> openin (top_of_set S) (connected_component_set S x)"
-apply (simp add: locally_connected_open_connected_component)
-by (metis connected_component_eq_empty connected_component_subset open_empty open_subset openin_subtopology_self)
+  by (metis connected_component_eq_empty locally_connected_2 openin_empty openin_subtopology_self)
 
 lemma openin_components_locally_connected:
     "\<lbrakk>locally connected S; c \<in> components S\<rbrakk> \<Longrightarrow> openin (top_of_set S) c"
@@ -2779,22 +2774,29 @@ lemma openin_path_component_locally_path_connected:
 by (metis (no_types) empty_iff locally_path_connected_2 openin_subopen openin_subtopology_self path_component_eq_empty)
 
 lemma closedin_path_component_locally_path_connected:
-    "locally path_connected S
-        \<Longrightarrow> closedin (top_of_set S) (path_component_set S x)"
-apply  (simp add: closedin_def path_component_subset complement_path_component_Union)
-apply (rule openin_Union)
-using openin_path_component_locally_path_connected by auto
+  assumes "locally path_connected S"
+  shows "closedin (top_of_set S) (path_component_set S x)"
+proof -
+  have "openin (top_of_set S) (\<Union> ({path_component_set S y |y. y \<in> S} - {path_component_set S x}))"
+    using locally_path_connected_2 assms by fastforce
+  then show ?thesis
+    by  (simp add: closedin_def path_component_subset complement_path_component_Union)
+qed
 
 lemma convex_imp_locally_path_connected:
   fixes S :: "'a:: real_normed_vector set"
-  shows "convex S \<Longrightarrow> locally path_connected S"
-apply (clarsimp simp add: locally_path_connected)
-apply (subst (asm) openin_open)
-apply clarify
-apply (erule (1) openE)
-apply (rule_tac x = "S \<inter> ball x e" in exI)
-apply (force simp: convex_Int convex_imp_path_connected)
-done
+  assumes "convex S"
+  shows "locally path_connected S"
+proof (clarsimp simp add: locally_path_connected)
+  fix V x
+  assume "openin (top_of_set S) V" and "x \<in> V"
+  then obtain T e where  "V = S \<inter> T" "x \<in> S" "0 < e" "ball x e \<subseteq> T"
+    by (metis Int_iff openE openin_open)
+  then have "openin (top_of_set S) (S \<inter> ball x e)" "path_connected (S \<inter> ball x e)"
+    by (simp_all add: assms convex_Int convex_imp_path_connected openin_open_Int)
+  then show "\<exists>U. openin (top_of_set S) U \<and> path_connected U \<and> x \<in> U \<and> U \<subseteq> V"
+    using \<open>0 < e\<close> \<open>V = S \<inter> T\<close> \<open>ball x e \<subseteq> T\<close> \<open>x \<in> S\<close> by auto
+qed
 
 lemma convex_imp_locally_connected:
   fixes S :: "'a:: real_normed_vector set"
@@ -2810,15 +2812,19 @@ lemma path_component_eq_connected_component:
 proof (cases "x \<in> S")
   case True
   have "openin (top_of_set (connected_component_set S x)) (path_component_set S x)"
-    apply (rule openin_subset_trans [of S])
-    apply (intro conjI openin_path_component_locally_path_connected [OF assms])
-    using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
-    done
+  proof (rule openin_subset_trans)
+    show "openin (top_of_set S) (path_component_set S x)"
+      by (simp add: True assms locally_path_connected_2)
+    show "connected_component_set S x \<subseteq> S"
+      by (simp add: connected_component_subset)
+  qed (simp add: path_component_subset_connected_component)
   moreover have "closedin (top_of_set (connected_component_set S x)) (path_component_set S x)"
-    apply (rule closedin_subset_trans [of S])
-    apply (intro conjI closedin_path_component_locally_path_connected [OF assms])
-    using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
-    done
+    proof (rule closedin_subset_trans [of S])
+  show "closedin (top_of_set S) (path_component_set S x)"
+    by (simp add: assms closedin_path_component_locally_path_connected)
+  show "connected_component_set S x \<subseteq> S"
+    by (simp add: connected_component_subset)
+  qed (simp add: path_component_subset_connected_component)
   ultimately have *: "path_component_set S x = connected_component_set S x"
     by (metis connected_connected_component connected_clopen True path_component_eq_empty)
   then show ?thesis
@@ -2881,9 +2887,7 @@ proof (clarsimp simp: locally_connected_open_component)
       have contf: "continuous_on S f"
         by (simp add: continuous_on_open oo openin_imp_subset)
       then have "continuous_on (connected_component_set (S \<inter> f -` U) x) f"
-        apply (rule continuous_on_subset)
-        using connected_component_subset apply blast
-        done
+        by (meson connected_component_subset continuous_on_subset inf.boundedE)
       then have "connected (f ` connected_component_set (S \<inter> f -` U) x)"
         by (rule connected_continuous_image [OF _ connected_connected_component])
       moreover have "f ` connected_component_set (S \<inter> f -` U) x \<subseteq> U"
@@ -2953,9 +2957,7 @@ proof (clarsimp simp: locally_path_connected_open_path_component)
       have contf: "continuous_on S f"
         by (simp add: continuous_on_open oo openin_imp_subset)
       then have "continuous_on (path_component_set (S \<inter> f -` U) x) f"
-        apply (rule continuous_on_subset)
-        using path_component_subset apply blast
-        done
+        by (meson Int_lower1 continuous_on_subset path_component_subset)
       then have "path_connected (f ` path_component_set (S \<inter> f -` U) x)"
         by (simp add: path_connected_continuous_image)
       moreover have "f ` path_component_set (S \<inter> f -` U) x \<subseteq> U"
@@ -2989,8 +2991,8 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Components, continuity,
 
 lemma continuous_on_components_gen:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes "\<And>c. c \<in> components S \<Longrightarrow>
-              openin (top_of_set S) c \<and> continuous_on c f"
+  assumes "\<And>C. C \<in> components S \<Longrightarrow>
+              openin (top_of_set S) C \<and> continuous_on C f"
     shows "continuous_on S f"
 proof (clarsimp simp: continuous_openin_preimage_eq)
   fix t :: "'b set"
@@ -3003,12 +3005,14 @@ qed
 
 lemma continuous_on_components:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes "locally connected S "
-          "\<And>c. c \<in> components S \<Longrightarrow> continuous_on c f"
-    shows "continuous_on S f"
-apply (rule continuous_on_components_gen)
-apply (auto simp: assms intro: openin_components_locally_connected)
-done
+  assumes "locally connected S " "\<And>C. C \<in> components S \<Longrightarrow> continuous_on C f"
+  shows "continuous_on S f"
+proof (rule continuous_on_components_gen)
+  fix C
+  assume "C \<in> components S"
+  then show "openin (top_of_set S) C \<and> continuous_on C f"
+    by (simp add: assms openin_components_locally_connected)
+qed
 
 lemma continuous_on_components_eq:
     "locally connected S
@@ -3029,32 +3033,33 @@ using continuous_on_subset in_components_subset
 by (blast intro: continuous_on_components_open)
 
 lemma closedin_union_complement_components:
-  assumes u: "locally connected u"
-      and S: "closedin (top_of_set u) S"
-      and cuS: "c \<subseteq> components(u - S)"
-    shows "closedin (top_of_set u) (S \<union> \<Union>c)"
+  assumes U: "locally connected U"
+      and S: "closedin (top_of_set U) S"
+      and cuS: "c \<subseteq> components(U - S)"
+    shows "closedin (top_of_set U) (S \<union> \<Union>c)"
 proof -
   have di: "(\<And>S t. S \<in> c \<and> t \<in> c' \<Longrightarrow> disjnt S t) \<Longrightarrow> disjnt (\<Union> c) (\<Union> c')" for c'
     by (simp add: disjnt_def) blast
-  have "S \<subseteq> u"
+  have "S \<subseteq> U"
     using S closedin_imp_subset by blast
-  moreover have "u - S = \<Union>c \<union> \<Union>(components (u - S) - c)"
+  moreover have "U - S = \<Union>c \<union> \<Union>(components (U - S) - c)"
     by (metis Diff_partition Union_components Union_Un_distrib assms(3))
-  moreover have "disjnt (\<Union>c) (\<Union>(components (u - S) - c))"
+  moreover have "disjnt (\<Union>c) (\<Union>(components (U - S) - c))"
     apply (rule di)
     by (metis DiffD1 DiffD2 assms(3) components_nonoverlap disjnt_def subsetCE)
-  ultimately have eq: "S \<union> \<Union>c = u - (\<Union>(components(u - S) - c))"
+  ultimately have eq: "S \<union> \<Union>c = U - (\<Union>(components(U - S) - c))"
     by (auto simp: disjnt_def)
-  have *: "openin (top_of_set u) (\<Union>(components (u - S) - c))"
-    apply (rule openin_Union)
-    apply (rule openin_trans [of "u - S"])
-    apply (simp add: u S locally_diff_closed openin_components_locally_connected)
-    apply (simp add: openin_diff S)
-    done
-  have "openin (top_of_set u) (u - (u - \<Union>(components (u - S) - c)))"
-    apply (rule openin_diff, simp)
-    apply (metis closedin_diff closedin_topspace topspace_euclidean_subtopology *)
-    done
+  have *: "openin (top_of_set U) (\<Union>(components (U - S) - c))"
+  proof (rule openin_Union [OF openin_trans [of "U - S"]])
+    show "openin (top_of_set (U - S)) T" if "T \<in> components (U - S) - c" for T
+      using that by (simp add: U S locally_diff_closed openin_components_locally_connected)
+    show "openin (top_of_set U) (U - S)" if "T \<in> components (U - S) - c" for T
+      using that by (simp add: openin_diff S)
+  qed
+  have "closedin (top_of_set U) (U - \<Union> (components (U - S) - c))"
+    by (metis closedin_diff closedin_topspace topspace_euclidean_subtopology *)
+  then have "openin (top_of_set U) (U - (U - \<Union>(components (U - S) - c)))"
+    by (simp add: openin_diff)
   then show ?thesis
     by (force simp: eq closedin_def)
 qed
@@ -3065,9 +3070,7 @@ lemma closed_union_complement_components:
     shows "closed(S \<union> \<Union> c)"
 proof -
   have "closedin (top_of_set UNIV) (S \<union> \<Union>c)"
-    apply (rule closedin_union_complement_components [OF locally_connected_UNIV])
-    using S c apply (simp_all add: Compl_eq_Diff_UNIV)
-    done
+    by (metis Compl_eq_Diff_UNIV S c closed_closedin closedin_union_complement_components locally_connected_UNIV subtopology_UNIV)
   then show ?thesis by simp
 qed
 
@@ -3114,7 +3117,7 @@ proof -
     by (metis \<open>card B = dim S\<close> \<open>card C = dim T\<close> \<open>finite B\<close> \<open>finite C\<close> card_le_inj d)
   then have pairwise_orth_fb: "pairwise (\<lambda>v j. orthogonal (fb v) (fb j)) B"
     using Corth
-    apply (auto simp: pairwise_def orthogonal_clauses)
+    apply (auto simp: pairwise_def orthogonal_clauses inj_on_def)
     by (meson subsetD image_eqI inj_on_def)
   obtain f where "linear f" and ffb: "\<And>x. x \<in> B \<Longrightarrow> f x = fb x"
     using linear_independent_extend \<open>independent B\<close> by fastforce
@@ -3131,9 +3134,10 @@ proof -
       using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
     have "norm (f x)^2 = norm (\<Sum>v\<in>B. a v *\<^sub>R fb v)^2" by (simp add: sum scale ffb x)
     also have "\<dots> = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
-      apply (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
-      apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
-      done
+    proof (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
+      show "pairwise (\<lambda>v j. orthogonal (a v *\<^sub>R fb v) (a j *\<^sub>R fb j)) B"
+        by (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
+    qed
     also have "\<dots> = norm x ^2"
       by (simp add: x pairwise_ortho_scaleR Borth norm_sum_Pythagorean [OF \<open>finite B\<close>])
     finally show ?thesis
@@ -3200,9 +3204,10 @@ proof -
     finally have *: "f x = (\<Sum>v\<in>B. a v *\<^sub>R fb v)" .
     then have "(norm (f x))\<^sup>2 = (norm (\<Sum>v\<in>B. a v *\<^sub>R fb v))\<^sup>2" by simp
     also have "\<dots> = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
-      apply (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
-      apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
-      done
+    proof (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
+      show "pairwise (\<lambda>v j. orthogonal (a v *\<^sub>R fb v) (a j *\<^sub>R fb j)) B"
+        by (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
+    qed
     also have "\<dots> = (norm x)\<^sup>2"
       by (simp add: x pairwise_ortho_scaleR Borth norm_sum_Pythagorean [OF \<open>finite B\<close>])
     finally show "norm (f x) = norm x"
@@ -3213,8 +3218,10 @@ proof -
     also have "\<dots> = (\<Sum>v\<in>B. a v *\<^sub>R g (fb v))"
       by (simp add: g.scale)
     also have "\<dots> = (\<Sum>v\<in>B. a v *\<^sub>R v)"
-      apply (rule sum.cong [OF refl])
-      using \<open>bij_betw fb B C\<close> gb_def bij_betwE bij_betw_inv_into_left gb_def ggb by fastforce
+    proof (rule sum.cong [OF refl])
+      show "a x *\<^sub>R g (fb x) = a x *\<^sub>R x" if "x \<in> B" for x
+        using that \<open>bij_betw fb B C\<close> bij_betwE bij_betw_inv_into_left gb_def ggb by fastforce
+    qed
     also have "\<dots> = x"
       using x by blast
     finally show "g (f x) = x" .
@@ -3251,9 +3258,7 @@ proof -
   have [simp]: "norm (g x) = norm x" if "x \<in> T" for x
     using fim that by auto
   show ?thesis
-    apply (rule that [OF \<open>linear f\<close> \<open>linear g\<close>])
-    apply (simp_all add: fim gim)
-    done
+    by (rule that [OF \<open>linear f\<close> \<open>linear g\<close>]) (simp_all add: fim gim)
 qed
 
 corollary isometry_subspaces:
@@ -3329,33 +3334,33 @@ locale\<^marker>\<open>tag important\<close> Retracts =
 begin
 
 lemma homotopically_trivial_retraction_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
-      and Q: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
-      and Qeq: "\<And>h k. (\<And>x. x \<in> u \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f;
-                       continuous_on u g; g ` u \<subseteq> s; P g\<rbrakk>
-                       \<Longrightarrow> homotopic_with_canon P u s f g"
-      and contf: "continuous_on u f" and imf: "f ` u \<subseteq> t" and Qf: "Q f"
-      and contg: "continuous_on u g" and img: "g ` u \<subseteq> t" and Qg: "Q g"
-    shows "homotopic_with_canon Q u t f g"
+  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> s; P f;
+                       continuous_on U g; g ` U \<subseteq> s; P g\<rbrakk>
+                       \<Longrightarrow> homotopic_with_canon P U s f g"
+      and contf: "continuous_on U f" and imf: "f ` U \<subseteq> t" and Qf: "Q f"
+      and contg: "continuous_on U g" and img: "g ` U \<subseteq> t" and Qg: "Q g"
+    shows "homotopic_with_canon Q U t f g"
 proof -
-  have feq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
-  have geq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> g)) x = g x" using idhk img by auto
-  have "continuous_on u (k \<circ> f)"
+  have feq: "\<And>x. x \<in> U \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
+  have geq: "\<And>x. x \<in> U \<Longrightarrow> (h \<circ> (k \<circ> g)) x = g x" using idhk img by auto
+  have "continuous_on U (k \<circ> f)"
     using contf continuous_on_compose continuous_on_subset contk imf by blast
-  moreover have "(k \<circ> f) ` u \<subseteq> s"
+  moreover have "(k \<circ> f) ` U \<subseteq> s"
     using imf imk by fastforce
   moreover have "P (k \<circ> f)"
     by (simp add: P Qf contf imf)
-  moreover have "continuous_on u (k \<circ> g)"
+  moreover have "continuous_on U (k \<circ> g)"
     using contg continuous_on_compose continuous_on_subset contk img by blast
-  moreover have "(k \<circ> g) ` u \<subseteq> s"
+  moreover have "(k \<circ> g) ` U \<subseteq> s"
     using img imk by fastforce
   moreover have "P (k \<circ> g)"
     by (simp add: P Qg contg img)
-  ultimately have "homotopic_with_canon P u s (k \<circ> f) (k \<circ> g)"
+  ultimately have "homotopic_with_canon P U s (k \<circ> f) (k \<circ> g)"
     by (rule hom)
-  then have "homotopic_with_canon Q u t (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
+  then have "homotopic_with_canon Q U t (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
     apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
     using Q by (auto simp: conth imh)
   then show ?thesis
@@ -3365,62 +3370,65 @@ proof -
 qed
 
 lemma homotopically_trivial_retraction_null_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
-      and Q: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
-      and Qeq: "\<And>h k. (\<And>x. x \<in> u \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk>
-                     \<Longrightarrow> \<exists>c. homotopic_with_canon P u s f (\<lambda>x. c)"
-      and contf: "continuous_on u f" and imf:"f ` u \<subseteq> t" and Qf: "Q f"
-  obtains c where "homotopic_with_canon Q u t f (\<lambda>x. c)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> s; P f\<rbrakk>
+                     \<Longrightarrow> \<exists>c. homotopic_with_canon P U s f (\<lambda>x. c)"
+      and contf: "continuous_on U f" and imf:"f ` U \<subseteq> t" and Qf: "Q f"
+  obtains c where "homotopic_with_canon Q U t f (\<lambda>x. c)"
 proof -
-  have feq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
-  have "continuous_on u (k \<circ> f)"
+  have feq: "\<And>x. x \<in> U \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
+  have "continuous_on U (k \<circ> f)"
     using contf continuous_on_compose continuous_on_subset contk imf by blast
-  moreover have "(k \<circ> f) ` u \<subseteq> s"
+  moreover have "(k \<circ> f) ` U \<subseteq> s"
     using imf imk by fastforce
   moreover have "P (k \<circ> f)"
     by (simp add: P Qf contf imf)
-  ultimately obtain c where "homotopic_with_canon P u s (k \<circ> f) (\<lambda>x. c)"
+  ultimately obtain c where "homotopic_with_canon P U s (k \<circ> f) (\<lambda>x. c)"
     by (metis hom)
-  then have "homotopic_with_canon Q u t (h \<circ> (k \<circ> f)) (h \<circ> (\<lambda>x. c))"
+  then have "homotopic_with_canon Q U t (h \<circ> (k \<circ> f)) (h \<circ> (\<lambda>x. c))"
     apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
     using Q by (auto simp: conth imh)
+  then have "homotopic_with_canon Q U t f (\<lambda>x. h c)"
+  proof (rule homotopic_with_eq)
+    show "\<And>x. x \<in> topspace (top_of_set U) \<Longrightarrow> f x = (h \<circ> (k \<circ> f)) x"
+      using feq by auto
+    show "\<And>h k. (\<And>x. x \<in> topspace (top_of_set U) \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      using Qeq topspace_euclidean_subtopology by blast
+  qed auto
   then show ?thesis
-    apply (rule_tac c = "h c" in that)
-    apply (erule homotopic_with_eq)
-    using feq apply auto[1]
-    apply simp
-    using Qeq topspace_euclidean_subtopology by blast
+    using that by blast
 qed
 
 lemma cohomotopically_trivial_retraction_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> u; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
-      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f;
-                       continuous_on s g; g ` s \<subseteq> u; P g\<rbrakk>
-                       \<Longrightarrow> homotopic_with_canon P s u f g"
-      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> u" and Qf: "Q f"
-      and contg: "continuous_on t g" and img: "g ` t \<subseteq> u" and Qg: "Q g"
-    shows "homotopic_with_canon Q t u f g"
+      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> U; P f;
+                       continuous_on s g; g ` s \<subseteq> U; P g\<rbrakk>
+                       \<Longrightarrow> homotopic_with_canon P s U f g"
+      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> U" and Qf: "Q f"
+      and contg: "continuous_on t g" and img: "g ` t \<subseteq> U" and Qg: "Q g"
+    shows "homotopic_with_canon Q t U f g"
 proof -
   have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
   have geq: "\<And>x. x \<in> t \<Longrightarrow> (g \<circ> h \<circ> k) x = g x" using idhk img by auto
   have "continuous_on s (f \<circ> h)"
     using contf conth continuous_on_compose imh by blast
-  moreover have "(f \<circ> h) ` s \<subseteq> u"
+  moreover have "(f \<circ> h) ` s \<subseteq> U"
     using imf imh by fastforce
   moreover have "P (f \<circ> h)"
     by (simp add: P Qf contf imf)
   moreover have "continuous_on s (g \<circ> h)"
     using contg continuous_on_compose continuous_on_subset conth imh by blast
-  moreover have "(g \<circ> h) ` s \<subseteq> u"
+  moreover have "(g \<circ> h) ` s \<subseteq> U"
     using img imh by fastforce
   moreover have "P (g \<circ> h)"
     by (simp add: P Qg contg img)
-  ultimately have "homotopic_with_canon P s u (f \<circ> h) (g \<circ> h)"
+  ultimately have "homotopic_with_canon P s U (f \<circ> h) (g \<circ> h)"
     by (rule hom)
-  then have "homotopic_with_canon Q t u (f \<circ> h \<circ> k) (g \<circ> h \<circ> k)"
+  then have "homotopic_with_canon Q t U (f \<circ> h \<circ> k) (g \<circ> h \<circ> k)"
     apply (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
     using Q by (auto simp: contk imk)
   then show ?thesis
@@ -3432,29 +3440,29 @@ proof -
 qed
 
 lemma cohomotopically_trivial_retraction_null_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> u; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
-      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk>
-                       \<Longrightarrow> \<exists>c. homotopic_with_canon P s u f (\<lambda>x. c)"
-      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> u" and Qf: "Q f"
-  obtains c where "homotopic_with_canon Q t u f (\<lambda>x. c)"
+      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> U; P f\<rbrakk>
+                       \<Longrightarrow> \<exists>c. homotopic_with_canon P s U f (\<lambda>x. c)"
+      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> U" and Qf: "Q f"
+  obtains c where "homotopic_with_canon Q t U f (\<lambda>x. c)"
 proof -
   have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
   have "continuous_on s (f \<circ> h)"
     using contf conth continuous_on_compose imh by blast
-  moreover have "(f \<circ> h) ` s \<subseteq> u"
+  moreover have "(f \<circ> h) ` s \<subseteq> U"
     using imf imh by fastforce
   moreover have "P (f \<circ> h)"
     by (simp add: P Qf contf imf)
-  ultimately obtain c where "homotopic_with_canon P s u (f \<circ> h) (\<lambda>x. c)"
+  ultimately obtain c where "homotopic_with_canon P s U (f \<circ> h) (\<lambda>x. c)"
     by (metis hom)
-  then have \<section>: "homotopic_with_canon Q t u (f \<circ> h \<circ> k) ((\<lambda>x. c) \<circ> k)"
+  then have \<section>: "homotopic_with_canon Q t U (f \<circ> h \<circ> k) ((\<lambda>x. c) \<circ> k)"
   proof (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
-    show "\<And>h. \<lbrakk>continuous_map (top_of_set s) (top_of_set u) h; P h\<rbrakk> \<Longrightarrow> Q (h \<circ> k)"
+    show "\<And>h. \<lbrakk>continuous_map (top_of_set s) (top_of_set U) h; P h\<rbrakk> \<Longrightarrow> Q (h \<circ> k)"
       using Q by auto
   qed (auto simp: contk imk)
-  moreover have "homotopic_with_canon Q t u f (\<lambda>x. c)"
+  moreover have "homotopic_with_canon Q t U f (\<lambda>x. c)"
     using homotopic_with_eq [OF \<section>] feq Qeq by fastforce
   ultimately show ?thesis 
     using that by blast
@@ -3531,9 +3539,7 @@ proof -
   moreover have "homotopic_with (\<lambda>x. True) X X (g1 \<circ> id \<circ> f1) id"
     using hom1 by simp
   ultimately have SS: "homotopic_with (\<lambda>x. True) X X (g1 \<circ> g2 \<circ> (f2 \<circ> f1)) id"
-    apply (simp add: o_assoc)
-    apply (blast intro: homotopic_with_trans)
-    done
+    by (metis comp_assoc homotopic_with_trans id_comp)
   have "homotopic_with (\<lambda>f. True) U Y (f1 \<circ> g1 \<circ> g2) (id \<circ> g2)"
     using g2 hom1(2) homotopic_with_compose_continuous_map_right by fastforce
   then have "homotopic_with (\<lambda>f. True) U Y (f1 \<circ> (g1 \<circ> g2)) (id \<circ> g2)"
@@ -3544,9 +3550,7 @@ proof -
   moreover have "homotopic_with (\<lambda>x. True) U U (f2 \<circ> id \<circ> g2) id"
     using hom2 by simp
   ultimately have UU: "homotopic_with (\<lambda>x. True) U U (f2 \<circ> f1 \<circ> (g1 \<circ> g2)) id"
-    apply (simp add: o_assoc)
-    apply (blast intro: homotopic_with_trans)
-    done
+    by (simp add: fun.map_comp hom2(2) homotopic_with_trans)
   show ?thesis
     unfolding homotopy_equivalent_space_def
     by (blast intro: f1 f2 g1 g2 continuous_map_compose SS UU)
@@ -3556,10 +3560,7 @@ lemma deformation_retraction_imp_homotopy_equivalent_space:
   "\<lbrakk>homotopic_with (\<lambda>x. True) X X (s \<circ> r) id; retraction_maps X Y r s\<rbrakk>
     \<Longrightarrow> X homotopy_equivalent_space Y"
   unfolding homotopy_equivalent_space_def retraction_maps_def
-  apply (rule_tac x=r in exI)
-  apply (rule_tac x=s in exI)
-  apply (auto simp: homotopic_with_equal continuous_map_compose)
-  done
+  using homotopic_with_id2 by fastforce
 
 lemma deformation_retract_imp_homotopy_equivalent_space:
    "\<lbrakk>homotopic_with (\<lambda>x. True) X X r id; retraction_maps X Y r id\<rbrakk>
@@ -3663,10 +3664,10 @@ proof (cases "topspace X = {}")
       let ?g = "h \<circ> (\<lambda>x. (x,b))"
       show "pathin X ?g"
         unfolding pathin_def
-        apply (rule continuous_map_compose [OF _ conth])
-        using that
-        apply (auto simp: continuous_map_pairwise intro!: continuous_intros continuous_map_compose continuous_map_id [unfolded id_def])
-        done
+      proof (rule continuous_map_compose [OF _ conth])
+        show "continuous_map (top_of_set {0..1}) (prod_topology (top_of_set {0..1}) X) (\<lambda>x. (x, b))"
+          using that by (auto intro!: continuous_intros)
+      qed
     qed (use h in auto)
   then show ?thesis
     by (metis path_component_of_equiv path_connected_space_iff_path_component)
@@ -3919,10 +3920,7 @@ abbreviation\<^marker>\<open>tag important\<close> homotopy_eqv :: "'a::topologi
 
 lemma homeomorphic_imp_homotopy_eqv: "S homeomorphic T \<Longrightarrow> S homotopy_eqv T"
   unfolding homeomorphic_def homeomorphism_def homotopy_equivalent_space_def
-  apply (erule ex_forward)+
-  apply auto
-   apply (metis homotopic_with_id2 topspace_euclidean_subtopology)
-  by (metis (full_types) homotopic_with_id2 imageE topspace_euclidean_subtopology)
+  by (metis continuous_map_subtopology_eu homotopic_with_id2 openin_imp_subset openin_subtopology_self topspace_euclidean_subtopology)
 
 
 lemma homotopy_eqv_inj_linear_image:
@@ -4021,9 +4019,7 @@ proof -
     by (rule homotopic_with_compose_continuous_left [where Y=T])
        (use f in \<open>auto simp add: hom homotopic_with_symD\<close>)
   ultimately show ?thesis
-    apply (rule_tac c=c in that)
-    apply (simp add: o_def)
-    using homotopic_with_trans by blast
+    using that homotopic_with_trans by (fastforce simp add: o_def)
 qed
 
 lemma homotopy_eqv_cohomotopic_triviality_null:
@@ -4101,10 +4097,11 @@ qed
 
 lemma homotopy_eqv_empty1 [simp]:
   fixes S :: "'a::real_normed_vector set"
-  shows "S homotopy_eqv ({}::'b::real_normed_vector set) \<longleftrightarrow> S = {}"
-  apply (rule iffI)
-   apply (metis Abstract_Topology.continuous_map_subtopology_eu emptyE equals0I homotopy_equivalent_space_def image_subset_iff)
-  by (simp add: homotopy_eqv_contractible_sets)
+  shows "S homotopy_eqv ({}::'b::real_normed_vector set) \<longleftrightarrow> S = {}" (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (metis continuous_map_subtopology_eu empty_iff equalityI homotopy_equivalent_space_def image_subset_iff subsetI)
+qed (simp add: homotopy_eqv_contractible_sets)
 
 lemma homotopy_eqv_empty2 [simp]:
   fixes S :: "'a::real_normed_vector set"
@@ -4168,17 +4165,15 @@ proof -
   have "DIM('a) = DIM(real)"
     by (simp add: "1")
   then obtain f::"'a \<Rightarrow> real" and g
-  where "linear f" "\<And>x. norm(f x) = norm x" "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
+  where "linear f" "\<And>x. norm(f x) = norm x" and fg: "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
     by (rule isomorphisms_UNIV_UNIV) blast
   with \<open>bounded S\<close> have "bounded (f ` S)"
     using bounded_linear_image linear_linear by blast
+  have "bij f" by (metis fg bijI')
   have "connected (f ` (-S))"
     using connected_linear_image assms \<open>linear f\<close> by blast
   moreover have "f ` (-S) = - (f ` S)"
-    apply (rule bij_image_Compl_eq)
-    apply (auto simp: bij_def)
-     apply (metis \<open>\<And>x. g (f x) = x\<close> injI)
-    by (metis UNIV_I \<open>\<And>y. f (g y) = y\<close> image_iff)
+    by (simp add: \<open>bij f\<close> bij_image_Compl_eq)
   finally have "connected (- (f ` S))"
     by simp
   then have "f ` S = {}"
@@ -4303,10 +4298,9 @@ qed
 lemma connected_card_eq_iff_nontrivial:
   fixes S :: "'a::metric_space set"
   shows "connected S \<Longrightarrow> uncountable S \<longleftrightarrow> \<not>(\<exists>a. S \<subseteq> {a})"
-  apply (auto simp: countable_finite finite_subset)
-  by (metis connected_uncountable is_singletonI' is_singleton_the_elem subset_singleton_iff)
+  by (metis connected_uncountable finite.emptyI finite.insertI rev_finite_subset singleton_iff subsetI uncountable_infinite)
 
-lemma simple_path_image_uncountable:
+lemma simple_path_image_uncountable: 
   fixes g :: "real \<Rightarrow> 'a::metric_space"
   assumes "simple_path g"
   shows "uncountable (path_image g)"
@@ -4315,9 +4309,10 @@ proof -
     by (simp_all add: path_defs)
   moreover have "g 0 \<noteq> g (1/2)"
     using assms by (fastforce simp add: simple_path_def)
-  ultimately show ?thesis
-    apply (simp add: assms connected_card_eq_iff_nontrivial connected_simple_path_image)
+  ultimately have "\<forall>a. \<not> path_image g \<subseteq> {a}"
     by blast
+  then show ?thesis
+    using assms connected_simple_path_image connected_uncountable by blast
 qed
 
 lemma arc_image_uncountable:
@@ -4406,10 +4401,8 @@ proof (clarsimp simp add: path_connected_def)
             show "x \<in> f ` ((\<Union>z\<in>closed_segment ?m c. {closed_segment z u \<inter> S}) - {{}})"
             proof (rule_tac x="closed_segment x u \<inter> S" in image_eqI)
               show "x = f (closed_segment x u \<inter> S)"
-                unfolding f_def
-                apply (rule the_equality [symmetric])
-                using x  apply (auto simp: dest: **)
-                done
+                unfolding f_def 
+                by (rule the_equality [symmetric]) (use x in \<open>auto dest: **\<close>)
             qed (use x in auto)
           qed
         qed
@@ -4466,9 +4459,10 @@ proof -
       with ge2 show False
         by (metis (no_types) aff_dim_2 antisym aff not_numeral_le_zero one_le_numeral order_trans)
     qed
-    then show ?thesis
-      apply (rule path_connected_convex_diff_countable [OF \<open>convex S\<close>])
+    moreover have "countable {a}"
       by simp
+    ultimately show ?thesis
+      by (metis path_connected_convex_diff_countable [OF \<open>convex S\<close>])
   qed
 qed
 
@@ -4481,9 +4475,10 @@ lemma path_connected_complement_countable:
   assumes "2 \<le> DIM('a)" "countable S"
   shows "path_connected(- S)"
 proof -
-  have "path_connected(UNIV - S)"
-    apply (rule path_connected_convex_diff_countable)
+  have "\<not> collinear (UNIV::'a set)"
     using assms by (auto simp: collinear_aff_dim [of "UNIV :: 'a set"])
+  then have "path_connected(UNIV - S)"
+    by (simp add: \<open>countable S\<close> path_connected_convex_diff_countable)
   then show ?thesis
     by (simp add: Compl_eq_Diff_UNIV)
 qed
@@ -4620,11 +4615,13 @@ proof -
       using yx \<open>r > 0\<close>
       by (simp add: field_split_simps)
     also have "\<dots> < norm y + (norm x - norm y) * 1"
-      apply (subst add_less_cancel_left)
-      apply (rule mult_strict_left_mono)
-      using nou \<open>0 < r\<close> yx
-       apply (simp_all add: field_simps)
-      done
+    proof (subst add_less_cancel_left)
+      show "(norm x - norm y) * (norm u / r) < (norm x - norm y) * 1"
+      proof (rule mult_strict_left_mono)
+        show "norm u / r < 1"
+          using \<open>0 < r\<close> divide_less_eq_1_pos nou by blast
+      qed (simp add: yx)
+    qed
     also have "\<dots> = norm x"
       by simp
     finally show False by simp
@@ -4714,16 +4711,13 @@ proof -
       qed
     qed
   qed
-  have "\<exists>g. homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
-    apply (rule homeomorphism_compact [OF _ contf fim inj_onf])
-    apply (simp add: affine_closed compact_Int_closed \<open>affine T\<close>)
-    done
-  then show ?thesis
-    apply (rule exE)
-    apply (erule_tac f=f in that)
-    using \<open>r > 0\<close>
-     apply (simp_all add: f_def dist_norm norm_minus_commute)
-    done
+  have "compact (cball a r \<inter> T)"
+    by (simp add: affine_closed compact_Int_closed \<open>affine T\<close>)
+  then obtain g where "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
+    by (metis homeomorphism_compact [OF _ contf fim inj_onf])
+  then show thesis
+    apply (rule_tac f=f in that)
+    using \<open>r > 0\<close> by (simp_all add: f_def dist_norm norm_minus_commute)
 qed
 
 corollary\<^marker>\<open>tag unimportant\<close> homeomorphism_moving_point_2:
@@ -4773,23 +4767,17 @@ proof -
     show "homeomorphism S S ff gg"
     proof (rule homeomorphismI)
       have "continuous_on ((cball a r \<inter> T) \<union> (T - ball a r)) ff"
-        apply (simp add: ff_def)
+        unfolding ff_def
         apply (rule continuous_on_cases)
-        using homeomorphism_cont1 [OF hom]
-            apply (auto simp: affine_closed \<open>affine T\<close> fid)
-        done
+        using homeomorphism_cont1 [OF hom] by (auto simp: affine_closed \<open>affine T\<close> fid)
       then show "continuous_on S ff"
-        apply (rule continuous_on_subset)
-        using ST by auto
+        by (rule continuous_on_subset) (use ST in auto)
       have "continuous_on ((cball a r \<inter> T) \<union> (T - ball a r)) gg"
-        apply (simp add: gg_def)
+        unfolding gg_def
         apply (rule continuous_on_cases)
-        using homeomorphism_cont2 [OF hom]
-            apply (auto simp: affine_closed \<open>affine T\<close> gid)
-        done
+        using homeomorphism_cont2 [OF hom] by (auto simp: affine_closed \<open>affine T\<close> gid)
       then show "continuous_on S gg"
-        apply (rule continuous_on_subset)
-        using ST by auto
+        by (rule continuous_on_subset) (use ST in auto)
       show "ff ` S \<subseteq> S"
       proof (clarsimp simp add: ff_def)
         fix x
@@ -4812,13 +4800,13 @@ proof -
           using ST(1) \<open>g x \<in> cball a r \<inter> T\<close> by force
         qed
       show "\<And>x. x \<in> S \<Longrightarrow> gg (ff x) = x"
-        apply (simp add: ff_def gg_def)
+        unfolding ff_def gg_def
         using homeomorphism_apply1 [OF hom] homeomorphism_image1 [OF hom]
         apply auto
         apply (metis Int_iff homeomorphism_apply1 [OF hom] fid image_eqI less_eq_real_def mem_cball mem_sphere)
         done
       show "\<And>x. x \<in> S \<Longrightarrow> ff (gg x) = x"
-        apply (simp add: ff_def gg_def)
+        unfolding ff_def gg_def
         using homeomorphism_apply2 [OF hom] homeomorphism_image2 [OF hom]
         apply auto
         apply (metis Int_iff fid image_eqI less_eq_real_def mem_cball mem_sphere)
@@ -4894,18 +4882,11 @@ proof -
             apply (auto simp: \<open>d \<in> S\<close> \<open>0 < r\<close> hull_inc)
       using bounded_subset by blast
     show ?thesis
-      apply (rule_tac x="S \<inter> ball d r" in exI)
-      apply (intro conjI)
-        apply (simp add: openin_open_Int)
-       apply (simp add: \<open>0 < r\<close> that)
-      apply (blast intro: *)
-      done
+      by (rule_tac x="S \<inter> ball d r" in exI) (fastforce simp: openin_open_Int \<open>0 < r\<close> that intro: *)
   qed
   have "\<exists>f g. homeomorphism T T f g \<and> f a = b \<and>
               {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. \<not> (f x = x \<and> g x = x)}"
-    apply (rule connected_equivalence_relation [OF S], safe)
-      apply (blast intro: 1 2 3)+
-    done
+    by (rule connected_equivalence_relation [OF S]; blast intro: 1 2 3)
   then show ?thesis
     using that by auto
 qed
@@ -4939,9 +4920,12 @@ next
                    {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. \<not> (f x = x \<and> g x = x)}"
     using insert by blast
   have aff_eq: "affine hull (S - y ` K) = affine hull S"
-    apply (rule affine_hull_Diff)
-    apply (auto simp: insert)
-    using \<open>y i \<in> S\<close> insert.hyps(2) xney xyS by fastforce
+  proof (rule affine_hull_Diff [OF ope])
+    show "finite (y ` K)"
+      by (simp add: insert.hyps(1))
+    show "y ` K \<subset> S"
+      using \<open>y i \<in> S\<close> insert.hyps(2) xney xyS by fastforce
+  qed
   have f_in_S: "f x \<in> S" if "x \<in> S" for x
     using homfg fg_sub homeomorphism_apply1 \<open>S \<subseteq> T\<close>
   proof -
@@ -4967,9 +4951,10 @@ next
       show "countable (y ` K)"
         using countable_finite insert.hyps(1) by blast
     qed
-    show "f (x i) \<in> S - y ` K"
-      apply (auto simp: f_in_S \<open>x i \<in> S\<close>)
+    have "\<And>k. \<lbrakk>f (x i) = y k; k \<in> K\<rbrakk> \<Longrightarrow> False"
         by (metis feq homfg \<open>x i \<in> S\<close> homeomorphism_def \<open>S \<subseteq> T\<close> \<open>i \<notin> K\<close> subsetCE xney xyS)
+    then show "f (x i) \<in> S - y ` K"
+      by (auto simp: f_in_S \<open>x i \<in> S\<close>)
     show "y i \<in> S - y ` K"
       using insert.hyps xney by (auto simp: \<open>y i \<in> S\<close>)
   qed blast
@@ -5028,9 +5013,7 @@ proof -
   have "\<exists>g. homeomorphism (cbox a b) (cbox c d) f g"
   proof (rule homeomorphism_compact)
     show "continuous_on (cbox a b) f"
-      apply (simp add: f_def)
-      apply (intro continuous_intros)
-      using assms by auto
+      unfolding f_def by (intro continuous_intros)
     have "f ` {a..b} = {c..d}"
       unfolding f_def image_affinity_atLeastAtMost
       using assms sum_sqs_eq by (auto simp: field_split_simps)
@@ -5070,15 +5053,13 @@ proof -
     have cf2: "continuous_on (cbox b c) f2"
       using hom_bc homeomorphism_cont1 by blast
     show "continuous_on (cbox a c) f"
-      apply (simp add: f_def)
+      unfolding f_def
       apply (rule continuous_on_cases_le [OF continuous_on_subset [OF cf1] continuous_on_subset [OF cf2]])
-      using le eq apply (force)+
-      done
+      using le eq by (force)+
     have "f ` cbox a b = f1 ` cbox a b" "f ` cbox b c = f2 ` cbox b c"
       unfolding f_def using eq by force+
     then show "f ` cbox a c = cbox u w"
-      apply (simp only: ac uw image_Un)
-      by (metis hom_ab hom_bc homeomorphism_def)
+      unfolding ac uw image_Un by (metis hom_ab hom_bc homeomorphism_def)
     have neq12: "f1 x \<noteq> f2 y" if x: "a \<le> x" "x \<le> b" and y: "b < y" "y \<le> c" for x y
     proof -
       have "f1 x \<in> cbox u v"
@@ -5097,13 +5078,11 @@ proof -
     ultimately show "inj_on f (cbox a c)"
       apply (simp (no_asm) add: inj_on_def)
       apply (simp add: f_def inj_on_eq_iff)
-      using neq12  apply force
-      done
+      using neq12 by force
   qed auto
   then obtain g where "homeomorphism (cbox a c) (cbox u w) f g" ..
   then show ?thesis
-    apply (rule that)
-    using eq le by (auto simp: f_def)
+    using eq f_def le that by force
 qed
 
 lemma homeomorphism_grouping_point_3:
@@ -5132,10 +5111,11 @@ proof -
                and f_eq: "\<And>x. x \<in> cbox a d \<Longrightarrow> f x = f4 x" "\<And>x. x \<in> cbox d b \<Longrightarrow> f x = f3 x"
     using homeomorphism_grouping_point_2 [OF 4 3] less by (auto simp: f4_eq f3_eq f2_eq f1_eq)
   show ?thesis
-    apply (rule that [OF fg])
-    using f4_eq f_eq homeomorphism_image1 [OF 2]
-    apply simp
-    by (metis atLeastAtMost_iff box_real(1) box_real(2) cbox_sub(1) greaterThanLessThan_iff imageI less_eq_real_def subset_eq)
+  proof (rule that [OF fg])
+    show "f x \<in> cbox u v" if "x \<in> cbox c d" for x 
+      using that f4_eq f_eq homeomorphism_image1 [OF 2]
+      by (metis atLeastAtMost_iff box_real(2) image_eqI less(1) less_eq_real_def order_trans)
+  qed
 qed
 
 
@@ -5247,10 +5227,12 @@ proof -
     show "{x. \<not> (f' x = x \<and> g' x = x)} \<subseteq> S"
       using \<open>cbox w z \<subseteq> S\<close> by (auto simp: f'_def g'_def)
     show "bounded {x. \<not> (f' x = x \<and> g' x = x)}"
-      apply (rule bounded_subset [of "cbox w z"])
-      using bounded_cbox apply blast
-      apply (auto simp: f'_def g'_def)
-      done
+    proof (rule bounded_subset [of "cbox w z"])
+      show "bounded (cbox w z)"
+        using bounded_cbox by blast
+      show "{x. \<not> (f' x = x \<and> g' x = x)} \<subseteq> cbox w z"
+        by (auto simp: f'_def g'_def)
+    qed
   qed
 qed
 
