@@ -117,9 +117,13 @@ fun extract_imp fst xs t =
 fun extract_conj_from_judgment ctxt fst xs t =
   if Object_Logic.is_judgment ctxt t
   then
-    (case extract_conj fst xs (Object_Logic.drop_judgment ctxt t) of
-      NONE => NONE
-    | SOME (xs, eq, P) => SOME (xs, Object_Logic.ensure_propT ctxt eq, Object_Logic.ensure_propT ctxt P))
+    let
+      val judg $ t' = t
+    in
+      case extract_conj fst xs t' of
+          NONE => NONE
+        | SOME (xs, eq, P) => SOME (xs, judg $ eq, judg $ P)
+    end
   else NONE;
 
 fun extract_implies ctxt fst xs t =
