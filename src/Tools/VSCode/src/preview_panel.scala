@@ -8,7 +8,6 @@ package isabelle.vscode
 
 
 import isabelle._
-import isabelle.vscode.Protocol
 
 import java.io.{File => JFile}
 
