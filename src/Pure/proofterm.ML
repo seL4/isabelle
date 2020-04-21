@@ -22,7 +22,7 @@ sig
    | %% of proof * proof
    | Hyp of term
    | PAxm of string * term * typ list option
-   | OfClass of typ * class
+   | PClass of typ * class
    | Oracle of string * term * typ list option
    | PThm of thm_header * thm_body
   and proof_body = PBody of
@@ -214,7 +214,7 @@ datatype proof =
  | op %% of proof * proof
  | Hyp of term
  | PAxm of string * term * typ list option
- | OfClass of typ * class
+ | PClass of typ * class
  | Oracle of string * term * typ list option
  | PThm of thm_header * thm_body
 and proof_body = PBody of
@@ -368,7 +368,7 @@ fun proof consts prf = prf |> variant
   fn a %% b => ([], pair (proof consts) (proof consts) (a, b)),
   fn Hyp a => ([], term consts a),
   fn PAxm (a, b, c) => ([a], pair (term consts) (option (list typ)) (b, c)),
-  fn OfClass (a, b) => ([b], typ a),
+  fn PClass (a, b) => ([b], typ a),
   fn Oracle (a, b, c) => ([a], pair (term consts) (option (list typ)) (b, c)),
   fn PThm ({serial, pos, theory_name, name, prop, types}, Thm_Body {open_proof, body, ...}) =>
     ([int_atom serial, theory_name, name],
@@ -399,7 +399,7 @@ fun standard_proof consts prf = prf |> variant
   fn a %% b => ([], pair (standard_proof consts) (standard_proof consts) (a, b)),
   fn Hyp a => ([], standard_term consts a),
   fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
-  fn OfClass (T, c) => ([c], typ T),
+  fn PClass (T, c) => ([c], typ T),
   fn Oracle (name, prop, SOME Ts) => ([name], pair (standard_term consts) (list typ) (prop, Ts)),
   fn PThm ({serial, theory_name, name, types = SOME Ts, ...}, _) =>
     ([int_atom serial, theory_name, name], list typ Ts)];
@@ -429,7 +429,7 @@ fun proof consts prf = prf |> variant
   fn ([], a) => op %% (pair (proof consts) (proof consts) a),
   fn ([], a) => Hyp (term consts a),
   fn ([a], b) => let val (c, d) = pair (term consts) (option (list typ)) b in PAxm (a, c, d) end,
-  fn ([b], a) => OfClass (typ a, b),
+  fn ([b], a) => PClass (typ a, b),
   fn ([a], b) => let val (c, d) = pair (term consts) (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b, c], d) =>
     let
@@ -516,14 +516,14 @@ fun map_proof_same term typ ofclass =
           (proof prf1 %% Same.commit proof prf2
             handle Same.SAME => prf1 %% proof prf2)
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
-      | proof (OfClass T_c) = ofclass T_c
+      | proof (PClass T_c) = ofclass T_c
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
       | proof (PThm ({serial, pos, theory_name, name, prop, types = SOME Ts}, thm_body)) =
           PThm (thm_header serial pos theory_name name prop (SOME (typs Ts)), thm_body)
       | proof _ = raise Same.SAME;
   in proof end;
 
-fun map_proof_terms_same term typ = map_proof_same term typ (fn (T, c) => OfClass (typ T, c));
+fun map_proof_terms_same term typ = map_proof_same term typ (fn (T, c) => PClass (typ T, c));
 fun map_proof_types_same typ = map_proof_terms_same (Term_Subst.map_types_same typ) typ;
 
 fun same eq f x =
@@ -550,7 +550,7 @@ fun fold_proof_terms_types f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms
   | fold_proof_terms_types f g (prf1 %% prf2) =
       fold_proof_terms_types f g prf1 #> fold_proof_terms_types f g prf2
   | fold_proof_terms_types _ g (PAxm (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms_types _ g (OfClass (T, _)) = g T
+  | fold_proof_terms_types _ g (PClass (T, _)) = g T
   | fold_proof_terms_types _ g (Oracle (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms_types _ g (PThm ({types = SOME Ts, ...}, _)) = fold g Ts
   | fold_proof_terms_types _ _ _ = I;
@@ -564,7 +564,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof _ = 1;
 
 fun change_types types (PAxm (name, prop, _)) = PAxm (name, prop, types)
-  | change_types (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
+  | change_types (SOME [T]) (PClass (_, c)) = PClass (T, c)
   | change_types types (Oracle (name, prop, _)) = Oracle (name, prop, types)
   | change_types types (PThm ({serial, pos, theory_name, name, prop, types = _}, thm_body)) =
       PThm (thm_header serial pos theory_name name prop types, thm_body)
@@ -710,8 +710,8 @@ fun norm_proof env =
             handle Same.SAME => prf1 %% norm prf2)
       | norm (PAxm (s, prop, Ts)) =
           PAxm (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
-      | norm (OfClass (T, c)) =
-          OfClass (htypeT Envir.norm_type_same T, c)
+      | norm (PClass (T, c)) =
+          PClass (htypeT Envir.norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
           Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
       | norm (PThm ({serial = i, pos = p, theory_name, name = a, prop = t, types = Ts}, thm_body)) =
@@ -990,8 +990,8 @@ fun lift_proof Bi inc prop prf =
           handle Same.SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PAxm (s, prop, Ts)) =
           PAxm (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (OfClass (T, c)) =
-          OfClass (Logic.incr_tvar_same inc T, c)
+      | lift' _ _ (PClass (T, c)) =
+          PClass (Logic.incr_tvar_same inc T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
           Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
       | lift' _ _ (PThm ({serial = i, pos = p, theory_name, name = s, prop, types = Ts}, thm_body)) =
@@ -1162,7 +1162,7 @@ fun const_proof mk name prop =
     val args = prop_args prop;
     val ({outer_constraints, ...}, prop1) = Logic.unconstrainT [] prop;
     val head = mk (name, prop1, NONE);
-  in proof_combP (proof_combt' (head, args), map OfClass outer_constraints) end;
+  in proof_combP (proof_combt' (head, args), map PClass outer_constraints) end;
 
 val axm_proof = const_proof PAxm;
 val oracle_proof = const_proof Oracle;
@@ -1198,7 +1198,7 @@ val shrink_proof =
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
       | shrink' _ _ ts _ (Hyp t) = ([], false, map (pair false) ts, Hyp t)
       | shrink' _ _ ts _ (prf as MinProof) = ([], false, map (pair false) ts, prf)
-      | shrink' _ _ ts _ (prf as OfClass _) = ([], false, map (pair false) ts, prf)
+      | shrink' _ _ ts _ (prf as PClass _) = ([], false, map (pair false) ts, prf)
       | shrink' _ _ ts prfs prf =
           let
             val prop =
@@ -1378,7 +1378,7 @@ fun match_proof Ts tymatch =
       | mtch Ts i j inst (PAxm (s1, _, opTs), PAxm (s2, _, opUs)) =
           if s1 = s2 then optmatch matchTs inst (opTs, opUs)
           else raise PMatch
-      | mtch Ts i j inst (OfClass (T1, c1), OfClass (T2, c2)) =
+      | mtch Ts i j inst (PClass (T1, c1), PClass (T2, c2)) =
           if c1 = c2 then matchT inst (T1, T2)
           else raise PMatch
       | mtch Ts i j inst
@@ -1427,7 +1427,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
             NONE => raise Same.SAME
           | SOME prf' => incr_pboundvars plev tlev prf')
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
-      | subst _ _ (OfClass (T, c)) = OfClass (substT T, c)
+      | subst _ _ (PClass (T, c)) = PClass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
       | subst _ _ (PThm ({serial = i, pos = p, theory_name, name = id, prop, types}, thm_body)) =
           PThm (thm_header i p theory_name id prop (Same.map_option substTs types), thm_body)
@@ -1453,7 +1453,7 @@ fun could_unify prf1 prf2 =
         (_, Hyp (Var _)) => true
       | (Hyp (Var _), _) => true
       | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
-      | (OfClass (_, c), OfClass (_, d)) => c = d andalso matchrands prf1 prf2
+      | (PClass (_, c), PClass (_, d)) => c = d andalso matchrands prf1 prf2
       | (PThm ({name = a, prop = propa, ...}, _), PThm ({name = b, prop = propb, ...}, _)) =>
           a = b andalso propa = propb andalso matchrands prf1 prf2
       | (PBound i, PBound j) => i = j andalso matchrands prf1 prf2
@@ -1607,7 +1607,7 @@ fun app_types shift prop Ts prf =
 
 fun guess_name (PThm ({name, ...}, _)) = name
   | guess_name (prf %% Hyp _) = guess_name prf
-  | guess_name (prf %% OfClass _) = guess_name prf
+  | guess_name (prf %% PClass _) = guess_name prf
   | guess_name (prf % NONE) = guess_name prf
   | guess_name (prf % SOME (Var _)) = guess_name prf
   | guess_name _ = "";
@@ -1801,7 +1801,7 @@ fun make_constraints_cprf thy env cprf =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
-      | mk_cnstrts env _ _ vTs (prf as OfClass (T, c)) =
+      | mk_cnstrts env _ _ vTs (prf as PClass (T, c)) =
           mk_cnstrts_atom env vTs (Logic.mk_of_class (T, c)) NONE prf
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
@@ -1899,7 +1899,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 _ (Hyp t) = t
   | prop_of0 _ (PThm ({prop, types = SOME Ts, ...}, _)) = prop_of_atom prop Ts
   | prop_of0 _ (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
-  | prop_of0 _ (OfClass (T, c)) = Logic.mk_of_class (T, c)
+  | prop_of0 _ (PClass (T, c)) = Logic.mk_of_class (T, c)
   | prop_of0 _ (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
@@ -2233,7 +2233,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
       else
         proof_combP (proof_combt' (head, args),
-          map OfClass (#outer_constraints ucontext) @ map Hyp hyps);
+          map PClass (#outer_constraints ucontext) @ map Hyp hyps);
   in (thm, proof) end;
 
 in

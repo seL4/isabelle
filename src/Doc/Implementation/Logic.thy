@@ -1200,7 +1200,7 @@ text %mlref \<open>
   constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_op "%"},
   @{index_ML_op "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
   Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML PThm} as explained
-  above. %FIXME OfClass (!?)
+  above. %FIXME PClass (!?)
 
   \<^descr> Type \<^ML_type>\<open>proof_body\<close> represents the nested proof information of a
   named theorem, consisting of a digest of oracles and named theorem over some

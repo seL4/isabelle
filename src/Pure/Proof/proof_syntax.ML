@@ -100,16 +100,16 @@ val MinProoft = Const ("Pure.MinProof", proofT);
 fun AppT T prf =
   Const ("Pure.Appt", proofT --> Term.itselfT T --> proofT) $ prf $ Logic.mk_type T;
 
-fun OfClasst (T, c) =
+fun PClasst (T, c) =
   let val U = Term.itselfT T --> propT
-  in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
+  in Const ("Pure.PClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
 fun term_of _ (PThm ({serial = i, name, types = Ts, ...}, _)) =
       fold AppT (these Ts)
         (Const (Long_Name.append "thm" (if name = "" then string_of_int i else name), proofT))
   | term_of _ (PAxm (name, _, Ts)) =
       fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
+  | term_of _ (PClass (T, c)) = AppT T (PClasst (T, c))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT in
@@ -166,11 +166,11 @@ fun proof_of_term thy ty =
                    | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
-      | prf_of Ts (Const ("Pure.OfClass", _) $ Const (c_class, _)) =
+      | prf_of Ts (Const ("Pure.PClass", _) $ Const (c_class, _)) =
           (case try Logic.class_of_const c_class of
             SOME c =>
               Proofterm.change_types (if ty then SOME Ts else NONE)
-                (OfClass (TVar ((Name.aT, 0), []), c))
+                (PClass (TVar ((Name.aT, 0), []), c))
           | NONE => error ("Bad class constant: " ^ quote c_class))
       | prf_of Ts (Const ("Pure.Hyp", _) $ prop) = Hyp prop
       | prf_of Ts (v as Var ((_, Type ("Pure.proof", _)))) = Hyp v

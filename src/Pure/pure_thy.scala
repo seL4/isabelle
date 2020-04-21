@@ -32,6 +32,6 @@ object Pure_Thy
   val ABSP: String = "Pure.AbsP"
   val HYP: String = "Pure.Hyp"
   val ORACLE: String = "Pure.Oracle"
-  val OFCLASS: String = "Pure.OfClass"
+  val OFCLASS: String = "Pure.PClass"
   val MINPROOF: String = "Pure.MinProof"
 }

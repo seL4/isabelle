@@ -344,7 +344,7 @@ and un_hhf_proof P Q prf =
   end;
 
 
-(**** expand OfClass proofs ****)
+(**** expand PClass proofs ****)
 
 fun expand_of_sort_proof thy hyps (T, S) =
   let
@@ -367,13 +367,13 @@ fun expand_of_sort_proof thy hyps (T, S) =
   in
     map2 reconstruct (Logic.mk_of_sort (T, S))
       (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.classrel_proof thy) (Thm.arity_proof thy)
-        (OfClass o apfst Type.strip_sorts) (subst T, S))
+        (PClass o apfst Type.strip_sorts) (subst T, S))
   end;
 
 fun expand_of_class_proof thy hyps (T, c) =
   hd (expand_of_sort_proof thy hyps (T, [c]));
 
-fun expand_of_class thy (_: typ list) hyps (OfClass (T, c)) =
+fun expand_of_class thy (_: typ list) hyps (PClass (T, c)) =
       SOME (expand_of_class_proof thy hyps (T, c), Proofterm.no_skel)
   | expand_of_class _ _ _ _ = NONE;
 

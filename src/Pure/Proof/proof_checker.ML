@@ -137,11 +137,11 @@ fun thm_of_proof thy =
 
           | thm_of _ _ (Hyp t) = Thm.assume (Thm.global_cterm_of thy t)
 
-          | thm_of _ _ (OfClass (T, c)) =
+          | thm_of _ _ (PClass (T, c)) =
               if Sign.of_sort thy (T, [c])
               then Thm.of_class (Thm.global_ctyp_of thy T, c)
               else
-                error ("thm_of_proof: bad OfClass proof " ^
+                error ("thm_of_proof: bad PClass proof " ^
                   Syntax.string_of_term_global thy (Logic.mk_of_class (T, c)))
 
           | thm_of _ _ _ = error "thm_of_proof: partial proof term";

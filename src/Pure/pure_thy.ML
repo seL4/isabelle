@@ -223,7 +223,7 @@ val _ = Theory.setup
     (qualify (Binding.make ("AbsP", \<^here>)), typ "prop \<Rightarrow> (Pure.proof \<Rightarrow> Pure.proof) \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("Hyp", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("Oracle", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
-    (qualify (Binding.make ("OfClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("PClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("MinProof", \<^here>)), typ "Pure.proof", NoSyn)]
   #> add_deps_const "Pure.eq"
   #> add_deps_const "Pure.imp"

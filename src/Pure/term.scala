@@ -99,7 +99,7 @@ object Term
   case class AppP(fun: Proof, arg: Proof) extends Proof
   case class Hyp(hyp: Term) extends Proof
   case class PAxm(name: String, types: List[Typ]) extends Proof
-  case class OfClass(typ: Typ, cls: Class) extends Proof
+  case class PClass(typ: Typ, cls: Class) extends Proof
   case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
   case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof
 
@@ -205,7 +205,7 @@ object Term
               case AppP(fun, arg) => store(AppP(cache_proof(fun), cache_proof(arg)))
               case Hyp(hyp) => store(Hyp(cache_term(hyp)))
               case PAxm(name, types) => store(PAxm(cache_string(name), cache_typs(types)))
-              case OfClass(typ, cls) => store(OfClass(cache_typ(typ), cache_string(cls)))
+              case PClass(typ, cls) => store(PClass(cache_typ(typ), cache_string(cls)))
               case Oracle(name, prop, types) =>
                 store(Oracle(cache_string(name), cache_term(prop), cache_typs(types)))
               case PThm(serial, theory_name, name, types) =>
