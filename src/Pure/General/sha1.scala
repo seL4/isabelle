@@ -45,12 +45,10 @@ object SHA1
     {
       val buf = new Array[Byte](65536)
       var m = 0
-      try {
-        do {
-          m = stream.read(buf, 0, buf.length)
-          if (m != -1) digest.update(buf, 0, m)
-        } while (m != -1)
-      }
+      do {
+        m = stream.read(buf, 0, buf.length)
+        if (m != -1) digest.update(buf, 0, m)
+      } while (m != -1)
     })
 
     make_result(digest)
