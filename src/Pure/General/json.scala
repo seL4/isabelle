@@ -29,7 +29,7 @@ object JSON
 
     def apply(entries: Entry*): Object.T = Map(entries:_*)
 
-    def unapply(obj: T): Option[Object.T] =
+    def unapply(obj: Any): Option[Object.T] =
       obj match {
         case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
           Some(m.asInstanceOf[Object.T])
