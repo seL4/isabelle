@@ -18,6 +18,8 @@ sig
     term list * term list -> local_theory -> (term * thm) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
+  val add_foundation_interpretation: (binding * (term * term list) -> Context.generic -> Context.generic) ->
+    theory -> theory
 
   (*nested local theories primitives*)
   val standard_facts: local_theory -> Proof.context -> Attrib.fact list -> Attrib.fact list
@@ -163,9 +165,32 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
 
 (** background primitives **)
 
+structure Foundation_Interpretations = Theory_Data
+(
+  type T = (binding * (term * term list) -> Context.generic -> Context.generic) Inttab.table;
+  val empty = Inttab.empty;
+  val extend = I;
+  val merge = Inttab.merge (K true);
+);
+
+fun add_foundation_interpretation f =
+  Foundation_Interpretations.map (Inttab.update_new (serial (), f));
+
+fun foundation_interpretation binding_const_params lthy =
+  let
+    val interps = Foundation_Interpretations.get (Proof_Context.theory_of lthy);
+    val interp = Inttab.fold (fn (_, f) => f binding_const_params) interps;
+  in
+    lthy
+    |> Local_Theory.background_theory (Context.theory_map interp)
+    |> Local_Theory.map_contexts (K (Context.proof_map interp))
+  end;
+
 fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
     val params = type_params @ term_params;
+    val target_params = type_params
+      @ take_prefix is_Free (Variable.export_terms lthy (Local_Theory.target_of lthy) term_params);
     val mx' = check_mixfix_global (b, null params) mx;
 
     val (const, lthy2) = lthy
@@ -175,7 +200,8 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
     val ((_, def), lthy3) = lthy2
       |> Local_Theory.background_theory_result
         (Thm.add_def (Proof_Context.defs_context lthy2) false false
-          (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
+          (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)))
+      ||> foundation_interpretation (b, (const, target_params));
   in ((lhs, def), lthy3) end;
 
 fun background_declaration decl lthy =
