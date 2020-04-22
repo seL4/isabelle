@@ -13,7 +13,8 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
-  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
+  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS,
+  JSchException}
 
 
 object SSH
@@ -78,8 +79,13 @@ object SSH
 
     val identity_files =
       space_explode(':', options.string("ssh_identity_files")).map(Path.explode)
-    for (identity_file <- identity_files if identity_file.is_file)
-      jsch.addIdentity(File.platform_path(identity_file))
+    for (identity_file <- identity_files if identity_file.is_file) {
+      try { jsch.addIdentity(File.platform_path(identity_file)) }
+      catch {
+        case exn: JSchException =>
+          error("Error in ssh identity file " + identity_file + ": " + exn.getMessage)
+      }
+    }
 
     new Context(options, jsch)
   }

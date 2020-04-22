@@ -147,7 +147,8 @@ object Latex
 
     def error_suffix1(lines: List[String]): Option[String] =
     {
-      val lines1 = lines.take(20).takeWhile({ case File_Line_Error(_) => false case _ => true })
+      val lines1 =
+        lines.take(20).takeWhile({ case File_Line_Error((_, _, _)) => false case _ => true })
       lines1.zipWithIndex.collectFirst({
         case (Line_Error(msg), i) =>
           cat_lines(lines1.take(i).filterNot(error_ignore) ::: List(msg)) })
