@@ -60,7 +60,7 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
   {
     val factor_text =
       factor match {
-        case Some(f) => String.format(Locale.ROOT, ", factor %.2f", new java.lang.Double(f))
+        case Some(f) => String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))
         case None => ""
       }
     if (resources.seconds >= 3.0)

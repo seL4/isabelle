@@ -9,14 +9,14 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.Class
 import java.awt.{Color, Dimension, BorderLayout}
 import javax.swing.{JPanel, JTable, JScrollPane, JOptionPane}
 import javax.swing.table.AbstractTableModel
 
 import scala.collection.JavaConverters
 
-import org.gjt.sp.jedit.{jEdit, View, GUIUtilities}
+import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.util.GenericGUIUtilities
 import org.jedit.keymap.{KeymapManager, Keymap}
 
 
@@ -40,7 +40,7 @@ object Keymap_Merge
       error("Bad shortcut property: " + quote(property))
 
     val label: String =
-      GUIUtilities.prettifyMenuLabel(jEdit.getProperty(action + ".label", ""))
+      GenericGUIUtilities.prettifyMenuLabel(jEdit.getProperty(action + ".label", ""))
 
 
     /* ignore wrt. keymap */
@@ -184,7 +184,7 @@ object Keymap_Merge
 
   private class Table(table_model: Table_Model) extends JPanel(new BorderLayout)
   {
-    private val cell_size = GUIUtilities.defaultTableCellSize()
+    private val cell_size = GenericGUIUtilities.defaultTableCellSize()
     private val table_size = new Dimension(cell_size.width * 2, cell_size.height * 15)
 
     val table = new JTable(table_model)
