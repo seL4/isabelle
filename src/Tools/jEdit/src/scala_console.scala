@@ -134,7 +134,6 @@ class Scala_Console extends Shell("Scala")
     {
       override def parentClassLoader = new JARClassLoader
     }
-    interp.setContextClassLoader
 
     val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console")
     {
