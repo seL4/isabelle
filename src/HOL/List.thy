@@ -2373,8 +2373,15 @@ lemma takeWhile_append2 [simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> P x) \<Longrightarrow> takeWhile P (xs @ ys) = xs @ takeWhile P ys"
   by (induct xs) auto
 
+lemma takeWhile_append:
+  "takeWhile P (xs @ ys) = (if \<forall>x\<in>set xs. P x then xs @ takeWhile P ys else takeWhile P xs)"
+using takeWhile_append1[of _ xs P ys] takeWhile_append2[of xs P ys] by auto
+
 lemma takeWhile_tail: "\<not> P x \<Longrightarrow> takeWhile P (xs @ (x#l)) = takeWhile P xs"
   by (induct xs) auto
+
+lemma takeWhile_eq_Nil_iff: "takeWhile P xs = [] \<longleftrightarrow> xs = [] \<or> \<not>P (hd xs)"
+by (cases xs) auto
 
 lemma takeWhile_nth: "j < length (takeWhile P xs) \<Longrightarrow> takeWhile P xs ! j = xs ! j"
   by (metis nth_append takeWhile_dropWhile_id)
@@ -2398,6 +2405,10 @@ lemma dropWhile_append3:
   "\<not> P y \<Longrightarrow>dropWhile P (xs @ y # ys) = dropWhile P xs @ y # ys"
   by (induct xs) auto
 
+lemma dropWhile_append:
+  "dropWhile P (xs @ ys) = (if \<forall>x\<in>set xs. P x then dropWhile P ys else dropWhile P xs @ ys)"
+using dropWhile_append1[of _ xs P ys] dropWhile_append2[of xs P ys] by auto
+
 lemma dropWhile_last:
   "x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> last (dropWhile P xs) = last xs"
   by (auto simp add: dropWhile_append3 in_set_conv_decomp)
@@ -2419,6 +2430,9 @@ lemma dropWhile_eq_Nil_conv[simp]:
 lemma dropWhile_eq_Cons_conv:
   "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys \<and> \<not> P y)"
   by(induct xs, auto)
+
+lemma dropWhile_eq_self_iff: "dropWhile P xs = xs \<longleftrightarrow> xs = [] \<or> \<not>P (hd xs)"
+by (cases xs) (auto simp: dropWhile_eq_Cons_conv)
 
 lemma distinct_takeWhile[simp]: "distinct xs \<Longrightarrow> distinct (takeWhile P xs)"
   by (induct xs) (auto dest: set_takeWhileD)
@@ -3925,6 +3939,9 @@ by (induct xs rule: remdups_adj.induct, simp_all)
 lemma remdups_adj_set[simp]: "set (remdups_adj xs) = set xs"
 by (induct xs rule: remdups_adj.induct, simp_all)
 
+lemma last_remdups_adj [simp]: "last (remdups_adj xs) = last xs"
+  by (induction xs rule: remdups_adj.induct) auto
+
 lemma remdups_adj_Cons_alt[simp]: "x # tl (remdups_adj (x # xs)) = remdups_adj (x # xs)"
 by (induct xs rule: remdups_adj.induct, auto)
 
@@ -4312,6 +4329,14 @@ proof (induct m arbitrary: n)
   then show ?case
     by (induct n) auto
 qed simp
+
+lemma takeWhile_replicate[simp]:
+  "takeWhile P (replicate n x) = (if P x then replicate n x else [])"
+using takeWhile_eq_Nil_iff by fastforce
+
+lemma dropWhile_replicate[simp]:
+  "dropWhile P (replicate n x) = (if P x then [] else replicate n x)"
+using dropWhile_eq_self_iff by fastforce
 
 lemma replicate_length_filter:
   "replicate (length (filter (\<lambda>y. x = y) xs)) x = filter (\<lambda>y. x = y) xs"
