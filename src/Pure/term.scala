@@ -195,7 +195,7 @@ object Term
         lookup(x) match {
           case Some(y) => y
           case None =>
-            x match {
+            (x: @unchecked) match {
               case PBound(_) => store(x)
               case Abst(name, typ, body) =>
                 store(Abst(cache_string(name), cache_typ(typ), cache_proof(body)))

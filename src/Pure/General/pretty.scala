@@ -76,7 +76,7 @@ object Pretty
       val (line, rest) =
         Library.take_prefix[Tree]({ case Break(true, _, _) => false case _ => true }, prts)
       val len1 = ((0.0 /: line) { case (l, t) => l + t.length }) max len
-      rest match {
+      (rest: @unchecked) match {
         case Break(true, _, ind) :: rest1 =>
           body_length(Break(false, indent1 + ind, 0) :: rest1, len1)
         case Nil => len1
