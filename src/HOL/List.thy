@@ -215,6 +215,14 @@ primrec distinct :: "'a list \<Rightarrow> bool" where
 "distinct [] \<longleftrightarrow> True" |
 "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
 
+fun successively :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
+"successively P []  = True" |
+"successively P [x] = True" |
+"successively P (x # y # xs) = (P x y \<and> successively P (y#xs))"
+
+definition distinct_adj where
+"distinct_adj = successively (\<noteq>)"
+
 primrec remdups :: "'a list \<Rightarrow> 'a list" where
 "remdups [] = []" |
 "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
@@ -300,6 +308,7 @@ text\<open>
 @{lemma "fold f [a,b,c] x = f c (f b (f a x))" by simp}\\
 @{lemma "foldr f [a,b,c] x = f a (f b (f c x))" by simp}\\
 @{lemma "foldl f x [a,b,c] = f (f (f x a) b) c" by simp}\\
+@{lemma "successively (\<noteq>) [True,False,True,False]" by simp}\\
 @{lemma "zip [a,b,c] [x,y,z] = [(a,x),(b,y),(c,z)]" by simp}\\
 @{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" by simp}\\
 @{lemma "enumerate 3 [a,b,c] = [(3,a),(4,b),(5,c)]" by normalization}\\
@@ -347,7 +356,7 @@ Figure~\ref{fig:Characteristic} shows characteristic examples
 that should give an intuitive understanding of the above functions.
 \<close>
 
-text\<open>The following simple sort functions are intended for proofs,
+text\<open>The following simple sort(ed) functions are intended for proofs,
 not for efficient implementations.\<close>
 
 text \<open>A sorted predicate w.r.t. a relation:\<close>
@@ -3452,6 +3461,83 @@ lemma upto_code[code]: "[i..j] = upto_aux i j []"
 by(simp add: upto_aux_def)
 
 
+
+subsubsection \<open>\<^const>\<open>successively\<close>\<close>
+
+lemma successively_Cons:
+  "successively P (x # xs) \<longleftrightarrow> xs = [] \<or> P x (hd xs) \<and> successively P xs"
+by (cases xs) auto
+
+lemma successively_cong [cong]:
+  assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> P x y \<longleftrightarrow> Q x y" "xs = ys"
+  shows   "successively P xs \<longleftrightarrow> successively Q ys"
+  unfolding assms(2) [symmetric] using assms(1)
+  by (induction xs) (auto simp: successively_Cons)
+
+
+lemma successively_append_iff:
+  "successively P (xs @ ys) \<longleftrightarrow>
+     successively P xs \<and> successively P ys \<and> 
+     (xs = [] \<or> ys = [] \<or> P (last xs) (hd ys))"
+by (induction xs) (auto simp: successively_Cons)
+
+lemma successively_if_sorted_wrt: "sorted_wrt P xs \<Longrightarrow> successively P xs"
+by (induction xs rule: induct_list012) auto
+
+
+lemma successively_iff_sorted_wrt_strong:
+  assumes "\<And>x y z. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> z \<in> set xs \<Longrightarrow>
+                     P x y \<Longrightarrow> P y z \<Longrightarrow> P x z"
+  shows   "successively P xs \<longleftrightarrow> sorted_wrt P xs"
+proof
+  assume "successively P xs"
+  from this and assms show "sorted_wrt P xs"
+  proof (induction xs rule: induct_list012)
+    case (3 x y xs)
+    from "3.prems" have "P x y"
+      by auto
+    have IH: "sorted_wrt P (y # xs)"
+      using "3.prems"
+      by(intro "3.IH"(2) list.set_intros(2))(simp, blast intro: list.set_intros(2))
+    have "P x z" if asm: "z \<in> set xs" for z
+    proof -
+      from IH and asm have "P y z"
+        by auto
+      with \<open>P x y\<close> show "P x z"
+        using "3.prems" asm by auto
+    qed
+    with IH and \<open>P x y\<close> show ?case by auto
+  qed auto
+qed (use successively_if_sorted_wrt in blast)
+
+lemma successively_conv_sorted_wrt:
+  assumes "transp P"
+  shows   "successively P xs \<longleftrightarrow> sorted_wrt P xs"
+  using assms unfolding transp_def
+  by (intro successively_iff_sorted_wrt_strong) blast
+
+lemma successively_rev [simp]: "successively P (rev xs) \<longleftrightarrow> successively (\<lambda>x y. P y x) xs"
+  by (induction xs rule: remdups_adj.induct)
+     (auto simp: successively_append_iff successively_Cons)
+
+lemma successively_map: "successively P (map f xs) \<longleftrightarrow> successively (\<lambda>x y. P (f x) (f y)) xs"
+  by (induction xs rule: induct_list012) auto
+
+lemma successively_mono:
+  assumes "successively P xs"
+  assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  shows   "successively Q xs"
+  using assms by (induction Q xs rule: successively.induct) auto
+
+lemma successively_altdef:
+  "successively = (\<lambda>P. rec_list True (\<lambda>x xs b. case xs of [] \<Rightarrow> True | y # _ \<Rightarrow> P x y \<and> b))"
+proof (intro ext)
+  fix P and xs :: "'a list"
+  show "successively P xs = rec_list True (\<lambda>x xs b. case xs of [] \<Rightarrow> True | y # _ \<Rightarrow> P x y \<and> b) xs"
+    by (induction xs) (auto simp: successively_Cons split: list.splits)
+qed
+
+
 subsubsection \<open>\<^const>\<open>distinct\<close> and \<^const>\<open>remdups\<close> and \<^const>\<open>remdups_adj\<close>\<close>
 
 lemma distinct_tl: "distinct xs \<Longrightarrow> distinct (tl xs)"
@@ -3975,6 +4061,65 @@ next
     by (induct q) simp_all
   ultimately show ?thesis by simp
 qed
+
+lemma successively_remdups_adjI:
+  "successively P xs \<Longrightarrow> successively P (remdups_adj xs)"
+by (induction xs rule: remdups_adj.induct) (auto simp: successively_Cons)
+
+lemma successively_remdups_adj_iff:
+  "(\<And>x. x \<in> set xs \<Longrightarrow> P x x) \<Longrightarrow>
+  successively P (remdups_adj xs) \<longleftrightarrow> successively P xs"
+by (induction xs rule: remdups_adj.induct)(auto simp: successively_Cons)
+
+
+subsection \<open>@{const distinct_adj}\<close>
+
+lemma distinct_adj_Nil [simp]: "distinct_adj []"
+  and distinct_adj_singleton [simp]: "distinct_adj [x]"
+  and distinct_adj_Cons_Cons [simp]: "distinct_adj (x # y # xs) \<longleftrightarrow> x \<noteq> y \<and> distinct_adj (y # xs)"
+by (auto simp: distinct_adj_def)
+
+lemma distinct_adj_Cons: "distinct_adj (x # xs) \<longleftrightarrow> xs = [] \<or> x \<noteq> hd xs \<and> distinct_adj xs"
+by (cases xs) auto
+
+lemma distinct_adj_ConsD: "distinct_adj (x # xs) \<Longrightarrow> distinct_adj xs"
+by (cases xs) auto
+
+lemma distinct_adj_remdups_adj[simp]: "distinct_adj (remdups_adj xs)"
+by (induction xs rule: remdups_adj.induct) (auto simp: distinct_adj_Cons)
+
+lemma distinct_adj_altdef: "distinct_adj xs \<longleftrightarrow> remdups_adj xs = xs"
+proof
+  assume "remdups_adj xs = xs"
+  with distinct_adj_remdups_adj[of xs] show "distinct_adj xs"
+    by simp
+next
+  assume "distinct_adj xs"
+  thus "remdups_adj xs = xs"
+    by (induction xs rule: induct_list012) auto
+qed
+
+lemma distinct_adj_rev [simp]: "distinct_adj (rev xs) \<longleftrightarrow> distinct_adj xs"
+by (simp add: distinct_adj_def eq_commute)
+
+lemma distinct_adj_append_iff:
+  "distinct_adj (xs @ ys) \<longleftrightarrow>
+     distinct_adj xs \<and> distinct_adj ys \<and> (xs = [] \<or> ys = [] \<or> last xs \<noteq> hd ys)"
+by (auto simp: distinct_adj_def successively_append_iff)
+
+lemma distinct_adj_appendD1 [dest]: "distinct_adj (xs @ ys) \<Longrightarrow> distinct_adj xs"
+  and distinct_adj_appendD2 [dest]: "distinct_adj (xs @ ys) \<Longrightarrow> distinct_adj ys"
+  by (auto simp: distinct_adj_append_iff)
+
+lemma distinct_adj_mapI: "distinct_adj xs \<Longrightarrow> inj_on f (set xs) \<Longrightarrow> distinct_adj (map f xs)"
+  unfolding distinct_adj_def successively_map
+  by (erule successively_mono) (auto simp: inj_on_def)
+
+lemma distinct_adj_mapD: "distinct_adj (map f xs) \<Longrightarrow> distinct_adj xs"
+unfolding distinct_adj_def successively_map by (erule successively_mono) auto
+
+lemma distinct_adj_map_iff: "inj_on f (set xs) \<Longrightarrow> distinct_adj (map f xs) \<longleftrightarrow> distinct_adj xs"
+using distinct_adj_mapD distinct_adj_mapI by blast
 
 
 subsubsection \<open>\<^const>\<open>insert\<close>\<close>
@@ -7606,10 +7751,35 @@ lemma removeAll_transfer [transfer_rule]:
   shows "(A ===> list_all2 A ===> list_all2 A) removeAll removeAll"
   unfolding removeAll_def by transfer_prover
 
+lemma successively_transfer [transfer_rule]:
+  "((A ===> A ===> (=)) ===> list_all2 A ===> (=)) successively successively"
+  unfolding successively_altdef by transfer_prover
+
 lemma distinct_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(list_all2 A ===> (=)) distinct distinct"
   unfolding distinct_def by transfer_prover
+
+lemma distinct_adj_transfer [transfer_rule]:
+  assumes "bi_unique A"
+  shows "(list_all2 A ===> (=)) distinct_adj distinct_adj"
+  unfolding rel_fun_def
+proof (intro allI impI)
+  fix xs ys assume "list_all2 A xs ys"
+  thus "distinct_adj xs \<longleftrightarrow> distinct_adj ys"
+  proof (induction rule: list_all2_induct)
+    case (Cons x xs y ys)
+    note * = this
+    show ?case
+    proof (cases xs)
+      case [simp]: (Cons x' xs')
+      with * obtain y' ys' where [simp]: "ys = y' # ys'"
+        by (cases ys) auto
+      from * show ?thesis
+        using assms by (auto simp: distinct_adj_Cons bi_unique_def)
+    qed (use * in auto)
+  qed auto
+qed
 
 lemma remdups_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
