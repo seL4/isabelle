@@ -85,7 +85,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
              fun mk_step fact_names meths =
                Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
            in
-             (case preplay_isar_step ctxt chained timeout [] (mk_step fact_names meths) of
+             (case preplay_isar_step ctxt [] timeout [] (mk_step fact_names meths) of
                (res as (meth, Played time)) :: _ =>
                (* if a fact is needed by an ATP, it will be needed by "metis" *)
                if not minimize orelse is_metis_method meth then
