@@ -4071,6 +4071,51 @@ lemma successively_remdups_adj_iff:
   successively P (remdups_adj xs) \<longleftrightarrow> successively P xs"
 by (induction xs rule: remdups_adj.induct)(auto simp: successively_Cons)
 
+lemma remdups_adj_Cons':
+  "remdups_adj (x # xs) = x # remdups_adj (dropWhile (\<lambda>y. y = x) xs)"
+by (induction xs) auto
+
+lemma remdups_adj_singleton_iff:
+  "length (remdups_adj xs) = Suc 0 \<longleftrightarrow> xs \<noteq> [] \<and> xs = replicate (length xs) (hd xs)"
+proof safe
+  assume *: "xs = replicate (length xs) (hd xs)" and [simp]: "xs \<noteq> []"
+  show "length (remdups_adj xs) = Suc 0"
+    by (subst *) (auto simp: remdups_adj_replicate)
+next
+  assume "length (remdups_adj xs) = Suc 0"
+  thus "xs = replicate (length xs) (hd xs)"
+    by (induction xs rule: remdups_adj.induct) (auto split: if_splits)
+qed auto
+
+lemma tl_remdups_adj:
+  "ys \<noteq> [] \<Longrightarrow> tl (remdups_adj ys) = remdups_adj (dropWhile (\<lambda>x. x = hd ys) (tl ys))"
+by (cases ys) (simp_all add: remdups_adj_Cons')
+
+lemma remdups_adj_append_dropWhile:
+  "remdups_adj (xs @ y # ys) = remdups_adj (xs @ [y]) @ remdups_adj (dropWhile (\<lambda>x. x = y) ys)"
+by (subst remdups_adj_append) (simp add: tl_remdups_adj)
+
+lemma remdups_adj_append':
+  assumes "xs = [] \<or> ys = [] \<or> last xs \<noteq> hd ys"
+  shows   "remdups_adj (xs @ ys) = remdups_adj xs @ remdups_adj ys"
+proof -
+  have ?thesis if [simp]: "xs \<noteq> []" "ys \<noteq> []" and "last xs \<noteq> hd ys"
+  proof -
+    obtain x xs' where xs: "xs = xs' @ [x]"
+      by (cases xs rule: rev_cases) auto
+    have "remdups_adj (xs' @ x # ys) = remdups_adj (xs' @ [x]) @ remdups_adj ys"
+      using \<open>last xs \<noteq> hd ys\<close> unfolding xs
+      by (metis (full_types) dropWhile_eq_self_iff last_snoc remdups_adj_append_dropWhile)
+    thus ?thesis by (simp add: xs)
+  qed
+  thus ?thesis using assms 
+    by (cases "xs = []"; cases "ys = []") auto
+qed
+
+lemma remdups_adj_append'': "xs \<noteq> []
+  \<Longrightarrow> remdups_adj (xs @ ys) = remdups_adj xs @ remdups_adj (dropWhile (\<lambda>y. y = last xs) ys)"
+by (induction xs rule: remdups_adj.induct) (auto simp: remdups_adj_Cons')
+
 
 subsection \<open>@{const distinct_adj}\<close>
 

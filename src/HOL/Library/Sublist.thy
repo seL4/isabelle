@@ -141,6 +141,17 @@ lemma take_is_prefix: "prefix (take n xs) xs"
 lemma prefixeq_butlast: "prefix (butlast xs) xs"
 by (simp add: butlast_conv_take take_is_prefix)
 
+lemma prefix_map_rightE:
+  assumes "prefix xs (map f ys)"
+  shows   "\<exists>xs'. prefix xs' ys \<and> xs = map f xs'"
+proof -
+  define n where "n = length xs"
+  have "xs = take n (map f ys)"
+    using assms by (auto simp: prefix_def n_def)
+  thus ?thesis
+    by (intro exI[of _ "take n ys"]) (auto simp: take_map take_is_prefix)
+qed
+
 lemma map_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (map f xs) (map f ys)"
 by (auto simp: prefix_def)
 
@@ -169,6 +180,45 @@ proof (induct n arbitrary: xs ys)
 next
   case (Suc n)
   then show ?case by (metis prefix_order.less_trans strict_prefixI take_is_prefix)
+qed
+
+lemma prefix_takeWhile:
+  assumes "prefix xs ys"
+  shows   "prefix (takeWhile P xs) (takeWhile P ys)"
+proof -
+  from assms obtain zs where ys: "ys = xs @ zs"
+    by (auto simp: prefix_def)
+  have "prefix (takeWhile P xs) (takeWhile P (xs @ zs))"
+    by (induction xs) auto
+  thus ?thesis by (simp add: ys)
+qed
+
+lemma prefix_dropWhile:
+  assumes "prefix xs ys"
+  shows   "prefix (dropWhile P xs) (dropWhile P ys)"
+proof -
+  from assms obtain zs where ys: "ys = xs @ zs"
+    by (auto simp: prefix_def)
+  have "prefix (dropWhile P xs) (dropWhile P (xs @ zs))"
+    by (induction xs) auto
+  thus ?thesis by (simp add: ys)
+qed
+
+lemma prefix_remdups_adj:
+  assumes "prefix xs ys"
+  shows   "prefix (remdups_adj xs) (remdups_adj ys)"
+  using assms
+proof (induction "length xs" arbitrary: xs ys rule: less_induct)
+  case (less xs)
+  show ?case
+  proof (cases xs)
+    case [simp]: (Cons x xs')
+    then obtain y ys' where [simp]: "ys = y # ys'"
+      using \<open>prefix xs ys\<close> by (cases ys) auto
+    from less show ?thesis
+      by (auto simp: remdups_adj_Cons' less_Suc_eq_le length_dropWhile_le
+               intro!: less prefix_dropWhile)
+  qed auto
 qed
 
 lemma not_prefix_cases:
@@ -388,7 +438,6 @@ qed
 lemma Longest_common_prefix_eq_Nil:
   "\<lbrakk>x#ys \<in> L; y#zs \<in> L; x \<noteq> y \<rbrakk> \<Longrightarrow> Longest_common_prefix L = []"
 by (metis Longest_common_prefix_prefix list.inject prefix_Cons)
-
 
 fun longest_common_prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "longest_common_prefix (x#xs) (y#ys) =
@@ -624,6 +673,23 @@ next
     by (cases xs) (auto intro: Suc dest: suffix_ConsD' suffix_order.less_imp_le)
 qed
 
+lemma suffix_map_rightE:
+  assumes "suffix xs (map f ys)"
+  shows   "\<exists>xs'. suffix xs' ys \<and> xs = map f xs'"
+proof -
+  from assms obtain xs' where xs': "map f ys = xs' @ xs"
+    by (auto simp: suffix_def)
+  define n where "n = length xs'"
+  have "xs = drop n (map f ys)"
+    by (simp add: xs' n_def)
+  thus ?thesis
+    by (intro exI[of _ "drop n ys"]) (auto simp: drop_map suffix_drop)
+qed
+
+lemma suffix_remdups_adj: "suffix xs ys \<Longrightarrow> suffix (remdups_adj xs) (remdups_adj ys)"
+  using prefix_remdups_adj[of "rev xs" "rev ys"]
+  by (simp add: suffix_to_prefix)
+
 lemma not_suffix_cases:
   assumes pfx: "\<not> suffix ps ls"
   obtains
@@ -710,6 +776,7 @@ next
     then show ?thesis by (rule Cons_parallelI1)
   qed
 qed
+
 
 subsection \<open>Suffixes\<close>
 
@@ -1133,6 +1200,8 @@ qed
   
 subsection \<open>Contiguous sublists\<close>
 
+subsubsection \<open>\<open>sublist\<close>\<close>
+
 definition sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where 
   "sublist xs ys = (\<exists>ps ss. ys = ps @ xs @ ss)"
   
@@ -1215,24 +1284,22 @@ lemma sublist_code [code]:
   "sublist (x # xs) (y # ys) \<longleftrightarrow> prefix (x # xs) (y # ys) \<or> sublist (x # xs) ys"
   by (simp_all add: sublist_Cons_right)
 
-
 lemma sublist_append:
   "sublist xs (ys @ zs) \<longleftrightarrow> 
      sublist xs ys \<or> sublist xs zs \<or> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> suffix xs1 ys \<and> prefix xs2 zs)"
-  by (auto simp: sublist_altdef prefix_append suffix_append)
+by (auto simp: sublist_altdef prefix_append suffix_append)
 
-primrec sublists :: "'a list \<Rightarrow> 'a list list" where
-  "sublists [] = [[]]"
-| "sublists (x # xs) = sublists xs @ map ((#) x) (prefixes xs)"
-
-lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys" 
-  by (induction ys arbitrary: xs) (auto simp: sublist_Cons_right prefix_Cons)
-
-lemma set_sublists_eq: "set (sublists xs) = {ys. sublist ys xs}"
-  by auto
-
-lemma length_sublists [simp]: "length (sublists xs) = Suc (length xs * Suc (length xs) div 2)"
-  by (induction xs) simp_all
+lemma map_mono_sublist:
+  assumes "sublist xs ys"
+  shows   "sublist (map f xs) (map f ys)"
+proof -
+  from assms obtain xs1 xs2 where ys: "ys = xs1 @ xs @ xs2"
+    by (auto simp: sublist_def)
+  have "map f ys = map f xs1 @ map f xs @ map f xs2"
+    by (auto simp: ys)
+  thus ?thesis
+    by (auto simp: sublist_def)
+qed
 
 lemma sublist_length_le: "sublist xs ys \<Longrightarrow> length xs \<le> length ys"
   by (auto simp add: sublist_def)
@@ -1292,6 +1359,56 @@ lemma sublist_snoc:
      
 lemma sublist_imp_subseq [intro]: "sublist xs ys \<Longrightarrow> subseq xs ys"
   by (auto simp: sublist_def)
+
+lemma sublist_map_rightE:
+  assumes "sublist xs (map f ys)"
+  shows   "\<exists>xs'. sublist xs' ys \<and> xs = map f xs'"
+proof -
+  note takedrop = sublist_take sublist_drop
+  define n where "n = (length ys - length xs)"
+  from assms obtain xs1 xs2 where xs12: "map f ys = xs1 @ xs @ xs2"
+    by (auto simp: sublist_def)
+  define n where "n = length xs1"
+  have "xs = take (length xs) (drop n (map f ys))"
+    by (simp add: xs12 n_def)
+  thus ?thesis
+    by (intro exI[of _ "take (length xs) (drop n ys)"])
+       (auto simp: take_map drop_map intro!: takedrop[THEN sublist_order.order.trans])
+qed
+
+lemma sublist_remdups_adj:
+  assumes "sublist xs ys"
+  shows   "sublist (remdups_adj xs) (remdups_adj ys)"
+proof -
+  from assms obtain xs1 xs2 where ys: "ys = xs1 @ xs @ xs2"
+    by (auto simp: sublist_def)
+  have "suffix (remdups_adj (xs @ xs2)) (remdups_adj (xs1 @ xs @ xs2))"
+    by (rule suffix_remdups_adj, rule  suffix_appendI) auto
+  then obtain zs1 where zs1: "remdups_adj (xs1 @ xs @ xs2) = zs1 @ remdups_adj (xs @ xs2)"
+    by (auto simp: suffix_def)
+  have "prefix (remdups_adj xs) (remdups_adj (xs @ xs2))"
+    by (intro prefix_remdups_adj) auto
+  then obtain zs2 where zs2: "remdups_adj (xs @ xs2) = remdups_adj xs @ zs2"
+    by (auto simp: prefix_def)
+  show ?thesis
+    by (simp add: ys zs1 zs2)
+qed
+
+subsubsection \<open>\<open>sublists\<close>\<close>
+
+primrec sublists :: "'a list \<Rightarrow> 'a list list" where
+  "sublists [] = [[]]"
+| "sublists (x # xs) = sublists xs @ map ((#) x) (prefixes xs)"
+
+lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys" 
+  by (induction ys arbitrary: xs) (auto simp: sublist_Cons_right prefix_Cons)
+
+lemma set_sublists_eq: "set (sublists xs) = {ys. sublist ys xs}"
+  by auto
+
+lemma length_sublists [simp]: "length (sublists xs) = Suc (length xs * Suc (length xs) div 2)"
+  by (induction xs) simp_all
+
 
 subsection \<open>Parametricity\<close>
 
