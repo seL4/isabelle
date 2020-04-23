@@ -51,23 +51,21 @@ object Isabelle_System
   @volatile private var _settings: Option[Map[String, String]] = None
   @volatile private var _services: Option[List[Service]] = None
 
-  private def uninitialized: Boolean = _services.isEmpty   // unsynchronized check
-
   def settings(): Map[String, String] =
   {
-    if (uninitialized) init()
+    if (_settings.isEmpty) init()  // unsynchronized check
     _settings.get
   }
 
   def services(): List[Service] =
   {
-    if (uninitialized) init()
+    if (_services.isEmpty) init()  // unsynchronized check
     _services.get
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
   {
-    if (uninitialized) {
+    if (_settings.isEmpty || _services.isEmpty) {
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
