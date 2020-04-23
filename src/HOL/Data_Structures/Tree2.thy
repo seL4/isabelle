@@ -1,3 +1,5 @@
+section \<open>Augmented Tree (Tree2)\<close>
+
 theory Tree2
 imports "HOL-Library.Tree"
 begin
