@@ -137,6 +137,5 @@ ML_file \<open>Tools/lambda_lifting.ML\<close>
 ML_file \<open>Tools/monomorph.ML\<close>
 ML_file \<open>Tools/ATP/atp_problem_generate.ML\<close>
 ML_file \<open>Tools/ATP/atp_proof_reconstruct.ML\<close>
-ML_file \<open>Tools/ATP/atp_systems.ML\<close>
 
 end

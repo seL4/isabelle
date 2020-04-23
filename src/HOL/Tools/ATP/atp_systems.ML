@@ -453,7 +453,7 @@ val spass_config : atp_config =
       (InternalError, "Please report this error")] @
       known_perl_failures,
    prem_role = Conjecture,
-   best_slices = fn ctxt =>
+   best_slices = fn _ =>
      (* FUDGE *)
      [(0.1667, (((150, meshN), DFG Monomorphic, "mono_native", combsN, true), "")),
       (0.1667, (((500, meshN), DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
@@ -499,7 +499,7 @@ fun check_vampire_noncommercial () =
 val vampire_basic_options = "--proof tptp --output_axiom_names on $VAMPIRE_EXTRA_OPTIONS"
 
 val vampire_full_proof_options =
-  " --forced_options equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
+  " --proof_extra free --forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
 
 val remote_vampire_command =
   "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
