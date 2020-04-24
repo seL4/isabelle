@@ -1436,29 +1436,41 @@ lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
   by (simp add: take_bit_eq_mod)
 
+lemma take_bit_Suc_bit0 [simp]:
+  \<open>take_bit (Suc n) (numeral (Num.Bit0 k)) = take_bit n (numeral k) * 2\<close>
+  by (simp add: take_bit_Suc numeral_Bit0_div_2)
+
+lemma take_bit_Suc_bit1 [simp]:
+  \<open>take_bit (Suc n) (numeral (Num.Bit1 k)) = take_bit n (numeral k) * 2 + 1\<close>
+  by (simp add: take_bit_Suc numeral_Bit1_div_2)
+
 lemma take_bit_numeral_bit0 [simp]:
-  "take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2"
-  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric] take_bit_Suc
-    ac_simps even_mult_iff nonzero_mult_div_cancel_right [OF numeral_neq_zero]) simp
+  \<open>take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2\<close>
+  by (simp add: take_bit_rec numeral_Bit0_div_2)
 
 lemma take_bit_numeral_bit1 [simp]:
-  "take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1"
-  by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] take_bit_Suc
-    ac_simps even_add even_mult_iff div_mult_self1 [OF numeral_neq_zero]) (simp add: ac_simps)
+  \<open>take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1\<close>
+  by (simp add: take_bit_rec numeral_Bit1_div_2)
 
 lemma take_bit_of_nat:
   "take_bit n (of_nat m) = of_nat (take_bit n m)"
   by (simp add: take_bit_eq_mod Parity.take_bit_eq_mod of_nat_mod [of m "2 ^ n"])
 
+lemma drop_bit_Suc_bit0 [simp]:
+  \<open>drop_bit (Suc n) (numeral (Num.Bit0 k)) = drop_bit n (numeral k)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_Suc_bit1 [simp]:
+  \<open>drop_bit (Suc n) (numeral (Num.Bit1 k)) = drop_bit n (numeral k)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit1_div_2)
+
 lemma drop_bit_numeral_bit0 [simp]:
-  "drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)"
-  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric] drop_bit_Suc
-    nonzero_mult_div_cancel_left [OF numeral_neq_zero])
+  \<open>drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
+  by (simp add: drop_bit_rec numeral_Bit0_div_2)
 
 lemma drop_bit_numeral_bit1 [simp]:
-  "drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)"
-  by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] drop_bit_Suc
-    div_mult_self4 [OF numeral_neq_zero]) simp
+  \<open>drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
+  by (simp add: drop_bit_rec numeral_Bit1_div_2)
 
 lemma drop_bit_of_nat:
   "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
