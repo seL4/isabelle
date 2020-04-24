@@ -606,4 +606,72 @@ lifting_forget integer.lifting
 lifting_update natural.lifting
 lifting_forget natural.lifting
 
+
+subsection \<open>Key ideas of bit operations\<close>
+
+subsection \<open>Key ideas of bit operations\<close>
+
+text \<open>
+  When formalizing bit operations, it is tempting to represent
+  bit values as explicit lists over a binary type. This however
+  is a bad idea, mainly due to the inherent ambiguities in
+  representation concerning repeating leading bits.
+
+  Hence this approach avoids such explicit lists altogether
+  following an algebraic path:
+
+  \<^item> Bit values are represented by numeric types: idealized
+    unbounded bit values can be represented by type \<^typ>\<open>int\<close>,
+    bounded bit values by quotient types over \<^typ>\<open>int\<close>.
+
+  \<^item> (A special case are idealized unbounded bit values ending
+    in @{term [source] 0} which can be represented by type \<^typ>\<open>nat\<close> but
+    only support a restricted set of operations).
+
+  \<^item> From this idea follows that
+
+      \<^item> multiplication by \<^term>\<open>2 :: int\<close> is a bit shift to the left and
+
+      \<^item> division by \<^term>\<open>2 :: int\<close> is a bit shift to the right.
+
+  \<^item> Concerning bounded bit values, iterated shifts to the left
+    may result in eliminating all bits by shifting them all
+    beyond the boundary.  The property \<^prop>\<open>(2 :: int) ^ n \<noteq> 0\<close>
+    represents that \<^term>\<open>n\<close> is \<^emph>\<open>not\<close> beyond that boundary.
+
+  \<^item> The projection on a single bit is then @{thm bit_def [where ?'a = int, no_vars]}.
+
+  \<^item> This leads to the most fundamental properties of bit values:
+
+      \<^item> Equality rule: @{thm bit_eqI [where ?'a = int, no_vars]}
+
+      \<^item> Induction rule: @{thm bits_induct [where ?'a = int, no_vars]}
+
+  \<^item> Typical operations are characterized as follows:
+
+      \<^item> Singleton \<^term>\<open>n\<close>th bit: \<^term>\<open>(2 :: int) ^ n\<close>
+
+      \<^item> Bit mask upto bit \<^term>\<open>n\<close>: \<^term>\<open>(2 :: int) ^ n - 1\<close>
+
+      \<^item> Left shift: @{thm push_bit_eq_mult [where ?'a = int, no_vars]}
+
+      \<^item> Right shift: @{thm drop_bit_eq_div [where ?'a = int, no_vars]}
+
+      \<^item> Truncation: @{thm take_bit_eq_mod [where ?'a = int, no_vars]}
+
+      \<^item> Negation: @{thm bit_not_iff [where ?'a = int, no_vars]}
+
+      \<^item> And: @{thm bit_and_iff [where ?'a = int, no_vars]}
+
+      \<^item> Or: @{thm bit_or_iff [where ?'a = int, no_vars]}
+
+      \<^item> Xor: @{thm bit_xor_iff [where ?'a = int, no_vars]}
+
+      \<^item> Set a single bit: @{thm set_bit_def [where ?'a = int, no_vars]}
+
+      \<^item> Unset a single bit: @{thm unset_bit_def [where ?'a = int, no_vars]}
+
+      \<^item> Flip a single bit: @{thm flip_bit_def [where ?'a = int, no_vars]}
+\<close>
+
 end
