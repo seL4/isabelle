@@ -1509,6 +1509,30 @@ instance nat :: unique_euclidean_semiring_with_bit_shifts ..
 
 instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
+lemma not_exp_less_eq_0_int [simp]:
+  \<open>\<not> 2 ^ n \<le> (0::int)\<close>
+  by (simp add: power_le_zero_eq)
+
+lemma half_nonnegative_int_iff [simp]:
+  \<open>k div 2 \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+proof (cases \<open>k \<ge> 0\<close>)
+  case True
+  then show ?thesis
+    by (auto simp add: divide_int_def sgn_1_pos)
+next
+  case False
+  then show ?thesis
+    apply (auto simp add: divide_int_def not_le elim!: evenE)
+    apply (simp only: minus_mult_right)
+    apply (subst nat_mult_distrib)
+     apply simp_all
+    done
+qed
+
+lemma half_negative_int_iff [simp]:
+  \<open>k div 2 < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
+
 lemma push_bit_of_Suc_0 [simp]:
   "push_bit n (Suc 0) = 2 ^ n"
   using push_bit_of_1 [where ?'a = nat] by simp
@@ -1573,6 +1597,22 @@ qed
 lemma drop_bit_push_bit_int:
   \<open>drop_bit m (push_bit n k) = drop_bit (m - n) (push_bit (n - m) k)\<close> for k :: int
   by (cases \<open>m \<le> n\<close>) (auto simp add: mult.left_commute [of _ \<open>2 ^ n\<close>] mult.commute [of _ \<open>2 ^ n\<close>] mult.assoc
-     mult.commute [of k] drop_bit_eq_div push_bit_eq_mult not_le power_add dest!: le_Suc_ex less_imp_Suc_add)
+    mult.commute [of k] drop_bit_eq_div push_bit_eq_mult not_le power_add dest!: le_Suc_ex less_imp_Suc_add)
+
+lemma push_bit_nonnegative_int_iff [simp]:
+  \<open>push_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (simp add: push_bit_eq_mult zero_le_mult_iff)
+
+lemma push_bit_negative_int_iff [simp]:
+  \<open>push_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
+
+lemma drop_bit_nonnegative_int_iff [simp]:
+  \<open>drop_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (induction n) (simp_all add: drop_bit_Suc drop_bit_half)
+
+lemma drop_bit_negative_int_iff [simp]:
+  \<open>drop_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
 
 end

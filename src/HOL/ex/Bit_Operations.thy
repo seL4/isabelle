@@ -160,6 +160,14 @@ proof -
     done
 qed
 
+lemma and_eq_not_not_or:
+  \<open>a AND b = NOT (NOT a OR NOT b)\<close>
+  by simp
+
+lemma or_eq_not_not_and:
+  \<open>a OR b = NOT (NOT a AND NOT b)\<close>
+  by simp
+
 lemma push_bit_minus:
   \<open>push_bit n (- a) = - push_bit n a\<close>
   by (simp add: push_bit_eq_mult)
@@ -460,37 +468,14 @@ next
     by (simp add: rec [of k l] bit_Suc)
 qed
 
-sublocale abel_semigroup F
+lemma abel_semigroup_axioms:
+  \<open>abel_semigroup F\<close>
   by standard (simp_all add: Parity.bit_eq_iff bit_eq_iff ac_simps)
 
 end
 
 instantiation int :: ring_bit_operations
 begin
-
-global_interpretation and_int: zip_int "(\<and>)"
-  defines and_int = and_int.F
-  by standard
-
-global_interpretation and_int: semilattice "(AND) :: int \<Rightarrow> int \<Rightarrow> int"
-proof (rule semilattice.intro, fact and_int.abel_semigroup_axioms, standard)
-  show "k AND k = k" for k :: int
-    by (simp add: bit_eq_iff and_int.bit_eq_iff)
-qed
-
-global_interpretation or_int: zip_int "(\<or>)"
-  defines or_int = or_int.F
-  by standard
-
-global_interpretation or_int: semilattice "(OR) :: int \<Rightarrow> int \<Rightarrow> int"
-proof (rule semilattice.intro, fact or_int.abel_semigroup_axioms, standard)
-  show "k OR k = k" for k :: int
-    by (simp add: bit_eq_iff or_int.bit_eq_iff)
-qed
-
-global_interpretation xor_int: zip_int "(\<noteq>)"
-  defines xor_int = xor_int.F
-  by standard
 
 definition not_int :: \<open>int \<Rightarrow> int\<close>
   where \<open>not_int k = - k - 1\<close>
@@ -512,6 +497,30 @@ lemma bit_not_iff_int:
     for k :: int
   by (induction n arbitrary: k) (simp_all add: not_int_div_2 even_not_iff_int bit_Suc)
 
+global_interpretation and_int: zip_int "(\<and>)"
+  defines and_int = and_int.F
+  by standard
+
+interpretation and_int: semilattice "(AND) :: int \<Rightarrow> int \<Rightarrow> int"
+proof (rule semilattice.intro, fact and_int.abel_semigroup_axioms, standard)
+  show "k AND k = k" for k :: int
+    by (simp add: bit_eq_iff and_int.bit_eq_iff)
+qed
+
+global_interpretation or_int: zip_int "(\<or>)"
+  defines or_int = or_int.F
+  by standard
+
+interpretation or_int: semilattice "(OR) :: int \<Rightarrow> int \<Rightarrow> int"
+proof (rule semilattice.intro, fact or_int.abel_semigroup_axioms, standard)
+  show "k OR k = k" for k :: int
+    by (simp add: bit_eq_iff or_int.bit_eq_iff)
+qed
+
+global_interpretation xor_int: zip_int "(\<noteq>)"
+  defines xor_int = xor_int.F
+  by standard
+
 instance proof
   fix k l :: int and n :: nat
   show \<open>- k = NOT (k - 1)\<close>
@@ -525,6 +534,83 @@ instance proof
 qed (simp_all add: bit_not_iff_int)
 
 end
+
+lemma not_nonnegative_int_iff [simp]:
+  \<open>NOT k \<ge> 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (simp add: not_int_def)
+
+lemma not_negative_int_iff [simp]:
+  \<open>NOT k < 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less not_le)
+
+lemma and_nonnegative_int_iff [simp]:
+  \<open>k AND l \<ge> 0 \<longleftrightarrow> k \<ge> 0 \<or> l \<ge> 0\<close> for k l :: int
+proof (induction k arbitrary: l rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even k)
+  then show ?case
+    using and_int.rec [of \<open>k * 2\<close> l] by (simp add: pos_imp_zdiv_nonneg_iff)
+next
+  case (odd k)
+  from odd have \<open>0 \<le> k AND l div 2 \<longleftrightarrow> 0 \<le> k \<or> 0 \<le> l div 2\<close>
+    by simp
+  then have \<open>0 \<le> (1 + k * 2) div 2 AND l div 2 \<longleftrightarrow> 0 \<le> (1 + k * 2) div 2\<or> 0 \<le> l div 2\<close>
+    by simp
+  with and_int.rec [of \<open>1 + k * 2\<close> l]
+  show ?case
+    by auto
+qed
+
+lemma and_negative_int_iff [simp]:
+  \<open>k AND l < 0 \<longleftrightarrow> k < 0 \<and> l < 0\<close> for k l :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
+
+lemma or_nonnegative_int_iff [simp]:
+  \<open>k OR l \<ge> 0 \<longleftrightarrow> k \<ge> 0 \<and> l \<ge> 0\<close> for k l :: int
+  by (simp only: or_eq_not_not_and not_nonnegative_int_iff) simp
+
+lemma or_negative_int_iff [simp]:
+  \<open>k OR l < 0 \<longleftrightarrow> k < 0 \<or> l < 0\<close> for k l :: int
+  by (subst Not_eq_iff [symmetric]) (simp add: not_less)
+
+lemma xor_nonnegative_int_iff [simp]:
+  \<open>k XOR l \<ge> 0 \<longleftrightarrow> (k \<ge> 0 \<longleftrightarrow> l \<ge> 0)\<close> for k l :: int
+  by (simp only: bit.xor_def or_nonnegative_int_iff) auto
+
+lemma xor_negative_int_iff [simp]:
+  \<open>k XOR l < 0 \<longleftrightarrow> (k < 0) \<noteq> (l < 0)\<close> for k l :: int
+  by (subst Not_eq_iff [symmetric]) (auto simp add: not_less)
+
+lemma set_bit_nonnegative_int_iff [simp]:
+  \<open>set_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (simp add: set_bit_def)
+
+lemma set_bit_negative_int_iff [simp]:
+  \<open>set_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (simp add: set_bit_def)
+
+lemma unset_bit_nonnegative_int_iff [simp]:
+  \<open>unset_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (simp add: unset_bit_def)
+
+lemma unset_bit_negative_int_iff [simp]:
+  \<open>unset_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (simp add: unset_bit_def)
+
+lemma flip_bit_nonnegative_int_iff [simp]:
+  \<open>flip_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
+  by (simp add: flip_bit_def)
+
+lemma flip_bit_negative_int_iff [simp]:
+  \<open>flip_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
+  by (simp add: flip_bit_def)
 
 
 subsubsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
@@ -606,8 +692,6 @@ lifting_forget integer.lifting
 lifting_update natural.lifting
 lifting_forget natural.lifting
 
-
-subsection \<open>Key ideas of bit operations\<close>
 
 subsection \<open>Key ideas of bit operations\<close>
 
