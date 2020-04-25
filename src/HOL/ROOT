@@ -240,6 +240,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Tree_Map
     Interval_Tree
     AVL_Map
+    Height_Balanced_Tree
     RBT_Set2
     RBT_Map
     Tree23_Map

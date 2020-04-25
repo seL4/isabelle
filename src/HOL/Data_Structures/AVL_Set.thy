@@ -1,9 +1,8 @@
 (*
-Author:     Tobias Nipkow, Daniel Stüwe
-Based on the AFP entry AVL.
+Author: Tobias Nipkow
 *)
 
-subsection \<open>Invariant\<close>
+subsection \<open>Invariant expressed via 3-way cases\<close>
 
 theory AVL_Set
 imports
