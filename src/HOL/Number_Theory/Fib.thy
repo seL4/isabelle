@@ -37,6 +37,11 @@ lemma fib_add: "fib (Suc (n + k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
 lemma fib_neq_0_nat: "n > 0 \<Longrightarrow> fib n > 0"
   by (induct n rule: fib.induct) auto
 
+lemma fib_Suc_mono: "fib m \<le> fib (Suc m)"
+by(induction m) auto
+
+lemma fib_mono: "m \<le> n \<Longrightarrow> fib m \<le> fib n"
+by (simp add: fib_Suc_mono lift_Suc_mono_le)
 
 subsection \<open>More efficient code\<close>
 
