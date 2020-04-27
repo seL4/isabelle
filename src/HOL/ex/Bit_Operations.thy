@@ -310,169 +310,7 @@ qed
 end
 
 
-subsubsection \<open>Instance \<^typ>\<open>nat\<close>\<close>
-
-locale zip_nat = single: abel_semigroup f
-    for f :: "bool \<Rightarrow> bool \<Rightarrow> bool"  (infixl \<open>\<^bold>*\<close> 70) +
-  assumes end_of_bits: \<open>\<not> False \<^bold>* False\<close>
-begin
-
-function F :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>  (infixl \<open>\<^bold>\<times>\<close> 70)
-  where \<open>m \<^bold>\<times> n = (if m = 0 \<and> n = 0 then 0
-    else of_bool (odd m \<^bold>* odd n) + 2 * ((m div 2) \<^bold>\<times> (n div 2)))\<close>
-  by auto
-
-termination
-  by (relation "measure (case_prod (+))") auto
-
-declare F.simps [simp del]
-
-lemma rec:
-  "m \<^bold>\<times> n = of_bool (odd m \<^bold>* odd n) + (m div 2) \<^bold>\<times> (n div 2) * 2"
-proof (cases \<open>m = 0 \<and> n = 0\<close>)
-  case True
-  then have \<open>m \<^bold>\<times> n = 0\<close>
-    using True by (simp add: F.simps [of 0 0])
-  moreover have \<open>(m div 2) \<^bold>\<times> (n div 2) = m \<^bold>\<times> n\<close>
-    using True by simp
-  ultimately show ?thesis
-    using True by (simp add: end_of_bits)
-next
-  case False
-  then show ?thesis
-    by (auto simp add: ac_simps F.simps [of m n])
-qed
-
-lemma bit_eq_iff:
-  \<open>bit (m \<^bold>\<times> n) q \<longleftrightarrow> bit m q \<^bold>* bit n q\<close>
-proof (induction q arbitrary: m n)
-  case 0
-  then show ?case
-    by (simp add: rec [of m n])
-next
-  case (Suc n)
-  then show ?case
-    by (simp add: rec [of m n] bit_Suc)
-qed
-
-sublocale abel_semigroup F
-  by standard (simp_all add: Parity.bit_eq_iff bit_eq_iff ac_simps)
-
-end
-
-instantiation nat :: semiring_bit_operations
-begin
-
-global_interpretation and_nat: zip_nat \<open>(\<and>)\<close>
-  defines and_nat = and_nat.F
-  by standard auto
-
-global_interpretation and_nat: semilattice \<open>(AND) :: nat \<Rightarrow> nat \<Rightarrow> nat\<close>
-proof (rule semilattice.intro, fact and_nat.abel_semigroup_axioms, standard)
-  show \<open>n AND n = n\<close> for n :: nat
-    by (simp add: bit_eq_iff and_nat.bit_eq_iff)
-qed
-
-global_interpretation or_nat: zip_nat \<open>(\<or>)\<close>
-  defines or_nat = or_nat.F
-  by standard auto
-
-global_interpretation or_nat: semilattice \<open>(OR) :: nat \<Rightarrow> nat \<Rightarrow> nat\<close>
-proof (rule semilattice.intro, fact or_nat.abel_semigroup_axioms, standard)
-  show \<open>n OR n = n\<close> for n :: nat
-    by (simp add: bit_eq_iff or_nat.bit_eq_iff)
-qed
-
-global_interpretation xor_nat: zip_nat \<open>(\<noteq>)\<close>
-  defines xor_nat = xor_nat.F
-  by standard auto
-
-instance proof
-  fix m n q :: nat
-  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
-    by (fact and_nat.bit_eq_iff)
-  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
-    by (fact or_nat.bit_eq_iff)
-  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
-    by (fact xor_nat.bit_eq_iff)
-qed
-
-end
-
-lemma Suc_0_and_eq [simp]:
-  \<open>Suc 0 AND n = of_bool (odd n)\<close>
-  using one_and_eq [of n] by simp
-
-lemma and_Suc_0_eq [simp]:
-  \<open>n AND Suc 0 = of_bool (odd n)\<close>
-  using and_one_eq [of n] by simp
-
-lemma Suc_0_or_eq [simp]:
-  \<open>Suc 0 OR n = n + of_bool (even n)\<close>
-  using one_or_eq [of n] by simp
-
-lemma or_Suc_0_eq [simp]:
-  \<open>n OR Suc 0 = n + of_bool (even n)\<close>
-  using or_one_eq [of n] by simp
-
-lemma Suc_0_xor_eq [simp]:
-  \<open>Suc 0 XOR n = n + of_bool (even n) - of_bool (odd n)\<close>
-  using one_xor_eq [of n] by simp
-
-lemma xor_Suc_0_eq [simp]:
-  \<open>n XOR Suc 0 = n + of_bool (even n) - of_bool (odd n)\<close>
-  using xor_one_eq [of n] by simp
-
-
 subsubsection \<open>Instance \<^typ>\<open>int\<close>\<close>
-
-locale zip_int = single: abel_semigroup f
-  for f :: \<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>  (infixl \<open>\<^bold>*\<close> 70)
-begin
-
-function F :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>  (infixl \<open>\<^bold>\<times>\<close> 70)
-  where \<open>k \<^bold>\<times> l = (if k \<in> {0, - 1} \<and> l \<in> {0, - 1}
-    then - of_bool (odd k \<^bold>* odd l)
-    else of_bool (odd k \<^bold>* odd l) + 2 * ((k div 2) \<^bold>\<times> (l div 2)))\<close>
-  by auto
-
-termination
-  by (relation "measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))") auto
-
-declare F.simps [simp del]
-
-lemma rec:
-  \<open>k \<^bold>\<times> l = of_bool (odd k \<^bold>* odd l) + 2 * ((k div 2) \<^bold>\<times> (l div 2))\<close>
-proof (cases \<open>k \<in> {0, - 1} \<and> l \<in> {0, - 1}\<close>)
-  case True
-  then have \<open>(k div 2) \<^bold>\<times> (l div 2) = k \<^bold>\<times> l\<close>
-    by auto
-  moreover have \<open>of_bool (odd k \<^bold>* odd l) = - (k \<^bold>\<times> l)\<close>
-    using True by (simp add: F.simps [of k l])
-  ultimately show ?thesis by simp
-next
-  case False
-  then show ?thesis
-    by (auto simp add: ac_simps F.simps [of k l])
-qed
-
-lemma bit_eq_iff:
-  \<open>bit (k \<^bold>\<times> l) n \<longleftrightarrow> bit k n \<^bold>* bit l n\<close>
-proof (induction n arbitrary: k l)
-  case 0
-  then show ?case
-    by (simp add: rec [of k l])
-next
-  case (Suc n)
-  then show ?case
-    by (simp add: rec [of k l] bit_Suc)
-qed
-
-lemma abel_semigroup_axioms:
-  \<open>abel_semigroup F\<close>
-  by standard (simp_all add: Parity.bit_eq_iff bit_eq_iff ac_simps)
-
-end
 
 instantiation int :: ring_bit_operations
 begin
@@ -492,46 +330,89 @@ lemma not_int_div_2:
   \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
   by (simp add: not_int_def)
 
-lemma bit_not_iff_int:
+lemma bit_not_int_iff:
   \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
     for k :: int
   by (induction n arbitrary: k) (simp_all add: not_int_div_2 even_not_iff_int bit_Suc)
 
-global_interpretation and_int: zip_int "(\<and>)"
-  defines and_int = and_int.F
-  by standard
+function and_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>(k::int) AND l = (if k \<in> {0, - 1} \<and> l \<in> {0, - 1}
+    then - of_bool (odd k \<and> odd l)
+    else of_bool (odd k \<and> odd l) + 2 * ((k div 2) AND (l div 2)))\<close>
+  by auto
 
-interpretation and_int: semilattice "(AND) :: int \<Rightarrow> int \<Rightarrow> int"
-proof (rule semilattice.intro, fact and_int.abel_semigroup_axioms, standard)
-  show "k AND k = k" for k :: int
-    by (simp add: bit_eq_iff and_int.bit_eq_iff)
+termination
+  by (relation \<open>measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))\<close>) auto
+
+declare and_int.simps [simp del]
+
+lemma and_int_rec:
+  \<open>k AND l = of_bool (odd k \<and> odd l) + 2 * ((k div 2) AND (l div 2))\<close>
+    for k l :: int
+proof (cases \<open>k \<in> {0, - 1} \<and> l \<in> {0, - 1}\<close>)
+  case True
+  then show ?thesis
+    by auto (simp_all add: and_int.simps)
+next
+  case False
+  then show ?thesis
+    by (auto simp add: ac_simps and_int.simps [of k l])
 qed
 
-global_interpretation or_int: zip_int "(\<or>)"
-  defines or_int = or_int.F
-  by standard
-
-interpretation or_int: semilattice "(OR) :: int \<Rightarrow> int \<Rightarrow> int"
-proof (rule semilattice.intro, fact or_int.abel_semigroup_axioms, standard)
-  show "k OR k = k" for k :: int
-    by (simp add: bit_eq_iff or_int.bit_eq_iff)
+lemma bit_and_int_iff:
+  \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close> for k l :: int
+proof (induction n arbitrary: k l)
+  case 0
+  then show ?case
+    by (simp add: and_int_rec [of k l])
+next
+  case (Suc n)
+  then show ?case
+    by (simp add: and_int_rec [of k l] bit_Suc)
 qed
 
-global_interpretation xor_int: zip_int "(\<noteq>)"
-  defines xor_int = xor_int.F
-  by standard
+lemma even_and_iff_int:
+  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
+  using bit_and_int_iff [of k l 0] by auto
+
+definition or_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>k OR l = NOT (NOT k AND NOT l)\<close> for k l :: int
+
+lemma or_int_rec:
+  \<open>k OR l = of_bool (odd k \<or> odd l) + 2 * ((k div 2) OR (l div 2))\<close>
+  for k l :: int
+  using and_int_rec [of \<open>NOT k\<close> \<open>NOT l\<close>]
+  by (simp add: or_int_def even_not_iff_int not_int_div_2)
+    (simp add: not_int_def)
+
+lemma bit_or_int_iff:
+  \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close> for k l :: int
+  by (simp add: or_int_def bit_not_int_iff bit_and_int_iff)
+
+definition xor_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>k XOR l = k AND NOT l OR NOT k AND l\<close> for k l :: int
+
+lemma xor_int_rec:
+  \<open>k XOR l = of_bool (odd k \<noteq> odd l) + 2 * ((k div 2) XOR (l div 2))\<close>
+  for k l :: int
+  by (simp add: xor_int_def or_int_rec [of \<open>k AND NOT l\<close> \<open>NOT k AND l\<close>] even_and_iff_int even_not_iff_int)
+    (simp add: and_int_rec [of \<open>NOT k\<close> \<open>l\<close>] and_int_rec [of \<open>k\<close> \<open>NOT l\<close>] not_int_div_2)
+
+lemma bit_xor_int_iff:
+  \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close> for k l :: int
+  by (auto simp add: xor_int_def bit_or_int_iff bit_and_int_iff bit_not_int_iff)
 
 instance proof
   fix k l :: int and n :: nat
   show \<open>- k = NOT (k - 1)\<close>
     by (simp add: not_int_def)
   show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
-    by (fact and_int.bit_eq_iff)
+    by (fact bit_and_int_iff)
   show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
-    by (fact or_int.bit_eq_iff)
+    by (fact bit_or_int_iff)
   show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
-    by (fact xor_int.bit_eq_iff)
-qed (simp_all add: bit_not_iff_int)
+    by (fact bit_xor_int_iff)
+qed (simp_all add: bit_not_int_iff)
 
 end
 
@@ -556,14 +437,14 @@ next
 next
   case (even k)
   then show ?case
-    using and_int.rec [of \<open>k * 2\<close> l] by (simp add: pos_imp_zdiv_nonneg_iff)
+    using and_int_rec [of \<open>k * 2\<close> l] by (simp add: pos_imp_zdiv_nonneg_iff)
 next
   case (odd k)
   from odd have \<open>0 \<le> k AND l div 2 \<longleftrightarrow> 0 \<le> k \<or> 0 \<le> l div 2\<close>
     by simp
   then have \<open>0 \<le> (1 + k * 2) div 2 AND l div 2 \<longleftrightarrow> 0 \<le> (1 + k * 2) div 2\<or> 0 \<le> l div 2\<close>
     by simp
-  with and_int.rec [of \<open>1 + k * 2\<close> l]
+  with and_int_rec [of \<open>1 + k * 2\<close> l]
   show ?case
     by auto
 qed
@@ -613,6 +494,69 @@ lemma flip_bit_negative_int_iff [simp]:
   by (simp add: flip_bit_def)
 
 
+subsubsection \<open>Instance \<^typ>\<open>nat\<close>\<close>
+
+instantiation nat :: semiring_bit_operations
+begin
+
+definition and_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>m AND n = nat (int m AND int n)\<close> for m n :: nat
+
+definition or_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>m OR n = nat (int m OR int n)\<close> for m n :: nat
+
+definition xor_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>m XOR n = nat (int m XOR int n)\<close> for m n :: nat
+
+instance proof
+  fix m n q :: nat
+  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
+    by (auto simp add: and_nat_def bit_and_iff less_le bit_eq_iff)
+  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
+    by (auto simp add: or_nat_def bit_or_iff less_le bit_eq_iff)
+  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
+    by (auto simp add: xor_nat_def bit_xor_iff less_le bit_eq_iff)
+qed
+
+end
+
+lemma and_nat_rec:
+  \<open>m AND n = of_bool (odd m \<and> odd n) + 2 * ((m div 2) AND (n div 2))\<close> for m n :: nat
+  by (simp add: and_nat_def and_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+
+lemma or_nat_rec:
+  \<open>m OR n = of_bool (odd m \<or> odd n) + 2 * ((m div 2) OR (n div 2))\<close> for m n :: nat
+  by (simp add: or_nat_def or_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+
+lemma xor_nat_rec:
+  \<open>m XOR n = of_bool (odd m \<noteq> odd n) + 2 * ((m div 2) XOR (n div 2))\<close> for m n :: nat
+  by (simp add: xor_nat_def xor_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+
+lemma Suc_0_and_eq [simp]:
+  \<open>Suc 0 AND n = of_bool (odd n)\<close>
+  using one_and_eq [of n] by simp
+
+lemma and_Suc_0_eq [simp]:
+  \<open>n AND Suc 0 = of_bool (odd n)\<close>
+  using and_one_eq [of n] by simp
+
+lemma Suc_0_or_eq [simp]:
+  \<open>Suc 0 OR n = n + of_bool (even n)\<close>
+  using one_or_eq [of n] by simp
+
+lemma or_Suc_0_eq [simp]:
+  \<open>n OR Suc 0 = n + of_bool (even n)\<close>
+  using or_one_eq [of n] by simp
+
+lemma Suc_0_xor_eq [simp]:
+  \<open>Suc 0 XOR n = n + of_bool (even n) - of_bool (odd n)\<close>
+  using one_xor_eq [of n] by simp
+
+lemma xor_Suc_0_eq [simp]:
+  \<open>n XOR Suc 0 = n + of_bool (even n) - of_bool (odd n)\<close>
+  using xor_one_eq [of n] by simp
+
+
 subsubsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
 
 unbundle integer.lifting natural.lifting
@@ -653,11 +597,11 @@ instance proof
   show \<open>bit (NOT k) n \<longleftrightarrow> (2 :: integer) ^ n \<noteq> 0 \<and> \<not> bit k n\<close>
     by transfer (fact bit_not_iff)
   show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
-    by transfer (fact and_int.bit_eq_iff)
+    by transfer (fact bit_and_iff)
   show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
-    by transfer (fact or_int.bit_eq_iff)
+    by transfer (fact bit_or_iff)
   show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
-    by transfer (fact xor_int.bit_eq_iff)
+    by transfer (fact bit_xor_iff)
 qed
 
 end
@@ -677,11 +621,11 @@ lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarro
 instance proof
   fix m n :: \<open>natural\<close> and q :: nat
   show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
-    by transfer (fact and_nat.bit_eq_iff)
+    by transfer (fact bit_and_iff)
   show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
-    by transfer (fact or_nat.bit_eq_iff)
+    by transfer (fact bit_or_iff)
   show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
-    by transfer (fact xor_nat.bit_eq_iff)
+    by transfer (fact bit_xor_iff)
 qed
 
 end

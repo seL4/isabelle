@@ -1509,6 +1509,21 @@ instance nat :: unique_euclidean_semiring_with_bit_shifts ..
 
 instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
+lemma bit_nat_iff [simp]:
+  \<open>bit (nat k) n \<longleftrightarrow> k > 0 \<and> bit k n\<close>
+proof (cases \<open>k > 0\<close>)
+  case True
+  moreover define m where \<open>m = nat k\<close>
+  ultimately have \<open>k = int m\<close>
+    by simp
+  then show ?thesis
+    by (auto intro: ccontr)
+next
+  case False
+  then show ?thesis
+    by simp
+qed
+
 lemma not_exp_less_eq_0_int [simp]:
   \<open>\<not> 2 ^ n \<le> (0::int)\<close>
   by (simp add: power_le_zero_eq)
