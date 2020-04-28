@@ -709,4 +709,50 @@ text \<open>
   sessions, notably from the Archive of Formal Proofs.
 \<close>
 
+
+section \<open>Explore sessions structure\<close>
+
+text \<open>
+  The @{tool_def "sessions"} tool explores the sessions structure. Its
+  command-line usage is:
+  @{verbatim [display]
+\<open>Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -B NAME      include session NAME and all descendants
+    -D DIR       include session directory and select its sessions
+    -R           refer to requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
+    -a           select all sessions
+    -d DIR       include session directory
+    -g NAME      select session group NAME
+    -x NAME      exclude session NAME and all descendants
+
+  Explore the structure of Isabelle sessions and print result names in
+  topological order (on stdout).\<close>}
+
+  Arguments and options for session selection resemble @{tool build}
+  (\secref{sec:tool-build}).
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  All sessions of the Isabelle distribution:
+  @{verbatim [display] \<open>isabelle sessions -a\<close>}
+
+  \<^medskip>
+  Sessions that are based on \<^verbatim>\<open>ZF\<close> (and required by it):
+  @{verbatim [display] \<open>isabelle sessions -B ZF\<close>}
+
+  \<^medskip>
+  All sessions of Isabelle/AFP (based in directory \<^path>\<open>AFP\<close>):
+  @{verbatim [display] \<open>isabelle sessions -D AFP/thys\<close>}
+
+  \<^medskip>
+  Sessions required by Isabelle/AFP (based in directory \<^path>\<open>AFP\<close>):
+  @{verbatim [display] \<open>isabelle sessions -R -D AFP/thys\<close>}
+\<close>
+
 end
