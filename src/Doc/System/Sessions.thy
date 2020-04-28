@@ -299,7 +299,7 @@ text \<open>
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -R           operate on requirements of selected sessions
+    -R           refer to requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -548,7 +548,7 @@ text \<open>
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: "dump")
-    -R           operate on requirements of selected sessions
+    -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b NAME      base logic image (default "Pure")
@@ -624,7 +624,7 @@ text \<open>
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -R           operate on requirements of selected sessions
+    -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b NAME      base logic image (default "Pure")
