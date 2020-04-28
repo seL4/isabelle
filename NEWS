@@ -12,6 +12,10 @@ New in this Isabelle version
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
+* The command-line tool "isabelle sessions" explores the structure of
+Isabelle sessions and prints result names in topological order (on
+stdout).
+
 * The Isabelle/Scala "Progress" interface changed slightly and
 "No_Progress" has been discontinued. INCOMPATIBILITY, use "new Progress"
 instead.

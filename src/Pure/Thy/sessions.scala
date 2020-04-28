@@ -949,6 +949,61 @@ object Sessions
   }
 
 
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool = Isabelle_Tool("sessions", "explore structure of Isabelle sessions", args =>
+  {
+    var base_sessions: List[String] = Nil
+    var select_dirs: List[Path] = Nil
+    var requirements = false
+    var exclude_session_groups: List[String] = Nil
+    var all_sessions = false
+    var dirs: List[Path] = Nil
+    var session_groups: List[String] = Nil
+    var exclude_sessions: List[String] = Nil
+
+    val getopts = Getopts("""
+Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -B NAME      include session NAME and all descendants
+    -D DIR       include session directory and select its sessions
+    -R           refer to requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
+    -a           select all sessions
+    -d DIR       include session directory
+    -g NAME      select session group NAME
+    -x NAME      exclude session NAME and all descendants
+
+  Explore the structure of Isabelle sessions and print result names in
+  topological order (on stdout).
+""",
+      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+      "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "R" -> (_ => requirements = true),
+      "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+      "a" -> (_ => all_sessions = true),
+      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+      "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+
+    val sessions = getopts(args)
+
+    val options = Options.init()
+
+    val selection =
+      Selection(requirements = requirements, all_sessions = all_sessions, base_sessions = base_sessions,
+        exclude_session_groups = exclude_session_groups, exclude_sessions = exclude_sessions,
+        session_groups = session_groups, sessions = sessions)
+    val sessions_structure =
+      load_structure(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
+
+    for (name <- sessions_structure.imports_topological_order) {
+      Output.writeln(name, stdout = true)
+    }
+  })
+
+
 
   /** heap file with SHA1 digest **/
 

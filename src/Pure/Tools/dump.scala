@@ -450,7 +450,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
-    -R           operate on requirements of selected sessions
+    -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b NAME      base logic image (default """ + isabelle.quote(default_logic) + """)
