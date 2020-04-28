@@ -1,6 +1,4 @@
-(*
-Author: Tobias Nipkow
-*)
+(* Author: Tobias Nipkow *)
 
 section "Height-Balanced Trees"
 
@@ -130,16 +128,14 @@ text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
 
 lemma height_balL:
   "\<lbrakk> hbt l; hbt r; height l = height r + m + 2 \<rbrakk> \<Longrightarrow>
-   height (balL l a r) = height r + m + 2 \<or>
-   height (balL l a r) = height r + m + 3"
+   height (balL l a r) \<in> {height r + m + 2, height r + m + 3}"
 apply (cases l)
  apply (auto simp:node_def balL_def split:tree.split)
  by arith+
 
 lemma height_balR:
   "\<lbrakk> hbt l; hbt r; height r = height l + m + 2 \<rbrakk> \<Longrightarrow>
-   height (balR l a r) = height l + m + 2 \<or>
-   height (balR l a r) = height l + m + 3"
+   height (balR l a r) \<in> {height l + m + 2, height l + m + 3}"
 apply (cases r)
  apply(auto simp add:node_def balR_def split:tree.split)
  by arith+
@@ -184,15 +180,15 @@ proof (induction t rule: tree2_induct)
     case False
     show ?thesis 
     proof(cases "x<a")
-      case True with Node 1 show ?thesis by (auto intro!:hbt_balL)
+      case True with 1 Node(1,2) show ?thesis by (auto intro!: hbt_balL)
     next
-      case False with Node 1 \<open>x\<noteq>a\<close> show ?thesis by (auto intro!:hbt_balR)
+      case False with 1 Node(3,4) \<open>x\<noteq>a\<close> show ?thesis by (auto intro!: hbt_balR)
     qed
   qed
   case 2
   show ?case
   proof(cases "x = a")
-    case True with Node 1 show ?thesis by simp
+    case True with 2 show ?thesis by simp
   next
     case False
     show ?thesis 
@@ -200,34 +196,34 @@ proof (induction t rule: tree2_induct)
       case True
       show ?thesis
       proof(cases "height (insert x l) = height r + m + 2")
-        case False with Node 2 \<open>x < a\<close> show ?thesis by (auto simp: height_balL2)
+        case False with 2 Node(1,2) \<open>x < a\<close> show ?thesis by (auto simp: height_balL2)
       next
         case True 
         hence "(height (balL (insert x l) a r) = height r + m + 2) \<or>
           (height (balL (insert x l) a r) = height r + m + 3)" (is "?A \<or> ?B")
-          using Node 2 by (intro height_balL) simp_all
+          using 2 Node(1,2) height_balL[OF _ _ True] by simp
         thus ?thesis
         proof
-          assume ?A with Node(2) 2 True \<open>x < a\<close> show ?thesis by (auto)
+          assume ?A with 2 Node(2) True \<open>x < a\<close> show ?thesis by (auto)
         next
-          assume ?B with Node(2) 1 True \<open>x < a\<close> show ?thesis by (simp) arith
+          assume ?B with 2 Node(2) True \<open>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     next
       case False
       show ?thesis 
       proof(cases "height (insert x r) = height l + m + 2")
-        case False with Node 2 \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
+        case False with 2 Node(3,4) \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
       next
         case True 
         hence "(height (balR l a (insert x r)) = height l + m + 2) \<or>
           (height (balR l a (insert x r)) = height l + m + 3)"  (is "?A \<or> ?B")
-          using Node 2 by (intro height_balR) simp_all
+          using Node 2 height_balR[OF _ _ True] by simp
         thus ?thesis 
         proof
-          assume ?A with Node(4) 2 True \<open>\<not>x < a\<close> show ?thesis by (auto)
+          assume ?A with 2 Node(4) True \<open>\<not>x < a\<close> show ?thesis by (auto)
         next
-          assume ?B with Node(4) 1 True \<open>\<not>x < a\<close> show ?thesis by (simp) arith
+          assume ?B with 2 Node(4) True \<open>\<not>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     qed
@@ -256,9 +252,8 @@ by(induct t rule: split_max_induct)
 text\<open>Deletion maintains @{const hbt}:\<close>
 
 theorem hbt_delete:
-  assumes "hbt t" 
-  shows "hbt(delete x t)" and "height t = (height (delete x t)) \<or> height t = height (delete x t) + 1"
-using assms
+  "hbt t \<Longrightarrow> hbt(delete x t)"
+  "hbt t \<Longrightarrow> height t \<in> {height (delete x t), height (delete x t) + 1}"
 proof (induct t rule: tree2_induct)
   case (Node l a n r)
   case 1
@@ -281,7 +276,7 @@ proof (induct t rule: tree2_induct)
         case True 
         hence "(height (balR (delete x l) a r) = height (delete x l) + m + 2) \<or>
           height (balR (delete x l) a r) = height (delete x l) + m + 3" (is "?A \<or> ?B")
-          using Node 2 by (intro height_balR) auto
+          using Node 2height_balR[OF _ _ True] by simp
         thus ?thesis 
         proof
           assume ?A with \<open>x < a\<close> Node 2 show ?thesis by(auto simp: balR_def split!: if_splits)
@@ -298,7 +293,7 @@ proof (induct t rule: tree2_induct)
         case True 
         hence "(height (balL l a (delete x r)) = height (delete x r) + m + 2) \<or>
           height (balL l a (delete x r)) = height (delete x r) + m + 3" (is "?A \<or> ?B")
-          using Node 2 by (intro height_balL) auto
+          using Node 2 height_balL[OF _ _ True] by simp
         thus ?thesis 
         proof
           assume ?A with \<open>\<not>x < a\<close> \<open>x \<noteq> a\<close> Node 2 show ?thesis by(auto simp: balL_def split: if_splits)
@@ -314,29 +309,22 @@ text \<open>A more automatic proof.
 Complete automation as for insertion seems hard due to resource requirements.\<close>
 
 theorem hbt_delete_auto:
-  assumes "hbt t" 
-  shows "hbt(delete x t)" and "height t \<in> {height (delete x t), height (delete x t) + 1}"
-using assms
+  "hbt t \<Longrightarrow> hbt(delete x t)"
+  "hbt t \<Longrightarrow> height t \<in> {height (delete x t), height (delete x t) + 1}"
 proof (induct t rule: tree2_induct)
   case (Node l a n r)
   case 1
-  show ?case
-  proof(cases "x = a")
-    case True thus ?thesis
-      using 1 hbt_split_max[of l] by (auto intro!: hbt_balR split: prod.split)
-  next
-    case False thus ?thesis
-      using Node 1 by (auto intro!: hbt_balL hbt_balR)
-  qed
+  thus ?case
+    using Node hbt_split_max[of l] by (auto intro!: hbt_balL hbt_balR split: prod.split)
   case 2
   show ?case
   proof(cases "x = a")
     case True thus ?thesis
-      using 1 hbt_split_max[of l]
+      using 2 hbt_split_max[of l]
       by(auto simp: balR_def max_absorb2 split!: if_splits prod.split tree.split)
   next
     case False thus ?thesis 
-      using height_balL[of l "delete x r" a] height_balR[of "delete x l" r a] Node 1
+      using height_balL[of l "delete x r" a] height_balR[of "delete x l" r a] 2 Node
         by(auto simp: balL_def balR_def split!: if_split)
   qed
 qed simp_all
