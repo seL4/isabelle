@@ -17,16 +17,19 @@ type_synonym 'a hbt = "('a*nat) tree"
 definition empty :: "'a hbt" where
 "empty = Leaf"
 
-text \<open>The maximal amount that the height of two siblings may differ.\<close>
+text \<open>The maximal amount by which the height of two siblings may differ:\<close>
 
-consts m :: nat
+locale HBT =
+fixes m :: nat
+assumes [arith]: "m > 0"
+begin
 
 text \<open>Invariant:\<close>
 
 fun hbt :: "'a hbt \<Rightarrow> bool" where
 "hbt Leaf = True" |
 "hbt (Node l (a,n) r) =
- (abs(int(height l) - int(height r)) \<le> int(m+1) \<and>
+ (abs(int(height l) - int(height r)) \<le> int(m) \<and>
   n = max (height l) (height r) + 1 \<and> hbt l \<and> hbt r)"
 
 fun ht :: "'a hbt \<Rightarrow> nat" where
@@ -38,7 +41,7 @@ definition node :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> '
 
 definition balL :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
 "balL AB b C =
-  (if ht AB = ht C + m + 2 then
+  (if ht AB = ht C + m + 1 then
      case AB of 
        Node A (a, _) B \<Rightarrow>
          if ht A \<ge> ht B then node A a (node B b C)
@@ -49,7 +52,7 @@ definition balL :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> '
 
 definition balR :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
 "balR A a BC =
-   (if ht BC = ht A + m + 2 then
+   (if ht BC = ht A + m + 1 then
       case BC of
         Node B (b, _) C \<Rightarrow>
           if ht B \<le> ht C then node (node A a B) b C
@@ -127,15 +130,15 @@ by (cases t rule: tree2_cases) simp_all
 text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
 
 lemma height_balL:
-  "\<lbrakk> hbt l; hbt r; height l = height r + m + 2 \<rbrakk> \<Longrightarrow>
-   height (balL l a r) \<in> {height r + m + 2, height r + m + 3}"
+  "\<lbrakk> hbt l; hbt r; height l = height r + m + 1 \<rbrakk> \<Longrightarrow>
+   height (balL l a r) \<in> {height r + m + 1, height r + m + 2}"
 apply (cases l)
  apply (auto simp:node_def balL_def split:tree.split)
  by arith+
 
 lemma height_balR:
-  "\<lbrakk> hbt l; hbt r; height r = height l + m + 2 \<rbrakk> \<Longrightarrow>
-   height (balR l a r) \<in> {height l + m + 2, height l + m + 3}"
+  "\<lbrakk> hbt l; hbt r; height r = height l + m + 1 \<rbrakk> \<Longrightarrow>
+   height (balR l a r) \<in> {height l + m + 1, height l + m + 2}"
 apply (cases r)
  apply(auto simp add:node_def balR_def split:tree.split)
  by arith+
@@ -144,32 +147,30 @@ lemma height_node[simp]: "height(node l a r) = max (height l) (height r) + 1"
 by (simp add: node_def)
 
 lemma height_balL2:
-  "\<lbrakk> hbt l; hbt r; height l \<noteq> height r + m + 2 \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> hbt l; hbt r; height l \<noteq> height r + m + 1 \<rbrakk> \<Longrightarrow>
    height (balL l a r) = 1 + max (height l) (height r)"
 by (cases l, cases r) (simp_all add: balL_def)
 
 lemma height_balR2:
-  "\<lbrakk> hbt l;  hbt r;  height r \<noteq> height l + m + 2 \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> hbt l;  hbt r;  height r \<noteq> height l + m + 1 \<rbrakk> \<Longrightarrow>
    height (balR l a r) = 1 + max (height l) (height r)"
 by (cases l, cases r) (simp_all add: balR_def)
 
 lemma hbt_balL: 
-  "\<lbrakk> hbt l; hbt r; height r - m - 1 \<le> height l \<and> height l \<le> height r + m + 2 \<rbrakk> \<Longrightarrow> hbt(balL l a r)"
+  "\<lbrakk> hbt l; hbt r; height r - m \<le> height l \<and> height l \<le> height r + m + 1 \<rbrakk> \<Longrightarrow> hbt(balL l a r)"
 by(cases l, cases r)
-  (auto simp: balL_def node_def split!: if_split tree.split)
+  (auto simp: balL_def node_def max_def split!: if_splits tree.split)
 
 lemma hbt_balR: 
-  "\<lbrakk> hbt l; hbt r; height l - m - 1 \<le> height r \<and> height r \<le> height l + m + 2 \<rbrakk> \<Longrightarrow> hbt(balR l a r)"
+  "\<lbrakk> hbt l; hbt r; height l - m \<le> height r \<and> height r \<le> height l + m + 1 \<rbrakk> \<Longrightarrow> hbt(balR l a r)"
 by(cases r, cases l)
-  (auto simp: balR_def node_def split!: if_split tree.split)
+  (auto simp: balR_def node_def max_def split!: if_splits tree.split)
 
 text\<open>Insertion maintains @{const hbt}. Requires simultaneous proof.\<close>
 
 theorem hbt_insert:
-  assumes "hbt t"
-  shows "hbt(insert x t)"
-        "(height (insert x t) = height t \<or> height (insert x t) = height t + 1)"
-using assms
+  "hbt t \<Longrightarrow> hbt(insert x t)"
+  "hbt t \<Longrightarrow> height (insert x t) \<in> {height t, height t + 1}"
 proof (induction t rule: tree2_induct)
   case (Node l a _ r)
   case 1
@@ -195,12 +196,12 @@ proof (induction t rule: tree2_induct)
     proof(cases "x<a")
       case True
       show ?thesis
-      proof(cases "height (insert x l) = height r + m + 2")
+      proof(cases "height (insert x l) = height r + m + 1")
         case False with 2 Node(1,2) \<open>x < a\<close> show ?thesis by (auto simp: height_balL2)
       next
         case True 
-        hence "(height (balL (insert x l) a r) = height r + m + 2) \<or>
-          (height (balL (insert x l) a r) = height r + m + 3)" (is "?A \<or> ?B")
+        hence "(height (balL (insert x l) a r) = height r + m + 1) \<or>
+          (height (balL (insert x l) a r) = height r + m + 2)" (is "?A \<or> ?B")
           using 2 Node(1,2) height_balL[OF _ _ True] by simp
         thus ?thesis
         proof
@@ -212,12 +213,12 @@ proof (induction t rule: tree2_induct)
     next
       case False
       show ?thesis 
-      proof(cases "height (insert x r) = height l + m + 2")
+      proof(cases "height (insert x r) = height l + m + 1")
         case False with 2 Node(3,4) \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
       next
         case True 
-        hence "(height (balR l a (insert x r)) = height l + m + 2) \<or>
-          (height (balR l a (insert x r)) = height l + m + 3)"  (is "?A \<or> ?B")
+        hence "(height (balR l a (insert x r)) = height l + m + 1) \<or>
+          (height (balR l a (insert x r)) = height l + m + 2)"  (is "?A \<or> ?B")
           using Node 2 height_balR[OF _ _ True] by simp
         thus ?thesis 
         proof
@@ -270,12 +271,12 @@ proof (induct t rule: tree2_induct)
     proof(cases "x<a")
       case True
       show ?thesis
-      proof(cases "height r = height (delete x l) + m + 2")
+      proof(cases "height r = height (delete x l) + m + 1")
         case False with Node 1 \<open>x < a\<close> show ?thesis by(auto simp: balR_def)
       next
         case True 
-        hence "(height (balR (delete x l) a r) = height (delete x l) + m + 2) \<or>
-          height (balR (delete x l) a r) = height (delete x l) + m + 3" (is "?A \<or> ?B")
+        hence "(height (balR (delete x l) a r) = height (delete x l) + m + 1) \<or>
+          height (balR (delete x l) a r) = height (delete x l) + m + 2" (is "?A \<or> ?B")
           using Node 2height_balR[OF _ _ True] by simp
         thus ?thesis 
         proof
@@ -287,12 +288,12 @@ proof (induct t rule: tree2_induct)
     next
       case False
       show ?thesis
-      proof(cases "height l = height (delete x r) + m + 2")
+      proof(cases "height l = height (delete x r) + m + 1")
         case False with Node 1 \<open>\<not>x < a\<close> \<open>x \<noteq> a\<close> show ?thesis by(auto simp: balL_def)
       next
         case True 
-        hence "(height (balL l a (delete x r)) = height (delete x r) + m + 2) \<or>
-          height (balL l a (delete x r)) = height (delete x r) + m + 3" (is "?A \<or> ?B")
+        hence "(height (balL l a (delete x r)) = height (delete x r) + m + 1) \<or>
+          height (balL l a (delete x r)) = height (delete x r) + m + 2" (is "?A \<or> ?B")
           using Node 2 height_balL[OF _ _ True] by simp
         thus ?thesis 
         proof
@@ -350,5 +351,7 @@ next
 next
   case 7 thus ?case by (simp add: hbt_delete(1))
 qed
+
+end
 
 end
