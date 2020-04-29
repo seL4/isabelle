@@ -244,15 +244,21 @@ qed
 declare enumerate_0 [simp del] enumerate_Suc [simp del]
 
 lemma enumerate_step: "infinite S \<Longrightarrow> enumerate S n < enumerate S (Suc n)"
-  apply (induct n arbitrary: S)
-   apply (rule order_le_neq_trans)
-    apply (simp add: enumerate_0 Least_le enumerate_in_set)
-   apply (simp only: enumerate_Suc')
-   apply (subgoal_tac "enumerate (S - {enumerate S 0}) 0 \<in> S - {enumerate S 0}")
-    apply (blast intro: sym)
-   apply (simp add: enumerate_in_set del: Diff_iff)
-  apply (simp add: enumerate_Suc')
-  done
+proof (induction n arbitrary: S)
+  case 0
+  then have "enumerate S 0 \<le> enumerate S (Suc 0)"
+    by (simp add: enumerate_0 Least_le enumerate_in_set)
+  moreover have "enumerate (S - {enumerate S 0}) 0 \<in> S - {enumerate S 0}"
+    by (meson "0.prems" enumerate_in_set infinite_remove)
+  then have "enumerate S 0 \<noteq> enumerate (S - {enumerate S 0}) 0"
+    by auto
+  ultimately show ?case
+    by (simp add: enumerate_Suc')
+next
+  case (Suc n)
+  then show ?case 
+    by (simp add: enumerate_Suc')
+qed
 
 lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
   by (induct m n rule: less_Suc_induct) (auto intro: enumerate_step)
@@ -330,18 +336,25 @@ proof (induct s rule: less_induct)
   qed
 qed
 
+lemma inj_enumerate:
+  fixes S :: "'a::wellorder set"
+  assumes S: "infinite S"
+  shows "inj (enumerate S)"
+  unfolding inj_on_def
+proof clarsimp
+  show "\<And>x y. enumerate S x = enumerate S y \<Longrightarrow> x = y"
+    by (metis neq_iff enumerate_mono[OF _ \<open>infinite S\<close>]) 
+qed
+
+text \<open>To generalise this, we'd need a condition that all initial segments were finite\<close>
 lemma bij_enumerate:
   fixes S :: "nat set"
   assumes S: "infinite S"
   shows "bij_betw (enumerate S) UNIV S"
 proof -
-  have "\<And>n m. n \<noteq> m \<Longrightarrow> enumerate S n \<noteq> enumerate S m"
-    using enumerate_mono[OF _ \<open>infinite S\<close>] by (auto simp: neq_iff)
-  then have "inj (enumerate S)"
-    by (auto simp: inj_on_def)
-  moreover have "\<forall>s \<in> S. \<exists>i. enumerate S i = s"
+  have "\<forall>s \<in> S. \<exists>i. enumerate S i = s"
     using enumerate_Ex[OF S] by auto
-  moreover note \<open>infinite S\<close>
+  moreover note \<open>infinite S\<close> inj_enumerate
   ultimately show ?thesis
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
@@ -374,10 +387,13 @@ proof
     assume "S \<in> \<F>"
     have "{T \<in> \<F>. S \<subseteq> T} = {}"
       if "\<not> (\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y)"
-      apply (rule finite_transitivity_chain [of _ "\<lambda>T U. S \<subseteq> T \<and> T \<subset> U"])
-         apply (use assms that in auto)
-      apply (blast intro: dual_order.trans psubset_imp_subset)
-      done
+    proof -
+      have \<section>: "\<And>x. x \<in> \<F> \<and> S \<subseteq> x \<Longrightarrow> \<exists>y. y \<in> \<F> \<and> S \<subseteq> y \<and> x \<subset> y"
+        using that by (blast intro: dual_order.trans psubset_imp_subset)
+      show ?thesis
+      proof (rule finite_transitivity_chain [of _ "\<lambda>T U. S \<subseteq> T \<and> T \<subset> U"])
+      qed (use assms in \<open>auto intro: \<section>\<close>)
+    qed
     with \<open>S \<in> \<F>\<close> show "\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y"
       by blast
   qed

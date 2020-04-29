@@ -6936,7 +6936,7 @@ inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
 
 
 lemma listrel_eq_len:  "(xs, ys) \<in> listrel r \<Longrightarrow> length xs = length ys"
-by(induct rule: listrel.induct) auto
+  by(induct rule: listrel.induct) auto
 
 lemma listrel_iff_zip [code_unfold]: "(xs,ys) \<in> listrel r \<longleftrightarrow>
   length xs = length ys \<and> (\<forall>(x,y) \<in> set(zip xs ys). (x,y) \<in> r)" (is "?L \<longleftrightarrow> ?R")
@@ -6950,59 +6950,66 @@ qed
 
 lemma listrel_iff_nth: "(xs,ys) \<in> listrel r \<longleftrightarrow>
   length xs = length ys \<and> (\<forall>n < length xs. (xs!n, ys!n) \<in> r)" (is "?L \<longleftrightarrow> ?R")
-by (auto simp add: all_set_conv_all_nth listrel_iff_zip)
-
+  by (auto simp add: all_set_conv_all_nth listrel_iff_zip)
 
 lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
   by (meson listrel_iff_nth subrelI subset_eq)
 
-lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
-apply clarify
-apply (erule listrel.induct, auto)
-done
+lemma listrel_subset:
+  assumes "r \<subseteq> A \<times> A" shows "listrel r \<subseteq> lists A \<times> lists A"
+proof clarify
+  show "a \<in> lists A \<and> b \<in> lists A" if "(a, b) \<in> listrel r" for a b
+    using that assms by (induction rule: listrel.induct, auto)
+qed
 
-lemma listrel_refl_on: "refl_on A r \<Longrightarrow> refl_on (lists A) (listrel r)"
-apply (simp add: refl_on_def listrel_subset Ball_def)
-apply (rule allI)
-apply (induct_tac x)
-apply (auto intro: listrel.intros)
-done
+lemma listrel_refl_on:
+  assumes "refl_on A r" shows "refl_on (lists A) (listrel r)"
+proof -
+  have "l \<in> lists A \<Longrightarrow> (l, l) \<in> listrel r" for l
+    using assms unfolding refl_on_def
+    by (induction l, auto intro: listrel.intros)
+  then show ?thesis
+    by (meson assms listrel_subset refl_on_def)
+qed
 
 lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)"
   by (simp add: listrel_iff_nth sym_def)
 
-lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)"
-apply (simp add: trans_def)
-apply (intro allI)
-apply (rule impI)
-apply (erule listrel.induct)
-apply (blast intro: listrel.intros)+
-done
+lemma listrel_trans:
+  assumes "trans r" shows "trans (listrel r)"
+proof -
+  have "(x, z) \<in> listrel r" if "(x, y) \<in> listrel r" "(y, z) \<in> listrel r" for x y z
+    using that
+  proof induction
+    case (Cons x y xs ys)
+    then show ?case
+      by clarsimp (metis assms listrel.Cons listrel_iff_nth transD)
+  qed auto
+  then show ?thesis
+    using transI by blast
+qed
 
 theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
-by (simp add: equiv_def listrel_refl_on listrel_sym listrel_trans)
+  by (simp add: equiv_def listrel_refl_on listrel_sym listrel_trans)
 
 lemma listrel_rtrancl_refl[iff]: "(xs,xs) \<in> listrel(r\<^sup>*)"
-using listrel_refl_on[of UNIV, OF refl_rtrancl]
-by(auto simp: refl_on_def)
+  using listrel_refl_on[of UNIV, OF refl_rtrancl]
+  by(auto simp: refl_on_def)
 
 lemma listrel_rtrancl_trans:
-  "\<lbrakk>(xs,ys) \<in> listrel(r\<^sup>*);  (ys,zs) \<in> listrel(r\<^sup>*)\<rbrakk>
-  \<Longrightarrow> (xs,zs) \<in> listrel(r\<^sup>*)"
-by (metis listrel_trans trans_def trans_rtrancl)
-
+  "\<lbrakk>(xs,ys) \<in> listrel(r\<^sup>*);  (ys,zs) \<in> listrel(r\<^sup>*)\<rbrakk> \<Longrightarrow> (xs,zs) \<in> listrel(r\<^sup>*)"
+  by (metis listrel_trans trans_def trans_rtrancl)
 
 lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
-by (blast intro: listrel.intros)
+  by (blast intro: listrel.intros)
 
 lemma listrel_Cons:
-     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})"
-by (auto simp add: set_Cons_def intro: listrel.intros)
+  "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})"
+  by (auto simp add: set_Cons_def intro: listrel.intros)
 
 text \<open>Relating \<^term>\<open>listrel1\<close>, \<^term>\<open>listrel\<close> and closures:\<close>
 
-lemma listrel1_rtrancl_subset_rtrancl_listrel1:
-  "listrel1 (r\<^sup>*) \<subseteq> (listrel1 r)\<^sup>*"
+lemma listrel1_rtrancl_subset_rtrancl_listrel1: "listrel1 (r\<^sup>*) \<subseteq> (listrel1 r)\<^sup>*"
 proof (rule subrelI)
   fix xs ys assume 1: "(xs,ys) \<in> listrel1 (r\<^sup>*)"
   { fix x y us vs
@@ -7017,27 +7024,27 @@ proof (rule subrelI)
 qed
 
 lemma rtrancl_listrel1_eq_len: "(x,y) \<in> (listrel1 r)\<^sup>* \<Longrightarrow> length x = length y"
-by (induct rule: rtrancl.induct) (auto intro: listrel1_eq_len)
+  by (induct rule: rtrancl.induct) (auto intro: listrel1_eq_len)
 
 lemma rtrancl_listrel1_ConsI1:
   "(xs,ys) \<in> (listrel1 r)\<^sup>* \<Longrightarrow> (x#xs,x#ys) \<in> (listrel1 r)\<^sup>*"
-apply(induct rule: rtrancl.induct)
- apply simp
-by (metis listrel1I2 rtrancl.rtrancl_into_rtrancl)
+proof (induction rule: rtrancl.induct)
+  case (rtrancl_into_rtrancl a b c)
+  then show ?case
+    by (metis listrel1I2 rtrancl.rtrancl_into_rtrancl)
+qed auto
 
 lemma rtrancl_listrel1_ConsI2:
-  "(x,y) \<in> r\<^sup>* \<Longrightarrow> (xs, ys) \<in> (listrel1 r)\<^sup>*
-  \<Longrightarrow> (x # xs, y # ys) \<in> (listrel1 r)\<^sup>*"
-  by (blast intro: rtrancl_trans rtrancl_listrel1_ConsI1
-    subsetD[OF listrel1_rtrancl_subset_rtrancl_listrel1 listrel1I1])
+  "(x,y) \<in> r\<^sup>* \<Longrightarrow> (xs, ys) \<in> (listrel1 r)\<^sup>* \<Longrightarrow> (x # xs, y # ys) \<in> (listrel1 r)\<^sup>*"
+  by (meson in_mono listrel1I1 listrel1_rtrancl_subset_rtrancl_listrel1 rtrancl_listrel1_ConsI1 rtrancl_trans)
 
 lemma listrel1_subset_listrel:
   "r \<subseteq> r' \<Longrightarrow> refl r' \<Longrightarrow> listrel1 r \<subseteq> listrel(r')"
-by(auto elim!: listrel1E simp add: listrel_iff_zip set_zip refl_on_def)
+  by(auto elim!: listrel1E simp add: listrel_iff_zip set_zip refl_on_def)
 
 lemma listrel_reflcl_if_listrel1:
   "(xs,ys) \<in> listrel1 r \<Longrightarrow> (xs,ys) \<in> listrel(r\<^sup>*)"
-by(erule listrel1E)(auto simp add: listrel_iff_zip set_zip)
+  by(erule listrel1E)(auto simp add: listrel_iff_zip set_zip)
 
 lemma listrel_rtrancl_eq_rtrancl_listrel1: "listrel (r\<^sup>*) = (listrel1 r)\<^sup>*"
 proof
@@ -7062,37 +7069,37 @@ qed
 
 lemma rtrancl_listrel1_if_listrel:
   "(xs,ys) \<in> listrel r \<Longrightarrow> (xs,ys) \<in> (listrel1 r)\<^sup>*"
-by(metis listrel_rtrancl_eq_rtrancl_listrel1 subsetD[OF listrel_mono] r_into_rtrancl subsetI)
+  by(metis listrel_rtrancl_eq_rtrancl_listrel1 subsetD[OF listrel_mono] r_into_rtrancl subsetI)
 
 lemma listrel_subset_rtrancl_listrel1: "listrel r \<subseteq> (listrel1 r)\<^sup>*"
-by(fast intro:rtrancl_listrel1_if_listrel)
+  by(fast intro:rtrancl_listrel1_if_listrel)
 
 
 subsection \<open>Size function\<close>
 
 lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (size_list f)"
-by (rule is_measure_trivial)
+  by (rule is_measure_trivial)
 
 lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (size_option f)"
-by (rule is_measure_trivial)
+  by (rule is_measure_trivial)
 
 lemma size_list_estimation[termination_simp]:
   "x \<in> set xs \<Longrightarrow> y < f x \<Longrightarrow> y < size_list f xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma size_list_estimation'[termination_simp]:
   "x \<in> set xs \<Longrightarrow> y \<le> f x \<Longrightarrow> y \<le> size_list f xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma size_list_map[simp]: "size_list f (map g xs) = size_list (f \<circ> g) xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma size_list_append[simp]: "size_list f (xs @ ys) = size_list f xs + size_list f ys"
-by (induct xs, auto)
+  by (induct xs, auto)
 
 lemma size_list_pointwise[termination_simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> size_list f xs \<le> size_list g xs"
-by (induct xs) force+
+  by (induct xs) force+
 
 
 subsection \<open>Monad operation\<close>
@@ -7868,12 +7875,20 @@ lemma partition_transfer [transfer_rule]:
 
 lemma lists_transfer [transfer_rule]:
   "(rel_set A ===> rel_set (list_all2 A)) lists lists"
-  apply (rule rel_funI, rule rel_setI)
-  apply (erule lists.induct, simp)
-  apply (simp only: rel_set_def list_all2_Cons1, metis lists.Cons)
-  apply (erule lists.induct, simp)
-  apply (simp only: rel_set_def list_all2_Cons2, metis lists.Cons)
-  done
+proof (rule rel_funI, rule rel_setI)
+  show "\<lbrakk>l \<in> lists X; rel_set A X Y\<rbrakk> \<Longrightarrow> \<exists>y\<in>lists Y. list_all2 A l y" for X Y l
+  proof (induction l rule: lists.induct)
+    case (Cons a l)
+    then show ?case
+      by (simp only: rel_set_def list_all2_Cons1, metis lists.Cons)
+  qed auto
+  show "\<lbrakk>l \<in> lists Y; rel_set A X Y\<rbrakk> \<Longrightarrow> \<exists>x\<in>lists X. list_all2 A x l" for X Y l
+  proof (induction l rule: lists.induct)
+    case (Cons a l)
+    then show ?case
+      by (simp only: rel_set_def list_all2_Cons2, metis lists.Cons)
+  qed auto
+qed
 
 lemma set_Cons_transfer [transfer_rule]:
   "(rel_set A ===> rel_set (list_all2 A) ===> rel_set (list_all2 A))
