@@ -914,7 +914,6 @@ apply(frule_tac j="0" and k="length ((None, s) # xs) - 1" and p=post in stabilit
 apply clarify
 apply (simp add:last_length)
 \<comment> \<open>WhileOne\<close>
-apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp)
 apply(simp add:Cons_lift del:list.map)
 apply(simp add:comm_def del:list.map)
@@ -957,7 +956,6 @@ apply(subgoal_tac "(map (lift (While b P)) ((Some P, sa) # xs))\<noteq>[]")
  apply(simp only:last_lift_not_None)
 apply simp
 \<comment> \<open>WhileMore\<close>
-apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp del:last.simps)
 \<comment> \<open>metiendo la hipotesis antes de dividir la conclusion.\<close>
 apply(subgoal_tac "(Some (While b P), snd (last ((Some P, sa) # xs))) # ys \<in> assum (pre, rely)")

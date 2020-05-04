@@ -851,6 +851,7 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
+    Datatype_Simproc_Tests
 
 session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
   description "

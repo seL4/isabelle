@@ -203,4 +203,9 @@ ML_file \<open>Tools/BNF/bnf_lfp_compat.ML\<close>
 ML_file \<open>Tools/BNF/bnf_lfp_rec_sugar_more.ML\<close>
 ML_file \<open>Tools/BNF/bnf_lfp_size.ML\<close>
 
+ML_file \<open>Tools/datatype_simprocs.ML\<close>
+
+simproc_setup datatype_no_proper_subterm
+  ("(x :: 'a :: size) = y") = \<open>K Datatype_Simprocs.no_proper_subterm_simproc\<close>
+
 end

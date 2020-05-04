@@ -2528,6 +2528,9 @@ end
 
 lemmas size_nat = size_nat_def
 
+lemma size_neq_size_imp_neq: "size x \<noteq> size y \<Longrightarrow> x \<noteq> y"
+  by (erule contrapos_nn) (rule arg_cong)
+
 
 subsection \<open>Code module namespace\<close>
 

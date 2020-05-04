@@ -451,6 +451,10 @@ via thy_defn / thy_stmt / thy_goal_defn / thy_goal_stmt.
 
 *** HOL ***
 
+* Simproc 'datatype_no_proper_subterm' rewrites equalities 'lhs = rhs'
+on datatypes to 'False' if either side is a proper subexpression of the
+other (for any datatype with a reasonable size function).
+
 * Command 'export_code' produces output as logical files within the
 theory context, as well as formal session exports that can be
 materialized via command-line tools "isabelle export" or "isabelle build
