@@ -40,28 +40,28 @@ fun rot22 :: "bal \<Rightarrow> bal" where
 "rot22 b = (if b=Lh then Rh else Bal)"
 
 fun balL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
-"balL AB' bc b C = (case AB' of
-   Same AB \<Rightarrow> Same (Node AB (bc,b) C) |
-   Diff AB \<Rightarrow> (case b of
-     Bal \<Rightarrow> Diff (Node AB (bc,Lh) C) |
-     Rh \<Rightarrow> Same (Node AB (bc,Bal) C) |
+"balL AB' c bc C = (case AB' of
+   Same AB \<Rightarrow> Same (Node AB (c,bc) C) |
+   Diff AB \<Rightarrow> (case bc of
+     Bal \<Rightarrow> Diff (Node AB (c,Lh) C) |
+     Rh \<Rightarrow> Same (Node AB (c,Bal) C) |
      Lh \<Rightarrow> Same(case AB of
-       Node A (ab,Lh) B \<Rightarrow> Node A (ab,Bal) (Node B (bc,Bal) C) |
+       Node A (ab,Lh) B \<Rightarrow> Node A (ab,Bal) (Node B (c,Bal) C) |
        Node A (ab,Rh) B \<Rightarrow> (case B of
-         Node B\<^sub>1 (bb, bB) B\<^sub>2 \<Rightarrow>
-           Node (Node A (ab,rot21 bB) B\<^sub>1) (bb,Bal) (Node B\<^sub>2 (bc,rot22 bB) C)))))"
+         Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
+           Node (Node A (ab,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
 
 fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal change \<Rightarrow> 'a tree_bal change" where
-"balR A ab b BC' = (case BC' of
-   Same BC \<Rightarrow> Same (Node A (ab,b) BC) |
-   Diff BC \<Rightarrow> (case b of
-     Bal \<Rightarrow> Diff (Node A (ab,Rh) BC) |
-     Lh \<Rightarrow> Same (Node A (ab,Bal) BC) |
+"balR A a ba BC' = (case BC' of
+   Same BC \<Rightarrow> Same (Node A (a,ba) BC) |
+   Diff BC \<Rightarrow> (case ba of
+     Bal \<Rightarrow> Diff (Node A (a,Rh) BC) |
+     Lh \<Rightarrow> Same (Node A (a,Bal) BC) |
      Rh \<Rightarrow> Same(case BC of
-       Node B (bc,Rh) C \<Rightarrow> Node (Node A (ab,Bal) B) (bc,Bal) C |
+       Node B (bc,Rh) C \<Rightarrow> Node (Node A (a,Bal) B) (bc,Bal) C |
        Node B (bc,Lh) C \<Rightarrow> (case B of
-         Node B\<^sub>1 (bb, bB) B\<^sub>2 \<Rightarrow>
-           Node (Node A (ab,rot21 bB) B\<^sub>1) (bb,Bal) (Node B\<^sub>2 (bc,rot22 bB) C)))))"
+         Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
+           Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (bc,rot22 bb) C)))))"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
 "insert x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
