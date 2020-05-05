@@ -29,22 +29,22 @@ definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
 "balL AB c C =
   (if ht AB = ht C + 2 then
      case AB of 
-       Node A (ab, _) B \<Rightarrow>
-         if ht A \<ge> ht B then node A ab (node B c C)
+       Node A (a, _) B \<Rightarrow>
+         if ht A \<ge> ht B then node A a (node B c C)
          else
            case B of
-             Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A ab B\<^sub>1) b (node B\<^sub>2 c C)
+             Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) b (node B\<^sub>2 c C)
    else node AB c C)"
 
 definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "balR A a BC =
    (if ht BC = ht A + 2 then
       case BC of
-        Node B (bc, _) C \<Rightarrow>
-          if ht B \<le> ht C then node (node A a B) bc C
+        Node B (c, _) C \<Rightarrow>
+          if ht B \<le> ht C then node (node A a B) c C
           else
             case B of
-              Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) b (node B\<^sub>2 bc C)
+              Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) b (node B\<^sub>2 c C)
   else node A a BC)"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where

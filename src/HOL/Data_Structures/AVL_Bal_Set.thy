@@ -46,10 +46,10 @@ fun balL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow>
      Bal \<Rightarrow> Diff (Node AB (c,Lh) C) |
      Rh \<Rightarrow> Same (Node AB (c,Bal) C) |
      Lh \<Rightarrow> Same(case AB of
-       Node A (ab,Lh) B \<Rightarrow> Node A (ab,Bal) (Node B (c,Bal) C) |
-       Node A (ab,Rh) B \<Rightarrow> (case B of
+       Node A (a,Lh) B \<Rightarrow> Node A (a,Bal) (Node B (c,Bal) C) |
+       Node A (a,Rh) B \<Rightarrow> (case B of
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
-           Node (Node A (ab,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
+           Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
 
 fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal change \<Rightarrow> 'a tree_bal change" where
 "balR A a ba BC' = (case BC' of
@@ -58,10 +58,10 @@ fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tre
      Bal \<Rightarrow> Diff (Node A (a,Rh) BC) |
      Lh \<Rightarrow> Same (Node A (a,Bal) BC) |
      Rh \<Rightarrow> Same(case BC of
-       Node B (bc,Rh) C \<Rightarrow> Node (Node A (a,Bal) B) (bc,Bal) C |
-       Node B (bc,Lh) C \<Rightarrow> (case B of
+       Node B (c,Rh) C \<Rightarrow> Node (Node A (a,Bal) B) (c,Bal) C |
+       Node B (c,Lh) C \<Rightarrow> (case B of
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
-           Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (bc,rot22 bb) C)))))"
+           Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
 "insert x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
@@ -71,30 +71,30 @@ fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal 
    GT \<Rightarrow> balR l a b (insert x r))"
 
 fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal change \<Rightarrow> 'a tree_bal change" where
-"baldR AB bc b C' = (case C' of
-   Same C \<Rightarrow> Same (Node AB (bc,b) C) |
-   Diff C \<Rightarrow> (case b of
-     Bal \<Rightarrow> Same (Node AB (bc,Lh) C) |
-     Rh \<Rightarrow> Diff (Node AB (bc,Bal) C) |
+"baldR AB c bc C' = (case C' of
+   Same C \<Rightarrow> Same (Node AB (c,bc) C) |
+   Diff C \<Rightarrow> (case bc of
+     Bal \<Rightarrow> Same (Node AB (c,Lh) C) |
+     Rh \<Rightarrow> Diff (Node AB (c,Bal) C) |
      Lh \<Rightarrow> (case AB of
-       Node A (ab,Lh) B \<Rightarrow> Diff(Node A (ab,Bal) (Node B (bc,Bal) C)) |
-       Node A (ab,Bal) B \<Rightarrow> Same(Node A (ab,Rh) (Node B (bc,Lh) C)) |
-       Node A (ab,Rh) B \<Rightarrow> (case B of
-         Node B\<^sub>1 (bb, bB) B\<^sub>2 \<Rightarrow>
-           Diff(Node (Node A (ab,rot21 bB) B\<^sub>1) (bb,Bal) (Node B\<^sub>2 (bc,rot22 bB) C))))))"
+       Node A (a,Lh) B \<Rightarrow> Diff(Node A (a,Bal) (Node B (c,Bal) C)) |
+       Node A (a,Bal) B \<Rightarrow> Same(Node A (a,Rh) (Node B (c,Lh) C)) |
+       Node A (a,Rh) B \<Rightarrow> (case B of
+         Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
+           Diff(Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C))))))"
 
 fun baldL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
-"baldL A' ab b BC = (case A' of
-   Same A \<Rightarrow> Same (Node A (ab,b) BC) |
-   Diff A \<Rightarrow> (case b of
-     Bal \<Rightarrow> Same (Node A (ab,Rh) BC) |
-     Lh \<Rightarrow> Diff (Node A (ab,Bal) BC) |
+"baldL A' a ba BC = (case A' of
+   Same A \<Rightarrow> Same (Node A (a,ba) BC) |
+   Diff A \<Rightarrow> (case ba of
+     Bal \<Rightarrow> Same (Node A (a,Rh) BC) |
+     Lh \<Rightarrow> Diff (Node A (a,Bal) BC) |
      Rh \<Rightarrow> (case BC of
-       Node B (bc,Rh) C \<Rightarrow> Diff(Node (Node A (ab,Bal) B) (bc,Bal) C) |
-       Node B (bc,Bal) C \<Rightarrow> Same(Node (Node A (ab,Rh) B) (bc,Lh) C) |
-       Node B (bc,Lh) C \<Rightarrow> (case B of
-         Node B\<^sub>1 (bb, bB) B\<^sub>2 \<Rightarrow>
-           Diff(Node (Node A (ab,rot21 bB) B\<^sub>1) (bb,Bal) (Node B\<^sub>2 (bc,rot22 bB) C))))))"
+       Node B (c,Rh) C \<Rightarrow> Diff(Node (Node A (a,Bal) B) (c,Bal) C) |
+       Node B (c,Bal) C \<Rightarrow> Same(Node (Node A (a,Rh) B) (c,Lh) C) |
+       Node B (c,Lh) C \<Rightarrow> (case B of
+         Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
+           Diff(Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C))))))"
 
 fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal change * 'a" where
 "split_max (Node l (a, ba) r) =
