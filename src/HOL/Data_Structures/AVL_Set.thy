@@ -43,22 +43,20 @@ by (simp add: node_def)
 lemma height_balL2:
   "\<lbrakk> avl l; avl r; height l \<noteq> height r + 2 \<rbrakk> \<Longrightarrow>
    height (balL l a r) = 1 + max (height l) (height r)"
-by (cases l, cases r) (simp_all add: balL_def)
+by (simp_all add: balL_def)
 
 lemma height_balR2:
   "\<lbrakk> avl l;  avl r;  height r \<noteq> height l + 2 \<rbrakk> \<Longrightarrow>
    height (balR l a r) = 1 + max (height l) (height r)"
-by (cases l, cases r) (simp_all add: balR_def)
+by (simp_all add: balR_def)
 
 lemma avl_balL: 
   "\<lbrakk> avl l; avl r; height r - 1 \<le> height l \<and> height l \<le> height r + 2 \<rbrakk> \<Longrightarrow> avl(balL l a r)"
-by(cases l, cases r)
-  (auto simp: balL_def node_def split!: if_split tree.split)
+by(auto simp: balL_def node_def split!: if_split tree.split)
 
 lemma avl_balR: 
   "\<lbrakk> avl l; avl r; height l - 1 \<le> height r \<and> height r \<le> height l + 2 \<rbrakk> \<Longrightarrow> avl(balR l a r)"
-by(cases r, cases l)
-  (auto simp: balR_def node_def split!: if_split tree.split)
+by(auto simp: balR_def node_def split!: if_split tree.split)
 
 text\<open>Insertion maintains the AVL property. Requires simultaneous proof.\<close>
 
@@ -206,15 +204,9 @@ proof (induct t rule: tree2_induct)
     using Node avl_split_max[of l] by (auto intro!: avl_balL avl_balR split: prod.split)
   case 2
   show ?case
-  proof(cases "x = a")
-    case True thus ?thesis
-      using 2 avl_split_max[of l]
-      by(auto simp: balR_def max_absorb2 split!: if_splits prod.split tree.split)
-  next
-    case False thus ?thesis 
-      using height_balL[of l "delete x r" a] height_balR[of "delete x l" r a] 2 Node
-        by(auto simp: balL_def balR_def split!: if_split)
-  qed
+    using 2 Node avl_split_max[of l]
+      by auto
+         (auto simp: balL_def balR_def max_absorb1 max_absorb2  split!: tree.splits prod.splits if_splits)
 qed simp_all
 
 
