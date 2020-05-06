@@ -8,7 +8,7 @@ imports
   "HOL-Number_Theory.Fib"
 begin
 
-fun avl :: "'a avl_tree \<Rightarrow> bool" where
+fun avl :: "'a tree_ht \<Rightarrow> bool" where
 "avl Leaf = True" |
 "avl (Node l (a,n) r) =
  (abs(int(height l) - int(height r)) \<le> 1 \<and>
@@ -26,16 +26,12 @@ text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
 lemma height_balL:
   "\<lbrakk> avl l; avl r; height l = height r + 2 \<rbrakk> \<Longrightarrow>
    height (balL l a r) \<in> {height r + 2, height r + 3}"
-apply (cases l)
- apply (auto simp:node_def balL_def split:tree.split)
- by arith+
+by (auto simp:node_def balL_def split:tree.split)
 
 lemma height_balR:
   "\<lbrakk> avl l; avl r; height r = height l + 2 \<rbrakk> \<Longrightarrow>
    height (balR l a r) : {height l + 2, height l + 3}"
-apply (cases r)
- apply(auto simp add:node_def balR_def split:tree.split)
- by arith+
+by(auto simp add:node_def balR_def split:tree.split)
 
 lemma height_node[simp]: "height(node l a r) = max (height l) (height r) + 1"
 by (simp add: node_def)

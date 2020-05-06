@@ -12,9 +12,9 @@ text \<open>Height-balanced trees (HBTs) can be seen as a generalization of AVL 
 The code and the proofs were obtained by small modifications of the AVL theories.
 This is an implementation of sets via HBTs.\<close>
 
-type_synonym 'a hbt = "('a*nat) tree"
+type_synonym 'a tree_ht = "('a*nat) tree"
 
-definition empty :: "'a hbt" where
+definition empty :: "'a tree_ht" where
 "empty = Leaf"
 
 text \<open>The maximal amount by which the height of two siblings may differ:\<close>
@@ -26,20 +26,20 @@ begin
 
 text \<open>Invariant:\<close>
 
-fun hbt :: "'a hbt \<Rightarrow> bool" where
+fun hbt :: "'a tree_ht \<Rightarrow> bool" where
 "hbt Leaf = True" |
 "hbt (Node l (a,n) r) =
  (abs(int(height l) - int(height r)) \<le> int(m) \<and>
   n = max (height l) (height r) + 1 \<and> hbt l \<and> hbt r)"
 
-fun ht :: "'a hbt \<Rightarrow> nat" where
+fun ht :: "'a tree_ht \<Rightarrow> nat" where
 "ht Leaf = 0" |
 "ht (Node l (a,n) r) = n"
 
-definition node :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
+definition node :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "node l a r = Node l (a, max (ht l) (ht r) + 1) r"
 
-definition balL :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
+definition balL :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "balL AB b C =
   (if ht AB = ht C + m + 1 then
      case AB of 
@@ -50,7 +50,7 @@ definition balL :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> '
              Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
    else node AB b C)"
 
-definition balR :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
+definition balR :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "balR A a BC =
    (if ht BC = ht A + m + 1 then
       case BC of
@@ -61,20 +61,20 @@ definition balR :: "'a hbt \<Rightarrow> 'a \<Rightarrow> 'a hbt \<Rightarrow> '
               Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
   else node A a BC)"
 
-fun insert :: "'a::linorder \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
+fun insert :: "'a::linorder \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "insert x Leaf = Node Leaf (x, 1) Leaf" |
 "insert x (Node l (a, n) r) = (case cmp x a of
    EQ \<Rightarrow> Node l (a, n) r |
    LT \<Rightarrow> balL (insert x l) a r |
    GT \<Rightarrow> balR l a (insert x r))"
 
-fun split_max :: "'a hbt \<Rightarrow> 'a hbt * 'a" where
+fun split_max :: "'a tree_ht \<Rightarrow> 'a tree_ht * 'a" where
 "split_max (Node l (a, _) r) =
   (if r = Leaf then (l,a) else let (r',a') = split_max r in (balL l a r', a'))"
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-fun delete :: "'a::linorder \<Rightarrow> 'a hbt \<Rightarrow> 'a hbt" where
+fun delete :: "'a::linorder \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "delete _ Leaf = Leaf" |
 "delete x (Node l (a, n) r) =
   (case cmp x a of
@@ -132,16 +132,12 @@ text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
 lemma height_balL:
   "\<lbrakk> hbt l; hbt r; height l = height r + m + 1 \<rbrakk> \<Longrightarrow>
    height (balL l a r) \<in> {height r + m + 1, height r + m + 2}"
-apply (cases l)
- apply (auto simp:node_def balL_def split:tree.split)
- by arith+
+by (auto simp:node_def balL_def split:tree.split)
 
 lemma height_balR:
   "\<lbrakk> hbt l; hbt r; height r = height l + m + 1 \<rbrakk> \<Longrightarrow>
    height (balR l a r) \<in> {height l + m + 1, height l + m + 2}"
-apply (cases r)
- apply(auto simp add:node_def balR_def split:tree.split)
- by arith+
+by(auto simp add:node_def balR_def split:tree.split)
 
 lemma height_node[simp]: "height(node l a r) = max (height l) (height r) + 1"
 by (simp add: node_def)
@@ -149,22 +145,20 @@ by (simp add: node_def)
 lemma height_balL2:
   "\<lbrakk> hbt l; hbt r; height l \<noteq> height r + m + 1 \<rbrakk> \<Longrightarrow>
    height (balL l a r) = 1 + max (height l) (height r)"
-by (cases l, cases r) (simp_all add: balL_def)
+by (simp_all add: balL_def)
 
 lemma height_balR2:
   "\<lbrakk> hbt l;  hbt r;  height r \<noteq> height l + m + 1 \<rbrakk> \<Longrightarrow>
    height (balR l a r) = 1 + max (height l) (height r)"
-by (cases l, cases r) (simp_all add: balR_def)
+by (simp_all add: balR_def)
 
 lemma hbt_balL: 
   "\<lbrakk> hbt l; hbt r; height r - m \<le> height l \<and> height l \<le> height r + m + 1 \<rbrakk> \<Longrightarrow> hbt(balL l a r)"
-by(cases l, cases r)
-  (auto simp: balL_def node_def max_def split!: if_splits tree.split)
+by(auto simp: balL_def node_def max_def split!: if_splits tree.split)
 
 lemma hbt_balR: 
   "\<lbrakk> hbt l; hbt r; height l - m \<le> height r \<and> height r \<le> height l + m + 1 \<rbrakk> \<Longrightarrow> hbt(balR l a r)"
-by(cases r, cases l)
-  (auto simp: balR_def node_def max_def split!: if_splits tree.split)
+by(auto simp: balR_def node_def max_def split!: if_splits tree.split)
 
 text\<open>Insertion maintains @{const hbt}. Requires simultaneous proof.\<close>
 

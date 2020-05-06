@@ -8,14 +8,14 @@ imports
   Lookup2
 begin
 
-fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
+fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree_ht \<Rightarrow> ('a*'b) tree_ht" where
 "update x y Leaf = Node Leaf ((x,y), 1) Leaf" |
 "update x y (Node l ((a,b), h) r) = (case cmp x a of
    EQ \<Rightarrow> Node l ((x,y), h) r |
    LT \<Rightarrow> balL (update x y l) (a,b) r |
    GT \<Rightarrow> balR l (a,b) (update x y r))"
 
-fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
+fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree_ht \<Rightarrow> ('a*'b) tree_ht" where
 "delete _ Leaf = Leaf" |
 "delete x (Node l ((a,b), h) r) = (case cmp x a of
    EQ \<Rightarrow> if l = Leaf then r

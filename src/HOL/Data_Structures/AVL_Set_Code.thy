@@ -13,19 +13,19 @@ begin
 
 subsection \<open>Code\<close>
 
-type_synonym 'a avl_tree = "('a*nat) tree"
+type_synonym 'a tree_ht = "('a*nat) tree"
 
-definition empty :: "'a avl_tree" where
+definition empty :: "'a tree_ht" where
 "empty = Leaf"
 
-fun ht :: "'a avl_tree \<Rightarrow> nat" where
+fun ht :: "'a tree_ht \<Rightarrow> nat" where
 "ht Leaf = 0" |
 "ht (Node l (a,n) r) = n"
 
-definition node :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+definition node :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "node l a r = Node l (a, max (ht l) (ht r) + 1) r"
 
-definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+definition balL :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "balL AB c C =
   (if ht AB = ht C + 2 then
      case AB of 
@@ -36,7 +36,7 @@ definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
              Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) b (node B\<^sub>2 c C)
    else node AB c C)"
 
-definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+definition balR :: "'a tree_ht \<Rightarrow> 'a \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "balR A a BC =
    (if ht BC = ht A + 2 then
       case BC of
@@ -47,20 +47,20 @@ definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
               Node B\<^sub>1 (b, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) b (node B\<^sub>2 c C)
   else node A a BC)"
 
-fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+fun insert :: "'a::linorder \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "insert x Leaf = Node Leaf (x, 1) Leaf" |
 "insert x (Node l (a, n) r) = (case cmp x a of
    EQ \<Rightarrow> Node l (a, n) r |
    LT \<Rightarrow> balL (insert x l) a r |
    GT \<Rightarrow> balR l a (insert x r))"
 
-fun split_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
+fun split_max :: "'a tree_ht \<Rightarrow> 'a tree_ht * 'a" where
 "split_max (Node l (a, _) r) =
   (if r = Leaf then (l,a) else let (r',a') = split_max r in (balL l a r', a'))"
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-fun delete :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+fun delete :: "'a::linorder \<Rightarrow> 'a tree_ht \<Rightarrow> 'a tree_ht" where
 "delete _ Leaf = Leaf" |
 "delete x (Node l (a, n) r) =
   (case cmp x a of

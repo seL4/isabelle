@@ -1,6 +1,6 @@
 (* Tobias Nipkow *)
 
-section "AVL Tree with Balance Tags (Set Implementation)"
+section "AVL Tree with Balance Factors"
 
 theory AVL_Bal_Set
 imports
@@ -9,7 +9,6 @@ imports
 begin
 
 datatype bal = Lh | Bal | Rh
-(* Exercise: use 3 Node constructors instead *)
 
 type_synonym 'a tree_bal = "('a * bal) tree"
 
@@ -27,9 +26,9 @@ fun avl :: "'a tree_bal \<Rightarrow> bool" where
 
 subsection \<open>Code\<close>
 
-datatype 'a change = Same 'a | Diff 'a
+datatype 'a tree_bal2 = Same "'a tree_bal" | Diff "'a tree_bal"
 
-fun tree :: "'a change \<Rightarrow> 'a" where
+fun tree :: "'a tree_bal2 \<Rightarrow> 'a tree_bal" where
 "tree(Same t) = t" |
 "tree(Diff t) = t"
 
@@ -39,7 +38,7 @@ fun rot21 :: "bal \<Rightarrow> bal" where
 fun rot22 :: "bal \<Rightarrow> bal" where
 "rot22 b = (if b=Lh then Rh else Bal)"
 
-fun balL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
+fun balL :: "'a tree_bal2 \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
 "balL AB' c bc C = (case AB' of
    Same AB \<Rightarrow> Same (Node AB (c,bc) C) |
    Diff AB \<Rightarrow> (case bc of
@@ -51,7 +50,7 @@ fun balL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow>
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
            Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
 
-fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal change \<Rightarrow> 'a tree_bal change" where
+fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
 "balR A a ba BC' = (case BC' of
    Same BC \<Rightarrow> Same (Node A (a,ba) BC) |
    Diff BC \<Rightarrow> (case ba of
@@ -63,14 +62,14 @@ fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tre
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
            Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C)))))"
 
-fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
+fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
 "insert x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
 "insert x (Node l (a, b) r) = (case cmp x a of
    EQ \<Rightarrow> Same(Node l (a, b) r) |
    LT \<Rightarrow> balL (insert x l) a b r |
    GT \<Rightarrow> balR l a b (insert x r))"
 
-fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal change \<Rightarrow> 'a tree_bal change" where
+fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
 "baldR AB c bc C' = (case C' of
    Same C \<Rightarrow> Same (Node AB (c,bc) C) |
    Diff C \<Rightarrow> (case bc of
@@ -83,7 +82,7 @@ fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tr
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
            Diff(Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C))))))"
 
-fun baldL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
+fun baldL :: "'a tree_bal2 \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
 "baldL A' a ba BC = (case A' of
    Same A \<Rightarrow> Same (Node A (a,ba) BC) |
    Diff A \<Rightarrow> (case ba of
@@ -96,11 +95,11 @@ fun baldL :: "'a tree_bal change \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow
          Node B\<^sub>1 (b, bb) B\<^sub>2 \<Rightarrow>
            Diff(Node (Node A (a,rot21 bb) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,rot22 bb) C))))))"
 
-fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal change * 'a" where
+fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal2 * 'a" where
 "split_max (Node l (a, ba) r) =
   (if r = Leaf then (Diff l,a) else let (r',a') = split_max r in (baldR l a ba r', a'))"
 
-fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal change" where
+fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
 "delete _ Leaf = Same Leaf" |
 "delete x (Node l (a, ba) r) =
   (case cmp x a of
@@ -111,7 +110,7 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal 
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-lemmas splits =  if_splits tree.splits tree.splits change.splits bal.splits
+lemmas splits = if_splits tree.splits tree.splits tree_bal2.splits bal.splits
 
 subsection \<open>Proofs\<close>
 
