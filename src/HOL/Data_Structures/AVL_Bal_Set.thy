@@ -110,7 +110,7 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-lemmas splits = if_splits tree.splits tree.splits tree_bal2.splits bal.splits
+lemmas splits = if_splits tree.splits tree_bal2.splits bal.splits
 
 subsection \<open>Proofs\<close>
 
