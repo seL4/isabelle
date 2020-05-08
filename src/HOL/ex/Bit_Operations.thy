@@ -37,6 +37,18 @@ sublocale or: semilattice_neutr \<open>(OR)\<close> 0
 sublocale xor: comm_monoid \<open>(XOR)\<close> 0
   by standard (auto simp add: bit_eq_iff bit_xor_iff)
 
+lemma even_and_iff:
+  \<open>even (a AND b) \<longleftrightarrow> even a \<or> even b\<close>
+  using bit_and_iff [of a b 0] by auto
+
+lemma even_or_iff:
+  \<open>even (a OR b) \<longleftrightarrow> even a \<and> even b\<close>
+  using bit_or_iff [of a b 0] by auto
+
+lemma even_xor_iff:
+  \<open>even (a XOR b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)\<close>
+  using bit_xor_iff [of a b 0] by auto
+
 lemma zero_and_eq [simp]:
   "0 AND a = 0"
   by (simp add: bit_eq_iff bit_and_iff)
@@ -80,6 +92,41 @@ lemma take_bit_or [simp]:
 lemma take_bit_xor [simp]:
   \<open>take_bit n (a XOR b) = take_bit n a XOR take_bit n b\<close>
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
+
+definition mask :: \<open>nat \<Rightarrow> 'a\<close>
+  where mask_eq_exp_minus_1: \<open>mask n = 2 ^ n - 1\<close>
+
+lemma bit_mask_iff:
+  \<open>bit (mask m) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
+  by (simp add: mask_eq_exp_minus_1 bit_mask_iff)
+
+lemma even_mask_iff:
+  \<open>even (mask n) \<longleftrightarrow> n = 0\<close>
+  using bit_mask_iff [of n 0] by auto
+
+lemma mask_0 [simp, code]:
+  \<open>mask 0 = 0\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+lemma mask_Suc_exp [code]:
+  \<open>mask (Suc n) = 2 ^ n OR mask n\<close>
+  by (rule bit_eqI)
+    (auto simp add: bit_or_iff bit_mask_iff bit_exp_iff not_less le_less_Suc_eq)
+
+lemma mask_Suc_double:
+  \<open>mask (Suc n) = 2 * mask n OR 1\<close>
+proof (rule bit_eqI)
+  fix q
+  assume \<open>2 ^ q \<noteq> 0\<close>
+  show \<open>bit (mask (Suc n)) q \<longleftrightarrow> bit (2 * mask n OR 1) q\<close>
+    by (cases q)
+      (simp_all add: even_mask_iff even_or_iff bit_or_iff bit_mask_iff bit_exp_iff bit_double_iff not_less le_less_Suc_eq bit_1_iff, auto simp add: mult_2)
+qed
+
+lemma take_bit_eq_mask [code]:
+  \<open>take_bit n a = a AND mask n\<close>
+  by (rule bit_eqI)
+    (auto simp add: bit_take_bit_iff bit_and_iff bit_mask_iff)
 
 end
 
@@ -679,7 +726,7 @@ text \<open>
 
       \<^item> Singleton \<^term>\<open>n\<close>th bit: \<^term>\<open>(2 :: int) ^ n\<close>
 
-      \<^item> Bit mask upto bit \<^term>\<open>n\<close>: \<^term>\<open>(2 :: int) ^ n - 1\<close>
+      \<^item> Bit mask upto bit \<^term>\<open>n\<close>: @{thm mask_eq_exp_minus_1 [where ?'a = int, no_vars]}}
 
       \<^item> Left shift: @{thm push_bit_eq_mult [where ?'a = int, no_vars]}
 

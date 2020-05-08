@@ -79,9 +79,9 @@ primrec n_bits_of :: "nat \<Rightarrow> 'a \<Rightarrow> bool list"
 lemma n_bits_of_eq_iff:
   "n_bits_of n a = n_bits_of n b \<longleftrightarrow> take_bit n a = take_bit n b"
   apply (induction n arbitrary: a b)
-   apply (auto elim!: evenE oddE simp add: take_bit_Suc)
-   apply (metis dvd_triv_right even_plus_one_iff)
-  apply (metis dvd_triv_right even_plus_one_iff)
+   apply (auto elim!: evenE oddE simp add: take_bit_Suc mod_2_eq_odd)
+    apply (metis dvd_triv_right even_plus_one_iff odd_iff_mod_2_eq_one)
+   apply (metis dvd_triv_right even_plus_one_iff odd_iff_mod_2_eq_one)
   done
 
 lemma take_n_bits_of [simp]:
@@ -98,7 +98,7 @@ qed
 
 lemma unsigned_of_bits_n_bits_of [simp]:
   "unsigned_of_bits (n_bits_of n a) = take_bit n a"
-  by (induction n arbitrary: a) (simp_all add: ac_simps take_bit_Suc)
+  by (induction n arbitrary: a) (simp_all add: ac_simps take_bit_Suc mod_2_eq_odd)
 
 end
 
