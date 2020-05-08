@@ -226,7 +226,7 @@ proof (rule bit_eqI)
       (cases m, simp_all add: bit_Suc)
 qed
 
-lemma set_bit_Suc [simp]:
+lemma set_bit_Suc:
   \<open>set_bit (Suc n) a = a mod 2 + 2 * set_bit n (a div 2)\<close>
 proof (rule bit_eqI)
   fix m
@@ -257,7 +257,7 @@ proof (rule bit_eqI)
       (cases m, simp_all add: bit_Suc)
 qed
 
-lemma unset_bit_Suc [simp]:
+lemma unset_bit_Suc:
   \<open>unset_bit (Suc n) a = a mod 2 + 2 * unset_bit n (a div 2)\<close>
 proof (rule bit_eqI)
   fix m
@@ -286,7 +286,7 @@ proof (rule bit_eqI)
       (cases m, simp_all add: bit_Suc)
 qed
 
-lemma flip_bit_Suc [simp]:
+lemma flip_bit_Suc:
   \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
 proof (rule bit_eqI)
   fix m
