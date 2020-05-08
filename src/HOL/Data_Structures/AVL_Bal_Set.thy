@@ -45,9 +45,9 @@ fun balL :: "'a tree_bal2 \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tr
    Diff AB \<Rightarrow> (case bc of
      Bal \<Rightarrow> Diff (Node AB (c,Lh) C) |
      Rh \<Rightarrow> Same (Node AB (c,Bal) C) |
-     Lh \<Rightarrow> Same(case AB of
-       Node A (a,Lh) B \<Rightarrow> Node A (a,Bal) (Node B (c,Bal) C) |
-       Node A (a,Rh) B \<Rightarrow> rot2 A a B c C)))"
+     Lh \<Rightarrow> (case AB of
+       Node A (a,Lh) B \<Rightarrow> Same(Node A (a,Bal) (Node B (c,Bal) C)) |
+       Node A (a,Rh) B \<Rightarrow> Same(rot2 A a B c C))))"
 
 fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
 "balR A a ba BC' = (case BC' of
@@ -55,9 +55,9 @@ fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tre
    Diff BC \<Rightarrow> (case ba of
      Bal \<Rightarrow> Diff (Node A (a,Rh) BC) |
      Lh \<Rightarrow> Same (Node A (a,Bal) BC) |
-     Rh \<Rightarrow> Same(case BC of
-       Node B (c,Rh) C \<Rightarrow> Node (Node A (a,Bal) B) (c,Bal) C |
-       Node B (c,Lh) C \<Rightarrow> rot2 A a B c C)))"
+     Rh \<Rightarrow> (case BC of
+       Node B (c,Rh) C \<Rightarrow> Same(Node (Node A (a,Bal) B) (c,Bal) C) |
+       Node B (c,Lh) C \<Rightarrow> Same(rot2 A a B c C))))"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
 "insert x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
@@ -107,34 +107,33 @@ lemmas splits = if_splits tree.splits tree_bal2.splits bal.splits
 
 subsection \<open>Proofs\<close>
 
-lemma insert_Diff1[simp]: "insert x t \<noteq> Diff Leaf"
-by (cases t)(auto split!: splits)
-
-lemma insert_Diff2[simp]: "insert x t = Diff (Node l (a,Bal) r) \<longleftrightarrow> t = Leaf \<and> a = x \<and> l=Leaf \<and> r=Leaf"
-by (cases t)(auto split!: splits)
-
-lemma insert_Diff3[simp]: "insert x t \<noteq> Diff (Node l (a,Rh) Leaf)"
-by (cases t)(auto split!: splits)
-
-lemma insert_Diff4[simp]: "insert x t \<noteq> Diff (Node Leaf (a,Lh) r)"
-by (cases t)(auto split!: splits)
-
-
-subsubsection "Proofs for insert"
-
-theorem inorder_insert:
-  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(tree(insert x t)) = ins_list x (inorder t)"
-by(induction t) (auto simp: ins_list_simps split!: splits)
+subsubsection "Proofs about insert"
 
 lemma avl_insert_case: "avl t \<Longrightarrow> case insert x t of
    Same t' \<Rightarrow> avl t' \<and> height t' = height t |
-   Diff t' \<Rightarrow> avl t' \<and> height t' = height t + 1"
+   Diff t' \<Rightarrow> avl t' \<and> height t' = height t + 1 \<and>
+      (\<forall>l a r. t' = Node l (a,Bal) r \<longrightarrow> a = x \<and> l = Leaf \<and> r = Leaf)"
 apply(induction x t rule: insert.induct)
 apply(auto simp: max_absorb1 split!: splits)
 done
 
 corollary avl_insert: "avl t \<Longrightarrow> avl(tree(insert x t))"
 using avl_insert_case[of t x] by (simp split: splits)
+
+(* The following aux lemma simplifies the inorder_insert proof *)
+
+lemma insert_Diff[simp]: "avl t \<Longrightarrow>
+  insert x t \<noteq> Diff Leaf \<and>
+  (insert x t = Diff (Node l (a,Bal) r) \<longleftrightarrow> t = Leaf \<and> a = x \<and> l=Leaf \<and> r=Leaf) \<and>
+  insert x t \<noteq> Diff (Node l (a,Rh) Leaf) \<and>
+  insert x t \<noteq> Diff (Node Leaf (a,Lh) r)"
+by(drule avl_insert_case[of _ x]) (auto split: splits)
+
+theorem inorder_insert:
+  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(tree(insert x t)) = ins_list x (inorder t)"
+apply(induction t)
+apply (auto simp: ins_list_simps  split!: splits)
+done
 
 
 subsubsection "Proofs for delete"
