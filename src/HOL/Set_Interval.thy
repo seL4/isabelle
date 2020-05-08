@@ -2087,7 +2087,7 @@ next
     = (\<Sum>k = 0..<n. push_bit k (of_bool (bit (a div 2) k))) * 2"
     by (simp only: sum.atLeast_Suc_lessThan_Suc_shift) (simp add: sum_distrib_right push_bit_double drop_bit_Suc bit_Suc)
   finally show ?case
-    using Suc [of "a div 2"] by (simp add: ac_simps take_bit_Suc)
+    using Suc [of "a div 2"] by (simp add: ac_simps take_bit_Suc mod_2_eq_odd)
 qed
 
 end

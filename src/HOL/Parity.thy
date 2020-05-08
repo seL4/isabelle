@@ -934,6 +934,10 @@ next
   qed
 qed
 
+lemma bit_mod_2_iff [simp]:
+  \<open>bit (a mod 2) n \<longleftrightarrow> n = 0 \<and> odd a\<close>
+  by (cases a rule: parity_cases) (simp_all add: bit_def)
+
 lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
   by (simp add: bit_def even_mask_div_iff not_le)
@@ -1204,7 +1208,7 @@ lemma take_bit_0 [simp]:
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_Suc:
-  \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
+  \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + a mod 2\<close>
 proof -
   have \<open>take_bit (Suc n) (a div 2 * 2 + of_bool (odd a)) = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
     using even_succ_mod_exp [of \<open>2 * (a div 2)\<close> \<open>Suc n\<close>]
@@ -1215,7 +1219,7 @@ proof -
 qed
 
 lemma take_bit_rec:
-  \<open>take_bit n a = (if n = 0 then 0 else take_bit (n - 1) (a div 2) * 2 + of_bool (odd a))\<close>
+  \<open>take_bit n a = (if n = 0 then 0 else take_bit (n - 1) (a div 2) * 2 + a mod 2)\<close>
   by (cases n) (simp_all add: take_bit_Suc)
 
 lemma take_bit_Suc_0 [simp]:
@@ -1442,7 +1446,7 @@ lemma take_bit_Suc_bit0 [simp]:
 
 lemma take_bit_Suc_bit1 [simp]:
   \<open>take_bit (Suc n) (numeral (Num.Bit1 k)) = take_bit n (numeral k) * 2 + 1\<close>
-  by (simp add: take_bit_Suc numeral_Bit1_div_2)
+  by (simp add: take_bit_Suc numeral_Bit1_div_2 mod_2_eq_odd)
 
 lemma take_bit_numeral_bit0 [simp]:
   \<open>take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2\<close>
@@ -1450,7 +1454,7 @@ lemma take_bit_numeral_bit0 [simp]:
 
 lemma take_bit_numeral_bit1 [simp]:
   \<open>take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1\<close>
-  by (simp add: take_bit_rec numeral_Bit1_div_2)
+  by (simp add: take_bit_rec numeral_Bit1_div_2 mod_2_eq_odd)
 
 lemma take_bit_of_nat:
   "take_bit n (of_nat m) = of_nat (take_bit n m)"

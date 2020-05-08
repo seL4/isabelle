@@ -46,26 +46,26 @@ lemma and_zero_eq [simp]:
   by (simp add: bit_eq_iff bit_and_iff)
 
 lemma one_and_eq [simp]:
-  "1 AND a = of_bool (odd a)"
+  "1 AND a = a mod 2"
   by (simp add: bit_eq_iff bit_and_iff) (auto simp add: bit_1_iff)
 
 lemma and_one_eq [simp]:
-  "a AND 1 = of_bool (odd a)"
+  "a AND 1 = a mod 2"
   using one_and_eq [of a] by (simp add: ac_simps)
 
-lemma one_or_eq [simp]:
+lemma one_or_eq:
   "1 OR a = a + of_bool (even a)"
   by (simp add: bit_eq_iff bit_or_iff add.commute [of _ 1] even_bit_succ_iff) (auto simp add: bit_1_iff)
 
-lemma or_one_eq [simp]:
+lemma or_one_eq:
   "a OR 1 = a + of_bool (even a)"
   using one_or_eq [of a] by (simp add: ac_simps)
 
-lemma one_xor_eq [simp]:
+lemma one_xor_eq:
   "1 XOR a = a + of_bool (even a) - of_bool (odd a)"
   by (simp add: bit_eq_iff bit_xor_iff add.commute [of _ 1] even_bit_succ_iff) (auto simp add: bit_1_iff odd_bit_iff_bit_pred elim: oddE)
 
-lemma xor_one_eq [simp]:
+lemma xor_one_eq:
   "a XOR 1 = a + of_bool (even a) - of_bool (odd a)"
   using one_xor_eq [of a] by (simp add: ac_simps)
 
@@ -533,26 +533,26 @@ lemma xor_nat_rec:
   by (simp add: xor_nat_def xor_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
 
 lemma Suc_0_and_eq [simp]:
-  \<open>Suc 0 AND n = of_bool (odd n)\<close>
+  \<open>Suc 0 AND n = n mod 2\<close>
   using one_and_eq [of n] by simp
 
 lemma and_Suc_0_eq [simp]:
-  \<open>n AND Suc 0 = of_bool (odd n)\<close>
+  \<open>n AND Suc 0 = n mod 2\<close>
   using and_one_eq [of n] by simp
 
-lemma Suc_0_or_eq [simp]:
+lemma Suc_0_or_eq:
   \<open>Suc 0 OR n = n + of_bool (even n)\<close>
   using one_or_eq [of n] by simp
 
-lemma or_Suc_0_eq [simp]:
+lemma or_Suc_0_eq:
   \<open>n OR Suc 0 = n + of_bool (even n)\<close>
   using or_one_eq [of n] by simp
 
-lemma Suc_0_xor_eq [simp]:
+lemma Suc_0_xor_eq:
   \<open>Suc 0 XOR n = n + of_bool (even n) - of_bool (odd n)\<close>
   using one_xor_eq [of n] by simp
 
-lemma xor_Suc_0_eq [simp]:
+lemma xor_Suc_0_eq:
   \<open>n XOR Suc 0 = n + of_bool (even n) - of_bool (odd n)\<close>
   using xor_one_eq [of n] by simp
 

@@ -90,7 +90,7 @@ next
     also have \<open>\<dots> = b # map (bit a) [0..<m]\<close>
       by (simp only: flip: map_Suc_upt) (simp add: bit_Suc rec.hyps)
     finally show ?thesis
-      using Suc rec.IH [of m] by (simp add: take_bit_Suc rec.hyps, simp add: ac_simps)
+      using Suc rec.IH [of m] by (simp add: take_bit_Suc rec.hyps, simp add: ac_simps mod_2_eq_odd)
   qed
 qed
 
