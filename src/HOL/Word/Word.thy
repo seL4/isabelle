@@ -375,16 +375,16 @@ definition shiftr1 :: "'a::len0 word \<Rightarrow> 'a word"
 instantiation word :: (len0) bit_operations
 begin
 
-lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word" is bitNOT
+lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word" is NOT
   by (metis bin_trunc_not)
 
-lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitAND
+lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(AND)\<close>
   by (metis bin_trunc_and)
 
-lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitOR
+lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(OR)\<close>
   by (metis bin_trunc_or)
 
-lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is bitXOR
+lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(XOR)\<close>
   by (metis bin_trunc_xor)
 
 definition word_test_bit_def: "test_bit a = bin_nth (uint a)"
@@ -4251,19 +4251,19 @@ lemma word_or_not [simp]: "x OR NOT x = max_word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
 global_interpretation word_bool_alg: boolean_algebra
-  where conj = "(AND)" and disj = "(OR)" and compl = bitNOT
+  where conj = "(AND)" and disj = "(OR)" and compl = NOT
     and zero = 0 and one = max_word
   rewrites "word_bool_alg.xor = (XOR)"
 proof -
   interpret boolean_algebra
-    where conj = "(AND)" and disj = "(OR)" and compl = bitNOT
+    where conj = "(AND)" and disj = "(OR)" and compl = NOT
       and zero = 0 and one = max_word
     apply standard
              apply (simp_all add: word_bw_assocs word_bw_comms word_bw_lcs)
      apply (fact word_ao_dist2)
     apply (fact word_oa_dist2)
     done
-  show "boolean_algebra (AND) (OR) bitNOT 0 max_word" ..
+  show "boolean_algebra (AND) (OR) NOT 0 max_word" ..
   show "xor = (XOR)"
     by (auto simp add: fun_eq_iff word_eq_iff xor_def word_ops_nth_size word_size)
 qed

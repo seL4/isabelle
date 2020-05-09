@@ -1267,7 +1267,7 @@ lemma bin_sc_numeral [simp]:
 instantiation int :: bit_operations
 begin
 
-definition int_not_def: "bitNOT = (\<lambda>x::int. - x - 1)"
+definition int_not_def: "NOT = (\<lambda>x::int. - x - 1)"
 
 function bitAND_int
   where "bitAND_int x y =
@@ -1280,9 +1280,9 @@ termination
 
 declare bitAND_int.simps [simp del]
 
-definition int_or_def: "bitOR = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
+definition int_or_def: "(OR) = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
 
-definition int_xor_def: "bitXOR = (\<lambda>x y::int. (x AND NOT y) OR (NOT x AND y))"
+definition int_xor_def: "(XOR) = (\<lambda>x y::int. (x AND NOT y) OR (NOT x AND y))"
 
 definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
 
