@@ -26,9 +26,11 @@ fun avl :: "'a tree_bal \<Rightarrow> bool" where
 
 subsection \<open>Code\<close>
 
-datatype 'a tree_bal2 = Same "'a tree_bal" | Diff "'a tree_bal"
+datatype 'a alt = Same 'a | Diff 'a
 
-fun tree :: "'a tree_bal2 \<Rightarrow> 'a tree_bal" where
+type_synonym 'a tree_bal2 = "'a tree_bal alt"
+
+fun tree :: "'a alt \<Rightarrow> 'a" where
 "tree(Same t) = t" |
 "tree(Diff t) = t"
 
@@ -59,12 +61,15 @@ fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tre
        Node B (c,Rh) C \<Rightarrow> Same(Node (Node A (a,Bal) B) (c,Bal) C) |
        Node B (c,Lh) C \<Rightarrow> Same(rot2 A a B c C))))"
 
-fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"insert x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
-"insert x (Node l (a, b) r) = (case cmp x a of
+fun ins :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
+"ins x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
+"ins x (Node l (a, b) r) = (case cmp x a of
    EQ \<Rightarrow> Same(Node l (a, b) r) |
-   LT \<Rightarrow> balL (insert x l) a b r |
-   GT \<Rightarrow> balR l a b (insert x r))"
+   LT \<Rightarrow> balL (ins x l) a b r |
+   GT \<Rightarrow> balR l a b (ins x r))"
+
+definition insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"insert x t = tree(ins x t)"
 
 fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
 "baldR AB c bc C' = (case C' of
@@ -92,51 +97,54 @@ fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal2 * 'a" where
 "split_max (Node l (a, ba) r) =
   (if r = Leaf then (Diff l,a) else let (r',a') = split_max r in (baldR l a ba r', a'))"
 
-fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"delete _ Leaf = Same Leaf" |
-"delete x (Node l (a, ba) r) =
+fun del :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
+"del _ Leaf = Same Leaf" |
+"del x (Node l (a, ba) r) =
   (case cmp x a of
      EQ \<Rightarrow> if l = Leaf then Diff r
            else let (l', a') = split_max l in baldL l' a' ba r |
-     LT \<Rightarrow> baldL (delete x l) a ba r |
-     GT \<Rightarrow> baldR l a ba (delete x r))"
+     LT \<Rightarrow> baldL (del x l) a ba r |
+     GT \<Rightarrow> baldR l a ba (del x r))"
+
+definition delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"delete x t = tree(del x t)"
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-lemmas splits = if_splits tree.splits tree_bal2.splits bal.splits
+lemmas splits = if_splits tree.splits alt.splits bal.splits
 
 subsection \<open>Proofs\<close>
 
-subsubsection "Proofs about insert"
+subsubsection "Proofs about insertion"
 
-lemma avl_insert_case: "avl t \<Longrightarrow> case insert x t of
+lemma avl_ins_case: "avl t \<Longrightarrow> case ins x t of
    Same t' \<Rightarrow> avl t' \<and> height t' = height t |
    Diff t' \<Rightarrow> avl t' \<and> height t' = height t + 1 \<and>
       (\<forall>l a r. t' = Node l (a,Bal) r \<longrightarrow> a = x \<and> l = Leaf \<and> r = Leaf)"
-apply(induction x t rule: insert.induct)
+apply(induction x t rule: ins.induct)
 apply(auto simp: max_absorb1 split!: splits)
 done
 
-corollary avl_insert: "avl t \<Longrightarrow> avl(tree(insert x t))"
-using avl_insert_case[of t x] by (simp split: splits)
+corollary avl_insert: "avl t \<Longrightarrow> avl(insert x t)"
+using avl_ins_case[of t x] by (simp add: insert_def split: splits)
 
-(* The following aux lemma simplifies the inorder_insert proof *)
+(* The following aux lemma simplifies the inorder_ins proof *)
 
-lemma insert_Diff[simp]: "avl t \<Longrightarrow>
-  insert x t \<noteq> Diff Leaf \<and>
-  (insert x t = Diff (Node l (a,Bal) r) \<longleftrightarrow> t = Leaf \<and> a = x \<and> l=Leaf \<and> r=Leaf) \<and>
-  insert x t \<noteq> Diff (Node l (a,Rh) Leaf) \<and>
-  insert x t \<noteq> Diff (Node Leaf (a,Lh) r)"
-by(drule avl_insert_case[of _ x]) (auto split: splits)
+lemma ins_Diff[simp]: "avl t \<Longrightarrow>
+  ins x t \<noteq> Diff Leaf \<and>
+  (ins x t = Diff (Node l (a,Bal) r) \<longleftrightarrow> t = Leaf \<and> a = x \<and> l=Leaf \<and> r=Leaf) \<and>
+  ins x t \<noteq> Diff (Node l (a,Rh) Leaf) \<and>
+  ins x t \<noteq> Diff (Node Leaf (a,Lh) r)"
+by(drule avl_ins_case[of _ x]) (auto split: splits)
 
-theorem inorder_insert:
-  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(tree(insert x t)) = ins_list x (inorder t)"
+theorem inorder_ins:
+  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(tree(ins x t)) = ins_list x (inorder t)"
 apply(induction t)
 apply (auto simp: ins_list_simps  split!: splits)
 done
 
 
-subsubsection "Proofs for delete"
+subsubsection "Proofs about deletion"
 
 lemma inorder_baldL:
   "\<lbrakk> ba = Rh \<longrightarrow> r \<noteq> Leaf; avl r \<rbrakk>
@@ -157,15 +165,15 @@ apply(induction t arbitrary: t' a rule: split_max_induct)
 apply simp
 done
 
-lemma avl_delete_case: "avl t \<Longrightarrow> case delete x t of
+lemma avl_del_case: "avl t \<Longrightarrow> case del x t of
    Same t' \<Rightarrow> avl t' \<and> height t = height t' |
    Diff t' \<Rightarrow> avl t' \<and> height t = height t' + 1"
-apply(induction x t rule: delete.induct)
+apply(induction x t rule: del.induct)
  apply(auto simp: max_absorb1 max_absorb2 dest: avl_split_max split!: splits prod.splits)
 done
 
-corollary avl_delete: "avl t \<Longrightarrow> avl(tree(delete x t))"
-using avl_delete_case[of t x] by(simp split: splits)
+corollary avl_delete: "avl t \<Longrightarrow> avl(delete x t)"
+using avl_del_case[of t x] by(simp add: delete_def split: splits)
 
 lemma inorder_split_maxD:
   "\<lbrakk> split_max t = (t',a); t \<noteq> Leaf; avl t \<rbrakk> \<Longrightarrow>
@@ -178,8 +186,8 @@ done
 lemma neq_Leaf_if_height_neq_0[simp]: "height t \<noteq> 0 \<Longrightarrow> t \<noteq> Leaf"
 by auto
 
-theorem inorder_delete:
-  "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (tree(delete x t)) = del_list x (inorder t)"
+theorem inorder_del:
+  "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (tree(del x t)) = del_list x (inorder t)"
 apply(induction t rule: tree2_induct)
 apply(auto simp: del_list_simps inorder_baldL inorder_baldR avl_delete inorder_split_maxD
            simp del: baldR.simps baldL.simps split!: splits prod.splits)
@@ -190,19 +198,19 @@ subsubsection \<open>Set Implementation\<close>
 
 interpretation S: Set_by_Ordered
 where empty = Leaf and isin = isin
-  and insert = "\<lambda>x t. tree(insert x t)"
-  and delete = "\<lambda>x t. tree(delete x t)"
+  and insert = insert
+  and delete = delete
   and inorder = inorder and inv = avl
 proof (standard, goal_cases)
   case 1 show ?case by (simp)
 next
   case 2 thus ?case by(simp add: isin_set_inorder)
 next
-  case 3 thus ?case by(simp add: inorder_insert)
+  case 3 thus ?case by(simp add: inorder_ins insert_def)
 next
-  case 4 thus ?case by(simp add: inorder_delete)
+  case 4 thus ?case by(simp add: inorder_del delete_def)
 next
-  case 5 thus ?case by (simp add: empty_def)
+  case 5 thus ?case by (simp)
 next
   case 6 thus ?case by (simp add: avl_insert)
 next
