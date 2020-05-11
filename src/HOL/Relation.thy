@@ -485,6 +485,10 @@ lemma single_valuedp_single_valued_eq [pred_set_conv]:
   "single_valuedp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> single_valued r"
   by (simp add: single_valued_def single_valuedp_def)
 
+lemma single_valuedp_iff_Uniq:
+  "single_valuedp r \<longleftrightarrow> (\<forall>x. \<exists>\<^sub>\<le>\<^sub>1y. r x y)"
+  unfolding Uniq_def single_valuedp_def by auto
+
 lemma single_valuedI:
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (\<And>z. (x, z) \<in> r \<Longrightarrow> y = z)) \<Longrightarrow> single_valued r"
   unfolding single_valued_def by blast

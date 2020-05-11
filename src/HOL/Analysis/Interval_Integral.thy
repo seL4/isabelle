@@ -47,9 +47,9 @@ proof (cases b)
   with \<open>a < b\<close> have "a = -\<infinity> \<or> (\<exists>r. a = ereal r)"
     by (cases a) auto
   moreover have "(\<lambda>x. ereal (real (Suc x))) \<longlonglongrightarrow> \<infinity>"
-    by (simp add: Lim_PInfty LIMSEQ_Suc_iff) (metis le_SucI of_nat_Suc of_nat_mono order_trans real_arch_simple)
+    by (simp add: Lim_PInfty filterlim_sequentially_Suc) (metis le_SucI of_nat_Suc of_nat_mono order_trans real_arch_simple)
   moreover have "\<And>r. (\<lambda>x. ereal (r + real (Suc x))) \<longlonglongrightarrow> \<infinity>"
-    by (simp add: LIMSEQ_Suc_iff Lim_PInfty) (metis add.commute diff_le_eq nat_ceiling_le_eq)
+    by (simp add: filterlim_sequentially_Suc Lim_PInfty) (metis add.commute diff_le_eq nat_ceiling_le_eq)
   ultimately show thesis
     by (intro that[of "\<lambda>i. real_of_ereal a + Suc i"])
        (auto simp: incseq_def PInf)

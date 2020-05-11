@@ -190,6 +190,9 @@ lemma inj_fun: "inj f \<Longrightarrow> inj (\<lambda>x y. f x)"
 lemma inj_eq: "inj f \<Longrightarrow> f x = f y \<longleftrightarrow> x = y"
   by (simp add: inj_on_eq_iff)
 
+lemma inj_on_iff_Uniq: "inj_on f A \<longleftrightarrow> (\<forall>x\<in>A. \<exists>\<^sub>\<le>\<^sub>1y. y\<in>A \<and> f x = f y)"
+  by (auto simp: Uniq_def inj_on_def)
+
 lemma inj_on_id[simp]: "inj_on id A"
   by (simp add: inj_on_def)
 

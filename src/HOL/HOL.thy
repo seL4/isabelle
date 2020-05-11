@@ -117,11 +117,23 @@ definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<and>" 35)
 definition disj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<or>" 30)
   where or_def: "P \<or> Q \<equiv> \<forall>R. (P \<longrightarrow> R) \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> R"
 
+definition Uniq :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
+  where "Uniq P \<equiv> (\<forall>x y. P x \<longrightarrow> P y \<longrightarrow> y = x)"
+
 definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
   where "Ex1 P \<equiv> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x)"
 
 
 subsubsection \<open>Additional concrete syntax\<close>
+
+syntax (ASCII) "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(4?< _./ _)" [0, 10] 10)
+syntax "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)" [0, 10] 10)
+translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
+
+print_translation \<open>
+ [Syntax_Trans.preserve_binder_abs_tr' \<^const_syntax>\<open>Uniq\<close> \<^syntax_const>\<open>_Uniq\<close>]
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+
 
 syntax (ASCII)
   "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3EX! _./ _)" [0, 10] 10)
@@ -539,6 +551,14 @@ lemma contrapos_pp:
 
 subsubsection \<open>Unique existence\<close>
 
+lemma Uniq_I [intro?]:
+  assumes "\<And>x y. \<lbrakk>P x; P y\<rbrakk> \<Longrightarrow> y = x"
+  shows "Uniq P"
+  unfolding Uniq_def by (iprover intro: assms allI impI)
+
+lemma Uniq_D [dest?]: "\<lbrakk>Uniq P; P a; P b\<rbrakk> \<Longrightarrow> a=b"
+  unfolding Uniq_def by (iprover dest: spec mp)
+
 lemma ex1I:
   assumes "P a" "\<And>x. P x \<Longrightarrow> x = a"
   shows "\<exists>!x. P x"
@@ -561,7 +581,6 @@ qed
 
 lemma ex1_implies_ex: "\<exists>!x. P x \<Longrightarrow> \<exists>x. P x"
   by (iprover intro: exI elim: ex1E)
-
 
 subsubsection \<open>Classical intro rules for disjunction and existential quantifiers\<close>
 
@@ -854,6 +873,15 @@ proof (rule ex1E [OF major minor])
     using \<open>P x\<close> \<section> \<section> by fast
 qed assumption
 
+text \<open>And again using Uniq\<close>
+lemma alt_ex1E':
+  assumes  "\<exists>!x. P x" "\<And>x. \<lbrakk>P x; \<exists>\<^sub>\<le>\<^sub>1x. P x\<rbrakk> \<Longrightarrow> R"
+  shows R
+  using assms unfolding Uniq_def by fast
+
+lemma ex1_iff_ex_Uniq: "(\<exists>!x. P x) \<longleftrightarrow> (\<exists>x. P x) \<and> (\<exists>\<^sub>\<le>\<^sub>1x. P x)"
+  unfolding Uniq_def by fast
+
 
 ML \<open>
   structure Blast = Blast
@@ -900,6 +928,9 @@ lemma the1I2:
 
 lemma the1_equality [elim?]: "\<lbrakk>\<exists>!x. P x; P a\<rbrakk> \<Longrightarrow> (THE x. P x) = a"
   by blast
+
+lemma the1_equality': "\<lbrakk>\<exists>\<^sub>\<le>\<^sub>1x. P x; P a\<rbrakk> \<Longrightarrow> (THE x. P x) = a"
+  unfolding Uniq_def by blast
 
 lemma the_sym_eq_trivial: "(THE y. x = y) = x"
   by blast

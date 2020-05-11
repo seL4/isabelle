@@ -819,6 +819,9 @@ lemma subset_singletonD: "A \<subseteq> {x} \<Longrightarrow> A = {} \<or> A = {
 lemma subset_singleton_iff: "X \<subseteq> {a} \<longleftrightarrow> X = {} \<or> X = {a}"
   by blast
 
+lemma subset_singleton_iff_Uniq: "(\<exists>a. A \<subseteq> {a}) \<longleftrightarrow> (\<exists>\<^sub>\<le>\<^sub>1x. x \<in> A)"
+  unfolding Uniq_def by blast
+
 lemma singleton_conv [simp]: "{x. x = a} = {a}"
   by blast
 
@@ -1937,6 +1940,9 @@ lemma disjnt_Un2 [simp]: "disjnt C (A \<union> B) \<longleftrightarrow> disjnt C
 
 lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<A> \<Longrightarrow> f X \<subseteq> X\<rbrakk> \<Longrightarrow> pairwise disjnt (f `\<A>)"
   unfolding disjnt_def pairwise_def by fast
+
+lemma pairwise_disjnt_iff: "pairwise disjnt \<A> \<longleftrightarrow> (\<forall>x. \<exists>\<^sub>\<le>\<^sub>1 X. X \<in> \<A> \<and> x \<in> X)"
+  by (auto simp: Uniq_def disjnt_iff pairwise_def)
 
 lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
   by blast

@@ -572,6 +572,7 @@ lemma has_derivative_at2: "(f has_derivative f') (at x) \<longleftrightarrow>
     bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) \<longlongrightarrow> 0) (at x)"
   using has_derivative_within [of f f' x UNIV]
   by simp
+
 lemma has_derivative_zero_unique:
   assumes "((\<lambda>x. 0) has_derivative F) (at x)"
   shows "F = (\<lambda>h. 0)"
@@ -617,6 +618,9 @@ proof -
   then show "F = F'"
     unfolding fun_eq_iff right_minus_eq .
 qed
+
+lemma has_derivative_Uniq: "\<exists>\<^sub>\<le>\<^sub>1F. (f has_derivative F) (at x)"
+  by (simp add: Uniq_def has_derivative_unique)
 
 
 subsection \<open>Differentiability predicate\<close>
@@ -969,6 +973,9 @@ lemma DERIV_cdivide:
 
 lemma DERIV_unique: "DERIV f x :> D \<Longrightarrow> DERIV f x :> E \<Longrightarrow> D = E"
   unfolding DERIV_def by (rule LIM_unique)
+
+lemma DERIV_Uniq: "\<exists>\<^sub>\<le>\<^sub>1D. DERIV f x :> D"
+  by (simp add: DERIV_unique Uniq_def)
 
 lemma DERIV_sum[derivative_intros]:
   "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' x n)) F) \<Longrightarrow>

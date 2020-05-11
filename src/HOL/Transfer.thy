@@ -126,6 +126,9 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
     (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z) \<and>
     (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
+lemma left_unique_iff: "left_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R x z)"
+  unfolding Uniq_def left_unique_def by force
+
 lemma left_uniqueI: "(\<And>x y z. \<lbrakk> A x z; A y z \<rbrakk> \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
 unfolding left_unique_def by blast
 
@@ -142,10 +145,16 @@ lemma left_totalE:
 using assms unfolding left_total_def by blast
 
 lemma bi_uniqueDr: "\<lbrakk> bi_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
-by(simp add: bi_unique_def)
+  by(simp add: bi_unique_def)
 
 lemma bi_uniqueDl: "\<lbrakk> bi_unique A; A x y; A z y \<rbrakk> \<Longrightarrow> x = z"
-by(simp add: bi_unique_def)
+  by(simp add: bi_unique_def)
+
+lemma bi_unique_iff: "bi_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R x z) \<and> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R z x)"
+  unfolding Uniq_def bi_unique_def by force
+
+lemma right_unique_iff: "right_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R z x)"
+  unfolding Uniq_def right_unique_def by force
 
 lemma right_uniqueI: "(\<And>x y z. \<lbrakk> A x y; A x z \<rbrakk> \<Longrightarrow> y = z) \<Longrightarrow> right_unique A"
 unfolding right_unique_def by fast

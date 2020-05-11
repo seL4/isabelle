@@ -2095,7 +2095,7 @@ next
     have "eventually (\<lambda>y. dist y x < e) F" if "0 < e" for e :: real
     proof -
       from that have "(\<lambda>n. 1 / Suc n :: real) \<longlonglongrightarrow> 0 \<and> 0 < e / 2"
-        by (subst LIMSEQ_Suc_iff) (auto intro!: lim_1_over_n)
+        by (subst filterlim_sequentially_Suc) (auto intro!: lim_1_over_n)
       then have "\<forall>\<^sub>F n in sequentially. dist (X n) x < e / 2 \<and> 1 / Suc n < e / 2"
         using \<open>X \<longlonglongrightarrow> x\<close>
         unfolding tendsto_iff order_tendsto_iff[where 'a=real] eventually_conj_iff

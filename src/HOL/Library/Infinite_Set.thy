@@ -399,4 +399,189 @@ proof
   qed
 qed
 
+subsection \<open>Properties of @{term enumerate} on finite sets\<close>
+
+lemma finite_enumerate_in_set: "\<lbrakk>finite S; n < card S\<rbrakk> \<Longrightarrow> enumerate S n \<in> S"
+proof (induction n arbitrary: S)
+  case 0
+  then show ?case
+    by (metis all_not_in_conv card_empty enumerate.simps(1) not_less0 wellorder_Least_lemma(1))
+next
+  case (Suc n)
+  show ?case
+    using Suc.prems Suc.IH [of "S - {LEAST n. n \<in> S}"]
+    apply (simp add: enumerate.simps)
+    by (metis Diff_empty Diff_insert0 Suc_lessD card.remove less_Suc_eq)
+qed
+
+lemma finite_enumerate_step: "\<lbrakk>finite S; Suc n < card S\<rbrakk> \<Longrightarrow> enumerate S n < enumerate S (Suc n)"
+proof (induction n arbitrary: S)
+  case 0
+  then have "enumerate S 0 \<le> enumerate S (Suc 0)"
+    by (simp add: Least_le enumerate.simps(1) finite_enumerate_in_set)
+  moreover have "enumerate (S - {enumerate S 0}) 0 \<in> S - {enumerate S 0}"
+    by (metis 0 Suc_lessD Suc_less_eq card_Suc_Diff1 enumerate_in_set finite_enumerate_in_set)
+  then have "enumerate S 0 \<noteq> enumerate (S - {enumerate S 0}) 0"
+    by auto
+  ultimately show ?case
+    by (simp add: enumerate_Suc')
+next
+  case (Suc n)
+  then show ?case
+    by (simp add: enumerate_Suc' finite_enumerate_in_set)
+qed
+
+lemma finite_enumerate_mono: "\<lbrakk>m < n; finite S; n < card S\<rbrakk> \<Longrightarrow> enumerate S m < enumerate S n"
+  by (induct m n rule: less_Suc_induct) (auto intro: finite_enumerate_step)
+
+
+lemma finite_le_enumerate:
+  assumes "finite S" "n < card S"
+  shows "n \<le> enumerate S n"
+  using assms
+proof (induction n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  then have "n \<le> enumerate S n" by simp
+  also note finite_enumerate_mono[of n "Suc n", OF _ \<open>finite S\<close>]
+  finally show ?case
+    using Suc.prems(2) Suc_leI by blast
+qed
+
+lemma finite_enumerate:
+  assumes fS: "finite S"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono_on r {..<card S} \<and> (\<forall>n<card S. r n \<in> S)"
+  unfolding strict_mono_def
+  using finite_enumerate_in_set[OF fS] finite_enumerate_mono[of _ _ S] fS
+  by (metis lessThan_iff strict_mono_on_def)
+
+lemma finite_enumerate_Suc'':
+  fixes S :: "'a::wellorder set"
+  assumes "finite S" "Suc n < card S"
+  shows "enumerate S (Suc n) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+  using assms
+proof (induction n arbitrary: S)
+  case 0
+  then have "\<forall>s \<in> S. enumerate S 0 \<le> s"
+    by (auto simp: enumerate.simps intro: Least_le)
+  then show ?case
+    unfolding enumerate_Suc' enumerate_0[of "S - {enumerate S 0}"]
+    by (metis Diff_iff dual_order.strict_iff_order singletonD singletonI)
+next
+  case (Suc n S)
+  then have "Suc n < card (S - {enumerate S 0})"
+    using Suc.prems(2) finite_enumerate_in_set by force
+  then show ?case
+    apply (subst (1 2) enumerate_Suc')
+    apply (simp add: Suc)
+    apply (intro arg_cong[where f = Least] HOL.ext)
+    using finite_enumerate_mono[OF zero_less_Suc \<open>finite S\<close>, of n] Suc.prems
+    by (auto simp flip: enumerate_Suc')
+qed
+
+lemma finite_enumerate_initial_segment:
+  fixes S :: "'a::wellorder set"
+  assumes "finite S" "s \<in> S" and n: "n < card (S \<inter> {..<s})"
+  shows "enumerate (S \<inter> {..<s}) n = enumerate S n"
+  using n
+proof (induction n)
+  case 0
+  have "(LEAST n. n \<in> S \<and> n < s) = (LEAST n. n \<in> S)"
+  proof (rule Least_equality)
+    have "\<exists>t. t \<in> S \<and> t < s"
+      by (metis "0" card_gt_0_iff disjoint_iff_not_equal lessThan_iff)
+    then show "(LEAST n. n \<in> S) \<in> S \<and> (LEAST n. n \<in> S) < s"
+      by (meson LeastI Least_le le_less_trans)
+  qed (simp add: Least_le)
+  then show ?case
+    by (auto simp: enumerate_0)
+next
+  case (Suc n)
+  then have less_card: "Suc n < card S"
+    by (meson assms(1) card_mono inf_sup_ord(1) leD le_less_linear order.trans)
+  obtain t where t: "t \<in> {s \<in> S. enumerate S n < s}"
+    by (metis Infinite_Set.enumerate_step enumerate_in_set finite_enumerate_in_set finite_enumerate_step less_card mem_Collect_eq)
+  have "(LEAST x. x \<in> S \<and> x < s \<and> enumerate S n < x) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+       (is "_ = ?r")
+  proof (intro Least_equality conjI)
+    show "?r \<in> S"
+      by (metis (mono_tags, lifting) LeastI mem_Collect_eq t)
+    show "?r < s"
+      using not_less_Least [of _ "\<lambda>t. t \<in> S \<and> enumerate S n < t"] Suc assms 
+      by (metis (no_types, lifting) Int_Collect Suc_lessD finite_Int finite_enumerate_in_set finite_enumerate_step lessThan_def linorder_cases)
+    show "enumerate S n < ?r"
+      by (metis (no_types, lifting) LeastI mem_Collect_eq t)
+  qed (auto simp: Least_le)
+  then show ?case
+    using Suc assms by (simp add: finite_enumerate_Suc'' less_card)
+qed
+
+lemma finite_enumerate_Ex:
+  fixes S :: "'a::wellorder set"
+  assumes S: "finite S"
+    and s: "s \<in> S"
+  shows "\<exists>n<card S. enumerate S n = s"
+  using s S
+proof (induction s arbitrary: S rule: less_induct)
+  case (less s)
+  show ?case
+  proof (cases "\<exists>y\<in>S. y < s")
+    case True
+    let ?T = "S \<inter> {..<s}"
+    have "finite ?T"
+      using less.prems(2) by blast
+    have TS: "card ?T < card S"
+      using less.prems by (blast intro: psubset_card_mono [OF \<open>finite S\<close>])
+    from True have y: "\<And>x. Max ?T < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)"
+      by (subst Max_less_iff) (auto simp: \<open>finite ?T\<close>)
+    then have y_in: "Max ?T \<in> {s'\<in>S. s' < s}"
+      using Max_in \<open>finite ?T\<close> by fastforce
+    with less.IH[of "Max ?T" ?T] obtain n where n: "enumerate ?T n = Max ?T" "n < card ?T"
+      using \<open>finite ?T\<close> by blast
+    then have "Suc n < card S"
+      using TS less_trans_Suc by blast
+    with S n have "enumerate S (Suc n) = s"
+      by (subst finite_enumerate_Suc'') (auto simp: y finite_enumerate_initial_segment less finite_enumerate_Suc'' intro!: Least_equality)
+    then show ?thesis
+      using \<open>Suc n < card S\<close> by blast
+  next
+    case False
+    then have "\<forall>t\<in>S. s \<le> t" by auto
+    moreover have "0 < card S"
+      using card_0_eq less.prems by blast
+    ultimately show ?thesis
+      using \<open>s \<in> S\<close>
+      by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
+  qed
+qed
+
+lemma finite_bij_enumerate:
+  fixes S :: "'a::wellorder set"
+  assumes S: "finite S"
+  shows "bij_betw (enumerate S) {..<card S} S"
+proof -
+  have "\<And>n m. \<lbrakk>n \<noteq> m; n < card S; m < card S\<rbrakk> \<Longrightarrow> enumerate S n \<noteq> enumerate S m"
+    using finite_enumerate_mono[OF _ \<open>finite S\<close>] by (auto simp: neq_iff)
+  then have "inj_on (enumerate S) {..<card S}"
+    by (auto simp: inj_on_def)
+  moreover have "\<forall>s \<in> S. \<exists>i<card S. enumerate S i = s"
+    using finite_enumerate_Ex[OF S] by auto
+  moreover note \<open>finite S\<close>
+  ultimately show ?thesis
+    unfolding bij_betw_def by (auto intro: finite_enumerate_in_set)
+qed
+
+lemma ex_bij_betw_strict_mono_card:
+  fixes M :: "'a::wellorder set"
+  assumes "finite M" 
+  obtains h where "bij_betw h {..<card M} M" and "strict_mono_on h {..<card M}"
+proof
+  show "bij_betw (enumerate M) {..<card M} M"
+    by (simp add: assms finite_bij_enumerate)
+  show "strict_mono_on (enumerate M) {..<card M}"
+    by (simp add: assms finite_enumerate_mono strict_mono_on_def)
+qed
+
 end

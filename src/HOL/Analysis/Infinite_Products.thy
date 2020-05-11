@@ -1185,7 +1185,7 @@ begin
 lemma raw_has_prod_Suc_iff: "raw_has_prod f M (a * f M) \<longleftrightarrow> raw_has_prod (\<lambda>n. f (Suc n)) M a \<and> f M \<noteq> 0"
 proof -
   have "raw_has_prod f M (a * f M) \<longleftrightarrow> (\<lambda>i. \<Prod>j\<le>Suc i. f (j+M)) \<longlonglongrightarrow> a * f M \<and> a * f M \<noteq> 0"
-    by (subst LIMSEQ_Suc_iff) (simp add: raw_has_prod_def)
+    by (subst filterlim_sequentially_Suc) (simp add: raw_has_prod_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Prod>j\<le>i. f (Suc j + M)) * f M) \<longlonglongrightarrow> a * f M \<and> a * f M \<noteq> 0"
     by (simp add: ac_simps atMost_Suc_eq_insert_0 image_Suc_atMost prod.atLeast1_atMost_eq lessThan_Suc_atMost
                   del: prod.cl_ivl_Suc)
@@ -1238,7 +1238,7 @@ proof
   proof -
     have "(\<lambda>n. \<Prod>i\<in>{0..Suc n}. f (i + M)) \<longlonglongrightarrow> L"
       using M_L 
-      apply (subst (asm) LIMSEQ_Suc_iff[symmetric]) 
+      apply (subst (asm) filterlim_sequentially_Suc[symmetric]) 
       using atLeast0AtMost by auto
     then have "(\<lambda>n. f M * (\<Prod>i\<in>{0..n}. f (Suc (i + M)))) \<longlonglongrightarrow> L"
       apply (subst (asm) prod.atLeast0_atMost_Suc_shift)

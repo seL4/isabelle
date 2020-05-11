@@ -2240,7 +2240,7 @@ lemma convergent_cong:
   by (subst filterlim_cong[OF refl refl assms]) (rule refl)
 
 lemma convergent_Suc_iff: "convergent (\<lambda>n. f (Suc n)) \<longleftrightarrow> convergent f"
-  by (auto simp: convergent_def LIMSEQ_Suc_iff)
+  by (auto simp: convergent_def filterlim_sequentially_Suc)
 
 lemma convergent_ignore_initial_segment: "convergent (\<lambda>n. f (n + m)) = convergent f"
 proof (induct m arbitrary: f)

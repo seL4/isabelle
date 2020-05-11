@@ -29,7 +29,7 @@ definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add
 text\<open>Variants of the definition\<close>
 lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
   unfolding sums_def
-  apply (subst LIMSEQ_Suc_iff [symmetric])
+  apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
   done
 
@@ -68,7 +68,7 @@ lemma summable_iff_convergent: "summable f \<longleftrightarrow> convergent (\<l
 
 lemma summable_iff_convergent': "summable f \<longleftrightarrow> convergent (\<lambda>n. sum f {..n})"
   by (simp_all only: summable_iff_convergent convergent_def
-        lessThan_Suc_atMost [symmetric] LIMSEQ_Suc_iff[of "\<lambda>n. sum f {..<n}"])
+        lessThan_Suc_atMost [symmetric] filterlim_sequentially_Suc[of "\<lambda>n. sum f {..<n}"])
 
 lemma suminf_eq_lim: "suminf f = lim (\<lambda>n. \<Sum>i<n. f i)"
   by (simp add: suminf_def sums_def lim_def)
@@ -181,6 +181,10 @@ lemma summable_sums_iff: "summable f \<longleftrightarrow> f sums suminf f"
 lemma sums_unique2: "f sums a \<Longrightarrow> f sums b \<Longrightarrow> a = b"
   for a b :: 'a
   by (simp add: sums_iff)
+
+lemma sums_Uniq: "\<exists>\<^sub>\<le>\<^sub>1a. f sums a"
+  for a b :: 'a
+  by (simp add: sums_unique2 Uniq_def)
 
 lemma suminf_finite:
   assumes N: "finite N"
@@ -305,7 +309,7 @@ proof  -
     unfolding lessThan_Suc_eq_insert_0
     by (simp add: ac_simps sum.atLeast1_atMost_eq image_Suc_lessThan)
   ultimately show ?thesis
-    by (auto simp: sums_def simp del: sum.lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
+    by (auto simp: sums_def simp del: sum.lessThan_Suc intro: filterlim_sequentially_Suc[THEN iffD1])
 qed
 
 lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
@@ -356,7 +360,7 @@ begin
 lemma sums_Suc_iff: "(\<lambda>n. f (Suc n)) sums s \<longleftrightarrow> f sums (s + f 0)"
 proof -
   have "f sums (s + f 0) \<longleftrightarrow> (\<lambda>i. \<Sum>j<Suc i. f j) \<longlonglongrightarrow> s + f 0"
-    by (subst LIMSEQ_Suc_iff) (simp add: sums_def)
+    by (subst filterlim_sequentially_Suc) (simp add: sums_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"
     by (simp add: ac_simps lessThan_Suc_eq_insert_0 image_Suc_lessThan sum.atLeast1_atMost_eq)
   also have "\<dots> \<longleftrightarrow> (\<lambda>n. f (Suc n)) sums s"
@@ -635,7 +639,7 @@ lemma telescope_sums:
   assumes "f \<longlonglongrightarrow> c"
   shows "(\<lambda>n. f (Suc n) - f n) sums (c - f 0)"
   unfolding sums_def
-proof (subst LIMSEQ_Suc_iff [symmetric])
+proof (subst filterlim_sequentially_Suc [symmetric])
   have "(\<lambda>n. \<Sum>k<Suc n. f (Suc k) - f k) = (\<lambda>n. f (Suc n) - f 0)"
     by (simp add: lessThan_Suc_atMost atLeast0AtMost [symmetric] sum_Suc_diff)
   also have "\<dots> \<longlonglongrightarrow> c - f 0"

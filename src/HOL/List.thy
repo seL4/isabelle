@@ -1707,6 +1707,9 @@ lemma concat_eq_append_conv:
    else \<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2)"
   by(auto dest: concat_eq_appendD)
 
+lemma hd_concat: "\<lbrakk>xs \<noteq> []; hd xs \<noteq> []\<rbrakk> \<Longrightarrow> hd (concat xs) = hd (hd xs)"
+  by (metis concat.simps(2) hd_Cons_tl hd_append2)
+
 
 subsubsection \<open>\<^const>\<open>nth\<close>\<close>
 
@@ -6083,6 +6086,33 @@ lemma finite_set_strict_sorted:
   assumes "finite A"
   obtains l where "strict_sorted l" "List.set l = A" "length l = card A"
   by (metis assms distinct_card distinct_sorted_list_of_set set_sorted_list_of_set strict_sorted_list_of_set)
+
+lemma strict_sorted_equal:
+  assumes "strict_sorted xs"
+      and "strict_sorted ys"
+      and "list.set ys = list.set xs"
+    shows "ys = xs"
+  using assms
+proof (induction xs arbitrary: ys)
+  case (Cons x xs)
+  show ?case
+  proof (cases ys)
+    case Nil
+    then show ?thesis
+      using Cons.prems by auto 
+  next
+    case (Cons y ys')
+    then have "xs = ys'"
+      by (metis Cons.prems list.inject sorted_distinct_set_unique strict_sorted_iff)
+    moreover have "x = y"
+      using Cons.prems \<open>xs = ys'\<close> local.Cons by fastforce
+    ultimately show ?thesis
+      using local.Cons by blast
+  qed
+qed auto
+
+lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. strict_sorted xs \<and> list.set xs = A"
+  by (simp add: Uniq_def strict_sorted_equal)
 
 
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>

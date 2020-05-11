@@ -891,6 +891,11 @@ lemma (in t2_space) tendsto_const_iff:
   shows "((\<lambda>x. a) \<longlongrightarrow> b) F \<longleftrightarrow> a = b"
   by (auto intro!: tendsto_unique [OF assms tendsto_const])
 
+lemma (in t2_space) tendsto_unique':
+ assumes "F \<noteq> bot"
+ shows "\<exists>\<^sub>\<le>\<^sub>1l. (f \<longlongrightarrow> l) F"
+ using Uniq_def assms local.tendsto_unique by fastforce
+
 lemma Lim_in_closed_set:
   assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) F" "F \<noteq> bot" "(f \<longlongrightarrow> l) F"
   shows "l \<in> S"
@@ -1394,17 +1399,16 @@ lemma LIMSEQ_Suc: "f \<longlonglongrightarrow> l \<Longrightarrow> (\<lambda>n. 
 lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l \<Longrightarrow> f \<longlonglongrightarrow> l"
   by (rule LIMSEQ_offset [where k="Suc 0"]) simp
 
-lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l = f \<longlonglongrightarrow> l"
-  by (rule filterlim_sequentially_Suc)
-
 lemma LIMSEQ_lessThan_iff_atMost:
   shows "(\<lambda>n. f {..<n}) \<longlonglongrightarrow> x \<longleftrightarrow> (\<lambda>n. f {..n}) \<longlonglongrightarrow> x"
-  apply (subst LIMSEQ_Suc_iff [symmetric])
+  apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp only: lessThan_Suc_atMost)
   done
 
-lemma LIMSEQ_unique: "X \<longlonglongrightarrow> a \<Longrightarrow> X \<longlonglongrightarrow> b \<Longrightarrow> a = b"
-  for a b :: "'a::t2_space"
+lemma (in t2_space) LIMSEQ_Uniq: "\<exists>\<^sub>\<le>\<^sub>1l. X \<longlonglongrightarrow> l"
+ by (simp add: tendsto_unique')
+
+lemma (in t2_space) LIMSEQ_unique: "X \<longlonglongrightarrow> a \<Longrightarrow> X \<longlonglongrightarrow> b \<Longrightarrow> a = b"
   using trivial_limit_sequentially by (rule tendsto_unique)
 
 lemma LIMSEQ_le_const: "X \<longlonglongrightarrow> x \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. a \<le> X n \<Longrightarrow> a \<le> x"
@@ -1740,6 +1744,10 @@ lemma LIM_const_eq: "(\<lambda>x. k) \<midarrow>a\<rightarrow> L \<Longrightarro
 lemma LIM_unique: "f \<midarrow>a\<rightarrow> L \<Longrightarrow> f \<midarrow>a\<rightarrow> M \<Longrightarrow> L = M"
   for a :: "'a::perfect_space" and L M :: "'b::t2_space"
   using at_neq_bot by (rule tendsto_unique)
+
+lemma LIM_Uniq: "\<exists>\<^sub>\<le>\<^sub>1L::'b::t2_space. f \<midarrow>a\<rightarrow> L"
+  for a :: "'a::perfect_space"
+ by (auto simp add: Uniq_def LIM_unique)
 
 
 text \<open>Limits are equal for functions equal except at limit point.\<close>
@@ -3823,5 +3831,6 @@ proof -
   have "{(x,y) | x y. x \<ge> (y::'a)} = UNIV - {(x,y) | x y. x < y}" by auto
   then show ?thesis using open_subdiagonal closed_Diff by auto
 qed
+
 
 end

@@ -223,6 +223,9 @@ qed
 lemma inj_on_inv_into: "B \<subseteq> f`A \<Longrightarrow> inj_on (inv_into A f) B"
   by (blast intro: inj_onI dest: inv_into_injective injD)
 
+lemma inj_imp_bij_betw_inv: "inj f \<Longrightarrow> bij_betw (inv f) (f ` M) M"
+  by (simp add: bij_betw_def image_subsetI inj_on_inv_into)
+
 lemma bij_betw_inv_into: "bij_betw f A B \<Longrightarrow> bij_betw (inv_into A f) B A"
   by (auto simp add: bij_betw_def inj_on_inv_into)
 
@@ -371,6 +374,17 @@ proof
     hence "x = y" using \<open>x \<le> y\<close> by auto
     thus ?thesis by simp
   qed
+qed
+
+lemma strict_mono_inv_on_range:
+  fixes f :: "'a::linorder \<Rightarrow> 'b::order"
+  assumes "strict_mono f"
+  shows "strict_mono_on (inv f) (range f)"
+proof (clarsimp simp: strict_mono_on_def)
+  fix x y
+  assume "f x < f y"
+  then show "inv f (f x) < inv f (f y)"
+    using assms strict_mono_imp_inj_on strict_mono_less by fastforce
 qed
 
 lemma mono_bij_Inf:
