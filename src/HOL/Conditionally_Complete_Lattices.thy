@@ -524,7 +524,7 @@ end
 instantiation nat :: conditionally_complete_linorder
 begin
 
-definition "Sup (X::nat set) = Max X"
+definition "Sup (X::nat set) = (if X={} then 0 else Max X)"
 definition "Inf (X::nat set) = (LEAST n. n \<in> X)"
 
 lemma bdd_above_nat: "bdd_above X \<longleftrightarrow> finite (X::nat set)"
@@ -545,7 +545,7 @@ proof
   show "x \<le> Inf X" if "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y"
     using that unfolding Inf_nat_def ex_in_conv[symmetric] by (rule LeastI2_ex)
   show "x \<le> Sup X" if "x \<in> X" "bdd_above X"
-    using that by (simp add: Sup_nat_def bdd_above_nat)
+    using that by (auto simp add: Sup_nat_def bdd_above_nat)
   show "Sup X \<le> x" if "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x"
   proof -
     from that have "bdd_above X"
