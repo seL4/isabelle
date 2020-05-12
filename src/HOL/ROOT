@@ -122,7 +122,7 @@ session "HOL-Real_Asymp-Manual" in "Real_Asymp/Manual" = "HOL-Real_Asymp" +
     "root.tex"
     "style.sty"
 
-session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
+session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   description "
     Author:     Gertrud Bauer, TU Munich
 
@@ -146,7 +146,7 @@ session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
     Hahn_Banach
   document_files "root.bib" "root.tex"
 
-session "HOL-Induct" in Induct = "HOL-Library" +
+session "HOL-Induct" in Induct = HOL +
   description "
     Examples of (Co)Inductive Definitions.
 
@@ -163,6 +163,8 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
   "
+  sessions
+    "HOL-Library"
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -362,10 +364,11 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     Algebra
   document_files "root.bib" "root.tex"
 
-session "HOL-Auth" (timing) in Auth = "HOL-Library" +
+session "HOL-Auth" (timing) in Auth = HOL +
   description "
     A new approach to verifying authentication protocols.
   "
+  sessions "HOL-Library"
   directories "Smartcard" "Guard"
   theories
     Auth_Shared
@@ -420,19 +423,22 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
     ELT
   document_files "root.tex"
 
-session "HOL-Unix" in Unix = "HOL-Library" +
+session "HOL-Unix" in Unix = HOL +
   options [print_mode = "no_brackets,no_type_brackets"]
+  sessions "HOL-Library"
   theories Unix
   document_files "root.bib" "root.tex"
 
-session "HOL-ZF" in ZF = "HOL-Library" +
+session "HOL-ZF" in ZF = HOL +
+  sessions "HOL-Library"
   theories
     MainZF
     Games
   document_files "root.tex"
 
-session "HOL-Imperative_HOL" (timing) in Imperative_HOL = "HOL-Library" +
+session "HOL-Imperative_HOL" (timing) in Imperative_HOL = HOL +
   options [print_mode = "iff,no_brackets"]
+  sessions "HOL-Library"
   directories "ex"
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
@@ -500,13 +506,14 @@ session "HOL-Prolog" in Prolog = HOL +
   "
   theories Test Type
 
-session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
+session "HOL-MicroJava" (timing) in MicroJava = HOL +
   description "
     Formalization of a fragment of Java, together with a corresponding virtual
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   "
   sessions
+    "HOL-Library"
     "HOL-Eisbach"
   directories "BV" "Comp" "DFA" "J" "JVM"
   theories
@@ -523,7 +530,9 @@ session "HOL-NanoJava" in NanoJava = HOL +
   theories Example
   document_files "root.bib" "root.tex"
 
-session "HOL-Bali" (timing) in Bali = "HOL-Library" +
+session "HOL-Bali" (timing) in Bali = HOL +
+  sessions
+    "HOL-Library"
   theories
     AxExample
     AxSound
@@ -712,18 +721,21 @@ session "HOL-Eisbach" in Eisbach = HOL +
     Examples_FOL
     Example_Metric
 
-session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
+session "HOL-SET_Protocol" (timing) in SET_Protocol = HOL +
   description "
     Verification of the SET Protocol.
   "
+  sessions
+    "HOL-Library"
   theories
     SET_Protocol
   document_files "root.tex"
 
-session "HOL-Matrix_LP" in Matrix_LP = "HOL-Library" +
+session "HOL-Matrix_LP" in Matrix_LP = HOL +
   description "
     Two-dimensional matrices and linear programming.
   "
+  sessions "HOL-Library"
   directories "Compute_Oracle"
   theories Cplex
   document_files "root.tex"
@@ -743,7 +755,7 @@ session "HOL-TLA-Buffer" in "TLA/Buffer" = "HOL-TLA" +
 session "HOL-TLA-Memory" in "TLA/Memory" = "HOL-TLA" +
   theories MemoryImplementation
 
-session "HOL-TPTP" in TPTP = "HOL-Library" +
+session "HOL-TPTP" in TPTP = HOL +
   description "
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Nik Sultana, University of Cambridge
@@ -751,6 +763,8 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
 
     TPTP-related extensions.
   "
+  sessions
+    "HOL-Library"
   theories
     ATP_Theory_Export
     MaSh_Eval
@@ -771,7 +785,8 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Koepf_Duermuth_Countermeasure
     Measure_Not_CCC
 
-session "HOL-Nominal" in Nominal = "HOL-Library" +
+session "HOL-Nominal" in Nominal = HOL +
+  sessions "HOL-Library"
   theories
     Nominal
 
@@ -944,10 +959,12 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     "Simple_Gcd.adb"
     "Simple_Gcd.ads"
 
-session "HOL-Mutabelle" in Mutabelle = "HOL-Library" +
+session "HOL-Mutabelle" in Mutabelle = HOL +
+  sessions "HOL-Library"
   theories MutabelleExtra
 
-session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = "HOL-Library" +
+session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = HOL +
+  sessions "HOL-Library"
   theories
     Quickcheck_Examples
     Quickcheck_Lattice_Examples
@@ -975,7 +992,8 @@ session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Algebra" +
     Int_Pow
     Lifting_Code_Dt_Test
 
-session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = "HOL-Library" +
+session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = HOL +
+  sessions "HOL-Library"
   theories
     Examples
     Predicate_Compile_Tests
