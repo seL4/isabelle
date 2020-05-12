@@ -39,18 +39,18 @@ fun baldR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
 "baldR (R t1 a (B t2 b t3)) c t4 = R (baliL (paint Red t1) a t2) b (B t3 c t4)" |
 "baldR t1 a t2 = R t1 a t2"
 
-fun app :: "'a rbt \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
-"app Leaf t = t" |
-"app t Leaf = t" |
-"app (R t1 a t2) (R t3 c t4) =
-  (case app t2 t3 of
+fun join :: "'a rbt \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
+"join Leaf t = t" |
+"join t Leaf = t" |
+"join (R t1 a t2) (R t3 c t4) =
+  (case join t2 t3 of
      R u2 b u3 \<Rightarrow> (R (R t1 a u2) b (R u3 c t4)) |
      t23 \<Rightarrow> R t1 a (R t23 c t4))" |
-"app (B t1 a t2) (B t3 c t4) =
-  (case app t2 t3 of
+"join (B t1 a t2) (B t3 c t4) =
+  (case join t2 t3 of
      R u2 b u3 \<Rightarrow> R (B t1 a u2) b (B u3 c t4) |
      t23 \<Rightarrow> baldL t1 a (B t23 c t4))" |
-"app t1 (R t2 a t3) = R (app t1 t2) a t3" |
-"app (R t1 a t2) t3 = R t1 a (app t2 t3)" 
+"join t1 (R t2 a t3) = R (join t1 t2) a t3" |
+"join (R t1 a t2) t3 = R t1 a (join t2 t3)" 
 
 end

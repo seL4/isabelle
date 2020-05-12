@@ -29,7 +29,7 @@ fun del :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt" wher
            then baldL (del x l) (a,b) r else R (del x l) (a,b) r |
      GT \<Rightarrow> if r \<noteq> Leaf\<and> color r = Black
            then baldR l (a,b) (del x r) else R l (a,b) (del x r) |
-  EQ \<Rightarrow> app l r)"
+  EQ \<Rightarrow> join l r)"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "delete x t = paint Black (del x t)"
@@ -49,7 +49,7 @@ by(simp add: update_def inorder_upd inorder_paint)
 lemma inorder_del:
  "sorted1(inorder t) \<Longrightarrow>  inorder(del x t) = del_list x (inorder t)"
 by(induction x t rule: del.induct)
-  (auto simp: del_list_simps inorder_app inorder_baldL inorder_baldR)
+  (auto simp: del_list_simps inorder_join inorder_baldL inorder_baldR)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -86,7 +86,7 @@ case (2 x _ y _ c)
   thus ?case proof (elim disjE)
     assume "x = y"
     with 2 show ?thesis
-    by (cases c) (simp_all add: invh_app invc_app)
+    by (cases c) (simp_all add: invh_join invc_join)
   next
     assume "x < y"
     with 2 show ?thesis

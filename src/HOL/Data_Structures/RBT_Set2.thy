@@ -6,7 +6,7 @@ theory RBT_Set2
 imports RBT_Set
 begin
 
-text \<open>This is a conceptually simpler version of deletion. Instead of the tricky \<open>combine\<close>
+text \<open>This is a conceptually simpler version of deletion. Instead of the tricky \<open>join\<close>
 function this version follows the standard approach of replacing the deleted element
 (in function \<open>del\<close>) by the minimal element in its right subtree.\<close>
 
