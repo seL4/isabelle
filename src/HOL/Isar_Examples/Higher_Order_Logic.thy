@@ -241,6 +241,7 @@ abbreviation iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrigh
 axiomatization
   where ext [intro]: "(\<And>x. f x = g x) \<Longrightarrow> f = g"
     and iff [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<longleftrightarrow> B"
+  for f g :: "'a \<Rightarrow> 'b"
 
 lemma sym [sym]: "y = x" if "x = y"
   using that by (rule subst) (rule refl)
