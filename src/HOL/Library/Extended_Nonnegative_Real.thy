@@ -160,7 +160,7 @@ proof (intro antisym)
   show "(SUP a\<in>A. of_nat a::real) \<le> of_nat (Sup A)"
     using assms by (intro cSUP_least of_nat_mono) (auto intro: cSup_upper)
   have "Sup A \<in> A"
-    unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
+    using assms by (auto simp: Sup_nat_def bdd_above_nat)
   then show "of_nat (Sup A) \<le> (SUP a\<in>A. of_nat a::real)"
     by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
 qed
@@ -1476,7 +1476,7 @@ proof (intro antisym)
   show "(SUP a\<in>A. of_nat a::ennreal) \<le> of_nat (Sup A)"
     by (intro SUP_least of_nat_mono) (auto intro: cSup_upper assms)
   have "Sup A \<in> A"
-    unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
+    using assms by (auto simp: Sup_nat_def bdd_above_nat)
   then show "of_nat (Sup A) \<le> (SUP a\<in>A. of_nat a::ennreal)"
     by (intro SUP_upper)
 qed

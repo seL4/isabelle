@@ -10,6 +10,7 @@ keywords
   "try" "solve_direct" "quickcheck" "print_coercions" "print_claset"
     "print_induct_rules" :: diag and
   "quickcheck_params" :: thy_decl
+abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
 begin
 
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>

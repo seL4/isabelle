@@ -590,11 +590,11 @@ proof (clarsimp simp add: measurable_count_space_eq2_countable)
   fix a
   have F_empty_iff: "F x = {} \<longleftrightarrow> (\<forall>i. i \<notin> F x)" for x
     by auto
-  have "Measurable.pred M (\<lambda>x. if finite (F x) then if F x = {} then a = Max {}
+  have "Measurable.pred M (\<lambda>x. if finite (F x) then if F x = {} then a = 0
     else a \<in> F x \<and> (\<forall>j. j \<in> F x \<longrightarrow> j \<le> a) else a = the None)"
     unfolding finite_nat_set_iff_bounded Ball_def F_empty_iff by measurable
   moreover have "(\<lambda>x. Sup (F x)) -` {a} \<inter> space M =
-    {x\<in>space M. if finite (F x) then if F x = {} then a = Max {}
+    {x\<in>space M. if finite (F x) then if F x = {} then a = 0
       else a \<in> F x \<and> (\<forall>j. j \<in> F x \<longrightarrow> j \<le> a) else a = the None}"
     by (intro set_eqI)
        (auto simp: Sup_nat_def Max.infinite intro!: Max_in Max_eqI)
