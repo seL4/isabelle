@@ -51,10 +51,10 @@ begin
 text \<open>It implements the traditional specification:\<close>
 
 definition set :: "'t \<Rightarrow> 'a set" where
-"set == List.set o inorder"
+"set = List.set o inorder"
 
 definition invar :: "'t \<Rightarrow> bool" where
-"invar t == inv t \<and> sorted (inorder t)"
+"invar t = (inv t \<and> sorted (inorder t))"
 
 sublocale Set
   empty insert delete isin set invar
