@@ -563,6 +563,10 @@ lemma Inf_nat_def1:
   shows "Inf K \<in> K"
 by (auto simp add: Min_def Inf_nat_def) (meson LeastI assms bot.extremum_unique subsetI)
 
+lemma Sup_nat_empty [simp]: "Sup {} = (0::nat)"
+  by (auto simp add: Sup_nat_def) 
+
+
 
 instantiation int :: conditionally_complete_linorder
 begin

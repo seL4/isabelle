@@ -33,6 +33,11 @@ INCOMPATIBILITY.
 * Definitions in locales produce rule which can be added as congruence
 rule to protect foundational terms during simplification.
 
+*** HOL ***
+
+* Added the "at most 1" quantifier, Uniq.
+
+* For the natural numbers, Sup{} = 0.
 
 New in Isabelle2020 (April 2020)
 --------------------------------
