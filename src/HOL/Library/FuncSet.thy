@@ -686,4 +686,35 @@ next
     by (simp add: PiE_insert_eq inj_combinator card_image card_cartesian_product)
 qed
 
+subsection \<open>The pigeonhole principle\<close>
+
+text \<open>
+  An alternative formulation of this is that for a function mapping a finite set \<open>A\<close> of
+  cardinality \<open>m\<close> to a finite set \<open>B\<close> of cardinality \<open>n\<close>, there exists an element \<open>y \<in> B\<close> that
+  is hit at least $\lceil \frac{m}{n}\rceil$ times. However, since we do not have real numbers
+  or rounding yet, we state it in the following equivalent form:
+\<close>
+lemma pigeonhole_card:
+  assumes "f \<in> A \<rightarrow> B" "finite A" "finite B" "B \<noteq> {}"
+  shows   "\<exists>y\<in>B. card (f -` {y} \<inter> A) * card B \<ge> card A"
+proof -
+  from assms have "card B > 0"
+    by auto
+  define M where "M = Max ((\<lambda>y. card (f -` {y} \<inter> A)) ` B)"
+  have "A = (\<Union>y\<in>B. f -` {y} \<inter> A)"
+    using assms by auto
+  also have "card \<dots> = (\<Sum>i\<in>B. card (f -` {i} \<inter> A))"
+    using assms by (subst card_UN_disjoint) auto
+  also have "\<dots> \<le> (\<Sum>i\<in>B. M)"
+    unfolding M_def using assms by (intro sum_mono Max.coboundedI) auto
+  also have "\<dots> = card B * M"
+    by simp
+  finally have "M * card B \<ge> card A"
+    by (simp add: mult_ac)
+  moreover have "M \<in> (\<lambda>y. card (f -` {y} \<inter> A)) ` B"
+    unfolding M_def using assms \<open>B \<noteq> {}\<close> by (intro Max_in) auto
+  ultimately show ?thesis
+    by blast
+qed
+
 end
