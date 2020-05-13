@@ -542,6 +542,30 @@ lemma has_derivative_divide[simp, derivative_intros]:
   using has_derivative_mult[OF f has_derivative_inverse[OF x g]]
   by (simp add: field_simps)
 
+lemma has_derivative_power_int':
+  fixes x :: "'a::real_normed_field"
+  assumes x: "x \<noteq> 0"
+  shows "((\<lambda>x. power_int x n) has_derivative (\<lambda>y. y * (of_int n * power_int x (n - 1)))) (at x within S)"
+proof (cases n rule: int_cases4)
+  case (nonneg n)
+  thus ?thesis using x
+    by (cases "n = 0") (auto intro!: derivative_eq_intros simp: field_simps power_int_diff fun_eq_iff
+                             simp flip: power_Suc)
+next
+  case (neg n)
+  thus ?thesis using x
+    by (auto intro!: derivative_eq_intros simp: field_simps power_int_diff power_int_minus
+             simp flip: power_Suc power_Suc2 power_add)
+qed
+
+lemma has_derivative_power_int[simp, derivative_intros]:
+  fixes f :: "_ \<Rightarrow> 'a::real_normed_field"
+  assumes x:  "f x \<noteq> 0"
+    and f: "(f has_derivative f') (at x within S)"
+  shows "((\<lambda>x. power_int (f x) n) has_derivative (\<lambda>h. f' h * (of_int n * power_int (f x) (n - 1))))
+           (at x within S)"
+  using has_derivative_compose[OF f has_derivative_power_int', OF x] .
+
 
 text \<open>Conventional form requires mult-AC laws. Types real and complex only.\<close>
 
@@ -694,6 +718,12 @@ lemma differentiable_power [simp, derivative_intros]:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
   shows "f differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f x ^ n) differentiable (at x within s)"
   unfolding differentiable_def by (blast intro: has_derivative_power)
+
+lemma differentiable_power_int [simp, derivative_intros]:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
+  shows "f differentiable (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
+           (\<lambda>x. power_int (f x) n) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_power_int)
 
 lemma differentiable_scaleR [simp, derivative_intros]:
   "f differentiable (at x within s) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow>
@@ -1039,6 +1069,23 @@ lemma DERIV_power[derivative_intros]:
 
 lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - Suc 0))) (at x within s)"
   using DERIV_power [OF DERIV_ident] by simp
+
+lemma DERIV_power_int [derivative_intros]:
+  assumes [derivative_intros]: "(f has_field_derivative d) (at x within s)" and [simp]: "f x \<noteq> 0"
+  shows   "((\<lambda>x. power_int (f x) n) has_field_derivative
+             (of_int n * power_int (f x) (n - 1) * d)) (at x within s)"
+proof (cases n rule: int_cases4)
+  case (nonneg n)
+  thus ?thesis 
+    by (cases "n = 0")
+       (auto intro!: derivative_eq_intros simp: field_simps power_int_diff
+             simp flip: power_Suc power_Suc2 power_add)
+next
+  case (neg n)
+  thus ?thesis
+    by (auto intro!: derivative_eq_intros simp: field_simps power_int_diff power_int_minus
+             simp flip: power_Suc power_Suc2 power_add)
+qed
 
 lemma DERIV_chain': "(f has_field_derivative D) (at x within s) \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow>
   ((\<lambda>x. g (f x)) has_field_derivative E * D) (at x within s)"

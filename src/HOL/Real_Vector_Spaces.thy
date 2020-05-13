@@ -302,6 +302,10 @@ lemma of_real_power [simp]:
   "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1}) ^ n"
   by (induct n) simp_all
 
+lemma of_real_power_int [simp]:
+  "of_real (power_int x n) = power_int (of_real x :: 'a :: {real_div_algebra,division_ring}) n"
+  by (auto simp: power_int_def)
+
 lemma of_real_eq_iff [simp]: "of_real x = of_real y \<longleftrightarrow> x = y"
   by (simp add: of_real_def)
 
@@ -332,6 +336,27 @@ lemma of_real_numeral [simp]: "of_real (numeral w) = numeral w"
 
 lemma of_real_neg_numeral [simp]: "of_real (- numeral w) = - numeral w"
   using of_real_of_int_eq [of "- numeral w"] by simp
+
+lemma numeral_power_int_eq_of_real_cancel_iff [simp]:
+  "power_int (numeral x) n = (of_real y :: 'a :: {real_div_algebra, division_ring}) \<longleftrightarrow>
+     power_int (numeral x) n = y"
+proof -
+  have "power_int (numeral x) n = (of_real (power_int (numeral x) n) :: 'a)"
+    by simp
+  also have "\<dots> = of_real y \<longleftrightarrow> power_int (numeral x) n = y"
+    by (subst of_real_eq_iff) auto
+  finally show ?thesis .
+qed
+
+lemma of_real_eq_numeral_power_int_cancel_iff [simp]:
+  "(of_real y :: 'a :: {real_div_algebra, division_ring}) = power_int (numeral x) n \<longleftrightarrow>
+     y = power_int (numeral x) n"
+  by (subst (1 2) eq_commute) simp
+
+lemma of_real_eq_of_real_power_int_cancel_iff [simp]:
+  "power_int (of_real b :: 'a :: {real_div_algebra, division_ring}) w = of_real x \<longleftrightarrow>
+     power_int b w = x"
+  by (metis of_real_power_int of_real_eq_iff)
 
 text \<open>Every real algebra has characteristic zero.\<close>
 instance real_algebra_1 < ring_char_0
@@ -957,6 +982,10 @@ qed
 lemma norm_power: "norm (x ^ n) = norm x ^ n"
   for x :: "'a::real_normed_div_algebra"
   by (induct n) (simp_all add: norm_mult)
+
+lemma norm_power_int: "norm (power_int x n) = power_int (norm x) n"
+  for x :: "'a::real_normed_div_algebra"
+  by (cases n rule: int_cases4) (auto simp: norm_power power_int_minus norm_inverse)
 
 lemma power_eq_imp_eq_norm:
   fixes w :: "'a::real_normed_div_algebra"

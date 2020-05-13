@@ -1227,6 +1227,33 @@ lemma continuous_on_divide[continuous_intros]:
   shows "continuous_on s (\<lambda>x. (f x) / (g x))"
   using assms unfolding continuous_on_def by (blast intro: tendsto_divide)
 
+lemma tendsto_power_int [tendsto_intros]:
+  fixes a :: "'a::real_normed_div_algebra"
+  assumes f: "(f \<longlongrightarrow> a) F"
+    and a: "a \<noteq> 0"
+  shows "((\<lambda>x. power_int (f x) n) \<longlongrightarrow> power_int a n) F"
+  using assms by (cases n rule: int_cases4) (auto intro!: tendsto_intros simp: power_int_minus)
+
+lemma continuous_power_int:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous F f"
+    and "f (Lim F (\<lambda>x. x)) \<noteq> 0"
+  shows "continuous F (\<lambda>x. power_int (f x) n)"
+  using assms unfolding continuous_def by (rule tendsto_power_int)
+
+lemma continuous_at_within_power_int[continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous (at a within s) f"
+    and "f a \<noteq> 0"
+  shows "continuous (at a within s) (\<lambda>x. power_int (f x) n)"
+  using assms unfolding continuous_within by (rule tendsto_power_int)
+
+lemma continuous_on_power_int [continuous_intros]:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
+  shows "continuous_on s (\<lambda>x. power_int (f x) n)"
+  using assms unfolding continuous_on_def by (blast intro: tendsto_power_int)
+
 lemma tendsto_sgn [tendsto_intros]: "(f \<longlongrightarrow> l) F \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> ((\<lambda>x. sgn (f x)) \<longlongrightarrow> sgn l) F"
   for l :: "'a::real_normed_vector"
   unfolding sgn_div_norm by (simp add: tendsto_intros)

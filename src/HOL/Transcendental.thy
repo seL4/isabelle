@@ -2499,7 +2499,25 @@ lemma powr_le_cancel_iff [simp]: "1 < x \<Longrightarrow> x powr a \<le> x powr 
   by (simp add: linorder_not_less [symmetric])
 
 lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
-by (induction n) (simp_all add: ac_simps powr_add)
+  by (induction n) (simp_all add: ac_simps powr_add)
+
+lemma powr_real_of_int':
+  assumes "x \<ge> 0" "x \<noteq> 0 \<or> n > 0"
+  shows   "x powr real_of_int n = power_int x n"
+proof (cases "x = 0")
+  case False
+  with assms have "x > 0" by simp
+  show ?thesis
+  proof (cases n rule: int_cases4)
+    case (nonneg n)
+    thus ?thesis using \<open>x > 0\<close>
+      by (auto simp add: powr_realpow)
+  next
+    case (neg n)
+    thus ?thesis using \<open>x > 0\<close>
+      by (auto simp add: powr_realpow powr_minus power_int_minus)
+  qed
+qed (use assms in auto)
 
 lemma log_ln: "ln x = log (exp(1)) x"
   by (simp add: log_def)

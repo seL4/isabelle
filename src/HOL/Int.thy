@@ -1694,6 +1694,344 @@ proof -
 qed
 
 
+subsection \<open>Powers with integer exponents\<close>
+
+text \<open>
+  The following allows writing powers with an integer exponent. While the type signature
+  is very generic, most theorems will assume that the underlying type is a division ring or
+  a field.
+
+  The notation `powi' is inspired by the `powr' notation for real/complex exponentiation.
+\<close>
+definition power_int :: "'a :: {inverse, power} \<Rightarrow> int \<Rightarrow> 'a" (infixr "powi" 80) where
+  "power_int x n = (if n \<ge> 0 then x ^ nat n else inverse x ^ (nat (-n)))"
+
+lemma power_int_0_right [simp]: "power_int x 0 = 1"
+  and power_int_1_right [simp]:
+        "power_int (y :: 'a :: {power, inverse, monoid_mult}) 1 = y"
+  and power_int_minus1_right [simp]:
+        "power_int (y :: 'a :: {power, inverse, monoid_mult}) (-1) = inverse y"
+  by (simp_all add: power_int_def)
+
+lemma power_int_of_nat [simp]: "power_int x (int n) = x ^ n"
+  by (simp add: power_int_def)
+
+lemma power_int_numeral [simp]: "power_int x (numeral n) = x ^ numeral n"
+  by (simp add: power_int_def)
+
+lemma int_cases4 [case_names nonneg neg]:
+  fixes m :: int
+  obtains n where "m = int n" | n where "n > 0" "m = -int n"
+proof (cases "m \<ge> 0")
+  case True
+  thus ?thesis using that(1)[of "nat m"] by auto
+next
+  case False
+  thus ?thesis using that(2)[of "nat (-m)"] by auto
+qed
+
+
+context
+  assumes "SORT_CONSTRAINT('a::division_ring)"
+begin
+
+lemma power_int_minus: "power_int (x::'a) (-n) = inverse (power_int x n)"
+  by (auto simp: power_int_def power_inverse)
+
+lemma power_int_eq_0_iff [simp]: "power_int (x::'a) n = 0 \<longleftrightarrow> x = 0 \<and> n \<noteq> 0"
+  by (auto simp: power_int_def)
+
+lemma power_int_0_left_If: "power_int (0 :: 'a) m = (if m = 0 then 1 else 0)"
+  by (auto simp: power_int_def)
+
+lemma power_int_0_left [simp]: "m \<noteq> 0 \<Longrightarrow> power_int (0 :: 'a) m = 0"
+  by (simp add: power_int_0_left_If)
+
+lemma power_int_1_left [simp]: "power_int 1 n = (1 :: 'a :: division_ring)"
+  by (auto simp: power_int_def) 
+
+lemma power_diff_conv_inverse: "x \<noteq> 0 \<Longrightarrow> m \<le> n \<Longrightarrow> (x :: 'a) ^ (n - m) = x ^ n * inverse x ^ m"
+  by (simp add: field_simps flip: power_add)
+
+lemma power_mult_inverse_distrib: "x ^ m * inverse (x :: 'a) = inverse x * x ^ m"
+proof (cases "x = 0")
+  case [simp]: False
+  show ?thesis
+  proof (cases m)
+    case (Suc m')
+    have "x ^ Suc m' * inverse x = x ^ m'"
+      by (subst power_Suc2) (auto simp: mult.assoc)
+    also have "\<dots> = inverse x * x ^ Suc m'"
+      by (subst power_Suc) (auto simp: mult.assoc [symmetric])
+    finally show ?thesis using Suc by simp
+  qed auto
+qed auto
+
+lemma power_mult_power_inverse_commute:
+  "x ^ m * inverse (x :: 'a) ^ n = inverse x ^ n * x ^ m"
+proof (induction n)
+  case (Suc n)
+  have "x ^ m * inverse x ^ Suc n = (x ^ m * inverse x ^ n) * inverse x"
+    by (simp only: power_Suc2 mult.assoc)
+  also have "x ^ m * inverse x ^ n = inverse x ^ n * x ^ m"
+    by (rule Suc)
+  also have "\<dots> * inverse x = (inverse x ^ n * inverse x) * x ^ m"
+    by (simp add: mult.assoc power_mult_inverse_distrib)
+  also have "\<dots> = inverse x ^ (Suc n) * x ^ m"
+    by (simp only: power_Suc2)
+  finally show ?case .
+qed auto
+
+lemma power_int_add:
+  assumes "x \<noteq> 0 \<or> m + n \<noteq> 0"
+  shows   "power_int (x::'a) (m + n) = power_int x m * power_int x n"
+proof (cases "x = 0")
+  case True
+  thus ?thesis using assms by (auto simp: power_int_0_left_If)
+next
+  case [simp]: False
+  show ?thesis
+  proof (cases m n rule: int_cases4[case_product int_cases4])
+    case (nonneg_nonneg a b)
+    thus ?thesis
+      by (auto simp: power_int_def nat_add_distrib power_add)
+  next
+    case (nonneg_neg a b)
+    thus ?thesis
+      by (auto simp: power_int_def nat_diff_distrib not_le power_diff_conv_inverse
+                     power_mult_power_inverse_commute)
+  next
+    case (neg_nonneg a b)
+    thus ?thesis
+      by (auto simp: power_int_def nat_diff_distrib not_le power_diff_conv_inverse
+                     power_mult_power_inverse_commute)    
+  next
+    case (neg_neg a b)
+    thus ?thesis
+      by (auto simp: power_int_def nat_add_distrib add.commute simp flip: power_add)
+  qed
+qed
+
+lemma power_int_add_1:
+  assumes "x \<noteq> 0 \<or> m \<noteq> -1"
+  shows   "power_int (x::'a) (m + 1) = power_int x m * x"
+  using assms by (subst power_int_add) auto
+
+lemma power_int_add_1':
+  assumes "x \<noteq> 0 \<or> m \<noteq> -1"
+  shows   "power_int (x::'a) (m + 1) = x * power_int x m"
+  using assms by (subst add.commute, subst power_int_add) auto
+
+lemma power_int_commutes: "power_int (x :: 'a) n * x = x * power_int x n"
+  by (cases "x = 0") (auto simp flip: power_int_add_1 power_int_add_1')
+
+lemma power_int_inverse [field_simps, field_split_simps, divide_simps]:
+  "power_int (inverse (x :: 'a)) n = inverse (power_int x n)"
+  by (auto simp: power_int_def power_inverse)
+
+lemma power_int_mult: "power_int (x :: 'a) (m * n) = power_int (power_int x m) n"
+  by (auto simp: power_int_def zero_le_mult_iff simp flip: power_mult power_inverse nat_mult_distrib)
+
+end
+
+context
+  assumes "SORT_CONSTRAINT('a::field)"
+begin
+
+lemma power_int_diff:
+  assumes "x \<noteq> 0 \<or> m \<noteq> n"
+  shows   "power_int (x::'a) (m - n) = power_int x m / power_int x n"
+  using power_int_add[of x m "-n"] assms by (auto simp: field_simps power_int_minus)
+
+lemma power_int_minus_mult: "x \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> power_int (x :: 'a) (n - 1) * x = power_int x n"
+  by (auto simp flip: power_int_add_1)  
+
+lemma power_int_mult_distrib: "power_int (x * y :: 'a) m = power_int x m * power_int y m"
+  by (auto simp: power_int_def power_mult_distrib)
+
+lemmas power_int_mult_distrib_numeral1 = power_int_mult_distrib [where x = "numeral w" for w, simp]
+lemmas power_int_mult_distrib_numeral2 = power_int_mult_distrib [where y = "numeral w" for w, simp]
+
+lemma power_int_divide_distrib: "power_int (x / y :: 'a) m = power_int x m / power_int y m"
+  using power_int_mult_distrib[of x "inverse y" m] unfolding power_int_inverse
+  by (simp add: field_simps)
+
+end
+
+
+lemma power_int_add_numeral [simp]:
+  "power_int x (numeral m) * power_int x (numeral n) = power_int x (numeral (m + n))"
+  for x :: "'a :: division_ring"
+  by (simp add: power_int_add [symmetric])
+
+lemma power_int_add_numeral2 [simp]:
+  "power_int x (numeral m) * (power_int x (numeral n) * b) = power_int x (numeral (m + n)) * b"
+  for x :: "'a :: division_ring"
+  by (simp add: mult.assoc [symmetric])
+
+lemma power_int_mult_numeral [simp]:
+  "power_int (power_int x (numeral m)) (numeral n) = power_int x (numeral (m * n))"
+  for x :: "'a :: division_ring"
+  by (simp only: numeral_mult power_int_mult)
+  
+lemma power_int_not_zero: "(x :: 'a :: division_ring) \<noteq> 0 \<or> n = 0 \<Longrightarrow> power_int x n \<noteq> 0"
+  by (subst power_int_eq_0_iff) auto
+
+lemma power_int_one_over [field_simps, field_split_simps, divide_simps]:
+  "power_int (1 / x :: 'a :: division_ring) n = 1 / power_int x n"
+  using power_int_inverse[of x] by (simp add: divide_inverse)
+
+
+context
+  assumes "SORT_CONSTRAINT('a :: linordered_field)"
+begin
+
+lemma power_int_numeral_neg_numeral [simp]:
+  "power_int (numeral m) (-numeral n) = (inverse (numeral (Num.pow m n)) :: 'a)"
+  by (simp add: power_int_minus)
+
+lemma zero_less_power_int [simp]: "0 < (x :: 'a) \<Longrightarrow> 0 < power_int x n"
+  by (auto simp: power_int_def)
+
+lemma zero_le_power_int [simp]: "0 \<le> (x :: 'a) \<Longrightarrow> 0 \<le> power_int x n"
+  by (auto simp: power_int_def)
+
+lemma power_int_mono: "(x :: 'a) \<le> y \<Longrightarrow> n \<ge> 0 \<Longrightarrow> 0 \<le> x \<Longrightarrow> power_int x n \<le> power_int y n"
+  by (cases n rule: int_cases4) (auto intro: power_mono)
+
+lemma one_le_power_int [simp]: "1 \<le> (x :: 'a) \<Longrightarrow> n \<ge> 0 \<Longrightarrow> 1 \<le> power_int x n"
+  using power_int_mono [of 1 x n] by simp
+
+lemma power_int_le_one: "0 \<le> (x :: 'a) \<Longrightarrow> n \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> power_int x n \<le> 1"
+  using power_int_mono [of x 1 n] by simp
+
+lemma power_int_le_imp_le_exp:
+  assumes gt1: "1 < (x :: 'a :: linordered_field)"
+  assumes "power_int x m \<le> power_int x n" "n \<ge> 0"
+  shows   "m \<le> n"
+proof (cases "m < 0")
+  case True
+  with \<open>n \<ge> 0\<close> show ?thesis by simp
+next
+  case False
+  with assms have "x ^ nat m \<le> x ^ nat n"
+    by (simp add: power_int_def)
+  from gt1 and this show ?thesis
+    using False \<open>n \<ge> 0\<close> by auto
+qed
+
+lemma power_int_le_imp_less_exp:
+  assumes gt1: "1 < (x :: 'a :: linordered_field)"
+  assumes "power_int x m < power_int x n" "n \<ge> 0"
+  shows   "m < n"
+proof (cases "m < 0")
+  case True
+  with \<open>n \<ge> 0\<close> show ?thesis by simp
+next
+  case False
+  with assms have "x ^ nat m < x ^ nat n"
+    by (simp add: power_int_def)
+  from gt1 and this show ?thesis
+    using False \<open>n \<ge> 0\<close> by auto
+qed
+
+lemma power_int_strict_mono:
+  "(a :: 'a :: linordered_field) < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> power_int a n < power_int b n"
+  by (auto simp: power_int_def intro!: power_strict_mono)
+
+lemma power_int_mono_iff [simp]:
+  fixes a b :: "'a :: linordered_field"
+  shows "\<lbrakk>a \<ge> 0; b \<ge> 0; n > 0\<rbrakk> \<Longrightarrow> power_int a n \<le> power_int b n \<longleftrightarrow> a \<le> b"
+  by (auto simp: power_int_def intro!: power_strict_mono)
+
+lemma power_int_strict_increasing:
+  fixes a :: "'a :: linordered_field"
+  assumes "n < N" "1 < a"
+  shows   "power_int a N > power_int a n"
+proof -
+  have *: "a ^ nat (N - n) > a ^ 0"
+    using assms by (intro power_strict_increasing) auto
+  have "power_int a N = power_int a n * power_int a (N - n)"
+    using assms by (simp flip: power_int_add)
+  also have "\<dots> > power_int a n * 1"
+    using assms *
+    by (intro mult_strict_left_mono zero_less_power_int) (auto simp: power_int_def)
+  finally show ?thesis by simp
+qed
+
+lemma power_int_increasing:
+  fixes a :: "'a :: linordered_field"
+  assumes "n \<le> N" "a \<ge> 1"
+  shows   "power_int a N \<ge> power_int a n"
+proof -
+  have *: "a ^ nat (N - n) \<ge> a ^ 0"
+    using assms by (intro power_increasing) auto
+  have "power_int a N = power_int a n * power_int a (N - n)"
+    using assms by (simp flip: power_int_add)
+  also have "\<dots> \<ge> power_int a n * 1"
+    using assms * by (intro mult_left_mono) (auto simp: power_int_def)
+  finally show ?thesis by simp
+qed
+
+lemma power_int_strict_decreasing:
+  fixes a :: "'a :: linordered_field"
+  assumes "n < N" "0 < a" "a < 1"
+  shows   "power_int a N < power_int a n"
+proof -
+  have *: "a ^ nat (N - n) < a ^ 0"
+    using assms by (intro power_strict_decreasing) auto
+  have "power_int a N = power_int a n * power_int a (N - n)"
+    using assms by (simp flip: power_int_add)
+  also have "\<dots> < power_int a n * 1"
+    using assms *
+    by (intro mult_strict_left_mono zero_less_power_int) (auto simp: power_int_def)
+  finally show ?thesis by simp
+qed
+
+lemma power_int_decreasing:
+  fixes a :: "'a :: linordered_field"
+  assumes "n \<le> N" "0 \<le> a" "a \<le> 1" "a \<noteq> 0 \<or> N \<noteq> 0 \<or> n = 0"
+  shows   "power_int a N \<le> power_int a n"
+proof (cases "a = 0")
+  case False
+  have *: "a ^ nat (N - n) \<le> a ^ 0"
+    using assms by (intro power_decreasing) auto
+  have "power_int a N = power_int a n * power_int a (N - n)"
+    using assms False by (simp flip: power_int_add)
+  also have "\<dots> \<le> power_int a n * 1"
+    using assms * by (intro mult_left_mono) (auto simp: power_int_def)
+  finally show ?thesis by simp
+qed (use assms in \<open>auto simp: power_int_0_left_If\<close>)
+
+lemma one_less_power_int: "1 < (a :: 'a) \<Longrightarrow> 0 < n \<Longrightarrow> 1 < power_int a n"
+  using power_int_strict_increasing[of 0 n a] by simp
+
+lemma power_int_abs: "\<bar>power_int a n :: 'a\<bar> = power_int \<bar>a\<bar> n"
+  by (auto simp: power_int_def power_abs)
+
+lemma power_int_sgn [simp]: "sgn (power_int a n :: 'a) = power_int (sgn a) n"
+  by (auto simp: power_int_def)
+
+lemma abs_power_int_minus [simp]: "\<bar>power_int (- a) n :: 'a\<bar> = \<bar>power_int a n\<bar>"
+  by (simp add: power_int_abs)
+
+lemma power_int_strict_antimono:
+  assumes "(a :: 'a :: linordered_field) < b" "0 < a" "n < 0"
+  shows   "power_int a n > power_int b n"
+proof -
+  have "inverse (power_int a (-n)) > inverse (power_int b (-n))"
+    using assms by (intro less_imp_inverse_less power_int_strict_mono zero_less_power_int) auto
+  thus ?thesis by (simp add: power_int_minus)
+qed
+
+lemma power_int_antimono:
+  assumes "(a :: 'a :: linordered_field) \<le> b" "0 < a" "n < 0"
+  shows   "power_int a n \<ge> power_int b n"
+  using power_int_strict_antimono[of a b n] assms by (cases "a = b") auto
+
+end
+
+
 subsection \<open>Finiteness of intervals\<close>
 
 lemma finite_interval_int1 [iff]: "finite {i :: int. a \<le> i \<and> i \<le> b}"

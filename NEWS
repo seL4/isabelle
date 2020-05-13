@@ -35,6 +35,9 @@ rule to protect foundational terms during simplification.
 
 *** HOL ***
 
+* New constant "power_int" for exponentiation with integer exponent,
+written as "x powi n".
+
 * Added the "at most 1" quantifier, Uniq.
 
 * For the natural numbers, Sup{} = 0.

@@ -674,6 +674,40 @@ next
     using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
 qed
 
+context
+  assumes "SORT_CONSTRAINT('a::division_ring)"
+begin
+
+lemma power_int_minus_left:
+  "power_int (-a :: 'a) n = (if even n then power_int a n else -power_int a n)"
+  by (auto simp: power_int_def minus_one_power_iff even_nat_iff)
+
+lemma power_int_minus_left_even [simp]: "even n \<Longrightarrow> power_int (-a :: 'a) n = power_int a n"
+  by (simp add: power_int_minus_left)
+
+lemma power_int_minus_left_odd [simp]: "odd n \<Longrightarrow> power_int (-a :: 'a) n = -power_int a n"
+  by (simp add: power_int_minus_left)
+
+lemma power_int_minus_left_distrib:
+  "NO_MATCH (-1) x \<Longrightarrow> power_int (-a :: 'a) n = power_int (-1) n * power_int a n"
+  by (simp add: power_int_minus_left)
+
+lemma power_int_minus_one_minus: "power_int (-1 :: 'a) (-n) = power_int (-1) n"
+  by (simp add: power_int_minus_left)
+
+lemma power_int_minus_one_diff_commute: "power_int (-1 :: 'a) (a - b) = power_int (-1) (b - a)"
+  by (subst power_int_minus_one_minus [symmetric]) auto
+
+lemma power_int_minus_one_mult_self [simp]:
+  "power_int (-1 :: 'a) m * power_int (-1) m = 1"
+  by (simp add: power_int_minus_left)
+
+lemma power_int_minus_one_mult_self' [simp]:
+  "power_int (-1 :: 'a) m * (power_int (-1) m * b) = b"
+  by (simp add: power_int_minus_left)
+
+end
+
 
 subsection \<open>Abstract bit structures\<close>
 
