@@ -1294,12 +1294,31 @@ lemma implies_True_equals: "(PROP P \<Longrightarrow> True) \<equiv> Trueprop Tr
 lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
   by standard simp_all
 
-(* This is not made a simp rule because it does not improve any proofs
-   but slows some AFP entries down by 5% (cpu time). May 2015 *)
+(* It seems that making this a simp rule is slower than using the simproc below *)
 lemma implies_False_swap:
-  "NO_MATCH (Trueprop False) P \<Longrightarrow>
-    (False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
+  "(False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
   by (rule swap_prems_eq)
+
+ML \<open>
+fun eliminate_false_implies ct =
+  let
+    val (prems, concl) = Logic.strip_horn (Thm.term_of ct)
+    fun go n =
+      if n > 1 then
+        Conv.rewr_conv @{thm Pure.swap_prems_eq}
+        then_conv Conv.arg_conv (go (n - 1))
+        then_conv Conv.rewr_conv @{thm HOL.implies_True_equals}
+      else
+        Conv.rewr_conv @{thm HOL.False_implies_equals}
+  in
+    case concl of
+      Const (@{const_name HOL.Trueprop}, _) $ _ => SOME (go (length prems) ct)
+    | _ => NONE
+  end
+\<close>
+
+simproc_setup eliminate_false_implies ("False \<Longrightarrow> PROP P") = \<open>K (K eliminate_false_implies)\<close>
+
 
 lemma ex_simps:
   "\<And>P Q. (\<exists>x. P x \<and> Q)   = ((\<exists>x. P x) \<and> Q)"

@@ -1400,7 +1400,7 @@ lemma connected_component_of_trans:
    "\<lbrakk>connected_component_of X x y; connected_component_of X y z\<rbrakk>
         \<Longrightarrow> connected_component_of X x z"
   unfolding connected_component_of_def
-  using connectedin_Un by fastforce
+  using connectedin_Un by blast
 
 lemma connected_component_of_mono:
    "\<lbrakk>connected_component_of (subtopology X S) x y; S \<subseteq> T\<rbrakk>
