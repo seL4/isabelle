@@ -219,9 +219,17 @@ proof -
         by (simp add: indicator_def[abs_def])
     next
       case (insert x F)
-      then show ?case
-        by (auto intro!: add mult set sum_nonneg split: split_indicator split_indicator_asm
-                 simp del: sum_mult_indicator simp: sum_nonneg_eq_0_iff)
+      from insert.prems have nonneg: "x \<ge> 0" "\<And>y. y \<in> F \<Longrightarrow> y \<ge> 0"
+        by simp_all
+      hence *: "P (\<lambda>xa. x * indicat_real {x' \<in> space M. U' i x' = x} xa)"
+        by (intro mult set) auto
+      have "P (\<lambda>z. x * indicat_real {x' \<in> space M. U' i x' = x} z + 
+                   (\<Sum>y\<in>F. y * indicat_real {x \<in> space M. U' i x = y} z))"
+        using insert(1-3)
+        by (intro add * sum_nonneg mult_nonneg_nonneg)
+           (auto simp: nonneg indicator_def sum_nonneg_eq_0_iff)
+      thus ?case 
+        using insert.hyps by (subst sum.insert) auto
     qed
     with U' show "P (U' i)" by simp
   qed

@@ -524,8 +524,7 @@ lemma connected_openin:
        \<not>(\<exists>E1 E2. openin (top_of_set S) E1 \<and>
                  openin (top_of_set S) E2 \<and>
                  S \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 = {} \<and> E1 \<noteq> {} \<and> E2 \<noteq> {})"
-  apply (simp add: connected_def openin_open disjoint_iff_not_equal, safe)
-  by (simp_all, blast+)  (* SLOW *)
+  unfolding connected_def openin_open disjoint_iff_not_equal by blast
 
 lemma connected_openin_eq:
       "connected S \<longleftrightarrow>
@@ -2260,7 +2259,8 @@ lemma separatedin_open_sets:
 
 lemma separatedin_closed_sets:
      "\<lbrakk>closedin X S; closedin X T\<rbrakk> \<Longrightarrow> separatedin X S T \<longleftrightarrow> disjnt S T"
-  by (metis closedin_def closure_of_eq disjnt_def inf_commute separatedin_def)
+  unfolding closure_of_eq disjnt_def separatedin_def
+  by (metis closedin_def closure_of_eq inf_commute)
 
 lemma separatedin_subtopology:
      "separatedin (subtopology X U) S T \<longleftrightarrow> S \<subseteq> U \<and> T \<subseteq> U \<and> separatedin X S T"
@@ -4153,10 +4153,16 @@ next
 qed
 
 lemma topology_base_unique:
-   "\<lbrakk>\<And>S. P S \<Longrightarrow> openin X S;
-     \<And>U x. \<lbrakk>openin X U; x \<in> U\<rbrakk> \<Longrightarrow> \<exists>B. P B \<and> x \<in> B \<and> B \<subseteq> U\<rbrakk>
-    \<Longrightarrow> topology(arbitrary union_of P) = X"
-  by (metis openin_topology_base_unique openin_inverse [of X])
+  assumes "\<And>S. P S \<Longrightarrow> openin X S"
+          "\<And>U x. \<lbrakk>openin X U; x \<in> U\<rbrakk> \<Longrightarrow> \<exists>B. P B \<and> x \<in> B \<and> B \<subseteq> U"
+  shows   "topology (arbitrary union_of P) = X"
+proof -
+  have "X = topology (openin X)"
+    by (simp add: openin_inverse)
+  also from assms have "openin X = arbitrary union_of P"
+    by (subst openin_topology_base_unique) auto
+  finally show ?thesis ..
+qed
 
 lemma topology_bases_eq_aux:
    "\<lbrakk>(arbitrary union_of P) S;

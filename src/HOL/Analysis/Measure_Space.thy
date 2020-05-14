@@ -1897,8 +1897,10 @@ lemma measure_UNION_le:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M) \<Longrightarrow> measure M (\<Union>i\<in>I. F i) \<le> (\<Sum>i\<in>I. measure M (F i))"
 proof (induction I rule: finite_induct)
   case (insert i I)
-  then have "measure M (\<Union>i\<in>insert i I. F i) \<le> measure M (F i) + measure M (\<Union>i\<in>I. F i)"
-    by (auto intro!: measure_Un_le)
+  then have "measure M (\<Union>i\<in>insert i I. F i) = measure M (F i \<union> \<Union> (F ` I))"
+    by simp
+  also from insert have "measure M (F i \<union> \<Union> (F ` I)) \<le> measure M (F i) + measure M (\<Union> (F ` I))"
+    by (intro measure_Un_le sets.finite_Union) auto
   also have "measure M (\<Union>i\<in>I. F i) \<le> (\<Sum>i\<in>I. measure M (F i))"
     using insert by auto
   finally show ?case

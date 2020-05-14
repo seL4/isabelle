@@ -371,8 +371,9 @@ proof (induct A)
   then show ?case by simp
 next
   case (insert a A)
-  with R show ?case
-    by (metis empty_iff insert_iff)   (* somewhat slow *)
+  have False
+    using R(1)[of a] R(2)[of _ a] insert(3,4) by blast   
+  thus ?case ..
 qed
 
 corollary Union_maximal_sets:

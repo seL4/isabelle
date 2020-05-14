@@ -391,7 +391,7 @@ proof -
     qed (use \<open>F \<subseteq> insert a S\<close> in auto)
   qed
   then show ?thesis
-    unfolding affine_hull_explicit span_explicit by blast
+    unfolding affine_hull_explicit span_explicit by fast
 qed
 
 lemma affine_hull_insert_span:

@@ -1255,7 +1255,7 @@ next
           using \<open>C \<subseteq> U - S\<close> \<open>S \<subseteq> U\<close> \<open>a \<in> C\<close> by force
         show "continuous_on (j ` (S \<union> (C - {a}))) k"
           apply (rule continuous_on_subset [OF homeomorphism_cont2 [OF homhk]])
-          using jim \<open>C \<subseteq> U - S\<close> \<open>S \<subseteq> U\<close> \<open>ball a d \<inter> U \<subseteq> C\<close> j_def by fastforce
+          using jim \<open>C \<subseteq> U - S\<close> \<open>S \<subseteq> U\<close> \<open>ball a d \<inter> U \<subseteq> C\<close> j_def by blast
         show "continuous_on (k ` j ` (S \<union> (C - {a}))) f"
         proof (clarify intro!: continuous_on_subset [OF contf])
           fix y  assume "y \<in> S \<union> (C - {a})"

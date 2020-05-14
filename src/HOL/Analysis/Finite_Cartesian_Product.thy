@@ -957,7 +957,7 @@ lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::'
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_ssub_ldistrib)
 
 lemma vector_mul_rcancel[simp]: "a *s x = b *s x \<longleftrightarrow> (a::'a::field) = b \<or> x = 0"
-  by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_sub_rdistrib)
+  by (subst eq_iff_diff_eq_0, subst vector_sub_rdistrib [symmetric]) simp
 
 lemma scalar_mult_eq_scaleR [abs_def]: "c *s x = c *\<^sub>R x"
   unfolding scaleR_vec_def vector_scalar_mult_def by simp

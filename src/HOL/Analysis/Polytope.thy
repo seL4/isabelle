@@ -2577,7 +2577,7 @@ next
     have hface: "h face_of S"
       and "\<exists>a b. a \<noteq> 0 \<and> S \<subseteq> {x. a \<bullet> x \<le> b} \<and> h = S \<inter> {x. a \<bullet> x = b}"
       if "h \<in> F" for h
-      using exposed_face_of F_def that by simp_all auto
+      using exposed_face_of F_def that by blast+
     then obtain a b where ab:
       "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> S \<subseteq> {x. a h \<bullet> x \<le> b h} \<and> h = S \<inter> {x. a h \<bullet> x = b h}"
       by metis
@@ -3026,7 +3026,7 @@ proof -
         show "norm (x - y) \<le> e / 2" if "x \<in> X" "y \<in> X" for x y
         proof -
           have "norm x < B" "norm y < B"
-            using B \<open>X \<in> \<F>'\<close> eq that by fastforce+
+            using B \<open>X \<in> \<F>'\<close> eq that by blast+
           have "norm (x - y) \<le> (\<Sum>b\<in>Basis. \<bar>(x-y) \<bullet> b\<bar>)"
             by (rule norm_le_l1)
           also have "... \<le> of_nat (DIM('a)) * (e / 2 / DIM('a))"
@@ -3034,8 +3034,7 @@ proof -
             fix i::'a
             assume "i \<in> Basis"
             then have I': "\<And>z b. \<lbrakk>z \<in> C; b = z * e / (2 * real DIM('a))\<rbrakk> \<Longrightarrow> i \<bullet> x \<le> b \<and> i \<bullet> y \<le> b \<or> i \<bullet> x \<ge> b \<and> i \<bullet> y \<ge> b"
-              using I \<open>X \<in> \<F>'\<close> that
-              by (fastforce simp: I_def)
+              using I[of X x y] \<open>X \<in> \<F>'\<close> that unfolding I_def by auto
             show "\<bar>(x - y) \<bullet> i\<bar> \<le> e / 2 / real DIM('a)"
             proof (rule ccontr)
               assume "\<not> \<bar>(x - y) \<bullet> i\<bar> \<le> e / 2 / real DIM('a)"
