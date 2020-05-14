@@ -5,7 +5,9 @@
 section \<open>Intuitionistic first-order logic\<close>
 
 theory IFOL
-imports Pure
+  imports Pure
+abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
+
 begin
 
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
@@ -87,6 +89,9 @@ definition Not (\<open>\<not> _\<close> [40] 40)
 definition iff  (infixr \<open>\<longleftrightarrow>\<close> 25)
   where \<open>P \<longleftrightarrow> Q \<equiv> (P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P)\<close>
 
+definition Uniq :: "('a \<Rightarrow> o) \<Rightarrow> o"
+  where \<open>Uniq(P) \<equiv> (\<forall>x y. P(x) \<longrightarrow> P(y) \<longrightarrow> y = x)\<close>
+
 definition Ex1 :: \<open>('a \<Rightarrow> o) \<Rightarrow> o\<close>  (binder \<open>\<exists>!\<close> 10)
   where ex1_def: \<open>\<exists>!x. P(x) \<equiv> \<exists>x. P(x) \<and> (\<forall>y. P(y) \<longrightarrow> y = x)\<close>
 
@@ -96,6 +101,13 @@ axiomatization where  \<comment> \<open>Reflection, admissible\<close>
 
 abbreviation not_equal :: \<open>['a, 'a] \<Rightarrow> o\<close>  (infixl \<open>\<noteq>\<close> 50)
   where \<open>x \<noteq> y \<equiv> \<not> (x = y)\<close>
+
+syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  ("(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)" [0, 10] 10)
+translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
+
+print_translation \<open>
+ [Syntax_Trans.preserve_binder_abs_tr' \<^const_syntax>\<open>Uniq\<close> \<^syntax_const>\<open>_Uniq\<close>]
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 
 subsubsection \<open>Old-style ASCII syntax\<close>
@@ -126,38 +138,42 @@ lemma conjE:
   assumes major: \<open>P \<and> Q\<close>
     and r: \<open>\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (rule r)
-   apply (rule major [THEN conjunct1])
-  apply (rule major [THEN conjunct2])
-  done
+proof (rule r)
+  show "P"
+    by (rule major [THEN conjunct1])
+  show "Q"
+    by (rule major [THEN conjunct2])
+qed
 
 lemma impE:
   assumes major: \<open>P \<longrightarrow> Q\<close>
     and \<open>P\<close>
   and r: \<open>Q \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (rule r)
-  apply (rule major [THEN mp])
-  apply (rule \<open>P\<close>)
-  done
+proof (rule r)
+  show "Q"
+    by (rule mp [OF major \<open>P\<close>])
+qed
 
 lemma allE:
   assumes major: \<open>\<forall>x. P(x)\<close>
     and r: \<open>P(x) \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (rule r)
-  apply (rule major [THEN spec])
-  done
+proof (rule r)
+  show "P(x)"
+    by (rule major [THEN spec])
+qed
 
 text \<open>Duplicates the quantifier; for use with \<^ML>\<open>eresolve_tac\<close>.\<close>
 lemma all_dupE:
   assumes major: \<open>\<forall>x. P(x)\<close>
     and r: \<open>\<lbrakk>P(x); \<forall>x. P(x)\<rbrakk> \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (rule r)
-   apply (rule major [THEN spec])
-  apply (rule major)
-  done
+proof (rule r)
+  show "P(x)"
+    by (rule major [THEN spec])
+qed (rule major)
+
 
 
 subsubsection \<open>Negation rules, which translate between \<open>\<not> P\<close> and \<open>P \<longrightarrow> False\<close>\<close>
@@ -215,18 +231,16 @@ ML \<open>
 subsection \<open>If-and-only-if\<close>
 
 lemma iffI: \<open>\<lbrakk>P \<Longrightarrow> Q; Q \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P \<longleftrightarrow> Q\<close>
-  apply (unfold iff_def)
-  apply (rule conjI)
-   apply (erule impI)
-  apply (erule impI)
-  done
+  unfolding iff_def
+  by (rule conjI; erule impI)
 
 lemma iffE:
   assumes major: \<open>P \<longleftrightarrow> Q\<close>
-    and r: \<open>P \<longrightarrow> Q \<Longrightarrow> Q \<longrightarrow> P \<Longrightarrow> R\<close>
+    and r: \<open>\<lbrakk>P \<longrightarrow> Q; Q \<longrightarrow> P\<rbrakk> \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (insert major, unfold iff_def)
-  apply (erule conjE)
+  using major
+  unfolding iff_def
+  apply (rule conjE)
   apply (erule r)
   apply assumption
   done
@@ -235,13 +249,13 @@ lemma iffE:
 subsubsection \<open>Destruct rules for \<open>\<longleftrightarrow>\<close> similar to Modus Ponens\<close>
 
 lemma iffD1: \<open>\<lbrakk>P \<longleftrightarrow> Q; P\<rbrakk> \<Longrightarrow> Q\<close>
-  apply (unfold iff_def)
+  unfolding iff_def
   apply (erule conjunct1 [THEN mp])
   apply assumption
   done
 
 lemma iffD2: \<open>\<lbrakk>P \<longleftrightarrow> Q; Q\<rbrakk> \<Longrightarrow> P\<close>
-  apply (unfold iff_def)
+  unfolding iff_def
   apply (erule conjunct2 [THEN mp])
   apply assumption
   done
@@ -283,7 +297,7 @@ text \<open>
 \<close>
 
 lemma ex1I: \<open>P(a) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> x = a) \<Longrightarrow> \<exists>!x. P(x)\<close>
-  apply (unfold ex1_def)
+  unfolding ex1_def
   apply (assumption | rule exI conjI allI impI)+
   done
 
@@ -296,7 +310,7 @@ lemma ex_ex1I: \<open>\<exists>x. P(x) \<Longrightarrow> (\<And>x y. \<lbrakk>P(
   done
 
 lemma ex1E: \<open>\<exists>! x. P(x) \<Longrightarrow> (\<And>x. \<lbrakk>P(x); \<forall>y. P(y) \<longrightarrow> y = x\<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R\<close>
-  apply (unfold ex1_def)
+  unfolding ex1_def
   apply (assumption | erule exE conjE)+
   done
 
@@ -424,77 +438,6 @@ lemma ex1_equalsE: \<open>\<lbrakk>\<exists>!x. P(x); P(a); P(b)\<rbrakk> \<Long
   done
 
 
-subsubsection \<open>Polymorphic congruence rules\<close>
-
-lemma subst_context: \<open>a = b \<Longrightarrow> t(a) = t(b)\<close>
-  apply (erule ssubst)
-  apply (rule refl)
-  done
-
-lemma subst_context2: \<open>\<lbrakk>a = b; c = d\<rbrakk> \<Longrightarrow> t(a,c) = t(b,d)\<close>
-  apply (erule ssubst)+
-  apply (rule refl)
-  done
-
-lemma subst_context3: \<open>\<lbrakk>a = b; c = d; e = f\<rbrakk> \<Longrightarrow> t(a,c,e) = t(b,d,f)\<close>
-  apply (erule ssubst)+
-  apply (rule refl)
-  done
-
-text \<open>
-  Useful with \<^ML>\<open>eresolve_tac\<close> for proving equalities from known
-  equalities.
-
-        a = b
-        |   |
-        c = d
-\<close>
-lemma box_equals: \<open>\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d\<close>
-  apply (rule trans)
-   apply (rule trans)
-    apply (rule sym)
-    apply assumption+
-  done
-
-text \<open>Dual of \<open>box_equals\<close>: for proving equalities backwards.\<close>
-lemma simp_equals: \<open>\<lbrakk>a = c; b = d; c = d\<rbrakk> \<Longrightarrow> a = b\<close>
-  apply (rule trans)
-   apply (rule trans)
-    apply assumption+
-  apply (erule sym)
-  done
-
-
-subsubsection \<open>Congruence rules for predicate letters\<close>
-
-lemma pred1_cong: \<open>a = a' \<Longrightarrow> P(a) \<longleftrightarrow> P(a')\<close>
-  apply (rule iffI)
-   apply (erule (1) subst)
-  apply (erule (1) ssubst)
-  done
-
-lemma pred2_cong: \<open>\<lbrakk>a = a'; b = b'\<rbrakk> \<Longrightarrow> P(a,b) \<longleftrightarrow> P(a',b')\<close>
-  apply (rule iffI)
-   apply (erule subst)+
-   apply assumption
-  apply (erule ssubst)+
-  apply assumption
-  done
-
-lemma pred3_cong: \<open>\<lbrakk>a = a'; b = b'; c = c'\<rbrakk> \<Longrightarrow> P(a,b,c) \<longleftrightarrow> P(a',b',c')\<close>
-  apply (rule iffI)
-   apply (erule subst)+
-   apply assumption
-  apply (erule ssubst)+
-  apply assumption
-  done
-
-text \<open>Special case for the equality predicate!\<close>
-lemma eq_cong: \<open>\<lbrakk>a = a'; b = b'\<rbrakk> \<Longrightarrow> a = b \<longleftrightarrow> a' = b'\<close>
-  apply (erule (1) pred2_cong)
-  done
-
-
 subsection \<open>Simplifications of assumed implications\<close>
 
 text \<open>
@@ -531,9 +474,7 @@ text \<open>Simplifies the implication.  Classical version is stronger.
   Still UNSAFE since ~P must be provable -- backtracking needed.\<close>
 lemma not_impE: \<open>\<not> P \<longrightarrow> S \<Longrightarrow> (P \<Longrightarrow> False) \<Longrightarrow> (S \<Longrightarrow> R) \<Longrightarrow> R\<close>
   apply (drule mp)
-   apply (rule notI)
-   apply assumption
-  apply assumption
+   apply (rule notI | assumption)+
   done
 
 text \<open>Simplifies the implication. UNSAFE.\<close>
@@ -543,8 +484,7 @@ lemma iff_impE:
     and r2: \<open>\<lbrakk>Q; P \<longrightarrow> S\<rbrakk> \<Longrightarrow> P\<close>
     and r3: \<open>S \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (assumption | rule iffI impI major [THEN mp] r1 r2 r3)+
-  done
+  by (assumption | rule iffI impI major [THEN mp] r1 r2 r3)+
 
 text \<open>What if \<open>(\<forall>x. \<not> \<not> P(x)) \<longrightarrow> \<not> \<not> (\<forall>x. P(x))\<close> is an assumption?
   UNSAFE.\<close>
@@ -553,8 +493,7 @@ lemma all_impE:
     and r1: \<open>\<And>x. P(x)\<close>
     and r2: \<open>S \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (rule allI impI major [THEN mp] r1 r2)+
-  done
+  by (rule allI impI major [THEN mp] r1 r2)+
 
 text \<open>
   Unsafe: \<open>\<exists>x. P(x)) \<longrightarrow> S\<close> is equivalent
@@ -563,8 +502,7 @@ lemma ex_impE:
   assumes major: \<open>(\<exists>x. P(x)) \<longrightarrow> S\<close>
     and r: \<open>P(x) \<longrightarrow> S \<Longrightarrow> R\<close>
   shows \<open>R\<close>
-  apply (assumption | rule exI impI major [THEN mp] r)+
-  done
+  by (assumption | rule exI impI major [THEN mp] r)+
 
 text \<open>Courtesy of Krzysztof Grabczewski.\<close>
 lemma disj_imp_disj: \<open>P \<or> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> S) \<Longrightarrow> R \<or> S\<close>
@@ -658,9 +596,50 @@ lemmas [sym] = sym iff_sym not_sym iff_not_sym
 
 
 lemma eq_commute: \<open>a = b \<longleftrightarrow> b = a\<close>
-  apply (rule iffI)
-  apply (erule sym)+
-  done
+  by iprover
+
+
+subsection \<open>Polymorphic congruence rules\<close>
+
+lemma subst_context: \<open>a = b \<Longrightarrow> t(a) = t(b)\<close>
+  by iprover
+
+lemma subst_context2: \<open>\<lbrakk>a = b; c = d\<rbrakk> \<Longrightarrow> t(a,c) = t(b,d)\<close>
+  by iprover
+
+lemma subst_context3: \<open>\<lbrakk>a = b; c = d; e = f\<rbrakk> \<Longrightarrow> t(a,c,e) = t(b,d,f)\<close>
+  by iprover
+
+text \<open>
+  Useful with \<^ML>\<open>eresolve_tac\<close> for proving equalities from known
+  equalities.
+
+        a = b
+        |   |
+        c = d
+\<close>
+lemma box_equals: \<open>\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d\<close>
+  by iprover
+
+text \<open>Dual of \<open>box_equals\<close>: for proving equalities backwards.\<close>
+lemma simp_equals: \<open>\<lbrakk>a = c; b = d; c = d\<rbrakk> \<Longrightarrow> a = b\<close>
+  by iprover
+
+
+subsubsection \<open>Congruence rules for predicate letters\<close>
+
+lemma pred1_cong: \<open>a = a' \<Longrightarrow> P(a) \<longleftrightarrow> P(a')\<close>
+  by iprover
+
+lemma pred2_cong: \<open>\<lbrakk>a = a'; b = b'\<rbrakk> \<Longrightarrow> P(a,b) \<longleftrightarrow> P(a',b')\<close>
+  by iprover
+
+lemma pred3_cong: \<open>\<lbrakk>a = a'; b = b'; c = c'\<rbrakk> \<Longrightarrow> P(a,b,c) \<longleftrightarrow> P(a',b',c')\<close>
+  by iprover
+
+text \<open>Special case for the equality predicate!\<close>
+lemma eq_cong: \<open>\<lbrakk>a = a'; b = b'\<rbrakk> \<Longrightarrow> a = b \<longleftrightarrow> a' = b'\<close>
+  by iprover
 
 
 subsection \<open>Atomizing meta-level rules\<close>
@@ -776,7 +755,7 @@ translations
 lemma LetI:
   assumes \<open>\<And>x. x = t \<Longrightarrow> P(u(x))\<close>
   shows \<open>P(let x = t in u(x))\<close>
-  apply (unfold Let_def)
+  unfolding Let_def
   apply (rule refl [THEN assms])
   done
 

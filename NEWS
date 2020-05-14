@@ -42,6 +42,10 @@ written as "x powi n".
 
 * For the natural numbers, Sup{} = 0.
 
+*** FOL ***
+
+* Added the "at most 1" quantifier, Uniq, as in HOL.
+
 New in Isabelle2020 (April 2020)
 --------------------------------
 
