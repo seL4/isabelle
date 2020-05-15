@@ -94,6 +94,14 @@ fun rew b _ _ =
                 (equal_elim_axm %> A %> B %% Proofterm.incr_pboundvars 2 0 prf1 %% PBound 0)))))
         end
 
+      | rew' (PAxm ("Pure.combination", _, _) %
+        SOME (imp as (imp' as Const ("Pure.imp", T)) $ X) % _ % Y % Z %%
+          (PAxm ("Pure.reflexive", _, _) % _) %% prf) =
+        SOME (ax Proofterm.combination_axm [propT, propT] %> imp % ?? imp % Y % Z %%
+          (ax Proofterm.combination_axm [propT, propT --> propT] %> imp' % ?? imp' % ?? X % ?? X %%
+             (ax Proofterm.reflexive_axm [T] % ?? imp') %%
+             (ax Proofterm.reflexive_axm [propT] % ?? X)) %% prf)
+
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
         (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.all", _)) % _ % _ % _ %%
           (PAxm ("Pure.reflexive", _, _) % _) %%
