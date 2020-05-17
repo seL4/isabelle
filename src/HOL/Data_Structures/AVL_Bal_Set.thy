@@ -1,12 +1,14 @@
-(* Tobias Nipkow *)
+(* Author: Tobias Nipkow *)
 
-section "AVL Tree with Balance Factors"
+section "AVL Tree with Balance Factors (1)"
 
 theory AVL_Bal_Set
 imports
   Cmp
   Isin2
 begin
+
+text \<open>This version detects height increase/decrease from above via the change in balance factors.\<close>
 
 datatype bal = Lh | Bal | Rh
 
@@ -26,13 +28,11 @@ fun avl :: "'a tree_bal \<Rightarrow> bool" where
 
 subsection \<open>Code\<close>
 
-datatype 'a alt = Same 'a | Diff 'a
+fun is_bal where
+"is_bal (Node l (a,b) r) = (b = Bal)"
 
-type_synonym 'a tree_bal2 = "'a tree_bal alt"
-
-fun tree :: "'a alt \<Rightarrow> 'a" where
-"tree(Same t) = t" |
-"tree(Diff t) = t"
+fun incr where
+"incr t t' = (t = Leaf \<or> is_bal t \<and> \<not> is_bal t')"
 
 fun rot2 where
 "rot2 A a B c C = (case B of
@@ -41,156 +41,131 @@ fun rot2 where
         b\<^sub>2 = if bb = Lh then Rh else Bal
     in Node (Node A (a,b\<^sub>1) B\<^sub>1) (b,Bal) (Node B\<^sub>2 (c,b\<^sub>2) C))"
 
-fun balL :: "'a tree_bal2 \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"balL AB' c bc C = (case AB' of
-   Same AB \<Rightarrow> Same (Node AB (c,bc) C) |
-   Diff AB \<Rightarrow> (case bc of
-     Bal \<Rightarrow> Diff (Node AB (c,Lh) C) |
-     Rh \<Rightarrow> Same (Node AB (c,Bal) C) |
+fun balL :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"balL AB c bc C = (case bc of
+     Bal \<Rightarrow> Node AB (c,Lh) C |
+     Rh \<Rightarrow> Node AB (c,Bal) C |
      Lh \<Rightarrow> (case AB of
-       Node A (a,Lh) B \<Rightarrow> Same(Node A (a,Bal) (Node B (c,Bal) C)) |
-       Node A (a,Rh) B \<Rightarrow> Same(rot2 A a B c C))))"
+       Node A (a,Lh) B \<Rightarrow> Node A (a,Bal) (Node B (c,Bal) C) |
+       Node A (a,Bal) B \<Rightarrow> Node A (a,Rh) (Node B (c,Lh) C) |
+       Node A (a,Rh) B \<Rightarrow> rot2 A a B c C))"
 
-fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
-"balR A a ba BC' = (case BC' of
-   Same BC \<Rightarrow> Same (Node A (a,ba) BC) |
-   Diff BC \<Rightarrow> (case ba of
-     Bal \<Rightarrow> Diff (Node A (a,Rh) BC) |
-     Lh \<Rightarrow> Same (Node A (a,Bal) BC) |
+fun balR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"balR A a ba BC = (case ba of
+     Bal \<Rightarrow> Node A (a,Rh) BC |
+     Lh \<Rightarrow> Node A (a,Bal) BC |
      Rh \<Rightarrow> (case BC of
-       Node B (c,Rh) C \<Rightarrow> Same(Node (Node A (a,Bal) B) (c,Bal) C) |
-       Node B (c,Lh) C \<Rightarrow> Same(rot2 A a B c C))))"
+       Node B (c,Rh) C \<Rightarrow> Node (Node A (a,Bal) B) (c,Bal) C |
+       Node B (c,Bal) C \<Rightarrow> Node (Node A (a,Rh) B) (c,Lh) C |
+       Node B (c,Lh) C \<Rightarrow> rot2 A a B c C))"
 
-fun ins :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"ins x Leaf = Diff(Node Leaf (x, Bal) Leaf)" |
-"ins x (Node l (a, b) r) = (case cmp x a of
-   EQ \<Rightarrow> Same(Node l (a, b) r) |
-   LT \<Rightarrow> balL (ins x l) a b r |
-   GT \<Rightarrow> balR l a b (ins x r))"
+fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"insert x Leaf = Node Leaf (x, Bal) Leaf" |
+"insert x (Node l (a, b) r) = (case cmp x a of
+   EQ \<Rightarrow> Node l (a, b) r |
+   LT \<Rightarrow> let l' = insert x l in if incr l l' then balL l' a b r else Node l' (a,b) r |
+   GT \<Rightarrow> let r' = insert x r in if incr r r' then balR l a b r' else Node l (a,b) r')"
 
-definition insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
-"insert x t = tree(ins x t)"
+fun decr where
+"decr t t' = (t \<noteq> Leaf \<and> (t' = Leaf \<or> \<not> is_bal t \<and> is_bal t'))"
 
-fun baldR :: "'a tree_bal \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal2 \<Rightarrow> 'a tree_bal2" where
-"baldR AB c bc C' = (case C' of
-   Same C \<Rightarrow> Same (Node AB (c,bc) C) |
-   Diff C \<Rightarrow> (case bc of
-     Bal \<Rightarrow> Same (Node AB (c,Lh) C) |
-     Rh \<Rightarrow> Diff (Node AB (c,Bal) C) |
-     Lh \<Rightarrow> (case AB of
-       Node A (a,Lh) B \<Rightarrow> Diff(Node A (a,Bal) (Node B (c,Bal) C)) |
-       Node A (a,Bal) B \<Rightarrow> Same(Node A (a,Rh) (Node B (c,Lh) C)) |
-       Node A (a,Rh) B \<Rightarrow> Diff(rot2 A a B c C))))"
-
-fun baldL :: "'a tree_bal2 \<Rightarrow> 'a \<Rightarrow> bal \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"baldL A' a ba BC = (case A' of
-   Same A \<Rightarrow> Same (Node A (a,ba) BC) |
-   Diff A \<Rightarrow> (case ba of
-     Bal \<Rightarrow> Same (Node A (a,Rh) BC) |
-     Lh \<Rightarrow> Diff (Node A (a,Bal) BC) |
-     Rh \<Rightarrow> (case BC of
-       Node B (c,Rh) C \<Rightarrow> Diff(Node (Node A (a,Bal) B) (c,Bal) C) |
-       Node B (c,Bal) C \<Rightarrow> Same(Node (Node A (a,Rh) B) (c,Lh) C) |
-       Node B (c,Lh) C \<Rightarrow> Diff(rot2 A a B c C))))"
-
-fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal2 * 'a" where
+fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal * 'a" where
 "split_max (Node l (a, ba) r) =
-  (if r = Leaf then (Diff l,a) else let (r',a') = split_max r in (baldR l a ba r', a'))"
+  (if r = Leaf then (l,a)
+   else let (r',a') = split_max r;
+            t' = if decr r r' then balL l a ba r' else Node l (a,ba) r'
+        in (t', a'))"
 
-fun del :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal2" where
-"del _ Leaf = Same Leaf" |
-"del x (Node l (a, ba) r) =
+fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
+"delete _ Leaf = Leaf" |
+"delete x (Node l (a, ba) r) =
   (case cmp x a of
-     EQ \<Rightarrow> if l = Leaf then Diff r
-           else let (l', a') = split_max l in baldL l' a' ba r |
-     LT \<Rightarrow> baldL (del x l) a ba r |
-     GT \<Rightarrow> baldR l a ba (del x r))"
-
-definition delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
-"delete x t = tree(del x t)"
+     EQ \<Rightarrow> if l = Leaf then r
+           else let (l', a') = split_max l in
+                if decr l l' then balR l' a' ba r else Node l' (a',ba) r |
+     LT \<Rightarrow> let l' = delete x l in if decr l l' then balR l' a ba r else Node l' (a,ba) r |
+     GT \<Rightarrow> let r' = delete x r in if decr r r' then balL l a ba r' else Node l (a,ba) r')"
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-lemmas splits = if_splits tree.splits alt.splits bal.splits
+lemmas splits = if_splits tree.splits bal.splits
 
 subsection \<open>Proofs\<close>
 
 subsubsection "Proofs about insertion"
 
-lemma avl_ins_case: "avl t \<Longrightarrow> case ins x t of
-   Same t' \<Rightarrow> avl t' \<and> height t' = height t |
-   Diff t' \<Rightarrow> avl t' \<and> height t' = height t + 1 \<and>
-      (\<forall>l a r. t' = Node l (a,Bal) r \<longrightarrow> a = x \<and> l = Leaf \<and> r = Leaf)"
-apply(induction x t rule: ins.induct)
-apply(auto simp: max_absorb1 split!: splits)
+lemma avl_insert: "avl t \<Longrightarrow>
+  avl(insert x t) \<and>
+  height(insert x t) = height t + (if incr t (insert x t) then 1 else 0)"
+apply(induction x t rule: insert.induct)
+apply(auto split!: splits)
 done
 
-corollary avl_insert: "avl t \<Longrightarrow> avl(insert x t)"
-using avl_ins_case[of t x] by (simp add: insert_def split: splits)
+text \<open>The following two auxiliary lemma merely simplify the proof of \<open>inorder_insert\<close>.\<close>
 
-(* The following aux lemma simplifies the inorder_ins proof *)
+lemma [simp]: "[] \<noteq> ins_list x xs"
+by(cases xs) auto
 
-lemma ins_Diff[simp]: "avl t \<Longrightarrow>
-  ins x t \<noteq> Diff Leaf \<and>
-  (ins x t = Diff (Node l (a,Bal) r) \<longleftrightarrow> t = Leaf \<and> a = x \<and> l=Leaf \<and> r=Leaf) \<and>
-  ins x t \<noteq> Diff (Node l (a,Rh) Leaf) \<and>
-  ins x t \<noteq> Diff (Node Leaf (a,Lh) r)"
-by(drule avl_ins_case[of _ x]) (auto split: splits)
+lemma [simp]: "avl t \<Longrightarrow> insert x t \<noteq> \<langle>l, (a, Rh), \<langle>\<rangle>\<rangle> \<and> insert x t \<noteq> \<langle>\<langle>\<rangle>, (a, Lh), r\<rangle>"
+by(drule avl_insert[of _ x]) (auto split: splits)
 
-theorem inorder_ins:
-  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(tree(ins x t)) = ins_list x (inorder t)"
+theorem inorder_insert:
+  "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
 apply(induction t)
-apply (auto simp: ins_list_simps  split!: splits)
+apply (auto simp: ins_list_simps Let_def split!: splits)
 done
 
 
 subsubsection "Proofs about deletion"
 
-lemma inorder_baldL:
+lemma inorder_balR:
   "\<lbrakk> ba = Rh \<longrightarrow> r \<noteq> Leaf; avl r \<rbrakk>
-  \<Longrightarrow> inorder (tree(baldL l a ba r)) = inorder (tree l) @ a # inorder r"
+  \<Longrightarrow> inorder (balR l a ba r) = inorder l @ a # inorder r"
 by (auto split: splits)
 
-lemma inorder_baldR:
+lemma inorder_balL:
   "\<lbrakk> ba = Lh \<longrightarrow> l \<noteq> Leaf; avl l \<rbrakk>
-   \<Longrightarrow> inorder (tree(baldR l a ba r)) = inorder l @ a # inorder (tree r)"
+   \<Longrightarrow> inorder (balL l a ba r) = inorder l @ a # inorder r"
 by (auto split: splits)
+
+lemma height_1_iff: "avl t \<Longrightarrow> height t = Suc 0 \<longleftrightarrow> (\<exists>x. t = Node Leaf (x,Bal) Leaf)"
+by(cases t) (auto split: splits prod.splits)
 
 lemma avl_split_max:
-  "\<lbrakk> split_max t = (t',a); avl t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow> case t' of
-   Same t' \<Rightarrow> avl t' \<and> height t = height t' |
-   Diff t' \<Rightarrow> avl t' \<and> height t = height t' + 1"
+  "\<lbrakk> split_max t = (t',a); avl t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow>
+   avl t' \<and> height t = height t' + (if decr t t' then 1 else 0)"
 apply(induction t arbitrary: t' a rule: split_max_induct)
- apply(fastforce simp: max_absorb1 max_absorb2 split!: splits prod.splits)
-apply simp
+ apply(auto simp: max_absorb1 max_absorb2 height_1_iff split!: splits prod.splits)
+apply(fastforce)+
 done
 
-lemma avl_del_case: "avl t \<Longrightarrow> case del x t of
-   Same t' \<Rightarrow> avl t' \<and> height t = height t' |
-   Diff t' \<Rightarrow> avl t' \<and> height t = height t' + 1"
-apply(induction x t rule: del.induct)
- apply(auto simp: max_absorb1 max_absorb2 dest: avl_split_max split!: splits prod.splits)
+lemma avl_delete: "avl t \<Longrightarrow>
+  avl (delete x t) \<and>
+  height t = height (delete x t) + (if decr t (delete x t) then 1 else 0)"
+apply(induction x t rule: delete.induct)
+ apply(auto simp: max_absorb1 max_absorb2 Let_def height_1_iff dest: avl_split_max split!: splits prod.splits)
 done
-
-corollary avl_delete: "avl t \<Longrightarrow> avl(delete x t)"
-using avl_del_case[of t x] by(simp add: delete_def split: splits)
 
 lemma inorder_split_maxD:
   "\<lbrakk> split_max t = (t',a); t \<noteq> Leaf; avl t \<rbrakk> \<Longrightarrow>
-   inorder (tree t') @ [a] = inorder t"
+   inorder t' @ [a] = inorder t"
 apply(induction t arbitrary: t' rule: split_max.induct)
  apply(fastforce split!: splits prod.splits)
 apply simp
 done
 
-lemma neq_Leaf_if_height_neq_0[simp]: "height t \<noteq> 0 \<Longrightarrow> t \<noteq> Leaf"
+lemma neq_Leaf_if_height_neq_0: "height t \<noteq> 0 \<Longrightarrow> t \<noteq> Leaf"
 by auto
 
-theorem inorder_del:
-  "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (tree(del x t)) = del_list x (inorder t)"
+lemma split_max_Leaf: "\<lbrakk> t \<noteq> Leaf; avl t \<rbrakk> \<Longrightarrow> split_max t = (\<langle>\<rangle>, x) \<longleftrightarrow> t = Node Leaf (x,Bal) Leaf"
+by(cases t) (auto split: splits prod.splits)
+
+theorem inorder_delete:
+  "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 apply(induction t rule: tree2_induct)
-apply(auto simp: del_list_simps inorder_baldL inorder_baldR avl_delete inorder_split_maxD
-           simp del: baldR.simps baldL.simps split!: splits prod.splits)
+apply(auto simp: del_list_simps inorder_balR inorder_balL avl_delete inorder_split_maxD Let_def
+                 split_max_Leaf neq_Leaf_if_height_neq_0
+           simp del: balL.simps balR.simps split!: splits prod.splits)
 done
 
 
@@ -206,9 +181,9 @@ proof (standard, goal_cases)
 next
   case 2 thus ?case by(simp add: isin_set_inorder)
 next
-  case 3 thus ?case by(simp add: inorder_ins insert_def)
+  case 3 thus ?case by(simp add: inorder_insert)
 next
-  case 4 thus ?case by(simp add: inorder_del delete_def)
+  case 4 thus ?case by(simp add: inorder_delete)
 next
   case 5 thus ?case by (simp)
 next
