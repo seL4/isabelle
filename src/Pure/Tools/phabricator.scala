@@ -292,10 +292,6 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         git -C arcanist reset --hard """ +
           Bash.string(options.string("phabricator_version_arcanist")) + """
 
-        git clone --branch stable https://github.com/phacility/libphutil.git
-        git -C libphutil reset --hard """ +
-          Bash.string(options.string("phabricator_version_libphutil")) + """
-
         git clone --branch stable https://github.com/phacility/phabricator.git
         git -C phabricator reset --hard """ +
           Bash.string(options.string("phabricator_version_phabricator")) + """
@@ -409,7 +405,7 @@ systemctl stop apache2
 """,
       body =
 """echo -e "\nUpgrading phabricator \"$NAME\" root \"$ROOT\" ..."
-for REPO in libphutil arcanist phabricator
+for REPO in arcanist phabricator
 do
   cd "$ROOT/$REPO"
   echo -e "\nUpdating \"$REPO\" ..."

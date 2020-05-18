@@ -27,6 +27,12 @@ Isabelle_System.Service in Isabelle/Scala. This supersedes former
 "isabelle_scala_tools" and "isabelle_file_format": minor
 INCOMPATIBILITY.
 
+* Isabelle/Phabricator setup has been updated to follow ongoing
+development: libphutil has been discontinued. Minor INCOMPATIBILITY:
+existing server installations should remove libphutil from
+/usr/local/bin/isabelle-phabricator-upgrade and each installation root
+directory (e.g. /var/www/phabricator-vcs/libphutil).
+
 
 *** Pure ***
 

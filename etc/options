@@ -294,13 +294,10 @@ option ssh_alive_count_max : int = 3
 
 section "Phabricator"
 
-option phabricator_version_arcanist : string = "729100955129851a52588cdfd9b425197cf05815"
+option phabricator_version_arcanist : string = "a5bfb968cd90bb0a14c7067e7a2153d5d6ed48d7"
   -- "repository version for arcanist"
 
-option phabricator_version_libphutil : string = "034cf7cc39940b935e83923dbb1bacbcfe645a85"
-  -- "repository version for libphutil"
-
-option phabricator_version_phabricator : string = "ff6f24db2bc016533bca9040954a218c54ca324e"
+option phabricator_version_phabricator : string = "686e51655bb0f4134780dcc68e0276bc9bd0a4af"
   -- "repository version for phabricator"
 
 
