@@ -15,6 +15,7 @@ fun bal :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree * 'a list" where
   in (Node l (hd ys) r, zs)))"
 
 declare bal.simps[simp del]
+declare Let_def[simp]
 
 definition bal_list :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree" where
 "bal_list n xs = fst (bal n xs)"
@@ -52,7 +53,7 @@ proof(induction n xs arbitrary: t zs rule: bal.induct)
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
-      by(auto simp: Let_def bal_simps split: prod.splits)
+      by(auto simp: bal_simps split: prod.splits)
     have IH1: "xs = inorder l @ ys \<and> size l = ?m"
       using b1 "1.prems"(1) by(intro "1.IH"(1)) auto
     have IH2: "tl ys = inorder r @ zs \<and> size r = ?m'"
@@ -113,7 +114,7 @@ proof(induction n xs arbitrary: t zs rule: bal.induct)
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
-      by(auto simp: bal_simps Let_def split: prod.splits)
+      by(auto simp: bal_simps split: prod.splits)
     let ?hl = "nat (floor(log 2 (?m + 1)))"
     let ?hr = "nat (floor(log 2 (?m' + 1)))"
     have IH1: "min_height l = ?hl" using "1.IH"(1) b1 "1.prems"(1) by simp
@@ -149,7 +150,7 @@ proof(induction n xs arbitrary: t zs rule: bal.induct)
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
-      by(auto simp: bal_simps Let_def split: prod.splits)
+      by(auto simp: bal_simps split: prod.splits)
     let ?hl = "nat \<lceil>log 2 (?m + 1)\<rceil>"
     let ?hr = "nat \<lceil>log 2 (?m' + 1)\<rceil>"
     have IH1: "height l = ?hl" using "1.IH"(1) b1 "1.prems"(1) by simp
@@ -216,7 +217,7 @@ proof(induction n xs arbitrary: t ys rule: bal.induct)
       rec1: "bal (n div 2) xs = (l, ys)" and
       rec2: "bal (n - 1 - n div 2) (tl ys) = (r, zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
-      by(auto simp add: bal_simps Let_def split: prod.splits)
+      by(auto simp add: bal_simps split: prod.splits)
     have l: "wbalanced l" using "1.IH"(1)[OF \<open>n\<noteq>0\<close> refl _ rec1] "1.prems"(1) by linarith
     have "wbalanced r"
       using rec1 rec2 bal_length[OF _ rec1] "1.prems"(1) by(intro "1.IH"(2)) auto

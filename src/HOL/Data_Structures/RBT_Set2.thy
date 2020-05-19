@@ -35,6 +35,8 @@ definition delete :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" wh
 
 subsection "Functional Correctness Proofs"
 
+declare Let_def[simp]
+
 lemma split_minD:
   "split_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> x # inorder t' = inorder t"
 by(induction t arbitrary: t' rule: split_min.induct)
@@ -43,7 +45,7 @@ by(induction t arbitrary: t' rule: split_min.induct)
 lemma inorder_del:
  "sorted(inorder t) \<Longrightarrow>  inorder(del x t) = del_list x (inorder t)"
 by(induction x t rule: del.induct)
-  (auto simp: del_list_simps inorder_baldL inorder_baldR split_minD Let_def split: prod.splits)
+  (auto simp: del_list_simps inorder_baldL inorder_baldR split_minD split: prod.splits)
 
 lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -73,7 +75,7 @@ lemma inv_del: "\<lbrakk> invh t; invc t \<rbrakk> \<Longrightarrow>
    (color t = Red \<longrightarrow> bheight (del x t) = bheight t \<and> invc (del x t)) \<and>
    (color t = Black \<longrightarrow> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
 apply(induction x t rule: del.induct)
-apply(auto simp: inv_baldR inv_baldL invc2I Let_def dest!: inv_split_min dest: neq_LeafD
+apply(auto simp: inv_baldR inv_baldL invc2I dest!: inv_split_min dest: neq_LeafD
            split!: prod.splits if_splits)
 done
 
@@ -106,7 +108,7 @@ next
     proof cases
       assume "x > a"
       show ?thesis using \<open>a < x\<close> "2.IH"(2) "2.prems" neq_LeafD[of r] inv_baldR[of _ "del x r"]
-          by(auto simp: Let_def split: if_split)
+          by(auto split: if_split)
     
     next
       assume "\<not> x > a"

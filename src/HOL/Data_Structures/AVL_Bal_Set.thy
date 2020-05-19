@@ -86,11 +86,14 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal"
      LT \<Rightarrow> let l' = delete x l in if decr l l' then balR l' a ba r else Node l' (a,ba) r |
      GT \<Rightarrow> let r' = delete x r in if decr r r' then balL l a ba r' else Node l (a,ba) r')"
 
+
+subsection \<open>Proofs\<close>
+
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
 lemmas splits = if_splits tree.splits bal.splits
 
-subsection \<open>Proofs\<close>
+declare Let_def [simp]
 
 subsubsection "Proofs about insertion"
 
@@ -112,7 +115,7 @@ by(drule avl_insert[of _ x]) (auto split: splits)
 theorem inorder_insert:
   "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
 apply(induction t)
-apply (auto simp: ins_list_simps Let_def split!: splits)
+apply (auto simp: ins_list_simps split!: splits)
 done
 
 
@@ -143,7 +146,7 @@ lemma avl_delete: "avl t \<Longrightarrow>
   avl (delete x t) \<and>
   height t = height (delete x t) + (if decr t (delete x t) then 1 else 0)"
 apply(induction x t rule: delete.induct)
- apply(auto simp: max_absorb1 max_absorb2 Let_def height_1_iff dest: avl_split_max split!: splits prod.splits)
+ apply(auto simp: max_absorb1 max_absorb2 height_1_iff dest: avl_split_max split!: splits prod.splits)
 done
 
 lemma inorder_split_maxD:
@@ -163,7 +166,7 @@ by(cases t) (auto split: splits prod.splits)
 theorem inorder_delete:
   "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 apply(induction t rule: tree2_induct)
-apply(auto simp: del_list_simps inorder_balR inorder_balL avl_delete inorder_split_maxD Let_def
+apply(auto simp: del_list_simps inorder_balR inorder_balL avl_delete inorder_split_maxD
                  split_max_Leaf neq_Leaf_if_height_neq_0
            simp del: balL.simps balR.simps split!: splits prod.splits)
 done

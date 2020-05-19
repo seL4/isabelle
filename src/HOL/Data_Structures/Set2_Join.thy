@@ -29,7 +29,7 @@ assumes inv_join: "\<lbrakk> inv l; inv r \<rbrakk> \<Longrightarrow> inv (join 
 assumes inv_Node: "\<lbrakk> inv (Node l (a,b) r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
 begin
 
-declare set_join [simp]
+declare set_join [simp] Let_def[simp]
 
 subsection "\<open>split_min\<close>"
 
@@ -227,7 +227,7 @@ lemma bst_inter: "\<lbrakk> bst t1; bst t2 \<rbrakk> \<Longrightarrow> bst (inte
 proof(induction t1 t2 rule: inter.induct)
   case (1 t1 t2)
   thus ?case
-    by(fastforce simp: inter.simps[of t1 t2] set_tree_inter split Let_def
+    by(fastforce simp: inter.simps[of t1 t2] set_tree_inter split
         intro!: bst_join bst_join2 split: tree.split prod.split)
 qed
 
@@ -235,7 +235,7 @@ lemma inv_inter: "\<lbrakk> inv t1; inv t2 \<rbrakk> \<Longrightarrow> inv (inte
 proof(induction t1 t2 rule: inter.induct)
   case (1 t1 t2)
   thus ?case
-    by(auto simp: inter.simps[of t1 t2] inv_join inv_join2 split_inv Let_def
+    by(auto simp: inter.simps[of t1 t2] inv_join inv_join2 split_inv
         split!: tree.split prod.split dest: inv_Node)
 qed
 
@@ -291,7 +291,7 @@ lemma bst_diff: "\<lbrakk> bst t1; bst t2 \<rbrakk> \<Longrightarrow> bst (diff 
 proof(induction t1 t2 rule: diff.induct)
   case (1 t1 t2)
   thus ?case
-    by(fastforce simp: diff.simps[of t1 t2] set_tree_diff split Let_def
+    by(fastforce simp: diff.simps[of t1 t2] set_tree_diff split
         intro!: bst_join bst_join2 split: tree.split prod.split)
 qed
 
@@ -299,7 +299,7 @@ lemma inv_diff: "\<lbrakk> inv t1; inv t2 \<rbrakk> \<Longrightarrow> inv (diff 
 proof(induction t1 t2 rule: diff.induct)
   case (1 t1 t2)
   thus ?case
-    by(auto simp: diff.simps[of t1 t2] inv_join inv_join2 split_inv Let_def
+    by(auto simp: diff.simps[of t1 t2] inv_join inv_join2 split_inv
         split!: tree.split prod.split dest: inv_Node)
 qed
 

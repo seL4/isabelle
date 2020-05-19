@@ -279,11 +279,13 @@ fun size_fast :: "'a tree \<Rightarrow> nat" where
 "size_fast Leaf = 0" |
 "size_fast (Node l x r) = (let n = size_fast r in 1 + 2*n + diff l n)"
 
+declare Let_def[simp]
+
 lemma diff: "braun t \<Longrightarrow> size t : {n, n + 1} \<Longrightarrow> diff t n = size t - n"
 by(induction t arbitrary: n) auto
 
 lemma size_fast: "braun t \<Longrightarrow> size_fast t = size t"
-by(induction t) (auto simp add: Let_def diff)
+by(induction t) (auto simp add: diff)
 
 
 subsubsection \<open>Initialization with 1 element\<close>
@@ -468,7 +470,7 @@ by (induct ls xs rs arbitrary: i rule: nodes.induct;
 theorem length_brauns:
   "length (brauns k xs) = min (length xs) (2 ^ k)"
 proof (induct xs arbitrary: k rule: measure_induct_rule[where f=length])
-  case (less xs) thus ?case by (simp add: brauns.simps[of k xs] Let_def length_nodes)
+  case (less xs) thus ?case by (simp add: brauns.simps[of k xs] length_nodes)
 qed
 
 theorem brauns_correct:
@@ -484,7 +486,7 @@ proof (induct xs arbitrary: i k rule: measure_induct_rule[where f=length])
     using \<open>xs \<noteq> []\<close> by (simp add: take_nths_drop)
   show ?case
     using less.prems
-    by (auto simp: brauns.simps[of k xs] Let_def nth_nodes take_nths_take_nths
+    by (auto simp: brauns.simps[of k xs] nth_nodes take_nths_take_nths
                    IH take_nths_empty hd_take_nths length_brauns)
 qed
 
@@ -503,12 +505,12 @@ proof (induction xs arbitrary: k rule: measure_induct_rule[where f = length])
   show ?case
   proof cases
     assume "xs = []"
-    thus ?thesis by(simp add: Let_def)
+    thus ?thesis by(simp)
   next
     assume "xs \<noteq> []"
     let ?zs = "drop (2^k) xs"
     have "t_brauns k xs = t_brauns (k+1) ?zs + 4 * min (2^k) (length xs)"
-     using \<open>xs \<noteq> []\<close> by(simp add: Let_def)
+     using \<open>xs \<noteq> []\<close> by(simp)
     also have "\<dots> = 4 * length ?zs + 4 * min (2^k) (length xs)"
       using less[of ?zs "k+1"] \<open>xs \<noteq> []\<close>
       by (simp)
@@ -603,7 +605,7 @@ proof (induct xs arbitrary: k ts rule: measure_induct_rule[where f=length])
       apply(auto simp: nth_append braun_list_not_Nil take_nths_eq_single braun_list_Nil hd_drop_conv_nth)
       done
     thus ?thesis
-      by (clarsimp simp: list_fast_rec.simps[of ts] o_def list_fast_rec_all_Leaf Let_def)
+      by (clarsimp simp: list_fast_rec.simps[of ts] o_def list_fast_rec_all_Leaf)
   next
     case False
     with less.prems(2) have *:
@@ -621,7 +623,7 @@ proof (induct xs arbitrary: k ts rule: measure_induct_rule[where f=length])
       by (auto intro!: Nat.diff_less less.hyps[where k= "Suc k"]
                simp: nth_append * take_nths_drop algebra_simps)
     from less.prems(1) False show ?thesis
-      by (auto simp: list_fast_rec.simps[of ts] 1 2 Let_def * all_set_conv_all_nth)
+      by (auto simp: list_fast_rec.simps[of ts] 1 2 * all_set_conv_all_nth)
   qed
 qed
 
@@ -644,12 +646,12 @@ proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
   proof cases
     assume "?us = []"
     thus ?thesis using t_list_fast_rec.simps[of ts]
-      by(simp add: Let_def sum_list_Suc)
+      by(simp add: sum_list_Suc)
     next
     assume "?us \<noteq> []"
     let ?children = "map left ?us @ map right ?us"
     have "t_list_fast_rec ts = t_list_fast_rec ?children + 5 * length ?us + length ts"
-     using \<open>?us \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp add: Let_def)
+     using \<open>?us \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp)
     also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 7 * size t + 1) + 5 * length ?us + length ts"
       using less[of "?children"] list_fast_rec_term[of "?us"] \<open>?us \<noteq> []\<close>
       by (simp)
