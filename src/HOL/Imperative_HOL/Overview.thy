@@ -18,7 +18,7 @@ syntax (output)
 (*>*)
 
 text \<open>
-  \<open>Imperative HOL\<close> is a leightweight framework for reasoning
+  \<open>Imperative HOL\<close> is a lightweight framework for reasoning
   about imperative data structures in \<open>Isabelle/HOL\<close>
   @{cite "Nipkow-et-al:2002:tutorial"}.  Its basic ideas are described in
   @{cite "Bulwahn-et-al:2008:imp_HOL"}.  However their concrete
@@ -33,8 +33,9 @@ text \<open>
 section \<open>A polymorphic heap inside a monad\<close>
 
 text \<open>
-  Heaps (\<^type>\<open>heap\<close>) can be populated by values of class \<^class>\<open>heap\<close>; HOL's default types are already instantiated to class \<^class>\<open>heap\<close>.  Class \<^class>\<open>heap\<close> is a subclass of \<^class>\<open>countable\<close>;  see
-  theory \<open>Countable\<close> for ways to instantiate types as \<^class>\<open>countable\<close>.
+  Heaps (\<^type>\<open>heap\<close>) can be populated by values of class \<^class>\<open>heap\<close>; HOL's default types are
+  already instantiated to class \<^class>\<open>heap\<close>.  Class \<^class>\<open>heap\<close> is a subclass of \<^class>\<open>countable\<close>;
+  see theory \<open>Countable\<close> for ways to instantiate types as \<^class>\<open>countable\<close>.
 
   The heap is wrapped up in a monad \<^typ>\<open>'a Heap\<close> by means of the
   following specification:
@@ -69,7 +70,8 @@ text \<open>
     \<^term_type>\<open>raise\<close>
   \end{quote}
 
-  This is also associated with nice monad do-syntax.  The \<^typ>\<open>string\<close> argument to \<^const>\<open>raise\<close> is just a codified comment.
+  This is also associated with nice monad do-syntax.  The \<^typ>\<open>string\<close> argument to \<^const>\<open>raise\<close> is
+  just a codified comment.
 
   Among a couple of generic combinators the following is helpful for
   establishing invariants:
@@ -90,8 +92,8 @@ text \<open>
     \<^term_type>\<open>effect\<close>
   \end{quote}
 
-  provides a simple relational calculus.  Primitive rules are \<open>effectI\<close> and \<open>effectE\<close>, rules appropriate for reasoning about
-  imperative operations are available in the \<open>effect_intros\<close> and
+  provides a simple relational calculus.  Primitive rules are \<open>effectI\<close> and \<open>effectE\<close>, rules
+  appropriate for reasoning about imperative operations are available in the \<open>effect_intros\<close> and
   \<open>effect_elims\<close> fact collections.
 
   Often non-failure of imperative computations does not depend
@@ -105,7 +107,8 @@ text \<open>
   \<open>success_intro\<close> fact collection.
 
   \<^const>\<open>execute\<close>, \<^const>\<open>effect\<close>, \<^const>\<open>success\<close> and \<^const>\<open>bind\<close>
-  are related by rules \<open>execute_bind_success\<close>, \<open>success_bind_executeI\<close>, \<open>success_bind_effectI\<close>, \<open>effect_bindI\<close>, \<open>effect_bindE\<close> and \<open>execute_bind_eq_SomeI\<close>.
+  are related by rules \<open>execute_bind_success\<close>, \<open>success_bind_executeI\<close>, \<open>success_bind_effectI\<close>,
+  \<open>effect_bindI\<close>, \<open>effect_bindE\<close> and \<open>execute_bind_eq_SomeI\<close>.
 \<close>
 
 
@@ -225,7 +228,7 @@ text \<open>
       collection \<open>execute_simps\<close> or relational reasoning (fact
       collections \<open>effect_intros\<close> and \<open>effect_elims\<close>) depends
       on the problems to solve.  For complex expressions or
-      expressions involving binders, the relation style usually is
+      expressions involving binders, the relation style is usually
       superior but requires more proof text.
 
     \item Note that you can extend the fact collections of Imperative
