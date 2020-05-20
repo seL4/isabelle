@@ -1,7 +1,7 @@
-/*  Title:      Pure/System/invoke_scala.scala
+/*  Title:      Pure/System/scala.scala
     Author:     Makarius
 
-JVM method invocation service via Isabelle/Scala.
+Support for Scala at runtime.
 */
 
 package isabelle
@@ -12,8 +12,10 @@ import java.lang.reflect.{Method, Modifier, InvocationTargetException}
 import scala.util.matching.Regex
 
 
-object Invoke_Scala
+object Scala
 {
+  /** invoke JVM method via Isabelle/Scala **/
+
   /* method reflection */
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
@@ -65,7 +67,7 @@ object Invoke_Scala
 
 /* protocol handler */
 
-class Invoke_Scala extends Session.Protocol_Handler
+class Scala extends Session.Protocol_Handler
 {
   private var session: Session = null
   private var futures = Map.empty[String, Future[Unit]]
@@ -79,11 +81,11 @@ class Invoke_Scala extends Session.Protocol_Handler
     futures = Map.empty
   }
 
-  private def fulfill(id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit =
+  private def fulfill(id: String, tag: Scala.Tag.Value, res: String): Unit =
     synchronized
     {
       if (futures.isDefinedAt(id)) {
-        session.protocol_command("Invoke_Scala.fulfill", id, tag.id.toString, res)
+        session.protocol_command("Scala.fulfill", id, tag.id.toString, res)
         futures -= id
       }
     }
@@ -91,7 +93,7 @@ class Invoke_Scala extends Session.Protocol_Handler
   private def cancel(id: String, future: Future[Unit])
   {
     future.cancel
-    fulfill(id, Invoke_Scala.Tag.INTERRUPT, "")
+    fulfill(id, Scala.Tag.INTERRUPT, "")
   }
 
   private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
@@ -100,7 +102,7 @@ class Invoke_Scala extends Session.Protocol_Handler
       case Markup.Invoke_Scala(name, id) =>
         futures += (id ->
           Future.fork {
-            val (tag, result) = Invoke_Scala.method(name, msg.text)
+            val (tag, result) = Scala.method(name, msg.text)
             fulfill(id, tag, result)
           })
         true

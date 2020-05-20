@@ -120,7 +120,6 @@ declare -a SOURCES=(
   src/Pure/System/cygwin.scala
   src/Pure/System/distribution.scala
   src/Pure/System/getopts.scala
-  src/Pure/System/invoke_scala.scala
   src/Pure/System/isabelle_charset.scala
   src/Pure/System/isabelle_fonts.scala
   src/Pure/System/isabelle_process.scala
@@ -133,6 +132,7 @@ declare -a SOURCES=(
   src/Pure/System/posix_interrupt.scala
   src/Pure/System/process_result.scala
   src/Pure/System/progress.scala
+  src/Pure/System/scala.scala
   src/Pure/System/system_channel.scala
   src/Pure/System/tty_loop.scala
   src/Pure/Thy/bibtex.scala

@@ -1,20 +1,22 @@
-(*  Title:      Pure/System/invoke_scala.ML
+(*  Title:      Pure/System/scala.ML
     Author:     Makarius
 
-JVM method invocation service via Isabelle/Scala.
+Support for Scala at runtime.
 *)
 
-signature INVOKE_SCALA =
+signature SCALA =
 sig
   val method: string -> string -> string
   val promise_method: string -> string -> string future
   exception Null
 end;
 
-structure Invoke_Scala: INVOKE_SCALA =
+structure Scala: SCALA =
 struct
 
-val _ = Session.protocol_handler "isabelle.Invoke_Scala";
+(** invoke JVM method via Isabelle/Scala **)
+
+val _ = Session.protocol_handler "isabelle.Scala";
 
 
 (* pending promises *)
@@ -22,7 +24,7 @@ val _ = Session.protocol_handler "isabelle.Invoke_Scala";
 val new_id = string_of_int o Counter.make ();
 
 val promises =
-  Synchronized.var "Invoke_Scala.promises" (Symtab.empty: string future Symtab.table);
+  Synchronized.var "Scala.promises" (Symtab.empty: string future Symtab.table);
 
 
 (* method invocation *)
@@ -60,10 +62,9 @@ fun fulfill id tag res =
   in () end;
 
 val _ =
-  Isabelle_Process.protocol_command "Invoke_Scala.fulfill"
+  Isabelle_Process.protocol_command "Scala.fulfill"
     (fn [id, tag, res] =>
       fulfill id tag res
         handle exn => if Exn.is_interrupt exn then () else Exn.reraise exn);
 
 end;
-
