@@ -882,7 +882,6 @@ theorem Ramsey:
             \<and> (\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = r \<longrightarrow> f X = t)"
   by (blast intro: Ramsey_induction [unfolded part_fn_def nsets_def])
 
-
 corollary Ramsey2:
   fixes s :: nat
     and Z :: "'a set"
@@ -899,6 +898,12 @@ proof -
   then have "\<forall>x\<in>Y. \<forall>y\<in>Y. x \<noteq> y \<longrightarrow> f {x, y} = t" by auto
   with * show ?thesis by iprover
 qed
+
+corollary Ramsey_nsets:
+  fixes f :: "'a set \<Rightarrow> nat"
+  assumes "infinite Z" "f ` nsets Z r \<subseteq> {..<s}"
+  obtains Y t where "Y \<subseteq> Z" "infinite Y" "t < s" "f ` nsets Y r \<subseteq> {t}"
+  using Ramsey [of Z r f s] assms by (auto simp: nsets_def image_subset_iff)
 
 
 subsection \<open>Disjunctive Well-Foundedness\<close>

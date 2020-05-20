@@ -40,29 +40,34 @@ definition prod_decode :: "nat \<Rightarrow> nat \<times> nat"
   where "prod_decode = prod_decode_aux 0"
 
 lemma prod_encode_prod_decode_aux: "prod_encode (prod_decode_aux k m) = triangle k + m"
-  apply (induct k m rule: prod_decode_aux.induct)
-  apply (subst prod_decode_aux.simps)
-  apply (simp add: prod_encode_def)
-  done
+proof (induction k m rule: prod_decode_aux.induct)
+  case (1 k m)
+  then show ?case
+    by (simp add: prod_encode_def prod_decode_aux.simps)
+qed
 
 lemma prod_decode_inverse [simp]: "prod_encode (prod_decode n) = n"
   by (simp add: prod_decode_def prod_encode_prod_decode_aux)
 
 lemma prod_decode_triangle_add: "prod_decode (triangle k + m) = prod_decode_aux k m"
-  apply (induct k arbitrary: m)
-   apply (simp add: prod_decode_def)
-  apply (simp only: triangle_Suc add.assoc)
-  apply (subst prod_decode_aux.simps)
-  apply simp
-  done
+proof (induct k arbitrary: m)
+  case 0
+  then show ?case 
+    by (simp add: prod_decode_def)
+next
+  case (Suc k)
+  then show ?case
+    by (metis ab_semigroup_add_class.add_ac(1) add_diff_cancel_left' le_add1 not_less_eq_eq prod_decode_aux.simps triangle_Suc)
+qed
+
 
 lemma prod_encode_inverse [simp]: "prod_decode (prod_encode x) = x"
   unfolding prod_encode_def
-  apply (induct x)
-  apply (simp add: prod_decode_triangle_add)
-  apply (subst prod_decode_aux.simps)
-  apply simp
-  done
+proof (induct x)
+  case (Pair a b)
+  then show ?case
+    by (simp add: prod_decode_triangle_add prod_decode_aux.simps)
+qed
 
 lemma inj_prod_encode: "inj_on prod_encode A"
   by (rule inj_on_inverseI) (rule prod_encode_inverse)
@@ -191,22 +196,22 @@ function list_decode :: "nat \<Rightarrow> nat list"
   by pat_completeness auto
 
 termination list_decode
-  apply (relation "measure id")
-   apply simp_all
-  apply (drule arg_cong [where f="prod_encode"])
-  apply (drule sym)
-  apply (simp add: le_imp_less_Suc le_prod_encode_2)
-  done
+proof -
+  have "\<And>n x y. (x, y) = prod_decode n \<Longrightarrow> y < Suc n"
+    by (metis le_imp_less_Suc le_prod_encode_2 prod_decode_inverse)
+  then show ?thesis
+    using "termination" by blast
+qed
 
 lemma list_encode_inverse [simp]: "list_decode (list_encode x) = x"
   by (induct x rule: list_encode.induct) simp_all
 
 lemma list_decode_inverse [simp]: "list_encode (list_decode n) = n"
-  apply (induct n rule: list_decode.induct)
-   apply simp
-  apply (simp split: prod.split)
-  apply (simp add: prod_decode_eq [symmetric])
-  done
+proof (induct n rule: list_decode.induct)
+  case (2 n)
+  then show ?case
+    by (metis list_encode.simps(2) list_encode_inverse prod_decode_inverse surj_pair)
+qed auto
 
 lemma inj_list_encode: "inj_on list_encode A"
   by (rule inj_on_inverseI) (rule list_encode_inverse)
@@ -238,15 +243,16 @@ subsection \<open>Finite sets of naturals\<close>
 subsubsection \<open>Preliminaries\<close>
 
 lemma finite_vimage_Suc_iff: "finite (Suc -` F) \<longleftrightarrow> finite F"
-  apply (safe intro!: finite_vimageI inj_Suc)
-  apply (rule finite_subset [where B="insert 0 (Suc ` Suc -` F)"])
-   apply (rule subsetI)
-   apply (case_tac x)
-    apply simp
-   apply simp
-  apply (rule finite_insert [THEN iffD2])
-  apply (erule finite_imageI)
-  done
+proof 
+  have "F \<subseteq> insert 0 (Suc ` Suc -` F)"
+    using nat.nchotomy by force
+  moreover
+  assume "finite (Suc -` F)"
+  then have "finite (insert 0 (Suc ` Suc -` F))"
+    by blast
+  ultimately show "finite F"
+    using finite_subset by blast
+qed (force intro: finite_vimageI inj_Suc)
 
 lemma vimage_Suc_insert_0: "Suc -` insert 0 A = Suc -` A"
   by auto
@@ -287,14 +293,23 @@ lemma even_set_encode_iff: "finite A \<Longrightarrow> even (set_encode A) \<lon
   by (induct set: finite) (auto simp: set_encode_def)
 
 lemma set_encode_vimage_Suc: "set_encode (Suc -` A) = set_encode A div 2"
-  apply (cases "finite A")
-   apply (erule finite_induct)
-    apply simp
-   apply (case_tac x)
-    apply (simp add: even_set_encode_iff vimage_Suc_insert_0)
-   apply (simp add: finite_vimageI add.commute vimage_Suc_insert_Suc)
-  apply (simp add: set_encode_def finite_vimage_Suc_iff)
-  done
+proof (induction A rule: infinite_finite_induct)
+  case (infinite A)
+  then show ?case
+    by (simp add: finite_vimage_Suc_iff set_encode_inf)
+next
+  case (insert x A)
+  show ?case
+  proof (cases x)
+    case 0
+    with insert show ?thesis
+      by (simp add: even_set_encode_iff vimage_Suc_insert_0)
+  next
+    case (Suc y)
+    with insert show ?thesis
+      by (simp add: finite_vimageI add.commute vimage_Suc_insert_Suc)
+  qed   
+qed auto
 
 lemmas set_encode_div_2 = set_encode_vimage_Suc [symmetric]
 
@@ -335,34 +350,38 @@ next
 qed
 
 lemma finite_set_decode [simp]: "finite (set_decode n)"
-  apply (induct n rule: nat_less_induct)
-  apply (case_tac "n = 0")
-   apply simp
-  apply (drule_tac x="n div 2" in spec)
-  apply simp
-  apply (simp add: set_decode_div_2)
-  apply (simp add: finite_vimage_Suc_iff)
-  done
+proof (induction n rule: less_induct)
+  case (less n)
+  show ?case
+  proof (cases "n = 0")
+    case False
+    then show ?thesis
+      using less.IH [of "n div 2"] finite_vimage_Suc_iff set_decode_div_2 by auto
+  qed auto
+qed
 
 
 subsubsection \<open>Proof of isomorphism\<close>
 
 lemma set_decode_inverse [simp]: "set_encode (set_decode n) = n"
-  apply (induct n rule: nat_less_induct)
-  apply (case_tac "n = 0")
-   apply simp
-  apply (drule_tac x="n div 2" in spec)
-  apply simp
-  apply (simp add: set_decode_div_2 set_encode_vimage_Suc)
-  apply (erule div2_even_ext_nat)
-  apply (simp add: even_set_encode_iff)
-  done
+proof (induction n rule: less_induct)
+  case (less n)
+  show ?case
+  proof (cases "n = 0")
+    case False
+    then have "set_encode (set_decode (n div 2)) = n div 2"
+      using less.IH by auto
+    then show ?thesis
+      by (metis div2_even_ext_nat even_set_encode_iff finite_set_decode set_decode_0 set_decode_div_2 set_encode_div_2)
+  qed auto
+qed
 
 lemma set_encode_inverse [simp]: "finite A \<Longrightarrow> set_decode (set_encode A) = A"
-  apply (erule finite_induct)
-   apply simp_all
-  apply (simp add: set_decode_plus_power_2)
-  done
+proof (induction rule: finite_induct)
+  case (insert x A)
+  then show ?case
+    by (simp add: set_decode_plus_power_2)
+qed auto
 
 lemma inj_on_set_encode: "inj_on set_encode (Collect finite)"
   by (rule inj_on_inverseI [where g = "set_decode"]) simp

@@ -1246,6 +1246,9 @@ lemma Int_empty_right: "A \<inter> {} = {}"
 lemma disjoint_eq_subset_Compl: "A \<inter> B = {} \<longleftrightarrow> A \<subseteq> - B"
   by blast
 
+lemma disjoint_iff: "A \<inter> B = {} \<longleftrightarrow> (\<forall>x. x\<in>A \<longrightarrow> x \<notin> B)"
+  by blast
+
 lemma disjoint_iff_not_equal: "A \<inter> B = {} \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B. x \<noteq> y)"
   by blast
 

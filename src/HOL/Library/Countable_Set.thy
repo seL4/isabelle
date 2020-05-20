@@ -319,8 +319,12 @@ lemma countable_Collect_finite_subset:
   "countable T \<Longrightarrow> countable {A. finite A \<and> A \<subseteq> T}"
   unfolding Collect_finite_subset_eq_lists by auto
 
+lemma countable_Fpow: "countable S \<Longrightarrow> countable (Fpow S)"
+  using countable_Collect_finite_subset
+  by (force simp add: Fpow_def conj_commute)
+
 lemma countable_set_option [simp]: "countable (set_option x)"
-by(cases x) auto
+  by (cases x) auto
 
 subsection \<open>Misc lemmas\<close>
 
@@ -419,5 +423,28 @@ lemma uncountable_minus_countable:
 
 lemma countable_Diff_eq [simp]: "countable (A - {x}) = countable A"
   by (meson countable_Diff countable_empty countable_insert uncountable_minus_countable)
+
+text \<open>Every infinite set can be covered by a pairwise disjoint family of infinite sets.
+      This version doesn't achieve equality, as it only covers a countable subset\<close>
+lemma infinite_infinite_partition:
+  assumes "infinite A"
+  obtains C :: "nat \<Rightarrow> 'a set" 
+    where "pairwise (\<lambda>i j. disjnt (C i) (C j)) UNIV" "(\<Union>i. C i) \<subseteq> A" "\<And>i. infinite (C i)"
+proof -
+  obtain f :: "nat\<Rightarrow>'a" where "range f \<subseteq> A" "inj f"
+    using assms infinite_countable_subset by blast
+  let ?C = "\<lambda>i. range (\<lambda>j. f (prod_encode (i,j)))"
+  show thesis
+  proof
+    show "pairwise (\<lambda>i j. disjnt (?C i) (?C j)) UNIV"
+      by (auto simp: pairwise_def disjnt_def inj_on_eq_iff [OF \<open>inj f\<close>] inj_on_eq_iff [OF inj_prod_encode, of _ UNIV])
+    show "(\<Union>i. ?C i) \<subseteq> A"
+      using \<open>range f \<subseteq> A\<close> by blast
+    have "infinite (range (\<lambda>j. f (prod_encode (i, j))))" for i
+      by (rule range_inj_infinite) (meson Pair_inject \<open>inj f\<close> inj_def prod_encode_eq)
+    then show "\<And>i. infinite (?C i)"
+      using that by auto
+  qed
+qed
 
 end

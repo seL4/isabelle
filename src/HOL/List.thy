@@ -6460,6 +6460,10 @@ proof -
   then show ?thesis by (intro that [of "length us"]) auto
 qed
 
+lemma irrefl_lex: "irrefl r \<Longrightarrow> irrefl (lex r)"
+  by (meson irrefl_def lex_take_index)
+
+
 
 subsubsection \<open>Lexicographic Ordering\<close>
 
