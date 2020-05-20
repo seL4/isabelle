@@ -8,12 +8,39 @@ package isabelle
 
 
 import java.lang.reflect.{Method, Modifier, InvocationTargetException}
+import java.io.{File => JFile}
 
 import scala.util.matching.Regex
+import scala.tools.nsc.GenericRunnerSettings
 
 
 object Scala
 {
+  /* compiler classpath and settings */
+
+  def compiler_classpath(jar_dirs: List[JFile]): String =
+  {
+    def find_jars(dir: JFile): List[String] =
+      File.find_files(dir, file => file.getName.endsWith(".jar")).
+        map(File.absolute_name)
+
+    val class_path =
+      space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
+
+    (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+  }
+
+  def compiler_settings(
+    error: String => Unit = Exn.error,
+    jar_dirs: List[JFile] = Nil): GenericRunnerSettings =
+  {
+    val settings = new GenericRunnerSettings(error)
+    settings.classpath.value = compiler_classpath(jar_dirs)
+    settings
+  }
+
+
+
   /** invoke JVM method via Isabelle/Scala **/
 
   /* method reflection */

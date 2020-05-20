@@ -25,23 +25,9 @@ class Scala_Console extends Shell("Scala")
 {
   /* reconstructed jEdit/plugin classpath */
 
-  private def reconstruct_classpath(): String =
-  {
-    def find_jars(start: String): List[String] =
-      if (start != null)
-        File.find_files(new JFile(start), file => file.getName.endsWith(".jar")).
-          map(File.absolute_name)
-      else Nil
-
-    val initial_class_path =
-      space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
-
-    val path =
-      initial_class_path :::
-      find_jars(jEdit.getSettingsDirectory) :::
-      find_jars(jEdit.getJEditHome)
-    path.mkString(JFile.pathSeparator)
-  }
+  private def jar_dirs: List[JFile] =
+    (proper_string(jEdit.getSettingsDirectory).toList :::
+     proper_string(jEdit.getJEditHome).toList).map(new JFile(_))
 
 
   /* global state -- owned by GUI thread */
@@ -127,8 +113,7 @@ class Scala_Console extends Shell("Scala")
     private val running = Synchronized[Option[Thread]](None)
     def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
 
-    private val settings = new GenericRunnerSettings(report_error)
-    settings.classpath.value = reconstruct_classpath()
+    private val settings = Scala.compiler_settings(error = report_error, jar_dirs = jar_dirs)
 
     private val interp = new IMain(settings, new PrintWriter(console_writer, true))
     {
