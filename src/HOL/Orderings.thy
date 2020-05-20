@@ -58,6 +58,9 @@ lemma strict_trans:
   "a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
   by (auto intro: strict_trans1 strict_implies_order)
 
+lemma eq_iff: "a = b \<longleftrightarrow> a \<^bold>\<le> b \<and> b \<^bold>\<le> a"
+  by (auto simp add: refl intro: antisym)
+
 end
 
 text \<open>Alternative introduction rule with bias towards strict order\<close>
@@ -270,13 +273,13 @@ by (rule order.not_eq_order_implies_strict)
 text \<open>Asymmetry.\<close>
 
 lemma eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
-by (blast intro: antisym)
+  by (fact order.eq_iff)
 
 lemma antisym_conv: "y \<le> x \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
-by (blast intro: antisym)
+  by (simp add: eq_iff)
 
 lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
-by (fact order.strict_implies_not_eq)
+  by (fact order.strict_implies_not_eq)
 
 lemma antisym_conv1: "\<not> x < y \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
   by (simp add: local.le_less)

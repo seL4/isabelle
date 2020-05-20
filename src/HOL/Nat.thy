@@ -863,6 +863,12 @@ instance nat :: ordered_cancel_comm_monoid_diff ..
 
 subsubsection \<open>\<^term>\<open>min\<close> and \<^term>\<open>max\<close>\<close>
 
+global_interpretation bot_nat_0: ordering_top \<open>(\<ge>)\<close> \<open>(>)\<close> \<open>0::nat\<close>
+  by standard simp
+
+global_interpretation max_nat: semilattice_neutr_order max \<open>0::nat\<close> \<open>(\<ge>)\<close> \<open>(>)\<close>
+  by standard (simp add: max_def)
+
 lemma mono_Suc: "mono Suc"
   by (rule monoI) simp
 
@@ -885,11 +891,11 @@ lemma min_Suc2: "min m (Suc n) = (case m of 0 \<Rightarrow> 0 | Suc m' \<Rightar
 
 lemma max_0L [simp]: "max 0 n = n"
   for n :: nat
-  by (rule max_absorb2) simp
+  by (fact max_nat.left_neutral)
 
 lemma max_0R [simp]: "max n 0 = n"
   for n :: nat
-  by (rule max_absorb1) simp
+  by (fact max_nat.right_neutral)
 
 lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc (max m n)"
   by (simp add: mono_Suc max_of_mono)
@@ -900,8 +906,8 @@ lemma max_Suc1: "max (Suc n) m = (case m of 0 \<Rightarrow> Suc n | Suc m' \<Rig
 lemma max_Suc2: "max m (Suc n) = (case m of 0 \<Rightarrow> Suc n | Suc m' \<Rightarrow> Suc (max m' n))"
   by (simp split: nat.split)
 
-lemma max_0_iff[simp]: "max m n = (0::nat) \<longleftrightarrow> m = 0 \<and> n = 0"
-by(cases m, auto simp: max_Suc1 split: nat.split)
+lemma max_0_iff: "max m n = (0::nat) \<longleftrightarrow> m = 0 \<and> n = 0"
+  by (fact max_nat.eq_neutr_iff)
 
 lemma nat_mult_min_left: "min m n * q = min (m * q) (n * q)"
   for m n q :: nat

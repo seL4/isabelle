@@ -137,6 +137,12 @@ begin
 sublocale ordering_top less_eq less "\<^bold>1"
   by standard (simp add: order_iff)
 
+lemma eq_neutr_iff [simp]: \<open>a \<^bold>* b = \<^bold>1 \<longleftrightarrow> a = \<^bold>1 \<and> b = \<^bold>1\<close>
+  by (simp add: eq_iff)
+
+lemma neutr_eq_iff [simp]: \<open>\<^bold>1 = a \<^bold>* b \<longleftrightarrow> a = \<^bold>1 \<and> b = \<^bold>1\<close>
+  by (simp add: eq_iff)
+
 end
 
 text \<open>Passive interpretations for boolean operators\<close>
@@ -462,6 +468,18 @@ proof
     by (rule inf_absorb1) simp
 qed
 
+lemma inf_top_left: "\<top> \<sqinter> x = x"
+  by (fact inf_top.left_neutral)
+
+lemma inf_top_right: "x \<sqinter> \<top> = x"
+  by (fact inf_top.right_neutral)
+
+lemma inf_eq_top_iff: "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
+  by (fact inf_top.eq_neutr_iff)
+
+lemma top_eq_inf_iff: "\<top> = x \<sqinter> y \<longleftrightarrow> x = \<top> \<and> y = \<top>"
+  by (fact inf_top.neutr_eq_iff)
+
 end
 
 class bounded_semilattice_sup_bot = semilattice_sup + order_bot
@@ -473,6 +491,18 @@ proof
   show "x \<squnion> \<bottom> = x" for x
     by (rule sup_absorb1) simp
 qed
+
+lemma sup_bot_left: "\<bottom> \<squnion> x = x"
+  by (fact sup_bot.left_neutral)
+
+lemma sup_bot_right: "x \<squnion> \<bottom> = x"
+  by (fact sup_bot.right_neutral)
+
+lemma sup_eq_bot_iff: "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (fact sup_bot.eq_neutr_iff)
+
+lemma bot_eq_sup_iff: "\<bottom> = x \<squnion> y \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (fact sup_bot.neutr_eq_iff)
 
 end
 
@@ -487,18 +517,6 @@ lemma inf_bot_left [simp]: "\<bottom> \<sqinter> x = \<bottom>"
 lemma inf_bot_right [simp]: "x \<sqinter> \<bottom> = \<bottom>"
   by (rule inf_absorb2) simp
 
-lemma sup_bot_left: "\<bottom> \<squnion> x = x"
-  by (fact sup_bot.left_neutral)
-
-lemma sup_bot_right: "x \<squnion> \<bottom> = x"
-  by (fact sup_bot.right_neutral)
-
-lemma sup_eq_bot_iff [simp]: "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
-  by (simp add: eq_iff)
-
-lemma bot_eq_sup_iff [simp]: "\<bottom> = x \<squnion> y \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
-  by (simp add: eq_iff)
-
 end
 
 class bounded_lattice_top = lattice + order_top
@@ -511,15 +529,6 @@ lemma sup_top_left [simp]: "\<top> \<squnion> x = \<top>"
 
 lemma sup_top_right [simp]: "x \<squnion> \<top> = \<top>"
   by (rule sup_absorb2) simp
-
-lemma inf_top_left: "\<top> \<sqinter> x = x"
-  by (fact inf_top.left_neutral)
-
-lemma inf_top_right: "x \<sqinter> \<top> = x"
-  by (fact inf_top.right_neutral)
-
-lemma inf_eq_top_iff [simp]: "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
-  by (simp add: eq_iff)
 
 end
 
