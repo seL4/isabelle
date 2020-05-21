@@ -1668,4 +1668,7 @@ lemma drop_bit_negative_int_iff [simp]:
   \<open>drop_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
   by (subst Not_eq_iff [symmetric]) (simp add: not_less)
 
+code_identifier
+  code_module Parity \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
+
 end
