@@ -906,9 +906,6 @@ lemma max_Suc1: "max (Suc n) m = (case m of 0 \<Rightarrow> Suc n | Suc m' \<Rig
 lemma max_Suc2: "max m (Suc n) = (case m of 0 \<Rightarrow> Suc n | Suc m' \<Rightarrow> Suc (max m' n))"
   by (simp split: nat.split)
 
-lemma max_0_iff: "max m n = (0::nat) \<longleftrightarrow> m = 0 \<and> n = 0"
-  by (fact max_nat.eq_neutr_iff)
-
 lemma nat_mult_min_left: "min m n * q = min (m * q) (n * q)"
   for m n q :: nat
   by (simp add: min_def not_le)
