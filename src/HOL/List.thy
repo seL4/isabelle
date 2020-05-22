@@ -365,8 +365,6 @@ fun sorted_wrt :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a lis
 "sorted_wrt P [] = True" |
 "sorted_wrt P (x # ys) = ((\<forall>y \<in> set ys. P x y) \<and> sorted_wrt P ys)"
 
-(* FIXME: define sorted in terms of sorted_wrt *)
-
 text \<open>A class-based sorted predicate:\<close>
 
 context linorder
