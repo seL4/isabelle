@@ -25,7 +25,11 @@ object Scala
         map(File.absolute_name)
 
     val class_path =
-      space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
+      for {
+        prop <- List("scala.boot.class.path", "java.class.path")
+        path = System.getProperty(prop, "") if path != "\"\""
+        elem <- space_explode(JFile.pathSeparatorChar, path)
+      } yield elem
 
     (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
   }
