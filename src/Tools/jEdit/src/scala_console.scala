@@ -10,15 +10,9 @@ package isabelle.jedit
 import isabelle._
 
 import console.{Console, ConsolePane, Shell, Output}
-
-import org.gjt.sp.jedit.{jEdit, JARClassLoader}
-import org.gjt.sp.jedit.MiscUtilities
-
-import java.io.{File => JFile, FileFilter, OutputStream, Writer, PrintWriter}
-
-import scala.tools.nsc.{GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
+import org.gjt.sp.jedit.JARClassLoader
+import java.io.{OutputStream, Writer, PrintWriter}
 import scala.tools.nsc.interpreter.IMain
-import scala.collection.mutable
 
 
 class Scala_Console extends Shell("Scala")
