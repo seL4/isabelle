@@ -23,13 +23,6 @@ import scala.collection.mutable
 
 class Scala_Console extends Shell("Scala")
 {
-  /* reconstructed jEdit/plugin classpath */
-
-  private def jar_dirs: List[JFile] =
-    (proper_string(jEdit.getSettingsDirectory).toList :::
-     proper_string(jEdit.getJEditHome).toList).map(new JFile(_))
-
-
   /* global state -- owned by GUI thread */
 
   @volatile private var interpreters = Map.empty[Console, Interpreter]
@@ -113,7 +106,8 @@ class Scala_Console extends Shell("Scala")
     private val running = Synchronized[Option[Thread]](None)
     def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
 
-    private val settings = Scala.compiler_settings(error = report_error, jar_dirs = jar_dirs)
+    private val settings =
+      Scala.compiler_settings(error = report_error, jar_dirs = JEdit_Lib.directories)
 
     private val interp = new IMain(settings, new PrintWriter(console_writer, true))
     {

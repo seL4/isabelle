@@ -25,6 +25,12 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
 object JEdit_Lib
 {
+  /* jEdit directories */
+
+  def directories: List[JFile] =
+    (Option(jEdit.getSettingsDirectory).toList ::: List(jEdit.getJEditHome)).map(new JFile(_))
+
+
   /* location within multi-screen environment */
 
   final case class Screen_Location(point: Point, bounds: Rectangle)
