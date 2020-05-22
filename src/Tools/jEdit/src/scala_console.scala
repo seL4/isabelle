@@ -101,7 +101,7 @@ class Scala_Console extends Shell("Scala")
     def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
 
     private val settings =
-      Scala.compiler_settings(error = report_error, jar_dirs = JEdit_Lib.directories)
+      Scala.Compiler.settings(error = report_error, jar_dirs = JEdit_Lib.directories)
 
     private val interp = new IMain(settings, new PrintWriter(console_writer, true))
     {

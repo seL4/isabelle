@@ -7,40 +7,62 @@ Support for Scala at runtime.
 package isabelle
 
 
-import java.lang.reflect.{Method, Modifier, InvocationTargetException}
-import java.io.{File => JFile}
+import java.lang.reflect.{Modifier, InvocationTargetException}
+import java.io.{File => JFile, StringWriter, PrintWriter}
 
 import scala.util.matching.Regex
 import scala.tools.nsc.GenericRunnerSettings
+import scala.tools.nsc.interpreter.IMain
 
 
 object Scala
 {
-  /* compiler classpath and settings */
+  /* compiler */
 
-  def compiler_classpath(jar_dirs: List[JFile]): String =
+  object Compiler
   {
-    def find_jars(dir: JFile): List[String] =
-      File.find_files(dir, file => file.getName.endsWith(".jar")).
-        map(File.absolute_name)
+    def classpath(jar_dirs: List[JFile]): String =
+    {
+      def find_jars(dir: JFile): List[String] =
+        File.find_files(dir, file => file.getName.endsWith(".jar")).
+          map(File.absolute_name)
 
-    val class_path =
-      for {
-        prop <- List("scala.boot.class.path", "java.class.path")
-        path = System.getProperty(prop, "") if path != "\"\""
-        elem <- space_explode(JFile.pathSeparatorChar, path)
-      } yield elem
+      val class_path =
+        for {
+          prop <- List("scala.boot.class.path", "java.class.path")
+          path = System.getProperty(prop, "") if path != "\"\""
+          elem <- space_explode(JFile.pathSeparatorChar, path)
+        } yield elem
 
-    (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
-  }
+      (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+    }
 
-  def compiler_settings(
-    error: String => Unit = Exn.error,
-    jar_dirs: List[JFile] = Nil): GenericRunnerSettings =
-  {
-    val settings = new GenericRunnerSettings(error)
-    settings.classpath.value = compiler_classpath(jar_dirs)
-    settings
+    type Settings = scala.tools.nsc.Settings
+
+    def settings(
+      error: String => Unit = Exn.error,
+      jar_dirs: List[JFile] = Nil): Settings =
+    {
+      val settings = new GenericRunnerSettings(error)
+      settings.classpath.value = classpath(jar_dirs)
+      settings
+    }
+
+    def toplevel(settings: Settings, source: String): List[String] =
+    {
+      val out = new StringWriter
+      val interp = new IMain(settings, new PrintWriter(out))
+      val rep = new interp.ReadEvalPrint
+      val ok = interp.withLabel("\u0001") { rep.compile(source) }
+      out.close
+
+      val Error = """(?s)^\S* error: (.*)$""".r
+      val errors =
+        space_explode('\u0001', Library.strip_ansi_color(out.toString)).
+          collect({ case Error(msg) => Word.capitalize(Library.trim_line(msg)) })
+
+      if (!ok && errors.isEmpty) List("Error") else errors
+    }
   }
 
 
