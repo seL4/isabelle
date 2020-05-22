@@ -414,6 +414,9 @@ definition stable_sort_key :: "(('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Ri
 
 end
 
+lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
+by (induction l) (use less_le in auto)
+
 
 subsubsection \<open>List comprehension\<close>
 
@@ -6049,6 +6052,10 @@ next
   case False thus ?thesis by simp
 qed
 
+lemma length_sorted_list_of_set[simp]:
+  "finite A \<Longrightarrow> length(sorted_list_of_set A) = card A"
+by(simp flip: distinct_card)
+
 lemmas sorted_list_of_set = set_sorted_list_of_set sorted_sorted_list_of_set distinct_sorted_list_of_set
 
 lemma sorted_list_of_set_sort_remdups [code]:
@@ -6074,9 +6081,6 @@ end
 lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
 by (rule sorted_distinct_set_unique) simp_all
-
-lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
-  by (induction l) (use less_le in auto)
 
 lemma strict_sorted_list_of_set [simp]: "strict_sorted (sorted_list_of_set A)"
   by (simp add: strict_sorted_iff)
