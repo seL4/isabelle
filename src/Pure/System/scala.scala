@@ -48,6 +48,8 @@ object Scala
 
     class Context private [Compiler](val settings: GenericRunnerSettings)
     {
+      override def toString: String = settings.toString
+
       def interpreter(
         print_writer: PrintWriter = default_print_writer,
         class_loader: ClassLoader = null): IMain =
