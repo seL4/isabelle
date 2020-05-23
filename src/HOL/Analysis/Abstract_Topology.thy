@@ -2673,7 +2673,8 @@ proof -
     then have "False"
       using homeomorphic_map_closure_of [OF hom] hom
       unfolding homeomorphic_eq_everything_map
-      by (metis (no_types, lifting) Diff_subset S closure_of_subset_topspace inj_on_image_mem_iff_alt inj_on_image_set_diff) }
+      by (metis Diff_subset S closure_of_subset_topspace inj_on_image_mem_iff inj_on_image_set_diff)
+  }
   ultimately  show ?thesis
     by (auto simp: interior_of_closure_of)
 qed
@@ -2700,7 +2701,7 @@ next
   then have "y \<in> topspace X"
     by (simp add: in_closure_of)
   then have "f y \<notin> f ` (X interior_of S)"
-    by (meson hom homeomorphic_eq_everything_map inj_on_image_mem_iff_alt interior_of_subset_topspace y(3))
+    by (meson hom homeomorphic_map_def inj_on_image_mem_iff interior_of_subset_topspace y(3))
   then show "x \<notin> Y interior_of f ` S"
     using S hom homeomorphic_map_interior_of y(1) by blast
 qed

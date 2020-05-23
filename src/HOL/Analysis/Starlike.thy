@@ -3519,7 +3519,7 @@ proof
       ultimately have "f a \<in> f ` closed_segment c b"
         by blast
       then have a: "a \<in> closed_segment c b"
-        by (meson ends_in_segment inj_on_image_mem_iff_alt injf subset_closed_segment that)
+        by (meson ends_in_segment inj_on_image_mem_iff injf subset_closed_segment that)
       have cb: "closed_segment c b \<subseteq> closed_segment a b"
         by (simp add: closed_segment_subset that)
       show "f a = f c"
@@ -3539,7 +3539,7 @@ proof
       ultimately have "f b \<in> f ` closed_segment a c"
         by blast
       then have b: "b \<in> closed_segment a c"
-        by (meson ends_in_segment inj_on_image_mem_iff_alt injf subset_closed_segment that)
+        by (meson ends_in_segment inj_on_image_mem_iff injf subset_closed_segment that)
       have ca: "closed_segment a c \<subseteq> closed_segment a b"
         by (simp add: closed_segment_subset that)
       show "f b = f c"

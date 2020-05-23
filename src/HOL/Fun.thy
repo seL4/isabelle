@@ -507,10 +507,6 @@ lemma image_set_diff: "inj f \<Longrightarrow> f ` (A - B) = f ` A - f ` B"
 lemma inj_on_image_mem_iff: "inj_on f B \<Longrightarrow> a \<in> B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f ` A \<longleftrightarrow> a \<in> A"
   by (auto simp: inj_on_def)
 
-(*FIXME DELETE*)
-lemma inj_on_image_mem_iff_alt: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f ` A \<Longrightarrow> a \<in> B \<Longrightarrow> a \<in> A"
-  by (blast dest: inj_onD)
-
 lemma inj_image_mem_iff: "inj f \<Longrightarrow> f a \<in> f ` A \<longleftrightarrow> a \<in> A"
   by (blast dest: injD)
 
@@ -614,7 +610,20 @@ next
     using * bij_betw_subset[of f "A \<union> {b}" _ A] by blast
 qed
 
-text \<open>Important examples\<close>
+lemma inj_on_disjoint_Un:
+  assumes "inj_on f A" and "inj_on g B" 
+  and "f ` A \<inter> g ` B = {}"
+  shows "inj_on (\<lambda>x. if x \<in> A then f x else g x) (A \<union> B)"
+  using assms by (simp add: inj_on_def disjoint_iff) (blast)
+
+lemma bij_betw_disjoint_Un:
+  assumes "bij_betw f A C" and "bij_betw g B D" 
+  and "A \<inter> B = {}"
+  and "C \<inter> D = {}"
+  shows "bij_betw (\<lambda>x. if x \<in> A then f x else g x) (A \<union> B) (C \<union> D)"
+  using assms by (auto simp: inj_on_disjoint_Un bij_betw_def)
+
+subsubsection \<open>Important examples\<close>
 
 context cancel_semigroup_add
 begin
@@ -859,27 +868,18 @@ lemma the_inv_into_f_f: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow
   unfolding the_inv_into_def inj_on_def by blast
 
 lemma f_the_inv_into_f: "inj_on f A \<Longrightarrow> y \<in> f ` A  \<Longrightarrow> f (the_inv_into A f y) = y"
-  apply (simp add: the_inv_into_def)
-  apply (rule the1I2)
-   apply (blast dest: inj_onD)
-  apply blast
-  done
+  unfolding the_inv_into_def
+  by (rule the1I2; blast dest: inj_onD)
 
 lemma the_inv_into_into: "inj_on f A \<Longrightarrow> x \<in> f ` A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> the_inv_into A f x \<in> B"
-  apply (simp add: the_inv_into_def)
-  apply (rule the1I2)
-   apply (blast dest: inj_onD)
-  apply blast
-  done
+  unfolding the_inv_into_def
+  by (rule the1I2; blast dest: inj_onD)
 
 lemma the_inv_into_onto [simp]: "inj_on f A \<Longrightarrow> the_inv_into A f ` (f ` A) = A"
   by (fast intro: the_inv_into_into the_inv_into_f_f [symmetric])
 
 lemma the_inv_into_f_eq: "inj_on f A \<Longrightarrow> f x = y \<Longrightarrow> x \<in> A \<Longrightarrow> the_inv_into A f y = x"
-  apply (erule subst)
-  apply (erule the_inv_into_f_f)
-  apply assumption
-  done
+  by (force simp add: the_inv_into_f_f)
 
 lemma the_inv_into_comp:
   "inj_on f (g ` A) \<Longrightarrow> inj_on g A \<Longrightarrow> x \<in> f ` g ` A \<Longrightarrow>
@@ -895,6 +895,17 @@ lemma inj_on_the_inv_into: "inj_on f A \<Longrightarrow> inj_on (the_inv_into A 
 
 lemma bij_betw_the_inv_into: "bij_betw f A B \<Longrightarrow> bij_betw (the_inv_into A f) B A"
   by (auto simp add: bij_betw_def inj_on_the_inv_into the_inv_into_into)
+
+lemma bij_betw_iff_bijections:
+  "bij_betw f A B \<longleftrightarrow> (\<exists>g. (\<forall>x \<in> A. f x \<in> B \<and> g(f x) = x) \<and> (\<forall>y \<in> B. g y \<in> A \<and> f(g y) = y))"
+  (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  then show ?rhs
+    apply (rule_tac x="the_inv_into A f" in exI)
+    apply (auto simp: bij_betw_def f_the_inv_into_f the_inv_into_f_f the_inv_into_into)
+    done
+qed (force intro: bij_betw_byWitness)
 
 abbreviation the_inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
   where "the_inv f \<equiv> the_inv_into UNIV f"

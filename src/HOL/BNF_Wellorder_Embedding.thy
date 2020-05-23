@@ -1003,55 +1003,29 @@ next
   with * show "iso r r' f" unfolding iso_def by auto
 qed
 
-lemma iso_iff2:
-assumes "Well_order r"
-shows "iso r r' f = (bij_betw f (Field r) (Field r') \<and>
-                     (\<forall>a \<in> Field r. \<forall>b \<in> Field r.
-                         (((a,b) \<in> r) = ((f a, f b) \<in> r'))))"
-using assms
-proof(auto simp add: iso_def)
-  fix a b
-  assume "embed r r' f"
-  hence "compat r r' f" using embed_compat[of r] by auto
-  moreover assume "(a,b) \<in> r"
-  ultimately show "(f a, f b) \<in> r'" using compat_def[of r] by auto
+lemma iso_iff2: "iso r r' f \<longleftrightarrow>
+                 bij_betw f (Field r) (Field r') \<and> 
+                 (\<forall>a \<in> Field r. \<forall>b \<in> Field r. (a, b) \<in> r \<longleftrightarrow> (f a, f b) \<in> r')"
+    (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  then have "bij_betw f (Field r) (Field r')" and emb: "embed r r' f"
+    by (auto simp: bij_betw_def iso_def)
+  then obtain g where g: "\<And>x. x \<in> Field r \<Longrightarrow> g (f x) = x"
+    by (auto simp: bij_betw_iff_bijections)
+  moreover
+  have "(a, b) \<in> r" if "a \<in> Field r" "b \<in> Field r" "(f a, f b) \<in> r'" for a b 
+    using that emb g g [OF FieldI1] \<comment>\<open>yes it's weird\<close>
+    by (force simp add: embed_def under_def bij_betw_iff_bijections)
+  ultimately show ?rhs
+    using L by (auto simp: compat_def iso_def dest: embed_compat)
 next
-  let ?f' = "inv_into (Field r) f"
-  assume "embed r r' f" and 1: "bij_betw f (Field r) (Field r')"
-  hence "embed r' r ?f'" using assms
-  by (auto simp add: inv_into_Field_embed_bij_betw)
-  hence 2: "compat r' r ?f'" using embed_compat[of r'] by auto
-  fix a b assume *: "a \<in> Field r" "b \<in> Field r" and **: "(f a,f b) \<in> r'"
-  hence "?f'(f a) = a \<and> ?f'(f b) = b" using 1
-  by (auto simp add: bij_betw_inv_into_left)
-  thus "(a,b) \<in> r" using ** 2 compat_def[of r' r ?f'] by fastforce
-next
-  assume *: "bij_betw f (Field r) (Field r')" and
-         **: "\<forall>a\<in>Field r. \<forall>b\<in>Field r. ((a, b) \<in> r) = ((f a, f b) \<in> r')"
-  have 1: "\<And> a. under r a \<le> Field r \<and> under r' (f a) \<le> Field r'"
-  by (auto simp add: under_Field)
-  have 2: "inj_on f (Field r)" using * by (auto simp add: bij_betw_def)
-  {fix a assume ***: "a \<in> Field r"
-   have "bij_betw f (under r a) (under r' (f a))"
-   proof(unfold bij_betw_def, auto)
-     show "inj_on f (under r a)" using 1 2 subset_inj_on by blast
-   next
-     fix b assume "b \<in> under r a"
-     hence "a \<in> Field r \<and> b \<in> Field r \<and> (b,a) \<in> r"
-     unfolding under_def by (auto simp add: Field_def Range_def Domain_def)
-     with 1 ** show "f b \<in> under r' (f a)"
-     unfolding under_def by auto
-   next
-     fix b' assume "b' \<in> under r' (f a)"
-     hence 3: "(b',f a) \<in> r'" unfolding under_def by simp
-     hence "b' \<in> Field r'" unfolding Field_def by auto
-     with * obtain b where "b \<in> Field r \<and> f b = b'"
-     unfolding bij_betw_def by force
-     with 3 ** ***
-     show "b' \<in> f ` (under r a)" unfolding under_def by blast
-   qed
-  }
-  thus "embed r r' f" unfolding embed_def using * by auto
+  assume R: ?rhs
+  then show ?lhs
+    apply (clarsimp simp add: iso_def embed_def under_def bij_betw_iff_bijections)
+    apply (rule_tac x="g" in exI)
+    apply (fastforce simp add: intro: FieldI1)+
+    done
 qed
 
 lemma iso_iff3:

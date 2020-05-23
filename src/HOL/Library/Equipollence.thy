@@ -98,21 +98,6 @@ lemma lepoll_Pow_self: "A \<lesssim> Pow A"
       by (auto simp: inj_on_def)
 qed auto
 
-lemma bij_betw_iff_bijections:
-  "bij_betw f A B \<longleftrightarrow> (\<exists>g. (\<forall>x \<in> A. f x \<in> B \<and> g(f x) = x) \<and> (\<forall>y \<in> B. g y \<in> A \<and> f(g y) = y))"
-  (is "?lhs = ?rhs")
-proof
-  assume L: ?lhs
-  then show ?rhs
-    apply (rule_tac x="the_inv_into A f" in exI)
-    apply (auto simp: bij_betw_def f_the_inv_into_f the_inv_into_f_f the_inv_into_into)
-    done
-next
-  assume ?rhs
-  then show ?lhs
-    by (auto simp: bij_betw_def inj_on_def image_def; metis)
-qed
-
 lemma eqpoll_iff_bijections:
    "A \<approx> B \<longleftrightarrow> (\<exists>f g. (\<forall>x \<in> A. f x \<in> B \<and> g(f x) = x) \<and> (\<forall>y \<in> B. g y \<in> A \<and> f(g y) = y))"
     by (auto simp: eqpoll_def bij_betw_iff_bijections)

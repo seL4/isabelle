@@ -6117,6 +6117,67 @@ lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. strict_sorted 
   by (simp add: Uniq_def strict_sorted_equal)
 
 
+lemma length_sorted_list_of_set [simp]:
+  fixes A :: "'a::linorder set" 
+  shows "length (sorted_list_of_set A) = card A"
+proof (cases "finite A")
+  case True
+  then show ?thesis 
+    by(metis distinct_card distinct_sorted_list_of_set set_sorted_list_of_set)
+qed auto
+
+lemma sorted_list_of_set_inject:
+  fixes A :: "'a::linorder set" 
+  assumes "sorted_list_of_set A = sorted_list_of_set B" "finite A" "finite B" 
+  shows "A = B"
+  using assms set_sorted_list_of_set by fastforce
+
+lemma sorted_list_of_set_unique:
+  fixes A :: "'a::linorder set" 
+  assumes "finite A"
+  shows "strict_sorted l \<and> List.set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
+  using assms strict_sorted_equal by force
+
+
+lemma sorted_list_of_set_lessThan_Suc [simp]: 
+  "sorted_list_of_set {..<Suc k} = sorted_list_of_set {..<k} @ [k]"
+proof -
+  have "sorted_wrt (<) (sorted_list_of_set {..<k} @ [k])"
+    unfolding sorted_wrt_append  by (auto simp flip: strict_sorted_sorted_wrt)
+  then show ?thesis
+    by (simp add: lessThan_atLeast0)
+qed
+
+lemma sorted_list_of_set_atMost_Suc [simp]:
+  "sorted_list_of_set {..Suc k} = sorted_list_of_set {..k} @ [Suc k]"
+  using lessThan_Suc_atMost sorted_list_of_set_lessThan_Suc by fastforce
+
+lemma sorted_list_of_set_greaterThanLessThan:
+  assumes "Suc i < j" 
+    shows "sorted_list_of_set {i<..<j} = Suc i # sorted_list_of_set {Suc i<..<j}"
+proof -
+  have "{i<..<j} = insert (Suc i) {Suc i<..<j}"
+    using assms by auto
+  then show ?thesis
+    by (metis assms atLeastSucLessThan_greaterThanLessThan sorted_list_of_set_range upt_conv_Cons)
+qed
+
+lemma sorted_list_of_set_greaterThanAtMost:
+  assumes "Suc i \<le> j" 
+    shows "sorted_list_of_set {i<..j} = Suc i # sorted_list_of_set {Suc i<..j}"
+  using sorted_list_of_set_greaterThanLessThan [of i "Suc j"]
+  by (metis assms greaterThanAtMost_def greaterThanLessThan_eq le_imp_less_Suc lessThan_Suc_atMost)
+
+lemma nth_sorted_list_of_set_greaterThanLessThan: 
+  "n < j - Suc i \<Longrightarrow> sorted_list_of_set {i<..<j} ! n = Suc (i+n)"
+  by (induction n arbitrary: i) (auto simp: sorted_list_of_set_greaterThanLessThan)
+
+lemma nth_sorted_list_of_set_greaterThanAtMost: 
+  "n < j - i \<Longrightarrow> sorted_list_of_set {i<..j} ! n = Suc (i+n)"
+  using nth_sorted_list_of_set_greaterThanLessThan [of n "Suc j" i]
+  by (simp add: greaterThanAtMost_def greaterThanLessThan_eq lessThan_Suc_atMost)
+
+
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
 
 inductive_set
