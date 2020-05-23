@@ -17,10 +17,12 @@ import scala.tools.nsc.interpreter.IMain
 
 object Scala
 {
-  /* compiler */
+  /** compiler **/
 
   object Compiler
   {
+    lazy val default_context: Context = context()
+
     def context(
       error: String => Unit = Exn.error,
       jar_dirs: List[JFile] = Nil): Context =
