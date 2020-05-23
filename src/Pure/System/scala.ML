@@ -10,6 +10,7 @@ sig
   val function: string -> string -> string
   val function_yxml: string -> XML.body -> XML.body
   exception Null
+  val check: string -> unit
 end;
 
 structure Scala: SCALA =
@@ -69,5 +70,16 @@ val _ =
     (fn [id, tag, res] =>
       fulfill id tag res
         handle exn => if Exn.is_interrupt exn then () else Exn.reraise exn);
+
+
+
+(** check source snippet **)
+
+fun check source =
+  let val errors =
+    function "scala_check" source
+    |> YXML.parse_body
+    |> let open XML.Decode in list string end
+  in if null errors then () else error (cat_lines errors) end;
 
 end;
