@@ -82,6 +82,6 @@ object Word
 
   /* brackets */
 
-  val open_brackets = "([{«‹⟨⌈⌊⦇⟦⦃"
-  val close_brackets = ")]}»›⟩⌉⌋⦈⟧⦄"
+  val open_brackets = "([{«‹⟨⌈⌊⦇⟦⦃⟪"
+  val close_brackets = ")]}»›⟩⌉⌋⦈⟧⦄⟫"
 }
