@@ -59,7 +59,7 @@ object Scala
       val Error = """(?s)^\S* error: (.*)$""".r
       val errors =
         space_explode('\u0001', Library.strip_ansi_color(out.toString)).
-          collect({ case Error(msg) => Word.capitalize(Library.trim_line(msg)) })
+          collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
 
       if (!ok && errors.isEmpty) List("Error") else errors
     }
