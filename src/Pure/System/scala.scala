@@ -84,53 +84,44 @@ object Scala
 
 
 
-  /** invoke JVM method via Isabelle/Scala **/
+  /** invoke Scala functions from ML **/
 
-  /* method reflection */
+  /* registered functions */
 
-  private val Ext = new Regex("(.*)\\.([^.]*)")
-  private val STRING = Class.forName("java.lang.String")
+  object Fun
+  {
+    def apply(name: String, fn: String => String): Fun =
+      new Fun(name, fn, false)
 
-  private def get_method(name: String): String => String =
-    name match {
-      case Ext(class_name, method_name) =>
-        val m =
-          try { Class.forName(class_name).getMethod(method_name, STRING) }
-          catch {
-            case _: ClassNotFoundException | _: NoSuchMethodException =>
-              error("No such method: " + quote(name))
-          }
-        if (!Modifier.isStatic(m.getModifiers)) error("Not at static method: " + m.toString)
-        if (m.getReturnType != STRING) error("Bad method return type: " + m.toString)
+    def yxml(name: String, fn: XML.Body => XML.Body): Fun =
+      new Fun(name, s => YXML.string_of_body(fn(YXML.parse_body(s))), true)
+  }
+  class Fun private(val name: String, val fn: String => String, val yxml: Boolean)
+  {
+    def decl: (String, Boolean) = (name, yxml)
+  }
 
-        (arg: String) => {
-          try { m.invoke(null, arg).asInstanceOf[String] }
-          catch {
-            case e: InvocationTargetException if e.getCause != null =>
-              throw e.getCause
-          }
-        }
-      case _ => error("Malformed method name: " + quote(name))
-    }
+  lazy val functions: List[Fun] =
+    Isabelle_System.services.collect { case c: Isabelle_Scala_Functions => c.functions.toList }.flatten
 
 
-  /* method invocation */
+  /* invoke function */
 
   object Tag extends Enumeration
   {
     val NULL, OK, ERROR, FAIL, INTERRUPT = Value
   }
 
-  def method(name: String, arg: String): (Tag.Value, String) =
-    Exn.capture { get_method(name) } match {
-      case Exn.Res(f) =>
-        Exn.capture { f(arg) } match {
+  def function(name: String, arg: String): (Tag.Value, String) =
+    functions.collectFirst({ case fun if fun.name == name => fun.fn }) match {
+      case Some(fn) =>
+        Exn.capture { fn(arg) } match {
           case Exn.Res(null) => (Tag.NULL, "")
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, "")
           case Exn.Exn(e) => (Tag.ERROR, Exn.message(e))
         }
-      case Exn.Exn(e) => (Tag.FAIL, Exn.message(e))
+      case None => (Tag.FAIL, "Unknown Isabelle/Scala function: " + quote(name))
     }
 }
 
@@ -172,7 +163,7 @@ class Scala extends Session.Protocol_Handler
       case Markup.Invoke_Scala(name, id) =>
         futures += (id ->
           Future.fork {
-            val (tag, result) = Scala.method(name, msg.text)
+            val (tag, result) = Scala.function(name, msg.text)
             fulfill(id, tag, result)
           })
         true
@@ -198,3 +189,13 @@ class Scala extends Session.Protocol_Handler
       Markup.Invoke_Scala.name -> invoke_scala,
       Markup.Cancel_Scala.name -> cancel_scala)
 }
+
+
+/* registered functions */
+
+class Isabelle_Scala_Functions(val functions: Scala.Fun*) extends Isabelle_System.Service
+
+class Functions extends Isabelle_Scala_Functions(
+  Scala.Fun("echo", identity),
+  Scala.Fun.yxml("echo_yxml", identity),
+  Scala.Fun("check_bibtex_database", Bibtex.check_database_yxml))

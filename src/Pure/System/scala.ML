@@ -6,15 +6,16 @@ Support for Scala at runtime.
 
 signature SCALA =
 sig
-  val method: string -> string -> string
-  val promise_method: string -> string -> string future
+  val promise_function: string -> string -> string future
+  val function: string -> string -> string
+  val function_yxml: string -> XML.body -> XML.body
   exception Null
 end;
 
 structure Scala: SCALA =
 struct
 
-(** invoke JVM method via Isabelle/Scala **)
+(** invoke Scala functions from ML **)
 
 val _ = Session.protocol_handler "isabelle.Scala";
 
@@ -27,9 +28,9 @@ val promises =
   Synchronized.var "Scala.promises" (Symtab.empty: string future Symtab.table);
 
 
-(* method invocation *)
+(* invoke function *)
 
-fun promise_method name arg =
+fun promise_function name arg =
   let
     val id = new_id ();
     fun abort () = Output.protocol_message (Markup.cancel_scala id) [];
@@ -38,7 +39,9 @@ fun promise_method name arg =
     val _ = Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg];
   in promise end;
 
-fun method name arg = Future.join (promise_method name arg);
+fun function name arg = Future.join (promise_function name arg);
+
+fun function_yxml name = YXML.string_of_body #> function name #> YXML.parse_body;
 
 
 (* fulfill *)

@@ -20,7 +20,7 @@ struct
 type message = string * Position.T;
 
 fun check_database pos0 database =
-  Scala.method "isabelle.Bibtex.check_database_yxml" database
+  Scala.function "check_bibtex_database" database
   |> YXML.parse_body
   |> let open XML.Decode in pair (list (pair string properties)) (list (pair string properties)) end
   |> (apply2 o map o apsnd) (fn pos => Position.of_properties (pos @ Position.get_props pos0));
