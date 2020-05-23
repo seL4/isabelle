@@ -11,7 +11,7 @@ import java.lang.reflect.{Modifier, InvocationTargetException}
 import java.io.{File => JFile, StringWriter, PrintWriter}
 
 import scala.util.matching.Regex
-import scala.tools.nsc.GenericRunnerSettings
+import scala.tools.nsc.{GenericRunnerSettings, ConsoleWriter, NewLinePrintWriter}
 import scala.tools.nsc.interpreter.IMain
 
 
@@ -21,7 +21,9 @@ object Scala
 
   object Compiler
   {
-    def classpath(jar_dirs: List[JFile]): String =
+    def context(
+      error: String => Unit = Exn.error,
+      jar_dirs: List[JFile] = Nil): Context =
     {
       def find_jars(dir: JFile): List[String] =
         File.find_files(dir, file => file.getName.endsWith(".jar")).
@@ -34,34 +36,45 @@ object Scala
           elem <- space_explode(JFile.pathSeparatorChar, path)
         } yield elem
 
-      (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
-    }
-
-    type Settings = scala.tools.nsc.Settings
-
-    def settings(
-      error: String => Unit = Exn.error,
-      jar_dirs: List[JFile] = Nil): Settings =
-    {
       val settings = new GenericRunnerSettings(error)
-      settings.classpath.value = classpath(jar_dirs)
-      settings
+      settings.classpath.value =
+        (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+
+      new Context(settings)
     }
 
-    def toplevel(settings: Settings, source: String): List[String] =
+    def default_print_writer: PrintWriter =
+      new NewLinePrintWriter(new ConsoleWriter, true)
+
+    class Context private [Compiler](val settings: GenericRunnerSettings)
     {
-      val out = new StringWriter
-      val interp = new IMain(settings, new PrintWriter(out))
-      val rep = new interp.ReadEvalPrint
-      val ok = interp.withLabel("\u0001") { rep.compile(source) }
-      out.close
+      def interpreter(
+        print_writer: PrintWriter = default_print_writer,
+        class_loader: ClassLoader = null): IMain =
+      {
+        new IMain(settings, print_writer)
+        {
+          override def parentClassLoader: ClassLoader =
+            if (class_loader == null) super.parentClassLoader
+            else class_loader
+        }
+      }
 
-      val Error = """(?s)^\S* error: (.*)$""".r
-      val errors =
-        space_explode('\u0001', Library.strip_ansi_color(out.toString)).
-          collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
+      def toplevel(source: String): List[String] =
+      {
+        val out = new StringWriter
+        val interp = interpreter(new PrintWriter(out))
+        val rep = new interp.ReadEvalPrint
+        val ok = interp.withLabel("\u0001") { rep.compile(source) }
+        out.close
 
-      if (!ok && errors.isEmpty) List("Error") else errors
+        val Error = """(?s)^\S* error: (.*)$""".r
+        val errors =
+          space_explode('\u0001', Library.strip_ansi_color(out.toString)).
+            collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
+
+        if (!ok && errors.isEmpty) List("Error") else errors
+      }
     }
   }
 

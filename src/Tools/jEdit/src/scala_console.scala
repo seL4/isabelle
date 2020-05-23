@@ -12,7 +12,6 @@ import isabelle._
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader
 import java.io.{OutputStream, Writer, PrintWriter}
-import scala.tools.nsc.interpreter.IMain
 
 
 class Scala_Console extends Shell("Scala")
@@ -100,13 +99,11 @@ class Scala_Console extends Shell("Scala")
     private val running = Synchronized[Option[Thread]](None)
     def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
 
-    private val settings =
-      Scala.Compiler.settings(error = report_error, jar_dirs = JEdit_Lib.directories)
-
-    private val interp = new IMain(settings, new PrintWriter(console_writer, true))
-    {
-      override def parentClassLoader = new JARClassLoader
-    }
+    private val interp =
+      Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).
+        interpreter(
+          print_writer = new PrintWriter(console_writer, true),
+          class_loader = new JARClassLoader)
 
     val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console")
     {
