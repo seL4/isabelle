@@ -100,18 +100,7 @@ object Scala
 
   /* registered functions */
 
-  object Fun
-  {
-    def apply(name: String, fn: String => String): Fun =
-      new Fun(name, fn, false)
-
-    def yxml(name: String, fn: XML.Body => XML.Body): Fun =
-      new Fun(name, s => YXML.string_of_body(fn(YXML.parse_body(s))), true)
-  }
-  class Fun private(val name: String, val fn: String => String, val yxml: Boolean)
-  {
-    def decl: (String, Boolean) = (name, yxml)
-  }
+  sealed case class Fun(name: String, apply: String => String)
 
   lazy val functions: List[Fun] =
     Isabelle_System.services.collect { case c: Isabelle_Scala_Functions => c.functions.toList }.flatten
@@ -125,9 +114,9 @@ object Scala
   }
 
   def function(name: String, arg: String): (Tag.Value, String) =
-    functions.collectFirst({ case fun if fun.name == name => fun.fn }) match {
-      case Some(fn) =>
-        Exn.capture { fn(arg) } match {
+    functions.find(fun => fun.name == name) match {
+      case Some(fun) =>
+        Exn.capture { fun.apply(arg) } match {
           case Exn.Res(null) => (Tag.NULL, "")
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, "")
@@ -209,6 +198,5 @@ class Isabelle_Scala_Functions(val functions: Scala.Fun*) extends Isabelle_Syste
 
 class Functions extends Isabelle_Scala_Functions(
   Scala.Fun("echo", identity),
-  Scala.Fun.yxml("echo_yxml", identity),
   Scala.Fun("scala_check", Scala.check_yxml),
   Scala.Fun("check_bibtex_database", Bibtex.check_database_yxml))

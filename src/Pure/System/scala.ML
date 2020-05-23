@@ -8,7 +8,6 @@ signature SCALA =
 sig
   val promise_function: string -> string -> string future
   val function: string -> string -> string
-  val function_yxml: string -> XML.body -> XML.body
   exception Null
   val check: string -> unit
 end;
@@ -41,8 +40,6 @@ fun promise_function name arg =
   in promise end;
 
 fun function name arg = Future.join (promise_function name arg);
-
-fun function_yxml name = YXML.string_of_body #> function name #> YXML.parse_body;
 
 
 (* fulfill *)
