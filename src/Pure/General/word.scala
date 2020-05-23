@@ -77,7 +77,7 @@ object Word
     explode(_ == sep, text)
 
   def explode(text: String): List[String] =
-    explode(Character.isWhitespace(_), text)
+    explode(Character.isWhitespace _, text)
 
 
   /* brackets */
