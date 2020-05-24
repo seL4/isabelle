@@ -276,11 +276,9 @@ fun worker_loop name =
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   let
-    val threads_stack_limit =
-      Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
-    val stack_limit = if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit;
     val worker =
-      Isabelle_Thread.fork {name = "worker", stack_limit = stack_limit, interrupts = false}
+      Isabelle_Thread.fork
+        {name = "worker", stack_limit = Isabelle_Thread.stack_limit (), interrupts = false}
         (fn () => worker_loop name);
   in Unsynchronized.change workers (cons (worker, Unsynchronized.ref Working)) end
   handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
