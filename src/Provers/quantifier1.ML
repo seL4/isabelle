@@ -64,13 +64,11 @@ end;
 
 signature QUANTIFIER1 =
 sig
-  val prove_one_point_all_tac: Proof.context -> tactic
-  val prove_one_point_ex_tac: Proof.context -> tactic
   val rearrange_all: Proof.context -> cterm -> thm option
   val rearrange_All: Proof.context -> cterm -> thm option
-  val rearrange_ex: Proof.context -> cterm -> thm option
-  val rearrange_ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
-  val rearrange_bex: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
+  val rearrange_Ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
+  val rearrange_Ex: Proof.context -> cterm -> thm option
+  val rearrange_Bex: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
   val rearrange_Collect: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
 end;
 
@@ -158,7 +156,7 @@ fun qcomm_tac ctxt qcomm qI i =
 local
   val excomm = Data.ex_comm RS Data.iff_trans;
 in
-  fun prove_one_point_ex_tac ctxt =
+  fun prove_one_point_Ex_tac ctxt =
     qcomm_tac ctxt excomm Data.iff_exI 1 THEN resolve_tac ctxt [Data.iffI] 1 THEN
     ALLGOALS
       (EVERY' [eresolve_tac ctxt [Data.exE], REPEAT_DETERM o eresolve_tac ctxt [Data.conjE],
@@ -180,13 +178,13 @@ local
   val all_comm = Data.all_comm RS Data.iff_trans;
   val All_comm = @{thm swap_params [THEN transitive]};
 in
-  fun prove_one_point_all_tac ctxt =
+  fun prove_one_point_All_tac ctxt =
     EVERY1 [qcomm_tac ctxt all_comm Data.iff_allI,
       resolve_tac ctxt [Data.iff_allI],
       resolve_tac ctxt [Data.iffI],
       tac ctxt,
       tac ctxt];
-  fun prove_one_point_All_tac ctxt =
+  fun prove_one_point_all_tac ctxt =
     EVERY1 [qcomm_tac ctxt All_comm @{thm equal_allI},
       resolve_tac ctxt [@{thm equal_allI}],
       resolve_tac ctxt [@{thm equal_intr_rule}],
@@ -222,24 +220,24 @@ fun quantify qC x T xs P =
 fun rearrange_all ctxt ct =
   (case Thm.term_of ct of
     F as (all as Const (q, _)) $ Abs (x, T, P) =>
-      (case extract_quant ctxt (K extract_imp) q P of
+      (case extract_quant ctxt extract_implies q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
-          let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_all_tac)) end)
+          let val R = quantify all x T xs (Logic.implies $ eq $ Q)
+            in SOME (prove_conv ctxt (F, R) prove_one_point_all_tac) end)
   | _ => NONE);
 
 fun rearrange_All ctxt ct =
   (case Thm.term_of ct of
     F as (all as Const (q, _)) $ Abs (x, T, P) =>
-      (case extract_quant ctxt extract_implies q P of
+      (case extract_quant ctxt (K extract_imp) q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
-          let val R = quantify all x T xs (Logic.implies $ eq $ Q)
-            in SOME (prove_conv ctxt (F, R) prove_one_point_All_tac) end)
+          let val R = quantify all x T xs (Data.imp $ eq $ Q)
+          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_All_tac)) end)
   | _ => NONE);
 
-fun rearrange_ball tac ctxt ct =
+fun rearrange_Ball tac ctxt ct =
   (case Thm.term_of ct of
     F as Ball $ A $ Abs (x, T, P) =>
       (case extract_imp true [] P of
@@ -248,27 +246,29 @@ fun rearrange_ball tac ctxt ct =
           if not (null xs) then NONE
           else
             let val R = Data.imp $ eq $ Q
-            in SOME (prove_conv ctxt (F, Ball $ A $ Abs (x, T, R)) (iff_reflection_tac THEN' tac)) end)
+            in SOME (prove_conv ctxt (F, Ball $ A $ Abs (x, T, R))
+              (iff_reflection_tac THEN' tac THEN' prove_one_point_All_tac)) end)
   | _ => NONE);
 
-fun rearrange_ex ctxt ct =
+fun rearrange_Ex ctxt ct =
   (case Thm.term_of ct of
     F as (ex as Const (q, _)) $ Abs (x, T, P) =>
       (case extract_quant ctxt (K extract_conj) q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_ex_tac)) end)
+          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_Ex_tac)) end)
   | _ => NONE);
 
-fun rearrange_bex tac ctxt ct =
+fun rearrange_Bex tac ctxt ct =
   (case Thm.term_of ct of
     F as Bex $ A $ Abs (x, T, P) =>
       (case extract_conj true [] P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           if not (null xs) then NONE
-          else SOME (prove_conv ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q)) (iff_reflection_tac THEN' tac)))
+          else SOME (prove_conv ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q))
+            (iff_reflection_tac THEN' tac THEN' prove_one_point_Ex_tac)))
   | _ => NONE);
 
 fun rearrange_Collect tac ctxt ct =

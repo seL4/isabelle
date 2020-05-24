@@ -350,17 +350,13 @@ declaration \<open>fn _ =>
 text \<open>Setting up the one-point-rule simproc\<close>
 
 simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = \<open>
-  fn _ => Quantifier1.rearrange_bex
-    (fn ctxt =>
-      unfold_tac ctxt @{thms rex_def} THEN
-      Quantifier1.prove_one_point_ex_tac ctxt)
+  fn _ => Quantifier1.rearrange_Bex
+    (fn ctxt => unfold_tac ctxt @{thms rex_def})
 \<close>
 
 simproc_setup defined_rall ("\<forall>x[M]. P(x) \<longrightarrow> Q(x)") = \<open>
-  fn _ => Quantifier1.rearrange_ball
-    (fn ctxt =>
-      unfold_tac ctxt @{thms rall_def} THEN
-      Quantifier1.prove_one_point_all_tac ctxt)
+  fn _ => Quantifier1.rearrange_Ball
+    (fn ctxt => unfold_tac ctxt @{thms rall_def})
 \<close>
 
 end

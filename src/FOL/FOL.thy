@@ -337,8 +337,8 @@ lemmas cla_simps =
 
 ML_file \<open>simpdata.ML\<close>
 
-simproc_setup defined_Ex (\<open>\<exists>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_ex\<close>
-simproc_setup defined_All (\<open>\<forall>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_all\<close>
+simproc_setup defined_Ex (\<open>\<exists>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_Ex\<close>
+simproc_setup defined_All (\<open>\<forall>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_All\<close>
 
 ML \<open>
 (*intuitionistic simprules only*)

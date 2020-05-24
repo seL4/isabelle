@@ -330,17 +330,13 @@ let
 \<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P x \<and> Q x") = \<open>
-  fn _ => Quantifier1.rearrange_bex
-    (fn ctxt =>
-      unfold_tac ctxt @{thms Bex_def} THEN
-      Quantifier1.prove_one_point_ex_tac ctxt)
+  fn _ => Quantifier1.rearrange_Bex
+    (fn ctxt => unfold_tac ctxt @{thms Bex_def})
 \<close>
 
 simproc_setup defined_All ("\<forall>x\<in>A. P x \<longrightarrow> Q x") = \<open>
-  fn _ => Quantifier1.rearrange_ball
-    (fn ctxt =>
-      unfold_tac ctxt @{thms Ball_def} THEN
-      Quantifier1.prove_one_point_all_tac ctxt)
+  fn _ => Quantifier1.rearrange_Ball
+    (fn ctxt => unfold_tac ctxt @{thms Ball_def})
 \<close>
 
 lemma ballI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> P x) \<Longrightarrow> \<forall>x\<in>A. P x"
