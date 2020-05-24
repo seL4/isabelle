@@ -42,23 +42,23 @@ by(simp_all add: bal.simps)
 lemma bal_inorder:
   "\<lbrakk> n \<le> length xs; bal n xs = (t,zs) \<rbrakk>
   \<Longrightarrow> xs = inorder t @ zs \<and> size t = n"
-proof(induction n xs arbitrary: t zs rule: bal.induct)
-  case (1 n xs) show ?case
+proof(induction n arbitrary: xs t zs rule: less_induct)
+  case (less n) show ?case
   proof cases
-    assume "n = 0" thus ?thesis using 1 by (simp add: bal_simps)
+    assume "n = 0" thus ?thesis using less.prems by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     let ?m = "n div 2" let ?m' = "n - 1 - ?m"
-    from "1.prems"(2) obtain l r ys where
+    from less.prems(2) obtain l r ys where
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
       by(auto simp: bal_simps split: prod.splits)
     have IH1: "xs = inorder l @ ys \<and> size l = ?m"
-      using b1 "1.prems"(1) by(intro "1.IH"(1)) auto
+      using b1 less.prems(1) by(intro less.IH) auto
     have IH2: "tl ys = inorder r @ zs \<and> size r = ?m'"
-      using b1 b2 IH1 "1.prems"(1) by(intro "1.IH"(2)) auto
-    show ?thesis using t IH1 IH2  "1.prems"(1) hd_Cons_tl[of ys] by fastforce
+      using  b2 IH1 less.prems(1) by(intro less.IH) auto
+    show ?thesis using t IH1 IH2 less.prems(1) hd_Cons_tl[of ys] by fastforce
   qed
 qed
 
@@ -102,24 +102,24 @@ by(simp add: balance_tree_def)
 
 lemma min_height_bal:
   "\<lbrakk> n \<le> length xs; bal n xs = (t,zs) \<rbrakk> \<Longrightarrow> min_height t = nat(\<lfloor>log 2 (n + 1)\<rfloor>)"
-proof(induction n xs arbitrary: t zs rule: bal.induct)
-  case (1 n xs)
+proof(induction n arbitrary: xs t zs rule: less_induct)
+  case (less n)
   show ?case
   proof cases
-    assume "n = 0" thus ?thesis using "1.prems"(2) by (simp add: bal_simps)
+    assume "n = 0" thus ?thesis using less.prems(2) by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     let ?m = "n div 2" let ?m' = "n - 1 - ?m"
-    from "1.prems" obtain l r ys where
+    from less.prems obtain l r ys where
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
       by(auto simp: bal_simps split: prod.splits)
     let ?hl = "nat (floor(log 2 (?m + 1)))"
     let ?hr = "nat (floor(log 2 (?m' + 1)))"
-    have IH1: "min_height l = ?hl" using "1.IH"(1) b1 "1.prems"(1) by simp
+    have IH1: "min_height l = ?hl" using less.IH[OF _ _ b1] less.prems(1) by simp
     have IH2: "min_height r = ?hr"
-      using "1.prems"(1) bal_length[OF _ b1] b1 b2 by(intro "1.IH"(2)) auto
+      using less.prems(1) bal_length[OF _ b1] b2 by(intro less.IH) auto
     have "(n+1) div 2 \<ge> 1" by arith
     hence 0: "log 2 ((n+1) div 2) \<ge> 0" by simp
     have "?m' \<le> ?m" by arith
@@ -138,24 +138,24 @@ qed
 
 lemma height_bal:
   "\<lbrakk> n \<le> length xs; bal n xs = (t,zs) \<rbrakk> \<Longrightarrow> height t = nat \<lceil>log 2 (n + 1)\<rceil>"
-proof(induction n xs arbitrary: t zs rule: bal.induct)
-  case (1 n xs) show ?case
+proof(induction n arbitrary: xs t zs rule: less_induct)
+  case (less n) show ?case
   proof cases
     assume "n = 0" thus ?thesis
-      using "1.prems" by (simp add: bal_simps)
+      using less.prems by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     let ?m = "n div 2" let ?m' = "n - 1 - ?m"
-    from "1.prems" obtain l r ys where
+    from less.prems obtain l r ys where
       b1: "bal ?m xs = (l,ys)" and
       b2: "bal ?m' (tl ys) = (r,zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
       by(auto simp: bal_simps split: prod.splits)
     let ?hl = "nat \<lceil>log 2 (?m + 1)\<rceil>"
     let ?hr = "nat \<lceil>log 2 (?m' + 1)\<rceil>"
-    have IH1: "height l = ?hl" using "1.IH"(1) b1 "1.prems"(1) by simp
+    have IH1: "height l = ?hl" using less.IH[OF _ _ b1] less.prems(1) by simp
     have IH2: "height r = ?hr"
-      using b1 b2 bal_length[OF _ b1] "1.prems"(1) by(intro "1.IH"(2)) auto
+      using b2 bal_length[OF _ b1] less.prems(1) by(intro less.IH) auto
     have 0: "log 2 (?m + 1) \<ge> 0" by simp
     have "?m' \<le> ?m" by arith
     hence le: "?hr \<le> ?hl"
@@ -205,23 +205,23 @@ corollary balanced_balance_tree[simp]: "balanced (balance_tree t)"
 by (simp add: balance_tree_def)
 
 lemma wbalanced_bal: "\<lbrakk> n \<le> length xs; bal n xs = (t,ys) \<rbrakk> \<Longrightarrow> wbalanced t"
-proof(induction n xs arbitrary: t ys rule: bal.induct)
-  case (1 n xs)
+proof(induction n arbitrary: xs t ys rule: less_induct)
+  case (less n)
   show ?case
   proof cases
     assume "n = 0"
-    thus ?thesis using "1.prems"(2) by(simp add: bal_simps)
+    thus ?thesis using less.prems(2) by(simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
-    with "1.prems" obtain l ys r zs where
+    with less.prems obtain l ys r zs where
       rec1: "bal (n div 2) xs = (l, ys)" and
       rec2: "bal (n - 1 - n div 2) (tl ys) = (r, zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
       by(auto simp add: bal_simps split: prod.splits)
-    have l: "wbalanced l" using "1.IH"(1)[OF \<open>n\<noteq>0\<close> refl _ rec1] "1.prems"(1) by linarith
+    have l: "wbalanced l" using less.IH[OF _ _ rec1] less.prems(1) by linarith
     have "wbalanced r"
-      using rec1 rec2 bal_length[OF _ rec1] "1.prems"(1) by(intro "1.IH"(2)) auto
-    with l t bal_length[OF _ rec1] "1.prems"(1) bal_inorder[OF _ rec1] bal_inorder[OF _ rec2]
+      using rec1 rec2 bal_length[OF _ rec1] less.prems(1) by(intro less.IH) auto
+    with l t bal_length[OF _ rec1] less.prems(1) bal_inorder[OF _ rec1] bal_inorder[OF _ rec2]
     show ?thesis by auto
   qed
 qed
