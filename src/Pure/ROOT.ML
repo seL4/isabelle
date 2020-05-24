@@ -328,6 +328,7 @@ ML_file "System/command_line.ML";
 ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
 ML_file "System/scala.ML";
+ML_file "System/scala_check.ML";
 ML_file "Thy/bibtex.ML";
 ML_file "PIDE/protocol.ML";
 ML_file "General/output_primitives_virtual.ML";

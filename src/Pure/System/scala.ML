@@ -6,10 +6,11 @@ Support for Scala at runtime.
 
 signature SCALA =
 sig
+  val functions: unit -> string list
+  val check_function: Proof.context -> string * Position.T -> string
   val promise_function: string -> string -> string future
   val function: string -> string -> string
   exception Null
-  val check: string -> unit
 end;
 
 structure Scala: SCALA =
@@ -70,14 +71,37 @@ val _ =
         handle exn => if Exn.is_interrupt exn then () else Exn.reraise exn);
 
 
+(* registered functions *)
 
-(** check source snippet **)
+fun functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 
-fun check source =
-  let val errors =
-    function "scala_check" source
-    |> YXML.parse_body
-    |> let open XML.Decode in list string end
-  in if null errors then () else error (cat_lines errors) end;
+fun check_function ctxt (name, pos) =
+  let
+    val kind = Markup.scala_functionN;
+    val funs = functions ();
+  in
+    if member (op =) funs name then
+      (Context_Position.report ctxt pos (Markup.scala_function name); name)
+    else
+      let
+        val completion_report =
+          Completion.make_report (name, pos)
+            (fn completed =>
+              filter completed funs
+              |> sort_strings
+              |> map (fn a => (a, (kind, a))));
+      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end
+  end;
+
+val _ = Theory.setup
+ (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
+    (Scan.lift Parse.embedded_position) check_function #>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
+    (Args.context -- Scan.lift Parse.embedded_position
+      >> (uncurry check_function #> ML_Syntax.print_string)) #>
+  ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      let val name = check_function ctxt arg
+      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)));
 
 end;

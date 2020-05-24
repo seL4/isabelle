@@ -99,6 +99,9 @@ object Scala
   /* registered functions */
 
   sealed case class Fun(name: String, apply: String => String)
+  {
+    override def toString: String = name
+  }
 
   lazy val functions: List[Fun] =
     Isabelle_System.services.collect { case c: Isabelle_Scala_Functions => c.functions.toList }.flatten

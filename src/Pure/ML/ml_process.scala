@@ -113,6 +113,8 @@ object ML_Process
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
     val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
 
+    val env_functions = Map("ISABELLE_SCALA_FUNCTIONS" -> Scala.functions.mkString(","))
+
     val ml_runtime_options =
     {
       val ml_options = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
@@ -135,7 +137,7 @@ object ML_Process
       "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
         Bash.strings(bash_args),
       cwd = cwd,
-      env = env ++ env_options ++ env_tmp,
+      env = env ++ env_options ++ env_tmp ++ env_functions,
       redirect = redirect,
       cleanup = () =>
         {
