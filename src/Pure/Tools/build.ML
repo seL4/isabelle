@@ -252,13 +252,18 @@ val _ =
     (fn [args_yxml] =>
         let
           val args = decode_args true args_yxml;
-          val (rc, errs) =
-            Future.interruptible_task (fn () => (build_session args; (0, []))) () handle exn =>
-              ((1, Runtime.exn_message_list exn) handle _ (*sic!*) => (2, ["CRASHED"]));
+          fun exec e =
+            if can Theory.get_pure () then
+              Isabelle_Thread.fork
+                {name = "build_session", stack_limit = NONE, interrupts = false} e
+              |> ignore
+            else e ();
         in
-          (rc, errs)
+          exec (fn () =>
+            (Future.interruptible_task (fn () => (build_session args; (0, []))) () handle exn =>
+              ((1, Runtime.exn_message_list exn) handle _ (*sic!*) => (2, ["CRASHED"])))
           |> let open XML.Encode in pair int (list string) end
-          |> Output.protocol_message Markup.build_session_finished
+          |> Output.protocol_message Markup.build_session_finished)
         end
       | _ => raise Match);
 
