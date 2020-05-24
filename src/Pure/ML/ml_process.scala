@@ -93,7 +93,8 @@ object ML_Process
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
 
           List("Resources.init_session" +
-            " {session_positions = " + print_sessions(sessions_structure.session_positions) +
+            "{pide = false" +
+            ", session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +

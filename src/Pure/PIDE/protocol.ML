@@ -28,7 +28,8 @@ val _ =
           YXML.parse_body #> let open XML.Decode in list (pair string properties) end;
       in
         Resources.init_session
-          {session_positions = decode_sessions session_positions_yxml,
+          {pide = true,
+           session_positions = decode_sessions session_positions_yxml,
            session_directories = decode_table session_directories_yxml,
            docs = decode_list doc_names_yxml,
            global_theories = decode_table global_theories_yxml,

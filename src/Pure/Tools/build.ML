@@ -132,7 +132,8 @@ fun build_theories symbols bibtex_entries last_timing qualifier master_dir (opti
 (* build session *)
 
 datatype args = Args of
- {symbol_codes: (string * int) list,
+ {pide: bool,
+  symbol_codes: (string * int) list,
   command_timings: Properties.T list,
   verbose: bool,
   browser_info: Path.T,
@@ -150,7 +151,7 @@ datatype args = Args of
   loaded_theories: string list,
   bibtex_entries: string list};
 
-fun decode_args yxml =
+fun decode_args pide yxml =
   let
     open XML.Decode;
     val position = Position.of_properties o properties;
@@ -167,7 +168,7 @@ fun decode_args yxml =
                   (pair (list (pair string string)) (pair (list string) (list string))))))))))))))))
       (YXML.parse_body yxml);
   in
-    Args {symbol_codes = symbol_codes, command_timings = command_timings,
+    Args {pide = pide, symbol_codes = symbol_codes, command_timings = command_timings,
       verbose = verbose, browser_info = Path.explode browser_info,
       document_files = map (apply2 Path.explode) document_files,
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
@@ -177,7 +178,7 @@ fun decode_args yxml =
       bibtex_entries = bibtex_entries}
   end;
 
-fun build_session (Args {symbol_codes, command_timings, verbose, browser_info, document_files,
+fun build_session (Args {pide, symbol_codes, command_timings, verbose, browser_info, document_files,
     graph_file, parent_name, chapter, session_name, master_dir, theories, session_positions,
     session_directories, doc_names, global_theories, loaded_theories, bibtex_entries}) =
   let
@@ -185,7 +186,8 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info, d
 
     val _ =
       Resources.init_session
-        {session_positions = session_positions,
+        {pide = pide,
+         session_positions = session_positions,
          session_directories = session_directories,
          docs = doc_names,
          global_theories = global_theories,
@@ -233,7 +235,7 @@ fun build args_file =
     val _ = SHA1.test_samples ();
     val _ = Options.load_default ();
     val _ = Isabelle_Process.init_options ();
-    val args = decode_args (File.read (Path.explode args_file));
+    val args = decode_args false (File.read (Path.explode args_file));
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
@@ -253,7 +255,7 @@ val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
         let
-          val args = decode_args args_yxml;
+          val args = decode_args true args_yxml;
           val errs =
             Future.interruptible_task (fn () => (build_session args; [])) () handle exn =>
               (Runtime.exn_message_list exn handle _ (*sic!*) =>

@@ -32,6 +32,7 @@ val promises =
 
 fun promise_function name arg =
   let
+    val _ = if Resources.is_pide () then () else raise Fail "PIDE session required";
     val id = new_id ();
     fun abort () = Output.protocol_message (Markup.cancel_scala id) [];
     val promise = Future.promise_name "invoke_scala" abort : string future;
