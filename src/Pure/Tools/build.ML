@@ -247,25 +247,18 @@ fun build args_file =
 
 (* PIDE version *)
 
-fun build_session_finished errs =
-  XML.Encode.list XML.Encode.string errs
-  |> Output.protocol_message Markup.build_session_finished;
-
 val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
         let
           val args = decode_args true args_yxml;
-          val errs =
-            Future.interruptible_task (fn () => (build_session args; [])) () handle exn =>
-              (Runtime.exn_message_list exn handle _ (*sic!*) =>
-                (build_session_finished ["CRASHED"];
-                  raise Isabelle_Process.STOP 2));
-          val _ = build_session_finished errs;
+          val (rc, errs) =
+            Future.interruptible_task (fn () => (build_session args; (0, []))) () handle exn =>
+              ((1, Runtime.exn_message_list exn) handle _ (*sic!*) => (2, ["CRASHED"]));
         in
-          if null errs
-          then raise Isabelle_Process.STOP 0
-          else raise Isabelle_Process.STOP 1
+          (rc, errs)
+          |> let open XML.Encode in pair int (list string) end
+          |> Output.protocol_message Markup.build_session_finished
         end
       | _ => raise Match);
 

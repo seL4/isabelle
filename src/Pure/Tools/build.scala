@@ -234,15 +234,23 @@ object Build
 
               private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
               {
-                val errors =
+                val (rc, errors) =
                   try {
-                    for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text)))
-                    yield {
-                      val prt = Protocol_Message.expose_no_reports(err)
-                      Pretty.string_of(prt, metric = Symbol.Metric)
+                    val (rc, errs) =
+                    {
+                      import XML.Decode._
+                      pair(int, list(x => x))(Symbol.decode_yxml(msg.text))
                     }
+                    val errors =
+                      for (err <- errs) yield {
+                        val prt = Protocol_Message.expose_no_reports(err)
+                        Pretty.string_of(prt, metric = Symbol.Metric)
+                      }
+                    (rc, errors)
                   }
-                  catch { case ERROR(err) => List(err) }
+                  catch { case ERROR(err) => (2, List(err)) }
+
+                session.protocol_command("Prover.stop", rc.toString)
                 build_session_errors.fulfill(errors)
                 true
               }

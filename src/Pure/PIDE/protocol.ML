@@ -12,6 +12,10 @@ val _ =
     (fn args => List.app writeln args);
 
 val _ =
+  Isabelle_Process.protocol_command "Prover.stop"
+    (fn [rc] => raise Isabelle_Process.STOP (Value.parse_int rc));
+
+val _ =
   Isabelle_Process.protocol_command "Prover.options"
     (fn [options_yxml] =>
       (Options.set_default (Options.decode (YXML.parse_body options_yxml));
