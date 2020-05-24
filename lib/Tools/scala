@@ -13,5 +13,9 @@ do
   SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
 done
 
+[ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
+unset CLASSPATH
+
 isabelle_scala scala "${SCALA_ARGS[@]}" \
-  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" \
+  -Disabelle.scala.classpath="$(platform_path "$ISABELLE_CLASSPATH")" "$@"

@@ -31,7 +31,7 @@ object Scala
 
       val class_path =
         for {
-          prop <- List("scala.boot.class.path", "java.class.path")
+          prop <- List("isabelle.scala.classpath", "java.class.path")
           path = System.getProperty(prop, "") if path != "\"\""
           elem <- space_explode(JFile.pathSeparatorChar, path)
         } yield elem
