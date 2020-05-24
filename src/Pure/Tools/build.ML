@@ -255,7 +255,8 @@ val _ =
           fun exec e =
             if can Theory.get_pure () then
               Isabelle_Thread.fork
-                {name = "build_session", stack_limit = NONE, interrupts = false} e
+                {name = "build_session", stack_limit = Isabelle_Thread.stack_limit (),
+                  interrupts = false} e
               |> ignore
             else e ();
         in
