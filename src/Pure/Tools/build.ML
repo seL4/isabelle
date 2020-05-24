@@ -260,12 +260,12 @@ val _ =
             Future.interruptible_task (fn () => (build_session args; [])) () handle exn =>
               (Runtime.exn_message_list exn handle _ (*sic!*) =>
                 (build_session_finished ["CRASHED"];
-                  raise Isabelle_Process.EXIT 2));
+                  raise Isabelle_Process.STOP 2));
           val _ = build_session_finished errs;
         in
           if null errs
-          then raise Isabelle_Process.STOP
-          else raise Isabelle_Process.EXIT 1
+          then raise Isabelle_Process.STOP 0
+          else raise Isabelle_Process.STOP 1
         end
       | _ => raise Match);
 
