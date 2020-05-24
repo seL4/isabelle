@@ -8,6 +8,7 @@ signature ISABELLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
   val get_name: unit -> string
+  val stack_limit: unit -> int option
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> Thread.thread
@@ -42,6 +43,12 @@ end;
 
 
 (* fork *)
+
+fun stack_limit () =
+  let
+    val threads_stack_limit =
+      Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
+  in if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit end;
 
 type params = {name: string, stack_limit: int option, interrupts: bool};
 

@@ -144,6 +144,9 @@ object Library
 
   def isolate_substring(s: String): String = new String(s.toCharArray)
 
+  def strip_ansi_color(s: String): String =
+    s.replaceAll("""\u001b\[\d+m""", "")
+
 
   /* quote */
 

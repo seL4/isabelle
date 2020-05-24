@@ -7,8 +7,7 @@ Isabelle process wrapper.
 signature ISABELLE_PROCESS =
 sig
   val is_active: unit -> bool
-  exception STOP
-  exception EXIT of int
+  exception STOP of int
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
@@ -36,10 +35,9 @@ val protocol_modes2 = [isabelle_processN, Pretty.symbolicN];
 
 (* protocol commands *)
 
-exception STOP;
-exception EXIT of int;
+exception STOP of int;
 
-val is_protocol_exn = fn STOP => true | EXIT _ => true | _ => false;
+val is_protocol_exn = fn STOP _ => true | _ => false;
 
 local
 
@@ -191,7 +189,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       let
         val _ =
           (case Byte_Message.read_message in_stream of
-            NONE => raise STOP
+            NONE => raise STOP 0
           | SOME [] => Output.system_message "Isabelle process: no input"
           | SOME (name :: args) => run_command name args)
           handle exn =>
@@ -217,8 +215,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
   in
     (case result of
-      Exn.Exn STOP => ()
-    | Exn.Exn (EXIT rc) => exit rc
+      Exn.Exn (STOP rc) => if rc = 0 then () else exit rc
     | _ => Exn.release result)
   end);
 

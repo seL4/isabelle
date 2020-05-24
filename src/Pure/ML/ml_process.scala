@@ -92,8 +92,9 @@ object ML_Process
             ML_Syntax.print_list(
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
 
-          List("Resources.init_session_base" +
-            " {session_positions = " + print_sessions(sessions_structure.session_positions) +
+          List("Resources.init_session" +
+            "{pide = false" +
+            ", session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
@@ -111,6 +112,8 @@ object ML_Process
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
     val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
+
+    val env_functions = Map("ISABELLE_SCALA_FUNCTIONS" -> Scala.functions.mkString(","))
 
     val ml_runtime_options =
     {
@@ -134,7 +137,7 @@ object ML_Process
       "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
         Bash.strings(bash_args),
       cwd = cwd,
-      env = env ++ env_options ++ env_tmp,
+      env = env ++ env_options ++ env_tmp ++ env_functions,
       redirect = redirect,
       cleanup = () =>
         {

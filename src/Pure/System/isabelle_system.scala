@@ -63,95 +63,98 @@ object Isabelle_System
     _services.get
   }
 
-  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
+  def init(isabelle_root: String = "", cygwin_root: String = "")
   {
-    if (_settings.isEmpty || _services.isEmpty) {
-      val isabelle_root1 =
-        bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
+    synchronized {
+      if (_settings.isEmpty || _services.isEmpty) {
+        val isabelle_root1 =
+          bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
-      val cygwin_root1 =
-        if (Platform.is_windows)
-          bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
-        else ""
+        val cygwin_root1 =
+          if (Platform.is_windows)
+            bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
+          else ""
 
-      if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
+        if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
 
-      def set_cygwin_root()
-      {
-        if (Platform.is_windows)
-          _settings = Some(_settings.getOrElse(Map.empty) + ("CYGWIN_ROOT" -> cygwin_root1))
-      }
-
-      set_cygwin_root()
-
-      def default(env: Map[String, String], entry: (String, String)): Map[String, String] =
-        if (env.isDefinedAt(entry._1) || entry._2 == "") env
-        else env + entry
-
-      val env =
-      {
-        val temp_windows =
+        def set_cygwin_root()
         {
-          val temp = if (Platform.is_windows) System.getenv("TEMP") else null
-          if (temp != null && temp.contains('\\')) temp else ""
+          if (Platform.is_windows)
+            _settings = Some(_settings.getOrElse(Map.empty) + ("CYGWIN_ROOT" -> cygwin_root1))
         }
-        val user_home = System.getProperty("user.home", "")
-        val isabelle_app = System.getProperty("isabelle.app", "")
 
-        default(
+        set_cygwin_root()
+
+        def default(env: Map[String, String], entry: (String, String)): Map[String, String] =
+          if (env.isDefinedAt(entry._1) || entry._2 == "") env
+          else env + entry
+
+        val env =
+        {
+          val temp_windows =
+          {
+            val temp = if (Platform.is_windows) System.getenv("TEMP") else null
+            if (temp != null && temp.contains('\\')) temp else ""
+          }
+          val user_home = System.getProperty("user.home", "")
+          val isabelle_app = System.getProperty("isabelle.app", "")
+
           default(
-            default(sys.env + ("ISABELLE_JDK_HOME" -> File.standard_path(jdk_home())),
-              "TEMP_WINDOWS" -> temp_windows),
-            "HOME" -> user_home),
-          "ISABELLE_APP" -> "true")
-      }
-
-      val settings =
-      {
-        val dump = JFile.createTempFile("settings", null)
-        dump.deleteOnExit
-        try {
-          val cmd1 =
-            if (Platform.is_windows)
-              List(cygwin_root1 + "\\bin\\bash", "-l",
-                File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
-            else
-              List(isabelle_root1 + "/bin/isabelle")
-          val cmd = cmd1 ::: List("getenv", "-d", dump.toString)
-
-          val (output, rc) = process_output(process(cmd, env = env, redirect = true))
-          if (rc != 0) error(output)
-
-          val entries =
-            (for (entry <- File.read(dump).split("\u0000") if entry != "") yield {
-              val i = entry.indexOf('=')
-              if (i <= 0) entry -> ""
-              else entry.substring(0, i) -> entry.substring(i + 1)
-            }).toMap
-          entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
+            default(
+              default(sys.env + ("ISABELLE_JDK_HOME" -> File.standard_path(jdk_home())),
+                "TEMP_WINDOWS" -> temp_windows),
+              "HOME" -> user_home),
+            "ISABELLE_APP" -> "true")
         }
-        finally { dump.delete }
-      }
-      _settings = Some(settings)
-      set_cygwin_root()
 
-      val variable = "ISABELLE_SCALA_SERVICES"
-      val services =
-        for (name <- space_explode(':', settings.getOrElse(variable, getenv_error(variable))))
-        yield {
-          def err(msg: String): Nothing =
-            error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
+        val settings =
+        {
+          val dump = JFile.createTempFile("settings", null)
+          dump.deleteOnExit
           try {
-            Class.forName(name).asInstanceOf[Class[Service]]
-              .getDeclaredConstructor().newInstance()
+            val cmd1 =
+              if (Platform.is_windows)
+                List(cygwin_root1 + "\\bin\\bash", "-l",
+                  File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
+              else
+                List(isabelle_root1 + "/bin/isabelle")
+            val cmd = cmd1 ::: List("getenv", "-d", dump.toString)
+
+            val (output, rc) = process_output(process(cmd, env = env, redirect = true))
+            if (rc != 0) error(output)
+
+            val entries =
+              (for (entry <- File.read(dump).split("\u0000") if entry != "") yield {
+                val i = entry.indexOf('=')
+                if (i <= 0) entry -> ""
+                else entry.substring(0, i) -> entry.substring(i + 1)
+              }).toMap
+            entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
           }
-          catch {
-            case _: ClassNotFoundException => err("Class not found")
-            case exn: Throwable => err(Exn.message(exn))
-          }
+          finally { dump.delete }
         }
-      _services = Some(services)
+        _settings = Some(settings)
+        set_cygwin_root()
+
+        val variable = "ISABELLE_SCALA_SERVICES"
+        val services =
+          for (name <- space_explode(':', settings.getOrElse(variable, getenv_error(variable))))
+          yield {
+            def err(msg: String): Nothing =
+              error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
+            try {
+              Class.forName(name).asInstanceOf[Class[Service]]
+                .getDeclaredConstructor().newInstance()
+            }
+            catch {
+              case _: ClassNotFoundException => err("Class not found")
+              case exn: Throwable => err(Exn.message(exn))
+            }
+          }
+        _services = Some(services)
+      }
     }
+    Scala.Compiler.default_context
   }
 
 

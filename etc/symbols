@@ -417,6 +417,8 @@
 \<^plugin>              argument: cartouche
 \<^print>
 \<^prop>                argument: cartouche
+\<^scala>               argument: cartouche
+\<^scala_function>      argument: cartouche
 \<^session>             argument: cartouche
 \<^simproc>             argument: cartouche
 \<^sort>                argument: cartouche
