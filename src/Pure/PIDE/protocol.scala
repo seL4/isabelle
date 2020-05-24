@@ -328,9 +328,9 @@ trait Protocol
     Symbol.encode_yxml(list(pair(string, properties))(lst))
   }
 
-  def session_base(resources: Resources)
+  def init_session(resources: Resources)
   {
-    protocol_command("Prover.init_session_base",
+    protocol_command("Prover.init_session",
       encode_sessions(resources.sessions_structure.session_positions),
       encode_table(resources.sessions_structure.dest_session_directories),
       encode_list(resources.session_base.doc_names),

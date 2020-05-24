@@ -7,7 +7,7 @@ Resources for theories and auxiliary files.
 signature RESOURCES =
 sig
   val default_qualifier: string
-  val init_session_base:
+  val init_session:
     {session_positions: (string * Properties.T) list,
      session_directories: (string * string) list,
      docs: string list,
@@ -61,7 +61,7 @@ val empty_session_base =
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
-fun init_session_base
+fun init_session
     {session_positions, session_directories, docs, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>

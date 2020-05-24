@@ -548,7 +548,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
             case _ if output.is_init =>
               prover.get.options(file_formats.prover_options(session_options))
-              prover.get.session_base(resources)
+              prover.get.init_session(resources)
               phase = Session.Ready
               debugger.ready()
 

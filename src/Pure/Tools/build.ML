@@ -184,7 +184,7 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info, d
     val symbols = HTML.make_symbols symbol_codes;
 
     val _ =
-      Resources.init_session_base
+      Resources.init_session
         {session_positions = session_positions,
          session_directories = session_directories,
          docs = doc_names,

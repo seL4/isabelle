@@ -18,7 +18,7 @@ val _ =
        Isabelle_Process.init_options_interactive ()));
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.init_session_base"
+  Isabelle_Process.protocol_command "Prover.init_session"
     (fn [session_positions_yxml, session_directories_yxml, doc_names_yxml, global_theories_yxml,
           loaded_theories_yxml] =>
       let
@@ -27,7 +27,7 @@ val _ =
         val decode_sessions =
           YXML.parse_body #> let open XML.Decode in list (pair string properties) end;
       in
-        Resources.init_session_base
+        Resources.init_session
           {session_positions = decode_sessions session_positions_yxml,
            session_directories = decode_table session_directories_yxml,
            docs = decode_list doc_names_yxml,
