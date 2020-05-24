@@ -410,10 +410,10 @@ definition stable_sort_key :: "(('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Ri
 "stable_sort_key sk =
    (\<forall>f xs k. filter (\<lambda>y. f y = k) (sk f xs) = filter (\<lambda>y. f y = k) xs)"
 
-end
-
 lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
-by (induction l) (use less_le in auto)
+by (induction l) (auto iff: antisym_conv1)
+
+end
 
 
 subsubsection \<open>List comprehension\<close>
@@ -6050,9 +6050,12 @@ next
   case False thus ?thesis by simp
 qed
 
-lemma length_sorted_list_of_set[simp]:
-  "finite A \<Longrightarrow> length(sorted_list_of_set A) = card A"
-by(simp flip: distinct_card)
+lemma length_sorted_list_of_set [simp]: "length (sorted_list_of_set A) = card A"
+proof (cases "finite A")
+  case True
+  then show ?thesis 
+    by(metis distinct_card distinct_sorted_list_of_set set_sorted_list_of_set)
+qed auto
 
 lemmas sorted_list_of_set = set_sorted_list_of_set sorted_sorted_list_of_set distinct_sorted_list_of_set
 
@@ -6074,25 +6077,18 @@ next
   with assms show ?thesis by simp
 qed
 
-end
-
-lemma sorted_list_of_set_range [simp]:
-  "sorted_list_of_set {m..<n} = [m..<n]"
-by (rule sorted_distinct_set_unique) simp_all
-
 lemma strict_sorted_list_of_set [simp]: "strict_sorted (sorted_list_of_set A)"
   by (simp add: strict_sorted_iff)
 
 lemma finite_set_strict_sorted:
-  fixes A :: "'a::linorder set" 
   assumes "finite A"
-  obtains l where "strict_sorted l" "List.set l = A" "length l = card A"
+  obtains l where "strict_sorted l" "set l = A" "length l = card A"
   by (metis assms distinct_card distinct_sorted_list_of_set set_sorted_list_of_set strict_sorted_list_of_set)
 
 lemma strict_sorted_equal:
   assumes "strict_sorted xs"
       and "strict_sorted ys"
-      and "list.set ys = list.set xs"
+      and "set ys = set xs"
     shows "ys = xs"
   using assms
 proof (induction xs arbitrary: ys)
@@ -6113,31 +6109,24 @@ proof (induction xs arbitrary: ys)
   qed
 qed auto
 
-lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. strict_sorted xs \<and> list.set xs = A"
+lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. strict_sorted xs \<and> set xs = A"
   by (simp add: Uniq_def strict_sorted_equal)
 
-
-lemma length_sorted_list_of_set [simp]:
-  fixes A :: "'a::linorder set" 
-  shows "length (sorted_list_of_set A) = card A"
-proof (cases "finite A")
-  case True
-  then show ?thesis 
-    by(metis distinct_card distinct_sorted_list_of_set set_sorted_list_of_set)
-qed auto
-
 lemma sorted_list_of_set_inject:
-  fixes A :: "'a::linorder set" 
   assumes "sorted_list_of_set A = sorted_list_of_set B" "finite A" "finite B" 
   shows "A = B"
   using assms set_sorted_list_of_set by fastforce
 
 lemma sorted_list_of_set_unique:
-  fixes A :: "'a::linorder set" 
   assumes "finite A"
-  shows "strict_sorted l \<and> List.set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
+  shows "strict_sorted l \<and> set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
   using assms strict_sorted_equal by force
 
+end
+
+lemma sorted_list_of_set_range [simp]:
+  "sorted_list_of_set {m..<n} = [m..<n]"
+by (rule sorted_distinct_set_unique) simp_all
 
 lemma sorted_list_of_set_lessThan_Suc [simp]: 
   "sorted_list_of_set {..<Suc k} = sorted_list_of_set {..<k} @ [k]"
