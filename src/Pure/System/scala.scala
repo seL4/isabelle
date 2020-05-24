@@ -7,10 +7,8 @@ Support for Scala at runtime.
 package isabelle
 
 
-import java.lang.reflect.{Modifier, InvocationTargetException}
 import java.io.{File => JFile, StringWriter, PrintWriter}
 
-import scala.util.matching.Regex
 import scala.tools.nsc.{GenericRunnerSettings, ConsoleWriter, NewLinePrintWriter}
 import scala.tools.nsc.interpreter.IMain
 
