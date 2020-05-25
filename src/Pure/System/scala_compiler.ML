@@ -7,7 +7,7 @@ Scala compiler operations.
 signature SCALA_COMPILER =
 sig
   val toplevel: string -> unit
-  val declaration: string -> unit
+  val static_check: string -> unit
 end;
 
 structure Scala_Compiler: SCALA_COMPILER =
@@ -22,8 +22,8 @@ fun toplevel source =
     |> let open XML.Decode in list string end
   in if null errors then () else error (cat_lines errors) end;
 
-fun declaration source =
-  toplevel ("package test\nobject Test { " ^ source ^ " }");
+fun static_check source =
+  toplevel ("package test\nclass __Dummy__ { __dummy__ => " ^ source ^ " }");
 
 
 (* antiquotations *)
@@ -60,11 +60,11 @@ val _ =
     (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_type\<close>
       (Scan.lift (Parse.embedded -- (types >> print_types)))
       (fn _ => fn (t, type_args) =>
-        (declaration ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args); t ^ type_args)) #>
+        (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args); t ^ type_args)) #>
 
     Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_object\<close>
       (Scan.lift Parse.embedded)
-      (fn _ => fn object => (declaration ("val _test_ = " ^ object); object)) #>
+      (fn _ => fn object => (static_check ("val _test_ = " ^ object); object)) #>
 
     Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_method\<close>
       (Scan.lift (Scan.option in_class -- Parse.embedded -- types -- method_arguments))
@@ -77,7 +77,7 @@ val _ =
               NONE => def ^ " = "
             | SOME c => def ^ "(_this_ : " ^ print_class c ^ ") = _this_.");
           val source = def_context ^ method ^ method_args;
-          val _ = declaration source;
+          val _ = static_check source;
         in (case class of NONE => method | SOME c => print_class c ^ "." ^ method) end));
 
 end;
