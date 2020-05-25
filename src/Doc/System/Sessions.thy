@@ -578,10 +578,10 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-A\<close> specifies named aspects of the dump, as a comma-separated
   list. The default is to dump all known aspects, as given in the command-line
-  usage of the tool. The underlying Isabelle/Scala function
-  \<^verbatim>\<open>isabelle.Dump.dump()\<close> takes aspects as user-defined operations on the
-  final PIDE state and document version. This allows to imitate Prover IDE
-  rendering under program control.
+  usage of the tool. The underlying Isabelle/Scala operation
+  \<^scala_method>\<open>isabelle.Dump.dump\<close> takes aspects as user-defined
+  operations on the final PIDE state and document version. This allows to
+  imitate Prover IDE rendering under program control.
 \<close>
 
 
