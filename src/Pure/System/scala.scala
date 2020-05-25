@@ -19,8 +19,6 @@ object Scala
 
   object Compiler
   {
-    lazy val default_context: Context = context()
-
     def context(
       error: String => Unit = Exn.error,
       jar_dirs: List[JFile] = Nil): Context =
@@ -83,7 +81,7 @@ object Scala
   def toplevel_yxml(source: String): String =
   {
     val errors =
-      try { Compiler.default_context.toplevel(source) }
+      try { Compiler.context().toplevel(source) }
       catch { case ERROR(msg) => List(msg) }
     locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
   }
