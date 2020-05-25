@@ -28,11 +28,6 @@ text \<open>
   according to the standard directory layout for official JDK distributions.
   The class loader is augmented such that the name space of
   \<^verbatim>\<open>Isabelle/Pure.jar\<close> is available, which is the main Isabelle/Scala module.
-
-  For example, the following command-line invokes the main method of class
-  \<^verbatim>\<open>isabelle.GUI_Setup\<close>, which opens a windows with some diagnostic
-  information about the Isabelle environment:
-  @{verbatim [display] \<open>isabelle java isabelle.GUI_Setup\<close>}
 \<close>
 
 
