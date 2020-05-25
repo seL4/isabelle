@@ -1,25 +1,29 @@
-(*  Title:      Pure/System/scala_check.ML
+(*  Title:      Pure/System/scala_compiler.ML
     Author:     Makarius
 
-Semantic check of Scala sources.
+Scala compiler operations.
 *)
 
-signature SCALA_CHECK =
+signature SCALA_COMPILER =
 sig
+  val toplevel: string -> unit
   val declaration: string -> unit
 end;
 
-structure Scala_Check: SCALA_CHECK =
+structure Scala_Compiler: SCALA_COMPILER =
 struct
 
 (* check declaration *)
 
-fun declaration source =
+fun toplevel source =
   let val errors =
-    \<^scala>\<open>scala_check\<close> source
+    \<^scala>\<open>scala_toplevel\<close> source
     |> YXML.parse_body
     |> let open XML.Decode in list string end
   in if null errors then () else error (cat_lines errors) end;
+
+fun declaration source =
+  toplevel ("package test\nobject Test { " ^ source ^ " }");
 
 
 (* antiquotations *)

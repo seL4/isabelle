@@ -77,18 +77,14 @@ object Scala
 
         if (!ok && errors.isEmpty) List("Error") else errors
       }
-
-      def check(body: String): List[String] =
-      {
-        try { toplevel("package test\nobject Test { " + body + " }") }
-        catch { case ERROR(msg) => List(msg) }
-      }
     }
   }
 
-  def check_yxml(body: String): String =
+  def toplevel_yxml(source: String): String =
   {
-    val errors = Compiler.default_context.check(body)
+    val errors =
+      try { Compiler.default_context.toplevel(source) }
+      catch { case ERROR(msg) => List(msg) }
     locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
   }
 
@@ -199,5 +195,5 @@ class Isabelle_Scala_Functions(val functions: Scala.Fun*) extends Isabelle_Syste
 
 class Functions extends Isabelle_Scala_Functions(
   Scala.Fun("echo", identity),
-  Scala.Fun("scala_check", Scala.check_yxml),
+  Scala.Fun("scala_toplevel", Scala.toplevel_yxml),
   Scala.Fun("check_bibtex_database", Bibtex.check_database_yxml))
