@@ -419,6 +419,9 @@
 \<^prop>                argument: cartouche
 \<^scala>               argument: cartouche
 \<^scala_function>      argument: cartouche
+\<^scala_method>        argument: cartouche
+\<^scala_object>        argument: cartouche
+\<^scala_type>          argument: cartouche
 \<^session>             argument: cartouche
 \<^simproc>             argument: cartouche
 \<^sort>                argument: cartouche
