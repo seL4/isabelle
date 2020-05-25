@@ -57,7 +57,10 @@ in
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_type\<close>
+    (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala\<close>
+      (Scan.lift Parse.embedded) (fn _ => tap static_check) #>
+
+    Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_type\<close>
       (Scan.lift (Parse.embedded -- (types >> print_types)))
       (fn _ => fn (t, type_args) =>
         (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args); t ^ type_args)) #>
