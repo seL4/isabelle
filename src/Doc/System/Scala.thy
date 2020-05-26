@@ -36,15 +36,23 @@ section \<open>Scala toplevel \label{sec:tool-scala}\<close>
 text \<open>
   The @{tool_def scala} tool is a direct wrapper for the Scala toplevel; see
   also @{tool java} above. The command line arguments are that of the
-  underlying Scala version.
+  underlying Scala version. This allows to interact with Isabelle/Scala in TTY
+  mode. An alternative is to use the \<^verbatim>\<open>Console/Scala\<close> plugin of Isabelle/jEdit
+  @{cite "isabelle-jedit"}.
+\<close>
 
-  This allows to interact with Isabelle/Scala in TTY mode like this:
-  @{verbatim [display]
-\<open>isabelle scala
-scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
-scala> val options = isabelle.Options.init()
-scala> options.bool("browser_info")
-scala> options.string("document")\<close>}
+subsubsection \<open>Example\<close>
+
+text \<open>
+  Explore the Isabelle system environment in Scala:
+  @{scala [display]
+\<open>import isabelle._
+
+val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
+
+val options = Options.init()
+options.bool("browser_info")
+options.string("document")\<close>}
 \<close>
 
 
