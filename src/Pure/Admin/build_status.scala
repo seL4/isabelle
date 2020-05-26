@@ -250,7 +250,7 @@ object Build_Status
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
         val sql = profile.select(options, columns, only_sessions)
-        if (verbose) progress.echo(sql)
+        progress.echo_if(verbose, sql)
 
         db.using_statement(sql)(stmt =>
         {

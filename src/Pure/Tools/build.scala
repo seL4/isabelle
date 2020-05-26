@@ -718,7 +718,7 @@ object Build
                     results +
                       (session_name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
                 else if (no_build) {
-                  if (verbose) progress.echo("Skipping " + session_name + " ...")
+                  progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
                     results +
                       (session_name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
