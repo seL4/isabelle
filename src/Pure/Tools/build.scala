@@ -76,7 +76,7 @@ object Build
           val g = sessions_structure.build_graph.restrict(descendants)
           (0.0 :: g.maximals.flatMap(desc => {
             val ps = g.all_preds(List(desc))
-            if (ps.exists(p => timing.get(p).isEmpty)) None
+            if (ps.exists(p => !timing.isDefinedAt(p))) None
             else Some(ps.map(timing(_)).sum)
           })).max
         }
@@ -162,7 +162,7 @@ object Build
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val options = NUMA.policy_options(info.options, numa_node)
+    val options: Options = NUMA.policy_options(info.options, numa_node)
 
     private val sessions_structure = deps.sessions_structure
 
