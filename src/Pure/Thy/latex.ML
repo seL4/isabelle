@@ -16,6 +16,7 @@ sig
   val output_positions: Position.T -> text list -> string
   val output_name: string -> string
   val output_ascii: string -> string
+  val output_ascii_breakable: string -> string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
   val symbols: Symbol_Pos.T list -> text
@@ -116,6 +117,11 @@ val output_ascii =
       | s =>
           if exists_string (fn s' => s = s') "\"#$%&',-<>\\^_`{}~"
           then enclose "{\\char`\\" "}" s else s);
+
+fun output_ascii_breakable sep =
+  space_explode sep
+  #> map output_ascii
+  #> space_implode (output_ascii sep ^ "\\discretionary{}{}{}");
 
 
 (* output symbols *)

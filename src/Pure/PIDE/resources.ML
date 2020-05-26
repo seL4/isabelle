@@ -293,11 +293,8 @@ fun document_antiq (check: Proof.context -> Path.T option -> string * Position.T
   Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
     let
       val _ = check ctxt NONE (name, pos);
-      val latex =
-        space_explode "/" name
-        |> map Latex.output_ascii
-        |> space_implode (Latex.output_ascii "/" ^ "\\discretionary{}{}{}");
-    in Latex.enclose_block "\\isatt{" "}" [Latex.string latex] end);
+      val latex = Latex.string (Latex.output_ascii_breakable "/" name);
+    in Latex.enclose_block "\\isatt{" "}" [latex] end);
 
 fun ML_antiq check =
   Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
