@@ -469,6 +469,7 @@ object Build
 
   def build(
     options: Options,
+    selection: Sessions.Selection,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -484,15 +485,7 @@ object Build
     no_build: Boolean = false,
     soft_build: Boolean = false,
     verbose: Boolean = false,
-    export_files: Boolean = false,
-    requirements: Boolean = false,
-    all_sessions: Boolean = false,
-    base_sessions: List[String] = Nil,
-    exclude_session_groups: List[String] = Nil,
-    exclude_sessions: List[String] = Nil,
-    session_groups: List[String] = Nil,
-    sessions: List[String] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty): Results =
+    export_files: Boolean = false): Results =
   {
     val build_options =
       options +
@@ -520,14 +513,10 @@ object Build
       SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
     }
 
-    val selection1 =
-      Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
-        exclude_sessions, session_groups, sessions) ++ selection
-
     val deps =
     {
       val deps0 =
-        Sessions.deps(full_sessions.selection(selection1),
+        Sessions.deps(full_sessions.selection(selection),
           progress = progress, inlined_files = true, verbose = verbose,
           list_files = list_files, check_keywords = check_keywords).check_errors
 
@@ -577,7 +566,7 @@ object Build
     store.prepare_output_dir()
 
     if (clean_build) {
-      for (name <- full_sessions.imports_descendants(full_sessions.imports_selection(selection1))) {
+      for (name <- full_sessions.imports_descendants(full_sessions.imports_selection(selection))) {
         val (relevant, ok) = store.clean_output(name)
         if (relevant) {
           if (ok) progress.echo("Cleaned " + name)
@@ -765,7 +754,7 @@ object Build
           yield (name, (result.process, result.info))).toMap)
 
     if (export_files) {
-      for (name <- full_sessions.imports_selection(selection1).iterator if results(name).ok) {
+      for (name <- full_sessions.imports_selection(selection).iterator if results(name).ok) {
         val info = results.info(name)
         if (info.export_files.nonEmpty) {
           progress.echo("Exporting " + info.name + " ...")
@@ -903,6 +892,14 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val results =
       progress.interrupt_handler {
         build(options,
+          Sessions.Selection(
+            requirements = requirements,
+            all_sessions = all_sessions,
+            base_sessions = base_sessions,
+            exclude_session_groups = exclude_session_groups,
+            exclude_sessions = exclude_sessions,
+            session_groups = session_groups,
+            sessions = sessions),
           progress = progress,
           check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,
@@ -917,14 +914,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           no_build = no_build,
           soft_build = soft_build,
           verbose = verbose,
-          export_files = export_files,
-          requirements = requirements,
-          all_sessions = all_sessions,
-          base_sessions = base_sessions,
-          exclude_session_groups = exclude_session_groups,
-          exclude_sessions = exclude_sessions,
-          session_groups = session_groups,
-          sessions = sessions)
+          export_files = export_files)
       }
     val end_date = Date.now()
     val elapsed_time = end_date.time - start_date.time
@@ -951,15 +941,15 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     fresh: Boolean = false,
     strict: Boolean = false): Int =
   {
+    val selection = Sessions.Selection.session(logic)
     val rc =
-      if (!fresh && build(options, build_heap = build_heap, no_build = true, dirs = dirs,
-          sessions = List(logic)).ok) 0
+      if (!fresh &&
+          build(options, selection, build_heap = build_heap, no_build = true, dirs = dirs).ok) 0
       else {
         progress.echo("Build started for Isabelle/" + logic + " ...")
-        Build.build(options, progress = progress, build_heap = build_heap, fresh_build = fresh,
-          dirs = dirs, sessions = List(logic)).rc
+        Build.build(options, selection, progress = progress, build_heap = build_heap,
+          fresh_build = fresh, dirs = dirs).rc
       }
-
     if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc
   }
 }

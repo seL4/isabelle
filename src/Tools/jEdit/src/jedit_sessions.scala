@@ -128,9 +128,9 @@ object JEdit_Sessions
   def session_build(
     options: Options, progress: Progress = new Progress, no_build: Boolean = false): Int =
   {
-    Build.build(session_options(options), progress = progress, build_heap = true,
-      no_build = no_build, dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,
-      sessions = List(PIDE.resources.session_name)).rc
+    Build.build(session_options(options), Sessions.Selection.session(PIDE.resources.session_name),
+      progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs(),
+      infos = PIDE.resources.session_base_info.infos).rc
   }
 
   def session_start(options0: Options)

@@ -57,13 +57,12 @@ object Server_Commands
       val base = base_info.check_base
 
       val results =
-        Build.build(options,
+        Build.build(options, Sessions.Selection.session(args.session),
           progress = progress,
           build_heap = true,
           dirs = dirs,
           infos = base_info.infos,
-          verbose = args.verbose,
-          sessions = List(args.session))
+          verbose = args.verbose)
 
       val sessions_order =
         base_info.sessions_structure.imports_topological_order.zipWithIndex.

@@ -291,7 +291,7 @@ text \<open>
   auxiliary files, and target heap images. Accordingly, it runs instances of
   the prover process with optional document preparation. Its command-line
   usage is:\<^footnote>\<open>Isabelle/Scala provides the same functionality via
-  \<^verbatim>\<open>isabelle.Build.build\<close>.\<close>
+  \<^scala_method>\<open>isabelle.Build.build\<close>.\<close>
   @{verbatim [display]
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
