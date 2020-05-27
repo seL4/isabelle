@@ -7,6 +7,31 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Pure ***
+
+* Definitions in locales produce rule which can be added as congruence
+rule to protect foundational terms during simplification.
+
+
+*** HOL ***
+
+* Simproc "datatype_no_proper_subterm" rewrites equalities "lhs = rhs"
+on datatypes to "False" if either side is a proper subexpression of the
+other (for any datatype with a reasonable size function).
+
+* New constant "power_int" for exponentiation with integer exponent,
+written as "x powi n".
+
+* Added the "at most 1" quantifier, Uniq.
+
+* For the natural numbers, Sup{} = 0.
+
+
+*** FOL ***
+
+* Added the "at most 1" quantifier, Uniq, as in HOL.
+
+
 *** System ***
 
 * The command-line tool "isabelle console" now supports interrupts
@@ -34,23 +59,6 @@ existing server installations should remove libphutil from
 directory (e.g. /var/www/phabricator-vcs/libphutil).
 
 
-*** Pure ***
-
-* Definitions in locales produce rule which can be added as congruence
-rule to protect foundational terms during simplification.
-
-*** HOL ***
-
-* New constant "power_int" for exponentiation with integer exponent,
-written as "x powi n".
-
-* Added the "at most 1" quantifier, Uniq.
-
-* For the natural numbers, Sup{} = 0.
-
-*** FOL ***
-
-* Added the "at most 1" quantifier, Uniq, as in HOL.
 
 New in Isabelle2020 (April 2020)
 --------------------------------
@@ -463,10 +471,6 @@ via thy_defn / thy_stmt / thy_goal_defn / thy_goal_stmt.
 
 
 *** HOL ***
-
-* Simproc 'datatype_no_proper_subterm' rewrites equalities 'lhs = rhs'
-on datatypes to 'False' if either side is a proper subexpression of the
-other (for any datatype with a reasonable size function).
 
 * Command 'export_code' produces output as logical files within the
 theory context, as well as formal session exports that can be
