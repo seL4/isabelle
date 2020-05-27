@@ -248,10 +248,12 @@ text \<open>
   The root of component initialization is @{setting ISABELLE_HOME} itself.
   After initializing all of its sub-components recursively, @{setting
   ISABELLE_HOME_USER} is included in the same manner (if that directory
-  exists). This allows to install private components via \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>, although it is often more convenient
-  to do that programmatically via the \<^bash_function>\<open>init_component\<close> shell function in the
-  \<^verbatim>\<open>etc/settings\<close> script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
-  directory). For example:
+  exists). This allows to install private components via
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>, although it is often more
+  convenient to do that programmatically via the
+  \<^bash_function>\<open>init_component\<close> shell function in the \<^verbatim>\<open>etc/settings\<close>
+  script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component directory). For
+  example:
   @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
 
   This is tolerant wrt.\ missing component directories, but might produce a
