@@ -95,8 +95,8 @@ fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;
 
 
-fun check_name which kind markup ctxt (name, pos) =
-  Completion.check_item kind markup (get_session_base which |> sort_by #1) ctxt (name, pos);
+fun check_name which kind markup ctxt arg =
+  Completion.check_item kind markup (get_session_base which |> sort_by #1) ctxt arg;
 
 val check_session =
   check_name #session_positions "session"

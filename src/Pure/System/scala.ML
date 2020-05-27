@@ -76,8 +76,8 @@ val _ =
 fun functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 
 fun check_function ctxt arg =
-  Completion.check_item Markup.scala_functionN (Markup.scala_function o #1)
-    (functions () |> sort_strings |> map (rpair ())) ctxt arg;
+  Completion.check_entity Markup.scala_functionN
+    (functions () |> sort_strings |> map (rpair Position.none)) ctxt arg;
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>

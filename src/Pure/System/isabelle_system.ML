@@ -52,8 +52,8 @@ fun bash_functions () =
   |> split_lines |> map_filter (space_explode " " #> try List.last);
 
 fun check_bash_function ctxt arg =
-  Completion.check_item Markup.bash_functionN (Markup.bash_function o #1)
-    (bash_functions () |> map (rpair ())) ctxt arg;
+  Completion.check_entity Markup.bash_functionN
+    (bash_functions () |> map (rpair Position.none)) ctxt arg;
 
 
 (* directory operations *)
