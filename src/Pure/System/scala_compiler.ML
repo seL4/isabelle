@@ -53,6 +53,10 @@ val arguments =
 
 val method_arguments = Scan.optional (Parse.$$$ "(" |-- arguments --| Parse.$$$ ")") " _";
 
+fun scala_name name =
+  let val latex = Latex.string (Latex.output_ascii_breakable "." name)
+  in Latex.enclose_block "\\isatt{" "}" [latex] end;
+
 in
 
 val _ =
@@ -60,16 +64,17 @@ val _ =
     (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala\<close>
       (Scan.lift Parse.embedded) (fn _ => tap static_check) #>
 
-    Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_type\<close>
+    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_type\<close>
       (Scan.lift (Parse.embedded -- (types >> print_types)))
       (fn _ => fn (t, type_args) =>
-        (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args); t ^ type_args)) #>
+        (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args);
+          scala_name (t ^ type_args))) #>
 
-    Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_object\<close>
+    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_object\<close>
       (Scan.lift Parse.embedded)
-      (fn _ => fn object => (static_check ("val _test_ = " ^ object); object)) #>
+      (fn _ => fn object => (static_check ("val _test_ = " ^ object); scala_name object)) #>
 
-    Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_method\<close>
+    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_method\<close>
       (Scan.lift (Scan.option in_class -- Parse.embedded -- types -- method_arguments))
       (fn _ => fn (((class, method), method_types), method_args) =>
         let
@@ -81,7 +86,7 @@ val _ =
             | SOME c => def ^ "(_this_ : " ^ print_class c ^ ") = _this_.");
           val source = def_context ^ method ^ method_args;
           val _ = static_check source;
-        in (case class of NONE => method | SOME c => print_class c ^ "." ^ method) end));
+        in scala_name (case class of NONE => method | SOME c => print_class c ^ "." ^ method) end));
 
 end;
 
