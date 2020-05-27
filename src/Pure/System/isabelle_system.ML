@@ -51,23 +51,9 @@ fun bash_functions () =
   bash_output_check "declare -Fx"
   |> split_lines |> map_filter (space_explode " " #> try List.last);
 
-fun check_bash_function ctxt (name, pos) =
-  let
-    val kind = Markup.bash_functionN;
-    val funs = bash_functions ();
-  in
-    if member (op =) funs name then
-      (Context_Position.report ctxt pos (Markup.bash_function name); name)
-    else
-      let
-        val completion_report =
-          Completion.make_report (name, pos)
-            (fn completed =>
-              filter completed funs
-              |> sort_strings
-              |> map (fn a => (a, (kind, a))));
-      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end
-  end;
+fun check_bash_function ctxt arg =
+  Completion.check_item Markup.bash_functionN (Markup.bash_function o #1)
+    (bash_functions () |> map (rpair ())) ctxt arg;
 
 
 (* directory operations *)

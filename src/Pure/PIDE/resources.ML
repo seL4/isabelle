@@ -94,29 +94,17 @@ fun is_pide () = get_session_base #pide;
 fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;
 
+
 fun check_name which kind markup ctxt (name, pos) =
-  let val entries = get_session_base which in
-    (case AList.lookup (op =) entries name of
-      SOME entry => (Context_Position.report ctxt pos (markup name entry); name)
-    | NONE =>
-        let
-          val completion_report =
-            Completion.make_report (name, pos)
-              (fn completed =>
-                entries
-                |> map #1
-                |> filter completed
-                |> sort_strings
-                |> map (fn a => (a, (kind, a))));
-        in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end)
-  end;
+  Completion.check_item kind markup (get_session_base which |> sort_by #1) ctxt (name, pos);
 
-fun markup_session name {pos, serial} =
-  Markup.properties
-    (Position.entity_properties_of false serial pos) (Markup.entity Markup.sessionN name);
+val check_session =
+  check_name #session_positions "session"
+    (fn (name, {pos, serial}) =>
+      Markup.entity Markup.sessionN name
+      |> Markup.properties (Position.entity_properties_of false serial pos));
 
-val check_session = check_name #session_positions "session" markup_session;
-val check_doc = check_name #docs "documentation" (fn name => fn _ => Markup.doc name);
+val check_doc = check_name #docs "documentation" (Markup.doc o #1);
 
 
 (* manage source files *)

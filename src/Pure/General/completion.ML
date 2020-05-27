@@ -16,6 +16,10 @@ sig
   val markup_report: T list -> string
   val make_report: string * Position.T -> ((string -> bool) -> name list) -> string
   val suppress_abbrevs: string -> Markup.T list
+  val check_item: string -> (string * 'a -> Markup.T) ->
+    (string * 'a) list -> Proof.context -> string * Position.T -> string
+  val check_entity: string -> (string * Position.T) list ->
+    Proof.context -> string * Position.T -> string
   val check_option: Options.T -> Proof.context -> string * Position.T -> string
   val check_option_value:
     Proof.context -> string * Position.T -> string * Position.T -> Options.T -> string * Options.T
@@ -75,21 +79,22 @@ fun suppress_abbrevs s =
   else [];
 
 
-(* system options *)
+(* check items *)
 
-fun check_option options ctxt (name, pos) =
-  let
-    val markup =
-      Options.markup options (name, pos) handle ERROR msg =>
-        let
-          val completion_report =
-            make_report (name, pos) (fn completed =>
-                Options.names options
-                |> filter completed
-                |> map (fn a => (a, ("system_option", a))));
-        in error (msg ^ completion_report) end;
-    val _ = Context_Position.report ctxt pos markup;
-  in name end;
+fun check_item kind markup items ctxt (name, pos) =
+  (case AList.lookup (op =) items name of
+    SOME x => (Context_Position.report ctxt pos (markup (name, x)); name)
+  | NONE =>
+      let
+        fun make_names completed =
+          map_filter (fn (a, _) => if completed a then SOME (a, (kind, a)) else NONE) items;
+        val completion_report = make_report (name, pos) make_names;
+      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end);
+
+fun check_entity kind = check_item kind (Position.entity_markup kind);
+
+
+val check_option = check_entity Markup.system_optionN o Options.dest;
 
 fun check_option_value ctxt (name, pos) (value, pos') options =
   let

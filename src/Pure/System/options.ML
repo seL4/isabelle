@@ -13,8 +13,7 @@ sig
   val unknownT: string
   type T
   val empty: T
-  val names: T -> string list
-  val markup: T -> string * Position.T -> Markup.T
+  val dest: T -> (string * Position.T) list
   val typ: T -> string -> string
   val bool: T -> string -> bool
   val int: T -> string -> int
@@ -29,7 +28,6 @@ sig
   val update: string -> string -> T -> T
   val decode: XML.body -> T
   val default: unit -> T
-  val default_markup: string * Position.T -> Markup.T
   val default_typ: string -> string
   val default_bool: string -> bool
   val default_int: string -> int
@@ -62,7 +60,9 @@ datatype T = Options of {pos: Position.T, typ: string, value: string} Symtab.tab
 
 val empty = Options Symtab.empty;
 
-fun names (Options tab) = sort_strings (Symtab.keys tab);
+fun dest (Options tab) =
+  Symtab.fold (fn (name, {pos, ...}) => cons (name, pos)) tab []
+  |> sort_by #1;
 
 
 (* check *)
@@ -78,17 +78,6 @@ fun check_type options name typ =
     if #typ opt = typ then opt
     else error ("Ill-typed system option " ^ quote name ^ " : " ^ #typ opt ^ " vs. " ^ typ)
   end;
-
-
-(* markup *)
-
-fun markup options (name, pos) =
-  let
-    val opt =
-      check_name options name
-        handle ERROR msg => error (msg ^ Position.here pos);
-    val props = Position.def_properties_of (#pos opt);
-  in Markup.properties props (Markup.entity Markup.system_optionN name) end;
 
 
 (* typ *)
@@ -189,7 +178,6 @@ fun default () =
     SOME options => options
   | NONE => err_no_default ());
 
-fun default_markup arg = markup (default ()) arg;
 fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
 fun default_int name = int (default ()) name;

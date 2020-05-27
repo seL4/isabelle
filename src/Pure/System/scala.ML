@@ -75,23 +75,9 @@ val _ =
 
 fun functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 
-fun check_function ctxt (name, pos) =
-  let
-    val kind = Markup.scala_functionN;
-    val funs = functions ();
-  in
-    if member (op =) funs name then
-      (Context_Position.report ctxt pos (Markup.scala_function name); name)
-    else
-      let
-        val completion_report =
-          Completion.make_report (name, pos)
-            (fn completed =>
-              filter completed funs
-              |> sort_strings
-              |> map (fn a => (a, (kind, a))));
-      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end
-  end;
+fun check_function ctxt arg =
+  Completion.check_item Markup.scala_functionN (Markup.scala_function o #1)
+    (functions () |> sort_strings |> map (rpair ())) ctxt arg;
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
