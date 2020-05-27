@@ -9,8 +9,11 @@ New in this Isabelle version
 
 *** Document preparation ***
 
-* Antiquotation @{bash_function NAME} prints the given GNU bash function
-verbatim --- checked against the Isabelle settings environment.
+* Antiquotation @{bash_function} refers to GNU bash functions that are
+checked within the Isabelle settings environment.
+
+* Antiquotations @{scala}, @{scala_object}, @{scala_type},
+@{scala_method} refer to checked Isabelle/Scala entities.
 
 
 *** Pure ***
@@ -36,6 +39,13 @@ written as "x powi n".
 *** FOL ***
 
 * Added the "at most 1" quantifier, Uniq, as in HOL.
+
+
+*** ML ***
+
+* Antiquotations @{scala_function NAME} and @{scala NAME} refer to
+registered Isabelle/Scala functions (of type String => String):
+invocation works via the PIDE protocol.
 
 
 *** System ***
