@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Document preparation ***
+
+* Antiquotation @{bash_function NAME} prints the given GNU bash function
+verbatim --- checked against the Isabelle settings environment.
+
+
 *** Pure ***
 
 * Definitions in locales produce rule which can be added as congruence

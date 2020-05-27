@@ -68,6 +68,7 @@ sig
   val export_pathN: string val export_path: string -> T
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
+  val bash_functionN: string val bash_function: string -> T
   val scala_functionN: string val scala_function: string -> T
   val markupN: string
   val consistentN: string
@@ -406,6 +407,7 @@ val (pathN, path) = markup_string "path" nameN;
 val (export_pathN, export_path) = markup_string "export_path" nameN;
 val (urlN, url) = markup_string "url" nameN;
 val (docN, doc) = markup_string "doc" nameN;
+val (bash_functionN, bash_function) = markup_string "bash_function" nameN;
 val (scala_functionN, scala_function) = markup_string "scala_function" nameN;
 
 

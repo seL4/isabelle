@@ -417,6 +417,7 @@
 \<^plugin>              argument: cartouche
 \<^print>
 \<^prop>                argument: cartouche
+\<^bash_function>       argument: cartouche
 \<^scala>               argument: cartouche
 \<^scala_function>      argument: cartouche
 \<^scala_method>        argument: cartouche

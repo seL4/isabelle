@@ -108,6 +108,7 @@ text \<open>
     @{antiquotation_def emph} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def bold} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def verbatim} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def bash_function} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def system_option} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def session} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "file"} & : & \<open>antiquotation\<close> \\
@@ -199,6 +200,7 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
+      @@{antiquotation bash_function} options @{syntax embedded} |
       @@{antiquotation system_option} options @{syntax embedded} |
       @@{antiquotation session} options @{syntax embedded} |
       @@{antiquotation path} options @{syntax embedded} |
@@ -291,6 +293,10 @@ text \<open>
 
   \<^descr> \<open>@{verbatim s}\<close> prints uninterpreted source text literally as ASCII
   characters, using some type-writer font style.
+
+  \<^descr> \<open>@{bash_function name}\<close> prints the given GNU bash function verbatim. The
+  name is checked wrt.\ the Isabelle system environment @{cite
+  "isabelle-system"}.
 
   \<^descr> \<open>@{system_option name}\<close> prints the given system option verbatim. The name
   is checked wrt.\ cumulative \<^verbatim>\<open>etc/options\<close> of all Isabelle components,

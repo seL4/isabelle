@@ -260,6 +260,13 @@ val _ = Theory.setup
       in #1 (Input.source_content text) end));
 
 
+(* bash functions *)
+
+val _ = Theory.setup
+  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
+    (Scan.lift Args.embedded_position) Isabelle_System.check_bash_function);
+
+
 (* system options *)
 
 val _ = Theory.setup

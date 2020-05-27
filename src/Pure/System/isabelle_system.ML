@@ -6,6 +6,11 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
+  val bash_output_check: string -> string
+  val bash_output: string -> string * int
+  val bash: string -> int
+  val bash_functions: unit -> string list
+  val check_bash_function: Proof.context -> string * Position.T -> string
   val rm_tree: Path.T -> unit
   val mkdirs: Path.T -> unit
   val mkdir: Path.T -> unit
@@ -15,9 +20,6 @@ sig
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val bash_output_check: string -> string
-  val bash_output: string -> string * int
-  val bash: string -> int
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
@@ -41,6 +43,31 @@ fun bash s =
     val (out, rc) = bash_output s;
     val _ = writeln (trim_line out);
   in rc end;
+
+
+(* bash functions *)
+
+fun bash_functions () =
+  bash_output_check "declare -Fx"
+  |> split_lines |> map_filter (space_explode " " #> try List.last);
+
+fun check_bash_function ctxt (name, pos) =
+  let
+    val kind = Markup.bash_functionN;
+    val funs = bash_functions ();
+  in
+    if member (op =) funs name then
+      (Context_Position.report ctxt pos (Markup.bash_function name); name)
+    else
+      let
+        val completion_report =
+          Completion.make_report (name, pos)
+            (fn completed =>
+              filter completed funs
+              |> sort_strings
+              |> map (fn a => (a, (kind, a))));
+      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end
+  end;
 
 
 (* directory operations *)
