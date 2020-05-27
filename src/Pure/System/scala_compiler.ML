@@ -7,7 +7,7 @@ Scala compiler operations.
 signature SCALA_COMPILER =
 sig
   val toplevel: string -> unit
-  val static_check: string -> unit
+  val static_check: string * Position.T -> unit
 end;
 
 structure Scala_Compiler: SCALA_COMPILER =
@@ -22,8 +22,9 @@ fun toplevel source =
     |> let open XML.Decode in list string end
   in if null errors then () else error (cat_lines errors) end;
 
-fun static_check source =
-  toplevel ("package test\nclass __Dummy__ { __dummy__ => " ^ source ^ " }");
+fun static_check (source, pos) =
+  toplevel ("package test\nclass __Dummy__ { __dummy__ => " ^ source ^ " }")
+    handle ERROR msg => error (msg ^ Position.here pos);
 
 
 (* antiquotations *)
@@ -62,21 +63,22 @@ in
 val _ =
   Theory.setup
     (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala\<close>
-      (Scan.lift Parse.embedded) (fn _ => tap static_check) #>
+      (Scan.lift Args.embedded_position)
+      (fn _ => fn (s, pos) => (static_check (s, pos); s)) #>
 
     Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_type\<close>
-      (Scan.lift (Parse.embedded -- (types >> print_types)))
-      (fn _ => fn (t, type_args) =>
-        (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args);
+      (Scan.lift (Args.embedded_position -- (types >> print_types)))
+      (fn _ => fn ((t, pos), type_args) =>
+        (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args, pos);
           scala_name (t ^ type_args))) #>
 
     Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_object\<close>
-      (Scan.lift Parse.embedded)
-      (fn _ => fn object => (static_check ("val _test_ = " ^ object); scala_name object)) #>
+      (Scan.lift Args.embedded_position)
+      (fn _ => fn (x, pos) => (static_check ("val _test_ = " ^ x, pos); scala_name x)) #>
 
     Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_method\<close>
-      (Scan.lift (class -- Parse.embedded -- types -- args))
-      (fn _ => fn (((class_context, method), method_types), method_args) =>
+      (Scan.lift (class -- Args.embedded_position -- types -- args))
+      (fn _ => fn (((class_context, (method, pos)), method_types), method_args) =>
         let
           val class_types = (case class_context of SOME (_, Ts) => Ts | NONE => []);
           val def = "def _test_" ^ print_types (merge (op =) (method_types, class_types));
@@ -85,7 +87,7 @@ val _ =
               NONE => def ^ " = "
             | SOME c => def ^ "(_this_ : " ^ print_class c ^ ") = _this_.");
           val source = def_context ^ method ^ method_args;
-          val _ = static_check source;
+          val _ = static_check (source, pos);
           val text = (case class_context of NONE => method | SOME c => print_class c ^ "." ^ method);
         in scala_name text end));
 
