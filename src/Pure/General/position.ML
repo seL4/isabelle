@@ -38,6 +38,7 @@ sig
   val properties_of: T -> Properties.T
   val offset_properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
+  val entity_markup: string -> string * T -> Markup.T
   val entity_properties_of: bool -> serial -> T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
   val markup: T -> Markup.T -> Markup.T
@@ -202,6 +203,9 @@ fun offset_properties_of (Pos ((_, j, k), _)) =
   value Markup.offsetN j @ value Markup.end_offsetN k;
 
 val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
+
+fun entity_markup kind (name, pos) =
+  Markup.entity kind name |> Markup.properties (def_properties_of pos);
 
 fun entity_properties_of def serial pos =
   if def then (Markup.defN, Value.print_int serial) :: properties_of pos
