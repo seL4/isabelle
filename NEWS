@@ -43,9 +43,9 @@ written as "x powi n".
 
 *** ML ***
 
-* Antiquotations @{scala_function NAME} and @{scala NAME} refer to
-registered Isabelle/Scala functions (of type String => String):
-invocation works via the PIDE protocol.
+* Antiquotations @{scala_function} and @{scala} refer to registered
+Isabelle/Scala functions (of type String => String): invocation works
+via the PIDE protocol.
 
 
 *** System ***
