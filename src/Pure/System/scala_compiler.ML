@@ -43,15 +43,15 @@ fun print_class (c, Ts) = c ^ print_types Ts;
 val types =
   Scan.optional (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]") [];
 
-val in_class =
-  Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.name -- types  --| Parse.$$$ ")");
+val class =
+  Scan.option
+    (Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.name -- types  --| Parse.$$$ ")"));
 
 val arguments =
   (Parse.nat >> (fn n => replicate n "_") ||
-    Parse.list (Parse.underscore || Parse.name >> (fn T => "_ : " ^ T))) >> print_args
-  || Scan.succeed " _";
+    Parse.list (Parse.underscore || Parse.name >> (fn T => "_ : " ^ T))) >> print_args;
 
-val method_arguments = Scan.optional (Parse.$$$ "(" |-- arguments --| Parse.$$$ ")") " _";
+val args = Scan.optional (Parse.$$$ "(" |-- arguments --| Parse.$$$ ")") " _";
 
 fun scala_name name =
   let val latex = Latex.string (Latex.output_ascii_breakable "." name)
@@ -75,18 +75,19 @@ val _ =
       (fn _ => fn object => (static_check ("val _test_ = " ^ object); scala_name object)) #>
 
     Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_method\<close>
-      (Scan.lift (Scan.option in_class -- Parse.embedded -- types -- method_arguments))
-      (fn _ => fn (((class, method), method_types), method_args) =>
+      (Scan.lift (class -- Parse.embedded -- types -- args))
+      (fn _ => fn (((class_context, method), method_types), method_args) =>
         let
-          val class_types = (case class of SOME (_, Ts) => Ts | NONE => []);
+          val class_types = (case class_context of SOME (_, Ts) => Ts | NONE => []);
           val def = "def _test_" ^ print_types (merge (op =) (method_types, class_types));
           val def_context =
-            (case class of
+            (case class_context of
               NONE => def ^ " = "
             | SOME c => def ^ "(_this_ : " ^ print_class c ^ ") = _this_.");
           val source = def_context ^ method ^ method_args;
           val _ = static_check source;
-        in scala_name (case class of NONE => method | SOME c => print_class c ^ "." ^ method) end));
+          val text = (case class_context of NONE => method | SOME c => print_class c ^ "." ^ method);
+        in scala_name text end));
 
 end;
 
