@@ -60,6 +60,7 @@ sig
   val iff_exI: thm (* !!x. P x <-> Q x ==> (? x. P x) = (? x. Q x) *)
   val all_comm: thm (* (!x y. P x y) = (!y x. P x y) *)
   val ex_comm: thm (* (? x y. P x y) = (? y x. P x y) *)
+  val atomize: Proof.context -> conv
 end;
 
 signature QUANTIFIER1 =
@@ -187,7 +188,7 @@ in
   fun prove_one_point_all_tac ctxt =
     EVERY1 [qcomm_tac ctxt All_comm @{thm equal_allI},
       resolve_tac ctxt [@{thm equal_allI}],
-      Object_Logic.full_atomize_tac ctxt,
+      CONVERSION (Data.atomize ctxt),
       resolve_tac ctxt [@{thm equal_intr_rule}],
       tac ctxt,
       tac ctxt];

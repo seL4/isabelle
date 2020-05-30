@@ -33,6 +33,9 @@ structure Quantifier1 = Quantifier1
   val iff_exI = @{thm iff_exI}
   val all_comm = @{thm all_comm}
   val ex_comm = @{thm ex_comm}
+  val atomize =
+    let val rules = @{thms atomize_all atomize_imp atomize_eq atomize_conj}
+    in fn ctxt => Raw_Simplifier.rewrite ctxt true rules end
 );
 
 structure Simpdata =
