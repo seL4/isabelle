@@ -187,10 +187,9 @@ in
   fun prove_one_point_all_tac ctxt =
     EVERY1 [qcomm_tac ctxt All_comm @{thm equal_allI},
       resolve_tac ctxt [@{thm equal_allI}],
+      Object_Logic.full_atomize_tac ctxt,
       resolve_tac ctxt [@{thm equal_intr_rule}],
-      Object_Logic.atomize_prems_tac ctxt,
       tac ctxt,
-      Object_Logic.atomize_prems_tac ctxt,
       tac ctxt];
 end
 
