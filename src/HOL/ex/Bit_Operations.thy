@@ -57,11 +57,11 @@ lemma and_zero_eq [simp]:
   "a AND 0 = 0"
   by (simp add: bit_eq_iff bit_and_iff)
 
-lemma one_and_eq [simp]:
+lemma one_and_eq:
   "1 AND a = a mod 2"
   by (simp add: bit_eq_iff bit_and_iff) (auto simp add: bit_1_iff)
 
-lemma and_one_eq [simp]:
+lemma and_one_eq:
   "a AND 1 = a mod 2"
   using one_and_eq [of a] by (simp add: ac_simps)
 

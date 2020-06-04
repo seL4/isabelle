@@ -721,14 +721,14 @@ definition even_word :: \<open>'a::len word \<Rightarrow> bool\<close>
 
 lemma even_word_iff [code]:
   \<open>even_word a \<longleftrightarrow> a AND 1 = 0\<close>
-  by (simp add: even_word_def even_iff_mod_2_eq_zero)
+  by (simp add: even_word_def and_one_eq even_iff_mod_2_eq_zero)
 
 definition bit_word :: \<open>'a::len word \<Rightarrow> nat \<Rightarrow> bool\<close>
   where [code_abbrev]: \<open>bit_word = bit\<close>
 
 lemma bit_word_iff [code]:
   \<open>bit_word a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close>
-  by (simp add: bit_word_def bit_iff_odd_drop_bit odd_iff_mod_2_eq_one)
+  by (simp add: bit_word_def bit_iff_odd_drop_bit and_one_eq odd_iff_mod_2_eq_one)
 
 lifting_update word.lifting
 lifting_forget word.lifting
