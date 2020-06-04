@@ -230,6 +230,34 @@ lemma take_bit_not_iff:
   apply (use local.exp_eq_0_imp_not_bit in blast)
   done
 
+lemma take_bit_minus_one_eq_mask:
+  \<open>take_bit n (- 1) = mask n\<close>
+  by (simp add: bit_eq_iff bit_mask_iff bit_take_bit_iff conj_commute)
+
+lemma push_bit_minus_one_eq_not_mask:
+  \<open>push_bit n (- 1) = NOT (mask n)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume \<open>2 ^ m \<noteq> 0\<close>
+  show \<open>bit (push_bit n (- 1)) m \<longleftrightarrow> bit (NOT (mask n)) m\<close>
+  proof (cases \<open>n \<le> m\<close>)
+    case True
+    moreover define q where \<open>q = m - n\<close>
+    ultimately have \<open>m = n + q\<close> \<open>m - n = q\<close>
+      by simp_all
+    with \<open>2 ^ m \<noteq> 0\<close> have \<open>2 ^ n * 2 ^ q \<noteq> 0\<close>
+      by (simp add: power_add)
+    then have \<open>2 ^ q \<noteq> 0\<close>
+      using mult_not_zero by blast
+    with \<open>m - n = q\<close> show ?thesis
+      by (auto simp add: bit_not_iff bit_mask_iff bit_push_bit_iff not_less)
+  next
+    case False
+    then show ?thesis
+      by (simp add: bit_not_iff bit_mask_iff bit_push_bit_iff not_le)
+  qed
+qed
+
 definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   where \<open>set_bit n a = a OR 2 ^ n\<close>
 
