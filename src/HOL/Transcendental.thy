@@ -688,7 +688,7 @@ proof -
     qed
     then have "\<And>p q.
        \<lbrakk>p < n; q < n - Suc 0\<rbrakk> \<Longrightarrow> norm ((z + h) ^ q * z ^ (n - 2 - q)) \<le> K ^ (n - 2)"
-      by simp
+      by (simp del: subst_all')
     then
     show "norm (\<Sum>p<n - Suc 0. \<Sum>q<n - Suc 0 - p. (z + h) ^ q * z ^ (n - 2 - q)) \<le>
         of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2))"

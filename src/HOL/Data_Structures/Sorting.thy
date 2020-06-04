@@ -205,7 +205,8 @@ done
 lemma length_msort: "length(msort xs) = length xs"
 proof (induction xs rule: msort.induct)
   case (1 xs)
-  thus ?case by (auto simp: msort.simps[of xs] length_merge)
+  show ?case
+    by (auto simp: msort.simps [of xs] 1 length_merge)
 qed
 text \<open>Why structured proof?
    To have the name "xs" to specialize msort.simps with xs

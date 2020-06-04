@@ -67,12 +67,11 @@ proof(induction xs t rule: delete.induct)
   case 1 thus ?case by (force split: option.splits)
 next
   case 2
-  thus ?case
-    apply (auto simp add: image_iff split!: if_splits option.splits)
-       apply blast
-      apply (metis insertE insertI2 insert_Diff_single option.inject)
-     apply blast
-    by (metis insertE insertI2 insert_Diff_single option.inject)
+  show ?case
+    apply (auto simp add: image_iff 2 split!: if_splits option.splits)
+     apply (metis DiffI empty_iff insert_iff option.inject)
+     apply (metis DiffI empty_iff insert_iff option.inject)
+    done
 qed
 
 interpretation S: Set

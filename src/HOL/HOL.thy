@@ -941,6 +941,36 @@ subsubsection \<open>Simplifier\<close>
 
 lemma eta_contract_eq: "(\<lambda>s. f s) = f" ..
 
+lemma subst_all:
+  \<open>(\<And>x. x = a \<Longrightarrow> PROP P x) \<equiv> PROP P a\<close>
+proof (rule equal_intr_rule)
+  assume *: \<open>\<And>x. x = a \<Longrightarrow> PROP P x\<close>
+  show \<open>PROP P a\<close>
+    by (rule *) (rule refl)
+next
+  fix x
+  assume \<open>PROP P a\<close> and \<open>x = a\<close>
+  from \<open>x = a\<close> have \<open>x \<equiv> a\<close>
+    by (rule eq_reflection)
+  with \<open>PROP P a\<close> show \<open>PROP P x\<close>
+    by simp
+qed
+
+lemma subst_all':
+  \<open>(\<And>x. a = x \<Longrightarrow> PROP P x) \<equiv> PROP P a\<close>
+proof (rule equal_intr_rule)
+  assume *: \<open>\<And>x. a = x \<Longrightarrow> PROP P x\<close>
+  show \<open>PROP P a\<close>
+    by (rule *) (rule refl)
+next
+  fix x
+  assume \<open>PROP P a\<close> and \<open>a = x\<close>
+  from \<open>a = x\<close> have \<open>a \<equiv> x\<close>
+    by (rule eq_reflection)
+  with \<open>PROP P a\<close> show \<open>PROP P x\<close>
+    by simp
+qed
+
 lemma simp_thms:
   shows not_not: "(\<not> \<not> P) = P"
   and Not_eq_iff: "((\<not> P) = (\<not> Q)) = (P = Q)"
@@ -1372,6 +1402,8 @@ lemmas [simp] =
   ex_simps
   all_simps
   simp_thms
+  subst_all
+  subst_all'
 
 lemmas [cong] = imp_cong simp_implies_cong
 lemmas [split] = if_split
