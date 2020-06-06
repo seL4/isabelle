@@ -40,6 +40,12 @@ written as "x powi n".
 
 * Added the "at most 1" quantifier, Uniq, as in HOL.
 
+* Simproc defined_all and rewrite rules subst_all and subst_all' perform
+more aggressive substitution with variables from assumptions.
+INCOMPATIBILITY, use something like
+"supply subst_all [simp] subst_all' [simp] [[simproc del: defined_all]]"
+to leave fragile proofs unaffected.
+
 
 *** ML ***
 
