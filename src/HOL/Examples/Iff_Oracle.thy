@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Iff_Oracle.thy
+(*  Title:      HOL/Example/Iff_Oracle.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Makarius
 *)
@@ -6,7 +6,7 @@
 section \<open>Example of Declaring an Oracle\<close>
 
 theory Iff_Oracle
-imports Main
+  imports Main
 begin
 
 subsection \<open>Oracle declaration\<close>

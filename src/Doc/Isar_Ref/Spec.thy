@@ -1451,8 +1451,8 @@ text \<open>
   infinitary specification of axioms! Invoking the oracle only works within
   the scope of the resulting theory.
 
-  See \<^file>\<open>~~/src/HOL/ex/Iff_Oracle.thy\<close> for a worked example of defining a new
-  primitive rule as oracle, and turning it into a proof method.
+  See \<^file>\<open>~~/src/HOL/Examples/Iff_Oracle.thy\<close> for a worked example of defining
+  a new primitive rule as oracle, and turning it into a proof method.
 
   \<^descr> \<^theory_text>\<open>thm_oracles thms\<close> displays all oracles used in the internal derivation
   of the given theorems; this covers the full graph of transitive

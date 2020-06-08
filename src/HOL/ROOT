@@ -26,6 +26,7 @@ session "HOL-Examples" in Examples = HOL +
     Cantor
     Seq
     "ML"
+    Iff_Oracle
   document_files
     "root.bib"
     "root.tex"
@@ -642,7 +643,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Hebrew
     Hex_Bin_Examples
     IArray_Examples
-    Iff_Oracle
     Induction_Schema
     Intuitionistic
     Join_Theory
