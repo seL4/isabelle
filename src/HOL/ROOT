@@ -13,6 +13,24 @@ session HOL (main) = Pure +
     "root.bib"
     "root.tex"
 
+session "HOL-Examples" in Examples = HOL +
+  description "
+    Notable Examples in Isabelle/HOL.
+  "
+  sessions
+    "HOL-Library"
+  theories
+    Knaster_Tarski
+    Peirce
+    Drinker
+    Cantor
+    Seq
+    "ML"
+  document_files
+    "root.bib"
+    "root.tex"
+
+
 session "HOL-Proofs" (timing) in Proofs = Pure +
   description "
     HOL-Main with explicit proof terms.
@@ -631,7 +649,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Lagrange
     List_to_Set_Comprehension_Examples
     LocaleTest2
-    "ML"
     MergeSort
     MonoidGroup
     Multiquote
@@ -653,7 +670,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Rewrite_Examples
     SOS
     SOS_Cert
-    Seq
     Serbian
     Set_Comprehension_Pointfree_Examples
     Set_Theory
@@ -687,10 +703,6 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
   "
   options [quick_and_dirty]
   theories
-    Knaster_Tarski
-    Peirce
-    Drinker
-    Cantor
     Structured_Statements
     Basic_Logic
     Expr_Compiler

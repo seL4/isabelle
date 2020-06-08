@@ -515,9 +515,9 @@ text \<open>
 
   \<^item> \<^bold>\<open>type\<close> \<open>node = {node_name: string, theory_name: string}\<close> represents the
   internal node name of a theory. The \<open>node_name\<close> is derived from the
-  canonical theory file-name (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close> after
+  canonical theory file-name (e.g.\ \<^verbatim>\<open>"~~/src/HOL/Examples/Seq.thy"\<close> after
   normalization within the file-system). The \<open>theory_name\<close> is the
-  session-qualified theory name (e.g.\ \<^verbatim>\<open>HOL-ex.Seq\<close>).
+  session-qualified theory name (e.g.\ \<^verbatim>\<open>HOL-Examples.Seq\<close>).
 
   \<^item> \<^bold>\<open>type\<close> \<open>node_status = {ok: bool, total: int, unprocessed: int, running:
   int, warned: int, failed: int, finished: int, canceled: bool, consolidated:
@@ -975,8 +975,8 @@ text \<open>
   The \<open>master_dir\<close> field specifies the master directory of imported theories:
   it acts like the ``current working directory'' for locating theory files.
   This is irrelevant for \<open>theories\<close> with an absolute path name (e.g.\
-  \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close>) or session-qualified theory name (e.g.\
-  \<^verbatim>\<open>"HOL-ex/Seq"\<close>).
+  \<^verbatim>\<open>"~~/src/HOL/Examples/Seq.thy"\<close>) or session-qualified theory name (e.g.\
+  \<^verbatim>\<open>"HOL-Examples.Seq"\<close>).
 
   \<^medskip>
   The \<open>pretty_margin\<close> field specifies the line width for pretty-printing. The
@@ -1026,7 +1026,7 @@ text \<open>
   Process some example theory from the Isabelle distribution, within the
   context of an already started session for Isabelle/HOL (see also
   \secref{sec:command-session-start}):
-  @{verbatim [display] \<open>use_theories {"session_id": ..., "theories": ["~~/src/HOL/ex/Seq"]}\<close>}
+  @{verbatim [display] \<open>use_theories {"session_id": ..., "theories": ["~~/src/HOL/Examples/Seq"]}\<close>}
 
   \<^medskip>
   Process some example theories in the context of their (single) parent

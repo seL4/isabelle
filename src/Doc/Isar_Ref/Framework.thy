@@ -89,10 +89,11 @@ qed\<close>}
   \<^medskip>
   Concrete applications require another intermediate layer: an object-logic.
   Isabelle/HOL @{cite "isa-tutorial"} (simply-typed set-theory) is most
-  commonly used; elementary examples are given in the directory
-  \<^dir>\<open>~~/src/HOL/Isar_Examples\<close>. Some examples demonstrate how to start a fresh
-  object-logic from Isabelle/Pure, and use Isar proofs from the very start,
-  despite the lack of advanced proof tools at such an early stage (e.g.\ see
+  commonly used; elementary examples are given in the directories
+  \<^dir>\<open>~~/src/Pure/Examples\<close> and \<^dir>\<open>~~/src/HOL/Examples\<close>. Some examples
+  demonstrate how to start a fresh object-logic from Isabelle/Pure, and use
+  Isar proofs from the very start, despite the lack of advanced proof tools at
+  such an early stage (e.g.\ see
   \<^file>\<open>~~/src/Pure/Examples/Higher_Order_Logic.thy\<close>). Isabelle/FOL @{cite
   "isabelle-logics"} and Isabelle/ZF @{cite "isabelle-ZF"} also work, but are
   much less developed.

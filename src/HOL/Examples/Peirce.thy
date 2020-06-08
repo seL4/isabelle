@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_Examples/Peirce.thy
+(*  Title:      HOL/Examples/Peirce.thy
     Author:     Makarius
 *)
 

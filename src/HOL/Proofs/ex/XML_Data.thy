@@ -6,7 +6,7 @@ XML data representation of proof terms.
 *)
 
 theory XML_Data
-  imports "HOL-Isar_Examples.Drinker"
+  imports "HOL-Examples.Drinker"
 begin
 
 subsection \<open>Export and re-import of global proof terms\<close>

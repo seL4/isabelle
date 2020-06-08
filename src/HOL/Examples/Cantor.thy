@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_Examples/Cantor.thy
+(*  Title:      HOL/Examples/Cantor.thy
     Author:     Makarius
 *)
 

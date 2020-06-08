@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_Examples/Knaster_Tarski.thy
+(*  Title:      HOL/Examples/Knaster_Tarski.thy
     Author:     Makarius
 
 Typical textbook proof example.

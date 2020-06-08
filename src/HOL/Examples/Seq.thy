@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Seq.thy
+(*  Title:      HOL/Examples/Seq.thy
     Author:     Makarius
 *)
 
