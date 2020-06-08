@@ -27,6 +27,9 @@ rule to protect foundational terms during simplification.
 
 *** HOL ***
 
+* Session HOL-Examples contains notable examples for Isabelle/HOL
+(former entries of HOL-Isar_Examples, HOL-ex etc.).
+
 * Simproc "datatype_no_proper_subterm" rewrites equalities "lhs = rhs"
 on datatypes to "False" if either side is a proper subexpression of the
 other (for any datatype with a reasonable size function).
