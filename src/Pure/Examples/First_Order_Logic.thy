@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_Examples/First_Order_Logic.thy
+(*  Title:      Pure/Examples/First_Order_Logic.thy
     Author:     Makarius
 *)
 

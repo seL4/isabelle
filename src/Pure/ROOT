@@ -10,3 +10,14 @@ session Pure =
   theories
     ML_Bootstrap (global)
     Sessions
+
+session "Pure-Examples" in Examples = Pure +
+  description "
+    Notable Examples in Isabelle/Pure.
+  "
+  theories
+    First_Order_Logic
+    Higher_Order_Logic
+  document_files
+    "root.bib"
+    "root.tex"

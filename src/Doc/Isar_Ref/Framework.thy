@@ -93,7 +93,7 @@ qed\<close>}
   \<^dir>\<open>~~/src/HOL/Isar_Examples\<close>. Some examples demonstrate how to start a fresh
   object-logic from Isabelle/Pure, and use Isar proofs from the very start,
   despite the lack of advanced proof tools at such an early stage (e.g.\ see
-  \<^file>\<open>~~/src/HOL/Isar_Examples/Higher_Order_Logic.thy\<close>). Isabelle/FOL @{cite
+  \<^file>\<open>~~/src/Pure/Examples/Higher_Order_Logic.thy\<close>). Isabelle/FOL @{cite
   "isabelle-logics"} and Isabelle/ZF @{cite "isabelle-ZF"} also work, but are
   much less developed.
 
