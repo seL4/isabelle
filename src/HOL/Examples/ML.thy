@@ -8,7 +8,7 @@ theory "ML"
 imports Main
 begin
 
-section \<open>ML expressions\<close>
+subsection \<open>ML expressions\<close>
 
 text \<open>
   The Isabelle command \<^theory_text>\<open>ML\<close> allows to embed Isabelle/ML source into the
@@ -27,7 +27,7 @@ ML \<open>val b = 1\<close>
 ML \<open>val c = a + b\<close>
 
 
-section \<open>Antiquotations\<close>
+subsection \<open>Antiquotations\<close>
 
 text \<open>
   There are some language extensions (via antiquotations), as explained in the
@@ -57,7 +57,7 @@ ML \<open>
 \<close>
 
 
-section \<open>Recursive ML evaluation\<close>
+subsection \<open>Recursive ML evaluation\<close>
 
 ML \<open>
   ML \<open>ML \<open>val a = @{thm refl}\<close>\<close>;
@@ -67,7 +67,7 @@ ML \<open>
 \<close>
 
 
-section \<open>IDE support\<close>
+subsection \<open>IDE support\<close>
 
 text \<open>
   ML embedded into the Isabelle environment is connected to the Prover IDE.
@@ -84,7 +84,7 @@ text \<open>
 ML \<open>fn i => fn list => length list + i\<close>
 
 
-section \<open>Example: factorial and ackermann function in Isabelle/ML\<close>
+subsection \<open>Example: factorial and ackermann function in Isabelle/ML\<close>
 
 ML \<open>
   fun factorial 0 = 1
@@ -105,7 +105,7 @@ ML \<open>
 ML \<open>timeit (fn () => ackermann 3 10)\<close>
 
 
-section \<open>Parallel Isabelle/ML\<close>
+subsection \<open>Parallel Isabelle/ML\<close>
 
 text \<open>
   Future.fork/join/cancel manage parallel evaluation.
@@ -130,7 +130,7 @@ ML \<open>timeit (fn () => map (fn n => ackermann 3 n) (1 upto 10))\<close>
 ML \<open>timeit (fn () => Par_List.map (fn n => ackermann 3 n) (1 upto 10))\<close>
 
 
-section \<open>Function specifications in Isabelle/HOL\<close>
+subsection \<open>Function specifications in Isabelle/HOL\<close>
 
 fun factorial :: "nat \<Rightarrow> nat"
 where
