@@ -20,6 +20,7 @@ session "HOL-Examples" in Examples = HOL +
   sessions
     "HOL-Library"
   theories
+    Ackermann
     Knaster_Tarski
     Peirce
     Drinker
