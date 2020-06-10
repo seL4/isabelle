@@ -1234,11 +1234,9 @@ Specifies whether standard proof methods such as \textit{auto} and
 \textit{blast} should be tried as alternatives to \textit{metis} in Isar proofs.
 The collection of methods is roughly the same as for the \textbf{try0} command.
 
-\opsmart{smt\_proofs}{no\_smt\_proofs}
+\optrue{smt\_proofs}{no\_smt\_proofs}
 Specifies whether the \textit{smt} proof method should be tried in addition to
-Isabelle's other proof methods. If the option is set to \textit{smart} (the
-default), the \textit{smt} method is used for one-line proofs but not in Isar
-proofs.
+Isabelle's built-in proof methods.
 \end{enum}
 
 

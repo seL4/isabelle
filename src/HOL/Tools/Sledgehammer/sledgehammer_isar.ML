@@ -19,8 +19,8 @@ sig
     bool * (string option * string option) * Time.time * real option * bool * bool
     * (term, string) atp_step list * thm
 
-  val proof_text : Proof.context -> bool -> bool option -> bool option -> (unit -> isar_params) ->
-    int -> one_line_params -> string
+  val proof_text : Proof.context -> bool -> bool option -> bool -> (unit -> isar_params) -> int ->
+    one_line_params -> string
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -164,7 +164,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
 
             fun massage_methods (meths as meth :: _) =
               if not try0 then [meth]
-              else if smt_proofs = SOME true then SMT_Method :: meths
+              else if smt_proofs then SMT_Method :: meths
               else meths
 
             val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
@@ -461,16 +461,16 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
         (if isar_proofs = SOME true then "\nWarning: Isar proof construction failed" else ""))
   end
 
-fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
+fun isar_proof_would_be_a_good_idea (meth, play) =
   (case play of
-    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
+    Played _ => false
   | Play_Timed_Out time => time > Time.zeroTime
   | Play_Failed => true)
 
 fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as ((_, preplay), _, _, _)) =
   (if isar_proofs = SOME true orelse
-      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
+      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
      isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
    else
      one_line_proof_text ctxt num_chained) one_line_params

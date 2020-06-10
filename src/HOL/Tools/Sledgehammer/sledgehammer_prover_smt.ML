@@ -200,10 +200,9 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
         NONE =>
         let
           val _ = found_proof ();
-          val smt_method = smt_proofs <> SOME false
           val preferred_methss =
-            (if smt_method then SMT_Method else Metis_Method (NONE, NONE),
-             bunches_of_proof_methods try0 smt_method false liftingN)
+            (if smt_proofs then SMT_Method else Metis_Method (NONE, NONE),
+             bunches_of_proof_methods try0 smt_proofs false liftingN)
         in
           (preferred_methss,
            fn preplay =>
@@ -217,8 +216,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
                val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))
              in
-               proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
-                 one_line_params
+               proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
              end)
         end
       | SOME failure => ((Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure))

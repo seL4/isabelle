@@ -68,7 +68,7 @@ val default_default_params =
    ("isar_proofs", "smart"),
    ("compress", "smart"),
    ("try0", "true"),
-   ("smt_proofs", "smart"),
+   ("smt_proofs", "true"),
    ("slice", "true"),
    ("minimize", "true"),
    ("preplay_timeout", "1")]
@@ -267,7 +267,7 @@ fun extract_params mode default_params override_params =
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val compress = Option.map (curry Real.max 1.0) (lookup_option lookup_real "compress")
     val try0 = lookup_bool "try0"
-    val smt_proofs = lookup_option lookup_bool "smt_proofs"
+    val smt_proofs = lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize = lookup_bool "minimize"
     val timeout = lookup_time "timeout"
