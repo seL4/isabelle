@@ -396,7 +396,12 @@ class Rich_Text_Area(
           x + w < clip_rect.x + clip_rect.width && chunk.length > 0)
       {
         val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
-        val chunk_str = if (chunk.str == null) " " * chunk.length else chunk.str
+        val chunk_str =
+          if (chunk.chars == null) Symbol.spaces(chunk.length)
+          else {
+            if (chunk.str == null) { chunk.str = new String(chunk.chars) }
+            chunk.str
+          }
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 

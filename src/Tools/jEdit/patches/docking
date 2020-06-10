@@ -1,25 +1,16 @@
-diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
---- 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2018-04-09 01:56:46.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2019-02-24 12:20:02.862430679 +0100
-@@ -35,7 +35,7 @@
- import javax.swing.Box;
- import javax.swing.BoxLayout;
- import javax.swing.JButton;
--import javax.swing.JFrame;
-+import javax.swing.JDialog;
- import javax.swing.JPopupMenu;
- import javax.swing.JSeparator;
- import javax.swing.SwingUtilities;
-@@ -51,7 +51,7 @@
-  * @version $Id: FloatingWindowContainer.java 24411 2016-06-19 11:02:53Z kerik-sf $
+diff -ru 5.6pre1/jEdit-orig/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.6pre1/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
+--- 5.6pre1/jEdit-orig/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2020-05-20 11:10:10.000000000 +0200
++++ 5.6pre1/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2020-06-10 15:33:52.388038983 +0200
+@@ -45,14 +45,15 @@
+  * @version $Id: FloatingWindowContainer.java 25333 2020-05-10 09:40:02Z kpouer $
   * @since jEdit 4.0pre1
   */
--public class FloatingWindowContainer extends JFrame implements DockableWindowContainer,
-+public class FloatingWindowContainer extends JDialog implements DockableWindowContainer,
- 	PropertyChangeListener
- {
- 	String dockableName = null;
-@@ -59,6 +59,8 @@
+-public class FloatingWindowContainer extends JFrame implements DockableWindowContainer, PropertyChangeListener
+-{
++public class FloatingWindowContainer extends JDialog implements DockableWindowContainer, PropertyChangeListener {
+ 	private String dockableName;
+ 
+ 	//{{{ FloatingWindowContainer constructor
  	public FloatingWindowContainer(DockableWindowManagerImpl dockableWindowManager,
  		boolean clone)
  	{
@@ -28,7 +19,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.5.0/jEd
  		this.dockableWindowManager = dockableWindowManager;
  
  		dockableWindowManager.addPropertyChangeListener(this);
-@@ -94,7 +96,6 @@
+@@ -87,7 +88,6 @@
  		pack();
  		Container parent = dockableWindowManager.getView();
  		GUIUtilities.loadGeometry(this, parent, dockableName);
@@ -36,7 +27,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.5.0/jEd
  		KeyListener listener = dockableWindowManager.closeListener(dockableName);
  		addKeyListener(listener);
  		getContentPane().addKeyListener(listener);
-@@ -161,8 +162,11 @@
+@@ -154,8 +154,11 @@
  	@Override
  	public void dispose()
  	{

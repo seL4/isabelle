@@ -547,8 +547,7 @@ rm -rf "${DIST_NAME}-old"
               File.read(isabelle_target + jedit_props)
                 .replaceAll("lookAndFeel=.*", "lookAndFeel=com.apple.laf.AquaLookAndFeel")
                 .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
-                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d")
-                .replaceAll("plugin-blacklist.MacOSX.jar=true", "plugin-blacklist.MacOSX.jar="))
+                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
 
 
             // MacOS application bundle

@@ -1,7 +1,7 @@
-diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/buffer/JEditBuffer.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java
---- 5.5.0/jEdit/org/gjt/sp/jedit/buffer/JEditBuffer.java	2018-04-09 01:57:06.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java	2019-02-24 12:20:30.594535134 +0100
-@@ -1961,29 +1961,23 @@
+diff -ru 5.6pre1/jEdit-orig/org/gjt/sp/jedit/buffer/JEditBuffer.java 5.6pre1/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java
+--- 5.6pre1/jEdit-orig/org/gjt/sp/jedit/buffer/JEditBuffer.java	2020-05-20 11:10:12.000000000 +0200
++++ 5.6pre1/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java	2020-06-10 16:03:10.547355787 +0200
+@@ -1968,29 +1968,23 @@
  			{
  				Segment seg = new Segment();
  				newFoldLevel = foldHandler.getFoldLevel(this,i,seg);
@@ -32,13 +32,13 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/buffer/JEditBuffer.java 5.5.0/jEdit-patche
 -							for (Integer foldLevel: precedingFoldLevels)
 -							{
 -								j--;
--								lineMgr.setFoldLevel(j,foldLevel.intValue());
+-								lineMgr.setFoldLevel(j, foldLevel);
 -							}
 -							if (j < firstUpdatedFoldLevel)
 -								firstUpdatedFoldLevel = j;
 -						}
 +						j--;
-+						lineMgr.setFoldLevel(j,foldLevel.intValue());
++						lineMgr.setFoldLevel(j, foldLevel);
  					}
 +					if (j < firstUpdatedFoldLevel)
 +						firstUpdatedFoldLevel = j;

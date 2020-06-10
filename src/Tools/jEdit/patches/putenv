@@ -1,7 +1,7 @@
-diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
---- 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2018-04-09 01:57:06.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2019-02-24 12:21:09.602678130 +0100
-@@ -126,6 +126,21 @@
+diff -ru 5.6pre1/jEdit-orig/org/gjt/sp/jedit/MiscUtilities.java 5.6pre1/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
+--- 5.6pre1/jEdit-orig/org/gjt/sp/jedit/MiscUtilities.java	2020-06-09 22:58:00.000000000 +0200
++++ 5.6pre1/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2020-06-10 15:36:56.603033473 +0200
+@@ -131,6 +131,21 @@
  	static final Pattern winPattern = Pattern.compile(winPatternString);
  
  
@@ -23,7 +23,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  	/** A helper function for expandVariables when handling Windows paths on non-windows systems.
  	*/
  	private static String win2unix(String winPath)
-@@ -135,7 +150,7 @@
+@@ -140,7 +155,7 @@
  		if (m.find())
  		{
  			String varName = m.group(2);
@@ -32,7 +32,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  			if (expansion != null)
  				return m.replaceFirst(expansion);
  		}
-@@ -174,7 +189,7 @@
+@@ -179,7 +194,7 @@
  				return arg;
  		}
  		String varName = m.group(2);
@@ -41,7 +41,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  		if (expansion == null) {
  			if (varName.equalsIgnoreCase("jedit_settings") && jEdit.getSettingsDirectory() != null) {
  				expansion = jEdit.getSettingsDirectory();
-@@ -184,7 +199,7 @@
+@@ -189,7 +204,7 @@
  				varName = varName.toUpperCase();
  				String uparg = arg.toUpperCase();
  				m = p.matcher(uparg);
@@ -50,7 +50,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  			}
  		}
  		if (expansion != null) {
-@@ -1637,13 +1652,11 @@
+@@ -1682,13 +1697,11 @@
  		//{{{ VarCompressor constructor
  		VarCompressor()
  		{
