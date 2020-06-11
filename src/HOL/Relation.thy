@@ -245,14 +245,19 @@ lemma irrefl_distinct [code]: "irrefl r \<longleftrightarrow> (\<forall>(a, b) \
 subsubsection \<open>Asymmetry\<close>
 
 inductive asym :: "'a rel \<Rightarrow> bool"
-  where asymI: "irrefl R \<Longrightarrow> (\<And>a b. (a, b) \<in> R \<Longrightarrow> (b, a) \<notin> R) \<Longrightarrow> asym R"
+  where asymI: "(\<And>a b. (a, b) \<in> R \<Longrightarrow> (b, a) \<notin> R) \<Longrightarrow> asym R"
 
 inductive asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where asympI: "irreflp R \<Longrightarrow> (\<And>a b. R a b \<Longrightarrow> \<not> R b a) \<Longrightarrow> asymp R"
+  where asympI: "(\<And>a b. R a b \<Longrightarrow> \<not> R b a) \<Longrightarrow> asymp R"
 
 lemma asymp_asym_eq [pred_set_conv]: "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R"
   by (auto intro!: asymI asympI elim: asym.cases asymp.cases simp add: irreflp_irrefl_eq)
 
+lemma asymD: "\<lbrakk>asym R; (x,y) \<in> R\<rbrakk> \<Longrightarrow> (y,x) \<notin> R"
+  by (simp add: asym.simps)
+
+lemma asym_iff: "asym R \<longleftrightarrow> (\<forall>x y. (x,y) \<in> R \<longrightarrow> (y,x) \<notin> R)"
+  by (blast intro: asymI dest: asymD)
 
 subsubsection \<open>Symmetry\<close>
 
@@ -1135,6 +1140,9 @@ lemma trans_inv_image: "trans r \<Longrightarrow> trans (inv_image r f)"
 
 lemma total_inv_image: "\<lbrakk>inj f; total r\<rbrakk> \<Longrightarrow> total (inv_image r f)"
   unfolding inv_image_def total_on_def by (auto simp: inj_eq)
+
+lemma asym_inv_image: "asym R \<Longrightarrow> asym (inv_image R f)"
+  by (simp add: inv_image_def asym_iff)
 
 lemma in_inv_image[simp]: "(x, y) \<in> inv_image r f \<longleftrightarrow> (f x, f y) \<in> r"
   by (auto simp: inv_image_def)

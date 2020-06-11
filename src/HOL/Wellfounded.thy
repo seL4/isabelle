@@ -583,6 +583,9 @@ lemma less_than_iff [iff]: "((x,y) \<in> less_than) = (x<y)"
 lemma irrefl_less_than: "irrefl less_than"
   using irrefl_def by blast
 
+lemma asym_less_than: "asym less_than"
+  by (simp add: asym.simps irrefl_less_than)
+
 lemma total_less_than: "total less_than" and total_on_less_than [simp]: "total_on A less_than"
   using total_on_def by force+
 
@@ -797,6 +800,9 @@ lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longr
 
 lemma total_on_lex_prod [simp]: "total_on A r \<Longrightarrow> total_on B s \<Longrightarrow> total_on (A \<times> B) (r <*lex*> s)"
   by (auto simp: total_on_def)
+
+lemma asym_lex_prod: "\<lbrakk>asym R; asym S\<rbrakk> \<Longrightarrow> asym (R <*lex*> S)"
+  by (auto simp add: asym_iff lex_prod_def)
 
 lemma total_lex_prod [simp]: "total r \<Longrightarrow> total s \<Longrightarrow> total (r <*lex*> s)"
   by (auto simp: total_on_def)

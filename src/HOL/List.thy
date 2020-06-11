@@ -6326,7 +6326,6 @@ proof (rule wf_UN)
     by (metis DomainE Int_emptyI RangeE lexn_length)
 qed
 
-
 lemma lexn_conv:
   "lexn r n =
     {(xs,ys). length xs = n \<and> length ys = n \<and>
@@ -6516,7 +6515,6 @@ lemma irrefl_lex: "irrefl r \<Longrightarrow> irrefl (lex r)"
   by (meson irrefl_def lex_take_index)
 
 
-
 subsubsection \<open>Lexicographic Ordering\<close>
 
 text \<open>Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
@@ -6618,11 +6616,11 @@ next
 qed
 
 lemma lexord_trans:
-    "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r \<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
-by(auto simp: trans_def intro:lexord_partial_trans)
+  "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r \<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
+  by(auto simp: trans_def intro:lexord_partial_trans)
 
 lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
-by (rule transI, drule lexord_trans, blast)
+  by (meson lexord_trans transI)
 
 lemma total_lexord: "total r \<Longrightarrow> total (lexord r)"
   unfolding total_on_def
@@ -6653,10 +6651,7 @@ by (simp add: irrefl_def lexord_irreflexive)
 lemma lexord_asym:
   assumes "asym R"
   shows "asym (lexord R)"
-proof
-  from assms obtain "irrefl R" by (blast elim: asym.cases)
-  then show "irrefl (lexord R)" by (rule lexord_irrefl)
-next
+proof 
   fix xs ys
   assume "(xs, ys) \<in> lexord R"
   then show "(ys, xs) \<notin> lexord R"
@@ -6679,6 +6674,38 @@ proof -
   then show ?thesis by (rule asym.cases) (auto simp add: hyp)
 qed
 
+lemma asym_lex: "asym R \<Longrightarrow> asym (lex R)"
+  by (meson asym.simps irrefl_lex lexord_asym lexord_lex)
+
+lemma asym_lenlex: "asym R \<Longrightarrow> asym (lenlex R)"
+  by (simp add: lenlex_def asym_inv_image asym_less_than asym_lex asym_lex_prod)
+
+lemma lenlex_append1:
+  assumes len: "(us,xs) \<in> lenlex R" and eq: "length vs = length ys" 
+  shows "(us @ vs, xs @ ys) \<in> lenlex R"
+  using len
+proof (induction us)
+  case Nil
+  then show ?case 
+    by (simp add: lenlex_def eq)
+next
+  case (Cons u us)
+  with lex_append_rightI show ?case
+    by (fastforce simp add: lenlex_def eq)
+qed
+
+lemma lenlex_append2 [simp]:
+  assumes "irrefl R"
+  shows "(us @ xs, us @ ys) \<in> lenlex R \<longleftrightarrow> (xs, ys) \<in> lenlex R"
+proof (induction us)
+  case Nil
+  then show ?case 
+    by (simp add: lenlex_def)
+next
+  case (Cons u us)
+  with assms show ?case
+    by (auto simp: lenlex_def irrefl_def)
+qed
 
 text \<open>
   Predicate version of lexicographic order integrated with Isabelle's order type classes.
