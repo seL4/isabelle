@@ -267,19 +267,19 @@ object Token_Markup
           }
 
         val extended = Syntax_Style.extended(line)
+        def special(i: Int): Boolean = extended.isDefinedAt(i) || line.charAt(i) == '\t'
 
         var offset = 0
         for ((style, token) <- styled_tokens) {
           val length = token.length
-          val offsets = offset until (offset + length)
-          if (offsets.exists(i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {
-            for (i <- offsets) {
+          if ((offset until (offset + length)).exists(special)) {
+            for ((c, i) <- Codepoint.iterator_offset(token)) {
               val style1 =
-                extended.get(i) match {
+                extended.get(offset + i) match {
                   case None => style
                   case Some(ext) => ext(style)
                 }
-              handler.handleToken(line, style1, i, 1, context1)
+              handler.handleToken(line, style1, offset + i, Character.charCount(c), context1)
             }
           }
           else handler.handleToken(line, style, offset, length, context1)
