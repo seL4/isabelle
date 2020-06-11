@@ -5,7 +5,7 @@
 section \<open>Standard ML within the Isabelle environment\<close>
 
 theory Examples
-imports Pure
+  imports Pure
 begin
 
 text \<open>

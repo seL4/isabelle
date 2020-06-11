@@ -5,7 +5,7 @@
 section \<open>Finite sequences\<close>
 
 theory Seq
-imports Main
+  imports Main
 begin
 
 datatype 'a seq = Empty | Seq 'a "'a seq"

@@ -5,7 +5,7 @@
 section \<open>Isabelle/ML basics\<close>
 
 theory "ML"
-imports Main
+  imports Main
 begin
 
 subsection \<open>ML expressions\<close>
