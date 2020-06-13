@@ -288,7 +288,7 @@ directory individually.
       val version = proper_string(rev) orElse proper_release_name getOrElse "tip"
       val ident =
         try { hg.id(version) }
-        catch { case ERROR(_) => error("Bad repository version: " + version) }
+        catch { case ERROR(msg) => cat_error("Bad repository version: " + version, msg) }
 
       val dist_version =
         proper_release_name match {
@@ -366,13 +366,13 @@ directory individually.
         other_isabelle.bash(export_classpath + "./Admin/build all", echo = true).check
         other_isabelle.bash(export_classpath + "./bin/isabelle jedit -b", echo = true).check
       }
-      catch { case ERROR(_) => error("Failed to build tools") }
+      catch { case ERROR(msg) => cat_error("Failed to build tools:", msg) }
 
       try {
         other_isabelle.bash(
           "./bin/isabelle build_doc -a -o system_heaps -j " + parallel_jobs, echo = true).check
       }
-      catch { case ERROR(_) => error("Failed to build documentation") }
+      catch { case ERROR(msg) => cat_error("Failed to build documentation:", msg) }
 
       make_news(other_isabelle, release.dist_version)
 
