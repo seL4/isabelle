@@ -71,11 +71,12 @@ val FWD = Drule.implies_elim_list;
 
 val true_tm = \<^cterm>\<open>True\<close>;
 val false_tm = \<^cterm>\<open>False\<close>;
-val zdvd1_eq = @{thm "zdvd1_eq"};
-val presburger_ss = simpset_of (\<^context> addsimps [zdvd1_eq]);
+val presburger_ss = simpset_of (\<^context> addsimps @{thms zdvd1_eq});
 val lin_ss =
   simpset_of (put_simpset presburger_ss \<^context>
-    addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms ac_simps [where 'a=int]}));
+    addsimps (@{thms dvd_eq_mod_eq_0 add.assoc [where 'a = int] add.commute [where 'a = int] add.left_commute [where 'a = int]
+  mult.assoc [where 'a = int] mult.commute [where 'a = int] mult.left_commute [where 'a = int]
+}));
 
 val iT = HOLogic.intT
 val bT = HOLogic.boolT;
