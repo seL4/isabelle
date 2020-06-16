@@ -2015,8 +2015,8 @@ proof cases
           "min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (a \<bullet> i) else m i * (b \<bullet> i))"
           "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (b \<bullet> i) else m i * (a \<bullet> i))"
         using a_le_b by (auto simp: min_def max_def mult_le_cancel_left)
-      with False show ?thesis using a_le_b
-        unfolding * by (auto simp: le_divide_eq divide_le_eq ac_simps)
+      with False show ?thesis using a_le_b *
+        by (simp add: le_divide_eq divide_le_eq) (simp add: ac_simps)
     qed
   qed
 qed simp

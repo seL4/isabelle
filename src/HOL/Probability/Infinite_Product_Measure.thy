@@ -353,7 +353,7 @@ proof (rule PiM_eq)
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI inj_on_def)
   also have "\<dots> = (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j))"
     by (rule prod.reindex_cong [of "\<lambda>x. x - i"])
-       (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
+      (auto simp: image_iff ac_simps nat_eq_diff_eq cong: conj_cong intro!: inj_onI)
   also have "emeasure S ?E = (\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j))"
     using J by (intro emeasure_PiM_emb) simp_all
   also have "(\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j)) * (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
@@ -384,7 +384,7 @@ proof (rule PiM_eq)
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI)
   also have "\<dots> = (\<Prod>j\<in>J - {0}. emeasure M (E j))"
     by (rule prod.reindex_cong [of "\<lambda>x. x - 1"])
-       (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
+      (auto simp: image_iff nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
   also have "emeasure M ?E * (\<Prod>j\<in>J - {0}. emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
     by (auto simp: M.emeasure_space_1 prod.remove J)
   finally show "emeasure ?D ?X = (\<Prod>j\<in>J. emeasure M (E j))" .

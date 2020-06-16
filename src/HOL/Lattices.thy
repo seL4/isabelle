@@ -145,15 +145,15 @@ lemma neutr_eq_iff [simp]: \<open>\<^bold>1 = a \<^bold>* b \<longleftrightarrow
 
 end
 
-text \<open>Passive interpretations for boolean operators\<close>
+text \<open>Interpretations for boolean operators\<close>
 
-lemma semilattice_neutr_and:
-  "semilattice_neutr HOL.conj True"
+interpretation conj: semilattice_neutr \<open>(\<and>)\<close> True
   by standard auto
 
-lemma semilattice_neutr_or:
-  "semilattice_neutr HOL.disj False"
+interpretation disj: semilattice_neutr \<open>(\<or>)\<close> False
   by standard auto
+
+declare conj_assoc [ac_simps del] disj_assoc [ac_simps del] \<comment> \<open>already simp by default\<close>
 
 
 subsection \<open>Syntactic infimum and supremum operations\<close>

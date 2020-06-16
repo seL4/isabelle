@@ -2545,8 +2545,7 @@ qed
 
 lemma comm_monoid_set_F_and: "comm_monoid_set.F (\<and>) True f s \<longleftrightarrow> (finite s \<longrightarrow> (\<forall>x\<in>s. f x))"
 proof -
-  interpret bool: comm_monoid_set "(\<and>)" True
-    proof qed auto
+  interpret bool: comm_monoid_set \<open>(\<and>)\<close> True ..
   show ?thesis
     by (induction s rule: infinite_finite_induct) auto
 qed

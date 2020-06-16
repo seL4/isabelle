@@ -160,7 +160,7 @@ proof
       using aui_lemma[OF assms] by simp
   next
     case 2 thus ?thesis
-      using aui_lemma[OF assms(2,1)] assms(3) by (simp add: ac_simps(8))
+      using aui_lemma[OF assms(2,1)] assms(3) by (simp add: ac_simps)
   next
     case 3 thus ?thesis
       by (simp add: id_outside_supp)
