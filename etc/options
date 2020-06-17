@@ -150,7 +150,7 @@ public option ML_process_policy : string = ""
 
 section "PIDE Build"
 
-option pide_session : bool = false
+option pide_session : bool = true
   -- "build session heaps via PIDE"
 
 option pide_reports : bool = true
