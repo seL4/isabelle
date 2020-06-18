@@ -19,36 +19,34 @@ text \<open>See \<^file>\<open>Word_Examples.thy\<close> for examples.\<close>
 
 subsection \<open>Type definition\<close>
 
-typedef (overloaded) 'a word = "{(0::int) ..< 2 ^ LENGTH('a::len0)}"
-  morphisms uint Abs_word by auto
+quotient_type (overloaded) 'a word = int / \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len0) l\<close>
+  morphisms rep_word word_of_int by (auto intro!: equivpI reflpI sympI transpI)
+
+lift_definition uint :: \<open>'a::len0 word \<Rightarrow> int\<close>
+  is \<open>take_bit LENGTH('a)\<close> .
 
 lemma uint_nonnegative: "0 \<le> uint w"
-  using word.uint [of w] by simp
+  by transfer simp
 
 lemma uint_bounded: "uint w < 2 ^ LENGTH('a)"
   for w :: "'a::len0 word"
-  using word.uint [of w] by simp
+  by transfer (simp add: take_bit_eq_mod)
 
 lemma uint_idem: "uint w mod 2 ^ LENGTH('a) = uint w"
   for w :: "'a::len0 word"
   using uint_nonnegative uint_bounded by (rule mod_pos_pos_trivial)
 
-lemma word_uint_eq_iff: "a = b \<longleftrightarrow> uint a = uint b"
-  by (simp add: uint_inject)
-
 lemma word_uint_eqI: "uint a = uint b \<Longrightarrow> a = b"
-  by (simp add: word_uint_eq_iff)
+  by transfer simp
 
-definition word_of_int :: "int \<Rightarrow> 'a::len0 word"
-  \<comment> \<open>representation of words using unsigned or signed bins,
-    only difference in these is the type class\<close>
-  where "word_of_int k = Abs_word (k mod 2 ^ LENGTH('a))"
+lemma word_uint_eq_iff: "a = b \<longleftrightarrow> uint a = uint b"
+  using word_uint_eqI by auto
 
 lemma uint_word_of_int: "uint (word_of_int k :: 'a::len0 word) = k mod 2 ^ LENGTH('a)"
-  by (auto simp add: word_of_int_def intro: Abs_word_inverse)
-
+  by transfer (simp add: take_bit_eq_mod)
+  
 lemma word_of_int_uint: "word_of_int (uint w) = w"
-  by (simp add: word_of_int_def uint_idem uint_inverse)
+  by transfer simp
 
 lemma split_word_all: "(\<And>x::'a::len0 word. PROP P x) \<equiv> (\<And>x. PROP P (word_of_int x))"
 proof
@@ -143,31 +141,6 @@ translations
   "case x of (XCONST of_int :: 'a) y \<Rightarrow> b" \<rightharpoonup> "CONST word_int_case (\<lambda>y. b) x"
 
 
-subsection \<open>Correspondence relation for theorem transfer\<close>
-
-definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
-  where "cr_word = (\<lambda>x y. word_of_int x = y)"
-
-lemma Quotient_word:
-  "Quotient (\<lambda>x y. bintrunc (LENGTH('a)) x = bintrunc (LENGTH('a)) y)
-    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
-  unfolding Quotient_alt_def cr_word_def
-  by (simp add: no_bintr_alt1 word_of_int_uint) (simp add: word_of_int_def Abs_word_inject)
-
-lemma reflp_word:
-  "reflp (\<lambda>x y. bintrunc (LENGTH('a::len0)) x = bintrunc (LENGTH('a)) y)"
-  by (simp add: reflp_def)
-
-setup_lifting Quotient_word reflp_word
-
-text \<open>TODO: The next lemma could be generated automatically.\<close>
-
-lemma uint_transfer [transfer_rule]:
-  "(rel_fun pcr_word (=)) (bintrunc (LENGTH('a))) (uint :: 'a::len0 word \<Rightarrow> int)"
-  unfolding rel_fun_def word.pcr_cr_eq cr_word_def
-  by (simp add: no_bintr_alt1 uint_word_of_int)
-
-
 subsection \<open>Basic code generation setup\<close>
 
 definition Word :: "int \<Rightarrow> 'a::len0 word"
@@ -218,9 +191,8 @@ lemma td_ext_uint:
   "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (LENGTH('a::len0)))
     (\<lambda>w::int. w mod 2 ^ LENGTH('a))"
   apply (unfold td_ext_def')
-  apply (simp add: uints_num word_of_int_def bintrunc_mod2p)
-  apply (simp add: uint_mod_same uint_0 uint_lt
-                   word.uint_inverse word.Abs_word_inverse int_mod_lem)
+  apply transfer
+  apply (simp add: uints_num take_bit_eq_mod)
   done
 
 interpretation word_uint:
@@ -301,9 +273,14 @@ lemma word_arith_wis [code]:
     and word_pred_alt: "word_pred a = word_of_int (uint a - 1)"
     and word_0_wi: "0 = word_of_int 0"
     and word_1_wi: "1 = word_of_int 1"
-  unfolding plus_word_def minus_word_def times_word_def uminus_word_def
-  unfolding word_succ_def word_pred_def zero_word_def one_word_def
-  by simp_all
+         apply (simp_all flip: plus_word.abs_eq minus_word.abs_eq
+           times_word.abs_eq uminus_word.abs_eq
+           zero_word.abs_eq one_word.abs_eq)
+   apply transfer
+   apply simp
+  apply transfer
+  apply simp
+  done
 
 lemma wi_homs:
   shows wi_hom_add: "word_of_int a + word_of_int b = word_of_int (a + b)"
@@ -410,7 +387,8 @@ lemma [code]:
     and word_and_def: "(a::'a word) AND b = word_of_int (uint a AND uint b)"
     and word_or_def: "(a::'a word) OR b = word_of_int (uint a OR uint b)"
     and word_xor_def: "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
-  by (simp_all add: bitNOT_word_def bitAND_word_def bitOR_word_def bitXOR_word_def)
+  by (simp_all flip: bitNOT_word.abs_eq bitAND_word.abs_eq
+     bitOR_word.abs_eq bitXOR_word.abs_eq)
 
 definition setBit :: "'a::len0 word \<Rightarrow> nat \<Rightarrow> 'a word"
   where "setBit w n = set_bit w n True"
@@ -736,10 +714,35 @@ lemma test_bit_size [rule_format] : "w !! n \<longrightarrow> n < size w"
   apply fast
   done
 
-lemma word_eq_iff: "x = y \<longleftrightarrow> (\<forall>n<LENGTH('a). x !! n = y !! n)"
+lemma word_eq_iff: "x = y \<longleftrightarrow> (\<forall>n<LENGTH('a). x !! n = y !! n)" (is \<open>?P \<longleftrightarrow> ?Q\<close>)
   for x y :: "'a::len0 word"
-  unfolding uint_inject [symmetric] bin_eq_iff word_test_bit_def [symmetric]
-  by (metis test_bit_size [unfolded word_size])
+proof
+  assume ?P
+  then show ?Q
+    by simp
+next
+  assume ?Q
+  then have *: \<open>bit (uint x) n \<longleftrightarrow> bit (uint y) n\<close> if \<open>n < LENGTH('a)\<close> for n
+    using that by (simp add: word_test_bit_def bin_nth_iff)
+  show ?P
+  proof (rule word_uint_eqI, rule bit_eqI, rule iffI)
+    fix n
+    assume \<open>bit (uint x) n\<close>
+    then have \<open>n < LENGTH('a)\<close>
+      by (simp add: bit_take_bit_iff uint.rep_eq)
+    with * \<open>bit (uint x) n\<close>
+    show \<open>bit (uint y) n\<close>
+      by simp
+  next
+    fix n
+    assume \<open>bit (uint y) n\<close>
+    then have \<open>n < LENGTH('a)\<close>
+      by (simp add: bit_take_bit_iff uint.rep_eq)
+    with * \<open>bit (uint y) n\<close>
+    show \<open>bit (uint x) n\<close>
+      by simp
+  qed
+qed  
 
 lemma word_eqI: "(\<And>n. n < size u \<longrightarrow> u !! n = v !! n) \<Longrightarrow> u = v"
   for u :: "'a::len0 word"
@@ -1661,14 +1664,14 @@ lemma udvd_incr2_K:
 
 \<comment> \<open>links with \<open>rbl\<close> operations\<close>
 lemma word_succ_rbl: "to_bl w = bl \<Longrightarrow> to_bl (word_succ w) = rev (rbl_succ (rev bl))"
-  apply (unfold word_succ_def)
+  apply (unfold word_succ_alt)
   apply clarify
   apply (simp add: to_bl_of_bin)
   apply (simp add: to_bl_def rbl_succ)
   done
 
 lemma word_pred_rbl: "to_bl w = bl \<Longrightarrow> to_bl (word_pred w) = rev (rbl_pred (rev bl))"
-  apply (unfold word_pred_def)
+  apply (unfold word_pred_alt)
   apply clarify
   apply (simp add: to_bl_of_bin)
   apply (simp add: to_bl_def rbl_pred)
@@ -2089,15 +2092,33 @@ lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
 
 subsection \<open>Cardinality, finiteness of set of words\<close>
 
-instance word :: (len0) finite
-  by standard (simp add: type_definition.univ [OF type_definition_word])
+lemma inj_on_word_of_int: \<open>inj_on (word_of_int :: int \<Rightarrow> 'a word) {0..<2 ^ LENGTH('a::len0)}\<close>
+  by (rule inj_onI) (simp add: word.abs_eq_iff take_bit_eq_mod)
+
+lemma inj_uint: \<open>inj uint\<close>
+  by (rule injI) simp
+
+lemma range_uint: \<open>range (uint :: 'a word \<Rightarrow> int) = {0..<2 ^ LENGTH('a::len0)}\<close>
+  by transfer (auto simp add: bintr_lt2p range_bintrunc)
+
+lemma UNIV_eq: \<open>(UNIV :: 'a word set) = word_of_int ` {0..<2 ^ LENGTH('a::len0)}\<close>
+proof -
+  have \<open>uint ` (UNIV :: 'a word set) = uint ` (word_of_int :: int \<Rightarrow> 'a word) ` {0..<2 ^ LENGTH('a::len0)}\<close>
+    by (simp add: range_uint image_image uint.abs_eq take_bit_eq_mod)
+  then show ?thesis
+    using inj_image_eq_iff [of \<open>uint :: 'a word \<Rightarrow> int\<close> \<open>UNIV :: 'a word set\<close> \<open>word_of_int ` {0..<2 ^ LENGTH('a)} :: 'a word set\<close>, OF inj_uint]
+    by simp
+qed
 
 lemma card_word: "CARD('a word) = 2 ^ LENGTH('a::len0)"
-  by (simp add: type_definition.card [OF type_definition_word] nat_power_eq)
+  by (simp add: UNIV_eq card_image inj_on_word_of_int)
 
 lemma card_word_size: "CARD('a word) = 2 ^ size x"
   for x :: "'a::len0 word"
   unfolding word_size by (rule card_word)
+
+instance word :: (len0) finite
+  by standard (simp add: UNIV_eq)
 
 
 subsection \<open>Bitwise Operations on Words\<close>
@@ -3182,7 +3203,7 @@ lemma less_mask_eq: "x < 2 ^ n \<Longrightarrow> x AND mask n = x"
       simp del: word_of_int_numeral)
   apply (drule xtr8 [rotated])
    apply (rule int_mod_le)
-   apply (auto simp add : mod_pos_pos_trivial)
+   apply simp_all
   done
 
 lemmas mask_eq_iff_w2p = trans [OF mask_eq_iff word_2p_lem [symmetric]]
