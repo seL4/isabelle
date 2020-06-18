@@ -479,9 +479,9 @@ definition word_rcat :: "'a::len0 word list \<Rightarrow> 'b::len0 word"
 definition word_rsplit :: "'a::len0 word \<Rightarrow> 'b::len word list"
   where "word_rsplit w = map word_of_int (bin_rsplit (LENGTH('b)) (LENGTH('a), uint w))"
 
-definition max_word :: "'a::len word"
+abbreviation (input) max_word :: \<open>'a::len0 word\<close>
   \<comment> \<open>Largest representable machine integer.\<close>
-  where "max_word = word_of_int (2 ^ LENGTH('a) - 1)"
+  where "max_word \<equiv> - 1"
 
 
 subsection \<open>Theorems about typedefs\<close>
@@ -619,6 +619,10 @@ lemma uint_ge_0 [iff]: "0 \<le> uint x"
 lemma uint_lt2p [iff]: "uint x < 2 ^ LENGTH('a)"
   for x :: "'a::len0 word"
   using word_uint.Rep [of x] by (simp add: uints_num)
+
+lemma word_exp_length_eq_0 [simp]:
+  \<open>(2 :: 'a::len0 word) ^ LENGTH('a) = 0\<close>
+  by transfer (simp add: bintrunc_mod2p)
 
 lemma sint_ge: "- (2 ^ (LENGTH('a) - 1)) \<le> sint x"
   for x :: "'a::len word"
@@ -2495,7 +2499,7 @@ lemma clearBit_no [simp]:
   "clearBit (numeral bin) n = word_of_int (bin_sc n False (numeral bin))"
   by (simp add: clearBit_def)
 
-lemma to_bl_n1: "to_bl (-1::'a::len0 word) = replicate (LENGTH('a)) True"
+lemma to_bl_n1 [simp]: "to_bl (-1::'a::len0 word) = replicate (LENGTH('a)) True"
   apply (rule word_bl.Abs_inverse')
    apply simp
   apply (rule word_eqI)
@@ -4183,12 +4187,8 @@ lemma word_nat_cases [cases type: word]:
   obtains n where "x = of_nat n" and "n < 2^LENGTH('a)"
   by (cases x rule: word_unat.Abs_cases) (simp add: unats_def)
 
-lemma max_word_eq: "(max_word::'a::len word) = 2^LENGTH('a) - 1"
-  by (simp add: max_word_def word_of_int_hom_syms word_of_int_2p)
-
-lemma max_word_max [simp,intro!]: "n \<le> max_word"
-  by (cases n rule: word_int_cases)
-    (simp add: max_word_def word_le_def int_word_uint del: minus_mod_self1)
+lemma max_word_max [intro!]: "n \<le> max_word"
+  by (fact word_n1_ge)
 
 lemma word_of_int_2p_len: "word_of_int (2 ^ LENGTH('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) simp
@@ -4201,30 +4201,19 @@ proof -
 qed
 
 lemma max_word_wrap: "x + 1 = 0 \<Longrightarrow> x = max_word"
-  apply (simp add: max_word_eq)
-  apply uint_arith
-  apply (auto simp: word_pow_0)
-  done
+  by (simp add: eq_neg_iff_add_eq_0)
 
-lemma max_word_minus: "max_word = (-1::'a::len word)"
-proof -
-  have "-1 + 1 = (0::'a word)"
-    by simp
-  then show ?thesis
-    by (rule max_word_wrap [symmetric])
-qed
+lemma max_word_bl: "to_bl (max_word::'a::len0 word) = replicate LENGTH('a) True"
+  by (fact to_bl_n1)
 
-lemma max_word_bl [simp]: "to_bl (max_word::'a::len word) = replicate (LENGTH('a)) True"
-  by (subst max_word_minus to_bl_n1)+ simp
+lemma max_test_bit: "(max_word::'a::len0 word) !! n \<longleftrightarrow> n < LENGTH('a)"
+  by (fact nth_minus1)
 
-lemma max_test_bit [simp]: "(max_word::'a::len word) !! n \<longleftrightarrow> n < LENGTH('a)"
-  by (auto simp: test_bit_bl word_size)
+lemma word_and_max: "x AND max_word = x"
+  by (fact word_log_esimps)
 
-lemma word_and_max [simp]: "x AND max_word = x"
-  by (rule word_eqI) (simp add: word_ops_nth_size word_size)
-
-lemma word_or_max [simp]: "x OR max_word = max_word"
-  by (rule word_eqI) (simp add: word_ops_nth_size word_size)
+lemma word_or_max: "x OR max_word = max_word"
+  by (fact word_log_esimps)
 
 lemma word_ao_dist2: "x AND (y OR z) = x AND y OR x AND z"
   for x y z :: "'a::len0 word"
@@ -4243,18 +4232,18 @@ lemma word_or_not [simp]: "x OR NOT x = max_word"
 
 global_interpretation word_bool_alg: boolean_algebra
   where conj = "(AND)" and disj = "(OR)" and compl = NOT
-    and zero = 0 and one = max_word
+    and zero = 0 and one = \<open>- 1 :: 'a::len0 word\<close>
   rewrites "word_bool_alg.xor = (XOR)"
 proof -
   interpret boolean_algebra
     where conj = "(AND)" and disj = "(OR)" and compl = NOT
-      and zero = 0 and one = max_word
+      and zero = 0 and one = \<open>- 1 :: 'a word\<close>
     apply standard
              apply (simp_all add: word_bw_assocs word_bw_comms word_bw_lcs)
      apply (fact word_ao_dist2)
     apply (fact word_oa_dist2)
     done
-  show "boolean_algebra (AND) (OR) NOT 0 max_word" ..
+  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)" ..
   show "xor = (XOR)"
     by (auto simp add: fun_eq_iff word_eq_iff xor_def word_ops_nth_size word_size)
 qed

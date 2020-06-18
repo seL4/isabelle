@@ -419,7 +419,7 @@ lemma bintrunc_eq_take_bit:
 proof (rule ext)+
   fix n and k
   show \<open>bintrunc n k = take_bit n k\<close>
-    by (induction n arbitrary: k) (simp_all add: take_bit_Suc Bit_def)
+    by (induction n arbitrary: k) (simp_all add: take_bit_Suc Bit_def mod_2_eq_odd)
 qed
 
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
@@ -818,7 +818,7 @@ definition bin_split :: \<open>nat \<Rightarrow> int \<Rightarrow> int \<times> 
 lemma [code]:
   "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w) in (w1, w2 BIT bin_last w))"
   "bin_split 0 w = (w, 0)"
-  by (simp_all add: Bit_def drop_bit_Suc take_bit_Suc)
+  by (simp_all add: Bit_def drop_bit_Suc take_bit_Suc mod_2_eq_odd)
 
 primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
   where
@@ -828,7 +828,7 @@ primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
 lemma bin_cat_eq_push_bit_add_take_bit:
   \<open>bin_cat k n l = push_bit n k + take_bit n l\<close>
   by (induction n arbitrary: k l)
-    (simp_all add: Bit_def take_bit_Suc push_bit_double)
+    (simp_all add: Bit_def take_bit_Suc push_bit_double mod_2_eq_odd)
 
 lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
   by (induct n arbitrary: y) auto
@@ -923,7 +923,7 @@ lemma drop_bit_bin_cat_eq:
 lemma take_bit_bin_cat_eq:
   \<open>take_bit n (bin_cat v n w) = take_bit n w\<close>
   by (induct n arbitrary: w)
-    (simp_all add: Bit_def take_bit_Suc)
+    (simp_all add: Bit_def take_bit_Suc mod_2_eq_odd)
 
 lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
   by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq bintrunc_eq_take_bit)
@@ -941,7 +941,7 @@ lemma bin_split_trunc:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc split: prod.split_asm)
+   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc mod_2_eq_odd split: prod.split_asm)
   done
 
 lemma bin_split_trunc1:
@@ -950,7 +950,7 @@ lemma bin_split_trunc1:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc Bit_def split: prod.split_asm)
+   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc Bit_def mod_2_eq_odd split: prod.split_asm)
   done
 
 lemma bin_cat_num: "bin_cat a n b = a * 2 ^ n + bintrunc n b"
@@ -1008,7 +1008,7 @@ lemma bin_split_pred_simp [simp]:
     bin_split (numeral bin) w =
       (let (w1, w2) = bin_split (numeral bin - 1) (bin_rest w)
        in (w1, w2 BIT bin_last w))"
-  by (simp add: Bit_def take_bit_rec drop_bit_rec)
+  by (simp add: Bit_def take_bit_rec drop_bit_rec mod_2_eq_odd)
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux n m c bs =
