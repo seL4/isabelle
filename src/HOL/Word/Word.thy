@@ -2762,7 +2762,7 @@ lemma nth_sshiftr [rule_format] :
   done
 
 lemma shiftr1_div_2: "uint (shiftr1 w) = uint w div 2"
-  apply (unfold shiftr1_def bin_rest_def)
+  apply (unfold shiftr1_def)
   apply (rule word_uint.Abs_inverse)
   apply (simp add: uints_num pos_imp_zdiv_nonneg_iff)
   apply (rule xtr7)
@@ -2772,7 +2772,7 @@ lemma shiftr1_div_2: "uint (shiftr1 w) = uint w div 2"
   done
 
 lemma sshiftr1_div_2: "sint (sshiftr1 w) = sint w div 2"
-  apply (unfold sshiftr1_def bin_rest_def [symmetric])
+  apply (unfold sshiftr1_def)
   apply (simp add: word_sbin.eq_norm)
   apply (rule trans)
    defer

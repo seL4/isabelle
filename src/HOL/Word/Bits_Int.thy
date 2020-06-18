@@ -43,16 +43,14 @@ lemma bin_last_def:
   "bin_last w \<longleftrightarrow> w mod 2 = 1"
   by (fact odd_iff_mod_2_eq_one)
 
-definition bin_rest :: "int \<Rightarrow> int"
-  where "bin_rest w = w div 2"
+abbreviation (input) bin_rest :: "int \<Rightarrow> int"
+  where "bin_rest w \<equiv> w div 2"
 
 lemma bin_rl_simp [simp]: "bin_rest w BIT bin_last w = w"
-  unfolding bin_rest_def bin_last_def Bit_def
-  by (cases "w mod 2 = 0") (use div_mult_mod_eq [of w 2] in simp_all)
+  by (simp add: Bit_def)
 
 lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"
-  unfolding bin_rest_def Bit_def
-  by (cases b) simp_all
+  by (simp add: Bit_def)
 
 lemma even_BIT [simp]: "even (x BIT b) \<longleftrightarrow> \<not> b"
   by (simp add: Bit_def)
@@ -104,7 +102,7 @@ lemma bin_last_numeral_simps [simp]:
   "bin_last (numeral (Num.Bit1 w))"
   "\<not> bin_last (- numeral (Num.Bit0 w))"
   "bin_last (- numeral (Num.Bit1 w))"
-  by (simp_all add: bin_last_def zmod_zminus1_eq_if)
+  by simp_all
 
 lemma bin_rest_numeral_simps [simp]:
   "bin_rest 0 = 0"
@@ -115,7 +113,7 @@ lemma bin_rest_numeral_simps [simp]:
   "bin_rest (numeral (Num.Bit1 w)) = numeral w"
   "bin_rest (- numeral (Num.Bit0 w)) = - numeral w"
   "bin_rest (- numeral (Num.Bit1 w)) = - numeral (w + Num.One)"
-  by (simp_all add: bin_rest_def zdiv_zminus1_eq_if)
+  by simp_all
 
 lemma less_Bits: "v BIT b < w BIT c \<longleftrightarrow> v < w \<or> v \<le> w \<and> \<not> b \<and> c"
   by (auto simp: Bit_def)
@@ -175,14 +173,14 @@ lemma bin_induct:
   apply (auto simp add : PPls PMin PBit)
   done
 
-lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
-  unfolding bin_rest_def [symmetric] by (rule bin_rest_BIT)
+lemma Bit_div2: "(w BIT b) div 2 = w"
+  by (fact bin_rest_BIT)
 
 lemma bin_rl_eqI: "\<lbrakk>bin_rest x = bin_rest y; bin_last x = bin_last y\<rbrakk> \<Longrightarrow> x = y"
   by (metis (mono_tags) BIT_eq_iff bin_ex_rl bin_last_BIT bin_rest_BIT)
 
 lemma twice_conv_BIT: "2 * x = x BIT False"
-  by (rule bin_rl_eqI) (simp_all, simp_all add: bin_rest_def bin_last_def)
+  by (simp add: Bit_def)
 
 lemma BIT_lt0 [simp]: "x BIT b < 0 \<longleftrightarrow> x < 0"
 by(cases b)(auto simp add: Bit_def)
@@ -193,10 +191,10 @@ by(cases b)(auto simp add: Bit_def)
 lemma [simp]: 
   shows bin_rest_lt0: "bin_rest i < 0 \<longleftrightarrow> i < 0"
   and  bin_rest_ge_0: "bin_rest i \<ge> 0 \<longleftrightarrow> i \<ge> 0"
-by(auto simp add: bin_rest_def)
+  by auto
 
 lemma bin_rest_gt_0 [simp]: "bin_rest x > 0 \<longleftrightarrow> x > 1"
-by(simp add: bin_rest_def add1_zle_eq pos_imp_zdiv_pos_iff) (metis add1_zle_eq one_add_one)
+  by auto
 
 
 subsection \<open>Explicit bit representation of \<^typ>\<open>int\<close>\<close>
@@ -236,14 +234,12 @@ lemma bin_to_bl_aux_Bit_minus_simp [simp]:
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
   "0 < n \<Longrightarrow>
     bin_to_bl_aux n (numeral (Num.Bit0 w)) bl = bin_to_bl_aux (n - 1) (numeral w) (False # bl)"
-  by (cases n)
-    (simp_all only: bin_to_bl_aux.simps bin_last_numeral_simps, simp)
+  by (cases n) simp_all
 
 lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
   "0 < n \<Longrightarrow>
     bin_to_bl_aux n (numeral (Num.Bit1 w)) bl = bin_to_bl_aux (n - 1) (numeral w) (True # bl)"
-  by (cases n)
-    (simp_all only: bin_to_bl_aux.simps bin_last_numeral_simps, simp)
+  by (cases n) simp_all
 
 lemma bl_to_bin_aux_append: "bl_to_bin_aux (bs @ cs) w = bl_to_bin_aux cs (bl_to_bin_aux bs w)"
   by (induct bs arbitrary: w) auto
@@ -325,7 +321,7 @@ lemma bin_nth_iff:
 proof (rule ext)+
   fix k and n
   show \<open>bin_nth k n \<longleftrightarrow> bit k n\<close>
-    by (induction n arbitrary: k) (simp_all add: bit_Suc bin_rest_def)
+    by (induction n arbitrary: k) (simp_all add: bit_Suc)
 qed
 
 lemma bin_nth_eq_iff: "bin_nth x = bin_nth y \<longleftrightarrow> x = y"
@@ -423,7 +419,7 @@ lemma bintrunc_eq_take_bit:
 proof (rule ext)+
   fix n and k
   show \<open>bintrunc n k = take_bit n k\<close>
-    by (induction n arbitrary: k) (simp_all add: take_bit_Suc bin_rest_def Bit_def)
+    by (induction n arbitrary: k) (simp_all add: take_bit_Suc Bit_def)
 qed
 
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
@@ -441,7 +437,7 @@ next
   proof (cases w rule: parity_cases)
     case even
     then show ?thesis
-      by (simp add: bin_rest_def Bit_B0_2t mult_mod_right)
+      by (simp add: Bit_B0_2t mult_mod_right)
   next
     case odd
     then have "2 * (w div 2) = w - 1"
@@ -449,7 +445,7 @@ next
     moreover have "(2 * 2 ^ n + w - 1) mod (2 * 2 * 2 ^ n) + 1 = (2 * 2 ^ n + w) mod (2 * 2 * 2 ^ n)"
       using odd emep1 [of "2 * 2 ^ n + w - 1" "2 * 2 * 2 ^ n"] by simp
     ultimately show ?thesis 
-      using odd by (simp add: bin_rest_def Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
+      using odd by (simp add: Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
   qed
   ultimately show ?case
     by simp
@@ -822,7 +818,7 @@ definition bin_split :: \<open>nat \<Rightarrow> int \<Rightarrow> int \<times> 
 lemma [code]:
   "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w) in (w1, w2 BIT bin_last w))"
   "bin_split 0 w = (w, 0)"
-  by (simp_all add: bin_rest_def Bit_def drop_bit_Suc take_bit_Suc)
+  by (simp_all add: Bit_def drop_bit_Suc take_bit_Suc)
 
 primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
   where
@@ -832,7 +828,7 @@ primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
 lemma bin_cat_eq_push_bit_add_take_bit:
   \<open>bin_cat k n l = push_bit n k + take_bit n l\<close>
   by (induction n arbitrary: k l)
-    (simp_all add: bin_rest_def Bit_def take_bit_Suc push_bit_double)
+    (simp_all add: Bit_def take_bit_Suc push_bit_double)
 
 lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
   by (induct n arbitrary: y) auto
@@ -922,12 +918,12 @@ lemma bin_cat_split: "bin_split n w = (u, v) \<Longrightarrow> w = bin_cat u n v
 lemma drop_bit_bin_cat_eq:
   \<open>drop_bit n (bin_cat v n w) = v\<close>
   by (induct n arbitrary: w)
-    (simp_all add: bin_rest_def Bit_def drop_bit_Suc)
+    (simp_all add: Bit_def drop_bit_Suc)
 
 lemma take_bit_bin_cat_eq:
   \<open>take_bit n (bin_cat v n w) = take_bit n w\<close>
   by (induct n arbitrary: w)
-    (simp_all add: bin_rest_def Bit_def take_bit_Suc)
+    (simp_all add: Bit_def take_bit_Suc)
 
 lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
   by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq bintrunc_eq_take_bit)
@@ -945,7 +941,7 @@ lemma bin_split_trunc:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc bin_rest_def split: prod.split_asm)
+   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc split: prod.split_asm)
   done
 
 lemma bin_split_trunc1:
@@ -954,7 +950,7 @@ lemma bin_split_trunc1:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc bin_rest_def Bit_def split: prod.split_asm)
+   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc Bit_def split: prod.split_asm)
   done
 
 lemma bin_cat_num: "bin_cat a n b = a * 2 ^ n + bintrunc n b"
@@ -1012,7 +1008,7 @@ lemma bin_split_pred_simp [simp]:
     bin_split (numeral bin) w =
       (let (w1, w2) = bin_split (numeral bin - 1) (bin_rest w)
        in (w1, w2 BIT bin_last w))"
-  by (simp add: bin_rest_def Bit_def take_bit_rec drop_bit_rec)
+  by (simp add: Bit_def take_bit_rec drop_bit_rec)
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux n m c bs =
@@ -1269,7 +1265,7 @@ function bitAND_int
   by pat_completeness simp
 
 termination
-  by (relation "measure (nat \<circ> abs \<circ> fst)", simp_all add: bin_rest_def)
+  by (relation \<open>measure (nat \<circ> abs \<circ> fst)\<close>) simp_all
 
 declare bitAND_int.simps [simp del]
 
@@ -1496,7 +1492,7 @@ text \<open>Cases for \<open>0\<close> and \<open>-1\<close> are already covered
 
 lemma bin_rest_neg_numeral_BitM [simp]:
   "bin_rest (- numeral (Num.BitM w)) = - numeral w"
-  by (simp flip: BIT_bin_simps)
+  by simp
 
 lemma bin_last_neg_numeral_BitM [simp]:
   "bin_last (- numeral (Num.BitM w))"
@@ -1901,7 +1897,7 @@ by (metis bbw_lcs(1) int_and_0 int_nand_same)
 
 lemma and_xor_dist: fixes x :: int shows
   "x AND (y XOR z) = (x AND y) XOR (x AND z)"
-by(simp add: int_xor_def bbw_ao_dist2 bbw_not_dist int_and_ac int_nand_same_middle)
+  by (simp add: int_xor_def bbw_ao_dist2 bbw_not_dist int_and_comm int_nand_same_middle)
 
 lemma int_and_lt0 [simp]: fixes x y :: int shows
   "x AND y < 0 \<longleftrightarrow> x < 0 \<and> y < 0"
@@ -2092,8 +2088,9 @@ lemma int_shiftl_numeral [simp]:
 by(simp_all add: numeral_eq_Suc Bit_def shiftl_int_def)
   (metis add_One mult_inc semiring_norm(11) semiring_norm(13) semiring_norm(2) semiring_norm(6) semiring_norm(87))+
 
-lemma int_shiftl_One_numeral [simp]: "(1 :: int) << numeral w = 2 << pred_numeral w"
-by(metis int_shiftl_numeral numeral_One)
+lemma int_shiftl_One_numeral [simp]:
+  "(1 :: int) << numeral w = 2 << pred_numeral w"
+  using int_shiftl_numeral [of Num.One w] by simp
 
 lemma shiftl_ge_0 [simp]: fixes i :: int shows "i << n \<ge> 0 \<longleftrightarrow> i \<ge> 0"
 by(induct n) simp_all
@@ -2162,7 +2159,7 @@ next
   moreover have "(2 * x' + of_bool b - 2 * 2 ^ n') div 2 = x' + (- (2 ^ n') + of_bool b div 2)"
     by(simp only: add_diff_eq[symmetric] add.commute div_mult_self2[OF zero_neq_numeral[symmetric]])
   ultimately show ?case using Suc.IH[of x' n'] Suc.prems
-    by(cases b)(simp_all add: Bit_def bin_rest_def shiftl_int_def)
+    by(cases b)(simp_all add: Bit_def shiftl_int_def)
 qed
 
 lemma bin_clr_conv_NAND:
@@ -2449,7 +2446,7 @@ lemma bin_split_take: "bin_split n c = (a, b) \<Longrightarrow> bin_to_bl m a = 
    apply clarsimp
   apply (clarsimp simp: Let_def split: prod.split_asm)
   apply (simp add: bin_to_bl_def)
-  apply (simp add: take_bin2bl_lem drop_bit_Suc bin_rest_def)
+  apply (simp add: take_bin2bl_lem drop_bit_Suc)
   done
 
 lemma bin_to_bl_drop_bit:
