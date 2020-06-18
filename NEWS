@@ -48,12 +48,17 @@ written as "x powi n".
 
 * For the natural numbers, Sup {} = 0.
 
-* Session HOL-Word: Operations "bin_last", "bin_rest", "bin_nth",
-"bintrunc" and "max_word" are now mere input abbreviations.
-Minor INCOMPATIBILITY.
+* Library theory "Bit_Operations" with generic bit operations.
+
+* Session HOL-Word: Bit operations are based on library
+theory "Bit_Operations".  INCOMPATIBILITY.
 
 * Session HOL-Word: Compound operation "bin_split" simplifies by default
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
+
+* Session HOL-Word: Operations "bin_last", "bin_rest", "bin_nth",
+"bintrunc" and "max_word" are now mere input abbreviations.
+Minor INCOMPATIBILITY.
 
 
 *** FOL ***

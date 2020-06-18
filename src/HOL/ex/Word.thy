@@ -7,7 +7,7 @@ theory Word
   imports
     Main
     "HOL-Library.Type_Length"
-    "HOL-ex.Bit_Operations"
+    "HOL-Library.Bit_Operations"
 begin
 
 subsection \<open>Preliminaries\<close>

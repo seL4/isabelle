@@ -1,7 +1,7 @@
 (*  Author:  Florian Haftmann, TUM
 *)
 
-section \<open>Proof of concept for purely algebraically founded lists of bits\<close>
+section \<open>Bit operations in suitable algebraic structures\<close>
 
 theory Bit_Operations
   imports
@@ -9,7 +9,7 @@ theory Bit_Operations
     Main
 begin
 
-subsection \<open>Bit operations in suitable algebraic structures\<close>
+subsection \<open>Bit operations\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +
   fixes "and" :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>AND\<close> 64)
@@ -385,7 +385,7 @@ qed
 end
 
 
-subsubsection \<open>Instance \<^typ>\<open>int\<close>\<close>
+subsection \<open>Instance \<^typ>\<open>int\<close>\<close>
 
 instantiation int :: ring_bit_operations
 begin
@@ -569,7 +569,7 @@ lemma flip_bit_negative_int_iff [simp]:
   by (simp add: flip_bit_def)
 
 
-subsubsection \<open>Instance \<^typ>\<open>nat\<close>\<close>
+subsection \<open>Instance \<^typ>\<open>nat\<close>\<close>
 
 instantiation nat :: semiring_bit_operations
 begin
@@ -632,7 +632,7 @@ lemma xor_Suc_0_eq:
   using xor_one_eq [of n] by simp
 
 
-subsubsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
+subsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
 
 unbundle integer.lifting natural.lifting
 
@@ -754,7 +754,7 @@ text \<open>
 
       \<^item> Singleton \<^term>\<open>n\<close>th bit: \<^term>\<open>(2 :: int) ^ n\<close>
 
-      \<^item> Bit mask upto bit \<^term>\<open>n\<close>: @{thm mask_eq_exp_minus_1 [where ?'a = int, no_vars]}}
+      \<^item> Bit mask upto bit \<^term>\<open>n\<close>: @{thm mask_eq_exp_minus_1 [where ?'a = int, no_vars]}
 
       \<^item> Left shift: @{thm push_bit_eq_mult [where ?'a = int, no_vars]}
 

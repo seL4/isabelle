@@ -1,9 +1,10 @@
-(*<*)
+  (*<*)
 theory Library
 imports
   AList
   Adhoc_Overloading
   BigO
+  Bit_Operations
   BNF_Axiomatization
   BNF_Corec
   Boolean_Algebra
