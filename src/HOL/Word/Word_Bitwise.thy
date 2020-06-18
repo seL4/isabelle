@@ -39,7 +39,7 @@ text \<open>Breaking up word equalities into equalities on their
 lemma bl_word_sub: "to_bl (x - y) = to_bl (x + (- y))"
   by simp
 
-lemma rbl_word_1: "rev (to_bl (1 :: 'a::len0 word)) = takefill False (LENGTH('a)) [True]"
+lemma rbl_word_1: "rev (to_bl (1 :: 'a::len word)) = takefill False (LENGTH('a)) [True]"
   apply (rule_tac s="rev (to_bl (word_succ (0 :: 'a word)))" in trans)
    apply simp
   apply (simp only: rtb_rbl_ariths(1)[OF refl])
@@ -104,19 +104,19 @@ lemma rbl_word_neg: "rev (to_bl (- x)) = rbl_succ2 True (map Not (rev (to_bl x))
   by (simp add: twos_complement word_succ_rbl[OF refl] bl_word_not rev_map rbl_succ2_def)
 
 lemma rbl_word_cat:
-  "rev (to_bl (word_cat x y :: 'a::len0 word)) =
+  "rev (to_bl (word_cat x y :: 'a::len word)) =
     takefill False (LENGTH('a)) (rev (to_bl y) @ rev (to_bl x))"
   by (simp add: word_cat_bl word_rev_tf)
 
 lemma rbl_word_slice:
-  "rev (to_bl (slice n w :: 'a::len0 word)) =
+  "rev (to_bl (slice n w :: 'a::len word)) =
     takefill False (LENGTH('a)) (drop n (rev (to_bl w)))"
   apply (simp add: slice_take word_rev_tf rev_take)
   apply (cases "n < LENGTH('b)", simp_all)
   done
 
 lemma rbl_word_ucast:
-  "rev (to_bl (ucast x :: 'a::len0 word)) = takefill False (LENGTH('a)) (rev (to_bl x))"
+  "rev (to_bl (ucast x :: 'a::len word)) = takefill False (LENGTH('a)) (rev (to_bl x))"
   apply (simp add: to_bl_ucast takefill_alt)
   apply (simp add: rev_drop)
   apply (cases "LENGTH('a) < LENGTH('b)")
@@ -164,7 +164,7 @@ lemma rbl_sshiftr:
   done
 
 lemma nth_word_of_int:
-  "(word_of_int x :: 'a::len0 word) !! n = (n < LENGTH('a) \<and> bin_nth x n)"
+  "(word_of_int x :: 'a::len word) !! n = (n < LENGTH('a) \<and> bin_nth x n)"
   apply (simp add: test_bit_bl word_size to_bl_of_bin)
   apply (subst conj_cong[OF refl], erule bin_nth_bl)
   apply auto
@@ -284,11 +284,11 @@ lemma rev_bl_order_bl_to_bin:
   done
 
 lemma word_le_rbl: "x \<le> y \<longleftrightarrow> rev_bl_order True (rev (to_bl x)) (rev (to_bl y))"
-  for x y :: "'a::len0 word"
+  for x y :: "'a::len word"
   by (simp add: rev_bl_order_bl_to_bin word_le_def)
 
 lemma word_less_rbl: "x < y \<longleftrightarrow> rev_bl_order False (rev (to_bl x)) (rev (to_bl y))"
-  for x y :: "'a::len0 word"
+  for x y :: "'a::len word"
   by (simp add: word_less_alt rev_bl_order_bl_to_bin)
 
 lemma word_sint_msb_eq: "sint x = uint x - (if msb x then 2 ^ size x else 0)"

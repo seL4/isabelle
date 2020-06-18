@@ -115,13 +115,13 @@ lemma "\<not> (1 :: 3 word) !! 2" by simp
 lemma "(0b11000 :: 10 word) !! n = (n = 4 \<or> n = 3)"
   by (auto simp add: bin_nth_Bit0 bin_nth_Bit1)
 
-lemma "set_bit 55 7 True = (183::'a::len0 word)" by simp
-lemma "set_bit 0b0010 7 True = (0b10000010::'a::len0 word)" by simp
-lemma "set_bit 0b0010 1 False = (0::'a::len0 word)" by simp
-lemma "set_bit 1 3 True = (0b1001::'a::len0 word)" by simp
-lemma "set_bit 1 0 False = (0::'a::len0 word)" by simp
-lemma "set_bit 0 3 True = (0b1000::'a::len0 word)" by simp
-lemma "set_bit 0 3 False = (0::'a::len0 word)" by simp
+lemma "set_bit 55 7 True = (183::'a::len word)" by simp
+lemma "set_bit 0b0010 7 True = (0b10000010::'a::len word)" by simp
+lemma "set_bit 0b0010 1 False = (0::'a::len word)" by simp
+lemma "set_bit 1 3 True = (0b1001::'a::len word)" by simp
+lemma "set_bit 1 0 False = (0::'a::len word)" by simp
+lemma "set_bit 0 3 True = (0b1000::'a::len word)" by simp
+lemma "set_bit 0 3 False = (0::'a::len word)" by simp
 
 lemma "lsb (0b0101::'a::len word)" by simp
 lemma "\<not> lsb (0b1000::'a::len word)" by simp
@@ -137,10 +137,10 @@ lemma "word_cat (27::4 word) (27::8 word) = (2843::'a::len word)" by simp
 lemma "word_cat (0b0011::4 word) (0b1111::6word) = (0b0011001111 :: 10 word)"
   by simp
 
-lemma "0b1011 << 2 = (0b101100::'a::len0 word)" by simp
+lemma "0b1011 << 2 = (0b101100::'a::len word)" by simp
 lemma "0b1011 >> 2 = (0b10::8 word)" by simp
 lemma "0b1011 >>> 2 = (0b10::8 word)" by simp
-lemma "1 << 2 = (0b100::'a::len0 word)" apply simp? oops
+lemma "1 << 2 = (0b100::'a::len word)" apply simp? oops
 
 lemma "slice 3 (0b101111::6 word) = (0b101::3 word)" by simp
 lemma "slice 3 (1::6 word) = (0::3 word)" apply simp? oops

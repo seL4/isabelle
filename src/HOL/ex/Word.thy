@@ -85,10 +85,10 @@ subsection \<open>Bit strings as quotient type\<close>
 
 subsubsection \<open>Basic properties\<close>
 
-quotient_type (overloaded) 'a word = int / "\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len0) l"
+quotient_type (overloaded) 'a word = int / "\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len) l"
   by (auto intro!: equivpI reflpI sympI transpI)
 
-instantiation word :: (len0) "{semiring_numeral, comm_semiring_0, comm_ring}"
+instantiation word :: (len) "{semiring_numeral, comm_semiring_0, comm_ring}"
 begin
 
 lift_definition zero_word :: "'a word"
@@ -125,9 +125,9 @@ instance word :: (len) comm_ring_1
 
 quickcheck_generator word
   constructors:
-    "zero_class.zero :: ('a::len0) word",
-    "numeral :: num \<Rightarrow> ('a::len0) word",
-    "uminus :: ('a::len0) word \<Rightarrow> ('a::len0) word"
+    "zero_class.zero :: ('a::len) word",
+    "numeral :: num \<Rightarrow> ('a::len) word",
+    "uminus :: ('a::len) word \<Rightarrow> ('a::len) word"
 
 context
   includes lifting_syntax
@@ -157,7 +157,7 @@ lemma [transfer_rule]:
   by transfer_prover
 
 lemma [transfer_rule]:
-  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len0 word \<Rightarrow> bool)) numeral numeral"
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
   by transfer_prover
 
 lemma [transfer_rule]:
@@ -181,7 +181,7 @@ lemma abs_word_eq:
 context semiring_1
 begin
 
-lift_definition unsigned :: "'b::len0 word \<Rightarrow> 'a"
+lift_definition unsigned :: "'b::len word \<Rightarrow> 'a"
   is "of_nat \<circ> nat \<circ> take_bit LENGTH('b)"
   by simp
 
@@ -200,7 +200,7 @@ lemma word_eq_iff_unsigned:
 
 end
 
-instantiation word :: (len0) equal
+instantiation word :: (len) equal
 begin
 
 definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
@@ -240,11 +240,11 @@ lemma of_int_unsigned [simp]:
   by transfer simp
 
 lemma unsigned_nat_less:
-  \<open>unsigned a < (2 ^ LENGTH('a) :: nat)\<close> for a :: \<open>'a::len0 word\<close>
+  \<open>unsigned a < (2 ^ LENGTH('a) :: nat)\<close> for a :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_eq_mod)
 
 lemma unsigned_int_less:
-  \<open>unsigned a < (2 ^ LENGTH('a) :: int)\<close> for a :: \<open>'a::len0 word\<close>
+  \<open>unsigned a < (2 ^ LENGTH('a) :: int)\<close> for a :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_eq_mod)
 
 context ring_char_0
@@ -274,7 +274,7 @@ lemma exp_eq_zero_iff:
 
 subsubsection \<open>Division\<close>
 
-instantiation word :: (len0) modulo
+instantiation word :: (len) modulo
 begin
 
 lift_definition divide_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
@@ -290,11 +290,11 @@ instance ..
 end
 
 lemma zero_word_div_eq [simp]:
-  \<open>0 div a = 0\<close> for a :: \<open>'a::len0 word\<close>
+  \<open>0 div a = 0\<close> for a :: \<open>'a::len word\<close>
   by transfer simp
 
 lemma div_zero_word_eq [simp]:
-  \<open>a div 0 = 0\<close> for a :: \<open>'a::len0 word\<close>
+  \<open>a div 0 = 0\<close> for a :: \<open>'a::len word\<close>
   by transfer simp
 
 context
@@ -365,7 +365,7 @@ qed
 
 subsubsection \<open>Orderings\<close>
 
-instantiation word :: (len0) linorder
+instantiation word :: (len) linorder
 begin
 
 lift_definition less_eq_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
@@ -395,7 +395,7 @@ lemma word_less_iff_unsigned:
 end
 
 lemma word_greater_zero_iff:
-  \<open>a > 0 \<longleftrightarrow> a \<noteq> 0\<close> for a :: \<open>'a::len0 word\<close>
+  \<open>a > 0 \<longleftrightarrow> a \<noteq> 0\<close> for a :: \<open>'a::len word\<close>
   by transfer (simp add: less_le)
 
 lemma of_nat_word_eq_iff:
