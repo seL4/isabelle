@@ -852,9 +852,21 @@ lemma shiftl_word_eq:
   \<open>w << n = push_bit n w\<close> for w :: \<open>'a::len word\<close>
   by (induction n) (simp_all add: shiftl_def shiftl1_eq_mult_2 push_bit_double)
 
+lemma [code]:
+  \<open>push_bit n w = w << n\<close> for w :: \<open>'a::len word\<close>
+  by (simp add: shiftl_word_eq)
+
 lemma shiftr_word_eq:
   \<open>w >> n = drop_bit n w\<close> for w :: \<open>'a::len word\<close>
   by (induction n) (simp_all add: shiftr_def shiftr1_eq_div_2 drop_bit_Suc drop_bit_half)
+
+lemma [code]:
+  \<open>drop_bit n w = w >> n\<close> for w :: \<open>'a::len word\<close>
+  by (simp add: shiftr_word_eq)
+
+lemma [code_abbrev]:
+  \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>
+  by (fact push_bit_of_1)
 
 lemma word_msb_def:
   "msb a \<longleftrightarrow> bin_sign (sint a) = - 1"
