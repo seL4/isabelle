@@ -735,12 +735,61 @@ qed
 
 end
 
+instantiation word :: (len) semiring_bit_shifts
+begin
+
+lift_definition push_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is push_bit
+proof -
+  show \<open>take_bit LENGTH('a) (push_bit n k) = take_bit LENGTH('a) (push_bit n l)\<close>
+    if \<open>take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close> for k l :: int and n :: nat
+  proof -
+    from that
+    have \<open>take_bit (LENGTH('a) - n) (take_bit LENGTH('a) k)
+      = take_bit (LENGTH('a) - n) (take_bit LENGTH('a) l)\<close>
+      by simp
+    moreover have \<open>min (LENGTH('a) - n) LENGTH('a) = LENGTH('a) - n\<close>
+      by simp
+    ultimately show ?thesis
+      by (simp add: take_bit_push_bit)
+  qed
+qed
+
+lift_definition drop_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>\<lambda>n. drop_bit n \<circ> take_bit LENGTH('a)\<close>
+  by (simp add: take_bit_eq_mod)
+
+instance proof
+  show \<open>push_bit n a = a * 2 ^ n\<close> for n :: nat and a :: "'a word"
+    by transfer (simp add: push_bit_eq_mult)
+  show \<open>drop_bit n a = a div 2 ^ n\<close> for n :: nat and a :: "'a word"
+    by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit)
+qed
+
+end
+
 definition shiftl1 :: "'a::len0 word \<Rightarrow> 'a word"
   where "shiftl1 w = word_of_int (uint w BIT False)"
+
+lemma shiftl1_eq_mult_2:
+  \<open>shiftl1 = (*) 2\<close>
+  apply (simp add: fun_eq_iff shiftl1_def Bit_def)
+  apply (simp only: mult_2)
+  apply transfer
+  apply (simp only: take_bit_add)
+  apply simp
+  done
 
 definition shiftr1 :: "'a::len0 word \<Rightarrow> 'a word"
   \<comment> \<open>shift right as unsigned or as signed, ie logical or arithmetic\<close>
   where "shiftr1 w = word_of_int (bin_rest (uint w))"
+
+lemma shiftr1_eq_div_2:
+  \<open>shiftr1 w = w div 2\<close>
+  apply (simp add: fun_eq_iff shiftr1_def)
+  apply transfer
+  apply (auto simp add: not_le dest: less_2_cases)
+  done
 
 instantiation word :: (len0) bit_operations
 begin
@@ -772,6 +821,35 @@ definition shiftr_def: "w >> n = (shiftr1 ^^ n) w"
 instance ..
 
 end
+
+lemma test_bit_word_eq:
+  \<open>test_bit w = bit w\<close> for w :: \<open>'a::len word\<close>
+  apply (simp add: word_test_bit_def fun_eq_iff)
+  apply transfer
+  apply (simp add: bit_take_bit_iff)
+  done
+
+lemma lsb_word_eq:
+  \<open>lsb = (odd :: 'a word \<Rightarrow> bool)\<close> for w :: \<open>'a::len word\<close>
+  apply (simp add: word_lsb_def fun_eq_iff)
+  apply transfer
+  apply simp
+  done
+
+lemma msb_word_eq:
+  \<open>msb w \<longleftrightarrow> bit w (LENGTH('a) - 1)\<close> for w :: \<open>'a::len word\<close>
+  apply (simp add: msb_word_def bin_sign_lem)
+  apply transfer
+  apply (simp add: bit_take_bit_iff)
+  done
+
+lemma shiftl_word_eq:
+  \<open>w << n = push_bit n w\<close> for w :: \<open>'a::len word\<close>
+  by (induction n) (simp_all add: shiftl_def shiftl1_eq_mult_2 push_bit_double)
+
+lemma shiftr_word_eq:
+  \<open>w >> n = drop_bit n w\<close> for w :: \<open>'a::len word\<close>
+  by (induction n) (simp_all add: shiftr_def shiftr1_eq_div_2 drop_bit_Suc drop_bit_half)
 
 lemma word_msb_def:
   "msb a \<longleftrightarrow> bin_sign (sint a) = - 1"
