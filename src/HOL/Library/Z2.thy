@@ -5,7 +5,7 @@
 section \<open>The Field of Integers mod 2\<close>
 
 theory Z2
-imports Main
+imports Main "HOL-Library.Bit_Operations"
 begin
 
 text \<open>
@@ -217,6 +217,42 @@ instance
   by standard (simp_all add: push_bit_bit_def drop_bit_bit_def)
 
 end
+
+instantiation bit :: ring_bit_operations
+begin
+
+definition not_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where \<open>NOT b = of_bool (even b)\<close> for b :: bit
+
+definition and_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>b AND c = of_bool (odd b \<and> odd c)\<close> for b c :: bit
+
+definition or_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>b OR c = of_bool (odd b \<or> odd c)\<close> for b c :: bit
+
+definition xor_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>b XOR c = of_bool (odd b \<noteq> odd c)\<close> for b c :: bit
+
+instance
+  by standard (auto simp add: and_bit_def or_bit_def xor_bit_def not_bit_def add_eq_0_iff)
+
+end
+
+lemma add_bit_eq_xor:
+  \<open>(+) = ((XOR) :: bit \<Rightarrow> _)\<close>
+  by (auto simp add: fun_eq_iff plus_bit_def xor_bit_def)
+
+lemma mult_bit_eq_and:
+  \<open>(*) = ((AND) :: bit \<Rightarrow> _)\<close>
+  by (simp add: fun_eq_iff times_bit_def and_bit_def split: bit.split)
+
+lemma bit_NOT_eq_1_iff [simp]: "NOT b = 1 \<longleftrightarrow> b = 0"
+  for b :: bit
+  by (cases b) simp_all
+
+lemma bit_AND_eq_1_iff [simp]: "a AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
+  for a b :: bit
+  by (cases a; cases b) simp_all
 
 
 hide_const (open) set

@@ -8,8 +8,8 @@ theory Word
 imports
   "HOL-Library.Type_Length"
   "HOL-Library.Boolean_Algebra"
+  "HOL-Library.Bit_Operations"
   Bits_Int
-  Bits_Z2
   Bit_Comprehension
   Misc_Typedef
   Misc_Arithmetic
@@ -468,6 +468,12 @@ instance
 
 end
 
+interpretation word_order: ordering_top \<open>(\<le>)\<close> \<open>(<)\<close> \<open>- 1 :: 'a::len word\<close>
+  by (standard; transfer) (simp add: take_bit_eq_mod zmod_minus1)
+
+interpretation word_coorder: ordering_top \<open>(\<ge>)\<close> \<open>(>)\<close> \<open>0 :: 'a::len word\<close>
+  by (standard; transfer) simp
+
 lemma word_le_def [code]:
   "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
   by transfer rule
@@ -796,20 +802,43 @@ lemma shiftr1_eq_div_2:
   apply (auto simp add: not_le dest: less_2_cases)
   done
 
-instantiation word :: (len) bit_operations
+instantiation word :: (len) ring_bit_operations
 begin
 
-lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word" is NOT
-  by (metis bin_trunc_not)
+lift_definition not_word :: \<open>'a word \<Rightarrow> 'a word\<close>
+  is not
+  by (simp add: take_bit_not_iff)
 
-lift_definition bitAND_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(AND)\<close>
-  by (metis bin_trunc_and)
+lift_definition and_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>and\<close>
+  by simp
 
-lift_definition bitOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(OR)\<close>
-  by (metis bin_trunc_or)
+lift_definition or_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is or
+  by simp
 
-lift_definition bitXOR_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is \<open>(XOR)\<close>
-  by (metis bin_trunc_xor)
+lift_definition xor_word ::  \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is xor
+  by simp
+
+instance proof
+  fix a b :: \<open>'a word\<close> and n :: nat
+  show \<open>- a = NOT (a - 1)\<close>
+    by transfer (simp add: minus_eq_not_minus_1)
+  show \<open>bit (NOT a) n \<longleftrightarrow> (2 :: 'a word) ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+    by transfer (simp add: bit_not_iff)
+  show \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
+    by transfer (auto simp add: bit_and_iff)
+  show \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+    by transfer (auto simp add: bit_or_iff)
+  show \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+    by transfer (auto simp add: bit_xor_iff)
+qed
+
+end
+
+instantiation word :: (len) bit_operations
+begin
 
 definition word_test_bit_def: "test_bit a = bin_nth (uint a)"
 
@@ -877,14 +906,27 @@ lemma [code]:
     and word_and_def: "(a::'a word) AND b = word_of_int (uint a AND uint b)"
     and word_or_def: "(a::'a word) OR b = word_of_int (uint a OR uint b)"
     and word_xor_def: "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
-  by (simp_all flip: bitNOT_word.abs_eq bitAND_word.abs_eq
-     bitOR_word.abs_eq bitXOR_word.abs_eq)
+  by (transfer, simp add: take_bit_not_take_bit)+
 
 definition setBit :: "'a::len word \<Rightarrow> nat \<Rightarrow> 'a word"
   where "setBit w n = set_bit w n True"
 
 definition clearBit :: "'a::len word \<Rightarrow> nat \<Rightarrow> 'a word"
   where "clearBit w n = set_bit w n False"
+
+definition even_word :: \<open>'a::len word \<Rightarrow> bool\<close>
+  where [code_abbrev]: \<open>even_word = even\<close>
+
+lemma even_word_iff [code]:
+  \<open>even_word a \<longleftrightarrow> a AND 1 = 0\<close>
+  by (simp add: and_one_eq even_iff_mod_2_eq_zero even_word_def)
+
+definition bit_word :: \<open>'a::len word \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where [code_abbrev]: \<open>bit_word = bit\<close>
+
+lemma bit_word_iff [code]:
+  \<open>bit_word a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close>
+  by (simp add: bit_word_def bit_iff_odd_drop_bit odd_iff_mod_2_eq_one and_one_eq)
 
 
 subsection \<open>Shift operations\<close>
@@ -1394,6 +1436,10 @@ text \<open>
   thus in \<open>cast w = w\<close>, the type means cast to length of \<open>w\<close>!
 \<close>
 
+lemma bit_ucast_iff:
+  \<open>Parity.bit (ucast a :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a::len) \<and> Parity.bit a n\<close>
+  by (simp add: ucast_def, transfer) (auto simp add: bit_take_bit_iff)
+
 lemma ucast_id: "ucast w = w"
   by (auto simp: ucast_def)
 
@@ -1406,6 +1452,10 @@ lemma ucast_bl: "ucast w = of_bl (to_bl w)"
 lemma nth_ucast: "(ucast w::'a::len word) !! n = (w !! n \<and> n < LENGTH('a))"
   by (simp add: ucast_def test_bit_bin word_ubin.eq_norm nth_bintr word_size)
     (fast elim!: bin_nth_uint_imp)
+
+lemma ucast_mask_eq:
+  \<open>ucast (Bit_Operations.mask n :: 'b word) = Bit_Operations.mask (min LENGTH('b::len) n)\<close>
+  by (simp add: bit_eq_iff) (auto simp add: bit_mask_iff bit_ucast_iff exp_eq_zero_iff)
 
 \<comment> \<open>literal u(s)cast\<close>
 lemma ucast_bintr [simp]:
@@ -1752,7 +1802,7 @@ lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
 
 lemma word_n1_ge [simp]: "y \<le> -1"
   for y :: "'a::len word"
-  by (simp only: word_le_def word_m1_wi word_uint.eq_norm m1mod2k) auto
+  by (fact word_order.extremum)
 
 lemmas word_not_simps [simp] =
   word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
@@ -2676,11 +2726,17 @@ lemma word_bitwise_m1_simps [simp]:
   "x XOR (-1::'a::len word) = NOT x"
   by (transfer, simp)+
 
-lemma uint_or: "uint (x OR y) = uint x OR uint y"
-  by (transfer, simp add: bin_trunc_ao)
+lemma uint_and:
+  \<open>uint (x AND y) = uint x AND uint y\<close>
+  by transfer simp
 
-lemma uint_and: "uint (x AND y) = uint x AND uint y"
-  by (transfer, simp add: bin_trunc_ao)
+lemma uint_or:
+  \<open>uint (x OR y) = uint x OR uint y\<close>
+  by transfer simp
+
+lemma uint_xor:
+  \<open>uint (x XOR y) = uint x XOR uint y\<close>
+  by transfer simp
 
 lemma test_bit_wi [simp]:
   "(word_of_int x :: 'a::len word) !! n \<longleftrightarrow> n < LENGTH('a) \<and> bin_nth x n"
@@ -2751,7 +2807,7 @@ lemma word_bw_lcs:
   for x :: "'a::len word"
   by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
-lemma word_log_esimps [simp]:
+lemma word_log_esimps:
   "x AND 0 = 0"
   "x AND -1 = x"
   "x OR 0 = x"
@@ -2765,20 +2821,20 @@ lemma word_log_esimps [simp]:
   "0 XOR x = x"
   "-1 XOR x = NOT x"
   for x :: "'a::len word"
-  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
+  by simp_all
 
 lemma word_not_dist:
   "NOT (x OR y) = NOT x AND NOT y"
   "NOT (x AND y) = NOT x OR NOT y"
   for x :: "'a::len word"
-  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
+  by simp_all
 
 lemma word_bw_same:
   "x AND x = x"
   "x OR x = x"
   "x XOR x = 0"
   for x :: "'a::len word"
-  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
+  by simp_all
 
 lemma word_ao_absorbs [simp]:
   "x AND (y OR x) = x"
@@ -2794,7 +2850,7 @@ lemma word_ao_absorbs [simp]:
 
 lemma word_not_not [simp]: "NOT (NOT x) = x"
   for x :: "'a::len word"
-  by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
+  by simp
 
 lemma word_ao_dist: "(x OR y) AND z = x AND z OR y AND z"
   for x :: "'a::len word"
@@ -3566,7 +3622,7 @@ lemma align_lem_and [rule_format] :
 lemma aligned_bl_add_size [OF refl]:
   "size x - n = m \<Longrightarrow> n \<le> size x \<Longrightarrow> drop m (to_bl x) = replicate n False \<Longrightarrow>
     take m (to_bl y) = replicate m False \<Longrightarrow>
-    to_bl (x + y) = take m (to_bl x) @ drop m (to_bl y)"
+    to_bl (x + y) = take m (to_bl x) @ drop m (to_bl y)" for x :: \<open>'a::len word\<close>
   apply (subgoal_tac "x AND y = 0")
    prefer 2
    apply (rule word_bl.Rep_eqD)
@@ -3583,9 +3639,17 @@ lemma aligned_bl_add_size [OF refl]:
 
 subsubsection \<open>Mask\<close>
 
+lemma minus_1_eq_mask:
+  \<open>- 1 = (Bit_Operations.mask LENGTH('a) :: 'a::len word)\<close>
+  by (rule bit_eqI) (simp add: bit_exp_iff bit_mask_iff exp_eq_zero_iff)
+  
+lemma mask_eq_mask:
+  \<open>mask = Bit_Operations.mask\<close>
+  by (simp add: fun_eq_iff mask_eq_exp_minus_1 mask_def shiftl_word_eq push_bit_eq_mult)
+
 lemma mask_eq:
   \<open>mask n = 2 ^ n - 1\<close>
-  by (simp add: mask_def shiftl_word_eq push_bit_eq_mult)
+  by (simp add: mask_eq_mask mask_eq_exp_minus_1)
 
 lemma mask_Suc_rec:
   \<open>mask (Suc n) = 2 * mask n + 1\<close>
@@ -3596,7 +3660,7 @@ begin
 
 qualified lemma bit_mask_iff [simp]:
   \<open>bit (mask m :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> n < m\<close>
-  by (simp add: mask_eq bit_mask_iff exp_eq_zero_iff not_le)
+  by (simp add: mask_eq_mask bit_mask_iff exp_eq_zero_iff not_le)
 
 end
 
@@ -4695,17 +4759,13 @@ lemma word_nat_cases [cases type: word]:
   by (cases x rule: word_unat.Abs_cases) (simp add: unats_def)
 
 lemma max_word_max [intro!]: "n \<le> max_word"
-  by (fact word_n1_ge)
+  by (fact word_order.extremum)
 
 lemma word_of_int_2p_len: "word_of_int (2 ^ LENGTH('a)) = (0::'a::len word)"
   by (subst word_uint.Abs_norm [symmetric]) simp
 
 lemma word_pow_0: "(2::'a::len word) ^ LENGTH('a) = 0"
-proof -
-  have "word_of_int (2 ^ LENGTH('a)) = (0::'a word)"
-    by (rule word_of_int_2p_len)
-  then show ?thesis by (simp add: word_of_int_2p)
-qed
+  by (fact word_exp_length_eq_0)
 
 lemma max_word_wrap: "x + 1 = 0 \<Longrightarrow> x = max_word"
   by (simp add: eq_neg_iff_add_eq_0)
@@ -4736,24 +4796,6 @@ lemma word_and_not [simp]: "x AND NOT x = 0"
 
 lemma word_or_not [simp]: "x OR NOT x = max_word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
-
-global_interpretation word_bool_alg: boolean_algebra
-  where conj = "(AND)" and disj = "(OR)" and compl = NOT
-    and zero = 0 and one = \<open>- 1 :: 'a::len word\<close>
-  rewrites "word_bool_alg.xor = (XOR)"
-proof -
-  interpret boolean_algebra
-    where conj = "(AND)" and disj = "(OR)" and compl = NOT
-      and zero = 0 and one = \<open>- 1 :: 'a word\<close>
-    apply standard
-             apply (simp_all add: word_bw_assocs word_bw_comms word_bw_lcs)
-     apply (fact word_ao_dist2)
-    apply (fact word_oa_dist2)
-    done
-  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)" ..
-  show "xor = (XOR)"
-    by (auto simp add: fun_eq_iff word_eq_iff xor_def word_ops_nth_size word_size)
-qed
 
 lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
   for x y :: "'a::len word"
@@ -5039,15 +5081,15 @@ subsection \<open>More\<close>
 
 lemma test_bit_1' [simp]:
   "(1 :: 'a :: len word) !! n \<longleftrightarrow> 0 < LENGTH('a) \<and> n = 0"
-  by (cases n) (simp_all only: one_word_def test_bit_wi, simp_all)
+  by simp
 
 lemma mask_0 [simp]:
   "mask 0 = 0"
   by (simp add: Word.mask_def)
 
-lemma shiftl0 [simp]:
+lemma shiftl0:
   "x << 0 = (x :: 'a :: len word)"
-  by (metis shiftl_rev shiftr_x_0 word_rev_gal)
+  by (fact shiftl_x_0)
 
 lemma mask_1: "mask 1 = 1"
   by (simp add: mask_def)

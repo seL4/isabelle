@@ -1193,23 +1193,6 @@ lemma bin_sc_numeral [simp]:
 instantiation int :: bit_operations
 begin
 
-definition int_not_def: "NOT = (\<lambda>x::int. - x - 1)"
-
-function bitAND_int
-  where "bitAND_int x y =
-    (if x = 0 then 0 else if x = -1 then y
-     else (bin_rest x AND bin_rest y) BIT (bin_last x \<and> bin_last y))"
-  by pat_completeness simp
-
-termination
-  by (relation \<open>measure (nat \<circ> abs \<circ> fst)\<close>) simp_all
-
-declare bitAND_int.simps [simp del]
-
-definition int_or_def: "(OR) = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
-
-definition int_xor_def: "(XOR) = (\<lambda>x y::int. (x AND NOT y) OR (NOT x AND y))"
-
 definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
 
 definition "lsb i = i !! 0" for i :: int
@@ -1237,8 +1220,10 @@ lemma shiftr_eq_drop_bit:
 
 subsubsection \<open>Basic simplification rules\<close>
 
+lemmas int_not_def = not_int_def
+
 lemma int_not_BIT [simp]: "NOT (w BIT b) = (NOT w) BIT (\<not> b)"
-  by (cases b) (simp_all add: int_not_def Bit_def)
+  by (simp add: not_int_def Bit_def)
 
 lemma int_not_simps [simp]:
   "NOT (0::int) = -1"
@@ -1247,49 +1232,49 @@ lemma int_not_simps [simp]:
   "NOT (numeral w::int) = - numeral (w + Num.One)"
   "NOT (- numeral (Num.Bit0 w)::int) = numeral (Num.BitM w)"
   "NOT (- numeral (Num.Bit1 w)::int) = numeral (Num.Bit0 w)"
-  unfolding int_not_def by simp_all
+  by (simp_all add: not_int_def)
 
-lemma int_not_not [simp]: "NOT (NOT x) = x"
+lemma int_not_not: "NOT (NOT x) = x"
   for x :: int
-  unfolding int_not_def by simp
+  by (fact bit.double_compl)
 
 lemma int_and_0 [simp]: "0 AND x = 0"
   for x :: int
-  by (simp add: bitAND_int.simps)
+  by (fact bit.conj_zero_left)
 
 lemma int_and_m1 [simp]: "-1 AND x = x"
   for x :: int
-  by (simp add: bitAND_int.simps)
+  by (fact bit.conj_one_left)
 
 lemma int_and_Bits [simp]: "(x BIT b) AND (y BIT c) = (x AND y) BIT (b \<and> c)"
-  by (subst bitAND_int.simps) (simp add: Bit_eq_0_iff Bit_eq_m1_iff)
+  using and_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
 
 lemma int_or_zero [simp]: "0 OR x = x"
   for x :: int
-  by (simp add: int_or_def)
+  by (fact bit.disj_zero_left)
 
 lemma int_or_minus1 [simp]: "-1 OR x = -1"
   for x :: int
-  by (simp add: int_or_def)
+  by (fact bit.disj_one_left)
 
 lemma int_or_Bits [simp]: "(x BIT b) OR (y BIT c) = (x OR y) BIT (b \<or> c)"
-  by (simp add: int_or_def)
+  using or_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
 
 lemma int_xor_zero [simp]: "0 XOR x = x"
   for x :: int
-  by (simp add: int_xor_def)
+  by (fact bit.xor_zero_left)
 
 lemma int_xor_Bits [simp]: "(x BIT b) XOR (y BIT c) = (x XOR y) BIT ((b \<or> c) \<and> \<not> (b \<and> c))"
-  unfolding int_xor_def by auto
+  using xor_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
 
 
 subsubsection \<open>Binary destructors\<close>
 
 lemma bin_rest_NOT [simp]: "bin_rest (NOT x) = NOT (bin_rest x)"
-  by (cases x rule: bin_exhaust) simp
+  by (fact not_int_div_2)
 
 lemma bin_last_NOT [simp]: "bin_last (NOT x) \<longleftrightarrow> \<not> bin_last x"
-  by (cases x rule: bin_exhaust) simp
+  by simp
 
 lemma bin_rest_AND [simp]: "bin_rest (x AND y) = bin_rest x AND bin_rest y"
   by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
@@ -1306,8 +1291,7 @@ lemma bin_last_OR [simp]: "bin_last (x OR y) \<longleftrightarrow> bin_last x \<
 lemma bin_rest_XOR [simp]: "bin_rest (x XOR y) = bin_rest x XOR bin_rest y"
   by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
 
-lemma bin_last_XOR [simp]:
-  "bin_last (x XOR y) \<longleftrightarrow> (bin_last x \<or> bin_last y) \<and> \<not> (bin_last x \<and> bin_last y)"
+lemma bin_last_XOR [simp]: "bin_last (x XOR y) \<longleftrightarrow> (bin_last x \<or> bin_last y) \<and> \<not> (bin_last x \<and> bin_last y)"
   by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
 
 lemma bin_nth_ops:
@@ -1315,32 +1299,32 @@ lemma bin_nth_ops:
   "\<And>x y. bin_nth (x OR y) n \<longleftrightarrow> bin_nth x n \<or> bin_nth y n"
   "\<And>x y. bin_nth (x XOR y) n \<longleftrightarrow> bin_nth x n \<noteq> bin_nth y n"
   "\<And>x. bin_nth (NOT x) n \<longleftrightarrow> \<not> bin_nth x n"
-  by (induct n) (auto simp add: bit_Suc)
+  by (simp_all add: bit_and_iff bit_or_iff bit_xor_iff bit_not_iff)
 
 
 subsubsection \<open>Derived properties\<close>
 
 lemma int_xor_minus1 [simp]: "-1 XOR x = NOT x"
   for x :: int
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by (fact bit.xor_one_left)
 
 lemma int_xor_extra_simps [simp]:
   "w XOR 0 = w"
   "w XOR -1 = NOT w"
   for w :: int
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by simp_all
 
 lemma int_or_extra_simps [simp]:
   "w OR 0 = w"
   "w OR -1 = -1"
   for w :: int
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by simp_all
 
 lemma int_and_extra_simps [simp]:
   "w AND 0 = 0"
   "w AND -1 = w"
   for w :: int
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by simp_all
 
 text \<open>Commutativity of the above.\<close>
 lemma bin_ops_comm:
@@ -1348,14 +1332,14 @@ lemma bin_ops_comm:
   shows int_and_comm: "x AND y = y AND x"
     and int_or_comm:  "x OR y = y OR x"
     and int_xor_comm: "x XOR y = y XOR x"
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by (simp_all add: ac_simps)
 
 lemma bin_ops_same [simp]:
   "x AND x = x"
   "x OR x = x"
   "x XOR x = 0"
   for x :: int
-  by (auto simp add: bin_eq_iff bin_nth_ops)
+  by simp_all
 
 lemmas bin_log_esimps =
   int_and_extra_simps  int_or_extra_simps  int_xor_extra_simps
@@ -1822,69 +1806,61 @@ lemma not_int_cmp_0 [simp]:
 by(simp_all add: int_not_def) arith+
 
 lemma bbw_ao_dist2: "(x :: int) AND (y OR z) = x AND y OR x AND z"
-by(metis int_and_comm bbw_ao_dist)
+  by (fact bit.conj_disj_distrib)
 
 lemmas int_and_ac = bbw_lcs(1) int_and_comm int_and_assoc
 
 lemma int_nand_same [simp]: fixes x :: int shows "x AND NOT x = 0"
-by(induct x y\<equiv>"NOT x" rule: bitAND_int.induct)(subst bitAND_int.simps, clarsimp)
+  by simp
 
 lemma int_nand_same_middle: fixes x :: int shows "x AND y AND NOT x = 0"
-by (metis bbw_lcs(1) int_and_0 int_nand_same)
+  by (simp add: bit_eq_iff bit_and_iff bit_not_iff)
 
 lemma and_xor_dist: fixes x :: int shows
   "x AND (y XOR z) = (x AND y) XOR (x AND z)"
-  by (simp add: int_xor_def bbw_ao_dist2 bbw_not_dist int_and_comm int_nand_same_middle)
+  by (fact bit.conj_xor_distrib)
 
-lemma int_and_lt0 [simp]: fixes x y :: int shows
-  "x AND y < 0 \<longleftrightarrow> x < 0 \<and> y < 0"
-by(induct x y rule: bitAND_int.induct)(subst bitAND_int.simps, simp)
+lemma int_and_lt0 [simp]:
+  \<open>x AND y < 0 \<longleftrightarrow> x < 0 \<and> y < 0\<close> for x y :: int
+  by (fact and_negative_int_iff)
 
-lemma int_and_ge0 [simp]: fixes x y :: int shows 
-  "x AND y \<ge> 0 \<longleftrightarrow> x \<ge> 0 \<or> y \<ge> 0"
-by (metis int_and_lt0 linorder_not_less)
-
+lemma int_and_ge0 [simp]: 
+  \<open>x AND y \<ge> 0 \<longleftrightarrow> x \<ge> 0 \<or> y \<ge> 0\<close> for x y :: int
+  by (fact and_nonnegative_int_iff)
+  
 lemma int_and_1: fixes x :: int shows "x AND 1 = x mod 2"
-by(subst bitAND_int.simps)(simp add: Bit_def bin_last_def zmod_minus1)
+  by (fact and_one_eq)
 
 lemma int_1_and: fixes x :: int shows "1 AND x = x mod 2"
-by(subst int_and_comm)(simp add: int_and_1)
+  by (fact one_and_eq)
 
-lemma int_or_lt0 [simp]: fixes x y :: int shows 
-  "x OR y < 0 \<longleftrightarrow> x < 0 \<or> y < 0"
-by(simp add: int_or_def)
+lemma int_or_lt0 [simp]: 
+  \<open>x OR y < 0 \<longleftrightarrow> x < 0 \<or> y < 0\<close> for x y :: int
+  by (fact or_negative_int_iff)
 
-lemma int_xor_lt0 [simp]: fixes x y :: int shows
-  "x XOR y < 0 \<longleftrightarrow> ((x < 0) \<noteq> (y < 0))"
-by(auto simp add: int_xor_def)
+lemma int_or_ge0 [simp]:
+  \<open>x OR y \<ge> 0 \<longleftrightarrow> x \<ge> 0 \<and> y \<ge> 0\<close> for x y :: int
+  by (fact or_nonnegative_int_iff)
+  
+lemma int_xor_lt0 [simp]:
+  \<open>x XOR y < 0 \<longleftrightarrow> (x < 0) \<noteq> (y < 0)\<close> for x y :: int
+  by (fact xor_negative_int_iff)
 
-lemma int_xor_ge0 [simp]: fixes x y :: int shows
-  "x XOR y \<ge> 0 \<longleftrightarrow> ((x \<ge> 0) \<longleftrightarrow> (y \<ge> 0))"
-by (metis int_xor_lt0 linorder_not_le)
-
+lemma int_xor_ge0 [simp]:
+  \<open>x XOR y \<ge> 0 \<longleftrightarrow> (x \<ge> 0 \<longleftrightarrow> y \<ge> 0)\<close> for x y :: int
+  by (fact xor_nonnegative_int_iff)
+  
 lemma even_conv_AND:
   \<open>even i \<longleftrightarrow> i AND 1 = 0\<close> for i :: int
-proof -
-  obtain x b where \<open>i = x BIT b\<close>
-    by (cases i rule: bin_exhaust)
-  then have "i AND 1 = 0 BIT b"
-    by (simp add: BIT_special_simps(2) [symmetric] del: BIT_special_simps(2))
-  then show ?thesis
-    using \<open>i = x BIT b\<close> by (cases b) simp_all
-qed
+  by (simp add: and_one_eq mod2_eq_if)
 
 lemma bin_last_conv_AND:
   "bin_last i \<longleftrightarrow> i AND 1 \<noteq> 0"
-  by (simp add: even_conv_AND)
+  by (simp add: and_one_eq mod2_eq_if)
 
 lemma bitval_bin_last:
   "of_bool (bin_last i) = i AND 1"
-proof -
-  obtain x b where "i = x BIT b" by(cases i rule: bin_exhaust)
-  hence "i AND 1 = 0 BIT b"
-    by(simp add: BIT_special_simps(2)[symmetric] del: BIT_special_simps(2))
-  thus ?thesis by(cases b)(simp_all add: bin_last_conv_AND)
-qed
+  by (simp add: and_one_eq mod2_eq_if)
 
 lemma bin_sign_and:
   "bin_sign (i AND j) = - (bin_sign i * bin_sign j)"
@@ -1901,8 +1877,6 @@ by(simp add: int_not_def)
 
 
 subsection \<open>Setting and clearing bits\<close>
-
-
 
 lemma int_lsb_BIT [simp]: fixes x :: int shows
   "lsb (x BIT b) \<longleftrightarrow> b"

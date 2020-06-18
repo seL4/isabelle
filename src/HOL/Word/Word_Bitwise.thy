@@ -101,6 +101,7 @@ lemma twos_complement: "- x = word_succ (NOT x)"
   by (simp add: word_succ_p1 word_sp_01[unfolded word_succ_p1] del: word_add_not)
 
 lemma rbl_word_neg: "rev (to_bl (- x)) = rbl_succ2 True (map Not (rev (to_bl x)))"
+  for x :: \<open>'a::len word\<close>
   by (simp add: twos_complement word_succ_rbl[OF refl] bl_word_not rev_map rbl_succ2_def)
 
 lemma rbl_word_cat:

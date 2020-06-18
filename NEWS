@@ -50,8 +50,12 @@ written as "x powi n".
 
 * Library theory "Bit_Operations" with generic bit operations.
 
-* Session HOL-Word: Bit operations are based on library
-theory "Bit_Operations".  INCOMPATIBILITY.
+* Session HOL-Word: Type word is restricted to bit strings consisting
+of at least one bit.  INCOMPATIBILITY.
+
+* Session HOL-Word: Bit operations NOT, AND, OR, XOR are based on
+generic algebraic bit operations from HOL-Library.Bit_Operations.
+INCOMPATIBILITY.
 
 * Session HOL-Word: Compound operation "bin_split" simplifies by default
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.

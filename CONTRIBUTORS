@@ -7,7 +7,10 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * May 2020: Florian Haftmann
-  HOL-Word bases on library theory of generic bit operations.
+  HOL-Word based on library theory of generic bit operations.
+
+* May 2020: Florian Haftmann
+  Generic algebraically founded bit operations NOT, AND, OR, XOR.
 
 
 Contributions to Isabelle2020
