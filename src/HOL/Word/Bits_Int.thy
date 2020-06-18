@@ -404,26 +404,16 @@ lemma bin_sign_simps [simp]:
 lemma bin_sign_rest [simp]: "bin_sign (bin_rest w) = bin_sign w"
   by (cases w rule: bin_exhaust) auto
 
-primrec bintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where
-    Z : "bintrunc 0 bin = 0"
-  | Suc : "bintrunc (Suc n) bin = bintrunc n (bin_rest bin) BIT (bin_last bin)"
+abbreviation (input) bintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
+  where \<open>bintrunc \<equiv> take_bit\<close>
 
 primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
   where
     Z : "sbintrunc 0 bin = (if bin_last bin then -1 else 0)"
   | Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
 
-lemma bintrunc_eq_take_bit:
-  \<open>bintrunc = take_bit\<close>
-proof (rule ext)+
-  fix n and k
-  show \<open>bintrunc n k = take_bit n k\<close>
-    by (induction n arbitrary: k) (simp_all add: take_bit_Suc Bit_def mod_2_eq_odd)
-qed
-
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
-  by (simp add: bintrunc_eq_take_bit take_bit_eq_mod)
+  by (fact take_bit_eq_mod)
 
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
 proof (induction n arbitrary: w)
@@ -470,7 +460,7 @@ lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) (numeral (Num.Bit1 w)) = bintrunc n (numeral w) BIT True"
   "bintrunc (Suc n) (- numeral (Num.Bit0 w)) = bintrunc n (- numeral w) BIT False"
   "bintrunc (Suc n) (- numeral (Num.Bit1 w)) = bintrunc n (- numeral (w + Num.One)) BIT True"
-  by simp_all
+  by (simp_all add: take_bit_Suc Bit_def)
 
 lemma sbintrunc_0_numeral [simp]:
   "sbintrunc 0 1 = -1"
@@ -494,10 +484,7 @@ lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bin_nth bin n"
   done
 
 lemma nth_bintr: "bin_nth (bintrunc m w) n \<longleftrightarrow> n < m \<and> bin_nth w n"
-  apply (induct n arbitrary: w m)
-   apply (case_tac m, auto)[1]
-  apply (case_tac m, auto)[1]
-  done
+  by (simp add: bin_nth_iff bit_take_bit_iff)
 
 lemma nth_sbintr: "bin_nth (sbintrunc m w) n = (if n < m then bin_nth w n else bin_nth w m)"
   apply (induct n arbitrary: w m)
@@ -521,7 +508,7 @@ lemma bin_nth_Bit1:
   using bin_nth_Bit [where w="numeral w" and b="True"] by simp
 
 lemma bintrunc_bintrunc_l: "n \<le> m \<Longrightarrow> bintrunc m (bintrunc n w) = bintrunc n w"
-  by (rule bin_eqI) (auto simp: nth_bintr)
+  by (simp add: min.absorb2)
 
 lemma sbintrunc_sbintrunc_l: "n \<le> m \<Longrightarrow> sbintrunc m (sbintrunc n w) = sbintrunc n w"
   by (rule bin_eqI) (auto simp: nth_sbintr)
@@ -534,18 +521,6 @@ lemma bintrunc_bintrunc_min [simp]: "bintrunc m (bintrunc n w) = bintrunc (min m
 
 lemma sbintrunc_sbintrunc_min [simp]: "sbintrunc m (sbintrunc n w) = sbintrunc (min m n) w"
   by (rule bin_eqI) (auto simp: nth_sbintr min.absorb1 min.absorb2)
-
-lemmas bintrunc_Pls =
-  bintrunc.Suc [where bin="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
-
-lemmas bintrunc_Min [simp] =
-  bintrunc.Suc [where bin="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
-
-lemmas bintrunc_BIT  [simp] =
-  bintrunc.Suc [where bin="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
-
-lemmas bintrunc_Sucs = bintrunc_Pls bintrunc_Min bintrunc_BIT
-  bintrunc_Suc_numeral
 
 lemmas sbintrunc_Suc_Pls =
   sbintrunc.Suc [where bin="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
@@ -576,7 +551,6 @@ lemmas sbintrunc_0_BIT_B1 [simp] =
 lemmas sbintrunc_0_simps =
   sbintrunc_Pls sbintrunc_Min sbintrunc_0_BIT_B0 sbintrunc_0_BIT_B1
 
-lemmas bintrunc_simps = bintrunc.Z bintrunc_Sucs
 lemmas sbintrunc_simps = sbintrunc_0_simps sbintrunc_Sucs
 
 lemma bintrunc_minus: "0 < n \<Longrightarrow> bintrunc (Suc (n - 1)) w = bintrunc n w"
@@ -585,27 +559,10 @@ lemma bintrunc_minus: "0 < n \<Longrightarrow> bintrunc (Suc (n - 1)) w = bintru
 lemma sbintrunc_minus: "0 < n \<Longrightarrow> sbintrunc (Suc (n - 1)) w = sbintrunc n w"
   by auto
 
-lemmas bintrunc_minus_simps =
-  bintrunc_Sucs [THEN [2] bintrunc_minus [symmetric, THEN trans]]
 lemmas sbintrunc_minus_simps =
   sbintrunc_Sucs [THEN [2] sbintrunc_minus [symmetric, THEN trans]]
 
 lemmas thobini1 = arg_cong [where f = "\<lambda>w. w BIT b"] for b
-
-lemmas bintrunc_BIT_I = trans [OF bintrunc_BIT thobini1]
-lemmas bintrunc_Min_I = trans [OF bintrunc_Min thobini1]
-
-lemmas bmsts = bintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans]]
-lemmas bintrunc_Pls_minus_I = bmsts(1)
-lemmas bintrunc_Min_minus_I = bmsts(2)
-lemmas bintrunc_BIT_minus_I = bmsts(3)
-
-lemma bintrunc_Suc_lem: "bintrunc (Suc n) x = y \<Longrightarrow> m = Suc n \<Longrightarrow> bintrunc m x = y"
-  by auto
-
-lemmas bintrunc_Suc_Ialts =
-  bintrunc_Min_I [THEN bintrunc_Suc_lem]
-  bintrunc_BIT_I [THEN bintrunc_Suc_lem]
 
 lemmas sbintrunc_BIT_I = trans [OF sbintrunc_Suc_BIT thobini1]
 
@@ -635,10 +592,10 @@ lemmas bintrunc_bintrunc [simp] = order_refl [THEN bintrunc_bintrunc_l]
 lemmas sbintrunc_sbintrunc [simp] = order_refl [THEN sbintrunc_sbintrunc_l]
 
 lemma bintrunc_sbintrunc' [simp]: "0 < n \<Longrightarrow> bintrunc n (sbintrunc (n - 1) w) = bintrunc n w"
-  by (cases n) (auto simp del: bintrunc.Suc)
+  by (cases n) simp_all
 
 lemma sbintrunc_bintrunc' [simp]: "0 < n \<Longrightarrow> sbintrunc (n - 1) (bintrunc n w) = sbintrunc (n - 1) w"
-  by (cases n) (auto simp del: bintrunc.Suc)
+  by (cases n) simp_all
 
 lemma bin_sbin_eq_iff: "bintrunc (Suc n) x = bintrunc (Suc n) y \<longleftrightarrow> sbintrunc n x = sbintrunc n y"
   apply (rule iffI)
@@ -650,7 +607,7 @@ lemma bin_sbin_eq_iff: "bintrunc (Suc n) x = bintrunc (Suc n) y \<longleftrighta
 
 lemma bin_sbin_eq_iff':
   "0 < n \<Longrightarrow> bintrunc n x = bintrunc n y \<longleftrightarrow> sbintrunc (n - 1) x = sbintrunc (n - 1) y"
-  by (cases n) (simp_all add: bin_sbin_eq_iff del: bintrunc.Suc)
+  by (cases n) (simp_all add: bin_sbin_eq_iff)
 
 lemmas bintrunc_sbintruncS0 [simp] = bintrunc_sbintrunc' [unfolded One_nat_def]
 lemmas sbintrunc_bintruncS0 [simp] = sbintrunc_bintrunc' [unfolded One_nat_def]
@@ -667,7 +624,7 @@ lemmas nat_non0_gr =
 
 lemma bintrunc_numeral:
   "bintrunc (numeral k) x = bintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
-  by (simp add: numeral_eq_Suc)
+  by (simp add: numeral_eq_Suc take_bit_Suc Bit_def mod_2_eq_odd)
 
 lemma sbintrunc_numeral:
   "sbintrunc (numeral k) x = sbintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
@@ -762,24 +719,20 @@ lemma sign_Min_lt_0: "bin_sign bin = -1 \<longleftrightarrow> bin < 0"
   by (simp add: bin_sign_def)
 
 lemma bin_rest_trunc: "bin_rest (bintrunc n bin) = bintrunc (n - 1) (bin_rest bin)"
-  by (induct n arbitrary: bin) auto
+  by (simp add: take_bit_rec [of n bin])
 
 lemma bin_rest_power_trunc:
   "(bin_rest ^^ k) (bintrunc n bin) = bintrunc (n - k) ((bin_rest ^^ k) bin)"
   by (induct k) (auto simp: bin_rest_trunc)
 
 lemma bin_rest_trunc_i: "bintrunc n (bin_rest bin) = bin_rest (bintrunc (Suc n) bin)"
-  by auto
+  by (auto simp add: take_bit_Suc)
 
 lemma bin_rest_strunc: "bin_rest (sbintrunc (Suc n) bin) = sbintrunc n (bin_rest bin)"
   by (induct n arbitrary: bin) auto
 
 lemma bintrunc_rest [simp]: "bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (bintrunc n bin)"
-  apply (induct n arbitrary: bin)
-   apply simp
-  apply (case_tac bin rule: bin_exhaust)
-  apply (auto simp: bintrunc_bintrunc_l)
-  done
+  by (induct n arbitrary: bin) (simp_all add: take_bit_Suc)
 
 lemma sbintrunc_rest [simp]: "sbintrunc n (bin_rest (sbintrunc n bin)) = bin_rest (sbintrunc n bin)"
   apply (induct n arbitrary: bin)
@@ -894,7 +847,7 @@ lemma bin_nth_split:
   by (auto simp add: bin_nth_drop_bit_iff bin_nth_take_bit_iff)
 
 lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
-  by (simp add: bin_cat_eq_push_bit_add_take_bit bintrunc_eq_take_bit)
+  by (simp add: bin_cat_eq_push_bit_add_take_bit)
 
 lemma bintr_cat1: "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b"
   by (metis bin_cat_assoc bin_cat_zero)
@@ -907,10 +860,10 @@ lemma bintr_cat_same [simp]: "bintrunc n (bin_cat a n b) = bintrunc n b"
   by (auto simp add : bintr_cat)
 
 lemma cat_bintr [simp]: "bin_cat a n (bintrunc n b) = bin_cat a n b"
-  by (induct n arbitrary: b) auto
+  by (simp add: bin_cat_eq_push_bit_add_take_bit)
 
 lemma split_bintrunc: "bin_split n c = (a, b) \<Longrightarrow> b = bintrunc n c"
-  by (simp add: bintrunc_eq_take_bit)
+  by simp
 
 lemma bin_cat_split: "bin_split n w = (u, v) \<Longrightarrow> w = bin_cat u n v"
   by (auto simp add: bin_cat_eq_push_bit_add_take_bit bits_ident)
@@ -926,14 +879,14 @@ lemma take_bit_bin_cat_eq:
     (simp_all add: Bit_def take_bit_Suc mod_2_eq_odd)
 
 lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
-  by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq bintrunc_eq_take_bit)
+  by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq)
 
 lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
   by simp
 
 lemma bin_split_minus1 [simp]:
   "bin_split n (- 1) = (- 1, bintrunc n (- 1))"
-  by (simp add: bintrunc_eq_take_bit)
+  by simp
 
 lemma bin_split_trunc:
   "bin_split (min m n) c = (a, b) \<Longrightarrow>
@@ -954,10 +907,7 @@ lemma bin_split_trunc1:
   done
 
 lemma bin_cat_num: "bin_cat a n b = a * 2 ^ n + bintrunc n b"
-  apply (induct n arbitrary: b)
-   apply clarsimp
-  apply (simp add: Bit_def)
-  done
+  by (simp add: bin_cat_eq_push_bit_add_take_bit push_bit_eq_mult)
 
 lemma bin_split_num: "bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
   by (simp add: drop_bit_eq_div take_bit_eq_mod)
@@ -1032,7 +982,7 @@ lemma bin_rsplit_size_sign' [rule_format]:
   apply (drule bthrs)
   apply (simp (no_asm_use) add: Let_def split: prod.split_asm if_split_asm)
   apply clarify
-  apply (simp add: bintrunc_eq_take_bit)
+  apply simp
   done
 
 lemmas bin_rsplit_size_sign = bin_rsplit_size_sign' [OF asm_rl
@@ -1061,7 +1011,7 @@ lemma bin_nth_rsplit [rule_format] :
   done
 
 lemma bin_rsplit_all: "0 < nw \<Longrightarrow> nw \<le> n \<Longrightarrow> bin_rsplit n (nw, w) = [bintrunc n w]"
-  by (auto simp: bin_rsplit_def rsplit_aux_simp2ls bintrunc_eq_take_bit split: prod.split dest!: split_bintrunc)
+  by (auto simp: bin_rsplit_def rsplit_aux_simp2ls split: prod.split dest!: split_bintrunc)
 
 lemma bin_rsplit_l [rule_format]:
   "\<forall>bin. bin_rsplitl n (m, bin) = bin_rsplit n (m, bintrunc m bin)"
@@ -1071,7 +1021,7 @@ lemma bin_rsplit_l [rule_format]:
   apply (subst bin_rsplitl_aux.simps)
   apply (subst bin_rsplit_aux.simps)
   apply (clarsimp simp: Let_def split: prod.split)
-  apply (simp add: bintrunc_eq_take_bit ac_simps)
+  apply (simp add: ac_simps)
   apply (subst rsplit_aux_alts(1))
   apply (subst rsplit_aux_alts(2))
   apply clarsimp
@@ -1088,7 +1038,7 @@ lemma bin_rsplit_rcat [rule_format]:
    apply clarsimp
   apply clarsimp
   apply (subst rsplit_aux_alts)
-  apply (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq bintrunc_eq_take_bit)
+  apply (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq)
   done
 
 lemma bin_rsplit_aux_len_le [rule_format] :
@@ -1203,7 +1153,7 @@ lemma bin_sign_sc [simp]: "bin_sign (bin_sc n b w) = bin_sign w"
 lemma bin_sc_bintr [simp]: "bintrunc m (bin_sc n x (bintrunc m (w))) = bintrunc m (bin_sc n x w)"
   apply (induct n arbitrary: w m)
    apply (case_tac [!] w rule: bin_exhaust)
-   apply (case_tac [!] m, auto)
+   apply (case_tac [!] m, auto simp add: take_bit_Suc mod_2_eq_odd)
   done
 
 lemma bin_clr_le: "bin_sc n False w \<le> w"
@@ -1223,7 +1173,7 @@ lemma bintr_bin_clr_le: "bintrunc n (bin_sc m False w) \<le> bintrunc n w"
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply (auto simp: le_Bits)
+   apply (auto simp: le_Bits take_bit_Suc mod_2_eq_odd)
   done
 
 lemma bintr_bin_set_ge: "bintrunc n (bin_sc m True w) \<ge> bintrunc n w"
@@ -1231,7 +1181,7 @@ lemma bintr_bin_set_ge: "bintrunc n (bin_sc m True w) \<ge> bintrunc n w"
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply (auto simp: le_Bits)
+   apply (auto simp: le_Bits take_bit_Suc mod_2_eq_odd)
   done
 
 lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
@@ -2218,7 +2168,7 @@ by(simp_all add: msb_int_def)
 subsection \<open>Semantic interpretation of \<^typ>\<open>bool list\<close> as \<^typ>\<open>int\<close>\<close>
 
 lemma bin_bl_bin': "bl_to_bin (bin_to_bl_aux n w bs) = bl_to_bin_aux bs (bintrunc n w)"
-  by (induct n arbitrary: w bs) (auto simp: bl_to_bin_def)
+  by (induct n arbitrary: w bs) (auto simp: bl_to_bin_def take_bit_Suc Bit_def ac_simps mod_2_eq_odd)
 
 lemma bin_bl_bin [simp]: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
   by (auto simp: bin_to_bl_def bin_bl_bin')
@@ -2239,7 +2189,7 @@ lemma bin_to_bl_aux_bintr:
    apply (clarsimp simp: bin_to_bl_zero_aux)
    apply (erule thin_rl)
    apply (induct_tac n)
-    apply auto
+    apply (auto simp add: take_bit_Suc)
   done
 
 lemma bin_to_bl_bintr:
@@ -2380,7 +2330,7 @@ next
   next
     case (Suc n)
     then have "m - Suc (length bl) = n" by simp
-    with Cons Suc show ?thesis by simp
+    with Cons Suc show ?thesis by (simp add: take_bit_Suc Bit_def ac_simps)
   qed
 qed
 

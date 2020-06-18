@@ -1168,7 +1168,7 @@ lemma scast_n1 [simp]: "scast (- 1) = - 1"
   by (simp add: scast_def)
 
 lemma uint_1 [simp]: "uint (1::'a::len word) = 1"
-  by (simp only: word_1_wi word_ubin.eq_norm) (simp add: bintrunc_minus_simps(4))
+  by (simp only: word_1_wi word_ubin.eq_norm) simp
 
 lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
   by (simp add: unat_def)
@@ -2646,10 +2646,8 @@ subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
 lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT False)"
   unfolding shiftl1_def
-  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm)
-  apply (subst refl [THEN bintrunc_BIT_I, symmetric])
-  apply (subst bintrunc_bintrunc_min)
-  apply simp
+  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm Bit_def)
+  apply (simp add: mod_mult_right_eq take_bit_eq_mod)
   done
 
 lemma shiftl1_numeral [simp]: "shiftl1 (numeral w) = numeral (Num.Bit0 w)"
@@ -3531,7 +3529,7 @@ lemma word_split_bl':
   apply safe
    defer
    apply (clarsimp split: prod.splits)
-  apply (metis bintrunc_eq_take_bit of_bl_drop' ucast_bl ucast_def word_size word_size_bl word_ubin.Abs_norm)
+  apply (metis of_bl_drop' ucast_bl ucast_def word_size word_size_bl)
    apply hypsubst_thin
    apply (drule word_ubin.norm_Rep [THEN ssubst])
    apply (simp add: of_bl_def bl2bin_drop word_size
@@ -3544,8 +3542,7 @@ lemma word_split_bl':
   apply (simp add : of_bl_def to_bl_def)
   apply (subst bin_to_bl_drop_bit [symmetric])
    apply (subst diff_add)
-    apply (simp_all add: bintrunc_eq_take_bit take_bit_drop_bit)
-  apply (simp add: take_bit_eq_mod)
+    apply (simp_all add: take_bit_drop_bit)
   done
 
 lemma word_split_bl: "std = size c - size b \<Longrightarrow>
@@ -4566,7 +4563,7 @@ proof (induction i arbitrary: n)
     by simp
 next
   case (Suc i)
-  then show ?case by (cases n) simp_all
+  then show ?case by (cases n) (simp_all add: take_bit_Suc Bit_def)
 qed
 
 lemma shiftl_transfer [transfer_rule]:
