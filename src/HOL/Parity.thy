@@ -1296,10 +1296,6 @@ lemma drop_bit_of_bool [simp]:
   "drop_bit n (of_bool b) = of_bool (n = 0 \<and> b)"
   by (cases n) simp_all
 
-lemma take_bit_eq_0_imp_dvd:
-  "take_bit n a = 0 \<Longrightarrow> 2 ^ n dvd a"
-  by (simp add: take_bit_eq_mod mod_0_imp_dvd)
-
 lemma even_take_bit_eq [simp]:
   \<open>even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a\<close>
   by (simp add: take_bit_rec [of n a])
@@ -1388,6 +1384,30 @@ proof (rule bit_eqI)
     by (simp add: bit_take_bit_iff bit_mask_iff stable_imp_bit_iff_odd)
 qed
 
+lemma exp_dvdE:
+  assumes \<open>2 ^ n dvd a\<close>
+  obtains b where \<open>a = push_bit n b\<close>
+proof -
+  from assms obtain b where \<open>a = 2 ^ n * b\<close> ..
+  then have \<open>a = push_bit n b\<close>
+    by (simp add: push_bit_eq_mult ac_simps)
+  with that show thesis .
+qed
+
+lemma take_bit_eq_0_iff:
+  \<open>take_bit n a = 0 \<longleftrightarrow> 2 ^ n dvd a\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  then show ?Q
+	  by (simp add: take_bit_eq_mod mod_0_imp_dvd)
+next
+  assume ?Q
+  then obtain b where \<open>a = push_bit n b\<close>
+    by (rule exp_dvdE)
+  then show ?P
+    by (simp add: take_bit_push_bit)
+qed
+
 end
 
 instantiation nat :: semiring_bit_shifts
@@ -1465,10 +1485,6 @@ lemma push_bit_of_nat:
 lemma take_bit_add:
   "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
   by (simp add: take_bit_eq_mod mod_simps)
-
-lemma take_bit_eq_0_iff:
-  "take_bit n a = 0 \<longleftrightarrow> 2 ^ n dvd a"
-  by (simp add: take_bit_eq_mod mod_eq_0_iff_dvd)
 
 lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"

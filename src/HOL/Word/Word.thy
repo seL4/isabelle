@@ -385,7 +385,7 @@ context
 begin
 
 lemma [transfer_rule]:
-  "(pcr_word ===> (\<longleftrightarrow>)) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)"
+  \<open>(pcr_word ===> (\<longleftrightarrow>)) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)\<close>
 proof -
   have even_word_unfold: "even k \<longleftrightarrow> (\<exists>l. take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l))" (is "?P \<longleftrightarrow> ?Q")
     for k :: int
@@ -448,6 +448,24 @@ qed
 lemma exp_eq_zero_iff:
   \<open>2 ^ n = (0 :: 'a::len word) \<longleftrightarrow> n \<ge> LENGTH('a)\<close>
   by transfer simp
+
+lemma double_eq_zero_iff:
+  \<open>2 * a = 0 \<longleftrightarrow> a = 0 \<or> a = 2 ^ (LENGTH('a) - Suc 0)\<close>
+  for a :: \<open>'a::len word\<close>
+proof -
+  define n where \<open>n = LENGTH('a) - Suc 0\<close>
+  then have *: \<open>LENGTH('a) = Suc n\<close>
+    by simp
+  have \<open>a = 0\<close> if \<open>2 * a = 0\<close> and \<open>a \<noteq> 2 ^ (LENGTH('a) - Suc 0)\<close>
+    using that by transfer
+      (auto simp add: take_bit_eq_0_iff take_bit_eq_mod *)
+  moreover have \<open>2 ^ LENGTH('a) = (0 :: 'a word)\<close>
+    by transfer simp
+  then have \<open>2 * 2 ^ (LENGTH('a) - Suc 0) = (0 :: 'a word)\<close>
+    by (simp add: *)
+  ultimately show ?thesis
+    by auto
+qed
 
 
 subsection \<open>Ordering\<close>
@@ -778,6 +796,11 @@ instance proof
 qed
 
 end
+
+lemma bit_word_eqI:
+  \<open>a = b\<close> if \<open>\<And>n. n \<le> LENGTH('a) \<Longrightarrow> bit a n \<longleftrightarrow> bit b n\<close>
+    for a b :: \<open>'a::len word\<close>
+  by (rule bit_eqI, rule that) (simp add: exp_eq_zero_iff)
 
 definition shiftl1 :: "'a::len word \<Rightarrow> 'a word"
   where "shiftl1 w = word_of_int (uint w BIT False)"
@@ -1452,6 +1475,16 @@ lemma ucast_bl: "ucast w = of_bl (to_bl w)"
 lemma nth_ucast: "(ucast w::'a::len word) !! n = (w !! n \<and> n < LENGTH('a))"
   by (simp add: ucast_def test_bit_bin word_ubin.eq_norm nth_bintr word_size)
     (fast elim!: bin_nth_uint_imp)
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_mask_word [transfer_rule]:
+  \<open>((=) ===> pcr_word) Bit_Operations.mask Bit_Operations.mask\<close>
+  by (simp only: mask_eq_exp_minus_1 [abs_def]) transfer_prover
+
+end
 
 lemma ucast_mask_eq:
   \<open>ucast (Bit_Operations.mask n :: 'b word) = Bit_Operations.mask (min LENGTH('b::len) n)\<close>
