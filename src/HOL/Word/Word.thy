@@ -247,20 +247,44 @@ lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
 lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(*)"
   by (auto simp add: bintrunc_mod2p intro: mod_mult_cong)
 
-definition word_div_def: "a div b = word_of_int (uint a div uint b)"
+lift_definition divide_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "\<lambda>a b. take_bit LENGTH('a) a div take_bit LENGTH('a) b"
+  by simp
 
-definition word_mod_def: "a mod b = word_of_int (uint a mod uint b)"
+lift_definition modulo_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "\<lambda>a b. take_bit LENGTH('a) a mod take_bit LENGTH('a) b"
+  by simp
 
 instance
   by standard (transfer, simp add: algebra_simps)+
 
 end
 
+lemma word_div_def [code]:
+  "a div b = word_of_int (uint a div uint b)"
+  by transfer rule
+
+lemma word_mod_def [code]:
+  "a mod b = word_of_int (uint a mod uint b)"
+  by transfer rule
+
 quickcheck_generator word
   constructors:
     "zero_class.zero :: ('a::len) word",
     "numeral :: num \<Rightarrow> ('a::len) word",
     "uminus :: ('a::len) word \<Rightarrow> ('a::len) word"
+
+context
+  includes lifting_syntax
+  notes power_transfer [transfer_rule]
+begin
+
+lemma power_transfer_word [transfer_rule]:
+  \<open>(pcr_word ===> (=) ===> pcr_word) (^) (^)\<close>
+  by transfer_prover
+
+end
+
 
 text \<open>Legacy theorems:\<close>
 
@@ -297,6 +321,10 @@ lemmas word_of_int_homs = wi_homs word_0_wi word_1_wi
 
 lemmas word_of_int_hom_syms = word_of_int_homs [symmetric]
 
+instance word :: (len0) comm_monoid_add ..
+
+instance word :: (len0) semiring_numeral ..
+
 instance word :: (len) comm_ring_1
 proof
   have *: "0 < LENGTH('a)" by (rule len_gt_0)
@@ -313,8 +341,70 @@ lemma word_of_int: "of_int = word_of_int"
   apply (simp add: word_of_nat wi_hom_sub)
   done
 
+context
+  includes lifting_syntax
+  notes 
+    transfer_rule_of_bool [transfer_rule]
+    transfer_rule_numeral [transfer_rule]
+    transfer_rule_of_nat [transfer_rule]
+    transfer_rule_of_int [transfer_rule]
+begin
+
+lemma [transfer_rule]:
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) of_bool of_bool"
+  by transfer_prover
+
+lemma [transfer_rule]:
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len0 word \<Rightarrow> bool)) numeral numeral"
+  by transfer_prover
+
+lemma [transfer_rule]:
+  "((=) ===> pcr_word) int of_nat"
+  by transfer_prover
+
+lemma [transfer_rule]:
+  "((=) ===> pcr_word) (\<lambda>k. k) of_int"
+proof -
+  have "((=) ===> pcr_word) of_int of_int"
+    by transfer_prover
+  then show ?thesis by (simp add: id_def)
+qed
+
+end
+
+lemma word_of_int_eq:
+  "word_of_int = of_int"
+  by (rule ext) (transfer, rule)
+
 definition udvd :: "'a::len word \<Rightarrow> 'a::len word \<Rightarrow> bool" (infixl "udvd" 50)
   where "a udvd b = (\<exists>n\<ge>0. uint b = n * uint a)"
+
+context
+  includes lifting_syntax
+begin
+
+lemma [transfer_rule]:
+  "(pcr_word ===> (\<longleftrightarrow>)) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)"
+proof -
+  have even_word_unfold: "even k \<longleftrightarrow> (\<exists>l. take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l))" (is "?P \<longleftrightarrow> ?Q")
+    for k :: int
+  proof
+    assume ?P
+    then show ?Q
+      by auto
+  next
+    assume ?Q
+    then obtain l where "take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l)" ..
+    then have "even (take_bit LENGTH('a) k)"
+      by simp
+    then show ?P
+      by simp
+  qed
+  show ?thesis by (simp only: even_word_unfold [abs_def] dvd_def [where ?'a = "'a word", abs_def])
+    transfer_prover
+qed
+
+end
 
 
 subsection \<open>Ordering\<close>
@@ -322,14 +412,26 @@ subsection \<open>Ordering\<close>
 instantiation word :: (len0) linorder
 begin
 
-definition word_le_def: "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
+lift_definition less_eq_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
+  is "\<lambda>a b. take_bit LENGTH('a) a \<le> take_bit LENGTH('a) b"
+  by simp
 
-definition word_less_def: "a < b \<longleftrightarrow> uint a < uint b"
+lift_definition less_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
+  is "\<lambda>a b. take_bit LENGTH('a) a < take_bit LENGTH('a) b"
+  by simp
 
 instance
-  by standard (auto simp: word_less_def word_le_def)
+  by (standard; transfer) auto
 
 end
+
+lemma word_le_def [code]:
+  "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
+  by transfer rule
+
+lemma word_less_def [code]:
+  "a < b \<longleftrightarrow> uint a < uint b"
+  by transfer rule
 
 definition word_sle :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> bool"  ("(_/ <=s _)" [50, 51] 50)
   where "a <=s b \<longleftrightarrow> sint a \<le> sint b"
@@ -548,12 +650,6 @@ lemma word_neg_numeral_alt: "- numeral b = word_of_int (- numeral b)"
   by (simp only: word_numeral_alt wi_hom_neg)
 
 declare word_neg_numeral_alt [symmetric, code_abbrev]
-
-lemma word_numeral_transfer [transfer_rule]:
-  "(rel_fun (=) pcr_word) numeral numeral"
-  "(rel_fun (=) pcr_word) (- numeral) (- numeral)"
-  apply (simp_all add: rel_fun_def word.pcr_cr_eq cr_word_def)
-  using word_numeral_alt [symmetric] word_neg_numeral_alt [symmetric] by auto
 
 lemma uint_bintrunc [simp]:
   "uint (numeral bin :: 'a word) =
