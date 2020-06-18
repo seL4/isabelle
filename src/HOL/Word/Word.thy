@@ -723,7 +723,7 @@ proof
 next
   assume ?Q
   then have *: \<open>bit (uint x) n \<longleftrightarrow> bit (uint y) n\<close> if \<open>n < LENGTH('a)\<close> for n
-    using that by (simp add: word_test_bit_def bin_nth_iff)
+    using that by (simp add: word_test_bit_def)
   show ?P
   proof (rule word_uint_eqI, rule bit_eqI, rule iffI)
     fix n
@@ -2726,11 +2726,8 @@ lemma nth_shiftl': "(w << m) !! n \<longleftrightarrow> n < size w \<and> n >= m
 lemmas nth_shiftl = nth_shiftl' [unfolded word_size]
 
 lemma nth_shiftr1: "shiftr1 w !! n = w !! Suc n"
-  apply (unfold shiftr1_def word_test_bit_def)
-  apply (simp add: nth_bintr word_ubin.eq_norm)
-  apply safe
-  apply (drule bin_nth.Suc [THEN iffD2, THEN bin_nth_uint_imp])
-  apply simp
+  apply (auto simp add: shiftr1_def word_test_bit_def word_ubin.eq_norm bit_take_bit_iff bit_Suc)
+  apply (metis (no_types, hide_lams) add_Suc_right add_diff_cancel_left' bit_Suc diff_is_0_eq' le_Suc_ex less_imp_le linorder_not_le test_bit_bin word_test_bit_def)
   done
 
 lemma nth_shiftr: "(w >> m) !! n = w !! (n + m)"
@@ -2755,9 +2752,8 @@ lemma uint_shiftr1: "uint (shiftr1 w) = bin_rest (uint w)"
 
 lemma nth_sshiftr1: "sshiftr1 w !! n = (if n = size w - 1 then w !! n else w !! Suc n)"
   apply (unfold sshiftr1_def word_test_bit_def)
-  apply (simp add: nth_bintr word_ubin.eq_norm bin_nth.Suc [symmetric] word_size
-      del: bin_nth.simps)
-  apply (simp add: nth_bintr uint_sint del : bin_nth.simps)
+  apply (simp add: nth_bintr word_ubin.eq_norm bit_Suc [symmetric] word_size)
+  apply (simp add: nth_bintr uint_sint)
   apply (auto simp add: bin_nth_sint)
   done
 
@@ -2895,8 +2891,7 @@ lemma bl_sshiftr1: "to_bl (sshiftr1 w) = hd (to_bl w) # butlast (to_bl w)"
   apply clarsimp
   apply (case_tac i)
    apply (simp_all add: hd_conv_nth length_0_conv [symmetric]
-      nth_bin_to_bl bin_nth.Suc [symmetric] nth_sbintr
-      del: bin_nth.Suc)
+      nth_bin_to_bl bit_Suc [symmetric] nth_sbintr)
    apply force
   apply (rule impI)
   apply (rule_tac f = "bin_nth (uint w)" in arg_cong)
@@ -3597,7 +3592,7 @@ lemma test_bit_split':
   apply (unfold word_split_bin' test_bit_bin)
   apply (clarify)
   apply (clarsimp simp: word_ubin.eq_norm nth_bintr word_size split: prod.splits)
-  apply (auto simp add: bin_nth_iff bit_take_bit_iff bit_drop_bit_eq ac_simps bin_nth_uint_imp)
+  apply (auto simp add: bit_take_bit_iff bit_drop_bit_eq ac_simps bin_nth_uint_imp)
   done
 
 lemma test_bit_split:
@@ -4550,7 +4545,7 @@ subsection \<open>More\<close>
 
 lemma test_bit_1' [simp]:
   "(1 :: 'a :: len0 word) !! n \<longleftrightarrow> 0 < LENGTH('a) \<and> n = 0"
-  by (cases n) (simp_all only: one_word_def test_bit_wi bin_nth.simps, simp_all)
+  by (cases n) (simp_all only: one_word_def test_bit_wi, simp_all)
 
 lemma mask_0 [simp]:
   "mask 0 = 0"

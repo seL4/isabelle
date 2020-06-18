@@ -311,49 +311,39 @@ lemma bl_to_bin_BIT:
 
 subsection \<open>Bit projection\<close>
 
-primrec bin_nth :: "int \<Rightarrow> nat \<Rightarrow> bool"
-  where
-    Z: "bin_nth w 0 \<longleftrightarrow> bin_last w"
-  | Suc: "bin_nth w (Suc n) \<longleftrightarrow> bin_nth (bin_rest w) n"
-
-lemma bin_nth_iff:
-  \<open>bin_nth = bit\<close>
-proof (rule ext)+
-  fix k and n
-  show \<open>bin_nth k n \<longleftrightarrow> bit k n\<close>
-    by (induction n arbitrary: k) (simp_all add: bit_Suc)
-qed
+abbreviation (input) bin_nth :: \<open>int \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where \<open>bin_nth \<equiv> bit\<close>
 
 lemma bin_nth_eq_iff: "bin_nth x = bin_nth y \<longleftrightarrow> x = y"
-  by (simp add: bin_nth_iff bit_eq_iff fun_eq_iff)
+  by (simp add: bit_eq_iff fun_eq_iff)
 
 lemma bin_eqI:
   "x = y" if "\<And>n. bin_nth x n \<longleftrightarrow> bin_nth y n"
   using that bin_nth_eq_iff [of x y] by (simp add: fun_eq_iff)
 
 lemma bin_eq_iff: "x = y \<longleftrightarrow> (\<forall>n. bin_nth x n = bin_nth y n)"
-  using bin_nth_eq_iff by auto
+  by (fact bit_eq_iff)
 
 lemma bin_nth_zero [simp]: "\<not> bin_nth 0 n"
-  by (induct n) auto
+  by simp
 
 lemma bin_nth_1 [simp]: "bin_nth 1 n \<longleftrightarrow> n = 0"
-  by (cases n) simp_all
+  by (cases n) (simp_all add: bit_Suc)
 
 lemma bin_nth_minus1 [simp]: "bin_nth (- 1) n"
-  by (induct n) auto
+  by (induction n) (simp_all add: bit_Suc)
 
 lemma bin_nth_0_BIT: "bin_nth (w BIT b) 0 \<longleftrightarrow> b"
-  by auto
+  by simp
 
 lemma bin_nth_Suc_BIT: "bin_nth (w BIT b) (Suc n) = bin_nth w n"
-  by auto
+  by (simp add: bit_Suc)
 
 lemma bin_nth_minus [simp]: "0 < n \<Longrightarrow> bin_nth (w BIT b) n = bin_nth w (n - 1)"
-  by (cases n) auto
+  by (cases n) (simp_all add: bit_Suc)
 
 lemma bin_nth_numeral: "bin_rest x = y \<Longrightarrow> bin_nth x (numeral n) = bin_nth y (pred_numeral n)"
-  by (simp add: numeral_eq_Suc)
+  by (simp add: numeral_eq_Suc bit_Suc)
 
 lemmas bin_nth_numeral_simps [simp] =
   bin_nth_numeral [OF bin_rest_numeral_simps(2)]
@@ -363,22 +353,17 @@ lemmas bin_nth_numeral_simps [simp] =
   bin_nth_numeral [OF bin_rest_numeral_simps(8)]
 
 lemmas bin_nth_simps =
-  bin_nth.Z bin_nth.Suc bin_nth_zero bin_nth_minus1
+  bit_0 bit_Suc bin_nth_zero bin_nth_minus1
   bin_nth_numeral_simps
 
 lemma nth_2p_bin: "bin_nth (2 ^ n) m = (m = n)" \<comment> \<open>for use when simplifying with \<open>bin_nth_Bit\<close>\<close>
-  apply (induct n arbitrary: m)
-   apply clarsimp
-   apply safe
-   apply (case_tac m)
-    apply (auto simp: Bit_B0_2t [symmetric])
-  done 
-
+  by (auto simp add: bit_exp_iff)
+  
 lemma nth_rest_power_bin: "bin_nth ((bin_rest ^^ k) w) n = bin_nth w (n + k)"
   apply (induct k arbitrary: n)
    apply clarsimp
   apply clarsimp
-  apply (simp only: bin_nth.Suc [symmetric] add_Suc)
+  apply (simp only: bit_Suc [symmetric] add_Suc)
   done
 
 lemma bin_nth_numeral_unfold:
@@ -479,19 +464,17 @@ lemma sbintrunc_Suc_numeral:
   by simp_all
 
 lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bin_nth bin n"
-  apply (induct n arbitrary: bin)
-  apply (case_tac bin rule: bin_exhaust, case_tac b, auto)
-  done
+  by (induct n arbitrary: bin) (simp_all add: bit_Suc)
 
 lemma nth_bintr: "bin_nth (bintrunc m w) n \<longleftrightarrow> n < m \<and> bin_nth w n"
-  by (simp add: bin_nth_iff bit_take_bit_iff)
+  by (fact bit_take_bit_iff)
 
 lemma nth_sbintr: "bin_nth (sbintrunc m w) n = (if n < m then bin_nth w n else bin_nth w m)"
   apply (induct n arbitrary: w m)
    apply (case_tac m)
     apply simp_all
   apply (case_tac m)
-   apply simp_all
+   apply (simp_all add: bit_Suc)
   done
 
 lemma bin_nth_Bit: "bin_nth (w BIT b) n \<longleftrightarrow> n = 0 \<and> b \<or> (\<exists>m. n = Suc m \<and> bin_nth w m)"
@@ -828,17 +811,18 @@ lemma bin_nth_cat:
   "bin_nth (bin_cat x k y) n =
     (if n < k then bin_nth y n else bin_nth x (n - k))"
   apply (induct k arbitrary: n y)
-   apply clarsimp
-  apply (case_tac n, auto)
+   apply simp
+  apply (case_tac n)
+   apply (simp_all add: bit_Suc)
   done
 
 lemma bin_nth_drop_bit_iff:
   \<open>bin_nth (drop_bit n c) k \<longleftrightarrow> bin_nth c (n + k)\<close>
-  by (simp add: bin_nth_iff bit_drop_bit_eq)
+  by (simp add: bit_drop_bit_eq)
 
 lemma bin_nth_take_bit_iff:
   \<open>bin_nth (take_bit n c) k \<longleftrightarrow> k < n \<and> bin_nth c k\<close>
-  by (simp add: bin_nth_iff bit_take_bit_iff)
+  by (fact bit_take_bit_iff)
 
 lemma bin_nth_split:
   "bin_split n c = (a, b) \<Longrightarrow>
@@ -1006,8 +990,8 @@ lemma bin_nth_rsplit [rule_format] :
    apply clarsimp
    apply (erule allE)
    apply (erule (1) impE)
-   apply (simp add: bin_nth_iff bit_drop_bit_eq ac_simps)
-  apply (simp add: bin_nth_iff bit_take_bit_iff ac_simps)
+   apply (simp add: bit_drop_bit_eq ac_simps)
+  apply (simp add: bit_take_bit_iff ac_simps)
   done
 
 lemma bin_rsplit_all: "0 < nw \<Longrightarrow> nw \<le> n \<Longrightarrow> bin_rsplit n (nw, w) = [bintrunc n w]"
@@ -1142,10 +1126,13 @@ lemma bin_sc_sc_diff: "m \<noteq> n \<Longrightarrow> bin_sc m c (bin_sc n b w) 
   done
 
 lemma bin_nth_sc_gen: "bin_nth (bin_sc n b w) m = (if m = n then b else bin_nth w m)"
-  by (induct n arbitrary: w m) (case_tac [!] m, auto)
+  apply (induct n arbitrary: w m)
+   apply (case_tac m; simp add: bit_Suc)
+  apply (case_tac m; simp add: bit_Suc)
+  done
 
 lemma bin_sc_nth [simp]: "bin_sc n (bin_nth w n) w = w"
-  by (induct n arbitrary: w) auto
+  by (induct n arbitrary: w) (simp_all add: bit_Suc)
 
 lemma bin_sign_sc [simp]: "bin_sign (bin_sc n b w) = bin_sign w"
   by (induct n arbitrary: w) auto
@@ -1328,7 +1315,7 @@ lemma bin_nth_ops:
   "\<And>x y. bin_nth (x OR y) n \<longleftrightarrow> bin_nth x n \<or> bin_nth y n"
   "\<And>x y. bin_nth (x XOR y) n \<longleftrightarrow> bin_nth x n \<noteq> bin_nth y n"
   "\<And>x. bin_nth (NOT x) n \<longleftrightarrow> \<not> bin_nth x n"
-  by (induct n) auto
+  by (induct n) (auto simp add: bit_Suc)
 
 
 subsubsection \<open>Derived properties\<close>
@@ -2109,7 +2096,7 @@ next
   moreover have "(2 * x' + of_bool b - 2 * 2 ^ n') div 2 = x' + (- (2 ^ n') + of_bool b div 2)"
     by(simp only: add_diff_eq[symmetric] add.commute div_mult_self2[OF zero_neq_numeral[symmetric]])
   ultimately show ?case using Suc.IH[of x' n'] Suc.prems
-    by(cases b)(simp_all add: Bit_def shiftl_int_def)
+    by (clarsimp simp add: Bit_def shiftl_int_def bit_Suc)
 qed
 
 lemma bin_clr_conv_NAND:
@@ -2241,10 +2228,9 @@ lemma bin_nth_bl: "n < m \<Longrightarrow> bin_nth w n = nth (rev (bin_to_bl m w
    apply (case_tac m, clarsimp)
    apply (clarsimp simp: bin_to_bl_def)
    apply (simp add: bin_to_bl_aux_alt)
-  apply clarsimp
   apply (case_tac m, clarsimp)
   apply (clarsimp simp: bin_to_bl_def)
-  apply (simp add: bin_to_bl_aux_alt)
+  apply (simp add: bin_to_bl_aux_alt bit_Suc)
   done
 
 lemma nth_bin_to_bl_aux:
