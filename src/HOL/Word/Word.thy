@@ -445,6 +445,10 @@ proof
     by transfer (simp_all add: mod_2_eq_odd take_bit_Suc)
 qed
 
+lemma exp_eq_zero_iff:
+  \<open>2 ^ n = (0 :: 'a::len word) \<longleftrightarrow> n \<ge> LENGTH('a)\<close>
+  by transfer simp
+
 
 subsection \<open>Ordering\<close>
 
@@ -680,7 +684,8 @@ proof
   show \<open>(1 + a) div 2 = a div 2\<close>
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
-    using that by transfer (auto dest: le_Suc_ex simp add: take_bit_Suc)
+    using that by transfer
+      (auto dest: le_Suc_ex simp add: mod_2_eq_odd take_bit_Suc elim!: evenE)
   show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
     for m n :: nat
     by transfer (simp, simp add: exp_div_exp_eq)
@@ -3566,16 +3571,26 @@ lemma aligned_bl_add_size [OF refl]:
 
 subsubsection \<open>Mask\<close>
 
-lemma nth_mask [OF refl, simp]: "m = mask n \<Longrightarrow> test_bit m i \<longleftrightarrow> i < n \<and> i < size m"
-  apply (unfold mask_def test_bit_bl)
-  apply (simp only: word_1_bl [symmetric] shiftl_of_bl)
-  apply (clarsimp simp add: word_size)
-  apply (simp only: of_bl_def mask_lem word_of_int_hom_syms add_diff_cancel2)
-  apply (fold of_bl_def)
-  apply (simp add: word_1_bl)
-  apply (rule test_bit_of_bl [THEN trans, unfolded test_bit_bl word_size])
-  apply auto
-  done
+lemma mask_eq:
+  \<open>mask n = 2 ^ n - 1\<close>
+  by (simp add: mask_def shiftl_word_eq push_bit_eq_mult)
+
+lemma mask_Suc_rec:
+  \<open>mask (Suc n) = 2 * mask n + 1\<close>
+  by (simp add: mask_eq)
+
+context
+begin
+
+qualified lemma bit_mask_iff [simp]:
+  \<open>bit (mask m :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> n < m\<close>
+  by (simp add: mask_eq bit_mask_iff exp_eq_zero_iff not_le)
+
+end
+
+lemma nth_mask [simp]:
+  \<open>(mask n :: 'a::len word) !! i \<longleftrightarrow> i < n \<and> i < size (mask n :: 'a word)\<close>
+  by (auto simp add: test_bit_word_eq word_size)
 
 lemma mask_bl: "mask n = of_bl (replicate n True)"
   by (auto simp add : test_bit_of_bl word_size intro: word_eqI)

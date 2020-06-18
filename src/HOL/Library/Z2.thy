@@ -52,8 +52,13 @@ lemma Bit_set_eq [simp]: "Bit (set b) = b"
 lemma set_Bit_eq [simp]: "set (Bit P) = P"
   by (rule Bit_inverse) rule
 
-lemma bit_eq_iff: "x = y \<longleftrightarrow> (set x \<longleftrightarrow> set y)"
+context
+begin
+
+qualified lemma bit_eq_iff: "x = y \<longleftrightarrow> (set x \<longleftrightarrow> set y)"
   by (auto simp add: set_inject)
+
+end
 
 lemma Bit_inject [simp]: "Bit P = Bit Q \<longleftrightarrow> (P \<longleftrightarrow> Q)"
   by (auto simp add: Bit_inject)
@@ -74,7 +79,7 @@ lemma set_iff: "set b \<longleftrightarrow> b = 1"
 lemma bit_eq_iff_set:
   "b = 0 \<longleftrightarrow> \<not> set b"
   "b = 1 \<longleftrightarrow> set b"
-  by (simp_all add: bit_eq_iff)
+  by (simp_all add: Z2.bit_eq_iff)
 
 lemma Bit [simp, code]:
   "Bit False = 0"
@@ -82,10 +87,10 @@ lemma Bit [simp, code]:
   by (simp_all add: zero_bit_def one_bit_def)
 
 lemma bit_not_0_iff [iff]: "x \<noteq> 0 \<longleftrightarrow> x = 1" for x :: bit
-  by (simp add: bit_eq_iff)
+  by (simp add: Z2.bit_eq_iff)
 
 lemma bit_not_1_iff [iff]: "x \<noteq> 1 \<longleftrightarrow> x = 0" for x :: bit
-  by (simp add: bit_eq_iff)
+  by (simp add: Z2.bit_eq_iff)
 
 lemma [code]:
   "HOL.equal 0 b \<longleftrightarrow> \<not> set b"
@@ -174,6 +179,45 @@ lemma (in semiring_1) of_nat_of_bit_eq: "of_nat (of_bit b) = of_bit b"
 
 lemma (in ring_1) of_int_of_bit_eq: "of_int (of_bit b) = of_bit b"
   by (cases b) simp_all
+
+
+subsection \<open>Bit structure\<close>
+
+instantiation bit :: semidom_modulo
+begin
+
+definition modulo_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>a mod b = a * of_bool (b = 0)\<close> for a b :: bit
+
+instance
+  by standard simp
+
+end
+
+instance bit :: semiring_bits
+  apply standard
+                apply (auto simp add: power_0_left power_add)
+  apply (metis bit_not_1_iff of_bool_eq(2))
+  done
+
+lemma bit_bit_iff [simp]:
+  \<open>bit b n \<longleftrightarrow> b = 1 \<and> n = 0\<close> for b :: bit
+  by (cases b; cases n) (simp_all add: bit_Suc)
+
+instantiation bit :: semiring_bit_shifts
+begin
+
+definition push_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>push_bit n b = (if n = 0 then b else 0)\<close> for b :: bit
+
+definition drop_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>drop_bit n b = (if n = 0 then b else 0)\<close> for b :: bit
+
+instance
+  by standard (simp_all add: push_bit_bit_def drop_bit_bit_def)
+
+end
+
 
 hide_const (open) set
 
