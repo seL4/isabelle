@@ -60,7 +60,7 @@ lemma Abs_inj_on: "inj_on Abs A"
   by (auto dest: Abs_inject [THEN iffD1])
 
 lemma image: "Abs ` A = UNIV"
-  by (auto intro!: image_eqI)
+  by (fact Abs_image)
 
 lemmas td_thm = type_definition_axioms
 

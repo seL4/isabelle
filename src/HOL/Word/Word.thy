@@ -110,9 +110,7 @@ lemma word_size_gt_0 [iff]: "0 < size w"
 lemmas lens_gt_0 = word_size_gt_0 len_gt_0
 
 lemma lens_not_0 [iff]:
-  fixes w :: "'a::len word"
-  shows "size w \<noteq> 0"
-  and "LENGTH('a) \<noteq> 0"
+  \<open>size w \<noteq> 0\<close> for  w :: \<open>'a::len word\<close>
   by auto
 
 definition source_size :: "('a::len0 word \<Rightarrow> 'b) \<Rightarrow> nat"
@@ -695,12 +693,12 @@ lemma word_int_case_wi:
 lemma word_int_split:
   "P (word_int_case f x) =
     (\<forall>i. x = (word_of_int i :: 'b::len0 word) \<and> 0 \<le> i \<and> i < 2 ^ LENGTH('b) \<longrightarrow> P (f i))"
-  by (auto simp: word_int_case_def word_uint.eq_norm mod_pos_pos_trivial)
+  by (auto simp: word_int_case_def word_uint.eq_norm)
 
 lemma word_int_split_asm:
   "P (word_int_case f x) =
     (\<nexists>n. x = (word_of_int n :: 'b::len0 word) \<and> 0 \<le> n \<and> n < 2 ^ LENGTH('b::len0) \<and> \<not> P (f n))"
-  by (auto simp: word_int_case_def word_uint.eq_norm mod_pos_pos_trivial)
+  by (auto simp: word_int_case_def word_uint.eq_norm)
 
 lemmas uint_range' = word_uint.Rep [unfolded uints_num mem_Collect_eq]
 lemmas sint_range' = word_sint.Rep [unfolded One_nat_def sints_num mem_Collect_eq]
@@ -1419,7 +1417,7 @@ lemma uint_split:
   "P (uint x) = (\<forall>i. word_of_int i = x \<and> 0 \<le> i \<and> i < 2^LENGTH('a) \<longrightarrow> P i)"
   for x :: "'a::len0 word"
   apply (fold word_int_case_def)
-  apply (auto dest!: word_of_int_inverse simp: int_word_uint mod_pos_pos_trivial
+  apply (auto dest!: word_of_int_inverse simp: int_word_uint
       split: word_int_split)
   done
 
@@ -1427,7 +1425,7 @@ lemma uint_split_asm:
   "P (uint x) = (\<nexists>i. word_of_int i = x \<and> 0 \<le> i \<and> i < 2^LENGTH('a) \<and> \<not> P i)"
   for x :: "'a::len0 word"
   by (auto dest!: word_of_int_inverse
-      simp: int_word_uint mod_pos_pos_trivial
+      simp: int_word_uint
       split: uint_split)
 
 lemmas uint_splits = uint_split uint_split_asm
@@ -2071,7 +2069,7 @@ lemma of_bl_length_less:
   apply safe
   apply (simp (no_asm) add: word_of_int_power_hom word_uint.eq_norm
       del: word_of_int_numeral)
-  apply (simp add: mod_pos_pos_trivial)
+  apply simp
   apply (subst mod_pos_pos_trivial)
     apply (rule bl_to_bin_ge0)
    apply (rule order_less_trans)
@@ -3171,7 +3169,7 @@ lemma and_mask_dvd_nat: "2 ^ n dvd unat w \<longleftrightarrow> w AND mask n = 0
 lemma word_2p_lem: "n < size w \<Longrightarrow> w < 2 ^ n = (uint w < 2 ^ n)"
   for w :: "'a::len word"
   apply (unfold word_size word_less_alt word_numeral_alt)
-  apply (auto simp add: word_of_int_power_hom word_uint.eq_norm mod_pos_pos_trivial
+  apply (auto simp add: word_of_int_power_hom word_uint.eq_norm
       simp del: word_of_int_numeral)
   done
 
@@ -4092,7 +4090,7 @@ next
       using dvd_nat_abs_iff [of "size w" "- k mod int (size w) + k"]
       apply (simp add: algebra_simps)
       apply (simp add: word_size)
-      apply (metis (no_types, hide_lams) add.right_inverse dvd_0_right dvd_mod_imp_dvd dvd_refl minus_dvd_iff minus_equation_iff mod_0 mod_add_eq mod_minus_eq)
+      apply (metis dvd_eq_mod_eq_0 eq_neg_iff_add_eq_0 k_def mod_0 mod_add_right_eq n)
       done
   qed
 qed
@@ -4197,7 +4195,7 @@ lemma max_word_eq: "(max_word::'a::len word) = 2^LENGTH('a) - 1"
 
 lemma max_word_max [simp,intro!]: "n \<le> max_word"
   by (cases n rule: word_int_cases)
-    (simp add: max_word_def word_le_def int_word_uint mod_pos_pos_trivial del: minus_mod_self1)
+    (simp add: max_word_def word_le_def int_word_uint del: minus_mod_self1)
 
 lemma word_of_int_2p_len: "word_of_int (2 ^ LENGTH('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) simp

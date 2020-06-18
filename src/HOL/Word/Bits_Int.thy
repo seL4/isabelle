@@ -68,8 +68,7 @@ lemma BIT_bin_simps [simp]:
   "numeral k BIT True = numeral (Num.Bit1 k)"
   "(- numeral k) BIT False = - numeral (Num.Bit0 k)"
   "(- numeral k) BIT True = - numeral (Num.BitM k)"
-  unfolding numeral.simps numeral_BitM
-  by (simp_all add: Bit_def del: arith_simps add_numeral_special diff_numeral_special)
+  by (simp_all only: Bit_B0 Bit_B1 numeral.simps numeral_BitM)
 
 lemma BIT_special_simps [simp]:
   shows "0 BIT False = 0"

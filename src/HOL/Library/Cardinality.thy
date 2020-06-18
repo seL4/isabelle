@@ -217,7 +217,7 @@ end
 instantiation int :: card_UNIV begin
 definition "finite_UNIV = Phantom(int) False"
 definition "card_UNIV = Phantom(int) 0"
-instance by intro_classes (simp_all add: card_UNIV_int_def finite_UNIV_int_def infinite_UNIV_int)
+instance by intro_classes (simp_all add: card_UNIV_int_def finite_UNIV_int_def)
 end
 
 instantiation natural :: card_UNIV begin

@@ -115,7 +115,7 @@ lemmas field_bit_defs =
   divide_bit_def inverse_bit_def
 
 instance
-  by standard (auto simp: field_bit_defs split: bit.split)
+  by standard (auto simp: plus_bit_def times_bit_def split: bit.split)
 
 end
 
