@@ -31,6 +31,7 @@ checked within the Isabelle settings environment.
 rule to protect foundational terms during simplification.
 
 
+
 *** HOL ***
 
 * Session HOL-Examples contains notable examples for Isabelle/HOL
@@ -45,7 +46,10 @@ written as "x powi n".
 
 * Added the "at most 1" quantifier, Uniq.
 
-* For the natural numbers, Sup{} = 0.
+* For the natural numbers, Sup {} = 0.
+
+* Session HOL-Word: Operation "bin_last" is now a mere input
+abbreviation.  Minor INCOMPATIBILITY.
 
 
 *** FOL ***

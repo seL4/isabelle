@@ -36,11 +36,12 @@ lemma uminus_Bit_eq:
 lemma power_BIT: "2 ^ Suc n - 1 = (2 ^ n - 1) BIT True"
   by (simp add: Bit_B1)
 
-definition bin_last :: "int \<Rightarrow> bool"
-  where "bin_last w \<longleftrightarrow> w mod 2 = 1"
+abbreviation (input) bin_last :: "int \<Rightarrow> bool"
+  where "bin_last \<equiv> odd"
 
-lemma bin_last_odd: "bin_last = odd"
-  by (rule ext) (simp add: bin_last_def even_iff_mod_2_eq_zero)
+lemma bin_last_def:
+  "bin_last w \<longleftrightarrow> w mod 2 = 1"
+  by (fact odd_iff_mod_2_eq_one)
 
 definition bin_rest :: "int \<Rightarrow> int"
   where "bin_rest w = w div 2"
@@ -53,9 +54,11 @@ lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"
   unfolding bin_rest_def Bit_def
   by (cases b) simp_all
 
+lemma even_BIT [simp]: "even (x BIT b) \<longleftrightarrow> \<not> b"
+  by (simp add: Bit_def)
+
 lemma bin_last_BIT [simp]: "bin_last (x BIT b) = b"
-  unfolding bin_last_def Bit_def
-  by (cases b) simp_all
+  by simp
 
 lemma BIT_eq_iff [iff]: "u BIT b = v BIT c \<longleftrightarrow> u = v \<and> b = c"
   by (auto simp: Bit_def) arith+
@@ -234,12 +237,14 @@ lemma bin_to_bl_aux_Bit_minus_simp [simp]:
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
   "0 < n \<Longrightarrow>
     bin_to_bl_aux n (numeral (Num.Bit0 w)) bl = bin_to_bl_aux (n - 1) (numeral w) (False # bl)"
-  by (cases n) auto
+  by (cases n)
+    (simp_all only: bin_to_bl_aux.simps bin_last_numeral_simps, simp)
 
 lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
   "0 < n \<Longrightarrow>
     bin_to_bl_aux n (numeral (Num.Bit1 w)) bl = bin_to_bl_aux (n - 1) (numeral w) (True # bl)"
-  by (cases n) auto
+  by (cases n)
+    (simp_all only: bin_to_bl_aux.simps bin_last_numeral_simps, simp)
 
 lemma bl_to_bin_aux_append: "bl_to_bin_aux (bs @ cs) w = bl_to_bin_aux cs (bl_to_bin_aux bs w)"
   by (induct bs arbitrary: w) auto
@@ -408,7 +413,7 @@ lemma nth_rest_power_bin: "bin_nth ((bin_rest ^^ k) w) n = bin_nth w (n + k)"
 lemma bin_nth_numeral_unfold:
   "bin_nth (numeral (num.Bit0 x)) n \<longleftrightarrow> n > 0 \<and> bin_nth (numeral x) (n - 1)"
   "bin_nth (numeral (num.Bit1 x)) n \<longleftrightarrow> (n > 0 \<longrightarrow> bin_nth (numeral x) (n - 1))"
-by(case_tac [!] n) simp_all
+  by (cases n; simp)+
 
 
 subsection \<open>Truncating\<close>
@@ -445,7 +450,7 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
 proof (induction n arbitrary: w)
   case 0
   then show ?case
-    by (auto simp add: bin_last_odd odd_iff_mod_2_eq_one)
+    by (auto simp add: odd_iff_mod_2_eq_one)
 next
   case (Suc n)
   moreover have "((bin_rest w + 2 ^ n) mod (2 * 2 ^ n) - 2 ^ n) BIT bin_last w =
@@ -453,7 +458,7 @@ next
   proof (cases w rule: parity_cases)
     case even
     then show ?thesis
-      by (simp add: bin_last_odd bin_rest_def Bit_B0_2t mult_mod_right)
+      by (simp add: bin_rest_def Bit_B0_2t mult_mod_right)
   next
     case odd
     then have "2 * (w div 2) = w - 1"
@@ -461,7 +466,7 @@ next
     moreover have "(2 * 2 ^ n + w - 1) mod (2 * 2 * 2 ^ n) + 1 = (2 * 2 ^ n + w) mod (2 * 2 * 2 ^ n)"
       using odd emep1 [of "2 * 2 ^ n + w - 1" "2 * 2 * 2 ^ n"] by simp
     ultimately show ?thesis 
-      using odd by (simp add: bin_last_odd bin_rest_def Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
+      using odd by (simp add: bin_rest_def Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
   qed
   ultimately show ?case
     by simp
@@ -1495,11 +1500,11 @@ text \<open>Cases for \<open>0\<close> and \<open>-1\<close> are already covered
 
 lemma bin_rest_neg_numeral_BitM [simp]:
   "bin_rest (- numeral (Num.BitM w)) = - numeral w"
-  by (simp only: BIT_bin_simps [symmetric] bin_rest_BIT)
+  by (simp flip: BIT_bin_simps)
 
 lemma bin_last_neg_numeral_BitM [simp]:
   "bin_last (- numeral (Num.BitM w))"
-  by (simp only: BIT_bin_simps [symmetric] bin_last_BIT)
+  by simp
 
 (* FIXME: The rule sets below are very large (24 rules for each
   operator). Is there a simpler way to do this? *)
@@ -1928,14 +1933,20 @@ lemma int_xor_ge0 [simp]: fixes x y :: int shows
   "x XOR y \<ge> 0 \<longleftrightarrow> ((x \<ge> 0) \<longleftrightarrow> (y \<ge> 0))"
 by (metis int_xor_lt0 linorder_not_le)
 
+lemma even_conv_AND:
+  \<open>even i \<longleftrightarrow> i AND 1 = 0\<close> for i :: int
+proof -
+  obtain x b where \<open>i = x BIT b\<close>
+    by (cases i rule: bin_exhaust)
+  then have "i AND 1 = 0 BIT b"
+    by (simp add: BIT_special_simps(2) [symmetric] del: BIT_special_simps(2))
+  then show ?thesis
+    using \<open>i = x BIT b\<close> by (cases b) simp_all
+qed
+
 lemma bin_last_conv_AND:
   "bin_last i \<longleftrightarrow> i AND 1 \<noteq> 0"
-proof -
-  obtain x b where "i = x BIT b" by(cases i rule: bin_exhaust)
-  hence "i AND 1 = 0 BIT b"
-    by(simp add: BIT_special_simps(2)[symmetric] del: BIT_special_simps(2))
-  thus ?thesis using \<open>i = x BIT b\<close> by(cases b) simp_all
-qed
+  by (simp add: even_conv_AND)
 
 lemma bitval_bin_last:
   "of_bool (bin_last i) = i AND 1"
@@ -1981,7 +1992,7 @@ lemma int_lsb_numeral [simp]:
   "lsb (numeral (num.Bit1 w) :: int) = True"
   "lsb (- numeral (num.Bit0 w) :: int) = False"
   "lsb (- numeral (num.Bit1 w) :: int) = True"
-by(simp_all add: lsb_int_def)
+  by (simp_all add: lsb_int_def)
 
 lemma int_set_bit_0 [simp]: fixes x :: int shows
   "set_bit x 0 b = bin_rest x BIT b"
@@ -2144,7 +2155,7 @@ using sign m x unfolding y
 proof(induction m arbitrary: x y n)
   case 0
   thus ?case
-    by(simp add: bin_last_def shiftl_int_def) (metis (hide_lams, no_types) mod_diff_right_eq mod_self neq0_conv numeral_One power_eq_0_iff power_mod diff_zero zero_neq_numeral)
+    by (simp add: bin_last_def shiftl_int_def)
 next
   case (Suc m)
   from \<open>Suc m < n\<close> obtain n' where [simp]: "n = Suc n'" by(cases n) auto
@@ -2160,11 +2171,11 @@ qed
 
 lemma bin_clr_conv_NAND:
   "bin_sc n False i = i AND NOT (1 << n)"
-by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
+  by (induct n arbitrary: i) (rule bin_rl_eqI; simp)+
 
 lemma bin_set_conv_OR:
   "bin_sc n True i = i OR (1 << n)"
-by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
+  by (induct n arbitrary: i) (rule bin_rl_eqI; simp)+
 
 lemma msb_conv_bin_sign: "msb x \<longleftrightarrow> bin_sign x = -1"
 by(simp add: bin_sign_def not_le msb_int_def)

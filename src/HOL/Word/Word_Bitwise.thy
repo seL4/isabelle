@@ -371,11 +371,7 @@ lemma rev_bin_to_bl_simps:
     False # rev (bin_to_bl n (- numeral (nm + num.One)))"
   "rev (bin_to_bl (Suc n) (- numeral (num.One + num.One))) =
     False # rev (bin_to_bl n (- numeral num.One))"
-  apply simp_all
-  apply (simp_all only: bin_to_bl_aux_alt)
-  apply (simp_all)
-  apply (simp_all add: bin_to_bl_zero_aux bin_to_bl_minus1_aux)
-  done
+  by (simp_all add: bin_to_bl_aux_append bin_to_bl_zero_aux bin_to_bl_minus1_aux replicate_append_same)
 
 lemma to_bl_upt: "to_bl x = rev (map ((!!) x) [0 ..< size x])"
   apply (rule nth_equalityI)
