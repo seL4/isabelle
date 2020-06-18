@@ -320,40 +320,16 @@ primrec bin_nth :: "int \<Rightarrow> nat \<Rightarrow> bool"
     Z: "bin_nth w 0 \<longleftrightarrow> bin_last w"
   | Suc: "bin_nth w (Suc n) \<longleftrightarrow> bin_nth (bin_rest w) n"
 
-lemma bin_nth_eq_mod:
-  "bin_nth w n \<longleftrightarrow> odd (w div 2 ^ n)"
-  by (induction n arbitrary: w) (simp_all add: bin_last_def bin_rest_def odd_iff_mod_2_eq_one zdiv_zmult2_eq)
+lemma bin_nth_iff:
+  \<open>bin_nth = bit\<close>
+proof (rule ext)+
+  fix k and n
+  show \<open>bin_nth k n \<longleftrightarrow> bit k n\<close>
+    by (induction n arbitrary: k) (simp_all add: bit_Suc bin_rest_def)
+qed
 
 lemma bin_nth_eq_iff: "bin_nth x = bin_nth y \<longleftrightarrow> x = y"
-proof -
-  have bin_nth_lem [rule_format]: "\<forall>y. bin_nth x = bin_nth y \<longrightarrow> x = y"
-    apply (induct x rule: bin_induct)
-      apply safe
-      apply (erule rev_mp)
-      apply (induct_tac y rule: bin_induct)
-        apply safe
-        apply (drule_tac x=0 in fun_cong, force)
-       apply (erule notE, rule ext, drule_tac x="Suc x" in fun_cong, force)
-      apply (drule_tac x=0 in fun_cong, force)
-     apply (erule rev_mp)
-     apply (induct_tac y rule: bin_induct)
-       apply safe
-       apply (drule_tac x=0 in fun_cong, force)
-      apply (erule notE, rule ext, drule_tac x="Suc x" in fun_cong, force)
-     apply (metis Bit_eq_m1_iff Z bin_last_BIT)
-    apply (case_tac y rule: bin_exhaust)
-    apply clarify
-    apply (erule allE)
-    apply (erule impE)
-     prefer 2
-     apply (erule conjI)
-     apply (drule_tac x=0 in fun_cong, force)
-    apply (rule ext)
-    apply (drule_tac x="Suc x" for x in fun_cong, force)
-    done
-  show ?thesis
-    by (auto elim: bin_nth_lem)
-qed
+  by (simp add: bin_nth_iff bit_eq_iff fun_eq_iff)
 
 lemma bin_eqI:
   "x = y" if "\<And>n. bin_nth x n \<longleftrightarrow> bin_nth y n"
@@ -442,8 +418,16 @@ primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
     Z : "sbintrunc 0 bin = (if bin_last bin then -1 else 0)"
   | Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
 
+lemma bintrunc_eq_take_bit:
+  \<open>bintrunc = take_bit\<close>
+proof (rule ext)+
+  fix n and k
+  show \<open>bintrunc n k = take_bit n k\<close>
+    by (induction n arbitrary: k) (simp_all add: take_bit_Suc bin_rest_def Bit_def)
+qed
+
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
-  by (induct n arbitrary: w) (auto simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq)
+  by (simp add: bintrunc_eq_take_bit take_bit_eq_mod)
 
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
 proof (induction n arbitrary: w)
@@ -839,6 +823,11 @@ primrec bin_split :: "nat \<Rightarrow> int \<Rightarrow> int \<times> int"
       (let (w1, w2) = bin_split n (bin_rest w)
        in (w1, w2 BIT bin_last w))"
 
+lemma bin_split_eq_drop_bit_take_bit:
+  \<open>bin_split n k = (drop_bit n k, take_bit n k)\<close>
+  by (induction n arbitrary: k)
+    (simp_all add: bin_rest_def Bit_def drop_bit_Suc take_bit_Suc)
+
 lemma [code]:
   "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w) in (w1, w2 BIT bin_last w))"
   "bin_split 0 w = (w, 0)"
@@ -848,6 +837,11 @@ primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
   where
     Z: "bin_cat w 0 v = w"
   | Suc: "bin_cat w (Suc n) v = bin_cat w n (bin_rest v) BIT bin_last v"
+
+lemma bin_cat_eq_push_bit_add_take_bit:
+  \<open>bin_cat k n l = push_bit n k + take_bit n l\<close>
+  by (induction n arbitrary: k l)
+    (simp_all add: bin_rest_def Bit_def take_bit_Suc push_bit_double)
 
 lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
   by (induct n arbitrary: y) auto
@@ -1303,6 +1297,14 @@ definition "msb x \<longleftrightarrow> x < 0" for x :: int
 instance ..
 
 end
+
+lemma shiftl_eq_push_bit:
+  \<open>k << n = push_bit n k\<close> for k :: int
+  by (simp add: shiftl_int_def push_bit_eq_mult)
+
+lemma shiftr_eq_drop_bit:
+  \<open>k >> n = drop_bit n k\<close> for k :: int
+  by (simp add: shiftr_int_def drop_bit_eq_div)
 
 
 subsubsection \<open>Basic simplification rules\<close>
