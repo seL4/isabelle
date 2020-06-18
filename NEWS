@@ -51,6 +51,9 @@ written as "x powi n".
 * Session HOL-Word: Operation "bin_last" is now a mere input
 abbreviation.  Minor INCOMPATIBILITY.
 
+* Session HOL-Word: Compound operation "bin_split" simplifies by default
+into its components "drop_bit" and "take_bit".  Minor INCOMPATIBILITY.
+
 
 *** FOL ***
 

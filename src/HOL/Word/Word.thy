@@ -3527,25 +3527,21 @@ lemma word_split_bl':
   apply safe
    defer
    apply (clarsimp split: prod.splits)
+  apply (metis bintrunc_eq_take_bit of_bl_drop' ucast_bl ucast_def word_size word_size_bl word_ubin.Abs_norm)
    apply hypsubst_thin
    apply (drule word_ubin.norm_Rep [THEN ssubst])
-   apply (drule split_bintrunc)
    apply (simp add: of_bl_def bl2bin_drop word_size
       word_ubin.norm_eq_iff [symmetric] min_def del: word_ubin.norm_Rep)
   apply (clarsimp split: prod.splits)
-  apply (frule split_uint_lem [THEN conjunct1])
-  apply (unfold word_size)
   apply (cases "LENGTH('a) \<ge> LENGTH('b)")
-   defer
-   apply simp
+   apply (simp_all add: not_le)
+  defer
+   apply (simp add: drop_bit_eq_div lt2p_lem)
   apply (simp add : of_bl_def to_bl_def)
-  apply (subst bin_split_take1 [symmetric])
-    prefer 2
-    apply assumption
-   apply simp
-  apply (erule thin_rl)
-  apply (erule arg_cong [THEN trans])
-  apply (simp add : word_ubin.norm_eq_iff [symmetric])
+  apply (subst bin_to_bl_drop_bit [symmetric])
+   apply (subst diff_add)
+    apply (simp_all add: bintrunc_eq_take_bit take_bit_drop_bit)
+  apply (simp add: take_bit_eq_mod)
   done
 
 lemma word_split_bl: "std = size c - size b \<Longrightarrow>
@@ -3579,10 +3575,7 @@ lemma test_bit_split':
   apply (unfold word_split_bin' test_bit_bin)
   apply (clarify)
   apply (clarsimp simp: word_ubin.eq_norm nth_bintr word_size split: prod.splits)
-  apply (drule bin_nth_split)
-  apply safe
-       apply (simp_all add: add.commute)
-   apply (erule bin_nth_uint_imp)+
+  apply (auto simp add: bin_nth_iff bit_take_bit_iff bit_drop_bit_eq ac_simps bin_nth_uint_imp)
   done
 
 lemma test_bit_split:
