@@ -92,7 +92,7 @@ lemma nat_le_dec: "\<And>n::nat. m < n \<or> \<not> (m < n)"
   apply (induct m)
   apply (case_tac n)
     apply (case_tac [3] n)
-  apply (simp del: simp_thms subst_all subst_all', iprover?)+
+  apply (simp del: simp_thms subst_all, iprover?)+
   done
 
 lemma App_NF_D: assumes NF: "NF (Var n \<degree>\<degree> ts)"

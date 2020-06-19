@@ -64,15 +64,21 @@ into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 "bintrunc" and "max_word" are now mere input abbreviations.
 Minor INCOMPATIBILITY.
 
+* Rewrite rule subst_all performs
+more aggressive substitution with variables from assumptions.
+INCOMPATIBILITY, use something like
+"supply subst_all [simp del]"
+to leave fragile proofs unaffected.
+
 
 *** FOL ***
 
 * Added the "at most 1" quantifier, Uniq, as in HOL.
 
-* Simproc defined_all and rewrite rules subst_all and subst_all' perform
+* Simproc defined_all and rewrite rule subst_all perform
 more aggressive substitution with variables from assumptions.
 INCOMPATIBILITY, use something like
-"supply subst_all [simp] subst_all' [simp] [[simproc del: defined_all]]"
+"supply subst_all [simp del] [[simproc del: defined_all]]"
 to leave fragile proofs unaffected.
 
 
