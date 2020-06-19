@@ -85,10 +85,6 @@ via the PIDE protocol.
 
 *** System ***
 
-* System option "pide_session" is enabled by default, notably for
-standard "isabelle build": this allows to invoke Isabelle/Scala
-operations from Isabelle/ML.
-
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
