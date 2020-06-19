@@ -28,6 +28,7 @@ object XZ
 
   type Cache = ArrayCache
 
+  def no_cache(): ArrayCache = ArrayCache.getDummyCache()
   def cache(): ArrayCache = ArrayCache.getDefaultCache()
   def make_cache(): ArrayCache = new BasicArrayCache
 }

@@ -143,19 +143,11 @@ object Export
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
-  private lazy val later: Consumer_Thread[() => Unit] =
-    Consumer_Thread.fork(name = "Export.later", daemon = true)(
-      consume = (run: () => Unit) => { run(); true })
-
   def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes,
     cache: XZ.Cache = XZ.cache()): Entry =
   {
     Entry(session_name, args.theory_name, args.name, args.executable,
-      if (args.compress) {
-        val result = Future.promise[(Boolean, Bytes)]
-        later.send(() => result.fulfill(body.maybe_compress(cache = cache)))
-        result
-      }
+      if (args.compress) Future.fork(body.maybe_compress(cache = cache))
       else Future.value((false, body)))
   }
 
