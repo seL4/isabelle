@@ -720,7 +720,7 @@ rm -rf "${DIST_NAME}-old"
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),
         List(
-          HTML.section(release.dist_name + " (" + release.ident + ")"),
+          HTML.section(release.dist_name),
           HTML.subsection("Platforms"),
           HTML.itemize(
             website_platform_bundles.map({ case (bundle, bundle_info) =>
