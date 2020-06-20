@@ -1085,6 +1085,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   {
     override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
 
+    val xml_cache: XML.Cache = XML.make_cache()
+    val xz_cache: XZ.Cache = XZ.make_cache()
+
 
     /* directories */
 
@@ -1198,9 +1201,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
 
     /* SQL database content */
-
-    val xml_cache: XML.Cache = XML.make_cache()
-    val xz_cache: XZ.Cache = XZ.make_cache()
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),

@@ -218,7 +218,11 @@ object Build
 
         if (options.bool("pide_session")) {
           val resources = new Resources(sessions_structure, deps(parent))
-          val session = new Session(options, resources)
+          val session =
+            new Session(options, resources) {
+              override val xml_cache: XML.Cache = store.xml_cache
+              override val xz_cache: XZ.Cache = store.xz_cache
+            }
 
           val build_session_errors: Promise[List[String]] = Future.promise
           val stdout = new StringBuilder(1000)
