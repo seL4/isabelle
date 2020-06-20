@@ -1649,19 +1649,23 @@ lemma drop_bit_minus_one [simp]:
   by (simp add: drop_bit_eq_div minus_1_div_exp_eq_int)
 
 lemma take_bit_minus:
-  "take_bit n (- (take_bit n k)) = take_bit n (- k)"
+  \<open>take_bit n (- take_bit n k) = take_bit n (- k)\<close>
     for k :: int
   by (simp add: take_bit_eq_mod mod_minus_eq)
 
 lemma take_bit_diff:
-  "take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)"
+  \<open>take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)\<close>
     for k l :: int
   by (simp add: take_bit_eq_mod mod_diff_eq)
 
 lemma take_bit_nonnegative [simp]:
-  "take_bit n k \<ge> 0"
+  \<open>take_bit n k \<ge> 0\<close>
     for k :: int
   by (simp add: take_bit_eq_mod)
+
+lemma (in ring_1) of_nat_nat_take_bit_eq [simp]:
+  \<open>of_nat (nat (take_bit n k)) = of_int (take_bit n k)\<close>
+  by simp
 
 lemma take_bit_minus_small_eq:
   \<open>take_bit n (- k) = 2 ^ n - k\<close> if \<open>0 < k\<close> \<open>k \<le> 2 ^ n\<close> for k :: int
