@@ -492,7 +492,6 @@ object Build
         "ML_statistics" +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
-        "pide_exports=false" +
         "pide_reports=false"
 
     val store = Sessions.store(build_options)
