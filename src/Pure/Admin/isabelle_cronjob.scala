@@ -255,7 +255,21 @@ object Isabelle_Cronjob
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
       Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
-        detect = Build_Log.Prop.build_start + " < date '2017-03-03'"))
+        detect = Build_Log.Prop.build_start + " < date '2017-03-03'")) :::
+      {
+        for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
+        yield {
+          Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
+            options = "-m32 -M1x2 -t AFP -P" + n +
+              " -e ISABELLE_GHC=ghc" +
+              " -e ISABELLE_MLTON=mlton" +
+              " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
+              " -e ISABELLE_SMLNJ=sml",
+            args = "-N -X large -X slow",
+            afp = true,
+            detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))
+        }
+      }
 
   val remote_builds1: List[List[Remote_Build]] =
   {
@@ -317,22 +331,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows")))
-    ) :::
-    {
-      for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
-      yield {
-        List(Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
-          options = "-m32 -M1x2 -t AFP -P" + n +
-            " -e ISABELLE_GHC=ghc" +
-            " -e ISABELLE_MLTON=mlton" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
-            " -e ISABELLE_SMLNJ=sml",
-          args = "-N -X large -X slow",
-          afp = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
-      }
-    }
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
 
   val remote_builds2: List[List[Remote_Build]] =
