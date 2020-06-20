@@ -111,11 +111,13 @@ object Session
 
   /* protocol handlers */
 
+  type Protocol_Function = Prover.Protocol_Output => Boolean
+
   abstract class Protocol_Handler
   {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
-    val functions: List[(String, Prover.Protocol_Output => Boolean)]
+    val functions: List[(String, Protocol_Function)]
   }
 }
 
@@ -501,11 +503,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
-                if (session_options.bool("pide_exports")) {
-                  val id = Value.Long.unapply(args.id.get).get
-                  val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
-                  change_command(_.add_export(id, (args.serial, export)))
-                }
+                val id = Value.Long.unapply(args.id.get).get
+                val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
+                change_command(_.add_export(id, (args.serial, export)))
 
               case List(Markup.Commands_Accepted.PROPERTY) =>
                 msg.text match {

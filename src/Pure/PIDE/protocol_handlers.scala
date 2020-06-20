@@ -16,7 +16,7 @@ object Protocol_Handlers
   sealed case class State(
     session: Session,
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
-    functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
+    functions: Map[String, Session.Protocol_Function] = Map.empty)
   {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 

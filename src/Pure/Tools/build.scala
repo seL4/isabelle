@@ -218,7 +218,11 @@ object Build
 
         if (options.bool("pide_session")) {
           val resources = new Resources(sessions_structure, deps(parent))
-          val session = new Session(options, resources)
+          val session =
+            new Session(options, resources) {
+              override val xml_cache: XML.Cache = store.xml_cache
+              override val xz_cache: XZ.Cache = store.xz_cache
+            }
 
           val build_session_errors: Promise[List[String]] = Future.promise
           val stdout = new StringBuilder(1000)
@@ -227,6 +231,18 @@ object Build
           val theory_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
+
+          def fun(
+            name: String,
+            acc: mutable.ListBuffer[Properties.T],
+            unapply: Properties.T => Option[Properties.T]): (String, Session.Protocol_Function) =
+          {
+            name -> ((msg: Prover.Protocol_Output) =>
+              unapply(msg.properties) match {
+                case Some(props) => acc += props; true
+                case _ => false
+              })
+          }
 
           session.init_protocol_handler(new Session.Protocol_Handler
             {
@@ -271,39 +287,15 @@ object Build
                   case _ => false
                 }
 
-              private def command_timing(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Command_Timing(props) => command_timings += props; true
-                  case _ => false
-                }
-
-              private def theory_timing(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Theory_Timing(props) => theory_timings += props; true
-                  case _ => false
-                }
-
-              private def ml_stats(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.ML_Statistics(props) => runtime_statistics += props; true
-                  case _ => false
-                }
-
-              private def task_stats(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Task_Statistics(props) => task_statistics += props; true
-                  case _ => false
-                }
-
               val functions =
                 List(
                   Markup.Build_Session_Finished.name -> build_session_finished,
                   Markup.Loading_Theory.name -> loading_theory,
                   Markup.EXPORT -> export,
-                  Markup.Command_Timing.name -> command_timing,
-                  Markup.Theory_Timing.name -> theory_timing,
-                  Markup.ML_Statistics.name -> ml_stats,
-                  Markup.Task_Statistics.name -> task_stats)
+                  fun(Markup.Command_Timing.name, command_timings, Markup.Command_Timing.unapply),
+                  fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
+                  fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
+                  fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
             })
 
           session.all_messages += Session.Consumer[Any]("build_session_output")
@@ -492,7 +484,6 @@ object Build
         "ML_statistics" +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
-        "pide_exports=false" +
         "pide_reports=false"
 
     val store = Sessions.store(build_options)
