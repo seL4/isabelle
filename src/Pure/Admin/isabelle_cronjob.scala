@@ -340,6 +340,7 @@ object Isabelle_Cronjob
         Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           options = "-m32 -M1x8 -t AFP" +
+            """ -e 'ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"'""" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
