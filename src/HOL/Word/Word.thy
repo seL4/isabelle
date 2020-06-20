@@ -662,8 +662,29 @@ lemma even_mult_exp_div_word_iff:
     (auto simp flip: drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_take_bit_iff,
       simp_all flip: push_bit_eq_mult add: bit_push_bit_iff_int)
 
-instance word :: (len) semiring_bits
+instantiation word :: (len) semiring_bits
+begin
+
+lift_definition bit_word :: \<open>'a word \<Rightarrow> nat \<Rightarrow> bool\<close>
+  is \<open>\<lambda>k n. n < LENGTH('a) \<and> bit k n\<close>
 proof
+  fix k l :: int and n :: nat
+  assume *: \<open>take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
+  show \<open>n < LENGTH('a) \<and> bit k n \<longleftrightarrow> n < LENGTH('a) \<and> bit l n\<close>
+  proof (cases \<open>n < LENGTH('a)\<close>)
+    case True
+    from * have \<open>bit (take_bit LENGTH('a) k) n \<longleftrightarrow> bit (take_bit LENGTH('a) l) n\<close>
+      by simp
+    then show ?thesis
+      by (simp add: bit_take_bit_iff)
+  next
+    case False
+    then show ?thesis
+      by simp
+  qed
+qed
+
+instance proof
   show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
     and rec: \<open>\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a)\<close>
   for P and a :: \<open>'a word\<close>
@@ -682,6 +703,8 @@ proof
     with rec [of a True] show ?case
       using bit_word_half_eq [of a True] by (simp add: ac_simps)
   qed
+  show \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close> for a :: \<open>'a word\<close> and n
+    by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit bit_iff_odd_drop_bit)
   show \<open>0 div a = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
@@ -747,21 +770,6 @@ proof
   qed
 qed
 
-context
-  includes lifting_syntax
-begin
-
-lemma transfer_rule_bit_word [transfer_rule]:
-  \<open>((pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) ===> (=)) (\<lambda>k n. n < LENGTH('a) \<and> bit k n) bit\<close>
-proof -
-  let ?t = \<open>\<lambda>a n. odd (take_bit LENGTH('a) a div take_bit LENGTH('a) ((2::int) ^ n))\<close>
-  have \<open>((pcr_word :: int \<Rightarrow> 'a word \<Rightarrow> bool) ===> (=)) ?t bit\<close>
-    by (unfold bit_def) transfer_prover
-  also have \<open>?t = (\<lambda>k n. n < LENGTH('a) \<and> bit k n)\<close>
-    by (simp add: fun_eq_iff bit_take_bit_iff flip: bit_def)
-  finally show ?thesis .
-qed
-
 end
 
 instantiation word :: (len) semiring_bit_shifts
@@ -788,11 +796,17 @@ lift_definition drop_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 
   is \<open>\<lambda>n. drop_bit n \<circ> take_bit LENGTH('a)\<close>
   by (simp add: take_bit_eq_mod)
 
+lift_definition take_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>\<lambda>n. take_bit (min LENGTH('a) n)\<close>
+  by (simp add: ac_simps) (simp only: flip: take_bit_take_bit)
+
 instance proof
-  show \<open>push_bit n a = a * 2 ^ n\<close> for n :: nat and a :: "'a word"
+  show \<open>push_bit n a = a * 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
     by transfer (simp add: push_bit_eq_mult)
-  show \<open>drop_bit n a = a div 2 ^ n\<close> for n :: nat and a :: "'a word"
+  show \<open>drop_bit n a = a div 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
     by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit)
+  show \<open>take_bit n a = a mod 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
+    by transfer (auto simp flip: take_bit_eq_mod)
 qed
 
 end
@@ -916,6 +930,10 @@ lemma [code]:
   \<open>drop_bit n w = w >> n\<close> for w :: \<open>'a::len word\<close>
   by (simp add: shiftr_word_eq)
 
+lemma [code]:
+  \<open>take_bit n a = a AND Bit_Operations.mask n\<close> for a :: \<open>'a::len word\<close>
+  by (fact take_bit_eq_mask)
+
 lemma [code_abbrev]:
   \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>
   by (fact push_bit_of_1)
@@ -944,12 +962,9 @@ lemma even_word_iff [code]:
   \<open>even_word a \<longleftrightarrow> a AND 1 = 0\<close>
   by (simp add: and_one_eq even_iff_mod_2_eq_zero even_word_def)
 
-definition bit_word :: \<open>'a::len word \<Rightarrow> nat \<Rightarrow> bool\<close>
-  where [code_abbrev]: \<open>bit_word = bit\<close>
-
-lemma bit_word_iff [code]:
-  \<open>bit_word a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close>
-  by (simp add: bit_word_def bit_iff_odd_drop_bit odd_iff_mod_2_eq_one and_one_eq)
+lemma bit_word_iff_drop_bit_and [code]:
+  \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close> for a :: \<open>'a::len word\<close>
+  by (simp add: bit_iff_odd_drop_bit odd_iff_mod_2_eq_one and_one_eq)
 
 
 subsection \<open>Shift operations\<close>

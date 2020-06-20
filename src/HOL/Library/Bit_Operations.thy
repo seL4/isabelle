@@ -123,7 +123,7 @@ proof (rule bit_eqI)
       (simp_all add: even_mask_iff even_or_iff bit_or_iff bit_mask_iff bit_exp_iff bit_double_iff not_less le_less_Suc_eq bit_1_iff, auto simp add: mult_2)
 qed
 
-lemma take_bit_eq_mask [code]:
+lemma take_bit_eq_mask:
   \<open>take_bit n a = a AND mask n\<close>
   by (rule bit_eqI)
     (auto simp add: bit_take_bit_iff bit_and_iff bit_mask_iff)
@@ -194,16 +194,14 @@ sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<
 proof -
   interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
     apply standard
-         apply (simp_all add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
-      apply (auto simp add: exp_eq_0_imp_not_bit bit_exp_iff)
+         apply (simp_all add: bit_eq_iff)
+       apply (auto simp add: bit_and_iff bit_or_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
     done
   show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
     by standard
   show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>
-    apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
-         apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
-        apply (metis local.bit_exp_iff local.bits_div_by_0)
-       apply (metis local.bit_exp_iff local.bits_div_by_0)
+    apply (simp add: fun_eq_iff bit_eq_iff bit.xor_def)
+    apply (auto simp add: bit_and_iff bit_or_iff bit_not_iff bit_xor_iff exp_eq_0_imp_not_bit)
     done
 qed
 
@@ -636,20 +634,6 @@ subsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>
 
 unbundle integer.lifting natural.lifting
 
-context
-  includes lifting_syntax
-begin
-
-lemma transfer_rule_bit_integer [transfer_rule]:
-  \<open>((pcr_integer :: int \<Rightarrow> integer \<Rightarrow> bool) ===> (=)) bit bit\<close>
-  by (unfold bit_def) transfer_prover
-
-lemma transfer_rule_bit_natural [transfer_rule]:
-  \<open>((pcr_natural :: nat \<Rightarrow> natural \<Rightarrow> bool) ===> (=)) bit bit\<close>
-  by (unfold bit_def) transfer_prover
-
-end
-
 instantiation integer :: ring_bit_operations
 begin
 
@@ -742,7 +726,7 @@ text \<open>
     beyond the boundary.  The property \<^prop>\<open>(2 :: int) ^ n \<noteq> 0\<close>
     represents that \<^term>\<open>n\<close> is \<^emph>\<open>not\<close> beyond that boundary.
 
-  \<^item> The projection on a single bit is then @{thm bit_def [where ?'a = int, no_vars]}.
+  \<^item> The projection on a single bit is then @{thm bit_iff_odd [where ?'a = int, no_vars]}.
 
   \<^item> This leads to the most fundamental properties of bit values:
 

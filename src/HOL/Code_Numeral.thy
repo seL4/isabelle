@@ -296,40 +296,34 @@ instance integer :: unique_euclidean_ring_with_nat
 instantiation integer :: semiring_bit_shifts
 begin
 
+lift_definition bit_integer :: \<open>integer \<Rightarrow> nat \<Rightarrow> bool\<close>
+  is bit .
+
 lift_definition push_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is \<open>push_bit\<close> .
+  is push_bit .
 
 lift_definition drop_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is \<open>drop_bit\<close> .
+  is drop_bit .
+
+lift_definition take_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is take_bit .
 
 instance by (standard; transfer)
-  (fact bit_eq_rec bits_induct push_bit_eq_mult drop_bit_eq_div
+  (fact bit_eq_rec bits_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff)+
 
 end
 
-context
-  includes lifting_syntax
-begin
-
-lemma [transfer_rule]:
-  \<open>(pcr_integer ===> (=) ===> (\<longleftrightarrow>)) bit bit\<close>
-  by (unfold bit_def) transfer_prover
-
-lemma [transfer_rule]:
-  \<open>((=) ===> pcr_integer ===> pcr_integer) take_bit take_bit\<close>
-  by (unfold take_bit_eq_mod) transfer_prover
-
-end
-
 instance integer :: unique_euclidean_semiring_with_bit_shifts ..
 
 lemma [code]:
+  \<open>bit k n \<longleftrightarrow> odd (drop_bit n k)\<close>
   \<open>push_bit n k = k * 2 ^ n\<close>
-  \<open>drop_bit n k = k div 2 ^ n\<close> for k :: integer
-  by (fact push_bit_eq_mult drop_bit_eq_div)+
+  \<open>drop_bit n k = k div 2 ^ n\<close>
+  \<open>take_bit n k = k mod 2 ^ n\<close> for k :: integer
+  by (fact bit_iff_odd_drop_bit push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
 
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
@@ -1027,40 +1021,34 @@ instance natural :: unique_euclidean_semiring_with_nat
 instantiation natural :: semiring_bit_shifts
 begin
 
+lift_definition bit_natural :: \<open>natural \<Rightarrow> nat \<Rightarrow> bool\<close>
+  is bit .
+
 lift_definition push_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is \<open>push_bit\<close> .
+  is push_bit .
 
 lift_definition drop_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is \<open>drop_bit\<close> .
+  is drop_bit .
+
+lift_definition take_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is take_bit .
 
 instance by (standard; transfer)
-  (fact bit_eq_rec bits_induct push_bit_eq_mult drop_bit_eq_div
+  (fact bit_eq_rec bits_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff)+
 
 end
 
-context
-  includes lifting_syntax
-begin
-
-lemma [transfer_rule]:
-  \<open>(pcr_natural ===> (=) ===> (\<longleftrightarrow>)) bit bit\<close>
-  by (unfold bit_def) transfer_prover
-
-lemma [transfer_rule]:
-  \<open>((=) ===> pcr_natural ===> pcr_natural) take_bit take_bit\<close>
-  by (unfold take_bit_eq_mod) transfer_prover
-
-end
-
 instance natural :: unique_euclidean_semiring_with_bit_shifts ..
 
 lemma [code]:
+  \<open>bit m n \<longleftrightarrow> odd (drop_bit n m)\<close>
   \<open>push_bit n m = m * 2 ^ n\<close>
-  \<open>drop_bit n m = m div 2 ^ n\<close> for m :: natural
-  by (fact push_bit_eq_mult drop_bit_eq_div)+
+  \<open>drop_bit n m = m div 2 ^ n\<close>
+  \<open>take_bit n m = m mod 2 ^ n\<close> for m :: natural
+  by (fact bit_iff_odd_drop_bit push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"

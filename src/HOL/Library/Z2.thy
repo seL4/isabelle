@@ -194,15 +194,19 @@ instance
 
 end
 
-instance bit :: semiring_bits
+instantiation bit :: semiring_bits
+begin
+
+definition bit_bit :: \<open>bit \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where [simp]: \<open>bit_bit b n \<longleftrightarrow> b = 1 \<and> n = 0\<close>
+
+instance
   apply standard
-                apply (auto simp add: power_0_left power_add)
-  apply (metis bit_not_1_iff of_bool_eq(2))
+                apply (auto simp add: power_0_left power_add set_iff)
+   apply (metis bit_not_1_iff of_bool_eq(2))
   done
 
-lemma bit_bit_iff [simp]:
-  \<open>bit b n \<longleftrightarrow> b = 1 \<and> n = 0\<close> for b :: bit
-  by (cases b; cases n) (simp_all add: bit_Suc)
+end
 
 instantiation bit :: semiring_bit_shifts
 begin
@@ -213,8 +217,11 @@ definition push_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close
 definition drop_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
   where \<open>drop_bit n b = (if n = 0 then b else 0)\<close> for b :: bit
 
+definition take_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>take_bit n b = (if n = 0 then 0 else b)\<close> for b :: bit
+
 instance
-  by standard (simp_all add: push_bit_bit_def drop_bit_bit_def)
+  by standard (simp_all add: push_bit_bit_def drop_bit_bit_def take_bit_bit_def)
 
 end
 
