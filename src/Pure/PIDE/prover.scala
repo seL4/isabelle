@@ -77,7 +77,7 @@ class Prover(
 
   private def protocol_output(props: Properties.T, bytes: Bytes)
   {
-    receiver(new Prover.Protocol_Output(props, bytes))
+    receiver(new Prover.Protocol_Output(xml_cache.props(props), bytes))
   }
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
