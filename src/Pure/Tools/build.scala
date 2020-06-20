@@ -228,6 +228,18 @@ object Build
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
 
+          def fun(
+            name: String,
+            acc: mutable.ListBuffer[Properties.T],
+            unapply: Properties.T => Option[Properties.T]): (String, Session.Protocol_Function) =
+          {
+            name -> ((msg: Prover.Protocol_Output) =>
+              unapply(msg.properties) match {
+                case Some(props) => acc += props; true
+                case _ => false
+              })
+          }
+
           session.init_protocol_handler(new Session.Protocol_Handler
             {
               override def exit() { build_session_errors.cancel }
@@ -271,39 +283,15 @@ object Build
                   case _ => false
                 }
 
-              private def command_timing(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Command_Timing(props) => command_timings += props; true
-                  case _ => false
-                }
-
-              private def theory_timing(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Theory_Timing(props) => theory_timings += props; true
-                  case _ => false
-                }
-
-              private def ml_stats(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.ML_Statistics(props) => runtime_statistics += props; true
-                  case _ => false
-                }
-
-              private def task_stats(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Task_Statistics(props) => task_statistics += props; true
-                  case _ => false
-                }
-
               val functions =
                 List(
                   Markup.Build_Session_Finished.name -> build_session_finished,
                   Markup.Loading_Theory.name -> loading_theory,
                   Markup.EXPORT -> export,
-                  Markup.Command_Timing.name -> command_timing,
-                  Markup.Theory_Timing.name -> theory_timing,
-                  Markup.ML_Statistics.name -> ml_stats,
-                  Markup.Task_Statistics.name -> task_stats)
+                  fun(Markup.Command_Timing.name, command_timings, Markup.Command_Timing.unapply),
+                  fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
+                  fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
+                  fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
             })
 
           session.all_messages += Session.Consumer[Any]("build_session_output")

@@ -111,11 +111,13 @@ object Session
 
   /* protocol handlers */
 
+  type Protocol_Function = Prover.Protocol_Output => Boolean
+
   abstract class Protocol_Handler
   {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
-    val functions: List[(String, Prover.Protocol_Output => Boolean)]
+    val functions: List[(String, Protocol_Function)]
   }
 }
 
