@@ -92,8 +92,11 @@ via the PIDE protocol.
 *** System ***
 
 * System option "pide_session" is enabled by default, notably for
-standard "isabelle build": this allows to invoke Isabelle/Scala
-operations from Isabelle/ML.
+standard "isabelle build": it allows to invoke Isabelle/Scala operations
+from Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for
+the java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
+
+  ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
 
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
