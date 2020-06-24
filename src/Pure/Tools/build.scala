@@ -226,7 +226,7 @@ object Build
 
           val build_session_errors: Promise[List[String]] = Future.promise
           val stdout = new StringBuilder(1000)
-          val messages = new mutable.ListBuffer[String]
+          val messages = new mutable.ListBuffer[XML.Elem]
           val command_timings = new mutable.ListBuffer[Properties.T]
           val theory_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
@@ -306,8 +306,7 @@ object Build
                   stdout ++= Symbol.encode(XML.content(message))
                 }
                 else if (Protocol.is_exported(message)) {
-                  messages +=
-                    Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
+                  messages += message
                 }
               case _ =>
             }
@@ -333,7 +332,9 @@ object Build
           val process_result =
             Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
           val process_output =
-            stdout.toString :: messages.toList :::
+            stdout.toString ::
+            messages.toList.map(message =>
+              Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
             theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
             runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
