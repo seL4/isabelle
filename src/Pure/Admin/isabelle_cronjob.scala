@@ -350,7 +350,8 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
         Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          options = "-m64 -M8 -U30000 -s10 -t AFP",
+          options = "-m64 -M8 -U30000 -s10 -t AFP" +
+            """ -e 'ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"'""",
           args = "-g large -g slow",
           afp = true,
           bulky = true,
