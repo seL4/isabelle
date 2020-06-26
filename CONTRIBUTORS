@@ -6,6 +6,14 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* June 2020: Makarius Wenzel
+  System option pide_session is enabled by default, notably for standard
+  "isabelle build" to invoke Scala from ML.
+
+* May 2020: Makarius Wenzel
+  Antiquotations for Isabelle systems programming, notably @{scala_function}
+  and @{scala} to invoke Scala from ML.
+
 * May 2020: Florian Haftmann
   HOL-Word based on library theory of generic bit operations.
 
