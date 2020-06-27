@@ -21,7 +21,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     val results = progress.interrupt_handler {
       Build.build(
         options + "system_heaps",
-        selection,
+        selection = selection,
         progress = progress,
         clean_build = clean,
         verbose = true,

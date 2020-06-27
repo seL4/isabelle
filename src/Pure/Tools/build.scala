@@ -462,7 +462,7 @@ object Build
 
   def build(
     options: Options,
-    selection: Sessions.Selection,
+    selection: Sessions.Selection = Sessions.Selection.empty,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -885,7 +885,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val results =
       progress.interrupt_handler {
         build(options,
-          Sessions.Selection(
+          selection = Sessions.Selection(
             requirements = requirements,
             all_sessions = all_sessions,
             base_sessions = base_sessions,
@@ -936,12 +936,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   {
     val selection = Sessions.Selection.session(logic)
     val rc =
-      if (!fresh &&
-          build(options, selection, build_heap = build_heap, no_build = true, dirs = dirs).ok) 0
+      if (!fresh && build(options, selection = selection,
+            build_heap = build_heap, no_build = true, dirs = dirs).ok) 0
       else {
         progress.echo("Build started for Isabelle/" + logic + " ...")
-        Build.build(options, selection, progress = progress, build_heap = build_heap,
-          fresh_build = fresh, dirs = dirs).rc
+        Build.build(options, selection = selection, progress = progress,
+          build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
       }
     if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc
   }

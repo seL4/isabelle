@@ -269,7 +269,8 @@ class Server(
         base_info.check_base
 
         def build(no_build: Boolean = false): Build.Results =
-          Build.build(options, Sessions.Selection.session(base_info.session),
+          Build.build(options,
+            selection = Sessions.Selection.session(base_info.session),
             build_heap = true, no_build = no_build, dirs = session_dirs, infos = base_info.infos)
 
         if (!build(no_build = true).ok) {

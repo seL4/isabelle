@@ -42,7 +42,8 @@ object Build_Doc
     progress.echo("Build started for documentation " + commas_quote(selected_docs))
 
     val res1 =
-      Build.build(options, Sessions.Selection(requirements = true, sessions = sessions),
+      Build.build(options,
+        selection = Sessions.Selection(requirements = true, sessions = sessions),
         progress = progress, build_heap = true, max_jobs = max_jobs)
     if (res1.ok) {
       Isabelle_System.with_tmp_dir("document_output")(output =>
@@ -52,7 +53,7 @@ object Build_Doc
               options.bool.update("browser_info", false).
                 string.update("document", "pdf").
                 string.update("document_output", output.implode),
-              Sessions.Selection(sessions = sessions),
+              selection = Sessions.Selection(sessions = sessions),
               progress = progress, clean_build = true, max_jobs = max_jobs)
           if (res2.ok) {
             val doc_dir = Path.explode("~~/doc")

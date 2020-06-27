@@ -57,7 +57,8 @@ object Server_Commands
       val base = base_info.check_base
 
       val results =
-        Build.build(options, Sessions.Selection.session(args.session),
+        Build.build(options,
+          selection = Sessions.Selection.session(args.session),
           progress = progress,
           build_heap = true,
           dirs = dirs,
