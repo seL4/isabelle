@@ -71,8 +71,9 @@ object Build_Log
       def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
     }
 
-    def show(): String =
+    def show(verbose: Boolean = false): String =
       cat_lines(
+        (if (verbose) List(Entry.getenv("ISABELLE_TOOL_JAVA_OPTIONS")) else Nil) :::
         List(Entry.getenv(ISABELLE_BUILD_OPTIONS.name), "") :::
         ml_settings.map(c => Entry.getenv(c.name)))
   }

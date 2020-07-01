@@ -319,6 +319,7 @@ text \<open>
 
   Build and manage Isabelle sessions, depending on implicit settings:
 
+  ISABELLE_TOOL_JAVA_OPTIONS="..."
   ISABELLE_BUILD_OPTIONS="..."
 
   ML_PLATFORM="..."
