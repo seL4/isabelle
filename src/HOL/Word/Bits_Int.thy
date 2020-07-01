@@ -9,32 +9,10 @@ and converting them to and from lists of bools.
 section \<open>Bitwise Operations on integers\<close>
 
 theory Bits_Int
-  imports Bits Misc_Auxiliary
+  imports Misc_Auxiliary Bits
 begin
 
 subsection \<open>Implicit bit representation of \<^typ>\<open>int\<close>\<close>
-
-definition Bit :: "int \<Rightarrow> bool \<Rightarrow> int"  (infixl "BIT" 90)
-  where "k BIT b = (if b then 1 else 0) + k + k"
-
-lemma Bit_B0: "k BIT False = k + k"
-   by (simp add: Bit_def)
-
-lemma Bit_B1: "k BIT True = k + k + 1"
-   by (simp add: Bit_def)
-
-lemma Bit_B0_2t: "k BIT False = 2 * k"
-  by (rule trans, rule Bit_B0) simp
-
-lemma Bit_B1_2t: "k BIT True = 2 * k + 1"
-  by (rule trans, rule Bit_B1) simp
-
-lemma uminus_Bit_eq:
-  "- k BIT b = (- k - of_bool b) BIT b"
-  by (cases b) (simp_all add: Bit_def)
-
-lemma power_BIT: "2 ^ Suc n - 1 = (2 ^ n - 1) BIT True"
-  by (simp add: Bit_B1)
 
 abbreviation (input) bin_last :: "int \<Rightarrow> bool"
   where "bin_last \<equiv> odd"
@@ -46,52 +24,8 @@ lemma bin_last_def:
 abbreviation (input) bin_rest :: "int \<Rightarrow> int"
   where "bin_rest w \<equiv> w div 2"
 
-lemma bin_rl_simp [simp]: "bin_rest w BIT bin_last w = w"
-  by (simp add: Bit_def)
-
-lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"
-  by (simp add: Bit_def)
-
-lemma even_BIT [simp]: "even (x BIT b) \<longleftrightarrow> \<not> b"
-  by (simp add: Bit_def)
-
-lemma bin_last_BIT [simp]: "bin_last (x BIT b) = b"
-  by simp
-
-lemma BIT_eq_iff [iff]: "u BIT b = v BIT c \<longleftrightarrow> u = v \<and> b = c"
-  by (auto simp: Bit_def) arith+
-
-lemma BIT_bin_simps [simp]:
-  "numeral k BIT False = numeral (Num.Bit0 k)"
-  "numeral k BIT True = numeral (Num.Bit1 k)"
-  "(- numeral k) BIT False = - numeral (Num.Bit0 k)"
-  "(- numeral k) BIT True = - numeral (Num.BitM k)"
-  by (simp_all only: Bit_B0 Bit_B1 numeral.simps numeral_BitM)
-
-lemma BIT_special_simps [simp]:
-  shows "0 BIT False = 0"
-    and "0 BIT True = 1"
-    and "1 BIT False = 2"
-    and "1 BIT True = 3"
-    and "(- 1) BIT False = - 2"
-    and "(- 1) BIT True = - 1"
-  by (simp_all add: Bit_def)
-
-lemma Bit_eq_0_iff: "w BIT b = 0 \<longleftrightarrow> w = 0 \<and> \<not> b"
-  by (auto simp: Bit_def) arith
-
-lemma Bit_eq_m1_iff: "w BIT b = -1 \<longleftrightarrow> w = -1 \<and> b"
-  by (auto simp: Bit_def) arith
-
 lemma BitM_inc: "Num.BitM (Num.inc w) = Num.Bit1 w"
   by (induct w) simp_all
-
-lemma expand_BIT:
-  "numeral (Num.Bit0 w) = numeral w BIT False"
-  "numeral (Num.Bit1 w) = numeral w BIT True"
-  "- numeral (Num.Bit0 w) = (- numeral w) BIT False"
-  "- numeral (Num.Bit1 w) = (- numeral (w + Num.One)) BIT True"
-  by (simp_all add: add_One BitM_inc)
 
 lemma bin_last_numeral_simps [simp]:
   "\<not> bin_last 0"
@@ -115,78 +49,8 @@ lemma bin_rest_numeral_simps [simp]:
   "bin_rest (- numeral (Num.Bit1 w)) = - numeral (w + Num.One)"
   by simp_all
 
-lemma less_Bits: "v BIT b < w BIT c \<longleftrightarrow> v < w \<or> v \<le> w \<and> \<not> b \<and> c"
-  by (auto simp: Bit_def)
-
-lemma le_Bits: "v BIT b \<le> w BIT c \<longleftrightarrow> v < w \<or> v \<le> w \<and> (\<not> b \<or> c)"
-  by (auto simp: Bit_def)
-
-lemma pred_BIT_simps [simp]:
-  "x BIT False - 1 = (x - 1) BIT True"
-  "x BIT True - 1 = x BIT False"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
-
-lemma succ_BIT_simps [simp]:
-  "x BIT False + 1 = x BIT True"
-  "x BIT True + 1 = (x + 1) BIT False"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
-
-lemma add_BIT_simps [simp]:
-  "x BIT False + y BIT False = (x + y) BIT False"
-  "x BIT False + y BIT True = (x + y) BIT True"
-  "x BIT True + y BIT False = (x + y) BIT True"
-  "x BIT True + y BIT True = (x + y + 1) BIT False"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
-
-lemma mult_BIT_simps [simp]:
-  "x BIT False * y = (x * y) BIT False"
-  "x * y BIT False = (x * y) BIT False"
-  "x BIT True * y = (x * y) BIT False + y"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t algebra_simps)
-
-lemma B_mod_2': "X = 2 \<Longrightarrow> (w BIT True) mod X = 1 \<and> (w BIT False) mod X = 0"
-  by (simp add: Bit_B0 Bit_B1)
-
-lemma bin_ex_rl: "\<exists>w b. w BIT b = bin"
-  by (metis bin_rl_simp)
-
-lemma bin_exhaust: "(\<And>x b. bin = x BIT b \<Longrightarrow> Q) \<Longrightarrow> Q"
-by (metis bin_ex_rl)
-
-lemma bin_abs_lem: "bin = (w BIT b) \<Longrightarrow> bin \<noteq> -1 \<longrightarrow> bin \<noteq> 0 \<longrightarrow> nat \<bar>w\<bar> < nat \<bar>bin\<bar>"
-  apply clarsimp
-  apply (unfold Bit_def)
-  apply (cases b)
-   apply (clarsimp, arith)
-  apply (clarsimp, arith)
-  done
-
-lemma bin_induct:
-  assumes PPls: "P 0"
-    and PMin: "P (- 1)"
-    and PBit: "\<And>bin bit. P bin \<Longrightarrow> P (bin BIT bit)"
-  shows "P bin"
-  apply (rule_tac P=P and a=bin and f1="nat \<circ> abs" in wf_measure [THEN wf_induct])
-  apply (simp add: measure_def inv_image_def)
-  apply (case_tac x rule: bin_exhaust)
-  apply (frule bin_abs_lem)
-  apply (auto simp add : PPls PMin PBit)
-  done
-
-lemma Bit_div2: "(w BIT b) div 2 = w"
-  by (fact bin_rest_BIT)
-
 lemma bin_rl_eqI: "\<lbrakk>bin_rest x = bin_rest y; bin_last x = bin_last y\<rbrakk> \<Longrightarrow> x = y"
-  by (metis (mono_tags) BIT_eq_iff bin_ex_rl bin_last_BIT bin_rest_BIT)
-
-lemma twice_conv_BIT: "2 * x = x BIT False"
-  by (simp add: Bit_def)
-
-lemma BIT_lt0 [simp]: "x BIT b < 0 \<longleftrightarrow> x < 0"
-by(cases b)(auto simp add: Bit_def)
-
-lemma BIT_ge0 [simp]: "x BIT b \<ge> 0 \<longleftrightarrow> x \<ge> 0"
-by(cases b)(auto simp add: Bit_def)
+  by (auto elim: oddE)
 
 lemma [simp]: 
   shows bin_rest_lt0: "bin_rest i < 0 \<longleftrightarrow> i < 0"
@@ -202,7 +66,7 @@ subsection \<open>Explicit bit representation of \<^typ>\<open>int\<close>\<clos
 primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int"
   where
     Nil: "bl_to_bin_aux [] w = w"
-  | Cons: "bl_to_bin_aux (b # bs) w = bl_to_bin_aux bs (w BIT b)"
+  | Cons: "bl_to_bin_aux (b # bs) w = bl_to_bin_aux bs (of_bool b + 2 * w)"
 
 definition bl_to_bin :: "bool list \<Rightarrow> int"
   where "bl_to_bin bs = bl_to_bin_aux bs 0"
@@ -225,10 +89,6 @@ lemma bin_to_bl_aux_minus1_minus_simp [simp]:
 
 lemma bin_to_bl_aux_one_minus_simp [simp]:
   "0 < n \<Longrightarrow> bin_to_bl_aux n 1 bl = bin_to_bl_aux (n - 1) 0 (True # bl)"
-  by (cases n) auto
-
-lemma bin_to_bl_aux_Bit_minus_simp [simp]:
-  "0 < n \<Longrightarrow> bin_to_bl_aux n (w BIT b) bl = bin_to_bl_aux (n - 1) w (b # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
@@ -304,10 +164,6 @@ lemma bin_to_bl_minus1_aux: "bin_to_bl_aux n (- 1) bl = replicate n True @ bl"
 lemma bin_to_bl_minus1: "bin_to_bl n (- 1) = replicate n True"
   by (simp add: bin_to_bl_def bin_to_bl_minus1_aux)
 
-lemma bl_to_bin_BIT:
-  "bl_to_bin bs BIT b = bl_to_bin (bs @ [b])"
-  by (simp add: bl_to_bin_append)
-
 
 subsection \<open>Bit projection\<close>
 
@@ -332,15 +188,6 @@ lemma bin_nth_1 [simp]: "bin_nth 1 n \<longleftrightarrow> n = 0"
 
 lemma bin_nth_minus1 [simp]: "bin_nth (- 1) n"
   by (induction n) (simp_all add: bit_Suc)
-
-lemma bin_nth_0_BIT: "bin_nth (w BIT b) 0 \<longleftrightarrow> b"
-  by simp
-
-lemma bin_nth_Suc_BIT: "bin_nth (w BIT b) (Suc n) = bin_nth w n"
-  by (simp add: bit_Suc)
-
-lemma bin_nth_minus [simp]: "0 < n \<Longrightarrow> bin_nth (w BIT b) n = bin_nth w (n - 1)"
-  by (cases n) (simp_all add: bit_Suc)
 
 lemma bin_nth_numeral: "bin_rest x = y \<Longrightarrow> bin_nth x (numeral n) = bin_nth y (pred_numeral n)"
   by (simp add: numeral_eq_Suc bit_Suc)
@@ -383,22 +230,21 @@ lemma bin_sign_simps [simp]:
   "bin_sign (- 1) = - 1"
   "bin_sign (numeral k) = 0"
   "bin_sign (- numeral k) = -1"
-  "bin_sign (w BIT b) = bin_sign w"
-  by (simp_all add: bin_sign_def Bit_def)
+  by (simp_all add: bin_sign_def)
 
 lemma bin_sign_rest [simp]: "bin_sign (bin_rest w) = bin_sign w"
-  by (cases w rule: bin_exhaust) auto
+  by (simp add: bin_sign_def)
 
 abbreviation (input) bintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
   where \<open>bintrunc \<equiv> take_bit\<close>
 
-primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where
-    Z : "sbintrunc 0 bin = (if bin_last bin then -1 else 0)"
-  | Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
-
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
   by (fact take_bit_eq_mod)
+
+primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
+  where
+    Z : "sbintrunc 0 bin = (if odd bin then - 1 else 0)"
+  | Suc : "sbintrunc (Suc n) bin = of_bool (odd bin) + 2 * sbintrunc n (bin div 2)"
 
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
 proof (induction n arbitrary: w)
@@ -407,23 +253,10 @@ proof (induction n arbitrary: w)
     by (auto simp add: odd_iff_mod_2_eq_one)
 next
   case (Suc n)
-  moreover have "((bin_rest w + 2 ^ n) mod (2 * 2 ^ n) - 2 ^ n) BIT bin_last w =
-    (w + 2 * 2 ^ n) mod (4 * 2 ^ n) - 2 * 2 ^ n"
-  proof (cases w rule: parity_cases)
-    case even
-    then show ?thesis
-      by (simp add: Bit_B0_2t mult_mod_right)
-  next
-    case odd
-    then have "2 * (w div 2) = w - 1"
-      using minus_mod_eq_mult_div [of w 2] by simp
-    moreover have "(2 * 2 ^ n + w - 1) mod (2 * 2 * 2 ^ n) + 1 = (2 * 2 ^ n + w) mod (2 * 2 * 2 ^ n)"
-      using odd emep1 [of "2 * 2 ^ n + w - 1" "2 * 2 * 2 ^ n"] by simp
-    ultimately show ?thesis 
-      using odd by (simp add: Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
-  qed
-  ultimately show ?case
-    by simp
+  from Suc [of \<open>w div 2\<close>]
+  show ?case
+    using even_succ_mod_exp [of \<open>(b * 2 + 2 * 2 ^ n)\<close> \<open>Suc (Suc n)\<close> for b :: int]
+    by (auto elim!: evenE oddE simp add: mult_mod_right ac_simps)
 qed
 
 lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
@@ -440,12 +273,12 @@ lemma sbintrunc_n_minus1 [simp]: "sbintrunc n (- 1) = -1"
 
 lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) 1 = 1"
-  "bintrunc (Suc n) (- 1) = bintrunc n (- 1) BIT True"
-  "bintrunc (Suc n) (numeral (Num.Bit0 w)) = bintrunc n (numeral w) BIT False"
-  "bintrunc (Suc n) (numeral (Num.Bit1 w)) = bintrunc n (numeral w) BIT True"
-  "bintrunc (Suc n) (- numeral (Num.Bit0 w)) = bintrunc n (- numeral w) BIT False"
-  "bintrunc (Suc n) (- numeral (Num.Bit1 w)) = bintrunc n (- numeral (w + Num.One)) BIT True"
-  by (simp_all add: take_bit_Suc Bit_def)
+  "bintrunc (Suc n) (- 1) = 1 + 2 * bintrunc n (- 1)"
+  "bintrunc (Suc n) (numeral (Num.Bit0 w)) = 2 * bintrunc n (numeral w)"
+  "bintrunc (Suc n) (numeral (Num.Bit1 w)) = 1 + 2 * bintrunc n (numeral w)"
+  "bintrunc (Suc n) (- numeral (Num.Bit0 w)) = 2 * bintrunc n (- numeral w)"
+  "bintrunc (Suc n) (- numeral (Num.Bit1 w)) = 1 + 2 * bintrunc n (- numeral (w + Num.One))"
+  by (simp_all add: take_bit_Suc)
 
 lemma sbintrunc_0_numeral [simp]:
   "sbintrunc 0 1 = -1"
@@ -457,14 +290,17 @@ lemma sbintrunc_0_numeral [simp]:
 
 lemma sbintrunc_Suc_numeral:
   "sbintrunc (Suc n) 1 = 1"
-  "sbintrunc (Suc n) (numeral (Num.Bit0 w)) = sbintrunc n (numeral w) BIT False"
-  "sbintrunc (Suc n) (numeral (Num.Bit1 w)) = sbintrunc n (numeral w) BIT True"
-  "sbintrunc (Suc n) (- numeral (Num.Bit0 w)) = sbintrunc n (- numeral w) BIT False"
-  "sbintrunc (Suc n) (- numeral (Num.Bit1 w)) = sbintrunc n (- numeral (w + Num.One)) BIT True"
+  "sbintrunc (Suc n) (numeral (Num.Bit0 w)) = 2 * sbintrunc n (numeral w)"
+  "sbintrunc (Suc n) (numeral (Num.Bit1 w)) = 1 + 2 * sbintrunc n (numeral w)"
+  "sbintrunc (Suc n) (- numeral (Num.Bit0 w)) = 2 * sbintrunc n (- numeral w)"
+  "sbintrunc (Suc n) (- numeral (Num.Bit1 w)) = 1 + 2 * sbintrunc n (- numeral (w + Num.One))"
   by simp_all
 
 lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bin_nth bin n"
-  by (induct n arbitrary: bin) (simp_all add: bit_Suc)
+  apply (rule sym)
+  apply (induct n arbitrary: bin)
+   apply (simp_all add: bit_Suc bin_sign_def)
+  done
 
 lemma nth_bintr: "bin_nth (bintrunc m w) n \<longleftrightarrow> n < m \<and> bin_nth w n"
   by (fact bit_take_bit_iff)
@@ -477,18 +313,18 @@ lemma nth_sbintr: "bin_nth (sbintrunc m w) n = (if n < m then bin_nth w n else b
    apply (simp_all add: bit_Suc)
   done
 
-lemma bin_nth_Bit: "bin_nth (w BIT b) n \<longleftrightarrow> n = 0 \<and> b \<or> (\<exists>m. n = Suc m \<and> bin_nth w m)"
-  by (cases n) auto
-
 lemma bin_nth_Bit0:
   "bin_nth (numeral (Num.Bit0 w)) n \<longleftrightarrow>
     (\<exists>m. n = Suc m \<and> bin_nth (numeral w) m)"
-  using bin_nth_Bit [where w="numeral w" and b="False"] by simp
+  using bit_double_iff [of \<open>numeral w :: int\<close> n]
+  by (auto intro: exI [of _ \<open>n - 1\<close>])
 
 lemma bin_nth_Bit1:
   "bin_nth (numeral (Num.Bit1 w)) n \<longleftrightarrow>
     n = 0 \<or> (\<exists>m. n = Suc m \<and> bin_nth (numeral w) m)"
-  using bin_nth_Bit [where w="numeral w" and b="True"] by simp
+  using even_bit_succ_iff [of \<open>2 * numeral w :: int\<close> n]
+    bit_double_iff [of \<open>numeral w :: int\<close> n]
+  by auto
 
 lemma bintrunc_bintrunc_l: "n \<le> m \<Longrightarrow> bintrunc m (bintrunc n w) = bintrunc n w"
   by (simp add: min.absorb2)
@@ -511,10 +347,7 @@ lemmas sbintrunc_Suc_Pls =
 lemmas sbintrunc_Suc_Min =
   sbintrunc.Suc [where bin="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
-lemmas sbintrunc_Suc_BIT [simp] =
-  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
-
-lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min sbintrunc_Suc_BIT
+lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min
   sbintrunc_Suc_numeral
 
 lemmas sbintrunc_Pls =
@@ -523,16 +356,8 @@ lemmas sbintrunc_Pls =
 lemmas sbintrunc_Min =
   sbintrunc.Z [where bin="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
-lemmas sbintrunc_0_BIT_B0 [simp] =
-  sbintrunc.Z [where bin="w BIT False", simplified bin_last_numeral_simps bin_rest_numeral_simps]
-  for w
-
-lemmas sbintrunc_0_BIT_B1 [simp] =
-  sbintrunc.Z [where bin="w BIT True", simplified bin_last_BIT bin_rest_numeral_simps]
-  for w
-
 lemmas sbintrunc_0_simps =
-  sbintrunc_Pls sbintrunc_Min sbintrunc_0_BIT_B0 sbintrunc_0_BIT_B1
+  sbintrunc_Pls sbintrunc_Min
 
 lemmas sbintrunc_simps = sbintrunc_0_simps sbintrunc_Sucs
 
@@ -554,13 +379,7 @@ lemma sbintrunc_BIT_I:
 lemma sbintrunc_Suc_Is:
   \<open>sbintrunc n (- 1) = y \<Longrightarrow>
   sbintrunc (Suc n) (- 1) = 1 + 2 * y\<close>
-  by (auto simp add: Bit_def)
-
-lemma sbintrunc_Suc_minus_Is:
-  \<open>0 < n \<Longrightarrow>
-  sbintrunc (n - 1) w = y \<Longrightarrow>
-  sbintrunc n (w BIT b) = y BIT b\<close>
-  by (cases n) simp_all
+  by auto
 
 lemma sbintrunc_Suc_lem: "sbintrunc (Suc n) x = y \<Longrightarrow> m = Suc n \<Longrightarrow> sbintrunc m x = y"
   by auto
@@ -613,29 +432,34 @@ lemmas nat_non0_gr =
   trans [OF iszero_def [THEN Not_eq_iff [THEN iffD2]] refl]
 
 lemma bintrunc_numeral:
-  "bintrunc (numeral k) x = bintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
-  by (simp add: numeral_eq_Suc take_bit_Suc Bit_def mod_2_eq_odd)
+  "bintrunc (numeral k) x = of_bool (odd x) + 2 * bintrunc (pred_numeral k) (x div 2)"
+  by (simp add: numeral_eq_Suc take_bit_Suc mod_2_eq_odd)
 
 lemma sbintrunc_numeral:
-  "sbintrunc (numeral k) x = sbintrunc (pred_numeral k) (bin_rest x) BIT bin_last x"
+  "sbintrunc (numeral k) x = of_bool (odd x) + 2 * sbintrunc (pred_numeral k) (x div 2)"
   by (simp add: numeral_eq_Suc)
 
 lemma bintrunc_numeral_simps [simp]:
-  "bintrunc (numeral k) (numeral (Num.Bit0 w)) = bintrunc (pred_numeral k) (numeral w) BIT False"
-  "bintrunc (numeral k) (numeral (Num.Bit1 w)) = bintrunc (pred_numeral k) (numeral w) BIT True"
-  "bintrunc (numeral k) (- numeral (Num.Bit0 w)) = bintrunc (pred_numeral k) (- numeral w) BIT False"
+  "bintrunc (numeral k) (numeral (Num.Bit0 w)) =
+    2 * bintrunc (pred_numeral k) (numeral w)"
+  "bintrunc (numeral k) (numeral (Num.Bit1 w)) =
+    1 + 2 * bintrunc (pred_numeral k) (numeral w)"
+  "bintrunc (numeral k) (- numeral (Num.Bit0 w)) =
+    2 * bintrunc (pred_numeral k) (- numeral w)"
   "bintrunc (numeral k) (- numeral (Num.Bit1 w)) =
-    bintrunc (pred_numeral k) (- numeral (w + Num.One)) BIT True"
+    1 + 2 * bintrunc (pred_numeral k) (- numeral (w + Num.One))"
   "bintrunc (numeral k) 1 = 1"
   by (simp_all add: bintrunc_numeral)
 
 lemma sbintrunc_numeral_simps [simp]:
-  "sbintrunc (numeral k) (numeral (Num.Bit0 w)) = sbintrunc (pred_numeral k) (numeral w) BIT False"
-  "sbintrunc (numeral k) (numeral (Num.Bit1 w)) = sbintrunc (pred_numeral k) (numeral w) BIT True"
+  "sbintrunc (numeral k) (numeral (Num.Bit0 w)) =
+    2 * sbintrunc (pred_numeral k) (numeral w)"
+  "sbintrunc (numeral k) (numeral (Num.Bit1 w)) =
+    1 + 2 * sbintrunc (pred_numeral k) (numeral w)"
   "sbintrunc (numeral k) (- numeral (Num.Bit0 w)) =
-    sbintrunc (pred_numeral k) (- numeral w) BIT False"
+    2 * sbintrunc (pred_numeral k) (- numeral w)"
   "sbintrunc (numeral k) (- numeral (Num.Bit1 w)) =
-    sbintrunc (pred_numeral k) (- numeral (w + Num.One)) BIT True"
+    1 + 2 * sbintrunc (pred_numeral k) (- numeral (w + Num.One))"
   "sbintrunc (numeral k) 1 = 1"
   by (simp_all add: sbintrunc_numeral)
 
@@ -725,11 +549,7 @@ lemma bintrunc_rest [simp]: "bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (
   by (induct n arbitrary: bin) (simp_all add: take_bit_Suc)
 
 lemma sbintrunc_rest [simp]: "sbintrunc n (bin_rest (sbintrunc n bin)) = bin_rest (sbintrunc n bin)"
-  apply (induct n arbitrary: bin)
-   apply simp
-  apply (case_tac bin rule: bin_exhaust)
-  apply (auto simp: bintrunc_bintrunc_l split: bool.splits)
-  done
+  by (induct n arbitrary: bin) simp_all
 
 lemma bintrunc_rest': "bintrunc n \<circ> bin_rest \<circ> bintrunc n = bin_rest \<circ> bintrunc n"
   by (rule ext) auto
@@ -759,25 +579,39 @@ definition bin_split :: \<open>nat \<Rightarrow> int \<Rightarrow> int \<times> 
   where [simp]: \<open>bin_split n k = (drop_bit n k, take_bit n k)\<close>
 
 lemma [code]:
-  "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w) in (w1, w2 BIT bin_last w))"
+  "bin_split (Suc n) w = (let (w1, w2) = bin_split n (w div 2) in (w1, of_bool (odd w) + 2 * w2))"
   "bin_split 0 w = (w, 0)"
-  by (simp_all add: Bit_def drop_bit_Suc take_bit_Suc mod_2_eq_odd)
+  by (simp_all add: drop_bit_Suc take_bit_Suc mod_2_eq_odd)
 
 primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
   where
     Z: "bin_cat w 0 v = w"
-  | Suc: "bin_cat w (Suc n) v = bin_cat w n (bin_rest v) BIT bin_last v"
+  | Suc: "bin_cat w (Suc n) v = of_bool (odd v) + 2 * bin_cat w n (v div 2)"
 
 lemma bin_cat_eq_push_bit_add_take_bit:
   \<open>bin_cat k n l = push_bit n k + take_bit n l\<close>
   by (induction n arbitrary: k l)
-    (simp_all add: Bit_def take_bit_Suc push_bit_double mod_2_eq_odd)
+    (simp_all add: take_bit_Suc push_bit_double mod_2_eq_odd)
 
 lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
-  by (induct n arbitrary: y) auto
-
-lemma bin_cat_Suc_Bit: "bin_cat w (Suc n) (v BIT b) = bin_cat w n v BIT b"
-  by auto
+proof -
+  have \<open>0 \<le> x\<close> if \<open>0 \<le> x * 2 ^ n + y mod 2 ^ n\<close>
+  proof -
+    from that have \<open>x \<noteq> - 1\<close>
+      using int_mod_le' [of \<open>y mod 2 ^ n\<close> \<open>2 ^ n\<close>] by auto
+    have *: \<open>- 1 \<le> (- (y mod 2 ^ n)) div 2 ^ n\<close>
+      by (simp add: zdiv_zminus1_eq_if)
+    from that have \<open>- (y mod 2 ^ n) \<le> x * 2 ^ n\<close>
+      by simp
+    then have \<open>(- (y mod 2 ^ n)) div 2 ^ n \<le> (x * 2 ^ n) div 2 ^ n\<close>
+      using zdiv_mono1 zero_less_numeral zero_less_power by blast
+    with * have \<open>- 1 \<le> x * 2 ^ n div 2 ^ n\<close> by simp
+    with \<open>x \<noteq> - 1\<close> show ?thesis
+      by simp
+  qed
+  then show ?thesis
+    by (simp add: bin_sign_def not_le not_less bin_cat_eq_push_bit_add_take_bit push_bit_eq_mult take_bit_eq_mod)
+qed
 
 lemma bin_cat_assoc: "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y n z)"
   by (induct n arbitrary: z) auto
@@ -862,12 +696,12 @@ lemma bin_cat_split: "bin_split n w = (u, v) \<Longrightarrow> w = bin_cat u n v
 lemma drop_bit_bin_cat_eq:
   \<open>drop_bit n (bin_cat v n w) = v\<close>
   by (induct n arbitrary: w)
-    (simp_all add: Bit_def drop_bit_Suc)
+    (simp_all add: drop_bit_Suc)
 
 lemma take_bit_bin_cat_eq:
   \<open>take_bit n (bin_cat v n w) = take_bit n w\<close>
   by (induct n arbitrary: w)
-    (simp_all add: Bit_def take_bit_Suc mod_2_eq_odd)
+    (simp_all add: take_bit_Suc mod_2_eq_odd)
 
 lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
   by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq)
@@ -894,7 +728,7 @@ lemma bin_split_trunc1:
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc Bit_def mod_2_eq_odd split: prod.split_asm)
+   apply (auto simp: Let_def drop_bit_Suc take_bit_Suc mod_2_eq_odd split: prod.split_asm)
   done
 
 lemma bin_cat_num: "bin_cat a n b = a * 2 ^ n + bintrunc n b"
@@ -948,8 +782,8 @@ lemma bin_split_pred_simp [simp]:
   "(0::nat) < numeral bin \<Longrightarrow>
     bin_split (numeral bin) w =
       (let (w1, w2) = bin_split (numeral bin - 1) (bin_rest w)
-       in (w1, w2 BIT bin_last w))"
-  by (simp add: Bit_def take_bit_rec drop_bit_rec mod_2_eq_odd)
+       in (w1, of_bool (odd w) + 2 * w2))"
+  by (simp add: take_bit_rec drop_bit_rec mod_2_eq_odd)
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux n m c bs =
@@ -1117,14 +951,14 @@ subsection \<open>Logical operations\<close>
 
 primrec bin_sc :: "nat \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> int"
   where
-    Z: "bin_sc 0 b w = bin_rest w BIT b"
-  | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
+    Z: "bin_sc 0 b w = of_bool b + 2 * bin_rest w"
+  | Suc: "bin_sc (Suc n) b w = of_bool (odd w) + 2 * bin_sc n b (w div 2)"
 
-lemma bin_nth_sc [simp]: "bin_nth (bin_sc n b w) n \<longleftrightarrow> b"
-  by (induct n arbitrary: w) auto
+lemma bin_nth_sc [simp]: "bit (bin_sc n b w) n \<longleftrightarrow> b"
+  by (induction n arbitrary: w) (simp_all add: bit_Suc)
 
 lemma bin_sc_sc_same [simp]: "bin_sc n c (bin_sc n b w) = bin_sc n c w"
-  by (induct n arbitrary: w) auto
+  by (induction n arbitrary: w) (simp_all add: bit_Suc)
 
 lemma bin_sc_sc_diff: "m \<noteq> n \<Longrightarrow> bin_sc m c (bin_sc n b w) = bin_sc n b (bin_sc m c w)"
   apply (induct n arbitrary: w m)
@@ -1138,45 +972,44 @@ lemma bin_nth_sc_gen: "bin_nth (bin_sc n b w) m = (if m = n then b else bin_nth 
   apply (case_tac m; simp add: bit_Suc)
   done
 
+lemma bin_sc_eq:
+  \<open>bin_sc n False = unset_bit n\<close>
+  \<open>bin_sc n True = Bit_Operations.set_bit n\<close>
+  by (simp_all add: fun_eq_iff bit_eq_iff)
+    (simp_all add: bin_nth_sc_gen bit_set_bit_iff bit_unset_bit_iff)
+
 lemma bin_sc_nth [simp]: "bin_sc n (bin_nth w n) w = w"
-  by (induct n arbitrary: w) (simp_all add: bit_Suc)
+  by (rule bit_eqI) (simp add: bin_nth_sc_gen)
 
 lemma bin_sign_sc [simp]: "bin_sign (bin_sc n b w) = bin_sign w"
-  by (induct n arbitrary: w) auto
+proof (induction n arbitrary: w)
+  case 0
+  then show ?case
+    by (auto simp add: bin_sign_def) (use bin_rest_ge_0 in fastforce)
+next
+  case (Suc n)
+  from Suc [of \<open>w div 2\<close>]
+  show ?case by (auto simp add: bin_sign_def split: if_splits)
+qed
 
-lemma bin_sc_bintr [simp]: "bintrunc m (bin_sc n x (bintrunc m (w))) = bintrunc m (bin_sc n x w)"
-  apply (induct n arbitrary: w m)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (case_tac [!] m, auto simp add: take_bit_Suc mod_2_eq_odd)
+lemma bin_sc_bintr [simp]:
+  "bintrunc m (bin_sc n x (bintrunc m w)) = bintrunc m (bin_sc n x w)"
+  apply (cases x)
+   apply (simp_all add: bin_sc_eq bit_eq_iff)
+   apply (auto simp add: bit_take_bit_iff bit_set_bit_iff bit_unset_bit_iff)
   done
 
 lemma bin_clr_le: "bin_sc n False w \<le> w"
-  apply (induct n arbitrary: w)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp: le_Bits)
-  done
+  by (simp add: bin_sc_eq unset_bit_less_eq)
 
 lemma bin_set_ge: "bin_sc n True w \<ge> w"
-  apply (induct n arbitrary: w)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp: le_Bits)
-  done
+  by (simp add: bin_sc_eq set_bit_greater_eq)
 
 lemma bintr_bin_clr_le: "bintrunc n (bin_sc m False w) \<le> bintrunc n w"
-  apply (induct n arbitrary: w m)
-   apply simp
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac m)
-   apply (auto simp: le_Bits take_bit_Suc mod_2_eq_odd)
-  done
+  by (simp add: bin_sc_eq take_bit_unset_bit_eq unset_bit_less_eq)
 
 lemma bintr_bin_set_ge: "bintrunc n (bin_sc m True w) \<ge> bintrunc n w"
-  apply (induct n arbitrary: w m)
-   apply simp
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac m)
-   apply (auto simp: le_Bits take_bit_Suc mod_2_eq_odd)
-  done
+  by (simp add: bin_sc_eq take_bit_set_bit_eq set_bit_greater_eq)
 
 lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
   by (induct n) auto
@@ -1194,7 +1027,7 @@ lemmas bin_sc_Suc_minus =
 
 lemma bin_sc_numeral [simp]:
   "bin_sc (numeral k) b w =
-    bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
+    of_bool (odd w) + 2 * bin_sc (pred_numeral k) b (w div 2)"
   by (simp add: numeral_eq_Suc)
 
 instantiation int :: bit_operations
@@ -1229,9 +1062,6 @@ subsubsection \<open>Basic simplification rules\<close>
 
 lemmas int_not_def = not_int_def
 
-lemma int_not_BIT [simp]: "NOT (w BIT b) = (NOT w) BIT (\<not> b)"
-  by (simp add: not_int_def Bit_def)
-
 lemma int_not_simps [simp]:
   "NOT (0::int) = -1"
   "NOT (1::int) = -2"
@@ -1253,9 +1083,6 @@ lemma int_and_m1 [simp]: "-1 AND x = x"
   for x :: int
   by (fact bit.conj_one_left)
 
-lemma int_and_Bits [simp]: "(x BIT b) AND (y BIT c) = (x AND y) BIT (b \<and> c)"
-  using and_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
-
 lemma int_or_zero [simp]: "0 OR x = x"
   for x :: int
   by (fact bit.disj_zero_left)
@@ -1264,15 +1091,9 @@ lemma int_or_minus1 [simp]: "-1 OR x = -1"
   for x :: int
   by (fact bit.disj_one_left)
 
-lemma int_or_Bits [simp]: "(x BIT b) OR (y BIT c) = (x OR y) BIT (b \<or> c)"
-  using or_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
-
 lemma int_xor_zero [simp]: "0 XOR x = x"
   for x :: int
   by (fact bit.xor_zero_left)
-
-lemma int_xor_Bits [simp]: "(x BIT b) XOR (y BIT c) = (x XOR y) BIT ((b \<or> c) \<and> \<not> (b \<and> c))"
-  using xor_int_rec [of \<open>x BIT b\<close> \<open>y BIT c\<close>] by (auto simp add: Bit_B0_2t Bit_B1_2t)
 
 
 subsubsection \<open>Binary destructors\<close>
@@ -1284,22 +1105,22 @@ lemma bin_last_NOT [simp]: "bin_last (NOT x) \<longleftrightarrow> \<not> bin_la
   by simp
 
 lemma bin_rest_AND [simp]: "bin_rest (x AND y) = bin_rest x AND bin_rest y"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst and_int_rec) auto
 
 lemma bin_last_AND [simp]: "bin_last (x AND y) \<longleftrightarrow> bin_last x \<and> bin_last y"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst and_int_rec) auto
 
 lemma bin_rest_OR [simp]: "bin_rest (x OR y) = bin_rest x OR bin_rest y"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst or_int_rec) auto
 
 lemma bin_last_OR [simp]: "bin_last (x OR y) \<longleftrightarrow> bin_last x \<or> bin_last y"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst or_int_rec) auto
 
 lemma bin_rest_XOR [simp]: "bin_rest (x XOR y) = bin_rest x XOR bin_rest y"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst xor_int_rec) auto
 
 lemma bin_last_XOR [simp]: "bin_last (x XOR y) \<longleftrightarrow> (bin_last x \<or> bin_last y) \<and> \<not> (bin_last x \<and> bin_last y)"
-  by (cases x rule: bin_exhaust, cases y rule: bin_exhaust) simp
+  by (subst xor_int_rec) auto
 
 lemma bin_nth_ops:
   "\<And>x y. bin_nth (x AND y) n \<longleftrightarrow> bin_nth x n \<and> bin_nth y n"
@@ -1430,22 +1251,22 @@ lemma bin_last_neg_numeral_BitM [simp]:
   operator). Is there a simpler way to do this? *)
 
 lemma int_and_numerals [simp]:
-  "numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT False"
-  "numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT False"
-  "numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT False"
-  "numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT True"
-  "numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (numeral x AND - numeral y) BIT False"
-  "numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (numeral x AND - numeral (y + Num.One)) BIT False"
-  "numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (numeral x AND - numeral y) BIT False"
-  "numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = (numeral x AND - numeral (y + Num.One)) BIT True"
-  "- numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (- numeral x AND numeral y) BIT False"
-  "- numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (- numeral x AND numeral y) BIT False"
-  "- numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (- numeral (x + Num.One) AND numeral y) BIT False"
-  "- numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (- numeral (x + Num.One) AND numeral y) BIT True"
-  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (- numeral x AND - numeral y) BIT False"
-  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (- numeral x AND - numeral (y + Num.One)) BIT False"
-  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (- numeral (x + Num.One) AND - numeral y) BIT False"
-  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = (- numeral (x + Num.One) AND - numeral (y + Num.One)) BIT True"
+  "numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND numeral y)"
+  "numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (2 :: int) * (numeral x AND numeral y)"
+  "numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND numeral y)"
+  "numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x AND numeral y)"
+  "numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND - numeral y)"
+  "numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (2 :: int) * (numeral x AND - numeral (y + Num.One))"
+  "numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND - numeral y)"
+  "numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x AND - numeral (y + Num.One))"
+  "- numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (2 :: int) * (- numeral x AND numeral y)"
+  "- numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (2 :: int) * (- numeral x AND numeral y)"
+  "- numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (2 :: int) * (- numeral (x + Num.One) AND numeral y)"
+  "- numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) AND numeral y)"
+  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x AND - numeral y)"
+  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (2 :: int) * (- numeral x AND - numeral (y + Num.One))"
+  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (- numeral (x + Num.One) AND - numeral y)"
+  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) AND - numeral (y + Num.One))"
   "(1::int) AND numeral (Num.Bit0 y) = 0"
   "(1::int) AND numeral (Num.Bit1 y) = 1"
   "(1::int) AND - numeral (Num.Bit0 y) = 0"
@@ -1457,22 +1278,22 @@ lemma int_and_numerals [simp]:
   by (rule bin_rl_eqI; simp)+
 
 lemma int_or_numerals [simp]:
-  "numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (numeral x OR numeral y) BIT False"
-  "numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT True"
-  "numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (numeral x OR numeral y) BIT True"
-  "numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT True"
-  "numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (numeral x OR - numeral y) BIT False"
-  "numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = (numeral x OR - numeral (y + Num.One)) BIT True"
-  "numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = (numeral x OR - numeral y) BIT True"
-  "numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = (numeral x OR - numeral (y + Num.One)) BIT True"
-  "- numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (- numeral x OR numeral y) BIT False"
-  "- numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (- numeral x OR numeral y) BIT True"
-  "- numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (- numeral (x + Num.One) OR numeral y) BIT True"
-  "- numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (- numeral (x + Num.One) OR numeral y) BIT True"
-  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (- numeral x OR - numeral y) BIT False"
-  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = (- numeral x OR - numeral (y + Num.One)) BIT True"
-  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = (- numeral (x + Num.One) OR - numeral y) BIT True"
-  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = (- numeral (x + Num.One) OR - numeral (y + Num.One)) BIT True"
+  "numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (2 :: int) * (numeral x OR numeral y)"
+  "numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
+  "numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
+  "numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
+  "numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (2 :: int) * (numeral x OR - numeral y)"
+  "numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR - numeral (y + Num.One))"
+  "numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x OR - numeral y)"
+  "numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR - numeral (y + Num.One))"
+  "- numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (2 :: int) * (- numeral x OR numeral y)"
+  "- numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x OR numeral y)"
+  "- numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR numeral y)"
+  "- numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR numeral y)"
+  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x OR - numeral y)"
+  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x OR - numeral (y + Num.One))"
+  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR - numeral y)"
+  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR - numeral (y + Num.One))"
   "(1::int) OR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
   "(1::int) OR numeral (Num.Bit1 y) = numeral (Num.Bit1 y)"
   "(1::int) OR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
@@ -1484,22 +1305,22 @@ lemma int_or_numerals [simp]:
   by (rule bin_rl_eqI; simp)+
 
 lemma int_xor_numerals [simp]:
-  "numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (numeral x XOR numeral y) BIT False"
-  "numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT True"
-  "numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (numeral x XOR numeral y) BIT True"
-  "numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT False"
-  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (numeral x XOR - numeral y) BIT False"
-  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = (numeral x XOR - numeral (y + Num.One)) BIT True"
-  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = (numeral x XOR - numeral y) BIT True"
-  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (numeral x XOR - numeral (y + Num.One)) BIT False"
-  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (- numeral x XOR numeral y) BIT False"
-  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (- numeral x XOR numeral y) BIT True"
-  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (- numeral (x + Num.One) XOR numeral y) BIT True"
-  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (- numeral (x + Num.One) XOR numeral y) BIT False"
-  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (- numeral x XOR - numeral y) BIT False"
-  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = (- numeral x XOR - numeral (y + Num.One)) BIT True"
-  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = (- numeral (x + Num.One) XOR - numeral y) BIT True"
-  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (- numeral (x + Num.One) XOR - numeral (y + Num.One)) BIT False"
+  "numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (2 :: int) * (numeral x XOR numeral y)"
+  "numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x XOR numeral y)"
+  "numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x XOR numeral y)"
+  "numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (2 :: int) * (numeral x XOR numeral y)"
+  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (2 :: int) * (numeral x XOR - numeral y)"
+  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x XOR - numeral (y + Num.One))"
+  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x XOR - numeral y)"
+  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (2 :: int) * (numeral x XOR - numeral (y + Num.One))"
+  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (2 :: int) * (- numeral x XOR numeral y)"
+  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x XOR numeral y)"
+  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) XOR numeral y)"
+  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (2 :: int) * (- numeral (x + Num.One) XOR numeral y)"
+  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x XOR - numeral y)"
+  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x XOR - numeral (y + Num.One))"
+  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) XOR - numeral y)"
+  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (2 :: int) * (- numeral (x + Num.One) XOR - numeral (y + Num.One))"
   "(1::int) XOR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
   "(1::int) XOR numeral (Num.Bit1 y) = numeral (Num.Bit0 y)"
   "(1::int) XOR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
@@ -1513,76 +1334,41 @@ lemma int_xor_numerals [simp]:
 
 subsubsection \<open>Interactions with arithmetic\<close>
 
-lemma plus_and_or [rule_format]: "\<forall>y::int. (x AND y) + (x OR y) = x + y"
-  apply (induct x rule: bin_induct)
-    apply clarsimp
-   apply clarsimp
-  apply clarsimp
-  apply (case_tac y rule: bin_exhaust)
-  apply clarsimp
-  apply (unfold Bit_def)
-  apply clarsimp
-  apply (erule_tac x = "x" in allE)
-  apply simp
-  done
+lemma plus_and_or: "(x AND y) + (x OR y) = x + y" for x y :: int
+proof (induction x arbitrary: y rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even x)
+  from even.IH [of \<open>y div 2\<close>]
+  show ?case
+    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
+next
+  case (odd x)
+  from odd.IH [of \<open>y div 2\<close>]
+  show ?case
+    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
+qed
 
 lemma le_int_or: "bin_sign y = 0 \<Longrightarrow> x \<le> x OR y"
   for x y :: int
-  apply (induct y arbitrary: x rule: bin_induct)
-    apply clarsimp
-   apply clarsimp
-  apply (case_tac x rule: bin_exhaust)
-  apply (case_tac b)
-   apply (case_tac [!] bit)
-     apply (auto simp: le_Bits)
-  done
+  by (simp add: bin_sign_def or_greater_eq split: if_splits)
 
 lemmas int_and_le =
   xtrans(3) [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
 
 text \<open>Interaction between bit-wise and arithmetic: good example of \<open>bin_induction\<close>.\<close>
 lemma bin_add_not: "x + NOT x = (-1::int)"
-  apply (induct x rule: bin_induct)
-    apply clarsimp
-   apply clarsimp
-  apply (case_tac bit, auto)
-  done
+  by (simp add: not_int_def)
 
-lemma mod_BIT:
-  "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit" for bit
-proof -
-  have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
-    by (simp add: mod_mult_mult1)
-  also have "\<dots> = ((2 * bin mod 2 ^ Suc n) + 1) mod 2 ^ Suc n"
-    by (simp add: ac_simps pos_zmod_mult_2)
-  also have "\<dots> = (2 * bin + 1) mod 2 ^ Suc n"
-    by (simp only: mod_simps)
-  finally show ?thesis
-    by (auto simp add: Bit_def)
-qed
-
-lemma AND_mod: "x AND 2 ^ n - 1 = x mod 2 ^ n"
+lemma AND_mod: "x AND (2 ^ n - 1) = x mod 2 ^ n"
   for x :: int
-proof (induct x arbitrary: n rule: bin_induct)
-  case 1
-  then show ?case
-    by simp
-next
-  case 2
-  then show ?case
-    by (simp, simp add: m1mod2k)
-next
-  case (3 bin bit)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis by simp
-  next
-    case (Suc m)
-    with 3 show ?thesis
-      by (simp only: power_BIT mod_BIT int_and_Bits) simp
-  qed
-qed
+  by (simp flip: take_bit_eq_mod add: take_bit_eq_mask mask_eq_exp_minus_1)
 
 
 subsubsection \<open>Comparison\<close>
@@ -1591,89 +1377,26 @@ lemma AND_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<cl
   fixes x y :: int
   assumes "0 \<le> x"
   shows "0 \<le> x AND y"
-  using assms
-proof (induct x arbitrary: y rule: bin_induct)
-  case 1
-  then show ?case by simp
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-next
-  case (3 bin bit)
-  show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    from 3 have "0 \<le> bin"
-      by (cases bit) (simp_all add: Bit_def)
-    then have "0 \<le> bin AND bin'" by (rule 3)
-    with 1 show ?thesis
-      by simp
-  qed
-qed
+  using assms by simp
 
 lemma OR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
   fixes x y :: int
   assumes "0 \<le> x" "0 \<le> y"
   shows "0 \<le> x OR y"
-  using assms
-proof (induct x arbitrary: y rule: bin_induct)
-  case (3 bin bit)
-  show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    from 3 have "0 \<le> bin"
-      by (cases bit) (simp_all add: Bit_def)
-    moreover from 1 3 have "0 \<le> bin'"
-      by (cases bit') (simp_all add: Bit_def)
-    ultimately have "0 \<le> bin OR bin'" by (rule 3)
-    with 1 show ?thesis
-      by simp
-  qed
-qed simp_all
+  using assms by simp
 
 lemma XOR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
   fixes x y :: int
   assumes "0 \<le> x" "0 \<le> y"
   shows "0 \<le> x XOR y"
-  using assms
-proof (induct x arbitrary: y rule: bin_induct)
-  case (3 bin bit)
-  show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    from 3 have "0 \<le> bin"
-      by (cases bit) (simp_all add: Bit_def)
-    moreover from 1 3 have "0 \<le> bin'"
-      by (cases bit') (simp_all add: Bit_def)
-    ultimately have "0 \<le> bin XOR bin'" by (rule 3)
-    with 1 show ?thesis
-      by simp
-  qed
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-qed simp
+  using assms by simp
 
 lemma AND_upper1 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
   fixes x y :: int
   assumes "0 \<le> x"
   shows "x AND y \<le> x"
-  using assms
-proof (induct x arbitrary: y rule: bin_induct)
-  case (3 bin bit)
-  show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    from 3 have "0 \<le> bin"
-      by (cases bit) (simp_all add: Bit_def)
-    then have "bin AND bin' \<le> bin" by (rule 3)
-    with 1 show ?thesis
-      by simp (simp add: Bit_def)
-  qed
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-qed simp
+  using assms by (induction x arbitrary: y rule: int_bit_induct)
+    (simp_all add: and_int_rec [of \<open>_ * 2\<close>] and_int_rec [of \<open>1 + _ * 2\<close>] add_increasing)
 
 lemmas AND_upper1' [simp] = order_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
 lemmas AND_upper1'' [simp] = order_le_less_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
@@ -1682,25 +1405,7 @@ lemma AND_upper2 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<c
   fixes x y :: int
   assumes "0 \<le> y"
   shows "x AND y \<le> y"
-  using assms
-proof (induct y arbitrary: x rule: bin_induct)
-  case 1
-  then show ?case by simp
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-next
-  case (3 bin bit)
-  show ?case
-  proof (cases x rule: bin_exhaust)
-    case (1 bin' bit')
-    from 3 have "0 \<le> bin"
-      by (cases bit) (simp_all add: Bit_def)
-    then have "bin' AND bin \<le> bin" by (rule 3)
-    with 1 show ?thesis
-      by simp (simp add: Bit_def)
-  qed
-qed
+  using assms AND_upper1 [of y x] by (simp add: ac_simps)
 
 lemmas AND_upper2' [simp] = order_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
 lemmas AND_upper2'' [simp] = order_le_less_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
@@ -1709,76 +1414,49 @@ lemma OR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<cl
   fixes x y :: int
   assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
   shows "x OR y < 2 ^ n"
-  using assms
-proof (induct x arbitrary: y n rule: bin_induct)
-  case (3 bin bit)
+using assms proof (induction x arbitrary: y n rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even x)
+  from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
+  show ?case 
+    by (cases n) (auto simp add: or_int_rec [of \<open>_ * 2\<close>] elim: oddE)
+next
+  case (odd x)
+  from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
   show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    show ?thesis
-    proof (cases n)
-      case 0
-      with 3 have "bin BIT bit = 0"
-        by (simp add: Bit_def)
-      then have "bin = 0" and "\<not> bit"
-        by (auto simp add: Bit_def split: if_splits) arith
-      then show ?thesis using 0 1 \<open>y < 2 ^ n\<close>
-        by simp
-    next
-      case (Suc m)
-      from 3 have "0 \<le> bin"
-        by (cases bit) (simp_all add: Bit_def)
-      moreover from 3 Suc have "bin < 2 ^ m"
-        by (cases bit) (simp_all add: Bit_def)
-      moreover from 1 3 Suc have "bin' < 2 ^ m"
-        by (cases bit') (simp_all add: Bit_def)
-      ultimately have "bin OR bin' < 2 ^ m" by (rule 3)
-      with 1 Suc show ?thesis
-        by simp (simp add: Bit_def)
-    qed
-  qed
-qed simp_all
+    by (cases n) (auto simp add: or_int_rec [of \<open>1 + _ * 2\<close>], linarith)
+qed
 
 lemma XOR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
   fixes x y :: int
   assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
   shows "x XOR y < 2 ^ n"
-  using assms
-proof (induct x arbitrary: y n rule: bin_induct)
-  case 1
-  then show ?case by simp
+using assms proof (induction x arbitrary: y n rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
 next
-  case 2
-  then show ?case by (simp only: Min_def)
+  case minus
+  then show ?case
+    by simp
 next
-  case (3 bin bit)
+  case (even x)
+  from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
+  show ?case 
+    by (cases n) (auto simp add: xor_int_rec [of \<open>_ * 2\<close>] elim: oddE)
+next
+  case (odd x)
+  from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
   show ?case
-  proof (cases y rule: bin_exhaust)
-    case (1 bin' bit')
-    show ?thesis
-    proof (cases n)
-      case 0
-      with 3 have "bin BIT bit = 0"
-        by (simp add: Bit_def)
-      then have "bin = 0" and "\<not> bit"
-        by (auto simp add: Bit_def split: if_splits) arith
-      then show ?thesis using 0 1 \<open>y < 2 ^ n\<close>
-        by simp
-    next
-      case (Suc m)
-      from 3 have "0 \<le> bin"
-        by (cases bit) (simp_all add: Bit_def)
-      moreover from 3 Suc have "bin < 2 ^ m"
-        by (cases bit) (simp_all add: Bit_def)
-      moreover from 1 3 Suc have "bin' < 2 ^ m"
-        by (cases bit') (simp_all add: Bit_def)
-      ultimately have "bin XOR bin' < 2 ^ m" by (rule 3)
-      with 1 Suc show ?thesis
-        by simp (simp add: Bit_def)
-    qed
-  qed
+    by (cases n) (auto simp add: xor_int_rec [of \<open>1 + _ * 2\<close>])
 qed
-
 
 
 subsubsection \<open>Truncating results of bit-wise operations\<close>
@@ -1873,9 +1551,6 @@ lemma bin_sign_and:
   "bin_sign (i AND j) = - (bin_sign i * bin_sign j)"
 by(simp add: bin_sign_def)
 
-lemma minus_BIT_0: fixes x y :: int shows "x BIT b - y BIT False = (x - y) BIT b"
-by(simp add: Bit_def)
-
 lemma int_not_neg_numeral: "NOT (- numeral n) = (Num.sub n num.One :: int)"
 by(simp add: int_not_def)
 
@@ -1884,10 +1559,6 @@ by(simp add: int_not_def)
 
 
 subsection \<open>Setting and clearing bits\<close>
-
-lemma int_lsb_BIT [simp]: fixes x :: int shows
-  "lsb (x BIT b) \<longleftrightarrow> b"
-by(simp add: lsb_int_def)
 
 lemma bin_last_conv_lsb: "bin_last = lsb"
 by(clarsimp simp add: lsb_int_def fun_eq_iff)
@@ -1905,24 +1576,24 @@ lemma int_lsb_numeral [simp]:
   by (simp_all add: lsb_int_def)
 
 lemma int_set_bit_0 [simp]: fixes x :: int shows
-  "set_bit x 0 b = bin_rest x BIT b"
-by(auto simp add: set_bit_int_def intro: bin_rl_eqI)
+  "set_bit x 0 b = of_bool b + 2 * (x div 2)"
+  by (auto simp add: set_bit_int_def intro: bin_rl_eqI)
 
 lemma int_set_bit_Suc: fixes x :: int shows
-  "set_bit x (Suc n) b = set_bit (bin_rest x) n b BIT bin_last x"
-by(auto simp add: set_bit_int_def twice_conv_BIT intro: bin_rl_eqI)
+  "set_bit x (Suc n) b = of_bool (odd x) + 2 * set_bit (x div 2) n b"
+  by (auto simp add: set_bit_int_def intro: bin_rl_eqI)
 
 lemma bin_last_set_bit:
   "bin_last (set_bit x n b) = (if n > 0 then bin_last x else b)"
-by(cases n)(simp_all add: int_set_bit_Suc)
+  by (cases n) (simp_all add: int_set_bit_Suc)
 
 lemma bin_rest_set_bit: 
-  "bin_rest (set_bit x n b) = (if n > 0 then set_bit (bin_rest x) (n - 1) b else bin_rest x)"
-by(cases n)(simp_all add: int_set_bit_Suc)
+  "bin_rest (set_bit x n b) = (if n > 0 then set_bit (x div 2) (n - 1) b else x div 2)"
+  by (cases n) (simp_all add: int_set_bit_Suc)
 
 lemma int_set_bit_numeral: fixes x :: int shows
-  "set_bit x (numeral w) b = set_bit (bin_rest x) (pred_numeral w) b BIT bin_last x"
-by(simp add: set_bit_int_def)
+  "set_bit x (numeral w) b = of_bool (odd x) + 2 * set_bit (x div 2) (pred_numeral w) b"
+  by (simp add: set_bit_int_def)
 
 lemmas int_set_bit_numerals [simp] =
   int_set_bit_numeral[where x="numeral w'"] 
@@ -1939,8 +1610,8 @@ lemmas int_set_bit_numerals [simp] =
 
 lemma int_shiftl_BIT: fixes x :: int
   shows int_shiftl0 [simp]: "x << 0 = x"
-  and int_shiftl_Suc [simp]: "x << Suc n = (x << n) BIT False"
-by(auto simp add: shiftl_int_def Bit_def)
+  and int_shiftl_Suc [simp]: "x << Suc n = 2 * (x << n)"
+  by (auto simp add: shiftl_int_def)
 
 lemma int_0_shiftl [simp]: "0 << n = (0 :: int)"
 by(induct n) simp_all
@@ -1952,58 +1623,27 @@ lemma bin_rest_shiftl: "bin_rest (x << n) = (if n > 0 then x << (n - 1) else bin
 by(cases n)(simp_all)
 
 lemma bin_nth_shiftl [simp]: "bin_nth (x << n) m \<longleftrightarrow> n \<le> m \<and> bin_nth x (m - n)"
-proof(induct n arbitrary: x m)
-  case (Suc n)
-  thus ?case by(cases m) simp_all
-qed simp
+  by (simp add: bit_push_bit_iff_int shiftl_eq_push_bit)
 
-lemma int_shiftr_BIT [simp]: fixes x :: int
-  shows int_shiftr0: "x >> 0 = x"
-  and int_shiftr_Suc: "x BIT b >> Suc n = x >> n"
-proof -
-  show "x >> 0 = x" by (simp add: shiftr_int_def)
-  show "x BIT b >> Suc n = x >> n" by (cases b)
-   (simp_all add: shiftr_int_def Bit_def add.commute pos_zdiv_mult_2)
-qed
-
-lemma bin_last_shiftr: "bin_last (x >> n) \<longleftrightarrow> x !! n"
-proof(induct n arbitrary: x)
-  case 0 thus ?case by simp
-next
-  case (Suc n)
-  thus ?case by(cases x rule: bin_exhaust) simp
-qed
+lemma bin_last_shiftr: "odd (x >> n) \<longleftrightarrow> x !! n" for x :: int
+  by (simp add: shiftr_eq_drop_bit bit_iff_odd_drop_bit)
 
 lemma bin_rest_shiftr [simp]: "bin_rest (x >> n) = x >> Suc n"
-proof(induct n arbitrary: x)
-  case 0
-  thus ?case by(cases x rule: bin_exhaust) auto
-next
-  case (Suc n)
-  thus ?case by(cases x rule: bin_exhaust) auto
-qed
+  by (simp add: bit_eq_iff shiftr_eq_drop_bit drop_bit_Suc bit_drop_bit_eq drop_bit_half)
 
 lemma bin_nth_shiftr [simp]: "bin_nth (x >> n) m = bin_nth x (n + m)"
-proof(induct n arbitrary: x m)
-  case (Suc n)
-  thus ?case by(cases x rule: bin_exhaust) simp_all
-qed simp
+  by (simp add: shiftr_eq_drop_bit bit_drop_bit_eq)
 
 lemma bin_nth_conv_AND:
   fixes x :: int shows 
   "bin_nth x n \<longleftrightarrow> x AND (1 << n) \<noteq> 0"
-proof(induct n arbitrary: x)
-  case 0 
-  thus ?case by(simp add: int_and_1 bin_last_def)
-next
-  case (Suc n)
-  thus ?case by(cases x rule: bin_exhaust)(simp_all add: bin_nth_ops Bit_eq_0_iff)
-qed
+  by (simp add: bit_eq_iff)
+    (auto simp add: shiftl_eq_push_bit bit_and_iff bit_push_bit_iff bit_exp_iff)
 
 lemma int_shiftl_numeral [simp]: 
   "(numeral w :: int) << numeral w' = numeral (num.Bit0 w) << pred_numeral w'"
   "(- numeral w :: int) << numeral w' = - numeral (num.Bit0 w) << pred_numeral w'"
-by(simp_all add: numeral_eq_Suc Bit_def shiftl_int_def)
+by(simp_all add: numeral_eq_Suc shiftl_int_def)
   (metis add_One mult_inc semiring_norm(11) semiring_norm(13) semiring_norm(2) semiring_norm(6) semiring_norm(87))+
 
 lemma int_shiftl_One_numeral [simp]:
@@ -2017,10 +1657,7 @@ lemma shiftl_lt_0 [simp]: fixes i :: int shows "i << n < 0 \<longleftrightarrow>
 by (metis not_le shiftl_ge_0)
 
 lemma int_shiftl_test_bit: "(n << i :: int) !! m \<longleftrightarrow> m \<ge> i \<and> n !! (m - i)"
-proof(induction i)
-  case (Suc n)
-  thus ?case by(cases m) simp_all
-qed simp
+  by simp
 
 lemma int_0shiftr [simp]: "(0 :: int) >> x = 0"
 by(simp add: shiftr_int_def)
@@ -2029,10 +1666,7 @@ lemma int_minus1_shiftr [simp]: "(-1 :: int) >> x = -1"
 by(simp add: shiftr_int_def div_eq_minus1)
 
 lemma int_shiftr_ge_0 [simp]: fixes i :: int shows "i >> n \<ge> 0 \<longleftrightarrow> i \<ge> 0"
-proof(induct n arbitrary: i)
-  case (Suc n)
-  thus ?case by(cases i rule: bin_exhaust) simp_all
-qed simp
+  by (simp add: shiftr_eq_drop_bit)
 
 lemma int_shiftr_lt_0 [simp]: fixes i :: int shows "i >> n < 0 \<longleftrightarrow> i < 0"
 by (metis int_shiftr_ge_0 not_less)
@@ -2044,8 +1678,7 @@ lemma int_shiftr_numeral [simp]:
   "(numeral (num.Bit1 w) :: int) >> numeral w' = numeral w >> pred_numeral w'"
   "(- numeral (num.Bit0 w) :: int) >> numeral w' = - numeral w >> pred_numeral w'"
   "(- numeral (num.Bit1 w) :: int) >> numeral w' = - numeral (Num.inc w) >> pred_numeral w'"
-  by (simp_all only: numeral_One expand_BIT numeral_eq_Suc int_shiftr_Suc BIT_special_simps(2)[symmetric] int_0shiftr add_One uminus_Bit_eq)
-    (simp_all add: add_One)
+  by (simp_all add: shiftr_eq_drop_bit numeral_eq_Suc add_One drop_bit_Suc)
 
 lemma int_shiftr_numeral_Suc0 [simp]:
   "(1 :: int) >> Suc 0 = 0"
@@ -2054,7 +1687,7 @@ lemma int_shiftr_numeral_Suc0 [simp]:
   "(numeral (num.Bit1 w) :: int) >> Suc 0 = numeral w"
   "(- numeral (num.Bit0 w) :: int) >> Suc 0 = - numeral w"
   "(- numeral (num.Bit1 w) :: int) >> Suc 0 = - numeral (Num.inc w)"
-by(simp_all only: One_nat_def[symmetric] numeral_One[symmetric] int_shiftr_numeral pred_numeral_simps int_shiftr0)
+  by (simp_all add: shiftr_eq_drop_bit drop_bit_Suc add_One)
 
 lemma bin_nth_minus_p2:
   assumes sign: "bin_sign x = 0"
@@ -2062,22 +1695,29 @@ lemma bin_nth_minus_p2:
   and m: "m < n"
   and x: "x < y"
   shows "bin_nth (x - y) m = bin_nth x m"
-using sign m x unfolding y
-proof(induction m arbitrary: x y n)
-  case 0
-  thus ?case
-    by (simp add: bin_last_def shiftl_int_def)
-next
-  case (Suc m)
-  from \<open>Suc m < n\<close> obtain n' where [simp]: "n = Suc n'" by(cases n) auto
-  obtain x' b where [simp]: "x = x' BIT b" by(cases x rule: bin_exhaust)
-  from \<open>bin_sign x = 0\<close> have "bin_sign x' = 0" by simp
-  moreover from \<open>x < 1 << n\<close> have "x' < 1 << n'"
-    by(cases b)(simp_all add: Bit_def shiftl_int_def)
-  moreover have "(2 * x' + of_bool b - 2 * 2 ^ n') div 2 = x' + (- (2 ^ n') + of_bool b div 2)"
-    by(simp only: add_diff_eq[symmetric] add.commute div_mult_self2[OF zero_neq_numeral[symmetric]])
-  ultimately show ?case using Suc.IH[of x' n'] Suc.prems
-    by (clarsimp simp add: Bit_def shiftl_int_def bit_Suc)
+proof -
+  from sign y x have \<open>x \<ge> 0\<close> and \<open>y = 2 ^ n\<close> and \<open>x < 2 ^ n\<close>
+    by (simp_all add: bin_sign_def shiftl_eq_push_bit push_bit_eq_mult split: if_splits)
+  from \<open>0 \<le> x\<close> \<open>x < 2 ^ n\<close> \<open>m < n\<close> have \<open>bit x m \<longleftrightarrow> bit (x - 2 ^ n) m\<close>
+  proof (induction m arbitrary: x n)
+    case 0
+    then show ?case
+      by simp
+  next
+    case (Suc m)
+    moreover define q where \<open>q = n - 1\<close>
+    ultimately have n: \<open>n = Suc q\<close>
+      by simp
+    have \<open>(x - 2 ^ Suc q) div 2 = x div 2 - 2 ^ q\<close>
+      by simp
+    moreover from Suc.IH [of \<open>x div 2\<close> q] Suc.prems
+    have \<open>bit (x div 2) m \<longleftrightarrow> bit (x div 2 - 2 ^ q) m\<close>
+      by (simp add: n)
+    ultimately show ?case
+      by (simp add: bit_Suc n)
+  qed
+  with \<open>y = 2 ^ n\<close> show ?thesis
+    by simp
 qed
 
 lemma bin_clr_conv_NAND:
@@ -2090,9 +1730,6 @@ lemma bin_set_conv_OR:
 
 lemma msb_conv_bin_sign: "msb x \<longleftrightarrow> bin_sign x = -1"
 by(simp add: bin_sign_def not_le msb_int_def)
-
-lemma msb_BIT [simp]: "msb (x BIT b) = msb x"
-by(simp add: msb_int_def)
 
 lemma msb_bin_rest [simp]: "msb (bin_rest x) = msb x"
 by(simp add: msb_int_def)
@@ -2136,7 +1773,7 @@ by(simp_all add: msb_int_def)
 subsection \<open>Semantic interpretation of \<^typ>\<open>bool list\<close> as \<^typ>\<open>int\<close>\<close>
 
 lemma bin_bl_bin': "bl_to_bin (bin_to_bl_aux n w bs) = bl_to_bin_aux bs (bintrunc n w)"
-  by (induct n arbitrary: w bs) (auto simp: bl_to_bin_def take_bit_Suc Bit_def ac_simps mod_2_eq_odd)
+  by (induct n arbitrary: w bs) (auto simp: bl_to_bin_def take_bit_Suc ac_simps mod_2_eq_odd)
 
 lemma bin_bl_bin [simp]: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
   by (auto simp: bin_to_bl_def bin_bl_bin')
@@ -2174,17 +1811,13 @@ lemma len_bin_to_bl: "length (bin_to_bl n w) = n"
   by (fact size_bin_to_bl) (* FIXME: duplicate *)
 
 lemma sign_bl_bin': "bin_sign (bl_to_bin_aux bs w) = bin_sign w"
-  by (induct bs arbitrary: w) auto
+  by (induction bs arbitrary: w) (simp_all add: bin_sign_def)
 
 lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = 0"
   by (simp add: bl_to_bin_def sign_bl_bin')
 
 lemma bl_sbin_sign_aux: "hd (bin_to_bl_aux (Suc n) w bs) = (bin_sign (sbintrunc n w) = -1)"
-  apply (induct n arbitrary: w bs)
-   apply clarsimp
-   apply (cases w rule: bin_exhaust)
-   apply simp
-  done
+  by (induction n arbitrary: w bs) (simp_all add: bin_sign_def)
 
 lemma bl_sbin_sign: "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = -1)"
   unfolding bin_to_bl_def by (rule bl_sbin_sign_aux)
@@ -2192,12 +1825,10 @@ lemma bl_sbin_sign: "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = -1)"
 lemma bin_nth_of_bl_aux:
   "bin_nth (bl_to_bin_aux bl w) n =
     (n < size bl \<and> rev bl ! n \<or> n \<ge> length bl \<and> bin_nth w (n - size bl))"
-  apply (induct bl arbitrary: w)
-   apply clarsimp
-  apply clarsimp
-  apply (cut_tac x=n and y="size bl" in linorder_less_linear)
-  apply (erule disjE, simp add: nth_append)+
-  apply auto
+  apply (induction bl arbitrary: w)
+   apply simp_all
+  apply safe
+                      apply (simp_all add: not_le nth_append bit_double_iff even_bit_succ_iff split: if_splits)
   done
 
 lemma bin_nth_of_bl: "bin_nth (bl_to_bin bl) n = (n < length bl \<and> rev bl ! n)"
@@ -2217,22 +1848,31 @@ lemma bin_nth_bl: "n < m \<Longrightarrow> bin_nth w n = nth (rev (bin_to_bl m w
 lemma nth_bin_to_bl_aux:
   "n < m + length bl \<Longrightarrow> (bin_to_bl_aux m w bl) ! n =
     (if n < m then bin_nth w (m - 1 - n) else bl ! (n - m))"
-  apply (induct m arbitrary: w n bl)
-   apply clarsimp
-  apply clarsimp
-  apply (case_tac w rule: bin_exhaust)
-  apply simp
+  apply (induction bl arbitrary: w)
+   apply simp_all
+   apply (metis add.right_neutral bin_nth_bl bin_to_bl_def diff_Suc_less less_Suc_eq_0_disj less_imp_Suc_add list.size(3) nth_rev_alt size_bin_to_bl_aux)
+  apply (metis One_nat_def Suc_pred add_diff_cancel_left' add_diff_cancel_right' bin_to_bl_aux_alt bin_to_bl_def cancel_comm_monoid_add_class.diff_cancel diff_Suc_Suc diff_is_0_eq diff_zero le_add_diff_inverse le_eq_less_or_eq less_Suc_eq_0_disj less_antisym less_imp_Suc_add list.size(3) nat_less_le nth_append order_refl size_bin_to_bl_aux)
   done
 
 lemma nth_bin_to_bl: "n < m \<Longrightarrow> (bin_to_bl m w) ! n = bin_nth w (m - Suc n)"
   by (simp add: bin_to_bl_def nth_bin_to_bl_aux)
 
 lemma bl_to_bin_lt2p_aux: "bl_to_bin_aux bs w < (w + 1) * (2 ^ length bs)"
-  apply (induct bs arbitrary: w)
-   apply clarsimp
-  apply clarsimp
-  apply (drule meta_spec, erule xtrans(8) [rotated], simp add: Bit_def)+
-  done
+proof (induction bs arbitrary: w)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  from Cons.IH [of \<open>1 + 2 * w\<close>] Cons.IH [of \<open>2 * w\<close>]
+  show ?case
+    apply (auto simp add: algebra_simps)
+    apply (subst mult_2 [of \<open>2 ^ length bs\<close>])
+    apply (simp only: add.assoc)
+    apply (rule pos_add_strict)
+     apply simp_all
+    done
+qed
 
 lemma bl_to_bin_lt2p_drop: "bl_to_bin bs < 2 ^ length (dropWhile Not bs)"
 proof (induct bs)
@@ -2248,13 +1888,20 @@ lemma bl_to_bin_lt2p: "bl_to_bin bs < 2 ^ length bs"
   by (metis bin_bl_bin bintr_lt2p bl_bin_bl)
 
 lemma bl_to_bin_ge2p_aux: "bl_to_bin_aux bs w \<ge> w * (2 ^ length bs)"
-  apply (induct bs arbitrary: w)
-   apply clarsimp
-  apply clarsimp
-   apply (drule meta_spec, erule order_trans [rotated],
-          simp add: Bit_B0_2t Bit_B1_2t algebra_simps)+
-   apply (simp add: Bit_def)
-  done
+proof (induction bs arbitrary: w)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  from Cons.IH [of \<open>1 + 2 * w\<close>] Cons.IH [of \<open>2 * w\<close>]
+  show ?case
+    apply (auto simp add: algebra_simps)
+    apply (rule add_le_imp_le_left [of \<open>2 ^ length bs\<close>])
+    apply (rule add_increasing)
+    apply simp_all
+    done
+qed
 
 lemma bl_to_bin_ge0: "bl_to_bin bs \<ge> 0"
   apply (unfold bl_to_bin_def)
@@ -2265,7 +1912,6 @@ lemma bl_to_bin_ge0: "bl_to_bin bs \<ge> 0"
 
 lemma butlast_rest_bin: "butlast (bin_to_bl n w) = bin_to_bl (n - 1) (bin_rest w)"
   apply (unfold bin_to_bl_def)
-  apply (cases w rule: bin_exhaust)
   apply (cases n, clarsimp)
   apply clarsimp
   apply (auto simp add: bin_to_bl_aux_alt)
@@ -2297,7 +1943,7 @@ next
   next
     case (Suc n)
     then have "m - Suc (length bl) = n" by simp
-    with Cons Suc show ?thesis by (simp add: take_bit_Suc Bit_def ac_simps)
+    with Cons Suc show ?thesis by (simp add: take_bit_Suc ac_simps)
   qed
 qed
 
@@ -2333,14 +1979,13 @@ lemma bin_last_last: "bin_last w \<longleftrightarrow> last (bin_to_bl (Suc n) w
 lemma drop_bin2bl_aux:
   "drop m (bin_to_bl_aux n bin bs) =
     bin_to_bl_aux (n - m) bin (drop (m - n) bs)"
-  apply (induct n arbitrary: m bin bs, clarsimp)
-  apply clarsimp
-  apply (case_tac bin rule: bin_exhaust)
-  apply (case_tac "m \<le> n", simp)
-  apply (case_tac "m - n", simp)
-  apply simp
-  apply (rule_tac f = "\<lambda>nat. drop nat bs" in arg_cong)
-  apply simp
+  apply (induction n arbitrary: m bin bs)
+   apply auto
+  apply (case_tac "m \<le> n")
+   apply (auto simp add: not_le Suc_diff_le)
+  apply (case_tac "m - n")
+   apply auto
+  apply (use Suc_diff_Suc in fastforce)
   done
 
 lemma drop_bin2bl: "drop m (bin_to_bl n bin) = bin_to_bl (n - m) bin"
@@ -2389,9 +2034,10 @@ lemma bl_bin_bl_rep_drop:
   by (simp add: bl_bin_bl_rtf takefill_alt rev_take)
 
 lemma bl_to_bin_aux_cat:
-  "\<And>nv v. bl_to_bin_aux bs (bin_cat w nv v) =
+  "bl_to_bin_aux bs (bin_cat w nv v) =
     bin_cat w (nv + length bs) (bl_to_bin_aux bs v)"
-  by (induct bs) (simp, simp add: bin_cat_Suc_Bit [symmetric] del: bin_cat.simps)
+  by (rule bit_eqI)
+    (auto simp add: bin_nth_of_bl_aux bin_nth_cat algebra_simps)
 
 lemma bin_to_bl_aux_cat:
   "\<And>w bs. bin_to_bl_aux (nv + nw) (bin_cat v nw w) bs =
@@ -2430,7 +2076,15 @@ lemma mask_lem: "(bl_to_bin (True # replicate n False)) = bl_to_bin (replicate n
   apply (induct n)
    apply simp
   apply (simp only: Suc_eq_plus1 replicate_add append_Cons [symmetric] bl_to_bin_aux_append)
-  apply (simp add: Bit_B0_2t Bit_B1_2t)
+  apply simp
+  done
+
+lemma bin_exhaust:
+  "(\<And>x b. bin = of_bool b + 2 * x \<Longrightarrow> Q) \<Longrightarrow> Q" for bin :: int
+  apply (cases \<open>even bin\<close>)
+   apply (auto elim!: evenE oddE)
+   apply fastforce
+  apply fastforce
   done
 
 primrec rbl_succ :: "bool list \<Rightarrow> bool list"
@@ -2523,23 +2177,29 @@ lemma rbl_mult_split:
   by (auto simp: Let_def)
 
 lemma rbl_pred: "rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin - 1))"
-  apply (unfold bin_to_bl_def)
-  apply (induct n arbitrary: bin)
-   apply simp
-  apply clarsimp
-  apply (case_tac bin rule: bin_exhaust)
-  apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt)+
-  done
+proof (unfold bin_to_bl_def, induction n arbitrary: bin)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  obtain b k where \<open>bin = of_bool b + 2 * k\<close>
+    using bin_exhaust by blast
+  moreover have \<open>(2 * k - 1) div 2 = k - 1\<close>
+    using even_succ_div_2 [of \<open>2 * (k - 1)\<close>] 
+    by simp
+  ultimately show ?case
+    using Suc [of \<open>bin div 2\<close>]
+    by simp (simp add: bin_to_bl_aux_alt)
+qed
 
 lemma rbl_succ: "rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin + 1))"
   apply (unfold bin_to_bl_def)
-  apply (induct n arbitrary: bin)
-   apply simp
-  apply clarsimp
+  apply (induction n arbitrary: bin)
+   apply simp_all
   apply (case_tac bin rule: bin_exhaust)
-  apply (case_tac b)
-   apply (clarsimp simp: bin_to_bl_aux_alt)+
+  apply simp
+  apply (simp add: bin_to_bl_aux_alt ac_simps)
   done
 
 lemma rbl_add:
@@ -2586,22 +2246,21 @@ lemma rbl_mult_gt:
 
 lemmas rbl_mult_Suc = lessI [THEN rbl_mult_gt]
 
-lemma rbbl_Cons: "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (x BIT b))"
+lemma rbbl_Cons: "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (of_bool b + 2 * x))"
   by (simp add: bin_to_bl_def) (simp add: bin_to_bl_aux_alt)
 
 lemma rbl_mult:
   "rbl_mult (rev (bin_to_bl n bina)) (rev (bin_to_bl n binb)) =
     rev (bin_to_bl n (bina * binb))"
   apply (induct n arbitrary: bina binb)
-   apply simp
+   apply simp_all
   apply (unfold bin_to_bl_def)
   apply clarsimp
   apply (case_tac bina rule: bin_exhaust)
   apply (case_tac binb rule: bin_exhaust)
-  apply (case_tac b)
-   apply (case_tac [!] "ba")
-     apply (auto simp: bin_to_bl_aux_alt Let_def)
-     apply (auto simp: rbbl_Cons rbl_mult_Suc rbl_add)
+  apply simp
+  apply (simp add: bin_to_bl_aux_alt)
+  apply (simp add: rbbl_Cons rbl_mult_Suc rbl_add algebra_simps)
   done
 
 lemma sclem: "size (concat (map (bin_to_bl n) xs)) = length xs * n"
@@ -2638,34 +2297,22 @@ by(cases "bs = []")(simp_all add: bl_to_bin_def butlast_rest_bl2bin_aux)
 lemma bl_xor_aux_bin:
   "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
     bin_to_bl_aux n (v XOR w) (map2 (\<lambda>x y. x \<noteq> y) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
+  apply (induction n arbitrary: v w bs cs)
+   apply auto
   apply (case_tac v rule: bin_exhaust)
   apply (case_tac w rule: bin_exhaust)
   apply clarsimp
-  apply (case_tac b)
-   apply auto
   done
 
 lemma bl_or_aux_bin:
   "map2 (\<or>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
     bin_to_bl_aux n (v OR w) (map2 (\<or>) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
-  apply (case_tac v rule: bin_exhaust)
-  apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  done
+  by (induct n arbitrary: v w bs cs) simp_all
 
 lemma bl_and_aux_bin:
   "map2 (\<and>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
     bin_to_bl_aux n (v AND w) (map2 (\<and>) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
-  apply (case_tac v rule: bin_exhaust)
-  apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  done
+  by (induction n arbitrary: v w bs cs) simp_all
 
 lemma bl_not_aux_bin: "map Not (bin_to_bl_aux n w cs) = bin_to_bl_aux n (NOT w) (map Not cs)"
   by (induct n arbitrary: w cs) auto

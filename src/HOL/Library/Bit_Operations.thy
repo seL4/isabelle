@@ -380,6 +380,18 @@ proof (rule bit_eqI)
   qed
 qed
 
+lemma take_bit_set_bit_eq:
+  \<open>take_bit n (set_bit m w) = (if n \<le> m then take_bit n w else set_bit m (take_bit n w))\<close>
+  by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_set_bit_iff)
+
+lemma take_bit_unset_bit_eq:
+  \<open>take_bit n (unset_bit m w) = (if n \<le> m then take_bit n w else unset_bit m (take_bit n w))\<close>
+  by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_unset_bit_iff)
+
+lemma take_bit_flip_bit_eq:
+  \<open>take_bit n (flip_bit m w) = (if n \<le> m then take_bit n w else flip_bit m (take_bit n w))\<close>
+  by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_flip_bit_iff)
+
 end
 
 
@@ -565,6 +577,58 @@ lemma flip_bit_nonnegative_int_iff [simp]:
 lemma flip_bit_negative_int_iff [simp]:
   \<open>flip_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
   by (simp add: flip_bit_def)
+
+lemma and_less_eq:
+  \<open>k AND l \<le> k\<close> if \<open>l < 0\<close> for k l :: int
+using that proof (induction k arbitrary: l rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even k)
+  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
+  show ?case
+    by (simp add: and_int_rec [of _ l])
+next
+  case (odd k)
+  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
+  show ?case
+    by (simp add: and_int_rec [of _ l])
+qed
+
+lemma or_greater_eq:
+  \<open>k OR l \<ge> k\<close> if \<open>l \<ge> 0\<close> for k l :: int
+using that proof (induction k arbitrary: l rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even k)
+  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
+  show ?case
+    by (simp add: or_int_rec [of _ l])
+next
+  case (odd k)
+  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
+  show ?case
+    by (simp add: or_int_rec [of _ l])
+qed
+
+lemma set_bit_greater_eq:
+  \<open>set_bit n k \<ge> k\<close> for k :: int
+  by (simp add: set_bit_def or_greater_eq)
+
+lemma unset_bit_less_eq:
+  \<open>unset_bit n k \<le> k\<close> for k :: int
+  by (simp add: unset_bit_def and_less_eq)
 
 
 subsection \<open>Instance \<^typ>\<open>nat\<close>\<close>

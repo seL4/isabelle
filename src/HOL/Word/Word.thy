@@ -817,11 +817,11 @@ lemma bit_word_eqI:
   by (rule bit_eqI, rule that) (simp add: exp_eq_zero_iff)
 
 definition shiftl1 :: "'a::len word \<Rightarrow> 'a word"
-  where "shiftl1 w = word_of_int (uint w BIT False)"
+  where "shiftl1 w = word_of_int (2 * uint w)"
 
 lemma shiftl1_eq_mult_2:
   \<open>shiftl1 = (*) 2\<close>
-  apply (simp add: fun_eq_iff shiftl1_def Bit_def)
+  apply (simp add: fun_eq_iff shiftl1_def)
   apply (simp only: mult_2)
   apply transfer
   apply (simp only: take_bit_add)
@@ -3253,9 +3253,9 @@ lemma set_bits_K_False [simp]:
 
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
-lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT False)"
+lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (2 * w)"
   unfolding shiftl1_def
-  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm Bit_def)
+  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm)
   apply (simp add: mod_mult_right_eq take_bit_eq_mod)
   done
 
@@ -3268,11 +3268,11 @@ lemma shiftl1_neg_numeral [simp]: "shiftl1 (- numeral w) = - numeral (Num.Bit0 w
 lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
   by (simp add: shiftl1_def)
 
-lemma shiftl1_def_u: "shiftl1 w = word_of_int (uint w BIT False)"
+lemma shiftl1_def_u: "shiftl1 w = word_of_int (2 * uint w)"
   by (simp only: shiftl1_def) (* FIXME: duplicate *)
 
-lemma shiftl1_def_s: "shiftl1 w = word_of_int (sint w BIT False)"
-  by (simp add: shiftl1_def Bit_B0 wi_hom_syms)
+lemma shiftl1_def_s: "shiftl1 w = word_of_int (2 * sint w)"
+  by (simp add: shiftl1_def wi_hom_syms)
 
 lemma shiftr1_0 [simp]: "shiftr1 0 = 0"
   by (simp add: shiftr1_def)
@@ -3299,7 +3299,7 @@ lemma nth_shiftl1: "shiftl1 w !! n \<longleftrightarrow> n < size w \<and> n > 0
   apply (unfold shiftl1_def word_test_bit_def)
   apply (simp add: nth_bintr word_ubin.eq_norm word_size)
   apply (cases n)
-   apply auto
+  apply (simp_all add: bit_Suc)
   done
 
 lemma nth_shiftl': "(w << m) !! n \<longleftrightarrow> n < size w \<and> n >= m \<and> w !! (n - m)"
@@ -3566,7 +3566,7 @@ lemma shiftl_zero_size: "size x \<le> n \<Longrightarrow> x << n = 0"
 
 lemma shiftl1_2t: "shiftl1 w = 2 * w"
   for w :: "'a::len word"
-  by (simp add: shiftl1_def Bit_def wi_hom_mult [symmetric])
+  by (simp add: shiftl1_def wi_hom_mult [symmetric])
 
 lemma shiftl1_p: "shiftl1 w = w + w"
   for w :: "'a::len word"
@@ -5163,7 +5163,7 @@ proof (induction i arbitrary: n)
     by simp
 next
   case (Suc i)
-  then show ?case by (cases n) (simp_all add: take_bit_Suc Bit_def)
+  then show ?case by (cases n) (simp_all add: take_bit_Suc)
 qed
 
 lemma shiftl_transfer [transfer_rule]:

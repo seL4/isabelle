@@ -60,6 +60,13 @@ INCOMPATIBILITY.
 * Session HOL-Word: Theory "Word_Bitwise" has been moved to AFP entry
 Word_Lib as theory "Bitwise".  INCOMPATIBILITY.
 
+* Session HOL-Word: Misc ancient material has been factored out into
+separate theories.  INCOMPATIBILITY, prefer theory "More_Word"
+over "Word" to use it.
+
+* Session HOL-Word: Ancient int numeral representation has been
+factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
+
 * Session HOL-Word: Compound operation "bin_split" simplifies by default
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 
