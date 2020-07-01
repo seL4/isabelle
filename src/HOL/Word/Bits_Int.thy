@@ -545,15 +545,22 @@ lemma sbintrunc_minus: "0 < n \<Longrightarrow> sbintrunc (Suc (n - 1)) w = sbin
 lemmas sbintrunc_minus_simps =
   sbintrunc_Sucs [THEN [2] sbintrunc_minus [symmetric, THEN trans]]
 
-lemmas thobini1 = arg_cong [where f = "\<lambda>w. w BIT b"] for b
+lemma sbintrunc_BIT_I:
+  \<open>0 < n \<Longrightarrow>
+  sbintrunc (n - 1) 0 = y \<Longrightarrow>
+  sbintrunc n 0 = 2 * y\<close>
+  by simp
 
-lemmas sbintrunc_BIT_I = trans [OF sbintrunc_Suc_BIT thobini1]
+lemma sbintrunc_Suc_Is:
+  \<open>sbintrunc n (- 1) = y \<Longrightarrow>
+  sbintrunc (Suc n) (- 1) = 1 + 2 * y\<close>
+  by (auto simp add: Bit_def)
 
-lemmas sbintrunc_Suc_Is =
-  sbintrunc_Sucs(1-3) [THEN thobini1 [THEN [2] trans]]
-
-lemmas sbintrunc_Suc_minus_Is =
-  sbintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans]]
+lemma sbintrunc_Suc_minus_Is:
+  \<open>0 < n \<Longrightarrow>
+  sbintrunc (n - 1) w = y \<Longrightarrow>
+  sbintrunc n (w BIT b) = y BIT b\<close>
+  by (cases n) simp_all
 
 lemma sbintrunc_Suc_lem: "sbintrunc (Suc n) x = y \<Longrightarrow> m = Suc n \<Longrightarrow> sbintrunc m x = y"
   by auto
