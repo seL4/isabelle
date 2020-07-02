@@ -14,196 +14,146 @@ text \<open>
   field operations are required.
 \<close>
 
-subsection \<open>Bits as a datatype\<close>
+typedef bit = \<open>UNIV :: bool set\<close> ..
 
-typedef bit = "UNIV :: bool set"
-  morphisms set Bit ..
-
-instantiation bit :: "{zero, one}"
+instantiation bit :: zero_neq_one
 begin
 
-definition zero_bit_def: "0 = Bit False"
+definition zero_bit :: bit
+  where \<open>0 = Abs_bit False\<close>
 
-definition one_bit_def: "1 = Bit True"
-
-instance ..
-
-end
-
-old_rep_datatype "0::bit" "1::bit"
-proof -
-  fix P :: "bit \<Rightarrow> bool"
-  fix x :: bit
-  assume "P 0" and "P 1"
-  then have "\<forall>b. P (Bit b)"
-    unfolding zero_bit_def one_bit_def
-    by (simp add: all_bool_eq)
-  then show "P x"
-    by (induct x) simp
-next
-  show "(0::bit) \<noteq> (1::bit)"
-    unfolding zero_bit_def one_bit_def
-    by (simp add: Bit_inject)
-qed
-
-lemma Bit_set_eq [simp]: "Bit (set b) = b"
-  by (fact set_inverse)
-
-lemma set_Bit_eq [simp]: "set (Bit P) = P"
-  by (rule Bit_inverse) rule
-
-context
-begin
-
-qualified lemma bit_eq_iff: "x = y \<longleftrightarrow> (set x \<longleftrightarrow> set y)"
-  by (auto simp add: set_inject)
-
-end
-
-lemma Bit_inject [simp]: "Bit P = Bit Q \<longleftrightarrow> (P \<longleftrightarrow> Q)"
-  by (auto simp add: Bit_inject)
-
-lemma set [iff]:
-  "\<not> set 0"
-  "set 1"
-  by (simp_all add: zero_bit_def one_bit_def Bit_inverse)
-
-lemma [code]:
-  "set 0 \<longleftrightarrow> False"
-  "set 1 \<longleftrightarrow> True"
-  by simp_all
-
-lemma set_iff: "set b \<longleftrightarrow> b = 1"
-  by (cases b) simp_all
-
-lemma bit_eq_iff_set:
-  "b = 0 \<longleftrightarrow> \<not> set b"
-  "b = 1 \<longleftrightarrow> set b"
-  by (simp_all add: Z2.bit_eq_iff)
-
-lemma Bit [simp, code]:
-  "Bit False = 0"
-  "Bit True = 1"
-  by (simp_all add: zero_bit_def one_bit_def)
-
-lemma bit_not_0_iff [iff]: "x \<noteq> 0 \<longleftrightarrow> x = 1" for x :: bit
-  by (simp add: Z2.bit_eq_iff)
-
-lemma bit_not_1_iff [iff]: "x \<noteq> 1 \<longleftrightarrow> x = 0" for x :: bit
-  by (simp add: Z2.bit_eq_iff)
-
-lemma [code]:
-  "HOL.equal 0 b \<longleftrightarrow> \<not> set b"
-  "HOL.equal 1 b \<longleftrightarrow> set b"
-  by (simp_all add: equal set_iff)
-
-
-subsection \<open>Type \<^typ>\<open>bit\<close> forms a field\<close>
-
-instantiation bit :: field
-begin
-
-definition plus_bit_def: "x + y = case_bit y (case_bit 1 0 y) x"
-
-definition times_bit_def: "x * y = case_bit 0 y x"
-
-definition uminus_bit_def [simp]: "- x = x" for x :: bit
-
-definition minus_bit_def [simp]: "x - y = x + y" for x y :: bit
-
-definition inverse_bit_def [simp]: "inverse x = x" for x :: bit
-
-definition divide_bit_def [simp]: "x div y = x * y" for x y :: bit
-
-lemmas field_bit_defs =
-  plus_bit_def times_bit_def minus_bit_def uminus_bit_def
-  divide_bit_def inverse_bit_def
+definition one_bit :: bit
+  where \<open>1 = Abs_bit True\<close>
 
 instance
-  by standard (auto simp: plus_bit_def times_bit_def split: bit.split)
+  by standard (simp add: zero_bit_def one_bit_def Abs_bit_inject)
 
 end
 
-lemma bit_add_self: "x + x = 0" for x :: bit
-  unfolding plus_bit_def by (simp split: bit.split)
+free_constructors case_bit for \<open>0::bit\<close> | \<open>1::bit\<close>
+proof -
+  fix P :: bool
+  fix a :: bit
+  assume \<open>a = 0 \<Longrightarrow> P\<close> and \<open>a = 1 \<Longrightarrow> P\<close>
+  then show P
+    by (cases a) (auto simp add: zero_bit_def one_bit_def Abs_bit_inject)
+qed simp
 
-lemma bit_mult_eq_1_iff [simp]: "x * y = 1 \<longleftrightarrow> x = 1 \<and> y = 1" for x y :: bit
-  unfolding times_bit_def by (simp split: bit.split)
+lemma bit_not_zero_iff [simp]:
+  \<open>a \<noteq> 0 \<longleftrightarrow> a = 1\<close> for a :: bit
+  by (cases a) simp_all
 
-text \<open>Not sure whether the next two should be simp rules.\<close>
-
-lemma bit_add_eq_0_iff: "x + y = 0 \<longleftrightarrow> x = y" for x y :: bit
-  unfolding plus_bit_def by (simp split: bit.split)
-
-lemma bit_add_eq_1_iff: "x + y = 1 \<longleftrightarrow> x \<noteq> y" for x y :: bit
-  unfolding plus_bit_def by (simp split: bit.split)
-
-
-subsection \<open>Numerals at type \<^typ>\<open>bit\<close>\<close>
-
-text \<open>All numerals reduce to either 0 or 1.\<close>
-
-lemma bit_minus1 [simp]: "- 1 = (1 :: bit)"
-  by (simp only: uminus_bit_def)
-
-lemma bit_neg_numeral [simp]: "(- numeral w :: bit) = numeral w"
-  by (simp only: uminus_bit_def)
-
-lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
-  by (simp only: numeral_Bit0 bit_add_self)
-
-lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
-  by (simp only: numeral_Bit1 bit_add_self add_0_left)
-
-
-subsection \<open>Conversion from \<^typ>\<open>bit\<close>\<close>
-
-context zero_neq_one
-begin
-
-definition of_bit :: "bit \<Rightarrow> 'a"
-  where "of_bit b = case_bit 0 1 b"
-
-lemma of_bit_eq [simp, code]:
-  "of_bit 0 = 0"
-  "of_bit 1 = 1"
-  by (simp_all add: of_bit_def)
-
-lemma of_bit_eq_iff: "of_bit x = of_bit y \<longleftrightarrow> x = y"
-  by (cases x) (cases y; simp)+
-
-end
-
-lemma (in semiring_1) of_nat_of_bit_eq: "of_nat (of_bit b) = of_bit b"
-  by (cases b) simp_all
-
-lemma (in ring_1) of_int_of_bit_eq: "of_int (of_bit b) = of_bit b"
-  by (cases b) simp_all
-
-
-subsection \<open>Bit structure\<close>
+lemma bit_not_one_imp [simp]:
+  \<open>a \<noteq> 1 \<longleftrightarrow> a = 0\<close> for a :: bit
+  by (cases a) simp_all
 
 instantiation bit :: semidom_modulo
 begin
 
+definition plus_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>a + b = Abs_bit (Rep_bit a \<noteq> Rep_bit b)\<close>
+
+definition minus_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>minus_bit = plus\<close>
+
+definition times_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where \<open>a * b = Abs_bit (Rep_bit a \<and> Rep_bit b)\<close>
+
+definition divide_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>divide_bit = times\<close>
+
 definition modulo_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>a mod b = a * of_bool (b = 0)\<close> for a b :: bit
+  where \<open>a mod b = Abs_bit (Rep_bit a \<and> \<not> Rep_bit b)\<close>
 
 instance
-  by standard simp
+  by standard
+    (auto simp flip: Rep_bit_inject
+    simp add: zero_bit_def one_bit_def plus_bit_def times_bit_def modulo_bit_def Abs_bit_inverse Rep_bit_inverse)
 
 end
+
+lemma bit_2_eq_0 [simp]:
+  \<open>2 = (0::bit)\<close>
+  by (simp flip: one_add_one add: zero_bit_def plus_bit_def)
+
+instance bit :: semiring_parity
+  apply standard
+    apply (auto simp flip: Rep_bit_inject simp add: modulo_bit_def Abs_bit_inverse Rep_bit_inverse)
+         apply (auto simp add: zero_bit_def one_bit_def Abs_bit_inverse Rep_bit_inverse)
+  done
+
+lemma Abs_bit_eq_of_bool [code_abbrev]:
+  \<open>Abs_bit = of_bool\<close>
+  by (simp add: fun_eq_iff zero_bit_def one_bit_def)
+
+lemma Rep_bit_eq_odd:
+  \<open>Rep_bit = odd\<close>
+proof -
+  have \<open>\<not> Rep_bit 0\<close>
+    by (simp only: zero_bit_def) (subst Abs_bit_inverse, auto)
+  then show ?thesis
+    by (auto simp flip: Rep_bit_inject simp add: fun_eq_iff)
+qed
+
+lemma Rep_bit_iff_odd [code_abbrev]:
+  \<open>Rep_bit b \<longleftrightarrow> odd b\<close>
+  by (simp add: Rep_bit_eq_odd)
+
+lemma Not_Rep_bit_iff_even [code_abbrev]:
+  \<open>\<not> Rep_bit b \<longleftrightarrow> even b\<close>
+  by (simp add: Rep_bit_eq_odd)
+
+lemma Not_Not_Rep_bit [code_unfold]:
+  \<open>\<not> \<not> Rep_bit b \<longleftrightarrow> Rep_bit b\<close>
+  by simp
+
+code_datatype \<open>0::bit\<close> \<open>1::bit\<close>
+
+lemma Abs_bit_code [code]:
+  \<open>Abs_bit False = 0\<close>
+  \<open>Abs_bit True = 1\<close>
+  by (simp_all add: Abs_bit_eq_of_bool)
+
+lemma Rep_bit_code [code]:
+  \<open>Rep_bit 0 \<longleftrightarrow> False\<close>
+  \<open>Rep_bit 1 \<longleftrightarrow> True\<close>
+  by (simp_all add: Rep_bit_eq_odd)
+
+context zero_neq_one
+begin
+
+abbreviation of_bit :: \<open>bit \<Rightarrow> 'a\<close>
+  where \<open>of_bit b \<equiv> of_bool (odd b)\<close>
+
+end
+
+context
+begin
+
+qualified lemma bit_eq_iff:
+  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b)\<close> for a b :: bit
+  by (cases a; cases b) simp_all
+
+end
+
+lemma modulo_bit_unfold [simp, code]:
+  \<open>a mod b = of_bool (odd a \<and> even b)\<close> for a b :: bit
+  by (simp add: modulo_bit_def Abs_bit_eq_of_bool Rep_bit_eq_odd)
+
+lemma power_bit_unfold [simp, code]:
+  \<open>a ^ n = of_bool (odd a \<or> n = 0)\<close> for a :: bit
+  by (cases a) simp_all
 
 instantiation bit :: semiring_bits
 begin
 
 definition bit_bit :: \<open>bit \<Rightarrow> nat \<Rightarrow> bool\<close>
-  where [simp]: \<open>bit_bit b n \<longleftrightarrow> b = 1 \<and> n = 0\<close>
+  where [simp]: \<open>bit_bit b n \<longleftrightarrow> odd b \<and> n = 0\<close>
 
 instance
   apply standard
-                apply (auto simp add: power_0_left power_add set_iff)
-   apply (metis bit_not_1_iff of_bool_eq(2))
+              apply auto
+  apply (metis bit.exhaust of_bool_eq(2))
   done
 
 end
@@ -212,16 +162,55 @@ instantiation bit :: semiring_bit_shifts
 begin
 
 definition push_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>push_bit n b = (if n = 0 then b else 0)\<close> for b :: bit
+  where [simp]: \<open>push_bit n b = of_bool (odd b \<and> n = 0)\<close> for b :: bit
 
 definition drop_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>drop_bit n b = (if n = 0 then b else 0)\<close> for b :: bit
+  where [simp]: \<open>drop_bit_bit = push_bit\<close>
 
 definition take_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>take_bit n b = (if n = 0 then 0 else b)\<close> for b :: bit
+  where [simp]: \<open>take_bit n b = of_bool (odd b \<and> n > 0)\<close> for b :: bit
 
 instance
-  by standard (simp_all add: push_bit_bit_def drop_bit_bit_def take_bit_bit_def)
+  by standard simp_all
+
+end
+
+instantiation bit :: semiring_bit_operations
+begin
+
+definition and_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>b AND c = of_bool (odd b \<and> odd c)\<close> for b c :: bit
+
+definition or_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>b OR c = of_bool (odd b \<or> odd c)\<close> for b c :: bit
+
+definition xor_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>b XOR c = of_bool (odd b \<noteq> odd c)\<close> for b c :: bit
+
+instance
+  by standard auto
+
+end
+
+lemma add_bit_eq_xor [simp, code]:
+  \<open>(+) = ((XOR) :: bit \<Rightarrow> _)\<close>
+  by (auto simp add: fun_eq_iff)
+
+lemma mult_bit_eq_and [simp, code]:
+  \<open>(*) = ((AND) :: bit \<Rightarrow> _)\<close>
+  by (simp add: fun_eq_iff)
+
+instantiation bit :: field
+begin
+
+definition uminus_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>uminus_bit = id\<close>
+
+definition inverse_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>inverse_bit = id\<close>
+
+instance
+  by standard simp_all
 
 end
 
@@ -229,39 +218,17 @@ instantiation bit :: ring_bit_operations
 begin
 
 definition not_bit :: \<open>bit \<Rightarrow> bit\<close>
-  where \<open>NOT b = of_bool (even b)\<close> for b :: bit
-
-definition and_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>b AND c = of_bool (odd b \<and> odd c)\<close> for b c :: bit
-
-definition or_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>b OR c = of_bool (odd b \<or> odd c)\<close> for b c :: bit
-
-definition xor_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where \<open>b XOR c = of_bool (odd b \<noteq> odd c)\<close> for b c :: bit
+  where [simp]: \<open>NOT b = of_bool (even b)\<close> for b :: bit
 
 instance
-  by standard (auto simp add: and_bit_def or_bit_def xor_bit_def not_bit_def add_eq_0_iff)
+  by standard simp_all
 
 end
 
-lemma add_bit_eq_xor:
-  \<open>(+) = ((XOR) :: bit \<Rightarrow> _)\<close>
-  by (auto simp add: fun_eq_iff plus_bit_def xor_bit_def)
+lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
+  by (simp only: Z2.bit_eq_iff even_numeral) simp
 
-lemma mult_bit_eq_and:
-  \<open>(*) = ((AND) :: bit \<Rightarrow> _)\<close>
-  by (simp add: fun_eq_iff times_bit_def and_bit_def split: bit.split)
-
-lemma bit_NOT_eq_1_iff [simp]: "NOT b = 1 \<longleftrightarrow> b = 0"
-  for b :: bit
-  by (cases b) simp_all
-
-lemma bit_AND_eq_1_iff [simp]: "a AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
-  for a b :: bit
-  by (cases a; cases b) simp_all
-
-
-hide_const (open) set
+lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
+  by (simp only: Z2.bit_eq_iff odd_numeral)  simp
 
 end
