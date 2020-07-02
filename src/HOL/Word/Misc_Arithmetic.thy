@@ -3,7 +3,7 @@
 section \<open>Miscellaneous lemmas, mostly for arithmetic\<close>
 
 theory Misc_Arithmetic
-  imports Misc_Auxiliary "HOL-Library.Z2"
+  imports Misc_Auxiliary
 begin
 
 lemma one_mod_exp_eq_one [simp]:
@@ -418,18 +418,5 @@ lemma min_minus' [simp]: "min (m - k) m = m - k"
   by arith
 
 lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
-
-lemma not_B1_is_B0: "y \<noteq> 1 \<Longrightarrow> y = 0"
-  for y :: bit
-  by (cases y) auto
-
-lemma B1_ass_B0:
-  fixes y :: bit
-  assumes y: "y = 0 \<Longrightarrow> y = 1"
-  shows "y = 1"
-  apply (rule classical)
-  apply (drule not_B1_is_B0)
-  apply (erule y)
-  done
 
 end

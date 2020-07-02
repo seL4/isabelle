@@ -74,6 +74,9 @@ into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 "bintrunc" and "max_word" are now mere input abbreviations.
 Minor INCOMPATIBILITY.
 
+* Session HOL-Word: Theory Z2 is not used any longer.
+Minor INCOMPATIBILITY.
+
 * Rewrite rule subst_all performs
 more aggressive substitution with variables from assumptions.
 INCOMPATIBILITY, use something like
