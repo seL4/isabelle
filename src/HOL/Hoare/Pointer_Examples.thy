@@ -31,7 +31,6 @@ apply vcg_simp
   \<^cancel>\<open>apply clarsimp\<close>
   \<^cancel>\<open>apply(rename_tac ps')\<close>
   \<^cancel>\<open>apply(fastforce intro:notin_List_update[THEN iffD2])\<close>
-  apply fastforce
   done
 
 text\<open>And now with ghost variables \<^term>\<open>ps\<close> and \<^term>\<open>qs\<close>. Even
@@ -48,7 +47,6 @@ lemma "VARS next p ps q qs r
   {List next q (rev Ps @ Qs)}"
 apply vcg_simp
  apply fastforce
-apply fastforce
 done
 
 text "A longer readable version:"
@@ -104,7 +102,6 @@ lemma "VARS tl p q r
 apply vcg_simp
   apply clarsimp
  apply clarsimp
-apply clarsimp
 done
 
 
@@ -461,7 +458,6 @@ DO tmp := p; p := p^.next; tmp^.next := q; q:=tmp OD
 apply (simp only:distPath_def)
 apply vcg_simp
   apply clarsimp
-  apply clarsimp
  apply (case_tac "(q = Null)")
   apply (fastforce intro: Path_is_List)
  apply clarsimp
@@ -499,7 +495,6 @@ lemma "~finite(UNIV::'a set) \<Longrightarrow>
   {islist next p \<and> map elem (rev(list next p)) = Xs}"
 apply vcg_simp
  apply (clarsimp simp: subset_insert_iff neq_Nil_conv fun_upd_apply new_notin)
-apply fastforce
 done
 
 

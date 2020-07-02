@@ -51,7 +51,7 @@ function fold_random_permutation :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Ri
 | "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> 
      fold_random_permutation f x A = 
        pmf_of_set A \<bind> (\<lambda>a. fold_random_permutation f (f a x) (A - {a}))"
-by (force, simp_all)
+  by simp_all fastforce
 termination proof (relation "Wellfounded.measure (\<lambda>(_,_,A). card A)")
   fix A :: "'a set" and f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and x :: 'b and y :: 'a
   assume A: "finite A" "A \<noteq> {}" "y \<in> set_pmf (pmf_of_set A)"
@@ -126,7 +126,7 @@ function fold_bind_random_permutation
 | "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> 
      fold_bind_random_permutation f g x A = 
        pmf_of_set A \<bind> (\<lambda>a. fold_bind_random_permutation f g (f a x) (A - {a}))"
-by (force, simp_all)
+  by simp_all fastforce
 termination proof (relation "Wellfounded.measure (\<lambda>(_,_,_,A). card A)")
   fix A :: "'a set" and f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and x :: 'b 
     and y :: 'a and g :: "'b \<Rightarrow> 'c pmf"

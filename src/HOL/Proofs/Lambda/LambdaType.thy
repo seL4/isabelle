@@ -120,13 +120,19 @@ lemma rev_exhaust2 [extraction_expand]:
   apply simp
   done
 
-lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
-  (\<And>Us U. Ts = Us @ [U] \<Longrightarrow> e \<tturnstile> ts : Us \<Longrightarrow> e \<turnstile> t : U \<Longrightarrow> P) \<Longrightarrow> P"
-  apply (cases Ts rule: rev_exhaust2)
-  apply simp
-  apply (case_tac "ts @ [t]")
-  apply (simp add: types_snoc_eq)+
-  done
+lemma types_snocE:
+  assumes \<open>e \<tturnstile> ts @ [t] : Ts\<close>
+  obtains Us and U where \<open>Ts = Us @ [U]\<close> \<open>e \<tturnstile> ts : Us\<close> \<open>e \<turnstile> t : U\<close>
+proof (cases Ts rule: rev_exhaust2)
+  case Nil
+  with assms show ?thesis
+    by (cases "ts @ [t]") simp_all
+next
+  case (snoc Us U)
+  with assms have "e \<tturnstile> ts @ [t] : Us @ [U]" by simp
+  then have "e \<tturnstile> ts : Us" "e \<turnstile> t : U" by (simp_all add: types_snoc_eq)
+  with snoc show ?thesis by (rule that)
+qed
 
 
 subsection \<open>n-ary function types\<close>

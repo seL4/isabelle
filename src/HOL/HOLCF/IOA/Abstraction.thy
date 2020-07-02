@@ -296,7 +296,6 @@ lemma ex2seqConc [rule_format]:
   apply (simp add: nil_is_Conc)
   text \<open>cons case\<close>
   apply (pair aa)
-  apply auto
   done
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)

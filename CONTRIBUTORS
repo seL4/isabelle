@@ -20,6 +20,10 @@ Contributions to this Isabelle version
 * May 2020: Florian Haftmann
   Generic algebraically founded bit operations NOT, AND, OR, XOR.
 
+* June 2020: Florian Haftmann
+  Simproc defined_all for more aggressive substitution with variables
+  from assumptions.
+
 
 Contributions to Isabelle2020
 -----------------------------

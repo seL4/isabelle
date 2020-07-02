@@ -73,7 +73,6 @@ session "HOL-Library" (main timing) in Library = HOL +
     OptionalSugar
     (*prototypic tools*)
     Predicate_Compile_Quickcheck
-    Quantified_Premise_Simproc
     (*legacy tools*)
     Old_Datatype
     Old_Recdef

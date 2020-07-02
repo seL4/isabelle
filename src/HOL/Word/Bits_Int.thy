@@ -823,7 +823,6 @@ lemma bin_nth_rsplit [rule_format] :
   apply clarsimp
   apply (drule bthrs)
   apply (simp (no_asm_use) add: Let_def split: prod.split_asm if_split_asm)
-  apply clarify
   apply (erule allE, erule impE, erule exI)
   apply (case_tac k)
    apply clarsimp

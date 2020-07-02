@@ -77,10 +77,10 @@ Minor INCOMPATIBILITY.
 * Session HOL-Word: Theory Z2 is not used any longer.
 Minor INCOMPATIBILITY.
 
-* Rewrite rule subst_all performs
+* Simproc defined_all and rewrite rule subst_all perform
 more aggressive substitution with variables from assumptions.
 INCOMPATIBILITY, use something like
-"supply subst_all [simp del]"
+"supply subst_all [simp del] [[simproc del: defined_all]]"
 to leave fragile proofs unaffected.
 
 

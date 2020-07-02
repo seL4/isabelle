@@ -1234,8 +1234,6 @@ simproc_setup defined_Ex ("\<exists>x. P x") = \<open>K Quantifier1.rearrange_Ex
 simproc_setup defined_All ("\<forall>x. P x") = \<open>K Quantifier1.rearrange_All\<close>
 simproc_setup defined_all("\<And>x. PROP P x") = \<open>K Quantifier1.rearrange_all\<close>
 
-declare [[simproc del: defined_all]]
-
 text \<open>Simproc for proving \<open>(y = x) \<equiv> False\<close> from premise \<open>\<not> (x = y)\<close>:\<close>
 
 simproc_setup neq ("x = y") = \<open>fn _ =>

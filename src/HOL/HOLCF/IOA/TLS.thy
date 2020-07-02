@@ -153,9 +153,7 @@ lemma TL_TLS:
   apply (pair ex)
   apply (Seq_case x2)
   apply (simp add: unlift_def)
-  apply fast
   apply (simp add: unlift_def)
-  apply fast
   apply (simp add: unlift_def)
   apply (pair a)
   apply (Seq_case_simp s)

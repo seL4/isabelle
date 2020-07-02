@@ -261,7 +261,7 @@ subsection \<open>Extracting the program\<close>
 declare NF.induct [ind_realizer]
 declare rtranclp.induct [ind_realizer irrelevant]
 declare rtyping.induct [ind_realizer]
-lemmas [extraction_expand] = conj_assoc listall_cons_eq
+lemmas [extraction_expand] = conj_assoc listall_cons_eq subst_all equal_allI
 
 extract type_NF
 

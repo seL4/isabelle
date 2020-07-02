@@ -198,7 +198,6 @@ apply vcg_simp
   \<^cancel>\<open>apply simp\<close>
   \<^cancel>\<open>apply(rule_tac x = "p#qs" in exI)\<close>
   \<^cancel>\<open>apply simp\<close>
-  apply fastforce
   done
 
 
@@ -254,7 +253,6 @@ lemma "VARS tl p q r
 apply vcg_simp
   apply clarsimp
  apply clarsimp
-apply clarsimp
 done
 
 
@@ -427,7 +425,6 @@ lemma "~finite(UNIV::('a::ref)set) \<Longrightarrow>
   {islist next p \<and> map elem (rev(list next p)) = Xs}"
 apply vcg_simp
  apply (clarsimp simp: subset_insert_iff neq_Nil_conv fun_upd_apply new_notin)
-apply fastforce
 done
 
 

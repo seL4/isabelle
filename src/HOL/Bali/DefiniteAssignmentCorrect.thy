@@ -981,7 +981,8 @@ proof -
     from fvar obtain upd w
       where upd: "upd = snd (fst (fvar statDeclC stat fn a s2))" and
               v: "v=(w,upd)"
-      by (cases "fvar statDeclC stat fn a s2") simp
+      by (cases "fvar statDeclC stat fn a s2")
+        (simp, use surjective_pairing in blast)
     {
       fix j val fix s::state
       assume "normal s3"
@@ -1025,7 +1026,8 @@ proof -
     from avar obtain upd w
       where upd: "upd = snd (fst (avar G i a s2))" and
               v: "v=(w,upd)"
-      by (cases "avar G i a s2") simp
+      by (cases "avar G i a s2")
+        (simp, use surjective_pairing in blast)
     {
       fix j val fix s::state
       assume "normal s2'"

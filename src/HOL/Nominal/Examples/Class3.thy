@@ -297,7 +297,7 @@ lemma crename_AndR':
   assumes a: "R[a\<turnstile>c>b] = AndR <c>.M <d>.N e" "c\<sharp>(a,b,d,e,N,R)" "d\<sharp>(a,b,c,e,M,R)" "e\<sharp>a"
   shows "(\<exists>M' N'. R = AndR <c>.M' <d>.N' e \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> d\<sharp>M') \<or>
          (\<exists>M' N'. R = AndR <c>.M' <d>.N' a \<and> b=e \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> d\<sharp>M')"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct R avoiding: a b c d e M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)[1]
 apply(auto split: if_splits simp add: trm.inject alpha)[1]
@@ -1487,7 +1487,7 @@ lemma nrename_OrL':
   assumes a: "R[x\<turnstile>n>y] = OrL (v).M (w).N u" "v\<sharp>(R,N,u,x,y)" "w\<sharp>(R,M,u,x,y)" "x\<noteq>y" 
   shows "(\<exists>M' N'. (R = OrL (v).M' (w).N' u) \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N) \<or> 
          (\<exists>M' N'. (R = OrL (v).M' (w).N' x) \<and> y=u \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N)"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct R avoiding: y x u v w M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(name1,v)]\<bullet>trm1" in exI)
@@ -1550,7 +1550,7 @@ lemma nrename_ImpL':
   assumes a: "R[x\<turnstile>n>y] = ImpL <c>.M (w).N u" "c\<sharp>(R,N)" "w\<sharp>(R,M,u,x,y)" "x\<noteq>y" 
   shows "(\<exists>M' N'. (R = ImpL <c>.M' (w).N' u) \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N) \<or> 
          (\<exists>M' N'. (R = ImpL <c>.M' (w).N' x) \<and> y=u \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N)"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct R avoiding: y x u c w M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(coname,c)]\<bullet>trm1" in exI)
@@ -2367,7 +2367,7 @@ lemma CUT_SNa_aux:
   and     a3: "(x):N \<in> (\<parallel>(B)\<parallel>)"
   and     a4: "SNa N"
   shows   "SNa (Cut <a>.M (x).N)"
-using a1 a2 a3 a4
+using a1 a2 a3 a4 [[simproc del: defined_all]]
 apply(induct B M N arbitrary: a x rule: my_wf_induct_triple''[OF wf_measure_triple])
 apply(rule SNaI)
 apply(drule Cut_a_redu_elim)

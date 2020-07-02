@@ -193,6 +193,7 @@ by (erule valid.induct, auto simp: chain_def sign_def anchor_def)
 
 lemma insertion_resilience: "\<forall>L. L \<in> valid A n B \<longrightarrow> Suc i < len L
 \<longrightarrow> ins (L,Suc i,M) \<notin> valid A n B"
+supply [[simproc del: defined_all]]
 apply (induct i)
 (* i = 0 *)
 apply clarify
@@ -393,6 +394,7 @@ subsection\<open>propositions are guarded\<close>
 
 lemma pro_imp_Guard [rule_format]: "[| evs \<in> p2; B \<notin> bad; A \<notin> bad |] ==>
 pro B ofr A r I (cons M L) J C \<in> set evs \<longrightarrow> Guard ofr {priK A} (spies evs)"
+supply [[simproc del: defined_all]]
 apply (erule p2.induct) (* +3 subgoals *)
 (* Nil *)
 apply simp

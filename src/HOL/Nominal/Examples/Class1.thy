@@ -2936,7 +2936,9 @@ apply(auto simp add: trm.inject)
 apply(subgoal_tac "y\<sharp>[aa].Ma")
 apply(drule sym)
 apply(simp_all add: abs_fresh)
+apply (metis abs_fresh(5))
 done
+ 
 
 lemma fin_rest_elims:
   shows "fin (Cut <a>.M (x).N) y \<Longrightarrow> False"
@@ -2958,7 +2960,7 @@ by (induct rule: fin.induct)
 lemma not_fin_subst1:
   assumes a: "\<not>(fin M x)" 
   shows "\<not>(fin (M{c:=(y).P}) x)"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct M avoiding: x c y P rule: trm.strong_induct)
 apply(auto)
 apply(drule fin_elims, simp)
@@ -3043,7 +3045,7 @@ done
 lemma not_fin_subst2:
   assumes a: "\<not>(fin M x)" 
   shows "\<not>(fin (M{y:=<c>.P}) x)"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct M avoiding: x c y P rule: trm.strong_induct)
 apply(auto)
 apply(erule fin.cases, simp_all add: trm.inject)
@@ -3157,7 +3159,6 @@ apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
 apply(rule fin.intros)
-apply(auto)[1]
 apply(rule subst_fresh)
 apply(simp)
 apply(drule fin_elims, simp)
@@ -3195,7 +3196,7 @@ done
 lemma fin_substn_nrename:
   assumes a: "fin M x" "x\<noteq>y" "x\<sharp>P"
   shows "M[x\<turnstile>n>y]{y:=<c>.P} = Cut <c>.P (x).(M{y:=<c>.P})"
-using a
+using a [[simproc del: defined_all]]
 apply(nominal_induct M avoiding: x y c P rule: trm.strong_induct)
 apply(drule fin_Ax_elim)
 apply(simp)
@@ -3440,7 +3441,6 @@ apply(drule fic_elims, simp)
 apply(rule exists_fresh'(1)[OF fs_name1])
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substn)
 apply(simp add: fic.intros abs_fresh)
@@ -3471,7 +3471,6 @@ apply(simp add: fresh_fun_simp_NotR)
 apply(drule fic_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fic_elims, simp)
-apply(erule conjE)+
 apply(drule freshc_after_substc)
 apply(simp)
 apply(simp add: fic.intros abs_fresh)
@@ -3501,7 +3500,6 @@ apply(simp add: fresh_fun_simp_OrR1)
 apply(drule fic_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substc)
 apply(simp)
@@ -3514,7 +3512,6 @@ apply(simp add: fresh_fun_simp_OrR2)
 apply(drule fic_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substc)
 apply(simp)
@@ -3528,7 +3525,6 @@ apply(simp add: fresh_fun_simp_ImpR)
 apply(drule fic_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substc)
 apply(simp)
@@ -3546,7 +3542,6 @@ apply(simp add: fic.intros)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
 apply(rule fic.intros)
-apply(auto)[1]
 apply(rule subst_fresh)
 apply(simp)
 apply(drule fic_elims, simp)
@@ -3590,7 +3585,6 @@ apply(rule fic.intros)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
 apply(rule fic.intros)
-apply(auto)[1]
 apply(rule subst_fresh)
 apply(simp)
 apply(drule fic_elims, simp)
@@ -3683,7 +3677,6 @@ apply(drule fic_rest_elims)
 apply(simp)
 apply(drule fic_ImpR_elim)
 apply(simp add: abs_fresh fresh_atm)
-apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh fresh_prod)
@@ -4715,7 +4708,7 @@ done
 lemma a_redu_NotL_elim:
   assumes a: "NotL <a>.M x \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = NotL <a>.M' x \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4736,7 +4729,7 @@ done
 lemma a_redu_NotR_elim:
   assumes a: "NotR (x).M a \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = NotR (x).M' a \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4757,7 +4750,7 @@ done
 lemma a_redu_AndR_elim:
   assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = AndR <a>.M' <b>.N c \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = AndR <a>.M <b>.N' c \<and> N\<longrightarrow>\<^sub>aN')"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4846,7 +4839,7 @@ done
 lemma a_redu_AndL1_elim:
   assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = AndL1 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4867,7 +4860,7 @@ done
 lemma a_redu_AndL2_elim:
   assumes a: "AndL2 (x).M y \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = AndL2 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4888,7 +4881,7 @@ done
 lemma a_redu_OrL_elim:
   assumes a: "OrL (x).M (y).N z\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = OrL (x).M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = OrL (x).M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4977,7 +4970,7 @@ done
 lemma a_redu_OrR1_elim:
   assumes a: "OrR1 <a>.M b \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = OrR1 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -4998,7 +4991,7 @@ done
 lemma a_redu_OrR2_elim:
   assumes a: "OrR2 <a>.M b \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = OrR2 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -5019,7 +5012,7 @@ done
 lemma a_redu_ImpL_elim:
   assumes a: "ImpL <a>.M (y).N z\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = ImpL <a>.M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = ImpL <a>.M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -5108,7 +5101,7 @@ done
 lemma a_redu_ImpR_elim:
   assumes a: "ImpR (x).<a>.M b \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = ImpR (x).<a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
-using a
+using a [[simproc del: defined_all]]
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
 apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -5454,7 +5447,6 @@ apply(drule fin_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
-apply(auto)[1]
 apply(drule freshn_after_substc)
 apply(simp add: fin.intros)
 apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm1{coname3:=(x).P},P,coname1,trm2{coname3:=(x).P},coname2)")
@@ -5466,12 +5458,10 @@ apply(drule fin_elims, simp)
 apply(rule exists_fresh'(2)[OF fs_coname1])
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshn_after_substc)
 apply(simp add: fin.intros abs_fresh)
 apply(drule fin_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshn_after_substc)
 apply(simp add: fin.intros abs_fresh)
@@ -5578,7 +5568,6 @@ apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(drule freshc_after_substn)
 apply(simp add: fic.intros)
 apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<b>.P},P)")
@@ -5612,12 +5601,10 @@ apply(drule fic_elims, simp)
 apply(rule exists_fresh'(1)[OF fs_name1])
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substn)
 apply(simp add: fic.intros abs_fresh)
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substn)
 apply(simp add: fic.intros abs_fresh)
@@ -5630,7 +5617,6 @@ apply(drule fic_elims, simp)
 apply(rule exists_fresh'(1)[OF fs_name1])
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
-apply(auto)[1]
 apply(simp add: abs_fresh fresh_atm)
 apply(drule freshc_after_substn)
 apply(simp add: fic.intros abs_fresh)

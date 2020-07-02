@@ -176,6 +176,7 @@ done
 lemma cptn_onlyif_cptn_mod_aux [rule_format]:
   "\<forall>s Q t xs.((Some a, s), Q, t) \<in> ctran \<longrightarrow> (Q, t) # xs \<in> cptn_mod 
   \<longrightarrow> (Some a, s) # (Q, t) # xs \<in> cptn_mod"
+  supply [[simproc del: defined_all]]
 apply(induct a)
 apply simp_all
 \<comment> \<open>basic\<close>
@@ -718,6 +719,7 @@ lemma aux_onlyif [rule_format]: "\<forall>xs s. (xs, s)#ys \<in> par_cptn \<long
   (\<exists>clist. (length clist = length xs) \<and> 
   (xs, s)#ys \<propto> map (\<lambda>i. (fst i,s)#(snd i)) (zip xs clist) \<and> 
   (\<forall>i<length xs. (xs!i,s)#(clist!i) \<in> cptn))"
+  supply [[simproc del: defined_all]]
 apply(induct ys)
  apply(clarify)
  apply(rule_tac x="map (\<lambda>i. []) [0..<length xs]" in exI)

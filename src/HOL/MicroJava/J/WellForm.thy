@@ -532,7 +532,6 @@ apply (clarify)
 apply (erule_tac x = "Da" in allE)
 apply (clarsimp)
  apply (simp add: map_of_map)
- apply (clarify)
  apply (subst method_rec, assumption+)
  apply (simp add: map_add_def map_of_map split: option.split)
 done
@@ -552,7 +551,6 @@ apply (clarify)
 apply (erule_tac x = "Da" in allE)
 apply (clarsimp)
  apply (simp add: map_of_map)
- apply (clarify)
  apply (subst method_rec, assumption+)
  apply (simp add: map_add_def map_of_map split: option.split)
 done
@@ -599,7 +597,6 @@ apply (subgoal_tac "((field (G, D)) ++ map_of (map (\<lambda>(s, f). (s, C, f)) 
 apply (simp (no_asm_use) only: map_add_Some_iff)
 apply (erule disjE)
 apply (simp (no_asm_use) add: map_of_map) apply blast
-apply blast
 apply (rule trans [symmetric], rule sym, assumption)
 apply (rule_tac x=vn in fun_cong)
 apply (rule trans, rule field_rec, assumption+)

@@ -410,6 +410,7 @@ lemma compTpInitLvars_LT_ST_aux [rule_format (no_asm)]:
   \<longrightarrow>
 sttp_of (compTpInitLvars jmb lvars (ST, pre @ replicate (length lvars) Err))
     = (ST, pre @ map (Fun.comp OK snd) lvars)"
+  supply [[simproc del: defined_all]]
   apply (induct lvars)
    apply simp
 

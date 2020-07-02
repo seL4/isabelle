@@ -139,7 +139,6 @@ lemma avl_split_max:
    avl t' \<and> height t = height t' + (if decr t t' then 1 else 0)"
 apply(induction t arbitrary: t' a rule: split_max_induct)
  apply(auto simp: max_absorb1 max_absorb2 height_1_iff split!: splits prod.splits)
-apply(fastforce)+
 done
 
 lemma avl_delete: "avl t \<Longrightarrow>

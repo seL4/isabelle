@@ -62,8 +62,8 @@ theorem lemma1: "\<And>p. is_path r p i j k \<Longrightarrow> is_path r p (Suc i
 theorem lemma2: "\<And>p. is_path r p 0 j k \<Longrightarrow> r j k = T"
   unfolding is_path_def
   apply (simp cong add: conj_cong add: split_paired_all)
-  apply (case_tac "aa")
-  apply simp+
+  apply (case_tac a)
+  apply simp_all
   done
 
 theorem is_path'_conc: "is_path' r j xs i \<Longrightarrow> is_path' r i ys k \<Longrightarrow>

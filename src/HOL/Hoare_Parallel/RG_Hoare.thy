@@ -174,6 +174,7 @@ lemma etran_or_ctran [rule_format]:
   "\<forall>m i. x\<in>cptn \<longrightarrow> m \<le> length x
    \<longrightarrow> (\<forall>i. Suc i < m \<longrightarrow> \<not> x!i -c\<rightarrow> x!Suc i) \<longrightarrow> Suc i < m
    \<longrightarrow> x!i -e\<rightarrow> x!Suc i"
+  supply [[simproc del: defined_all]]
 apply(induct x,simp)
 apply clarify
 apply(erule cptn.cases,simp)
@@ -185,7 +186,7 @@ apply(erule cptn.cases,simp)
  apply(subgoal_tac "(\<forall>i. Suc i < nata \<longrightarrow> (((P, t) # xs) ! i, xs ! i) \<notin> ctran)")
   apply force
  apply clarify
- apply(erule_tac x="Suc ia" in allE,simp)
+   apply(erule_tac x="Suc ia" in allE,simp)
 apply(erule_tac x="0" and P="\<lambda>j. H j \<longrightarrow> (J j) \<notin> ctran" for H J in allE,simp)
 done
 
@@ -232,6 +233,7 @@ lemma stability [rule_format]:
   (\<forall>i. (Suc i)<length x \<longrightarrow>
           (x!i -e\<rightarrow> x!(Suc i)) \<longrightarrow> (snd(x!i), snd(x!(Suc i))) \<in> rely) \<longrightarrow>
   (\<forall>i. j\<le>i \<and> i<k \<longrightarrow> x!i -e\<rightarrow> x!Suc i) \<longrightarrow> snd(x!k)\<in>p \<and> fst(x!j)=fst(x!k)"
+  supply [[simproc del: defined_all]]
 apply(induct x)
  apply clarify
  apply(force elim:cptn.cases)
@@ -326,6 +328,7 @@ lemma Basic_sound:
   " \<lbrakk>pre \<subseteq> {s. f s \<in> post}; {(s, t). s \<in> pre \<and> t = f s} \<subseteq> guar;
   stable pre rely; stable post rely\<rbrakk>
   \<Longrightarrow> \<Turnstile> Basic f sat [pre, rely, guar, post]"
+  supply [[simproc del: defined_all]]
 apply(unfold com_validity_def)
 apply clarify
 apply(simp add:comm_def)
@@ -595,6 +598,7 @@ lemma Seq_sound1 [rule_format]:
   "x\<in> cptn_mod \<Longrightarrow> \<forall>s P. x !0=(Some (Seq P Q), s) \<longrightarrow>
   (\<forall>i<length x. fst(x!i)\<noteq>Some Q) \<longrightarrow>
   (\<exists>xs\<in> cp (Some P) s. x=map (lift Q) xs)"
+  supply [[simproc del: defined_all]]
 apply(erule cptn_mod.induct)
 apply(unfold cp_def)
 apply safe
@@ -625,6 +629,7 @@ lemma Seq_sound2 [rule_format]:
   (\<forall>j<i. fst(x!j)\<noteq>(Some Q)) \<longrightarrow>
   (\<exists>xs ys. xs \<in> cp (Some P) s \<and> length xs=Suc i
    \<and> ys \<in> cp (Some Q) (snd(xs !i)) \<and> x=(map (lift Q) xs)@tl ys)"
+  supply [[simproc del: defined_all]]
 apply(erule cptn.induct)
 apply(unfold cp_def)
 apply safe
@@ -879,6 +884,7 @@ lemma While_sound_aux [rule_format]:
   "\<lbrakk> pre \<inter> - b \<subseteq> post; \<Turnstile> P sat [pre \<inter> b, rely, guar, pre]; \<forall>s. (s, s) \<in> guar;
    stable pre rely;  stable post rely; x \<in> cptn_mod \<rbrakk>
   \<Longrightarrow>  \<forall>s xs. x=(Some(While b P),s)#xs \<longrightarrow> x\<in>assum(pre, rely) \<longrightarrow> x \<in> comm (guar, post)"
+  supply [[simproc del: defined_all]]
 apply(erule cptn_mod.induct)
 apply safe
 apply (simp_all del:last.simps)

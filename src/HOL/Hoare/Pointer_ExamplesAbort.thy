@@ -23,7 +23,6 @@ lemma "VARS tl p q r
 apply vcg_simp
   apply fastforce
  apply(fastforce intro:notin_List_update[THEN iffD2])
-apply fastforce
 done
 
 end

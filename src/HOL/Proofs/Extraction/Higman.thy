@@ -58,6 +58,7 @@ theorem lemma1: "L as ws \<Longrightarrow> L (a # as) ws"
   by (erule L.induct) iprover+
 
 lemma lemma2': "R a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as) ws"
+  supply [[simproc del: defined_all]]
   apply (induct set: R)
   apply (erule L.cases)
   apply simp+
@@ -69,17 +70,19 @@ lemma lemma2': "R a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as)
   done
 
 lemma lemma2: "R a vs ws \<Longrightarrow> good vs \<Longrightarrow> good ws"
+  supply [[simproc del: defined_all]]
   apply (induct set: R)
   apply iprover
   apply (erule good.cases)
   apply simp_all
   apply (rule good0)
   apply (erule lemma2')
-  apply assumption
+   apply assumption
   apply (erule good1)
   done
 
 lemma lemma3': "T a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as) ws"
+  supply [[simproc del: defined_all]]
   apply (induct set: T)
   apply (erule L.cases)
   apply simp_all
@@ -93,6 +96,7 @@ lemma lemma3': "T a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as)
   done
 
 lemma lemma3: "T a ws zs \<Longrightarrow> good ws \<Longrightarrow> good zs"
+  supply [[simproc del: defined_all]]
   apply (induct set: T)
   apply (erule good.cases)
   apply simp_all
@@ -107,6 +111,7 @@ lemma lemma3: "T a ws zs \<Longrightarrow> good ws \<Longrightarrow> good zs"
   done
 
 lemma lemma4: "R a ws zs \<Longrightarrow> ws \<noteq> [] \<Longrightarrow> T a ws zs"
+  supply [[simproc del: defined_all]]
   apply (induct set: R)
   apply iprover
   apply (case_tac vs)

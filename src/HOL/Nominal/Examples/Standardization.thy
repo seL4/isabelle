@@ -368,6 +368,7 @@ proof -
    "(\<exists>r'. r \<rightarrow>\<^sub>\<beta> r' \<and> s = r' \<degree>\<degree> rs) \<or>
     (\<exists>rs'. rs [\<rightarrow>\<^sub>\<beta>]\<^sub>1 rs' \<and> s = r \<degree>\<degree> rs') \<or>
     (\<exists>t u us. x \<sharp> r \<longrightarrow> r = (Lam [x].t) \<and> rs = u # us \<and> s = t[x::=u] \<degree>\<degree> us)"
+    supply [[simproc del: defined_all]]
     apply (nominal_induct u \<equiv> "r \<degree>\<degree> rs" s avoiding: x r rs rule: beta.strong_induct)
     apply (simp add: App_eq_foldl_conv)
     apply (split if_split_asm)
