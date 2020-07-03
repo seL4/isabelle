@@ -495,6 +495,42 @@ lemma div_eq_minus1: "0 < b \<Longrightarrow> - 1 div b = - 1" for b :: int
 lemma zmod_minus1: "0 < b \<Longrightarrow> - 1 mod b = b - 1" for b :: int
   by (auto simp add: modulo_int_def)
 
+lemma minus_mod_int_eq:
+  \<open>- k mod l = l - 1 - (k - 1) mod l\<close> if \<open>l \<ge> 0\<close> for k l :: int
+proof (cases \<open>l = 0\<close>)
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  with that have \<open>l > 0\<close>
+    by simp
+  then show ?thesis
+  proof (cases \<open>l dvd k\<close>)
+    case True
+    then obtain j where \<open>k = l * j\<close> ..
+    moreover have \<open>(l * j mod l - 1) mod l = l - 1\<close>
+      using \<open>l > 0\<close> by (simp add: zmod_minus1)
+    then have \<open>(l * j - 1) mod l = l - 1\<close>
+      by (simp only: mod_simps)
+    ultimately show ?thesis
+      by simp
+  next
+    case False
+    moreover have \<open>0 < k mod l\<close> \<open>k mod l < 1 + l\<close>
+      using \<open>0 < l\<close> le_imp_0_less False apply auto
+      using le_less apply fastforce
+      using pos_mod_bound [of l k] apply linarith 
+      done
+    with \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
+      by (simp add: zmod_trival_iff)
+    ultimately show ?thesis
+      apply (simp only: zmod_zminus1_eq_if)
+      apply (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
+      done
+  qed
+qed
+
 lemma div_neg_pos_less0:
   fixes a::int
   assumes "a < 0" "0 < b" 

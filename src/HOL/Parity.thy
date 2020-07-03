@@ -1257,6 +1257,10 @@ lemma push_bit_add:
   "push_bit n (a + b) = push_bit n a + push_bit n b"
   by (simp add: push_bit_eq_mult algebra_simps)
 
+lemma push_bit_numeral [simp]:
+  \<open>push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))\<close>
+  by (simp add: numeral_eq_Suc mult_2_right) (simp add: numeral_Bit0)
+
 lemma take_bit_0 [simp]:
   "take_bit 0 a = 0"
   by (simp add: take_bit_eq_mod)
@@ -1378,7 +1382,7 @@ lemma even_push_bit_iff [simp]:
   by (simp add: push_bit_eq_mult) auto
 
 lemma bit_push_bit_iff:
-  \<open>bit (push_bit m a) n \<longleftrightarrow> n \<ge> m \<and> 2 ^ n \<noteq> 0 \<and> (n < m \<or> bit a (n - m))\<close>
+  \<open>bit (push_bit m a) n \<longleftrightarrow> m \<le> n \<and> 2 ^ n \<noteq> 0 \<and> bit a (n - m)\<close>
   by (auto simp add: bit_iff_odd push_bit_eq_mult even_mult_exp_div_exp_iff)
 
 lemma bit_drop_bit_eq:
@@ -1491,10 +1495,6 @@ lemma take_bit_of_mask:
 lemma push_bit_eq_0_iff [simp]:
   "push_bit n a = 0 \<longleftrightarrow> a = 0"
   by (simp add: push_bit_eq_mult)
-
-lemma push_bit_numeral [simp]:
-  "push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))"
-  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric]) (simp add: ac_simps)
 
 lemma push_bit_of_nat:
   "push_bit n (of_nat m) = of_nat (push_bit n m)"

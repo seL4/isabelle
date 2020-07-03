@@ -24,9 +24,6 @@ lemma bin_last_def:
 abbreviation (input) bin_rest :: "int \<Rightarrow> int"
   where "bin_rest w \<equiv> w div 2"
 
-lemma BitM_inc: "Num.BitM (Num.inc w) = Num.Bit1 w"
-  by (induct w) simp_all
-
 lemma bin_last_numeral_simps [simp]:
   "\<not> bin_last 0"
   "bin_last 1"
@@ -571,6 +568,21 @@ lemmas rco_bintr = bintrunc_rest'
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 lemmas rco_sbintr = sbintrunc_rest'
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
+
+lemma sbintrunc_code [code]:
+  "sbintrunc n k =
+  (let l = take_bit (Suc n) k
+   in if bit l n then l - push_bit n 2 else l)"
+proof (induction n arbitrary: k)
+  case 0
+  then show ?case
+    by (simp add: mod_2_eq_odd and_one_eq)
+next
+  case (Suc n)
+  from Suc [of \<open>k div 2\<close>]
+  show ?case
+    by (auto simp add: Let_def push_bit_eq_mult algebra_simps take_bit_Suc [of \<open>Suc n\<close>] bit_Suc elim!: evenE oddE)
+qed
 
 
 subsection \<open>Splitting and concatenation\<close>

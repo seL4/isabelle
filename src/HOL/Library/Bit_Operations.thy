@@ -257,17 +257,17 @@ proof (rule bit_eqI)
 qed
 
 definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>set_bit n a = a OR 2 ^ n\<close>
+  where \<open>set_bit n a = a OR push_bit n 1\<close>
 
 definition unset_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>unset_bit n a = a AND NOT (2 ^ n)\<close>
+  where \<open>unset_bit n a = a AND NOT (push_bit n 1)\<close>
 
 definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>flip_bit n a = a XOR 2 ^ n\<close>
+  where \<open>flip_bit n a = a XOR push_bit n 1\<close>
 
 lemma bit_set_bit_iff:
   \<open>bit (set_bit m a) n \<longleftrightarrow> bit a n \<or> (m = n \<and> 2 ^ n \<noteq> 0)\<close>
-  by (auto simp add: set_bit_def bit_or_iff bit_exp_iff)
+  by (auto simp add: set_bit_def push_bit_of_1 bit_or_iff bit_exp_iff)
 
 lemma even_set_bit_iff:
   \<open>even (set_bit m a) \<longleftrightarrow> even a \<and> m \<noteq> 0\<close>
@@ -275,7 +275,7 @@ lemma even_set_bit_iff:
 
 lemma bit_unset_bit_iff:
   \<open>bit (unset_bit m a) n \<longleftrightarrow> bit a n \<and> m \<noteq> n\<close>
-  by (auto simp add: unset_bit_def bit_and_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
+  by (auto simp add: unset_bit_def push_bit_of_1 bit_and_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
 
 lemma even_unset_bit_iff:
   \<open>even (unset_bit m a) \<longleftrightarrow> even a \<or> m = 0\<close>
@@ -283,7 +283,7 @@ lemma even_unset_bit_iff:
 
 lemma bit_flip_bit_iff:
   \<open>bit (flip_bit m a) n \<longleftrightarrow> (m = n \<longleftrightarrow> \<not> bit a n) \<and> 2 ^ n \<noteq> 0\<close>
-  by (auto simp add: flip_bit_def bit_xor_iff bit_exp_iff exp_eq_0_imp_not_bit)
+  by (auto simp add: flip_bit_def push_bit_of_1 bit_xor_iff bit_exp_iff exp_eq_0_imp_not_bit)
 
 lemma even_flip_bit_iff:
   \<open>even (flip_bit m a) \<longleftrightarrow> \<not> (even a \<longleftrightarrow> m = 0)\<close>

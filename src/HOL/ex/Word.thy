@@ -37,7 +37,7 @@ next
 qed
 
 lemma signed_take_bit_Suc:
-  "signed_take_bit (Suc n) k = signed_take_bit n (k div 2) * 2 + k mod 2"
+  "signed_take_bit (Suc n) k = k mod 2 + 2 * signed_take_bit n (k div 2)"
   by (simp add: odd_iff_mod_2_eq_one signed_take_bit_eq_take_bit algebra_simps take_bit_Suc)
 
 lemma signed_take_bit_of_0 [simp]:
@@ -78,6 +78,21 @@ proof -
     then show ?Q
       by (simp add: take_bit_eq_mod)
   qed
+qed
+
+lemma signed_take_bit_code [code]:
+  \<open>signed_take_bit n k =
+  (let l = take_bit (Suc n) k
+   in if bit l n then l - push_bit n 2 else l)\<close>
+proof (induction n arbitrary: k)
+  case 0
+  then show ?case
+    by (simp add: mod_2_eq_odd and_one_eq)
+next
+  case (Suc n)
+  from Suc [of \<open>k div 2\<close>]
+  show ?case
+    by (auto simp add: Let_def push_bit_eq_mult algebra_simps take_bit_Suc [of \<open>Suc n\<close>] bit_Suc signed_take_bit_Suc elim!: evenE oddE)
 qed
 
 

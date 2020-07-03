@@ -209,6 +209,14 @@ lemma BitM_plus_one: "BitM n + One = Bit0 n"
 lemma one_plus_BitM: "One + BitM n = Bit0 n"
   unfolding add_One_commute BitM_plus_one ..
 
+lemma BitM_inc_eq:
+  \<open>Num.BitM (Num.inc n) = Num.Bit1 n\<close>
+  by (induction n) simp_all
+
+lemma inc_BitM_eq:
+  \<open>Num.inc (Num.BitM n) = num.Bit0 n\<close>
+  by (simp add: BitM_plus_one[symmetric] add_One)
+
 text \<open>Squaring and exponentiation.\<close>
 
 primrec sqr :: "num \<Rightarrow> num"
@@ -420,6 +428,10 @@ definition sub :: "num \<Rightarrow> num \<Rightarrow> 'a"
 
 lemma numeral_BitM: "numeral (BitM n) = numeral (Bit0 n) - 1"
   by (simp only: BitM_plus_one [symmetric] numeral_add numeral_One eq_diff_eq)
+
+lemma sub_inc_One_eq:
+  \<open>Num.sub (Num.inc n) num.One = numeral n\<close>
+  by (simp_all add: sub_def diff_eq_eq numeral_inc numeral.numeral_One)
 
 lemma dbl_simps [simp]:
   "dbl (- numeral k) = - dbl (numeral k)"

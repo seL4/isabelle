@@ -15,64 +15,6 @@ imports
   Misc_Arithmetic
 begin
 
-subsection \<open>Prelude\<close>
-
-lemma (in semiring_bit_shifts) bit_push_bit_iff: \<comment> \<open>TODO move\<close>
-  \<open>bit (push_bit m a) n \<longleftrightarrow> m \<le> n \<and> 2 ^ n \<noteq> 0 \<and> bit a (n - m)\<close>
-  by (auto simp add: bit_iff_odd push_bit_eq_mult even_mult_exp_div_exp_iff)
-
-lemma (in semiring_bit_shifts) push_bit_numeral [simp]: \<comment> \<open>TODO: move\<close>
-  \<open>push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))\<close>
-  by (simp add: numeral_eq_Suc mult_2_right) (simp add: numeral_Bit0)
-
-lemma minus_mod_int_eq: \<comment> \<open>TODO move\<close>
-  \<open>- k mod l = l - 1 - (k - 1) mod l\<close> if \<open>l \<ge> 0\<close> for k l :: int
-proof (cases \<open>l = 0\<close>)
-  case True
-  then show ?thesis
-    by simp 
-next
-  case False
-  with that have \<open>l > 0\<close>
-    by simp
-  then show ?thesis
-  proof (cases \<open>l dvd k\<close>)
-    case True
-    then obtain j where \<open>k = l * j\<close> ..
-    moreover have \<open>(l * j mod l - 1) mod l = l - 1\<close>
-      using \<open>l > 0\<close> by (simp add: zmod_minus1)
-    then have \<open>(l * j - 1) mod l = l - 1\<close>
-      by (simp only: mod_simps)
-    ultimately show ?thesis
-      by simp
-  next
-    case False
-    moreover have \<open>0 < k mod l\<close> \<open>k mod l < 1 + l\<close>
-      using \<open>0 < l\<close> le_imp_0_less pos_mod_conj False apply auto
-      using le_less apply fastforce
-      using pos_mod_bound [of l k] apply linarith 
-      done
-    with \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
-      by (simp add: zmod_trival_iff)
-    ultimately show ?thesis
-      apply (simp only: zmod_zminus1_eq_if)
-      apply (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
-      done
-  qed
-qed
-
-lemma nth_rotate: \<comment> \<open>TODO move\<close>
-  \<open>rotate m xs ! n = xs ! ((m + n) mod length xs)\<close> if \<open>n < length xs\<close>
-  using that apply (auto simp add: rotate_drop_take nth_append not_less less_diff_conv ac_simps dest!: le_Suc_ex)
-   apply (metis add.commute mod_add_right_eq mod_less)
-  apply (metis (no_types, lifting) Nat.diff_diff_right add.commute add_diff_cancel_right' diff_le_self dual_order.strict_trans2 length_greater_0_conv less_nat_zero_code list.size(3) mod_add_right_eq mod_add_self2 mod_le_divisor mod_less)
-  done
-
-lemma nth_rotate1: \<comment> \<open>TODO move\<close>
-  \<open>rotate1 xs ! n = xs ! (Suc n mod length xs)\<close> if \<open>n < length xs\<close>
-  using that nth_rotate [of n xs 1] by simp
-
-
 subsection \<open>Type definition\<close>
 
 quotient_type (overloaded) 'a word = int / \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len) l\<close>
@@ -1006,7 +948,7 @@ lemma test_bit_word_eq:
 lemma set_bit_unfold:
   \<open>set_bit w n b = (if b then Bit_Operations.set_bit n w else unset_bit n w)\<close>
   for w :: \<open>'a::len word\<close>
-  apply (auto simp add: word_set_bit_def bin_clr_conv_NAND bin_set_conv_OR unset_bit_def set_bit_def shiftl_int_def; transfer)
+  apply (auto simp add: word_set_bit_def bin_clr_conv_NAND bin_set_conv_OR unset_bit_def set_bit_def shiftl_int_def push_bit_of_1; transfer)
    apply simp_all
   done
 

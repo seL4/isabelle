@@ -66,7 +66,7 @@ lemma expand_BIT:
   "numeral (Num.Bit1 w) = numeral w BIT True"
   "- numeral (Num.Bit0 w) = (- numeral w) BIT False"
   "- numeral (Num.Bit1 w) = (- numeral (w + Num.One)) BIT True"
-  by (simp_all add: add_One BitM_inc)
+  by (simp_all add: BitM_inc_eq add_One)
 
 lemma less_Bits: "v BIT b < w BIT c \<longleftrightarrow> v < w \<or> v \<le> w \<and> \<not> b \<and> c"
   by (auto simp: Bit_def)

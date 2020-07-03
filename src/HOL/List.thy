@@ -4775,6 +4775,17 @@ qed
 lemma rotate_append: "rotate (length l) (l @ q) = q @ l"
   by (induct l arbitrary: q) (auto simp add: rotate1_rotate_swap)
 
+lemma nth_rotate:
+  \<open>rotate m xs ! n = xs ! ((m + n) mod length xs)\<close> if \<open>n < length xs\<close>
+  using that apply (auto simp add: rotate_drop_take nth_append not_less less_diff_conv ac_simps dest!: le_Suc_ex)
+   apply (metis add.commute mod_add_right_eq mod_less)
+  apply (metis (no_types, lifting) Nat.diff_diff_right add.commute add_diff_cancel_right' diff_le_self dual_order.strict_trans2 length_greater_0_conv less_nat_zero_code list.size(3) mod_add_right_eq mod_add_self2 mod_le_divisor mod_less)
+  done
+
+lemma nth_rotate1:
+  \<open>rotate1 xs ! n = xs ! (Suc n mod length xs)\<close> if \<open>n < length xs\<close>
+  using that nth_rotate [of n xs 1] by simp
+
 
 subsubsection \<open>\<^const>\<open>nths\<close> --- a generalization of \<^const>\<open>nth\<close> to sets\<close>
 
