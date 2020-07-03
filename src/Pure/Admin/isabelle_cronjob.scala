@@ -157,6 +157,7 @@ object Isabelle_Cronjob
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
+    java_heap: String = "",
     options: String = "",
     args: String = "",
     afp: Boolean = false,
@@ -316,9 +317,8 @@ object Isabelle_Cronjob
       List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
         self_update = true,
-        options = "-m32 -M4" +
-          """ -e 'ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"'""" +
-          " -e ISABELLE_GHC_SETUP=true",
+        java_heap = "8g",
+        options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
@@ -342,8 +342,8 @@ object Isabelle_Cronjob
       List(
         Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
+          java_heap = "8g",
           options = "-m32 -M1x8 -t AFP" +
-            """ -e 'ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"'""" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
@@ -353,8 +353,8 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
         Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          options = "-m64 -M8 -U30000 -s10 -t AFP" +
-            """ -e 'ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"'""",
+          java_heap = "8g",
+          options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
           afp = true,
           bulky = true,
@@ -378,7 +378,12 @@ object Isabelle_Cronjob
                 afp_rev = afp_rev,
                 options =
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                  " -f -h " + Bash.string(r.host) + " " + r.options,
+                  " -f -h " + Bash.string(r.host) + " " +
+                  (r.java_heap match {
+                    case "" => ""
+                    case h =>
+                      "-e 'ISABELLE_TOOL_JAVA_OPTIONS=\"$ISABELLE_TOOL_JAVA_OPTIONS -Xmx" + h + "\"' "
+                  }) + r.options,
                 args = "-o timeout=10800 " + r.args)
 
             for ((log_name, bytes) <- results) {
