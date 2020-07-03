@@ -276,11 +276,12 @@ object Isabelle_Cronjob
   {
     List(
       List(Remote_Build("Linux A", "lxbroy9",
-        options = "-m32 -B -M1x2,2", args = "-N -g timing")),
+        java_heap = "2g", options = "-m32 -B -M1x2,2", args = "-N -g timing")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(Remote_Build("Linux Benchmarks", "lxbroy5", historic = true, history = 90,
-        options = "-m32 -B -M1x2,2 -t Benchmarks" +
+        java_heap = "2g",
+          options = "-m32 -B -M1x2,2 -t Benchmarks" +
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
