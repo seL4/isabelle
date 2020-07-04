@@ -9,8 +9,15 @@ and converting them to and from lists of bools.
 section \<open>Bitwise Operations on integers\<close>
 
 theory Bits_Int
-  imports Misc_Auxiliary Bits
+  imports Bits
 begin
+
+subsection \<open>Generic auxiliary\<close>
+
+lemma int_mod_ge: "a < n \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a mod n"
+  for a n :: int
+  by (metis dual_order.trans le_cases mod_pos_pos_trivial pos_mod_conj)
+
 
 subsection \<open>Implicit bit representation of \<^typ>\<open>int\<close>\<close>
 
@@ -256,6 +263,10 @@ next
     by (auto elim!: evenE oddE simp add: mult_mod_right ac_simps)
 qed
 
+lemma sbintrunc_eq_take_bit:
+  \<open>sbintrunc n k = take_bit (Suc n) (k + 2 ^ n) - 2 ^ n\<close>
+  by (simp add: sbintrunc_mod2p take_bit_eq_mod)
+
 lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
   by (simp add: bintrunc_mod2p bin_sign_def)
 
@@ -464,47 +475,59 @@ lemma no_bintr_alt1: "bintrunc n = (\<lambda>w. w mod 2 ^ n :: int)"
   by (rule ext) (rule bintrunc_mod2p)
 
 lemma range_bintrunc: "range (bintrunc n) = {i. 0 \<le> i \<and> i < 2 ^ n}"
-  apply (unfold no_bintr_alt1)
-  apply (auto simp add: image_iff)
-  apply (rule exI)
-  apply (rule sym)
-  using int_mod_lem [symmetric, of "2 ^ n"]
-  apply auto
-  done
+  by (auto simp add: take_bit_eq_mod image_iff) (metis mod_pos_pos_trivial)
 
 lemma no_sbintr_alt2: "sbintrunc n = (\<lambda>w. (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n :: int)"
   by (rule ext) (simp add : sbintrunc_mod2p)
 
 lemma range_sbintrunc: "range (sbintrunc n) = {i. - (2 ^ n) \<le> i \<and> i < 2 ^ n}"
-  apply (unfold no_sbintr_alt2)
-  apply (auto simp add: image_iff eq_diff_eq)
+proof -
+  have \<open>surj (\<lambda>k::int. k + 2 ^ n)\<close>
+    by (rule surjI [of _ \<open>(\<lambda>k. k - 2 ^ n)\<close>]) simp
+  moreover have \<open>sbintrunc n = ((\<lambda>k. k - 2 ^ n) \<circ> take_bit (Suc n) \<circ> (\<lambda>k. k + 2 ^ n))\<close>
+    by (simp add: sbintrunc_eq_take_bit fun_eq_iff)
+  ultimately show ?thesis
+    apply (simp only: fun.set_map range_bintrunc)
+    apply (auto simp add: image_iff)
+    apply presburger
+    done
+qed
 
-  apply (rule exI)
-  apply (auto intro: int_mod_lem [THEN iffD1, symmetric])
-  done
+lemma take_bit_greater_eq:
+  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
+proof -
+  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
+  proof (cases \<open>k > - (2 ^ n)\<close>)
+    case False
+    then have \<open>k + 2 ^ n \<le> 0\<close>
+      by simp
+    also note take_bit_nonnegative
+    finally show ?thesis .
+  next
+    case True
+    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
+      by simp_all
+    then show ?thesis
+      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
+  qed
+  then show ?thesis
+    by (simp add: take_bit_eq_mod)
+qed
 
-lemma sb_inc_lem: "a + 2^k < 0 \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
-  for a :: int
-  using int_mod_ge' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"]
-  by simp
+lemma take_bit_less_eq:
+  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
+  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
+  by (simp add: take_bit_eq_mod)
+    
+lemma sbintrunc_inc:
+  \<open>k + 2 ^ Suc n \<le> sbintrunc n k\<close> if \<open>k < - (2 ^ n)\<close>
+  using that take_bit_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
+  by (simp add: sbintrunc_eq_take_bit)
 
-lemma sb_inc_lem': "a < - (2^k) \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
-  for a :: int
-  by (rule sb_inc_lem) simp
-
-lemma sbintrunc_inc: "x < - (2^n) \<Longrightarrow> x + 2^(Suc n) \<le> sbintrunc n x"
-  unfolding no_sbintr_alt2 by (drule sb_inc_lem') simp
-
-lemma sb_dec_lem: "0 \<le> - (2 ^ k) + a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
-  for a :: int
-  using int_mod_le'[where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"] by simp
-
-lemma sb_dec_lem': "2 ^ k \<le> a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
-  for a :: int
-  by (rule sb_dec_lem) simp
-
-lemma sbintrunc_dec: "x \<ge> (2 ^ n) \<Longrightarrow> x - 2 ^ (Suc n) >= sbintrunc n x"
-  unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
+lemma sbintrunc_dec:
+  \<open>sbintrunc n k \<le> k - 2 ^ (Suc n)\<close> if \<open>k \<ge> 2 ^ n\<close>
+  using that take_bit_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
+  by (simp add: sbintrunc_eq_take_bit)
 
 lemma bintr_ge0: "0 \<le> bintrunc n w"
   by (simp add: bintrunc_mod2p)
@@ -513,8 +536,8 @@ lemma bintr_lt2p: "bintrunc n w < 2 ^ n"
   by (simp add: bintrunc_mod2p)
 
 lemma bintr_Min: "bintrunc n (- 1) = 2 ^ n - 1"
-  by (simp add: bintrunc_mod2p m1mod2k)
-
+  by (simp add: stable_imp_take_bit_eq)
+  
 lemma sbintr_ge: "- (2 ^ n) \<le> sbintrunc n w"
   by (simp add: sbintrunc_mod2p)
 
@@ -540,7 +563,7 @@ lemma bin_rest_trunc_i: "bintrunc n (bin_rest bin) = bin_rest (bintrunc (Suc n) 
   by (auto simp add: take_bit_Suc)
 
 lemma bin_rest_strunc: "bin_rest (sbintrunc (Suc n) bin) = sbintrunc n (bin_rest bin)"
-  by (induct n arbitrary: bin) auto
+  by simp
 
 lemma bintrunc_rest [simp]: "bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (bintrunc n bin)"
   by (induct n arbitrary: bin) (simp_all add: take_bit_Suc)
@@ -609,8 +632,12 @@ lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
 proof -
   have \<open>0 \<le> x\<close> if \<open>0 \<le> x * 2 ^ n + y mod 2 ^ n\<close>
   proof -
-    from that have \<open>x \<noteq> - 1\<close>
-      using int_mod_le' [of \<open>y mod 2 ^ n\<close> \<open>2 ^ n\<close>] by auto
+    have \<open>y mod 2 ^ n < 2 ^ n\<close>
+      using pos_mod_bound [of \<open>2 ^ n\<close> y] by simp
+    then have \<open>\<not> y mod 2 ^ n \<ge> 2 ^ n\<close>
+      by (simp add: less_le)
+    with that have \<open>x \<noteq> - 1\<close>
+      by auto
     have *: \<open>- 1 \<le> (- (y mod 2 ^ n)) div 2 ^ n\<close>
       by (simp add: zdiv_zminus1_eq_if)
     from that have \<open>- (y mod 2 ^ n) \<le> x * 2 ^ n\<close>
@@ -1858,11 +1885,14 @@ lemma bin_nth_bl: "n < m \<Longrightarrow> bin_nth w n = nth (rev (bin_to_bl m w
 
 lemma nth_bin_to_bl_aux:
   "n < m + length bl \<Longrightarrow> (bin_to_bl_aux m w bl) ! n =
-    (if n < m then bin_nth w (m - 1 - n) else bl ! (n - m))"
+    (if n < m then bit w (m - 1 - n) else bl ! (n - m))"
   apply (induction bl arbitrary: w)
    apply simp_all
-   apply (metis add.right_neutral bin_nth_bl bin_to_bl_def diff_Suc_less less_Suc_eq_0_disj less_imp_Suc_add list.size(3) nth_rev_alt size_bin_to_bl_aux)
-  apply (metis One_nat_def Suc_pred add_diff_cancel_left' add_diff_cancel_right' bin_to_bl_aux_alt bin_to_bl_def cancel_comm_monoid_add_class.diff_cancel diff_Suc_Suc diff_is_0_eq diff_zero le_add_diff_inverse le_eq_less_or_eq less_Suc_eq_0_disj less_antisym less_imp_Suc_add list.size(3) nat_less_le nth_append order_refl size_bin_to_bl_aux)
+   apply (simp add: bin_nth_bl [of \<open>m - Suc n\<close> m] rev_nth flip: bin_to_bl_def)
+   apply (metis One_nat_def Suc_pred add_diff_cancel_left'
+     add_diff_cancel_right' bin_to_bl_aux_alt bin_to_bl_def
+     diff_Suc_Suc diff_is_0_eq diff_zero less_Suc_eq_0_disj
+     less_antisym less_imp_Suc_add list.size(3) nat_less_le nth_append size_bin_to_bl_aux)
   done
 
 lemma nth_bin_to_bl: "n < m \<Longrightarrow> (bin_to_bl m w) ! n = bin_nth w (m - Suc n)"
@@ -2030,19 +2060,10 @@ lemma bin_split_take1:
   "k = m + n \<Longrightarrow> bin_split n c = (a, b) \<Longrightarrow> bin_to_bl m a = take m (bin_to_bl k c)"
   using bin_split_take by simp
 
-lemma takefill_bintrunc: "takefill False n bl = rev (bin_to_bl n (bl_to_bin (rev bl)))"
-  apply (rule nth_equalityI)
-   apply simp
-  apply (clarsimp simp: nth_takefill nth_rev nth_bin_to_bl bin_nth_of_bl)
-  done
-
-lemma bl_bin_bl_rtf: "bin_to_bl n (bl_to_bin bl) = rev (takefill False n (rev bl))"
-  by (simp add: takefill_bintrunc)
-
 lemma bl_bin_bl_rep_drop:
   "bin_to_bl n (bl_to_bin bl) =
     replicate (n - length bl) False @ drop (length bl - n) bl"
-  by (simp add: bl_bin_bl_rtf takefill_alt rev_take)
+  by (simp add: bl_to_bin_inj bl_to_bin_rep_F trunc_bl2bin)
 
 lemma bl_to_bin_aux_cat:
   "bl_to_bin_aux bs (bin_cat w nv v) =

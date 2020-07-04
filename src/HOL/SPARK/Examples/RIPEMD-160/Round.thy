@@ -56,7 +56,7 @@ lemma uint_word_of_int_id:
   shows"uint(word_of_int x::word32) = x"
   unfolding int_word_uint
   using assms
-  by (simp add:int_mod_eq')
+  by simp
 
 lemma steps_step: "steps X cc (Suc i) = step_both X (steps X cc i) i"
   unfolding steps_def
@@ -186,11 +186,11 @@ proof -
     (is "(uint (word_rotl _ (_ ((((_ + ?F) mod _ + ?X) mod _ + _) mod _))) + _) mod _ = _")
   proof -
     have "a mod ?MM = a" using \<open>0 <= a\<close> \<open>a <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "?X mod ?MM = ?X" using \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "e mod ?MM = e" using \<open>0 <= e\<close> \<open>e <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "(?MM::int) = 2 ^ LENGTH(32)" by simp
     show ?thesis
       unfolding
@@ -226,11 +226,11 @@ proof -
     (is "(uint (word_rotl _ (_ ((((_ + ?F) mod _ + ?X) mod _ + _) mod _))) + _) mod _ = _")
   proof -
     have "a' mod ?MM = a'" using \<open>0 <= a'\<close> \<open>a' <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "?X mod ?MM = ?X" using \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "e' mod ?MM = e'" using \<open>0 <= e'\<close> \<open>e' <= ?M\<close>
-      by (simp add: int_mod_eq')
+      by simp
     have "(?MM::int) = 2 ^ LENGTH(32)" by simp
     have nat_transfer: "79 - nat j = nat (79 - j)"
       using nat_diff_distrib \<open>0 <= j\<close>  \<open>j <= 79\<close>

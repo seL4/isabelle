@@ -3,8 +3,48 @@
 section \<open>Miscellaneous lemmas, mostly for arithmetic\<close>
 
 theory Misc_Arithmetic
-  imports Misc_Auxiliary
+  imports Main Bits_Int
 begin
+
+lemma int_mod_lem: "0 < n \<Longrightarrow> 0 \<le> b \<and> b < n \<longleftrightarrow> b mod n = b"
+  for b n :: int
+  apply safe
+    apply (erule (1) mod_pos_pos_trivial)
+   apply (erule_tac [!] subst)
+   apply auto
+  done
+
+lemma int_mod_ge': "b < 0 \<Longrightarrow> 0 < n \<Longrightarrow> b + n \<le> b mod n"
+  for b n :: int
+  by (metis add_less_same_cancel2 int_mod_ge mod_add_self2)
+
+lemma int_mod_le': "0 \<le> b - n \<Longrightarrow> b mod n \<le> b - n"
+  for b n :: int
+  by (metis minus_mod_self2 zmod_le_nonneg_dividend)
+
+lemma emep1: "even n \<Longrightarrow> even d \<Longrightarrow> 0 \<le> d \<Longrightarrow> (n + 1) mod d = (n mod d) + 1"
+  for n d :: int
+  by (auto simp add: pos_zmod_mult_2 add.commute dvd_def)
+
+lemma m1mod2k: "- 1 mod 2 ^ n = (2 ^ n - 1 :: int)"
+  by (rule zmod_minus1) simp
+
+lemma sb_inc_lem: "a + 2^k < 0 \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
+  for a :: int
+  using int_mod_ge' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"]
+  by simp
+
+lemma sb_inc_lem': "a < - (2^k) \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
+  for a :: int
+  by (rule sb_inc_lem) simp
+
+lemma sb_dec_lem: "0 \<le> - (2 ^ k) + a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
+  for a :: int
+  using int_mod_le'[where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"] by simp
+
+lemma sb_dec_lem': "2 ^ k \<le> a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
+  for a :: int
+  by (rule sb_dec_lem) simp
 
 lemma one_mod_exp_eq_one [simp]:
   "1 mod (2 * 2 ^ n) = (1::int)"

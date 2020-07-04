@@ -7,6 +7,8 @@ theory More_Word
 imports
   Word
   Ancient_Numeral
+  Misc_Auxiliary
+  Misc_Arithmetic
 begin
 
 end
