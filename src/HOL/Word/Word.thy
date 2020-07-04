@@ -4551,11 +4551,23 @@ lemma foldl_eq_foldr: "foldl (+) x xs = foldr (+) (x # xs) 0"
 
 lemmas test_bit_cong = arg_cong [where f = "test_bit", THEN fun_cong]
 
-lemmas test_bit_rsplit_alt =
-  trans [OF nth_rev_alt [THEN test_bit_cong]
-  test_bit_rsplit [OF refl asm_rl diff_Suc_less]]
+lemma test_bit_rsplit_alt:
+  \<open>(word_rsplit w  :: 'b::len word list) ! i !! m \<longleftrightarrow>
+    w !! ((length (word_rsplit w :: 'b::len word list) - Suc i) * size (hd (word_rsplit w :: 'b::len word list)) + m)\<close>
+  if \<open>i < length (word_rsplit w :: 'b::len word list)\<close> \<open>m < size (hd (word_rsplit w :: 'b::len word list))\<close> \<open>0 < length (word_rsplit w :: 'b::len word list)\<close>
+  for w :: \<open>'a::len word\<close>
+  apply (rule trans)
+   apply (rule test_bit_cong)
+   apply (rule nth_rev_alt)
+   apply (rule that(1))
+  apply (rule test_bit_rsplit)
+    apply (rule refl)
+  apply (rule asm_rl)
+   apply (rule that(2))
+  apply (rule diff_Suc_less)
+  apply (rule that(3))
+  done
 
-\<comment> \<open>lazy way of expressing that u and v, and su and sv, have same types\<close>
 lemma word_rsplit_len_indep [OF refl refl refl refl]:
   "[u,v] = p \<Longrightarrow> [su,sv] = q \<Longrightarrow> word_rsplit u = su \<Longrightarrow>
     word_rsplit v = sv \<Longrightarrow> length su = length sv"
