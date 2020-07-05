@@ -122,6 +122,7 @@ object Build_History
     max_heap: Option[Int] = None,
     init_settings: List[String] = Nil,
     more_settings: List[String] = Nil,
+    more_preferences: List[String] = Nil,
     verbose: Boolean = false,
     build_tags: List[String] = Nil,
     build_args: List[String] = Nil): List[(Process_Result, Path)] =
@@ -192,6 +193,8 @@ object Build_History
       other_isabelle.resolve_components(verbose)
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
+
+      File.write(other_isabelle.etc_preferences, cat_lines(more_preferences))
 
       val isabelle_output =
         other_isabelle.isabelle_home_user + Path.explode("heaps") +
@@ -406,6 +409,7 @@ object Build_History
       var isabelle_identifier = default_isabelle_identifier
       var afp_partition = 0
       var more_settings: List[String] = Nil
+      var more_preferences: List[String] = Nil
       var fresh = false
       var hostname = ""
       var init_settings: List[String] = Nil
@@ -438,6 +442,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     -i TEXT      initial text for generated etc/settings
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -o FILE      output file for log names (default: stdout)
+    -p TEXT      additional text for generated etc/preferences
     -r REV       update to revision (default: """ + default_rev + """)
     -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
     -t TAG       free-form build tag (multiple occurrences possible)
@@ -470,6 +475,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
             case bad => error("Bad processor architecture: " + quote(bad))
           },
         "o:" -> (arg => output_file = arg),
+        "p:" -> (arg => more_preferences = more_preferences ::: List(arg)),
         "r:" -> (arg => rev = arg),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
@@ -494,7 +500,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
           multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
-          verbose = verbose, build_tags = build_tags, build_args = build_args)
+          more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
+          build_args = build_args)
 
       if (output_file == "") {
         for ((_, log_path) <- results)
