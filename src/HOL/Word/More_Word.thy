@@ -9,6 +9,8 @@ imports
   Ancient_Numeral
   Misc_Auxiliary
   Misc_Arithmetic
+  Misc_set_bit
+  Misc_lsb
 begin
 
 end

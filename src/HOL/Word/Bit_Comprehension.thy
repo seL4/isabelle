@@ -8,7 +8,7 @@ theory Bit_Comprehension
   imports Bits_Int
 begin
 
-class bit_comprehension = bit_operations +
+class bit_comprehension = semiring_bits +
   fixes set_bits :: "(nat \<Rightarrow> bool) \<Rightarrow> 'a"  (binder "BITS " 10)
 
 instantiation int :: bit_comprehension

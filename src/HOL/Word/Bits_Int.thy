@@ -1,15 +1,13 @@
 (*  Title:      HOL/Word/Bits_Int.thy
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
-
-Definitions and basic theorems for bit-wise logical operations
-for integers expressed using Pls, Min, BIT,
-and converting them to and from lists of bools.
 *)
 
 section \<open>Bitwise Operations on integers\<close>
 
 theory Bits_Int
-  imports Bits
+  imports
+    "HOL-Library.Bit_Operations"
+    Traditional_Syntax
 begin
 
 subsection \<open>Generic auxiliary\<close>
@@ -599,7 +597,7 @@ lemma sbintrunc_code [code]:
 proof (induction n arbitrary: k)
   case 0
   then show ?case
-    by (simp add: mod_2_eq_odd and_one_eq)
+    by (simp add: mod_2_eq_odd)
 next
   case (Suc n)
   from Suc [of \<open>k div 2\<close>]
@@ -1068,32 +1066,27 @@ lemma bin_sc_numeral [simp]:
     of_bool (odd w) + 2 * bin_sc (pred_numeral k) b (w div 2)"
   by (simp add: numeral_eq_Suc)
 
-instantiation int :: bit_operations
+instantiation int :: semiring_bit_syntax
 begin
 
 definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
-
-definition "lsb i = i !! 0" for i :: int
-
-definition "set_bit i n b = bin_sc n b i"
 
 definition "shiftl x n = x * 2 ^ n" for x :: int
 
 definition "shiftr x n = x div 2 ^ n" for x :: int
 
-definition "msb x \<longleftrightarrow> x < 0" for x :: int
-
-instance ..
+instance by standard
+  (simp_all add: fun_eq_iff shiftl_int_def shiftr_int_def push_bit_eq_mult drop_bit_eq_div)
 
 end
 
 lemma shiftl_eq_push_bit:
   \<open>k << n = push_bit n k\<close> for k :: int
-  by (simp add: shiftl_int_def push_bit_eq_mult)
+  by (fact shiftl_eq_push_bit)
 
 lemma shiftr_eq_drop_bit:
   \<open>k >> n = drop_bit n k\<close> for k :: int
-  by (simp add: shiftr_int_def drop_bit_eq_div)
+  by (fact shiftr_eq_drop_bit)
 
 
 subsubsection \<open>Basic simplification rules\<close>
@@ -1598,54 +1591,6 @@ by(simp add: int_not_def)
 
 subsection \<open>Setting and clearing bits\<close>
 
-lemma bin_last_conv_lsb: "bin_last = lsb"
-by(clarsimp simp add: lsb_int_def fun_eq_iff)
-
-lemma int_lsb_numeral [simp]:
-  "lsb (0 :: int) = False"
-  "lsb (1 :: int) = True"
-  "lsb (Numeral1 :: int) = True"
-  "lsb (- 1 :: int) = True"
-  "lsb (- Numeral1 :: int) = True"
-  "lsb (numeral (num.Bit0 w) :: int) = False"
-  "lsb (numeral (num.Bit1 w) :: int) = True"
-  "lsb (- numeral (num.Bit0 w) :: int) = False"
-  "lsb (- numeral (num.Bit1 w) :: int) = True"
-  by (simp_all add: lsb_int_def)
-
-lemma int_set_bit_0 [simp]: fixes x :: int shows
-  "set_bit x 0 b = of_bool b + 2 * (x div 2)"
-  by (auto simp add: set_bit_int_def intro: bin_rl_eqI)
-
-lemma int_set_bit_Suc: fixes x :: int shows
-  "set_bit x (Suc n) b = of_bool (odd x) + 2 * set_bit (x div 2) n b"
-  by (auto simp add: set_bit_int_def intro: bin_rl_eqI)
-
-lemma bin_last_set_bit:
-  "bin_last (set_bit x n b) = (if n > 0 then bin_last x else b)"
-  by (cases n) (simp_all add: int_set_bit_Suc)
-
-lemma bin_rest_set_bit: 
-  "bin_rest (set_bit x n b) = (if n > 0 then set_bit (x div 2) (n - 1) b else x div 2)"
-  by (cases n) (simp_all add: int_set_bit_Suc)
-
-lemma int_set_bit_numeral: fixes x :: int shows
-  "set_bit x (numeral w) b = of_bool (odd x) + 2 * set_bit (x div 2) (pred_numeral w) b"
-  by (simp add: set_bit_int_def)
-
-lemmas int_set_bit_numerals [simp] =
-  int_set_bit_numeral[where x="numeral w'"] 
-  int_set_bit_numeral[where x="- numeral w'"]
-  int_set_bit_numeral[where x="Numeral1"]
-  int_set_bit_numeral[where x="1"]
-  int_set_bit_numeral[where x="0"]
-  int_set_bit_Suc[where x="numeral w'"]
-  int_set_bit_Suc[where x="- numeral w'"]
-  int_set_bit_Suc[where x="Numeral1"]
-  int_set_bit_Suc[where x="1"]
-  int_set_bit_Suc[where x="0"]
-  for w'
-
 lemma int_shiftl_BIT: fixes x :: int
   shows int_shiftl0 [simp]: "x << 0 = x"
   and int_shiftl_Suc [simp]: "x << Suc n = 2 * (x << n)"
@@ -1765,47 +1710,6 @@ lemma bin_clr_conv_NAND:
 lemma bin_set_conv_OR:
   "bin_sc n True i = i OR (1 << n)"
   by (induct n arbitrary: i) (rule bin_rl_eqI; simp)+
-
-lemma msb_conv_bin_sign: "msb x \<longleftrightarrow> bin_sign x = -1"
-by(simp add: bin_sign_def not_le msb_int_def)
-
-lemma msb_bin_rest [simp]: "msb (bin_rest x) = msb x"
-by(simp add: msb_int_def)
-
-lemma int_msb_and [simp]: "msb ((x :: int) AND y) \<longleftrightarrow> msb x \<and> msb y"
-by(simp add: msb_int_def)
-
-lemma int_msb_or [simp]: "msb ((x :: int) OR y) \<longleftrightarrow> msb x \<or> msb y"
-by(simp add: msb_int_def)
-
-lemma int_msb_xor [simp]: "msb ((x :: int) XOR y) \<longleftrightarrow> msb x \<noteq> msb y"
-by(simp add: msb_int_def)
-
-lemma int_msb_not [simp]: "msb (NOT (x :: int)) \<longleftrightarrow> \<not> msb x"
-by(simp add: msb_int_def not_less)
-
-lemma msb_shiftl [simp]: "msb ((x :: int) << n) \<longleftrightarrow> msb x"
-by(simp add: msb_int_def)
-
-lemma msb_shiftr [simp]: "msb ((x :: int) >> r) \<longleftrightarrow> msb x"
-by(simp add: msb_int_def)
-
-lemma msb_bin_sc [simp]: "msb (bin_sc n b x) \<longleftrightarrow> msb x"
-by(simp add: msb_conv_bin_sign)
-
-lemma msb_set_bit [simp]: "msb (set_bit (x :: int) n b) \<longleftrightarrow> msb x"
-by(simp add: msb_conv_bin_sign set_bit_int_def)
-
-lemma msb_0 [simp]: "msb (0 :: int) = False"
-by(simp add: msb_int_def)
-
-lemma msb_1 [simp]: "msb (1 :: int) = False"
-by(simp add: msb_int_def)
-
-lemma msb_numeral [simp]:
-  "msb (numeral n :: int) = False"
-  "msb (- numeral n :: int) = True"
-by(simp_all add: msb_int_def)
 
 
 subsection \<open>Semantic interpretation of \<^typ>\<open>bool list\<close> as \<^typ>\<open>int\<close>\<close>

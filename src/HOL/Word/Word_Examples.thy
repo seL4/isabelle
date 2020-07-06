@@ -7,7 +7,7 @@ Examples demonstrating and testing various word operations.
 section "Examples of word operations"
 
 theory Word_Examples
-  imports Word
+  imports Word Misc_lsb Misc_set_bit
 begin
 
 type_synonym word32 = "32 word"

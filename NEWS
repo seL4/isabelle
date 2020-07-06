@@ -77,6 +77,10 @@ Minor INCOMPATIBILITY.
 * Session HOL-Word: Theory Z2 is not used any longer.
 Minor INCOMPATIBILITY.
 
+* Session HOL-Word: Operations lsb, msb and set_bit are separated
+into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
+INCOMPATIBILITY.
+
 * Simproc defined_all and rewrite rule subst_all perform
 more aggressive substitution with variables from assumptions.
 INCOMPATIBILITY, use something like
