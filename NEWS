@@ -81,6 +81,10 @@ Minor INCOMPATIBILITY.
 into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
 INCOMPATIBILITY.
 
+* Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer"
+commands are in working order again, as opposed to outputting
+"GaveUp" on nearly all problems.
+
 * Simproc defined_all and rewrite rule subst_all perform
 more aggressive substitution with variables from assumptions.
 INCOMPATIBILITY, use something like
