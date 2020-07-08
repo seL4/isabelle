@@ -42,7 +42,8 @@ final case class Process_Result(
     copy(out_lines = out_lines ::: outs.flatMap(split_lines))
   def errors(errs: List[String]): Process_Result =
     copy(err_lines = err_lines ::: errs.flatMap(split_lines))
-  def error(err: String): Process_Result = errors(List(err))
+  def error(err: String): Process_Result =
+    if (err.isEmpty) this else errors(List(err))
 
   def was_timeout: Process_Result = copy(rc = 1, timeout = true)
 

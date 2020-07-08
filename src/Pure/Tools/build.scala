@@ -226,9 +226,11 @@ object Build
 
           val build_session_errors: Promise[List[String]] = Future.promise
           val stdout = new StringBuilder(1000)
+          val stderr = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[XML.Elem]
           val command_timings = new mutable.ListBuffer[Properties.T]
           val theory_timings = new mutable.ListBuffer[Properties.T]
+          val session_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
 
@@ -294,6 +296,7 @@ object Build
                   Markup.EXPORT -> export,
                   fun(Markup.Command_Timing.name, command_timings, Markup.Command_Timing.unapply),
                   fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
+                  fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
                   fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
                   fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
             })
@@ -304,6 +307,9 @@ object Build
                 val message = msg.message
                 if (msg.is_stdout) {
                   stdout ++= Symbol.encode(XML.content(message))
+                }
+                else if (msg.is_stderr) {
+                  stderr ++= Symbol.encode(XML.content(message))
                 }
                 else if (Protocol.is_exported(message)) {
                   messages += message
@@ -337,10 +343,12 @@ object Build
               Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
             theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+            session_timings.toList.map(Protocol.Timing_Marker.apply) :::
             runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 
-          val result = process_result.output(process_output)
+          val result =
+            process_result.output(process_output).error(Library.trim_line(stderr.toString))
 
           errors match {
             case Exn.Res(Nil) => result

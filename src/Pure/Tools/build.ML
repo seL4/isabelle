@@ -58,7 +58,7 @@ fun session_timing session_name verbose f x =
 
     val timing_props =
       [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
-    val _ = Protocol_Message.marker "Timing" timing_props;
+    val _ = Output.protocol_message (Markup.session_timing :: timing_props) [];
     val _ =
       if verbose then
         Output.physical_stderr ("Timing " ^ session_name ^ " (" ^
@@ -93,6 +93,8 @@ fun protocol_message props output =
         end
       else if function = Markup.theory_timing then
         Protocol_Message.marker (#2 function) args
+      else if function = Markup.session_timing then
+        Protocol_Message.marker "Timing" args
       else
         (case Markup.dest_loading_theory props of
           SOME name => Protocol_Message.marker_text "loading_theory" name
