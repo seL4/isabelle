@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature ElementSet =
@@ -135,8 +135,10 @@ val subset : set -> set -> bool
 val disjoint : set -> set -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Closing under an operation.                                               *)
+(* Pointwise operations.                                                     *)
 (* ------------------------------------------------------------------------- *)
+
+val lift : (element -> set) -> set -> set
 
 val closedAdd : (element -> set) -> set -> set -> set
 
@@ -163,6 +165,34 @@ val mapPartial : (element -> 'a option) -> set -> 'a map
 val map : (element -> 'a) -> set -> 'a map
 
 val domain : 'a map -> set
+
+(* ------------------------------------------------------------------------- *)
+(* Depth-first search.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype ordering =
+    Linear of element list
+  | Cycle of element list
+
+val preOrder : (element -> set) -> set -> ordering
+
+val postOrder : (element -> set) -> set -> ordering
+
+val preOrdered : (element -> set) -> element list -> bool
+
+val postOrdered : (element -> set) -> element list -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Strongly connected components.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val preOrderSCC : (element -> set) -> set -> set list
+
+val postOrderSCC : (element -> set) -> set -> set list
+
+val preOrderedSCC : (element -> set) -> set list -> bool
+
+val postOrderedSCC : (element -> set) -> set list -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

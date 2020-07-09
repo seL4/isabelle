@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature Subsume =

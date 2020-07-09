@@ -950,7 +950,7 @@ proof -
   from \<open>degree p = 1\<close> have "length p = Suc (Suc 0)"
     by simp
   then obtain a b where p: "p = [ a, b ]"
-    by (metis length_0_conv length_Suc_conv)
+    by (metis length_0_conv length_Cons nat.inject neq_Nil_conv)
   with \<open>p \<in> carrier (K[X])\<close> show ?thesis
     using subring_degree_one_imp_pirreducible[OF subfieldE(1)[OF assms(1)], of a b]
           subfield.subfield_Units[OF assms(1)]

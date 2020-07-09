@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2008 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Print :> Print =
@@ -1548,11 +1548,16 @@ fun toStream ppA a =
       toStreamWithLineLength len ppA a
     end;
 
-local
-  val sep = mkWord " =";
-in
-  fun trace ppX nameX x =
-      Useful.trace (toString (ppOp2' sep ppString ppX) (nameX,x) ^ "\n");
-end;
+fun trace ppX nameX =
+    let
+      fun ppNameX x =
+          consistentBlock 2
+            [ppString nameX,
+             ppString " =",
+             break,
+             ppX x]
+    in
+      fn x => Useful.trace (toString ppNameX x ^ "\n")
+    end;
 
 end

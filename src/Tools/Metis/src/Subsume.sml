@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Subsume :> Subsume =
@@ -97,7 +97,7 @@ fun new () =
 
 fun size (Subsume {empty, unit, nonunit = {clauses,...}}) =
     length empty + LiteralNet.size unit + IntMap.size clauses;
-      
+
 fun insert (Subsume {empty,unit,nonunit}) (cl',a) =
     case sortClause cl' of
       [] =>

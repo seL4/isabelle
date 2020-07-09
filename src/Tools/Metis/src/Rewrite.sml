@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2003 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Rewrite :> Rewrite =
@@ -219,7 +219,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Rewriting (the order must be a refinement of the rewrite order).          *)
+(* Rewriting (the supplied order must be a refinement of the rewrite order). *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -289,34 +289,35 @@ fun mkNeqConv order lit =
         end
     end;
 
-datatype neqConvs = NeqConvs of Rule.conv LiteralMap.map;
+datatype neqConvs = NeqConvs of Rule.conv list;
 
-val neqConvsEmpty = NeqConvs (LiteralMap.new ());
+val neqConvsEmpty = NeqConvs [];
 
-fun neqConvsNull (NeqConvs m) = LiteralMap.null m;
+fun neqConvsNull (NeqConvs l) = List.null l;
 
-fun neqConvsAdd order (neq as NeqConvs m) lit =
+fun neqConvsAdd order (neq as NeqConvs l) lit =
     case total (mkNeqConv order) lit of
-      NONE => NONE
-    | SOME conv => SOME (NeqConvs (LiteralMap.insert m (lit,conv)));
+      NONE => neq
+    | SOME conv => NeqConvs (conv :: l);
 
 fun mkNeqConvs order =
     let
-      fun add (lit,(neq,lits)) =
-          case neqConvsAdd order neq lit of
-            SOME neq => (neq,lits)
-          | NONE => (neq, LiteralSet.add lits lit)
+      fun add (lit,neq) = neqConvsAdd order neq lit
     in
-      LiteralSet.foldl add (neqConvsEmpty,LiteralSet.empty)
+      LiteralSet.foldl add neqConvsEmpty
     end;
 
-fun neqConvsDelete (NeqConvs m) lit = NeqConvs (LiteralMap.delete m lit);
+fun buildNeqConvs order lits =
+    let
+      fun add (lit,(neq,neqs)) = (neqConvsAdd order neq lit, (lit,neq) :: neqs)
+    in
+      snd (LiteralSet.foldl add (neqConvsEmpty,[]) lits)
+    end;
 
-fun neqConvsToConv (NeqConvs m) =
-    Rule.firstConv (LiteralMap.foldr (fn (_,c,l) => c :: l) [] m);
+fun neqConvsToConv (NeqConvs l) = Rule.firstConv l;
 
-fun neqConvsFoldl f b (NeqConvs m) =
-    LiteralMap.foldl (fn (l,_,z) => f (l,z)) b m;
+fun neqConvsUnion (NeqConvs l1) (NeqConvs l2) =
+    NeqConvs (List.revAppend (l1,l2));
 
 fun neqConvsRewrIdLiterule order known redexes id neq =
     if IntMap.null known andalso neqConvsNull neq then Rule.allLiterule
@@ -332,7 +333,7 @@ fun neqConvsRewrIdLiterule order known redexes id neq =
 
 fun rewriteIdEqn' order known redexes id (eqn as (l_r,th)) =
     let
-      val (neq,_) = mkNeqConvs order (Thm.clause th)
+      val neq = mkNeqConvs order (Thm.clause th)
       val literule = neqConvsRewrIdLiterule order known redexes id neq
       val (strongEqn,lit) =
           case Rule.equationLiteral eqn of
@@ -355,40 +356,39 @@ fun rewriteIdLiteralsRule' order known redexes id lits th =
     let
       val mk_literule = neqConvsRewrIdLiterule order known redexes id
 
-      fun rewr_neq_lit (lit, acc as (changed,neq,lits,th)) =
+      fun rewr_neq_lit ((lit,rneq),(changed,lneq,lits,th)) =
           let
-            val neq = neqConvsDelete neq lit
+            val neq = neqConvsUnion lneq rneq
             val (lit',litTh) = mk_literule neq lit
+            val lneq = neqConvsAdd order lneq lit'
+            val lits = LiteralSet.add lits lit'
           in
-            if Literal.equal lit lit' then acc
-            else
-              let
-                val th = Thm.resolve lit th litTh
-              in
-                case neqConvsAdd order neq lit' of
-                  SOME neq => (true,neq,lits,th)
-                | NONE => (changed, neq, LiteralSet.add lits lit', th)
-              end
+            if Literal.equal lit lit' then (changed,lneq,lits,th)
+            else (true, lneq, lits, Thm.resolve lit th litTh)
           end
 
-      fun rewr_neq_lits neq lits th =
+      fun rewr_neq_lits lits th =
           let
+            val neqs = buildNeqConvs order lits
+
+            val neq = neqConvsEmpty
+            val lits = LiteralSet.empty
+
             val (changed,neq,lits,th) =
-                neqConvsFoldl rewr_neq_lit (false,neq,lits,th) neq
+                List.foldl rewr_neq_lit (false,neq,lits,th) neqs
           in
-            if changed then rewr_neq_lits neq lits th
-            else (neq,lits,th)
+            if changed then rewr_neq_lits lits th else (neq,th)
           end
 
-      val (neq,lits) = mkNeqConvs order lits
+      val (neq,lits) = LiteralSet.partition Literal.isNeq lits
 
-      val (neq,lits,th) = rewr_neq_lits neq lits th
+      val (neq,th) = rewr_neq_lits neq th
 
       val rewr_literule = mk_literule neq
 
       fun rewr_lit (lit,th) =
-          if Thm.member lit th then Rule.literalRule rewr_literule lit th
-          else th
+          if not (Thm.member lit th) then th
+          else Rule.literalRule rewr_literule lit th
     in
       LiteralSet.foldl rewr_lit th lits
     end;
@@ -406,12 +406,12 @@ val rewriteIdRule' = fn order => fn known => fn redexes => fn id => fn th =>
 (*MetisTrace6
       val () = Print.trace Thm.pp "Rewrite.rewriteIdRule': result" result
 *)
-      val _ = not (thmReducible order known id result) orelse
-              raise Bug "rewriteIdRule: should be normalized"
+      val () = if not (thmReducible order known id result) then ()
+               else raise Bug "Rewrite.rewriteIdRule': should be normalized"
     in
       result
     end
-    handle Error err => raise Error ("Rewrite.rewriteIdRule:\n" ^ err);
+    handle Error err => raise Error ("Rewrite.rewriteIdRule':\n" ^ err);
 *)
 
 fun rewrIdConv (Rewrite {known,redexes,...}) order =
@@ -432,6 +432,30 @@ fun rewriteLiteralsRule rewrite order =
 
 fun rewriteIdRule (Rewrite {known,redexes,...}) order =
     rewriteIdRule' order known redexes;
+
+(*MetisDebug
+val rewriteIdRule = fn rewr => fn order => fn id => fn th =>
+    let
+      val result = rewriteIdRule rewr order id th
+
+      val th' = rewriteIdRule rewr order id result
+
+      val () = if Thm.equal th' result then ()
+               else
+                 let
+                   fun trace p s = Print.trace p ("Rewrite.rewriteIdRule: "^s)
+                   val () = trace pp "rewr" rewr
+                   val () = trace Thm.pp "th" th
+                   val () = trace Thm.pp "result" result
+                   val () = trace Thm.pp "th'" th'
+                in
+                  raise Bug "Rewrite.rewriteIdRule: should be idempotent"
+                end
+    in
+      result
+    end
+    handle Error err => raise Error ("Rewrite.rewriteIdRule:\n" ^ err);
+*)
 
 fun rewriteRule rewrite order = rewriteIdRule rewrite order ~1;
 

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Stream :> Stream =
@@ -92,6 +92,16 @@ fun take 0 _ = Nil
 
 fun drop n s = funpow n tl s handle Empty => raise Subscript;
 
+fun unfold f =
+    let
+      fun next b () =
+          case f b of
+            NONE => Nil
+          | SOME (a,b) => Cons (a, next b)
+    in
+      fn b => next b ()
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Stream versions of standard list operations: these might not terminate.   *)
 (* ------------------------------------------------------------------------- *)
@@ -180,6 +190,13 @@ fun mapsConcat f g =
 (* ------------------------------------------------------------------------- *)
 (* Stream operations.                                                        *)
 (* ------------------------------------------------------------------------- *)
+
+val primes =
+    let
+      fun next s = SOME (Useful.nextSieve s)
+    in
+      unfold next Useful.initSieve
+    end;
 
 fun memoize Nil = Nil
   | memoize (Cons (h,t)) = Cons (h, Lazy.memoize (fn () => memoize (t ())));

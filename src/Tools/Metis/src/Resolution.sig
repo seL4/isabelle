@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature Resolution =

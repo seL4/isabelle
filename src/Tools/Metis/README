@@ -4,15 +4,16 @@ Metis problems early. This file explains how to update the source code
 for Metis with the latest Metis package.
 
  1. The files "Makefile" and "script/mlpp" and the directory "src/"
-    must reflect the corresponding files in Joe Hurd's official Metis
-    package. The package that was used when these notes where written
-    was Metis 2.3 (release 20110926).
+    must reflect the corresponding files in Joe Leslie-Hurd's official
+    Metis package. The package that was used when these notes where
+    written was Metis 2.3 (release 20110926). The package was later
+    updated to Metis 2.4 (release 20180810).
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. The "fix_metis_license" script can be run to
     replace all occurrences of "MIT license" with "BSD License". In a
-    13 Sept. 2010 email to Gerwin Klein, Joe Hurd, the sole copyright
-    holder of Metis, wrote:
+    13 Sept. 2010 email to Gerwin Klein, Joe Leslie-Hurd, the sole
+    copyright holder of Metis, wrote:
 
         I hereby give permission to the Isabelle team to release Metis
         as part of Isabelle, with the Metis code covered under the
@@ -46,5 +47,11 @@ for Metis with the latest Metis package.
 
 Good luck!
 
+
     Jasmin Blanchette
     1 December 2011
+
+Updated by
+
+    Martin Desharnais
+    9 July 2020

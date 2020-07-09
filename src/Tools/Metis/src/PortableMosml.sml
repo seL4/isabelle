@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MOSCOW ML SPECIFIC FUNCTIONS                                              *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =
@@ -85,99 +85,4 @@ and rev = ();
 (* Ad-hoc upgrading of the Moscow ML basis library.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun Array_copy {src,dst,di} =
-    let
-      open Array
-    in
-      copy {src = src, si = 0, len = NONE, dst = dst, di = di}
-    end;
-
-fun Array_foldli f b v =
-    let
-      open Array
-    in
-      foldli f b (v,0,NONE)
-    end;
-
-fun Array_foldri f b v =
-    let
-      open Array
-    in
-      foldri f b (v,0,NONE)
-    end;
-
-fun Array_modifyi f a =
-    let
-      open Array
-    in
-      modifyi f (a,0,NONE)
-    end;
-
-fun OS_Process_isSuccess s = s = OS.Process.success;
-
-fun String_concatWith s =
-    let
-      fun add (x,l) = s :: x :: l
-    in
-      fn [] => ""
-       | x :: xs =>
-         let
-           val xs = List.foldl add [] (List.rev xs)
-         in
-           String.concat (x :: xs)
-         end
-    end;
-
-fun String_isSubstring p s =
-    let
-      val sizeP = size p
-      and sizeS = size s
-    in
-      if sizeP > sizeS then false
-      else if sizeP = sizeS then p = s
-      else
-        let
-          fun check i = String.substring (s,i,sizeP) = p
-
-          fun checkn i = check i orelse (i > 0 andalso checkn (i - 1))
-        in
-          checkn (sizeS - sizeP)
-        end
-    end;
-
-fun String_isSuffix p s =
-    let
-      val sizeP = size p
-      and sizeS = size s
-    in
-      sizeP <= sizeS andalso
-      String.extract (s, sizeS - sizeP, NONE) = p
-    end;
-
-fun Substring_full s =
-    let
-      open Substring
-    in
-      all s
-    end;
-
-fun TextIO_inputLine h =
-    let
-      open TextIO
-    in
-      case inputLine h of "" => NONE | s => SOME s
-    end;
-
-fun Vector_foldli f b v =
-    let
-      open Vector
-    in
-      foldli f b (v,0,NONE)
-    end;
-
-fun Vector_mapi f v =
-    let
-      open Vector
-    in
-      mapi f (v,0,NONE)
-    end;
+fun Real_isFinite (_ : real) = true;

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Active :> Active =
@@ -152,9 +152,9 @@ local
       let
         fun simp cl =
             case Clause.simplify cl of
-              NONE => true
+              NONE => true  (* tautology case *)
             | SOME cl =>
-              Subsume.isStrictlySubsumed subsume (Clause.literals cl) orelse
+              Subsume.isSubsumed subsume (Clause.literals cl) orelse
               let
                 val cl' = cl
                 val cl' = Clause.reduce reduce cl'
@@ -394,9 +394,11 @@ fun simplify simp units rewr subs =
 (*MetisDebug
 val simplify = fn simp => fn units => fn rewr => fn subs => fn cl =>
     let
-      fun traceCl s = Print.trace Clause.pp ("Active.simplify: " ^ s)
-(*MetisTrace4
       val ppClOpt = Print.ppOption Clause.pp
+      fun trace pp s = Print.trace pp ("Active.simplify: " ^ s)
+      val traceCl = trace Clause.pp
+      val traceClOpt = trace ppClOpt
+(*MetisTrace4
       val () = traceCl "cl" cl
 *)
       val cl' = simplify simp units rewr subs cl
@@ -416,8 +418,14 @@ val simplify = fn simp => fn units => fn rewr => fn subs => fn cl =>
               NONE => ()
             | SOME (e,f) =>
               let
+                val () = Print.trace Rewrite.pp "Active.simplify: rewr" rewr
+                val () = Print.trace Units.pp "Active.simplify: units" units
+                val () = Print.trace Subsume.pp "Active.simplify: subs" subs
                 val () = traceCl "cl" cl
                 val () = traceCl "cl'" cl'
+                val () = traceClOpt "simplify cl'" (Clause.simplify cl')
+                val () = traceCl "rewrite cl'" (Clause.rewrite rewr cl')
+                val () = traceCl "reduce cl'" (Clause.reduce units cl')
                 val () = f ()
               in
                 raise
@@ -816,34 +824,42 @@ local
         sortMap utility Int.compare
       end;
 
-  fun factor_add (cl, active_subsume_acc as (active,subsume,acc)) =
+  fun post_factor (cl, active_subsume_acc as (active,subsume,acc)) =
       case postfactor_simplify active subsume cl of
         NONE => active_subsume_acc
-      | SOME cl =>
-        let
-          val active = addFactorClause active cl
-          and subsume = addSubsume subsume cl
-          and acc = cl :: acc
-        in
-          (active,subsume,acc)
-        end;
+      | SOME cl' =>
+        if Clause.equalThms cl' cl then
+          let
+            val active = addFactorClause active cl
+            and subsume = addSubsume subsume cl
+            and acc = cl :: acc
+          in
+            (active,subsume,acc)
+          end
+        else
+          (* If the clause was changed in the post-factor simplification *)
+          (* step, then it may have altered the set of largest literals *)
+          (* in the clause. The safest thing to do is to factor again. *)
+          factor1 cl' active_subsume_acc
 
-  fun factor1 (cl, active_subsume_acc as (active,subsume,_)) =
+  and factor1 cl active_subsume_acc =
+      let
+        val cls = sort_utilitywise (cl :: Clause.factor cl)
+      in
+        List.foldl post_factor active_subsume_acc cls
+      end;
+
+  fun pre_factor (cl, active_subsume_acc as (active,subsume,_)) =
       case prefactor_simplify active subsume cl of
         NONE => active_subsume_acc
-      | SOME cl =>
-        let
-          val cls = sort_utilitywise (cl :: Clause.factor cl)
-        in
-          List.foldl factor_add active_subsume_acc cls
-        end;
+      | SOME cl => factor1 cl active_subsume_acc;
 
   fun factor' active acc [] = (active, List.rev acc)
     | factor' active acc cls =
       let
         val cls = sort_utilitywise cls
         val subsume = getSubsume active
-        val (active,_,acc) = List.foldl factor1 (active,subsume,acc) cls
+        val (active,_,acc) = List.foldl pre_factor (active,subsume,acc) cls
         val (active,cls) = extract_rewritables active
       in
         factor' active acc cls

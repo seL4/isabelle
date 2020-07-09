@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Formula :> Formula =
@@ -572,7 +572,7 @@ local
         split asms false f1 @ split (Not f1 :: asms) false f2
       | (false, Imp (f1,f2)) => split asms true f1 @ split (f1 :: asms) false f2
       | (false, Iff (f1,f2)) =>
-        split (f1 :: asms) false f2 @ split (f2 :: asms) false f1
+        split (f1 :: asms) false f2 @ split (Not f2 :: asms) true f1
       | (false, Exists (v,f)) => List.map (add_var_asms asms v) (split [] false f)
         (* Unsplittables *)
       | _ => [add_asms asms (if pol then fm else Not fm)];

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature Useful =
@@ -202,6 +202,20 @@ val interval : int -> int -> int list
 val divides : int -> int -> bool
 
 val gcd : int -> int -> int
+
+(* Primes *)
+
+type sieve
+
+val initSieve : sieve
+
+val maxSieve : sieve -> int
+
+val primesSieve : sieve -> int list
+
+val incSieve : sieve -> bool * sieve
+
+val nextSieve : sieve -> int * sieve
 
 val primes : int -> int list
 

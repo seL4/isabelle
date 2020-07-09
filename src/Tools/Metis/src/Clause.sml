@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Clause :> Clause =
@@ -218,38 +218,43 @@ fun simplify (Clause {parameters,id,thm}) =
 fun reduce units (Clause {parameters,id,thm}) =
     Clause {parameters = parameters, id = id, thm = Units.reduce units thm};
 
-fun rewrite rewr (cl as Clause {parameters,id,thm}) =
-    let
-      fun simp th =
-          let
-            val {ordering,...} = parameters
-            val cmp = KnuthBendixOrder.compare ordering
-          in
-            Rewrite.rewriteIdRule rewr cmp id th
-          end
+local
+  fun simp rewr (parm : parameters) id th =
+      let
+        val {ordering,...} = parm
+        val cmp = KnuthBendixOrder.compare ordering
+      in
+        Rewrite.rewriteIdRule rewr cmp id th
+      end;
+in
+  fun rewrite rewr cl =
+      let
+        val Clause {parameters = parm, id, thm = th} = cl
 
 (*MetisTrace4
-      val () = Print.trace Rewrite.pp "Clause.rewrite: rewr" rewr
-      val () = Print.trace Print.ppInt "Clause.rewrite: id" id
-      val () = Print.trace pp "Clause.rewrite: cl" cl
+        val () = Print.trace Rewrite.pp "Clause.rewrite: rewr" rewr
+        val () = Print.trace Print.ppInt "Clause.rewrite: id" id
+        val () = Print.trace pp "Clause.rewrite: cl" cl
 *)
 
-      val thm =
-          case Rewrite.peek rewr id of
-            NONE => simp thm
-          | SOME ((_,thm),_) => if Rewrite.isReduced rewr then thm else simp thm
+        val th =
+            case Rewrite.peek rewr id of
+              NONE => simp rewr parm id th
+            | SOME ((_,th),_) =>
+              if Rewrite.isReduced rewr then th else simp rewr parm id th
 
-      val result = Clause {parameters = parameters, id = id, thm = thm}
+        val result = Clause {parameters = parm, id = id, thm = th}
 
 (*MetisTrace4
-      val () = Print.trace pp "Clause.rewrite: result" result
+        val () = Print.trace pp "Clause.rewrite: result" result
 *)
-    in
-      result
-    end
+      in
+        result
+      end
 (*MetisDebug
-    handle Error err => raise Error ("Clause.rewrite:\n" ^ err);
+      handle Error err => raise Error ("Clause.rewrite:\n" ^ err);
 *)
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Inference rules: these generate new clause ids.                           *)

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* METIS FIRST ORDER PROVER                                                  *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 open Useful;
@@ -11,9 +11,9 @@ open Useful;
 
 val PROGRAM = "metis";
 
-val VERSION = "2.3";
+val VERSION = "2.4";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20110926)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20180810)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Program options.                                                          *)
@@ -157,7 +157,7 @@ val next_cnf =
 local
   fun display_sep () =
       if notshowing_any () then ()
-      else TextIO.print (nChars #"-" (!Print.lineLength) ^ "\n");
+      else TextIO.print (nChars #"%" (!Print.lineLength) ^ "\n");
 
   fun display_name filename =
       if notshowing "name" then ()
@@ -204,7 +204,7 @@ local
 
   local
     fun display_proof_start filename =
-        TextIO.print ("\nSZS output start CNFRefutation for " ^ filename ^ "\n");
+        TextIO.print ("\n% SZS output start CNFRefutation for " ^ filename ^ "\n");
 
     fun display_proof_body problem proofs =
         let
@@ -235,7 +235,7 @@ local
         end;
 
     fun display_proof_end filename =
-        TextIO.print ("SZS output end CNFRefutation for " ^ filename ^ "\n\n");
+        TextIO.print ("% SZS output end CNFRefutation for " ^ filename ^ "\n\n");
   in
     fun display_proof filename problem proofs =
         if notshowing "proof" then ()
@@ -291,7 +291,7 @@ local
   fun display_status filename status =
       if notshowing "status" then ()
       else
-        TextIO.print ("SZS status " ^ Tptp.toStringStatus status ^
+        TextIO.print ("% SZS status " ^ Tptp.toStringStatus status ^
                       " for " ^ filename ^ "\n");
 
   fun display_problem filename cls =

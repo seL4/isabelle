@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Useful :> Useful =
@@ -474,33 +474,99 @@ in
       end;
 end;
 
-local
-  fun calcPrimes mode ps i n =
-      if n = 0 then ps
-      else if List.exists (fn p => divides p i) ps then
-        let
-          val i = i + 1
-          and n = if mode then n else n - 1
-        in
-          calcPrimes mode ps i n
-        end
-      else
-        let
-          val ps = ps @ [i]
-          and i = i + 1
-          and n = n - 1
-        in
-          calcPrimes mode ps i n
-        end;
-in
-  fun primes n =
-      if n <= 0 then []
-      else calcPrimes true [2] 3 (n - 1);
+(* Primes *)
 
-  fun primesUpTo n =
-      if n < 2 then []
-      else calcPrimes false [2] 3 (n - 2);
+datatype sieve =
+    Sieve of
+      {max : int,
+       primes : (int * (int * int)) list};
+
+val initSieve =
+    let
+      val n = 1
+      and ps = []
+    in
+      Sieve
+        {max = n,
+         primes = ps}
+    end;
+
+fun maxSieve (Sieve {max = n, ...}) = n;
+
+fun primesSieve (Sieve {primes = ps, ...}) = List.map fst ps;
+
+fun incSieve sieve =
+    let
+      val n = maxSieve sieve + 1
+
+      fun add i ps =
+          case ps of
+            [] => (true,[(n,(0,0))])
+          | (p,(k,j)) :: ps =>
+              let
+                val k = (k + i) mod p
+
+                val j = j + i
+              in
+                if k = 0 then (false, (p,(k,j)) :: ps)
+                else
+                  let
+                    val (b,ps) = add j ps
+                  in
+                    (b, (p,(k,0)) :: ps)
+                  end
+              end
+
+      val Sieve {primes = ps, ...} = sieve
+
+      val (b,ps) = add 1 ps
+
+      val sieve =
+          Sieve
+            {max = n,
+             primes = ps}
+    in
+      (b,sieve)
+    end;
+
+fun nextSieve sieve =
+    let
+      val (b,sieve) = incSieve sieve
+    in
+      if b then (maxSieve sieve, sieve)
+      else nextSieve sieve
+    end;
+
+local
+  fun inc s =
+      let
+        val (_,s) = incSieve s
+      in
+        s
+      end;
+in
+  fun primesUpTo m =
+      if m <= 1 then []
+      else primesSieve (funpow (m - 1) inc initSieve);
 end;
+
+val primes =
+    let
+      fun next s n =
+          if n <= 0 then []
+          else
+            let
+              val (p,s) = nextSieve s
+
+              val n = n - 1
+
+              val ps = next s n
+            in
+              p :: ps
+            end
+    in
+      next initSieve
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
@@ -847,7 +913,9 @@ end;
 fun timed f a =
   let
     val tmr = Timer.startCPUTimer ()
+
     val res = f a
+
     val {usr,sys,...} = Timer.checkCPUTimer tmr
   in
     (Time.toReal usr + Time.toReal sys, res)

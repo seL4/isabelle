@@ -1,6 +1,6 @@
 ###############################################################################
 # METIS MAKEFILE
-# Copyright (c) 2001 Joe Hurd, distributed under the BSD License
+# Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License
 ###############################################################################
 
 .SUFFIXES:
@@ -10,26 +10,27 @@
 ###############################################################################
 
 .PHONY: default
-default: mosml
+default:
+	@if command -v mlton > /dev/null ; then $(MAKE) mlton ; else if command -v polyc > /dev/null ; then $(MAKE) polyml ; else if command -v mosmlc > /dev/null ; then $(MAKE) mosml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
 
 ###############################################################################
 # Cleaning temporary files.
 ###############################################################################
 
 TEMP = \
-  $(MOSML_TARGETS) \
-  bin/mosml/*.sml bin/mosml/*.ui bin/mosml/*.uo bin/mosml/a.out \
   $(MLTON_TARGETS) \
   bin/mlton/*.sml bin/mlton/*.mlb \
   $(POLYML_TARGETS) \
-  bin/polyml/*.sml bin/polyml/*.log bin/polyml/*.o
+  bin/polyml/*.sml bin/polyml/*.log \
+  $(MOSML_TARGETS) \
+  bin/mosml/*.sml bin/mosml/*.ui bin/mosml/*.uo bin/mosml/a.out
 
 .PHONY: clean
 clean:
 	@echo
-	@echo '********************'
-	@echo '* Clean everything *'
-	@echo '********************'
+	@echo '+------------------+'
+	@echo '| Clean everything |'
+	@echo '+------------------+'
 	@echo
 	rm -f $(TEMP)
 	$(MAKE) -C test $@
@@ -98,6 +99,97 @@ MLPP = scripts/mlpp
 MLPP_OPTS =
 
 ###############################################################################
+# Building using MLton.
+###############################################################################
+
+MLTON = mlton
+
+MLTON_OPTS = -runtime 'ram-slop 0.4'
+
+MLTON_SRC = \
+  src/Portable.sig src/PortableMlton.sml \
+  $(SRC)
+
+MLTON_TARGETS = \
+  bin/mlton/selftest \
+  bin/mlton/metis \
+  bin/mlton/problems2tptp
+
+bin/mlton/%.sml: $(MLTON_SRC) src/%.sml
+	@$(MLPP) $(MLPP_OPTS) -c mlton $^ > $@
+
+bin/mlton/%.mlb: bin/mlton/%.sml
+	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $(notdir $<)' > $@
+
+bin/mlton/%: bin/mlton/%.mlb
+	@echo
+	@echo '+-------------------------+'
+	@echo '| Compile a MLton program |'
+	@echo '+-------------------------+'
+	@echo
+	@echo $@
+	cd bin/mlton ; $(MLTON) $(MLTON_OPTS) $(notdir $<)
+	@echo
+
+.PHONY: mlton-info
+mlton-info:
+	@echo
+	@echo '+-----------------------------------+'
+	@echo '| Build and test the MLton programs |'
+	@echo '+-----------------------------------+'
+	@echo
+
+.PHONY: mlton
+mlton: mlton-info $(MLTON_TARGETS)
+	$(MAKE) -C test mlton
+
+###############################################################################
+# Building using Poly/ML.
+###############################################################################
+
+POLYML = polyc
+
+POLYML_OPTS =
+
+POLYML_SRC = \
+  src/Random.sig src/Random.sml \
+  src/Portable.sig src/PortablePolyml.sml \
+  $(SRC)
+
+POLYML_TARGETS = \
+  bin/polyml/selftest \
+  bin/polyml/problems2tptp \
+  bin/polyml/metis
+
+bin/polyml/%.sml: src/%.sml $(POLYML_SRC)
+	@$(MLPP) $(MLPP_OPTS) -c polyml $(POLYML_SRC) > $@
+	@echo 'fun main () = let' >> $@
+	@$(MLPP) $(MLPP_OPTS) -c polyml $< >> $@
+	@echo "in () end handle e => (TextIO.output (TextIO.stdErr, \"FATAL EXCEPTION:\\\\n\"^ exnMessage e); OS.Process.exit OS.Process.failure);" >> $@
+
+bin/polyml/%: bin/polyml/%.sml
+	@echo
+	@echo '+---------------------------+'
+	@echo '| Compile a Poly/ML program |'
+	@echo '+---------------------------+'
+	@echo
+	@echo $@
+	cd bin/polyml && $(POLYML) $(POLYML_OPTS) -o $(notdir $@) $(notdir $<)
+	@echo
+
+.PHONY: polyml-info
+polyml-info:
+	@echo
+	@echo '+-------------------------------------+'
+	@echo '| Build and test the Poly/ML programs |'
+	@echo '+-------------------------------------+'
+	@echo
+
+.PHONY: polyml
+polyml: polyml-info $(POLYML_TARGETS)
+	$(MAKE) -C test polyml
+
+###############################################################################
 # Building using Moscow ML.
 ###############################################################################
 
@@ -116,118 +208,13 @@ include bin/mosml/Makefile.src
 .PHONY: mosml-info
 mosml-info:
 	@echo
-	@echo '*****************************************'
-	@echo '* Build and test the Moscow ML programs *'
-	@echo '*****************************************'
+	@echo '+---------------------------------------+'
+	@echo '| Build and test the Moscow ML programs |'
+	@echo '+---------------------------------------+'
 	@echo
 
 .PHONY: mosml
 mosml: mosml-info $(MOSML_OBJ) $(MOSML_TARGETS) test
-
-###############################################################################
-# Building using MLton.
-###############################################################################
-
-MLTON = mlton
-
-MLTON_OPTS = -runtime 'ram-slop 0.4'
-
-MLTON_SRC = \
-  src/Portable.sig src/PortableMlton.sml \
-  $(SRC)
-
-METIS = bin/mlton/metis
-
-PROBLEMS2TPTP = bin/mlton/problems2tptp
-
-MLTON_TARGETS = \
-  bin/mlton/selftest \
-  $(METIS) \
-  $(PROBLEMS2TPTP)
-
-bin/mlton/%.sml: $(MLTON_SRC) src/%.sml
-	@$(MLPP) $(MLPP_OPTS) -c mlton $^ > $@
-
-bin/mlton/%.mlb: bin/mlton/%.sml
-	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $(notdir $<)' > $@
-
-bin/mlton/%: bin/mlton/%.mlb
-	@echo
-	@echo '***************************'
-	@echo '* Compile a MLton program *'
-	@echo '***************************'
-	@echo
-	@echo $@
-	cd bin/mlton ; $(MLTON) $(MLTON_OPTS) $(notdir $<)
-	@echo
-
-.PHONY: mlton-info
-mlton-info:
-	@echo
-	@echo '*************************************'
-	@echo '* Build and test the MLton programs *'
-	@echo '*************************************'
-	@echo
-
-.PHONY: mlton
-mlton: mlton-info $(MLTON_TARGETS)
-	$(MAKE) -C test mlton
-
-###############################################################################
-# Building using Poly/ML.
-###############################################################################
-
-POLYML = poly
-
-POLYML_OPTS =
-
-ifeq ($(shell uname), Darwin)
-  POLYML_LINK_OPTS = -lpolymain -lpolyml -segprot POLY rwx rwx
-else
-  POLYML_LINK_OPTS = -lpolymain -lpolyml
-endif
-
-POLYML_SRC = \
-  src/Random.sig src/Random.sml \
-  src/Portable.sig src/PortablePolyml.sml \
-  $(SRC)
-
-POLYML_TARGETS = \
-  bin/polyml/selftest \
-  bin/polyml/problems2tptp \
-  bin/polyml/metis
-
-bin/polyml/%.sml: src/%.sml $(POLYML_SRC)
-	@$(MLPP) $(MLPP_OPTS) -c polyml $(POLYML_SRC) > $@
-	@echo 'fun main () = let' >> $@
-	@$(MLPP) $(MLPP_OPTS) -c polyml $< >> $@
-	@echo "in () end; PolyML.export(\"$(basename $(notdir $<))\", main);" >> $@
-
-bin/polyml/%.o: bin/polyml/%.sml
-	cd bin/polyml ; echo "use \"$(notdir $<)\";" | $(POLYML) $(POLYML_OPTS) > $(basename $(notdir $<)).log
-	@if test $@ -nt $< ; then echo 'compiled $@' ; else cat bin/polyml/$(basename $(notdir $<)).log ; exit 1 ; fi
-
-bin/polyml/%: bin/polyml/%.o
-	@echo
-	@echo '*****************************'
-	@echo '* Compile a Poly/ML program *'
-	@echo '*****************************'
-	@echo
-	@echo $@
-	cd bin/polyml && $(CC) -o $(notdir $@) $(notdir $<) $(POLYML_LINK_OPTS)
-	@echo
-
-.PHONY: polyml-info
-polyml-info:
-	@echo
-	@echo '***************************************'
-	@echo '* Build and test the Poly/ML programs *'
-	@echo '***************************************'
-	@echo
-
-.PHONY: polyml
-polyml: polyml-info $(POLYML_TARGETS)
-	$(MAKE) -C test polyml
 
 ###############################################################################
 # Development.

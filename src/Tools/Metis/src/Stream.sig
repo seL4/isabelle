@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature Stream =
@@ -56,6 +56,8 @@ val take : int -> 'a stream -> 'a stream  (* raises Subscript *)
 
 val drop : int -> 'a stream -> 'a stream  (* raises Subscript *)
 
+val unfold : ('b -> ('a * 'b) option) -> 'b -> 'a stream
+
 (* ------------------------------------------------------------------------- *)
 (* Stream versions of standard list operations: these might not terminate.   *)
 (* ------------------------------------------------------------------------- *)
@@ -87,6 +89,8 @@ val mapsConcat :
 (* ------------------------------------------------------------------------- *)
 (* Stream operations.                                                        *)
 (* ------------------------------------------------------------------------- *)
+
+val primes : int stream
 
 val memoize : 'a stream -> 'a stream
 

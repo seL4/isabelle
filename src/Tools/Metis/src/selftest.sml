@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* METIS TESTS                                                               *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
@@ -65,6 +65,7 @@ and pvPo = printval (Print.ppMap partialOrderToString Print.ppString)
 and pvFm = printval Formula.pp
 and pvFms = printval (Print.ppList Formula.pp)
 and pvThm = printval Thm.pp
+and pvThms = printval (Print.ppList Thm.pp)
 and pvEqn : Rule.equation -> Rule.equation = printval (Print.ppMap snd Thm.pp)
 and pvNet = printval (LiteralNet.pp Print.ppInt)
 and pvRw = printval Rewrite.pp
@@ -483,6 +484,27 @@ val th = pvThm (try (Rewrite.orderedRewrite kboCmp []) ax);
 val ax = pvThm (AX [`~(a = b)`, `~(b = c)`, `~(c = d)`, `a = d`]);
 val th = pvThm (try (Rewrite.orderedRewrite kboCmp []) ax);
 
+(* Bug discovered by Michael Farber *)
+
+val eqns = [Q`f $x = c`];
+val ax = pvThm (AX [`~(f $y = g a b)`,`p (g a b)`]);
+val th = pvThm (try (Rewrite.orderedRewrite kboCmp eqns) ax);
+
+val eqns = [Q`even (numeral c) = d`,
+            Q`f (numeral c) $x = $x`];
+val ax = pvThm
+  (AX [`~(even (numeral c) = even $y)`,
+       `p (even (f (numeral c) $y))`]);
+val th = pvThm (try (Rewrite.orderedRewrite kboCmp eqns) ax);
+
+val eqns = [Q`even (numeral c) = d`,
+            Q`f (numeral c) $x = $x`,
+            Q`g a b = numeral c`];
+val ax = pvThm
+  (AX [`~(even (numeral c) = even $y)`,
+       `p (even (f (g a b) $y))`]);
+val th = pvThm (try (Rewrite.orderedRewrite kboCmp eqns) ax);
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Unit cache";
 (* ------------------------------------------------------------------------- *)
@@ -500,6 +522,11 @@ val nnf = Normalize.nnf;
 val _ = pvFm (nnf (F`p /\ ~p`));
 val _ = pvFm (nnf (F`(!x. P x) ==> ((?y. Q y) <=> (?z. P z /\ Q z))`));
 val _ = pvFm (nnf (F`~(~(p <=> q) <=> r) <=> ~(p <=> ~(q <=> r))`));
+val _ = pvFm (nnf (F`~((((p <=> q) <=> r) /\ (q <=> r)) ==> p)`));
+val _ = pvFm (nnf (F`p <=> q`));
+val _ = pvFm (nnf (F`p <=> q <=> r`));
+val _ = pvFm (nnf (F`p <=> q <=> r <=> s`));
+val _ = pvFm (nnf (F`p <=> q <=> r <=> s <=> t`));
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Conjunctive normal form";
@@ -1063,6 +1090,27 @@ end;
 val cl = pvCl (LcpCL[`~($y <= (2 + (2 * $x + pow $x 2)) / 2)`, `~(0 <= $x)`,
                      `$y <= exp $x`]);
 val _ = pvLits (Clause.largestLiterals cl);
+
+(* Bug discovered by Michael Farber *)
+
+local
+  fun activeFactor th =
+      let
+        val (_,{axioms,conjecture}) =
+            Active.new Active.default {axioms = [], conjecture = [th]}
+      in
+        List.map Clause.thm (axioms @ conjecture)
+      end;
+in
+  val th = pvThm (AX[`c4 (c5 (c6 c7 c8) $y) $z = c3`,
+                     `c4 (c5 (c6 c7 c8) $t) $u = c3`]);
+  val _ = pvThms (activeFactor th);
+
+  val th = pvThm (AX[`~(c4 (c5 (c6 c7 c8) c28) c29 = c4 (c5 (c6 c7 c8) c28) $x)`,
+                     `c4 (c5 (c6 c7 c8) $y) $z = c3`,
+                     `c4 (c5 (c6 c7 c8) $t) $u = c3`]);
+  val _ = pvThms (activeFactor th);
+end;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Syntax checking the problem sets";

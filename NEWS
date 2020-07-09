@@ -48,6 +48,10 @@ written as "x powi n".
 
 * For the natural numbers, Sup {} = 0.
 
+* Updated the Metis prover underlying the "metis" proof method to
+  version 2.4 (release 20180810). The new version fixes one soundness
+  defect and two incompleteness defects. Very slight INCOMPATIBILITY.
+
 * Library theory "Bit_Operations" with generic bit operations.
 
 * Session HOL-Word: Type word is restricted to bit strings consisting

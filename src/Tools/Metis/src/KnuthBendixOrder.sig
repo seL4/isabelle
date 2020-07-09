@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE KNUTH-BENDIX TERM ORDERING                                            *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 signature KnuthBendixOrder =

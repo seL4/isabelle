@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Rule :> Rule =
@@ -778,7 +778,7 @@ end;
 
 fun factor th =
     let
-      fun fact sub = removeSym (Thm.subst sub th)
+      fun fact sub = removeIrrefl (removeSym (Thm.subst sub th))
     in
       List.map fact (factor' (Thm.clause th))
     end;

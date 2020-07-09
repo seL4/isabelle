@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Leslie-Hurd, distributed under the BSD License     *)
 (* ========================================================================= *)
 
 structure Normalize :> Normalize =
@@ -648,14 +648,24 @@ local
       | Literal (_,lit) => Literal.toFormula lit
       | And (_,_,s) => Formula.listMkConj (Set.transform form s)
       | Or (_,_,s) => Formula.listMkDisj (Set.transform form s)
-      | Xor (_,_,p,s) =>
-        let
-          val s = if p then negateLastElt s else s
-        in
-          Formula.listMkEquiv (Set.transform form s)
-        end
+      | Xor (_,_,p,s) => xorForm p s
       | Exists (_,_,n,f) => Formula.listMkExists (NameSet.toList n, form f)
-      | Forall (_,_,n,f) => Formula.listMkForall (NameSet.toList n, form f);
+      | Forall (_,_,n,f) => Formula.listMkForall (NameSet.toList n, form f)
+
+  (* To convert a Xor set to an Iff list we need to know   *)
+  (* whether the size of the set is even or odd:           *)
+  (*                                                       *)
+  (*                   b XOR a = b <=> ~a                  *)
+  (*             c XOR b XOR a = c <=> b <=> a             *)
+  (*       d XOR c XOR b XOR a = d <=> c <=> b <=> ~a      *)
+  (* e XOR d XOR c XOR b XOR a = e <=> d <=> c <=> b <=> a *)
+  and xorForm p s =
+      let
+        val p = if Set.size s mod 2 = 0 then not p else p
+        val s = if p then s else negateLastElt s
+      in
+        Formula.listMkEquiv (Set.transform form s)
+      end;
 in
   val toFormula = form;
 end;
