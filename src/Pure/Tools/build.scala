@@ -269,7 +269,8 @@ object Build
                   catch { case ERROR(err) => (2, List(err)) }
 
                 session.protocol_command("Prover.stop", rc.toString)
-                build_session_errors.fulfill(errors)
+                try { build_session_errors.fulfill(errors) }
+                catch { case _ : IllegalStateException => }
                 true
               }
 
@@ -313,6 +314,16 @@ object Build
                 }
                 else if (Protocol.is_exported(message)) {
                   messages += message
+                }
+                else if (msg.is_exit) {
+                  val err =
+                    "Prover terminated" +
+                      (msg.properties match {
+                        case Markup.Process_Result(result) => ": " + result.print_rc
+                        case _ => ""
+                      })
+                  try { build_session_errors.fulfill(List(err)) }
+                  catch { case _ : IllegalStateException => }
                 }
               case _ =>
             }
