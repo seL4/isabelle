@@ -576,6 +576,9 @@ object Markup
   object Command_Timing extends Properties_Function("command_timing")
   object Theory_Timing extends Properties_Function("theory_timing")
   object Session_Timing extends Properties_Function("session_timing")
+  {
+    val Threads = new Properties.String("threads")
+  }
   object ML_Statistics extends Properties_Function("ML_statistics")
   object Task_Statistics extends Properties_Function("task_statistics")
 

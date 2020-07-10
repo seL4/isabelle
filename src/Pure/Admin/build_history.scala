@@ -284,6 +284,14 @@ object Build_History
             if (database.is_file) {
               using(SQLite.open_database(database))(db =>
               {
+                val session_timing =
+                {
+                  val props = store.read_session_timing(db, session_name)
+                  val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse "1"
+                  val timing = Markup.Timing_Properties.unapply(props) getOrElse Timing.zero
+                  "Timing " + session_name + " (" + threads + " threads, " + timing.message_resources + ")"
+                }
+
                 val theory_timings =
                   try {
                     store.read_theory_timings(db, session_name).map(ps =>
@@ -298,7 +306,7 @@ object Build_History
                     case _ => Nil
                   }
 
-                theory_timings ::: session_sources
+                session_timing :: theory_timings ::: session_sources
               })
             }
             else Nil
