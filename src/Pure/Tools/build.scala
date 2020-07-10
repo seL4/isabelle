@@ -224,7 +224,19 @@ object Build
               override val xz_cache: XZ.Cache = store.xz_cache
             }
 
-          val build_session_errors: Promise[List[String]] = Future.promise
+          object Build_Session_Errors
+          {
+            private val promise: Promise[List[String]] = Future.promise
+
+            def result: Exn.Result[List[String]] = promise.join_result
+            def cancel: Unit = promise.cancel
+            def apply(errs: List[String])
+            {
+              try { promise.fulfill(errs) }
+              catch { case _: IllegalStateException => }
+            }
+          }
+
           val stdout = new StringBuilder(1000)
           val stderr = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[XML.Elem]
@@ -248,7 +260,7 @@ object Build
 
           session.init_protocol_handler(new Session.Protocol_Handler
             {
-              override def exit() { build_session_errors.cancel }
+              override def exit() { Build_Session_Errors.cancel }
 
               private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
               {
@@ -269,8 +281,7 @@ object Build
                   catch { case ERROR(err) => (2, List(err)) }
 
                 session.protocol_command("Prover.stop", rc.toString)
-                try { build_session_errors.fulfill(errors) }
-                catch { case _ : IllegalStateException => }
+                Build_Session_Errors(errors)
                 true
               }
 
@@ -322,8 +333,7 @@ object Build
                         case Markup.Process_Result(result) => ": " + result.print_rc
                         case _ => ""
                       })
-                  try { build_session_errors.fulfill(List(err)) }
-                  catch { case _ : IllegalStateException => }
+                  Build_Session_Errors(List(err))
                 }
               case _ =>
             }
@@ -341,7 +351,7 @@ object Build
               Exn.capture { process.await_startup } match {
                 case Exn.Res(_) =>
                   session.protocol_command("build_session", args_yxml)
-                  build_session_errors.join_result
+                  Build_Session_Errors.result
                 case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
               }
             }
