@@ -284,6 +284,13 @@ object Build_History
             if (database.is_file) {
               using(SQLite.open_database(database))(db =>
               {
+                val theory_timings =
+                  try {
+                    store.read_theory_timings(db, session_name).map(ps =>
+                      Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
+                  }
+                  catch { case ERROR(_) => Nil }
+
                 val session_timing =
                 {
                   val props = store.read_session_timing(db, session_name)
@@ -292,13 +299,6 @@ object Build_History
                     Markup.Timing_Properties.parse(props))
                 }
 
-                val theory_timings =
-                  try {
-                    store.read_theory_timings(db, session_name).map(ps =>
-                      Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
-                  }
-                  catch { case ERROR(_) => Nil }
-
                 val session_sources =
                   store.read_build(db, session_name).map(_.sources) match {
                     case Some(sources) if sources.length == SHA1.digest_length =>
@@ -306,7 +306,7 @@ object Build_History
                     case _ => Nil
                   }
 
-                session_timing :: theory_timings ::: session_sources
+                theory_timings ::: List(session_timing) ::: session_sources
               })
             }
             else Nil
