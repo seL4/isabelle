@@ -35,6 +35,9 @@ object Timing
     }
     else e
   }
+
+  def factor_format(f: Double): String =
+    String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))
 }
 
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
@@ -56,11 +59,15 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
   def message: String =
     elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time"
 
+  def message_factor: String =
+    elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time" +
+      Timing.factor_format(cpu.seconds / elapsed.seconds)
+
   def message_resources: String =
   {
     val factor_text =
       factor match {
-        case Some(f) => String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))
+        case Some(f) => Timing.factor_format(f)
         case None => ""
       }
     if (resources.seconds >= 3.0)

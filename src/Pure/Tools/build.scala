@@ -493,7 +493,7 @@ object Build
     "Finished " + session_name + " (" + timing.message_resources + ")"
 
   def session_timing(session_name: String, threads: Int, timing: Timing): String =
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_resources + ")"
+    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
 
   def build(
     options: Options,
