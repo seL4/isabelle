@@ -9,43 +9,6 @@ theory Bit_Operations
     Main
 begin
 
-subsection \<open>Preliminiaries\<close> \<comment> \<open>TODO move\<close>
-
-lemma take_bit_int_less_exp:
-  \<open>take_bit n k < 2 ^ n\<close> for k :: int
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_Suc_from_most:
-  \<open>take_bit (Suc n) k = 2 ^ n * of_bool (bit k n) + take_bit n k\<close> for k :: int
-  by (simp only: take_bit_eq_mod power_Suc2) (simp_all add: bit_iff_odd odd_iff_mod_2_eq_one zmod_zmult2_eq)
-
-lemma take_bit_greater_eq:
-  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
-proof -
-  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
-  proof (cases \<open>k > - (2 ^ n)\<close>)
-    case False
-    then have \<open>k + 2 ^ n \<le> 0\<close>
-      by simp
-    also note take_bit_nonnegative
-    finally show ?thesis .
-  next
-    case True
-    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
-      by simp_all
-    then show ?thesis
-      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
-  qed
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_less_eq:
-  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
-  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
-  by (simp add: take_bit_eq_mod)
-
-
 subsection \<open>Bit operations\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +

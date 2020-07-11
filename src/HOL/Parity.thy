@@ -1648,6 +1648,10 @@ lemma drop_bit_minus_one [simp]:
   \<open>drop_bit n (- 1 :: int) = - 1\<close>
   by (simp add: drop_bit_eq_div minus_1_div_exp_eq_int)
 
+lemma take_bit_Suc_from_most:
+  \<open>take_bit (Suc n) k = 2 ^ n * of_bool (bit k n) + take_bit n k\<close> for k :: int
+  by (simp only: take_bit_eq_mod power_Suc2) (simp_all add: bit_iff_odd odd_iff_mod_2_eq_one zmod_zmult2_eq)
+
 lemma take_bit_minus:
   \<open>take_bit n (- take_bit n k) = take_bit n (- k)\<close>
     for k :: int
@@ -1661,6 +1665,10 @@ lemma take_bit_diff:
 lemma take_bit_nonnegative [simp]:
   \<open>take_bit n k \<ge> 0\<close>
     for k :: int
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_int_less_exp:
+  \<open>take_bit n k < 2 ^ n\<close> for k :: int
   by (simp add: take_bit_eq_mod)
 
 lemma (in ring_1) of_nat_nat_take_bit_eq [simp]:
