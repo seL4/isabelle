@@ -494,8 +494,12 @@ lemma fold_coeffs_pCons_not_0_0_eq [simp]:
 
 subsection \<open>Canonical morphism on polynomials -- evaluation\<close>
 
-definition poly :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a"
-  where "poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)" \<comment> \<open>The Horner Schema\<close>
+definition poly :: \<open>'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>poly p a = horner_sum id a (coeffs p)\<close>
+
+lemma poly_eq_fold_coeffs:
+  \<open>poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)\<close>
+  by (induction p) (auto simp add: fun_eq_iff poly_def)
 
 lemma poly_0 [simp]: "poly 0 x = 0"
   by (simp add: poly_def)
@@ -575,7 +579,7 @@ lemma fold_coeffs_monom [simp]: "a \<noteq> 0 \<Longrightarrow> fold_coeffs f (m
 
 lemma poly_monom: "poly (monom a n) x = a * x ^ n"
   for a x :: "'a::comm_semiring_1"
-  by (cases "a = 0", simp_all) (induct n, simp_all add: mult.left_commute poly_def)
+  by (cases "a = 0", simp_all) (induct n, simp_all add: mult.left_commute poly_eq_fold_coeffs)
 
 lemma monom_eq_iff': "monom c n = monom d m \<longleftrightarrow>  c = d \<and> (c = 0 \<or> n = m)"
   by (auto simp: poly_eq_iff)

@@ -13,12 +13,8 @@ subsection \<open>Fragments of algebraic bit representations\<close>
 context comm_semiring_1
 begin
  
-primrec radix_value :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b list \<Rightarrow> 'a"
-  where "radix_value f b [] = 0"
-  | "radix_value f b (a # as) = f a + radix_value f b as * b"
-
 abbreviation (input) unsigned_of_bits :: "bool list \<Rightarrow> 'a"
-  where "unsigned_of_bits \<equiv> radix_value of_bool 2"
+  where "unsigned_of_bits \<equiv> horner_sum of_bool 2"
 
 lemma unsigned_of_bits_replicate_False [simp]:
   "unsigned_of_bits (replicate n False) = 0"

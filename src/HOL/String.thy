@@ -21,81 +21,6 @@ text \<open>
 
 subsubsection \<open>Bytes as datatype\<close>
 
-context unique_euclidean_semiring_with_bit_shifts
-begin
-
-lemma bit_horner_sum_iff:
-  \<open>bit (foldr (\<lambda>b k. of_bool b + k * 2) bs 0) n \<longleftrightarrow> n < length bs \<and> bs ! n\<close>
-proof (induction bs arbitrary: n)
-  case Nil
-  then show ?case
-    by simp
-next
-  case (Cons b bs)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis
-      by simp
-  next
-    case (Suc m)
-    with bit_rec [of _ n] Cons.prems Cons.IH [of m]
-    show ?thesis by simp
-  qed
-qed
-
-lemma take_bit_horner_sum_eq:
-  \<open>take_bit n (foldr (\<lambda>b k. of_bool b + k * 2) bs 0) = foldr (\<lambda>b k. of_bool b + k * 2) (take n bs) 0\<close>
-proof (induction bs arbitrary: n)
-  case Nil
-  then show ?case
-    by simp
-next
-  case (Cons b bs)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis
-      by simp
-  next
-    case (Suc m)
-    with take_bit_rec [of n] Cons.prems Cons.IH [of m]
-    show ?thesis by (simp add: ac_simps)
-  qed
-qed
-
-lemma (in semiring_bit_shifts) take_bit_eq_horner_sum:
-  \<open>take_bit n a = foldr (\<lambda>b k. of_bool b + k * 2) (map (bit a) [0..<n]) 0\<close>
-proof (induction a arbitrary: n rule: bits_induct)
-  case (stable a)
-  have *: \<open>((\<lambda>k. k * 2) ^^ n) 0 = 0\<close>
-    by (induction n) simp_all
-  from stable have \<open>bit a = (\<lambda>_. odd a)\<close>
-    by (simp add: stable_imp_bit_iff_odd fun_eq_iff)
-  then have \<open>map (bit a) [0..<n] = replicate n (odd a)\<close>
-    by (simp add: map_replicate_const)
-  with stable show ?case
-    by (simp add: stable_imp_take_bit_eq mask_eq_seq_sum *)
-next
-  case (rec a b)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis
-      by simp
-  next
-    case (Suc m)
-    have \<open>map (bit (of_bool b + 2 * a)) [0..<Suc m] = b # map (bit (of_bool b + 2 * a)) [Suc 0..<Suc m]\<close>
-      by (simp only: upt_conv_Cons) simp
-    also have \<open>\<dots> = b # map (bit a) [0..<m]\<close>
-      by (simp only: flip: map_Suc_upt) (simp add: bit_Suc rec.hyps)
-    finally show ?thesis
-      using Suc rec.IH [of m] by (simp add: take_bit_Suc rec.hyps, simp add: ac_simps mod_2_eq_odd)
-  qed
-qed
-
-end
-
 datatype char =
   Char (digit0: bool) (digit1: bool) (digit2: bool) (digit3: bool)
        (digit4: bool) (digit5: bool) (digit6: bool) (digit7: bool)
@@ -104,12 +29,11 @@ context comm_semiring_1
 begin
 
 definition of_char :: \<open>char \<Rightarrow> 'a\<close>
-  where \<open>of_char c = foldr (\<lambda>b k. of_bool b + k * 2) 
-    [digit0 c, digit1 c, digit2 c, digit3 c, digit4 c, digit5 c, digit6 c, digit7 c] 0\<close>
+  where \<open>of_char c = horner_sum of_bool 2 [digit0 c, digit1 c, digit2 c, digit3 c, digit4 c, digit5 c, digit6 c, digit7 c]\<close>
 
 lemma of_char_Char [simp]:
   \<open>of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
-    foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0\<close>
+    horner_sum of_bool 2 [b0, b1, b2, b3, b4, b5, b6, b7]\<close>
   by (simp add: of_char_def)
 
 end
@@ -126,7 +50,7 @@ lemma char_of_take_bit_eq:
 
 lemma char_of_char [simp]:
   \<open>char_of (of_char c) = c\<close>
-  by (simp only: of_char_def char_of_def bit_horner_sum_iff) simp
+  by (simp only: of_char_def char_of_def bit_horner_sum_bit_iff) simp
 
 lemma char_of_comp_of_char [simp]:
   "char_of \<circ> of_char = id"
@@ -159,7 +83,7 @@ proof -
   then have \<open>[odd a, bit a 1, bit a 2, bit a 3, bit a 4, bit a 5, bit a 6, bit a 7] = map (bit a) [0..<8]\<close>
     by simp
   then have \<open>of_char (char_of a) = take_bit 8 a\<close>
-    by (simp only: char_of_def of_char_def char.sel take_bit_eq_horner_sum)
+    by (simp only: char_of_def of_char_def char.sel horner_sum_bit_eq_take_bit)
   then show ?thesis
     by (simp add: take_bit_eq_mod)
 qed
@@ -440,7 +364,7 @@ qualified lemma ascii_of_idem:
 
 qualified lemma char_of_ascii_of [simp]:
   "of_char (ascii_of c) = take_bit 7 (of_char c :: nat)"
-  by (cases c) (simp only: ascii_of_Char of_char_Char take_bit_horner_sum_eq, simp)
+  by (cases c) (simp only: ascii_of_Char of_char_Char take_bit_horner_sum_bit_eq, simp)
 
 qualified typedef literal = "{cs. \<forall>c\<in>set cs. \<not> digit7 c}"
   morphisms explode Abs_literal

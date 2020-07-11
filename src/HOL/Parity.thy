@@ -172,15 +172,6 @@ proof -
     by simp
 qed
 
-lemma mask_eq_seq_sum:
-  \<open>2 ^ n - 1 = ((\<lambda>k. 1 + k * 2) ^^ n) 0\<close>
-proof -
-  have \<open>2 ^ n = ((\<lambda>k. 1 + k * 2) ^^ n) 0 + 1\<close>
-    by (induction n) (simp_all add: ac_simps mult_2)
-  then show ?thesis
-    by simp
-qed
-
 end
 
 class ring_parity = ring + semiring_parity
