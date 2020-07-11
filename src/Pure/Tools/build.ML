@@ -90,10 +90,8 @@ fun protocol_message props output =
             | NONE => ())
           else ()
         end
-      else if function = Markup.theory_timing then
+      else if function = Markup.theory_timing orelse function = Markup.session_timing then
         Protocol_Message.marker (#2 function) args
-      else if function = Markup.session_timing then
-        Protocol_Message.marker "Timing" args
       else
         (case Markup.dest_loading_theory props of
           SOME name => Protocol_Message.marker_text "loading_theory" name

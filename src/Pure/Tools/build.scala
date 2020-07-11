@@ -364,7 +364,7 @@ object Build
               Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
             theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
-            session_timings.toList.map(Protocol.Timing_Marker.apply) :::
+            session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
             runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 

@@ -644,7 +644,7 @@ object Build_Log
     task_statistics: Boolean): Session_Info =
   {
     Session_Info(
-      session_timing = log_file.find_props(Protocol.Timing_Marker) getOrElse Nil,
+      session_timing = log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil,
       command_timings =
         if (command_timings) log_file.filter_props(Protocol.Command_Timing_Marker) else Nil,
       theory_timings =
