@@ -650,6 +650,13 @@ object Build
                   (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
+            val build_log =
+              Build_Log.Log_File(session_name, process_result.out_lines).
+                parse_session_info(
+                  command_timings = true,
+                  theory_timings = true,
+                  ml_statistics = true,
+                  task_statistics = true)
 
             // write log file
             if (process_result.ok) {
@@ -658,23 +665,13 @@ object Build
             else File.write(store.output_log(session_name), terminate_lines(log_lines))
 
             // write database
-            {
-              val build_log =
-                Build_Log.Log_File(session_name, process_result.out_lines).
-                  parse_session_info(
-                    command_timings = true,
-                    theory_timings = true,
-                    ml_statistics = true,
-                    task_statistics = true)
-
-              using(store.open_database(session_name, output = true))(db =>
-                store.write_session_info(db, session_name,
-                  build_log =
-                    if (process_result.timeout) build_log.error("Timeout") else build_log,
-                  build =
-                    Session_Info(sources_stamp(deps, session_name), input_heaps, heap_digest,
-                      process_result.rc)))
-            }
+            using(store.open_database(session_name, output = true))(db =>
+              store.write_session_info(db, session_name,
+                build_log =
+                  if (process_result.timeout) build_log.error("Timeout") else build_log,
+                build =
+                  Session_Info(sources_stamp(deps, session_name), input_heaps, heap_digest,
+                    process_result.rc)))
 
             // messages
             process_result.err_lines.foreach(progress.echo)
