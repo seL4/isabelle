@@ -489,6 +489,12 @@ object Build
     override def toString: String = rc.toString
   }
 
+  def session_finished(session_name: String, timing: Timing): String =
+    "Finished " + session_name + " (" + timing.message_resources + ")"
+
+  def session_timing(session_name: String, threads: Int, timing: Timing): String =
+    "Timing " + session_name + " (" + threads + " threads, " + timing.message_resources + ")"
+
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -678,9 +684,9 @@ object Build
             // messages
             process_result.err_lines.foreach(progress.echo)
 
-            if (process_result.ok)
-              progress.echo(
-                "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
+            if (process_result.ok) {
+              progress.echo(session_finished(session_name, process_result.timing))
+            }
             else {
               progress.echo(session_name + " FAILED")
               if (!process_result.interrupted) progress.echo(process_result_tail.out)

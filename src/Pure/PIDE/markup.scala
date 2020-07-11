@@ -402,6 +402,9 @@ object Markup
           Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
         case _ => None
       }
+
+    def parse(props: Properties.T): isabelle.Timing =
+      unapply(props) getOrElse isabelle.Timing.zero
   }
 
   val TIMING = "timing"
@@ -577,7 +580,7 @@ object Markup
   object Theory_Timing extends Properties_Function("theory_timing")
   object Session_Timing extends Properties_Function("session_timing")
   {
-    val Threads = new Properties.String("threads")
+    val Threads = new Properties.Int("threads")
   }
   object ML_Statistics extends Properties_Function("ML_statistics")
   object Task_Statistics extends Properties_Function("task_statistics")

@@ -287,9 +287,9 @@ object Build_History
                 val session_timing =
                 {
                   val props = store.read_session_timing(db, session_name)
-                  val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse "1"
-                  val timing = Markup.Timing_Properties.unapply(props) getOrElse Timing.zero
-                  "Timing " + session_name + " (" + threads + " threads, " + timing.message_resources + ")"
+                  Build.session_timing(session_name,
+                    Markup.Session_Timing.Threads.unapply(props) getOrElse 1,
+                    Markup.Timing_Properties.parse(props))
                 }
 
                 val theory_timings =
