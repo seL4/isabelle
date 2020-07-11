@@ -490,6 +490,11 @@ object Build
   def session_timing(session_name: String, threads: Int, timing: Timing): String =
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
 
+  def session_timing(session_name: String, props: Properties.T): String =
+    session_timing(session_name,
+      Markup.Session_Timing.Threads.unapply(props) getOrElse 1,
+      Markup.Timing_Properties.parse(props))
+
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,

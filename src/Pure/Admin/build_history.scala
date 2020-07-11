@@ -292,12 +292,7 @@ object Build_History
                   catch { case ERROR(_) => Nil }
 
                 val session_timing =
-                {
-                  val props = store.read_session_timing(db, session_name)
-                  Build.session_timing(session_name,
-                    Markup.Session_Timing.Threads.unapply(props) getOrElse 1,
-                    Markup.Timing_Properties.parse(props))
-                }
+                  Build.session_timing(session_name, store.read_session_timing(db, session_name))
 
                 val session_sources =
                   store.read_build(db, session_name).map(_.sources) match {
