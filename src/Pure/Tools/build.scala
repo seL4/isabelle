@@ -681,9 +681,8 @@ object Build
             // messages
             process_result.err_lines.foreach(progress.echo)
 
-            if (verbose) progress.echo(session_timing(session_name, build_log))
-
             if (process_result.ok) {
+              if (verbose) progress.echo(session_timing(session_name, build_log))
               progress.echo(session_finished(session_name, process_result))
             }
             else {
