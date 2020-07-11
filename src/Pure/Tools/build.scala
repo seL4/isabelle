@@ -484,16 +484,16 @@ object Build
     override def toString: String = rc.toString
   }
 
-  def session_finished(session_name: String, timing: Timing): String =
-    "Finished " + session_name + " (" + timing.message_resources + ")"
+  def session_finished(session_name: String, process_result: Process_Result): String =
+    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
-  def session_timing(session_name: String, threads: Int, timing: Timing): String =
+  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String =
+  {
+    val props = build_log.session_timing
+    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+    val timing = Markup.Timing_Properties.parse(props)
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
-
-  def session_timing(session_name: String, props: Properties.T): String =
-    session_timing(session_name,
-      Markup.Session_Timing.Threads.unapply(props) getOrElse 1,
-      Markup.Timing_Properties.parse(props))
+  }
 
   def build(
     options: Options,
@@ -681,10 +681,10 @@ object Build
             // messages
             process_result.err_lines.foreach(progress.echo)
 
-            if (verbose) progress.echo(session_timing(session_name, build_log.session_timing))
+            if (verbose) progress.echo(session_timing(session_name, build_log))
 
             if (process_result.ok) {
-              progress.echo(session_finished(session_name, process_result.timing))
+              progress.echo(session_finished(session_name, process_result))
             }
             else {
               progress.echo(session_name + " FAILED")
