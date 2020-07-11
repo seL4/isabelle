@@ -13,4 +13,6 @@ imports
   Misc_lsb
 begin
 
+declare signed_take_bit_Suc [simp]
+
 end

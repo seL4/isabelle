@@ -237,45 +237,33 @@ lemma bin_sign_simps [simp]:
 lemma bin_sign_rest [simp]: "bin_sign (bin_rest w) = bin_sign w"
   by (simp add: bin_sign_def)
 
-abbreviation (input) bintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
+abbreviation (input) bintrunc :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
   where \<open>bintrunc \<equiv> take_bit\<close>
 
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
   by (fact take_bit_eq_mod)
 
-primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where
-    Z : "sbintrunc 0 bin = (if odd bin then - 1 else 0)"
-  | Suc : "sbintrunc (Suc n) bin = of_bool (odd bin) + 2 * sbintrunc n (bin div 2)"
+abbreviation (input) sbintrunc :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>sbintrunc \<equiv> signed_take_bit\<close>
 
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
-proof (induction n arbitrary: w)
-  case 0
-  then show ?case
-    by (auto simp add: odd_iff_mod_2_eq_one)
-next
-  case (Suc n)
-  from Suc [of \<open>w div 2\<close>]
-  show ?case
-    using even_succ_mod_exp [of \<open>(b * 2 + 2 * 2 ^ n)\<close> \<open>Suc (Suc n)\<close> for b :: int]
-    by (auto elim!: evenE oddE simp add: mult_mod_right ac_simps)
-qed
-
+  by (simp add: bintrunc_mod2p signed_take_bit_eq_take_bit_shift)
+  
 lemma sbintrunc_eq_take_bit:
   \<open>sbintrunc n k = take_bit (Suc n) (k + 2 ^ n) - 2 ^ n\<close>
-  by (simp add: sbintrunc_mod2p take_bit_eq_mod)
+  by (fact signed_take_bit_eq_take_bit_shift)
 
 lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
-  by (simp add: bintrunc_mod2p bin_sign_def)
+  by (simp add: bin_sign_def)
 
-lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
-  by (simp add: bintrunc_mod2p)
+lemma bintrunc_n_0: "bintrunc n 0 = 0"
+  by (fact take_bit_of_0)
 
-lemma sbintrunc_n_0 [simp]: "sbintrunc n 0 = 0"
-  by (simp add: sbintrunc_mod2p)
+lemma sbintrunc_n_0: "sbintrunc n 0 = 0"
+  by (fact signed_take_bit_of_0)
 
-lemma sbintrunc_n_minus1 [simp]: "sbintrunc n (- 1) = -1"
-  by (induct n) auto
+lemma sbintrunc_n_minus1: "sbintrunc n (- 1) = -1"
+  by (fact signed_take_bit_of_minus_1)
 
 lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) 1 = 1"
@@ -300,24 +288,16 @@ lemma sbintrunc_Suc_numeral:
   "sbintrunc (Suc n) (numeral (Num.Bit1 w)) = 1 + 2 * sbintrunc n (numeral w)"
   "sbintrunc (Suc n) (- numeral (Num.Bit0 w)) = 2 * sbintrunc n (- numeral w)"
   "sbintrunc (Suc n) (- numeral (Num.Bit1 w)) = 1 + 2 * sbintrunc n (- numeral (w + Num.One))"
-  by simp_all
+  by (simp_all add: signed_take_bit_Suc)
 
-lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bin_nth bin n"
-  apply (rule sym)
-  apply (induct n arbitrary: bin)
-   apply (simp_all add: bit_Suc bin_sign_def)
-  done
+lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bit bin n"
+  using mask_nonnegative [of n] by (simp add: bin_sign_def not_le signed_take_bit_def)
 
 lemma nth_bintr: "bin_nth (bintrunc m w) n \<longleftrightarrow> n < m \<and> bin_nth w n"
   by (fact bit_take_bit_iff)
 
 lemma nth_sbintr: "bin_nth (sbintrunc m w) n = (if n < m then bin_nth w n else bin_nth w m)"
-  apply (induct n arbitrary: w m)
-   apply (case_tac m)
-    apply simp_all
-  apply (case_tac m)
-   apply (simp_all add: bit_Suc)
-  done
+  by (simp add: bit_signed_take_bit_iff min_def)
 
 lemma bin_nth_Bit0:
   "bin_nth (numeral (Num.Bit0 w)) n \<longleftrightarrow>
@@ -336,7 +316,7 @@ lemma bintrunc_bintrunc_l: "n \<le> m \<Longrightarrow> bintrunc m (bintrunc n w
   by (simp add: min.absorb2)
 
 lemma sbintrunc_sbintrunc_l: "n \<le> m \<Longrightarrow> sbintrunc m (sbintrunc n w) = sbintrunc n w"
-  by (rule bin_eqI) (auto simp: nth_sbintr)
+  by (simp add: min_def)
 
 lemma bintrunc_bintrunc_ge: "n \<le> m \<Longrightarrow> bintrunc n (bintrunc m w) = bintrunc n w"
   by (rule bin_eqI) (auto simp: nth_bintr)
@@ -348,19 +328,19 @@ lemma sbintrunc_sbintrunc_min [simp]: "sbintrunc m (sbintrunc n w) = sbintrunc (
   by (rule bin_eqI) (auto simp: nth_sbintr min.absorb1 min.absorb2)
 
 lemmas sbintrunc_Suc_Pls =
-  sbintrunc.Suc [where bin="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_Suc [where k="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Suc_Min =
-  sbintrunc.Suc [where bin="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_Suc [where k="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min
   sbintrunc_Suc_numeral
 
 lemmas sbintrunc_Pls =
-  sbintrunc.Z [where bin="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where k="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Min =
-  sbintrunc.Z [where bin="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where k="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_0_simps =
   sbintrunc_Pls sbintrunc_Min
@@ -443,7 +423,7 @@ lemma bintrunc_numeral:
 
 lemma sbintrunc_numeral:
   "sbintrunc (numeral k) x = of_bool (odd x) + 2 * sbintrunc (pred_numeral k) (x div 2)"
-  by (simp add: numeral_eq_Suc)
+  by (simp add: numeral_eq_Suc signed_take_bit_Suc mod2_eq_if)
 
 lemma bintrunc_numeral_simps [simp]:
   "bintrunc (numeral k) (numeral (Num.Bit0 w)) =
@@ -490,42 +470,14 @@ proof -
     apply presburger
     done
 qed
-
-lemma take_bit_greater_eq:
-  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
-proof -
-  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
-  proof (cases \<open>k > - (2 ^ n)\<close>)
-    case False
-    then have \<open>k + 2 ^ n \<le> 0\<close>
-      by simp
-    also note take_bit_nonnegative
-    finally show ?thesis .
-  next
-    case True
-    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
-      by simp_all
-    then show ?thesis
-      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
-  qed
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_less_eq:
-  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
-  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
-  by (simp add: take_bit_eq_mod)
-    
+  
 lemma sbintrunc_inc:
   \<open>k + 2 ^ Suc n \<le> sbintrunc n k\<close> if \<open>k < - (2 ^ n)\<close>
-  using that take_bit_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
-  by (simp add: sbintrunc_eq_take_bit)
-
+  using that by (fact signed_take_bit_greater_eq)
+  
 lemma sbintrunc_dec:
   \<open>sbintrunc n k \<le> k - 2 ^ (Suc n)\<close> if \<open>k \<ge> 2 ^ n\<close>
-  using that take_bit_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
-  by (simp add: sbintrunc_eq_take_bit)
+  using that by (fact signed_take_bit_less_eq)
 
 lemma bintr_ge0: "0 \<le> bintrunc n w"
   by (simp add: bintrunc_mod2p)
@@ -561,13 +513,13 @@ lemma bin_rest_trunc_i: "bintrunc n (bin_rest bin) = bin_rest (bintrunc (Suc n) 
   by (auto simp add: take_bit_Suc)
 
 lemma bin_rest_strunc: "bin_rest (sbintrunc (Suc n) bin) = sbintrunc n (bin_rest bin)"
-  by simp
+  by (simp add: signed_take_bit_Suc)
 
 lemma bintrunc_rest [simp]: "bintrunc n (bin_rest (bintrunc n bin)) = bin_rest (bintrunc n bin)"
   by (induct n arbitrary: bin) (simp_all add: take_bit_Suc)
 
 lemma sbintrunc_rest [simp]: "sbintrunc n (bin_rest (sbintrunc n bin)) = bin_rest (sbintrunc n bin)"
-  by (induct n arbitrary: bin) simp_all
+  by (induct n arbitrary: bin) (simp_all add: signed_take_bit_Suc mod2_eq_if)
 
 lemma bintrunc_rest': "bintrunc n \<circ> bin_rest \<circ> bintrunc n = bin_rest \<circ> bintrunc n"
   by (rule ext) auto
@@ -589,21 +541,6 @@ lemmas rco_bintr = bintrunc_rest'
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 lemmas rco_sbintr = sbintrunc_rest'
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
-
-lemma sbintrunc_code [code]:
-  "sbintrunc n k =
-  (let l = take_bit (Suc n) k
-   in if bit l n then l - push_bit n 2 else l)"
-proof (induction n arbitrary: k)
-  case 0
-  then show ?case
-    by (simp add: mod_2_eq_odd)
-next
-  case (Suc n)
-  from Suc [of \<open>k div 2\<close>]
-  show ?case
-    by (auto simp add: Let_def push_bit_eq_mult algebra_simps take_bit_Suc [of \<open>Suc n\<close>] bit_Suc elim!: evenE oddE)
-qed
 
 
 subsection \<open>Splitting and concatenation\<close>
@@ -1759,7 +1696,7 @@ lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = 0"
   by (simp add: bl_to_bin_def sign_bl_bin')
 
 lemma bl_sbin_sign_aux: "hd (bin_to_bl_aux (Suc n) w bs) = (bin_sign (sbintrunc n w) = -1)"
-  by (induction n arbitrary: w bs) (simp_all add: bin_sign_def)
+  by (induction n arbitrary: w bs) (auto simp add: bin_sign_def even_iff_mod_2_eq_zero bit_Suc)
 
 lemma bl_sbin_sign: "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = -1)"
   unfolding bin_to_bl_def by (rule bl_sbin_sign_aux)

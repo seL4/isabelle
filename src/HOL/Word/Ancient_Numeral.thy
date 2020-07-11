@@ -163,21 +163,21 @@ lemma bin_nth_Bit: "bin_nth (w BIT b) n \<longleftrightarrow> n = 0 \<and> b \<o
   by (cases n) auto
 
 lemmas sbintrunc_Suc_BIT [simp] =
-  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
+  signed_take_bit_Suc [where k="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
 
 lemmas sbintrunc_0_BIT_B0 [simp] =
-  sbintrunc.Z [where bin="w BIT False", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where k="w BIT False", simplified bin_last_numeral_simps bin_rest_numeral_simps]
   for w
 
 lemmas sbintrunc_0_BIT_B1 [simp] =
-  sbintrunc.Z [where bin="w BIT True", simplified bin_last_BIT bin_rest_numeral_simps]
+  signed_take_bit_0 [where k="w BIT True", simplified bin_last_BIT bin_rest_numeral_simps]
   for w
 
 lemma sbintrunc_Suc_minus_Is:
   \<open>0 < n \<Longrightarrow>
   sbintrunc (n - 1) w = y \<Longrightarrow>
   sbintrunc n (w BIT b) = y BIT b\<close>
-  by (cases n) (simp_all add: Bit_def)
+  by (cases n) (simp_all add: Bit_def signed_take_bit_Suc)
 
 lemma bin_cat_Suc_Bit: "bin_cat w (Suc n) (v BIT b) = bin_cat w n v BIT b"
   by (auto simp add: Bit_def)

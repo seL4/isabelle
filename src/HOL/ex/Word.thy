@@ -10,92 +10,6 @@ theory Word
     "HOL-Library.Bit_Operations"
 begin
 
-subsection \<open>Preliminaries\<close>
-
-definition signed_take_bit :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where signed_take_bit_eq_take_bit:
-    "signed_take_bit n k = take_bit (Suc n) (k + 2 ^ n) - 2 ^ n"
-
-lemma signed_take_bit_eq_take_bit':
-  "signed_take_bit (n - Suc 0) k = take_bit n (k + 2 ^ (n - 1)) - 2 ^ (n - 1)" if "n > 0"
-  using that by (simp add: signed_take_bit_eq_take_bit)
-
-lemma signed_take_bit_0 [simp]:
-  "signed_take_bit 0 k = - (k mod 2)"
-proof (cases "even k")
-  case True
-  then have "odd (k + 1)"
-    by simp
-  then have "(k + 1) mod 2 = 1"
-    by (simp add: even_iff_mod_2_eq_zero)
-  with True show ?thesis
-    by (simp add: signed_take_bit_eq_take_bit take_bit_Suc)
-next
-  case False
-  then show ?thesis
-    by (simp add: signed_take_bit_eq_take_bit odd_iff_mod_2_eq_one take_bit_Suc)
-qed
-
-lemma signed_take_bit_Suc:
-  "signed_take_bit (Suc n) k = k mod 2 + 2 * signed_take_bit n (k div 2)"
-  by (simp add: odd_iff_mod_2_eq_one signed_take_bit_eq_take_bit algebra_simps take_bit_Suc)
-
-lemma signed_take_bit_of_0 [simp]:
-  "signed_take_bit n 0 = 0"
-  by (simp add: signed_take_bit_eq_take_bit take_bit_eq_mod)
-
-lemma signed_take_bit_of_minus_1 [simp]:
-  "signed_take_bit n (- 1) = - 1"
-  by (induct n) (simp_all add: signed_take_bit_Suc)
-
-lemma signed_take_bit_eq_iff_take_bit_eq:
-  "signed_take_bit (n - Suc 0) k = signed_take_bit (n - Suc 0) l \<longleftrightarrow> take_bit n k = take_bit n l" (is "?P \<longleftrightarrow> ?Q")
-  if "n > 0"
-proof -
-  from that obtain m where m: "n = Suc m"
-    by (cases n) auto
-  show ?thesis
-  proof
-    assume ?Q
-    have "take_bit (Suc m) (k + 2 ^ m) =
-      take_bit (Suc m) (take_bit (Suc m) k + take_bit (Suc m) (2 ^ m))"
-      by (simp only: take_bit_add)
-    also have "\<dots> =
-      take_bit (Suc m) (take_bit (Suc m) l + take_bit (Suc m) (2 ^ m))"
-      by (simp only: \<open>?Q\<close> m [symmetric])
-    also have "\<dots> = take_bit (Suc m) (l + 2 ^ m)"
-      by (simp only: take_bit_add)
-    finally show ?P
-      by (simp only: signed_take_bit_eq_take_bit m) simp
-  next
-    assume ?P
-    with that have "(k + 2 ^ (n - Suc 0)) mod 2 ^ n = (l + 2 ^ (n - Suc 0)) mod 2 ^ n"
-      by (simp add: signed_take_bit_eq_take_bit' take_bit_eq_mod)
-    then have "(i + (k + 2 ^ (n - Suc 0))) mod 2 ^ n = (i + (l + 2 ^ (n - Suc 0))) mod 2 ^ n" for i
-      by (metis mod_add_eq)
-    then have "k mod 2 ^ n = l mod 2 ^ n"
-      by (metis add_diff_cancel_right' uminus_add_conv_diff)
-    then show ?Q
-      by (simp add: take_bit_eq_mod)
-  qed
-qed
-
-lemma signed_take_bit_code [code]:
-  \<open>signed_take_bit n k =
-  (let l = take_bit (Suc n) k
-   in if bit l n then l - push_bit n 2 else l)\<close>
-proof (induction n arbitrary: k)
-  case 0
-  then show ?case
-    by (simp add: mod_2_eq_odd and_one_eq)
-next
-  case (Suc n)
-  from Suc [of \<open>k div 2\<close>]
-  show ?case
-    by (auto simp add: Let_def push_bit_eq_mult algebra_simps take_bit_Suc [of \<open>Suc n\<close>] bit_Suc signed_take_bit_Suc elim!: evenE oddE)
-qed
-
-
 subsection \<open>Bit strings as quotient type\<close>
 
 subsubsection \<open>Basic properties\<close>
@@ -234,7 +148,8 @@ begin
 
 lift_definition signed :: "'b::len word \<Rightarrow> 'a"
   is "of_int \<circ> signed_take_bit (LENGTH('b) - 1)"
-  by (simp add: signed_take_bit_eq_iff_take_bit_eq [symmetric])
+  by (cases \<open>LENGTH('b)\<close>)
+    (simp_all add: signed_take_bit_eq_iff_take_bit_eq [symmetric])
 
 lemma signed_0 [simp]:
   "signed 0 = 0"
@@ -277,7 +192,7 @@ lemma signed_of_int [simp]:
 
 lemma of_int_signed [simp]:
   "of_int (signed a) = a"
-  by transfer (simp add: signed_take_bit_eq_take_bit take_bit_eq_mod mod_simps)
+  by (transfer; cases \<open>LENGTH('a)\<close>) simp_all
 
 
 subsubsection \<open>Properties\<close>

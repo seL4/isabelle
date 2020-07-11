@@ -1757,7 +1757,7 @@ proof -
   have \<open>?P \<longleftrightarrow> bit (uint w) (LENGTH('a) - Suc 0)\<close>
     by (simp add: bit_uint_iff)
   also have \<open>\<dots> \<longleftrightarrow> ?Q\<close>
-    by (simp add: sint_uint bin_sign_def flip: bin_sign_lem)
+    by (simp add: sint_uint)
   finally show ?thesis .
 qed
 
@@ -4099,31 +4099,20 @@ lemma sofl_test:
 proof -
   obtain n where n: \<open>LENGTH('a) = Suc n\<close>
     by (cases \<open>LENGTH('a)\<close>) simp_all
+  have *: \<open>sint x + sint y + 2 ^ Suc n > signed_take_bit n (sint x + sint y) \<Longrightarrow> sint x + sint y \<ge> - (2 ^ n)\<close>
+    \<open>signed_take_bit n (sint x + sint y) > sint x + sint y - 2 ^ Suc n \<Longrightarrow> 2 ^ n > sint x + sint y\<close>
+    using signed_take_bit_greater_eq [of \<open>sint x + sint y\<close> n] signed_take_bit_less_eq [of n \<open>sint x + sint y\<close>]
+    by (auto intro: ccontr)
   have \<open>sint x + sint y = sint (x + y) \<longleftrightarrow>
     (sint (x + y) < 0 \<longleftrightarrow> sint x < 0) \<or>
     (sint (x + y) < 0 \<longleftrightarrow> sint y < 0)\<close>
-    apply safe
-         apply simp_all
-       apply (unfold sint_word_ariths)
-       apply (unfold word_sbin.set_iff_norm [symmetric] sints_num)
-       apply safe
-           apply (insert sint_range' [where x=x])
-           apply (insert sint_range' [where x=y])
-           defer
-           apply (simp (no_asm), arith)
-          apply (simp (no_asm), arith)
-         defer
-         defer
-         apply (simp (no_asm), arith)
-        apply (simp (no_asm), arith)
-       apply (simp_all add: n not_less)
-       apply (rule notI [THEN notnotD],
-         drule leI not_le_imp_less,
-         drule sbintrunc_inc sbintrunc_dec,
-         simp)+
+    using sint_range' [of x] sint_range' [of y]
+    apply (auto simp add: not_less)
+       apply (unfold sint_word_ariths word_sbin.set_iff_norm [symmetric] sints_num)
+       apply (auto simp add: signed_take_bit_eq_take_bit_minus take_bit_Suc_from_most n not_less intro!: *)
     done
   then show ?thesis
-    apply (simp add: word_size shiftr_word_eq  drop_bit_eq_zero_iff_not_bit_last bit_and_iff bit_xor_iff)
+    apply (simp add: word_size shiftr_word_eq drop_bit_eq_zero_iff_not_bit_last bit_and_iff bit_xor_iff)
     apply (simp add: bit_last_iff)
     done
 qed
