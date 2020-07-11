@@ -291,9 +291,6 @@ object Build_History
                   }
                   catch { case ERROR(_) => Nil }
 
-                val session_timing =
-                  Build.session_timing(session_name, store.read_session_timing(db, session_name))
-
                 val session_sources =
                   store.read_build(db, session_name).map(_.sources) match {
                     case Some(sources) if sources.length == SHA1.digest_length =>
@@ -301,7 +298,7 @@ object Build_History
                     case _ => Nil
                   }
 
-                theory_timings ::: List(session_timing) ::: session_sources
+                theory_timings ::: session_sources
               })
             }
             else Nil
