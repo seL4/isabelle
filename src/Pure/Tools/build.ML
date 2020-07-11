@@ -56,8 +56,7 @@ fun session_timing session_name verbose f x =
     val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
       |> Real.fmt (StringCvt.FIX (SOME 2));
 
-    val timing_props =
-      [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
+    val timing_props = [("threads", threads)] @ Markup.timing_properties timing;
     val _ = Output.protocol_message (Markup.session_timing :: timing_props) [];
     val _ =
       if verbose then
