@@ -919,6 +919,24 @@ qed
 
 end
 
+context
+  includes lifting_syntax
+begin
+
+lemma set_bit_word_transfer:
+  \<open>((=) ===> pcr_word ===> pcr_word) set_bit set_bit\<close>
+  by (unfold set_bit_def) transfer_prover
+
+lemma unset_bit_word_transfer:
+  \<open>((=) ===> pcr_word ===> pcr_word) unset_bit unset_bit\<close>
+  by (unfold unset_bit_def) transfer_prover
+
+lemma flip_bit_word_transfer:
+  \<open>((=) ===> pcr_word ===> pcr_word) flip_bit flip_bit\<close>
+  by (unfold flip_bit_def) transfer_prover
+
+end
+
 instantiation word :: (len) semiring_bit_syntax
 begin
 

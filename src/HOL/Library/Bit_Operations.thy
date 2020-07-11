@@ -213,6 +213,14 @@ lemma or_eq_not_not_and:
   \<open>a OR b = NOT (NOT a AND NOT b)\<close>
   by simp
 
+lemma not_add_distrib:
+  \<open>NOT (a + b) = NOT a - b\<close>
+  by (simp add: not_eq_complement algebra_simps)
+
+lemma not_diff_distrib:
+  \<open>NOT (a - b) = NOT a + b\<close>
+  using not_add_distrib [of a \<open>- b\<close>] by simp
+
 lemma push_bit_minus:
   \<open>push_bit n (- a) = - push_bit n a\<close>
   by (simp add: push_bit_eq_mult)
@@ -380,16 +388,20 @@ proof (rule bit_eqI)
   qed
 qed
 
+lemma flip_bit_eq_if:
+  \<open>flip_bit n a = (if bit a n then unset_bit else set_bit) n a\<close>
+  by (rule bit_eqI) (auto simp add: bit_set_bit_iff bit_unset_bit_iff bit_flip_bit_iff)
+
 lemma take_bit_set_bit_eq:
-  \<open>take_bit n (set_bit m w) = (if n \<le> m then take_bit n w else set_bit m (take_bit n w))\<close>
+  \<open>take_bit n (set_bit m a) = (if n \<le> m then take_bit n a else set_bit m (take_bit n a))\<close>
   by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_set_bit_iff)
 
 lemma take_bit_unset_bit_eq:
-  \<open>take_bit n (unset_bit m w) = (if n \<le> m then take_bit n w else unset_bit m (take_bit n w))\<close>
+  \<open>take_bit n (unset_bit m a) = (if n \<le> m then take_bit n a else unset_bit m (take_bit n a))\<close>
   by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_unset_bit_iff)
 
 lemma take_bit_flip_bit_eq:
-  \<open>take_bit n (flip_bit m w) = (if n \<le> m then take_bit n w else flip_bit m (take_bit n w))\<close>
+  \<open>take_bit n (flip_bit m a) = (if n \<le> m then take_bit n a else flip_bit m (take_bit n a))\<close>
   by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_flip_bit_iff)
 
 end
@@ -501,6 +513,41 @@ qed (simp_all add: bit_not_int_iff)
 
 end
 
+lemma disjunctive_add:
+  \<open>k + l = k OR l\<close> if \<open>\<And>n. \<not> bit k n \<or> \<not> bit l n\<close> for k l :: int
+  \<comment> \<open>TODO: may integrate (indirectly) into \<^class>\<open>semiring_bits\<close> premises\<close>
+proof (rule bit_eqI)
+  fix n
+  from that have \<open>bit (k + l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
+  proof (induction n arbitrary: k l)
+    case 0
+    from this [of 0] show ?case
+      by auto
+  next
+    case (Suc n)
+    have \<open>bit ((k + l) div 2) n \<longleftrightarrow> bit (k div 2 + l div 2) n\<close>
+      using Suc.prems [of 0] div_add1_eq [of k l] by auto
+    also have \<open>bit (k div 2 + l div 2) n \<longleftrightarrow> bit (k div 2) n \<or> bit (l div 2) n\<close>
+      by (rule Suc.IH) (use Suc.prems in \<open>simp flip: bit_Suc\<close>)
+    finally show ?case
+      by (simp add: bit_Suc)
+  qed
+  also have \<open>\<dots> \<longleftrightarrow> bit (k OR l) n\<close>
+    by (simp add: bit_or_iff)
+  finally show \<open>bit (k + l) n \<longleftrightarrow> bit (k OR l) n\<close> .
+qed
+
+lemma disjunctive_diff:
+  \<open>k - l = k AND NOT l\<close> if \<open>\<And>n. bit l n \<Longrightarrow> bit k n\<close> for k l :: int
+proof -
+  have \<open>NOT k + l = NOT k OR l\<close>
+    by (rule disjunctive_add) (auto simp add: bit_not_iff dest: that)
+  then have \<open>NOT (NOT k + l) = NOT (NOT k OR l)\<close>
+    by simp
+  then show ?thesis
+    by (simp add: not_add_distrib)
+qed
+
 lemma not_nonnegative_int_iff [simp]:
   \<open>NOT k \<ge> 0 \<longleftrightarrow> k < 0\<close> for k :: int
   by (simp add: not_int_def)
@@ -538,6 +585,28 @@ lemma and_negative_int_iff [simp]:
   \<open>k AND l < 0 \<longleftrightarrow> k < 0 \<and> l < 0\<close> for k l :: int
   by (subst Not_eq_iff [symmetric]) (simp add: not_less)
 
+lemma and_less_eq:
+  \<open>k AND l \<le> k\<close> if \<open>l < 0\<close> for k l :: int
+using that proof (induction k arbitrary: l rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even k)
+  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
+  show ?case
+    by (simp add: and_int_rec [of _ l])
+next
+  case (odd k)
+  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
+  show ?case
+    by (simp add: and_int_rec [of _ l])
+qed
+
 lemma or_nonnegative_int_iff [simp]:
   \<open>k OR l \<ge> 0 \<longleftrightarrow> k \<ge> 0 \<and> l \<ge> 0\<close> for k l :: int
   by (simp only: or_eq_not_not_and not_nonnegative_int_iff) simp
@@ -545,6 +614,28 @@ lemma or_nonnegative_int_iff [simp]:
 lemma or_negative_int_iff [simp]:
   \<open>k OR l < 0 \<longleftrightarrow> k < 0 \<or> l < 0\<close> for k l :: int
   by (subst Not_eq_iff [symmetric]) (simp add: not_less)
+
+lemma or_greater_eq:
+  \<open>k OR l \<ge> k\<close> if \<open>l \<ge> 0\<close> for k l :: int
+using that proof (induction k arbitrary: l rule: int_bit_induct)
+  case zero
+  then show ?case
+    by simp
+next
+  case minus
+  then show ?case
+    by simp
+next
+  case (even k)
+  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
+  show ?case
+    by (simp add: or_int_rec [of _ l])
+next
+  case (odd k)
+  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
+  show ?case
+    by (simp add: or_int_rec [of _ l])
+qed
 
 lemma xor_nonnegative_int_iff [simp]:
   \<open>k XOR l \<ge> 0 \<longleftrightarrow> (k \<ge> 0 \<longleftrightarrow> l \<ge> 0)\<close> for k l :: int
@@ -578,50 +669,6 @@ lemma flip_bit_negative_int_iff [simp]:
   \<open>flip_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
   by (simp add: flip_bit_def)
 
-lemma and_less_eq:
-  \<open>k AND l \<le> k\<close> if \<open>l < 0\<close> for k l :: int
-using that proof (induction k arbitrary: l rule: int_bit_induct)
-  case zero
-  then show ?case
-    by simp
-next
-  case minus
-  then show ?case
-    by simp
-next
-  case (even k)
-  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
-  show ?case
-    by (simp add: and_int_rec [of _ l])
-next
-  case (odd k)
-  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
-  show ?case
-    by (simp add: and_int_rec [of _ l])
-qed
-
-lemma or_greater_eq:
-  \<open>k OR l \<ge> k\<close> if \<open>l \<ge> 0\<close> for k l :: int
-using that proof (induction k arbitrary: l rule: int_bit_induct)
-  case zero
-  then show ?case
-    by simp
-next
-  case minus
-  then show ?case
-    by simp
-next
-  case (even k)
-  from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
-  show ?case
-    by (simp add: or_int_rec [of _ l])
-next
-  case (odd k)
-  from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
-  show ?case
-    by (simp add: or_int_rec [of _ l])
-qed
-
 lemma set_bit_greater_eq:
   \<open>set_bit n k \<ge> k\<close> for k :: int
   by (simp add: set_bit_def or_greater_eq)
@@ -629,6 +676,52 @@ lemma set_bit_greater_eq:
 lemma unset_bit_less_eq:
   \<open>unset_bit n k \<le> k\<close> for k :: int
   by (simp add: unset_bit_def and_less_eq)
+
+lemma set_bit_eq:
+  \<open>set_bit n k = k + of_bool (\<not> bit k n) * 2 ^ n\<close> for k :: int
+proof (rule bit_eqI)
+  fix m
+  show \<open>bit (set_bit n k) m \<longleftrightarrow> bit (k + of_bool (\<not> bit k n) * 2 ^ n) m\<close>
+  proof (cases \<open>m = n\<close>)
+    case True
+    then show ?thesis
+      apply (simp add: bit_set_bit_iff)
+      apply (simp add: bit_iff_odd div_plus_div_distrib_dvd_right)
+      done
+  next
+    case False
+    then show ?thesis
+      apply (clarsimp simp add: bit_set_bit_iff)
+      apply (subst disjunctive_add)
+      apply (clarsimp simp add: bit_exp_iff)
+      apply (clarsimp simp add: bit_or_iff bit_exp_iff)
+      done
+  qed
+qed
+
+lemma unset_bit_eq:
+  \<open>unset_bit n k = k - of_bool (bit k n) * 2 ^ n\<close> for k :: int
+proof (rule bit_eqI)
+  fix m
+  show \<open>bit (unset_bit n k) m \<longleftrightarrow> bit (k - of_bool (bit k n) * 2 ^ n) m\<close>
+  proof (cases \<open>m = n\<close>)
+    case True
+    then show ?thesis
+      apply (simp add: bit_unset_bit_iff)
+      apply (simp add: bit_iff_odd)
+      using div_plus_div_distrib_dvd_right [of \<open>2 ^ n\<close> \<open>- (2 ^ n)\<close> k]
+      apply (simp add: dvd_neg_div)
+      done
+  next
+    case False
+    then show ?thesis
+      apply (clarsimp simp add: bit_unset_bit_iff)
+      apply (subst disjunctive_diff)
+      apply (clarsimp simp add: bit_exp_iff)
+      apply (clarsimp simp add: bit_and_iff bit_not_iff bit_exp_iff)
+      done
+  qed
+qed
 
 
 subsection \<open>Instance \<^typ>\<open>nat\<close>\<close>
