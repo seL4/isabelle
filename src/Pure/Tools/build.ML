@@ -46,23 +46,15 @@ fun get_timings timings tr =
 
 (* session timing *)
 
-fun session_timing session_name verbose f x =
+fun session_timing f x =
   let
     val start = Timing.start ();
     val y = f x;
     val timing = Timing.result start;
 
     val threads = string_of_int (Multithreading.max_threads ());
-    val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
-      |> Real.fmt (StringCvt.FIX (SOME 2));
-
-    val timing_props = [("threads", threads)] @ Markup.timing_properties timing;
-    val _ = Output.protocol_message (Markup.session_timing :: timing_props) [];
-    val _ =
-      if verbose then
-        Output.physical_stderr ("Timing " ^ session_name ^ " (" ^
-          threads ^ " threads, " ^ Timing.message timing ^ ", factor " ^ factor ^ ")\n")
-      else ();
+    val props = [("threads", threads)] @ Markup.timing_properties timing;
+    val _ = Output.protocol_message (Markup.session_timing :: props) [];
   in y end;
 
 
@@ -211,7 +203,7 @@ fun build_session (Args {pide, symbol_codes, command_timings, verbose, browser_i
     val res1 =
       theories |>
         (List.app (build_theories symbols bibtex_entries last_timing session_name master_dir)
-          |> session_timing session_name verbose
+          |> session_timing
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
 
