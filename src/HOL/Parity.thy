@@ -1499,6 +1499,10 @@ lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
   by (simp add: take_bit_eq_mod)
 
+lemma take_bit_Suc_1 [simp]:
+  \<open>take_bit (Suc n) 1 = 1\<close>
+  by (simp add: take_bit_Suc)
+
 lemma take_bit_Suc_bit0 [simp]:
   \<open>take_bit (Suc n) (numeral (Num.Bit0 k)) = take_bit n (numeral k) * 2\<close>
   by (simp add: take_bit_Suc numeral_Bit0_div_2)
@@ -1506,6 +1510,10 @@ lemma take_bit_Suc_bit0 [simp]:
 lemma take_bit_Suc_bit1 [simp]:
   \<open>take_bit (Suc n) (numeral (Num.Bit1 k)) = take_bit n (numeral k) * 2 + 1\<close>
   by (simp add: take_bit_Suc numeral_Bit1_div_2 mod_2_eq_odd)
+
+lemma take_bit_numeral_1 [simp]:
+  \<open>take_bit (numeral l) 1 = 1\<close>
+  by (simp add: take_bit_rec [of \<open>numeral l\<close> 1])
 
 lemma take_bit_numeral_bit0 [simp]:
   \<open>take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2\<close>
