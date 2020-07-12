@@ -16,6 +16,7 @@ imports
   "HOL-Computational_Algebra.Polynomial_Factorial"
   "HOL-Number_Theory.Eratosthenes"
   "HOL-ex.Records"
+  "HOL-Word.Word"
 begin
 
 text \<open>Drop technical stuff from \<^theory>\<open>HOL.Quickcheck_Narrowing\<close> which is tailored towards Haskell\<close>
