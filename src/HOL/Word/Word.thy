@@ -128,9 +128,6 @@ definition of_bl :: "bool list \<Rightarrow> 'a::len word"
 definition to_bl :: "'a::len word \<Rightarrow> bool list"
   where "to_bl w = bin_to_bl (LENGTH('a)) (uint w)"
 
-definition word_reverse :: "'a::len word \<Rightarrow> 'a word"
-  where "word_reverse w = of_bl (rev (to_bl w))"
-
 definition word_int_case :: "(int \<Rightarrow> 'b) \<Rightarrow> 'a::len word \<Rightarrow> 'b"
   where "word_int_case f w = f (uint w)"
 
@@ -823,6 +820,10 @@ lemma not_bit_length [simp]:
   \<open>\<not> bit w LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
   by transfer simp
 
+lemma take_bit_length_eq [simp]:
+  \<open>take_bit LENGTH('a) w = w\<close> for w :: \<open>'a::len word\<close>
+  by transfer simp
+
 lemma bit_word_of_int_iff:
   \<open>bit (word_of_int k :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> bit k n\<close>
   by transfer rule
@@ -1041,19 +1042,6 @@ definition sshiftr :: "'a::len word \<Rightarrow> nat \<Rightarrow> 'a word"  (i
 definition mask :: "nat \<Rightarrow> 'a::len word"
   where "mask n = (1 << n) - 1"
 
-definition slice1 :: "nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word"
-  where "slice1 n w = of_bl (takefill False n (to_bl w))"
-
-definition revcast :: "'a::len word \<Rightarrow> 'b::len word"
-  where "revcast w =  of_bl (takefill False (LENGTH('b)) (to_bl w))"
-
-lemma revcast_eq:
-  \<open>(revcast :: 'a::len word \<Rightarrow> 'b::len word) = slice1 LENGTH('b)\<close>
-  by (simp add: fun_eq_iff revcast_def slice1_def)
-
-definition slice :: "nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word"
-  where "slice n w = slice1 (size w - n) w"
-
 
 subsection \<open>Rotation\<close>
 
@@ -1178,9 +1166,6 @@ lemmas td_sint = word_sint.td
 
 lemma to_bl_def': "(to_bl :: 'a::len word \<Rightarrow> bool list) = bin_to_bl (LENGTH('a)) \<circ> uint"
   by (auto simp: to_bl_def)
-
-lemmas word_reverse_no_def [simp] =
-  word_reverse_def [of "numeral w"] for w
 
 lemma uints_mod: "uints n = range (\<lambda>w. w mod 2 ^ n)"
   by (fact uints_def [unfolded no_bintr_alt1])
@@ -1439,18 +1424,6 @@ lemma word_size_bl: "size w = size (to_bl w)"
 
 lemma to_bl_use_of_bl: "to_bl w = bl \<longleftrightarrow> w = of_bl bl \<and> length bl = length (to_bl w)"
   by (fastforce elim!: word_bl.Abs_inverse [unfolded mem_Collect_eq])
-
-lemma to_bl_word_rev: "to_bl (word_reverse w) = rev (to_bl w)"
-  by (simp add: word_reverse_def word_bl.Abs_inverse)
-
-lemma word_rev_rev [simp] : "word_reverse (word_reverse w) = w"
-  by (simp add: word_reverse_def word_bl.Abs_inverse)
-
-lemma word_rev_gal: "word_reverse w = u \<Longrightarrow> word_reverse u = w"
-  by (metis word_rev_rev)
-
-lemma word_rev_gal': "u = word_reverse w \<Longrightarrow> w = word_reverse u"
-  by simp
 
 lemma length_bl_gt_0 [iff]: "0 < length (to_bl x)"
   for x :: "'a::len word"
@@ -1745,7 +1718,6 @@ lemma ucast_down_no [OF refl]: "uc = ucast \<Longrightarrow> is_down uc \<Longri
 lemma ucast_down_bl [OF refl]: "uc = ucast \<Longrightarrow> is_down uc \<Longrightarrow> uc (of_bl bl) = of_bl bl"
   unfolding of_bl_def by clarify (erule ucast_down_wi)
 
-lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
@@ -2098,7 +2070,7 @@ lemma mod_sub_if_z:
    apply (simp only: flip: mod_add_self2 [of \<open>x - y\<close> z])
    apply (rule zmod_le_nonneg_dividend)
    apply simp
-  apply (metis add.commute add.right_neutral add_le_cancel_left diff_ge_0_iff_ge int_mod_ge le_less le_less_trans mod_add_self1 not_le not_less)
+  apply (metis add.commute add.right_neutral add_le_cancel_left diff_ge_0_iff_ge int_mod_ge le_less le_less_trans mod_add_self1 not_less)
   done
 
 lemma uint_sub_if':
@@ -3109,29 +3081,44 @@ lemma nth_to_bl:
 lemma of_bl_rep_False: "of_bl (replicate n False @ bs) = of_bl bs"
   by (auto simp: of_bl_def bl_to_bin_rep_F)
 
+lemma bit_horner_sum_bit_word_iff:
+  \<open>bit (horner_sum of_bool (2 :: 'a::len word) bs) n
+    \<longleftrightarrow> n < min LENGTH('a) (length bs) \<and> bs ! n\<close>
+  by transfer (simp add: bit_horner_sum_bit_iff)
+
+lemma of_bl_eq:
+  \<open>of_bl bs = horner_sum of_bool 2 (rev bs)\<close>
+  by (rule bit_word_eqI) (simp add: bit_of_bl_iff bit_horner_sum_bit_word_iff ac_simps)
+
+definition word_reverse :: \<open>'a::len word \<Rightarrow> 'a word\<close>
+  where \<open>word_reverse w = horner_sum of_bool 2 (rev (map (bit w) [0..<LENGTH('a)]))\<close>
+
 lemma bit_word_reverse_iff:
   \<open>bit (word_reverse w) n \<longleftrightarrow> n < LENGTH('a) \<and> bit w (LENGTH('a) - Suc n)\<close>
   for w :: \<open>'a::len word\<close>
-  by (cases \<open>n < LENGTH('a)\<close>) (simp_all add: word_reverse_def bit_of_bl_iff nth_to_bl)
+  by (cases \<open>n < LENGTH('a)\<close>)
+    (simp_all add: word_reverse_def bit_horner_sum_bit_word_iff rev_nth)
 
-lemma bit_slice1_iff:
-  \<open>bit (slice1 m w :: 'b::len word) n \<longleftrightarrow> m - LENGTH('a) \<le> n \<and> n < min LENGTH('b) m
-    \<and> bit w (n + (LENGTH('a) - m) - (m - LENGTH('a)))\<close>
-  for w :: \<open>'a::len word\<close>
-  by (cases \<open>n + (LENGTH('a) - m) - (m - LENGTH('a)) < LENGTH('a)\<close>)
-    (auto simp add: slice1_def bit_of_bl_iff takefill_alt rev_take nth_append not_less nth_rev_to_bl ac_simps)
+lemma word_reverse_eq_of_bl_rev_to_bl:
+  \<open>word_reverse w = of_bl (rev (to_bl w))\<close>
+  by (rule bit_word_eqI)
+    (auto simp add: bit_word_reverse_iff bit_of_bl_iff nth_to_bl)
 
-lemma bit_revcast_iff:
-  \<open>bit (revcast w :: 'b::len word) n \<longleftrightarrow> LENGTH('b) - LENGTH('a) \<le> n \<and> n < LENGTH('b)
-    \<and> bit w (n + (LENGTH('a) - LENGTH('b)) - (LENGTH('b) - LENGTH('a)))\<close>
-  for w :: \<open>'a::len word\<close>
-  by (simp add: revcast_eq bit_slice1_iff)
+lemmas word_reverse_no_def [simp] =
+  word_reverse_eq_of_bl_rev_to_bl [of "numeral w"] for w
 
-lemma bit_slice_iff:
-  \<open>bit (slice m w :: 'b::len word) n \<longleftrightarrow> n < min LENGTH('b) (LENGTH('a) - m) \<and> bit w (n + LENGTH('a) - (LENGTH('a) - m))\<close>
-  for w :: \<open>'a::len word\<close>
-  by (simp add: slice_def word_size bit_slice1_iff)
+lemma to_bl_word_rev: "to_bl (word_reverse w) = rev (to_bl w)"
+  by (rule nth_equalityI) (simp_all add: nth_rev_to_bl word_reverse_def word_rep_drop flip: of_bl_eq)
 
+lemma word_rev_rev [simp] : "word_reverse (word_reverse w) = w"
+  by (rule bit_word_eqI)
+    (auto simp add: bit_word_reverse_iff bit_imp_le_length Suc_diff_Suc)
+
+lemma word_rev_gal: "word_reverse w = u \<Longrightarrow> word_reverse u = w"
+  by (metis word_rev_rev)
+
+lemma word_rev_gal': "u = word_reverse w \<Longrightarrow> w = word_reverse u"
+  by simp
 
 lemmas lsb0 = len_gt_0 [THEN word_ops_nth_size [unfolded word_size]]
 
@@ -3218,7 +3205,8 @@ subsection \<open>Bit comprehension\<close>
 instantiation word :: (len) bit_comprehension
 begin
 
-definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth LENGTH('a) f)"
+definition word_set_bits_def:
+  \<open>(BITS n. P n) = (horner_sum of_bool 2 (map P [0..<LENGTH('a)]) :: 'a word)\<close>
 
 instance ..
 
@@ -3226,29 +3214,17 @@ end
 
 lemma bit_set_bits_word_iff:
   \<open>bit (set_bits P :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> P n\<close>
-  by (auto simp add: word_set_bits_def bit_of_bl_iff)
+  by (auto simp add: word_set_bits_def bit_horner_sum_bit_word_iff)
+
+lemma set_bits_bit_eq:
+  \<open>set_bits (bit w) = w\<close> for w :: \<open>'a::len word\<close>
+  by (rule bit_word_eqI) (auto simp add: bit_set_bits_word_iff bit_imp_le_length)
+
+lemma set_bits_K_False [simp]:
+  \<open>set_bits (\<lambda>_. False) = (0 :: 'a :: len word)\<close>
+  by (rule bit_word_eqI) (simp add: bit_set_bits_word_iff)
 
 lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
-
-lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
-  "n = size w \<Longrightarrow> ofn = set_bits \<Longrightarrow> [w, ofn g] = l \<Longrightarrow>
-    td_ext test_bit ofn {f. \<forall>i. f i \<longrightarrow> i < n} (\<lambda>h i. h i \<and> i < n)"
-  for w :: "'a::len word"
-  apply (unfold word_size td_ext_def')
-  apply safe
-     apply (rule_tac [3] ext)
-     apply (rule_tac [4] ext)
-     apply (unfold word_size of_nth_def test_bit_bl)
-     apply safe
-       defer
-       apply (clarsimp simp: word_bl.Abs_inverse)+
-  apply (rule word_bl.Rep_inverse')
-  apply (rule sym [THEN trans])
-   apply (rule bl_of_nth_nth)
-  apply simp
-  apply (rule bl_of_nth_inj)
-  apply (clarsimp simp add : test_bit_bl word_size)
-  done
 
 interpretation test_bit:
   td_ext
@@ -3256,13 +3232,10 @@ interpretation test_bit:
     set_bits
     "{f. \<forall>i. f i \<longrightarrow> i < LENGTH('a::len)}"
     "(\<lambda>h i. h i \<and> i < LENGTH('a::len))"
-  by (rule td_ext_nth)
+  by standard
+    (auto simp add: test_bit_word_eq bit_imp_le_length bit_set_bits_word_iff set_bits_bit_eq)
 
 lemmas td_nth = test_bit.td_thm
-
-lemma set_bits_K_False [simp]:
-  "set_bits (\<lambda>_. False) = (0 :: 'a :: len word)"
-  by (rule word_eqI) (simp add: test_bit.eq_norm)
 
 
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
@@ -3492,9 +3465,8 @@ lemma bl_shiftr1': "to_bl (shiftr1 w) = butlast (False # to_bl w)"
   done
 
 lemma shiftl1_rev: "shiftl1 w = word_reverse (shiftr1 (word_reverse w))"
-  apply (unfold word_reverse_def)
-  apply (rule word_bl.Rep_inverse' [symmetric])
-  apply (simp add: bl_shiftl1' bl_shiftr1' word_bl.Abs_inverse)
+  apply (rule bit_word_eqI)
+  apply (auto simp add: bit_shiftl1_iff bit_word_reverse_iff bit_shiftr1_iff Suc_diff_Suc)
   done
 
 lemma shiftl_rev: "shiftl w n = word_reverse (shiftr (word_reverse w) n)"
@@ -3873,25 +3845,172 @@ lemma mask_full [simp]: "mask LENGTH('a) = (- 1 :: 'a::len word)"
   by (simp add: mask_def word_size shiftl_zero_size)
 
 
+subsubsection \<open>Slices\<close>
+
+definition slice1 :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word\<close>
+  where \<open>slice1 n w = (if n < LENGTH('a)
+    then ucast (drop_bit (LENGTH('a) - n) w)
+    else push_bit (n - LENGTH('a)) (ucast w))\<close>
+
+lemma bit_slice1_iff:
+  \<open>bit (slice1 m w :: 'b::len word) n \<longleftrightarrow> m - LENGTH('a) \<le> n \<and> n < min LENGTH('b) m
+    \<and> bit w (n + (LENGTH('a) - m) - (m - LENGTH('a)))\<close>
+  for w :: \<open>'a::len word\<close>
+  by (auto simp add: slice1_def bit_ucast_iff bit_drop_bit_eq bit_push_bit_iff exp_eq_zero_iff not_less not_le ac_simps
+    dest: bit_imp_le_length)
+
+lemma slice1_eq_of_bl:
+  \<open>(slice1 n w :: 'b::len word) = of_bl (takefill False n (to_bl w))\<close>
+  for w :: \<open>'a::len word\<close>
+proof (rule bit_word_eqI)
+  fix m
+  assume \<open>m \<le> LENGTH('b)\<close>
+  show \<open>bit (slice1 n w :: 'b::len word) m \<longleftrightarrow> bit (of_bl (takefill False n (to_bl w)) :: 'b word) m\<close>
+    by (cases \<open>m \<ge> n\<close>; cases \<open>LENGTH('a) \<ge> n\<close>)
+      (auto simp add: bit_slice1_iff bit_of_bl_iff not_less rev_nth not_le nth_takefill nth_to_bl algebra_simps)
+qed
+
+definition slice :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word\<close>
+  where \<open>slice n = slice1 (LENGTH('a) - n)\<close>
+
+lemma bit_slice_iff:
+  \<open>bit (slice m w :: 'b::len word) n \<longleftrightarrow> n < min LENGTH('b) (LENGTH('a) - m) \<and> bit w (n + LENGTH('a) - (LENGTH('a) - m))\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: slice_def word_size bit_slice1_iff)
+
+lemma slice1_no_bin [simp]:
+  "slice1 n (numeral w :: 'b word) = of_bl (takefill False n (bin_to_bl (LENGTH('b::len)) (numeral w)))"
+  by (simp add: slice1_eq_of_bl) (* TODO: neg_numeral *)
+
+lemma slice_no_bin [simp]:
+  "slice n (numeral w :: 'b word) = of_bl (takefill False (LENGTH('b::len) - n)
+    (bin_to_bl (LENGTH('b::len)) (numeral w)))"
+  by (simp add: slice_def) (* TODO: neg_numeral *)
+
+lemma slice1_0 [simp] : "slice1 n 0 = 0"
+  unfolding slice1_def by simp
+
+lemma slice_0 [simp] : "slice n 0 = 0"
+  unfolding slice_def by auto
+
+lemma slice_take': "slice n w = of_bl (take (size w - n) (to_bl w))"
+  by (simp add: slice_def word_size slice1_eq_of_bl takefill_alt)
+
+lemmas slice_take = slice_take' [unfolded word_size]
+
+\<comment> \<open>shiftr to a word of the same size is just slice,
+    slice is just shiftr then ucast\<close>
+lemmas shiftr_slice = trans [OF shiftr_bl [THEN meta_eq_to_obj_eq] slice_take [symmetric]]
+
+lemma slice_shiftr: "slice n w = ucast (w >> n)"
+  apply (unfold slice_take shiftr_bl)
+  apply (rule ucast_of_bl_up [symmetric])
+  apply (simp add: word_size)
+  done
+
+lemma nth_slice: "(slice n w :: 'a::len word) !! m = (w !! (m + n) \<and> m < LENGTH('a))"
+  by (simp add: slice_shiftr nth_ucast nth_shiftr)
+
+lemma slice1_down_alt':
+  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs + k = n \<Longrightarrow>
+    to_bl sl = takefill False fs (drop k (to_bl w))"
+  by (auto simp: slice1_eq_of_bl word_size of_bl_def uint_bl
+      word_ubin.eq_norm bl_bin_bl_rep_drop drop_takefill)
+
+lemma slice1_up_alt':
+  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs = n + k \<Longrightarrow>
+    to_bl sl = takefill False fs (replicate k False @ (to_bl w))"
+  apply (unfold slice1_eq_of_bl word_size of_bl_def uint_bl)
+  apply (clarsimp simp: word_ubin.eq_norm bl_bin_bl_rep_drop takefill_append [symmetric])
+  apply (rule_tac f = "\<lambda>k. takefill False (LENGTH('a))
+    (replicate k False @ bin_to_bl (LENGTH('b)) (uint w))" in arg_cong)
+  apply arith
+  done
+
+lemmas sd1 = slice1_down_alt' [OF refl refl, unfolded word_size]
+lemmas su1 = slice1_up_alt' [OF refl refl, unfolded word_size]
+lemmas slice1_down_alt = le_add_diff_inverse [THEN sd1]
+lemmas slice1_up_alts =
+  le_add_diff_inverse [symmetric, THEN su1]
+  le_add_diff_inverse2 [symmetric, THEN su1]
+
+lemma ucast_slice1: "ucast w = slice1 (size w) w"
+  by (simp add: slice1_def ucast_bl takefill_same' word_size)
+
+lemma ucast_slice: "ucast w = slice 0 w"
+  by (simp add: slice_def slice1_def)
+
+lemma slice_id: "slice 0 t = t"
+  by (simp only: ucast_slice [symmetric] ucast_id)
+
+lemma slice1_tf_tf':
+  "to_bl (slice1 n w :: 'a::len word) =
+    rev (takefill False (LENGTH('a)) (rev (takefill False n (to_bl w))))"
+  unfolding slice1_eq_of_bl by (rule word_rev_tf)
+
+lemmas slice1_tf_tf = slice1_tf_tf' [THEN word_bl.Rep_inverse', symmetric]
+
+lemma rev_slice1:
+  "n + k = LENGTH('a) + LENGTH('b) \<Longrightarrow>
+    slice1 n (word_reverse w :: 'b::len word) =
+    word_reverse (slice1 k w :: 'a::len word)"
+  apply (unfold word_reverse_eq_of_bl_rev_to_bl slice1_tf_tf)
+  apply (rule word_bl.Rep_inverse')
+  apply (rule rev_swap [THEN iffD1])
+  apply (rule trans [symmetric])
+   apply (rule tf_rev)
+   apply (simp add: word_bl.Abs_inverse)
+  apply (simp add: word_bl.Abs_inverse)
+  done
+
+lemma rev_slice:
+  "n + k + LENGTH('a::len) = LENGTH('b::len) \<Longrightarrow>
+    slice n (word_reverse (w::'b word)) = word_reverse (slice k w :: 'a word)"
+  apply (unfold slice_def word_size)
+  apply (rule rev_slice1)
+  apply arith
+  done
+
+
 subsubsection \<open>Revcast\<close>
 
-lemmas revcast_def' = revcast_def [simplified]
-lemmas revcast_def'' = revcast_def' [simplified word_size]
-lemmas revcast_no_def [simp] = revcast_def' [where w="numeral w", unfolded word_size] for w
+definition revcast :: \<open>'a::len word \<Rightarrow> 'b::len word\<close>
+  where \<open>revcast = slice1 LENGTH('b)\<close>
+
+lemma bit_revcast_iff:
+  \<open>bit (revcast w :: 'b::len word) n \<longleftrightarrow> LENGTH('b) - LENGTH('a) \<le> n \<and> n < LENGTH('b)
+    \<and> bit w (n + (LENGTH('a) - LENGTH('b)) - (LENGTH('b) - LENGTH('a)))\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: revcast_def bit_slice1_iff)
+
+lemma revcast_eq_of_bl:
+  \<open>(revcast w :: 'b::len word) = of_bl (takefill False (LENGTH('b)) (to_bl w))\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: revcast_def slice1_eq_of_bl)
+
+lemma revcast_slice1 [OF refl]: "rc = revcast w \<Longrightarrow> slice1 (size rc) w = rc"
+  by (simp add: revcast_def word_size)
+
+lemmas revcast_no_def [simp] = revcast_eq_of_bl [where w="numeral w", unfolded word_size] for w
 
 lemma to_bl_revcast:
   "to_bl (revcast w :: 'a::len word) = takefill False (LENGTH('a)) (to_bl w)"
-  apply (unfold revcast_def' word_size)
-  apply (rule word_bl.Abs_inverse)
+  apply (rule nth_equalityI)
   apply simp
+  apply (cases \<open>LENGTH('a) \<le> LENGTH('b)\<close>)
+   apply (auto simp add: nth_to_bl nth_takefill bit_revcast_iff)
   done
 
 lemma revcast_rev_ucast [OF refl refl refl]:
   "cs = [rc, uc] \<Longrightarrow> rc = revcast (word_reverse w) \<Longrightarrow> uc = ucast w \<Longrightarrow>
     rc = word_reverse uc"
-  apply (unfold ucast_def revcast_def' Let_def word_reverse_def)
-  apply (auto simp: to_bl_of_bin takefill_bintrunc)
-  apply (simp add: word_bl.Abs_inverse word_size)
+  apply auto
+  apply (rule bit_word_eqI)
+  apply (cases \<open>LENGTH('a) \<le> LENGTH('b)\<close>)
+   apply (simp_all add: bit_revcast_iff bit_word_reverse_iff bit_ucast_iff not_le
+     bit_imp_le_length)
+  using bit_imp_le_length apply fastforce
+  using bit_imp_le_length apply fastforce
   done
 
 lemma revcast_ucast: "revcast w = word_reverse (ucast (word_reverse w))"
@@ -3911,7 +4030,7 @@ lemmas wsst_TYs = source_size target_size word_size
 lemma revcast_down_uu [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = ucast (w >> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_def')
+  apply (simp add: revcast_eq_of_bl)
   apply (rule word_bl.Rep_inverse')
   apply (rule trans, rule ucast_down_drop)
    prefer 2
@@ -3922,7 +4041,7 @@ lemma revcast_down_uu [OF refl]:
 lemma revcast_down_us [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = ucast (w >>> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_def')
+  apply (simp add: revcast_eq_of_bl)
   apply (rule word_bl.Rep_inverse')
   apply (rule trans, rule ucast_down_drop)
    prefer 2
@@ -3933,7 +4052,7 @@ lemma revcast_down_us [OF refl]:
 lemma revcast_down_su [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = scast (w >> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_def')
+  apply (simp add: revcast_eq_of_bl)
   apply (rule word_bl.Rep_inverse')
   apply (rule trans, rule scast_down_drop)
    prefer 2
@@ -3944,7 +4063,7 @@ lemma revcast_down_su [OF refl]:
 lemma revcast_down_ss [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = scast (w >>> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_def')
+  apply (simp add: revcast_eq_of_bl)
   apply (rule word_bl.Rep_inverse')
   apply (rule trans, rule scast_down_drop)
    prefer 2
@@ -3968,7 +4087,7 @@ lemma cast_down_rev:
 lemma revcast_up [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc + n = target_size rc \<Longrightarrow>
     rc w = (ucast w :: 'a::len word) << n"
-  apply (simp add: revcast_def')
+  apply (simp add: revcast_eq_of_bl)
   apply (rule word_bl.Rep_inverse')
   apply (simp add: takefill_alt)
   apply (rule bl_shiftl [THEN trans])
@@ -3985,106 +4104,6 @@ lemmas ucast_up =
  rc1 [simplified rev_shiftr [symmetric] revcast_ucast [symmetric]]
 lemmas ucast_down =
   rc2 [simplified rev_shiftr revcast_ucast [symmetric]]
-
-
-subsubsection \<open>Slices\<close>
-
-lemma slice1_no_bin [simp]:
-  "slice1 n (numeral w :: 'b word) = of_bl (takefill False n (bin_to_bl (LENGTH('b::len)) (numeral w)))"
-  by (simp add: slice1_def) (* TODO: neg_numeral *)
-
-lemma slice_no_bin [simp]:
-  "slice n (numeral w :: 'b word) = of_bl (takefill False (LENGTH('b::len) - n)
-    (bin_to_bl (LENGTH('b::len)) (numeral w)))"
-  by (simp add: slice_def word_size) (* TODO: neg_numeral *)
-
-lemma slice1_0 [simp] : "slice1 n 0 = 0"
-  unfolding slice1_def by simp
-
-lemma slice_0 [simp] : "slice n 0 = 0"
-  unfolding slice_def by auto
-
-lemma slice_take': "slice n w = of_bl (take (size w - n) (to_bl w))"
-  unfolding slice_def' slice1_def
-  by (simp add : takefill_alt word_size)
-
-lemmas slice_take = slice_take' [unfolded word_size]
-
-\<comment> \<open>shiftr to a word of the same size is just slice,
-    slice is just shiftr then ucast\<close>
-lemmas shiftr_slice = trans [OF shiftr_bl [THEN meta_eq_to_obj_eq] slice_take [symmetric]]
-
-lemma slice_shiftr: "slice n w = ucast (w >> n)"
-  apply (unfold slice_take shiftr_bl)
-  apply (rule ucast_of_bl_up [symmetric])
-  apply (simp add: word_size)
-  done
-
-lemma nth_slice: "(slice n w :: 'a::len word) !! m = (w !! (m + n) \<and> m < LENGTH('a))"
-  by (simp add: slice_shiftr nth_ucast nth_shiftr)
-
-lemma slice1_down_alt':
-  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs + k = n \<Longrightarrow>
-    to_bl sl = takefill False fs (drop k (to_bl w))"
-  by (auto simp: slice1_def word_size of_bl_def uint_bl
-      word_ubin.eq_norm bl_bin_bl_rep_drop drop_takefill)
-
-lemma slice1_up_alt':
-  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs = n + k \<Longrightarrow>
-    to_bl sl = takefill False fs (replicate k False @ (to_bl w))"
-  apply (unfold slice1_def word_size of_bl_def uint_bl)
-  apply (clarsimp simp: word_ubin.eq_norm bl_bin_bl_rep_drop takefill_append [symmetric])
-  apply (rule_tac f = "\<lambda>k. takefill False (LENGTH('a))
-    (replicate k False @ bin_to_bl (LENGTH('b)) (uint w))" in arg_cong)
-  apply arith
-  done
-
-lemmas sd1 = slice1_down_alt' [OF refl refl, unfolded word_size]
-lemmas su1 = slice1_up_alt' [OF refl refl, unfolded word_size]
-lemmas slice1_down_alt = le_add_diff_inverse [THEN sd1]
-lemmas slice1_up_alts =
-  le_add_diff_inverse [symmetric, THEN su1]
-  le_add_diff_inverse2 [symmetric, THEN su1]
-
-lemma ucast_slice1: "ucast w = slice1 (size w) w"
-  by (simp add: slice1_def ucast_bl takefill_same' word_size)
-
-lemma ucast_slice: "ucast w = slice 0 w"
-  by (simp add: slice_def ucast_slice1)
-
-lemma slice_id: "slice 0 t = t"
-  by (simp only: ucast_slice [symmetric] ucast_id)
-
-lemma revcast_slice1 [OF refl]: "rc = revcast w \<Longrightarrow> slice1 (size rc) w = rc"
-  by (simp add: slice1_def revcast_def' word_size)
-
-lemma slice1_tf_tf':
-  "to_bl (slice1 n w :: 'a::len word) =
-    rev (takefill False (LENGTH('a)) (rev (takefill False n (to_bl w))))"
-  unfolding slice1_def by (rule word_rev_tf)
-
-lemmas slice1_tf_tf = slice1_tf_tf' [THEN word_bl.Rep_inverse', symmetric]
-
-lemma rev_slice1:
-  "n + k = LENGTH('a) + LENGTH('b) \<Longrightarrow>
-    slice1 n (word_reverse w :: 'b::len word) =
-    word_reverse (slice1 k w :: 'a::len word)"
-  apply (unfold word_reverse_def slice1_tf_tf)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule rev_swap [THEN iffD1])
-  apply (rule trans [symmetric])
-   apply (rule tf_rev)
-   apply (simp add: word_bl.Abs_inverse)
-  apply (simp add: word_bl.Abs_inverse)
-  done
-
-lemma rev_slice:
-  "n + k + LENGTH('a::len) = LENGTH('b::len) \<Longrightarrow>
-    slice n (word_reverse (w::'b word)) = word_reverse (slice k w :: 'a word)"
-  apply (unfold slice_def word_size)
-  apply (rule rev_slice1)
-  apply arith
-  done
 
 lemmas sym_notr =
   not_iff [THEN iffD2, THEN not_sym, THEN not_iff [THEN iffD1]]

@@ -18,10 +18,10 @@ definition
   "set_bits f =
     (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
       let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
-      in bl_to_bin (rev (map f [0..<n]))
+      in horner_sum of_bool 2 (map f [0..<n])
      else if \<exists>n. \<forall>n'\<ge>n. f n' then
       let n = LEAST n. \<forall>n'\<ge>n. f n'
-      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
+      in signed_take_bit n (horner_sum of_bool 2 (map f [0..<n] @ [True]))
      else 0 :: int)"
 
 instance ..
