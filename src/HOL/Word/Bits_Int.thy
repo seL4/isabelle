@@ -291,7 +291,7 @@ lemma sbintrunc_Suc_numeral:
   by (simp_all add: signed_take_bit_Suc)
 
 lemma bin_sign_lem: "(bin_sign (sbintrunc n bin) = -1) = bit bin n"
-  using mask_nonnegative [of n] by (simp add: bin_sign_def not_le signed_take_bit_def)
+  by (simp add: bin_sign_def)
 
 lemma nth_bintr: "bin_nth (bintrunc m w) n \<longleftrightarrow> n < m \<and> bin_nth w n"
   by (fact bit_take_bit_iff)
@@ -553,16 +553,13 @@ lemma [code]:
   "bin_split 0 w = (w, 0)"
   by (simp_all add: drop_bit_Suc take_bit_Suc mod_2_eq_odd)
 
-primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int"
-  where
-    Z: "bin_cat w 0 v = w"
-  | Suc: "bin_cat w (Suc n) v = of_bool (odd v) + 2 * bin_cat w n (v div 2)"
+abbreviation (input) bin_cat :: \<open>int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>bin_cat k n l \<equiv> concat_bit n l k\<close>
 
 lemma bin_cat_eq_push_bit_add_take_bit:
   \<open>bin_cat k n l = push_bit n k + take_bit n l\<close>
-  by (induction n arbitrary: k l)
-    (simp_all add: take_bit_Suc push_bit_double mod_2_eq_odd)
-
+  by (simp add: concat_bit_eq)
+  
 lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
 proof -
   have \<open>0 \<le> x\<close> if \<open>0 \<le> x * 2 ^ n + y mod 2 ^ n\<close>
@@ -588,13 +585,10 @@ proof -
 qed
 
 lemma bin_cat_assoc: "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y n z)"
-  by (induct n arbitrary: z) auto
+  by (fact concat_bit_assoc)
 
 lemma bin_cat_assoc_sym: "bin_cat x m (bin_cat y n z) = bin_cat (bin_cat x (m - n) y) (min m n) z"
-  apply (induct n arbitrary: z m)
-   apply clarsimp
-  apply (case_tac m, auto)
-  done
+  by (fact concat_bit_assoc_sym)
 
 definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int"
   where "bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0"
@@ -625,11 +619,7 @@ declare bin_rsplitl_aux.simps [simp del]
 lemma bin_nth_cat:
   "bin_nth (bin_cat x k y) n =
     (if n < k then bin_nth y n else bin_nth x (n - k))"
-  apply (induct k arbitrary: n y)
-   apply simp
-  apply (case_tac n)
-   apply (simp_all add: bit_Suc)
-  done
+  by (simp add: bit_concat_bit_iff)
 
 lemma bin_nth_drop_bit_iff:
   \<open>bin_nth (drop_bit n c) k \<longleftrightarrow> bin_nth c (n + k)\<close>
@@ -653,6 +643,7 @@ lemma bintr_cat1: "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b
 
 lemma bintr_cat: "bintrunc m (bin_cat a n b) =
     bin_cat (bintrunc (m - n) a) n (bintrunc (min m n) b)"
+  
   by (rule bin_eqI) (auto simp: bin_nth_cat nth_bintr)
 
 lemma bintr_cat_same [simp]: "bintrunc n (bin_cat a n b) = bintrunc n b"
@@ -669,13 +660,11 @@ lemma bin_cat_split: "bin_split n w = (u, v) \<Longrightarrow> w = bin_cat u n v
 
 lemma drop_bit_bin_cat_eq:
   \<open>drop_bit n (bin_cat v n w) = v\<close>
-  by (induct n arbitrary: w)
-    (simp_all add: drop_bit_Suc)
+  by (rule bit_eqI) (simp add: bit_drop_bit_eq bit_concat_bit_iff)
 
 lemma take_bit_bin_cat_eq:
   \<open>take_bit n (bin_cat v n w) = take_bit n w\<close>
-  by (induct n arbitrary: w)
-    (simp_all add: take_bit_Suc mod_2_eq_odd)
+  by (rule bit_eqI) (simp add: bit_concat_bit_iff)
 
 lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
   by (simp add: drop_bit_bin_cat_eq take_bit_bin_cat_eq)
@@ -1913,9 +1902,9 @@ lemma bl_to_bin_aux_cat:
     (auto simp add: bin_nth_of_bl_aux bin_nth_cat algebra_simps)
 
 lemma bin_to_bl_aux_cat:
-  "\<And>w bs. bin_to_bl_aux (nv + nw) (bin_cat v nw w) bs =
+  "bin_to_bl_aux (nv + nw) (bin_cat v nw w) bs =
     bin_to_bl_aux nv v (bin_to_bl_aux nw w bs)"
-  by (induct nw) auto
+  by (induction nw arbitrary: w bs) (simp_all add: concat_bit_Suc)
 
 lemma bl_to_bin_aux_alt: "bl_to_bin_aux bs w = bin_cat w (length bs) (bl_to_bin bs)"
   using bl_to_bin_aux_cat [where nv = "0" and v = "0"]

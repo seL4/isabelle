@@ -180,7 +180,7 @@ lemma sbintrunc_Suc_minus_Is:
   by (cases n) (simp_all add: Bit_def signed_take_bit_Suc)
 
 lemma bin_cat_Suc_Bit: "bin_cat w (Suc n) (v BIT b) = bin_cat w n v BIT b"
-  by (auto simp add: Bit_def)
+  by (auto simp add: Bit_def concat_bit_Suc)
 
 lemma int_not_BIT [simp]: "NOT (w BIT b) = (NOT w) BIT (\<not> b)"
   by (simp add: not_int_def Bit_def)

@@ -536,6 +536,14 @@ proof -
     by (simp add: not_add_distrib)
 qed
 
+lemma mask_nonnegative_int [simp]:
+  \<open>mask n \<ge> (0::int)\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+lemma not_mask_negative_int [simp]:
+  \<open>\<not> mask n < (0::int)\<close>
+  by (simp add: not_less)
+
 lemma not_nonnegative_int_iff [simp]:
   \<open>NOT k \<ge> 0 \<longleftrightarrow> k < 0\<close> for k :: int
   by (simp add: not_int_def)
@@ -633,10 +641,6 @@ lemma xor_negative_int_iff [simp]:
   \<open>k XOR l < 0 \<longleftrightarrow> (k < 0) \<noteq> (l < 0)\<close> for k l :: int
   by (subst Not_eq_iff [symmetric]) (auto simp add: not_less)
 
-lemma mask_nonnegative:
-  \<open>(mask n :: int) \<ge> 0\<close>
- by (simp add: mask_eq_exp_minus_1)  
-
 lemma set_bit_nonnegative_int_iff [simp]:
   \<open>set_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
   by (simp add: set_bit_def)
@@ -716,10 +720,57 @@ proof (rule bit_eqI)
 qed
 
 
+subsection \<open>Bit concatenation\<close>
+
+definition concat_bit :: \<open>nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>concat_bit n k l = (k AND mask n) OR push_bit n l\<close>
+
+lemma bit_concat_bit_iff:
+  \<open>bit (concat_bit m k l) n \<longleftrightarrow> n < m \<and> bit k n \<or> m \<le> n \<and> bit l (n - m)\<close>
+  by (simp add: concat_bit_def bit_or_iff bit_and_iff bit_mask_iff bit_push_bit_iff ac_simps)
+
+lemma concat_bit_eq:
+  \<open>concat_bit n k l = take_bit n k + push_bit n l\<close>
+  by (simp add: concat_bit_def take_bit_eq_mask
+    bit_and_iff bit_mask_iff bit_push_bit_iff disjunctive_add)
+
+lemma concat_bit_0 [simp]:
+  \<open>concat_bit 0 k l = l\<close>
+  by (simp add: concat_bit_def)
+
+lemma concat_bit_Suc:
+  \<open>concat_bit (Suc n) k l = k mod 2 + 2 * concat_bit n (k div 2) l\<close>
+  by (simp add: concat_bit_eq take_bit_Suc push_bit_double)
+
+lemma concat_bit_of_zero_1 [simp]:
+  \<open>concat_bit n 0 l = push_bit n l\<close>
+  by (simp add: concat_bit_def)
+
+lemma concat_bit_of_zero_2 [simp]:
+  \<open>concat_bit n k 0 = take_bit n k\<close>
+  by (simp add: concat_bit_def take_bit_eq_mask)
+
+lemma concat_bit_nonnegative_iff [simp]:
+  \<open>concat_bit n k l \<ge> 0 \<longleftrightarrow> l \<ge> 0\<close>
+  by (simp add: concat_bit_def)
+
+lemma concat_bit_negative_iff [simp]:
+  \<open>concat_bit n k l < 0 \<longleftrightarrow> l < 0\<close>
+  by (simp add: concat_bit_def)
+
+lemma concat_bit_assoc:
+  \<open>concat_bit n k (concat_bit m l r) = concat_bit (m + n) (concat_bit n k l) r\<close>
+  by (rule bit_eqI) (auto simp add: bit_concat_bit_iff ac_simps)
+
+lemma concat_bit_assoc_sym:
+  \<open>concat_bit m (concat_bit n k l) r = concat_bit (min m n) k (concat_bit (m - n) l r)\<close>
+  by (rule bit_eqI) (auto simp add: bit_concat_bit_iff ac_simps min_def)
+
+
 subsection \<open>Taking bit with sign propagation\<close>
 
-definition signed_take_bit :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where \<open>signed_take_bit n k = take_bit n k OR (NOT (mask n) * of_bool (bit k n))\<close>
+definition signed_take_bit :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>signed_take_bit n k = concat_bit n k (- of_bool (bit k n))\<close>
 
 lemma signed_take_bit_eq:
   \<open>signed_take_bit n k = take_bit n k\<close> if \<open>\<not> bit k n\<close>
@@ -727,7 +778,7 @@ lemma signed_take_bit_eq:
 
 lemma signed_take_bit_eq_or:
   \<open>signed_take_bit n k = take_bit n k OR NOT (mask n)\<close> if \<open>bit k n\<close>
-  using that by (simp add: signed_take_bit_def)
+  using that by (simp add: signed_take_bit_def concat_bit_def take_bit_eq_mask push_bit_minus_one_eq_not_mask)
 
 lemma signed_take_bit_0 [simp]:
   \<open>signed_take_bit 0 k = - (k mod 2)\<close>
@@ -740,7 +791,7 @@ lemma mask_half_int:
 lemma signed_take_bit_Suc:
   \<open>signed_take_bit (Suc n) k = k mod 2 + 2 * signed_take_bit n (k div 2)\<close>
   by (unfold signed_take_bit_def or_int_rec [of \<open>take_bit (Suc n) k\<close>])
-    (simp add: bit_Suc take_bit_Suc even_or_iff even_mask_iff odd_iff_mod_2_eq_one not_int_div_2 mask_half_int)
+    (simp add: bit_Suc concat_bit_Suc even_or_iff even_mask_iff odd_iff_mod_2_eq_one not_int_div_2 mask_half_int)
 
 lemma signed_take_bit_rec:
   \<open>signed_take_bit n k = (if n = 0 then - (k mod 2) else k mod 2 + 2 * signed_take_bit (n - 1) (k div 2))\<close>
@@ -748,7 +799,7 @@ lemma signed_take_bit_rec:
 
 lemma bit_signed_take_bit_iff:
   \<open>bit (signed_take_bit m k) n = bit k (min m n)\<close>
-  by (simp add: signed_take_bit_def bit_or_iff bit_take_bit_iff bit_not_iff bit_mask_iff min_def)
+  by (simp add: signed_take_bit_def bit_or_iff bit_concat_bit_iff bit_not_iff bit_mask_iff min_def)
 
 text \<open>Modulus centered around 0\<close>
 
@@ -790,7 +841,9 @@ proof -
     by (rule disjunctive_add)
       (auto simp add: disjunctive_add bit_take_bit_iff bit_double_iff bit_exp_iff)
   finally show ?thesis
-    using * ** by (simp add: signed_take_bit_def take_bit_Suc min_def ac_simps)
+    using * **
+    by (simp add: signed_take_bit_def concat_bit_Suc min_def ac_simps)
+      (simp add: concat_bit_def take_bit_eq_mask push_bit_minus_one_eq_not_mask ac_simps)
 qed
 
 lemma signed_take_bit_of_0 [simp]:
@@ -799,7 +852,7 @@ lemma signed_take_bit_of_0 [simp]:
 
 lemma signed_take_bit_of_minus_1 [simp]:
   \<open>signed_take_bit n (- 1) = - 1\<close>
-  by (simp add: signed_take_bit_def take_bit_minus_one_eq_mask)
+  by (simp add: signed_take_bit_def concat_bit_def push_bit_minus_one_eq_not_mask take_bit_minus_one_eq_mask)
 
 lemma signed_take_bit_eq_iff_take_bit_eq:
   \<open>signed_take_bit n k = signed_take_bit n l \<longleftrightarrow> take_bit (Suc n) k = take_bit (Suc n) l\<close>
@@ -809,7 +862,7 @@ proof (cases \<open>bit k n \<longleftrightarrow> bit l n\<close>)
     for k :: int
     by (auto simp add: disjunctive_add [symmetric] bit_not_iff bit_mask_iff bit_take_bit_iff minus_exp_eq_not_mask)
   ultimately show ?thesis
-    by (simp add: signed_take_bit_def take_bit_Suc_from_most)
+    by (simp add: signed_take_bit_def take_bit_Suc_from_most concat_bit_eq)
 next
   case False
   then have \<open>signed_take_bit n k \<noteq> signed_take_bit n l\<close> and \<open>take_bit (Suc n) k \<noteq> take_bit (Suc n) l\<close>
@@ -836,11 +889,11 @@ lemma signed_take_bit_take_bit:
 
 lemma signed_take_bit_nonnegative_iff [simp]:
   \<open>0 \<le> signed_take_bit n k \<longleftrightarrow> \<not> bit k n\<close>
-  by (simp add: signed_take_bit_def not_less mask_nonnegative)
+  by (simp add: signed_take_bit_def not_less concat_bit_def)
 
 lemma signed_take_bit_negative_iff [simp]:
   \<open>signed_take_bit n k < 0 \<longleftrightarrow> bit k n\<close>
-  by (simp add: signed_take_bit_def not_less mask_nonnegative)
+  by (simp add: signed_take_bit_def not_less concat_bit_def)
 
 lemma signed_take_bit_greater_eq:
   \<open>k + 2 ^ Suc n \<le> signed_take_bit n k\<close> if \<open>k < - (2 ^ n)\<close>
@@ -1096,6 +1149,12 @@ text \<open>
       \<^item> Unset a single bit: @{thm unset_bit_def [where ?'a = int, no_vars]}
 
       \<^item> Flip a single bit: @{thm flip_bit_def [where ?'a = int, no_vars]}
+
+      \<^item> Bit concatenation: @{thm concat_bit_def [no_vars]}
+
+      \<^item> Truncation centered towards \<^term>\<open>0::int\<close>: @{thm signed_take_bit_def [no_vars]}
+
+      \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>
 
 end
