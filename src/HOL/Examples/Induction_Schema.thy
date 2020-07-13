@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Induction_Schema.thy
+(*  Title:      HOL/Examples/Induction_Schema.thy
     Author:     Alexander Krauss, TU Muenchen
 *)
 

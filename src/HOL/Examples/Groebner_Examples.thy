@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Groebner_Examples.thy
+(*  Title:      HOL/Examples/Groebner_Examples.thy
     Author:     Amine Chaieb, TU Muenchen
 *)
 

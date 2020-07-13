@@ -1,6 +1,7 @@
-(*  Title:      HOL/ex/Records.thy
-    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel,
-                TU Muenchen
+(*  Title:      HOL/Examples/Records.thy
+    Author:     Wolfgang Naraschewski, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Markus Wenzel, TU Muenchen
 *)
 
 section \<open>Using extensible records in HOL -- points and coloured points\<close>

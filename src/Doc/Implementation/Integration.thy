@@ -131,7 +131,7 @@ text %mlref \<open>
 \<close>
 
 text %mlex \<open>
-  The file \<^file>\<open>~~/src/HOL/ex/Commands.thy\<close> shows some example Isar command
+  The file \<^file>\<open>~~/src/HOL/Examples/Commands.thy\<close> shows some example Isar command
   definitions, with the all-important theory header declarations for outer
   syntax keywords.
 \<close>

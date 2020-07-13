@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Coherent.thy
+(*  Title:      HOL/Examples/Coherent.thy
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 *)

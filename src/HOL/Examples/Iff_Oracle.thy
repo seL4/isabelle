@@ -1,4 +1,4 @@
-(*  Title:      HOL/Example/Iff_Oracle.thy
+(*  Title:      HOL/Examples/Iff_Oracle.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Makarius
 *)
