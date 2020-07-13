@@ -1,5 +1,7 @@
 (*** Isabelle/Pure bootstrap: initial setup ***)
 
+ML_file "ML/ml_statistics.ML";
+
 ML_file "General/exn.ML";
 ML_file "General/output_primitives.ML";
 
