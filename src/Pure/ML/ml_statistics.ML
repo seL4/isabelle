@@ -7,6 +7,8 @@ ML runtime statistics.
 signature ML_STATISTICS =
 sig
   val get: unit -> (string * string) list
+  val get_external: int -> (string * string) list
+  val monitor: int -> real -> unit
 end;
 
 structure ML_Statistics: ML_STATISTICS =
@@ -26,35 +28,37 @@ fun print_real0 x =
 fun print_real x =
   if x < 0.0 then "-" ^ print_real0 (~ x) else print_real0 x;
 
+val print_properties =
+  String.concatWith "," o map (fn (a, b) => a ^ "=" ^ b);
 
-(* get *)
 
-fun get () =
+(* make properties *)
+
+fun make_properties
+   {gcFullGCs,
+    gcPartialGCs,
+    gcSharePasses,
+    sizeAllocation,
+    sizeAllocationFree,
+    sizeCode,
+    sizeHeap,
+    sizeHeapFreeLastFullGC,
+    sizeHeapFreeLastGC,
+    sizeStacks,
+    threadsInML,
+    threadsTotal,
+    threadsWaitCondVar,
+    threadsWaitIO,
+    threadsWaitMutex,
+    threadsWaitSignal,
+    timeGCReal,
+    timeGCSystem,
+    timeGCUser,
+    timeNonGCReal,
+    timeNonGCSystem,
+    timeNonGCUser,
+    userCounters} =
   let
-    val
-     {gcFullGCs,
-      gcPartialGCs,
-      gcSharePasses,
-      sizeAllocation,
-      sizeAllocationFree,
-      sizeCode,
-      sizeHeap,
-      sizeHeapFreeLastFullGC,
-      sizeHeapFreeLastGC,
-      sizeStacks,
-      threadsInML,
-      threadsTotal,
-      threadsWaitCondVar,
-      threadsWaitIO,
-      threadsWaitMutex,
-      threadsWaitSignal,
-      timeGCReal,
-      timeGCSystem,
-      timeGCUser,
-      timeNonGCReal,
-      timeNonGCSystem,
-      timeNonGCUser,
-      userCounters} = PolyML.Statistics.getLocalStats ();
     val user_counters =
       Vector.foldri
         (fn (i, j, res) => ("user_counter" ^ print_int i, print_int j) :: res)
@@ -82,5 +86,26 @@ fun get () =
      ("time_GC", print_real (Time.toReal timeGCSystem + Time.toReal timeGCUser))] @
     user_counters
   end;
+
+
+(* get properties *)
+
+fun get () =
+  make_properties (PolyML.Statistics.getLocalStats ());
+
+fun get_external pid =
+  make_properties (PolyML.Statistics.getRemoteStats pid);
+
+
+(* monitor process *)
+
+fun monitor pid delay =
+  let
+    fun loop () =
+      (TextIO.output (TextIO.stdOut, print_properties (get_external pid) ^ "\n");
+       TextIO.flushOut TextIO.stdOut;
+       OS.Process.sleep (Time.fromReal delay);
+       loop ());
+  in loop () end;
 
 end;
