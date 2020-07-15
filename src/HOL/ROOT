@@ -20,14 +20,20 @@ session "HOL-Examples" in Examples = HOL +
   sessions
     "HOL-Library"
   theories
+    Adhoc_Overloading_Examples
     Ackermann
-    Knaster_Tarski
-    Peirce
-    Drinker
     Cantor
-    Seq
-    "ML"
+    Coherent
+    Commands
+    Drinker
+    Groebner_Examples
     Iff_Oracle
+    Induction_Schema
+    Knaster_Tarski
+    "ML"
+    Peirce
+    Records
+    Seq
   document_files
     "root.bib"
     "root.tex"
@@ -605,7 +611,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Miscellaneous examples for Higher-Order Logic.
   "
   theories
-    Adhoc_Overloading_Examples
     Antiquote
     Argo_Examples
     Arith_Examples
@@ -623,8 +628,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Code_Lazy_Demo
     Code_Timing
     Coercion_Examples
-    Coherent
-    Commands
     Computations
     Conditional_Parametricity_Examples
     Cubic_Quartic
@@ -637,13 +640,11 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Functions
     Function_Growth
     Gauge_Integration
-    Groebner_Examples
     Guess
     HarmonicSeries
     Hebrew
     Hex_Bin_Examples
     IArray_Examples
-    Induction_Schema
     Intuitionistic
     Join_Theory
     Lagrange
@@ -663,7 +664,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Pythagoras
     Quicksort
     Radix_Sort
-    Records
     Reflection_Examples
     Refute_Examples
     Residue_Ring

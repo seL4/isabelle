@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Commands.thy
+(*  Title:      HOL/Examples/Commands.thy
     Author:     Makarius
 *)
 

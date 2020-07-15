@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Adhoc_Overloading_Examples.thy
+(*  Title:      HOL/Examples/Adhoc_Overloading_Examples.thy
     Author:     Christian Sternagel
 *)
 

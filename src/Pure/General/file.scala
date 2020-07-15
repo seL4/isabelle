@@ -124,6 +124,8 @@ object File
   def bash_path(path: Path): String = Bash.string(standard_path(path))
   def bash_path(file: JFile): String = Bash.string(standard_path(file))
 
+  def bash_platform_path(path: Path): String = Bash.string(platform_path(path))
+
 
   /* directory entries */
 

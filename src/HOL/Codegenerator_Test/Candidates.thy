@@ -15,7 +15,7 @@ imports
   "HOL-Computational_Algebra.Computational_Algebra"
   "HOL-Computational_Algebra.Polynomial_Factorial"
   "HOL-Number_Theory.Eratosthenes"
-  "HOL-ex.Records"
+  "HOL-Examples.Records"
   "HOL-Word.Word"
 begin
 

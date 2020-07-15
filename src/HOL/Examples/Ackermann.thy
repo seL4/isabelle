@@ -1,3 +1,7 @@
+(*  Title:      HOL/Examples/Ackermann.thy
+    Author:     Larry Paulson
+*)
+
 section \<open>A Tail-Recursive, Stack-Based Ackermann's Function\<close>
 
 theory Ackermann imports Main
