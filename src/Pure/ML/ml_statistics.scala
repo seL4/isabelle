@@ -25,6 +25,31 @@ object ML_Statistics
   def now(props: Properties.T): Double = Now.unapply(props).get
 
 
+  /* monitor process */
+
+  def monitor(pid: Long,
+    delay: Time = Time.seconds(0.5),
+    consume: Properties.T => Unit = Console.println)
+  {
+    def progress_stdout(line: String)
+    {
+      val props =
+        Library.space_explode(',', line).flatMap((entry: String) =>
+          Library.space_explode('=', entry) match {
+            case List(a, b) => Some((a, b))
+            case _ => None
+          })
+      if (props.nonEmpty) consume(props)
+    }
+
+    Bash.process("exec \"$POLYML_EXE\" -q --use " +
+      File.bash_path(Path.explode("~~/src/Pure/ML/ml_statistics.ML")) +
+      " --eval " + Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
+          ML_Syntax.print_double(delay.seconds)))
+      .result(progress_stdout = progress_stdout, strict = false).check
+  }
+
+
   /* memory fields (mega bytes) */
 
   def mem_print(x: Long): Option[String] =
