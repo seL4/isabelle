@@ -34,8 +34,7 @@ sig
   val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val total_jobs: queue -> int
-  val status: queue ->
-    {ready: int, pending: int, running: int, passive: int, urgent: int, total: int}
+  val status: queue -> {ready: int, pending: int, running: int, passive: int, urgent: int}
   val cancel: queue -> group -> Thread.thread list
   val cancel_all: queue -> group list * Thread.thread list
   val finish: task -> queue -> bool * queue
@@ -278,7 +277,7 @@ fun total_jobs (Queue {total, ...}) = total;
 
 (* queue status *)
 
-fun status (Queue {jobs, urgent, total, ...}) =
+fun status (Queue {jobs, urgent, ...}) =
   let
     val (x, y, z, w) =
       Task_Graph.fold (fn (_, (job, (deps, _))) => fn (x, y, z, w) =>
@@ -287,7 +286,7 @@ fun status (Queue {jobs, urgent, total, ...}) =
           | Running _ => (x, y, z + 1, w)
           | Passive _ => (x, y, z, w + 1)))
         jobs (0, 0, 0, 0);
-  in {ready = x, pending = y, running = z, passive = w, urgent = urgent, total = total} end;
+  in {ready = x, pending = y, running = z, passive = w, urgent = urgent} end;
 
 
 

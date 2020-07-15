@@ -6,6 +6,8 @@ ML runtime statistics.
 
 signature ML_STATISTICS =
 sig
+  val set: {tasks_ready: int, tasks_pending: int, tasks_running: int, tasks_passive: int,
+    tasks_urgent: int, workers_total: int, workers_active: int, workers_waiting: int} -> unit
   val get: unit -> (string * string) list
   val get_external: int -> (string * string) list
   val monitor: int -> real -> unit
@@ -32,7 +34,21 @@ val print_properties =
   String.concatWith "," o map (fn (a, b) => a ^ "=" ^ b);
 
 
-(* make properties *)
+(* set user properties *)
+
+fun set {tasks_ready, tasks_pending, tasks_running, tasks_passive, tasks_urgent,
+    workers_total, workers_active, workers_waiting} =
+ (PolyML.Statistics.setUserCounter (0, tasks_ready);
+  PolyML.Statistics.setUserCounter (1, tasks_pending);
+  PolyML.Statistics.setUserCounter (2, tasks_running);
+  PolyML.Statistics.setUserCounter (3, tasks_passive);
+  PolyML.Statistics.setUserCounter (4, tasks_urgent);
+  PolyML.Statistics.setUserCounter (5, workers_total);
+  PolyML.Statistics.setUserCounter (6, workers_active);
+  PolyML.Statistics.setUserCounter (7, workers_waiting));
+
+
+(* get properties *)
 
 fun make_properties
    {gcFullGCs,
@@ -59,12 +75,27 @@ fun make_properties
     timeNonGCUser,
     userCounters} =
   let
-    val user_counters =
-      Vector.foldri
-        (fn (i, j, res) => ("user_counter" ^ print_int i, print_int j) :: res)
-        [] userCounters;
+    val tasks_ready = Vector.sub (userCounters, 0);
+    val tasks_pending = Vector.sub (userCounters, 1);
+    val tasks_running = Vector.sub (userCounters, 2);
+    val tasks_passive = Vector.sub (userCounters, 3);
+    val tasks_urgent = Vector.sub (userCounters, 4);
+    val tasks_total = tasks_ready + tasks_pending + tasks_running + tasks_passive + tasks_urgent;
+    val workers_total = Vector.sub (userCounters, 5);
+    val workers_active = Vector.sub (userCounters, 6);
+    val workers_waiting = Vector.sub (userCounters, 7);
   in
-    [("full_GCs", print_int gcFullGCs),
+    [("now", print_real (Time.toReal (Time.now ()))),
+     ("tasks_ready", print_int tasks_ready),
+     ("tasks_pending", print_int tasks_pending),
+     ("tasks_running", print_int tasks_running),
+     ("tasks_passive", print_int tasks_passive),
+     ("tasks_urgent", print_int tasks_urgent),
+     ("tasks_total", print_int tasks_total),
+     ("workers_total", print_int workers_total),
+     ("workers_active", print_int workers_active),
+     ("workers_waiting", print_int workers_waiting),
+     ("full_GCs", print_int gcFullGCs),
      ("partial_GCs", print_int gcPartialGCs),
      ("share_passes", print_int gcSharePasses),
      ("size_allocation", print_int sizeAllocation),
@@ -83,12 +114,8 @@ fun make_properties
      ("time_elapsed", print_real (Time.toReal timeNonGCReal)),
      ("time_elapsed_GC", print_real (Time.toReal timeGCReal)),
      ("time_CPU", print_real (Time.toReal timeNonGCSystem + Time.toReal timeNonGCUser)),
-     ("time_GC", print_real (Time.toReal timeGCSystem + Time.toReal timeGCUser))] @
-    user_counters
+     ("time_GC", print_real (Time.toReal timeGCSystem + Time.toReal timeGCUser))]
   end;
-
-
-(* get properties *)
 
 fun get () =
   make_properties (PolyML.Statistics.getLocalStats ());

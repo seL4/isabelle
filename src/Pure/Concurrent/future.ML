@@ -176,22 +176,21 @@ val ML_statistics = Unsynchronized.ref false;
 fun report_status () = (*requires SYNCHRONIZED*)
   if ! ML_statistics then
     let
-      val {ready, pending, running, passive, urgent, total} = Task_Queue.status (! queue);
+      val {ready, pending, running, passive, urgent} = Task_Queue.status (! queue);
       val workers_total = length (! workers);
       val workers_active = count_workers Working;
       val workers_waiting = count_workers Waiting;
-      val stats =
-       [("now", Value.print_real (Time.toReal (Time.now ()))),
-        ("tasks_ready", Value.print_int ready),
-        ("tasks_pending", Value.print_int pending),
-        ("tasks_running", Value.print_int running),
-        ("tasks_passive", Value.print_int passive),
-        ("tasks_urgent", Value.print_int urgent),
-        ("tasks_total", Value.print_int total),
-        ("workers_total", Value.print_int workers_total),
-        ("workers_active", Value.print_int workers_active),
-        ("workers_waiting", Value.print_int workers_waiting)] @
-        ML_Statistics.get ();
+      val _ =
+        ML_Statistics.set
+         {tasks_ready = ready,
+          tasks_pending = pending,
+          tasks_running = running,
+          tasks_passive = passive,
+          tasks_urgent = urgent,
+          workers_total = workers_total,
+          workers_active = workers_active,
+          workers_waiting = workers_waiting};
+      val stats = ML_Statistics.get ();
     in Output.try_protocol_message (Markup.ML_statistics :: stats) [] end
   else ();
 
