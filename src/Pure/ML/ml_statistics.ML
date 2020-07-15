@@ -50,6 +50,8 @@ fun set {tasks_ready, tasks_pending, tasks_running, tasks_passive, tasks_urgent,
 
 (* get properties *)
 
+local
+
 fun make_properties
    {gcFullGCs,
     gcPartialGCs,
@@ -73,7 +75,7 @@ fun make_properties
     timeNonGCReal,
     timeNonGCSystem,
     timeNonGCUser,
-    userCounters} =
+    userCounters, ...} =
   let
     val tasks_ready = Vector.sub (userCounters, 0);
     val tasks_pending = Vector.sub (userCounters, 1);
@@ -117,11 +119,15 @@ fun make_properties
      ("time_GC", print_real (Time.toReal timeGCSystem + Time.toReal timeGCUser))]
   end;
 
+in
+
 fun get () =
   make_properties (PolyML.Statistics.getLocalStats ());
 
 fun get_external pid =
   make_properties (PolyML.Statistics.getRemoteStats pid);
+
+end;
 
 
 (* monitor process *)
