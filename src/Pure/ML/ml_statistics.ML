@@ -133,6 +133,7 @@ fun monitor pid delay =
        TextIO.flushOut TextIO.stdOut;
        OS.Process.sleep (Time.fromReal delay);
        loop ());
-  in loop () handle Interrupt => OS.Process.exit OS.Process.success end;
+    fun exit () = OS.Process.exit OS.Process.success;
+  in loop () handle Interrupt => exit () | Fail _ => exit () end;
 
 end;
