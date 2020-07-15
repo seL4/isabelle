@@ -9,13 +9,14 @@ package isabelle
 
 object ML_Syntax
 {
-  /* int */
+  /* numbers */
 
-  private def signed_int(s: String): String =
+  private def signed(s: String): String =
     if (s(0) == '-') "~" + s.substring(1) else s
 
-  def print_int(i: Int): String = signed_int(Value.Int(i))
-  def print_long(i: Long): String = signed_int(Value.Long(i))
+  def print_int(x: Int): String = signed(Value.Int(x))
+  def print_long(x: Long): String = signed(Value.Long(x))
+  def print_double(x: Double): String = signed(Value.Double(x))
 
 
   /* string */
