@@ -42,7 +42,7 @@ object Build_Cygwin
           progress.bash(
             File.bash_path(cygwin_exe) + " --site " + Bash.string(mirror) + " --no-verify" +
               " --local-package-dir 'C:\\temp'" +
-              " --root " + Bash.string(File.platform_path(cygwin)) +
+              " --root " + File.bash_platform_path(cygwin) +
               " --packages " + quote((packages ::: more_packages).mkString(",")) +
               " --no-shortcuts --no-startmenu --no-desktop --quiet-mode",
             echo = true)
