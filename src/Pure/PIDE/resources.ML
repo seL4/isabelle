@@ -121,8 +121,10 @@ structure Files = Theory_Data
 (
   type T = files;
   val empty = make_files (Path.current, [], []);
-  fun extend _ = empty;
-  fun merge _ = empty;
+  val extend = I;
+  fun merge ({master_dir, imports, provided = provided1}, {provided = provided2, ...}) =
+    let val provided' = Library.merge (op =) (provided1, provided2)
+    in make_files (master_dir, imports, provided') end
 );
 
 fun map_files f =

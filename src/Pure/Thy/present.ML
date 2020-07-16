@@ -36,20 +36,30 @@ fun show_path path = Path.implode (Path.expand (File.full_path Path.current path
 
 
 
-(** additional theory data **)
+(** theory data **)
+
+type browser_info = {chapter: string, name: string, bibtex_entries: string list};
+val empty_browser_info: browser_info = {chapter = "Unsorted", name = "Unknown", bibtex_entries = []};
 
 structure Browser_Info = Theory_Data
 (
-  type T = {chapter: string, name: string, bibtex_entries: string list};
-  val empty = {chapter = "Unsorted", name = "Unknown", bibtex_entries = []}: T;
-  fun extend _ = empty;
-  fun merge _ = empty;
+  type T = browser_info
+  val empty = empty_browser_info;
+  val extend = I;
+  val merge = #1;
 );
 
-val _ = Theory.setup
-  (Browser_Info.put {chapter = Context.PureN, name = Context.PureN, bibtex_entries = []});
+fun reset_browser_info thy =
+  if Browser_Info.get thy = empty_browser_info then NONE
+  else SOME (Browser_Info.put empty_browser_info thy);
+
+val _ =
+  Theory.setup
+   (Theory.at_begin reset_browser_info #>
+    Browser_Info.put {chapter = Context.PureN, name = Context.PureN, bibtex_entries = []});
 
 val get_bibtex_entries = #bibtex_entries o Browser_Info.get;
+
 
 
 (** global browser info state **)
