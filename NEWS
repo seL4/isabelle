@@ -75,8 +75,8 @@ factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 
 * Session HOL-Word: Operations "bin_last", "bin_rest", "bin_nth",
-"bintrunc", "sbintrunc", "bin_cat" and "max_word" are now mere
-input abbreviations.  Minor INCOMPATIBILITY.
+"bintrunc", "sbintrunc", "norm_sint", "bin_cat" and "max_word" are now
+mere input abbreviations.  Minor INCOMPATIBILITY.
 
 * Session HOL-Word: Theory HOL-Library.Z2 is not imported any longer.
 Minor INCOMPATIBILITY.

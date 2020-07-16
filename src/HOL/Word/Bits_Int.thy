@@ -246,6 +246,9 @@ lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
 abbreviation (input) sbintrunc :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
   where \<open>sbintrunc \<equiv> signed_take_bit\<close>
 
+abbreviation (input) norm_sint :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>norm_sint n \<equiv> signed_take_bit (n - 1)\<close>
+
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
   by (simp add: bintrunc_mod2p signed_take_bit_eq_take_bit_shift)
   

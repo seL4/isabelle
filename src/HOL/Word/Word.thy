@@ -80,9 +80,6 @@ lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
 definition unats :: "nat \<Rightarrow> nat set"
   where "unats n = {i. i < 2 ^ n}"
 
-definition norm_sint :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
-
 definition scast :: "'a::len word \<Rightarrow> 'b::len word"
   \<comment> \<open>cast a word to a different length\<close>
   where "scast w = word_of_int (sint w)"
