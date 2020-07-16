@@ -239,6 +239,7 @@ ML_file "Thy/latex.ML";
 ML_file "ML/ml_context.ML";
 ML_file "ML/ml_antiquotation.ML";
 ML_file "ML/ml_compiler2.ML";
+ML_file "ML/ml_pid.ML";
 
 
 section "Bootstrap phase 3: towards theory Pure and final ML toplevel setup";
