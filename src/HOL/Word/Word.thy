@@ -64,22 +64,6 @@ definition sint :: "'a::len word \<Rightarrow> int"
 definition unat :: "'a::len word \<Rightarrow> nat"
   where "unat w = nat (uint w)"
 
-definition uints :: "nat \<Rightarrow> int set"
-  \<comment> \<open>the sets of integers representing the words\<close>
-  where "uints n = range (bintrunc n)"
-
-definition sints :: "nat \<Rightarrow> int set"
-  where "sints n = range (sbintrunc (n - 1))"
-
-lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
-  by (simp add: uints_def range_bintrunc)
-
-lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
-  by (simp add: sints_def range_sbintrunc)
-
-definition unats :: "nat \<Rightarrow> nat set"
-  where "unats n = {i. i < 2 ^ n}"
-
 definition scast :: "'a::len word \<Rightarrow> 'b::len word"
   \<comment> \<open>cast a word to a different length\<close>
   where "scast w = word_of_int (sint w)"
@@ -178,6 +162,33 @@ subsection \<open>Type-definition locale instantiations\<close>
 lemmas uint_0 = uint_nonnegative (* FIXME duplicate *)
 lemmas uint_lt = uint_bounded (* FIXME duplicate *)
 lemmas uint_mod_same = uint_idem (* FIXME duplicate *)
+
+definition uints :: "nat \<Rightarrow> int set"
+  \<comment> \<open>the sets of integers representing the words\<close>
+  where "uints n = range (bintrunc n)"
+
+definition sints :: "nat \<Rightarrow> int set"
+  where "sints n = range (sbintrunc (n - 1))"
+
+lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
+  by (simp add: uints_def range_bintrunc)
+
+lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
+  by (simp add: sints_def range_sbintrunc)
+
+definition unats :: "nat \<Rightarrow> nat set"
+  where "unats n = {i. i < 2 ^ n}"
+
+\<comment> \<open>naturals\<close>
+lemma uints_unats: "uints n = int ` unats n"
+  apply (unfold unats_def uints_num)
+  apply safe
+    apply (rule_tac image_eqI)
+     apply (erule_tac nat_0_le [symmetric])
+  by auto
+
+lemma unats_uints: "unats n = nat ` uints n"
+  by (auto simp: uints_unats image_iff)
 
 lemma td_ext_uint:
   "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (LENGTH('a::len)))
@@ -1482,17 +1493,6 @@ lemma to_bl_to_bin [simp] : "bl_to_bin (to_bl w) = uint w"
 lemma uint_bl_bin: "bl_to_bin (bin_to_bl (LENGTH('a)) (uint x)) = uint x"
   for x :: "'a::len word"
   by (rule trans [OF bin_bl_bin word_ubin.norm_Rep])
-
-\<comment> \<open>naturals\<close>
-lemma uints_unats: "uints n = int ` unats n"
-  apply (unfold unats_def uints_num)
-  apply safe
-    apply (rule_tac image_eqI)
-     apply (erule_tac nat_0_le [symmetric])
-  by auto
-
-lemma unats_uints: "unats n = nat ` uints n"
-  by (auto simp: uints_unats image_iff)
 
 lemmas bintr_num =
   word_ubin.norm_eq_iff [of "numeral a" "numeral b", symmetric, folded word_numeral_alt] for a b
