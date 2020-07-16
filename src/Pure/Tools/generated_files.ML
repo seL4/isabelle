@@ -52,6 +52,8 @@ struct
 
 (** context data **)
 
+type file = Path.T * (Position.T * string);
+
 type file_type =
   {name: string, ext: string, make_comment: string -> string, make_string: string -> string};
 
@@ -63,42 +65,42 @@ fun err_dup_files path pos pos' =
 structure Data = Theory_Data
 (
   type T =
-    (Path.T * (Position.T * string)) list *  (*files for current theory*)
+    file list Symtab.table *  (*files for named theory*)
     file_type Name_Space.table *  (*file types*)
     antiquotation Name_Space.table;  (*antiquotations*)
   val empty =
-    ([],
+    (Symtab.empty,
      Name_Space.empty_table Markup.file_typeN,
      Name_Space.empty_table Markup.antiquotationN);
   val extend = I;
   fun merge ((files1, types1, antiqs1), (files2, types2, antiqs2)) =
     let
-      val files' = (files1, files2)
-        |> Library.merge (fn ((path1, file1), (path2, file2)) =>
+      val files' =
+        (files1, files2) |> Symtab.join (K (Library.merge (fn ((path1, file1), (path2, file2)) =>
           if path1 <> path2 then false
           else if file1 = file2 then true
-          else err_dup_files path1 (#1 file1) (#1 file2));
+          else err_dup_files path1 (#1 file1) (#1 file2))));
       val types' = Name_Space.merge_tables (types1, types2);
       val antiqs' = Name_Space.merge_tables (antiqs1, antiqs2);
     in (files', types', antiqs') end;
 );
 
-fun add_files (binding, content) =
+fun lookup_files thy =
+  Symtab.lookup_list (#1 (Data.get thy)) (Context.theory_long_name thy);
+
+fun update_files thy_files' thy =
+  (Data.map o @{apply 3(1)}) (Symtab.update (Context.theory_long_name thy, thy_files')) thy;
+
+fun add_files (binding, content) thy =
   let
     val _ = Path.proper_binding binding;
     val (path, pos) = Path.dest_binding binding;
-  in
-    (Data.map o @{apply 3(1)}) (fn files =>
-      (case AList.lookup (op =) files path of
+    val thy_files = lookup_files thy;
+    val thy_files' =
+      (case AList.lookup (op =) thy_files path of
         SOME (pos', _) => err_dup_files path pos pos'
-      | NONE => (path, (pos, content)) :: files))
-  end;
-
-fun reset_files thy =
-  if null (#1 (Data.get thy)) then NONE
-  else SOME (Data.map (@{apply 3(1)} (K [])) thy);
-
-val _ = Theory.setup (Theory.at_begin reset_files);
+      | NONE => (path, (pos, content)) :: thy_files);
+  in update_files thy_files' thy end;
 
 
 (* get files *)
@@ -115,7 +117,7 @@ fun report_file ctxt pos file = Context_Position.report ctxt pos (file_markup fi
 
 
 fun get_files thy =
-  Data.get thy |> #1 |> rev |> map (fn (path, (pos, content)) =>
+  lookup_files thy |> rev |> map (fn (path, (pos, content)) =>
     {path = path, pos = pos, content = content}: file);
 
 fun get_file thy binding =
