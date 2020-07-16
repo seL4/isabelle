@@ -479,7 +479,7 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   sessions
-    "HOL-Isar_Examples"
+    "HOL-Examples"
   theories
     Hilbert_Classical
     Proof_Terms
