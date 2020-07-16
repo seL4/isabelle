@@ -654,16 +654,24 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 structure Proofs = Theory_Data
 (
-  type T = thm list lazy list;
-  val empty = [];
-  fun extend _ = empty;
-  fun merge _ = empty;
+  type T = thm list lazy Inttab.table;
+  val empty = Inttab.empty;
+  val extend = I;
+  val merge = Inttab.merge (K true);
 );
 
-fun register_proofs ths =
-  (Proofs.map o cons) (Lazy.map_finished (map Thm.trim_context) ths);
+fun reset_proofs thy =
+  if Inttab.is_empty (Proofs.get thy) then NONE
+  else SOME (Proofs.put Inttab.empty thy);
 
-fun force_proofs thy = rev (Proofs.get thy) |> maps (map (Thm.transfer thy) o Lazy.force);
+val _ = Theory.setup (Theory.at_begin reset_proofs);
+
+fun register_proofs ths thy =
+  let val entry = (serial (), Lazy.map_finished (map Thm.trim_context) ths)
+  in (Proofs.map o Inttab.update) entry thy end;
+
+fun force_proofs thy =
+  Proofs.get thy |> Inttab.dest |> maps (map (Thm.transfer thy) o Lazy.force o #2);
 
 val consolidate_theory = Thm.consolidate o force_proofs;
 
