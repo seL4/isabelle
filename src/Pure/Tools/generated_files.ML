@@ -57,6 +57,9 @@ type file_type =
 
 type antiquotation = Token.src -> Proof.context -> file_type -> string;
 
+fun err_dup_files path pos pos' =
+  error ("Duplicate generated file: " ^ Path.print path ^ Position.here_list [pos, pos']);
+
 structure Data = Theory_Data
 (
   type T =
@@ -67,11 +70,17 @@ structure Data = Theory_Data
     ([],
      Name_Space.empty_table Markup.file_typeN,
      Name_Space.empty_table Markup.antiquotationN);
-  val extend = @{apply 3(1)} (K []);
-  fun merge ((_, types1, antiqs1), (_, types2, antiqs2)) =
-    ([],
-     Name_Space.merge_tables (types1, types2),
-     Name_Space.merge_tables (antiqs1, antiqs2));
+  val extend = I;
+  fun merge ((files1, types1, antiqs1), (files2, types2, antiqs2)) =
+    let
+      val files' = (files1, files2)
+        |> Library.merge (fn ((path1, file1), (path2, file2)) =>
+          if path1 <> path2 then false
+          else if file1 = file2 then true
+          else err_dup_files path1 (#1 file1) (#1 file2));
+      val types' = Name_Space.merge_tables (types1, types2);
+      val antiqs' = Name_Space.merge_tables (antiqs1, antiqs2);
+    in (files', types', antiqs') end;
 );
 
 fun add_files (binding, content) =
@@ -81,10 +90,15 @@ fun add_files (binding, content) =
   in
     (Data.map o @{apply 3(1)}) (fn files =>
       (case AList.lookup (op =) files path of
-        SOME (pos', _) =>
-          error ("Duplicate generated file: " ^ Path.print path ^ Position.here_list [pos, pos'])
+        SOME (pos', _) => err_dup_files path pos pos'
       | NONE => (path, (pos, content)) :: files))
   end;
+
+fun reset_files thy =
+  if null (#1 (Data.get thy)) then NONE
+  else SOME (Data.map (@{apply 3(1)} (K [])) thy);
+
+val _ = Theory.setup (Theory.at_begin reset_files);
 
 
 (* get files *)
