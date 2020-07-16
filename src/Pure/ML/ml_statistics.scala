@@ -42,10 +42,10 @@ object ML_Statistics
       if (props.nonEmpty) consume(props)
     }
 
-    Bash.process("exec \"$POLYML_EXE\" -q --use " +
-      File.bash_platform_path(Path.explode("~~/src/Pure/ML/ml_statistics.ML")) +
-      " --eval " + Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
-          ML_Syntax.print_double(delay.seconds)))
+    Bash.process("exec \"$POLYML_EXE\" -q --use src/Pure/ML/ml_statistics.ML --eval " +
+        Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
+          ML_Syntax.print_double(delay.seconds)),
+        cwd = Path.explode("~~").file)
       .result(progress_stdout = progress_stdout, strict = false).check
   }
 
