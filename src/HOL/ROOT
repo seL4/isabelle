@@ -320,7 +320,8 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
   sessions
     "HOL-Data_Structures"
-    "HOL-ex"
+    "HOL-Examples"
+    "HOL-Word"
   theories
     Generate
     Generate_Binary_Nat
