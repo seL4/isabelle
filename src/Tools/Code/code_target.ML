@@ -186,16 +186,18 @@ structure Targets = Theory_Data
 (
   type T = (target * Code_Printer.data) Symtab.table * int;
   val empty = (Symtab.empty, 0);
-  fun extend (targets, _) = (targets, 0);
-  fun merge ((targets1, _), (targets2, _)) : T =
-    let val targets' =
-      Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
-        if #serial target1 = #serial target2 then
-        ({serial = #serial target1, language = #language target1,
-          ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
-          Code_Printer.merge_data (data1, data2))
-        else error ("Incompatible targets: " ^ quote target_name)) (targets1, targets2)
-    in (targets', 0) end;
+  val extend = I;
+  fun merge ((targets1, index1), (targets2, index2)) : T =
+    let
+      val targets' =
+        Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
+          if #serial target1 = #serial target2 then
+          ({serial = #serial target1, language = #language target1,
+            ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
+            Code_Printer.merge_data (data1, data2))
+          else error ("Incompatible targets: " ^ quote target_name)) (targets1, targets2)
+      val index' = Int.max (index1, index2);
+    in (targets', index') end;
 );
 
 val exists_target = Symtab.defined o #1 o Targets.get;
@@ -204,6 +206,12 @@ fun assert_target thy target_name =
   if exists_target thy target_name
   then target_name
   else error ("Unknown code target language: " ^ quote target_name);
+
+fun reset_index thy =
+  if #2 (Targets.get thy) = 0 then NONE
+  else SOME ((Targets.map o apsnd) (K 0) thy);
+
+val _ = Theory.setup (Theory.at_begin reset_index);
 
 fun next_export thy =
   let

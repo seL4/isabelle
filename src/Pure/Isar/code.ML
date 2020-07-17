@@ -392,32 +392,42 @@ end; (*local*)
 local
 
 type data = Any.T Datatab.table;
-fun empty_dataref () = Synchronized.var "code data" (NONE : (data * Context.theory_id) option);
+
+fun make_dataref thy =
+  (Context.theory_long_name thy,
+    Synchronized.var "code data" (NONE : (data * Context.theory_id) option));
 
 structure Code_Data = Theory_Data
 (
-  type T = specs * (data * Context.theory_id) option Synchronized.var;
-  val empty = (empty_specs, empty_dataref ());
-  val extend : T -> T = apsnd (K (empty_dataref ()));
-  fun merge ((specs1, _), (specs2, _)) =
-    (merge_specs (specs1, specs2), empty_dataref ());
+  type T = specs * (string * (data * Context.theory_id) option Synchronized.var);
+  val empty = (empty_specs, make_dataref (Context.the_global_context ()));
+  val extend = I;
+  fun merge ((specs1, dataref), (specs2, _)) =
+    (merge_specs (specs1, specs2), dataref);
 );
 
+fun init_dataref thy =
+  if #1 (#2 (Code_Data.get thy)) = Context.theory_long_name thy then NONE
+  else SOME ((Code_Data.map o apsnd) (fn _ => make_dataref thy) thy)
+
 in
+
+val _ = Theory.setup (Theory.at_begin init_dataref);
 
 
 (* access to executable specifications *)
 
 val specs_of : theory -> specs = fst o Code_Data.get;
 
-fun modify_specs f = Code_Data.map (fn (specs, _) => (f specs, empty_dataref ()));
+fun modify_specs f thy =
+  Code_Data.map (fn (specs, _) => (f specs, make_dataref thy)) thy;
 
 
 (* access to data dependent on executable specifications *)
 
 fun change_yield_data (kind, mk, dest) theory f =
   let
-    val dataref = (snd o Code_Data.get) theory;
+    val dataref = #2 (#2 (Code_Data.get theory));
     val (datatab, thy_id) = case Synchronized.value dataref
      of SOME (datatab, thy_id) =>
         if Context.eq_thy_id (Context.theory_id theory, thy_id)
