@@ -107,15 +107,15 @@ val _ = Theory.setup
 
 (* old-style theorem bindings *)
 
-structure Stored_Thms = Theory_Data
+structure Data = Theory_Data
 (
   type T = thm list;
   val empty = [];
-  fun extend _ = [];
-  fun merge _ = [];
+  val extend = I;
+  val merge = #1;
 );
 
-fun get_stored_thms () = Stored_Thms.get (Context.the_global_context ());
+fun get_stored_thms () = Data.get (Context.the_global_context ());
 val get_stored_thm = hd o get_stored_thms;
 
 fun ml_store get (name, ths) =
@@ -123,7 +123,7 @@ fun ml_store get (name, ths) =
     val (_, ths') =
       Context.>>> (Context.map_theory_result
         (Global_Theory.note_thms "" ((Binding.name name, []), [(ths, [])])));
-    val _ = Theory.setup (Stored_Thms.put ths');
+    val _ = Theory.setup (Data.put ths');
     val _ =
       if name = "" then ()
       else if not (ML_Syntax.is_identifier name) then
@@ -131,7 +131,7 @@ fun ml_store get (name, ths) =
       else
         ML_Compiler.eval (ML_Compiler.verbose true ML_Compiler.flags) Position.none
           (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
-    val _ = Theory.setup (Stored_Thms.put []);
+    val _ = Theory.setup (Data.put []);
   in () end;
 
 val store_thms = ml_store "ML_Thms.get_stored_thms";
