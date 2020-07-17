@@ -136,10 +136,8 @@ fun make_sign (syn, tsig, consts) = Sign {syn = syn, tsig = tsig, consts = const
 structure Data = Theory_Data'
 (
   type T = sign;
-  fun extend (Sign {syn, tsig, consts, ...}) = make_sign (syn, tsig, consts);
-
+  val extend = I;
   val empty = make_sign (Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
-
   fun merge old_thys (sign1, sign2) =
     let
       val Sign {syn = syn1, tsig = tsig1, consts = consts1} = sign1;
