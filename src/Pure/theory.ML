@@ -170,7 +170,7 @@ val defs_of = #defs o rep_theory;
 
 fun join_theory [] = raise List.Empty
   | join_theory [thy] = thy
-  | join_theory thys = foldl1 Context.join_thys thys |> Sign.restore_naming (hd thys);
+  | join_theory thys = foldl1 Context.join_thys thys;
 
 
 (* begin/end theory *)
@@ -193,8 +193,8 @@ fun begin_theory (name, pos) imports =
     in
       thy
       |> init_markup (name, pos)
+      |> Sign.init_naming
       |> Sign.local_path
-      |> Sign.theory_naming
       |> apply_wrappers wrappers
       |> tap (Syntax.force_syntax o Sign.syn_of)
     end;

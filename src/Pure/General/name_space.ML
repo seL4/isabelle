@@ -488,9 +488,9 @@ structure Data_Args =
 struct
   type T = naming;
   val empty = global_naming;
-  fun extend _ = global_naming;
-  fun merge _ = global_naming;
   fun init _ = local_naming;
+  val extend = I;
+  val merge = #1;
 end;
 
 structure Global_Naming = Theory_Data(Data_Args);

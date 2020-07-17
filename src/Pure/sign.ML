@@ -110,7 +110,7 @@ sig
   val mandatory_path: string -> theory -> theory
   val qualified_path: bool -> binding -> theory -> theory
   val local_path: theory -> theory
-  val theory_naming: theory -> theory
+  val init_naming: theory -> theory
   val private_scope: Binding.scope -> theory -> theory
   val private: Position.T -> theory -> theory
   val qualified_scope: Binding.scope -> theory -> theory
@@ -525,8 +525,11 @@ val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
-fun theory_naming thy = thy
-  |> map_naming (Name_Space.set_theory_long_name (Context.theory_long_name thy));
+fun init_naming thy =
+  let
+    val theory_naming = Name_Space.global_naming
+      |> Name_Space.set_theory_long_name (Context.theory_long_name thy);
+  in map_naming (K theory_naming) thy end;
 
 val private_scope = map_naming o Name_Space.private_scope;
 val private = map_naming o Name_Space.private;
