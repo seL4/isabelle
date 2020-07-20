@@ -269,23 +269,27 @@ text \<open>declarations need to implement the following ML signature:
   \begin{tabular}{ll}
   \<open>\<type> T\<close> & representing type \\
   \<open>\<val> empty: T\<close> & empty default value \\
-  \<open>\<val> extend: T \<rightarrow> T\<close> & re-initialize on import \\
-  \<open>\<val> merge: T \<times> T \<rightarrow> T\<close> & join on import \\
+  \<open>\<val> extend: T \<rightarrow> T\<close> & obsolete (identity function) \\
+  \<open>\<val> merge: T \<times> T \<rightarrow> T\<close> & merge data \\
   \end{tabular}
   \<^medskip>
 
   The \<open>empty\<close> value acts as initial default for \<^emph>\<open>any\<close> theory that does not
-  declare actual data content; \<open>extend\<close> acts like a unitary version of
-  \<open>merge\<close>.
+  declare actual data content; \<open>extend\<close> is obsolete: it needs to be the
+  identity function.
 
-  Implementing \<open>merge\<close> can be tricky. The general idea is that \<open>merge (data\<^sub>1,
-  data\<^sub>2)\<close> inserts those parts of \<open>data\<^sub>2\<close> into \<open>data\<^sub>1\<close> that are not yet
-  present, while keeping the general order of things. The \<^ML>\<open>Library.merge\<close>
-  function on plain lists may serve as canonical template.
+  The \<open>merge\<close> operation needs to join the data from two theories in a
+  conservative manner. The standard scheme for \<open>merge (data\<^sub>1, data\<^sub>2)\<close>
+  inserts those parts of \<open>data\<^sub>2\<close> into \<open>data\<^sub>1\<close> that are not yet present,
+  while keeping the general order of things. The \<^ML>\<open>Library.merge\<close>
+  function on plain lists may serve as canonical template. Particularly note
+  that shared parts of the data must not be duplicated by naive concatenation,
+  or a theory graph that resembles a chain of diamonds would cause an
+  exponential blowup!
 
-  Particularly note that shared parts of the data must not be duplicated by
-  naive concatenation, or a theory graph that is like a chain of diamonds
-  would cause an exponential blowup!
+  Sometimes, the data consists of a single item that cannot be ``merged'' in a
+  sensible manner. Then the standard scheme degenerates to the projection to
+  \<open>data\<^sub>1\<close>, ignoring \<open>data\<^sub>2\<close> outright.
 \<close>
 
 paragraph \<open>Proof context data\<close>

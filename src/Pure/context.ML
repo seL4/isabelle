@@ -665,11 +665,19 @@ type T = Data.T;
 exception Data of T;
 
 val kind =
-  Context.Theory_Data.declare
-    (Position.thread_data ())
-    (Data Data.empty)
-    (fn Data x => Data (Data.extend x))
-    (fn thys => fn (Data x1, Data x2) => Data (Data.merge thys (x1, x2)));
+  let val pos = Position.thread_data () in
+    Context.Theory_Data.declare
+      pos
+      (Data Data.empty)
+      (fn Data x =>
+        let
+          val y = Data.extend x;
+          val _ =
+            if pointer_eq (x, y) then ()
+            else raise Fail ("Theory_Data extend needs to be identity" ^ Position.here pos)
+        in Data y end)
+      (fn thys => fn (Data x1, Data x2) => Data (Data.merge thys (x1, x2)))
+  end;
 
 val get = Context.Theory_Data.get kind (fn Data x => x);
 val put = Context.Theory_Data.put kind Data;

@@ -109,6 +109,12 @@ to leave fragile proofs unaffected.
 
 *** ML ***
 
+* Theory_Data extend operation is obsolete and needs to be the identity
+function; merge should be conservative and not reset to the empty value.
+Subtle INCOMPATIBILITY and change of semantics (due to
+Theory.join_theory from Isabelle2020). Special extend/merge behaviour at
+the begin of a new theory can be achieved via Theory.at_begin.
+
 * Antiquotations @{scala_function} and @{scala} refer to registered
 Isabelle/Scala functions (of type String => String): invocation works
 via the PIDE protocol.
