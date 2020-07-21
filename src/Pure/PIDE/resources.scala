@@ -92,7 +92,7 @@ class Resources(
         val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
         val spans = syntax.parse_spans(text)
         val dir = Path.explode(name.master_dir)
-        spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
+        spans.iterator.flatMap(Command.span_files(syntax, _)._1).
           map(a => (dir + Path.explode(a)).expand).toList
       }
       else Nil
@@ -376,7 +376,7 @@ class Resources(
         val graph2 = (graph1 /: imports)(_.add_edge(_, name))
 
         val syntax0 = if (name == Thy_Header.PURE) List(Thy_Header.bootstrap_syntax) else Nil
-        val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node(_))
+        val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node)
         val syntax = Outer_Syntax.merge(syntax0 ::: syntax1) + entry.header
 
         graph2.map_node(name, _ => syntax)
@@ -402,14 +402,14 @@ class Resources(
     {
       val base_theories =
         loaded_theories.all_preds(theories.map(_.theory)).
-          filter(session_base.loaded_theories.defined(_))
+          filter(session_base.loaded_theories.defined)
 
       base_theories.map(theory => session_base.known_theories(theory).name.path) :::
       base_theories.flatMap(session_base.known_loaded_files(_))
     }
 
     lazy val overall_syntax: Outer_Syntax =
-      Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node(_)))
+      Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node))
 
     override def toString: String = entries.toString
   }
