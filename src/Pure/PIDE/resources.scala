@@ -342,7 +342,7 @@ class Resources(
     def entries: List[Document.Node.Entry] = rev_entries.reverse
 
     def theories: List[Document.Node.Name] = entries.map(_.name)
-    def adjunct_theories: List[(A, Document.Node.Name)] = theories.map(name => (seen(name), name))
+    def theories_adjunct: List[(Document.Node.Name, A)] = theories.map(name => (name, seen(name)))
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 

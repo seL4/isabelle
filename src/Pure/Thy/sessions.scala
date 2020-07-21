@@ -249,22 +249,15 @@ object Sessions
 
             val known_loaded_files = imports_base.known_loaded_files ++ loaded_files
 
-            val used_theories =
-              for ((options, name) <- dependencies.adjunct_theories)
-              yield (name, options)
-
-            def used_theories_session_iterator: Iterator[Document.Node.Name] =
-              for {
-                (name, _) <- used_theories.iterator
-                if imports_base.theory_qualifier(name) == session_name
-              } yield name
+            val used_theories_session =
+              dependencies.theories.filter(name => imports_base.theory_qualifier(name) == session_name)
 
             val dir_errors =
             {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  name <- used_theories_session_iterator
+                  name <- used_theories_session.iterator
                   path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
@@ -280,7 +273,7 @@ object Sessions
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
               val errs4 =
                 (for {
-                  name <- used_theories_session_iterator
+                  name <- used_theories_session.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
                 } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
@@ -307,7 +300,7 @@ object Sessions
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
                 loaded_theories = dependencies.loaded_theories,
-                used_theories = used_theories,
+                used_theories = dependencies.theories_adjunct,
                 known_theories = known_theories,
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
