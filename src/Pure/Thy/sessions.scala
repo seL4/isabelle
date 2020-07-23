@@ -60,8 +60,7 @@ object Sessions
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
-    errors: List[String] = Nil,
-    imports: Option[Base] = None)
+    errors: List[String] = Nil)
   {
     override def toString: String =
       "Sessions.Base(loaded_theories = " + loaded_theories.size +
@@ -81,9 +80,6 @@ object Sessions
 
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
-
-    def get_imports: Base =
-      imports getOrElse Base.bootstrap(session_directories, global_theories)
   }
 
   sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base])
@@ -308,8 +304,7 @@ object Sessions
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
                 errors = dependencies.errors ::: dir_errors ::: sources_errors :::
-                  path_errors ::: bibtex_errors,
-                imports = Some(imports_base))
+                  path_errors ::: bibtex_errors)
 
             session_bases + (info.name -> base)
           }
