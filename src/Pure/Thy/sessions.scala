@@ -151,24 +151,8 @@ object Sessions
 
           val info = sessions_structure(session_name)
           try {
-            val parent_base = session_bases(info.parent.getOrElse(""))
-
-            val imports_base: Sessions.Base =
-            {
-              val imports_bases = info.imports.map(session_bases(_))
-              parent_base.copy(
-                known_theories =
-                  (parent_base.known_theories /:
-                    (for {
-                      base <- imports_bases.iterator
-                      (_, entry) <- base.known_theories.iterator
-                    } yield (entry.name.theory -> entry)))(_ + _),
-                known_loaded_files =
-                  (parent_base.known_loaded_files /:
-                    imports_bases.iterator.map(_.known_loaded_files))(_ ++ _))
-            }
-
-            val resources = new Resources(sessions_structure, imports_base)
+            val deps_base = info.deps_base(session_bases)
+            val resources = new Resources(sessions_structure, deps_base)
 
             if (verbose || list_files) {
               val groups =
@@ -207,7 +191,7 @@ object Sessions
 
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
-                val qualifier = imports_base.theory_qualifier(name)
+                val qualifier = deps_base.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
@@ -215,7 +199,7 @@ object Sessions
 
               val required_sessions =
                 dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
-                  .map(theory => imports_base.theory_qualifier(theory))
+                  .map(theory => deps_base.theory_qualifier(theory))
                   .filter(name => name != info.name && sessions_structure.defined(name))
 
               val required_subgraph =
@@ -240,13 +224,13 @@ object Sessions
             }
 
             val known_theories =
-              (imports_base.known_theories /:
+              (deps_base.known_theories /:
                 dependencies.entries.iterator.map(entry => entry.name.theory -> entry))(_ + _)
 
-            val known_loaded_files = imports_base.known_loaded_files ++ loaded_files
+            val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
 
             val used_theories_session =
-              dependencies.theories.filter(name => imports_base.theory_qualifier(name) == session_name)
+              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
 
             val dir_errors =
             {
@@ -429,6 +413,22 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def deps: List[String] = parent.toList ::: imports
+
+    def deps_base(session_bases: String => Base): Base =
+    {
+      val parent_base = session_bases(parent.getOrElse(""))
+      val imports_bases = imports.map(session_bases)
+      parent_base.copy(
+        known_theories =
+          (parent_base.known_theories /:
+            (for {
+              base <- imports_bases.iterator
+              (_, entry) <- base.known_theories.iterator
+            } yield (entry.name.theory -> entry)))(_ + _),
+        known_loaded_files =
+          (parent_base.known_loaded_files /:
+            imports_bases.iterator.map(_.known_loaded_files))(_ ++ _))
+    }
 
     def dirs: List[Path] = dir :: directories
 
