@@ -715,12 +715,12 @@ object Sessions
 
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
-    def build_requirements(ss: List[String]): List[String] = build_graph.all_preds(ss).reverse
+    def build_requirements(ss: List[String]): List[String] = build_graph.all_preds_rev(ss)
     def build_topological_order: List[String] = build_graph.topological_order
 
     def imports_selection(sel: Selection): List[String] = selected(imports_graph, sel)
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
-    def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds(ss).reverse
+    def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
 
     override def toString: String =

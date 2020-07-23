@@ -105,7 +105,7 @@ object Headless
         def load_requirements(pending1: List[Document.Node.Name], rest1: List[Document.Node.Name])
           : (List[Document.Node.Name], Load_State) =
         {
-          val load_theories = dep_graph.all_preds(pending1).reverse.filterNot(finished)
+          val load_theories = dep_graph.all_preds_rev(pending1).filterNot(finished)
           (load_theories, Load_State(pending1, rest1, load_limit))
         }
 

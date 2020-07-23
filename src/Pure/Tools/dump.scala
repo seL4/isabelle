@@ -169,7 +169,7 @@ object Dump
         (for (name <- all_sessions if session_info(name).is_afp_bulky) yield name).toList
 
       val base_sessions =
-        session_graph.all_preds(List(logic).filter(session_graph.defined)).reverse
+        session_graph.all_preds_rev(List(logic).filter(session_graph.defined))
 
       val proof_sessions =
         session_graph.all_succs(

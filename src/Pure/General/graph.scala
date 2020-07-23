@@ -154,14 +154,16 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   }
 
   /*reachable nodes with result in topological order (for acyclic graphs)*/
-  def reachable(next: Key => Keys, xs: List[Key]): (List[List[Key]], Keys) =
+  private def reachable(next: Key => Keys, xs: List[Key], rev: Boolean = false): (List[List[Key]], Keys) =
   {
     def reach(x: Key, reached: (List[Key], Keys)): (List[Key], Keys) =
     {
       val (rs, r_set) = reached
       if (r_set(x)) reached
       else {
-        val (rs1, r_set1) = (next(x) :\ (rs, r_set + x))(reach)
+        val (rs1, r_set1) =
+          if (rev) ((rs, r_set + x) /: next(x))({ case (b, a) => reach(a, b) })
+          else (next(x) :\ (rs, r_set + x))(reach)
         (x :: rs1, r_set1)
       }
     }
@@ -179,6 +181,8 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def imm_succs(x: Key): Keys = get_entry(x)._2._2
 
   /*transitive*/
+  def all_preds_rev(xs: List[Key]): List[Key] =
+    reachable(imm_preds, xs, rev = true)._1.flatten.reverse
   def all_preds(xs: List[Key]): List[Key] = reachable(imm_preds, xs)._1.flatten
   def all_succs(xs: List[Key]): List[Key] = reachable(imm_succs, xs)._1.flatten
 
