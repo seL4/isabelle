@@ -166,9 +166,13 @@ object Sessions
             val overall_syntax = dependencies.overall_syntax
 
             val theory_files = dependencies.theories.map(_.path)
-            val loaded_files =
-              if (inlined_files) dependencies.loaded_files(Sessions.is_pure(info.name))
-              else Nil
+
+            val (loaded_files, loaded_files_errors) =
+              try {
+                if (inlined_files) (dependencies.loaded_files(Sessions.is_pure(info.name)), Nil)
+                else (Nil, Nil)
+              }
+              catch { case ERROR(msg) => (Nil, List(msg)) }
 
             val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::
@@ -299,8 +303,8 @@ object Sessions
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: import_errors ::: dir_errors :::
-                  sources_errors ::: path_errors ::: bibtex_errors)
+                errors = dependencies.errors ::: loaded_files_errors ::: import_errors :::
+                  dir_errors ::: sources_errors ::: path_errors ::: bibtex_errors)
 
             session_bases + (info.name -> base)
           }
