@@ -7,7 +7,6 @@ Resources for theories and auxiliary files.
 package isabelle
 
 
-import scala.annotation.tailrec
 import scala.util.parsing.input.Reader
 
 import java.io.{File => JFile}
