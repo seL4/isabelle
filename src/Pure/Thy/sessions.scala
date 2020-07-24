@@ -232,6 +232,18 @@ object Sessions
             val used_theories_session =
               dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
 
+            val import_errors =
+            {
+              val known_sessions =
+                sessions_structure.imports_requirements(List(session_name)).toSet
+              for {
+                name <- dependencies.theories
+                qualifier = deps_base.theory_qualifier(name)
+                if !known_sessions(qualifier)
+              } yield "Bad import of theory " + quote(name.toString) +
+                ": need to include sessions " + quote(qualifier) + " in ROOT"
+            }
+
             val dir_errors =
             {
               val ok = info.dirs.map(_.canonical_file).toSet
@@ -287,8 +299,8 @@ object Sessions
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: dir_errors ::: sources_errors :::
-                  path_errors ::: bibtex_errors)
+                errors = dependencies.errors ::: import_errors ::: dir_errors :::
+                  sources_errors ::: path_errors ::: bibtex_errors)
 
             session_bases + (info.name -> base)
           }
