@@ -37,6 +37,12 @@ rule to protect foundational terms during simplification.
 * Session HOL-Examples contains notable examples for Isabelle/HOL
 (former entries of HOL-Isar_Examples, HOL-ex etc.).
 
+* Simproc "defined_all" and rewrite rule "subst_all" perform more
+aggressive substitution with variables from assumptions.
+INCOMPATIBILITY, consider repairing proofs locally like this:
+
+  supply subst_all [simp del] [[simproc del: defined_all]]
+
 * Simproc "datatype_no_proper_subterm" rewrites equalities "lhs = rhs"
 on datatypes to "False" if either side is a proper subexpression of the
 other (for any datatype with a reasonable size function).
@@ -85,26 +91,17 @@ Minor INCOMPATIBILITY.
 into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
 INCOMPATIBILITY.
 
-* Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer"
-commands are in working order again, as opposed to outputting
-"GaveUp" on nearly all problems.
-
-* Simproc defined_all and rewrite rule subst_all perform
-more aggressive substitution with variables from assumptions.
-INCOMPATIBILITY, use something like
-"supply subst_all [simp del] [[simproc del: defined_all]]"
-to leave fragile proofs unaffected.
+* Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer" commands
+are in working order again, as opposed to outputting "GaveUp" on nearly
+all problems.
 
 
 *** FOL ***
 
 * Added the "at most 1" quantifier, Uniq, as in HOL.
 
-* Simproc defined_all and rewrite rule subst_all perform
-more aggressive substitution with variables from assumptions.
-INCOMPATIBILITY, use something like
-"supply subst_all [simp del] [[simproc del: defined_all]]"
-to leave fragile proofs unaffected.
+* Simproc "defined_all" and rewrite rule "subst_all" have been changed
+as in HOL.
 
 
 *** ML ***
