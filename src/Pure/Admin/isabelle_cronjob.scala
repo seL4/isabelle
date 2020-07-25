@@ -352,7 +352,7 @@ object Isabelle_Cronjob
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-        Remote_Build("AFP bulky", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
+        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
