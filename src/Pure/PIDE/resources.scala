@@ -196,10 +196,15 @@ class Resources(
         val header = Thy_Header.read(reader, start, strict)
 
         val base_name = node_name.theory_base_name
-        if (base_name != header.name)
+        if (Long_Name.is_qualified(header.name)) {
+          error("Bad theory name " + quote(header.name) + " with qualification" +
+            Position.here(header.pos))
+        }
+        if (base_name != header.name) {
           error("Bad theory name " + quote(header.name) +
             " for file " + thy_path(Path.basic(base_name)) + Position.here(header.pos) +
             Completion.report_theories(header.pos, List(base_name)))
+        }
 
         val imports_pos =
           header.imports_pos.map({ case (s, pos) =>
