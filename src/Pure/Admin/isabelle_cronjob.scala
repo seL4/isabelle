@@ -215,14 +215,14 @@ object Isabelle_Cronjob
 
   val remote_builds_old: List[Remote_Build] =
     List(
-      Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
+      Remote_Build("AFP old bulky", "lrzcloud1", self_update = true,
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
         afp = true,
         bulky = true,
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-      Remote_Build("AFP", "lxbroy7",
+      Remote_Build("AFP old", "lxbroy7",
           args = "-N -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
@@ -260,7 +260,7 @@ object Isabelle_Cronjob
       {
         for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
         yield {
-          Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
+          Remote_Build("AFP old", host = hosts.head, more_hosts = hosts.tail,
             options = "-m32 -M1x2 -t AFP -P" + n +
               " -e ISABELLE_GHC=ghc" +
               " -e ISABELLE_MLTON=mlton" +
@@ -341,7 +341,7 @@ object Isabelle_Cronjob
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
+        Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m32 -M1x8 -t AFP" +
@@ -352,7 +352,7 @@ object Isabelle_Cronjob
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-        Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
+        Remote_Build("AFP bulky", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
