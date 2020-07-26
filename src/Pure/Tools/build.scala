@@ -216,7 +216,7 @@ object Build
           }
           else Nil
 
-        if (options.bool("pide_session")) {
+        if (options.bool("pide_session") || true /* FIXME test */) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session =
             new Session(options, resources) {
