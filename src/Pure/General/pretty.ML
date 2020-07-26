@@ -60,6 +60,7 @@ sig
   val indent: int -> T -> T
   val unbreakable: T -> T
   val margin_default: int Unsynchronized.ref
+  val regularN: string
   val symbolicN: string
   val output_buffer: int option -> T -> Buffer.T
   val output: int option -> T -> Output.output
@@ -346,10 +347,12 @@ fun unformatted prt =
 
 val margin_default = Unsynchronized.ref ML_Pretty.default_margin;  (*right margin, or page width*)
 
+val regularN = "pretty_regular";
 val symbolicN = "pretty_symbolic";
 
 fun output_buffer margin prt =
-  if print_mode_active symbolicN then symbolic prt
+  if print_mode_active symbolicN andalso not (print_mode_active regularN)
+  then symbolic prt
   else formatted (the_default (! margin_default) margin) prt;
 
 val output = Buffer.content oo output_buffer;
