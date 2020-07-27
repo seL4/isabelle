@@ -224,10 +224,8 @@ and prove \<^prop>\<open>sum_tree t = sum_list(contents t)\<close>
 \end{exercise}
 
 \begin{exercise}
-Define a new type \<open>'a tree2\<close> of binary trees where values are also
-stored in the leaves of the tree.  Also reformulate the
-\<^const>\<open>mirror\<close> function accordingly. Define two functions
-\<open>pre_order\<close> and \<open>post_order\<close> of type \<open>'a tree2 \<Rightarrow> 'a list\<close>
+Define the two functions
+\<open>pre_order\<close> and \<open>post_order\<close> of type @{typ "'a tree \<Rightarrow> 'a list"}
 that traverse a tree and collect all stored values in the respective order in
 a list. Prove \<^prop>\<open>pre_order (mirror t) = rev (post_order t)\<close>.
 \end{exercise}
