@@ -285,6 +285,9 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
+fun scheduler_end () = (*requires SYNCHRONIZED*)
+  (report_status (); scheduler := NONE);
+
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     val now = Time.now ();
@@ -354,16 +357,18 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     (* shutdown *)
 
     val continue = not (! do_shutdown andalso null (! workers));
-    val _ = if continue then () else (report_status (); scheduler := NONE);
+    val _ = if continue then () else scheduler_end ();
 
     val _ = broadcast scheduler_event;
   in continue end
   handle exn =>
+   (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
     if Exn.is_interrupt exn then
-     (Multithreading.tracing 1 (fn () => "SCHEDULER: Interrupt");
-      List.app cancel_later (cancel_all ());
+     (List.app cancel_later (cancel_all ());
       signal work_available; true)
-    else Exn.reraise exn;
+    else
+     (scheduler_end ();
+      Exn.reraise exn));
 
 fun scheduler_loop () =
  (while
@@ -705,7 +710,7 @@ fun shutdown () =
       while scheduler_active () do
        (do_shutdown := true;
         Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
-        wait scheduler_event));
+        wait_timeout next_round scheduler_event));
 
 
 (*final declarations of this structure!*)
