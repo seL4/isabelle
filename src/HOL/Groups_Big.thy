@@ -165,6 +165,11 @@ lemma reindex_cong:
   shows "F g A = F h B"
   using assms by (simp add: reindex)
 
+lemma image_eq:
+  assumes "inj_on g A"  
+  shows "F (\<lambda>x. x) (g ` A) = F g A"
+  using assms reindex_cong by fastforce
+
 lemma UNION_disjoint:
   assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
     and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
