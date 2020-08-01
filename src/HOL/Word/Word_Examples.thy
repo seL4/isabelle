@@ -80,13 +80,8 @@ lemma "of_bl [True, False, True, True] = (0b1011::'a::len word)" by simp
 
 lemma "to_bl (0b110::4 word) = [False, True, True, False]" by simp
 
-text "this is not exactly fast, but bearable"
 lemma "of_bl (replicate 32 True) = (0xFFFFFFFF::32 word)"
   by (simp add: numeral_eq_Suc)
-
-text "this works only for replicate n True"
-lemma "of_bl (replicate 32 True) = (0xFFFFFFFF::32 word)"
-  by (unfold mask_bl [symmetric]) (simp add: mask_def)
 
 
 text "bit operations"

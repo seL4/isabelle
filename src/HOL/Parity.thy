@@ -1423,6 +1423,17 @@ next
     by (simp add: take_bit_push_bit)
 qed
 
+lemma take_bit_tightened:
+  \<open>take_bit m a = take_bit m b\<close> if \<open>take_bit n a = take_bit n b\<close> and \<open>m \<le> n\<close> 
+proof -
+  from that have \<open>take_bit m (take_bit n a) = take_bit m (take_bit n b)\<close>
+    by simp
+  then have \<open>take_bit (min m n) a = take_bit (min m n) b\<close>
+    by simp
+  with that show ?thesis
+    by (simp add: min_def)
+qed
+
 end
 
 instantiation nat :: semiring_bit_shifts
@@ -1665,6 +1676,11 @@ lemma take_bit_nonnegative [simp]:
   \<open>take_bit n k \<ge> 0\<close>
     for k :: int
   by (simp add: take_bit_eq_mod)
+
+lemma not_take_bit_negative [simp]:
+  \<open>\<not> take_bit n k < 0\<close>
+    for k :: int
+  by (simp add: not_less)
 
 lemma take_bit_int_less_exp:
   \<open>take_bit n k < 2 ^ n\<close> for k :: int

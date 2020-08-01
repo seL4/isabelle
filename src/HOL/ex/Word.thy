@@ -192,7 +192,7 @@ lemma signed_of_int [simp]:
 
 lemma of_int_signed [simp]:
   "of_int (signed a) = a"
-  by (transfer; cases \<open>LENGTH('a)\<close>) simp_all
+  by transfer (simp_all add: take_bit_signed_take_bit)
 
 
 subsubsection \<open>Properties\<close>

@@ -60,7 +60,7 @@ lemma word_lsb_alt: "lsb w = test_bit w 0"
   by (auto simp: word_test_bit_def word_lsb_def)
 
 lemma word_lsb_1_0 [simp]: "lsb (1::'a::len word) \<and> \<not> lsb (0::'b::len word)"
-  unfolding word_lsb_def uint_eq_0 uint_1 by simp
+  unfolding word_lsb_def by simp
 
 lemma word_lsb_last:
   \<open>lsb w \<longleftrightarrow> last (to_bl w)\<close>

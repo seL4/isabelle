@@ -236,9 +236,13 @@ lemma take_bit_not_iff:
   apply (use local.exp_eq_0_imp_not_bit in blast)
   done
 
+lemma mask_eq_take_bit_minus_one:
+  \<open>mask n = take_bit n (- 1)\<close>
+  by (simp add: bit_eq_iff bit_mask_iff bit_take_bit_iff conj_commute)
+
 lemma take_bit_minus_one_eq_mask:
   \<open>take_bit n (- 1) = mask n\<close>
-  by (simp add: bit_eq_iff bit_mask_iff bit_take_bit_iff conj_commute)
+  by (simp add: mask_eq_take_bit_minus_one)
 
 lemma minus_exp_eq_not_mask:
   \<open>- (2 ^ n) = NOT (mask n)\<close>
@@ -251,6 +255,10 @@ lemma push_bit_minus_one_eq_not_mask:
 lemma take_bit_not_mask_eq_0:
   \<open>take_bit m (NOT (mask n)) = 0\<close> if \<open>n \<ge> m\<close>
   by (rule bit_eqI) (use that in \<open>simp add: bit_take_bit_iff bit_not_iff bit_mask_iff\<close>)
+
+lemma take_bit_mask [simp]:
+  \<open>take_bit m (mask n) = mask (min m n)\<close>
+  by (simp add: mask_eq_take_bit_minus_one)
 
 definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   where \<open>set_bit n a = a OR push_bit n 1\<close>
@@ -876,12 +884,9 @@ lemma signed_take_bit_signed_take_bit [simp]:
   by (rule bit_eqI) (auto simp add: bit_signed_take_bit_iff min_def bit_or_iff bit_not_iff bit_mask_iff bit_take_bit_iff)
 
 lemma take_bit_signed_take_bit:
-  \<open>take_bit m (signed_take_bit n k) = take_bit m k\<close> if \<open>m \<le> n\<close>
-  using that by (auto simp add: bit_eq_iff bit_take_bit_iff bit_signed_take_bit_iff min_def)
-
-lemma take_bit_Suc_signed_take_bit [simp]:
-  \<open>take_bit (Suc n) (signed_take_bit n a) = take_bit (Suc n) a\<close>
-  by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_signed_take_bit_iff min_def less_Suc_eq)
+  \<open>take_bit m (signed_take_bit n k) = take_bit m k\<close> if \<open>m \<le> Suc n\<close>
+  using that by (rule le_SucE; intro bit_eqI)
+   (auto simp add: bit_take_bit_iff bit_signed_take_bit_iff min_def less_Suc_eq)
 
 lemma signed_take_bit_take_bit:
   \<open>signed_take_bit m (take_bit n k) = (if n \<le> m then take_bit n else signed_take_bit m) k\<close>

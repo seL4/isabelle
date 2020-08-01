@@ -67,6 +67,9 @@ of at least one bit.  INCOMPATIBILITY.
 generic algebraic bit operations from HOL-Library.Bit_Operations.
 INCOMPATIBILITY.
 
+* Session HOL-Word: Most operations on type word are set up
+for transfer and lifting.  INCOMPATIBILITY.
+
 * Session HOL-Word: Theory "Word_Bitwise" has been moved to AFP entry
 Word_Lib as theory "Bitwise".  INCOMPATIBILITY.
 
