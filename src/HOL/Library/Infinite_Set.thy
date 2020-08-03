@@ -484,7 +484,7 @@ qed
 
 lemma finite_enumerate_initial_segment:
   fixes S :: "'a::wellorder set"
-  assumes "finite S" "s \<in> S" and n: "n < card (S \<inter> {..<s})"
+  assumes "finite S" and n: "n < card (S \<inter> {..<s})"
   shows "enumerate (S \<inter> {..<s}) n = enumerate S n"
   using n
 proof (induction n)
@@ -502,18 +502,20 @@ next
   case (Suc n)
   then have less_card: "Suc n < card S"
     by (meson assms(1) card_mono inf_sup_ord(1) leD le_less_linear order.trans)
-  obtain t where t: "t \<in> {s \<in> S. enumerate S n < s}"
+  obtain T where T: "T \<in> {s \<in> S. enumerate S n < s}"
     by (metis Infinite_Set.enumerate_step enumerate_in_set finite_enumerate_in_set finite_enumerate_step less_card mem_Collect_eq)
-  have "(LEAST x. x \<in> S \<and> x < s \<and> enumerate S n < x) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+  have "(LEAST x. x \<in> S \<and> x < s \<and> enumerate S n < x) = (LEAST x. x \<in> S \<and> enumerate S n < x)"
        (is "_ = ?r")
   proof (intro Least_equality conjI)
     show "?r \<in> S"
-      by (metis (mono_tags, lifting) LeastI mem_Collect_eq t)
-    show "?r < s"
-      using not_less_Least [of _ "\<lambda>t. t \<in> S \<and> enumerate S n < t"] Suc assms 
-      by (metis (no_types, lifting) Int_Collect Suc_lessD finite_Int finite_enumerate_in_set finite_enumerate_step lessThan_def linorder_cases)
+      by (metis (mono_tags, lifting) LeastI mem_Collect_eq T)
+    have "\<not> s \<le> ?r"
+      using not_less_Least [of _ "\<lambda>x. x \<in> S \<and> enumerate S n < x"] Suc assms
+      by (metis (mono_tags, lifting) Int_Collect Suc_lessD finite_Int finite_enumerate_in_set finite_enumerate_step lessThan_def less_le_trans)
+    then show "?r < s"
+      by auto
     show "enumerate S n < ?r"
-      by (metis (no_types, lifting) LeastI mem_Collect_eq t)
+      by (metis (no_types, lifting) LeastI mem_Collect_eq T)
   qed (auto simp: Least_le)
   then show ?case
     using Suc assms by (simp add: finite_enumerate_Suc'' less_card)
