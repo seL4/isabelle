@@ -36,4 +36,7 @@ by (cases t) auto
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
 
+lemma length_inorder[simp]: "length (inorder t) = size t"
+by (induction t) auto
+
 end
