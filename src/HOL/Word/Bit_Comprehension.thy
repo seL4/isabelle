@@ -32,6 +32,6 @@ lemma int_set_bits_K_False [simp]: "(BITS _. False) = (0 :: int)"
   by (simp add: set_bits_int_def)
 
 lemma int_set_bits_K_True [simp]: "(BITS _. True) = (-1 :: int)"
-  by (auto simp add: set_bits_int_def bl_to_bin_def)
+  by (auto simp add: set_bits_int_def)
 
 end
