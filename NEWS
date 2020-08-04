@@ -83,16 +83,19 @@ factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
 * Session HOL-Word: Compound operation "bin_split" simplifies by default
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 
+* Session HOL-Word: Uniform polymorphic "mask" operation for both
+types int and word.  INCOMPATIBILITY
+
+* Session HOL-Word: Operations lsb, msb and set_bit are separated
+into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
+INCOMPATIBILITY.
+
 * Session HOL-Word: Operations "bin_last", "bin_rest", "bin_nth",
 "bintrunc", "sbintrunc", "norm_sint", "bin_cat" and "max_word" are now
 mere input abbreviations.  Minor INCOMPATIBILITY.
 
 * Session HOL-Word: Theory HOL-Library.Z2 is not imported any longer.
 Minor INCOMPATIBILITY.
-
-* Session HOL-Word: Operations lsb, msb and set_bit are separated
-into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
-INCOMPATIBILITY.
 
 * Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer" commands
 are in working order again, as opposed to outputting "GaveUp" on nearly

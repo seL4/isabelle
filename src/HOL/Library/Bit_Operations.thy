@@ -15,9 +15,11 @@ class semiring_bit_operations = semiring_bit_shifts +
   fixes "and" :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>AND\<close> 64)
     and or :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>OR\<close>  59)
     and xor :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>XOR\<close> 59)
+    and mask :: \<open>nat \<Rightarrow> 'a\<close>
   assumes bit_and_iff: \<open>\<And>n. bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
     and bit_or_iff: \<open>\<And>n. bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
     and bit_xor_iff: \<open>\<And>n. bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+    and mask_eq_exp_minus_1: \<open>mask n = 2 ^ n - 1\<close>
 begin
 
 text \<open>
@@ -93,9 +95,6 @@ lemma take_bit_xor [simp]:
   \<open>take_bit n (a XOR b) = take_bit n a XOR take_bit n b\<close>
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
 
-definition mask :: \<open>nat \<Rightarrow> 'a\<close>
-  where mask_eq_exp_minus_1: \<open>mask n = 2 ^ n - 1\<close>
-
 lemma bit_mask_iff:
   \<open>bit (mask m) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
   by (simp add: mask_eq_exp_minus_1 bit_mask_iff)
@@ -104,24 +103,32 @@ lemma even_mask_iff:
   \<open>even (mask n) \<longleftrightarrow> n = 0\<close>
   using bit_mask_iff [of n 0] by auto
 
-lemma mask_0 [simp, code]:
+lemma mask_0 [simp]:
   \<open>mask 0 = 0\<close>
   by (simp add: mask_eq_exp_minus_1)
 
-lemma mask_Suc_exp [code]:
+lemma mask_Suc_0 [simp]:
+  \<open>mask (Suc 0) = 1\<close>
+  by (simp add: mask_eq_exp_minus_1 add_implies_diff sym)
+
+lemma mask_Suc_exp:
   \<open>mask (Suc n) = 2 ^ n OR mask n\<close>
   by (rule bit_eqI)
     (auto simp add: bit_or_iff bit_mask_iff bit_exp_iff not_less le_less_Suc_eq)
 
 lemma mask_Suc_double:
-  \<open>mask (Suc n) = 2 * mask n OR 1\<close>
+  \<open>mask (Suc n) = 1 OR 2 * mask n\<close>
 proof (rule bit_eqI)
   fix q
   assume \<open>2 ^ q \<noteq> 0\<close>
-  show \<open>bit (mask (Suc n)) q \<longleftrightarrow> bit (2 * mask n OR 1) q\<close>
+  show \<open>bit (mask (Suc n)) q \<longleftrightarrow> bit (1 OR 2 * mask n) q\<close>
     by (cases q)
       (simp_all add: even_mask_iff even_or_iff bit_or_iff bit_mask_iff bit_exp_iff bit_double_iff not_less le_less_Suc_eq bit_1_iff, auto simp add: mult_2)
 qed
+
+lemma mask_numeral:
+  \<open>mask (numeral n) = 1 + 2 * mask (pred_numeral n)\<close>
+  by (simp add: numeral_eq_Suc mask_Suc_double one_or_eq ac_simps)
 
 lemma take_bit_eq_mask:
   \<open>take_bit n a = a AND mask n\<close>
@@ -495,6 +502,9 @@ lemma bit_xor_int_iff:
   \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close> for k l :: int
   by (auto simp add: xor_int_def bit_or_int_iff bit_and_int_iff bit_not_int_iff)
 
+definition mask_int :: \<open>nat \<Rightarrow> int\<close>
+  where \<open>mask n = (2 :: int) ^ n - 1\<close>
+
 instance proof
   fix k l :: int and n :: nat
   show \<open>- k = NOT (k - 1)\<close>
@@ -505,7 +515,7 @@ instance proof
     by (fact bit_or_int_iff)
   show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
     by (fact bit_xor_int_iff)
-qed (simp_all add: bit_not_int_iff)
+qed (simp_all add: bit_not_int_iff mask_int_def)
 
 end
 
@@ -976,6 +986,9 @@ definition or_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
 definition xor_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
   where \<open>m XOR n = nat (int m XOR int n)\<close> for m n :: nat
 
+definition mask_nat :: \<open>nat \<Rightarrow> nat\<close>
+  where \<open>mask n = (2 :: nat) ^ n - 1\<close>
+
 instance proof
   fix m n q :: nat
   show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
@@ -984,7 +997,7 @@ instance proof
     by (auto simp add: or_nat_def bit_or_iff less_le bit_eq_iff)
   show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
     by (auto simp add: xor_nat_def bit_xor_iff less_le bit_eq_iff)
-qed
+qed (simp add: mask_nat_def)
 
 end
 
@@ -1044,19 +1057,12 @@ lift_definition or_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow>
 lift_definition xor_integer ::  \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
   is xor .
 
-instance proof
-  fix k l :: \<open>integer\<close> and n :: nat
-  show \<open>- k = NOT (k - 1)\<close>
-    by transfer (simp add: minus_eq_not_minus_1)
-  show \<open>bit (NOT k) n \<longleftrightarrow> (2 :: integer) ^ n \<noteq> 0 \<and> \<not> bit k n\<close>
-    by transfer (fact bit_not_iff)
-  show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
-    by transfer (fact bit_and_iff)
-  show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
-    by transfer (fact bit_or_iff)
-  show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
-    by transfer (fact bit_xor_iff)
-qed
+lift_definition mask_integer :: \<open>nat \<Rightarrow> integer\<close>
+  is mask .
+
+instance by (standard; transfer)
+  (simp_all add: minus_eq_not_minus_1 mask_eq_exp_minus_1
+    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff)
 
 end
 
@@ -1072,15 +1078,11 @@ lift_definition or_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow>
 lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
   is xor .
 
-instance proof
-  fix m n :: \<open>natural\<close> and q :: nat
-  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
-    by transfer (fact bit_and_iff)
-  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
-    by transfer (fact bit_or_iff)
-  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
-    by transfer (fact bit_xor_iff)
-qed
+lift_definition mask_natural :: \<open>nat \<Rightarrow> natural\<close>
+  is mask .
+
+instance by (standard; transfer)
+  (simp_all add: mask_eq_exp_minus_1 bit_and_iff bit_or_iff bit_xor_iff)
 
 end
 

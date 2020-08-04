@@ -644,19 +644,12 @@ lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wor
   is xor
   by simp
 
-instance proof
-  fix a b :: \<open>'a word\<close> and n :: nat
-  show \<open>- a = NOT (a - 1)\<close>
-    by transfer (simp add: minus_eq_not_minus_1)
-  show \<open>bit (NOT a) n \<longleftrightarrow> (2 :: 'a word) ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
-    by transfer (simp add: bit_not_iff)
-  show \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
-    by transfer (auto simp add: bit_and_iff)
-  show \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
-    by transfer (auto simp add: bit_or_iff)
-  show \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
-    by transfer (auto simp add: bit_xor_iff)
-qed
+lift_definition mask_word :: \<open>nat \<Rightarrow> 'a word\<close>
+  is mask .
+
+instance by (standard; transfer)
+  (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
+    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff)
 
 end
 

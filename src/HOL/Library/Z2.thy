@@ -187,6 +187,9 @@ definition or_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
 definition xor_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
   where [simp]: \<open>b XOR c = of_bool (odd b \<noteq> odd c)\<close> for b c :: bit
 
+definition mask_bit :: \<open>nat \<Rightarrow> bit\<close>
+  where [simp]: \<open>mask_bit n = of_bool (n > 0)\<close>
+
 instance
   by standard auto
 

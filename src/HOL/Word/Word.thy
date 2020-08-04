@@ -1000,19 +1000,13 @@ lift_definition xor_word ::  \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 
   is xor
   by simp
 
-instance proof
-  fix a b :: \<open>'a word\<close> and n :: nat
-  show \<open>- a = NOT (a - 1)\<close>
-    by transfer (simp add: minus_eq_not_minus_1)
-  show \<open>bit (NOT a) n \<longleftrightarrow> (2 :: 'a word) ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
-    by transfer (simp add: bit_not_iff)
-  show \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
-    by transfer (auto simp add: bit_and_iff)
-  show \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
-    by transfer (auto simp add: bit_or_iff)
-  show \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
-    by transfer (auto simp add: bit_xor_iff)
-qed
+lift_definition mask_word :: \<open>nat \<Rightarrow> 'a word\<close>
+  is mask
+  .
+
+instance by (standard; transfer)
+  (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
+    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff)
 
 end
 
@@ -1173,6 +1167,11 @@ lemma [code]:
   \<open>take_bit n a = a AND mask n\<close> for a :: \<open>'a::len word\<close>
   by (fact take_bit_eq_mask)
 
+lemma [code]:
+  \<open>mask (Suc n) = push_bit n (1 :: 'a word) OR mask n\<close>
+  \<open>mask 0 = (0 :: 'a::len word)\<close>
+  by (simp_all add: mask_Suc_exp push_bit_of_1)
+
 lemma [code_abbrev]:
   \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>
   by (fact push_bit_of_1)
@@ -1289,9 +1288,6 @@ lift_definition bshiftr1 :: \<open>bool \<Rightarrow> 'a::len word \<Rightarrow>
   is \<open>\<lambda>b k. take_bit LENGTH('a) k div 2 + of_bool b * 2 ^ (LENGTH('a) - Suc 0)\<close>
   by (fact arg_cong)
 
-lift_definition mask :: \<open>nat \<Rightarrow> 'a::len word\<close>
-  is \<open>take_bit LENGTH('a) \<circ> Bit_Operations.mask\<close> .
-
 lemma sshiftr1_eq:
   \<open>sshiftr1 w = word_of_int (bin_rest (sint w))\<close>
   by transfer simp
@@ -1328,7 +1324,7 @@ proof -
 qed
 
 lemma mask_eq:
-  \<open>mask n = (1 << n) - 1\<close>
+  \<open>mask n = (1 << n) - (1 :: 'a::len word)\<close>
   by transfer (simp add: mask_eq_exp_minus_1 push_bit_of_1) 
 
 lemma uint_sshiftr_eq [code]:
@@ -1977,18 +1973,8 @@ lemma ucast_bl: "ucast w = of_bl (to_bl w)"
 lemma nth_ucast: "(ucast w::'a::len word) !! n = (w !! n \<and> n < LENGTH('a))"
   by transfer (simp add: bit_take_bit_iff ac_simps)
 
-context
-  includes lifting_syntax
-begin
-
-lemma transfer_rule_mask_word [transfer_rule]:
-  \<open>((=) ===> pcr_word) Bit_Operations.mask Bit_Operations.mask\<close>
-  by (simp only: mask_eq_exp_minus_1 [abs_def]) transfer_prover
-
-end
-
 lemma ucast_mask_eq:
-  \<open>ucast (Bit_Operations.mask n :: 'b word) = Bit_Operations.mask (min LENGTH('b::len) n)\<close>
+  \<open>ucast (mask n :: 'b word) = mask (min LENGTH('b::len) n)\<close>
   by (simp add: bit_eq_iff) (auto simp add: bit_mask_iff bit_ucast_iff exp_eq_zero_iff)
 
 \<comment> \<open>literal u(s)cast\<close>
@@ -4075,27 +4061,23 @@ lemma aligned_bl_add_size [OF refl]:
 subsubsection \<open>Mask\<close>
 
 lemma minus_1_eq_mask:
-  \<open>- 1 = (Bit_Operations.mask LENGTH('a) :: 'a::len word)\<close>
+  \<open>- 1 = (mask LENGTH('a) :: 'a::len word)\<close>
   by (rule bit_eqI) (simp add: bit_exp_iff bit_mask_iff exp_eq_zero_iff)
-  
-lemma mask_eq_mask [code]:
-  \<open>mask = Bit_Operations.mask\<close>
-  by (rule ext, transfer) simp
 
 lemma mask_eq_decr_exp:
-  \<open>mask n = 2 ^ n - 1\<close>
-  by (simp add: mask_eq_mask mask_eq_exp_minus_1)
+  \<open>mask n = 2 ^ n - (1 :: 'a::len word)\<close>
+  by (fact mask_eq_exp_minus_1)
 
 lemma mask_Suc_rec:
-  \<open>mask (Suc n) = 2 * mask n + 1\<close>
-  by (simp add: mask_eq_mask mask_eq_exp_minus_1)
+  \<open>mask (Suc n) = 2 * mask n + (1 :: 'a::len word)\<close>
+  by (simp add: mask_eq_exp_minus_1)
 
 context
 begin
 
 qualified lemma bit_mask_iff:
   \<open>bit (mask m :: 'a::len word) n \<longleftrightarrow> n < min LENGTH('a) m\<close>
-  by (simp add: mask_eq_mask bit_mask_iff exp_eq_zero_iff not_le)
+  by (simp add: bit_mask_iff exp_eq_zero_iff not_le)
 
 end
 
@@ -4188,7 +4170,8 @@ lemmas mask_eq_iff_w2p = trans [OF mask_eq_iff word_2p_lem [symmetric]]
 
 lemmas and_mask_less' = iffD2 [OF word_2p_lem and_mask_lt_2p, simplified word_size]
 
-lemma and_mask_less_size: "n < size x \<Longrightarrow> x AND mask n < 2^n"
+lemma and_mask_less_size: "n < size x \<Longrightarrow> x AND mask n < 2 ^ n"
+  for x :: \<open>'a::len word\<close>
   unfolding word_size by (erule and_mask_less')
 
 lemma word_mod_2p_is_mask [OF refl]: "c = 2 ^ n \<Longrightarrow> c > 0 \<Longrightarrow> x mod c = x AND mask n"
@@ -4212,6 +4195,7 @@ lemma mask_eqs:
   by (auto simp: and_mask_wi' word_of_int_homs word.abs_eq_iff bintrunc_mod2p mod_simps)
 
 lemma mask_power_eq: "(x AND mask n) ^ k AND mask n = x ^ k AND mask n"
+  for x :: \<open>'a::len word\<close>
   using word_of_int_Ex [where x=x]
   by (auto simp: and_mask_wi' word_of_int_power_hom word.abs_eq_iff bintrunc_mod2p mod_simps)
 
@@ -5365,10 +5349,6 @@ lemma test_bit_1' [simp]:
   "(1 :: 'a :: len word) !! n \<longleftrightarrow> 0 < LENGTH('a) \<and> n = 0"
   by simp
 
-lemma mask_0 [simp]:
-  "mask 0 = 0"
-  by (simp add: Word.mask_def)
-
 lemma shiftl0:
   "x << 0 = (x :: 'a :: len word)"
   by (fact shiftl_x_0)
@@ -5379,7 +5359,7 @@ lemma mask_1: "mask 1 = 1"
 lemma mask_Suc_0: "mask (Suc 0) = 1"
   using mask_1 by simp
 
-lemma mask_numeral: "mask (numeral n) = 2 * mask (pred_numeral n) + 1"
+lemma mask_numeral: "mask (numeral n) = 2 * mask (pred_numeral n) + (1 :: 'a::len word)"
   by (simp add: mask_Suc_rec numeral_eq_Suc)
 
 lemma bin_last_bintrunc: "bin_last (bintrunc l n) = (l > 0 \<and> bin_last n)"
