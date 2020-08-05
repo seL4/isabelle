@@ -1070,6 +1070,21 @@ proof -
   finally show ?thesis .
 qed
 
+lemma sum_strict_mono2:
+  fixes f :: "'a \<Rightarrow> 'b::ordered_cancel_comm_monoid_add"
+  assumes "finite B" "A \<subseteq> B" "b \<in> B-A" "f b > 0" and "\<And>x. x \<in> B \<Longrightarrow> f x \<ge> 0"
+  shows "sum f A < sum f B"
+proof -
+  have "B - A \<noteq> {}"
+    using assms(3) by blast
+  have "sum f (B-A) > 0"
+    by (rule sum_pos2) (use assms in auto)
+  moreover have "sum f B = sum f (B-A) + sum f A"
+    by (rule sum.subset_diff) (use assms in auto)
+  ultimately show ?thesis
+    using add_strict_increasing by auto
+qed
+
 lemma sum_cong_Suc:
   assumes "0 \<notin> A" "\<And>x. Suc x \<in> A \<Longrightarrow> f (Suc x) = g (Suc x)"
   shows "sum f A = sum g A"
