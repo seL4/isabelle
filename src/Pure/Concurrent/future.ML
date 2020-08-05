@@ -27,7 +27,7 @@ sig
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
   val fork: (unit -> 'a) -> 'a future
-  val get_finished: 'a future -> 'a
+  val get_result: 'a future -> 'a Exn.result
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
@@ -320,11 +320,14 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val max_active0 = ! max_active;
     val max_workers0 = ! max_workers;
 
+    val workers_waiting = count_workers Waiting;
+
     val m =
       if ! do_shutdown andalso Task_Queue.all_passive (! queue) then 0
       else Multithreading.max_threads ();
     val _ = max_active := m;
-    val _ = max_workers := 2 * m;
+    val _ = max_workers :=
+      Int.max (2 * m, if workers_waiting > 0 then workers_waiting + 1 else 0);
 
     val missing = ! max_workers - length (! workers);
     val _ =
@@ -507,8 +510,6 @@ fun get_result x =
           [] => res
         | exns => Exn.Exn (Par_Exn.make exns))
       else res);
-
-fun get_finished x = Exn.release (get_result x);
 
 local
 

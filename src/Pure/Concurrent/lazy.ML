@@ -103,7 +103,7 @@ fun force_result _ (Value a) = Exn.Res a
                   let
                     val res0 = Exn.capture (restore_attributes e) ();
                     val _ = Exn.capture (fn () => Future.fulfill_result x res0) ();
-                    val res = Future.join_result x;
+                    val res = Future.get_result x;
                     val _ =
                       if not (Exn.is_interrupt_exn res) then
                         Synchronized.assign var (Result (Future.value_result res))
