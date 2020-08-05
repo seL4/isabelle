@@ -27,6 +27,7 @@ sig
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
   val fork: (unit -> 'a) -> 'a future
+  val get_result: 'a future -> 'a Exn.result
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
