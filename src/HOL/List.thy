@@ -391,15 +391,15 @@ proof (rule ext)
 qed
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-"insort_key f x [] = [x]" |
-"insort_key f x (y#ys) =
+  "insort_key f x [] = [x]" |
+  "insort_key f x (y#ys) =
   (if f x \<le> f y then (x#y#ys) else y#(insort_key f x ys))"
 
 definition sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-"sort_key f xs = foldr (insort_key f) xs []"
+  "sort_key f xs = foldr (insort_key f) xs []"
 
 definition insort_insert_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-"insort_insert_key f x xs =
+  "insort_insert_key f x xs =
   (if f x \<in> f ` set xs then xs else insort_key f x xs)"
 
 abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
@@ -407,11 +407,14 @@ abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
 abbreviation "insort_insert \<equiv> insort_insert_key (\<lambda>x. x)"
 
 definition stable_sort_key :: "(('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list) \<Rightarrow> bool" where
-"stable_sort_key sk =
+  "stable_sort_key sk =
    (\<forall>f xs k. filter (\<lambda>y. f y = k) (sk f xs) = filter (\<lambda>y. f y = k) xs)"
 
 lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
-by (induction l) (auto iff: antisym_conv1)
+  by (induction l) (auto iff: antisym_conv1)
+
+lemma strict_sorted_imp_sorted: "strict_sorted xs \<Longrightarrow> sorted xs"
+  by (auto simp: strict_sorted_iff)
 
 end
 
@@ -6152,6 +6155,11 @@ lemma sorted_list_of_set_atMost_Suc [simp]:
   "sorted_list_of_set {..Suc k} = sorted_list_of_set {..k} @ [Suc k]"
   using lessThan_Suc_atMost sorted_list_of_set_lessThan_Suc by fastforce
 
+lemma sorted_list_of_set_nonempty:
+  assumes "finite A" "A \<noteq> {}"
+  shows "sorted_list_of_set A = Min A # sorted_list_of_set (A - {Min A})"
+  using assms by (auto simp: less_le simp flip: sorted_list_of_set_unique intro: Min_in)
+
 lemma sorted_list_of_set_greaterThanLessThan:
   assumes "Suc i < j" 
     shows "sorted_list_of_set {i<..<j} = Suc i # sorted_list_of_set {Suc i<..<j}"
@@ -6523,6 +6531,9 @@ proof -
 qed
 
 lemma irrefl_lex: "irrefl r \<Longrightarrow> irrefl (lex r)"
+  by (meson irrefl_def lex_take_index)
+
+lemma lexl_not_refl [simp]: "irrefl r \<Longrightarrow> (x,x) \<notin> lex r"
   by (meson irrefl_def lex_take_index)
 
 

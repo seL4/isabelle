@@ -263,6 +263,10 @@ qed
 lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
   by (induct m n rule: less_Suc_induct) (auto intro: enumerate_step)
 
+lemma enumerate_mono_iff [simp]:
+  "infinite S \<Longrightarrow> enumerate S m < enumerate S n \<longleftrightarrow> m < n"
+  by (metis enumerate_mono less_asym less_linear)
+
 lemma le_enumerate:
   assumes S: "infinite S"
   shows "n \<le> enumerate S n"
@@ -281,7 +285,7 @@ lemma infinite_enumerate:
   assumes fS: "infinite S"
   shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. r n \<in> S)"
   unfolding strict_mono_def
-  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
+  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by blast
 
 lemma enumerate_Suc'':
   fixes S :: "'a::wellorder set"
@@ -435,6 +439,9 @@ qed
 lemma finite_enumerate_mono: "\<lbrakk>m < n; finite S; n < card S\<rbrakk> \<Longrightarrow> enumerate S m < enumerate S n"
   by (induct m n rule: less_Suc_induct) (auto intro: finite_enumerate_step)
 
+lemma finite_enumerate_mono_iff [simp]:
+  "\<lbrakk>finite S; m < card S; n < card S\<rbrakk> \<Longrightarrow> enumerate S m < enumerate S n \<longleftrightarrow> m < n"
+  by (metis finite_enumerate_mono less_asym less_linear)
 
 lemma finite_le_enumerate:
   assumes "finite S" "n < card S"
@@ -484,7 +491,7 @@ qed
 
 lemma finite_enumerate_initial_segment:
   fixes S :: "'a::wellorder set"
-  assumes "finite S" "s \<in> S" and n: "n < card (S \<inter> {..<s})"
+  assumes "finite S" and n: "n < card (S \<inter> {..<s})"
   shows "enumerate (S \<inter> {..<s}) n = enumerate S n"
   using n
 proof (induction n)
@@ -502,18 +509,20 @@ next
   case (Suc n)
   then have less_card: "Suc n < card S"
     by (meson assms(1) card_mono inf_sup_ord(1) leD le_less_linear order.trans)
-  obtain t where t: "t \<in> {s \<in> S. enumerate S n < s}"
+  obtain T where T: "T \<in> {s \<in> S. enumerate S n < s}"
     by (metis Infinite_Set.enumerate_step enumerate_in_set finite_enumerate_in_set finite_enumerate_step less_card mem_Collect_eq)
-  have "(LEAST x. x \<in> S \<and> x < s \<and> enumerate S n < x) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+  have "(LEAST x. x \<in> S \<and> x < s \<and> enumerate S n < x) = (LEAST x. x \<in> S \<and> enumerate S n < x)"
        (is "_ = ?r")
   proof (intro Least_equality conjI)
     show "?r \<in> S"
-      by (metis (mono_tags, lifting) LeastI mem_Collect_eq t)
-    show "?r < s"
-      using not_less_Least [of _ "\<lambda>t. t \<in> S \<and> enumerate S n < t"] Suc assms 
-      by (metis (no_types, lifting) Int_Collect Suc_lessD finite_Int finite_enumerate_in_set finite_enumerate_step lessThan_def linorder_cases)
+      by (metis (mono_tags, lifting) LeastI mem_Collect_eq T)
+    have "\<not> s \<le> ?r"
+      using not_less_Least [of _ "\<lambda>x. x \<in> S \<and> enumerate S n < x"] Suc assms
+      by (metis (mono_tags, lifting) Int_Collect Suc_lessD finite_Int finite_enumerate_in_set finite_enumerate_step lessThan_def less_le_trans)
+    then show "?r < s"
+      by auto
     show "enumerate S n < ?r"
-      by (metis (no_types, lifting) LeastI mem_Collect_eq t)
+      by (metis (no_types, lifting) LeastI mem_Collect_eq T)
   qed (auto simp: Least_le)
   then show ?case
     using Suc assms by (simp add: finite_enumerate_Suc'' less_card)
@@ -557,6 +566,16 @@ proof (induction s arbitrary: S rule: less_induct)
       by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
   qed
 qed
+
+lemma finite_enum_subset:
+  assumes "\<And>i. i < card X \<Longrightarrow> enumerate X i = enumerate Y i" and "finite X" "finite Y" "card X \<le> card Y"
+  shows "X \<subseteq> Y"
+  by (metis assms finite_enumerate_Ex finite_enumerate_in_set less_le_trans subsetI)
+
+lemma finite_enum_ext:
+  assumes "\<And>i. i < card X \<Longrightarrow> enumerate X i = enumerate Y i" and "finite X" "finite Y" "card X = card Y"
+  shows "X = Y"
+  by (intro antisym finite_enum_subset) (auto simp: assms)
 
 lemma finite_bij_enumerate:
   fixes S :: "'a::wellorder set"

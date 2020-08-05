@@ -165,6 +165,11 @@ lemma reindex_cong:
   shows "F g A = F h B"
   using assms by (simp add: reindex)
 
+lemma image_eq:
+  assumes "inj_on g A"  
+  shows "F (\<lambda>x. x) (g ` A) = F g A"
+  using assms reindex_cong by fastforce
+
 lemma UNION_disjoint:
   assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
     and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
@@ -1063,6 +1068,21 @@ proof -
   also have "\<dots> = sum f I"
     using assms by (simp add: sum.remove)
   finally show ?thesis .
+qed
+
+lemma sum_strict_mono2:
+  fixes f :: "'a \<Rightarrow> 'b::ordered_cancel_comm_monoid_add"
+  assumes "finite B" "A \<subseteq> B" "b \<in> B-A" "f b > 0" and "\<And>x. x \<in> B \<Longrightarrow> f x \<ge> 0"
+  shows "sum f A < sum f B"
+proof -
+  have "B - A \<noteq> {}"
+    using assms(3) by blast
+  have "sum f (B-A) > 0"
+    by (rule sum_pos2) (use assms in auto)
+  moreover have "sum f B = sum f (B-A) + sum f A"
+    by (rule sum.subset_diff) (use assms in auto)
+  ultimately show ?thesis
+    using add_strict_increasing by auto
 qed
 
 lemma sum_cong_Suc:
