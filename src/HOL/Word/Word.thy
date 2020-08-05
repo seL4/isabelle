@@ -1164,13 +1164,13 @@ lemma [code]:
   by (simp add: shiftr_word_eq)
 
 lemma [code]:
-  \<open>take_bit n a = a AND mask n\<close> for a :: \<open>'a::len word\<close>
-  by (fact take_bit_eq_mask)
+  \<open>uint (take_bit n w) = (if n < LENGTH('a::len) then take_bit n (uint w) else uint w)\<close>
+  for w :: \<open>'a::len word\<close>
+  by transfer (simp add: min_def)
 
 lemma [code]:
-  \<open>mask (Suc n) = push_bit n (1 :: 'a word) OR mask n\<close>
-  \<open>mask 0 = (0 :: 'a::len word)\<close>
-  by (simp_all add: mask_Suc_exp push_bit_of_1)
+  \<open>uint (mask n :: 'a::len word) = mask (min LENGTH('a) n)\<close>
+  by transfer simp
 
 lemma [code_abbrev]:
   \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>

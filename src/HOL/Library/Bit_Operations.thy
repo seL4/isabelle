@@ -958,17 +958,18 @@ lemma signed_take_bit_numeral_minus_bit1 [simp]:
 
 lemma signed_take_bit_code [code]:
   \<open>signed_take_bit n k =
-  (let l = k AND mask (Suc n)
+  (let l = take_bit (Suc n) k
    in if bit l n then l - (push_bit n 2) else l)\<close>
 proof -
-  have *: \<open>(k AND mask (Suc n)) - 2 * 2 ^ n = k AND mask (Suc n) OR NOT (mask (Suc n))\<close>
+  have *: \<open>(take_bit (Suc n) k) - 2 * 2 ^ n = take_bit (Suc n) k OR NOT (mask (Suc n))\<close>
     apply (subst disjunctive_add [symmetric])
-    apply (simp_all add: bit_and_iff bit_mask_iff bit_not_iff)
+    apply (simp_all add: bit_and_iff bit_mask_iff bit_not_iff bit_take_bit_iff)
     apply (simp flip: minus_exp_eq_not_mask)
     done
   show ?thesis
     by (rule bit_eqI)
-     (auto simp add: Let_def bit_and_iff bit_signed_take_bit_iff push_bit_eq_mult min_def not_le bit_mask_iff bit_exp_iff less_Suc_eq * bit_or_iff bit_not_iff)
+     (auto simp add: Let_def bit_and_iff bit_signed_take_bit_iff push_bit_eq_mult min_def not_le
+       bit_mask_iff bit_exp_iff less_Suc_eq * bit_or_iff bit_take_bit_iff bit_not_iff)
 qed
 
 
@@ -1066,6 +1067,10 @@ instance by (standard; transfer)
 
 end
 
+lemma [code]:
+  \<open>mask n = 2 ^ n - (1::integer)\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
 instantiation natural :: semiring_bit_operations
 begin
 
@@ -1085,6 +1090,10 @@ instance by (standard; transfer)
   (simp_all add: mask_eq_exp_minus_1 bit_and_iff bit_or_iff bit_xor_iff)
 
 end
+
+lemma [code]:
+  \<open>integer_of_natural (mask n) = mask n\<close>
+  by transfer (simp add: mask_eq_exp_minus_1 of_nat_diff)
 
 lifting_update integer.lifting
 lifting_forget integer.lifting
