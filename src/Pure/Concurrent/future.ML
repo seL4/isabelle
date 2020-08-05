@@ -320,11 +320,14 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val max_active0 = ! max_active;
     val max_workers0 = ! max_workers;
 
+    val workers_waiting = count_workers Waiting;
+
     val m =
       if ! do_shutdown andalso Task_Queue.all_passive (! queue) then 0
       else Multithreading.max_threads ();
     val _ = max_active := m;
-    val _ = max_workers := 2 * m;
+    val _ = max_workers :=
+      Int.max (2 * m, if workers_waiting > 0 then workers_waiting + 1 else 0);
 
     val missing = ! max_workers - length (! workers);
     val _ =
