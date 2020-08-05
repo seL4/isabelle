@@ -1492,6 +1492,9 @@ qed
 lemma card_Un_disjoint: "finite A \<Longrightarrow> finite B \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> card (A \<union> B) = card A + card B"
   using card_Un_Int [of A B] by simp
 
+lemma card_Un_disjnt: "\<lbrakk>finite A; finite B; disjnt A B\<rbrakk> \<Longrightarrow> card (A \<union> B) = card A + card B"
+  by (simp add: card_Un_disjoint disjnt_def)
+
 lemma card_Un_le: "card (A \<union> B) \<le> card A + card B"
 proof (cases "finite A \<and> finite B")
   case True

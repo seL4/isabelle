@@ -263,6 +263,10 @@ qed
 lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
   by (induct m n rule: less_Suc_induct) (auto intro: enumerate_step)
 
+lemma enumerate_mono_iff [simp]:
+  "infinite S \<Longrightarrow> enumerate S m < enumerate S n \<longleftrightarrow> m < n"
+  by (metis enumerate_mono less_asym less_linear)
+
 lemma le_enumerate:
   assumes S: "infinite S"
   shows "n \<le> enumerate S n"
@@ -281,7 +285,7 @@ lemma infinite_enumerate:
   assumes fS: "infinite S"
   shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. r n \<in> S)"
   unfolding strict_mono_def
-  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
+  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by blast
 
 lemma enumerate_Suc'':
   fixes S :: "'a::wellorder set"
@@ -435,6 +439,9 @@ qed
 lemma finite_enumerate_mono: "\<lbrakk>m < n; finite S; n < card S\<rbrakk> \<Longrightarrow> enumerate S m < enumerate S n"
   by (induct m n rule: less_Suc_induct) (auto intro: finite_enumerate_step)
 
+lemma finite_enumerate_mono_iff [simp]:
+  "\<lbrakk>finite S; m < card S; n < card S\<rbrakk> \<Longrightarrow> enumerate S m < enumerate S n \<longleftrightarrow> m < n"
+  by (metis finite_enumerate_mono less_asym less_linear)
 
 lemma finite_le_enumerate:
   assumes "finite S" "n < card S"
@@ -559,6 +566,16 @@ proof (induction s arbitrary: S rule: less_induct)
       by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
   qed
 qed
+
+lemma finite_enum_subset:
+  assumes "\<And>i. i < card X \<Longrightarrow> enumerate X i = enumerate Y i" and "finite X" "finite Y" "card X \<le> card Y"
+  shows "X \<subseteq> Y"
+  by (metis assms finite_enumerate_Ex finite_enumerate_in_set less_le_trans subsetI)
+
+lemma finite_enum_ext:
+  assumes "\<And>i. i < card X \<Longrightarrow> enumerate X i = enumerate Y i" and "finite X" "finite Y" "card X = card Y"
+  shows "X = Y"
+  by (intro antisym finite_enum_subset) (auto simp: assms)
 
 lemma finite_bij_enumerate:
   fixes S :: "'a::wellorder set"
