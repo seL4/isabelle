@@ -11,7 +11,6 @@ imports
   "HOL-Library.Bit_Operations"
   Bits_Int
   Bit_Comprehension
-  Bit_Lists
   Misc_Typedef
 begin
 
@@ -146,18 +145,6 @@ lemma is_down_eq:
   \<open>is_down f \<longleftrightarrow> target_size f \<le> source_size f\<close>
   for f :: \<open>'a::len word \<Rightarrow> 'b::len word\<close>
   by (simp add: source_size.rep_eq target_size.rep_eq is_down.rep_eq)
-
-lift_definition of_bl :: \<open>bool list \<Rightarrow> 'a::len word\<close>
-  is bl_to_bin .
-
-lift_definition to_bl :: \<open>'a::len word \<Rightarrow> bool list\<close>
-  is \<open>bin_to_bl LENGTH('a)\<close>
-  by (simp add: bl_to_bin_inj)
-
-lemma to_bl_eq:
-  \<open>to_bl w = bin_to_bl (LENGTH('a)) (uint w)\<close>
-  for w :: \<open>'a::len word\<close>
-  by transfer simp
 
 lift_definition word_int_case :: \<open>(int \<Rightarrow> 'b) \<Rightarrow> 'a::len word \<Rightarrow> 'b\<close>
   is \<open>\<lambda>f. f \<circ> take_bit LENGTH('a)\<close> by simp
@@ -902,7 +889,7 @@ qed
 end
 
 lemma bit_word_eqI:
-  \<open>a = b\<close> if \<open>\<And>n. n \<le> LENGTH('a) \<Longrightarrow> bit a n \<longleftrightarrow> bit b n\<close>
+  \<open>a = b\<close> if \<open>\<And>n. n < LENGTH('a) \<Longrightarrow> bit a n \<longleftrightarrow> bit b n\<close>
   for a b :: \<open>'a::len word\<close>
   using that by transfer (auto simp add: nat_less_le bit_eq_iff bit_take_bit_iff)
 
@@ -1054,19 +1041,13 @@ lemma test_bit_word_eq:
   \<open>test_bit = (bit :: 'a word \<Rightarrow> _)\<close>
   by transfer simp
 
-lemma [code]:
-  \<open>bit w n \<longleftrightarrow> w AND push_bit n 1 \<noteq> 0\<close>
-  for w :: \<open>'a::len word\<close>
-  apply (simp add: bit_eq_iff)
-  apply (auto simp add: bit_and_iff bit_push_bit_iff bit_1_iff exp_eq_0_imp_not_bit)
-  done
+lemma bit_word_iff_drop_bit_and [code]:
+  \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close> for a :: \<open>'a::len word\<close>
+  by (simp add: bit_iff_odd_drop_bit odd_iff_mod_2_eq_one and_one_eq)
 
 lemma [code]:
-  \<open>test_bit w n \<longleftrightarrow> w AND push_bit n 1 \<noteq> 0\<close>
-  for w :: \<open>'a::len word\<close>
-  apply (simp add: test_bit_word_eq bit_eq_iff)
-  apply (auto simp add: bit_and_iff bit_push_bit_iff bit_1_iff exp_eq_0_imp_not_bit)
-  done
+  \<open>test_bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close> for a :: \<open>'a::len word\<close>
+  by (simp add: test_bit_word_eq bit_word_iff_drop_bit_and)
 
 lift_definition shiftl_word :: \<open>'a::len word \<Rightarrow> nat \<Rightarrow> 'a word\<close>
   is \<open>\<lambda>k n. push_bit n k\<close>
@@ -1228,10 +1209,6 @@ lemma even_word_iff [code]:
   \<open>even_word a \<longleftrightarrow> a AND 1 = 0\<close>
   by (simp add: and_one_eq even_iff_mod_2_eq_zero even_word_def)
 
-lemma bit_word_iff_drop_bit_and [code]:
-  \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close> for a :: \<open>'a::len word\<close>
-  by (simp add: bit_iff_odd_drop_bit odd_iff_mod_2_eq_one and_one_eq)
-
 lemma map_bit_range_eq_if_take_bit_eq:
   \<open>map (bit k) [0..<n] = map (bit l) [0..<n]\<close>
   if \<open>take_bit n k = take_bit n l\<close> for k l :: int
@@ -1253,26 +1230,6 @@ next
     by (simp only: map_Suc_upt upt_conv_Cons flip: list.map_comp) simp
 qed
 
-lemma bit_of_bl_iff:
-  \<open>bit (of_bl bs :: 'a word) n \<longleftrightarrow> rev bs ! n \<and> n < LENGTH('a::len) \<and> n < length bs\<close>
-  by (auto simp add: of_bl_def bit_word_of_int_iff bin_nth_of_bl)
-
-lemma rev_to_bl_eq:
-  \<open>rev (to_bl w) = map (bit w) [0..<LENGTH('a)]\<close>
-  for w :: \<open>'a::len word\<close>
-  apply (rule nth_equalityI)
-   apply (simp add: to_bl.rep_eq)
-  apply (simp add: bin_nth_bl bit_word.rep_eq to_bl.rep_eq)
-  done
-
-lemma of_bl_rev_eq:
-  \<open>of_bl (rev bs) = horner_sum of_bool 2 bs\<close>
-  apply (rule bit_word_eqI)
-  apply (simp add: bit_of_bl_iff)
-  apply transfer
-  apply (simp add: bit_horner_sum_bit_iff ac_simps)
-  done
-
 
 subsection \<open>More shift operations\<close>
 
@@ -1291,16 +1248,6 @@ lift_definition bshiftr1 :: \<open>bool \<Rightarrow> 'a::len word \<Rightarrow>
 lemma sshiftr1_eq:
   \<open>sshiftr1 w = word_of_int (bin_rest (sint w))\<close>
   by transfer simp
-
-lemma bshiftr1_eq:
-  \<open>bshiftr1 b w = of_bl (b # butlast (to_bl w))\<close>
-  apply transfer
-  apply auto
-   apply (subst bl_to_bin_app_cat [of \<open>[True]\<close>, simplified])
-   apply simp
-   apply (metis One_nat_def add.commute bin_bl_bin bin_last_bl_to_bin bin_rest_bl_to_bin butlast_bin_rest concat_bit_eq last.simps list.distinct(1) list.size(3) list.size(4) odd_iff_mod_2_eq_one plus_1_eq_Suc power_Suc0_right push_bit_of_1 size_bin_to_bl take_bit_eq_mod trunc_bl2bin_len)
-  apply (simp add: butlast_rest_bl2bin)
-  done
 
 lemma sshiftr_eq:
   \<open>w >>> n = (sshiftr1 ^^ n) w\<close>
@@ -1338,11 +1285,6 @@ lemma sshift1_code [code]:
 
 
 subsection \<open>Rotation\<close>
-
-lemma length_to_bl_eq:
-  \<open>length (to_bl w) = LENGTH('a)\<close>
-  for w :: \<open>'a::len word\<close>
-  by transfer simp
 
 lift_definition word_rotr :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'a::len word\<close>
   is \<open>\<lambda>n k. concat_bit (LENGTH('a) - n mod LENGTH('a))
@@ -1483,30 +1425,6 @@ lemma uint_word_rotr_eq [code]:
   using mod_less_divisor not_less apply blast
   done
 
-lemma word_rotr_eq:
-  \<open>word_rotr n w = of_bl (rotater n (to_bl w))\<close>
-  apply (rule bit_word_eqI)
-  subgoal for n
-    apply (cases \<open>n < LENGTH('a)\<close>)
-     apply (simp_all add: bit_word_rotr_iff bit_of_bl_iff rotater_rev length_to_bl_eq nth_rotate rev_to_bl_eq ac_simps)
-    done
-  done
-
-lemma word_rotl_eq:
-  \<open>word_rotl n w = of_bl (rotate n (to_bl w))\<close>
-proof -
-  have \<open>rotate n (to_bl w) = rev (rotater n (rev (to_bl w)))\<close>
-    by (simp add: rotater_rev')
-  then show ?thesis
-    apply (simp add: word_rotl_eq_word_rotr bit_of_bl_iff length_to_bl_eq rev_to_bl_eq)
-    apply (rule bit_word_eqI)
-    subgoal for n
-      apply (cases \<open>n < LENGTH('a)\<close>)
-       apply (simp_all add: bit_word_rotr_iff bit_of_bl_iff nth_rotater)
-      done
-    done
-qed
-
     
 subsection \<open>Split and cat operations\<close>
 
@@ -1534,8 +1452,16 @@ definition word_split :: "'a::len word \<Rightarrow> 'b::len word \<times> 'c::l
     (case bin_split (LENGTH('c)) (uint a) of
       (u, v) \<Rightarrow> (word_of_int u, word_of_int v))"
 
-definition word_rcat :: "'a::len word list \<Rightarrow> 'b::len word"
-  where "word_rcat ws = word_of_int (bin_rcat (LENGTH('a)) (map uint ws))"
+definition word_rcat :: \<open>'a::len word list \<Rightarrow> 'b::len word\<close>
+  where \<open>word_rcat = word_of_int \<circ> horner_sum uint (2 ^ LENGTH('a)) \<circ> rev\<close>
+
+lemma word_rcat_eq:
+  \<open>word_rcat ws = word_of_int (bin_rcat (LENGTH('a::len)) (map uint ws))\<close>
+  for ws :: \<open>'a::len word list\<close>
+  apply (simp add: word_rcat_def bin_rcat_def rev_map)
+  apply transfer
+  apply (simp add: horner_sum_foldr foldr_map comp_def)
+  done
 
 definition word_rsplit :: "'a::len word \<Rightarrow> 'b::len word list"
   where "word_rsplit w = map word_of_int (bin_rsplit (LENGTH('b)) (LENGTH('a), uint w))"
@@ -1612,9 +1538,6 @@ interpretation word_sbin:
 lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm]
 
 lemmas td_sint = word_sint.td
-
-lemma to_bl_def': "(to_bl :: 'a::len word \<Rightarrow> bool list) = bin_to_bl (LENGTH('a)) \<circ> uint"
-  by transfer (simp add: fun_eq_iff)
 
 lemma uints_mod: "uints n = range (\<lambda>w. w mod 2 ^ n)"
   by (fact uints_def [unfolded no_bintr_alt1])
@@ -1841,92 +1764,6 @@ lemma bin_nth_sint:
   apply (auto simp add: nth_sbintr)
   done
 
-\<comment> \<open>type definitions theorem for in terms of equivalent bool list\<close>
-lemma td_bl:
-  "type_definition
-    (to_bl :: 'a::len word \<Rightarrow> bool list)
-    of_bl
-    {bl. length bl = LENGTH('a)}"
-  apply (unfold type_definition_def of_bl.abs_eq to_bl_eq)
-  apply (simp add: word_ubin.eq_norm)
-  apply safe
-  apply (drule sym)
-  apply simp
-  done
-
-interpretation word_bl:
-  type_definition
-    "to_bl :: 'a::len word \<Rightarrow> bool list"
-    of_bl
-    "{bl. length bl = LENGTH('a::len)}"
-  by (fact td_bl)
-
-lemmas word_bl_Rep' = word_bl.Rep [unfolded mem_Collect_eq, iff]
-
-lemma word_size_bl: "size w = size (to_bl w)"
-  by (auto simp: word_size)
-
-lemma to_bl_use_of_bl: "to_bl w = bl \<longleftrightarrow> w = of_bl bl \<and> length bl = length (to_bl w)"
-  by (fastforce elim!: word_bl.Abs_inverse [unfolded mem_Collect_eq])
-
-lemma length_bl_gt_0 [iff]: "0 < length (to_bl x)"
-  for x :: "'a::len word"
-  unfolding word_bl_Rep' by (rule len_gt_0)
-
-lemma bl_not_Nil [iff]: "to_bl x \<noteq> []"
-  for x :: "'a::len word"
-  by (fact length_bl_gt_0 [unfolded length_greater_0_conv])
-
-lemma length_bl_neq_0 [iff]: "length (to_bl x) \<noteq> 0"
-  for x :: "'a::len word"
-  by (fact length_bl_gt_0 [THEN gr_implies_not0])
-
-lemma hd_bl_sign_sint: "hd (to_bl w) = (bin_sign (sint w) = -1)"
-  apply transfer
-  apply (auto simp add: bin_sign_def)
-  using bin_sign_lem bl_sbin_sign apply fastforce
-  using bin_sign_lem bl_sbin_sign apply force
-  done
-
-lemma of_bl_drop':
-  "lend = length bl - LENGTH('a::len) \<Longrightarrow>
-    of_bl (drop lend bl) = (of_bl bl :: 'a word)"
-  by (auto simp: of_bl_def trunc_bl2bin [symmetric])
-
-lemma test_bit_of_bl:
-  "(of_bl bl::'a::len word) !! n = (rev bl ! n \<and> n < LENGTH('a) \<and> n < length bl)"
-  by (auto simp add: of_bl_def word_test_bit_def word_size
-      word_ubin.eq_norm nth_bintr bin_nth_of_bl)
-
-lemma no_of_bl: "(numeral bin ::'a::len word) = of_bl (bin_to_bl (LENGTH('a)) (numeral bin))"
-  by (simp add: of_bl_def)
-
-lemma uint_bl: "to_bl w = bin_to_bl (size w) (uint w)"
-  by transfer simp
-
-lemma to_bl_bin: "bl_to_bin (to_bl w) = uint w"
-  by (simp add: uint_bl word_size)
-
-lemma to_bl_of_bin: "to_bl (word_of_int bin::'a::len word) = bin_to_bl (LENGTH('a)) bin"
-  by (auto simp: uint_bl word_ubin.eq_norm word_size)
-
-lemma to_bl_numeral [simp]:
-  "to_bl (numeral bin::'a::len word) =
-    bin_to_bl (LENGTH('a)) (numeral bin)"
-  unfolding word_numeral_alt by (rule to_bl_of_bin)
-
-lemma to_bl_neg_numeral [simp]:
-  "to_bl (- numeral bin::'a::len word) =
-    bin_to_bl (LENGTH('a)) (- numeral bin)"
-  unfolding word_neg_numeral_alt by (rule to_bl_of_bin)
-
-lemma to_bl_to_bin [simp] : "bl_to_bin (to_bl w) = uint w"
-  by (simp add: uint_bl word_size)
-
-lemma uint_bl_bin: "bl_to_bin (bin_to_bl (LENGTH('a)) (uint x)) = uint x"
-  for x :: "'a::len word"
-  by (rule trans [OF bin_bl_bin word_ubin.norm_Rep])
-
 lemmas bintr_num =
   word_ubin.norm_eq_iff [of "numeral a" "numeral b", symmetric, folded word_numeral_alt] for a b
 lemmas sbintr_num =
@@ -1965,9 +1802,6 @@ lemma ucast_id [simp]: "ucast w = w"
   by transfer simp
 
 lemma scast_id [simp]: "scast w = w"
-  by transfer simp
-
-lemma ucast_bl: "ucast w = of_bl (to_bl w)"
   by transfer simp
 
 lemma nth_ucast: "(ucast w::'a::len word) !! n = (w !! n \<and> n < LENGTH('a))"
@@ -2085,25 +1919,7 @@ lemma ucast_down_no:
   \<open>UCAST (numeral bin) = numeral bin\<close> if \<open>is_down UCAST\<close>
   using that by transfer simp
 
-lemma ucast_down_bl:
-  "UCAST (of_bl bl) = of_bl bl" if \<open>is_down UCAST\<close>
-  using that by transfer simp
-
 end
-
-lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
-  by transfer (simp add: bl_to_bin_app_cat) 
-
-lemma ucast_of_bl_up:
-  \<open>ucast (of_bl bl :: 'a::len word) = of_bl bl\<close>
-  if \<open>size bl \<le> size (of_bl bl :: 'a::len word)\<close>
-  using that
-  apply transfer
-  apply (rule bit_eqI)
-  apply (auto simp add: bit_take_bit_iff)
-  apply (subst (asm) trunc_bl2bin_len [symmetric])
-  apply (auto simp only: bit_take_bit_iff)
-  done
 
 lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
@@ -2133,50 +1949,6 @@ lemma drop_bit_eq_zero_iff_not_bit_last:
     apply (metis div_exp_eq mod_div_trivial mult.commute nonzero_mult_div_cancel_left power_Suc0_right power_add zero_neq_numeral)
     done
 
-lemma word_rev_tf:
-  "to_bl (of_bl bl::'a::len word) =
-    rev (takefill False (LENGTH('a)) (rev bl))"
-  by (auto simp: of_bl_def uint_bl bl_bin_bl_rtf word_ubin.eq_norm word_size)
-
-lemma word_rep_drop:
-  "to_bl (of_bl bl::'a::len word) =
-    replicate (LENGTH('a) - length bl) False @
-    drop (length bl - LENGTH('a)) bl"
-  by (simp add: word_rev_tf takefill_alt rev_take)
-
-lemma to_bl_ucast:
-  "to_bl (ucast (w::'b::len word) ::'a::len word) =
-    replicate (LENGTH('a) - LENGTH('b)) False @
-    drop (LENGTH('b) - LENGTH('a)) (to_bl w)"
-  apply (unfold ucast_bl)
-  apply (rule trans)
-   apply (rule word_rep_drop)
-  apply simp
-  done
-
-lemma ucast_up_app:
-  \<open>to_bl (ucast w :: 'b::len word) = replicate n False @ (to_bl w)\<close>
-    if \<open>source_size (ucast :: 'a word \<Rightarrow> 'b word) + n = target_size (ucast :: 'a word \<Rightarrow> 'b word)\<close>
-    for w :: \<open>'a::len word\<close>
-  using that
-  by (auto simp add : source_size target_size to_bl_ucast)
-
-lemma ucast_down_drop [OF refl]:
-  "uc = ucast \<Longrightarrow> source_size uc = target_size uc + n \<Longrightarrow>
-    to_bl (uc w) = drop n (to_bl w)"
-  by (auto simp add : source_size target_size to_bl_ucast)
-
-lemma scast_down_drop [OF refl]:
-  "sc = scast \<Longrightarrow> source_size sc = target_size sc + n \<Longrightarrow>
-    to_bl (sc w) = drop n (to_bl w)"
-  apply (subgoal_tac "sc = ucast")
-   apply safe
-   apply simp
-   apply (erule ucast_down_drop)
-  apply (rule down_cast_same [symmetric])
-  apply (simp add : source_size target_size is_down)
-  done
-
 
 subsection \<open>Word Arithmetic\<close>
 
@@ -2201,18 +1973,6 @@ lemmas word_sle_no [simp] = word_sle_eq [of "numeral a" "numeral b"] for a b
 
 lemma word_m1_wi: "- 1 = word_of_int (- 1)"
   by (simp add: word_neg_numeral_alt [of Num.One])
-
-lemma word_0_bl [simp]: "of_bl [] = 0"
-  by (simp add: of_bl_def)
-
-lemma word_1_bl: "of_bl [True] = 1"
-  by (simp add: of_bl_def bl_to_bin_def)
-
-lemma of_bl_0 [simp]: "of_bl (replicate n False) = 0"
-  by (simp add: of_bl_def bl_to_bin_rep_False)
-
-lemma to_bl_0 [simp]: "to_bl (0::'a::len word) = replicate (LENGTH('a)) False"
-  by (simp add: uint_bl word_size bin_to_bl_zero)
 
 lemma uint_0_iff: "uint x = 0 \<longleftrightarrow> x = 0"
   by (simp add: word_uint_eq_iff)
@@ -2250,8 +2010,8 @@ lemma sint_n1 [simp] : "sint (- 1) = - 1"
 lemma scast_n1 [simp]: "scast (- 1) = - 1"
   by transfer simp
 
-lemma uint_1 [simp]: "uint (1::'a::len word) = 1"
-  by transfer simp
+lemma uint_1: "uint (1::'a::len word) = 1"
+  by (fact uint_1_eq)
 
 lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
   by transfer simp
@@ -2751,38 +2511,6 @@ lemma udvd_incr2_K:
   apply (simp add: mult_less_0_iff)
   done
 
-\<comment> \<open>links with \<open>rbl\<close> operations\<close>
-lemma word_succ_rbl: "to_bl w = bl \<Longrightarrow> to_bl (word_succ w) = rev (rbl_succ (rev bl))"
-  by transfer (simp add: rbl_succ)
-
-lemma word_pred_rbl: "to_bl w = bl \<Longrightarrow> to_bl (word_pred w) = rev (rbl_pred (rev bl))"
-  by transfer (simp add: rbl_pred)
-
-lemma word_add_rbl:
-  "to_bl v = vbl \<Longrightarrow> to_bl w = wbl \<Longrightarrow>
-    to_bl (v + w) = rev (rbl_add (rev vbl) (rev wbl))"
-  apply transfer
-  apply (drule sym)
-  apply (drule sym)
-  apply (simp add: rbl_add)
-  done
-
-lemma word_mult_rbl:
-  "to_bl v = vbl \<Longrightarrow> to_bl w = wbl \<Longrightarrow>
-    to_bl (v * w) = rev (rbl_mult (rev vbl) (rev wbl))"
-  apply transfer
-  apply (drule sym)
-  apply (drule sym)
-  apply (simp add: rbl_mult)
-  done
-
-lemma rtb_rbl_ariths:
-  "rev (to_bl w) = ys \<Longrightarrow> rev (to_bl (word_succ w)) = rbl_succ ys"
-  "rev (to_bl w) = ys \<Longrightarrow> rev (to_bl (word_pred w)) = rbl_pred ys"
-  "rev (to_bl v) = ys \<Longrightarrow> rev (to_bl w) = xs \<Longrightarrow> rev (to_bl (v * w)) = rbl_mult ys xs"
-  "rev (to_bl v) = ys \<Longrightarrow> rev (to_bl w) = xs \<Longrightarrow> rev (to_bl (v + w)) = rbl_add ys xs"
-  by (auto simp: rev_swap [symmetric] word_succ_rbl word_pred_rbl word_mult_rbl word_add_rbl)
-
 
 subsection \<open>Arithmetic type class instantiations\<close>
 
@@ -3139,21 +2867,6 @@ lemma word_of_int_power_hom: "word_of_int a ^ n = (word_of_int (a ^ n) :: 'a::le
 lemma word_arith_power_alt: "a ^ n = (word_of_int (uint a ^ n) :: 'a::len word)"
   by (simp add : word_of_int_power_hom [symmetric])
 
-lemma of_bl_length_less:
-  "length x = k \<Longrightarrow> k < LENGTH('a) \<Longrightarrow> (of_bl x :: 'a::len word) < 2 ^ k"
-  apply (unfold of_bl_def word_less_alt word_numeral_alt)
-  apply safe
-  apply (simp (no_asm) add: word_of_int_power_hom word_uint.eq_norm
-      del: word_of_int_numeral)
-  apply simp
-  apply (subst mod_pos_pos_trivial)
-    apply (rule bl_to_bin_ge0)
-   apply (rule order_less_trans)
-    apply (rule bl_to_bin_lt2p)
-   apply simp
-  apply (rule bl_to_bin_lt2p)
-  done
-
 lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
   for n :: "'a::len word"
   by unat_arith
@@ -3191,9 +2904,6 @@ instance word :: (len) finite
 
 
 subsection \<open>Bitwise Operations on Words\<close>
-
-lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
-  by simp
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
 
@@ -3426,86 +3136,10 @@ lemmas le_word_or1 = xtrans(3) [OF word_bw_comms (2) le_word_or2]
 lemmas word_and_le1 = xtrans(3) [OF word_ao_absorbs (4) [symmetric] le_word_or2]
 lemmas word_and_le2 = xtrans(3) [OF word_ao_absorbs (8) [symmetric] le_word_or2]
 
-lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)"
-  by transfer (simp add: bl_not_bin)
-
-lemma bl_word_xor: "to_bl (v XOR w) = map2 (\<noteq>) (to_bl v) (to_bl w)"
-  by transfer (simp flip: bl_xor_bin)
-
-lemma bl_word_or: "to_bl (v OR w) = map2 (\<or>) (to_bl v) (to_bl w)"
-  by transfer (simp flip: bl_or_bin)
-
-lemma bl_word_and: "to_bl (v AND w) = map2 (\<and>) (to_bl v) (to_bl w)"
-  by transfer (simp flip: bl_and_bin)
-
-lemma bin_nth_uint': "bin_nth (uint w) n \<longleftrightarrow> rev (bin_to_bl (size w) (uint w)) ! n \<and> n < size w"
-  apply (unfold word_size)
-  apply (safe elim!: bin_nth_uint_imp)
-   apply (frule bin_nth_uint_imp)
-   apply (fast dest!: bin_nth_bl)+
-  done
-
-lemmas bin_nth_uint = bin_nth_uint' [unfolded word_size]
-
-lemma test_bit_bl: "w !! n \<longleftrightarrow> rev (to_bl w) ! n \<and> n < size w"
-  by transfer (auto simp add: bin_nth_bl)
-
-lemma to_bl_nth: "n < size w \<Longrightarrow> to_bl w ! n = w !! (size w - Suc n)"
-  by (simp add: word_size rev_nth test_bit_bl)
-
-lemma map_bit_interval_eq:
-  \<open>map (bit w) [0..<n] = takefill False n (rev (to_bl w))\<close> for w :: \<open>'a::len word\<close>
-proof (rule nth_equalityI)
-  show \<open>length (map (bit w) [0..<n]) =
-    length (takefill False n (rev (to_bl w)))\<close>
-    by simp
-  fix m
-  assume \<open>m < length (map (bit w) [0..<n])\<close>
-  then have \<open>m < n\<close>
-    by simp
-  then have \<open>bit w m \<longleftrightarrow> takefill False n (rev (to_bl w)) ! m\<close>
-    by (auto simp add: nth_takefill not_less rev_nth to_bl_nth word_size test_bit_word_eq dest: bit_imp_le_length)
-  with \<open>m < n \<close>show \<open>map (bit w) [0..<n] ! m \<longleftrightarrow> takefill False n (rev (to_bl w)) ! m\<close>
-    by simp
-qed
-
-lemma to_bl_unfold:
-  \<open>to_bl w = rev (map (bit w) [0..<LENGTH('a)])\<close> for w :: \<open>'a::len word\<close>
-  by (simp add: map_bit_interval_eq takefill_bintrunc to_bl_def flip: bin_to_bl_def)
-
-lemma nth_rev_to_bl:
-  \<open>rev (to_bl w) ! n \<longleftrightarrow> bit w n\<close>
-  if \<open>n < LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
-  using that by (simp add: to_bl_unfold)
-
-lemma nth_to_bl:
-  \<open>to_bl w ! n \<longleftrightarrow> bit w (LENGTH('a) - Suc n)\<close>
-  if \<open>n < LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
-  using that by (simp add: to_bl_unfold rev_nth)
-
-lemma of_bl_rep_False: "of_bl (replicate n False @ bs) = of_bl bs"
-  by (auto simp: of_bl_def bl_to_bin_rep_F)
-
 lemma bit_horner_sum_bit_word_iff:
   \<open>bit (horner_sum of_bool (2 :: 'a::len word) bs) n
     \<longleftrightarrow> n < min LENGTH('a) (length bs) \<and> bs ! n\<close>
   by transfer (simp add: bit_horner_sum_bit_iff)
-
-lemma of_bl_eq:
-  \<open>of_bl bs = horner_sum of_bool 2 (rev bs)\<close>
-  by (rule bit_word_eqI) (simp add: bit_of_bl_iff bit_horner_sum_bit_word_iff ac_simps)
-
-lemma [code abstract]:
-  \<open>uint (of_bl bs :: 'a word) = horner_sum of_bool 2 (take LENGTH('a::len) (rev bs))\<close>
-  apply (simp add: of_bl_eq flip: take_bit_horner_sum_bit_eq)
-  apply transfer
-  apply simp
-  done
-
-lemma [code]:
-  \<open>to_bl w = map (bit w) (rev [0..<LENGTH('a::len)])\<close>
-  for w :: \<open>'a::len word\<close>
-  by (simp add: to_bl_unfold rev_map)
 
 definition word_reverse :: \<open>'a::len word \<Rightarrow> 'a word\<close>
   where \<open>word_reverse w = horner_sum of_bool 2 (rev (map (bit w) [0..<LENGTH('a)]))\<close>
@@ -3515,17 +3149,6 @@ lemma bit_word_reverse_iff:
   for w :: \<open>'a::len word\<close>
   by (cases \<open>n < LENGTH('a)\<close>)
     (simp_all add: word_reverse_def bit_horner_sum_bit_word_iff rev_nth)
-
-lemma word_reverse_eq_of_bl_rev_to_bl:
-  \<open>word_reverse w = of_bl (rev (to_bl w))\<close>
-  by (rule bit_word_eqI)
-    (auto simp add: bit_word_reverse_iff bit_of_bl_iff nth_to_bl)
-
-lemmas word_reverse_no_def [simp] =
-  word_reverse_eq_of_bl_rev_to_bl [of "numeral w"] for w
-
-lemma to_bl_word_rev: "to_bl (word_reverse w) = rev (to_bl w)"
-  by (rule nth_equalityI) (simp_all add: nth_rev_to_bl word_reverse_def word_rep_drop flip: of_bl_eq)
 
 lemma word_rev_rev [simp] : "word_reverse (word_reverse w) = w"
   by (rule bit_word_eqI)
@@ -3552,14 +3175,6 @@ lemma setBit_no [simp]: "setBit (numeral bin) n = word_of_int (bin_sc n True (nu
 lemma clearBit_no [simp]:
   "clearBit (numeral bin) n = word_of_int (bin_sc n False (numeral bin))"
   by transfer (simp add: bin_sc_eq)
-
-lemma to_bl_n1 [simp]: "to_bl (-1::'a::len word) = replicate (LENGTH('a)) True"
-  apply (rule word_bl.Abs_inverse')
-   apply simp
-  apply (rule word_eqI)
-  apply (clarsimp simp add: word_size)
-  apply (auto simp add: word_bl.Abs_inverse test_bit_bl word_size)
-  done
 
 lemma test_bit_2p: "(word_of_int (2 ^ n)::'a::len word) !! m \<longleftrightarrow> m = n \<and> m < LENGTH('a)"
   by (auto simp: word_test_bit_def word_ubin.eq_norm nth_bintr nth_2p_bin)
@@ -3597,18 +3212,6 @@ lemma bang_is_le: "x !! m \<Longrightarrow> 2 ^ m \<le> x"
   apply (rule word_eqI)
   apply (auto simp add: word_ao_nth nth_w2p word_size)
   done
-
-lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 (\<or>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: zip_rev bl_word_or rev_map)
-
-lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 (\<and>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: zip_rev bl_word_and rev_map)
-
-lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: zip_rev bl_word_xor rev_map)
-
-lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
-  by (simp add: bl_word_not rev_map)
 
 
 subsection \<open>Bit comprehension\<close>
@@ -3782,55 +3385,6 @@ lemma bit_bshiftr1_iff:
 
 subsubsection \<open>shift functions in terms of lists of bools\<close>
 
-lemma bshiftr1_numeral [simp]:
-  \<open>bshiftr1 b (numeral w :: 'a word) = of_bl (b # butlast (bin_to_bl LENGTH('a::len) (numeral w)))\<close>
-  by (simp add: bshiftr1_eq)
-
-lemma bshiftr1_bl: "to_bl (bshiftr1 b w) = b # butlast (to_bl w)"
-  unfolding bshiftr1_eq by (rule word_bl.Abs_inverse) simp
-
-lemma shiftl1_of_bl: "shiftl1 (of_bl bl) = of_bl (bl @ [False])"
-  by (simp add: of_bl_def bl_to_bin_append)
-
-lemma shiftl1_bl: "shiftl1 w = of_bl (to_bl w @ [False])"
-  for w :: "'a::len word"
-proof -
-  have "shiftl1 w = shiftl1 (of_bl (to_bl w))"
-    by simp
-  also have "\<dots> = of_bl (to_bl w @ [False])"
-    by (rule shiftl1_of_bl)
-  finally show ?thesis .
-qed
-
-lemma bl_shiftl1: "to_bl (shiftl1 w) = tl (to_bl w) @ [False]"
-  for w :: "'a::len word"
-  by (simp add: shiftl1_bl word_rep_drop drop_Suc drop_Cons') (fast intro!: Suc_leI)
-
-\<comment> \<open>Generalized version of \<open>bl_shiftl1\<close>. Maybe this one should replace it?\<close>
-lemma bl_shiftl1': "to_bl (shiftl1 w) = tl (to_bl w @ [False])"
-  by (simp add: shiftl1_bl word_rep_drop drop_Suc del: drop_append)
-
-lemma shiftr1_bl: "shiftr1 w = of_bl (butlast (to_bl w))"
-  apply (rule bit_word_eqI)
-  apply (simp add: bit_shiftr1_iff bit_of_bl_iff)
-  apply auto
-     apply (metis bin_nth_of_bl bin_rest_bl_to_bin bit_Suc test_bit_bin test_bit_word_eq to_bl_to_bin)
-  using bit_Suc nat_less_le not_bit_length apply blast
-   apply (simp add: bit_imp_le_length less_diff_conv)
-  apply (metis bin_nth_of_bl bin_rest_bl_to_bin bit_Suc butlast_bin_rest size_bin_to_bl test_bit_bin test_bit_word_eq to_bl_to_bin word_bl_Rep')
-  done
-
-lemma bl_shiftr1: "to_bl (shiftr1 w) = False # butlast (to_bl w)"
-  for w :: "'a::len word"
-  by (simp add: shiftr1_bl word_rep_drop len_gt_0 [THEN Suc_leI])
-
-\<comment> \<open>Generalized version of \<open>bl_shiftr1\<close>. Maybe this one should replace it?\<close>
-lemma bl_shiftr1': "to_bl (shiftr1 w) = butlast (False # to_bl w)"
-  apply (rule word_bl.Abs_inverse')
-   apply (simp del: butlast.simps)
-  apply (simp add: shiftr1_bl of_bl_def)
-  done
-
 lemma shiftl1_rev: "shiftl1 w = word_reverse (shiftr1 (word_reverse w))"
   apply (rule bit_word_eqI)
   apply (auto simp add: bit_shiftl1_iff bit_word_reverse_iff bit_shiftr1_iff Suc_diff_Suc)
@@ -3848,95 +3402,14 @@ lemma shiftr_rev: "w >> n = word_reverse (word_reverse w << n)"
 lemma rev_shiftr: "word_reverse w >> n = word_reverse (w << n)"
   by (simp add: shiftr_rev)
 
-lemma bl_sshiftr1: "to_bl (sshiftr1 w) = hd (to_bl w) # butlast (to_bl w)"
-  for w :: "'a::len word"
-proof (rule nth_equalityI)
-  fix n
-  assume \<open>n < length (to_bl (sshiftr1 w))\<close>
-  then have \<open>n < LENGTH('a)\<close>
-    by simp
-  then show \<open>to_bl (sshiftr1 w) ! n \<longleftrightarrow> (hd (to_bl w) # butlast (to_bl w)) ! n\<close>
-    apply (cases n)
-     apply (simp_all add: to_bl_nth word_size hd_conv_nth test_bit_eq_bit bit_sshiftr1_iff nth_butlast Suc_diff_Suc nth_to_bl)
-    done
-qed simp
-
-lemma drop_shiftr: "drop n (to_bl (w >> n)) = take (size w - n) (to_bl w)"
-  for w :: "'a::len word"
-  apply (unfold shiftr_def)
-  apply (induct n)
-   prefer 2
-   apply (simp add: drop_Suc bl_shiftr1 butlast_drop [symmetric])
-   apply (rule butlast_take [THEN trans])
-    apply (auto simp: word_size)
-  done
-
-lemma drop_sshiftr: "drop n (to_bl (w >>> n)) = take (size w - n) (to_bl w)"
-  for w :: "'a::len word"
-  apply (unfold sshiftr_eq)
-  apply (induct n)
-   prefer 2
-   apply (simp add: drop_Suc bl_sshiftr1 butlast_drop [symmetric])
-   apply (rule butlast_take [THEN trans])
-    apply (auto simp: word_size)
-  done
-
-lemma take_shiftr: "n \<le> size w \<Longrightarrow> take n (to_bl (w >> n)) = replicate n False"
-  apply (unfold shiftr_def)
-  apply (induct n)
-   prefer 2
-   apply (simp add: bl_shiftr1' length_0_conv [symmetric] word_size)
-   apply (rule take_butlast [THEN trans])
-    apply (auto simp: word_size)
-  done
-
-lemma take_sshiftr' [rule_format] :
-  "n \<le> size w \<longrightarrow> hd (to_bl (w >>> n)) = hd (to_bl w) \<and>
-    take n (to_bl (w >>> n)) = replicate n (hd (to_bl w))"
-  for w :: "'a::len word"
-  apply (unfold sshiftr_eq)
-  apply (induct n)
-   prefer 2
-   apply (simp add: bl_sshiftr1)
-   apply (rule impI)
-   apply (rule take_butlast [THEN trans])
-    apply (auto simp: word_size)
-  done
-
-lemmas hd_sshiftr = take_sshiftr' [THEN conjunct1]
-lemmas take_sshiftr = take_sshiftr' [THEN conjunct2]
-
-lemma atd_lem: "take n xs = t \<Longrightarrow> drop n xs = d \<Longrightarrow> xs = t @ d"
-  by (auto intro: append_take_drop_id [symmetric])
-
-lemmas bl_shiftr = atd_lem [OF take_shiftr drop_shiftr]
-lemmas bl_sshiftr = atd_lem [OF take_sshiftr drop_sshiftr]
-
-lemma shiftl_of_bl: "of_bl bl << n = of_bl (bl @ replicate n False)"
-  by (induct n) (auto simp: shiftl_def shiftl1_of_bl replicate_app_Cons_same)
-
-lemma shiftl_bl: "w << n = of_bl (to_bl w @ replicate n False)"
-  for w :: "'a::len word"
-proof -
-  have "w << n = of_bl (to_bl w) << n"
-    by simp
-  also have "\<dots> = of_bl (to_bl w @ replicate n False)"
-    by (rule shiftl_of_bl)
-  finally show ?thesis .
-qed
-
 lemma shiftl_numeral [simp]:
   \<open>numeral k << numeral l = (push_bit (numeral l) (numeral k) :: 'a::len word)\<close>
   by (fact shiftl_word_eq)
 
-lemma bl_shiftl: "to_bl (w << n) = drop n (to_bl w) @ replicate (min (size w) n) False"
-  by (simp add: shiftl_bl word_rep_drop word_size)
-
 lemma shiftl_zero_size: "size x \<le> n \<Longrightarrow> x << n = 0"
   for x :: "'a::len word"
-  apply (unfold word_size)
-  apply (rule word_eqI)
-  apply (clarsimp simp add: shiftl_bl word_size test_bit_of_bl nth_append)
+  apply transfer
+  apply (simp add: take_bit_push_bit)
   done
 
 \<comment> \<open>note -- the following results use \<open>'a::len word < number_ring\<close>\<close>
@@ -3982,27 +3455,6 @@ lemma sshiftr_numeral [simp]:
    apply (simp_all add: word_size bit_drop_bit_eq nth_sshiftr nth_sbintr not_le not_less less_Suc_eq_le ac_simps)
   done
 
-lemma shiftr1_bl_of:
-  "length bl \<le> LENGTH('a) \<Longrightarrow>
-    shiftr1 (of_bl bl::'a::len word) = of_bl (butlast bl)"
-  by (clarsimp simp: shiftr1_eq of_bl_def butlast_rest_bl2bin word_ubin.eq_norm trunc_bl2bin)
-
-lemma shiftr_bl_of:
-  "length bl \<le> LENGTH('a) \<Longrightarrow>
-    (of_bl bl::'a::len word) >> n = of_bl (take (length bl - n) bl)"
-  apply (unfold shiftr_def)
-  apply (induct n)
-   apply clarsimp
-  apply clarsimp
-  apply (subst shiftr1_bl_of)
-   apply simp
-  apply (simp add: butlast_take)
-  done
-
-lemma shiftr_bl: "x >> n \<equiv> of_bl (take (LENGTH('a) - n) (to_bl x))"
-  for x :: "'a::len word"
-  using shiftr_bl_of [where 'a='a, of "to_bl x"] by simp
-
 lemma zip_replicate: "n \<ge> length ys \<Longrightarrow> zip (replicate n x) ys = map (\<lambda>y. (x, y)) ys"
   apply (induct ys arbitrary: n)
    apply simp_all
@@ -4040,23 +3492,6 @@ lemma align_lem_and [rule_format] :
   apply (auto simp: zip_replicate o_def map_replicate_const)
   done
 
-lemma aligned_bl_add_size [OF refl]:
-  "size x - n = m \<Longrightarrow> n \<le> size x \<Longrightarrow> drop m (to_bl x) = replicate n False \<Longrightarrow>
-    take m (to_bl y) = replicate m False \<Longrightarrow>
-    to_bl (x + y) = take m (to_bl x) @ drop m (to_bl y)" for x :: \<open>'a::len word\<close>
-  apply (subgoal_tac "x AND y = 0")
-   prefer 2
-   apply (rule word_bl.Rep_eqD)
-   apply (simp add: bl_word_and)
-   apply (rule align_lem_and [THEN trans])
-       apply (simp_all add: word_size)[5]
-   apply simp
-  apply (subst word_plus_and_or [symmetric])
-  apply (simp add : bl_word_or)
-  apply (rule align_lem_or)
-     apply (simp_all add: word_size)
-  done
-
 
 subsubsection \<open>Mask\<close>
 
@@ -4085,9 +3520,6 @@ lemma nth_mask [simp]:
   \<open>(mask n :: 'a::len word) !! i \<longleftrightarrow> i < n \<and> i < size (mask n :: 'a word)\<close>
   by (auto simp add: test_bit_word_eq word_size Word.bit_mask_iff)
 
-lemma mask_bl: "mask n = of_bl (replicate n True)"
-  by (auto simp add : test_bit_of_bl word_size intro: word_eqI)
-
 lemma mask_bin: "mask n = word_of_int (bintrunc n (- 1))"
   by (auto simp add: nth_bintr word_size intro: word_eqI)
 
@@ -4106,17 +3538,6 @@ lemma and_mask_wi':
 
 lemma and_mask_no: "numeral i AND mask n = word_of_int (bintrunc n (numeral i))"
   unfolding word_numeral_alt by (rule and_mask_wi)
-
-lemma bl_and_mask':
-  "to_bl (w AND mask n :: 'a::len word) =
-    replicate (LENGTH('a) - n) False @
-    drop (LENGTH('a) - n) (to_bl w)"
-  apply (rule nth_equalityI)
-   apply simp
-  apply (clarsimp simp add: to_bl_nth word_size)
-  apply (simp add: word_size word_ops_nth_size)
-  apply (auto simp add: word_size test_bit_bl nth_append rev_nth)
-  done
 
 lemma and_mask_mod_2p: "w AND mask n = word_of_int (uint w mod 2 ^ n)"
   by (simp only: and_mask_bintr bintrunc_mod2p)
@@ -4217,17 +3638,6 @@ lemma bit_slice1_iff:
   by (auto simp add: slice1_def bit_ucast_iff bit_drop_bit_eq bit_push_bit_iff exp_eq_zero_iff not_less not_le ac_simps
     dest: bit_imp_le_length)
 
-lemma slice1_eq_of_bl:
-  \<open>(slice1 n w :: 'b::len word) = of_bl (takefill False n (to_bl w))\<close>
-  for w :: \<open>'a::len word\<close>
-proof (rule bit_word_eqI)
-  fix m
-  assume \<open>m \<le> LENGTH('b)\<close>
-  show \<open>bit (slice1 n w :: 'b::len word) m \<longleftrightarrow> bit (of_bl (takefill False n (to_bl w)) :: 'b word) m\<close>
-    by (cases \<open>m \<ge> n\<close>; cases \<open>LENGTH('a) \<ge> n\<close>)
-      (auto simp add: bit_slice1_iff bit_of_bl_iff not_less rev_nth not_le nth_takefill nth_to_bl algebra_simps)
-qed
-
 definition slice :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word\<close>
   where \<open>slice n = slice1 (LENGTH('a) - n)\<close>
 
@@ -4236,64 +3646,27 @@ lemma bit_slice_iff:
   for w :: \<open>'a::len word\<close>
   by (simp add: slice_def word_size bit_slice1_iff)
 
-lemma slice1_no_bin [simp]:
-  "slice1 n (numeral w :: 'b word) = of_bl (takefill False n (bin_to_bl (LENGTH('b::len)) (numeral w)))"
-  by (simp add: slice1_eq_of_bl) (* TODO: neg_numeral *)
-
-lemma slice_no_bin [simp]:
-  "slice n (numeral w :: 'b word) = of_bl (takefill False (LENGTH('b::len) - n)
-    (bin_to_bl (LENGTH('b::len)) (numeral w)))"
-  by (simp add: slice_def) (* TODO: neg_numeral *)
-
 lemma slice1_0 [simp] : "slice1 n 0 = 0"
   unfolding slice1_def by simp
 
 lemma slice_0 [simp] : "slice n 0 = 0"
   unfolding slice_def by auto
 
-lemma slice_take': "slice n w = of_bl (take (size w - n) (to_bl w))"
-  by (simp add: slice_def word_size slice1_eq_of_bl takefill_alt)
-
-lemmas slice_take = slice_take' [unfolded word_size]
-
-\<comment> \<open>shiftr to a word of the same size is just slice,
-    slice is just shiftr then ucast\<close>
-lemmas shiftr_slice = trans [OF shiftr_bl [THEN meta_eq_to_obj_eq] slice_take [symmetric]]
-
 lemma slice_shiftr: "slice n w = ucast (w >> n)"
-  apply (unfold slice_take shiftr_bl)
-  apply (rule ucast_of_bl_up [symmetric])
-  apply (simp add: word_size)
+  apply (rule bit_word_eqI)
+  apply (cases \<open>n \<le> LENGTH('b)\<close>)
+   apply (auto simp add: bit_slice_iff bit_ucast_iff bit_shiftr_word_iff ac_simps
+    dest: bit_imp_le_length)
   done
 
 lemma nth_slice: "(slice n w :: 'a::len word) !! m = (w !! (m + n) \<and> m < LENGTH('a))"
   by (simp add: slice_shiftr nth_ucast nth_shiftr)
 
-lemma slice1_down_alt':
-  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs + k = n \<Longrightarrow>
-    to_bl sl = takefill False fs (drop k (to_bl w))"
-  by (auto simp: slice1_eq_of_bl word_size of_bl_def uint_bl
-      word_ubin.eq_norm bl_bin_bl_rep_drop drop_takefill)
-
-lemma slice1_up_alt':
-  "sl = slice1 n w \<Longrightarrow> fs = size sl \<Longrightarrow> fs = n + k \<Longrightarrow>
-    to_bl sl = takefill False fs (replicate k False @ (to_bl w))"
-  apply (unfold slice1_eq_of_bl word_size of_bl_def uint_bl)
-  apply (clarsimp simp: word_ubin.eq_norm bl_bin_bl_rep_drop takefill_append [symmetric])
-  apply (rule_tac f = "\<lambda>k. takefill False (LENGTH('a))
-    (replicate k False @ bin_to_bl (LENGTH('b)) (uint w))" in arg_cong)
-  apply arith
-  done
-
-lemmas sd1 = slice1_down_alt' [OF refl refl, unfolded word_size]
-lemmas su1 = slice1_up_alt' [OF refl refl, unfolded word_size]
-lemmas slice1_down_alt = le_add_diff_inverse [THEN sd1]
-lemmas slice1_up_alts =
-  le_add_diff_inverse [symmetric, THEN su1]
-  le_add_diff_inverse2 [symmetric, THEN su1]
-
 lemma ucast_slice1: "ucast w = slice1 (size w) w"
-  by (simp add: slice1_def ucast_bl takefill_same' word_size)
+  apply (simp add: slice1_def)
+  apply transfer
+  apply simp
+  done
 
 lemma ucast_slice: "ucast w = slice 0 w"
   by (simp add: slice_def slice1_def)
@@ -4301,25 +3674,21 @@ lemma ucast_slice: "ucast w = slice 0 w"
 lemma slice_id: "slice 0 t = t"
   by (simp only: ucast_slice [symmetric] ucast_id)
 
-lemma slice1_tf_tf':
-  "to_bl (slice1 n w :: 'a::len word) =
-    rev (takefill False (LENGTH('a)) (rev (takefill False n (to_bl w))))"
-  unfolding slice1_eq_of_bl by (rule word_rev_tf)
-
-lemmas slice1_tf_tf = slice1_tf_tf' [THEN word_bl.Rep_inverse', symmetric]
-
 lemma rev_slice1:
-  "n + k = LENGTH('a) + LENGTH('b) \<Longrightarrow>
-    slice1 n (word_reverse w :: 'b::len word) =
-    word_reverse (slice1 k w :: 'a::len word)"
-  apply (unfold word_reverse_eq_of_bl_rev_to_bl slice1_tf_tf)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule rev_swap [THEN iffD1])
-  apply (rule trans [symmetric])
-   apply (rule tf_rev)
-   apply (simp add: word_bl.Abs_inverse)
-  apply (simp add: word_bl.Abs_inverse)
-  done
+  \<open>slice1 n (word_reverse w :: 'b::len word) = word_reverse (slice1 k w :: 'a::len word)\<close>
+  if \<open>n + k = LENGTH('a) + LENGTH('b)\<close>
+proof (rule bit_word_eqI)
+  fix m
+  assume *: \<open>m < LENGTH('a)\<close>
+  from that have **: \<open>LENGTH('b) = n + k - LENGTH('a)\<close>
+    by simp
+  show \<open>bit (slice1 n (word_reverse w :: 'b word) :: 'a word) m \<longleftrightarrow> bit (word_reverse (slice1 k w :: 'a word)) m\<close>
+    apply (simp add: bit_slice1_iff bit_word_reverse_iff)
+    using * **
+    apply (cases \<open>n \<le> LENGTH('a)\<close>; cases \<open>k \<le> LENGTH('a)\<close>)
+       apply auto
+    done
+qed
 
 lemma rev_slice:
   "n + k + LENGTH('a::len) = LENGTH('b::len) \<Longrightarrow>
@@ -4341,23 +3710,8 @@ lemma bit_revcast_iff:
   for w :: \<open>'a::len word\<close>
   by (simp add: revcast_def bit_slice1_iff)
 
-lemma revcast_eq_of_bl:
-  \<open>(revcast w :: 'b::len word) = of_bl (takefill False (LENGTH('b)) (to_bl w))\<close>
-  for w :: \<open>'a::len word\<close>
-  by (simp add: revcast_def slice1_eq_of_bl)
-
 lemma revcast_slice1 [OF refl]: "rc = revcast w \<Longrightarrow> slice1 (size rc) w = rc"
   by (simp add: revcast_def word_size)
-
-lemmas revcast_no_def [simp] = revcast_eq_of_bl [where w="numeral w", unfolded word_size] for w
-
-lemma to_bl_revcast:
-  "to_bl (revcast w :: 'a::len word) = takefill False (LENGTH('a)) (to_bl w)"
-  apply (rule nth_equalityI)
-  apply simp
-  apply (cases \<open>LENGTH('a) \<le> LENGTH('b)\<close>)
-   apply (auto simp add: nth_to_bl nth_takefill bit_revcast_iff)
-  done
 
 lemma revcast_rev_ucast [OF refl refl refl]:
   "cs = [rc, uc] \<Longrightarrow> rc = revcast (word_reverse w) \<Longrightarrow> uc = ucast w \<Longrightarrow>
@@ -4388,68 +3742,52 @@ lemmas wsst_TYs = source_size target_size word_size
 lemma revcast_down_uu [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = ucast (w >> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_eq_of_bl)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule trans, rule ucast_down_drop)
-   prefer 2
-   apply (rule trans, rule drop_shiftr)
-   apply (auto simp: takefill_alt wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_ucast_iff bit_shiftr_word_iff ac_simps)
   done
 
 lemma revcast_down_us [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = ucast (w >>> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_eq_of_bl)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule trans, rule ucast_down_drop)
-   prefer 2
-   apply (rule trans, rule drop_sshiftr)
-   apply (auto simp: takefill_alt wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_ucast_iff bit_sshiftr_word_iff ac_simps)
   done
 
 lemma revcast_down_su [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = scast (w >> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_eq_of_bl)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule trans, rule scast_down_drop)
-   prefer 2
-   apply (rule trans, rule drop_shiftr)
-   apply (auto simp: takefill_alt wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_word_scast_iff bit_shiftr_word_iff ac_simps)
   done
 
 lemma revcast_down_ss [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc = target_size rc + n \<Longrightarrow> rc w = scast (w >>> n)"
   for w :: "'a::len word"
-  apply (simp add: revcast_eq_of_bl)
-  apply (rule word_bl.Rep_inverse')
-  apply (rule trans, rule scast_down_drop)
-   prefer 2
-   apply (rule trans, rule drop_sshiftr)
-   apply (auto simp: takefill_alt wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_word_scast_iff bit_sshiftr_word_iff ac_simps)
   done
 
 lemma cast_down_rev [OF refl]:
   "uc = ucast \<Longrightarrow> source_size uc = target_size uc + n \<Longrightarrow> uc w = revcast (w << n)"
   for w :: "'a::len word"
-  apply (unfold shiftl_rev)
-  apply clarify
-  apply (simp add: revcast_rev_ucast)
-  apply (rule word_rev_gal')
-  apply (rule trans [OF _ revcast_rev_ucast])
-  apply (rule revcast_down_uu [symmetric])
-  apply (auto simp add: wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_word_ucast_iff bit_shiftl_word_iff)
   done
 
 lemma revcast_up [OF refl]:
   "rc = revcast \<Longrightarrow> source_size rc + n = target_size rc \<Longrightarrow>
     rc w = (ucast w :: 'a::len word) << n"
-  apply (simp add: revcast_eq_of_bl)
-  apply (rule word_bl.Rep_inverse')
-  apply (simp add: takefill_alt)
-  apply (rule bl_shiftl [THEN trans])
-  apply (subst ucast_up_app)
-   apply (auto simp add: wsst_TYs)
+  apply (simp add: source_size_def target_size_def)
+  apply (rule bit_word_eqI)
+  apply (simp add: bit_revcast_iff bit_word_ucast_iff bit_shiftl_word_iff)
+  apply auto
+  apply (metis add.commute add_diff_cancel_right)
+  apply (metis diff_add_inverse2 diff_diff_add)
   done
 
 lemmas rc1 = revcast_up [THEN
@@ -4501,7 +3839,7 @@ lemma shiftr_zero_size: "size x \<le> n \<Longrightarrow> x >> n = 0"
 subsection \<open>Split and cat\<close>
 
 lemmas word_split_bin' = word_split_def
-lemmas word_cat_bin' = word_cat_def
+lemmas word_cat_bin' = word_cat_eq
 
 lemma word_rsplit_no:
   "(word_rsplit (numeral bin :: 'b::len word) :: 'a word list) =
@@ -4519,24 +3857,6 @@ lemma test_bit_cat [OF refl]:
        apply (auto simp add: bit_concat_bit_iff bit_take_bit_iff)
   done
 
-lemma word_cat_bl: "word_cat a b = of_bl (to_bl a @ to_bl b)"
-  by (simp add: of_bl_def to_bl_def word_cat_bin' bl_to_bin_app_cat)
-
-lemma of_bl_append:
-  "(of_bl (xs @ ys) :: 'a::len word) = of_bl xs * 2^(length ys) + of_bl ys"
-  apply (simp add: of_bl_def bl_to_bin_app_cat bin_cat_num)
-  apply (simp add: word_of_int_power_hom [symmetric] word_of_int_hom_syms)
-  done
-
-lemma of_bl_False [simp]: "of_bl (False#xs) = of_bl xs"
-  by (rule word_eqI) (auto simp: test_bit_of_bl nth_append)
-
-lemma of_bl_True [simp]: "(of_bl (True # xs) :: 'a::len word) = 2^length xs + of_bl xs"
-  by (subst of_bl_append [where xs="[True]", simplified]) (simp add: word_1_bl)
-
-lemma of_bl_Cons: "of_bl (x#xs) = of_bool x * 2^length xs + of_bl xs"
-  by (cases x) simp_all
-
 lemma split_uint_lem: "bin_split n (uint w) = (a, b) \<Longrightarrow>
     a = bintrunc (LENGTH('a) - n) a \<and> b = bintrunc (LENGTH('a)) b"
   for w :: "'a::len word"
@@ -4545,51 +3865,6 @@ lemma split_uint_lem: "bin_split n (uint w) = (a, b) \<Longrightarrow>
   apply (drule sym [THEN trans])
    apply assumption
   apply safe
-  done
-
-lemma word_split_bl':
-  "std = size c - size b \<Longrightarrow> (word_split c = (a, b)) \<Longrightarrow>
-    (a = of_bl (take std (to_bl c)) \<and> b = of_bl (drop std (to_bl c)))"
-  apply (unfold word_split_bin')
-  apply safe
-   defer
-   apply (clarsimp split: prod.splits)
-   apply (metis of_bl.abs_eq size_word.rep_eq to_bl_to_bin trunc_bl2bin word_size_bl word_ubin.eq_norm word_uint.Rep_inverse)
-   apply hypsubst_thin
-   apply (drule word_ubin.norm_Rep [THEN ssubst])
-   apply (simp add: of_bl_def bl2bin_drop word_size
-      word_ubin.norm_eq_iff [symmetric] min_def del: word_ubin.norm_Rep)
-  apply (clarsimp split: prod.splits)
-  apply (cases "LENGTH('a) \<ge> LENGTH('b)")
-   apply (simp_all add: not_le)
-  defer
-   apply (simp add: drop_bit_eq_div lt2p_lem)
-  apply (simp add: to_bl_eq)
-  apply (subst bin_to_bl_drop_bit [symmetric])
-   apply (subst diff_add)
-    apply (simp_all add: take_bit_drop_bit)
-  done
-
-lemma word_split_bl: "std = size c - size b \<Longrightarrow>
-    (a = of_bl (take std (to_bl c)) \<and> b = of_bl (drop std (to_bl c))) \<longleftrightarrow>
-    word_split c = (a, b)"
-  apply (rule iffI)
-   defer
-   apply (erule (1) word_split_bl')
-  apply (case_tac "word_split c")
-  apply (auto simp add: word_size)
-  apply (frule word_split_bl' [rotated])
-   apply (auto simp add: word_size)
-  done
-
-lemma word_split_bl_eq:
-  "(word_split c :: ('c::len word \<times> 'd::len word)) =
-    (of_bl (take (LENGTH('a::len) - LENGTH('d::len)) (to_bl c)),
-     of_bl (drop (LENGTH('a) - LENGTH('d)) (to_bl c)))"
-  for c :: "'a::len word"
-  apply (rule word_split_bl [THEN iffD1])
-   apply (unfold word_size)
-   apply (rule refl conjI)+
   done
 
 \<comment> \<open>keep quantifiers for use in simplification\<close>
@@ -4685,13 +3960,6 @@ lemma word_split_cat_alt:
    apply (rule word_eqI, clarsimp simp: test_bit_cat word_size)+
   done
 
-lemmas word_cat_bl_no_bin [simp] =
-  word_cat_bl [where a="numeral a" and b="numeral b", unfolded to_bl_numeral]
-  for a b (* FIXME: negative numerals, 0 and 1 *)
-
-lemmas word_split_bl_no_bin [simp] =
-  word_split_bl_eq [where c="numeral c", unfolded to_bl_numeral] for c
-
 text \<open>
   This odd result arises from the fact that the statement of the
   result implies that the decoded words are of the same type,
@@ -4724,37 +3992,33 @@ lemma test_bit_rsplit:
   apply (erule bin_rsplit_size_sign [OF len_gt_0 refl])
   done
 
-lemma word_rcat_bl: "word_rcat wl = of_bl (concat (map to_bl wl))"
-  by (auto simp: word_rcat_def to_bl_def' of_bl_def bin_rcat_bl)
+lemma horner_sum_uint_exp_Cons_eq:
+  \<open>horner_sum uint (2 ^ LENGTH('a)) (w # ws) =
+    concat_bit LENGTH('a) (uint w) (horner_sum uint (2 ^ LENGTH('a)) ws)\<close>
+  for ws :: \<open>'a::len word list\<close>
+  by (simp add: concat_bit_eq push_bit_eq_mult)
 
-lemma size_rcat_lem': "size (concat (map to_bl wl)) = length wl * size (hd wl)"
-  by (induct wl) (auto simp: word_size)
-
-lemmas size_rcat_lem = size_rcat_lem' [unfolded word_size]
-
-lemma nth_rcat_lem:
-  "n < length (wl::'a word list) * LENGTH('a::len) \<Longrightarrow>
-    rev (concat (map to_bl wl)) ! n =
-    rev (to_bl (rev wl ! (n div LENGTH('a)))) ! (n mod LENGTH('a))"
-  apply (induct wl)
-   apply clarsimp
-  apply (clarsimp simp add : nth_append size_rcat_lem)
-  apply (simp flip: mult_Suc minus_div_mult_eq_mod add: less_Suc_eq_le not_less)
-  apply (metis (no_types, lifting) diff_is_0_eq div_le_mono len_not_eq_0 less_Suc_eq less_mult_imp_div_less nonzero_mult_div_cancel_right not_le nth_Cons_0)
-  done
+lemma bit_horner_sum_uint_exp_iff:
+  \<open>bit (horner_sum uint (2 ^ LENGTH('a)) ws) n \<longleftrightarrow>
+    n div LENGTH('a) < length ws \<and> bit (ws ! (n div LENGTH('a))) (n mod LENGTH('a))\<close>
+  for ws :: \<open>'a::len word list\<close>
+proof (induction ws arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons w ws)
+  then show ?case
+    by (cases \<open>n \<ge> LENGTH('a)\<close>)
+      (simp_all only: horner_sum_uint_exp_Cons_eq, simp_all add: bit_concat_bit_iff le_div_geq le_mod_geq bit_uint_iff Cons)
+qed
 
 lemma test_bit_rcat:
   "sw = size (hd wl) \<Longrightarrow> rc = word_rcat wl \<Longrightarrow> rc !! n =
     (n < size rc \<and> n div sw < size wl \<and> (rev wl) ! (n div sw) !! (n mod sw))"
   for wl :: "'a::len word list"
-  apply (unfold word_rcat_bl word_size)
-  apply (clarsimp simp add: test_bit_of_bl size_rcat_lem word_size)
-  apply (metis div_le_mono len_gt_0 len_not_eq_0 less_mult_imp_div_less mod_less_divisor nonzero_mult_div_cancel_right not_le nth_rcat_lem test_bit_bl word_size)
-  done
-
-lemma foldl_eq_foldr: "foldl (+) x xs = foldr (+) (x # xs) 0"
-  for x :: "'a::comm_monoid_add"
-  by (induct xs arbitrary: x) (auto simp: add.assoc)
+  by (simp add: word_size word_rcat_def bin_rcat_def foldl_map rev_map bit_horner_sum_uint_exp_iff)
+    (simp add: test_bit_eq_bit)
 
 lemmas test_bit_cong = arg_cong [where f = "test_bit", THEN fun_cong]
 
@@ -4855,73 +4119,74 @@ lemma word_rsplit_rcat_size [OF refl]:
 
 subsection \<open>Rotation\<close>
 
-lemmas word_rot_defs = word_roti_eq_word_rotr_word_rotl word_rotr_eq word_rotl_eq
+lemma word_rotr_word_rotr_eq:
+  \<open>word_rotr m (word_rotr n w) = word_rotr (m + n) w\<close>
+  by (rule bit_word_eqI) (simp add: bit_word_rotr_iff ac_simps mod_add_right_eq)
 
-lemma to_bl_rotl: "to_bl (word_rotl n w) = rotate n (to_bl w)"
-  by (simp add: word_rotl_eq to_bl_use_of_bl)
+lemma word_rot_rl [simp]:
+  \<open>word_rotl k (word_rotr k v) = v\<close>
+  apply (rule bit_word_eqI)
+  apply (simp add: word_rotl_eq_word_rotr word_rotr_word_rotr_eq bit_word_rotr_iff algebra_simps)
+  apply (auto dest: bit_imp_le_length)
+   apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_if mod_mult_self2_is_0)
+  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' bit_imp_le_length div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
+  done
 
-lemmas blrs0 = rotate_eqs [THEN to_bl_rotl [THEN trans]]
+lemma word_rot_lr [simp]:
+  \<open>word_rotr k (word_rotl k v) = v\<close>
+  apply (rule bit_word_eqI)
+  apply (simp add: word_rotl_eq_word_rotr word_rotr_word_rotr_eq bit_word_rotr_iff algebra_simps)
+  apply (auto dest: bit_imp_le_length)
+   apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_if mod_mult_self2_is_0)
+  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' bit_imp_le_length div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
+  done
 
-lemmas word_rotl_eqs =
-  blrs0 [simplified word_bl_Rep' word_bl.Rep_inject to_bl_rotl [symmetric]]
+lemma word_rot_gal:
+  \<open>word_rotr n v = w \<longleftrightarrow> word_rotl n w = v\<close>
+  by auto
 
-lemma to_bl_rotr: "to_bl (word_rotr n w) = rotater n (to_bl w)"
-  by (simp add: word_rotr_eq to_bl_use_of_bl)
+lemma word_rot_gal':
+  \<open>w = word_rotr n v \<longleftrightarrow> v = word_rotl n w\<close>
+  by auto
 
-lemmas brrs0 = rotater_eqs [THEN to_bl_rotr [THEN trans]]
-
-lemmas word_rotr_eqs =
-  brrs0 [simplified word_bl_Rep' word_bl.Rep_inject to_bl_rotr [symmetric]]
-
-declare word_rotr_eqs (1) [simp]
-declare word_rotl_eqs (1) [simp]
-
-lemma word_rot_rl [simp]: "word_rotl k (word_rotr k v) = v"
-  and word_rot_lr [simp]: "word_rotr k (word_rotl k v) = v"
-  by (auto simp add: to_bl_rotr to_bl_rotl word_bl.Rep_inject [symmetric])
-
-lemma word_rot_gal: "word_rotr n v = w \<longleftrightarrow> word_rotl n w = v"
-  and word_rot_gal': "w = word_rotr n v \<longleftrightarrow> v = word_rotl n w"
-  by (auto simp: to_bl_rotr to_bl_rotl word_bl.Rep_inject [symmetric] dest: sym)
-
-lemma word_rotr_rev: "word_rotr n w = word_reverse (word_rotl n (word_reverse w))"
-  by (simp only: word_bl.Rep_inject [symmetric] to_bl_word_rev to_bl_rotr to_bl_rotl rotater_rev)
+lemma word_rotr_rev:
+  \<open>word_rotr n w = word_reverse (word_rotl n (word_reverse w))\<close>
+proof (rule bit_word_eqI)
+  fix m
+  assume \<open>m < LENGTH('a)\<close>
+  moreover have \<open>1 +
+    ((int m + int n mod int LENGTH('a)) mod int LENGTH('a) +
+     ((int LENGTH('a) * 2) mod int LENGTH('a) - (1 + (int m + int n mod int LENGTH('a)))) mod int LENGTH('a)) =
+    int LENGTH('a)\<close>
+    apply (cases \<open>(1 + (int m + int n mod int LENGTH('a))) mod
+         int LENGTH('a) = 0\<close>)
+    using zmod_zminus1_eq_if [of \<open>1 + (int m + int n mod int LENGTH('a))\<close> \<open>int LENGTH('a)\<close>]
+    apply simp_all
+     apply (auto simp add: algebra_simps)
+     apply (simp add: minus_equation_iff [of \<open>int m\<close>])
+     apply (drule sym [of _ \<open>int m\<close>])
+    apply simp
+    apply (metis add.commute add_minus_cancel diff_minus_eq_add len_gt_0 less_imp_of_nat_less less_nat_zero_code mod_mult_self3 of_nat_gt_0 zmod_minus1)
+    apply (metis (no_types, hide_lams) Abs_fnat_hom_add less_not_refl mod_Suc of_nat_Suc of_nat_gt_0 of_nat_mod)
+    done
+  then have \<open>int ((m + n) mod LENGTH('a)) =
+    int (LENGTH('a) - Suc ((LENGTH('a) - Suc m + LENGTH('a) - n mod LENGTH('a)) mod LENGTH('a)))\<close>
+    using \<open>m < LENGTH('a)\<close>
+    by (simp only: of_nat_mod mod_simps)
+      (simp add: of_nat_diff of_nat_mod Suc_le_eq add_less_mono algebra_simps mod_simps)
+  then have \<open>(m + n) mod LENGTH('a) =
+    LENGTH('a) - Suc ((LENGTH('a) - Suc m + LENGTH('a) - n mod LENGTH('a)) mod LENGTH('a))\<close>
+    by simp
+  ultimately show \<open>bit (word_rotr n w) m \<longleftrightarrow> bit (word_reverse (word_rotl n (word_reverse w))) m\<close>
+    by (simp add: word_rotl_eq_word_rotr bit_word_rotr_iff bit_word_reverse_iff)
+qed
 
 lemma word_roti_0 [simp]: "word_roti 0 w = w"
   by transfer simp
 
-lemmas abl_cong = arg_cong [where f = "of_bl"]
-
 lemma word_roti_add: "word_roti (m + n) w = word_roti m (word_roti n w)"
-proof -
-  have rotater_eq_lem: "\<And>m n xs. m = n \<Longrightarrow> rotater m xs = rotater n xs"
-    by auto
-
-  have rotate_eq_lem: "\<And>m n xs. m = n \<Longrightarrow> rotate m xs = rotate n xs"
-    by auto
-
-  note rpts [symmetric] =
-    rotate_inv_plus [THEN conjunct1]
-    rotate_inv_plus [THEN conjunct2, THEN conjunct1]
-    rotate_inv_plus [THEN conjunct2, THEN conjunct2, THEN conjunct1]
-    rotate_inv_plus [THEN conjunct2, THEN conjunct2, THEN conjunct2]
-
-  note rrp = trans [symmetric, OF rotate_rotate rotate_eq_lem]
-  note rrrp = trans [symmetric, OF rotater_add [symmetric] rotater_eq_lem]
-
-  show ?thesis
-    apply (unfold word_rot_defs)
-    apply (simp only: split: if_split)
-    apply (safe intro!: abl_cong)
-           apply (simp_all only: to_bl_rotl [THEN word_bl.Rep_inverse']
-                  to_bl_rotl
-                  to_bl_rotr [THEN word_bl.Rep_inverse']
-                  to_bl_rotr)
-         apply (rule rrp rrrp rpts,
-                simp add: nat_add_distrib [symmetric]
-                nat_diff_distrib [symmetric])+
-    done
-qed
+  by (rule bit_word_eqI)
+    (simp add: bit_word_roti_iff nat_less_iff mod_simps ac_simps)
 
 lemma word_roti_conv_mod':
   "word_roti n w = word_roti (n mod int (size w)) w"
@@ -4936,18 +4201,6 @@ subsubsection \<open>"Word rotation commutes with bit-wise operations\<close>
 locale word_rotate
 begin
 
-lemmas word_rot_defs' = to_bl_rotl to_bl_rotr
-
-lemmas blwl_syms [symmetric] = bl_word_not bl_word_and bl_word_or bl_word_xor
-
-lemmas lbl_lbl = trans [OF word_bl_Rep' word_bl_Rep' [symmetric]]
-
-lemmas ths_map2 [OF lbl_lbl] = rotate_map2 rotater_map2
-
-lemmas ths_map [where xs = "to_bl v"] = rotate_map rotater_map for v
-
-lemmas th1s [simplified word_rot_defs' [symmetric]] = ths_map2 ths_map
-
 lemma word_rot_logs:
   "word_rotl n (NOT v) = NOT (word_rotl n v)"
   "word_rotr n (NOT v) = NOT (word_rotr n v)"
@@ -4957,55 +4210,33 @@ lemma word_rot_logs:
   "word_rotr n (x OR y) = word_rotr n x OR word_rotr n y"
   "word_rotl n (x XOR y) = word_rotl n x XOR word_rotl n y"
   "word_rotr n (x XOR y) = word_rotr n x XOR word_rotr n y"
-  by (rule word_bl.Rep_eqD,
-      rule word_rot_defs' [THEN trans],
-      simp only: blwl_syms [symmetric],
-      rule th1s [THEN trans],
-      rule refl)+
+         apply (rule bit_word_eqI)
+         apply (auto simp add: bit_word_rotl_iff bit_not_iff algebra_simps exp_eq_zero_iff not_le)
+        apply (rule bit_word_eqI)
+        apply (auto simp add: bit_word_rotr_iff bit_not_iff algebra_simps exp_eq_zero_iff not_le)
+       apply (rule bit_word_eqI)
+       apply (auto simp add: bit_word_rotl_iff bit_and_iff algebra_simps exp_eq_zero_iff not_le)
+      apply (rule bit_word_eqI)
+      apply (auto simp add: bit_word_rotr_iff bit_and_iff algebra_simps exp_eq_zero_iff not_le)
+     apply (rule bit_word_eqI)
+     apply (auto simp add: bit_word_rotl_iff bit_or_iff algebra_simps exp_eq_zero_iff not_le)
+    apply (rule bit_word_eqI)
+    apply (auto simp add: bit_word_rotr_iff bit_or_iff algebra_simps exp_eq_zero_iff not_le)
+   apply (rule bit_word_eqI)
+   apply (auto simp add: bit_word_rotl_iff bit_xor_iff algebra_simps exp_eq_zero_iff not_le)
+  apply (rule bit_word_eqI)
+  apply (auto simp add: bit_word_rotr_iff bit_xor_iff algebra_simps exp_eq_zero_iff not_le)
+  done
+
 end
 
 lemmas word_rot_logs = word_rotate.word_rot_logs
 
-lemmas bl_word_rotl_dt = trans [OF to_bl_rotl rotate_drop_take,
-  simplified word_bl_Rep']
-
-lemmas bl_word_rotr_dt = trans [OF to_bl_rotr rotater_drop_take,
-  simplified word_bl_Rep']
-
-lemma bl_word_roti_dt':
-  "n = nat ((- i) mod int (size (w :: 'a::len word))) \<Longrightarrow>
-    to_bl (word_roti i w) = drop n (to_bl w) @ take n (to_bl w)"
-  apply (unfold word_roti_eq_word_rotr_word_rotl)
-  apply (simp add: bl_word_rotl_dt bl_word_rotr_dt word_size)
-  apply safe
-   apply (simp add: zmod_zminus1_eq_if)
-   apply safe
-    apply (simp add: nat_mult_distrib)
-   apply (simp add: nat_diff_distrib [OF pos_mod_sign pos_mod_conj
-                                      [THEN conjunct2, THEN order_less_imp_le]]
-                    nat_mod_distrib)
-  apply (simp add: nat_mod_distrib)
-  done
-
-lemmas bl_word_roti_dt = bl_word_roti_dt' [unfolded word_size]
-
-lemmas word_rotl_dt = bl_word_rotl_dt [THEN word_bl.Rep_inverse' [symmetric]]
-lemmas word_rotr_dt = bl_word_rotr_dt [THEN word_bl.Rep_inverse' [symmetric]]
-lemmas word_roti_dt = bl_word_roti_dt [THEN word_bl.Rep_inverse' [symmetric]]
-
 lemma word_rotx_0 [simp] : "word_rotr i 0 = 0 \<and> word_rotl i 0 = 0"
-  by (simp add: word_rotr_dt word_rotl_dt replicate_add [symmetric])
+  by transfer simp_all
 
 lemma word_roti_0' [simp] : "word_roti n 0 = 0"
   by transfer simp
-
-lemmas word_rotr_dt_no_bin' [simp] =
-  word_rotr_dt [where w="numeral w", unfolded to_bl_numeral] for w
-  (* FIXME: negative numerals, 0 and 1 *)
-
-lemmas word_rotl_dt_no_bin' [simp] =
-  word_rotl_dt [where w="numeral w", unfolded to_bl_numeral] for w
-  (* FIXME: negative numerals, 0 and 1 *)
 
 declare word_roti_eq_word_rotr_word_rotl [simp]
 
@@ -5033,9 +4264,6 @@ lemma word_pow_0: "(2::'a::len word) ^ LENGTH('a) = 0"
 
 lemma max_word_wrap: "x + 1 = 0 \<Longrightarrow> x = max_word"
   by (simp add: eq_neg_iff_add_eq_0)
-
-lemma max_word_bl: "to_bl (max_word::'a::len word) = replicate LENGTH('a) True"
-  by (fact to_bl_n1)
 
 lemma max_test_bit: "(max_word::'a::len word) !! n \<longleftrightarrow> n < LENGTH('a)"
   by (fact nth_minus1)
@@ -5067,7 +4295,7 @@ lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
 
 lemma shiftr_x_0 [iff]: "x >> 0 = x"
   for x :: "'a::len word"
-  by (simp add: shiftr_bl)
+  by transfer simp
 
 lemma shiftl_x_0 [simp]: "x << 0 = x"
   for x :: "'a::len word"
@@ -5088,44 +4316,6 @@ lemma shiftr_1[simp]: "(1::'a::len word) >> n = (if n = 0 then 1 else 0)"
 lemma word_less_1 [simp]: "x < 1 \<longleftrightarrow> x = 0"
   for x :: "'a::len word"
   by (simp add: word_less_nat_alt unat_0_iff)
-
-lemma to_bl_mask:
-  "to_bl (mask n :: 'a::len word) =
-  replicate (LENGTH('a) - n) False @
-    replicate (min (LENGTH('a)) n) True"
-  by (simp add: mask_bl word_rep_drop min_def)
-
-lemma map_replicate_True:
-  "n = length xs \<Longrightarrow>
-    map (\<lambda>(x,y). x \<and> y) (zip xs (replicate n True)) = xs"
-  by (induct xs arbitrary: n) auto
-
-lemma map_replicate_False:
-  "n = length xs \<Longrightarrow> map (\<lambda>(x,y). x \<and> y)
-    (zip xs (replicate n False)) = replicate n False"
-  by (induct xs arbitrary: n) auto
-
-lemma bl_and_mask:
-  fixes w :: "'a::len word"
-    and n :: nat
-  defines "n' \<equiv> LENGTH('a) - n"
-  shows "to_bl (w AND mask n) = replicate n' False @ drop n' (to_bl w)"
-proof -
-  note [simp] = map_replicate_True map_replicate_False
-  have "to_bl (w AND mask n) = map2 (\<and>) (to_bl w) (to_bl (mask n::'a::len word))"
-    by (simp add: bl_word_and)
-  also have "to_bl w = take n' (to_bl w) @ drop n' (to_bl w)"
-    by simp
-  also have "map2 (\<and>) \<dots> (to_bl (mask n::'a::len word)) =
-      replicate n' False @ drop n' (to_bl w)"
-    unfolding to_bl_mask n'_def by (subst zip_append) auto
-  finally show ?thesis .
-qed
-
-lemma drop_rev_takefill:
-  "length xs \<le> n \<Longrightarrow>
-    drop (n - length xs) (rev (takefill False n (rev xs))) = xs"
-  by (simp add: takefill_alt rev_take)
 
 lemma map_nth_0 [simp]: "map ((!!) (0::'a::len word)) xs = replicate (length xs) False"
   by (induct xs) auto
@@ -5379,8 +4569,6 @@ lemma uint_shiftl:
 
 
 subsection \<open>Misc\<close>
-
-declare bin_to_bl_def [simp]
 
 ML_file \<open>Tools/word_lib.ML\<close>
 ML_file \<open>Tools/smt_word.ML\<close>

@@ -63,6 +63,11 @@ written as "x powi n".
 * Session HOL-Word: Type word is restricted to bit strings consisting
 of at least one bit.  INCOMPATIBILITY.
 
+* Session HOL-Word: Various operations dealing with bit values
+represented as reversed lists of bools are separated into theory
+Reversed_Bit_Lists, included by theory More_Word rather than theory Word.
+INCOMPATIBILITY.
+
 * Session HOL-Word: Bit operations NOT, AND, OR, XOR are based on
 generic algebraic bit operations from HOL-Library.Bit_Operations.
 INCOMPATIBILITY.

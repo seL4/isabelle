@@ -7,6 +7,7 @@ theory More_Word
 imports
   Word
   Ancient_Numeral
+  Reversed_Bit_Lists
   Misc_Auxiliary
   Misc_Arithmetic
   Misc_set_bit

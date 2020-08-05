@@ -4,7 +4,9 @@
 section \<open>Operation variant for the least significant bit\<close>
 
 theory Misc_lsb
-  imports Word
+  imports
+    Word
+    Reversed_Bit_Lists
 begin
 
 class lsb = semiring_bits +

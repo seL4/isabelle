@@ -4,7 +4,9 @@
 section \<open>Operation variant for the most significant bit\<close>
 
 theory Misc_msb
-  imports Word
+  imports
+    Word
+    Reversed_Bit_Lists
 begin
 
 class msb =

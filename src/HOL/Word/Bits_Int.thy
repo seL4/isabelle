@@ -489,8 +489,17 @@ lemma bin_cat_assoc: "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y
 lemma bin_cat_assoc_sym: "bin_cat x m (bin_cat y n z) = bin_cat (bin_cat x (m - n) y) (min m n) z"
   by (fact concat_bit_assoc_sym)
 
-definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int"
-  where "bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0"
+definition bin_rcat :: \<open>nat \<Rightarrow> int list \<Rightarrow> int\<close>
+  where \<open>bin_rcat n = horner_sum (take_bit n) (2 ^ n) \<circ> rev\<close>
+
+lemma bin_rcat_eq_foldl:
+  \<open>bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0\<close>
+proof
+  fix ks :: \<open>int list\<close>
+  show \<open>bin_rcat n ks = foldl (\<lambda>u v. bin_cat u n v) 0 ks\<close>
+    by (induction ks rule: rev_induct)
+      (simp_all add: bin_rcat_def concat_bit_eq push_bit_eq_mult)
+qed
 
 fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
   where "bin_rsplit_aux n m c bs =
@@ -719,7 +728,7 @@ lemma bin_rsplit_l [rule_format]:
 
 lemma bin_rsplit_rcat [rule_format]:
   "n > 0 \<longrightarrow> bin_rsplit n (n * size ws, bin_rcat n ws) = map (bintrunc n) ws"
-  apply (unfold bin_rsplit_def bin_rcat_def)
+  apply (unfold bin_rsplit_def bin_rcat_eq_foldl)
   apply (rule_tac xs = ws in rev_induct)
    apply clarsimp
   apply clarsimp
