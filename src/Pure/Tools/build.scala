@@ -237,6 +237,7 @@ object Build
         }
 
         val stdout = new StringBuilder(1000)
+        val stderr = new StringBuilder(1000)
         val messages = new mutable.ListBuffer[XML.Elem]
         val command_timings = new mutable.ListBuffer[Properties.T]
         val theory_timings = new mutable.ListBuffer[Properties.T]
@@ -326,6 +327,9 @@ object Build
               if (msg.is_stdout) {
                 stdout ++= Symbol.encode(XML.content(message))
               }
+              else if (msg.is_stderr) {
+                stderr ++= Symbol.encode(XML.content(message))
+              }
               else if (Protocol.is_exported(message)) {
                 messages += message
               }
@@ -371,7 +375,8 @@ object Build
           runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
           task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 
-        val result = process_result.output(process_output)
+        val result =
+          process_result.output(process_output).error(Library.trim_line(stderr.toString))
 
         errors match {
           case Exn.Res(Nil) => result
