@@ -202,8 +202,7 @@ subsection \<open>Invoking functions in Isabelle/ML\<close>
 
 text \<open>
   Isabelle/PIDE provides a protocol to invoke registered Scala functions in
-  ML: this requires a proper PIDE session context, e.g.\ within the Prover IDE
-  or in batch builds via option @{system_option pide_session}.
+  ML: this works both within the Prover IDE and in batch builds.
 
   The subsequent ML antiquotations refer to Scala functions in a
   formally-checked manner.

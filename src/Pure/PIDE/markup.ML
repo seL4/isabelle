@@ -165,10 +165,7 @@ sig
   val cpuN: string
   val gcN: string
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
-  val parse_timing_properties: Properties.T -> {elapsed: Time.time, cpu: Time.time, gc: Time.time}
   val command_timingN: string
-  val command_timing_properties:
-    {file: string, offset: int, name: string} -> Time.time -> Properties.T
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
@@ -225,7 +222,6 @@ sig
   val theory_timing: Properties.entry
   val session_timing: Properties.entry
   val loading_theory: string -> Properties.T
-  val dest_loading_theory: Properties.T -> string option
   val build_session_finished: Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
@@ -589,11 +585,6 @@ fun timing_properties {elapsed, cpu, gc} =
   (cpuN, Value.print_time cpu),
   (gcN, Value.print_time gc)];
 
-fun parse_timing_properties props =
- {elapsed = Properties.seconds props elapsedN,
-  cpu = Properties.seconds props cpuN,
-  gc = Properties.seconds props gcN};
-
 val timingN = "timing";
 fun timing t = (timingN, timing_properties t);
 
@@ -601,10 +592,6 @@ fun timing t = (timingN, timing_properties t);
 (* command timing *)
 
 val command_timingN = "command_timing";
-
-fun command_timing_properties {file, offset, name} elapsed =
- [(fileN, file), (offsetN, Value.print_int offset),
-  (nameN, name), (elapsedN, Value.print_time elapsed)];
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
@@ -709,9 +696,6 @@ val theory_timing = (functionN, "theory_timing");
 val session_timing = (functionN, "session_timing");
 
 fun loading_theory name = [("function", "loading_theory"), ("name", name)];
-
-fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
-  | dest_loading_theory _ = NONE;
 
 val build_session_finished = [("function", "build_session_finished")];
 

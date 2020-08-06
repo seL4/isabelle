@@ -10,8 +10,7 @@ Contributions to this Isabelle version
   Integration of Metis 2.4.
 
 * June 2020: Makarius Wenzel
-  System option pide_session is enabled by default, notably for standard
-  "isabelle build" to invoke Scala from ML.
+  Batch-builds via "isabelle build" allow to invoke Scala from ML.
 
 * May 2020: Makarius Wenzel
   Antiquotations for Isabelle systems programming, notably @{scala_function}

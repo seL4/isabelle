@@ -160,7 +160,7 @@ object Build
     do_store: Boolean,
     verbose: Boolean,
     val numa_node: Option[Int],
-    command_timings: List[Properties.T])
+    command_timings0: List[Properties.T])
   {
     val options: Options = NUMA.policy_options(info.options, numa_node)
 
@@ -189,7 +189,7 @@ object Build
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
                 pair(list(string), list(string)))))))))))))))))(
-              (Symbol.codes, (command_timings, (verbose,
+              (Symbol.codes, (command_timings0, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (session_name, (Path.current,
                 (info.theories,
@@ -216,205 +216,164 @@ object Build
           }
           else Nil
 
-        if (options.bool("pide_session") || true /* FIXME test */) {
-          val resources = new Resources(sessions_structure, deps(parent))
-          val session =
-            new Session(options, resources) {
-              override val xml_cache: XML.Cache = store.xml_cache
-              override val xz_cache: XZ.Cache = store.xz_cache
-            }
-
-          object Build_Session_Errors
-          {
-            private val promise: Promise[List[String]] = Future.promise
-
-            def result: Exn.Result[List[String]] = promise.join_result
-            def cancel: Unit = promise.cancel
-            def apply(errs: List[String])
-            {
-              try { promise.fulfill(errs) }
-              catch { case _: IllegalStateException => }
-            }
+        val resources = new Resources(sessions_structure, deps(parent))
+        val session =
+          new Session(options, resources) {
+            override val xml_cache: XML.Cache = store.xml_cache
+            override val xz_cache: XZ.Cache = store.xz_cache
           }
 
-          val stdout = new StringBuilder(1000)
-          val messages = new mutable.ListBuffer[XML.Elem]
-          val command_timings = new mutable.ListBuffer[Properties.T]
-          val theory_timings = new mutable.ListBuffer[Properties.T]
-          val session_timings = new mutable.ListBuffer[Properties.T]
-          val runtime_statistics = new mutable.ListBuffer[Properties.T]
-          val task_statistics = new mutable.ListBuffer[Properties.T]
+        object Build_Session_Errors
+        {
+          private val promise: Promise[List[String]] = Future.promise
 
-          def fun(
-            name: String,
-            acc: mutable.ListBuffer[Properties.T],
-            unapply: Properties.T => Option[Properties.T]): (String, Session.Protocol_Function) =
+          def result: Exn.Result[List[String]] = promise.join_result
+          def cancel: Unit = promise.cancel
+          def apply(errs: List[String])
           {
-            name -> ((msg: Prover.Protocol_Output) =>
-              unapply(msg.properties) match {
-                case Some(props) => acc += props; true
-                case _ => false
-              })
-          }
-
-          session.init_protocol_handler(new Session.Protocol_Handler
-            {
-              override def exit() { Build_Session_Errors.cancel }
-
-              private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
-              {
-                val (rc, errors) =
-                  try {
-                    val (rc, errs) =
-                    {
-                      import XML.Decode._
-                      pair(int, list(x => x))(Symbol.decode_yxml(msg.text))
-                    }
-                    val errors =
-                      for (err <- errs) yield {
-                        val prt = Protocol_Message.expose_no_reports(err)
-                        Pretty.string_of(prt, metric = Symbol.Metric)
-                      }
-                    (rc, errors)
-                  }
-                  catch { case ERROR(err) => (2, List(err)) }
-
-                session.protocol_command("Prover.stop", rc.toString)
-                Build_Session_Errors(errors)
-                true
-              }
-
-              private def loading_theory(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Markup.Loading_Theory(name) =>
-                    progress.theory(Progress.Theory(name, session = session_name))
-                    true
-                  case _ => false
-                }
-
-              private def export(msg: Prover.Protocol_Output): Boolean =
-                msg.properties match {
-                  case Protocol.Export(args) =>
-                    export_consumer(session_name, args, msg.bytes)
-                    true
-                  case _ => false
-                }
-
-              val functions =
-                List(
-                  Markup.Build_Session_Finished.name -> build_session_finished,
-                  Markup.Loading_Theory.name -> loading_theory,
-                  Markup.EXPORT -> export,
-                  fun(Markup.Command_Timing.name, command_timings, Markup.Command_Timing.unapply),
-                  fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
-                  fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
-                  fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
-                  fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
-            })
-
-          session.all_messages += Session.Consumer[Any]("build_session_output")
-            {
-              case msg: Prover.Output =>
-                val message = msg.message
-                if (msg.is_stdout) {
-                  stdout ++= Symbol.encode(XML.content(message))
-                }
-                else if (Protocol.is_exported(message)) {
-                  messages += message
-                }
-                else if (msg.is_exit) {
-                  val err =
-                    "Prover terminated" +
-                      (msg.properties match {
-                        case Markup.Process_Result(result) => ": " + result.print_rc
-                        case _ => ""
-                      })
-                  Build_Session_Errors(List(err))
-                }
-              case _ =>
-            }
-
-          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
-
-          val process =
-            Isabelle_Process(session, options, sessions_structure, store,
-              logic = parent, raw_ml_system = is_pure,
-              use_prelude = use_prelude, eval_main = eval_main,
-              cwd = info.dir.file, env = env)
-
-          val errors =
-            Isabelle_Thread.interrupt_handler(_ => process.terminate) {
-              Exn.capture { process.await_startup } match {
-                case Exn.Res(_) =>
-                  session.protocol_command("build_session", args_yxml)
-                  Build_Session_Errors.result
-                case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
-              }
-            }
-
-          val process_result =
-            Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
-          val process_output =
-            stdout.toString ::
-            messages.toList.map(message =>
-              Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
-            command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
-            theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
-            session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
-            runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
-            task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
-
-          val result = process_result.output(process_output)
-
-          errors match {
-            case Exn.Res(Nil) => result
-            case Exn.Res(errs) =>
-              result.error_rc.output(
-                errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
-                  errs.map(Protocol.Error_Message_Marker.apply))
-            case Exn.Exn(Exn.Interrupt()) =>
-              if (result.ok) result.copy(rc = Exn.Interrupt.return_code) else result
-            case Exn.Exn(exn) => throw exn
+            try { promise.fulfill(errs) }
+            catch { case _: IllegalStateException => }
           }
         }
-        else {
-          val args_file = Isabelle_System.tmp_file("build")
-          File.write(args_file, args_yxml)
 
-          val eval_build =
-            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
-          val eval_main = Command_Line.ML_tool(eval_build :: eval_store)
+        val stdout = new StringBuilder(1000)
+        val messages = new mutable.ListBuffer[XML.Elem]
+        val command_timings = new mutable.ListBuffer[Properties.T]
+        val theory_timings = new mutable.ListBuffer[Properties.T]
+        val session_timings = new mutable.ListBuffer[Properties.T]
+        val runtime_statistics = new mutable.ListBuffer[Properties.T]
+        val task_statistics = new mutable.ListBuffer[Properties.T]
 
-          val process =
-            ML_Process(options, deps.sessions_structure, store,
-              logic = parent, raw_ml_system = is_pure,
-              use_prelude = use_prelude, eval_main = eval_main,
-              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
+        def fun(
+          name: String,
+          acc: mutable.ListBuffer[Properties.T],
+          unapply: Properties.T => Option[Properties.T]): (String, Session.Protocol_Function) =
+        {
+          name -> ((msg: Prover.Protocol_Output) =>
+            unapply(msg.properties) match {
+              case Some(props) => acc += props; true
+              case _ => false
+            })
+        }
 
-          Isabelle_Thread.interrupt_handler(_ => process.terminate) {
-            process.result(
-              progress_stdout =
-                {
-                  case Protocol.Loading_Theory_Marker(theory) =>
-                    progress.theory(Progress.Theory(theory, session = session_name))
-                  case Protocol.Export.Marker((args, path)) =>
-                    val body =
-                      try { Bytes.read(path) }
-                      catch {
-                        case ERROR(msg) =>
-                          error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
-                      }
-                    path.file.delete
-                    export_consumer(session_name, args, body)
-                  case _ =>
-                },
-              progress_limit =
-                options.int("process_output_limit") match {
-                  case 0 => None
-                  case m => Some(m * 1000000L)
-                },
-              strict = false)
+        session.init_protocol_handler(new Session.Protocol_Handler
+          {
+            override def exit() { Build_Session_Errors.cancel }
+
+            private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
+            {
+              val (rc, errors) =
+                try {
+                  val (rc, errs) =
+                  {
+                    import XML.Decode._
+                    pair(int, list(x => x))(Symbol.decode_yxml(msg.text))
+                  }
+                  val errors =
+                    for (err <- errs) yield {
+                      val prt = Protocol_Message.expose_no_reports(err)
+                      Pretty.string_of(prt, metric = Symbol.Metric)
+                    }
+                  (rc, errors)
+                }
+                catch { case ERROR(err) => (2, List(err)) }
+
+              session.protocol_command("Prover.stop", rc.toString)
+              Build_Session_Errors(errors)
+              true
+            }
+
+            private def loading_theory(msg: Prover.Protocol_Output): Boolean =
+              msg.properties match {
+                case Markup.Loading_Theory(name) =>
+                  progress.theory(Progress.Theory(name, session = session_name))
+                  true
+                case _ => false
+              }
+
+            private def export(msg: Prover.Protocol_Output): Boolean =
+              msg.properties match {
+                case Protocol.Export(args) =>
+                  export_consumer(session_name, args, msg.bytes)
+                  true
+                case _ => false
+              }
+
+            val functions =
+              List(
+                Markup.Build_Session_Finished.name -> build_session_finished,
+                Markup.Loading_Theory.name -> loading_theory,
+                Markup.EXPORT -> export,
+                fun(Markup.Command_Timing.name, command_timings, Markup.Command_Timing.unapply),
+                fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
+                fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
+                fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
+                fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
+          })
+
+        session.all_messages += Session.Consumer[Any]("build_session_output")
+          {
+            case msg: Prover.Output =>
+              val message = msg.message
+              if (msg.is_stdout) {
+                stdout ++= Symbol.encode(XML.content(message))
+              }
+              else if (Protocol.is_exported(message)) {
+                messages += message
+              }
+              else if (msg.is_exit) {
+                val err =
+                  "Prover terminated" +
+                    (msg.properties match {
+                      case Markup.Process_Result(result) => ": " + result.print_rc
+                      case _ => ""
+                    })
+                Build_Session_Errors(List(err))
+              }
+            case _ =>
           }
+
+        val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
+
+        val process =
+          Isabelle_Process(session, options, sessions_structure, store,
+            logic = parent, raw_ml_system = is_pure,
+            use_prelude = use_prelude, eval_main = eval_main,
+            cwd = info.dir.file, env = env)
+
+        val errors =
+          Isabelle_Thread.interrupt_handler(_ => process.terminate) {
+            Exn.capture { process.await_startup } match {
+              case Exn.Res(_) =>
+                session.protocol_command("build_session", args_yxml)
+                Build_Session_Errors.result
+              case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
+            }
+          }
+
+        val process_result =
+          Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
+        val process_output =
+          stdout.toString ::
+          messages.toList.map(message =>
+            Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
+          command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+          theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+          session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
+          runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+          task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
+
+        val result = process_result.output(process_output)
+
+        errors match {
+          case Exn.Res(Nil) => result
+          case Exn.Res(errs) =>
+            result.error_rc.output(
+              errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                errs.map(Protocol.Error_Message_Marker.apply))
+          case Exn.Exn(Exn.Interrupt()) =>
+            if (result.ok) result.copy(rc = Exn.Interrupt.return_code) else result
+          case Exn.Exn(exn) => throw exn
         }
       }
 
