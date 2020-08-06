@@ -165,7 +165,6 @@ sig
   val cpuN: string
   val gcN: string
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
-  val command_timingN: string
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
@@ -590,8 +589,6 @@ fun timing t = (timingN, timing_properties t);
 
 
 (* command timing *)
-
-val command_timingN = "command_timing";
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
