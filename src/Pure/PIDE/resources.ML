@@ -8,14 +8,12 @@ signature RESOURCES =
 sig
   val default_qualifier: string
   val init_session:
-    {pide: bool,
-     session_positions: (string * Properties.T) list,
+    {session_positions: (string * Properties.T) list,
      session_directories: (string * string) list,
      docs: string list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
   val finish_session_base: unit -> unit
-  val is_pide: unit -> bool
   val global_theory: string -> string option
   val loaded_theory: string -> bool
   val check_session: Proof.context -> string * Position.T -> string
@@ -54,8 +52,7 @@ fun make_entry props : entry =
   {pos = Position.of_properties props, serial = serial ()};
 
 val empty_session_base =
-  {pide = false,
-   session_positions = []: (string * entry) list,
+  {session_positions = []: (string * entry) list,
    session_directories = Symtab.empty: Path.T list Symtab.table,
    docs = []: (string * entry) list,
    global_theories = Symtab.empty: string Symtab.table,
@@ -65,11 +62,10 @@ val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session
-    {pide, session_positions, session_directories, docs, global_theories, loaded_theories} =
+    {session_positions, session_directories, docs, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
-      {pide = pide,
-       session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
+      {session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
        session_directories =
          fold_rev (fn (dir, name) => Symtab.cons_list (name, Path.explode dir))
            session_directories Symtab.empty,
@@ -80,16 +76,13 @@ fun init_session
 fun finish_session_base () =
   Synchronized.change global_session_base
     (fn {global_theories, loaded_theories, ...} =>
-      {pide = false,
-       session_positions = [],
+      {session_positions = [],
        session_directories = Symtab.empty,
        docs = [],
        global_theories = global_theories,
        loaded_theories = loaded_theories});
 
 fun get_session_base f = f (Synchronized.value global_session_base);
-
-fun is_pide () = get_session_base #pide;
 
 fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;

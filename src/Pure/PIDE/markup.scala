@@ -576,6 +576,8 @@ object Markup
       }
   }
 
+  val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
+
   object Command_Timing extends Properties_Function("command_timing")
   object Theory_Timing extends Properties_Function("theory_timing")
   object Session_Timing extends Properties_Function("session_timing")

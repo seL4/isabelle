@@ -213,6 +213,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     val _ = BinIO.closeIn in_stream;
     val _ = BinIO.closeOut out_stream;
 
+    val _ = Options.reset_default ();
   in
     (case result of
       Exn.Exn (STOP rc) => if rc = 0 then () else exit rc

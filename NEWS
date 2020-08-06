@@ -130,10 +130,10 @@ via the PIDE protocol.
 
 *** System ***
 
-* System option "pide_session" is enabled by default, notably for
-standard "isabelle build": it allows to invoke Isabelle/Scala operations
-from Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for
-the java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
+* Batch-builds via "isabelle build" use a PIDE session with special
+protocol: this allows to invoke Isabelle/Scala operations from
+Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for the
+java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
 
   ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
 
