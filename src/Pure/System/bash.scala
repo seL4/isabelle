@@ -45,19 +45,6 @@ object Bash
 
   /* process and result */
 
-  private class Limited_Progress(proc: Process, progress_limit: Option[Long])
-  {
-    private var count = 0L
-    def apply(progress: String => Unit)(line: String): Unit = synchronized {
-      progress(line)
-      count = count + line.length + 1
-      progress_limit match {
-        case Some(limit) if count > limit => proc.terminate
-        case _ =>
-      }
-    }
-  }
-
   def process(script: String,
       cwd: JFile = null,
       env: Map[String, String] = Isabelle_System.settings(),
@@ -181,16 +168,14 @@ object Bash
     def result(
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
-      progress_limit: Option[Long] = None,
       strict: Boolean = true): Process_Result =
     {
       stdin.close
 
-      val limited = new Limited_Progress(this, progress_limit)
       val out_lines =
-        Future.thread("bash_stdout") { File.read_lines(stdout, limited(progress_stdout)) }
+        Future.thread("bash_stdout") { File.read_lines(stdout, progress_stdout) }
       val err_lines =
-        Future.thread("bash_stderr") { File.read_lines(stderr, limited(progress_stderr)) }
+        Future.thread("bash_stderr") { File.read_lines(stderr, progress_stderr) }
 
       val rc =
         try { join }
