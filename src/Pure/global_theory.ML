@@ -13,6 +13,7 @@ sig
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
   val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
+  val get_thm_names: theory -> Thm_Name.T Inttab.table
   val dest_thm_names: theory -> (Proofterm.thm_id * Thm_Name.T) list
   val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
   val lookup_thm: theory -> thm -> (Proofterm.thm_id * Thm_Name.T) option
@@ -107,22 +108,23 @@ fun make_thm_names thy =
                 Thm_Name.print thm_name', 0, [thm])
           | NONE => Inttab.update (serial, thm_name) thm_names)));
 
-fun get_thm_names thy =
+fun lazy_thm_names thy =
   (case thm_names_of thy of
     NONE => Lazy.lazy (fn () => make_thm_names thy)
   | SOME lazy_tab => lazy_tab);
+
+val get_thm_names = Lazy.force o lazy_thm_names;
 
 fun dest_thm_names thy =
   let
     val theory_name = Context.theory_long_name thy;
     fun thm_id i = Proofterm.make_thm_id (i, theory_name);
-    val thm_names = Lazy.force (get_thm_names thy);
-  in Inttab.fold_rev (fn (i, thm_name) => cons (thm_id i, thm_name)) thm_names [] end;
+  in Inttab.fold_rev (fn (i, thm_name) => cons (thm_id i, thm_name)) (get_thm_names thy) [] end;
 
 fun lookup_thm_id thy =
   let
     val theories =
-      fold (fn thy' => Symtab.update (Context.theory_long_name thy', get_thm_names thy'))
+      fold (fn thy' => Symtab.update (Context.theory_long_name thy', lazy_thm_names thy'))
         (Theory.nodes_of thy) Symtab.empty;
     fun lookup (thm_id: Proofterm.thm_id) =
       (case Symtab.lookup theories (#theory_name thm_id) of
@@ -142,15 +144,19 @@ fun lookup_thm thy =
   end;
 
 val _ =
-  Theory.setup (Theory.at_end (fn thy =>
-    if is_some (thm_names_of thy) then NONE
-    else
-      let
-        val lazy_tab =
-          if Future.proofs_enabled 1
-          then Lazy.lazy (fn () => make_thm_names thy)
-          else Lazy.value (make_thm_names thy);
-      in SOME (map_thm_names (K (SOME lazy_tab)) thy) end));
+  Theory.setup
+   (Theory.at_begin (fn thy =>
+      if is_none (thm_names_of thy) then NONE
+      else SOME (map_thm_names (K NONE) thy)) #>
+    Theory.at_end (fn thy =>
+      if is_some (thm_names_of thy) then NONE
+      else
+        let
+          val lazy_tab =
+            if Future.proofs_enabled 1
+            then Lazy.lazy (fn () => make_thm_names thy)
+            else Lazy.value (make_thm_names thy);
+        in SOME (map_thm_names (K (SOME lazy_tab)) thy) end));
 
 
 (* retrieve theorems *)
