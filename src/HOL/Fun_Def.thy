@@ -217,6 +217,9 @@ lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_lessI2: "a \<le> b \<Longrightarrow> s < t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
   by (auto simp: pair_leq_def pair_less_def)
 
+lemma pair_less_iff1 [simp]: "((x,y), (x,z)) \<in> pair_less \<longleftrightarrow> y<z"
+  by (simp add: pair_less_def)
+
 text \<open>Introduction rules for max\<close>
 lemma smax_emptyI: "finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> ({}, Y) \<in> max_strict"
   and smax_insertI:

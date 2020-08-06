@@ -1280,6 +1280,28 @@ lemma INF_fold_inf: "finite A \<Longrightarrow> \<Sqinter>(f ` A) = fold (inf \<
 lemma SUP_fold_sup: "finite A \<Longrightarrow> \<Squnion>(f ` A) = fold (sup \<circ> f) bot A"
   using sup_SUP_fold_sup [of A bot] by simp
 
+lemma finite_Inf_in:
+  assumes "finite A" "A\<noteq>{}" and inf: "\<And>x y. \<lbrakk>x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> inf x y \<in> A"
+  shows "Inf A \<in> A"
+proof -
+  have "Inf B \<in> A" if "B \<le> A" "B\<noteq>{}" for B
+    using finite_subset [OF \<open>B \<subseteq> A\<close> \<open>finite A\<close>] that
+  by (induction B) (use inf in \<open>force+\<close>)
+  then show ?thesis
+    by (simp add: assms)
+qed
+
+lemma finite_Sup_in:
+  assumes "finite A" "A\<noteq>{}" and sup: "\<And>x y. \<lbrakk>x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> sup x y \<in> A"
+  shows "Sup A \<in> A"
+proof -
+  have "Sup B \<in> A" if "B \<le> A" "B\<noteq>{}" for B
+    using finite_subset [OF \<open>B \<subseteq> A\<close> \<open>finite A\<close>] that
+  by (induction B) (use sup in \<open>force+\<close>)
+  then show ?thesis
+    by (simp add: assms)
+qed
+
 end
 
 

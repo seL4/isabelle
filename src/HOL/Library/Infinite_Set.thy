@@ -363,6 +363,13 @@ proof -
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
 
+lemma 
+  fixes S :: "nat set"
+  assumes S: "infinite S"
+  shows range_enumerate: "range (enumerate S) = S" 
+    and strict_mono_enumerate: "strict_mono (enumerate S)"
+  by (auto simp add: bij_betw_imp_surj_on bij_enumerate assms strict_mono_def)
+
 text \<open>A pair of weird and wonderful lemmas from HOL Light.\<close>
 lemma finite_transitivity_chain:
   assumes "finite A"
