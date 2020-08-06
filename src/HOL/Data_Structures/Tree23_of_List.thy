@@ -22,9 +22,9 @@ fun len :: "'a tree23s \<Rightarrow> nat" where
 "len (T _) = 1" |
 "len (TTs _ _ ts) = len ts + 1"
 
-fun trees :: "'a tree23s \<Rightarrow> 'a tree23 list" where
-"trees (T t) = [t]" |
-"trees (TTs t a ts) = t # trees ts"
+fun trees :: "'a tree23s \<Rightarrow> 'a tree23 set" where
+"trees (T t) = {t}" |
+"trees (TTs t a ts) = {t} \<union> trees ts"
 
 text \<open>Join pairs of adjacent trees:\<close>
 
@@ -97,12 +97,12 @@ by(simp add: tree23_of_list_def inorder_join_all inorder2_leaves)
 subsubsection \<open>Completeness:\<close>
 
 lemma complete_join_adj:
-  "\<forall>t \<in> set(trees ts). complete t \<and> height t = n \<Longrightarrow> not_T ts \<Longrightarrow>
-   \<forall>t \<in> set(trees (join_adj ts)). complete t \<and> height t = Suc n"
+  "\<forall>t \<in> trees ts. complete t \<and> height t = n \<Longrightarrow> not_T ts \<Longrightarrow>
+   \<forall>t \<in> trees (join_adj ts). complete t \<and> height t = Suc n"
 by (induction ts rule: join_adj.induct) auto
 
 lemma complete_join_all:
- "\<forall>t \<in> set(trees ts). complete t \<and> height t = n \<Longrightarrow> complete (join_all ts)"
+ "\<forall>t \<in> trees ts. complete t \<and> height t = n \<Longrightarrow> complete (join_all ts)"
 proof (induction ts arbitrary: n rule: measure_induct_rule[where f = "len"])
   case (less ts)
   show ?case
@@ -116,7 +116,7 @@ proof (induction ts arbitrary: n rule: measure_induct_rule[where f = "len"])
   qed
 qed
 
-lemma complete_leaves: "t \<in> set(trees (leaves as)) \<Longrightarrow> complete t \<and> height t = 0"
+lemma complete_leaves: "t \<in> trees (leaves as) \<Longrightarrow> complete t \<and> height t = 0"
 by (induction as) auto
 
 corollary complete: "complete(tree23_of_list as)"
