@@ -415,11 +415,11 @@ context
 begin
 
 lemma [transfer_rule]:
-  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) of_bool of_bool"
+  "((=) ===> pcr_word) of_bool of_bool"
   by transfer_prover
 
 lemma [transfer_rule]:
-  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
+  "((=) ===> pcr_word) numeral numeral"
   by transfer_prover
 
 lemma [transfer_rule]:

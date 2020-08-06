@@ -612,6 +612,8 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description "
     Miscellaneous examples for Higher-Order Logic.
   "
+  sessions
+    "HOL-Word"
   theories
     Antiquote
     Argo_Examples
@@ -693,7 +695,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Triangular_Numbers
     Unification
     While_Combinator_Example
-    Word
+    Word_Conversions
     veriT_Preprocessing
   theories [skip_proofs = false]
     SAT_Examples
