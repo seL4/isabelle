@@ -130,6 +130,9 @@ via the PIDE protocol.
 
 *** System ***
 
+* ML statistics via an external Poly/ML process: this allows monitoring
+the runtime system while the ML program sleeps.
+
 * Batch-builds via "isabelle build" use a PIDE session with special
 protocol: this allows to invoke Isabelle/Scala operations from
 Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for the
