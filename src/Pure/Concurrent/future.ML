@@ -17,7 +17,6 @@ sig
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val ML_statistics: bool Unsynchronized.ref
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -168,31 +167,25 @@ fun count_workers state = (*requires SYNCHRONIZED*)
   fold (fn (_, state_ref) => fn i => if ! state_ref = state then i + 1 else i) (! workers) 0;
 
 
+(* ML statistics *)
 
-(* status *)
-
-val ML_statistics = Unsynchronized.ref false;
-
-fun report_status () = (*requires SYNCHRONIZED*)
-  if ! ML_statistics then
-    let
-      val {ready, pending, running, passive, urgent} = Task_Queue.status (! queue);
-      val workers_total = length (! workers);
-      val workers_active = count_workers Working;
-      val workers_waiting = count_workers Waiting;
-      val _ =
-        ML_Statistics.set
-         {tasks_ready = ready,
-          tasks_pending = pending,
-          tasks_running = running,
-          tasks_passive = passive,
-          tasks_urgent = urgent,
-          workers_total = workers_total,
-          workers_active = workers_active,
-          workers_waiting = workers_waiting};
-      val stats = ML_Statistics.get ();
-    in Output.try_protocol_message (Markup.ML_statistics :: stats) [] end
-  else ();
+fun ML_statistics () = (*requires SYNCHRONIZED*)
+  let
+    val {ready, pending, running, passive, urgent} = Task_Queue.status (! queue);
+    val workers_total = length (! workers);
+    val workers_active = count_workers Working;
+    val workers_waiting = count_workers Waiting;
+  in
+    ML_Statistics.set
+     {tasks_ready = ready,
+      tasks_pending = pending,
+      tasks_running = running,
+      tasks_passive = passive,
+      tasks_urgent = urgent,
+      workers_total = workers_total,
+      workers_active = workers_active,
+      workers_waiting = workers_waiting}
+  end;
 
 
 (* cancellation primitives *)
@@ -286,7 +279,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 (* scheduler *)
 
 fun scheduler_end () = (*requires SYNCHRONIZED*)
-  (report_status (); scheduler := NONE);
+  (ML_statistics (); scheduler := NONE);
 
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
@@ -300,8 +293,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ =
       if tick then Unsynchronized.change status_ticks (fn i => i + 1) else ();
     val _ =
-      if tick andalso ! status_ticks mod (if ! Multithreading.trace >= 1 then 2 else 10) = 0
-      then report_status () else ();
+      if tick andalso ! status_ticks mod (if ! Multithreading.trace >= 1 then 2 else 5) = 0
+      then ML_statistics () else ();
 
     val _ =
       if not tick orelse forall (Thread.isActive o #1) (! workers) then ()

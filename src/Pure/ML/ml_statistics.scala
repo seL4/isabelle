@@ -50,6 +50,45 @@ object ML_Statistics
   }
 
 
+  /* protocol handler */
+
+  class Protocol_Handler extends Session.Protocol_Handler
+  {
+    private var session: Session = null
+    private var monitoring: Future[Unit] = Future.value(())
+
+    override def init(init_session: Session): Unit = synchronized
+    {
+      session = init_session
+    }
+
+    override def exit(): Unit = synchronized
+    {
+      session = null
+      monitoring.cancel
+    }
+
+    private def consume(props: Properties.T): Unit = synchronized
+    {
+      if (session != null && session.session_options.bool("ML_statistics")) {
+        session.runtime_statistics.post(Session.Runtime_Statistics(props))
+      }
+    }
+
+    private def ml_pid(msg: Prover.Protocol_Output): Boolean = synchronized
+    {
+      msg.properties match {
+        case Markup.ML_Pid(pid) =>
+          monitoring = Future.thread("ML_statistics") { monitor(pid, consume = consume) }
+          true
+        case _ => false
+      }
+    }
+
+    val functions = List(Markup.ML_Pid.name -> ml_pid)
+  }
+
+
   /* memory fields (mega bytes) */
 
   def mem_print(x: Long): Option[String] =

@@ -113,6 +113,8 @@ fun recover crash =
     Output.physical_stderr
       "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
 
+val _ = Session.protocol_handler "isabelle.ML_Statistics$Protocol_Handler";
+
 in
 
 fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
@@ -199,6 +201,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     fun protocol () =
      (Session.init_protocol_handlers ();
+      Output.protocol_message (Markup.ml_pid (ML_PID.get ())) [];
       message Markup.initN [] [XML.Text (Session.welcome ())];
       protocol_loop ());
 
@@ -227,7 +230,6 @@ end;
 
 fun init_options () =
  (ML_Print_Depth.set_print_depth (Options.default_int "ML_print_depth");
-  Future.ML_statistics := Options.default_bool "ML_statistics";
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Multithreading.parallel_proofs := Options.default_int "parallel_proofs";

@@ -569,9 +569,18 @@ object Markup
 
   class Name_Function(name: String) extends Function(name)
   {
-    def unapply(props: Properties.T): Option[(String)] =
+    def unapply(props: Properties.T): Option[String] =
       props match {
         case List(PROPERTY, (NAME, a)) => Some(a)
+        case _ => None
+      }
+  }
+
+  object ML_Pid extends Function("ML_pid")
+  {
+    def unapply(props: Properties.T): Option[Long] =
+      props match {
+        case List(PROPERTY, (ID, Value.Long(pid))) => Some(pid)
         case _ => None
       }
   }

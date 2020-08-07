@@ -124,7 +124,7 @@ object ML_Process
       val ml_options2 =
         if (!Platform.is_windows || ml_options.exists(_.containsSlice("codepage"))) ml_options1
         else ml_options1 ::: List("--codepage", "utf8")
-      ml_options2
+      ml_options2 ::: List("--exportstats")
     }
 
     // bash

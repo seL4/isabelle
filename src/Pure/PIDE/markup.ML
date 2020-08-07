@@ -209,6 +209,7 @@ sig
   val dialogN: string val dialog: serial -> string -> T
   val jedit_actionN: string
   val functionN: string
+  val ml_pid: int -> Properties.T
   val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
@@ -671,6 +672,8 @@ val jedit_actionN = "jedit_action";
 (* protocol message functions *)
 
 val functionN = "function"
+
+fun ml_pid pid = [(functionN, "ML_pid"), (idN, Value.print_int pid)];
 
 val commands_accepted = [(functionN, "commands_accepted")];
 
