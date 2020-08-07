@@ -11,7 +11,7 @@ end;
 
 if ML_System.platform_is_windows then ML
 \<open>
-structure ML_PID: ML_PID =
+structure ML_Pid: ML_PID =
 struct
 
 val get =
@@ -22,7 +22,7 @@ end;
 \<close>
 else ML
 \<open>
-structure ML_PID: ML_PID =
+structure ML_Pid: ML_PID =
 struct
 
 val get = Posix.ProcEnv.getpid #> Posix.Process.pidToWord #> SysWord.toLargeInt
