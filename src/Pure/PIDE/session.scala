@@ -555,6 +555,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               debugger.ready()
 
             case Markup.Process_Result(result) if output.is_exit =>
+              if (prover.defined) protocol_handlers.exit()
               file_formats.stop_session
               phase = Session.Terminated(result)
               prover.reset
@@ -596,7 +597,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             consolidation.exit()
             delay_prune.revoke()
             if (prover.defined) {
-              protocol_handlers.exit()
               global_state.change(_ => Document.State.init)
               prover.get.terminate
             }
