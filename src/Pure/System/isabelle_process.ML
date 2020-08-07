@@ -113,6 +113,10 @@ fun recover crash =
     Output.physical_stderr
       "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
 
+fun ml_statistics () =
+  Output.protocol_message
+    (Markup.ML_statistics {pid = ML_Pid.get (), stats_dir = getenv "POLYSTATSDIR"}) [];
+
 val _ = Session.protocol_handler "isabelle.ML_Statistics$Protocol_Handler";
 
 in
@@ -201,7 +205,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     fun protocol () =
      (Session.init_protocol_handlers ();
-      Output.protocol_message (Markup.ML_statistics {pid = ML_Pid.get ()}) [];
+      ml_statistics ();
       message Markup.initN [] [XML.Text (Session.welcome ())];
       protocol_loop ());
 

@@ -110,7 +110,9 @@ object ML_Process
 
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
-    val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
+    val env_tmp =
+      Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp),
+        "POLYSTATSDIR" -> isabelle_tmp.getAbsolutePath)
 
     val env_functions = Map("ISABELLE_SCALA_FUNCTIONS" -> Scala.functions.mkString(","))
 

@@ -209,7 +209,7 @@ sig
   val dialogN: string val dialog: serial -> string -> T
   val jedit_actionN: string
   val functionN: string
-  val ML_statistics: {pid: int} -> Properties.T
+  val ML_statistics: {pid: int, stats_dir: string} -> Properties.T
   val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
@@ -672,7 +672,8 @@ val jedit_actionN = "jedit_action";
 
 val functionN = "function"
 
-fun ML_statistics {pid} = [(functionN, "ML_statistics"), ("pid", Value.print_int pid)];
+fun ML_statistics {pid, stats_dir} =
+  [(functionN, "ML_statistics"), ("pid", Value.print_int pid), ("stats_dir", stats_dir)];
 
 val commands_accepted = [(functionN, "commands_accepted")];
 

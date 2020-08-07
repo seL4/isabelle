@@ -578,9 +578,10 @@ object Markup
 
   object ML_Statistics extends Function("ML_statistics")
   {
-    def unapply(props: Properties.T): Option[Long] =
+    def unapply(props: Properties.T): Option[(Long, String)] =
       props match {
-        case List(PROPERTY, ("pid", Value.Long(pid))) => Some(pid)
+        case List(PROPERTY, ("pid", Value.Long(pid)), ("stats_dir", stats_dir)) =>
+          Some((pid, stats_dir))
         case _ => None
       }
   }
