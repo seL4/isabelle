@@ -75,17 +75,17 @@ object ML_Statistics
       }
     }
 
-    private def ml_pid(msg: Prover.Protocol_Output): Boolean = synchronized
+    private def ml_statistics(msg: Prover.Protocol_Output): Boolean = synchronized
     {
       msg.properties match {
-        case Markup.ML_Pid(pid) =>
+        case Markup.ML_Statistics(pid) =>
           monitoring = Future.thread("ML_statistics") { monitor(pid, consume = consume) }
           true
         case _ => false
       }
     }
 
-    val functions = List(Markup.ML_Pid.name -> ml_pid)
+    val functions = List(Markup.ML_Statistics.name -> ml_statistics)
   }
 
 

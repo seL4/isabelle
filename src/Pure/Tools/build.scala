@@ -316,9 +316,13 @@ object Build
                 fun(Markup.Command_Timing.name, command_timings, command_timing),
                 fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
                 fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
-                fun(Markup.ML_Statistics.name, runtime_statistics, Markup.ML_Statistics.unapply),
                 fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
           })
+
+        session.runtime_statistics += Session.Consumer("ML_statistics")
+          {
+            case Session.Runtime_Statistics(props) => runtime_statistics += props
+          }
 
         session.all_messages += Session.Consumer[Any]("build_session_output")
           {

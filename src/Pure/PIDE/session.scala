@@ -495,9 +495,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Markup.Theory_Timing(props) =>
                 theory_timings.post(Session.Theory_Timing(props))
 
-              case Markup.ML_Statistics(props) =>
-                runtime_statistics.post(Session.Runtime_Statistics(props))
-
               case Markup.Task_Statistics(props) =>
                 task_statistics.post(Session.Task_Statistics(props))
 

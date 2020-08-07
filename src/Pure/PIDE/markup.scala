@@ -576,11 +576,11 @@ object Markup
       }
   }
 
-  object ML_Pid extends Function("ML_pid")
+  object ML_Statistics extends Function("ML_statistics")
   {
     def unapply(props: Properties.T): Option[Long] =
       props match {
-        case List(PROPERTY, (ID, Value.Long(pid))) => Some(pid)
+        case List(PROPERTY, ("pid", Value.Long(pid))) => Some(pid)
         case _ => None
       }
   }
@@ -593,7 +593,6 @@ object Markup
   {
     val Threads = new Properties.Int("threads")
   }
-  object ML_Statistics extends Properties_Function("ML_statistics")
   object Task_Statistics extends Properties_Function("task_statistics")
 
   object Loading_Theory extends Name_Function("loading_theory")

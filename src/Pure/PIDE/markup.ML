@@ -209,14 +209,13 @@ sig
   val dialogN: string val dialog: serial -> string -> T
   val jedit_actionN: string
   val functionN: string
-  val ml_pid: int -> Properties.T
+  val ML_statistics: {pid: int} -> Properties.T
   val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
   val protocol_handler: string -> Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
-  val ML_statistics: Properties.entry
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
   val theory_timing: Properties.entry
@@ -673,7 +672,7 @@ val jedit_actionN = "jedit_action";
 
 val functionN = "function"
 
-fun ml_pid pid = [(functionN, "ML_pid"), (idN, Value.print_int pid)];
+fun ML_statistics {pid} = [(functionN, "ML_statistics"), ("pid", Value.print_int pid)];
 
 val commands_accepted = [(functionN, "commands_accepted")];
 
@@ -684,8 +683,6 @@ fun protocol_handler name = [(functionN, "protocol_handler"), (nameN, name)];
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
-
-val ML_statistics = (functionN, "ML_statistics");
 
 val task_statistics = (functionN, "task_statistics");
 
