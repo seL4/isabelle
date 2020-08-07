@@ -299,7 +299,7 @@ next
   case 2
   then show ?case by (simp add: \<phi>_def real_le_lsqrt)
 next
-  case (3 n) term ?case
+  case (3 n)
   have "\<phi> ^ Suc (Suc n) = \<phi> ^ 2 * \<phi> ^ n"
     by (simp add: field_simps power2_eq_square)
   also have "\<dots> = (\<phi> + 1) * \<phi> ^ n"
