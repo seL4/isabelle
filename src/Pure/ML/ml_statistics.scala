@@ -71,7 +71,8 @@ object ML_Statistics
     private def consume(props: Properties.T): Unit = synchronized
     {
       if (session != null && session.session_options.bool("ML_statistics")) {
-        session.runtime_statistics.post(Session.Runtime_Statistics(props))
+        val stats = Session.Runtime_Statistics(session.xml_cache.props(props))
+        session.runtime_statistics.post(stats)
       }
     }
 
