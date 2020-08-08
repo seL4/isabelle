@@ -87,7 +87,7 @@ qed
 lemma inorder2_leaves: "inorder2(leaves as) = as"
 by(induction as) auto
 
-lemma "inorder(tree23_of_list as) = as"
+lemma inorder: "inorder(tree23_of_list as) = as"
 by(simp add: tree23_of_list_def inorder_join_all inorder2_leaves)
 
 subsubsection \<open>Completeness:\<close>
