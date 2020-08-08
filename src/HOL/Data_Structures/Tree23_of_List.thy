@@ -31,7 +31,7 @@ text \<open>Join pairs of adjacent trees:\<close>
 fun join_adj :: "'a tree23s \<Rightarrow> 'a tree23s" where
 "join_adj (TTs t1 a (T t2)) = T(Node2 t1 a t2)" |
 "join_adj (TTs t1 a (TTs t2 b (T t3))) = T(Node3 t1 a t2 b t3)" |
-"join_adj (TTs t1 a (TTs t2 b tas)) = TTs (Node2 t1 a t2) b (join_adj tas)"
+"join_adj (TTs t1 a (TTs t2 b ts)) = TTs (Node2 t1 a t2) b (join_adj ts)"
 
 text \<open>Towards termination of \<open>join_all\<close>:\<close>
 
@@ -54,7 +54,7 @@ using len_join_adj1[of "TTs t a ts"] by simp
 
 fun join_all :: "'a tree23s \<Rightarrow> 'a tree23" where
 "join_all (T t) = t" |
-"join_all tas = join_all (join_adj tas)"
+"join_all ts = join_all (join_adj ts)"
 
 fun leaves :: "'a list \<Rightarrow> 'a tree23s" where
 "leaves [] = T Leaf" |
@@ -76,16 +76,12 @@ lemma inorder2_join_adj: "not_T ts \<Longrightarrow> inorder2(join_adj ts) = ino
 by (induction ts rule: join_adj.induct) auto
 
 lemma inorder_join_all: "inorder (join_all ts) = inorder2 ts"
-proof (induction ts rule: measure_induct_rule[where f = "len"])
-  case (less ts)
-  show ?case
-  proof (cases ts)
-    case T thus ?thesis by simp
-  next
-    case (TTs t a ts)
-    then show ?thesis using less inorder2_join_adj[of "TTs t a ts"]
-      by (simp add: le_imp_less_Suc len_join_adj2)
-  qed
+proof (induction ts rule: join_all.induct)
+  case 1 thus ?case by simp
+next
+  case (2 t a ts)
+  thus ?case using inorder2_join_adj[of "TTs t a ts"]
+    by (simp add: le_imp_less_Suc)
 qed
 
 lemma inorder2_leaves: "inorder2(leaves as) = as"
@@ -103,17 +99,12 @@ by (induction ts rule: join_adj.induct) auto
 
 lemma complete_join_all:
  "\<forall>t \<in> trees ts. complete t \<and> height t = n \<Longrightarrow> complete (join_all ts)"
-proof (induction ts arbitrary: n rule: measure_induct_rule[where f = "len"])
-  case (less ts)
-  show ?case
-  proof (cases ts)
-    case T thus ?thesis using less.prems by simp
-  next
-    case (TTs t a ts)
-    then show ?thesis
-      using less.prems apply simp
-      using complete_join_adj[of "TTs t a ts" n, simplified] less.IH len_join_adj1 by blast
-  qed
+proof (induction ts arbitrary: n rule: join_all.induct)
+  case 1 thus ?case by simp
+next
+  case (2 t a ts)
+  thus ?case
+    apply simp using complete_join_adj[of "TTs t a ts" n, simplified] by blast
 qed
 
 lemma complete_leaves: "t \<in> trees (leaves as) \<Longrightarrow> complete t \<and> height t = 0"
@@ -145,25 +136,21 @@ lemma t_join_adj: "not_T ts \<Longrightarrow> t_join_adj ts \<le> len ts div 2"
 by(induction ts rule: t_join_adj.induct) auto
 
 lemma t_join_all: "t_join_all ts \<le> len ts"
-proof(induction ts rule: measure_induct_rule[where f = len])
-  case (less ts)
-  show ?case
-  proof (cases ts)
-    case T thus ?thesis by simp
-  next
-    case TTs
-    have 0: "\<forall>t. ts \<noteq> T t" using TTs by simp
-    have "t_join_all ts = t_join_adj ts + t_join_all (join_adj ts)"
-      using TTs by simp
-    also have "\<dots> \<le> len ts div 2 + t_join_all (join_adj ts)"
-      using t_join_adj[OF 0] by linarith
-    also have "\<dots> \<le> len ts div 2 + len (join_adj ts)"
-      using less.IH[of "join_adj ts"] len_join_adj1[OF 0] by simp
-    also have "\<dots> \<le> len ts div 2 + len ts div 2"
-      using len_join_adj_div2[OF 0] by linarith
-    also have "\<dots> \<le> len ts" by linarith
-    finally show ?thesis .
-  qed
+proof(induction ts rule: join_all.induct)
+  case 1 thus ?case by simp
+next
+  case (2 t a ts)
+  let ?ts = "TTs t a ts"
+  have "t_join_all ?ts = t_join_adj ?ts + t_join_all (join_adj ?ts)"
+    by simp
+  also have "\<dots> \<le> len ?ts div 2 + t_join_all (join_adj ?ts)"
+    using t_join_adj[of ?ts] by simp
+  also have "\<dots> \<le> len ?ts div 2 + len (join_adj ?ts)"
+    using "2.IH" by simp
+  also have "\<dots> \<le> len ?ts div 2 + len ?ts div 2"
+    using len_join_adj_div2[of ?ts] by simp
+  also have "\<dots> \<le> len ?ts" by linarith
+  finally show ?case .
 qed
 
 lemma t_leaves: "t_leaves as = length as + 1"
