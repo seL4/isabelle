@@ -984,9 +984,8 @@ next
   using ISO by auto
 qed
 
-lemma iso_Field:
-"iso r r' f \<Longrightarrow> f ` (Field r) = Field r'"
-by (auto simp add: iso_def bij_betw_def)
+lemma iso_Field: "iso r r' f \<Longrightarrow> f ` (Field r) = Field r'"
+  by (auto simp add: iso_def bij_betw_def)
 
 lemma iso_iff:
 assumes "Well_order r"
@@ -1054,6 +1053,98 @@ next
     }
     thus "(a,b) \<in> r"
     using Well ** wo_rel.TOTAL[of r] total_on_def[of _ r] by blast
+  qed
+qed
+
+lemma iso_imp_inj_on:
+  assumes "iso r r' f" shows "inj_on f (Field r)" 
+  using assms unfolding iso_iff2 bij_betw_def by blast
+
+lemma iso_backward_Field:
+  assumes "x \<in> Field r'" "iso r r' f" 
+  shows "inv_into (Field r) f x \<in> Field r"
+  using assms iso_Field by (blast intro!: inv_into_into)
+
+lemma iso_backward:
+  assumes "(x,y) \<in> r'" and iso: "iso r r' f" 
+  shows "(inv_into (Field r) f x, inv_into (Field r) f y) \<in> r"
+proof -
+  have \<section>: "\<And>x. (\<exists>xa\<in>Field r. x = f xa) = (x \<in> Field r')"
+    using assms iso_Field [OF iso] by (force simp add: )
+  have "x \<in> Field r'" "y \<in> Field r'" 
+    using assms by (auto simp: Field_def)
+  with \<section> [of x] \<section> [of y] assms show ?thesis
+    by (auto simp add: iso_iff2 bij_betw_inv_into_left)
+qed
+
+lemma iso_forward:
+  assumes "(x,y) \<in> r" "iso r r' f" shows "(f x,f y) \<in> r'" 
+proof -
+  have "x \<in> Field r" "y \<in> Field r" 
+    using assms by (auto simp: Field_def)
+  with assms show ?thesis unfolding iso_iff2 by blast 
+qed
+
+
+lemma iso_trans:
+  assumes "trans r" and iso: "iso r r' f" shows "trans r'"
+  unfolding trans_def
+proof clarify
+  fix x y z
+  assume xyz: "(x, y) \<in> r'" "(y, z) \<in> r'"
+  then have *: "(inv_into (Field r) f x, inv_into (Field r) f y) \<in> r" 
+               "(inv_into (Field r) f y, inv_into (Field r) f z) \<in> r" 
+    using iso_backward [OF _ iso] by blast+
+  then have "inv_into (Field r) f x \<in> Field r" "inv_into (Field r) f y \<in> Field r"
+    by (auto simp: Field_def)
+  with * have "(inv_into (Field r) f x, inv_into (Field r) f z) \<in> r"
+    using assms(1) by (blast intro: transD)
+  then have "(f (inv_into (Field r) f x), f (inv_into (Field r) f z)) \<in> r'"
+    by (blast intro: iso iso_forward)
+  moreover have "x \<in> f ` Field r" "z \<in> f ` Field r"
+    using xyz iso iso_Field by (blast intro: FieldI1 FieldI2)+
+  ultimately show "(x, z) \<in> r'"
+    by (simp add: f_inv_into_f) 
+qed
+
+lemma iso_Total:
+  assumes "Total r" and iso: "iso r r' f" shows "Total r'"
+  unfolding total_on_def
+proof clarify
+  fix x y
+  assume xy: "x \<in> Field r'" "y \<in> Field r'" "x \<noteq> y" "(y,x) \<notin> r'"
+  then have \<section>: "inv_into (Field r) f x \<in> Field r" "inv_into (Field r) f y \<in> Field r"
+    using iso_backward_Field [OF _ iso] by auto
+  moreover have "x \<in> f ` Field r" "y \<in> f ` Field r"
+    using xy iso iso_Field by (blast intro: FieldI1 FieldI2)+
+  ultimately have False if "inv_into (Field r) f x = inv_into (Field r) f y"
+    using inv_into_injective [OF that] \<open>x \<noteq> y\<close> by simp
+  then have "(inv_into (Field r) f x, inv_into (Field r) f y) \<in> r \<or> (inv_into (Field r) f y, inv_into (Field r) f x) \<in> r"
+    using assms \<section> by (auto simp: total_on_def)
+  then show "(x, y) \<in> r'"
+    using assms xy by (auto simp: iso_Field f_inv_into_f dest!: iso_forward [OF _ iso])
+qed
+
+lemma iso_wf:
+  assumes "wf r" and iso: "iso r r' f" shows "wf r'"
+proof -
+  have "bij_betw f (Field r) (Field r')"
+    and iff: "(\<forall>a \<in> Field r. \<forall>b \<in> Field r. (a, b) \<in> r \<longleftrightarrow> (f a, f b) \<in> r')"
+    using assms by (auto simp: iso_iff2)
+  show ?thesis
+  proof (rule wfI_min)
+    fix x::'b and Q
+    assume "x \<in> Q"
+    let ?g = "inv_into (Field r) f"
+    obtain z0 where "z0 \<in> ?g ` Q"
+      using \<open>x \<in> Q\<close> by blast 
+    then obtain z where z: "z \<in> ?g ` Q" and "\<And>x y. \<lbrakk>(y, z) \<in> r; x \<in> Q\<rbrakk> \<Longrightarrow> y \<noteq> ?g x"
+      by (rule wfE_min [OF \<open>wf r\<close>]) auto
+    then have "\<forall>y. (y, inv_into Q ?g z) \<in> r' \<longrightarrow> y \<notin> Q"
+      by (clarsimp simp: f_inv_into_f[OF z] z dest!: iso_backward [OF _ iso]) blast
+    moreover have "inv_into Q ?g z \<in> Q"
+      by (simp add: inv_into_into z)
+    ultimately show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r' \<longrightarrow> y \<notin> Q" ..
   qed
 qed
 
