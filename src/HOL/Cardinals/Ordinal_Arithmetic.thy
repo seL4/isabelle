@@ -1405,11 +1405,12 @@ proof -
       case False
       from assms obtain f where f: "embed r s f" unfolding ordLeq_def by blast
       hence f_underS: "\<forall>a\<in>Field r. f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
-        using embed_in_Field[OF rt.rWELL f] embed_underS2[OF rt.rWELL st.rWELL f] by auto
+        using embed_in_Field embed_underS2 rt.rWELL by fastforce
       from f \<open>t \<noteq> {}\<close> False have *: "Field r \<noteq> {}" "Field s \<noteq> {}" "Field t \<noteq> {}"
         unfolding Field_def embed_def under_def bij_betw_def by auto
       with f obtain x where "s.zero = f x" "x \<in> Field r" unfolding embed_def bij_betw_def
-        using embed_in_Field[OF r.WELL f] s.zero_under subsetD[OF under_Field[of r]] by blast
+        using s.zero_under subsetD[OF under_Field[of r]]
+        by (metis (no_types, lifting) f_inv_into_f f_underS inv_into_into r.zero_in_Field)
       with f have fz: "f r.zero = s.zero" and inj: "inj_on f (Field r)" and compat: "compat r s f"
         unfolding embed_iff_compat_inj_on_ofilter[OF r s] compat_def
         by (fastforce intro: s.leq_zero_imp)+

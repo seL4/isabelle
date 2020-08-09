@@ -441,9 +441,9 @@ qed
 subsection \<open>Limit and succesor ordinals\<close>
 
 lemma embed_underS2:
-assumes r: "Well_order r" and s: "Well_order s"  and g: "embed r s g" and a: "a \<in> Field r"
+assumes r: "Well_order r" and g: "embed r s g" and a: "a \<in> Field r"
 shows "g ` underS r a = underS s (g a)"
-using embed_underS[OF assms] unfolding bij_betw_def by auto
+  by (meson a bij_betw_def embed_underS g r)
 
 lemma bij_betw_insert:
 assumes "b \<notin> A" and "f b \<notin> A'" and "bij_betw f A A'"
@@ -1071,8 +1071,8 @@ next
 qed
 
 corollary oproj_ordLeq:
-assumes r: "Well_order r" and s: "Well_order s" and f: "oproj r s f"
-shows "s \<le>o r"
-using oproj_embed[OF assms] r s unfolding ordLeq_def by auto
+  assumes r: "Well_order r" and s: "Well_order s" and f: "oproj r s f"
+  shows "s \<le>o r"
+  using oproj_embed[OF assms] r s unfolding ordLeq_def by auto
 
 end

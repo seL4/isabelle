@@ -1124,7 +1124,7 @@ proof
   then obtain f where "inj_on f {x. x < m} \<and> f ` {x. x < m} \<le> {x. x < n}"
   unfolding ordLeq_def using
     embed_inj_on[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on]
-     embed_Field[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on] by blast
+     embed_Field Field_natLeq_on by blast
   thus "m \<le> n" using atLeastLessThan_less_eq2
     unfolding atLeast_0 atLeastLessThan_def lessThan_def Int_UNIV_left by blast
 next
