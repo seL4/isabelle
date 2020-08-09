@@ -212,6 +212,9 @@ lemma bij_uminus: "bij (uminus :: 'a \<Rightarrow> 'a::ab_group_add)"
   unfolding bij_betw_def inj_on_def
   by (force intro: minus_minus [symmetric])
 
+lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
+  unfolding bij_betw_def by auto
+
 lemma inj_onI [intro?]: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<Longrightarrow> x = y) \<Longrightarrow> inj_on f A"
   by (simp add: inj_on_def)
 
@@ -870,6 +873,10 @@ lemma the_inv_into_f_f: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow
 lemma f_the_inv_into_f: "inj_on f A \<Longrightarrow> y \<in> f ` A  \<Longrightarrow> f (the_inv_into A f y) = y"
   unfolding the_inv_into_def
   by (rule the1I2; blast dest: inj_onD)
+
+lemma f_the_inv_into_f_bij_betw:
+  "bij_betw f A B \<Longrightarrow> (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
+  unfolding bij_betw_def by (blast intro: f_the_inv_into_f)
 
 lemma the_inv_into_into: "inj_on f A \<Longrightarrow> x \<in> f ` A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> the_inv_into A f x \<in> B"
   unfolding the_inv_into_def

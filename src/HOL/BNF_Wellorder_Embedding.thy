@@ -93,69 +93,79 @@ where
 "compat r r' f \<equiv> \<forall>a b. (a,b) \<in> r \<longrightarrow> (f a, f b) \<in> r'"
 
 lemma compat_wf:
-assumes CMP: "compat r r' f" and WF: "wf r'"
-shows "wf r"
+  assumes CMP: "compat r r' f" and WF: "wf r'"
+  shows "wf r"
 proof-
   have "r \<le> inv_image r' f"
-  unfolding inv_image_def using CMP
-  by (auto simp add: compat_def)
+    unfolding inv_image_def using CMP
+    by (auto simp add: compat_def)
   with WF show ?thesis
-  using wf_inv_image[of r' f] wf_subset[of "inv_image r' f"] by auto
+    using wf_inv_image[of r' f] wf_subset[of "inv_image r' f"] by auto
 qed
 
 lemma id_embed: "embed r r id"
-by(auto simp add: id_def embed_def bij_betw_def)
+  by(auto simp add: id_def embed_def bij_betw_def)
 
 lemma id_iso: "iso r r id"
-by(auto simp add: id_def embed_def iso_def bij_betw_def)
+  by(auto simp add: id_def embed_def iso_def bij_betw_def)
+
+lemma embed_compat:
+  assumes EMB: "embed r r' f"
+  shows "compat r r' f"
+  unfolding compat_def
+proof clarify
+  fix a b
+  assume *: "(a,b) \<in> r"
+  hence 1: "b \<in> Field r" using Field_def[of r] by blast
+  have "a \<in> under r b"
+    using * under_def[of r] by simp
+  hence "f a \<in> under r' (f b)"
+    using EMB embed_def[of r r' f]
+      bij_betw_def[of f "under r b" "under r' (f b)"]
+      image_def[of f "under r b"] 1 by auto
+  thus "(f a, f b) \<in> r'"
+    by (auto simp add: under_def)
+qed
 
 lemma embed_in_Field:
-assumes WELL: "Well_order r" and
-        EMB: "embed r r' f" and IN: "a \<in> Field r"
-shows "f a \<in> Field r'"
-proof-
-  have Well: "wo_rel r"
-  using WELL by (auto simp add: wo_rel_def)
-  hence 1: "Refl r"
-  by (auto simp add: wo_rel.REFL)
-  hence "a \<in> under r a" using IN Refl_under_in by fastforce
-  hence "f a \<in> under r' (f a)"
-  using EMB IN by (auto simp add: embed_def bij_betw_def)
-  thus ?thesis unfolding Field_def
-  by (auto simp: under_def)
+  assumes EMB: "embed r r' f" and IN: "a \<in> Field r"
+  shows "f a \<in> Field r'"
+proof -
+  have "a \<in> Domain r \<or> a \<in> Range r"
+    using IN unfolding Field_def by blast
+  then show ?thesis
+    using embed_compat [OF EMB]
+    unfolding Field_def compat_def by force
 qed
 
 lemma comp_embed:
-assumes WELL: "Well_order r" and
-        EMB: "embed r r' f" and EMB': "embed r' r'' f'"
-shows "embed r r'' (f' \<circ> f)"
+  assumes EMB: "embed r r' f" and EMB': "embed r' r'' f'"
+  shows "embed r r'' (f' \<circ> f)"
 proof(unfold embed_def, auto)
   fix a assume *: "a \<in> Field r"
   hence "bij_betw f (under r a) (under r' (f a))"
-  using embed_def[of r] EMB by auto
+    using embed_def[of r] EMB by auto
   moreover
   {have "f a \<in> Field r'"
-   using EMB WELL * by (auto simp add: embed_in_Field)
-   hence "bij_betw f' (under r' (f a)) (under r'' (f' (f a)))"
-   using embed_def[of r'] EMB' by auto
+      using EMB * by (auto simp add: embed_in_Field)
+    hence "bij_betw f' (under r' (f a)) (under r'' (f' (f a)))"
+      using embed_def[of r'] EMB' by auto
   }
   ultimately
   show "bij_betw (f' \<circ> f) (under r a) (under r'' (f'(f a)))"
-  by(auto simp add: bij_betw_trans)
+    by(auto simp add: bij_betw_trans)
 qed
 
 lemma comp_iso:
-assumes WELL: "Well_order r" and
-        EMB: "iso r r' f" and EMB': "iso r' r'' f'"
-shows "iso r r'' (f' \<circ> f)"
-using assms unfolding iso_def
-by (auto simp add: comp_embed bij_betw_trans)
+  assumes EMB: "iso r r' f" and EMB': "iso r' r'' f'"
+  shows "iso r r'' (f' \<circ> f)"
+  using assms unfolding iso_def
+  by (auto simp add: comp_embed bij_betw_trans)
 
 text\<open>That \<open>embedS\<close> is also preserved by function composition shall be proved only later.\<close>
 
-lemma embed_Field:
-"\<lbrakk>Well_order r; embed r r' f\<rbrakk> \<Longrightarrow> f`(Field r) \<le> Field r'"
-by (auto simp add: embed_in_Field)
+lemma embed_Field: "embed r r' f \<Longrightarrow> f`(Field r) \<le> Field r'"
+  by (auto simp add: embed_in_Field)
 
 lemma embed_preserves_ofilter:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -195,23 +205,6 @@ proof-
   show ?thesis by (auto simp add: embed_preserves_ofilter)
 qed
 
-lemma embed_compat:
-assumes EMB: "embed r r' f"
-shows "compat r r' f"
-proof(unfold compat_def, clarify)
-  fix a b
-  assume *: "(a,b) \<in> r"
-  hence 1: "b \<in> Field r" using Field_def[of r] by blast
-  have "a \<in> under r b"
-  using * under_def[of r] by simp
-  hence "f a \<in> under r' (f b)"
-  using EMB embed_def[of r r' f]
-        bij_betw_def[of f "under r b" "under r' (f b)"]
-        image_def[of f "under r b"] 1 by auto
-  thus "(f a, f b) \<in> r'"
-  by (auto simp add: under_def)
-qed
-
 lemma embed_inj_on:
 assumes WELL: "Well_order r" and EMB: "embed r r' f"
 shows "inj_on f (Field r)"
@@ -249,24 +242,26 @@ proof(unfold inj_on_def, clarify)
 qed
 
 lemma embed_underS:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and
-        EMB: "embed r r' f" and IN: "a \<in> Field r"
-shows "bij_betw f (underS r a) (underS r' (f a))"
+  assumes WELL: "Well_order r" and
+    EMB: "embed r r' f" and IN: "a \<in> Field r"
+  shows "bij_betw f (underS r a) (underS r' (f a))"
 proof-
-  have "bij_betw f (under r a) (under r' (f a))"
-  using assms by (auto simp add: embed_def)
-  moreover
-  {have "f a \<in> Field r'" using assms  embed_Field[of r r' f] by auto
-   hence "under r a = underS r a \<union> {a} \<and>
-          under r' (f a) = underS r' (f a) \<union> {f a}"
-   using assms by (auto simp add: order_on_defs Refl_under_underS)
-  }
-  moreover
-  {have "a \<notin> underS r a \<and> f a \<notin> underS r' (f a)"
-   unfolding underS_def by blast
-  }
+  have "f a \<in> Field r'" using assms embed_Field[of r r' f] by auto
+  then have 0: "under r a = underS r a \<union> {a}"
+    by (simp add: IN Refl_under_underS WELL wo_rel.REFL wo_rel.intro)
+  moreover have 1: "bij_betw f (under r a) (under r' (f a))"
+    using assms by (auto simp add: embed_def) 
+  moreover have "under r' (f a) = underS r' (f a) \<union> {f a}"
+  proof
+    show "under r' (f a) \<subseteq> underS r' (f a) \<union> {f a}"
+      using underS_def under_def by fastforce
+    show "underS r' (f a) \<union> {f a} \<subseteq> under r' (f a)"
+      using bij_betwE 0 1 underS_subset_under by fastforce
+  qed
+  moreover have "a \<notin> underS r a \<and> f a \<notin> underS r' (f a)"
+    unfolding underS_def by blast
   ultimately show ?thesis
-  by (auto simp add: notIn_Un_bij_betw3)
+    by (auto simp add: notIn_Un_bij_betw3)
 qed
 
 lemma embed_iff_compat_inj_on_ofilter:
@@ -440,14 +435,33 @@ proof-
 qed
 
 lemma inv_into_Field_embed_bij_betw:
-assumes WELL: "Well_order r" and
-        EMB: "embed r r' f" and BIJ: "bij_betw f (Field r) (Field r')"
-shows "embed r' r (inv_into (Field r) f)"
+  assumes EMB: "embed r r' f" and BIJ: "bij_betw f (Field r) (Field r')"
+  shows "embed r' r (inv_into (Field r) f)"
 proof-
   have "Field r' \<le> f ` (Field r)"
-  using BIJ by (auto simp add: bij_betw_def)
-  thus ?thesis using assms
-  by(auto simp add: inv_into_Field_embed)
+    using BIJ by (auto simp add: bij_betw_def)
+  then have iso: "iso  r r' f"
+    by (simp add: BIJ EMB iso_def)
+  have *: "\<forall>a. a \<in> Field r \<longrightarrow> bij_betw f (under r a) (under r' (f a))"
+    using EMB embed_def by fastforce
+  show ?thesis 
+  proof (clarsimp simp add: embed_def)
+    fix a
+    assume a: "a \<in> Field r'"
+    then have ar: "a \<in> f ` Field r"
+      using BIJ bij_betw_imp_surj_on by blast
+    have [simp]: "f (inv_into (Field r) f a) = a"
+      by (simp add: ar f_inv_into_f)
+    show "bij_betw (inv_into (Field r) f) (under r' a) (under r (inv_into (Field r) f a))"
+    proof (rule bij_betw_inv_into_subset [OF BIJ])
+      show "under r (inv_into (Field r) f a) \<subseteq> Field r"
+        by (simp add: under_Field)
+      have "inv_into (Field r) f a \<in> Field r"
+        by (simp add: ar inv_into_into)
+      then show "f ` under r (inv_into (Field r) f a) = under r' a"
+        using bij_betw_imp_surj_on * by fastforce
+    qed
+  qed
 qed
 
 
@@ -881,78 +895,83 @@ proof-
 qed
 
 lemma embedS_comp_embed:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "embedS r r' f" and EMB': "embed r' r'' f'"
-shows "embedS r r'' (f' \<circ> f)"
+  assumes WELL: "Well_order r" and WELL': "Well_order r'"
+    and  EMB: "embedS r r' f" and EMB': "embed r' r'' f'"
+  shows "embedS r r'' (f' \<circ> f)"
 proof-
   let ?g = "(f' \<circ> f)"  let ?h = "inv_into (Field r) ?g"
   have 1: "embed r r' f \<and> \<not> (bij_betw f (Field r) (Field r'))"
-  using EMB by (auto simp add: embedS_def)
+    using EMB by (auto simp add: embedS_def)
   hence 2: "embed r r'' ?g"
-  using WELL EMB' comp_embed[of r r' f r'' f'] by auto
+    using  EMB' comp_embed[of r r' f r'' f'] by auto
   moreover
   {assume "bij_betw ?g (Field r) (Field r'')"
-   hence "embed r'' r ?h" using 2 WELL
-   by (auto simp add: inv_into_Field_embed_bij_betw)
-   hence "embed r' r (?h \<circ> f')" using WELL' EMB'
-   by (auto simp add: comp_embed)
-   hence "bij_betw f (Field r) (Field r')" using WELL WELL' 1
-   by (auto simp add: embed_bothWays_Field_bij_betw)
-   with 1 have False by blast
+    hence "embed r'' r ?h" using 2 
+      by (auto simp add: inv_into_Field_embed_bij_betw)
+    hence "embed r' r (?h \<circ> f')" using EMB'
+      by (auto simp add: comp_embed)
+    hence "bij_betw f (Field r) (Field r')" using WELL WELL' 1
+      by (auto simp add: embed_bothWays_Field_bij_betw)
+    with 1 have False by blast
   }
   ultimately show ?thesis unfolding embedS_def by auto
 qed
 
 lemma embed_comp_embedS:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "embed r r' f" and EMB': "embedS r' r'' f'"
-shows "embedS r r'' (f' \<circ> f)"
+  assumes WELL: "Well_order r" and WELL': "Well_order r'" 
+    and  EMB: "embed r r' f" and EMB': "embedS r' r'' f'"
+  shows "embedS r r'' (f' \<circ> f)"
 proof-
   let ?g = "(f' \<circ> f)"  let ?h = "inv_into (Field r) ?g"
   have 1: "embed r' r'' f' \<and> \<not> (bij_betw f' (Field r') (Field r''))"
-  using EMB' by (auto simp add: embedS_def)
+    using EMB' by (auto simp add: embedS_def)
   hence 2: "embed r r'' ?g"
-  using WELL EMB comp_embed[of r r' f r'' f'] by auto
-  moreover
-  {assume "bij_betw ?g (Field r) (Field r'')"
-   hence "embed r'' r ?h" using 2 WELL
-   by (auto simp add: inv_into_Field_embed_bij_betw)
-   hence "embed r'' r' (f \<circ> ?h)" using WELL'' EMB
-   by (auto simp add: comp_embed)
-   hence "bij_betw f' (Field r') (Field r'')" using WELL' WELL'' 1
-   by (auto simp add: embed_bothWays_Field_bij_betw)
-   with 1 have False by blast
+    using WELL EMB comp_embed[of r r' f r'' f'] by auto
+  moreover have \<section>: "f' ` Field r' \<subseteq> Field r''"
+  by (simp add: "1" embed_Field)
+  {assume \<section>: "bij_betw ?g (Field r) (Field r'')"
+    hence "embed r'' r ?h" using 2 WELL
+      by (auto simp add: inv_into_Field_embed_bij_betw)
+    hence "embed r' r (inv_into (Field r) ?g \<circ> f')"
+      using "1" BNF_Wellorder_Embedding.comp_embed WELL' by blast
+    then have "bij_betw f' (Field r') (Field r'')"
+      using EMB WELL WELL' \<section> bij_betw_comp_iff by (blast intro: embed_bothWays_Field_bij_betw)
+    with 1 have False by blast
   }
   ultimately show ?thesis unfolding embedS_def by auto
 qed
 
 lemma embed_comp_iso:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "embed r r' f" and EMB': "iso r' r'' f'"
-shows "embed r r'' (f' \<circ> f)"
-using assms unfolding iso_def
-by (auto simp add: comp_embed)
+  assumes EMB: "embed r r' f" and EMB': "iso r' r'' f'"
+  shows "embed r r'' (f' \<circ> f)" using assms unfolding iso_def
+  by (auto simp add: comp_embed)
 
 lemma iso_comp_embed:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "iso r r' f" and EMB': "embed r' r'' f'"
-shows "embed r r'' (f' \<circ> f)"
-using assms unfolding iso_def
-by (auto simp add: comp_embed)
+  assumes EMB: "iso r r' f" and EMB': "embed r' r'' f'"
+  shows "embed r r'' (f' \<circ> f)"
+  using assms unfolding iso_def by (auto simp add: comp_embed)
 
 lemma embedS_comp_iso:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "embedS r r' f" and EMB': "iso r' r'' f'"
-shows "embedS r r'' (f' \<circ> f)"
-using assms unfolding iso_def
-by (auto simp add: embedS_comp_embed)
+  assumes EMB: "embedS r r' f" and EMB': "iso r' r'' f'"
+  shows "embedS r r'' (f' \<circ> f)"
+proof -
+  have \<section>: "embed r r' f \<and> \<not> bij_betw f (Field r) (Field r')"
+    using EMB embedS_def by blast
+  then have "embed r r'' (f' \<circ> f)"
+    using embed_comp_iso EMB' by blast
+  then have "f ` Field r \<subseteq> Field r'"
+    by (simp add: embed_Field \<section>)
+  then have "\<not> bij_betw (f' \<circ> f) (Field r) (Field r'')"
+    using "\<section>" EMB' by (auto simp: bij_betw_comp_iff2 iso_def)
+  then show ?thesis
+    by (simp add: \<open>embed r r'' (f' \<circ> f)\<close> embedS_def)
+qed
 
 lemma iso_comp_embedS:
-assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
-        and  EMB: "iso r r' f" and EMB': "embedS r' r'' f'"
-shows "embedS r r'' (f' \<circ> f)"
-using assms unfolding iso_def  using embed_comp_embedS
-by (auto simp add: embed_comp_embedS)
+  assumes WELL: "Well_order r" and WELL': "Well_order r'"
+    and  EMB: "iso r r' f" and EMB': "embedS r' r'' f'"
+  shows "embedS r r'' (f' \<circ> f)"
+  using assms unfolding iso_def by (auto simp add: embed_comp_embedS)
 
 lemma embedS_Field:
 assumes WELL: "Well_order r" and EMB: "embedS r r' f"
