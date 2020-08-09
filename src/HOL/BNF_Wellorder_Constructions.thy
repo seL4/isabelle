@@ -24,74 +24,77 @@ A main result of this section is that \<open><o\<close> is well-founded.\<close>
 subsection \<open>Restriction to a set\<close>
 
 abbreviation Restr :: "'a rel \<Rightarrow> 'a set \<Rightarrow> 'a rel"
-where "Restr r A \<equiv> r Int (A \<times> A)"
+  where "Restr r A \<equiv> r Int (A \<times> A)"
 
 lemma Restr_subset:
-"A \<le> B \<Longrightarrow> Restr (Restr r B) A = Restr r A"
-by blast
+  "A \<le> B \<Longrightarrow> Restr (Restr r B) A = Restr r A"
+  by blast
 
 lemma Restr_Field: "Restr r (Field r) = r"
-unfolding Field_def by auto
+  unfolding Field_def by auto
 
 lemma Refl_Restr: "Refl r \<Longrightarrow> Refl(Restr r A)"
-unfolding refl_on_def Field_def by auto
+  unfolding refl_on_def Field_def by auto
 
 lemma linear_order_on_Restr:
   "linear_order_on A r \<Longrightarrow> linear_order_on (A \<inter> above r x) (Restr r (above r x))"
-by(simp add: order_on_defs refl_on_def trans_def antisym_def total_on_def)(safe; blast)
+  by(simp add: order_on_defs refl_on_def trans_def antisym_def total_on_def)(safe; blast)
 
 lemma antisym_Restr:
-"antisym r \<Longrightarrow> antisym(Restr r A)"
-unfolding antisym_def Field_def by auto
+  "antisym r \<Longrightarrow> antisym(Restr r A)"
+  unfolding antisym_def Field_def by auto
 
 lemma Total_Restr:
-"Total r \<Longrightarrow> Total(Restr r A)"
-unfolding total_on_def Field_def by auto
+  "Total r \<Longrightarrow> Total(Restr r A)"
+  unfolding total_on_def Field_def by auto
+
+lemma total_on_imp_Total_Restr: "total_on A r \<Longrightarrow> Total (Restr r A)"
+  by (auto simp: Field_def total_on_def)
 
 lemma trans_Restr:
-"trans r \<Longrightarrow> trans(Restr r A)"
-unfolding trans_def Field_def by blast
+  "trans r \<Longrightarrow> trans(Restr r A)"
+  unfolding trans_def Field_def by blast
 
 lemma Preorder_Restr:
-"Preorder r \<Longrightarrow> Preorder(Restr r A)"
-unfolding preorder_on_def by (simp add: Refl_Restr trans_Restr)
+  "Preorder r \<Longrightarrow> Preorder(Restr r A)"
+  unfolding preorder_on_def by (simp add: Refl_Restr trans_Restr)
 
 lemma Partial_order_Restr:
-"Partial_order r \<Longrightarrow> Partial_order(Restr r A)"
-unfolding partial_order_on_def by (simp add: Preorder_Restr antisym_Restr)
+  "Partial_order r \<Longrightarrow> Partial_order(Restr r A)"
+  unfolding partial_order_on_def by (simp add: Preorder_Restr antisym_Restr)
 
 lemma Linear_order_Restr:
-"Linear_order r \<Longrightarrow> Linear_order(Restr r A)"
-unfolding linear_order_on_def by (simp add: Partial_order_Restr Total_Restr)
+  "Linear_order r \<Longrightarrow> Linear_order(Restr r A)"
+  unfolding linear_order_on_def by (simp add: Partial_order_Restr Total_Restr)
 
 lemma Well_order_Restr:
-assumes "Well_order r"
-shows "Well_order(Restr r A)"
+  assumes "Well_order r"
+  shows "Well_order(Restr r A)"
 proof-
   have "Restr r A - Id \<le> r - Id" using Restr_subset by blast
   hence "wf(Restr r A - Id)" using assms
-  using well_order_on_def wf_subset by blast
+    using well_order_on_def wf_subset by blast
   thus ?thesis using assms unfolding well_order_on_def
-  by (simp add: Linear_order_Restr)
+    by (simp add: Linear_order_Restr)
 qed
 
 lemma Field_Restr_subset: "Field(Restr r A) \<le> A"
-by (auto simp add: Field_def)
+  by (auto simp add: Field_def)
 
 lemma Refl_Field_Restr:
-"Refl r \<Longrightarrow> Field(Restr r A) = (Field r) Int A"
-unfolding refl_on_def Field_def by blast
+  "Refl r \<Longrightarrow> Field(Restr r A) = (Field r) Int A"
+  unfolding refl_on_def Field_def by blast
 
 lemma Refl_Field_Restr2:
-"\<lbrakk>Refl r; A \<le> Field r\<rbrakk> \<Longrightarrow> Field(Restr r A) = A"
-by (auto simp add: Refl_Field_Restr)
+  "\<lbrakk>Refl r; A \<le> Field r\<rbrakk> \<Longrightarrow> Field(Restr r A) = A"
+  by (auto simp add: Refl_Field_Restr)
 
 lemma well_order_on_Restr:
-assumes WELL: "Well_order r" and SUB: "A \<le> Field r"
-shows "well_order_on A (Restr r A)"
-using assms
-using Well_order_Restr[of r A] Refl_Field_Restr2[of r A]
-     order_on_defs[of "Field r" r] by auto
+  assumes WELL: "Well_order r" and SUB: "A \<le> Field r"
+  shows "well_order_on A (Restr r A)"
+  using assms
+  using Well_order_Restr[of r A] Refl_Field_Restr2[of r A]
+    order_on_defs[of "Field r" r] by auto
 
 
 subsection \<open>Order filters versus restrictions and embeddings\<close>
