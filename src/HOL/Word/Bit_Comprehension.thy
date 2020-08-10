@@ -5,7 +5,7 @@
 section \<open>Comprehension syntax for bit expressions\<close>
 
 theory Bit_Comprehension
-  imports Bits_Int
+  imports "HOL-Library.Bit_Operations"
 begin
 
 class bit_comprehension = semiring_bits +
