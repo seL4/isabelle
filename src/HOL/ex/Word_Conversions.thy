@@ -103,42 +103,40 @@ abbreviation word_of_nat :: \<open>nat \<Rightarrow> 'a::len word\<close>
 abbreviation word_of_int :: \<open>int \<Rightarrow> 'a::len word\<close>
   where \<open>word_of_int \<equiv> of_int\<close>
 
-text \<open>TODO rework names from here\<close>
-
 lemma unsigned_of_nat [simp]:
-  \<open>unsigned (of_nat n :: 'a::len word) = take_bit LENGTH('a) n\<close>
+  \<open>unsigned (of_nat n :: 'a::len word) = of_nat (take_bit LENGTH('a) n)\<close>
   by transfer (simp add: nat_eq_iff take_bit_of_nat)
 
-lemma of_nat_unsigned [simp]:
-  \<open>of_nat (unsigned w) = w\<close>
+lemma of_nat_of_word [simp]:
+  \<open>of_nat (nat_of_word w) = unsigned w\<close>
   by transfer simp
 
 lemma of_int_unsigned [simp]:
-  \<open>of_int (unsigned w) = w\<close>
+  \<open>of_int (unsigned_int w) = unsigned w\<close>
   by transfer simp
 
 lemma unsigned_int_greater_eq:
-  \<open>(0::int) \<le> unsigned w\<close> for w :: \<open>'a::len word\<close>
+  \<open>0 \<le> unsigned_int w\<close> for w :: \<open>'a::len word\<close>
   by transfer simp
 
-lemma unsigned_nat_less:
-  \<open>unsigned w < (2 ^ LENGTH('a) :: nat)\<close> for w :: \<open>'a::len word\<close>
+lemma nat_of_word_less:
+  \<open>nat_of_word w < 2 ^ LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_eq_mod)
 
 lemma unsigned_int_less:
-  \<open>unsigned w < (2 ^ LENGTH('a) :: int)\<close> for w :: \<open>'a::len word\<close>
+  \<open>unsigned_int w < 2 ^ LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_eq_mod)
 
 lemma signed_of_int [simp]:
-  \<open>signed (of_int k :: 'a::len word) = signed_take_bit (LENGTH('a) - 1) k\<close>
+  \<open>signed (word_of_int k :: 'a::len word) = of_int (signed_take_bit (LENGTH('a) - 1) k)\<close>
   by transfer simp
 
 lemma of_int_signed [simp]:
-  \<open>of_int (signed a) = a\<close>
+  \<open>of_int (signed_int a) = signed a\<close>
   by transfer (simp_all add: take_bit_signed_take_bit)
 
 lemma signed_int_greater_eq:
-  \<open>- ((2::int) ^ (LENGTH('a) - 1)) \<le> signed w\<close> for w :: \<open>'a::len word\<close>
+  \<open>- (2 ^ (LENGTH('a) - 1)) \<le> signed_int w\<close> for w :: \<open>'a::len word\<close>
 proof (cases \<open>bit w (LENGTH('a) - 1)\<close>)
   case True
   then show ?thesis
@@ -152,7 +150,7 @@ next
 qed
 
 lemma signed_int_less:
-  \<open>signed w < (2 ^ (LENGTH('a) - 1) :: int)\<close> for w :: \<open>'a::len word\<close>
+  \<open>signed_int w < 2 ^ (LENGTH('a) - 1)\<close> for w :: \<open>'a::len word\<close>
   by (cases \<open>bit w (LENGTH('a) - 1)\<close>; transfer)
     (simp_all add: signed_take_bit_eq signed_take_bit_eq_or take_bit_int_less_exp not_eq_complement mask_eq_exp_minus_1 OR_upper)
 
@@ -169,36 +167,36 @@ lemma word_less_iff_unsigned:
 
 end
 
-lemma of_nat_word_eq_iff:
-  \<open>of_nat m = (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m = take_bit LENGTH('a) n\<close>
+lemma word_of_nat_eq_iff:
+  \<open>word_of_nat m = (word_of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m = take_bit LENGTH('a) n\<close>
   by transfer (simp add: take_bit_of_nat)
 
-lemma of_nat_word_less_eq_iff:
-  \<open>of_nat m \<le> (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m \<le> take_bit LENGTH('a) n\<close>
+lemma word_of_nat_less_eq_iff:
+  \<open>word_of_nat m \<le> (word_of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m \<le> take_bit LENGTH('a) n\<close>
   by transfer (simp add: take_bit_of_nat)
 
-lemma of_nat_word_less_iff:
-  \<open>of_nat m < (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m < take_bit LENGTH('a) n\<close>
+lemma word_of_nat_less_iff:
+  \<open>word_of_nat m < (word_of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m < take_bit LENGTH('a) n\<close>
   by transfer (simp add: take_bit_of_nat)
 
-lemma of_nat_word_eq_0_iff:
-  \<open>of_nat n = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd n\<close>
+lemma word_of_nat_eq_0_iff:
+  \<open>word_of_nat n = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd n\<close>
   using of_nat_word_eq_iff [where ?'a = 'a, of n 0] by (simp add: take_bit_eq_0_iff)
 
-lemma of_int_word_eq_iff:
-  \<open>of_int k = (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
+lemma word_of_int_eq_iff:
+  \<open>word_of_int k = (word_of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
   by transfer rule
 
-lemma of_int_word_less_eq_iff:
-  \<open>of_int k \<le> (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k \<le> take_bit LENGTH('a) l\<close>
+lemma word_of_int_less_eq_iff:
+  \<open>word_of_int k \<le> (word_of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k \<le> take_bit LENGTH('a) l\<close>
   by transfer rule
 
-lemma of_int_word_less_iff:
-  \<open>of_int k < (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k < take_bit LENGTH('a) l\<close>
+lemma word_of_int_less_iff:
+  \<open>word_of_int k < (word_of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k < take_bit LENGTH('a) l\<close>
   by transfer rule
 
-lemma of_int_word_eq_0_iff:
-  \<open>of_int k = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd k\<close>
+lemma word_of_int_eq_0_iff:
+  \<open>word_of_int k = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd k\<close>
   using of_int_word_eq_iff [where ?'a = 'a, of k 0] by (simp add: take_bit_eq_0_iff)
 
 end
