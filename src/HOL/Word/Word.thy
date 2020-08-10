@@ -18,7 +18,12 @@ begin
 subsection \<open>Type definition\<close>
 
 quotient_type (overloaded) 'a word = int / \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len) l\<close>
-  morphisms rep_word word_of_int by (auto intro!: equivpI reflpI sympI transpI)
+  morphisms rep_word Word by (auto intro!: equivpI reflpI sympI transpI)
+
+hide_const (open) Word \<comment> \<open>only for code generation\<close>
+
+lift_definition word_of_int :: \<open>int \<Rightarrow> 'a::len word\<close>
+  is \<open>\<lambda>k. k\<close> .
 
 lift_definition uint :: \<open>'a::len word \<Rightarrow> int\<close>
   is \<open>take_bit LENGTH('a)\<close> .
@@ -161,20 +166,17 @@ translations
 
 subsection \<open>Basic code generation setup\<close>
 
-lift_definition Word :: \<open>int \<Rightarrow> 'a::len word\<close>
-  is id .
-
 lemma Word_eq_word_of_int [code_post]:
-  \<open>Word = word_of_int\<close>
-  by (simp add: fun_eq_iff Word.abs_eq)
+  \<open>Word.Word = word_of_int\<close>
+  by rule (transfer, rule)
 
 lemma [code abstype]:
-  \<open>Word (uint w) = w\<close>
+  \<open>Word.Word (uint w) = w\<close>
   by transfer simp
 
 lemma [code abstract]:
   \<open>uint (word_of_int k :: 'a::len word) = take_bit LENGTH('a) k\<close>
-  by (fact uint.abs_eq)
+  by transfer rule
 
 instantiation word :: (len) equal
 begin
@@ -356,23 +358,42 @@ end
 
 text \<open>Legacy theorems:\<close>
 
-lemma word_arith_wis:
-  shows word_add_def [code]: "a + b = word_of_int (uint a + uint b)"
-    and word_sub_wi [code]: "a - b = word_of_int (uint a - uint b)"
-    and word_mult_def [code]: "a * b = word_of_int (uint a * uint b)"
-    and word_minus_def [code]: "- a = word_of_int (- uint a)"
-    and word_succ_alt [code]: "word_succ a = word_of_int (uint a + 1)"
-    and word_pred_alt [code]: "word_pred a = word_of_int (uint a - 1)"
-    and word_0_wi: "0 = word_of_int 0"
-    and word_1_wi: "1 = word_of_int 1"
-         apply (simp_all flip: plus_word.abs_eq minus_word.abs_eq
-           times_word.abs_eq uminus_word.abs_eq
-           zero_word.abs_eq one_word.abs_eq)
-   apply transfer
-   apply simp
-  apply transfer
-  apply simp
-  done
+lemma word_add_def [code]:
+  "a + b = word_of_int (uint a + uint b)"
+  by transfer (simp add: take_bit_add)
+
+lemma word_sub_wi [code]:
+  "a - b = word_of_int (uint a - uint b)"
+  by transfer (simp add: take_bit_diff)
+
+lemma word_mult_def [code]:
+  "a * b = word_of_int (uint a * uint b)"
+  by transfer (simp add: take_bit_eq_mod mod_simps)
+
+lemma word_minus_def [code]:
+  "- a = word_of_int (- uint a)"
+  by transfer (simp add: take_bit_minus)
+
+lemma word_succ_alt [code]:
+  "word_succ a = word_of_int (uint a + 1)"
+  by transfer (simp add: take_bit_eq_mod mod_simps)
+
+lemma word_pred_alt [code]:
+  "word_pred a = word_of_int (uint a - 1)"
+  by transfer (simp add: take_bit_eq_mod mod_simps)
+
+lemma word_0_wi:
+  "0 = word_of_int 0"
+  by transfer simp
+
+lemma word_1_wi:
+  "1 = word_of_int 1"
+  by transfer simp
+
+lemmas word_arith_wis = 
+  word_add_def word_sub_wi word_mult_def
+  word_minus_def word_succ_alt word_pred_alt
+  word_0_wi word_1_wi
 
 lemma wi_homs:
   shows wi_hom_add: "word_of_int a + word_of_int b = word_of_int (a + b)"
@@ -2049,7 +2070,9 @@ lemma uint_word_ariths:
     and "uint (word_pred a) = (uint a - 1) mod 2 ^ LENGTH('a)"
     and "uint (0 :: 'a word) = 0 mod 2 ^ LENGTH('a)"
     and "uint (1 :: 'a word) = 1 mod 2 ^ LENGTH('a)"
-  by (simp_all add: word_arith_wis [THEN trans [OF uint_cong int_word_uint]])
+         apply (simp_all only: word_arith_wis)
+         apply (simp_all add: word_uint.eq_norm)
+  done
 
 lemma uint_word_arith_bintrs:
   fixes a b :: "'a::len word"
@@ -2879,7 +2902,10 @@ lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
 subsection \<open>Cardinality, finiteness of set of words\<close>
 
 lemma inj_on_word_of_int: \<open>inj_on (word_of_int :: int \<Rightarrow> 'a word) {0..<2 ^ LENGTH('a::len)}\<close>
-  by (rule inj_onI) (simp add: word.abs_eq_iff take_bit_eq_mod)
+  apply (rule inj_onI)
+  apply transfer
+  apply (simp add: take_bit_eq_mod)
+  done
 
 lemma inj_uint: \<open>inj uint\<close>
   by (rule injI) simp
@@ -2890,7 +2916,7 @@ lemma range_uint: \<open>range (uint :: 'a word \<Rightarrow> int) = {0..<2 ^ LE
 lemma UNIV_eq: \<open>(UNIV :: 'a word set) = word_of_int ` {0..<2 ^ LENGTH('a::len)}\<close>
 proof -
   have \<open>uint ` (UNIV :: 'a word set) = uint ` (word_of_int :: int \<Rightarrow> 'a word) ` {0..<2 ^ LENGTH('a::len)}\<close>
-    by (simp add: range_uint image_image uint.abs_eq take_bit_eq_mod)
+    by transfer (simp add: range_bintrunc, auto simp add: take_bit_eq_mod)
   then show ?thesis
     using inj_image_eq_iff [of \<open>uint :: 'a word \<Rightarrow> int\<close> \<open>UNIV :: 'a word set\<close> \<open>word_of_int ` {0..<2 ^ LENGTH('a)} :: 'a word set\<close>, OF inj_uint]
     by simp
@@ -2993,8 +3019,8 @@ lemma test_bit_wi [simp]:
 
 lemma word_test_bit_transfer [transfer_rule]:
   "(rel_fun pcr_word (rel_fun (=) (=)))
-    (\<lambda>x n. n < LENGTH('a) \<and> bin_nth x n) (test_bit :: 'a::len word \<Rightarrow> _)"
-  unfolding rel_fun_def word.pcr_cr_eq cr_word_def by simp
+    (\<lambda>x n. n < LENGTH('a) \<and> bit x n) (test_bit :: 'a::len word \<Rightarrow> _)"
+  by (simp only: test_bit_eq_bit) transfer_prover
 
 lemma word_ops_nth_size:
   "n < size x \<Longrightarrow>
@@ -3259,7 +3285,7 @@ lemmas td_nth = test_bit.td_thm
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
 lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (2 * w)"
-  by (fact shiftl1.abs_eq)
+  by transfer simp
 
 lemma shiftl1_numeral [simp]: "shiftl1 (numeral w) = numeral (Num.Bit0 w)"
   unfolding word_numeral_alt shiftl1_wi by simp
@@ -3546,8 +3572,17 @@ lemma and_mask_no: "numeral i AND mask n = word_of_int (take_bit n (numeral i))"
 lemma and_mask_mod_2p: "w AND mask n = word_of_int (uint w mod 2 ^ n)"
   by (simp only: and_mask_bintr take_bit_eq_mod)
 
+lemma uint_mask_eq:
+  \<open>uint (mask n :: 'a::len word) = mask (min LENGTH('a) n)\<close>
+  by transfer simp
+
 lemma and_mask_lt_2p: "uint (w AND mask n) < 2 ^ n"
-  by (simp add: and_mask_bintr uint.abs_eq min_def not_le lt2p_lem bintr_lt2p)
+  apply (simp add: uint_and uint_mask_eq)
+  apply (rule AND_upper2'')
+  apply simp
+  apply (auto simp add: mask_eq_exp_minus_1 min_def power_add algebra_simps dest!: le_Suc_ex)
+  apply (metis add_minus_cancel le_add2 one_le_numeral power_add power_increasing uminus_add_conv_diff zle_diff1_eq)
+  done
 
 lemma eq_mod_iff: "0 < n \<Longrightarrow> b = b mod n \<longleftrightarrow> 0 \<le> b \<and> b < n"
   for b n :: int
@@ -4358,11 +4393,21 @@ lemma uint_sub_if_size:
      else uint x - uint y + 2^size x)"
   by (simp add: word_arith_wis int_word_uint mod_sub_if_z word_size)
 
-lemma unat_sub: "b \<le> a \<Longrightarrow> unat (a - b) = unat a - unat b"
-  apply transfer
-  apply (simp flip: nat_diff_distrib)
-  apply (metis minus_word.abs_eq uint_sub_lem word_ubin.eq_norm)
-  done
+lemma unat_sub:
+  \<open>unat (a - b) = unat a - unat b\<close>
+  if \<open>b \<le> a\<close>
+proof -
+  from that have \<open>unat b \<le> unat a\<close>
+    by transfer simp
+  with that show ?thesis
+    apply transfer
+  apply simp
+    apply (subst take_bit_diff [symmetric])
+    apply (subst nat_take_bit_eq)
+    apply (simp add: nat_le_eq_zle)
+    apply (simp add: nat_diff_distrib take_bit_eq_self less_imp_diff_less bintr_lt2p)
+    done
+qed
 
 lemmas word_less_sub1_numberof [simp] = word_less_sub1 [of "numeral w"] for w
 lemmas word_le_sub1_numberof [simp] = word_le_sub1 [of "numeral w"] for w
@@ -4577,7 +4622,5 @@ subsection \<open>Misc\<close>
 
 ML_file \<open>Tools/word_lib.ML\<close>
 ML_file \<open>Tools/smt_word.ML\<close>
-
-hide_const (open) Word
 
 end

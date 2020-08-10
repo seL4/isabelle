@@ -9,6 +9,27 @@ theory Bit_Operations
     Main
 begin
 
+lemma nat_take_bit_eq:
+  \<open>nat (take_bit n k) = take_bit n (nat k)\<close>
+  if \<open>k \<ge> 0\<close>
+  using that by (simp add: take_bit_eq_mod nat_mod_distrib nat_power_eq)
+
+lemma take_bit_eq_self:
+  \<open>take_bit m n = n\<close> if \<open>n < 2 ^ m\<close> for n :: nat
+  using that by (simp add: take_bit_eq_mod)
+
+lemma horner_sum_of_bool_2_less:
+  \<open>(horner_sum of_bool 2 bs :: int) < 2 ^ length bs\<close>
+proof -
+  have \<open>(\<Sum>n = 0..<length bs. of_bool (bs ! n) * (2::int) ^ n) \<le> (\<Sum>n = 0..<length bs. 2 ^ n)\<close>
+    by (rule sum_mono) simp
+  also have \<open>\<dots> = 2 ^ length bs - 1\<close>
+    by (induction bs) simp_all
+  finally show ?thesis
+    by (simp add: horner_sum_eq_sum)
+qed
+
+
 subsection \<open>Bit operations\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +

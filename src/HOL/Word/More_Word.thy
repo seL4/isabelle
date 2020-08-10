@@ -40,6 +40,6 @@ lemmas word_sless_def = word_sless_eq
 lemma shiftl_transfer [transfer_rule]:
   includes lifting_syntax
   shows "(pcr_word ===> (=) ===> pcr_word) (<<) (<<)"
-  by (auto intro!: rel_funI word_eqI simp add: word.pcr_cr_eq cr_word_def word_size nth_shiftl)
+  by (unfold shiftl_eq_push_bit) transfer_prover
 
 end
