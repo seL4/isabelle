@@ -493,7 +493,6 @@ object Build
   {
     val build_options =
       options +
-        "ML_statistics" +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
         "pide_reports=false"
