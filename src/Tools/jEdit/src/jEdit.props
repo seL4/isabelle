@@ -337,6 +337,7 @@ view.gutter.selectionAreaWidth=18
 view.height=850
 view.middleMousePaste=true
 view.showToolbar=true
+view.status=( mode , fold , encoding ) locked wrap multiSelect rectSelect overwrite lineSep buffersets task-monitor memory-status ml-status errors clock
 view.thickCaret=true
 view.width=1200
 xml-insert-closing-tag.shortcut=
