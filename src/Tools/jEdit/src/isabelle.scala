@@ -220,12 +220,6 @@ object Isabelle
     state_dockable(view).foreach(_.update_request())
 
 
-  /* ML statistics */
-
-  class ML_Stats extends
-    JEdit_Options.Check_Box("ML_statistics", "ML statistics", "Enable ML runtime system statistics")
-
-
   /* required document nodes */
 
   def set_node_required(view: View) { Document_Model.view_node_required(view, set = true) }

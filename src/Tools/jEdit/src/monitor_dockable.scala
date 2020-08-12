@@ -67,8 +67,6 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val ml_stats = new Isabelle.ML_Stats
-
   private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1))
   {
     tooltip = "Select visualized data collection"
@@ -95,7 +93,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     reactions += { case ValueChanged(_) => input_delay.invoke() }
   }
 
-  private val controls = Wrap_Panel(List(ml_stats, select_data, reset_data, limit_data))
+  private val controls = Wrap_Panel(List(select_data, reset_data, limit_data))
 
 
   /* layout */
@@ -107,24 +105,19 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   /* main */
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
-      case stats: Session.Runtime_Statistics =>
+    Session.Consumer[Session.Runtime_Statistics](getClass.getName) {
+      case stats =>
         add_statistics(stats.props)
         update_delay.invoke()
-
-      case _: Session.Global_Options =>
-        GUI_Thread.later { ml_stats.load() }
     }
 
   override def init()
   {
     PIDE.session.runtime_statistics += main
-    PIDE.session.global_options += main
   }
 
   override def exit()
   {
     PIDE.session.runtime_statistics -= main
-    PIDE.session.global_options -= main
   }
 }
