@@ -69,9 +69,16 @@ object ML_Status
       val width = getWidth - insets.left - insets.right
       val height = getHeight - insets.top - insets.bottom - 1
 
-      val width_used = (width * status.heap_used_fraction).toInt
+      val (text, fraction) =
+        status.gc_progress match {
+          case Some(p) => ("ML cleanup", 1.0 - p)
+          case None =>
+            ((status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
+              status.heap_used_fraction)
+        }
 
-      val text = (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB"
+      val width_fraction = (width * fraction).toInt
+
       val text_bounds = gfx.getFont.getStringBounds(text, font_render_context)
       val text_x = insets.left + ((width - text_bounds.getWidth).toInt / 2)
       val text_y = (insets.top + line_metrics.getAscent).toInt
@@ -82,14 +89,15 @@ object ML_Status
           RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
       gfx.setColor(progress_background)
-      gfx.fillRect(insets.left, insets.top, width_used, height)
+      gfx.fillRect(insets.left, insets.top, width_fraction, height)
 
       gfx.setColor(progress_foreground)
-      gfx.setClip(insets.left, insets.top, width_used, height)
+      gfx.setClip(insets.left, insets.top, width_fraction, height)
       gfx.drawString(text, text_x, text_y)
 
       gfx.setColor(getForeground)
-      gfx.setClip(insets.left + width_used, insets.top, getWidth - insets.left - width_used, height)
+      gfx.setClip(insets.left + width_fraction, insets.top,
+        getWidth - insets.left - width_fraction, height)
       gfx.drawString(text, text_x, text_y)
     }
 
