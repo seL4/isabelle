@@ -89,6 +89,7 @@ object Properties
     def apply(value: java.lang.String): T = List((name, value))
     def unapply(props: T): Option[java.lang.String] =
       props.find(_._1 == name).map(_._2)
+    def get(props: T): java.lang.String = unapply(props).getOrElse("")
   }
 
   class Boolean(val name: java.lang.String)
@@ -99,6 +100,7 @@ object Properties
         case None => None
         case Some((_, value)) => Value.Boolean.unapply(value)
       }
+    def get(props: T): scala.Boolean = unapply(props).getOrElse(false)
   }
 
   class Int(val name: java.lang.String)
@@ -109,6 +111,7 @@ object Properties
         case None => None
         case Some((_, value)) => Value.Int.unapply(value)
       }
+    def get(props: T): scala.Int = unapply(props).getOrElse(0)
   }
 
   class Long(val name: java.lang.String)
@@ -119,6 +122,7 @@ object Properties
         case None => None
         case Some((_, value)) => Value.Long.unapply(value)
       }
+    def get(props: T): scala.Long = unapply(props).getOrElse(0)
   }
 
   class Double(val name: java.lang.String)
@@ -129,5 +133,6 @@ object Properties
         case None => None
         case Some((_, value)) => Value.Double.unapply(value)
       }
+    def get(props: T): scala.Double = unapply(props).getOrElse(0.0)
   }
 }
