@@ -9,6 +9,14 @@ New in this Isabelle version
 
 *** Isabelle/jEdit Prover IDE ***
 
+* The jEdit status line includes a widget for Isabelle/ML heap usage,
+including an indication for ongoing garbage collection (as "ML
+cleanup").
+
+* The Monitor dockable provides buttons to request a full garbage
+collection and sharing of live data on the ML heap. It also includes
+information about the Java Runtime system.
+
 * Update to jedit-5.6pre1, the latest pre-release. This version works
 properly on macOS by default, without the special MacOSX plugin.
 

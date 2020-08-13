@@ -2077,7 +2077,7 @@ text \<open>
 
 chapter \<open>Miscellaneous tools\<close>
 
-section \<open>Timing\<close>
+section \<open>Timing and monitoring\<close>
 
 text \<open>
   Managed evaluation of commands within PIDE documents includes timing
@@ -2103,13 +2103,19 @@ text \<open>
   Isabelle~/ General\<close>.
 
   \<^medskip>
+  The jEdit status line includes monitor widgets for current heap usage of
+  Java and Isabelle/ML, respectively. The one for ML includes information
+  about ongoing garbage collection (as ``ML cleanup''); a double-click opens
+  a new instance of the \<^emph>\<open>Monitor\<close> panel for further details.
+
+  \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent
-  activity of the Isabelle/ML task farm and the underlying ML runtime system.
+  activity of the runtime system of Isabelle/ML and Java. There are buttons to
+  request a full garbage collection and sharing of live data on the ML heap.
   The display is continuously updated according to @{system_option_ref
   editor_chart_delay}. Note that the painting of the chart takes considerable
   runtime itself --- on the Java Virtual Machine that runs Isabelle/Scala, not
-  Isabelle/ML. Internally, the Isabelle/Scala module \<^verbatim>\<open>isabelle.ML_Statistics\<close>
-  provides further access to statistics of Isabelle/ML.
+  Isabelle/ML.
 \<close>
 
 
