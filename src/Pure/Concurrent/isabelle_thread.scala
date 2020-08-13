@@ -33,6 +33,9 @@ object Isabelle_Thread
 
   def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
 
+  lazy val worker_thread_group: ThreadGroup =
+    new ThreadGroup(current_thread_group, "Isabelle worker")
+
   def create(
     main: Runnable,
     name: String = "",
@@ -72,7 +75,8 @@ object Isabelle_Thread
     val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
-    executor.setThreadFactory(create(_, name = make_name(base = "worker"), group = current_thread_group))
+    executor.setThreadFactory(
+      create(_, name = make_name(base = "worker"), group = worker_thread_group))
     executor
   }
 
