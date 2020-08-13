@@ -78,7 +78,7 @@ object ML_Status
               status.heap_used_fraction)
         }
 
-      val width_fraction = (width * fraction).toInt
+      val width2 = (width * fraction).toInt
 
       val text_bounds = gfx.getFont.getStringBounds(text, font_render_context)
       val text_x = insets.left + ((width - text_bounds.getWidth).toInt / 2)
@@ -90,15 +90,14 @@ object ML_Status
           RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
       gfx.setColor(progress_background)
-      gfx.fillRect(insets.left, insets.top, width_fraction, height)
+      gfx.fillRect(insets.left, insets.top, width2, height)
 
       gfx.setColor(progress_foreground)
-      gfx.setClip(insets.left, insets.top, width_fraction, height)
+      gfx.setClip(insets.left, insets.top, width2, height)
       gfx.drawString(text, text_x, text_y)
 
       gfx.setColor(getForeground)
-      gfx.setClip(insets.left + width_fraction, insets.top,
-        getWidth - insets.left - width_fraction, height)
+      gfx.setClip(insets.left + width2, insets.top, getWidth - insets.left - width2, height)
       gfx.drawString(text, text_x, text_y)
     }
 
