@@ -173,12 +173,11 @@ object ML_Statistics
   private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
 
 
-  val all_fields: List[Fields] =
-    List(tasks_fields, workers_fields, GC_fields, heap_fields, program_fields, threads_fields,
-      time_fields, speed_fields)
-
   val main_fields: List[Fields] =
-    List(tasks_fields, workers_fields, heap_fields)
+    List(heap_fields, tasks_fields, workers_fields)
+
+  val all_fields: List[Fields] =
+    main_fields ::: List(threads_fields, GC_fields, program_fields, time_fields, speed_fields)
 
 
   /* content interpretation */
