@@ -68,4 +68,24 @@ object Platform
   /* JVM name */
 
   val jvm_name: String = System.getProperty("java.vm.name", "")
+
+
+  /* JVM statistics */
+
+  def jvm_statistics(): Properties.T =
+  {
+    val heap_size = Runtime.getRuntime.totalMemory()
+    val heap_used = heap_size - Runtime.getRuntime.freeMemory()
+
+    val threads = Thread.activeCount()
+    val workers = Isabelle_Thread.pool.getPoolSize
+    val workers_active = Isabelle_Thread.pool.getActiveCount
+
+    List(
+      "java_heap_size" -> heap_size.toString,
+      "java_heap_used" -> heap_used.toString,
+      "java_threads_total" -> threads.toString,
+      "java_workers_total" -> workers.toString,
+      "java_workers_active" -> workers_active.toString)
+  }
 }

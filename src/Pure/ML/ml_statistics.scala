@@ -99,8 +99,8 @@ object ML_Statistics
     private def consume(props: Properties.T): Unit = synchronized
     {
       if (session != null) {
-        val stats = Session.Runtime_Statistics(session.xml_cache.props(props))
-        session.runtime_statistics.post(stats)
+        val props1 = (session.xml_cache.props(props ::: Platform.jvm_statistics()))
+        session.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }
 
@@ -172,12 +172,21 @@ object ML_Statistics
 
   private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
 
+  val java_heap_fields: Fields =
+    ("Java heap", List("java_heap_size", "java_heap_used"))
+
+  val java_thread_fields: Fields =
+    ("Java threads", List("java_threads_total", "java_workers_total", "java_workers_active"))
+
 
   val main_fields: List[Fields] =
     List(heap_fields, tasks_fields, workers_fields)
 
-  val all_fields: List[Fields] =
-    main_fields ::: List(threads_fields, GC_fields, program_fields, time_fields, speed_fields)
+  val other_fields: List[Fields] =
+    List(threads_fields, GC_fields, program_fields, time_fields, speed_fields,
+      java_heap_fields, java_thread_fields)
+
+  val all_fields: List[Fields] = main_fields ::: other_fields
 
 
   /* content interpretation */
