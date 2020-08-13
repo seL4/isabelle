@@ -11,6 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Dimension, Graphics, Graphics2D, Insets, RenderingHints}
 import java.awt.font.FontRenderContext
+import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.{JComponent, JLabel}
 
 import org.gjt.sp.jedit.{View, jEdit}
@@ -21,7 +22,7 @@ object ML_Status
 {
   private val template = "99999/99999MB"
 
-  private class GUI extends JComponent
+  private class GUI(view: View) extends JComponent
   {
     /* component state -- owned by GUI thread */
 
@@ -122,11 +123,23 @@ object ML_Status
       super.removeNotify()
       PIDE.session.runtime_statistics -= main
     }
+
+
+    /* mouse listener */
+
+    addMouseListener(new MouseAdapter {
+      override def mouseClicked(evt: MouseEvent)
+      {
+        if (evt.getClickCount == 2) {
+          view.getInputHandler.invokeAction("isabelle-monitor-float")
+        }
+      }
+    })
   }
 
   class Widget_Factory extends StatusWidgetFactory
   {
     override def getWidget(view: View): Widget =
-      new Widget { override def getComponent: JComponent = new GUI }
+      new Widget { override def getComponent: JComponent = new GUI(view) }
   }
 }
