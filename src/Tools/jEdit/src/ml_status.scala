@@ -32,7 +32,7 @@ object ML_Status
     /* init */
 
     setFont(new JLabel().getFont)
-    setToolTipText("ML heap memory")
+    setToolTipText("ML heap memory (double-click for monitor panel)")
 
     private val font_render_context = new FontRenderContext(null, true, false)
     private val line_metrics = getFont.getLineMetrics(template, font_render_context)
