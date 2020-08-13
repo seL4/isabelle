@@ -78,6 +78,13 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
   }
 
+  private val limit_data = new TextField("200", 5) {
+    tooltip = "Limit for accumulated data"
+    verifier = (s: String) =>
+      s match { case Value.Int(x) => x > 0 case _ => false }
+    reactions += { case ValueChanged(_) => input_delay.invoke() }
+  }
+
   private val reset_data = new Button("Reset") {
     tooltip = "Reset accumulated data"
     reactions += {
@@ -86,14 +93,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
   }
 
-  private val limit_data = new TextField("200", 5) {
-    tooltip = "Limit for accumulated data"
-    verifier = (s: String) =>
-      s match { case Value.Int(x) => x > 0 case _ => false }
-    reactions += { case ValueChanged(_) => input_delay.invoke() }
-  }
-
-  private val controls = Wrap_Panel(List(select_data, reset_data, limit_data))
+  private val controls = Wrap_Panel(List(select_data, limit_data, reset_data))
 
 
   /* layout */
