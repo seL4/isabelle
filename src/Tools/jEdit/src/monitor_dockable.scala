@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/monitor_dockable.scala
     Author:     Makarius
 
-Monitor for ML statistics.
+Monitor for runtime statistics.
 */
 
 package isabelle.jedit
@@ -13,7 +13,7 @@ import isabelle.jedit_base.Dockable
 import java.awt.BorderLayout
 
 import scala.collection.immutable.Queue
-import scala.swing.{TextArea, TextField, ScrollPane, Component, ComboBox, Button}
+import scala.swing.{TextField, ComboBox, Button}
 import scala.swing.event.{SelectionChanged, ButtonClicked, ValueChanged}
 
 import org.jfree.chart.ChartPanel
@@ -48,21 +48,23 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     statistics_length = 0
   }
 
-  private var data_name = ML_Statistics.all_fields(0)._1
+  private var data_name = ML_Statistics.all_fields.head._1
   private val chart = ML_Statistics.empty.chart(null, Nil)
   private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
 
-  private def update_chart: Unit =
+  private def update_chart(): Unit =
+  {
     ML_Statistics.all_fields.find(_._1 == data_name) match {
       case None =>
       case Some((_, fields)) => ML_Statistics(statistics.toList).update_data(data, fields)
     }
+  }
 
   private val input_delay =
-    Delay.first(PIDE.options.seconds("editor_input_delay"), gui = true) { update_chart }
+    Delay.first(PIDE.options.seconds("editor_input_delay"), gui = true) { update_chart() }
 
   private val update_delay =
-    Delay.first(PIDE.options.seconds("editor_chart_delay"), gui = true) { update_chart }
+    Delay.first(PIDE.options.seconds("editor_chart_delay"), gui = true) { update_chart() }
 
 
   /* controls */
@@ -74,22 +76,25 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     reactions += {
       case SelectionChanged(_) =>
         data_name = selection.item
-        update_chart
+        update_chart()
     }
   }
 
   private val limit_data = new TextField("200", 5) {
     tooltip = "Limit for accumulated data"
-    verifier = (s: String) =>
-      s match { case Value.Int(x) => x > 0 case _ => false }
+    verifier = {
+      case Value.Int(x) => x > 0
+      case _ => false
+    }
     reactions += { case ValueChanged(_) => input_delay.invoke() }
   }
 
   private val reset_data = new Button("Reset") {
     tooltip = "Reset accumulated data"
     reactions += {
-      case ButtonClicked(_) => clear_statistics()
-        update_chart
+      case ButtonClicked(_) =>
+        clear_statistics()
+        update_chart()
     }
   }
 
@@ -123,7 +128,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val main =
     Session.Consumer[Session.Runtime_Statistics](getClass.getName) {
-      case stats =>
+      stats =>
         add_statistics(stats.props)
         update_delay.invoke()
     }
