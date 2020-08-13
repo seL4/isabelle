@@ -93,7 +93,24 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
   }
 
-  private val controls = Wrap_Panel(List(select_data, limit_data, reset_data))
+  private val full_gc = new Button("GC") {
+    tooltip = "Full garbage collection of ML heap"
+    reactions += {
+      case ButtonClicked(_) =>
+        PIDE.session.protocol_command("ML_Heap.full_gc")
+    }
+  }
+
+  private val share_common_data = new Button("Sharing") {
+    tooltip = "Share common data of ML heap"
+    reactions += {
+      case ButtonClicked(_) =>
+        PIDE.session.protocol_command("ML_Heap.share_common_data")
+    }
+  }
+
+  private val controls =
+    Wrap_Panel(List(select_data, limit_data, reset_data, full_gc, share_common_data))
 
 
   /* layout */

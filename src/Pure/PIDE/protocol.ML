@@ -172,6 +172,10 @@ val _ =
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn);
 
 val _ =
+  Isabelle_Process.protocol_command "ML_Heap.full_gc"
+    (fn [] => ML_Heap.full_gc ());
+
+val _ =
   Isabelle_Process.protocol_command "ML_Heap.share_common_data"
     (fn [] => ML_Heap.share_common_data ());
 
