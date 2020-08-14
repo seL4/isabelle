@@ -6,71 +6,72 @@ Support for Scala at runtime.
 
 signature SCALA =
 sig
+  exception Null
+  val function: string -> string -> string
   val functions: unit -> string list
   val check_function: Proof.context -> string * Position.T -> string
-  val promise_function: string -> string -> string future
-  val function: string -> string -> string
-  exception Null
 end;
 
 structure Scala: SCALA =
 struct
 
-(** invoke Scala functions from ML **)
-
-val _ = Session.protocol_handler "isabelle.Scala";
-
-
-(* pending promises *)
-
-val new_id = string_of_int o Counter.make ();
-
-val promises =
-  Synchronized.var "Scala.promises" (Symtab.empty: string future Symtab.table);
-
-
-(* invoke function *)
-
-fun promise_function name arg =
-  let
-    val id = new_id ();
-    fun abort () = Output.protocol_message (Markup.cancel_scala id) [];
-    val promise = Future.promise_name "invoke_scala" abort : string future;
-    val _ = Synchronized.change promises (Symtab.update (id, promise));
-    val _ = Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg];
-  in promise end;
-
-fun function name arg = Future.join (promise_function name arg);
-
-
-(* fulfill *)
+(** protocol for Scala function invocation from ML **)
 
 exception Null;
 
-fun fulfill id tag res =
-  let
-    val result =
-      (case tag of
-        "0" => Exn.Exn Null
-      | "1" => Exn.Res res
-      | "2" => Exn.Exn (ERROR res)
-      | "3" => Exn.Exn (Fail res)
-      | "4" => Exn.Exn Exn.Interrupt
-      | _ => raise Fail "Bad tag");
-    val promise =
-      Synchronized.change_result promises
-        (fn tab => (the (Symtab.lookup tab id), Symtab.delete id tab));
-    val _ = Future.fulfill_result promise result;
-  in () end;
+local
+
+val new_id = string_of_int o Counter.make ();
+
+val results =
+  Synchronized.var "Scala.results" (Symtab.empty: string Exn.result Symtab.table);
 
 val _ =
-  Isabelle_Process.protocol_command "Scala.fulfill"
+  Isabelle_Process.protocol_command "Scala.result"
     (fn [id, tag, res] =>
-      fulfill id tag res
-        handle exn => if Exn.is_interrupt exn then () else Exn.reraise exn);
+      let
+        val result =
+          (case tag of
+            "0" => Exn.Exn Null
+          | "1" => Exn.Res res
+          | "2" => Exn.Exn (ERROR res)
+          | "3" => Exn.Exn (Fail res)
+          | "4" => Exn.Exn Exn.Interrupt
+          | _ => raise Fail ("Bad tag: " ^ tag));
+      in Synchronized.change results (Symtab.map_entry id (K result)) end);
+
+val _ = Session.protocol_handler "isabelle.Scala";
+
+in
+
+fun function name arg =
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+    let
+      val id = new_id ();
+      fun invoke () =
+       (Synchronized.change results (Symtab.update (id, Exn.Exn Match));
+        Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg]);
+      fun cancel () =
+       (Synchronized.change results (Symtab.delete_safe id);
+        Output.protocol_message (Markup.cancel_scala id) []);
+      fun await_result () =
+        Synchronized.guarded_access results
+          (fn tab =>
+            (case Symtab.lookup tab id of
+              SOME (Exn.Exn Match) => NONE
+            | SOME result => SOME (result, Symtab.delete id tab)
+            | NONE => SOME (Exn.Exn Exn.Interrupt, tab)))
+        handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn);
+    in
+      invoke ();
+      Exn.release (restore_attributes await_result ())
+    end) ();
+
+end;
 
 
-(* registered functions *)
+
+(** registered Scala functions **)
 
 fun functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 

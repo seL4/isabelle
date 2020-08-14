@@ -138,11 +138,11 @@ class Scala extends Session.Protocol_Handler
     futures = Map.empty
   }
 
-  private def fulfill(id: String, tag: Scala.Tag.Value, res: String): Unit =
+  private def result(id: String, tag: Scala.Tag.Value, res: String): Unit =
     synchronized
     {
       if (futures.isDefinedAt(id)) {
-        session.protocol_command("Scala.fulfill", id, tag.id.toString, res)
+        session.protocol_command("Scala.result", id, tag.id.toString, res)
         futures -= id
       }
     }
@@ -150,7 +150,7 @@ class Scala extends Session.Protocol_Handler
   private def cancel(id: String, future: Future[Unit])
   {
     future.cancel
-    fulfill(id, Scala.Tag.INTERRUPT, "")
+    result(id, Scala.Tag.INTERRUPT, "")
   }
 
   private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
@@ -159,8 +159,8 @@ class Scala extends Session.Protocol_Handler
       case Markup.Invoke_Scala(name, id) =>
         futures += (id ->
           Future.fork {
-            val (tag, result) = Scala.function(name, msg.text)
-            fulfill(id, tag, result)
+            val (tag, res) = Scala.function(name, msg.text)
+            result(id, tag, res)
           })
         true
       case _ => false
