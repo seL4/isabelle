@@ -127,9 +127,10 @@ structure Data = Proof_Data
   fun init _ = [];
 );
 
+
 (* nested structure *)
 
-val level = length o Data.get;  (*1: main target at bottom, >= 2: nested context*)
+val level = length o Data.get;  (*1: main target at bottom, >= 2: nested target context*)
 
 fun assert lthy =
   if level lthy = 0 then error "Missing local theory context" else lthy;
@@ -355,7 +356,7 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 (** manage targets **)
 
-(* outermost target *)
+(* main target *)
 
 fun init {background_naming, exit} operations target =
   target |> Data.map
@@ -367,18 +368,18 @@ val exit_of = #exit o bottom_of;
 fun exit lthy = exit_of lthy lthy;
 val exit_global = Proof_Context.theory_of o exit;
 
-fun exit_result f (x, lthy) =
+fun exit_result decl (x, lthy) =
   let
     val ctxt = exit lthy;
     val phi = standard_morphism lthy ctxt;
-  in (f phi x, ctxt) end;
+  in (decl phi x, ctxt) end;
 
-fun exit_result_global f (x, lthy) =
+fun exit_result_global decl (x, lthy) =
   let
     val thy = exit_global lthy;
     val thy_ctxt = Proof_Context.init_global thy;
     val phi = standard_morphism lthy thy_ctxt;
-  in (f phi x, thy) end;
+  in (decl phi x, thy) end;
 
 
 (* nested targets *)
@@ -388,9 +389,8 @@ fun init_target {background_naming, after_close} operations lthy =
     val _ = assert lthy;
     val after_close' = Proof_Context.restore_naming lthy #> after_close;
     val (scope, target) = Proof_Context.new_scope lthy;
-    val lthy' =
-      target
-      |> Data.map (cons (make_lthy (background_naming, operations, after_close', exit_of lthy, true, target)));
+    val entry = make_lthy (background_naming, operations, after_close', exit_of lthy, true, target);
+    val lthy' = Data.map (cons entry) target;
   in (scope, lthy') end;
 
 fun open_target lthy =
@@ -403,23 +403,13 @@ fun close_target lthy =
     val ({after_close, ...} :: rest) = Data.get lthy;
   in lthy |> Data.put rest |> reset |> after_close end;
 
-fun subtarget g lthy =
-  lthy
-  |> open_target
-  |> snd
-  |> g
-  |> close_target;
+fun subtarget body = open_target #> #2 #> body #> close_target;
 
-fun subtarget_result f g lthy =
+fun subtarget_result decl body lthy =
   let
-    val (x, inner_lthy) =
-      open_target lthy
-      |> snd
-      |> g
-    val lthy' =
-      inner_lthy
-      |> close_target;
-    val phi = Proof_Context.export_morphism inner_lthy lthy'
-  in (f phi x, lthy') end;
+    val (x, inner_lthy) = lthy |> open_target |> #2 |> body;
+    val lthy' = inner_lthy |> close_target;
+    val phi = Proof_Context.export_morphism inner_lthy lthy';
+  in (decl phi x, lthy') end;
 
 end;
