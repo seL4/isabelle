@@ -15,6 +15,25 @@ import scala.tools.nsc.interpreter.IMain
 
 object Scala
 {
+  /** demo functions **/
+
+  def echo(arg: String): String = arg
+
+  def sleep(seconds: String): String =
+  {
+    val t =
+      seconds match {
+        case Value.Double(s) => Time.seconds(s)
+        case _ => error("Malformed argument: " + quote(seconds))
+      }
+    val t0 = Time.now()
+    t.sleep
+    val t1 = Time.now()
+    (t1 - t0).toString
+  }
+
+
+
   /** compiler **/
 
   object Compiler
@@ -192,6 +211,7 @@ class Scala extends Session.Protocol_Handler
 class Isabelle_Scala_Functions(val functions: Scala.Fun*) extends Isabelle_System.Service
 
 class Functions extends Isabelle_Scala_Functions(
-  Scala.Fun("echo", identity),
+  Scala.Fun("echo", Scala.echo),
+  Scala.Fun("sleep", Scala.sleep),
   Scala.Fun("scala_toplevel", Scala.toplevel_yxml),
   Scala.Fun("check_bibtex_database", Bibtex.check_database_yxml))
