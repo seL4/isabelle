@@ -178,7 +178,7 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
 
     val ((name, info), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Typedef.add_typedef {overloaded = false} (b', Ts, mx) set (SOME bindings) tac
       ||> `Local_Theory.close_target;
     val phi = Proof_Context.export_morphism lthy_old lthy;

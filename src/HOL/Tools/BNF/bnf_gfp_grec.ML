@@ -244,7 +244,7 @@ fun define_const internal fp_b version name rhs lthy =
     val b = mk_version_fp_binding internal lthy version fp_b name;
 
     val ((free, (_, def_free)), (lthy, lthy_old)) = lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((b, NoSyn), ((Thm.def_binding b |> Binding.concealed, []), rhs))
       ||> `Local_Theory.close_target;
 
@@ -259,7 +259,7 @@ fun define_const internal fp_b version name rhs lthy =
 fun define_single_primrec b eqs lthy =
   let
     val (([free], [def_free], [simps_free]), (lthy, lthy_old)) = lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.map_background_naming (mk_internal true lthy Name_Space.concealed) (*TODO check*)
       |> primrec false [] [(b, NONE, NoSyn)] (map (fn eq => ((Binding.empty_atts, eq), [], [])) eqs)
       ||> `Local_Theory.close_target;
@@ -541,7 +541,7 @@ fun define_sig_type fp_b version fp_alives Es Y rhsT lthy =
     val ctr_b = mk_version_fp_binding false lthy version fp_b SigN;
     val sel_b = mk_version_fp_binding true lthy version fp_b unsigN;
 
-    val lthy = Local_Theory.open_target lthy |> snd;
+    val lthy = Local_Theory.open_target lthy;
 
     val T_name = Local_Theory.full_name lthy T_b;
 
@@ -574,7 +574,7 @@ fun define_ssig_type fp_b version fp_alives Es Y fpT lthy =
     val VLeaf_b = mk_version_fp_binding false lthy version fp_b VLeafN;
     val CLeaf_b = mk_version_fp_binding false lthy version fp_b CLeafN;
 
-    val lthy = Local_Theory.open_target lthy |> snd;
+    val lthy = Local_Theory.open_target lthy;
 
     val sig_T_name = Local_Theory.full_name lthy sig_T_b;
     val T_name = Long_Name.map_base_name (prefix s_prefix) sig_T_name;

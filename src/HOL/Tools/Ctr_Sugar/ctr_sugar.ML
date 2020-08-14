@@ -512,7 +512,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
          Term.lambda w (Library.foldr1 HOLogic.mk_disj (@{map 3} mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy, lthy_old)) = no_defs_lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((case_binding, NoSyn),
         ((Binding.concealed (Thm.def_binding case_binding), []), case_rhs))
       ||> `Local_Theory.close_target;
@@ -619,7 +619,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             lthy
-            |> Local_Theory.open_target |> snd
+            |> Local_Theory.open_target
             |> apfst split_list o @{fold_map 3} (fn k => fn exist_xs_u_eq_ctr => fn b =>
                 if Binding.is_empty b then
                   if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)

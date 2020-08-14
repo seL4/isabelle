@@ -88,7 +88,7 @@ fun add_syntax_definition short_type_name eagerT lazyT lazy_ctr lthy =
     val def = Logic.all_const freeT $ absdummy freeT (Logic.mk_equals (
       Free (name, (freeT --> eagerT)) $ Bound 0,
       lazy_ctr $ (Const (\<^const_name>\<open>delay\<close>, (freeT --> lazyT')) $ Bound 0)))
-    val (_, lthy') = Local_Theory.open_target lthy
+    val lthy' = Local_Theory.open_target lthy
     val ((t, (_, thm)), lthy') = Specification.definition NONE [] [] 
       ((Thm.def_binding (Binding.name name), []), def) lthy'
     val lthy' = Specification.notation true ("", false) [(t, Mixfix.mixfix "_")] lthy'
@@ -238,7 +238,7 @@ fun code_lazy_type eager_type_string thy =
             (Const (\<^const_name>\<open>top\<close>, Type (\<^type_name>\<open>set\<close>, [eager_type])))
             NONE
             (fn ctxt => resolve_tac ctxt [@{thm UNIV_witness}] 1)
-          o (Local_Theory.open_target #> snd)) lthy
+          o Local_Theory.open_target) lthy
       in
          (binding, result, Local_Theory.close_target lthy1)
       end;
@@ -291,7 +291,7 @@ fun code_lazy_type eager_type_string thy =
       let
         val binding = Binding.name name
         val ((_, (_, thm)), lthy1) = 
-          Local_Theory.open_target lthy |> snd
+          Local_Theory.open_target lthy
           |> Specification.definition NONE [] [] ((Thm.def_binding binding, []), rhs)
         val lthy2 = Local_Theory.close_target lthy1
         val def_thm = hd (Proof_Context.export lthy1 lthy2 [thm])
@@ -355,7 +355,7 @@ fun code_lazy_type eager_type_string thy =
           1
         val thm = Goal.prove lthy [] [] term tac
         val (_, lthy1) = lthy
-          |> Local_Theory.open_target |> snd
+          |> Local_Theory.open_target
           |> Local_Theory.note ((binding, []), [thm])
       in
         (thm, Local_Theory.close_target lthy1)

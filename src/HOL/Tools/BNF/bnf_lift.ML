@@ -929,7 +929,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
       let
         val b = Binding.qualify true absT_name (Binding.qualified_name b);
         val ((tm, (_, def)), (lthy, lthy_old)) = lthy
-          |> Local_Theory.open_target |> snd
+          |> Local_Theory.open_target
           |> Local_Theory.define_internal (((Binding.concealed b, NoSyn), (Binding.empty_atts, tm)))
           ||> `Local_Theory.close_target;
         val phi = Proof_Context.export_morphism lthy_old lthy;

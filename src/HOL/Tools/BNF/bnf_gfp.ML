@@ -276,7 +276,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((coalg_free, (_, coalg_def_free)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((coalg_bind, NoSyn), (coalg_def_bind, coalg_spec))
       ||> `Local_Theory.close_target;
 
@@ -365,7 +365,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((mor_free, (_, mor_def_free)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((mor_bind, NoSyn), (mor_def_bind, mor_spec))
       ||> `Local_Theory.close_target;
 
@@ -520,7 +520,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((bis_free, (_, bis_def_free)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((bis_bind, NoSyn), (bis_def_bind, bis_spec))
       ||> `Local_Theory.close_target;
 
@@ -666,7 +666,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((lsbis_frees, (_, lsbis_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> fold_map (fn i => Local_Theory.define
         ((lsbis_bind i, NoSyn), (lsbis_def_bind i, lsbis_spec i))) ks
       |>> apsnd split_list o split_list
@@ -768,7 +768,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
           val ((sbd_free, (_, sbd_def_free)), (lthy, lthy_old)) =
             lthy
-            |> Local_Theory.open_target |> snd
+            |> Local_Theory.open_target
             |> Local_Theory.define ((sbd_bind, NoSyn), (sbd_def_bind, sbd_spec))
             ||> `Local_Theory.close_target;
 
@@ -872,7 +872,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((isNode_frees, (_, isNode_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> @{fold_map 3} (fn i => fn x => fn sets => Local_Theory.define
         ((isNode_bind i, NoSyn), (isNode_def_bind i, isNode_spec sets x i)))
         ks xs isNode_setss
@@ -912,7 +912,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((carT_frees, (_, carT_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> fold_map (fn i =>
         Local_Theory.define ((carT_bind i, NoSyn), (carT_def_bind i, carT_spec i))) ks
       |>> apsnd split_list o split_list
@@ -945,7 +945,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((strT_frees, (_, strT_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> @{fold_map 3} (fn i => fn mapFT => fn FT => Local_Theory.define
         ((strT_bind i, NoSyn), (strT_def_bind i, strT_spec mapFT FT i)))
         ks tree_maps treeFTs
@@ -1015,7 +1015,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((Lev_free, (_, Lev_def_free)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((Lev_bind, NoSyn), (Lev_def_bind, Lev_spec))
       ||> `Local_Theory.close_target;
 
@@ -1059,7 +1059,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((rv_free, (_, rv_def_free)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> Local_Theory.define ((rv_bind, NoSyn), (rv_def_bind, rv_spec))
       ||> `Local_Theory.close_target;
 
@@ -1102,7 +1102,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((beh_frees, (_, beh_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> @{fold_map 2} (fn i => fn z =>
         Local_Theory.define ((beh_bind i, NoSyn), (beh_def_bind i, beh_spec i z))) ks zs
       |>> apsnd split_list o split_list
@@ -1379,7 +1379,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((dtor_frees, (_, dtor_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> @{fold_map 6} (fn i => fn rep => fn str => fn mapx => fn Jz => fn Jz' =>
         Local_Theory.define ((dtor_bind i, NoSyn),
           (dtor_def_bind i, dtor_spec rep str mapx Jz Jz')))
@@ -1425,7 +1425,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((unfold_frees, (_, unfold_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> @{fold_map 4} (fn i => fn abs => fn f => fn z =>
         Local_Theory.define ((unfold_bind i, NoSyn), (unfold_def_bind i, unfold_spec abs f z)))
           ks Abs_Ts (map (fn i => HOLogic.mk_comp
@@ -1525,7 +1525,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((ctor_frees, (_, ctor_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> fold_map (fn i =>
         Local_Theory.define ((ctor_bind i, NoSyn), (ctor_def_bind i, ctor_spec i))) ks
       |>> apsnd split_list o split_list
@@ -1731,7 +1731,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
 
         val ((col_frees, (_, col_def_frees)), (lthy, lthy_old)) =
           lthy
-          |> Local_Theory.open_target |> snd
+          |> Local_Theory.open_target
           |> @{fold_map 4} (fn j => fn Zero => fn hrec => fn hrec' => Local_Theory.define
             ((col_bind j, NoSyn), (col_def_bind j, col_spec j Zero hrec hrec')))
             ls Zeros hrecs hrecs'

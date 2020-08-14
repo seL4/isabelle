@@ -75,7 +75,8 @@ sig
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
   val init_target: {background_naming: Name_Space.naming, after_close: local_theory -> local_theory} ->
     operations -> local_theory -> Binding.scope * local_theory
-  val open_target: local_theory -> Binding.scope * local_theory
+  val begin_target: local_theory -> Binding.scope * local_theory
+  val open_target: local_theory -> local_theory
   val close_target: local_theory -> local_theory
   val subtarget: (local_theory -> local_theory) -> local_theory -> local_theory
   val subtarget_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
@@ -393,9 +394,11 @@ fun init_target {background_naming, after_close} operations lthy =
     val lthy' = Data.map (cons entry) target;
   in (scope, lthy') end;
 
-fun open_target lthy =
+fun begin_target lthy =
   init_target {background_naming = background_naming_of lthy, after_close = I}
     (operations_of lthy) lthy;
+
+val open_target = begin_target #> #2;
 
 fun close_target lthy =
   let
@@ -403,11 +406,11 @@ fun close_target lthy =
     val ({after_close, ...} :: rest) = Data.get lthy;
   in lthy |> Data.put rest |> reset |> after_close end;
 
-fun subtarget body = open_target #> #2 #> body #> close_target;
+fun subtarget body = open_target #> body #> close_target;
 
 fun subtarget_result decl body lthy =
   let
-    val (x, inner_lthy) = lthy |> open_target |> #2 |> body;
+    val (x, inner_lthy) = lthy |> open_target |> body;
     val lthy' = inner_lthy |> close_target;
     val phi = Proof_Context.export_morphism inner_lthy lthy';
   in (decl phi x, lthy') end;

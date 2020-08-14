@@ -146,7 +146,7 @@ val all_code_dt_of = all_code_dt_of_generic o Context.Proof;
 val all_code_dt_of_global = all_code_dt_of_generic o Context.Theory;
 
 fun update_code_dt code_dt =
-  Local_Theory.open_target #> snd
+  Local_Theory.open_target
   #> Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Item_Net.update (morph_code_dt phi code_dt)))
   #> Local_Theory.close_target
@@ -329,7 +329,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       THEN' (rtac ctxt @{thm id_transfer}));
 
     val (rep_isom_lift_def, lthy1) = lthy0
-      |> Local_Theory.open_target |> snd
+      |> Local_Theory.open_target
       |> lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
         (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac []
       |>> inst_of_lift_def lthy0 (qty_isom --> qty);
@@ -567,7 +567,7 @@ and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
         val non_empty_pred = quot_thm RS @{thm type_definition_Quotient_not_empty}
         val pred = quot_thm_rel quot_thm |> dest_comb |> snd;
         val (pred, lthy1) = lthy0
-          |> Local_Theory.open_target |> snd
+          |> Local_Theory.open_target
           |> yield_singleton (Variable.import_terms true) pred;
         val TFrees = Term.add_tfreesT qty []
 

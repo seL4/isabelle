@@ -208,7 +208,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val nested_size_gen_o_maps = fold (union Thm.eq_thm_prop) nested_size_gen_o_mapss [];
 
       val ((raw_size_consts, raw_size_defs), (lthy1, lthy1_old)) = lthy0
-        |> Local_Theory.open_target |> snd
+        |> Local_Theory.open_target
         |> apfst split_list o @{fold_map 2} (fn b => fn rhs =>
             Local_Theory.define ((b, NoSyn), ((maybe_conceal_def_binding b, []), rhs))
             #>> apsnd snd)
