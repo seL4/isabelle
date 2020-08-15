@@ -202,8 +202,8 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       in protocol_loop () end;
 
     fun protocol () =
-     (ml_statistics ();
-      message Markup.initN [] [XML.Text (Session.welcome ())];
+     (message Markup.initN [] [XML.Text (Session.welcome ())];
+      ml_statistics ();
       protocol_loop ());
 
     val result = Exn.capture (message_context protocol) ();
