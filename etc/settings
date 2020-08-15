@@ -27,8 +27,8 @@ isabelle_scala_service 'isabelle.Functions'
 
 isabelle_scala_service 'isabelle.Bibtex$File_Format'
 
-isabelle_scala_service 'isabelle.ML_Statistics$Protocol_Handler'
-isabelle_scala_service 'isabelle.Scala'
+isabelle_scala_service 'isabelle.ML_Statistics$Handler'
+isabelle_scala_service 'isabelle.Scala$Handler'
 isabelle_scala_service 'isabelle.Print_Operation$Handler'
 isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
 

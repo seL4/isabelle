@@ -138,71 +138,71 @@ object Scala
         }
       case None => (Tag.FAIL, "Unknown Isabelle/Scala function: " + quote(name))
     }
-}
 
 
-/* protocol handler */
+  /* protocol handler */
 
-class Scala extends Session.Protocol_Handler
-{
-  private var session: Session = null
-  private var futures = Map.empty[String, Future[Unit]]
-
-  override def init(init_session: Session): Unit =
-    synchronized { session = init_session }
-
-  override def exit(): Unit = synchronized
+  class Handler extends Session.Protocol_Handler
   {
-    for ((id, future) <- futures) cancel(id, future)
-    futures = Map.empty
-  }
+    private var session: Session = null
+    private var futures = Map.empty[String, Future[Unit]]
 
-  private def result(id: String, tag: Scala.Tag.Value, res: String): Unit =
-    synchronized
+    override def init(init_session: Session): Unit =
+      synchronized { session = init_session }
+
+    override def exit(): Unit = synchronized
     {
-      if (futures.isDefinedAt(id)) {
-        session.protocol_command("Scala.result", id, tag.id.toString, res)
-        futures -= id
+      for ((id, future) <- futures) cancel(id, future)
+      futures = Map.empty
+    }
+
+    private def result(id: String, tag: Scala.Tag.Value, res: String): Unit =
+      synchronized
+      {
+        if (futures.isDefinedAt(id)) {
+          session.protocol_command("Scala.result", id, tag.id.toString, res)
+          futures -= id
+        }
+      }
+
+    private def cancel(id: String, future: Future[Unit])
+    {
+      future.cancel
+      result(id, Scala.Tag.INTERRUPT, "")
+    }
+
+    private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
+    {
+      msg.properties match {
+        case Markup.Invoke_Scala(name, id) =>
+          futures += (id ->
+            Future.fork {
+              val (tag, res) = Scala.function(name, msg.text)
+              result(id, tag, res)
+            })
+          true
+        case _ => false
       }
     }
 
-  private def cancel(id: String, future: Future[Unit])
-  {
-    future.cancel
-    result(id, Scala.Tag.INTERRUPT, "")
-  }
-
-  private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
-  {
-    msg.properties match {
-      case Markup.Invoke_Scala(name, id) =>
-        futures += (id ->
-          Future.fork {
-            val (tag, res) = Scala.function(name, msg.text)
-            result(id, tag, res)
-          })
-        true
-      case _ => false
+    private def cancel_scala(msg: Prover.Protocol_Output): Boolean = synchronized
+    {
+      msg.properties match {
+        case Markup.Cancel_Scala(id) =>
+          futures.get(id) match {
+            case Some(future) => cancel(id, future)
+            case None =>
+          }
+          true
+        case _ => false
+      }
     }
-  }
 
-  private def cancel_scala(msg: Prover.Protocol_Output): Boolean = synchronized
-  {
-    msg.properties match {
-      case Markup.Cancel_Scala(id) =>
-        futures.get(id) match {
-          case Some(future) => cancel(id, future)
-          case None =>
-        }
-        true
-      case _ => false
-    }
+    val functions =
+      List(
+        Markup.Invoke_Scala.name -> invoke_scala,
+        Markup.Cancel_Scala.name -> cancel_scala)
   }
-
-  val functions =
-    List(
-      Markup.Invoke_Scala.name -> invoke_scala,
-      Markup.Cancel_Scala.name -> cancel_scala)
 }
 
 

@@ -80,7 +80,7 @@ object ML_Statistics
 
   /* protocol handler */
 
-  class Protocol_Handler extends Session.Protocol_Handler
+  class Handler extends Session.Protocol_Handler
   {
     private var session: Session = null
     private var monitoring: Future[Unit] = Future.value(())
