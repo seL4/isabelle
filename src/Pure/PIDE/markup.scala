@@ -599,8 +599,6 @@ object Markup
   object Loading_Theory extends Name_Function("loading_theory")
   object Build_Session_Finished extends Function("build_session_finished")
 
-  object Protocol_Handler extends Name_Function("protocol_handler")
-
   object Commands_Accepted extends Function("commands_accepted")
   object Assign_Update extends Function("assign_update")
   object Removed_Versions extends Function("removed_versions")

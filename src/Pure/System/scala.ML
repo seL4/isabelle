@@ -40,8 +40,6 @@ val _ =
           | _ => raise Fail ("Bad tag: " ^ tag));
       in Synchronized.change results (Symtab.map_entry id (K result)) end);
 
-val _ = Session.protocol_handler "isabelle.Scala";
-
 in
 
 fun function name arg =

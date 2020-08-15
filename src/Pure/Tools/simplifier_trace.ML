@@ -394,8 +394,6 @@ fun simp_apply args ctxt cont =
         end)
   end
 
-val _ = Session.protocol_handler "isabelle.Simplifier_Trace$Handler"
-
 val _ = Theory.setup
   (Simplifier.set_trace_ops
     {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" depth term,

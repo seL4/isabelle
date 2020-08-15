@@ -27,6 +27,11 @@ isabelle_scala_service 'isabelle.Functions'
 
 isabelle_scala_service 'isabelle.Bibtex$File_Format'
 
+isabelle_scala_service 'isabelle.ML_Statistics$Protocol_Handler'
+isabelle_scala_service 'isabelle.Scala'
+isabelle_scala_service 'isabelle.Print_Operation$Handler'
+isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
+
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"
 unset "JAVA_TOOL_OPTIONS"

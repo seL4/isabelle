@@ -113,7 +113,7 @@ object Session
 
   type Protocol_Function = Prover.Protocol_Output => Boolean
 
-  abstract class Protocol_Handler
+  abstract class Protocol_Handler extends Isabelle_System.Service
   {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
@@ -369,9 +369,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
 
-  def init_protocol_handler(name: String): Unit =
-    protocol_handlers.init(name)
-
 
   /* debugger */
 
@@ -484,9 +481,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
           val handled = protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Markup.Protocol_Handler(name) if prover.defined =>
-                init_protocol_handler(name)
-
               case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
                 command_timings.post(Session.Command_Timing(props))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
@@ -548,6 +542,13 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             case _ if output.is_init =>
               prover.get.options(file_formats.prover_options(session_options))
               prover.get.init_session(resources)
+
+              Isabelle_System.services.foreach(
+                {
+                  case handler: Session.Protocol_Handler => init_protocol_handler(handler)
+                  case _ =>
+                })
+
               phase = Session.Ready
               debugger.ready()
 

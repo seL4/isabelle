@@ -213,7 +213,6 @@ sig
   val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
-  val protocol_handler: string -> Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
   val task_statistics: Properties.entry
@@ -679,8 +678,6 @@ val commands_accepted = [(functionN, "commands_accepted")];
 
 val assign_update = [(functionN, "assign_update")];
 val removed_versions = [(functionN, "removed_versions")];
-
-fun protocol_handler name = [(functionN, "protocol_handler"), (nameN, name)];
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];

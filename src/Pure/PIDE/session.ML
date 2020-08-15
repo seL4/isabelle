@@ -13,8 +13,6 @@ sig
     (Path.T * Path.T) list -> Path.T -> string -> string * string -> bool -> unit
   val shutdown: unit -> unit
   val finish: unit -> unit
-  val protocol_handler: string -> unit
-  val init_protocol_handlers: unit -> unit
 end;
 
 structure Session: SESSION =
@@ -73,26 +71,5 @@ fun finish () =
   shutdown ();
   update_keywords ();
   Synchronized.change session (apsnd (K true)));
-
-
-
-(** protocol handlers **)
-
-val protocol_handlers = Synchronized.var "protocol_handlers" ([]: string list);
-
-fun protocol_handler name =
-  if Thread_Data.is_virtual then ()
-  else
-    Synchronized.change protocol_handlers (fn handlers =>
-     (Output.try_protocol_message (Markup.protocol_handler name) [];
-      if not (member (op =) handlers name) then ()
-      else warning ("Redefining protocol handler: " ^ quote name);
-      update (op =) name handlers));
-
-fun init_protocol_handlers () =
-  if Thread_Data.is_virtual then ()
-  else
-    Synchronized.value protocol_handlers
-    |> List.app (fn name => Output.try_protocol_message (Markup.protocol_handler name) []);
 
 end;

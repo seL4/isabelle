@@ -23,29 +23,16 @@ object Protocol_Handlers
     def init(handler: Session.Protocol_Handler): State =
     {
       val name = handler.getClass.getName
-
-      val (handlers1, functions1) =
-        handlers.get(name) match {
-          case Some(old_handler) =>
-            Output.warning("Redefining protocol handler: " + name)
-            old_handler.exit()
-            (handlers - name, functions -- old_handler.functions.map(_._1))
-          case None => (handlers, functions)
-        }
-
-      val (handlers2, functions2) =
-        try {
+      try {
+        if (handlers.isDefinedAt(name)) error("Duplicate protocol handler: " + name)
+        else {
           handler.init(session)
-
-          val dups = for ((a, _) <- handler.functions if functions1.isDefinedAt(a)) yield a
+          val dups = for ((a, _) <- handler.functions if functions.isDefinedAt(a)) yield a
           if (dups.nonEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
-
-          (handlers1 + (name -> handler), functions1 ++ handler.functions)
+          copy(handlers = handlers + (name -> handler), functions = functions ++ handler.functions)
         }
-        catch {
-          case exn: Throwable => bad_handler(exn, name); (handlers1, functions1)
-        }
-      copy(handlers = handlers2, functions = functions2)
+      }
+      catch { case exn: Throwable => bad_handler(exn, name); this }
     }
 
     def init(name: String): State =

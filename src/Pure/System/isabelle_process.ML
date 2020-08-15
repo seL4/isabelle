@@ -117,8 +117,6 @@ fun ml_statistics () =
   Output.protocol_message
     (Markup.ML_statistics {pid = ML_Pid.get (), stats_dir = getenv "POLYSTATSDIR"}) [];
 
-val _ = Session.protocol_handler "isabelle.ML_Statistics$Protocol_Handler";
-
 in
 
 fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
@@ -204,8 +202,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       in protocol_loop () end;
 
     fun protocol () =
-     (Session.init_protocol_handlers ();
-      ml_statistics ();
+     (ml_statistics ();
       message Markup.initN [] [XML.Text (Session.welcome ())];
       protocol_loop ());
 

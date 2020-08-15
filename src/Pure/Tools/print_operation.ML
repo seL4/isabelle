@@ -29,8 +29,6 @@ fun report () =
 
 val _ = Isabelle_Process.protocol_command "print_operations" (fn [] => report ());
 
-val _ = Session.protocol_handler "isabelle.Print_Operation$Handler";
-
 in
 
 fun register name description pr =
