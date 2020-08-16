@@ -543,11 +543,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               prover.get.options(file_formats.prover_options(session_options))
               prover.get.init_session(resources)
 
-              Isabelle_System.services.foreach(
-                {
-                  case handler: Session.Protocol_Handler => init_protocol_handler(handler)
-                  case _ =>
-                })
+              Isabelle_System.make_services(classOf[Session.Protocol_Handler])
+                .foreach(init_protocol_handler)
 
               phase = Session.Ready
               debugger.ready()

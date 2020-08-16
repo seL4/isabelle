@@ -12,7 +12,7 @@ import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 
-import scala.collection.mutable
+import scala.annotation.tailrec
 
 
 object Isabelle_System
@@ -49,7 +49,7 @@ object Isabelle_System
   abstract class Service
 
   @volatile private var _settings: Option[Map[String, String]] = None
-  @volatile private var _services: Option[List[Service]] = None
+  @volatile private var _services: Option[List[Class[Service]]] = None
 
   def settings(): Map[String, String] =
   {
@@ -57,10 +57,24 @@ object Isabelle_System
     _settings.get
   }
 
-  def services(): List[Service] =
+  def services(): List[Class[Service]] =
   {
     if (_services.isEmpty) init()  // unsynchronized check
     _services.get
+  }
+
+  def make_services[C](c: Class[C]): List[C] =
+  {
+    @tailrec def is_subclass(c1: Class[_]): Boolean =
+    {
+      c1 == c ||
+      {
+        val c2 = c1.getSuperclass
+        c2 != null && is_subclass(c2)
+      }
+    }
+    for { c1 <- services() if is_subclass(c1) }
+      yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
@@ -141,10 +155,7 @@ object Isabelle_System
         yield {
           def err(msg: String): Nothing =
             error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
-          try {
-            Class.forName(name).asInstanceOf[Class[Service]]
-              .getDeclaredConstructor().newInstance()
-          }
+          try { Class.forName(name).asInstanceOf[Class[Service]] }
           catch {
             case _: ClassNotFoundException => err("Class not found")
             case exn: Throwable => err(Exn.message(exn))

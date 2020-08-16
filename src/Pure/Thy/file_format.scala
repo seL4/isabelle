@@ -15,7 +15,7 @@ object File_Format
   /* registry */
 
   lazy val registry: Registry =
-    new Registry(Isabelle_System.services.collect { case c: File_Format => c })
+    new Registry(Isabelle_System.make_services(classOf[File_Format]))
 
   final class Registry private [File_Format](file_formats: List[File_Format])
   {
@@ -53,7 +53,7 @@ object File_Format
   object No_Agent extends Agent
 }
 
-trait File_Format extends Isabelle_System.Service
+abstract class File_Format extends Isabelle_System.Service
 {
   def format_name: String
   override def toString: String = "File_Format(" + format_name + ")"

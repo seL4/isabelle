@@ -117,7 +117,7 @@ object Scala
   }
 
   lazy val functions: List[Fun] =
-    Isabelle_System.services.collect { case c: Isabelle_Scala_Functions => c.functions.toList }.flatten
+    Isabelle_System.make_services(classOf[Isabelle_Scala_Functions]).flatMap(_.functions)
 
 
   /* invoke function */
