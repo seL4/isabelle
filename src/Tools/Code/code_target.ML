@@ -536,7 +536,7 @@ fun prep_destination (location, (s, pos)) =
             Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
       val _ = Position.report pos Markup.language_path;
       val path = #1 (Path.explode_pos (s, pos));
-      val _ = Position.report pos (Markup.path (Path.smart_implode path));
+      val _ = Position.report pos (Markup.path (Path.implode_symbolic path));
     in (location, (path, pos)) end;
 
 fun export_code all_public cs seris lthy =

@@ -160,6 +160,22 @@ function isabelle_scala_service ()
 }
 export -f isabelle_scala_service
 
+#Special directories
+function isabelle_directory ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_DIRECTORIES" ]; then
+      ISABELLE_DIRECTORIES="$X"
+    else
+      ISABELLE_DIRECTORIES="$ISABELLE_DIRECTORIES:$X"
+    fi
+  done
+  export ISABELLE_DIRECTORIES
+}
+export -f isabelle_directory
+
 #administrative build
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
   function isabelle_admin_build ()

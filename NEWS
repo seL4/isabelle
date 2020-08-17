@@ -138,6 +138,12 @@ via the PIDE protocol.
 
 *** System ***
 
+* The shell function "isabelle_directory" (within etc/settings of
+components) augments the list of special directories for persistent
+symbolic path names. This improves portability of heap images and
+session databases. It used to be hard-wired for Isabelle + AFP, but
+other projects may now participate on equal terms.
+
 * ML statistics via an external Poly/ML process: this allows monitoring
 the runtime system while the ML program sleeps.
 

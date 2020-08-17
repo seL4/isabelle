@@ -130,7 +130,7 @@ val imports_of = #imports o Files.get;
 
 fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
-  |> map_files (fn _ => (Path.explode (Path.smart_implode master_dir), imports, []))
+  |> map_files (fn _ => (Path.explode (Path.implode_symbolic master_dir), imports, []))
   |> Thy_Header.add_keywords keywords;
 
 
@@ -259,7 +259,7 @@ fun formal_check check_file ctxt opt_dir (name, pos) =
       | NONE => master_directory (Proof_Context.theory_of ctxt));
     val path = Path.append dir (Path.explode name) handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
-    val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
+    val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
     val _ = check_file path handle ERROR msg => err msg;
   in path end;
 
