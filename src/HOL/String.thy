@@ -523,16 +523,16 @@ context
 begin
 
 qualified lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
-  is "ord.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
+  is "order.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
   .
 
 qualified lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
-  is "ord.lexordp (\<lambda>c d. of_char c < (of_char d :: nat))"
+  is "order.lexordp (\<lambda>c d. of_char c < (of_char d :: nat))"
   .
 
 instance proof -
-  from linorder_char interpret linorder "ord.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
-    "ord.lexordp (\<lambda>c d. of_char c < (of_char d :: nat)) :: string \<Rightarrow> string \<Rightarrow> bool"
+  from linorder_char interpret linorder "order.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
+    "order.lexordp (\<lambda>c d. of_char c < (of_char d :: nat)) :: string \<Rightarrow> string \<Rightarrow> bool"
     by (rule linorder.lexordp_linorder)
   show "PROP ?thesis"
     by (standard; transfer) (simp_all add: less_le_not_le linear)

@@ -6348,11 +6348,11 @@ qed
 lemma lexn_conv:
   "lexn r n =
     {(xs,ys). length xs = n \<and> length ys = n \<and>
-    (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y) \<in> r)}"
+    (\<exists>xys x y xs' ys'. xs = xys @ x#xs' \<and> ys = xys @ y # ys' \<and> x\<noteq>y \<and> (x,y) \<in> r)}"
 proof (induction n)
   case (Suc n)
-  then show ?case
-    apply (simp add: image_Collect lex_prod_def, safe, blast)
+  show ?case
+    apply (simp add: Suc image_Collect lex_prod_def, safe, blast)
      apply (rule_tac x = "ab # xys" in exI, simp)
     apply (case_tac xys; force)
     done
@@ -6360,7 +6360,7 @@ qed auto
 
 text\<open>By Mathias Fleury:\<close>
 proposition lexn_transI:
-  assumes "trans r" shows "trans (lexn r n)"
+  assumes "trans r" "antisym r" shows "trans (lexn r n)"
 unfolding trans_def
 proof (intro allI impI)
   fix as bs cs
@@ -6369,13 +6369,13 @@ proof (intro allI impI)
     n: "length as = n" and "length bs = n" and
     as: "as = abs @ a # as'" and
     bs: "bs = abs @ b # bs'" and
-    abr: "(a, b) \<in> r"
+    abr: "(a, b) \<in> r" "a\<noteq>b"
     using asbs unfolding lexn_conv by blast
   obtain bcs b' c' cs' bs' where
     n': "length cs = n" and "length bs = n" and
     bs': "bs = bcs @ b' # bs'" and
     cs: "cs = bcs @ c' # cs'" and
-    b'c'r: "(b', c') \<in> r"
+    b'c'r: "(b', c') \<in> r" "b'\<noteq>c'"
     using bscs unfolding lexn_conv by blast
   consider (le) "length bcs < length abs"
     | (eq) "length bcs = length abs"
@@ -6385,7 +6385,7 @@ proof (intro allI impI)
     let ?k = "length bcs"
     case le
     hence "as ! ?k = bs ! ?k" unfolding as bs by (simp add: nth_append)
-    hence "(as ! ?k, cs ! ?k) \<in> r" using b'c'r unfolding bs' cs by auto
+    hence "(as ! ?k, cs ! ?k) \<in> r" "as ! ?k \<noteq> cs ! ?k" using b'c'r unfolding bs' cs by auto
     moreover
     have "length bcs < length as" using le unfolding as by simp
     from id_take_nth_drop[OF this]
@@ -6397,12 +6397,12 @@ proof (intro allI impI)
     moreover have "take ?k as = take ?k cs"
       using le arg_cong[OF bs, of "take (length bcs)"]
       unfolding cs as bs' by auto
-    ultimately show ?thesis using n n' unfolding lexn_conv by auto
+    ultimately show ?thesis using n n' \<open>b'\<noteq>c'\<close> unfolding lexn_conv by auto
   next
     let ?k = "length abs"
     case ge
     hence "bs ! ?k = cs ! ?k" unfolding bs' cs by (simp add: nth_append)
-    hence "(as ! ?k, cs ! ?k) \<in> r" using abr unfolding as bs by auto
+    hence "(as ! ?k, cs ! ?k) \<in> r" "as ! ?k \<noteq> cs ! ?k" using abr unfolding as bs by auto
     moreover
     have "length abs < length as" using ge unfolding as by simp
     from id_take_nth_drop[OF this]
@@ -6418,21 +6418,23 @@ proof (intro allI impI)
     let ?k = "length abs"
     case eq
     hence *: "abs = bcs" "b = b'" using bs bs' by auto
-    hence "(a, c') \<in> r"
-      using abr b'c'r assms unfolding trans_def by blast
-    with * show ?thesis using n n' unfolding lexn_conv as bs cs by auto
+    then have "a\<noteq>c'"
+      using abr(1) antisymD assms(2) b'c'r(1) b'c'r(2) by fastforce
+    have "(a, c') \<in> r"
+      using * abr b'c'r assms unfolding trans_def by blast
+    with * \<open>a\<noteq>c'\<close> show ?thesis using n n' unfolding lexn_conv as bs cs by auto
   qed
 qed
 
 corollary lex_transI:
-    assumes "trans r" shows "trans (lex r)"
+    assumes "trans r" "antisym r" shows "trans (lex r)"
   using lexn_transI [OF assms]
   by (clarsimp simp add: lex_def trans_def) (metis lexn_length)
 
 lemma lex_conv:
   "lex r =
     {(xs,ys). length xs = length ys \<and>
-    (\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y) \<in> r)}"
+    (\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> x\<noteq>y \<and> (x,y) \<in> r)}"
 by (force simp add: lex_def lexn_conv)
 
 lemma wf_lenlex [intro!]: "wf r \<Longrightarrow> wf (lenlex r)"
@@ -6441,7 +6443,7 @@ by (unfold lenlex_def) blast
 lemma lenlex_conv:
     "lenlex r = {(xs,ys). length xs < length ys \<or>
                  length xs = length ys \<and> (xs, ys) \<in> lex r}"
-by (simp add: lenlex_def Id_on_def lex_prod_def inv_image_def)
+  by (auto simp add: lenlex_def Id_on_def lex_prod_def inv_image_def)
 
 lemma total_lenlex:
   assumes "total r"
@@ -6455,15 +6457,15 @@ proof -
     then consider "(x,y) \<in> r" | "(y,x) \<in> r"
       by (meson UNIV_I assms total_on_def)
     then show ?thesis
-    by cases (use len in \<open>(force simp add: lexn_conv xs ys)+\<close>)
+    by cases (use len \<open>x\<noteq>y\<close> in \<open>(force simp add: lexn_conv xs ys)+\<close>)
 qed
   then show ?thesis
     by (fastforce simp: lenlex_def total_on_def lex_def)
 qed
 
-lemma lenlex_transI [intro]: "trans r \<Longrightarrow> trans (lenlex r)"
+lemma lenlex_transI [intro]: "\<lbrakk>trans r; antisym r\<rbrakk> \<Longrightarrow> trans (lenlex r)"
   unfolding lenlex_def
-  by (meson lex_transI trans_inv_image trans_less_than trans_lex_prod)
+  by (simp add: antisym_def lex_transI trans_inv_image)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
   by (simp add: lex_conv)
@@ -6472,8 +6474,8 @@ lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
   by (simp add:lex_conv)
 
 lemma Cons_in_lex [simp]:
-  "(x # xs, y # ys) \<in> lex r \<longleftrightarrow> (x, y) \<in> r \<and> length xs = length ys \<or> x = y \<and> (xs, ys) \<in> lex r"
- (is "?lhs = ?rhs")
+  "(x # xs, y # ys) \<in> lex r \<longleftrightarrow> x\<noteq>y \<and> (x,y) \<in> r \<and> length xs = length ys \<or> x = y \<and> (xs, ys) \<in> lex r"
+  (is "?lhs = ?rhs")
 proof
   assume ?lhs then show ?rhs
     by (simp add: lex_conv) (metis hd_append list.sel(1) list.sel(3) tl_append2)
@@ -6489,7 +6491,7 @@ lemma Nil_lenlex_iff1 [simp]: "([], ns) \<in> lenlex r \<longleftrightarrow> ns 
 lemma Cons_lenlex_iff: 
   "((m # ms, n # ns) \<in> lenlex r) \<longleftrightarrow> 
     length ms < length ns 
-  \<or> length ms = length ns \<and> (m,n) \<in> r 
+  \<or> length ms = length ns \<and> m\<noteq>n \<and> (m,n) \<in> r 
   \<or> (m = n \<and> (ms,ns) \<in> lenlex r)"
   by (auto simp: lenlex_def)
 
@@ -6497,7 +6499,7 @@ lemma lenlex_irreflexive: "(\<And>x. (x,x) \<notin> r) \<Longrightarrow> (xs,xs)
   by (induction xs) (auto simp add: Cons_lenlex_iff)
 
 lemma lenlex_trans:
-    "\<lbrakk>(x,y) \<in> lenlex r; (y,z) \<in> lenlex r; trans r\<rbrakk> \<Longrightarrow> (x,z) \<in> lenlex r"
+    "\<lbrakk>(x,y) \<in> lenlex r; (y,z) \<in> lenlex r; trans r; antisym r\<rbrakk> \<Longrightarrow> (x,z) \<in> lenlex r"
   by (meson lenlex_transI transD)
 
 lemma lenlex_length: "(ms, ns) \<in> lenlex r \<Longrightarrow> length ms \<le> length ns"
@@ -6545,23 +6547,30 @@ text \<open>Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
 
 definition lexord :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
 "lexord r = {(x,y). \<exists> a v. y = x @ a # v \<or>
-            (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
+            (\<exists> u a b v w. (a,b) \<in> r \<and> a\<noteq>b \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
+
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
-by (unfold lexord_def, induct_tac y, auto)
+  by (unfold lexord_def, induct_tac y, auto)
 
 lemma lexord_Nil_right[simp]: "(x,[]) \<notin> lexord r"
-by (unfold lexord_def, induct_tac x, auto)
+  by (unfold lexord_def, induct_tac x, auto)
 
 lemma lexord_cons_cons[simp]:
-  "(a # x, b # y) \<in> lexord r \<longleftrightarrow> (a,b)\<in> r \<or> (a = b \<and> (x,y)\<in> lexord r)"  (is "?lhs = ?rhs")
+  "(a # x, b # y) \<in> lexord r \<longleftrightarrow> (if a=b then (x,y)\<in> lexord r else (a,b)\<in> r)"  (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
     apply (simp add: lexord_def)
     apply (metis hd_append list.sel(1) list.sel(3) tl_append2)
     done
-qed (auto simp add: lexord_def; (blast | meson Cons_eq_appendI))
+next
+  assume ?rhs
+  then show ?lhs
+    apply (simp add: lexord_def split: if_split_asm)
+    apply (meson Cons_eq_appendI)
+    by blast
+qed 
 
 lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
 
@@ -6569,7 +6578,7 @@ lemma lexord_append_rightI: "\<exists> b z. y = b # z \<Longrightarrow> (x, x @ 
   by (induct_tac x, auto)
 
 lemma lexord_append_left_rightI:
-  "(a,b) \<in> r \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
+  "\<lbrakk>(a,b) \<in> r; a\<noteq>b\<rbrakk> \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
   by (induct_tac u, auto)
 
 lemma lexord_append_leftI: " (u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
@@ -6582,13 +6591,13 @@ lemma lexord_append_leftD:
 lemma lexord_take_index_conv:
    "((x,y) \<in> lexord r) =
     ((length x < length y \<and> take (length x) y = x) \<or>
-     (\<exists>i. i < min(length x)(length y) \<and> take i x = take i y \<and> (x!i,y!i) \<in> r))"
+     (\<exists>i. i < min(length x)(length y) \<and> take i x = take i y \<and> (x!i,y!i) \<in> r \<and> x!i \<noteq> y!i))"
 proof -
   have "(\<exists>a v. y = x @ a # v) = (length x < length y \<and> take (length x) y = x)"
     by (metis Cons_nth_drop_Suc append_eq_conv_conj drop_all list.simps(3) not_le)
   moreover
-  have "(\<exists>u a b. (a, b) \<in> r \<and> (\<exists>v. x = u @ a # v) \<and> (\<exists>w. y = u @ b # w)) =
-        (\<exists>i<length x. i < length y \<and> take i x = take i y \<and> (x ! i, y ! i) \<in> r)"
+  have "(\<exists>u a b. (a,b) \<in> r \<and> a\<noteq>b \<and> (\<exists>v. x = u @ a # v) \<and> (\<exists>w. y = u @ b # w)) =
+        (\<exists>i<length x. i < length y \<and> take i x = take i y \<and> (x ! i, y ! i) \<in> r \<and> x!i \<noteq> y!i)"
     apply safe
     using less_iff_Suc_add apply auto[1]
     by (metis id_take_nth_drop)
@@ -6604,10 +6613,12 @@ proof (induction x arbitrary: y)
 qed auto
 
 lemma lexord_irreflexive: "\<forall>x. (x,x) \<notin> r \<Longrightarrow> (xs,xs) \<notin> lexord r"
-by (induct xs) auto
+  by (induct xs) auto
 
 text\<open>By Ren\'e Thiemann:\<close>
 lemma lexord_partial_trans:
+  assumes "antisym r"
+  shows
   "(\<And>x y z. x \<in> set xs \<Longrightarrow> (x,y) \<in> r \<Longrightarrow> (y,z) \<in> r \<Longrightarrow> (x,z) \<in> r)
    \<Longrightarrow>  (xs,ys) \<in> lexord r  \<Longrightarrow>  (ys,zs) \<in> lexord r \<Longrightarrow>  (xs,zs) \<in> lexord r"
 proof (induct xs arbitrary: ys zs)
@@ -6618,11 +6629,13 @@ next
   from Cons(3) obtain y ys where yys: "yys = y # ys" unfolding lexord_def
     by (cases yys, auto)
   note Cons = Cons[unfolded yys]
-  from Cons(3) have one: "(x,y) \<in> r \<or> x = y \<and> (xs,ys) \<in> lexord r" by auto
+  from Cons(3) have one: "x\<noteq>y \<and> (x,y) \<in> r \<or> x = y \<and> (xs,ys) \<in> lexord r"
+    by (auto split: if_split_asm)
   from Cons(4) obtain z zs where zzs: "zzs = z # zs" unfolding lexord_def
     by (cases zzs, auto)
   note Cons = Cons[unfolded zzs]
-  from Cons(4) have two: "(y,z) \<in> r \<or> y = z \<and> (ys,zs) \<in> lexord r" by auto
+  from Cons(4) have two: "y \<noteq> z \<and> (y,z) \<in> r \<or> y = z \<and> (ys,zs) \<in> lexord r" 
+    by (auto split: if_split_asm)
   {
     assume "(xs,ys) \<in> lexord r" and "(ys,zs) \<in> lexord r"
     from Cons(1)[OF _ this] Cons(2)
@@ -6633,15 +6646,16 @@ next
     from Cons(2)[OF _ this] have "(x,z) \<in> r" by auto
   } note ind2 = this
   from one two ind1 ind2
-  have "(x,z) \<in> r \<or> x = z \<and> (xs,zs) \<in> lexord r" by blast
-  thus ?case unfolding zzs by auto
+  have "x\<noteq>z \<and> (x,z) \<in> r \<or> x = z \<and> (xs,zs) \<in> lexord r"
+    using assms by (auto simp: antisym_def)
+  thus ?case unfolding zzs by (auto split: if_split_asm)
 qed
 
 lemma lexord_trans:
-  "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r \<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
-  by(auto simp: trans_def intro:lexord_partial_trans)
+  "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r; antisym r\<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
+  by(auto simp: trans_def intro: lexord_partial_trans)
 
-lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
+lemma lexord_transI:  "\<lbrakk>trans r; antisym r\<rbrakk> \<Longrightarrow> trans (lexord r)"
   by (meson lexord_trans transI)
 
 lemma total_lexord: "total r \<Longrightarrow> total (lexord r)"
@@ -6659,7 +6673,7 @@ proof clarsimp
       by (metis lexord_Nil_left list.exhaust)
   next
     case (Cons a x y) then show ?case
-      by (cases y) (force+)
+      by (metis eq_Nil_appendI lexord_append_rightI lexord_cons_cons list.exhaust)
   qed
 qed
 
@@ -6734,7 +6748,7 @@ text \<open>
   Author: Andreas Lochbihler
 \<close>
 
-context ord
+context order
 begin
 
 context
@@ -6798,11 +6812,8 @@ using assms by induct simp_all
 
 end
 
-declare ord.lexordp_simps [simp, code]
-declare ord.lexordp_eq_simps [code, simp]
-
-lemma lexord_code [code, code_unfold]: "lexordp = ord.lexordp less"
-unfolding lexordp_def ord.lexordp_def ..
+declare order.lexordp_simps [simp, code]
+declare order.lexordp_eq_simps [code, simp]
 
 context order
 begin
@@ -6810,7 +6821,7 @@ begin
 lemma lexordp_antisym:
   assumes "lexordp xs ys" "lexordp ys xs"
   shows False
-using assms by induct auto
+  using assms by induct auto
 
 lemma lexordp_irreflexive': "\<not> lexordp xs xs"
 by(rule lexordp_irreflexive) simp
@@ -6849,7 +6860,7 @@ qed
 
 lemma lexordp_conv_lexord:
   "lexordp xs ys \<longleftrightarrow> (xs, ys) \<in> lexord {(x, y). x < y}"
-by(simp add: lexordp_iff lexord_def)
+  by (simp add: lexordp_iff lexord_def; blast)
 
 lemma lexordp_eq_antisym:
   assumes "lexordp_eq xs ys" "lexordp_eq ys xs"
@@ -7404,8 +7415,8 @@ unfolding lexordp_def by auto
 lemma [code]:
   "lexordp r xs [] = False"
   "lexordp r [] (y#ys) = True"
-  "lexordp r (x # xs) (y # ys) = (r x y \<or> (x = y \<and> lexordp r xs ys))"
-unfolding lexordp_def by auto
+  "lexordp r (x # xs) (y # ys) = (if x = y then lexordp r xs ys else r x y)"
+  unfolding lexordp_def by auto
 
 text \<open>Bounded quantification and summation over nats.\<close>
 
