@@ -11,17 +11,37 @@ object Server_Commands
 {
   def default_preferences: String = Options.read_prefs()
 
-  object Cancel
+  object Help extends Server.Command("help")
+  {
+    override val command_body: Server.Command_Body =
+      { case (context, ()) => context.command_list }
+  }
+
+  object Echo extends Server.Command("echo")
+  {
+    override val command_body: Server.Command_Body =
+      { case (_, t) => t }
+  }
+
+  object Cancel extends Server.Command("cancel")
   {
     sealed case class Args(task: UUID.T)
 
     def unapply(json: JSON.T): Option[Args] =
       for { task <- JSON.uuid(json, "task") }
       yield Args(task)
+
+    override val command_body: Server.Command_Body =
+      { case (context, Cancel(args)) => context.cancel_task(args.task) }
   }
 
+  object Shutdown extends Server.Command("shutdown")
+  {
+    override val command_body: Server.Command_Body =
+      { case (context, ()) => context.server.shutdown() }
+  }
 
-  object Session_Build
+  object Session_Build extends Server.Command("session_build")
   {
     sealed case class Args(
       session: String,
@@ -91,9 +111,13 @@ object Server_Commands
           results_json)
       }
     }
+
+    override val command_body: Server.Command_Body =
+      { case (context, Session_Build(args)) =>
+        context.make_task(task => Session_Build.command(args, progress = task.progress)._1) }
   }
 
-  object Session_Start
+  object Session_Start extends Server.Command("session_start")
   {
     sealed case class Args(
       build: Session_Build.Args,
@@ -126,9 +150,20 @@ object Server_Commands
 
       (res, id -> session)
     }
+
+    override val command_body: Server.Command_Body =
+      { case (context, Session_Start(args)) =>
+          context.make_task(task =>
+          {
+            val (res, entry) =
+              Session_Start.command(args, progress = task.progress, log = context.server.log)
+            context.server.add_session(entry)
+            res
+          })
+      }
   }
 
-  object Session_Stop
+  object Session_Stop extends Server.Command("session_stop")
   {
     def unapply(json: JSON.T): Option[UUID.T] =
       JSON.uuid(json, "session_id")
@@ -141,9 +176,18 @@ object Server_Commands
       if (result.ok) (result_json, result)
       else throw new Server.Error("Session shutdown failed: " + result.print_rc, result_json)
     }
+
+    override val command_body: Server.Command_Body =
+      { case (context, Session_Stop(id)) =>
+        context.make_task(_ =>
+        {
+          val session = context.server.remove_session(id)
+          Session_Stop.command(session)._1
+        })
+      }
   }
 
-  object Use_Theories
+  object Use_Theories extends Server.Command("use_theories")
   {
     sealed case class Args(
       session_id: UUID.T,
@@ -241,9 +285,18 @@ object Server_Commands
 
       (result_json, result)
     }
+
+    override val command_body: Server.Command_Body =
+      { case (context, Use_Theories(args)) =>
+        context.make_task(task =>
+        {
+          val session = context.server.the_session(args.session_id)
+          Use_Theories.command(args, session, id = task.id, progress = task.progress)._1
+        })
+      }
   }
 
-  object Purge_Theories
+  object Purge_Theories extends Server.Command("purge_theories")
   {
     sealed case class Args(
       session_id: UUID.T,
@@ -272,5 +325,22 @@ object Server_Commands
 
       (result_json, (purged, retained))
     }
+
+    override val command_body: Server.Command_Body =
+      { case (context, Purge_Theories(args)) =>
+        val session = context.server.the_session(args.session_id)
+        command(args, session)._1
+      }
   }
 }
+
+class Server_Commands extends Server.Commands(
+  Server_Commands.Help,
+  Server_Commands.Echo,
+  Server_Commands.Cancel,
+  Server_Commands.Shutdown,
+  Server_Commands.Session_Build,
+  Server_Commands.Session_Start,
+  Server_Commands.Session_Stop,
+  Server_Commands.Use_Theories,
+  Server_Commands.Purge_Theories)

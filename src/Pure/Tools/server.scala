@@ -60,58 +60,26 @@ object Server
 
   /* input command */
 
-  object Command
+  type Command_Body = PartialFunction[(Context, Any), Any]
+
+  abstract class Command(val command_name: String)
   {
-    type T = PartialFunction[(Context, Any), Any]
-
-    private val table: Map[String, T] =
-      Map(
-        "help" -> { case (_, ()) => table.keySet.toList.sorted },
-        "echo" -> { case (_, t) => t },
-        "shutdown" -> { case (context, ()) => context.server.shutdown() },
-        "cancel" ->
-          { case (context, Server_Commands.Cancel(args)) => context.cancel_task(args.task) },
-        "session_build" ->
-          { case (context, Server_Commands.Session_Build(args)) =>
-              context.make_task(task =>
-                Server_Commands.Session_Build.command(args, progress = task.progress)._1)
-          },
-        "session_start" ->
-          { case (context, Server_Commands.Session_Start(args)) =>
-              context.make_task(task =>
-                {
-                  val (res, entry) =
-                    Server_Commands.Session_Start.command(
-                      args, progress = task.progress, log = context.server.log)
-                  context.server.add_session(entry)
-                  res
-                })
-          },
-        "session_stop" ->
-          { case (context, Server_Commands.Session_Stop(id)) =>
-              context.make_task(_ =>
-                {
-                  val session = context.server.remove_session(id)
-                  Server_Commands.Session_Stop.command(session)._1
-                })
-          },
-        "use_theories" ->
-          { case (context, Server_Commands.Use_Theories(args)) =>
-              context.make_task(task =>
-                {
-                  val session = context.server.the_session(args.session_id)
-                  Server_Commands.Use_Theories.command(
-                    args, session, id = task.id, progress = task.progress)._1
-                })
-          },
-        "purge_theories" ->
-          { case (context, Server_Commands.Purge_Theories(args)) =>
-              val session = context.server.the_session(args.session_id)
-              Server_Commands.Purge_Theories.command(args, session)._1
-          })
-
-    def unapply(name: String): Option[T] = table.get(name)
+    def command_body: Command_Body
+    override def toString: String = command_name
   }
+
+  class Commands(commands: Command*) extends Isabelle_System.Service
+  {
+    def entries: List[Command] = commands.toList
+  }
+
+  private lazy val command_table: Map[String, Command] =
+    (Map.empty[String, Command] /: Isabelle_System.make_services(classOf[Commands]).flatMap(_.entries))(
+      { case (cmds, cmd) =>
+          val name = cmd.command_name
+          if (cmds.isDefinedAt(name)) error("Duplicate Isabelle server command: " + quote(name))
+          else cmds + (name -> cmd)
+      })
 
 
   /* output reply */
@@ -211,6 +179,8 @@ object Server
     extends AutoCloseable
   {
     context =>
+
+    def command_list: List[String] = command_table.keys.toList.sorted
 
     def reply(r: Reply.Value, arg: Any) { connection.reply(r, arg) }
     def notify(arg: Any) { connection.notify(arg) }
@@ -562,12 +532,12 @@ class Server private(_port: Int, val log: Logger)
             case Some("") => context.notify("Command 'help' provides list of commands")
             case Some(msg) =>
               val (name, argument) = Server.Argument.split(msg)
-              name match {
-                case Server.Command(cmd) =>
+              Server.command_table.get(name) match {
+                case Some(cmd) =>
                   argument match {
                     case Server.Argument(arg) =>
-                      if (cmd.isDefinedAt((context, arg))) {
-                        Exn.capture { cmd((context, arg)) } match {
+                      if (cmd.command_body.isDefinedAt((context, arg))) {
+                        Exn.capture { cmd.command_body((context, arg)) } match {
                           case Exn.Res(task: Server.Task) =>
                             connection.reply_ok(JSON.Object(task.ident))
                             task.start
@@ -587,7 +557,7 @@ class Server private(_port: Int, val log: Logger)
                         "Malformed argument for command " + Library.single_quote(name),
                         "argument" -> argument)
                   }
-                case _ => connection.reply_error("Bad command " + Library.single_quote(name))
+                case None => connection.reply_error("Bad command " + Library.single_quote(name))
               }
           }
         }

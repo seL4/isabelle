@@ -31,6 +31,7 @@ isabelle_scala_service 'isabelle.ML_Statistics$Handler'
 isabelle_scala_service 'isabelle.Scala$Handler'
 isabelle_scala_service 'isabelle.Print_Operation$Handler'
 isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
+isabelle_scala_service 'isabelle.Server_Commands'
 
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"

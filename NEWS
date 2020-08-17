@@ -172,6 +172,9 @@ Isabelle_System.Service in Isabelle/Scala. This supersedes former
 "isabelle_scala_tools" and "isabelle_file_format": minor
 INCOMPATIBILITY.
 
+* Isabelle server allows user-defined commands via
+isabelle_scala_service.
+
 * Isabelle/Phabricator setup has been updated to follow ongoing
 development: libphutil has been discontinued. Minor INCOMPATIBILITY:
 existing server installations should remove libphutil from
