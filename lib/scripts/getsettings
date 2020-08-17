@@ -53,6 +53,11 @@ else
   unset CLASSPATH
 fi
 
+#init cumulative settings
+ISABELLE_FONTS=""
+ISABELLE_FONTS_HIDDEN=""
+ISABELLE_SCALA_SERVICES=""
+
 #main executables
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 ISABELLE_SCALA_SCRIPT="$ISABELLE_HOME/bin/isabelle_scala_script"
