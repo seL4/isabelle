@@ -768,7 +768,11 @@ definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \
     (infixr "<*lex*>" 80)
     where "ra <*lex*> rb = {((a, b), (a', b')). a \<noteq> a' \<and> (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
-lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> a \<noteq> a' \<and> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
+lemma in_lex_prod[simp]: "NO_MATCH less_than r \<Longrightarrow> ((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> a \<noteq> a' \<and> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
+  by (auto simp:lex_prod_def)
+
+text\<open>compared with @{thm[source]in_lex_prod} this yields simpler results\<close>
+lemma in_lex_prod_less_than[simp]: "((a, b), (a', b')) \<in> less_than <*lex*> s \<longleftrightarrow>a<a' \<or> a = a' \<and> (b, b') \<in> s"
   by (auto simp:lex_prod_def)
 
 lemma wf_lex_prod [intro!]:
