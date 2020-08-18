@@ -57,7 +57,8 @@ object Scala_Project
       "src/Tools/Graphview/" -> Path.explode("isabelle.graphview"),
       "src/Tools/VSCode/" -> Path.explode("isabelle.vscode"),
       "src/Tools/jEdit/src-base/" -> Path.explode("isabelle.jedit_base"),
-      "src/Tools/jEdit/src/" -> Path.explode("isabelle.jedit"))
+      "src/Tools/jEdit/src/" -> Path.explode("isabelle.jedit"),
+      "src/HOL/Tools/Nitpick" -> Path.explode("isabelle.nitpick"))
 
 
   /* scala project */
