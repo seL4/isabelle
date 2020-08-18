@@ -82,7 +82,7 @@ lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
 lemma Nil_le_Cons [simp]: "[] \<le> x"
   unfolding list_le_def by (cases x) auto
 
-lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
+lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> (if a = b then x \<le> y else a < b)"
   unfolding list_le_def by auto
 
 instantiation list :: (order) order_bot
