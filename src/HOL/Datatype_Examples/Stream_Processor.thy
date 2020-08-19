@@ -55,6 +55,10 @@ proof (rule wfUNIVI)
   show "P x" by (induct x) (auto intro: I)
 qed
 
+lemma neq_Get [simp]: "f b \<noteq> Get f"
+  by (metis subI wf_asym wf_sub)
+
+
 function
   sp\<^sub>\<mu>_comp :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> ('d, 'a, ('d, 'a) sp\<^sub>\<nu>) sp\<^sub>\<mu> \<Rightarrow> ('d, 'b, 'c \<times> ('d, 'a) sp\<^sub>\<nu>) sp\<^sub>\<mu>"
   (infixl "o\<^sub>\<mu>" 65)
@@ -63,7 +67,8 @@ where
 | "Get f o\<^sub>\<mu> Put b sp = f b o\<^sub>\<mu> out sp"
 | "Get f o\<^sub>\<mu> Get g = Get (\<lambda>a. Get f o\<^sub>\<mu> g a)"
 by pat_completeness auto
-termination by (relation "lex_prod sub sub") auto
+termination
+  by (relation "lex_prod sub sub") auto
 
 primcorec sp\<^sub>\<nu>_comp (infixl "o\<^sub>\<nu>" 65) where
   "out (sp o\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sub>\<nu> sp') (out sp o\<^sub>\<mu> out sp')"
