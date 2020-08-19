@@ -10,51 +10,85 @@ import isabelle._
 
 import java.util.concurrent.Executors
 
-import org.antlr.runtime.{ANTLRInputStream, Lexer, RecognitionException}
+import org.antlr.runtime.{ANTLRInputStream, RecognitionException}
 import de.tum.in.isabelle.Kodkodi.{Context, KodkodiLexer, KodkodiParser}
 
 
 object Kodkod
 {
+  sealed case class Result(rc: Int, out: String, err: String)
+
   def kodkod(source: String,
     solve_all: Boolean = false,
     prove: Boolean = false,
     max_solutions: Int = Integer.MAX_VALUE,
     cleanup_inst: Boolean = false,
-    max_threads: Int = 1): String =
+    timeout: Time = Time.zero,
+    max_threads: Int = 1): Result =
   {
+    val executor = Executors.newFixedThreadPool(max_threads)
+
+    def executor_kill(): Unit =
+      if (!executor.isShutdown) Isabelle_Thread.fork() { executor.shutdownNow() }
+
+    class Exit extends Exception
+
     val context =
       new Context {
+        private var rc = 0
         private val out = new StringBuilder
         private val err = new StringBuilder
-        def result: (String, String) = synchronized { (out.toString, err.toString) }
+
+        def return_code(i: Int): Unit = synchronized { rc = rc max i}
         override def output(s: String): Unit = synchronized { out ++= s; out += '\n' }
         override def error(s: String): Unit = synchronized { err ++= s; err += '\n' }
-        override def exit(rc: Int) { if (rc == 0) () else error("exit " + rc) }
+        override def exit(i: Int): Unit =
+          synchronized {
+            return_code(i)
+            executor_kill()
+            throw new Exit
+          }
+
+        def result(): Result = synchronized { Result(rc, out.toString, err.toString) }
       }
-    val executor = Executors.newFixedThreadPool(max_threads)
-    val lexer = new KodkodiLexer(new ANTLRInputStream(Bytes(source).stream))
-    val parser =
-      KodkodiParser.create(context, executor,
-        false, solve_all, prove, max_solutions, cleanup_inst, lexer)
 
-    val solution =
-        try { parser.problems() }
-        catch {
-          case exn: RecognitionException =>
-            parser.reportError(exn)
-            error("Parser error")
+    try {
+      val lexer = new KodkodiLexer(new ANTLRInputStream(Bytes(source).stream))
+      val parser =
+        KodkodiParser.create(context, executor,
+          false, solve_all, prove, max_solutions, cleanup_inst, lexer)
+
+      val timeout_request =
+        if (timeout.is_zero) None
+        else {
+          Some(Event_Timer.request(Time.now() + timeout) {
+            context.error("Ran out of time")
+            context.return_code(2)
+            executor_kill()
+          })
         }
-    if (parser.getTokenStream.LA(1) != KodkodiParser.EOF) {
-      error("Trailing tokens")
+
+      try { parser.problems() }
+      catch { case exn: RecognitionException => parser.reportError(exn) }
+
+      timeout_request.foreach(_.cancel)
+
+      if (parser.getTokenStream.LA(1) != KodkodiParser.EOF) {
+        context.error("Error: trailing tokens")
+        context.exit(1)
+      }
+      if (lexer.getNumberOfSyntaxErrors + parser.getNumberOfSyntaxErrors > 0) {
+        context.exit(1)
+      }
     }
-    if (lexer.getNumberOfSyntaxErrors > 0) error("Lexical error")
-    if (parser.getNumberOfSyntaxErrors > 0) error("Syntax error")
+    catch {
+      case _: Exit =>
+      case exn: Throwable =>
+        val message = exn.getMessage
+        context.error(if (message.isEmpty) exn.toString else "Error: " + message)
+        context.return_code(1)
+    }
 
-    val (out, err) = context.result
-    Output.writeln(out)
-    Output.warning(err)
-
-    solution
+    context.result()
   }
 }
