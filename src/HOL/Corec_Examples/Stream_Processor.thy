@@ -33,6 +33,9 @@ proof (rule wfUNIVI)
   show "P x" by (induct x) (auto intro: I)
 qed
 
+lemma Get_neq: "Get f \<noteq> f a"
+  by (metis subI wf_not_sym wf_sub)
+
 definition get where
   "get f = In (Get (\<lambda>a. out (f a)))"
 
@@ -40,8 +43,8 @@ corecursive run :: "('a, 'b) sp\<^sub>\<nu> \<Rightarrow> 'a stream \<Rightarrow
   "run sp s = (case out sp of
      Get f \<Rightarrow> run (In (f (shd s))) (stl s)
    | Put b sp \<Rightarrow> b ## run sp s)"
-  by (relation "map_prod In In ` sub <*lex*> {}")
-    (auto simp: inj_on_def out_def split: sp\<^sub>\<nu>.splits intro: wf_map_prod_image)
+  by (relation "inv_image (map_prod In In ` sub) fst")
+     (auto simp: inj_on_def out_def split: sp\<^sub>\<nu>.splits intro: wf_map_prod_image)
 
 corec copy where
   "copy = In (Get (\<lambda>a. Put a copy))"
@@ -58,20 +61,26 @@ by(subst run.code; simp; fail)+
 lemma copy_sel[simp]: "out copy = Get (\<lambda>a. Put a copy)"
   by (subst copy.code; simp)
 
+lemma wf_imp_irrefl:
+  assumes "wf r" shows "irrefl r" 
+  using wf_irrefl [OF assms] by (auto simp add: irrefl_def)
+
+
 corecursive sp_comp (infixl "oo" 65) where
   "sp oo sp' = (case (out sp, out sp') of
       (Put b sp, _) \<Rightarrow> In (Put b (sp oo sp'))
     | (Get f, Put b sp) \<Rightarrow> In (f b) oo sp
     | (_, Get g) \<Rightarrow> get (\<lambda>a. (sp oo In (g a))))"
-  by (relation "map_prod In In ` sub <*lex*> map_prod In In ` sub")
-    (auto simp: inj_on_def out_def split: sp\<^sub>\<nu>.splits intro: wf_map_prod_image)
+  apply(relation "map_prod In In ` sub <*lex*> map_prod In In ` sub")
+    apply(auto simp: inj_on_def out_def split: sp\<^sub>\<nu>.splits intro: wf_map_prod_image)
+  by (metis Get_neq)
 
 lemma run_copy_unique:
-    "(\<And>s. h s = shd s ## h (stl s)) \<Longrightarrow> h = run copy"
-apply corec_unique
-apply(rule ext)
-apply(subst copy.code)
-apply simp
-done
+  "(\<And>s. h s = shd s ## h (stl s)) \<Longrightarrow> h = run copy"
+  apply corec_unique
+  apply(rule ext)
+  apply(subst copy.code)
+  apply simp
+  done
 
 end

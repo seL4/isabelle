@@ -6748,7 +6748,7 @@ text \<open>
   Author: Andreas Lochbihler
 \<close>
 
-context order
+context ord
 begin
 
 context
@@ -6812,8 +6812,8 @@ using assms by induct simp_all
 
 end
 
-declare order.lexordp_simps [simp, code]
-declare order.lexordp_eq_simps [code, simp]
+declare ord.lexordp_simps [simp, code]
+declare ord.lexordp_eq_simps [code, simp]
 
 context order
 begin

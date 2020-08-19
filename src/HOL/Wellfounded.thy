@@ -64,6 +64,10 @@ lemma wf_irrefl:
   obtains "(a, a) \<notin> r"
   by (drule wf_not_refl[OF assms])
 
+lemma wf_imp_irrefl:
+  assumes "wf r" shows "irrefl r" 
+  using wf_irrefl [OF assms] by (auto simp add: irrefl_def)
+
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
     and lin: "OFCLASS('a::ord, linorder_class)"
