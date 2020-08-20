@@ -98,5 +98,7 @@ object Kodkod
   }
 
   def warmup(): String =
-    execute(File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
+    execute(
+      """solver: "MiniSat\n"""" +
+      File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
 }
