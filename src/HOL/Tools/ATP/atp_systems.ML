@@ -558,17 +558,23 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 (* Zipperposition *)
 
+val zipperposition_blsimp = "--mode ho-pragmatic --max-inferences 3 --ho-max-app-projections 0 --ho-max-elims 0 --ho-max-rigid-imitations 2 --ho-max-identifications 0 --ho-unif-max-depth 2 --boolean-reasoning no-cases --ext-rules ext-family --ext-rules-max-depth 1 --kbo-weight-fun invdocc --ho-prim-enum tf --ho-prim-enum-early-bird true --tptp-def-as-rewrite --ho-unif-level pragmatic-framework -q '1|const|conjecture-relative-var(1,s,f)' -q '1|prefer-processed|pnrefined(1,1,1,2,2,2,0.5)' -q '1|prefer-sos|staggered(1)' -q '2|prefer-fo|default' -q '1|prefer-neg-unit|orient-lmax(2,1,2,1,1)' -q '2|prefer-easy-ho|conjecture-relative-struct(1.5,3.5,2,3)' --ho-elim-leibniz 2 --ho-fixpoint-decider true --ho-pattern-decider false --ho-solid-decider true --ho-max-solidification 12  --select e-selection11 --solve-formulas true --sup-at-vars false --sup-at-var-headed false --lazy-cnf true --lazy-cnf-kind simp --lazy-cnf-renaming-threshold 4 --sine 50 --sine-tolerance 1.7 --sine-depth-max 3 --sine-depth-min 1 --sine-trim-implications true --ho-selection-restriction none --sup-from-var-headed false --sine-trim-implications true"
+val zipperposition_s6 = "--tptp-def-as-rewrite --rewrite-before-cnf true --mode ho-competitive --boolean-reasoning no-cases --ext-rules off --ho-prim-enum none --recognize-injectivity true --ho-elim-leibniz off --ho-unif-level full-framework --no-max-vars -q '3|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-ho-steps|conjecture-relative-var(1,s,f)' -q '1|prefer-processed|fifo' -q '3|by-app-var-num|pnrefined(2,1,1,1,2,2,2)' --select ho-selection5 --prec-gen-fun unary_first --solid-subsumption false --ignore-orphans false --ho-solid-decider true --ho-fixpoint-decider true --ho-pattern-decider true --sup-at-vars false --sup-at-var-headed false --sup-from-var-headed false --ho-neg-ext-simpl true"
+val zipperposition_cdots = "--mode ho-competitive --boolean-reasoning cases-simpl --ext-rules ext-family --ext-rules-max-depth 1 --ho-prim-enum pragmatic --ho-prim-max 1 --bool-subterm-selection A --avatar off --recognize-injectivity true --ho-elim-leibniz 1 --ho-unif-level full-framework --no-max-vars -q '6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)' -q '6|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-processed|fifo' -q '1|prefer-non-goals|conjecture-relative-var(1,l,f)' -q '4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)' --select e-selection7 --ho-choice-inst true --sine 50 --sine-tolerance 2 --sine-depth-max 4 --sine-depth-min 1 --scan-clause-ac true --lambdasup 0 --kbo-weight-fun invfreqrank"
+
 val zipperposition_config : atp_config =
   {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     "-print none -proof tstp -print-types -timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
-     file_name,
+   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn file_name => fn _ =>
+     "--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
+     |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
-   prem_role = Hypothesis,
+   prem_role = Conjecture,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((250, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
+     [(0.333, (((128, "meshN"), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
+      (0.333, (((32, "meshN"), THF (Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), zipperposition_s6)),
+      (0.334, (((512, "meshN"), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -629,7 +635,7 @@ fun the_remote_system name versions =
       error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n(Available systems: " ^
         commas_quote syss ^ ".)")))
 
-val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
+val max_remote_secs = 1000   (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
   {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
@@ -691,8 +697,8 @@ val remote_vampire =
     (K (((400, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), remote_vampire_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
-  remotify_atp zipperposition "Zipperpin" ["1.5"]
-    (K (((250, ""), THF (Monomorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
+  remotify_atp zipperposition "Zipperpin" ["2.0"]
+    (K (((512, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 
 
 (* Setup *)

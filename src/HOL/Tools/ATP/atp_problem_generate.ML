@@ -883,9 +883,6 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
         end)
   end
 
-val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
-val fused_infinite_type = Type (fused_infinite_type_name, [])
-
 fun raw_atp_type_of_typ type_enc =
   let
     fun term (Type (s, Ts)) =
@@ -894,8 +891,6 @@ fun raw_atp_type_of_typ type_enc =
             `I tptp_fun_type
           else if s = \<^type_name>\<open>bool\<close> andalso is_type_enc_full_higher_order type_enc then
             `I tptp_bool_type
-          else if s = fused_infinite_type_name andalso is_type_enc_native type_enc then
-            `I tptp_individual_type
           else
             `make_fixed_type_const s, []), map term Ts)
     | term (TFree (s, _)) = AType ((`make_tfree s, []), [])
@@ -1388,15 +1383,6 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
       | _ => should_encode_type ctxt mono level T)
     end
   | should_tag_with_type _ _ _ _ _ _ = false
-
-fun fused_type ctxt mono level =
-  let
-    val should_encode = should_encode_type ctxt mono level
-    fun fuse 0 T = if should_encode T then T else fused_infinite_type
-      | fuse ary (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
-        fuse 0 T1 --> fuse (ary - 1) T2
-      | fuse _ _ = raise Fail "expected function type"
-  in fuse end
 
 (** predicators and application operators **)
 
@@ -1946,10 +1932,9 @@ fun mk_aterm type_enc name T_args args =
     ATerm ((name, ty_args), tm_args @ args)
   end
 
-fun do_bound_type ctxt mono type_enc =
+fun do_bound_type type_enc =
   (case type_enc of
-    Native (_, _, level) =>
-    fused_type ctxt mono level 0 #> native_atp_type_of_typ type_enc false 0 #> SOME
+    Native _ => native_atp_type_of_typ type_enc false 0 #> SOME
   | _ => K NONE)
 
 fun tag_with_type ctxt mono type_enc pos T tm =
@@ -2011,10 +1996,9 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
         let
           val phi = phi |> do_formula pos
           val universal = Option.map (q = AExists ? not) pos
-          val do_bound_type = do_bound_type ctxt mono type_enc
         in
           AQuant (q, xs |> map (apsnd (fn NONE => NONE
-                                        | SOME T => do_bound_type T)),
+                                        | SOME T => do_bound_type type_enc T)),
                   (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
                       (map_filter
                            (fn (_, NONE) => NONE
@@ -2286,7 +2270,7 @@ fun lines_of_mono_types ctxt generate_info mono type_enc =
   | Guards _ => map (line_of_guards_mono_type ctxt generate_info mono type_enc)
   | Tags _ => map (line_of_tags_mono_type ctxt generate_info mono type_enc))
 
-fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
+fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
   let
     val thy = Proof_Context.theory_of ctxt
     val (T, T_args) =
@@ -2302,10 +2286,8 @@ fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
         | NONE => raise Fail "unexpected type arguments")
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
-              T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
-                |> native_atp_type_of_typ type_enc pred_sym ary
-                |> not (null T_args)
-                   ? curry APi (map (tvar_name o dest_TVar) T_args))
+      T |> native_atp_type_of_typ type_enc pred_sym ary
+        |> not (null T_args) ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
 
 fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
@@ -2387,7 +2369,7 @@ fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
 
 fun lines_of_sym_decls ctxt generate_info mono type_enc (s, decls) =
   (case type_enc of
-    Native _ => [decl_line_of_sym ctxt mono type_enc s (hd decls)]
+    Native _ => [decl_line_of_sym ctxt type_enc s (hd decls)]
   | Guards (_, level) =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -2489,10 +2471,9 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_info ctrss mono type_enc sym_t
         val tm2 =
           list_app (do_const name2) (first_bounds @ [last_bound])
           |> filter_ty_args
-        val do_bound_type = do_bound_type ctxt mono type_enc
         val eq =
-          eq_formula type_enc (atomic_types_of T) (map (apsnd do_bound_type) bounds) false
-            (atp_term_of tm1) (atp_term_of tm2)
+          eq_formula type_enc (atomic_types_of T)
+            (map (apsnd (do_bound_type type_enc)) bounds) false (atp_term_of tm1) (atp_term_of tm2)
       in
         ([tm1, tm2],
          [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq |> maybe_negate, NONE,
