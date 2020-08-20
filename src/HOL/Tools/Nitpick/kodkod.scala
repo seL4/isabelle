@@ -17,8 +17,13 @@ import de.tum.in.isabelle.Kodkodi.{Context, KodkodiLexer, KodkodiParser}
 object Kodkod
 {
   sealed case class Result(rc: Int, out: String, err: String)
+  {
+    def ok: Boolean = rc == 0
+    def check: String =
+      if (ok) out else error(if (err.isEmpty) "Error" else err)
+  }
 
-  def kodkod(source: String,
+  def execute(source: String,
     solve_all: Boolean = false,
     prove: Boolean = false,
     max_solutions: Int = Integer.MAX_VALUE,
@@ -91,4 +96,7 @@ object Kodkod
 
     context.result()
   }
+
+  def warmup(): String =
+    execute(File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
 }
