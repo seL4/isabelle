@@ -327,6 +327,10 @@ proof -
     done
 qed
 
+(*for lex*)
+lemma ne_lesssub_iff [simp]: "y\<noteq>x \<and> x <[r] y \<longleftrightarrow> x <[r] y"
+  by (meson lesssub_def)
+
 lemma iter_properties[rule_format]:
   assumes semilat: "semilat (A, r, f)"
   shows "\<lbrakk> acc r ; pres_type step n A; mono r step n A;
@@ -446,13 +450,13 @@ shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
 proof -
   interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P"
-apply (unfold kildall_def)
-apply(case_tac "iter f step ss0 (unstables r step ss0)")
-apply(simp)
-apply (rule iter_properties)
-apply (simp_all add: unstables_def stable_def)
-apply (rule semilat)
-done
+    apply (unfold kildall_def)
+    apply(case_tac "iter f step ss0 (unstables r step ss0)")
+    apply(simp)
+    apply (rule iter_properties)
+            apply (simp_all add: unstables_def stable_def)
+    apply (rule semilat)
+    done
 qed
 
 lemma is_bcv_kildall:

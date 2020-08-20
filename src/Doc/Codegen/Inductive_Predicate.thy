@@ -167,7 +167,7 @@ lemma %quote [code_pred_intro]:
 (*<*)unfolding lexordp_def by (auto simp add: append)(*>*)
 
 lemma %quote [code_pred_intro]:
-  "append u (a # v) xs \<Longrightarrow> append u (b # w) ys \<Longrightarrow> r a b
+  "append u (a # v) xs \<Longrightarrow> append u (b # w) ys \<Longrightarrow> r a b \<Longrightarrow> a\<noteq>b 
   \<Longrightarrow> lexordp r xs ys"
 (*<*)unfolding lexordp_def append apply simp
 apply (rule disjI2) by auto(*>*)
@@ -179,14 +179,14 @@ code_pred %quote lexordp
   assume 1: "\<And>r' xs' ys' a v. r = r' \<Longrightarrow> xs = xs' \<Longrightarrow> ys = ys'
     \<Longrightarrow> append xs' (a # v) ys' \<Longrightarrow> thesis"
   assume 2: "\<And>r' xs' ys' u a v b w. r = r' \<Longrightarrow> xs = xs' \<Longrightarrow> ys = ys'
-    \<Longrightarrow> append u (a # v) xs' \<Longrightarrow> append u (b # w) ys' \<Longrightarrow> r' a b \<Longrightarrow> thesis"
+    \<Longrightarrow> append u (a # v) xs' \<Longrightarrow> append u (b # w) ys' \<Longrightarrow> r' a b \<Longrightarrow> a\<noteq>b \<Longrightarrow> thesis"
   {
     assume "\<exists>a v. ys = xs @ a # v"
     from this 1 have thesis
         by (fastforce simp add: append)
   } moreover
   {
-    assume "\<exists>u a b v w. r a b \<and> xs = u @ a # v \<and> ys = u @ b # w"
+    assume "\<exists>u a b v w. r a b \<and> a\<noteq>b \<and> xs = u @ a # v \<and> ys = u @ b # w"
     from this 2 have thesis by (fastforce simp add: append)
   } moreover
   note lexord
