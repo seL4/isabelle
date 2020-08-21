@@ -1606,6 +1606,11 @@ next
     by simp
 qed
 
+lemma nat_take_bit_eq:
+  \<open>nat (take_bit n k) = take_bit n (nat k)\<close>
+  if \<open>k \<ge> 0\<close>
+  using that by (simp add: take_bit_eq_mod nat_mod_distrib nat_power_eq)
+
 lemma not_exp_less_eq_0_int [simp]:
   \<open>\<not> 2 ^ n \<le> (0::int)\<close>
   by (simp add: power_le_zero_eq)
@@ -1685,6 +1690,27 @@ lemma not_take_bit_negative [simp]:
 lemma take_bit_int_less_exp:
   \<open>take_bit n k < 2 ^ n\<close> for k :: int
   by (simp add: take_bit_eq_mod)
+
+lemma take_bit_int_eq_self:
+  \<open>take_bit n k = k\<close> if \<open>0 \<le> k\<close> \<open>k < 2 ^ n\<close> for k :: int
+  using that by (simp add: take_bit_eq_mod)
+
+lemma bit_imp_take_bit_positive:
+  \<open>0 < take_bit m k\<close> if \<open>n < m\<close> and \<open>bit k n\<close> for k :: int
+proof (rule ccontr)
+  assume \<open>\<not> 0 < take_bit m k\<close>
+  then have \<open>take_bit m k = 0\<close>
+    by (auto simp add: not_less intro: order_antisym)
+  then have \<open>bit (take_bit m k) n = bit 0 n\<close>
+    by simp
+  with that show False
+    by (simp add: bit_take_bit_iff)
+qed
+
+lemma take_bit_mult:
+  \<open>take_bit n (take_bit n k * take_bit n l) = take_bit n (k * l)\<close>
+  for k l :: int
+  by (simp add: take_bit_eq_mod mod_mult_eq)
 
 lemma (in ring_1) of_nat_nat_take_bit_eq [simp]:
   \<open>of_nat (nat (take_bit n k)) = of_int (take_bit n k)\<close>

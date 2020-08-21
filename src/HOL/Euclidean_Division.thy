@@ -1750,6 +1750,67 @@ proof -
     by (simp only: modulo_int_unfold) simp
 qed
 
+lemma div_pos_pos_trivial [simp]:
+  "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
+
+lemma mod_pos_pos_trivial [simp]:
+  "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
+
+lemma div_neg_neg_trivial [simp]:
+  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (cases "k = 0") (simp, simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
+
+lemma mod_neg_neg_trivial [simp]:
+  "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
+
+lemma div_pos_neg_trivial:
+  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
+proof (cases \<open>l = - k\<close>)
+  case True
+  with that show ?thesis
+    by (simp add: divide_int_def)
+next
+  case False
+  show ?thesis
+    apply (rule div_eqI [of _ "k + l"])
+    using False that apply (simp_all add: division_segment_int_def)
+    done
+qed
+
+lemma mod_pos_neg_trivial:
+  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
+proof (cases \<open>l = - k\<close>)
+  case True
+  with that show ?thesis
+    by (simp add: divide_int_def)
+next
+  case False
+  show ?thesis
+    apply (rule mod_eqI [of _ _ \<open>- 1\<close>])
+    using False that apply (simp_all add: division_segment_int_def)
+    done
+qed
+
+text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
+  because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
+
+text \<open>Distributive laws for function \<open>nat\<close>.\<close>
+
+lemma nat_div_distrib:
+  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> x\<close>
+  using that by (simp add: divide_int_def sgn_if)
+
+lemma nat_div_distrib':
+  \<open>nat (x div y) = nat x div nat y\<close> if \<open>0 \<le> y\<close>
+  using that by (simp add: divide_int_def sgn_if)
+
+lemma nat_mod_distrib: \<comment> \<open>Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't\<close>
+  \<open>nat (x mod y) = nat x mod nat y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
+  using that by (simp add: modulo_int_def sgn_if)
+
 
 subsection \<open>Special case: euclidean rings containing the natural numbers\<close>
 

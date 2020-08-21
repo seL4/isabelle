@@ -455,6 +455,17 @@ lemma take_bit_horner_sum_bit_eq:
 
 end
 
+lemma horner_sum_of_bool_2_less:
+  \<open>(horner_sum of_bool 2 bs :: int) < 2 ^ length bs\<close>
+proof -
+  have \<open>(\<Sum>n = 0..<length bs. of_bool (bs ! n) * (2::int) ^ n) \<le> (\<Sum>n = 0..<length bs. 2 ^ n)\<close>
+    by (rule sum_mono) simp
+  also have \<open>\<dots> = 2 ^ length bs - 1\<close>
+    by (induction bs) simp_all
+  finally show ?thesis
+    by (simp add: horner_sum_eq_sum)
+qed
+
 
 subsection \<open>Further facts about \<^const>\<open>List.n_lists\<close>\<close>
 

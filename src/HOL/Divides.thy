@@ -168,41 +168,6 @@ lemma div_noneq_sgn_abs:
   by (simp only: divide_int_def [of k l], auto simp add: not_less zdiv_int)
   
 
-subsubsection \<open>General Properties of div and mod\<close>
-
-lemma div_pos_pos_trivial [simp]:
-  "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
-
-lemma mod_pos_pos_trivial [simp]:
-  "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (simp add: mod_eq_self_iff_div_eq_0)
-
-lemma div_neg_neg_trivial [simp]:
-  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (cases "k = 0") (simp, simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
-
-lemma mod_neg_neg_trivial [simp]:
-  "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (simp add: mod_eq_self_iff_div_eq_0)
-
-lemma div_pos_neg_trivial:
-  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
-  apply (rule div_int_unique [of _ _ _ "k + l"])
-  apply (use that in \<open>auto simp add: eucl_rel_int_iff\<close>)
-  done
-
-lemma mod_pos_neg_trivial:
-  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
-  apply (rule mod_int_unique [of _ _ "- 1"])
-  apply (use that in \<open>auto simp add: eucl_rel_int_iff\<close>)
-  done
-
-text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
-  because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
-
-
-
 subsubsection \<open>Laws for div and mod with Unary Minus\<close>
 
 lemma zminus1_lemma:
@@ -661,31 +626,6 @@ proof -
   show ?thesis
     using assms by (simp only: power_add eq) auto
 qed
-
-text \<open>Distributive laws for function \<open>nat\<close>.\<close>
-
-lemma nat_div_distrib:
-  assumes "0 \<le> x"
-  shows "nat (x div y) = nat x div nat y"
-proof (cases y "0::int" rule: linorder_cases)
-  case less
-  with assms show ?thesis
-    using div_nonneg_neg_le0 by auto
-next
-  case greater
-  then show ?thesis
-    by (simp add: nat_eq_iff pos_imp_zdiv_nonneg_iff zdiv_int)
-qed auto
-
-(*Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't*)
-lemma nat_mod_distrib:
-  assumes "0 \<le> x" "0 \<le> y"
-  shows "nat (x mod y) = nat x mod nat y"
-proof (cases "y = 0")
-  case False
-  with assms show ?thesis
-    by (simp add: nat_eq_iff zmod_int)
-qed auto
 
 text\<open>Suggested by Matthias Daum\<close>
 lemma int_div_less_self:
@@ -1334,5 +1274,7 @@ lemma zmod_eq_0_iff: "m mod d = 0 \<longleftrightarrow> (\<exists>q. m = d * q)"
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemma zmod_eq_0D [dest!]: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: int
   using that by auto
+
+find_theorems \<open>(?k::int) mod _ = ?k\<close>
 
 end
