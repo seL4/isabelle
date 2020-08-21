@@ -327,10 +327,6 @@ proof -
     done
 qed
 
-(*for lex*)
-lemma ne_lesssub_iff [simp]: "y\<noteq>x \<and> x <[r] y \<longleftrightarrow> x <[r] y"
-  by (meson lesssub_def)
-
 lemma iter_properties[rule_format]:
   assumes semilat: "semilat (A, r, f)"
   shows "\<lbrakk> acc r ; pres_type step n A; mono r step n A;
