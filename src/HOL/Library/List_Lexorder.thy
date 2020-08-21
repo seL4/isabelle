@@ -26,20 +26,17 @@ proof
   let ?r = "{(u, v::'a). u < v}"
   have tr: "trans ?r"
     using trans_def by fastforce
-  have *: "antisym {(u, v::'a). u < v}"
-    using antisym_def by fastforce
   have \<section>: False
     if "(xs,ys) \<in> lexord ?r" "(ys,xs) \<in> lexord ?r" for xs ys :: "'a list"
   proof -
     have "(xs,xs) \<in> lexord ?r"
-      using lexord_trans that tr * by blast
+      using that transD [OF lexord_transI [OF tr]] by blast
     then show False
       by (meson case_prodD lexord_irreflexive less_irrefl mem_Collect_eq)
   qed
   show "xs \<le> xs" for xs :: "'a list" by (simp add: list_le_def)
   show "xs \<le> zs" if "xs \<le> ys" and "ys \<le> zs" for xs ys zs :: "'a list"
-    using that transD [OF lexord_transI [OF tr]] *
-    by (auto simp add: list_le_def list_less_def)
+    using that transD [OF lexord_transI [OF tr]] by (auto simp add: list_le_def list_less_def)
   show "xs = ys" if "xs \<le> ys" "ys \<le> xs" for xs ys :: "'a list"
     using \<section> that list_le_def list_less_def by blast
   show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" for xs ys :: "'a list"
@@ -73,7 +70,7 @@ lemma not_less_Nil [simp]: "\<not> x < []"
 lemma Nil_less_Cons [simp]: "[] < a # x"
   by (simp add: list_less_def)
 
-lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> (if a = b then x < y else a < b)"
+lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> a < b \<or> a = b \<and> x < y"
   by (simp add: list_less_def)
 
 lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
@@ -82,7 +79,7 @@ lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
 lemma Nil_le_Cons [simp]: "[] \<le> x"
   unfolding list_le_def by (cases x) auto
 
-lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> (if a = b then x \<le> y else a < b)"
+lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
   unfolding list_le_def by auto
 
 instantiation list :: (order) order_bot
