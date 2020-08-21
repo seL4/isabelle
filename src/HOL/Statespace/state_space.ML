@@ -299,7 +299,7 @@ fun inject_name T = injectN ^"_"^encode_type T;
 fun add_declaration name decl thy =
   thy
   |> Named_Target.init name
-  |> (fn lthy => Local_Theory.declaration {syntax = false, pervasive = false} (decl lthy) lthy)
+  |> (fn lthy => Local_Theory.declaration {syntax = true, pervasive = false} (decl lthy) lthy)
   |> Local_Theory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =
