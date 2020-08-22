@@ -198,8 +198,10 @@ fun pretties_for_scope scope verbose =
 
 fun multiline_string_for_scope scope =
   let
+    val code_type = Print_Mode.setmp [] o Syntax.string_of_typ o Config.put show_markup false;
+    val code_term = Print_Mode.setmp [] o Syntax.string_of_term o Config.put show_markup false;
     val (primary_cards, secondary_cards, maxes, iters, miscs) =
-      quintuple_for_scope Syntax.string_of_typ Syntax.string_of_term I scope
+      quintuple_for_scope code_type code_term I scope
     val cards = primary_cards @ secondary_cards
   in
     case (if null cards then [] else ["card: " ^ commas (map implode cards)]) @
