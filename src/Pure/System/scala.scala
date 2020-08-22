@@ -15,21 +15,42 @@ import scala.tools.nsc.interpreter.IMain
 
 object Scala
 {
+  /** registered functions **/
+
+  abstract class Fun(val name: String) extends Function[String, String]
+  {
+    override def toString: String = name
+    def apply(arg: String): String
+  }
+
+  class Functions(val functions: Fun*) extends Isabelle_System.Service
+
+  lazy val functions: List[Fun] =
+    Isabelle_System.make_services(classOf[Functions]).flatMap(_.functions)
+
+
+
   /** demo functions **/
 
-  def echo(arg: String): String = arg
-
-  def sleep(seconds: String): String =
+  object Echo extends Fun("echo")
   {
-    val t =
-      seconds match {
-        case Value.Double(s) => Time.seconds(s)
-        case _ => error("Malformed argument: " + quote(seconds))
-      }
-    val t0 = Time.now()
-    t.sleep
-    val t1 = Time.now()
-    (t1 - t0).toString
+    def apply(arg: String): String = arg
+  }
+
+  object Sleep extends Fun("sleep")
+  {
+    def apply(seconds: String): String =
+    {
+      val t =
+        seconds match {
+          case Value.Double(s) => Time.seconds(s)
+          case _ => error("Malformed argument: " + quote(seconds))
+        }
+      val t0 = Time.now()
+      t.sleep
+      val t1 = Time.now()
+      (t1 - t0).toString
+    }
   }
 
 
@@ -95,30 +116,22 @@ object Scala
         if (!ok && errors.isEmpty) List("Error") else errors
       }
     }
-  }
 
-  def toplevel_yxml(source: String): String =
-  {
-    val errors =
-      try { Compiler.context().toplevel(source) }
-      catch { case ERROR(msg) => List(msg) }
-    locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
+    object Toplevel extends Fun("scala_toplevel")
+    {
+      def apply(source: String): String =
+      {
+        val errors =
+          try { Compiler.context().toplevel(source) }
+          catch { case ERROR(msg) => List(msg) }
+        locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
+      }
+    }
   }
 
 
 
   /** invoke Scala functions from ML **/
-
-  /* registered functions */
-
-  sealed case class Fun(name: String, apply: String => String)
-  {
-    override def toString: String = name
-  }
-
-  lazy val functions: List[Fun] =
-    Isabelle_System.make_services(classOf[Isabelle_Scala_Functions]).flatMap(_.functions)
-
 
   /* invoke function */
 
@@ -130,7 +143,7 @@ object Scala
   def function(name: String, arg: String): (Tag.Value, String) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
-        Exn.capture { fun.apply(arg) } match {
+        Exn.capture { fun(arg) } match {
           case Exn.Res(null) => (Tag.NULL, "")
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, "")
@@ -205,13 +218,8 @@ object Scala
   }
 }
 
-
-/* registered functions */
-
-class Isabelle_Scala_Functions(val functions: Scala.Fun*) extends Isabelle_System.Service
-
-class Functions extends Isabelle_Scala_Functions(
-  Scala.Fun("echo", Scala.echo),
-  Scala.Fun("sleep", Scala.sleep),
-  Scala.Fun("scala_toplevel", Scala.toplevel_yxml),
-  Scala.Fun("check_bibtex_database", Bibtex.check_database_yxml))
+class Scala_Functions extends Scala.Functions(
+  Scala.Echo,
+  Scala.Sleep,
+  Scala.Compiler.Toplevel,
+  Bibtex.Check)

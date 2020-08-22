@@ -23,7 +23,7 @@ classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 isabelle_scala_service 'isabelle.Tools'
 [ -d "$ISABELLE_HOME/Admin" ] && isabelle_scala_service 'isabelle.Admin_Tools'
 
-isabelle_scala_service 'isabelle.Functions'
+isabelle_scala_service 'isabelle.Scala_Functions'
 
 isabelle_scala_service 'isabelle.Bibtex$File_Format'
 

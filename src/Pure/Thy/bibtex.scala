@@ -145,11 +145,14 @@ object Bibtex
     })
   }
 
-  def check_database_yxml(database: String): String =
+  object Check extends Scala.Fun("check_bibtex_database")
   {
-    import XML.Encode._
-    YXML.string_of_body(pair(list(pair(string, properties)), list(pair(string, properties)))(
-      check_database(database)))
+    def apply(database: String): String =
+    {
+      import XML.Encode._
+      YXML.string_of_body(pair(list(pair(string, properties)), list(pair(string, properties)))(
+        check_database(database)))
+    }
   }
 
 
