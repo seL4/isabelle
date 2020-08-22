@@ -37,3 +37,6 @@ public option vampire_noncommercial : string = "unknown"
 
 public option MaSh : string = "sml"
   -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"
+
+public option kodkod_scala : bool = false
+  -- "invoke Nitpick/Kodkod via Isabelle/Scala (instead of external process)"

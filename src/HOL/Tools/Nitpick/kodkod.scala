@@ -21,6 +21,12 @@ object Kodkod
     def ok: Boolean = rc == 0
     def check: String =
       if (ok) out else error(if (err.isEmpty) "Error" else err)
+
+    def encode: XML.Body =
+    {
+      import XML.Encode._
+      triple(int, string, string)((rc, out, err))
+    }
   }
 
   def execute(source: String,
@@ -101,4 +107,28 @@ object Kodkod
     execute(
       """solver: "MiniSat\n"""" +
       File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
+
+
+  /* scala function */
+
+  object Fun extends Scala.Fun("kodkod")
+  {
+    def apply(args: String): String =
+    {
+      val (timeout, (solve_all, (max_solutions, (max_threads, kki)))) =
+      {
+        import XML.Decode._
+        pair(int, pair(bool, pair(int, pair(int, string))))(YXML.parse_body(args))
+      }
+      val result =
+        execute(kki,
+          solve_all = solve_all,
+          max_solutions = max_solutions,
+          timeout = Time.ms(timeout),
+          max_threads = max_threads)
+      YXML.string_of_body(result.encode)
+    }
+  }
 }
+
+class Scala_Functions extends Scala.Functions(Kodkod.Fun)

@@ -701,7 +701,7 @@ and precedence_i (Sum _) = prec_All
   | precedence_i (Num _) = no_prec
   | precedence_i (IntReg _) = no_prec
 
-fun write_problem_file out problems =
+fun write_problem out problems =
   let
     fun out_outmost_f (And (f1, f2)) =
         (out_outmost_f f1; out "\n   && "; out_outmost_f f2)
@@ -964,12 +964,6 @@ fun read_next_problems (s, ps, js) =
   handle Option.Option => raise SYNTAX ("Kodkod.read_next_problems",
                                         "expected number after \"PROBLEM\"")
 
-fun read_output_file path =
-  (false,
-   read_next_problems (Substring.full (File.read path), [], [])
-   |>> rev ||> rev)
-  handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
-
 
 (** Main Kodkod entry point **)
 
@@ -981,8 +975,7 @@ fun serial_string_and_temporary_dir overlord =
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
-fun uncached_solve_any_problem overlord deadline max_threads max_solutions
-                               problems =
+fun uncached_solve_any_problem overlord deadline max_threads max_solutions problems =
   let
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
@@ -994,82 +987,99 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                              (0 upto length problems - 1)
     val reindex = fst o nth indexed_problems
 
-    val timeout = Time.toMilliseconds (deadline - Time.now ()) - fudge_ms
+    val external_process =
+      not (Options.default_bool \<^system_option>\<open>kodkod_scala\<close>) orelse overlord
+    val timeout0 = Time.toMilliseconds (deadline - Time.now ())
+    val timeout = if external_process then timeout0 - fudge_ms else timeout0
+
+    val solve_all = max_solutions > 1
   in
     if null indexed_problems then
       Normal ([], triv_js, "")
     else if timeout <= 0 then TimedOut triv_js
     else
       let
-        val (serial_str, temp_dir) = serial_string_and_temporary_dir overlord
-        fun path_for suf =
-          Path.explode (temp_dir ^ "/kodkodi" ^ serial_str ^ "." ^ suf)
-        val in_path = path_for "kki"
-        val in_buf = Unsynchronized.ref Buffer.empty
-        fun out s = Unsynchronized.change in_buf (Buffer.add s)
-        val out_path = path_for "out"
-        val err_path = path_for "err"
-        val _ = write_problem_file out (map snd indexed_problems)
-        val _ = File.write_buffer in_path (!in_buf)
-        fun remove_temporary_files () =
-          if overlord then ()
-          else List.app (ignore o try File.rm) [in_path, out_path, err_path]
-      in
-        let
-          val outcome =
+        val kki =
+          let
+            val buf = Unsynchronized.ref Buffer.empty
+            fun out s = Unsynchronized.change buf (Buffer.add s)
+            val _ = write_problem out (map snd indexed_problems)
+          in Buffer.content (! buf) end
+        val (rc, out, err) =
+          if external_process then
             let
-              val code =
-                Isabelle_System.bash ("cd " ^ Bash.string temp_dir ^ ";\n\
-                      \\"$KODKODI/bin/kodkodi\"" ^
-                      (" -max-msecs " ^ string_of_int timeout) ^
-                      (if max_solutions > 1 then " -solve-all" else "") ^
-                      " -max-solutions " ^ string_of_int max_solutions ^
-                      (if max_threads > 0 then
-                         " -max-threads " ^ string_of_int max_threads
-                       else
-                         "") ^
-                      " < " ^ File.bash_path in_path ^
-                      " > " ^ File.bash_path out_path ^
-                      " 2> " ^ File.bash_path err_path)
-              val (io_error, (ps, nontriv_js)) =
-                read_output_file out_path
-                ||> apfst (map (apfst reindex)) ||> apsnd (map reindex)
-              val js = triv_js @ nontriv_js
-              val first_error =
-                (File.fold_lines (fn line => fn "" => line | s => s) err_path ""
-                 handle IO.Io _ => "" | OS.SysErr _ => "")
-                |> perhaps (try (unsuffix "\r"))
-                |> perhaps (try (unsuffix "."))
-                |> perhaps (try (unprefix "Solve error: "))
-                |> perhaps (try (unprefix "Error: "))
-              fun has_error s =
-                first_error |> Substring.full |> Substring.position s |> snd
-                            |> Substring.isEmpty |> not
+              val (serial_str, temp_dir) = serial_string_and_temporary_dir overlord
+              fun path_for suf = Path.explode (temp_dir ^ "/kodkodi" ^ serial_str ^ "." ^ suf)
+              val kki_path = path_for "kki"
+              val out_path = path_for "out"
+              val err_path = path_for "err"
+
+              fun remove_temporary_files () =
+                if overlord then ()
+                else List.app (ignore o try File.rm) [kki_path, out_path, err_path]
             in
-              if null ps then
-                if code = 2 then
-                  TimedOut js
-                else if code = 0 then
-                  Normal ([], js, first_error)
-                else if code = 127 then
-                  JavaNotFound
-                else if has_error "UnsupportedClassVersionError" then
-                  JavaTooOld
-                else if has_error "NoClassDefFoundError" then
-                  KodkodiNotInstalled
-                else if is_kodkodi_too_old () then
-                  KodkodiTooOld
-                else if first_error <> "" then
-                  Error (first_error, js)
-                else if io_error then
-                  Error ("I/O error", js)
-                else
-                  Error ("Unknown error", js)
-              else
-                Normal (ps, js, first_error)
+              let
+                val _ = File.write kki_path kki
+                val rc =
+                  Isabelle_System.bash ("cd " ^ Bash.string temp_dir ^ ";\n\
+                    \\"$KODKODI/bin/kodkodi\"" ^
+                    (" -max-msecs " ^ string_of_int timeout) ^
+                    (if solve_all then " -solve-all" else "") ^
+                    " -max-solutions " ^ string_of_int max_solutions ^
+                    (if max_threads > 0 then " -max-threads " ^ string_of_int max_threads else "") ^
+                    " < " ^ File.bash_path kki_path ^
+                    " > " ^ File.bash_path out_path ^
+                    " 2> " ^ File.bash_path err_path)
+                val out = File.read out_path
+                val err = File.read err_path
+                val _ = remove_temporary_files ()
+              in (rc, out, err) end
+              handle exn => (remove_temporary_files (); Exn.reraise exn)
             end
-        in remove_temporary_files (); outcome end
-        handle exn => (remove_temporary_files (); Exn.reraise exn)
+          else
+            (timeout, (solve_all, (max_solutions, (max_threads, kki))))
+            |> let open XML.Encode in pair int (pair bool (pair int (pair int string))) end
+            |> YXML.string_of_body
+            |> \<^scala>\<open>kodkod\<close>
+            |> YXML.parse_body
+            |> let open XML.Decode in triple int string string end
+
+        val (ps, nontriv_js) =
+          read_next_problems (Substring.full out, [], [])
+          |>> rev ||> rev
+          |> apfst (map (apfst reindex)) |> apsnd (map reindex)
+        val js = triv_js @ nontriv_js
+
+        val first_error =
+          trim_split_lines err
+          |> find_first (fn line => line <> "")
+          |> the_default ""
+          |> perhaps (try (unsuffix "."))
+          |> perhaps (try (unprefix "Solve error: "))
+          |> perhaps (try (unprefix "Error: "))
+        fun has_error s =
+          first_error |> Substring.full |> Substring.position s |> snd
+                      |> Substring.isEmpty |> not
+      in
+        if null ps then
+          if rc = 2 then
+            TimedOut js
+          else if rc = 0 then
+            Normal ([], js, first_error)
+          else if rc = 127 then
+            JavaNotFound
+          else if has_error "UnsupportedClassVersionError" then
+            JavaTooOld
+          else if has_error "NoClassDefFoundError" then
+            KodkodiNotInstalled
+          else if is_kodkodi_too_old () then
+            KodkodiTooOld
+          else if first_error <> "" then
+            Error (first_error, js)
+          else
+            Error ("Unknown error", js)
+        else
+          Normal (ps, js, first_error)
       end
   end
 
