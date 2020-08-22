@@ -981,9 +981,6 @@ fun serial_string_and_temporary_dir overlord =
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
-fun milliseconds_until_deadline deadline =
-  Int.max (0, Time.toMilliseconds (deadline - Time.now ()) - fudge_ms)
-
 fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                problems =
   let
@@ -996,9 +993,12 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
     val triv_js = filter_out (AList.defined (op =) indexed_problems)
                              (0 upto length problems - 1)
     val reindex = fst o nth indexed_problems
+
+    val timeout = Time.toMilliseconds (deadline - Time.now ()) - fudge_ms
   in
     if null indexed_problems then
       Normal ([], triv_js, "")
+    else if timeout <= 0 then TimedOut triv_js
     else
       let
         val (serial_str, temp_dir) = serial_string_and_temporary_dir overlord
@@ -1016,14 +1016,12 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
           else List.app (ignore o try File.rm) [in_path, out_path, err_path]
       in
         let
-          val ms = milliseconds_until_deadline deadline
           val outcome =
             let
               val code =
                 Isabelle_System.bash ("cd " ^ Bash.string temp_dir ^ ";\n\
                       \\"$KODKODI/bin/kodkodi\"" ^
-                      (if ms >= 0 then " -max-msecs " ^ string_of_int ms
-                       else "") ^
+                      (" -max-msecs " ^ string_of_int timeout) ^
                       (if max_solutions > 1 then " -solve-all" else "") ^
                       " -max-solutions " ^ string_of_int max_solutions ^
                       (if max_threads > 0 then
