@@ -53,7 +53,7 @@ text \<open>
     Particular Isabelle/Scala services require particular subclasses:
     instances are filtered according to their dynamic type. For example, class
     \<^scala_type>\<open>isabelle.Isabelle_Scala_Tools\<close> collects Scala command-line
-    tools, and class \<^scala_type>\<open>isabelle.Isabelle_Scala_Functions\<close>
+    tools, and class \<^scala_type>\<open>isabelle.Scala.Functions\<close>
     collects Scala functions (\secref{sec:scala-functions}).
 \<close>
 
@@ -185,10 +185,10 @@ subsection \<open>Defining functions in Isabelle/Scala\<close>
 text \<open>
   A Scala functions of type \<^scala_type>\<open>String => String\<close> may be wrapped as
   \<^scala_type>\<open>isabelle.Scala.Fun\<close> and collected via an instance of the
-  class \<^scala_type>\<open>isabelle.Isabelle_Scala_Functions\<close>. A system component
+  class \<^scala_type>\<open>isabelle.Scala.Functions\<close>. A system component
   can then register that class via \<^bash_function>\<open>isabelle_scala_service\<close>
   in \<^path>\<open>etc/settings\<close> (\secref{sec:components}). An example is the
-  predefined collection of \<^scala_type>\<open>isabelle.Functions\<close> in
+  predefined collection of \<^scala_type>\<open>isabelle.Scala.Functions\<close> in
   Isabelle/\<^verbatim>\<open>Pure.jar\<close> with the following line in
   \<^file>\<open>$ISABELLE_HOME/etc/settings\<close>:
   @{verbatim [display, indent = 2] \<open>isabelle_scala_service 'isabelle.Functions'\<close>}
