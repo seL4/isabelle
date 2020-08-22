@@ -970,19 +970,12 @@ fun read_output_file path =
    |>> rev ||> rev)
   handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
 
+
 (** Main Kodkod entry point **)
 
-val created_temp_dir = Unsynchronized.ref false
-
-fun serial_string_and_temporary_dir_for_overlord overlord =
-  if overlord then
-    ("", getenv "ISABELLE_HOME_USER")
-  else
-    let
-      val dir = getenv "ISABELLE_TMP"
-      val _ = if !created_temp_dir then ()
-              else (created_temp_dir := true; Isabelle_System.mkdirs (Path.explode dir))
-    in (serial_string (), dir) end
+fun serial_string_and_temporary_dir overlord =
+  if overlord then ("", getenv "ISABELLE_HOME_USER")
+  else (serial_string (), getenv "ISABELLE_TMP")
 
 (* The fudge term below is to account for Kodkodi's slow start-up time, which
    is partly due to the JVM and partly due to the ML "bash" function. *)
@@ -1008,8 +1001,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
       Normal ([], triv_js, "")
     else
       let
-        val (serial_str, temp_dir) =
-          serial_string_and_temporary_dir_for_overlord overlord
+        val (serial_str, temp_dir) = serial_string_and_temporary_dir overlord
         fun path_for suf =
           Path.explode (temp_dir ^ "/kodkodi" ^ serial_str ^ "." ^ suf)
         val in_path = path_for "kki"
