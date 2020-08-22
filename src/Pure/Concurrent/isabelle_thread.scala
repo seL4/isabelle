@@ -7,7 +7,7 @@ Isabelle-specific thread management.
 package isabelle
 
 
-import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, ThreadFactory}
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
 
 
 object Isabelle_Thread
@@ -69,10 +69,15 @@ object Isabelle_Thread
 
   /* thread pool */
 
-  lazy val pool: ThreadPoolExecutor =
+  def max_threads(): Int =
   {
     val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-    val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
+    if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
+  }
+
+  lazy val pool: ThreadPoolExecutor =
+  {
+    val n = max_threads()
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     executor.setThreadFactory(
