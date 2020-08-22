@@ -116,16 +116,16 @@ object Scala
         if (!ok && errors.isEmpty) List("Error") else errors
       }
     }
+  }
 
-    object Toplevel extends Fun("scala_toplevel")
+  object Toplevel extends Fun("scala_toplevel")
+  {
+    def apply(source: String): String =
     {
-      def apply(source: String): String =
-      {
-        val errors =
-          try { Compiler.context().toplevel(source) }
-          catch { case ERROR(msg) => List(msg) }
-        locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
-      }
+      val errors =
+        try { Compiler.context().toplevel(source) }
+        catch { case ERROR(msg) => List(msg) }
+      locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
     }
   }
 
@@ -221,5 +221,5 @@ object Scala
 class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
-  Scala.Compiler.Toplevel,
-  Bibtex.Check)
+  Scala.Toplevel,
+  Bibtex.Check_Database)

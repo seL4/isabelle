@@ -145,7 +145,7 @@ object Bibtex
     })
   }
 
-  object Check extends Scala.Fun("check_bibtex_database")
+  object Check_Database extends Scala.Fun("bibtex_check_database")
   {
     def apply(database: String): String =
     {
