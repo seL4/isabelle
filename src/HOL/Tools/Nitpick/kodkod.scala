@@ -43,7 +43,7 @@ object Kodkod
     def executor_kill(): Unit =
       if (!executor.isShutdown) Isabelle_Thread.fork() { executor.shutdownNow() }
 
-    class Exit extends Exception
+    class Exit extends Exception("EXIT")
 
     val context =
       new Context {

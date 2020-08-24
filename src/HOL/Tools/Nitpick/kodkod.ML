@@ -1057,11 +1057,12 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
 
         val first_error =
           trim_split_lines err
-          |> find_first (fn line => line <> "")
+          |> map
+           (perhaps (try (unsuffix ".")) #>
+            perhaps (try (unprefix "Solve error: ")) #>
+            perhaps (try (unprefix "Error: ")))
+          |> find_first (fn line => line <> "" andalso line <> "EXIT")
           |> the_default ""
-          |> perhaps (try (unsuffix "."))
-          |> perhaps (try (unprefix "Solve error: "))
-          |> perhaps (try (unprefix "Error: "))
         fun has_error s =
           first_error |> Substring.full |> Substring.position s |> snd
                       |> Substring.isEmpty |> not
