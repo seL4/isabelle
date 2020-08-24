@@ -35,9 +35,10 @@ object Kodkod
     max_solutions: Int = Integer.MAX_VALUE,
     cleanup_inst: Boolean = false,
     timeout: Time = Time.zero,
-    max_threads: Int = 1): Result =
+    max_threads: Int = 0): Result =
   {
-    val executor = Executors.newFixedThreadPool(max_threads)
+    val executor =
+      Executors.newFixedThreadPool(if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads)
 
     def executor_kill(): Unit =
       if (!executor.isShutdown) Isabelle_Thread.fork() { executor.shutdownNow() }
@@ -105,7 +106,7 @@ object Kodkod
 
   def warmup(): String =
     execute(
-      """solver: "MiniSat\n"""" +
+      "solver: \"MiniSat\"\n" +
       File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
 
 
