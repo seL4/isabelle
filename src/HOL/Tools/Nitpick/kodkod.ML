@@ -1067,7 +1067,9 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
                       |> Substring.isEmpty |> not
       in
         if null ps then
-          if rc = 2 then
+          if rc = 130 then
+            raise Exn.Interrupt
+          else if rc = 2 then
             TimedOut js
           else if rc = 0 then
             Normal ([], js, first_error)
