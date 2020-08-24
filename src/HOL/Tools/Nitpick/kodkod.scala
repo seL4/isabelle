@@ -37,8 +37,8 @@ object Kodkod
     timeout: Time = Time.zero,
     max_threads: Int = 0): Result =
   {
-    val executor =
-      Executors.newFixedThreadPool(if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads)
+    val pool_size = if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads
+    val executor = Executors.newFixedThreadPool(pool_size)
 
     def executor_kill(): Unit =
       if (!executor.isShutdown) Isabelle_Thread.fork() { executor.shutdownNow() }
