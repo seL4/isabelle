@@ -696,7 +696,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Triangular_Numbers
     Unification
     While_Combinator_Example
-    Word_Conversions
     veriT_Preprocessing
   theories [skip_proofs = false]
     SAT_Examples
@@ -898,6 +897,7 @@ session "HOL-Word" (main timing) in Word = HOL +
     Word
     More_Word
     Word_Examples
+    Conversions
   document_files "root.bib" "root.tex"
 
 session "HOL-Statespace" in Statespace = HOL +
