@@ -40,3 +40,6 @@ public option MaSh : string = "sml"
 
 public option kodkod_scala : bool = false
   -- "invoke Nitpick/Kodkod via Isabelle/Scala (instead of external process)"
+
+public option kodkod_max_threads : int = 0
+  -- "default max_threads for Nitpick/Kodkod (0: maximum of Java/Scala platform)"

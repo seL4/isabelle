@@ -975,7 +975,7 @@ fun serial_string_and_temporary_dir overlord =
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
-fun uncached_solve_any_problem overlord deadline max_threads max_solutions problems =
+fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions problems =
   let
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
@@ -986,6 +986,11 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions probl
     val triv_js = filter_out (AList.defined (op =) indexed_problems)
                              (0 upto length problems - 1)
     val reindex = fst o nth indexed_problems
+
+    val max_threads =
+      if max_threads0 = 0
+      then Options.default_int \<^system_option>\<open>kodkod_max_threads\<close>
+      else max_threads0
 
     val external_process =
       not (Options.default_bool \<^system_option>\<open>kodkod_scala\<close>) orelse overlord
