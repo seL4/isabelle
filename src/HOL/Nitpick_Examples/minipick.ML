@@ -437,9 +437,7 @@ fun solve_any_kodkod_problem thy problems =
     case solve_any_problem debug overlord deadline max_threads max_solutions
                            problems of
       JavaNotFound => "unknown"
-    | JavaTooOld => "unknown"
     | KodkodiNotInstalled => "unknown"
-    | KodkodiTooOld => "unknown"
     | Normal ([], _, _) => "none"
     | Normal _ => "genuine"
     | TimedOut _ => "unknown"

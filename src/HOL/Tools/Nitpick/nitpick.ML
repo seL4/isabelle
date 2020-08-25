@@ -176,11 +176,8 @@ val isabelle_wrong_message =
   "something appears to be wrong with your Isabelle installation"
 val java_not_found_message =
   "Java could not be launched -- " ^ isabelle_wrong_message
-val java_too_old_message =
-  "The Java version is too old -- " ^ isabelle_wrong_message
 val kodkodi_not_installed_message =
   "Nitpick requires the external Java program Kodkodi"
-val kodkodi_too_old_message = "The installed Kodkodi version is too old"
 
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
@@ -725,14 +722,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             KK.JavaNotFound =>
             (print_nt (K java_not_found_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
-          | KK.JavaTooOld =>
-            (print_nt (K java_too_old_message);
-             (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
             (print_nt (K kodkodi_not_installed_message);
-             (found_really_genuine, max_potential, max_genuine, donno + 1))
-          | KK.KodkodiTooOld =>
-            (print_nt (K kodkodi_too_old_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;

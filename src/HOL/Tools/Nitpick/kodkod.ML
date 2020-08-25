@@ -158,9 +158,7 @@ sig
 
   datatype outcome =
     JavaNotFound |
-    JavaTooOld |
     KodkodiNotInstalled |
-    KodkodiTooOld |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Error of string * int list
@@ -306,9 +304,7 @@ type raw_bound = n_ary_index * int list list
 
 datatype outcome =
   JavaNotFound |
-  JavaTooOld |
   KodkodiNotInstalled |
-  KodkodiTooOld |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Error of string * int list
@@ -325,8 +321,6 @@ fun kodkodi_version () =
   |> space_explode "."
   |> map (the_default 0 o Int.fromString)
 
-fun is_kodkodi_too_old () =
-  is_less (dict_ord int_ord (kodkodi_version (), [1, 2, 14]))
 
 (** Auxiliary functions on Kodkod problems **)
 
@@ -1076,12 +1070,8 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
             Normal ([], js, first_error)
           else if rc = 127 then
             JavaNotFound
-          else if has_error "UnsupportedClassVersionError" then
-            JavaTooOld
           else if has_error "NoClassDefFoundError" then
             KodkodiNotInstalled
-          else if is_kodkodi_too_old () then
-            KodkodiTooOld
           else if first_error <> "" then
             Error (first_error, js)
           else
