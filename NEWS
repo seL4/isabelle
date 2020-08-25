@@ -39,8 +39,12 @@ checked within the Isabelle settings environment.
 rule to protect foundational terms during simplification.
 
 
-
 *** HOL ***
+
+* Nitpick/Kodkod may be invoked directly within the running
+Isabelle/Scala session (instead of an external Java process): this
+improves reactivity and saves resources. This experimental feature is
+guarded by system option "kodkod_scala" (default: false).
 
 * Session HOL-Examples contains notable examples for Isabelle/HOL
 (former entries of HOL-Isar_Examples, HOL-ex etc.).
