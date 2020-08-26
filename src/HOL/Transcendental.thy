@@ -1421,30 +1421,27 @@ next
   have S_comm: "\<And>n. S x n * y = y * S x n"
     by (simp add: power_commuting_commutes comm S_def)
 
-  have "real (Suc n) *\<^sub>R S (x + y) (Suc n) = (x + y) * S (x + y) n"
-    by (simp only: times_S)
-  also have "\<dots> = (x + y) * (\<Sum>i\<le>n. S x i * S y (n - i))"
-    by (simp only: Suc)
+  have "real (Suc n) *\<^sub>R S (x + y) (Suc n) = (x + y) * (\<Sum>i\<le>n. S x i * S y (n - i))"
+    by (metis Suc.hyps times_S)
   also have "\<dots> = x * (\<Sum>i\<le>n. S x i * S y (n - i)) + y * (\<Sum>i\<le>n. S x i * S y (n - i))"
     by (rule distrib_right)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * y * S y (n - i))"
     by (simp add: sum_distrib_left ac_simps S_comm)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * (y * S y (n - i)))"
     by (simp add: ac_simps)
-  also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) +
-      (\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
+  also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) 
+                + (\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
     by (simp add: times_S Suc_diff_le)
-  also have "(\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) =
-      (\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i)))"
+  also have "(\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i)))
+           = (\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i)))"
     by (subst sum.atMost_Suc_shift) simp
-  also have "(\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) =
-      (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
+  also have "(\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))
+           = (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
     by simp
-  also have "(\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i))) +
-        (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) =
-      (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n - i)))"
-    by (simp only: sum.distrib [symmetric] scaleR_left_distrib [symmetric]
-        of_nat_add [symmetric]) simp
+  also have "(\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i)))
+           + (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) 
+           = (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n - i)))"
+    by (simp flip: sum.distrib scaleR_add_left of_nat_add) 
   also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
     by (simp only: scaleR_right.sum)
   finally show "S (x + y) (Suc n) = (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"

@@ -88,26 +88,24 @@ proof -
       by simp
     have *: "y = (1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x"
       using \<open>e > 0\<close> by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
-    have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = \<bar>1/e\<bar> * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
-      unfolding dist_norm
-      unfolding norm_scaleR[symmetric]
-      apply (rule arg_cong[where f=norm])
+    have "c - ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = (1 / e) *\<^sub>R (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
       using \<open>e > 0\<close>
       by (auto simp add: euclidean_eq_iff[where 'a='a] field_simps inner_simps)
+    then have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = \<bar>1/e\<bar> * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
+      by (simp add: dist_norm)
     also have "\<dots> = \<bar>1/e\<bar> * norm (x - e *\<^sub>R (x - c) - y)"
       by (auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "\<dots> < d"
       using as[unfolded dist_norm] and \<open>e > 0\<close>
       by (auto simp add:pos_divide_less_eq[OF \<open>e > 0\<close>] mult.commute)
-    finally show "y \<in> S"
-      apply (subst *)
-      apply (rule assms(1)[unfolded convex_alt,rule_format])
-      apply (rule d[unfolded subset_eq,rule_format])
-      unfolding mem_ball
-      using assms(3-5)
-      apply auto
+    finally have "(1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x \<in> S"
+      using assms(3-5) d
+      apply (intro convexD_alt [OF \<open>convex S\<close>])
+         apply (auto simp: intro: convexD_alt [OF \<open>convex S\<close>])
       done
-  qed (insert \<open>e>0\<close> \<open>d>0\<close>, auto)
+    with \<open>e > 0\<close> show "y \<in> S"
+      by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
+  qed (use \<open>e>0\<close> \<open>d>0\<close> in auto)
 qed
 
 lemma mem_interior_closure_convex_shrink:
@@ -125,10 +123,7 @@ proof -
   proof (cases "x \<in> S")
     case True
     then show ?thesis
-      using \<open>e > 0\<close> \<open>d > 0\<close>
-      apply (rule_tac bexI[where x=x])
-      apply (auto)
-      done
+      using \<open>e > 0\<close> \<open>d > 0\<close> by force
   next
     case False
     then have x: "x islimpt S"
@@ -139,23 +134,17 @@ proof -
       obtain y where "y \<in> S" "y \<noteq> x" "dist y x < 1"
         using x[unfolded islimpt_approachable,THEN spec[where x=1]] by auto
       then show ?thesis
-        apply (rule_tac x=y in bexI)
-        unfolding True
-        using \<open>d > 0\<close>
-        apply auto
-        done
+        using True \<open>0 < d\<close> by auto
     next
       case False
       then have "0 < e * d / (1 - e)" and *: "1 - e > 0"
         using \<open>e \<le> 1\<close> \<open>e > 0\<close> \<open>d > 0\<close> by auto
       then obtain y where "y \<in> S" "y \<noteq> x" "dist y x < e * d / (1 - e)"
-        using x[unfolded islimpt_approachable,THEN spec[where x="e*d / (1 - e)"]] by auto
+        using islimpt_approachable x by blast
+      then have "norm (y - x) * (1 - e) < e * d"
+        by (metis "*" dist_norm mult_imp_div_pos_le not_less)
       then show ?thesis
-        apply (rule_tac x=y in bexI)
-        unfolding dist_norm
-        using pos_less_divide_eq[OF *]
-        apply auto
-        done
+        using \<open>y \<in> S\<close> by blast
     qed
   qed
   then obtain y where "y \<in> S" and y: "norm (y - x) * (1 - e) < e * d"
@@ -164,10 +153,12 @@ proof -
   have *: "x - e *\<^sub>R (x - c) = y - e *\<^sub>R (y - z)"
     unfolding z_def using \<open>e > 0\<close>
     by (auto simp add: scaleR_right_diff_distrib scaleR_right_distrib scaleR_left_diff_distrib)
-  have "z \<in> interior S"
-    apply (rule interior_mono[OF d,unfolded subset_eq,rule_format])
-    unfolding interior_open[OF open_ball] mem_ball z_def dist_norm using y and assms(4,5)
-    by simp (simp add: field_simps norm_minus_commute)
+  have "z \<in> interior (ball c d)"
+    using y \<open>0 < e\<close> \<open>e \<le> 1\<close>
+    apply (simp add: interior_open[OF open_ball] z_def dist_norm)
+    by (simp add: field_simps norm_minus_commute)
+  then have "z \<in> interior S"
+    using d interiorI interior_ball by blast
   then show ?thesis
     unfolding *
     using mem_interior_convex_shrink \<open>y \<in> S\<close> assms by blast
@@ -216,10 +207,8 @@ proof -
           show "dist (x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a)) x < e"
             using \<open>0 < e\<close> by (auto simp: dist_norm min_def)
           show "x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a) \<in> interior S"
-            apply (clarsimp simp add: min_def a)
-            apply (rule mem_interior_closure_convex_shrink [OF \<open>convex S\<close> a x])
-            using \<open>0 < e\<close> False apply (auto simp: field_split_simps)
-            done
+            using \<open>0 < e\<close> False
+            by (auto simp add: min_def a intro: mem_interior_closure_convex_shrink [OF \<open>convex S\<close> a x])
         qed
       qed
     qed
@@ -395,23 +384,22 @@ proof -
          (simp_all add: sum.If_cases i) }
   note ** = this
   show ?thesis
-    apply (rule that[of ?a])
-    unfolding interior_std_simplex mem_Collect_eq
-  proof safe
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    show "0 < ?a \<bullet> i"
-      unfolding **[OF i] by (auto simp add: Suc_le_eq)
-  next
-    have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
-      apply (rule sum.cong)
-      apply rule
-      apply auto
-      done
-    also have "\<dots> < 1"
-      unfolding sum_constant divide_inverse[symmetric]
-      by (auto simp add: field_simps)
-    finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
+  proof
+    show "?a \<in> interior(convex hull (insert 0 Basis))"
+      unfolding interior_std_simplex mem_Collect_eq
+    proof safe
+      fix i :: 'a
+      assume i: "i \<in> Basis"
+      show "0 < ?a \<bullet> i"
+        unfolding **[OF i] by (auto simp add: Suc_le_eq)
+    next
+      have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
+        by (auto intro: sum.cong)
+      also have "\<dots> < 1"
+        unfolding sum_constant divide_inverse[symmetric]
+        by (auto simp add: field_simps)
+      finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
+    qed
   qed
 qed
 
@@ -451,11 +439,8 @@ proof -
         fix i :: 'a
         assume "i \<in> D"
         then have "\<forall>j\<in>D. 0 \<le> (x - (e / 2) *\<^sub>R i) \<bullet> j"
-          apply -
-          apply (rule as[THEN conjunct1])
           using D \<open>e > 0\<close> x0
-          apply (auto simp: dist_norm inner_simps inner_Basis)
-          done
+          by (force simp: dist_norm inner_simps inner_Basis intro!: as[THEN conjunct1])
         then show "0 < x \<bullet> i"
           using \<open>e > 0\<close> \<open>i \<in> D\<close> D  by (force simp: inner_simps inner_Basis)
       next
@@ -506,10 +491,8 @@ proof -
       moreover have "?d > 0" using as using \<open>0 < card D\<close> by auto
       ultimately have h3: "min (Min (((\<bullet>) x) ` D)) ?d > 0"
         by auto
-
-      have "x \<in> rel_interior (convex hull (insert 0 ?p))"
-        unfolding rel_interior_ball mem_Collect_eq h0
-        apply (rule,rule h2)
+      have "\<exists>e>0. ball x e \<inter> {x. \<forall>i\<in>Basis. i \<notin> D \<longrightarrow> x \<bullet> i = 0}
+          \<subseteq> convex hull insert 0 D"
         unfolding substd_simplex[OF assms]
         apply (rule_tac x="min (Min (((\<bullet>) x) ` D)) ?d" in exI)
         apply (rule, rule h3)
@@ -549,8 +532,10 @@ proof -
           then show "0 \<le> y\<bullet>i"
             using Basis_le_norm[OF i, of "x - y"] and as(1)[rule_format]
             by (auto simp: inner_simps)
-        qed (insert y2, auto)
+        qed (use y2 in auto)
       qed
+      then have "x \<in> rel_interior (convex hull (insert 0 ?p))"
+        using h0 h2 rel_interior_ball by force
     }
     ultimately have
       "\<And>x. x \<in> rel_interior (convex hull insert 0 D) \<longleftrightarrow>
@@ -569,63 +554,60 @@ proof -
   let ?D = D
   let ?a = "sum (\<lambda>b::'a::euclidean_space. inverse (2 * real (card D)) *\<^sub>R b) ?D"
   have "finite D"
-    apply (rule finite_subset)
-    using assms(2)
-    apply auto
-    done
+    using assms finite_Basis infinite_super by blast
   then have d1: "0 < real (card D)"
     using \<open>D \<noteq> {}\<close> by auto
   {
     fix i
     assume "i \<in> D"
-    have "?a \<bullet> i = inverse (2 * real (card D))"
-      apply (rule trans[of _ "sum (\<lambda>j. if i = j then inverse (2 * real (card D)) else 0) ?D"])
+    have "?a \<bullet> i = sum (\<lambda>j. if i = j then inverse (2 * real (card D)) else 0) ?D"
       unfolding inner_sum_left
-      apply (rule sum.cong)
-      using \<open>i \<in> D\<close> \<open>finite D\<close> sum.delta'[of D i "(\<lambda>k. inverse (2 * real (card D)))"]
-        d1 assms(2)
-      by (auto simp: inner_Basis rev_subsetD[OF _ assms(2)])
+      using \<open>i \<in> D\<close> by (auto simp: inner_Basis subsetD[OF assms(2)] intro: sum.cong)
+    also have "... = inverse (2 * real (card D))"
+      using \<open>i \<in> D\<close> \<open>finite D\<close> by auto
+    finally have "?a \<bullet> i = inverse (2 * real (card D))" .
   }
   note ** = this
   show ?thesis
-    apply (rule that[of ?a])
-    unfolding rel_interior_substd_simplex[OF assms(2)] mem_Collect_eq
-  proof safe
-    fix i
-    assume "i \<in> D"
-    have "0 < inverse (2 * real (card D))"
-      using d1 by auto
-    also have "\<dots> = ?a \<bullet> i" using **[of i] \<open>i \<in> D\<close>
-      by auto
-    finally show "0 < ?a \<bullet> i" by auto
-  next
-    have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real (card D))) ?D"
-      by (rule sum.cong) (rule refl, rule **)
-    also have "\<dots> < 1"
-      unfolding sum_constant divide_real_def[symmetric]
-      by (auto simp add: field_simps)
-    finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
-  next
-    fix i
-    assume "i \<in> Basis" and "i \<notin> D"
-    have "?a \<in> span D"
-    proof (rule span_sum[of D "(\<lambda>b. b /\<^sub>R (2 * real (card D)))" D])
-      {
-        fix x :: "'a::euclidean_space"
-        assume "x \<in> D"
-        then have "x \<in> span D"
-          using span_base[of _ "D"] by auto
-        then have "x /\<^sub>R (2 * real (card D)) \<in> span D"
-          using span_mul[of x "D" "(inverse (real (card D)) / 2)"] by auto
-      }
-      then show "\<And>x. x\<in>D \<Longrightarrow> x /\<^sub>R (2 * real (card D)) \<in> span D"
+  proof
+    show "?a \<in> rel_interior (convex hull (insert 0 D))"
+      unfolding rel_interior_substd_simplex[OF assms(2)] 
+    proof safe
+      fix i
+      assume "i \<in> D"
+      have "0 < inverse (2 * real (card D))"
+        using d1 by auto
+      also have "\<dots> = ?a \<bullet> i" using **[of i] \<open>i \<in> D\<close>
         by auto
+      finally show "0 < ?a \<bullet> i" by auto
+    next
+      have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real (card D))) ?D"
+        by (rule sum.cong) (rule refl, rule **)
+      also have "\<dots> < 1"
+        unfolding sum_constant divide_real_def[symmetric]
+        by (auto simp add: field_simps)
+      finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
+    next
+      fix i
+      assume "i \<in> Basis" and "i \<notin> D"
+      have "?a \<in> span D"
+      proof (rule span_sum[of D "(\<lambda>b. b /\<^sub>R (2 * real (card D)))" D])
+        {
+          fix x :: "'a::euclidean_space"
+          assume "x \<in> D"
+          then have "x \<in> span D"
+            using span_base[of _ "D"] by auto
+          then have "x /\<^sub>R (2 * real (card D)) \<in> span D"
+            using span_mul[of x "D" "(inverse (real (card D)) / 2)"] by auto
+        }
+        then show "\<And>x. x\<in>D \<Longrightarrow> x /\<^sub>R (2 * real (card D)) \<in> span D"
+          by auto
+      qed
+      then show "?a \<bullet> i = 0 "
+        using \<open>i \<notin> D\<close> unfolding span_substd_basis[OF assms(2)] using \<open>i \<in> Basis\<close> by auto
     qed
-    then show "?a \<bullet> i = 0 "
-      using \<open>i \<notin> D\<close> unfolding span_substd_basis[OF assms(2)] using \<open>i \<in> Basis\<close> by auto
   qed
 qed
-
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Relative interior of convex set\<close>
 
