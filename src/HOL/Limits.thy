@@ -2178,7 +2178,7 @@ qed
 
 text \<open>A congruence rule allowing us to transform limits assuming not at point.\<close>
 
-lemma Lim_cong_within [cong]:
+lemma Lim_cong_within:
   assumes "a = b"
     and "x = y"
     and "S = T"

@@ -1003,7 +1003,7 @@ proof -
   have *: "((\<lambda>x. if x = 0 then a 0 else f x) \<longlongrightarrow> a 0) (at 0)"
     by (rule powser_limit_0 [OF s]) (auto simp: powser_sums_zero sm)
   show ?thesis
-    using "*" by auto
+    using "*" by (auto cong: Lim_cong_within)
 qed
 
 
