@@ -85,9 +85,9 @@ object ML_Statistics
     private var session: Session = null
     private var monitoring: Future[Unit] = Future.value(())
 
-    override def init(init_session: Session): Unit = synchronized
+    override def init(session: Session): Unit = synchronized
     {
-      session = init_session
+      this.session = session
     }
 
     override def exit(): Unit = synchronized

@@ -160,8 +160,8 @@ object Scala
     private var session: Session = null
     private var futures = Map.empty[String, Future[Unit]]
 
-    override def init(init_session: Session): Unit =
-      synchronized { session = init_session }
+    override def init(session: Session): Unit =
+      synchronized { this.session = session }
 
     override def exit(): Unit = synchronized
     {
