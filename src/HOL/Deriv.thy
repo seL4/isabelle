@@ -141,7 +141,15 @@ lemma has_derivative_diff[simp, derivative_intros]:
 lemma has_derivative_at_within:
   "(f has_derivative f') (at x within s) \<longleftrightarrow>
     (bounded_linear f' \<and> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within s))"
-  by (cases "at x within s = bot") (simp_all add: has_derivative_def Lim_ident_at)
+proof (cases "at x within s = bot")
+  case True
+  then show ?thesis
+    by (metis (no_types, lifting) has_derivative_within tendsto_bot)
+next
+  case False
+  then show ?thesis
+  by (simp add: Lim_ident_at has_derivative_def)
+qed
 
 lemma has_derivative_iff_norm:
   "(f has_derivative f') (at x within s) \<longleftrightarrow>
