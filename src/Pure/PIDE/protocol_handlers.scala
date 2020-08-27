@@ -9,9 +9,8 @@ package isabelle
 
 object Protocol_Handlers
 {
-  private def bad_handler(exn: Throwable, name: String): Unit =
-    Output.error_message(
-      "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
+  private def err_handler(exn: Throwable, name: String): Nothing =
+    error("Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
 
   sealed case class State(
     session: Session,
@@ -32,18 +31,18 @@ object Protocol_Handlers
           copy(handlers = handlers + (name -> handler), functions = functions ++ handler.functions)
         }
       }
-      catch { case exn: Throwable => bad_handler(exn, name); this }
+      catch { case exn: Throwable => err_handler(exn, name) }
     }
 
     def init(name: String): State =
     {
-      val new_handler =
+      val handler =
         try {
-          Some(Class.forName(name).getDeclaredConstructor().newInstance()
-            .asInstanceOf[Session.Protocol_Handler])
+          Class.forName(name).getDeclaredConstructor().newInstance()
+            .asInstanceOf[Session.Protocol_Handler]
         }
-        catch { case exn: Throwable => bad_handler(exn, name); None }
-      new_handler match { case Some(handler) => init(handler) case None => this }
+        catch { case exn: Throwable => err_handler(exn, name) }
+      init(handler)
     }
 
     def invoke(msg: Prover.Protocol_Output): Boolean =

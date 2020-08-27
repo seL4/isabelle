@@ -13,7 +13,9 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Prover.stop"
-    (fn [rc] => raise Isabelle_Process.STOP (Value.parse_int rc));
+    (fn rc :: msgs =>
+      (List.app Output.system_message msgs;
+       raise Isabelle_Process.STOP (Value.parse_int rc)));
 
 val _ =
   Isabelle_Process.protocol_command "Prover.options"

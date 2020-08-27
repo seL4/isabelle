@@ -544,14 +544,25 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               change_command(_.accumulate(state_id, output.message, xml_cache))
 
             case _ if output.is_init =>
-              Isabelle_System.make_services(classOf[Session.Protocol_Handler])
-                .foreach(init_protocol_handler)
+              val init_ok =
+                try {
+                  Isabelle_System.make_services(classOf[Session.Protocol_Handler])
+                    .foreach(init_protocol_handler)
+                  true
+                }
+                catch {
+                  case exn: Throwable =>
+                    prover.get.protocol_command("Prover.stop", "1", Exn.message(exn))
+                    false
+                }
 
-              prover.get.options(prover_options(session_options))
-              prover.get.init_session(resources)
+              if (init_ok) {
+                prover.get.options(prover_options(session_options))
+                prover.get.init_session(resources)
 
-              phase = Session.Ready
-              debugger.ready()
+                phase = Session.Ready
+                debugger.ready()
+              }
 
             case Markup.Process_Result(result) if output.is_exit =>
               if (prover.defined) protocol_handlers.exit()
