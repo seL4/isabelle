@@ -276,4 +276,20 @@ object Library
 
   def proper_list[A](list: List[A]): Option[List[A]] =
     if (list == null || list.isEmpty) None else Some(list)
+
+
+  /* reflection */
+
+  def is_subclass[A, B](a: Class[A], b: Class[B]): Boolean =
+  {
+    @tailrec def subclass(c: Class[_]): Boolean =
+    {
+      c == b ||
+        {
+          val d = c.getSuperclass
+          d != null && subclass(d)
+        }
+    }
+    subclass(a)
+  }
 }

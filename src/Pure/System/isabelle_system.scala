@@ -64,18 +64,8 @@ object Isabelle_System
   }
 
   def make_services[C](c: Class[C]): List[C] =
-  {
-    @tailrec def is_subclass(c1: Class[_]): Boolean =
-    {
-      c1 == c ||
-      {
-        val c2 = c1.getSuperclass
-        c2 != null && is_subclass(c2)
-      }
-    }
-    for { c1 <- services() if is_subclass(c1) }
+    for { c1 <- services() if Library.is_subclass(c1, c) }
       yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
-  }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
   {
