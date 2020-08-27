@@ -117,7 +117,7 @@ object ML_Statistics
       }
     }
 
-    val functions = List(Markup.ML_Statistics.name -> ml_statistics)
+    override val functions = List(Markup.ML_Statistics.name -> ml_statistics)
   }
 
 

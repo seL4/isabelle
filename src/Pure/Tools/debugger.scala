@@ -141,7 +141,7 @@ object Debugger
       }
     }
 
-    val functions =
+    override val functions =
       List(
         Markup.DEBUGGER_STATE -> debugger_state,
         Markup.DEBUGGER_OUTPUT -> debugger_output)

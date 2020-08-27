@@ -326,6 +326,6 @@ object Simplifier_Trace
           false
       }
 
-    val functions = List(Markup.SIMP_TRACE_CANCEL -> cancel)
+    override val functions = List(Markup.SIMP_TRACE_CANCEL -> cancel)
   }
 }

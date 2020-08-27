@@ -211,7 +211,7 @@ object Scala
       }
     }
 
-    val functions =
+    override val functions =
       List(
         Markup.Invoke_Scala.name -> invoke_scala,
         Markup.Cancel_Scala.name -> cancel_scala)

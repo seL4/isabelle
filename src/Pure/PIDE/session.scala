@@ -117,7 +117,7 @@ object Session
   {
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
-    val functions: List[(String, Protocol_Function)]
+    def functions: List[(String, Protocol_Function)] = Nil
   }
 }
 

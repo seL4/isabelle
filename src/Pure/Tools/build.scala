@@ -308,7 +308,7 @@ object Build
                 if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
               } yield props1.filter(p => Markup.command_timing_properties(p._1))
 
-            val functions =
+            override val functions =
               List(
                 Markup.Build_Session_Finished.name -> build_session_finished,
                 Markup.Loading_Theory.name -> loading_theory,
