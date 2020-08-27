@@ -280,8 +280,8 @@ proof \<comment> \<open>by contradiction\<close>
   then obtain n::nat where ndef: "n = nat \<lceil>2 * ?s\<rceil>" by simp
   then have ngt: "1 + real n/2 > ?s" by linarith
   define j where "j = (2::nat)^n"
-  have "\<forall>m\<ge>j. 0 < ?f m" by simp
-  with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule sum_less_suminf)
+  have "(\<Sum>i<j. ?f i) < ?s" 
+    using sf by (simp add: sum_less_suminf)
   then have "(\<Sum>i\<in>{Suc 0..<Suc j}. 1/(real i)) < ?s"
     unfolding sum.shift_bounds_Suc_ivl by (simp add: atLeast0LessThan)
   with j_def have

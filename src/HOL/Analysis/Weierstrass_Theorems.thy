@@ -77,7 +77,7 @@ proof -
     using compact_continuous_image compact_imp_bounded contf by blast
   then obtain M where M: "\<And>x. 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> \<bar>f x\<bar> \<le> M"
     by (force simp add: bounded_iff)
-  then have Mge0: "0 \<le> M" by force
+  then have "0 \<le> M" by force
   have ucontf: "uniformly_continuous_on {0..1} f"
     using compact_uniformly_continuous contf by blast
   then obtain d where d: "d>0" "\<And>x x'. \<lbrakk> x \<in> {0..1}; x' \<in> {0..1}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> \<bar>f x' - f x\<bar> < e/2"
@@ -124,20 +124,20 @@ proof -
         then have "\<bar>(f x - f (k/n))\<bar> < e/2"
           using d x kn by (simp add: abs_minus_commute)
         also have "... \<le> (e/2 + 2 * M / d\<^sup>2 * (x - k/n)\<^sup>2)"
-          using Mge0 d by simp
+          using \<open>M\<ge>0\<close> d by simp
         finally show ?thesis by simp
       next
         case ged
         then have dle: "d\<^sup>2 \<le> (x - k/n)\<^sup>2"
           by (metis d(1) less_eq_real_def power2_abs power_mono)
+        have \<section>: "1 \<le> (x - real k / real n)\<^sup>2 / d\<^sup>2"
+          using dle \<open>d>0\<close> by auto
         have "\<bar>(f x - f (k/n))\<bar> \<le> \<bar>f x\<bar> + \<bar>f (k/n)\<bar>"
           by (rule abs_triangle_ineq4)
         also have "... \<le> M+M"
           by (meson M add_mono_thms_linordered_semiring(1) kn x)
         also have "... \<le> 2 * M * ((x - k/n)\<^sup>2 / d\<^sup>2)"
-          apply simp
-          apply (rule Rings.ordered_semiring_class.mult_left_mono [of 1 "((x - k/n)\<^sup>2 / d\<^sup>2)", simplified])
-          using dle \<open>d>0\<close> \<open>M\<ge>0\<close> by auto
+          using \<section> \<open>M\<ge>0\<close> mult_left_mono by fastforce
         also have "... \<le> e/2 + 2 * M / d\<^sup>2 * (x - k/n)\<^sup>2"
           using e  by simp
         finally show ?thesis .
@@ -145,19 +145,16 @@ proof -
     } note * = this
     have "\<bar>f x - (\<Sum>k\<le>n. f(k / n) * Bernstein n k x)\<bar> \<le> \<bar>\<Sum>k\<le>n. (f x - f(k / n)) * Bernstein n k x\<bar>"
       by (simp add: sum_subtractf sum_distrib_left [symmetric] algebra_simps)
+    also have "... \<le> (\<Sum>k\<le>n. \<bar>(f x - f(k / n)) * Bernstein n k x\<bar>)"
+      by (rule sum_abs)
     also have "... \<le> (\<Sum>k\<le>n. (e/2 + (2 * M / d\<^sup>2) * (x - k / n)\<^sup>2) * Bernstein n k x)"
-      apply (rule order_trans [OF sum_abs sum_mono])
       using *
-      apply (simp add: abs_mult Bernstein_nonneg x mult_right_mono)
-      done
+      by (force simp add: abs_mult Bernstein_nonneg x mult_right_mono intro: sum_mono)
     also have "... \<le> e/2 + (2 * M) / (d\<^sup>2 * n)"
-      apply (simp only: sum.distrib Rings.semiring_class.distrib_right sum_distrib_left [symmetric] mult.assoc sum_bern)
-      using \<open>d>0\<close> x
-      apply (simp add: divide_simps Mge0 mult_le_one mult_left_le)
-      done
+      unfolding sum.distrib Rings.semiring_class.distrib_right sum_distrib_left [symmetric] mult.assoc sum_bern
+      using \<open>d>0\<close> x by (simp add: divide_simps \<open>M\<ge>0\<close> mult_le_one mult_left_le)
     also have "... < e"
-      apply (simp add: field_simps)
-      using \<open>d>0\<close> nbig e \<open>n>0\<close>
+      using \<open>d>0\<close> nbig e \<open>n>0\<close> 
       apply (simp add: field_split_simps)
       using ed0 by linarith
     finally have "\<bar>f x - (\<Sum>k\<le>n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
@@ -204,10 +201,14 @@ begin
   definition\<^marker>\<open>tag important\<close> normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
     where "normf f \<equiv> SUP x\<in>S. \<bar>f x\<bar>"
 
-  lemma normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
-    apply (simp add: normf_def)
-    apply (rule cSUP_upper, assumption)
-    by (simp add: bounded_imp_bdd_above compact compact_continuous_image compact_imp_bounded continuous_on_rabs)
+  lemma normf_upper: 
+    assumes "continuous_on S f" "x \<in> S" shows "\<bar>f x\<bar> \<le> normf f"
+  proof -
+    have "bdd_above ((\<lambda>x. \<bar>f x\<bar>) ` S)"
+      by (simp add: assms(1) bounded_imp_bdd_above compact compact_continuous_image compact_imp_bounded continuous_on_rabs)
+    then show ?thesis
+      using assms cSUP_upper normf_def by fastforce
+  qed
 
   lemma normf_least: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
     by (simp add: normf_def cSUP_least)
@@ -371,11 +372,10 @@ proof -
     also have "... \<le> (1/(k * (p t))^n) * (1 - p t ^ n) ^ (k^n) * (1 + k^n * (p t)^n)"
       using pt_pos [OF t] \<open>k>0\<close>
       apply simp
-      apply (simp only: times_divide_eq_right [symmetric])
+      apply (simp flip: times_divide_eq_right)
       apply (rule mult_left_mono [of "1::real", simplified])
-      apply (simp_all add: power_mult_distrib)
-      apply (rule zero_le_power)
-      using ptn_le by linarith
+       apply (simp_all add: power_mult_distrib ptn_le)
+      done
     also have "... \<le> (1/(k * (p t))^n) * (1 - p t ^ n) ^ (k^n) * (1 + (p t)^n) ^ (k^n)"
       apply (rule mult_left_mono [OF Bernoulli_inequality [of "p t ^ n" "k^n"]])
       using \<open>k>0\<close> ptn_pos ptn_le
@@ -398,12 +398,15 @@ proof -
   have NN: "of_nat (NN e) > ln e / ln (real k * \<delta> / 2)"  "of_nat (NN e) > - ln e / ln (real k * \<delta>)"
               if "0<e" for e
       unfolding NN_def  by linarith+
-  have NN1: "\<And>e. e>0 \<Longrightarrow> (k * \<delta> / 2)^NN e < e"
-    apply (subst Transcendental.ln_less_cancel_iff [symmetric])
-      prefer 3 apply (subst ln_realpow)
-    using \<open>k>0\<close> \<open>\<delta>>0\<close> NN  k\<delta>
-    apply (force simp add: field_simps)+
-    done
+    have NN1: "(k * \<delta> / 2)^NN e < e" if "e>0" for e
+    proof -
+      have "ln ((real k * \<delta> / 2) ^ NN e) < ln e"
+        apply (subst ln_realpow)
+        using NN k\<delta> that
+        by (force simp add: field_simps)+
+      then show ?thesis
+        by (simp add: \<open>\<delta>>0\<close> \<open>0 < k\<close> that)
+    qed
   have NN0: "(1/(k*\<delta>)) ^ (NN e) < e" if "e>0" for e
   proof -
     have "0 < ln (real k) + ln \<delta>"
@@ -483,15 +486,11 @@ proof -
   have pff01: "pff x \<in> {0..1}" if t: "x \<in> S" for x
   proof -
     have "0 \<le> pff x"
-      using subA cardp t
-      apply (simp add: pff_def field_split_simps sum_nonneg)
-      apply (rule Groups_Big.linordered_semidom_class.prod_nonneg)
-      using ff by fastforce
+      using subA cardp t ff
+      by (fastforce simp: pff_def field_split_simps sum_nonneg intro: prod_nonneg)
     moreover have "pff x \<le> 1"
-      using subA cardp t
-      apply (simp add: pff_def field_split_simps sum_nonneg)
-      apply (rule prod_mono [where g = "\<lambda>x. 1", simplified])
-      using ff by fastforce
+      using subA cardp t ff 
+      by (fastforce simp add: pff_def field_split_simps sum_nonneg intro: prod_mono [where g = "\<lambda>x. 1", simplified])
     ultimately show ?thesis
       by auto
   qed
@@ -501,16 +500,16 @@ proof -
     from subA v have "pff x = ff v x * (\<Prod>w \<in> subA - {v}. ff w x)"
       unfolding pff_def  by (metis prod.remove)
     also have "... \<le> ff v x * 1"
-      apply (rule Rings.ordered_semiring_class.mult_left_mono)
-      apply (rule prod_mono [where g = "\<lambda>x. 1", simplified])
-      using ff [THEN conjunct2, THEN conjunct1] v subA x
-      apply auto
-      apply (meson atLeastAtMost_iff contra_subsetD imageI)
-      apply (meson atLeastAtMost_iff contra_subsetD image_eqI)
-      using atLeastAtMost_iff by blast
+    proof -
+      have "\<And>i. i \<in> subA - {v} \<Longrightarrow> 0 \<le> ff i x \<and> ff i x \<le> 1"
+        by (metis Diff_subset atLeastAtMost_iff ff image_subset_iff subA(1) subsetD x(2))
+      moreover have "0 \<le> ff v x"
+        using ff subA(1) v x(2) by fastforce
+      ultimately show ?thesis
+        by (metis mult_left_mono prod_mono [where g = "\<lambda>x. 1", simplified])
+    qed
     also have "... < e / card subA"
-      using ff [THEN conjunct2, THEN conjunct2, THEN conjunct1] v subA x
-      by auto
+      using ff subA(1) v x by auto
     also have "... \<le> e"
       using cardp e by (simp add: field_split_simps)
     finally have "pff x < e" .
@@ -528,18 +527,18 @@ proof -
     also have "... = (\<Prod>w \<in> subA. 1 - e / card subA)"
       by (simp add: subA(2))
     also have "... < pff x"
+    proof -
+      have "\<And>i. i \<in> subA \<Longrightarrow> e / real (card subA) \<le> 1 \<and> 1 - e / real (card subA) < ff i x"
+        using e \<open>B \<subseteq> S\<close> ff subA(1) x by (force simp: field_split_simps)
+      then show ?thesis
       apply (simp add: pff_def)
       apply (rule prod_mono_strict [where f = "\<lambda>x. 1 - e / card subA", simplified])
-      apply (simp_all add: subA(2))
-      apply (intro ballI conjI)
-      using e apply (force simp: field_split_simps)
-      using ff [THEN conjunct2, THEN conjunct2, THEN conjunct2] subA B x
-      apply blast
-      done
+          apply (simp_all add: subA(2))
+        done
+    qed
     finally have "1 - e < pff x" .
   }
-  ultimately
-  show ?thesis by blast
+  ultimately show ?thesis by blast
 qed
 
 lemma (in function_ring_on) two:
@@ -550,11 +549,8 @@ lemma (in function_ring_on) two:
     shows "\<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
 proof (cases "A \<noteq> {} \<and> B \<noteq> {}")
   case True then show ?thesis
-    apply (simp flip: ex_in_conv)
     using assms
-    apply safe
-    apply (force simp add: intro!: two_special)
-    done
+    by (force simp flip: ex_in_conv intro!: two_special)
 next
   case False with e show ?thesis
     apply simp
@@ -1387,24 +1383,26 @@ proof -
       also have "... = (\<Sum>i\<in>B. (norm (((f x - g x) \<bullet> i) *\<^sub>R i))\<^sup>2)"
         by (simp add: algebra_simps)
       also have "... \<le> (\<Sum>i\<in>B. (norm (f x - g x))\<^sup>2)"
-        apply (rule sum_mono)
-        apply (simp add: B1)
-        apply (rule order_trans [OF Cauchy_Schwarz_ineq])
-        by (simp add: B1 dot_square_norm)
+      proof -
+        have "\<And>i. i \<in> B \<Longrightarrow> ((f x - g x) \<bullet> i)\<^sup>2 \<le> (norm (f x - g x))\<^sup>2"
+          by (metis B1 Cauchy_Schwarz_ineq inner_commute mult.left_neutral norm_eq_1 power2_norm_eq_inner)
+        then show ?thesis
+          by (intro sum_mono) (simp add: sum_mono B1)
+      qed
       also have "... = n * norm (f x - g x)^2"
         by (simp add: \<open>n = card B\<close>)
       also have "... \<le> n * (e / (n+2))^2"
-        apply (rule mult_left_mono)
-         apply (meson dual_order.order_iff_strict g norm_ge_zero power_mono that, simp)
-        done
+      proof (rule mult_left_mono)
+        show "(norm (f x - g x))\<^sup>2 \<le> (e / real (n + 2))\<^sup>2"
+          by (meson dual_order.order_iff_strict g norm_ge_zero power_mono that)
+      qed auto
       also have "... \<le> e^2 / (n+2)"
         using \<open>0 < e\<close> by (simp add: divide_simps power2_eq_square)
       also have "... < e^2"
         using \<open>0 < e\<close> by (simp add: divide_simps)
       finally have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2 < e^2" .
       then have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i)) < e"
-        apply (rule power2_less_imp_less)
-        using  \<open>0 < e\<close> by auto
+        by (simp add: \<open>0 < e\<close> norm_lt_square power2_norm_eq_inner)
       then show ?thesis
         using fx that by (simp add: sum_subtractf)
     qed
