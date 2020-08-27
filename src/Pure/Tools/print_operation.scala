@@ -9,9 +9,9 @@ package isabelle
 
 object Print_Operation
 {
-  def print_operations(session: Session): List[(String, String)] =
-    session.get_protocol_handler(classOf[Handler].getName) match {
-      case Some(handler: Handler) => handler.get
+  def get(session: Session): List[(String, String)] =
+    session.get_protocol_handler(classOf[Handler]) match {
+      case Some(h) => h.get
       case _ => Nil
     }
 
@@ -22,10 +22,10 @@ object Print_Operation
   {
     private val print_operations = Synchronized[List[(String, String)]](Nil)
 
+    def get: List[(String, String)] = print_operations.value
+
     override def init(session: Session): Unit =
       session.protocol_command(Markup.PRINT_OPERATIONS)
-
-    def get: List[(String, String)] = print_operations.value
 
     private def put(msg: Prover.Protocol_Output): Boolean =
     {

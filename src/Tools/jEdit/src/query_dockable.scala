@@ -215,10 +215,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
         }
 
       _items =
-        Print_Operation.print_operations(PIDE.session).map(
-          {
-            case (name, description) => new Item(name, description, was_selected(name))
-          })
+        for ((name, description) <- Print_Operation.get(PIDE.session))
+        yield new Item(name, description, was_selected(name))
       _items
     }
 
