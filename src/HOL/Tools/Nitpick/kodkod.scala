@@ -133,10 +133,18 @@ object Kodkod
     context.result()
   }
 
+
+  /** protocol handler **/
+
   def warmup(): String =
     execute(
       "solver: \"MiniSat\"\n" +
       File.read(Path.explode("$KODKODI/examples/weber3.kki"))).check
+
+  class Handler extends Session.Protocol_Handler
+  {
+    override def init(session: Session): Unit = warmup()
+  }
 
 
 

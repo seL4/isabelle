@@ -1,3 +1,4 @@
 # -*- shell-script -*- :mode=shellscript:
 
+isabelle_scala_service 'isabelle.nitpick.Kodkod$Handler'
 isabelle_scala_service 'isabelle.nitpick.Scala_Functions'
