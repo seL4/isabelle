@@ -118,6 +118,7 @@ object Session
     def init(session: Session): Unit = {}
     def exit(): Unit = {}
     def functions: List[(String, Protocol_Function)] = Nil
+    def prover_options(options: Options): Options = options
   }
 }
 
@@ -353,13 +354,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   }
 
 
-  /* file formats */
+  /* file formats and protocol handlers */
 
-  lazy val file_formats: File_Format.Session =
+  private lazy val file_formats: File_Format.Session =
     File_Format.registry.start_session(session)
-
-
-  /* protocol handlers */
 
   private val protocol_handlers = Protocol_Handlers.init(session)
 
@@ -371,6 +369,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
+
+  def prover_options(options: Options): Options =
+    protocol_handlers.prover_options(file_formats.prover_options(options))
 
 
   /* debugger */
@@ -543,11 +544,11 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               change_command(_.accumulate(state_id, output.message, xml_cache))
 
             case _ if output.is_init =>
-              prover.get.options(file_formats.prover_options(session_options))
-              prover.get.init_session(resources)
-
               Isabelle_System.make_services(classOf[Session.Protocol_Handler])
                 .foreach(init_protocol_handler)
+
+              prover.get.options(prover_options(session_options))
+              prover.get.init_session(resources)
 
               phase = Session.Ready
               debugger.ready()
@@ -625,7 +626,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
           case Update_Options(options) =>
             if (prover.defined && is_ready) {
-              prover.get.options(file_formats.prover_options(options))
+              prover.get.options(prover_options(options))
               handle_raw_edits()
             }
             global_options.post(Session.Global_Options(options))
