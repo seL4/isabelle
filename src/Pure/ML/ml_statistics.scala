@@ -198,11 +198,12 @@ object ML_Statistics
 
   val empty: ML_Statistics = apply(Nil)
 
-  def apply(ml_statistics: List[Properties.T], heading: String = "",
+  def apply(ml_statistics0: List[Properties.T], heading: String = "",
     domain: String => Boolean = (key: String) => true): ML_Statistics =
   {
-    require(ml_statistics.forall(props => Now.unapply(props).isDefined))
+    require(ml_statistics0.forall(props => Now.unapply(props).isDefined))
 
+    val ml_statistics = ml_statistics0.sortBy(now)
     val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)
     val duration = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last) - time_start
 
@@ -219,7 +220,6 @@ object ML_Statistics
       val result = new mutable.ListBuffer[ML_Statistics.Entry]
       for (props <- ml_statistics) {
         val time = now(props) - time_start
-        require(time >= 0.0)
 
         // rising edges -- relative speed
         val speeds =
