@@ -33,8 +33,7 @@ lemma is_pole_inverse_holomorphic:
 proof -
   define g where "g \<equiv> \<lambda>x. if x=z then 0 else inverse (f x)"
   have "isCont g z" unfolding isCont_def  using is_pole_tendsto[OF pole]
-    apply (subst Lim_cong_at[where b=z and y=0 and g="inverse \<circ> f"])
-    by (simp_all add:g_def)
+    by (simp add: g_def cong: LIM_cong)
   moreover have "continuous_on (s-{z}) f" using f_holo holomorphic_on_imp_continuous_on by auto
   hence "continuous_on (s-{z}) (inverse o f)" unfolding comp_def
     by (auto elim!:continuous_on_inverse simp add:non_z)
