@@ -116,9 +116,6 @@ subsubsection \<open>Bounded Sequences\<close>
 lemma BseqI': "(\<And>n. norm (X n) \<le> K) \<Longrightarrow> Bseq X"
   by (intro BfunI) (auto simp: eventually_sequentially)
 
-lemma BseqI2': "\<forall>n\<ge>N. norm (X n) \<le> K \<Longrightarrow> Bseq X"
-  by (intro BfunI) (auto simp: eventually_sequentially)
-
 lemma Bseq_def: "Bseq X \<longleftrightarrow> (\<exists>K>0. \<forall>n. norm (X n) \<le> K)"
   unfolding Bfun_def eventually_sequentially
 proof safe
@@ -343,7 +340,7 @@ lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. B \<le> X i \<Long
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Polynomal function extremal theorem, from HOL Light\<close>
 
-lemma polyfun_extremal_lemma: (*COMPLEX_POLYFUN_EXTREMAL_LEMMA in HOL Light*)
+lemma polyfun_extremal_lemma: 
     fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
   assumes "0 < e"
     shows "\<exists>M. \<forall>z. M \<le> norm(z) \<longrightarrow> norm (\<Sum>i\<le>n. c(i) * z^i) \<le> e * norm(z) ^ (Suc n)"
@@ -386,14 +383,13 @@ using kn
 proof (induction n)
   case 0
   then show ?case
-    using k  by simp
+    using k by simp
 next
   case (Suc m)
-  let ?even = ?case
-  show ?even
+  show ?case
   proof (cases "c (Suc m) = 0")
     case True
-    then show ?even using Suc k
+    then show ?thesis using Suc k
       by auto (metis antisym_conv less_eq_Suc_le not_le)
   next
     case False
@@ -424,7 +420,7 @@ next
         apply (simp add: field_simps norm_mult norm_power)
         done
     qed
-    then show ?even
+    then show ?thesis
       by (simp add: eventually_at_infinity)
   qed
 qed
@@ -1526,10 +1522,12 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
 
 lemma at_bot_mirror :
   shows "(at_bot::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_top"
-  apply (rule filtermap_fun_inverse[of uminus, symmetric])
-  subgoal unfolding filterlim_at_top filterlim_at_bot eventually_at_bot_linorder using le_minus_iff by auto
-  subgoal unfolding filterlim_at_bot eventually_at_top_linorder using minus_le_iff by auto
-  by auto
+proof (rule filtermap_fun_inverse[symmetric])
+  show "filterlim uminus at_top (at_bot::'a filter)"
+    using eventually_at_bot_linorder filterlim_at_top le_minus_iff by force
+  show "filterlim uminus (at_bot::'a filter) at_top"
+    by (simp add: filterlim_at_bot minus_le_iff)
+qed auto
 
 lemma at_top_mirror :
   shows "(at_top::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_bot"
@@ -1992,9 +1990,8 @@ lemma filterlim_realpow_sequentially_gt1:
 proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
   fix y :: real
   assume "0 < y"
-  have "0 < norm x - 1" by simp
-  then obtain N :: nat where "y < real N * (norm x - 1)"
-    by (blast dest: reals_Archimedean3)
+  obtain N :: nat where "y < real N * (norm x - 1)"
+    by (meson diff_gt_0_iff_gt reals_Archimedean3 x)
   also have "\<dots> \<le> real N * (norm x - 1) + 1"
     by simp
   also have "\<dots> \<le> (norm x - 1 + 1) ^ N"
@@ -2181,21 +2178,12 @@ qed
 
 text \<open>A congruence rule allowing us to transform limits assuming not at point.\<close>
 
-(* FIXME: Only one congruence rule for tendsto can be used at a time! *)
-
-lemma Lim_cong_within(*[cong add]*):
+lemma Lim_cong_within:
   assumes "a = b"
     and "x = y"
     and "S = T"
     and "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
   shows "(f \<longlongrightarrow> x) (at a within S) \<longleftrightarrow> (g \<longlongrightarrow> y) (at b within T)"
-  unfolding tendsto_def eventually_at_topological
-  using assms by simp
-
-lemma Lim_cong_at(*[cong add]*):
-  assumes "a = b" "x = y"
-    and "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
-  shows "((\<lambda>x. f x) \<longlongrightarrow> x) (at a) \<longleftrightarrow> ((g \<longlongrightarrow> y) (at a))"
   unfolding tendsto_def eventually_at_topological
   using assms by simp
 
@@ -2962,19 +2950,6 @@ lemma isCont_has_Ub:
   shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
     \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<forall>N. N < M \<longrightarrow> (\<exists>x. a \<le> x \<and> x \<le> b \<and> N < f x))"
   using isCont_eq_Ub[of a b f] by auto
-
-(*HOL style here: object-level formulations*)
-lemma IVT_objl:
-  "(f a \<le> y \<and> y \<le> f b \<and> a \<le> b \<and> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x)) \<longrightarrow>
-    (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y)"
-  for a y :: real
-  by (blast intro: IVT)
-
-lemma IVT2_objl:
-  "(f b \<le> y \<and> y \<le> f a \<and> a \<le> b \<and> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x)) \<longrightarrow>
-    (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y)"
-  for b y :: real
-  by (blast intro: IVT2)
 
 lemma isCont_Lb_Ub:
   fixes f :: "real \<Rightarrow> real"

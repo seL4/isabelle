@@ -200,7 +200,7 @@ lemma suminf_zero[simp]: "suminf (\<lambda>n. 0::'a::{t2_space, comm_monoid_add}
 
 subsection \<open>Infinite summability on ordered, topological monoids\<close>
 
-lemma sums_le: "\<forall>n. f n \<le> g n \<Longrightarrow> f sums s \<Longrightarrow> g sums t \<Longrightarrow> s \<le> t"
+lemma sums_le: "(\<And>n. f n \<le> g n) \<Longrightarrow> f sums s \<Longrightarrow> g sums t \<Longrightarrow> s \<le> t"
   for f g :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add,linorder_topology}"
   by (rule LIMSEQ_le) (auto intro: sum_mono simp: sums_def)
 
@@ -208,24 +208,26 @@ context
   fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add,linorder_topology}"
 begin
 
-lemma suminf_le: "\<forall>n. f n \<le> g n \<Longrightarrow> summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f \<le> suminf g"
-  by (auto dest: sums_summable intro: sums_le)
+lemma suminf_le: "(\<And>n. f n \<le> g n) \<Longrightarrow> summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f \<le> suminf g"
+  using sums_le by blast
 
 lemma sum_le_suminf:
-  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> \<forall>m\<in>- I. 0 \<le> f m \<Longrightarrow> sum f I \<le> suminf f"
+  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> (\<And>n. n \<in>- I \<Longrightarrow> 0 \<le> f n) \<Longrightarrow> sum f I \<le> suminf f"
   by (rule sums_le[OF _ sums_If_finite_set summable_sums]) auto
 
-lemma suminf_nonneg: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 \<le> suminf f"
+lemma suminf_nonneg: "summable f \<Longrightarrow> (\<And>n. 0 \<le> f n) \<Longrightarrow> 0 \<le> suminf f"
   using sum_le_suminf by force
 
 lemma suminf_le_const: "summable f \<Longrightarrow> (\<And>n. sum f {..<n} \<le> x) \<Longrightarrow> suminf f \<le> x"
   by (metis LIMSEQ_le_const2 summable_LIMSEQ)
 
-lemma suminf_eq_zero_iff: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> suminf f = 0 \<longleftrightarrow> (\<forall>n. f n = 0)"
+lemma suminf_eq_zero_iff: 
+  assumes "summable f" and pos: "\<And>n. 0 \<le> f n"
+  shows "suminf f = 0 \<longleftrightarrow> (\<forall>n. f n = 0)"
 proof
-  assume "summable f" "suminf f = 0" and pos: "\<forall>n. 0 \<le> f n"
+  assume "suminf f = 0" 
   then have f: "(\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> 0"
-    using summable_LIMSEQ[of f] by simp
+    using summable_LIMSEQ[of f] assms by simp
   then have "\<And>i. (\<Sum>n\<in>{i}. f n) \<le> 0"
   proof (rule LIMSEQ_le_const)
     show "\<exists>N. \<forall>n\<ge>N. (\<Sum>n\<in>{i}. f n) \<le> sum f {..<n}" for i
@@ -235,11 +237,11 @@ proof
     by (auto intro!: antisym)
 qed (metis suminf_zero fun_eq_iff)
 
-lemma suminf_pos_iff: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
+lemma suminf_pos_iff: "summable f \<Longrightarrow> (\<And>n. 0 \<le> f n) \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
   using sum_le_suminf[of "{}"] suminf_eq_zero_iff by (simp add: less_le)
 
 lemma suminf_pos2:
-  assumes "summable f" "\<forall>n. 0 \<le> f n" "0 < f i"
+  assumes "summable f" "\<And>n. 0 \<le> f n" "0 < f i"
   shows "0 < suminf f"
 proof -
   have "0 < (\<Sum>n<Suc i. f n)"
@@ -249,7 +251,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrightarrow> 0 < suminf f"
+lemma suminf_pos: "summable f \<Longrightarrow> (\<And>n. 0 < f n) \<Longrightarrow> 0 < suminf f"
   by (intro suminf_pos2[where i=0]) (auto intro: less_imp_le)
 
 end
@@ -259,13 +261,13 @@ context
 begin
 
 lemma sum_less_suminf2:
-  "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> sum f {..<n} < suminf f"
+  "summable f \<Longrightarrow> (\<And>m. m\<ge>n \<Longrightarrow> 0 \<le> f m) \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> sum f {..<n} < suminf f"
   using sum_le_suminf[of f "{..< Suc i}"]
     and add_strict_increasing[of "f i" "sum f {..<n}" "sum f {..<i}"]
     and sum_mono2[of "{..<i}" "{..<n}" f]
   by (auto simp: less_imp_le ac_simps)
 
-lemma sum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f m \<Longrightarrow> sum f {..<n} < suminf f"
+lemma sum_less_suminf: "summable f \<Longrightarrow> (\<And>m. m\<ge>n \<Longrightarrow> 0 < f m) \<Longrightarrow> sum f {..<n} < suminf f"
   using sum_less_suminf2[of n n] by (simp add: less_imp_le)
 
 end
@@ -460,11 +462,15 @@ proof -
     by (auto simp: norm_minus_commute suminf_minus_initial_segment[OF \<open>summable f\<close>])
 qed
 
-lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f \<longlonglongrightarrow> 0"
-  apply (drule summable_iff_convergent [THEN iffD1])
-  apply (drule convergent_Cauchy)
-  apply (simp only: Cauchy_iff LIMSEQ_iff)
-  by (metis add.commute add_diff_cancel_right' diff_zero le_SucI sum.lessThan_Suc)
+lemma summable_LIMSEQ_zero: 
+  assumes "summable f" shows "f \<longlonglongrightarrow> 0"
+proof -
+  have "Cauchy (\<lambda>n. sum f {..<n})"
+    using LIMSEQ_imp_Cauchy assms summable_LIMSEQ by blast
+  then show ?thesis
+    unfolding  Cauchy_iff LIMSEQ_iff
+    by (metis add.commute add_diff_cancel_right' diff_zero le_SucI sum.lessThan_Suc)
+qed
 
 lemma summable_imp_convergent: "summable f \<Longrightarrow> convergent f"
   by (force dest!: summable_LIMSEQ_zero simp: convergent_def)
@@ -1286,7 +1292,6 @@ proof (intro Cauchy_convergent CauchyI', goal_cases)
   from eventually_conj[OF this bound] obtain x0 where x0:
     "\<And>x. x \<ge> x0 \<Longrightarrow> \<bar>g x\<bar> < \<epsilon>" "\<And>a b. x0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> norm (sum f {a<..b}) \<le> g a" 
     unfolding eventually_at_top_linorder by auto
-
   show ?case
   proof (intro exI[of _ x0] allI impI)
     fix m n assume mn: "x0 \<le> m" "m < n"

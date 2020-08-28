@@ -2613,7 +2613,7 @@ lemma poly_differentiable[simp]: "(\<lambda>x. poly p x) differentiable (at x)"
 
 lemma poly_IVT_pos: "a < b \<Longrightarrow> poly p a < 0 \<Longrightarrow> 0 < poly p b \<Longrightarrow> \<exists>x. a < x \<and> x < b \<and> poly p x = 0"
   for a b :: real
-  using IVT_objl [of "poly p" a 0 b] by (auto simp add: order_le_less)
+  using IVT [of "poly p" a 0 b] by (auto simp add: order_le_less)
 
 lemma poly_IVT_neg: "a < b \<Longrightarrow> 0 < poly p a \<Longrightarrow> poly p b < 0 \<Longrightarrow> \<exists>x. a < x \<and> x < b \<and> poly p x = 0"
   for a b :: real

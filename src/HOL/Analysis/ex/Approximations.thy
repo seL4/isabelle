@@ -99,9 +99,8 @@ proof (unfold atLeastAtMost_iff, safe)
   from assms show "(exp x - approx) \<ge> 0"
     by (intro sums_le[OF _ sums_zero sums]) auto
 
-  have "\<forall>k. x^n * (x^k / fact (n+k)) \<le> (x^n / fact n) * (x / 2)^k"
-  proof
-    fix k :: nat
+  have "x^n * (x^k / fact (n+k)) \<le> (x^n / fact n) * (x / 2)^k" for k::nat
+  proof -
     have "x^n * (x^k / fact (n + k)) = x^(n+k) / fact (n + k)" by (simp add: power_add)
     also from assms have "\<dots> \<le> x^(n+k) / (2^k * fact n)"
       by (intro divide_left_mono two_power_fact_le_fact zero_le_power) simp_all

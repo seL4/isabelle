@@ -4008,11 +4008,15 @@ lemma inverse_infty_ereal_tendsto_0: "inverse \<midarrow>\<infinity>\<rightarrow
 proof -
   have **: "((\<lambda>x. ereal (inverse x)) \<longlongrightarrow> ereal 0) at_infinity"
     by (intro tendsto_intros tendsto_inverse_0)
-
-  show ?thesis
-    by (simp add: at_infty_ereal_eq_at_top tendsto_compose_filtermap[symmetric] comp_def)
-       (auto simp: eventually_at_top_linorder exI[of _ 1] zero_ereal_def at_top_le_at_infinity
-             intro!: filterlim_mono_eventually[OF **])
+  then have "((\<lambda>x. if x = 0 then \<infinity> else ereal (inverse x)) \<longlongrightarrow> 0) at_top"
+  proof (rule filterlim_mono_eventually)
+    show "nhds (ereal 0) \<le> nhds 0"
+      by (simp add: zero_ereal_def)
+    show "(at_top::real filter) \<le> at_infinity"
+      by (simp add: at_top_le_at_infinity)
+  qed auto
+  then show ?thesis
+    unfolding at_infty_ereal_eq_at_top tendsto_compose_filtermap[symmetric] comp_def by auto
 qed
 
 lemma inverse_ereal_tendsto_pos:

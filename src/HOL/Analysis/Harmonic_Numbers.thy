@@ -445,8 +445,8 @@ proof -
   note sums = ln_series_quadratic[OF x(1)]
   define c where "c = inverse (2*y^(2*n+1))"
   let ?d = "c * (ln x - (\<Sum>k<n. ?f k))"
-  have "\<forall>k. y\<^sup>2^k / of_nat (2*(k+n)+1) \<le> y\<^sup>2 ^ k / of_nat (2*n+1)"
-    by (intro allI divide_left_mono mult_right_mono mult_pos_pos zero_le_power[of "y^2"]) simp_all
+  have "\<And>k. y\<^sup>2^k / of_nat (2*(k+n)+1) \<le> y\<^sup>2 ^ k / of_nat (2*n+1)"
+    by (intro divide_left_mono mult_right_mono mult_pos_pos zero_le_power[of "y^2"]) simp_all
   moreover {
     have "(\<lambda>k. ?f (k + n)) sums (ln x - (\<Sum>k<n. ?f k))"
       using sums_split_initial_segment[OF sums] by (simp add: y_def)

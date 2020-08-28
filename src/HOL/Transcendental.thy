@@ -743,7 +743,7 @@ proof (rule lemma_termdiff4 [OF k])
   then have "norm (suminf (g h)) \<le> (\<Sum>n. norm (g h n))"
     by (rule summable_norm)
   also from 1 3 2 have "(\<Sum>n. norm (g h n)) \<le> (\<Sum>n. f n * norm h)"
-    by (rule suminf_le)
+    by (simp add: suminf_le)
   also from f have "(\<Sum>n. f n * norm h) = suminf f * norm h"
     by (rule suminf_mult2 [symmetric])
   finally show "norm (suminf (g h)) \<le> suminf f * norm h" .
@@ -1003,7 +1003,7 @@ proof -
   have *: "((\<lambda>x. if x = 0 then a 0 else f x) \<longlongrightarrow> a 0) (at 0)"
     by (rule powser_limit_0 [OF s]) (auto simp: powser_sums_zero sm)
   show ?thesis
-    by (simp add: * LIM_equal [where g = "(\<lambda>x. if x = 0 then a 0 else f x)"])
+    using "*" by (auto cong: Lim_cong_within)
 qed
 
 
@@ -1574,10 +1574,7 @@ proof
   have "1 + x \<le> (\<Sum>n<2. inverse (fact n) * x^n)"
     by (auto simp: numeral_2_eq_2)
   also have "\<dots> \<le> (\<Sum>n. inverse (fact n) * x^n)"
-  proof (rule sum_le_suminf [OF summable_exp])
-    show "\<forall>m\<in>- {..<2}. 0 \<le> inverse (fact m) * x ^ m"
-      using \<open>0 < x\<close> by (auto  simp add: zero_le_mult_iff)
-  qed auto
+    using \<open>0 < x\<close> by (auto  simp add: zero_le_mult_iff intro: sum_le_suminf [OF summable_exp])
   finally show "1 + x \<le> exp x"
     by (simp add: exp_def)
 qed auto
@@ -3643,9 +3640,7 @@ qed
   have sums: "?f sums sin x"
     by (rule sin_paired [THEN sums_group]) simp
   show "0 < sin x"
-    unfolding sums_unique [OF sums]
-    using sums_summable [OF sums] pos
-    by (rule suminf_pos)
+    unfolding sums_unique [OF sums] using sums_summable [OF sums] pos by (simp add: suminf_pos)
 qed
 
 lemma cos_double_less_one: "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
