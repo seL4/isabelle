@@ -822,14 +822,10 @@ lemma interior_unique:
 
 lemma interior_singleton [simp]: "interior {a} = {}"
   for a :: "'a::perfect_space"
-  apply (rule interior_unique, simp_all)
-  using not_open_singleton subset_singletonD
-  apply fastforce
-  done
+  by (meson interior_eq interior_subset not_open_singleton subset_singletonD)
 
 lemma interior_Int [simp]: "interior (S \<inter> T) = interior S \<inter> interior T"
-  by (intro equalityI Int_mono Int_greatest interior_mono Int_lower1
-    Int_lower2 interior_maximal interior_subset open_Int open_interior)
+  by (meson Int_mono Int_subset_iff antisym_conv interior_maximal interior_subset open_Int open_interior)
 
 lemma eventually_nhds_in_nhd: "x \<in> interior s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
   using interior_subset[of s] by (subst eventually_nhds) blast
@@ -2586,10 +2582,7 @@ proof -
   then have "g ` t = s" by auto
   ultimately show ?thesis
     unfolding homeomorphism_def homeomorphic_def
-    apply (rule_tac x=g in exI)
-    using g and assms(3) and continuous_on_inv[OF assms(2,1), of g, unfolded assms(3)] and assms(2)
-    apply auto
-    done
+    using assms continuous_on_inv by fastforce
 qed
 
 lemma homeomorphic_compact:
