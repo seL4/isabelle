@@ -15,15 +15,7 @@ begin
 
 text \<open>Combination of Elementary and Abstract Topology\<close>
 
-(* FIXME: move elsewhere *)
-
-lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI)
-  apply auto
-  done
-
-lemma approachable_lt_le2:  \<comment> \<open>like the above, but pushes aside an extra formula\<close>
+lemma approachable_lt_le2: 
     "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
   apply auto
   apply (rule_tac x="d/2" in exI, auto)
@@ -251,10 +243,8 @@ next
       from \<open>finite D\<close> show "finite ?D"
         by (rule finite_imageI)
       from \<open>S \<subseteq> \<Union>D\<close> show "S \<subseteq> \<Union>?D"
-        apply (rule subset_trans, clarsimp)
-        apply (frule subsetD [OF \<open>D \<subseteq> ?C\<close>, THEN f_inv_into_f])
-        apply (erule rev_bexI, fast)
-        done
+        apply (rule subset_trans)
+        by (metis Int_Union Int_lower2 \<open>D \<subseteq> (\<inter>) S ` C\<close> image_inv_into_cancel)
     qed
     then show "\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D" ..
   qed
@@ -587,9 +577,7 @@ lemma quotient_map_imp_continuous_open:
 proof -
   have [simp]: "S \<inter> f -` f ` S = S" by auto
   show ?thesis
-    using ope [OF T]
-    apply (simp add: continuous_on_open)
-    by (meson ope openin_imp_subset openin_trans)
+    by (meson T continuous_on_open_gen ope openin_imp_subset)
 qed
 
 lemma quotient_map_imp_continuous_closed:
@@ -601,9 +589,7 @@ lemma quotient_map_imp_continuous_closed:
 proof -
   have [simp]: "S \<inter> f -` f ` S = S" by auto
   show ?thesis
-    using ope [OF T]
-    apply (simp add: continuous_on_closed)
-    by (metis (no_types, lifting) ope closedin_imp_subset closedin_trans)
+    by (meson T closedin_imp_subset continuous_on_closed_gen ope)
 qed
 
 lemma open_map_imp_quotient_map:
@@ -1611,6 +1597,5 @@ lemma connected_component_of_overlap:
     x \<in> topspace X \<and> y \<in> topspace X \<and>
     connected_component_of_set X x = connected_component_of_set X y"
   by (meson connected_component_of_nonoverlap)
-
 
 end
