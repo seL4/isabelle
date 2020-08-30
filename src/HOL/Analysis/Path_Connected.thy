@@ -1629,8 +1629,7 @@ proof
   then have "y \<in> S"
     by (simp add: path_component_mem(2))
   then obtain e where e: "e > 0" "ball y e \<subseteq> S"
-    using assms[unfolded open_contains_ball]
-    by auto
+    using assms openE by blast
 have "\<And>u. dist y u < e \<Longrightarrow> path_component S x u"
       by (metis (full_types) as centre_in_ball convex_ball convex_imp_path_connected e mem_Collect_eq mem_ball path_component_eq path_component_of_subset path_connected_component)
   then show "\<exists>e > 0. ball y e \<subseteq> path_component_set S x"
@@ -2863,30 +2862,33 @@ proposition connected_annulus:
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relations between components and path components\<close>
 
 lemma open_connected_component:
-  fixes s :: "'a::real_normed_vector set"
-  shows "open s \<Longrightarrow> open (connected_component_set s x)"
-    apply (simp add: open_contains_ball, clarify)
-    apply (rename_tac y)
-    apply (drule_tac x=y in bspec)
-     apply (simp add: connected_component_in, clarify)
-    apply (rule_tac x=e in exI)
-    by (metis mem_Collect_eq connected_component_eq connected_component_maximal centre_in_ball connected_ball)
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open (connected_component_set S x)"
+proof (clarsimp simp: open_contains_ball)
+  fix y
+  assume xy: "connected_component S x y"
+  then obtain e where "e>0" "ball y e \<subseteq> S"
+    using assms connected_component_in openE by blast
+  then show "\<exists>e>0. ball y e  \<subseteq> connected_component_set S x"
+    by (metis xy centre_in_ball connected_ball connected_component_eq_eq connected_component_in connected_component_maximal)
+qed
 
 corollary open_components:
-    fixes s :: "'a::real_normed_vector set"
-    shows "\<lbrakk>open u; s \<in> components u\<rbrakk> \<Longrightarrow> open s"
+    fixes S :: "'a::real_normed_vector set"
+    shows "\<lbrakk>open u; S \<in> components u\<rbrakk> \<Longrightarrow> open S"
   by (simp add: components_iff) (metis open_connected_component)
 
 lemma in_closure_connected_component:
-  fixes s :: "'a::real_normed_vector set"
-  assumes x: "x \<in> s" and s: "open s"
-  shows "x \<in> closure (connected_component_set s y) \<longleftrightarrow>  x \<in> connected_component_set s y"
+  fixes S :: "'a::real_normed_vector set"
+  assumes x: "x \<in> S" and S: "open S"
+  shows "x \<in> closure (connected_component_set S y) \<longleftrightarrow>  x \<in> connected_component_set S y"
 proof -
-  { assume "x \<in> closure (connected_component_set s y)"
-    moreover have "x \<in> connected_component_set s x"
+  { assume "x \<in> closure (connected_component_set S y)"
+    moreover have "x \<in> connected_component_set S x"
       using x by simp
-    ultimately have "x \<in> connected_component_set s y"
-      using s by (meson Compl_disjoint closure_iff_nhds_not_empty connected_component_disjoint disjoint_eq_subset_Compl open_connected_component)
+    ultimately have "x \<in> connected_component_set S y"
+      using S by (meson Compl_disjoint closure_iff_nhds_not_empty connected_component_disjoint disjoint_eq_subset_Compl open_connected_component)
   }
   then show ?thesis
     by (auto simp: closure_def)
@@ -2957,76 +2959,72 @@ proposition components_open_unique:
 proof -
   have "open S" using assms by blast
   show ?thesis
-    apply (rule connected_disjoint_Union_open_unique)
-    apply (simp add: components_eq disjnt_def pairwise_def)
-    using \<open>open S\<close>
-    apply (simp_all add: assms open_components in_components_connected in_components_nonempty)
-    done
+  proof (rule connected_disjoint_Union_open_unique)
+    show "disjoint (components S)"
+      by (simp add: components_eq disjnt_def pairwise_def)
+  qed (use \<open>open S\<close> in \<open>simp_all add: assms open_components in_components_connected in_components_nonempty\<close>)
 qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Existence of unbounded components\<close>
 
 lemma cobounded_unbounded_component:
-    fixes s :: "'a :: euclidean_space set"
-    assumes "bounded (-s)"
-      shows "\<exists>x. x \<in> s \<and> \<not> bounded (connected_component_set s x)"
+    fixes S :: "'a :: euclidean_space set"
+    assumes "bounded (-S)"
+      shows "\<exists>x. x \<in> S \<and> \<not> bounded (connected_component_set S x)"
 proof -
   obtain i::'a where i: "i \<in> Basis"
     using nonempty_Basis by blast
-  obtain B where B: "B>0" "-s \<subseteq> ball 0 B"
+  obtain B where B: "B>0" "-S \<subseteq> ball 0 B"
     using bounded_subset_ballD [OF assms, of 0] by auto
-  then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> s"
+  then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> S"
     by (force simp: ball_def dist_norm)
   have unbounded_inner: "\<not> bounded {x. inner i x \<ge> B}"
-    apply (auto simp: bounded_def dist_norm)
+  proof (clarsimp simp: bounded_def dist_norm)
+    fix e x
+    show "\<exists>y. B \<le> i \<bullet> y \<and> \<not> norm (x - y) \<le> e"
     apply (rule_tac x="x + (max B e + 1 + \<bar>i \<bullet> x\<bar>) *\<^sub>R i" in exI)
-    apply simp
-    using i
-    apply (auto simp: algebra_simps)
-    done
-  have **: "{x. B \<le> i \<bullet> x} \<subseteq> connected_component_set s (B *\<^sub>R i)"
+      using i by (auto simp: inner_right_distrib)
+  qed
+  have \<section>: "\<And>x. B \<le> i \<bullet> x \<Longrightarrow> x \<in> S"
+    using * Basis_le_norm [OF i] by (metis abs_ge_self inner_commute order_trans)
+  have "{x. B \<le> i \<bullet> x} \<subseteq> connected_component_set S (B *\<^sub>R i)"
     apply (rule connected_component_maximal)
-    apply (auto simp: i intro: convex_connected convex_halfspace_ge [of B])
-    apply (rule *)
-    apply (rule order_trans [OF _ Basis_le_norm [OF i]])
-    by (simp add: inner_commute)
-  have "B *\<^sub>R i \<in> s"
-    by (rule *) (simp add: norm_Basis [OF i])
-  then show ?thesis
-    apply (rule_tac x="B *\<^sub>R i" in exI, clarify)
-    apply (frule bounded_subset [of _ "{x. B \<le> i \<bullet> x}", OF _ **])
-    using unbounded_inner apply blast
+      apply (auto simp: i intro: convex_connected convex_halfspace_ge [of B] \<section>)
     done
+  then have "\<not> bounded (connected_component_set S (B *\<^sub>R i))"
+    using bounded_subset unbounded_inner by blast
+  moreover have "B *\<^sub>R i \<in> S"
+    by (rule *) (simp add: norm_Basis [OF i])
+  ultimately show ?thesis
+    by blast
 qed
 
 lemma cobounded_unique_unbounded_component:
-    fixes s :: "'a :: euclidean_space set"
-    assumes bs: "bounded (-s)" and "2 \<le> DIM('a)"
-        and bo: "\<not> bounded(connected_component_set s x)"
-                "\<not> bounded(connected_component_set s y)"
-      shows "connected_component_set s x = connected_component_set s y"
+    fixes S :: "'a :: euclidean_space set"
+    assumes bs: "bounded (-S)" and "2 \<le> DIM('a)"
+        and bo: "\<not> bounded(connected_component_set S x)"
+                "\<not> bounded(connected_component_set S y)"
+      shows "connected_component_set S x = connected_component_set S y"
 proof -
   obtain i::'a where i: "i \<in> Basis"
     using nonempty_Basis by blast
-  obtain B where B: "B>0" "-s \<subseteq> ball 0 B"
+  obtain B where B: "B>0" "-S \<subseteq> ball 0 B"
     using bounded_subset_ballD [OF bs, of 0] by auto
-  then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> s"
+  then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> S"
     by (force simp: ball_def dist_norm)
-  have ccb: "connected (- ball 0 B :: 'a set)"
-    using assms by (auto intro: connected_complement_bounded_convex)
-  obtain x' where x': "connected_component s x x'" "norm x' > B"
+  obtain x' where x': "connected_component S x x'" "norm x' > B"
     using bo [unfolded bounded_def dist_norm, simplified, rule_format]
     by (metis diff_zero norm_minus_commute not_less)
-  obtain y' where y': "connected_component s y y'" "norm y' > B"
+  obtain y' where y': "connected_component S y y'" "norm y' > B"
     using bo [unfolded bounded_def dist_norm, simplified, rule_format]
     by (metis diff_zero norm_minus_commute not_less)
-  have x'y': "connected_component s x' y'"
-    apply (simp add: connected_component_def)
-    apply (rule_tac x="- ball 0 B" in exI)
-    using x' y'
-    apply (auto simp: ccb dist_norm *)
-    done
+  have x'y': "connected_component S x' y'"
+    unfolding connected_component_def
+  proof (intro exI conjI)
+    show "connected (- ball 0 B :: 'a set)"
+      using assms by (auto intro: connected_complement_bounded_convex)
+  qed (use x' y' dist_norm * in auto)
   show ?thesis
     apply (rule connected_component_eq)
     using x' y' x'y'
@@ -3034,13 +3032,13 @@ proof -
 qed
 
 lemma cobounded_unbounded_components:
-    fixes s :: "'a :: euclidean_space set"
-    shows "bounded (-s) \<Longrightarrow> \<exists>c. c \<in> components s \<and> \<not>bounded c"
+    fixes S :: "'a :: euclidean_space set"
+    shows "bounded (-S) \<Longrightarrow> \<exists>c. c \<in> components S \<and> \<not>bounded c"
   by (metis cobounded_unbounded_component components_def imageI)
 
 lemma cobounded_unique_unbounded_components:
-    fixes s :: "'a :: euclidean_space set"
-    shows  "\<lbrakk>bounded (- s); c \<in> components s; \<not> bounded c; c' \<in> components s; \<not> bounded c'; 2 \<le> DIM('a)\<rbrakk> \<Longrightarrow> c' = c"
+    fixes S :: "'a :: euclidean_space set"
+    shows  "\<lbrakk>bounded (- S); c \<in> components S; \<not> bounded c; c' \<in> components S; \<not> bounded c'; 2 \<le> DIM('a)\<rbrakk> \<Longrightarrow> c' = c"
   unfolding components_iff
   by (metis cobounded_unique_unbounded_component)
 
@@ -3169,25 +3167,23 @@ lemma connected_outside:
     assumes "bounded S" "2 \<le> DIM('a)"
       shows "connected(outside S)"
   apply (clarsimp simp add: connected_iff_connected_component outside)
-  apply (rule_tac s="connected_component_set (- S) x" in connected_component_of_subset)
+  apply (rule_tac S="connected_component_set (- S) x" in connected_component_of_subset)
   apply (metis (no_types) assms cobounded_unbounded_component cobounded_unique_unbounded_component connected_component_eq_eq connected_component_idemp double_complement mem_Collect_eq)
   apply clarify
   apply (metis connected_component_eq_eq connected_component_in)
   done
 
 lemma outside_connected_component_lt:
-    "outside S = {x. \<forall>B. \<exists>y. B < norm(y) \<and> connected_component (- S) x y}"
-apply (auto simp: outside bounded_def dist_norm)
-apply (metis diff_0 norm_minus_cancel not_less)
-by (metis less_diff_eq norm_minus_commute norm_triangle_ineq2 order.trans pinf(6))
+  "outside S = {x. \<forall>B. \<exists>y. B < norm(y) \<and> connected_component (- S) x y}"
+  apply (auto simp: outside bounded_def dist_norm)
+   apply (metis diff_0 norm_minus_cancel not_less)
+  by (metis less_diff_eq norm_minus_commute norm_triangle_ineq2 order.trans pinf(6))
 
 lemma outside_connected_component_le:
-   "outside S =
-            {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and>
-                         connected_component (- S) x y}"
-apply (simp add: outside_connected_component_lt)
-apply (simp add: Set.set_eq_iff)
-by (meson gt_ex leD le_less_linear less_imp_le order.trans)
+  "outside S =
+            {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and> connected_component (- S) x y}"
+  apply (simp add: outside_connected_component_lt Set.set_eq_iff)
+  by (meson gt_ex leD le_less_linear less_imp_le order.trans)
 
 lemma not_outside_connected_component_lt:
     fixes S :: "'a::euclidean_space set"
@@ -3199,28 +3195,23 @@ proof -
   { fix y::'a and z::'a
     assume yz: "B < norm z" "B < norm y"
     have "connected_component (- cball 0 B) y z"
-      apply (rule connected_componentI [OF _ subset_refl])
-      apply (rule connected_complement_bounded_convex)
-      using assms yz
-      by (auto simp: dist_norm)
+      apply (intro connected_componentI [OF _ subset_refl] connected_complement_bounded_convex)
+      using assms yz by (auto simp: dist_norm)
     then have "connected_component (- S) y z"
-      apply (rule connected_component_of_subset)
-      apply (metis Bno Compl_anti_mono mem_cball_0 subset_iff)
-      done
+      by (metis connected_component_of_subset Bno Compl_anti_mono mem_cball_0 subset_iff)
   } note cyz = this
   show ?thesis
-    apply (auto simp: outside)
+    apply (auto simp: outside bounded_pos)
     apply (metis Compl_iff bounded_iff cobounded_imp_unbounded mem_Collect_eq not_le)
-    apply (simp add: bounded_pos)
     by (metis B connected_component_trans cyz not_le)
 qed
 
 lemma not_outside_connected_component_le:
-    fixes S :: "'a::euclidean_space set"
-    assumes S: "bounded S"  "2 \<le> DIM('a)"
-      shows "- (outside S) = {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and> \<not> connected_component (- S) x y}"
-apply (auto intro: less_imp_le simp: not_outside_connected_component_lt [OF assms])
-by (meson gt_ex less_le_trans)
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "bounded S"  "2 \<le> DIM('a)"
+  shows "- (outside S) = {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and> \<not> connected_component (- S) x y}"
+  apply (auto intro: less_imp_le simp: not_outside_connected_component_lt [OF assms])
+  by (meson gt_ex less_le_trans)
 
 lemma inside_connected_component_lt:
     fixes S :: "'a::euclidean_space set"
@@ -3237,9 +3228,9 @@ lemma inside_connected_component_le:
 lemma inside_subset:
   assumes "connected U" and "\<not> bounded U" and "T \<union> U = - S"
   shows "inside S \<subseteq> T"
-apply (auto simp: inside_def)
-by (metis bounded_subset [of "connected_component_set (- S) _"] connected_component_maximal
-       Compl_iff Un_iff assms subsetI)
+  apply (auto simp: inside_def)
+  by (metis bounded_subset [of "connected_component_set (- S) _"] connected_component_maximal
+      Compl_iff Un_iff assms subsetI)
 
 lemma frontier_not_empty:
   fixes S :: "'a :: real_normed_vector set"
@@ -3384,10 +3375,9 @@ proof -
     assume x: "x \<in> interior s" and y: "y \<notin> s"
        and cc: "connected_component (- frontier s) x y"
     have "connected_component_set (- frontier s) x \<inter> frontier s \<noteq> {}"
-      apply (rule connected_Int_frontier, simp)
-      apply (metis IntI cc connected_component_in connected_component_refl empty_iff interiorE mem_Collect_eq rev_subsetD x)
-      using  y cc
-      by blast
+      apply (rule connected_Int_frontier; simp add: set_eq_iff)
+      apply (meson cc connected_component_in connected_component_refl_eq interior_subset subsetD x)
+      using y cc by blast
     then have "bounded (connected_component_set (- frontier s) x)"
       using connected_component_in by auto
   }
@@ -3402,29 +3392,29 @@ lemma inside_empty [simp]: "inside {} = ({} :: 'a :: {real_normed_vector, perfec
   by (simp add: inside_def)
 
 lemma outside_empty [simp]: "outside {} = (UNIV :: 'a :: {real_normed_vector, perfect_space} set)"
-using inside_empty inside_Un_outside by blast
+  using inside_empty inside_Un_outside by blast
 
 lemma inside_same_component:
-   "\<lbrakk>connected_component (- s) x y; x \<in> inside s\<rbrakk> \<Longrightarrow> y \<in> inside s"
+   "\<lbrakk>connected_component (- S) x y; x \<in> inside S\<rbrakk> \<Longrightarrow> y \<in> inside S"
   using connected_component_eq connected_component_in
   by (fastforce simp add: inside_def)
 
 lemma outside_same_component:
-   "\<lbrakk>connected_component (- s) x y; x \<in> outside s\<rbrakk> \<Longrightarrow> y \<in> outside s"
+   "\<lbrakk>connected_component (- S) x y; x \<in> outside S\<rbrakk> \<Longrightarrow> y \<in> outside S"
   using connected_component_eq connected_component_in
   by (fastforce simp add: outside_def)
 
 lemma convex_in_outside:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-  assumes s: "convex s" and z: "z \<notin> s"
-    shows "z \<in> outside s"
-proof (cases "s={}")
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+  assumes S: "convex S" and z: "z \<notin> S"
+    shows "z \<in> outside S"
+proof (cases "S={}")
   case True then show ?thesis by simp
 next
-  case False then obtain a where "a \<in> s" by blast
+  case False then obtain a where "a \<in> S" by blast
   with z have zna: "z \<noteq> a" by auto
-  { assume "bounded (connected_component_set (- s) z)"
-    with bounded_pos_less obtain B where "B>0" and B: "\<And>x. connected_component (- s) z x \<Longrightarrow> norm x < B"
+  { assume "bounded (connected_component_set (- S) z)"
+    with bounded_pos_less obtain B where "B>0" and B: "\<And>x. connected_component (- S) z x \<Longrightarrow> norm x < B"
       by (metis mem_Collect_eq)
     define C where "C = (B + 1 + norm z) / norm (z-a)"
     have "C > 0"
@@ -3435,16 +3425,16 @@ next
       using zna \<open>B>0\<close> by (simp add: C_def le_max_iff_disj)
     ultimately have C: "norm (z + C *\<^sub>R (z-a)) > B" by linarith
     { fix u::real
-      assume u: "0\<le>u" "u\<le>1" and ins: "(1 - u) *\<^sub>R z + u *\<^sub>R (z + C *\<^sub>R (z - a)) \<in> s"
+      assume u: "0\<le>u" "u\<le>1" and ins: "(1 - u) *\<^sub>R z + u *\<^sub>R (z + C *\<^sub>R (z - a)) \<in> S"
       then have Cpos: "1 + u * C > 0"
         by (meson \<open>0 < C\<close> add_pos_nonneg less_eq_real_def zero_le_mult_iff zero_less_one)
       then have *: "(1 / (1 + u * C)) *\<^sub>R z + (u * C / (1 + u * C)) *\<^sub>R z = z"
         by (simp add: scaleR_add_left [symmetric] field_split_simps)
       then have False
-        using convexD_alt [OF s \<open>a \<in> s\<close> ins, of "1/(u*C + 1)"] \<open>C>0\<close> \<open>z \<notin> s\<close> Cpos u
+        using convexD_alt [OF S \<open>a \<in> S\<close> ins, of "1/(u*C + 1)"] \<open>C>0\<close> \<open>z \<notin> S\<close> Cpos u
         by (simp add: * field_split_simps)
     } note contra = this
-    have "connected_component (- s) z (z + C *\<^sub>R (z-a))"
+    have "connected_component (- S) z (z + C *\<^sub>R (z-a))"
       apply (rule connected_componentI [OF connected_segment [of z "z + C *\<^sub>R (z-a)"]])
       apply (simp add: closed_segment_def)
       using contra
@@ -3459,9 +3449,9 @@ next
 qed
 
 lemma outside_convex:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-  assumes "convex s"
-    shows "outside s = - s"
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+  assumes "convex S"
+    shows "outside S = - S"
   by (metis ComplD assms convex_in_outside equalityI inside_Un_outside subsetI sup.cobounded2)
 
 lemma outside_singleton [simp]:
@@ -3470,8 +3460,8 @@ lemma outside_singleton [simp]:
   by (auto simp: outside_convex)
 
 lemma inside_convex:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-  shows "convex s \<Longrightarrow> inside s = {}"
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+  shows "convex S \<Longrightarrow> inside S = {}"
   by (simp add: inside_outside outside_convex)
 
 lemma inside_singleton [simp]:
@@ -3480,8 +3470,8 @@ lemma inside_singleton [simp]:
   by (auto simp: inside_convex)
 
 lemma outside_subset_convex:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-  shows "\<lbrakk>convex t; s \<subseteq> t\<rbrakk> \<Longrightarrow> - t \<subseteq> outside s"
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+  shows "\<lbrakk>convex T; S \<subseteq> T\<rbrakk> \<Longrightarrow> - T \<subseteq> outside S"
   using outside_convex outside_mono by blast
 
 lemma outside_Un_outside_Un:
@@ -3505,49 +3495,49 @@ proof
 qed
 
 lemma outside_frontier_misses_closure:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "bounded s"
-    shows  "outside(frontier s) \<subseteq> - closure s"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "bounded S"
+    shows  "outside(frontier S) \<subseteq> - closure S"
   unfolding outside_inside Lattices.boolean_algebra_class.compl_le_compl_iff
 proof -
-  { assume "interior s \<subseteq> inside (frontier s)"
-    hence "interior s \<union> inside (frontier s) = inside (frontier s)"
+  { assume "interior S \<subseteq> inside (frontier S)"
+    hence "interior S \<union> inside (frontier S) = inside (frontier S)"
       by (simp add: subset_Un_eq)
-    then have "closure s \<subseteq> frontier s \<union> inside (frontier s)"
+    then have "closure S \<subseteq> frontier S \<union> inside (frontier S)"
       using frontier_def by auto
   }
-  then show "closure s \<subseteq> frontier s \<union> inside (frontier s)"
+  then show "closure S \<subseteq> frontier S \<union> inside (frontier S)"
     using interior_inside_frontier [OF assms] by blast
 qed
 
 lemma outside_frontier_eq_complement_closure:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-    assumes "bounded s" "convex s"
-      shows "outside(frontier s) = - closure s"
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+    assumes "bounded S" "convex S"
+      shows "outside(frontier S) = - closure S"
 by (metis Diff_subset assms convex_closure frontier_def outside_frontier_misses_closure
           outside_subset_convex subset_antisym)
 
 lemma inside_frontier_eq_interior:
-     fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-     shows "\<lbrakk>bounded s; convex s\<rbrakk> \<Longrightarrow> inside(frontier s) = interior s"
+     fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+     shows "\<lbrakk>bounded S; convex S\<rbrakk> \<Longrightarrow> inside(frontier S) = interior S"
   apply (simp add: inside_outside outside_frontier_eq_complement_closure)
   using closure_subset interior_subset
   apply (auto simp: frontier_def)
   done
 
 lemma open_inside:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "open (inside s)"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "open (inside S)"
 proof -
-  { fix x assume x: "x \<in> inside s"
-    have "open (connected_component_set (- s) x)"
+  { fix x assume x: "x \<in> inside S"
+    have "open (connected_component_set (- S) x)"
       using assms open_connected_component by blast
-    then obtain e where e: "e>0" and e: "\<And>y. dist y x < e \<longrightarrow> connected_component (- s) x y"
+    then obtain e where e: "e>0" and e: "\<And>y. dist y x < e \<longrightarrow> connected_component (- S) x y"
       using dist_not_less_zero
       apply (simp add: open_dist)
       by (metis (no_types, lifting) Compl_iff connected_component_refl_eq inside_def mem_Collect_eq x)
-    then have "\<exists>e>0. ball x e \<subseteq> inside s"
+    then have "\<exists>e>0. ball x e \<subseteq> inside S"
       by (metis e dist_commute inside_same_component mem_ball subsetI x)
   }
   then show ?thesis
@@ -3555,18 +3545,18 @@ proof -
 qed
 
 lemma open_outside:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "open (outside s)"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "open (outside S)"
 proof -
-  { fix x assume x: "x \<in> outside s"
-    have "open (connected_component_set (- s) x)"
+  { fix x assume x: "x \<in> outside S"
+    have "open (connected_component_set (- S) x)"
       using assms open_connected_component by blast
-    then obtain e where e: "e>0" and e: "\<And>y. dist y x < e \<longrightarrow> connected_component (- s) x y"
+    then obtain e where e: "e>0" and e: "\<And>y. dist y x < e \<longrightarrow> connected_component (- S) x y"
       using dist_not_less_zero
       apply (simp add: open_dist)
       by (metis Int_iff outside_def connected_component_refl_eq  x)
-    then have "\<exists>e>0. ball x e \<subseteq> outside s"
+    then have "\<exists>e>0. ball x e \<subseteq> outside S"
       by (metis e dist_commute outside_same_component mem_ball subsetI x)
   }
   then show ?thesis
@@ -3574,61 +3564,61 @@ proof -
 qed
 
 lemma closure_inside_subset:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "closure(inside s) \<subseteq> s \<union> inside s"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "closure(inside S) \<subseteq> S \<union> inside S"
 by (metis assms closure_minimal open_closed open_outside sup.cobounded2 union_with_inside)
 
 lemma frontier_inside_subset:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "frontier(inside s) \<subseteq> s"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "frontier(inside S) \<subseteq> S"
 proof -
-  have "closure (inside s) \<inter> - inside s = closure (inside s) - interior (inside s)"
+  have "closure (inside S) \<inter> - inside S = closure (inside S) - interior (inside S)"
     by (metis (no_types) Diff_Compl assms closure_closed interior_closure open_closed open_inside)
-  moreover have "- inside s \<inter> - outside s = s"
+  moreover have "- inside S \<inter> - outside S = S"
     by (metis (no_types) compl_sup double_compl inside_Un_outside)
-  moreover have "closure (inside s) \<subseteq> - outside s"
+  moreover have "closure (inside S) \<subseteq> - outside S"
     by (metis (no_types) assms closure_inside_subset union_with_inside)
-  ultimately have "closure (inside s) - interior (inside s) \<subseteq> s"
+  ultimately have "closure (inside S) - interior (inside S) \<subseteq> S"
     by blast
   then show ?thesis
     by (simp add: frontier_def open_inside interior_open)
 qed
 
 lemma closure_outside_subset:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "closure(outside s) \<subseteq> s \<union> outside s"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "closure(outside S) \<subseteq> S \<union> outside S"
   apply (rule closure_minimal, simp)
   by (metis assms closed_open inside_outside open_inside)
 
 lemma frontier_outside_subset:
-    fixes s :: "'a::real_normed_vector set"
-    assumes "closed s"
-      shows "frontier(outside s) \<subseteq> s"
+    fixes S :: "'a::real_normed_vector set"
+    assumes "closed S"
+      shows "frontier(outside S) \<subseteq> S"
   apply (simp add: frontier_def open_outside interior_open)
   by (metis Diff_subset_conv assms closure_outside_subset interior_eq open_outside sup.commute)
 
 lemma inside_complement_unbounded_connected_empty:
-     "\<lbrakk>connected (- s); \<not> bounded (- s)\<rbrakk> \<Longrightarrow> inside s = {}"
+     "\<lbrakk>connected (- S); \<not> bounded (- S)\<rbrakk> \<Longrightarrow> inside S = {}"
   apply (simp add: inside_def)
   by (meson Compl_iff bounded_subset connected_component_maximal order_refl)
 
 lemma inside_bounded_complement_connected_empty:
-    fixes s :: "'a::{real_normed_vector, perfect_space} set"
-    shows "\<lbrakk>connected (- s); bounded s\<rbrakk> \<Longrightarrow> inside s = {}"
+    fixes S :: "'a::{real_normed_vector, perfect_space} set"
+    shows "\<lbrakk>connected (- S); bounded S\<rbrakk> \<Longrightarrow> inside S = {}"
   by (metis inside_complement_unbounded_connected_empty cobounded_imp_unbounded)
 
 lemma inside_inside:
-    assumes "s \<subseteq> inside t"
-    shows "inside s - t \<subseteq> inside t"
+    assumes "S \<subseteq> inside T"
+    shows "inside S - T \<subseteq> inside T"
 unfolding inside_def
 proof clarify
   fix x
-  assume x: "x \<notin> t" "x \<notin> s" and bo: "bounded (connected_component_set (- s) x)"
-  show "bounded (connected_component_set (- t) x)"
-  proof (cases "s \<inter> connected_component_set (- t) x = {}")
+  assume x: "x \<notin> T" "x \<notin> S" and bo: "bounded (connected_component_set (- S) x)"
+  show "bounded (connected_component_set (- T) x)"
+  proof (cases "S \<inter> connected_component_set (- T) x = {}")
     case True show ?thesis
       apply (rule bounded_subset [OF bo])
       apply (rule connected_component_maximal)
@@ -3643,68 +3633,68 @@ proof clarify
   qed
 qed
 
-lemma inside_inside_subset: "inside(inside s) \<subseteq> s"
+lemma inside_inside_subset: "inside(inside S) \<subseteq> S"
   using inside_inside union_with_outside by fastforce
 
 lemma inside_outside_intersect_connected:
-      "\<lbrakk>connected t; inside s \<inter> t \<noteq> {}; outside s \<inter> t \<noteq> {}\<rbrakk> \<Longrightarrow> s \<inter> t \<noteq> {}"
+      "\<lbrakk>connected T; inside S \<inter> T \<noteq> {}; outside S \<inter> T \<noteq> {}\<rbrakk> \<Longrightarrow> S \<inter> T \<noteq> {}"
   apply (simp add: inside_def outside_def ex_in_conv [symmetric] disjoint_eq_subset_Compl, clarify)
   by (metis (no_types, hide_lams) Compl_anti_mono connected_component_eq connected_component_maximal contra_subsetD double_compl)
 
 lemma outside_bounded_nonempty:
-  fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-    assumes "bounded s" shows "outside s \<noteq> {}"
+  fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+    assumes "bounded S" shows "outside S \<noteq> {}"
   by (metis (no_types, lifting) Collect_empty_eq Collect_mem_eq Compl_eq_Diff_UNIV Diff_cancel
                    Diff_disjoint UNIV_I assms ball_eq_empty bounded_diff cobounded_outside convex_ball
                    double_complement order_refl outside_convex outside_def)
 
 lemma outside_compact_in_open:
-    fixes s :: "'a :: {real_normed_vector,perfect_space} set"
-    assumes s: "compact s" and t: "open t" and "s \<subseteq> t" "t \<noteq> {}"
-      shows "outside s \<inter> t \<noteq> {}"
+    fixes S :: "'a :: {real_normed_vector,perfect_space} set"
+    assumes S: "compact S" and T: "open T" and "S \<subseteq> T" "T \<noteq> {}"
+      shows "outside S \<inter> T \<noteq> {}"
 proof -
-  have "outside s \<noteq> {}"
-    by (simp add: compact_imp_bounded outside_bounded_nonempty s)
-  with assms obtain a b where a: "a \<in> outside s" and b: "b \<in> t" by auto
+  have "outside S \<noteq> {}"
+    by (simp add: compact_imp_bounded outside_bounded_nonempty S)
+  with assms obtain a b where a: "a \<in> outside S" and b: "b \<in> T" by auto
   show ?thesis
-  proof (cases "a \<in> t")
+  proof (cases "a \<in> T")
     case True with a show ?thesis by blast
   next
     case False
-      have front: "frontier t \<subseteq> - s"
-        using \<open>s \<subseteq> t\<close> frontier_disjoint_eq t by auto
+      have front: "frontier T \<subseteq> - S"
+        using \<open>S \<subseteq> T\<close> frontier_disjoint_eq T by auto
       { fix \<gamma>
-        assume "path \<gamma>" and pimg_sbs: "path_image \<gamma> - {pathfinish \<gamma>} \<subseteq> interior (- t)"
-           and pf: "pathfinish \<gamma> \<in> frontier t" and ps: "pathstart \<gamma> = a"
+        assume "path \<gamma>" and pimg_sbs: "path_image \<gamma> - {pathfinish \<gamma>} \<subseteq> interior (- T)"
+           and pf: "pathfinish \<gamma> \<in> frontier T" and ps: "pathstart \<gamma> = a"
         define c where "c = pathfinish \<gamma>"
-        have "c \<in> -s" unfolding c_def using front pf by blast
-        moreover have "open (-s)" using s compact_imp_closed by blast
-        ultimately obtain \<epsilon>::real where "\<epsilon> > 0" and \<epsilon>: "cball c \<epsilon> \<subseteq> -s"
-          using open_contains_cball[of "-s"] s by blast
-        then obtain d where "d \<in> t" and d: "dist d c < \<epsilon>"
-          using closure_approachable [of c t] pf unfolding c_def
+        have "c \<in> -S" unfolding c_def using front pf by blast
+        moreover have "open (-S)" using S compact_imp_closed by blast
+        ultimately obtain \<epsilon>::real where "\<epsilon> > 0" and \<epsilon>: "cball c \<epsilon> \<subseteq> -S"
+          using open_contains_cball[of "-S"] S by blast
+        then obtain d where "d \<in> T" and d: "dist d c < \<epsilon>"
+          using closure_approachable [of c T] pf unfolding c_def
           by (metis Diff_iff frontier_def)
-        then have "d \<in> -s" using \<epsilon>
+        then have "d \<in> -S" using \<epsilon>
           using dist_commute by (metis contra_subsetD mem_cball not_le not_less_iff_gr_or_eq)
-        have pimg_sbs_cos: "path_image \<gamma> \<subseteq> -s"
+        have pimg_sbs_cos: "path_image \<gamma> \<subseteq> -S"
           using pimg_sbs apply (auto simp: path_image_def)
           apply (drule subsetD)
-          using \<open>c \<in> - s\<close> \<open>s \<subseteq> t\<close> interior_subset apply (auto simp: c_def)
+          using \<open>c \<in> - S\<close> \<open>S \<subseteq> T\<close> interior_subset apply (auto simp: c_def)
           done
         have "closed_segment c d \<le> cball c \<epsilon>"
           apply (simp add: segment_convex_hull)
           apply (rule hull_minimal)
           using  \<open>\<epsilon> > 0\<close> d apply (auto simp: dist_commute)
           done
-        with \<epsilon> have "closed_segment c d \<subseteq> -s" by blast
+        with \<epsilon> have "closed_segment c d \<subseteq> -S" by blast
         moreover have con_gcd: "connected (path_image \<gamma> \<union> closed_segment c d)"
           by (rule connected_Un) (auto simp: c_def \<open>path \<gamma>\<close> connected_path_image)
-        ultimately have "connected_component (- s) a d"
+        ultimately have "connected_component (- S) a d"
           unfolding connected_component_def using pimg_sbs_cos ps by blast
-        then have "outside s \<inter> t \<noteq> {}"
-          using outside_same_component [OF _ a]  by (metis IntI \<open>d \<in> t\<close> empty_iff)
+        then have "outside S \<inter> T \<noteq> {}"
+          using outside_same_component [OF _ a]  by (metis IntI \<open>d \<in> T\<close> empty_iff)
       } note * = this
-      have pal: "pathstart (linepath a b) \<in> closure (- t)"
+      have pal: "pathstart (linepath a b) \<in> closure (- T)"
         by (auto simp: False closure_def)
       show ?thesis
         by (rule exists_path_subpath_to_frontier [OF path_linepath pal _ *]) (auto simp: b)
@@ -3712,10 +3702,10 @@ proof -
 qed
 
 lemma inside_inside_compact_connected:
-    fixes s :: "'a :: euclidean_space set"
-    assumes s: "closed s" and t: "compact t" and "connected t" "s \<subseteq> inside t"
-      shows "inside s \<subseteq> inside t"
-proof (cases "inside t = {}")
+    fixes S :: "'a :: euclidean_space set"
+    assumes S: "closed S" and T: "compact T" and "connected T" "S \<subseteq> inside T"
+      shows "inside S \<subseteq> inside T"
+proof (cases "inside T = {}")
   case True with assms show ?thesis by auto
 next
   case False
@@ -3727,120 +3717,120 @@ next
              using connected_convex_1_gen assms False inside_convex by blast
   next
     case 2
-    have coms: "compact s"
-      using assms apply (simp add: s compact_eq_bounded_closed)
+    have coms: "compact S"
+      using assms apply (simp add: S compact_eq_bounded_closed)
        by (meson bounded_inside bounded_subset compact_imp_bounded)
-    then have bst: "bounded (s \<union> t)"
-      by (simp add: compact_imp_bounded t)
-    then obtain r where "0 < r" and r: "s \<union> t \<subseteq> ball 0 r"
+    then have bst: "bounded (S \<union> T)"
+      by (simp add: compact_imp_bounded T)
+    then obtain r where "0 < r" and r: "S \<union> T \<subseteq> ball 0 r"
       using bounded_subset_ballD by blast
-    have outst: "outside s \<inter> outside t \<noteq> {}"
+    have outst: "outside S \<inter> outside T \<noteq> {}"
     proof -
-      have "- ball 0 r \<subseteq> outside s"
+      have "- ball 0 r \<subseteq> outside S"
         apply (rule outside_subset_convex)
         using r by auto
-      moreover have "- ball 0 r \<subseteq> outside t"
+      moreover have "- ball 0 r \<subseteq> outside T"
         apply (rule outside_subset_convex)
         using r by auto
       ultimately show ?thesis
         by (metis Compl_subset_Compl_iff Int_subset_iff bounded_ball inf.orderE outside_bounded_nonempty outside_no_overlap)
     qed
-    have "s \<inter> t = {}" using assms
+    have "S \<inter> T = {}" using assms
       by (metis disjoint_iff_not_equal inside_no_overlap subsetCE)
-    moreover have "outside s \<inter> inside t \<noteq> {}"
-      by (meson False assms(4) compact_eq_bounded_closed coms open_inside outside_compact_in_open t)
-    ultimately have "inside s \<inter> t = {}"
-      using inside_outside_intersect_connected [OF \<open>connected t\<close>, of s]
+    moreover have "outside S \<inter> inside T \<noteq> {}"
+      by (meson False assms(4) compact_eq_bounded_closed coms open_inside outside_compact_in_open T)
+    ultimately have "inside S \<inter> T = {}"
+      using inside_outside_intersect_connected [OF \<open>connected T\<close>, of S]
       by (metis "2" compact_eq_bounded_closed coms connected_outside inf.commute inside_outside_intersect_connected outst)
     then show ?thesis
-      using inside_inside [OF \<open>s \<subseteq> inside t\<close>] by blast
+      using inside_inside [OF \<open>S \<subseteq> inside T\<close>] by blast
   qed
 qed
 
 lemma connected_with_inside:
-    fixes s :: "'a :: real_normed_vector set"
-    assumes s: "closed s" and cons: "connected s"
-      shows "connected(s \<union> inside s)"
-proof (cases "s \<union> inside s = UNIV")
+    fixes S :: "'a :: real_normed_vector set"
+    assumes S: "closed S" and cons: "connected S"
+      shows "connected(S \<union> inside S)"
+proof (cases "S \<union> inside S = UNIV")
   case True with assms show ?thesis by auto
 next
   case False
-  then obtain b where b: "b \<notin> s" "b \<notin> inside s" by blast
-  have *: "\<exists>y t. y \<in> s \<and> connected t \<and> a \<in> t \<and> y \<in> t \<and> t \<subseteq> (s \<union> inside s)" if "a \<in> (s \<union> inside s)" for a
+  then obtain b where b: "b \<notin> S" "b \<notin> inside S" by blast
+  have *: "\<exists>y T. y \<in> S \<and> connected T \<and> a \<in> T \<and> y \<in> T \<and> T \<subseteq> (S \<union> inside S)" if "a \<in> (S \<union> inside S)" for a
   using that proof
-    assume "a \<in> s" then show ?thesis
+    assume "a \<in> S" then show ?thesis
       apply (rule_tac x=a in exI)
       apply (rule_tac x="{a}" in exI, simp)
       done
   next
-    assume a: "a \<in> inside s"
+    assume a: "a \<in> inside S"
     show ?thesis
-      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "inside s"])
+      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "inside S"])
       using a apply (simp add: closure_def)
       apply (simp add: b)
       apply (rule_tac x="pathfinish h" in exI)
       apply (rule_tac x="path_image h" in exI)
       apply (simp add: pathfinish_in_path_image connected_path_image, auto)
-      using frontier_inside_subset s apply fastforce
-      by (metis (no_types, lifting) frontier_inside_subset insertE insert_Diff interior_eq open_inside pathfinish_in_path_image s subsetCE)
+      using frontier_inside_subset S apply fastforce
+      by (metis (no_types, lifting) frontier_inside_subset insertE insert_Diff interior_eq open_inside pathfinish_in_path_image S subsetCE)
   qed
   show ?thesis
     apply (simp add: connected_iff_connected_component)
     apply (simp add: connected_component_def)
     apply (clarify dest!: *)
-    apply (rename_tac u u' t t')
-    apply (rule_tac x="(s \<union> t \<union> t')" in exI)
-    apply (auto simp: intro!: connected_Un cons)
+    apply (rename_tac u u' T t')
+    apply (rule_tac x="(S \<union> T \<union> t')" in exI)
+    apply (auto intro!: connected_Un cons)
     done
 qed
 
 text\<open>The proof is virtually the same as that above.\<close>
 lemma connected_with_outside:
-    fixes s :: "'a :: real_normed_vector set"
-    assumes s: "closed s" and cons: "connected s"
-      shows "connected(s \<union> outside s)"
-proof (cases "s \<union> outside s = UNIV")
+    fixes S :: "'a :: real_normed_vector set"
+    assumes S: "closed S" and cons: "connected S"
+      shows "connected(S \<union> outside S)"
+proof (cases "S \<union> outside S = UNIV")
   case True with assms show ?thesis by auto
 next
   case False
-  then obtain b where b: "b \<notin> s" "b \<notin> outside s" by blast
-  have *: "\<exists>y t. y \<in> s \<and> connected t \<and> a \<in> t \<and> y \<in> t \<and> t \<subseteq> (s \<union> outside s)" if "a \<in> (s \<union> outside s)" for a
+  then obtain b where b: "b \<notin> S" "b \<notin> outside S" by blast
+  have *: "\<exists>y T. y \<in> S \<and> connected T \<and> a \<in> T \<and> y \<in> T \<and> T \<subseteq> (S \<union> outside S)" if "a \<in> (S \<union> outside S)" for a
   using that proof
-    assume "a \<in> s" then show ?thesis
+    assume "a \<in> S" then show ?thesis
       apply (rule_tac x=a in exI)
       apply (rule_tac x="{a}" in exI, simp)
       done
   next
-    assume a: "a \<in> outside s"
+    assume a: "a \<in> outside S"
     show ?thesis
-      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "outside s"])
+      apply (rule exists_path_subpath_to_frontier [OF path_linepath [of a b], of "outside S"])
       using a apply (simp add: closure_def)
       apply (simp add: b)
       apply (rule_tac x="pathfinish h" in exI)
       apply (rule_tac x="path_image h" in exI)
       apply (simp add: pathfinish_in_path_image connected_path_image, auto)
-      using frontier_outside_subset s apply fastforce
-      by (metis (no_types, lifting) frontier_outside_subset insertE insert_Diff interior_eq open_outside pathfinish_in_path_image s subsetCE)
+      using frontier_outside_subset S apply fastforce
+      by (metis (no_types, lifting) frontier_outside_subset insertE insert_Diff interior_eq open_outside pathfinish_in_path_image S subsetCE)
   qed
   show ?thesis
     apply (simp add: connected_iff_connected_component)
     apply (simp add: connected_component_def)
     apply (clarify dest!: *)
-    apply (rename_tac u u' t t')
-    apply (rule_tac x="(s \<union> t \<union> t')" in exI)
+    apply (rename_tac u u' T t')
+    apply (rule_tac x="(S \<union> T \<union> t')" in exI)
     apply (auto simp: intro!: connected_Un cons)
     done
 qed
 
 lemma inside_inside_eq_empty [simp]:
-    fixes s :: "'a :: {real_normed_vector, perfect_space} set"
-    assumes s: "closed s" and cons: "connected s"
-      shows "inside (inside s) = {}"
+    fixes S :: "'a :: {real_normed_vector, perfect_space} set"
+    assumes S: "closed S" and cons: "connected S"
+      shows "inside (inside S) = {}"
   by (metis (no_types) unbounded_outside connected_with_outside [OF assms] bounded_Un
            inside_complement_unbounded_connected_empty unbounded_outside union_with_outside)
 
 lemma inside_in_components:
-     "inside s \<in> components (- s) \<longleftrightarrow> connected(inside s) \<and> inside s \<noteq> {}"
+     "inside S \<in> components (- S) \<longleftrightarrow> connected(inside S) \<and> inside S \<noteq> {}"
   apply (simp add: in_components_maximal)
   apply (auto intro: inside_same_component connected_componentI)
   apply (metis IntI empty_iff inside_no_overlap)
@@ -3848,15 +3838,15 @@ lemma inside_in_components:
 
 text\<open>The proof is virtually the same as that above.\<close>
 lemma outside_in_components:
-     "outside s \<in> components (- s) \<longleftrightarrow> connected(outside s) \<and> outside s \<noteq> {}"
+     "outside S \<in> components (- S) \<longleftrightarrow> connected(outside S) \<and> outside S \<noteq> {}"
   apply (simp add: in_components_maximal)
   apply (auto intro: outside_same_component connected_componentI)
   apply (metis IntI empty_iff outside_no_overlap)
   done
 
 lemma bounded_unique_outside:
-    fixes s :: "'a :: euclidean_space set"
-    shows "\<lbrakk>bounded s; DIM('a) \<ge> 2\<rbrakk> \<Longrightarrow> (c \<in> components (- s) \<and> \<not> bounded c \<longleftrightarrow> c = outside s)"
+    fixes S :: "'a :: euclidean_space set"
+    shows "\<lbrakk>bounded S; DIM('a) \<ge> 2\<rbrakk> \<Longrightarrow> (c \<in> components (- S) \<and> \<not> bounded c \<longleftrightarrow> c = outside S)"
   apply (rule iffI)
   apply (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty outside_in_components unbounded_outside)
   by (simp add: connected_outside outside_bounded_nonempty outside_in_components unbounded_outside)
@@ -3900,19 +3890,22 @@ next
       by (metis (no_types) Klim zKs y contf comp_assoc continuous_on_closure_sequentially)
     with fz have wy: "w = f y" using fz LIMSEQ_unique ftendsw by auto
     have rle: "r \<le> norm (f y - f a)"
-      apply (rule le_no)
-      using w wy oint
-      by (force simp: imageI image_mono interiorI interior_subset frontier_def y)
+    proof (rule le_no)
+      show "y \<in> frontier S"
+        using w wy oint by (force simp: imageI image_mono interiorI interior_subset frontier_def y)
+    qed
     have **: "(b \<inter> (- S) \<noteq> {} \<and> b - (- S) \<noteq> {} \<Longrightarrow> b \<inter> f \<noteq> {})
-              \<Longrightarrow> (b \<inter> S \<noteq> {}) \<Longrightarrow> b \<inter> f = {} \<Longrightarrow>
-              b \<subseteq> S" for b f and S :: "'b set"
+              \<Longrightarrow> (b \<inter> S \<noteq> {}) \<Longrightarrow> b \<inter> f = {} \<Longrightarrow> b \<subseteq> S" 
+             for b f and S :: "'b set"
       by blast
+    have \<section>: "\<And>y. \<lbrakk>norm (f a - y) < r; y \<in> frontier (f ` S)\<rbrakk> \<Longrightarrow> False"
+      by (metis dw_le norm_minus_commute not_less order_trans rle wy)
     show ?thesis
       apply (rule **)   (*such a horrible mess*)
       apply (rule connected_Int_frontier [where t = "f`S", OF connected_ball])
       using \<open>a \<in> S\<close> \<open>0 < r\<close>
-      apply (auto simp: disjoint_iff_not_equal dist_norm)
-      by (metis dw_le norm_minus_commute not_less order_trans rle wy)
+         apply (auto simp: disjoint_iff_not_equal dist_norm dest: \<section>)
+      done
 qed
 
 

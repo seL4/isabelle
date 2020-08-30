@@ -1024,12 +1024,9 @@ proof -
         by (meson open_ball centre_in_ball)
       define U where "U = (\<lambda>w. (w - \<xi>) * g w) ` T"
       have "open U" by (metis oimT U_def)
-      have "0 \<in> U"
-        apply (auto simp: U_def)
-        apply (rule image_eqI [where x = \<xi>])
-        apply (auto simp: \<open>\<xi> \<in> T\<close>)
-        done
-      then obtain \<epsilon> where "\<epsilon>>0" and \<epsilon>: "cball 0 \<epsilon> \<subseteq> U"
+      moreover have "0 \<in> U"
+        using \<open>\<xi> \<in> T\<close> by (auto simp: U_def intro: image_eqI [where x = \<xi>])
+      ultimately obtain \<epsilon> where "\<epsilon>>0" and \<epsilon>: "cball 0 \<epsilon> \<subseteq> U"
         using \<open>open U\<close> open_contains_cball by blast
       then have "\<epsilon> * exp(2 * of_real pi * \<i> * (0/n)) \<in> cball 0 \<epsilon>"
                 "\<epsilon> * exp(2 * of_real pi * \<i> * (1/n)) \<in> cball 0 \<epsilon>"

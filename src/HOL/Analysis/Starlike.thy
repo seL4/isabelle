@@ -2823,14 +2823,11 @@ proof (cases rule: linorder_cases)
     by (auto simp: dist_real_def field_simps split: split_min)
   with \<open>x \<in> interior I\<close> e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
 
-  have "open (interior I)" by auto
-  from openE[OF this \<open>x \<in> interior I\<close>]
-  obtain e where "0 < e" "ball x e \<subseteq> interior I" .
-  moreover define K where "K = x - e / 2"
+  define K where "K = x - e / 2"
   with \<open>0 < e\<close> have "K \<in> ball x e" "K < x"
     by (auto simp: dist_real_def)
-  ultimately have "K \<in> I" "K < x" "x \<in> I"
-    using interior_subset[of I] \<open>x \<in> interior I\<close> by auto
+  then have "K \<in> I"
+    using \<open>interior I \<subseteq> I\<close> e(2) by blast
 
   have "Inf (?F x) \<le> (f x - f y) / (x - y)"
   proof (intro bdd_belowI cInf_lower2)
@@ -2870,11 +2867,8 @@ next
       by auto
     finally show "(f x - f y) / (x - y) \<le> z" .
   next
-    have "open (interior I)" by auto
-    from openE[OF this \<open>x \<in> interior I\<close>]
-    obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
-    then have "x + e / 2 \<in> ball x e"
-      by (auto simp: dist_real_def)
+    have "x + e / 2 \<in> ball x e"
+      using e by (auto simp: dist_real_def)
     with e interior_subset[of I] have "x + e / 2 \<in> {x<..} \<inter> I"
       by auto
     then show "?F x \<noteq> {}"
@@ -2897,58 +2891,59 @@ proof -
 qed
 
 lemma affine_independent_convex_affine_hull:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s" "t \<subseteq> s"
-    shows "convex hull t = affine hull t \<inter> convex hull s"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S" "T \<subseteq> S"
+    shows "convex hull T = affine hull T \<inter> convex hull S"
 proof -
-  have fin: "finite s" "finite t" using assms aff_independent_finite finite_subset by auto
+  have fin: "finite S" "finite T" using assms aff_independent_finite finite_subset by auto
     { fix u v x
-      assume uv: "sum u t = 1" "\<forall>x\<in>s. 0 \<le> v x" "sum v s = 1"
-                 "(\<Sum>x\<in>s. v x *\<^sub>R x) = (\<Sum>v\<in>t. u v *\<^sub>R v)" "x \<in> t"
-      then have s: "s = (s - t) \<union> t" \<comment> \<open>split into separate cases\<close>
+      assume uv: "sum u T = 1" "\<forall>x\<in>S. 0 \<le> v x" "sum v S = 1"
+                 "(\<Sum>x\<in>S. v x *\<^sub>R x) = (\<Sum>v\<in>T. u v *\<^sub>R v)" "x \<in> T"
+      then have S: "S = (S - T) \<union> T" \<comment> \<open>split into separate cases\<close>
         using assms by auto
-      have [simp]: "(\<Sum>x\<in>t. v x *\<^sub>R x) + (\<Sum>x\<in>s - t. v x *\<^sub>R x) = (\<Sum>x\<in>t. u x *\<^sub>R x)"
-                   "sum v t + sum v (s - t) = 1"
-        using uv fin s
+      have [simp]: "(\<Sum>x\<in>T. v x *\<^sub>R x) + (\<Sum>x\<in>S - T. v x *\<^sub>R x) = (\<Sum>x\<in>T. u x *\<^sub>R x)"
+                   "sum v T + sum v (S - T) = 1"
+        using uv fin S
         by (auto simp: sum.union_disjoint [symmetric] Un_commute)
-      have "(\<Sum>x\<in>s. if x \<in> t then v x - u x else v x) = 0"
-           "(\<Sum>x\<in>s. (if x \<in> t then v x - u x else v x) *\<^sub>R x) = 0"
+      have "(\<Sum>x\<in>S. if x \<in> T then v x - u x else v x) = 0"
+           "(\<Sum>x\<in>S. (if x \<in> T then v x - u x else v x) *\<^sub>R x) = 0"
         using uv fin
-        by (subst s, subst sum.union_disjoint, auto simp: algebra_simps sum_subtractf)+
+        by (subst S, subst sum.union_disjoint, auto simp: algebra_simps sum_subtractf)+
     } note [simp] = this
-  have "convex hull t \<subseteq> affine hull t"
+  have "convex hull T \<subseteq> affine hull T"
     using convex_hull_subset_affine_hull by blast
-  moreover have "convex hull t \<subseteq> convex hull s"
+  moreover have "convex hull T \<subseteq> convex hull S"
     using assms hull_mono by blast
-  moreover have "affine hull t \<inter> convex hull s \<subseteq> convex hull t"
-    using assms
-    apply (simp add: convex_hull_finite affine_hull_finite fin affine_dependent_explicit)
-    apply (drule_tac x=s in spec)
-    apply (auto simp: fin)
-    apply (rule_tac x=u in exI)
-    apply (rename_tac v)
-    apply (drule_tac x="\<lambda>x. if x \<in> t then v x - u x else v x" in spec)
-    apply (force)+
-    done
+  moreover have "affine hull T \<inter> convex hull S \<subseteq> convex hull T"
+  proof -
+    have 0: "\<And>u. sum u S = 0 \<Longrightarrow> (\<forall>v\<in>S. u v = 0) \<or> (\<Sum>v\<in>S. u v *\<^sub>R v) \<noteq> 0"
+      using affine_dependent_explicit_finite assms(1) fin(1) by auto
+    show ?thesis
+      apply (clarsimp simp add: convex_hull_finite affine_hull_finite fin )
+      apply (rule_tac x=u in exI)
+      subgoal for u v
+        using 0 [of "\<lambda>x. if x \<in> T then v x - u x else v x"] \<open>T \<subseteq> S\<close> by force
+      done
+  qed
   ultimately show ?thesis
     by blast
 qed
 
 lemma affine_independent_span_eq:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s" "card s = Suc (DIM ('a))"
-    shows "affine hull s = UNIV"
-proof (cases "s = {}")
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S" "card S = Suc (DIM ('a))"
+    shows "affine hull S = UNIV"
+proof (cases "S = {}")
   case True then show ?thesis
     using assms by simp
 next
   case False
-    then obtain a t where t: "a \<notin> t" "s = insert a t"
+    then obtain a T where T: "a \<notin> T" "S = insert a T"
       by blast
-    then have fin: "finite t" using assms
+    then have fin: "finite T" using assms
       by (metis finite_insert aff_independent_finite)
     show ?thesis
-    using assms t fin
+    using assms T fin
       apply (simp add: affine_dependent_iff_dependent affine_hull_insert_span_gen)
       apply (rule subset_antisym)
       apply force
@@ -2960,9 +2955,9 @@ next
 qed
 
 lemma affine_independent_span_gt:
-  fixes s :: "'a::euclidean_space set"
-  assumes ind: "\<not> affine_dependent s" and dim: "DIM ('a) < card s"
-    shows "affine hull s = UNIV"
+  fixes S :: "'a::euclidean_space set"
+  assumes ind: "\<not> affine_dependent S" and dim: "DIM ('a) < card S"
+    shows "affine hull S = UNIV"
   apply (rule affine_independent_span_eq [OF ind])
   apply (rule antisym)
   using assms
@@ -2971,35 +2966,35 @@ lemma affine_independent_span_gt:
   done
 
 lemma empty_interior_affine_hull:
-  fixes s :: "'a::euclidean_space set"
-  assumes "finite s" and dim: "card s \<le> DIM ('a)"
-    shows "interior(affine hull s) = {}"
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S" and dim: "card S \<le> DIM ('a)"
+    shows "interior(affine hull S) = {}"
   using assms
-  apply (induct s rule: finite_induct)
+  apply (induct S rule: finite_induct)
   apply (simp_all add:  affine_dependent_iff_dependent affine_hull_insert_span_gen interior_translation)
   apply (rule empty_interior_lowdim)
   by (auto simp: Suc_le_lessD card_image_le dual_order.trans intro!: dim_le_card'[THEN le_less_trans])
 
 lemma empty_interior_convex_hull:
-  fixes s :: "'a::euclidean_space set"
-  assumes "finite s" and dim: "card s \<le> DIM ('a)"
-    shows "interior(convex hull s) = {}"
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S" and dim: "card S \<le> DIM ('a)"
+    shows "interior(convex hull S) = {}"
   by (metis Diff_empty Diff_eq_empty_iff convex_hull_subset_affine_hull
             interior_mono empty_interior_affine_hull [OF assms])
 
 lemma explicit_subset_rel_interior_convex_hull:
-  fixes s :: "'a::euclidean_space set"
-  shows "finite s
-         \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> s. 0 < u x \<and> u x < 1) \<and> sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}
-             \<subseteq> rel_interior (convex hull s)"
-  by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=s, simplified])
+  fixes S :: "'a::euclidean_space set"
+  shows "finite S
+         \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> S. 0 < u x \<and> u x < 1) \<and> sum u S = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) S = y}
+             \<subseteq> rel_interior (convex hull S)"
+  by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=S, simplified])
 
 lemma explicit_subset_rel_interior_convex_hull_minimal:
-  fixes s :: "'a::euclidean_space set"
-  shows "finite s
-         \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> s. 0 < u x) \<and> sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}
-             \<subseteq> rel_interior (convex hull s)"
-  by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=s, simplified])
+  fixes S :: "'a::euclidean_space set"
+  shows "finite S
+         \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> S. 0 < u x) \<and> sum u S = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) S = y}
+             \<subseteq> rel_interior (convex hull S)"
+  by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=S, simplified])
 
 lemma rel_interior_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
