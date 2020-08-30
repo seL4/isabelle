@@ -482,7 +482,8 @@ proof -
     define U where "U = {x<..<y}"
     then have "open U" by simp
     moreover have "z \<in> U" using z U_def by simp
-    ultimately obtain V where "V \<in> A" "z \<in> V" "V \<subseteq> U" using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    ultimately obtain V where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
     define w where "w = (SOME x. x \<in> V)"
     then have "w \<in> V" using \<open>z \<in> V\<close> by (metis someI2)
     then have "x < w \<and> w \<le> y" using \<open>w \<in> V\<close> \<open>V \<subseteq> U\<close> U_def by fastforce
@@ -494,7 +495,8 @@ proof -
     define U where "U = {x<..}"
     then have "open U" by simp
     moreover have "y \<in> U" using \<open>x < y\<close> U_def by simp
-    ultimately obtain "V" where "V \<in> A" "y \<in> V" "V \<subseteq> U" using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    ultimately obtain "V" where "V \<in> A" "y \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
     have "U = {y..}" unfolding U_def using * \<open>x < y\<close> by auto
     then have "V \<subseteq> {y..}" using \<open>V \<subseteq> U\<close> by simp
     then have "(LEAST w. w \<in> V) = y" using \<open>y \<in> V\<close> by (meson Least_equality atLeast_iff subsetCE)
@@ -521,7 +523,8 @@ proof -
     define U where "U = {x<..<y}"
     then have "open U" by simp
     moreover have "z \<in> U" using z U_def by simp
-    ultimately obtain "V" where "V \<in> A" "z \<in> V" "V \<subseteq> U" using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    ultimately obtain "V" where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
     define w where "w = (SOME x. x \<in> V)"
     then have "w \<in> V" using \<open>z \<in> V\<close> by (metis someI2)
     then have "x \<le> w \<and> w < y" using \<open>w \<in> V\<close> \<open>V \<subseteq> U\<close> U_def by fastforce
@@ -533,7 +536,8 @@ proof -
     define U where "U = {..<y}"
     then have "open U" by simp
     moreover have "x \<in> U" using \<open>x < y\<close> U_def by simp
-    ultimately obtain "V" where "V \<in> A" "x \<in> V" "V \<subseteq> U" using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    ultimately obtain "V" where "V \<in> A" "x \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
     have "U = {..x}" unfolding U_def using * \<open>x < y\<close> by auto
     then have "V \<subseteq> {..x}" using \<open>V \<subseteq> U\<close> by simp
     then have "(GREATEST x. x \<in> V) = x" using \<open>x \<in> V\<close> by (meson Greatest_equality atMost_iff subsetCE)
@@ -1556,18 +1560,12 @@ lemma sequence_infinite_lemma:
   shows "infinite (range f)"
 proof
   assume "finite (range f)"
-  then have "closed (range f)"
-    by (rule finite_imp_closed)
-  then have "open (- range f)"
-    by (rule open_Compl)
-  from assms(1) have "l \<in> - range f"
-    by auto
-  from assms(2) have "eventually (\<lambda>n. f n \<in> - range f) sequentially"
-    using \<open>open (- range f)\<close> \<open>l \<in> - range f\<close>
-    by (rule topological_tendstoD)
+  then have "l \<notin> range f \<and> closed (range f)"
+    using \<open>finite (range f)\<close> assms(1) finite_imp_closed by blast
+  then have "eventually (\<lambda>n. f n \<in> - range f) sequentially"
+    by (metis Compl_iff assms(2) open_Compl topological_tendstoD)
   then show False
-    unfolding eventually_sequentially
-    by auto
+    unfolding eventually_sequentially by auto
 qed
 
 lemma Bolzano_Weierstrass_imp_closed:

@@ -68,94 +68,94 @@ qed
 
 subsection \<open>Connected components, considered as a connectedness relation or a set\<close>
 
-definition\<^marker>\<open>tag important\<close> "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
+definition\<^marker>\<open>tag important\<close> "connected_component S x y \<equiv> \<exists>T. connected T \<and> T \<subseteq> S \<and> x \<in> T \<and> y \<in> T"
 
-abbreviation "connected_component_set s x \<equiv> Collect (connected_component s x)"
+abbreviation "connected_component_set S x \<equiv> Collect (connected_component S x)"
 
 lemma connected_componentI:
-  "connected t \<Longrightarrow> t \<subseteq> s \<Longrightarrow> x \<in> t \<Longrightarrow> y \<in> t \<Longrightarrow> connected_component s x y"
+  "connected T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> x \<in> T \<Longrightarrow> y \<in> T \<Longrightarrow> connected_component S x y"
   by (auto simp: connected_component_def)
 
-lemma connected_component_in: "connected_component s x y \<Longrightarrow> x \<in> s \<and> y \<in> s"
+lemma connected_component_in: "connected_component S x y \<Longrightarrow> x \<in> S \<and> y \<in> S"
   by (auto simp: connected_component_def)
 
-lemma connected_component_refl: "x \<in> s \<Longrightarrow> connected_component s x x"
+lemma connected_component_refl: "x \<in> S \<Longrightarrow> connected_component S x x"
   by (auto simp: connected_component_def) (use connected_sing in blast)
 
-lemma connected_component_refl_eq [simp]: "connected_component s x x \<longleftrightarrow> x \<in> s"
+lemma connected_component_refl_eq [simp]: "connected_component S x x \<longleftrightarrow> x \<in> S"
   by (auto simp: connected_component_refl) (auto simp: connected_component_def)
 
-lemma connected_component_sym: "connected_component s x y \<Longrightarrow> connected_component s y x"
+lemma connected_component_sym: "connected_component S x y \<Longrightarrow> connected_component S y x"
   by (auto simp: connected_component_def)
 
 lemma connected_component_trans:
-  "connected_component s x y \<Longrightarrow> connected_component s y z \<Longrightarrow> connected_component s x z"
+  "connected_component S x y \<Longrightarrow> connected_component S y z \<Longrightarrow> connected_component S x z"
   unfolding connected_component_def
   by (metis Int_iff Un_iff Un_subset_iff equals0D connected_Un)
 
 lemma connected_component_of_subset:
-  "connected_component s x y \<Longrightarrow> s \<subseteq> t \<Longrightarrow> connected_component t x y"
+  "connected_component S x y \<Longrightarrow> S \<subseteq> T \<Longrightarrow> connected_component T x y"
   by (auto simp: connected_component_def)
 
-lemma connected_component_Union: "connected_component_set s x = \<Union>{t. connected t \<and> x \<in> t \<and> t \<subseteq> s}"
+lemma connected_component_Union: "connected_component_set S x = \<Union>{T. connected T \<and> x \<in> T \<and> T \<subseteq> S}"
   by (auto simp: connected_component_def)
 
-lemma connected_connected_component [iff]: "connected (connected_component_set s x)"
+lemma connected_connected_component [iff]: "connected (connected_component_set S x)"
   by (auto simp: connected_component_Union intro: connected_Union)
 
 lemma connected_iff_eq_connected_component_set:
-  "connected s \<longleftrightarrow> (\<forall>x \<in> s. connected_component_set s x = s)"
-proof (cases "s = {}")
+  "connected S \<longleftrightarrow> (\<forall>x \<in> S. connected_component_set S x = S)"
+proof (cases "S = {}")
   case True
   then show ?thesis by simp
 next
   case False
-  then obtain x where "x \<in> s" by auto
+  then obtain x where "x \<in> S" by auto
   show ?thesis
   proof
-    assume "connected s"
-    then show "\<forall>x \<in> s. connected_component_set s x = s"
+    assume "connected S"
+    then show "\<forall>x \<in> S. connected_component_set S x = S"
       by (force simp: connected_component_def)
   next
-    assume "\<forall>x \<in> s. connected_component_set s x = s"
-    then show "connected s"
-      by (metis \<open>x \<in> s\<close> connected_connected_component)
+    assume "\<forall>x \<in> S. connected_component_set S x = S"
+    then show "connected S"
+      by (metis \<open>x \<in> S\<close> connected_connected_component)
   qed
 qed
 
-lemma connected_component_subset: "connected_component_set s x \<subseteq> s"
+lemma connected_component_subset: "connected_component_set S x \<subseteq> S"
   using connected_component_in by blast
 
-lemma connected_component_eq_self: "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> connected_component_set s x = s"
+lemma connected_component_eq_self: "connected S \<Longrightarrow> x \<in> S \<Longrightarrow> connected_component_set S x = S"
   by (simp add: connected_iff_eq_connected_component_set)
 
 lemma connected_iff_connected_component:
-  "connected s \<longleftrightarrow> (\<forall>x \<in> s. \<forall>y \<in> s. connected_component s x y)"
+  "connected S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. connected_component S x y)"
   using connected_component_in by (auto simp: connected_iff_eq_connected_component_set)
 
 lemma connected_component_maximal:
-  "x \<in> t \<Longrightarrow> connected t \<Longrightarrow> t \<subseteq> s \<Longrightarrow> t \<subseteq> (connected_component_set s x)"
+  "x \<in> T \<Longrightarrow> connected T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> T \<subseteq> (connected_component_set S x)"
   using connected_component_eq_self connected_component_of_subset by blast
 
 lemma connected_component_mono:
-  "s \<subseteq> t \<Longrightarrow> connected_component_set s x \<subseteq> connected_component_set t x"
+  "S \<subseteq> T \<Longrightarrow> connected_component_set S x \<subseteq> connected_component_set T x"
   by (simp add: Collect_mono connected_component_of_subset)
 
-lemma connected_component_eq_empty [simp]: "connected_component_set s x = {} \<longleftrightarrow> x \<notin> s"
+lemma connected_component_eq_empty [simp]: "connected_component_set S x = {} \<longleftrightarrow> x \<notin> S"
   using connected_component_refl by (fastforce simp: connected_component_in)
 
 lemma connected_component_set_empty [simp]: "connected_component_set {} x = {}"
   using connected_component_eq_empty by blast
 
 lemma connected_component_eq:
-  "y \<in> connected_component_set s x \<Longrightarrow> (connected_component_set s y = connected_component_set s x)"
+  "y \<in> connected_component_set S x \<Longrightarrow> (connected_component_set S y = connected_component_set S x)"
   by (metis (no_types, lifting)
       Collect_cong connected_component_sym connected_component_trans mem_Collect_eq)
 
 lemma closed_connected_component:
-  assumes s: "closed s"
-  shows "closed (connected_component_set s x)"
-proof (cases "x \<in> s")
+  assumes S: "closed S"
+  shows "closed (connected_component_set S x)"
+proof (cases "x \<in> S")
   case False
   then show ?thesis
     by (metis connected_component_eq_empty closed_empty)
@@ -164,29 +164,29 @@ next
   show ?thesis
     unfolding closure_eq [symmetric]
   proof
-    show "closure (connected_component_set s x) \<subseteq> connected_component_set s x"
+    show "closure (connected_component_set S x) \<subseteq> connected_component_set S x"
       apply (rule connected_component_maximal)
         apply (simp add: closure_def True)
        apply (simp add: connected_imp_connected_closure)
-      apply (simp add: s closure_minimal connected_component_subset)
+      apply (simp add: S closure_minimal connected_component_subset)
       done
   next
-    show "connected_component_set s x \<subseteq> closure (connected_component_set s x)"
+    show "connected_component_set S x \<subseteq> closure (connected_component_set S x)"
       by (simp add: closure_subset)
   qed
 qed
 
 lemma connected_component_disjoint:
-  "connected_component_set s a \<inter> connected_component_set s b = {} \<longleftrightarrow>
-    a \<notin> connected_component_set s b"
+  "connected_component_set S a \<inter> connected_component_set S b = {} \<longleftrightarrow>
+    a \<notin> connected_component_set S b"
   apply (auto simp: connected_component_eq)
   using connected_component_eq connected_component_sym
   apply blast
   done
 
 lemma connected_component_nonoverlap:
-  "connected_component_set s a \<inter> connected_component_set s b = {} \<longleftrightarrow>
-    a \<notin> s \<or> b \<notin> s \<or> connected_component_set s a \<noteq> connected_component_set s b"
+  "connected_component_set S a \<inter> connected_component_set S b = {} \<longleftrightarrow>
+    a \<notin> S \<or> b \<notin> S \<or> connected_component_set S a \<noteq> connected_component_set S b"
   apply (auto simp: connected_component_in)
   using connected_component_refl_eq
     apply blast
@@ -195,30 +195,30 @@ lemma connected_component_nonoverlap:
   done
 
 lemma connected_component_overlap:
-  "connected_component_set s a \<inter> connected_component_set s b \<noteq> {} \<longleftrightarrow>
-    a \<in> s \<and> b \<in> s \<and> connected_component_set s a = connected_component_set s b"
+  "connected_component_set S a \<inter> connected_component_set S b \<noteq> {} \<longleftrightarrow>
+    a \<in> S \<and> b \<in> S \<and> connected_component_set S a = connected_component_set S b"
   by (auto simp: connected_component_nonoverlap)
 
-lemma connected_component_sym_eq: "connected_component s x y \<longleftrightarrow> connected_component s y x"
+lemma connected_component_sym_eq: "connected_component S x y \<longleftrightarrow> connected_component S y x"
   using connected_component_sym by blast
 
 lemma connected_component_eq_eq:
-  "connected_component_set s x = connected_component_set s y \<longleftrightarrow>
-    x \<notin> s \<and> y \<notin> s \<or> x \<in> s \<and> y \<in> s \<and> connected_component s x y"
-  apply (cases "y \<in> s", simp)
+  "connected_component_set S x = connected_component_set S y \<longleftrightarrow>
+    x \<notin> S \<and> y \<notin> S \<or> x \<in> S \<and> y \<in> S \<and> connected_component S x y"
+  apply (cases "y \<in> S", simp)
    apply (metis connected_component_eq connected_component_eq_empty connected_component_refl_eq mem_Collect_eq)
-  apply (cases "x \<in> s", simp)
+  apply (cases "x \<in> S", simp)
    apply (metis connected_component_eq_empty)
   using connected_component_eq_empty
   apply blast
   done
 
 lemma connected_iff_connected_component_eq:
-  "connected s \<longleftrightarrow> (\<forall>x \<in> s. \<forall>y \<in> s. connected_component_set s x = connected_component_set s y)"
+  "connected S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. connected_component_set S x = connected_component_set S y)"
   by (simp add: connected_component_eq_eq connected_iff_connected_component)
 
 lemma connected_component_idemp:
-  "connected_component_set (connected_component_set s x) x = connected_component_set s x"
+  "connected_component_set (connected_component_set S x) x = connected_component_set S x"
   apply (rule subset_antisym)
    apply (simp add: connected_component_subset)
   apply (metis connected_component_eq_empty connected_component_maximal
@@ -226,25 +226,24 @@ lemma connected_component_idemp:
   done
 
 lemma connected_component_unique:
-  "\<lbrakk>x \<in> c; c \<subseteq> s; connected c;
-    \<And>c'. x \<in> c' \<and> c' \<subseteq> s \<and> connected c'
-              \<Longrightarrow> c' \<subseteq> c\<rbrakk>
-        \<Longrightarrow> connected_component_set s x = c"
-apply (rule subset_antisym)
-apply (meson connected_component_maximal connected_component_subset connected_connected_component contra_subsetD)
-by (simp add: connected_component_maximal)
+  "\<lbrakk>x \<in> c; c \<subseteq> S; connected c;
+    \<And>c'. \<lbrakk>x \<in> c'; c' \<subseteq> S; connected c'\<rbrakk> \<Longrightarrow> c' \<subseteq> c\<rbrakk>
+        \<Longrightarrow> connected_component_set S x = c"
+  apply (rule subset_antisym)
+   apply (meson connected_component_maximal connected_component_subset connected_connected_component contra_subsetD)
+  by (simp add: connected_component_maximal)
 
 lemma joinable_connected_component_eq:
-  "\<lbrakk>connected t; t \<subseteq> s;
-    connected_component_set s x \<inter> t \<noteq> {};
-    connected_component_set s y \<inter> t \<noteq> {}\<rbrakk>
-    \<Longrightarrow> connected_component_set s x = connected_component_set s y"
+  "\<lbrakk>connected T; T \<subseteq> S;
+    connected_component_set S x \<inter> T \<noteq> {};
+    connected_component_set S y \<inter> T \<noteq> {}\<rbrakk>
+    \<Longrightarrow> connected_component_set S x = connected_component_set S y"
 apply (simp add: ex_in_conv [symmetric])
 apply (rule connected_component_eq)
 by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
 
 
-lemma Union_connected_component: "\<Union>(connected_component_set s ` s) = s"
+lemma Union_connected_component: "\<Union>(connected_component_set S ` S) = S"
   apply (rule subset_antisym)
   apply (simp add: SUP_least connected_component_subset)
   using connected_component_refl_eq
@@ -252,16 +251,16 @@ lemma Union_connected_component: "\<Union>(connected_component_set s ` s) = s"
 
 
 lemma complement_connected_component_unions:
-    "s - connected_component_set s x =
-     \<Union>(connected_component_set s ` s - {connected_component_set s x})"
+    "S - connected_component_set S x =
+     \<Union>(connected_component_set S ` S - {connected_component_set S x})"
   apply (subst Union_connected_component [symmetric], auto)
   apply (metis connected_component_eq_eq connected_component_in)
   by (metis connected_component_eq mem_Collect_eq)
 
 lemma connected_component_intermediate_subset:
-        "\<lbrakk>connected_component_set u a \<subseteq> t; t \<subseteq> u\<rbrakk>
-        \<Longrightarrow> connected_component_set t a = connected_component_set u a"
-  apply (case_tac "a \<in> u")
+        "\<lbrakk>connected_component_set U a \<subseteq> T; T \<subseteq> U\<rbrakk>
+        \<Longrightarrow> connected_component_set T a = connected_component_set U a"
+  apply (case_tac "a \<in> U")
   apply (simp add: connected_component_maximal connected_component_mono subset_antisym)
   using connected_component_eq_empty by blast
 
@@ -269,17 +268,17 @@ lemma connected_component_intermediate_subset:
 subsection \<open>The set of connected components of a set\<close>
 
 definition\<^marker>\<open>tag important\<close> components:: "'a::topological_space set \<Rightarrow> 'a set set"
-  where "components s \<equiv> connected_component_set s ` s"
+  where "components S \<equiv> connected_component_set S ` S"
 
-lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
+lemma components_iff: "S \<in> components U \<longleftrightarrow> (\<exists>x. x \<in> U \<and> S = connected_component_set U x)"
   by (auto simp: components_def)
 
-lemma componentsI: "x \<in> u \<Longrightarrow> connected_component_set u x \<in> components u"
+lemma componentsI: "x \<in> U \<Longrightarrow> connected_component_set U x \<in> components U"
   by (auto simp: components_def)
 
 lemma componentsE:
-  assumes "s \<in> components u"
-  obtains x where "x \<in> u" "s = connected_component_set u x"
+  assumes "S \<in> components U"
+  obtains x where "x \<in> U" "S = connected_component_set U x"
   using assms by (auto simp: components_def)
 
 lemma Union_components [simp]: "\<Union>(components u) = u"

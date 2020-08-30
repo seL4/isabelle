@@ -61,7 +61,7 @@ lemma ball_subset_cball [simp, intro]: "ball x e \<subseteq> cball x e"
   by (simp add: subset_eq)
 
 lemma mem_ball_imp_mem_cball: "x \<in> ball y e \<Longrightarrow> x \<in> cball y e"
-  by (auto)
+  by auto
 
 lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
   by force
@@ -70,34 +70,34 @@ lemma cball_diff_sphere: "cball a r - sphere a r = ball a r"
   by auto
 
 lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball x e"
-  by (simp add: subset_eq)
+  by auto
 
 lemma subset_cball[intro]: "d \<le> e \<Longrightarrow> cball x d \<subseteq> cball x e"
-  by (simp add: subset_eq)
+  by auto
 
 lemma mem_ball_leI: "x \<in> ball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> ball y f"
-  by (auto)
+  by auto
 
 lemma mem_cball_leI: "x \<in> cball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> cball y f"
-  by (auto)
+  by auto
 
 lemma cball_trans: "y \<in> cball z b \<Longrightarrow> x \<in> cball y a \<Longrightarrow> x \<in> cball z (b + a)"
   by metric
 
 lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
-  by (simp add: set_eq_iff) arith
+  by auto
 
 lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
-  by (simp add: set_eq_iff)
+  by auto
 
 lemma cball_max_Un: "cball a (max r s) = cball a r \<union> cball a s"
-  by (simp add: set_eq_iff) arith
+  by auto
 
 lemma cball_min_Int: "cball a (min r s) = cball a r \<inter> cball a s"
-  by (simp add: set_eq_iff)
+  by auto
 
 lemma cball_diff_eq_sphere: "cball a r - ball a r =  sphere a r"
-  by (auto simp: cball_def ball_def dist_commute)
+  by auto
 
 lemma open_ball [intro, simp]: "open (ball x e)"
 proof -
@@ -126,7 +126,8 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   unfolding mem_ball set_eq_iff
   by (simp add: not_less) metric
 
-lemma ball_empty: "e \<le> 0 \<Longrightarrow> ball x e = {}" by simp
+lemma ball_empty: "e \<le> 0 \<Longrightarrow> ball x e = {}" 
+  by simp
 
 lemma closed_cball [iff]: "closed (cball x e)"
 proof -
@@ -142,16 +143,15 @@ proof -
   {
     fix x and e::real
     assume "x\<in>S" "e>0" "ball x e \<subseteq> S"
-    then have "\<exists>d>0. cball x d \<subseteq> S" unfolding subset_eq by (rule_tac x="e/2" in exI, auto)
+    then have "\<exists>d>0. cball x d \<subseteq> S"
+      unfolding subset_eq by (rule_tac x="e/2" in exI, auto)
   }
   moreover
   {
     fix x and e::real
     assume "x\<in>S" "e>0" "cball x e \<subseteq> S"
     then have "\<exists>d>0. ball x d \<subseteq> S"
-      unfolding subset_eq
-      apply (rule_tac x="e/2" in exI, auto)
-      done
+      using mem_ball_imp_mem_cball by blast
   }
   ultimately show ?thesis
     unfolding open_contains_ball by auto
@@ -206,24 +206,17 @@ lemma cball_empty [simp]: "e < 0 \<Longrightarrow> cball x e = {}"
 lemma cball_sing:
   fixes x :: "'a::metric_space"
   shows "e = 0 \<Longrightarrow> cball x e = {x}"
-  by (auto simp: set_eq_iff)
+  by simp
 
 lemma ball_divide_subset: "d \<ge> 1 \<Longrightarrow> ball x (e/d) \<subseteq> ball x e"
-  apply (cases "e \<le> 0")
-  apply (simp add: ball_empty field_split_simps)
-  apply (rule subset_ball)
-  apply (simp add: field_split_simps)
-  done
+  by (metis ball_eq_empty div_by_1 frac_le linear subset_ball zero_less_one)
 
 lemma ball_divide_subset_numeral: "ball x (e / numeral w) \<subseteq> ball x e"
   using ball_divide_subset one_le_numeral by blast
 
 lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq> cball x e"
-  apply (cases "e < 0")
-  apply (simp add: field_split_simps)
-  apply (rule subset_cball)
-  apply (metis div_by_1 frac_le not_le order_refl zero_less_one)
-  done
+  apply (cases "e < 0", simp add: field_split_simps)
+  by (metis div_by_1 frac_le less_numeral_extra(1) not_le order_refl subset_cball)
 
 lemma cball_divide_subset_numeral: "cball x (e / numeral w) \<subseteq> cball x e"
   using cball_divide_subset one_le_numeral by blast
@@ -2141,7 +2134,7 @@ proof
     then have D: "T \<subseteq> V" unfolding V_def by auto
 
     have "(ball x ((infdist x T)/2)) \<inter> (ball y ((infdist y S)/2)) = {}" if "x \<in> S" "y \<in> T" for x y
-    proof (auto)
+    proof auto
       fix z assume H: "dist x z * 2 < infdist x T" "dist y z * 2 < infdist y S"
       have "2 * dist x y \<le> 2 * dist x z + 2 * dist y z"
         by metric
@@ -2728,8 +2721,8 @@ lemma bounded_uniformly_continuous_image:
 subsection \<open>With Abstract Topology (TODO: move and remove dependency?)\<close>
 
 lemma openin_contains_ball:
-    "openin (top_of_set t) s \<longleftrightarrow>
-     s \<subseteq> t \<and> (\<forall>x \<in> s. \<exists>e. 0 < e \<and> ball x e \<inter> t \<subseteq> s)"
+    "openin (top_of_set T) S \<longleftrightarrow>
+     S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>e. 0 < e \<and> ball x e \<inter> T \<subseteq> S)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -2745,14 +2738,18 @@ next
 qed
 
 lemma openin_contains_cball:
-   "openin (top_of_set t) s \<longleftrightarrow>
-        s \<subseteq> t \<and>
-        (\<forall>x \<in> s. \<exists>e. 0 < e \<and> cball x e \<inter> t \<subseteq> s)"
-  apply (simp add: openin_contains_ball)
-  apply (rule iffI)
-   apply (auto dest!: bspec)
-   apply (rule_tac x="e/2" in exI, force+)
-  done
+   "openin (top_of_set T) S \<longleftrightarrow>
+        S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>e. 0 < e \<and> cball x e \<inter> T \<subseteq> S)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (force simp add: openin_contains_ball intro: exI [where x="_/2"])
+next
+  assume ?rhs
+  then show ?lhs
+    by (force simp add: openin_contains_ball)
+qed
 
 
 subsection \<open>Closed Nest\<close>
@@ -3086,9 +3083,9 @@ lemma setdist_le_dist: "\<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow>
   by (auto intro!: bdd_belowI [where m=0] cInf_lower)
 
 lemma le_setdist_iff:
-        "d \<le> setdist s t \<longleftrightarrow>
-        (\<forall>x \<in> s. \<forall>y \<in> t. d \<le> dist x y) \<and> (s = {} \<or> t = {} \<longrightarrow> d \<le> 0)"
-  apply (cases "s = {} \<or> t = {}")
+        "d \<le> setdist S T \<longleftrightarrow>
+        (\<forall>x \<in> S. \<forall>y \<in> T. d \<le> dist x y) \<and> (S = {} \<or> T = {} \<longrightarrow> d \<le> 0)"
+  apply (cases "S = {} \<or> T = {}")
   apply (force simp add: setdist_def)
   apply (intro iffI conjI)
   using setdist_le_dist apply fastforce
@@ -3096,34 +3093,33 @@ lemma le_setdist_iff:
   done
 
 lemma setdist_ltE:
-  assumes "setdist s t < b" "s \<noteq> {}" "t \<noteq> {}"
-    obtains x y where "x \<in> s" "y \<in> t" "dist x y < b"
+  assumes "setdist S T < b" "S \<noteq> {}" "T \<noteq> {}"
+    obtains x y where "x \<in> S" "y \<in> T" "dist x y < b"
 using assms
 by (auto simp: not_le [symmetric] le_setdist_iff)
 
-lemma setdist_refl: "setdist s s = 0"
-  apply (cases "s = {}")
+lemma setdist_refl: "setdist S S = 0"
+  apply (cases "S = {}")
   apply (force simp add: setdist_def)
   apply (rule antisym [OF _ setdist_pos_le])
   apply (metis all_not_in_conv dist_self setdist_le_dist)
   done
 
-lemma setdist_sym: "setdist s t = setdist t s"
+lemma setdist_sym: "setdist S T = setdist T S"
   by (force simp: setdist_def dist_commute intro!: arg_cong [where f=Inf])
 
-lemma setdist_triangle: "setdist s t \<le> setdist s {a} + setdist {a} t"
-proof (cases "s = {} \<or> t = {}")
+lemma setdist_triangle: "setdist S T \<le> setdist S {a} + setdist {a} T"
+proof (cases "S = {} \<or> T = {}")
   case True then show ?thesis
     using setdist_pos_le by fastforce
 next
   case False
-  have "\<And>x. x \<in> s \<Longrightarrow> setdist s t - dist x a \<le> setdist {a} t"
-    apply (rule le_setdistI, blast)
-    using False apply (fastforce intro: le_setdistI)
-    apply (simp add: algebra_simps)
+  then have "\<And>x. x \<in> S \<Longrightarrow> setdist S T - dist x a \<le> setdist {a} T"
+    apply (intro le_setdistI)
+    apply (simp_all add: algebra_simps)
     apply (metis dist_commute dist_triangle3 order_trans [OF setdist_le_dist])
     done
-  then have "setdist s t - setdist {a} t \<le> setdist s {a}"
+  then have "setdist S T - setdist {a} T \<le> setdist S {a}"
     using False by (fastforce intro: le_setdistI)
   then show ?thesis
     by (simp add: algebra_simps)
@@ -3132,52 +3128,48 @@ qed
 lemma setdist_singletons [simp]: "setdist {x} {y} = dist x y"
   by (simp add: setdist_def)
 
-lemma setdist_Lipschitz: "\<bar>setdist {x} s - setdist {y} s\<bar> \<le> dist x y"
+lemma setdist_Lipschitz: "\<bar>setdist {x} S - setdist {y} S\<bar> \<le> dist x y"
   apply (subst setdist_singletons [symmetric])
   by (metis abs_diff_le_iff diff_le_eq setdist_triangle setdist_sym)
 
-lemma continuous_at_setdist [continuous_intros]: "continuous (at x) (\<lambda>y. (setdist {y} s))"
+lemma continuous_at_setdist [continuous_intros]: "continuous (at x) (\<lambda>y. (setdist {y} S))"
   by (force simp: continuous_at_eps_delta dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
 
-lemma continuous_on_setdist [continuous_intros]: "continuous_on t (\<lambda>y. (setdist {y} s))"
+lemma continuous_on_setdist [continuous_intros]: "continuous_on T (\<lambda>y. (setdist {y} S))"
   by (metis continuous_at_setdist continuous_at_imp_continuous_on)
 
-lemma uniformly_continuous_on_setdist: "uniformly_continuous_on t (\<lambda>y. (setdist {y} s))"
+lemma uniformly_continuous_on_setdist: "uniformly_continuous_on T (\<lambda>y. (setdist {y} S))"
   by (force simp: uniformly_continuous_on_def dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
 
-lemma setdist_subset_right: "\<lbrakk>t \<noteq> {}; t \<subseteq> u\<rbrakk> \<Longrightarrow> setdist s u \<le> setdist s t"
-  apply (cases "s = {} \<or> u = {}", force)
+lemma setdist_subset_right: "\<lbrakk>T \<noteq> {}; T \<subseteq> u\<rbrakk> \<Longrightarrow> setdist S u \<le> setdist S T"
+  apply (cases "S = {} \<or> u = {}", force)
   apply (auto simp: setdist_def intro!: bdd_belowI [where m=0] cInf_superset_mono)
   done
 
-lemma setdist_subset_left: "\<lbrakk>s \<noteq> {}; s \<subseteq> t\<rbrakk> \<Longrightarrow> setdist t u \<le> setdist s u"
+lemma setdist_subset_left: "\<lbrakk>S \<noteq> {}; S \<subseteq> T\<rbrakk> \<Longrightarrow> setdist T u \<le> setdist S u"
   by (metis setdist_subset_right setdist_sym)
 
-lemma setdist_closure_1 [simp]: "setdist (closure s) t = setdist s t"
-proof (cases "s = {} \<or> t = {}")
+lemma setdist_closure_1 [simp]: "setdist (closure S) T = setdist S T"
+proof (cases "S = {} \<or> T = {}")
   case True then show ?thesis by force
 next
   case False
   { fix y
-    assume "y \<in> t"
-    have "continuous_on (closure s) (\<lambda>a. dist a y)"
+    assume "y \<in> T"
+    have "continuous_on (closure S) (\<lambda>a. dist a y)"
       by (auto simp: continuous_intros dist_norm)
-    then have *: "\<And>x. x \<in> closure s \<Longrightarrow> setdist s t \<le> dist x y"
-      apply (rule continuous_ge_on_closure)
-      apply assumption
-      apply (blast intro: setdist_le_dist \<open>y \<in> t\<close> )
-      done
+    then have *: "\<And>x. x \<in> closure S \<Longrightarrow> setdist S T \<le> dist x y"
+      by (fast intro: setdist_le_dist \<open>y \<in> T\<close> continuous_ge_on_closure)
   } note * = this
   show ?thesis
     apply (rule antisym)
      using False closure_subset apply (blast intro: setdist_subset_left)
-    using False *
-    apply (force intro!: le_setdistI)
+    using False * apply (force intro!: le_setdistI)
     done
 qed
 
-lemma setdist_closure_2 [simp]: "setdist t (closure s) = setdist t s"
-by (metis setdist_closure_1 setdist_sym)
+lemma setdist_closure_2 [simp]: "setdist T (closure S) = setdist T S"
+  by (metis setdist_closure_1 setdist_sym)
 
 lemma setdist_eq_0I: "\<lbrakk>x \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> setdist S T = 0"
   by (metis antisym dist_self setdist_le_dist setdist_pos_le)
