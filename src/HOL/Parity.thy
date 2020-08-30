@@ -976,6 +976,20 @@ lemma bit_Numeral1_iff [simp]:
   \<open>bit (numeral Num.One) n \<longleftrightarrow> n = 0\<close>
   by (simp add: bit_rec)
 
+lemma exp_add_not_zero_imp:
+  \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close> if \<open>2 ^ (m + n) \<noteq> 0\<close>
+proof -
+  have \<open>\<not> (2 ^ m = 0 \<or> 2 ^ n = 0)\<close>
+  proof (rule notI)
+    assume \<open>2 ^ m = 0 \<or> 2 ^ n = 0\<close>
+    then have \<open>2 ^ (m + n) = 0\<close>
+      by (rule disjE) (simp_all add: power_add)
+    with that show False ..
+  qed
+  then show \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close>
+    by simp_all
+qed
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -1110,6 +1124,43 @@ next
       using odd by simp
   qed
 qed
+
+context semiring_bits
+begin
+
+lemma even_of_nat_iff:
+  \<open>even (of_nat n) \<longleftrightarrow> even n\<close>
+  by (induction n rule: nat_bit_induct) simp_all
+
+lemma bit_of_nat_iff:
+  \<open>bit (of_nat m) n \<longleftrightarrow> (2::'a) ^ n \<noteq> 0 \<and> bit m n\<close>
+proof (cases \<open>(2::'a) ^ n = 0\<close>)
+  case True
+  then show ?thesis
+    by (simp add: exp_eq_0_imp_not_bit)
+next
+  case False
+  then have \<open>bit (of_nat m) n \<longleftrightarrow> bit m n\<close>
+  proof (induction m arbitrary: n rule: nat_bit_induct)
+    case zero
+    then show ?case
+      by simp
+  next
+    case (even m)
+    then show ?case
+      by (cases n)
+        (auto simp add: bit_double_iff Parity.bit_double_iff dest: mult_not_zero)
+  next
+    case (odd m)
+    then show ?case
+      by (cases n)
+         (auto simp add: bit_double_iff even_bit_succ_iff Parity.bit_Suc dest: mult_not_zero)
+  qed
+  with False show ?thesis
+    by simp
+qed
+
+end
 
 instantiation int :: semiring_bits
 begin
@@ -1453,6 +1504,27 @@ instance
 
 end
 
+context semiring_bit_shifts
+begin
+
+lemma push_bit_of_nat:
+  \<open>push_bit n (of_nat m) = of_nat (push_bit n m)\<close>
+  by (simp add: push_bit_eq_mult semiring_bit_shifts_class.push_bit_eq_mult)
+
+lemma of_nat_push_bit:
+  \<open>of_nat (push_bit m n) = push_bit m (of_nat n)\<close>
+  by (simp add: push_bit_eq_mult semiring_bit_shifts_class.push_bit_eq_mult)
+
+lemma take_bit_of_nat:
+  \<open>take_bit n (of_nat m) = of_nat (take_bit n m)\<close>
+  by (rule bit_eqI) (simp add: bit_take_bit_iff Parity.bit_take_bit_iff bit_of_nat_iff)
+
+lemma of_nat_take_bit:
+  \<open>of_nat (take_bit n m) = take_bit n (of_nat m)\<close>
+  by (rule bit_eqI) (simp add: bit_take_bit_iff Parity.bit_take_bit_iff bit_of_nat_iff)
+
+end
+
 instantiation int :: semiring_bit_shifts
 begin
 
@@ -1498,10 +1570,6 @@ lemma push_bit_eq_0_iff [simp]:
   "push_bit n a = 0 \<longleftrightarrow> a = 0"
   by (simp add: push_bit_eq_mult)
 
-lemma push_bit_of_nat:
-  "push_bit n (of_nat m) = of_nat (push_bit n m)"
-  by (simp add: push_bit_eq_mult Parity.push_bit_eq_mult)
-
 lemma take_bit_add:
   "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
   by (simp add: take_bit_eq_mod mod_simps)
@@ -1534,10 +1602,6 @@ lemma take_bit_numeral_bit1 [simp]:
   \<open>take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1\<close>
   by (simp add: take_bit_rec numeral_Bit1_div_2 mod_2_eq_odd)
 
-lemma take_bit_of_nat:
-  "take_bit n (of_nat m) = of_nat (take_bit n m)"
-  by (simp add: take_bit_eq_mod Parity.take_bit_eq_mod of_nat_mod [of m "2 ^ n"])
-
 lemma drop_bit_Suc_bit0 [simp]:
   \<open>drop_bit (Suc n) (numeral (Num.Bit0 k)) = drop_bit n (numeral k)\<close>
   by (simp add: drop_bit_Suc numeral_Bit0_div_2)
@@ -1569,17 +1633,9 @@ proof -
     by (simp add: bit_iff_odd semiring_bits_class.bit_iff_odd)
 qed
 
-lemma of_nat_push_bit:
-  \<open>of_nat (push_bit m n) = push_bit m (of_nat n)\<close>
-  by (simp add: push_bit_eq_mult semiring_bit_shifts_class.push_bit_eq_mult)
-
 lemma of_nat_drop_bit:
   \<open>of_nat (drop_bit m n) = drop_bit m (of_nat n)\<close>
   by (simp add: drop_bit_eq_div semiring_bit_shifts_class.drop_bit_eq_div of_nat_div)
-
-lemma of_nat_take_bit:
-  \<open>of_nat (take_bit m n) = take_bit m (of_nat n)\<close>
-  by (simp add: take_bit_eq_mod semiring_bit_shifts_class.take_bit_eq_mod of_nat_mod)
 
 lemma bit_push_bit_iff_of_nat_iff:
   \<open>bit (push_bit m (of_nat r)) n \<longleftrightarrow> m \<le> n \<and> bit (of_nat r) (n - m)\<close>
@@ -1591,9 +1647,9 @@ instance nat :: unique_euclidean_semiring_with_bit_shifts ..
 
 instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
-lemma bit_nat_iff [simp]:
-  \<open>bit (nat k) n \<longleftrightarrow> k > 0 \<and> bit k n\<close>
-proof (cases \<open>k > 0\<close>)
+lemma bit_nat_iff:
+  \<open>bit (nat k) n \<longleftrightarrow> k \<ge> 0 \<and> bit k n\<close>
+proof (cases \<open>k \<ge> 0\<close>)
   case True
   moreover define m where \<open>m = nat k\<close>
   ultimately have \<open>k = int m\<close>
@@ -1605,6 +1661,21 @@ next
   then show ?thesis
     by simp
 qed
+
+lemma push_bit_nat_eq:
+  \<open>push_bit n (nat k) = nat (push_bit n k)\<close>
+  by (cases \<open>k \<ge> 0\<close>) (simp_all add: push_bit_eq_mult nat_mult_distrib not_le mult_nonneg_nonpos2)
+
+lemma drop_bit_nat_eq:
+  \<open>drop_bit n (nat k) = nat (drop_bit n k)\<close>
+  apply (cases \<open>k \<ge> 0\<close>)
+   apply (simp_all add: drop_bit_eq_div nat_div_distrib nat_power_eq not_le)
+  apply (simp add: divide_int_def)
+  done
+
+lemma take_bit_nat_eq:
+  \<open>take_bit n (nat k) = nat (take_bit n k)\<close> if \<open>k \<ge> 0\<close>
+  using that by (simp add: take_bit_eq_mod nat_mod_distrib nat_power_eq)
 
 lemma nat_take_bit_eq:
   \<open>nat (take_bit n k) = take_bit n (nat k)\<close>

@@ -931,9 +931,13 @@ lemma uint_take_bit_eq [code]:
   \<open>uint (take_bit n w) = take_bit n (uint w)\<close>
   by transfer (simp add: ac_simps)
 
+lemma take_bit_word_eq_self:
+  \<open>take_bit n w = w\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by transfer simp
+
 lemma take_bit_length_eq [simp]:
   \<open>take_bit LENGTH('a) w = w\<close> for w :: \<open>'a::len word\<close>
-  by transfer simp
+  by (rule take_bit_word_eq_self) simp
 
 lemma bit_word_of_int_iff:
   \<open>bit (word_of_int k :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> bit k n\<close>
@@ -3865,7 +3869,7 @@ proof -
        apply (auto simp add: signed_take_bit_eq_take_bit_minus take_bit_Suc_from_most n not_less intro!: *)
     done
   then show ?thesis
-    apply (simp add: word_size shiftr_word_eq drop_bit_eq_zero_iff_not_bit_last bit_and_iff bit_xor_iff)
+    apply (simp only: One_nat_def word_size shiftr_word_eq drop_bit_eq_zero_iff_not_bit_last bit_and_iff bit_xor_iff)
     apply (simp add: bit_last_iff)
     done
 qed
