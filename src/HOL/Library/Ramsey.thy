@@ -18,8 +18,11 @@ definition nsets :: "['a set, nat] \<Rightarrow> 'a set set" ("([_]\<^bsup>_\<^e
 lemma nsets_mono: "A \<subseteq> B \<Longrightarrow> nsets A n \<subseteq> nsets B n"
   by (auto simp: nsets_def)
 
+lemma nsets_Pi_contra: "A' \<subseteq> A \<Longrightarrow> Pi ([A]\<^bsup>n\<^esup>) B \<subseteq> Pi ([A']\<^bsup>n\<^esup>) B"
+  by (auto simp: nsets_def)
+
 lemma nsets_2_eq: "nsets A 2 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}})"
-by (auto simp: nsets_def card_2_iff)
+  by (auto simp: nsets_def card_2_iff)
 
 lemma nsets_doubleton_2_eq [simp]: "[{x, y}]\<^bsup>2\<^esup> = (if x=y then {} else {{x, y}})"
   by (auto simp: nsets_2_eq)
