@@ -7,6 +7,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Proof method "subst" is confined to the original subgoal range: its
+included distinct_subgoals_tac no longer affects unrelated subgoals.
+Rare INCOMPATIBILITY.
+
+
 *** Isabelle/jEdit Prover IDE ***
 
 * The jEdit status line includes a widget for Isabelle/ML heap usage,

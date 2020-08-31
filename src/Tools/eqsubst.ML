@@ -300,21 +300,17 @@ w.r.t. the search order, to rewrite. Backtracking will also find later
 occurrences, but all earlier ones are skipped. Thus you can use [0] to
 just find all rewrites. *)
 
-fun eqsubst_tac ctxt occs thms i st =
-  let val nprems = Thm.nprems_of st in
-    if nprems < i then Seq.empty else
+fun eqsubst_tac ctxt occs thms =
+  SELECT_GOAL
     let
       val thmseq = Seq.of_list thms;
-      fun apply_occ occ st =
+      fun apply_occ_tac occ st =
         thmseq |> Seq.maps (fn r =>
           eqsubst_tac' ctxt
             (skip_first_occs_search occ searchf_lr_unify_valid) r
-            (i + (Thm.nprems_of st - nprems)) st);
+            (Thm.nprems_of st) st);
       val sorted_occs = Library.sort (rev_order o int_ord) occs;
-    in
-      Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sorted_occs) st)
-    end
-  end;
+    in Seq.EVERY (map apply_occ_tac sorted_occs) #> Seq.maps distinct_subgoals_tac end;
 
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
@@ -391,22 +387,17 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i st =
 fun skip_first_asm_occs_search searchf sinfo occ lhs =
   skipto_skipseq occ (searchf sinfo lhs);
 
-fun eqsubst_asm_tac ctxt occs thms i st =
-  let val nprems = Thm.nprems_of st in
-    if nprems < i then Seq.empty
-    else
-      let
-        val thmseq = Seq.of_list thms;
-        fun apply_occ occ st =
-          thmseq |> Seq.maps (fn r =>
-            eqsubst_asm_tac' ctxt
-              (skip_first_asm_occs_search searchf_lr_unify_valid) occ r
-              (i + (Thm.nprems_of st - nprems)) st);
-        val sorted_occs = Library.sort (rev_order o int_ord) occs;
-      in
-        Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sorted_occs) st)
-      end
-  end;
+fun eqsubst_asm_tac ctxt occs thms =
+  SELECT_GOAL
+    let
+      val thmseq = Seq.of_list thms;
+      fun apply_occ_tac occ st =
+        thmseq |> Seq.maps (fn r =>
+          eqsubst_asm_tac' ctxt
+            (skip_first_asm_occs_search searchf_lr_unify_valid) occ r
+            (Thm.nprems_of st) st);
+      val sorted_occs = Library.sort (rev_order o int_ord) occs;
+    in Seq.EVERY (map apply_occ_tac sorted_occs) #> Seq.maps distinct_subgoals_tac end;
 
 (* combination method that takes a flag (true indicates that subst
    should be done to an assumption, false = apply to the conclusion of
