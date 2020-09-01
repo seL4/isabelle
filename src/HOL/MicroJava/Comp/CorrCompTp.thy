@@ -451,10 +451,7 @@ lemma max_of_list_append [simp]:
   "max_of_list (xs @ ys) = max (max_of_list xs) (max_of_list ys)" 
   apply (simp add: max_of_list_def)
   apply (induct xs)
-   apply simp
-  using [[linarith_split_limit = 0]]
-  apply simp
-  apply arith
+   apply simp_all
   done
 
 
