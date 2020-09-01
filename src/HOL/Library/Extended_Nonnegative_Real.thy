@@ -174,16 +174,8 @@ lemma (in complete_lattice) SUP_sup_const2:
   using SUP_sup_distrib[of f I "\<lambda>_. c"] by simp
 
 lemma one_less_of_natD:
-  "(1::'a::linordered_semidom) < of_nat n \<Longrightarrow> 1 < n"
-  using zero_le_one[where 'a='a]
-  apply (cases n)
-  apply simp
-  subgoal for n'
-    apply (cases n')
-    apply simp
-    apply simp
-    done
-  done
+  assumes "(1::'a::linordered_semidom) < of_nat n" shows "1 < n"
+  by (cases n) (use assms in auto)
 
 subsection \<open>Defining the extended non-negative reals\<close>
 
@@ -353,8 +345,7 @@ proof -
     apply (subst (2) rel_fun_def)
     apply (auto simp: comp_def max.absorb2 Sup_upper2 rel_fun_eq_pcr_ennreal)
     apply (subst (asm) max.absorb2)
-    apply (rule SUP_upper2)
-    apply auto
+    apply (auto intro: SUP_upper2)
     done
 qed
 
@@ -369,10 +360,7 @@ lemma enn2ereal_of_nat[simp]: "enn2ereal (of_nat n) = ereal n"
   by (induction n) (auto simp: zero_ennreal.rep_eq one_ennreal.rep_eq plus_ennreal.rep_eq)
 
 lemma enn2ereal_numeral[simp]: "enn2ereal (numeral a) = numeral a"
-  apply (subst of_nat_numeral[of a, symmetric])
-  apply (subst enn2ereal_of_nat)
-  apply simp
-  done
+  by (metis enn2ereal_of_nat numeral_eq_ereal of_nat_numeral)
 
 lemma transfer_numeral[transfer_rule]: "pcr_ennreal (numeral a) (numeral a)"
   unfolding cr_ennreal_def pcr_ennreal_def by auto
@@ -543,10 +531,7 @@ lemma ennreal_top_minus[simp]: "top - x = (top::ennreal)"
   by transfer (auto simp: top_ereal_def max_def)
 
 lemma minus_top_ennreal: "x - top = (if x = top then top else 0:: ennreal)"
-  apply transfer
-  subgoal for x
-    by (cases x) (auto simp: top_ereal_def max_def)
-  done
+  by transfer (use ereal_eq_minus_iff top_ereal_def in force)
 
 lemma bot_ennreal: "bot = (0::ennreal)"
   by transfer rule
@@ -585,12 +570,7 @@ lemma ennreal_minus_zero[simp]: "a - (0::ennreal) = a"
 
 lemma ennreal_add_diff_cancel_right[simp]:
   fixes x y z :: ennreal shows "y \<noteq> top \<Longrightarrow> (x + y) - y = x"
-  apply transfer
-  subgoal for x y
-    apply (cases x y rule: ereal2_cases)
-    apply (auto split: split_max simp: top_ereal_def)
-    done
-  done
+  by transfer (metis ereal_eq_minus_iff max_absorb2 not_MInfty_nonneg top_ereal_def)
 
 lemma ennreal_add_diff_cancel_left[simp]:
   fixes x y z :: ennreal shows "y \<noteq> top \<Longrightarrow> (y + x) - y = x"
@@ -599,12 +579,7 @@ lemma ennreal_add_diff_cancel_left[simp]:
 lemma
   fixes a b :: ennreal
   shows "a - b = 0 \<Longrightarrow> a \<le> b"
-  apply transfer
-  subgoal for a b
-    apply (cases a b rule: ereal2_cases)
-    apply (auto simp: not_le max_def split: if_splits)
-    done
-  done
+  by transfer (metis ereal_diff_gr0 le_cases max.absorb2 not_less)
 
 lemma ennreal_minus_cancel:
   fixes a b c :: ennreal
@@ -618,12 +593,7 @@ lemma ennreal_minus_cancel:
 lemma sup_const_add_ennreal:
   fixes a b c :: "ennreal"
   shows "sup (c + a) (c + b) = c + sup a b"
-  apply transfer
-  subgoal for a b c
-    apply (cases a b c rule: ereal3_cases)
-    apply (auto simp flip: ereal_max)
-    done
-  done
+  by transfer (metis add_left_mono le_cases sup.absorb2 sup.orderE)
 
 lemma ennreal_diff_add_assoc:
   fixes a b c :: ennreal
@@ -668,12 +638,7 @@ lemma ennreal_add_diff_cancel:
 
 lemma ennreal_minus_eq_0:
   "a - b = 0 \<Longrightarrow> a \<le> (b::ennreal)"
-  apply transfer
-  subgoal for a b
-    apply (cases a b rule: ereal2_cases)
-    apply (auto simp: zero_ereal_def max.absorb2 simp flip: ereal_max)
-    done
-  done
+  by transfer (metis ereal_diff_gr0 le_cases max.absorb2 not_less)
 
 lemma ennreal_mono_minus_cancel:
   fixes a b c :: ennreal
@@ -684,20 +649,12 @@ lemma ennreal_mono_minus_cancel:
 lemma ennreal_mono_minus:
   fixes a b c :: ennreal
   shows "c \<le> b \<Longrightarrow> a - b \<le> a - c"
-  apply transfer
-  apply (rule max.mono)
-  apply simp
-  subgoal for a b c
-    by (cases a b c rule: ereal3_cases) auto
-  done
+  by transfer (meson ereal_minus_mono max.mono order_refl)
 
 lemma ennreal_minus_pos_iff:
   fixes a b :: ennreal
   shows "a < top \<or> b < top \<Longrightarrow> 0 < a - b \<Longrightarrow> b < a"
-  apply transfer
-  subgoal for a b
-    by (cases a b rule: ereal2_cases) (auto simp: less_max_iff_disj)
-  done
+  by transfer (use add.left_neutral ereal_minus_le_iff less_irrefl not_less in fastforce)
 
 lemma ennreal_inverse_top[simp]: "inverse top = (0::ennreal)"
   by transfer (simp add: top_ereal_def ereal_inverse_eq_0)
@@ -795,10 +752,7 @@ lemma less_diff_eq_ennreal:
 lemma diff_add_cancel_ennreal:
   fixes a b :: ennreal shows "a \<le> b \<Longrightarrow> b - a + a = b"
   unfolding infinity_ennreal_def
-  apply transfer
-  subgoal for a b
-    by (cases a b rule: ereal2_cases) (auto simp: max_absorb2)
-  done
+  by transfer (metis (no_types) add.commute ereal_diff_positive ereal_ineq_diff_add max_def not_MInfty_nonneg)
 
 lemma ennreal_diff_self[simp]: "a \<noteq> top \<Longrightarrow> a - a = (0::ennreal)"
   by transfer (simp add: top_ereal_def)
@@ -806,12 +760,7 @@ lemma ennreal_diff_self[simp]: "a \<noteq> top \<Longrightarrow> a - a = (0::enn
 lemma ennreal_minus_mono:
   fixes a b c :: ennreal
   shows "a \<le> c \<Longrightarrow> d \<le> b \<Longrightarrow> a - b \<le> c - d"
-  apply transfer
-  apply (rule max.mono)
-  apply simp
-  subgoal for a b c d
-    by (cases a b c d rule: ereal3_cases[case_product ereal_cases]) auto
-  done
+  by transfer (meson ereal_minus_mono max.mono order_refl)
 
 lemma ennreal_minus_eq_top[simp]: "a - (b::ennreal) = top \<longleftrightarrow> a = top"
   by transfer (auto simp: top_ereal_def max.absorb2 ereal_minus_eq_PInfty_iff split: split_max)
@@ -1035,10 +984,11 @@ lemma prod_ennreal: "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longri
      (auto simp: ennreal_mult prod_nonneg)
 
 lemma mult_right_ennreal_cancel: "a * ennreal c = b * ennreal c \<longleftrightarrow> (a = b \<or> c \<le> 0)"
-  apply (cases "0 \<le> c")
-  apply (cases a b rule: ennreal2_cases)
-  apply (auto simp: ennreal_mult[symmetric] ennreal_neg ennreal_top_mult)
-  done
+proof (cases "0 \<le> c")
+  case True
+  then show ?thesis
+    by (metis ennreal_eq_0_iff ennreal_mult_right_cong ennreal_neq_top mult_divide_eq_ennreal)
+qed (use ennreal_neg in auto)
 
 lemma ennreal_le_epsilon:
   "(\<And>e::real. y < top \<Longrightarrow> 0 < e \<Longrightarrow> x \<le> y + ennreal e) \<Longrightarrow> x \<le> y"
@@ -1246,17 +1196,17 @@ lemma continuous_at_enn2ereal: "continuous (at x within A) enn2ereal"
 
 lemma sup_continuous_e2ennreal[order_continuous_intros]:
   assumes f: "sup_continuous f" shows "sup_continuous (\<lambda>x. e2ennreal (f x))"
-  apply (rule sup_continuous_compose[OF _ f])
-  apply (rule continuous_at_left_imp_sup_continuous)
-  apply (auto simp: mono_def e2ennreal_mono continuous_at_e2ennreal)
-  done
+proof (rule sup_continuous_compose[OF _ f])
+  show "sup_continuous e2ennreal"
+    by (simp add: continuous_at_e2ennreal continuous_at_left_imp_sup_continuous e2ennreal_mono mono_def)
+qed
 
 lemma sup_continuous_enn2ereal[order_continuous_intros]:
   assumes f: "sup_continuous f" shows "sup_continuous (\<lambda>x. enn2ereal (f x))"
-  apply (rule sup_continuous_compose[OF _ f])
-  apply (rule continuous_at_left_imp_sup_continuous)
-  apply (simp_all add: mono_def less_eq_ennreal.rep_eq continuous_at_enn2ereal)
-  done
+proof (rule sup_continuous_compose[OF _ f])
+  show "sup_continuous enn2ereal"
+  by (simp add: continuous_at_enn2ereal continuous_at_left_imp_sup_continuous less_eq_ennreal.rep_eq mono_def)
+qed
 
 lemma sup_continuous_mult_left_ennreal':
   fixes c :: "ennreal"
@@ -1308,13 +1258,14 @@ lemma tendsto_ennrealD:
   assumes lim: "((\<lambda>x. ennreal (f x)) \<longlongrightarrow> ennreal x) F"
   assumes *: "\<forall>\<^sub>F x in F. 0 \<le> f x" and x: "0 \<le> x"
   shows "(f \<longlongrightarrow> x) F"
-  using continuous_on_tendsto_compose[OF continuous_on_enn2ereal lim]
-  apply simp
-  apply (subst (asm) tendsto_cong)
-  using *
-  apply eventually_elim
-  apply (auto simp: max_absorb2 \<open>0 \<le> x\<close>)
-  done
+proof -
+  have "((\<lambda>x. enn2ereal (ennreal (f x))) \<longlongrightarrow> enn2ereal (ennreal x)) F 
+    \<longleftrightarrow> (f \<longlongrightarrow> enn2ereal (ennreal x)) F"
+    using "*" eventually_mono
+    by (intro tendsto_cong) fastforce
+  then show ?thesis
+    using assms(1) continuous_at_enn2ereal isCont_tendsto_compose x by fastforce
+qed
 
 lemma tendsto_ennreal_iff[simp]:
   "\<forall>\<^sub>F x in F. 0 \<le> f x \<Longrightarrow> 0 \<le> x \<Longrightarrow> ((\<lambda>x. ennreal (f x)) \<longlongrightarrow> ennreal x) F \<longleftrightarrow> (f \<longlongrightarrow> x) F"
@@ -1584,10 +1535,7 @@ lemma ennreal_Sup_countable_SUP:
   apply transfer
   subgoal for A
     using Sup_countable_SUP[of A]
-    apply (clarsimp simp add: incseq_def[symmetric] SUP_upper2 max.absorb2 image_subset_iff Sup_upper2 cong: conj_cong)
-    subgoal for f
-      by (intro exI[of _ f]) auto
-    done
+    by (force simp add: incseq_def[symmetric] SUP_upper2 max.absorb2 image_subset_iff Sup_upper2 cong: conj_cong)
   done
 
 lemma ennreal_Inf_countable_INF:
@@ -1645,13 +1593,12 @@ lemma ennreal_SUP_add_left:
   apply (auto intro: SUP_upper2 add_nonneg_nonneg)
   done
 
-lemma ennreal_SUP_const_minus: (* TODO: rename: ennreal_SUP_const_minus *)
+lemma ennreal_SUP_const_minus:
   fixes f :: "'a \<Rightarrow> ennreal"
   shows "I \<noteq> {} \<Longrightarrow> c < top \<Longrightarrow> (INF x\<in>I. c - f x) = c - (SUP x\<in>I. f x)"
   apply (transfer fixing: I)
   unfolding ex_in_conv[symmetric]
-  apply (auto simp add: sup_max[symmetric] SUP_upper2 sup_absorb2
-              simp del: sup_ereal_def)
+  apply (auto simp add: SUP_upper2 sup_absorb2 simp flip: sup_ereal_def)
   apply (subst INF_ereal_minus_right[symmetric])
   apply (auto simp del: sup_ereal_def simp add: sup_INF)
   done
@@ -1725,8 +1672,7 @@ qed (intro INF_greatest f_bound)
 lemma ennreal_approx_unit:
   "(\<And>a::ennreal. 0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * z \<le> y) \<Longrightarrow> z \<le> y"
   apply (subst SUP_mult_right_ennreal[of "\<lambda>x. x" "{0 <..< 1}" z, simplified])
-  apply (rule SUP_least)
-  apply auto
+  apply (auto intro: SUP_least)
   done
 
 lemma suminf_ennreal2:
@@ -1804,7 +1750,7 @@ lifting_forget ennreal.lifting
 subsection \<open>\<^typ>\<open>ennreal\<close> theorems\<close>
 
 lemma neq_top_trans: fixes x y :: ennreal shows "\<lbrakk> y \<noteq> top; x \<le> y \<rbrakk> \<Longrightarrow> x \<noteq> top"
-by (auto simp: top_unique)
+  by (auto simp: top_unique)
 
 lemma diff_diff_ennreal: fixes a b :: ennreal shows "a \<le> b \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> b - (b - a) = a"
   by (cases a b rule: ennreal2_cases) (auto simp: ennreal_minus top_unique)
@@ -2012,8 +1958,6 @@ lemma tendsto_enn2real [tendsto_intros]:
   assumes "(u \<longlongrightarrow> ennreal l) F" "l \<ge> 0"
   shows "((\<lambda>n. enn2real (u n)) \<longlongrightarrow> l) F"
   unfolding enn2real_def
-  apply (intro tendsto_intros)
-  apply (subst enn2ereal_ennreal[symmetric])
-  by (intro tendsto_intros assms)+
+  by (metis assms enn2ereal_ennreal lim_real_of_ereal tendsto_enn2erealI)
 
 end
