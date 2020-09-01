@@ -12,7 +12,6 @@ object Protocol
   /* markers for inlined messages */
 
   val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
-  val Export_Marker = Protocol_Message.Marker("export")
   val Meta_Info_Marker = Protocol_Message.Marker("meta_info")
   val Command_Timing_Marker = Protocol_Message.Marker("command_timing")
   val Theory_Timing_Marker = Protocol_Message.Marker("theory_timing")
@@ -198,30 +197,6 @@ object Protocol
       strict: Boolean)
     {
       def compound_name: String = isabelle.Export.compound_name(theory_name, name)
-    }
-
-    object Marker
-    {
-      def unapply(line: String): Option[(Args, Path)] =
-        line match {
-          case Export_Marker(text) =>
-            val props = XML.Decode.properties(YXML.parse_body(text))
-            props match {
-              case
-                List(
-                  (Markup.SERIAL, Value.Long(serial)),
-                  (Markup.THEORY_NAME, theory_name),
-                  (Markup.NAME, name),
-                  (Markup.EXECUTABLE, Value.Boolean(executable)),
-                  (Markup.COMPRESS, Value.Boolean(compress)),
-                  (Markup.STRICT, Value.Boolean(strict)),
-                  (Markup.FILE, file)) if isabelle.Path.is_valid(file) =>
-                val args = Args(None, serial, theory_name, name, executable, compress, strict)
-                Some((args, isabelle.Path.explode(file)))
-              case _ => None
-            }
-          case _ => None
-        }
     }
 
     def unapply(props: Properties.T): Option[Args] =
