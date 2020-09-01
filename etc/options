@@ -297,9 +297,6 @@ option phabricator_version_phabricator : string = "82f98747a4e33596f8c027cb574b8
 
 section "Theory Export"
 
-option export_document : bool = false
-  -- "export document sources to Isabelle/Scala"
-
 option export_theory : bool = false
   -- "export theory content to Isabelle/Scala"
 

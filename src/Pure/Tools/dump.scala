@@ -61,7 +61,7 @@ object Dump
         { case args =>
             for (entry <- args.snapshot.exports if entry.name == "document.tex")
               args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("export_document")),
+        }),
       Aspect("theory", "foundational theory content",
         { case args =>
             for {

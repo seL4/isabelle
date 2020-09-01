@@ -68,10 +68,7 @@ val _ =
           let
             val latex = Latex.isabelle_body (Context.theory_name thy) body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-            val _ =
-              if Options.bool options "export_document" then
-                Export.export thy (Path.explode_binding0 "document.tex") (XML.blob output)
-              else ();
+            val _ = Export.export thy (Path.explode_binding0 "document.tex") (XML.blob output);
             val _ = if #enabled option then Present.theory_output thy output else ();
           in () end
       end));
