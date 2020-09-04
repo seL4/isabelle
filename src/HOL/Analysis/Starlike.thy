@@ -100,9 +100,7 @@ proof -
       by (auto simp add:pos_divide_less_eq[OF \<open>e > 0\<close>] mult.commute)
     finally have "(1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x \<in> S"
       using assms(3-5) d
-      apply (intro convexD_alt [OF \<open>convex S\<close>])
-         apply (auto simp: intro: convexD_alt [OF \<open>convex S\<close>])
-      done
+      by (intro convexD_alt [OF \<open>convex S\<close>]) (auto intro: convexD_alt [OF \<open>convex S\<close>])
     with \<open>e > 0\<close> show "y \<in> S"
       by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
   qed (use \<open>e>0\<close> \<open>d>0\<close> in auto)
@@ -661,20 +659,15 @@ next
     using convex_hull_linear_image[of f "(insert 0 d)"]
       convex_hull_linear_image[of f "(insert 0 B)"] \<open>linear f\<close>
     by auto
-  moreover have "rel_interior (f ` (convex hull insert 0 B)) =
-    f ` rel_interior (convex hull insert 0 B)"
-    apply (rule  rel_interior_injective_on_span_linear_image[of f "(convex hull insert 0 B)"])
-    using \<open>bounded_linear f\<close> fd *
-    apply auto
-    done
+  moreover have "rel_interior (f ` (convex hull insert 0 B)) = f ` rel_interior (convex hull insert 0 B)"
+  proof (rule rel_interior_injective_on_span_linear_image[OF \<open>bounded_linear f\<close>])
+    show "inj_on f (span (convex hull insert 0 B))"
+      using fd * by auto
+  qed
   ultimately have "rel_interior (convex hull insert 0 B) \<noteq> {}"
-    using rel_interior_substd_simplex_nonempty[OF \<open>d \<noteq> {}\<close> d]
-    apply auto
-    apply blast
-    done
+    using rel_interior_substd_simplex_nonempty[OF \<open>d \<noteq> {}\<close> d] by fastforce
   moreover have "convex hull (insert 0 B) \<subseteq> S"
-    using B assms hull_mono[of "insert 0 B" "S" "convex"] convex_hull_eq
-    by auto
+    using B assms hull_mono[of "insert 0 B" "S" "convex"] convex_hull_eq by auto
   ultimately show ?thesis
     using subset_rel_interior[of "convex hull insert 0 B" S] ** by auto
 qed
@@ -838,9 +831,9 @@ proof -
     using assms scaleR_cancel_left[of "1/(a+b)" "(a + b) *\<^sub>R z" "a *\<^sub>R x + b *\<^sub>R y"]
     by auto
   also have "\<dots> = y - e *\<^sub>R (y-x)"
-    using e_def
+    using e_def assms
     apply (simp add: algebra_simps)
-    using scaleR_left_distrib[of "a/(a+b)" "b/(a+b)" y] assms add_divide_distrib[of a b "a+b"]
+    using scaleR_left_distrib[of "a/(a+b)" "b/(a+b)" y] add_divide_distrib[of a b "a+b"]
     apply auto
     done
   finally have "z = y - e *\<^sub>R (y-x)"
@@ -950,11 +943,12 @@ lemma rel_interior_open_segment:
 proof (cases "a = b")
   case True then show ?thesis by auto
 next
-  case False then show ?thesis
-    apply (simp add: rel_interior_eq openin_open)
-    apply (rule_tac x="ball (inverse 2 *\<^sub>R (a + b)) (norm(b - a) / 2)" in exI)
-    apply (simp add: open_segment_as_ball)
-    done
+  case False then
+  have "open_segment a b = affine hull {a, b} \<inter> ball ((a + b) /\<^sub>R 2) (norm (b - a) / 2)"
+    by (simp add: open_segment_as_ball)
+  then show ?thesis
+    unfolding rel_interior_eq openin_open
+    by (metis Elementary_Metric_Spaces.open_ball False affine_hull_open_segment)
 qed
 
 lemma rel_interior_closed_segment:
@@ -1005,24 +999,23 @@ next
   case equal then show ?thesis by simp
 next
   case greater then show ?thesis
-    apply simp
-    by (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
+    by simp (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
 qed
 
 lemma rel_frontier_translation:
   fixes a :: "'a::euclidean_space"
   shows "rel_frontier((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (rel_frontier S)"
-by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
+  by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
 
 lemma rel_frontier_nonempty_interior:
   fixes S :: "'n::euclidean_space set"
   shows "interior S \<noteq> {} \<Longrightarrow> rel_frontier S = frontier S"
-by (metis frontier_def interior_rel_interior_gen rel_frontier_def)
+  by (metis frontier_def interior_rel_interior_gen rel_frontier_def)
 
 lemma rel_frontier_frontier:
   fixes S :: "'n::euclidean_space set"
   shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
-by (simp add: frontier_def rel_frontier_def rel_interior_interior)
+  by (simp add: frontier_def rel_frontier_def rel_interior_interior)
 
 lemma closest_point_in_rel_frontier:
    "\<lbrakk>closed S; S \<noteq> {}; x \<in> affine hull S - rel_interior S\<rbrakk>
@@ -1036,22 +1029,21 @@ proof -
   have *: "closedin (top_of_set (affine hull S)) (closure S - rel_interior S)"
     by (simp add: closed_subset closedin_diff closure_affine_hull openin_rel_interior)
   show ?thesis
-    apply (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
-    unfolding rel_frontier_def
-    using * closed_affine_hull
-    apply auto
-    done
+  proof (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
+    show "closedin (top_of_set (affine hull S)) (rel_frontier S)"
+      by (simp add: "*" rel_frontier_def)
+  qed simp
 qed
 
 lemma closed_rel_boundary:
   fixes S :: "'n::euclidean_space set"
   shows "closed S \<Longrightarrow> closed(S - rel_interior S)"
-by (metis closed_rel_frontier closure_closed rel_frontier_def)
+  by (metis closed_rel_frontier closure_closed rel_frontier_def)
 
 lemma compact_rel_boundary:
   fixes S :: "'n::euclidean_space set"
   shows "compact S \<Longrightarrow> compact(S - rel_interior S)"
-by (metis bounded_diff closed_rel_boundary closure_eq compact_closure compact_imp_closed)
+  by (metis bounded_diff closed_rel_boundary closure_eq compact_closure compact_imp_closed)
 
 lemma bounded_rel_frontier:
   fixes S :: "'n::euclidean_space set"
@@ -1103,14 +1095,7 @@ proof -
     then have "S1 \<noteq> {}"
       using aff_dim_empty[of S1] aff_dim_empty[of S2] \<open>S2 \<noteq> {}\<close> by auto
     have **: "affine hull S1 = affine hull S2"
-       apply (rule affine_dim_equal)
-       using * affine_affine_hull
-       apply auto
-       using \<open>S1 \<noteq> {}\<close> hull_subset[of S1]
-       apply auto
-       using eq aff_dim_affine_hull[of S1] aff_dim_affine_hull[of S2]
-       apply auto
-       done
+      by (simp_all add: * eq \<open>S1 \<noteq> {}\<close> affine_dim_equal)
     obtain a where a: "a \<in> rel_interior S1"
       using \<open>S1 \<noteq> {}\<close> rel_interior_eq_empty assms by auto
     obtain T where T: "open T" "a \<in> T \<inter> S1" "T \<inter> affine hull S1 \<subseteq> S1"
@@ -1400,10 +1385,8 @@ proof -
         then have *: "z \<in> \<Inter>{rel_interior S |S. S \<in> I}"
           by auto
         have "\<exists>z. z \<in> \<Inter>{rel_interior S |S. S \<in> I} \<and> z \<noteq> y \<and> dist z y \<le> e"
-          apply (rule_tac x="z" in exI)
           using \<open>y \<noteq> x\<close> z_def * e1 e dist_norm[of z y]
-          apply simp
-          done
+          by (rule_tac x="z" in exI) auto
       }
       then have "y islimpt \<Inter>{rel_interior S |S. S \<in> I}"
         unfolding islimpt_approachable_le by blast
@@ -1455,10 +1438,7 @@ proof -
     using assms convex_Inter by auto
   moreover
   have "convex (\<Inter>{rel_interior S |S. S \<in> I})"
-    apply (rule convex_Inter)
-    using assms convex_rel_interior
-    apply auto
-    done
+    using assms convex_rel_interior by (force intro: convex_Inter)
   ultimately
   have "rel_interior (\<Inter>{rel_interior S |S. S \<in> I}) = rel_interior (\<Inter>I)"
     using convex_inter_rel_interior_same_closure assms
@@ -1794,47 +1774,38 @@ lemma rel_interior_Times:
   assumes "convex S"
     and "convex T"
   shows "rel_interior (S \<times> T) = rel_interior S \<times> rel_interior T"
-proof -
-  { assume "S = {}"
-    then have ?thesis
-      by auto
-  }
-  moreover
-  { assume "T = {}"
-    then have ?thesis
-       by auto
-  }
-  moreover
-  {
-    assume "S \<noteq> {}" "T \<noteq> {}"
-    then have ri: "rel_interior S \<noteq> {}" "rel_interior T \<noteq> {}"
-      using rel_interior_eq_empty assms by auto
-    then have "fst -` rel_interior S \<noteq> {}"
-      using fst_vimage_eq_Times[of "rel_interior S"] by auto
-    then have "rel_interior ((fst :: 'n * 'm \<Rightarrow> 'n) -` S) = fst -` rel_interior S"
-      using linear_fst \<open>convex S\<close> rel_interior_convex_linear_preimage[of fst S] by auto
-    then have s: "rel_interior (S \<times> (UNIV :: 'm set)) = rel_interior S \<times> UNIV"
-      by (simp add: fst_vimage_eq_Times)
-    from ri have "snd -` rel_interior T \<noteq> {}"
-      using snd_vimage_eq_Times[of "rel_interior T"] by auto
-    then have "rel_interior ((snd :: 'n * 'm \<Rightarrow> 'm) -` T) = snd -` rel_interior T"
-      using linear_snd \<open>convex T\<close> rel_interior_convex_linear_preimage[of snd T] by auto
-    then have t: "rel_interior ((UNIV :: 'n set) \<times> T) = UNIV \<times> rel_interior T"
-      by (simp add: snd_vimage_eq_Times)
-    from s t have *: "rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T) =
+proof (cases "S = {} \<or> T = {}")
+  case True
+  then show ?thesis 
+    by auto
+next
+  case False
+  then have "S \<noteq> {}" "T \<noteq> {}"
+    by auto
+  then have ri: "rel_interior S \<noteq> {}" "rel_interior T \<noteq> {}"
+    using rel_interior_eq_empty assms by auto
+  then have "fst -` rel_interior S \<noteq> {}"
+    using fst_vimage_eq_Times[of "rel_interior S"] by auto
+  then have "rel_interior ((fst :: 'n * 'm \<Rightarrow> 'n) -` S) = fst -` rel_interior S"
+    using linear_fst \<open>convex S\<close> rel_interior_convex_linear_preimage[of fst S] by auto
+  then have s: "rel_interior (S \<times> (UNIV :: 'm set)) = rel_interior S \<times> UNIV"
+    by (simp add: fst_vimage_eq_Times)
+  from ri have "snd -` rel_interior T \<noteq> {}"
+    using snd_vimage_eq_Times[of "rel_interior T"] by auto
+  then have "rel_interior ((snd :: 'n * 'm \<Rightarrow> 'm) -` T) = snd -` rel_interior T"
+    using linear_snd \<open>convex T\<close> rel_interior_convex_linear_preimage[of snd T] by auto
+  then have t: "rel_interior ((UNIV :: 'n set) \<times> T) = UNIV \<times> rel_interior T"
+    by (simp add: snd_vimage_eq_Times)
+  from s t have *: "rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T) =
       rel_interior S \<times> rel_interior T" by auto
-    have "S \<times> T = S \<times> (UNIV :: 'm set) \<inter> (UNIV :: 'n set) \<times> T"
-      by auto
-    then have "rel_interior (S \<times> T) = rel_interior ((S \<times> (UNIV :: 'm set)) \<inter> ((UNIV :: 'n set) \<times> T))"
-      by auto
-    also have "\<dots> = rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T)"
-       apply (subst convex_rel_interior_inter_two[of "S \<times> (UNIV :: 'm set)" "(UNIV :: 'n set) \<times> T"])
-       using * ri assms convex_Times
-       apply auto
-       done
-    finally have ?thesis using * by auto
-  }
-  ultimately show ?thesis by blast
+  have "S \<times> T = S \<times> (UNIV :: 'm set) \<inter> (UNIV :: 'n set) \<times> T"
+    by auto
+  then have "rel_interior (S \<times> T) = rel_interior ((S \<times> (UNIV :: 'm set)) \<inter> ((UNIV :: 'n set) \<times> T))"
+    by auto
+  also have "\<dots> = rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T)"
+    using * ri assms convex_Times
+    by (subst convex_rel_interior_inter_two) auto
+  finally show ?thesis using * by auto
 qed
 
 lemma rel_interior_scaleR:
@@ -1922,9 +1893,7 @@ proof -
     then obtain z where "(y, z) \<in> S"
       using assms by auto
     then have "\<exists>x. x \<in> S \<and> y = fst x"
-      apply (rule_tac x="(y, z)" in exI)
-      apply auto
-      done
+      by auto
     then obtain x where "x \<in> S" "y = fst x"
       by blast
     then have "y \<in> fst ` S"
@@ -2051,10 +2020,8 @@ next
   define f where "f y = {z. (y, z) \<in> cone hull ({1 :: real} \<times> S)}" for y
   then have *: "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) =
     (c \<in> rel_interior {y. f y \<noteq> {}} \<and> x \<in> rel_interior (f c))"
-    apply (subst rel_interior_projection[of "cone hull ({(1 :: real)} \<times> S)" f c x])
     using convex_cone_hull[of "{(1 :: real)} \<times> S"] conv
-    apply auto
-    done
+    by (subst rel_interior_projection) auto
   {
     fix y :: real
     assume "y \<ge> 0"
@@ -2121,19 +2088,15 @@ proof -
       using hull_subset[of "\<Union>(S ` I)" convex] by auto
     then show "x \<in> ?lhs"
       unfolding *(1)[symmetric]
-      apply (subst convex_sum[of I "convex hull \<Union>(S ` I)" c s])
       using * assms convex_convex_hull
-      apply auto
-      done
+      by (subst convex_sum) auto
   qed
-
   {
     fix i
     assume "i \<in> I"
     with assms have "\<exists>p. p \<in> S i" by auto
   }
   then obtain p where p: "\<forall>i\<in>I. p i \<in> S i" by metis
-
   {
     fix i
     assume "i \<in> I"
@@ -2257,10 +2220,8 @@ proof
     by auto
   moreover have "convex hull \<Union>(s ` I) =
     {\<Sum> i\<in>I. c i *\<^sub>R sa i | c sa. (\<forall>i\<in>I. 0 \<le> c i) \<and> sum c I = 1 \<and> (\<forall>i\<in>I. sa i \<in> s i)}"
-      apply (subst convex_hull_finite_union[of I s])
       using assms s_def I_def
-      apply auto
-      done
+      by (subst convex_hull_finite_union) auto
   moreover have
     "{\<Sum>i\<in>I. c i *\<^sub>R sa i | c sa. (\<forall>i\<in>I. 0 \<le> c i) \<and> sum c I = 1 \<and> (\<forall>i\<in>I. sa i \<in> s i)} \<le> ?rhs"
     using s_def I_def by auto
@@ -2327,8 +2288,8 @@ proof -
     by (metis (no_types, lifting) a add.right_neutral le_less mem_Collect_eq not_less real_vector.scale_zero_left)
   have "\<epsilon> \<le> d"
     unfolding d_def
-    apply (rule cInf_greatest [OF nonMT])
-    using \<epsilon> dual_order.strict_implies_order le_less_linear by blast
+    using \<epsilon> dual_order.strict_implies_order le_less_linear 
+    by (blast intro: cInf_greatest [OF nonMT])
   with \<open>0 < \<epsilon>\<close> have "0 < d" by simp
   have "a + d *\<^sub>R l \<notin> rel_interior S"
   proof
@@ -2391,7 +2352,7 @@ proof -
     using a rel_interior_nonempty_interior by auto
   then have "a \<in> rel_interior S"
     using a by simp
-  then show ?thesis
+  then show thesis
     apply (rule ray_to_rel_frontier [OF \<open>bounded S\<close> _ _ \<open>l \<noteq> 0\<close>])
      using a affine_hull_nonempty_interior apply blast
     by (simp add: \<open>interior S = rel_interior S\<close> frontier_def rel_frontier_def that)
@@ -2417,24 +2378,22 @@ proof -
     have "open_segment x y \<subseteq> rel_interior S"
       using rel_interior_closure_convex_segment [OF \<open>convex S\<close> x] closure_subset y by blast
     moreover have "x + d *\<^sub>R (y - x) \<in> open_segment x y" if "d < 1"
-      using xy
-      apply (auto simp: in_segment)
-      apply (rule_tac x="d" in exI)
-      using \<open>0 < d\<close> that apply (auto simp: algebra_simps)
-      done
+      using xy \<open>0 < d\<close> that by (force simp: in_segment algebra_simps)
     ultimately have "1 \<le> d"
       using df rel_frontier_def by fastforce
     moreover have "x = (1 / d) *\<^sub>R x + ((d - 1) / d) *\<^sub>R x"
       by (metis \<open>0 < d\<close> add.commute add_divide_distrib diff_add_cancel divide_self_if less_irrefl scaleR_add_left scaleR_one)
     ultimately show "y \<in> closed_segment x (x + d *\<^sub>R (y - x))"
-      apply (auto simp: in_segment)
+      apply (simp add: in_segment)
       apply (rule_tac x="1/d" in exI)
       apply (auto simp: algebra_simps)
       done
   next
     show "open_segment x (x + d *\<^sub>R (y - x)) \<subseteq> rel_interior S"
-      apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> x])
-      using df rel_frontier_def by auto
+    proof (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> x])
+      show "x + d *\<^sub>R (y - x) \<in> closure S"
+        using df rel_frontier_def by auto
+    qed
   qed
 qed
 
@@ -2547,12 +2506,10 @@ qed
 
 lemma rel_interior_sum_gen:
   fixes S :: "'a \<Rightarrow> 'n::euclidean_space set"
-  assumes "\<forall>i\<in>I. convex (S i)"
+  assumes "\<And>i. i\<in>I \<Longrightarrow> convex (S i)"
   shows "rel_interior (sum S I) = sum (\<lambda>i. rel_interior (S i)) I"
-  apply (subst sum_set_cond_linear[of convex])
   using rel_interior_sum rel_interior_sing[of "0"] assms
-  apply (auto simp add: convex_set_plus)
-  done
+  by (subst sum_set_cond_linear[of convex], auto simp add: convex_set_plus)
 
 lemma convex_rel_open_direct_sum:
   fixes S T :: "'n::euclidean_space set"
@@ -2575,7 +2532,7 @@ lemma convex_rel_open_sum:
 lemma convex_hull_finite_union_cones:
   assumes "finite I"
     and "I \<noteq> {}"
-  assumes "\<forall>i\<in>I. convex (S i) \<and> cone (S i) \<and> S i \<noteq> {}"
+  assumes "\<And>i. i\<in>I \<Longrightarrow> convex (S i) \<and> cone (S i) \<and> S i \<noteq> {}"
   shows "convex hull (\<Union>(S ` I)) = sum S I"
   (is "?lhs = ?rhs")
 proof -
@@ -2586,13 +2543,8 @@ proof -
       x: "x = sum (\<lambda>i. c i *\<^sub>R xs i) I \<and> (\<forall>i\<in>I. c i \<ge> 0) \<and> sum c I = 1 \<and> (\<forall>i\<in>I. xs i \<in> S i)"
       using convex_hull_finite_union[of I S] assms by auto
     define s where "s i = c i *\<^sub>R xs i" for i
-    {
-      fix i
-      assume "i \<in> I"
-      then have "s i \<in> S i"
-        using s_def x assms mem_cone[of "S i" "xs i" "c i"] by auto
-    }
-    then have "\<forall>i\<in>I. s i \<in> S i" by auto
+    have "\<forall>i\<in>I. s i \<in> S i"
+        using s_def x assms by (simp add: mem_cone)
     moreover have "x = sum s I" using x s_def by auto
     ultimately have "x \<in> ?rhs"
       using set_sum_alt[of I S] assms by auto
@@ -2613,15 +2565,9 @@ proof -
     moreover have "sum (\<lambda>i. (1 :: real) / of_nat (card I)) I = 1"
       using assms by auto
     ultimately have "x \<in> ?lhs"
-      apply (subst convex_hull_finite_union[of I S])
       using assms
-      apply blast
-      using assms
-      apply blast
-      apply rule
-      apply (rule_tac x = "(\<lambda>i. (1 :: real) / of_nat (card I))" in exI)
-      apply auto
-      done
+      apply (simp add: convex_hull_finite_union[of I S])
+      by (rule_tac x = "(\<lambda>i. 1 / (card I))" in exI) auto
   }
   ultimately show ?thesis by auto
 qed
@@ -2643,17 +2589,10 @@ proof -
   then have "convex hull (\<Union>(A ` I)) = convex hull (S \<union> T)"
     by auto
   moreover have "convex hull \<Union>(A ` I) = sum A I"
-    apply (subst convex_hull_finite_union_cones[of I A])
-    using assms A_def I_def
-    apply auto
-    done
-  moreover have "sum A I = S + T"
     using A_def I_def
-    unfolding set_plus_def
-    apply auto
-    unfolding set_plus_def
-    apply auto
-    done
+    by (metis assms convex_hull_finite_union_cones empty_iff finite.emptyI finite.insertI insertI1)
+  moreover have "sum A I = S + T"
+    using A_def I_def by (force simp add: set_plus_def)
   ultimately show ?thesis by auto
 qed
 
@@ -2679,38 +2618,15 @@ next
   have "\<forall>i\<in>I. K i \<noteq> {}"
     unfolding K_def using assms
     by (simp add: cone_hull_empty_iff[symmetric])
-  {
-    fix i
-    assume "i \<in> I"
-    then have "convex (K i)"
-      unfolding K_def
-      apply (subst convex_cone_hull)
-      apply (subst convex_Times)
-      using assms
-      apply auto
-      done
-  }
-  then have convK: "\<forall>i\<in>I. convex (K i)"
-    by auto
-  {
-    fix i
-    assume "i \<in> I"
-    then have "K0 \<supseteq> K i"
-      unfolding K0_def K_def
-      apply (subst hull_mono)
-      using \<open>\<forall>i\<in>I. C0 \<ge> S i\<close>
-      apply auto
-      done
-  }
+  have convK: "\<forall>i\<in>I. convex (K i)"
+    unfolding K_def
+    by (simp add: assms(2) convex_Times convex_cone_hull)
+  have "K0 \<supseteq> K i" if  "i \<in> I" for i
+    unfolding K0_def K_def
+    by (simp add: Sigma_mono \<open>\<forall>i\<in>I. S i \<subseteq> C0\<close> hull_mono that)
   then have "K0 \<supseteq> \<Union>(K ` I)" by auto
   moreover have "convex K0"
-    unfolding K0_def
-    apply (subst convex_cone_hull)
-    apply (subst convex_Times)
-    unfolding C0_def
-    using convex_convex_hull
-    apply auto
-    done
+    unfolding K0_def by (simp add: C0_def convex_Times convex_cone_hull)
   ultimately have geq: "K0 \<supseteq> convex hull (\<Union>(K ` I))"
     using hull_minimal[of _ "K0" "convex"] by blast
   have "\<forall>i\<in>I. K i \<supseteq> {1 :: real} \<times> S i"
@@ -2724,13 +2640,7 @@ next
     using convex_hull_Times[of "{(1 :: real)}" "\<Union>(S ` I)"] convex_hull_singleton
     by auto
   moreover have "cone (convex hull (\<Union>(K ` I)))"
-    apply (subst cone_convex_hull)
-    using cone_Union[of "K ` I"]
-    apply auto
-    unfolding K_def
-    using cone_cone_hull
-    apply auto
-    done
+    by (simp add: K_def cone_Union cone_cone_hull cone_convex_hull)
   ultimately have "convex hull (\<Union>(K ` I)) \<supseteq> K0"
     unfolding K0_def
     using hull_minimal[of _ "convex hull (\<Union>(K ` I))" "cone"]
@@ -2738,18 +2648,8 @@ next
   then have "K0 = convex hull (\<Union>(K ` I))"
     using geq by auto
   also have "\<dots> = sum K I"
-    apply (subst convex_hull_finite_union_cones[of I K])
-    using assms
-    apply blast
-    using False
-    apply blast
-    unfolding K_def
-    apply rule
-    apply (subst convex_cone_hull)
-    apply (subst convex_Times)
-    using assms cone_cone_hull \<open>\<forall>i\<in>I. K i \<noteq> {}\<close> K_def
-    apply auto
-    done
+    using assms False \<open>\<forall>i\<in>I. K i \<noteq> {}\<close> cone_hull_eq convK 
+    by (intro convex_hull_finite_union_cones; fastforce simp: K_def)
   finally have "K0 = sum K I" by auto
   then have *: "rel_interior K0 = sum (\<lambda>i. (rel_interior (K i))) I"
     using rel_interior_sum_gen[of I K] convK by auto
@@ -2769,8 +2669,7 @@ next
       then have "\<exists>ci si. k i = (ci, ci *\<^sub>R si) \<and> 0 < ci \<and> si \<in> rel_interior (S i)"
         using rel_interior_convex_cone[of "S i"] by auto
     }
-    then obtain c s where
-      cs: "\<forall>i\<in>I. k i = (c i, c i *\<^sub>R s i) \<and> 0 < c i \<and> s i \<in> rel_interior (S i)"
+    then obtain c s where cs: "\<forall>i\<in>I. k i = (c i, c i *\<^sub>R s i) \<and> 0 < c i \<and> s i \<in> rel_interior (S i)"
       by metis
     then have "x = (\<Sum>i\<in>I. c i *\<^sub>R s i) \<and> sum c I = 1"
       using k by (simp add: sum_prod)
@@ -2791,9 +2690,9 @@ next
         using k_def K_def assms cs rel_interior_convex_cone[of "S i"]
         by auto
     }
-    then have "(1::real, x) \<in> rel_interior K0"
+    then have "(1, x) \<in> rel_interior K0"
       using K0_def * set_sum_alt[of I "(\<lambda>i. rel_interior (K i))"] assms k_def cs
-      apply auto
+      apply simp
       apply (rule_tac x = k in exI)
       apply (simp add: sum_prod)
       done
@@ -2919,7 +2818,7 @@ proof -
     have 0: "\<And>u. sum u S = 0 \<Longrightarrow> (\<forall>v\<in>S. u v = 0) \<or> (\<Sum>v\<in>S. u v *\<^sub>R v) \<noteq> 0"
       using affine_dependent_explicit_finite assms(1) fin(1) by auto
     show ?thesis
-      apply (clarsimp simp add: convex_hull_finite affine_hull_finite fin )
+      apply (clarsimp simp add: convex_hull_finite affine_hull_finite fin)
       apply (rule_tac x=u in exI)
       subgoal for u v
         using 0 [of "\<lambda>x. if x \<in> T then v x - u x else v x"] \<open>T \<subseteq> S\<close> by force
@@ -2942,38 +2841,38 @@ next
       by blast
     then have fin: "finite T" using assms
       by (metis finite_insert aff_independent_finite)
-    show ?thesis
-    using assms T fin
-      apply (simp add: affine_dependent_iff_dependent affine_hull_insert_span_gen)
-      apply (rule subset_antisym)
-      apply force
-      apply (rule Fun.vimage_subsetD)
-      apply (metis add.commute diff_add_cancel surj_def)
-      apply (rule card_ge_dim_independent)
-      apply (auto simp: card_image inj_on_def dim_subset_UNIV)
+    then have "UNIV \<subseteq> (+) a ` span ((\<lambda>x. x - a) ` T)"
+      using assms T
+      apply (intro card_ge_dim_independent Fun.vimage_subsetD)
+        apply (auto simp: surj_def affine_dependent_iff_dependent card_image inj_on_def dim_subset_UNIV)
       done
+    then show ?thesis
+      using T(2) affine_hull_insert_span_gen equalityI by fastforce
 qed
 
 lemma affine_independent_span_gt:
   fixes S :: "'a::euclidean_space set"
   assumes ind: "\<not> affine_dependent S" and dim: "DIM ('a) < card S"
     shows "affine hull S = UNIV"
-  apply (rule affine_independent_span_eq [OF ind])
-  apply (rule antisym)
-  using assms
-  apply auto
-  apply (metis add_2_eq_Suc' not_less_eq_eq affine_dependent_biggerset aff_independent_finite)
-  done
+proof (intro affine_independent_span_eq [OF ind] antisym)
+  show "card S \<le> Suc DIM('a)"
+    using aff_independent_finite affine_dependent_biggerset ind by fastforce
+  show "Suc DIM('a) \<le> card S"
+    using Suc_leI dim by blast
+qed
 
 lemma empty_interior_affine_hull:
   fixes S :: "'a::euclidean_space set"
   assumes "finite S" and dim: "card S \<le> DIM ('a)"
     shows "interior(affine hull S) = {}"
   using assms
-  apply (induct S rule: finite_induct)
-  apply (simp_all add:  affine_dependent_iff_dependent affine_hull_insert_span_gen interior_translation)
-  apply (rule empty_interior_lowdim)
-  by (auto simp: Suc_le_lessD card_image_le dual_order.trans intro!: dim_le_card'[THEN le_less_trans])
+proof (induct S rule: finite_induct)
+  case (insert x S)
+  then have "dim (span ((\<lambda>y. y - x) ` S)) < DIM('a)"
+    by (auto simp: Suc_le_lessD card_image_le dual_order.trans intro!: dim_le_card'[THEN le_less_trans])
+  then show ?case
+    by (simp add: empty_interior_lowdim affine_hull_insert_span_gen interior_translation)
+qed auto
 
 lemma empty_interior_convex_hull:
   fixes S :: "'a::euclidean_space set"
@@ -3097,27 +2996,17 @@ proof -
       case True
       then show thesis
         using cs subset_singletonD by fastforce
-    next
-      case False
-      then show thesis
-      by (blast intro: that)
-    qed
+    qed blast
     have "u a + u b \<le> sum u {a,b}"
       using a b by simp
     also have "... \<le> sum u s"
-      apply (rule Groups_Big.sum_mono2)
       using a b u
-      apply (auto simp: less_imp_le aff_independent_finite assms)
-      done
+      by (intro Groups_Big.sum_mono2) (auto simp: less_imp_le aff_independent_finite assms)
     finally have "u a < 1"
       using \<open>b \<in> s\<close> u by fastforce
   } note [simp] = this
   show ?thesis
-    using assms
-    apply (auto simp: interior_convex_hull_explicit_minimal)
-    apply (rule_tac x=u in exI)
-    apply (auto simp: not_le)
-    done
+    using assms by (force simp add: not_le interior_convex_hull_explicit_minimal)
 qed
 
 lemma interior_closed_segment_ge2:
@@ -3140,9 +3029,7 @@ lemma interior_open_segment:
 proof (simp add: not_le, intro conjI impI)
   assume "2 \<le> DIM('a)"
   then show "interior (open_segment a b) = {}"
-    apply (simp add: segment_convex_hull open_segment_def)
-    apply (metis Diff_subset interior_mono segment_convex_hull subset_empty interior_closed_segment_ge2)
-    done
+    using interior_closed_segment_ge2 interior_mono segment_open_subset_closed by blast
 next
   assume le2: "DIM('a) < 2"
   show "interior (open_segment a b) = open_segment a b"
@@ -3151,10 +3038,7 @@ next
   next
     case False
     with le2 have "affine hull (open_segment a b) = UNIV"
-      apply simp
-      apply (rule affine_independent_span_gt)
-      apply (simp_all add: affine_dependent_def insert_Diff_if)
-      done
+      by (simp add: False affine_independent_span_gt)
     then show "interior (open_segment a b) = open_segment a b"
       using rel_interior_interior rel_interior_open_segment by blast
   qed
@@ -3243,52 +3127,53 @@ qed
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Similar results for closure and (relative or absolute) frontier\<close>
 
 lemma closure_convex_hull [simp]:
-  fixes s :: "'a::euclidean_space set"
-  shows "compact s ==> closure(convex hull s) = convex hull s"
+  fixes S :: "'a::euclidean_space set"
+  shows "compact S ==> closure(convex hull S) = convex hull S"
   by (simp add: compact_imp_closed compact_convex_hull)
 
 lemma rel_frontier_convex_hull_explicit:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s"
-  shows "rel_frontier(convex hull s) =
-         {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (\<exists>x \<in> s. u x = 0) \<and> sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S"
+  shows "rel_frontier(convex hull S) =
+         {y. \<exists>u. (\<forall>x \<in> S. 0 \<le> u x) \<and> (\<exists>x \<in> S. u x = 0) \<and> sum u S = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) S = y}"
 proof -
-  have fs: "finite s"
+  have fs: "finite S"
     using assms by (simp add: aff_independent_finite)
-  show ?thesis
-    apply (simp add: rel_frontier_def finite_imp_compact rel_interior_convex_hull_explicit assms fs)
-    apply (auto simp: convex_hull_finite fs)
-    apply (drule_tac x=u in spec)
-    apply (rule_tac x=u in exI)
-    apply force
-    apply (rename_tac v)
-    apply (rule notE [OF assms])
-    apply (simp add: affine_dependent_explicit)
-    apply (rule_tac x=s in exI)
-    apply (auto simp: fs)
+  have "\<And>u xa v.
+       \<lbrakk> xa \<in> S;
+        u xa = 0; sum u S = 1; \<forall>x\<in>S. 0 < v x;
+        sum v S = 1;
+        (\<Sum>x\<in>S. v x *\<^sub>R x) = (\<Sum>x\<in>S. u x *\<^sub>R x)\<rbrakk>
+       \<Longrightarrow> \<exists>u. sum u S = 0 \<and> (\<exists>v\<in>S. u v \<noteq> 0) \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = 0"
     apply (rule_tac x = "\<lambda>x. u x - v x" in exI)
     apply (force simp: sum_subtractf scaleR_diff_left)
     done
+  then show ?thesis
+    using fs assms
+    apply (simp add: rel_frontier_def finite_imp_compact rel_interior_convex_hull_explicit)
+    apply (auto simp: convex_hull_finite)
+    apply (metis less_eq_real_def)
+    using affine_dependent_explicit_finite assms by blast
 qed
 
 lemma frontier_convex_hull_explicit:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s"
-  shows "frontier(convex hull s) =
-         {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (DIM ('a) < card s \<longrightarrow> (\<exists>x \<in> s. u x = 0)) \<and>
-             sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S"
+  shows "frontier(convex hull S) =
+         {y. \<exists>u. (\<forall>x \<in> S. 0 \<le> u x) \<and> (DIM ('a) < card S \<longrightarrow> (\<exists>x \<in> S. u x = 0)) \<and>
+             sum u S = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) S = y}"
 proof -
-  have fs: "finite s"
+  have fs: "finite S"
     using assms by (simp add: aff_independent_finite)
   show ?thesis
-  proof (cases "DIM ('a) < card s")
+  proof (cases "DIM ('a) < card S")
     case True
     with assms fs show ?thesis
       by (simp add: rel_frontier_def frontier_def rel_frontier_convex_hull_explicit [symmetric]
                     interior_convex_hull_explicit_minimal rel_interior_convex_hull_explicit)
   next
     case False
-    then have "card s \<le> DIM ('a)"
+    then have "card S \<le> DIM ('a)"
       by linarith
     then show ?thesis
       using assms fs
@@ -3299,26 +3184,26 @@ proof -
 qed
 
 lemma rel_frontier_convex_hull_cases:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s"
-  shows "rel_frontier(convex hull s) = \<Union>{convex hull (s - {x}) |x. x \<in> s}"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S"
+  shows "rel_frontier(convex hull S) = \<Union>{convex hull (S - {x}) |x. x \<in> S}"
 proof -
-  have fs: "finite s"
+  have fs: "finite S"
     using assms by (simp add: aff_independent_finite)
   { fix u a
-  have "\<forall>x\<in>s. 0 \<le> u x \<Longrightarrow> a \<in> s \<Longrightarrow> u a = 0 \<Longrightarrow> sum u s = 1 \<Longrightarrow>
-            \<exists>x v. x \<in> s \<and>
-                  (\<forall>x\<in>s - {x}. 0 \<le> v x) \<and>
-                      sum v (s - {x}) = 1 \<and> (\<Sum>x\<in>s - {x}. v x *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)"
+  have "\<forall>x\<in>S. 0 \<le> u x \<Longrightarrow> a \<in> S \<Longrightarrow> u a = 0 \<Longrightarrow> sum u S = 1 \<Longrightarrow>
+            \<exists>x v. x \<in> S \<and>
+                  (\<forall>x\<in>S - {x}. 0 \<le> v x) \<and>
+                      sum v (S - {x}) = 1 \<and> (\<Sum>x\<in>S - {x}. v x *\<^sub>R x) = (\<Sum>x\<in>S. u x *\<^sub>R x)"
     apply (rule_tac x=a in exI)
     apply (rule_tac x=u in exI)
     apply (simp add: Groups_Big.sum_diff1 fs)
     done }
   moreover
   { fix a u
-    have "a \<in> s \<Longrightarrow> \<forall>x\<in>s - {a}. 0 \<le> u x \<Longrightarrow> sum u (s - {a}) = 1 \<Longrightarrow>
-            \<exists>v. (\<forall>x\<in>s. 0 \<le> v x) \<and>
-                 (\<exists>x\<in>s. v x = 0) \<and> sum v s = 1 \<and> (\<Sum>x\<in>s. v x *\<^sub>R x) = (\<Sum>x\<in>s - {a}. u x *\<^sub>R x)"
+    have "a \<in> S \<Longrightarrow> \<forall>x\<in>S - {a}. 0 \<le> u x \<Longrightarrow> sum u (S - {a}) = 1 \<Longrightarrow>
+            \<exists>v. (\<forall>x\<in>S. 0 \<le> v x) \<and>
+                 (\<exists>x\<in>S. v x = 0) \<and> sum v S = 1 \<and> (\<Sum>x\<in>S. v x *\<^sub>R x) = (\<Sum>x\<in>S - {a}. u x *\<^sub>R x)"
     apply (rule_tac x="\<lambda>x. if x = a then 0 else u x" in exI)
     apply (auto simp: sum.If_cases Diff_eq if_smult fs)
     done }
@@ -3330,38 +3215,38 @@ proof -
 qed
 
 lemma frontier_convex_hull_eq_rel_frontier:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s"
-  shows "frontier(convex hull s) =
-           (if card s \<le> DIM ('a) then convex hull s else rel_frontier(convex hull s))"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S"
+  shows "frontier(convex hull S) =
+           (if card S \<le> DIM ('a) then convex hull S else rel_frontier(convex hull S))"
   using assms
   unfolding rel_frontier_def frontier_def
   by (simp add: affine_independent_span_gt rel_interior_interior
                 finite_imp_compact empty_interior_convex_hull aff_independent_finite)
 
 lemma frontier_convex_hull_cases:
-  fixes s :: "'a::euclidean_space set"
-  assumes "\<not> affine_dependent s"
-  shows "frontier(convex hull s) =
-           (if card s \<le> DIM ('a) then convex hull s else \<Union>{convex hull (s - {x}) |x. x \<in> s})"
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<not> affine_dependent S"
+  shows "frontier(convex hull S) =
+           (if card S \<le> DIM ('a) then convex hull S else \<Union>{convex hull (S - {x}) |x. x \<in> S})"
 by (simp add: assms frontier_convex_hull_eq_rel_frontier rel_frontier_convex_hull_cases)
 
 lemma in_frontier_convex_hull:
-  fixes s :: "'a::euclidean_space set"
-  assumes "finite s" "card s \<le> Suc (DIM ('a))" "x \<in> s"
-  shows   "x \<in> frontier(convex hull s)"
-proof (cases "affine_dependent s")
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S" "card S \<le> Suc (DIM ('a))" "x \<in> S"
+  shows   "x \<in> frontier(convex hull S)"
+proof (cases "affine_dependent S")
   case True
   with assms show ?thesis
     apply (auto simp: affine_dependent_def frontier_def finite_imp_compact hull_inc)
     by (metis card.insert_remove convex_hull_subset_affine_hull empty_interior_affine_hull finite_Diff hull_redundant insert_Diff insert_Diff_single insert_not_empty interior_mono not_less_eq_eq subset_empty)
 next
   case False
-  { assume "card s = Suc (card Basis)"
-    then have cs: "Suc 0 < card s"
+  { assume "card S = Suc (card Basis)"
+    then have cs: "Suc 0 < card S"
       by (simp)
-    with subset_singletonD have "\<exists>y \<in> s. y \<noteq> x"
-      by (cases "s \<le> {x}") fastforce+
+    with subset_singletonD have "\<exists>y \<in> S. y \<noteq> x"
+      by (cases "S \<le> {x}") fastforce+
   } note [dest!] = this
   show ?thesis using assms
     unfolding frontier_convex_hull_cases [OF False] Union_SetCompr_eq
@@ -3369,69 +3254,66 @@ next
 qed
 
 lemma not_in_interior_convex_hull:
-  fixes s :: "'a::euclidean_space set"
-  assumes "finite s" "card s \<le> Suc (DIM ('a))" "x \<in> s"
-  shows   "x \<notin> interior(convex hull s)"
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S" "card S \<le> Suc (DIM ('a))" "x \<in> S"
+  shows   "x \<notin> interior(convex hull S)"
 using in_frontier_convex_hull [OF assms]
 by (metis Diff_iff frontier_def)
 
 lemma interior_convex_hull_eq_empty:
-  fixes s :: "'a::euclidean_space set"
-  assumes "card s = Suc (DIM ('a))"
-  shows   "interior(convex hull s) = {} \<longleftrightarrow> affine_dependent s"
-proof -
-  { fix a b
-    assume ab: "a \<in> interior (convex hull s)" "b \<in> s" "b \<in> affine hull (s - {b})"
-    then have "interior(affine hull s) = {}" using assms
+  fixes S :: "'a::euclidean_space set"
+  assumes "card S = Suc (DIM ('a))"
+  shows   "interior(convex hull S) = {} \<longleftrightarrow> affine_dependent S"
+proof 
+  show "affine_dependent S \<Longrightarrow> interior (convex hull S) = {}"
+  proof (clarsimp simp: affine_dependent_def)
+    fix a b
+    assume "b \<in> S" "b \<in> affine hull (S - {b})"
+    then have "interior(affine hull S) = {}" using assms
       by (metis DIM_positive One_nat_def Suc_mono card.remove card_infinite empty_interior_affine_hull eq_iff hull_redundant insert_Diff not_less zero_le_one)
-    then have False using ab
-      by (metis convex_hull_subset_affine_hull equals0D interior_mono subset_eq)
-  } then
-  show ?thesis
-    using assms
-    apply auto
-    apply (metis UNIV_I affine_hull_convex_hull affine_hull_empty affine_independent_span_eq convex_convex_hull empty_iff rel_interior_interior rel_interior_same_affine_hull)
-    apply (auto simp: affine_dependent_def)
-    done
+    then show "interior (convex hull S) = {}" 
+      using affine_hull_nonempty_interior by fastforce
+  qed
+next
+  show "interior (convex hull S) = {} \<Longrightarrow> affine_dependent S"
+    by (metis affine_hull_convex_hull affine_hull_empty affine_independent_span_eq assms convex_convex_hull empty_not_UNIV rel_interior_eq_empty rel_interior_interior)
 qed
 
 
 subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
 definition\<^marker>\<open>tag important\<close> coplanar  where
-   "coplanar s \<equiv> \<exists>u v w. s \<subseteq> affine hull {u,v,w}"
+   "coplanar S \<equiv> \<exists>u v w. S \<subseteq> affine hull {u,v,w}"
 
 lemma collinear_affine_hull:
-  "collinear s \<longleftrightarrow> (\<exists>u v. s \<subseteq> affine hull {u,v})"
-proof (cases "s={}")
+  "collinear S \<longleftrightarrow> (\<exists>u v. S \<subseteq> affine hull {u,v})"
+proof (cases "S={}")
   case True then show ?thesis
     by simp
 next
   case False
-  then obtain x where x: "x \<in> s" by auto
+  then obtain x where x: "x \<in> S" by auto
   { fix u
-    assume *: "\<And>x y. \<lbrakk>x\<in>s; y\<in>s\<rbrakk> \<Longrightarrow> \<exists>c. x - y = c *\<^sub>R u"
-    have "\<exists>u v. s \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
-      apply (rule_tac x=x in exI)
-      apply (rule_tac x="x+u" in exI, clarify)
-      apply (erule exE [OF * [OF x]])
-      apply (rename_tac c)
-      apply (rule_tac x="1+c" in exI)
-      apply (rule_tac x="-c" in exI)
-      apply (simp add: algebra_simps)
-      done
+    assume *: "\<And>x y. \<lbrakk>x\<in>S; y\<in>S\<rbrakk> \<Longrightarrow> \<exists>c. x - y = c *\<^sub>R u"
+    have "\<And>y c. x - y = c *\<^sub>R u \<Longrightarrow> \<exists>a b. y = a *\<^sub>R x + b *\<^sub>R (x + u) \<and> a + b = 1"
+      by (rule_tac x="1+c" in exI, rule_tac x="-c" in exI, simp add: algebra_simps)
+    then have "\<exists>u v. S \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
+      using * [OF x] by (rule_tac x=x in exI, rule_tac x="x+u" in exI, force)
   } moreover
   { fix u v x y
-    assume *: "s \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
-    have "x\<in>s \<Longrightarrow> y\<in>s \<Longrightarrow> \<exists>c. x - y = c *\<^sub>R (v-u)"
-      apply (drule subsetD [OF *])+
-      apply simp
-      apply clarify
-      apply (rename_tac r1 r2)
-      apply (rule_tac x="r1-r2" in exI)
-      apply (simp add: algebra_simps)
-      apply (metis scaleR_left.add)
-      done
+    assume *: "S \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
+    have "\<exists>c. x - y = c *\<^sub>R (v-u)" if "x\<in>S" "y\<in>S"
+    proof -
+      obtain a r where "a + r = 1" "x = a *\<^sub>R u + r *\<^sub>R v"
+        using "*" \<open>x \<in> S\<close> by blast
+      moreover
+      obtain b s where "b + s = 1" "y = b *\<^sub>R u + s *\<^sub>R v"
+        using "*" \<open>y \<in> S\<close> by blast
+      ultimately have "x - y = (r-s) *\<^sub>R (v-u)" 
+        by (simp add: algebra_simps) (metis scaleR_left.add)
+      then show ?thesis
+        by blast
+    qed
   } ultimately
   show ?thesis
   unfolding collinear_def affine_hull_2
@@ -3439,12 +3321,12 @@ next
 qed
 
 lemma collinear_closed_segment [simp]: "collinear (closed_segment a b)"
-by (metis affine_hull_convex_hull collinear_affine_hull hull_subset segment_convex_hull)
+  by (metis affine_hull_convex_hull collinear_affine_hull hull_subset segment_convex_hull)
 
 lemma collinear_open_segment [simp]: "collinear (open_segment a b)"
   unfolding open_segment_def
   by (metis convex_hull_subset_affine_hull segment_convex_hull dual_order.trans
-    convex_hull_subset_affine_hull Diff_subset collinear_affine_hull)
+      convex_hull_subset_affine_hull Diff_subset collinear_affine_hull)
 
 lemma collinear_between_cases:
   fixes c :: "'a::euclidean_space"
@@ -3662,36 +3544,40 @@ lemma coplanar_subset: "\<lbrakk>coplanar t; s \<subseteq> t\<rbrakk> \<Longrigh
 lemma affine_hull_3_imp_collinear: "c \<in> affine hull {a,b} \<Longrightarrow> collinear {a,b,c}"
   by (metis collinear_2 collinear_affine_hull_collinear hull_redundant insert_commute)
 
-lemma collinear_3_imp_in_affine_hull: "\<lbrakk>collinear {a,b,c}; a \<noteq> b\<rbrakk> \<Longrightarrow> c \<in> affine hull {a,b}"
-  unfolding collinear_def
-  apply clarify
-  apply (frule_tac x=b in bspec, blast, drule_tac x=a in bspec, blast, erule exE)
-  apply (drule_tac x=c in bspec, blast, drule_tac x=a in bspec, blast, erule exE)
-  apply (rename_tac y x)
+lemma collinear_3_imp_in_affine_hull:
+  assumes "collinear {a,b,c}" "a \<noteq> b" shows "c \<in> affine hull {a,b}"
+proof -
+  obtain u x y where "b - a = y *\<^sub>R u" "c - a = x *\<^sub>R u"
+    using assms unfolding collinear_def by auto
+  with \<open>a \<noteq> b\<close> show ?thesis
   apply (simp add: affine_hull_2)
   apply (rule_tac x="1 - x/y" in exI)
   apply (simp add: algebra_simps)
   done
+qed
 
 lemma collinear_3_affine_hull:
   assumes "a \<noteq> b"
-    shows "collinear {a,b,c} \<longleftrightarrow> c \<in> affine hull {a,b}"
-using affine_hull_3_imp_collinear assms collinear_3_imp_in_affine_hull by blast
+  shows "collinear {a,b,c} \<longleftrightarrow> c \<in> affine hull {a,b}"
+  using affine_hull_3_imp_collinear assms collinear_3_imp_in_affine_hull by blast
 
 lemma collinear_3_eq_affine_dependent:
   "collinear{a,b,c} \<longleftrightarrow> a = b \<or> a = c \<or> b = c \<or> affine_dependent {a,b,c}"
-apply (case_tac "a=b", simp)
-apply (case_tac "a=c")
-apply (simp add: insert_commute)
-apply (case_tac "b=c")
-apply (simp add: insert_commute)
-apply (auto simp: affine_dependent_def collinear_3_affine_hull insert_Diff_if)
-apply (metis collinear_3_affine_hull insert_commute)+
-done
+proof (cases "a = b \<or> a = c \<or> b = c")
+  case True
+  then show ?thesis
+    by (auto simp: insert_commute)
+next
+  case False
+  then show ?thesis
+    apply (auto simp: affine_dependent_def collinear_3_affine_hull insert_Diff_if)
+     apply (metis collinear_3_affine_hull insert_commute)+
+    done 
+qed
 
 lemma affine_dependent_imp_collinear_3:
   "affine_dependent {a,b,c} \<Longrightarrow> collinear{a,b,c}"
-by (simp add: collinear_3_eq_affine_dependent)
+  by (simp add: collinear_3_eq_affine_dependent)
 
 lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftrightarrow> collinear {0, x-y, z-y}"
   by (auto simp add: collinear_def)
@@ -3780,9 +3666,7 @@ proof (cases "a = c")
 next
   case False
   show ?thesis
-    apply (rule iffI)
-    apply (simp add: between_midpoint(1) dist_midpoint)
-    using False between_imp_collinear midpoint_collinear by blast
+    using False between_imp_collinear between_midpoint(1) midpoint_collinear by blast
 qed
 
 lemma collinear_triples:
@@ -3862,50 +3746,44 @@ lemma hyperplane_eq_Ex:
 
 lemma hyperplane_eq_empty:
      "{x. a \<bullet> x = b} = {} \<longleftrightarrow> a = 0 \<and> b \<noteq> 0"
-  using hyperplane_eq_Ex apply auto[1]
-  using inner_zero_right by blast
+  using hyperplane_eq_Ex
+  by (metis (mono_tags, lifting) empty_Collect_eq inner_zero_left)
 
 lemma hyperplane_eq_UNIV:
    "{x. a \<bullet> x = b} = UNIV \<longleftrightarrow> a = 0 \<and> b = 0"
 proof -
-  have "UNIV \<subseteq> {x. a \<bullet> x = b} \<Longrightarrow> a = 0 \<and> b = 0"
-    apply (drule_tac c = "((b+1) / (a \<bullet> a)) *\<^sub>R a" in subsetD)
-    apply simp_all
-    by (metis add_cancel_right_right zero_neq_one)
+  have "a = 0 \<and> b = 0" if "UNIV \<subseteq> {x. a \<bullet> x = b}"
+    using subsetD [OF that, where c = "((b+1) / (a \<bullet> a)) *\<^sub>R a"]
+    by (simp add: field_split_simps split: if_split_asm)
   then show ?thesis by force
 qed
 
 lemma halfspace_eq_empty_lt:
    "{x. a \<bullet> x < b} = {} \<longleftrightarrow> a = 0 \<and> b \<le> 0"
 proof -
-  have "{x. a \<bullet> x < b} \<subseteq> {} \<Longrightarrow> a = 0 \<and> b \<le> 0"
-    apply (rule ccontr)
-    apply (drule_tac c = "((b-1) / (a \<bullet> a)) *\<^sub>R a" in subsetD)
-    apply force+
-    done
+  have "a = 0 \<and> b \<le> 0" if "{x. a \<bullet> x < b} \<subseteq> {}"
+    using subsetD [OF that, where c = "((b-1) / (a \<bullet> a)) *\<^sub>R a"]
+    by (force simp add: field_split_simps split: if_split_asm)
   then show ?thesis by force
 qed
 
 lemma halfspace_eq_empty_gt:
-   "{x. a \<bullet> x > b} = {} \<longleftrightarrow> a = 0 \<and> b \<ge> 0"
-using halfspace_eq_empty_lt [of "-a" "-b"]
-by simp
+  "{x. a \<bullet> x > b} = {} \<longleftrightarrow> a = 0 \<and> b \<ge> 0"
+  using halfspace_eq_empty_lt [of "-a" "-b"]
+  by simp
 
 lemma halfspace_eq_empty_le:
    "{x. a \<bullet> x \<le> b} = {} \<longleftrightarrow> a = 0 \<and> b < 0"
 proof -
-  have "{x. a \<bullet> x \<le> b} \<subseteq> {} \<Longrightarrow> a = 0 \<and> b < 0"
-    apply (rule ccontr)
-    apply (drule_tac c = "((b-1) / (a \<bullet> a)) *\<^sub>R a" in subsetD)
-    apply force+
-    done
+  have "a = 0 \<and> b < 0" if "{x. a \<bullet> x \<le> b} \<subseteq> {}"
+    using subsetD [OF that, where c = "((b-1) / (a \<bullet> a)) *\<^sub>R a"]
+    by (force simp add: field_split_simps split: if_split_asm)
   then show ?thesis by force
 qed
 
 lemma halfspace_eq_empty_ge:
-   "{x. a \<bullet> x \<ge> b} = {} \<longleftrightarrow> a = 0 \<and> b > 0"
-using halfspace_eq_empty_le [of "-a" "-b"]
-by simp
+  "{x. a \<bullet> x \<ge> b} = {} \<longleftrightarrow> a = 0 \<and> b > 0"
+  using halfspace_eq_empty_le [of "-a" "-b"] by simp
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Use set distance for an easy proof of separation properties\<close>
 
@@ -3928,14 +3806,10 @@ next
       by (simp add: open_Collect_less contf)
     show "open {x. f x < 0}"
       by (simp add: open_Collect_less contf)
-    show "S \<subseteq> {x. 0 < f x}"
-      apply (clarsimp simp add: f_def setdist_sing_in_set)
-      using assms
-      by (metis False IntI empty_iff le_less setdist_eq_0_sing_2 setdist_pos_le setdist_sym)
-    show "T \<subseteq> {x. f x < 0}"
-      apply (clarsimp simp add: f_def setdist_sing_in_set)
-      using assms
-      by (metis False IntI empty_iff le_less setdist_eq_0_sing_2 setdist_pos_le setdist_sym)
+    have "\<And>x. x \<in> S \<Longrightarrow> setdist {x} T \<noteq> 0" "\<And>x. x \<in> T \<Longrightarrow> setdist {x} S \<noteq> 0"
+      by (meson False assms disjoint_iff setdist_eq_0_sing_1)+
+    then show "S \<subseteq> {x. 0 < f x}" "T \<subseteq> {x. f x < 0}"
+      using less_eq_real_def by (fastforce simp add: f_def setdist_sing_in_set)+
   qed
 qed
 
@@ -3990,10 +3864,12 @@ proof -
     by (auto dest!: bounded_subset_ballD)
   have **: "closed (T \<union> - ball 0 r)" "S \<inter> (T \<union> - ball 0 r) = {}"
     using assms r by blast+
-  then show ?thesis
-    apply (rule separation_normal [OF \<open>closed S\<close>])
-    apply (rule_tac U=U and V=V in that)
-    by auto (meson bounded_ball bounded_subset compl_le_swap2 disjoint_eq_subset_Compl)
+  then obtain U V where UV: "open U" "open V" "S \<subseteq> U" "T \<union> - ball 0 r \<subseteq> V" "U \<inter> V = {}"
+    by (meson  \<open>closed S\<close> separation_normal)
+  then have "compact(closure U)"
+    by (meson bounded_ball bounded_subset compact_closure compl_le_swap2 disjoint_eq_subset_Compl le_sup_iff)
+  with UV show thesis
+    using that by auto
 qed
 
 subsection\<open>Connectedness of the intersection of a chain\<close>
@@ -4142,9 +4018,7 @@ next
     then obtain m n where "\<forall>x \<in> A. \<exists>k\<le>m. P x k" "P a n"
       by force
     then show ?case
-      apply (rule_tac x="max m n" in exI, safe)
-      using max.cobounded2 apply blast
-      by (meson le_max_iff_disj)
+      by (metis dual_order.trans insert_iff le_cases)
 qed
 
 proposition proper_map:
@@ -4167,12 +4041,12 @@ proof -
     then have fX: "\<And>n. f (X n) = h n"
       by metis
     have "compact (C \<inter> (S \<inter> f -` insert y (range (\<lambda>i. f(X(n + i))))))" for n
-      apply (rule closed_Int_compact [OF \<open>closed C\<close>])
-      apply (rule com)
-       using X \<open>K \<subseteq> S\<close> \<open>f ` S \<subseteq> T\<close> \<open>y \<in> T\<close> apply blast
-      apply (rule compact_sequence_with_limit)
-      apply (simp add: fX add.commute [of n] LIMSEQ_ignore_initial_segment [OF hlim])
-      done
+    proof (intro closed_Int_compact [OF \<open>closed C\<close> com] compact_sequence_with_limit)
+      show "insert y (range (\<lambda>i. f (X (n + i)))) \<subseteq> T"
+        using X \<open>K \<subseteq> S\<close> \<open>f ` S \<subseteq> T\<close> \<open>y \<in> T\<close> by blast
+      show "(\<lambda>i. f (X (n + i))) \<longlonglongrightarrow> y"
+        by (simp add: fX add.commute [of n] LIMSEQ_ignore_initial_segment [OF hlim])
+    qed
     then have comf: "compact {a \<in> K. f a \<in> insert y (range (\<lambda>i. f(X(n + i))))}" for n
       by (simp add: Keq Int_def conj_commute)
     have ne: "\<Inter>\<F> \<noteq> {}"
@@ -4182,9 +4056,7 @@ proof -
              for \<F>
     proof -
       obtain m where m: "\<And>t. t \<in> \<F> \<Longrightarrow> \<exists>k\<le>m. t = {a \<in> K. f a \<in> insert y (range (\<lambda>i. f (X (k + i))))}"
-        apply (rule exE)
-        apply (rule finite_indexed_bound [OF \<open>finite \<F>\<close> \<F>], assumption, force)
-        done
+        by (rule exE [OF finite_indexed_bound [OF \<open>finite \<F>\<close> \<F>]], force+)
       have "X m \<in> \<Inter>\<F>"
         using X le_Suc_ex by (fastforce dest: m)
       then show ?thesis by blast
@@ -4193,7 +4065,7 @@ proof -
                \<noteq> {}"
       apply (rule compact_fip_Heine_Borel)
        using comf apply force
-      using ne  apply (simp add: subset_iff del: insert_iff)
+       using ne  apply (simp add: subset_iff del: insert_iff)
       done
     then have "\<exists>x. x \<in> (\<Inter>n. {a \<in> K. f a \<in> insert y (range (\<lambda>i. f (X (n + i))))})"
       by blast
@@ -4283,9 +4155,12 @@ next
       have False if "z \<notin> S"
       proof -
         have "f ` (closed_segment x y) = closed_segment (f x) (f y)"
-          apply (rule continuous_injective_image_segment_1)
-          apply (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
-          by (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+        proof (rule continuous_injective_image_segment_1)
+          show "continuous_on (closed_segment x y) f"
+            by (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
+          show "inj_on f (closed_segment x y)"
+            by (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+        qed
         then have fz: "f z \<in> closed_segment (f x) (f y)"
           using \<open>z \<in> closed_segment x y\<close> by blast
         have "z \<in> affine hull S"
@@ -4296,8 +4171,8 @@ next
         proof -
           have "{..<f z} \<inter> f ` {x,y} \<noteq> {}"  "{f z<..} \<inter> f ` {x,y} \<noteq> {}"
             using fz fz_notin \<open>x \<in> S\<close> \<open>y \<in> S\<close>
-             apply (auto simp: closed_segment_eq_real_ivl split: if_split_asm)
-             apply (metis image_eqI less_eq_real_def)+
+             apply (auto simp: closed_segment_eq_real_ivl less_eq_real_def split: if_split_asm)
+             apply (metis image_eqI)+
             done
           then show "{..<f z} \<inter> f ` S \<noteq> {}" "{f z<..} \<inter> f ` S \<noteq> {}"
             using \<open>x \<in> S\<close> \<open>y \<in> S\<close> by blast+
@@ -4350,9 +4225,12 @@ proof -
   obtain a b where "a \<in> S" "f a = x" "b \<in> S" "f b = y"
     by (metis (full_types) ends_in_segment fS_eq imageE)
   have "f ` (closed_segment a b) = closed_segment (f a) (f b)"
-    apply (rule continuous_injective_image_segment_1)
-     apply (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
-    by (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+  proof (rule continuous_injective_image_segment_1)
+    show "continuous_on (closed_segment a b) f"
+      by (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
+    show "inj_on f (closed_segment a b)"
+      by (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+  qed
   then have "f ` (closed_segment a b) = f ` S"
     by (simp add: \<open>f a = x\<close> \<open>f b = y\<close> fS_eq)
   then have "?g ` f ` (closed_segment a b) = ?g ` f ` S"
@@ -4443,14 +4321,11 @@ lemma closed_compact_projection:
   assumes "compact S" and clo: "closed T"
     shows "closed {y. \<exists>x. x \<in> S \<and> (x, y) \<in> T}"
 proof -
-  have *: "{y. \<exists>x. x \<in> S \<and> Pair x y \<in> T} =
-        {y. \<exists>x. x \<in> S \<and> Pair x y \<in> ((S \<times> UNIV) \<inter> T)}"
+  have *: "{y. \<exists>x. x \<in> S \<and> Pair x y \<in> T} = {y. \<exists>x. x \<in> S \<and> Pair x y \<in> ((S \<times> UNIV) \<inter> T)}"
     by auto
   show ?thesis
-    apply (subst *)
-    apply (rule closedin_closed_trans [OF _ closed_UNIV])
-    apply (rule closedin_compact_projection [OF \<open>compact S\<close>])
-    by (simp add: clo closedin_closed_Int)
+    unfolding *
+    by (intro clo closedin_closed_Int closedin_closed_trans [OF _ closed_UNIV] closedin_compact_projection [OF \<open>compact S\<close>])
 qed
 
 subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Representing affine hull as a finite intersection of hyperplanes\<close>
@@ -4489,72 +4364,67 @@ next
       using k \<open>a \<in> S\<close> convexD [OF \<open>convex S\<close> \<open>a \<in> S\<close> \<open>x \<in> S\<close>, of "1-k" k]
       by (simp add: algebra_simps)
     have "inverse k *\<^sub>R k *\<^sub>R (x-a) \<in> span ((\<lambda>x. x - a) ` (S \<inter> T))"
-      apply (rule span_mul)
-      apply (rule span_base)
-      apply (rule image_eqI [where x = "a + k *\<^sub>R (x - a)"])
-      apply (auto simp: S T)
-      done
+      by (intro span_mul [OF span_base] image_eqI [where x = "a + k *\<^sub>R (x - a)"]) (auto simp: S T)
     with xa image_iff show ?thesis  by fastforce
   qed
-  show "affine hull S \<subseteq> affine hull (S \<inter> T)"
-    apply (simp add: subset_hull)
-    apply (simp add: \<open>a \<in> S\<close> \<open>a \<in> T\<close> hull_inc affine_hull_span_gen [of a])
-    apply (force simp: *)
-    done
+  have "S \<subseteq> affine hull (S \<inter> T)"
+    by (force simp: * \<open>a \<in> S\<close> \<open>a \<in> T\<close> hull_inc affine_hull_span_gen [of a])
+  then show "affine hull S \<subseteq> affine hull (S \<inter> T)"
+    by (simp add: subset_hull)
 qed
 
 corollary affine_hull_convex_Int_open:
   fixes S :: "'a::real_normed_vector set"
   assumes "convex S" "open T" "S \<inter> T \<noteq> {}"
-    shows "affine hull (S \<inter> T) = affine hull S"
-using affine_hull_convex_Int_nonempty_interior assms interior_eq by blast
+  shows "affine hull (S \<inter> T) = affine hull S"
+  using affine_hull_convex_Int_nonempty_interior assms interior_eq by blast
 
 corollary affine_hull_affine_Int_nonempty_interior:
   fixes S :: "'a::real_normed_vector set"
   assumes "affine S" "S \<inter> interior T \<noteq> {}"
-    shows "affine hull (S \<inter> T) = affine hull S"
-by (simp add: affine_hull_convex_Int_nonempty_interior affine_imp_convex assms)
+  shows "affine hull (S \<inter> T) = affine hull S"
+  by (simp add: affine_hull_convex_Int_nonempty_interior affine_imp_convex assms)
 
 corollary affine_hull_affine_Int_open:
   fixes S :: "'a::real_normed_vector set"
   assumes "affine S" "open T" "S \<inter> T \<noteq> {}"
-    shows "affine hull (S \<inter> T) = affine hull S"
-by (simp add: affine_hull_convex_Int_open affine_imp_convex assms)
+  shows "affine hull (S \<inter> T) = affine hull S"
+  by (simp add: affine_hull_convex_Int_open affine_imp_convex assms)
 
 corollary affine_hull_convex_Int_openin:
   fixes S :: "'a::real_normed_vector set"
   assumes "convex S" "openin (top_of_set (affine hull S)) T" "S \<inter> T \<noteq> {}"
-    shows "affine hull (S \<inter> T) = affine hull S"
-using assms unfolding openin_open
-by (metis affine_hull_convex_Int_open hull_subset inf.orderE inf_assoc)
+  shows "affine hull (S \<inter> T) = affine hull S"
+  using assms unfolding openin_open
+  by (metis affine_hull_convex_Int_open hull_subset inf.orderE inf_assoc)
 
 corollary affine_hull_openin:
   fixes S :: "'a::real_normed_vector set"
   assumes "openin (top_of_set (affine hull T)) S" "S \<noteq> {}"
-    shows "affine hull S = affine hull T"
-using assms unfolding openin_open
-by (metis affine_affine_hull affine_hull_affine_Int_open hull_hull)
+  shows "affine hull S = affine hull T"
+  using assms unfolding openin_open
+  by (metis affine_affine_hull affine_hull_affine_Int_open hull_hull)
 
 corollary affine_hull_open:
   fixes S :: "'a::real_normed_vector set"
   assumes "open S" "S \<noteq> {}"
-    shows "affine hull S = UNIV"
-by (metis affine_hull_convex_Int_nonempty_interior assms convex_UNIV hull_UNIV inf_top.left_neutral interior_open)
+  shows "affine hull S = UNIV"
+  by (metis affine_hull_convex_Int_nonempty_interior assms convex_UNIV hull_UNIV inf_top.left_neutral interior_open)
 
 lemma aff_dim_convex_Int_nonempty_interior:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>convex S; S \<inter> interior T \<noteq> {}\<rbrakk> \<Longrightarrow> aff_dim(S \<inter> T) = aff_dim S"
-using aff_dim_affine_hull2 affine_hull_convex_Int_nonempty_interior by blast
+  using aff_dim_affine_hull2 affine_hull_convex_Int_nonempty_interior by blast
 
 lemma aff_dim_convex_Int_open:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>convex S; open T; S \<inter> T \<noteq> {}\<rbrakk> \<Longrightarrow>  aff_dim(S \<inter> T) = aff_dim S"
-using aff_dim_convex_Int_nonempty_interior interior_eq by blast
+  using aff_dim_convex_Int_nonempty_interior interior_eq by blast
 
 lemma affine_hull_Diff:
   fixes S:: "'a::real_normed_vector set"
   assumes ope: "openin (top_of_set (affine hull S)) S" and "finite F" "F \<subset> S"
-    shows "affine hull (S - F) = affine hull S"
+  shows "affine hull (S - F) = affine hull S"
 proof -
   have clo: "closedin (top_of_set S) F"
     using assms finite_imp_closedin by auto
@@ -4671,7 +4541,7 @@ next
       apply (simp add: aff_dim_eq_dim [of c] affine_hull_span_gen [of c] \<open>c \<in> S\<close> hull_inc dim_eq_hyperplane
                   del: One_nat_def cong: image_cong_simp, safe)
       apply (fastforce simp add: inner_distrib intro: xc_im)
-      apply (force simp: intro!: 2)
+      apply (force intro!: 2)
       done
   qed
 qed
@@ -4694,10 +4564,7 @@ next
   then obtain x s' where S: "S = insert x s'" "x \<notin> s'"
     by (meson Set.set_insert all_not_in_conv)
   show ?thesis using S
-    apply (simp add: hull_redundant cong: aff_dim_affine_hull2)
-    apply (simp add: affine_hull_insert_span_gen hull_inc)
-    by (force simp add: span_zero insert_commute [of a] hull_inc aff_dim_eq_dim [of x] dim_insert
-      cong: image_cong_simp)
+    by (force simp add: affine_hull_insert_span_gen span_zero insert_commute [of a] aff_dim_eq_dim [of x] dim_insert)
 qed
 
 lemma affine_dependent_choose:
@@ -4761,22 +4628,21 @@ proof (cases "S = {}")
 next
   case False
   then obtain b where "b \<in> S" by blast
-  with False assms show ?thesis
-    apply safe
+  with False assms 
+  have "bounded S \<Longrightarrow> S = {b}"
     using affine_diffs_subspace [OF assms \<open>b \<in> S\<close>]
-    apply (metis (no_types, lifting) subspace_bounded_eq_trivial ab_left_minus bounded_translation
-                image_empty image_insert translation_invert)
-    apply force
-    done
+    by (metis (no_types, lifting) ab_group_add_class.ab_left_minus bounded_translation image_empty image_insert subspace_bounded_eq_trivial translation_invert)
+  then show ?thesis by auto
 qed
 
 lemma affine_bounded_eq_lowdim:
   fixes S :: "'a::euclidean_space set"
   assumes "affine S"
-    shows "bounded S \<longleftrightarrow> aff_dim S \<le> 0"
-apply safe
-using affine_bounded_eq_trivial assms apply fastforce
-by (metis aff_dim_sing aff_dim_subset affine_dim_equal affine_sing all_not_in_conv assms bounded_empty bounded_insert dual_order.antisym empty_subsetI insert_subset)
+  shows "bounded S \<longleftrightarrow> aff_dim S \<le> 0"
+proof
+  show "aff_dim S \<le> 0 \<Longrightarrow> bounded S"
+  by (metis aff_dim_sing aff_dim_subset affine_dim_equal affine_sing all_not_in_conv assms bounded_empty bounded_insert dual_order.antisym empty_subsetI insert_subset)
+qed (use affine_bounded_eq_trivial assms in fastforce)
 
 
 lemma bounded_hyperplane_eq_trivial_0:
@@ -4841,8 +4707,7 @@ lemma separating_hyperplane_closed_0_inset:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "closed S" "S \<noteq> {}" "0 \<notin> S"
   obtains a b where "a \<in> S" "a \<noteq> 0" "0 < b" "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> x > b"
-using separating_hyperplane_closed_point_inset [OF assms]
-by simp (metis \<open>0 \<notin> S\<close>)
+  using separating_hyperplane_closed_point_inset [OF assms] by simp (metis \<open>0 \<notin> S\<close>)
 
 
 proposition\<^marker>\<open>tag unimportant\<close> separating_hyperplane_set_0_inspan:
@@ -4851,7 +4716,7 @@ proposition\<^marker>\<open>tag unimportant\<close> separating_hyperplane_set_0_
   obtains a where "a \<in> span S" "a \<noteq> 0" "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> a \<bullet> x"
 proof -
   define k where [abs_def]: "k c = {x. 0 \<le> c \<bullet> x}" for c :: 'a
-  have *: "span S \<inter> frontier (cball 0 1) \<inter> \<Inter>f' \<noteq> {}"
+  have "span S \<inter> frontier (cball 0 1) \<inter> \<Inter>f' \<noteq> {}"
           if f': "finite f'" "f' \<subseteq> k ` S" for f'
   proof -
     obtain C where "C \<subseteq> S" "finite C" and C: "f' = k ` C"
@@ -4888,21 +4753,19 @@ proof -
         by (simp add: \<open>a \<in> S\<close> span_scale span_base)
       ultimately have ass: "a /\<^sub>R (norm a) \<in> span S \<inter> sphere 0 1"
         by simp
-      have aa: "a /\<^sub>R (norm a) \<in> (\<Inter>c\<in>C. {x. 0 \<le> c \<bullet> x})"
-        apply (clarsimp simp add: field_split_simps)
-        using ab \<open>0 < b\<close>
-        by (metis hull_inc inner_commute less_eq_real_def less_trans)
+      have "\<And>x. \<lbrakk>a \<noteq> 0; x \<in> C\<rbrakk> \<Longrightarrow> 0 \<le> x \<bullet> a"
+        using ab \<open>0 < b\<close> by (metis hull_inc inner_commute less_eq_real_def less_trans)
+      then have aa: "a /\<^sub>R (norm a) \<in> (\<Inter>c\<in>C. {x. 0 \<le> c \<bullet> x})"
+        by (auto simp add: field_split_simps)
       show ?thesis
-        apply (simp add: C k_def)
-        using ass aa Int_iff empty_iff by blast
+        unfolding C k_def
+        using ass aa Int_iff empty_iff by force
     qed
   qed
-  have "(span S \<inter> frontier(cball 0 1)) \<inter> (\<Inter> (k ` S)) \<noteq> {}"
-    apply (rule compact_imp_fip)
-    apply (blast intro: compact_cball)
-    using closed_halfspace_ge k_def apply blast
-    apply (metis *)
-    done
+  moreover have "\<And>T. T \<in> k ` S \<Longrightarrow> closed T"
+    using closed_halfspace_ge k_def by blast
+  ultimately have "(span S \<inter> frontier(cball 0 1)) \<inter> (\<Inter> (k ` S)) \<noteq> {}"
+    by (metis compact_imp_fip closed_Int_compact closed_span compact_cball compact_frontier)
   then show ?thesis
     unfolding set_eq_iff k_def
     by simp (metis inner_commute norm_eq_zero that zero_neq_one)
@@ -4929,11 +4792,11 @@ proof -
     by blast
   then have szx: "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> z \<le> a \<bullet> x"
     by (metis (no_types, lifting) imageI inner_minus_right inner_right_distrib minus_add neg_le_0_iff_le neg_le_iff_le real_add_le_0_iff)
-  show ?thesis
-    apply (rule_tac a=a and b = "a  \<bullet> z" in that, simp_all)
-    using \<open>a \<in> span ((+) (- z) ` S)\<close> affine_hull_insert_span_gen apply blast
-    apply (simp_all add: \<open>a \<noteq> 0\<close> szx)
-    done
+  moreover
+  have "z + a \<in> affine hull insert z S"
+    using \<open>a \<in> span ((+) (- z) ` S)\<close> affine_hull_insert_span_gen by blast
+  ultimately show ?thesis
+    using \<open>a \<noteq> 0\<close> szx that by auto
 qed
 
 proposition\<^marker>\<open>tag unimportant\<close> supporting_hyperplane_rel_boundary:
@@ -4975,9 +4838,8 @@ proof -
     have "a \<bullet> x \<le> a \<bullet> y"
       using le_ay \<open>a \<noteq> 0\<close> \<open>y \<in> S\<close> by blast
     moreover have "a \<bullet> x \<noteq> a \<bullet> y"
-      using le_ay [OF \<open>y' \<in> S\<close>] \<open>a \<noteq> 0\<close>
-      apply (simp add: y'_def inner_diff dot_square_norm power2_eq_square)
-      by (metis \<open>0 < e\<close> add_le_same_cancel1 inner_commute inner_real_def inner_zero_left le_diff_eq norm_le_zero_iff real_mult_le_cancel_iff2)
+      using le_ay [OF \<open>y' \<in> S\<close>] \<open>a \<noteq> 0\<close> \<open>0 < e\<close> not_le
+      by (fastforce simp add: y'_def inner_diff dot_square_norm power2_eq_square)
     ultimately show ?thesis by force
   qed
   show ?thesis
@@ -5013,11 +4875,11 @@ proof -
     define f where "f x = (if x \<in> s then u x else 0) - (if x \<in> t then v x else 0)" for x
     have "sum f (s \<union> t) = 0"
       apply (simp add: f_def sum_Un sum_subtractf)
-      apply (simp add: sum.inter_restrict [symmetric] Int_commute)
+      apply (simp add: Int_commute flip: sum.inter_restrict)
       done
     moreover have "(\<Sum>x\<in>(s \<union> t). f x *\<^sub>R x) = 0"
       apply (simp add: f_def sum_Un scaleR_left_diff_distrib sum_subtractf)
-      apply (simp add: if_smult sum.inter_restrict [symmetric] Int_commute eq
+      apply (simp add: if_smult Int_commute eq flip: sum.inter_restrict
           cong del: if_weak_cong)
       done
     ultimately have "\<And>v. v \<in> s \<union> t \<Longrightarrow> f v = 0"
@@ -5043,17 +4905,13 @@ proposition\<^marker>\<open>tag unimportant\<close> affine_hull_Int:
   fixes s :: "'a::euclidean_space set"
   assumes "\<not> affine_dependent(s \<union> t)"
     shows "affine hull (s \<inter> t) = affine hull s \<inter> affine hull t"
-apply (rule subset_antisym)
-apply (simp add: hull_mono)
-by (simp add: affine_hull_Int_subset assms)
+  by (simp add: affine_hull_Int_subset assms hull_mono subset_antisym)
 
 proposition\<^marker>\<open>tag unimportant\<close> convex_hull_Int:
   fixes s :: "'a::euclidean_space set"
   assumes "\<not> affine_dependent(s \<union> t)"
     shows "convex hull (s \<inter> t) = convex hull s \<inter> convex hull t"
-apply (rule subset_antisym)
-apply (simp add: hull_mono)
-by (simp add: convex_hull_Int_subset assms)
+  by (simp add: convex_hull_Int_subset assms hull_mono subset_antisym)
 
 proposition\<^marker>\<open>tag unimportant\<close>
   fixes s :: "'a::euclidean_space set set"
@@ -5145,11 +5003,8 @@ next
     unfolding dd_def using S
     by (simp add: * wsumSS sum.distrib sum_subtractf algebra_simps)
   then have dd0: "dd v = 0" if "v \<in> S" for v
-    using naff that \<open>finite S\<close> sum_dd0 unfolding affine_dependent_explicit
-    apply (simp only: not_ex)
-    apply (drule_tac x=S in spec)
-    apply (drule_tac x=dd in spec, simp)
-    done
+    using naff [unfolded affine_dependent_explicit not_ex, rule_format, of S dd]
+    using that sum_dd0 by force
   consider "c' a \<le> c a" | "c a \<le> c' a" by linarith
   then show ?thesis
   proof cases
@@ -5171,10 +5026,7 @@ next
       have "sum (cc(a := c a)) (insert a (T \<inter> T')) = c a + sum (cc(a := c a)) (T \<inter> T')"
         by (simp add: anot)
       also have "... = c a + sum (cc(a := c a)) S"
-        apply simp
-        apply (rule sum.mono_neutral_left)
-        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
-        done
+        using \<open>T \<subseteq> S\<close> False cc0 cc_def \<open>a \<notin> S\<close> by (fastforce intro!: sum.mono_neutral_left split: if_split_asm)
       also have "... = c a + (1 - c a)"
         by (metis \<open>a \<notin> S\<close> fun_upd_other sum.cong sumSS'(1))
       finally show "sum (cc(a := c a)) (insert a (T \<inter> T')) = 1"
@@ -5182,10 +5034,7 @@ next
       have "(\<Sum>x\<in>insert a (T \<inter> T'). (cc(a := c a)) x *\<^sub>R x) = c a *\<^sub>R a + (\<Sum>x \<in> T \<inter> T'. (cc(a := c a)) x *\<^sub>R x)"
         by (simp add: anot)
       also have "... = c a *\<^sub>R a + (\<Sum>x \<in> S. (cc(a := c a)) x *\<^sub>R x)"
-        apply simp
-        apply (rule sum.mono_neutral_left)
-        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
-        done
+        using \<open>T \<subseteq> S\<close> False cc0 by (fastforce intro!: sum.mono_neutral_left split: if_split_asm)
       also have "... = c a *\<^sub>R a + x - c a *\<^sub>R a"
         by (simp add: wsumSS \<open>a \<notin> S\<close> if_smult sum_delta_notmem)
       finally show "(\<Sum>x\<in>insert a (T \<inter> T'). (cc(a := c a)) x *\<^sub>R x) = x"
@@ -5210,10 +5059,7 @@ next
       have "sum (cc'(a := c' a)) (insert a (T \<inter> T')) = c' a + sum (cc'(a := c' a)) (T \<inter> T')"
         by (simp add: anot)
       also have "... = c' a + sum (cc'(a := c' a)) S"
-        apply simp
-        apply (rule sum.mono_neutral_left)
-        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
-        done
+        using \<open>T \<subseteq> S\<close> False cc0 by (fastforce intro!: sum.mono_neutral_left split: if_split_asm)
       also have "... = c' a + (1 - c' a)"
         by (metis \<open>a \<notin> S\<close> fun_upd_other sum.cong sumSS')
       finally show "sum (cc'(a := c' a)) (insert a (T \<inter> T')) = 1"
@@ -5221,10 +5067,7 @@ next
       have "(\<Sum>x\<in>insert a (T \<inter> T'). (cc'(a := c' a)) x *\<^sub>R x) = c' a *\<^sub>R a + (\<Sum>x \<in> T \<inter> T'. (cc'(a := c' a)) x *\<^sub>R x)"
         by (simp add: anot)
       also have "... = c' a *\<^sub>R a + (\<Sum>x \<in> S. (cc'(a := c' a)) x *\<^sub>R x)"
-        apply simp
-        apply (rule sum.mono_neutral_left)
-        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
-        done
+        using \<open>T \<subseteq> S\<close> False cc0 by (fastforce intro!: sum.mono_neutral_left split: if_split_asm)
       also have "... = c a *\<^sub>R a + x - c a *\<^sub>R a"
         by (simp add: wsumSS \<open>a \<notin> S\<close> if_smult sum_delta_notmem)
       finally show "(\<Sum>x\<in>insert a (T \<inter> T'). (cc'(a := c' a)) x *\<^sub>R x) = x"
@@ -5237,10 +5080,13 @@ corollary\<^marker>\<open>tag unimportant\<close> convex_hull_exchange_Int:
   fixes a  :: "'a::euclidean_space"
   assumes "\<not> affine_dependent S" "a \<in> convex hull S" "T \<subseteq> S" "T' \<subseteq> S"
   shows "(convex hull (insert a T)) \<inter> (convex hull (insert a T')) =
-         convex hull (insert a (T \<inter> T'))"
-apply (rule subset_antisym)
-  using in_convex_hull_exchange_unique assms apply blast
-  by (metis hull_mono inf_le1 inf_le2 insert_inter_insert le_inf_iff)
+         convex hull (insert a (T \<inter> T'))" (is "?lhs = ?rhs")
+proof (rule subset_antisym)
+  show "?lhs \<subseteq> ?rhs"
+    using in_convex_hull_exchange_unique assms by blast
+  show "?rhs \<subseteq> ?lhs"
+    by (metis hull_mono inf_le1 inf_le2 insert_inter_insert le_inf_iff)
+qed
 
 lemma Int_closed_segment:
   fixes b :: "'a::euclidean_space"
@@ -5271,8 +5117,7 @@ next
       then have d: "collinear {a, d, b}"  "collinear {b, d, c}"
         by (auto simp:  between_mem_segment between_imp_collinear)
       have "collinear {a, b, c}"
-        apply (rule collinear_3_trans [OF _ _ \<open>b \<noteq> d\<close>])
-        using d  by (auto simp: insert_commute)
+        by (metis (full_types) \<open>b \<noteq> d\<close> collinear_3_trans d insert_commute)
       with ncoll show False ..
     qed
     then show ?thesis
@@ -5281,16 +5126,16 @@ next
 qed
 
 lemma affine_hull_finite_intersection_hyperplanes:
-  fixes s :: "'a::euclidean_space set"
-  obtains f where
-     "finite f"
-     "of_nat (card f) + aff_dim s = DIM('a)"
-     "affine hull s = \<Inter>f"
-     "\<And>h. h \<in> f \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x = b}"
+  fixes S :: "'a::euclidean_space set"
+  obtains \<F> where
+     "finite \<F>"
+     "of_nat (card \<F>) + aff_dim S = DIM('a)"
+     "affine hull S = \<Inter>\<F>"
+     "\<And>h. h \<in> \<F> \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x = b}"
 proof -
-  obtain b where "b \<subseteq> s"
+  obtain b where "b \<subseteq> S"
              and indb: "\<not> affine_dependent b"
-             and eq: "affine hull s = affine hull b"
+             and eq: "affine hull S = affine hull b"
     using affine_basis_exists by blast
   obtain c where indc: "\<not> affine_dependent c" and "b \<subseteq> c"
              and affc: "affine hull c = UNIV"
@@ -5301,16 +5146,13 @@ proof -
     using \<open>b \<subseteq> c\<close> infinite_super by (auto simp: card_mono)
   have imeq: "(\<lambda>x. affine hull x) ` ((\<lambda>a. c - {a}) ` (c - b)) = ((\<lambda>a. affine hull (c - {a})) ` (c - b))"
     by blast
-  have card1: "card ((\<lambda>a. affine hull (c - {a})) ` (c - b)) = card (c - b)"
-    apply (rule card_image [OF inj_onI])
-    by (metis Diff_eq_empty_iff Diff_iff indc affine_dependent_def hull_subset insert_iff)
-  have card2: "(card (c - b)) + aff_dim s = DIM('a)"
+  have card_cb: "(card (c - b)) + aff_dim S = DIM('a)"
   proof -
     have aff: "aff_dim (UNIV::'a set) = aff_dim c"
       by (metis aff_dim_affine_hull affc)
-    have "aff_dim b = aff_dim s"
+    have "aff_dim b = aff_dim S"
       by (metis (no_types) aff_dim_affine_hull eq)
-    then have "int (card b) = 1 + aff_dim s"
+    then have "int (card b) = 1 + aff_dim S"
       by (simp add: aff_dim_affine_independent indb)
     then show ?thesis
       using fbc aff
@@ -5319,34 +5161,40 @@ proof -
   show ?thesis
   proof (cases "c = b")
     case True show ?thesis
-      apply (rule_tac f="{}" in that)
-      using True affc
-      apply (simp_all add: eq [symmetric])
-      by (metis aff_dim_UNIV aff_dim_affine_hull)
+    proof
+      show "int (card {}) + aff_dim S = int DIM('a)"
+        using True card_cb by auto
+      show "affine hull S = \<Inter> {}"
+        using True affc eq by blast
+    qed auto
   next
     case False
     have ind: "\<not> affine_dependent (\<Union>a\<in>c - b. c - {a})"
       by (rule affine_independent_subset [OF indc]) auto
-    have affeq: "affine hull s = (\<Inter>x\<in>(\<lambda>a. c - {a}) ` (c - b). affine hull x)"
-      using \<open>b \<subseteq> c\<close> False
-      apply (subst affine_hull_Inter [OF ind, symmetric])
-      apply (simp add: eq double_diff)
-      done
-    have *: "1 + aff_dim (c - {t}) = int (DIM('a))"
-            if t: "t \<in> c" for t
+    have *: "1 + aff_dim (c - {t}) = int (DIM('a))" if t: "t \<in> c" for t
     proof -
       have "insert t c = c"
         using t by blast
       then show ?thesis
         by (metis (full_types) add.commute aff_dim_affine_hull aff_dim_insert aff_dim_UNIV affc affine_dependent_def indc insert_Diff_single t)
     qed
+    let ?\<F> = "(\<lambda>x. affine hull x) ` ((\<lambda>a. c - {a}) ` (c - b))"
     show ?thesis
-      apply (rule_tac f = "(\<lambda>x. affine hull x) ` ((\<lambda>a. c - {a}) ` (c - b))" in that)
-         using \<open>finite c\<close> apply blast
-        apply (simp add: imeq card1 card2)
-      apply (simp add: affeq, clarify)
-      apply (metis DIM_positive One_nat_def Suc_leI add_diff_cancel_left' of_nat_1 aff_dim_eq_hyperplane of_nat_diff *)
-      done
+    proof
+      have "card ((\<lambda>a. affine hull (c - {a})) ` (c - b)) = card (c - b)"
+        apply (rule card_image [OF inj_onI])
+        by (metis Diff_eq_empty_iff Diff_iff indc affine_dependent_def hull_subset insert_iff)
+      then show "int (card ?\<F>) + aff_dim S = int DIM('a)"
+        by (simp add: imeq card_cb)
+      show "affine hull S = \<Inter> ?\<F>"
+        using \<open>b \<subseteq> c\<close> False
+        apply (subst affine_hull_Inter [OF ind, symmetric])
+        apply (simp add: eq double_diff)
+        done
+      show "\<And>h. h \<in> ?\<F> \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x = b}"
+        apply clarsimp
+        by (metis DIM_positive One_nat_def Suc_leI add_diff_cancel_left' of_nat_1 aff_dim_eq_hyperplane of_nat_diff *)
+      qed (use \<open>finite c\<close> in auto)
   qed
 qed
 
@@ -5360,8 +5208,7 @@ proof -
   have "subspace S"
     by (simp add: assms subspace_affine)
   have span1: "span {y. a \<bullet> y = 0} \<subseteq> span {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
-    apply (rule span_mono)
-    using \<open>0 \<in> S\<close> add.left_neutral by force
+    using \<open>0 \<in> S\<close> add.left_neutral by (intro span_mono) force
   have "w \<notin> span {y. a \<bullet> y = 0}"
     using \<open>a \<bullet> w \<noteq> 0\<close> span_induct subspace_hyperplane by auto
   moreover have "w \<in> span {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
@@ -5374,14 +5221,13 @@ proof -
     by (simp add: dim_hyperplane)
   also have "... < dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
     using span1 span2 by (blast intro: dim_psubset)
-  finally have DIM_lt: "DIM('a) - 1 < dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}" .
+  finally have "DIM('a) - 1 < dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}" .
+  then have DD: "dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0} = DIM('a)"
+    using antisym dim_subset_UNIV lowdim_subset_hyperplane not_le by fastforce
   have subs: "subspace {x + y| x y. x \<in> S \<and> a \<bullet> y = 0}"
     using subspace_sums [OF \<open>subspace S\<close> subspace_hyperplane] by simp
   moreover have "span {x + y| x y. x \<in> S \<and> a \<bullet> y = 0} = UNIV"
-    apply (rule dim_eq_full [THEN iffD1])
-    apply (rule antisym [OF dim_subset_UNIV])
-    using DIM_lt apply simp
-    done
+    using DD dim_eq_full by blast
   ultimately show ?thesis
     by (simp add: subs) (metis (lifting) span_eq_iff subs)
 qed
@@ -5538,10 +5384,10 @@ proof -
         using Bsub \<open>0 < e\<close> eq1 subT' \<open>a \<in> T\<close> by (auto simp: subspace_def)
       then show "(\<lambda>x. e *\<^sub>R x) ` B \<subseteq> (\<lambda>x. x - a) ` S"
         using e' by blast
-      show "independent ((\<lambda>x. e *\<^sub>R x) ` B)"
-        using linear_scale_self \<open>independent B\<close>
-        apply (rule linear_independent_injective_image)
+      have "inj_on ((*\<^sub>R) e) (span B)"
         using \<open>0 < e\<close> inj_on_def by fastforce
+      then show "independent ((\<lambda>x. e *\<^sub>R x) ` B)"
+        using linear_scale_self \<open>independent B\<close> linear_dependent_inj_imageD by blast
     qed
     also have "... = aff_dim S"
       using \<open>a \<in> S\<close> aff_dim_eq_dim hull_inc by (force cong: image_cong_simp)
@@ -5666,9 +5512,7 @@ proof
   show "closure (S - T) \<subseteq> closure S"
     by (simp add: closure_mono)
   have "closure (rel_interior S - T) = closure (rel_interior S)"
-    apply (rule dense_complement_openin_affine_hull)
-    apply (simp add: assms rel_interior_aff_dim)
-    using \<open>convex S\<close> rel_interior_rel_open rel_open by blast
+    by (simp add: assms dense_complement_openin_affine_hull openin_rel_interior rel_interior_aff_dim rel_interior_same_affine_hull)
   then show "closure S \<subseteq> closure (S - T)"
     by (metis Diff_mono \<open>convex S\<close> closure_mono convex_closure_rel_interior order_refl rel_interior_subset)
 qed
@@ -5749,9 +5593,7 @@ proof -
   have *: "((\<lambda>x. x - a) ` (S - {a})) = {x. x + a \<in> S} - {0}"
     by (auto simp: algebra_simps)
   show ?thesis
-    apply (simp add: affine_hull_span2 [OF assms] *)
-    apply (auto simp: algebra_simps)
-    done
+    by (auto simp add: algebra_simps affine_hull_span2 [OF assms] *)
 qed
 
 lemma aff_dim_dim_affine_diffs:
@@ -5889,15 +5731,11 @@ next
     then obtain e where "e > 0" "cball x e \<subseteq> T"
       by (force simp: open_contains_cball)
     then show ?thesis
-      apply (rule_tac x = T in exI)
-      apply (rule_tac x = "ball x e" in exI)
-      using  \<open>T \<in> \<C>\<close>
-      apply (simp add: closure_minimal)
-      using closed_cball closure_minimal by blast
+      by (meson open_ball \<open>T \<in> \<C>\<close> ball_subset_cball centre_in_ball closed_cball closure_minimal dual_order.trans)
   qed
   then obtain F G where Gin: "x \<in> G x" and oG: "open (G x)"
-                    and clos: "closure (G x) \<subseteq> F x" and Fin: "F x \<in> \<C>"
-         if "x \<in> S" for x
+    and clos: "closure (G x) \<subseteq> F x" and Fin: "F x \<in> \<C>"
+  if "x \<in> S" for x
     by metis
   then obtain \<F> where "\<F> \<subseteq> G ` S" "countable \<F>" "\<Union>\<F> = \<Union>(G ` S)"
     using Lindelof [of "G ` S"] by (metis image_iff)
@@ -5915,46 +5753,46 @@ next
     then show ?thesis
       using clos K \<open>range a = K\<close> closure_subset by blast
   qed
-  have 1: "S \<subseteq> Union ?C"
-  proof
-    fix x assume "x \<in> S"
-    define n where "n \<equiv> LEAST n. x \<in> F(a n)"
-    have n: "x \<in> F(a n)"
-      using enum_S [OF \<open>x \<in> S\<close>] by (force simp: n_def intro: LeastI)
-    have notn: "x \<notin> F(a m)" if "m < n" for m
-      using that not_less_Least by (force simp: n_def)
-    then have "x \<notin> \<Union>{closure (G (a m)) |m. m < n}"
-      using n \<open>K \<subseteq> S\<close> \<open>range a = K\<close> clos notn by fastforce
-    with n show "x \<in> Union ?C"
-      by blast
-  qed
-  have 3: "\<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> ?C \<and> (U \<inter> V \<noteq> {})}" if "x \<in> S" for x
-  proof -
-    obtain n where n: "x \<in> F(a n)" "x \<in> G(a n)"
-      using \<open>x \<in> S\<close> enum_S by auto
-    have "{U \<in> ?C. U \<inter> G (a n) \<noteq> {}} \<subseteq> (\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n"
-    proof clarsimp
-      fix k  assume "(F (a k) - \<Union>{closure (G (a m)) |m. m < k}) \<inter> G (a n) \<noteq> {}"
-      then have "k \<le> n"
-        by auto (metis closure_subset not_le subsetCE)
-      then show "F (a k) - \<Union>{closure (G (a m)) |m. m < k}
-                 \<in> (\<lambda>n. F (a n) - \<Union>{closure (G (a m)) |m. m < n}) ` {..n}"
-        by force
-    qed
-    moreover have "finite ((\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n)"
-      by force
-    ultimately have *: "finite {U \<in> ?C. U \<inter> G (a n) \<noteq> {}}"
-      using finite_subset by blast
-    show ?thesis
-      apply (rule_tac x="G (a n)" in exI)
-      apply (intro conjI oG n *)
-      using \<open>K \<subseteq> S\<close> \<open>range a = K\<close> apply blast
-      done
-  qed
   show ?thesis
-    apply (rule that [OF 1 _ 3])
-    using Fin \<open>K \<subseteq> S\<close> \<open>range a = K\<close>  apply (auto simp: odif)
-    done
+  proof
+    show "S \<subseteq> Union ?C"
+    proof
+      fix x assume "x \<in> S"
+      define n where "n \<equiv> LEAST n. x \<in> F(a n)"
+      have n: "x \<in> F(a n)"
+        using enum_S [OF \<open>x \<in> S\<close>] by (force simp: n_def intro: LeastI)
+      have notn: "x \<notin> F(a m)" if "m < n" for m
+        using that not_less_Least by (force simp: n_def)
+      then have "x \<notin> \<Union>{closure (G (a m)) |m. m < n}"
+        using n \<open>K \<subseteq> S\<close> \<open>range a = K\<close> clos notn by fastforce
+      with n show "x \<in> Union ?C"
+        by blast
+    qed
+    show "\<And>U. U \<in> ?C \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
+      using Fin \<open>K \<subseteq> S\<close> \<open>range a = K\<close> by (auto simp: odif)
+    show "\<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> ?C \<and> (U \<inter> V \<noteq> {})}" if "x \<in> S" for x
+    proof -
+      obtain n where n: "x \<in> F(a n)" "x \<in> G(a n)"
+        using \<open>x \<in> S\<close> enum_S by auto
+      have "{U \<in> ?C. U \<inter> G (a n) \<noteq> {}} \<subseteq> (\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n"
+      proof clarsimp
+        fix k  assume "(F (a k) - \<Union>{closure (G (a m)) |m. m < k}) \<inter> G (a n) \<noteq> {}"
+        then have "k \<le> n"
+          by auto (metis closure_subset not_le subsetCE)
+        then show "F (a k) - \<Union>{closure (G (a m)) |m. m < k}
+                 \<in> (\<lambda>n. F (a n) - \<Union>{closure (G (a m)) |m. m < n}) ` {..n}"
+          by force
+      qed
+      moreover have "finite ((\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n)"
+        by force
+      ultimately have *: "finite {U \<in> ?C. U \<inter> G (a n) \<noteq> {}}"
+        using finite_subset by blast
+      have "a n \<in> S"
+        using \<open>K \<subseteq> S\<close> \<open>range a = K\<close> by blast
+      then show ?thesis
+        by (blast intro: oG n *)
+    qed
+  qed
 qed
 
 corollary paracompact_closedin:
@@ -5993,13 +5831,14 @@ proof -
              (\<lambda>x. U \<inter> x) ` {U \<in> \<D>. U \<inter> V \<noteq> {}}" for V
       by blast
     show "\<exists>V. openin (top_of_set U) V \<and> x \<in> V \<and> finite {X \<in> ?C. X \<inter> V \<noteq> {}}"
-         if "x \<in> U" for x
-      using D2 [OF that]
-      apply clarify
-      apply (rule_tac x="U \<inter> V" in exI)
-      apply (auto intro: that finite_subset [OF *])
-      done
+      if "x \<in> U" for x
+    proof -
+      from D2 [OF that] obtain V where "open V" "x \<in> V" "finite {U \<in> \<D>. U \<inter> V \<noteq> {}}"
+        by auto
+      with * show ?thesis
+        by (rule_tac x="U \<inter> V" in exI) (auto intro: that finite_subset [OF *])
     qed
+  qed
 qed
 
 corollary\<^marker>\<open>tag unimportant\<close> paracompact_closed:
@@ -6021,7 +5860,7 @@ lemma continuous_closed_graph_gen:
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
     shows "closedin (top_of_set (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
 proof -
-  have eq: "((\<lambda>x. Pair x (f x)) ` S) =(S \<times> T \<inter> (\<lambda>z. (f \<circ> fst)z - snd z) -` {0})"
+  have eq: "((\<lambda>x. Pair x (f x)) ` S) = (S \<times> T \<inter> (\<lambda>z. (f \<circ> fst)z - snd z) -` {0})"
     using fim by auto
   show ?thesis
     apply (subst eq)
@@ -6052,9 +5891,10 @@ lemma continuous_closed_graph:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   assumes "closed S" and contf: "continuous_on S f"
   shows "closed ((\<lambda>x. Pair x (f x)) ` S)"
-  apply (rule closedin_closed_trans)
-   apply (rule continuous_closed_graph_gen [OF contf subset_UNIV])
-  by (simp add: \<open>closed S\<close> closed_Times)
+proof (rule closedin_closed_trans)
+  show "closedin (top_of_set (S \<times> UNIV)) ((\<lambda>x. (x, f x)) ` S)"
+    by (rule continuous_closed_graph_gen [OF contf subset_UNIV])
+qed (simp add: \<open>closed S\<close> closed_Times)
 
 lemma continuous_from_closed_graph:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -6120,8 +5960,7 @@ next
         proof (intro conjI exI ballI)
           have "(\<Sum>x \<in> insert a (S - {b}). if x = a then 0 else v x) =
                 (\<Sum>x \<in> S - {b}. if x = a then 0 else v x)"
-            apply (rule sum.mono_neutral_right)
-            using fin by auto
+            using fin by (force intro: sum.mono_neutral_right)
           also have "... = (\<Sum>x \<in> S - {b}. v x)"
             using b False by (auto intro!: sum.cong split: if_split_asm)
           also have "... = (\<Sum>x\<in>S. v x)"
@@ -6132,8 +5971,7 @@ next
             by (auto simp: v0)
           have "(\<Sum>x \<in> insert a (S - {b}). (if x = a then 0 else v x) *\<^sub>R x) =
                 (\<Sum>x \<in> S - {b}. (if x = a then 0 else v x) *\<^sub>R x)"
-            apply (rule sum.mono_neutral_right)
-            using fin by auto
+            using fin by (force intro: sum.mono_neutral_right)
           also have "... = (\<Sum>x \<in> S - {b}. v x *\<^sub>R x)"
             using b False by (auto intro!: sum.cong split: if_split_asm)
           also have "... = (\<Sum>x\<in>S. v x *\<^sub>R x)"
@@ -6164,9 +6002,8 @@ next
         proof (intro conjI exI ballI)
           have "(\<Sum>x \<in> insert a (S - {b}). if x=a then v b / u b else v x - (v b / u b) * u x) =
                 v b / u b + (\<Sum>x \<in> S - {b}. v x - (v b / u b) * u x)"
-            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  apply simp
-            apply (rule sum.cong, auto)
-            done
+            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  
+            by (auto intro!: sum.cong split: if_split_asm)
           also have "... = v b / u b + (\<Sum>x \<in> S - {b}. v x) - (v b / u b) * (\<Sum>x \<in> S - {b}. u x)"
             by (simp add: Groups_Big.sum_subtractf sum_distrib_left)
           also have "... = (\<Sum>x\<in>S. v x)"
@@ -6179,9 +6016,7 @@ next
             by (auto simp: field_simps split: if_split_asm)
           have "(\<Sum>x\<in>insert a (S - {b}). (if x=a then v b / u b else v x - v b / u b * u x) *\<^sub>R x) =
                 (v b / u b) *\<^sub>R a + (\<Sum>x\<in>S - {b}. (v x - v b / u b * u x) *\<^sub>R x)"
-            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  apply simp
-            apply (rule sum.cong, auto)
-            done
+            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  by (auto intro!: sum.cong split: if_split_asm)
           also have "... = (v b / u b) *\<^sub>R a + (\<Sum>x \<in> S - {b}. v x *\<^sub>R x) - (v b / u b) *\<^sub>R (\<Sum>x \<in> S - {b}. u x *\<^sub>R x)"
             by (simp add: Groups_Big.sum_subtractf scaleR_left_diff_distrib sum_distrib_left scale_sum_right)
           also have "... = (\<Sum>x\<in>S. v x *\<^sub>R x)"
@@ -6254,12 +6089,9 @@ proof -
       by (metis (no_types) Diff_cancel Diff_eq_empty_iff Diff_insert2 open_segment_def)
   qed
   show ?thesis
-    using Un_closed_segment [OF b]
-    apply (simp add: closed_segment_eq_open)
-      apply (rule equalityI)
-    using assms
-     apply (simp add: b subset_open_segment)
-      using * by (simp add: insert_commute)
+    apply (rule antisym)
+    using Un_closed_segment [OF b] assms *
+    by (simp_all add: closed_segment_eq_open b subset_open_segment insert_commute)
 qed
 
 subsection\<open>Covering an open set by a countable chain of compact sets\<close>
@@ -6476,7 +6308,7 @@ qed (use orthogonal_comp_subset in auto)
 lemma ker_orthogonal_comp_adjoint:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "linear f"
-  shows "f -` {0} =  (range (adjoint f))\<^sup>\<bottom>"
+  shows "f -` {0} = (range (adjoint f))\<^sup>\<bottom>"
   apply (auto simp: orthogonal_comp_def orthogonal_def)
   apply (simp add: adjoint_works assms(1) inner_commute)
   by (metis adjoint_works all_zero_iff assms(1) inner_commute)
