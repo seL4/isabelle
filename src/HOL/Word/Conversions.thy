@@ -205,7 +205,7 @@ context ring_1
 begin
 
 lift_definition signed :: \<open>'b::len word \<Rightarrow> 'a\<close>
-  is \<open>of_int \<circ> signed_take_bit (LENGTH('b) - 1)\<close>
+  is \<open>of_int \<circ> signed_take_bit (LENGTH('b) - Suc 0)\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
 
 lemma signed_0 [simp]:
@@ -374,15 +374,15 @@ proof (rule rel_funI)
 qed
 
 lemma [transfer_rule]:
-  \<open>(pcr_word ===> pcr_word) (signed_take_bit (LENGTH('a) - 1)) (scast :: 'a::len word \<Rightarrow> 'b::len word)\<close>
+  \<open>(pcr_word ===> pcr_word) (signed_take_bit (LENGTH('a) - Suc 0)) (scast :: 'a::len word \<Rightarrow> 'b::len word)\<close>
 proof (rule rel_funI)
   fix k :: int and w :: \<open>'a word\<close>
   assume \<open>pcr_word k w\<close>
   then have \<open>w = word_of_int k\<close>
     by (simp add: pcr_word_def cr_word_def relcompp_apply)
-  moreover have \<open>pcr_word (signed_take_bit (LENGTH('a) - 1) k) (scast (word_of_int k :: 'a word))\<close>
+  moreover have \<open>pcr_word (signed_take_bit (LENGTH('a) - Suc 0) k) (scast (word_of_int k :: 'a word))\<close>
     by transfer (simp add: pcr_word_def cr_word_def relcompp_apply)
-  ultimately show \<open>pcr_word (signed_take_bit (LENGTH('a) - 1) k) (scast w)\<close>
+  ultimately show \<open>pcr_word (signed_take_bit (LENGTH('a) - Suc 0) k) (scast w)\<close>
     by simp
 qed
 
@@ -450,15 +450,15 @@ lemma sint_not_eq:
   by (simp add: signed_not_eq signed_take_bit_unfold)
 
 lemma sint_push_bit_eq:
-  \<open>signed (push_bit n w) = signed_take_bit (LENGTH('a) - 1) (push_bit n (signed w))\<close>
+  \<open>signed (push_bit n w) = signed_take_bit (LENGTH('a) - Suc 0) (push_bit n (signed w))\<close>
   for w :: \<open>'a::len word\<close>
   by (transfer fixing: n; cases \<open>LENGTH('a)\<close>)
      (auto simp add: signed_take_bit_def bit_concat_bit_iff bit_push_bit_iff bit_take_bit_iff bit_or_iff le_diff_conv2,
         auto simp add: take_bit_push_bit not_less concat_bit_eq_iff take_bit_concat_bit_eq le_diff_conv2)
 
 lemma sint_greater_eq:
-  \<open>- (2 ^ (LENGTH('a) - 1)) \<le> sint w\<close> for w :: \<open>'a::len word\<close>
-proof (cases \<open>bit w (LENGTH('a) - 1)\<close>)
+  \<open>- (2 ^ (LENGTH('a) - Suc 0)) \<le> sint w\<close> for w :: \<open>'a::len word\<close>
+proof (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>)
   case True
   then show ?thesis
     by transfer (simp add: signed_take_bit_eq_or minus_exp_eq_not_mask or_greater_eq ac_simps)
@@ -471,8 +471,26 @@ next
 qed
 
 lemma sint_less:
-  \<open>sint w < 2 ^ (LENGTH('a) - 1)\<close> for w :: \<open>'a::len word\<close>
-  by (cases \<open>bit w (LENGTH('a) - 1)\<close>; transfer)
+  \<open>sint w < 2 ^ (LENGTH('a) - Suc 0)\<close> for w :: \<open>'a::len word\<close>
+  by (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>; transfer)
     (simp_all add: signed_take_bit_eq signed_take_bit_unfold take_bit_int_less_exp not_eq_complement mask_eq_exp_minus_1 OR_upper)
+
+context semiring_1
+begin
+
+lemma unsigned_ucase_eq:
+  \<open>unsigned (ucast w :: 'c::len word) = unsigned (take_bit LENGTH('c) w)\<close>
+  for w :: \<open>'b::len word\<close>
+  by transfer (simp add: ac_simps)
+
+lemma signed_ucast_eq:
+  \<open>signed (ucast w :: 'c::len word) =
+    take_bit (min LENGTH('b) LENGTH('c)) w OR of_bool (bit w (LENGTH('c) - Suc 0)) * NOT (mask LENGTH('c))\<close>
+  for w :: \<open>'b::len word\<close>
+  by (transfer, rule bit_eqI)
+    (simp_all add: bit_take_bit_iff bit_signed_take_bit_iff bit_or_iff bit_not_iff bit_mask_iff
+      not_less not_le min_def le_diff_conv less_diff_conv2 le_Suc_eq)
+
+end
 
 end
