@@ -990,6 +990,40 @@ proof -
     by simp_all
 qed
 
+lemma bit_disjunctive_add_iff:
+  \<open>bit (a + b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+  if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
+proof (cases \<open>2 ^ n = 0\<close>)
+  case True
+  then show ?thesis
+    by (simp add: exp_eq_0_imp_not_bit)
+next
+  case False
+  with that show ?thesis proof (induction n arbitrary: a b)
+    case 0
+    from "0.prems"(1) [of 0] show ?case
+      by auto
+  next
+    case (Suc n)
+    from Suc.prems(1) [of 0] have even: \<open>even a \<or> even b\<close>
+      by auto
+    have bit: \<open>\<not> bit (a div 2) n \<or> \<not> bit (b div 2) n\<close> for n
+      using Suc.prems(1) [of \<open>Suc n\<close>] by (simp add: bit_Suc)
+    from Suc.prems(2) have \<open>2 * 2 ^ n \<noteq> 0\<close> \<open>2 ^ n \<noteq> 0\<close>
+      by (auto simp add: mult_2)
+    have \<open>a + b = (a div 2 * 2 + a mod 2) + (b div 2 * 2 + b mod 2)\<close>
+      using div_mult_mod_eq [of a 2] div_mult_mod_eq [of b 2] by simp
+    also have \<open>\<dots> = of_bool (odd a \<or> odd b) + 2 * (a div 2 + b div 2)\<close>
+      using even by (auto simp add: algebra_simps mod2_eq_if)
+    finally have \<open>bit ((a + b) div 2) n \<longleftrightarrow> bit (a div 2 + b div 2) n\<close>
+      using \<open>2 * 2 ^ n \<noteq> 0\<close> by simp (simp flip: bit_Suc add: bit_double_iff)
+    also have \<open>\<dots> \<longleftrightarrow> bit (a div 2) n \<or> bit (b div 2) n\<close>
+      using bit \<open>2 ^ n \<noteq> 0\<close> by (rule Suc.IH)
+    finally show ?case
+      by (simp add: bit_Suc)
+  qed
+qed
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:

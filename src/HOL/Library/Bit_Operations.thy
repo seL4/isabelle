@@ -95,6 +95,30 @@ lemma take_bit_xor [simp]:
   \<open>take_bit n (a XOR b) = take_bit n a XOR take_bit n b\<close>
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
 
+lemma push_bit_and [simp]:
+  \<open>push_bit n (a AND b) = push_bit n a AND push_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_and_iff)
+
+lemma push_bit_or [simp]:
+  \<open>push_bit n (a OR b) = push_bit n a OR push_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_or_iff)
+
+lemma push_bit_xor [simp]:
+  \<open>push_bit n (a XOR b) = push_bit n a XOR push_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_xor_iff)
+
+lemma drop_bit_and [simp]:
+  \<open>drop_bit n (a AND b) = drop_bit n a AND drop_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_and_iff)
+
+lemma drop_bit_or [simp]:
+  \<open>drop_bit n (a OR b) = drop_bit n a OR drop_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_or_iff)
+
+lemma drop_bit_xor [simp]:
+  \<open>drop_bit n (a XOR b) = drop_bit n a XOR drop_bit n b\<close>
+  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_xor_iff)
+
 lemma bit_mask_iff:
   \<open>bit (mask m) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
   by (simp add: mask_eq_exp_minus_1 bit_mask_iff)
@@ -134,6 +158,10 @@ lemma take_bit_eq_mask:
   \<open>take_bit n a = a AND mask n\<close>
   by (rule bit_eqI)
     (auto simp add: bit_take_bit_iff bit_and_iff bit_mask_iff)
+
+lemma disjunctive_add:
+  \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
+  by (rule bit_eqI) (use that in \<open>simp add: bit_disjunctive_add_iff bit_or_iff\<close>)
 
 end
 
@@ -191,25 +219,18 @@ lemma not_one [simp]:
   by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
 
 sublocale "and": semilattice_neutr \<open>(AND)\<close> \<open>- 1\<close>
-  apply standard
-  apply (simp add: bit_eq_iff bit_and_iff)
-  apply (auto simp add: exp_eq_0_imp_not_bit bit_exp_iff)
-  done
+  by standard (rule bit_eqI, simp add: bit_and_iff)
 
 sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
   rewrites \<open>bit.xor = (XOR)\<close>
 proof -
   interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-    apply standard
-         apply (simp_all add: bit_eq_iff)
-       apply (auto simp add: bit_and_iff bit_or_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
-    done
+    by standard (auto simp add: bit_and_iff bit_or_iff bit_not_iff intro: bit_eqI)
   show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
     by standard
   show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>
-    apply (simp add: fun_eq_iff bit_eq_iff bit.xor_def)
-    apply (auto simp add: bit_and_iff bit_or_iff bit_not_iff bit_xor_iff exp_eq_0_imp_not_bit)
-    done
+    by (rule ext, rule ext, rule bit_eqI)
+      (auto simp add: bit.xor_def bit_and_iff bit_or_iff bit_xor_iff bit_not_iff)
 qed
 
 lemma and_eq_not_not_or:
@@ -228,6 +249,17 @@ lemma not_diff_distrib:
   \<open>NOT (a - b) = NOT a + b\<close>
   using not_add_distrib [of a \<open>- b\<close>] by simp
 
+lemma disjunctive_diff:
+  \<open>a - b = a AND NOT b\<close> if \<open>\<And>n. bit b n \<Longrightarrow> bit a n\<close>
+proof -
+  have \<open>NOT a + b = NOT a OR b\<close>
+    by (rule disjunctive_add) (auto simp add: bit_not_iff dest: that)
+  then have \<open>NOT (NOT a + b) = NOT (NOT a OR b)\<close>
+    by simp
+  then show ?thesis
+    by (simp add: not_add_distrib)
+qed
+
 lemma push_bit_minus:
   \<open>push_bit n (- a) = - push_bit n a\<close>
   by (simp add: push_bit_eq_mult)
@@ -238,9 +270,9 @@ lemma take_bit_not_take_bit:
 
 lemma take_bit_not_iff:
   "take_bit n (NOT a) = take_bit n (NOT b) \<longleftrightarrow> take_bit n a = take_bit n b"
-  apply (simp add: bit_eq_iff bit_not_iff bit_take_bit_iff)
-  apply (simp add: bit_exp_iff)
-  apply (use local.exp_eq_0_imp_not_bit in blast)
+  apply (simp add: bit_eq_iff)
+  apply (simp add: bit_not_iff bit_take_bit_iff bit_exp_iff)
+  apply (use exp_eq_0_imp_not_bit in blast)
   done
 
 lemma mask_eq_take_bit_minus_one:
@@ -519,40 +551,6 @@ qed (simp_all add: bit_not_int_iff mask_int_def)
 
 end
 
-lemma disjunctive_add:
-  \<open>k + l = k OR l\<close> if \<open>\<And>n. \<not> bit k n \<or> \<not> bit l n\<close> for k l :: int
-  \<comment> \<open>TODO: may integrate (indirectly) into \<^class>\<open>semiring_bits\<close> premises\<close>
-proof (rule bit_eqI)
-  fix n
-  from that have \<open>bit (k + l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
-  proof (induction n arbitrary: k l)
-    case 0
-    from this [of 0] show ?case
-      by auto
-  next
-    case (Suc n)
-    have \<open>bit ((k + l) div 2) n \<longleftrightarrow> bit (k div 2 + l div 2) n\<close>
-      using Suc.prems [of 0] div_add1_eq [of k l] by auto
-    also have \<open>bit (k div 2 + l div 2) n \<longleftrightarrow> bit (k div 2) n \<or> bit (l div 2) n\<close>
-      by (rule Suc.IH) (use Suc.prems in \<open>simp flip: bit_Suc\<close>)
-    finally show ?case
-      by (simp add: bit_Suc)
-  qed
-  also have \<open>\<dots> \<longleftrightarrow> bit (k OR l) n\<close>
-    by (simp add: bit_or_iff)
-  finally show \<open>bit (k + l) n \<longleftrightarrow> bit (k OR l) n\<close> .
-qed
-
-lemma disjunctive_diff:
-  \<open>k - l = k AND NOT l\<close> if \<open>\<And>n. bit l n \<Longrightarrow> bit k n\<close> for k l :: int
-proof -
-  have \<open>NOT k + l = NOT k OR l\<close>
-    by (rule disjunctive_add) (auto simp add: bit_not_iff dest: that)
-  then have \<open>NOT (NOT k + l) = NOT (NOT k OR l)\<close>
-    by simp
-  then show ?thesis
-    by (simp add: not_add_distrib)
-qed
 
 lemma mask_nonnegative_int [simp]:
   \<open>mask n \<ge> (0::int)\<close>
@@ -1129,7 +1127,7 @@ lemma signed_take_bit_code [code]:
   (let l = take_bit (Suc n) k
    in if bit l n then l - (push_bit n 2) else l)\<close>
 proof -
-  have *: \<open>(take_bit (Suc n) k) - 2 * 2 ^ n = take_bit (Suc n) k OR NOT (mask (Suc n))\<close>
+  have *: \<open>take_bit (Suc n) k - 2 * 2 ^ n = take_bit (Suc n) k OR NOT (mask (Suc n))\<close>
     apply (subst disjunctive_add [symmetric])
     apply (simp_all add: bit_and_iff bit_mask_iff bit_not_iff bit_take_bit_iff)
     apply (simp flip: minus_exp_eq_not_mask)
@@ -1362,38 +1360,9 @@ text \<open>
 
       \<^item> Bit concatenation: @{thm concat_bit_def [no_vars]}
 
-      \<^item> Truncation centered towards \<^term>\<open>0::int\<close>: @{thm signed_take_bit_def [no_vars]}
+      \<^item> Signed truncation, or modulus centered around \<^term>\<open>0::int\<close>: @{thm signed_take_bit_def [no_vars]}
 
       \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>
-
-context semiring_bit_operations
-begin
-
-lemma push_bit_and [simp]:
-  \<open>push_bit n (a AND b) = push_bit n a AND push_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_and_iff)
-
-lemma push_bit_or [simp]:
-  \<open>push_bit n (a OR b) = push_bit n a OR push_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_or_iff)
-
-lemma push_bit_xor [simp]:
-  \<open>push_bit n (a XOR b) = push_bit n a XOR push_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_push_bit_iff bit_xor_iff)
-
-lemma drop_bit_and [simp]:
-  \<open>drop_bit n (a AND b) = drop_bit n a AND drop_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_and_iff)
-
-lemma drop_bit_or [simp]:
-  \<open>drop_bit n (a OR b) = drop_bit n a OR drop_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_or_iff)
-
-lemma drop_bit_xor [simp]:
-  \<open>drop_bit n (a XOR b) = drop_bit n a XOR drop_bit n b\<close>
-  by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_xor_iff)
-
-end
 
 end

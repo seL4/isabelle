@@ -4172,7 +4172,7 @@ lemma word_rot_rl [simp]:
   apply (simp add: word_rotl_eq_word_rotr word_rotr_word_rotr_eq bit_word_rotr_iff algebra_simps)
   apply (auto dest: bit_imp_le_length)
    apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_if mod_mult_self2_is_0)
-  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' bit_imp_le_length div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
+  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
   done
 
 lemma word_rot_lr [simp]:
@@ -4181,7 +4181,7 @@ lemma word_rot_lr [simp]:
   apply (simp add: word_rotl_eq_word_rotr word_rotr_word_rotr_eq bit_word_rotr_iff algebra_simps)
   apply (auto dest: bit_imp_le_length)
    apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_if mod_mult_self2_is_0)
-  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' bit_imp_le_length div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
+  apply (metis (no_types, lifting) add.right_neutral add_diff_cancel_right' div_mult_mod_eq mod_add_right_eq mod_add_self2 mod_less mod_mult_self2_is_0)
   done
 
 lemma word_rot_gal:
