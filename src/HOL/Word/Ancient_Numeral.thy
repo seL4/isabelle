@@ -163,14 +163,14 @@ lemma bin_nth_Bit: "bin_nth (w BIT b) n \<longleftrightarrow> n = 0 \<and> b \<o
   by (cases n) auto
 
 lemmas sbintrunc_Suc_BIT [simp] =
-  signed_take_bit_Suc [where k="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
+  signed_take_bit_Suc [where a="w BIT b", simplified bin_last_BIT bin_rest_BIT] for w b
 
 lemmas sbintrunc_0_BIT_B0 [simp] =
-  signed_take_bit_0 [where k="w BIT False", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where a="w BIT False", simplified bin_last_numeral_simps bin_rest_numeral_simps]
   for w
 
 lemmas sbintrunc_0_BIT_B1 [simp] =
-  signed_take_bit_0 [where k="w BIT True", simplified bin_last_BIT bin_rest_numeral_simps]
+  signed_take_bit_0 [where a="w BIT True", simplified bin_last_BIT bin_rest_numeral_simps]
   for w
 
 lemma sbintrunc_Suc_minus_Is:

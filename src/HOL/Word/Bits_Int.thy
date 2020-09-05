@@ -227,19 +227,19 @@ lemma sbintrunc_sbintrunc_min [simp]: "sbintrunc m (sbintrunc n w) = sbintrunc (
   by (rule bin_eqI) (auto simp: nth_sbintr min.absorb1 min.absorb2)
 
 lemmas sbintrunc_Suc_Pls =
-  signed_take_bit_Suc [where k="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_Suc [where a="0::int", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Suc_Min =
-  signed_take_bit_Suc [where k="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_Suc [where a="-1::int", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min
   sbintrunc_Suc_numeral
 
 lemmas sbintrunc_Pls =
-  signed_take_bit_0 [where k="0", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where a="0::int", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_Min =
-  signed_take_bit_0 [where k="-1", simplified bin_last_numeral_simps bin_rest_numeral_simps]
+  signed_take_bit_0 [where a="-1::int", simplified bin_last_numeral_simps bin_rest_numeral_simps]
 
 lemmas sbintrunc_0_simps =
   sbintrunc_Pls sbintrunc_Min

@@ -552,6 +552,10 @@ qed (simp_all add: bit_not_int_iff mask_int_def)
 end
 
 
+lemma mask_half_int:
+  \<open>mask n div 2 = (mask (n - 1) :: int)\<close>
+  by (cases n) (simp_all add: mask_eq_exp_minus_1 algebra_simps)
+
 lemma mask_nonnegative_int [simp]:
   \<open>mask n \<ge> (0::int)\<close>
   by (simp add: mask_eq_exp_minus_1)
@@ -896,43 +900,55 @@ lemma take_bit_concat_bit_eq:
     (auto simp add: bit_take_bit_iff bit_concat_bit_iff min_def)  
 
 
-subsection \<open>Taking bit with sign propagation\<close>
+subsection \<open>Taking bits with sign propagation\<close>
 
-definition signed_take_bit :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>signed_take_bit n k = concat_bit n k (- of_bool (bit k n))\<close>
+context ring_bit_operations
+begin
 
-lemma signed_take_bit_unfold:
-  \<open>signed_take_bit n k = take_bit n k OR (of_bool (bit k n) * NOT (mask n))\<close>
-  by (simp add: signed_take_bit_def concat_bit_def push_bit_minus_one_eq_not_mask)
+definition signed_take_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>signed_take_bit n a = take_bit n a OR (of_bool (bit a n) * NOT (mask n))\<close>
 
-lemma signed_take_bit_eq:
-  \<open>signed_take_bit n k = take_bit n k\<close> if \<open>\<not> bit k n\<close>
+lemma signed_take_bit_eq_if_positive:
+  \<open>signed_take_bit n a = take_bit n a\<close> if \<open>\<not> bit a n\<close>
   using that by (simp add: signed_take_bit_def)
 
-lemma signed_take_bit_eq_or:
-  \<open>signed_take_bit n k = take_bit n k OR NOT (mask n)\<close> if \<open>bit k n\<close>
-  using that by (simp add: signed_take_bit_def concat_bit_def take_bit_eq_mask push_bit_minus_one_eq_not_mask)
+lemma signed_take_bit_eq_if_negative:
+  \<open>signed_take_bit n a = take_bit n a OR NOT (mask n)\<close> if \<open>bit a n\<close>
+  using that by (simp add: signed_take_bit_def)
 
-lemma signed_take_bit_0 [simp]:
-  \<open>signed_take_bit 0 k = - (k mod 2)\<close>
-  by (simp add: signed_take_bit_def odd_iff_mod_2_eq_one)
-
-lemma mask_half_int:
-  \<open>mask n div 2 = (mask (n - 1) :: int)\<close>
-  by (cases n) (simp_all add: mask_eq_exp_minus_1 algebra_simps)
-
-lemma signed_take_bit_Suc:
-  \<open>signed_take_bit (Suc n) k = k mod 2 + 2 * signed_take_bit n (k div 2)\<close>
-  by (unfold signed_take_bit_def or_int_rec [of \<open>take_bit (Suc n) k\<close>])
-    (simp add: bit_Suc concat_bit_Suc even_or_iff even_mask_iff odd_iff_mod_2_eq_one not_int_div_2 mask_half_int)
-
-lemma signed_take_bit_rec:
-  \<open>signed_take_bit n k = (if n = 0 then - (k mod 2) else k mod 2 + 2 * signed_take_bit (n - 1) (k div 2))\<close>
-  by (cases n) (simp_all add: signed_take_bit_Suc)
+lemma even_signed_take_bit_iff:
+  \<open>even (signed_take_bit m a) \<longleftrightarrow> even a\<close>
+  by (auto simp add: signed_take_bit_def even_or_iff even_mask_iff bit_double_iff)
 
 lemma bit_signed_take_bit_iff:
-  \<open>bit (signed_take_bit m k) n = bit k (min m n)\<close>
-  by (simp add: signed_take_bit_def bit_or_iff bit_concat_bit_iff bit_not_iff bit_mask_iff min_def)
+  \<open>bit (signed_take_bit m a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> bit a (min m n)\<close>
+  by (simp add: signed_take_bit_def bit_take_bit_iff bit_or_iff bit_not_iff bit_mask_iff min_def not_le)
+    (use exp_eq_0_imp_not_bit in blast)
+
+lemma signed_take_bit_0 [simp]:
+  \<open>signed_take_bit 0 a = - (a mod 2)\<close>
+  by (simp add: signed_take_bit_def odd_iff_mod_2_eq_one)
+
+lemma signed_take_bit_Suc:
+  \<open>signed_take_bit (Suc n) a = a mod 2 + 2 * signed_take_bit n (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  show \<open>bit (signed_take_bit (Suc n) a) m \<longleftrightarrow>
+    bit (a mod 2 + 2 * signed_take_bit n (a div 2)) m\<close>
+  proof (cases m)
+    case 0
+    then show ?thesis
+      by (simp add: even_signed_take_bit_iff)
+  next
+    case (Suc m)
+    with * have \<open>2 ^ m \<noteq> 0\<close>
+      by (metis mult_not_zero power_Suc)
+    with Suc show ?thesis
+      by (simp add: bit_signed_take_bit_iff mod2_eq_if bit_double_iff even_bit_succ_iff
+        ac_simps flip: bit_Suc)
+  qed
+qed
 
 lemma signed_take_bit_of_0 [simp]:
   \<open>signed_take_bit n 0 = 0\<close>
@@ -940,36 +956,56 @@ lemma signed_take_bit_of_0 [simp]:
 
 lemma signed_take_bit_of_minus_1 [simp]:
   \<open>signed_take_bit n (- 1) = - 1\<close>
-  by (simp add: signed_take_bit_def concat_bit_def push_bit_minus_one_eq_not_mask take_bit_minus_one_eq_mask)
+  by (simp add: signed_take_bit_def take_bit_minus_one_eq_mask mask_eq_exp_minus_1)
 
-lemma signed_take_bit_signed_take_bit [simp]:
-  \<open>signed_take_bit m (signed_take_bit n k) = signed_take_bit (min m n) k\<close>
-  by (rule bit_eqI) (auto simp add: bit_signed_take_bit_iff min_def bit_or_iff bit_not_iff bit_mask_iff bit_take_bit_iff)
+lemma signed_take_bit_Suc_1 [simp]:
+  \<open>signed_take_bit (Suc n) 1 = 1\<close>
+  by (simp add: signed_take_bit_Suc)
+
+lemma signed_take_bit_rec:
+  \<open>signed_take_bit n a = (if n = 0 then - (a mod 2) else a mod 2 + 2 * signed_take_bit (n - 1) (a div 2))\<close>
+  by (cases n) (simp_all add: signed_take_bit_Suc)
 
 lemma signed_take_bit_eq_iff_take_bit_eq:
-  \<open>signed_take_bit n k = signed_take_bit n l \<longleftrightarrow> take_bit (Suc n) k = take_bit (Suc n) l\<close>
-proof (cases \<open>bit k n \<longleftrightarrow> bit l n\<close>)
-  case True
-  moreover have \<open>take_bit n k OR NOT (mask n) = take_bit n k - 2 ^ n\<close>
-    for k :: int
-    by (auto simp add: disjunctive_add [symmetric] bit_not_iff bit_mask_iff bit_take_bit_iff minus_exp_eq_not_mask)
-  ultimately show ?thesis
-    by (simp add: signed_take_bit_def take_bit_Suc_from_most concat_bit_eq)
-next
-  case False
-  then have \<open>signed_take_bit n k \<noteq> signed_take_bit n l\<close> and \<open>take_bit (Suc n) k \<noteq> take_bit (Suc n) l\<close>
-    by (auto simp add: bit_eq_iff bit_take_bit_iff bit_signed_take_bit_iff min_def)
+  \<open>signed_take_bit n a = signed_take_bit n b \<longleftrightarrow> take_bit (Suc n) a = take_bit (Suc n) b\<close>
+proof -
+  have \<open>bit (signed_take_bit n a) = bit (signed_take_bit n b) \<longleftrightarrow> bit (take_bit (Suc n) a) = bit (take_bit (Suc n) b)\<close>
+    by (simp add: fun_eq_iff bit_signed_take_bit_iff bit_take_bit_iff not_le less_Suc_eq_le min_def)
+      (use exp_eq_0_imp_not_bit in fastforce)
   then show ?thesis
-    by simp
+    by (simp add: bit_eq_iff fun_eq_iff)
 qed
 
+lemma signed_take_bit_signed_take_bit [simp]:
+  \<open>signed_take_bit m (signed_take_bit n a) = signed_take_bit (min m n) a\<close>
+proof (rule bit_eqI)
+  fix q
+  show \<open>bit (signed_take_bit m (signed_take_bit n a)) q \<longleftrightarrow>
+    bit (signed_take_bit (min m n) a) q\<close>
+    by (simp add: bit_signed_take_bit_iff min_def bit_or_iff bit_not_iff bit_mask_iff bit_take_bit_iff)
+      (use le_Suc_ex exp_add_not_zero_imp in blast)
+qed
+
+lemma signed_take_bit_take_bit:
+  \<open>signed_take_bit m (take_bit n a) = (if n \<le> m then take_bit n else signed_take_bit m) a\<close>
+  by (rule bit_eqI) (auto simp add: bit_signed_take_bit_iff min_def bit_take_bit_iff)
+
 lemma take_bit_signed_take_bit:
-  \<open>take_bit m (signed_take_bit n k) = take_bit m k\<close> if \<open>m \<le> Suc n\<close>
+  \<open>take_bit m (signed_take_bit n a) = take_bit m a\<close> if \<open>m \<le> Suc n\<close>
   using that by (rule le_SucE; intro bit_eqI)
    (auto simp add: bit_take_bit_iff bit_signed_take_bit_iff min_def less_Suc_eq)
 
+end
+
+text \<open>Modulus centered around 0\<close>
+
+lemma signed_take_bit_eq_concat_bit:
+  \<open>signed_take_bit n k = concat_bit n k (- of_bool (bit k n))\<close>
+  by (simp add: concat_bit_def signed_take_bit_def push_bit_minus_one_eq_not_mask)
+
 lemma signed_take_bit_add:
   \<open>signed_take_bit n (signed_take_bit n k + signed_take_bit n l) = signed_take_bit n (k + l)\<close>
+  for k l :: int
 proof -
   have \<open>take_bit (Suc n)
      (take_bit (Suc n) (signed_take_bit n k) +
@@ -982,6 +1018,7 @@ qed
 
 lemma signed_take_bit_diff:
   \<open>signed_take_bit n (signed_take_bit n k - signed_take_bit n l) = signed_take_bit n (k - l)\<close>
+  for k l :: int
 proof -
   have \<open>take_bit (Suc n)
      (take_bit (Suc n) (signed_take_bit n k) -
@@ -994,6 +1031,7 @@ qed
 
 lemma signed_take_bit_minus:
   \<open>signed_take_bit n (- signed_take_bit n k) = signed_take_bit n (- k)\<close>
+  for k :: int
 proof -
   have \<open>take_bit (Suc n)
      (- take_bit (Suc n) (signed_take_bit n k)) =
@@ -1005,6 +1043,7 @@ qed
 
 lemma signed_take_bit_mult:
   \<open>signed_take_bit n (signed_take_bit n k * signed_take_bit n l) = signed_take_bit n (k * l)\<close>
+  for k l :: int
 proof -
   have \<open>take_bit (Suc n)
      (take_bit (Suc n) (signed_take_bit n k) *
@@ -1015,10 +1054,9 @@ proof -
     by (simp only: signed_take_bit_eq_iff_take_bit_eq take_bit_mult)
 qed
 
-text \<open>Modulus centered around 0\<close>
-
 lemma signed_take_bit_eq_take_bit_minus:
   \<open>signed_take_bit n k = take_bit (Suc n) k - 2 ^ Suc n * of_bool (bit k n)\<close>
+  for k :: int
 proof (cases \<open>bit k n\<close>)
   case True
   have \<open>signed_take_bit n k = take_bit (Suc n) k OR NOT (mask (Suc n))\<close>
@@ -1029,13 +1067,13 @@ proof (cases \<open>bit k n\<close>)
     by (simp flip: minus_exp_eq_not_mask)
 next
   case False
-  then show ?thesis
-    by (simp add: bit_eq_iff bit_take_bit_iff bit_signed_take_bit_iff min_def)
-      (auto intro: bit_eqI simp add: less_Suc_eq)
+  show ?thesis
+    by (rule bit_eqI) (simp add: False bit_signed_take_bit_iff bit_take_bit_iff min_def less_Suc_eq)
 qed
 
 lemma signed_take_bit_eq_take_bit_shift:
   \<open>signed_take_bit n k = take_bit (Suc n) (k + 2 ^ n) - 2 ^ n\<close>
+  for k :: int
 proof -
   have *: \<open>take_bit n k OR 2 ^ n = take_bit n k + 2 ^ n\<close>
     by (simp add: disjunctive_add bit_exp_iff bit_take_bit_iff)
@@ -1055,87 +1093,80 @@ proof -
     by (rule disjunctive_add)
       (auto simp add: disjunctive_add bit_take_bit_iff bit_double_iff bit_exp_iff)
   finally show ?thesis
-    using * **
-    by (simp add: signed_take_bit_def concat_bit_Suc min_def ac_simps)
-      (simp add: concat_bit_def take_bit_eq_mask push_bit_minus_one_eq_not_mask ac_simps)
+    using * ** by (simp add: signed_take_bit_def concat_bit_Suc min_def ac_simps)
 qed
-
-lemma signed_take_bit_take_bit:
-  \<open>signed_take_bit m (take_bit n k) = (if n \<le> m then take_bit n else signed_take_bit m) k\<close>
-  by (rule bit_eqI) (auto simp add: bit_signed_take_bit_iff min_def bit_take_bit_iff)
 
 lemma signed_take_bit_nonnegative_iff [simp]:
   \<open>0 \<le> signed_take_bit n k \<longleftrightarrow> \<not> bit k n\<close>
+  for k :: int
   by (simp add: signed_take_bit_def not_less concat_bit_def)
 
 lemma signed_take_bit_negative_iff [simp]:
   \<open>signed_take_bit n k < 0 \<longleftrightarrow> bit k n\<close>
+  for k :: int
   by (simp add: signed_take_bit_def not_less concat_bit_def)
 
 lemma signed_take_bit_greater_eq:
   \<open>k + 2 ^ Suc n \<le> signed_take_bit n k\<close> if \<open>k < - (2 ^ n)\<close>
+  for k :: int
   using that take_bit_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma signed_take_bit_less_eq:
   \<open>signed_take_bit n k \<le> k - 2 ^ Suc n\<close> if \<open>k \<ge> 2 ^ n\<close>
+  for k :: int
   using that take_bit_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma signed_take_bit_eq_self:
   \<open>signed_take_bit n k = k\<close> if \<open>- (2 ^ n) \<le> k\<close> \<open>k < 2 ^ n\<close>
+  for k :: int
   using that by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_eq_self)
 
-lemma signed_take_bit_Suc_1 [simp]:
-  \<open>signed_take_bit (Suc n) 1 = 1\<close>
-  by (simp add: signed_take_bit_Suc)
-
 lemma signed_take_bit_Suc_bit0 [simp]:
-  \<open>signed_take_bit (Suc n) (numeral (Num.Bit0 k)) = signed_take_bit n (numeral k) * 2\<close>
+  \<open>signed_take_bit (Suc n) (numeral (Num.Bit0 k)) = signed_take_bit n (numeral k) * (2 :: int)\<close>
   by (simp add: signed_take_bit_Suc)
 
 lemma signed_take_bit_Suc_bit1 [simp]:
-  \<open>signed_take_bit (Suc n) (numeral (Num.Bit1 k)) = signed_take_bit n (numeral k) * 2 + 1\<close>
+  \<open>signed_take_bit (Suc n) (numeral (Num.Bit1 k)) = signed_take_bit n (numeral k) * 2 + (1 :: int)\<close>
   by (simp add: signed_take_bit_Suc)
 
 lemma signed_take_bit_Suc_minus_bit0 [simp]:
-  \<open>signed_take_bit (Suc n) (- numeral (Num.Bit0 k)) = signed_take_bit n (- numeral k) * 2\<close>
+  \<open>signed_take_bit (Suc n) (- numeral (Num.Bit0 k)) = signed_take_bit n (- numeral k) * (2 :: int)\<close>
   by (simp add: signed_take_bit_Suc)
 
 lemma signed_take_bit_Suc_minus_bit1 [simp]:
-  \<open>signed_take_bit (Suc n) (- numeral (Num.Bit1 k)) = signed_take_bit n (- numeral k - 1) * 2 + 1\<close>
+  \<open>signed_take_bit (Suc n) (- numeral (Num.Bit1 k)) = signed_take_bit n (- numeral k - 1) * 2 + (1 :: int)\<close>
   by (simp add: signed_take_bit_Suc)
 
 lemma signed_take_bit_numeral_bit0 [simp]:
-  \<open>signed_take_bit (numeral l) (numeral (Num.Bit0 k)) = signed_take_bit (pred_numeral l) (numeral k) * 2\<close>
+  \<open>signed_take_bit (numeral l) (numeral (Num.Bit0 k)) = signed_take_bit (pred_numeral l) (numeral k) * (2 :: int)\<close>
   by (simp add: signed_take_bit_rec)
 
 lemma signed_take_bit_numeral_bit1 [simp]:
-  \<open>signed_take_bit (numeral l) (numeral (Num.Bit1 k)) = signed_take_bit (pred_numeral l) (numeral k) * 2 + 1\<close>
+  \<open>signed_take_bit (numeral l) (numeral (Num.Bit1 k)) = signed_take_bit (pred_numeral l) (numeral k) * 2 + (1 :: int)\<close>
   by (simp add: signed_take_bit_rec)
 
 lemma signed_take_bit_numeral_minus_bit0 [simp]:
-  \<open>signed_take_bit (numeral l) (- numeral (Num.Bit0 k)) = signed_take_bit (pred_numeral l) (- numeral k) * 2\<close>
+  \<open>signed_take_bit (numeral l) (- numeral (Num.Bit0 k)) = signed_take_bit (pred_numeral l) (- numeral k) * (2 :: int)\<close>
   by (simp add: signed_take_bit_rec)
 
 lemma signed_take_bit_numeral_minus_bit1 [simp]:
-  \<open>signed_take_bit (numeral l) (- numeral (Num.Bit1 k)) = signed_take_bit (pred_numeral l) (- numeral k - 1) * 2 + 1\<close>
+  \<open>signed_take_bit (numeral l) (- numeral (Num.Bit1 k)) = signed_take_bit (pred_numeral l) (- numeral k - 1) * 2 + (1 :: int)\<close>
   by (simp add: signed_take_bit_rec)
 
 lemma signed_take_bit_code [code]:
-  \<open>signed_take_bit n k =
-  (let l = take_bit (Suc n) k
-   in if bit l n then l - (push_bit n 2) else l)\<close>
+  \<open>signed_take_bit n a =
+  (let l = take_bit (Suc n) a
+   in if bit l n then l + push_bit (Suc n) (- 1) else l)\<close>
 proof -
-  have *: \<open>take_bit (Suc n) k - 2 * 2 ^ n = take_bit (Suc n) k OR NOT (mask (Suc n))\<close>
-    apply (subst disjunctive_add [symmetric])
-    apply (simp_all add: bit_and_iff bit_mask_iff bit_not_iff bit_take_bit_iff)
-    apply (simp flip: minus_exp_eq_not_mask)
-    done
+  have *: \<open>take_bit (Suc n) a + push_bit n (- 2) =
+    take_bit (Suc n) a OR NOT (mask (Suc n))\<close>
+    by (auto simp add: bit_take_bit_iff bit_push_bit_iff bit_not_iff bit_mask_iff disjunctive_add
+       simp flip: push_bit_minus_one_eq_not_mask)
   show ?thesis
     by (rule bit_eqI)
-     (auto simp add: Let_def bit_and_iff bit_signed_take_bit_iff push_bit_eq_mult min_def not_le
-       bit_mask_iff bit_exp_iff less_Suc_eq * bit_or_iff bit_take_bit_iff bit_not_iff)
+      (auto simp add: Let_def * bit_signed_take_bit_iff bit_take_bit_iff min_def less_Suc_eq bit_not_iff bit_mask_iff bit_or_iff)
 qed
 
 
@@ -1358,9 +1389,9 @@ text \<open>
 
       \<^item> Flip a single bit: @{thm flip_bit_def [where ?'a = int, no_vars]}
 
-      \<^item> Bit concatenation: @{thm concat_bit_def [no_vars]}
-
       \<^item> Signed truncation, or modulus centered around \<^term>\<open>0::int\<close>: @{thm signed_take_bit_def [no_vars]}
+
+      \<^item> Bit concatenation: @{thm concat_bit_def [no_vars]}
 
       \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>

@@ -1281,7 +1281,7 @@ lemma sshiftr1_eq:
 lemma sshiftr_eq:
   \<open>w >>> n = (sshiftr1 ^^ n) w\<close>
 proof -
-  have *: \<open>(\<lambda>k. take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - Suc 0) k div 2)) ^^ Suc n =
+  have *: \<open>(\<lambda>k::int. take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - Suc 0) k div 2)) ^^ Suc n =
     take_bit LENGTH('a) \<circ> drop_bit (Suc n) \<circ> signed_take_bit (LENGTH('a) - Suc 0)\<close>
     for n
     apply (induction n)
@@ -1804,7 +1804,7 @@ lemma num_of_bintr':
   unfolding bintr_num by (erule subst, simp)
 
 lemma num_of_sbintr':
-  "signed_take_bit (LENGTH('a::len) - 1) (numeral a) = (numeral b) \<Longrightarrow>
+  "signed_take_bit (LENGTH('a::len) - 1) (numeral a :: int) = (numeral b) \<Longrightarrow>
     numeral a = (numeral b :: 'a word)"
   unfolding sbintr_num by (erule subst, simp)
 
@@ -3404,7 +3404,8 @@ lemma shiftr_div_2n: "uint (shiftr w n) = uint w div 2 ^ n"
 
 lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
   apply transfer
-  apply (auto simp add: bit_eq_iff bit_signed_take_bit_iff bit_drop_bit_eq min_def simp flip: drop_bit_eq_div)
+  apply (rule bit_eqI)
+  apply (simp add: bit_signed_take_bit_iff bit_drop_bit_eq min_def flip: drop_bit_eq_div)
   done
 
 lemma bit_bshiftr1_iff:

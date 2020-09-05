@@ -214,8 +214,8 @@ lemma signed_0 [simp]:
 
 lemma signed_1 [simp]:
   \<open>signed (1 :: 'b::len word) = (if LENGTH('b) = 1 then - 1 else 1)\<close>
-  by (transfer fixing: uminus)
-    (simp_all add: signed_take_bit_eq not_le Suc_lessI)
+  by (transfer fixing: uminus; cases \<open>LENGTH('b)\<close>)
+    (simp_all add: sbintrunc_minus_simps)
 
 lemma signed_minus_1 [simp]:
   \<open>signed (- 1 :: 'b::len word) = - 1\<close>
@@ -242,7 +242,8 @@ begin
 lemma bit_signed_iff:
   \<open>bit (signed w) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> bit w (min (LENGTH('b) - Suc 0) n)\<close>
   for w :: \<open>'b::len word\<close>
-  by (transfer fixing: bit) (auto simp add: bit_of_int_iff bit_signed_take_bit_iff min_def)
+  by (transfer fixing: bit)
+    (auto simp add: bit_of_int_iff Bit_Operations.bit_signed_take_bit_iff min_def)
 
 lemma signed_push_bit_eq:
   \<open>signed (push_bit n w) = take_bit (LENGTH('b) - Suc 0) (push_bit n (signed w))
@@ -274,7 +275,7 @@ lemma signed_take_bit_eq:
   \<open>signed (take_bit n w) = (if n < LENGTH('b) then take_bit n (signed w) else signed w)\<close>
   for w :: \<open>'b::len word\<close>
   by (transfer fixing: take_bit; cases \<open>LENGTH('b)\<close>)
-    (auto simp add: signed_take_bit_take_bit take_bit_signed_take_bit take_bit_of_int min_def)
+    (auto simp add: Bit_Operations.signed_take_bit_take_bit Bit_Operations.take_bit_signed_take_bit take_bit_of_int min_def less_Suc_eq)
 
 lemma signed_not_eq:
   \<open>signed (NOT w) = take_bit LENGTH('b) (NOT (signed w)) OR of_bool (bit (NOT (signed w)) LENGTH('b)) * NOT (mask LENGTH('b))\<close>
@@ -447,21 +448,34 @@ lemma of_int_sint [simp]:
 lemma sint_not_eq:
   \<open>sint (NOT w) = signed_take_bit LENGTH('a) (NOT (sint w))\<close>
   for w :: \<open>'a::len word\<close>
-  by (simp add: signed_not_eq signed_take_bit_unfold)
+  by (simp add: signed_not_eq signed_take_bit_def)
 
 lemma sint_push_bit_eq:
   \<open>signed (push_bit n w) = signed_take_bit (LENGTH('a) - Suc 0) (push_bit n (signed w))\<close>
   for w :: \<open>'a::len word\<close>
-  by (transfer fixing: n; cases \<open>LENGTH('a)\<close>)
-     (auto simp add: signed_take_bit_def bit_concat_bit_iff bit_push_bit_iff bit_take_bit_iff bit_or_iff le_diff_conv2,
-        auto simp add: take_bit_push_bit not_less concat_bit_eq_iff take_bit_concat_bit_eq le_diff_conv2)
+  apply (transfer fixing: n; cases \<open>LENGTH('a)\<close>)
+   apply simp_all
+  apply (rule bit_eqI)
+  apply (simp add: bit_of_int_iff bit_signed_take_bit_iff bit_push_bit_iff min_def not_le le_diff_conv2)
+  apply auto
+           apply (metis le_add_diff_inverse mult_zero_left power_add)
+          apply (metis (no_types, lifting) diff_le_self le_add_diff_inverse mult_zero_left power_add)
+  using diff_diff_cancel apply fastforce
+  using diff_diff_cancel apply fastforce
+  apply (metis add_diff_cancel_right' diff_commute diff_le_self le_antisym less_imp_add_positive)
+      apply (metis le_add_diff_inverse mult_zero_left power_add)
+          apply (metis (no_types, lifting) diff_le_self le_add_diff_inverse mult_zero_left power_add)
+    apply (metis add.commute le_Suc_ex mult_zero_right power_add)
+   apply (metis le_add_diff_inverse mult_zero_left mult_zero_right power_add)
+  apply (metis le_add_diff_inverse mult_zero_right power_add)
+  done
 
 lemma sint_greater_eq:
   \<open>- (2 ^ (LENGTH('a) - Suc 0)) \<le> sint w\<close> for w :: \<open>'a::len word\<close>
 proof (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>)
   case True
   then show ?thesis
-    by transfer (simp add: signed_take_bit_eq_or minus_exp_eq_not_mask or_greater_eq ac_simps)
+    by transfer (simp add: signed_take_bit_eq_if_negative minus_exp_eq_not_mask or_greater_eq ac_simps)
 next
   have *: \<open>- (2 ^ (LENGTH('a) - Suc 0)) \<le> (0::int)\<close>
     by simp
@@ -473,7 +487,7 @@ qed
 lemma sint_less:
   \<open>sint w < 2 ^ (LENGTH('a) - Suc 0)\<close> for w :: \<open>'a::len word\<close>
   by (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>; transfer)
-    (simp_all add: signed_take_bit_eq signed_take_bit_unfold take_bit_int_less_exp not_eq_complement mask_eq_exp_minus_1 OR_upper)
+    (simp_all add: signed_take_bit_eq signed_take_bit_def take_bit_int_less_exp not_eq_complement mask_eq_exp_minus_1 OR_upper)
 
 context semiring_1
 begin
