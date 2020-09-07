@@ -13,6 +13,41 @@ begin
 
 hide_const (open) unat uint sint word_of_int ucast scast
 
+context semiring_bits
+begin
+
+lemma
+  exp_add_not_zero_imp_left: \<open>2 ^ m \<noteq> 0\<close>
+  and exp_add_not_zero_imp_right: \<open>2 ^ n \<noteq> 0\<close> if \<open>2 ^ (m + n) \<noteq> 0\<close>
+proof -
+  have \<open>\<not> (2 ^ m = 0 \<or> 2 ^ n = 0)\<close>
+  proof (rule notI)
+    assume \<open>2 ^ m = 0 \<or> 2 ^ n = 0\<close>
+    then have \<open>2 ^ (m + n) = 0\<close>
+      by (rule disjE) (simp_all add: power_add)
+    with that show False ..
+  qed
+  then show \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close>
+    by simp_all
+qed
+
+lemma exp_not_zero_imp_exp_diff_not_zero:
+  \<open>2 ^ (n - m) \<noteq> 0\<close> if \<open>2 ^ n \<noteq> 0\<close>
+proof (cases \<open>m \<le> n\<close>)
+  case True
+  moreover define q where \<open>q = n - m\<close>
+  ultimately have \<open>n = m + q\<close>
+    by simp
+  with that show ?thesis
+    by (simp add: exp_add_not_zero_imp_right)
+next
+  case False
+  with that show ?thesis
+    by simp
+qed
+
+end
+
 
 subsection \<open>Conversions to word\<close>
 
@@ -246,8 +281,7 @@ lemma bit_signed_iff:
     (auto simp add: bit_of_int_iff Bit_Operations.bit_signed_take_bit_iff min_def)
 
 lemma signed_push_bit_eq:
-  \<open>signed (push_bit n w) = take_bit (LENGTH('b) - Suc 0) (push_bit n (signed w))
-    OR of_bool (n < LENGTH('b) \<and> bit w (LENGTH('b) - Suc n)) * NOT (mask (LENGTH('b) - Suc 0))\<close>
+  \<open>signed (push_bit n w) = signed_take_bit (LENGTH('b) - 1) (push_bit n (signed w :: 'a))\<close>
   for w :: \<open>'b::len word\<close>
 proof (rule bit_eqI)
   fix m
@@ -256,18 +290,27 @@ proof (rule bit_eqI)
   then have *: \<open>LENGTH('b) = Suc q\<close>
     by simp
   show \<open>bit (signed (push_bit n w)) m \<longleftrightarrow>
-    bit (take_bit (LENGTH('b) - Suc 0) (push_bit n (signed w)) OR
-      of_bool (n < LENGTH('b) \<and> bit w (LENGTH('b) - Suc n)) * NOT (mask (LENGTH('b) - Suc 0))) m\<close>
-  proof (cases \<open>n \<le> m\<close>)
+    bit (signed_take_bit (LENGTH('b) - 1) (push_bit n (signed w :: 'a))) m\<close>
+  proof (cases \<open>q \<le> m\<close>)
     case True
-    with \<open>2 ^ m \<noteq> 0\<close> have \<open>2 ^ (m - n) \<noteq> 0\<close>
-      by (metis (full_types) diff_add exp_add_not_zero_imp)
-    with True show ?thesis
-      by (auto simp add: * bit_signed_iff bit_push_bit_iff Parity.bit_push_bit_iff bit_or_iff bit_take_bit_iff bit_not_iff bit_mask_iff exp_eq_zero_iff min_def)
+    moreover define r where \<open>r = m - q\<close>
+    ultimately have \<open>m = q + r\<close>
+      by simp
+    moreover from \<open>m = q + r\<close> \<open>2 ^ m \<noteq> 0\<close> have \<open>2 ^ q \<noteq> 0\<close> \<open>2 ^ r \<noteq> 0\<close>
+      using exp_add_not_zero_imp_left [of q r] exp_add_not_zero_imp_right [of q r]
+      by simp_all
+    moreover from \<open>2 ^ q \<noteq> 0\<close> have \<open>2 ^ (q - n) \<noteq> 0\<close>
+      by (rule exp_not_zero_imp_exp_diff_not_zero)
+    ultimately show ?thesis
+      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Parity.bit_push_bit_iff
+      min_def * exp_eq_zero_iff le_diff_conv2)
   next
     case False
     then show ?thesis
-      by (simp add: * bit_signed_iff bit_push_bit_iff Parity.bit_push_bit_iff bit_or_iff bit_take_bit_iff bit_not_iff bit_mask_iff)
+      using exp_not_zero_imp_exp_diff_not_zero [of m n]
+      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Parity.bit_push_bit_iff
+      min_def not_le not_less * le_diff_conv2 less_diff_conv2 Parity.exp_eq_0_imp_not_bit exp_eq_0_imp_not_bit
+      exp_eq_zero_iff)
   qed
 qed
 
@@ -278,27 +321,32 @@ lemma signed_take_bit_eq:
     (auto simp add: Bit_Operations.signed_take_bit_take_bit Bit_Operations.take_bit_signed_take_bit take_bit_of_int min_def less_Suc_eq)
 
 lemma signed_not_eq:
-  \<open>signed (NOT w) = take_bit LENGTH('b) (NOT (signed w)) OR of_bool (bit (NOT (signed w)) LENGTH('b)) * NOT (mask LENGTH('b))\<close>
+  \<open>signed (NOT w) = signed_take_bit LENGTH('b) (NOT (signed w))\<close>
   for w :: \<open>'b::len word\<close>
 proof (rule bit_eqI)
   fix n
   assume \<open>2 ^ n \<noteq> 0\<close>
+  define q where \<open>q = LENGTH('b) - Suc 0\<close>
+  then have *: \<open>LENGTH('b) = Suc q\<close>
+    by simp
   show \<open>bit (signed (NOT w)) n \<longleftrightarrow>
-    bit (take_bit LENGTH('b) (NOT (signed w)) OR
-    of_bool (bit (NOT (signed w)) LENGTH('b)) * NOT (mask LENGTH('b))) n\<close>
-  proof (cases \<open>LENGTH('b) \<le> n\<close>)
+    bit (signed_take_bit LENGTH('b) (NOT (signed w))) n\<close>
+  proof (cases \<open>q < n\<close>)
+    case True
+    moreover define r where \<open>r = n - Suc q\<close>
+    ultimately have \<open>n = r + Suc q\<close>
+      by simp
+    moreover from \<open>2 ^ n \<noteq> 0\<close> \<open>n = r + Suc q\<close>
+      have \<open>2 ^ Suc q \<noteq> 0\<close>
+      using exp_add_not_zero_imp_right by blast 
+    ultimately show ?thesis
+      by (simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def
+        exp_eq_zero_iff)
+  next
     case False
     then show ?thesis
-      by (auto simp add: bit_signed_iff bit_not_iff bit_or_iff bit_take_bit_iff bit_mask_iff Bit_Operations.bit_not_iff exp_eq_zero_iff)
-  next
-    case True
-    moreover define q where \<open>q = n - LENGTH('b)\<close>
-    ultimately have \<open>n = LENGTH('b) + q\<close>
-      by simp
-    with \<open>2 ^ n \<noteq> 0\<close> have \<open>2 ^ q \<noteq> 0\<close> \<open>2 ^ LENGTH('b) \<noteq> 0\<close>
-      by (simp_all add: power_add) (use mult_not_zero in blast)+
-    then show ?thesis
-      by (simp add: bit_signed_iff bit_not_iff bit_or_iff bit_take_bit_iff bit_mask_iff Bit_Operations.bit_not_iff exp_eq_zero_iff min_def not_le not_less le_diff_conv le_Suc_eq)
+      by (auto simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def
+        exp_eq_zero_iff)
   qed
 qed
 
@@ -445,31 +493,6 @@ lemma of_int_sint [simp]:
   \<open>of_int (sint a) = signed a\<close>
   by transfer (simp_all add: take_bit_signed_take_bit)
 
-lemma sint_not_eq:
-  \<open>sint (NOT w) = signed_take_bit LENGTH('a) (NOT (sint w))\<close>
-  for w :: \<open>'a::len word\<close>
-  by (simp add: signed_not_eq signed_take_bit_def)
-
-lemma sint_push_bit_eq:
-  \<open>signed (push_bit n w) = signed_take_bit (LENGTH('a) - Suc 0) (push_bit n (signed w))\<close>
-  for w :: \<open>'a::len word\<close>
-  apply (transfer fixing: n; cases \<open>LENGTH('a)\<close>)
-   apply simp_all
-  apply (rule bit_eqI)
-  apply (simp add: bit_of_int_iff bit_signed_take_bit_iff bit_push_bit_iff min_def not_le le_diff_conv2)
-  apply auto
-           apply (metis le_add_diff_inverse mult_zero_left power_add)
-          apply (metis (no_types, lifting) diff_le_self le_add_diff_inverse mult_zero_left power_add)
-  using diff_diff_cancel apply fastforce
-  using diff_diff_cancel apply fastforce
-  apply (metis add_diff_cancel_right' diff_commute diff_le_self le_antisym less_imp_add_positive)
-      apply (metis le_add_diff_inverse mult_zero_left power_add)
-          apply (metis (no_types, lifting) diff_le_self le_add_diff_inverse mult_zero_left power_add)
-    apply (metis add.commute le_Suc_ex mult_zero_right power_add)
-   apply (metis le_add_diff_inverse mult_zero_left mult_zero_right power_add)
-  apply (metis le_add_diff_inverse mult_zero_right power_add)
-  done
-
 lemma sint_greater_eq:
   \<open>- (2 ^ (LENGTH('a) - Suc 0)) \<le> sint w\<close> for w :: \<open>'a::len word\<close>
 proof (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>)
@@ -489,21 +512,44 @@ lemma sint_less:
   by (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>; transfer)
     (simp_all add: signed_take_bit_eq signed_take_bit_def take_bit_int_less_exp not_eq_complement mask_eq_exp_minus_1 OR_upper)
 
-context semiring_1
+context semiring_bit_shifts
 begin
 
-lemma unsigned_ucase_eq:
-  \<open>unsigned (ucast w :: 'c::len word) = unsigned (take_bit LENGTH('c) w)\<close>
+lemma unsigned_ucast_eq:
+  \<open>unsigned (ucast w :: 'c::len word) = take_bit LENGTH('c) (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
-  by transfer (simp add: ac_simps)
+  by (rule bit_eqI) (simp add: bit_unsigned_iff Conversions.bit_unsigned_iff bit_take_bit_iff exp_eq_zero_iff not_le)
+
+end
+
+context ring_bit_operations
+begin
 
 lemma signed_ucast_eq:
-  \<open>signed (ucast w :: 'c::len word) =
-    take_bit (min LENGTH('b) LENGTH('c)) w OR of_bool (bit w (LENGTH('c) - Suc 0)) * NOT (mask LENGTH('c))\<close>
+  \<open>signed (ucast w :: 'c::len word) = signed_take_bit (LENGTH('c) - Suc 0) (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
-  by (transfer, rule bit_eqI)
-    (simp_all add: bit_take_bit_iff bit_signed_take_bit_iff bit_or_iff bit_not_iff bit_mask_iff
-      not_less not_le min_def le_diff_conv less_diff_conv2 le_Suc_eq)
+proof (rule bit_eqI)
+  fix n
+  assume \<open>2 ^ n \<noteq> 0\<close>
+  then have \<open>2 ^ (min (LENGTH('c) - Suc 0) n) \<noteq> 0\<close>
+    by (simp add: min_def)
+      (metis (mono_tags) diff_diff_cancel local.exp_not_zero_imp_exp_diff_not_zero)
+  then show \<open>bit (signed (ucast w :: 'c::len word)) n \<longleftrightarrow> bit (signed_take_bit (LENGTH('c) - Suc 0) (unsigned w)) n\<close>
+    by (simp add: bit_signed_iff bit_unsigned_iff Conversions.bit_unsigned_iff bit_signed_take_bit_iff exp_eq_zero_iff not_le)
+qed
+
+lemma signed_scast_eq:
+  \<open>signed (scast w :: 'c::len word) = signed_take_bit (LENGTH('c) - Suc 0) (signed w)\<close>
+  for w :: \<open>'b::len word\<close>
+proof (rule bit_eqI)
+  fix n
+  assume \<open>2 ^ n \<noteq> 0\<close>
+  then have \<open>2 ^ (min (LENGTH('c) - Suc 0) n) \<noteq> 0\<close>
+    by (simp add: min_def)
+      (metis (mono_tags) diff_diff_cancel local.exp_not_zero_imp_exp_diff_not_zero)
+  then show \<open>bit (signed (scast w :: 'c::len word)) n \<longleftrightarrow> bit (signed_take_bit (LENGTH('c) - Suc 0) (signed w)) n\<close>
+    by (simp add: bit_signed_iff bit_unsigned_iff Conversions.bit_signed_iff bit_signed_take_bit_iff exp_eq_zero_iff not_le)
+qed
 
 end
 

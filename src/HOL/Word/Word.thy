@@ -1042,6 +1042,22 @@ lemma flip_bit_word_transfer [transfer_rule]:
   \<open>((=) ===> pcr_word ===> pcr_word) flip_bit flip_bit\<close>
   by (unfold flip_bit_def) transfer_prover
 
+lemma signed_take_bit_word_transfer [transfer_rule]:
+  \<open>((=) ===> pcr_word ===> pcr_word)
+    (\<lambda>n k. signed_take_bit n (take_bit LENGTH('a::len) k))
+    (signed_take_bit :: nat \<Rightarrow> 'a word \<Rightarrow> 'a word)\<close>
+proof -
+  let ?K = \<open>\<lambda>n (k :: int). take_bit (min LENGTH('a) n) k OR of_bool (n < LENGTH('a) \<and> bit k n) * NOT (mask n)\<close>
+  let ?W = \<open>\<lambda>n (w :: 'a word). take_bit n w OR of_bool (bit w n) * NOT (mask n)\<close>
+  have \<open>((=) ===> pcr_word ===> pcr_word) ?K ?W\<close>
+    by transfer_prover
+  also have \<open>?K = (\<lambda>n k. signed_take_bit n (take_bit LENGTH('a::len) k))\<close>
+    by (simp add: fun_eq_iff signed_take_bit_def bit_take_bit_iff ac_simps)
+  also have \<open>?W = signed_take_bit\<close>
+    by (simp add: fun_eq_iff signed_take_bit_def)
+  finally show ?thesis .
+qed
+
 end
 
 instantiation word :: (len) semiring_bit_syntax
