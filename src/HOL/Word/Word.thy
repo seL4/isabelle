@@ -15,18 +15,160 @@ imports
   Misc_Typedef
 begin
 
-subsection \<open>Type definition\<close>
+subsection \<open>Preliminaries\<close>
+
+lemma signed_take_bit_decr_length_iff:
+  \<open>signed_take_bit (LENGTH('a::len) - Suc 0) k = signed_take_bit (LENGTH('a) - Suc 0) l
+    \<longleftrightarrow> take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
+  by (cases \<open>LENGTH('a)\<close>)
+    (simp_all add: signed_take_bit_eq_iff_take_bit_eq)
+
+
+subsection \<open>Type definition and fundamental arithmetic\<close>
 
 quotient_type (overloaded) 'a word = int / \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a::len) l\<close>
-  morphisms rep_word Word by (auto intro!: equivpI reflpI sympI transpI)
+  morphisms rep Word by (auto intro!: equivpI reflpI sympI transpI)
 
+hide_const (open) rep \<comment> \<open>only for foundational purpose\<close>
 hide_const (open) Word \<comment> \<open>only for code generation\<close>
 
-lift_definition word_of_int :: \<open>int \<Rightarrow> 'a::len word\<close>
-  is \<open>\<lambda>k. k\<close> .
+instantiation word :: (len) comm_ring_1
+begin
+
+lift_definition zero_word :: \<open>'a word\<close>
+  is 0 .
+
+lift_definition one_word :: \<open>'a word\<close>
+  is 1 .
+
+lift_definition plus_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>(+)\<close>
+  by (auto simp add: take_bit_eq_mod intro: mod_add_cong)
+
+lift_definition minus_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>(-)\<close>
+  by (auto simp add: take_bit_eq_mod intro: mod_diff_cong)
+
+lift_definition uminus_word :: \<open>'a word \<Rightarrow> 'a word\<close>
+  is uminus
+  by (auto simp add: take_bit_eq_mod intro: mod_minus_cong)
+
+lift_definition times_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>(*)\<close>
+  by (auto simp add: take_bit_eq_mod intro: mod_mult_cong)
+
+instance
+  by (standard; transfer) (simp_all add: algebra_simps)
+
+end
+
+context
+  includes lifting_syntax
+  notes power_transfer [transfer_rule]
+begin
+
+lemma power_transfer_word [transfer_rule]:
+  \<open>(pcr_word ===> (=) ===> pcr_word) (^) (^)\<close>
+  by transfer_prover
+
+end
+
+
+subsection \<open>Basic code generation setup\<close>
 
 lift_definition uint :: \<open>'a::len word \<Rightarrow> int\<close>
   is \<open>take_bit LENGTH('a)\<close> .
+
+lemma [code abstype]:
+  \<open>Word.Word (uint w) = w\<close>
+  by transfer simp
+
+quickcheck_generator word
+  constructors:
+    \<open>0 :: 'a::len word\<close>,
+    \<open>numeral :: num \<Rightarrow> 'a::len word\<close>
+
+instantiation word :: (len) equal
+begin
+
+lift_definition equal_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> bool\<close>
+  is \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
+  by simp
+
+instance
+  by (standard; transfer) rule
+
+end
+
+lemma [code]:
+  \<open>HOL.equal v w \<longleftrightarrow> HOL.equal (uint v) (uint w)\<close>
+  by transfer (simp add: equal)
+
+lemma [code]:
+  \<open>uint 0 = 0\<close>
+  by transfer simp
+
+lemma [code]:
+  \<open>uint 1 = 1\<close>
+  by transfer simp
+
+lemma [code]:
+  \<open>uint (v + w) = take_bit LENGTH('a) (uint v + uint w)\<close>
+  for v w :: \<open>'a::len word\<close>
+  by transfer (simp add: take_bit_add)
+
+lemma [code]:
+  \<open>uint (- w) = (let k = uint w in if w = 0 then 0 else 2 ^ LENGTH('a) - k)\<close>
+  for w :: \<open>'a::len word\<close>
+  by transfer (auto simp add: take_bit_eq_mod zmod_zminus1_eq_if)
+
+lemma [code]:
+  \<open>uint (v - w) = take_bit LENGTH('a) (uint v - uint w)\<close>
+  for v w :: \<open>'a::len word\<close>
+  by transfer (simp add: take_bit_diff)
+
+lemma [code]:
+  \<open>uint (v * w) = take_bit LENGTH('a) (uint v * uint w)\<close>
+  for v w :: \<open>'a::len word\<close>
+  by transfer (simp add: take_bit_mult)
+
+
+subsection \<open>Conversions including casts\<close>
+
+context
+  includes lifting_syntax
+  notes 
+    transfer_rule_of_bool [transfer_rule]
+    transfer_rule_numeral [transfer_rule]
+    transfer_rule_of_nat [transfer_rule]
+    transfer_rule_of_int [transfer_rule]
+begin
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_word) of_bool of_bool\<close>
+  by transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_word) numeral numeral\<close>
+  by transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_word) int of_nat\<close>
+  by transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_word) (\<lambda>k. k) of_int\<close>
+proof -
+  have \<open>((=) ===> pcr_word) of_int of_int\<close>
+    by transfer_prover
+  then show ?thesis by (simp add: id_def)
+qed
+
+end
+
+lemma word_exp_length_eq_0 [simp]:
+  \<open>(2 :: 'a::len word) ^ LENGTH('a) = 0\<close>
+  by transfer simp
 
 lemma uint_nonnegative: "0 \<le> uint w"
   by transfer simp
@@ -45,8 +187,19 @@ lemma word_uint_eqI: "uint a = uint b \<Longrightarrow> a = b"
 lemma word_uint_eq_iff: "a = b \<longleftrightarrow> uint a = uint b"
   using word_uint_eqI by auto
 
+lift_definition word_of_int :: \<open>int \<Rightarrow> 'a::len word\<close>
+  is \<open>\<lambda>k. k\<close> .
+
+lemma Word_eq_word_of_int [code_post]:
+  \<open>Word.Word = word_of_int\<close>
+  by rule (transfer, rule)
+
+lemma uint_word_of_int_eq [code]:
+  \<open>uint (word_of_int k :: 'a::len word) = take_bit LENGTH('a) k\<close>
+  by transfer rule
+
 lemma uint_word_of_int: "uint (word_of_int k :: 'a::len word) = k mod 2 ^ LENGTH('a)"
-  by transfer (simp add: take_bit_eq_mod)
+  by (simp add: uint_word_of_int_eq take_bit_eq_mod)
   
 lemma word_of_int_uint: "word_of_int (uint w) = w"
   by transfer simp
@@ -58,15 +211,6 @@ proof
   then have "PROP P (word_of_int (uint x))" .
   then show "PROP P x" by (simp add: word_of_int_uint)
 qed
-
-
-subsection \<open>Type conversions and casting\<close>
-
-lemma signed_take_bit_decr_length_iff:
-  \<open>signed_take_bit (LENGTH('a::len) - Suc 0) k = signed_take_bit (LENGTH('a) - Suc 0) l
-    \<longleftrightarrow> take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
-  by (cases \<open>LENGTH('a)\<close>)
-    (simp_all add: signed_take_bit_eq_iff_take_bit_eq)
 
 lift_definition sint :: \<open>'a::len word \<Rightarrow> int\<close>
   \<comment> \<open>treats the most-significant bit as a sign bit\<close>
@@ -104,6 +248,53 @@ lift_definition scast :: \<open>'a::len word \<Rightarrow> 'b::len word\<close>
 
 lemma scast_eq [code]:
   \<open>scast w = word_of_int (sint w)\<close>
+  by transfer simp
+
+lemma uint_0_eq [simp]:
+  \<open>uint 0 = 0\<close>
+  by transfer simp
+
+lemma uint_1_eq [simp]:
+  \<open>uint 1 = 1\<close>
+  by transfer simp
+
+lemma word_m1_wi: "- 1 = word_of_int (- 1)"
+  by transfer rule
+
+lemma uint_0_iff: "uint x = 0 \<longleftrightarrow> x = 0"
+  by (simp add: word_uint_eq_iff)
+
+lemma unat_0_iff: "unat x = 0 \<longleftrightarrow> x = 0"
+  by transfer (auto intro: antisym)
+
+lemma unat_0 [simp]: "unat 0 = 0"
+  by transfer simp
+
+lemma unat_gt_0: "0 < unat x \<longleftrightarrow> x \<noteq> 0"
+  by (auto simp: unat_0_iff [symmetric])
+
+lemma ucast_0 [simp]: "ucast 0 = 0"
+  by transfer simp
+
+lemma sint_0 [simp]: "sint 0 = 0"
+  by (simp add: sint_uint)
+
+lemma scast_0 [simp]: "scast 0 = 0"
+  by transfer simp
+
+lemma sint_n1 [simp] : "sint (- 1) = - 1"
+  by transfer simp
+
+lemma scast_n1 [simp]: "scast (- 1) = - 1"
+  by transfer simp
+
+lemma uint_1: "uint (1::'a::len word) = 1"
+  by (fact uint_1_eq)
+
+lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
+  by transfer simp
+
+lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
   by transfer simp
 
 instantiation word :: (len) size
@@ -164,60 +355,7 @@ translations
   "case x of (XCONST of_int :: 'a) y \<Rightarrow> b" \<rightharpoonup> "CONST word_int_case (\<lambda>y. b) x"
 
 
-subsection \<open>Basic code generation setup\<close>
-
-lemma Word_eq_word_of_int [code_post]:
-  \<open>Word.Word = word_of_int\<close>
-  by rule (transfer, rule)
-
-lemma [code abstype]:
-  \<open>Word.Word (uint w) = w\<close>
-  by transfer simp
-
-lemma [code abstract]:
-  \<open>uint (word_of_int k :: 'a::len word) = take_bit LENGTH('a) k\<close>
-  by transfer rule
-
-instantiation word :: (len) equal
-begin
-
-lift_definition equal_word :: \<open>'a word \<Rightarrow> 'a word \<Rightarrow> bool\<close>
-  is \<open>\<lambda>k l. take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
-  by simp
-
-instance
-  by (standard; transfer) rule
-
-end
-
-lemma [code]:
-  \<open>HOL.equal k l \<longleftrightarrow> HOL.equal (uint k) (uint l)\<close>
-  by transfer (simp add: equal)
-
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-instantiation word :: ("{len, typerep}") random
-begin
-
-definition
-  "random_word i = Random.range i \<circ>\<rightarrow> (\<lambda>k. Pair (
-     let j = word_of_int (int_of_integer (integer_of_natural k)) :: 'a word
-     in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
-
-instance ..
-
-end
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-
 subsection \<open>Type-definition locale instantiations\<close>
-
-lemmas uint_0 = uint_nonnegative (* FIXME duplicate *)
-lemmas uint_lt = uint_bounded (* FIXME duplicate *)
-lemmas uint_mod_same = uint_idem (* FIXME duplicate *)
 
 definition uints :: "nat \<Rightarrow> int set"
   \<comment> \<open>the sets of integers representing the words\<close>
@@ -281,33 +419,87 @@ interpretation word_ubin:
     "take_bit (LENGTH('a::len))"
   by (fact td_ext_ubin)
 
+lemma td_ext_unat [OF refl]:
+  "n = LENGTH('a::len) \<Longrightarrow>
+    td_ext (unat :: 'a word \<Rightarrow> nat) of_nat (unats n) (\<lambda>i. i mod 2 ^ n)"
+  apply (standard; transfer)
+     apply (simp_all add: unats_def take_bit_int_less_exp take_bit_of_nat take_bit_eq_self)
+  apply (simp add: take_bit_eq_mod)
+  done
+
+lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm]
+
+interpretation word_unat:
+  td_ext
+    "unat::'a::len word \<Rightarrow> nat"
+    of_nat
+    "unats (LENGTH('a::len))"
+    "\<lambda>i. i mod 2 ^ LENGTH('a::len)"
+  by (rule td_ext_unat)
+
+lemmas td_unat = word_unat.td_thm
+
+lemmas unat_lt2p [iff] = word_unat.Rep [unfolded unats_def mem_Collect_eq]
+
+lemma unat_le: "y \<le> unat z \<Longrightarrow> y \<in> unats (LENGTH('a))"
+  for z :: "'a::len word"
+  apply (unfold unats_def)
+  apply clarsimp
+  apply (rule xtrans, rule unat_lt2p, assumption)
+  done
+
+lemma td_ext_sbin:
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
+    (signed_take_bit (LENGTH('a) - 1))"
+  apply (unfold td_ext_def' sint_uint)
+  apply (simp add : word_ubin.eq_norm)
+  apply (cases "LENGTH('a)")
+   apply (auto simp add : sints_def)
+  apply (rule sym [THEN trans])
+   apply (rule word_ubin.Abs_norm)
+  apply (simp only: bintrunc_sbintrunc)
+  apply (drule sym)
+  apply simp
+  done
+
+lemma td_ext_sint:
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
+     (\<lambda>w. (w + 2 ^ (LENGTH('a) - 1)) mod 2 ^ LENGTH('a) -
+         2 ^ (LENGTH('a) - 1))"
+  using td_ext_sbin [where ?'a = 'a] by (simp add: no_sbintr_alt2)
+
+text \<open>
+  We do \<open>sint\<close> before \<open>sbin\<close>, before \<open>sint\<close> is the user version
+  and interpretations do not produce thm duplicates. I.e.
+  we get the name \<open>word_sint.Rep_eqD\<close>, but not \<open>word_sbin.Req_eqD\<close>,
+  because the latter is the same thm as the former.
+\<close>
+interpretation word_sint:
+  td_ext
+    "sint ::'a::len word \<Rightarrow> int"
+    word_of_int
+    "sints (LENGTH('a::len))"
+    "\<lambda>w. (w + 2^(LENGTH('a::len) - 1)) mod 2^LENGTH('a::len) -
+      2 ^ (LENGTH('a::len) - 1)"
+  by (rule td_ext_sint)
+
+interpretation word_sbin:
+  td_ext
+    "sint ::'a::len word \<Rightarrow> int"
+    word_of_int
+    "sints (LENGTH('a::len))"
+    "signed_take_bit (LENGTH('a::len) - 1)"
+  by (rule td_ext_sbin)
+
+lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm]
+
+lemmas td_sint = word_sint.td
+
 
 subsection \<open>Arithmetic operations\<close>
 
-lift_definition word_succ :: "'a::len word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
-  by (auto simp add: take_bit_eq_mod intro: mod_add_cong)
-
-lift_definition word_pred :: "'a::len word \<Rightarrow> 'a word" is "\<lambda>x. x - 1"
-  by (auto simp add: take_bit_eq_mod intro: mod_diff_cong)
-
 instantiation word :: (len) "{neg_numeral, modulo, comm_monoid_mult, comm_ring}"
 begin
-
-lift_definition zero_word :: "'a word" is "0" .
-
-lift_definition one_word :: "'a word" is "1" .
-
-lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(+)"
-  by (auto simp add: take_bit_eq_mod intro: mod_add_cong)
-
-lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(-)"
-  by (auto simp add: take_bit_eq_mod intro: mod_diff_cong)
-
-lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
-  by (auto simp add: take_bit_eq_mod intro: mod_minus_cong)
-
-lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(*)"
-  by (auto simp add: take_bit_eq_mod intro: mod_mult_cong)
 
 lift_definition divide_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is "\<lambda>a b. take_bit LENGTH('a) a div take_bit LENGTH('a) b"
@@ -322,20 +514,6 @@ instance
 
 end
 
-lemma uint_0_eq [simp, code]:
-  \<open>uint 0 = 0\<close>
-  by transfer simp
-
-quickcheck_generator word
-  constructors:
-    \<open>0 :: 'a::len word\<close>,
-    \<open>numeral :: num \<Rightarrow> 'a::len word\<close>,
-    \<open>uminus :: 'a word \<Rightarrow> 'a::len word\<close>
-
-lemma uint_1_eq [simp, code]:
-  \<open>uint 1 = 1\<close>
-  by transfer simp
-
 lemma word_div_def [code]:
   "a div b = word_of_int (uint a div uint b)"
   by transfer rule
@@ -344,16 +522,6 @@ lemma word_mod_def [code]:
   "a mod b = word_of_int (uint a mod uint b)"
   by transfer rule
 
-context
-  includes lifting_syntax
-  notes power_transfer [transfer_rule]
-begin
-
-lemma power_transfer_word [transfer_rule]:
-  \<open>(pcr_word ===> (=) ===> pcr_word) (^) (^)\<close>
-  by transfer_prover
-
-end
 
 
 text \<open>Legacy theorems:\<close>
@@ -374,14 +542,6 @@ lemma word_minus_def [code]:
   "- a = word_of_int (- uint a)"
   by transfer (simp add: take_bit_minus)
 
-lemma word_succ_alt [code]:
-  "word_succ a = word_of_int (uint a + 1)"
-  by transfer (simp add: take_bit_eq_mod mod_simps)
-
-lemma word_pred_alt [code]:
-  "word_pred a = word_of_int (uint a - 1)"
-  by transfer (simp add: take_bit_eq_mod mod_simps)
-
 lemma word_0_wi:
   "0 = word_of_int 0"
   by transfer simp
@@ -389,6 +549,20 @@ lemma word_0_wi:
 lemma word_1_wi:
   "1 = word_of_int 1"
   by transfer simp
+
+lift_definition word_succ :: "'a::len word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
+  by (auto simp add: take_bit_eq_mod intro: mod_add_cong)
+
+lift_definition word_pred :: "'a::len word \<Rightarrow> 'a word" is "\<lambda>x. x - 1"
+  by (auto simp add: take_bit_eq_mod intro: mod_diff_cong)
+
+lemma word_succ_alt [code]:
+  "word_succ a = word_of_int (uint a + 1)"
+  by transfer (simp add: take_bit_eq_mod mod_simps)
+
+lemma word_pred_alt [code]:
+  "word_pred a = word_of_int (uint a - 1)"
+  by transfer (simp add: take_bit_eq_mod mod_simps)
 
 lemmas word_arith_wis = 
   word_add_def word_sub_wi word_mult_def
@@ -414,13 +588,6 @@ instance word :: (len) comm_monoid_add ..
 
 instance word :: (len) semiring_numeral ..
 
-instance word :: (len) comm_ring_1
-proof
-  have *: "0 < LENGTH('a)" by (rule len_gt_0)
-  show "(0::'a word) \<noteq> 1"
-    by transfer (use * in \<open>auto simp add: gr0_conv_Suc\<close>)
-qed
-
 lemma word_of_nat: "of_nat n = word_of_int (int n)"
   by (induct n) (auto simp add : word_of_int_hom_syms)
 
@@ -429,37 +596,6 @@ lemma word_of_int: "of_int = word_of_int"
   apply (case_tac x rule: int_diff_cases)
   apply (simp add: word_of_nat wi_hom_sub)
   done
-
-context
-  includes lifting_syntax
-  notes 
-    transfer_rule_of_bool [transfer_rule]
-    transfer_rule_numeral [transfer_rule]
-    transfer_rule_of_nat [transfer_rule]
-    transfer_rule_of_int [transfer_rule]
-begin
-
-lemma [transfer_rule]:
-  "((=) ===> pcr_word) of_bool of_bool"
-  by transfer_prover
-
-lemma [transfer_rule]:
-  "((=) ===> pcr_word) numeral numeral"
-  by transfer_prover
-
-lemma [transfer_rule]:
-  "((=) ===> pcr_word) int of_nat"
-  by transfer_prover
-
-lemma [transfer_rule]:
-  "((=) ===> pcr_word) (\<lambda>k. k) of_int"
-proof -
-  have "((=) ===> pcr_word) of_int of_int"
-    by transfer_prover
-  then show ?thesis by (simp add: id_def)
-qed
-
-end
 
 lemma word_of_int_eq:
   "word_of_int = of_int"
@@ -643,6 +779,69 @@ lemma word_sless_eq:
 lemma [code]:
   \<open>a <s b \<longleftrightarrow> sint a < sint b\<close>
   by transfer simp
+
+lemma word_less_alt: "a < b \<longleftrightarrow> uint a < uint b"
+  by (fact word_less_def)
+
+lemma signed_linorder: "class.linorder word_sle word_sless"
+  by (standard; transfer) (auto simp add: signed_take_bit_decr_length_iff)
+
+interpretation signed: linorder "word_sle" "word_sless"
+  by (rule signed_linorder)
+
+lemma word_zero_le [simp]: "0 \<le> y"
+  for y :: "'a::len word"
+  by transfer simp
+
+lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
+  by transfer (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1 bintr_lt2p)
+
+lemma word_n1_ge [simp]: "y \<le> -1"
+  for y :: "'a::len word"
+  by (fact word_order.extremum)
+
+lemmas word_not_simps [simp] =
+  word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
+
+lemma word_gt_0: "0 < y \<longleftrightarrow> 0 \<noteq> y"
+  for y :: "'a::len word"
+  by (simp add: less_le)
+
+lemmas word_gt_0_no [simp] = word_gt_0 [of "numeral y"] for y
+
+lemma word_sless_alt: "a <s b \<longleftrightarrow> sint a < sint b"
+  by (auto simp add: word_sle_eq word_sless_eq less_le)
+
+lemma word_le_nat_alt: "a \<le> b \<longleftrightarrow> unat a \<le> unat b"
+  by transfer (simp add: nat_le_eq_zle)
+
+lemma word_less_nat_alt: "a < b \<longleftrightarrow> unat a < unat b"
+  by transfer (auto simp add: less_le [of 0])
+
+lemmas unat_mono = word_less_nat_alt [THEN iffD1]
+
+instance word :: (len) wellorder
+proof
+  fix P :: "'a word \<Rightarrow> bool" and a
+  assume *: "(\<And>b. (\<And>a. a < b \<Longrightarrow> P a) \<Longrightarrow> P b)"
+  have "wf (measure unat)" ..
+  moreover have "{(a, b :: ('a::len) word). a < b} \<subseteq> measure unat"
+    by (auto simp add: word_less_nat_alt)
+  ultimately have "wf {(a, b :: ('a::len) word). a < b}"
+    by (rule wf_subset)
+  then show "P a" using *
+    by induction blast
+qed
+
+lemma wi_less:
+  "(word_of_int n < (word_of_int m :: 'a::len word)) =
+    (n mod 2 ^ LENGTH('a) < m mod 2 ^ LENGTH('a))"
+  unfolding word_less_alt by (simp add: word_uint.eq_norm)
+
+lemma wi_le:
+  "(word_of_int n \<le> (word_of_int m :: 'a::len word)) =
+    (n mod 2 ^ LENGTH('a) \<le> m mod 2 ^ LENGTH('a))"
+  unfolding word_le_def by (simp add: word_uint.eq_norm)
 
 
 subsection \<open>Bit-wise operations\<close>
@@ -1537,53 +1736,6 @@ lemma wi_bintr:
     word_of_int (take_bit n w) = (word_of_int w :: 'a word)"
   by (auto simp: word_ubin.norm_eq_iff [symmetric] min.absorb1)
 
-lemma td_ext_sbin:
-  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
-    (signed_take_bit (LENGTH('a) - 1))"
-  apply (unfold td_ext_def' sint_uint)
-  apply (simp add : word_ubin.eq_norm)
-  apply (cases "LENGTH('a)")
-   apply (auto simp add : sints_def)
-  apply (rule sym [THEN trans])
-   apply (rule word_ubin.Abs_norm)
-  apply (simp only: bintrunc_sbintrunc)
-  apply (drule sym)
-  apply simp
-  done
-
-lemma td_ext_sint:
-  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
-     (\<lambda>w. (w + 2 ^ (LENGTH('a) - 1)) mod 2 ^ LENGTH('a) -
-         2 ^ (LENGTH('a) - 1))"
-  using td_ext_sbin [where ?'a = 'a] by (simp add: no_sbintr_alt2)
-
-text \<open>
-  We do \<open>sint\<close> before \<open>sbin\<close>, before \<open>sint\<close> is the user version
-  and interpretations do not produce thm duplicates. I.e.
-  we get the name \<open>word_sint.Rep_eqD\<close>, but not \<open>word_sbin.Req_eqD\<close>,
-  because the latter is the same thm as the former.
-\<close>
-interpretation word_sint:
-  td_ext
-    "sint ::'a::len word \<Rightarrow> int"
-    word_of_int
-    "sints (LENGTH('a::len))"
-    "\<lambda>w. (w + 2^(LENGTH('a::len) - 1)) mod 2^LENGTH('a::len) -
-      2 ^ (LENGTH('a::len) - 1)"
-  by (rule td_ext_sint)
-
-interpretation word_sbin:
-  td_ext
-    "sint ::'a::len word \<Rightarrow> int"
-    word_of_int
-    "sints (LENGTH('a::len))"
-    "signed_take_bit (LENGTH('a::len) - 1)"
-  by (rule td_ext_sbin)
-
-lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm]
-
-lemmas td_sint = word_sint.td
-
 lemma uints_mod: "uints n = range (\<lambda>w. w mod 2 ^ n)"
   by (fact uints_def [unfolded no_bintr_alt1])
 
@@ -1639,10 +1791,6 @@ lemma uint_ge_0 [iff]: "0 \<le> uint x"
 lemma uint_lt2p [iff]: "uint x < 2 ^ LENGTH('a)"
   for x :: "'a::len word"
   using word_uint.Rep [of x] by (simp add: uints_num)
-
-lemma word_exp_length_eq_0 [simp]:
-  \<open>(2 :: 'a::len word) ^ LENGTH('a) = 0\<close>
-  by transfer (simp add: take_bit_eq_mod)
 
 lemma sint_ge: "- (2 ^ (LENGTH('a) - 1)) \<le> sint x"
   for x :: "'a::len word"
@@ -1997,15 +2145,6 @@ lemma drop_bit_eq_zero_iff_not_bit_last:
 
 subsection \<open>Word Arithmetic\<close>
 
-lemma word_less_alt: "a < b \<longleftrightarrow> uint a < uint b"
-  by (fact word_less_def)
-
-lemma signed_linorder: "class.linorder word_sle word_sless"
-  by (standard; transfer) (auto simp add: signed_take_bit_decr_length_iff)
-
-interpretation signed: linorder "word_sle" "word_sless"
-  by (rule signed_linorder)
-
 lemma udvdI: "0 \<le> n \<Longrightarrow> uint b = n * uint a \<Longrightarrow> a udvd b"
   by (auto simp: udvd_def)
 
@@ -2016,18 +2155,6 @@ lemmas word_le_no [simp] = word_le_def [of "numeral a" "numeral b"] for a b
 lemmas word_sless_no [simp] = word_sless_eq [of "numeral a" "numeral b"] for a b
 lemmas word_sle_no [simp] = word_sle_eq [of "numeral a" "numeral b"] for a b
 
-lemma word_m1_wi: "- 1 = word_of_int (- 1)"
-  by (simp add: word_neg_numeral_alt [of Num.One])
-
-lemma uint_0_iff: "uint x = 0 \<longleftrightarrow> x = 0"
-  by (simp add: word_uint_eq_iff)
-
-lemma unat_0_iff: "unat x = 0 \<longleftrightarrow> x = 0"
-  by transfer (auto intro: antisym)
-
-lemma unat_0 [simp]: "unat 0 = 0"
-  by transfer simp
-
 lemma size_0_same': "size w = 0 \<Longrightarrow> w = v"
   for v w :: "'a::len word"
   by (unfold word_size) simp
@@ -2036,35 +2163,6 @@ lemmas size_0_same = size_0_same' [unfolded word_size]
 
 lemmas unat_eq_0 = unat_0_iff
 lemmas unat_eq_zero = unat_0_iff
-
-lemma unat_gt_0: "0 < unat x \<longleftrightarrow> x \<noteq> 0"
-  by (auto simp: unat_0_iff [symmetric])
-
-lemma ucast_0 [simp]: "ucast 0 = 0"
-  by transfer simp
-
-lemma sint_0 [simp]: "sint 0 = 0"
-  by (simp add: sint_uint)
-
-lemma scast_0 [simp]: "scast 0 = 0"
-  by transfer simp
-
-lemma sint_n1 [simp] : "sint (- 1) = - 1"
-  by transfer simp
-
-lemma scast_n1 [simp]: "scast (- 1) = - 1"
-  by transfer simp
-
-lemma uint_1: "uint (1::'a::len word) = 1"
-  by (fact uint_1_eq)
-
-lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
-  by transfer simp
-
-lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
-  by transfer simp
-
-\<comment> \<open>now, to get the weaker results analogous to \<open>word_div\<close>/\<open>mod_def\<close>\<close>
 
 
 subsection \<open>Transferring goals from words to ints\<close>
@@ -2145,60 +2243,6 @@ lemma word_of_int_Ex: "\<exists>y. x = word_of_int y"
 
 
 subsection \<open>Order on fixed-length words\<close>
-
-lemma word_zero_le [simp]: "0 \<le> y"
-  for y :: "'a::len word"
-  unfolding word_le_def by auto
-
-lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
-  by transfer (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1 bintr_lt2p)
-
-lemma word_n1_ge [simp]: "y \<le> -1"
-  for y :: "'a::len word"
-  by (fact word_order.extremum)
-
-lemmas word_not_simps [simp] =
-  word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
-
-lemma word_gt_0: "0 < y \<longleftrightarrow> 0 \<noteq> y"
-  for y :: "'a::len word"
-  by (simp add: less_le)
-
-lemmas word_gt_0_no [simp] = word_gt_0 [of "numeral y"] for y
-
-lemma word_sless_alt: "a <s b \<longleftrightarrow> sint a < sint b"
-  by (auto simp add: word_sle_eq word_sless_eq less_le)
-
-lemma word_le_nat_alt: "a \<le> b \<longleftrightarrow> unat a \<le> unat b"
-  by transfer (simp add: nat_le_eq_zle)
-
-lemma word_less_nat_alt: "a < b \<longleftrightarrow> unat a < unat b"
-  by transfer (auto simp add: less_le [of 0])
-
-lemmas unat_mono = word_less_nat_alt [THEN iffD1]
-
-instance word :: (len) wellorder
-proof
-  fix P :: "'a word \<Rightarrow> bool" and a
-  assume *: "(\<And>b. (\<And>a. a < b \<Longrightarrow> P a) \<Longrightarrow> P b)"
-  have "wf (measure unat)" ..
-  moreover have "{(a, b :: ('a::len) word). a < b} \<subseteq> measure unat"
-    by (auto simp add: word_less_nat_alt)
-  ultimately have "wf {(a, b :: ('a::len) word). a < b}"
-    by (rule wf_subset)
-  then show "P a" using *
-    by induction blast
-qed
-
-lemma wi_less:
-  "(word_of_int n < (word_of_int m :: 'a::len word)) =
-    (n mod 2 ^ LENGTH('a) < m mod 2 ^ LENGTH('a))"
-  unfolding word_less_alt by (simp add: word_uint.eq_norm)
-
-lemma wi_le:
-  "(word_of_int n \<le> (word_of_int m :: 'a::len word)) =
-    (n mod 2 ^ LENGTH('a) \<le> m mod 2 ^ LENGTH('a))"
-  unfolding word_le_def by (simp add: word_uint.eq_norm)
 
 lemma udvd_nat_alt: "a udvd b \<longleftrightarrow> (\<exists>n\<ge>0. unat b = n * unat a)"
   supply nat_uint_eq [simp del]
@@ -2584,35 +2628,6 @@ lemmas word_eq_numeral_iff_iszero [simp] =
 
 
 subsection \<open>Word and nat\<close>
-
-lemma td_ext_unat [OF refl]:
-  "n = LENGTH('a::len) \<Longrightarrow>
-    td_ext (unat :: 'a word \<Rightarrow> nat) of_nat (unats n) (\<lambda>i. i mod 2 ^ n)"
-  apply (standard; transfer)
-     apply (simp_all add: unats_def take_bit_int_less_exp take_bit_of_nat take_bit_eq_self)
-  apply (simp add: take_bit_eq_mod)
-  done
-
-lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm]
-
-interpretation word_unat:
-  td_ext
-    "unat::'a::len word \<Rightarrow> nat"
-    of_nat
-    "unats (LENGTH('a::len))"
-    "\<lambda>i. i mod 2 ^ LENGTH('a::len)"
-  by (rule td_ext_unat)
-
-lemmas td_unat = word_unat.td_thm
-
-lemmas unat_lt2p [iff] = word_unat.Rep [unfolded unats_def mem_Collect_eq]
-
-lemma unat_le: "y \<le> unat z \<Longrightarrow> y \<in> unats (LENGTH('a))"
-  for z :: "'a::len word"
-  apply (unfold unats_def)
-  apply clarsimp
-  apply (rule xtrans, rule unat_lt2p, assumption)
-  done
 
 lemma word_nchotomy: "\<forall>w :: 'a::len word. \<exists>n. w = of_nat n \<and> n < 2 ^ LENGTH('a)"
   apply (rule allI)
@@ -3287,8 +3302,6 @@ lemma set_bits_bit_eq:
 lemma set_bits_K_False [simp]:
   \<open>set_bits (\<lambda>_. False) = (0 :: 'a :: len word)\<close>
   by (rule bit_word_eqI) (simp add: bit_set_bits_word_iff)
-
-lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
 
 interpretation test_bit:
   td_ext

@@ -37,6 +37,11 @@ lemmas word_rotr_def = word_rotr_eq
 lemmas word_sle_def = word_sle_eq
 lemmas word_sless_def = word_sless_eq
 
+lemmas uint_0 = uint_nonnegative
+lemmas uint_lt = uint_bounded
+lemmas uint_mod_same = uint_idem
+lemmas of_nth_def = word_set_bits_def
+
 lemma shiftl_transfer [transfer_rule]:
   includes lifting_syntax
   shows "(pcr_word ===> (=) ===> pcr_word) (<<) (<<)"
