@@ -160,7 +160,7 @@ lemma has_derivative_iff_norm:
 lemma has_derivative_at:
   "(f has_derivative D) (at x) \<longleftrightarrow>
     (bounded_linear D \<and> (\<lambda>h. norm (f (x + h) - f x - D h) / norm h) \<midarrow>0\<rightarrow> 0)"
-  unfolding has_derivative_iff_norm LIM_offset_zero_iff[of _ _ x] by simp
+  by (simp add: has_derivative_iff_norm LIM_offset_zero_iff)
 
 lemma field_has_derivative_at:
   fixes x :: "'a::real_normed_field"
