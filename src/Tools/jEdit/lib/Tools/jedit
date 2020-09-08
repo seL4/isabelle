@@ -390,7 +390,7 @@ if [ -e "$ISABELLE_HOME/Admin/build" -a "$?" -ne 0 ]; then
 
   target_shasum > "$TARGET_SHASUM"
 
-  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.6pre1manual-a4.pdf" "$TARGET_DIR/doc/jedit-manual.pdf"
+  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.6.0manual-a4.pdf" "$TARGET_DIR/doc/jedit-manual.pdf"
   cp "$TARGET_DIR/doc/CHANGES.txt" "$TARGET_DIR/doc/jedit-changes"
   cat > "$TARGET_DIR/doc/Contents" <<EOF
 Original jEdit Documentation
