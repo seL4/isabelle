@@ -11,6 +11,7 @@ struct
  has this pattern (provided it appears in a single line):
    val .*K = "PARAMETER" (*DESCRIPTION*)
 *)
+(* NOTE: Do not forget to update the Sledgehammer documentation to reflect changes here. *)
 
 val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
 val e_selection_heuristicK = "e_selection_heuristic" (*=STRING: E clause selection heuristic*)

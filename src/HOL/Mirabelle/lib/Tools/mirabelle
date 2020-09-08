@@ -21,6 +21,7 @@ function print_sledgehammer_options() {
 }
 
 function usage() {
+  # Do not forget to update the Sledgehammer documentation to reflect changes here.
   [ -n "$MIRABELLE_OUTPUT_PATH" ] && out="$MIRABELLE_OUTPUT_PATH" || out="None"
   timeout="$MIRABELLE_TIMEOUT"
   echo
@@ -35,8 +36,7 @@ function usage() {
   echo "    -q           be quiet (suppress output of Isabelle process)"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
   echo
-  echo "  Apply the given actions (i.e., automated proof tools)"
-  echo "  at all proof steps in the given theory files."
+  echo "  Apply the given actions at all proof steps in the given theory files."
   echo
   echo "  ACTIONS is a colon-separated list of actions, where each action is"
   echo "  either NAME or NAME[OPTION,...,OPTION]. Available actions are:"

@@ -10,7 +10,7 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
-  type raw_fact = ((unit -> string) * stature) * thm
+  type raw_fact = ((unit -> string) * stature) * thm (* TODO: rename to lazy_fact *)
   type fact = (string * stature) * thm
 
   type fact_override =

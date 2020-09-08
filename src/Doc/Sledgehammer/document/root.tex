@@ -60,6 +60,8 @@ Hammering Away \\[\smallskipamount]
 Jasmin Blanchette \\
 {\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\[4\smallskipamount]
 {\normalsize with contributions from} \\[4\smallskipamount]
+Martin Desharnais \\
+{\normalsize Forschungsinstitut CODE, Universit\"at der Bundeswehr M\"unchen}  \\[4\smallskipamount]
 Lawrence C. Paulson \\
 {\normalsize Computer Laboratory, University of Cambridge} \\
 \hbox{}}
@@ -1285,6 +1287,94 @@ next to the suggested proof method calls.
 Alias for ``\textit{preplay\_timeout} = 0''.
 
 \end{enum}
+
+\section{Mirabelle Testing Tool}
+\label{mirabelle}
+
+% using Sledgehammer or other advisory tools
+% proof tools or counterexample generator
+The \texttt{isabelle mirabelle} tool executes Sledgehammer, or other advisory
+tools (e.g. proof tools, counterexample generators) on most subgoals in a theory.
+It is typically used to quantify the success rate of a proof tool on a
+representative benchmark. Its command-line usage is:
+
+{\small
+\begin{verbatim}
+isabelle mirabelle [OPTIONS] ACTIONS FILES
+
+  Options are:
+    -L LOGIC     parent logic to use (default HOL)
+    -O DIR       output directory for test data (default None)
+    -S FILE      user-provided setup file (no actions required)
+    -T THEORY    parent theory to use (default Main)
+    -d DIR       include session directory
+    -q           be quiet (suppress output of Isabelle process)
+    -t TIMEOUT   timeout for each action in seconds (default 30)
+
+  Apply the given actions at all proof steps in the given theory
+  files.
+\end{verbatim}
+}
+
+Option \texttt{-L LOGIC} specifies the parent session to use. This is often a
+logic (e.g. Pure, HOL) but may be any session (e.g. from the AFP). Using
+multiple sessions is not supported at the moment. If a theory A needs to import
+from multiple sessions, this limitation can be overcome by
+
+\begin{enumerate}
+  \item defining a custom session S with a single theory B;
+  \item moving all imports from A to B;
+  \item building the heap image of S;
+  \item importing S.B from theory A;
+  \item executing Mirabelle with C as parent logic, i.e. with \texttt{-L S}.
+\end{enumerate}
+
+Option \texttt{-O DIR} specifies the output directory, which is created if not
+already existing, where the log will be written. In this directory, one log
+file per theory records the position of each tested subgoal and the result of
+executing the proof tool.
+
+Option \texttt{-t TIMEOUT} specifies a generic timeout that different actions
+may interpret in different ways.
+
+More specific documentation about parameters \texttt{ACTIONS}, \texttt{FILES},
+and their corresponding options may be found in the isabelle tool usage by
+entering \texttt{isabelle mirabelle -?} on the command line.
+
+\subsection{Example of Benchmarking Sledgehammer}
+
+\begin{verbatim}
+isabelle mirabelle -O output \
+  sledgehammer[prover=e,prover_timeout=10] Huffman.thy
+\end{verbatim}
+
+This command benchmarks sledgehammer when using \textbf{\textit{e}} as prover
+with a timeout of 10 seconds. The results are written to the file
+\texttt{output/Huffman.log}.
+
+\subsection{Example of Benchmarking Other Tools}
+
+\begin{verbatim}
+isabelle mirabelle -O output -t 10 \
+  try0 Huffman.thy
+\end{verbatim}
+
+This command benchmarks the \texttt{try0} tactic with a timeout of 10 seconds.
+The results are written to the file \texttt{output/Huffman.log}.
+
+\subsection{Example of Generating TPTP Files}
+
+\begin{verbatim}
+isabelle mirabelle -O output \
+  sledgehammer[prover_timeout=1,keep=tptp-files] Huffman.thy
+\end{verbatim}
+
+This command generates TPTP files with sledgehammer. Since the file is
+generated at the very beginning of every sledgehammer invocation, a timeout of
+1 second making the prover fail faster speeds handling the theory up.  The
+results are written in the \texttt{tptp-files} directory, which has to exist
+prior to the command invocation. A distinct TPTP file is generated for each
+subgoal with a file name ending with \texttt{.smt\_in}.
 
 \let\em=\sl
 \bibliography{manual}{}
