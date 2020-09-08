@@ -2574,15 +2574,15 @@ lemma LIM_offset_zero_cancel: "(\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>
   for a :: "'a::real_normed_vector"
   by (drule LIM_offset [where k = "- a"]) simp
 
-lemma LIM_offset_zero_iff: "f \<midarrow>a\<rightarrow> L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L"
+lemma LIM_offset_zero_iff: "NO_MATCH 0 a \<Longrightarrow> f \<midarrow>a\<rightarrow> L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L"
   for f :: "'a :: real_normed_vector \<Rightarrow> _"
   using LIM_offset_zero_cancel[of f a L] LIM_offset_zero[of f L a] by auto
 
 lemma tendsto_offset_zero_iff:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> _"
-  assumes "a \<in> S" "open S"
+  assumes " NO_MATCH 0 a" "a \<in> S" "open S"
   shows "(f \<longlongrightarrow> L) (at a within S) \<longleftrightarrow> ((\<lambda>h. f (a + h)) \<longlongrightarrow> L) (at 0)"
-  by (metis LIM_offset_zero_iff assms tendsto_within_open)
+  using assms by (simp add: tendsto_within_open_NO_MATCH LIM_offset_zero_iff)
 
 lemma LIM_zero: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. f x - l) \<longlongrightarrow> 0) F"
   for f :: "'a \<Rightarrow> 'b::real_normed_vector"
