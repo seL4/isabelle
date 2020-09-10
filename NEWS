@@ -16,9 +16,8 @@ Rare INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
-* The jEdit status line includes a widget for Isabelle/ML heap usage,
-including an indication for ongoing garbage collection (as "ML
-cleanup").
+* The jEdit status line includes widgets both for JVM and ML heap usage.
+Ongoing ML ongoing garbage collection is shown as "ML cleanup".
 
 * The Monitor dockable provides buttons to request a full garbage
 collection and sharing of live data on the ML heap. It also includes

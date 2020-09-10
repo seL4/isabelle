@@ -8,31 +8,26 @@ package isabelle.jedit
 
 
 import isabelle._
-
 import java.awt.{Color, Dimension, Graphics, Graphics2D, Insets, RenderingHints}
 import java.awt.font.FontRenderContext
-import java.awt.event.{MouseAdapter, MouseEvent}
-import javax.swing.{JComponent, JLabel}
+import java.awt.event.{ActionEvent, ActionListener, MouseAdapter, MouseEvent}
 
+import javax.swing.{JComponent, JLabel, Timer}
 import org.gjt.sp.jedit.{View, jEdit}
 import org.gjt.sp.jedit.gui.statusbar.{StatusWidgetFactory, Widget}
 
 
 object Status_Widget
 {
-  private val template = "99999/99999MB"
+  /** generic GUI **/
 
-  private class GUI(view: View) extends JComponent
+  private val template = "ABC: 99999/99999MB"
+
+  abstract class GUI(view: View) extends JComponent
   {
-    /* component state -- owned by GUI thread */
-
-    private var status = ML_Statistics.memory_status(Nil)
-
-
     /* init */
 
     setFont(new JLabel().getFont)
-    setToolTipText("ML heap memory (double-click for monitor panel)")
 
     private val font_render_context = new FontRenderContext(null, true, false)
     private val line_metrics = getFont.getLineMetrics(template, font_render_context)
@@ -53,13 +48,7 @@ object Status_Widget
 
     /* paint */
 
-    private def update(new_status: ML_Statistics.Memory_Status)
-    {
-      if (status != new_status) {
-        status = new_status
-        repaint()
-      }
-    }
+    def get_status: (String, Double)
 
     override def paintComponent(gfx: Graphics)
     {
@@ -70,14 +59,7 @@ object Status_Widget
       val width = getWidth - insets.left - insets.right
       val height = getHeight - insets.top - insets.bottom - 1
 
-      val (text, fraction) =
-        status.gc_progress match {
-          case Some(p) => ("ML cleanup", 1.0 - p)
-          case None =>
-            ((status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
-              status.heap_used_fraction)
-        }
-
+      val (text, fraction) = get_status
       val width2 = (width * fraction).toInt
 
       val text_bounds = gfx.getFont.getStringBounds(text, font_render_context)
@@ -102,13 +84,114 @@ object Status_Widget
     }
 
 
+    /* mouse listener */
+
+    def action: String
+
+    addMouseListener(new MouseAdapter {
+      override def mouseClicked(evt: MouseEvent)
+      {
+        if (evt.getClickCount == 2) {
+          view.getInputHandler.invokeAction(action)
+        }
+      }
+    })
+  }
+
+
+
+  /** Java **/
+
+  class Java_GUI(view: View) extends GUI(view)
+  {
+    /* component state -- owned by GUI thread */
+
+    private var status = Platform.memory_status()
+
+    def get_status: (String, Double) =
+    {
+      ("JVM: " + (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
+        status.heap_used_fraction)
+    }
+
+    private def update_status(new_status: Platform.Memory_Status)
+    {
+      if (status != new_status) {
+        status = new_status
+        repaint()
+      }
+    }
+
+
+    /* timer */
+
+    private val timer =
+      new Timer(500, new ActionListener {
+        override def actionPerformed(e: ActionEvent) {
+          update_status(Platform.memory_status())
+        }
+      })
+
+    override def addNotify()
+    {
+      super.addNotify()
+      timer.start()
+    }
+
+    override def removeNotify()
+    {
+      super.removeNotify()
+      timer.stop()
+    }
+
+
+    /* action */
+
+    setToolTipText("Java heap memory (double-click for monitor application)")
+
+    override def action: String = "isabelle.jconsole"
+  }
+
+  class Java_Factory extends StatusWidgetFactory
+  {
+    override def getWidget(view: View): Widget =
+      new Widget { override def getComponent: JComponent = new Java_GUI(view) }
+  }
+
+
+
+  /** ML **/
+
+  class ML_GUI(view: View) extends GUI(view)
+  {
+    /* component state -- owned by GUI thread */
+
+    private var status = ML_Statistics.memory_status(Nil)
+
+    def get_status: (String, Double) =
+      status.gc_progress match {
+        case Some(p) => ("ML cleanup", 1.0 - p)
+        case None =>
+          ("ML: " + (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
+            status.heap_used_fraction)
+      }
+
+    private def update_status(new_status: ML_Statistics.Memory_Status)
+    {
+      if (status != new_status) {
+        status = new_status
+        repaint()
+      }
+    }
+
+
     /* main */
 
     private val main =
       Session.Consumer[Session.Runtime_Statistics](getClass.getName) {
         case stats =>
           val status = ML_Statistics.memory_status(stats.props)
-          GUI_Thread.later { update(status) }
+          GUI_Thread.later { update_status(status) }
       }
 
     override def addNotify()
@@ -124,21 +207,16 @@ object Status_Widget
     }
 
 
-    /* mouse listener */
+    /* action */
 
-    addMouseListener(new MouseAdapter {
-      override def mouseClicked(evt: MouseEvent)
-      {
-        if (evt.getClickCount == 2) {
-          view.getInputHandler.invokeAction("isabelle-monitor-float")
-        }
-      }
-    })
+    setToolTipText("ML heap memory (double-click for monitor panel)")
+
+    override def action: String = "isabelle-monitor-float"
   }
 
   class ML_Factory extends StatusWidgetFactory
   {
     override def getWidget(view: View): Widget =
-      new Widget { override def getComponent: JComponent = new GUI(view) }
+      new Widget { override def getComponent: JComponent = new ML_GUI(view) }
   }
 }

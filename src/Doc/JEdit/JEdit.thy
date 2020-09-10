@@ -2103,10 +2103,11 @@ text \<open>
   Isabelle~/ General\<close>.
 
   \<^medskip>
-  The jEdit status line includes monitor widgets for current heap usage of
-  Java and Isabelle/ML, respectively. The one for ML includes information
-  about ongoing garbage collection (as ``ML cleanup''); a double-click opens
-  a new instance of the \<^emph>\<open>Monitor\<close> panel for further details.
+  The jEdit status line includes monitor widgets for current heap usage of the
+  Java VM and Isabelle/ML, respectively. The one for ML includes information
+  about ongoing garbage collection (as ``ML cleanup''). For further details, a
+  double-clicking the JVM widget opens the external \<^verbatim>\<open>jconsole\<close> application,
+  and the ML widget a new instance of the \<^emph>\<open>Monitor\<close> panel.
 
   \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent

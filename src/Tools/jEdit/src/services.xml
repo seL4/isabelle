@@ -50,6 +50,9 @@
   <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="graphview">
     new isabelle.jedit.Graphview_Dockable$Handler()
   </SERVICE>
+	<SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="java-status">
+		new isabelle.jedit.Status_Widget$Java_Factory();
+	</SERVICE>
 	<SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="ml-status">
 		new isabelle.jedit.Status_Widget$ML_Factory();
 	</SERVICE>
