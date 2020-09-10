@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/ml_status.scala
+/*  Title:      Tools/jEdit/src/status_widget.scala
     Author:     Makarius
 
 ML status bar: heap and garbage collection.
@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.{View, jEdit}
 import org.gjt.sp.jedit.gui.statusbar.{StatusWidgetFactory, Widget}
 
 
-object ML_Status
+object Status_Widget
 {
   private val template = "99999/99999MB"
 
@@ -136,7 +136,7 @@ object ML_Status
     })
   }
 
-  class Widget_Factory extends StatusWidgetFactory
+  class ML_Factory extends StatusWidgetFactory
   {
     override def getWidget(view: View): Widget =
       new Widget { override def getComponent: JComponent = new GUI(view) }
