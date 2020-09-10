@@ -106,7 +106,7 @@ object Status_Widget
   {
     /* component state -- owned by GUI thread */
 
-    private var status = Platform.memory_status()
+    private var status = Java_Statistics.memory_status()
 
     def get_status: (String, Double) =
     {
@@ -114,7 +114,7 @@ object Status_Widget
         status.heap_used_fraction)
     }
 
-    private def update_status(new_status: Platform.Memory_Status)
+    private def update_status(new_status: Java_Statistics.Memory_Status)
     {
       if (status != new_status) {
         status = new_status
@@ -128,7 +128,7 @@ object Status_Widget
     private val timer =
       new Timer(500, new ActionListener {
         override def actionPerformed(e: ActionEvent) {
-          update_status(Platform.memory_status())
+          update_status(Java_Statistics.memory_status())
         }
       })
 
