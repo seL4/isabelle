@@ -18,7 +18,12 @@ object Check_Sources
     if (space_explode('/', Word.lowercase(path.expand.drop_ext.implode)).contains("aux"))
       Output.warning("Illegal file-name on Windows" + Position.here(file_pos))
 
-    val content = File.read(path)
+    val bytes = Bytes.read(path)
+    val content = bytes.text
+
+    if (Bytes(content) != bytes) {
+      Output.warning("Bad UTF8 encoding" + Position.here(file_pos))
+    }
 
     for { (line, i) <- split_lines(content).iterator.zipWithIndex }
     {
