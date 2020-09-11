@@ -117,7 +117,6 @@ session Functions (doc) in "Functions" = HOL +
     "build"
     "conclusion.tex"
     "intro.tex"
-    "mathpartir.sty"
     "root.tex"
     "style.sty"
 
@@ -258,7 +257,6 @@ session Sugar (doc) in "Sugar" = HOL +
     "pdfsetup.sty"
   document_files
     "build"
-    "mathpartir.sty"
     "root.bib"
     "root.tex"
 
@@ -360,7 +358,6 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
     "bang.pdf"
     "build"
     "intro-isabelle.tex"
-    "mathpartir.sty"
     "prelude.tex"
     "root.bib"
     "root.tex"
