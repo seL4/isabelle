@@ -2103,11 +2103,13 @@ text \<open>
   Isabelle~/ General\<close>.
 
   \<^medskip>
-  The jEdit status line includes monitor widgets for current heap usage of the
-  Java VM and Isabelle/ML, respectively. The one for ML includes information
-  about ongoing garbage collection (as ``ML cleanup''). For further details, a
-  double-clicking the JVM widget opens the external \<^verbatim>\<open>jconsole\<close> application,
-  and the ML widget a new instance of the \<^emph>\<open>Monitor\<close> panel.
+  The jEdit status line includes a monitor widget for the current heap usage
+  of the Isabelle/ML process; this includes information about ongoing garbage
+  collection (shown as ``ML cleanup''). A double-click opens a new instance of
+  the \<^emph>\<open>Monitor\<close> panel, as explained below. There is a similar widget for the
+  Java VM: a double-click opens the external \<^verbatim>\<open>jconsole\<close> application, with
+  detailed information and controls for the Java process underlying
+  Isabelle/Scala/jEdit.
 
   \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent
@@ -2250,10 +2252,6 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Increase JVM heap parameters by editing platform-specific
   files (for ``properties'' or ``options'') that are associated with the main
   app bundle.
-
-  Also note that jEdit provides a heap space monitor in the status line
-  (bottom-right). Double-clicking on that causes full garbage-collection,
-  which sometimes helps in low-memory situations.
 \<close>
 
 end
