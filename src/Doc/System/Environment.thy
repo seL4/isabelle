@@ -308,13 +308,16 @@ Available tools:
       stand-alone program with the command-line arguments provided as \<^verbatim>\<open>argv\<close>
       array.
 
-    \<^enum> An internal tool that is registered in \<^verbatim>\<open>Isabelle_Tool.internal_tools\<close>
-    within the Isabelle/Scala namespace of \<^verbatim>\<open>Pure.jar\<close>. This is the preferred
-    entry-point for high-end tools implemented in Isabelle/Scala --- compiled
-    once when the Isabelle distribution is built. These tools are provided by
-    Isabelle/Pure and cannot be augmented in user-space.
+    \<^enum> An internal tool that is registered in \<^verbatim>\<open>etc/settings\<close> via the shell
+    function \<^bash_function>\<open>isabelle_scala_service\<close>, referring to a
+    suitable instance of class \<^scala_type>\<open>isabelle.Isabelle_Scala_Tools\<close>.
+    This is the preferred approach for non-trivial systems programming in
+    Isabelle/Scala: instead of adhoc interpretation of \<^verbatim>\<open>scala\<close> scripts,
+    which is somewhat slow and only type-checked at runtime, there are
+    properly compiled \<^verbatim>\<open>jar\<close> modules (see also the shell function
+    \<^bash_function>\<open>classpath\<close> in \secref{sec:scala}).
 
-  There are also some administrative tools that are available from a bare
+  There are also various administrative tools that are available from a bare
   repository clone of Isabelle, but not in regular distributions.
 \<close>
 

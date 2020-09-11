@@ -4,7 +4,7 @@ theory Scala
 imports Base
 begin
 
-chapter \<open>Isabelle/Scala systems programming\<close>
+chapter \<open>Isabelle/Scala systems programming \label{sec:scala}\<close>
 
 text \<open>
   Isabelle/ML and Isabelle/Scala are the two main implementation languages of
