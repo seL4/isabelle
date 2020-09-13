@@ -20,18 +20,16 @@ proof -
   obtain r where "0 < r" and r: "ball \<xi> r \<subseteq> S"
     using \<open>open S\<close> \<open>\<xi> \<in> S\<close> open_contains_ball_eq by blast
   have powf: "((\<lambda>n. (deriv ^^ n) f \<xi> / (fact n) * (z - \<xi>)^n) sums f z)" if "z \<in> ball \<xi> r" for z
-    apply (rule holomorphic_power_series [OF _ that])
-    apply (rule holomorphic_on_subset [OF holf r])
-    done
+    by (intro holomorphic_power_series [OF _ that] holomorphic_on_subset [OF holf r])
   obtain m where m: "(deriv ^^ m) f \<xi> / (fact m) \<noteq> 0"
     using holomorphic_fun_eq_0_on_connected [OF holf \<open>open S\<close> \<open>connected S\<close> _ \<open>\<xi> \<in> S\<close> \<open>\<beta> \<in> S\<close>] \<open>f \<beta> \<noteq> 0\<close>
     by auto
   then have "m \<noteq> 0" using assms(5) funpow_0 by fastforce
   obtain s where "0 < s" and s: "\<And>z. z \<in> cball \<xi> s - {\<xi>} \<Longrightarrow> f z \<noteq> 0"
-    apply (rule powser_0_nonzero [OF \<open>0 < r\<close> powf \<open>f \<xi> = 0\<close> m])
-    using \<open>m \<noteq> 0\<close> by (auto simp: dist_commute dist_norm)
+    using powser_0_nonzero [OF \<open>0 < r\<close> powf \<open>f \<xi> = 0\<close> m]
+    by (metis \<open>m \<noteq> 0\<close> dist_norm mem_ball norm_minus_commute not_gr_zero)
   have "0 < min r s"  by (simp add: \<open>0 < r\<close> \<open>0 < s\<close>)
-  then show ?thesis
+  then show thesis
     apply (rule that)
     using r s by auto
 qed
@@ -61,10 +59,10 @@ proof -
     by (simp add: closure_def)
   then have "f \<xi> = 0"
     by (auto simp: continuous_constant_on_closure [OF contf])
-  show ?thesis
-    apply (rule ccontr)
-    apply (rule isolated_zeros [OF holf \<open>open S\<close> \<open>connected S\<close> \<open>\<xi> \<in> S\<close> \<open>f \<xi> = 0\<close> \<open>w \<in> S\<close>], assumption)
+  moreover have "\<And>r. \<lbrakk>0 < r; \<And>z. z \<in> ball \<xi> r - {\<xi>} \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> False"
     by (metis open_ball \<open>\<xi> islimpt T\<close> centre_in_ball fT0 insertE insert_Diff islimptE)
+  ultimately show ?thesis
+    by (metis \<open>open S\<close> \<open>connected S\<close> \<open>\<xi> \<in> S\<close> \<open>w \<in> S\<close> holf isolated_zeros)
 qed
 
 corollary analytic_continuation_open:
@@ -116,27 +114,26 @@ proof -
       using contf' continuous_on_compose continuous_on_norm_id by blast
     ultimately obtain w where w: "w \<in> frontier(cball \<xi> r)"
                           and now: "\<And>x. x \<in> frontier(cball \<xi> r) \<Longrightarrow> norm (f w) \<le> norm (f x)"
-      apply (rule bexE [OF continuous_attains_inf [OF compact_frontier [OF compact_cball]]])
-      apply simp
-      done
+      using continuous_attains_inf [OF compact_frontier [OF compact_cball]]
+      by (metis comp_apply)
     then have fw: "0 < norm (f w)"
       by (simp add: fnz')
     have "continuous_on (frontier (cball \<xi> r)) (norm o g)"
       using contg' continuous_on_compose continuous_on_norm_id by blast
     then obtain v where v: "v \<in> frontier(cball \<xi> r)"
                and nov: "\<And>x. x \<in> frontier(cball \<xi> r) \<Longrightarrow> norm (g v) \<ge> norm (g x)"
-      apply (rule bexE [OF continuous_attains_sup [OF compact_frontier [OF compact_cball] froc]])
-      apply simp
-      done
+      using continuous_attains_sup [OF compact_frontier [OF compact_cball] froc] by force
     then have fv: "0 < norm (f v)"
       by (simp add: fnz')
     have "norm ((deriv ^^ 0) g \<xi>) \<le> fact 0 * norm (g v) / r ^ 0"
       by (rule Cauchy_inequality [OF holg contg \<open>0 < r\<close>]) (simp add: dist_norm nov)
-    then have "cmod (g \<xi>) \<le> norm (g v)"
+    then have "cmod (g \<xi>) \<le> cmod (g v)"
       by simp
-    with w have wr: "norm (\<xi> - w) = r" and nfw: "norm (f w) \<le> norm (f \<xi>)"
-      apply (simp_all add: dist_norm)
-      by (metis \<open>0 < cmod (f \<xi>)\<close> g_def less_imp_inverse_less norm_inverse not_le now order_trans v)
+    moreover have "cmod (\<xi> - w) = r"
+      by (metis (no_types) dist_norm frontier_cball mem_sphere w)
+    ultimately obtain wr: "norm (\<xi> - w) = r" and nfw: "norm (f w) \<le> norm (f \<xi>)"
+      unfolding g_def
+        by (metis (no_types) \<open>0 < cmod (f \<xi>)\<close> less_imp_inverse_less norm_inverse not_le now order_trans v)
     with fw have False
       using norm_less by force
   }
@@ -163,8 +160,7 @@ proof -
                  and sne: "\<And>z. z \<in> ball \<xi> s - {\<xi>} \<Longrightarrow> (\<lambda>z. f z - f \<xi>) z \<noteq> 0"
         using isolated_zeros [OF hol U \<xi>]  by (metis fneU right_minus_eq)
       obtain r where "0 < r" and r: "cball \<xi> r \<subseteq> ball \<xi> s"
-        apply (rule_tac r="s/2" in that)
-        using \<open>0 < s\<close> by auto
+        using \<open>0 < s\<close> by (rule_tac r="s/2" in that) auto
       have "cball \<xi> r \<subseteq> U"
         using sbU r by blast
       then have frsbU: "frontier (cball \<xi> r) \<subseteq> U"
@@ -177,9 +173,7 @@ proof -
         by (metis continuous_on_norm continuous_on_subset frsbU hol holomorphic_on_imp_continuous_on)
       obtain w where "norm (\<xi> - w) = r"
                  and w: "(\<And>z. norm (\<xi> - z) = r \<Longrightarrow> norm (f w - f \<xi>) \<le> norm(f z - f \<xi>))"
-        apply (rule bexE [OF continuous_attains_inf [OF cof frne contfr]])
-        apply (simp add: dist_norm)
-        done
+        using continuous_attains_inf [OF cof frne contfr] by (auto simp: dist_norm)
       moreover define \<epsilon> where "\<epsilon> \<equiv> norm (f w - f \<xi>) / 3"
       ultimately have "0 < \<epsilon>"
         using \<open>0 < r\<close> dist_complex_def r sne by auto
@@ -195,20 +189,15 @@ proof -
             by (simp add: \<epsilon>_def dist_norm norm_minus_commute)
           show ?thesis
             by (metis \<epsilon>_def dist_commute dist_norm less_trans lt mem_ball \<gamma>)
-       qed
+        qed
        have "continuous_on (cball \<xi> r) (\<lambda>z. \<gamma> - f z)"
-          apply (rule continuous_intros)+
           using \<open>cball \<xi> r \<subseteq> U\<close> \<open>f holomorphic_on U\<close>
-          apply (blast intro: continuous_on_subset holomorphic_on_imp_continuous_on)
-          done
+          by (force intro: continuous_intros continuous_on_subset holomorphic_on_imp_continuous_on)
         moreover have "(\<lambda>z. \<gamma> - f z) holomorphic_on ball \<xi> r"
-          apply (rule holomorphic_intros)+
-          apply (metis \<open>cball \<xi> r \<subseteq> U\<close> \<open>f holomorphic_on U\<close> holomorphic_on_subset interior_cball interior_subset)
-          done
+          using \<open>cball \<xi> r \<subseteq> U\<close> ball_subset_cball holomorphic_on_subset that(4) 
+          by (intro holomorphic_intros) blast
         ultimately obtain z where "z \<in> ball \<xi> r" "\<gamma> - f z = 0"
-          apply (rule holomorphic_contract_to_zero)
-          apply (blast intro!: \<open>0 < r\<close> *)+
-          done
+          using "*" \<open>0 < r\<close> holomorphic_contract_to_zero by blast
         then show "\<gamma> \<in> f ` U"
           using \<open>cball \<xi> r \<subseteq> U\<close> by fastforce
       qed
@@ -269,14 +258,11 @@ proof -
     have "C \<subseteq> S"
       by (metis \<open>C \<in> components S\<close> in_components_maximal)
     have nf: "\<not> f constant_on C"
-      apply (rule fnc)
-      using C \<open>C \<subseteq> S\<close> \<open>C \<in> components S\<close> in_components_nonempty by auto
+      using \<open>open C\<close> \<open>C \<in> components S\<close> \<open>C \<subseteq> S\<close> fnc in_components_nonempty by blast
     have "f holomorphic_on C"
       by (metis holf holomorphic_on_subset \<open>C \<subseteq> S\<close>)
     then have "open (f ` (C \<inter> U))"
-      apply (rule open_mapping_thm [OF _ C _ _ nf])
-      apply (simp add: C \<open>open U\<close> open_Int, blast)
-      done
+      by (meson C \<open>open U\<close> inf_le1 nf open_Int open_mapping_thm)
   } ultimately show ?thesis
     by force
 qed
@@ -285,10 +271,10 @@ corollary\<^marker>\<open>tag unimportant\<close> open_mapping_thm3:
   assumes holf: "f holomorphic_on S"
       and "open S" and injf: "inj_on f S"
     shows  "open (f ` S)"
-apply (rule open_mapping_thm2 [OF holf])
-using assms
-apply (simp_all add:)
-using injective_not_constant subset_inj_on by blast
+proof (rule open_mapping_thm2 [OF holf])
+  show "\<And>X. \<lbrakk>open X; X \<subseteq> S; X \<noteq> {}\<rbrakk> \<Longrightarrow> \<not> f constant_on X"
+    using inj_on_subset injective_not_constant injf by blast
+qed (use assms in auto)
 
 subsection\<open>Maximum modulus principle\<close>
 
@@ -308,8 +294,8 @@ proof (rule ccontr)
   moreover have "\<not> open (f ` U)"
   proof -
     have "\<exists>t. cmod (f \<xi> - t) < e \<and> t \<notin> f ` U" if "0 < e" for e
-      apply (rule_tac x="if 0 < Re(f \<xi>) then f \<xi> + (e/2) else f \<xi> - (e/2)" in exI)
       using that
+      apply (rule_tac x="if 0 < Re(f \<xi>) then f \<xi> + (e/2) else f \<xi> - (e/2)" in exI)
       apply (simp add: dist_norm)
       apply (fastforce simp: cmod_Re_le_iff dest!: no dest: sym)
       done
@@ -332,7 +318,7 @@ proof -
     by (simp add: bounded_closure compact_eq_bounded_closed)
   moreover have "continuous_on (closure S) (cmod \<circ> f)"
     using contf continuous_on_compose continuous_on_norm_id by blast
-  ultimately obtain z where zin: "z \<in> closure S" and z: "\<And>y. y \<in> closure S \<Longrightarrow> (cmod \<circ> f) y \<le> (cmod \<circ> f) z"
+  ultimately obtain z where "z \<in> closure S" and z: "\<And>y. y \<in> closure S \<Longrightarrow> (cmod \<circ> f) y \<le> (cmod \<circ> f) z"
     using continuous_attains_sup [of "closure S" "norm o f"] \<open>\<xi> \<in> S\<close> by auto
   then consider "z \<in> frontier S" | "z \<in> interior S" using frontier_def by auto
   then have "norm(f z) \<le> B"
@@ -340,32 +326,35 @@ proof -
     case 1 then show ?thesis using leB by blast
   next
     case 2
-    have zin: "z \<in> connected_component_set (interior S) z"
-      by (simp add: 2)
     have "f constant_on (connected_component_set (interior S) z)"
-      apply (rule maximum_modulus_principle [OF _ _ _ _ _ zin])
-      apply (metis connected_component_subset holf holomorphic_on_subset)
-      apply (simp_all add: open_connected_component)
-      by (metis closure_subset comp_eq_dest_lhs  interior_subset subsetCE z connected_component_in)
+    proof (rule maximum_modulus_principle)
+      show "f holomorphic_on connected_component_set (interior S) z"
+        by (metis connected_component_subset holf holomorphic_on_subset)
+      show zin: "z \<in> connected_component_set (interior S) z"
+        by (simp add: 2)
+      show "\<And>W. W \<in> connected_component_set (interior S) z \<Longrightarrow> cmod (f W) \<le> cmod (f z)"
+        using closure_def connected_component_subset z by fastforce
+    qed (auto simp: open_connected_component)
     then obtain c where c: "\<And>w. w \<in> connected_component_set (interior S) z \<Longrightarrow> f w = c"
       by (auto simp: constant_on_def)
     have "f ` closure(connected_component_set (interior S) z) \<subseteq> {c}"
-      apply (rule image_closure_subset)
-      apply (meson closure_mono connected_component_subset contf continuous_on_subset interior_subset)
-      using c
-      apply auto
-      done
+    proof (rule image_closure_subset)
+      show "continuous_on (closure (connected_component_set (interior S) z)) f"
+        by (meson closure_mono connected_component_subset contf continuous_on_subset interior_subset)
+    qed (use c in auto)
     then have cc: "\<And>w. w \<in> closure(connected_component_set (interior S) z) \<Longrightarrow> f w = c" by blast
-    have "frontier(connected_component_set (interior S) z) \<noteq> {}"
-      apply (simp add: frontier_eq_empty)
-      by (metis "2" bos bounded_interior connected_component_eq_UNIV connected_component_refl not_bounded_UNIV)
+    have "connected_component (interior S) z z"
+      by (simp add: "2")
+    moreover have "connected_component_set (interior S) z \<noteq> UNIV"
+      by (metis bos bounded_interior connected_component_eq_UNIV not_bounded_UNIV)
+    ultimately have "frontier(connected_component_set (interior S) z) \<noteq> {}"
+      by (meson "2" connected_component_eq_empty frontier_not_empty)
     then obtain w where w: "w \<in> frontier(connected_component_set (interior S) z)"
        by auto
     then have "norm (f z) = norm (f w)"  by (simp add: "2" c cc frontier_def)
     also have "... \<le> B"
-      apply (rule leB)
-      using w
-using frontier_interior_subset frontier_of_connected_component_subset by blast
+      using w frontier_interior_subset frontier_of_connected_component_subset 
+      by (blast intro: leB)
     finally show ?thesis .
   qed
   then show ?thesis
@@ -405,16 +394,14 @@ proof -
        if w: "w \<in> ball \<xi> r" for w
   proof -
     define powf where "powf = (\<lambda>i. (deriv ^^ i) f \<xi>/(fact i) * (w - \<xi>)^i)"
+    have [simp]: "powf 0 = f \<xi>"
+      by (simp add: powf_def)
     have sing: "{..<n} - {i. powf i = 0} = (if f \<xi> = 0 then {} else {0})"
       unfolding powf_def using \<open>0 < n\<close> dfz by (auto simp: dfz; metis funpow_0 not_gr0)
     have "powf sums f w"
       unfolding powf_def by (rule holomorphic_power_series [OF holfb w])
     moreover have "(\<Sum>i<n. powf i) = f \<xi>"
-      apply (subst Groups_Big.comm_monoid_add_class.sum.setdiff_irrelevant [symmetric])
-      apply simp
-      apply (simp only: dfz sing)
-      apply (simp add: powf_def)
-      done
+      by (subst sum.setdiff_irrelevant [symmetric]; simp add: dfz sing)
     ultimately have fsums: "(\<lambda>i. powf (i+n)) sums (f w - f \<xi>)"
       using w sums_iff_shift' by metis
     then have *: "summable (\<lambda>i. (w - \<xi>) ^ n * ((deriv ^^ (i + n)) f \<xi> * (w - \<xi>) ^ i / fact (i + n)))"
@@ -432,10 +419,8 @@ proof -
     then show sumsg: "(\<lambda>i. (deriv ^^ (i + n)) f \<xi> / (fact(i + n)) * (w - \<xi>)^i) sums g w"
       by (simp add: summable_sums_iff g_def)
     show "f w - f \<xi> = (w - \<xi>)^n * g w"
-      apply (rule sums_unique2)
-      apply (rule fsums [unfolded powf_def])
       using sums_mult [OF sumsg, of "(w - \<xi>) ^ n"]
-      by (auto simp: power_add mult_ac)
+      by (intro sums_unique2 [OF fsums]) (auto simp: power_add mult_ac powf_def)
   qed
   then have holg: "g holomorphic_on ball \<xi> r"
     by (meson sumsg power_series_holomorphic)
@@ -445,15 +430,13 @@ proof -
     using dnz unfolding g_def
     by (subst suminf_finite [of "{0}"]) auto
   obtain d where "0 < d" and d: "\<And>w. w \<in> ball \<xi> d \<Longrightarrow> g w \<noteq> 0"
-    apply (rule exE [OF continuous_on_avoid [OF contg _ \<open>g \<xi> \<noteq> 0\<close>]])
-    using \<open>0 < r\<close>
-    apply force
-    by (metis \<open>0 < r\<close> less_trans mem_ball not_less_iff_gr_or_eq)
+    using \<open>0 < r\<close> continuous_on_avoid [OF contg _ \<open>g \<xi> \<noteq> 0\<close>]
+    by (metis centre_in_ball le_cases mem_ball mem_ball_leI) 
   show ?thesis
-    apply (rule that [where g=g and r ="min r d"])
-    using \<open>0 < r\<close> \<open>0 < d\<close> holg
-    apply (auto simp: feq holomorphic_on_subset subset_ball d)
-    done
+  proof
+    show "g holomorphic_on ball \<xi> (min r d)"
+      using holg by (auto simp: feq holomorphic_on_subset subset_ball d)
+  qed (use \<open>0 < r\<close> \<open>0 < d\<close> in \<open>auto simp: feq d\<close>)
 qed
 
 
@@ -473,42 +456,36 @@ proof -
     by (auto intro: holomorphic_factor_order_of_zero [OF assms])
   have con: "continuous_on (ball \<xi> r) (\<lambda>z. deriv g z / g z)"
     by (rule continuous_intros) (auto simp: gne holg holomorphic_deriv holomorphic_on_imp_continuous_on)
-  have cd: "\<And>x. dist \<xi> x < r \<Longrightarrow> (\<lambda>z. deriv g z / g z) field_differentiable at x"
-    apply (rule derivative_intros)+
-    using holg mem_ball apply (blast intro: holomorphic_deriv holomorphic_on_imp_differentiable_at)
-    apply (metis open_ball at_within_open holg holomorphic_on_def mem_ball)
-    using gne mem_ball by blast
-  obtain h where h: "\<And>x. x \<in> ball \<xi> r \<Longrightarrow> (h has_field_derivative deriv g x / g x) (at x)"
-    apply (rule exE [OF holomorphic_convex_primitive [of "ball \<xi> r" "{}" "\<lambda>z. deriv g z / g z"]])
-    apply (auto simp: con cd)
-    apply (metis open_ball at_within_open mem_ball)
-    done
+  have cd: "(\<lambda>z. deriv g z / g z) field_differentiable at x" if "dist \<xi> x < r" for x
+  proof (intro derivative_intros)
+    show "deriv g field_differentiable at x"
+      using that holg mem_ball by (blast intro: holomorphic_deriv holomorphic_on_imp_differentiable_at)
+    show "g field_differentiable at x"
+      by (metis that open_ball at_within_open holg holomorphic_on_def mem_ball)
+    qed (simp add: gne that)
+    obtain h where h: "\<And>x. x \<in> ball \<xi> r \<Longrightarrow> (h has_field_derivative deriv g x / g x) (at x)"
+      using holomorphic_convex_primitive [of "ball \<xi> r" "{}" "\<lambda>z. deriv g z / g z"]
+      by (metis (no_types, lifting) Diff_empty at_within_interior cd con convex_ball infinite_imp_nonempty interior_ball mem_ball)
   then have "continuous_on (ball \<xi> r) h"
     by (metis open_ball holomorphic_on_imp_continuous_on holomorphic_on_open)
   then have con: "continuous_on (ball \<xi> r) (\<lambda>x. exp (h x) / g x)"
     by (auto intro!: continuous_intros simp add: holg holomorphic_on_imp_continuous_on gne)
   have 0: "dist \<xi> x < r \<Longrightarrow> ((\<lambda>x. exp (h x) / g x) has_field_derivative 0) (at x)" for x
-    apply (rule h derivative_eq_intros | simp)+
-    apply (rule DERIV_deriv_iff_field_differentiable [THEN iffD2])
-    using holg apply (auto simp: holomorphic_on_imp_differentiable_at gne h)
-    done
+    apply (rule h derivative_eq_intros DERIV_deriv_iff_field_differentiable [THEN iffD2] | simp)+
+    using holg by (auto simp: holomorphic_on_imp_differentiable_at gne h)
   obtain c where c: "\<And>x. x \<in> ball \<xi> r \<Longrightarrow> exp (h x) / g x = c"
     by (rule DERIV_zero_connected_constant [of "ball \<xi> r" "{}" "\<lambda>x. exp(h x) / g x"]) (auto simp: con 0)
   have hol: "(\<lambda>z. exp ((Ln (inverse c) + h z) / of_nat n)) holomorphic_on ball \<xi> r"
-    apply (rule holomorphic_on_compose [unfolded o_def, where g = exp])
-    apply (rule holomorphic_intros)+
-    using h holomorphic_on_open apply blast
-    apply (rule holomorphic_intros)+
-    using \<open>0 < n\<close> apply simp
-    apply (rule holomorphic_intros)+
-    done
+  proof (intro holomorphic_intros holomorphic_on_compose [unfolded o_def, where g = exp])
+    show "h holomorphic_on ball \<xi> r"
+      using h holomorphic_on_open by blast
+  qed (use \<open>0 < n\<close> in auto)
   show ?thesis
-    apply (rule that [where g="\<lambda>z. exp((Ln(inverse c) + h z)/n)" and r =r])
-    using \<open>0 < r\<close> \<open>0 < n\<close>
-    apply (auto simp: feq power_mult_distrib exp_divide_power_eq c [symmetric])
-    apply (rule hol)
-    apply (simp add: Transcendental.exp_add gne)
-    done
+  proof
+    show "\<And>w. w \<in> ball \<xi> r \<Longrightarrow> f w - f \<xi> = ((w - \<xi>) * exp ((Ln (inverse c) + h w) / of_nat n)) ^ n"
+      using \<open>0 < n\<close>
+      by (auto simp: feq power_mult_distrib exp_divide_power_eq exp_add gne simp flip: c)
+  qed (use hol \<open>0 < r\<close> in auto)
 qed
 
 
@@ -543,15 +520,17 @@ next
   have n_min: "\<And>k. k < n \<Longrightarrow> (deriv ^^ k) f \<xi> = 0"
     using def_Least_le [OF n_def] not_le by blast
   then obtain g r1
-    where  "0 < r1" "g holomorphic_on ball \<xi> r1"
-           "\<And>w. w \<in> ball \<xi> r1 \<Longrightarrow> f w = (w - \<xi>) ^ n * g w"
-           "\<And>w. w \<in> ball \<xi> r1 \<Longrightarrow> g w \<noteq> 0"
+    where g: "0 < r1" "g holomorphic_on ball \<xi> r1"
+          and geq: "\<And>w. w \<in> ball \<xi> r1 \<Longrightarrow> f w = (w - \<xi>) ^ n * g w"
+          and g0: "\<And>w. w \<in> ball \<xi> r1 \<Longrightarrow> g w \<noteq> 0"
     by (auto intro: holomorphic_factor_order_of_zero [OF holf \<open>open S\<close> \<open>\<xi> \<in> S\<close> \<open>n > 0\<close> n_ne] simp: \<open>f \<xi> = 0\<close>)
-  then show ?thesis
-    apply (rule_tac g=g and r="min r0 r1" and n=n in that)
-    using \<open>0 < n\<close> \<open>0 < r0\<close> \<open>0 < r1\<close> \<open>ball \<xi> r0 \<subseteq> S\<close>
-    apply (auto simp: subset_ball intro: holomorphic_on_subset)
-    done
+  show ?thesis
+  proof
+    show "g holomorphic_on ball \<xi> (min r0 r1)"
+      using g by auto
+    show "\<And>w. w \<in> ball \<xi> (min r0 r1) \<Longrightarrow> f w = (w - \<xi>) ^ n * g w"
+      by (simp add: geq)
+  qed (use \<open>0 < n\<close> \<open>0 < r0\<close> \<open>0 < r1\<close> \<open>ball \<xi> r0 \<subseteq> S\<close> g0 in auto)
 qed
 
 
@@ -599,12 +578,12 @@ proof -
   also have "... \<subseteq> ball \<xi> e" using \<open>0 < d\<close> d_def by auto
   also have "... \<subseteq> S" by (rule e)
   finally have dS: "ball \<xi> d \<subseteq> S" .
-  moreover have "x \<noteq> 0" using gnz x \<open>d < r\<close> by auto
-  ultimately show ?thesis
-    apply (rule_tac k="norm x" and n=n and r=d in that)
-    using \<open>d < r\<close> leg
-    apply (auto simp: \<open>0 < d\<close> fne norm_mult norm_power algebra_simps mult_right_mono)
-    done
+  have "x \<noteq> 0" using gnz x \<open>d < r\<close> by auto
+  show thesis
+  proof
+    show "\<And>w. w \<in> ball \<xi> d \<Longrightarrow> cmod x * cmod (w - \<xi>) ^ n \<le> cmod (f w - f \<xi>)"
+      using \<open>d < r\<close> leg by (auto simp: fne norm_mult norm_power algebra_simps mult_right_mono)
+  qed (use dS \<open>x \<noteq> 0\<close> \<open>d > 0\<close> in auto)
 qed
 
 lemma
@@ -622,14 +601,15 @@ proof -
     using \<xi> mem_interior by blast
   have "?R" if holg: "g holomorphic_on S" and gf: "\<And>z. z \<in> S - {\<xi>} \<Longrightarrow> g z = f z" for g
   proof -
-    have *: "\<forall>\<^sub>F z in at \<xi>. dist (g z) (g \<xi>) < 1 \<longrightarrow> cmod (f z) \<le> cmod (g \<xi>) + 1"
-      apply (simp add: eventually_at)
-      apply (rule_tac x="\<delta>" in exI)
-      using \<delta> \<open>0 < \<delta>\<close>
-      apply (clarsimp simp:)
-      apply (drule_tac c=x in subsetD)
-      apply (simp add: dist_commute)
-      by (metis DiffI add.commute diff_le_eq dist_norm gf le_less_trans less_eq_real_def norm_triangle_ineq2 singletonD)
+    have \<section>: "cmod (f x) \<le> cmod (g \<xi>) + 1" if "x \<noteq> \<xi>" "dist x \<xi> < \<delta>" "dist (g x) (g \<xi>) < 1" for x
+    proof -
+      have "x \<in> S"
+        by (metis \<delta> dist_commute mem_ball subsetD that(2))
+      with that gf [of x] show ?thesis
+        using norm_triangle_ineq2 [of "f x" "g \<xi>"] dist_complex_def by auto
+    qed
+    then have *: "\<forall>\<^sub>F z in at \<xi>. dist (g z) (g \<xi>) < 1 \<longrightarrow> cmod (f z) \<le> cmod (g \<xi>) + 1"
+      using \<open>0 < \<delta>\<close> eventually_at by blast
     have "continuous_on (interior S) g"
       by (meson continuous_on_subset holg holomorphic_on_imp_continuous_on interior_subset)
     then have "\<And>x. x \<in> interior S \<Longrightarrow> (g \<longlongrightarrow> g x) (at x)"
@@ -648,8 +628,7 @@ proof -
     define h where [abs_def]: "h z = (z - \<xi>)^2 * f z" for z
     have h0: "(h has_field_derivative 0) (at \<xi>)"
       apply (simp add: h_def has_field_derivative_iff)
-      apply (rule Lim_transform_within [OF that, of 1])
-      apply (auto simp: field_split_simps power2_eq_square)
+      apply (auto simp: field_split_simps power2_eq_square Lim_transform_within [OF that, of 1])
       done
     have holh: "h holomorphic_on S"
     proof (simp add: holomorphic_on_def, clarify)
@@ -671,12 +650,12 @@ proof -
     define g where [abs_def]: "g z = (if z = \<xi> then deriv h \<xi> else (h z - h \<xi>) / (z - \<xi>))" for z
     have holg: "g holomorphic_on S"
       unfolding g_def by (rule pole_lemma [OF holh \<xi>])
+    have \<section>: "\<forall>z\<in>S - {\<xi>}. (g z - g \<xi>) / (z - \<xi>) = f z"
+      using h0 by (auto simp: g_def power2_eq_square divide_simps DERIV_imp_deriv h_def)
     show ?thesis
-      apply (rule_tac x="\<lambda>z. if z = \<xi> then deriv g \<xi> else (g z - g \<xi>)/(z - \<xi>)" in exI)
-      apply (rule conjI)
-      apply (rule pole_lemma [OF holg \<xi>])
-      apply (auto simp: g_def power2_eq_square divide_simps)
-      using h0 apply (simp add: h0 DERIV_imp_deriv h_def power2_eq_square)
+      apply (intro exI conjI)
+       apply (rule pole_lemma [OF holg \<xi>])
+      apply (simp add: \<section>)
       done
   qed
   ultimately show "?P = ?Q" and "?P = ?R"
@@ -688,10 +667,11 @@ lemma pole_at_infinity:
   obtains a n where "\<And>z. f z = (\<Sum>i\<le>n. a i * z^i)"
 proof (cases "l = 0")
   case False
-  with tendsto_inverse [OF lim] show ?thesis
-    apply (rule_tac a="(\<lambda>n. inverse l)" and n=0 in that)
-    apply (simp add: Liouville_weak [OF holf, of "inverse l"])
-    done
+  show thesis
+  proof
+    show "f z = (\<Sum>i\<le>0. inverse l * z ^ i)" for z
+      using False tendsto_inverse [OF lim] by (simp add: Liouville_weak [OF holf])
+  qed
 next
   case True
   then have [simp]: "l = 0" .
@@ -706,11 +686,8 @@ next
         using \<open>0 < r\<close> by simp
       have "\<exists>B. 0<B \<and> eventually (\<lambda>z. cmod ((inverse \<circ> f \<circ> inverse) z) \<le> B) (at 0)"
         apply (rule exI [where x=1])
-        apply simp
         using tendstoD [OF lim [unfolded lim_at_infinity_0] zero_less_one]
-        apply (rule eventually_mono)
-        apply (simp add: dist_norm)
-        done
+        by (simp add: eventually_mono)
       with holomorphic_on_extend_bounded [OF 1 2]
       obtain g where holg: "g holomorphic_on ball 0 r"
                  and geq: "\<And>z. z \<in> ball 0 r - {0} \<Longrightarrow> g z = (inverse \<circ> f \<circ> inverse) z"
@@ -726,17 +703,18 @@ next
       have [simp]: "g 0 = 0"
         by (rule tendsto_unique [OF _ g2g0 g2g1]) simp
       have "ball 0 r - {0::complex} \<noteq> {}"
-        using \<open>0 < r\<close>
-        apply (clarsimp simp: ball_def dist_norm)
-        apply (drule_tac c="of_real r/2" in subsetD, auto)
-        done
+        using \<open>0 < r\<close> by (metis "2" Diff_iff insert_Diff interior_ball interior_singleton)
       then obtain w::complex where "w \<noteq> 0" and w: "norm w < r" by force
       then have "g w \<noteq> 0" by (simp add: geq r)
       obtain B n e where "0 < B" "0 < e" "e \<le> r"
                      and leg: "\<And>w. norm w < e \<Longrightarrow> B * cmod w ^ n \<le> cmod (g w)"
-        apply (rule holomorphic_lower_bound_difference [OF holg open_ball connected_ball, of 0 w])
-        using \<open>0 < r\<close> w \<open>g w \<noteq> 0\<close> by (auto simp: ball_subset_ball_iff)
-      have "cmod (f z) \<le> cmod z ^ n / B" if "2/e \<le> cmod z" for z
+      proof (rule holomorphic_lower_bound_difference [OF holg open_ball connected_ball])
+        show "g w \<noteq> g 0"
+          by (simp add: \<open>g w \<noteq> 0\<close>)
+        show "w \<in> ball 0 r"
+          using mem_ball_0 w by blast
+      qed (use \<open>0 < r\<close> in \<open>auto simp: ball_subset_ball_iff\<close>)
+      have \<section>: "cmod (f z) \<le> cmod z ^ n / B" if "2/e \<le> cmod z" for z
       proof -
         have ize: "inverse z \<in> ball 0 e - {0}" using that \<open>0 < e\<close>
           by (auto simp: norm_divide field_split_simps algebra_simps)
@@ -749,10 +727,11 @@ next
         show ?thesis using ize leg [of "inverse z"]  \<open>0 < B\<close>  \<open>0 < e\<close>
           by (simp add: field_split_simps norm_divide algebra_simps)
       qed
-      then show ?thesis
-        apply (rule_tac a = "\<lambda>k. (deriv ^^ k) f 0 / (fact k)" and n=n in that)
-        apply (rule_tac A = "2/e" and B = "1/B" in Liouville_polynomial [OF holf], simp)
-        done
+      show thesis
+      proof
+        show "f z = (\<Sum>i\<le>n. (deriv ^^ i) f 0 / fact i * z ^ i)" for z
+          using \<section> by (rule_tac A = "2/e" and B = "1/B" in Liouville_polynomial [OF holf], simp)
+      qed
   next
     case False
     then have fi0: "\<And>r. r > 0 \<Longrightarrow> \<exists>z\<in>ball 0 r - {0}. f (inverse z) = 0"
@@ -773,39 +752,29 @@ next
         have "continuous_on (inverse ` (ball 0 r - {0})) f"
           using continuous_on_subset holf holomorphic_on_imp_continuous_on by blast
         then have "connected ((f \<circ> inverse) ` (ball 0 r - {0}))"
-          apply (intro connected_continuous_image continuous_intros)
-          apply (force intro: connected_punctured_ball)+
-          done
+          using connected_punctured_ball
+          by (intro connected_continuous_image continuous_intros; force)
         then have "{0} \<inter> (f \<circ> inverse) ` (ball 0 r - {0}) = {} \<or> - ball 0 1 \<inter> (f \<circ> inverse) ` (ball 0 r - {0}) = {}"
           by (rule connected_closedD) (use * in auto)
-        then have "w \<noteq> 0 \<Longrightarrow> cmod w < r \<Longrightarrow> f (inverse w) = 0" for w
-          using fi0 **[of w] \<open>0 < r\<close>
-          apply (auto simp add: inf.commute [of "- ball 0 1"] Diff_eq [symmetric] image_subset_iff dest: less_imp_le)
-           apply fastforce
-          apply (drule bspec [of _ _ w])
-           apply (auto dest: less_imp_le)
-          done
+        then have "f (inverse w) = 0" if "w \<noteq> 0" "cmod w < r" for w
+          using **[of w] fi0 \<open>0 < r\<close>  that by force
         then show ?thesis
-          apply (simp add: lim_at_infinity_0)
-          apply (rule tendsto_eventually)
-          apply (simp add: eventually_at)
-          apply (rule_tac x=r in exI)
-          apply (simp add: \<open>0 < r\<close> dist_norm)
-          done
+          unfolding lim_at_infinity_0
+          using eventually_at \<open>r > 0\<close> by (force simp add: intro: tendsto_eventually)
       qed
       obtain w where "w \<in> ball 0 r - {0}" and "f (inverse w) = 0"
         using False \<open>0 < r\<close> by blast
       then show ?thesis
         by (auto simp: f0 Liouville_weak [OF holf, of 0])
     qed
-    show ?thesis
-      apply (rule that [of "\<lambda>n. 0" 0])
-      using lim [unfolded lim_at_infinity_0]
-      apply (simp add: Lim_at dist_norm norm_inverse)
-      apply (drule_tac x=1 in spec)
-      using fz0 apply auto
-      done
+    show thesis
+    proof
+      show "\<And>z. f z = (\<Sum>i\<le>0. 0 * z ^ i)"
+        using lim 
+        apply (simp add: lim_at_infinity_0 Lim_at dist_norm norm_inverse)
+        using fz0 zero_less_one by blast
     qed
+  qed
 qed
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Entire proper functions are precisely the non-trivial polynomials\<close>
@@ -832,8 +801,8 @@ proof -
     using Limits.polyfun_extremal [where c=c and B="B+1", OF c]
     by (auto simp: bounded_pos eventually_at_infinity_pos *)
   moreover have "closed ((\<lambda>z. (\<Sum>i\<le>n. c i * z ^ i)) -` K)"
-    apply (intro allI continuous_closed_vimage continuous_intros)
-    using \<open>compact K\<close> compact_eq_bounded_closed by blast
+    using \<open>compact K\<close> compact_eq_bounded_closed
+    by (intro allI continuous_closed_vimage continuous_intros; force)
   ultimately show ?thesis
     using closed_Int_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed
     by (auto simp add: vimage_def)
@@ -866,35 +835,28 @@ proof
     define m where "m = (GREATEST k. k\<le>n \<and> a k \<noteq> 0)"
     have m: "m\<le>n \<and> a m \<noteq> 0"
       unfolding m_def
-      apply (rule GreatestI_nat [where b = n])
-      using k apply auto
-      done
+      using GreatestI_nat [where b = n] k by (metis (mono_tags, lifting))
     have [simp]: "a i = 0" if "m < i" "i \<le> n" for i
       using Greatest_le_nat [where b = "n" and P = "\<lambda>k. k\<le>n \<and> a k \<noteq> 0"]
       using m_def not_le that by auto
     have "k \<le> m"
       unfolding m_def
-      apply (rule Greatest_le_nat [where b = "n"])
-      using k apply auto
-      done
+      using Greatest_le_nat [where b = n] k by (metis (mono_tags, lifting))
     with k m show ?thesis
       by (rule_tac x=m in exI) (auto simp: that comm_monoid_add_class.sum.mono_neutral_right)
   qed
-  have "((inverse \<circ> f) \<longlongrightarrow> 0) at_infinity"
+  have \<section>: "((inverse \<circ> f) \<longlongrightarrow> 0) at_infinity"
   proof (rule Lim_at_infinityI)
     fix e::real assume "0 < e"
     with compf [of "cball 0 (inverse e)"]
     show "\<exists>B. \<forall>x. B \<le> cmod x \<longrightarrow> dist ((inverse \<circ> f) x) 0 \<le> e"
       apply simp
       apply (clarsimp simp add: compact_eq_bounded_closed bounded_pos norm_inverse)
-      apply (rule_tac x="b+1" in exI)
-      apply (metis inverse_inverse_eq less_add_same_cancel2 less_imp_inverse_less add.commute not_le not_less_iff_gr_or_eq order_trans zero_less_one)
-      done
+      by (metis (no_types, hide_lams) inverse_inverse_eq le_less_trans less_eq_real_def less_imp_inverse_less linordered_field_no_ub not_less)
   qed
-  then show ?rhs
-    apply (rule pole_at_infinity [OF assms])
-    using 2 apply blast
-    done
+  then obtain a n where "\<And>z. f z = (\<Sum>i\<le>n. a i * z^i)"
+    using assms pole_at_infinity by blast
+  with \<section> 2 show ?rhs by blast
 next
   assume ?rhs
   then obtain c n where "0 < n" "c n \<noteq> 0" "f = (\<lambda>z. \<Sum>i\<le>n. c i * z ^ i)" by blast
@@ -918,30 +880,27 @@ proof -
     obtain \<delta> where "\<delta>>0" and \<delta>: "\<And>x. \<lbrakk>x \<in> S; dist x \<xi> \<le> \<delta>\<rbrakk> \<Longrightarrow> cmod (deriv f x - deriv f \<xi>) \<le> e/2"
       using continuous_onE [OF contdf \<open>\<xi> \<in> S\<close>, of "e/2"] \<open>0 < e\<close>
       by (metis dist_complex_def half_gt_zero less_imp_le)
+    have \<section>: "\<And>\<zeta> z. \<lbrakk>\<zeta> \<in> S; dist \<xi> \<zeta> < \<delta>\<rbrakk> \<Longrightarrow> cmod (deriv f \<zeta> - deriv f \<xi>) * cmod z \<le> e/2 * cmod z"
+      by (intro mult_right_mono [OF \<delta>]) (auto simp: dist_commute)
     obtain \<epsilon> where "\<epsilon>>0" "ball \<xi> \<epsilon> \<subseteq> S"
       by (metis openE [OF \<open>open S\<close> \<open>\<xi> \<in> S\<close>])
     with \<open>\<delta>>0\<close> have "\<exists>\<delta>>0. \<forall>x. dist \<xi> x < \<delta> \<longrightarrow> onorm (\<lambda>v. deriv f x * v - deriv f \<xi> * v) \<le> e/2"
+      using \<section>
       apply (rule_tac x="min \<delta> \<epsilon>" in exI)
       apply (intro conjI allI impI Operator_Norm.onorm_le)
-      apply simp
-      apply (simp only: Rings.ring_class.left_diff_distrib [symmetric] norm_mult)
-      apply (rule mult_right_mono [OF \<delta>])
-      apply (auto simp: dist_commute Rings.ordered_semiring_class.mult_right_mono \<delta>)
+      apply (force simp: mult_right_mono norm_mult [symmetric] left_diff_distrib \<delta>)+
       done
     with \<open>e>0\<close> show ?thesis by force
   qed
   have "inj ((*) (deriv f \<xi>))"
     using dnz by simp
   then obtain g' where g': "linear g'" "g' \<circ> (*) (deriv f \<xi>) = id"
-    using linear_injective_left_inverse [of "(*) (deriv f \<xi>)"]
-    by (auto simp: linear_times)
+    using linear_injective_left_inverse [of "(*) (deriv f \<xi>)"] by auto
   show ?thesis
     apply (rule has_derivative_locally_injective [OF S, where f=f and f' = "\<lambda>z h. deriv f z * h" and g' = g'])
-    using g' *
+    using g' * 
     apply (simp_all add: linear_conv_bounded_linear that)
-    using DERIV_deriv_iff_field_differentiable has_field_derivative_imp_has_derivative holf
-        holomorphic_on_imp_differentiable_at \<open>open S\<close> apply blast
-    done
+    using \<open>open S\<close> has_field_derivative_imp_has_derivative holf holomorphic_derivI by blast
 qed
 
 lemma has_complex_derivative_locally_invertible:
@@ -958,9 +917,7 @@ proof -
   have holf': "f holomorphic_on ball \<xi> r"
     using \<open>ball \<xi> r \<subseteq> S\<close> holf holomorphic_on_subset by blast
   have "open (f ` ball \<xi> r)"
-    apply (rule open_mapping_thm [OF holf'])
-    using nc apply auto
-    done
+    by (simp add: \<open>inj_on f (ball \<xi> r)\<close> holf' open_mapping_thm3)
   then show ?thesis
     using \<open>0 < r\<close> \<open>ball \<xi> r \<subseteq> S\<close> \<open>inj_on f (ball \<xi> r)\<close> that  by blast
 qed
@@ -978,8 +935,8 @@ proof -
   proof (cases "\<forall>n>0. (deriv ^^ n) f \<xi> = 0")
     case True
     have fcon: "f w = f \<xi>" if "w \<in> ball \<xi> r" for w
-      apply (rule holomorphic_fun_eq_const_on_connected [OF holf'])
-      using True \<open>0 < r\<close> that by auto
+      by (meson open_ball True \<open>0 < r\<close> centre_in_ball connected_ball holf' 
+                holomorphic_fun_eq_const_on_connected that)
     have False
       using fcon [of "\<xi> + r/2"] \<open>0 < r\<close> r injf unfolding inj_on_def
       by (metis \<open>\<xi> \<in> S\<close> contra_subsetD dist_commute fcon mem_ball perfect_choose_dist)
@@ -996,18 +953,17 @@ proof -
              and holg: "g holomorphic_on ball \<xi> \<delta>"
              and fd: "\<And>w. w \<in> ball \<xi> \<delta> \<Longrightarrow> f w - f \<xi> = ((w - \<xi>) * g w) ^ n"
              and gnz: "\<And>w. w \<in> ball \<xi> \<delta> \<Longrightarrow> g w \<noteq> 0"
-      apply (rule holomorphic_factor_order_of_zero_strong [OF holf \<open>open S\<close> \<open>\<xi> \<in> S\<close> n_ne])
-      apply (blast intro: n_min)+
-      done
+      by (blast intro: n_min holomorphic_factor_order_of_zero_strong [OF holf \<open>open S\<close> \<open>\<xi> \<in> S\<close> n_ne])
     show ?thesis
     proof (cases "n=1")
       case True
       with n_ne show ?thesis by auto
     next
       case False
-      have holgw: "(\<lambda>w. (w - \<xi>) * g w) holomorphic_on ball \<xi> (min r \<delta>)"
-        apply (rule holomorphic_intros)+
+      have "g holomorphic_on ball \<xi> (min r \<delta>)"
         using holg by (simp add: holomorphic_on_subset subset_ball)
+      then have holgw: "(\<lambda>w. (w - \<xi>) * g w) holomorphic_on ball \<xi> (min r \<delta>)"
+        by (intro holomorphic_intros)
       have gd: "\<And>w. dist \<xi> w < \<delta> \<Longrightarrow> (g has_field_derivative deriv g w) (at w)"
         using holg
         by (simp add: DERIV_deriv_iff_field_differentiable holomorphic_on_def at_within_open_NO_MATCH)
@@ -1018,10 +974,8 @@ proof -
       have [simp]: "deriv (\<lambda>w. (w - \<xi>) * g w) \<xi> \<noteq> 0"
         using * [of \<xi>] \<open>0 < \<delta>\<close> \<open>0 < r\<close> by (simp add: DERIV_imp_deriv gnz)
       obtain T where "\<xi> \<in> T" "open T" and Tsb: "T \<subseteq> ball \<xi> (min r \<delta>)" and oimT: "open ((\<lambda>w. (w - \<xi>) * g w) ` T)"
-        apply (rule has_complex_derivative_locally_invertible [OF holgw, of \<xi>])
-        using \<open>0 < r\<close> \<open>0 < \<delta>\<close>
-        apply (simp_all add:)
-        by (meson open_ball centre_in_ball)
+        using \<open>0 < r\<close> \<open>0 < \<delta>\<close> has_complex_derivative_locally_invertible [OF holgw, of \<xi>]
+        by force
       define U where "U = (\<lambda>w. (w - \<xi>) * g w) ` T"
       have "open U" by (metis oimT U_def)
       moreover have "0 \<in> U"
@@ -1037,13 +991,15 @@ proof -
                           and "y1 \<in> T" and y1: "(y1 - \<xi>) * g y1 = \<epsilon> * exp(2 * of_real pi * \<i> * (1/n))"
         by (auto simp: U_def)
       then have "y0 \<in> ball \<xi> \<delta>" "y1 \<in> ball \<xi> \<delta>" using Tsb by auto
+      then have "f y0 - f \<xi> = ((y0 - \<xi>) * g y0) ^ n" "f y1 - f \<xi> = ((y1 - \<xi>) * g y1) ^ n"
+        using fd by blast+
       moreover have "y0 \<noteq> y1"
         using y0 y1 \<open>\<epsilon> > 0\<close> complex_root_unity_eq_1 [of n 1] \<open>n > 0\<close> False by auto
       moreover have "T \<subseteq> S"
         by (meson Tsb min.cobounded1 order_trans r subset_ball)
       ultimately have False
         using inj_onD [OF injf, of y0 y1] \<open>y0 \<in> T\<close> \<open>y1 \<in> T\<close>
-        using fd [of y0] fd [of y1] complex_root_unity [of n 1] n_ne
+        using complex_root_unity [of n 1] 
         apply (simp add: y0 y1 power_mult_distrib)
         apply (force simp: algebra_simps)
         done
@@ -1089,9 +1045,12 @@ proof -
     have 2: "deriv f z \<noteq> 0"
       using \<open>z \<in> S\<close> \<open>open S\<close> holf holomorphic_injective_imp_regular injf by blast
     show ?thesis
-      apply (rule has_field_derivative_inverse_strong [OF 1 2 \<open>open S\<close> \<open>z \<in> S\<close>])
-       apply (simp add: holf holomorphic_on_imp_continuous_on)
-      by (simp add: injf the_inv_into_f_f)
+    proof (rule has_field_derivative_inverse_strong [OF 1 2 \<open>open S\<close> \<open>z \<in> S\<close>])
+      show "continuous_on S f"
+        by (simp add: holf holomorphic_on_imp_continuous_on)
+      show "\<And>z. z \<in> S \<Longrightarrow> the_inv_into S f (f z) = z"
+        by (simp add: injf the_inv_into_f_f)
+    qed
   qed
   show ?thesis
     proof
@@ -1126,9 +1085,7 @@ proof -
   have coc: "compact (closure S)"
     by (simp add: \<open>bounded S\<close> bounded_closure compact_eq_bounded_closed)
   then obtain x where x: "x \<in> closure S" and xmax: "\<And>z. z \<in> closure S \<Longrightarrow> norm(f z) \<le> norm(f x)"
-    apply (rule bexE [OF continuous_attains_sup [OF _ _ connf]])
-    using \<open>S \<noteq> {}\<close> apply auto
-    done
+    using continuous_attains_sup [OF _ _ connf] \<open>S \<noteq> {}\<close> by auto
   then show ?thesis
   proof (cases "x \<in> frontier S")
     case True
@@ -1138,9 +1095,10 @@ proof -
     then have "x \<in> S"
       using \<open>open S\<close> frontier_def interior_eq x by auto
     then have "f constant_on S"
-      apply (rule maximum_modulus_principle [OF holf S \<open>open S\<close> order_refl])
-      using closure_subset apply (blast intro: xmax)
-      done
+    proof (rule maximum_modulus_principle [OF holf S \<open>open S\<close> order_refl])
+      show "\<And>z. z \<in> S \<Longrightarrow> cmod (f z) \<le> cmod (f x)"
+        using closure_subset by (blast intro: xmax)
+    qed
     then have "f constant_on (closure S)"
       by (rule constant_on_closureI [OF _ contf])
     then obtain c where c: "\<And>x. x \<in> closure S \<Longrightarrow> f x = c"
@@ -1231,11 +1189,10 @@ proof -
     then obtain \<gamma> where \<gamma>: "cmod \<gamma> < 1" "\<gamma> \<noteq> 0" "cmod (f \<gamma>) = cmod \<gamma>" by blast
     then have [simp]: "norm (h \<gamma>) = 1"
       by (simp add: fz_eq norm_mult)
-    have "ball \<gamma> (1 - cmod \<gamma>) \<subseteq> ball 0 1"
+    have \<section>: "ball \<gamma> (1 - cmod \<gamma>) \<subseteq> ball 0 1"
       by (simp add: ball_subset_ball_iff)
     moreover have "\<And>z. cmod (\<gamma> - z) < 1 - cmod \<gamma> \<Longrightarrow> cmod (h z) \<le> cmod (h \<gamma>)"
-      apply (simp add: algebra_simps)
-      by (metis add_diff_cancel_left' diff_diff_eq2 le_less_trans noh_le norm_triangle_ineq4)
+      by (metis \<open>cmod (h \<gamma>) = 1\<close> \<section> dist_0_norm dist_complex_def in_mono mem_ball noh_le)
     ultimately obtain c where c: "\<And>z. norm z < 1 \<Longrightarrow> h z = c"
       using Schwarz2 [OF holh, of "1 - norm \<gamma>" \<gamma>, unfolded constant_on_def] \<gamma> by auto
     then have "norm c = 1"
@@ -1293,11 +1250,12 @@ lemma hol_pal_lem1:
            contour_integral (linepath c a) f = 0"
 proof -
   have "interior (convex hull {a, b, c}) \<subseteq> interior(S \<inter> {x. d \<bullet> x \<le> k})"
-    apply (rule interior_mono)
-    apply (rule hull_minimal)
-     apply (simp add: abc lek)
-    apply (rule convex_Int [OF \<open>convex S\<close> convex_halfspace_le])
-    done
+  proof (intro interior_mono hull_minimal)
+    show "{a, b, c} \<subseteq> S \<inter> {x. d \<bullet> x \<le> k}"
+      by (simp add: abc lek)
+    show "convex (S \<inter> {x. d \<bullet> x \<le> k})"
+      by (rule convex_Int [OF \<open>convex S\<close> convex_halfspace_le])
+  qed
   also have "... \<subseteq> {z \<in> S. d \<bullet> z < k}"
     by (force simp: interior_open [OF \<open>open S\<close>] \<open>d \<noteq> 0\<close>)
   finally have *: "interior (convex hull {a, b, c}) \<subseteq> {z \<in> S. d \<bullet> z < k}" .
@@ -1330,21 +1288,18 @@ next
   obtain a' where a': "a' \<in> closed_segment b c" and "d \<bullet> a' = k"
      and ba': "\<And>z. z \<in> closed_segment b a' \<Longrightarrow> d \<bullet> z \<le> k"
      and a'c: "\<And>z. z \<in> closed_segment a' c \<Longrightarrow> k \<le> d \<bullet> z"
-    apply (rule hol_pal_lem0 [of d b k c, OF \<open>d \<bullet> b \<le> k\<close>])
-    using False by auto
+    using False hol_pal_lem0 [of d b k c, OF \<open>d \<bullet> b \<le> k\<close>] by auto
   obtain b' where b': "b' \<in> closed_segment a c" and "d \<bullet> b' = k"
      and ab': "\<And>z. z \<in> closed_segment a b' \<Longrightarrow> d \<bullet> z \<le> k"
      and b'c: "\<And>z. z \<in> closed_segment b' c \<Longrightarrow> k \<le> d \<bullet> z"
-    apply (rule hol_pal_lem0 [of d a k c, OF \<open>d \<bullet> a \<le> k\<close>])
-    using False by auto
+    using False hol_pal_lem0 [of d a k c, OF \<open>d \<bullet> a \<le> k\<close>] by auto
   have a'b': "a' \<in> S \<and> b' \<in> S"
     using a' abc b' convex_contains_segment \<open>convex S\<close> by auto
   have "continuous_on (closed_segment c a) f"
     by (meson abc contf continuous_on_subset convex_contains_segment \<open>convex S\<close>)
   then have 1: "contour_integral (linepath c a) f =
                 contour_integral (linepath c b') f + contour_integral (linepath b' a) f"
-    apply (rule contour_integral_split_linepath)
-    using b' by (simp add: closed_segment_commute)
+    using b' closed_segment_commute contour_integral_split_linepath by blast
   have "continuous_on (closed_segment b c) f"
     by (meson abc contf continuous_on_subset convex_contains_segment \<open>convex S\<close>)
   then have 2: "contour_integral (linepath b c) f =
@@ -1373,14 +1328,15 @@ next
     then show "d \<bullet> x \<le> k"
       by (metis lek convex_halfspace_le mem_Collect_eq)
   qed
+  have cs: "closed_segment a' b' \<subseteq> {x. d \<bullet> x \<le> k} \<and> closed_segment b' a \<subseteq> {x. d \<bullet> x \<le> k}"
+    by (simp add: \<open>d \<bullet> a' = k\<close> \<open>d \<bullet> b' = k\<close> closed_segment_subset convex_halfspace_le lek(1))
   have "continuous_on (S \<inter> {x. d \<bullet> x \<le> k}) f" using contf
     by (simp add: continuous_on_subset)
   then have "(f has_contour_integral 0)
          (linepath a b +++ linepath b a' +++ linepath a' b' +++ linepath b' a)"
     apply (rule Cauchy_theorem_convex [where K = "{}"])
-    apply (simp_all add: path_image_join convex_Int convex_halfspace_le \<open>convex S\<close> fcd_le ab_le
-                closed_segment_subset abc a'b' ba')
-    by (metis \<open>d \<bullet> a' = k\<close> \<open>d \<bullet> b' = k\<close> convex_contains_segment convex_halfspace_le lek(1) mem_Collect_eq order_refl)
+    by (simp_all add: path_image_join convex_Int convex_halfspace_le \<open>convex S\<close> fcd_le ab_le
+                closed_segment_subset abc a'b' ba' cs)
   then have 4: "contour_integral (linepath a b) f +
                 contour_integral (linepath b a') f +
                 contour_integral (linepath a' b') f +
@@ -1399,14 +1355,14 @@ next
       using f3 f2 unfolding holomorphic_on_def
       by (metis (no_types) \<open>d \<noteq> 0\<close> at_within_interior interior_Int interior_halfspace_ge interior_interior)
   qed
+  have cs: "closed_segment c b' \<subseteq> {x. k \<le> d \<bullet> x} \<and> closed_segment b' a' \<subseteq> {x. k \<le> d \<bullet> x}"
+    by (simp add: \<open>d \<bullet> a' = k\<close> b'c closed_segment_subset convex_halfspace_ge)
   have "continuous_on (S \<inter> {x. k \<le> d \<bullet> x}) f" using contf
     by (simp add: continuous_on_subset)
   then have "(f has_contour_integral 0) (linepath a' c +++ linepath c b' +++ linepath b' a')"
     apply (rule Cauchy_theorem_convex [where K = "{}"])
-    apply (simp_all add: path_image_join convex_Int convex_halfspace_ge \<open>convex S\<close>
-                      fcd_ge closed_segment_subset abc a'b' a'c)
-    by (metis \<open>d \<bullet> a' = k\<close> b'c closed_segment_commute convex_contains_segment
-              convex_halfspace_ge ends_in_segment(2) mem_Collect_eq order_refl)
+    by (simp_all add: path_image_join convex_Int convex_halfspace_ge \<open>convex S\<close>
+                      fcd_ge closed_segment_subset abc a'b' a'c cs)
   then have 5: "contour_integral (linepath a' c) f + contour_integral (linepath c b') f + contour_integral (linepath b' a') f = 0"
     by (rule has_chain_integral_chain_integral3)
   show ?thesis
@@ -1442,7 +1398,7 @@ next
     have "contour_integral (linepath b c) f +
           contour_integral (linepath c a) f +
           contour_integral (linepath a b) f = 0"
-      apply (rule hol_pal_lem2 [OF S \<open>b \<in> S\<close> \<open>c \<in> S\<close> \<open>a \<in> S\<close>, of "-d" "-k"])
+      using hol_pal_lem2 [OF S \<open>b \<in> S\<close> \<open>c \<in> S\<close> \<open>a \<in> S\<close>, of "-d" "-k"]
       using \<open>d \<noteq> 0\<close> \<open>\<not> d \<bullet> b \<le> k\<close> False by (simp_all add: holf1 holf2 contf)
     then show ?thesis
       by (simp add: algebra_simps)
@@ -1464,8 +1420,8 @@ proof (cases "d \<bullet> a \<le> k")
 next
   case False
   show ?thesis
-    apply (rule hol_pal_lem3 [OF S abc, of "-d" "-k"])
-    using \<open>d \<noteq> 0\<close> False by (simp_all add: holf1 holf2 contf)
+    using \<open>d \<noteq> 0\<close> hol_pal_lem3 [OF S abc, of "-d" "-k"] False 
+    by (simp_all add: holf1 holf2 contf)
 qed
 
 lemma holomorphic_on_paste_across_line:
@@ -1494,11 +1450,8 @@ proof -
       using e by auto
     ultimately show ?thesis
       apply (rule_tac x="ball p e" in exI)
-      using \<open>e > 0\<close> e \<open>d \<noteq> 0\<close>
-      apply (simp add:, clarify)
-      apply (rule hol_pal_lem4 [of "ball p e" _ _ _ d _ k])
-      apply (auto simp: subset_hull)
-      done
+      using \<open>e > 0\<close> e \<open>d \<noteq> 0\<close> hol_pal_lem4 [of "ball p e" _ _ _ d _ k]
+      by (force simp add: subset_hull)
   qed
   show ?thesis
     by (blast intro: * Morera_local_triangle analytic_imp_holomorphic)
@@ -1514,13 +1467,12 @@ proof -
   have 1: "(\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z))) holomorphic_on (S \<inter> {z. 0 < Im z})"
     by (force intro: iffD1 [OF holomorphic_cong [OF refl] holf])
   have cont_cfc: "continuous_on (S \<inter> {z. Im z \<le> 0}) (cnj o f o cnj)"
-    apply (intro continuous_intros continuous_on_compose continuous_on_subset [OF contf])
-    using cnjs apply auto
-    done
+    using cnjs
+    by (intro continuous_intros continuous_on_compose continuous_on_subset [OF contf]) auto
   have "cnj \<circ> f \<circ> cnj field_differentiable at x within S \<inter> {z. Im z < 0}"
         if "x \<in> S" "Im x < 0" "f field_differentiable at (cnj x) within S \<inter> {z. 0 < Im z}" for x
     using that
-    apply (simp add: field_differentiable_def has_field_derivative_iff Lim_within dist_norm, clarify)
+    apply (clarsimp simp add: field_differentiable_def has_field_derivative_iff Lim_within dist_norm)
     apply (rule_tac x="cnj f'" in exI)
     apply (elim all_forward ex_forward conj_forward imp_forward asm_rl, clarify)
     apply (drule_tac x="cnj xa" in bspec)
@@ -1535,20 +1487,18 @@ proof -
     using hol_cfc by auto
   have [simp]: "(S \<inter> {z. 0 \<le> Im z}) \<union> (S \<inter> {z. Im z \<le> 0}) = S"
     by force
+  have eq: "\<And>z. \<lbrakk>z \<in> S; Im z \<le> 0; 0 \<le> Im z\<rbrakk> \<Longrightarrow> f z = cnj (f (cnj z))"
+    using f Reals_cnj_iff complex_is_Real_iff by auto
   have "continuous_on ((S \<inter> {z. 0 \<le> Im z}) \<union> (S \<inter> {z. Im z \<le> 0}))
                        (\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z)))"
     apply (rule continuous_on_cases_local)
     using cont_cfc contf
-    apply (simp_all add: closedin_closed_Int closed_halfspace_Im_le closed_halfspace_Im_ge)
-    using f Reals_cnj_iff complex_is_Real_iff apply auto
-    done
+    by (simp_all add: closedin_closed_Int closed_halfspace_Im_le closed_halfspace_Im_ge eq)
   then have 3: "continuous_on S (\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z)))"
     by force
   show ?thesis
     apply (rule holomorphic_on_paste_across_line [OF \<open>open S\<close>, of "- \<i>" _ 0])
-    using 1 2 3
-    apply auto
-    done
+    using 1 2 3 by auto
 qed
 
 subsection\<open>Bloch's theorem\<close>
@@ -1584,7 +1534,7 @@ proof -
         have df_le: "\<And>x. norm x < r \<Longrightarrow> norm (deriv f x) \<le> C"
           using le by (simp add: C_def)
         have hol_df: "deriv f holomorphic_on cball 0 R"
-          apply (rule holomorphic_on_subset) using R holdf' by auto
+          using R holdf' holomorphic_on_subset by auto
         have *: "((\<lambda>w. deriv f w / (w - z)) has_contour_integral 2 * pi * \<i> * deriv f z) (circlepath 0 R)"
                  if "norm z < R" for z
           using \<open>0 < R\<close> that Cauchy_integral_formula_convex_simple [OF convex_cball hol_df, of _ "circlepath 0 R"]
@@ -1603,10 +1553,8 @@ proof -
                         norm (deriv f x) * norm z"
             by (simp add: norm_mult right_diff_distrib')
           show ?thesis
-            using  \<open>0 < R\<close> \<open>0 < C\<close> R that
-            apply (simp add: norm_mult norm_divide divide_simps)
-            using df_le norm_triangle_ineq2 \<open>0 < C\<close> apply (auto intro!: mult_mono)
-            done
+            using \<open>0 < R\<close> \<open>0 < C\<close> R that
+            by (auto simp add: norm_mult norm_divide divide_simps df_le mult_mono norm_triangle_ineq2)
         qed
         then show ?thesis
           using has_contour_integral_bound_circlepath
@@ -1623,10 +1571,8 @@ proof -
         apply (rule continuous_ge_on_closure
                  [where f = "\<lambda>r. norm z / (r - norm z) * C" and s = "{r'<..<r}",
                   OF _ _ T1])
-        apply (intro continuous_intros)
         using that r'
-        apply (auto simp: not_le)
-        done
+        by (auto simp: not_le intro!: continuous_intros)
     qed
     have "*": "(norm z - norm z^2/(r - norm z)) * norm(deriv f 0) \<le> norm(f z)"
               if r: "norm z < r" for z
@@ -1637,12 +1583,6 @@ proof -
         by (rule derivative_eq_intros holomorphic_derivI holf' | simp)+
       have 2: "closed_segment 0 z \<subseteq> ball 0 r"
         by (metis \<open>0 < r\<close> convex_ball convex_contains_segment dist_self mem_ball mem_ball_0 that)
-      have 3: "(\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C) integrable_on {0..1}"
-        apply (rule integrable_on_cmult_right [where 'b=real, simplified])
-        apply (rule integrable_on_cdivide [where 'b=real, simplified])
-        apply (rule integrable_on_cmult_left [where 'b=real, simplified])
-        apply (rule ident_integrable_on)
-        done
       have 4: "norm (deriv f (x *\<^sub>R z) - deriv f 0) * norm z \<le> norm z * norm z * x * C / (r - norm z)"
               if x: "0 \<le> x" "x \<le> 1" for x
       proof -
@@ -1662,70 +1602,78 @@ proof -
         by (metis add_diff_cancel_left' add_diff_eq diff_left_mono norm_diff_ineq order_trans)
       have "norm (integral {0..1} (\<lambda>x. (deriv f (x *\<^sub>R z) - deriv f 0) * z))
             \<le> integral {0..1} (\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C)"
-        apply (rule integral_norm_bound_integral)
-        using contour_integral_primitive [OF 1, of "linepath 0 z"] 2
-        apply (simp add: has_contour_integral_linepath has_integral_integrable_integral)
-        apply (rule 3)
-        apply (simp add: norm_mult power2_eq_square 4)
-        done
+      proof (rule integral_norm_bound_integral)
+        show "(\<lambda>x. (deriv f (x *\<^sub>R z) - deriv f 0) * z) integrable_on {0..1}"
+          using contour_integral_primitive [OF 1, of "linepath 0 z"] 2
+          by (simp add: has_contour_integral_linepath has_integral_integrable_integral)
+        have "(*) ((cmod z)\<^sup>2) integrable_on {0..1}"
+          by (metis ident_integrable_on integrable_0 integrable_eq integrable_on_cmult_iff lambda_zero)
+        then show "(\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C) integrable_on {0..1}"
+          using integrable_on_cmult_right[where 'b=real, simplified] integrable_on_cdivide [where 'b=real, simplified]
+          by blast
+      qed (simp add: norm_mult power2_eq_square 4)
       then have int_le: "norm (f z - deriv f 0 * z) \<le> (norm z)\<^sup>2 * norm(deriv f 0) / ((r - norm z))"
         using contour_integral_primitive [OF 1, of "linepath 0 z"] 2
-        apply (simp add: has_contour_integral_linepath has_integral_integrable_integral C_def)
-        done
+        by (simp add: has_contour_integral_linepath has_integral_integrable_integral C_def)
+      have "norm z * (norm (deriv f 0) * (r - norm z - norm z)) \<le> norm z * (norm (deriv f 0) * (r - norm z) - norm (deriv f 0) * norm z)"
+        by (simp add: algebra_simps)
+      then have \<section>: "(norm z * (r - norm z) - norm z * norm z) * norm (deriv f 0) \<le> norm (deriv f 0) * norm z * (r - norm z) - norm z * norm z * norm (deriv f 0)"
+        by (simp add: algebra_simps)
       show ?thesis
         apply (rule le_norm [OF _ int_le])
         using \<open>norm z < r\<close>
-        apply (simp add: power2_eq_square divide_simps C_def norm_mult)
-        proof -
-          have "norm z * (norm (deriv f 0) * (r - norm z - norm z)) \<le> norm z * (norm (deriv f 0) * (r - norm z) - norm (deriv f 0) * norm z)"
-            by (simp add: algebra_simps)
-          then show "(norm z * (r - norm z) - norm z * norm z) * norm (deriv f 0) \<le> norm (deriv f 0) * norm z * (r - norm z) - norm z * norm z * norm (deriv f 0)"
-            by (simp add: algebra_simps)
-        qed
+        by (simp add: power2_eq_square divide_simps C_def norm_mult \<section>)
     qed
     have sq201 [simp]: "0 < (1 - sqrt 2 / 2)" "(1 - sqrt 2 / 2)  < 1"
       by (auto simp:  sqrt2_less_2)
     have 1: "continuous_on (closure (ball 0 ((1 - sqrt 2 / 2) * r))) f"
-      apply (rule continuous_on_subset [OF holomorphic_on_imp_continuous_on [OF holf]])
-      apply (subst closure_ball)
-      using \<open>0 < r\<close> mult_pos_pos sq201
-      apply (auto simp: cball_subset_cball_iff)
-      done
+    proof (rule continuous_on_subset [OF holomorphic_on_imp_continuous_on [OF holf]])
+      show "closure (ball 0 ((1 - sqrt 2 / 2) * r)) \<subseteq> cball 0 r"
+      proof -
+        have "(1 - sqrt 2 / 2) * r \<le> r"
+          by (simp add: \<open>0 < r\<close>)
+        then show ?thesis
+          by (meson ball_subset_cball closed_cball closure_minimal dual_order.trans subset_ball)
+      qed
+    qed
     have 2: "open (f ` interior (ball 0 ((1 - sqrt 2 / 2) * r)))"
-      apply (rule open_mapping_thm [OF holf' open_ball connected_ball], force)
-      using \<open>0 < r\<close> mult_pos_pos sq201 apply (simp add: ball_subset_ball_iff)
-      using False \<open>0 < r\<close> centre_in_ball holf' holomorphic_nonconstant by blast
+    proof (rule open_mapping_thm [OF holf' open_ball connected_ball])
+      show "interior (ball 0 ((1 - sqrt 2 / 2) * r)) \<subseteq> ball (0::complex) r"
+        using \<open>0 < r\<close> mult_pos_pos sq201 by (simp add: ball_subset_ball_iff)
+      show "\<not> f constant_on ball 0 r"
+        using False \<open>0 < r\<close> centre_in_ball holf' holomorphic_nonconstant by blast
+    qed auto
     have "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv f 0)) =
           ball (f 0) ((3 - 2 * sqrt 2) * r * norm (deriv f 0))"
       by simp
     also have "...  \<subseteq> f ` ball 0 ((1 - sqrt 2 / 2) * r)"
     proof -
       have 3: "(3 - 2 * sqrt 2) * r * norm (deriv f 0) \<le> norm (f z)"
-           if "norm z = (1 - sqrt 2 / 2) * r" for z
+        if "norm z = (1 - sqrt 2 / 2) * r" for z
         apply (rule order_trans [OF _ *])
         using  \<open>0 < r\<close>
-        apply (simp_all add: field_simps  power2_eq_square that)
+         apply (simp_all add: field_simps power2_eq_square that)
         apply (simp add: mult.assoc [symmetric])
         done
       show ?thesis
         apply (rule ball_subset_open_map_image [OF 1 2 _ bounded_ball])
-        using \<open>0 < r\<close> sq201 3 apply simp_all
-        using C_def \<open>0 < C\<close> sq3 apply force
-        done
-     qed
+        using \<open>0 < r\<close> sq201 3 C_def \<open>0 < C\<close> sq3 by auto
+    qed
     also have "...  \<subseteq> f ` ball 0 r"
-      apply (rule image_subsetI [OF imageI], simp)
-      apply (erule less_le_trans)
-      using \<open>0 < r\<close> apply (auto simp: field_simps)
-      done
+    proof -
+      have "\<And>x. (1 - sqrt 2 / 2) * r \<le> r"
+        using \<open>0 < r\<close> by (auto simp: field_simps)
+      then show ?thesis
+        by auto
+    qed
     finally show ?thesis .
   qed
 qed
 
 lemma Bloch_lemma:
   assumes holf: "f holomorphic_on cball a r" and "0 < r"
-      and le: "\<And>z. z \<in> ball a r \<Longrightarrow> norm(deriv f z) \<le> 2 * norm(deriv f a)"
-    shows "ball (f a) ((3 - 2 * sqrt 2) * r * norm(deriv f a)) \<subseteq> f ` ball a r"
+    and le: "\<And>z. z \<in> ball a r \<Longrightarrow> norm(deriv f z) \<le> 2 * norm(deriv f a)"
+  shows "ball (f a) ((3 - 2 * sqrt 2) * r * norm(deriv f a)) \<subseteq> f ` ball a r" (is "?lhs \<subseteq> ?rhs")
 proof -
   have fz: "(\<lambda>z. f (a + z)) = f o (\<lambda>z. (a + z))"
     by (simp add: o_def)
@@ -1739,18 +1687,20 @@ proof -
     by (metis add.comm_neutral \<open>0 < r\<close> norm_eq_zero)
   have hol1: "(\<lambda>z. f (a + z) - f a) holomorphic_on cball 0 r"
     by (intro holomorphic_intros hol0)
-  then have "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv (\<lambda>z. f (a + z) - f a) 0))
-             \<subseteq> (\<lambda>z. f (a + z) - f a) ` ball 0 r"
+  then have \<section>: "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv (\<lambda>z. f (a + z) - f a) 0))
+                \<subseteq> (\<lambda>z. f (a + z) - f a) ` ball 0 r"
     apply (rule Bloch_lemma_0)
-    apply (simp_all add: \<open>0 < r\<close>)
-    apply (simp add: fz deriv_chain)
-    apply (simp add: dist_norm le)
+    using \<open>0 < r\<close>
+      apply (simp_all add: \<open>0 < r\<close>)
+    apply (simp add: fz deriv_chain dist_norm le)
     done
-  then show ?thesis
-    apply clarify
-    apply (drule_tac c="x - f a" in subsetD)
-     apply (force simp: fz \<open>0 < r\<close> dist_norm deriv_chain field_differentiable_compose)+
-    done
+  show ?thesis
+  proof clarify
+    fix x
+    assume "x \<in> ?lhs"
+    with subsetD [OF \<section>, of "x - f a"] show "x \<in> ?rhs" 
+      by (force simp: fz \<open>0 < r\<close> dist_norm deriv_chain field_differentiable_compose)
+  qed
 qed
 
 proposition Bloch_unit:
@@ -1799,8 +1749,8 @@ proof -
   have le_norm_dfp: "r / (r - norm (p - a)) \<le> norm (deriv f p)"
     using gen_le_dfp [of a] \<open>r > 0\<close> by auto
   have 1: "f holomorphic_on cball p t"
-    apply (rule holomorphic_on_subset [OF holf])
-    using cpt \<open>r < 1\<close> order_subst1 subset_ball by auto
+    using cpt \<open>r < 1\<close> order_subst1 subset_ball
+    by (force simp add: intro!: holomorphic_on_subset [OF holf])
   have 2: "norm (deriv f z) \<le> 2 * norm (deriv f p)" if "z \<in> ball p t" for z
   proof -
     have z: "z \<in> cball a r"
@@ -1811,12 +1761,13 @@ proof -
       using gen_le_dfp [OF z] by simp
     with \<open>norm (z - a) < r\<close> \<open>norm (p - a) < r\<close>
     have "norm (deriv f z) \<le> (r - norm (p - a)) / (r - norm (z - a)) * norm (deriv f p)"
-       by (simp add: field_simps)
+      by (simp add: field_simps)
     also have "... \<le> 2 * norm (deriv f p)"
-      apply (rule mult_right_mono)
-      using that \<open>norm (p - a) < r\<close> \<open>norm(z - a) < r\<close>
-      apply (simp_all add: field_simps t_def dist_norm [symmetric])
-      using dist_triangle3 [of z a p] by linarith
+    proof (rule mult_right_mono)
+      show "(r - cmod (p - a)) / (r - cmod (z - a)) \<le> 2"
+        using that \<open>norm (p - a) < r\<close> \<open>norm(z - a) < r\<close> dist_triangle3 [of z a p] 
+        by (simp add: field_simps t_def dist_norm [symmetric])
+    qed auto
     finally show ?thesis .
   qed
   have sqrt2: "sqrt 2 < 2113/1494"
@@ -1833,11 +1784,12 @@ proof -
   have "ball (f p) ((3 - 2 * sqrt 2) * t * norm (deriv f p)) \<subseteq> f ` ball p t"
     by (rule Bloch_lemma [OF 1 \<open>0 < t\<close> 2])
   also have "... \<subseteq> f ` ball a 1"
-    apply (rule image_mono)
-    apply (rule order_trans [OF ball_subset_cball])
-    apply (rule order_trans [OF cpt])
-    using \<open>0 < t\<close> \<open>r < 1\<close> apply (simp add: ball_subset_ball_iff dist_norm)
-    done
+  proof -
+    have "ball a r \<subseteq> ball a 1"
+      using \<open>0 < t\<close> \<open>r < 1\<close> by (simp add: ball_subset_ball_iff dist_norm)
+    then show ?thesis
+      using ball_subset_cball cpt by blast
+  qed
   finally have "ball (f p) ((3 - 2 * sqrt 2) * t * norm (deriv f p)) \<subseteq> f ` ball a 1" .
   with ** show ?thesis
     by (rule that)
@@ -1855,44 +1807,34 @@ next
   define C where "C = deriv f a"
   have "0 < norm C" using False by (simp add: C_def)
   have dfa: "f field_differentiable at a"
-    apply (rule holomorphic_on_imp_differentiable_at [OF holf])
-    using \<open>0 < r\<close> by auto
+    using \<open>0 < r\<close> holomorphic_on_imp_differentiable_at [OF holf] by auto
   have fo: "(\<lambda>z. f (a + of_real r * z)) = f o (\<lambda>z. (a + of_real r * z))"
     by (simp add: o_def)
   have holf': "f holomorphic_on (\<lambda>z. a + complex_of_real r * z) ` ball 0 1"
-    apply (rule holomorphic_on_subset [OF holf])
-    using \<open>0 < r\<close> apply (force simp: dist_norm norm_mult)
-    done
+    using \<open>0 < r\<close> holomorphic_on_subset [OF holf] by (force simp: dist_norm norm_mult)
   have 1: "(\<lambda>z. f (a + r * z) / (C * r)) holomorphic_on ball 0 1"
-    apply (rule holomorphic_intros holomorphic_on_compose holf' | simp add: fo)+
-    using \<open>0 < r\<close> by (simp add: C_def False)
+    using \<open>0 < r\<close> \<open>0 < norm C\<close>
+    by (intro holomorphic_intros holomorphic_on_compose holf'; simp add: fo)+
   have "((\<lambda>z. f (a + of_real r * z) / (C * of_real r)) has_field_derivative
         (deriv f (a + of_real r * z) / C)) (at z)"
        if "norm z < 1" for z
   proof -
+    have fd: "f field_differentiable at (a + complex_of_real r * z)"
+      using \<open>0 < r\<close> by (simp_all add: dist_norm norm_mult holomorphic_on_imp_differentiable_at [OF holf] that)
     have *: "((\<lambda>x. f (a + of_real r * x)) has_field_derivative
            (deriv f (a + of_real r * z) * of_real r)) (at z)"
-      apply (simp add: fo)
-      apply (rule DERIV_chain [OF field_differentiable_derivI])
-      apply (rule holomorphic_on_imp_differentiable_at [OF holf], simp)
-      using \<open>0 < r\<close> apply (simp add: dist_norm norm_mult that)
-      apply (rule derivative_eq_intros | simp)+
-      done
+      by (rule fd DERIV_chain [OF field_differentiable_derivI]derivative_eq_intros | simp add: fo)+
     show ?thesis
       apply (rule derivative_eq_intros * | simp)+
       using \<open>0 < r\<close> by (auto simp: C_def False)
   qed
-  have 2: "deriv (\<lambda>z. f (a + of_real r * z) / (C * of_real r)) 0 = 1"
-    apply (subst deriv_cdivide_right)
-    apply (simp add: field_differentiable_def fo)
-    apply (rule exI)
-    apply (rule DERIV_chain [OF field_differentiable_derivI])
-    apply (simp add: dfa)
-    apply (rule derivative_eq_intros | simp add: C_def False fo)+
-    using \<open>0 < r\<close>
-    apply (simp add: C_def False fo)
-    apply (simp add: derivative_intros dfa deriv_chain)
-    done
+  have "deriv (\<lambda>z. f (a + of_real r * z) / (C * of_real r)) 0 = deriv (\<lambda>z. f (a + complex_of_real r * z)) 0 /
+    (C * complex_of_real r)"
+    apply (rule deriv_cdivide_right)
+    by (metis (no_types) DERIV_chain2 add.right_neutral dfa field_differentiable_add_const field_differentiable_def field_differentiable_linear fo mult_zero_right)
+  also have "... = 1"
+    using \<open>0 < r\<close> by (simp add: C_def False fo derivative_intros dfa deriv_chain)
+  finally have 2: "deriv (\<lambda>z. f (a + of_real r * z) / (C * of_real r)) 0 = 1" .
   have sb1: "(*) (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
              \<subseteq> f ` ball a r"
     using \<open>0 < r\<close> by (auto simp: dist_norm norm_mult C_def False)
@@ -1905,27 +1847,20 @@ next
     show ?thesis
       apply clarify
       apply (rule_tac x="x / (C * r)" in image_eqI)
-      using \<open>0 < r\<close>
-      apply (simp_all add: dist_norm norm_mult norm_divide C_def False field_simps)
-      apply (erule less_le_trans)
-      apply (rule order_trans [OF r' *])
-      done
+      using \<open>0 < r\<close> apply (simp_all add: dist_norm norm_mult norm_divide C_def False field_simps)
+      using "*" r' by linarith
   qed
   show ?thesis
     apply (rule Bloch_unit [OF 1 2])
-    apply (rename_tac t)
     apply (rule_tac b="(C * of_real r) * b" in that)
-    apply (drule image_mono [where f = "\<lambda>z. (C * of_real r) * z"])
-    using sb1 sb2
-    apply force
-    done
+    using image_mono sb1 sb2 by fastforce
 qed
 
 corollary Bloch_general:
-  assumes holf: "f holomorphic_on s" and "a \<in> s"
-      and tle: "\<And>z. z \<in> frontier s \<Longrightarrow> t \<le> dist a z"
+  assumes holf: "f holomorphic_on S" and "a \<in> S"
+      and tle: "\<And>z. z \<in> frontier S \<Longrightarrow> t \<le> dist a z"
       and rle: "r \<le> t * norm(deriv f a) / 12"
-  obtains b where "ball b r \<subseteq> f ` s"
+  obtains b where "ball b r \<subseteq> f ` S"
 proof -
   consider "r \<le> 0" | "0 < t * norm(deriv f a) / 12" using rle by force
   then show ?thesis
@@ -1942,11 +1877,9 @@ proof -
       case False
       then have "t > 0"
         using 2 by (force simp: zero_less_mult_iff)
-      have "\<not> ball a t \<subseteq> s \<Longrightarrow> ball a t \<inter> frontier s \<noteq> {}"
-        apply (rule connected_Int_frontier [of "ball a t" s], simp_all)
-        using \<open>0 < t\<close> \<open>a \<in> s\<close> centre_in_ball apply blast
-        done
-      with tle have *: "ball a t \<subseteq> s" by fastforce
+      have "\<not> ball a t \<subseteq> S \<Longrightarrow> ball a t \<inter> frontier S \<noteq> {}"
+        by (metis Diff_eq_empty_iff \<open>0 < t\<close> \<open>a \<in> S\<close> closure_Int_ball_not_empty closure_subset connected_Int_frontier connected_ball inf.commute)
+      with tle have *: "ball a t \<subseteq> S" by fastforce
       then have 1: "f holomorphic_on ball a t"
         using holf using holomorphic_on_subset by blast
       show ?thesis
