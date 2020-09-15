@@ -80,10 +80,6 @@ proof (induct l x r rule: joinL.induct)
     by(auto simp: invh_baliL bheight_joinL joinL.simps[of l x r] split!: tree.split color.split)
 qed
 
-lemma bheight_baliR:
-  "bheight l = bheight r \<Longrightarrow> bheight (baliR l a r) = Suc (bheight l)"
-by (cases "(l,a,r)" rule: baliR.cases) auto
-
 lemma bheight_joinR:
   "\<lbrakk> invh l;  invh r;  bheight l \<ge> bheight r \<rbrakk> \<Longrightarrow> bheight (joinR l x r) = bheight l"
 proof (induct l x r rule: joinR.induct)
@@ -99,10 +95,27 @@ proof (induct l x r rule: joinR.induct)
         split!: tree.split color.split)
 qed
 
+text \<open>All invariants in one:\<close>
+
+lemma inv_joinL: "\<lbrakk> invc l; invc r; invh l; invh r; bheight l \<le> bheight r \<rbrakk>
+ \<Longrightarrow> invc2 (joinL l x r) \<and> (bheight l \<noteq> bheight r \<and> color r = Black \<longrightarrow>  invc (joinL l x r))
+     \<and> invh (joinL l x r) \<and> bheight (joinL l x r) = bheight r"
+proof (induct l x r rule: joinL.induct)
+  case (1 l x r) thus ?case
+    by(auto simp: inv_baliL invc2I joinL.simps[of l x r] split!: tree.splits if_splits)
+qed
+
+lemma inv_joinR: "\<lbrakk> invc l; invc r; invh l; invh r; bheight l \<ge> bheight r \<rbrakk>
+ \<Longrightarrow> invc2 (joinR l x r) \<and> (bheight l \<noteq> bheight r \<and> color l = Black \<longrightarrow>  invc (joinR l x r))
+     \<and> invh (joinR l x r) \<and> bheight (joinR l x r) = bheight l"
+proof (induct l x r rule: joinR.induct)
+  case (1 l x r) thus ?case
+    by(auto simp: inv_baliR invc2I joinR.simps[of l x r] split!: tree.splits if_splits)
+qed
+
 (* unused *)
 lemma rbt_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> rbt(join l x r)"
-by(simp add: invc2_joinL invc2_joinR invh_joinL invh_joinR invh_paint rbt_def
-    color_paint_Black join_def)
+by(simp add: inv_joinL inv_joinR invh_paint rbt_def color_paint_Black join_def)
 
 text \<open>To make sure the the black height is not increased unnecessarily:\<close>
 
