@@ -422,7 +422,7 @@ qed
 lemma field_poly_irreducible_imp_prime:
   "prime_elem p" if "irreducible p" for p :: "'a :: field poly"
   using that by (fact field_poly.irreducible_imp_prime_elem)
-find_theorems name:prod_mset_prime_factorization
+
 lemma field_poly_prod_mset_prime_factorization:
   "prod_mset (field_poly.prime_factorization p) = smult (inverse (lead_coeff p)) p"
   if "p \<noteq> 0" for p :: "'a :: field poly"

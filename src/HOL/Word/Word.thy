@@ -2942,7 +2942,7 @@ lemma uint_mult_lem:
   by (metis mod_pos_pos_trivial uint_lt2p uint_mult_ge0 uint_word_ariths(3))
 
 lemma uint_sub_lem: "uint x \<ge> uint y \<longleftrightarrow> uint (x - y) = uint x - uint y"
-  by (metis (mono_tags, hide_lams) diff_ge_0_iff_ge mod_pos_pos_trivial of_nat_0_le_iff take_bit_eq_mod uint_nat uint_sub_lt2p word_sub_wi word_ubin.eq_norm)  find_theorems uint \<open>- _\<close>
+  by (metis (mono_tags, hide_lams) diff_ge_0_iff_ge mod_pos_pos_trivial of_nat_0_le_iff take_bit_eq_mod uint_nat uint_sub_lt2p word_sub_wi word_ubin.eq_norm)
 
 lemma uint_add_le: "uint (x + y) \<le> uint x + uint y"
   unfolding uint_word_ariths by (simp add: zmod_le_nonneg_dividend) 

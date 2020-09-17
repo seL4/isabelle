@@ -5147,7 +5147,6 @@ qed
 lemma filterlim_of_int_at_bot:
   "filterlim f F at_bot \<Longrightarrow> filterlim (\<lambda>x. f (of_int x :: real)) F at_bot"
   by (erule filterlim_compose[OF _ filterlim_real_of_int_at_bot])
-find_theorems of_int at_bot
 
 lemma asymp_equiv_real_int_transfer_at_top:
   "f \<sim>[at_top] g \<Longrightarrow> (\<lambda>x. f (of_int x :: real)) \<sim>[at_top] (\<lambda>x. g (of_int x))"
