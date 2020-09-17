@@ -93,6 +93,10 @@ INCOMPATIBILITY.
 * Session HOL-Word: Most operations on type word are set up
 for transfer and lifting.  INCOMPATIBILITY.
 
+* Session HOL-Word: Generic type conversions.  INCOMPATIBILITY,
+sometimes additional rewrite rules must be added to applications to
+get a confluent system again.
+
 * Session HOL-Word: Theory "Word_Bitwise" has been moved to AFP entry
 Word_Lib as theory "Bitwise".  INCOMPATIBILITY.
 

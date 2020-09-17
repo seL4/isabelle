@@ -25,6 +25,10 @@ Contributions to this Isabelle version
 * May 2020: Florian Haftmann
   Generic algebraically founded bit operations NOT, AND, OR, XOR.
 
+* Sept. 2020: Florian Haftmann
+  Substantial reworking and modularization of Word library, with
+  generic type conversions.
+
 * June 2020: Florian Haftmann
   Simproc defined_all for more aggressive substitution with variables
   from assumptions.
