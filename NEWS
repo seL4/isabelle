@@ -111,7 +111,7 @@ factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 
 * Session HOL-Word: Uniform polymorphic "mask" operation for both
-types int and word.  INCOMPATIBILITY
+types int and word.  INCOMPATIBILITY.
 
 * Session HOL-Word: Operations lsb, msb and set_bit are separated
 into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
