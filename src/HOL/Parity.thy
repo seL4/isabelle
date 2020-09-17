@@ -1615,8 +1615,20 @@ lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
   by (auto simp add: bit_push_bit_iff)
 
-lemma take_bit_nat_less_exp:
+lemma take_bit_nat_less_exp [simp]:
   \<open>take_bit n m < 2 ^ n\<close> for n m ::nat 
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_nonnegative [simp]:
+  \<open>take_bit n k \<ge> 0\<close> for k :: int
+  by (simp add: take_bit_eq_mod)
+
+lemma not_take_bit_negative [simp]:
+  \<open>\<not> take_bit n k < 0\<close> for k :: int
+  by (simp add: not_less)
+
+lemma take_bit_int_less_exp [simp]:
+  \<open>take_bit n k < 2 ^ n\<close> for k :: int
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_nat_eq_self_iff:
@@ -1633,23 +1645,9 @@ next
     by (simp add: take_bit_eq_mod)
 qed
 
-lemma take_bit_nat_less_eq_self:
-  \<open>take_bit n m \<le> m\<close> for n m :: nat
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_nonnegative [simp]:
-  \<open>take_bit n k \<ge> 0\<close>
-    for k :: int
-  by (simp add: take_bit_eq_mod)
-
-lemma not_take_bit_negative [simp]:
-  \<open>\<not> take_bit n k < 0\<close>
-    for k :: int
-  by (simp add: not_less)
-
-lemma take_bit_int_less_exp:
-  \<open>take_bit n k < 2 ^ n\<close> for k :: int
-  by (simp add: take_bit_eq_mod)
+lemma take_bit_nat_eq_self:
+  \<open>take_bit n m = m\<close> if \<open>m < 2 ^ n\<close> for m n :: nat
+  using that by (simp add: take_bit_nat_eq_self_iff)
 
 lemma take_bit_int_eq_self_iff:
   \<open>take_bit n k = k \<longleftrightarrow> 0 \<le> k \<and> k < 2 ^ n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
@@ -1663,6 +1661,30 @@ next
   assume ?Q
   then show ?P
     by (simp add: take_bit_eq_mod)
+qed
+
+lemma take_bit_int_eq_self:
+  \<open>take_bit n k = k\<close> if \<open>0 \<le> k\<close> \<open>k < 2 ^ n\<close> for k :: int
+  using that by (simp add: take_bit_int_eq_self_iff)
+
+lemma take_bit_nat_less_eq_self [simp]:
+  \<open>take_bit n m \<le> m\<close> for n m :: nat
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_nat_less_self_iff:
+  \<open>take_bit n m < m \<longleftrightarrow> 2 ^ n \<le> m\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  for m n :: nat
+proof
+  assume ?P
+  then have \<open>take_bit n m \<noteq> m\<close>
+    by simp
+  then show \<open>?Q\<close>
+    by (simp add: take_bit_nat_eq_self_iff)
+next
+  have \<open>take_bit n m < 2 ^ n\<close>
+    by (fact take_bit_nat_less_exp)
+  also assume ?Q
+  finally show ?P .
 qed
 
 class unique_euclidean_semiring_with_bit_shifts =

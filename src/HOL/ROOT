@@ -898,7 +898,6 @@ session "HOL-Word" (main timing) in Word = HOL +
     Word
     More_Word
     Word_Examples
-    Conversions
   document_files "root.bib" "root.tex"
 
 session "HOL-Statespace" in Statespace = HOL +

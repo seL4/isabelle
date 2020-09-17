@@ -253,7 +253,8 @@ proof -
   show ?thesis
     unfolding steps'_step[OF \<open>0 <= j\<close>] step_hyp[symmetric]
       step_both_def step_r_def step_l_def
-    by (simp add: AL BL CL DL EL AR BR CR DR ER)
+    using AL CL EL AR CR ER
+    by (simp add: BL DL BR DR take_bit_int_eq_self_iff take_bit_int_eq_self)
 qed
 
 spark_vc procedure_round_61
@@ -275,12 +276,13 @@ proof -
              h3 = cd, h4 = ce\<rparr>\<rparr>)
     0 x"
     unfolding steps_def
-    by (simp add:
+    using
       uint_word_of_int_id[OF \<open>0 <= ca\<close> \<open>ca <= ?M\<close>]
       uint_word_of_int_id[OF \<open>0 <= cb\<close> \<open>cb <= ?M\<close>]
       uint_word_of_int_id[OF \<open>0 <= cc\<close> \<open>cc <= ?M\<close>]
       uint_word_of_int_id[OF \<open>0 <= cd\<close> \<open>cd <= ?M\<close>]
-      uint_word_of_int_id[OF \<open>0 <= ce\<close> \<open>ce <= ?M\<close>])
+      uint_word_of_int_id[OF \<open>0 <= ce\<close> \<open>ce <= ?M\<close>]
+    by (simp add: take_bit_int_eq_self_iff take_bit_int_eq_self)
   let ?rotate_arg_l =
     "((((ca + f 0 cb cc cd) mod 4294967296 +
         x (r_l 0)) mod 4294967296 + k_l 0) mod 4294967296)"
@@ -458,7 +460,7 @@ proof -
     unfolding steps_to_steps'
     unfolding H1[symmetric]
     by (simp add: uint_word_ariths(1) mod_simps
-      uint_word_of_int_id)
+      uint_word_of_int_id take_bit_int_eq_self)
 qed
 
 spark_end

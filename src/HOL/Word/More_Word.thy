@@ -42,6 +42,11 @@ lemmas uint_lt = uint_bounded
 lemmas uint_mod_same = uint_idem
 lemmas of_nth_def = word_set_bits_def
 
+lemmas of_nat_word_eq_iff = word_of_nat_eq_iff
+lemmas of_nat_word_eq_0_iff = word_of_nat_eq_0_iff
+lemmas of_int_word_eq_iff = word_of_int_eq_iff
+lemmas of_int_word_eq_0_iff = word_of_int_eq_0_iff
+
 lemma shiftl_transfer [transfer_rule]:
   includes lifting_syntax
   shows "(pcr_word ===> (=) ===> pcr_word) (<<) (<<)"

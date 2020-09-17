@@ -63,7 +63,7 @@ lemma from_to_id: "from_chain (to_chain C) = C"
 proof (cases C)
   fix a b c d e f::word32
   assume "C = (a, b, c, d, e)"
-  thus ?thesis by (cases a) simp
+  thus ?thesis by (cases a) (simp add: take_bit_nat_eq_self)
 qed
 
 lemma steps_to_steps':

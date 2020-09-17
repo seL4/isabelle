@@ -275,6 +275,20 @@ lemma take_bit_not_iff:
   apply (use exp_eq_0_imp_not_bit in blast)
   done
 
+lemma take_bit_not_eq_mask_diff:
+  \<open>take_bit n (NOT a) = mask n - take_bit n a\<close>
+proof -
+  have \<open>take_bit n (NOT a) = take_bit n (NOT (take_bit n a))\<close>
+    by (simp add: take_bit_not_take_bit)
+  also have \<open>\<dots> = mask n AND NOT (take_bit n a)\<close>
+    by (simp add: take_bit_eq_mask ac_simps)
+  also have \<open>\<dots> = mask n - take_bit n a\<close>
+    by (subst disjunctive_diff)
+      (auto simp add: bit_take_bit_iff bit_mask_iff exp_eq_0_imp_not_bit)
+  finally show ?thesis
+    by simp
+qed
+
 lemma mask_eq_take_bit_minus_one:
   \<open>mask n = take_bit n (- 1)\<close>
   by (simp add: bit_eq_iff bit_mask_iff bit_take_bit_iff conj_commute)
@@ -1111,6 +1125,11 @@ lemma signed_take_bit_int_eq_self_iff:
   for k :: int
   by (auto simp add: signed_take_bit_eq_take_bit_shift take_bit_int_eq_self_iff algebra_simps)
 
+lemma signed_take_bit_int_eq_self:
+  \<open>signed_take_bit n k = k\<close> if \<open>- (2 ^ n) \<le> k\<close> \<open>k < 2 ^ n\<close>
+  for k :: int
+  using that by (simp add: signed_take_bit_int_eq_self_iff)
+
 lemma signed_take_bit_int_less_eq_self_iff:
   \<open>signed_take_bit n k \<le> k \<longleftrightarrow> - (2 ^ n) \<le> k\<close>
   for k :: int
@@ -1136,13 +1155,13 @@ lemma signed_take_bit_int_greater_eq_self_iff:
 lemma signed_take_bit_int_greater_eq:
   \<open>k + 2 ^ Suc n \<le> signed_take_bit n k\<close> if \<open>k < - (2 ^ n)\<close>
   for k :: int
-  using that take_bit_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
+  using that take_bit_int_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma signed_take_bit_int_less_eq:
   \<open>signed_take_bit n k \<le> k - 2 ^ Suc n\<close> if \<open>k \<ge> 2 ^ n\<close>
   for k :: int
-  using that take_bit_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
+  using that take_bit_int_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma signed_take_bit_Suc_bit0 [simp]:

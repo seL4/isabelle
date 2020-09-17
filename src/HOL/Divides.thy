@@ -693,32 +693,6 @@ next
   thus  ?lhs by simp
 qed
 
-lemma take_bit_greater_eq:
-  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
-proof -
-  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
-  proof (cases \<open>k > - (2 ^ n)\<close>)
-    case False
-    then have \<open>k + 2 ^ n \<le> 0\<close>
-      by simp
-    also note take_bit_nonnegative
-    finally show ?thesis .
-  next
-    case True
-    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
-      by simp_all
-    then show ?thesis
-      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
-  qed
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_less_eq:
-  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
-  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
-  by (simp add: take_bit_eq_mod)
-
 
 subsection \<open>Numeral division with a pragmatic type class\<close>
 
@@ -1292,6 +1266,32 @@ proof -
     by (simp add: take_bit_eq_mod)
 qed
 
+lemma take_bit_int_greater_eq:
+  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
+proof -
+  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
+  proof (cases \<open>k > - (2 ^ n)\<close>)
+    case False
+    then have \<open>k + 2 ^ n \<le> 0\<close>
+      by simp
+    also note take_bit_nonnegative
+    finally show ?thesis .
+  next
+    case True
+    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
+      by simp_all
+    then show ?thesis
+      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
+  qed
+  then show ?thesis
+    by (simp add: take_bit_eq_mod)
+qed
+
+lemma take_bit_int_less_eq:
+  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
+  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
+  by (simp add: take_bit_eq_mod)
+
 lemma take_bit_int_less_eq_self_iff:
   \<open>take_bit n k \<le> k \<longleftrightarrow> 0 \<le> k\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
   for k :: int
@@ -1355,7 +1355,5 @@ lemma zmod_eq_0_iff: "m mod d = 0 \<longleftrightarrow> (\<exists>q. m = d * q)"
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemma zmod_eq_0D [dest!]: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: int
   using that by auto
-
-find_theorems \<open>(?k::int) mod _ = ?k\<close>
 
 end
