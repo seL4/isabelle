@@ -372,11 +372,11 @@ qed
   
 lemma sbintrunc_inc:
   \<open>k + 2 ^ Suc n \<le> sbintrunc n k\<close> if \<open>k < - (2 ^ n)\<close>
-  using that by (fact signed_take_bit_greater_eq)
+  using that by (fact signed_take_bit_int_greater_eq)
   
 lemma sbintrunc_dec:
   \<open>sbintrunc n k \<le> k - 2 ^ (Suc n)\<close> if \<open>k \<ge> 2 ^ n\<close>
-  using that by (fact signed_take_bit_less_eq)
+  using that by (fact signed_take_bit_int_less_eq)
 
 lemma bintr_ge0: "0 \<le> bintrunc n w"
   by (simp add: bintrunc_mod2p)

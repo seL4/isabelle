@@ -1106,22 +1106,44 @@ lemma signed_take_bit_negative_iff [simp]:
   for k :: int
   by (simp add: signed_take_bit_def not_less concat_bit_def)
 
-lemma signed_take_bit_greater_eq:
+lemma signed_take_bit_int_eq_self_iff:
+  \<open>signed_take_bit n k = k \<longleftrightarrow> - (2 ^ n) \<le> k \<and> k < 2 ^ n\<close>
+  for k :: int
+  by (auto simp add: signed_take_bit_eq_take_bit_shift take_bit_int_eq_self_iff algebra_simps)
+
+lemma signed_take_bit_int_less_eq_self_iff:
+  \<open>signed_take_bit n k \<le> k \<longleftrightarrow> - (2 ^ n) \<le> k\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_less_eq_self_iff algebra_simps)
+    linarith
+
+lemma signed_take_bit_int_less_self_iff:
+  \<open>signed_take_bit n k < k \<longleftrightarrow> 2 ^ n \<le> k\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_less_self_iff algebra_simps)
+
+lemma signed_take_bit_int_greater_self_iff:
+  \<open>k < signed_take_bit n k \<longleftrightarrow> k < - (2 ^ n)\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_greater_self_iff algebra_simps)
+    linarith
+
+lemma signed_take_bit_int_greater_eq_self_iff:
+  \<open>k \<le> signed_take_bit n k \<longleftrightarrow> k < 2 ^ n\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_greater_eq_self_iff algebra_simps)
+
+lemma signed_take_bit_int_greater_eq:
   \<open>k + 2 ^ Suc n \<le> signed_take_bit n k\<close> if \<open>k < - (2 ^ n)\<close>
   for k :: int
   using that take_bit_greater_eq [of \<open>k + 2 ^ n\<close> \<open>Suc n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
 
-lemma signed_take_bit_less_eq:
+lemma signed_take_bit_int_less_eq:
   \<open>signed_take_bit n k \<le> k - 2 ^ Suc n\<close> if \<open>k \<ge> 2 ^ n\<close>
   for k :: int
   using that take_bit_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
-
-lemma signed_take_bit_eq_self:
-  \<open>signed_take_bit n k = k\<close> if \<open>- (2 ^ n) \<le> k\<close> \<open>k < 2 ^ n\<close>
-  for k :: int
-  using that by (simp add: signed_take_bit_eq_take_bit_shift take_bit_int_eq_self)
 
 lemma signed_take_bit_Suc_bit0 [simp]:
   \<open>signed_take_bit (Suc n) (numeral (Num.Bit0 k)) = signed_take_bit n (numeral k) * (2 :: int)\<close>

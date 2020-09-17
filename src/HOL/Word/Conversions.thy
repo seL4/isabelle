@@ -455,7 +455,7 @@ proof transfer
     by (simp add: nat_less_iff take_bit_int_less_exp)
   finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k div take_bit LENGTH('a) l) =
     (nat \<circ> take_bit LENGTH('a)) k div (nat \<circ> take_bit LENGTH('a)) l\<close>
-    by (simp add: nat_take_bit_eq div_int_pos_iff nat_div_distrib take_bit_eq_self)
+    by (simp add: nat_take_bit_eq div_int_pos_iff nat_div_distrib take_bit_nat_eq_self_iff)
 qed
 
 lemma unat_mod_distrib:
@@ -468,7 +468,7 @@ proof transfer
     by (simp add: nat_less_iff take_bit_int_less_exp)
   finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k mod take_bit LENGTH('a) l) =
     (nat \<circ> take_bit LENGTH('a)) k mod (nat \<circ> take_bit LENGTH('a)) l\<close>
-    by (simp add: nat_take_bit_eq mod_int_pos_iff less_le nat_mod_distrib take_bit_eq_self)
+    by (simp add: nat_take_bit_eq mod_int_pos_iff less_le nat_mod_distrib take_bit_nat_eq_self_iff)
 qed
 
 lemma uint_div_distrib:

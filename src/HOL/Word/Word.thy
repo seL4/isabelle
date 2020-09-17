@@ -358,7 +358,7 @@ proof -
       by (auto simp add: word_greater_zero_iff of_nat_word_eq_0_iff l)
     moreover from \<open>n < 2 ^ m\<close> have \<open>(of_nat n :: 'a word) < 2 ^ (LENGTH('a) - 1)\<close>
       using of_nat_word_less_iff [where ?'a = 'a, of n \<open>2 ^ m\<close>]
-      by (cases \<open>m = 0\<close>) (simp_all add: not_less take_bit_eq_self ac_simps l)
+      by (simp add: l take_bit_eq_mod)
     ultimately have \<open>P (2 * of_nat n)\<close>
       by (rule word_even)
     then show ?case
@@ -371,7 +371,7 @@ proof -
       by simp
     moreover from \<open>Suc n \<le> 2 ^ m\<close> have \<open>(of_nat n :: 'a word) < 2 ^ (LENGTH('a) - 1)\<close>
       using of_nat_word_less_iff [where ?'a = 'a, of n \<open>2 ^ m\<close>]
-      by (cases \<open>m = 0\<close>) (simp_all add: not_less take_bit_eq_self ac_simps l)
+      by (simp add: l take_bit_eq_mod)
     ultimately have \<open>P (1 + 2 * of_nat n)\<close>
       by (rule word_odd)
     then show ?case
@@ -1396,8 +1396,8 @@ lemma td_ext_unat [OF refl]:
   "n = LENGTH('a::len) \<Longrightarrow>
     td_ext (unat :: 'a word \<Rightarrow> nat) of_nat (unats n) (\<lambda>i. i mod 2 ^ n)"
   apply (standard; transfer)
-     apply (simp_all add: unats_def take_bit_int_less_exp take_bit_of_nat take_bit_eq_self)
-  apply (simp add: take_bit_eq_mod)
+     apply (simp_all add: unats_def take_bit_int_less_exp take_bit_of_nat take_bit_nat_eq_self_iff
+      flip: take_bit_eq_mod)
   done
 
 lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm]
@@ -3882,7 +3882,7 @@ proof -
     by (cases \<open>LENGTH('a)\<close>) simp_all
   have *: \<open>sint x + sint y + 2 ^ Suc n > signed_take_bit n (sint x + sint y) \<Longrightarrow> sint x + sint y \<ge> - (2 ^ n)\<close>
     \<open>signed_take_bit n (sint x + sint y) > sint x + sint y - 2 ^ Suc n \<Longrightarrow> 2 ^ n > sint x + sint y\<close>
-    using signed_take_bit_greater_eq [of \<open>sint x + sint y\<close> n] signed_take_bit_less_eq [of n \<open>sint x + sint y\<close>]
+    using signed_take_bit_int_greater_eq [of \<open>sint x + sint y\<close> n] signed_take_bit_int_less_eq [of n \<open>sint x + sint y\<close>]
     by (auto intro: ccontr)
   have \<open>sint x + sint y = sint (x + y) \<longleftrightarrow>
     (sint (x + y) < 0 \<longleftrightarrow> sint x < 0) \<or>
@@ -4433,7 +4433,7 @@ proof -
     apply (subst take_bit_diff [symmetric])
     apply (subst nat_take_bit_eq)
     apply (simp add: nat_le_eq_zle)
-    apply (simp add: nat_diff_distrib take_bit_eq_self less_imp_diff_less bintr_lt2p)
+    apply (simp add: nat_diff_distrib take_bit_nat_eq_self_iff less_imp_diff_less bintr_lt2p)
     done
 qed
 

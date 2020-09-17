@@ -1024,6 +1024,37 @@ next
   qed
 qed
 
+lemma
+  exp_add_not_zero_imp_left: \<open>2 ^ m \<noteq> 0\<close>
+  and exp_add_not_zero_imp_right: \<open>2 ^ n \<noteq> 0\<close>
+  if \<open>2 ^ (m + n) \<noteq> 0\<close>
+proof -
+  have \<open>\<not> (2 ^ m = 0 \<or> 2 ^ n = 0)\<close>
+  proof (rule notI)
+    assume \<open>2 ^ m = 0 \<or> 2 ^ n = 0\<close>
+    then have \<open>2 ^ (m + n) = 0\<close>
+      by (rule disjE) (simp_all add: power_add)
+    with that show False ..
+  qed
+  then show \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close>
+    by simp_all
+qed
+
+lemma exp_not_zero_imp_exp_diff_not_zero:
+  \<open>2 ^ (n - m) \<noteq> 0\<close> if \<open>2 ^ n \<noteq> 0\<close>
+proof (cases \<open>m \<le> n\<close>)
+  case True
+  moreover define q where \<open>q = n - m\<close>
+  ultimately have \<open>n = m + q\<close>
+    by simp
+  with that show ?thesis
+    by (simp add: exp_add_not_zero_imp_right)
+next
+  case False
+  with that show ?thesis
+    by simp
+qed
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -1147,7 +1178,7 @@ next
     also have "\<dots> = - int (2 * n) - 1"
       by (simp add: algebra_simps)
     finally show ?case
-      using even by simp
+      using even.prems by simp
   next
     case (odd n)
     have "P (- int (Suc n) * 2)"
@@ -1155,7 +1186,7 @@ next
     also have "\<dots> = - int (Suc (2 * n)) - 1"
       by (simp add: algebra_simps)
     finally show ?case
-      using odd by simp
+      using odd.prems by simp
   qed
 qed
 
@@ -1584,6 +1615,56 @@ lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
   by (auto simp add: bit_push_bit_iff)
 
+lemma take_bit_nat_less_exp:
+  \<open>take_bit n m < 2 ^ n\<close> for n m ::nat 
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_nat_eq_self_iff:
+  \<open>take_bit n m = m \<longleftrightarrow> m < 2 ^ n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  for n m :: nat
+proof
+  assume ?P
+  moreover note take_bit_nat_less_exp [of n m]
+  ultimately show ?Q
+    by simp
+next
+  assume ?Q
+  then show ?P
+    by (simp add: take_bit_eq_mod)
+qed
+
+lemma take_bit_nat_less_eq_self:
+  \<open>take_bit n m \<le> m\<close> for n m :: nat
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_nonnegative [simp]:
+  \<open>take_bit n k \<ge> 0\<close>
+    for k :: int
+  by (simp add: take_bit_eq_mod)
+
+lemma not_take_bit_negative [simp]:
+  \<open>\<not> take_bit n k < 0\<close>
+    for k :: int
+  by (simp add: not_less)
+
+lemma take_bit_int_less_exp:
+  \<open>take_bit n k < 2 ^ n\<close> for k :: int
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_int_eq_self_iff:
+  \<open>take_bit n k = k \<longleftrightarrow> 0 \<le> k \<and> k < 2 ^ n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  for k :: int
+proof
+  assume ?P
+  moreover note take_bit_int_less_exp [of n k] take_bit_nonnegative [of n k]
+  ultimately show ?Q
+    by simp
+next
+  assume ?Q
+  then show ?P
+    by (simp add: take_bit_eq_mod)
+qed
+
 class unique_euclidean_semiring_with_bit_shifts =
   unique_euclidean_semiring_with_nat + semiring_bit_shifts
 begin
@@ -1752,10 +1833,6 @@ lemma drop_bit_of_Suc_0 [simp]:
   "drop_bit n (Suc 0) = of_bool (n = 0)"
   using drop_bit_of_1 [where ?'a = nat] by simp
 
-lemma take_bit_eq_self:
-  \<open>take_bit n m = m\<close> if \<open>m < 2 ^ n\<close> for n m :: nat
-  using that by (simp add: take_bit_eq_mod)
-
 lemma push_bit_minus_one:
   "push_bit n (- 1 :: int) = - (2 ^ n)"
   by (simp add: push_bit_eq_mult)
@@ -1781,24 +1858,6 @@ lemma take_bit_diff:
   \<open>take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)\<close>
     for k l :: int
   by (simp add: take_bit_eq_mod mod_diff_eq)
-
-lemma take_bit_nonnegative [simp]:
-  \<open>take_bit n k \<ge> 0\<close>
-    for k :: int
-  by (simp add: take_bit_eq_mod)
-
-lemma not_take_bit_negative [simp]:
-  \<open>\<not> take_bit n k < 0\<close>
-    for k :: int
-  by (simp add: not_less)
-
-lemma take_bit_int_less_exp:
-  \<open>take_bit n k < 2 ^ n\<close> for k :: int
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_int_eq_self:
-  \<open>take_bit n k = k\<close> if \<open>0 \<le> k\<close> \<open>k < 2 ^ n\<close> for k :: int
-  using that by (simp add: take_bit_eq_mod)
 
 lemma bit_imp_take_bit_positive:
   \<open>0 < take_bit m k\<close> if \<open>n < m\<close> and \<open>bit k n\<close> for k :: int
