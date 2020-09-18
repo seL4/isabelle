@@ -2171,7 +2171,7 @@ lemma sum_lessThan_telescope':
 subsubsection \<open>The formula for geometric sums\<close>
 
 lemma sum_power2: "(\<Sum>i=0..<k. (2::nat)^i) = 2^k-1"
-by (induction k) (auto simp: mult_2)
+  by (induction k) (auto simp: mult_2)
 
 lemma geometric_sum:
   assumes "x \<noteq> 1"
@@ -2205,31 +2205,31 @@ qed simp
 
 corollary power_diff_sumr2: \<comment> \<open>\<open>COMPLEX_POLYFUN\<close> in HOL Light\<close>
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
+  shows "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
 using diff_power_eq_sum[of x "n - 1" y]
 by (cases "n = 0") (simp_all add: field_simps)
 
 lemma power_diff_1_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
+  shows "x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
 using diff_power_eq_sum [of x _ 1]
   by (cases n) auto
 
 lemma one_diff_power_eq':
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
+  shows "1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
 using diff_power_eq_sum [of 1 _ x]
   by (cases n) auto
 
 lemma one_diff_power_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
-by (metis one_diff_power_eq' [of n x] sum.nat_diff_reindex)
+  shows "1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
+by (metis one_diff_power_eq' sum.nat_diff_reindex)
 
 lemma sum_gp_basic:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "(1 - x) * (\<Sum>i\<le>n. x^i) = 1 - x^Suc n"
-  by (simp only: one_diff_power_eq [of "Suc n" x] lessThan_Suc_atMost)
+  by (simp only: one_diff_power_eq lessThan_Suc_atMost)
 
 lemma sum_power_shift:
   fixes x :: "'a::{comm_ring,monoid_mult}"
