@@ -219,7 +219,7 @@ lemma bst_join:
 by(auto simp: bst_paint bst_joinL bst_joinR join_def)
 
 lemma inv_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> invc(join l x r) \<and> invh(join l x r)"
-by (simp add: invc2_joinL invc2_joinR invh_joinL invh_joinR invh_paint join_def)
+by (simp add: inv_joinL inv_joinR invh_paint join_def)
 
 subsubsection "Interpretation of \<^locale>\<open>Set2_Join\<close> with Red-Black Tree"
 

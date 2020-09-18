@@ -204,17 +204,17 @@ proof(induction t1 t2 rule: inter.induct)
       let ?L1 = "set_tree l1" let ?R1 = "set_tree r1"
       have *: "a \<notin> ?L1 \<union> ?R1" using \<open>bst t1\<close> by (fastforce)
       obtain l2 ain r2 where sp: "split t2 a = (l2,ain,r2)" using prod_cases3 by blast
-      let ?L2 = "set_tree l2" let ?R2 = "set_tree r2" let ?K = "if ain then {a} else {}"
-      have t2: "set_tree t2 = ?L2 \<union> ?R2 \<union> ?K" and
+      let ?L2 = "set_tree l2" let ?R2 = "set_tree r2" let ?A = "if ain then {a} else {}"
+      have t2: "set_tree t2 = ?L2 \<union> ?R2 \<union> ?A" and
            **: "?L2 \<inter> ?R2 = {}" "a \<notin> ?L2 \<union> ?R2" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"
         using split[OF sp] \<open>bst t1\<close> \<open>bst t2\<close> by (force, force, force, force, force)
       have IHl: "set_tree (inter l1 l2) = set_tree l1 \<inter> set_tree l2"
         using "1.IH"(1)[OF _ False _ _ sp[symmetric]] "1.prems"(1,2) split[OF sp] by simp
       have IHr: "set_tree (inter r1 r2) = set_tree r1 \<inter> set_tree r2"
         using "1.IH"(2)[OF _ False _ _ sp[symmetric]] "1.prems"(1,2) split[OF sp] by simp
-      have "set_tree t1 \<inter> set_tree t2 = (?L1 \<union> ?R1 \<union> {a}) \<inter> (?L2 \<union> ?R2 \<union> ?K)"
+      have "set_tree t1 \<inter> set_tree t2 = (?L1 \<union> ?R1 \<union> {a}) \<inter> (?L2 \<union> ?R2 \<union> ?A)"
         by(simp add: t2)
-      also have "\<dots> = (?L1 \<inter> ?L2) \<union> (?R1 \<inter> ?R2) \<union> ?K"
+      also have "\<dots> = (?L1 \<inter> ?L2) \<union> (?R1 \<inter> ?R2) \<union> ?A"
         using * ** by auto
       also have "\<dots> = set_tree (inter t1 t2)"
       using IHl IHr sp inter.simps[of t1 t2] False by(simp)
@@ -268,8 +268,8 @@ proof(induction t1 t2 rule: diff.induct)
       case False
       let ?L2 = "set_tree l2" let ?R2 = "set_tree r2"
       obtain l1 ain r1 where sp: "split t1 a = (l1,ain,r1)" using prod_cases3 by blast
-      let ?L1 = "set_tree l1" let ?R1 = "set_tree r1" let ?K = "if ain then {a} else {}"
-      have t1: "set_tree t1 = ?L1 \<union> ?R1 \<union> ?K" and
+      let ?L1 = "set_tree l1" let ?R1 = "set_tree r1" let ?A = "if ain then {a} else {}"
+      have t1: "set_tree t1 = ?L1 \<union> ?R1 \<union> ?A" and
            **: "a \<notin> ?L1 \<union> ?R1" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"
         using split[OF sp] \<open>bst t1\<close> \<open>bst t2\<close> by (force, force, force, force)
       have IHl: "set_tree (diff l1 l2) = set_tree l1 - set_tree l2"
