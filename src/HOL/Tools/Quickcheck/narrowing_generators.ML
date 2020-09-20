@@ -263,9 +263,9 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
         val cmd =
           "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^ ghc_options ^ " " ^
             (space_implode " "
-              (map (Bash.string o File.platform_path)
+              (map File.bash_platform_path
                 (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
-          " -o " ^ Bash.string (File.platform_path executable) ^ ";"
+          " -o " ^ File.bash_platform_path executable ^ ";"
         val (_, compilation_time) =
           elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd)
         val _ = Quickcheck.add_timing compilation_time current_result

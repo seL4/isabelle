@@ -223,8 +223,7 @@ fun compile eqs =
         val object_file = tmp_file (module^".o")
         val _ = File.write module_file source
         val _ =
-          Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -c " ^
-            Bash.string (File.platform_path module_file))
+          Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -c " ^ File.bash_platform_path module_file)
         val _ =
           if not (File.exists object_file) then
             raise Compile ("Failure compiling haskell code (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
@@ -310,8 +309,7 @@ fun run (guid, module_file, arity) t =
         val _ = File.write call_file call_source
         val _ =
           Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -e \""^call^".call\" "^
-            Bash.string (File.platform_path module_file) ^ " " ^
-            Bash.string (File.platform_path call_file))
+            File.bash_platform_path module_file ^ " " ^ File.bash_platform_path call_file)
         val result = File.read result_file handle IO.Io _ =>
           raise Run ("Failure running haskell compiler (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
         val t' = parse_result arity_of result

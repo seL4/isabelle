@@ -10,6 +10,7 @@ sig
   val platform_path: Path.T -> string
   val bash_path: Path.T -> string
   val bash_paths: Path.T list -> string
+  val bash_platform_path: Path.T -> string
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val exists: Path.T -> bool
@@ -49,6 +50,8 @@ val platform_path = ML_System.platform_path o standard_path;
 
 val bash_path = Bash_Syntax.string o standard_path;
 val bash_paths = Bash_Syntax.strings o map standard_path;
+
+val bash_platform_path = Bash_Syntax.string o platform_path;
 
 
 (* full_path *)

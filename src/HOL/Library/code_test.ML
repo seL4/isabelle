@@ -319,8 +319,8 @@ fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
       "    ()\n" ^
       "  end;\n";
     val cmd =
-      "\"$POLYML_EXE\" --use " ^ Bash.string (File.platform_path code_path) ^
-      " --use " ^ Bash.string (File.platform_path driver_path) ^
+      "\"$POLYML_EXE\" --use " ^ File.bash_platform_path code_path ^
+      " --use " ^ File.bash_platform_path driver_path ^
       " --eval " ^ Bash.string "main ()"
   in
     List.app (File.write code_path o snd) code_files;
@@ -478,9 +478,9 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
     val cmd =
       "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
       Config.get ctxt ghc_options ^ " -o " ^
-      Bash.string (File.platform_path compiled_path) ^ " " ^
-      Bash.string (File.platform_path driver_path) ^ " -i" ^
-      Bash.string (File.platform_path dir)
+      File.bash_platform_path compiled_path ^ " " ^
+      File.bash_platform_path driver_path ^ " -i" ^
+      File.bash_platform_path dir
   in
     check_settings compiler ISABELLE_GHC "GHC executable";
     List.app (fn (name, code) => File.write (Path.append dir (Path.basic name)) code) code_files;
@@ -521,12 +521,10 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
       "  }\n" ^
       "}\n"
     val compile_cmd =
-      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ Bash.string (File.platform_path dir) ^
-      " -classpath " ^ Bash.string (File.platform_path dir) ^ " " ^
-      Bash.string (File.platform_path code_path) ^ " " ^
-      Bash.string (File.platform_path driver_path)
-    val run_cmd =
-      "isabelle_scala scala -cp " ^ Bash.string (File.platform_path dir) ^ " Test"
+      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ File.bash_platform_path dir ^
+      " -classpath " ^ File.bash_platform_path dir ^ " " ^
+      File.bash_platform_path code_path ^ " " ^ File.bash_platform_path driver_path
+    val run_cmd = "isabelle_scala scala -cp " ^ File.bash_platform_path dir ^ " Test"
   in
     List.app (File.write code_path o snd) code_files;
     File.write driver_path driver;
