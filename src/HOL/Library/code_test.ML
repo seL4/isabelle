@@ -150,10 +150,10 @@ val overlord = Attrib.setup_config_bool \<^binding>\<open>code_test_overlord\<cl
 
 fun with_overlord_dir name f =
   let
-    val path =
+    val dir =
       Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs path
-  in Exn.release (Exn.capture f path) end
+    val _ = Isabelle_System.mkdirs dir
+  in Exn.release (Exn.capture f dir) end
 
 fun dynamic_value_strict ctxt t compiler =
   let
@@ -300,10 +300,10 @@ fun evaluate opt_env_var compilerN mk_driver (ctxt: Proof.context) (code_files, 
             else error ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
           end
 
-    fun run path =
+    fun run dir =
       let
         val modules = map fst code_files
-        val {files, compile_cmd, run_cmd, mk_code_file} = mk_driver ctxt path modules value_name
+        val {files, compile_cmd, run_cmd, mk_code_file} = mk_driver ctxt dir modules value_name
 
         val _ = List.app (fn (name, code) => File.write (mk_code_file name) code) code_files
         val _ = List.app (fn (name, content) => File.write name content) files
@@ -325,13 +325,13 @@ val polymlN = "PolyML"
 
 val evaluate_in_polyml =
   evaluate NONE polymlN
-    (fn _ => fn path => fn _ => fn value_name =>
+    (fn _ => fn dir => fn _ => fn value_name =>
       let
         val generatedN = "generated.sml"
         val driverN = "driver.sml"
 
-        val code_path = Path.append path (Path.basic generatedN)
-        val driver_path = Path.append path (Path.basic driverN)
+        val code_path = Path.append dir (Path.basic generatedN)
+        val driver_path = Path.append dir (Path.basic driverN)
         val driver =
           "fun main prog_name = \n" ^
           "  let\n" ^
@@ -364,16 +364,16 @@ val ISABELLE_MLTON = "ISABELLE_MLTON"
 
 val evaluate_in_mlton =
   evaluate (SOME (ISABELLE_MLTON, "MLton executable")) mltonN
-    (fn _ => fn path => fn _ => fn value_name =>
+    (fn _ => fn dir => fn _ => fn value_name =>
       let
         val generatedN = "generated.sml"
         val driverN = "driver.sml"
         val projectN = "test"
         val ml_basisN = projectN ^ ".mlb"
 
-        val code_path = Path.append path (Path.basic generatedN)
-        val driver_path = Path.append path (Path.basic driverN)
-        val ml_basis_path = Path.append path (Path.basic ml_basisN)
+        val code_path = Path.append dir (Path.basic generatedN)
+        val driver_path = Path.append dir (Path.basic driverN)
+        val ml_basis_path = Path.append dir (Path.basic ml_basisN)
         val driver =
           "fun format_term NONE = \"\"\n" ^
           "  | format_term (SOME t) = t ();\n" ^
@@ -389,7 +389,7 @@ val evaluate_in_mlton =
         compile_cmd =
           File.bash_path (Path.variable ISABELLE_MLTON) ^
             " -default-type intinf " ^ File.bash_path ml_basis_path,
-        run_cmd = File.bash_path (Path.append path (Path.basic projectN)),
+        run_cmd = File.bash_path (Path.append dir (Path.basic projectN)),
         mk_code_file = K code_path}
       end)
 
@@ -401,13 +401,13 @@ val ISABELLE_SMLNJ = "ISABELLE_SMLNJ"
 
 val evaluate_in_smlnj =
   evaluate (SOME (ISABELLE_SMLNJ, "SMLNJ executable")) smlnjN
-    (fn _ => fn path => fn _ => fn value_name =>
+    (fn _ => fn dir => fn _ => fn value_name =>
       let
         val generatedN = "generated.sml"
         val driverN = "driver.sml"
 
-        val code_path = Path.append path (Path.basic generatedN)
-        val driver_path = Path.append path (Path.basic driverN)
+        val code_path = Path.append dir (Path.basic generatedN)
+        val driver_path = Path.append dir (Path.basic driverN)
         val driver =
           "structure Test = struct\n" ^
           "fun main prog_name =\n" ^
@@ -445,13 +445,13 @@ val ISABELLE_OCAMLFIND = "ISABELLE_OCAMLFIND"
 
 val evaluate_in_ocaml =
   evaluate (SOME (ISABELLE_OCAMLFIND, "ocamlfind executable")) ocamlN
-    (fn _ => fn path => fn _ => fn value_name =>
+    (fn _ => fn dir => fn _ => fn value_name =>
       let
         val generatedN = "generated.ml"
         val driverN = "driver.ml"
 
-        val code_path = Path.append path (Path.basic generatedN)
-        val driver_path = Path.append path (Path.basic driverN)
+        val code_path = Path.append dir (Path.basic generatedN)
+        val driver_path = Path.append dir (Path.basic driverN)
         val driver =
           "let format_term = function\n" ^
           "  | None -> \"\"\n" ^
@@ -466,12 +466,12 @@ val evaluate_in_ocaml =
           "  print_string \"" ^ end_markerN ^ "\";;\n" ^
           "main ();;"
 
-        val compiled_path = Path.append path (Path.basic "test")
+        val compiled_path = Path.append dir (Path.basic "test")
       in
        {files = [(driver_path, driver)],
         compile_cmd =
           "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg" ^
-          " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path path ^ " " ^
+          " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path dir ^ " " ^
           File.bash_path code_path ^ " " ^ File.bash_path driver_path ^ " </dev/null",
         run_cmd = File.bash_path compiled_path,
         mk_code_file = K code_path}
@@ -487,12 +487,12 @@ val ghc_options = Attrib.setup_config_string \<^binding>\<open>code_test_ghc\<cl
 
 val evaluate_in_ghc =
   evaluate (SOME (ISABELLE_GHC, "GHC executable")) ghcN
-    (fn ctxt => fn path => fn modules => fn value_name =>
+    (fn ctxt => fn dir => fn modules => fn value_name =>
       let
         val driverN = "Main.hs"
 
-        fun mk_code_file name = Path.append path (Path.basic name)
-        val driver_path = Path.append path (Path.basic driverN)
+        fun mk_code_file name = Path.append dir (Path.basic name)
+        val driver_path = Path.append dir (Path.basic driverN)
         val driver =
           "module Main where {\n" ^
           implode (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
@@ -510,7 +510,7 @@ val evaluate_in_ghc =
           "  }\n" ^
           "}\n"
 
-        val compiled_path = Path.append path (Path.basic "test")
+        val compiled_path = Path.append dir (Path.basic "test")
       in
        {files = [(driver_path, driver)],
         compile_cmd =
@@ -518,7 +518,7 @@ val evaluate_in_ghc =
           Config.get ctxt ghc_options ^ " -o " ^
           Bash.string (File.platform_path compiled_path) ^ " " ^
           Bash.string (File.platform_path driver_path) ^ " -i" ^
-          Bash.string (File.platform_path path),
+          Bash.string (File.platform_path dir),
         run_cmd = File.bash_path compiled_path,
         mk_code_file = mk_code_file}
       end)
@@ -529,13 +529,13 @@ val evaluate_in_ghc =
 val scalaN = "Scala"
 
 val evaluate_in_scala = evaluate NONE scalaN
-  (fn _ => fn path => fn _ => fn value_name =>
+  (fn _ => fn dir => fn _ => fn value_name =>
     let
       val generatedN = "Generated_Code"
       val driverN = "Driver.scala"
 
-      val code_path = Path.append path (Path.basic (generatedN ^ ".scala"))
-      val driver_path = Path.append path (Path.basic driverN)
+      val code_path = Path.append dir (Path.basic (generatedN ^ ".scala"))
+      val driver_path = Path.append dir (Path.basic driverN)
       val driver =
         "import " ^ generatedN ^ "._\n" ^
         "object Test {\n" ^
@@ -557,11 +557,11 @@ val evaluate_in_scala = evaluate NONE scalaN
     in
      {files = [(driver_path, driver)],
       compile_cmd =
-        "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ Bash.string (File.platform_path path) ^
-        " -classpath " ^ Bash.string (File.platform_path path) ^ " " ^
+        "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ Bash.string (File.platform_path dir) ^
+        " -classpath " ^ Bash.string (File.platform_path dir) ^ " " ^
         Bash.string (File.platform_path code_path) ^ " " ^
         Bash.string (File.platform_path driver_path),
-      run_cmd = "isabelle_scala scala -cp " ^ Bash.string (File.platform_path path) ^ " Test",
+      run_cmd = "isabelle_scala scala -cp " ^ Bash.string (File.platform_path dir) ^ " Test",
       mk_code_file = K code_path}
     end)
 
