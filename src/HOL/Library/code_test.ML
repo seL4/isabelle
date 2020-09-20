@@ -161,7 +161,7 @@ fun dynamic_value_strict ctxt t compiler =
     val (driver, target) =
       (case get_driver thy compiler of
         NONE => error ("No driver for target " ^ compiler)
-      | SOME f => f)
+      | SOME drv => drv)
     val debug = Config.get (Proof_Context.init_global thy) overlord
     val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
     fun evaluate result =
@@ -229,7 +229,7 @@ fun test_terms ctxt ts target =
     val failed =
       filter_out (fst o fst o fst) (result ~~ ts ~~ evals)
       handle ListPair.UnequalLengths =>
-        error ("Evaluation failed!\nWrong number of test results: " ^ Int.toString (length result))
+        error ("Evaluation failed!\nWrong number of test results: " ^ string_of_int (length result))
   in
     (case failed of [] =>
       ()
@@ -314,7 +314,7 @@ fun evaluate mk_driver opt_env_var compilerN ctxt (code_files, value_name) =
         val _ =
           if res = 0 then ()
           else error ("Evaluation for " ^ compilerN ^ " terminated with error code " ^
-            Int.toString res ^ "\nBash output:\n" ^ out)
+            string_of_int res ^ "\nBash output:\n" ^ out)
       in out end
   in run end
 
@@ -496,7 +496,7 @@ fun mk_driver_ghc ctxt path modules value_name =
     val driver_path = Path.append path (Path.basic driverN)
     val driver =
       "module Main where {\n" ^
-      String.concat (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
+      implode (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
       "main = do {\n" ^
       "    let {\n" ^
       "      format_term Nothing = \"\";\n" ^
@@ -583,7 +583,7 @@ val _ =
 val target_Scala = "Scala_eval"
 val target_Haskell = "Haskell_eval"
 
-val _ = Theory.setup 
+val _ = Theory.setup
    (Code_Target.add_derived_target (target_Scala, [(Code_Scala.target, I)])
     #> Code_Target.add_derived_target (target_Haskell, [(Code_Haskell.target, I)]))
 
