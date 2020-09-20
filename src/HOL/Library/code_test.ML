@@ -18,13 +18,9 @@ sig
   val test_targets: Proof.context -> term list -> string list -> unit
   val test_code_cmd: string list -> string list -> Proof.context -> unit
   val eval_term: string -> Proof.context -> term -> term
-  val evaluate:
-   (theory -> Path.T -> string list -> string ->
-     {files: (Path.T * string) list,
-       compile_cmd: string option,
-       run_cmd: string,
-       mk_code_file: string -> Path.T}) -> (string * string) option -> string -> theory ->
-     (string * string) list * string -> Path.T -> string
+  val check_settings: string -> string -> string -> unit
+  val compile: string -> string -> unit
+  val evaluate: string -> string -> string
   val evaluate_in_polyml: Proof.context -> (string * string) list * string -> Path.T -> string
   val evaluate_in_mlton: Proof.context -> (string * string) list * string -> Path.T -> string
   val evaluate_in_smlnj: Proof.context -> (string * string) list * string -> Path.T -> string
@@ -120,7 +116,7 @@ fun parse_line line =
 
 fun parse_result target out =
   (case split_first_last start_markerN end_markerN out of
-    NONE => error ("Evaluation failed for " ^ target ^ "!\nBash output:\n" ^ out)
+    NONE => error ("Evaluation failed for " ^ target ^ "!\nCompiler output:\n" ^ out)
   | SOME (_, middle, _) => middle |> trim_split_lines |> map parse_line)
 
 
@@ -136,9 +132,9 @@ fun pretty_eval _ NONE _ = []
          (ts ~~ evals))]
 
 fun pretty_failure ctxt target (((_, evals), query), eval_ts) =
-  Pretty.block (Pretty.text ("Test in " ^ target ^ " failed for")
-    @ [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt query)]
-    @ pretty_eval ctxt evals eval_ts)
+  Pretty.block (Pretty.text ("Test in " ^ target ^ " failed for") @
+    [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt query)] @
+    pretty_eval ctxt evals eval_ts)
 
 fun pretty_failures ctxt target failures =
   Pretty.blk (0, Pretty.fbreaks (map (pretty_failure ctxt target) failures))
@@ -150,10 +146,10 @@ val overlord = Attrib.setup_config_bool \<^binding>\<open>code_test_overlord\<cl
 
 fun with_overlord_dir name f =
   let
-    val path =
+    val dir =
       Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs path
-  in Exn.release (Exn.capture f path) end
+    val _ = Isabelle_System.mkdirs dir
+  in Exn.release (Exn.capture f dir) end
 
 fun dynamic_value_strict ctxt t compiler =
   let
@@ -161,14 +157,14 @@ fun dynamic_value_strict ctxt t compiler =
     val (driver, target) =
       (case get_driver thy compiler of
         NONE => error ("No driver for target " ^ compiler)
-      | SOME f => f)
+      | SOME drv => drv)
     val debug = Config.get (Proof_Context.init_global thy) overlord
     val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
-    fun evaluate result =
+    fun eval result =
       with_dir "Code_Test" (driver ctxt ((apfst o map o apfst) Long_Name.implode result))
       |> parse_result compiler
     fun evaluator program _ vs_ty deps =
-      Exn.interruptible_capture evaluate
+      Exn.interruptible_capture eval
         (Code_Target.compilation_text ctxt target program deps true vs_ty)
     fun postproc f = map (apsnd (Option.map (map f)))
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
@@ -229,10 +225,10 @@ fun test_terms ctxt ts target =
     val failed =
       filter_out (fst o fst o fst) (result ~~ ts ~~ evals)
       handle ListPair.UnequalLengths =>
-        error ("Evaluation failed!\nWrong number of test results: " ^ Int.toString (length result))
+        error ("Evaluation failed!\nWrong number of test results: " ^ string_of_int (length result))
   in
-    (case failed of [] =>
-      ()
+    (case failed of
+      [] => ()
     | _ => error (Pretty.string_of (pretty_failures ctxt target failed)))
   end
 
@@ -275,61 +271,39 @@ fun eval_term target ctxt t =
   in (case result of [(_, SOME [t])] => t | _ => error "Evaluation failed") end
 
 
-(* generic driver *)
+(* check and invoke compiler *)
 
-fun evaluate mk_driver opt_env_var compilerN ctxt (code_files, value_name) =
-  let
-    val _ =
-      (case opt_env_var of
-        NONE => ()
-      | SOME (env_var, env_var_dest) =>
-          (case getenv env_var of
-            "" =>
-              error (Pretty.string_of (Pretty.para
-                ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
-                  compilerN ^ ", set this variable to your " ^ env_var_dest ^
-                  " in the $ISABELLE_HOME_USER/etc/settings file.")))
-          | _ => ()))
+fun check_settings compiler var descr =
+  if getenv var = "" then
+    error (Pretty.string_of (Pretty.para
+      ("Environment variable " ^ var ^ " is not set. To test code generation with " ^
+        compiler ^ ", set this variable to your " ^ descr ^
+        " in the $ISABELLE_HOME_USER/etc/settings file.")))
+  else ();
 
-    fun compile NONE = ()
-      | compile (SOME cmd) =
-          let
-            val (out, ret) = Isabelle_System.bash_output cmd
-          in
-            if ret = 0 then ()
-            else error ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
-          end
+fun compile compiler cmd =
+  let val (out, ret) = Isabelle_System.bash_output cmd in
+    if ret = 0 then ()
+    else error ("Compilation with " ^ compiler ^ " failed:\n" ^ cmd ^ "\n" ^ out)
+  end
 
-    fun run path =
-      let
-        val modules = map fst code_files
-        val {files, compile_cmd, run_cmd, mk_code_file} = mk_driver ctxt path modules value_name
-
-        val _ = List.app (fn (name, code) => File.write (mk_code_file name) code) code_files
-        val _ = List.app (fn (name, content) => File.write name content) files
-
-        val _ = compile compile_cmd
-
-        val (out, res) = Isabelle_System.bash_output run_cmd
-        val _ =
-          if res = 0 then ()
-          else error ("Evaluation for " ^ compilerN ^ " terminated with error code " ^
-            Int.toString res ^ "\nBash output:\n" ^ out)
-      in out end
-  in run end
+fun evaluate compiler cmd =
+  let val (out, res) = Isabelle_System.bash_output cmd in
+    if res = 0 then out
+    else error ("Evaluation for " ^ compiler ^ " terminated with error code " ^
+      string_of_int res ^ "\nCompiler output:\n" ^ out)
+  end
 
 
 (* driver for PolyML *)
 
 val polymlN = "PolyML"
 
-fun mk_driver_polyml _ path _ value_name =
+fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
   let
-    val generatedN = "generated.sml"
-    val driverN = "driver.sml"
-
-    val code_path = Path.append path (Path.basic generatedN)
-    val driver_path = Path.append path (Path.basic driverN)
+    val compiler = polymlN
+    val code_path = Path.append dir (Path.basic "generated.sml")
+    val driver_path = Path.append dir (Path.basic "driver.sml")
     val driver =
       "fun main prog_name = \n" ^
       "  let\n" ^
@@ -343,16 +317,16 @@ fun mk_driver_polyml _ path _ value_name =
       "    val _ = print \"" ^ end_markerN ^ "\";\n" ^
       "  in\n" ^
       "    ()\n" ^
-      "  end;\n"
+      "  end;\n";
     val cmd =
-      "\"$POLYML_EXE\" --use " ^ Bash.string (File.platform_path code_path) ^
-      " --use " ^ Bash.string (File.platform_path driver_path) ^
+      "\"$POLYML_EXE\" --use " ^ File.bash_platform_path code_path ^
+      " --use " ^ File.bash_platform_path driver_path ^
       " --eval " ^ Bash.string "main ()"
   in
-    {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
+    List.app (File.write code_path o snd) code_files;
+    File.write driver_path driver;
+    evaluate compiler cmd
   end
-
-fun evaluate_in_polyml ctxt = evaluate mk_driver_polyml NONE polymlN ctxt
 
 
 (* driver for mlton *)
@@ -360,16 +334,16 @@ fun evaluate_in_polyml ctxt = evaluate mk_driver_polyml NONE polymlN ctxt
 val mltonN = "MLton"
 val ISABELLE_MLTON = "ISABELLE_MLTON"
 
-fun mk_driver_mlton _ path _ value_name =
+fun evaluate_in_mlton (_: Proof.context) (code_files, value_name) dir =
   let
+    val compiler = mltonN
     val generatedN = "generated.sml"
     val driverN = "driver.sml"
     val projectN = "test"
-    val ml_basisN = projectN ^ ".mlb"
 
-    val code_path = Path.append path (Path.basic generatedN)
-    val driver_path = Path.append path (Path.basic driverN)
-    val ml_basis_path = Path.append path (Path.basic ml_basisN)
+    val code_path = Path.append dir (Path.basic generatedN)
+    val driver_path = Path.append dir (Path.basic driverN)
+    val basis_path = Path.append dir (Path.basic (projectN ^ ".mlb"))
     val driver =
       "fun format_term NONE = \"\"\n" ^
       "  | format_term (SOME t) = t ();\n" ^
@@ -379,22 +353,15 @@ fun mk_driver_mlton _ path _ value_name =
       "val _ = print \"" ^ start_markerN ^ "\";\n" ^
       "val _ = map (print o format) result;\n" ^
       "val _ = print \"" ^ end_markerN ^ "\";\n"
-    val ml_basis =
-      "$(SML_LIB)/basis/basis.mlb\n" ^
-      generatedN ^ "\n" ^
-      driverN
-
-    val compile_cmd =
-      File.bash_path (Path.variable ISABELLE_MLTON) ^
-      " -default-type intinf " ^ File.bash_path ml_basis_path
-    val run_cmd = File.bash_path (Path.append path (Path.basic projectN))
+    val cmd = "\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path
   in
-    {files = [(driver_path, driver), (ml_basis_path, ml_basis)],
-     compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
+    check_settings compiler ISABELLE_MLTON "MLton executable";
+    List.app (File.write code_path o snd) code_files;
+    File.write driver_path driver;
+    File.write basis_path ("$(SML_LIB)/basis/basis.mlb\n" ^ generatedN ^ "\n" ^ driverN);
+    compile compiler cmd;
+    evaluate compiler (File.bash_path (Path.append dir (Path.basic projectN)))
   end
-
-fun evaluate_in_mlton ctxt =
-  evaluate mk_driver_mlton (SOME (ISABELLE_MLTON, "MLton executable")) mltonN ctxt
 
 
 (* driver for SML/NJ *)
@@ -402,13 +369,14 @@ fun evaluate_in_mlton ctxt =
 val smlnjN = "SMLNJ"
 val ISABELLE_SMLNJ = "ISABELLE_SMLNJ"
 
-fun mk_driver_smlnj _ path _ value_name =
+fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
   let
+    val compiler = smlnjN
     val generatedN = "generated.sml"
     val driverN = "driver.sml"
 
-    val code_path = Path.append path (Path.basic generatedN)
-    val driver_path = Path.append path (Path.basic driverN)
+    val code_path = Path.append dir (Path.basic generatedN)
+    val driver_path = Path.append dir (Path.basic driverN)
     val driver =
       "structure Test = struct\n" ^
       "fun main prog_name =\n" ^
@@ -427,16 +395,15 @@ fun mk_driver_smlnj _ path _ value_name =
       "end;"
     val ml_source =
       "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
-      "use " ^ ML_Syntax.print_string (Bash.string (File.platform_path code_path)) ^
-      "; use " ^ ML_Syntax.print_string (Bash.string (File.platform_path driver_path)) ^
+      "use " ^ ML_Syntax.print_string (File.platform_path code_path) ^
+      "; use " ^ ML_Syntax.print_string (File.platform_path driver_path) ^
       "; Test.main ();"
-    val cmd = "echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\""
   in
-    {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
+    check_settings compiler ISABELLE_SMLNJ "SMLNJ executable";
+    List.app (File.write code_path o snd) code_files;
+    File.write driver_path driver;
+    evaluate compiler ("echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\"")
   end
-
-fun evaluate_in_smlnj ctxt =
-  evaluate mk_driver_smlnj (SOME (ISABELLE_SMLNJ, "SMLNJ executable")) smlnjN ctxt
 
 
 (* driver for OCaml *)
@@ -444,13 +411,12 @@ fun evaluate_in_smlnj ctxt =
 val ocamlN = "OCaml"
 val ISABELLE_OCAMLFIND = "ISABELLE_OCAMLFIND"
 
-fun mk_driver_ocaml _ path _ value_name =
+fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
   let
-    val generatedN = "generated.ml"
-    val driverN = "driver.ml"
+    val compiler = ocamlN
 
-    val code_path = Path.append path (Path.basic generatedN)
-    val driver_path = Path.append path (Path.basic driverN)
+    val code_path = Path.append dir (Path.basic "generated.ml")
+    val driver_path = Path.append dir (Path.basic "driver.ml")
     val driver =
       "let format_term = function\n" ^
       "  | None -> \"\"\n" ^
@@ -464,21 +430,18 @@ fun mk_driver_ocaml _ path _ value_name =
       "  let _ = List.map (fun x -> print_string (format x)) result in\n" ^
       "  print_string \"" ^ end_markerN ^ "\";;\n" ^
       "main ();;"
-
-    val compiled_path = Path.append path (Path.basic "test")
-    val compile_cmd =
+    val compiled_path = Path.append dir (Path.basic "test")
+    val cmd =
       "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg" ^
-      " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path path ^ " " ^
+      " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path dir ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path ^ " </dev/null"
-
-    val run_cmd = File.bash_path compiled_path
   in
-    {files = [(driver_path, driver)],
-     compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
+    check_settings compiler ISABELLE_OCAMLFIND "ocamlfind executable";
+    List.app (File.write code_path o snd) code_files;
+    File.write driver_path driver;
+    compile compiler cmd;
+    evaluate compiler (File.bash_path compiled_path)
   end
-
-fun evaluate_in_ocaml ctxt =
-  evaluate mk_driver_ocaml (SOME (ISABELLE_OCAMLFIND, "ocamlfind executable")) ocamlN ctxt
 
 
 (* driver for GHC *)
@@ -488,15 +451,15 @@ val ISABELLE_GHC = "ISABELLE_GHC"
 
 val ghc_options = Attrib.setup_config_string \<^binding>\<open>code_test_ghc\<close> (K "")
 
-fun mk_driver_ghc ctxt path modules value_name =
+fun evaluate_in_ghc ctxt (code_files, value_name) dir =
   let
-    val driverN = "Main.hs"
+    val compiler = ghcN
+    val modules = map fst code_files
 
-    fun mk_code_file name = Path.append path (Path.basic name)
-    val driver_path = Path.append path (Path.basic driverN)
+    val driver_path = Path.append dir (Path.basic "Main.hs")
     val driver =
       "module Main where {\n" ^
-      String.concat (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
+      implode (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
       "main = do {\n" ^
       "    let {\n" ^
       "      format_term Nothing = \"\";\n" ^
@@ -511,33 +474,34 @@ fun mk_driver_ghc ctxt path modules value_name =
       "  }\n" ^
       "}\n"
 
-    val compiled_path = Path.append path (Path.basic "test")
-    val compile_cmd =
+    val compiled_path = Path.append dir (Path.basic "test")
+    val cmd =
       "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
-      Config.get ctxt ghc_options ^ " -o " ^ Bash.string (File.platform_path compiled_path) ^ " " ^
-      Bash.string (File.platform_path driver_path) ^ " -i" ^ Bash.string (File.platform_path path)
-
-    val run_cmd = File.bash_path compiled_path
+      Config.get ctxt ghc_options ^ " -o " ^
+      File.bash_platform_path compiled_path ^ " " ^
+      File.bash_platform_path driver_path ^ " -i" ^
+      File.bash_platform_path dir
   in
-    {files = [(driver_path, driver)],
-     compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = mk_code_file}
+    check_settings compiler ISABELLE_GHC "GHC executable";
+    List.app (fn (name, code) => File.write (Path.append dir (Path.basic name)) code) code_files;
+    File.write driver_path driver;
+    compile compiler cmd;
+    evaluate compiler (File.bash_path compiled_path)
   end
-
-fun evaluate_in_ghc ctxt =
-  evaluate mk_driver_ghc (SOME (ISABELLE_GHC, "GHC executable")) ghcN ctxt
 
 
 (* driver for Scala *)
 
 val scalaN = "Scala"
 
-fun mk_driver_scala _ path _ value_name =
+fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
   let
+    val compiler = scalaN
     val generatedN = "Generated_Code"
     val driverN = "Driver.scala"
 
-    val code_path = Path.append path (Path.basic (generatedN ^ ".scala"))
-    val driver_path = Path.append path (Path.basic driverN)
+    val code_path = Path.append dir (Path.basic (generatedN ^ ".scala"))
+    val driver_path = Path.append dir (Path.basic driverN)
     val driver =
       "import " ^ generatedN ^ "._\n" ^
       "object Test {\n" ^
@@ -556,20 +520,17 @@ fun mk_driver_scala _ path _ value_name =
       "    print(\"" ^ end_markerN ^ "\");\n" ^
       "  }\n" ^
       "}\n"
-
     val compile_cmd =
-      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ Bash.string (File.platform_path path) ^
-      " -classpath " ^ Bash.string (File.platform_path path) ^ " " ^
-      Bash.string (File.platform_path code_path) ^ " " ^
-      Bash.string (File.platform_path driver_path)
-
-    val run_cmd = "isabelle_scala scala -cp " ^ Bash.string (File.platform_path path) ^ " Test"
+      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ File.bash_platform_path dir ^
+      " -classpath " ^ File.bash_platform_path dir ^ " " ^
+      File.bash_platform_path code_path ^ " " ^ File.bash_platform_path driver_path
+    val run_cmd = "isabelle_scala scala -cp " ^ File.bash_platform_path dir ^ " Test"
   in
-    {files = [(driver_path, driver)],
-     compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
+    List.app (File.write code_path o snd) code_files;
+    File.write driver_path driver;
+    compile compiler compile_cmd;
+    evaluate compiler run_cmd
   end
-
-fun evaluate_in_scala ctxt = evaluate mk_driver_scala NONE scalaN ctxt
 
 
 (* command setup *)
@@ -583,7 +544,7 @@ val _ =
 val target_Scala = "Scala_eval"
 val target_Haskell = "Haskell_eval"
 
-val _ = Theory.setup 
+val _ = Theory.setup
    (Code_Target.add_derived_target (target_Scala, [(Code_Scala.target, I)])
     #> Code_Target.add_derived_target (target_Haskell, [(Code_Haskell.target, I)]))
 
