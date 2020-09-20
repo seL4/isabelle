@@ -395,8 +395,8 @@ fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
       "end;"
     val ml_source =
       "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
-      "use " ^ ML_Syntax.print_string (Bash.string (File.platform_path code_path)) ^
-      "; use " ^ ML_Syntax.print_string (Bash.string (File.platform_path driver_path)) ^
+      "use " ^ ML_Syntax.print_string (File.platform_path code_path) ^
+      "; use " ^ ML_Syntax.print_string (File.platform_path driver_path) ^
       "; Test.main ();"
   in
     check_settings compiler ISABELLE_SMLNJ "SMLNJ executable";
