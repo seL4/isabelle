@@ -120,7 +120,7 @@ fun parse_line line =
 
 fun parse_result target out =
   (case split_first_last start_markerN end_markerN out of
-    NONE => error ("Evaluation failed for " ^ target ^ "!\nBash output:\n" ^ out)
+    NONE => error ("Evaluation failed for " ^ target ^ "!\nCompiler output:\n" ^ out)
   | SOME (_, middle, _) => middle |> trim_split_lines |> map parse_line)
 
 
@@ -314,7 +314,7 @@ fun evaluate mk_driver opt_env_var compilerN ctxt (code_files, value_name) =
         val _ =
           if res = 0 then ()
           else error ("Evaluation for " ^ compilerN ^ " terminated with error code " ^
-            string_of_int res ^ "\nBash output:\n" ^ out)
+            string_of_int res ^ "\nCompiler output:\n" ^ out)
       in out end
   in run end
 
