@@ -561,6 +561,49 @@ lemma of_int_word_less_iff:
   by transfer rule
 
 
+
+subsection \<open>Enumeration\<close>
+
+lemma inj_on_word_of_nat:
+  \<open>inj_on (word_of_nat :: nat \<Rightarrow> 'a::len word) {0..<2 ^ LENGTH('a)}\<close>
+  by (rule inj_onI; transfer) (simp_all add: take_bit_int_eq_self)
+
+lemma UNIV_word_eq_word_of_nat:
+  \<open>(UNIV :: 'a::len word set) = word_of_nat ` {0..<2 ^ LENGTH('a)}\<close> (is \<open>_ = ?A\<close>)
+proof
+  show \<open>word_of_nat ` {0..<2 ^ LENGTH('a)} \<subseteq> UNIV\<close>
+    by simp
+  show \<open>UNIV \<subseteq> ?A\<close>
+  proof
+    fix w :: \<open>'a word\<close>
+    show \<open>w \<in> (word_of_nat ` {0..<2 ^ LENGTH('a)} :: 'a word set)\<close>
+      by (rule image_eqI [of _ _ \<open>unat w\<close>]; transfer) simp_all
+  qed
+qed
+
+instantiation word :: (len) enum
+begin
+
+definition enum_word :: \<open>'a word list\<close>
+  where \<open>enum_word = map word_of_nat [0..<2 ^ LENGTH('a)]\<close>
+
+definition enum_all_word :: \<open>('a word \<Rightarrow> bool) \<Rightarrow> bool\<close>
+  where \<open>enum_all_word = Ball UNIV\<close>
+
+definition enum_ex_word :: \<open>('a word \<Rightarrow> bool) \<Rightarrow> bool\<close>
+  where \<open>enum_ex_word = Bex UNIV\<close>
+
+lemma [code]:
+  \<open>Enum.enum_all P \<longleftrightarrow> Ball UNIV P\<close>
+  \<open>Enum.enum_ex P \<longleftrightarrow> Bex UNIV P\<close> for P :: \<open>'a word \<Rightarrow> bool\<close>
+  by (simp_all add: enum_all_word_def enum_ex_word_def)
+
+instance
+  by standard (simp_all add: UNIV_word_eq_word_of_nat inj_on_word_of_nat enum_word_def enum_all_word_def enum_ex_word_def distinct_map)
+
+end
+
+
 subsection \<open>Bit-wise operations\<close>
 
 instantiation word :: (len) semiring_modulo
@@ -2882,6 +2925,17 @@ proof -
   then have \<open>unat v dvd unat w\<close> ..
   then show ?thesis
     by (simp add: udvd_iff_dvd)
+qed
+
+lemma udvd_imp_dvd:
+  \<open>v dvd w\<close> if \<open>v udvd w\<close> for v w :: \<open>'a::len word\<close>
+proof -
+  from that obtain u :: \<open>'a word\<close> where w: \<open>unat w = unat v * unat u\<close> ..
+  then have \<open>(word_of_nat (unat w) :: 'a word) = word_of_nat (unat v * unat u)\<close>
+    by simp
+  then have \<open>w = v * u\<close>
+    by simp
+  then show \<open>v dvd w\<close> ..
 qed
 
 lemma udvd_nat_alt:
