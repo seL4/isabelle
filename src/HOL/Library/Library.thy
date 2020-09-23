@@ -86,6 +86,7 @@ imports
   Saturated
   Set_Algebras
   Set_Idioms
+  Signed_Division
   State_Monad
   Stirling
   Stream

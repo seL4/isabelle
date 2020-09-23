@@ -117,4 +117,12 @@ lemma two_less_eq_exp_length [simp]:
 
 end
 
+lemma less_eq_decr_length_iff [simp]:
+  \<open>n \<le> LENGTH('a::len) - Suc 0 \<longleftrightarrow> n < LENGTH('a)\<close>
+  by (cases \<open>LENGTH('a)\<close>) (simp_all add: less_Suc_eq le_less)
+
+lemma decr_length_less_iff [simp]:
+  \<open>LENGTH('a::len) - Suc 0 < n \<longleftrightarrow> LENGTH('a) \<le> n\<close>
+  by (cases \<open>LENGTH('a)\<close>) auto
+
 end

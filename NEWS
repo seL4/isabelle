@@ -78,6 +78,9 @@ written as "x powi n".
 
 * Library theory "Bit_Operations" with generic bit operations.
 
+* Library theory "Signed_Division" provides operations for signed
+division, instantiated for type int.
+
 * Session HOL-Word: Type word is restricted to bit strings consisting
 of at least one bit.  INCOMPATIBILITY.
 

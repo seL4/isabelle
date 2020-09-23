@@ -75,7 +75,6 @@ context
     transfer_rule_numeral [transfer_rule]
     transfer_rule_of_nat [transfer_rule]
     transfer_rule_of_int [transfer_rule]
-
 begin
 
 lemma power_transfer_word [transfer_rule]:
@@ -275,6 +274,10 @@ lemma word_eq_iff_unsigned:
   \<open>v = w \<longleftrightarrow> unsigned v = unsigned w\<close>
   by (auto intro: unsigned_word_eqI)
 
+lemma (in semiring_char_0) unsigned_eq_0_iff:
+  \<open>unsigned w = 0 \<longleftrightarrow> w = 0\<close>
+  using word_eq_iff_unsigned [of w 0] by simp
+
 end
 
 context ring_1
@@ -325,6 +328,10 @@ lemma signed_word_eqI:
 lemma word_eq_iff_signed:
   \<open>v = w \<longleftrightarrow> signed v = signed w\<close>
   by (auto intro: signed_word_eqI)
+
+lemma signed_eq_0_iff:
+  \<open>signed w = 0 \<longleftrightarrow> w = 0\<close>
+  using word_eq_iff_signed [of w 0] by simp
 
 end
 
@@ -402,6 +409,10 @@ lemma of_int_sint [simp]:
 lemma nat_uint_eq [simp]:
   \<open>nat (uint w) = unat w\<close>
   by transfer simp
+
+lemma sgn_uint_eq [simp]:
+  \<open>sgn (uint w) = of_bool (w \<noteq> 0)\<close>
+  by transfer (simp add: less_le)
 
 text \<open>Aliasses only for code generation\<close>
 
@@ -2930,12 +2941,26 @@ qed
 lemma udvd_imp_dvd:
   \<open>v dvd w\<close> if \<open>v udvd w\<close> for v w :: \<open>'a::len word\<close>
 proof -
-  from that obtain u :: \<open>'a word\<close> where w: \<open>unat w = unat v * unat u\<close> ..
+  from that obtain u :: \<open>'a word\<close> where \<open>unat w = unat v * unat u\<close> ..
   then have \<open>(word_of_nat (unat w) :: 'a word) = word_of_nat (unat v * unat u)\<close>
     by simp
   then have \<open>w = v * u\<close>
     by simp
   then show \<open>v dvd w\<close> ..
+qed
+
+lemma exp_dvd_iff_exp_udvd:
+  \<open>2 ^ n dvd w \<longleftrightarrow> 2 ^ n udvd w\<close> for v w :: \<open>'a::len word\<close>
+proof
+  assume \<open>2 ^ n udvd w\<close> then show \<open>2 ^ n dvd w\<close>
+    by (rule udvd_imp_dvd) 
+next
+  assume \<open>2 ^ n dvd w\<close>
+  then obtain u :: \<open>'a word\<close> where \<open>w = 2 ^ n * u\<close> ..
+  then have \<open>w = push_bit n u\<close>
+    by (simp add: push_bit_eq_mult)
+  then show \<open>2 ^ n udvd w\<close>
+    by transfer (simp add: take_bit_push_bit dvd_eq_mod_eq_0 flip: take_bit_eq_mod)
 qed
 
 lemma udvd_nat_alt:

@@ -1193,6 +1193,10 @@ qed
 context semiring_bits
 begin
 
+lemma bit_of_bool_iff:
+  \<open>bit (of_bool b) n \<longleftrightarrow> b \<and> n = 0\<close>
+	by (simp add: bit_1_iff)
+
 lemma even_of_nat_iff:
   \<open>even (of_nat n) \<longleftrightarrow> even n\<close>
   by (induction n rule: nat_bit_induct) simp_all

@@ -159,6 +159,10 @@ lemma take_bit_eq_mask:
   by (rule bit_eqI)
     (auto simp add: bit_take_bit_iff bit_and_iff bit_mask_iff)
 
+lemma or_eq_0_iff:
+  \<open>a OR b = 0 \<longleftrightarrow> a = 0 \<and> b = 0\<close>
+	by (auto simp add: bit_eq_iff bit_or_iff)
+
 lemma disjunctive_add:
   \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
   by (rule bit_eqI) (use that in \<open>simp add: bit_disjunctive_add_iff bit_or_iff\<close>)
@@ -248,6 +252,30 @@ lemma not_add_distrib:
 lemma not_diff_distrib:
   \<open>NOT (a - b) = NOT a + b\<close>
   using not_add_distrib [of a \<open>- b\<close>] by simp
+
+lemma (in ring_bit_operations) and_eq_minus_1_iff:
+  \<open>a AND b = - 1 \<longleftrightarrow> a = - 1 \<and> b = - 1\<close>
+proof
+  assume \<open>a = - 1 \<and> b = - 1\<close>
+  then show \<open>a AND b = - 1\<close>
+	by simp
+next
+  assume \<open>a AND b = - 1\<close>
+  have *: \<open>bit a n\<close> \<open>bit b n\<close> if \<open>2 ^ n \<noteq> 0\<close> for n
+  proof -
+    from \<open>a AND b = - 1\<close>
+    have \<open>bit (a AND b) n = bit (- 1) n\<close>
+      by (simp add: bit_eq_iff)
+    then show \<open>bit a n\<close> \<open>bit b n\<close>
+	    using that by (simp_all add: bit_and_iff)
+  qed
+  have \<open>a = - 1\<close>
+    by (rule bit_eqI) (simp add: *)
+  moreover have \<open>b = - 1\<close>
+    by (rule bit_eqI) (simp add: *)
+  ultimately show \<open>a = - 1 \<and> b = - 1\<close>
+    by simp
+qed
 
 lemma disjunctive_diff:
   \<open>a - b = a AND NOT b\<close> if \<open>\<And>n. bit b n \<Longrightarrow> bit a n\<close>
