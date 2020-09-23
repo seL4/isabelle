@@ -97,34 +97,20 @@ by(induction t) auto
 
 subsection "Functional Correctness"
 
-lemma mset_merge: "mset_tree (merge h1 h2) = mset_tree h1 + mset_tree h2"
-by (induction h1 h2 rule: merge.induct) (auto simp add: node_def ac_simps)
+lemma mset_merge: "mset_tree (merge t1 t2) = mset_tree t1 + mset_tree t2"
+by (induction t1 t2 rule: merge.induct) (auto simp add: node_def ac_simps)
 
 lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
 by (auto simp add: insert_def mset_merge)
 
-lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min(set_tree h)"
-by (induction h) (auto simp add: eq_Min_iff)
+lemma get_min: "\<lbrakk> heap t;  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min t = Min(set_tree t)"
+by (cases t) (auto simp add: eq_Min_iff)
 
-lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
-by (cases h) (auto simp: mset_merge)
+lemma mset_del_min: "mset_tree (del_min t) = mset_tree t - {# get_min t #}"
+by (cases t) (auto simp: mset_merge)
 
 lemma ltree_merge: "\<lbrakk> ltree l; ltree r \<rbrakk> \<Longrightarrow> ltree (merge l r)"
-proof(induction l r rule: merge.induct)
-  case (3 l1 a1 n1 r1 l2 a2 n2 r2)
-  show ?case (is "ltree(merge ?t1 ?t2)")
-  proof cases
-    assume "a1 \<le> a2"
-    hence "ltree (merge ?t1 ?t2) = ltree (node l1 a1 (merge r1 ?t2))" by simp
-    also have "\<dots> = (ltree l1 \<and> ltree(merge r1 ?t2))"
-      by(simp add: ltree_node)
-    also have "..." using "3.prems" "3.IH"(1)[OF \<open>a1 \<le> a2\<close>] by (simp)
-    finally show ?thesis .
-  next (* analogous but automatic *)
-    assume "\<not> a1 \<le> a2"
-    thus ?thesis using 3 by(simp)(auto simp: ltree_node)
-  qed
-qed simp_all
+by(induction l r rule: merge.induct)(auto simp: ltree_node)
 
 lemma heap_merge: "\<lbrakk> heap l; heap r \<rbrakk> \<Longrightarrow> heap (merge l r)"
 proof(induction l r rule: merge.induct)
@@ -147,10 +133,10 @@ text \<open>Last step of functional correctness proof: combine all the above lem
 to show that leftist heaps satisfy the specification of priority queues with merge.\<close>
 
 interpretation lheap: Priority_Queue_Merge
-where empty = empty and is_empty = "\<lambda>h. h = Leaf"
+where empty = empty and is_empty = "\<lambda>t. t = Leaf"
 and insert = insert and del_min = del_min
 and get_min = get_min and merge = merge
-and invar = "\<lambda>h. heap h \<and> ltree h" and mset = mset_tree
+and invar = "\<lambda>t. heap t \<and> ltree t" and mset = mset_tree
 proof(standard, goal_cases)
   case 1 show ?case by (simp add: empty_def)
 next
