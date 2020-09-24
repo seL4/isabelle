@@ -9,7 +9,7 @@ sig
   val add_driver:
     string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) ->
     theory -> theory
-  val overlord: bool Config.T
+  val debug: bool Config.T
   val successN: string
   val failureN: string
   val start_markerN: string
@@ -141,9 +141,9 @@ fun pretty_failures ctxt target failures =
 
 (* driver invocation *)
 
-val overlord = Attrib.setup_config_bool \<^binding>\<open>code_test_overlord\<close> (K false)
+val debug = Attrib.setup_config_bool \<^binding>\<open>code_test_debug\<close> (K false)
 
-fun with_overlord_dir name f =
+fun with_debug_dir name f =
   let
     val dir =
       Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
@@ -157,8 +157,9 @@ fun dynamic_value_strict ctxt t compiler =
       (case get_driver thy compiler of
         NONE => error ("No driver for target " ^ compiler)
       | SOME drv => drv)
-    val debug = Config.get (Proof_Context.init_global thy) overlord
-    val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
+    val with_dir =
+      if Config.get (Proof_Context.init_global thy) debug
+      then with_debug_dir else Isabelle_System.with_tmp_dir
     fun eval result =
       with_dir "Code_Test" (driver ctxt ((apfst o map o apfst) Long_Name.implode result))
       |> parse_result compiler
