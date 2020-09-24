@@ -299,18 +299,17 @@ fun evaluate_in_polyml ctxt (code_files, value_name) dir =
     val code_path = Path.append dir (Path.basic "generated.sml")
     val driver_path = Path.append dir (Path.basic "driver.sml")
     val out_path = Path.append dir (Path.basic "out")
-    val string = ML_Syntax.print_string
     val driver = \<^verbatim>\<open>
 fun main prog_name =
   let
-    fun format (true, _) = \<close> ^ string successN ^ \<^verbatim>\<open> ^ "\n"
-      | format (false, NONE) = \<close> ^ string failureN ^ \<^verbatim>\<open> ^ "\n"
-      | format (false, SOME t) = \<close> ^ string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+    fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
     val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
     val result_text = \<close> ^
-      string start_markerN ^
+      ML_Syntax.print_string start_markerN ^
       \<^verbatim>\<open> ^ String.concat (map format result) ^ \<close> ^
-      string end_markerN ^ \<^verbatim>\<open>
+      ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
     val out = BinIO.openOut \<close> ^ ML_Syntax.print_platform_path out_path ^ \<^verbatim>\<open>
     val _ = BinIO.output (out, Byte.stringToBytes result_text)
     val _ = BinIO.closeOut out
