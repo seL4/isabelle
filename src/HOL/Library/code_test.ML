@@ -157,9 +157,7 @@ fun dynamic_value_strict ctxt t compiler =
       (case get_driver thy compiler of
         NONE => error ("No driver for target " ^ compiler)
       | SOME drv => drv)
-    val with_dir =
-      if Config.get (Proof_Context.init_global thy) debug
-      then with_debug_dir else Isabelle_System.with_tmp_dir
+    val with_dir = if Config.get ctxt debug then with_debug_dir else Isabelle_System.with_tmp_dir
     fun eval result =
       with_dir "Code_Test" (driver ctxt ((apfst o map o apfst) Long_Name.implode result))
       |> parse_result compiler
