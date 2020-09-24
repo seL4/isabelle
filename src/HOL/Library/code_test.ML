@@ -347,15 +347,15 @@ fun evaluate_in_mlton (_: Proof.context) (code_files, value_name) dir =
     val code_path = Path.append dir (Path.basic generatedN)
     val driver_path = Path.append dir (Path.basic driverN)
     val basis_path = Path.append dir (Path.basic (projectN ^ ".mlb"))
-    val driver =
-      "fun format_term NONE = \"\"\n" ^
-      "  | format_term (SOME t) = t ();\n" ^
-      "fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
-      "  | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
-      "val result = " ^ value_name ^ " ();\n" ^
-      "val _ = print \"" ^ start_markerN ^ "\";\n" ^
-      "val _ = map (print o format) result;\n" ^
-      "val _ = print \"" ^ end_markerN ^ "\";\n"
+    val driver = \<^verbatim>\<open>
+fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
+  | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
+  | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
+val _ = print \<close> ^ ML_Syntax.print_string start_markerN ^ \<^verbatim>\<open>
+val _ = List.app (print o format) result
+val _ = print \<close> ^ ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
+\<close>
     val cmd = "\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path
   in
     check_settings compiler ISABELLE_MLTON "MLton executable";
@@ -380,22 +380,21 @@ fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
 
     val code_path = Path.append dir (Path.basic generatedN)
     val driver_path = Path.append dir (Path.basic driverN)
-    val driver =
-      "structure Test = struct\n" ^
-      "fun main () =\n" ^
-      "  let\n" ^
-      "    fun format_term NONE = \"\"\n" ^
-      "      | format_term (SOME t) = t ();\n" ^
-      "    fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
-      "      | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
-      "    val result = " ^ value_name ^ " ();\n" ^
-      "    val _ = print \"" ^ start_markerN ^ "\";\n" ^
-      "    val _ = map (print o format) result;\n" ^
-      "    val _ = print \"" ^ end_markerN ^ "\";\n" ^
-      "  in\n" ^
-      "    0\n" ^
-      "  end;\n" ^
-      "end;"
+    val driver = \<^verbatim>\<open>
+structure Test =
+struct
+  fun main () =
+    let
+      fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
+        | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
+        | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+      val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
+      val _ = print \<close> ^ ML_Syntax.print_string start_markerN ^ \<^verbatim>\<open>
+      val _ = List.app (print o format) result
+      val _ = print \<close> ^ ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
+    in 0 end
+end
+\<close>
     val ml_source =
       "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
       "use " ^ ML_Syntax.print_string (File.platform_path code_path) ^
