@@ -300,7 +300,7 @@ fun evaluate_in_polyml ctxt (code_files, value_name) dir =
     val driver_path = Path.append dir (Path.basic "driver.sml")
     val out_path = Path.append dir (Path.basic "out")
     val driver = \<^verbatim>\<open>
-fun main prog_name =
+fun main () =
   let
     fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
       | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
@@ -382,7 +382,7 @@ fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
     val driver_path = Path.append dir (Path.basic driverN)
     val driver =
       "structure Test = struct\n" ^
-      "fun main prog_name =\n" ^
+      "fun main () =\n" ^
       "  let\n" ^
       "    fun format_term NONE = \"\"\n" ^
       "      | format_term (SOME t) = t ();\n" ^
