@@ -293,9 +293,9 @@ fun evaluate compiler cmd =
 
 val polymlN = "PolyML"
 
-fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
+fun evaluate_in_polyml ctxt (code_files, value_name) dir =
   let
-    val compiler = polymlN
+    val code = #2 (the_single code_files);
     val code_path = Path.append dir (Path.basic "generated.sml")
     val driver_path = Path.append dir (Path.basic "driver.sml")
     val out_path = Path.append dir (Path.basic "out")
@@ -316,14 +316,19 @@ fun main prog_name =
     val _ = BinIO.closeOut out
   in () end;
 \<close>
-    val cmd =
-      "\"$POLYML_EXE\" --use " ^ File.bash_platform_path code_path ^
-      " --use " ^ File.bash_platform_path driver_path ^
-      " --eval " ^ Bash.string "main ()"
   in
-    List.app (File.write code_path o snd) code_files;
-    File.write driver_path driver;
-    evaluate compiler cmd;
+    if Config.get ctxt debug
+    then (File.write code_path code; File.write driver_path driver)
+    else ();
+
+    ML_Context.eval
+      {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
+        writeln = writeln, warning = warning}
+      Position.none
+      (ML_Lex.read_text (code, Path.position code_path) @
+       ML_Lex.read_text (driver, Path.position driver_path) @
+       ML_Lex.read "main ()");
+
     File.read out_path
   end
 
