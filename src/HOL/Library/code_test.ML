@@ -298,20 +298,24 @@ fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
     val compiler = polymlN
     val code_path = Path.append dir (Path.basic "generated.sml")
     val driver_path = Path.append dir (Path.basic "driver.sml")
-    val driver =
-      "fun main prog_name = \n" ^
-      "  let\n" ^
-      "    fun format_term NONE = \"\"\n" ^
-      "      | format_term (SOME t) = t ();\n" ^
-      "    fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
-      "      | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
-      "    val result = " ^ value_name ^ " ();\n" ^
-      "    val _ = print \"" ^ start_markerN ^ "\";\n" ^
-      "    val _ = map (print o format) result;\n" ^
-      "    val _ = print \"" ^ end_markerN ^ "\";\n" ^
-      "  in\n" ^
-      "    ()\n" ^
-      "  end;\n";
+    val out_path = Path.append dir (Path.basic "out")
+    val string = ML_Syntax.print_string
+    val driver = \<^verbatim>\<open>
+fun main prog_name =
+  let
+    fun format (true, _) = \<close> ^ string successN ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, NONE) = \<close> ^ string failureN ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, SOME t) = \<close> ^ string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+    val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
+    val result_text = \<close> ^
+      string start_markerN ^
+      \<^verbatim>\<open> ^ String.concat (map format result) ^ \<close> ^
+      string end_markerN ^ \<^verbatim>\<open>
+    val out = BinIO.openOut \<close> ^ string (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>
+    val _ = BinIO.output (out, Byte.stringToBytes result_text)
+    val _ = BinIO.closeOut out
+  in () end;
+\<close>
     val cmd =
       "\"$POLYML_EXE\" --use " ^ File.bash_platform_path code_path ^
       " --use " ^ File.bash_platform_path driver_path ^
@@ -319,7 +323,8 @@ fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
   in
     List.app (File.write code_path o snd) code_files;
     File.write driver_path driver;
-    evaluate compiler cmd
+    evaluate compiler cmd;
+    File.read out_path
   end
 
 
