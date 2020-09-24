@@ -20,6 +20,7 @@ sig
   val print_string: string -> string
   val print_strings: string list -> string
   val print_path: Path.T -> string
+  val print_platform_path: Path.T -> string
   val print_properties: Properties.T -> string
   val print_position: Position.T -> string
   val print_range: Position.range -> string
@@ -90,6 +91,8 @@ val print_strings = print_list print_string;
 
 fun print_path path =
   "Path.explode " ^ print_string (Path.implode path);
+
+val print_platform_path = print_string o File.platform_path;
 
 val print_properties = print_list (print_pair print_string print_string);
 

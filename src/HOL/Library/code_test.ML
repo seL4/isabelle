@@ -311,7 +311,7 @@ fun main prog_name =
       string start_markerN ^
       \<^verbatim>\<open> ^ String.concat (map format result) ^ \<close> ^
       string end_markerN ^ \<^verbatim>\<open>
-    val out = BinIO.openOut \<close> ^ string (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>
+    val out = BinIO.openOut \<close> ^ ML_Syntax.print_platform_path out_path ^ \<^verbatim>\<open>
     val _ = BinIO.output (out, Byte.stringToBytes result_text)
     val _ = BinIO.closeOut out
   in () end;
