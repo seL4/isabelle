@@ -15,7 +15,6 @@ sig
   val start_markerN: string
   val end_markerN: string
   val test_terms: Proof.context -> term list -> string -> unit
-  val test_targets: Proof.context -> term list -> string list -> unit
   val test_code_cmd: string list -> string list -> Proof.context -> unit
   val eval_term: string -> Proof.context -> term -> term
   val check_settings: string -> string -> string -> unit
@@ -232,10 +231,6 @@ fun test_terms ctxt ts target =
     | _ => error (Pretty.string_of (pretty_failures ctxt target failed)))
   end
 
-fun test_targets ctxt = List.app o test_terms ctxt
-
-fun pretty_free ctxt = Syntax.pretty_term ctxt o Free
-
 fun test_code_cmd raw_ts targets ctxt =
   let
     val ts = Syntax.read_terms ctxt raw_ts
@@ -244,8 +239,8 @@ fun test_code_cmd raw_ts targets ctxt =
       if null frees then ()
       else error (Pretty.string_of
         (Pretty.block (Pretty.str "Terms contain free variables:" :: Pretty.brk 1 ::
-          Pretty.commas (map (pretty_free ctxt) frees))))
-  in test_targets ctxt ts targets end
+          Pretty.commas (map (Syntax.pretty_term ctxt o Free) frees))))
+  in List.app (test_terms ctxt ts) targets end
 
 fun eval_term target ctxt t =
   let
@@ -255,7 +250,7 @@ fun eval_term target ctxt t =
       else
         error (Pretty.string_of
           (Pretty.block (Pretty.str "Term contains free variables:" :: Pretty.brk 1 ::
-            Pretty.commas (map (pretty_free ctxt) frees))))
+            Pretty.commas (map (Syntax.pretty_term ctxt o Free) frees))))
 
     val T = fastype_of t
     val _ =
