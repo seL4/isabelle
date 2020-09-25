@@ -16,6 +16,9 @@ Rare INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Auto nitpick is enabled by default: it is now reasonably fast due to
+Kodkod invocation within Isabelle/Scala.
+
 * The jEdit status line includes widgets both for JVM and ML heap usage.
 Ongoing ML ongoing garbage collection is shown as "ML cleanup".
 
@@ -50,7 +53,7 @@ rule to protect foundational terms during simplification.
 * Nitpick/Kodkod may be invoked directly within the running
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
-guarded by system option "kodkod_scala" (default: false).
+guarded by system option "kodkod_scala" (default: true).
 
 * Session HOL-Examples contains notable examples for Isabelle/HOL
 (former entries of HOL-Isar_Examples, HOL-ex etc.).

@@ -8,7 +8,7 @@ public option auto_time_start : real = 1.0
 public option auto_time_limit : real = 2.0
   -- "time limit for automatically tried tools (seconds > 0)"
 
-public option auto_nitpick : bool = false
+public option auto_nitpick : bool = true
   -- "run Nitpick automatically"
 
 public option auto_sledgehammer : bool = false
@@ -38,7 +38,7 @@ public option vampire_noncommercial : string = "unknown"
 public option MaSh : string = "sml"
   -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"
 
-public option kodkod_scala : bool = false
+public option kodkod_scala : bool = true
   -- "invoke Nitpick/Kodkod via Isabelle/Scala (instead of external process)"
 
 public option kodkod_max_threads : int = 0
