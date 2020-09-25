@@ -7,10 +7,10 @@
 section \<open>Type Definition Theorems\<close>
 
 theory Misc_Typedef
-  imports Main
+  imports Main Word
 begin
 
-section "More lemmas about normal type definitions"
+subsection "More lemmas about normal type definitions"
 
 lemma tdD1: "type_definition Rep Abs A \<Longrightarrow> \<forall>x. Rep x \<in> A"
   and tdD2: "type_definition Rep Abs A \<Longrightarrow> \<forall>x. Abs (Rep x) = x"
@@ -197,5 +197,161 @@ end
 lemmas td_ext_def' =
   td_ext_def [unfolded type_definition_def td_ext_axioms_def]
 
-end
 
+subsection \<open>Type-definition locale instantiations\<close>
+
+definition uints :: "nat \<Rightarrow> int set"
+  \<comment> \<open>the sets of integers representing the words\<close>
+  where "uints n = range (take_bit n)"
+
+definition sints :: "nat \<Rightarrow> int set"
+  where "sints n = range (signed_take_bit (n - 1))"
+
+lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
+  by (simp add: uints_def range_bintrunc)
+
+lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
+  by (simp add: sints_def range_sbintrunc)
+
+definition unats :: "nat \<Rightarrow> nat set"
+  where "unats n = {i. i < 2 ^ n}"
+
+\<comment> \<open>naturals\<close>
+lemma uints_unats: "uints n = int ` unats n"
+  apply (unfold unats_def uints_num)
+  apply safe
+    apply (rule_tac image_eqI)
+     apply (erule_tac nat_0_le [symmetric])
+  by auto
+
+lemma unats_uints: "unats n = nat ` uints n"
+  by (auto simp: uints_unats image_iff)
+
+lemma td_ext_uint:
+  "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (LENGTH('a::len)))
+    (\<lambda>w::int. w mod 2 ^ LENGTH('a))"
+  apply (unfold td_ext_def')
+  apply transfer
+  apply (simp add: uints_num take_bit_eq_mod)
+  done
+
+interpretation word_uint:
+  td_ext
+    "uint::'a::len word \<Rightarrow> int"
+    word_of_int
+    "uints (LENGTH('a::len))"
+    "\<lambda>w. w mod 2 ^ LENGTH('a::len)"
+  by (fact td_ext_uint)
+
+lemmas td_uint = word_uint.td_thm
+lemmas int_word_uint = word_uint.eq_norm
+
+lemma td_ext_ubin:
+  "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (LENGTH('a::len)))
+    (take_bit (LENGTH('a)))"
+  apply standard
+  apply transfer
+  apply simp
+  done
+
+interpretation word_ubin:
+  td_ext
+    "uint::'a::len word \<Rightarrow> int"
+    word_of_int
+    "uints (LENGTH('a::len))"
+    "take_bit (LENGTH('a::len))"
+  by (fact td_ext_ubin)
+
+lemma td_ext_unat [OF refl]:
+  "n = LENGTH('a::len) \<Longrightarrow>
+    td_ext (unat :: 'a word \<Rightarrow> nat) of_nat (unats n) (\<lambda>i. i mod 2 ^ n)"
+  apply (standard; transfer)
+     apply (simp_all add: unats_def take_bit_of_nat take_bit_nat_eq_self_iff
+      flip: take_bit_eq_mod)
+  done
+
+lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm]
+
+interpretation word_unat:
+  td_ext
+    "unat::'a::len word \<Rightarrow> nat"
+    of_nat
+    "unats (LENGTH('a::len))"
+    "\<lambda>i. i mod 2 ^ LENGTH('a::len)"
+  by (rule td_ext_unat)
+
+lemmas td_unat = word_unat.td_thm
+
+lemmas unat_lt2p [iff] = word_unat.Rep [unfolded unats_def mem_Collect_eq]
+
+lemma unat_le: "y \<le> unat z \<Longrightarrow> y \<in> unats (LENGTH('a))"
+  for z :: "'a::len word"
+  apply (unfold unats_def)
+  apply clarsimp
+  apply (rule xtrans, rule unat_lt2p, assumption)
+  done
+
+lemma td_ext_sbin:
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
+    (signed_take_bit (LENGTH('a) - 1))"
+  by (standard; transfer) (auto simp add: sints_def)
+
+lemma td_ext_sint:
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (LENGTH('a::len)))
+     (\<lambda>w. (w + 2 ^ (LENGTH('a) - 1)) mod 2 ^ LENGTH('a) -
+         2 ^ (LENGTH('a) - 1))"
+  using td_ext_sbin [where ?'a = 'a] by (simp add: no_sbintr_alt2)
+
+text \<open>
+  We do \<open>sint\<close> before \<open>sbin\<close>, before \<open>sint\<close> is the user version
+  and interpretations do not produce thm duplicates. I.e.
+  we get the name \<open>word_sint.Rep_eqD\<close>, but not \<open>word_sbin.Req_eqD\<close>,
+  because the latter is the same thm as the former.
+\<close>
+interpretation word_sint:
+  td_ext
+    "sint ::'a::len word \<Rightarrow> int"
+    word_of_int
+    "sints (LENGTH('a::len))"
+    "\<lambda>w. (w + 2^(LENGTH('a::len) - 1)) mod 2^LENGTH('a::len) -
+      2 ^ (LENGTH('a::len) - 1)"
+  by (rule td_ext_sint)
+
+interpretation word_sbin:
+  td_ext
+    "sint ::'a::len word \<Rightarrow> int"
+    word_of_int
+    "sints (LENGTH('a::len))"
+    "signed_take_bit (LENGTH('a::len) - 1)"
+  by (rule td_ext_sbin)
+
+lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm]
+
+lemmas td_sint = word_sint.td
+
+lemma uints_mod: "uints n = range (\<lambda>w. w mod 2 ^ n)"
+  by (fact uints_def [unfolded no_bintr_alt1])
+
+lemmas uint_range' = word_uint.Rep [unfolded uints_num mem_Collect_eq]
+lemmas sint_range' = word_sint.Rep [unfolded One_nat_def sints_num mem_Collect_eq]
+
+lemmas bintr_num =
+  word_ubin.norm_eq_iff [of "numeral a" "numeral b", symmetric, folded word_numeral_alt] for a b
+lemmas sbintr_num =
+  word_sbin.norm_eq_iff [of "numeral a" "numeral b", symmetric, folded word_numeral_alt] for a b
+
+lemmas uint_div_alt = word_div_def [THEN trans [OF uint_cong int_word_uint]]
+lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
+
+interpretation test_bit:
+  td_ext
+    "(!!) :: 'a::len word \<Rightarrow> nat \<Rightarrow> bool"
+    set_bits
+    "{f. \<forall>i. f i \<longrightarrow> i < LENGTH('a::len)}"
+    "(\<lambda>h i. h i \<and> i < LENGTH('a::len))"
+  by standard
+    (auto simp add: test_bit_word_eq bit_imp_le_length bit_set_bits_word_iff set_bits_bit_eq)
+
+lemmas td_nth = test_bit.td_thm
+
+end

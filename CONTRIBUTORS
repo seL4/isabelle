@@ -20,9 +20,6 @@ Contributions to this Isabelle version
   and @{scala} to invoke Scala from ML.
 
 * May 2020: Florian Haftmann
-  HOL-Word based on library theory of generic bit operations.
-
-* May 2020: Florian Haftmann
   Generic algebraically founded bit operations NOT, AND, OR, XOR.
 
 * Sept. 2020: Florian Haftmann

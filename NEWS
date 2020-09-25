@@ -103,13 +103,6 @@ get a confluent system again.
 * Session HOL-Word: Theory "Word_Bitwise" has been moved to AFP entry
 Word_Lib as theory "Bitwise".  INCOMPATIBILITY.
 
-* Session HOL-Word: Misc ancient material has been factored out into
-separate theories.  INCOMPATIBILITY, prefer theory "More_Word"
-over "Word" to use it.
-
-* Session HOL-Word: Ancient int numeral representation has been
-factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
-
 * Session HOL-Word: Compound operation "bin_split" simplifies by default
 into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 
@@ -119,6 +112,13 @@ types int and word.  INCOMPATIBILITY.
 * Session HOL-Word: Operations lsb, msb and set_bit are separated
 into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
 INCOMPATIBILITY.
+
+* Session HOL-Word: Misc ancient material has been factored out into
+separate theories.  INCOMPATIBILITY, prefer theory "More_Word"
+over "Word" to use it.
+
+* Session HOL-Word: Ancient int numeral representation has been
+factored out in separate theory "Ancient_Numeral".  INCOMPATIBILITY.
 
 * Session HOL-Word: Operations "bin_last", "bin_rest", "bin_nth",
 "bintrunc", "sbintrunc", "norm_sint", "bin_cat" and "max_word" are now

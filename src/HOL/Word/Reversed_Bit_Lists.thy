@@ -5,7 +5,7 @@
 section \<open>Bit values as reversed lists of bools\<close>
 
 theory Reversed_Bit_Lists
-  imports Word
+  imports Word Misc_Typedef
 begin
 
 context comm_semiring_1

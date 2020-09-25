@@ -54,9 +54,7 @@ lemma uint_word_of_int_id:
   assumes "0 <= (x::int)"
   assumes "x <= 4294967295"
   shows"uint(word_of_int x::word32) = x"
-  unfolding int_word_uint
-  using assms
-  by simp
+  using assms by (simp add: take_bit_int_eq_self)
 
 lemma steps_step: "steps X cc (Suc i) = step_both X (steps X cc i) i"
   unfolding steps_def
@@ -197,13 +195,13 @@ proof -
         word_add_def
         uint_word_of_int_id[OF \<open>0 <= a\<close> \<open>a <= ?M\<close>]
         uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
-        int_word_uint
-      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
-      unfolding word_uint.Abs_norm
-      by (simp add:
-        \<open>a mod ?MM = a\<close>
+      using \<open>a mod ?MM = a\<close>
         \<open>e mod ?MM = e\<close>
-        \<open>?X mod ?MM = ?X\<close>)
+        \<open>?X mod ?MM = ?X\<close>
+      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
+      apply (simp only: flip: take_bit_eq_mod add: uint_word_of_int_eq)
+      apply (metis (mono_tags, hide_lams) of_int_of_nat_eq ucast_id uint_word_of_int_eq unsigned_of_int)
+      done
   qed
 
   have BR:
@@ -240,14 +238,14 @@ proof -
         word_add_def
         uint_word_of_int_id[OF \<open>0 <= a'\<close> \<open>a' <= ?M\<close>]
         uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
-        int_word_uint
         nat_transfer
-      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
-      unfolding word_uint.Abs_norm
-      by (simp add:
-        \<open>a' mod ?MM = a'\<close>
+      using \<open>a' mod ?MM = a'\<close>
         \<open>e' mod ?MM = e'\<close>
-        \<open>?X mod ?MM = ?X\<close>)
+        \<open>?X mod ?MM = ?X\<close>
+      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
+      apply (simp only: flip: take_bit_eq_mod add: uint_word_of_int_eq)
+      apply (metis (mono_tags, hide_lams) of_nat_nat_take_bit_eq ucast_id unsigned_of_int)
+      done
   qed
 
   show ?thesis

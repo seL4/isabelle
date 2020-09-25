@@ -13,6 +13,7 @@ imports
   Misc_Arithmetic
   Misc_set_bit
   Misc_lsb
+  Misc_Typedef
 begin
 
 declare signed_take_bit_Suc [simp]
