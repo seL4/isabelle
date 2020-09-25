@@ -293,12 +293,13 @@ fun evaluate compiler cmd =
 
 val polymlN = "PolyML"
 
-fun evaluate_in_polyml ctxt (code_files, value_name) dir =
+fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
   let
-    val code = #2 (the_single code_files);
     val code_path = Path.append dir (Path.basic "generated.sml")
     val driver_path = Path.append dir (Path.basic "driver.sml")
     val out_path = Path.append dir (Path.basic "out")
+
+    val code = #2 (the_single code_files);
     val driver = \<^verbatim>\<open>
 fun main () =
   let
@@ -316,10 +317,8 @@ fun main () =
   in () end;
 \<close>
   in
-    if Config.get ctxt debug
-    then (File.write code_path code; File.write driver_path driver)
-    else ();
-
+    File.write code_path code;
+    File.write driver_path driver;
     ML_Context.eval
       {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
         writeln = writeln, warning = warning}
@@ -327,7 +326,6 @@ fun main () =
       (ML_Lex.read_text (code, Path.position code_path) @
        ML_Lex.read_text (driver, Path.position driver_path) @
        ML_Lex.read "main ()");
-
     File.read out_path
   end
 
@@ -496,15 +494,16 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
 
 val scalaN = "Scala"
 
-fun evaluate_in_scala ctxt (code_files, value_name) dir =
+fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
   let
     val generatedN = "Generated_Code"
     val driverN = "Driver.scala"
 
-    val code = #2 (the_single code_files);
     val code_path = Path.append dir (Path.basic (generatedN ^ ".scala"))
     val driver_path = Path.append dir (Path.basic driverN)
     val out_path = Path.append dir (Path.basic "out")
+
+    val code = #2 (the_single code_files);
     val driver = \<^verbatim>\<open>
 {
   val result = \<close> ^ value_name ^ \<^verbatim>\<open>(())
@@ -520,9 +519,8 @@ fun evaluate_in_scala ctxt (code_files, value_name) dir =
     \<close> ^ quote start_markerN ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_markerN ^ \<^verbatim>\<open>)
 }\<close>
   in
-    if Config.get ctxt debug
-    then (File.write code_path code; File.write driver_path driver)
-    else ();
+    File.write code_path code;
+    File.write driver_path driver;
     Scala_Compiler.toplevel true (code ^ driver);
     File.read out_path
   end
