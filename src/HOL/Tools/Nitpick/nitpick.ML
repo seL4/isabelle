@@ -657,7 +657,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    (case pretties_for_scope scope verbose of
                       [] => []
                     | pretties => [Pretty.brk 1, Pretty.str "for", Pretty.brk 1] @ pretties) @
-                   [Pretty.str ":", Pretty.fbrk])),
+                   [Pretty.str ":"])),
               Pretty.indent indent_size reconstructed_model]);
          print_t (K "% SZS output end FiniteModel");
          if genuine then
