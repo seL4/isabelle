@@ -496,42 +496,35 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
 
 val scalaN = "Scala"
 
-fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
+fun evaluate_in_scala ctxt (code_files, value_name) dir =
   let
-    val compiler = scalaN
     val generatedN = "Generated_Code"
     val driverN = "Driver.scala"
 
+    val code = #2 (the_single code_files);
     val code_path = Path.append dir (Path.basic (generatedN ^ ".scala"))
     val driver_path = Path.append dir (Path.basic driverN)
-    val driver =
-      "import " ^ generatedN ^ "._\n" ^
-      "object Test {\n" ^
-      "  def format_term(x : Option[Unit => String]) : String = x match {\n" ^
-      "    case None => \"\"\n" ^
-      "    case Some(x) => x(())\n" ^
-      "  }\n" ^
-      "  def format(term : (Boolean, Option[Unit => String])) : String = term match {\n" ^
-      "      case (true, _) => \"True\\n\"\n" ^
-      "      case (false, x) => \"False\" + format_term(x) + \"\\n\"\n" ^
-      "  }\n" ^
-      "  def main(args:Array[String]) = {\n" ^
-      "    val result = " ^ value_name ^ "(());\n" ^
-      "    print(\"" ^ start_markerN ^ "\");\n" ^
-      "    result.map{test:(Boolean, Option[Unit => String]) => print(format(test))};\n" ^
-      "    print(\"" ^ end_markerN ^ "\");\n" ^
-      "  }\n" ^
-      "}\n"
-    val compile_cmd =
-      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ File.bash_platform_path dir ^
-      " -classpath " ^ File.bash_platform_path dir ^ " " ^
-      File.bash_platform_path code_path ^ " " ^ File.bash_platform_path driver_path
-    val run_cmd = "isabelle_scala scala -cp " ^ File.bash_platform_path dir ^ " Test"
+    val out_path = Path.append dir (Path.basic "out")
+    val driver = \<^verbatim>\<open>
+{
+  val result = \<close> ^ value_name ^ \<^verbatim>\<open>(())
+  val result_text =
+    result.map(
+      {
+        case (true, _) => "True\n"
+        case (false, None) => "False\n"
+        case (false, Some(t)) => "False" + t(()) + "\n"
+      }).mkString
+  isabelle.File.write(
+    isabelle.Path.explode(\<close> ^ quote (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>),
+    \<close> ^ quote start_markerN ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_markerN ^ \<^verbatim>\<open>)
+}\<close>
   in
-    List.app (File.write code_path o snd) code_files;
-    File.write driver_path driver;
-    compile compiler compile_cmd;
-    evaluate compiler run_cmd
+    if Config.get ctxt debug
+    then (File.write code_path code; File.write driver_path driver)
+    else ();
+    Scala_Compiler.toplevel true (code ^ driver);
+    File.read out_path
   end
 
 
