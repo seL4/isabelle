@@ -365,7 +365,7 @@ proof (cases "a \<in> affected f")
   then obtain B b where "affected f = insert b B"
     by blast
   with finite_affected [of f] have "card (affected f) \<ge> 1"
-    by (simp add: card_insert)
+    by (simp add: card.insert_remove)
   case False then have "order f a = 1"
     by (simp add: order_eq_one_iff)
   with \<open>card (affected f) \<ge> 1\<close> show ?thesis

@@ -81,11 +81,11 @@ proof -
     proof -
       from \<open>n \<in> K\<close> obtain L where "K = insert n L" and "n \<notin> L"
         by (blast elim: Set.set_insert)
-      with that show ?thesis by (simp add: card_insert)
+      with that show ?thesis by (simp add: card.insert_remove)
     qed
     show "K \<in> ?A \<longleftrightarrow> K \<in> ?B"
       by (subst in_image_insert_iff)
-        (auto simp add: card_insert subset_eq_atLeast0_lessThan_finite
+        (auto simp add: card.insert_remove subset_eq_atLeast0_lessThan_finite
           Diff_subset_conv K_finite Suc_card_K)
   qed
   also have "{K\<in>?Q. n \<notin> K} = ?P n (Suc k)"

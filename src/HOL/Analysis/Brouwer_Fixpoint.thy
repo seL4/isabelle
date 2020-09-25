@@ -326,7 +326,7 @@ lemma kuhn_complete_lemma:
   shows "odd (card {s\<in>simplices. (rl ` s = {..Suc n})})"
 proof (rule kuhn_counting_lemma)
   have finite_s[simp]: "\<And>s. s \<in> simplices \<Longrightarrow> finite s"
-    by (metis add_is_0 zero_neq_numeral card_infinite assms(3))
+    by (metis add_is_0 zero_neq_numeral card.infinite assms(3))
 
   let ?F = "{f. \<exists>s\<in>simplices. face f s}"
   have F_eq: "?F = (\<Union>s\<in>simplices. \<Union>a\<in>s. {s - {a}})"

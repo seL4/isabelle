@@ -1387,12 +1387,6 @@ global_interpretation card: folding "\<lambda>_. Suc" 0
   defines card = "folding.F (\<lambda>_. Suc) 0"
   by standard rule
 
-lemma card_infinite: "\<not> finite A \<Longrightarrow> card A = 0"
-  by (fact card.infinite)
-
-lemma card_empty: "card {} = 0"
-  by (fact card.empty)
-
 lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> card (insert x A) = Suc (card A)"
   by (fact card.insert)
 
@@ -1417,17 +1411,20 @@ lemma card_range_greater_zero: "finite (range f) \<Longrightarrow> card (range f
 lemma card_gt_0_iff: "0 < card A \<longleftrightarrow> A \<noteq> {} \<and> finite A"
   by (simp add: neq0_conv [symmetric] card_eq_0_iff)
 
-lemma card_Suc_Diff1: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> Suc (card (A - {x})) = card A"
-  apply (rule insert_Diff [THEN subst, where t = A])
-   apply assumption
-  apply (simp del: insert_Diff_single)
-  done
+lemma card_Suc_Diff1:
+  assumes "finite A" "x \<in> A" shows "Suc (card (A - {x})) = card A"
+proof -
+  have "Suc (card (A - {x})) = card (insert x (A - {x}))"
+    using assms by (simp add: card.insert_remove)
+  also have "... = card A"
+    using assms by (simp add: card_insert_if)
+  finally show ?thesis .
+qed
 
-lemma card_insert_le_m1: "n > 0 \<Longrightarrow> card y \<le> n - 1 \<Longrightarrow> card (insert x y) \<le> n"
-  apply (cases "finite y")
-   apply (cases "x \<in> y")
-    apply (auto simp: insert_absorb)
-  done
+lemma card_insert_le_m1:
+  assumes "n > 0" "card y \<le> n - 1" shows  "card (insert x y) \<le> n"
+  using assms
+  by (cases "finite y") (auto simp: card_insert_if)
 
 lemma card_Diff_singleton: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) = card A - 1"
   by (simp add: card_Suc_Diff1 [symmetric])
@@ -1445,9 +1442,6 @@ proof -
   then show ?thesis
     using assms by (simp add: card_Diff_singleton)
 qed
-
-lemma card_insert: "finite A \<Longrightarrow> card (insert x A) = Suc (card (A - {x}))"
-  by (fact card.insert_remove)
 
 lemma card_insert_le: "finite A \<Longrightarrow> card A \<le> card (insert x A)"
   by (simp add: card_insert_if)
@@ -1482,21 +1476,24 @@ proof -
   qed
 qed
 
-lemma card_seteq: "finite B \<Longrightarrow> (\<And>A. A \<subseteq> B \<Longrightarrow> card B \<le> card A \<Longrightarrow> A = B)"
-  apply (induct rule: finite_induct)
-   apply simp
-  apply clarify
-  apply (subgoal_tac "finite A \<and> A - {x} \<subseteq> F")
-   prefer 2 apply (blast intro: finite_subset, atomize)
-  apply (drule_tac x = "A - {x}" in spec)
-  apply (simp add: card_Diff_singleton_if split: if_split_asm)
-  apply (case_tac "card A", auto)
-  done
+lemma card_seteq: 
+  assumes "finite B" and A: "A \<subseteq> B" "card B \<le> card A"
+  shows "A = B"
+  using assms
+proof (induction arbitrary: A rule: finite_induct)
+  case (insert b B)
+  then have A: "finite A" "A - {b} \<subseteq> B" 
+    by force+
+  then have "card B \<le> card (A - {b})"
+    using insert by (auto simp add: card_Diff_singleton_if)
+  then have "A - {b} = B"
+    using A insert.IH by auto
+  then show ?case 
+    using insert.hyps insert.prems by auto
+qed auto
 
 lemma psubset_card_mono: "finite B \<Longrightarrow> A < B \<Longrightarrow> card A < card B"
-  apply (simp add: psubset_eq linorder_not_le [symmetric])
-  apply (blast dest: card_seteq)
-  done
+  using card_seteq [of B A] by (auto simp add: psubset_eq)
 
 lemma card_Un_Int:
   assumes "finite A" "finite B"
@@ -1579,15 +1576,29 @@ proof -
   finally show ?thesis .
 qed
 
-lemma card_Diff1_less: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) < card A"
-  by (rule Suc_less_SucD) (simp add: card_Suc_Diff1 del: card_Diff_insert)
+lemma card_Diff1_less_iff: "card (A - {x}) < card A \<longleftrightarrow> finite A \<and> x \<in> A"
+proof (cases "finite A \<and> x \<in> A")
+  case True
+  then show ?thesis
+    by (auto simp: card_gt_0_iff intro: diff_less)
+qed auto
 
-lemma card_Diff2_less: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> card (A - {x} - {y}) < card A"
-  apply (cases "x = y")
-   apply (simp add: card_Diff1_less del:card_Diff_insert)
-  apply (rule less_trans)
-   prefer 2 apply (auto intro!: card_Diff1_less simp del: card_Diff_insert)
-  done
+lemma card_Diff1_less: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) < card A"
+  unfolding card_Diff1_less_iff by auto
+
+lemma card_Diff2_less:
+  assumes "finite A" "x \<in> A" "y \<in> A" shows "card (A - {x} - {y}) < card A"
+proof (cases "x = y")
+  case True
+  with assms show ?thesis
+    by (simp add: card_Diff1_less del: card_Diff_insert)
+next
+  case False
+  then have "card (A - {x} - {y}) < card (A - {x})" "card (A - {x}) < card A"
+    using assms by (intro card_Diff1_less; simp)+
+  then show ?thesis
+    by (blast intro: less_trans)
+qed
 
 lemma card_Diff1_le: "finite A \<Longrightarrow> card (A - {x}) \<le> card A"
   by (cases "x \<in> A") (simp_all add: card_Diff1_less less_imp_le)
@@ -1618,10 +1629,8 @@ next
     obtain f where "f ` s \<subseteq> t" "inj_on f s"
       by blast
     with "2.prems"(2) "2.hyps"(2) show ?case
-      apply -
-      apply (rule exI[where x = "\<lambda>z. if z = x then y else f z"])
-      apply (auto simp add: inj_on_def)
-      done
+      unfolding inj_on_def
+      by (rule_tac x = "\<lambda>z. if z = x then y else f z" in exI) auto
   qed
 qed
 
@@ -1800,10 +1809,7 @@ qed
 lemma card_Suc_eq:
   "card A = Suc k \<longleftrightarrow>
     (\<exists>b B. A = insert b B \<and> b \<notin> B \<and> card B = k \<and> (k = 0 \<longrightarrow> B = {}))"
-  apply (auto elim!: card_eq_SucD)
-  apply (subst card.insert)
-    apply (auto simp add: intro:ccontr)
-  done
+  by (auto simp: card_insert_if card_gt_0_iff elim!: card_eq_SucD)
 
 lemma card_1_singletonE:
   assumes "card A = 1"
@@ -1836,10 +1842,11 @@ qed
 
 lemma card_le_Suc_iff:
   "Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
-apply(cases "finite A")
- apply (fastforce simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
-    dest: subset_singletonD split: nat.splits if_splits)
-by auto
+proof (cases "finite A")
+  case True
+  then show ?thesis
+    by (fastforce simp: card_Suc_eq less_eq_nat.simps split: nat.splits)
+qed auto
 
 lemma finite_fun_UNIVD2:
   assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
@@ -1886,7 +1893,7 @@ proof (cases "finite F")
   case False
   obtain n::nat where n: "n > max C 0" by auto
   obtain G where G: "G \<subseteq> F" "card G = n" using infinite_arbitrarily_large[OF False] by auto
-  hence "finite G" using \<open>n > max C 0\<close> using card_infinite gr_implies_not0 by blast
+  hence "finite G" using \<open>n > max C 0\<close> using card.infinite gr_implies_not0 by blast
   hence False using assms G n not_less by auto
   thus ?thesis ..
 next
@@ -2042,12 +2049,11 @@ proof -
     case empty
     show ?case by simp
   next
-    case insert
-    then show ?case
-      apply simp
-      apply (subst card_Un_disjoint)
-         apply (auto simp add: disjoint_eq_subset_Compl)
-      done
+    case (insert c C)
+    then have "c \<inter> \<Union>C = {}"
+      by auto
+    with insert show ?case
+      by (simp add: card_Un_disjoint)
   qed
 qed
 
@@ -2209,10 +2215,10 @@ proof
     then have "X (A - {x})"
       using psubset.hyps by blast
     show False
-      apply (rule psubset.IH [where B = "A - {x}"])
-       apply (use \<open>x \<in> A\<close> in blast)
-      apply (simp add: \<open>X (A - {x})\<close>)
-      done
+    proof (rule psubset.IH [where B = "A - {x}"])
+      show "A - {x} \<subset> A"
+        using \<open>x \<in> A\<close> by blast
+    qed fact
   qed
 qed
 

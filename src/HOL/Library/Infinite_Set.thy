@@ -417,7 +417,7 @@ lemma finite_enumerate_in_set: "\<lbrakk>finite S; n < card S\<rbrakk> \<Longrig
 proof (induction n arbitrary: S)
   case 0
   then show ?case
-    by (metis all_not_in_conv card_empty enumerate.simps(1) not_less0 wellorder_Least_lemma(1))
+    by (metis all_not_in_conv card.empty enumerate.simps(1) not_less0 wellorder_Least_lemma(1))
 next
   case (Suc n)
   show ?case

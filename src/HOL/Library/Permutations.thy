@@ -334,20 +334,20 @@ next
   case (insert x F)
   {
     fix n
-    assume card_insert: "card (insert x F) = n"
+    assume card.insert_remove: "card (insert x F) = n"
     let ?xF = "{p. p permutes insert x F}"
     let ?pF = "{p. p permutes F}"
     let ?pF' = "{(b, p). b \<in> insert x F \<and> p \<in> ?pF}"
     let ?g = "(\<lambda>(b, p). Fun.swap x b id \<circ> p)"
     have xfgpF': "?xF = ?g ` ?pF'"
       by (rule permutes_insert[of x F])
-    from \<open>x \<notin> F\<close> \<open>finite F\<close> card_insert have Fs: "card F = n - 1"
+    from \<open>x \<notin> F\<close> \<open>finite F\<close> card.insert_remove have Fs: "card F = n - 1"
       by auto
     from \<open>finite F\<close> insert.hyps Fs have pFs: "card ?pF = fact (n - 1)"
       by auto
     then have "finite ?pF"
       by (auto intro: card_ge_0_finite)
-    with \<open>finite F\<close> card_insert have pF'f: "finite ?pF'"
+    with \<open>finite F\<close> card.insert_remove have pF'f: "finite ?pF'"
       apply (simp only: Collect_case_prod Collect_mem_eq)
       apply (rule finite_cartesian_product)
       apply simp_all
@@ -383,13 +383,13 @@ next
       then show ?thesis
         unfolding inj_on_def by blast
     qed
-    from \<open>x \<notin> F\<close> \<open>finite F\<close> card_insert have "n \<noteq> 0"
+    from \<open>x \<notin> F\<close> \<open>finite F\<close> card.insert_remove have "n \<noteq> 0"
       by auto
     then have "\<exists>m. n = Suc m"
       by presburger
     then obtain m where n: "n = Suc m"
       by blast
-    from pFs card_insert have *: "card ?xF = fact n"
+    from pFs card.insert_remove have *: "card ?xF = fact n"
       unfolding xfgpF' card_image[OF ginj]
       using \<open>finite F\<close> \<open>finite ?pF\<close>
       by (simp only: Collect_case_prod Collect_mem_eq card_cartesian_product) (simp add: n)

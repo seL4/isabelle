@@ -600,7 +600,7 @@ subsubsection \<open>\<open>fcard\<close>\<close>
 
 lemma fcard_fempty:
   "fcard {||} = 0"
-  by transfer (rule card_empty)
+  by transfer (rule card.empty)
 
 lemma fcard_finsert_disjoint:
   "x |\<notin>| A \<Longrightarrow> fcard (finsert x A) = Suc (fcard A)"
@@ -632,7 +632,7 @@ lemma fcard_fminus_finsert[simp]:
 using assms by transfer (rule card_Diff_insert)
 
 lemma fcard_finsert: "fcard (finsert x A) = Suc (fcard (A |-| {|x|}))"
-by transfer (rule card_insert)
+by transfer (rule card.insert_remove)
 
 lemma fcard_finsert_le: "fcard A \<le> fcard (finsert x A)"
 by transfer (rule card_insert_le)

@@ -294,7 +294,7 @@ proof -
   have "B \<inter> C = {}" "finite B" "finite C" "B \<union> C = BuC"
     unfolding B_def C_def BuC_def by fastforce+
   then show ?thesis
-    unfolding b_def c_def using card_empty card_Un_Int QR_lemma_04 QR_lemma_05 by fastforce
+    unfolding b_def c_def using card.empty card_Un_Int QR_lemma_04 QR_lemma_05 by fastforce
 qed
 
 definition f_2:: "int \<Rightarrow> int"

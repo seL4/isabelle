@@ -235,7 +235,7 @@ proof -
         assume H: "liseq' xs j = card is" "is \<in> iseq xs (Suc j)"
           "finite is" "Max is = j" "is \<noteq> {}"
         from H j have "card is + 1 = card (is \<union> {i})"
-          by (simp add: card_insert max_notin)
+          by (simp add: card.insert_remove max_notin)
         moreover {
           from H j have "xs (Max is) \<le> xs i" by simp
           moreover from \<open>j < i\<close> have "Suc j \<le> i" by simp
@@ -367,7 +367,7 @@ lemma longest_iseq3:
   apply (rule_tac xs=xs and i=i in liseq'_expand)
   apply simp
   apply (rule_tac js="isa \<union> {j}" in liseq_eq [symmetric])
-  apply (simp add: card_insert card_Diff_singleton_if max_notin)
+  apply (simp add: card.insert_remove card_Diff_singleton_if max_notin)
   apply (rule iseq_insert)
   apply simp
   apply (erule iseq_mono)
@@ -388,9 +388,9 @@ lemma longest_iseq3:
   apply simp
   apply (rule le_diff_iff [THEN iffD1, of 1])
   apply (simp add: card_0_eq [symmetric] del: card_0_eq)
-  apply (simp add: card_insert)
+  apply (simp add: card.insert_remove)
   apply (subgoal_tac "card (js' - {j}) = card js' - 1")
-  apply (simp add: card_insert card_Diff_singleton_if max_notin)
+  apply (simp add: card.insert_remove card_Diff_singleton_if max_notin)
   apply (frule_tac A=js' in Max_in)
   apply assumption
   apply (simp add: card_Diff_singleton_if)
@@ -411,7 +411,7 @@ lemma longest_iseq4:
   apply (rule_tac xs=xs and i=i in liseq'_expand)
   apply simp
   apply (rule_tac js="isa \<union> {j}" in liseq'_eq [symmetric])
-  apply (simp add: card_insert card_Diff_singleton_if max_notin)
+  apply (simp add: card.insert_remove card_Diff_singleton_if max_notin)
   apply (rule iseq_insert)
   apply simp
   apply (erule iseq_mono)
@@ -434,9 +434,9 @@ lemma longest_iseq4:
   apply simp
   apply (rule le_diff_iff [THEN iffD1, of 1])
   apply (simp add: card_0_eq [symmetric] del: card_0_eq)
-  apply (simp add: card_insert)
+  apply (simp add: card.insert_remove)
   apply (subgoal_tac "card (js' - {j}) = card js' - 1")
-  apply (simp add: card_insert card_Diff_singleton_if max_notin)
+  apply (simp add: card.insert_remove card_Diff_singleton_if max_notin)
   apply (frule_tac A=js' in Max_in)
   apply assumption
   apply (simp add: card_Diff_singleton_if)
