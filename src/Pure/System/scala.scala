@@ -10,7 +10,7 @@ package isabelle
 import java.io.{File => JFile, StringWriter, PrintWriter}
 
 import scala.tools.nsc.{GenericRunnerSettings, ConsoleWriter, NewLinePrintWriter}
-import scala.tools.nsc.interpreter.IMain
+import scala.tools.nsc.interpreter.{IMain, Results}
 
 
 object Scala
@@ -100,12 +100,15 @@ object Scala
         }
       }
 
-      def toplevel(source: String): List[String] =
+      def toplevel(interpret: Boolean, source: String): List[String] =
       {
         val out = new StringWriter
         val interp = interpreter(new PrintWriter(out))
-        val rep = new interp.ReadEvalPrint
-        val ok = interp.withLabel("\u0001") { rep.compile(source) }
+        val ok =
+          interp.withLabel("\u0001") {
+            if (interpret) interp.interpret(source) == Results.Success
+            else (new interp.ReadEvalPrint).compile(source)
+          }
         out.close
 
         val Error = """(?s)^\S* error: (.*)$""".r
@@ -120,10 +123,16 @@ object Scala
 
   object Toplevel extends Fun("scala_toplevel")
   {
-    def apply(source: String): String =
+    def apply(arg: String): String =
     {
+      val (interpret, source) =
+        YXML.parse_body(arg) match {
+          case Nil => (false, "")
+          case List(XML.Text(source)) => (false, source)
+          case body => import XML.Decode._; pair(bool, string)(body)
+        }
       val errors =
-        try { Compiler.context().toplevel(source) }
+        try { Compiler.context().toplevel(interpret, source) }
         catch { case ERROR(msg) => List(msg) }
       locally { import XML.Encode._; YXML.string_of_body(list(string)(errors)) }
     }
