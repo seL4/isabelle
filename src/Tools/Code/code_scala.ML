@@ -287,7 +287,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
               concat [Pretty.block ((applify "[" "]" (str o lookup_tyvar tyvars) NOBR
-                ((concat o map str) ["final", "case", "class", deresolve_const co]) vs_args)
+                (str ("final case class " ^ deresolve_const co)) vs_args)
                 @@ enum "," "(" ")" (map (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg))
                   (Name.invent_names (snd reserved) "a" tys))),
                 str "extends",
@@ -296,7 +296,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               ];
           in
             Pretty.chunks (applify "[" "]" (str o lookup_tyvar tyvars)
-              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
+              NOBR (str ("abstract sealed class " ^ deresolve_tyco tyco)) vs
                 :: map print_co cos)
           end
       | print_stmt (Type_Class class, (_, Class ((v, (classrels, classparams)), insts))) =
@@ -334,7 +334,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
               @| Pretty.block_enclose
-                ((concat o map str) ["object", deresolve_class class, "{"], str "}")
+                (str ("object " ^ deresolve_class class ^ "{"), str "}")
                 (map (print_inst class) insts)
             )
           end;
