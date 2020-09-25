@@ -1453,7 +1453,7 @@ proof -
 
     have "b \<notin> f ` B1" using vs2.span_base[of b "f ` B1"] b by auto
     then have "Suc (card B1) = card (insert b (f ` B1))"
-      using sf[THEN inj_on_subset, of B1] by (subst card_insert) (auto intro: vs1.finite_Basis simp: card_image)
+      using sf[THEN inj_on_subset, of B1] by (subst card.insert_remove) (auto intro: vs1.finite_Basis simp: card_image)
     also have "\<dots> = vs2.dim (insert b (f ` B1))"
       using vs2.dim_eq_card_independent[OF **] by simp
     also have "vs2.dim (insert b (f ` B1)) \<le> vs2.dim B2"

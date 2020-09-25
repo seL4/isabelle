@@ -89,7 +89,7 @@ next
   also have "t ^ n / n / fact (card A) = t ^ n / fact n"
     by (simp add: n_def)
   also have "n = card (insert b A)"
-    using insert.hyps by (subst card_insert) (auto simp: n_def)
+    using insert.hyps by (subst card.insert_remove) (auto simp: n_def)
   finally show ?case .
 qed
 

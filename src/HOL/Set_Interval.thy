@@ -1538,7 +1538,7 @@ proof -
   also have "\<dots> = Suc (card ({k \<in> M. k < Suc i} - {0}))"
     by (force intro: arg_cong [where f=card])
   also have "\<dots> = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
-    by (simp add: card_insert)
+    by (simp add: card.insert_remove)
   also have "... = card {k \<in> M. k < Suc i}"
     using assms
     by (force simp add: intro: arg_cong [where f=card])

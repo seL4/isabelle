@@ -2783,7 +2783,7 @@ proposition frontier_of_convex_hull:
 proof (cases "affine_dependent S")
   case True
     have [iff]: "finite S"
-      using assms using card_infinite by force
+      using assms using card.infinite by force
     then have ccs: "closed (convex hull S)"
       by (simp add: compact_imp_closed finite_imp_compact_convex_hull)
     { fix x T
@@ -2839,7 +2839,7 @@ proof (cases "b = a \<or> c = a \<or> c = b")
     by (auto simp: assms segment_convex_hull frontier_def empty_interior_convex_hull insert_commute card_insert_le_m1 hull_inc insert_absorb)
 next
   case False then have [simp]: "card {a, b, c} = Suc (DIM('a))"
-    by (simp add: card_insert Set.insert_Diff_if assms)
+    by (simp add: card.insert_remove Set.insert_Diff_if assms)
   show ?thesis
   proof
     show "?lhs \<subseteq> ?rhs"
@@ -3125,7 +3125,7 @@ lemma simplex_empty [simp]: "n simplex {} \<longleftrightarrow> n = -1"
 proof
   assume "n simplex {}"
   then show "n = -1"
-    unfolding simplex by (metis card_empty convex_hull_eq_empty diff_0 diff_eq_eq of_nat_0)
+    unfolding simplex by (metis card.empty convex_hull_eq_empty diff_0 diff_eq_eq of_nat_0)
 next
   assume "n = -1" then show "n simplex {}"
     by (fastforce simp: simplex)
@@ -3141,7 +3141,7 @@ lemma aff_dim_simplex:
 
 lemma zero_simplex_sing: "0 simplex {a}"
   apply (simp add: simplex_def)
-  by (metis affine_independent_1 card_empty card_insert_disjoint convex_hull_singleton empty_iff finite.emptyI)
+  by (metis affine_independent_1 card.empty card_insert_disjoint convex_hull_singleton empty_iff finite.emptyI)
 
 lemma simplex_sing [simp]: "n simplex {a} \<longleftrightarrow> n = 0"
   using aff_dim_simplex aff_dim_sing zero_simplex_sing by blast
