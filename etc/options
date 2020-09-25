@@ -288,10 +288,10 @@ option ssh_alive_count_max : int = 3
 
 section "Phabricator"
 
-option phabricator_version_arcanist : string = "ccd39feb6d3bbd84e122817b0d8b36284b6edd9d"
+option phabricator_version_arcanist : string = "68dba1a2c6d9fe1de7b9d4c944336458d0f016b3"
   -- "repository version for arcanist"
 
-option phabricator_version_phabricator : string = "82f98747a4e33596f8c027cb574b8ee3cb4c7d6b"
+option phabricator_version_phabricator : string = "5e06d924f8eba5df354c690ceb693e454e965d16"
   -- "repository version for phabricator"
 
 
