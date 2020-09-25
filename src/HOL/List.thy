@@ -5326,7 +5326,7 @@ lemma card_lists_distinct_length_eq':
   assumes "k < card A"
   shows "card {xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A} = \<Prod>{card A - k + 1 .. card A}"
 proof -
-  from \<open>k < card A\<close> have "finite A" and "k \<le> card A" using card_infinite by force+
+  from \<open>k < card A\<close> have "finite A" and "k \<le> card A" using card.infinite by force+
   from this show ?thesis by (rule card_lists_distinct_length_eq)
 qed
 

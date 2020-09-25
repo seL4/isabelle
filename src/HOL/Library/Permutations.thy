@@ -347,7 +347,7 @@ next
       by auto
     then have "finite ?pF"
       by (auto intro: card_ge_0_finite)
-    with \<open>finite F\<close> card_insert have pF'f: "finite ?pF'"
+    with \<open>finite F\<close> card.insert_remove have pF'f: "finite ?pF'"
       apply (simp only: Collect_case_prod Collect_mem_eq)
       apply (rule finite_cartesian_product)
       apply simp_all

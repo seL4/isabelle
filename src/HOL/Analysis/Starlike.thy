@@ -3270,7 +3270,7 @@ proof
     fix a b
     assume "b \<in> S" "b \<in> affine hull (S - {b})"
     then have "interior(affine hull S) = {}" using assms
-      by (metis DIM_positive One_nat_def Suc_mono card.remove card_infinite empty_interior_affine_hull eq_iff hull_redundant insert_Diff not_less zero_le_one)
+      by (metis DIM_positive One_nat_def Suc_mono card.remove card.infinite empty_interior_affine_hull eq_iff hull_redundant insert_Diff not_less zero_le_one)
     then show "interior (convex hull S) = {}" 
       using affine_hull_nonempty_interior by fastforce
   qed
