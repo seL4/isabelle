@@ -141,7 +141,7 @@ fun pretty_failures ctxt target failures =
 
 (* driver invocation *)
 
-val debug = Attrib.setup_config_bool \<^binding>\<open>code_test_debug\<close> (K false)
+val debug = Attrib.setup_config_bool \<^binding>\<open>test_code_debug\<close> (K false)
 
 fun with_debug_dir name f =
   let
