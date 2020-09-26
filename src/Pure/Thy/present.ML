@@ -10,7 +10,7 @@ sig
   val theory_qualifier: theory -> string
   val document_option: Options.T -> {enabled: bool, disabled: bool}
   val document_variants: Options.T -> (string * string) list
-  val init: HTML.symbols -> bool -> Path.T -> string -> string -> (string * string) list ->
+  val init: HTML.symbols -> bool -> Path.T -> bool -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
   val theory_output: theory -> string list -> unit
@@ -31,6 +31,7 @@ val index_path = Path.basic "index.html";
 val readme_html_path = Path.basic "README.html";
 val doc_indexN = "session";
 val session_graph_path = Path.basic "session_graph.pdf";
+fun document_path name = Path.basic name |> Path.ext "pdf";
 
 fun show_path path = Path.implode (Path.expand (File.full_path Path.current path));
 
@@ -123,14 +124,14 @@ fun add_html_index txt =
 
 type session_info =
   {symbols: HTML.symbols, name: string, chapter: string, info_path: Path.T, info: bool,
-    doc_format: string, doc_output: Path.T option, doc_files: (Path.T * Path.T) list,
+    document: bool, doc_output: Path.T option, doc_files: (Path.T * Path.T) list,
     graph_file: Path.T, documents: (string * string) list, verbose: bool, readme: Path.T option};
 
 fun make_session_info
-  (symbols, name, chapter, info_path, info, doc_format, doc_output, doc_files,
+  (symbols, name, chapter, info_path, info, document, doc_output, doc_files,
     graph_file, documents, verbose, readme) =
   {symbols = symbols, name = name, chapter = chapter, info_path = info_path, info = info,
-    doc_format = doc_format, doc_output = doc_output, doc_files = doc_files, graph_file = graph_file,
+    document = document, doc_output = doc_output, doc_files = doc_files, graph_file = graph_file,
     documents = documents, verbose = verbose, readme = readme}: session_info;
 
 
@@ -175,21 +176,21 @@ fun document_variants options =
 
 (* init session *)
 
-fun init symbols info info_path doc document_output doc_variants doc_files graph_file
+fun init symbols info info_path document document_output doc_variants doc_files graph_file
     (chapter, name) verbose =
   let
     val doc_output =
       if document_output = "" then NONE else SOME (Path.explode document_output);
 
-    val documents = if doc = "" orelse null doc_files then [] else doc_variants;
+    val documents = if not document orelse null doc_files then [] else doc_variants;
     val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
 
     val docs =
       (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
-        map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
+        map (fn (name, _) => (Url.File (document_path name), name)) documents;
   in
     session_info :=
-      SOME (make_session_info (symbols, name, chapter, info_path, info, doc,
+      SOME (make_session_info (symbols, name, chapter, info_path, info, document,
         doc_output, doc_files, graph_file, documents, verbose, readme));
     Synchronized.change browser_info (K empty_browser_info);
     add_html_index (0, HTML.begin_session_index symbols name (Url.File session_graph_path) docs)
@@ -198,12 +199,12 @@ fun init symbols info info_path doc document_output doc_variants doc_files graph
 
 (* isabelle tool wrappers *)
 
-fun isabelle_document {verbose} format name tags dir =
+fun isabelle_document {verbose} doc_name tags dir =
   let
     val script =
-      "isabelle document -d " ^ File.bash_path dir ^ " -o " ^ Bash.string format ^
-        " -n " ^ Bash.string name ^ (if tags = "" then "" else " -t " ^ Bash.string tags);
-    val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
+      "isabelle document -d " ^ File.bash_path dir ^ " -n " ^ Bash.string doc_name ^
+      (if tags = "" then "" else " -t " ^ Bash.string tags);
+    val doc_path = Path.appends [dir, Path.parent, document_path doc_name];
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln (trim_line (normalize_lines out)) else ();
@@ -223,7 +224,7 @@ fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index) doc_indexN path;
 
 fun finish () =
-  with_session_info () (fn {name, chapter, info, info_path, doc_format,
+  with_session_info () (fn {name, chapter, info, info_path, document,
     doc_output, doc_files, graph_file, documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index} = Synchronized.value browser_info;
@@ -264,7 +265,7 @@ fun finish () =
             write_tex (fold Buffer.add tex_source Buffer.empty) a doc_dir) thys;
       in
         fn () =>
-          (isabelle_document {verbose = true} doc_format doc_name tags doc_dir before purge (),
+          (isabelle_document {verbose = true} doc_name tags doc_dir before purge (),
             fn doc =>
               if verbose orelse not backdrop then
                 Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")

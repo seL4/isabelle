@@ -163,23 +163,6 @@ text \<open>
 \<close>
 
 
-section \<open>Displaying documents \label{sec:tool-display}\<close>
-
-text \<open>
-  The @{tool_def display} tool displays documents in DVI or PDF format:
-  @{verbatim [display]
-\<open>Usage: isabelle display DOCUMENT
-
-  Display DOCUMENT (in DVI or PDF format).\<close>}
-
-  \<^medskip>
-  The settings @{setting DVI_VIEWER} and @{setting PDF_VIEWER} determine the
-  programs for viewing the corresponding file formats. Normally this opens the
-  document via the desktop environment, potentially in an asynchronous manner
-  with re-use of previews views.
-\<close>
-
-
 section \<open>Viewing documentation \label{sec:tool-doc}\<close>
 
 text \<open>
@@ -192,7 +175,7 @@ text \<open>
   If called without arguments, it lists all available documents. Each line
   starts with an identifier, followed by a short description. Any of these
   identifiers may be specified as arguments, in order to display the
-  corresponding document (see also \secref{sec:tool-display}).
+  corresponding document.
 
   \<^medskip>
   The @{setting ISABELLE_DOCS} setting specifies the list of directories

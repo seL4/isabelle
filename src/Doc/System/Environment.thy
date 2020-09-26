@@ -192,9 +192,9 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_LINE_EDITOR}] specifies the line editor for the
   @{tool_ref console} interface.
 
-  \<^descr>[@{setting_def ISABELLE_LATEX}, @{setting_def ISABELLE_PDFLATEX},
-  @{setting_def ISABELLE_BIBTEX}] refer to {\LaTeX} related tools for Isabelle
-  document preparation (see also \secref{sec:tool-latex}).
+  \<^descr>[@{setting_def ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}] refer to
+  {\LaTeX} related tools for Isabelle document preparation (see also
+  \secref{sec:tool-latex}).
 
   \<^descr>[@{setting_def ISABELLE_TOOLS}] is a colon separated list of directories
   that are scanned by @{executable isabelle} for external utility programs
@@ -205,9 +205,6 @@ text \<open>
 
   \<^descr>[@{setting_def PDF_VIEWER}] specifies the program to be used for displaying
   \<^verbatim>\<open>pdf\<close> files.
-
-  \<^descr>[@{setting_def DVI_VIEWER}] specifies the program to be used for displaying
-  \<^verbatim>\<open>dvi\<close> files.
 
   \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}\<open>\<^sup>*\<close>] is the prefix from which any
   running Isabelle ML process derives an individual directory for temporary

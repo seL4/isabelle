@@ -38,6 +38,9 @@ checked within the Isabelle settings environment.
 * Antiquotations @{scala}, @{scala_object}, @{scala_type},
 @{scala_method} refer to checked Isabelle/Scala entities.
 
+* Discontinued obsolete DVI format and ISABELLE_LATEX settings variable:
+document output is always PDF.
+
 
 *** Pure ***
 
@@ -157,6 +160,9 @@ via the PIDE protocol.
 
 
 *** System ***
+
+* Discontinued obsolete isabelle display tool, and DVI_VIEWER settings
+variable.
 
 * The shell function "isabelle_directory" (within etc/settings of
 components) augments the list of special directories for persistent

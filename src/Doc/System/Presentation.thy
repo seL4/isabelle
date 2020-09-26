@@ -153,7 +153,6 @@ text \<open>
   Options are:
     -d DIR       document output directory (default "output/document")
     -n NAME      document name (default "document")
-    -o FORMAT    document format: pdf (default), dvi
     -t TAGS      markup for tagged regions
 
   Prepare the theory session document in document directory, producing the
@@ -172,8 +171,8 @@ text \<open>
   will appear in the parent of this directory.
 
   \<^medskip>
-  The \<^verbatim>\<open>-n\<close> and \<^verbatim>\<open>-o\<close> option specify the final output file name and format,
-  the default is ``\<^verbatim>\<open>document.pdf\<close>''.
+  Option \<^verbatim>\<open>-n\<close> specifies the resulting document file name, the default is
+  ``\<^verbatim>\<open>document\<close>'' (leading to ``\<^verbatim>\<open>document.pdf\<close>'').
 
   \<^medskip>
   The \<^verbatim>\<open>-t\<close> option tells {\LaTeX} how to interpret tagged Isabelle command
@@ -229,7 +228,7 @@ text \<open>
   just by providing {\LaTeX} macros in a similar fashion as in
   \<^file>\<open>~~/lib/texinputs/isabellesym.sty\<close> of the Isabelle distribution.
 
-  For proper setup of DVI and PDF documents (with hyperlinks and bookmarks),
+  For proper setup of PDF documents (with hyperlinks and bookmarks),
   we recommend to include \<^file>\<open>~~/lib/texinputs/pdfsetup.sty\<close> as well.
 
   \<^medskip>
@@ -254,16 +253,16 @@ text \<open>
 \<open>Usage: isabelle latex [OPTIONS] [FILE]
 
   Options are:
-    -o FORMAT    specify output format: pdf (default), dvi, bbl, idx, sty
+    -o FORMAT    specify output format: pdf (default), bbl, idx, sty
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.\<close>}
 
   Appropriate {\LaTeX}-related programs are run on the input file, according
-  to the given output format: @{executable latex}, @{executable pdflatex},
-  @{executable dvips}, @{executable bibtex} (for \<^verbatim>\<open>bbl\<close>), and @{executable
-  makeindex} (for \<^verbatim>\<open>idx\<close>). The actual commands are determined from the
-  settings environment (@{setting ISABELLE_PDFLATEX} etc.).
+  to the given output format: @{executable pdflatex}, @{executable bibtex}
+  (for \<^verbatim>\<open>bbl\<close>), and @{executable makeindex} (for \<^verbatim>\<open>idx\<close>). The actual commands
+  are determined from the settings environment (@{setting ISABELLE_PDFLATEX}
+  etc.).
 
   The \<^verbatim>\<open>sty\<close> output format causes the Isabelle style files to be updated from
   the distribution. This is useful in special situations where the document

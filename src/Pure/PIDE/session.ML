@@ -46,13 +46,17 @@ fun update_keywords () =
 
 (* init *)
 
+val document =
+  fn "" => false | "false" => false | "pdf" => true
+   | doc => error ("Bad document specification " ^ quote doc);
+
 fun init symbols info info_path doc doc_output doc_variants doc_files graph_file
     parent (chapter, name) verbose =
   (Synchronized.change session (fn ({name = parent_name, ...}, parent_finished) =>
     if parent_name <> parent orelse not parent_finished then
       error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
     else ({chapter = chapter, name = name}, false));
-    Present.init symbols info info_path (if doc = "false" then "" else doc)
+    Present.init symbols info info_path (document doc)
       doc_output doc_variants doc_files graph_file (chapter, name) verbose);
 
 

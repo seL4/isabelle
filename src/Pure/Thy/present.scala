@@ -196,9 +196,9 @@ object Present
 
   /** build document **/
 
+  val document_format = "pdf"
+
   val default_document_name = "document"
-  val default_document_format = "pdf"
-  val document_formats = List("pdf", "dvi")
   def default_document_dir(name: String): Path = Path.explode("output") + Path.basic(name)
 
   def document_tags(tags: List[String]): String =
@@ -215,14 +215,10 @@ object Present
 
   def build_document(
     document_name: String = default_document_name,
-    document_format: String = default_document_format,
     document_dir: Option[Path] = None,
     tags: List[String] = Nil)
   {
     val document_target = Path.parent + Path.explode(document_name).ext(document_format)
-
-    if (!document_formats.contains(document_format))
-      error("Bad document output format: " + quote(document_format))
 
     val dir = document_dir getOrElse default_document_dir(document_name)
     if (!dir.is_dir) error("Bad document output directory " + dir)
@@ -288,7 +284,6 @@ object Present
   {
     var document_dir: Option[Path] = None
     var document_name = default_document_name
-    var document_format = default_document_format
     var tags: List[String] = Nil
 
     val getopts = Getopts("""
@@ -298,9 +293,6 @@ Usage: isabelle document [OPTIONS]
     -d DIR       document output directory (default """ +
       default_document_dir(default_document_name) + """)
     -n NAME      document name (default """ + quote(default_document_name) + """)
-    -o FORMAT    document format: """ +
-      commas(document_formats.map(fmt =>
-        fmt + (if (fmt == default_document_format) " (default)" else ""))) + """
     -t TAGS      markup for tagged regions
 
   Prepare the theory session document in document directory, producing the
@@ -308,15 +300,13 @@ Usage: isabelle document [OPTIONS]
 """,
       "d:" -> (arg => document_dir = Some(Path.explode(arg))),
       "n:" -> (arg => document_name = arg),
-      "o:" -> (arg => document_format = arg),
       "t:" -> (arg => tags = space_explode(',', arg)))
 
     val more_args = getopts(args)
     if (more_args.nonEmpty) getopts.usage()
 
     try {
-      build_document(document_dir = document_dir, document_name = document_name,
-        document_format = document_format, tags = tags)
+      build_document(document_dir = document_dir, document_name = document_name, tags = tags)
     }
     catch { case ERROR(msg) => Output.writeln(msg); sys.exit(2) }
   })
