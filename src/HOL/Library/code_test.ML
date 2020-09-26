@@ -322,6 +322,7 @@ fun main () =
         (ML_Lex.read_text (code, Path.position code_path) @
          ML_Lex.read_text (driver, Path.position driver_path) @
          ML_Lex.read "main ()")
+      handle ERROR msg => error ("Evaluation for " ^ polymlN ^ " failed:\n" ^ msg)
   in File.read out_path end
 
 
@@ -509,6 +510,7 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
     val _ = File.write code_path code
     val _ = File.write driver_path driver
     val _ = Scala_Compiler.toplevel true (code ^ driver)
+      handle ERROR msg => error ("Evaluation for " ^ scalaN ^ " failed:\n" ^ msg)
   in File.read out_path end
 
 
