@@ -66,9 +66,12 @@ val _ =
         if #disabled option then ()
         else
           let
-            val latex = Latex.isabelle_body (Context.theory_name thy) body;
+            val thy_name = Context.theory_name thy;
+            val document_path = Path.append (Path.basic "document") (Present.tex_path thy_name);
+
+            val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-            val _ = Export.export thy (Path.explode_binding0 "document.tex") (XML.blob output);
+            val _ = Export.export thy (Path.binding0 document_path) (XML.blob output);
             val _ = if #enabled option then Present.theory_output thy output else ();
           in () end
       end));
