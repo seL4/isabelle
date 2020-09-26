@@ -153,6 +153,9 @@ by (cases t)(auto)
 lemma neq_empty_subtrees[simp]: "{} \<noteq> subtrees t"
 by (cases t)(auto)
 
+lemma size_subtrees: "s \<in> subtrees t \<Longrightarrow> size s \<le> size t"
+by(induction t)(auto)
+
 lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. \<langle>l, a, r\<rangle> \<in> subtrees t"
 by (induction t)(auto)
 
