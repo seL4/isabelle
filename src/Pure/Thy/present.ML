@@ -6,6 +6,7 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
+  val tex_path: string -> Path.T
   val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
   val document_option: Options.T -> {enabled: bool, disabled: bool}
@@ -31,7 +32,7 @@ val index_path = Path.basic "index.html";
 val readme_html_path = Path.basic "README.html";
 val doc_indexN = "session";
 val session_graph_path = Path.basic "session_graph.pdf";
-fun document_path name = Path.basic name |> Path.ext "pdf";
+val document_path = Path.ext "pdf" o Path.basic;
 
 fun show_path path = Path.implode (Path.expand (File.full_path Path.current path));
 
