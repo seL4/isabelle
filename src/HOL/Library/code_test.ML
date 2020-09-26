@@ -273,7 +273,7 @@ fun check_settings compiler var descr =
       ("Environment variable " ^ var ^ " is not set. To test code generation with " ^
         compiler ^ ", set this variable to your " ^ descr ^
         " in the $ISABELLE_HOME_USER/etc/settings file.")))
-  else ();
+  else ()
 
 fun compile compiler cmd =
   let val (out, ret) = Isabelle_System.bash_output cmd in
@@ -299,7 +299,7 @@ fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
     val driver_path = Path.append dir (Path.basic "driver.sml")
     val out_path = Path.append dir (Path.basic "out")
 
-    val code = #2 (the_single code_files);
+    val code = #2 (the_single code_files)
     val driver = \<^verbatim>\<open>
 fun main () =
   let
@@ -316,18 +316,17 @@ fun main () =
     val _ = BinIO.closeOut out
   in () end;
 \<close>
-  in
-    File.write code_path code;
-    File.write driver_path driver;
-    ML_Context.eval
-      {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
-        writeln = writeln, warning = warning}
-      Position.none
-      (ML_Lex.read_text (code, Path.position code_path) @
-       ML_Lex.read_text (driver, Path.position driver_path) @
-       ML_Lex.read "main ()");
-    File.read out_path
-  end
+    val _ = File.write code_path code
+    val _ = File.write driver_path driver
+    val _ =
+      ML_Context.eval
+        {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
+          writeln = writeln, warning = warning}
+        Position.none
+        (ML_Lex.read_text (code, Path.position code_path) @
+         ML_Lex.read_text (driver, Path.position driver_path) @
+         ML_Lex.read "main ()")
+  in File.read out_path end
 
 
 (* driver for mlton *)
@@ -354,13 +353,12 @@ val _ = print \<close> ^ ML_Syntax.print_string start_markerN ^ \<^verbatim>\<op
 val _ = List.app (print o format) result
 val _ = print \<close> ^ ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
 \<close>
-    val cmd = "\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path
+    val _ = check_settings compiler ISABELLE_MLTON "MLton executable"
+    val _ = List.app (File.write code_path o snd) code_files
+    val _ = File.write driver_path driver
+    val _ = File.write basis_path ("$(SML_LIB)/basis/basis.mlb\n" ^ generatedN ^ "\n" ^ driverN)
   in
-    check_settings compiler ISABELLE_MLTON "MLton executable";
-    List.app (File.write code_path o snd) code_files;
-    File.write driver_path driver;
-    File.write basis_path ("$(SML_LIB)/basis/basis.mlb\n" ^ generatedN ^ "\n" ^ driverN);
-    compile compiler cmd;
+    compile compiler ("\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path);
     evaluate compiler (File.bash_path (Path.append dir (Path.basic projectN)))
   end
 
@@ -393,17 +391,15 @@ struct
     in 0 end
 end
 \<close>
+    val _ = check_settings compiler ISABELLE_SMLNJ "SMLNJ executable"
+    val _ = List.app (File.write code_path o snd) code_files
+    val _ = File.write driver_path driver
     val ml_source =
       "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
       "use " ^ ML_Syntax.print_string (File.platform_path code_path) ^
       "; use " ^ ML_Syntax.print_string (File.platform_path driver_path) ^
       "; Test.main ();"
-  in
-    check_settings compiler ISABELLE_SMLNJ "SMLNJ executable";
-    List.app (File.write code_path o snd) code_files;
-    File.write driver_path driver;
-    evaluate compiler ("echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\"")
-  end
+  in evaluate compiler ("echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\"") end
 
 
 (* driver for OCaml *)
@@ -431,17 +427,15 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
       "  print_string \"" ^ end_markerN ^ "\";;\n" ^
       "main ();;"
     val compiled_path = Path.append dir (Path.basic "test")
+
+    val _ = check_settings compiler ISABELLE_OCAMLFIND "ocamlfind executable"
+    val _ = List.app (File.write code_path o snd) code_files
+    val _ = File.write driver_path driver
     val cmd =
       "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg" ^
       " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path dir ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path ^ " </dev/null"
-  in
-    check_settings compiler ISABELLE_OCAMLFIND "ocamlfind executable";
-    List.app (File.write code_path o snd) code_files;
-    File.write driver_path driver;
-    compile compiler cmd;
-    evaluate compiler (File.bash_path compiled_path)
-  end
+  in compile compiler cmd; evaluate compiler (File.bash_path compiled_path) end
 
 
 (* driver for GHC *)
@@ -474,6 +468,10 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
       "  }\n" ^
       "}\n"
 
+    val _ = check_settings compiler ISABELLE_GHC "GHC executable"
+    val _ = List.app (fn (name, code) => File.write (Path.append dir (Path.basic name)) code) code_files
+    val _ = File.write driver_path driver
+
     val compiled_path = Path.append dir (Path.basic "test")
     val cmd =
       "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
@@ -481,13 +479,7 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
       File.bash_platform_path compiled_path ^ " " ^
       File.bash_platform_path driver_path ^ " -i" ^
       File.bash_platform_path dir
-  in
-    check_settings compiler ISABELLE_GHC "GHC executable";
-    List.app (fn (name, code) => File.write (Path.append dir (Path.basic name)) code) code_files;
-    File.write driver_path driver;
-    compile compiler cmd;
-    evaluate compiler (File.bash_path compiled_path)
-  end
+  in compile compiler cmd; evaluate compiler (File.bash_path compiled_path) end
 
 
 (* driver for Scala *)
@@ -503,7 +495,7 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
     val driver_path = Path.append dir (Path.basic driverN)
     val out_path = Path.append dir (Path.basic "out")
 
-    val code = #2 (the_single code_files);
+    val code = #2 (the_single code_files)
     val driver = \<^verbatim>\<open>
 {
   val result = \<close> ^ value_name ^ \<^verbatim>\<open>(())
@@ -518,12 +510,10 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
     isabelle.Path.explode(\<close> ^ quote (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>),
     \<close> ^ quote start_markerN ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_markerN ^ \<^verbatim>\<open>)
 }\<close>
-  in
-    File.write code_path code;
-    File.write driver_path driver;
-    Scala_Compiler.toplevel true (code ^ driver);
-    File.read out_path
-  end
+    val _ = File.write code_path code
+    val _ = File.write driver_path driver
+    val _ = Scala_Compiler.toplevel true (code ^ driver)
+  in File.read out_path end
 
 
 (* command setup *)
@@ -537,19 +527,18 @@ val _ =
 val target_Scala = "Scala_eval"
 val target_Haskell = "Haskell_eval"
 
-val _ = Theory.setup
-   (Code_Target.add_derived_target (target_Scala, [(Code_Scala.target, I)])
-    #> Code_Target.add_derived_target (target_Haskell, [(Code_Haskell.target, I)]))
-
 val _ =
-  Theory.setup (fold add_driver
-    [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
-     (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
-     (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
-     (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
-     (ghcN, (evaluate_in_ghc, target_Haskell)),
-     (scalaN, (evaluate_in_scala, target_Scala))]
-  #> fold (fn target => Value_Command.add_evaluator (Binding.name target, eval_term target) #> snd)
+  Theory.setup
+   (Code_Target.add_derived_target (target_Scala, [(Code_Scala.target, I)]) #>
+    Code_Target.add_derived_target (target_Haskell, [(Code_Haskell.target, I)]) #>
+    fold add_driver
+      [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
+       (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
+       (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
+       (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
+       (ghcN, (evaluate_in_ghc, target_Haskell)),
+       (scalaN, (evaluate_in_scala, target_Scala))] #>
+    fold (fn target => Value_Command.add_evaluator (Binding.name target, eval_term target) #> #2)
       [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
 
 end
