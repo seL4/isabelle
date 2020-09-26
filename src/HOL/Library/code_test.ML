@@ -10,10 +10,6 @@ sig
     string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) ->
     theory -> theory
   val debug: bool Config.T
-  val successN: string
-  val failureN: string
-  val start_markerN: string
-  val end_markerN: string
   val test_terms: Proof.context -> term list -> string -> unit
   val test_code_cmd: string list -> string list -> Proof.context -> unit
   val eval_term: string -> Proof.context -> term -> term
@@ -84,28 +80,28 @@ val get_driver = AList.lookup (op =) o Drivers.get
 (*
   Test drivers must produce output of the following format:
 
-  The start of the relevant data is marked with start_markerN,
-  its end with end_markerN.
+  The start of the relevant data is marked with start_marker,
+  its end with end_marker.
 
   Between these two markers, every line corresponds to one test.
-  Lines of successful tests start with successN, failures start with failureN.
-  The failure failureN may continue with the YXML encoding of the evaluated term.
+  Lines of successful tests start with success, failures start with failure.
+  The failure failure may continue with the YXML encoding of the evaluated term.
   There must not be any additional whitespace in between.
 *)
 
 
 (* parsing of results *)
 
-val successN = "True"
-val failureN = "False"
-val start_markerN = "*@*Isabelle/Code_Test-start*@*"
-val end_markerN = "*@*Isabelle/Code_Test-end*@*"
+val success = "True"
+val failure = "False"
+val start_marker = "*@*Isabelle/Code_Test-start*@*"
+val end_marker = "*@*Isabelle/Code_Test-end*@*"
 
 fun parse_line line =
-  if String.isPrefix successN line then (true, NONE)
-  else if String.isPrefix failureN line then (false,
-    if size line > size failureN then
-      String.extract (line, size failureN, NONE)
+  if String.isPrefix success line then (true, NONE)
+  else if String.isPrefix failure line then (false,
+    if size line > size failure then
+      String.extract (line, size failure, NONE)
       |> YXML.parse_body
       |> Term_XML.Decode.term_raw
       |> dest_tuples
@@ -114,7 +110,7 @@ fun parse_line line =
   else raise Fail ("Cannot parse result of evaluation:\n" ^ line)
 
 fun parse_result target out =
-  (case split_first_last start_markerN end_markerN out of
+  (case split_first_last start_marker end_marker out of
     NONE => error ("Evaluation failed for " ^ target ^ "!\nCompiler output:\n" ^ out)
   | SOME (_, middle, _) => middle |> trim_split_lines |> map parse_line)
 
@@ -303,14 +299,14 @@ fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
     val driver = \<^verbatim>\<open>
 fun main () =
   let
-    fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
-      | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
-      | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+    fun format (true, _) = \<close> ^ ML_Syntax.print_string success ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, NONE) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ "\n"
+      | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ t () ^ "\n"
     val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
     val result_text = \<close> ^
-      ML_Syntax.print_string start_markerN ^
+      ML_Syntax.print_string start_marker ^
       \<^verbatim>\<open> ^ String.concat (map format result) ^ \<close> ^
-      ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
+      ML_Syntax.print_string end_marker ^ \<^verbatim>\<open>
     val out = BinIO.openOut \<close> ^ ML_Syntax.print_platform_path out_path ^ \<^verbatim>\<open>
     val _ = BinIO.output (out, Byte.stringToBytes result_text)
     val _ = BinIO.closeOut out
@@ -345,13 +341,13 @@ fun evaluate_in_mlton (_: Proof.context) (code_files, value_name) dir =
     val driver_path = Path.append dir (Path.basic driverN)
     val basis_path = Path.append dir (Path.basic (projectN ^ ".mlb"))
     val driver = \<^verbatim>\<open>
-fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
-  | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
-  | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+fun format (true, _) = \<close> ^ ML_Syntax.print_string success ^ \<^verbatim>\<open> ^ "\n"
+  | format (false, NONE) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ "\n"
+  | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ t () ^ "\n"
 val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
-val _ = print \<close> ^ ML_Syntax.print_string start_markerN ^ \<^verbatim>\<open>
+val _ = print \<close> ^ ML_Syntax.print_string start_marker ^ \<^verbatim>\<open>
 val _ = List.app (print o format) result
-val _ = print \<close> ^ ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
+val _ = print \<close> ^ ML_Syntax.print_string end_marker ^ \<^verbatim>\<open>
 \<close>
     val _ = check_settings compiler ISABELLE_MLTON "MLton executable"
     val _ = List.app (File.write code_path o snd) code_files
@@ -381,13 +377,13 @@ structure Test =
 struct
   fun main () =
     let
-      fun format (true, _) = \<close> ^ ML_Syntax.print_string successN ^ \<^verbatim>\<open> ^ "\n"
-        | format (false, NONE) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ "\n"
-        | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failureN ^ \<^verbatim>\<open> ^ t () ^ "\n"
+      fun format (true, _) = \<close> ^ ML_Syntax.print_string success ^ \<^verbatim>\<open> ^ "\n"
+        | format (false, NONE) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ "\n"
+        | format (false, SOME t) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ t () ^ "\n"
       val result = \<close> ^ value_name ^ \<^verbatim>\<open> ()
-      val _ = print \<close> ^ ML_Syntax.print_string start_markerN ^ \<^verbatim>\<open>
+      val _ = print \<close> ^ ML_Syntax.print_string start_marker ^ \<^verbatim>\<open>
       val _ = List.app (print o format) result
-      val _ = print \<close> ^ ML_Syntax.print_string end_markerN ^ \<^verbatim>\<open>
+      val _ = print \<close> ^ ML_Syntax.print_string end_marker ^ \<^verbatim>\<open>
     in 0 end
 end
 \<close>
@@ -418,13 +414,13 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
       "  | None -> \"\"\n" ^
       "  | Some t -> t ();;\n" ^
       "let format = function\n" ^
-      "  | (true, _) -> \"" ^ successN ^ "\\n\"\n" ^
-      "  | (false, x) -> \"" ^ failureN ^ "\" ^ format_term x ^ \"\\n\";;\n" ^
+      "  | (true, _) -> \"" ^ success ^ "\\n\"\n" ^
+      "  | (false, x) -> \"" ^ failure ^ "\" ^ format_term x ^ \"\\n\";;\n" ^
       "let result = " ^ ("Generated." ^ value_name) ^ " ();;\n" ^
       "let main x =\n" ^
-      "  let _ = print_string \"" ^ start_markerN ^ "\" in\n" ^
+      "  let _ = print_string \"" ^ start_marker ^ "\" in\n" ^
       "  let _ = List.map (fun x -> print_string (format x)) result in\n" ^
-      "  print_string \"" ^ end_markerN ^ "\";;\n" ^
+      "  print_string \"" ^ end_marker ^ "\";;\n" ^
       "main ();;"
     val compiled_path = Path.append dir (Path.basic "test")
 
@@ -458,13 +454,13 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
       "    let {\n" ^
       "      format_term Nothing = \"\";\n" ^
       "      format_term (Just t) = t ();\n" ^
-      "      format (True, _) = \"" ^ successN ^ "\\n\";\n" ^
-      "      format (False, to) = \"" ^ failureN ^ "\" ++ format_term to ++ \"\\n\";\n" ^
+      "      format (True, _) = \"" ^ success ^ "\\n\";\n" ^
+      "      format (False, to) = \"" ^ failure ^ "\" ++ format_term to ++ \"\\n\";\n" ^
       "      result = " ^ value_name ^ " ();\n" ^
       "    };\n" ^
-      "    Prelude.putStr \"" ^ start_markerN ^ "\";\n" ^
+      "    Prelude.putStr \"" ^ start_marker ^ "\";\n" ^
       "    Prelude.mapM_ (putStr . format) result;\n" ^
-      "    Prelude.putStr \"" ^ end_markerN ^ "\";\n" ^
+      "    Prelude.putStr \"" ^ end_marker ^ "\";\n" ^
       "  }\n" ^
       "}\n"
 
@@ -508,7 +504,7 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
       }).mkString
   isabelle.File.write(
     isabelle.Path.explode(\<close> ^ quote (Path.implode (Path.expand out_path)) ^ \<^verbatim>\<open>),
-    \<close> ^ quote start_markerN ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_markerN ^ \<^verbatim>\<open>)
+    \<close> ^ quote start_marker ^ \<^verbatim>\<open> + result_text + \<close> ^ quote end_marker ^ \<^verbatim>\<open>)
 }\<close>
     val _ = File.write code_path code
     val _ = File.write driver_path driver
