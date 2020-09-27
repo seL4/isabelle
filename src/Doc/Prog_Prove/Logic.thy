@@ -49,7 +49,7 @@ in Fig.~\ref{fig:log-symbols}.
 \<open>\<forall>\<close> & \xsymbol{forall} & \texttt{ALL}\\
 \<open>\<exists>\<close> & \xsymbol{exists} & \texttt{EX}\\
 \<open>\<lambda>\<close> & \xsymbol{lambda} & \texttt{\%}\\
-\<open>\<longrightarrow>\<close> & \texttt{-{}->}\\
+\<open>\<longrightarrow>\<close> & \texttt{-{\kern0pt}->}\\
 \<open>\<longleftrightarrow>\<close> & \texttt{<->}\\
 \<open>\<and>\<close> & \texttt{/\char`\\} & \texttt{\&}\\
 \<open>\<or>\<close> & \texttt{\char`\\/} & \texttt{|}\\

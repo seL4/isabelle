@@ -115,8 +115,9 @@ val output_ascii =
       | "\t" => "\\ "
       | "\n" => "\\isanewline\n"
       | s =>
-          if exists_string (fn s' => s = s') "\"#$%&',-<>\\^_`{}~"
-          then enclose "{\\char`\\" "}" s else s);
+          s
+          |> exists_string (fn s' => s = s') "\"#$%&',-<>\\^_`{}~" ? enclose "{\\char`\\" "}"
+          |> suffix "{\\kern0pt}");
 
 fun output_ascii_breakable sep =
   space_explode sep
@@ -169,7 +170,7 @@ fun output_chr " " = "\\ "
   | output_chr "\n" = "\\isanewline\n"
   | output_chr c =
       (case Symtab.lookup char_table c of
-        SOME s => s
+        SOME s => s ^ "{\\kern0pt}"
       | NONE => if Symbol.is_ascii_digit c then enclose "{\\isadigit{" "}}" c else c);
 
 fun output_sym sym =
