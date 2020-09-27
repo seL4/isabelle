@@ -182,4 +182,3 @@ val _ =
     (fn [] => ML_Heap.share_common_data ());
 
 end;
-
