@@ -328,7 +328,9 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
+          detect =
+            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows") + " OR " +
+            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m64 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
