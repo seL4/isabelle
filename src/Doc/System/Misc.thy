@@ -321,21 +321,21 @@ text \<open>
 section \<open>Creating instances of the Isabelle logo\<close>
 
 text \<open>
-  The @{tool_def logo} tool creates instances of the generic Isabelle logo as
-  EPS and PDF, for inclusion in {\LaTeX} documents.
+  The @{tool_def logo} tool creates instances of the generic Isabelle logo,
+  for inclusion in PDF{\LaTeX} documents.
   @{verbatim [display]
-\<open>Usage: isabelle logo [OPTIONS] XYZ
+\<open>Usage: isabelle logo [OPTIONS] [XYZ]
 
-  Create instance XYZ of the Isabelle logo (as EPS and PDF).
+  Create instance XYZ of the Isabelle logo (PDF).
 
   Options are:
-    -n NAME      alternative output base name (default "isabelle_xyx")
+    -o FILE      alternative output file (default "isabelle_xyx.pdf")
     -q           quiet mode\<close>}
 
-  Option \<^verbatim>\<open>-n\<close> specifies an alternative (base) name for the generated files.
-  The default is \<^verbatim>\<open>isabelle_\<close>\<open>xyz\<close> in lower-case.
+  Option \<^verbatim>\<open>-o\<close> specifies an alternative output file: the default is
+  \<^verbatim>\<open>isabelle_\<close>\<open>xyz\<close>\<^verbatim>\<open>.pdf\<close> (in lower-case).
 
-  Option \<^verbatim>\<open>-q\<close> omits printing of the result file name.
+  Option \<^verbatim>\<open>-q\<close> omits printing of the resulting output file name.
 
   \<^medskip>
   Implementors of Isabelle tools and applications are encouraged to make

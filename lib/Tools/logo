@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Author: Markus Wenzel, TU Muenchen
+# Author: Makarius
 #
-# DESCRIPTION: create an instance of the Isabelle logo
+# DESCRIPTION: create an instance of the Isabelle logo (PDF)
 
 
 PRG="$(basename "$0")"
@@ -12,10 +12,10 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [OPTIONS] [XYZ]"
   echo
-  echo "  Create instance XYZ of the Isabelle logo (as EPS and PDF)."
+  echo "  Create instance XYZ of the Isabelle logo (PDF)."
   echo
   echo "  Options are:"
-  echo "    -n NAME      alternative output base name (default \"isabelle_xyx\")"
+  echo "    -o FILE      alternative output file (default \"isabelle_xyx.pdf\")"
   echo "    -q           quiet mode"
   echo
   exit 1
@@ -32,14 +32,14 @@ function fail()
 
 # options
 
-OUTPUT_NAME=""
+OUTPUT_FILE=""
 QUIET=""
 
-while getopts "n:q" OPT
+while getopts "o:q" OPT
 do
   case "$OPT" in
-    n)
-      OUTPUT_NAME="$OPTARG"
+    o)
+      OUTPUT_FILE="$OPTARG"
       ;;
     q)
       QUIET=true
@@ -63,25 +63,15 @@ TEXT=""
 
 ## main
 
-case "$OUTPUT_NAME" in
-  "")
-    OUTPUT_NAME=$(echo "$TEXT" | tr A-Z a-z)
-    if [ -z "$OUTPUT_NAME" ]; then
-      OUTPUT_NAME="isabelle"
-    else
-      OUTPUT_NAME="isabelle_${OUTPUT_NAME}"
-    fi
-    ;;
-  */* | *.eps | *.pdf)
-    fail "Bad output base name: \"$OUTPUT_NAME\""
-    ;;
-  *)
-    ;;
-esac
+if [ -z "$OUTPUT_FILE" ]; then
+  OUTPUT_NAME="$(echo "$TEXT" | tr A-Z a-z)"
+  if [ -z "$OUTPUT_NAME" ]; then
+    OUTPUT_FILE="isabelle.pdf"
+  else
+    OUTPUT_FILE="isabelle_${OUTPUT_NAME}.pdf"
+  fi
+fi
 
-[ -z "$QUIET" ] && echo "${OUTPUT_NAME}.eps" >&2
-perl -p -e "s,<any>,$TEXT," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "${OUTPUT_NAME}.eps"
-
-[ -z "$QUIET" ] && echo "${OUTPUT_NAME}.pdf" >&2
-"$ISABELLE_EPSTOPDF" "${OUTPUT_NAME}.eps"
-
+[ -z "$QUIET" ] && echo "$OUTPUT_FILE" >&2
+perl -p -e "s,<any>,$TEXT," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" | \
+  "$ISABELLE_EPSTOPDF" --filter > "$OUTPUT_FILE"
