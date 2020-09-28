@@ -225,8 +225,8 @@ fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index) doc_indexN path;
 
 fun finish () =
-  with_session_info () (fn {name, chapter, info, info_path, document,
-    doc_output, doc_files, graph_file, documents, verbose, readme, ...} =>
+  with_session_info () (fn {name, chapter, info, info_path, doc_output, doc_files, graph_file,
+    documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index} = Synchronized.value browser_info;
     val thys = Symtab.dest theories;
