@@ -18,7 +18,7 @@ text \<open>
   most important properties. Also contains the definition and some properties
   of the log-Gamma function and the Digamma function and the other Polygamma functions.
 
-  Based on the Gamma function, we also prove the Weierstraß product form of the
+  Based on the Gamma function, we also prove the Weierstra{\ss} product form of the
   sin function and, based on this, the solution of the Basel problem (the
   sum over all \<^term>\<open>1 / (n::nat)^2\<close>.
 \<close>
@@ -3349,7 +3349,7 @@ proof -
 qed
 
 
-subsection \<open>The Weierstraß product formula for the sine\<close>
+subsection \<open>The Weierstra{\ss} product formula for the sine\<close>
 
 theorem sin_product_formula_complex:
   fixes z :: complex
