@@ -52,6 +52,7 @@ object Sessions
     doc_names: List[String] = Nil,
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
+    session_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[(Document.Node.Name, Options)] = Nil,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
@@ -164,6 +165,12 @@ object Sessions
             val dependencies = resources.session_dependencies(info)
 
             val overall_syntax = dependencies.overall_syntax
+
+            val session_theories =
+              for {
+                name <- dependencies.theories
+                if deps_base.theory_qualifier(name) == info.name
+              } yield name
 
             val theory_files = dependencies.theories.map(_.path)
 
@@ -295,6 +302,7 @@ object Sessions
                 doc_names = doc_names,
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
+                session_theories = session_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
                 known_theories = known_theories,
