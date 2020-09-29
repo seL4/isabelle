@@ -93,7 +93,7 @@ object Exn
 
   object Interrupt
   {
-    def apply(): Throwable = new InterruptedException
+    def apply(): Throwable = new InterruptedException("Interrupt")
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
     def dispose() { Thread.interrupted }
