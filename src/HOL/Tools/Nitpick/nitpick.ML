@@ -212,12 +212,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val keywords = Thy_Header.get_keywords thy
-(* FIXME: reintroduce code before new release:
-
-    val nitpick_thy = Thy_Info.get_theory "Nitpick"
-    val _ = Context.subthy (nitpick_thy, thy) orelse
-            error "You must import the theory \"Nitpick\" to use Nitpick"
-*)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, finitizes, monos, wfs, sat_solver, falsify, debug, verbose,
          overlord, spy, user_axioms, assms, whacks, merge_type_vars,
