@@ -1054,19 +1054,10 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
           |> find_first (fn line => line <> "" andalso line <> "EXIT")
           |> the_default ""
       in
-        if null ps then
-          if rc = 130 then
-            raise Exn.Interrupt
-          else if rc = 2 then
-            TimedOut js
-          else if rc = 0 then
-            Normal ([], js, first_error)
-          else if first_error <> "" then
-            Error (first_error, js)
-          else
-            Error ("Unknown error", js)
-        else
-          Normal (ps, js, first_error)
+        if not (null ps) orelse rc = 0 then Normal (ps, js, first_error)
+        else if rc = 2 then TimedOut js
+        else if rc = 130 then raise Exn.Interrupt
+        else Error (if first_error = "" then "Unknown error" else first_error, js)
       end
   end
 
