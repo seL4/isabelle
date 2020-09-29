@@ -29,7 +29,11 @@ object Isabelle_Thread
   private val counter = Counter.make()
 
   def make_name(name: String = "", base: String = "thread"): String =
-    "Isabelle." + proper_string(name).getOrElse(base + counter())
+  {
+    val prefix = "Isabelle."
+    val suffix = if (name.nonEmpty) name else base + counter()
+    if (suffix.startsWith(prefix)) suffix else prefix + suffix
+  }
 
   def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
 
