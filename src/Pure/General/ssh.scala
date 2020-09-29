@@ -463,7 +463,7 @@ object SSH
         strict: Boolean = true): Process_Result =
       exec(command).result(progress_stdout, progress_stderr, strict)
 
-    override def isabelle_platform: Isabelle_Platform = Isabelle_Platform.remote(this)
+    override def isabelle_platform: Isabelle_Platform = Isabelle_Platform(ssh = Some(this))
 
 
     /* tmp dirs */
@@ -503,7 +503,7 @@ object SSH
       Isabelle_System.bash(command, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
 
-    def isabelle_platform: Isabelle_Platform = Isabelle_Platform.local()
+    def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
   }
 
   object Local extends System
