@@ -20,6 +20,7 @@ object Process_Result
     Map(0 -> "OK",
       1 -> "ERROR",
       2 -> "FAILURE",
+      127 -> "COMMAND NOT FOUND",
       130 -> "INTERRUPT",
       131 -> "QUIT SIGNAL",
       137 -> "KILL SIGNAL",
