@@ -8,7 +8,7 @@ package isabelle.nitpick
 
 import isabelle._
 
-import java.util.concurrent.Executors
+import java.util.concurrent.{TimeUnit, LinkedBlockingQueue, ThreadPoolExecutor}
 
 import org.antlr.runtime.{ANTLRInputStream, RecognitionException}
 import de.tum.in.isabelle.Kodkodi.{Context, KodkodiLexer, KodkodiParser}
@@ -46,8 +46,10 @@ object Kodkod
     /* executor */
 
     val pool_size = if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads
+    val executor: ThreadPoolExecutor =
+      new ThreadPoolExecutor(pool_size, pool_size, 0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue[Runnable], new ThreadPoolExecutor.CallerRunsPolicy)
 
-    val executor = Executors.newFixedThreadPool(pool_size)
     val executor_killed = Synchronized(false)
     def executor_kill(): Unit =
       executor_killed.change(b =>
