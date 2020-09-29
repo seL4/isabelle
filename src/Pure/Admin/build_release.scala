@@ -228,7 +228,7 @@ directory individually.
     build_sessions: List[String],
     local_dir: Path)
   {
-    val server_option = "build_release_server_" + platform.toString
+    val server_option = "build_host_" + platform.toString
     options.string(server_option) match {
       case SSH.Target(user, host) =>
         using(SSH.open_session(options, host = host, user = user))(ssh =>
