@@ -176,8 +176,6 @@ val isabelle_wrong_message =
   "something appears to be wrong with your Isabelle installation"
 val java_not_found_message =
   "Java could not be launched -- " ^ isabelle_wrong_message
-val kodkodi_not_installed_message =
-  "Nitpick requires the external Java program Kodkodi"
 
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
@@ -716,9 +714,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             KK.JavaNotFound =>
             (print_nt (K java_not_found_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
-          | KK.KodkodiNotInstalled =>
-            (print_nt (K kodkodi_not_installed_message);
-             (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
              (found_really_genuine, max_potential, max_genuine, donno))
@@ -960,36 +955,30 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
     val print_nt = if is_mode_nt mode then writeln else K ()
     val print_t = if mode = TPTP then writeln else K ()
   in
-    if getenv "KODKODI" = "" then
-      (* The "expect" argument is deliberately ignored if Kodkodi is missing so
-         that the "Nitpick_Examples" can be processed on any machine. *)
-      (print_nt (Pretty.string_of (plazy (K kodkodi_not_installed_message)));
-       ("no_kodkodi", []))
-    else
-      let
-        val unknown_outcome = (unknownN, [])
-        val deadline = Time.now () + timeout
-        val outcome as (outcome_code, _) =
-          Timeout.apply (timeout + timeout_bonus)
-              (pick_them_nits_in_term deadline state params mode i n step subst
-                                      def_assm_ts nondef_assm_ts) orig_t
-          handle TOO_LARGE (_, details) =>
-                 (print_t "% SZS status GaveUp";
-                  print_nt ("Limit reached: " ^ details); unknown_outcome)
-               | TOO_SMALL (_, details) =>
-                 (print_t "% SZS status GaveUp";
-                  print_nt ("Limit reached: " ^ details); unknown_outcome)
-               | Kodkod.SYNTAX (_, details) =>
-                 (print_t "% SZS status GaveUp";
-                  print_nt ("Malformed Kodkodi output: " ^ details);
-                  unknown_outcome)
-               | Timeout.TIMEOUT _ =>
-                 (print_t "% SZS status TimedOut";
-                  print_nt "Nitpick ran out of time"; unknown_outcome)
-      in
-        if expect = "" orelse outcome_code = expect then outcome
-        else error ("Unexpected outcome: " ^ quote outcome_code)
-      end
+    let
+      val unknown_outcome = (unknownN, [])
+      val deadline = Time.now () + timeout
+      val outcome as (outcome_code, _) =
+        Timeout.apply (timeout + timeout_bonus)
+            (pick_them_nits_in_term deadline state params mode i n step subst
+                                    def_assm_ts nondef_assm_ts) orig_t
+        handle TOO_LARGE (_, details) =>
+               (print_t "% SZS status GaveUp";
+                print_nt ("Limit reached: " ^ details); unknown_outcome)
+             | TOO_SMALL (_, details) =>
+               (print_t "% SZS status GaveUp";
+                print_nt ("Limit reached: " ^ details); unknown_outcome)
+             | Kodkod.SYNTAX (_, details) =>
+               (print_t "% SZS status GaveUp";
+                print_nt ("Malformed Kodkodi output: " ^ details);
+                unknown_outcome)
+             | Timeout.TIMEOUT _ =>
+               (print_t "% SZS status TimedOut";
+                print_nt "Nitpick ran out of time"; unknown_outcome)
+    in
+      if expect = "" orelse outcome_code = expect then outcome
+      else error ("Unexpected outcome: " ^ quote outcome_code)
+    end
   end
 
 fun is_fixed_equation ctxt

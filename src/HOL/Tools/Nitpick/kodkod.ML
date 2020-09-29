@@ -158,7 +158,6 @@ sig
 
   datatype outcome =
     JavaNotFound |
-    KodkodiNotInstalled |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Error of string * int list
@@ -304,7 +303,6 @@ type raw_bound = n_ary_index * int list list
 
 datatype outcome =
   JavaNotFound |
-  KodkodiNotInstalled |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Error of string * int list
@@ -1057,9 +1055,6 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
             perhaps (try (unprefix "Error: ")))
           |> find_first (fn line => line <> "" andalso line <> "EXIT")
           |> the_default ""
-        fun has_error s =
-          first_error |> Substring.full |> Substring.position s |> snd
-                      |> Substring.isEmpty |> not
       in
         if null ps then
           if rc = 130 then
@@ -1070,8 +1065,6 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
             Normal ([], js, first_error)
           else if rc = 127 then
             JavaNotFound
-          else if has_error "NoClassDefFoundError" then
-            KodkodiNotInstalled
           else if first_error <> "" then
             Error (first_error, js)
           else
