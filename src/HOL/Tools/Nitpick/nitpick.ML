@@ -172,11 +172,6 @@ fun pretties_for_formulas _ _ [] = []
                                    |> Syntax.pretty_term ctxt])
                (length ts downto 1) ts))]
 
-val isabelle_wrong_message =
-  "something appears to be wrong with your Isabelle installation"
-val java_not_found_message =
-  "Java could not be launched -- " ^ isabelle_wrong_message
-
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
@@ -711,10 +706,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         else
           case KK.solve_any_problem debug overlord deadline max_threads
                                     max_solutions (map fst problems) of
-            KK.JavaNotFound =>
-            (print_nt (K java_not_found_message);
-             (found_really_genuine, max_potential, max_genuine, donno + 1))
-          | KK.Normal ([], unsat_js, s) =>
+            KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
              (found_really_genuine, max_potential, max_genuine, donno))
           | KK.Normal (sat_ps, unsat_js, s) =>

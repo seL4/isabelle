@@ -157,7 +157,6 @@ sig
   type raw_bound = n_ary_index * int list list
 
   datatype outcome =
-    JavaNotFound |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Error of string * int list
@@ -302,7 +301,6 @@ type problem =
 type raw_bound = n_ary_index * int list list
 
 datatype outcome =
-  JavaNotFound |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Error of string * int list
@@ -1063,8 +1061,6 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
             TimedOut js
           else if rc = 0 then
             Normal ([], js, first_error)
-          else if rc = 127 then
-            JavaNotFound
           else if first_error <> "" then
             Error (first_error, js)
           else
