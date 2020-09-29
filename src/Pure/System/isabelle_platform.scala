@@ -26,20 +26,19 @@ object Isabelle_Platform
       File.read(Path.explode("~~/lib/scripts/isabelle-platform")) + "\n" +
       settings.map(a => "echo \"" + Bash.string(a) + "=$" + Bash.string(a) + "\"").mkString("\n")
     val result = ssh.execute("bash -c " + Bash.string(script)).check
-    val values =
+    new Isabelle_Platform(
       result.out_lines.map(line =>
         space_explode('=', line) match {
           case List(a, b) => (a, b)
           case _ => error("Bad output: " + quote(result.out))
-        })
-    new Isabelle_Platform(values)
+        }))
   }
 }
 
-class Isabelle_Platform private(values: List[(String, String)])
+class Isabelle_Platform private(val settings: List[(String, String)])
 {
   private def get(name: String): String =
-    values.collectFirst({ case (a, b) if a == name => b }).
+    settings.collectFirst({ case (a, b) if a == name => b }).
       getOrElse(error("Bad platform settings variable: " + quote(name)))
 
   val ISABELLE_PLATFORM_FAMILY: String = get("ISABELLE_PLATFORM_FAMILY")
