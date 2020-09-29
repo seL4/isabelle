@@ -210,21 +210,25 @@ text \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "scala_function"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "scala"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "scala_thread"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
-    (@{ML_antiquotation scala_function} | @{ML_antiquotation scala})
-      @{syntax embedded}
+    (@{ML_antiquotation scala_function} |
+     @{ML_antiquotation scala} |
+     @{ML_antiquotation scala_thread}) @{syntax embedded}
   \<close>
 
   \<^descr> \<open>@{scala_function name}\<close> inlines the checked function name as ML string
     literal.
 
-  \<^descr> \<open>@{scala name}\<close> invokes the checked function via the PIDE protocol. In
-  Isabelle/ML this appears as a function of type
+  \<^descr> \<open>@{scala name}\<close> and \<open>@{scala_thread name}\<close> invoke the checked function via
+  the PIDE protocol. In Isabelle/ML this appears as a function of type
   \<^ML_type>\<open>string -> string\<close>, which is subject to interrupts within the ML
   runtime environment as usual. A \<^scala>\<open>null\<close> result in Scala raises an
-  exception \<^ML>\<open>Scala.Null\<close> in ML.
+  exception \<^ML>\<open>Scala.Null\<close> in ML. The execution of \<open>@{scala}\<close> works via a
+  Scala future on a bounded thread farm, while \<open>@{scala_thread}\<close> always forks
+  a separate Java thread.
 
   The standard approach of representing datatypes via strings works via XML in
   YXML transfer syntax. See Isabelle/ML operations and modules @{ML

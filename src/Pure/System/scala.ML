@@ -8,6 +8,7 @@ signature SCALA =
 sig
   exception Null
   val function: string -> string -> string
+  val function_thread: string -> string -> string
   val functions: unit -> string list
   val check_function: Proof.context -> string * Position.T -> string
 end;
@@ -40,15 +41,13 @@ val _ =
           | _ => raise Fail ("Bad tag: " ^ tag));
       in Synchronized.change results (Symtab.map_entry id (K result)) end);
 
-in
-
-fun function name arg =
+fun gen_function thread name arg =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val id = new_id ();
       fun invoke () =
        (Synchronized.change results (Symtab.update (id, Exn.Exn Match));
-        Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg]);
+        Output.protocol_message (Markup.invoke_scala name id thread) [XML.Text arg]);
       fun cancel () =
        (Synchronized.change results (Symtab.delete_safe id);
         Output.protocol_message (Markup.cancel_scala id) []);
@@ -64,6 +63,11 @@ fun function name arg =
       invoke ();
       Exn.release (restore_attributes await_result ())
     end) ();
+
+in
+
+val function = gen_function false;
+val function_thread = gen_function true;
 
 end;
 
@@ -84,6 +88,10 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
       let val name = check_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)));
+      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)) #>
+  ML_Antiquotation.value_embedded \<^binding>\<open>scala_thread\<close>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      let val name = check_function ctxt arg
+      in ML_Syntax.atomic ("Scala.function_thread " ^ ML_Syntax.print_string name) end)));
 
 end;

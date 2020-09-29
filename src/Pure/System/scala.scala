@@ -196,12 +196,18 @@ object Scala
     private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
     {
       msg.properties match {
-        case Markup.Invoke_Scala(name, id) =>
-          futures += (id ->
-            Future.fork {
-              val (tag, res) = Scala.function(name, msg.text)
-              result(id, tag, res)
-            })
+        case Markup.Invoke_Scala(name, id, thread) =>
+          def body
+          {
+            val (tag, res) = Scala.function(name, msg.text)
+            result(id, tag, res)
+          }
+          val future =
+            if (thread) {
+              Future.thread(name = Isabelle_Thread.make_name(base = "invoke_scala"))(body)
+            }
+            else Future.fork(body)
+          futures += (id -> future)
           true
         case _ => false
       }
