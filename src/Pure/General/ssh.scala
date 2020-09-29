@@ -463,6 +463,8 @@ object SSH
         strict: Boolean = true): Process_Result =
       exec(command).result(progress_stdout, progress_stderr, strict)
 
+    override def isabelle_platform: Isabelle_Platform = Isabelle_Platform.remote(this)
+
 
     /* tmp dirs */
 
@@ -480,7 +482,6 @@ object SSH
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
   }
-
 
 
   /* system operations */
@@ -501,6 +502,8 @@ object SSH
         strict: Boolean = true): Process_Result =
       Isabelle_System.bash(command, progress_stdout = progress_stdout,
         progress_stderr = progress_stderr, strict = strict)
+
+    def isabelle_platform: Isabelle_Platform = Isabelle_Platform.local()
   }
 
   object Local extends System
