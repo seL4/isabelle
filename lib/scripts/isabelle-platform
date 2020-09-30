@@ -12,8 +12,15 @@ ISABELLE_WINDOWS_PLATFORM64=""
 case $(uname -s) in
   Linux)
     ISABELLE_PLATFORM_FAMILY="linux"
-    ISABELLE_PLATFORM32=x86-linux
-    ISABELLE_PLATFORM64=x86_64-linux
+    case $(uname -m) in
+      aarch64)
+        ISABELLE_PLATFORM64=arm64-linux
+        ;;
+      *)
+        ISABELLE_PLATFORM32=x86-linux
+        ISABELLE_PLATFORM64=x86_64-linux
+        ;;
+    esac
     ;;
   Darwin)
     ISABELLE_PLATFORM_FAMILY="macos"
