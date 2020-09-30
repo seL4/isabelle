@@ -35,6 +35,8 @@ object Isabelle_Platform
             }))
     }
   }
+
+  lazy val self: Isabelle_Platform = apply()
 }
 
 class Isabelle_Platform private(val settings: List[(String, String)])
@@ -49,9 +51,17 @@ class Isabelle_Platform private(val settings: List[(String, String)])
   val ISABELLE_WINDOWS_PLATFORM32: String = get("ISABELLE_WINDOWS_PLATFORM32")
   val ISABELLE_WINDOWS_PLATFORM64: String = get("ISABELLE_WINDOWS_PLATFORM64")
 
-  val is_linux: Boolean = ISABELLE_PLATFORM_FAMILY == "linux"
-  val is_macos: Boolean = ISABELLE_PLATFORM_FAMILY == "macos"
-  val is_windows: Boolean = ISABELLE_PLATFORM_FAMILY == "windows"
+  def is_intel: Boolean =
+    ISABELLE_PLATFORM32.startsWith("x86-") ||
+    ISABELLE_PLATFORM64.startsWith("x86_64-")
+
+  def is_arm: Boolean =
+    ISABELLE_PLATFORM32.startsWith("arm32-") ||
+    ISABELLE_PLATFORM64.startsWith("arm64-")
+
+  def is_linux: Boolean = ISABELLE_PLATFORM_FAMILY == "linux"
+  def is_macos: Boolean = ISABELLE_PLATFORM_FAMILY == "macos"
+  def is_windows: Boolean = ISABELLE_PLATFORM_FAMILY == "windows"
 
   override def toString: String = ISABELLE_PLATFORM_FAMILY
 }
