@@ -19,6 +19,7 @@ declare -a SOURCES=(
   src/Pure/Admin/build_log.scala
   src/Pure/Admin/build_polyml.scala
   src/Pure/Admin/build_release.scala
+  src/Pure/Admin/build_sqlite.scala
   src/Pure/Admin/build_status.scala
   src/Pure/Admin/check_sources.scala
   src/Pure/Admin/ci_profile.scala
