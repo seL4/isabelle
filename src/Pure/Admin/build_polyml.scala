@@ -64,8 +64,8 @@ object Build_PolyML
     val platform_64 = "x86_64-" + platform_os
 
     val info =
-      platform_info.get(platform_os) getOrElse
-        error("Bad OS platform: " + quote(platform_os))
+      platform_info.getOrElse(platform_os,
+        error("Bad OS platform: " + quote(platform_os)))
 
     val settings =
       msys_root match {
