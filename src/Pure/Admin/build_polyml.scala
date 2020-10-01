@@ -57,25 +57,28 @@ object Build_PolyML
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
 
-    val platform_arch = if (arch_64) "x86_64" else "x86_64_32"
-    val platform_os = Platform.os_name
+    val platform = Isabelle_Platform.self
+    val platform_arch =
+      if (arch_64) platform.arch_64
+      else if (platform.is_intel) "x86_64_32"
+      else platform.arch_32
 
-    val platform = platform_arch + "-" + platform_os
-    val platform_64 = "x86_64-" + platform_os
+    val polyml_platform = platform_arch + "-" + platform.os_name
+    val sha1_platform = platform.arch_64 + "-" + platform.os_name
 
     val info =
-      platform_info.getOrElse(platform_os,
-        error("Bad OS platform: " + quote(platform_os)))
+      platform_info.getOrElse(platform.os_name,
+        error("Bad OS platform: " + quote(platform.os_name)))
 
     val settings =
       msys_root match {
-        case None if Platform.is_windows =>
+        case None if platform.is_windows =>
           error("Windows requires specification of msys root directory")
         case None => Isabelle_System.settings()
         case Some(msys) => Isabelle_System.settings() + ("MSYS" -> msys.expand.implode)
       }
 
-    if (Platform.is_linux && !Isabelle_System.bash("chrpath -v").ok) {
+    if (platform.is_linux && !Isabelle_System.bash("chrpath -v").ok) {
       error("""Missing "chrpath" executable on Linux""")
     }
 
@@ -128,9 +131,9 @@ object Build_PolyML
     val sha1_files =
       if (sha1_root.isDefined) {
         val dir1 = sha1_root.get
-        bash(dir1, "./build " + platform_64, redirect = true, echo = true).check
+        bash(dir1, "./build " + sha1_platform, redirect = true, echo = true).check
 
-        val dir2 = dir1 + Path.explode(platform_64)
+        val dir2 = dir1 + Path.explode(sha1_platform)
         File.read_dir(dir2).map(entry => dir2.implode + "/" + entry)
       }
       else Nil
@@ -138,7 +141,7 @@ object Build_PolyML
 
     /* target */
 
-    val target = Path.explode(platform)
+    val target = Path.explode(polyml_platform)
     Isabelle_System.rm_tree(target)
     Isabelle_System.mkdirs(target)
 
@@ -154,10 +157,10 @@ object Build_PolyML
 
     /* poly: library path */
 
-    if (Platform.is_linux) {
+    if (platform.is_linux) {
       bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
     }
-    else if (Platform.is_macos) {
+    else if (platform.is_macos) {
       for (file <- ldd_files) {
         bash(target,
           """install_name_tool -change """ + Bash.string(file) + " " +
@@ -257,7 +260,7 @@ not affect the running ML session. *)
     Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
       var msys_root: Option[Path] = None
-      var arch_64 = false
+      var arch_64 = Isabelle_Platform.self.is_arm
       var sha1_root: Option[Path] = None
 
       val getopts = Getopts("""
@@ -265,7 +268,8 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
     -M DIR       msys root directory (for Windows)
-    -m ARCH      processor architecture (32=x86_64_32, 64=x86_64, default: 32)
+    -m ARCH      processor architecture (32 or 64, default: """ +
+        (if (arch_64) "64" else "32") + """)
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
   Build Poly/ML in the ROOT directory of its sources, with additional
@@ -274,8 +278,8 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         "M:" -> (arg => msys_root = Some(Path.explode(arg))),
         "m:" ->
           {
-            case "32" | "x86_64_32" => arch_64 = false
-            case "64" | "x86_64" => arch_64 = true
+            case "32" => arch_64 = false
+            case "64" => arch_64 = true
             case bad => error("Bad processor architecture: " + quote(bad))
           },
         "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
