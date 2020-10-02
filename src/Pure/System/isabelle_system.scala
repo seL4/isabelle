@@ -368,6 +368,21 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
+  private lazy val curl_check: Unit =
+    try { bash("curl --version").check }
+    catch { case ERROR(_) => error("Cannot download files: missing curl") }
+
+  def download(url: String, file: Path, progress: Progress = new Progress): Unit =
+  {
+    curl_check
+    progress.echo("Getting " + quote(url))
+    try {
+      bash("curl --fail --silent --location " + Bash.string(url) +
+        " > " + File.bash_path(file)).check
+    }
+    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url), msg) }
+  }
+
   def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =
