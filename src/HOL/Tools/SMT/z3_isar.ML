@@ -76,7 +76,7 @@ val reorder_foralls =
 fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids proof =
   let
-    fun steps_of (Z3_Proof.Z3_Step {id, rule, prems, concl, ...}) =
+    fun steps_of (Z3_Proof.Z3_Step {id, rule, prems, concl, ...}) : (term, string) ATP_Proof.atp_step list =
       let
         val sid = string_of_int id
 
@@ -92,7 +92,7 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
           let val ss = the_list (AList.lookup (op =) fact_helper_ids id) in
             (case distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
                 hyp_ts concl_t of
-              NONE => []
+              NONE => [] (* useless nontheory tautology *)
             | SOME (role0, concl00) =>
               let
                 val name0 = (sid ^ "a", ss)

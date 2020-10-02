@@ -254,7 +254,7 @@ fun apply_solver_and_replay ctxt thms0 =
   in replay ctxt replay_data output end
 
 
-(* filter *)
+(* filter (for Sledgehammer) *)
 
 fun smt_filter ctxt0 goal xfacts i time_limit =
   let

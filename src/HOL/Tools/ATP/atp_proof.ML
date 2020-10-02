@@ -98,6 +98,7 @@ sig
     ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
   val vampire_step_name_ord : (string * 'a) ord
   val core_of_agsyhol_proof :  string -> string list option
+  val string_of_atp_step : ('a -> string) -> ('b -> string) -> ('a, 'b) atp_step -> string
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -721,5 +722,20 @@ fun nasty_name pool s = Symtab.lookup pool s |> the_default s
 
 fun nasty_atp_proof pool =
   not (Symtab.is_empty pool) ? map_term_names_in_atp_proof (nasty_name pool)
+
+fun string_of_list f xs = enclose "[" "]" (commas (map f xs))
+
+fun string_of_atp_step_name (s, ss) = "(" ^ s ^ ", " ^ string_of_list I ss ^ ")"
+
+fun string_of_atp_step f g (name, role, x, y, names) =
+  let
+    val name' = string_of_atp_step_name name
+    val role' = ATP_Problem.tptp_string_of_role role
+    val x' = f x
+    val y' = g y
+    val names' = string_of_list string_of_atp_step_name names
+  in
+    "(" ^ name' ^ ", " ^ role' ^ ", " ^ x' ^ ", " ^ y' ^ ", " ^ names' ^ ")"
+  end
 
 end;

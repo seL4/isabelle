@@ -139,6 +139,7 @@ sig
   val strip_atype : 'a atp_type -> 'a list * ('a atp_type list * 'a atp_type)
   val is_format_higher_order : atp_format -> bool
   val tptp_string_of_format : atp_format -> string
+  val tptp_string_of_role : atp_formula_role -> string
   val tptp_string_of_line : atp_format -> string atp_problem_line -> string
   val lines_of_atp_problem :
     atp_format -> term_order -> (unit -> (string * int) list)

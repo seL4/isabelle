@@ -183,9 +183,18 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
             fun get_role keep_role ((num, _), role, t, rule, _) =
               if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
 
-            val atp_proof =
-              fold_rev add_line_pass1 atp_proof0 []
+            val trace = Config.get ctxt trace
+
+            val string_of_atp_steps =
+              let val to_string = ATP_Proof.string_of_atp_step (Syntax.string_of_term ctxt) I in
+                enclose "[\n" "\n]" o cat_lines o map (enclose "  " "," o to_string)
+              end
+
+            val atp_proof = atp_proof0
+              |> trace ? tap (tracing o prefix "atp_proof0 = " o string_of_atp_steps)
+              |> (fn x => fold_rev add_line_pass1 x [])
               |> add_lines_pass2 []
+              |> trace ? tap (tracing o prefix "atp_proof = " o string_of_atp_steps)
 
             val conjs =
               map_filter (fn (name, role, _, _, _) =>
@@ -358,8 +367,6 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               Proof (fix, assms,
                 fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
 
-            val trace = Config.get ctxt trace
-
             val canonical_isar_proof =
               refute_graph
               |> trace ? tap (tracing o prefix "Refute graph:\n" o string_of_refute_graph)
@@ -461,7 +468,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
         (if isar_proofs = SOME true then "\nWarning: Isar proof construction failed" else ""))
   end
 
-fun isar_proof_would_be_a_good_idea (meth, play) =
+fun isar_proof_would_be_a_good_idea (_, play) =
   (case play of
     Played _ => false
   | Play_Timed_Out time => time > Time.zeroTime
