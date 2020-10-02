@@ -58,6 +58,7 @@ fb898e263fcf6f847d97f564fe49ea0760bb453f  cygwin-20190322.tar.gz
 cd01fac0ab4fdb50a2bbb6416da3f15a4d540da1  cygwin-20190524.tar.gz
 caa616fbab14c1fce790a87db5c4758c1322cf28  cygwin-20200116.tar.gz
 f053a9ab01f0be9cb456560f7eff66a8e7ba2fd2  cygwin-20200323.tar.gz
+0107343cd2562618629f73b2581168f0045c3234  cygwin-20201002.tar.gz
 0fe549949a025d65d52d6deca30554de8fca3b6e  e-1.5.tar.gz
 2e293256a134eb8e5b1a283361b15eb812fbfbf1  e-1.6-1.tar.gz
 e1919e72416cbd7ac8de5455caba8901acc7b44d  e-1.6-2.tar.gz
@@ -200,6 +201,7 @@ fe57793aca175336deea4f5e9c0d949a197850ac  opam-1.2.2.tar.gz
 eb499a18e7040ca0fe1ca824c9dcb2087c47c9ba  opam-2.0.3-1.tar.gz
 002f74c9e65e650de2638bf54d7b012b8de76c28  opam-2.0.3.tar.gz
 ddb3b438430d9565adbf5e3d913bd52af8337511  opam-2.0.6.tar.gz
+fc66802c169f44511d3be30435eb89a11e635742  opam-2.0.7.tar.gz
 1c8cb6a8f4cbeaedce2d6d1ba8fc7e2ab3663aeb  polyml-5.4.1.tar.gz
 a3f9c159a0ee9a63b7a5d0c835ed9c2c908f8b56  polyml-5.5.0-1.tar.gz
 7d604a99355efbfc1459d80db3279ffa7ade3e39  polyml-5.5.0-2.tar.gz

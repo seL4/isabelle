@@ -58,14 +58,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
     /* jar */
 
     val jar = component_dir + Path.basic(download_name).ext("jar")
-    progress.echo("Getting " + quote(download_url))
-    try {
-      Isabelle_System.bash("curl --fail --silent --location " + Bash.string(download_url) +
-        " > " + File.bash_path(jar)).check
-    }
-    catch {
-      case ERROR(msg) => cat_error("Failed to download " + quote(download_url), msg)
-    }
+    Isabelle_System.download(download_url, jar, progress = progress)
 
     Isabelle_System.with_tmp_dir("sqlite")(jar_dir =>
     {

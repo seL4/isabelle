@@ -41,12 +41,16 @@ too old nor too new):
                     macOS 10.15 Catalina (laramac01 Macmini8,1)
 
   x86_64-windows    Windows 7
-  x86_64-cygwin     Cygwin 2.10 https://isabelle.sketis.net/cygwin_2018 (x86_64/release)
+  x86_64-cygwin     Cygwin 2.10 https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
 
-Exotic platforms like BSD, Solaris, NixOS are not supported.
+Partial support for ARM (e.g. Raspberry Pi) is available:
+
+  arm64-linux       Ubuntu 20.04 LTS
+
+Exotic operating systems like BSD, Solaris, NixOS are unsupported.
 
 
 64 bit vs. 32 bit platform personality

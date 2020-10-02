@@ -13,6 +13,7 @@ declare -a SOURCES=(
   src/Pure/Admin/afp.scala
   src/Pure/Admin/build_cygwin.scala
   src/Pure/Admin/build_doc.scala
+  src/Pure/Admin/build_e.scala
   src/Pure/Admin/build_fonts.scala
   src/Pure/Admin/build_history.scala
   src/Pure/Admin/build_jdk.scala
