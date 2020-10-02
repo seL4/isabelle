@@ -93,12 +93,12 @@ object Build_E
 
       File.copy(build_dir + Path.basic("COPYING"), component_dir + Path.basic("LICENSE"))
 
-      val install_files = List("epclextract", "eproof", "eproof_ram", "eprover", "eprover-ho")
-      for (name <- install_files) {
+      val install_files = List("epclextract", "eproof_ram", "eprover", "eprover-ho")
+      for (name <- install_files ::: install_files.map(_ + ".exe")) {
         val path = build_dir + Path.basic("PROVER") + Path.basic(name)
         if (path.is_file) File.copy(path, platform_dir)
       }
-      Isabelle_System.bash("if [ -e eprover-ho ]; then mv eprover-ho eprover; fi",
+      Isabelle_System.bash("if [ -f eprover-ho ]; then mv eprover-ho eprover; fi",
         cwd = platform_dir.file).check
 
       val eproof_ram = platform_dir + Path.basic("eproof_ram")
