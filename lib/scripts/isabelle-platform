@@ -16,6 +16,9 @@ case $(uname -s) in
       aarch64)
         ISABELLE_PLATFORM64=arm64-linux
         ;;
+      arm*)
+        ISABELLE_PLATFORM32=arm32-linux
+        ;;
       *)
         ISABELLE_PLATFORM32=x86-linux
         ISABELLE_PLATFORM64=x86_64-linux
