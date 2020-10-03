@@ -26,31 +26,32 @@ as possible.
 Supported platforms
 -------------------
 
-The following hardware and operating system platforms are officially
-supported by the Isabelle distribution (and bundled tools), with the
-following base-line versions (which have been selected to be neither
-too old nor too new):
+A broad range of hardware and operating system platforms are supported
+by building executables on base-line versions that are neither too old
+nor too new. Common OS families work: Linux, Windows, macOS, but
+exotic ones are unsupported: BSD, Solaris, NixOS.
+
+Official (full support):
 
   x86_64-linux      Ubuntu 14.04 LTS
 
-  x86_64-darwin     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
-                    Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
-                    macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
-                    macOS 10.13 High Sierra (lapbroy68 MacBookPro11,2)
+  x86_64-darwin     macOS 10.13 High Sierra (lapbroy68 MacBookPro11,2)
                     macOS 10.14 Mojave (lapnipkow3 MacBookPro9,2)
                     macOS 10.15 Catalina (laramac01 Macmini8,1)
 
   x86_64-windows    Windows 7
-  x86_64-cygwin     Cygwin 2.10 https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
+  x86_64-cygwin     Cygwin 3.1.x https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
 
-All of the above platforms are 100% supported by Isabelle -- end-users
-should not have to care about the differences (at least in theory).
+Old (partial support):
 
-Partial support for ARM (e.g. Raspberry Pi) is available:
+  x86_64-darwin     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
+                    Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
+                    macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
+
+New (experimental):
 
   arm64-linux       Ubuntu 20.04 LTS
 
-Exotic operating systems like BSD, Solaris, NixOS are unsupported.
 
 
 64 bit vs. 32 bit platform personality
