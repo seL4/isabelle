@@ -50,8 +50,7 @@ Old (partial support):
 
 New (experimental):
 
-  arm64-linux       Ubuntu 20.04 LTS
-
+  arm64-linux       Raspberry Pi OS 64bit beta (Debian 10 / Buster)
 
 
 64 bit vs. 32 bit platform personality
