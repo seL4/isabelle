@@ -154,7 +154,7 @@ the correct path.
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle build_e [OPTIONS] DOWNLOAD
+Usage: isabelle build_e [OPTIONS]
 
   Options are:
     -E URL       E prover download URL
