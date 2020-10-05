@@ -2206,7 +2206,7 @@ proof -
     using contour_integral_nearby_ends [OF _ \<open>path \<gamma>\<close> pasz] S by (simp add: open_Diff) metis
   obtain p where polyp: "polynomial_function p"
              and ps: "pathstart p = pathstart \<gamma>" and pf: "pathfinish p = pathfinish \<gamma>" and led: "\<forall>t\<in>{0..1}. cmod (p t - \<gamma> t) < d"
-    using path_approx_polynomial_function [OF \<open>path \<gamma>\<close> \<open>d > 0\<close>] by blast
+    using path_approx_polynomial_function [OF \<open>path \<gamma>\<close> \<open>d > 0\<close>] by metis
   then have ploop: "pathfinish p = pathstart p" using loop by auto
   have vpp: "valid_path p"  using polyp valid_path_polynomial_function by blast
   have [simp]: "z \<notin> path_image \<gamma>" using pasz by blast
@@ -2808,7 +2808,7 @@ proof (cases "c = 0")
     fix z :: complex assume "z \<in> eball 0 (pi / (2 * norm c))"
     with cos_eq_zero_imp_norm_ge[of "c*z"] assms 
     show "eval_fps (fps_cos  c) z \<noteq> 0" using False by (auto simp: norm_mult field_simps)
-  qed (insert False assms, auto simp: field_simps tan_def)
+  qed (use False assms in \<open>auto simp: field_simps tan_def\<close>)
 qed simp_all
 
 end
