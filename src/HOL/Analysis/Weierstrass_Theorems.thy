@@ -1198,7 +1198,7 @@ proposition connected_open_polynomial_connected:
   fixes S :: "'a::euclidean_space set"
   assumes S: "open S" "connected S"
       and "x \<in> S" "y \<in> S"
-    obtains g where "polynomial_function g" "path_image g \<subseteq> S" "pathstart g = x" "pathfinish g = y"
+    shows "\<exists>g. polynomial_function g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y"
 proof -
   have "path_connected S" using assms
     by (simp add: connected_open_path_connected)
@@ -1224,8 +1224,8 @@ proof -
   obtain pf where "polynomial_function pf" and pf: "pathstart pf = pathstart p" "pathfinish pf = pathfinish p"
                    and pf_e: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm(pf t - p t) < e"
     using path_approx_polynomial_function [OF \<open>path p\<close> \<open>0 < e\<close>] by blast
-  show thesis 
-  proof
+  show ?thesis 
+  proof (intro exI conjI)
     show "polynomial_function pf"
       by fact
     show "pathstart pf = x" "pathfinish pf = y"
