@@ -33,7 +33,7 @@ proof -
     using contour_integral_nearby_ends [of "UNIV - {z}" \<gamma>] assms by (auto simp: open_delete)
   then obtain h where h: "polynomial_function h \<and> pathstart h = pathstart \<gamma> \<and> pathfinish h = pathfinish \<gamma> \<and>
                           (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
-    using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by auto
+    using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by (metis half_gt_zero_iff)
   define nn where "nn = 1/(2* pi*\<i>) * contour_integral h (\<lambda>w. 1/(w - z))"
   have "\<exists>n. \<forall>e > 0. \<exists>p. winding_number_prop \<gamma> z e p n"
     proof (rule_tac x=nn in exI, clarify)
@@ -41,14 +41,15 @@ proof -
       assume e: "e>0"
       obtain p where p: "polynomial_function p \<and>
             pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and> (\<forall>t\<in>{0..1}. cmod (p t - \<gamma> t) < min e (d/2))"
-        using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close> by auto
+        using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close>
+        by (metis divide_pos_pos min_less_iff_conj zero_less_numeral) 
       have "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
         by (auto simp: intro!: holomorphic_intros)
-      then show "\<exists>p. winding_number_prop \<gamma> z e p nn"
-        apply (rule_tac x=p in exI)
+      then have "winding_number_prop \<gamma> z e p nn"
         using pi_eq [of h p] h p d
-        apply (auto simp: valid_path_polynomial_function norm_minus_commute nn_def winding_number_prop_def)
-        done
+        by (auto simp: valid_path_polynomial_function norm_minus_commute nn_def winding_number_prop_def)
+      then show "\<exists>p. winding_number_prop \<gamma> z e p nn" 
+        by metis
     qed
   then show ?thesis
     unfolding winding_number_def by (rule someI2_ex) (blast intro: \<open>0<e\<close>)
@@ -845,7 +846,8 @@ proof -
       obtain p where p: "polynomial_function p" "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
                  and pg1: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < 1)"
                  and pge: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < e)"
-        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] \<open>e>0\<close> by force
+        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] \<open>e>0\<close>
+        by (metis atLeastAtMost_iff min_less_iff_conj zero_less_one)
       have pip: "path_image p \<subseteq> ball 0 (B + 1)"
         using B
         apply (clarsimp simp add: path_image_def dist_norm ball_def)
@@ -2106,7 +2108,7 @@ proof -
   then obtain g where pfg: "polynomial_function g"  and "g 0 = p 0" "g 1 = p 1"
            and gless: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm(g t - p t) < min 1 d"
     using path_approx_polynomial_function [OF \<open>path p\<close>] \<open>d > 0\<close> \<open>0 < e\<close>
-    unfolding pathfinish_def pathstart_def by meson
+    unfolding pathfinish_def pathstart_def by blast
   have "winding_number (exp \<circ> p) 0 = winding_number (exp \<circ> g) 0"
   proof (rule winding_number_nearby_paths_eq [symmetric])
     show "path (exp \<circ> p)" "path (exp \<circ> g)"
@@ -2158,7 +2160,7 @@ proof -
       apply (rule fundamental_theorem_of_calculus [OF zero_le_one])
       by (metis has_vector_derivative_at_within has_vector_derivative_polynomial_function pfg vector_derivative_at)
     then show ?thesis
-    apply (simp add: pathfinish_def pathstart_def)
+      unfolding pathfinish_def pathstart_def
       using \<open>g 0 = p 0\<close> \<open>g 1 = p 1\<close> by auto
   qed
   finally show ?thesis .
