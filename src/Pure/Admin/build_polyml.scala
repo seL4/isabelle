@@ -233,10 +233,7 @@ not affect the running ML session. *)
     component_dir: Path,
     sha1_root: Option[Path] = None)
   {
-    if (component_dir.is_file || component_dir.is_dir)
-      error("Component directory already exists: " + component_dir)
-
-    Isabelle_System.make_directory(component_dir)
+    Isabelle_System.new_directory(component_dir)
     extract_sources(source_archive, component_dir)
 
     File.copy(Path.explode("~~/Admin/polyml/README"), component_dir)

@@ -32,12 +32,8 @@ object Build_E
       /* component */
 
       val component_name = "e-" + version
-      val component_dir = target_dir + Path.basic(component_name)
-      if (component_dir.is_dir) error("Component directory already exists: " + component_dir)
-      else {
-        progress.echo("Component " + component_dir)
-        Isabelle_System.make_directory(component_dir)
-      }
+      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
+      progress.echo("Component " + component_dir)
 
       val platform_name =
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))

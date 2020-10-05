@@ -26,12 +26,8 @@ object Build_SQLite
 
     /* component */
 
-    val component_dir = target_dir + Path.basic(download_name)
-    if (component_dir.is_dir) error("Component directory already exists: " + component_dir)
-    else {
-      progress.echo("Component " + component_dir)
-      Isabelle_System.make_directory(component_dir)
-    }
+    val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(download_name))
+    progress.echo("Component " + component_dir)
 
 
     /* README */

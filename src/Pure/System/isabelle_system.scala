@@ -198,6 +198,10 @@ object Isabelle_System
     path
   }
 
+  def new_directory(path: Path): Path =
+    if (path.is_dir) error("Directory already exists: " + path)
+    else make_directory(path)
+
   def copy_dir(dir1: Path, dir2: Path): Unit =
     bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check
 
