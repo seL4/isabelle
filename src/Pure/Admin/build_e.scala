@@ -47,11 +47,10 @@ object Build_E
       val runepar_path = platform_dir + Path.basic("runepar.pl")
       Isabelle_System.download(runepar_url, runepar_path, progress = progress)
 
-      File.write(runepar_path,
-        File.read(runepar_path)
-          .replace("#!/usr/bin/perl", "#!/usr/bin/env perl")
-          .replace("bin/eprover", "$ENV{E_HOME}/eprover")
-          .replace("bin/eproof", "$ENV{E_HOME}/eproof"))
+      File.change(runepar_path,
+       _.replace("#!/usr/bin/perl", "#!/usr/bin/env perl")
+        .replace("bin/eprover", "$ENV{E_HOME}/eprover")
+        .replace("bin/eproof", "$ENV{E_HOME}/eproof"))
 
       File.set_executable(runepar_path, true)
 
@@ -98,9 +97,7 @@ object Build_E
 
       val eproof_ram = platform_dir + Path.basic("eproof_ram")
       if (eproof_ram.is_file) {
-        File.write(eproof_ram,
-          File.read(eproof_ram)
-            .replace("EXECPATH=.", "EXECPATH=`dirname \"$0\"`"))
+        File.change(eproof_ram, _.replace("EXECPATH=.", "EXECPATH=`dirname \"$0\"`"))
       }
 
 

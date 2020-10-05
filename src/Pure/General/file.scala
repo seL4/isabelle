@@ -269,6 +269,12 @@ object File
   }
 
 
+  /* change */
+
+  def change(file: JFile, f: String => String): Unit = write(file, f(read(file)))
+  def change(path: Path, f: String => String): Unit = write(path, f(read(path)))
+
+
   /* append */
 
   def append(file: JFile, text: CharSequence): Unit =

@@ -50,13 +50,7 @@ object Build_Release
 
   /* patch release */
 
-  private def change_file(dir: Path, name: String, f: String => String)
-  {
-    val file = dir + Path.explode(name)
-    File.write(file, f(File.read(file)))
-  }
-
-  private val getsettings_file: String = "lib/scripts/getsettings"
+  private val getsettings_path = Path.explode("lib/scripts/getsettings")
 
   private val ISABELLE_ID = """ISABELLE_ID="(.+)"""".r
 
@@ -66,20 +60,19 @@ object Build_Release
 
     for (name <- List("src/Pure/System/distribution.ML", "src/Pure/System/distribution.scala"))
     {
-      change_file(dir, name,
+      File.change(dir + Path.explode(name),
         s =>
           s.replaceAllLiterally("val is_identified = false", "val is_identified = true")
            .replaceAllLiterally("val is_official = false", "val is_official = " + is_official))
     }
 
-    change_file(dir, getsettings_file,
-      s =>
-        s.replaceAllLiterally("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
-         .replaceAllLiterally("ISABELLE_IDENTIFIER=\"\"",
-            "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
+    File.change(dir + getsettings_path,
+      _.replaceAllLiterally("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
+       .replaceAllLiterally("ISABELLE_IDENTIFIER=\"\"",
+          "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
 
-    change_file(dir, "lib/html/library_index_header.template",
-      s => s.replaceAllLiterally("{ISABELLE}", release.dist_name))
+    File.change(dir + Path.explode("lib/html/library_index_header.template"),
+      _.replaceAllLiterally("{ISABELLE}", release.dist_name))
 
     for {
       name <-
@@ -88,11 +81,11 @@ object Build_Release
           "src/Pure/System/distribution.scala",
           "lib/Tools/version") }
     {
-      change_file(dir, name,
+      File.change(dir + Path.explode(name),
         s => s.replaceAllLiterally("repository version", release.dist_version))
     }
 
-    change_file(dir, "README",
+    File.change(dir + Path.explode("README"),
       s => s.replaceAllLiterally("some repository version of Isabelle", release.dist_version))
   }
 
@@ -307,7 +300,7 @@ directory individually.
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
-            val getsettings = Path.explode(release.dist_name + "/" + getsettings_file)
+            val getsettings = Path.explode(release.dist_name) + getsettings_path
             execute_tar(tmp_dir, "-xzf " +
               File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
             split_lines(File.read(tmp_dir + getsettings))
@@ -505,18 +498,16 @@ rm -rf "${DIST_NAME}-old"
 
         platform match {
           case Platform.Family.linux =>
-            File.write(isabelle_target + jedit_options,
-              File.read(isabelle_target + jedit_options)
-                .replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24"))
+            File.change(isabelle_target + jedit_options,
+              _.replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24"))
 
-            File.write(isabelle_target + jedit_props,
-              File.read(isabelle_target + jedit_props)
-                .replaceAll("console.fontsize=.*", "console.fontsize=18")
-                .replaceAll("helpviewer.fontsize=.*", "helpviewer.fontsize=18")
-                .replaceAll("metal.primary.fontsize=.*", "metal.primary.fontsize=18")
-                .replaceAll("metal.secondary.fontsize=.*", "metal.secondary.fontsize=18")
-                .replaceAll("view.fontsize=.*", "view.fontsize=24")
-                .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16"))
+            File.change(isabelle_target + jedit_props,
+              _.replaceAll("console.fontsize=.*", "console.fontsize=18")
+               .replaceAll("helpviewer.fontsize=.*", "helpviewer.fontsize=18")
+               .replaceAll("metal.primary.fontsize=.*", "metal.primary.fontsize=18")
+               .replaceAll("metal.secondary.fontsize=.*", "metal.secondary.fontsize=18")
+               .replaceAll("view.fontsize=.*", "view.fontsize=24")
+               .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16"))
 
             File.write(isabelle_target + Path.explode("Isabelle.options"),
               terminate_lines(java_options_title :: java_options))
@@ -542,11 +533,10 @@ rm -rf "${DIST_NAME}-old"
 
 
           case Platform.Family.macos =>
-            File.write(isabelle_target + jedit_props,
-              File.read(isabelle_target + jedit_props)
-                .replaceAll("lookAndFeel=.*", "lookAndFeel=com.apple.laf.AquaLookAndFeel")
-                .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
-                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
+            File.change(isabelle_target + jedit_props,
+              _.replaceAll("lookAndFeel=.*", "lookAndFeel=com.apple.laf.AquaLookAndFeel")
+               .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
+               .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
 
 
             // MacOS application bundle
@@ -601,11 +591,10 @@ rm -rf "${DIST_NAME}-old"
 
 
           case Platform.Family.windows =>
-            File.write(isabelle_target + jedit_props,
-              File.read(isabelle_target + jedit_props)
-                .replaceAll("lookAndFeel=.*",
+            File.change(isabelle_target + jedit_props,
+              _.replaceAll("lookAndFeel=.*",
                   "lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-                .replaceAll("foldPainter=.*", "foldPainter=Square"))
+               .replaceAll("foldPainter=.*", "foldPainter=Square"))
 
 
             // application launcher
