@@ -41,7 +41,8 @@ proof -
       assume e: "e>0"
       obtain p where p: "polynomial_function p \<and>
             pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and> (\<forall>t\<in>{0..1}. cmod (p t - \<gamma> t) < min e (d/2))"
-        using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close> by auto
+        using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close>
+        by (metis min_less_iff_conj zero_less_divide_iff zero_less_numeral) 
       have "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
         by (auto simp: intro!: holomorphic_intros)
       then have "winding_number_prop \<gamma> z e p nn"
@@ -845,7 +846,8 @@ proof -
       obtain p where p: "polynomial_function p" "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
                  and pg1: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < 1)"
                  and pge: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < e)"
-        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] \<open>e>0\<close> by force
+        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] \<open>e>0\<close>
+        by (metis atLeastAtMost_iff min_less_iff_conj zero_less_one)
       have pip: "path_image p \<subseteq> ball 0 (B + 1)"
         using B
         apply (clarsimp simp add: path_image_def dist_norm ball_def)

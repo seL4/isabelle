@@ -1366,11 +1366,7 @@ proof -
       and p: "polynomial_function p" "path_image p \<subseteq> S"
       and pi: "\<And>f. f holomorphic_on S \<Longrightarrow> contour_integral g f = contour_integral p f"
     using contour_integral_nearby_ends [OF S \<open>path g\<close> pag]
-    apply clarify
-    apply (drule_tac x=g in spec)
-    apply (simp only: assms)
-    apply (force simp: valid_path_polynomial_function dest: path_approx_polynomial_function)
-    done
+    by (metis cancel_comm_monoid_add_class.diff_cancel g norm_zero path_approx_polynomial_function valid_path_polynomial_function)
   then obtain p' where p': "polynomial_function p'"
     "\<And>x. (p has_vector_derivative (p' x)) (at x)"
     by (blast intro: has_vector_derivative_polynomial_function that)
