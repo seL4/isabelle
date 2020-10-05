@@ -483,7 +483,7 @@ systemctl start isabelle-phabricator-phd""")
     progress.echo("\nPHP daemon setup ...")
 
     val phd_log_path = Path.explode("/var/tmp/phd")
-    Isabelle_System.mkdirs(phd_log_path)
+    Isabelle_System.make_directory(phd_log_path)
     Isabelle_System.chown(
       "-R " + Bash.string(daemon_user) + ":" + Bash.string(daemon_user), phd_log_path)
     Isabelle_System.chmod("755", phd_log_path)

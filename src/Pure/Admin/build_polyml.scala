@@ -143,7 +143,7 @@ object Build_PolyML
 
     val target = Path.explode(polyml_platform)
     Isabelle_System.rm_tree(target)
-    Isabelle_System.mkdirs(target)
+    Isabelle_System.make_directory(target)
 
     for (file <- info.copy_files ::: ldd_files ::: sha1_files)
       File.copy(Path.explode(file).expand_env(settings), target)
@@ -236,13 +236,13 @@ not affect the running ML session. *)
     if (component_dir.is_file || component_dir.is_dir)
       error("Component directory already exists: " + component_dir)
 
-    Isabelle_System.mkdirs(component_dir)
+    Isabelle_System.make_directory(component_dir)
     extract_sources(source_archive, component_dir)
 
     File.copy(Path.explode("~~/Admin/polyml/README"), component_dir)
 
     val etc_dir = component_dir + Path.explode("etc")
-    Isabelle_System.mkdirs(etc_dir)
+    Isabelle_System.make_directory(etc_dir)
     File.copy(Path.explode("~~/Admin/polyml/settings"), etc_dir)
 
     sha1_root match {

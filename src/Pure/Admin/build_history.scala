@@ -221,7 +221,7 @@ object Build_History
       }
 
       Isabelle_System.rm_tree(isabelle_output)
-      Isabelle_System.mkdirs(isabelle_output)
+      Isabelle_System.make_directory(isabelle_output)
 
       val log_path =
         other_isabelle.isabelle_home_user +
@@ -229,7 +229,7 @@ object Build_History
           Build_Log.log_filename(Build_History.engine, build_history_date,
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
-      Isabelle_System.mkdirs(log_path.dir)
+      Isabelle_System.make_directory(log_path.dir)
 
       val build_out = other_isabelle.isabelle_home_user + Path.explode("log/build.out")
       val build_out_progress = new File_Progress(build_out)

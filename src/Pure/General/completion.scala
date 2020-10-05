@@ -105,7 +105,7 @@ object Completion
 
     def save()
     {
-      Isabelle_System.mkdirs(COMPLETION_HISTORY.dir)
+      Isabelle_System.make_directory(COMPLETION_HISTORY.dir)
       File.write_backup(COMPLETION_HISTORY,
         {
           import XML.Encode._

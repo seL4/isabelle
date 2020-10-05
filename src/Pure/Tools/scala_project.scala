@@ -74,7 +74,7 @@ object Scala_Project
     val src_dir = project_dir + Path.explode("src/main/scala")
     val java_src_dir = project_dir + Path.explode("src/main/java")
     val scala_src_dir = project_dir + Path.explode("src/main/scala")
-    Isabelle_System.mkdirs(scala_src_dir)
+    Isabelle_System.make_directory(scala_src_dir)
 
     Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
 
@@ -87,7 +87,7 @@ object Scala_Project
             (Path.explode("~~") + Path.explode(file), scala_src_dir + p)
         }).getOrElse(error("Unknown directory prefix for " + quote(file)))
 
-      Isabelle_System.mkdirs(target)
+      Isabelle_System.make_directory(target)
       if (symlinks) File.link(path, target) else File.copy(path, target)
     }
 

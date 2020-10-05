@@ -30,7 +30,7 @@ object Build_SQLite
     if (component_dir.is_dir) error("Component directory already exists: " + component_dir)
     else {
       progress.echo("Component " + component_dir)
-      Isabelle_System.mkdirs(component_dir)
+      Isabelle_System.make_directory(component_dir)
     }
 
 
@@ -44,7 +44,7 @@ object Build_SQLite
     /* settings */
 
     val etc_dir = component_dir + Path.basic("etc")
-    Isabelle_System.mkdirs(etc_dir)
+    Isabelle_System.make_directory(etc_dir)
 
     File.write(etc_dir + Path.basic("settings"),
 """# -*- shell-script -*- :mode=shellscript:
@@ -77,7 +77,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
 
       for ((file, dir) <- jar_files) {
         val target = component_dir + Path.explode(dir)
-        Isabelle_System.mkdirs(target)
+        Isabelle_System.make_directory(target)
         File.copy(jar_dir + Path.explode(file), target)
       }
 

@@ -36,7 +36,7 @@ object Build_E
       if (component_dir.is_dir) error("Component directory already exists: " + component_dir)
       else {
         progress.echo("Component " + component_dir)
-        Isabelle_System.mkdirs(component_dir)
+        Isabelle_System.make_directory(component_dir)
       }
 
       val platform_name =
@@ -44,7 +44,7 @@ object Build_E
           .getOrElse(error("No 64bit platform"))
 
       val platform_dir = component_dir + Path.basic(platform_name)
-      Isabelle_System.mkdirs(platform_dir)
+      Isabelle_System.make_directory(platform_dir)
 
 
       /* runepar.pl */
@@ -112,7 +112,7 @@ object Build_E
       /* settings */
 
       val etc_dir = component_dir + Path.basic("etc")
-      Isabelle_System.mkdirs(etc_dir)
+      Isabelle_System.make_directory(etc_dir)
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 

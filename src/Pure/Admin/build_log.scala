@@ -898,7 +898,7 @@ object Build_Log
     def snapshot_database(db: PostgreSQL.Database, sqlite_database: Path,
       days: Int = 100, ml_statistics: Boolean = false)
     {
-      Isabelle_System.mkdirs(sqlite_database.dir)
+      Isabelle_System.make_directory(sqlite_database.dir)
       sqlite_database.file.delete
 
       using(SQLite.open_database(sqlite_database))(db2 =>

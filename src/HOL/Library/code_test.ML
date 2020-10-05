@@ -143,7 +143,7 @@ fun with_debug_dir name f =
   let
     val dir =
       Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs dir
+    val _ = Isabelle_System.make_directory dir
   in Exn.release (Exn.capture f dir) end
 
 fun dynamic_value_strict ctxt t compiler =

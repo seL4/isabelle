@@ -37,7 +37,7 @@ object Present
   def update_chapter_index(browser_info: Path, chapter: String, new_sessions: List[(String, String)])
   {
     val dir = browser_info + Path.basic(chapter)
-    Isabelle_System.mkdirs(dir)
+    Isabelle_System.make_directory(dir)
 
     val sessions0 =
       try { read_sessions(dir) }
@@ -64,7 +64,7 @@ object Present
   def make_global_index(browser_info: Path)
   {
     if (!(browser_info + Path.explode("index.html")).is_file) {
-      Isabelle_System.mkdirs(browser_info)
+      Isabelle_System.make_directory(browser_info)
       File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
@@ -88,7 +88,7 @@ object Present
     val session_fonts = session_prefix + Path.explode("fonts")
 
     if (info.options.bool("browser_info")) {
-      Isabelle_System.mkdirs(session_fonts)
+      Isabelle_System.make_directory(session_fonts)
 
       val session_graph = session_prefix + Path.basic("session_graph.pdf")
       File.copy(graph_file, session_graph.file)

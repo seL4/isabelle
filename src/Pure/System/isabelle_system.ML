@@ -12,7 +12,7 @@ sig
   val bash_functions: unit -> string list
   val check_bash_function: Proof.context -> string * Position.T -> string
   val rm_tree: Path.T -> unit
-  val mkdirs: Path.T -> unit
+  val make_directory: Path.T -> unit
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
   val copy_file: Path.T -> Path.T -> unit
@@ -63,7 +63,7 @@ fun system_command cmd =
 
 fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
-fun mkdirs path =
+fun make_directory path =
   if File.is_dir path then ()
   else
    (bash ("perl -e \"use File::Path make_path; make_path('" ^ File.standard_path path ^ "');\"");
@@ -94,7 +94,7 @@ fun copy_file_base (base_dir, src0) target_dir =
     val _ =
       if Path.starts_basic src then ()
       else error ("Illegal path specification " ^ Path.print src ^ " beyond base directory");
-    val _ = mkdirs (Path.append target_dir src_dir);
+    val _ = make_directory (Path.append target_dir src_dir);
   in copy_file (Path.append base_dir src) (Path.append target_dir src) end;
 
 
@@ -117,7 +117,7 @@ fun with_tmp_file name ext f =
 fun with_tmp_dir name f =
   let
     val path = create_tmp_path name "";
-    val _ = mkdirs path;
+    val _ = make_directory path;
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
 
 end;

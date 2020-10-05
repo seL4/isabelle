@@ -58,7 +58,7 @@ object Components
     copy_dir: Option[Path] = None,
     progress: Progress = new Progress)
   {
-    Isabelle_System.mkdirs(base_dir)
+    Isabelle_System.make_directory(base_dir)
     for (name <- names) {
       val archive_name = Archive(name)
       val archive = base_dir + Path.explode(archive_name)
@@ -68,7 +68,7 @@ object Components
         Bytes.write(archive, Url.read_bytes(Url(remote)))
       }
       for (dir <- copy_dir) {
-        Isabelle_System.mkdirs(dir)
+        Isabelle_System.make_directory(dir)
         File.copy(archive, dir)
       }
       unpack(target_dir getOrElse base_dir, archive, progress = progress)

@@ -27,7 +27,7 @@ object Mkroot
     author: String = "",
     progress: Progress = new Progress)
   {
-    Isabelle_System.mkdirs(session_dir)
+    Isabelle_System.make_directory(session_dir)
 
     val name = proper_string(session_name) getOrElse session_dir.absolute_file.getName
     val parent = proper_string(session_parent) getOrElse Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -67,7 +67,7 @@ object Mkroot
     {
       progress.echo("  creating " + root_tex)
 
-      Isabelle_System.mkdirs(root_tex.dir)
+      Isabelle_System.make_directory(root_tex.dir)
 
       File.write(root_tex,
 """\documentclass[11pt,a4paper]{article}

@@ -212,7 +212,7 @@ fun with_overlord_dir name f =
   let
     val path =
       Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs path
+    val _ = Isabelle_System.make_directory path
   in Exn.release (Exn.capture f path) end
 
 fun elapsed_time description e =

@@ -1132,7 +1132,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
-    def prepare_output_dir() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+    def prepare_output_dir() { Isabelle_System.make_directory(output_dir + Path.basic("log")) }
 
 
     /* heap */

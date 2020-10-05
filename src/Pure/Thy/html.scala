@@ -385,7 +385,7 @@ object HTML
 
   def init_dir(dir: Path)
   {
-    Isabelle_System.mkdirs(dir)
+    Isabelle_System.make_directory(dir)
     write_isabelle_css(dir)
   }
 

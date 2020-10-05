@@ -147,7 +147,7 @@ fun check_files_in ctxt (files, opt_thy) =
 fun write_file dir (file: file) =
   let
     val path = Path.expand (Path.append dir (#path file));
-    val _ = Isabelle_System.mkdirs (Path.dir path);
+    val _ = Isabelle_System.make_directory (Path.dir path);
     val _ = File.generate path (#content file);
   in () end;
 

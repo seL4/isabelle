@@ -53,7 +53,7 @@ object Main
             if (props1 != props2) File.write(properties, cat_lines(props2))
           }
 
-          Isabelle_System.mkdirs(settings_dir + Path.explode("DockableWindowManager"))
+          Isabelle_System.make_directory(settings_dir + Path.explode("DockableWindowManager"))
 
           if (!(settings_dir + Path.explode("perspective.xml")).is_file) {
             File.write(settings_dir + Path.explode("DockableWindowManager/perspective-view0.xml"),

@@ -175,7 +175,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 #:mode=text:encoding=UTF-8:
 
 """
-      Isabelle_System.mkdirs(dictionary.user_path.expand.dir)
+      Isabelle_System.make_directory(dictionary.user_path.expand.dir)
       File.write(dictionary.user_path, header + cat_lines(permanent_decls))
     }
   }

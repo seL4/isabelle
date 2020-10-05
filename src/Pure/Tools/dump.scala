@@ -24,7 +24,7 @@ object Dump
     def write_path(file_name: Path): Path =
     {
       val path = output_dir + Path.basic(snapshot.node_name.theory) + file_name
-      Isabelle_System.mkdirs(path.dir)
+      Isabelle_System.make_directory(path.dir)
       path
     }
 

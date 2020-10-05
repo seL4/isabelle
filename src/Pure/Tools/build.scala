@@ -414,7 +414,7 @@ object Build
       if (result1.ok) {
         for (document_output <- proper_string(options.string("document_output"))) {
           val document_output_dir = info.dir + Path.explode(document_output)
-          Isabelle_System.mkdirs(document_output_dir)
+          Isabelle_System.make_directory(document_output_dir)
 
           val base = deps(session_name)
           File.write(document_output_dir + Path.explode("session.tex"),

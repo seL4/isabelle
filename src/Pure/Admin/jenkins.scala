@@ -103,7 +103,7 @@ object Jenkins
 
       if (!log_path.is_file) {
         progress.echo(log_path.expand.implode)
-        Isabelle_System.mkdirs(log_dir)
+        Isabelle_System.make_directory(log_dir)
 
         val ml_statistics =
           session_logs.map(_._1).distinct.sorted.flatMap(session_name =>

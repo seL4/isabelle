@@ -336,7 +336,7 @@ object Export
               else export_dir + Path.make(elems.drop(export_prune))
 
             progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
-            Isabelle_System.mkdirs(path.dir)
+            Isabelle_System.make_directory(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
             File.set_executable(path, entry.executable)
           }

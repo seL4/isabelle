@@ -239,7 +239,7 @@ fun finish () =
 
     val _ =
       if info then
-       (Isabelle_System.mkdirs session_prefix;
+       (Isabelle_System.make_directory session_prefix;
         File.write_buffer (Path.append session_prefix index_path)
           (index_buffer html_index |> Buffer.add HTML.end_document);
         (case readme of NONE => () | SOME path => Isabelle_System.copy_file path session_prefix);
@@ -254,7 +254,7 @@ fun finish () =
         val doc_dir = Path.append doc_prefix (Path.basic doc_name);
         fun purge () = if backdrop then Isabelle_System.rm_tree doc_dir else ();
         val _ = purge ();
-        val _ = Isabelle_System.mkdirs doc_dir;
+        val _ = Isabelle_System.make_directory doc_dir;
         val _ =
           Isabelle_System.bash ("isabelle latex -o sty " ^
             File.bash_path (Path.append doc_dir (Path.basic "root.tex")));

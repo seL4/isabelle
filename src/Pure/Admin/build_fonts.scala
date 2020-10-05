@@ -219,7 +219,7 @@ object Build_Fonts
     progress: Progress = new Progress)
   {
     progress.echo("Directory " + target_dir)
-    hinting.foreach(hinted => Isabelle_System.mkdirs(target_dir + hinted_path(hinted)))
+    hinting.foreach(hinted => Isabelle_System.make_directory(target_dir + hinted_path(hinted)))
 
     val font_dirs = source_dirs ::: List(Path.explode("~~/Admin/isabelle_fonts"))
     for (dir <- font_dirs if !dir.is_dir) error("Bad source directory: " + dir)
@@ -308,7 +308,7 @@ object Build_Fonts
     // etc/settings
 
     val settings_path = Components.settings(target_dir)
-    Isabelle_System.mkdirs(settings_path.dir)
+    Isabelle_System.make_directory(settings_path.dir)
 
     def fonts_settings(hinted: Boolean): String =
       "\n  isabelle_fonts \\\n" +

@@ -3,7 +3,7 @@ imports Setup
 begin (*<*)
 
 ML \<open>
-  Isabelle_System.mkdirs (File.tmp_path (Path.basic "examples"))
+  Isabelle_System.make_directory (File.tmp_path (Path.basic "examples"))
 \<close> (*>*)
 
 section \<open>Introduction\<close>

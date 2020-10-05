@@ -398,7 +398,7 @@ object Build_Status
       progress.echo("output " + quote(data_name))
 
       val dir = target_dir + Path.basic(clean_name(data_name))
-      Isabelle_System.mkdirs(dir)
+      Isabelle_System.make_directory(dir)
 
       val data_files =
         (for (session <- data_entry.sessions) yield {

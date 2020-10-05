@@ -312,7 +312,7 @@ fun export_physical root format pretty_modules =
   (case pretty_modules of
     Singleton (_, p) => File.write root (format p)
   | Hierarchy code_modules =>
-      (Isabelle_System.mkdirs root;
+      (Isabelle_System.make_directory root;
         List.app (fn (names, p) =>
           File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
 

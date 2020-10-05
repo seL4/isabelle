@@ -118,7 +118,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
   {
     val target = other_isabelle.isabelle_home + Path.explode("doc")
     val target_fonts = target + Path.explode("fonts")
-    Isabelle_System.mkdirs(target_fonts)
+    Isabelle_System.make_directory(target_fonts)
     other_isabelle.copy_fonts(target_fonts)
 
     HTML.write_document(target, "NEWS.html",
@@ -201,7 +201,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
 
   def make_contrib(dir: Path)
   {
-    Isabelle_System.mkdirs(Components.contrib(dir))
+    Isabelle_System.make_directory(Components.contrib(dir))
     File.write(Components.contrib(dir, "README"),
 """This directory contains add-on components that contribute to the main
 Isabelle distribution.  Separate licensing conditions apply, see each
@@ -324,7 +324,7 @@ directory individually.
     else {
       progress.echo_warning("Producing release archive " + release.isabelle_archive + " ...")
 
-      Isabelle_System.mkdirs(release.dist_dir)
+      Isabelle_System.make_directory(release.dist_dir)
 
       if (release.isabelle_dir.is_dir)
         error("Directory " + release.isabelle_dir + " already exists")
@@ -749,7 +749,7 @@ rm -rf "${DIST_NAME}-old"
 
             val other_isabelle = release.other_isabelle(tmp_dir)
 
-            Isabelle_System.mkdirs(other_isabelle.etc)
+            Isabelle_System.make_directory(other_isabelle.etc)
             File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
 
             other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +

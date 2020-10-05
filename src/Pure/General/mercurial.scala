@@ -56,7 +56,7 @@ object Mercurial
     : Repository =
   {
     val hg = new Repository(root, ssh)
-    ssh.mkdirs(hg.root.dir)
+    ssh.make_directory(hg.root.dir)
     hg.command(cmd, args, repository = false).check
     hg
   }
@@ -234,7 +234,7 @@ object Mercurial
   {
     /* local repository */
 
-    Isabelle_System.mkdirs(local_path)
+    Isabelle_System.make_directory(local_path)
 
     val repos_name =
       proper_string(remote_name) getOrElse local_path.absolute.base.implode
