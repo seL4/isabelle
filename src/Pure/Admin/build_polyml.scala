@@ -241,8 +241,7 @@ not affect the running ML session. *)
 
     File.copy(Path.explode("~~/Admin/polyml/README"), component_dir)
 
-    val etc_dir = component_dir + Path.explode("etc")
-    Isabelle_System.make_directory(etc_dir)
+    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
     File.copy(Path.explode("~~/Admin/polyml/settings"), etc_dir)
 
     sha1_root match {

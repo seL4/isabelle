@@ -43,8 +43,7 @@ object Build_SQLite
 
     /* settings */
 
-    val etc_dir = component_dir + Path.basic("etc")
-    Isabelle_System.make_directory(etc_dir)
+    val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
 
     File.write(etc_dir + Path.basic("settings"),
 """# -*- shell-script -*- :mode=shellscript:
@@ -76,8 +75,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
           "org/sqlite/native/Windows/x86_64/sqlitejdbc.dll" -> "x86_64-windows")
 
       for ((file, dir) <- jar_files) {
-        val target = component_dir + Path.explode(dir)
-        Isabelle_System.make_directory(target)
+        val target = Isabelle_System.make_directory(component_dir + Path.explode(dir))
         File.copy(jar_dir + Path.explode(file), target)
       }
 

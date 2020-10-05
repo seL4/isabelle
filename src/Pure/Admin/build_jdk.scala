@@ -94,8 +94,7 @@ esac
   def extract_archive(dir: Path, archive: Path): (String, JDK_Platform) =
   {
     try {
-      val tmp_dir = dir + Path.explode("tmp")
-      Isabelle_System.make_directory(tmp_dir)
+      val tmp_dir = Isabelle_System.make_directory(dir + Path.explode("tmp"))
 
       if (archive.get_ext == "zip") {
         Isabelle_System.bash(

@@ -189,11 +189,14 @@ object Isabelle_System
 
   /* directories */
 
-  def make_directory(path: Path): Unit =
+  def make_directory(path: Path): Path =
+  {
     if (!path.is_dir) {
       bash("perl -e \"use File::Path make_path; make_path('" + File.standard_path(path) + "');\"")
       if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
     }
+    path
+  }
 
   def copy_dir(dir1: Path, dir2: Path): Unit =
     bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check

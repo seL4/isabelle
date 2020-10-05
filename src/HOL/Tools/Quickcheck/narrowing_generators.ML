@@ -209,11 +209,10 @@ fun exec verbose code =
       {line = 0, file = "generated code", verbose = verbose, debug = false} code)
 
 fun with_overlord_dir name f =
-  let
-    val path =
-      Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.make_directory path
-  in Exn.release (Exn.capture f path) end
+  Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
+  |> Isabelle_System.make_directory
+  |> Exn.capture f
+  |> Exn.release
 
 fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()

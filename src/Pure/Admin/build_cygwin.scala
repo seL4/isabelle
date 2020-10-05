@@ -24,8 +24,7 @@ object Build_Cygwin
       {
         val cygwin = tmp_dir + Path.explode("cygwin")
         val cygwin_etc = cygwin + Path.explode("etc")
-        val cygwin_isabelle = cygwin + Path.explode("isabelle")
-        Isabelle_System.make_directory(cygwin_isabelle)
+        val cygwin_isabelle = Isabelle_System.make_directory(cygwin + Path.explode("isabelle"))
 
         val cygwin_exe_name = mirror + "/setup-x86_64.exe"
         val cygwin_exe = cygwin_isabelle + Path.explode("cygwin.exe")

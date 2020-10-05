@@ -12,7 +12,7 @@ sig
   val bash_functions: unit -> string list
   val check_bash_function: Proof.context -> string * Position.T -> string
   val rm_tree: Path.T -> unit
-  val make_directory: Path.T -> unit
+  val make_directory: Path.T -> Path.T
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
   val copy_file: Path.T -> Path.T -> unit
@@ -64,10 +64,13 @@ fun system_command cmd =
 fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
 fun make_directory path =
-  if File.is_dir path then ()
-  else
-   (bash ("perl -e \"use File::Path make_path; make_path('" ^ File.standard_path path ^ "');\"");
-    if File.is_dir path then () else error ("Failed to create directory: " ^ Path.print path));
+  let
+    val _ =
+      if File.is_dir path then ()
+      else
+       (bash ("perl -e \"use File::Path make_path; make_path('" ^ File.standard_path path ^ "');\"");
+        if File.is_dir path then () else error ("Failed to create directory: " ^ Path.print path));
+  in path end;
 
 fun mkdir path =
   if File.is_dir path then () else OS.FileSys.mkDir (File.platform_path path);
@@ -94,8 +97,7 @@ fun copy_file_base (base_dir, src0) target_dir =
     val _ =
       if Path.starts_basic src then ()
       else error ("Illegal path specification " ^ Path.print src ^ " beyond base directory");
-    val _ = make_directory (Path.append target_dir src_dir);
-  in copy_file (Path.append base_dir src) (Path.append target_dir src) end;
+  in copy_file (Path.append base_dir src) (make_directory (Path.append target_dir src_dir)) end;
 
 
 (* tmp files *)
@@ -115,9 +117,7 @@ fun with_tmp_file name ext f =
 (* tmp dirs *)
 
 fun with_tmp_dir name f =
-  let
-    val path = create_tmp_path name "";
-    val _ = make_directory path;
-  in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
+  let val path = create_tmp_path name ""
+  in Exn.release (Exn.capture f (make_directory path) before ignore (try rm_tree path)) end;
 
 end;

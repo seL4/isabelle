@@ -43,8 +43,7 @@ object Build_E
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
           .getOrElse(error("No 64bit platform"))
 
-      val platform_dir = component_dir + Path.basic(platform_name)
-      Isabelle_System.make_directory(platform_dir)
+      val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
 
 
       /* runepar.pl */
@@ -111,8 +110,7 @@ object Build_E
 
       /* settings */
 
-      val etc_dir = component_dir + Path.basic("etc")
-      Isabelle_System.make_directory(etc_dir)
+      val etc_dir = Isabelle_System.make_directory(component_dir + Path.basic("etc"))
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 

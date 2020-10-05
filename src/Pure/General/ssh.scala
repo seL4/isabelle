@@ -378,12 +378,15 @@ object SSH
       try { sftp.lstat(remote_path(path)).isLink }
       catch { case _: SftpException => false }
 
-    override def make_directory(path: Path): Unit =
+    override def make_directory(path: Path): Path =
+    {
       if (!is_dir(path)) {
         execute(
           "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
         if (!is_dir(path)) error("Failed to create directory: " + quote(remote_path(path)))
       }
+      path
+    }
 
     def read_dir(path: Path): List[Dir_Entry] =
     {
@@ -494,7 +497,7 @@ object SSH
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
-    def make_directory(path: Path): Unit = Isabelle_System.make_directory(path)
+    def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),

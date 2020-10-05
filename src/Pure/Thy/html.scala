@@ -383,11 +383,8 @@ object HTML
       fonts_css(make_url) + "\n\n" + File.read(isabelle_css))
   }
 
-  def init_dir(dir: Path)
-  {
-    Isabelle_System.make_directory(dir)
-    write_isabelle_css(dir)
-  }
+  def init_dir(dir: Path): Unit =
+    write_isabelle_css(Isabelle_System.make_directory(dir))
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
     css: String = isabelle_css.file_name,

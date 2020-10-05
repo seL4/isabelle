@@ -36,8 +36,7 @@ object Present
 
   def update_chapter_index(browser_info: Path, chapter: String, new_sessions: List[(String, String)])
   {
-    val dir = browser_info + Path.basic(chapter)
-    Isabelle_System.make_directory(dir)
+    val dir = Isabelle_System.make_directory(browser_info + Path.basic(chapter))
 
     val sessions0 =
       try { read_sessions(dir) }

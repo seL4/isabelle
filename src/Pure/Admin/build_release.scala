@@ -117,8 +117,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
   def make_news(other_isabelle: Other_Isabelle, dist_version: String)
   {
     val target = other_isabelle.isabelle_home + Path.explode("doc")
-    val target_fonts = target + Path.explode("fonts")
-    Isabelle_System.make_directory(target_fonts)
+    val target_fonts = Isabelle_System.make_directory(target + Path.explode("fonts"))
     other_isabelle.copy_fonts(target_fonts)
 
     HTML.write_document(target, "NEWS.html",

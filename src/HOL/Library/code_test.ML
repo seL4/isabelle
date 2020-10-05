@@ -140,11 +140,10 @@ fun pretty_failures ctxt target failures =
 val debug = Attrib.setup_config_bool \<^binding>\<open>test_code_debug\<close> (K false)
 
 fun with_debug_dir name f =
-  let
-    val dir =
-      Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.make_directory dir
-  in Exn.release (Exn.capture f dir) end
+  Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
+  |> Isabelle_System.make_directory
+  |> Exn.capture f
+  |> Exn.release;
 
 fun dynamic_value_strict ctxt t compiler =
   let

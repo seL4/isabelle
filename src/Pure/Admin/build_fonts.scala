@@ -307,8 +307,7 @@ object Build_Fonts
 
     // etc/settings
 
-    val settings_path = Components.settings(target_dir)
-    Isabelle_System.make_directory(settings_path.dir)
+    val settings_path = Isabelle_System.make_directory(Components.settings(target_dir))
 
     def fonts_settings(hinted: Boolean): String =
       "\n  isabelle_fonts \\\n" +
