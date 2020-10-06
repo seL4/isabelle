@@ -868,17 +868,22 @@ end
 
 subsection \<open>Arg Min\<close>
 
-definition is_arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
+context ord
+begin
+
+definition is_arg_min :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
 "is_arg_min f P x = (P x \<and> \<not>(\<exists>y. P y \<and> f y < f x))"
 
-definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+definition arg_min :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b" where
 "arg_min f P = (SOME x. is_arg_min f P x)"
 
-definition arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+definition arg_min_on :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'b" where
 "arg_min_on f S = arg_min f (\<lambda>x. x \<in> S)"
 
+end
+
 syntax
-  "_arg_min" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
+  "_arg_min" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'b"
     ("(3ARG'_MIN _ _./ _)" [1000, 0, 10] 10)
 translations
   "ARG_MIN f x. P" \<rightleftharpoons> "CONST arg_min f (\<lambda>x. P)"
@@ -980,17 +985,22 @@ by (metis inj_on_eq_iff less_le mem_Collect_eq)
 
 subsection \<open>Arg Max\<close>
 
-definition is_arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
+context ord
+begin
+
+definition is_arg_max :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
 "is_arg_max f P x = (P x \<and> \<not>(\<exists>y. P y \<and> f y > f x))"
 
-definition arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+definition arg_max :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b" where
 "arg_max f P = (SOME x. is_arg_max f P x)"
 
-definition arg_max_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+definition arg_max_on :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'b" where
 "arg_max_on f S = arg_max f (\<lambda>x. x \<in> S)"
 
+end
+
 syntax
-  "_arg_max" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
+  "_arg_max" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
     ("(3ARG'_MAX _ _./ _)" [1000, 0, 10] 10)
 translations
   "ARG_MAX f x. P" \<rightleftharpoons> "CONST arg_max f (\<lambda>x. P)"

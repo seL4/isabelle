@@ -2057,6 +2057,58 @@ proof -
   qed
 qed
 
+subsubsection \<open>Finite orders\<close>
+
+context order
+begin
+
+lemma finite_has_maximal:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. \<forall> b \<in> A. m \<le> b \<longrightarrow> m = b"
+proof (induction rule: finite_psubset_induct)
+  case (psubset A)
+  from \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" by auto
+  let ?B = "{b \<in> A. a < b}"
+  show ?case
+  proof cases
+    assume "?B = {}"
+    hence "\<forall> b \<in> A. a \<le> b \<longrightarrow> a = b" using le_neq_trans by blast
+    thus ?thesis using \<open>a \<in> A\<close> by blast
+  next
+    assume "?B \<noteq> {}"
+    have "a \<notin> ?B" by auto
+    hence "?B \<subset> A" using \<open>a \<in> A\<close> by blast
+    from psubset.IH[OF this \<open>?B \<noteq> {}\<close>] show ?thesis using order.strict_trans2 by blast
+  qed
+qed
+
+lemma finite_has_maximal2:
+  "\<lbrakk> finite A; a \<in> A \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. a \<le> m \<and> (\<forall> b \<in> A. m \<le> b \<longrightarrow> m = b)"
+using finite_has_maximal[of "{b \<in> A. a \<le> b}"] by fastforce
+
+lemma finite_has_minimal:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. \<forall> b \<in> A. b \<le> m \<longrightarrow> m = b"
+proof (induction rule: finite_psubset_induct)
+  case (psubset A)
+  from \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" by auto
+  let ?B = "{b \<in> A. b < a}"
+  show ?case
+  proof cases
+    assume "?B = {}"
+    hence "\<forall> b \<in> A. b \<le> a \<longrightarrow> a = b" using le_neq_trans by blast
+    thus ?thesis using \<open>a \<in> A\<close> by blast
+  next
+    assume "?B \<noteq> {}"
+    have "a \<notin> ?B" by auto
+    hence "?B \<subset> A" using \<open>a \<in> A\<close> by blast
+    from psubset.IH[OF this \<open>?B \<noteq> {}\<close>] show ?thesis using order.strict_trans1 by blast
+  qed
+qed
+
+lemma finite_has_minimal2:
+  "\<lbrakk> finite A; a \<in> A \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. m \<le> a \<and> (\<forall> b \<in> A. b \<le> m \<longrightarrow> m = b)"
+using finite_has_minimal[of "{b \<in> A. b \<le> a}"] by fastforce
+
+end
 
 subsubsection \<open>Relating injectivity and surjectivity\<close>
 
