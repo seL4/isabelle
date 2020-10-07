@@ -215,6 +215,9 @@ object Isabelle_Cronjob
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("Mac OS X 10.14 Mojave (Old)", "lapnipkow3",
+        options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+        self_update = true, args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("AFP old bulky", "lrzcloud1", self_update = true,
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
@@ -313,8 +316,13 @@ object Isabelle_Cronjob
       List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
         options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("Mac OS X 10.14 Mojave", "lapnipkow3",
-        options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+      List(Remote_Build("Mac OS X 10.14 Mojave", "mini2",
+        options = "-m32 -M1,2,4 -p pide_session=false" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+          " -e ISABELLE_GHC_SETUP=true" +
+          " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
+          " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
+          " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
