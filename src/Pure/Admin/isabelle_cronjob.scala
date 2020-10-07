@@ -314,10 +314,10 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a")),
       List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
-        options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
+        options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Mac OS X 10.14 Mojave", "mini2",
-        options = "-m32 -M1,2,4 -p pide_session=false" +
+        options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
           " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
           " -e ISABELLE_GHC_SETUP=true" +
           " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
