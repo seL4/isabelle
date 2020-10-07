@@ -73,12 +73,21 @@ instance ..
 
 end
 
+lemma msb_word_iff_bit:
+  \<open>msb w \<longleftrightarrow> bit w (LENGTH('a) - Suc 0)\<close>
+  for w :: \<open>'a::len word\<close>
+  by (simp add: msb_word_def bin_sign_def bit_uint_iff)
+
 lemma word_msb_def:
   "msb a \<longleftrightarrow> bin_sign (sint a) = - 1"
   by (simp add: msb_word_def sint_uint)
 
 lemma word_msb_sint: "msb w \<longleftrightarrow> sint w < 0"
   by (simp add: msb_word_eq bit_last_iff)
+
+lemma msb_word_iff_sless_0:
+  \<open>msb w \<longleftrightarrow> w <s 0\<close>
+  by (simp add: word_msb_sint word_sless_alt)
 
 lemma msb_word_of_int: "msb (word_of_int x::'a::len word) = bin_nth x (LENGTH('a) - 1)"
   by (simp add: word_msb_def word_sbin.eq_norm bin_sign_lem)

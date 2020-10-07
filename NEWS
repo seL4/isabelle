@@ -120,6 +120,10 @@ into its components "drop_bit" and "take_bit".  INCOMPATIBILITY.
 * Session HOL-Word: Uniform polymorphic "mask" operation for both
 types int and word.  INCOMPATIBILITY.
 
+* Session HOL-Word: Syntax for signed compare operators has been
+consolidated with syntax of regular compare operators.
+Minor INCOMPATIBILITY.
+
 * Session HOL-Word: Operations lsb, msb and set_bit are separated
 into theories Misc_lsb, Misc_msb and Misc_set_bit respectively.
 INCOMPATIBILITY.

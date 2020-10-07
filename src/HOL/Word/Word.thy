@@ -1306,6 +1306,10 @@ proof -
     by (simp add: of_nat_div)
 qed
 
+lemma unat_drop_bit_eq:
+  \<open>unat (drop_bit n w) = drop_bit n (unat w)\<close>
+  by (rule bit_eqI) (simp add: bit_unsigned_iff bit_drop_bit_eq)
+
 lemma uint_mod_distrib:
   \<open>uint (v mod w) = uint v mod uint w\<close>
 proof -
@@ -1605,38 +1609,54 @@ qed
 
 subsection \<open>Ordering\<close>
 
-lift_definition word_sle :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> bool\<close>  (\<open>(_/ <=s _)\<close> [50, 51] 50)
-  is \<open>\<lambda>k l. signed_take_bit (LENGTH('a) - 1) k \<le> signed_take_bit (LENGTH('a) - 1) l\<close>
+lift_definition word_sle :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> bool\<close>
+  is \<open>\<lambda>k l. signed_take_bit (LENGTH('a) - Suc 0) k \<le> signed_take_bit (LENGTH('a) - Suc 0) l\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
+
+lift_definition word_sless :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> bool\<close>
+  is \<open>\<lambda>k l. signed_take_bit (LENGTH('a) - Suc 0) k < signed_take_bit (LENGTH('a) - Suc 0) l\<close>
+  by (simp flip: signed_take_bit_decr_length_iff)
+
+notation
+  word_sle    ("'(\<le>s')") and
+  word_sle    ("(_/ \<le>s _)"  [51, 51] 50) and
+  word_sless  ("'(<s')") and
+  word_sless  ("(_/ <s _)"  [51, 51] 50)
+
+notation (input)
+  word_sle    ("(_/ <=s _)"  [51, 51] 50)
 
 lemma word_sle_eq [code]:
   \<open>a <=s b \<longleftrightarrow> sint a \<le> sint b\<close>
   by transfer simp
-  
-lift_definition word_sless :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> bool\<close>  (\<open>(_/ <s _)\<close> [50, 51] 50)
-  is \<open>\<lambda>k l. signed_take_bit (LENGTH('a) - 1) k < signed_take_bit (LENGTH('a) - 1) l\<close>
-  by (simp flip: signed_take_bit_decr_length_iff)
-
-lemma word_sless_eq:
-  \<open>x <s y \<longleftrightarrow> x <=s y \<and> x \<noteq> y\<close>
-  by transfer (simp add: signed_take_bit_decr_length_iff less_le)
 
 lemma [code]:
   \<open>a <s b \<longleftrightarrow> sint a < sint b\<close>
   by transfer simp
 
+lemma signed_ordering: \<open>ordering word_sle word_sless\<close>
+  apply (standard; transfer)
+  apply simp_all
+  using signed_take_bit_decr_length_iff apply force
+  using signed_take_bit_decr_length_iff apply force
+  done
+
+lemma signed_linorder: \<open>class.linorder word_sle word_sless\<close>
+  by (standard; transfer) (auto simp add: signed_take_bit_decr_length_iff)
+
+interpretation signed: linorder word_sle word_sless
+  by (fact signed_linorder)
+
+lemma word_sless_eq:
+  \<open>x <s y \<longleftrightarrow> x <=s y \<and> x \<noteq> y\<close>
+  by (fact signed.less_le)
+
 lemma word_less_alt: "a < b \<longleftrightarrow> uint a < uint b"
   by (fact word_less_def)
 
-lemma signed_linorder: "class.linorder word_sle word_sless"
-  by (standard; transfer) (auto simp add: signed_take_bit_decr_length_iff)
-
-interpretation signed: linorder "word_sle" "word_sless"
-  by (rule signed_linorder)
-
 lemma word_zero_le [simp]: "0 \<le> y"
   for y :: "'a::len word"
-  by transfer simp
+  by (fact word_coorder.extremum)
 
 lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
   by transfer (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1 bintr_lt2p)
@@ -1996,6 +2016,32 @@ qed
 
 subsection \<open>More shift operations\<close>
 
+lift_definition signed_drop_bit :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a::len word\<close>
+  is \<open>\<lambda>n. drop_bit n \<circ> signed_take_bit (LENGTH('a) - Suc 0)\<close>
+  using signed_take_bit_decr_length_iff
+  by (simp add: take_bit_drop_bit) force
+
+lemma bit_signed_drop_bit_iff:
+  \<open>bit (signed_drop_bit m w) n \<longleftrightarrow> bit w (if LENGTH('a) - m \<le> n \<and> n < LENGTH('a) then LENGTH('a) - 1 else m + n)\<close>
+  for w :: \<open>'a::len word\<close>
+  apply transfer
+  apply (auto simp add: bit_drop_bit_eq bit_signed_take_bit_iff not_le min_def)
+   apply (metis add.commute le_antisym less_diff_conv less_eq_decr_length_iff)
+  apply (metis le_antisym less_eq_decr_length_iff)
+  done
+
+lemma signed_drop_bit_0 [simp]:
+  \<open>signed_drop_bit 0 w = w\<close>
+  by transfer simp
+
+lemma sint_signed_drop_bit_eq:
+  \<open>sint (signed_drop_bit n w) = drop_bit n (sint w)\<close>
+  apply (cases \<open>LENGTH('a)\<close>; cases n)
+     apply simp_all
+  apply (rule bit_eqI)
+  apply (auto simp add: bit_sint_iff bit_drop_bit_eq bit_signed_drop_bit_iff dest: bit_imp_le_length)
+  done
+
 lift_definition sshiftr1 :: \<open>'a::len word \<Rightarrow> 'a word\<close>
   is \<open>\<lambda>k. take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - 1) k div 2)\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
@@ -2012,7 +2058,7 @@ lemma sshiftr1_eq:
   \<open>sshiftr1 w = word_of_int (sint w div 2)\<close>
   by transfer simp
 
-lemma sshiftr_eq:
+lemma sshiftr_eq_funpow_sshiftr1:
   \<open>w >>> n = (sshiftr1 ^^ n) w\<close>
 proof -
   have *: \<open>(\<lambda>k::int. take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - Suc 0) k div 2)) ^^ Suc n =
@@ -3980,6 +4026,10 @@ lemma bit_sshiftr_word_iff:
   using le_less_Suc_eq apply fastforce
   using le_less_Suc_eq apply fastforce
   done
+
+lemma sshiftr_eq:
+  \<open>w >>> m = signed_drop_bit m w\<close>
+  by (rule bit_eqI) (simp add: bit_signed_drop_bit_iff bit_sshiftr_word_iff)
 
 lemma nth_sshiftr1: "sshiftr1 w !! n = (if n = size w - 1 then w !! n else w !! Suc n)"
   apply transfer

@@ -1478,12 +1478,9 @@ lemma drop_shiftr: "drop n (to_bl (w >> n)) = take (size w - n) (to_bl w)"
 
 lemma drop_sshiftr: "drop n (to_bl (w >>> n)) = take (size w - n) (to_bl w)"
   for w :: "'a::len word"
-  apply (unfold sshiftr_eq)
-  apply (induct n)
-   prefer 2
-   apply (simp add: drop_Suc bl_sshiftr1 butlast_drop [symmetric])
-   apply (rule butlast_take [THEN trans])
-    apply (auto simp: word_size)
+   apply (simp_all add: word_size sshiftr_eq)
+  apply (rule nth_equalityI)
+   apply (simp_all add: word_size nth_to_bl bit_signed_drop_bit_iff)
   done
 
 lemma take_shiftr: "n \<le> size w \<Longrightarrow> take n (to_bl (w >> n)) = replicate n False"
@@ -1495,17 +1492,15 @@ lemma take_shiftr: "n \<le> size w \<Longrightarrow> take n (to_bl (w >> n)) = r
     apply (auto simp: word_size)
   done
 
-lemma take_sshiftr' [rule_format] :
-  "n \<le> size w \<longrightarrow> hd (to_bl (w >>> n)) = hd (to_bl w) \<and>
+lemma take_sshiftr':
+  "n \<le> size w \<Longrightarrow> hd (to_bl (w >>> n)) = hd (to_bl w) \<and>
     take n (to_bl (w >>> n)) = replicate n (hd (to_bl w))"
   for w :: "'a::len word"
-  apply (unfold sshiftr_eq)
-  apply (induct n)
-   prefer 2
-   apply (simp add: bl_sshiftr1)
-   apply (rule impI)
-   apply (rule take_butlast [THEN trans])
-    apply (auto simp: word_size)
+  apply (auto simp add: sshiftr_eq hd_bl_sign_sint bin_sign_def not_le word_size sint_signed_drop_bit_eq)
+  apply (rule nth_equalityI)
+    apply (auto simp add: nth_to_bl bit_signed_drop_bit_iff bit_last_iff)
+  apply (rule nth_equalityI)
+   apply (auto simp add: nth_to_bl bit_signed_drop_bit_iff bit_last_iff)
   done
 
 lemmas hd_sshiftr = take_sshiftr' [THEN conjunct1]
