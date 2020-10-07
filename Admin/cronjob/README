@@ -2,8 +2,8 @@ Administrative Isabelle cronjob
 ===============================
 
 - main server: virtual machine with cronjob and build_log database
-- backup file-system (for cumulative log files): isatest@lxbroy10:cronjob
-- backup identify job: isatest@lxbroy5
+- backup file-system (for cumulative log files): i21isatest@lxbroy10:cronjob
+- backup identify job: i21isatest@lxcisa0
 
 - jobs: manual installation on target directory:
     cp "$ISABELLE_HOME/Admin/cronjob/self_update "$HOME/cronjob/self_update"
