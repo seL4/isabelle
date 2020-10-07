@@ -138,29 +138,29 @@ the correct path.
     Isabelle_Tool("build_e", "build Isabelle E prover component from official download",
     args =>
     {
-      var download_url = default_download_url
       var target_dir = Path.current
       var runepar_url = default_runepar_url
       var version = default_version
+      var download_url = default_download_url
       var verbose = false
 
       val getopts = Getopts("""
 Usage: isabelle build_e [OPTIONS]
 
   Options are:
-    -E URL       E prover download URL
-                 (default: """ + default_download_url + """)
     -D DIR       target directory (default ".")
     -R URL       URL for runepar.pl by Josef Urban
                  (default: """ + default_runepar_url + """)
+    -U URL       E prover download URL
+                 (default: \"\"\" + default_download_url + \"\"\")
     -V VERSION   E prover version (default: """ + default_version + """)
     -v           verbose
 
   Build E prover component from the specified download URLs and version.
 """,
-        "E:" -> (arg => download_url = arg),
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "R:" -> (arg => runepar_url = arg),
+        "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
         "v" -> (_ => verbose = true))
 
