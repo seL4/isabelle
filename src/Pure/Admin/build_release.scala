@@ -61,18 +61,16 @@ object Build_Release
     for (name <- List("src/Pure/System/distribution.ML", "src/Pure/System/distribution.scala"))
     {
       File.change(dir + Path.explode(name),
-        s =>
-          s.replaceAllLiterally("val is_identified = false", "val is_identified = true")
-           .replaceAllLiterally("val is_official = false", "val is_official = " + is_official))
+        _.replace("val is_identified = false", "val is_identified = true")
+         .replace("val is_official = false", "val is_official = " + is_official))
     }
 
     File.change(dir + getsettings_path,
-      _.replaceAllLiterally("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
-       .replaceAllLiterally("ISABELLE_IDENTIFIER=\"\"",
-          "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
+      _.replace("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
+       .replace("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
 
     File.change(dir + Path.explode("lib/html/library_index_header.template"),
-      _.replaceAllLiterally("{ISABELLE}", release.dist_name))
+      _.replace("{ISABELLE}", release.dist_name))
 
     for {
       name <-
@@ -81,12 +79,11 @@ object Build_Release
           "src/Pure/System/distribution.scala",
           "lib/Tools/version") }
     {
-      File.change(dir + Path.explode(name),
-        s => s.replaceAllLiterally("repository version", release.dist_version))
+      File.change(dir + Path.explode(name), _.replace("repository version", release.dist_version))
     }
 
     File.change(dir + Path.explode("README"),
-      s => s.replaceAllLiterally("some repository version of Isabelle", release.dist_version))
+      _.replace("some repository version of Isabelle", release.dist_version))
   }
 
 
@@ -515,9 +512,8 @@ rm -rf "${DIST_NAME}-old"
             val isabelle_app = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
             File.write(isabelle_app,
               File.read(Path.explode("~~/Admin/Linux/Isabelle_app"))
-                .replaceAllLiterally("{CLASSPATH}",
-                  classpath.map("$ISABELLE_HOME/" + _).mkString(":"))
-                .replaceAllLiterally("/jdk/", "/" + jdk_component + "/"))
+                .replace("{CLASSPATH}", classpath.map("$ISABELLE_HOME/" + _).mkString(":"))
+                .replace("/jdk/", "/" + jdk_component + "/"))
             File.set_executable(isabelle_app, true)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
@@ -553,8 +549,8 @@ rm -rf "${DIST_NAME}-old"
 
             File.write(app_contents + Path.explode("Info.plist"),
               File.read(Path.explode("~~/Admin/MacOS/Info.plist"))
-                .replaceAllLiterally("{ISABELLE_NAME}", isabelle_name)
-                .replaceAllLiterally("{JAVA_OPTIONS}",
+                .replace("{ISABELLE_NAME}", isabelle_name)
+                .replace("{JAVA_OPTIONS}",
                   terminate_lines(java_options.map(opt => "<string>" + opt + "</string>"))))
 
             for (cp <- classpath) {
@@ -611,17 +607,16 @@ rm -rf "${DIST_NAME}-old"
 
             File.write(tmp_dir + isabelle_xml,
               File.read(app_template + isabelle_xml)
-                .replaceAllLiterally("{ISABELLE_NAME}", isabelle_name)
-                .replaceAllLiterally("{OUTFILE}",
-                  File.platform_path(isabelle_target + isabelle_exe))
-                .replaceAllLiterally("{ICON}",
+                .replace("{ISABELLE_NAME}", isabelle_name)
+                .replace("{OUTFILE}", File.platform_path(isabelle_target + isabelle_exe))
+                .replace("{ICON}",
                   File.platform_path(app_template + Path.explode("isabelle_transparent.ico")))
-                .replaceAllLiterally("{SPLASH}",
+                .replace("{SPLASH}",
                   File.platform_path(app_template + Path.explode("isabelle.bmp")))
-                .replaceAllLiterally("{CLASSPATH}",
+                .replace("{CLASSPATH}",
                   cat_lines(classpath.map(cp =>
                     "    <cp>%EXEDIR%\\" + File.platform_path(cp).replace('/', '\\') + "</cp>")))
-                .replaceAllLiterally("\\jdk\\", "\\" + jdk_component + "\\"))
+                .replace("\\jdk\\", "\\" + jdk_component + "\\"))
 
             execute(tmp_dir,
               "\"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
@@ -641,8 +636,7 @@ rm -rf "${DIST_NAME}-old"
 
             val cygwin_bat = Path.explode("Cygwin-Setup.bat")
             File.write(isabelle_target + cygwin_bat,
-              File.read(cygwin_template + cygwin_bat)
-                .replaceAllLiterally("{MIRROR}", cygwin_mirror))
+              File.read(cygwin_template + cygwin_bat).replace("{MIRROR}", cygwin_mirror))
             File.set_executable(isabelle_target + cygwin_bat, true)
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
@@ -678,8 +672,8 @@ rm -rf "${DIST_NAME}-old"
 
             val sfx_exe = tmp_dir + Path.explode("windows_app/7zsd_All_x64.sfx")
             val sfx_txt =
-              File.read(Path.explode("~~/Admin/Windows/Installer/sfx.txt")).
-                replaceAllLiterally("{ISABELLE_NAME}", isabelle_name)
+              File.read(Path.explode("~~/Admin/Windows/Installer/sfx.txt"))
+                .replace("{ISABELLE_NAME}", isabelle_name)
 
             Bytes.write(release.dist_dir + isabelle_exe,
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
