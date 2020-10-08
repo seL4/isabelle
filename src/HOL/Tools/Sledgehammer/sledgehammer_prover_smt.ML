@@ -28,12 +28,12 @@ struct
 
 open ATP_Util
 open ATP_Proof
-open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
+open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 
 val smt_builtins = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_builtins\<close> (K true)

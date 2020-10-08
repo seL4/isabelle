@@ -30,7 +30,6 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
-open ATP_Systems
 
 val debug = false
 val overlord = false
@@ -316,7 +315,7 @@ fun translate_tptp_file thy format_str file_name =
         Translator
         lam_trans uncurried_aliases readable_names presimp [] conj facts
 
-    val ord = effective_term_order lthy spassN
+    val ord = Sledgehammer_ATP_Systems.effective_term_order lthy spassN
     val ord_info = K []
     val lines = lines_of_atp_problem format ord ord_info atp_problem
   in

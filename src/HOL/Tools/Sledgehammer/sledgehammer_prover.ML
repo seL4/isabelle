@@ -81,13 +81,13 @@ struct
 
 open ATP_Proof
 open ATP_Util
-open ATP_Systems
 open ATP_Problem
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
+open Sledgehammer_ATP_Systems
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use "Async_Manager". *)
 val SledgehammerN = "Sledgehammer"

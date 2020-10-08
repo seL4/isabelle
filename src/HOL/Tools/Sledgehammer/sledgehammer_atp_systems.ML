@@ -5,7 +5,7 @@
 Setup for supported ATPs.
 *)
 
-signature ATP_SYSTEMS =
+signature SLEDGEHAMMER_ATP_SYSTEMS =
 sig
   type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
@@ -57,7 +57,7 @@ sig
   val effective_term_order : Proof.context -> string -> term_order
 end;
 
-structure ATP_Systems : ATP_SYSTEMS =
+structure Sledgehammer_ATP_Systems : SLEDGEHAMMER_ATP_SYSTEMS =
 struct
 
 open ATP_Problem

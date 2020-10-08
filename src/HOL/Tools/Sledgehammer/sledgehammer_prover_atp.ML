@@ -29,10 +29,10 @@ open ATP_Problem
 open ATP_Problem_Generate
 open ATP_Proof
 open ATP_Proof_Reconstruct
-open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
+open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 
 (* Empty string means create files in Isabelle's temporary files directory. *)

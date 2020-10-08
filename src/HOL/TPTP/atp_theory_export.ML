@@ -24,7 +24,7 @@ struct
 open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
-open ATP_Systems
+open Sledgehammer_ATP_Systems
 
 val max_dependencies = 100
 val max_facts = 512

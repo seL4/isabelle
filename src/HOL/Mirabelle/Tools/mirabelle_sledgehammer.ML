@@ -373,11 +373,11 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       st
       |> Proof.map_context
            (set_file_name dir
-            #> (Option.map (Config.put ATP_Systems.e_selection_heuristic)
+            #> (Option.map (Config.put Sledgehammer_ATP_Systems.e_selection_heuristic)
                   e_selection_heuristic |> the_default I)
-            #> (Option.map (Config.put ATP_Systems.term_order)
+            #> (Option.map (Config.put Sledgehammer_ATP_Systems.term_order)
                   term_order |> the_default I)
-            #> (Option.map (Config.put ATP_Systems.force_sos)
+            #> (Option.map (Config.put Sledgehammer_ATP_Systems.force_sos)
                   force_sos |> the_default I))
     val params as {max_facts, minimize, preplay_timeout, ...} =
       Sledgehammer_Commands.default_params thy

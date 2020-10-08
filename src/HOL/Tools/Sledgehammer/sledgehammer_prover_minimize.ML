@@ -34,11 +34,11 @@ open ATP_Util
 open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
-open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
+open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT

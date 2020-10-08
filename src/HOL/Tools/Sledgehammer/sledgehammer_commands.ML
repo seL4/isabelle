@@ -16,12 +16,12 @@ structure Sledgehammer_Commands : SLEDGEHAMMER_COMMANDS =
 struct
 
 open ATP_Util
-open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
