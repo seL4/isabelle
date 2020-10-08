@@ -16,7 +16,6 @@ sig
     SATx_Method |
     Blast_Method |
     Simp_Method |
-    Simp_Size_Method |
     Auto_Method |
     Fastforce_Method |
     Force_Method |
@@ -35,7 +34,7 @@ sig
 
   val is_proof_method_direct : proof_method -> bool
   val proof_method_distinguishes_chained_and_direct : proof_method -> bool
-  val string_of_proof_method : Proof.context -> string list -> proof_method -> string
+  val string_of_proof_method : string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome ord
@@ -56,7 +55,6 @@ datatype proof_method =
   SATx_Method |
   Blast_Method |
   Simp_Method |
-  Simp_Size_Method |
   Auto_Method |
   Fastforce_Method |
   Force_Method |
@@ -77,11 +75,9 @@ fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
   | is_proof_method_direct SMT_Method = true
   | is_proof_method_direct Simp_Method = true
-  | is_proof_method_direct Simp_Size_Method = true
   | is_proof_method_direct _ = false
 
 fun proof_method_distinguishes_chained_and_direct Simp_Method = true
-  | proof_method_distinguishes_chained_and_direct Simp_Size_Method = true
   | proof_method_distinguishes_chained_and_direct _ = false
 
 fun is_proof_method_multi_goal Auto_Method = true
@@ -89,7 +85,7 @@ fun is_proof_method_multi_goal Auto_Method = true
 
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
 
-fun string_of_proof_method ctxt ss meth =
+fun string_of_proof_method ss meth =
   let
     val meth_s =
       (case meth of
@@ -101,7 +97,6 @@ fun string_of_proof_method ctxt ss meth =
       | SATx_Method => "satx"
       | Blast_Method => "blast"
       | Simp_Method => if null ss then "simp" else "simp add:"
-      | Simp_Size_Method => "simp add: " ^ short_thm_name ctxt @{thm size_ne_size_imp_ne}
       | Auto_Method => "auto"
       | Fastforce_Method => "fastforce"
       | Force_Method => "force"
@@ -130,8 +125,6 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     (case meth of
       Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
     | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
-    | Simp_Size_Method =>
-      Simplifier.asm_full_simp_tac (ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
     | _ =>
       Method.insert_tac ctxt global_facts THEN'
       (case meth of
@@ -174,7 +167,7 @@ fun proof_method_command ctxt meth i n used_chaineds _(*num_chained*) extras =
         (extras, [])
   in
     (if null indirect_ss then "" else "using " ^ space_implode " " indirect_ss ^ " ") ^
-    apply_on_subgoal i n ^ string_of_proof_method ctxt direct_ss meth ^
+    apply_on_subgoal i n ^ string_of_proof_method direct_ss meth ^
     (if is_proof_method_multi_goal meth andalso n <> 1 then "[1]" else "")
   end
 

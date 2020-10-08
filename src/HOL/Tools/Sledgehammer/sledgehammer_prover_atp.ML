@@ -141,7 +141,6 @@ fun run_atp mode name
 
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
-    val spassy = (local_name = pirateN orelse local_name = spassN)
 
     val completish = Config.get ctxt atp_completish
     val atp_mode = if completish > 0 then Sledgehammer_Completish completish else Sledgehammer
@@ -378,7 +377,7 @@ fun run_atp mode name
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
-                      |> spassy ? introduce_spassy_skolems
+                      |> local_name = spassN ? introduce_spass_skolems
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,

@@ -50,7 +50,6 @@ val trace = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_isar_trace\<
 val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
 val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
-val pirate_datatype_rule = "DT"
 val satallax_skolemize_rule = "tab_ex"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_la_generic_rule = "la_generic"
@@ -72,7 +71,6 @@ val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
   String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
   rule = veriT_la_generic_rule
-val is_datatype_rule = String.isPrefix pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
 
@@ -123,8 +121,7 @@ fun add_lines_pass2 res [] = rev res
       if is_duplicate orelse
           (role = Plain andalso not (is_skolemize_rule rule) andalso
            not (is_ext_rule rule) andalso not (is_arith_rule rule) andalso
-           not (is_datatype_rule rule) andalso not (null lines) andalso looks_boring () andalso
-           not (is_before_skolemize_rule ())) then
+           not (null lines) andalso looks_boring () andalso not (is_before_skolemize_rule ())) then
         add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
       else
         add_lines_pass2 (line :: res) lines
@@ -139,7 +136,6 @@ val basic_simp_based_methods = [Auto_Method, Simp_Method, Fastforce_Method, Forc
 val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
 val arith_methods = basic_arith_methods @ basic_simp_based_methods @ basic_systematic_methods
-val datatype_methods = [Simp_Method, Simp_Size_Method]
 val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
@@ -319,7 +315,6 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   val meths =
                     (if skolem then skolem_methods
                      else if is_arith_rule rule then arith_methods
-                     else if is_datatype_rule rule then datatype_methods
                      else systematic_methods')
                     |> massage_methods
 
@@ -388,7 +383,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
             fun str_of_preplay_outcome outcome =
               if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
             fun str_of_meth l meth =
-              string_of_proof_method ctxt [] meth ^ " " ^
+              string_of_proof_method [] meth ^ " " ^
               str_of_preplay_outcome
                 (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
             fun comment_of l = map (str_of_meth l) #> commas

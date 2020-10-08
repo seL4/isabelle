@@ -315,7 +315,7 @@ fun string_of_isar_proof ctxt0 i n proof =
     fun of_method ls ss meth =
       let val direct = is_proof_method_direct meth in
         using_facts ls (if direct then [] else ss) ^
-        "by " ^ string_of_proof_method ctxt (if direct then ss else []) meth
+        "by " ^ string_of_proof_method (if direct then ss else []) meth
       end
 
     fun of_free (s, T) =

@@ -57,7 +57,7 @@ sig
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
   val infer_formulas_types : Proof.context -> term list -> term list
-  val introduce_spassy_skolems : (term, string) atp_step list -> (term, string) atp_step list
+  val introduce_spass_skolems : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
 end;
@@ -710,7 +710,7 @@ fun rename_skolem_args t =
     subst_vars ([], subst) t
   end
 
-fun introduce_spassy_skolems proof =
+fun introduce_spass_skolems proof =
   let
     fun add_skolem (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
       | add_skolem _ = I

@@ -83,8 +83,8 @@ type atp_config =
    best_max_mono_iters : int,
    best_max_new_mono_instances : int}
 
-(* "best_slices" must be found empirically, taking a wholistic approach since
-   the ATPs are run in parallel. Each slice has the format
+(* "best_slices" must be found empirically, taking a holistic approach since the
+   ATPs are run in parallel. Each slice has the format
 
      (time_frac, ((max_facts, fact_filter), format, type_enc,
                   lam_trans, uncurried_aliases), extra)
@@ -581,21 +581,6 @@ val zipperposition_config : atp_config =
 val zipperposition = (zipperpositionN, fn () => zipperposition_config)
 
 
-(* Remote Pirate invocation *)
-
-val remote_pirate_config : atp_config =
-  {exec = K (["ISABELLE_ATP"], ["scripts/remote_pirate"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
-   proof_delims = [("Involved clauses:", "Involved clauses:")],
-   known_failures = known_szs_status_failures,
-   prem_role = #prem_role spass_config,
-   best_slices = K [(1.0, (((200, ""), DFG Polymorphic, "tc_native", combsN, true), ""))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
-val remote_pirate = (remote_prefix ^ pirateN, fn () => remote_pirate_config)
-
-
 (* Remote ATP invocation via SystemOnTPTP *)
 
 val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
@@ -725,7 +710,7 @@ fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
       {is_lpo = false, gen_weights = (atp = spassN), gen_prec = (atp = spassN),
-       gen_simp = String.isSuffix pirateN atp}
+       gen_simp = false}
     else
       let val is_lpo = String.isSubstring lpoN ord in
         {is_lpo = is_lpo, gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
@@ -736,8 +721,7 @@ fun effective_term_order ctxt atp =
 val atps =
   [agsyhol, alt_ergo, e, e_par, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
    zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2,
-   remote_leo3, remote_pirate, remote_snark, remote_vampire, remote_waldmeister,
-   remote_zipperposition]
+   remote_leo3, remote_snark, remote_vampire, remote_waldmeister, remote_zipperposition]
 
 val _ = Theory.setup (fold add_atp atps)
 
