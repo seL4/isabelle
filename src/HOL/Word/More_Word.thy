@@ -9,6 +9,7 @@ imports
   Ancient_Numeral
   Reversed_Bit_Lists
   Bits_Int
+  Bit_Comprehension
   Misc_Auxiliary
   Misc_Arithmetic
   Misc_set_bit

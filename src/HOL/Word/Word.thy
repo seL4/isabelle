@@ -11,7 +11,6 @@ imports
   "HOL-Library.Bit_Operations"
   Bits_Int
   Traditional_Syntax
-  Bit_Comprehension
 begin
 
 subsection \<open>Preliminaries\<close>
@@ -3915,31 +3914,6 @@ lemma bang_is_le: "x !! m \<Longrightarrow> 2 ^ m \<le> x"
   done
 
 
-subsection \<open>Bit comprehension\<close>
-
-instantiation word :: (len) bit_comprehension
-begin
-
-definition word_set_bits_def:
-  \<open>(BITS n. P n) = (horner_sum of_bool 2 (map P [0..<LENGTH('a)]) :: 'a word)\<close>
-
-instance ..
-
-end
-
-lemma bit_set_bits_word_iff:
-  \<open>bit (set_bits P :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> P n\<close>
-  by (auto simp add: word_set_bits_def bit_horner_sum_bit_word_iff)
-
-lemma set_bits_bit_eq:
-  \<open>set_bits (bit w) = w\<close> for w :: \<open>'a::len word\<close>
-  by (rule bit_word_eqI) (auto simp add: bit_set_bits_word_iff bit_imp_le_length)
-
-lemma set_bits_K_False [simp]:
-  \<open>set_bits (\<lambda>_. False) = (0 :: 'a :: len word)\<close>
-  by (rule bit_word_eqI) (simp add: bit_set_bits_word_iff)
-
-
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
 lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (2 * w)"
@@ -5310,9 +5284,6 @@ lemma mask_1: "mask 1 = 1"
 
 lemma mask_Suc_0: "mask (Suc 0) = 1"
   using mask_1 by simp
-
-lemma mask_numeral: "mask (numeral n) = 2 * mask (pred_numeral n) + (1 :: 'a::len word)"
-  by (simp add: mask_Suc_rec numeral_eq_Suc)
 
 lemma bin_last_bintrunc: "bin_last (take_bit l n) = (l > 0 \<and> bin_last n)"
   by simp

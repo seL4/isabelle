@@ -486,6 +486,74 @@ end
 
 subsection \<open>Instance \<^typ>\<open>int\<close>\<close>
 
+lemma int_bit_bound:
+  fixes k :: int
+  obtains n where \<open>\<And>m. n \<le> m \<Longrightarrow> bit k m \<longleftrightarrow> bit k n\<close>
+    and \<open>n > 0 \<Longrightarrow> bit k (n - 1) \<noteq> bit k n\<close>
+proof -
+  obtain q where *: \<open>\<And>m. q \<le> m \<Longrightarrow> bit k m \<longleftrightarrow> bit k q\<close>
+  proof (cases \<open>k \<ge> 0\<close>)
+    case True
+    moreover from power_gt_expt [of 2 \<open>nat k\<close>]
+    have \<open>k < 2 ^ nat k\<close> by simp
+    ultimately have *: \<open>k div 2 ^ nat k = 0\<close>
+      by simp
+    show thesis
+    proof (rule that [of \<open>nat k\<close>])
+      fix m
+      assume \<open>nat k \<le> m\<close>
+      then show \<open>bit k m \<longleftrightarrow> bit k (nat k)\<close>
+        by (auto simp add: * bit_iff_odd power_add zdiv_zmult2_eq dest!: le_Suc_ex)
+    qed
+  next
+    case False
+    moreover from power_gt_expt [of 2 \<open>nat (- k)\<close>]
+    have \<open>- k \<le> 2 ^ nat (- k)\<close>
+      by simp
+    ultimately have \<open>- k div - (2 ^ nat (- k)) = - 1\<close>
+      by (subst div_pos_neg_trivial) simp_all
+    then have *: \<open>k div 2 ^ nat (- k) = - 1\<close>
+      by simp
+    show thesis
+    proof (rule that [of \<open>nat (- k)\<close>])
+      fix m
+      assume \<open>nat (- k) \<le> m\<close>
+      then show \<open>bit k m \<longleftrightarrow> bit k (nat (- k))\<close>
+        by (auto simp add: * bit_iff_odd power_add zdiv_zmult2_eq minus_1_div_exp_eq_int dest!: le_Suc_ex)
+    qed
+  qed
+  show thesis
+  proof (cases \<open>\<forall>m. bit k m \<longleftrightarrow> bit k q\<close>)
+    case True
+    then have \<open>bit k 0 \<longleftrightarrow> bit k q\<close>
+      by blast
+    with True that [of 0] show thesis
+      by simp
+  next
+    case False
+    then obtain r where **: \<open>bit k r \<noteq> bit k q\<close>
+      by blast
+    have \<open>r < q\<close>
+      by (rule ccontr) (use * [of r] ** in simp)
+    define N where \<open>N = {n. n < q \<and> bit k n \<noteq> bit k q}\<close>
+    moreover have \<open>finite N\<close> \<open>r \<in> N\<close>
+      using ** N_def \<open>r < q\<close> by auto
+    moreover define n where \<open>n = Suc (Max N)\<close>
+    ultimately have \<open>\<And>m. n \<le> m \<Longrightarrow> bit k m \<longleftrightarrow> bit k n\<close>
+      apply auto
+         apply (metis (full_types, lifting) "*" Max_ge_iff Suc_n_not_le_n \<open>finite N\<close> all_not_in_conv mem_Collect_eq not_le)
+        apply (metis "*" Max_ge Suc_n_not_le_n \<open>finite N\<close> linorder_not_less mem_Collect_eq)
+        apply (metis "*" Max_ge Suc_n_not_le_n \<open>finite N\<close> linorder_not_less mem_Collect_eq)
+      apply (metis (full_types, lifting) "*" Max_ge_iff Suc_n_not_le_n \<open>finite N\<close> all_not_in_conv mem_Collect_eq not_le)
+      done
+    have \<open>bit k (Max N) \<noteq> bit k n\<close>
+      by (metis (mono_tags, lifting) "*" Max_in N_def \<open>\<And>m. n \<le> m \<Longrightarrow> bit k m = bit k n\<close> \<open>finite N\<close> \<open>r \<in> N\<close> empty_iff le_cases mem_Collect_eq)
+    show thesis apply (rule that [of n])
+      using \<open>\<And>m. n \<le> m \<Longrightarrow> bit k m = bit k n\<close> apply blast
+      using \<open>bit k (Max N) \<noteq> bit k n\<close> n_def by auto
+  qed
+qed
+
 instantiation int :: ring_bit_operations
 begin
 

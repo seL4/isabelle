@@ -7,7 +7,7 @@
 section \<open>Type Definition Theorems\<close>
 
 theory Misc_Typedef
-  imports Main Word
+  imports Main Word Bit_Comprehension
 begin
 
 subsection "More lemmas about normal type definitions"
@@ -349,8 +349,7 @@ interpretation test_bit:
     set_bits
     "{f. \<forall>i. f i \<longrightarrow> i < LENGTH('a::len)}"
     "(\<lambda>h i. h i \<and> i < LENGTH('a::len))"
-  by standard
-    (auto simp add: test_bit_word_eq bit_imp_le_length bit_set_bits_word_iff set_bits_bit_eq)
+  by standard (auto simp add: test_bit_word_eq bit_imp_le_length bit_set_bits_word_iff set_bits_bit_eq)
 
 lemmas td_nth = test_bit.td_thm
 
