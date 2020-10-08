@@ -77,14 +77,14 @@ sig
     -> string * atp_failure option
   val is_same_atp_step : atp_step_name -> atp_step_name -> bool
   val scan_general_id : string list -> string * string list
-  val parse_formula : string list ->
+  val parse_fol_formula : string list ->
     (string, string atp_type, (string, string atp_type) atp_term, string) atp_formula * string list
   val clean_up_atp_proof_dependencies : string atp_proof -> string atp_proof
   val map_term_names_in_atp_proof : (string -> string) -> string atp_proof -> string atp_proof
   val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
 
   val skip_term: string list -> string * string list
-  val parse_thf_formula :string list ->
+  val parse_hol_formula :string list ->
     ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term, 'c) ATP_Problem.atp_formula *
     string list
   val dummy_atype : string ATP_Problem.atp_type
@@ -354,46 +354,47 @@ and parse_types x =
   (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
 
 (* We currently half ignore types. *)
-fun parse_optional_type_signature x =
+fun parse_fol_optional_type_signature x =
   (Scan.option ($$ tptp_has_type |-- parse_type)
    >> (fn some as SOME (AType ((s, []), [])) => if s = dfg_individual_type then NONE else some
         | res => res)) x
-and parse_arg x =
-  ($$ "(" |-- parse_term --| $$ ")" --| parse_optional_type_signature
-   || scan_general_id -- parse_optional_type_signature
+and parse_fol_arg x =
+  ($$ "(" |-- parse_fol_term --| $$ ")" --| parse_fol_optional_type_signature
+   || scan_general_id -- parse_fol_optional_type_signature
        -- Scan.optional ($$ "<" |-- parse_types --| $$ ">") []
-       -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
+       -- Scan.optional ($$ "(" |-- parse_fol_terms --| $$ ")") []
      >> (fn (((s, ty_opt), tyargs), args) =>
        if is_tptp_variable s andalso null tyargs andalso null args andalso is_some ty_opt then
          ATerm ((s, the_list ty_opt), [])
        else
          ATerm ((s, tyargs), args))) x
-and parse_term x =
-  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg)
-   --| parse_optional_type_signature >> list_app) x
-and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
+and parse_fol_term x =
+  (parse_fol_arg -- Scan.repeat ($$ tptp_app |-- parse_fol_arg)
+   --| parse_fol_optional_type_signature >> list_app) x
+and parse_fol_terms x = (parse_fol_term ::: Scan.repeat ($$ "," |-- parse_fol_term)) x
 
-fun parse_atom x =
-  (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal -- parse_term)
+fun parse_fol_atom x =
+  (parse_fol_term --
+    Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal -- parse_fol_term)
    >> (fn (u1, NONE) => AAtom u1
         | (u1, SOME (neg, u2)) =>
           AAtom (ATerm (("equal", []), [u1, u2])) |> is_some neg ? mk_anot)) x
 
 (* TPTP formulas are fully parenthesized, so we don't need to worry about operator precedence. *)
-fun parse_literal x =
+fun parse_fol_literal x =
   ((Scan.repeat ($$ tptp_not) >> length)
-      -- ($$ "(" |-- parse_formula --| $$ ")"
-          || parse_quantified_formula
-          || parse_atom)
+      -- ($$ "(" |-- parse_fol_formula --| $$ ")"
+          || parse_fol_quantified_formula
+          || parse_fol_atom)
       >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_anot)) x
-and parse_formula x =
-  (parse_literal
+and parse_fol_formula x =
+  (parse_fol_literal
    -- Scan.option ((Scan.this_string tptp_implies
                     || Scan.this_string tptp_iff
                     || Scan.this_string tptp_not_iff
                     || Scan.this_string tptp_if
                     || $$ tptp_or
-                    || $$ tptp_and) -- parse_formula)
+                    || $$ tptp_and) -- parse_fol_formula)
    >> (fn (phi1, NONE) => phi1
         | (phi1, SOME (c, phi2)) =>
           if c = tptp_implies then mk_aconn AImplies phi1 phi2
@@ -403,9 +404,9 @@ and parse_formula x =
           else if c = tptp_or then mk_aconn AOr phi1 phi2
           else if c = tptp_and then mk_aconn AAnd phi1 phi2
           else raise Fail ("impossible connective " ^ quote c))) x
-and parse_quantified_formula x =
+and parse_fol_quantified_formula x =
   (($$ tptp_forall >> K AForall || $$ tptp_exists >> K AExists)
-   --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
+   --| $$ "[" -- parse_fol_terms --| $$ "]" --| $$ ":" -- parse_fol_literal
    >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, _), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
@@ -495,10 +496,10 @@ fun parse_binary_op x =
   (parse_one_in_list tptp_binary_ops
    >> (fn c => if c = tptp_equal then "equal" else c)) x
 
-val parse_fo_quantifier =
+val parse_fol_quantifier =
    parse_one_in_list [tptp_forall, tptp_exists, tptp_lambda, tptp_hilbert_choice, tptp_hilbert_the]
 
-val parse_ho_quantifier =
+val parse_hol_quantifier =
    parse_one_in_list [tptp_ho_forall, tptp_ho_exists, tptp_hilbert_choice, tptp_hilbert_the]
 
 fun mk_ho_of_fo_quant q =
@@ -508,23 +509,23 @@ fun mk_ho_of_fo_quant q =
   else if q = tptp_hilbert_the then tptp_hilbert_the
   else raise Fail ("unrecognized quantification: " ^ q)
 
-fun remove_thf_app (ATerm ((x, ty), arg)) =
+fun remove_hol_app (ATerm ((x, ty), arg)) =
     if x = tptp_app then
       (case arg of
-        ATerm ((x, ty), arg) :: t => remove_thf_app (ATerm ((x, ty), map remove_thf_app arg @ t))
+        ATerm ((x, ty), arg) :: t => remove_hol_app (ATerm ((x, ty), map remove_hol_app arg @ t))
       | [AAbs ((var, tvar), phi), t] =>
-        remove_thf_app (AAbs ((var, tvar), map remove_thf_app phi @ [t])))
+        remove_hol_app (AAbs ((var, tvar), map remove_hol_app phi @ [t])))
     else
-      ATerm ((x, ty), map remove_thf_app arg)
-  | remove_thf_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_thf_app arg), t)
+      ATerm ((x, ty), map remove_hol_app arg)
+  | remove_hol_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_hol_app arg), t)
 
-fun parse_typed_var x =
+fun parse_hol_typed_var x =
   (Scan.repeat (scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
      --| Scan.option (Scan.this_string ","))
-   || $$ "(" |-- parse_typed_var --| $$ ")") x
+   || $$ "(" |-- parse_hol_typed_var --| $$ ")") x
 
-fun parse_simple_thf_term x =
-  (parse_fo_quantifier -- ($$ "[" |-- parse_typed_var --| $$ "]" --| $$ ":") -- parse_thf_term
+fun parse_simple_hol_term x =
+  (parse_fol_quantifier -- ($$ "[" |-- parse_hol_typed_var --| $$ "]" --| $$ ":") -- parse_hol_term
       >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
@@ -534,23 +535,23 @@ fun parse_simple_thf_term x =
                                 |> mk_simple_aterm)
                     else I))
             ys t)
-  || Scan.this_string tptp_not |-- parse_thf_term >> mk_app (mk_simple_aterm tptp_not)
+  || Scan.this_string tptp_not |-- parse_hol_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
     >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
-  || parse_ho_quantifier >> mk_simple_aterm
-  || $$ "(" |-- parse_thf_term --| $$ ")"
+  || parse_hol_quantifier >> mk_simple_aterm
+  || $$ "(" |-- parse_hol_term --| $$ ")"
   || parse_binary_op >> mk_simple_aterm) x
-and parse_thf_term x =
-  (parse_simple_thf_term -- Scan.option (parse_binary_op -- parse_thf_term)
+and parse_hol_term x =
+  (parse_simple_hol_term -- Scan.option (parse_binary_op -- parse_hol_term)
     >> (fn (t1, SOME (c, t2)) =>
            if c = tptp_app then mk_app t1 t2 else mk_apps (mk_simple_aterm c) [t1, t2]
          | (t, NONE) => t)) x
 
-fun parse_thf_formula x = (parse_thf_term #>> remove_thf_app #>> AAtom) x
+fun parse_hol_formula x = (parse_hol_term #>> remove_hol_app #>> AAtom) x
 
-fun parse_tstp_thf_line problem =
+fun parse_tstp_hol_line problem =
   (Scan.this_string tptp_thf -- $$ "(") |-- scan_general_id --| $$ ","
-  -- Symbol.scan_ascii_id --| $$ "," -- (parse_thf_formula || skip_term >> K dummy_phi)
+  -- Symbol.scan_ascii_id --| $$ "," -- (parse_hol_formula || skip_term >> K dummy_phi)
      -- parse_tstp_extra_arguments --| $$ ")"
   --| $$ "."
   >> (fn (((num, role), phi), deps) =>
@@ -568,13 +569,10 @@ fun parse_tstp_thf_line problem =
         [(name, role', phi, rule, map (rpair []) deps)]
       end)
 
-(* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
-   The <num> could be an identifier, but we assume integers. *)
-fun parse_tstp_line problem =
-  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
-    || Scan.this_string tptp_tff || Scan.this_string tptp_thf) -- $$ "(")
+fun parse_tstp_fol_line problem =
+  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof || Scan.this_string tptp_tff) -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-    -- (parse_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
+    -- (parse_fol_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
     --| $$ ")" --| $$ "."
    >> (fn (((num, role0), phi), src) =>
           let
@@ -611,6 +609,8 @@ fun parse_tstp_line problem =
              | _ => mk_step ())]
           end)
 
+fun parse_tstp_line problem = parse_tstp_fol_line problem || parse_tstp_hol_line problem
+
 (**** PARSING OF SPASS OUTPUT ****)
 
 (* SPASS returns clause references of the form "x.y". We ignore "y". *)
@@ -621,7 +621,7 @@ val parse_spass_annotations =
 
 (* We ignore the stars and the pluses that follow literals. *)
 fun parse_decorated_atom x =
-  (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
+  (parse_fol_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
 fun mk_horn ([], []) = AAtom (ATerm (("c_False", []), []))
   | mk_horn (neg_lits, pos_lits) = foldr1 (uncurry (mk_aconn AOr)) (map mk_anot neg_lits @ pos_lits)
@@ -680,8 +680,7 @@ fun parse_z3_tptp_core_line x =
 
 fun parse_line local_name problem =
   (* Satallax is handled separately, in "atp_satallax.ML". *)
-  if local_name = leo2N orelse local_name = leo3N then parse_tstp_thf_line problem
-  else if local_name = spassN then parse_spass_line
+  if local_name = spassN then parse_spass_line
   else if local_name = pirateN then parse_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem

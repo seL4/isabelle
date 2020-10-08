@@ -56,7 +56,7 @@ val dummy_satallax_step = ((("~1", "tab_inh"), AAtom (ATerm(("False", []), [])))
 fun parse_tstp_thf0_satallax_line x =
   (((Scan.this_string tptp_thf
   -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-  -- parse_thf_formula -- Scan.option parse_tstp_satallax_extra_arguments --| $$ ")" --| $$ ".")
+  -- parse_hol_formula -- Scan.option parse_tstp_satallax_extra_arguments --| $$ ")" --| $$ ".")
   || (Scan.this_string "tab_inh" |-- skip_term --| $$ ".")
      >> K dummy_satallax_step) x
 
