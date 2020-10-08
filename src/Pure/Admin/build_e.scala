@@ -152,7 +152,7 @@ Usage: isabelle build_e [OPTIONS]
     -R URL       URL for runepar.pl by Josef Urban
                  (default: """ + default_runepar_url + """)
     -U URL       E prover download URL
-                 (default: \"\"\" + default_download_url + \"\"\")
+                 (default: """" + default_download_url + """")
     -V VERSION   E prover version (default: """ + default_version + """)
     -v           verbose
 
