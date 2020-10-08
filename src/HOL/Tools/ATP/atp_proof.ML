@@ -44,17 +44,14 @@ sig
 
   type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, string) atp_step list
 
-  (* Named ATPs *)
   val agsyholN : string
   val alt_ergoN : string
   val eN : string
-  val e_parN : string
   val iproverN : string
   val leo2N : string
   val leo3N : string
   val pirateN : string
   val satallaxN : string
-  val snarkN : string
   val spassN : string
   val vampireN : string
   val waldmeisterN : string
@@ -109,18 +106,14 @@ struct
 open ATP_Util
 open ATP_Problem
 
-(* Named ATPs *)
-
 val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
 val eN = "e"
-val e_parN = "e_par"
 val iproverN = "iprover"
 val leo2N = "leo2"
 val leo3N = "leo3"
 val pirateN = "pirate"
 val satallaxN = "satallax"
-val snarkN = "snark"
 val spassN = "spass"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"

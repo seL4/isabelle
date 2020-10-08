@@ -315,27 +315,6 @@ val e_config : atp_config =
 val e = (eN, fn () => e_config)
 
 
-(* E-Par *)
-
-val e_par_config : atp_config =
-  {exec = K (["E_HOME"], ["runepar.pl"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     string_of_int (to_secs 1 timeout) ^ " 1 " (* SInE *) ^ file_name ^ " 2" (* proofs *),
-   proof_delims = tstp_proof_delims,
-   known_failures = #known_failures e_config,
-   prem_role = Conjecture,
-   best_slices =
-     (* FUDGE *)
-     K [(0.25, (((500, meshN), FOF, "mono_guards??", combs_or_liftingN, false), "")),
-        (0.25, (((150, meshN), FOF, "poly_tags??", combs_or_liftingN, false), "")),
-        (0.25, (((50, meshN), FOF, "mono_tags??", combs_or_liftingN, false), "")),
-        (0.25, (((1000, meshN), FOF, "poly_guards??", combsN, false), ""))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
-
-val e_par = (e_parN, fn () => e_par_config)
-
-
 (* iProver *)
 
 val iprover_config : atp_config =
@@ -673,10 +652,6 @@ val remote_leo2 =
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
     (K (((150, ""), THF (Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
-val remote_snark =
-  remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
-    [("refutation.", "end_refutation.")] [] Hypothesis
-    (K (((100, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["THF-4.4"]
     (K (((400, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), remote_vampire_command) (* FUDGE *))
@@ -719,9 +694,9 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_par, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
-   zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2,
-   remote_leo3, remote_snark, remote_vampire, remote_waldmeister, remote_zipperposition]
+  [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition,
+   remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
+   remote_vampire, remote_waldmeister, remote_zipperposition]
 
 val _ = Theory.setup (fold add_atp atps)
 

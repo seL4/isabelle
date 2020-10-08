@@ -102,23 +102,22 @@ and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 \footnote{The distinction between ATPs and SMT solvers is convenient but mostly
 historical.}
 %
-The supported ATPs are agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
+The supported ATPs include agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2002}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
-\cite{leo3}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
-\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
-Waldmeister \cite{waldmeister}, and Zipperposition \cite{cruanes-2014}. The
-ATPs are run either locally or remotely via the System\-On\-TPTP web service
-\cite{sutcliffe-2000}. The supported SMT solvers are CVC3 \cite{cvc3}, CVC4
-\cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3 \cite{z3}. These are
-always run locally.
+\cite{leo3}, Satallax \cite{satallax}, SPASS \cite{weidenbach-et-al-2009},
+Vampire \cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
+Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or remotely
+via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
+solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, veriT \cite{bouton-et-al-2009},
+and Z3 \cite{z3}. These are always run locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
 current theory context, filtered by relevance.
 
-The result of a successful proof search is some source text that usually (but
-not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
-proof typically relies on the general-purpose \textit{metis} proof method, which
+The result of a successful proof search is some source text that typically
+reconstructs the proof within Isabelle. For ATPs, the reconstructed proof
+typically relies on the general-purpose \textit{metis} proof method, which
 integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
 the kernel. Thus its results are correct by construction.
 
@@ -149,7 +148,7 @@ relies on third-party automatic provers (ATPs and SMT solvers).
 
 Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS,
 Vampire, and Zipperposition can be run locally; in addition, agsyHOL,
-Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, SNARK, Vampire, Waldmeister,
+Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, Vampire, Waldmeister,
 and Zipperposition are available remotely via System\-On\-TPTP
 \cite{sutcliffe-2000}. The SMT solvers CVC3, CVC4, veriT, and Z3 can be run
 locally.
@@ -765,14 +764,6 @@ executable and \texttt{E\_VERSION} to the version number (e.g., ``1.8''), or
 install the prebuilt E package from \download. Sledgehammer has been tested with
 versions 1.6 to 1.8.
 
-\item[\labelitemi] \textbf{\textit{e\_par}:} E-Par is an experimental metaprover
-developed by Josef Urban that implements strategy scheduling on top of E. To use
-E-Par, set the environment variable \texttt{E\_HOME} to the directory that
-contains the \texttt{runepar.pl} script and the \texttt{eprover} and
-\texttt{epclextract} executables, or use the prebuilt E package from \download.
-Be aware that E-Par is experimental software. It has been known to generate
-zombie processes. Use at your own risks.
-
 \item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
 instantiation-based prover developed by Konstantin Korovin
 \cite{korovin-2009}. To use iProver, set the environment variable
@@ -864,10 +855,6 @@ runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[\labelitemi] \textbf{\textit{remote\_leo3}:} The remote version of Leo-III
 runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
-
-\item[\labelitemi] \textbf{\textit{remote\_snark}:} SNARK is a first-order
-resolution prover developed by Stickel et al.\ \cite{snark}. The remote
-version of SNARK runs on Geoff Sutcliffe's Miami servers.
 
 \item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers.
