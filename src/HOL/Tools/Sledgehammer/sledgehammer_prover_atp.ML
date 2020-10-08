@@ -26,10 +26,9 @@ struct
 
 open ATP_Util
 open ATP_Problem
-open ATP_Proof
 open ATP_Problem_Generate
+open ATP_Proof
 open ATP_Proof_Reconstruct
-open ATP_Satallax
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods

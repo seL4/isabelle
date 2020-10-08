@@ -15,7 +15,6 @@ ML_file \<open>Tools/ATP/atp_util.ML\<close>
 ML_file \<open>Tools/ATP/atp_problem.ML\<close>
 ML_file \<open>Tools/ATP/atp_proof.ML\<close>
 ML_file \<open>Tools/ATP/atp_proof_redirect.ML\<close>
-ML_file \<open>Tools/ATP/atp_satallax.ML\<close>
 
 
 subsection \<open>Higher-order reasoning helpers\<close>

@@ -83,13 +83,13 @@ sig
   val map_term_names_in_atp_proof : (string -> string) -> string atp_proof -> string atp_proof
   val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
 
-  val skip_term: string list -> string * string list
-  val parse_hol_formula :string list ->
+  val skip_term : string list -> string * string list
+  val parse_hol_formula : string list ->
     ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term, 'c) ATP_Problem.atp_formula *
     string list
   val dummy_atype : string ATP_Problem.atp_type
-  val role_of_tptp_string: string -> ATP_Problem.atp_formula_role
-  val parse_line: string -> ('a * string ATP_Problem.atp_problem_line list) list ->
+  val role_of_tptp_string : string -> ATP_Problem.atp_formula_role
+  val parse_line : string -> ('a * string ATP_Problem.atp_problem_line list) list ->
     string list -> ((string * string list) * ATP_Problem.atp_formula_role *
     (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
       'c) ATP_Problem.atp_formula
@@ -99,6 +99,8 @@ sig
   val vampire_step_name_ord : (string * 'a) ord
   val core_of_agsyhol_proof :  string -> string list option
   val string_of_atp_step : ('a -> string) -> ('b -> string) -> ('a, 'b) atp_step -> string
+
+  val atp_proof_of_tstplike_proof : string -> string atp_problem -> string -> string atp_proof
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -736,5 +738,22 @@ fun string_of_atp_step f g (name, role, x, y, names) =
   in
     "(" ^ name' ^ ", " ^ role' ^ ", " ^ x' ^ ", " ^ y' ^ ", " ^ names' ^ ")"
   end
+
+fun parse_proof local_name problem =
+  strip_spaces_except_between_idents
+  #> raw_explode
+  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+       (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line local_name problem))))
+  #> fst
+
+fun atp_proof_of_tstplike_proof _ _ "" = []
+  | atp_proof_of_tstplike_proof local_prover problem tstp =
+    (case core_of_agsyhol_proof tstp of
+      SOME facts => facts |> map (core_inference agsyhol_core_rule)
+    | NONE =>
+      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
+      |> parse_proof local_prover problem
+      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1)))
+      |> local_prover = zipperpositionN ? rev)
 
 end;
