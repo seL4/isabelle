@@ -1270,12 +1270,10 @@ Alias for ``\textit{preplay\_timeout} = 0''.
 \section{Mirabelle Testing Tool}
 \label{mirabelle}
 
-% using Sledgehammer or other advisory tools
-% proof tools or counterexample generator
-The \texttt{isabelle mirabelle} tool executes Sledgehammer, or other advisory
-tools (e.g. proof tools, counterexample generators) on most subgoals in a theory.
-It is typically used to quantify the success rate of a proof tool on a
-representative benchmark. Its command-line usage is:
+The \texttt{isabelle mirabelle} tool executes Sledgehammer or other advisory
+tools (e.g., Nitpick) or tactics (e.g., \textit{auto}) on all subgoals emering
+in a theory. It is typically used to measure the success rate of a proof tool
+on some benchmark. Its command-line usage is as follows:
 
 {\small
 \begin{verbatim}
@@ -1296,64 +1294,64 @@ isabelle mirabelle [OPTIONS] ACTIONS FILES
 }
 
 Option \texttt{-L LOGIC} specifies the parent session to use. This is often a
-logic (e.g. Pure, HOL) but may be any session (e.g. from the AFP). Using
-multiple sessions is not supported at the moment. If a theory A needs to import
-from multiple sessions, this limitation can be overcome by
+logic (e.g., \texttt{Pure}, \texttt{HOL}) but may be any session (e.g., from
+the AFP). Using multiple sessions is not supported. If a theory A needs to
+import theories from multiple sessions, this limitation can be overcome as
+follows:
 
 \begin{enumerate}
-  \item defining a custom session S with a single theory B;
-  \item moving all imports from A to B;
-  \item building the heap image of S;
-  \item importing S.B from theory A;
-  \item executing Mirabelle with C as parent logic, i.e. with \texttt{-L S}.
+  \item Define a custom session \texttt{S} with a single theory \texttt{B}.
+  \item Move all imports from \texttt{A} to \texttt{B}.
+  \item Build the heap image of \texttt{S}.
+  \item Import \texttt{S.B} from theory \texttt{A}.
+  \item Execute Mirabelle with \texttt{C} as parent logic (i.e., with
+    \texttt{-L S}).
 \end{enumerate}
 
-Option \texttt{-O DIR} specifies the output directory, which is created if not
-already existing, where the log will be written. In this directory, one log
-file per theory records the position of each tested subgoal and the result of
-executing the proof tool.
+Option \texttt{-O DIR} specifies the output directory, which is created if
+needed. In this directory, one log file per theory records the position of each
+tested subgoal and the result of executing the action.
 
-Option \texttt{-t TIMEOUT} specifies a generic timeout that different actions
-may interpret in different ways.
+Option \texttt{-t TIMEOUT} specifies a generic timeout that the actions may
+interpret differently.
 
-More specific documentation about parameters \texttt{ACTIONS}, \texttt{FILES},
-and their corresponding options may be found in the isabelle tool usage by
-entering \texttt{isabelle mirabelle -?} on the command line.
+More specific documentation about the \texttt{ACTIONS} and \texttt{FILES}
+parameters and their corresponding options can be found in the Isabelle tool
+usage by entering \texttt{isabelle mirabelle -?} on the command line.
 
 \subsection{Example of Benchmarking Sledgehammer}
 
 \begin{verbatim}
-isabelle mirabelle -O output \
+isabelle mirabelle -O output/ \
   sledgehammer[prover=e,prover_timeout=10] Huffman.thy
 \end{verbatim}
 
-This command benchmarks sledgehammer when using \textbf{\textit{e}} as prover
-with a timeout of 10 seconds. The results are written to the file
+This command specifies Sledgehammer as the action, using E as the prover with a
+timeout of 10 seconds. The results are written to the file
 \texttt{output/Huffman.log}.
 
-\subsection{Example of Benchmarking Other Tools}
+\subsection{Example of Benchmarking Another Tool}
 
 \begin{verbatim}
-isabelle mirabelle -O output -t 10 \
-  try0 Huffman.thy
+isabelle mirabelle -O output/ -t 10 try0 Huffman.thy
 \end{verbatim}
 
-This command benchmarks the \texttt{try0} tactic with a timeout of 10 seconds.
-The results are written to the file \texttt{output/Huffman.log}.
+This command specifies the \textbf{try0} command as the action, with a timeout
+of 10 seconds. The results are written to the file \texttt{output/Huffman.log}.
 
 \subsection{Example of Generating TPTP Files}
 
 \begin{verbatim}
-isabelle mirabelle -O output \
-  sledgehammer[prover_timeout=1,keep=tptp-files] Huffman.thy
+isabelle mirabelle -O output/ \
+  sledgehammer[prover=e,prover_timeout=1,keep=/tptp/files/] \
+  Huffman.thy
 \end{verbatim}
 
-This command generates TPTP files with sledgehammer. Since the file is
-generated at the very beginning of every sledgehammer invocation, a timeout of
-1 second making the prover fail faster speeds handling the theory up.  The
-results are written in the \texttt{tptp-files} directory, which has to exist
-prior to the command invocation. A distinct TPTP file is generated for each
-subgoal with a file name ending with \texttt{.smt\_in}.
+This command generates TPTP files using Sledgehammer. Since the file is
+generated at the very beginning of every Sledgehammer invocation, a timeout of
+one second making the prover fail faster speeds up processing the theory. The
+results are written in the specified directory (\texttt{/tptp/files/}),
+which must exist beforehand. A TPTP file is generated for each subgoal.
 
 \let\em=\sl
 \bibliography{manual}{}
