@@ -170,6 +170,7 @@ class Tools extends Isabelle_Scala_Tools(
   isabelle.vscode.Server.isabelle_tool)
 
 class Admin_Tools extends Isabelle_Scala_Tools(
+  Build_CSDP.isabelle_tool,
   Build_Cygwin.isabelle_tool,
   Build_Doc.isabelle_tool,
   Build_E.isabelle_tool,

@@ -11,6 +11,7 @@
 declare -a SOURCES=(
   src/HOL/Tools/Nitpick/kodkod.scala
   src/Pure/Admin/afp.scala
+  src/Pure/Admin/build_csdp.scala
   src/Pure/Admin/build_cygwin.scala
   src/Pure/Admin/build_doc.scala
   src/Pure/Admin/build_e.scala

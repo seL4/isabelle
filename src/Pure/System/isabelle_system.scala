@@ -193,13 +193,13 @@ object Isabelle_System
   {
     if (!path.is_dir) {
       bash("perl -e \"use File::Path make_path; make_path('" + File.standard_path(path) + "');\"")
-      if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
+      if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path.absolute)))
     }
     path
   }
 
   def new_directory(path: Path): Path =
-    if (path.is_dir) error("Directory already exists: " + path)
+    if (path.is_dir) error("Directory already exists: " + quote(File.platform_path(path.absolute)))
     else make_directory(path)
 
   def copy_dir(dir1: Path, dir2: Path): Unit =
