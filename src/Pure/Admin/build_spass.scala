@@ -82,6 +82,13 @@ object Build_SPASS
       progress.echo("Building SPASS ...")
 
       val build_dir = tmp_dir + Path.basic(archive_base_name)
+
+      if (Platform.is_windows) {
+        File.change(build_dir + Path.basic("misc.c"),
+          _.replace("""#include "execinfo.h" """, "")
+           .replaceAll("""void misc_DumpCore\(void\)[^}]+}""", "void misc_DumpCore(void) { abort(); }"))
+      }
+
       Isabelle_System.bash("make",
         cwd = build_dir.file,
         progress_stdout = progress.echo_if(verbose, _),
