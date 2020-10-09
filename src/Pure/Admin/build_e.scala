@@ -38,12 +38,12 @@ object Build_E
 
       /* download source */
 
-      val e_url = download_url + "/V_" + version + "/E.tgz"
-      val e_path = tmp_dir + Path.explode("E.tgz")
-      Isabelle_System.download(e_url, e_path, progress = progress)
+      val archive_url = download_url + "/V_" + version + "/E.tgz"
+      val archive_path = tmp_dir + Path.explode("E.tgz")
+      Isabelle_System.download(archive_url, archive_path, progress = progress)
 
-      Isabelle_System.bash("tar xzf " + e_path, cwd = tmp_dir.file).check
-      Isabelle_System.bash("tar xzf " + e_path + " && mv E src", cwd = component_dir.file).check
+      Isabelle_System.bash("tar xzf " + archive_path, cwd = tmp_dir.file).check
+      Isabelle_System.bash("tar xzf " + archive_path + " && mv E src", cwd = component_dir.file).check
 
 
       /* build */
@@ -90,7 +90,7 @@ E_VERSION=""" + quote(version) + """
       /* README */
 
       File.write(component_dir + Path.basic("README"),
-        "This is E prover " + version + " from\n" + e_url + """
+        "This is E prover " + version + " from\n" + archive_url + """
 
 The distribution has been built like this:
 
