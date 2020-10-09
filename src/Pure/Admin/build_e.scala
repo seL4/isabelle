@@ -16,13 +16,9 @@ object Build_E
   val default_download_url =
     "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
-  val default_runepar_url =
-    "https://raw.githubusercontent.com/JUrban/MPTP2/66f03e5b6df8/MaLARea/bin/runepar.pl"
-
   def build_e(
     version: String = default_version,
     download_url: String = default_download_url,
-    runepar_url: String = default_runepar_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current)
@@ -40,19 +36,6 @@ object Build_E
           .getOrElse(error("No 64bit platform"))
 
       val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
-
-
-      /* runepar.pl */
-
-      val runepar_path = platform_dir + Path.basic("runepar.pl")
-      Isabelle_System.download(runepar_url, runepar_path, progress = progress)
-
-      File.change(runepar_path,
-       _.replace("#!/usr/bin/perl", "#!/usr/bin/env perl")
-        .replace("bin/eprover", "$ENV{E_HOME}/eprover")
-        .replace("bin/eproof", "$ENV{E_HOME}/eproof"))
-
-      File.set_executable(runepar_path, true)
 
 
       /* download source */
@@ -123,9 +106,6 @@ The distribution has been built like this:
 Only a few executables from PROVERS/ have been moved to the platform-specific
 Isabelle component directory: x86_64-linux etc.
 
-This includes a copy of Josef Urban's "runepar.pl" script, modified to use
-the correct path.
-
 
     Makarius
     """ + Date.Format.date(Date.now()) + "\n")
@@ -139,7 +119,6 @@ the correct path.
     args =>
     {
       var target_dir = Path.current
-      var runepar_url = default_runepar_url
       var version = default_version
       var download_url = default_download_url
       var verbose = false
@@ -149,8 +128,6 @@ Usage: isabelle build_e [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -R URL       URL for runepar.pl by Josef Urban
-                 (default: """ + default_runepar_url + """)
     -U URL       E prover download URL
                  (default: """" + default_download_url + """")
     -V VERSION   E prover version (default: """ + default_version + """)
@@ -159,7 +136,6 @@ Usage: isabelle build_e [OPTIONS]
   Build E prover component from the specified download URLs and version.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "R:" -> (arg => runepar_url = arg),
         "U:" -> (arg => download_url = arg),
         "V:" -> (arg => version = arg),
         "v" -> (_ => verbose = true))
@@ -169,7 +145,7 @@ Usage: isabelle build_e [OPTIONS]
 
       val progress = new Console_Progress()
 
-      build_e(version = version, download_url = download_url, runepar_url = runepar_url,
+      build_e(version = version, download_url = download_url,
         verbose = verbose, progress = progress, target_dir = target_dir)
     })
 }
