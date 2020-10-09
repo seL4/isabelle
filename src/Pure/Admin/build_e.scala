@@ -12,9 +12,7 @@ object Build_E
   /* build E prover */
 
   val default_version = "2.5"
-
-  val default_download_url =
-    "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
+  val default_download_url = "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
   def build_e(
     version: String = default_version,
@@ -23,7 +21,7 @@ object Build_E
     progress: Progress = new Progress,
     target_dir: Path = Path.current)
   {
-    Isabelle_System.with_tmp_dir("e")(tmp_dir =>
+    Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
       /* component */
 
@@ -110,7 +108,7 @@ Isabelle component directory: x86_64-linux etc.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_e", "build Isabelle E prover component from official download",
+    Isabelle_Tool("build_e", "build prover component from source distribution",
     args =>
     {
       var target_dir = Path.current
@@ -128,7 +126,7 @@ Usage: isabelle build_e [OPTIONS]
     -V VERSION   E prover version (default: """ + default_version + """)
     -v           verbose
 
-  Build E prover component from the specified download URLs and version.
+  Build prover component from the specified source distribution.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "U:" -> (arg => download_url = arg),
