@@ -53,7 +53,8 @@ object Build_CSDP
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current,
+    msys_root: Option[Path] = None)
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
@@ -119,13 +120,37 @@ object Build_CSDP
           File.find_files(build_dir.file, pred = file => file.getName == "Makefile").
             foreach(file => flags.change(File.path(file)))
       }
-      Isabelle_System.bash("make",
-        cwd = build_dir.file,
-        progress_stdout = progress.echo_if(verbose, _),
-        progress_stderr = progress.echo_if(verbose, _)).check
+
+      val build_script = {
+        if (!Platform.is_windows) "make"
+        else if (msys_root.isEmpty) error("Windows requires specification of msys root directory")
+        else {
+          val msys_script =
+            "PATH=/usr/bin:/bin:/mingw64/bin; export CONFIG_SITE=/mingw64/etc/config.site; make"
+          File.bash_path(msys_root.get + Path.explode("usr/bin/bash")) +
+            " -c " + Bash.string(msys_script)
+        }
+      }
+      progress.bash(build_script, cwd = build_dir.file, echo = verbose).check
+
+
+      /* install */
 
       File.copy(build_dir + Path.explode("LICENSE"), component_dir)
-      File.copy(build_dir + Path.explode("solver/csdp"), platform_dir)
+
+      if (!Platform.is_windows) {
+        File.copy(build_dir + Path.explode("solver/csdp"), platform_dir)
+      }
+      else {
+        File.copy(build_dir + Path.explode("solver/csdp.exe"), platform_dir)
+        val libs =
+          List("libblas", "liblapack", "libgfortran-5", "libgcc_s_seh-1",
+            "libquadmath-0", "libwinpthread-1")
+        for (name <- libs) {
+          File.copy(msys_root.get + Path.explode("mingw64/bin") + Path.basic(name).ext("dll"),
+            platform_dir)
+        }
+      }
 
 
       /* settings */
@@ -167,6 +192,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
     args =>
     {
       var target_dir = Path.current
+      var msys_root: Option[Path] = None
       var download_url = default_download_url
       var verbose = false
 
@@ -175,6 +201,7 @@ Usage: isabelle build_csdp [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -M DIR       msys root directory (for Windows)
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -v           verbose
@@ -182,6 +209,7 @@ Usage: isabelle build_csdp [OPTIONS]
   Build prover component from official downloads.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "M:" -> (arg => msys_root = Some(Path.explode(arg))),
         "U:" -> (arg => download_url = arg),
         "v" -> (_ => verbose = true))
 
@@ -191,6 +219,6 @@ Usage: isabelle build_csdp [OPTIONS]
       val progress = new Console_Progress()
 
       build_csdp(download_url = download_url, verbose = verbose, progress = progress,
-        target_dir = target_dir)
+        target_dir = target_dir, msys_root = msys_root)
     })
 }
