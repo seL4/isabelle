@@ -8,7 +8,7 @@ MinGW for native Windows support
 
 - package update and installation within msys2 shell:
 
-  pacman -Syuu
+  pacman -Syu
 
   pacman -Su
 
