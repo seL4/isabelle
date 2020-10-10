@@ -50,7 +50,7 @@ object Build_PolyML
     progress: Progress = new Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    msys_root: Option[Path] = None)
+    mingw: MinGW = MinGW.none)
   {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
@@ -69,12 +69,8 @@ object Build_PolyML
         error("Bad OS platform: " + quote(platform.os_name)))
 
     val settings =
-      msys_root match {
-        case None if platform.is_windows =>
-          error("Windows requires specification of msys root directory")
-        case None => Isabelle_System.settings()
-        case Some(msys) => Isabelle_System.settings() + ("MSYS" -> msys.expand.implode)
-      }
+      if (!Platform.is_windows) Isabelle_System.settings()
+      else Isabelle_System.settings() + ("MSYS" -> mingw.get_root.expand.implode)
 
     if (platform.is_linux && !Isabelle_System.bash("chrpath -v").ok) {
       error("""Missing "chrpath" executable on Linux""")
@@ -86,13 +82,7 @@ object Build_PolyML
     def bash(
       cwd: Path, script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
     {
-      val script1 =
-        msys_root match {
-          case None => script
-          case Some(msys) =>
-            File.bash_path(msys + Path.explode("usr/bin/bash")) + " -c " + Bash.string(script)
-        }
-      progress.bash(script1, cwd = cwd.file, redirect = redirect, echo = echo)
+      progress.bash(mingw.bash_script(script), cwd = cwd.file, redirect = redirect, echo = echo)
     }
 
 
@@ -249,7 +239,7 @@ not affect the running ML session. *)
   val isabelle_tool1 =
     Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
-      var msys_root: Option[Path] = None
+      var mingw = MinGW.none
       var arch_64 = Isabelle_Platform.self.is_arm
       var sha1_root: Option[Path] = None
 
@@ -257,7 +247,7 @@ not affect the running ML session. *)
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
-    -M DIR       msys root directory (for Windows)
+    -M DIR       msys/mingw root specification for Windows
     -m ARCH      processor architecture (32 or 64, default: """ +
         (if (arch_64) "64" else "32") + """)
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
@@ -265,7 +255,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
-        "M:" -> (arg => msys_root = Some(Path.explode(arg))),
+        "M:" -> (arg => mingw = MinGW.root(Path.explode(arg))),
         "m:" ->
           {
             case "32" => arch_64 = false
@@ -281,7 +271,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
           case Nil => getopts.usage()
         }
       build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
-        arch_64 = arch_64, options = options, msys_root = msys_root)
+        arch_64 = arch_64, options = options, mingw = mingw)
     })
 
   val isabelle_tool2 =
