@@ -123,7 +123,7 @@ object Build_CSDP
             foreach(file => flags.change(File.path(file)))
       }
 
-      progress.bash(mingw.bash_command("make"), cwd = build_dir.file, echo = verbose).check
+      progress.bash(mingw.bash_script("make"), cwd = build_dir.file, echo = verbose).check
 
 
       /* install */

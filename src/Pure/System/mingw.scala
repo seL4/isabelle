@@ -12,9 +12,6 @@ object MinGW
   def environment: List[String] =
     List("PATH=/usr/bin:/bin:/mingw64/bin", "CONFIG_SITE=/mingw64/etc/config.site")
 
-  def environment_prefix: String =
-    environment.map(Bash.string).mkString("/usr/bin/env ", " ", " ")
-
   def environment_export: String =
     environment.map(a => "export " + Bash.string(a)).mkString("", "\n", "\n")
 
@@ -30,12 +27,12 @@ class MinGW private(val root: Option[Path])
       case Some(msys_root) => "MinGW.root(" + msys_root.toString + ")"
     }
 
-  def bash_command(command: String): String =
+  def bash_script(script: String): String =
     root match {
-      case None => command
+      case None => script
       case Some(msys_root) =>
         File.bash_path(msys_root + Path.explode("usr/bin/bash")) +
-          " -c " + Bash.string(MinGW.environment_prefix + command)
+          " -c " + Bash.string(MinGW.environment_export + script)
     }
 
   def get_root: Path =
@@ -47,7 +44,7 @@ class MinGW private(val root: Option[Path])
   {
     if (Platform.is_windows) {
       get_root
-      try { require(Isabelle_System.bash(bash_command("uname -s")).check.out.startsWith("MSYS")) }
+      try { require(Isabelle_System.bash(bash_script("uname -s")).check.out.startsWith("MSYS")) }
       catch { case ERROR(_) => error("Bad msys/mingw installation " + get_root) }
     }
   }
