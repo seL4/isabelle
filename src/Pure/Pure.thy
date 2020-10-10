@@ -626,15 +626,15 @@ local
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>context\<close> "begin local theory context"
-    ((Parse.name_position >> (Toplevel.begin_local_theory true o Named_Target.begin) ||
+    ((Parse.name_position >> (Toplevel.begin_main_target true o Named_Target.begin) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
-        >> (fn (incls, elems) => Toplevel.open_target (#2 o Bundle.context_cmd incls elems)))
+        >> (fn (incls, elems) => Toplevel.begin_nested_target (#2 o Bundle.context_cmd incls elems)))
       --| Parse.begin);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>end\<close> "end context"
     (Scan.succeed
-      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.close_target o
+      (Toplevel.exit o Toplevel.end_main_target o Toplevel.end_nested_target o
         Toplevel.end_proof (K Proof.end_notepad)));
 
 in end\<close>
@@ -655,14 +655,14 @@ val _ =
     (Parse.binding --
       Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
-          Toplevel.begin_local_theory begin
+          Toplevel.begin_main_target begin
             (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>experiment\<close> "open private specification context"
     (Scan.repeat Parse_Spec.context_element --| Parse.begin
       >> (fn elems =>
-          Toplevel.begin_local_theory true (Experiment.experiment_cmd elems #> snd)));
+          Toplevel.begin_main_target true (Experiment.experiment_cmd elems #> snd)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>interpret\<close>
@@ -714,7 +714,7 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>class\<close> "define type class"
    (Parse.binding -- Scan.optional (\<^keyword>\<open>=\<close> |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
-        Toplevel.begin_local_theory begin
+        Toplevel.begin_main_target begin
           (Class_Declaration.class_cmd name supclasses elems #> snd)));
 
 val _ =
@@ -724,7 +724,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>instantiation\<close> "instantiate and prove type arity"
    (Parse.multi_arity --| Parse.begin
-     >> (fn arities => Toplevel.begin_local_theory true (Class.instantiation_cmd arities)));
+     >> (fn arities => Toplevel.begin_main_target true (Class.instantiation_cmd arities)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>instance\<close> "prove type arity or subclass relation"
@@ -746,7 +746,7 @@ val _ =
    (Scan.repeat1 (Parse.name --| (\<^keyword>\<open>==\<close> || \<^keyword>\<open>\<equiv>\<close>) -- Parse.term --
       Scan.optional (\<^keyword>\<open>(\<close> |-- (\<^keyword>\<open>unchecked\<close> >> K false) --| \<^keyword>\<open>)\<close>) true
       >> Scan.triple1) --| Parse.begin
-   >> (fn operations => Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));
+   >> (fn operations => Toplevel.begin_main_target true (Overloading.overloading_cmd operations)));
 
 in end\<close>
 

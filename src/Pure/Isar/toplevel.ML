@@ -52,10 +52,10 @@ sig
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
-  val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
-  val end_local_theory: transition -> transition
-  val open_target: (generic_theory -> local_theory) -> transition -> transition
-  val close_target: transition -> transition
+  val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
+  val end_main_target: transition -> transition
+  val begin_nested_target: (generic_theory -> local_theory) -> transition -> transition
+  val end_nested_target: transition -> transition
   val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> local_theory) -> transition -> transition
   val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
@@ -432,7 +432,7 @@ fun theory' f = transaction (fn int =>
 
 fun theory f = theory' (K f);
 
-fun begin_local_theory begin f = transaction (fn _ =>
+fun begin_main_target begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
         let
           val lthy = f thy;
@@ -444,17 +444,17 @@ fun begin_local_theory begin f = transaction (fn _ =>
         in (Theory gthy, lthy) end
     | _ => raise UNDEF));
 
-val end_local_theory = transaction (fn _ =>
+val end_main_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) => (Theory (Context.Theory (Named_Target.exit lthy)), lthy)
     | _ => raise UNDEF));
 
-fun open_target f = transaction0 (fn _ =>
+fun begin_nested_target f = transaction0 (fn _ =>
   (fn Theory gthy =>
         let val lthy = f gthy
         in Theory (Context.Proof lthy) end
     | _ => raise UNDEF));
 
-val close_target = transaction (fn _ =>
+val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
         (case try Local_Theory.close_target lthy of
           SOME ctxt' =>

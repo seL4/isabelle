@@ -156,7 +156,7 @@ fun maybe_begin_local_theory command_keyword comment parse_local parse_global =
       Parse.opt_target -- parse_local
         >> (fn (target, f) => Toplevel.local_theory restricted target f) ||
       (if is_some restricted then Scan.fail
-       else parse_global >> Toplevel.begin_local_theory true)));
+       else parse_global >> Toplevel.begin_main_target true)));
 
 fun local_theory_command trans command_keyword comment parse =
   raw_command command_keyword comment
