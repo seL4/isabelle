@@ -133,6 +133,7 @@ declare -a SOURCES=(
   src/Pure/System/isabelle_tool.scala
   src/Pure/System/java_statistics.scala
   src/Pure/System/linux.scala
+  src/Pure/System/mingw.scala
   src/Pure/System/numa.scala
   src/Pure/System/options.scala
   src/Pure/System/platform.scala
