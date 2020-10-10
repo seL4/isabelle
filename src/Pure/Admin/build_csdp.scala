@@ -193,7 +193,7 @@ Usage: isabelle build_csdp [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -M DIR       msys/mingw root directory (for Windows)
+    -M DIR       msys/mingw root specification for Windows
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -v           verbose

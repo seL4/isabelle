@@ -38,15 +38,15 @@ class MinGW private(val root: Option[Path])
 
   def get_root: Path =
     if (!Platform.is_windows) error("Windows platform required")
-    else if (root.isEmpty) error("Windows platform needs specification of msys root directory")
+    else if (root.isEmpty) error("Windows platform requires msys/mingw root specification")
     else root.get
 
   def check
   {
     if (Platform.is_windows) {
       get_root
-      val result = Isabelle_System.bash(bash_command("uname -s")).check
-      if (!result.out.startsWith("MSYS")) error("Bad msys installation " + get_root)
+      try { require(Isabelle_System.bash(bash_command("uname -s")).check.out.startsWith("MSYS")) }
+      catch { case ERROR(_) => error("Bad msys/mingw installation " + get_root) }
     }
   }
 }
