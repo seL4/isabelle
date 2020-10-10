@@ -16,7 +16,7 @@ object MinGW
     environment.map(a => "export " + Bash.string(a)).mkString("", "\n", "\n")
 
   val none: MinGW = new MinGW(None)
-  def root(path: Path) = new MinGW(Some(path))
+  def apply(path: Path) = new MinGW(Some(path))
 }
 
 class MinGW private(val root: Option[Path])
@@ -24,7 +24,7 @@ class MinGW private(val root: Option[Path])
   override def toString: String =
     root match {
       case None => "MinGW.none"
-      case Some(msys_root) => "MinGW.root(" + msys_root.toString + ")"
+      case Some(msys_root) => "MinGW(" + msys_root.toString + ")"
     }
 
   def bash_script(script: String): String =

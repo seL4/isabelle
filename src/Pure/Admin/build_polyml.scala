@@ -255,7 +255,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
-        "M:" -> (arg => mingw = MinGW.root(Path.explode(arg))),
+        "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
         "m:" ->
           {
             case "32" => arch_64 = false

@@ -201,7 +201,7 @@ Usage: isabelle build_csdp [OPTIONS]
   Build prover component from official downloads.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M:" -> (arg => mingw = MinGW.root(Path.explode(arg))),
+        "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
         "U:" -> (arg => download_url = arg),
         "v" -> (_ => verbose = true))
 
