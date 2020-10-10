@@ -178,7 +178,8 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
   let
     val (uses_internal, lthy1) = lthy
       |> Proof_Context.concealed
-      |> Local_Theory.begin_target I |-> Proof_Context.private_scope
+      |> Local_Theory.begin_target
+      |-> Proof_Context.private_scope
       |> Local_Theory.map_background_naming (Name_Space.add_path (Binding.name_of name))
       |> Config.put Method.old_section_parser true
       |> fold setup_local_method methods

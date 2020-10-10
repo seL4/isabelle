@@ -208,18 +208,15 @@ fun gen_includes get = gen_activate (Attrib.local_notes "") get;
 
 fun gen_context get prep_decl raw_incls raw_elems gthy =
   let
-    val init = Context.cases
-      (pair Local_Theory.exit o Named_Target.theory_init)
-      (pair I o Local_Theory.assert);
     val import =
       gen_includes get raw_incls
       #> prep_decl ([], []) I raw_elems
       #> (#4 o fst);
   in
     gthy
-    |> init
-    ||> import
-    |-> (fn after_close => Local_Theory.begin_target after_close)
+    |> Context.cases Named_Target.theory_init Local_Theory.assert
+    |> import
+    |> Local_Theory.begin_target
   end;
 
 in

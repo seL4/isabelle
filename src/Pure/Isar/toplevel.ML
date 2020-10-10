@@ -457,12 +457,12 @@ fun begin_nested_target f = transaction0 (fn _ =>
 val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
         (case try Local_Theory.close_target lthy of
-          SOME ctxt' =>
+          SOME lthy' =>
             let
               val gthy' =
-                if can Local_Theory.assert ctxt'
-                then Context.Proof ctxt'
-                else Context.Theory (Proof_Context.theory_of ctxt');
+                if Named_Target.is_theory lthy'
+                then Context.Theory (Local_Theory.exit_global lthy')
+                else Context.Proof lthy'
             in (Theory gthy', lthy) end
         | NONE => raise UNDEF)
     | _ => raise UNDEF));

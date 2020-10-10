@@ -73,7 +73,7 @@ sig
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
-  val begin_target: (local_theory -> local_theory) -> local_theory -> Binding.scope * local_theory
+  val begin_target: local_theory -> Binding.scope * local_theory
   val open_target: local_theory -> local_theory
   val close_target: local_theory -> local_theory
   val subtarget: (local_theory -> local_theory) -> local_theory -> local_theory
@@ -383,20 +383,16 @@ fun exit_result_global decl (x, lthy) =
 
 (* nested targets *)
 
-fun init_target {background_naming, after_close} operations lthy =
+fun begin_target lthy =
   let
     val _ = assert lthy;
-    val after_close' = Proof_Context.restore_naming lthy #> after_close;
     val (scope, target) = Proof_Context.new_scope lthy;
-    val entry = make_lthy (background_naming, operations, after_close', exit_of lthy, true, target);
+    val entry = make_lthy (background_naming_of lthy, operations_of lthy,
+      Proof_Context.restore_naming lthy, exit_of lthy, true, target);
     val lthy' = Data.map (cons entry) target;
   in (scope, lthy') end;
 
-fun begin_target after_close lthy =
-  init_target {background_naming = background_naming_of lthy, after_close = after_close}
-    (operations_of lthy) lthy;
-
-val open_target = begin_target I #> #2;
+val open_target = begin_target #> snd;
 
 fun close_target lthy =
   let
