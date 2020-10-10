@@ -45,7 +45,7 @@ class MinGW private(val root: Option[Path])
     if (Platform.is_windows) {
       get_root
       try { require(Isabelle_System.bash(bash_script("uname -s")).check.out.startsWith("MSYS")) }
-      catch { case ERROR(_) => error("Bad msys/mingw installation " + get_root) }
+      catch { case ERROR(msg) => cat_error("Bad msys/mingw installation " + get_root, msg) }
     }
   }
 }
