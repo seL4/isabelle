@@ -121,9 +121,9 @@ Usage: isabelle build_e [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -U URL       E prover download URL
+    -U URL       download URL
                  (default: """" + default_download_url + """")
-    -V VERSION   E prover version (default: """ + default_version + """)
+    -V VERSION   version (default: """ + default_version + """)
     -v           verbose
 
   Build prover component from the specified source distribution.
