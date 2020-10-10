@@ -54,9 +54,9 @@ object Build_CSDP
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw_context: MinGW.Context = MinGW.none)
+    mingw: MinGW = MinGW.none)
   {
-    mingw_context.check
+    mingw.check
 
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
@@ -123,8 +123,7 @@ object Build_CSDP
             foreach(file => flags.change(File.path(file)))
       }
 
-      progress.bash(mingw_context.bash_command("make"),
-        cwd = build_dir.file, echo = verbose).check
+      progress.bash(mingw.bash_command("make"), cwd = build_dir.file, echo = verbose).check
 
 
       /* install */
@@ -140,7 +139,7 @@ object Build_CSDP
           List("libblas", "liblapack", "libgfortran-5", "libgcc_s_seh-1",
             "libquadmath-0", "libwinpthread-1")
         for (name <- libs) {
-          File.copy(mingw_context.get_root + Path.explode("mingw64/bin") + Path.basic(name).ext("dll"),
+          File.copy(mingw.get_root + Path.explode("mingw64/bin") + Path.basic(name).ext("dll"),
             platform_dir)
         }
       }
@@ -185,7 +184,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
     args =>
     {
       var target_dir = Path.current
-      var mingw_context = MinGW.none
+      var mingw = MinGW.none
       var download_url = default_download_url
       var verbose = false
 
@@ -202,7 +201,7 @@ Usage: isabelle build_csdp [OPTIONS]
   Build prover component from official downloads.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M:" -> (arg => mingw_context = MinGW.context(Path.explode(arg))),
+        "M:" -> (arg => mingw = MinGW.root(Path.explode(arg))),
         "U:" -> (arg => download_url = arg),
         "v" -> (_ => verbose = true))
 
@@ -212,6 +211,6 @@ Usage: isabelle build_csdp [OPTIONS]
       val progress = new Console_Progress()
 
       build_csdp(download_url = download_url, verbose = verbose, progress = progress,
-        target_dir = target_dir, mingw_context = mingw_context)
+        target_dir = target_dir, mingw = mingw)
     })
 }
