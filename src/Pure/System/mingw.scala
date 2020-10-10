@@ -9,12 +9,14 @@ package isabelle
 
 object MinGW
 {
-  def environment: List[(String, String)] =
-    List("PATH" -> "/usr/bin:/bin:/mingw64/bin", "CONFIG_SITE" -> "/mingw64/etc/config.site")
+  def environment: List[String] =
+    List("PATH=/usr/bin:/bin:/mingw64/bin", "CONFIG_SITE=/mingw64/etc/config.site")
 
   def environment_prefix: String =
-    (for ((a, b) <- environment) yield Bash.string(a) + "=" + Bash.string(b))
-      .mkString("/usr/bin/env ", " ", " ")
+    environment.map(Bash.string).mkString("/usr/bin/env ", " ", " ")
+
+  def environment_export: String =
+    environment.map(a => "export " + Bash.string(a)).mkString("", "\n", "\n")
 
   val none: MinGW = new MinGW(None)
   def root(path: Path) = new MinGW(Some(path))
