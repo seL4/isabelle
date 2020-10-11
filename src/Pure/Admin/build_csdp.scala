@@ -115,7 +115,7 @@ object Build_CSDP
 
       /* build */
 
-      progress.echo("Building CSDP ...")
+      progress.echo("Building CSDP for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
       build_flags.find(flags => flags.platform == platform_name) match {

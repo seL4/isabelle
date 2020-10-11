@@ -97,7 +97,7 @@ object Build_VeriT
 
       /* build */
 
-      progress.echo("Building veriT ...")
+      progress.echo("Building veriT for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
 

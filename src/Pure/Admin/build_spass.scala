@@ -79,7 +79,7 @@ object Build_SPASS
 
       /* build */
 
-      progress.echo("Building SPASS ...")
+      progress.echo("Building SPASS for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(archive_base_name)
 

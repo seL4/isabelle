@@ -48,7 +48,7 @@ object Build_E
 
       /* build */
 
-      progress.echo("Building E prover ...")
+      progress.echo("Building E prover for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic("E")
       val build_options =
