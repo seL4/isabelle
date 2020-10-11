@@ -893,7 +893,7 @@ proof -
   qed
   have "\<And>z. z \<in> (\<lambda>u. x + u *\<^sub>R (y - x)) ` {0..1} \<Longrightarrow>
           (f has_derivative f' z) (at z within (\<lambda>u. x + u *\<^sub>R (y - x)) ` {0..1})"
-    by (auto intro: * has_derivative_within_subset [OF derf])
+    by (auto intro: * has_derivative_subset [OF derf])
   then have "continuous_on (?p ` {0..1}) f"
     unfolding continuous_on_eq_continuous_within
     by (meson has_derivative_continuous)
@@ -905,7 +905,7 @@ proof -
     interpret linear "(f' ?u)"
       using u by (auto intro!: has_derivative_linear derf *)
     have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within box 0 1)"
-      by (intro derivative_intros has_derivative_within_subset [OF derf]) (use u * in auto)
+      by (intro derivative_intros has_derivative_subset [OF derf]) (use u * in auto)
     hence "((f \<circ> ?p) has_vector_derivative f' ?u (y - x)) (at u)"
       by (simp add: at_within_open[OF u open_greaterThanLessThan] scaleR has_vector_derivative_def o_def)
   } note 2 = this
@@ -1907,7 +1907,7 @@ lemma vector_derivative_within_closed_interval:
 
 lemma has_vector_derivative_within_subset:
   "(f has_vector_derivative f') (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f has_vector_derivative f') (at x within T)"
-  by (auto simp: has_vector_derivative_def intro: has_derivative_within_subset)
+  by (auto simp: has_vector_derivative_def intro: has_derivative_subset)
 
 lemma has_vector_derivative_at_within:
   "(f has_vector_derivative f') (at x) \<Longrightarrow> (f has_vector_derivative f') (at x within S)"
@@ -2549,7 +2549,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
 
     have "\<And>x. x \<in> ball y d \<inter> Y \<Longrightarrow> onorm (blinfun_apply (fy x' x) - blinfun_apply (fy x' y)) \<le> e + e"
       by (safe intro!: onorm less_imp_le \<open>x' \<in> X\<close> dx) (auto simp: dist_commute \<open>0 < d\<close> \<open>y \<in> Y\<close>)
-    with seg has_derivative_within_subset[OF assms(2)[OF \<open>x' \<in> X\<close>]]
+    with seg has_derivative_subset[OF assms(2)[OF \<open>x' \<in> X\<close>]]
     show "norm (f x' y' - f x' y - (fy x' y) (y' - y)) \<le> norm (y' - y) * (e + e)"
       by (rule differentiable_bound_linearization[where S="?S"])
         (auto intro!: \<open>0 < d\<close> \<open>y \<in> Y\<close>)

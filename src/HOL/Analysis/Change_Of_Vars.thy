@@ -744,7 +744,7 @@ proof -
       fix x :: "(real,'n) vec"
       assume "x \<in> T n"
       show "(f has_derivative f' x) (at x within T n)"
-        by (metis (no_types, lifting) \<open>x \<in> T n\<close> deriv has_derivative_within_subset mem_Collect_eq subsetI T_def)
+        by (metis (no_types, lifting) \<open>x \<in> T n\<close> deriv has_derivative_subset mem_Collect_eq subsetI T_def)
       show "\<bar>det (matrix (f' x))\<bar> \<le> (Suc n) * e"
         using \<open>x \<in> T n\<close> T_def by auto
     next
@@ -797,7 +797,7 @@ proof -
       have "(\<Sum>k\<le>n. ?\<mu> (f ` T k)) \<le> (\<Sum>k\<le>n. ((k+1) * e) * ?\<mu>(T k))"
       proof (rule sum_mono [OF measure_bounded_differentiable_image])
         show "(f has_derivative f' x) (at x within T k)" if "x \<in> T k" for k x
-          using that unfolding T_def by (blast intro: deriv has_derivative_within_subset)
+          using that unfolding T_def by (blast intro: deriv has_derivative_subset)
         show "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on T k" for k
           using absolutely_integrable_on_def aint_T by blast
         show "\<bar>det (matrix (f' x))\<bar> \<le> real (k + 1) * e" if "x \<in> T k" for k x
@@ -916,7 +916,7 @@ proof -
     have In: "?I n \<in> lmeasurable"
       by (simp add: S bounded_Int bounded_set_imp_lmeasurable sets.Int)
     moreover have "\<And>x. x \<in> ?I n \<Longrightarrow> (f has_derivative f' x) (at x within ?I n)"
-      by (meson Int_iff deriv has_derivative_within_subset subsetI)
+      by (meson Int_iff deriv has_derivative_subset subsetI)
     moreover have int_In: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on ?I n"
     proof -
       have "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on S"
@@ -2356,7 +2356,7 @@ proof -
       proof (rule measurable_bounded_by_integrable_imp_integrable)
         have "(\<lambda>x. ?D x) \<in> borel_measurable (lebesgue_on ({t. h n (g t) = y} \<inter> S))"
           apply (intro borel_measurable_abs borel_measurable_det_Jacobian [OF h_lmeas, where f=g])
-          by (meson der_g IntD2 has_derivative_within_subset inf_le2)
+          by (meson der_g IntD2 has_derivative_subset inf_le2)
         then have "(\<lambda>x. if x \<in> {t. h n (g t) = y} \<inter> S then ?D x else 0) \<in> borel_measurable lebesgue"
           by (rule borel_measurable_if_I [OF _ h_lmeas])
         then show "(\<lambda>x. if x \<in> {t. h n (g t) = y} then ?D x else 0) \<in> borel_measurable (lebesgue_on S)"
@@ -2372,7 +2372,7 @@ proof -
         using integrable_restrict_Int by force
       have "(g ` ({t. h n (g t) = y} \<inter> S)) \<in> lmeasurable"
         apply (rule measurable_differentiable_image [OF h_lmeas])
-         apply (blast intro: has_derivative_within_subset [OF der_g])
+         apply (blast intro: has_derivative_subset [OF der_g])
         apply (rule int_det)
         done
       moreover have "g ` ({t. h n (g t) = y} \<inter> S) = {x. h n x = y} \<inter> g ` S"
@@ -2380,7 +2380,7 @@ proof -
       moreover have "measure lebesgue (g ` ({t. h n (g t) = y} \<inter> S))
                      \<le> integral ({t. h n (g t) = y} \<inter> S) (\<lambda>t. \<bar>det (matrix (g' t))\<bar>)"
         apply (rule measure_differentiable_image [OF h_lmeas _ int_det])
-        apply (blast intro: has_derivative_within_subset [OF der_g])
+        apply (blast intro: has_derivative_subset [OF der_g])
         done
       ultimately show ?thesis
         using \<open>y > 0\<close> integral_restrict_Int [of S "{t. h n (g t) = y}" "\<lambda>t. \<bar>det (matrix (g' t))\<bar> * y"]
@@ -2484,7 +2484,7 @@ proof -
   let ?D = "\<lambda>x. det (matrix (g' x))"
   define S' where "S' \<equiv> {x \<in> S. ?D x * f(g x) \<noteq> 0}"
   then have der_gS': "\<And>x. x \<in> S' \<Longrightarrow> (g has_derivative g' x) (at x within S')"
-    by (metis (mono_tags, lifting) der_g has_derivative_within_subset mem_Collect_eq subset_iff)
+    by (metis (mono_tags, lifting) der_g has_derivative_subset mem_Collect_eq subset_iff)
   have "(\<lambda>x. if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) integrable_on UNIV"
     by (simp add: integrable_restrict_UNIV intS)
   then have Df_borel: "(\<lambda>x. if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) \<in> borel_measurable lebesgue"
@@ -2505,7 +2505,7 @@ proof -
   proof (rule differentiable_image_in_sets_lebesgue)
     show "g differentiable_on S'"
       using der_g unfolding S'_def differentiable_def differentiable_on_def
-      by (blast intro: has_derivative_within_subset)
+      by (blast intro: has_derivative_subset)
   qed auto
   have f: "f \<in> borel_measurable (lebesgue_on (g ` S'))"
   proof (clarsimp simp add: borel_measurable_vimage_open)
@@ -2532,7 +2532,7 @@ proof -
         by (simp add: \<open>S' \<in> sets lebesgue\<close> \<open>open T\<close> borel_measurable_vimage_open sets_restrict_space_iff)
       show "g differentiable_on {x \<in> S'. f (g x) \<in> T}"
         using der_g unfolding S'_def differentiable_def differentiable_on_def
-        by (blast intro: has_derivative_within_subset)
+        by (blast intro: has_derivative_subset)
     qed auto
     ultimately have "{x \<in> g ` S'. f x \<in> T} \<in> sets lebesgue"
       by metis
@@ -2566,7 +2566,7 @@ proof -
     fix x
     assume x: "x \<in> S \<and> det (matrix (g' x)) = 0"
     then show "(g has_derivative g' x) (at x within {x \<in> S. det (matrix (g' x)) = 0})"
-      by (metis (no_types, lifting) der_g has_derivative_within_subset mem_Collect_eq subsetI)
+      by (metis (no_types, lifting) der_g has_derivative_subset mem_Collect_eq subsetI)
     then show "rank (matrix (g' x)) < CARD('n)"
       using det_nz_iff_inj matrix_vector_mul_linear x
       by (fastforce simp add: less_rank_noninjective)
@@ -2630,7 +2630,7 @@ proof -
   have dfgbm: "?D \<in> borel_measurable (lebesgue_on S)"
     using intS absolutely_integrable_on_def integrable_imp_measurable by blast
   have der_gN: "(g has_derivative g' x) (at x within ?N)" if "x \<in> ?N" for x
-      using der_g has_derivative_within_subset that by force
+      using der_g has_derivative_subset that by force
   have "(\<lambda>x. - f x) integrable_on g ` ?N \<and>
          integral (g ` ?N) (\<lambda>x. - f x) \<le> integral ?N (\<lambda>x. \<bar>det (matrix (g' x))\<bar> * - f (g x))"
   proof (rule integral_on_image_ubound_nonneg [OF _ der_gN])
@@ -2652,7 +2652,7 @@ proof -
     by (rule absolutely_integrable_absolutely_integrable_ubound) auto
 
   have der_gP: "(g has_derivative g' x) (at x within ?P)" if "x \<in> ?P" for x
-      using der_g has_derivative_within_subset that by force
+      using der_g has_derivative_subset that by force
   have "f integrable_on g ` ?P \<and> integral (g ` ?P) f \<le> integral ?P ?D"
   proof (rule integral_on_image_ubound_nonneg [OF _ der_gP])
     have "?D integrable_on {x \<in> S. 0 < ?D x}"
@@ -2805,9 +2805,9 @@ proof -
           = ((\<lambda>x. f (g x)) -` Y \<inter> S) \<inter> {x \<in> S. f (g x) > 0}" for Y
       by auto
     show "(g has_derivative g' x) (at x within {x \<in> S. f (g x) > 0})" if "x \<in> {x \<in> S. f (g x) > 0}" for x
-      using that der_g has_derivative_within_subset by fastforce
+      using that der_g has_derivative_subset by fastforce
     show "(h has_derivative h' y) (at y within {y \<in> T. f y > 0})" if "y \<in> {y \<in> T. f y > 0}" for y
-      using that der_h has_derivative_within_subset by fastforce
+      using that der_h has_derivative_subset by fastforce
   qed (use gh hg id in auto)
   have "-": "(?DN has_integral b) {x \<in> S. f (g x) < 0} \<longleftrightarrow> ((\<lambda>x. - f x) has_integral b) {y \<in> T. f y < 0}" for b
   proof (rule cov_invertible_nonneg_eq)
@@ -2815,9 +2815,9 @@ proof -
           = ((\<lambda>x. f (g x)) -` uminus ` y \<inter> S) \<inter> {x \<in> S. f (g x) < 0}" for y
       using image_iff by fastforce
     show "(g has_derivative g' x) (at x within {x \<in> S. f (g x) < 0})" if "x \<in> {x \<in> S. f (g x) < 0}" for x
-      using that der_g has_derivative_within_subset by fastforce
+      using that der_g has_derivative_subset by fastforce
     show "(h has_derivative h' y) (at y within {y \<in> T. f y < 0})" if "y \<in> {y \<in> T. f y < 0}" for y
-      using that der_h has_derivative_within_subset by fastforce
+      using that der_h has_derivative_subset by fastforce
   qed (use gh hg id in auto)
   show ?thesis
   proof
@@ -3016,13 +3016,13 @@ proof -
   proof (rule cv_inv_version4)
     show "(g has_derivative g' x) (at x within ?S) \<and> invertible (matrix (g' x))"
       if "x \<in> ?S" for x
-      using der_g that has_derivative_within_subset that by fastforce
+      using der_g that has_derivative_subset that by fastforce
     show "continuous_on (g ` ?S) h \<and> h (g x) = x"
       if "x \<in> ?S" for x
       using that continuous_on_subset [OF conth]  by (simp add: hg image_mono)
   qed
   have "(g has_derivative g' x) (at x within {x \<in> S. rank (matrix (g' x)) < CARD('m)})" if "x \<in> S" for x
-    by (metis (no_types, lifting) der_g has_derivative_within_subset mem_Collect_eq subsetI that)
+    by (metis (no_types, lifting) der_g has_derivative_subset mem_Collect_eq subsetI that)
   then have "negligible (g ` {x \<in> S. \<not> invertible (matrix (g' x))})"
     by (auto simp: invertible_det_nz det_eq_0_rank intro: baby_Sard)
   then have neg: "negligible {x \<in> g ` S. x \<notin> g ` ?S \<and> f x \<noteq> 0}"
@@ -3085,7 +3085,7 @@ proof -
       by (simp add: compact compact_UN)
     show "(g has_derivative g' x) (at x within (?U n))"
       if "x \<in> ?U n" for x
-      using that by (blast intro!: has_derivative_within_subset [OF der_g])
+      using that by (blast intro!: has_derivative_subset [OF der_g])
     show "inj_on g (?U n)"
       using inj by (auto simp: inj_on_def)
   qed
@@ -3173,7 +3173,7 @@ proof -
     proof (rule differentiable_image_in_sets_lebesgue [OF F_leb])
       show "g differentiable_on F m"
         using der_g unfolding differentiable_def differentiable_on_def
-        by (meson Sup_upper UNIV_I UnionI has_derivative_within_subset image_eqI)
+        by (meson Sup_upper UNIV_I UnionI has_derivative_subset image_eqI)
     qed auto
     have fgU: "\<And>n. f absolutely_integrable_on (\<Union>m\<le>n. g ` F m)"
       "(\<lambda>n. integral (\<Union>m\<le>n. g ` F m) f) \<longlonglongrightarrow> integral (\<Union>m. g ` F m) f"
@@ -3266,7 +3266,7 @@ proof -
     fix n x
     assume "x \<in> \<Union>(F ` UNIV)"
     then show "(g has_derivative g' x) (at x within \<Union>(F ` UNIV))"
-      using Ceq \<open>C \<union> N = S\<close> der_g has_derivative_within_subset by blast
+      using Ceq \<open>C \<union> N = S\<close> der_g has_derivative_subset by blast
   next
     have "\<Union>(F ` UNIV) \<subseteq> S"
       using Ceq \<open>C \<union> N = S\<close> by blast
