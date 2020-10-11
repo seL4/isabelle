@@ -121,7 +121,6 @@ object Build_VeriT
 
       File.copy(build_dir + Path.explode("LICENSE"), component_dir)
       File.copy(build_dir + Path.explode("veriT"), platform_dir)
-      File.copy(build_dir + Path.explode("veriT-SAT"), platform_dir)
 
 
       /* settings */
