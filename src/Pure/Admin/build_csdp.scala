@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_csdp.scala
     Author:     Makarius
 
-Build Isabelle CSDP component from official downloads.
+Build Isabelle CSDP component from official download.
 */
 
 package isabelle
@@ -180,7 +180,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_csdp", "build prover component from official downloads",
+    Isabelle_Tool("build_csdp", "build prover component from official download",
     args =>
     {
       var target_dir = Path.current
@@ -198,7 +198,7 @@ Usage: isabelle build_csdp [OPTIONS]
                  (default: """" + default_download_url + """")
     -v           verbose
 
-  Build prover component from official downloads.
+  Build prover component from official download.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
