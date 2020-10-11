@@ -20,9 +20,11 @@ object Build_CSDP
     val changed: List[(String, String)] =
       List("CFLAGS" -> CFLAGS, "LIBS" -> LIBS).filter(p => p._2.nonEmpty)
 
-    def print: String =
-      if (changed.isEmpty) ""
-      else "  * " + platform + ":\n" + changed.map(p => "    " + p._1 + "=" + p._2).mkString("\n")
+    def print: Option[String] =
+      if (changed.isEmpty) None
+      else
+        Some("  * " + platform + ":\n" + changed.map(p => "    " + p._1 + "=" + p._2)
+          .mkString("\n"))
 
     def change(path: Path)
     {
@@ -163,7 +165,8 @@ ISABELLE_CSDP="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/c
 
 Makefile flags have been changed for various platforms as follows:
 
-""" + build_flags.map(_.print).mkString("\n\n") + """
+""" + build_flags.flatMap(_.print).mkString("\n\n") + """
+
 The distribution has been built like this:
 
     cd src && make
