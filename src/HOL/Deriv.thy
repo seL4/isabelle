@@ -238,8 +238,6 @@ lemma has_derivative_subset:
   "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_derivative f') (at x within t)"
   by (auto simp add: has_derivative_iff_norm intro: tendsto_within_subset)
 
-lemmas has_derivative_within_subset = has_derivative_subset
-
 lemma has_derivative_within_singleton_iff:
   "(f has_derivative g) (at x within {x}) \<longleftrightarrow> bounded_linear g"
   by (auto intro!: has_derivativeI_sandwich[where e=1] has_derivative_bounded_linear)
@@ -415,7 +413,7 @@ lemma has_derivative_in_compose2:
   assumes "(f has_derivative f') (at x within s)"
   shows "((\<lambda>x. g (f x)) has_derivative (\<lambda>y. g' (f x) (f' y))) (at x within s)"
   using assms
-  by (auto intro: has_derivative_within_subset intro!: has_derivative_in_compose[of f f' x s g])
+  by (auto intro: has_derivative_subset intro!: has_derivative_in_compose[of f f' x s g])
 
 lemma (in bounded_bilinear) FDERIV:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
@@ -750,7 +748,7 @@ lemma has_field_derivative_imp_has_derivative:
 lemma DERIV_subset:
   "(f has_field_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow>
     (f has_field_derivative f') (at x within t)"
-  by (simp add: has_field_derivative_def has_derivative_within_subset)
+  by (simp add: has_field_derivative_def has_derivative_subset)
 
 lemma has_field_derivative_at_within:
   "(f has_field_derivative f') (at x) \<Longrightarrow> (f has_field_derivative f') (at x within s)"
