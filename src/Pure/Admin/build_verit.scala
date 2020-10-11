@@ -12,23 +12,6 @@ object Build_VeriT
   val default_download_url = "https://verit.loria.fr/distrib/veriT-stable2016.tar.gz"
 
 
-  /* flags */
-
-  sealed case class Flags(platform: String, configure: String = "")
-  {
-    def print: Option[String] =
-      if (configure.isEmpty) None
-      else Some("  * " + platform + ":\n    ./configure " + configure)
-  }
-
-  val build_flags: List[Flags] =
-    List(
-      Flags("arm64-linux", configure = "--enable-static"),
-      Flags("x86_64-linux", configure = "--enable-static"),
-      Flags("x86_64-darwin"),
-      Flags("x86_64-cygwin"))
-
-
   /* build veriT */
 
   def build_verit(
@@ -41,7 +24,7 @@ object Build_VeriT
     {
       /* required commands */
 
-      List("autoconf", "bison", "flex").foreach(cmd =>
+      List("autoconf", "bison", "flex", "wget").foreach(cmd =>
         if (!Isabelle_System.bash(cmd + " --version").ok) error("Missing command: " + cmd))
 
 
@@ -94,21 +77,14 @@ object Build_VeriT
       progress.echo("Building veriT for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
-
-      val platform_build_flags =
-        build_flags.find(flags => flags.platform == platform_name) match {
-          case None => error("No build flags for platform " + quote(platform_name))
-          case Some(flags) => flags
-        }
-
       val build_script =
 """
-  set -e
-  autoconf
-  ./configure """ + platform_build_flags.configure + """
-  make
+    autoconf
+    ./configure
+    ln -s gmp-local extern/gmp
+    make
 """
-      progress.bash(build_script, cwd = build_dir.file, echo = verbose).check
+      progress.bash("set -e\n" + build_script, cwd = build_dir.file, echo = verbose).check
 
 
       /* install */
@@ -142,16 +118,10 @@ fi
 """ + download_url + """
 
 It has been built from sources like this:
+""" + build_script + """
 
-    autoconf && ./configure && make
-
-Some platforms require specific flags as follows:
-
-""" + build_flags.flatMap(_.print).mkString("\n\n") + """
-
-
-    Makarius
-    """ + Date.Format.date(Date.now()) + "\n")
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
     })
 }
 
