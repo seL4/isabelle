@@ -138,11 +138,11 @@ releases are not compatible with Isabelle.
 Viel SPASS!
 
 
-    Jasmin Blanchette
-    16-May-2018
+        Jasmin Blanchette
+        16-May-2018
 
-    Makarius
-    """ + Date.Format.date(Date.now()) + "\n")
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
     })
 }
 

@@ -100,8 +100,8 @@ Only a few executables from PROVERS/ have been moved to the platform-specific
 Isabelle component directory: x86_64-linux etc.
 
 
-    Makarius
-    """ + Date.Format.date(Date.now()) + "\n")
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
     })
 }
 

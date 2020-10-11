@@ -34,7 +34,7 @@ object Build_SQLite
 
     File.write(component_dir + Path.basic("README"),
       "This is " + download_name + " from\n" + download_url +
-        "\n\n    Makarius\n    " + Date.Format.date(Date.now()) + "\n")
+        "\n\n        Makarius\n        " + Date.Format.date(Date.now()) + "\n")
 
 
     /* settings */

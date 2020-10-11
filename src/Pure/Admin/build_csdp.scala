@@ -168,8 +168,8 @@ The distribution has been built like this:
 Only the bare "solver/csdp" program is used for Isabelle.
 
 
-    Makarius
-    """ + Date.Format.date(Date.now()) + "\n")
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
     })
 }
 
