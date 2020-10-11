@@ -146,6 +146,13 @@ object File
     else files.toList.map(_.getName).sorted
   }
 
+  def get_dir(dir: Path): String =
+    read_dir(dir).filter(name => (dir + Path.basic(name)).is_dir) match {
+      case List(entry) => entry
+      case dirs =>
+        error("Exactly one directory entry expected: " + commas_quote(dirs.sorted))
+    }
+
   def find_files(
     start: JFile,
     pred: JFile => Boolean = _ => true,

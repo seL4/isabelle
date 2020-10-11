@@ -207,15 +207,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         else Path.explode(mercurial_source)
 
       Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
+      val build_dir = tmp_dir + Path.basic(File.get_dir(tmp_dir))
 
-      File.read_dir(tmp_dir).filter(name => (tmp_dir + Path.basic(name)).is_dir) match {
-        case List(dir) =>
-          val build_dir = tmp_dir + Path.basic(dir)
-          progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
-        case dirs =>
-          error("Bad archive " + archive +
-            (if (dirs.isEmpty) "" else "\nmultiple directory entries " + commas_quote(dirs)))
-      }
+      progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
     })
   }
 

@@ -100,14 +100,8 @@ object Build_CSDP
       Isabelle_System.download(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
+      val source_name = File.get_dir(tmp_dir)
 
-      val source_name =
-        File.read_dir(tmp_dir).filter(name => (tmp_dir + Path.basic(name)).is_dir) match {
-          case List(dir) => dir
-          case dirs =>
-            error("Exactly one directory entry expected in archive " + quote(download_url) +
-              "\n" + commas_quote(dirs))
-        }
       Isabelle_System.bash(
         "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
         cwd = component_dir.file).check
