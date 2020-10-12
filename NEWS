@@ -61,6 +61,10 @@ rule to protect foundational terms during simplification.
 
   * Local_Theory.end_nested replaces Local_Theory.close_target.
 
+  * Combination of Local_Theory.begin_nested and
+    Local_Theory.end_nested(_result) replaces
+    Local_Theory.subtarget(_result).
+
 INCOMPATIBILITY.
 
 

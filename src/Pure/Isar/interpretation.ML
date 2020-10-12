@@ -60,9 +60,11 @@ fun augment_with_def prep_term ((name, atts), ((b, mx), raw_rhs)) lthy =
 fun augment_with_defs _ [] _ = pair []
       (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
   | augment_with_defs prep_term raw_defs deps =
-      Local_Theory.subtarget_result Morphism.fact
-        (fold Locale.activate_declarations deps
-         #> fold_map (augment_with_def prep_term) raw_defs);
+      Local_Theory.begin_nested
+      #> snd
+      #> fold Locale.activate_declarations deps
+      #> fold_map (augment_with_def prep_term) raw_defs
+      #> Local_Theory.end_nested_result Morphism.fact;
 
 fun prep_interpretation prep_expr prep_term
   expression raw_defs initial_ctxt =

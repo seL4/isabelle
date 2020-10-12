@@ -76,9 +76,6 @@ sig
   val begin_nested: local_theory -> Binding.scope * local_theory
   val end_nested: local_theory -> local_theory
   val end_nested_result: (morphism -> 'a -> 'b) ->  'a * local_theory -> 'b * local_theory
-  val subtarget: (local_theory -> local_theory) -> local_theory -> local_theory
-  val subtarget_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
-    local_theory -> 'b * local_theory
 end;
 
 signature PRIVATE_LOCAL_THEORY =
@@ -403,14 +400,5 @@ fun end_nested_result decl (x, lthy) =
     val outer_lthy = end_nested lthy;
     val phi = Proof_Context.export_morphism lthy outer_lthy;
   in (decl phi x, outer_lthy) end;
-
-fun subtarget body = begin_nested #> snd #> body #> end_nested;
-
-fun subtarget_result decl body lthy =
-  let
-    val (x, inner_lthy) = lthy |> begin_nested |> snd |> body;
-    val lthy' = inner_lthy |> end_nested;
-    val phi = Proof_Context.export_morphism inner_lthy lthy';
-  in (decl phi x, lthy') end;
 
 end;
