@@ -37,6 +37,16 @@ sig
   val type_of: ('a, 'b) context -> SMTLIB.tree -> typ
   val term_of: SMTLIB.tree -> ((string * (string * typ)) list, 'a) context ->
     term * ((string * (string * typ)) list, 'a) context
+
+  (*name bindings*)
+  type name_bindings
+  val empty_name_binding: name_bindings
+  val update_name_binding: Symtab.key * SMTLIB.tree -> name_bindings -> name_bindings
+  val extract_name_bindings: SMTLIB.tree -> name_bindings -> name_bindings * string list
+  val expand_name_bindings: SMTLIB.tree -> name_bindings -> SMTLIB.tree * name_bindings
+  val extract_and_update_name_bindings: SMTLIB.tree -> name_bindings ->
+     (SMTLIB.tree * name_bindings) * string list
+  val remove_name_bindings: SMTLIB.tree -> SMTLIB.tree
 end;
 
 structure SMTLIB_Proof: SMTLIB_PROOF =
@@ -265,7 +275,7 @@ fun dest_body (SMTLIB.S (SMTLIB.Sym "!" :: body :: _)) = dest_body body
 fun dest_binding (SMTLIB.S [SMTLIB.Sym name, t]) = (name, Tree t)
   | dest_binding b = raise SMTLIB_PARSE ("bad SMT let binding format", b)
 
-fun mk_choice (x, T, P) =  HOLogic.choice_const T $ absfree (x, T) P
+fun mk_choice (x, T, P) = HOLogic.choice_const T $ absfree (x, T) P
 
 fun term_of t cx =
   (case t of
@@ -297,5 +307,69 @@ and quant q vars body cx =
     |> with_bindings (map (apsnd (Term o Free)) vs) (term_of (dest_body body))
     |>> fold_rev (fn (_, (n, T)) => fn t => q (n, T, t)) vs
   end
+
+
+(* Sharing of terms via "! _ :named name"*)
+
+type name_bindings = SMTLIB.tree Symtab.table * SMTLIB.tree Symtab.table
+
+val empty_name_binding = (Symtab.empty, Symtab.empty)
+
+fun update_name_binding (name, t) (tab, exp_tab) =
+  (tab, Symtab.update (name, t) exp_tab)
+
+fun remove_name_bindings (SMTLIB.S (SMTLIB.Sym "!" :: body :: _)) =
+      remove_name_bindings body
+  | remove_name_bindings (SMTLIB.S body) =
+     SMTLIB.S (map remove_name_bindings body)
+  | remove_name_bindings t = t
+
+fun extract_name_bindings t (tab, exp_tab) =
+  let
+    fun extract t (tab, new) =
+      (case t of
+        SMTLIB.S [SMTLIB.Sym "forall", SMTLIB.S _, body] => extract body (tab, new)
+      | SMTLIB.S [SMTLIB.Sym "exists", SMTLIB.S _, body] => extract body (tab, new)
+      | SMTLIB.S [SMTLIB.Sym "choice", SMTLIB.S _, body] => extract body (tab, new)
+      | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S bindings, body] =>
+          raise (Fail "unsupported let construction in name extraction")
+      | SMTLIB.S (SMTLIB.Sym "!" :: t :: [SMTLIB.Key _, SMTLIB.Sym name]) =>
+          extract t (tab, new)
+          |>> Symtab.update (name, remove_name_bindings t)
+          ||> curry (op :: ) name
+      | SMTLIB.S args =>
+          fold extract args (tab, new)
+      | _ => ((tab, new)))
+    val (tab, new) = extract t (tab, [])
+  in ((tab, exp_tab), new) end
+
+fun expand_name_bindings t (tab, exp_tab) =
+  let
+    fun expand_update (SMTLIB.Sym sym) exp_tab =
+        (case Symtab.lookup exp_tab sym of
+          SOME t => (t, exp_tab)
+        | NONE =>
+           (case (Symtab.lookup tab sym) of
+             NONE => (SMTLIB.Sym sym, exp_tab)
+           | SOME u =>
+              let val (u2, exp_tab) = expand_update u exp_tab
+              in (u2, Symtab.update (sym, u2) exp_tab) end
+           )
+        )
+      | expand_update (t as SMTLIB.Key _) exp_tab = (t, exp_tab)
+      | expand_update (t as SMTLIB.Num _) exp_tab = (t, exp_tab)
+      | expand_update (t as SMTLIB.Dec _) exp_tab = (t, exp_tab)
+      | expand_update (t as SMTLIB.Str _) exp_tab = (t, exp_tab)
+      | expand_update (SMTLIB.S s) (exp_tab : SMTLIB.tree Symtab.table) =
+         fold_map expand_update s exp_tab
+         |>> (fn s => SMTLIB.S s)
+  in
+    expand_update t exp_tab
+    |> (fn (t, exp_tab) => (remove_name_bindings t, (tab, exp_tab)))
+  end
+
+fun extract_and_update_name_bindings t tab =
+  extract_name_bindings t tab
+  |>> expand_name_bindings (remove_name_bindings t)
 
 end;

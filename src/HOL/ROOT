@@ -932,6 +932,9 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
     SMT_Examples
     SMT_Word_Examples
     SMT_Tests
+  theories[condition=VERIT_SOLVER]
+    SMT_Tests_Verit
+    SMT_Examples_Verit
 
 session "HOL-SPARK" in "SPARK" = "HOL-Word" +
   theories

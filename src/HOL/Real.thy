@@ -1738,6 +1738,44 @@ lemma [z3_rule]:
   for x y :: real
   by auto
 
+lemma [smt_arith_multiplication]:
+  fixes A B :: real and p n :: real
+  assumes "A \<le> B" "0 < n" "p > 0"
+  shows "(A / n) * p \<le> (B / n) * p"
+  using assms by (auto simp: field_simps)
+
+lemma [smt_arith_multiplication]:
+  fixes A B :: real and p n :: real
+  assumes "A < B" "0 < n" "p > 0"
+  shows "(A / n) * p < (B / n) * p"
+  using assms by (auto simp: field_simps)
+
+lemma [smt_arith_multiplication]:
+  fixes A B :: real and p n :: int
+  assumes "A \<le> B" "0 < n" "p > 0"
+  shows "(A / n) * p \<le> (B / n) * p"
+  using assms by (auto simp: field_simps)
+
+lemma [smt_arith_multiplication]:
+  fixes A B :: real and p n :: int
+  assumes "A < B" "0 < n" "p > 0"
+  shows "(A / n) * p < (B / n) * p"
+  using assms by (auto simp: field_simps)
+
+lemmas [smt_arith_multiplication] =
+  verit_le_mono_div[THEN mult_left_mono, unfolded int_distrib, of _ _ \<open>nat (floor (_ :: real))\<close>  \<open>nat (floor (_ :: real))\<close>]
+  div_le_mono[THEN mult_left_mono, unfolded int_distrib, of _ _ \<open>nat (floor (_ :: real))\<close>  \<open>nat (floor (_ :: real))\<close>]
+  verit_le_mono_div_int[THEN mult_left_mono, unfolded int_distrib, of _ _ \<open>floor (_ :: real)\<close>  \<open>floor (_ :: real)\<close>]
+  zdiv_mono1[THEN mult_left_mono, unfolded int_distrib, of _ _ \<open>floor (_ :: real)\<close>  \<open>floor (_ :: real)\<close>]
+  arg_cong[of _ _ \<open>\<lambda>a :: real. a / real (n::nat) * real (p::nat)\<close> for n p :: nat, THEN sym]
+  arg_cong[of _ _ \<open>\<lambda>a :: real. a / real_of_int n * real_of_int p\<close> for n p :: int, THEN sym]
+  arg_cong[of _ _ \<open>\<lambda>a :: real. a / n * p\<close> for n p :: real, THEN sym]
+
+lemmas [smt_arith_simplify] =
+   floor_one floor_numeral div_by_1 times_divide_eq_right
+   nonzero_mult_div_cancel_left division_ring_divide_zero div_0
+  divide_minus_left zero_less_divide_iff
+
 
 subsection \<open>Setup for Argo\<close>
 

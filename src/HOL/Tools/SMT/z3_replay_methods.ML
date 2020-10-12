@@ -55,18 +55,17 @@ fun replay_error ctxt msg rule thms t =
   SMT_Replay_Methods.replay_error ctxt msg (Z3_Proof.string_of_rule rule) thms t
 
 fun replay_rule_error ctxt rule thms t =
-  SMT_Replay_Methods.replay_rule_error ctxt (Z3_Proof.string_of_rule rule) thms t
+  SMT_Replay_Methods.replay_rule_error "Z3" ctxt (Z3_Proof.string_of_rule rule) thms t
 
 fun trace_goal ctxt rule thms t =
   SMT_Replay_Methods.trace_goal ctxt (Z3_Proof.string_of_rule rule) thms t
-
-fun as_prop (t as Const (\<^const_name>\<open>Trueprop\<close>, _) $ _) = t
-  | as_prop t = HOLogic.mk_Trueprop t
 
 fun dest_prop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = t
   | dest_prop t = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
+
+val try_provers = SMT_Replay_Methods.try_provers "Z3"
 
 fun prop_tac ctxt prems =
   Method.insert_tac ctxt prems
@@ -94,9 +93,6 @@ fun arith_th_lemma ctxt thms t =
   SMT_Replay_Methods.prove_abstract ctxt thms t arith_th_lemma_tac (
     fold_map (SMT_Replay_Methods.abstract_arith ctxt o dest_thm) thms ##>>
     SMT_Replay_Methods.abstract_arith ctxt (dest_prop t))
-
-val _ = Theory.setup (Context.theory_map (
-  SMT_Replay_Methods.add_th_lemma_method ("arith", arith_th_lemma)))
 
 fun th_lemma name ctxt thms =
   (case Symtab.lookup (SMT_Replay_Methods.get_th_lemma_method ctxt) name of
@@ -136,7 +132,7 @@ fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
 
 (* congruence *)
 
-fun cong ctxt thms = SMT_Replay_Methods.try_provers ctxt
+fun cong ctxt thms = try_provers ctxt
     (Z3_Proof.string_of_rule Z3_Proof.Monotonicity) [
   ("basic", SMT_Replay_Methods.cong_basic ctxt thms),
   ("full", SMT_Replay_Methods.cong_full ctxt thms)] thms
@@ -252,13 +248,13 @@ fun if_context_conv ctxt ct =
   | _ => Conv.sub_conv (Conv.top_sweep_conv if_context_conv) ctxt) ct
 
 fun lift_ite_rewrite ctxt t =
-  SMT_Replay_Methods.prove ctxt t (fn ctxt => 
+  SMT_Replay_Methods.prove ctxt t (fn ctxt =>
     CONVERSION (HOLogic.Trueprop_conv (Conv.binop_conv (if_context_conv ctxt)))
     THEN' resolve_tac ctxt @{thms refl})
 
 fun prove_conj_disj_perm ctxt t = SMT_Replay_Methods.prove ctxt t Conj_Disj_Perm.conj_disj_perm_tac
 
-fun rewrite ctxt _ = SMT_Replay_Methods.try_provers ctxt
+fun rewrite ctxt _ = try_provers ctxt
     (Z3_Proof.string_of_rule Z3_Proof.Rewrite) [
   ("rules", apply_rule ctxt),
   ("conj_disj_perm", prove_conj_disj_perm ctxt),
@@ -386,7 +382,7 @@ fun def_axiom_disj ctxt t =
          HOLogic.mk_disj o swap)
   | u => SMT_Replay_Methods.prove_abstract' ctxt t prop_tac (SMT_Replay_Methods.abstract_prop u))
 
-fun def_axiom ctxt _ = SMT_Replay_Methods.try_provers ctxt
+fun def_axiom ctxt _ = try_provers ctxt
     (Z3_Proof.string_of_rule Z3_Proof.Def_Axiom) [
   ("rules", apply_rule ctxt),
   ("disj", def_axiom_disj ctxt)] []
@@ -410,7 +406,7 @@ fun nnf_prop ctxt thms t =
     fold_map (SMT_Replay_Methods.abstract_prop o dest_thm) thms ##>>
     SMT_Replay_Methods.abstract_prop (dest_prop t))
 
-fun nnf ctxt rule thms = SMT_Replay_Methods.try_provers ctxt (Z3_Proof.string_of_rule rule) [
+fun nnf ctxt rule thms = try_provers ctxt (Z3_Proof.string_of_rule rule) [
   ("prop", nnf_prop ctxt thms),
   ("quant", quant_intro ctxt [hd thms])] thms
 

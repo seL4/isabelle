@@ -39,6 +39,10 @@ sig
   (*theorem transformation*)
   val varify: Proof.context -> thm -> thm
   val params_of: term -> (string * typ) list
+
+  (*spy*)
+  val spying: bool -> Proof.context -> (unit -> string) -> string -> unit
+  val print_stats: (string * int list) list -> string
 end;
 
 structure SMT_Replay : SMT_REPLAY =
@@ -249,13 +253,14 @@ fun intermediate_statistics ctxt start total =
 
 fun pretty_statistics solver total stats =
   let
+    val stats = Symtab.map (K (map (fn i => curry Int.div i 1000000))) stats
     fun mean_of is =
       let
         val len = length is
         val mid = len div 2
       in if len mod 2 = 0 then (nth is (mid - 1) + nth is mid) div 2 else nth is mid end
     fun pretty_item name p = Pretty.item (Pretty.separate ":" [Pretty.str name, p])
-    fun pretty (name, milliseconds) = pretty_item name (Pretty.block (Pretty.separate "," [
+    fun pretty (name, milliseconds) = (Pretty.block (Pretty.str (name ^": ")  :: Pretty.separate "," [
       Pretty.str (string_of_int (length milliseconds) ^ " occurrences") ,
       Pretty.str (string_of_int (mean_of milliseconds) ^ " ms mean time"),
       Pretty.str (string_of_int (fold Integer.max milliseconds 0) ^ " ms maximum time"),
@@ -265,5 +270,27 @@ fun pretty_statistics solver total stats =
       pretty_item "total time" (Pretty.str (string_of_int total ^ " ms")) ::
       map pretty (Symtab.dest stats))
   end
+
+fun timestamp_format time =
+  Date.fmt "%Y-%m-%d %H:%M:%S." (Date.fromTimeLocal time) ^
+  (StringCvt.padLeft #"0" 3 (string_of_int (Time.toMilliseconds time - 1000 * Time.toSeconds time)))
+
+fun print_stats stats =
+  let
+    fun print_list xs = fold (fn x => fn msg => msg ^ string_of_int x ^ ",") xs ""
+  in
+    fold (fn (x,y) => fn msg => msg ^ x ^ ": " ^ print_list y ^ "\n") stats ""
+  end
+
+fun spying false _ _ _ = ()
+  | spying true ctxt f filename =
+    let
+      val message = f ()
+      val thy = Context.theory_long_name ((Context.theory_of o Context.Proof) ctxt)
+      val spying_version = "1"
+    in
+      File.append (Path.explode ("$ISABELLE_HOME_USER/" ^ filename))
+        (spying_version ^ "; " ^ thy ^ "; " ^ (timestamp_format (Time.now ())) ^ ";\n" ^ message ^ "\n")
+    end
 
 end;

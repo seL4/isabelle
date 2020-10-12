@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/verit_isar.ML
+(*  Title:      HOL/Tools/SMT/lethe_isar.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
@@ -9,7 +9,7 @@ signature VERIT_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   val atp_proof_of_veriT_proof: Proof.context -> term list -> thm list -> term list -> term ->
-    (string * term) list -> int list -> int -> (int * string) list -> VeriT_Proof.veriT_step list ->
+    (string * term) list -> int list -> int -> (int * string) list -> Verit_Proof.veriT_step list ->
     (term, string) ATP_Proof.atp_step list
 end;
 
@@ -22,17 +22,17 @@ open ATP_Proof
 open ATP_Proof_Reconstruct
 open SMTLIB_Interface
 open SMTLIB_Isar
-open VeriT_Proof
+open Verit_Proof
 
 fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids =
   let
-    fun steps_of (VeriT_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
+    fun steps_of (Verit_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
       let
         val concl' = postprocess_step_conclusion ctxt rewrite_rules ll_defs concl
         fun standard_step role = ((id, []), role, concl', rule, map (rpair []) prems)
       in
-        if rule = veriT_input_rule then
+        if rule = input_rule then
           let
             val id_num = the (Int.fromString (unprefix assert_prefix id))
             val ss = the_list (AList.lookup (op =) fact_helper_ids id_num)
@@ -46,7 +46,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
                 val concl0 = unskolemize_names ctxt concl00
               in
                 [(name0, role0, concl0, rule, []),
-                 ((id, []), Plain, concl', veriT_rewrite_rule,
+                 ((id, []), Plain, concl', rewrite_rule,
                   name0 :: normalizing_prems ctxt concl0)]
               end)
           end

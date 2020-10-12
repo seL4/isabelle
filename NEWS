@@ -158,6 +158,8 @@ Minor INCOMPATIBILITY.
 are in working order again, as opposed to outputting "GaveUp" on nearly
 all problems.
 
+* SMT reconstruction: It is now possible to reconstruct proofs from the
+SMT solver veriT via the tactic veriT_smt.
 
 *** FOL ***
 

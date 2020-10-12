@@ -21,9 +21,9 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
 open VeriT_Isar
-open VeriT_Proof
+open Verit_Proof
 
-fun add_used_asserts_in_step (VeriT_Proof.VeriT_Step {prems, ...}) =
+fun add_used_asserts_in_step (Verit_Proof.VeriT_Step {prems, ...}) =
   union (op =) (map_filter (try SMTLIB_Interface.assert_index_of_name) prems)
 
 fun parse_proof
@@ -36,10 +36,10 @@ fun parse_proof
     val index_of_id = Integer.add (~ num_ll_defs)
 
     fun step_of_assume j (_, th) =
-      VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
-        rule = veriT_input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
+      Verit_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
+        rule = input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
 
-    val (actual_steps, _) = VeriT_Proof.parse typs terms output ctxt
+    val (actual_steps, _) = Verit_Proof.parse typs terms output ctxt
     val used_assert_ids = fold add_used_asserts_in_step actual_steps []
     val used_assm_js =
       map_filter (fn id => let val i = index_of_id id in if i >= 0 then SOME i else NONE end)

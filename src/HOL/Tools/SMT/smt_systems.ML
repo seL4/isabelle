@@ -120,12 +120,14 @@ val veriT: SMT_Solver.solver_config = {
   avail = make_avail "VERIT",
   command = make_command "VERIT",
   options = (fn ctxt => [
-    "--proof-version=2",
+    "--proof-with-sharing",
+    "--proof-define-skolems",
     "--proof-prune",
     "--proof-merge",
     "--disable-print-success",
     "--disable-banner",
-    "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]),
+    "--max-time=" ^ string_of_int (1000 * Real.ceil (Config.get ctxt SMT_Config.timeout))] @
+    Verit_Proof.veriT_current_strategy (Context.Proof ctxt)),
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "timeout"),
@@ -164,6 +166,35 @@ val z3: SMT_Solver.solver_config = {
 
 end
 
+(* smt tactic *)
+val parse_smt_options =
+  Scan.optional
+    (Args.parens (Args.name -- Scan.option (\<^keyword>\<open>,\<close> |-- Args.name)) >> apfst SOME)
+    (NONE, NONE)
+
+fun smt_method ((solver, stgy), thms) ctxt facts =
+  let
+    val default_solver = SMT_Config.solver_of ctxt
+    val solver = the_default default_solver solver
+    val _ = 
+      if solver = "z3" andalso stgy <> NONE
+      then warning ("No strategy is available for z3. Ignoring " ^ quote (the stgy)) 
+      else ()
+    val ctxt =
+      ctxt
+      |> (if stgy <> NONE then Context.proof_map (Verit_Proof.select_veriT_stgy (the stgy)) else I)
+      |> Context.Proof
+      |> SMT_Config.select_solver solver
+      |> Context.proof_of
+  in
+    HEADGOAL (SOLVED' (SMT_Solver.smt_tac ctxt (thms @ facts)))
+  end
+
+val _ =
+  Theory.setup
+    (Method.setup \<^binding>\<open>smt\<close>
+      (Scan.lift parse_smt_options -- Attrib.thms >> (METHOD oo smt_method))
+      "Call to the SMT solvers veriT or z3")
 
 (* overall setup *)
 

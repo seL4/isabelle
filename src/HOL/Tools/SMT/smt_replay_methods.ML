@@ -8,12 +8,14 @@ Proof methods for replaying SMT proofs.
 
 signature SMT_REPLAY_METHODS =
 sig
+  (*Printing*)
   val pretty_goal: Proof.context -> string -> string -> thm list -> term -> Pretty.T
   val trace_goal: Proof.context -> string -> thm list -> term -> unit
   val trace: Proof.context -> (unit -> string) -> unit
 
+  (*Replaying*)
   val replay_error: Proof.context -> string -> string -> thm list -> term -> 'a
-  val replay_rule_error: Proof.context -> string -> thm list -> term -> 'a
+  val replay_rule_error: string -> Proof.context -> string -> thm list -> term -> 'a
 
   (*theory lemma methods*)
   type th_lemma_method = Proof.context -> thm list -> term -> thm
@@ -23,6 +25,10 @@ sig
   val discharge: int -> thm list -> thm -> thm
   val match_instantiate: Proof.context -> term -> thm -> thm
   val prove: Proof.context -> term -> (Proof.context -> int -> tactic) -> thm
+
+  val prove_arith_rewrite: ((term -> int * term Termtab.table ->
+    term * (int * term Termtab.table)) -> term -> int * term Termtab.table ->
+    term * (int * term Termtab.table)) -> Proof.context -> term -> thm
 
   (*abstraction*)
   type abs_context = int * term Termtab.table
@@ -36,24 +42,44 @@ sig
   val abstract_not:  (term -> abs_context -> term * abs_context) ->
     term -> abs_context -> term * abs_context
   val abstract_unit:  term -> abs_context -> term * abs_context
+  val abstract_bool:  term -> abs_context -> term * abs_context
+  (* also abstracts over equivalences and conjunction and implication*)
+  val abstract_bool_shallow:  term -> abs_context -> term * abs_context
+  (* abstracts down to equivalence symbols *)
+  val abstract_bool_shallow_equivalence: term -> abs_context -> term * abs_context
   val abstract_prop: term -> abs_context -> term * abs_context
   val abstract_term:  term -> abs_context -> term * abs_context
+  val abstract_eq: (term -> int * term Termtab.table ->  term * (int * term Termtab.table)) ->
+        term -> int * term Termtab.table -> term * (int * term Termtab.table)
+  val abstract_neq: (term -> int * term Termtab.table ->  term * (int * term Termtab.table)) ->
+        term -> int * term Termtab.table -> term * (int * term Termtab.table)
   val abstract_arith: Proof.context -> term -> abs_context -> term * abs_context
+  (* also abstracts over if-then-else *)
+  val abstract_arith_shallow: Proof.context -> term -> abs_context -> term * abs_context
 
   val prove_abstract:  Proof.context -> thm list -> term ->
     (Proof.context -> thm list -> int -> tactic) ->
     (abs_context -> (term list * term) * abs_context) -> thm
   val prove_abstract': Proof.context -> term -> (Proof.context -> thm list -> int -> tactic) ->
     (abs_context -> term * abs_context) -> thm
-  val try_provers:  Proof.context -> string -> (string * (term -> 'a)) list -> thm list -> term ->
-    'a
+  val try_provers:  string -> Proof.context -> string -> (string * (term -> 'a)) list -> thm list ->
+    term -> 'a
 
   (*shared tactics*)
+  val cong_unfolding_trivial: Proof.context -> thm list -> term -> thm
   val cong_basic: Proof.context -> thm list -> term -> thm
   val cong_full: Proof.context -> thm list -> term -> thm
   val cong_unfolding_first: Proof.context -> thm list -> term -> thm
+  val arith_th_lemma: Proof.context -> thm list -> term -> thm
+  val arith_th_lemma_wo: Proof.context -> thm list -> term -> thm
+  val arith_th_lemma_wo_shallow: Proof.context -> thm list -> term -> thm
+  val arith_th_lemma_tac_with_wo: Proof.context -> thm list -> int -> tactic
+
+  val dest_thm: thm -> term
+  val prop_tac: Proof.context -> thm list -> int -> tactic
 
   val certify_prop: Proof.context -> term -> cterm
+  val dest_prop: term -> term
 
 end;
 
@@ -77,7 +103,7 @@ fun pretty_goal ctxt msg rule thms t =
 
 fun replay_error ctxt msg rule thms t = error (Pretty.string_of (pretty_goal ctxt msg rule thms t))
 
-fun replay_rule_error ctxt = replay_error ctxt "Failed to replay Z3 proof step"
+fun replay_rule_error name ctxt = replay_error ctxt ("Failed to replay" ^ name ^ " proof step")
 
 fun trace_goal ctxt rule thms t =
   trace ctxt (fn () => Pretty.string_of (pretty_goal ctxt "Goal" rule thms t))
@@ -221,7 +247,7 @@ fun abstract_prop (t as (c as @{const If (bool)}) $ t1 $ t2 $ t3) =
 
 fun abstract_arith ctxt u =
   let
-    fun abs (t as (c as Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ Abs (s, T, t'))) =
+    fun abs (t as (Const (\<^const_name>\<open>HOL.The\<close>, _) $ Abs (_, _, _))) =
           abstract_sub t (abstract_term t)
       | abs (t as (c as Const _) $ Abs (s, T, t')) =
           abstract_sub t (abs t' #>> (fn u' => c $ Abs (s, T, u')))
@@ -267,7 +293,7 @@ fun abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq)
       else abstract_lit t
-  | abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
+  | abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2))) =
       if fastype_of t1 = \<^typ>\<open>bool\<close> then
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq #>> HOLogic.mk_not)
@@ -276,14 +302,123 @@ fun abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.
       abstract_sub t (abstract_unit t1 #>> HOLogic.mk_not)
   | abstract_unit t = abstract_lit t
 
+fun abstract_bool (t as (@{const HOL.disj} $ t1 $ t2)) =
+      abstract_sub t (abstract_bool t1 ##>> abstract_bool t2 #>>
+        HOLogic.mk_disj)
+  | abstract_bool (t as (@{const HOL.conj} $ t1 $ t2)) =
+      abstract_sub t (abstract_bool t1 ##>> abstract_bool t2 #>>
+        HOLogic.mk_conj)
+  | abstract_bool (t as (Const(@{const_name HOL.eq}, _) $ t1 $ t2)) =
+      if fastype_of t1 = @{typ bool} then
+        abstract_sub t (abstract_bool t1 ##>> abstract_bool t2 #>>
+          HOLogic.mk_eq)
+      else abstract_lit t
+  | abstract_bool (t as (@{const HOL.Not} $ t1)) =
+      abstract_sub t (abstract_bool t1 #>> HOLogic.mk_not)
+  | abstract_bool (t as (@{const HOL.implies} $ t1 $ t2)) =
+      abstract_sub t (abstract_bool t1 ##>> abstract_bool t2 #>>
+        HOLogic.mk_imp)
+  | abstract_bool t = abstract_lit t
+
+fun abstract_bool_shallow (t as (@{const HOL.disj} $ t1 $ t2)) =
+      abstract_sub t (abstract_bool_shallow t1 ##>> abstract_bool_shallow t2 #>>
+        HOLogic.mk_disj)
+  | abstract_bool_shallow (t as (@{const HOL.Not} $ t1)) =
+      abstract_sub t (abstract_bool_shallow t1 #>> HOLogic.mk_not)
+  | abstract_bool_shallow t = abstract_term t
+
+fun abstract_bool_shallow_equivalence (t as (@{const HOL.disj} $ t1 $ t2)) =
+      abstract_sub t (abstract_bool_shallow_equivalence t1 ##>> abstract_bool_shallow_equivalence t2 #>>
+        HOLogic.mk_disj)
+  | abstract_bool_shallow_equivalence (t as (Const(@{const_name HOL.eq}, _) $ t1 $ t2)) =
+      if fastype_of t1 = @{typ bool} then
+        abstract_sub t (abstract_lit t1 ##>> abstract_lit t2 #>>
+          HOLogic.mk_eq)
+      else abstract_lit t
+  | abstract_bool_shallow_equivalence (t as (@{const HOL.Not} $ t1)) =
+      abstract_sub t (abstract_bool_shallow_equivalence t1 #>> HOLogic.mk_not)
+  | abstract_bool_shallow_equivalence t = abstract_lit t
+
+fun abstract_arith_shallow ctxt u =
+  let
+    fun abs (t as (Const (\<^const_name>\<open>HOL.The\<close>, _) $ Abs (_, _, _))) =
+          abstract_sub t (abstract_term t)
+      | abs (t as (c as Const _) $ Abs (s, T, t')) =
+          abstract_sub t (abs t' #>> (fn u' => c $ Abs (s, T, u')))
+      | abs (t as (Const (\<^const_name>\<open>If\<close>, _)) $ _ $ _ $ _) =
+          abstract_sub t (abstract_term t)
+      | abs (t as \<^const>\<open>HOL.Not\<close> $ t1) = abstract_sub t (abs t1 #>> HOLogic.mk_not)
+      | abs (t as \<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> HOLogic.mk_disj)
+      | abs (t as (c as Const (\<^const_name>\<open>uminus_class.uminus\<close>, _)) $ t1) =
+          abstract_sub t (abs t1 #>> (fn u => c $ u))
+      | abs (t as (c as Const (\<^const_name>\<open>plus_class.plus\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs (t as (c as Const (\<^const_name>\<open>minus_class.minus\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs (t as (c as Const (\<^const_name>\<open>times_class.times\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs (t as (Const (\<^const_name>\<open>z3div\<close>, _)) $ _ $ _) =
+         abstract_sub t (abstract_term t)
+      | abs (t as (Const (\<^const_name>\<open>z3mod\<close>, _)) $ _ $ _) =
+          abstract_sub t (abstract_term t)
+      | abs (t as (c as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs (t as (c as Const (\<^const_name>\<open>ord_class.less\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs (t as (c as Const (\<^const_name>\<open>ord_class.less_eq\<close>, _)) $ t1 $ t2) =
+          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
+      | abs t = abstract_sub t (fn cx =>
+          if can HOLogic.dest_number t then (t, cx)
+          else
+            (case apply_abstracters abs (get_arith_abstracters ctxt) t cx of
+              (SOME u, cx') => (u, cx')
+            | (NONE, _) => abstract_term t cx))
+  in abs u end
 
 (* theory lemmas *)
 
-fun try_provers ctxt rule [] thms t = replay_rule_error ctxt rule thms t
-  | try_provers ctxt rule ((name, prover) :: named_provers) thms t =
+fun try_provers prover_name ctxt rule [] thms t = replay_rule_error prover_name ctxt rule thms t
+  | try_provers prover_name ctxt rule ((name, prover) :: named_provers) thms t =
       (case (trace ctxt (K ("Trying prover " ^ quote name)); try prover t) of
         SOME thm => thm
-      | NONE => try_provers ctxt rule named_provers thms t)
+      | NONE => try_provers prover_name ctxt rule named_provers thms t)
+
+(*theory-lemma*)
+
+fun arith_th_lemma_tac ctxt prems =
+  Method.insert_tac ctxt prems
+  THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def})
+  THEN' Arith_Data.arith_tac ctxt
+
+fun arith_th_lemma ctxt thms t =
+  prove_abstract ctxt thms t arith_th_lemma_tac (
+    fold_map (abstract_arith ctxt o dest_thm) thms ##>>
+      abstract_arith ctxt (dest_prop t))
+
+fun arith_th_lemma_tac_with_wo ctxt prems =
+  Method.insert_tac ctxt prems
+  THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def int_distrib})
+  THEN' Simplifier.asm_full_simp_tac
+     (empty_simpset ctxt addsimprocs [(*@{simproc linordered_ring_strict_eq_cancel_factor_poly},
+      @{simproc linordered_ring_strict_le_cancel_factor_poly},
+      @{simproc linordered_ring_strict_less_cancel_factor_poly},
+      @{simproc nat_eq_cancel_factor_poly},
+      @{simproc nat_le_cancel_factor_poly},
+      @{simproc nat_less_cancel_factor_poly}*)])
+  THEN' (fn i => TRY (Arith_Data.arith_tac ctxt i))
+
+fun arith_th_lemma_wo ctxt thms t =
+  prove_abstract ctxt thms t arith_th_lemma_tac_with_wo (
+    fold_map (abstract_arith ctxt o dest_thm) thms ##>>
+      abstract_arith ctxt (dest_prop t))
+
+fun arith_th_lemma_wo_shallow ctxt thms t =
+  prove_abstract ctxt thms t arith_th_lemma_tac_with_wo (
+    fold_map (abstract_arith_shallow ctxt o dest_thm) thms ##>>
+      abstract_arith_shallow ctxt (dest_prop t))
+
+val _ = Theory.setup (Context.theory_map (add_th_lemma_method ("arith", arith_th_lemma)))
 
 
 (* congruence *)
@@ -318,20 +453,66 @@ fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
     ORELSE' dresolve_tac ctxt cong_dest_rules
     THEN' cong_full_core_tac ctxt'))
 
+local
+  val reorder_for_simp = try (fn thm =>
+       let val t = Thm.prop_of (@{thm eq_reflection} OF [thm])
+           val thm =
+             (case Logic.dest_equals t of
+               (t1, t2) =>
+                 if t1 aconv t2 then raise TERM("identical terms", [t1, t2])
+                 else if Term.size_of_term t1 > Term.size_of_term t2 then @{thm eq_reflection} OF [thm]
+                 else @{thm eq_reflection} OF [@{thm sym} OF [thm]])
+                  handle TERM("dest_equals", _) => @{thm eq_reflection} OF [thm]
+       in thm end)
+in  
+fun cong_unfolding_trivial ctxt thms t =
+   prove ctxt t (fn _ =>
+      EVERY' (map (fn thm => K (unfold_tac ctxt [thm])) ((map_filter reorder_for_simp thms)))
+      THEN' (fn i => TRY (resolve_tac ctxt @{thms refl} i)))
+
 fun cong_unfolding_first ctxt thms t =
-  let val reorder_for_simp = try (fn thm =>
-    let val t = Thm.prop_of ( @{thm eq_reflection} OF [thm])
-          val thm = (case Logic.dest_equals t of
-               (t1, t2) => if Term.size_of_term t1 > Term.size_of_term t2 then @{thm eq_reflection} OF [thm]
-                   else @{thm eq_reflection} OF [thm OF @{thms sym}])
-               handle TERM("dest_equals", _) =>  @{thm eq_reflection} OF [thm]
-    in thm end)
+  let val ctxt =
+        ctxt
+        |> empty_simpset
+        |> put_simpset HOL_basic_ss
+        |> (fn ctxt => ctxt addsimps @{thms not_not eq_commute})
   in
-    prove ctxt t (fn ctxt =>
-      Raw_Simplifier.rewrite_goal_tac ctxt
-        (map_filter reorder_for_simp thms)
+    prove ctxt t (fn _ =>
+      EVERY' (map (fn thm => K (unfold_tac ctxt [thm])) ((map_filter reorder_for_simp thms)))
       THEN' Method.insert_tac ctxt thms
-     THEN' K (Clasimp.auto_tac ctxt))
+      THEN' (full_simp_tac ctxt)
+      THEN' K (ALLGOALS (K (Clasimp.auto_tac ctxt))))
   end
+
+end
+
+
+fun arith_rewrite_tac ctxt _ =
+  let val backup_tac = Arith_Data.arith_tac ctxt ORELSE' Clasimp.force_tac ctxt in
+    (TRY o Simplifier.simp_tac ctxt) THEN_ALL_NEW backup_tac
+    ORELSE' backup_tac
+  end
+
+fun abstract_eq f (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
+      f t1 ##>> f t2 #>> HOLogic.mk_eq
+  | abstract_eq _ t = abstract_term t
+
+fun abstract_neq f (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
+      f t1 ##>> f t2 #>> HOLogic.mk_eq
+  | abstract_neq f (Const (\<^const_name>\<open>HOL.Not\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
+       f t1 ##>> f t2 #>> HOLogic.mk_eq #>> curry (op $) HOLogic.Not
+  |  abstract_neq f (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ t1 $ t2) =
+      f t1 ##>> f t2 #>> HOLogic.mk_disj
+  | abstract_neq _ t = abstract_term t
+
+fun prove_arith_rewrite abstracter ctxt t =
+  prove_abstract' ctxt t arith_rewrite_tac (
+    abstracter (abstract_arith ctxt) (dest_prop t))
+
+fun prop_tac ctxt prems =
+  Method.insert_tac ctxt prems
+  THEN' SUBGOAL (fn (prop, i) =>
+    if Term.size_of_term prop > 100 then SAT.satx_tac ctxt i
+    else (Classical.fast_tac ctxt ORELSE' Clasimp.force_tac ctxt) i)
 
 end;

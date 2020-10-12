@@ -38,6 +38,7 @@ sig
   val infer_triggers: bool Config.T
   val debug_files: string Config.T
   val sat_solver: string Config.T
+  val compress_verit_proofs: Proof.context -> bool
 
   (*tools*)
   val with_time_limit: Proof.context -> real Config.T -> ('a -> 'b) -> 'a -> 'b
@@ -47,7 +48,10 @@ sig
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val verbose_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val statistics_msg: Proof.context -> ('a -> string) -> 'a -> unit
-  val veriT_msg: Proof.context -> (unit -> 'a) -> unit
+  val verit_msg: Proof.context -> (unit -> 'a) -> unit
+  val verit_arith_msg: Proof.context -> (unit -> 'a) -> unit
+  val spy_verit: Proof.context -> bool
+  val spy_Z3: Proof.context -> bool
 
   (*certificates*)
   val select_certificates: string -> Context.generic -> Context.generic
@@ -180,7 +184,11 @@ val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<clo
 val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false)
 val verbose = Attrib.setup_config_bool \<^binding>\<open>smt_verbose\<close> (K true)
 val trace = Attrib.setup_config_bool \<^binding>\<open>smt_trace\<close> (K false)
-val trace_veriT = Attrib.setup_config_bool \<^binding>\<open>smt_debug_verit\<close> (K false)
+val trace_verit = Attrib.setup_config_bool \<^binding>\<open>smt_debug_verit\<close> (K false)
+val spy_verit_attr = Attrib.setup_config_bool \<^binding>\<open>smt_spy_verit\<close> (K false)
+val spy_z3 = Attrib.setup_config_bool \<^binding>\<open>smt_spy_z3\<close> (K false)
+val trace_arith_verit = Attrib.setup_config_bool \<^binding>\<open>smt_debug_arith_verit\<close> (K false)
+val trace_verit_compression = Attrib.setup_config_bool \<^binding>\<open>verit_compress_proofs\<close> (K false)
 val statistics = Attrib.setup_config_bool \<^binding>\<open>smt_statistics\<close> (K false)
 val monomorph_limit = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_limit\<close> (K 10)
 val monomorph_instances = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_instances\<close> (K 500)
@@ -200,7 +208,12 @@ fun verbose_msg ctxt = cond_trace (Config.get ctxt verbose)
 fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 fun statistics_msg ctxt = cond_trace (Config.get ctxt statistics)
 
-fun veriT_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_veriT) then ignore(x ()) else ()
+fun verit_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_verit) then ignore(x ()) else ()
+fun verit_arith_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_arith_verit) then ignore(x ()) else ()
+
+fun spy_verit ctxt  = Config.get ctxt spy_verit_attr
+fun spy_Z3 ctxt  = Config.get ctxt spy_z3
+fun compress_verit_proofs ctxt  = Config.get ctxt trace_verit_compression
 
 
 (* tools *)
