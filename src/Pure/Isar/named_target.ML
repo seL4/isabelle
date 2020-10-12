@@ -18,10 +18,7 @@ sig
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
     theory -> 'b * theory
-  val begin: xstring * Position.T -> theory -> local_theory
-  val exit: local_theory -> theory
-  val switch: (xstring * Position.T) option -> Context.generic ->
-    (local_theory -> Context.generic) * local_theory
+  val reinit: local_theory -> theory -> local_theory
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -141,22 +138,6 @@ fun theory_map g = theory_init #> g #> Local_Theory.exit_global;
 
 fun theory_map_result f g = theory_init #> g #> Local_Theory.exit_result_global f;
 
-
-(* toplevel interaction *)
-
-fun begin ("-", _) thy = theory_init thy
-  | begin target thy = init (Locale.check thy target) thy;
-
-val exit = Local_Theory.assert_bottom #> Local_Theory.exit_global;
-
-fun switch NONE (Context.Theory thy) =
-      (Context.Theory o exit, theory_init thy)
-  | switch (SOME name) (Context.Theory thy) =
-      (Context.Theory o exit, begin name thy)
-  | switch NONE (Context.Proof lthy) =
-      (Context.Proof o Local_Theory.reset, lthy)
-  | switch (SOME name) (Context.Proof lthy) =
-      (Context.Proof o init (ident_of lthy) o exit,
-        (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
+fun reinit lthy = init (ident_of lthy);
 
 end;

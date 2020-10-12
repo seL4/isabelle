@@ -54,7 +54,7 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
   val end_main_target: transition -> transition
-  val begin_nested_target: (local_theory -> local_theory) -> transition -> transition
+  val begin_nested_target: (Context.generic -> local_theory) -> transition -> transition
   val end_nested_target: transition -> transition
   val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> local_theory) -> transition -> transition
@@ -436,7 +436,10 @@ fun begin_main_target begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
         let
           val lthy = f thy;
-          val gthy = if begin then Context.Proof lthy else Context.Theory (Named_Target.exit lthy);
+          val gthy =
+            if begin
+            then Context.Proof lthy
+            else Context.Theory (Target_Context.end_named_cmd lthy);
           val _ =
             (case Local_Theory.pretty lthy of
               [] => ()
@@ -445,14 +448,13 @@ fun begin_main_target begin f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 val end_main_target = transaction (fn _ =>
-  (fn Theory (Context.Proof lthy) => (Theory (Context.Theory (Named_Target.exit lthy)), lthy)
+  (fn Theory (Context.Proof lthy) => (Theory (Context.Theory (Target_Context.end_named_cmd lthy)), lthy)
     | _ => raise UNDEF));
 
 fun begin_nested_target f = transaction0 (fn _ =>
   (fn Theory gthy =>
         let
-          val lthy = Bundle.begin_nested_target gthy;
-          val lthy' = f lthy
+          val lthy' = f gthy;
         in Theory (Context.Proof lthy') end
     | _ => raise UNDEF));
 
@@ -460,7 +462,7 @@ val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
         (case try Local_Theory.end_nested lthy of
           SOME lthy' =>
-            let val gthy' = Bundle.end_nested_target lthy'
+            let val gthy' = Target_Context.end_nested_cmd lthy'
             in (Theory gthy', lthy) end
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
@@ -472,7 +474,7 @@ fun restricted_context (SOME (strict, scope)) =
 fun local_theory' restricted target f = present_transaction (fn int =>
   (fn Theory gthy =>
         let
-          val (finish, lthy) = Named_Target.switch target gthy;
+          val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
           val lthy' = lthy
             |> restricted_context restricted
             |> Local_Theory.new_group
@@ -486,7 +488,7 @@ fun local_theory restricted target f = local_theory' restricted target (K f);
 
 fun present_local_theory target = present_transaction (fn _ =>
   (fn Theory gthy =>
-        let val (finish, lthy) = Named_Target.switch target gthy;
+        let val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
         in (Theory (finish lthy), lthy) end
     | _ => raise UNDEF));
 
@@ -531,7 +533,7 @@ in
 fun local_theory_to_proof' restricted target f = begin_proof
   (fn int => fn gthy =>
     let
-      val (finish, lthy) = Named_Target.switch target gthy;
+      val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
       val prf = lthy
         |> restricted_context restricted
         |> Local_Theory.new_group
@@ -789,5 +791,3 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
 end;
 
 end;
-
-structure Local_Theory : LOCAL_THEORY = struct open Local_Theory; end;

@@ -268,6 +268,7 @@ ML_file "Isar/expression.ML";
 ML_file "Isar/interpretation.ML";
 ML_file "Isar/class_declaration.ML";
 ML_file "Isar/bundle.ML";
+ML_file "Isar/target_context.ML";
 ML_file "Isar/experiment.ML";
 
 ML_file "simplifier.ML";
