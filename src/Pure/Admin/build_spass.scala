@@ -22,10 +22,7 @@ object Build_SPASS
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
-      /* required commands */
-
-      List("bison", "flex").foreach(cmd =>
-        if (!Isabelle_System.bash(cmd + " --version").ok) error("Missing command: " + cmd))
+      Isabelle_System.require_command("bison", "flex")
 
 
       /* component */

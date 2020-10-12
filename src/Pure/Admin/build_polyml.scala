@@ -72,9 +72,7 @@ object Build_PolyML
       if (!Platform.is_windows) Isabelle_System.settings()
       else Isabelle_System.settings() + ("MSYS" -> mingw.get_root.expand.implode)
 
-    if (platform.is_linux && !Isabelle_System.bash("chrpath -v").ok) {
-      error("""Missing "chrpath" executable on Linux""")
-    }
+    if (platform.is_linux) Isabelle_System.require_command("chrpath")
 
 
     /* bash */

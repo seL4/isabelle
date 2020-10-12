@@ -22,10 +22,7 @@ object Build_VeriT
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
-      /* required commands */
-
-      List("autoconf", "bison", "flex", "wget").foreach(cmd =>
-        if (!Isabelle_System.bash(cmd + " --version").ok) error("Missing command: " + cmd))
+      Isabelle_System.require_command("autoconf", "bison", "flex", "wget")
 
 
       /* component */

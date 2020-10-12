@@ -375,9 +375,16 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
+  def require_command(cmds: String*)
+  {
+    for (cmd <- cmds) {
+      if (!bash(Bash.string(cmd) + " --version").ok) error("Missing command: " + quote(cmd))
+    }
+  }
+
   private lazy val curl_check: Unit =
-    try { bash("curl --version").check }
-    catch { case ERROR(_) => error("Cannot download files: missing curl") }
+    try { require_command("curl") }
+    catch { case ERROR(msg) => error(msg + " --- cannot download files") }
 
   def download(url: String, file: Path, progress: Progress = new Progress): Unit =
   {
