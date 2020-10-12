@@ -612,10 +612,10 @@ fun add_lift_def (config: config) (binding, mx) qty rhs rsp_thm par_thms lthy0 =
           opt_rep_eq_thm code_eq transfer_rules
   in
     lthy2
-    |> Local_Theory.open_target
+    |> (snd o Local_Theory.begin_nested)
     |> Local_Theory.notes (notes (#notes config)) |> snd
     |> `(fn lthy => morph_lift_def (Local_Theory.target_morphism lthy) lift_def)
-    ||> Local_Theory.close_target
+    ||> Local_Theory.end_nested
   end
 
 (* This is not very cheap way of getting the rules but we have only few active

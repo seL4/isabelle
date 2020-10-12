@@ -27,8 +27,8 @@ sig
     local_theory -> Binding.scope * local_theory
   val context_cmd: (xstring * Position.T) list -> Element.context list ->
     local_theory -> Binding.scope * local_theory
-  val begin_nested: Context.generic -> local_theory
-  val end_nested: local_theory -> Context.generic
+  val begin_nested_target: Context.generic -> local_theory
+  val end_nested_target: local_theory -> Context.generic
 end;
 
 structure Bundle: BUNDLE =
@@ -213,7 +213,7 @@ fun gen_context get prep_decl raw_incls raw_elems lthy =
   |> gen_includes get raw_incls
   |> prep_decl ([], []) I raw_elems
   |> (#4 o fst)
-  |> Local_Theory.begin_target;
+  |> Local_Theory.begin_nested;
 
 in
 
@@ -234,10 +234,10 @@ val context = gen_context get_bundle Expression.cert_declaration;
 
 val context_cmd = gen_context get_bundle_cmd Expression.read_declaration;
 
-val begin_nested =
+val begin_nested_target =
   Context.cases Named_Target.theory_init Local_Theory.assert;
 
-fun end_nested lthy = 
+fun end_nested_target lthy = 
   if Named_Target.is_theory lthy
   then Context.Theory (Local_Theory.exit_global lthy)
   else Context.Proof lthy;

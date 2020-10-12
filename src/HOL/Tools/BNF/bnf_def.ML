@@ -1067,11 +1067,11 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
       (bnf_set_terms, raw_set_defs)),
       (bnf_bd_term, raw_bd_def)), (lthy, lthy_old)) =
         no_defs_lthy
-        |> Local_Theory.open_target
+        |> (snd o Local_Theory.begin_nested)
         |> maybe_define true map_bind_def
         ||>> apfst split_list o fold_map (maybe_define true) set_binds_defs
         ||>> maybe_define true bd_bind_def
-        ||> `Local_Theory.close_target;
+        ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
@@ -1190,11 +1190,11 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
     val ((((bnf_rel_term, raw_rel_def), (bnf_pred_term, raw_pred_def)),
         (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> maybe_define (is_some rel_rhs_opt) rel_bind_def
       ||>> maybe_define (is_some pred_rhs_opt) pred_bind_def
       ||>> apfst split_list o fold_map (maybe_define (not (null wit_rhss))) wit_binds_defs
-      ||> `Local_Theory.close_target;
+      ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val bnf_rel_def = Morphism.thm phi raw_rel_def;

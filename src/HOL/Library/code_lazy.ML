@@ -88,11 +88,11 @@ fun add_syntax_definition short_type_name eagerT lazyT lazy_ctr lthy =
     val def = Logic.all_const freeT $ absdummy freeT (Logic.mk_equals (
       Free (name, (freeT --> eagerT)) $ Bound 0,
       lazy_ctr $ (Const (\<^const_name>\<open>delay\<close>, (freeT --> lazyT')) $ Bound 0)))
-    val lthy' = Local_Theory.open_target lthy
+    val lthy' = (snd o Local_Theory.begin_nested) lthy
     val ((t, (_, thm)), lthy') = Specification.definition NONE [] [] 
       ((Thm.def_binding (Binding.name name), []), def) lthy'
     val lthy' = Specification.notation true ("", false) [(t, Mixfix.mixfix "_")] lthy'
-    val lthy = Local_Theory.close_target lthy'
+    val lthy = Local_Theory.end_nested lthy'
     val def_thm = singleton (Proof_Context.export lthy' lthy) thm
   in
     (def_thm, lthy)
@@ -238,9 +238,9 @@ fun code_lazy_type eager_type_string thy =
             (Const (\<^const_name>\<open>top\<close>, Type (\<^type_name>\<open>set\<close>, [eager_type])))
             NONE
             (fn ctxt => resolve_tac ctxt [@{thm UNIV_witness}] 1)
-          o Local_Theory.open_target) lthy
+          o (snd o Local_Theory.begin_nested)) lthy
       in
-         (binding, result, Local_Theory.close_target lthy1)
+         (binding, result, Local_Theory.end_nested lthy1)
       end;
 
     val (typedef_binding, (_, info), lthy2) = mk_lazy_typedef (short_lazy_type_name, eagerT) lthy1
@@ -291,9 +291,9 @@ fun code_lazy_type eager_type_string thy =
       let
         val binding = Binding.name name
         val ((_, (_, thm)), lthy1) = 
-          Local_Theory.open_target lthy
+          (snd o Local_Theory.begin_nested) lthy
           |> Specification.definition NONE [] [] ((Thm.def_binding binding, []), rhs)
-        val lthy2 = Local_Theory.close_target lthy1
+        val lthy2 = Local_Theory.end_nested lthy1
         val def_thm = hd (Proof_Context.export lthy1 lthy2 [thm])
       in
         ({binding = binding, const = Const (Local_Theory.full_name lthy2 binding, T), thm = def_thm}, lthy2)
@@ -355,10 +355,10 @@ fun code_lazy_type eager_type_string thy =
           1
         val thm = Goal.prove lthy [] [] term tac
         val (_, lthy1) = lthy
-          |> Local_Theory.open_target
+          |> (snd o Local_Theory.begin_nested)
           |> Local_Theory.note ((binding, []), [thm])
       in
-        (thm, Local_Theory.close_target lthy1)
+        (thm, Local_Theory.end_nested lthy1)
       end
     fun mk_thms exec_list lthy = fold_map mk_thm exec_list lthy
 

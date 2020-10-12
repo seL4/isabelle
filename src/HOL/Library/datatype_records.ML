@@ -179,10 +179,10 @@ fun mk_update_defs typ_name lthy =
 
     val (updates, (lthy'', lthy')) =
       lthy
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> Local_Theory.map_background_naming (Name_Space.qualified_path false (Binding.name short_name))
       |> @{fold_map 2} define (map mk_name sels) (Syntax.check_terms lthy (map mk_t (0 upto len - 1)))
-      ||> `Local_Theory.close_target
+      ||> `Local_Theory.end_nested
 
     val phi = Proof_Context.export_morphism lthy' lthy''
 

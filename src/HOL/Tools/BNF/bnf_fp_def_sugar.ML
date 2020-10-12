@@ -663,12 +663,12 @@ fun define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks a
         ks xss;
 
     val ((raw_ctrs, raw_ctr_defs), (lthy, lthy_old)) = lthy
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> apfst split_list o @{fold_map 3} (fn b => fn mx => fn rhs =>
           Local_Theory.define ((b, mx),
             ((Thm.make_def_binding (Config.get lthy bnf_internals) b, []), rhs))
           #>> apsnd snd) ctr_bindings ctr_mixfixes ctr_rhss
-      ||> `Local_Theory.close_target;
+      ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
@@ -1588,10 +1588,10 @@ fun define_co_rec_as fp Cs fpT b rhs lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val ((cst, (_, def)), (lthy', lthy)) = lthy0
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> Local_Theory.define
           ((b, NoSyn), ((Thm.make_def_binding (Config.get lthy0 bnf_internals) b, []), rhs))
-      ||> `Local_Theory.close_target;
+      ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy lthy';
 

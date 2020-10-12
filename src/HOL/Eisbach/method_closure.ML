@@ -178,7 +178,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
   let
     val (uses_internal, lthy1) = lthy
       |> Proof_Context.concealed
-      |> Local_Theory.begin_target
+      |> Local_Theory.begin_nested
       |-> Proof_Context.private_scope
       |> Local_Theory.map_background_naming (Name_Space.add_path (Binding.name_of name))
       |> Config.put Method.old_section_parser true
@@ -221,7 +221,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     val term_args' = map (Morphism.term morphism) term_args;
   in
     lthy3
-    |> Local_Theory.close_target
+    |> Local_Theory.end_nested
     |> Proof_Context.restore_naming lthy
     |> put_closure name
         {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}

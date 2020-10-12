@@ -55,6 +55,14 @@ checked within the Isabelle settings environment.
 * Definitions in locales produce rule which can be added as congruence
 rule to protect foundational terms during simplification.
 
+* Consolidated terminology and function signatures for nested targets:
+
+  * Local_Theory.begin_nested replaces Local_Theory.open_target.
+
+  * Local_Theory.end_nested replaces Local_Theory.close_target.
+
+INCOMPATIBILITY.
+
 
 *** HOL ***
 

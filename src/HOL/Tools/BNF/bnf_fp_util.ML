@@ -769,11 +769,11 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
 
     val ((co_rec_frees, (_, co_rec_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> fold_map (fn i =>
         Local_Theory.define ((co_rec_bind i, NoSyn), (co_rec_def_bind i, co_rec_spec i))) ks
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.close_target;
+      ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val co_rec_names = map (fst o dest_Const o Morphism.term phi) co_rec_frees;

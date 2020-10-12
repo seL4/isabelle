@@ -73,9 +73,9 @@ sig
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
-  val begin_target: local_theory -> Binding.scope * local_theory
-  val open_target: local_theory -> local_theory
-  val close_target: local_theory -> local_theory
+  val begin_nested: local_theory -> Binding.scope * local_theory
+  val end_nested: local_theory -> local_theory
+  val end_nested_result: (morphism -> 'a -> 'b) ->  'a * local_theory -> 'b * local_theory
   val subtarget: (local_theory -> local_theory) -> local_theory -> local_theory
   val subtarget_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
     local_theory -> 'b * local_theory
@@ -383,7 +383,7 @@ fun exit_result_global decl (x, lthy) =
 
 (* nested targets *)
 
-fun begin_target lthy =
+fun begin_nested lthy =
   let
     val _ = assert lthy;
     val (scope, target) = Proof_Context.new_scope lthy;
@@ -392,20 +392,24 @@ fun begin_target lthy =
     val lthy' = Data.map (cons entry) target;
   in (scope, lthy') end;
 
-val open_target = begin_target #> snd;
-
-fun close_target lthy =
+fun end_nested lthy =
   let
     val _ = assert_not_bottom lthy;
     val ({after_close, ...} :: rest) = Data.get lthy;
   in lthy |> Data.put rest |> reset |> after_close end;
 
-fun subtarget body = open_target #> body #> close_target;
+fun end_nested_result decl (x, lthy) =
+   let
+    val outer_lthy = end_nested lthy;
+    val phi = Proof_Context.export_morphism lthy outer_lthy;
+  in (decl phi x, outer_lthy) end;
+
+fun subtarget body = begin_nested #> snd #> body #> end_nested;
 
 fun subtarget_result decl body lthy =
   let
-    val (x, inner_lthy) = lthy |> open_target |> body;
-    val lthy' = inner_lthy |> close_target;
+    val (x, inner_lthy) = lthy |> begin_nested |> snd |> body;
+    val lthy' = inner_lthy |> end_nested;
     val phi = Proof_Context.export_morphism inner_lthy lthy';
   in (decl phi x, lthy') end;
 

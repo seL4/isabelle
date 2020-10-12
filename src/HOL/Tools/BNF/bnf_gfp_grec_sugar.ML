@@ -2054,10 +2054,10 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val def = ((b, mx), ((Binding.concealed (Thm.def_binding b), []), def_rhs));
 
         val ((fun_lhs0, (_, fun_def0)), (lthy9, lthy8')) = lthy7
-          |> Local_Theory.open_target
+          |> (snd o Local_Theory.begin_nested)
           |> Local_Theory.define def
           |> tap (fn (def, lthy') => print_def_consts int [def] lthy')
-          ||> `Local_Theory.close_target;
+          ||> `Local_Theory.end_nested;
 
         val parsed_eq = parse_corec_equation lthy9 [fun_free] eq;
         val views0 = generate_views lthy9 eq fun_free parsed_eq;

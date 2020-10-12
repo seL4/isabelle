@@ -451,16 +451,16 @@ val end_main_target = transaction (fn _ =>
 fun begin_nested_target f = transaction0 (fn _ =>
   (fn Theory gthy =>
         let
-          val lthy = Bundle.begin_nested gthy;
+          val lthy = Bundle.begin_nested_target gthy;
           val lthy' = f lthy
         in Theory (Context.Proof lthy') end
     | _ => raise UNDEF));
 
 val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
-        (case try Local_Theory.close_target lthy of
+        (case try Local_Theory.end_nested lthy of
           SOME lthy' =>
-            let val gthy' = Bundle.end_nested lthy'
+            let val gthy' = Bundle.end_nested_target lthy'
             in (Theory gthy', lthy) end
         | NONE => raise UNDEF)
     | _ => raise UNDEF));

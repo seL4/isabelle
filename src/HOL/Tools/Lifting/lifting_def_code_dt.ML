@@ -146,10 +146,10 @@ val all_code_dt_of = all_code_dt_of_generic o Context.Proof;
 val all_code_dt_of_global = all_code_dt_of_generic o Context.Theory;
 
 fun update_code_dt code_dt =
-  Local_Theory.open_target
+  (snd o Local_Theory.begin_nested)
   #> Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Item_Net.update (morph_code_dt phi code_dt)))
-  #> Local_Theory.close_target
+  #> Local_Theory.end_nested
 
 fun mk_match_of_code_dt qty code_dt = Vartab.empty |> Type.raw_match (qty_of_code_dt code_dt, qty)
   |> Vartab.dest |> map (fn (x, (S, T)) => (TVar (x, S), T));
@@ -329,7 +329,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       THEN' (rtac ctxt @{thm id_transfer}));
 
     val (rep_isom_lift_def, lthy1) = lthy0
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
         (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac []
       |>> inst_of_lift_def lthy0 (qty_isom --> qty);
@@ -347,7 +347,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
     val lthy3 = lthy2  
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
-      |> Local_Theory.close_target
+      |> Local_Theory.end_nested
 
     (* in order to make the qty qty_isom isomorphism executable we have to define discriminators 
       and selectors for qty_isom *)
@@ -567,7 +567,7 @@ and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
         val non_empty_pred = quot_thm RS @{thm type_definition_Quotient_not_empty}
         val pred = quot_thm_rel quot_thm |> dest_comb |> snd;
         val (pred, lthy1) = lthy0
-          |> Local_Theory.open_target
+          |> (snd o Local_Theory.begin_nested)
           |> yield_singleton (Variable.import_terms true) pred;
         val TFrees = Term.add_tfreesT qty []
 
@@ -586,7 +586,7 @@ and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
         val (binding, lthy3) = lthy2
           |> conceal_naming_result
             (Lifting_Setup.setup_by_typedef_thm {notes = false} type_definition_thm)
-          ||> Local_Theory.close_target
+          ||> Local_Theory.end_nested
         val (wit, wit_thm) = mk_witness quot_thm;
         val code_dt = mk_code_dt rty qty wit wit_thm NONE;
         val lthy4 = lthy3

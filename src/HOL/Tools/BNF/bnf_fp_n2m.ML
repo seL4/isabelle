@@ -393,10 +393,10 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
         |>> pair ss
       end;
     val ((ss, (un_folds, un_fold_defs0)), (cache, (lthy, raw_lthy))) = lthy
-      |> Local_Theory.open_target
+      |> (snd o Local_Theory.begin_nested)
       |> Variable.add_fixes (mk_names n "s")
       |> mk_un_folds
-      ||> apsnd (`(Local_Theory.close_target));
+      ||> apsnd (`(Local_Theory.end_nested));
 
     val un_fold_defs = map (unfold_thms raw_lthy @{thms Let_const}) un_fold_defs0;
 
