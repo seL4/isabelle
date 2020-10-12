@@ -24,9 +24,11 @@ sig
   val including: string list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val context: string list -> Element.context_i list ->
-    generic_theory -> Binding.scope * local_theory
+    local_theory -> Binding.scope * local_theory
   val context_cmd: (xstring * Position.T) list -> Element.context list ->
-    generic_theory -> Binding.scope * local_theory
+    local_theory -> Binding.scope * local_theory
+  val begin_nested: Context.generic -> local_theory
+  val end_nested: local_theory -> Context.generic
 end;
 
 structure Bundle: BUNDLE =
@@ -206,18 +208,12 @@ fun gen_activate notes get args ctxt =
 
 fun gen_includes get = gen_activate (Attrib.local_notes "") get;
 
-fun gen_context get prep_decl raw_incls raw_elems gthy =
-  let
-    val import =
-      gen_includes get raw_incls
-      #> prep_decl ([], []) I raw_elems
-      #> (#4 o fst);
-  in
-    gthy
-    |> Context.cases Named_Target.theory_init Local_Theory.assert
-    |> import
-    |> Local_Theory.begin_target
-  end;
+fun gen_context get prep_decl raw_incls raw_elems lthy =
+  lthy
+  |> gen_includes get raw_incls
+  |> prep_decl ([], []) I raw_elems
+  |> (#4 o fst)
+  |> Local_Theory.begin_target;
 
 in
 
@@ -235,7 +231,16 @@ fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
 
 val context = gen_context get_bundle Expression.cert_declaration;
+
 val context_cmd = gen_context get_bundle_cmd Expression.read_declaration;
+
+val begin_nested =
+  Context.cases Named_Target.theory_init Local_Theory.assert;
+
+fun end_nested lthy = 
+  if Named_Target.is_theory lthy
+  then Context.Theory (Local_Theory.exit_global lthy)
+  else Context.Proof lthy;
 
 end;
 

@@ -54,7 +54,7 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
   val end_main_target: transition -> transition
-  val begin_nested_target: (generic_theory -> local_theory) -> transition -> transition
+  val begin_nested_target: (local_theory -> local_theory) -> transition -> transition
   val end_nested_target: transition -> transition
   val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> local_theory) -> transition -> transition
@@ -450,19 +450,17 @@ val end_main_target = transaction (fn _ =>
 
 fun begin_nested_target f = transaction0 (fn _ =>
   (fn Theory gthy =>
-        let val lthy = f gthy
-        in Theory (Context.Proof lthy) end
+        let
+          val lthy = Bundle.begin_nested gthy;
+          val lthy' = f lthy
+        in Theory (Context.Proof lthy') end
     | _ => raise UNDEF));
 
 val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
         (case try Local_Theory.close_target lthy of
           SOME lthy' =>
-            let
-              val gthy' =
-                if Named_Target.is_theory lthy'
-                then Context.Theory (Local_Theory.exit_global lthy')
-                else Context.Proof lthy'
+            let val gthy' = Bundle.end_nested lthy'
             in (Theory gthy', lthy) end
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
