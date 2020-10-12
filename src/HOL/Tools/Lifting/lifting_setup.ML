@@ -968,7 +968,7 @@ fun get_transfer_rel (qinfo : Lifting_Info.quotient) =
 
 fun pointer_of_bundle_name bundle_name ctxt =
   let
-    val bundle = Bundle.get_bundle_cmd ctxt bundle_name
+    val bundle = Bundle.read ctxt bundle_name
     fun err () = error "The provided bundle is not a lifting bundle"
   in
     (case bundle of

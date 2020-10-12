@@ -7,8 +7,8 @@ Bundled declarations (notes etc.).
 signature BUNDLE =
 sig
   val check: Proof.context -> xstring * Position.T -> string
-  val get_bundle: Proof.context -> string -> Attrib.thms
-  val get_bundle_cmd: Proof.context -> xstring * Position.T -> Attrib.thms
+  val get: Proof.context -> string -> Attrib.thms
+  val read: Proof.context -> xstring * Position.T -> Attrib.thms
   val print_bundles: bool -> Proof.context -> unit
   val bundle: binding * Attrib.thms ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
@@ -48,19 +48,19 @@ structure Data = Generic_Data
 
 (* bundles *)
 
-val get_bundles_generic = #1 o Data.get;
-val get_bundles = get_bundles_generic o Context.Proof;
+val get_all_generic = #1 o Data.get;
+val get_all = get_all_generic o Context.Proof;
 
-fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_bundles ctxt);
+fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 
-val get_bundle_generic = Name_Space.get o get_bundles_generic;
-val get_bundle = get_bundle_generic o Context.Proof;
-fun get_bundle_cmd ctxt = get_bundle ctxt o check ctxt;
+val get = Name_Space.get o get_all_generic o Context.Proof;
+
+fun read ctxt = get ctxt o check ctxt;
 
 fun define_bundle (b, bundle) context =
   let
     val bundle' = Attrib.trim_context_thms bundle;
-    val (name, bundles') = Name_Space.define context true (b, bundle') (get_bundles_generic context);
+    val (name, bundles') = Name_Space.define context true (b, bundle') (get_all_generic context);
     val context' = (Data.map o apfst o K) bundles' context;
   in (name, context') end;
 
@@ -95,7 +95,7 @@ fun pretty_bundle ctxt (markup_name, bundle) =
 
 fun print_bundles verbose ctxt =
   Pretty.writeln_chunks
-    (map (pretty_bundle ctxt) (Name_Space.markup_table verbose ctxt (get_bundles ctxt)));
+    (map (pretty_bundle ctxt) (Name_Space.markup_table verbose ctxt (get_all ctxt)));
 
 
 
@@ -154,7 +154,7 @@ fun pretty binding lthy =
       |> conclude true binding;
     val thy_ctxt' = Proof_Context.init_global (Proof_Context.theory_of lthy');
     val markup_name =
-      Name_Space.markup_extern thy_ctxt' (Name_Space.space_of_table (get_bundles thy_ctxt')) name;
+      Name_Space.markup_extern thy_ctxt' (Name_Space.space_of_table (get_all thy_ctxt')) name;
   in [pretty_bundle lthy' (markup_name, bundle)] end;
 
 fun bundle_notes kind facts lthy =
@@ -198,30 +198,30 @@ end;
 
 local
 
-fun gen_activate notes get args ctxt =
-  let val decls = maps (get ctxt) args in
+fun gen_activate notes prep_bundle args ctxt =
+  let val decls = maps (prep_bundle ctxt) args in
     ctxt
     |> Context_Position.set_visible false
     |> notes [(Binding.empty_atts, decls)] |> #2
     |> Context_Position.restore_visible ctxt
   end;
 
-fun gen_includes get = gen_activate (Attrib.local_notes "") get;
+fun gen_includes prep_bundle = gen_activate (Attrib.local_notes "") prep_bundle;
 
-fun gen_context get prep_decl raw_incls raw_elems lthy =
+fun gen_context prep_bundle prep_decl raw_incls raw_elems lthy =
   lthy
-  |> gen_includes get raw_incls
+  |> gen_includes prep_bundle raw_incls
   |> prep_decl ([], []) I raw_elems
   |> (#4 o fst)
   |> Local_Theory.begin_nested;
 
 in
 
-val unbundle = gen_activate Local_Theory.notes get_bundle;
-val unbundle_cmd = gen_activate Local_Theory.notes get_bundle_cmd;
+val unbundle = gen_activate Local_Theory.notes get;
+val unbundle_cmd = gen_activate Local_Theory.notes read;
 
-val includes = gen_includes get_bundle;
-val includes_cmd = gen_includes get_bundle_cmd;
+val includes = gen_includes get;
+val includes_cmd = gen_includes read;
 
 fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
 fun include_cmd bs =
@@ -230,9 +230,9 @@ fun include_cmd bs =
 fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
 
-val context = gen_context get_bundle Expression.cert_declaration;
+val context = gen_context get Expression.cert_declaration;
 
-val context_cmd = gen_context get_bundle_cmd Expression.read_declaration;
+val context_cmd = gen_context read Expression.read_declaration;
 
 val begin_nested_target =
   Context.cases Named_Target.theory_init Local_Theory.assert;
