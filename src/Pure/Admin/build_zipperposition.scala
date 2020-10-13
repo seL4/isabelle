@@ -53,8 +53,9 @@ object Build_Zipperposition
 
       File.copy(build_dir + Path.explode("doc/zipperposition/LICENSE"), component_dir)
 
-      val exe_path = Path.basic("zipperposition").platform_exe
-      File.copy(build_dir + Path.basic("bin") + exe_path, platform_dir)
+      val prg_path = Path.basic("zipperposition")
+      val exe_path = prg_path.platform_exe
+      File.copy(build_dir + Path.basic("bin") + prg_path, platform_dir + exe_path)
 
       Executable.libraries_closure(
         platform_dir + exe_path, filter = Set("libgmp"), patchelf = true)
