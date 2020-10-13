@@ -185,7 +185,7 @@ invocation works via the PIDE protocol.
 *** System ***
 
 * Update/rebuild external provers on currently supported OS platforms,
-notably E Prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
+notably E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
 
 * Discontinued obsolete isabelle display tool, and DVI_VIEWER settings
 variable.
