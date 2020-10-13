@@ -125,19 +125,13 @@ object Build_CSDP
       /* install */
 
       File.copy(build_dir + Path.explode("LICENSE"), component_dir)
+      File.copy(build_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
-      if (!Platform.is_windows) {
-        File.copy(build_dir + Path.explode("solver/csdp"), platform_dir)
-      }
-      else {
-        File.copy(build_dir + Path.explode("solver/csdp.exe"), platform_dir)
-        val libs =
-          List("libblas", "liblapack", "libgfortran-5", "libgcc_s_seh-1",
-            "libquadmath-0", "libwinpthread-1")
-        for (name <- libs) {
-          File.copy(mingw.get_root + Path.explode("mingw64/bin") + Path.basic(name).ext("dll"),
-            platform_dir)
-        }
+      if (Platform.is_windows) {
+        Executable.libraries_closure(platform_dir + Path.explode("csdp.exe"), mingw = mingw,
+          filter =
+            Set("libblas", "liblapack", "libgfortran", "libgcc_s_seh",
+              "libquadmath", "libwinpthread"))
       }
 
 

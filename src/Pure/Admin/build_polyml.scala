@@ -17,14 +17,13 @@ object Build_PolyML
   sealed case class Platform_Info(
     options: List[String] = Nil,
     setup: String = "",
-    copy_files: List[String] = Nil,
-    ldd_pattern: Option[(String, Regex)] = None)
+    libs: Set[String] = Set.empty)
 
   private val platform_info = Map(
     "linux" ->
       Platform_Info(
         options = List("LDFLAGS=-Wl,-rpath,_DUMMY_"),
-        ldd_pattern = Some(("ldd", """\s*libgmp.*=>\s*(\S+).*""".r))),
+        libs = Set("libgmp")),
     "darwin" ->
       Platform_Info(
         options =
@@ -32,17 +31,13 @@ object Build_PolyML
             "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
             "LDFLAGS=-segprot POLY rwx rwx"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
-        ldd_pattern = Some(("otool -L", """\s*(\S+lib(?:polyml|gmp).*dylib).*""".r))),
+        libs = Set("libpolyml", "libgmp")),
     "windows" ->
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
         setup = MinGW.environment_export,
-        copy_files =
-          List("$MSYS/mingw64/bin/libgcc_s_seh-1.dll",
-            "$MSYS/mingw64/bin/libgmp-10.dll",
-            "$MSYS/mingw64/bin/libstdc++-6.dll",
-            "$MSYS/mingw64/bin/libwinpthread-1.dll")))
+        libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
 
   def build_polyml(
     root: Path,
@@ -67,10 +62,6 @@ object Build_PolyML
     val info =
       platform_info.getOrElse(platform.os_name,
         error("Bad OS platform: " + quote(platform.os_name)))
-
-    val settings =
-      if (!Platform.is_windows) Isabelle_System.settings()
-      else Isabelle_System.settings() + ("MSYS" -> mingw.get_root.expand.implode)
 
     if (platform.is_linux) Isabelle_System.require_command("chrpath")
 
@@ -101,16 +92,6 @@ object Build_PolyML
         } || { echo "Build failed" >&2; exit 2; }
       """, redirect = true, echo = true).check
 
-    val ldd_files =
-    {
-      info.ldd_pattern match {
-        case Some((ldd, pattern)) =>
-          val lines = bash(root, ldd + " target/bin/poly").check.out_lines
-          for { line <- lines; List(lib) <- pattern.unapplySeq(line) } yield lib
-        case None => Nil
-      }
-    }
-
 
     /* sha1 library */
 
@@ -120,45 +101,33 @@ object Build_PolyML
         bash(dir1, "./build " + sha1_platform, redirect = true, echo = true).check
 
         val dir2 = dir1 + Path.explode(sha1_platform)
-        File.read_dir(dir2).map(entry => dir2.implode + "/" + entry)
+        File.read_dir(dir2).map(entry => dir2 + Path.basic(entry))
       }
       else Nil
 
 
-    /* target */
+    /* install */
 
-    val target = Path.explode(polyml_platform)
-    Isabelle_System.rm_tree(target)
-    Isabelle_System.make_directory(target)
+    val platform_dir = Path.explode(polyml_platform)
+    Isabelle_System.rm_tree(platform_dir)
+    Isabelle_System.make_directory(platform_dir)
 
-    for (file <- info.copy_files ::: ldd_files ::: sha1_files)
-      File.copy(Path.explode(file).expand_env(settings), target)
+    for (file <- sha1_files) File.copy(file, platform_dir)
 
     for {
       d <- List("target/bin", "target/lib")
       dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
-    } File.move(dir + Path.explode(entry), target)
+    } File.move(dir + Path.explode(entry), platform_dir)
 
-
-    /* poly: library path */
-
-    if (platform.is_linux) {
-      bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
-    }
-    else if (platform.is_macos) {
-      for (file <- ldd_files) {
-        bash(target,
-          """install_name_tool -change """ + Bash.string(file) + " " +
-            Bash.string("@executable_path/" + Path.explode(file).file_name) + " poly").check
-      }
-    }
+    Executable.libraries_closure(
+      platform_dir + Path.basic("poly").platform_exe, mingw = mingw, filter = info.libs)
 
 
     /* polyc: directory prefix */
 
     val Header = "#! */bin/sh".r
-    File.change(target + Path.explode("polyc"), txt =>
+    File.change(platform_dir + Path.explode("polyc"), txt =>
       split_lines(txt) match {
         case Header() :: lines =>
           val lines1 =

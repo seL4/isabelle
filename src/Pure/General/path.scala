@@ -204,6 +204,9 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
     prfx + Path.basic(s + "~~")
   }
 
+  def platform_exe: Path =
+    if (Platform.is_windows) ext("exe") else this
+
   private val Ext = new Regex("(.*)\\.([^.]*)")
 
   def split_ext: (Path, String) =
