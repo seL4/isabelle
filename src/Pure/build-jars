@@ -25,6 +25,7 @@ declare -a SOURCES=(
   src/Pure/Admin/build_sqlite.scala
   src/Pure/Admin/build_status.scala
   src/Pure/Admin/build_verit.scala
+  src/Pure/Admin/build_zipperposition.scala
   src/Pure/Admin/check_sources.scala
   src/Pure/Admin/ci_profile.scala
   src/Pure/Admin/components.scala
