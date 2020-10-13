@@ -137,10 +137,10 @@ fun replay_theorem_step rewrite_rules ll_defs assumed inputs proof_prems
     val args = map (Term.subst_free concl_tranformation o subst_only_free global_transformation) args
     val insts = Symtab.map (K (Term.subst_free concl_tranformation o subst_only_free global_transformation)) insts
     val proof_prems =
-       if Lethe_Replay_Methods.requires_subproof_assms prems rule then proof_prems else []
+       if Verit_Replay_Methods.requires_subproof_assms prems rule then proof_prems else []
     val local_inputs =
-       if Lethe_Replay_Methods.requires_local_input prems rule then input @ inputs else []
-    val replay = Timing.timing (replay_thm Lethe_Replay_Methods.method_for rewrite_rules ll_defs
+       if Verit_Replay_Methods.requires_local_input prems rule then input @ inputs else []
+    val replay = Timing.timing (replay_thm Verit_Replay_Methods.method_for rewrite_rules ll_defs
        ctxt assumed [] (proof_prems @ local_inputs) (nthms @ nthms') concl_tranformation
        global_transformation args insts)
 
@@ -313,7 +313,7 @@ fun replay outer_ctxt
     val _ = SMT_Replay.spying (SMT_Config.spy_verit ctxt) ctxt
       (fn () => SMT_Replay.print_stats (Symtab.dest stats)) "spy_verit"
   in
-    Lethe_Replay_Methods.discharge ctxt [thm_with_defs] @{term False}
+    Verit_Replay_Methods.discharge ctxt [thm_with_defs] @{term False}
   end
 
 end

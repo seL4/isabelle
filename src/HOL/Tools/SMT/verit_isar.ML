@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/lethe_isar.ML
+(*  Title:      HOL/Tools/SMT/verit_isar.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 

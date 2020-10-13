@@ -4,7 +4,7 @@
 Proof method for replaying veriT proofs.
 *)
 
-signature LETHE_REPLAY_METHODS =
+signature VERIT_REPLAY_METHODS =
 sig
   (*methods for verit proof rules*)
   val method_for: string -> Proof.context -> thm list -> term list -> term Symtab.table ->
@@ -17,7 +17,7 @@ sig
 end;
 
 
-structure Lethe_Replay_Methods: LETHE_REPLAY_METHODS =
+structure Verit_Replay_Methods: VERIT_REPLAY_METHODS =
 struct
 
 (*Some general comments on the proof format:
@@ -1163,7 +1163,7 @@ fun choose And = ignore_args and_rule
   | choose Trans = ignore_args trans
   | choose r = unsupported (string_of_verit_rule r)
 
-type Lethe_method = Proof.context -> thm list -> term -> thm
+type verit_method = Proof.context -> thm list -> term -> thm
 type abs_context = int * term Termtab.table
 
 fun with_tracing rule method ctxt thms args insts decls t =
