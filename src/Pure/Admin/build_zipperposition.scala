@@ -22,6 +22,9 @@ object Build_Zipperposition
   {
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
+      Isabelle_System.require_command("patchelf")
+
+
       /* component */
 
       val component_name = "zipperposition-" + version
