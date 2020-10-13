@@ -37,7 +37,7 @@ object Build_PolyML
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
         setup = MinGW.environment_export,
-        libs = Set("libgcc_s_seh-1", "libgmp-10", "libstdc++-6", "libwinpthread-1")))
+        libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
 
   def build_polyml(
     root: Path,

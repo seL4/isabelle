@@ -130,8 +130,8 @@ object Build_CSDP
       if (Platform.is_windows) {
         Executable.libraries_closure(platform_dir + Path.explode("csdp.exe"), mingw = mingw,
           filter =
-            Set("libblas", "liblapack", "libgfortran-5", "libgcc_s_seh-1",
-              "libquadmath-0", "libwinpthread-1"))
+            Set("libblas", "liblapack", "libgfortran", "libgcc_s_seh",
+              "libquadmath", "libwinpthread"))
       }
 
 

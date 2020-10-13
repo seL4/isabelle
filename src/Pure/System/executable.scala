@@ -26,7 +26,7 @@ object Executable
     }
 
     def lib_name(lib: String): String =
-      Library.take_prefix[Char](_ != '.',
+      Library.take_prefix[Char](c => c != '.' && c != '-',
         Library.take_suffix[Char](_ != '/', lib.toList)._2)._1.mkString
 
     val libs =
