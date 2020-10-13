@@ -92,9 +92,6 @@ object Build_PolyML
         } || { echo "Build failed" >&2; exit 2; }
       """, redirect = true, echo = true).check
 
-    Executable.libraries_closure(
-      root + Path.explode("target/bin/poly"), mingw = mingw, filter = info.libs)
-
 
     /* sha1 library */
 
@@ -122,6 +119,9 @@ object Build_PolyML
       dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
     } File.move(dir + Path.explode(entry), platform_dir)
+
+    Executable.libraries_closure(
+      platform_dir + Path.basic("poly").platform_exe, mingw = mingw, filter = info.libs)
 
 
     /* polyc: directory prefix */
