@@ -70,23 +70,22 @@ object Build_VeriT
 
       progress.echo("Building veriT for " + platform_name + " ...")
 
+      val configure_options =
+        if (Platform.is_linux) "LDFLAGS=-Wl,-rpath,_DUMMY_" else ""
+
       val build_dir = tmp_dir + Path.basic(source_name)
-      val build_script =
-"""
-    ./configure
-    make
-"""
-      progress.bash("set -e\n" + build_script, cwd = build_dir.file, echo = verbose).check
+      progress.bash("set -e\n./configure " + configure_options + "\nmake",
+        cwd = build_dir.file, echo = verbose).check
 
 
       /* install */
 
       File.copy(build_dir + Path.explode("LICENSE"), component_dir)
-      val install_files = List("veriT")
-      for (name <- install_files ::: install_files.map(_ + ".exe")) {
-        val path = build_dir + Path.basic(name)
-        if (path.is_file) File.copy(path, platform_dir)
-      }
+
+      val exe_path = Path.basic("veriT").platform_exe
+      File.copy(build_dir + exe_path, platform_dir)
+      Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"))
+
 
       /* settings */
 
@@ -113,7 +112,11 @@ fi
 """ + download_url + """
 
 It has been built from sources like this:
-""" + build_script + """
+
+  cd src
+  ./configure
+  make
+
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
