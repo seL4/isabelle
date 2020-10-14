@@ -147,7 +147,7 @@ object Build_PolyML
 
   /** skeleton for component **/
 
-  private def extract_sources(source_archive: Path, component_dir: Path) =
+  private def extract_sources(source_archive: Path, component_dir: Path)
   {
     if (source_archive.get_ext == "zip") {
       Isabelle_System.bash(
