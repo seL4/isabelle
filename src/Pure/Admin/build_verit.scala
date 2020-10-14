@@ -18,8 +18,11 @@ object Build_VeriT
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current,
+    mingw: MinGW = MinGW.none)
   {
+    mingw.check
+
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
       /* component */
@@ -47,6 +50,7 @@ object Build_VeriT
       /* platform */
 
       val platform_name =
+        proper_string(Isabelle_System.getenv("ISABELLE_WINDOWS_PLATFORM64")) orElse
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
         error("No 64bit platform")
 
@@ -74,7 +78,7 @@ object Build_VeriT
         if (Platform.is_linux) "LDFLAGS=-Wl,-rpath,_DUMMY_" else ""
 
       val build_dir = tmp_dir + Path.basic(source_name)
-      progress.bash("set -e\n./configure " + configure_options + "\nmake",
+      progress.bash(mingw.bash_script("set -e\n./configure " + configure_options + "\nmake"),
         cwd = build_dir.file, echo = verbose).check
 
 
@@ -84,7 +88,7 @@ object Build_VeriT
 
       val exe_path = Path.basic("veriT").platform_exe
       File.copy(build_dir + exe_path, platform_dir)
-      Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"))
+      Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"), mingw = mingw)
 
 
       /* settings */
@@ -93,7 +97,7 @@ object Build_VeriT
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 
-VERIT_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
+VERIT_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
 VERIT_VERSION=""" + quote(version) + """
 
 VERIT_SOLVER="$VERIT_HOME/veriT"
@@ -131,6 +135,7 @@ It has been built from sources like this:
     args =>
     {
       var target_dir = Path.current
+      var mingw = MinGW.none
       var download_url = default_download_url
       var verbose = false
 
@@ -139,6 +144,7 @@ Usage: isabelle build_verit [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -M DIR       msys/mingw root specification for Windows
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -v           verbose
@@ -146,6 +152,7 @@ Usage: isabelle build_verit [OPTIONS]
   Build prover component from official download.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
         "U:" -> (arg => download_url = arg),
         "v" -> (_ => verbose = true))
 
@@ -155,6 +162,6 @@ Usage: isabelle build_verit [OPTIONS]
       val progress = new Console_Progress()
 
       build_verit(download_url = download_url, verbose = verbose, progress = progress,
-        target_dir = target_dir)
+        target_dir = target_dir, mingw = mingw)
     })
 }
