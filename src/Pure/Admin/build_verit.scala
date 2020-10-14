@@ -9,7 +9,7 @@ package isabelle
 
 object Build_VeriT
 {
-  val default_download_url = "https://verit.loria.fr/distrib/veriT-stable2016.tar.gz"
+  val default_download_url = "https://verit.loria.fr/rmx/2020.10/verit-2020.10-rmx.tar.gz"
 
 
   /* build veriT */
@@ -22,9 +22,6 @@ object Build_VeriT
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
-      Isabelle_System.require_command("autoconf", "bison", "flex", "wget")
-
-
       /* component */
 
       val Archive_Name = """^.*?([^/]+)$""".r
@@ -76,9 +73,7 @@ object Build_VeriT
       val build_dir = tmp_dir + Path.basic(source_name)
       val build_script =
 """
-    autoconf
     ./configure
-    ln -s gmp-local extern/gmp
     make
 """
       progress.bash("set -e\n" + build_script, cwd = build_dir.file, echo = verbose).check
@@ -87,8 +82,11 @@ object Build_VeriT
       /* install */
 
       File.copy(build_dir + Path.explode("LICENSE"), component_dir)
-      File.copy(build_dir + Path.explode("veriT"), platform_dir)
-
+      val install_files = List("veriT")
+      for (name <- install_files ::: install_files.map(_ + ".exe")) {
+        val path = build_dir + Path.basic(name)
+        if (path.is_file) File.copy(path, platform_dir)
+      }
 
       /* settings */
 
