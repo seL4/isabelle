@@ -32,6 +32,7 @@ sig
   val dir: T -> T
   val base: T -> T
   val ext: string -> T -> T
+  val platform_exe: T -> T
   val split_ext: T -> T * string
   val exe: T -> T
   val expand: T -> T
@@ -211,6 +212,8 @@ val base = split_path (fn (_, s) => Path [Basic s]);
 
 fun ext "" = I
   | ext e = split_path (fn (prfx, s) => append prfx (basic (s ^ "." ^ e)));
+
+val platform_exe = ML_System.platform_is_windows ? ext "exe";
 
 val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
   (case chop_suffix (fn c => c <> ".") (raw_explode s) of

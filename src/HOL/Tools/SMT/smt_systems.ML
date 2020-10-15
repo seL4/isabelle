@@ -18,7 +18,9 @@ struct
 fun check_tool var () =
   (case getenv var of
     "" => NONE
-  | s => if File.is_file (Path.variable var) then SOME [s] else NONE);
+  | s =>
+      if File.is_file (Path.variable var |> Path.expand |> Path.platform_exe)
+      then SOME [s] else NONE);
 
 fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
 
