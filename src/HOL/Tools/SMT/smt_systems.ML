@@ -15,6 +15,11 @@ struct
 
 (* helper functions *)
 
+fun check_tool var () =
+  (case getenv var of
+    "" => NONE
+  | s => if File.is_file (Path.variable var) then SOME [s] else NONE);
+
 fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
 
 fun make_command name () = [getenv (name ^ "_SOLVER")]
@@ -117,8 +122,8 @@ in
 val veriT: SMT_Solver.solver_config = {
   name = "verit",
   class = select_class,
-  avail = make_avail "VERIT",
-  command = make_command "VERIT",
+  avail = is_some o check_tool "ISABELLE_VERIT",
+  command = the o check_tool "ISABELLE_VERIT",
   options = (fn ctxt => [
     "--proof-with-sharing",
     "--proof-define-skolems",

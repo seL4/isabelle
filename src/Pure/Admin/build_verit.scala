@@ -97,15 +97,7 @@ object Build_VeriT
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 
-VERIT_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
-VERIT_VERSION=""" + quote(version) + """
-
-VERIT_SOLVER="$VERIT_HOME/veriT"
-
-if [ -e "$VERIT_HOME" ]
-then
-  VERIT_INSTALLED="yes"
-fi
+ISABELLE_VERIT="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/veriT"
 """)
 
 

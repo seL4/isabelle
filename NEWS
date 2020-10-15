@@ -70,6 +70,11 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* An updated version of the veriT solver is now included as Isabelle
+component. It can be used in the "smt" proof method via "smt (verit)" or
+via "declare [[smt_solver = verit]]" in the context; see also session
+HOL-Word-SMT_Examples.
+
 * Nitpick/Kodkod may be invoked directly within the running
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
@@ -157,9 +162,6 @@ Minor INCOMPATIBILITY.
 * Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer" commands
 are in working order again, as opposed to outputting "GaveUp" on nearly
 all problems.
-
-* SMT reconstruction: It is now possible to reconstruct proofs from the
-SMT solver veriT by calling "smt (verit)".
 
 
 *** FOL ***
