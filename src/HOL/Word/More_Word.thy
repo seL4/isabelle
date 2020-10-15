@@ -15,6 +15,7 @@ imports
   Misc_set_bit
   Misc_lsb
   Misc_Typedef
+  Word_rsplit
 begin
 
 declare signed_take_bit_Suc [simp]

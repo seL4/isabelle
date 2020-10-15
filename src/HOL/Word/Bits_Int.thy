@@ -511,6 +511,8 @@ fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int
 definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
   where "bin_rsplit n w = bin_rsplit_aux n (fst w) (snd w) []"
 
+value \<open>bin_rsplit 1705 (3, 88)\<close>
+
 fun bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
   where "bin_rsplitl_aux n m c bs =
     (if m = 0 \<or> n = 0 then bs
