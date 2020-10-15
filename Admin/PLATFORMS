@@ -44,9 +44,7 @@ Official (full support):
 
 Old (partial support):
 
-  x86_64-darwin     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
-                    Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
-                    macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
+  x86_64-darwin     Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
 
 New (experimental):
 

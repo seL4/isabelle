@@ -268,6 +268,9 @@ object Isabelle_Cronjob
         options = "-m32 -B -M1x2,2 -t polyml-test -i 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
+      Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2 -p pide_session=false", args = "-a",
+        detect = Build_Log.Prop.build_start + " > date '2017-03-03'"),
+      Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a"),
       Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
         detect = Build_Log.Prop.build_start + " < date '2017-03-03'")) :::
       {
@@ -309,10 +312,6 @@ object Isabelle_Cronjob
           options = "-m32 -M8 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
           history_base = "2c0f24e927dd")),
-      List(
-        Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2 -p pide_session=false", args = "-a",
-          detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
-      List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a")),
       List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
         options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
