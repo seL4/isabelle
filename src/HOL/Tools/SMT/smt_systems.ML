@@ -132,8 +132,7 @@ val veriT: SMT_Solver.solver_config = {
     "--proof-prune",
     "--proof-merge",
     "--disable-print-success",
-    "--disable-banner",
-    "--max-time=" ^ string_of_int (1000 * Real.ceil (Config.get ctxt SMT_Config.timeout))] @
+    "--disable-banner"] @
     Verit_Proof.veriT_current_strategy (Context.Proof ctxt)),
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
