@@ -19,8 +19,8 @@ fun enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
 fun deq :: "'a queue \<Rightarrow> 'a queue" where
 "deq (os,is) = (if os = [] then (os,is) else norm(tl os,is))"
 
-fun front :: "'a queue \<Rightarrow> 'a" where
-"front (a # os,is) = a"
+fun first :: "'a queue \<Rightarrow> 'a" where
+"first (a # os,is) = a"
 
 fun is_empty :: "'a queue \<Rightarrow> bool" where
 "is_empty (os,is) = (os = [])"
@@ -35,7 +35,7 @@ fun invar :: "'a queue \<Rightarrow> bool" where
 text \<open>Implementation correctness:\<close>
 
 interpretation Queue
-where empty = "([],[])" and enq = enq and deq = deq and front = front
+where empty = "([],[])" and enq = enq and deq = deq and first = first
 and is_empty = is_empty and list = list and invar = invar
 proof (standard, goal_cases)
   case 1 show ?case by (simp)
@@ -66,8 +66,8 @@ fun t_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
 fun t_deq :: "'a queue \<Rightarrow> nat" where
 "t_deq (os,is) = (if os = [] then 0 else t_norm(tl os,is)) + 1"
 
-fun t_front :: "'a queue \<Rightarrow> nat" where
-"t_front (a # os,is) = 1"
+fun t_first :: "'a queue \<Rightarrow> nat" where
+"t_first (a # os,is) = 1"
 
 fun t_is_empty :: "'a queue \<Rightarrow> nat" where
 "t_is_empty (os,is) = 1"
