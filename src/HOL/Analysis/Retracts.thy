@@ -65,9 +65,14 @@ proof -
   show ?thesis
   proof (rule_tac g = "h \<circ> r \<circ> f'" in that)
     show "continuous_on U (h \<circ> r \<circ> f')"
-      apply (intro continuous_on_compose f')
-       using continuous_on_subset contr f' apply blast
-      by (meson \<open>homeomorphism S S' g h\<close> \<open>r ` C \<subseteq> S'\<close> continuous_on_subset \<open>f' ` U \<subseteq> C\<close> homeomorphism_def image_mono)
+    proof (intro continuous_on_compose f')
+      show "continuous_on (f' ` U) r"
+        using continuous_on_subset contr f' by blast
+      show "continuous_on (r ` f' ` U) h"
+        using \<open>homeomorphism S S' g h\<close> \<open>f' ` U \<subseteq> C\<close> 
+        unfolding homeomorphism_def
+        by (metis \<open>r ` C \<subseteq> S'\<close> continuous_on_subset image_mono)
+    qed
     show "(h \<circ> r \<circ> f') ` U \<subseteq> S"
       using \<open>homeomorphism S S' g h\<close> \<open>r ` C \<subseteq> S'\<close> \<open>f' ` U \<subseteq> C\<close>
       by (fastforce simp: homeomorphism_def)
@@ -85,10 +90,8 @@ lemma AR_imp_absolute_retract:
 proof -
   obtain g h where hom: "homeomorphism S S' g h"
     using assms by (force simp: homeomorphic_def)
-  have h: "continuous_on S' h" " h ` S' \<subseteq> S"
-    using hom homeomorphism_def apply blast
-    apply (metis hom equalityE homeomorphism_def)
-    done
+  obtain h: "continuous_on S' h" " h ` S' \<subseteq> S"
+    using hom homeomorphism_def by blast
   obtain h' where h': "continuous_on U h'" "h' ` U \<subseteq> S"
               and h'h: "\<And>x. x \<in> S' \<Longrightarrow> h' x = h x"
     by (blast intro: AR_imp_absolute_extensor [OF \<open>AR S\<close> h clo])
@@ -96,9 +99,7 @@ proof -
   show ?thesis
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
     show "continuous_on U (g \<circ> h')"
-      apply (intro continuous_on_compose h')
-      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
-      done
+      by (meson continuous_on_compose continuous_on_subset h' hom homeomorphism_cont1)
     show "(g \<circ> h') ` U \<subseteq> S'"
       using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
     show "\<forall>x\<in>S'. (g \<circ> h') x = x"
@@ -108,11 +109,9 @@ qed
 
 lemma AR_imp_absolute_retract_UNIV:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
-  assumes "AR S" and hom: "S homeomorphic S'"
-      and clo: "closed S'"
+  assumes "AR S" "S homeomorphic S'" "closed S'"
     shows "S' retract_of UNIV"
-apply (rule AR_imp_absolute_retract [OF \<open>AR S\<close> hom])
-using clo closed_closedin by auto
+  using AR_imp_absolute_retract assms by fastforce
 
 lemma absolute_extensor_imp_AR:
   fixes S :: "'a::euclidean_space set"
@@ -126,10 +125,8 @@ proof (clarsimp simp: AR_def)
   assume "S homeomorphic T" and clo: "closedin (top_of_set U) T"
   then obtain g h where hom: "homeomorphism S T g h"
     by (force simp: homeomorphic_def)
-  have h: "continuous_on T h" " h ` T \<subseteq> S"
-    using hom homeomorphism_def apply blast
-    apply (metis hom equalityE homeomorphism_def)
-    done
+  obtain h: "continuous_on T h" " h ` T \<subseteq> S"
+    using hom homeomorphism_def by blast
   obtain h' where h': "continuous_on U h'" "h' ` U \<subseteq> S"
               and h'h: "\<forall>x\<in>T. h' x = h x"
     using assms [OF h clo] by blast
@@ -138,9 +135,7 @@ proof (clarsimp simp: AR_def)
   show "T retract_of U"
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
     show "continuous_on U (g \<circ> h')"
-      apply (intro continuous_on_compose h')
-      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
-      done
+      by (meson continuous_on_compose continuous_on_subset h' hom homeomorphism_cont1)
     show "(g \<circ> h') ` U \<subseteq> T"
       using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
     show "\<forall>x\<in>T. (g \<circ> h') x = x"
@@ -155,10 +150,7 @@ lemma AR_eq_absolute_extensor:
         \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
                closedin (top_of_set U) T \<longrightarrow>
                 (\<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
-apply (rule iffI)
- apply (metis AR_imp_absolute_extensor)
-apply (simp add: absolute_extensor_imp_AR)
-done
+  by (metis (mono_tags, hide_lams) AR_imp_absolute_extensor absolute_extensor_imp_AR)
 
 lemma AR_imp_retract:
   fixes S :: "'a::euclidean_space set"
@@ -224,13 +216,12 @@ proof -
     show ope: "openin (top_of_set U) (U \<inter> f' -` D)"
       using  \<open>f' ` U \<subseteq> C\<close> by (auto simp: opD contf' continuous_openin_preimage)
     have conth: "continuous_on (r ` f' ` (U \<inter> f' -` D)) h"
-      apply (rule continuous_on_subset [of S'])
-      using homeomorphism_def homgh apply blast
-      using \<open>r ` D \<subseteq> S'\<close> by blast
+    proof (rule continuous_on_subset [of S'])
+      show "continuous_on S' h"
+        using homeomorphism_def homgh by blast
+    qed (use \<open>r ` D \<subseteq> S'\<close> in blast)
     show "continuous_on (U \<inter> f' -` D) (h \<circ> r \<circ> f')"
-      apply (intro continuous_on_compose conth
-                   continuous_on_subset [OF contr] continuous_on_subset [OF contf'], auto)
-      done
+      by (blast intro: continuous_on_compose conth continuous_on_subset [OF contr] continuous_on_subset [OF contf'])
     show "(h \<circ> r \<circ> f') ` (U \<inter> f' -` D) \<subseteq> S"
       using \<open>homeomorphism S S' g h\<close>  \<open>f' ` U \<subseteq> C\<close>  \<open>r ` D \<subseteq> S'\<close>
       by (auto simp: homeomorphism_def)
@@ -249,10 +240,8 @@ corollary ANR_imp_absolute_neighbourhood_retract:
 proof -
   obtain g h where hom: "homeomorphism S S' g h"
     using assms by (force simp: homeomorphic_def)
-  have h: "continuous_on S' h" " h ` S' \<subseteq> S"
-    using hom homeomorphism_def apply blast
-    apply (metis hom equalityE homeomorphism_def)
-    done
+  obtain h: "continuous_on S' h" " h ` S' \<subseteq> S"
+    using hom homeomorphism_def by blast
     from ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo]
   obtain V h' where "S' \<subseteq> V" and opUV: "openin (top_of_set U) V"
                 and h': "continuous_on V h'" "h' ` V \<subseteq> S"
@@ -261,9 +250,7 @@ proof -
   have "S' retract_of V"
   proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>S' \<subseteq> V\<close>)
     show "continuous_on V (g \<circ> h')"
-      apply (intro continuous_on_compose h')
-      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
-      done
+      by (meson continuous_on_compose continuous_on_subset h'(1) h'(2) hom homeomorphism_cont1)
     show "(g \<circ> h') ` V \<subseteq> S'"
       using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
     show "\<forall>x\<in>S'. (g \<circ> h') x = x"
@@ -301,10 +288,8 @@ proof (clarsimp simp: ANR_def)
   assume "S homeomorphic T" and clo: "closedin (top_of_set U) T"
   then obtain g h where hom: "homeomorphism S T g h"
     by (force simp: homeomorphic_def)
-  have h: "continuous_on T h" " h ` T \<subseteq> S"
-    using hom homeomorphism_def apply blast
-    apply (metis hom equalityE homeomorphism_def)
-    done
+  obtain h: "continuous_on T h" " h ` T \<subseteq> S"
+    using hom homeomorphism_def by blast
   obtain V h' where "T \<subseteq> V" and opV: "openin (top_of_set U) V"
                 and h': "continuous_on V h'" "h' ` V \<subseteq> S"
               and h'h: "\<forall>x\<in>T. h' x = h x"
@@ -314,9 +299,7 @@ proof (clarsimp simp: ANR_def)
   have "T retract_of V"
   proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>T \<subseteq> V\<close>)
     show "continuous_on V (g \<circ> h')"
-      apply (intro continuous_on_compose h')
-      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
-      done
+      by (meson continuous_on_compose continuous_on_subset h' hom homeomorphism_cont1)
     show "(g \<circ> h') ` V \<subseteq> T"
       using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
     show "\<forall>x\<in>T. (g \<circ> h') x = x"
@@ -333,11 +316,11 @@ lemma ANR_eq_absolute_neighbourhood_extensor:
           \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
                 closedin (top_of_set U) T \<longrightarrow>
                (\<exists>V g. T \<subseteq> V \<and> openin (top_of_set U) V \<and>
-                       continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
-apply (rule iffI)
- apply (metis ANR_imp_absolute_neighbourhood_extensor)
-apply (simp add: absolute_neighbourhood_extensor_imp_ANR)
-done
+                       continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))" (is "_ = ?rhs")
+proof
+  assume "ANR S" then show ?rhs
+    by (metis ANR_imp_absolute_neighbourhood_extensor)
+qed (simp add: absolute_neighbourhood_extensor_imp_ANR)
 
 lemma ANR_imp_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set"
@@ -365,13 +348,14 @@ proof -
         and "S' \<subseteq> V" "U - Z \<subseteq> W" "V \<inter> W = {}"
       using separation_normal_local [OF US' UUZ]  by auto
   moreover have "S' retract_of U - W"
-    apply (rule retract_of_subset [OF S'Z])
-    using US' \<open>S' \<subseteq> V\<close> \<open>V \<inter> W = {}\<close> closedin_subset apply fastforce
-    using Diff_subset_conv \<open>U - Z \<subseteq> W\<close> by blast
+  proof (rule retract_of_subset [OF S'Z])
+    show "S' \<subseteq> U - W"
+      using US' \<open>S' \<subseteq> V\<close> \<open>V \<inter> W = {}\<close> closedin_subset by fastforce
+    show "U - W \<subseteq> Z"
+      using Diff_subset_conv \<open>U - Z \<subseteq> W\<close> by blast
+  qed
   ultimately show ?thesis
-    apply (rule_tac V=V and W = "U-W" in that)
-    using openin_imp_subset apply force+
-    done
+    by (metis Diff_subset_conv Diff_triv Int_Diff_Un Int_absorb1 openin_closedin_eq that topspace_euclidean_subtopology)
 qed
 
 lemma ANR_imp_closed_neighbourhood_retract:
@@ -412,9 +396,7 @@ proof -
   then obtain W where UW: "openin (top_of_set U) W"
                   and WS': "closedin (top_of_set W) S'"
     apply (rule locally_compact_closedin_open)
-    apply (rename_tac W)
-    apply (rule_tac W = "U \<inter> W" in that, blast)
-    by (simp add: \<open>S' \<subseteq> U\<close> closedin_limpt)
+    by (meson Int_lower2 assms(3) closedin_imp_subset closedin_subset_trans le_inf_iff openin_open)
   obtain f g where hom: "homeomorphism S S' f g"
     using assms by (force simp: homeomorphic_def)
   have contg: "continuous_on S' g"
@@ -442,11 +424,12 @@ proof -
           by (meson \<open>retraction X S r\<close> continuous_on_subset retraction)
       qed
       show "continuous_on (r ` h ` (W \<inter> h -` X)) f"
-        apply (rule continuous_on_subset [of S])
-         using hom homeomorphism_def apply blast
-        apply clarify
-        apply (meson \<open>retraction X S r\<close> subsetD imageI retraction_def)
-        done
+      proof (rule continuous_on_subset [of S])
+        show "continuous_on S f"
+          using hom homeomorphism_def by blast
+        show "r ` h ` (W \<inter> h -` X) \<subseteq> S"
+          by (metis \<open>retraction X S r\<close> image_mono image_subset_iff_subset_vimage inf_le2 retraction)
+      qed
     qed
     show "(f \<circ> r \<circ> h) ` (W \<inter> h -` X) \<subseteq> S'"
       using \<open>retraction X S r\<close> hom
@@ -455,10 +438,7 @@ proof -
       using \<open>retraction X S r\<close> hom by (auto simp: retraction_def homeomorphism_def hg)
   qed
   then show ?thesis
-    apply (rule_tac V = "W \<inter> h -` X" in that)
-     apply (rule openin_trans [OF _ UW])
-     using \<open>continuous_on W h\<close> \<open>open X\<close> continuous_openin_preimage_eq apply blast+
-     done
+    using UW \<open>open X\<close> conth continuous_openin_preimage_eq openin_trans that by blast
 qed
 
 corollary ENR_imp_absolute_neighbourhood_retract_UNIV:
@@ -489,8 +469,7 @@ lemma ENR_linear_image_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
   shows "ENR (image f S) \<longleftrightarrow> ENR S"
-apply (rule homeomorphic_ENR_iff_ENR)
-using assms homeomorphic_sym linear_homeomorphic_image by auto
+  by (meson assms homeomorphic_ENR_iff_ENR linear_homeomorphic_image)
 
 text \<open>Some relations among the concepts. We also relate AR to being a retract of UNIV, which is
 often a more convenient proxy in the closed case.\<close>
@@ -501,8 +480,7 @@ lemma AR_imp_ANR: "AR S \<Longrightarrow> ANR S"
 lemma ENR_imp_ANR:
   fixes S :: "'a::euclidean_space set"
   shows "ENR S \<Longrightarrow> ANR S"
-apply (simp add: ANR_def)
-by (metis ENR_imp_absolute_neighbourhood_retract closedin_imp_subset)
+  by (meson ANR_def ENR_imp_absolute_neighbourhood_retract closedin_imp_subset)
 
 lemma ENR_ANR:
   fixes S :: "'a::euclidean_space set"
@@ -521,11 +499,7 @@ next
     by (metis DIM_prod DIM_real Suc_eq_plus1 lessI)
   then show "ENR S"
     using \<open>ANR S\<close>
-    apply (simp add: ANR_def)
-    apply (drule_tac x=UNIV in spec)
-    apply (drule_tac x=T in spec, clarsimp)
-    apply (meson ENR_def ENR_homeomorphic_ENR open_openin)
-    done
+    by (meson ANR_imp_absolute_neighbourhood_retract_UNIV ENR_def ENR_homeomorphic_ENR)
 qed
 
 
@@ -535,19 +509,15 @@ lemma AR_ANR:
         (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  obtain C and S' :: "('a * real) set"
-    where "convex C" "C \<noteq> {}" "closedin (top_of_set C) S'" "S homeomorphic S'"
-      apply (rule homeomorphic_closedin_convex [of S, where 'n = "'a * real"])
+  have "aff_dim S < int DIM('a \<times> real)"
       using aff_dim_le_DIM [of S] by auto
+    then obtain C and S' :: "('a * real) set"
+    where "convex C" "C \<noteq> {}" "closedin (top_of_set C) S'" "S homeomorphic S'"
+    using homeomorphic_closedin_convex by blast
   with \<open>AR S\<close> have "contractible S"
-    apply (simp add: AR_def)
-    apply (drule_tac x=C in spec)
-    apply (drule_tac x="S'" in spec, simp)
-    using convex_imp_contractible homeomorphic_contractible_eq retract_of_contractible by fastforce
+    by (meson AR_def convex_imp_contractible homeomorphic_contractible_eq retract_of_contractible)
   with \<open>AR S\<close> show ?rhs
-    apply (auto simp: AR_imp_ANR)
-    apply (force simp: AR_def)
-    done
+    using AR_imp_ANR AR_imp_retract by fastforce
 next
   assume ?rhs
   then obtain a and h:: "real \<times> 'a \<Rightarrow> 'a"
@@ -594,19 +564,19 @@ next
     show ?thesis
     proof (intro conjI exI)
       have *: "continuous_on (W - V') (\<lambda>x. h (j x, g x))"
-        apply (rule continuous_on_compose2 [OF conth continuous_on_Pair])
-          apply (rule continuous_on_subset [OF contj Diff_subset])
-         apply (rule continuous_on_subset [OF contg])
-         apply (metis Diff_subset_conv Un_commute \<open>W - U \<subseteq> V'\<close>)
-        using j \<open>g ` U \<subseteq> S\<close> \<open>W - U \<subseteq> V'\<close> apply fastforce
-        done
+      proof (rule continuous_on_compose2 [OF conth continuous_on_Pair])
+        show "continuous_on (W - V') j"
+          by (rule continuous_on_subset [OF contj Diff_subset])
+        show "continuous_on (W - V') g"
+          by (metis Diff_subset_conv \<open>W - U \<subseteq> V'\<close> contg continuous_on_subset Un_commute)
+        show "(\<lambda>x. (j x, g x)) ` (W - V') \<subseteq> {0..1} \<times> S"
+          using j \<open>g ` U \<subseteq> S\<close> \<open>W - U \<subseteq> V'\<close> by fastforce
+      qed
       show "continuous_on W (\<lambda>x. if x \<in> W - V then a else h (j x, g x))"
-        apply (subst Weq)
-        apply (rule continuous_on_cases_local)
-            apply (simp_all add: Weq [symmetric] WWV *)
-          using WV' closedin_diff apply fastforce
-         apply (auto simp: j0 j1)
-        done
+      proof (subst Weq, rule continuous_on_cases_local)
+        show "continuous_on (W - V') (\<lambda>x. h (j x, g x))"
+          using "*" by blast
+      qed (use WWV WV' Weq j0 j1 in auto)
     next
       have "h (j (x, y), g (x, y)) \<in> S" if "(x, y) \<in> W" "(x, y) \<in> V" for x y
       proof -
@@ -632,15 +602,23 @@ qed
 
 lemma ANR_retract_of_ANR:
   fixes S :: "'a::euclidean_space set"
-  assumes "ANR T" "S retract_of T"
+  assumes "ANR T" and ST: "S retract_of T"
   shows "ANR S"
-using assms
-apply (simp add: ANR_eq_absolute_neighbourhood_extensor retract_of_def retraction_def)
-apply (clarsimp elim!: all_forward)
-apply (erule impCE, metis subset_trans)
-apply (clarsimp elim!: ex_forward)
-apply (rule_tac x="r \<circ> g" in exI)
-by (metis comp_apply continuous_on_compose continuous_on_subset subsetD imageI image_comp image_mono subset_trans)
+proof (clarsimp simp add: ANR_eq_absolute_neighbourhood_extensor)
+  fix f::"'a \<times> real \<Rightarrow> 'a" and U W
+  assume W: "continuous_on W f" "f ` W \<subseteq> S" "closedin (top_of_set U) W"
+  then obtain r where "S \<subseteq> T" and r: "continuous_on T r" "r ` T \<subseteq> S" "\<forall>x\<in>S. r x = x" "continuous_on W f" "f ` W \<subseteq> S"
+                                     "closedin (top_of_set U) W"
+    by (meson ST retract_of_def retraction_def)
+  then have "f ` W \<subseteq> T"
+    by blast
+  with W obtain V g where V: "W \<subseteq> V" "openin (top_of_set U) V" "continuous_on V g" "g ` V \<subseteq> T" "\<forall>x\<in>W. g x = f x"
+    by (metis ANR_imp_absolute_neighbourhood_extensor \<open>ANR T\<close>)
+  with r have "continuous_on V (r \<circ> g) \<and> (r \<circ> g) ` V \<subseteq> S \<and> (\<forall>x\<in>W. (r \<circ> g) x = f x)"
+    by (metis (no_types, lifting) comp_apply continuous_on_compose continuous_on_subset image_subset_iff)
+  then show "\<exists>V. W \<subseteq> V \<and> openin (top_of_set U) V \<and> (\<exists>g. continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>W. g x = f x))"
+    by (meson V)
+qed
 
 lemma AR_retract_of_AR:
   fixes S :: "'a::euclidean_space set"
@@ -675,9 +653,7 @@ lemma ANR_empty [simp]: "ANR ({} :: 'a::euclidean_space set)"
 lemma convex_imp_AR:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>convex S; S \<noteq> {}\<rbrakk> \<Longrightarrow> AR S"
-apply (rule absolute_extensor_imp_AR)
-apply (rule Dugundji, assumption+)
-by blast
+  by (metis (mono_tags, lifting) Dugundji absolute_extensor_imp_AR)
 
 lemma convex_imp_ANR:
   fixes S :: "'a::euclidean_space set"
@@ -740,11 +716,12 @@ proof -
   have "S \<inter> T \<subseteq> W" "W \<subseteq> U"
     using \<open>S \<subseteq> U\<close> by (auto simp: W_def setdist_sing_in_set)
   have "(S \<inter> T) retract_of W"
-    apply (rule AR_imp_absolute_retract [OF \<open>AR(S \<inter> T)\<close>])
-     apply (simp add: homeomorphic_refl)
-    apply (rule closedin_subset_trans [of U])
-    apply (simp_all add: assms closedin_Int \<open>S \<inter> T \<subseteq> W\<close> \<open>W \<subseteq> U\<close>)
-    done
+  proof (rule AR_imp_absolute_retract [OF \<open>AR(S \<inter> T)\<close>])
+    show "S \<inter> T homeomorphic S \<inter> T"
+      by (simp add: homeomorphic_refl)
+    show "closedin (top_of_set W) (S \<inter> T)"
+      by (meson \<open>S \<inter> T \<subseteq> W\<close> \<open>W \<subseteq> U\<close> assms closedin_Int closedin_subset_trans)
+  qed
   then obtain r0
     where "S \<inter> T \<subseteq> W" and contr0: "continuous_on W r0"
       and "r0 ` W \<subseteq> S \<inter> T"
@@ -758,8 +735,6 @@ proof -
   then have cloUW: "closedin (top_of_set U) W"
     using closedin_Int US' UT' by blast
   define r where "r \<equiv> \<lambda>x. if x \<in> W then r0 x else x"
-  have "r ` (W \<union> S) \<subseteq> S" "r ` (W \<union> T) \<subseteq> T"
-    using \<open>r0 ` W \<subseteq> S \<inter> T\<close> r_def by auto
   have contr: "continuous_on (W \<union> (S \<union> T)) r"
   unfolding r_def
   proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
@@ -770,37 +745,37 @@ proof -
     show "\<And>x. x \<in> W \<and> x \<notin> W \<or> x \<in> S \<union> T \<and> x \<in> W \<Longrightarrow> r0 x = x"
       by (auto simp: ST)
   qed
+  have rim: "r ` (W \<union> S) \<subseteq> S" "r ` (W \<union> T) \<subseteq> T"
+    using \<open>r0 ` W \<subseteq> S \<inter> T\<close> r_def by auto
   have cloUWS: "closedin (top_of_set U) (W \<union> S)"
     by (simp add: cloUW assms closedin_Un)
   obtain g where contg: "continuous_on U g"
-             and "g ` U \<subseteq> S" and geqr: "\<And>x. x \<in> W \<union> S \<Longrightarrow> g x = r x"
-    apply (rule AR_imp_absolute_extensor [OF \<open>AR S\<close> _ _ cloUWS])
-      apply (rule continuous_on_subset [OF contr])
-      using \<open>r ` (W \<union> S) \<subseteq> S\<close> apply auto
-    done
+    and "g ` U \<subseteq> S" and geqr: "\<And>x. x \<in> W \<union> S \<Longrightarrow> g x = r x"
+  proof (rule AR_imp_absolute_extensor [OF \<open>AR S\<close> _ _ cloUWS])
+    show "continuous_on (W \<union> S) r"
+      using continuous_on_subset contr sup_assoc by blast
+  qed (use rim in auto)
   have cloUWT: "closedin (top_of_set U) (W \<union> T)"
     by (simp add: cloUW assms closedin_Un)
   obtain h where conth: "continuous_on U h"
              and "h ` U \<subseteq> T" and heqr: "\<And>x. x \<in> W \<union> T \<Longrightarrow> h x = r x"
-    apply (rule AR_imp_absolute_extensor [OF \<open>AR T\<close> _ _ cloUWT])
-      apply (rule continuous_on_subset [OF contr])
-      using \<open>r ` (W \<union> T) \<subseteq> T\<close> apply auto
-    done
-  have "U = S' \<union> T'"
+  proof (rule AR_imp_absolute_extensor [OF \<open>AR T\<close> _ _ cloUWT])
+    show "continuous_on (W \<union> T) r"
+      using continuous_on_subset contr sup_assoc by blast
+  qed (use rim in auto)
+  have U: "U = S' \<union> T'"
     by (force simp: S'_def T'_def)
-  then have cont: "continuous_on U (\<lambda>x. if x \<in> S' then g x else h x)"
-    apply (rule ssubst)
+  have cont: "continuous_on U (\<lambda>x. if x \<in> S' then g x else h x)"
+    unfolding U
     apply (rule continuous_on_cases_local)
     using US' UT' \<open>S' \<inter> T' = W\<close> \<open>U = S' \<union> T'\<close>
-          contg conth continuous_on_subset geqr heqr apply auto
-    done
+          contg conth continuous_on_subset geqr heqr by auto
   have UST: "(\<lambda>x. if x \<in> S' then g x else h x) ` U \<subseteq> S \<union> T"
     using \<open>g ` U \<subseteq> S\<close> \<open>h ` U \<subseteq> T\<close> by auto
   show ?thesis
     apply (simp add: retract_of_def retraction_def \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close>)
     apply (rule_tac x="\<lambda>x. if x \<in> S' then g x else h x" in exI)
-    apply (intro conjI cont UST)
-    by (metis IntI ST Un_iff \<open>S \<subseteq> S'\<close> \<open>S' \<inter> T' = W\<close> \<open>T \<subseteq> T'\<close> subsetD geqr heqr r0 r_def)
+    using ST UST \<open>S \<subseteq> S'\<close> \<open>S' \<inter> T' = W\<close> \<open>T \<subseteq> T'\<close> cont geqr heqr r_def by auto
 qed
 
 
@@ -818,42 +793,30 @@ proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
     have US: "closedin (top_of_set U) (C \<inter> g -` S)"
-      apply (rule closedin_trans [OF _ UC])
-      apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
-      using hom homeomorphism_def apply blast
-      apply (metis hom homeomorphism_def set_eq_subset)
-      done
+      by (metis STS continuous_on_imp_closedin hom homeomorphism_def closedin_trans [OF _ UC])
     have UT: "closedin (top_of_set U) (C \<inter> g -` T)"
-      apply (rule closedin_trans [OF _ UC])
-      apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
-      using hom homeomorphism_def apply blast
-      apply (metis hom homeomorphism_def set_eq_subset)
-      done
-    have ARS: "AR (C \<inter> g -` S)"
-      apply (rule AR_homeomorphic_AR [OF \<open>AR S\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
-      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      by (metis STT continuous_on_closed hom homeomorphism_def closedin_trans [OF _ UC])
+    have "homeomorphism (C \<inter> g -` S) S g f"
+      using hom 
+      apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ART: "AR (C \<inter> g -` T)"
-      apply (rule AR_homeomorphic_AR [OF \<open>AR T\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
-      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+    then have ARS: "AR (C \<inter> g -` S)"
+      using \<open>AR S\<close> homeomorphic_AR_iff_AR homeomorphic_def by blast
+    have "homeomorphism (C \<inter> g -` T) T g f"
+      using hom 
+      apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ARI: "AR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
-      apply (rule AR_homeomorphic_AR [OF \<open>AR (S \<inter> T)\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
+    then have ART: "AR (C \<inter> g -` T)"
+      using \<open>AR T\<close> homeomorphic_AR_iff_AR homeomorphic_def by blast
+    have "homeomorphism (C \<inter> g -` S \<inter> (C \<inter> g -` T)) (S \<inter> T) g f"
       using hom
       apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
+    then have ARI: "AR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
+      using \<open>AR (S \<inter> T)\<close> homeomorphic_AR_iff_AR homeomorphic_def by blast
     have "C = (C \<inter> g -` S) \<union> (C \<inter> g -` T)"
       using hom  by (auto simp: homeomorphism_def)
     then show ?thesis
@@ -913,10 +876,7 @@ next
                  and cloWW0: "closedin (top_of_set W) W0"
                  and "S \<inter> T \<subseteq> W'" "W' \<subseteq> W0"
                  and ret: "(S \<inter> T) retract_of W0"
-    apply (rule ANR_imp_closed_neighbourhood_retract [OF \<open>ANR(S \<inter> T)\<close>])
-    apply (rule closedin_subset_trans [of U, OF _ ST_W \<open>W \<subseteq> U\<close>])
-    apply (blast intro: assms)+
-    done
+    by (meson ANR_imp_closed_neighbourhood_retract ST_W US UT \<open>W \<subseteq> U\<close> \<open>ANR(S \<inter> T)\<close> closedin_Int closedin_subset_trans)
   then obtain U0 where opeUU0: "openin (top_of_set U) U0"
                    and U0: "S \<inter> T \<subseteq> U0" "U0 \<inter> W \<subseteq> W0"
     unfolding openin_open  using \<open>W \<subseteq> U\<close> by blast
@@ -935,9 +895,8 @@ next
   unfolding r_def
   proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
     show "closedin (top_of_set (W0 \<union> (S \<union> T))) W0"
-      apply (rule closedin_subset_trans [of U])
-      using cloWW0 cloUW closedin_trans \<open>W0 \<subseteq> U\<close> \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> apply blast+
-      done
+      using closedin_subset_trans [of U]
+      by (metis le_sup_iff order_refl cloWW0 cloUW closedin_trans \<open>W0 \<subseteq> U\<close> \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close>)
     show "closedin (top_of_set (W0 \<union> (S \<union> T))) (S \<union> T)"
       by (meson \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W0 \<subseteq> U\<close> assms closedin_Un closedin_subset_trans sup.bounded_iff sup.cobounded2)
     show "\<And>x. x \<in> W0 \<and> x \<notin> W0 \<or> x \<in> S \<union> T \<and> x \<in> W0 \<Longrightarrow> r0 x = x"
@@ -949,60 +908,63 @@ next
   obtain W1 g where "W0 \<union> S \<subseteq> W1" and contg: "continuous_on W1 g"
                 and opeSW1: "openin (top_of_set S') W1"
                 and "g ` W1 \<subseteq> S" and geqr: "\<And>x. x \<in> W0 \<union> S \<Longrightarrow> g x = r x"
-    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> _ \<open>r ` (W0 \<union> S) \<subseteq> S\<close> cloS'WS])
-     apply (rule continuous_on_subset [OF contr], blast+)
-    done
+  proof (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> _ \<open>r ` (W0 \<union> S) \<subseteq> S\<close> cloS'WS])
+    show "continuous_on (W0 \<union> S) r"
+      using continuous_on_subset contr sup_assoc by blast
+  qed auto
   have cloT'WT: "closedin (top_of_set T') (W0 \<union> T)"
     by (meson closedin_subset_trans UT cloUT' \<open>T \<subseteq> T'\<close> \<open>W \<subseteq> T'\<close> cloUW cloWW0 
               closedin_Un closedin_imp_subset closedin_trans)
   obtain W2 h where "W0 \<union> T \<subseteq> W2" and conth: "continuous_on W2 h"
                 and opeSW2: "openin (top_of_set T') W2"
                 and "h ` W2 \<subseteq> T" and heqr: "\<And>x. x \<in> W0 \<union> T \<Longrightarrow> h x = r x"
-    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> _ \<open>r ` (W0 \<union> T) \<subseteq> T\<close> cloT'WT])
-     apply (rule continuous_on_subset [OF contr], blast+)
-    done
+  proof (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> _ \<open>r ` (W0 \<union> T) \<subseteq> T\<close> cloT'WT])
+    show "continuous_on (W0 \<union> T) r"
+      using continuous_on_subset contr sup_assoc by blast
+  qed auto
   have "S' \<inter> T' = W"
     by (force simp: S'_def T'_def W_def)
-  obtain O1 O2 where "open O1" "W1 = S' \<inter> O1" "open O2" "W2 = T' \<inter> O2"
+  obtain O1 O2 where O12: "open O1" "W1 = S' \<inter> O1" "open O2" "W2 = T' \<inter> O2"
     using opeSW1 opeSW2 by (force simp: openin_open)
   show ?thesis
   proof
-    have eq: "W1 - (W - U0) \<union> (W2 - (W - U0)) =
-         ((U - T') \<inter> O1 \<union> (U - S') \<inter> O2 \<union> U \<inter> O1 \<inter> O2) - (W - U0)"
-     using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close>
+    have eq: "W1 - (W - U0) \<union> (W2 - (W - U0)) 
+            = ((U - T') \<inter> O1 \<union> (U - S') \<inter> O2 \<union> U \<inter> O1 \<inter> O2) - (W - U0)" (is "?WW1 \<union> ?WW2 = ?rhs")
+      using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close>
       by (auto simp: \<open>S' \<union> T' = U\<close> [symmetric] \<open>S' \<inter> T' = W\<close> [symmetric] \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close>)
-    show "openin (top_of_set U) (W1 - (W - U0) \<union> (W2 - (W - U0)))"
-      apply (subst eq)
-      apply (intro openin_Un openin_Int_open openin_diff closedin_diff cloUW opeUU0 cloUS' cloUT' \<open>open O1\<close> \<open>open O2\<close>, simp_all)
-      done
-    have cloW1: "closedin (top_of_set (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
-      using cloUS' apply (simp add: closedin_closed)
-      apply (erule ex_forward)
-      using U0 \<open>W0 \<union> S \<subseteq> W1\<close>
-      apply (auto simp: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
-      done
-    have cloW2: "closedin (top_of_set (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W2 - (W - U0))"
-      using cloUT' apply (simp add: closedin_closed)
-      apply (erule ex_forward)
-      using U0 \<open>W0 \<union> T \<subseteq> W2\<close>
-      apply (auto simp: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
-      done
-    have *: "\<forall>x\<in>S \<union> T. (if x \<in> S' then g x else h x) = x"
-      using ST \<open>S' \<inter> T' = W\<close> cloT'WT closedin_subset geqr heqr 
-      apply (auto simp: r_def, fastforce)
-      using \<open>S \<subseteq> S'\<close> \<open>T \<subseteq> T'\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W1 = S' \<inter> O1\<close>  by auto
-    have "\<exists>r. continuous_on (W1 - (W - U0) \<union> (W2 - (W - U0))) r \<and>
-              r ` (W1 - (W - U0) \<union> (W2 - (W - U0))) \<subseteq> S \<union> T \<and> 
-              (\<forall>x\<in>S \<union> T. r x = x)"
-      apply (rule_tac x = "\<lambda>x. if  x \<in> S' then g x else h x" in exI)
-      apply (intro conjI *)
-      apply (rule continuous_on_cases_local 
-                  [OF cloW1 cloW2 continuous_on_subset [OF contg] continuous_on_subset [OF conth]])
-      using \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<inter> T' = W\<close>
-            \<open>g ` W1 \<subseteq> S\<close> \<open>h ` W2 \<subseteq> T\<close> apply auto
-      using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> apply (fastforce simp add: geqr heqr)+
-      done
-    then show "S \<union> T retract_of W1 - (W - U0) \<union> (W2 - (W - U0))"
+    show "openin (top_of_set U) (?WW1 \<union> ?WW2)"
+      by (simp add: eq \<open>open O1\<close> \<open>open O2\<close> cloUS' cloUT' cloUW closedin_diff opeUU0 openin_Int_open openin_Un openin_diff)
+    obtain SU' where "closed SU'" "S' = U \<inter> SU'"
+      using cloUS' by (auto simp add: closedin_closed)
+    moreover have "?WW1 = (?WW1 \<union> ?WW2) \<inter> SU'"
+      using \<open>S' = U \<inter> SU'\<close> \<open>W1 = S' \<inter> O1\<close> \<open>S' \<union> T' = U\<close> \<open>W2 = T' \<inter> O2\<close>  \<open>S' \<inter> T' = W\<close> \<open>W0 \<union> S \<subseteq> W1\<close> U0
+      by auto
+    ultimately have cloW1: "closedin (top_of_set (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
+      by (metis closedin_closed_Int)
+    obtain TU' where "closed TU'" "T' = U \<inter> TU'"
+      using cloUT' by (auto simp add: closedin_closed)
+    moreover have "?WW2 = (?WW1 \<union> ?WW2) \<inter> TU'"
+      using \<open>T' = U \<inter> TU'\<close> \<open>W1 = S' \<inter> O1\<close> \<open>S' \<union> T' = U\<close> \<open>W2 = T' \<inter> O2\<close>  \<open>S' \<inter> T' = W\<close> \<open>W0 \<union> T \<subseteq> W2\<close> U0
+      by auto
+    ultimately have cloW2: "closedin (top_of_set (?WW1 \<union> ?WW2)) ?WW2"
+      by (metis closedin_closed_Int)
+    let ?gh = "\<lambda>x. if x \<in> S' then g x else h x"
+    have "\<exists>r. continuous_on (?WW1 \<union> ?WW2) r \<and> r ` (?WW1 \<union> ?WW2) \<subseteq> S \<union> T \<and> (\<forall>x\<in>S \<union> T. r x = x)"
+    proof (intro exI conjI)
+      show "\<forall>x\<in>S \<union> T. ?gh x = x"
+        using ST \<open>S' \<inter> T' = W\<close> geqr heqr O12  
+        by (metis Int_iff Un_iff \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close> r0 r_def sup.order_iff)  
+      have "\<And>x. x \<in> ?WW1 \<and> x \<notin> S' \<or> x \<in> ?WW2 \<and> x \<in> S' \<Longrightarrow> g x = h x"
+        using O12
+        by (metis (full_types) DiffD1 DiffD2 DiffI IntE IntI U0(2) UnCI \<open>S' \<inter> T' = W\<close> geqr heqr in_mono)
+      then show "continuous_on (?WW1 \<union> ?WW2) ?gh"
+        using continuous_on_cases_local [OF cloW1 cloW2 continuous_on_subset [OF contg] continuous_on_subset [OF conth]]
+        by simp
+      show "?gh ` (?WW1 \<union> ?WW2) \<subseteq> S \<union> T"
+        using \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<inter> T' = W\<close> \<open>g ` W1 \<subseteq> S\<close> \<open>h ` W2 \<subseteq> T\<close> \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close>  
+        by (auto simp add: image_subset_iff)
+    qed
+    then show "S \<union> T retract_of ?WW1 \<union> ?WW2"
       using  \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close> ST opeUU0 U0
       by (auto simp: retract_of_def retraction_def)
   qed
@@ -1023,42 +985,26 @@ proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
     have US: "closedin (top_of_set U) (C \<inter> g -` S)"
-      apply (rule closedin_trans [OF _ UC])
-      apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
-      using hom [unfolded homeomorphism_def] apply blast
-      apply (metis hom homeomorphism_def set_eq_subset)
-      done
+      by (metis STS UC closedin_trans continuous_on_imp_closedin hom homeomorphism_def)
     have UT: "closedin (top_of_set U) (C \<inter> g -` T)"
-      apply (rule closedin_trans [OF _ UC])
-      apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
-      using hom [unfolded homeomorphism_def] apply blast
-      apply (metis hom homeomorphism_def set_eq_subset)
-      done
-    have ANRS: "ANR (C \<inter> g -` S)"
-      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR S\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
+      by (metis STT UC closedin_trans continuous_on_imp_closedin hom homeomorphism_def)
+    have "homeomorphism (C \<inter> g -` S) S g f"
+      using hom 
+      apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      by (rule_tac x="f x" in image_eqI, auto)
+    then have ANRS: "ANR (C \<inter> g -` S)"
+      using \<open>ANR S\<close> homeomorphic_ANR_iff_ANR homeomorphic_def by blast
+    have "homeomorphism (C \<inter> g -` T) T g f"
       using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
-      apply (rule_tac x="f x" in image_eqI, auto)
-      done
-    have ANRT: "ANR (C \<inter> g -` T)"
-      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR T\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
-      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
-      apply (rule_tac x="f x" in image_eqI, auto)
-      done
-    have ANRI: "ANR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
-      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR (S \<inter> T)\<close>])
-      apply (simp add: homeomorphic_def)
-      apply (rule_tac x=g in exI)
-      apply (rule_tac x=f in exI)
+      by (rule_tac x="f x" in image_eqI, auto)
+    then have ANRT: "ANR (C \<inter> g -` T)"
+      using \<open>ANR T\<close> homeomorphic_ANR_iff_ANR homeomorphic_def by blast
+    have "homeomorphism (C \<inter> g -` S \<inter> (C \<inter> g -` T)) (S \<inter> T) g f"
       using hom
       apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
-      apply (rule_tac x="f x" in image_eqI, auto)
-      done
+      by (rule_tac x="f x" in image_eqI, auto)
+    then have ANRI: "ANR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
+      using \<open>ANR (S \<inter> T)\<close> homeomorphic_ANR_iff_ANR homeomorphic_def by blast
     have "C = (C \<inter> g -` S) \<union> (C \<inter> g -` T)"
       using hom by (auto simp: homeomorphism_def)
     then show ?thesis
@@ -1088,8 +1034,7 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
                and contg: "continuous_on W g"
                and gim: "g ` W \<subseteq> T"
                and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
-    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf \<open>f ` C \<subseteq> T\<close> cloUC])
-    using fim by auto
+    using ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf \<open>f ` C \<subseteq> T\<close> cloUC] fim by auto
   show "\<exists>V g. C \<subseteq> V \<and> openin (top_of_set U) V \<and> continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>C. g x = f x)"
   proof (intro exI conjI)
     show "C \<subseteq> W \<inter> g -` S"
@@ -1107,10 +1052,9 @@ qed
 
 lemma ENR_openin:
     fixes S :: "'a::euclidean_space set"
-    assumes "ENR T" and opeTS: "openin (top_of_set T) S"
+    assumes "ENR T" "openin (top_of_set T) S"
     shows "ENR S"
-  using assms apply (simp add: ENR_ANR)
-  using ANR_openin locally_open_subset by blast
+  by (meson ANR_openin ENR_ANR assms locally_open_subset)
 
 lemma ANR_neighborhood_retract:
     fixes S :: "'a::euclidean_space set"
@@ -1188,8 +1132,7 @@ lemma ANR_box [iff]:
 lemma ENR_box [iff]:
     fixes a :: "'a::euclidean_space"
     shows "ENR(cbox a b)" "ENR(box a b)"
-apply (simp add: ENR_convex_closed closed_cbox)
-by (simp add: open_box open_imp_ENR)
+  by (simp_all add: ENR_convex_closed closed_cbox open_box open_imp_ENR)
 
 lemma AR_box [simp]:
     "AR(cbox a b) \<longleftrightarrow> cbox a b \<noteq> {}" "AR(box a b) \<longleftrightarrow> box a b \<noteq> {}"
@@ -1222,24 +1165,21 @@ lemma ANR_imp_locally_path_connected:
 proof -
   obtain U and T :: "('a \<times> real) set"
      where "convex U" "U \<noteq> {}"
-       and UT: "closedin (top_of_set U) T"
-       and "S homeomorphic T"
-    apply (rule homeomorphic_closedin_convex [of S])
-    using aff_dim_le_DIM [of S] apply auto
-    done
+       and UT: "closedin (top_of_set U) T" and "S homeomorphic T"
+  proof (rule homeomorphic_closedin_convex)
+    show "aff_dim S < int DIM('a \<times> real)"
+      using aff_dim_le_DIM [of S] by auto
+  qed auto
   then have "locally path_connected T"
     by (meson ANR_imp_absolute_neighbourhood_retract
         assms convex_imp_locally_path_connected locally_open_subset retract_of_locally_path_connected)
   then have S: "locally path_connected S"
       if "openin (top_of_set U) V" "T retract_of V" "U \<noteq> {}" for V
     using \<open>S homeomorphic T\<close> homeomorphic_locally homeomorphic_path_connectedness by blast
-  show ?thesis
-    using assms
-    apply (clarsimp simp: ANR_def)
-    apply (drule_tac x=U in spec)
-    apply (drule_tac x=T in spec)
-    using \<open>S homeomorphic T\<close> \<open>U \<noteq> {}\<close> UT  apply (blast intro: S)
-    done
+  obtain Ta where "(openin (top_of_set U) Ta \<and> T retract_of Ta)"
+    using ANR_def UT \<open>S homeomorphic T\<close> assms by moura
+  then show ?thesis
+    using S \<open>U \<noteq> {}\<close> by blast
 qed
 
 lemma ANR_imp_locally_connected:
@@ -1286,9 +1226,10 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
                and contg: "continuous_on W1 g"
                and gim: "g ` W1 \<subseteq> S"
                and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = (fst \<circ> f) x"
-    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> contf1 _ cloUC])
-    using fim apply auto
-    done
+  proof (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> contf1 _ cloUC])
+    show "(fst \<circ> f) ` C \<subseteq> S"
+      using fim by auto
+  qed auto
   have contf2: "continuous_on C (snd \<circ> f)"
     by (simp add: \<open>continuous_on C f\<close> continuous_on_snd)
   obtain W2 h where "C \<subseteq> W2"
@@ -1296,9 +1237,10 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
                and conth: "continuous_on W2 h"
                and him: "h ` W2 \<subseteq> T"
                and heq: "\<And>x. x \<in> C \<Longrightarrow> h x = (snd \<circ> f) x"
-    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf2 _ cloUC])
-    using fim apply auto
-    done
+  proof (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf2 _ cloUC])
+    show "(snd \<circ> f) ` C \<subseteq> T"
+      using fim by auto
+  qed auto
   show "\<exists>V g. C \<subseteq> V \<and>
                openin (top_of_set U) V \<and>
                continuous_on V g \<and> g ` V \<subseteq> S \<times> T \<and> (\<forall>x\<in>C. g x = f x)"
@@ -1321,7 +1263,7 @@ lemma AR_Times:
   assumes "AR S" "AR T" shows "AR(S \<times> T)"
   using assms by (simp add: AR_ANR ANR_Times contractible_Times)
 
-(* Unused
+(* Unused and requires ordered_euclidean_space
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Retracts and intervals in ordered euclidean space\<close>
 
 lemma ANR_interval [iff]:
@@ -1355,20 +1297,16 @@ next
   have "rel_frontier S retract_of affine hull S - {a}"
     by (simp add: assms a rel_frontier_retract_of_punctured_affine_hull)
   also have "\<dots> retract_of {x. closest_point (affine hull S) x \<noteq> a}"
-    apply (simp add: retract_of_def retraction_def ahS)
+    unfolding retract_of_def retraction_def ahS
     apply (rule_tac x="closest_point (affine hull S)" in exI)
     apply (auto simp: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
     done
   finally have "rel_frontier S retract_of {x. closest_point (affine hull S) x \<noteq> a}" .
   moreover have "openin (top_of_set UNIV) (UNIV \<inter> closest_point (affine hull S) -` (- {a}))"
-    apply (rule continuous_openin_preimage_gen)
-    apply (auto simp: False affine_imp_convex continuous_on_closest_point)
-    done
+    by (intro continuous_openin_preimage_gen) (auto simp: False affine_imp_convex continuous_on_closest_point)
   ultimately show ?thesis
-    unfolding ENR_def
-    apply (rule_tac x = "closest_point (affine hull S) -` (- {a})" in exI)
-    apply (simp add: vimage_def)
-    done
+    by (meson ENR_convex_closed ENR_delete ENR_retract_of_ENR \<open>rel_frontier S retract_of affine hull S - {a}\<close> 
+              closed_affine_hull convex_affine_hull)
 qed
 
 lemma ANR_rel_frontier_convex:
@@ -1408,8 +1346,7 @@ proof -
     unfolding retraction_def retract_of_def
   proof (intro exI conjI)
     show "continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then x else r x)"
-      apply (rule continuous_on_cases_local [OF clS clT])
-      using r by (auto)
+      using r by (intro continuous_on_cases_local [OF clS clT]) auto
   qed (use r in auto)
   also have "\<dots> retract_of U"
     by (rule Un)
@@ -1422,8 +1359,8 @@ lemma AR_from_Un_Int_local:
       and clT: "closedin (top_of_set (S \<union> T)) T"
       and Un: "AR(S \<union> T)" and Int: "AR(S \<inter> T)"
     shows "AR S"
-  apply (rule AR_retract_of_AR [OF Un])
-  by (meson AR_imp_retract clS clT closedin_closed_subset local.Int retract_from_Un_Int retract_of_refl sup_ge2)
+  by (meson AR_imp_retract AR_retract_of_AR Un assms closedin_closed_subset local.Int 
+            retract_from_Un_Int retract_of_refl sup_ge2)
 
 lemma AR_from_Un_Int_local':
   fixes S :: "'a::euclidean_space set"
@@ -1470,10 +1407,7 @@ proof -
       by (meson Int_lower1 continuous_on_subset r)
   qed (use req continuous_on_id in auto)
   with rim have "S retract_of S \<union> V"
-    unfolding retraction_def retract_of_def
-    apply (rule_tac x="\<lambda>x. if x \<in> S then x else r x" in exI)
-    apply (auto simp: eq')
-    done
+    unfolding retraction_def retract_of_def using eq' by fastforce
   then show ?thesis
     using ANR_neighborhood_retract [OF Un]
     using \<open>S \<union> V = S \<union> T - T \<union> V\<close> clT ope by fastforce
@@ -1581,9 +1515,8 @@ proof
     using bounded_subset_ballD assms by blast
   assume ?lhs
   then show ?rhs
-    apply (clarsimp simp: ENR_def)
-    apply (rule_tac x="ball 0 r \<inter> U" in exI, auto)
-    using r retract_of_imp_subset retract_of_subset by fastforce
+    by (meson ENR_def Elementary_Metric_Spaces.open_ball bounded_Int bounded_ball inf_le2 le_inf_iff 
+              open_Int r retract_of_imp_subset retract_of_subset)
 next
   assume ?rhs
   then show ?lhs
@@ -1614,9 +1547,7 @@ lemma homeomorphic_compact_arness:
   assumes "S homeomorphic S'"
   shows "compact S \<and> S retract_of UNIV \<longleftrightarrow> compact S' \<and> S' retract_of UNIV"
   using assms homeomorphic_compactness
-  apply auto
-   apply (meson assms compact_AR homeomorphic_AR_iff_AR homeomorphic_compactness)+
-  done
+  by (metis compact_AR homeomorphic_AR_iff_AR)
 
 lemma absolute_retract_from_Un_Int:
   fixes S :: "'a::euclidean_space set"
@@ -1628,8 +1559,7 @@ lemma ENR_from_Un_Int_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "closedin (top_of_set (S \<union> T)) S" "closedin (top_of_set (S \<union> T)) T" "ENR(S \<union> T)" "ENR(S \<inter> T)"
   shows "ENR S"
-  apply (simp add: ENR_ANR)
-  using ANR_from_Un_Int_local ENR_ANR assms locally_compact_closedin by blast
+  by (meson ANR_from_Un_Int_local ANR_imp_neighbourhood_retract ENR_ANR ENR_neighborhood_retract assms)
 
 
 lemma ENR_from_Un_Int:
@@ -1699,8 +1629,7 @@ lemma sphere_retract_of_punctured_universe_gen:
   shows  "sphere a r retract_of (- {b})"
 proof -
   have "frontier (cball a r) retract_of (- {b})"
-    apply (rule frontier_retract_of_punctured_universe)
-    using assms by auto
+    using assms frontier_retract_of_punctured_universe interior_cball by blast
   then show ?thesis
     by simp
 qed
@@ -1806,13 +1735,14 @@ proof -
     using \<open>S \<subseteq> T\<close> closedin_subset_trans [OF clo0T]
     by (metis B_def Un_upper1 clo0TB closedin_closed inf_le1)
   moreover have "continuous_on ({0} \<times> T) (f \<circ> snd)"
-    apply (rule continuous_intros)+
-    apply (simp add: contf)
-    done
-  ultimately have conth': "continuous_on B h'"
-    apply (simp add: h'_def B_def Un_commute [of "{0} \<times> T"])
-    apply (auto intro!: continuous_on_cases_local conth)
-    done
+  proof (rule continuous_intros)+
+    show "continuous_on (snd ` ({0} \<times> T)) f"
+      by (simp add: contf)
+  qed
+  ultimately have "continuous_on ({0..1} \<times> S \<union> {0} \<times> T) (\<lambda>x. if snd x \<in> S then h x else (f \<circ> snd) x)"
+    by (auto intro!: continuous_on_cases_local conth simp: B_def Un_commute [of "{0} \<times> T"])
+  then have conth': "continuous_on B h'"
+    by (simp add: h'_def B_def Un_commute [of "{0} \<times> T"])
   have "image h' B \<subseteq> U"
     using \<open>f ` T \<subseteq> U\<close> him by (auto simp: h'_def B_def)
   obtain V k where "B \<subseteq> V" and opeTV: "openin (top_of_set ({0..1} \<times> T)) V"
@@ -1824,25 +1754,26 @@ proof -
     have eq: "({0} \<times> T \<inter> {0..1} \<times> S) = {0::real} \<times> S"
       using \<open>S \<subseteq> T\<close> by auto
     have "ANR B"
-      apply (simp add: B_def)
-      apply (rule ANR_closed_Un_local)
-          apply (metis cloBT B_def)
-         apply (metis Un_commute cloBS B_def)
-        apply (simp_all add: ANR_Times convex_imp_ANR ANR_singleton ST eq)
-      done
+      unfolding B_def
+    proof (rule ANR_closed_Un_local)
+      show "closedin (top_of_set ({0} \<times> T \<union> {0..1} \<times> S)) ({0::real} \<times> T)"
+        by (metis cloBT B_def)
+      show "closedin (top_of_set ({0} \<times> T \<union> {0..1} \<times> S)) ({0..1::real} \<times> S)"
+        by (metis Un_commute cloBS B_def)
+    qed (simp_all add: ANR_Times convex_imp_ANR ANR_singleton ST eq)
     note Vk = that
     have *: thesis if "openin (top_of_set ({0..1::real} \<times> T)) V"
                       "retraction V B r" for V r
-      using that
-      apply (clarsimp simp add: retraction_def)
-      apply (rule Vk [of V "h' \<circ> r"], assumption+)
-        apply (metis continuous_on_compose conth' continuous_on_subset) 
-      using \<open>h' ` B \<subseteq> U\<close> apply force+
-      done
+    proof -
+      have "continuous_on V (h' \<circ> r)"
+        using conth' continuous_on_compose retractionE that(2) by blast
+      moreover have "(h' \<circ> r) ` V \<subseteq> U"
+        by (metis \<open>h' ` B \<subseteq> U\<close> image_comp retractionE that(2))
+      ultimately show ?thesis
+        using Vk [of V "h' \<circ> r"] by (metis comp_apply retraction that)
+    qed
     show thesis
-        apply (rule ANR_imp_neighbourhood_retract [OF \<open>ANR B\<close> clo0TB])
-        apply (auto simp: ANR_Times ANR_singleton ST retract_of_def *)
-        done
+      by (meson "*" ANR_imp_neighbourhood_retract \<open>ANR B\<close> clo0TB retract_of_def)
   next
     assume "ANR U"
     with ANR_imp_absolute_neighbourhood_extensor \<open>h' ` B \<subseteq> U\<close> clo0TB conth' that
@@ -1850,9 +1781,8 @@ proof -
   qed
   define S' where "S' \<equiv> {x. \<exists>u::real. u \<in> {0..1} \<and> (u, x::'a) \<in> {0..1} \<times> T - V}"
   have "closedin (top_of_set T) S'"
-    unfolding S'_def
-    apply (rule closedin_compact_projection, blast)
-    using closedin_self opeTV by blast
+    unfolding S'_def using closedin_self opeTV 
+    by (blast intro: closedin_compact_projection)
   have S'_def: "S' = {x. \<exists>u::real.  (u, x::'a) \<in> {0..1} \<times> T - V}"
     by (auto simp: S'_def)
   have cloTS': "closedin (top_of_set T) S'"
@@ -1863,8 +1793,7 @@ proof -
       and "\<And>x. x \<in> T \<Longrightarrow> a x \<in> closed_segment 1 0"
       and a1: "\<And>x. x \<in> S \<Longrightarrow> a x = 1"
       and a0: "\<And>x. x \<in> S' \<Longrightarrow> a x = 0"
-    apply (rule Urysohn_local [OF cloTS cloTS' \<open>S \<inter> S' = {}\<close>, of 1 0], blast)
-    done
+    by (rule Urysohn_local [OF cloTS cloTS' \<open>S \<inter> S' = {}\<close>, of 1 0], blast)
   then have ain: "\<And>x. x \<in> T \<Longrightarrow> a x \<in> {0..1}"
     using closed_segment_eq_real_ivl by auto
   have inV: "(u * a t, t) \<in> V" if "t \<in> T" "0 \<le> u" "u \<le> 1" for t u
@@ -1872,8 +1801,7 @@ proof -
     assume "(u * a t, t) \<notin> V"
     with ain [OF \<open>t \<in> T\<close>] have "a t = 0"
       apply simp
-      apply (rule a0)
-      by (metis (no_types, lifting) Diff_iff S'_def SigmaI atLeastAtMost_iff mem_Collect_eq mult_le_one mult_nonneg_nonneg that)
+      by (metis (no_types, lifting) a0 DiffI S'_def SigmaI atLeastAtMost_iff mem_Collect_eq mult_le_one mult_nonneg_nonneg that)
     show False
       using B_def \<open>(u * a t, t) \<notin> V\<close> \<open>B \<subseteq> V\<close> \<open>a t = 0\<close> that by auto
   qed
@@ -1883,9 +1811,7 @@ proof -
     proof (simp add: homotopic_with, intro exI conjI)
       show "continuous_on ({0..1} \<times> T) (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z)))"
         apply (intro continuous_on_compose continuous_intros)
-        apply (rule continuous_on_subset [OF conta], force)
-        apply (rule continuous_on_subset [OF contk])
-        apply (force intro: inV)
+        apply (force intro: inV continuous_on_subset [OF contk] continuous_on_subset [OF conta])+
         done
       show "(k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) ` ({0..1} \<times> T) \<subseteq> U"
         using inV kim by auto
@@ -1927,9 +1853,10 @@ proof
     using \<open>closed S\<close> closed_closedin by fastforce
   then obtain g where "continuous_on UNIV g" "range g \<subseteq> T"
                       "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-    apply (rule Borsuk_homotopy_extension_homotopic [OF _ _ continuous_on_const _ c, where T=UNIV])
-    using \<open>ANR T\<close> \<open>S \<noteq> {}\<close> c homotopic_with_imp_subset1 apply fastforce+
-    done
+  proof (rule Borsuk_homotopy_extension_homotopic)
+    show "range (\<lambda>x. c) \<subseteq> T"
+      using \<open>S \<noteq> {}\<close> c homotopic_with_imp_subset1 by fastforce
+  qed (use assms c in auto)
   then show ?rhs by blast
 next
   assume ?rhs
@@ -1963,17 +1890,13 @@ corollary\<^marker>\<open>tag unimportant\<close> nullhomotopic_into_sphere_exte
            (is "?lhs = ?rhs")
 proof (cases "r = 0")
   case True with fim show ?thesis
-    apply auto
-    using fim continuous_on_const apply fastforce
-    by (metis contf contractible_sing nullhomotopic_into_contractible)
+    by (metis ANR_sphere \<open>closed S\<close> \<open>S \<noteq> {}\<close> contf nullhomotopic_into_ANR_extension)
 next
   case False
   then have eq: "sphere a r = rel_frontier (cball a r)" by simp
   show ?thesis
-    using fim unfolding eq
-    apply (rule nullhomotopic_into_rel_frontier_extension [OF \<open>closed S\<close> contf convex_cball bounded_cball])
-    apply (rule \<open>S \<noteq> {}\<close>)
-    done
+    using fim nullhomotopic_into_rel_frontier_extension [OF \<open>closed S\<close> contf convex_cball bounded_cball]
+    by (simp add: \<open>S \<noteq> {}\<close> eq)
 qed
 
 proposition\<^marker>\<open>tag unimportant\<close> Borsuk_map_essential_bounded_component:
@@ -2002,18 +1925,15 @@ next
     have nog: "\<nexists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
                    g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1 \<and>
                    (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a))"
-         if "bounded (connected_component_set (- S) a)"
-      apply (rule non_extensible_Borsuk_map [OF \<open>compact S\<close> componentsI _ aincc])
-      using  \<open>a \<notin> S\<close> that by auto
+      if "bounded (connected_component_set (- S) a)"
+      using non_extensible_Borsuk_map [OF \<open>compact S\<close> componentsI _ aincc] \<open>a \<notin> S\<close> that by auto
     obtain g where "range g \<subseteq> sphere 0 1" "continuous_on UNIV g"
                         "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
       using notr
       by (auto simp: nullhomotopic_into_sphere_extension
                  [OF \<open>closed S\<close> continuous_on_Borsuk_map [OF \<open>a \<notin> S\<close>] False s01])
     with \<open>a \<notin> S\<close> show  "\<not> ?lhs"
-      apply (clarsimp simp: Borsuk_map_into_sphere [of a S, symmetric] dest!: nog)
-      apply (drule_tac x=g in spec)
-      using continuous_on_subset by fastforce 
+      by (metis UNIV_I continuous_on_subset image_subset_iff nog subsetI)
   next
     assume "\<not> ?lhs"
     then obtain b where b: "b \<in> connected_component_set (- S) a" and "r \<le> norm b"
@@ -2021,10 +1941,13 @@ next
     then have bnot: "b \<notin> ball 0 r"
       by simp
     have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
-                                                   (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
-      apply (rule Borsuk_maps_homotopic_in_path_component)
-      using \<open>closed S\<close> b open_Compl open_path_connected_component apply fastforce
-      done
+                                                         (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
+    proof -
+      have "path_component (- S) a b"
+        by (metis (full_types) \<open>closed S\<close> b mem_Collect_eq open_Compl open_path_connected_component)
+      then show ?thesis
+        using Borsuk_maps_homotopic_in_path_component by blast
+    qed
     moreover
     obtain c where "homotopic_with_canon (\<lambda>x. True) (ball 0 r) (sphere 0 1)
                                    (\<lambda>x. inverse (norm (x - b)) *\<^sub>R (x - b)) (\<lambda>x. c)"
@@ -2136,8 +2059,7 @@ next
   show ?thesis
   proof
     have "continuous_on (T \<union> (S - T)) ?g"
-      apply (rule continuous_on_cases_local)
-      using Seq clo ope by (auto simp: contf intro: continuous_on_cases_local)
+      using Seq clo ope  by (intro continuous_on_cases_local) (auto simp: contf)
     with Seq show "continuous_on S ?g"
       by metis
     show "?g ` S \<subseteq> U"
@@ -2445,8 +2367,7 @@ proof -
     qed
     show ?lhs
       apply (subst Seq)
-      apply (rule homotopic_on_clopen_Union)
-      using Seq clo\<phi> ope\<phi> hom\<phi> by auto
+      using Seq clo\<phi> ope\<phi> hom\<phi> by (intro homotopic_on_clopen_Union) auto
   qed
   ultimately show ?thesis by blast
 qed
@@ -2539,11 +2460,14 @@ proof -
   have "S retract_of UNIV"
     using S compact_AR by blast
   show ?thesis
-    apply (clarsimp simp: connected_iff_connected_component_eq)
-    apply (rule cobounded_unique_unbounded_component [OF _ 2])
-      apply (simp add: \<open>compact S\<close> compact_imp_bounded)
-     apply (meson ComplI S componentsI unbounded_components_complement_absolute_retract)+
-    done
+  proof (clarsimp simp: connected_iff_connected_component_eq)
+    have "\<not> bounded (connected_component_set (- S) x)" if "x \<notin> S" for x
+      by (meson Compl_iff assms componentsI that unbounded_components_complement_absolute_retract)
+    then show "connected_component_set (- S) x = connected_component_set (- S) y" 
+      if "x \<notin> S" "y \<notin> S" for x y
+      using cobounded_unique_unbounded_component [OF _ 2]
+      by (metis \<open>compact S\<close> compact_imp_bounded double_compl that)
+  qed
 qed
 
 lemma path_connected_complement_absolute_retract:
@@ -2590,6 +2514,5 @@ lemma connected_complement_homeomorphic_interval:
   assumes "S homeomorphic cbox a b" "2 \<le> DIM('a)"
   shows "connected(-S)"
   using assms path_connected_complement_homeomorphic_interval path_connected_imp_connected by blast
-
 
 end
