@@ -1,6 +1,6 @@
 (*<*)
 theory Reference
-imports "HOL-SPARK.SPARK"
+imports "HOL-SPARK.SPARK" "HOL-Word.Bits_Int"
 begin
 
 syntax (my_constrain output)

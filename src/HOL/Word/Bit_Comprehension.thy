@@ -47,7 +47,8 @@ instance proof
     apply simp
     apply (rule bit_eqI)
     apply (simp add: bit_signed_take_bit_iff min_def)
-    using "*" by blast
+    apply (auto simp add: not_le bit_take_bit_iff dest: *)
+    done
 qed
 
 end
@@ -223,15 +224,15 @@ next
 qed
 
 lemma bin_last_set_bits [simp]:
-  "bin_last (set_bits f) = f 0"
+  "odd (set_bits f :: int) = f 0"
   by (subst int_set_bits_unfold_BIT) simp_all
 
 lemma bin_rest_set_bits [simp]:
-  "bin_rest (set_bits f) = set_bits (f \<circ> Suc)"
+  "set_bits f div (2 :: int) = set_bits (f \<circ> Suc)"
   by (subst int_set_bits_unfold_BIT) simp_all
 
 lemma bin_nth_set_bits [simp]:
-  "bin_nth (set_bits f) m = f m"
+  "bit (set_bits f :: int) m \<longleftrightarrow> f m"
 using wff proof (induction m arbitrary: f)
   case 0 
   then show ?case

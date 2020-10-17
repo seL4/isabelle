@@ -1684,7 +1684,7 @@ lemma word_split_bl':
   apply (simp add: word_split_def)
   apply transfer
   apply (cases \<open>LENGTH('b) \<le> LENGTH('a)\<close>)
-   apply (auto simp add: drop_bit_take_bit drop_bin2bl bin_to_bl_drop_bit [symmetric, of \<open>LENGTH('a)\<close> \<open>LENGTH('a) - LENGTH('b)\<close> \<open>LENGTH('b)\<close>])
+   apply (auto simp add: drop_bit_take_bit drop_bin2bl bin_to_bl_drop_bit [symmetric, of \<open>LENGTH('a)\<close> \<open>LENGTH('a) - LENGTH('b)\<close> \<open>LENGTH('b)\<close>] min_absorb2)
   done
 
 lemma word_split_bl: "std = size c - size b \<Longrightarrow>

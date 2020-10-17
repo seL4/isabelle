@@ -8,14 +8,8 @@ theory Bits_Int
   imports
     "HOL-Library.Bit_Operations"
     Traditional_Syntax
+    Word
 begin
-
-subsection \<open>Generic auxiliary\<close>
-
-lemma int_mod_ge: "a < n \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a mod n"
-  for a n :: int
-  by (metis dual_order.trans le_cases mod_pos_pos_trivial pos_mod_conj)
-
 
 subsection \<open>Implicit bit representation of \<^typ>\<open>int\<close>\<close>
 
@@ -1114,113 +1108,8 @@ lemma bin_last_neg_numeral_BitM [simp]:
   "bin_last (- numeral (Num.BitM w))"
   by simp
 
-(* FIXME: The rule sets below are very large (24 rules for each
-  operator). Is there a simpler way to do this? *)
-
-lemma int_and_numerals [simp]:
-  "numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND numeral y)"
-  "numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (2 :: int) * (numeral x AND numeral y)"
-  "numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND numeral y)"
-  "numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x AND numeral y)"
-  "numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND - numeral y)"
-  "numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (2 :: int) * (numeral x AND - numeral (y + Num.One))"
-  "numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (numeral x AND - numeral y)"
-  "numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x AND - numeral (y + Num.One))"
-  "- numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (2 :: int) * (- numeral x AND numeral y)"
-  "- numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (2 :: int) * (- numeral x AND numeral y)"
-  "- numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (2 :: int) * (- numeral (x + Num.One) AND numeral y)"
-  "- numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) AND numeral y)"
-  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x AND - numeral y)"
-  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (2 :: int) * (- numeral x AND - numeral (y + Num.One))"
-  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (2 :: int) * (- numeral (x + Num.One) AND - numeral y)"
-  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) AND - numeral (y + Num.One))"
-  "(1::int) AND numeral (Num.Bit0 y) = 0"
-  "(1::int) AND numeral (Num.Bit1 y) = 1"
-  "(1::int) AND - numeral (Num.Bit0 y) = 0"
-  "(1::int) AND - numeral (Num.Bit1 y) = 1"
-  "numeral (Num.Bit0 x) AND (1::int) = 0"
-  "numeral (Num.Bit1 x) AND (1::int) = 1"
-  "- numeral (Num.Bit0 x) AND (1::int) = 0"
-  "- numeral (Num.Bit1 x) AND (1::int) = 1"
-  by (rule bin_rl_eqI; simp)+
-
-lemma int_or_numerals [simp]:
-  "numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (2 :: int) * (numeral x OR numeral y)"
-  "numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
-  "numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
-  "numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR numeral y)"
-  "numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (2 :: int) * (numeral x OR - numeral y)"
-  "numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR - numeral (y + Num.One))"
-  "numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x OR - numeral y)"
-  "numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x OR - numeral (y + Num.One))"
-  "- numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (2 :: int) * (- numeral x OR numeral y)"
-  "- numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x OR numeral y)"
-  "- numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR numeral y)"
-  "- numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR numeral y)"
-  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x OR - numeral y)"
-  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x OR - numeral (y + Num.One))"
-  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR - numeral y)"
-  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral (x + Num.One) OR - numeral (y + Num.One))"
-  "(1::int) OR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
-  "(1::int) OR numeral (Num.Bit1 y) = numeral (Num.Bit1 y)"
-  "(1::int) OR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
-  "(1::int) OR - numeral (Num.Bit1 y) = - numeral (Num.Bit1 y)"
-  "numeral (Num.Bit0 x) OR (1::int) = numeral (Num.Bit1 x)"
-  "numeral (Num.Bit1 x) OR (1::int) = numeral (Num.Bit1 x)"
-  "- numeral (Num.Bit0 x) OR (1::int) = - numeral (Num.BitM x)"
-  "- numeral (Num.Bit1 x) OR (1::int) = - numeral (Num.Bit1 x)"
-  by (rule bin_rl_eqI; simp)+
-
-lemma int_xor_numerals [simp]:
-  "numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (2 :: int) * (numeral x XOR numeral y)"
-  "numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x XOR numeral y)"
-  "numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x XOR numeral y)"
-  "numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (2 :: int) * (numeral x XOR numeral y)"
-  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (2 :: int) * (numeral x XOR - numeral y)"
-  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (numeral x XOR - numeral (y + Num.One))"
-  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (numeral x XOR - numeral y)"
-  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (2 :: int) * (numeral x XOR - numeral (y + Num.One))"
-  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (2 :: int) * (- numeral x XOR numeral y)"
-  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x XOR numeral y)"
-  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) XOR numeral y)"
-  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (2 :: int) * (- numeral (x + Num.One) XOR numeral y)"
-  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (2 :: int) * (- numeral x XOR - numeral y)"
-  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = 1 + (2 :: int) * (- numeral x XOR - numeral (y + Num.One))"
-  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = 1 + (2 :: int) * (- numeral (x + Num.One) XOR - numeral y)"
-  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (2 :: int) * (- numeral (x + Num.One) XOR - numeral (y + Num.One))"
-  "(1::int) XOR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
-  "(1::int) XOR numeral (Num.Bit1 y) = numeral (Num.Bit0 y)"
-  "(1::int) XOR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
-  "(1::int) XOR - numeral (Num.Bit1 y) = - numeral (Num.Bit0 (y + Num.One))"
-  "numeral (Num.Bit0 x) XOR (1::int) = numeral (Num.Bit1 x)"
-  "numeral (Num.Bit1 x) XOR (1::int) = numeral (Num.Bit0 x)"
-  "- numeral (Num.Bit0 x) XOR (1::int) = - numeral (Num.BitM x)"
-  "- numeral (Num.Bit1 x) XOR (1::int) = - numeral (Num.Bit0 (x + Num.One))"
-  by (rule bin_rl_eqI; simp)+
-
 
 subsubsection \<open>Interactions with arithmetic\<close>
-
-lemma plus_and_or: "(x AND y) + (x OR y) = x + y" for x y :: int
-proof (induction x arbitrary: y rule: int_bit_induct)
-  case zero
-  then show ?case
-    by simp
-next
-  case minus
-  then show ?case
-    by simp
-next
-  case (even x)
-  from even.IH [of \<open>y div 2\<close>]
-  show ?case
-    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
-next
-  case (odd x)
-  from odd.IH [of \<open>y div 2\<close>]
-  show ?case
-    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
-qed
 
 lemma le_int_or: "bin_sign y = 0 \<Longrightarrow> x \<le> x OR y"
   for x y :: int
@@ -1238,106 +1127,18 @@ lemma AND_mod: "x AND (2 ^ n - 1) = x mod 2 ^ n"
   by (simp flip: take_bit_eq_mod add: take_bit_eq_mask mask_eq_exp_minus_1)
 
 
-subsubsection \<open>Comparison\<close>
-
-lemma AND_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x"
-  shows "0 \<le> x AND y"
-  using assms by simp
-
-lemma OR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x" "0 \<le> y"
-  shows "0 \<le> x OR y"
-  using assms by simp
-
-lemma XOR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x" "0 \<le> y"
-  shows "0 \<le> x XOR y"
-  using assms by simp
-
-lemma AND_upper1 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x"
-  shows "x AND y \<le> x"
-  using assms by (induction x arbitrary: y rule: int_bit_induct)
-    (simp_all add: and_int_rec [of \<open>_ * 2\<close>] and_int_rec [of \<open>1 + _ * 2\<close>] add_increasing)
-
-lemmas AND_upper1' [simp] = order_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-lemmas AND_upper1'' [simp] = order_le_less_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-
-lemma AND_upper2 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> y"
-  shows "x AND y \<le> y"
-  using assms AND_upper1 [of y x] by (simp add: ac_simps)
-
-lemmas AND_upper2' [simp] = order_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-lemmas AND_upper2'' [simp] = order_le_less_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-
-lemma OR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
-  shows "x OR y < 2 ^ n"
-using assms proof (induction x arbitrary: y n rule: int_bit_induct)
-  case zero
-  then show ?case
-    by simp
-next
-  case minus
-  then show ?case
-    by simp
-next
-  case (even x)
-  from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
-  show ?case 
-    by (cases n) (auto simp add: or_int_rec [of \<open>_ * 2\<close>] elim: oddE)
-next
-  case (odd x)
-  from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
-  show ?case
-    by (cases n) (auto simp add: or_int_rec [of \<open>1 + _ * 2\<close>], linarith)
-qed
-
-lemma XOR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
-  shows "x XOR y < 2 ^ n"
-using assms proof (induction x arbitrary: y n rule: int_bit_induct)
-  case zero
-  then show ?case
-    by simp
-next
-  case minus
-  then show ?case
-    by simp
-next
-  case (even x)
-  from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
-  show ?case 
-    by (cases n) (auto simp add: xor_int_rec [of \<open>_ * 2\<close>] elim: oddE)
-next
-  case (odd x)
-  from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
-  show ?case
-    by (cases n) (auto simp add: xor_int_rec [of \<open>1 + _ * 2\<close>])
-qed
-
-
 subsubsection \<open>Truncating results of bit-wise operations\<close>
 
 lemma bin_trunc_ao:
   "bintrunc n x AND bintrunc n y = bintrunc n (x AND y)"
   "bintrunc n x OR bintrunc n y = bintrunc n (x OR y)"
-  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
+  by simp_all
 
 lemma bin_trunc_xor: "bintrunc n (bintrunc n x XOR bintrunc n y) = bintrunc n (x XOR y)"
-  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
+  by simp
 
 lemma bin_trunc_not: "bintrunc n (NOT (bintrunc n x)) = bintrunc n (NOT x)"
-  by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
+  by (fact take_bit_not_take_bit)
 
 text \<open>Want theorems of the form of \<open>bin_trunc_xor\<close>.\<close>
 lemma bintr_bintr_i: "x = bintrunc n y \<Longrightarrow> bintrunc n x = bintrunc n y"
@@ -1546,5 +1347,63 @@ lemma bin_clr_conv_NAND:
 lemma bin_set_conv_OR:
   "bin_sc n True i = i OR (1 << n)"
   by (induct n arbitrary: i) (rule bin_rl_eqI; simp)+
+
+
+subsection \<open>More lemmas on words\<close>
+
+lemma word_rcat_eq:
+  \<open>word_rcat ws = word_of_int (bin_rcat (LENGTH('a::len)) (map uint ws))\<close>
+  for ws :: \<open>'a::len word list\<close>
+  apply (simp add: word_rcat_def bin_rcat_def rev_map)
+  apply transfer
+  apply (simp add: horner_sum_foldr foldr_map comp_def)
+  done
+
+lemma sign_uint_Pls [simp]: "bin_sign (uint x) = 0"
+  by (simp add: sign_Pls_ge_0)
+
+lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
+
+\<comment> \<open>following definitions require both arithmetic and bit-wise word operations\<close>
+
+\<comment> \<open>to get \<open>word_no_log_defs\<close> from \<open>word_log_defs\<close>, using \<open>bin_log_bintrs\<close>\<close>
+lemmas wils1 = bin_log_bintrs [THEN word_of_int_eq_iff [THEN iffD2],
+  folded uint_word_of_int_eq, THEN eq_reflection]
+
+\<comment> \<open>the binary operations only\<close>  (* BH: why is this needed? *)
+lemmas word_log_binary_defs =
+  word_and_def word_or_def word_xor_def
+
+lemma setBit_no [simp]: "setBit (numeral bin) n = word_of_int (bin_sc n True (numeral bin))"
+  by transfer (simp add: bin_sc_eq)
+ 
+lemma clearBit_no [simp]:
+  "clearBit (numeral bin) n = word_of_int (bin_sc n False (numeral bin))"
+  by transfer (simp add: bin_sc_eq)
+
+lemma eq_mod_iff: "0 < n \<Longrightarrow> b = b mod n \<longleftrightarrow> 0 \<le> b \<and> b < n"
+  for b n :: int
+  by auto (metis pos_mod_conj)+
+
+lemma split_uint_lem: "bin_split n (uint w) = (a, b) \<Longrightarrow>
+    a = take_bit (LENGTH('a) - n) a \<and> b = take_bit (LENGTH('a)) b"
+  for w :: "'a::len word"
+  by transfer (simp add: drop_bit_take_bit ac_simps)
+
+\<comment> \<open>limited hom result\<close>
+lemma word_cat_hom:
+  "LENGTH('a::len) \<le> LENGTH('b::len) + LENGTH('c::len) \<Longrightarrow>
+    (word_cat (word_of_int w :: 'b word) (b :: 'c word) :: 'a word) =
+    word_of_int (bin_cat w (size b) (uint b))"
+  by transfer (simp add: take_bit_concat_bit_eq)
+
+lemma bintrunc_shiftl:
+  "take_bit n (m << i) = take_bit (n - i) m << i"
+  for m :: int
+  by (rule bit_eqI) (auto simp add: bit_take_bit_iff)
+
+lemma uint_shiftl:
+  "uint (n << i) = take_bit (size n) (uint n << i)"
+  by transfer (simp add: push_bit_take_bit shiftl_eq_push_bit)
 
 end

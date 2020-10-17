@@ -7,7 +7,7 @@
 section \<open>Type Definition Theorems\<close>
 
 theory Misc_Typedef
-  imports Main Word Bit_Comprehension
+  imports Main Word Bit_Comprehension Bits_Int
 begin
 
 subsection "More lemmas about normal type definitions"
