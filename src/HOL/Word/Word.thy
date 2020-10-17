@@ -130,6 +130,11 @@ lemma exp_eq_zero_iff:
   by transfer simp
 
 
+subsubsection \<open>Basic tool setup\<close>
+
+ML_file \<open>Tools/word_lib.ML\<close>
+
+
 subsubsection \<open>Basic code generation setup\<close>
 
 context
@@ -5095,9 +5100,8 @@ lemma word_and_1:
   by (rule bit_word_eqI) (auto simp add: bit_and_iff test_bit_eq_bit bit_1_iff intro: gr0I)
 
 
-subsection \<open>Misc\<close>
+subsection \<open>SMT support\<close>
 
-ML_file \<open>Tools/word_lib.ML\<close>
 ML_file \<open>Tools/smt_word.ML\<close>
 
 end
