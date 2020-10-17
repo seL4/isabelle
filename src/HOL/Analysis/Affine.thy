@@ -1008,7 +1008,7 @@ lemma affine_hull_span_0:
   using affine_hull_span_gen[of "0" S] assms by auto
 
 lemma extend_to_affine_basis_nonempty:
-  fixes S V :: "'n::euclidean_space set"
+  fixes S V :: "'n::real_vector set"
   assumes "\<not> affine_dependent S" "S \<subseteq> V" "S \<noteq> {}"
   shows "\<exists>T. \<not> affine_dependent T \<and> S \<subseteq> T \<and> T \<subseteq> V \<and> affine hull T = affine hull V"
 proof -
@@ -1044,7 +1044,7 @@ proof -
 qed
 
 lemma affine_basis_exists:
-  fixes V :: "'n::euclidean_space set"
+  fixes V :: "'n::real_vector set"
   shows "\<exists>B. B \<subseteq> V \<and> \<not> affine_dependent B \<and> affine hull V = affine hull B"
 proof (cases "V = {}")
   case True
@@ -1059,7 +1059,7 @@ next
 qed
 
 proposition extend_to_affine_basis:
-  fixes S V :: "'n::euclidean_space set"
+  fixes S V :: "'n::real_vector set"
   assumes "\<not> affine_dependent S" "S \<subseteq> V"
   obtains T where "\<not> affine_dependent T" "S \<subseteq> T" "T \<subseteq> V" "affine hull T = affine hull V"
 proof (cases "S = {}")
@@ -1258,7 +1258,9 @@ lemma aff_dim_sing [simp]:
   shows "aff_dim {a} = 0"
   using aff_dim_affine_independent[of "{a}"] affine_independent_1 by auto
 
-lemma aff_dim_2 [simp]: "aff_dim {a,b} = (if a = b then 0 else 1)"
+lemma aff_dim_2 [simp]:
+  fixes a :: "'n::euclidean_space"
+  shows "aff_dim {a,b} = (if a = b then 0 else 1)"
 proof (clarsimp)
   assume "a \<noteq> b"
   then have "aff_dim{a,b} = card{a,b} - 1"
