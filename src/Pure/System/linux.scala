@@ -12,11 +12,6 @@ import scala.util.matching.Regex
 
 object Linux
 {
-  /* required packages */
-
-  val packages: List[String] = List("pwgen")
-
-
   /* check system */
 
   def check_system(): Unit =

@@ -22,7 +22,7 @@ object Phabricator
   /* required packages */
 
   val packages: List[String] =
-    Build_Docker.packages ::: Linux.packages :::
+    Build_Docker.packages :::
     List(
       // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
       "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
