@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * October 2020: Mathias Fleury
   Updated proof reconstruction for the SMT solver veriT in the smt method.
 
+* October 2020: Jasmin Blanchette, Martin Desharnais
+  Integration of E 2.5 for Sledgehammer.
+
 * August 2020: Makarius Wenzel
   Improved monitoring of runtime statistics: ML GC progress and Java.
 
