@@ -32,9 +32,7 @@ lemma homeomorphic_spheres_gen:
     fixes a :: "'a::euclidean_space" and b :: "'b::euclidean_space"
   assumes "0 < r" "0 < s" "DIM('a::euclidean_space) = DIM('b::euclidean_space)"
   shows "(sphere a r homeomorphic sphere b s)"
-  apply (rule homeomorphic_trans [OF homeomorphic_spheres homeomorphic_spheres'])
-  using assms  apply auto
-  done
+  using assms homeomorphic_trans [OF homeomorphic_spheres homeomorphic_spheres'] by auto
 
 subsection \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
 
@@ -128,13 +126,15 @@ proof -
         assume "x \<in> affine hull S" and nox: "norm x = 1"
         then have "x \<noteq> 0" by auto
         obtain d where "0 < d" and dx: "(d *\<^sub>R x) \<in> rel_frontier S"
-                   and ri: "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (e *\<^sub>R x) \<in> rel_interior S"
+          and ri: "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (e *\<^sub>R x) \<in> rel_interior S"
           using ray_to_rel_frontier [OF \<open>bounded S\<close> 0] \<open>x \<in> affine hull S\<close> \<open>x \<noteq> 0\<close> by auto
         show "x \<in> (\<lambda>x. x /\<^sub>R norm x) ` (S - rel_interior S)"
-          apply (rule_tac x="d *\<^sub>R x" in image_eqI)
-          using \<open>0 < d\<close>
-          using dx \<open>closed S\<close> apply (auto simp: rel_frontier_def field_split_simps nox)
-          done
+        proof
+          show "x = d *\<^sub>R x /\<^sub>R norm (d *\<^sub>R x)"
+            using \<open>0 < d\<close> by (auto simp: nox)
+          show "d *\<^sub>R x \<in> S - rel_interior S"
+            using dx \<open>closed S\<close> by (auto simp: rel_frontier_def)
+        qed
       qed
     qed
   qed (rule inj_on_proj)
@@ -145,11 +145,12 @@ proof -
   have surf_nz: "\<And>x. x \<in> ?SPHER \<Longrightarrow> surf x \<noteq> 0"
     by (metis "0" DiffE homeomorphism_def imageI surf)
   have cont_nosp: "continuous_on (?SPHER) (\<lambda>x. norm x *\<^sub>R ((surf o proj) x))"
-    apply (rule continuous_intros)+
-    apply (rule continuous_on_subset [OF cont_proj], force)
-    apply (rule continuous_on_subset [OF cont_surf])
-    apply (force simp: homeomorphism_image1 [OF surf] dest: proj_spherI)
-    done
+  proof (intro continuous_intros)
+    show "continuous_on (sphere 0 1 \<inter> affine hull S) proj"
+      by (rule continuous_on_subset [OF cont_proj], force)
+    show "continuous_on (proj ` (sphere 0 1 \<inter> affine hull S)) surf"
+      by (intro continuous_on_subset [OF cont_surf]) (force simp: homeomorphism_image1 [OF surf] dest: proj_spherI)
+  qed
   have surfpS: "\<And>x. \<lbrakk>norm x = 1; x \<in> affine hull S\<rbrakk> \<Longrightarrow> surf (proj x) \<in> S"
     by (metis (full_types) DiffE \<open>0 \<in> S\<close> homeomorphism_def image_eqI norm_zero proj_spherI real_vector.scale_zero_left scaleR_one surf)
   have *: "\<exists>y. norm y = 1 \<and> y \<in> affine hull S \<and> x = surf (proj y)"
@@ -179,44 +180,37 @@ proof -
   have co01: "compact ?SPHER"
     by (simp add: compact_Int_closed)
   show "?SMINUS homeomorphic ?SPHER"
-    apply (subst homeomorphic_sym)
-    apply (rule homeomorphic_compact [OF co01 cont_nosp [unfolded o_def] no_sp_im inj_spher])
-    done
+    using homeomorphic_def surf by blast
   have proj_scaleR: "\<And>a x. 0 < a \<Longrightarrow> proj (a *\<^sub>R x) = proj x"
     by (simp add: proj_def)
   have cont_sp0: "continuous_on (affine hull S - {0}) (surf o proj)"
-    apply (rule continuous_on_compose [OF continuous_on_subset [OF cont_proj]], force)
-    apply (rule continuous_on_subset [OF cont_surf])
-    using homeomorphism_image1 proj_spherI surf by fastforce
+  proof (rule continuous_on_compose [OF continuous_on_subset [OF cont_proj]])
+    show "continuous_on (proj ` (affine hull S - {0})) surf"
+      using homeomorphism_image1 proj_spherI surf by (intro continuous_on_subset [OF cont_surf]) fastforce
+  qed auto
   obtain B where "B>0" and B: "\<And>x. x \<in> S \<Longrightarrow> norm x \<le> B"
     by (metis compact_imp_bounded \<open>compact S\<close> bounded_pos_less less_eq_real_def)
   have cont_nosp: "continuous (at x within ?CBALL) (\<lambda>x. norm x *\<^sub>R surf (proj x))"
          if "norm x \<le> 1" "x \<in> affine hull S" for x
   proof (cases "x=0")
     case True
-    show ?thesis using True
+    have "(norm \<longlongrightarrow> 0) (at 0 within cball 0 1 \<inter> affine hull S)"
+      by (simp add: tendsto_norm_zero eventually_at)
+    with True show ?thesis 
       apply (simp add: continuous_within)
       apply (rule lim_null_scaleR_bounded [where B=B])
-      apply (simp_all add: tendsto_norm_zero eventually_at)
-      apply (rule_tac x=B in exI)
-      using B surfpS proj_def projI apply (auto simp: \<open>B > 0\<close>)
-      done
+      using B \<open>0 < B\<close> local.proj_def projI surfpS by (auto simp: eventually_at)
   next
     case False
     then have "\<forall>\<^sub>F x in at x. (x \<in> affine hull S - {0}) = (x \<in> affine hull S)"
-      apply (simp add: eventually_at)
-      apply (rule_tac x="norm x" in exI)
-      apply (auto simp: False)
-      done
-    with cont_sp0 have *: "continuous (at x within affine hull S) (\<lambda>x. surf (proj x))"
-      apply (simp add: continuous_on_eq_continuous_within)
-      apply (drule_tac x=x in bspec, force simp: False that)
-      apply (simp add: continuous_within Lim_transform_within_set)
-      done
+      by (force simp: False eventually_at)
+    moreover 
+    have "continuous (at x within affine hull S - {0}) (\<lambda>x. surf (proj x))"
+      using cont_sp0 False that by (auto simp add: continuous_on_eq_continuous_within)
+    ultimately have *: "continuous (at x within affine hull S) (\<lambda>x. surf (proj x))"
+      by (simp add: continuous_within Lim_transform_within_set continuous_on_eq_continuous_within)
     show ?thesis
-      apply (rule continuous_within_subset [where s = "affine hull S", OF _ Int_lower2])
-      apply (rule continuous_intros *)+
-      done
+      by (intro continuous_within_subset [where s = "affine hull S", OF _ Int_lower2] continuous_intros *)
   qed
   have cont_nosp2: "continuous_on ?CBALL (\<lambda>x. norm x *\<^sub>R ((surf o proj) x))"
     by (simp add: continuous_on_eq_continuous_within cont_nosp)
@@ -230,9 +224,7 @@ proof -
       by (simp add: proj_def)
     have "norm y \<le> 1" using that by simp
     have "surf (proj (y /\<^sub>R norm y)) \<in> S"
-      apply (rule surfpS)
-      using proj_def projI yaff
-      by (auto simp: False)
+      using False local.proj_def nproj1 projI surfpS yaff by blast
     then have "surf (proj y) \<in> S"
       by (simp add: False proj_def)
     then show "norm y *\<^sub>R surf (proj y) \<in> S"
@@ -262,11 +254,12 @@ proof -
       using starI [OF that] by (meson starI [OF that] le_less_linear norm_ge_zero zero_le_divide_iff)
     then have nole: "norm x \<le> norm (surf (proj x))"
       by (simp add: le_divide_eq_1)
+    let ?inx = "x /\<^sub>R norm (surf (proj x))"
     show ?thesis
-      apply (rule_tac x="inverse(norm(surf (proj x))) *\<^sub>R x" in image_eqI)
-      apply (metis (no_types, hide_lams) mult.commute scaleproj abs_inverse abs_norm_cancel divide_inverse norm_scaleR nxx positive_imp_inverse_positive proj_scaleR psp sproj_nz zero_less_norm_iff)
-      apply (auto simp: field_split_simps nole affineI)
-      done
+    proof
+      show "x = norm ?inx *\<^sub>R surf (proj ?inx)"
+        by (simp add: field_simps) (metis inverse_eq_divide nxx positive_imp_inverse_positive proj_scaleR psp scaleproj sproj_nz zero_less_norm_iff)
+      qed (auto simp: field_split_simps nole affineI)
   qed
   ultimately have im_cball: "(\<lambda>x. norm x *\<^sub>R surf (proj x)) ` ?CBALL = S"
     by blast
@@ -295,9 +288,7 @@ proof -
   have co01: "compact ?CBALL"
     by (simp add: compact_Int_closed)
   show "S homeomorphic ?CBALL"
-    apply (subst homeomorphic_sym)
-    apply (rule homeomorphic_compact [OF co01 cont_nosp2 [unfolded o_def] im_cball inj_cball])
-    done
+    using homeomorphic_compact [OF co01 cont_nosp2 [unfolded o_def] im_cball inj_cball] homeomorphic_sym by blast
 qed
 
 corollary
@@ -416,16 +407,22 @@ next
   also have "... = cball 0 1 \<inter> span ?aS"
     using eqspanS affine_hull_translation by blast
   also have "... homeomorphic cball 0 1 \<inter> span ?bT"
-    proof (rule homeomorphicI [where f=f and g=g])
-      show fim1: "f ` (cball 0 1 \<inter> span ?aS) = cball 0 1 \<inter> span ?bT"
-        apply (rule subset_antisym)
-         using fim fno apply (force simp:, clarify)
-        by (metis IntI fg gim gno image_eqI mem_cball_0)
-      show "g ` (cball 0 1 \<inter> span ?bT) = cball 0 1 \<inter> span ?aS"
-        apply (rule subset_antisym)
-         using gim gno apply (force simp:, clarify)
-        by (metis IntI fim1 gf image_eqI)
-    qed (auto simp: fg gf)
+  proof (rule homeomorphicI)
+    show fim1: "f ` (cball 0 1 \<inter> span ?aS) = cball 0 1 \<inter> span ?bT"
+    proof
+      show "f ` (cball 0 1 \<inter> span ?aS) \<subseteq> cball 0 1 \<inter> span ?bT"
+        using fim fno by auto
+      show "cball 0 1 \<inter> span ?bT \<subseteq> f ` (cball 0 1 \<inter> span ?aS)"
+        by clarify (metis IntI fg gim gno image_eqI mem_cball_0)
+    qed
+    show "g ` (cball 0 1 \<inter> span ?bT) = cball 0 1 \<inter> span ?aS"
+    proof
+      show "g ` (cball 0 1 \<inter> span ?bT) \<subseteq> cball 0 1 \<inter> span ?aS"
+        using gim gno by auto
+      show "cball 0 1 \<inter> span ?aS \<subseteq> g ` (cball 0 1 \<inter> span ?bT)"
+        by clarify (metis IntI fim1 gf image_eqI)
+    qed
+  qed (auto simp: fg gf)
   also have "... = cball 0 1 \<inter> (+) (-b) ` (affine hull T)"
     using eqspanT affine_hull_translation by blast
   also have "... = (+) (-b) ` (cball b 1 \<inter> affine hull T)"
@@ -445,16 +442,22 @@ next
   also have "... = sphere 0 1 \<inter> span ?aS"
     using eqspanS affine_hull_translation by blast
   also have "... homeomorphic sphere 0 1 \<inter> span ?bT"
-    proof (rule homeomorphicI [where f=f and g=g])
-      show fim1: "f ` (sphere 0 1 \<inter> span ?aS) = sphere 0 1 \<inter> span ?bT"
-        apply (rule subset_antisym)
-        using fim fno apply (force simp:, clarify)
-        by (metis IntI fg gim gno image_eqI mem_sphere_0)
-      show "g ` (sphere 0 1 \<inter> span ?bT) = sphere 0 1 \<inter> span ?aS"
-        apply (rule subset_antisym)
-        using gim gno apply (force simp:, clarify)
-        by (metis IntI fim1 gf image_eqI)
-    qed (auto simp: fg gf)
+  proof (rule homeomorphicI)
+    show fim1: "f ` (sphere 0 1 \<inter> span ?aS) = sphere 0 1 \<inter> span ?bT"
+    proof
+      show "f ` (sphere 0 1 \<inter> span ?aS) \<subseteq> sphere 0 1 \<inter> span ?bT"
+        using fim fno by auto
+      show "sphere 0 1 \<inter> span ?bT \<subseteq> f ` (sphere 0 1 \<inter> span ?aS)"
+        by clarify (metis IntI fg gim gno image_eqI mem_sphere_0)
+    qed
+    show "g ` (sphere 0 1 \<inter> span ?bT) = sphere 0 1 \<inter> span ?aS"
+    proof
+      show "g ` (sphere 0 1 \<inter> span ?bT) \<subseteq> sphere 0 1 \<inter> span ?aS"
+        using gim gno by auto
+      show "sphere 0 1 \<inter> span ?aS \<subseteq> g ` (sphere 0 1 \<inter> span ?bT)"
+        by clarify (metis IntI fim1 gf image_eqI)
+    qed
+  qed (auto simp: fg gf)
   also have "... = sphere 0 1 \<inter> (+) (-b) ` (affine hull T)"
     using eqspanT affine_hull_translation by blast
   also have "... = (+) (-b) ` (sphere b 1 \<inter> affine hull T)"
@@ -502,35 +505,34 @@ proof -
     using \<open>norm b = 1\<close> \<open>b \<in> T\<close> by auto
   define f where "f \<equiv> \<lambda>x. 2 *\<^sub>R b + (2 / (1 - b\<bullet>x)) *\<^sub>R (x - b)"
   define g where "g \<equiv> \<lambda>y. b + (4 / (norm y ^ 2 + 4)) *\<^sub>R (y - 2 *\<^sub>R b)"
-  have [simp]: "\<And>x. \<lbrakk>x \<in> T; b\<bullet>x = 0\<rbrakk> \<Longrightarrow> f (g x) = x"
+  have fg[simp]: "\<And>x. \<lbrakk>x \<in> T; b\<bullet>x = 0\<rbrakk> \<Longrightarrow> f (g x) = x"
     unfolding f_def g_def by (simp add: algebra_simps field_split_simps add_nonneg_eq_0_iff)
   have no: "(norm (f x))\<^sup>2 = 4 * (1 + b \<bullet> x) / (1 - b \<bullet> x)"
     if "norm x = 1" and "b \<bullet> x \<noteq> 1" for x
-    using that
+    using that sum_sqs_eq [of 1 "b \<bullet> x"]
     apply (simp flip: dot_square_norm add: norm_eq_1 nonzero_eq_divide_eq)
     apply (simp add: f_def vector_add_divide_simps inner_simps)
-    apply (use sum_sqs_eq [of 1 "b \<bullet> x"]
-     in \<open>auto simp add: field_split_simps inner_commute\<close>)
+    apply (auto simp add: field_split_simps inner_commute)
     done
   have [simp]: "\<And>u::real. 8 + u * (u * 8) = u * 16 \<longleftrightarrow> u=1"
     by algebra
-  have [simp]: "\<And>x. \<lbrakk>norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> g (f x) = x"
+  have gf[simp]: "\<And>x. \<lbrakk>norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> g (f x) = x"
     unfolding g_def no by (auto simp: f_def field_split_simps)
-  have [simp]: "norm (g x) = 1" if "x \<in> T" and "b \<bullet> x = 0" for x
+  have g1: "norm (g x) = 1" if "x \<in> T" and "b \<bullet> x = 0" for x
     using that
     apply (simp only: g_def)
     apply (rule power2_eq_imp_eq)
     apply (simp_all add: dot_square_norm [symmetric] divide_simps vector_add_divide_simps)
     apply (simp add: algebra_simps inner_commute)
     done
-  have [simp]: "b \<bullet> g x \<noteq> 1" if "x \<in> T" and "b \<bullet> x = 0" for x
+  have ne1: "b \<bullet> g x \<noteq> 1" if "x \<in> T" and "b \<bullet> x = 0" for x
     using that unfolding g_def
     apply (simp_all add: dot_square_norm [symmetric] divide_simps vector_add_divide_simps add_nonneg_eq_0_iff)
     apply (auto simp: algebra_simps)
     done
   have "subspace T"
     by (simp add: assms subspace_affine)
-  have [simp]: "\<And>x. \<lbrakk>x \<in> T; b \<bullet> x = 0\<rbrakk> \<Longrightarrow> g x \<in> T"
+  have gT: "\<And>x. \<lbrakk>x \<in> T; b \<bullet> x = 0\<rbrakk> \<Longrightarrow> g x \<in> T"
     unfolding g_def
     by (blast intro: \<open>subspace T\<close> \<open>b \<in> T\<close> subspace_add subspace_mul subspace_diff)
   have "f ` {x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<subseteq> {x. b\<bullet>x = 0}"
@@ -540,14 +542,12 @@ proof -
     unfolding f_def using assms \<open>subspace T\<close>
     by (auto simp add: inner_add_right inner_diff_right mem_affine_3_minus subspace_mul)
   moreover have "{x. b\<bullet>x = 0} \<inter> T \<subseteq> f ` ({x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<inter> T)"
-    apply clarify
-    apply (rule_tac x = "g x" in image_eqI, auto)
-    done
+    by clarify (metis (mono_tags) IntI ne1 fg gT g1 imageI mem_Collect_eq)
   ultimately have imf: "f ` ({x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<inter> T) = {x. b\<bullet>x = 0} \<inter> T"
     by blast
   have no4: "\<And>y. b\<bullet>y = 0 \<Longrightarrow> norm ((y\<bullet>y + 4) *\<^sub>R b + 4 *\<^sub>R (y - 2 *\<^sub>R b)) = y\<bullet>y + 4"
     apply (rule power2_eq_imp_eq)
-    apply (simp_all add: dot_square_norm [symmetric])
+    apply (simp_all flip: dot_square_norm)
     apply (auto simp: power2_eq_square algebra_simps inner_commute)
     done
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> b \<bullet> f x = 0"
@@ -564,9 +564,7 @@ proof -
     unfolding g_def
     by (blast intro: \<open>subspace T\<close> \<open>b \<in> T\<close> subspace_add subspace_mul subspace_diff)
   moreover have "{x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<inter> T \<subseteq> g ` ({x. b\<bullet>x = 0} \<inter> T)"
-    apply clarify
-    apply (rule_tac x = "f x" in image_eqI, auto)
-    done
+    by clarify (metis (mono_tags, lifting) IntI gf image_iff imf mem_Collect_eq)
   ultimately have img: "g ` ({x. b\<bullet>x = 0} \<inter> T) = {x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<inter> T"
     by blast
   have aff: "affine ({x. b\<bullet>x = 0} \<inter> T)"
@@ -580,9 +578,10 @@ proof -
   also have "... homeomorphic {x. b\<bullet>x = 0} \<inter> T"
     by (rule homeomorphicI [OF imf img contf contg]) auto
   also have "... homeomorphic p"
-    apply (rule homeomorphic_affine_sets [OF aff \<open>affine p\<close>])
-    apply (simp add: Int_commute aff_dim_affine_Int_hyperplane [OF \<open>affine T\<close>] affT)
-    done
+  proof (rule homeomorphic_affine_sets [OF aff \<open>affine p\<close>])
+    show "aff_dim ({x. b \<bullet> x = 0} \<inter> T) = aff_dim p"
+      by (simp add: Int_commute aff_dim_affine_Int_hyperplane [OF \<open>affine T\<close>] affT)
+  qed
   finally show ?thesis .
 qed
 
@@ -603,10 +602,8 @@ proof -
   also have "... = sphere 0 1 \<inter> ((*\<^sub>R) (inverse r) ` (+) (- a) ` T) - {(b - a) /\<^sub>R r}"
     using assms by (auto simp: dist_norm norm_minus_commute divide_simps)
   also have "... homeomorphic p"
-    apply (rule homeomorphic_punctured_affine_sphere_affine_01)
     using assms affine_translation [symmetric, of "- a"] aff_dim_translation_eq [of "- a"]
-         apply (auto simp: dist_norm norm_minus_commute affine_scaling inj)
-    done
+    by (intro homeomorphic_punctured_affine_sphere_affine_01) (auto simp: dist_norm norm_minus_commute affine_scaling inj)
   finally show ?thesis .
 qed
 
@@ -620,12 +617,10 @@ corollary homeomorphic_punctured_sphere_affine:
 corollary homeomorphic_punctured_sphere_hyperplane:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" and b: "b \<in> sphere a r"
-      and "c \<noteq> 0"
-    shows "(sphere a r - {b}) homeomorphic {x::'a. c \<bullet> x = d}"
-apply (rule homeomorphic_punctured_sphere_affine)
-using assms
-apply (auto simp: affine_hyperplane of_nat_diff)
-done
+    and "c \<noteq> 0"
+  shows "(sphere a r - {b}) homeomorphic {x::'a. c \<bullet> x = d}"
+  using assms
+  by (intro homeomorphic_punctured_sphere_affine) (auto simp: affine_hyperplane of_nat_diff)
 
 proposition homeomorphic_punctured_sphere_affine_gen:
   fixes a :: "'a :: euclidean_space"
@@ -711,60 +706,56 @@ next
                and keq:"k ` T = span ((+) (- a) ` S)"
                and hinv [simp]:  "\<And>x. x \<in> span ((+) (- a) ` S) \<Longrightarrow> k(h x) = x"
                and kinv [simp]:  "\<And>x. x \<in> T \<Longrightarrow> h(k x) = x"
-    apply (rule isometries_subspaces [OF _ \<open>subspace T\<close>])
-    apply (auto simp: dimT)
-    done
+    by (auto simp: dimT intro: isometries_subspaces [OF _ \<open>subspace T\<close>] dimT)
   have hcont: "continuous_on A h" and kcont: "continuous_on B k" for A B
     using \<open>linear h\<close> \<open>linear k\<close> linear_continuous_on linear_conv_bounded_linear by blast+
   have ihhhh[simp]: "\<And>x. x \<in> S \<Longrightarrow> i \<bullet> h (x - a) = 0"
     using Tsub [THEN subsetD] heq span_superset by fastforce
   have "sphere 0 1 - {i} homeomorphic {x. i \<bullet> x = 0}"
-    apply (rule homeomorphic_punctured_sphere_affine)
-    using i
-    apply (auto simp: affine_hyperplane)
-    by (metis DIM_positive Suc_eq_plus1 add.left_neutral diff_add_cancel not_le not_less_eq_eq of_nat_1 of_nat_diff)
+  proof (rule homeomorphic_punctured_sphere_affine)
+    show "affine {x. i \<bullet> x = 0}"
+      by (auto simp: affine_hyperplane)
+    show "aff_dim {x. i \<bullet> x = 0} + 1 = int DIM('n)"
+      using i by clarsimp (metis DIM_positive Suc_pred add.commute of_nat_Suc)
+  qed (use i in auto)
   then obtain f g where fg: "homeomorphism (sphere 0 1 - {i}) {x. i \<bullet> x = 0} f g"
     by (force simp: homeomorphic_def)
-  have "h ` (+) (- a) ` S \<subseteq> T"
-    using heq span_superset span_linear_image by blast
-  then have "g ` h ` (+) (- a) ` S \<subseteq> g ` {x. i \<bullet> x = 0}"
-    using Tsub by (simp add: image_mono)
-  also have "... \<subseteq> sphere 0 1 - {i}"
-    by (simp add: fg [unfolded homeomorphism_def])
-  finally have gh_sub_sph: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> sphere 0 1 - {i}"
-    by (metis image_comp)
-  then have gh_sub_cb: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> cball 0 1"
-    by (metis Diff_subset order_trans sphere_cball)
-  have [simp]: "\<And>u. u \<in> S \<Longrightarrow> norm (g (h (u - a))) = 1"
-    using gh_sub_sph [THEN subsetD] by (auto simp: o_def)
-  have ghcont: "continuous_on ((\<lambda>x. x - a) ` S) (\<lambda>x. g (h x))"
-    apply (rule continuous_on_compose2 [OF homeomorphism_cont2 [OF fg] hcont], force)
-    done
-  have kfcont: "continuous_on ((\<lambda>x. g (h (x - a))) ` S) (\<lambda>x. k (f x))"
-    apply (rule continuous_on_compose2 [OF kcont])
-    using homeomorphism_cont1 [OF fg] gh_sub_sph apply (force intro: continuous_on_subset, blast)
-    done
-  have "S homeomorphic (+) (- a) ` S"
-    by (fact homeomorphic_translation)
-  also have "\<dots> homeomorphic (g \<circ> h) ` (+) (- a) ` S"
-    apply (simp add: homeomorphic_def homeomorphism_def cong: image_cong_simp)
-    apply (rule_tac x="g \<circ> h" in exI)
-    apply (rule_tac x="k \<circ> f" in exI)
-    apply (auto simp: ghcont kfcont span_base homeomorphism_apply2 [OF fg] image_comp cong: image_cong_simp)
-    done
-  finally have Shom: "S homeomorphic (\<lambda>x. g (h x)) ` (\<lambda>x. x - a) ` S"
-    by (simp cong: image_cong_simp)
   show ?thesis
-    apply (rule_tac U = "ball 0 1 \<union> image (g o h) ((+) (- a) ` S)"
-                and T = "image (g o h) ((+) (- a) ` S)"
-                    in that)
-    apply (rule convex_intermediate_ball [of 0 1], force)
-    using gh_sub_cb apply force
-    apply force
-    apply (simp add: closedin_closed)
-    apply (rule_tac x="sphere 0 1" in exI)
-     apply (auto simp: Shom cong: image_cong_simp)
-    done
+  proof
+    have "h ` (+) (- a) ` S \<subseteq> T"
+      using heq span_superset span_linear_image by blast
+    then have "g ` h ` (+) (- a) ` S \<subseteq> g ` {x. i \<bullet> x = 0}"
+      using Tsub by (simp add: image_mono)
+    also have "... \<subseteq> sphere 0 1 - {i}"
+      by (simp add: fg [unfolded homeomorphism_def])
+    finally have gh_sub_sph: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> sphere 0 1 - {i}"
+      by (metis image_comp)
+    then have gh_sub_cb: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> cball 0 1"
+      by (metis Diff_subset order_trans sphere_cball)
+    have [simp]: "\<And>u. u \<in> S \<Longrightarrow> norm (g (h (u - a))) = 1"
+      using gh_sub_sph [THEN subsetD] by (auto simp: o_def)
+    show "convex (ball 0 1 \<union> (g \<circ> h) ` (+) (- a) ` S)"
+      by (meson ball_subset_cball convex_intermediate_ball gh_sub_cb sup.bounded_iff sup.cobounded1)
+    show "closedin (top_of_set (ball 0 1 \<union> (g \<circ> h) ` (+) (- a) ` S)) ((g \<circ> h) ` (+) (- a) ` S)"
+      unfolding closedin_closed
+      by (rule_tac x="sphere 0 1" in exI) auto
+    have ghcont: "continuous_on ((\<lambda>x. x - a) ` S) (\<lambda>x. g (h x))"
+      by (rule continuous_on_compose2 [OF homeomorphism_cont2 [OF fg] hcont], force)
+    have kfcont: "continuous_on ((\<lambda>x. g (h (x - a))) ` S) (\<lambda>x. k (f x))"
+    proof (rule continuous_on_compose2 [OF kcont])
+      show "continuous_on ((\<lambda>x. g (h (x - a))) ` S) f"
+        using homeomorphism_cont1 [OF fg] gh_sub_sph by (fastforce intro: continuous_on_subset)
+    qed auto
+    have "S homeomorphic (+) (- a) ` S"
+      by (fact homeomorphic_translation)
+    also have "\<dots> homeomorphic (g \<circ> h) ` (+) (- a) ` S"
+      apply (simp add: homeomorphic_def homeomorphism_def cong: image_cong_simp)
+      apply (rule_tac x="g \<circ> h" in exI)
+      apply (rule_tac x="k \<circ> f" in exI)
+      apply (auto simp: ghcont kfcont span_base homeomorphism_apply2 [OF fg] image_comp cong: image_cong_simp)
+      done
+    finally show "S homeomorphic (g \<circ> h) ` (+) (- a) ` S" .
+  qed auto
 qed
 
 subsection\<open>Locally compact sets in an open set\<close>
@@ -790,10 +781,7 @@ proof -
   also have "... = \<Union>(t ` S) \<inter> closure S"
   proof
     show "\<Union>(v ` S) \<subseteq> \<Union>(t ` S) \<inter> closure S"
-      apply safe
-       apply (metis Int_iff subsetD UN_iff tv)
-      apply (simp add: closure_def rev_subsetD tv)
-      done
+      by clarify (meson IntD2 IntI UN_I closure_subset subsetD tv)
     have "t x \<inter> closure S \<subseteq> v x" if "x \<in> S" for x
     proof -
       have "t x \<inter> closure S \<subseteq> closure (t x \<inter> S)"
@@ -821,13 +809,14 @@ lemma locally_compact_closedin_open:
 lemma locally_compact_homeomorphism_projection_closed:
   assumes "locally compact S"
   obtains T and f :: "'a \<Rightarrow> 'a :: euclidean_space \<times> 'b :: euclidean_space"
-    where "closed T" "homeomorphism S T f fst"
+  where "closed T" "homeomorphism S T f fst"
 proof (cases "closed S")
   case True
-    then show ?thesis
-      apply (rule_tac T = "S \<times> {0}" and f = "\<lambda>x. (x, 0)" in that)
-      apply (auto simp: closed_Times homeomorphism_def continuous_intros)
-      done
+  show ?thesis
+  proof
+    show "homeomorphism S (S \<times> {0}) (\<lambda>x. (x, 0)) fst"
+      by (auto simp: homeomorphism_def continuous_intros)
+  qed (use True closed_Times in auto)
 next
   case False
     obtain U where "open U" and US: "U \<inter> closure S = S"
@@ -838,8 +827,10 @@ next
       by (simp add: \<open>open U\<close> closed_Compl)
     define f :: "'a \<Rightarrow> 'a \<times> 'b" where "f \<equiv> \<lambda>x. (x, One /\<^sub>R setdist {x} (- U))"
     have "continuous_on U (\<lambda>x. (x, One /\<^sub>R setdist {x} (- U)))"
-      apply (intro continuous_intros continuous_on_setdist)
-      by (simp add: Ucomp setdist_eq_0_sing_1)
+    proof (intro continuous_intros continuous_on_setdist)
+      show "\<forall>x\<in>U. setdist {x} (- U) \<noteq> 0"
+        by (simp add: Ucomp setdist_eq_0_sing_1)
+    qed
     then have homU: "homeomorphism U (f`U) f fst"
       by (auto simp: f_def homeomorphism_def image_iff continuous_intros)
     have cloS: "closedin (top_of_set U) S"
@@ -850,33 +841,27 @@ next
       by force
     have *: "r *\<^sub>R b = One \<Longrightarrow> b = (1 / r) *\<^sub>R One" for r and b::'b
       by (metis One_non_0 nonzero_divide_eq_eq real_vector.scale_eq_0_iff real_vector.scale_scale scaleR_one)
-    have "f ` U = (\<lambda>z. (setdist {fst z} (- U) *\<^sub>R snd z)) -` {One}"
-      apply (auto simp: f_def setdist_eq_0_sing_1 field_simps Ucomp)
-      apply (rule_tac x=a in image_eqI)
-      apply (auto simp: * setdist_eq_0_sing_1 dest: setdist1D)
-      done
+    have "\<And>a b::'b. setdist {a} (- U) *\<^sub>R b = One \<Longrightarrow> (a,b) \<in> (\<lambda>x. (x, (1 / setdist {x} (- U)) *\<^sub>R One)) ` U"
+      by (metis (mono_tags, lifting) "*" ComplI image_eqI setdist1D setdist_sing_in_set)
+    then have "f ` U = (\<lambda>z. (setdist {fst z} (- U) *\<^sub>R snd z)) -` {One}"
+      by (auto simp: f_def setdist_eq_0_sing_1 field_simps Ucomp)
     then have clfU: "closed (f ` U)"
-      apply (rule ssubst)
-      apply (rule continuous_closed_vimage)
-      apply (auto intro: continuous_intros cont [unfolded o_def])
-      done
+      by (force intro: continuous_intros cont [unfolded o_def] continuous_closed_vimage)
     have "closed (f ` S)"
-       apply (rule closedin_closed_trans [OF _ clfU])
-       apply (rule homeomorphism_imp_closed_map [OF homU cloS])
-       done
+      by (metis closedin_closed_trans [OF _ clfU] homeomorphism_imp_closed_map [OF homU cloS])
     then show ?thesis
-      apply (rule that)
-      apply (rule homeomorphism_of_subsets [OF homU])
-      using US apply auto
-      done
+      by (metis US homU homeomorphism_of_subsets inf_sup_ord(1) that)
 qed
 
 lemma locally_compact_closed_Int_open:
   fixes S :: "'a :: euclidean_space set"
-  shows
-    "locally compact S \<longleftrightarrow> (\<exists>U u. closed U \<and> open u \<and> S = U \<inter> u)"
-by (metis closed_closure closed_imp_locally_compact inf_commute locally_compact_Int locally_compact_open_Int_closure open_imp_locally_compact)
-
+  shows "locally compact S \<longleftrightarrow> (\<exists>U V. closed U \<and> open V \<and> S = U \<inter> V)" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis closed_closure inf_commute locally_compact_open_Int_closure)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (meson closed_imp_locally_compact locally_compact_Int open_imp_locally_compact)
+qed
 
 lemma lowerdim_embeddings:
   assumes  "DIM('a) < DIM('b)"
@@ -910,17 +895,17 @@ proof -
       by (intro linear_compose_sum linearI ballI) (auto simp: algebra_simps)
     have *: "(\<Sum>a \<in> Basis. a \<bullet> basf b * (x \<bullet> basg a)) = x \<bullet> b" if "b \<in> Basis" for x b
       using sbf that by auto
-    show gf: "g (f x) = x" for x
-      apply (rule euclidean_eqI)
-      apply (simp add: f_def g_def inner_sum_left scaleR_sum_left algebra_simps)
-      apply (simp add: Groups_Big.sum_distrib_left [symmetric] *)
-      done
+    show gf: "g (f x) = x" for x      
+    proof (rule euclidean_eqI)
+      show "\<And>b. b \<in> Basis \<Longrightarrow> g (f x) \<bullet> b = x \<bullet> b"
+        using f_def g_def sbf by auto
+    qed
     show "basf(0,1) \<in> Basis"
       using b01 sbf by auto
     then show "f(x,0) \<bullet> basf(0,1) = 0" for x
-      apply (simp add: f_def inner_sum_left)
-      apply (rule comm_monoid_add_class.sum.neutral)
-      using b01 inner_not_same_Basis by fastforce
+      unfolding f_def inner_sum_left
+      using b01 inner_not_same_Basis 
+      by (fastforce intro: comm_monoid_add_class.sum.neutral)
   qed
 qed
 
@@ -942,15 +927,14 @@ proof -
   have "S homeomorphic U"
     using homU homeomorphic_def by blast
   also have "... homeomorphic f ` U"
-    apply (rule homeomorphicI [OF refl gfU])
-       apply (meson \<open>inj f\<close> \<open>linear f\<close> homeomorphism_cont2 linear_homeomorphism_image)
-    using \<open>linear g\<close> linear_continuous_on linear_conv_bounded_linear apply blast
-    apply (auto simp: o_def)
-    done
+  proof (rule homeomorphicI [OF refl gfU])
+    show "continuous_on U f"
+      by (meson \<open>inj f\<close> \<open>linear f\<close> homeomorphism_cont2 linear_homeomorphism_image)
+    show "continuous_on (f ` U) g"
+      using \<open>linear g\<close> linear_continuous_on linear_conv_bounded_linear by blast
+  qed (auto simp: o_def)
   finally show ?thesis
-    apply (rule_tac T = "f ` U" in that)
-    apply (rule closed_injective_linear_image [OF \<open>closed U\<close> \<open>linear f\<close> \<open>inj f\<close>], assumption)
-    done
+    using \<open>closed U\<close> \<open>inj f\<close> \<open>linear f\<close> closed_injective_linear_image that by blast
 qed
 
 
@@ -989,38 +973,15 @@ qed
 proposition homeomorphic_convex_compact_cball:
   fixes e :: real
     and S :: "'a::euclidean_space set"
-  assumes "convex S"
-    and "compact S"
-    and "interior S \<noteq> {}"
-    and "e > 0"
+  assumes S: "convex S" "compact S" "interior S \<noteq> {}" and "e > 0"
   shows "S homeomorphic (cball (b::'a) e)"
-proof -
+proof (rule homeomorphic_trans[OF _ homeomorphic_balls(2)])
   obtain a where "a \<in> interior S"
-    using assms(3) by auto
-  then obtain d where "d > 0" and d: "cball a d \<subseteq> S"
-    unfolding mem_interior_cball by auto
-  let ?d = "inverse d" and ?n = "0::'a"
-  have "cball ?n 1 \<subseteq> (\<lambda>x. inverse d *\<^sub>R (x - a)) ` S"
-    apply rule
-    apply (rule_tac x="d *\<^sub>R x + a" in image_eqI)
-    defer
-    apply (rule d[unfolded subset_eq, rule_format])
-    using \<open>d > 0\<close>
-    unfolding mem_cball dist_norm
-    apply (auto simp add: mult_right_le_one_le)
-    done
-  then have "(\<lambda>x. inverse d *\<^sub>R (x - a)) ` S homeomorphic cball ?n 1"
-    using homeomorphic_convex_compact_lemma[of "(\<lambda>x. ?d *\<^sub>R -a + ?d *\<^sub>R x) ` S",
-      OF convex_affinity compact_affinity]
-    using assms(1,2)
-    by (auto simp add: scaleR_right_diff_distrib)
-  then show ?thesis
-    apply (rule_tac homeomorphic_trans[OF _ homeomorphic_balls(2)[of 1 _ ?n]])
-    apply (rule homeomorphic_trans[OF homeomorphic_affinity[of "?d" S "?d *\<^sub>R -a"]])
-    using \<open>d>0\<close> \<open>e>0\<close>
-    apply (auto simp add: scaleR_right_diff_distrib)
-    done
-qed
+    using assms by auto
+  then show "S homeomorphic cball (0::'a) 1"
+    by (metis (no_types) aff_dim_cball S compact_cball convex_cball 
+        homeomorphic_convex_lemma interior_rel_interior_gen zero_less_one)
+qed (use \<open>e>0\<close> in auto)
 
 corollary homeomorphic_convex_compact:
   fixes S :: "'a::euclidean_space set"
@@ -1035,9 +996,7 @@ lemma homeomorphic_closed_intervals:
   fixes a :: "'a::euclidean_space" and b and c :: "'a::euclidean_space" and d
   assumes "box a b \<noteq> {}" and "box c d \<noteq> {}"
     shows "(cbox a b) homeomorphic (cbox c d)"
-apply (rule homeomorphic_convex_compact)
-using assms apply auto
-done
+  by (simp add: assms homeomorphic_convex_compact)
 
 lemma homeomorphic_closed_intervals_real:
   fixes a::real and b and c::real and d
@@ -1065,7 +1024,7 @@ lemma covering_space_imp_surjective: "covering_space c p S \<Longrightarrow> p `
   by (simp add: covering_space_def)
 
 lemma homeomorphism_imp_covering_space: "homeomorphism S T f g \<Longrightarrow> covering_space S f T"
-  apply (simp add: homeomorphism_def covering_space_def, clarify)
+  apply (clarsimp simp add: homeomorphism_def covering_space_def)
   apply (rule_tac x=T in exI, simp)
   apply (rule_tac x="{S}" in exI, auto)
   done
@@ -1075,10 +1034,8 @@ lemma covering_space_local_homeomorphism:
   obtains T u q where "x \<in> T" "openin (top_of_set c) T"
                       "p x \<in> u" "openin (top_of_set S) u"
                       "homeomorphism T u p q"
-using assms
-apply (simp add: covering_space_def, clarify)
-  apply (drule_tac x="p x" in bspec, force)
-  by (metis IntI UnionE vimage_eq) 
+  using assms
+  by (clarsimp simp add: covering_space_def) (metis IntI UnionE vimage_eq) 
 
 
 lemma covering_space_local_homeomorphism_alt:
@@ -1091,8 +1048,7 @@ proof -
   obtain x where "p x = y" "x \<in> c"
     using assms covering_space_imp_surjective by blast
   show ?thesis
-    apply (rule covering_space_local_homeomorphism [OF p \<open>x \<in> c\<close>])
-    using that \<open>p x = y\<close> by blast
+    using that \<open>p x = y\<close> by (auto intro: covering_space_local_homeomorphism [OF p \<open>x \<in> c\<close>])
 qed
 
 proposition covering_space_open_map:
@@ -1120,7 +1076,6 @@ proof -
                   and homVS: "\<And>V. V \<in> VS \<Longrightarrow> \<exists>q. homeomorphism V U p q"
       using covs [OF \<open>y \<in> S\<close>] by auto
     obtain x where "x \<in> c" "p x \<in> U" "x \<in> T" "p x = y"
-      apply simp
       using T [unfolded openin_euclidean_subtopology_iff] \<open>y \<in> U\<close> \<open>y \<in> p ` T\<close> by blast
     with VS obtain V where "x \<in> V" "V \<in> VS" by auto
     then obtain q where q: "homeomorphism V U p q" using homVS by blast
@@ -1128,19 +1083,18 @@ proof -
       using VS \<open>V \<in> VS\<close> by (auto simp: homeomorphism_def)
     have ocv: "openin (top_of_set c) V"
       by (simp add: \<open>V \<in> VS\<close> openVS)
-    have "openin (top_of_set U) (U \<inter> q -` (T \<inter> V))"
-      apply (rule continuous_on_open [THEN iffD1, rule_format])
-       using homeomorphism_def q apply blast
-      using openin_subtopology_Int_subset [of c] q T unfolding homeomorphism_def
-      by (metis inf.absorb_iff2 Int_commute ocv openin_euclidean_subtopology_iff)
+    have "openin (top_of_set (q ` U)) (T \<inter> V)"
+      using q unfolding homeomorphism_def
+      by (metis T inf.absorb_iff2 ocv openin_imp_subset openin_subtopology_Int subtopology_subtopology)
+    then have "openin (top_of_set U) (U \<inter> q -` (T \<inter> V))"
+      using continuous_on_open homeomorphism_def q by blast
     then have os: "openin (top_of_set S) (U \<inter> q -` (T \<inter> V))"
       using openin_trans [of U] by (simp add: Collect_conj_eq U)
     show ?thesis
-      apply (rule_tac x = "p ` (T \<inter> V)" in exI)
-      apply (rule conjI)
-      apply (simp only: ptV os)
-      using \<open>p x = y\<close> \<open>x \<in> V\<close> \<open>x \<in> T\<close> apply blast
-      done
+    proof (intro exI conjI)
+      show "openin (top_of_set S) (p ` (T \<inter> V))"
+        by (simp only: ptV os)
+    qed (use \<open>p x = y\<close> \<open>x \<in> V\<close> \<open>x \<in> T\<close> in auto)
   qed
   with openin_subopen show ?thesis by blast
 qed
@@ -1169,11 +1123,12 @@ proof -
     fix z
     assume z: "z \<in> U" "g1 z - g2 z = 0"
     obtain v w q where "g1 z \<in> v" and ocv: "openin (top_of_set c) v"
-                   and "p (g1 z) \<in> w" and osw: "openin (top_of_set S) w"
-                   and hom: "homeomorphism v w p q"
-      apply (rule_tac x = "g1 z" in covering_space_local_homeomorphism [OF cov])
-       using \<open>U \<subseteq> T\<close> \<open>z \<in> U\<close> g1(2) apply blast+
-      done
+      and "p (g1 z) \<in> w" and osw: "openin (top_of_set S) w"
+      and hom: "homeomorphism v w p q"
+    proof (rule covering_space_local_homeomorphism [OF cov])
+      show "g1 z \<in> c"
+        using \<open>U \<subseteq> T\<close> \<open>z \<in> U\<close> g1(2) by blast
+    qed auto
     have "g2 z \<in> v" using \<open>g1 z \<in> v\<close> z by auto
     have gg: "U \<inter> g -` v = U \<inter> g -` (v \<inter> g ` U)" for g
       by auto
@@ -1185,14 +1140,17 @@ proof -
       using ocv \<open>U \<subseteq> T\<close> g2 by (fastforce simp add: openin_open)
     then have 2: "openin (top_of_set U) (U \<inter> g2 -` v)"
       unfolding gg by (blast intro: contu continuous_on_open [THEN iffD1, rule_format])
+    let ?T = "(U \<inter> g1 -` v) \<inter> (U \<inter> g2 -` v)"
     show "\<exists>T. openin (top_of_set U) T \<and> z \<in> T \<and> T \<subseteq> {z \<in> U. g1 z - g2 z = 0}"
-      using z
-      apply (rule_tac x = "(U \<inter> g1 -` v) \<inter> (U \<inter> g2 -` v)" in exI)
-      apply (intro conjI)
-      apply (rule openin_Int [OF 1 2])
-      using \<open>g1 z \<in> v\<close>  \<open>g2 z \<in> v\<close>  apply (force simp:, clarify)
-      apply (metis \<open>U \<subseteq> T\<close> subsetD eq_iff_diff_eq_0 fg1 fg2 hom homeomorphism_def)
-      done
+    proof (intro exI conjI)
+      show "openin (top_of_set U) ?T"
+        using "1" "2" by blast
+      show "z \<in> ?T"
+        using z by (simp add: \<open>g1 z \<in> v\<close> \<open>g2 z \<in> v\<close>)
+      show "?T \<subseteq> {z \<in> U. g1 z - g2 z = 0}"
+        using hom 
+        by (clarsimp simp: homeomorphism_def) (metis \<open>U \<subseteq> T\<close> fg1 fg2 subsetD)
+    qed
   qed
   have c12: "closedin (top_of_set U) G12"
     unfolding G12_def
@@ -1224,10 +1182,12 @@ lemma covering_space_locally:
     shows "locally \<psi> S"
 proof -
   have "locally \<psi> (p ` C)"
-    apply (rule locally_open_map_image [OF loc])
-    using cov covering_space_imp_continuous apply blast
-    using cov covering_space_imp_surjective covering_space_open_map apply blast
-    by (simp add: pim)
+  proof (rule locally_open_map_image [OF loc])
+    show "continuous_on C p"
+      using cov covering_space_imp_continuous by blast
+    show "\<And>T. openin (top_of_set C) T \<Longrightarrow> openin (top_of_set (p ` C)) (p ` T)"
+      using cov covering_space_imp_surjective covering_space_open_map by blast
+  qed (simp add: pim)
   then show ?thesis
     using covering_space_imp_surjective [OF cov] by metis
 qed
@@ -1299,25 +1259,28 @@ lemma covering_space_locally_compact_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
   shows "locally compact S \<longleftrightarrow> locally compact C"
-  apply (rule covering_space_locally_eq [OF assms])
-   apply (meson assms compact_continuous_image continuous_on_subset covering_space_imp_continuous)
-  using compact_continuous_image by blast
+proof (rule covering_space_locally_eq [OF assms])
+  show "\<And>T. \<lbrakk>T \<subseteq> C; compact T\<rbrakk> \<Longrightarrow> compact (p ` T)"
+    by (meson assms compact_continuous_image continuous_on_subset covering_space_imp_continuous)
+qed (use compact_continuous_image in blast)
 
 lemma covering_space_locally_connected_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
     shows "locally connected S \<longleftrightarrow> locally connected C"
-  apply (rule covering_space_locally_eq [OF assms])
-   apply (meson connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
-  using connected_continuous_image by blast
+proof (rule covering_space_locally_eq [OF assms])
+  show "\<And>T. \<lbrakk>T \<subseteq> C; connected T\<rbrakk> \<Longrightarrow> connected (p ` T)"
+    by (meson connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
+qed (use connected_continuous_image in blast)
 
 lemma covering_space_locally_path_connected_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
     shows "locally path_connected S \<longleftrightarrow> locally path_connected C"
-  apply (rule covering_space_locally_eq [OF assms])
-   apply (meson path_connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
-  using path_connected_continuous_image by blast
+proof (rule covering_space_locally_eq [OF assms])
+  show "\<And>T. \<lbrakk>T \<subseteq> C; path_connected T\<rbrakk> \<Longrightarrow> path_connected (p ` T)"
+    by (meson path_connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
+qed (use path_connected_continuous_image in blast)
 
 
 lemma covering_space_locally_compact:
@@ -1436,18 +1399,18 @@ proof -
       case (Suc n)
       then obtain V k where opeUV: "openin (top_of_set U) V"
                         and "y \<in> V"
-                        and contk: "continuous_on ({0..real n / real N} \<times> V) k"
-                        and kim: "k ` ({0..real n / real N} \<times> V) \<subseteq> C"
+                        and contk: "continuous_on ({0..n/N} \<times> V) k"
+                        and kim: "k ` ({0..n/N} \<times> V) \<subseteq> C"
                         and keq: "\<And>z. z \<in> V \<Longrightarrow> k (0, z) = f z"
-                        and heq: "\<And>z. z \<in> {0..real n / real N} \<times> V \<Longrightarrow> h z = p (k z)"
+                        and heq: "\<And>z. z \<in> {0..n/N} \<times> V \<Longrightarrow> h z = p (k z)"
         using Suc_leD by auto
       have "n \<le> N"
         using Suc.prems by auto
-      obtain t where "t \<in> tk" and t: "{real n / real N .. (1 + real n) / real N} \<subseteq> K t"
+      obtain t where "t \<in> tk" and t: "{n/N .. (1 + real n) / N} \<subseteq> K t"
       proof (rule bexE [OF \<delta>])
-        show "{real n / real N .. (1 + real n) / real N} \<subseteq> {0..1}"
+        show "{n/N .. (1 + real n) / N} \<subseteq> {0..1}"
           using Suc.prems by (auto simp: field_split_simps)
-        show diameter_less: "diameter {real n / real N .. (1 + real n) / real N} < \<delta>"
+        show diameter_less: "diameter {n/N .. (1 + real n) / N} < \<delta>"
           using \<open>0 < \<delta>\<close> N by (auto simp: field_split_simps)
       qed blast
       have t01: "t \<in> {0..1}"
@@ -1457,28 +1420,26 @@ proof -
                  and "pairwise disjnt \<V>"
                  and homuu: "\<And>U. U \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism U (UU (X t)) p q"
         using inUS [OF t01] UU by meson
-      have n_div_N_in: "real n / real N \<in> {real n / real N .. (1 + real n) / real N}"
+      have n_div_N_in: "n/N \<in> {n/N .. (1 + real n) / N}"
         using N by (auto simp: field_split_simps)
-      with t have nN_in_kkt: "real n / real N \<in> K t"
+      with t have nN_in_kkt: "n/N \<in> K t"
         by blast
-      have "k (real n / real N, y) \<in> C \<inter> p -` UU (X t)"
+      have "k (n/N, y) \<in> C \<inter> p -` UU (X t)"
       proof (simp, rule conjI)
-        show "k (real n / real N, y) \<in> C"
+        show "k (n/N, y) \<in> C"
           using \<open>y \<in> V\<close> kim keq by force
-        have "p (k (real n / real N, y)) = h (real n / real N, y)"
+        have "p (k (n/N, y)) = h (n/N, y)"
           by (simp add: \<open>y \<in> V\<close> heq)
         also have "... \<in> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
-          apply (rule imageI)
            using \<open>y \<in> V\<close> t01 \<open>n \<le> N\<close>
-          apply (simp add: nN_in_kkt \<open>y \<in> U\<close> inUS field_split_simps)
-          done
+           by (simp add: nN_in_kkt \<open>y \<in> U\<close> inUS field_split_simps)
         also have "... \<subseteq> UU (X t)"
           using him t01 by blast
-        finally show "p (k (real n / real N, y)) \<in> UU (X t)" .
+        finally show "p (k (n/N, y)) \<in> UU (X t)" .
       qed
-      with \<V> have "k (real n / real N, y) \<in> \<Union>\<V>"
+      with \<V> have "k (n/N, y) \<in> \<Union>\<V>"
         by blast
-      then obtain W where W: "k (real n / real N, y) \<in> W" and "W \<in> \<V>"
+      then obtain W where W: "k (n/N, y) \<in> W" and "W \<in> \<V>"
         by blast
       then obtain p' where opeC': "openin (top_of_set C) W"
                        and hom': "homeomorphism W (UU (X t)) p p'"
@@ -1487,15 +1448,18 @@ proof -
         using openin_imp_subset by blast
       define W' where "W' = UU(X t)"
       have opeVW: "openin (top_of_set V) (V \<inter> (k \<circ> Pair (n / N)) -` W)"
-        apply (rule continuous_openin_preimage [OF _ _ opeC'])
-         apply (intro continuous_intros continuous_on_subset [OF contk])
-        using kim apply (auto simp: \<open>y \<in> V\<close> W)
-        done
+      proof (rule continuous_openin_preimage [OF _ _ opeC'])
+        show "continuous_on V (k \<circ> Pair (n/N))"
+          by (intro continuous_intros continuous_on_subset [OF contk], auto)
+        show "(k \<circ> Pair (n/N)) ` V \<subseteq> C"
+          using kim by (auto simp: \<open>y \<in> V\<close> W)
+      qed
       obtain N' where opeUN': "openin (top_of_set U) N'"
-                  and "y \<in> N'" and kimw: "k ` ({(real n / real N)} \<times> N') \<subseteq> W"
-        apply (rule_tac N' = "(V \<inter> (k \<circ> Pair (n / N)) -` W)" in that)
-        apply (fastforce simp:  \<open>y \<in> V\<close> W intro!: openin_trans [OF opeVW opeUV])+
-        done
+                and "y \<in> N'" and kimw: "k ` ({(n/N)} \<times> N') \<subseteq> W"
+      proof
+        show "openin (top_of_set U) (V \<inter> (k \<circ> Pair (n/N)) -` W)"
+          using opeUV opeVW openin_trans by blast
+      qed (use \<open>y \<in> V\<close> W in \<open>force+\<close>)
       obtain Q Q' where opeUQ: "openin (top_of_set U) Q"
                     and cloUQ': "closedin (top_of_set U) Q'"
                     and "y \<in> Q" "Q \<subseteq> Q'"
@@ -1517,68 +1481,78 @@ proof -
       qed
       then have "y \<in> Q'" "Q \<subseteq> (U \<inter> NN(t)) \<inter> N' \<inter> V"
         by blast+
-      have neq: "{0..real n / real N} \<union> {real n / real N..(1 + real n) / real N} = {0..(1 + real n) / real N}"
+      have neq: "{0..n/N} \<union> {n/N..(1 + real n) / N} = {0..(1 + real n) / N}"
         apply (auto simp: field_split_simps)
         by (metis mult_zero_left of_nat_0_le_iff of_nat_0_less_iff order_trans real_mult_le_cancel_iff1)
-      then have neqQ': "{0..real n / real N} \<times> Q' \<union> {real n / real N..(1 + real n) / real N} \<times> Q' = {0..(1 + real n) / real N} \<times> Q'"
+      then have neqQ': "{0..n/N} \<times> Q' \<union> {n/N..(1 + real n) / N} \<times> Q' = {0..(1 + real n) / N} \<times> Q'"
         by blast
-      have cont: "continuous_on ({0..(1 + real n) / real N} \<times> Q')
-        (\<lambda>x. if x \<in> {0..real n / real N} \<times> Q' then k x else (p' \<circ> h) x)"
+      have cont: "continuous_on ({0..(1 + real n) / N} \<times> Q') (\<lambda>x. if x \<in> {0..n/N} \<times> Q' then k x else (p' \<circ> h) x)"
         unfolding neqQ' [symmetric]
       proof (rule continuous_on_cases_local, simp_all add: neqQ' del: comp_apply)
-        show "closedin (top_of_set ({0..(1 + real n) / real N} \<times> Q'))
-                       ({0..real n / real N} \<times> Q')"
-          apply (simp add: closedin_closed)
-          apply (rule_tac x="{0 .. real n / real N} \<times> UNIV" in exI)
-          using n_div_N_in apply (auto simp: closed_Times)
-          done
-        show "closedin (top_of_set ({0..(1 + real n) / real N} \<times> Q'))
-                       ({real n / real N..(1 + real n) / real N} \<times> Q')"
-          apply (simp add: closedin_closed)
-          apply (rule_tac x="{real n / real N .. (1 + real n) / real N} \<times> UNIV" in exI)
-          apply (auto simp: closed_Times)
-          by (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
-        show "continuous_on ({0..real n / real N} \<times> Q') k"
-          apply (rule continuous_on_subset [OF contk])
-          using Q' by auto
-        have "continuous_on ({real n / real N..(1 + real n) / real N} \<times> Q') h"
+        have "\<exists>T. closed T \<and> {0..n/N} \<times> Q' = {0..(1+n)/N} \<times> Q' \<inter> T"
+          using n_div_N_in 
+          by (rule_tac x="{0 .. n/N} \<times> UNIV" in exI) (auto simp: closed_Times)
+        then show "closedin (top_of_set ({0..(1 + real n) / N} \<times> Q')) ({0..n/N} \<times> Q')"
+          by (simp add: closedin_closed)
+        have "\<exists>T. closed T \<and> {n/N..(1+n)/N} \<times> Q' = {0..(1+n)/N} \<times> Q' \<inter> T"
+          by (rule_tac x="{n/N..(1+n)/N} \<times> UNIV" in exI) (auto simp: closed_Times order_trans [rotated])
+        then show "closedin (top_of_set ({0..(1 + real n) / N} \<times> Q')) ({n/N..(1 + real n) / N} \<times> Q')"
+          by (simp add: closedin_closed)
+        show "continuous_on ({0..n/N} \<times> Q') k"
+          using Q' by (auto intro: continuous_on_subset [OF contk])
+        have "continuous_on ({n/N..(1 + real n) / N} \<times> Q') h"
         proof (rule continuous_on_subset [OF conth])
-          show "{real n / real N..(1 + real n) / real N} \<times> Q' \<subseteq> {0..1} \<times> U"
-            using \<open>N > 0\<close>
-            apply auto
-              apply (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
-            using Suc.prems order_trans apply fastforce
-            apply (metis IntE  cloUQ' closedin_closed)
-            done
+          show "{n/N..(1 + real n) / N} \<times> Q' \<subseteq> {0..1} \<times> U"
+          proof (clarsimp, intro conjI)
+            fix a b
+            assume "b \<in> Q'" and a: "n/N \<le> a" "a \<le> (1 + real n) / N"
+            have "0 \<le> n/N" "(1 + real n) / N \<le> 1"
+              using a Suc.prems by (auto simp: divide_simps)
+            with a show "0 \<le> a"  "a \<le> 1"
+              by linarith+
+            show "b \<in> U"
+              using \<open>b \<in> Q'\<close> cloUQ' closedin_imp_subset by blast
+          qed
         qed
-        moreover have "continuous_on (h ` ({real n / real N..(1 + real n) / real N} \<times> Q')) p'"
+        moreover have "continuous_on (h ` ({n/N..(1 + real n) / N} \<times> Q')) p'"
         proof (rule continuous_on_subset [OF homeomorphism_cont2 [OF hom']])
-          have "h ` ({real n / real N..(1 + real n) / real N} \<times> Q') \<subseteq> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
-            apply (rule image_mono)
-            using \<open>0 < \<delta>\<close> \<open>N > 0\<close> Suc.prems apply auto
-              apply (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
-            using Suc.prems order_trans apply fastforce
-            using t Q' apply auto
-            done
-          with him show "h ` ({real n / real N..(1 + real n) / real N} \<times> Q') \<subseteq> UU (X t)"
+          have "h ` ({n/N..(1 + real n) / N} \<times> Q') \<subseteq> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
+          proof (rule image_mono)
+            show "{n/N..(1 + real n) / N} \<times> Q' \<subseteq> ({0..1} \<inter> K t) \<times> (U \<inter> NN t)"
+            proof (clarsimp, intro conjI)
+              fix a::real and b
+              assume "b \<in> Q'" "n/N \<le> a" "a \<le> (1 + real n) / N"
+              show "0 \<le> a"
+                by (meson \<open>n/N \<le> a\<close> divide_nonneg_nonneg of_nat_0_le_iff order_trans)
+              show "a \<le> 1"
+                using Suc.prems \<open>a \<le> (1 + real n) / N\<close> order_trans by force
+              show "a \<in> K t"
+                using \<open>a \<le> (1 + real n) / N\<close> \<open>n/N \<le> a\<close> t by auto
+              show "b \<in> U"
+                using \<open>b \<in> Q'\<close> cloUQ' closedin_imp_subset by blast
+              show "b \<in> NN t"
+                using Q' \<open>b \<in> Q'\<close> by auto
+            qed
+          qed
+          with him show "h ` ({n/N..(1 + real n) / N} \<times> Q') \<subseteq> UU (X t)"
             using t01 by blast
         qed
-        ultimately show "continuous_on ({real n / real N..(1 + real n) / real N} \<times> Q') (p' \<circ> h)"
+        ultimately show "continuous_on ({n/N..(1 + real n) / N} \<times> Q') (p' \<circ> h)"
           by (rule continuous_on_compose)
-        have "k (real n / real N, b) = p' (h (real n / real N, b))" if "b \<in> Q'" for b
+        have "k (n/N, b) = p' (h (n/N, b))" if "b \<in> Q'" for b
         proof -
-          have "k (real n / real N, b) \<in> W"
+          have "k (n/N, b) \<in> W"
             using that Q' kimw  by force
-          then have "k (real n / real N, b) = p' (p (k (real n / real N, b)))"
+          then have "k (n/N, b) = p' (p (k (n/N, b)))"
             by (simp add:  homeomorphism_apply1 [OF hom'])
           then show ?thesis
             using Q' that by (force simp: heq)
         qed
-        then show "\<And>x. x \<in> {real n / real N..(1 + real n) / real N} \<times> Q' \<and>
-                  x \<in> {0..real n / real N} \<times> Q' \<Longrightarrow> k x = (p' \<circ> h) x"
+        then show "\<And>x. x \<in> {n/N..(1 + real n) / N} \<times> Q' \<and>
+                  x \<in> {0..n/N} \<times> Q' \<Longrightarrow> k x = (p' \<circ> h) x"
           by auto
       qed
-      have h_in_UU: "h (x, y) \<in> UU (X t)" if "y \<in> Q" "\<not> x \<le> real n / real N" "0 \<le> x" "x \<le> (1 + real n) / real N" for x y
+      have h_in_UU: "h (x, y) \<in> UU (X t)" if "y \<in> Q" "\<not> x \<le> n/N" "0 \<le> x" "x \<le> (1 + real n) / N" for x y
       proof -
         have "x \<le> 1"
           using Suc.prems that order_trans by force
@@ -1596,31 +1570,29 @@ proof -
           by (metis him t01)
         finally show ?thesis .
       qed
-      let ?k = "(\<lambda>x. if x \<in> {0..real n / real N} \<times> Q' then k x else (p' \<circ> h) x)"
+      let ?k = "(\<lambda>x. if x \<in> {0..n/N} \<times> Q' then k x else (p' \<circ> h) x)"
       show ?case
       proof (intro exI conjI)
-        show "continuous_on ({0..real (Suc n) / real N} \<times> Q) ?k"
-          apply (rule continuous_on_subset [OF cont])
-          using \<open>Q \<subseteq> Q'\<close> by auto
-        have "\<And>a b. \<lbrakk>a \<le> real n / real N; b \<in> Q'; 0 \<le> a\<rbrakk> \<Longrightarrow> k (a, b) \<in> C"
+        show "continuous_on ({0..real (Suc n) / N} \<times> Q) ?k"
+          using \<open>Q \<subseteq> Q'\<close> by (auto intro: continuous_on_subset [OF cont])
+        have "\<And>x y. \<lbrakk>x \<le> n/N; y \<in> Q'; 0 \<le> x\<rbrakk> \<Longrightarrow> k (x, y) \<in> C"
           using kim Q' by force
-        moreover have "\<And>a b. \<lbrakk>b \<in> Q; 0 \<le> a; a \<le> (1 + real n) / real N; \<not> a \<le> real n / real N\<rbrakk> \<Longrightarrow> p' (h (a, b)) \<in> C"
-          apply (rule \<open>W \<subseteq> C\<close> [THEN subsetD])
-          using homeomorphism_image2 [OF hom', symmetric]  h_in_UU  Q' \<open>Q \<subseteq> Q'\<close> \<open>W \<subseteq> C\<close>
-          apply auto
-          done
-        ultimately show "?k ` ({0..real (Suc n) / real N} \<times> Q) \<subseteq> C"
+        moreover have "p' (h (x, y)) \<in> C" if "y \<in> Q" "\<not> x \<le> n/N" "0 \<le> x" "x \<le> (1 + real n) / N" for x y
+        proof (rule \<open>W \<subseteq> C\<close> [THEN subsetD])
+          show "p' (h (x, y)) \<in> W"
+            using homeomorphism_image2 [OF hom', symmetric]  h_in_UU  Q' \<open>Q \<subseteq> Q'\<close> \<open>W \<subseteq> C\<close> that by auto
+        qed
+        ultimately show "?k ` ({0..real (Suc n) / N} \<times> Q) \<subseteq> C"
           using Q' \<open>Q \<subseteq> Q'\<close> by force
         show "\<forall>z\<in>Q. ?k (0, z) = f z"
           using Q' keq  \<open>Q \<subseteq> Q'\<close> by auto
-        show "\<forall>z \<in> {0..real (Suc n) / real N} \<times> Q. h z = p(?k z)"
-          using \<open>Q \<subseteq> U \<inter> NN t \<inter> N' \<inter> V\<close> heq apply clarsimp
-          using h_in_UU Q' \<open>Q \<subseteq> Q'\<close> apply (auto simp: homeomorphism_apply2 [OF hom', symmetric])
-          done
+        show "\<forall>z \<in> {0..real (Suc n) / N} \<times> Q. h z = p(?k z)"
+          using \<open>Q \<subseteq> U \<inter> NN t \<inter> N' \<inter> V\<close> heq Q' \<open>Q \<subseteq> Q'\<close> 
+            by (auto simp: homeomorphism_apply2 [OF hom'] dest: h_in_UU)
         qed (auto simp: \<open>y \<in> Q\<close> opeUQ)
     qed
     show ?thesis
-      using*[OF order_refl] N \<open>0 < \<delta>\<close> by (simp add: split: if_split_asm)
+      using *[OF order_refl] N \<open>0 < \<delta>\<close> by (simp add: split: if_split_asm)
   qed
   then obtain V fs where opeV: "\<And>y. y \<in> U \<Longrightarrow> openin (top_of_set U) (V y)"
           and V: "\<And>y. y \<in> U \<Longrightarrow> y \<in> V y"
@@ -1641,9 +1613,7 @@ proof -
       by (simp add: Abstract_Topology.openin_Times opeV)
     show "\<And>i. i \<in> U \<Longrightarrow> continuous_map
               (subtopology (top_of_set ({0..1} \<times> U)) ({0..1} \<times> V i)) euclidean (fs i)"
-      using contfs
-      apply simp
-      by (metis continuous_map_iff_continuous continuous_on_subset openin_imp_subset openin_subtopology_self subtopology_subtopology)
+      by (metis contfs subtopology_subtopology continuous_map_iff_continuous Times_Int_Times VU inf.absorb_iff2 inf.idem)
     show "fs i x = fs j x"  if "i \<in> U" "j \<in> U" and x: "x \<in> topspace ?X \<inter> {0..1} \<times> V i \<inter> {0..1} \<times> V j"
          for i j x
     proof -
@@ -1654,8 +1624,7 @@ proof -
         show "fs i (0, y) = fs j (0, y)"
           using*V by (simp add: \<open>y \<in> V i\<close> \<open>y \<in> V j\<close> that)
         show conth_y: "continuous_on ({0..1} \<times> {y}) h"
-          apply (rule continuous_on_subset [OF conth])
-          using VU \<open>y \<in> V j\<close> that by auto
+          using VU \<open>y \<in> V j\<close> that by (auto intro: continuous_on_subset [OF conth])
         show "h ` ({0..1} \<times> {y}) \<subseteq> S"
           using \<open>y \<in> V i\<close> assms(3) VU that by fastforce
         show "continuous_on ({0..1} \<times> {y}) (fs i)"
@@ -1714,10 +1683,10 @@ proof -
     apply (rule covering_space_lift_homotopy [OF cov _ _ _ contf fim])
     using him  by (auto simp: contf heq)
   show ?thesis
-    apply (rule_tac k="k \<circ> (\<lambda>z. Pair (snd z) (fst z))" in that)
-       apply (intro continuous_intros continuous_on_subset [OF contk])
-    using kim heqp apply (auto simp: k0)
-    done
+  proof
+    show "continuous_on (U \<times> {0..1}) (k \<circ> (\<lambda>z. (snd z, fst z)))"
+      by (intro continuous_intros continuous_on_subset [OF contk]) auto
+  qed (use kim heqp in \<open>auto simp: k0\<close>)
 qed
 
 corollary covering_space_lift_homotopic_function:
@@ -1769,10 +1738,10 @@ next
   then have gim: "(\<lambda>y. b) ` U \<subseteq> C"
     by blast
   show ?thesis
-    apply (rule covering_space_lift_homotopic_function
-                  [OF cov continuous_on_const gim _ homotopic_with_symD [OF hom]])
-    using b that apply auto
-    done
+  proof (rule covering_space_lift_homotopic_function [OF cov continuous_on_const gim])
+    show "\<And>y. y \<in> U \<Longrightarrow> p b = a"
+      using b by auto
+  qed (use that homotopic_with_symD [OF hom] in auto)
 qed
 
 subsection\<open> Lifting of general functions to covering space\<close>
@@ -1792,8 +1761,7 @@ proof -
       and pk: "\<And>z. z \<in> {0..1} \<times> {undefined} \<Longrightarrow> p(k z) = (g \<circ> fst) z"
   proof (rule covering_space_lift_homotopy [OF cov, of "{undefined}" "g \<circ> fst"])
     show "continuous_on ({0..1::real} \<times> {undefined::'c}) (g \<circ> fst)"
-      apply (intro continuous_intros)
-      using \<open>path g\<close> by (simp add: path_def)
+      using \<open>path g\<close> by (intro continuous_intros) (simp add: path_def)
     show "(g \<circ> fst) ` ({0..1} \<times> {undefined}) \<subseteq> S"
       using pag by (auto simp: path_image_def)
     show "(g \<circ> fst) (0, y) = p a" if "y \<in> {undefined}" for y::'c
@@ -1848,9 +1816,10 @@ proof -
              and kim: "k ` ({0..1} \<times> {0..1}) \<subseteq> C"
              and kh2: "\<And>y. y \<in> {0..1} \<Longrightarrow> k (y, 0) = h2 0"
              and hpk: "\<And>z. z \<in> {0..1} \<times> {0..1} \<Longrightarrow> h z = p (k z)"
-    apply (rule covering_space_lift_homotopy_alt [OF cov conth him, of "\<lambda>x. h2 0"])
-    using h1h2 ph1 ph2 apply (force simp: heq0 pathstart_def pathfinish_def)
-    using path_image_def pih2 by fastforce+
+  proof (rule covering_space_lift_homotopy_alt [OF cov conth him])
+    show "\<And>y. y \<in> {0..1} \<Longrightarrow> h (y, 0) = p (h2 0)"
+      by (metis atLeastAtMost_iff h1h2 heq0 order_refl pathstart_def ph1 zero_le_one)
+  qed (use path_image_def pih2 in \<open>fastforce+\<close>)
   have contg1: "continuous_on {0..1} g1" and contg2: "continuous_on {0..1} g2"
     using \<open>path g1\<close> \<open>path g2\<close> path_def by blast+
   have g1im: "g1 ` {0..1} \<subseteq> S" and g2im: "g2 ` {0..1} \<subseteq> S"
@@ -1888,8 +1857,7 @@ proof -
       show "(k \<circ> Pair 0) 1 = h1 1"
         using keqh1 by auto
       show "continuous_on {0..1} (\<lambda>a. (k \<circ> Pair a) 1)"
-        apply simp
-        by (intro continuous_intros continuous_on_compose2 [OF contk]) auto
+        by (auto intro!: continuous_intros continuous_on_compose2 [OF contk]) 
       show "\<And>x. x \<in> {0..1} \<Longrightarrow> g1 1 = p ((k \<circ> Pair x) 1)"
         using heq1 hpk by auto
     qed (use contk kim g1im h1im that in \<open>auto simp: ph1\<close>)
@@ -1995,8 +1963,10 @@ proof -
         show "q' 0 = (h \<circ> (*\<^sub>R) 2) 0"
           by (metis \<open>pathstart q' = pathstart q\<close> comp_def h(3) pastq pathstart_def pth_4(2))
         show "continuous_on {0..1/2} (f \<circ> g \<circ> (*\<^sub>R) 2)"
-          apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
-          using g(2) path_image_def by fastforce+
+        proof (intro continuous_intros continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
+          show "g ` (*\<^sub>R) 2 ` {0..1/2} \<subseteq> U"
+            using g path_image_def by fastforce
+        qed auto
         show "(f \<circ> g \<circ> (*\<^sub>R) 2) ` {0..1/2} \<subseteq> S"
           using g(2) path_image_def fim by fastforce
         show "(h \<circ> (*\<^sub>R) 2) ` {0..1/2} \<subseteq> C"
@@ -2010,8 +1980,7 @@ proof -
         show "continuous_on {0..1/2} q'"
           by (simp add: continuous_on_path \<open>path q'\<close>)
         show "continuous_on {0..1/2} (h \<circ> (*\<^sub>R) 2)"
-          apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path h\<close>], force)
-          done
+          by (intro continuous_intros continuous_on_path [OF \<open>path h\<close>]) auto
       qed (use that in auto)
       moreover have "q' t = (reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) t" if "1/2 < t" "t \<le> 1" for t
       proof (rule covering_space_lift_unique [OF cov, of q' 1 "reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)" "{1/2<..1}" "f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)" t])
@@ -2019,9 +1988,10 @@ proof -
           using h' \<open>pathfinish q' = pathfinish q\<close> pafiq
           by (simp add: pathstart_def pathfinish_def reversepath_def)
         show "continuous_on {1/2<..1} (f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1))"
-          apply (intro continuous_intros continuous_on_compose continuous_on_path \<open>path g'\<close> continuous_on_subset [OF contf])
-          using g' apply simp_all
-          by (auto simp: path_image_def reversepath_def)
+        proof (intro continuous_intros continuous_on_path \<open>path g'\<close> continuous_on_subset [OF contf])
+          show "reversepath g' ` (\<lambda>t. 2 *\<^sub>R t - 1) ` {1/2<..1} \<subseteq> U"
+            using g' by (auto simp: path_image_def reversepath_def)
+        qed (use g' in auto)
         show "(f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) ` {1/2<..1} \<subseteq> S"
           using g'(2) path_image_def fim by (auto simp: image_subset_iff path_image_def reversepath_def)
         show "q' ` {1/2<..1} \<subseteq> C"
@@ -2036,9 +2006,7 @@ proof -
         show "continuous_on {1/2<..1} q'"
           by (auto intro: continuous_on_path [OF \<open>path q'\<close>])
         show "continuous_on {1/2<..1} (reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1))"
-          apply (intro continuous_intros continuous_on_compose continuous_on_path \<open>path h'\<close>)
-          using h' apply auto
-          done
+          by (intro continuous_intros continuous_on_path \<open>path h'\<close>) (use h' in auto)
       qed (use that in auto)
       ultimately have "q' t = (h +++ reversepath h') t" if "0 \<le> t" "t \<le> 1" for t
         using that by (simp add: joinpaths_def)
@@ -2090,13 +2058,10 @@ proof -
       proof -
         have "openin (top_of_set U) (U \<inter> f -` W)"
           using WV contf continuous_on_open_gen fim by auto
+        then obtain UO where "openin (top_of_set U) UO \<and> path_connected UO \<and> y \<in> UO \<and> UO \<subseteq> U \<inter> f -` W"
+          using U WV \<open>y \<in> U\<close> unfolding locally_path_connected by (meson IntI vimage_eq)
         then show ?thesis
-          using U WV
-          apply (auto simp: locally_path_connected)
-          apply (drule_tac x="U \<inter> f -` W" in spec)
-          apply (drule_tac x=y in spec)
-          apply (auto simp: \<open>y \<in> U\<close> intro: that)
-          done
+          by (meson \<open>y \<in> U\<close> image_subset_iff_subset_vimage le_inf_iff that)
       qed
       have "W' \<subseteq> C" "W \<subseteq> S"
         using opeCW' WV openin_imp_subset by auto
@@ -2107,9 +2072,7 @@ proof -
         have "openin (top_of_set S) (W \<inter> p' -` (W' \<inter> X))"
         proof (rule openin_trans)
           show "openin (top_of_set W) (W \<inter> p' -` (W' \<inter> X))"
-            apply (rule continuous_openin_preimage [OF contp' p'im])
-            using X \<open>W' \<subseteq> C\<close> apply (auto simp: openin_open)
-            done
+            using X \<open>W' \<subseteq> C\<close> by (intro continuous_openin_preimage [OF contp' p'im]) (auto simp: openin_open)
           show "openin (top_of_set S) W"
             using WV by blast
         qed
@@ -2125,9 +2088,8 @@ proof -
           assume y': "y' \<in> V" "y' \<in> U" "f y' \<in> W" "p' (f y') \<in> W'" "p' (f y') \<in> X"
           then obtain \<gamma> where "path \<gamma>" "path_image \<gamma> \<subseteq> V" "pathstart \<gamma> = y" "pathfinish \<gamma> = y'"
             by (meson \<open>path_connected V\<close> \<open>y \<in> V\<close> path_connected_def)
-          obtain pp qq where "path pp" "path_image pp \<subseteq> U"
-                             "pathstart pp = z" "pathfinish pp = y"
-                             "path qq" "path_image qq \<subseteq> C" "pathstart qq = a"
+          obtain pp qq where pp: "path pp" "path_image pp \<subseteq> U" "pathstart pp = z" "pathfinish pp = y"
+                         and qq: "path qq" "path_image qq \<subseteq> C" "pathstart qq = a"
                          and pqqeq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(qq t) = f(pp t)"
             using*[OF \<open>y \<in> U\<close>] by blast
           have finW: "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> f (\<gamma> x) \<in> W"
@@ -2142,27 +2104,32 @@ proof -
               by (simp add: \<open>pathstart pp = z\<close>)
             show "pathfinish (pp +++ \<gamma>) = y'"
               by (simp add: \<open>pathfinish \<gamma> = y'\<close>)
-            have paqq: "pathfinish qq = pathstart (p' \<circ> f \<circ> \<gamma>)"
-              apply (simp add: \<open>pathstart \<gamma> = y\<close> pathstart_compose)
-              apply (metis (mono_tags, lifting) \<open>l y \<in> W'\<close> \<open>path pp\<close> \<open>path qq\<close> \<open>path_image pp \<subseteq> U\<close> \<open>path_image qq \<subseteq> C\<close>
-                           \<open>pathfinish pp = y\<close> \<open>pathstart pp = z\<close> \<open>pathstart qq = a\<close>
-                           homeomorphism_apply1 [OF homUW'] l pleq pqqeq \<open>y \<in> U\<close>)
-              done
+            have "pathfinish qq = l y"
+              using \<open>path pp\<close> \<open>path qq\<close> \<open>path_image pp \<subseteq> U\<close> \<open>path_image qq \<subseteq> C\<close> \<open>pathfinish pp = y\<close> \<open>pathstart pp = z\<close> \<open>pathstart qq = a\<close> l pqqeq by blast
+            also have "... = p' (f y)"
+              using \<open>l y \<in> W'\<close> homUW' homeomorphism_apply1 pleq that(2) by fastforce
+            finally have "pathfinish qq = p' (f y)" .
+            then have paqq: "pathfinish qq = pathstart (p' \<circ> f \<circ> \<gamma>)"
+              by (simp add: \<open>pathstart \<gamma> = y\<close> pathstart_compose)
             have "continuous_on (path_image \<gamma>) (p' \<circ> f)"
             proof (rule continuous_on_compose)
               show "continuous_on (path_image \<gamma>) f"
                 using \<open>path_image \<gamma> \<subseteq> V\<close> \<open>V \<subseteq> U\<close> contf continuous_on_subset by blast
               show "continuous_on (f ` path_image \<gamma>) p'"
-                apply (rule continuous_on_subset [OF contp'])
-                apply (auto simp: path_image_def pathfinish_def pathstart_def finW)
-                done
+              proof (rule continuous_on_subset [OF contp'])
+                show "f ` path_image \<gamma> \<subseteq> W"
+                  by (auto simp: path_image_def pathfinish_def pathstart_def finW)
+              qed
             qed
             then show "path (qq +++ (p' \<circ> f \<circ> \<gamma>))"
               using \<open>path \<gamma>\<close> \<open>path qq\<close> paqq path_continuous_image path_join_imp by blast
             show "path_image (qq +++ (p' \<circ> f \<circ> \<gamma>)) \<subseteq> C"
-              apply (rule subset_path_image_join)
-               apply (simp add: \<open>path_image qq \<subseteq> C\<close>)
-              by (metis \<open>W' \<subseteq> C\<close> \<open>path_image \<gamma> \<subseteq> V\<close> dual_order.trans fimW(1) image_comp image_mono p'im path_image_compose)
+            proof (rule subset_path_image_join)
+              show "path_image qq \<subseteq> C"
+                by (simp add: \<open>path_image qq \<subseteq> C\<close>)
+              show "path_image (p' \<circ> f \<circ> \<gamma>) \<subseteq> C"
+                by (metis \<open>W' \<subseteq> C\<close> \<open>path_image \<gamma> \<subseteq> V\<close> dual_order.trans fimW(1) image_comp image_mono p'im path_image_compose)
+            qed
             show "pathstart (qq +++ (p' \<circ> f \<circ> \<gamma>)) = a"
               by (simp add: \<open>pathstart qq = a\<close>)
             show "p ((qq +++ (p' \<circ> f \<circ> \<gamma>)) \<xi>) = f ((pp +++ \<gamma>) \<xi>)" if \<xi>: "\<xi> \<in> {0..1}" for \<xi>
@@ -2170,8 +2137,7 @@ proof -
               show "p (qq (2*\<xi>)) = f (pp (2*\<xi>))" if "\<xi>*2 \<le> 1"
                 using \<open>\<xi> \<in> {0..1}\<close> pqqeq that by auto
               show "p (p' (f (\<gamma> (2*\<xi> - 1)))) = f (\<gamma> (2*\<xi> - 1))" if "\<not> \<xi>*2 \<le> 1"
-                apply (rule homeomorphism_apply2 [OF homUW' finW])
-                using that \<xi> by auto
+                using that \<xi> by (auto intro: homeomorphism_apply2 [OF homUW' finW])
             qed
           qed
           with \<open>pathfinish \<gamma> = y'\<close>  \<open>p' (f y') \<in> X\<close> show "y' \<in> l -` X"
