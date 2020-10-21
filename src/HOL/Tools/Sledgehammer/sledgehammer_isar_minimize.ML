@@ -74,7 +74,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
     | _ => step (* don't touch steps that time out or fail *))
   | minimize_isar_step_dependencies _ _ step = step
 
-fun postprocess_isar_proof_remove_show_stuttering (Proof {fixes, assumptions, steps}) =
+fun postprocess_isar_proof_remove_show_stuttering (proof as Proof {steps, ...}) =
   let
     fun process_steps [] = []
       | process_steps (steps as [Prove ([], [], _, t1, subs1, facts1, meths1, comment1),
@@ -83,14 +83,13 @@ fun postprocess_isar_proof_remove_show_stuttering (Proof {fixes, assumptions, st
         else steps
       | process_steps (step :: steps) = step :: process_steps steps
   in
-    Proof {fixes = fixes, assumptions = assumptions, steps = process_steps steps}
+    isar_proof_with_steps proof (process_steps steps)
   end
 
 fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let
-    fun process_proof (Proof {fixes, assumptions, steps}) =
-      process_steps steps
-      ||> (fn steps' => Proof {fixes = fixes, assumptions = assumptions, steps = steps'})
+    fun process_proof (proof as Proof {steps, ...}) =
+      process_steps steps ||> isar_proof_with_steps proof
     and process_steps [] = ([], [])
       | process_steps steps =
         (* the last step is always implicitly referenced *)

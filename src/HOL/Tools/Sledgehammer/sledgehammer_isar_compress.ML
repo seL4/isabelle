@@ -64,9 +64,9 @@ fun update_steps updates steps =
       | update_subproofs (proof :: subproofs) updates =
         update_proof proof (update_subproofs subproofs updates)
     and update_proof proof (proofs, []) = (proof :: proofs, [])
-      | update_proof (Proof {fixes, assumptions, steps}) (proofs, updates) =
+      | update_proof (proof as Proof {steps, ...}) (proofs, updates) =
         let val (steps', updates') = update_steps steps updates in
-          (Proof {fixes = fixes, assumptions = assumptions, steps = steps'} :: proofs, updates')
+          (isar_proof_with_steps proof steps' :: proofs, updates')
         end
   in
     fst (update_steps steps (rev updates))
@@ -273,9 +273,9 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
          can be eliminated. In the best case, this once again leads to a proof whose proof steps do
          not have subproofs. Applying this approach recursively will result in a flat proof in the
          best cast. *)
-      fun compress_proof (proof as (Proof {fixes, assumptions, steps})) =
+      fun compress_proof (proof as (Proof {steps, ...})) =
         if compress_further () then
-          Proof {fixes = fixes, assumptions = assumptions, steps = compress_steps steps}
+          isar_proof_with_steps proof (compress_steps steps)
         else
           proof
       and compress_steps steps =

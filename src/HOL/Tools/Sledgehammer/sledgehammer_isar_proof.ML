@@ -33,6 +33,7 @@ sig
   val sort_facts : facts -> facts
 
   val steps_of_isar_proof : isar_proof -> isar_step list
+  val isar_proof_with_steps : isar_proof -> isar_step list -> isar_proof
   val label_of_isar_step : isar_step -> label option
   val facts_of_isar_step : isar_step -> facts
   val proof_methods_of_isar_step : isar_step -> proof_method list
@@ -103,6 +104,8 @@ fun string_of_label (s, num) = s ^ string_of_int num
 fun sort_facts (lfs, gfs) = (sort (label_ord o swap) lfs, sort string_ord gfs)
 
 fun steps_of_isar_proof (Proof {steps, ...}) = steps
+fun isar_proof_with_steps (Proof {fixes, assumptions, ...}) steps =
+  Proof {fixes = fixes, assumptions = assumptions, steps = steps}
 
 fun label_of_isar_step (Prove (_, _, l, _, _, _, _, _)) = SOME l
   | label_of_isar_step _ = NONE
@@ -122,8 +125,7 @@ and fold_isar_steps f = fold (fold_isar_step f)
 
 fun map_isar_steps f =
   let
-    fun map_proof (Proof {fixes, assumptions, steps}) =
-      Proof {fixes = fixes, assumptions = assumptions, steps = map map_step steps}
+    fun map_proof (proof as Proof {steps, ...}) = isar_proof_with_steps proof (map map_step steps)
     and map_step (step as Let _) = f step
       | map_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
         f (Prove (qs, xs, l, t, map map_proof subs, facts, meths, comment))
@@ -155,10 +157,8 @@ fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment))
 and chain_isar_steps _ [] = []
   | chain_isar_steps prev (i :: is) =
     chain_isar_step prev i :: chain_isar_steps (label_of_isar_step i) is
-and chain_isar_proof (Proof {fixes, assumptions, steps}) =
-  let val steps' = chain_isar_steps (try (List.last #> fst) assumptions) steps in
-    Proof {fixes = fixes, assumptions = assumptions, steps = steps'}
-  end
+and chain_isar_proof (proof as Proof {assumptions, steps, ...}) =
+    isar_proof_with_steps proof (chain_isar_steps (try (List.last #> fst) assumptions) steps)
 
 fun kill_useless_labels_in_isar_proof proof =
   let
