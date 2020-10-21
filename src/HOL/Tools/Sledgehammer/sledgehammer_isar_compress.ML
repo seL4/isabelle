@@ -64,9 +64,9 @@ fun update_steps updates steps =
       | update_subproofs (proof :: subproofs) updates =
         update_proof proof (update_subproofs subproofs updates)
     and update_proof proof (proofs, []) = (proof :: proofs, [])
-      | update_proof (Proof (xs, assms, steps)) (proofs, updates) =
+      | update_proof (Proof {fixes, assumptions, steps}) (proofs, updates) =
         let val (steps', updates') = update_steps steps updates in
-          (Proof (xs, assms, steps') :: proofs, updates')
+          (Proof {fixes = fixes, assumptions = assumptions, steps = steps'} :: proofs, updates')
         end
   in
     fst (update_steps steps (rev updates))
@@ -160,11 +160,12 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
           Prove (qs, xs, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
         else
           (case subs of
-            (sub as Proof (_, assms, [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)])) :: subs =>
+            (sub as Proof {assumptions,
+              steps = [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)], ...}) :: subs =>
             let
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
-              val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
+              val lfs'' = union (op =) lfs (subtract (op =) (map fst assumptions) lfs')
               val gfs'' = union (op =) gfs' gfs
               val (meths'' as _ :: _, hopeless) =
                 merge_methods (!preplay_data) (l', meths') (l, meths)
@@ -272,8 +273,11 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
          can be eliminated. In the best case, this once again leads to a proof whose proof steps do
          not have subproofs. Applying this approach recursively will result in a flat proof in the
          best cast. *)
-      fun compress_proof (proof as (Proof (xs, assms, steps))) =
-        if compress_further () then Proof (xs, assms, compress_steps steps) else proof
+      fun compress_proof (proof as (Proof {fixes, assumptions, steps})) =
+        if compress_further () then
+          Proof {fixes = fixes, assumptions = assumptions, steps = compress_steps steps}
+        else
+          proof
       and compress_steps steps =
         (* bottom-up: compress innermost proofs first *)
         steps

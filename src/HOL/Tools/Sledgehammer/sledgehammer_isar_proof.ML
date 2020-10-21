@@ -16,7 +16,11 @@ sig
   datatype isar_qualifier = Show | Then
 
   datatype isar_proof =
-    Proof of (string * typ) list * (label * term) list * isar_step list
+    Proof of {
+      fixes : (string * typ) list,
+      assumptions: (label * term) list,
+      steps : isar_step list
+    }
   and isar_step =
     Let of term * term |
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
@@ -68,7 +72,11 @@ type facts = label list * string list (* local and global facts *)
 datatype isar_qualifier = Show | Then
 
 datatype isar_proof =
-  Proof of (string * typ) list * (label * term) list * isar_step list
+  Proof of {
+    fixes : (string * typ) list,
+    assumptions: (label * term) list,
+    steps : isar_step list
+  }
 and isar_step =
   Let of term * term |
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
@@ -94,7 +102,7 @@ fun string_of_label (s, num) = s ^ string_of_int num
    (Some preplaying proof methods, e.g. "blast", react poorly to fact reorderings.) *)
 fun sort_facts (lfs, gfs) = (sort (label_ord o swap) lfs, sort string_ord gfs)
 
-fun steps_of_isar_proof (Proof (_, _, steps)) = steps
+fun steps_of_isar_proof (Proof {steps, ...}) = steps
 
 fun label_of_isar_step (Prove (_, _, l, _, _, _, _, _)) = SOME l
   | label_of_isar_step _ = NONE
@@ -114,7 +122,8 @@ and fold_isar_steps f = fold (fold_isar_step f)
 
 fun map_isar_steps f =
   let
-    fun map_proof (Proof (fix, assms, steps)) = Proof (fix, assms, map map_step steps)
+    fun map_proof (Proof {fixes, assumptions, steps}) =
+      Proof {fixes = fixes, assumptions = assumptions, steps = map map_step steps}
     and map_step (step as Let _) = f step
       | map_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
         f (Prove (qs, xs, l, t, map map_proof subs, facts, meths, comment))
@@ -146,8 +155,10 @@ fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment))
 and chain_isar_steps _ [] = []
   | chain_isar_steps prev (i :: is) =
     chain_isar_step prev i :: chain_isar_steps (label_of_isar_step i) is
-and chain_isar_proof (Proof (fix, assms, steps)) =
-  Proof (fix, assms, chain_isar_steps (try (List.last #> fst) assms) steps)
+and chain_isar_proof (Proof {fixes, assumptions, steps}) =
+  let val steps' = chain_isar_steps (try (List.last #> fst) assumptions) steps in
+    Proof {fixes = fixes, assumptions = assumptions, steps = steps'}
+  end
 
 fun kill_useless_labels_in_isar_proof proof =
   let
@@ -159,8 +170,13 @@ fun kill_useless_labels_in_isar_proof proof =
     fun kill_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
         Prove (qs, xs, kill_label l, t, map kill_proof subs, facts, meths, comment)
       | kill_step step = step
-    and kill_proof (Proof (fix, assms, steps)) =
-      Proof (fix, map (apfst kill_label) assms, map kill_step steps)
+    and kill_proof (Proof {fixes, assumptions, steps}) =
+      let
+        val assumptions' = map (apfst kill_label) assumptions
+        val steps' = map kill_step steps
+      in
+        Proof {fixes = fixes, assumptions = assumptions', steps = steps'}
+      end
   in
     kill_proof proof
   end
@@ -181,10 +197,11 @@ fun relabel_isar_proof_canonically proof =
           (Prove (qs, fix, l', t, subs', (lfs', gfs), meths, comment), accum')
         end
       | relabel_step step accum = (step, accum)
-    and relabel_proof (Proof (fix, assms, steps)) =
-      fold_map (fn (l, t) => next_label l #> apfst (rpair t)) assms
+    and relabel_proof (Proof {fixes, assumptions, steps}) =
+      fold_map (fn (l, t) => next_label l #> apfst (rpair t)) assumptions
       ##>> fold_map relabel_step steps
-      #>> (fn (assms, steps) => Proof (fix, assms, steps))
+      #>> (fn (assumptions', steps') =>
+            Proof {fixes = fixes, assumptions = assumptions', steps = steps'})
   in
     fst (relabel_proof proof (0, []))
   end
@@ -209,11 +226,12 @@ val relabel_isar_proof_nicely =
           (Prove (qs, xs, l', t, subs', (lfs', gfs), meths, comment), accum')
         end
       | relabel_step _ step accum = (step, accum)
-    and relabel_proof subst depth (Proof (fix, assms, steps)) =
+    and relabel_proof subst depth (Proof {fixes, assumptions, steps}) =
       (1, subst)
-      |> fold_map (fn (l, t) => next_label depth assume_prefix l #> apfst (rpair t)) assms
+      |> fold_map (fn (l, t) => next_label depth assume_prefix l #> apfst (rpair t)) assumptions
       ||>> fold_map (relabel_step depth) steps
-      |> (fn ((assms, steps), _) => Proof (fix, assms, steps))
+      |> (fn ((assumptions', steps'), _) =>
+           Proof {fixes = fixes, assumptions = assumptions', steps = steps'})
   in
     relabel_proof [] 0
   end
@@ -240,17 +258,18 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         in
           (Prove (qs, xs', l, t', subs', facts, meths, comment), subst_ctxt')
         end
-    and rationalize_proof outer (subst_ctxt as (subst, ctxt)) (Proof (fix, assms, steps)) =
+    and rationalize_proof outer (subst_ctxt as (subst, ctxt)) (Proof {fixes, assumptions, steps}) =
       let
-        val (fix', subst_ctxt' as (subst', _)) =
+        val (fixes', subst_ctxt' as (subst', _)) =
           if outer then
             (* last call: eliminate any remaining skolem names (from SMT proofs) *)
-            (fix, (subst @ map (fn x => (Free (apfst Name.skolem x), Free x)) fix, ctxt))
+            (fixes, (subst @ map (fn x => (Free (apfst Name.skolem x), Free x)) fixes, ctxt))
           else
-            rename_obtains fix subst_ctxt
+            rename_obtains fixes subst_ctxt
+        val assumptions' = map (apsnd (subst_atomic subst')) assumptions
+        val steps' = fst (fold_map rationalize_step steps subst_ctxt')
       in
-        Proof (fix', map (apsnd (subst_atomic subst')) assms,
-          fst (fold_map rationalize_step steps subst_ctxt'))
+        Proof { fixes = fixes', assumptions = assumptions', steps = steps'}
       end
   in
     rationalize_proof true ([], ctxt)
@@ -364,10 +383,10 @@ fun string_of_isar_proof ctxt0 i n proof =
         #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
           (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
-    and of_proof ind ctxt (Proof (xs, assms, steps)) =
+    and of_proof ind ctxt (Proof {fixes, assumptions, steps}) =
       ("", ctxt)
-      |> add_fix ind xs
-      |> fold (add_assm ind) assms
+      |> add_fix ind fixes
+      |> fold (add_assm ind) assumptions
       |> add_steps ind steps
       |> fst
   in

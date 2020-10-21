@@ -241,7 +241,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
             fun is_referenced_in_step _ (Let _) = false
               | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
                 member (op =) ls l orelse exists (is_referenced_in_proof l) subs
-            and is_referenced_in_proof l (Proof (_, _, steps)) =
+            and is_referenced_in_proof l (Proof {steps, ...}) =
               exists (is_referenced_in_step l) steps
 
             fun insert_lemma_in_step lem
@@ -268,8 +268,10 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   insert_lemma_in_step lem step @ steps
                 else
                   step :: insert_lemma_in_steps lem steps
-            and insert_lemma_in_proof lem (Proof (fix, assms, steps)) =
-              Proof (fix, assms, insert_lemma_in_steps lem steps)
+            and insert_lemma_in_proof lem (Proof {fixes, assumptions, steps}) =
+              let val steps' = insert_lemma_in_steps lem steps in
+                Proof {fixes = fixes, assumptions = assumptions, steps = steps'}
+              end
 
             val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
@@ -327,7 +329,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                       if skolem andalso is_clause_tainted g then
                         let
                           val skos = skolems_of ctxt (prop_of_clause g)
-                          val subproof = Proof (skos, [], rev accum)
+                          val subproof = Proof {fixes = skos, assumptions = [], steps = rev accum}
                         in
                           isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
                         end
@@ -358,9 +360,10 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 in
                   isar_steps outer (SOME l) (step :: accum) infs
                 end
-            and isar_proof outer fix assms lems infs =
-              Proof (fix, assms,
-                fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
+            and isar_proof outer fixes assumptions lems infs =
+              let val steps = fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs) in
+                Proof {fixes = fixes, assumptions = assumptions, steps = steps}
+              end
 
             val canonical_isar_proof =
               refute_graph
@@ -423,7 +426,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               one_line_proof_text ctxt 0
                 (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
-                     Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
+                     Proof {steps = [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)], ...} =>
                      let
                        val used_facts' =
                          map_filter (fn s =>

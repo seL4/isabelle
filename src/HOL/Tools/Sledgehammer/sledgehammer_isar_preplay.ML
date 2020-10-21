@@ -77,8 +77,8 @@ fun enrich_context_with_local_facts proof ctxt =
 
     val enrich_with_assms = fold (uncurry enrich_with_fact)
 
-    fun enrich_with_proof (Proof (_, assms, isar_steps)) =
-      enrich_with_assms assms #> fold enrich_with_step isar_steps
+    fun enrich_with_proof (Proof {assumptions, steps = isar_steps, ...}) =
+      enrich_with_assms assumptions #> fold enrich_with_step isar_steps
     and enrich_with_step (Prove (_, _, l, t, subproofs, _, _, _)) =
         enrich_with_fact l t #> fold enrich_with_proof subproofs
       | enrich_with_step _ = I
@@ -109,7 +109,7 @@ fun resolve_fact_names ctxt names =
    |> apply2 (maps (thms_of_name ctxt)))
   handle ERROR msg => error ("preplay error: " ^ msg)
 
-fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
+fun thm_of_proof ctxt (Proof {fixes, assumptions, steps}) =
   let
     val thy = Proof_Context.theory_of ctxt
 
@@ -120,9 +120,9 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var ((x, var_idx), T)
-    val subst = map (`var_of_free #> swap #> apfst Free) fixed_frees
+    val subst = map (`var_of_free #> swap #> apfst Free) fixes
   in
-    Logic.list_implies (assms |> map snd, concl)
+    Logic.list_implies (assumptions |> map snd, concl)
     |> subst_free subst
     |> Skip_Proof.make_thm thy
   end
@@ -244,7 +244,7 @@ fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, _, meths, _)) =
     Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (hd meths))
   | forced_outcome_of_step _ _ = Played Time.zeroTime
 
-fun preplay_outcome_of_isar_proof preplay_data (Proof (_, _, steps)) =
+fun preplay_outcome_of_isar_proof preplay_data (Proof {steps, ...}) =
   fold_isar_steps (add_preplay_outcomes o forced_outcome_of_step preplay_data) steps
     (Played Time.zeroTime)
 
