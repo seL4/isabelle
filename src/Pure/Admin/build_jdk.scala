@@ -46,6 +46,7 @@ object Build_JDK
   }
   val jdk_platforms =
     List(
+      JDK_Platform("arm64-linux", ".", "bin/java", """.*ELF 64-bit.*ARM aarch64.*""".r),
       JDK_Platform("x86_64-linux", ".", "bin/java", """.*ELF 64-bit.*x86[-_]64.*""".r),
       JDK_Platform("x86_64-windows", ".", "bin/java.exe", """.*PE32\+ executable.*x86[-_]64.*""".r),
       JDK_Platform("x86_64-darwin", "Contents/Home", "Contents/Home/bin/java",
@@ -60,8 +61,8 @@ object Build_JDK
 See https://adoptopenjdk.net for the original downloads, which are covered
 the GPL2 (with various liberal exceptions, see legal/*).
 
-Linux, Windows, Mac OS X all work uniformly, depending on certain
-platform-specific subdirectories.
+Linux (arm64 and x86_64), Windows (x86_64), and macOS (x86_64) all work
+uniformly, depending on certain platform-specific subdirectories.
 """
 
 
@@ -224,7 +225,7 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
     -D DIR       target directory (default ".")
 
   Build jdk component from tar.gz archives, with original jdk archives
-  for x86_64 Linux, Windows, Mac OS X.
+  for Linux (arm64 and x86_64), Windows (x86_64), Mac OS X (x86_64).
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)))
 
