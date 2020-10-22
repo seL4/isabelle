@@ -21,7 +21,7 @@ struct
 fun context_begin_named_cmd ("-", _) thy = Named_Target.theory_init thy
   | context_begin_named_cmd target thy = Named_Target.init (Locale.check thy target) thy;
 
-val end_named_cmd = Local_Theory.assert_bottom #> Local_Theory.exit_global;
+val end_named_cmd = Local_Theory.exit_global;
 
 fun switch_named_cmd NONE (Context.Theory thy) =
       (Context.Theory o end_named_cmd, Named_Target.theory_init thy)

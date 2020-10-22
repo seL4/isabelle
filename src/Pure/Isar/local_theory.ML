@@ -361,7 +361,7 @@ fun init {background_naming, exit} operations target =
 
 val exit_of = #exit o bottom_of;
 
-fun exit lthy = exit_of lthy lthy;
+fun exit lthy = exit_of lthy (assert_bottom lthy);
 val exit_global = Proof_Context.theory_of o exit;
 
 fun exit_result decl (x, lthy) =
