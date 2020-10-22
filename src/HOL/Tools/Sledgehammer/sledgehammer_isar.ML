@@ -198,16 +198,24 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 atp_proof
             val assms = map_filter (Option.map fst o get_role (curry (op =) Hypothesis)) atp_proof
 
-            fun add_lemma ((l, t), rule) ctxt =
+            fun add_lemma ((label, goal), rule) ctxt =
               let
-                val (skos, meths) =
-                  (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
+                val (skos, proof_methods) =
+                  (if is_skolemize_rule rule then (skolems_of ctxt goal, skolem_methods)
                    else if is_arith_rule rule then ([], arith_methods)
                    else ([], rewrite_methods))
                   ||> massage_methods
+                val prove = Prove {
+                  qualifiers = [],
+                  obtains = skos,
+                  label = label,
+                  goal = goal,
+                  subproofs = [],
+                  facts = ([], []),
+                  proof_methods = proof_methods,
+                  comment = ""}
               in
-                (Prove ([], skos, l, t, [], ([], []), meths, ""),
-                 ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
+                (prove, ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
               end
 
             val (lems, _) =
@@ -239,25 +247,30 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 atp_proof
 
             fun is_referenced_in_step _ (Let _) = false
-              | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
-                member (op =) ls l orelse exists (is_referenced_in_proof l) subs
+              | is_referenced_in_step l (Prove {subproofs, facts = (ls, _), ...}) =
+                member (op =) ls l orelse exists (is_referenced_in_proof l) subproofs
             and is_referenced_in_proof l (Proof {steps, ...}) =
               exists (is_referenced_in_step l) steps
 
             fun insert_lemma_in_step lem
-                (step as Prove (qs, fix, l, t, subs, (ls, gs), meths, comment)) =
+                  (step as Prove {qualifiers, obtains, label, goal, subproofs, facts = (ls, gs),
+                  proof_methods, comment}) =
               let val l' = the (label_of_isar_step lem) in
                 if member (op =) ls l' then
                   [lem, step]
                 else
-                  let val refs = map (is_referenced_in_proof l') subs in
+                  let val refs = map (is_referenced_in_proof l') subproofs in
                     if length (filter I refs) = 1 then
-                      let
-                        val subs' = map2 (fn false => I | true => insert_lemma_in_proof lem) refs
-                          subs
-                      in
-                        [Prove (qs, fix, l, t, subs', (ls, gs), meths, comment)]
-                      end
+                      [Prove {
+                        qualifiers = qualifiers,
+                        obtains = obtains,
+                        label = label,
+                        goal = goal,
+                        subproofs =
+                          map2 (fn false => I | true => insert_lemma_in_proof lem) refs subproofs,
+                        facts = (ls, gs),
+                        proof_methods = proof_methods,
+                        comment = comment}]
                     else
                       [lem, step]
                   end
@@ -295,9 +308,15 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 accum
                 |> (if tainted = [] then
                       (* e.g., trivial, empty proof by Z3 *)
-                      cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                        sort_facts (the_list predecessor, []), massage_methods systematic_methods',
-                        ""))
+                      cons (Prove {
+                        qualifiers = if outer then [Show] else [],
+                        obtains = [],
+                        label = no_label,
+                        goal = concl_t,
+                        subproofs = [],
+                        facts = sort_facts (the_list predecessor, []),
+                        proof_methods = massage_methods systematic_methods',
+                        comment = ""})
                     else
                       I)
                 |> rev
@@ -318,7 +337,15 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                      else systematic_methods')
                     |> massage_methods
 
-                  fun prove sub facts = Prove (maybe_show outer c, [], l, t, sub, facts, meths, "")
+                  fun prove subproofs facts = Prove {
+                    qualifiers = maybe_show outer c,
+                    obtains = [],
+                    label = l,
+                    goal = t,
+                    subproofs = subproofs,
+                    facts = facts,
+                    proof_methods = meths,
+                    comment = ""}
                   fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
                 in
                   if is_clause_tainted c then
@@ -339,7 +366,15 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                       (if skolem then
                          (case skolems_of ctxt t of
                            [] => prove [] deps
-                         | skos => Prove ([], skos, l, t, [], deps, meths, ""))
+                         | skos => Prove {
+                             qualifiers = [],
+                             obtains = skos,
+                             label = l,
+                             goal = t,
+                             subproofs = [],
+                             facts = deps,
+                             proof_methods = meths,
+                             comment = ""})
                        else
                          prove [] deps)
                 end
@@ -351,10 +386,15 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val step =
-                    Prove (maybe_show outer c, [], l, t,
-                      map isar_case (filter_out (null o snd) cases),
-                      sort_facts (the_list predecessor, []), massage_methods systematic_methods',
-                      "")
+                    Prove {
+                      qualifiers = maybe_show outer c,
+                      obtains = [],
+                      label = l,
+                      goal = t,
+                      subproofs = map isar_case (filter_out (null o snd) cases),
+                      facts = sort_facts (the_list predecessor, []),
+                      proof_methods = massage_methods systematic_methods',
+                      comment = ""}
                 in
                   isar_steps outer (SOME l) (step :: accum) infs
                 end
@@ -424,7 +464,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               one_line_proof_text ctxt 0
                 (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
-                     Proof {steps = [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)], ...} =>
+                     Proof {steps = [Prove {facts = (_, gfs), proof_methods = meth :: _, ...}],
+                     ...} =>
                      let
                        val used_facts' =
                          map_filter (fn s =>

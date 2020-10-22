@@ -30,19 +30,36 @@ open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
 fun keep_fastest_method_of_isar_step preplay_data
-      (Prove (qs, xs, l, t, subproofs, facts, meths, comment)) =
-    Prove (qs, xs, l, t, subproofs, facts,
-      meths |> List.partition (curry (op =) (fastest_method_of_isar_step preplay_data l)) |> op @,
-      comment)
+      (Prove {qualifiers, obtains, label, goal, subproofs, facts, proof_methods, comment}) =
+    Prove {
+      qualifiers = qualifiers,
+      obtains = obtains,
+      label = label,
+      goal = goal,
+      subproofs = subproofs,
+      facts = facts,
+      proof_methods = proof_methods
+        |> List.partition (curry (op =) (fastest_method_of_isar_step preplay_data label))
+        |> op @,
+      comment = comment}
   | keep_fastest_method_of_isar_step _ step = step
 
 val slack = seconds 0.025
 
 fun minimized_isar_step ctxt chained time
-    (Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
+    (Prove {qualifiers, obtains, label, goal, subproofs, facts = (lfs0, gfs0),
+    proof_methods as meth :: _, comment}) =
   let
     fun mk_step_lfs_gfs lfs gfs =
-      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), meths, comment)
+      Prove {
+        qualifiers = qualifiers,
+        obtains = obtains,
+        label = label,
+        goal = goal,
+        subproofs = subproofs,
+        facts = sort_facts (lfs, gfs),
+        proof_methods = proof_methods,
+        comment = comment}
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
@@ -58,7 +75,7 @@ fun minimized_isar_step ctxt chained time
   end
 
 fun minimize_isar_step_dependencies ctxt preplay_data
-      (step as Prove (_, _, l, _, _, _, meth :: meths, _)) =
+      (step as Prove {label = l, proof_methods = meth :: meths, ...}) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
@@ -77,9 +94,19 @@ fun minimize_isar_step_dependencies ctxt preplay_data
 fun postprocess_isar_proof_remove_show_stuttering (proof as Proof {steps, ...}) =
   let
     fun process_steps [] = []
-      | process_steps (steps as [Prove ([], [], _, t1, subs1, facts1, meths1, comment1),
-          Prove ([Show], [], l2, t2, _, _, _, comment2)]) =
-        if t1 aconv t2 then [Prove ([Show], [], l2, t2, subs1, facts1, meths1, comment1 ^ comment2)]
+      | process_steps (steps as [
+          Prove (p1 as {qualifiers = [], obtains = [], goal = t1, ...}),
+          Prove (p2 as {qualifiers = [Show], obtains = [], goal = t2, ...})]) =
+        if t1 aconv t2 then
+          [Prove {
+             qualifiers = [Show],
+             obtains = [],
+             label = #label p2,
+             goal = t2,
+             subproofs = #subproofs p1,
+             facts = #facts p1,
+             proof_methods = #proof_methods p1,
+             comment = #comment p1 ^ #comment p2}]
         else steps
       | process_steps (step :: steps) = step :: process_steps steps
   in
@@ -105,15 +132,25 @@ fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
         else
           (used, accu))
     and process_used_step step = process_used_step_subproofs (postproc_step step)
-    and process_used_step_subproofs (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)) =
+    and process_used_step_subproofs (Prove {qualifiers, obtains, label, goal, subproofs,
+          facts = (lfs, gfs), proof_methods, comment}) =
       let
-        val (used, subproofs) =
+        val (used, subproofs') =
           map process_proof subproofs
           |> split_list
           |>> Ord_List.unions label_ord
           |>> fold (Ord_List.insert label_ord) lfs
+        val prove = Prove {
+          qualifiers = qualifiers,
+          obtains = obtains,
+          label = label,
+          goal = goal,
+          subproofs = subproofs',
+          facts = (lfs, gfs),
+          proof_methods = proof_methods,
+          comment = comment}
       in
-        (used, Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment))
+        (used, prove)
       end
   in
     snd o process_proof

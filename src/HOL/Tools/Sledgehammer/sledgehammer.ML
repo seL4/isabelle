@@ -83,7 +83,15 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
          | try_methss ress (meths :: methss) =
            let
              fun mk_step fact_names meths =
-               Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
+               Prove {
+                 qualifiers = [],
+                 obtains = [],
+                 label = ("", 0),
+                 goal = goal_t,
+                 subproofs = [],
+                 facts = ([], fact_names),
+                 proof_methods = meths,
+                 comment = ""}
            in
              (case preplay_isar_step ctxt [] timeout [] (mk_step fact_names meths) of
                (res as (meth, Played time)) :: _ =>

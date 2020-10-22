@@ -22,9 +22,20 @@ sig
       steps : isar_step list
     }
   and isar_step =
-    Let of term * term |
-    Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
-      * facts * proof_method list * string
+    Let of {
+      lhs : term,
+      rhs : term
+    } |
+    Prove of {
+      qualifiers : isar_qualifier list,
+      obtains : (string * typ) list,
+      label : label,
+      goal : term,
+      subproofs : isar_proof list,
+      facts : facts,
+      proof_methods : proof_method list,
+      comment : string
+    }
 
   val no_label : label
 
@@ -34,6 +45,7 @@ sig
 
   val steps_of_isar_proof : isar_proof -> isar_step list
   val isar_proof_with_steps : isar_proof -> isar_step list -> isar_proof
+
   val label_of_isar_step : isar_step -> label option
   val facts_of_isar_step : isar_step -> facts
   val proof_methods_of_isar_step : isar_step -> proof_method list
@@ -79,9 +91,20 @@ datatype isar_proof =
     steps : isar_step list
   }
 and isar_step =
-  Let of term * term |
-  Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
-    * facts * proof_method list * string
+  Let of {
+    lhs : term,
+    rhs : term
+  } |
+  Prove of {
+    qualifiers : isar_qualifier list,
+    obtains : (string * typ) list,
+    label : label,
+    goal : term,
+    subproofs : isar_proof list,
+    facts : facts,
+    proof_methods : proof_method list,
+    comment : string
+  }
 
 val no_label = ("", ~1)
 
@@ -107,16 +130,16 @@ fun steps_of_isar_proof (Proof {steps, ...}) = steps
 fun isar_proof_with_steps (Proof {fixes, assumptions, ...}) steps =
   Proof {fixes = fixes, assumptions = assumptions, steps = steps}
 
-fun label_of_isar_step (Prove (_, _, l, _, _, _, _, _)) = SOME l
+fun label_of_isar_step (Prove {label, ...}) = SOME label
   | label_of_isar_step _ = NONE
 
-fun subproofs_of_isar_step (Prove (_, _, _, _, subs, _, _, _)) = subs
+fun subproofs_of_isar_step (Prove {subproofs, ...}) = subproofs
   | subproofs_of_isar_step _ = []
 
-fun facts_of_isar_step (Prove (_, _, _, _, _, facts, _, _)) = facts
+fun facts_of_isar_step (Prove {facts, ...}) = facts
   | facts_of_isar_step _ = ([], [])
 
-fun proof_methods_of_isar_step (Prove (_, _, _, _, _, _, meths, _)) = meths
+fun proof_methods_of_isar_step (Prove {proof_methods, ...}) = proof_methods
   | proof_methods_of_isar_step _ = []
 
 fun fold_isar_step f step =
@@ -127,8 +150,17 @@ fun map_isar_steps f =
   let
     fun map_proof (proof as Proof {steps, ...}) = isar_proof_with_steps proof (map map_step steps)
     and map_step (step as Let _) = f step
-      | map_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
-        f (Prove (qs, xs, l, t, map map_proof subs, facts, meths, comment))
+      | map_step (Prove {qualifiers, obtains, label, goal, subproofs, facts, proof_methods,
+          comment}) =
+        f (Prove {
+            qualifiers = qualifiers,
+            obtains = obtains,
+            label = label,
+            goal = goal,
+            subproofs = map map_proof subproofs,
+            facts = facts,
+            proof_methods = proof_methods,
+            comment = comment})
   in map_proof end
 
 val add_isar_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)
@@ -140,8 +172,17 @@ structure Canonical_Label_Tab = Table(
   type key = label
   val ord = canonical_label_ord)
 
-fun comment_isar_step comment_of (Prove (qs, xs, l, t, subs, facts, meths, _)) =
-    Prove (qs, xs, l, t, subs, facts, meths, comment_of l meths)
+fun comment_isar_step comment_of (Prove {qualifiers, obtains, label, goal, subproofs, facts,
+      proof_methods, ...}) =
+    Prove {
+      qualifiers = qualifiers,
+      obtains = obtains,
+      label = label,
+      goal = goal,
+      subproofs = subproofs,
+      facts = facts,
+      proof_methods = proof_methods,
+      comment = comment_of label proof_methods}
   | comment_isar_step _ step = step
 fun comment_isar_proof comment_of = map_isar_steps (comment_isar_step comment_of)
 
@@ -149,9 +190,18 @@ fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], remove (op =) l0 lfs) else ([], lfs)
 
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
+fun chain_isar_step lbl (Prove {qualifiers, obtains, label, goal, subproofs,
+      facts = (lfs, gfs), proof_methods, comment}) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
-      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths, comment)
+      Prove {
+        qualifiers = qs' @ qualifiers,
+        obtains = obtains,
+        label = label,
+        goal = goal,
+        subproofs = map chain_isar_proof subproofs,
+        facts = (lfs, gfs),
+        proof_methods = proof_methods,
+        comment = comment}
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
@@ -167,8 +217,17 @@ fun kill_useless_labels_in_isar_proof proof =
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
 
-    fun kill_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
-        Prove (qs, xs, kill_label l, t, map kill_proof subs, facts, meths, comment)
+    fun kill_step (Prove {qualifiers, obtains, label, goal, subproofs, facts, proof_methods,
+          comment}) =
+        Prove {
+          qualifiers = qualifiers,
+          obtains = obtains,
+          label = kill_label label,
+          goal = goal,
+          subproofs = map kill_proof subproofs,
+          facts = facts,
+          proof_methods = proof_methods,
+          comment = comment}
       | kill_step step = step
     and kill_proof (Proof {fixes, assumptions, steps}) =
       let
@@ -186,15 +245,24 @@ fun relabel_isar_proof_canonically proof =
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
-    fun relabel_step (Prove (qs, fix, l, t, subs, (lfs, gfs), meths, comment))
-          (accum as (_, subst)) =
+    fun relabel_step (Prove {qualifiers, obtains, label, goal, subproofs, facts = (lfs, gfs),
+          proof_methods, comment}) (accum as (_, subst)) =
         let
           val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
           val ((subs', l'), accum') = accum
-            |> fold_map relabel_proof subs
-            ||>> next_label l
+            |> fold_map relabel_proof subproofs
+            ||>> next_label label
+          val prove = Prove {
+            qualifiers = qualifiers,
+            obtains = obtains,
+            label = l',
+            goal = goal,
+            subproofs = subs',
+            facts = (lfs', gfs),
+            proof_methods = proof_methods,
+            comment = comment}
         in
-          (Prove (qs, fix, l', t, subs', (lfs', gfs), meths, comment), accum')
+          (prove, accum')
         end
       | relabel_step step accum = (step, accum)
     and relabel_proof (Proof {fixes, assumptions, steps}) =
@@ -216,14 +284,21 @@ val relabel_isar_proof_nicely =
           (l', (next + 1, (l, l') :: subst))
         end
 
-    fun relabel_step depth (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment))
-          (accum as (_, subst)) =
+    fun relabel_step depth (Prove {qualifiers, obtains, label, goal,
+          subproofs, facts = (lfs, gfs), proof_methods, comment}) (accum as (_, subst)) =
         let
-          val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
-          val (l', accum' as (_, subst')) = next_label depth have_prefix l accum
-          val subs' = map (relabel_proof subst' (depth + 1)) subs
+          val (l', accum' as (_, subst')) = next_label depth have_prefix label accum
+          val prove = Prove {
+            qualifiers = qualifiers,
+            obtains = obtains,
+            label = l',
+            goal = goal,
+            subproofs = map (relabel_proof subst' (depth + 1)) subproofs,
+            facts = (maps (the_list o AList.lookup (op =) subst) lfs, gfs),
+            proof_methods = proof_methods,
+            comment = comment}
         in
-          (Prove (qs, xs, l', t, subs', (lfs', gfs), meths, comment), accum')
+          (prove, accum')
         end
       | relabel_step _ step accum = (step, accum)
     and relabel_proof subst depth (Proof {fixes, assumptions, steps}) =
@@ -250,13 +325,21 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         (ys, ((map Free xs ~~ map Free ys) @ subst, ctxt'))
       end
 
-    fun rationalize_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) subst_ctxt =
+    fun rationalize_step (Prove {qualifiers, obtains, label, goal, subproofs, facts, proof_methods,
+          comment}) subst_ctxt =
         let
-          val (xs', subst_ctxt' as (subst', _)) = rename_obtains xs subst_ctxt
-          val t' = subst_atomic subst' t
-          val subs' = map (rationalize_proof false subst_ctxt') subs
+          val (obtains', subst_ctxt' as (subst', _)) = rename_obtains obtains subst_ctxt
+          val prove = Prove {
+            qualifiers = qualifiers,
+            obtains = obtains',
+            label = label,
+            goal = subst_atomic subst' goal,
+            subproofs = map (rationalize_proof false subst_ctxt') subproofs,
+            facts = facts,
+            proof_methods = proof_methods,
+            comment = comment}
         in
-          (Prove (qs, xs', l, t', subs', facts, meths, comment), subst_ctxt')
+          (prove, subst_ctxt')
         end
     and rationalize_proof outer (subst_ctxt as (subst, ctxt)) (Proof {fixes, assumptions, steps}) =
       let
@@ -367,21 +450,24 @@ fun string_of_isar_proof ctxt0 i n proof =
         space_implode (of_moreover ind) (map (of_subproof ind ctxt) subs)
     and add_step_pre ind qs subs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subs ^ of_indent ind, ctxt)
-    and add_step ind (Let (t1, t2)) =
+    and add_step ind (Let {lhs = t1, rhs = t2}) =
         add_str (of_indent ind ^ "let ") #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meth :: _, comment)) =
-        add_step_pre ind qs subs
-        #> (case xs of
-            [] => add_str (of_have qs (length subs) ^ " ")
-          | _ =>
-            add_str (of_obtain qs (length subs) ^ " ")
-            #> add_frees xs
-            #> add_str (" where\n" ^ of_indent (ind + 1)))
-        #> add_str (of_label l)
-        #> add_term (if is_thesis ctxt t then HOLogic.mk_Trueprop (Var thesis_var) else t)
-        #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
-          (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
+      | add_step ind (Prove {qualifiers, obtains, label, goal, subproofs, facts = (ls, ss),
+          proof_methods = meth :: _, comment}) =
+        let val num_subproofs = length subproofs in
+          add_step_pre ind qualifiers subproofs
+          #> (case obtains of
+              [] => add_str (of_have qualifiers num_subproofs ^ " ")
+            | _ =>
+              add_str (of_obtain qualifiers num_subproofs ^ " ")
+              #> add_frees obtains
+              #> add_str (" where\n" ^ of_indent (ind + 1)))
+          #> add_str (of_label label)
+          #> add_term (if is_thesis ctxt goal then HOLogic.mk_Trueprop (Var thesis_var) else goal)
+          #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
+            (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
+        end
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof {fixes, assumptions, steps}) =
       ("", ctxt)
