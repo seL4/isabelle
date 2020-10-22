@@ -11,25 +11,25 @@ text \<open>Definitions:\<close>
 type_synonym 'a queue = "'a list \<times> 'a list"
 
 fun norm :: "'a queue \<Rightarrow> 'a queue" where
-"norm (os,is) = (if os = [] then (rev is, []) else (os,is))"
+"norm (fs,rs) = (if fs = [] then (rev rs, []) else (fs,rs))"
 
 fun enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
-"enq a (os,is) = norm(os, a # is)"
+"enq a (fs,rs) = norm(fs, a # rs)"
 
 fun deq :: "'a queue \<Rightarrow> 'a queue" where
-"deq (os,is) = (if os = [] then (os,is) else norm(tl os,is))"
+"deq (fs,rs) = (if fs = [] then (fs,rs) else norm(tl fs,rs))"
 
 fun first :: "'a queue \<Rightarrow> 'a" where
-"first (a # os,is) = a"
+"first (a # fs,rs) = a"
 
 fun is_empty :: "'a queue \<Rightarrow> bool" where
-"is_empty (os,is) = (os = [])"
+"is_empty (fs,rs) = (fs = [])"
 
 fun list :: "'a queue \<Rightarrow> 'a list" where
-"list (os,is) = os @ rev is"
+"list (fs,rs) = fs @ rev rs"
 
 fun invar :: "'a queue \<Rightarrow> bool" where
-"invar (os,is) = (os = [] \<longrightarrow> is = [])"
+"invar (fs,rs) = (fs = [] \<longrightarrow> rs = [])"
 
 
 text \<open>Implementation correctness:\<close>
@@ -58,29 +58,29 @@ qed
 text \<open>Running times:\<close>
 
 fun t_norm :: "'a queue \<Rightarrow> nat" where
-"t_norm (os,is) = (if os = [] then length is else 0) + 1"
+"t_norm (fs,rs) = (if fs = [] then length rs else 0) + 1"
 
 fun t_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
-"t_enq a (os,is) = t_norm(os, a # is)"
+"t_enq a (fs,rs) = t_norm(fs, a # rs)"
 
 fun t_deq :: "'a queue \<Rightarrow> nat" where
-"t_deq (os,is) = (if os = [] then 0 else t_norm(tl os,is)) + 1"
+"t_deq (fs,rs) = (if fs = [] then 0 else t_norm(tl fs,rs)) + 1"
 
 fun t_first :: "'a queue \<Rightarrow> nat" where
-"t_first (a # os,is) = 1"
+"t_first (a # fs,rs) = 1"
 
 fun t_is_empty :: "'a queue \<Rightarrow> nat" where
-"t_is_empty (os,is) = 1"
+"t_is_empty (fs,rs) = 1"
 
 text \<open>Amortized running times:\<close>
 
 fun \<Phi> :: "'a queue \<Rightarrow> nat" where
-"\<Phi>(os,is) = length is"
+"\<Phi>(fs,rs) = length rs"
 
-lemma a_enq: "t_enq a (os,is) + \<Phi>(enq a (os,is)) - \<Phi>(os,is) \<le> 2"
+lemma a_enq: "t_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto)
 
-lemma a_deq: "t_deq (os,is) + \<Phi>(deq (os,is)) - \<Phi>(os,is) \<le> 2"
+lemma a_deq: "t_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto)
 
 end
