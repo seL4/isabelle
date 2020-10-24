@@ -24,9 +24,7 @@ sig
   type operations
   val assert: local_theory -> local_theory
   val level: Proof.context -> int
-  val assert_bottom: local_theory -> local_theory
   val mark_brittle: local_theory -> local_theory
-  val assert_nonbrittle: local_theory -> local_theory
   val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
   val background_naming_of: local_theory -> Name_Space.naming
   val map_background_naming: (Name_Space.naming -> Name_Space.naming) ->
@@ -71,6 +69,7 @@ sig
     operations -> Proof.context -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
+  val exit_global_nonbrittle: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
   val begin_nested: local_theory -> Binding.scope * local_theory
@@ -363,6 +362,7 @@ val exit_of = #exit o bottom_of;
 
 fun exit lthy = exit_of lthy (assert_bottom lthy);
 val exit_global = Proof_Context.theory_of o exit;
+val exit_global_nonbrittle = exit_global o assert_nonbrittle;
 
 fun exit_result decl (x, lthy) =
   let

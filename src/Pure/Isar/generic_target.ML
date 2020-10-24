@@ -54,7 +54,6 @@ sig
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
-  val theory_registration: Locale.registration -> local_theory -> local_theory
 
   (*locale target primitives*)
   val locale_target_notes: string -> string -> Attrib.fact list -> Attrib.fact list ->
@@ -72,7 +71,6 @@ sig
     local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
-  val locale_dependency: string -> Locale.registration -> local_theory -> local_theory
 
   (*initialisation*)
   val init: {background_naming: Name_Space.naming, setup: theory -> Proof.context,
@@ -400,10 +398,6 @@ val theory_abbrev = abbrev theory_target_abbrev;
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
 
-val theory_registration =
-  Local_Theory.raw_theory o Locale.add_registration_theory;
-
-
 
 (** locale target primitives **)
 
@@ -434,10 +428,6 @@ fun locale_declaration locale {syntax, pervasive} decl =
 fun locale_const locale prmode ((b, mx), rhs) =
   locale_target_const locale (K true) prmode ((b, mx), rhs)
   #> standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
-
-fun locale_dependency locale registration =
-  Local_Theory.raw_theory (Locale.add_dependency locale registration)
-  #> Locale.add_registration_local_theory registration;
 
 
 (** locale abbreviations **)

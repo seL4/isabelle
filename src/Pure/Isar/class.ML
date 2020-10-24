@@ -493,7 +493,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
     val add_dependency =
       (case some_dep_morph of
         SOME dep_morph =>
-          Generic_Target.locale_dependency sub
+          Locale.add_dependency sub
             {inst = (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)),
               mixin = NONE, export = export}
       | NONE => I);
@@ -710,7 +710,7 @@ fun instantiation (tycos, vs, sort) thy =
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
-        theory_registration = Generic_Target.theory_registration,
+        theory_registration = Locale.add_registration_theory,
         locale_dependency = fn _ => error "Not possible in instantiation target",
         pretty = pretty}
   end;

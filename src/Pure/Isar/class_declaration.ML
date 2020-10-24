@@ -327,7 +327,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) =>
-       Locale.add_registration_theory
+       Locale.add_registration_theory'
          {inst = (class, base_morph),
            mixin = Option.map (rpair true) eq_morph,
            export = export_morph}

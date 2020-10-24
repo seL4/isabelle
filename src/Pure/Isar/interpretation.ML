@@ -156,16 +156,13 @@ end;
 
 (* interpretation in local theories *)
 
-fun activate_fragment registration =
-  Local_Theory.mark_brittle #> Locale.add_registration_local_theory registration;
-
 fun interpretation expression =
   generic_interpretation cert_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind activate_fragment expression [];
+    Local_Theory.notes_kind Locale.add_registration_local_theory expression [];
 
 fun interpretation_cmd expression =
   generic_interpretation read_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind activate_fragment expression [];
+    Local_Theory.notes_kind Locale.add_registration_local_theory expression [];
 
 
 (* interpretation into global theories *)
@@ -222,7 +219,7 @@ local
 fun register_or_activate lthy =
   if Named_Target.is_theory lthy
   then Local_Theory.theory_registration
-  else activate_fragment;
+  else Locale.add_registration_local_theory;
 
 fun gen_isar_interpretation prep_interpretation expression lthy =
   generic_interpretation prep_interpretation Element.witness_proof_eqs

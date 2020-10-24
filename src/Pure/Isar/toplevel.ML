@@ -439,7 +439,7 @@ fun begin_main_target begin f = transaction (fn _ =>
           val gthy =
             if begin
             then Context.Proof lthy
-            else Context.Theory (Target_Context.end_named_cmd lthy);
+            else Target_Context.end_named_cmd lthy;
           val _ =
             (case Local_Theory.pretty lthy of
               [] => ()
@@ -448,7 +448,7 @@ fun begin_main_target begin f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 val end_main_target = transaction (fn _ =>
-  (fn Theory (Context.Proof lthy) => (Theory (Context.Theory (Target_Context.end_named_cmd lthy)), lthy)
+  (fn Theory (Context.Proof lthy) => (Theory (Target_Context.end_named_cmd lthy), lthy)
     | _ => raise UNDEF));
 
 fun begin_nested_target f = transaction0 (fn _ =>
@@ -460,10 +460,8 @@ fun begin_nested_target f = transaction0 (fn _ =>
 
 val end_nested_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy) =>
-        (case try Local_Theory.end_nested lthy of
-          SOME lthy' =>
-            let val gthy' = Target_Context.end_nested_cmd lthy'
-            in (Theory gthy', lthy) end
+        (case try Target_Context.end_nested_cmd lthy of
+          SOME gthy' => (Theory gthy', lthy)
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
 
