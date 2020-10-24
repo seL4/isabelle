@@ -200,22 +200,29 @@ fun gen_activate notes prep_bundle args ctxt =
     |> Context_Position.restore_visible ctxt
   end;
 
+fun gen_unbundle prep_bundle = gen_activate Local_Theory.notes prep_bundle;
+
 fun gen_includes prep_bundle = gen_activate (Attrib.local_notes "") prep_bundle;
+
+fun gen_include prep_bundle bs =
+  Proof.assert_forward #> Proof.map_context (gen_includes prep_bundle bs) #> Proof.reset_facts;
+
+fun gen_including prep_bundle bs =
+  Proof.assert_backward #> Proof.map_context (gen_includes prep_bundle bs)
 
 in
 
-val unbundle = gen_activate Local_Theory.notes get;
-val unbundle_cmd = gen_activate Local_Theory.notes read;
+val unbundle = gen_unbundle get;
+val unbundle_cmd = gen_unbundle read;
 
 val includes = gen_includes get;
 val includes_cmd = gen_includes read;
 
-fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
-fun include_cmd bs =
-  Proof.assert_forward #> Proof.map_context (includes_cmd bs) #> Proof.reset_facts;
+val include_ = gen_include get;
+val include_cmd = gen_include read;
 
-fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
-fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
+val including = gen_including get;
+val including_cmd = gen_including read;
 
 end;
 
