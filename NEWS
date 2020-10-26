@@ -240,6 +240,9 @@ existing server installations should remove libphutil from
 /usr/local/bin/isabelle-phabricator-upgrade and each installation root
 directory (e.g. /var/www/phabricator-vcs/libphutil).
 
+* Experimental support for arm64-linux platform. The reference platform
+is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+
 
 
 New in Isabelle2020 (April 2020)
