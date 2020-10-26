@@ -202,6 +202,17 @@ lemma disjunctive_add:
   \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
   by (rule bit_eqI) (use that in \<open>simp add: bit_disjunctive_add_iff bit_or_iff\<close>)
 
+lemma bit_iff_and_drop_bit_eq_1:
+  \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close>
+  by (simp add: bit_iff_odd_drop_bit and_one_eq odd_iff_mod_2_eq_one)
+
+lemma bit_iff_and_push_bit_not_eq_0:
+  \<open>bit a n \<longleftrightarrow> a AND push_bit n 1 \<noteq> 0\<close>
+  apply (cases \<open>2 ^ n = 0\<close>)
+  apply (simp_all add: push_bit_of_1 bit_eq_iff bit_and_iff bit_push_bit_iff exp_eq_0_imp_not_bit)
+  apply (simp_all add: bit_exp_iff)
+  done
+
 end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
@@ -1785,5 +1796,31 @@ text \<open>
 
       \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>
+
+code_identifier
+  type_class semiring_bits \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bits and (OCaml) Bit_Operations.semiring_bits and (Haskell) Bit_Operations.semiring_bits and (Scala) Bit_Operations.semiring_bits
+| class_relation semiring_bits < semiring_parity \<rightharpoonup>
+  (SML) Bit_Operations.semiring_parity_semiring_bits and (OCaml) Bit_Operations.semiring_parity_semiring_bits and (Haskell) Bit_Operations.semiring_parity_semiring_bits and (Scala) Bit_Operations.semiring_parity_semiring_bits
+| constant bit \<rightharpoonup>
+  (SML) Bit_Operations.bit and (OCaml) Bit_Operations.bit and (Haskell) Bit_Operations.bit and (Scala) Bit_Operations.bit
+| class_instance nat :: semiring_bits \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bits_nat and (OCaml) Bit_Operations.semiring_bits_nat and (Haskell) Bit_Operations.semiring_bits_nat and (Scala) Bit_Operations.semiring_bits_nat
+| class_instance int :: semiring_bits \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bits_int and (OCaml) Bit_Operations.semiring_bits_int and (Haskell) Bit_Operations.semiring_bits_int and (Scala) Bit_Operations.semiring_bits_int
+| type_class semiring_bit_shifts \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bit_shifts and (OCaml) Bit_Operations.semiring_bit_shifts and (Haskell) Bit_Operations.semiring_bits and (Scala) Bit_Operations.semiring_bit_shifts
+| class_relation semiring_bit_shifts < semiring_bits \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bits_semiring_bit_shifts and (OCaml) Bit_Operations.semiring_bits_semiring_bit_shifts and (Haskell) Bit_Operations.semiring_bits_semiring_bit_shifts and (Scala) Bit_Operations.semiring_bits_semiring_bit_shifts
+| constant push_bit \<rightharpoonup>
+  (SML) Bit_Operations.push_bit and (OCaml) Bit_Operations.push_bit and (Haskell) Bit_Operations.push_bit and (Scala) Bit_Operations.push_bit
+| constant drop_bit \<rightharpoonup>
+  (SML) Bit_Operations.drop_bit and (OCaml) Bit_Operations.drop_bit and (Haskell) Bit_Operations.drop_bit and (Scala) Bit_Operations.drop_bit
+| constant take_bit \<rightharpoonup>
+  (SML) Bit_Operations.take_bit and (OCaml) Bit_Operations.take_bit and (Haskell) Bit_Operations.take_bit and (Scala) Bit_Operations.take_bit
+| class_instance nat :: semiring_bit_shifts \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bit_shifts and (OCaml) Bit_Operations.semiring_bit_shifts and (Haskell) Bit_Operations.semiring_bit_shifts and (Scala) Bit_Operations.semiring_bit_shifts
+| class_instance int :: semiring_bit_shifts \<rightharpoonup>
+  (SML) Bit_Operations.semiring_bit_shifts and (OCaml) Bit_Operations.semiring_bit_shifts and (Haskell) Bit_Operations.semiring_bit_shifts and (Scala) Bit_Operations.semiring_bit_shifts
 
 end

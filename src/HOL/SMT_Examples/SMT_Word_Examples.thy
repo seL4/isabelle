@@ -5,7 +5,7 @@
 section \<open>Word examples for for SMT binding\<close>
 
 theory SMT_Word_Examples
-imports "HOL-Word.Word"
+imports "HOL-Word.Word" "HOL-Word.Traditional_Syntax"
 begin
 
 declare [[smt_oracle = true]]

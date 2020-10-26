@@ -4,7 +4,12 @@
 SMT setup for words.
 *)
 
-structure SMT_Word: sig end =
+signature SMT_WORD =
+sig
+  val add_word_shift': term * string -> Context.generic -> Context.generic
+end
+
+structure SMT_Word : SMT_WORD =
 struct
 
 open Word_Lib
@@ -125,10 +130,6 @@ val setup_builtins =
     (\<^term>\<open>push_bit :: nat \<Rightarrow> 'a::len word \<Rightarrow> _ \<close>, "bvshl"),
     (\<^term>\<open>drop_bit :: nat \<Rightarrow> 'a::len word \<Rightarrow> _\<close>, "bvlshr"),
     (\<^term>\<open>signed_drop_bit :: nat \<Rightarrow> 'a::len word \<Rightarrow> _\<close>, "bvashr") ] #>
-  fold (add_word_fun shift') [
-    (\<^term>\<open>shiftl :: 'a::len word \<Rightarrow> _ \<close>, "bvshl"),
-    (\<^term>\<open>shiftr :: 'a::len word \<Rightarrow> _\<close>, "bvlshr"),
-    (\<^term>\<open>sshiftr :: 'a::len word \<Rightarrow> _\<close>, "bvashr") ] #>
   add_word_fun extract
     (\<^term>\<open>slice :: _ \<Rightarrow> 'a::len word \<Rightarrow> _\<close>, "extract") #>
   fold (add_word_fun extend) [
@@ -142,6 +143,8 @@ val setup_builtins =
     (\<^term>\<open>less_eq :: 'a::len word \<Rightarrow> _\<close>, "bvule"),
     (\<^term>\<open>word_sless\<close>, "bvslt"),
     (\<^term>\<open>word_sle\<close>, "bvsle") ]
+
+val add_word_shift' = add_word_fun shift'
 
 end
 

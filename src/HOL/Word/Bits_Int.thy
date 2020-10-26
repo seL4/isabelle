@@ -896,27 +896,19 @@ lemma bin_sc_numeral [simp]:
     of_bool (odd w) + 2 * bin_sc (pred_numeral k) b (w div 2)"
   by (simp add: numeral_eq_Suc)
 
-instantiation int :: semiring_bit_syntax
-begin
+instance int :: semiring_bit_syntax ..
 
-definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
+lemma test_bit_int_def [iff]:
+  "i !! n \<longleftrightarrow> bin_nth i n"
+  by (simp add: test_bit_eq_bit)
 
-definition "shiftl x n = x * 2 ^ n" for x :: int
+lemma shiftl_int_def:
+  "shiftl x n = x * 2 ^ n" for x :: int
+  by (simp add: push_bit_int_def shiftl_eq_push_bit)
 
-definition "shiftr x n = x div 2 ^ n" for x :: int
-
-instance by standard
-  (simp_all add: fun_eq_iff shiftl_int_def shiftr_int_def push_bit_eq_mult drop_bit_eq_div)
-
-end
-
-lemma shiftl_eq_push_bit:
-  \<open>k << n = push_bit n k\<close> for k :: int
-  by (fact shiftl_eq_push_bit)
-
-lemma shiftr_eq_drop_bit:
-  \<open>k >> n = drop_bit n k\<close> for k :: int
-  by (fact shiftr_eq_drop_bit)
+lemma shiftr_int_def:
+  "shiftr x n = x div 2 ^ n" for x :: int
+  by (simp add: drop_bit_int_def shiftr_eq_drop_bit)
 
 
 subsubsection \<open>Basic simplification rules\<close>
@@ -1405,5 +1397,10 @@ lemma bintrunc_shiftl:
 lemma uint_shiftl:
   "uint (n << i) = take_bit (size n) (uint n << i)"
   by transfer (simp add: push_bit_take_bit shiftl_eq_push_bit)
+
+
+code_identifier
+  code_module Bits_Int \<rightharpoonup>
+  (SML) Bit_Operations and (OCaml) Bit_Operations and (Haskell) Bit_Operations and (Scala) Bit_Operations
 
 end
