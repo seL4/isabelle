@@ -89,7 +89,7 @@ ML \<open>
 
 
 ML \<open>
-  fun situate file_name = Path.append tptp_probs_dir (Path.explode file_name);
+  fun situate file_name = tptp_probs_dir + Path.explode file_name;
 
   fun parser_test ctxt = (*FIXME argument order*)
     test_fn ctxt

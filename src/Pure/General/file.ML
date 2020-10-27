@@ -60,17 +60,16 @@ fun full_path dir path =
   let
     val path' = Path.expand path;
     val _ = Path.is_current path' andalso error "Bad file specification";
-    val path'' = Path.append dir path';
+    val path'' = dir + path';
   in
     if Path.is_absolute path'' then path''
-    else Path.append (Path.explode (ML_System.standard_path (OS.FileSys.getDir ()))) path''
+    else Path.explode (ML_System.standard_path (OS.FileSys.getDir ())) + path''
   end;
 
 
 (* tmp_path *)
 
-fun tmp_path path =
-  Path.append (Path.variable "ISABELLE_TMP") (Path.base path);
+fun tmp_path path = Path.variable "ISABELLE_TMP" + Path.base path;
 
 
 (* directory entries *)

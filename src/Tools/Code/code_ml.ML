@@ -879,14 +879,14 @@ val _ = Theory.setup
   (Code_Target.add_language
     (target_SML, {serializer = serializer_sml, literals = literals_sml,
       check = {env_var = "",
-        make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
+        make_destination = fn p => p + Path.explode "ROOT.ML",
         make_command = fn _ =>
           "isabelle process -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure"},
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
       check = {env_var = "ISABELLE_OCAMLFIND",
-        make_destination = fn p => Path.append p (Path.explode "ROOT.ml")
+        make_destination = fn p => p + Path.explode "ROOT.ml"
           (*extension demanded by OCaml compiler*),
         make_command = fn _ =>
           "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg ROOT.ml </dev/null"},

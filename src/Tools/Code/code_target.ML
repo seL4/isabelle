@@ -304,7 +304,7 @@ fun export_logical (file_prefix, file_pos) format pretty_modules =
       Singleton (ext, p) => export (binding (Path.ext ext prefix)) (format p)
     | Hierarchy modules =>
         fold (fn (names, p) =>
-          export (binding (Path.append prefix (Path.make names))) (format p)) modules)
+          export (binding (prefix + Path.make names)) (format p)) modules)
     #> tap code_export_message
   end;
 

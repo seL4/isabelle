@@ -155,7 +155,7 @@ fun run_atp mode name
       if dest_dir = "" then
         File.tmp_path problem_file_name
       else if File.exists (Path.explode dest_dir) then
-        Path.append (Path.explode dest_dir) problem_file_name
+        Path.explode dest_dir + problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir)
     val exec = exec full_proofs

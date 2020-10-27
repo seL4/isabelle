@@ -465,7 +465,7 @@ val _ = Theory.setup
   (Code_Target.add_language
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "SCALA_HOME",
-        make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
+        make_destination = fn p => p + Path.explode "ROOT.scala",
         make_command = fn _ =>
           "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS ROOT.scala"},
       evaluation_args = Token.explode0 Keyword.empty_keywords "case_insensitive"})

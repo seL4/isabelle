@@ -140,7 +140,7 @@ fun pretty_failures ctxt target failures =
 val debug = Attrib.setup_config_bool \<^binding>\<open>test_code_debug\<close> (K false)
 
 fun with_debug_dir name f =
-  Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
+  (Path.explode "$ISABELLE_HOME_USER" + Path.basic (name ^ serial_string ()))
   |> Isabelle_System.make_directory
   |> Exn.capture f
   |> Exn.release;
@@ -290,9 +290,9 @@ val polymlN = "PolyML"
 
 fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
   let
-    val code_path = Path.append dir (Path.basic "generated.sml")
-    val driver_path = Path.append dir (Path.basic "driver.sml")
-    val out_path = Path.append dir (Path.basic "out")
+    val code_path = dir + Path.basic "generated.sml"
+    val driver_path = dir + Path.basic "driver.sml"
+    val out_path = dir + Path.basic "out"
 
     val code = #2 (the_single code_files)
     val driver = \<^verbatim>\<open>
@@ -337,9 +337,9 @@ fun evaluate_in_mlton (_: Proof.context) (code_files, value_name) dir =
     val driverN = "driver.sml"
     val projectN = "test"
 
-    val code_path = Path.append dir (Path.basic generatedN)
-    val driver_path = Path.append dir (Path.basic driverN)
-    val basis_path = Path.append dir (Path.basic (projectN ^ ".mlb"))
+    val code_path = dir + Path.basic generatedN
+    val driver_path = dir + Path.basic driverN
+    val basis_path = dir + Path.basic (projectN ^ ".mlb")
     val driver = \<^verbatim>\<open>
 fun format (true, _) = \<close> ^ ML_Syntax.print_string success ^ \<^verbatim>\<open> ^ "\n"
   | format (false, NONE) = \<close> ^ ML_Syntax.print_string failure ^ \<^verbatim>\<open> ^ "\n"
@@ -355,7 +355,7 @@ val _ = print \<close> ^ ML_Syntax.print_string end_marker ^ \<^verbatim>\<open>
     val _ = File.write basis_path ("$(SML_LIB)/basis/basis.mlb\n" ^ generatedN ^ "\n" ^ driverN)
   in
     compile compiler ("\"$ISABELLE_MLTON\" -default-type intinf " ^ File.bash_path basis_path);
-    evaluate compiler (File.bash_path (Path.append dir (Path.basic projectN)))
+    evaluate compiler (File.bash_path (dir + Path.basic projectN))
   end
 
 
@@ -370,8 +370,8 @@ fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
     val generatedN = "generated.sml"
     val driverN = "driver.sml"
 
-    val code_path = Path.append dir (Path.basic generatedN)
-    val driver_path = Path.append dir (Path.basic driverN)
+    val code_path = dir + Path.basic generatedN
+    val driver_path = dir + Path.basic driverN
     val driver = \<^verbatim>\<open>
 structure Test =
 struct
@@ -407,8 +407,8 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
   let
     val compiler = ocamlN
 
-    val code_path = Path.append dir (Path.basic "generated.ml")
-    val driver_path = Path.append dir (Path.basic "driver.ml")
+    val code_path = dir + Path.basic "generated.ml"
+    val driver_path = dir + Path.basic "driver.ml"
     val driver =
       "let format_term = function\n" ^
       "  | None -> \"\"\n" ^
@@ -422,7 +422,7 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
       "  let _ = List.map (fun x -> print_string (format x)) result in\n" ^
       "  print_string \"" ^ end_marker ^ "\";;\n" ^
       "main ();;"
-    val compiled_path = Path.append dir (Path.basic "test")
+    val compiled_path = dir + Path.basic "test"
 
     val _ = check_settings compiler ISABELLE_OCAMLFIND "ocamlfind executable"
     val _ = List.app (File.write code_path o snd) code_files
@@ -446,7 +446,7 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
     val compiler = ghcN
     val modules = map fst code_files
 
-    val driver_path = Path.append dir (Path.basic "Main.hs")
+    val driver_path = dir + Path.basic "Main.hs"
     val driver =
       "module Main where {\n" ^
       implode (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
@@ -465,10 +465,10 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
       "}\n"
 
     val _ = check_settings compiler ISABELLE_GHC "GHC executable"
-    val _ = List.app (fn (name, code) => File.write (Path.append dir (Path.basic name)) code) code_files
+    val _ = List.app (fn (name, code) => File.write (dir + Path.basic name) code) code_files
     val _ = File.write driver_path driver
 
-    val compiled_path = Path.append dir (Path.basic "test")
+    val compiled_path = dir + Path.basic "test"
     val cmd =
       "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
       Config.get ctxt ghc_options ^ " -o " ^
@@ -487,9 +487,9 @@ fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
     val generatedN = "Generated_Code"
     val driverN = "Driver.scala"
 
-    val code_path = Path.append dir (Path.basic (generatedN ^ ".scala"))
-    val driver_path = Path.append dir (Path.basic driverN)
-    val out_path = Path.append dir (Path.basic "out")
+    val code_path = dir + Path.basic (generatedN ^ ".scala")
+    val driver_path = dir + Path.basic driverN
+    val out_path = dir + Path.basic "out"
 
     val code = #2 (the_single code_files)
     val driver = \<^verbatim>\<open>

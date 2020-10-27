@@ -83,7 +83,7 @@ fun copy_file src0 dst0 =
   let
     val src = Path.expand src0;
     val dst = Path.expand dst0;
-    val target = if File.is_dir dst then Path.append dst (Path.base src) else dst;
+    val target = if File.is_dir dst then dst + Path.base src else dst;
   in
     if File.eq (src, target) then ()
     else
@@ -97,7 +97,7 @@ fun copy_file_base (base_dir, src0) target_dir =
     val _ =
       if Path.starts_basic src then ()
       else error ("Illegal path specification " ^ Path.print src ^ " beyond base directory");
-  in copy_file (Path.append base_dir src) (make_directory (Path.append target_dir src_dir)) end;
+  in copy_file (base_dir + src) (make_directory (target_dir + src_dir)) end;
 
 
 (* tmp files *)

@@ -67,7 +67,7 @@ val _ =
         else
           let
             val thy_name = Context.theory_name thy;
-            val document_path = Path.append (Path.basic "document") (Present.tex_path thy_name);
+            val document_path = Path.basic "document" + Present.tex_path thy_name;
 
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
@@ -416,7 +416,7 @@ and require_thy context initiators qualifier dir (s, require_pos) tasks =
                   Position.here require_pos ^ required_by "\n" initiators);
 
           val qualifier' = Resources.theory_qualifier theory_name;
-          val dir' = Path.append dir (master_dir_deps (Option.map #1 deps));
+          val dir' = dir + master_dir_deps (Option.map #1 deps);
 
           val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =

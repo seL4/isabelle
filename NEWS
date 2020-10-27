@@ -184,6 +184,9 @@ the begin of a new theory can be achieved via Theory.at_begin.
 registered Isabelle/Scala functions (of type String => String):
 invocation works via the PIDE protocol.
 
+* Path.append is available as overloaded "+" operator, similar to
+corresponding Isabelle/Scala operation.
+
 
 *** System ***
 

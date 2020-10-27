@@ -32,10 +32,10 @@ datatype T =
 
 (* append *)
 
-fun append (File p) (File p') = File (Path.append p p')
-  | append (Http (h, p)) (File p') = Http (h, Path.append p p')
-  | append (Https (h, p)) (File p') = Https (h, Path.append p p')
-  | append (Ftp (h, p)) (File p') = Ftp (h, Path.append p p')
+fun append (File p) (File p') = File (p + p')
+  | append (Http (h, p)) (File p') = Http (h, p + p')
+  | append (Https (h, p)) (File p') = Https (h, p + p')
+  | append (Ftp (h, p)) (File p') = Ftp (h, p + p')
   | append _ url = url;
 
 
@@ -67,7 +67,7 @@ val scan_url =
   Scan.this_string "file:///" |-- scan_path_root >> File ||
   Scan.this_string "file://localhost/" |-- scan_path_root >> File ||
   Scan.this_string "file://" |-- scan_host -- scan_path
-    >> (fn (h, p) => File (Path.append (Path.named_root h) p)) ||
+    >> (fn (h, p) => File (Path.named_root h + p)) ||
   Scan.this_string "file:/" |-- scan_path_root >> File ||
   Scan.this_string "http://" |-- scan_host -- scan_path >> Http ||
   Scan.this_string "https://" |-- scan_host -- scan_path >> Https ||

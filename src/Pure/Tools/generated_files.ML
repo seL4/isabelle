@@ -146,7 +146,7 @@ fun check_files_in ctxt (files, opt_thy) =
 
 fun write_file dir (file: file) =
   let
-    val path = Path.expand (Path.append dir (#path file));
+    val path = Path.expand (dir + #path file);
     val _ = Isabelle_System.make_directory (Path.dir path);
     val _ = File.generate path (#content file);
   in () end;
@@ -298,7 +298,7 @@ fun compile_generated_files ctxt args external export export_prefix source =
               val binding = binding0 |> Path.map_binding (executable = SOME true ? Path.exe);
               val (path, pos) = Path.dest_binding binding;
               val content =
-                (case try File.read (Path.append dir path) of
+                (case try File.read (dir + path) of
                   SOME context => context
                 | NONE => error ("Missing result file " ^ Path.print path ^ Position.here pos));
               val _ = Export.report_export thy export_prefix;

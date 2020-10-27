@@ -155,7 +155,7 @@ fun find_theory_file thy_name =
     val dirs = Symtab.lookup_list (get_session_base #session_directories) session;
   in
     dirs |> get_first (fn dir =>
-      let val path = Path.append dir thy_file
+      let val path = dir + thy_file
       in if File.is_file path then SOME path else NONE end)
   end;
 
@@ -257,7 +257,7 @@ fun formal_check check_file ctxt opt_dir (name, pos) =
       (case opt_dir of
         SOME dir => dir
       | NONE => master_directory (Proof_Context.theory_of ctxt));
-    val path = Path.append dir (Path.explode name) handle ERROR msg => err msg;
+    val path = dir + Path.explode name handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
     val _ = check_file path handle ERROR msg => err msg;

@@ -209,7 +209,7 @@ fun exec verbose code =
       {line = 0, file = "generated code", verbose = verbose, debug = false} code)
 
 fun with_overlord_dir name f =
-  Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
+  (Path.explode "$ISABELLE_HOME_USER" + Path.basic (name ^ serial_string ()))
   |> Isabelle_System.make_directory
   |> Exn.capture f
   |> Exn.release
@@ -258,7 +258,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
               [(narrowing_engine_file,
                 if contains_existentials then pnf_narrowing_engine else narrowing_engine),
                (code_file, code), (main_file, main)])
-        val executable = Path.append in_path (Path.basic "isabelle_quickcheck_narrowing")
+        val executable = in_path + Path.basic "isabelle_quickcheck_narrowing"
         val cmd =
           "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^ ghc_options ^ " " ^
             (space_implode " "

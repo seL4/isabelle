@@ -27,7 +27,7 @@ fun report_export thy binding =
   let
     val theory_name = Context.theory_long_name thy;
     val (path, pos) = Path.dest_binding binding;
-    val markup = Markup.export_path (Path.implode (Path.append (Path.basic theory_name) path));
+    val markup = Markup.export_path (Path.implode (Path.basic theory_name + path));
   in Context_Position.report_generic (Context.Theory thy) pos markup end;
 
 type params =
@@ -63,7 +63,7 @@ fun export_executable_file thy binding file =
 
 fun markup thy path =
   let
-    val thy_path = Path.append (Path.basic (Context.theory_long_name thy)) path;
+    val thy_path = Path.basic (Context.theory_long_name thy) + path;
     val name = (Markup.nameN, Path.implode thy_path);
   in Active.make_markup Markup.theory_exportsN {implicit = false, properties = [name]} end;
 

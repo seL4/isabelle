@@ -18,7 +18,7 @@ ML \<open>
       (TPTP_Interpret.interpret_file
        false
        [Path.explode "$TPTP"]
-       (Path.append tptp_probs_dir (Path.explode "LCL/LCL825-1.p"))
+       (tptp_probs_dir + Path.explode "LCL/LCL825-1.p")
        []
        [])
       @{theory}

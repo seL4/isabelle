@@ -205,7 +205,7 @@ fun isabelle_document {verbose} doc_name tags dir =
     val script =
       "isabelle document -d " ^ File.bash_path dir ^ " -n " ^ Bash.string doc_name ^
       (if tags = "" then "" else " -t " ^ Bash.string tags);
-    val doc_path = Path.appends [dir, Path.parent, document_path doc_name];
+    val doc_path = dir + Path.parent + document_path doc_name;
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln (trim_line (normalize_lines out)) else ();
@@ -219,7 +219,7 @@ fun sorted_index index = map snd (sort (int_ord o apply2 fst) (rev index));
 fun index_buffer index = Buffer.add (implode (sorted_index index)) Buffer.empty;
 
 fun write_tex src name path =
-  File.write_buffer (Path.append path (tex_path name)) src;
+  File.write_buffer (path + tex_path name) src;
 
 fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index) doc_indexN path;
@@ -231,16 +231,15 @@ fun finish () =
     val {theories, tex_index, html_index} = Synchronized.value browser_info;
     val thys = Symtab.dest theories;
 
-    val session_prefix =
-      Path.append (Path.append info_path (Path.basic chapter)) (Path.basic name);
+    val session_prefix = info_path + Path.basic chapter + Path.basic name;
 
     fun finish_html (a, {html_source, ...}: theory_info) =
-      File.write (Path.append session_prefix (html_path a)) html_source;
+      File.write (session_prefix + html_path a) html_source;
 
     val _ =
       if info then
        (Isabelle_System.make_directory session_prefix;
-        File.write_buffer (Path.append session_prefix index_path)
+        File.write_buffer (session_prefix + index_path)
           (index_buffer html_index |> Buffer.add HTML.end_document);
         (case readme of NONE => () | SOME path => Isabelle_System.copy_file path session_prefix);
         List.app finish_html thys;
@@ -251,15 +250,15 @@ fun finish () =
 
     fun document_job doc_prefix backdrop (doc_name, tags) =
       let
-        val doc_dir = Path.append doc_prefix (Path.basic doc_name);
+        val doc_dir = doc_prefix + Path.basic doc_name;
         fun purge () = if backdrop then Isabelle_System.rm_tree doc_dir else ();
         val _ = purge ();
         val _ = Isabelle_System.make_directory doc_dir;
         val _ =
           Isabelle_System.bash ("isabelle latex -o sty " ^
-            File.bash_path (Path.append doc_dir (Path.basic "root.tex")));
+            File.bash_path (doc_dir + Path.basic "root.tex"));
         val _ = List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
-        val _ = Isabelle_System.copy_file graph_file (Path.append doc_dir session_graph_path);
+        val _ = Isabelle_System.copy_file graph_file (doc_dir + session_graph_path);
         val _ = write_tex_index tex_index doc_dir;
         val _ =
           List.app (fn (a, {tex_source, ...}) =>
@@ -303,9 +302,9 @@ fun theory_link (curr_chapter, curr_session) thy =
   in
     if curr_session = session then SOME link
     else if curr_chapter = chapter then
-      SOME (Path.appends [Path.parent, Path.basic session, link])
+      SOME (Path.parent + Path.basic session + link)
     else if chapter = Context.PureN then NONE
-    else SOME (Path.appends [Path.parent, Path.parent, Path.basic chapter, Path.basic session, link])
+    else SOME (Path.parent + Path.parent + Path.basic chapter + Path.basic session + link)
   end;
 
 fun begin_theory bibtex_entries update_time mk_text thy =

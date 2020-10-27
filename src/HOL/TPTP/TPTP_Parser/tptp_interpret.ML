@@ -782,9 +782,9 @@ fun dest_fn_type (Fn_type (ty1, ty2)) =
   | dest_fn_type ty = ([], ty)
 
 fun resolve_include_path path_prefixes path_suffix =
-  case find_first (fn prefix => File.exists (Path.append prefix path_suffix))
+  case find_first (fn prefix => File.exists (prefix + path_suffix))
          path_prefixes of
-    SOME prefix => Path.append prefix path_suffix
+    SOME prefix => prefix + path_suffix
   | NONE => error ("Cannot find include file " ^ Path.print path_suffix)
 
 fun is_type_type (Fmla_type (Atom (THF_Atom_term (Term_FuncG (TypeSymbol Type_Type, [], []))))) =

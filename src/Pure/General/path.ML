@@ -294,3 +294,5 @@ val implode = implode_path;
 val explode = explode_path;
 
 end;
+
+ML_system_overload (uncurry Path.append) "+";
