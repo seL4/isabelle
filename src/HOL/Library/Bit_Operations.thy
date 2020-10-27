@@ -5,44 +5,9 @@ section \<open>Bit operations in suitable algebraic structures\<close>
 
 theory Bit_Operations
   imports
-    "HOL-Library.Boolean_Algebra"
     Main
+    "HOL-Library.Boolean_Algebra"
 begin
-
-lemma sub_BitM_One_eq:
-  \<open>(Num.sub (Num.BitM n) num.One) = 2 * (Num.sub n Num.One :: int)\<close>
-  by (cases n) simp_all
-
-lemma bit_not_int_iff':
-  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close>
-  for k :: int
-proof (induction n arbitrary: k)
-  case 0
-  show ?case
-    by simp
-next
-  case (Suc n)
-  have \<open>(- k - 1) div 2 = - (k div 2) - 1\<close>
-    by simp
-  with Suc show ?case
-    by (simp add: bit_Suc)
-qed
-
-lemma bit_minus_int_iff:
-  \<open>bit (- k) n \<longleftrightarrow> \<not> bit (k - 1) n\<close>
-  for k :: int
-  using bit_not_int_iff' [of \<open>k - 1\<close>] by simp
-
-lemma bit_numeral_int_simps [simp]:
-  \<open>bit (1 :: int) (numeral n) \<longleftrightarrow> bit (0 :: int) (pred_numeral n)\<close>
-  \<open>bit (numeral (num.Bit0 w) :: int) (numeral n) \<longleftrightarrow> bit (numeral w :: int) (pred_numeral n)\<close>
-  \<open>bit (numeral (num.Bit1 w) :: int) (numeral n) \<longleftrightarrow> bit (numeral w :: int) (pred_numeral n)\<close>
-  \<open>bit (numeral (Num.BitM w) :: int) (numeral n) \<longleftrightarrow> \<not> bit (- numeral w :: int) (pred_numeral n)\<close>
-  \<open>bit (- numeral (num.Bit0 w) :: int) (numeral n) \<longleftrightarrow> bit (- numeral w :: int) (pred_numeral n)\<close>
-  \<open>bit (- numeral (num.Bit1 w) :: int) (numeral n) \<longleftrightarrow> \<not> bit (numeral w :: int) (pred_numeral n)\<close>
-  \<open>bit (- numeral (Num.BitM w) :: int) (numeral n) \<longleftrightarrow> bit (- (numeral w) :: int) (pred_numeral n)\<close>
-  by (simp_all add: bit_1_iff numeral_eq_Suc bit_Suc add_One sub_inc_One_eq bit_minus_int_iff)
-
 
 subsection \<open>Bit operations\<close>
 
@@ -1569,6 +1534,10 @@ proof -
     by (rule bit_eqI)
       (auto simp add: Let_def * bit_signed_take_bit_iff bit_take_bit_iff min_def less_Suc_eq bit_not_iff bit_mask_iff bit_or_iff)
 qed
+
+lemma not_minus_numeral_inc_eq:
+  \<open>NOT (- numeral (Num.inc n)) = (numeral n :: int)\<close>
+  by (simp add: not_int_def sub_inc_One_eq)
 
 
 subsection \<open>Instance \<^typ>\<open>nat\<close>\<close>

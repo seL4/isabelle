@@ -2102,6 +2102,10 @@ lemma sub_code [code]:
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
   by (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def numeral_BitM)
 
+lemma sub_BitM_One_eq:
+  \<open>(Num.sub (Num.BitM n) num.One) = 2 * (Num.sub n Num.One :: int)\<close>
+  by (cases n) simp_all
+
 text \<open>Implementations.\<close>
 
 lemma one_int_code [code]: "1 = Pos Num.One"

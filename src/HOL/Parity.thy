@@ -1788,6 +1788,49 @@ instance nat :: unique_euclidean_semiring_with_bit_shifts ..
 
 instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
+lemma bit_not_int_iff':
+  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close>
+  for k :: int
+proof (induction n arbitrary: k)
+  case 0
+  show ?case
+    by simp
+next
+  case (Suc n)
+  have \<open>- k - 1 = - (k + 2) + 1\<close>
+    by simp
+  also have \<open>(- (k + 2) + 1) div 2 = - (k div 2) - 1\<close>
+  proof (cases \<open>even k\<close>)
+    case True
+    then have \<open>- k div 2 = - (k div 2)\<close>
+      by rule (simp flip: mult_minus_right)
+    with True show ?thesis
+      by simp
+  next
+    case False
+    have \<open>4 = 2 * (2::int)\<close>
+      by simp
+    also have \<open>2 * 2 div 2 = (2::int)\<close>
+      by (simp only: nonzero_mult_div_cancel_left)
+    finally have *: \<open>4 div 2 = (2::int)\<close> .
+    from False obtain l where k: \<open>k = 2 * l + 1\<close> ..
+    then have \<open>- k - 2 = 2 * - (l + 2) + 1\<close>
+      by simp
+    then have \<open>(- k - 2) div 2 + 1 = - (k div 2) - 1\<close>
+      by (simp flip: mult_minus_right add: *) (simp add: k)
+    with False show ?thesis
+      by simp
+  qed
+  finally have \<open>(- k - 1) div 2 = - (k div 2) - 1\<close> .
+  with Suc show ?case
+    by (simp add: bit_Suc)
+qed
+
+lemma bit_minus_int_iff:
+  \<open>bit (- k) n \<longleftrightarrow> \<not> bit (k - 1) n\<close>
+  for k :: int
+  using bit_not_int_iff' [of \<open>k - 1\<close>] by simp
+
 lemma bit_nat_iff:
   \<open>bit (nat k) n \<longleftrightarrow> k \<ge> 0 \<and> bit k n\<close>
 proof (cases \<open>k \<ge> 0\<close>)

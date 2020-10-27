@@ -299,4 +299,14 @@ declaration \<open>
        Numeral_Simprocs.field_divide_cancel_numeral_factor])
 \<close>
 
+lemma bit_numeral_int_simps [simp]:
+  \<open>bit (1 :: int) (numeral n) \<longleftrightarrow> bit (0 :: int) (pred_numeral n)\<close>
+  \<open>bit (numeral (num.Bit0 w) :: int) (numeral n) \<longleftrightarrow> bit (numeral w :: int) (pred_numeral n)\<close>
+  \<open>bit (numeral (num.Bit1 w) :: int) (numeral n) \<longleftrightarrow> bit (numeral w :: int) (pred_numeral n)\<close>
+  \<open>bit (numeral (Num.BitM w) :: int) (numeral n) \<longleftrightarrow> \<not> bit (- numeral w :: int) (pred_numeral n)\<close>
+  \<open>bit (- numeral (num.Bit0 w) :: int) (numeral n) \<longleftrightarrow> bit (- numeral w :: int) (pred_numeral n)\<close>
+  \<open>bit (- numeral (num.Bit1 w) :: int) (numeral n) \<longleftrightarrow> \<not> bit (numeral w :: int) (pred_numeral n)\<close>
+  \<open>bit (- numeral (Num.BitM w) :: int) (numeral n) \<longleftrightarrow> bit (- (numeral w) :: int) (pred_numeral n)\<close>
+  by (simp_all add: bit_1_iff numeral_eq_Suc bit_Suc add_One sub_inc_One_eq bit_minus_int_iff)
+
 end

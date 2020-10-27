@@ -120,13 +120,13 @@ qed
 
 end
 
-lemma word_exp_length_eq_0 [simp]:
-  \<open>(2 :: 'a::len word) ^ LENGTH('a) = 0\<close>
-  by transfer simp
-
-lemma exp_eq_zero_iff:
+lemma exp_eq_zero_iff [simp]:
   \<open>2 ^ n = (0 :: 'a::len word) \<longleftrightarrow> n \<ge> LENGTH('a)\<close>
   by transfer simp
+
+lemma word_exp_length_eq_0 [simp]:
+  \<open>(2 :: 'a::len word) ^ LENGTH('a) = 0\<close>
+  by simp
 
 
 subsubsection \<open>Basic tool setup\<close>
@@ -1099,6 +1099,16 @@ lemma unsigned_take_bit_eq:
   \<open>unsigned (take_bit n w) = take_bit n (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
   by (rule bit_eqI) (simp add: bit_unsigned_iff bit_take_bit_iff Parity.bit_take_bit_iff)
+
+end
+
+context unique_euclidean_semiring_with_bit_shifts
+begin
+
+lemma unsigned_drop_bit_eq:
+  \<open>unsigned (drop_bit n w) = drop_bit n (take_bit LENGTH('b) (unsigned w))\<close>
+  for w :: \<open>'b::len word\<close>
+  by (rule bit_eqI) (auto simp add: bit_unsigned_iff bit_take_bit_iff bit_drop_bit_eq Parity.bit_drop_bit_eq dest: bit_imp_le_length)
 
 end
 
@@ -4548,13 +4558,27 @@ lemma word_rec_max:
 subsection \<open>More\<close>
 
 lemma mask_1: "mask 1 = 1"
-  by transfer (simp add: min_def mask_Suc_exp)
+  by simp
 
 lemma mask_Suc_0: "mask (Suc 0) = 1"
-  using mask_1 by simp
+  by simp
 
 lemma bin_last_bintrunc: "odd (take_bit l n) \<longleftrightarrow> l > 0 \<and> odd n"
   by simp
+
+
+lemma push_bit_word_beyond [simp]:
+  \<open>push_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by (transfer fixing: n) (simp add: take_bit_push_bit)
+
+lemma drop_bit_word_beyond [simp]:
+  \<open>drop_bit n w = 0\<close> if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  using that by (transfer fixing: n) (simp add: drop_bit_take_bit)
+
+lemma signed_drop_bit_beyond:
+  \<open>signed_drop_bit n w = (if bit w (LENGTH('a) - Suc 0) then - 1 else 0)\<close>
+  if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
+  by (rule bit_word_eqI) (simp add: bit_signed_drop_bit_iff that)
 
 
 subsection \<open>SMT support\<close>
