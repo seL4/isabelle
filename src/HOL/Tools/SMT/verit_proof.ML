@@ -46,9 +46,15 @@ sig
   val veriT_def : string
   val subproof_rule : string
   val local_input_rule : string
+  val not_not_rule : string
+  val contract_rule : string
+  val ite_intro_rule : string
+  val eq_congruent_rule : string
+  val eq_congruent_pred_rule : string
+  val skolemization_steps : string list
 
-  val is_skolemisation: string -> bool
-  val is_skolemisation_step: veriT_replay_node -> bool
+  val is_skolemization: string -> bool
+  val is_skolemization_step: veriT_replay_node -> bool
 
   val number_of_steps: veriT_replay_node list -> int
 
@@ -187,12 +193,10 @@ datatype veriT_node = VeriT_Node of {
   rule: string,
   prems: string list,
   proof_ctxt: term list,
-  concl: term,
-  bounds: string list}
+  concl: term}
 
-fun mk_node id rule prems proof_ctxt concl bounds =
-  VeriT_Node {id = id, rule = rule, prems = prems, proof_ctxt = proof_ctxt, concl = concl,
-    bounds = bounds}
+fun mk_node id rule prems proof_ctxt concl =
+  VeriT_Node {id = id, rule = rule, prems = prems, proof_ctxt = proof_ctxt, concl = concl}
 
 datatype veriT_replay_node = VeriT_Replay_Node of {
   id: string,
@@ -226,18 +230,26 @@ fun mk_step id rule prems proof_ctxt concl fixes =
 val step_prefix = ".c"
 val input_rule = "input"
 val la_generic_rule = "la_generic"
-val normalized_input_rule = "__normalized_input" (* arbitrary *)
-val rewrite_rule = "__rewrite" (* arbitrary *)
+val normalized_input_rule = "__normalized_input" (*arbitrary*)
+val rewrite_rule = "__rewrite" (*arbitrary*)
 val subproof_rule = "subproof"
-val local_input_rule = "__local_input" (* arbitrary *)
+val local_input_rule = "__local_input" (*arbitrary*)
 val simp_arith_rule = "simp_arith"
 val veriT_def = "__skolem_definition" (*arbitrary*)
+val not_not_rule = "not_not"
+val contract_rule = "contraction"
+val eq_congruent_pred_rule = "eq_congruent_pred"
+val eq_congruent_rule = "eq_congruent"
+val ite_intro_rule = "ite_intro"
+val default_skolem_rule = "sko_forall" (*arbitrary, but must be one of the skolems*)
 
-val is_skolemisation = member (op =) ["sko_forall", "sko_ex"]
-val keep_app_symbols = member (op =) ["eq_congruent_pred", "eq_congruent", "ite_intro"]
-val keep_raw_lifting = member (op =) ["eq_congruent_pred", "eq_congruent", "ite_intro"]
+val skolemization_steps = ["sko_forall", "sko_ex"]
+val is_skolemization = member (op =) skolemization_steps
+val keep_app_symbols = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule]
+val keep_raw_lifting = member (op =) [eq_congruent_pred_rule, eq_congruent_rule, ite_intro_rule]
+val is_SH_trivial = member (op =) [not_not_rule, contract_rule]
 
-fun is_skolemisation_step (VeriT_Replay_Node {id, ...}) = is_skolemisation id
+fun is_skolemization_step (VeriT_Replay_Node {id, ...}) = is_skolemization id
 
 (* Even the veriT developers do not know if the following rule can still appear in proofs: *)
 val veriT_deep_skolemize_rule = "deep_skolemize"
@@ -534,7 +546,7 @@ fun filter_split _ [] = ([], [])
      (if f a then apfst (curry op :: a) else apsnd (curry op :: a)) (filter_split f xs)
 
 fun collect_skolem_defs (Raw_VeriT_Node {rule, subproof = subproof, args, ...}) =
-  (if is_skolemisation rule then map (fn id => id ^ veriT_def) (skolems_introduced_by_rule args) else []) @
+  (if is_skolemization rule then map (fn id => id ^ veriT_def) (skolems_introduced_by_rule args) else []) @
   flat (map collect_skolem_defs subproof)
 
 (*The postprocessing does:
@@ -606,7 +618,7 @@ fun postprocess_proof compress ctxt step cx =
       val alpha_conversion = rule = "bind" andalso is_alpha_renaming concl
 
       val can_remove_subproof =
-        compress andalso (is_skolemisation rule orelse alpha_conversion)
+        compress andalso (is_skolemization rule orelse alpha_conversion)
       val (fixed_subproof : veriT_replay_node list, _) =
          fold_map postprocess (if can_remove_subproof then [] else subproof)
            (subproof_cx, subproof_rew)
@@ -646,9 +658,9 @@ fun postprocess_proof compress ctxt step cx =
       val bound_t = bounds
         |> map (fn s => (s, the (find_type_in_formula concl s)))
 
-      val skolem_defs = (if is_skolemisation rule
+      val skolem_defs = (if is_skolemization rule
          then map (fn id => id ^ veriT_def) (skolems_introduced_by_rule args) else [])
-      val skolems_of_subproof = (if is_skolemisation rule
+      val skolems_of_subproof = (if is_skolemization rule
          then flat (map collect_skolem_defs subproof) else [])
       val fixed_prems =
         prems @ (if is_assm_repetition id rule then [id] else []) @
@@ -675,32 +687,129 @@ fun postprocess_proof compress ctxt step cx =
 
 val linearize_proof =
   let
+    fun map_node_concl f (VeriT_Node {id, rule, prems, proof_ctxt, concl}) =
+       mk_node id rule prems proof_ctxt (f concl)
     fun linearize (VeriT_Replay_Node {id = id, rule = rule, args = _, prems = prems,
         proof_ctxt = proof_ctxt, concl = concl, bounds = bounds, insts = _, declarations = _,
-        subproof = (_, _, _, subproof)}) =
+        subproof = (bounds', assms, inputs, subproof)}) =
       let
+        val bounds = distinct (op =) bounds
+        val bounds' = distinct (op =) bounds'
         fun mk_prop_of_term concl =
           concl |> fastype_of concl = \<^typ>\<open>bool\<close> ? curry (op $) \<^term>\<open>Trueprop\<close>
         fun remove_assumption_id assumption_id prems =
           filter_out (curry (op =) assumption_id) prems
+        fun add_assumption assumption concl =
+          \<^const>\<open>Pure.imp\<close> $ mk_prop_of_term assumption $ mk_prop_of_term concl
         fun inline_assumption assumption assumption_id
-            (VeriT_Node {id, rule, prems, proof_ctxt, concl, bounds}) =
+            (VeriT_Node {id, rule, prems, proof_ctxt, concl}) =
           mk_node id rule (remove_assumption_id assumption_id prems) proof_ctxt
-            (\<^const>\<open>Pure.imp\<close> $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
+            (add_assumption assumption concl)
         fun find_input_steps_and_inline [] = []
           | find_input_steps_and_inline
-              (VeriT_Node {id = id', rule, prems, concl, bounds, ...} :: steps) =
+              (VeriT_Node {id = id', rule, prems, concl, ...} :: steps) =
             if rule = input_rule then
               find_input_steps_and_inline (map (inline_assumption concl id') steps)
             else
-              mk_node (id') rule prems [] concl bounds :: find_input_steps_and_inline steps
+              mk_node (id') rule prems [] concl :: find_input_steps_and_inline steps
 
-        val subproof = flat (map linearize subproof)
-        val subproof' = find_input_steps_and_inline subproof
+        fun free_bounds bounds (concl) =
+          fold (fn (var, typ) => fn t => Logic.all (Free (var, typ)) t) bounds concl
+        val subproof = subproof
+          |> flat o map linearize
+          |> map (map_node_concl (fold add_assumption (assms @ inputs)))
+          |> map (map_node_concl (free_bounds (bounds @ bounds')))
+          |> find_input_steps_and_inline
+        val concl = free_bounds bounds concl
       in
-        subproof' @ [mk_node id rule prems proof_ctxt concl (map fst bounds)]
+        subproof @ [mk_node id rule prems proof_ctxt concl]
       end
   in linearize end
+
+fun rule_of (VeriT_Replay_Node {rule,...}) = rule
+fun subproof_of (VeriT_Replay_Node {subproof = (_, _, _, subproof),...}) = subproof
+
+
+(* Massage Skolems for Sledgehammer.
+
+We have to make sure that there is an "arrow" in the graph for skolemization steps.
+
+
+A. The normal easy case
+
+This function detects the steps of the form
+  P \<longleftrightarrow> Q :skolemization
+  Q       :resolution with P
+and replace them by
+  Q       :skolemization
+Throwing away the step "P \<longleftrightarrow> Q" completely. This throws away a lot of information, but it does not
+matter too much for Sledgehammer.
+
+
+B. Skolems in subproofs
+Supporting this is more or less hopeless as long as the Isar reconstruction of Sledgehammer
+does not support more features like definitions. veriT is able to generate proofs with skolemization
+happening in subproofs inside the formula. 
+  (assume "A \<or> P"
+   ...
+   P \<longleftrightarrow> Q :skolemization in the subproof
+   ...)
+  hence A \<or> P \<longrightarrow> A \<or> Q :lemma
+  ...
+  R :something with some rule
+and replace them by
+  R :skolemization with some rule
+Without any subproof
+*)
+fun remove_skolem_definitions_proof steps =
+  let
+    fun replace_equivalent_by_imp (judgement $ ((Const(\<^const_name>\<open>HOL.eq\<close>, typ) $ arg1) $ arg2)) =
+       judgement $ ((Const(\<^const_name>\<open>HOL.implies\<close>, typ) $ arg1) $ arg2)
+     | replace_equivalent_by_imp a = a (*This case is probably wrong*)
+    fun remove_skolem_definitions (VeriT_Replay_Node {id = id, rule = rule, args = args,
+         prems = prems,
+        proof_ctxt = proof_ctxt, concl = concl, bounds = bounds, insts = insts,
+        declarations = declarations,
+        subproof = (vars, assms', extra_assms', subproof)}) (prems_to_remove, skolems) =
+    let
+      val prems = prems
+        |> filter_out (member (op =) prems_to_remove)
+      val trivial_step = is_SH_trivial rule
+      fun has_skolem_substep st NONE = if is_skolemization (rule_of st) then SOME (rule_of st)
+             else fold has_skolem_substep (subproof_of st) NONE
+        | has_skolem_substep _ a = a
+      val promote_to_skolem = exists (fn t => member (op =) skolems t) prems
+      val promote_from_assms = fold has_skolem_substep subproof NONE <> NONE
+      val promote_step = promote_to_skolem orelse promote_from_assms
+      val skolem_step_to_skip = is_skolemization rule orelse 
+        (promote_from_assms andalso length prems > 1)
+      val is_skolem = is_skolemization rule orelse promote_step
+      val prems = prems
+        |> filter_out (fn t => member (op =) skolems t)
+        |> is_skolem ? filter_out (String.isPrefix id)
+      val rule = (if promote_step then default_skolem_rule else rule)
+      val subproof = subproof
+        |> (is_skolem ? K []) (*subproofs of skolemization steps are useless for SH*)
+        |> map (fst o (fn st => remove_skolem_definitions st (prems_to_remove, skolems)))
+             (*no new definitions in subproofs*)
+        |> flat
+      val concl = concl
+        |> is_skolem ? replace_equivalent_by_imp
+      val step = (if skolem_step_to_skip orelse rule = veriT_def orelse trivial_step then []
+        else mk_replay_node id rule args prems proof_ctxt concl bounds insts declarations
+            (vars, assms', extra_assms', subproof)
+          |> single)
+      val defs = (if rule = veriT_def orelse trivial_step then id :: prems_to_remove
+         else prems_to_remove)
+      val skolems = (if skolem_step_to_skip then id :: skolems else skolems)
+    in
+      (step, (defs, skolems))
+    end
+  in
+    fold_map remove_skolem_definitions steps ([], [])
+    |> fst
+    |> flat
+  end
 
 local
   fun import_proof_and_post_process typs funs lines ctxt =
@@ -719,7 +828,7 @@ local
           let val (step, cx) = postprocess_proof compress ctxt step cx
           in (step, (cx, cx')) end
         in uncurry (fold_map postprocess) (preprocess compress step (cx, cx')) end
-       val step =
+      val step =
         (empty_context ctxt typs funs, [])
         |> fold_map process raw_steps
         |> (fn (steps, (cx, _)) => (flat steps, cx))
@@ -729,9 +838,11 @@ in
 fun parse typs funs lines ctxt =
   let
     val (u, env) = import_proof_and_post_process typs funs lines ctxt
-    val t = flat (map linearize_proof u)
-    fun node_to_step (VeriT_Node {id, rule, prems, concl, bounds, ...}) =
-      mk_step id rule prems [] concl bounds
+    val t = u
+       |> remove_skolem_definitions_proof
+       |> flat o (map linearize_proof)
+    fun node_to_step (VeriT_Node {id, rule, prems, concl, ...}) =
+      mk_step id rule prems [] concl []
   in
     (map node_to_step t, ctxt_of env)
   end

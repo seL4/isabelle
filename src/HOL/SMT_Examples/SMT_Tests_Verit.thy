@@ -127,8 +127,11 @@ lemma
   "(\<exists>x. P x) \<or> R \<longleftrightarrow> (\<exists>x. P x \<or> R)"
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  supply[[smt_trace]]
   by smt+
+
+lemma
+  "(P False \<or> P True) \<or> \<not> P False"
+  by smt
 
 lemma
   "(\<not> (\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"

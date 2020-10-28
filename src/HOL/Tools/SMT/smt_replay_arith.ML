@@ -109,7 +109,7 @@ fun rewrite_only_thms ctxt thms =
   |> Simplifier.full_simp_tac
 
 fun la_farkas args ctxt =
-  REPEAT' (resolve_tac ctxt @{thms verit_and_pos(2,3)})
+  REPEAT' (resolve_tac ctxt @{thms verit_and_pos(3,4)})
   THEN' TRY' (resolve_tac ctxt @{thms ccontr})
   THEN' TRY' (rewrite_only_thms ctxt @{thms linorder_class.not_less linorder_class.not_le not_not})
   THEN' (Subgoal.FOCUS (fn focus => la_farkas_tac focus args) ctxt)

@@ -250,7 +250,8 @@ lemma verit_subst_bool: \<open>P \<Longrightarrow> f True \<Longrightarrow> f P\
   by auto
 
 lemma verit_and_pos:
-  \<open>(a \<Longrightarrow> \<not>b \<or> A) \<Longrightarrow> \<not>(a \<and> b) \<or> A\<close>
+  \<open>(a \<Longrightarrow> \<not>(b \<and> c) \<or> A) \<Longrightarrow> \<not>(a \<and> b \<and> c) \<or> A\<close>
+  \<open>(a \<Longrightarrow> b \<Longrightarrow> A) \<Longrightarrow> \<not>(a \<and> b) \<or> A\<close>
   \<open>(a \<Longrightarrow> A) \<Longrightarrow> \<not>a \<or> A\<close>
   \<open>(\<not>a \<Longrightarrow> A) \<Longrightarrow> a \<or> A\<close>
   by blast+
@@ -276,9 +277,10 @@ lemma verit_eq_true_simplify:
   by auto
 
 lemma verit_and_neg:
-  \<open>B \<or> B' \<Longrightarrow> (A \<and> B) \<or> \<not>A \<or> B'\<close>
-  \<open>B \<or> B' \<Longrightarrow> (\<not>A \<and> B) \<or> A \<or> B'\<close>
-  by auto
+  \<open>(a \<Longrightarrow> \<not>b \<or> A) \<Longrightarrow> \<not>(a \<and> b) \<or> A\<close>
+  \<open>(a \<Longrightarrow> A) \<Longrightarrow> \<not>a \<or> A\<close>
+  \<open>(\<not>a \<Longrightarrow> A) \<Longrightarrow> a \<or> A\<close>
+  by blast+
 
 lemma verit_forall_inst:
   \<open>A \<longleftrightarrow> B \<Longrightarrow> \<not>A \<or> B\<close>

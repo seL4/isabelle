@@ -54,15 +54,15 @@ val satallax_skolemize_rule = "tab_ex"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
-val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val veriT_skolemize_rules = Verit_Proof.skolemization_steps
 val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
   [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
-   spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
-   zipperposition_cnf_rule]
+   spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule,
+   zipperposition_cnf_rule] @ veriT_skolemize_rules
 
 fun is_ext_rule rule = (rule = leo2_extcnf_equal_neg_rule)
 val is_maybe_ext_rule = is_ext_rule orf String.isPrefix satallax_tab_rule_prefix

@@ -94,7 +94,6 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "or" = Or
   | verit_rule_of "not_or" = Not_Or
   | verit_rule_of "resolution" = Resolution
-  | verit_rule_of "eq_congruent" = Eq_Congruent
   | verit_rule_of "trans" = Trans
   | verit_rule_of "false" = False
   | verit_rule_of "ac_simp" = AC_Simp
@@ -120,7 +119,6 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "ite_pos2" = ITE_Pos2
   | verit_rule_of "ite_neg1" = ITE_Neg1
   | verit_rule_of "ite_neg2" = ITE_Neg2
-  | verit_rule_of "ite_intro" = ITE_Intro
   | verit_rule_of "la_disequality" = LA_Disequality
   | verit_rule_of "lia_generic" = LIA_Generic
   | verit_rule_of "la_generic" = LA_Generic
@@ -132,7 +130,6 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "qnt_rm_unused" = Qnt_Rm_Unused
   | verit_rule_of "onepoint" = Onepoint
   | verit_rule_of "qnt_join" = Qnt_Join
-  | verit_rule_of "eq_congruent_pred" = Eq_Congruent_Pred
   | verit_rule_of "subproof" = Subproof
   | verit_rule_of "bool_simplify" = Bool_Simplify
   | verit_rule_of "or_simplify" = Or_Simplify
@@ -148,14 +145,17 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "prod_simplify" = Prod_Simplify
   | verit_rule_of "comp_simplify" = Comp_Simplify
   | verit_rule_of "qnt_simplify" = Qnt_Simplify
-  | verit_rule_of "not_not" = Not_Not
   | verit_rule_of "tautology" = Tautological_Clause
-  | verit_rule_of "contraction" = Duplicate_Literals
   | verit_rule_of "qnt_cnf" = Qnt_CNF
   | verit_rule_of r =
      if r = Verit_Proof.normalized_input_rule then Normalized_Input
      else if r = Verit_Proof.local_input_rule then Local_Input
      else if r = Verit_Proof.veriT_def then Definition
+     else if r = Verit_Proof.not_not_rule then Not_Not
+     else if r = Verit_Proof.contract_rule then Duplicate_Literals
+     else if r = Verit_Proof.ite_intro_rule then ITE_Intro
+     else if r = Verit_Proof.eq_congruent_rule then Eq_Congruent
+     else if r = Verit_Proof.eq_congruent_pred_rule then Eq_Congruent_Pred
      else (@{print} ("Unsupport rule", r); Unsupported)
 
 fun string_of_verit_rule Bind = "Bind"
@@ -231,9 +231,9 @@ fun string_of_verit_rule Bind = "Bind"
   | string_of_verit_rule Prod_Simplify = "prod_simplify"
   | string_of_verit_rule Comp_Simplify = "comp_simplify"
   | string_of_verit_rule Qnt_Simplify = "qnt_simplify"
-  | string_of_verit_rule Not_Not = "not_not"
+  | string_of_verit_rule Not_Not = Verit_Proof.not_not_rule
   | string_of_verit_rule Tautological_Clause = "tautology"
-  | string_of_verit_rule Duplicate_Literals = "contraction"
+  | string_of_verit_rule Duplicate_Literals = Verit_Proof.contract_rule
   | string_of_verit_rule Qnt_CNF = "qnt_cnf"
   | string_of_verit_rule r = "Unknown rule: " ^ \<^make_string> r
 
@@ -586,9 +586,9 @@ fun trans ctxt thms t =
           (case (prop_of thm1, prop_of thm2) of
             ((Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2),
              (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t3 $ t4)) =>
-            if t2 = t3 then thm1 RSN (1, thm2 RSN (2, @{thm trans}))
-            else if t2 = t4 then thm1 RSN ((1, ((thm2 RS sym)) RSN (2, @{thm trans})))
-            else if t1 = t4 then thm2 RSN (1, thm1 RSN (2, @{thm trans}))
+            if t2 aconv t3 then thm1 RSN (1, thm2 RSN (2, @{thm trans}))
+            else if t2 aconv t4 then thm1 RSN ((1, ((thm2 RS sym)) RSN (2, @{thm trans})))
+            else if t1 aconv t4 then thm2 RSN (1, thm1 RSN (2, @{thm trans}))
             else raise Fail "invalid trans theorem"
           | _ => trans_bool_thm OF [thm1, thm2])
       | combine_thms (thm1 :: thm2 :: thms) =
@@ -626,7 +626,7 @@ local
   fun or_pos_prove ctxt _ =
      K (unfold_tac ctxt @{thms de_Morgan_disj not_not})
      THEN' match_tac ctxt @{thms verit_and_pos}
-     THEN' K (unfold_tac ctxt @{thms de_Morgan_conj not_not})
+     THEN' K (unfold_tac ctxt @{thms de_Morgan_conj de_Morgan_disj not_not})
      THEN' TRY' (assume_tac ctxt)
 
   fun not_or_rule_prove ctxt prems =
@@ -642,7 +642,7 @@ local
      THEN' TRY' (assume_tac ctxt)
 
   fun and_neg_rule_prove ctxt _ =
-     match_tac ctxt @{thms verit_and_pos}
+     match_tac ctxt @{thms verit_and_neg}
      THEN' K (unfold_tac ctxt @{thms de_Morgan_conj not_not})
      THEN' TRY' (assume_tac ctxt)
 
@@ -986,7 +986,8 @@ fun rewrite_and_simplify ctxt _ t =
 fun rewrite_or_simplify ctxt _ t =
   SMT_Replay_Methods.prove ctxt t (fn _ =>
    (chain_rewrite_two_step_with_ac_simps ctxt @{thms verit_or_simplify verit_or_simplify_1}
-    @{thms verit_or_simplify}))
+    @{thms verit_or_simplify})
+    THEN' TRY' (REPEAT' (match_tac ctxt @{thms verit_and_pos}) THEN' assume_tac ctxt))
 
 fun rewrite_not_simplify ctxt _ t =
   SMT_Replay_Methods.prove ctxt t (fn _ =>
