@@ -172,7 +172,7 @@ in
 
 fun init binding thy =
   thy
-  |> Generic_Target.init
+  |> Local_Theory.init
      {background_naming = Sign.naming_of thy,
       setup = set_target [] #> Proof_Context.init_global,
       conclude = conclude false binding #> #2}

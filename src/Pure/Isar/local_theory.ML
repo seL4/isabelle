@@ -65,8 +65,8 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
-  val init: {background_naming: Name_Space.naming, exit: local_theory -> Proof.context} ->
-    operations -> Proof.context -> local_theory
+  val init: {background_naming: Name_Space.naming, setup: theory -> Proof.context,
+    conclude: local_theory -> Proof.context} -> operations -> theory -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_global_nonbrittle: local_theory -> theory
@@ -353,10 +353,15 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 (* main target *)
 
-fun init {background_naming, exit} operations target =
-  target |> Data.map
-    (fn [] => [make_lthy (background_naming, operations, I, exit, false, target)]
-      | _ => error "Local theory already initialized");
+fun init_target background_naming exit operations target =
+  Data.map (K [make_lthy (background_naming, operations, I,
+    exit, false, target)]) target
+
+fun init {background_naming, setup, conclude} operations thy =
+  thy
+  |> Sign.change_begin
+  |> setup
+  |> init_target background_naming (conclude #> target_of #> Sign.change_end_local) operations;
 
 val exit_of = #exit o bottom_of;
 

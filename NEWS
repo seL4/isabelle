@@ -67,6 +67,8 @@ rule to protect foundational terms during simplification.
 
 INCOMPATIBILITY.
 
+* Local_Theory.init replaces Generic_Target.init.  Minor INCOMPATIBILITY.
+
 
 *** HOL ***
 

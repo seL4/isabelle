@@ -71,11 +71,6 @@ sig
     local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
-
-  (*initialisation*)
-  val init: {background_naming: Name_Space.naming, setup: theory -> Proof.context,
-    conclude: local_theory -> local_theory} ->
-    Local_Theory.operations -> theory -> local_theory
 end
 
 structure Generic_Target: GENERIC_TARGET =
@@ -437,17 +432,5 @@ fun locale_target_abbrev locale prmode (b, mx) global_rhs params =
   #-> (fn (lhs, _) => locale_const locale prmode ((b, mx), lhs));
 
 fun locale_abbrev locale = abbrev (locale_target_abbrev locale);
-
-
-(** initialisation **)
-
-fun init {background_naming, setup, conclude} operations thy =
-  thy
-  |> Sign.change_begin
-  |> setup
-  |> Local_Theory.init
-      {background_naming = background_naming,
-       exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
-      operations;
 
 end;

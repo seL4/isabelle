@@ -12,8 +12,6 @@ sig
   val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
-  val init': {setup: local_theory -> local_theory, conclude: local_theory -> local_theory} ->
-    string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
@@ -117,20 +115,17 @@ fun setup_context Theory = Proof_Context.init_global
   | setup_context (Locale locale) = Locale.init locale
   | setup_context (Class class) = Class.init class;
 
-fun init' {setup, conclude} ident thy =
+fun init ident thy =
   let
     val target = target_of_ident thy ident;
   in
     thy
-    |> Generic_Target.init
+    |> Local_Theory.init
        {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
-        setup = setup_context target #> setup,
-        conclude = conclude}
+        setup = setup_context target #> Data.put (SOME target),
+        conclude = I}
        (operations target)
   end;
-
-fun init ident thy =
-  init' {setup = Data.put (SOME (target_of_ident thy ident)), conclude = I} ident thy;
 
 val theory_init = init "";
 

@@ -693,7 +693,7 @@ fun instantiation (tycos, vs, sort) thy =
       | NONE => NONE);
   in
     thy
-    |> Generic_Target.init
+    |> Local_Theory.init
        {background_naming = Sign.naming_of thy,
         setup = Proof_Context.init_global
           #> Instantiation.put (make_instantiation ((tycos, vs, sort), params))

@@ -198,7 +198,7 @@ fun gen_overloading prep_const raw_overloading_spec thy =
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
-    |> Generic_Target.init
+    |> Local_Theory.init
        {background_naming = Sign.naming_of thy,
         setup = Proof_Context.init_global
           #> Data.put overloading_spec
