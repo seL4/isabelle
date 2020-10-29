@@ -104,14 +104,13 @@ type operations =
 type lthy =
  {background_naming: Name_Space.naming,
   operations: operations,
-  after_close: local_theory -> local_theory,
-  exit: local_theory -> Proof.context,
+  conclude: Proof.context -> Proof.context,
   brittle: bool,
   target: Proof.context};
 
-fun make_lthy (background_naming, operations, after_close, exit, brittle, target) : lthy =
+fun make_lthy (background_naming, operations, conclude, brittle, target) : lthy =
   {background_naming = background_naming, operations = operations,
-    after_close = after_close, exit = exit, brittle = brittle, target = target};
+    conclude = conclude, brittle = brittle, target = target};
 
 
 (* context data *)
@@ -151,16 +150,16 @@ val top_of = hd o Data.get o assert;
 
 fun map_top f =
   assert #>
-  Data.map (fn {background_naming, operations, after_close, exit, brittle, target} :: parents =>
-    make_lthy (f (background_naming, operations, after_close, exit, brittle, target)) :: parents);
+  Data.map (fn {background_naming, operations, conclude, brittle, target} :: parents =>
+    make_lthy (f (background_naming, operations, conclude, brittle, target)) :: parents);
 
 fun reset lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
 
 fun map_contexts f lthy =
   let val n = level lthy in
     lthy |> (Data.map o map_index)
-      (fn (i, {background_naming, operations, after_close, exit, brittle, target}) =>
-        make_lthy (background_naming, operations, after_close, exit, brittle,
+      (fn (i, {background_naming, operations, conclude, brittle, target}) =>
+        make_lthy (background_naming, operations, conclude, brittle,
           target
           |> Context_Position.set_visible false
           |> f (n - i - 1)
@@ -173,8 +172,8 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1 then
-    map_top (fn (background_naming, operations, after_close, exit, _, target) =>
-      (background_naming, operations, after_close, exit, true, target)) lthy
+    map_top (fn (background_naming, operations, conclude, _, target) =>
+      (background_naming, operations, conclude, true, target)) lthy
   else lthy;
 
 fun assert_nonbrittle lthy =
@@ -187,8 +186,8 @@ fun assert_nonbrittle lthy =
 val background_naming_of = #background_naming o top_of;
 
 fun map_background_naming f =
-  map_top (fn (background_naming, operations, after_close, exit, brittle, target) =>
-    (f background_naming, operations, after_close, exit, brittle, target));
+  map_top (fn (background_naming, operations, conclude, brittle, target) =>
+    (f background_naming, operations, conclude, brittle, target));
 
 val restore_background_naming = map_background_naming o K o background_naming_of;
 
@@ -353,9 +352,9 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 (* main target *)
 
-fun init_target background_naming exit operations target =
-  Data.map (K [make_lthy (background_naming, operations, I,
-    exit, false, target)]) target
+fun init_target background_naming conclude operations target =
+  Data.map (K [make_lthy
+    (background_naming, operations, conclude, false, target)]) target
 
 fun init {background_naming, setup, conclude} operations thy =
   thy
@@ -363,7 +362,7 @@ fun init {background_naming, setup, conclude} operations thy =
   |> setup
   |> init_target background_naming (conclude #> target_of #> Sign.change_end_local) operations;
 
-val exit_of = #exit o bottom_of;
+val exit_of = #conclude o bottom_of;
 
 fun exit lthy = exit_of lthy (assert_bottom lthy);
 val exit_global = Proof_Context.theory_of o exit;
@@ -390,15 +389,15 @@ fun begin_nested lthy =
     val _ = assert lthy;
     val (scope, target) = Proof_Context.new_scope lthy;
     val entry = make_lthy (background_naming_of lthy, operations_of lthy,
-      Proof_Context.restore_naming lthy, exit_of lthy, true, target);
+      Proof_Context.restore_naming lthy, true, target);
     val lthy' = Data.map (cons entry) target;
   in (scope, lthy') end;
 
 fun end_nested lthy =
   let
     val _ = assert_not_bottom lthy;
-    val ({after_close, ...} :: rest) = Data.get lthy;
-  in lthy |> Data.put rest |> reset |> after_close end;
+    val ({conclude, ...} :: rest) = Data.get lthy;
+  in lthy |> Data.put rest |> reset |> conclude end;
 
 fun end_nested_result decl (x, lthy) =
    let
