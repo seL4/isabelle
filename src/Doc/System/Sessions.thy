@@ -466,7 +466,7 @@ text \<open>
   \<^smallskip>
   Build some session images with cleanup of their descendants, while retaining
   their ancestry:
-  @{verbatim [display] \<open>isabelle build -b -c HOL-Algebra HOL-Word\<close>}
+  @{verbatim [display] \<open>isabelle build -b -c HOL-Library HOL-Algebra\<close>}
 
   \<^smallskip>
   Clean all sessions without building anything:

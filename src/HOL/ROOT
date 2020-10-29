@@ -324,7 +324,6 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     "HOL-Number_Theory"
     "HOL-Data_Structures"
     "HOL-Examples"
-    "HOL-Word"
   theories
     Generate
     Generate_Binary_Nat
@@ -615,8 +614,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description "
     Miscellaneous examples for Higher-Order Logic.
   "
-  sessions
-    "HOL-Word"
   theories
     Antiquote
     Argo_Examples
@@ -892,15 +889,6 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
     "Tests/TLList_Friends"
     "Tests/Type_Class"
 
-session "HOL-Word" (main timing) in Word = HOL +
-  sessions
-    "HOL-Library"
-  theories
-    Word
-    More_Word
-    Word_Examples
-  document_files "root.bib" "root.tex"
-
 session "HOL-Statespace" in Statespace = HOL +
   theories [skip_proofs = false]
     StateSpaceEx
@@ -925,8 +913,10 @@ session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
   options [timeout = 60]
   theories Ex
 
-session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
+session "HOL-SMT_Examples" (timing) in SMT_Examples = HOL +
   options [quick_and_dirty]
+  sessions
+    "HOL-Library"
   theories
     Boogie
     SMT_Examples
@@ -935,7 +925,9 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
     SMT_Tests_Verit
     SMT_Examples_Verit
 
-session "HOL-SPARK" in "SPARK" = "HOL-Word" +
+session "HOL-SPARK" in "SPARK" = HOL +
+  sessions
+    "HOL-Library"
   theories
     SPARK
 
@@ -959,6 +951,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
 session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
   options [show_question_marks = false]
   sessions
+    "HOL-Library"
     "HOL-SPARK-Examples"
   theories
     Example_Verification

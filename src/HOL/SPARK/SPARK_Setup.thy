@@ -7,7 +7,7 @@ Setup for SPARK/Ada verification environment.
 
 theory SPARK_Setup
   imports
-  "HOL-Word.Word"
+  "HOL-Library.Word"
 keywords
   "spark_open_vcg" :: thy_load ("vcg", "fdl", "rls") and
   "spark_open" :: thy_load ("siv", "fdl", "rls") and

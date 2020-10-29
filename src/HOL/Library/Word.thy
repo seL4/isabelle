@@ -1,5 +1,5 @@
-(*  Title:      HOL/Word/Word.thy
-    Author:     Jeremy Dawson and Gerwin Klein, NICTA
+(*  Title:      HOL/Library/Word.thy
+    Author:     Jeremy Dawson and Gerwin Klein, NICTA, et. al.
 *)
 
 section \<open>A type of finite bit strings\<close>

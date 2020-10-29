@@ -766,7 +766,7 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Build of a session image from the Isabelle distribution:
-  @{verbatim [display] \<open>session_build {"session": "HOL-Word"}\<close>}
+  @{verbatim [display] \<open>session_build {"session": "HOL-Algebra"}\<close>}
 
   Build a session image from the Archive of Formal Proofs:
   @{verbatim [display] \<open>session_build {"session": "Coinductive", "dirs": ["$AFP_BASE/thys"]}\<close>}

@@ -99,6 +99,7 @@ imports
   Type_Length
   Uprod
   While_Combinator
+  Word
   Z2
 begin
 end
