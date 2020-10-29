@@ -56,6 +56,18 @@ local
 
   val mk_nat = HOLogic.mk_number \<^typ>\<open>nat\<close>
 
+  fun mk_shift c [u, t] = Const c $ mk_nat (snd (HOLogic.dest_number u)) $ t
+    | mk_shift c ts = raise TERM ("bad arguments", Const c :: ts)
+
+  fun shift m n T ts =
+    let val U = Term.domain_type (Term.range_type T)
+    in
+      (case (can dest_wordT U, try (snd o HOLogic.dest_number o hd) ts) of
+        (true, SOME i) =>
+          SOME (n, 2, [hd (tl ts), HOLogic.mk_number U i], mk_shift (m, T))
+      | _ => NONE)   (* FIXME: also support non-numerical shifts *)
+    end
+
   fun mk_shift' c [t, u] = Const c $ t $ mk_nat (snd (HOLogic.dest_number u))
     | mk_shift' c ts = raise TERM ("bad arguments", Const c :: ts)
 
@@ -65,18 +77,6 @@ local
       (case (can dest_wordT U, try (snd o HOLogic.dest_number o hd o tl) ts) of
         (true, SOME i) =>
           SOME (n, 2, [hd ts, HOLogic.mk_number U i], mk_shift' (m, T))
-      | _ => NONE)   (* FIXME: also support non-numerical shifts *)
-    end
-
-  fun mk_shift c [u, t] = Const c $ mk_nat (snd (HOLogic.dest_number u)) $ t
-    | mk_shift c ts = raise TERM ("bad arguments", Const c :: ts)
-
-  fun shift m n T ts =
-    let val U = Term.domain_type T
-    in
-      (case (can dest_wordT U, try (snd o HOLogic.dest_number o hd) ts) of
-        (true, SOME i) =>
-          SOME (n, 2, [hd ts, HOLogic.mk_number U i], mk_shift (m, T))
       | _ => NONE)   (* FIXME: also support non-numerical shifts *)
     end
 

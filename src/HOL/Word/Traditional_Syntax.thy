@@ -523,12 +523,4 @@ lemma shiftl0:
   "x << 0 = (x :: 'a :: len word)"
   by (fact shiftl_x_0)
 
-setup \<open>
-  Context.theory_map (fold SMT_Word.add_word_shift' [
-    (\<^term>\<open>shiftl :: 'a::len word \<Rightarrow> _\<close>, "bvshl"),
-    (\<^term>\<open>shiftr :: 'a::len word \<Rightarrow> _\<close>, "bvlshr"),
-    (\<^term>\<open>sshiftr :: 'a::len word \<Rightarrow> _\<close>, "bvashr")
-  ])
-\<close>
-
 end

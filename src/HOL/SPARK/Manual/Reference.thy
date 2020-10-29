@@ -1,7 +1,10 @@
 (*<*)
 theory Reference
-imports "HOL-SPARK.SPARK" "HOL-Word.Bits_Int"
+imports "HOL-SPARK.SPARK"
 begin
+
+lemma AND_mod: "x AND (2 ^ n - 1) = x mod 2 ^ n" for x :: int
+  by (simp flip: mask_eq_exp_minus_1 take_bit_eq_mask take_bit_eq_mod)
 
 syntax (my_constrain output)
   "_constrain" :: "logic => type => logic" ("_ :: _" [4, 0] 3)

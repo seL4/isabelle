@@ -5,7 +5,7 @@
 section \<open>Word examples for for SMT binding\<close>
 
 theory SMT_Word_Examples
-imports "HOL-Word.Word" "HOL-Word.Traditional_Syntax"
+imports "HOL-Word.Word"
 begin
 
 declare [[smt_oracle = true]]
@@ -44,9 +44,9 @@ lemma "word_cat (0b0011::4 word) (0b1111::6word) = (0b0011001111 :: 10 word)" by
 lemma "slice 1 (0b10110 :: 4 word) = (0b11 :: 2 word)" by smt
 lemma "ucast (0b1010 :: 4 word) = (0b1010 :: 10 word)" by smt
 lemma "scast (0b1010 :: 4 word) = (0b111010 :: 6 word)" by smt
-lemma "0b10011 << 2 = (0b1001100::8 word)" by smt
-lemma "0b11001 >> 2 = (0b110::8 word)" by smt
-lemma "0b10011 >>> 2 = (0b100::8 word)" by smt
+lemma "push_bit 2 0b10011 = (0b1001100::8 word)" by smt
+lemma "drop_bit 2 0b11001 = (0b110::8 word)" by smt
+lemma "signed_drop_bit 2 0b10011 = (0b100::8 word)" by smt
 lemma "word_rotr 2 0b0110 = (0b1001::4 word)" by smt
 lemma "word_rotl 1 0b1110 = (0b1101::4 word)" by smt
 lemma "(x AND 0xff00) OR (x AND 0x00ff) = (x::16 word)" by smt
