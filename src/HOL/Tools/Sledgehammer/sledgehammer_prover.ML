@@ -67,7 +67,8 @@ sig
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
   val is_atp : theory -> string -> bool
-  val bunches_of_proof_methods : bool -> bool -> bool -> string -> proof_method list list
+  val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> string ->
+    proof_method list list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -155,23 +156,35 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this")
 
-fun bunches_of_proof_methods try0 smt_proofs needs_full_types desperate_lam_trans =
-  (if try0 then
-    [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method],
-     [Meson_Method, Fastforce_Method, Force_Method, Presburger_Method]]
-   else
-     []) @
-  [[Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE)],
-   (if needs_full_types then
-      [Metis_Method (NONE, NONE),
-       Metis_Method (SOME really_full_type_enc, NONE),
-       Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
-       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]
-    else
-      [Metis_Method (SOME full_typesN, NONE),
-       Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
-       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)])] @
-  (if smt_proofs then [[SMT_Method]] else [])
+fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam_trans =
+  let
+    val try0_methodss =
+      if try0 then
+        [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method, Meson_Method,
+          Metis_Method (NONE, NONE), Fastforce_Method, Force_Method, Presburger_Method]]
+      else
+        []
+
+    val metis_methods =
+      (if try0 then [] else [Metis_Method (NONE, NONE)]) @
+      Metis_Method (SOME full_typesN, NONE) ::
+      Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans) ::
+      (if needs_full_types then
+         [Metis_Method (SOME really_full_type_enc, NONE),
+          Metis_Method (SOME full_typesN, SOME desperate_lam_trans)]
+       else
+         [Metis_Method (SOME no_typesN, SOME desperate_lam_trans)])
+
+    val smt_methodss =
+      if smt_proofs then
+        [SMT_Method SMT_Default ::
+         map (fn strategy => SMT_Method (SMT_Verit strategy))
+           (Verit_Proof.all_veriT_stgies (Context.Proof ctxt))]
+      else
+        []
+  in
+    try0_methodss @ [metis_methods] @ smt_methodss
+  end
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 

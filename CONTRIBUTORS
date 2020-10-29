@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2020: Jasmin Blanchette, Martin Desharnais, Mathias Fleury
+  Use veriT in proof preplay in Sledgehammer.
+
 * October 2020: Mathias Fleury
   Updated proof reconstruction for the SMT solver veriT in the smt method.
 

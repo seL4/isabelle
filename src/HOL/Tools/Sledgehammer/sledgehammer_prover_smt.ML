@@ -200,11 +200,14 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
         NONE =>
         let
           val _ = found_proof ();
-          val preferred_methss =
-            (if smt_proofs then SMT_Method else Metis_Method (NONE, NONE),
-             bunches_of_proof_methods try0 smt_proofs false liftingN)
+          val preferred =
+            if smt_proofs then
+              SMT_Method (if name = "verit" then SMT_Verit "default" else SMT_Default)
+            else
+              Metis_Method (NONE, NONE);
+          val methss = bunches_of_proof_methods ctxt try0 smt_proofs false liftingN;
         in
-          (preferred_methss,
+          ((preferred, methss),
            fn preplay =>
              let
                val _ = if verbose then writeln "Generating proof text..." else ()

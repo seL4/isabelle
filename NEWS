@@ -166,6 +166,10 @@ theory "Guide" there for further information.  INCOMPATIBILITY.
 are in working order again, as opposed to outputting "GaveUp" on nearly
 all problems.
 
+* Sledgehammer:
+  - Use veriT in proof preplay.
+  - Take adventage of more cores in proof preplay.
+
 
 *** FOL ***
 
