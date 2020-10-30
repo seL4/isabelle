@@ -73,8 +73,8 @@ text \<open>
   (\secref{sec:phabricator-domain}).
 
   Initial experimentation also works on a local host, e.g.\ via
-  VirtualBox\<^footnote>\<open>\<^url>\<open>https://www.virtualbox.org\<close>\<close>. The public domain \<^verbatim>\<open>lvh.me\<close> is
-  used by default: it maps arbitrary subdomains to \<^verbatim>\<open>localhost\<close>.
+  VirtualBox\<^footnote>\<open>\<^url>\<open>https://www.virtualbox.org\<close>\<close>. The Internet domain \<^verbatim>\<open>lvh.me\<close>
+  is used by default: it maps arbitrary subdomains to \<^verbatim>\<open>localhost\<close>.
 
   All administrative commands need to be run as \<^verbatim>\<open>root\<close> user (e.g.\ via
   \<^verbatim>\<open>sudo\<close>). Note that Isabelle refers to user-specific configuration in the
@@ -212,7 +212,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Public domain name and HTTPS configuration \label{sec:phabricator-domain}\<close>
+subsection \<open>Internet domain name and HTTPS configuration \label{sec:phabricator-domain}\<close>
 
 text \<open>
   So far the Phabricator server has been accessible only on \<^verbatim>\<open>localhost\<close> (via
