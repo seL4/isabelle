@@ -46,6 +46,7 @@ object Linux
 
     def is_ubuntu: Boolean = id == "Ubuntu"
     def is_ubuntu_18_04: Boolean = is_ubuntu && release == "18.04"
+    def is_ubuntu_20_04: Boolean = is_ubuntu && release == "20.04"
   }
 
 

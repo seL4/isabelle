@@ -63,7 +63,7 @@ text \<open>
 section \<open>Quick start\<close>
 
 text \<open>
-  The starting point is a fresh installation of \<^bold>\<open>Ubuntu 18.04
+  The starting point is a fresh installation of \<^bold>\<open>Ubuntu 18.04 or 20.04
   LTS\<close>\<^footnote>\<open>\<^url>\<open>https://ubuntu.com/download\<close>\<close>: this version is mandatory due to
   subtle dependencies on system packages and configuration that is assumed by
   the Isabelle setup tool.
@@ -233,7 +233,7 @@ text \<open>
     @{verbatim [display] \<open>  systemctl reload apache2\<close>}
 
     \<^item> Install \<^verbatim>\<open>certbot\<close> from \<^url>\<open>https://certbot.eff.org\<close> following the
-    description for Apache and Ubuntu 18.04 on
+    description for Apache and Ubuntu 18.04 or 20.04 on
     \<^url>\<open>https://certbot.eff.org/lets-encrypt/ubuntubionic-apache\<close>. Run
     \<^verbatim>\<open>certbot\<close> interactively and let it operate on the domain
     \<^verbatim>\<open>vcs.example.org\<close>.
@@ -390,7 +390,7 @@ subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup\<close>\<close>
 
 text \<open>
   The @{tool_def phabricator_setup} tool installs a fresh Phabricator instance
-  on Ubuntu 18.04 LTS:
+  on Ubuntu 18.04 or 20.04 LTS:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
@@ -428,9 +428,9 @@ text \<open>
   Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source --- the one
   that is used by the Phabricator hosting service
   \<^url>\<open>https://admin.phacility.com\<close>. This avoids various problems with the
-  package provided by Ubuntu 18.04. Alternatively, an explicit file path or
-  URL the source archive (\<^verbatim>\<open>.tar.gz\<close>) may be given here. This option is
-  recommended for production use, but it requires to \<^emph>\<open>uninstall\<close> existing
+  package provided by Ubuntu 18.04 or 20.04. Alternatively, an explicit file
+  path or URL the source archive (\<^verbatim>\<open>.tar.gz\<close>) may be given here. This option
+  is recommended for production use, but it requires to \<^emph>\<open>uninstall\<close> existing
   Mercurial packages provided by the operating system.
 
   Option \<^verbatim>\<open>-n\<close> provides an alternative installation name. The default name

@@ -21,7 +21,7 @@ object Phabricator
 
   /* required packages */
 
-  val packages: List[String] =
+  val packages_ubuntu_18_04: List[String] =
     Build_Docker.packages :::
     List(
       // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
@@ -31,6 +31,18 @@ object Phabricator
       "php-xml", "php-zip", "python-pygments", "ssh", "subversion",
       // mercurial build packages
       "make", "gcc", "python", "python-dev", "python-docutils", "python-pygments", "python-openssl")
+
+  val packages_ubuntu_20_04: List[String] =
+    packages_ubuntu_18_04.map((name: String) =>
+      if (name.startsWith("python")) name.replace("python", "python3") else name)
+
+  def packages: List[String] =
+  {
+    val release = Linux.Release()
+    if (release.is_ubuntu_18_04) packages_ubuntu_18_04
+    else if (release.is_ubuntu_20_04) packages_ubuntu_20_04
+    else error("Bad Linux version: expected Ubuntu 18.04 or 20.04 LTS")
+  }
 
 
   /* global system resources */
@@ -556,9 +568,6 @@ Usage: isabelle phabricator_setup [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress
-
-      val release = Linux.Release()
-      if (!release.is_ubuntu_18_04) error("Bad Linux version: Ubuntu 18.04 LTS required")
 
       phabricator_setup(options, name = name, root = root, repo = repo,
         package_update = package_update, mercurial_source = mercurial_source, progress = progress)

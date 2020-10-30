@@ -244,6 +244,8 @@ INCOMPATIBILITY.
 * Isabelle server allows user-defined commands via
 isabelle_scala_service.
 
+* Isabelle/Phabricator supports Ubuntu 20.04 LTS.
+
 * Isabelle/Phabricator setup has been updated to follow ongoing
 development: libphutil has been discontinued. Minor INCOMPATIBILITY:
 existing server installations should remove libphutil from
