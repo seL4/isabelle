@@ -248,7 +248,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
     /* users */
 
-    if (name.contains((c: Char) => !(Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c))) ||
+    if (name.exists((c: Char) => !(Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c))) ||
         Set("", "ssh", "phd", "dump", daemon_user).contains(name)) {
       error("Bad installation name: " + quote(name))
     }
