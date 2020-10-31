@@ -16,9 +16,8 @@ lemma path_connected_interval [simp]:
 lemma segment_to_closest_point:
   fixes S :: "'a :: euclidean_space set"
   shows "\<lbrakk>closed S; S \<noteq> {}\<rbrakk> \<Longrightarrow> open_segment a (closest_point S a) \<inter> S = {}"
-  apply (subst disjoint_iff_not_equal)
-  apply (clarify dest!: dist_in_open_segment)
-  by (metis closest_point_le dist_commute le_less_trans less_irrefl)
+  unfolding disjoint_iff
+  by (metis closest_point_le dist_commute dist_in_open_segment not_le)
 
 lemma segment_to_point_exists:
   fixes S :: "'a :: euclidean_space set"
@@ -110,10 +109,7 @@ proof (rule Brouwer_reduction_theorem_gen [of S "\<lambda>T. T \<noteq> {} \<and
   show "\<Inter>(F ` UNIV) \<noteq> {} \<and> \<Inter>(F ` UNIV) \<subseteq> S \<and> \<phi> (\<Inter>(F ` UNIV))"
   proof (intro conjI)
     show "\<Inter>(F ` UNIV) \<noteq> {}"
-      apply (rule compact_nest)
-      apply (meson F cloF \<open>compact S\<close> seq_compact_closed_subset seq_compact_eq_compact)
-       apply (simp add: F)
-      by (meson Fsub lift_Suc_antimono_le)
+      by (metis F Fsub \<open>compact S\<close> cloF closed_Int_compact compact_nest inf.orderE lift_Suc_antimono_le)
     show " \<Inter>(F ` UNIV) \<subseteq> S"
       using F by blast
     show "\<phi> (\<Inter>(F ` UNIV))"
@@ -160,12 +156,9 @@ proof -
     also have "... = e"
       by simp
     finally have "dist (\<Sum>i\<in>Basis. (\<lfloor>2^k*(x \<bullet> i)\<rfloor> / 2^k) *\<^sub>R i) x < e" .
-    then
+    with Ints_of_int
     show "\<exists>k. \<exists>f \<in> Basis \<rightarrow> \<int>. dist (\<Sum>b\<in>Basis. (f b / 2^k) *\<^sub>R b) x < e"
-      apply (rule_tac x=k in exI)
-      apply (rule_tac x="\<lambda>i. of_int (floor (2^k*(x \<bullet> i)))" in bexI)
-       apply auto
-      done
+      by fastforce
   qed
   then show ?thesis by auto
 qed
@@ -223,8 +216,7 @@ qed
 definition\<^marker>\<open>tag unimportant\<close> dyadics :: "'a::field_char_0 set" where "dyadics \<equiv> \<Union>k m. {of_nat m / 2^k}"
 
 lemma real_in_dyadics [simp]: "real m \<in> dyadics"
-  apply (simp add: dyadics_def)
-  by (metis divide_numeral_1 numeral_One power_0)
+  by (simp add: dyadics_def) (metis divide_numeral_1 numeral_One power_0)
 
 lemma nat_neq_4k1: "of_nat m \<noteq> (4 * of_nat k + 1) / (2 * 2^n :: 'a::field_char_0)"
 proof
@@ -264,8 +256,8 @@ proof -
     then have "(4 * m + k) * (2 ^ n') = (4 * m' + k) * (2^n)"
       by linarith
     then obtain "4*m + k = 4*m' + k" "n=n'"
-      apply (rule prime_power_cancel2 [OF two_is_prime_nat])
-      using assms by auto
+      using prime_power_cancel2 [OF two_is_prime_nat] assms
+      by (metis even_mult_iff even_numeral odd_add)
     then have "m=m'" "n=n'"
       by auto
   }
@@ -353,13 +345,14 @@ proof
     apply (rule dyadic_413_cases, force+)
     done
 next
-  show "?rhs \<subseteq> dyadics"
-    apply (clarsimp simp: dyadics_def Nats_def simp del: power_Suc)
-    apply (intro conjI subsetI)
-    apply (auto simp del: power_Suc)
-      apply (metis divide_numeral_1 numeral_One power_0)
-     apply (metis of_nat_Suc of_nat_mult of_nat_numeral)
+  have "range of_nat \<subseteq> (\<Union>k m. {(of_nat m::'a) / 2 ^ k})"
+    by clarsimp (metis divide_numeral_1 numeral_One power_0)
+  moreover have "\<And>k m. \<exists>k' m'. ((1::'a) + 4 * of_nat m) / 2 ^ Suc k = of_nat m' / 2 ^ k'"
+    by (metis (no_types) of_nat_Suc of_nat_mult of_nat_numeral)
+  moreover have "\<And>k m. \<exists>k' m'. (4 * of_nat m + (3::'a)) / 2 ^ Suc k = of_nat m' / 2 ^ k'"
     by (metis of_nat_add of_nat_mult of_nat_numeral)
+  ultimately show "?rhs \<subseteq> dyadics"
+    by (auto simp: dyadics_def Nats_def)
 qed
 
 
@@ -369,9 +362,8 @@ function\<^marker>\<open>tag unimportant\<close> (domintros) dyad_rec :: "[nat \
   | "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
   | "x \<notin> dyadics \<Longrightarrow> dyad_rec b l r x = undefined"
   using iff_4k [of _ 1] iff_4k [of _ 3]
-         apply (simp_all add: nat_neq_4k1 nat_neq_4k3 neq_4k1_k43, atomize_elim)
-     apply (fastforce simp add: dyadics_iff Nats_def field_simps)+
-  done
+         apply (simp_all add: nat_neq_4k1 nat_neq_4k3 neq_4k1_k43 dyadics_iff Nats_def)
+  by (fastforce simp:  field_simps)+
 
 lemma dyadics_levels: "dyadics = (\<Union>K. \<Union>k<K. \<Union> m. {of_nat m / 2^k})"
   unfolding dyadics_def by auto
@@ -452,13 +444,16 @@ lemma dyad_rec_of_nat [simp]: "dyad_rec b l r (real m) = b m"
   by (simp add: dyad_rec.psimps dyad_rec_termination)
 
 lemma dyad_rec_41 [simp]: "dyad_rec b l r ((4 * real m + 1) / 2 ^ (Suc n)) = l (dyad_rec b l r ((2*m + 1) / 2^n))"
-  apply (rule dyad_rec.psimps)
-  by (metis dyad_rec_level_termination lessI add.commute of_nat_Suc of_nat_mult of_nat_numeral)
-
+proof (rule dyad_rec.psimps)
+  show "dyad_rec_dom (b, l, r, (4 * real m + 1) / 2 ^ Suc n)"
+    by (metis add.commute dyad_rec_level_termination lessI of_nat_Suc of_nat_mult of_nat_numeral)
+qed
 
 lemma dyad_rec_43 [simp]: "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
-  apply (rule dyad_rec.psimps)
-  by (metis dyad_rec_level_termination lessI of_nat_add of_nat_mult of_nat_numeral)
+proof (rule dyad_rec.psimps)
+  show "dyad_rec_dom (b, l, r, (4 * real m + 3) / 2 ^ Suc n)"
+    by (metis dyad_rec_level_termination lessI of_nat_add of_nat_mult of_nat_numeral)
+qed
 
 lemma dyad_rec_41_times2:
   assumes "n > 0"
@@ -509,17 +504,15 @@ lemma leftrec_base: "leftrec u v lc rc (real m / 2) = u"
   by (simp add: dyad_rec2_def)
 
 lemma leftrec_41: "n > 0 \<Longrightarrow> leftrec u v lc rc ((4 * real m + 1) / 2 ^ (Suc n)) = leftrec u v lc rc ((2 * real m + 1) / 2^n)"
-  apply (simp only: dyad_rec2_def dyad_rec_41_times2)
-  apply (simp add: case_prod_beta)
-  done
+  unfolding dyad_rec2_def dyad_rec_41_times2
+  by (simp add: case_prod_beta)
 
 lemma leftrec_43: "n > 0 \<Longrightarrow>
              leftrec u v lc rc ((4 * real m + 3) / 2 ^ (Suc n)) =
                  rc (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n))
                  (midpoint (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n)))"
-  apply (simp only: dyad_rec2_def dyad_rec_43_times2)
-  apply (simp add: case_prod_beta)
-  done
+  unfolding dyad_rec2_def dyad_rec_43_times2
+  by (simp add: case_prod_beta)
 
 lemma rightrec_base: "rightrec u v lc rc (real m / 2) = v"
   by (simp add: dyad_rec2_def)
@@ -528,14 +521,12 @@ lemma rightrec_41: "n > 0 \<Longrightarrow>
              rightrec u v lc rc ((4 * real m + 1) / 2 ^ (Suc n)) =
                  lc (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n))
                  (midpoint (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n)))"
-  apply (simp only: dyad_rec2_def dyad_rec_41_times2)
-  apply (simp add: case_prod_beta)
-  done
+  unfolding dyad_rec2_def dyad_rec_41_times2
+  by (simp add: case_prod_beta)
 
 lemma rightrec_43: "n > 0 \<Longrightarrow> rightrec u v lc rc ((4 * real m + 3) / 2 ^ (Suc n)) = rightrec u v lc rc ((2 * real m + 1) / 2^n)"
-  apply (simp only: dyad_rec2_def dyad_rec_43_times2)
-  apply (simp add: case_prod_beta)
-  done
+  unfolding dyad_rec2_def dyad_rec_43_times2
+  by (simp add: case_prod_beta)
 
 lemma dyadics_in_open_unit_interval:
    "{0<..<1} \<inter> (\<Union>k m. {real m / 2^k}) = (\<Union>k. \<Union>m \<in> {0<..<2^k}. {real m / 2^k})"
@@ -565,8 +556,8 @@ proof -
     with that have "m \<in> cbox c0 d0"
       by auto
     obtain c d where cd: "{a..b} \<inter> f -` {f m} = {c..d}"
-      apply (rule_tac c="max a c0" and d="min b d0" in that)
-      using ab01 cd0 by auto
+      using ab01 cd0
+      by (rule_tac c="max a c0" and d="min b d0" in that) auto
     then have cdab: "{c..d} \<subseteq> {a..b}"
       by blast
     show ?thesis
@@ -614,7 +605,7 @@ proof -
     apply (rule that, blast)
     done
   then have left_right: "\<And>a b m. \<lbrakk>m \<in> {a..b}; {a..b} \<subseteq> {0..1}\<rbrakk> \<Longrightarrow> a \<le> leftcut a b m \<and> rightcut a b m \<le> b"
-    and left_right_m: "\<And>a b m. \<lbrakk>m \<in> {a..b}; {a..b} \<subseteq> {0..1}\<rbrakk> \<Longrightarrow> leftcut a b m \<le> m \<and> m \<le> rightcut a b m"
+       and  left_right_m: "\<And>a b m. \<lbrakk>m \<in> {a..b}; {a..b} \<subseteq> {0..1}\<rbrakk> \<Longrightarrow> leftcut a b m \<le> m \<and> m \<le> rightcut a b m"
     by auto
   have left_neq: "\<lbrakk>a \<le> x; x < leftcut a b m; a \<le> m; m \<le> b; {a..b} \<subseteq> {0..1}\<rbrakk> \<Longrightarrow> f x \<noteq> f m"
     and right_neq: "\<lbrakk>rightcut a b m < x; x \<le> b; a \<le> m; m \<le> b; {a..b} \<subseteq> {0..1}\<rbrakk> \<Longrightarrow> f x \<noteq> f m"
@@ -709,24 +700,17 @@ proof -
           case True
           then obtain r where r: "m = 2*r" by (metis evenE)
           show ?thesis
-            using a_le_c [of "m+1"] c_le_b [of "m+1"] a_ge_0 [of "m+1"] b_le_1 [of "m+1"]
-              Suc.IH [of "m+1"]
-            apply (simp add: r m add.commute [of 1] \<open>n > 0\<close> a41 b41 del: power_Suc)
-            apply (auto simp: left_right [THEN conjunct1])
-            using  order_trans [OF left_le c_le_v]
-            by (metis (no_types, hide_lams) add.commute mult_2 of_nat_Suc of_nat_add)
+            using order_trans [OF left_le c_le_v, of "1+2*r"] Suc.IH [of "m+1"] 
+            using a_le_c [of "m+1"] c_le_b [of "m+1"] a_ge_0 [of "m+1"] b_le_1 [of "m+1"] left_right \<open>n > 0\<close>
+            by (simp_all add: r m add.commute [of 1]  a41 b41 del: power_Suc)
         next
           case False
           then obtain r where r: "m = 2*r + 1" by (metis oddE)
           show ?thesis
-            using a_le_c [of "m"] c_le_b [of "m"] a_ge_0 [of "m"] b_le_1 [of "m"]
-              Suc.IH [of "m+1"]
-            apply (simp add: r m add.commute [of 3] \<open>n > 0\<close> a43 b43 del: power_Suc)
-            apply (auto simp: add.commute left_right [THEN conjunct2])
-            using  order_trans [OF c_ge_u right_ge]
-             apply (metis (no_types, hide_lams) mult_2 numeral_One of_nat_add of_nat_numeral)
-            apply (metis Suc.IH mult_2 of_nat_1 of_nat_add)
-            done
+            using order_trans [OF c_ge_u right_ge, of "1+2*r"] Suc.IH [of "m"]
+            using a_le_c [of "m"] c_le_b [of "m"] a_ge_0 [of "m"] b_le_1 [of "m"] left_right \<open>n > 0\<close>
+            apply (simp_all add: r m add.commute [of 3] a43 b43 del: power_Suc)
+            by (simp add: add.commute)
         qed
       qed
     qed
@@ -738,8 +722,7 @@ proof -
   have alec [simp]: "a(m / 2^n) \<le> c(m / 2^n)" and cleb [simp]: "c(m / 2^n) \<le> b(m / 2^n)" for m::nat and n
     by (auto simp: c_def ge_midpoint_1 le_midpoint_1 uabv)
   have c_ge_0 [simp]: "0 \<le> c(m / 2^n)" and c_le_1 [simp]: "c(m / 2^n) \<le> 1" for m::nat and n
-    using a_ge_0 alec order_trans apply blast
-    by (meson b_le_1 cleb order_trans)
+    using a_ge_0 alec b_le_1 cleb order_trans by blast+
   have "\<lbrakk>d = m-n; odd j; \<bar>real i / 2^m - real j / 2^n\<bar> < 1/2 ^ n\<rbrakk>
         \<Longrightarrow> (a(j / 2^n)) \<le> (c(i / 2^m)) \<and> (c(i / 2^m)) \<le> (b(j / 2^n))" for d i j m n
   proof (induction d arbitrary: j n rule: less_induct)
@@ -786,25 +769,27 @@ proof -
           by (auto simp: ac)
       next
         case True show ?thesis
-        proof (cases "real i / 2^m" "real j / 2^n" rule: linorder_cases)
+        proof (cases "i / 2^m" "j / 2^n" rule: linorder_cases)
           case less
           moreover have "real (4 * k + 1) / 2 ^ Suc n + 1 / (2 ^ Suc n) = real j / 2 ^ n"
             using k by (force simp: field_split_simps)
-          moreover have "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 2 / (2 ^ Suc n)"
+          moreover have "\<bar>real i / 2 ^ m - j / 2 ^ n\<bar> < 2 / (2 ^ Suc n)"
             using less.prems by simp
           ultimately have closer: "\<bar>real i / 2 ^ m - real (4 * k + 1) / 2 ^ Suc n\<bar> < 1 / (2 ^ Suc n)"
             using less.prems by linarith
-          have *: "a (real (4 * k + 1) / 2 ^ Suc n) \<le> c (real i / 2 ^ m) \<and>
+          have "a (real (4 * k + 1) / 2 ^ Suc n) \<le> c (i / 2 ^ m) \<and>
                    c (real i / 2 ^ m) \<le> b (real (4 * k + 1) / 2 ^ Suc n)"
-            apply (rule less.IH [OF _ refl])
-            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: field_split_simps  \<open>n < m\<close> diff_less_mono2)
-            done
-          show ?thesis
+          proof (rule less.IH [OF _ refl])
+            show "m - Suc n < d"
+              using \<open>n < m\<close> diff_less_mono2 less.prems(1) lessI by presburger
+            show "\<bar>real i / 2 ^ m - real (4 * k + 1) / 2 ^ Suc n\<bar> < 1 / 2 ^ Suc n"
+              using closer \<open>n < m\<close> \<open>d = m - n\<close> by (auto simp: field_split_simps \<open>n < m\<close> diff_less_mono2)
+          qed auto
+          then show ?thesis
             using LR [of "c((2*k + 1) / 2^n)" "a((2*k + 1) / 2^n)" "b((2*k + 1) / 2^n)"]
             using alec [of "2*k+1"] cleb [of "2*k+1"] a_ge_0 [of "2*k+1"] b_le_1 [of "2*k+1"]
-            using k a41 b41 * \<open>0 < n\<close>
-            apply (simp add: add.commute)
-            done
+            using k a41 b41 \<open>0 < n\<close>
+            by (simp add: add.commute)
         next
           case equal then show ?thesis by simp
         next
@@ -815,17 +800,19 @@ proof -
             using less.prems by simp
           ultimately have closer: "\<bar>real i / 2 ^ m - real (4 * k + 3) / 2 ^ Suc n\<bar> < 1 / (2 ^ Suc n)"
             using less.prems by linarith
-          have *: "a (real (4 * k + 3) / 2 ^ Suc n) \<le> c (real i / 2 ^ m) \<and>
+          have "a (real (4 * k + 3) / 2 ^ Suc n) \<le> c (real i / 2 ^ m) \<and>
                    c (real i / 2 ^ m) \<le> b (real (4 * k + 3) / 2 ^ Suc n)"
-            apply (rule less.IH [OF _ refl])
-            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: field_split_simps  \<open>n < m\<close> diff_less_mono2)
-            done
-          show ?thesis
+          proof (rule less.IH [OF _ refl])
+            show "m - Suc n < d"
+              using \<open>n < m\<close> diff_less_mono2 less.prems(1) by blast
+            show "\<bar>real i / 2 ^ m - real (4 * k + 3) / 2 ^ Suc n\<bar> < 1 / 2 ^ Suc n"
+              using closer \<open>n < m\<close> \<open>d = m - n\<close> by (auto simp: field_split_simps  \<open>n < m\<close> diff_less_mono2)
+          qed auto
+          then show ?thesis
             using LR [of "c((2*k + 1) / 2^n)" "a((2*k + 1) / 2^n)" "b((2*k + 1) / 2^n)"]
             using alec [of "2*k+1"] cleb [of "2*k+1"] a_ge_0 [of "2*k+1"] b_le_1 [of "2*k+1"]
-            using k a43 b43 * \<open>0 < n\<close>
-            apply (simp add: add.commute)
-            done
+            using k a43 b43 \<open>0 < n\<close>
+            by (simp add: add.commute)
         qed
       qed
     qed
@@ -912,9 +899,7 @@ proof -
         with \<open>0 < j\<close> have "k > 0" "2 * k < 2 ^ n"
           using Suc.prems(2) k by auto
         with k \<open>0 < n\<close> Suc.IH [of k] show ?thesis
-          apply (simp add: m1_to_3 a41 b43 del: power_Suc)
-          apply (subst of_nat_diff, auto)
-          done
+          by (simp add: m1_to_3 a41 b43 del: power_Suc) (auto simp: of_nat_diff)
       next
         case False
         then obtain k where k: "j = 2*k + 1" by (metis oddE)
@@ -924,8 +909,7 @@ proof -
               = f (rightcut (a ((2 * k + 1) / 2^n)) (b ((2 * k + 1) / 2^n)) (c ((2 * k + 1) / 2^n)))"
           using alec [of "2*k+1" n] cleb [of "2*k+1" n] a_ge_0 [of "2*k+1" n]  b_le_1 [of "2*k+1" n] k
           using left_right_m [of "c((2*k + 1) / 2^n)" "a((2*k + 1) / 2^n)" "b((2*k + 1) / 2^n)"]
-           apply (auto simp: add.commute  feqm [OF order_refl]  feqm [OF _ order_refl, symmetric])
-          done
+          by (auto simp: add.commute  feqm [OF order_refl]  feqm [OF _ order_refl, symmetric])
         then
         show ?thesis
           by (simp add: k add.commute [of 1] add.commute [of 3] a43 b41\<open>0 < n\<close> del: power_Suc)
@@ -951,9 +935,7 @@ proof -
         by auto
       then show ?thesis
         using Suc.IH [of k] k \<open>0 < k\<close>
-        apply (simp add: less2n add.commute [of 1] m1_to_3 a41 b43 del: power_Suc)
-        apply (auto simp: of_nat_diff)
-        done
+        by (simp add: less2n add.commute [of 1] m1_to_3 a41 b43 del: power_Suc) (auto simp: of_nat_diff)
     next
       case False
       then obtain k where k: "j = 2*k + 1" by (metis oddE)
@@ -1057,8 +1039,7 @@ proof -
             show thesis
             proof
               show "(1::nat) < 2 ^ n"
-                apply (subst one_less_power)
-                using \<open>n > 0\<close> by auto
+                by (metis Suc_1 \<open>0 < n\<close> lessI one_less_power)
               show "\<bar>real i / 2 ^ m - real 1/2 ^ n\<bar> < 1/2 ^ n"
                 using i less_j1 by (simp add: dist_norm field_simps True)
               show "\<bar>real k / 2 ^ p - real 1/2 ^ n\<bar> < 1/2 ^ n"
@@ -1109,35 +1090,34 @@ proof -
             qed
             show ?thesis
             proof
-              have "real j < 2 ^ n"
-                using j_le i k
-                apply (auto simp: le_max_iff_disj simp del: of_nat_less_numeral_power_cancel_iff
-                    elim!: le_less_trans)
-                 apply (auto simp: field_simps)
-                done
+              have "2 ^ n * real i / 2 ^ m < 2 ^ n" "2 ^ n * real k / 2 ^ p < 2 ^ n"
+                using i k by (auto simp: field_simps)
+              then have "max (2^n * i / 2^m) (2^n * k / 2^p) < 2^n"
+                by simp
+              with j_le have "real j < 2 ^ n" by linarith 
               then show "j < 2 ^ n"
                 by auto
-              show "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 1/2 ^ n"
+              have "\<bar>real i * 2 ^ n - real j * 2 ^ m\<bar> < 2 ^ m"
                 using clo less_j1 j_le
-                apply (auto simp: le_max_iff_disj field_split_simps dist_norm)
-                 apply (auto simp: algebra_simps abs_if split: if_split_asm dest: 1 2)
-                done
-              show "\<bar>real k / 2 ^ p - real j / 2 ^ n\<bar> < 1/2 ^ n"
-                using  clo less_j1 j_le
-                apply (auto simp: le_max_iff_disj field_split_simps dist_norm)
-                 apply (auto simp: algebra_simps not_less abs_if split: if_split_asm dest: 3 2)
-                done
+                 by (auto simp: le_max_iff_disj field_split_simps dist_norm abs_if split: if_split_asm dest: 1 2)
+              then show "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 1/2 ^ n"
+                by (auto simp: field_split_simps)
+              have "\<bar>real k * 2 ^ n - real j * 2 ^ p\<bar> < 2 ^ p"
+                using clo less_j1 j_le
+                by (auto simp: le_max_iff_disj field_split_simps dist_norm abs_if split: if_split_asm dest: 3 2)
+              then show "\<bar>real k / 2 ^ p - real j / 2 ^ n\<bar> < 1/2 ^ n"
+                by (auto simp: le_max_iff_disj field_split_simps dist_norm)
             qed (use False in simp)
           qed
         qed
         show "dist (f (c (real k / 2 ^ p))) (f (c (real i / 2 ^ m))) < e"
         proof (rule dist_triangle_half_l)
           show "dist (f (c (real k / 2 ^ p))) (f(c(j / 2^n))) < e/2"
-            apply (rule dist_fc_close)
-            using \<open>0 < j\<close> \<open>j < 2 ^ n\<close> k clo_kj by auto
+            using \<open>0 < j\<close> \<open>j < 2 ^ n\<close> k clo_kj 
+            by (intro dist_fc_close) auto
           show "dist (f (c (real i / 2 ^ m))) (f (c (real j / 2 ^ n))) < e/2"
-            apply (rule dist_fc_close)
-            using \<open>0 < j\<close> \<open>j < 2 ^ n\<close> i clo_ij by auto
+            using \<open>0 < j\<close> \<open>j < 2 ^ n\<close> i clo_ij 
+            by (intro dist_fc_close) auto
         qed
       qed
     qed
@@ -1191,8 +1171,7 @@ proof -
           proof cases
             case 1
             then show ?thesis
-              apply (rule_tac x=u in exI)
-              using uabv [of 1 1] f0u [of u] f0u [of x] by auto
+              using uabv [of 1 1] f0u [of u] f0u [of x] by force
           next
             case 2
             then show ?thesis
@@ -1200,8 +1179,7 @@ proof -
           next
             case 3
             then show ?thesis
-              apply (rule_tac x=v in exI)
-              using uabv [of 1 1] fv1 [of v] fv1 [of x] by auto
+              using uabv [of 1 1] fv1 [of v] fv1 [of x] by force
           qed
           with \<open>n=0\<close> show ?thesis
             by (rule_tac x=1 in exI) auto
@@ -1212,6 +1190,9 @@ proof -
               and y: "y \<in> {a (real m / 2 ^ n)..b (real m / 2 ^ n)}" and feq: "f y = f x"
             by metis
           then obtain j where j: "m = 2*j + 1" by (metis oddE)
+          have j4: "4 * j + 1 < 2 ^ Suc n"
+            using mless j by (simp add: algebra_simps)
+
           consider "y \<in> {a((2*j + 1) / 2^n) .. b((4*j + 1) / 2 ^ (Suc n))}"
             | "y \<in> {b((4*j + 1) / 2 ^ (Suc n)) .. a((4*j + 3) / 2 ^ (Suc n))}"
             | "y \<in> {a((4*j + 3) / 2 ^ (Suc n)) .. b((2*j + 1) / 2^n)}"
@@ -1219,33 +1200,35 @@ proof -
           then show ?thesis
           proof cases
             case 1
-            then show ?thesis
-              apply (rule_tac x="4*j + 1" in exI)
-              apply (rule_tac x=y in exI)
-              using mless j \<open>n \<noteq> 0\<close>
-              apply (simp add: feq a41 b41 add.commute [of 1] del: power_Suc)
-              apply (simp add: algebra_simps)
-              done
+            show ?thesis
+            proof (intro exI conjI)
+              show "y \<in> {a (real (4 * j + 1) / 2 ^ Suc n)..b (real (4 * j + 1) / 2 ^ Suc n)}"
+                using mless j \<open>n \<noteq> 0\<close> 1 by (simp add: a41 b41 add.commute [of 1] del: power_Suc)
+            qed (use feq j4 in auto)
           next
             case 2
             show ?thesis
-              apply (rule_tac x="4*j + 1" in exI)
-              apply (rule_tac x="b((4*j + 1) / 2 ^ (Suc n))" in exI)
-              using mless \<open>n \<noteq> 0\<close> 2 j
-              using alec [of "2*j+1" n] cleb [of "2*j+1" n] a_ge_0 [of "2*j+1" n]  b_le_1 [of "2*j+1" n]
-              using left_right [of "c((2*j + 1) / 2^n)" "a((2*j + 1) / 2^n)" "b((2*j + 1) / 2^n)"]
-              apply (simp add: a41 b41 a43 b43 add.commute [of 1] add.commute [of 3] del: power_Suc)
-              apply (auto simp: feq [symmetric] intro: f_eqI)
-              done
+            proof (intro exI conjI)
+              show "b (real (4 * j + 1) / 2 ^ Suc n) \<in> {a (real (4 * j + 1) / 2 ^ Suc n)..b (real (4 * j + 1) / 2 ^ Suc n)}"
+                using \<open>n \<noteq> 0\<close> alec [of "2*j+1" n] cleb [of "2*j+1" n] a_ge_0 [of "2*j+1" n] b_le_1 [of "2*j+1" n]
+                using left_right [of "c((2*j + 1) / 2^n)" "a((2*j + 1) / 2^n)" "b((2*j + 1) / 2^n)"]
+                by (simp add: a41 b41 add.commute [of 1] del: power_Suc)
+              show "f (b (real (4 * j + 1) / 2 ^ Suc n)) = f x"
+                using \<open>n \<noteq> 0\<close> 2 
+                using alec [of "2*j+1" n] cleb [of "2*j+1" n] a_ge_0 [of "2*j+1" n]  b_le_1 [of "2*j+1" n]
+                by (force simp add: b41 a43 add.commute [of 1] feq [symmetric] simp del: power_Suc intro: f_eqI)
+            qed (use j4 in auto)
           next
             case 3
-            then show ?thesis
-              apply (rule_tac x="4*j + 3" in exI)
-              apply (rule_tac x=y in exI)
-              using mless j \<open>n \<noteq> 0\<close>
-              apply (simp add: feq a43 b43 del: power_Suc)
-              apply (simp add: algebra_simps)
-              done
+            show ?thesis
+            proof (intro exI conjI)
+              show "4 * j + 3 < 2 ^ Suc n"
+                using mless j by simp
+              show "f y = f x"
+                by fact
+              show "y \<in> {a (real (4 * j + 3) / 2 ^ Suc n) .. b (real (4 * j + 3) / 2 ^ Suc n)}"
+                using 3 False b43 [of n j] by (simp add: add.commute)
+            qed (use 3 in auto)
           qed
         qed
       qed
@@ -1255,24 +1238,26 @@ proof -
         by fastforce
       with * obtain m::nat and y
         where "odd m" "0 < m" and mless: "m < 2 ^ n"
-          and y: "y \<in> {a(m / 2^n) .. b(m / 2^n)}" and feq: "f x = f y"
-        by metis
+          and y: "a(m / 2^n) \<le> y \<and> y \<le> b(m / 2^n)" and feq: "f x = f y"
+        by (metis atLeastAtMost_iff)
       then have "0 \<le> y" "y \<le> 1"
-        by (metis atLeastAtMost_iff a_ge_0 b_le_1 order.trans)+
+        by (meson a_ge_0 b_le_1 order.trans)+
       moreover have "y < \<delta> + c (real m / 2 ^ n)" "c (real m / 2 ^ n) < \<delta> + y"
-        using y apply simp_all
-        using alec [of m n] cleb [of m n] n field_sum_of_halves close_ab [OF \<open>odd m\<close>, of n]
+        using y alec [of m n] cleb [of m n] n field_sum_of_halves close_ab [OF \<open>odd m\<close>, of n]
         by linarith+
       moreover note \<open>0 < m\<close> mless \<open>0 \<le> x\<close> \<open>x \<le> 1\<close>
-      ultimately show "\<exists>k. \<exists>m\<in>{0<..<2 ^ k}. dist (h (real m / 2 ^ k)) (f x) < e"
-        apply (rule_tac x=n in exI)
-        apply (rule_tac x=m in bexI)
-         apply (auto simp: dist_norm h_eq feq \<delta>)
-        done
+      ultimately have "dist (h (real m / 2 ^ n)) (f x) < e"
+        by (auto simp: dist_norm h_eq feq \<delta>)
+      then show "\<exists>k. \<exists>m\<in>{0<..<2 ^ k}. dist (h (real m / 2 ^ k)) (f x) < e"
+        using \<open>0 < m\<close> greaterThanLessThan_iff mless by blast
     qed
     also have "... \<subseteq> h ` {0..1}"
-      apply (rule closure_minimal)
-      using compact_continuous_image [OF cont_h] compact_imp_closed by (auto simp: D01_def)
+    proof (rule closure_minimal)
+      show "h ` D01 \<subseteq> h ` {0..1}"
+        using cloD01 closure_subset by blast
+      show "closed (h ` {0..1})"
+        using compact_continuous_image [OF cont_h] compact_imp_closed by auto
+    qed
     finally show "f ` {0..1} \<subseteq> h ` {0..1}" .
   qed
   moreover have "inj_on h {0..1}"
@@ -1394,8 +1379,7 @@ proof -
     qed
     have c_gt_0 [simp]: "0 < c(m / 2^n)" and c_less_1 [simp]: "c(m / 2^n) < 1" for m::nat and n
       using a_less_b [of m n] apply (simp_all add: c_def midpoint_def)
-      using a_ge_0 [of m n] b_le_1 [of m n] apply linarith+
-      done
+      using a_ge_0 [of m n] b_le_1 [of m n] by linarith+
     have approx: "\<exists>j n. odd j \<and> n \<noteq> 0 \<and>
                         real i / 2^m \<le> real j / 2^n \<and>
                         real j / 2^n \<le> real k / 2^p \<and>
@@ -1423,7 +1407,7 @@ proof -
             case 0 with less.prems show ?thesis by auto
           next
             case (Suc p')
-            have False if "real i * 2 ^ p' < real k * 2 ^ m'" "k < 2 ^ p'" "2 ^ m' \<le> i"
+            have \<section>: False if "real i * 2 ^ p' < real k * 2 ^ m'" "k < 2 ^ p'" "2 ^ m' \<le> i"
             proof -
               have "real k * 2 ^ m' < 2 ^ p' * 2 ^ m'"
                 using that by simp
@@ -1431,11 +1415,13 @@ proof -
                 using that by linarith
               with that show ?thesis by simp
             qed
-            then show ?thesis
+            moreover have *: "real i / 2 ^ m' < real k / 2^p'"  "k < 2 ^ p'"
+              using less.prems \<open>m = Suc m'\<close> 2 Suc by (force simp: field_split_simps)+
+            moreover have "i < 2 ^ m' "
+              using \<section> * by (clarsimp simp: divide_simps linorder_not_le) (meson linorder_not_le)
+            ultimately show ?thesis
               using less.IH [of "m'+p'" i m' k p'] less.prems \<open>m = Suc m'\<close> 2 Suc
-              apply atomize
-              apply (force simp: field_split_simps)
-              done
+              by (force simp: field_split_simps)
           qed
         qed
       next
@@ -1449,10 +1435,18 @@ proof -
             case 0 with less.prems show ?thesis by auto
           next
             case (Suc p')
-            then show ?thesis
+            have "real (i - 2 ^ m') / 2 ^ m' < real (k - 2 ^ p') / 2 ^ p'"
+              using less.prems \<open>m = Suc m'\<close> Suc 3  by (auto simp: field_simps of_nat_diff)
+            moreover have "k - 2 ^ p' < 2 ^ p'" "i - 2 ^ m' < 2 ^ m'"
+              using less.prems Suc \<open>m = Suc m'\<close> by auto
+            moreover 
+            have "2 ^ p' \<le> k" "2 ^ p' \<noteq> k"
+              using less.prems \<open>m = Suc m'\<close> Suc 3 by auto
+            then have "2 ^ p' < k"
+              by linarith
+            ultimately show ?thesis
               using less.IH [of "m'+p'" "i - 2^m'" m' "k - 2 ^ p'" p'] less.prems \<open>m = Suc m'\<close> Suc 3
-              apply atomize
-              apply (auto simp: field_simps of_nat_diff)
+              apply (clarsimp simp: field_simps of_nat_diff)
               apply (rule_tac x="2 ^ n + j" in exI, simp)
               apply (rule_tac x="Suc n" in exI)
               apply (auto simp: field_simps)
@@ -1476,15 +1470,10 @@ proof -
         case True then show ?thesis by simp
       next
         case False
-        with i_le_j q have less: "i / 2^m < (2*q + 1) / 2^n'"
-          by auto
-        have *: "\<lbrakk>i < q; abs(i - q) < s*2; q = r + s\<rbrakk> \<Longrightarrow> abs(i - r) < s" for i q s r::real
-          by auto
-        have "c(i / 2^m) \<le> b(real(4 * q + 1) / 2 ^ (Suc n'))"
-          apply (rule ci_le_bj, force)
-          apply (rule * [OF less])
-          using i_le_j clo_ij q apply (auto simp: field_split_simps)
-          done
+        with i_le_j clo_ij q have "\<bar>real i / 2 ^ m - real (4 * q + 1) / 2 ^ Suc n'\<bar> < 1 / 2 ^ Suc n'"
+          by (auto simp: field_split_simps)
+        then have "c(i / 2^m) \<le> b(real(4 * q + 1) / 2 ^ (Suc n'))"
+          by (meson ci_le_bj even_mult_iff even_numeral even_plus_one_iff)
         then show ?thesis
           using alec [of "2*q+1" n'] cleb [of "2*q+1" n'] a_ge_0 [of "2*q+1" n'] b_le_1 [of "2*q+1" n'] b41 [of n' q] \<open>n' \<noteq> 0\<close>
           using left_right_m [of "c((2*q + 1) / 2^n')" "a((2*q + 1) / 2^n')" "b((2*q + 1) / 2^n')"]
@@ -1500,11 +1489,10 @@ proof -
           by auto
         have *: "\<lbrakk>q < i; abs(i - q) < s*2; r = q + s\<rbrakk> \<Longrightarrow> abs(i - r) < s" for i q s r::real
           by auto
-        have "a(real(4*q + 3) / 2 ^ (Suc n')) \<le> c(j / 2^n)"
-          apply (rule aj_le_ci, force)
-          apply (rule * [OF less])
-          using j_le_j clo_jj q apply (auto simp: field_split_simps)
-          done
+        have "\<bar>real j / 2 ^ n - real (4 * q + 3) / 2 ^ Suc n'\<bar> < 1 / 2 ^ Suc n'"
+          by (rule * [OF less]) (use j_le_j clo_jj q  in \<open>auto simp: field_split_simps\<close>)
+        then have "a(real(4*q + 3) / 2 ^ (Suc n')) \<le> c(j / 2^n)"
+          by (metis Suc3_eq_add_3 add.commute aj_le_ci even_Suc even_mult_iff even_numeral)
         then show ?thesis
           using alec [of "2*q+1" n'] cleb [of "2*q+1" n'] a_ge_0 [of "2*q+1" n'] b_le_1 [of "2*q+1" n'] a43 [of n' q] \<open>n' \<noteq> 0\<close>
           using left_right_m [of "c((2*q + 1) / 2^n')" "a((2*q + 1) / 2^n')" "b((2*q + 1) / 2^n')"]
@@ -1611,15 +1599,13 @@ proof -
         using m  by (auto simp: field_split_simps)
       have closure0m: "{0..m / 2^n} = closure ({0<..< m / 2^n} \<inter> (\<Union>k m. {real m / 2 ^ k}))"
         by (subst closure_dyadic_rationals_in_convex_set_pos_1, simp_all add: not_le m)
-      have closurem1: "{m / 2^n .. 1} = closure ({m / 2^n <..< 1} \<inter> (\<Union>k m. {real m / 2 ^ k}))"
-        apply (subst closure_dyadic_rationals_in_convex_set_pos_1; simp add: not_le m)
-        using \<open>0 < real m / 2 ^ n\<close> by linarith
+      have "2^n > m"
+        by (simp add: m(2) not_le)
+      then have closurem1: "{m / 2^n .. 1} = closure ({m / 2^n <..< 1} \<inter> (\<Union>k m. {real m / 2 ^ k}))"
+        using closure_dyadic_rationals_in_convex_set_pos_1 m_div(1) by fastforce
       have cont_h': "continuous_on (closure ({u<..<v} \<inter> (\<Union>k m. {real m / 2 ^ k}))) h"
         if "0 \<le> u" "v \<le> 1" for u v
-        apply (rule continuous_on_subset [OF cont_h])
-        apply (rule closure_minimal [OF subsetI])
-        using that apply auto
-        done
+        using that by (intro continuous_on_subset [OF cont_h] closure_minimal [OF subsetI]) auto
       have closed_f': "closed (f ` {u..v})" if "0 \<le> u" "v \<le> 1" for u v
         by (metis compact_continuous_image cont_f compact_interval atLeastatMost_subset_iff
             compact_imp_closed continuous_on_subset that)
@@ -1629,20 +1615,18 @@ proof -
       proof clarsimp
         fix p q
         assume p: "0 < real p / 2 ^ q" "real p / 2 ^ q < real m / 2 ^ n"
-        then have [simp]: "0 < p" "p < 2 ^ q"
-           apply (simp add: field_split_simps)
-          apply (blast intro: p less_2I m_div less_trans)
-          done
+        then have [simp]: "0 < p"
+          by (simp add: field_split_simps)
+        have [simp]: "p < 2 ^ q"
+          by (blast intro: p less_2I m_div less_trans)
         have "f (c (real p / 2 ^ q)) \<in> f ` {0..c (real m / 2 ^ n)}"
           by (auto simp: clec p m)
         then show "h (real p / 2 ^ q) \<in> f ` {0..c (real m / 2 ^ n)}"
           by (simp add: h_eq)
       qed
-      then have "h ` {0 .. m / 2^n} \<subseteq> f ` {0 .. c(m / 2^n)}"
+      with m_div have "h ` {0 .. m / 2^n} \<subseteq> f ` {0 .. c(m / 2^n)}"
         apply (subst closure0m)
-        apply (rule image_closure_subset [OF cont_h' closed_f'])
-        using m_div apply auto
-        done
+        by (rule image_closure_subset [OF cont_h' closed_f']) auto
       then have hx1: "h x1 \<in> f ` {0 .. c(m / 2^n)}"
         using x12 less.prems(1) by auto
       then obtain t1 where t1: "h x1 = f t1" "0 \<le> t1" "t1 \<le> c (m / 2 ^ n)"
@@ -1658,11 +1642,9 @@ proof -
         then show "h (real p / 2 ^ q) \<in> f ` {c (real m / 2 ^ n)..1}"
           by (simp add: h_eq)
       qed
-      then have "h ` {m / 2^n .. 1} \<subseteq> f ` {c(m / 2^n) .. 1}"
+      with m have "h ` {m / 2^n .. 1} \<subseteq> f ` {c(m / 2^n) .. 1}"
         apply (subst closurem1)
-        apply (rule image_closure_subset [OF cont_h' closed_f'])
-        using m apply auto
-        done
+        by (rule image_closure_subset [OF cont_h' closed_f']) auto
       then have hx2: "h x2 \<in> f ` {c(m / 2^n)..1}"
         using x12 less.prems by auto
       then obtain t2 where t2: "h x2 = f t2" "c (m / 2 ^ n) \<le> t2" "t2 \<le> 1"
@@ -1718,15 +1700,15 @@ proof -
           by (metis uniformly_continuous_onE [OF ucont_p])
         have minxy: "min e (y - x)  < (y - x) * (3 / 2)"
           by (subst min_less_iff_disj) (simp add: less)
-        obtain w z where "w < z" and w: "w \<in> {x<..<y}" and z: "z \<in> {x<..<y}"
+        define w where "w \<equiv> x + (min e (y - x) / 3)" 
+        define z where "z \<equiv>y - (min e (y - x) / 3)"
+        have "w < z" and w: "w \<in> {x<..<y}" and z: "z \<in> {x<..<y}"
           and wxe: "norm(w - x) < e" and zye: "norm(z - y) < e"
-          apply (rule_tac w = "x + (min e (y - x) / 3)" and z = "y - (min e (y - x) / 3)" in that)
-          using minxy \<open>0 < e\<close> less by simp_all
+          using minxy \<open>0 < e\<close> less unfolding w_def z_def by auto
         have Fclo: "\<And>T. T \<in> range F \<Longrightarrow> closed T"
           by (metis \<open>\<And>n. closed (F n)\<close> image_iff)
         have eq: "{w..z} \<inter> \<Inter>(F ` UNIV) = {}"
-          using less w z apply (auto simp: open_segment_eq_real_ivl)
-          by (metis (no_types, hide_lams) INT_I IntI empty_iff greaterThanLessThan_iff not_le order.trans)
+          using less w z by (simp add: open_segment_eq_real_ivl disjoint_iff)
         then obtain K where "finite K" and K: "{w..z} \<inter> (\<Inter> (F ` K)) = {}"
           by (metis finite_subset_image compact_imp_fip [OF compact_interval Fclo])
         then have "K \<noteq> {}"
@@ -1752,8 +1734,7 @@ proof -
               by (metis atLeastAtMost_iff disjoint_iff_not_equal greaterThanLessThan_iff less.prems(1) less_eq_real_def w)
           qed (auto simp: open_segment_eq_real_ivl intro!: that)
           with False show thesis
-            apply (auto simp: disjoint_iff_not_equal intro!: that)
-            by (metis greaterThanLessThan_iff less_eq_real_def)
+            by (auto simp add: disjoint_iff less_eq_real_def intro!: that)
         qed
         obtain v where v: "v \<in> F n" "v \<in> {z..y}" "({z..v} - {v}) \<inter> F n = {}"
         proof (cases "z \<in> F n")
@@ -1771,9 +1752,10 @@ proof -
             show "F n \<inter> {z..y} \<noteq> {}"
               by (metis atLeastAtMost_iff disjoint_iff_not_equal greaterThanLessThan_iff less.prems(2) less_eq_real_def z)
             show "\<And>b. \<lbrakk>b \<in> F n \<inter> {z..y}; open_segment z b \<inter> (F n \<inter> {z..y}) = {}\<rbrakk> \<Longrightarrow> thesis"
-              apply (rule that)
-                apply (auto simp: open_segment_eq_real_ivl)
-              by (metis DiffI Int_iff atLeastAtMost_diff_ends atLeastAtMost_iff atLeastatMost_empty_iff empty_iff insert_iff False)
+            proof
+              show "\<And>b. \<lbrakk>b \<in> F n \<inter> {z..y}; open_segment z b \<inter> (F n \<inter> {z..y}) = {}\<rbrakk> \<Longrightarrow> ({z..b} - {b}) \<inter> F n = {}"
+                using False by (auto simp: open_segment_eq_real_ivl less_eq_real_def)
+            qed auto
           qed
         qed
         obtain u v where "u \<in> {0..1}" "v \<in> {0..1}" "norm(u - x) < e" "norm(v - y) < e" "p u = p v"
@@ -1807,8 +1789,7 @@ proof -
         qed
         then show ?case
           using e [of x u] e [of y v] xy
-          apply (simp add: open_segment_eq_real_ivl dist_norm del: divide_const_simps)
-          by (metis dist_norm dist_triangle_half_r less_irrefl)
+          by (metis dist_norm dist_triangle_half_r order_less_irrefl)
       qed (auto simp: open_segment_commute)
       show ?thesis
         unfolding \<phi>_def by (metis (no_types, hide_lams) INT_I Inf_lower2 rangeI that(3) F01 subsetCE pqF)
@@ -1830,8 +1811,7 @@ proof -
     have "insert x (open_segment x y \<union> open_segment x z) \<inter> T = {}"
       by (metis False Int_Un_distrib2 Int_insert_left Un_empty_right xyT xzT)
     moreover have "open_segment y z \<inter> T \<subseteq> insert x (open_segment x y \<union> open_segment x z) \<inter> T"
-      apply auto
-      by (metis greaterThanLessThan_iff less_eq_real_def less_le_trans linorder_neqE_linordered_idom open_segment_eq_real_ivl)
+      by (auto simp: open_segment_eq_real_ivl)
     ultimately have "open_segment y z \<inter> T = {}"
       by blast
     with that peq show ?thesis by metis
@@ -1877,13 +1857,21 @@ proof -
         have uvT: "closed (closed_segment u v \<inter> T)" "closed_segment u v \<inter> T \<noteq> {}"
           using False open_closed_segment by (auto simp: \<open>closed T\<close> closed_Int)
         obtain w where "w \<in> T" and w: "w \<in> closed_segment u v" "open_segment u w \<inter> T = {}"
-          apply (rule segment_to_point_exists [OF uvT, of u])
-          by (metis IntD1 Int_commute Int_left_commute ends_in_segment(1) inf.orderE subset_oc_segment)
+        proof (rule segment_to_point_exists [OF uvT])
+          fix b
+          assume "b \<in> closed_segment u v \<inter> T" "open_segment u b \<inter> (closed_segment u v \<inter> T) = {}"
+          then show thesis
+            by (metis IntD1 IntD2 ends_in_segment(1) inf.orderE inf_assoc subset_oc_segment that)
+        qed
         then have puw: "dist (p u) (p w) < \<epsilon> / 2"
           by (metis (no_types) \<open>T \<subseteq> {0..1}\<close> \<open>dist v u < \<delta>\<close> \<delta> dist_commute dist_in_closed_segment le_less_trans subsetCE)
         obtain z where "z \<in> T" and z: "z \<in> closed_segment u v" "open_segment v z \<inter> T = {}"
-          apply (rule segment_to_point_exists [OF uvT, of v])
-          by (metis IntD2 Int_commute Int_left_commute ends_in_segment(2) inf.orderE subset_oc_segment)
+        proof (rule segment_to_point_exists [OF uvT])
+          fix b
+          assume "b \<in> closed_segment u v \<inter> T" "open_segment v b \<inter> (closed_segment u v \<inter> T) = {}"
+          then show thesis
+            by (metis IntD1 IntD2 ends_in_segment(2) inf.orderE inf_assoc subset_oc_segment that)
+        qed
         then have "dist (p u) (p z) < \<epsilon> / 2"
           by (metis \<open>T \<subseteq> {0..1}\<close> \<open>dist v u < \<delta>\<close> \<delta> dist_commute dist_in_closed_segment le_less_trans subsetCE)
         then show ?thesis
@@ -2048,11 +2036,10 @@ proof -
   with y \<open>r > 0\<close>  obtain g where "arc g" and pig: "path_image g \<subseteq> ball z r"
                                  and g: "pathstart g = y" "pathfinish g = z"
     using \<open>y \<noteq> z\<close> by (force simp: path_connected_arcwise)
-  have "compact (g -` frontier S \<inter> {0..1})"
-    apply (simp add: compact_eq_bounded_closed bounded_Int)
-     apply (rule closed_vimage_Int)
-    using \<open>arc g\<close> apply (auto simp: arc_def path_def)
-    done
+  have "continuous_on {0..1} g"
+    using \<open>arc g\<close> arc_imp_path path_def by blast
+  then have "compact (g -` frontier S \<inter> {0..1})"
+    by (simp add: bounded_Int closed_Diff closed_vimage_Int compact_eq_bounded_closed)
   moreover have "g -` frontier S \<inter> {0..1} \<noteq> {}"
   proof -
     have "\<exists>r. r \<in> g -` frontier S \<and> r \<in> {0..1}"
@@ -2082,11 +2069,7 @@ proof -
     then show "pathfinish (subpath 0 t g) \<in> V"
       by auto
     then have "inj_on (subpath 0 t g) {0..1}"
-      using t01
-      apply (clarsimp simp: inj_on_def subpath_def)
-      apply (drule inj_onD [OF arc_imp_inj_on [OF \<open>arc g\<close>]])
-      using mult_le_one apply auto
-      done
+      using t01 \<open>arc (subpath 0 t g)\<close> arc_imp_inj_on by blast
     then have "subpath 0 t g ` {0..<1} \<subseteq> subpath 0 t g ` {0..1} - {subpath 0 t g 1}"
       by (force simp: dest: inj_onD)
     moreover have False if "subpath 0 t g ` ({0..<1}) - S \<noteq> {}"
@@ -2096,11 +2079,10 @@ proof -
       have "subpath 0 t g ` {0..<1} \<inter> frontier S \<noteq> {}"
       proof (rule connected_Int_frontier [OF _ _ that])
         show "connected (subpath 0 t g ` {0..<1})"
-          apply (rule connected_continuous_image)
-           apply (simp add: subpath_def)
-           apply (intro continuous_intros continuous_on_compose2 [OF contg])
-           apply (auto simp: \<open>0 \<le> t\<close> \<open>t \<le> 1\<close> mult_le_one)
-          done
+        proof (rule connected_continuous_image)
+          show "continuous_on {0..<1} (subpath 0 t g)"
+            by (meson \<open>arc (subpath 0 t g)\<close> arc_def atLeastLessThan_subseteq_atLeastAtMost_iff continuous_on_subset order_refl path_def)
+        qed auto
         show "subpath 0 t g ` {0..<1} \<inter> S \<noteq> {}"
           using \<open>y \<in> S\<close> g(1) by (force simp: subpath_def image_def pathstart_def)
       qed
@@ -2139,17 +2121,18 @@ proof -
     by (simp add: \<open>arc g\<close> arc_imp_path)
   then obtain h where "arc h"
                   and h: "path_image h \<subseteq> path_image (f +++ g)" "pathstart h = x" "pathfinish h = pathfinish g"
-    apply (rule path_contains_arc [of "f +++ g" x "pathfinish g"])
-    using f \<open>x \<notin> V\<close> \<open>pathfinish g \<in> V\<close> by auto
-  have "h ` {0..1} - {h 1} \<subseteq> S"
-    using f g h apply (clarsimp simp: path_image_join)
+    using path_contains_arc [of "f +++ g" x "pathfinish g"] \<open>x \<notin> V\<close> \<open>pathfinish g \<in> V\<close> f
+    by (metis pathfinish_join pathstart_join)
+  have "path_image h \<subseteq> path_image f \<union> path_image g"
+    using h(1) path_image_join_subset by auto
+  then have "h ` {0..1} - {h 1} \<subseteq> S"
+    using f g h
     apply (simp add: path_image_def pathfinish_def subset_iff image_def Bex_def)
     by (metis le_less)
   then have "h ` {0..<1} \<subseteq> S"
     using \<open>arc h\<close> by (force simp: arc_def dest: inj_onD)
   then show thesis
-    apply (rule that [OF \<open>arc h\<close>])
-    using h \<open>pathfinish g \<in> V\<close> by auto
+    using \<open>arc h\<close> g(3) h that by presburger
 qed
 
 lemma dense_access_fp_aux:
@@ -2188,9 +2171,10 @@ proof -
   proof
     show "arc \<gamma>" "pathstart \<gamma> \<in> U" "pathfinish \<gamma> \<in> V"
       using \<gamma> \<open>arc \<gamma>\<close> \<open>pathfinish h \<in> U - {pathfinish g}\<close>  \<open>pathfinish g \<in> V\<close> by auto
-    have "\<gamma> ` {0..1} - {\<gamma> 0, \<gamma> 1} \<subseteq> S"
-      using \<gamma> g h
-      apply (simp add: path_image_join)
+    have "path_image \<gamma> \<subseteq> path_image h \<union> path_image g"
+      by (metis \<gamma>(1) g(2) h(2) path_image_join path_image_reversepath pathfinish_reversepath)
+    then have "\<gamma> ` {0..1} - {\<gamma> 0, \<gamma> 1} \<subseteq> S"
+      using \<gamma> g h 
       apply (simp add: path_image_def pathstart_def pathfinish_def subset_iff image_def Bex_def)
       by (metis linorder_neqE_linordered_idom not_less)
     then show "\<gamma> ` {0<..<1} \<subseteq> S"
