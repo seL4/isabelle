@@ -117,7 +117,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
     -B NAME      base image (default """ + quote(default_base) + """)
-    -E           set bin/isabelle as entrypoint
+    -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection (""" +
           package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)

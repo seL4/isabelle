@@ -39,7 +39,7 @@ text \<open>
 
   Options are:
     -B NAME      base image (default "ubuntu")
-    -E           set bin/isabelle as entrypoint
+    -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection ("X11", "latex")
     -l NAME      default logic (default ISABELLE_LOGIC="HOL")
     -n           no docker build
