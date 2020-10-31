@@ -99,7 +99,11 @@ if [ -n "$INIT_SETTINGS" ]; then
   else
     echo "Initializing \"$SETTINGS\""
     mkdir -p "$(dirname "$SETTINGS")"
-    echo "$SETTINGS_CONTENT" > "$SETTINGS"
+    {
+      echo "#-*- shell-script -*- :mode=shellscript:"
+      echo
+      echo "$SETTINGS_CONTENT"
+    } > "$SETTINGS"
   fi
 elif [ -n "$LIST_ONLY" ]; then
   echo
