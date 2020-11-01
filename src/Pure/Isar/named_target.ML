@@ -11,7 +11,7 @@ sig
   val locale_of: local_theory -> string option
   val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
-  val init: string -> theory -> local_theory
+  val init: string list -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
@@ -115,24 +115,25 @@ fun setup_context Theory = Proof_Context.init_global
   | setup_context (Locale locale) = Locale.init locale
   | setup_context (Class class) = Class.init class;
 
-fun init ident thy =
+fun init includes ident thy =
   let
     val target = target_of_ident thy ident;
   in
     thy
     |> Local_Theory.init
        {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
-        setup = setup_context target #> Data.put (SOME target),
+        setup = setup_context target #> Data.put (SOME target) #> Bundle.includes includes,
         conclude = I}
        (operations target)
+    |> not (null includes) ? Local_Theory.mark_brittle
   end;
 
-val theory_init = init "";
+val theory_init = init [] "";
 
 fun theory_map g = theory_init #> g #> Local_Theory.exit_global;
 
 fun theory_map_result f g = theory_init #> g #> Local_Theory.exit_result_global f;
 
-fun reinit lthy = init (ident_of lthy);
+fun reinit lthy = init [] (ident_of lthy);
 
 end;

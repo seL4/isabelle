@@ -730,7 +730,7 @@ qed
 
 subsection \<open>Swaps\<close>
 
-lift_definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a perm"  ("\<langle>_\<leftrightarrow>_\<rangle>")
+lift_definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a perm"  ("\<langle>_ \<leftrightarrow> _\<rangle>")
   is "\<lambda>a b. Fun.swap a b id"
 proof
   fix a b :: 'a
@@ -741,37 +741,37 @@ proof
 qed simp
 
 lemma apply_swap_simp [simp]:
-  "\<langle>a\<leftrightarrow>b\<rangle> \<langle>$\<rangle> a = b"
-  "\<langle>a\<leftrightarrow>b\<rangle> \<langle>$\<rangle> b = a"
+  "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> a = b"
+  "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> b = a"
   by (transfer; simp)+
 
 lemma apply_swap_same [simp]:
-  "c \<noteq> a \<Longrightarrow> c \<noteq> b \<Longrightarrow> \<langle>a\<leftrightarrow>b\<rangle> \<langle>$\<rangle> c = c"
+  "c \<noteq> a \<Longrightarrow> c \<noteq> b \<Longrightarrow> \<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c = c"
   by transfer simp
 
 lemma apply_swap_eq_iff [simp]:
-  "\<langle>a\<leftrightarrow>b\<rangle> \<langle>$\<rangle> c = a \<longleftrightarrow> c = b"
-  "\<langle>a\<leftrightarrow>b\<rangle> \<langle>$\<rangle> c = b \<longleftrightarrow> c = a"
+  "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c = a \<longleftrightarrow> c = b"
+  "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c = b \<longleftrightarrow> c = a"
   by (transfer; auto simp add: Fun.swap_def)+
 
 lemma swap_1 [simp]:
-  "\<langle>a\<leftrightarrow>a\<rangle> = 1"
+  "\<langle>a \<leftrightarrow> a\<rangle> = 1"
   by transfer simp
 
 lemma swap_sym:
-  "\<langle>b\<leftrightarrow>a\<rangle> = \<langle>a\<leftrightarrow>b\<rangle>"
+  "\<langle>b \<leftrightarrow> a\<rangle> = \<langle>a \<leftrightarrow> b\<rangle>"
   by (transfer; auto simp add: Fun.swap_def)+
 
 lemma swap_self [simp]:
-  "\<langle>a\<leftrightarrow>b\<rangle> * \<langle>a\<leftrightarrow>b\<rangle> = 1"
+  "\<langle>a \<leftrightarrow> b\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> = 1"
   by transfer (simp add: Fun.swap_def fun_eq_iff)
 
 lemma affected_swap:
-  "a \<noteq> b \<Longrightarrow> affected \<langle>a\<leftrightarrow>b\<rangle> = {a, b}"
+  "a \<noteq> b \<Longrightarrow> affected \<langle>a \<leftrightarrow> b\<rangle> = {a, b}"
   by transfer (auto simp add: Fun.swap_def)
 
 lemma inverse_swap [simp]:
-  "inverse \<langle>a\<leftrightarrow>b\<rangle> = \<langle>a\<leftrightarrow>b\<rangle>"
+  "inverse \<langle>a \<leftrightarrow> b\<rangle> = \<langle>a \<leftrightarrow> b\<rangle>"
   by transfer (auto intro: inv_equality simp: Fun.swap_def)
 
 
@@ -793,14 +793,14 @@ subsection \<open>Syntax\<close>
 
 bundle no_permutation_syntax
 begin
-  no_notation swap    ("\<langle>_\<leftrightarrow>_\<rangle>")
+  no_notation swap    ("\<langle>_ \<leftrightarrow> _\<rangle>")
   no_notation cycle   ("\<langle>_\<rangle>")
   no_notation "apply" (infixl "\<langle>$\<rangle>" 999)
 end
 
 bundle permutation_syntax
 begin
-  notation swap       ("\<langle>_\<leftrightarrow>_\<rangle>")
+  notation swap       ("\<langle>_ \<leftrightarrow> _\<rangle>")
   notation cycle      ("\<langle>_\<rangle>")
   notation "apply"    (infixl "\<langle>$\<rangle>" 999)
 end

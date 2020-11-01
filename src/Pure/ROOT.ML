@@ -260,6 +260,7 @@ ML_file "Isar/calculation.ML";
 (*local theories and targets*)
 ML_file "Isar/locale.ML";
 ML_file "Isar/generic_target.ML";
+ML_file "Isar/bundle.ML";
 ML_file "Isar/overloading.ML";
 ML_file "axclass.ML";
 ML_file "Isar/class.ML";
@@ -267,10 +268,8 @@ ML_file "Isar/named_target.ML";
 ML_file "Isar/expression.ML";
 ML_file "Isar/interpretation.ML";
 ML_file "Isar/class_declaration.ML";
-ML_file "Isar/bundle.ML";
 ML_file "Isar/target_context.ML";
 ML_file "Isar/experiment.ML";
-
 ML_file "simplifier.ML";
 ML_file "Tools/plugin.ML";
 

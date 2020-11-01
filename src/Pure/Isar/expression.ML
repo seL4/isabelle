@@ -32,9 +32,9 @@ sig
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
-  val add_locale: binding -> binding ->
+  val add_locale: binding -> binding -> string list ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
-  val add_locale_cmd: binding -> binding ->
+  val add_locale_cmd: binding -> binding -> (xstring * Position.T) list ->
     expression -> Element.context list -> theory -> string * local_theory
 
   (* Processing of locale expressions *)
@@ -796,15 +796,20 @@ fun defines_to_notes ctxt (Defines defs) =
 
 val is_hyp = fn Assumes _ => true | Defines _ => true | _ => false;
 
-fun gen_add_locale prep_decl
-    binding raw_predicate_binding raw_import raw_body thy =
+fun gen_add_locale prep_include prep_decl
+    binding raw_predicate_binding raw_includes raw_import raw_body thy =
   let
     val name = Sign.full_name thy binding;
     val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
+    val ctxt = Proof_Context.init_global thy;
+    val includes = map (prep_include ctxt) raw_includes;
+
     val ((fixed, deps, body_elems, _), (parms, ctxt')) =
-      prep_decl raw_import I raw_body (Proof_Context.init_global thy);
+      ctxt
+      |> Bundle.includes includes
+      |> prep_decl raw_import I raw_body;
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val extraTs =
@@ -857,15 +862,15 @@ fun gen_add_locale prep_decl
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms hyp_spec [] (rev notes) (rev deps')
-      |> Named_Target.init name
+      |> Named_Target.init includes name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;
 
 in
 
-val add_locale = gen_add_locale cert_declaration;
-val add_locale_cmd = gen_add_locale read_declaration;
+val add_locale = gen_add_locale (K I) cert_declaration;
+val add_locale_cmd = gen_add_locale Bundle.check read_declaration;
 
 end;
 

@@ -6,9 +6,9 @@ Declaring classes and subclass relations.
 
 signature CLASS_DECLARATION =
 sig
-  val class: binding -> class list ->
+  val class: binding -> string list -> class list ->
     Element.context_i list -> theory -> string * local_theory
-  val class_cmd: binding -> xstring list ->
+  val class_cmd: binding -> (xstring * Position.T) list -> xstring list ->
     Element.context list -> theory -> string * local_theory
   val prove_subclass: tactic -> class ->
     local_theory -> local_theory
@@ -108,9 +108,10 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
 (* reading and processing class specifications *)
 
-fun prep_class_elems prep_decl thy sups raw_elems =
+fun prep_class_elems prep_decl ctxt sups raw_elems =
   let
     (* user space type system: only permits 'a type variable, improves towards 'a *)
+    val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val inter_sort = curry (Sorts.inter_sort algebra);
     val proto_base_sort =
@@ -165,7 +166,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       #> Class.redeclare_operations thy sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
-      Proof_Context.init_global thy
+      ctxt
       |> Context.proof_map (Syntax_Phases.term_check 0 "unify_params" (K unify_params))
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
@@ -205,13 +206,13 @@ fun prep_class_elems prep_decl thy sups raw_elems =
 val cert_class_elems = prep_class_elems Expression.cert_declaration;
 val read_class_elems = prep_class_elems Expression.cert_read_declaration;
 
-fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
+fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses raw_includes raw_elems =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
+    val thy = Proof_Context.theory_of ctxt;
 
     (* prepare import *)
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val sups = Sign.minimize_sort thy (map (prep_class thy_ctxt) raw_supclasses);
+    val sups = Sign.minimize_sort thy (map (prep_class ctxt) raw_supclasses);
     val _ =
       (case filter_out (Class.is_class thy) sups of
         [] => ()
@@ -225,11 +226,13 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       else ();
 
     (* infer types and base sort *)
-    val (base_sort, supparam_names, supexpr, inferred_elems) = prep_class_elems thy sups raw_elems;
+    val includes = map (prep_include ctxt) raw_includes;
+    val includes_ctxt = Bundle.includes includes ctxt;
+    val (base_sort, supparam_names, supexpr, inferred_elems) = prep_class_elems includes_ctxt sups raw_elems;
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = Class.begin sups base_sort thy_ctxt;
+    val class_ctxt = Class.begin sups base_sort includes_ctxt;
     val ((_, _, syntax_elems, _), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
@@ -250,10 +253,10 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       | fork_syn x = pair x;
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
 
-  in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (elems, global_syntax)) end;
+  in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (includes, elems, global_syntax)) end;
 
-val cert_class_spec = prep_class_spec (K I) cert_class_elems;
-val read_class_spec = prep_class_spec Proof_Context.read_class read_class_elems;
+val cert_class_spec = prep_class_spec (K I) (K I) cert_class_elems;
+val read_class_spec = prep_class_spec Proof_Context.read_class Bundle.check read_class_elems;
 
 
 (* class establishment *)
@@ -313,15 +316,16 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
       #> pair (param_map, params, assm_axiom)))
   end;
 
-fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
+fun gen_class prep_class_spec b raw_includes raw_supclasses raw_elems thy =
   let
     val class = Sign.full_name thy b;
     val prefix = Binding.qualify true "class";
-    val (((sups, supparam_names), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
-      prep_class_spec thy raw_supclasses raw_elems;
+    val ctxt = Proof_Context.init_global thy;
+    val (((sups, supparam_names), (supsort, base_sort, supexpr)), (includes, elems, global_syntax)) =
+      prep_class_spec ctxt raw_supclasses raw_includes raw_elems;
   in
     thy
-    |> Expression.add_locale b (prefix b) supexpr elems
+    |> Expression.add_locale b (prefix b) includes supexpr elems
     |> snd |> Local_Theory.exit_global
     |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     |-> (fn (param_map, params, assm_axiom) =>
@@ -334,7 +338,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class
     #> Global_Theory.store_thm (prefix (Binding.qualified_name (class ^ ".of_class.intro")), of_class)))
     |> snd
-    |> Named_Target.init class
+    |> Named_Target.init includes class
     |> pair class
   end;
 

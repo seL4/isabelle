@@ -627,7 +627,7 @@ local
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>context\<close> "begin local theory context"
     ((Parse.name_position
-        >> (fn name => Toplevel.begin_main_target true (Target_Context.context_begin_named_cmd name)) ||
+        >> (fn name => Toplevel.begin_main_target true (Target_Context.context_begin_named_cmd [] name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.begin_nested_target (Target_Context.context_begin_nested_cmd incls elems)))
       --| Parse.begin);
@@ -646,18 +646,21 @@ subsubsection \<open>Locales and interpretation\<close>
 ML \<open>
 local
 
+val locale_context_elements =
+  Scan.optional Parse_Spec.includes [] -- Scan.repeat1 Parse_Spec.context_element;
+
 val locale_val =
   Parse_Spec.locale_expression --
-    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
-  Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
+    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! locale_context_elements) ([], []) ||
+  locale_context_elements >> pair ([], []);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>locale\<close> "define named specification context"
     (Parse.binding --
-      Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
-      >> (fn ((name, (expr, elems)), begin) =>
+      Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.!!! locale_val) (([], []), ([], [])) -- Parse.opt_begin
+      >> (fn ((name, (expr, (includes, elems))), begin) =>
           Toplevel.begin_main_target begin
-            (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
+            (Expression.add_locale_cmd name Binding.empty includes expr elems #> snd)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>experiment\<close> "open private specification context"
@@ -706,17 +709,20 @@ subsubsection \<open>Type classes\<close>
 ML \<open>
 local
 
+val class_context_elements =
+  Scan.optional Parse_Spec.includes [] -- Scan.repeat1 Parse_Spec.context_element;
+
 val class_val =
   Parse_Spec.class_expression --
-    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
-  Scan.repeat1 Parse_Spec.context_element >> pair [];
+    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! class_context_elements) ([], []) ||
+  class_context_elements >> pair [];
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>class\<close> "define type class"
-   (Parse.binding -- Scan.optional (\<^keyword>\<open>=\<close> |-- class_val) ([], []) -- Parse.opt_begin
-    >> (fn ((name, (supclasses, elems)), begin) =>
+   (Parse.binding -- Scan.optional (\<^keyword>\<open>=\<close> |-- class_val) ([], ([], [])) -- Parse.opt_begin
+    >> (fn ((name, (supclasses, (includes, elems))), begin) =>
         Toplevel.begin_main_target begin
-          (Class_Declaration.class_cmd name supclasses elems #> snd)));
+          (Class_Declaration.class_cmd name includes supclasses elems #> snd)));
 
 val _ =
   Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>subclass\<close> "prove a subclass relation"

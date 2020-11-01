@@ -6,7 +6,8 @@ Handling of named and nested targets at the Isar toplevel via context begin / en
 
 signature TARGET_CONTEXT =
 sig
-  val context_begin_named_cmd: xstring * Position.T -> theory -> local_theory
+  val context_begin_named_cmd: (xstring * Position.T) list -> xstring * Position.T ->
+    theory -> local_theory
   val end_named_cmd: local_theory -> Context.generic
   val switch_named_cmd: (xstring * Position.T) option -> Context.generic ->
     (local_theory -> Context.generic) * local_theory
@@ -18,28 +19,33 @@ end;
 structure Target_Context: TARGET_CONTEXT =
 struct
 
-fun context_begin_named_cmd ("-", _) thy = Named_Target.theory_init thy
-  | context_begin_named_cmd target thy = Named_Target.init (Locale.check thy target) thy;
+fun prep_includes thy =
+  map (Bundle.check (Proof_Context.init_global thy));
+
+fun context_begin_named_cmd raw_includes ("-", _) thy =
+      Named_Target.init (prep_includes thy raw_includes) "" thy
+  | context_begin_named_cmd raw_includes name thy =
+      Named_Target.init (prep_includes thy raw_includes) (Locale.check thy name) thy;
 
 val end_named_cmd = Context.Theory o Local_Theory.exit_global;
 
 fun switch_named_cmd NONE (Context.Theory thy) =
-      (Context.Theory o Local_Theory.exit_global, Named_Target.theory_init thy)
+      (end_named_cmd, Named_Target.theory_init thy)
   | switch_named_cmd (SOME name) (Context.Theory thy) =
-      (Context.Theory o Local_Theory.exit_global, context_begin_named_cmd name thy)
+      (end_named_cmd, context_begin_named_cmd [] name thy)
   | switch_named_cmd NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.reset, lthy)
   | switch_named_cmd (SOME name) (Context.Proof lthy) =
       (Context.Proof o Named_Target.reinit lthy o Local_Theory.exit_global,
-        (context_begin_named_cmd name o Local_Theory.exit_global_nonbrittle) lthy);
+        (context_begin_named_cmd [] name o Local_Theory.exit_global_nonbrittle) lthy);
 
-fun includes raw_incls lthy =
-  Bundle.includes (map (Bundle.check lthy) raw_incls) lthy;
+fun includes raw_includes lthy =
+  Bundle.includes (map (Bundle.check lthy) raw_includes) lthy;
 
-fun context_begin_nested_cmd raw_incls raw_elems gthy =
+fun context_begin_nested_cmd raw_includes raw_elems gthy =
   gthy
   |> Context.cases Named_Target.theory_init Local_Theory.assert
-  |> includes raw_incls
+  |> includes raw_includes
   |> Expression.read_declaration ([], []) I raw_elems
   |> (#4 o fst)
   |> Local_Theory.begin_nested

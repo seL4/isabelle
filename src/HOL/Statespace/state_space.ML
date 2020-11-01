@@ -134,13 +134,13 @@ fun prove_interpretation_in ctxt_tac (name, expr) thy =
 
 fun add_locale name expr elems thy =
   thy
-  |> Expression.add_locale (Binding.name name) (Binding.name name) expr elems
+  |> Expression.add_locale (Binding.name name) (Binding.name name) [] expr elems
   |> snd
   |> Local_Theory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy
-  |> Expression.add_locale_cmd (Binding.name name) Binding.empty (expression_no_pos expr) elems
+  |> Expression.add_locale_cmd (Binding.name name) Binding.empty [] (expression_no_pos expr) elems
   |> snd
   |> Local_Theory.exit;
 
@@ -298,7 +298,7 @@ fun inject_name T = injectN ^"_"^encode_type T;
 
 fun add_declaration name decl thy =
   thy
-  |> Named_Target.init name
+  |> Named_Target.init [] name
   |> (fn lthy => Local_Theory.declaration {syntax = true, pervasive = false} (decl lthy) lthy)
   |> Local_Theory.exit_global;
 

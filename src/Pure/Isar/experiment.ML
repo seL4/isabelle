@@ -29,7 +29,7 @@ fun gen_experiment add_locale elems thy =
     val experiment_name = Binding.name ("experiment" ^ serial_string ()) |> Binding.concealed;
     val lthy =
       thy
-      |> add_locale experiment_name Binding.empty ([], []) elems
+      |> add_locale experiment_name Binding.empty [] ([], []) elems
       |-> (Local_Theory.background_theory o Data.map o Symtab.insert_set);
     val (scope, naming) =
       Name_Space.new_scope (Proof_Context.naming_of (Local_Theory.target_of lthy));

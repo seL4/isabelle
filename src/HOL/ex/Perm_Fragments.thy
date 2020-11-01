@@ -6,13 +6,14 @@ theory Perm_Fragments
 imports "HOL-Library.Perm" "HOL-Library.Dlist"
 begin
 
-unbundle permutation_syntax
-
-
 text \<open>On cycles\<close>
 
+context
+  includes permutation_syntax
+begin
+
 lemma cycle_prod_list:
-  "\<langle>a # as\<rangle> = prod_list (map (\<lambda>b. \<langle>a\<leftrightarrow>b\<rangle>) (rev as))"
+  "\<langle>a # as\<rangle> = prod_list (map (\<lambda>b. \<langle>a \<leftrightarrow> b\<rangle>) (rev as))"
   by (induct as) simp_all
 
 lemma cycle_append [simp]:
@@ -21,11 +22,11 @@ proof (induct as rule: cycle.induct)
   case (3 b c as)
   then have "\<langle>a # (b # as) @ bs\<rangle> = \<langle>a # bs\<rangle> * \<langle>a # b # as\<rangle>"
     by simp
-  then have "\<langle>a # as @ bs\<rangle> * \<langle>a\<leftrightarrow>b\<rangle> =
-    \<langle>a # bs\<rangle> * \<langle>a # as\<rangle> * \<langle>a\<leftrightarrow>b\<rangle>"
+  then have "\<langle>a # as @ bs\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> =
+    \<langle>a # bs\<rangle> * \<langle>a # as\<rangle> * \<langle>a \<leftrightarrow> b\<rangle>"
     by (simp add: ac_simps)
-  then have "\<langle>a # as @ bs\<rangle> * \<langle>a\<leftrightarrow>b\<rangle> * \<langle>a\<leftrightarrow>b\<rangle> =
-    \<langle>a # bs\<rangle> * \<langle>a # as\<rangle> * \<langle>a\<leftrightarrow>b\<rangle> * \<langle>a\<leftrightarrow>b\<rangle>"
+  then have "\<langle>a # as @ bs\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> =
+    \<langle>a # bs\<rangle> * \<langle>a # as\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> * \<langle>a \<leftrightarrow> b\<rangle>"
     by simp
   then have "\<langle>a # as @ bs\<rangle> = \<langle>a # bs\<rangle> * \<langle>a # as\<rangle>"
     by (simp add: ac_simps)
@@ -39,15 +40,15 @@ lemma affected_cycle:
 proof (induct as rule: cycle.induct)
   case (3 a b as)
   from affected_times
-  have "affected (\<langle>a # as\<rangle> * \<langle>a\<leftrightarrow>b\<rangle>)
-    \<subseteq> affected \<langle>a # as\<rangle> \<union> affected \<langle>a\<leftrightarrow>b\<rangle>" .
+  have "affected (\<langle>a # as\<rangle> * \<langle>a \<leftrightarrow> b\<rangle>)
+    \<subseteq> affected \<langle>a # as\<rangle> \<union> affected \<langle>a \<leftrightarrow> b\<rangle>" .
   moreover from 3
   have "affected (\<langle>a # as\<rangle>) \<subseteq> insert a (set as)"
     by simp
   moreover
-  have "affected \<langle>a\<leftrightarrow>b\<rangle> \<subseteq> {a, b}"
+  have "affected \<langle>a \<leftrightarrow> b\<rangle> \<subseteq> {a, b}"
     by (cases "a = b") (simp_all add: affected_swap)
-  ultimately have "affected (\<langle>a # as\<rangle> * \<langle>a\<leftrightarrow>b\<rangle>)
+  ultimately have "affected (\<langle>a # as\<rangle> * \<langle>a \<leftrightarrow> b\<rangle>)
     \<subseteq> insert a (insert b (set as))"
     by blast
   then show ?case by auto
@@ -75,7 +76,7 @@ using assms proof (induct as rule: cycle.induct)
     case (snoc cs c)
     with distinct have "distinct (a # b # cs @ [c])"
       by simp
-    then have **: "\<langle>a\<leftrightarrow>b\<rangle> * \<langle>c\<leftrightarrow>a\<rangle> = \<langle>c\<leftrightarrow>a\<rangle> * \<langle>c\<leftrightarrow>b\<rangle>"
+    then have **: "\<langle>a \<leftrightarrow> b\<rangle> * \<langle>c \<leftrightarrow> a\<rangle> = \<langle>c \<leftrightarrow> a\<rangle> * \<langle>c \<leftrightarrow> b\<rangle>"
       by transfer (auto simp add: comp_def Fun.swap_def)
     with snoc * show ?thesis
       by (simp add: mult.assoc [symmetric])
@@ -109,7 +110,7 @@ text \<open>Adding fixpoints\<close>
 
 definition fixate :: "'a \<Rightarrow> 'a perm \<Rightarrow> 'a perm"
 where
-  "fixate a f = (if a \<in> affected f then f * \<langle>apply (inverse f) a\<leftrightarrow>a\<rangle> else f)"
+  "fixate a f = (if a \<in> affected f then f * \<langle>inverse f \<langle>$\<rangle> a \<leftrightarrow> a\<rangle> else f)"
 
 lemma affected_fixate_trivial:
   assumes "a \<notin> affected f"
@@ -258,6 +259,11 @@ definition cycles :: "'a perm \<Rightarrow> 'a::linorder list list"
 where
   "cycles f = map (\<lambda>a. trace a f) (seeds f)"
 
+end
+
+
+text \<open>Misc\<close>
+
 lemma (in comm_monoid_list_set) sorted_list_of_set:
   assumes "finite A"
   shows "list.F (map h (sorted_list_of_set A)) = set.F h A"
@@ -268,9 +274,6 @@ proof -
   with \<open>finite A\<close> show ?thesis
     by (simp)
 qed
-
-
-text \<open>Misc\<close>
 
 primrec subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where

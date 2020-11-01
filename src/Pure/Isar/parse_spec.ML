@@ -127,7 +127,10 @@ val locale_keyword =
   Parse.$$$ "fixes" || Parse.$$$ "constrains" || Parse.$$$ "assumes" ||
   Parse.$$$ "defines" || Parse.$$$ "notes";
 
-val class_expression = plus1_unless locale_keyword Parse.class;
+val locale_keyword' =
+  Parse.$$$ "includes" || locale_keyword;
+
+val class_expression = plus1_unless locale_keyword' Parse.class;
 
 val locale_expression =
   let
@@ -135,7 +138,7 @@ val locale_expression =
     val expr1 =
       locale_prefix -- expr2 --
       instance >> (fn ((p, l), i) => (l, (p, i)));
-    val expr0 = plus1_unless locale_keyword expr1;
+    val expr0 = plus1_unless locale_keyword' expr1;
   in expr0 -- Scan.optional (Parse.$$$ "for" |-- Parse.!!! locale_fixes) [] end;
 
 val context_element = Parse.group (fn () => "context element") loc_element;

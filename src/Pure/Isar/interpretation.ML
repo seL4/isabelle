@@ -191,7 +191,7 @@ local
 fun gen_global_sublocale prep_loc prep_interpretation
     raw_locale expression raw_defs thy =
   let
-    val lthy = Named_Target.init (prep_loc thy raw_locale) thy;
+    val lthy = Named_Target.init [] (prep_loc thy raw_locale) thy;
     fun setup_proof after_qed =
       Element.witness_proof_eqs
         (fn wits => fn eqs => after_qed wits eqs #> Local_Theory.exit);

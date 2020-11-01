@@ -91,7 +91,7 @@ text \<open>
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
-  @{index_ML Named_Target.init: "string -> theory -> local_theory"} \\[1ex]
+  @{index_ML Named_Target.init: "string list -> string -> theory -> local_theory"} \\[1ex]
   @{index_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory"} \\
   @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
@@ -104,7 +104,7 @@ text %mlref \<open>
   context data. Subtyping means that any value \<open>lthy:\<close>~\<^ML_type>\<open>local_theory\<close>
   can be also used with operations on expecting a regular \<open>ctxt:\<close>~\<^ML_type>\<open>Proof.context\<close>.
 
-  \<^descr> \<^ML>\<open>Named_Target.init\<close>~\<open>before_exit name thy\<close> initializes a local theory
+  \<^descr> \<^ML>\<open>Named_Target.init\<close>~\<open>includes name thy\<close> initializes a local theory
   derived from the given background theory. An empty name refers to a \<^emph>\<open>global
   theory\<close> context, and a non-empty name refers to a @{command locale} or
   @{command class} context (a fully-qualified internal name is expected here).

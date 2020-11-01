@@ -681,6 +681,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Simps_Case_Conv_Examples
     Sketch_and_Explore
     Sorting_Algorithms_Examples
+    Specifications_with_bundle_mixins
     Sqrt
     Sqrt_Script
     Sudoku
