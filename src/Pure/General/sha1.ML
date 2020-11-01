@@ -148,6 +148,11 @@ local
 val library_path =
   Path.explode ("$ML_HOME/" ^ (if ML_System.platform_is_windows then "sha1.dll" else "libsha1.so"));
 
+val library_call =
+  Foreign.buildCall3
+    (Foreign.getSymbol (Foreign.loadLibrary (File.platform_path library_path)) "sha1_buffer",
+      (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer);
+
 fun with_memory n =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn f =>
     let
@@ -166,12 +171,8 @@ in
 fun digest_string_external str =
   with_memory 20 (fn mem =>
     let
-      val library = Foreign.loadLibrary (File.platform_path library_path);
       val bytes = Byte.stringToBytes str;
-      val _ =
-        Foreign.buildCall3 (Foreign.getSymbol library "sha1_buffer",
-          (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer)
-          (bytes, Word8Vector.length bytes, mem);
+      val _ = library_call (bytes, Word8Vector.length bytes, mem);
       fun get i = hex_string (Foreign.Memory.get8 (mem, Word.fromInt i));
     in implode (map get (0 upto 19)) end);
 
