@@ -73,7 +73,7 @@ isabelle_directory '~'
 isabelle_directory '$ISABELLE_HOME_USER'
 isabelle_directory '~~'
 
-ISABELLE_COMPONENT_REPOSITORY="https://isabelle.sketis.net/components"
+ISABELLE_COMPONENT_REPOSITORY="https://isabelle.in.tum.de/components"
 ISABELLE_COMPONENTS_BASE="$USER_HOME/.isabelle/contrib"
 
 # The place for user configuration, heap files, etc.
