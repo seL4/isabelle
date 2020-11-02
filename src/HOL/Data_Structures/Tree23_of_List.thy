@@ -116,50 +116,53 @@ by(simp add: tree23_of_list_def complete_leaves complete_join_all[of _ 0])
 
 subsection "Linear running time"
 
-fun t_join_adj :: "'a tree23s \<Rightarrow> nat" where
-"t_join_adj (TTs t1 a (T t2)) = 1" |
-"t_join_adj (TTs t1 a (TTs t2 b (T t3))) = 1" |
-"t_join_adj (TTs t1 a (TTs t2 b ts)) = t_join_adj ts + 1"
+fun T_join_adj :: "'a tree23s \<Rightarrow> nat" where
+"T_join_adj (TTs t1 a (T t2)) = 1" |
+"T_join_adj (TTs t1 a (TTs t2 b (T t3))) = 1" |
+"T_join_adj (TTs t1 a (TTs t2 b ts)) = T_join_adj ts + 1"
 
-fun t_join_all :: "'a tree23s \<Rightarrow> nat" where
-"t_join_all (T t) = 1" |
-"t_join_all ts = t_join_adj ts + t_join_all (join_adj ts)"
+fun T_join_all :: "'a tree23s \<Rightarrow> nat" where
+"T_join_all (T t) = 1" |
+"T_join_all ts = T_join_adj ts + T_join_all (join_adj ts) + 1"
 
-fun t_leaves :: "'a list \<Rightarrow> nat" where
-"t_leaves [] = 1" |
-"t_leaves (a # as) = t_leaves as + 1"
+fun T_leaves :: "'a list \<Rightarrow> nat" where
+"T_leaves [] = 1" |
+"T_leaves (a # as) = T_leaves as + 1"
 
-definition t_tree23_of_list :: "'a list \<Rightarrow> nat" where
-"t_tree23_of_list as = t_leaves as + t_join_all(leaves as)"
+definition T_tree23_of_list :: "'a list \<Rightarrow> nat" where
+"T_tree23_of_list as = T_leaves as + T_join_all(leaves as) + 1"
 
-lemma t_join_adj: "not_T ts \<Longrightarrow> t_join_adj ts \<le> len ts div 2"
-by(induction ts rule: t_join_adj.induct) auto
+lemma T_join_adj: "not_T ts \<Longrightarrow> T_join_adj ts \<le> len ts div 2"
+by(induction ts rule: T_join_adj.induct) auto
 
-lemma t_join_all: "t_join_all ts \<le> len ts"
+lemma len_ge_1: "len ts \<ge> 1"
+by(cases ts) auto
+
+lemma T_join_all: "T_join_all ts \<le> 2 * len ts"
 proof(induction ts rule: join_all.induct)
   case 1 thus ?case by simp
 next
   case (2 t a ts)
   let ?ts = "TTs t a ts"
-  have "t_join_all ?ts = t_join_adj ?ts + t_join_all (join_adj ?ts)"
+  have "T_join_all ?ts = T_join_adj ?ts + T_join_all (join_adj ?ts) + 1"
     by simp
-  also have "\<dots> \<le> len ?ts div 2 + t_join_all (join_adj ?ts)"
-    using t_join_adj[of ?ts] by simp
-  also have "\<dots> \<le> len ?ts div 2 + len (join_adj ?ts)"
+  also have "\<dots> \<le> len ?ts div 2 + T_join_all (join_adj ?ts) + 1"
+    using T_join_adj[of ?ts] by simp
+  also have "\<dots> \<le> len ?ts div 2 + 2 * len (join_adj ?ts) + 1"
     using "2.IH" by simp
-  also have "\<dots> \<le> len ?ts div 2 + len ?ts div 2"
+  also have "\<dots> \<le> len ?ts div 2 + 2 * (len ?ts div 2) + 1"
     using len_join_adj_div2[of ?ts] by simp
-  also have "\<dots> \<le> len ?ts" by linarith
+  also have "\<dots> \<le> 2 * len ?ts" using len_ge_1[of ?ts] by linarith
   finally show ?case .
 qed
 
-lemma t_leaves: "t_leaves as = length as + 1"
+lemma T_leaves: "T_leaves as = length as + 1"
 by(induction as) auto
 
 lemma len_leaves: "len(leaves as) = length as + 1"
 by(induction as) auto
 
-lemma t_tree23_of_list: "t_tree23_of_list as \<le> 2*(length as + 1)"
-using t_join_all[of "leaves as"] by(simp add: t_tree23_of_list_def t_leaves len_leaves)
+lemma T_tree23_of_list: "T_tree23_of_list as \<le> 3*(length as) + 4"
+using T_join_all[of "leaves as"] by(simp add: T_tree23_of_list_def T_leaves len_leaves)
 
 end
