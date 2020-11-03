@@ -301,6 +301,10 @@ proof-
   finally show ?thesis by(simp add:sum_list_map_eq_sum_count)
 qed
 
+lemma sum_list_replicate: "sum_list (replicate n c) = of_nat n * c"
+by(induction n)(auto simp add: distrib_right)
+
+
 lemma sum_list_nonneg:
     "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> sum_list xs \<ge> 0"
   by (induction xs) simp_all
