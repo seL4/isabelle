@@ -57,30 +57,30 @@ qed
 
 text \<open>Running times:\<close>
 
-fun t_norm :: "'a queue \<Rightarrow> nat" where
-"t_norm (fs,rs) = (if fs = [] then length rs else 0) + 1"
+fun T_norm :: "'a queue \<Rightarrow> nat" where
+"T_norm (fs,rs) = (if fs = [] then length rs else 0) + 1"
 
-fun t_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
-"t_enq a (fs,rs) = t_norm(fs, a # rs)"
+fun T_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
+"T_enq a (fs,rs) = T_norm(fs, a # rs) + 1"
 
-fun t_deq :: "'a queue \<Rightarrow> nat" where
-"t_deq (fs,rs) = (if fs = [] then 0 else t_norm(tl fs,rs)) + 1"
+fun T_deq :: "'a queue \<Rightarrow> nat" where
+"T_deq (fs,rs) = (if fs = [] then 0 else T_norm(tl fs,rs)) + 1"
 
-fun t_first :: "'a queue \<Rightarrow> nat" where
-"t_first (a # fs,rs) = 1"
+fun T_first :: "'a queue \<Rightarrow> nat" where
+"T_first (a # fs,rs) = 1"
 
-fun t_is_empty :: "'a queue \<Rightarrow> nat" where
-"t_is_empty (fs,rs) = 1"
+fun T_is_empty :: "'a queue \<Rightarrow> nat" where
+"T_is_empty (fs,rs) = 1"
 
 text \<open>Amortized running times:\<close>
 
 fun \<Phi> :: "'a queue \<Rightarrow> nat" where
 "\<Phi>(fs,rs) = length rs"
 
-lemma a_enq: "t_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
+lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 3"
 by(auto)
 
-lemma a_deq: "t_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
+lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto)
 
 end
