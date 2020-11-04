@@ -147,8 +147,9 @@ by default into its components "drop_bit" and "take_bit".
 INCOMPATIBILITY.
 
 * Former session "HOL-Word": Operations lsb, msb and set_bit are
-separated into theories Misc_lsb, Misc_msb and Misc_set_bit respectively
-in session Word_Lib in the AFP.  INCOMPATIBILITY.
+separated into theories Least_significant_bit, Most_significant_bit and
+Generic_set_bit respectively in session Word_Lib in the AFP.
+INCOMPATIBILITY.
 
 * Former session "HOL-Word": Ancient int numeral representation has been
 factored out in separate theory "Ancient_Numeral" in session Word_Lib
