@@ -47,6 +47,8 @@
 
 \renewcommand\_{\hbox{\textunderscore\kern-.05ex}}
 
+\hyphenation{Isa-belle super-posi-tion zipper-posi-tion}
+
 \begin{document}
 
 %%% TYPESETTING
@@ -129,15 +131,15 @@ every newly entered theorem for a few seconds.
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
 
-\newcommand\authoremail{\texttt{blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
-in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremail{\texttt{jasmin.blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
+google.\allowbreak com}}
 
 To run Sledgehammer, you must make sure that the theory \textit{Sledgehammer} is
 imported---this is rarely a problem in practice since it is part of
-\textit{Main}. Examples of Sledgehammer use can be found in Isabelle's
-\texttt{src/HOL/Metis\_Examples} directory.
-Comments and bug reports concerning Sledgehammer or this manual should be
-directed to the author at \authoremail.
+\textit{Main}. Examples of Sledgehammer use can be found in the
+\texttt{src/HOL/Metis\_Examples} directory.  Comments and bug reports
+concerning Sledgehammer or this manual should be directed to the author at
+\authoremail.
 
 
 \section{Installation}
@@ -219,7 +221,7 @@ Remote prover invocation requires Perl with the World Wide Web Library
 (\texttt{libwww-perl}) installed. If you must use a proxy server to access the
 Internet, set the \texttt{http\_proxy} environment variable to the proxy, either
 in the environment in which Isabelle is launched or in your
-\texttt{\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few
+\texttt{\$ISABELLE\_HOME\_USER/etc/\allowbreak settings} file. Here are a few
 examples:
 
 \prew
@@ -360,16 +362,16 @@ called \emph{relevance filter} (\S\ref{relevance-filter}).
 
 \begin{enum}
 \item[\labelitemi]
-The traditional relevance filter, called \emph{MePo}
-(\underline{Me}ng--\underline{Pau}lson), assigns a score to every available fact
-(lemma, theorem, definition, or axiom) based upon how many constants that fact
-shares with the conjecture. This process iterates to include facts relevant to
-those just accepted. The constants are weighted to give unusual ones greater
-significance. MePo copes best when the conjecture contains some unusual
-constants; if all the constants are common, it is unable to discriminate among
-the hundreds of facts that are picked up. The filter is also memoryless: It has
-no information about how many times a particular fact has been used in a proof,
-and it cannot learn.
+The traditional relevance filter, \emph{MePo}
+(\underline{Me}ng--\underline{Pau}lson), assigns a score to every available
+fact (lemma, theorem, definition, or axiom) based upon how many constants that
+fact shares with the conjecture. This process iterates to include facts
+relevant to those just accepted. The constants are weighted to give unusual
+ones greater significance. MePo copes best when the conjecture contains some
+unusual constants; if all the constants are common, it is unable to
+discriminate among the hundreds of facts that are picked up. The filter is also
+memoryless: It has no information about how many times a particular fact has
+been used in a proof, and it cannot learn.
 
 \item[\labelitemi]
 An alternative to MePo is \emph{MaSh} (\underline{Ma}chine Learner for
@@ -438,32 +440,7 @@ using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
 strongly encouraged to report this to the author at \authoremail.
 
 
-\point{How can I tell whether a suggested proof is sound?}
-
-Earlier versions of Sledgehammer often suggested unsound proofs---either proofs
-of nontheorems or simply proofs that rely on type-unsound inferences. This
-is a thing of the past, unless you explicitly specify an unsound encoding
-using \textit{type\_enc} (\S\ref{problem-encoding}).
-%
-Officially, the only form of ``unsoundness'' that lurks in the sound
-encodings is related to missing characteristic theorems of datatypes. For
-example,
-
-\prew
-\textbf{lemma}~``$\exists \mathit{xs}.\; \mathit{xs} \neq []$'' \\
-\textbf{sledgehammer} ()
-\postw
-
-suggests an argumentless \textit{metis} call that fails. However, the conjecture
-does actually hold, and the \textit{metis} call can be repaired by adding
-\textit{list.distinct}.
-%
-We hope to address this problem in a future version of Isabelle. In the
-meantime, you can avoid it by passing the \textit{strict} option
-(\S\ref{problem-encoding}).
-
-
-\point{What are the \textit{full\_types}, \textit{no\_types}, and
+\point{What are the \textit{full\_types}, \textit{no\_types}, and \\
 \textit{mono\_tags} arguments to Metis?}
 
 The \textit{metis}~(\textit{full\_types}) proof method
@@ -499,7 +476,7 @@ for a successful \textit{metis} proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
 
-\point{And what are the \textit{lifting} and \textit{hide\_lams} arguments
+\point{And what are the \textit{lifting} and \textit{hide\_lams} \\ arguments
 to Metis?}
 
 Orthogonally to the encoding of types, it is important to choose an appropriate
@@ -516,12 +493,7 @@ Automatic provers frequently use many more facts than are necessary.
 Sledgehammer includes a minimization tool that takes a set of facts returned by
 a given prover and repeatedly calls a prover or proof method with subsets of
 those facts to find a minimal set. Reducing the number of facts typically helps
-reconstruction, while also removing superfluous clutter from the proof scripts.
-
-In earlier versions of Sledgehammer, generated proofs were systematically
-accompanied by a suggestion to invoke the minimization tool. This step is now
-performed by default but can be disabled using the \textit{minimize} option
-(\S\ref{mode-of-operation}).
+reconstruction, while decluttering the proof scripts.
 
 
 \point{A strange error occurred---what should I do?}
@@ -541,9 +513,9 @@ know about.
 
 \point{Why are there so many options?}
 
-Sledgehammer's philosophy should work out of the box, without user guidance.
-Many of the options are meant to be used mostly by the Sledgehammer developers
-for experiments. Of course, feel free to try them out if you are so inclined.
+Sledgehammer's philosophy is that it should work out of the box, without user
+guidance. Most of the options are meant to be used by the Sledgehammer
+developers for experiments.
 
 
 \section{Command Syntax}
@@ -825,11 +797,11 @@ to the directory that contains the \texttt{z3\_tptp} executable.
 
 \item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
 \cite{cruanes-2014} is a higher-order superposition prover developed by Simon
-Cruanes and colleagues. To use Zipperposition, set the environment variable
-\texttt{ZIPPERPOSITION\_HOME} to the directory that contains the
-\texttt{zipperposition} executable and \texttt{ZIPPERPOSITION\_VERSION} to the
-version number (e.g., ``2.0.1''). Sledgehammer has been tested with version
-2.0.1.
+Cruanes, Petar Vukmirovi\'c, and colleagues. To use Zipperposition, set the
+environment variable \texttt{ZIPPERPOSITION\_HOME} to the directory that
+contains the \texttt{zipperposition} executable and
+\texttt{ZIPPERPOSITION\_VERSION} to the version number (e.g., ``2.0.1'').
+Sledgehammer has been tested with version 2.0.1.
 \end{enum}
 
 \end{sloppy}
@@ -1098,10 +1070,10 @@ which can slow down the ATPs.
 \item[\labelitemi]
 \textbf{%
 \textit{mono\_guards}, \textit{mono\_tags} (sound);
-\textit{mono\_args} (unsound):} \\
+\textit{mono\_args} \\ (unsound):} \\
 Similar to
 \textit{raw\_mono\_guards}, \textit{raw\_mono\_tags}, and
-\textit{raw\_mono\_args}, respectively but types are mangled in constant names
+\textit{raw\_mono\_\allowbreak args}, respectively but types are mangled in constant names
 instead of being supplied as ground term arguments. The binary predicate
 $\const{g}(\tau, t)$ becomes a unary predicate
 $\const{g\_}\tau(t)$, and the binary function
@@ -1112,14 +1084,23 @@ $\const{t\_}\tau(t)$.
 first-order types if the prover supports the TF0, TF1, TH0, or TH1 syntax;
 otherwise, falls back on \textit{mono\_guards}. The problem is monomorphized.
 
-\item[\labelitemi] \textbf{\textit{mono\_native\_higher} (sound):} Exploits
-native higher-order types if the prover supports the TH0 syntax; otherwise,
-falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
-monomorphized.
+\item[\labelitemi] \textbf{\textit{mono\_native\_fool} (sound):} Exploits native
+first-order types, including Booleans, if the prover supports the TFX0, TFX1,
+TH0, or TH1 syntax; otherwise, falls back on \textit{mono\_native}. The problem
+is monomorphized.
 
-\item[\labelitemi] \textbf{\textit{poly\_native} (sound):} Exploits native
-first-order polymorphic types if the prover supports the TF1 or TH1 syntax;
-otherwise, falls back on \textit{mono\_native}.
+\item[\labelitemi] \textbf{\textit{mono\_native\_higher},
+\textit{mono\_native\_higher\_fool} \\ (sound):} Exploits native higher-order
+types, including Booleans if ending with ``\textit{\_fool}'', if the prover
+supports the TH0 syntax; otherwise, falls back on \textit{mono\_native} or
+\textit{mono\_native\_fool}. The problem is monomorphized.
+
+\item[\labelitemi] \textbf{\textit{poly\_native}, \textit{poly\_native\_fool},
+\textit{poly\_native\_higher}, \\ \textit{poly\_native\_higher\_fool} (sound):}
+Exploits native first-order polymorphic types if the prover supports the TF1,
+TFX1, or TH1 syntax; otherwise, falls back on \textit{mono\_native},
+\textit{mono\_native\_fool}, \textit{mono\_native\_higher}, or
+\textit{mono\_native\_higher\_fool}.
 
 \item[\labelitemi]
 \textbf{%
@@ -1327,8 +1308,7 @@ isabelle mirabelle -O output/ \
 \end{verbatim}
 
 This command specifies Sledgehammer as the action, using E as the prover with a
-timeout of 10 seconds. The results are written to the file
-\texttt{output/Huffman.log}.
+timeout of 10 seconds. The results are written to \texttt{output/Huffman.log}.
 
 \subsection{Example of Benchmarking Another Tool}
 
@@ -1337,7 +1317,7 @@ isabelle mirabelle -O output/ -t 10 try0 Huffman.thy
 \end{verbatim}
 
 This command specifies the \textbf{try0} command as the action, with a timeout
-of 10 seconds. The results are written to the file \texttt{output/Huffman.log}.
+of 10 seconds. The results are written to \texttt{output/Huffman.log}.
 
 \subsection{Example of Generating TPTP Files}
 
