@@ -5799,7 +5799,8 @@ proof (rule field_le_epsilon)
       obtain u v where uv: "l = cbox u v"
         using inp p'(4) by blast
       have "content (cbox u v) = 0"
-        unfolding content_eq_0_interior using that p(1) uv by auto
+        unfolding content_eq_0_interior using that p(1) uv
+        by (auto dest: tagged_partial_division_ofD)
       then show ?thesis
         using uv by blast
     qed
@@ -5824,7 +5825,7 @@ lemma Henstock_lemma_part2:
   shows "sum (\<lambda>(x,k). norm (content k *\<^sub>R f x - integral k f)) p \<le> 2 * real (DIM('n)) * e"
 proof -
   have "finite p"
-    using tag by blast
+    using tag tagged_partial_division_ofD by blast
   then show ?thesis
     unfolding split_def
   proof (rule sum_norm_allsubsets_bound)

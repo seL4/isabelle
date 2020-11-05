@@ -248,8 +248,8 @@ text\<open> Basic combining theorems for the interval of integration.\<close>
 
 lemma equiintegrable_on_null [simp]:
    "content(cbox a b) = 0 \<Longrightarrow> F equiintegrable_on cbox a b"
-  apply (auto simp: equiintegrable_on_def)
-  by (metis gauge_trivial norm_eq_zero sum_content_null)
+  unfolding equiintegrable_on_def 
+  by (metis diff_zero gauge_trivial integrable_on_null integral_null norm_zero sum_content_null)
 
 
 text\<open> Main limit theorem for an equiintegrable sequence.\<close>
@@ -333,7 +333,7 @@ lemma equiintegrable_reflect:
   assumes "F equiintegrable_on cbox a b"
   shows "(\<lambda>f. f \<circ> uminus) ` F equiintegrable_on cbox (-b) (-a)"
 proof -
-  have "\<exists>\<gamma>. gauge \<gamma> \<and>
+  have \<section>: "\<exists>\<gamma>. gauge \<gamma> \<and>
             (\<forall>f \<D>. f \<in> (\<lambda>f. f \<circ> uminus) ` F \<and> \<D> tagged_division_of cbox (- b) (- a) \<and> \<gamma> fine \<D> \<longrightarrow>
                    norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral (cbox (- b) (- a)) f) < e)"
        if "gauge \<gamma>" and
@@ -389,19 +389,18 @@ proof -
       qed
       have "(\<Sum>(x,K) \<in> (\<lambda>(x,K). (- x, uminus ` K)) ` \<D>.  content K *\<^sub>R f x) =
             (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f (- x))"
-        apply (simp add: sum.reindex [OF inj])
-        apply (auto simp: eq intro!: sum.cong)
-        done
+        by (auto simp add: eq sum.reindex [OF inj] intro!: sum.cong)
       then show ?thesis
         using \<gamma> [OF \<open>f \<in> F\<close> tag' fine'] integral_reflect
         by (metis (mono_tags, lifting) Henstock_Kurzweil_Integration.integral_cong comp_apply split_def sum.cong)
     qed
   qed
-  then show ?thesis
+   show ?thesis
     using assms
     apply (auto simp: equiintegrable_on_def)
-    apply (rule integrable_eq)
-    by auto
+    subgoal for f
+      by (metis (mono_tags, lifting) comp_apply integrable_eq integrable_reflect)
+    using \<section> by fastforce
 qed
 
 subsection\<open>Subinterval restrictions for equiintegrable families\<close>
@@ -440,13 +439,18 @@ proof -
     using S div by auto
   have "\<And>K. K \<in> \<D> \<Longrightarrow> K \<noteq> {}"
     using div by blast
+  have extend_cbox: "\<And>K.  K \<in> \<D> \<Longrightarrow> \<exists>a b. extend K = cbox a b"
+    using extend_def by blast
   have extend: "extend K \<noteq> {}" "extend K \<subseteq> cbox a b" if K: "K \<in> \<D>" for K
   proof -
     obtain u v where K: "K = cbox u v" "K \<noteq> {}" "K \<subseteq> cbox a b"
       using K cbox_division_memE [OF _ div] by (meson div_subset_cbox)
-    with i show "extend K \<noteq> {}" "extend K \<subseteq> cbox a b"
-      apply (auto simp: extend_def subset_box box_ne_empty)
-      by fastforce
+    with i show "extend K \<subseteq> cbox a b"
+      by (auto simp: extend_def subset_box box_ne_empty)
+    have "a \<bullet> i \<le> b \<bullet> i"
+      using K by (metis bot.extremum_uniqueI box_ne_empty(1) i)
+    with K show "extend K \<noteq> {}"
+      by (simp add: extend_def i box_ne_empty)
   qed
   have int_extend_disjoint:
        "interior(extend K1) \<inter> interior(extend K2) = {}" if K: "K1 \<in> \<D>" "K2 \<in> \<D>" "K1 \<noteq> K2" for K1 K2
@@ -488,19 +492,22 @@ proof -
           using i K2(1) K2(3) \<open>t \<bullet> i = a \<bullet> i\<close> q s t [OF i] by (force simp: subset_box)
         have w: "w \<bullet> i < s \<bullet> i"
           using i K1(1) K1(3) \<open>r \<bullet> i = a \<bullet> i\<close> s r [OF i] by (force simp: subset_box)
-        let ?x = "(\<Sum>j \<in> Basis. if j = i then min (q \<bullet> i) (s \<bullet> i) *\<^sub>R i else (x \<bullet> j) *\<^sub>R j)"
+        define \<xi> where "\<xi> \<equiv> (\<Sum>j \<in> Basis. if j = i then min (q \<bullet> i) (s \<bullet> i) *\<^sub>R i else (x \<bullet> j) *\<^sub>R j)"
+        have [simp]: "\<xi> \<bullet> j = (if j = i then min (q \<bullet> j) (s \<bullet> j) else x \<bullet> j)" if "j \<in> Basis" for j
+          unfolding \<xi>_def
+          by (intro sum_if_inner that \<open>i \<in> Basis\<close>)
         show ?thesis
         proof (intro exI conjI)
-          show "?x \<in> box u v"
-            using \<open>i \<in> Basis\<close> s apply (clarsimp simp: mem_box)
-            apply (subst sum_if_inner; simp)+
-            apply (fastforce simp: u ux xv)
-            done
-          show "?x \<in> box w z"
-            using \<open>i \<in> Basis\<close> q apply (clarsimp simp: mem_box)
-            apply (subst sum_if_inner; simp)+
-            apply (fastforce simp: w wx xz)
-            done
+          have "min (q \<bullet> i) (s \<bullet> i) < v \<bullet> i"
+            using i s by fastforce
+          with \<open>i \<in> Basis\<close> s u ux xv
+          show "\<xi> \<in> box u v" 
+            by (force simp: mem_box)
+          have "min (q \<bullet> i) (s \<bullet> i) < z \<bullet> i"
+            using i q by force
+          with \<open>i \<in> Basis\<close> q w wx xz
+          show "\<xi> \<in> box w z"
+            by (force simp: mem_box)
         qed
       next
         assume "\<forall>K\<in>\<D>. K \<inter> {x. x \<bullet> i = b \<bullet> i} \<noteq> {}"
@@ -514,26 +521,24 @@ proof -
           using K1(1) K1(3) \<open>r \<bullet> i = b \<bullet> i\<close> r [OF i] i s  by (force simp: subset_box)
         have v: "q \<bullet> i < v \<bullet> i"
           using K2(1) K2(3) \<open>t \<bullet> i = b \<bullet> i\<close> t [OF i] i q  by (force simp: subset_box)
-        let ?x = "(\<Sum>j \<in> Basis. if j = i then max (q \<bullet> i) (s \<bullet> i) *\<^sub>R i else (x \<bullet> j) *\<^sub>R j)"
+        define \<xi> where "\<xi> \<equiv> (\<Sum>j \<in> Basis. if j = i then max (q \<bullet> i) (s \<bullet> i) *\<^sub>R i else (x \<bullet> j) *\<^sub>R j)"
+        have [simp]: "\<xi> \<bullet> j = (if j = i then max (q \<bullet> j) (s \<bullet> j) else x \<bullet> j)" if "j \<in> Basis" for j
+          unfolding \<xi>_def
+          by (intro sum_if_inner that \<open>i \<in> Basis\<close>)
         show ?thesis
         proof (intro exI conjI)
-          show "?x \<in> box u v"
-            using \<open>i \<in> Basis\<close> s apply (clarsimp simp: mem_box)
-            apply (subst sum_if_inner; simp)+
-            apply (fastforce simp: v ux xv)
-            done
-          show "?x \<in> box w z"
-            using \<open>i \<in> Basis\<close> q apply (clarsimp simp: mem_box)
-            apply (subst sum_if_inner; simp)+
-            apply (fastforce simp: z wx xz)
-            done
+          show "\<xi> \<in> box u v"
+            using \<open>i \<in> Basis\<close> s by (force simp: mem_box ux v xv)
+          show "\<xi> \<in> box w z"
+            using \<open>i \<in> Basis\<close> q by (force simp: mem_box wx xz z)
         qed
       qed
     qed
     ultimately show ?thesis by auto
   qed
-  have "?lhs = (\<Sum>K\<in>\<D>. (b \<bullet> i - a \<bullet> i) * content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
-    by (simp add: sum_distrib_left)
+  define interv_diff where "interv_diff \<equiv> \<lambda>K. \<lambda>i::'a. interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i"
+  have "?lhs = (\<Sum>K\<in>\<D>. (b \<bullet> i - a \<bullet> i) * content K / (interv_diff K i))"
+    by (simp add: sum_distrib_left interv_diff_def)
   also have "\<dots> = sum (content \<circ> extend) \<D>"
   proof (rule sum.cong [OF refl])
     fix K assume "K \<in> \<D>"
@@ -543,29 +548,25 @@ proof -
       using mt [OF \<open>K \<in> \<D>\<close>] \<open>i \<in> Basis\<close> content_eq_0 by fastforce
     have "insert i (Basis \<inter> -{i}) = Basis"
       using \<open>i \<in> Basis\<close> by auto
-    then have "(b \<bullet> i - a \<bullet> i) * content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)
-             = (b \<bullet> i - a \<bullet> i) * (\<Prod>i \<in> insert i (Basis \<inter> -{i}). v \<bullet> i - u \<bullet> i) / (interval_upperbound (cbox u v) \<bullet> i - interval_lowerbound (cbox u v) \<bullet> i)"
+    then have "(b \<bullet> i - a \<bullet> i) * content K / (interv_diff K i)
+             = (b \<bullet> i - a \<bullet> i) * (\<Prod>i \<in> insert i (Basis \<inter> -{i}). v \<bullet> i - u \<bullet> i) / (interv_diff (cbox u v) i)"
       using K box_ne_empty(1) content_cbox by fastforce
     also have "... = (\<Prod>x\<in>Basis. if x = i then b \<bullet> x - a \<bullet> x
                       else (interval_upperbound (cbox u v) - interval_lowerbound (cbox u v)) \<bullet> x)"
-      using \<open>i \<in> Basis\<close> K uv by (simp add: prod.If_cases) (simp add: algebra_simps)
+      using \<open>i \<in> Basis\<close> K uv by (simp add: prod.If_cases interv_diff_def) (simp add: algebra_simps)
     also have "... = (\<Prod>k\<in>Basis.
-                        (\<Sum>j\<in>Basis. if j = i then (b \<bullet> i - a \<bullet> i) *\<^sub>R i else ((interval_upperbound (cbox u v) - interval_lowerbound (cbox u v)) \<bullet> j) *\<^sub>R j) \<bullet> k)"
+                        (\<Sum>j\<in>Basis. if j = i then (b \<bullet> i - a \<bullet> i) *\<^sub>R i 
+                                    else ((interval_upperbound (cbox u v) - interval_lowerbound (cbox u v)) \<bullet> j) *\<^sub>R j) \<bullet> k)"
       using \<open>i \<in> Basis\<close> by (subst prod.cong [OF refl sum_if_inner]; simp)
     also have "... = (\<Prod>k\<in>Basis.
                         (\<Sum>j\<in>Basis. if j = i then (b \<bullet> i) *\<^sub>R i else (interval_upperbound (cbox u v) \<bullet> j) *\<^sub>R j) \<bullet> k -
                         (\<Sum>j\<in>Basis. if j = i then (a \<bullet> i) *\<^sub>R i else (interval_lowerbound (cbox u v) \<bullet> j) *\<^sub>R j) \<bullet> k)"
-      apply (rule prod.cong [OF refl])
       using \<open>i \<in> Basis\<close>
-      apply (subst sum_if_inner; simp add: algebra_simps)+
-      done
+      by (intro prod.cong [OF refl]) (subst sum_if_inner; simp add: algebra_simps)+
     also have "... = (content \<circ> extend) K"
-      using \<open>i \<in> Basis\<close> K box_ne_empty
-      apply (simp add: extend_def)
-      apply (subst content_cbox, auto)
-      done
-    finally show "(b \<bullet> i - a \<bullet> i) * content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)
-         = (content \<circ> extend) K" .
+      using \<open>i \<in> Basis\<close> K box_ne_empty \<open>K \<in> \<D>\<close> extend(1) 
+      by (auto simp add: extend_def content_cbox_if)
+    finally show "(b \<bullet> i - a \<bullet> i) * content K / (interv_diff K i) = (content \<circ> extend) K" .
   qed
   also have "... = sum content (extend ` \<D>)"
   proof -
@@ -577,9 +578,7 @@ proof -
   also have "... \<le> ?rhs"
   proof (rule subadditive_content_division)
     show "extend ` \<D> division_of \<Union> (extend ` \<D>)"
-      using int_extend_disjoint apply (auto simp: division_of_def \<open>finite \<D>\<close> extend)
-      using extend_def apply blast
-      done
+      using int_extend_disjoint  by (auto simp: division_of_def \<open>finite \<D>\<close> extend extend_cbox)
     show "\<Union> (extend ` \<D>) \<subseteq> cbox a b"
       using extend by fastforce
   qed
@@ -611,6 +610,7 @@ next
   define Dgec where "Dgec \<equiv> {L \<in> (\<lambda>L. L \<inter> {x. x \<bullet> i \<ge> c}) ` \<D>. content L \<noteq> 0}"
   define a' where "a' \<equiv> (\<Sum>j\<in>Basis. (if j = i then c else a \<bullet> j) *\<^sub>R j)"
   define b' where "b' \<equiv> (\<Sum>j\<in>Basis. (if j = i then c else b \<bullet> j) *\<^sub>R j)"
+  define interv_diff where "interv_diff \<equiv> \<lambda>K. \<lambda>i::'a. interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i"
   have Dlec_cbox: "\<And>K. K \<in> Dlec \<Longrightarrow> \<exists>a b. K = cbox a b"
     using interval_split [OF i] div by (fastforce simp: Dlec_def division_of_def)
   then have lec_is_cbox: "\<lbrakk>content (L \<inter> {x. x \<bullet> i \<le> c}) \<noteq> 0; L \<in> \<D>\<rbrakk> \<Longrightarrow> \<exists>a b. L \<inter> {x. x \<bullet> i \<le> c} = cbox a b" for L
@@ -619,7 +619,16 @@ next
     using interval_split [OF i] div by (fastforce simp: Dgec_def division_of_def)
   then have gec_is_cbox: "\<lbrakk>content (L \<inter> {x. x \<bullet> i \<ge> c}) \<noteq> 0; L \<in> \<D>\<rbrakk> \<Longrightarrow> \<exists>a b. L \<inter> {x. x \<bullet> i \<ge> c} = cbox a b" for L
     using Dgec_def by blast
-  have "(b' \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>Dlec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<le> content(cbox a b')"
+
+  have zero_left: "\<And>x y. \<lbrakk>x \<in> \<D>; y \<in> \<D>; x \<noteq> y; x \<inter> {x. x \<bullet> i \<le> c} = y \<inter> {x. x \<bullet> i \<le> c}\<rbrakk>
+           \<Longrightarrow> content (y \<inter> {x. x \<bullet> i \<le> c}) = 0"
+    by (metis division_split_left_inj [OF div] lec_is_cbox content_eq_0_interior)
+  have zero_right: "\<And>x y. \<lbrakk>x \<in> \<D>; y \<in> \<D>; x \<noteq> y; x \<inter> {x. c \<le> x \<bullet> i} = y \<inter> {x. c \<le> x \<bullet> i}\<rbrakk>
+           \<Longrightarrow> content (y \<inter> {x. c \<le> x \<bullet> i}) = 0"
+    by (metis division_split_right_inj [OF div] gec_is_cbox content_eq_0_interior)
+
+  have "(b' \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>Dlec. content K / interv_diff K i) \<le> content(cbox a b')"
+    unfolding interv_diff_def
   proof (rule content_division_lemma1)
     show "Dlec division_of \<Union>Dlec"
       unfolding division_of_def
@@ -633,20 +642,20 @@ next
       using nonmt by (fastforce simp: Dlec_def b'_def i)
   qed (use i Dlec_def in auto)
   moreover
-  have "(\<Sum>K\<in>Dlec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) =
-        (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)"
-    apply (subst sum.reindex_nontrivial [OF \<open>finite \<D>\<close>, symmetric], simp)
-     apply (metis division_split_left_inj [OF div] lec_is_cbox content_eq_0_interior)
-    unfolding Dlec_def using \<open>finite \<D>\<close> apply (auto simp: sum.mono_neutral_left)
-    done
+  have "(\<Sum>K\<in>Dlec. content K / (interv_diff K i)) = (\<Sum>K\<in>(\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}) ` \<D>. content K / interv_diff K i)"
+    unfolding Dlec_def using \<open>finite \<D>\<close> by (auto simp: sum.mono_neutral_left)
+  moreover have "... =
+        (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)"
+    by (simp add: zero_left sum.reindex_nontrivial [OF \<open>finite \<D>\<close>])
   moreover have "(b' \<bullet> i - a \<bullet> i) = (c - a \<bullet> i)"
     by (simp add: b'_def i)
   ultimately
-  have lec: "(c - a \<bullet> i) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
+  have lec: "(c - a \<bullet> i) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
              \<le> content(cbox a b')"
     by simp
 
-  have "(b \<bullet> i - a' \<bullet> i) * (\<Sum>K\<in>Dgec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<le> content(cbox a' b)"
+  have "(b \<bullet> i - a' \<bullet> i) * (\<Sum>K\<in>Dgec. content K / (interv_diff K i)) \<le> content(cbox a' b)"
+    unfolding interv_diff_def
   proof (rule content_division_lemma1)
     show "Dgec division_of \<Union>Dgec"
       unfolding division_of_def
@@ -660,33 +669,35 @@ next
       using nonmt by (fastforce simp: Dgec_def a'_def i)
   qed (use i Dgec_def in auto)
   moreover
-  have "(\<Sum>K\<in>Dgec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) =
-        (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
-    apply (subst sum.reindex_nontrivial [OF \<open>finite \<D>\<close>, symmetric], simp)
-     apply (metis division_split_right_inj [OF div] gec_is_cbox content_eq_0_interior)
-    unfolding Dgec_def using \<open>finite \<D>\<close> apply (auto simp: sum.mono_neutral_left)
-    done
+  have "(\<Sum>K\<in>Dgec. content K / (interv_diff K i)) = (\<Sum>K\<in>(\<lambda>K. K \<inter> {x. c \<le> x \<bullet> i}) ` \<D>.
+       content K / interv_diff K i)"
+    unfolding Dgec_def using \<open>finite \<D>\<close> by (auto simp: sum.mono_neutral_left)
+  moreover have "\<dots> =
+        (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
+    by (simp add: zero_right sum.reindex_nontrivial [OF \<open>finite \<D>\<close>])
   moreover have "(b \<bullet> i - a' \<bullet> i) = (b \<bullet> i - c)"
     by (simp add: a'_def i)
   ultimately
-  have gec: "(b \<bullet> i - c) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
+  have gec: "(b \<bullet> i - c) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
              \<le> content(cbox a' b)"
     by simp
+
   show ?thesis
   proof (cases "c = a \<bullet> i \<or> c = b \<bullet> i")
     case True
     then show ?thesis
     proof
       assume c: "c = a \<bullet> i"
-      then have "a' = a"
-        apply (simp add: i a'_def cong: if_cong)
+      moreover
+      have "(\<Sum>j\<in>Basis. (if j = i then a \<bullet> i else a \<bullet> j) *\<^sub>R j) = a"
         using euclidean_representation [of a] sum.cong [OF refl, of Basis "\<lambda>i. (a \<bullet> i) *\<^sub>R i"] by presburger
+      ultimately have "a' = a"
+        by (simp add: i a'_def cong: if_cong)
       then have "content (cbox a' b) \<le> 2 * content (cbox a b)"  by simp
       moreover
-      have eq: "(\<Sum>K\<in>\<D>. content (K \<inter> {x. a \<bullet> i \<le> x \<bullet> i}) /
-                  (interval_upperbound (K \<inter> {x. a \<bullet> i \<le> x \<bullet> i}) \<bullet> i - interval_lowerbound (K \<inter> {x. a \<bullet> i \<le> x \<bullet> i}) \<bullet> i))
-              = (\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
-               (is "sum ?f _ = sum ?g _")
+      have eq: "(\<Sum>K\<in>\<D>. content (K \<inter> {x. a \<bullet> i \<le> x \<bullet> i}) / interv_diff (K \<inter> {x. a \<bullet> i \<le> x \<bullet> i}) i)
+              = (\<Sum>K\<in>\<D>. content K / interv_diff K i)"
+        (is "sum ?f _ = sum ?g _")
       proof (rule sum.cong [OF refl])
         fix K assume "K \<in> \<D>"
         then have "a \<bullet> i \<le> x \<bullet> i" if "x \<in> K" for x
@@ -697,17 +708,17 @@ next
           by simp
       qed
       ultimately show ?thesis
-        using gec c eq by auto
+        using gec c eq interv_diff_def by auto
     next
       assume c: "c = b \<bullet> i"
-      then have "b' = b"
-        apply (simp add: i b'_def cong: if_cong)
+      moreover have "(\<Sum>j\<in>Basis. (if j = i then b \<bullet> i else b \<bullet> j) *\<^sub>R j) = b"
         using euclidean_representation [of b] sum.cong [OF refl, of Basis "\<lambda>i. (b \<bullet> i) *\<^sub>R i"] by presburger
+      ultimately have "b' = b"
+        by (simp add: i b'_def cong: if_cong)
       then have "content (cbox a b') \<le> 2 * content (cbox a b)"  by simp
       moreover
-      have eq: "(\<Sum>K\<in>\<D>. content (K \<inter> {x. x \<bullet> i \<le> b \<bullet> i}) /
-                  (interval_upperbound (K \<inter> {x. x \<bullet> i \<le> b \<bullet> i}) \<bullet> i - interval_lowerbound (K \<inter> {x. x \<bullet> i \<le> b \<bullet> i}) \<bullet> i))
-              = (\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
+      have eq: "(\<Sum>K\<in>\<D>. content (K \<inter> {x. x \<bullet> i \<le> b \<bullet> i}) / interv_diff (K \<inter> {x. x \<bullet> i \<le> b \<bullet> i}) i)
+              = (\<Sum>K\<in>\<D>. content K / interv_diff K i)"
                (is "sum ?f _ = sum ?g _")
       proof (rule sum.cong [OF refl])
         fix K assume "K \<in> \<D>"
@@ -719,30 +730,34 @@ next
           by simp
       qed
       ultimately show ?thesis
-        using lec c eq by auto
+        using lec c eq interv_diff_def by auto
     qed
   next
     case False
     have prod_if: "(\<Prod>k\<in>Basis \<inter> - {i}. f k) = (\<Prod>k\<in>Basis. f k) / f i" if "f i \<noteq> (0::real)" for f
-      using that mk_disjoint_insert [OF i]
-      apply (clarsimp simp add: field_split_simps)
-      by (metis Int_insert_left_if0 finite_Basis finite_insert le_iff_inf order_refl prod.insert subset_Compl_singleton)
+    proof -
+      have "f i * prod f (Basis \<inter> - {i}) = prod f Basis"
+        using that mk_disjoint_insert [OF i]
+        by (metis Int_insert_left_if0 finite_Basis finite_insert le_iff_inf order_refl prod.insert subset_Compl_singleton)
+      then show ?thesis
+        by (metis nonzero_mult_div_cancel_left that)
+    qed
     have abc: "a \<bullet> i < c" "c < b \<bullet> i"
       using False assms by auto
-    then have "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
+    then have "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
                   \<le> content(cbox a b') / (c - a \<bullet> i)"
-              "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
+              "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
                  \<le> content(cbox a' b) / (b \<bullet> i - c)"
       using lec gec by (simp_all add: field_split_simps)
     moreover
-    have "(\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
-          \<le> (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K) +
-            (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
+    have "(\<Sum>K\<in>\<D>. content K / (interv_diff K i))
+          \<le> (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K) +
+            (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
            (is "?lhs \<le> ?rhs")
     proof -
       have "?lhs \<le>
-            (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K +
-                    ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
+            (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K +
+                    ((\<lambda>K. content K / (interv_diff K i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)"
             (is "sum ?f _ \<le> sum ?g _")
       proof (rule sum_mono)
         fix K assume "K \<in> \<D>"
@@ -757,9 +772,10 @@ next
                 "content (cbox u' v) \<noteq> 0 \<Longrightarrow> content (cbox u v) \<noteq> 0"
                 "content (cbox u v') \<noteq> 0 \<Longrightarrow> content (cbox u v) \<noteq> 0"
           using i uv uv' by (auto simp: content_eq_0 le_max_iff_disj min_le_iff_disj split: if_split_asm intro: order_trans)
+        have uniq: "\<And>j. \<lbrakk>j \<in> Basis; \<not> u \<bullet> j \<le> v \<bullet> j\<rbrakk> \<Longrightarrow> j = i"
+          by (metis \<open>K \<in> \<D>\<close> box_ne_empty(1) div division_of_def uv)
         show "?f K \<le> ?g K"
-          using i uv uv' apply (clarsimp simp add: lemma0 * intro!: prod_nonneg)
-          by (metis content_eq_0 le_less_linear order.strict_implies_order)
+          using i uv uv'  by (auto simp add: interv_diff_def lemma0 dest: uniq * intro!: prod_nonneg)
       qed
       also have "... = ?rhs"
         by (simp add: sum.distrib)
@@ -776,15 +792,12 @@ next
       apply (auto simp: if_distrib prod.If_cases [of Basis "\<lambda>x. x = i", simplified] prod_if field_simps)
       done
     ultimately
-    have "(\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
-          \<le> 2 * content (cbox a b) / (b \<bullet> i - a \<bullet> i)"
+    have "(\<Sum>K\<in>\<D>. content K / (interv_diff K i)) \<le> 2 * content (cbox a b) / (b \<bullet> i - a \<bullet> i)"
       by linarith
     then show ?thesis
-      using abc by (simp add: field_split_simps)
+      using abc interv_diff_def by (simp add: field_split_simps)
   qed
 qed
-
-
 
 
 proposition bounded_equiintegral_over_thin_tagged_partial_division:
@@ -853,12 +866,13 @@ next
   qed
   define \<gamma> where "\<gamma> \<equiv> \<lambda>x. \<gamma>0 x \<inter>
                           ball x ((\<epsilon>/8 / (norm(f x) + 1)) * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / content(cbox a b))"
-  have "gauge (\<lambda>x. ball x
+  define interv_diff where "interv_diff \<equiv> \<lambda>K. \<lambda>i::'a. interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i"
+  have "8 * content (cbox a b) + norm (f x) * (8 * content (cbox a b)) > 0" for x
+    by (metis add.right_neutral add_pos_pos contab_gt0 mult_pos_pos mult_zero_left norm_eq_zero zero_less_norm_iff zero_less_numeral)
+  then have "gauge (\<lambda>x. ball x
                     (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b))))"
-    using \<open>0 < content (cbox a b)\<close> \<open>0 < \<epsilon>\<close> a_less_b
-    apply (auto simp: gauge_def field_split_simps add_nonneg_eq_0_iff finite_less_Inf_iff)
-    apply (meson add_increasing measure_nonneg mult_nonneg_nonneg norm_ge_zero not_le zero_le_numeral)
-    done
+    using \<open>0 < content (cbox a b)\<close> \<open>0 < \<epsilon>\<close> a_less_b 
+    by (auto simp add: gauge_def field_split_simps add_nonneg_eq_0_iff finite_less_Inf_iff)
   then have "gauge \<gamma>"
     unfolding \<gamma>_def using \<open>gauge \<gamma>0\<close> gauge_Int by auto
   moreover
@@ -869,7 +883,7 @@ next
     have "cbox c b \<subseteq> cbox a b"
       by (meson mem_box(2) order_refl subset_box(1) that(1))
     have "finite S"
-      using S by blast
+      using S unfolding tagged_partial_division_of_def by blast
     have "\<gamma>0 fine S" and fineS:
          "(\<lambda>x. ball x (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b)))) fine S"
       using \<open>\<gamma> fine S\<close> by (auto simp: \<gamma>_def fine_Int)
@@ -888,15 +902,13 @@ next
           by simp
         finally show "norm (integral K h) - norm (content K *\<^sub>R h x - integral K h) \<le> norm (content K *\<^sub>R h x)" .
       qed
-      also have "... \<le> (\<Sum>(x,K) \<in> S. \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) *
-                                    content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
+      also have "... \<le> (\<Sum>(x,K) \<in> S. \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K / interv_diff K i)"
       proof (clarify intro!: sum_mono)
         fix x K
         assume xK: "(x,K) \<in> S"
         then have x: "x \<in> cbox a b"
           using S unfolding tagged_partial_division_of_def by (meson subset_iff)
-        let ?\<Delta> = "interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i"
-        show "norm (content K *\<^sub>R h x) \<le> \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K / ?\<Delta>"
+        show "norm (content K *\<^sub>R h x) \<le> \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K / interv_diff K i"
         proof (cases "content K = 0")
           case True
           then show ?thesis by simp
@@ -906,12 +918,12 @@ next
             using zero_less_measure_iff by blast
           moreover
           obtain u v where uv: "K = cbox u v"
-            using S \<open>(x,K) \<in> S\<close> by blast
+            using S \<open>(x,K) \<in> S\<close> unfolding tagged_partial_division_of_def by blast
           then have u_less_v: "\<And>i. i \<in> Basis \<Longrightarrow> u \<bullet> i < v \<bullet> i"
             using content_pos_lt_eq uv Kgt0 by blast
           then have dist_uv: "dist u v > 0"
             using that by auto
-          ultimately have "norm (h x) \<le> (\<epsilon> * (b \<bullet> i - a \<bullet> i)) / (4 * content (cbox a b) * ?\<Delta>)"
+          ultimately have "norm (h x) \<le> (\<epsilon> * (b \<bullet> i - a \<bullet> i)) / (4 * content (cbox a b) * interv_diff K i)"
           proof -
             have "dist x u < \<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
                  "dist x v < \<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
@@ -919,9 +931,10 @@ next
               by (force simp: fine_def mem_box field_simps dest!: bspec)+
             moreover have "\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2
                   \<le> \<epsilon> * (b \<bullet> i - a \<bullet> i) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
-              apply (intro mult_left_mono divide_right_mono)
-              using \<open>i \<in> Basis\<close> \<open>0 < \<epsilon>\<close> apply (auto simp: intro!: cInf_le_finite)
-              done
+            proof (intro mult_left_mono divide_right_mono)
+              show "(INF m\<in>Basis. b \<bullet> m - a \<bullet> m) \<le> b \<bullet> i - a \<bullet> i"
+                using \<open>i \<in> Basis\<close> by (auto intro!: cInf_le_finite)
+            qed (use \<open>0 < \<epsilon>\<close> in auto)
             ultimately
             have "dist x u < \<epsilon> * (b \<bullet> i - a \<bullet> i) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
                  "dist x v < \<epsilon> * (b \<bullet> i - a \<bullet> i) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
@@ -935,48 +948,54 @@ next
             also have "... < (norm (f x) + 1)"
               by simp
             also have "... < \<epsilon> * (b \<bullet> i - a \<bullet> i) / dist u v / (4 * content (cbox a b))"
-              using duv dist_uv contab_gt0
-              apply (simp add: field_split_simps split: if_split_asm)
-              by (meson add_nonneg_nonneg linorder_not_le measure_nonneg mult_nonneg_nonneg norm_ge_zero zero_le_numeral)
+            proof -
+              have "0 < norm (f x) + 1"
+                by (simp add: add.commute add_pos_nonneg)
+              then show ?thesis
+                using duv dist_uv contab_gt0
+                by (simp only: mult_ac divide_simps) auto
+            qed
             also have "... = \<epsilon> * (b \<bullet> i - a \<bullet> i) / norm (v - u) / (4 * content (cbox a b))"
               by (simp add: dist_norm norm_minus_commute)
             also have "... \<le> \<epsilon> * (b \<bullet> i - a \<bullet> i) / \<bar>v \<bullet> i - u \<bullet> i\<bar> / (4 * content (cbox a b))"
-              apply (intro mult_right_mono divide_left_mono divide_right_mono uvi)
-              using \<open>0 < \<epsilon>\<close> a_less_b [OF \<open>i \<in> Basis\<close>] u_less_v [OF \<open>i \<in> Basis\<close>] contab_gt0
-              by (auto simp: less_eq_real_def zero_less_mult_iff that)
-            also have "... = \<epsilon> * (b \<bullet> i - a \<bullet> i)
-                       / (4 * content (cbox a b) * ?\<Delta>)"
-              using uv False that(2) u_less_v by fastforce
+            proof (intro mult_right_mono divide_left_mono divide_right_mono uvi)
+              show "norm (v - u) * \<bar>v \<bullet> i - u \<bullet> i\<bar> > 0"
+                using u_less_v [OF \<open>i \<in> Basis\<close>] 
+                by (auto simp: less_eq_real_def zero_less_mult_iff that)
+              show "\<epsilon> * (b \<bullet> i - a \<bullet> i) \<ge> 0"
+                using a_less_b \<open>0 < \<epsilon>\<close> \<open>i \<in> Basis\<close> by force
+            qed auto
+            also have "... = \<epsilon> * (b \<bullet> i - a \<bullet> i) / (4 * content (cbox a b) * interv_diff K i)"
+              using uv False that(2) u_less_v interv_diff_def by fastforce
             finally show ?thesis by simp
           qed
-          with Kgt0 have "norm (content K *\<^sub>R h x) \<le> content K * ((\<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b)) / ?\<Delta>)"
+          with Kgt0 have "norm (content K *\<^sub>R h x) \<le> content K * ((\<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b)) / interv_diff K i)"
             using mult_left_mono by fastforce
-          also have "... = \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) *
-                           content K / ?\<Delta>"
+          also have "... = \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K / interv_diff K i"
             by (simp add: field_split_simps)
           finally show ?thesis .
         qed
       qed
-      also have "... = (\<Sum>K\<in>snd ` S. \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K
-                                     / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
+      also have "... = (\<Sum>K\<in>snd ` S. \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K / interv_diff K i)"
+        unfolding interv_diff_def
         apply (rule sum.over_tagged_division_lemma [OF tagged_partial_division_of_Union_self [OF S]])
         apply (simp add: box_eq_empty(1) content_eq_0)
         done
-      also have "... = \<epsilon>/2 * ((b \<bullet> i - a \<bullet> i) / (2 * content (cbox a b)) * (\<Sum>K\<in>snd ` S. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)))"
-        by (simp add: sum_distrib_left mult.assoc)
+      also have "... = \<epsilon>/2 * ((b \<bullet> i - a \<bullet> i) / (2 * content (cbox a b)) * (\<Sum>K\<in>snd ` S. content K / interv_diff K i))"
+        by (simp add: interv_diff_def sum_distrib_left mult.assoc)
       also have "... \<le> (\<epsilon>/2) * 1"
       proof (rule mult_left_mono)
-        have "(b \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>snd ` S. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
-              \<le> 2 * content (cbox a b)"
+        have "(b \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>snd ` S. content K / interv_diff K i) \<le> 2 * content (cbox a b)"
+          unfolding interv_diff_def
         proof (rule sum_content_area_over_thin_division)
           show "snd ` S division_of \<Union>(snd ` S)"
             by (auto intro: S tagged_partial_division_of_Union_self division_of_tagged_division)
           show "\<Union>(snd ` S) \<subseteq> cbox a b"
-            using S by force
+            using S unfolding tagged_partial_division_of_def by force
           show "a \<bullet> i \<le> c \<bullet> i" "c \<bullet> i \<le> b \<bullet> i"
             using mem_box(2) that by blast+
         qed (use that in auto)
-        then show "(b \<bullet> i - a \<bullet> i) / (2 * content (cbox a b)) * (\<Sum>K\<in>snd ` S. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<le> 1"
+        then show "(b \<bullet> i - a \<bullet> i) / (2 * content (cbox a b)) * (\<Sum>K\<in>snd ` S. content K / interv_diff K i) \<le> 1"
           by (simp add: contab_gt0)
       qed (use \<open>0 < \<epsilon>\<close> in auto)
       finally show ?thesis by simp
@@ -1014,8 +1033,7 @@ next
   proof (intro conjI; clarify)
     show int_lec: "\<lbrakk>i \<in> Basis; h \<in> F\<rbrakk> \<Longrightarrow> (\<lambda>x. if x \<bullet> i \<le> c then h x else 0) integrable_on cbox a b" for i c h
       using integrable_restrict_Int [of "{x. x \<bullet> i \<le> c}" h]
-      apply (auto simp: interval_split Int_commute mem_box intro!: integrable_on_subcbox int_F)
-      by (metis (full_types, hide_lams) min.bounded_iff)
+      by (simp add: inf_commute int_F integrable_split(1))
     show "\<exists>\<gamma>. gauge \<gamma> \<and>
               (\<forall>f T. f \<in> (\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if x \<bullet> i \<le> c then h x else 0}) \<and>
                      T tagged_division_of cbox a b \<and> \<gamma> fine T \<longrightarrow>
@@ -1026,8 +1044,10 @@ next
         "\<And>c i S h. \<lbrakk>c \<in> cbox a b; i \<in> Basis; S tagged_partial_division_of cbox a b;
                         \<gamma>0 fine S; h \<in> F; \<And>x K. (x,K) \<in> S \<Longrightarrow> (K \<inter> {x. x \<bullet> i = c \<bullet> i} \<noteq> {})\<rbrakk>
                        \<Longrightarrow> (\<Sum>(x,K) \<in> S. norm (integral K h)) < \<epsilon>/12"
-        apply (rule bounded_equiintegral_over_thin_tagged_partial_division [OF F f, of \<open>\<epsilon>/12\<close>])
-        using \<open>\<epsilon> > 0\<close> by (auto simp: norm_f)
+      proof (rule bounded_equiintegral_over_thin_tagged_partial_division [OF F f, of \<open>\<epsilon>/12\<close>])
+        show "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm (h x) \<le> norm (f x)"
+          by (auto simp: norm_f)
+      qed (use \<open>\<epsilon> > 0\<close> in auto)
       obtain \<gamma>1 where "gauge \<gamma>1"
         and \<gamma>1: "\<And>h T. \<lbrakk>h \<in> F; T tagged_division_of cbox a b; \<gamma>1 fine T\<rbrakk>
                               \<Longrightarrow> norm ((\<Sum>(x,K) \<in> T. content K *\<^sub>R h x) - integral (cbox a b) h)
@@ -1045,9 +1065,7 @@ next
         proof (rule Henstock_lemma_part2 [of h a b])
           show "h integrable_on cbox a b"
             using that F equiintegrable_on_def by metis
-          show "gauge \<gamma>1"
-            by (rule \<open>gauge \<gamma>1\<close>)
-        qed (use that \<open>\<epsilon> > 0\<close> \<gamma>1 in auto)
+        qed (use that \<open>\<epsilon> > 0\<close> \<open>gauge \<gamma>1\<close> \<gamma>1 in auto)
         also have "... < \<epsilon>/3"
           using \<open>\<epsilon> > 0\<close> by (simp add: divide_simps)
         finally show ?thesis .
@@ -1070,15 +1088,16 @@ next
         have fine': "\<gamma>0 fine T'" "\<gamma>1 fine T'"
           using \<open>T' \<subseteq> T\<close> fine_Int fine_subset fine by blast+
         have int_KK': "(\<Sum>(x,K) \<in> T. integral K f) = (\<Sum>(x,K) \<in> T'. integral K f)"
-          apply (rule sum.mono_neutral_right [OF \<open>finite T\<close> \<open>T' \<subseteq> T\<close>])
-          using f \<open>finite T\<close> \<open>T' \<subseteq> T\<close>
-          using integral_restrict_Int [of _ "{x. x \<bullet> i \<le> c}" h]
-          apply (auto simp: T'_def Int_commute)
-          done
+        proof (rule sum.mono_neutral_right [OF \<open>finite T\<close> \<open>T' \<subseteq> T\<close>])
+          show "\<forall>i \<in> T - T'. (case i of (x, K) \<Rightarrow> integral K f) = 0"
+            using f \<open>finite T\<close> \<open>T' \<subseteq> T\<close> integral_restrict_Int [of _ "{x. x \<bullet> i \<le> c}" h]
+            by (auto simp: T'_def Int_commute)
+        qed
         have "(\<Sum>(x,K) \<in> T. content K *\<^sub>R f x) = (\<Sum>(x,K) \<in> T'. content K *\<^sub>R f x)"
-          apply (rule sum.mono_neutral_right [OF \<open>finite T\<close> \<open>T' \<subseteq> T\<close>])
-          using T f \<open>finite T\<close> \<open>T' \<subseteq> T\<close> apply (force simp: T'_def)
-          done
+        proof (rule sum.mono_neutral_right [OF \<open>finite T\<close> \<open>T' \<subseteq> T\<close>])
+          show "\<forall>i \<in> T - T'. (case i of (x, K) \<Rightarrow> content K *\<^sub>R f x) = 0"
+            using T f \<open>finite T\<close> \<open>T' \<subseteq> T\<close> by (force simp: T'_def)
+        qed
         moreover have "norm ((\<Sum>(x,K) \<in> T'. content K *\<^sub>R f x) - integral (cbox a b) f) < \<epsilon>"
         proof -
           have *: "norm y < \<epsilon>" if "norm x < \<epsilon>/3" "norm(x - y) \<le> 2 * \<epsilon>/3" for x y::'b
@@ -1117,7 +1136,7 @@ next
               fix x K
               assume "(x,K) \<in> T'" "(x,K) \<notin> T''"
               then have "x \<in> K" "x \<bullet> i \<le> c" "{x. x \<bullet> i \<le> c} \<inter> K = K"
-                using T''_def T'_tagged by blast+
+                using T''_def T'_tagged tagged_partial_division_of_def by blast+
               then show "?CI K h x - ?CI K f x = 0"
                 using integral_restrict_Int [of _ "{x. x \<bullet> i \<le> c}" h] by (auto simp: f)
             qed
@@ -1164,12 +1183,14 @@ next
                   have False if "K \<noteq> L"
                   proof -
                     obtain u v where uv: "L = cbox u v"
-                      using T'_tagged \<open>(x, L) \<in> A\<close> \<open>A \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
-                    have "A tagged_division_of \<Union>(snd ` A)"
-                      using A_tagged tagged_partial_division_of_Union_self by auto
-                    then have "interior (K \<inter> {x. x \<bullet> i \<le> c}) = {}"
-                      apply (rule tagged_division_split_left_inj [OF _ \<open>(x,K) \<in> A\<close> \<open>(x,L) \<in> A\<close>])
-                      using that eq \<open>i \<in> Basis\<close> by auto
+                      using T'_tagged \<open>(x, L) \<in> A\<close> \<open>A \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by (blast dest: tagged_partial_division_ofD)
+                    have "interior (K \<inter> {x. x \<bullet> i \<le> c}) = {}"
+                    proof (rule tagged_division_split_left_inj [OF _ \<open>(x,K) \<in> A\<close> \<open>(x,L) \<in> A\<close>])
+                      show "A tagged_division_of \<Union>(snd ` A)"
+                        using A_tagged tagged_partial_division_of_Union_self by auto
+                      show "K \<inter> {x. x \<bullet> i \<le> c} = L \<inter> {x. x \<bullet> i \<le> c}"
+                        using eq \<open>i \<in> Basis\<close> by auto
+                    qed (use that in auto)
                     then show False
                       using interval_split [OF \<open>i \<in> Basis\<close>] int_ne0 content_eq_0_interior eq uv by fastforce
                   qed
@@ -1193,12 +1214,14 @@ next
                   have False if "K \<noteq> L"
                   proof -
                     obtain u v where uv: "L = cbox u v"
-                      using T'_tagged \<open>(x, L) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
-                    have "B tagged_division_of \<Union>(snd ` B)"
-                      using B_tagged tagged_partial_division_of_Union_self by auto
-                    then have "interior (K \<inter> {x. c \<le> x \<bullet> i}) = {}"
-                      apply (rule tagged_division_split_right_inj [OF _ \<open>(x,K) \<in> B\<close> \<open>(x,L) \<in> B\<close>])
-                      using that eq \<open>i \<in> Basis\<close> by auto
+                      using T'_tagged \<open>(x, L) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by (blast dest: tagged_partial_division_ofD)
+                    have "interior (K \<inter> {x. c \<le> x \<bullet> i}) = {}"
+                    proof (rule tagged_division_split_right_inj [OF _ \<open>(x,K) \<in> B\<close> \<open>(x,L) \<in> B\<close>])
+                      show "B tagged_division_of \<Union>(snd ` B)"
+                        using B_tagged tagged_partial_division_of_Union_self by auto
+                      show "K \<inter> {x. c \<le> x \<bullet> i} = L \<inter> {x. c \<le> x \<bullet> i}"
+                        using eq \<open>i \<in> Basis\<close> by auto
+                    qed (use that in auto)
                     then show False
                       using interval_split [OF \<open>i \<in> Basis\<close>] int_ne0
                         content_eq_0_interior eq uv by fastforce
@@ -1215,12 +1238,14 @@ next
                       for i::'b and c i1 i2
                       by (metis add.commute add.left_commute add_diff_cancel_right' dual_order.refl norm_add_rule_thm norm_triangle_ineq4)
                     obtain u v where uv: "K = cbox u v"
-                      using T'_tagged \<open>(x,K) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
-                    have "h integrable_on cbox a b"
-                      by (simp add: int_F \<open>h \<in> F\<close>)
-                    then have huv: "h integrable_on cbox u v"
-                      apply (rule integrable_on_subcbox)
-                      using B_tagged \<open>(x,K) \<in> B\<close> uv by blast
+                      using T'_tagged \<open>(x,K) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by (blast dest: tagged_partial_division_ofD)
+                    have huv: "h integrable_on cbox u v"
+                    proof (rule integrable_on_subcbox)
+                      show "cbox u v \<subseteq> cbox a b"
+                        using B_tagged \<open>(x,K) \<in> B\<close> uv by (blast dest: tagged_partial_division_ofD)
+                      show "h integrable_on cbox a b"
+                        by (simp add: int_F \<open>h \<in> F\<close>)
+                    qed
                     have "integral K h = integral K f + integral (K \<inter> {x. c \<le> x \<bullet> i}) h"
                       using integral_restrict_Int [of _ "{x. x \<bullet> i \<le> c}" h] f uv \<open>i \<in> Basis\<close>
                       by (simp add: Int_commute integral_split [OF huv \<open>i \<in> Basis\<close>])
@@ -1237,7 +1262,7 @@ next
                 obtain y y' where y: "y' \<in> K" "c < y' \<bullet> i" "y \<in> K" "y \<bullet> i \<le> c"
                   using that  T''_def T'_def \<open>(x,K) \<in> T''\<close> by fastforce
                 obtain u v where uv: "K = cbox u v"
-                  using T''_tagged \<open>(x,K) \<in> T''\<close> by blast
+                  using T''_tagged \<open>(x,K) \<in> T''\<close> by (blast dest: tagged_partial_division_ofD)
                 then have "connected K"
                   by (simp add: is_interval_connected)
                 then have "(\<exists>z \<in> K. z \<bullet> i = c)"
@@ -1251,26 +1276,27 @@ next
               proof (rule **)
                 have cb_ab: "(\<Sum>j \<in> Basis. if j = i then c *\<^sub>R i else (a \<bullet> j) *\<^sub>R j) \<in> cbox a b"
                   using \<open>i \<in> Basis\<close> True \<open>\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i < b \<bullet> i\<close>
-                  apply (clarsimp simp add: mem_box)
-                  apply (subst sum_if_inner | force)+
-                  done
+                  by (force simp add: mem_box sum_if_inner [where f = "\<lambda>j. c"])
                 show "(\<Sum>(x,K) \<in> A. norm (integral K h)) < \<epsilon>/12"
-                  apply (rule \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> A_tagged fineA(1) \<open>h \<in> F\<close>])
                   using \<open>i \<in> Basis\<close> \<open>A \<subseteq> T''\<close> overlap
-                  apply (subst sum_if_inner | force)+
-                  done
-                have 1: "(\<lambda>(x,K). (x,K \<inter> {x. x \<bullet> i \<le> c})) ` A tagged_partial_division_of cbox a b"
-                  using \<open>finite A\<close> \<open>i \<in> Basis\<close>
-                  apply (auto simp: tagged_partial_division_of_def)
-                  using A_tagged apply (auto simp: A_def)
-                  using interval_split(1) by blast
+                  by (force simp add: sum_if_inner [where f = "\<lambda>j. c"] 
+                       intro!: \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> A_tagged fineA(1) \<open>h \<in> F\<close>])
+                let ?F = "\<lambda>(x,K). (x, K \<inter> {x. x \<bullet> i \<le> c})"
+                have 1: "?F ` A tagged_partial_division_of cbox a b"
+                  unfolding tagged_partial_division_of_def
+                proof (intro conjI strip)
+                  show "\<And>x K. (x, K) \<in> ?F ` A \<Longrightarrow> \<exists>a b. K = cbox a b"
+                    using A_tagged interval_split(1) [OF \<open>i \<in> Basis\<close>, of _ _ c]
+                    by (force dest: tagged_partial_division_ofD(4))
+                  show "\<And>x K. (x, K) \<in> ?F ` A \<Longrightarrow> x \<in> K"
+                    using A_def A_tagged by (fastforce dest: tagged_partial_division_ofD)
+                qed (use A_tagged in \<open>fastforce dest: tagged_partial_division_ofD\<close>)+
                 have 2: "\<gamma>0 fine (\<lambda>(x,K). (x,K \<inter> {x. x \<bullet> i \<le> c})) ` A"
                   using fineA(1) fine_def by fastforce
                 show "(\<Sum>(x,K) \<in> (\<lambda>(x,K). (x,K \<inter> {x. x \<bullet> i \<le> c})) ` A. norm (integral K h)) < \<epsilon>/12"
-                  apply (rule \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> 1 2 \<open>h \<in> F\<close>])
-                  using \<open>i \<in> Basis\<close> apply (subst sum_if_inner | force)+
-                  using overlap apply (auto simp: A_def)
-                  done
+                  using \<open>i \<in> Basis\<close> \<open>A \<subseteq> T''\<close> overlap
+                  by (force simp add: sum_if_inner [where f = "\<lambda>j. c"] 
+                       intro!: \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> 1 2 \<open>h \<in> F\<close>])
                 have *: "\<lbrakk>x < \<epsilon>/3; y < \<epsilon>/12; z < \<epsilon>/12\<rbrakk> \<Longrightarrow> x + y + z \<le> \<epsilon>/2" for x y z
                   by auto
                 show "(\<Sum>(x,K) \<in> B. norm (?CI K h x)) +
@@ -1281,20 +1307,25 @@ next
                   show "(\<Sum>(x,K) \<in> B. norm (?CI K h x)) < \<epsilon>/3"
                     by (intro h_less3 B_tagged fineB that)
                   show "(\<Sum>(x,K) \<in> B. norm (integral K h)) < \<epsilon>/12"
-                    apply (rule \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> B_tagged fineB(1) \<open>h \<in> F\<close>])
-                    using \<open>i \<in> Basis\<close> \<open>B \<subseteq> T''\<close> overlap by (subst sum_if_inner | force)+
-                  have 1: "(\<lambda>(x,K). (x,K \<inter> {x. c \<le> x \<bullet> i})) ` B tagged_partial_division_of cbox a b"
-                    using \<open>finite B\<close> \<open>i \<in> Basis\<close>
-                    apply (auto simp: tagged_partial_division_of_def)
-                    using B_tagged apply (auto simp: B_def)
-                    using interval_split(2) by blast
+                  using \<open>i \<in> Basis\<close> \<open>B \<subseteq> T''\<close> overlap
+                  by (force simp add: sum_if_inner [where f = "\<lambda>j. c"] 
+                       intro!: \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> B_tagged fineB(1) \<open>h \<in> F\<close>])
+                  let ?F = "\<lambda>(x,K). (x, K \<inter> {x. c \<le> x \<bullet> i})"
+                  have 1: "?F ` B tagged_partial_division_of cbox a b"
+                    unfolding tagged_partial_division_of_def
+                  proof (intro conjI strip)
+                    show "\<And>x K. (x, K) \<in> ?F ` B \<Longrightarrow> \<exists>a b. K = cbox a b"
+                      using B_tagged interval_split(2) [OF \<open>i \<in> Basis\<close>, of _ _ c]
+                      by (force dest: tagged_partial_division_ofD(4))
+                    show "\<And>x K. (x, K) \<in> ?F ` B \<Longrightarrow> x \<in> K"
+                      using B_def B_tagged by (fastforce dest: tagged_partial_division_ofD)
+                  qed (use B_tagged in \<open>fastforce dest: tagged_partial_division_ofD\<close>)+
                   have 2: "\<gamma>0 fine (\<lambda>(x,K). (x,K \<inter> {x. c \<le> x \<bullet> i})) ` B"
                     using fineB(1) fine_def by fastforce
                   show "(\<Sum>(x,K) \<in> (\<lambda>(x,K). (x,K \<inter> {x. c \<le> x \<bullet> i})) ` B. norm (integral K h)) < \<epsilon>/12"
-                    apply (rule \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> 1 2 \<open>h \<in> F\<close>])
-                    using \<open>i \<in> Basis\<close> apply (subst sum_if_inner | force)+
-                    using overlap apply (auto simp: B_def)
-                    done
+                  using \<open>i \<in> Basis\<close> \<open>A \<subseteq> T''\<close> overlap
+                  by (force simp add: B_def sum_if_inner [where f = "\<lambda>j. c"] 
+                       intro!: \<gamma>0 [OF cb_ab \<open>i \<in> Basis\<close> 1 2 \<open>h \<in> F\<close>])
                 qed
               qed
             qed
@@ -1318,7 +1349,7 @@ next
           then have int_f0: "integral (cbox a b) f = 0"
             by (simp add: integral_cong)
           have f0_tag: "f x = 0" if "(x,K) \<in> T" for x K
-            using T f0 that by (force simp: tagged_division_of_def)
+            using T f0 that by (meson tag_in_interval)
           then have "(\<Sum>(x,K) \<in> T. content K *\<^sub>R f x) = 0"
             by (metis (mono_tags, lifting) real_vector.scale_eq_0_iff split_conv sum.neutral surj_pair)
           then show ?thesis
@@ -1330,14 +1361,17 @@ next
           then have int_f: "integral (cbox a b) f = integral (cbox a b) h"
             using integral_cong by blast
           have fh_tag: "f x = h x" if "(x,K) \<in> T" for x K
-            using T fh that by (force simp: tagged_division_of_def)
-          then have "(\<Sum>(x,K) \<in> T. content K *\<^sub>R f x) = (\<Sum>(x,K) \<in> T. content K *\<^sub>R h x)"
+            using T fh that by (meson tag_in_interval)
+          then have fh: "(\<Sum>(x,K) \<in> T. content K *\<^sub>R f x) = (\<Sum>(x,K) \<in> T. content K *\<^sub>R h x)"
             by (metis (mono_tags, lifting) split_cong sum.cong)
-          with \<open>0 < \<epsilon>\<close> show ?thesis
-            apply (simp add: int_f)
-            apply (rule less_trans [OF \<gamma>1])
-            using that fine_Int apply (force simp: divide_simps)+
-            done
+          show ?thesis
+            unfolding fh int_f
+          proof (rule less_trans [OF \<gamma>1])
+            show "\<gamma>1 fine T"
+              by (meson fine fine_Int)
+            show "\<epsilon> / (7 * Suc DIM('b)) < \<epsilon>"
+              using \<open>0 < \<epsilon>\<close> by (force simp: divide_simps)+
+          qed (use that in auto)
         qed
       qed
       have  "gauge (\<lambda>x. \<gamma>0 x \<inter> \<gamma>1 x)"
@@ -1364,17 +1398,20 @@ proof -
     show "f \<circ> uminus \<in> (\<lambda>f. f \<circ> uminus) ` F"
       using f by auto
     show "\<And>h x. \<lbrakk>h \<in> (\<lambda>f. f \<circ> uminus) ` F; x \<in> cbox (- b) (- a)\<rbrakk> \<Longrightarrow> norm (h x) \<le> norm ((f \<circ> uminus) x)"
-      using f apply (clarsimp simp:)
-      by (metis add.inverse_inverse image_eqI norm_f uminus_interval_vector)
+      using f unfolding comp_def image_iff
+      by (metis (no_types, lifting) equation_minus_iff imageE norm_f uminus_interval_vector)
   qed
   have eq: "(\<lambda>f. f \<circ> uminus) `
             (\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if x \<bullet> i \<le> c then (h \<circ> uminus) x else 0}) =
-            (\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if c \<le> x \<bullet> i then h x else 0})"
-    apply (auto simp: o_def cong: if_cong)
-    using minus_le_iff apply fastforce
+            (\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if c \<le> x \<bullet> i then h x else 0})"   (is "?lhs = ?rhs")
+  proof
+    show "?lhs \<subseteq> ?rhs"
+      using minus_le_iff by fastforce
+    show "?rhs \<subseteq> ?lhs"
+    apply clarsimp
     apply (rule_tac x="\<lambda>x. if c \<le> (-x) \<bullet> i then h(-x) else 0" in image_eqI)
-    using le_minus_iff apply fastforce+
-    done
+      using le_minus_iff by fastforce+
+  qed
   show ?thesis
     using equiintegrable_reflect [OF *] by (auto simp: eq)
 qed
@@ -1427,49 +1464,50 @@ proof -
       with f show ?case by auto
     next
       case (insert i B)
-      then have "i \<in> Basis"
+      then have "i \<in> Basis" "B \<subseteq> Basis"
         by auto
       have *: "norm (h x) \<le> norm (f x)"
         if "h \<in> insert f (\<Union>c d. {?g B c d})" "x \<in> cbox a b" for h x
         using that by auto
-      have "(\<Union>i\<in>Basis.
+      define F where "F \<equiv> (\<Union>i\<in>Basis.
                 \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}).
-                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0})
-             equiintegrable_on cbox a b"
-      proof (rule equiintegrable_halfspace_restrictions_ge [where f=f])
-        show "insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}).
+                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0})"
+      show ?case
+      proof (rule equiintegrable_on_subset)
+        have "F equiintegrable_on cbox a b"
+          unfolding F_def
+        proof (rule equiintegrable_halfspace_restrictions_ge)
+          show "insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}).
               {\<lambda>x. if x \<bullet> i \<le> \<xi> then h x else 0}) equiintegrable_on cbox a b"
-          apply (intro * f equiintegrable_on_insert equiintegrable_halfspace_restrictions_le [OF insert.IH insertI1])
-          using insert.prems apply auto
-          done
-        show"norm(h x) \<le> norm(f x)"
-          if "h \<in> insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<xi> then h x else 0})"
-             "x \<in> cbox a b" for h x
-          using that by auto
-      qed auto
-      then have "insert f (\<Union>i\<in>Basis.
-                \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}).
-                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0})
+            by (intro * f equiintegrable_on_insert equiintegrable_halfspace_restrictions_le [OF insert.IH insertI1] \<open>B \<subseteq> Basis\<close>)
+          show "norm(h x) \<le> norm(f x)"
+            if "h \<in> insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<xi> then h x else 0})"
+              "x \<in> cbox a b" for h x
+            using that by auto
+        qed auto
+        then show "insert f F
              equiintegrable_on cbox a b"
-        by (blast intro: f equiintegrable_on_insert)
-      then show ?case
-        apply (rule equiintegrable_on_subset, clarify)
-        using \<open>i \<in> Basis\<close> apply simp
-        apply (drule_tac x=i in bspec, assumption)
-        apply (drule_tac x="c \<bullet> i" in spec, clarify)
-        apply (drule_tac x=i in bspec, assumption)
-        apply (drule_tac x="d \<bullet> i" in spec)
-        apply (clarsimp simp add: fun_eq_iff)
-        apply (drule_tac x=c in spec)
-        apply (drule_tac x=d in spec)
-        apply (simp add: split: if_split_asm)
-        done
+          by (blast intro: f equiintegrable_on_insert)
+        show "insert f (\<Union>c d. {\<lambda>x. if \<forall>j\<in>insert i B. c \<bullet> j \<le> x \<bullet> j \<and> x \<bullet> j \<le> d \<bullet> j then f x else 0})
+            \<subseteq> insert f F"
+          using \<open>i \<in> Basis\<close> 
+          apply clarify
+          apply (simp add: F_def)
+          apply (drule_tac x=i in bspec, assumption)
+          apply (drule_tac x="c \<bullet> i" in spec, clarify)
+          apply (drule_tac x=i in bspec, assumption)
+          apply (drule_tac x="d \<bullet> i" in spec)
+          apply (clarsimp simp: fun_eq_iff)
+          apply (drule_tac x=c in spec)
+          apply (drule_tac x=d in spec)
+          apply (simp split: if_split_asm)
+          done
+      qed
     qed
   qed
   show ?thesis
     by (rule equiintegrable_on_subset [OF * [OF subset_refl]]) (auto simp: mem_box)
 qed
-
 
 
 subsection\<open>Continuity of the indefinite integral\<close>
@@ -1510,9 +1548,8 @@ proof -
         then obtain n where "n \<noteq> 0" and n: "1 / (real n) < \<epsilon>"
           by (metis inverse_eq_divide real_arch_inverse)
         have emin: "\<epsilon> \<le> min \<bar>x \<bullet> i - c \<bullet> i\<bar> \<bar>x \<bullet> i - d \<bullet> i\<bar>" if "i \<in> Basis" for i
-          unfolding \<epsilon>_def
-          apply (rule Min.coboundedI)
-          using that by force+
+          unfolding \<epsilon>_def 
+          by (meson Min.coboundedI euclidean_space_class.finite_Basis finite_imageI image_iff that)
         have "1 / real (Suc n) < \<epsilon>"
           using n \<open>n \<noteq> 0\<close> \<open>\<epsilon> > 0\<close> by (simp add: field_simps)
         have "x \<in> cbox (u m) (v m) \<longleftrightarrow> x \<in> cbox c d" if "m \<ge> n" for m
@@ -1607,10 +1644,10 @@ proof -
     with \<open>0 < B\<close> that show ?thesis by auto
   next
     case False
-    show ?thesis
-      apply (rule B)
-      using that \<open>B > 0\<close> False apply (clarsimp simp: image_def)
-      by (metis cbox_Pair_iff interval_subset_is_interval is_interval_cbox prod.sel)
+    then have "\<exists>x \<in> cbox (a,a) (b,b). integral (cbox c d) f = integral (cbox (fst x) (snd x)) f"
+      using that by (metis cbox_Pair_iff interval_subset_is_interval is_interval_cbox prod.sel)
+    then show ?thesis
+      using B that(1) by blast
   qed
   then show ?thesis
     by (blast intro: boundedI)
@@ -1648,25 +1685,30 @@ next
       using absi by blast
     have int_gab: "g integrable_on cbox a b"
       using absint_g set_lebesgue_integral_eq_integral(1) by blast
-    have 1: "cbox (a + (b - a) /\<^sub>R real (Suc n)) (b - (b - a) /\<^sub>R real (Suc n)) \<subseteq> box a b" for n
-      apply (rule subset_box_imp)
-      using pos apply (auto simp: content_pos_lt_eq algebra_simps)
-      done
-    have 2: "cbox (a + (b - a) /\<^sub>R real (Suc n)) (b - (b - a) /\<^sub>R real (Suc n)) \<subseteq>
-             cbox (a + (b - a) /\<^sub>R real (Suc n + 1)) (b - (b - a) /\<^sub>R real (Suc n + 1))" for n
-      apply (rule subset_box_imp)
-      using pos apply (simp add: content_pos_lt_eq algebra_simps)
-        apply (simp add: divide_simps)
-      apply (auto simp: field_simps)
-      done
-    have getN: "\<exists>N::nat. \<forall>k. k \<ge> N \<longrightarrow> x \<in> cbox (a + (b - a) /\<^sub>R real k) (b - (b - a) /\<^sub>R real k)"
+    define \<alpha> where "\<alpha> \<equiv> \<lambda>k. a + (b - a) /\<^sub>R real k"
+    define \<beta> where "\<beta> \<equiv> \<lambda>k. b - (b - a) /\<^sub>R real k"
+    define I where "I \<equiv> \<lambda>k. cbox (\<alpha> k) (\<beta> k)"
+    have ISuc_box: "I (Suc n) \<subseteq> box a b" for n
+      using pos unfolding I_def
+      by (intro subset_box_imp) (auto simp: \<alpha>_def \<beta>_def content_pos_lt_eq algebra_simps)
+    have ISucSuc: "I (Suc n) \<subseteq> I (Suc (Suc n))" for n
+    proof -
+      have "\<And>i. i \<in> Basis
+                 \<Longrightarrow> a \<bullet> i / Suc n + b \<bullet> i / (real n + 2)  \<le> b \<bullet> i / Suc n + a \<bullet> i / (real n + 2)"
+        using pos 
+        by (simp add: content_pos_lt_eq divide_simps) (auto simp: algebra_simps)
+      then show ?thesis
+        unfolding I_def
+        by (intro subset_box_imp) (auto simp: algebra_simps inverse_eq_divide \<alpha>_def \<beta>_def)
+    qed
+    have getN: "\<exists>N::nat. \<forall>k. k \<ge> N \<longrightarrow> x \<in> I k"
       if x: "x \<in> box a b" for x
     proof -
-      let ?\<Delta> = "(\<Union>i \<in> Basis. {((x - a) \<bullet> i) / ((b - a) \<bullet> i), (b - x) \<bullet> i / ((b - a) \<bullet> i)})"
-      obtain N where N: "real N > 1 / Inf ?\<Delta>"
+      define \<Delta> where "\<Delta> \<equiv> (\<Union>i \<in> Basis. {((x - a) \<bullet> i) / ((b - a) \<bullet> i), (b - x) \<bullet> i / ((b - a) \<bullet> i)})"
+      obtain N where N: "real N > 1 / Inf \<Delta>"
         using reals_Archimedean2 by blast
-      moreover have \<Delta>: "Inf ?\<Delta> > 0"
-        using that by (auto simp: finite_less_Inf_iff mem_box algebra_simps divide_simps)
+      moreover have \<Delta>: "Inf \<Delta> > 0"
+        using that by (auto simp: \<Delta>_def finite_less_Inf_iff mem_box algebra_simps divide_simps)
       ultimately have "N > 0"
         using of_nat_0_less_iff by fastforce
       show ?thesis
@@ -1676,9 +1718,9 @@ next
           by linarith
         have xa_gt: "(x - a) \<bullet> i > ((b - a) \<bullet> i) / (real k)" if "i \<in> Basis" for i
         proof -
-          have *: "Inf ?\<Delta> \<le> ((x - a) \<bullet> i) / ((b - a) \<bullet> i)"
-            using that by (force intro: cInf_le_finite)
-          have "1 / Inf ?\<Delta> \<ge> ((b - a) \<bullet> i) / ((x - a) \<bullet> i)"
+          have *: "Inf \<Delta> \<le> ((x - a) \<bullet> i) / ((b - a) \<bullet> i)"
+            unfolding \<Delta>_def using that by (force intro: cInf_le_finite)
+          have "1 / Inf \<Delta> \<ge> ((b - a) \<bullet> i) / ((x - a) \<bullet> i)"
             using le_imp_inverse_le [OF * \<Delta>]
             by (simp add: field_simps)
           with N have "k > ((b - a) \<bullet> i) / ((x - a) \<bullet> i)"
@@ -1688,9 +1730,9 @@ next
         qed
         have bx_gt: "(b - x) \<bullet> i > ((b - a) \<bullet> i) / k" if "i \<in> Basis" for i
         proof -
-          have *: "Inf ?\<Delta> \<le> ((b - x) \<bullet> i) / ((b - a) \<bullet> i)"
-            using that by (force intro: cInf_le_finite)
-          have "1 / Inf ?\<Delta> \<ge> ((b - a) \<bullet> i) / ((b - x) \<bullet> i)"
+          have *: "Inf \<Delta> \<le> ((b - x) \<bullet> i) / ((b - a) \<bullet> i)"
+            using that unfolding \<Delta>_def by (force intro: cInf_le_finite)
+          have "1 / Inf \<Delta> \<ge> ((b - a) \<bullet> i) / ((b - x) \<bullet> i)"
             using le_imp_inverse_le [OF * \<Delta>]
             by (simp add: field_simps)
           with N have "k > ((b - a) \<bullet> i) / ((b - x) \<bullet> i)"
@@ -1698,15 +1740,15 @@ next
           with x that show ?thesis
             by (auto simp: mem_box algebra_simps field_split_simps)
         qed
-        show "x \<in> cbox (a + (b - a) /\<^sub>R k) (b - (b - a) /\<^sub>R k)"
-          using that \<Delta> \<open>k > 0\<close>
-          by (auto simp: mem_box algebra_simps divide_inverse dest: xa_gt bx_gt)
+        show "x \<in> I k"
+          using that \<Delta> \<open>k > 0\<close> unfolding I_def
+          by (auto simp: \<alpha>_def \<beta>_def mem_box algebra_simps divide_inverse dest: xa_gt bx_gt)
       qed
     qed
-    obtain Bf where "Bf > 0" and Bf: "\<And>c d. cbox c d \<subseteq> box a b \<Longrightarrow> norm (integral (cbox c d) f) \<le> Bf"
-      using bo unfolding bounded_pos by blast
-    obtain Bg where "Bg > 0" and Bg:"\<And>c d. cbox c d \<subseteq> cbox a b \<Longrightarrow> \<bar>integral (cbox c d) g\<bar> \<le> Bg"
-      using bounded_integrals_over_subintervals [OF int_gab] unfolding bounded_pos real_norm_def by blast
+    obtain Bf where  Bf: "\<And>c d. cbox c d \<subseteq> box a b \<Longrightarrow> norm (integral (cbox c d) f) \<le> Bf"
+      using bo unfolding bounded_iff by blast
+    obtain Bg where Bg:"\<And>c d. cbox c d \<subseteq> cbox a b \<Longrightarrow> \<bar>integral (cbox c d) g\<bar> \<le> Bg"
+      using bounded_integrals_over_subintervals [OF int_gab] unfolding bounded_iff real_norm_def by blast
     show "(\<lambda>x. f x \<bullet> j) absolutely_integrable_on cbox a b"
       using g
     proof     \<comment> \<open>A lot of duplication in the two proofs\<close>
@@ -1715,67 +1757,61 @@ next
         by simp
       moreover have "(\<lambda>x. g x - (g x - (f x \<bullet> j))) integrable_on cbox a b"
       proof (rule Henstock_Kurzweil_Integration.integrable_diff [OF int_gab])
-        let ?\<phi> = "\<lambda>k x. if x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))
-                        then g x - f x \<bullet> j else 0"
+        define \<phi> where "\<phi> \<equiv> \<lambda>k x. if x \<in> I (Suc k) then g x - f x \<bullet> j else 0"
         have "(\<lambda>x. g x - f x \<bullet> j) integrable_on box a b"
-        proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1])
-          have *: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k)) \<inter> box a b
-                 = cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))" for k
-            using box_subset_cbox "1" by fastforce
-          show "?\<phi> k integrable_on box a b" for k
-            apply (simp add: integrable_restrict_Int integral_restrict_Int *)
-            apply (rule integrable_diff [OF integrable_on_subcbox [OF int_gab]])
-            using "*" box_subset_cbox apply blast
-            by (metis "1" int_f integrable_component of_nat_Suc)
-          have cb12: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))
-                    \<subseteq> cbox (a + (b - a) /\<^sub>R (2 + real k)) (b - (b - a) /\<^sub>R (2 + real k))" for k
-            using False content_eq_0
-            apply (simp add: subset_box algebra_simps)
-            apply (simp add: divide_simps)
-            apply (fastforce simp: field_simps)
-            done
-          show "?\<phi> k x \<le> ?\<phi> (Suc k) x" if "x \<in> box a b" for k x
-            using cb12 box_subset_cbox that by (force simp: intro!: fg)
-          show "(\<lambda>k. ?\<phi> k x) \<longlonglongrightarrow> g x - f x \<bullet> j" if x: "x \<in> box a b" for x
+        proof (rule monotone_convergence_increasing [of \<phi>, THEN conjunct1])
+          have *: "I (Suc k) \<inter> box a b = I (Suc k)" for k
+            using box_subset_cbox ISuc_box by fastforce
+          show "\<phi> k integrable_on box a b" for k
+          proof -
+            have "I (Suc k) \<subseteq> cbox a b"
+              using "*" box_subset_cbox by blast
+            moreover have "(\<lambda>m. f m \<bullet> j) integrable_on I (Suc k)"
+              by (metis ISuc_box I_def int_f integrable_component)
+            ultimately have "(\<lambda>m. g m - f m \<bullet> j) integrable_on I (Suc k)"
+              by (metis Henstock_Kurzweil_Integration.integrable_diff I_def int_gab integrable_on_subcbox)
+            then show ?thesis
+              by (simp add: "*" \<phi>_def integrable_restrict_Int)
+          qed
+          show "\<phi> k x \<le> \<phi> (Suc k) x" if "x \<in> box a b" for k x
+            using ISucSuc box_subset_cbox that by (force simp: \<phi>_def intro!: fg)
+          show "(\<lambda>k. \<phi> k x) \<longlonglongrightarrow> g x - f x \<bullet> j" if x: "x \<in> box a b" for x
           proof (rule tendsto_eventually)
-            obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> cbox (a + (b - a) /\<^sub>R real k) (b - (b - a) /\<^sub>R real k)"
+            obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> I k"
               using getN [OF x] by blast
-            show "\<forall>\<^sub>F k in sequentially. ?\<phi> k x = g x - f x \<bullet> j"
+            show "\<forall>\<^sub>F k in sequentially. \<phi> k x = g x - f x \<bullet> j"
             proof
               fix k::nat assume "N \<le> k"
-              have "x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))"
+              have "x \<in> I (Suc k)"
                 by (metis \<open>N \<le> k\<close> le_Suc_eq N)
-              then show "?\<phi> k x = g x - f x \<bullet> j"
-                by simp
+              then show "\<phi> k x = g x - f x \<bullet> j"
+                by (simp add: \<phi>_def)
             qed
           qed
-          have "\<bar>integral (box a b)
-                      (\<lambda>x. if x \<in> cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))
-                           then g x - f x \<bullet> j else 0)\<bar> \<le> Bg + Bf" for k
+          have "\<bar>integral (box a b) (\<lambda>x. if x \<in> I (Suc k) then g x - f x \<bullet> j else 0)\<bar> \<le> Bg + Bf" for k
           proof -
-            let ?I = "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))"
-            have I_int [simp]: "?I \<inter> box a b = ?I"
-              using 1 by (simp add: Int_absorb2)
-            have int_fI: "f integrable_on ?I"
-              by (metis I_int inf_le2 int_f)
-            then have "(\<lambda>x. f x \<bullet> j) integrable_on ?I"
-              by (simp add: integrable_component)
-            moreover have "g integrable_on ?I"
-              by (metis I_int inf.orderI int_gab integrable_on_open_interval integrable_on_subcbox)
+            have ABK_def [simp]: "I (Suc k) \<inter> box a b = I (Suc k)"
+              using ISuc_box by (simp add: Int_absorb2)
+            have int_fI: "f integrable_on I (Suc k)"
+              using ISuc_box I_def int_f by auto
             moreover
-            have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral ?I f)"
+            have "\<bar>integral (I (Suc k)) (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral (I (Suc k)) f)"
               by (simp add: Basis_le_norm int_fI \<open>j \<in> Basis\<close>)
-            with 1 I_int have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> Bf"
-              by (blast intro: order_trans [OF _ Bf])
-            ultimately show ?thesis
-              apply (simp add: integral_restrict_Int integral_diff)
-              using "*" box_subset_cbox by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
+            with ISuc_box ABK_def have "\<bar>integral (I (Suc k)) (\<lambda>x. f x \<bullet> j)\<bar> \<le> Bf"
+              by (metis Bf I_def \<open>j \<in> Basis\<close> int_fI integral_component_eq norm_bound_Basis_le) 
+            ultimately 
+            have "\<bar>integral (I (Suc k)) g - integral (I (Suc k)) (\<lambda>x. f x \<bullet> j)\<bar>  \<le> Bg + Bf"
+              using "*" box_subset_cbox unfolding I_def
+              by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
+            moreover have "g integrable_on I (Suc k)"
+              by (metis ISuc_box I_def int_gab integrable_on_open_interval integrable_on_subcbox)
+            moreover have "(\<lambda>x. f x \<bullet> j) integrable_on I (Suc k)"
+              using int_fI by (simp add: integrable_component)
+           ultimately show ?thesis
+              by (simp add: integral_restrict_Int integral_diff)
           qed
-          then show "bounded (range (\<lambda>k. integral (box a b) (?\<phi> k)))"
-            apply (simp add: bounded_pos)
-            apply (rule_tac x="Bg+Bf" in exI)
-            using \<open>0 < Bf\<close> \<open>0 < Bg\<close>  apply auto
-            done
+          then show "bounded (range (\<lambda>k. integral (box a b) (\<phi> k)))"
+            by (auto simp add: bounded_iff \<phi>_def)
         qed
         then show "(\<lambda>x. g x - f x \<bullet> j) integrable_on cbox a b"
           by (simp add: integrable_on_open_interval)
@@ -1783,76 +1819,57 @@ next
       ultimately have "(\<lambda>x. f x \<bullet> j) integrable_on cbox a b"
         by auto
       then show ?thesis
-        apply (rule absolutely_integrable_component_ubound [OF _ absint_g])
-        by (simp add: fg)
+        using absolutely_integrable_component_ubound [OF _ absint_g] fg by force
     next
       assume gf [rule_format]: "\<forall>x\<in>cbox a b. g x \<le> f x \<bullet> j"
       have "(\<lambda>x. (f x \<bullet> j)) = (\<lambda>x. ((f x \<bullet> j) - g x) + g x)"
         by simp
       moreover have "(\<lambda>x. (f x \<bullet> j - g x) + g x) integrable_on cbox a b"
       proof (rule Henstock_Kurzweil_Integration.integrable_add [OF _ int_gab])
-        let ?\<phi> = "\<lambda>k x. if x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))
-                        then f x \<bullet> j - g x else 0"
+        let ?\<phi> = "\<lambda>k x. if x \<in> I(Suc k) then f x \<bullet> j - g x else 0"
         have "(\<lambda>x. f x \<bullet> j - g x) integrable_on box a b"
         proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1])
-          have *: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k)) \<inter> box a b
-                 = cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))" for k
-            using box_subset_cbox "1" by fastforce
+          have *: "I (Suc k) \<inter> box a b = I (Suc k)" for k
+            using box_subset_cbox ISuc_box by fastforce
           show "?\<phi> k integrable_on box a b" for k
-            apply (simp add: integrable_restrict_Int integral_restrict_Int *)
-            apply (rule integrable_diff)
-              apply (metis "1" int_f integrable_component of_nat_Suc)
-             apply (rule integrable_on_subcbox [OF int_gab])
-            using "*" box_subset_cbox apply blast
-              done
-          have cb12: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))
-                    \<subseteq> cbox (a + (b - a) /\<^sub>R (2 + real k)) (b - (b - a) /\<^sub>R (2 + real k))" for k
-            using False content_eq_0
-            apply (simp add: subset_box algebra_simps)
-            apply (simp add: divide_simps)
-            apply (fastforce simp: field_simps)
-            done
+          proof (simp add: integrable_restrict_Int integral_restrict_Int *)
+            show "(\<lambda>x. f x \<bullet> j - g x) integrable_on I (Suc k)"
+              by (metis ISuc_box Henstock_Kurzweil_Integration.integrable_diff I_def int_f int_gab integrable_component integrable_on_open_interval integrable_on_subcbox)
+          qed
           show "?\<phi> k x \<le> ?\<phi> (Suc k) x" if "x \<in> box a b" for k x
-            using cb12 box_subset_cbox that by (force simp: intro!: gf)
+            using ISucSuc box_subset_cbox that by (force simp: I_def intro!: gf)
           show "(\<lambda>k. ?\<phi> k x) \<longlonglongrightarrow> f x \<bullet> j - g x" if x: "x \<in> box a b" for x
           proof (rule tendsto_eventually)
-            obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> cbox (a + (b - a) /\<^sub>R real k) (b - (b - a) /\<^sub>R real k)"
+            obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> I k"
               using getN [OF x] by blast
-            show "\<forall>\<^sub>F k in sequentially. ?\<phi> k x = f x \<bullet> j - g x"
-            proof
-              fix k::nat assume "N \<le> k"
-              have "x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))"
-                by (metis \<open>N \<le> k\<close> le_Suc_eq N)
-              then show "?\<phi> k x = f x \<bullet> j - g x"
-                by simp
-            qed
+            then show "\<forall>\<^sub>F k in sequentially. ?\<phi> k x = f x \<bullet> j - g x"
+              by (metis (no_types, lifting) eventually_at_top_linorderI le_Suc_eq)
           qed
           have "\<bar>integral (box a b)
-                      (\<lambda>x. if x \<in> cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))
-                           then f x \<bullet> j - g x else 0)\<bar> \<le> Bf + Bg" for k
+                      (\<lambda>x. if x \<in> I (Suc k) then f x \<bullet> j - g x else 0)\<bar> \<le> Bf + Bg" for k
           proof -
-            let ?I = "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))"
-            have I_int [simp]: "?I \<inter> box a b = ?I"
-              using 1 by (simp add: Int_absorb2)
-            have int_fI: "f integrable_on ?I"
-              by (simp add: inf.orderI int_f)
-            then have "(\<lambda>x. f x \<bullet> j) integrable_on ?I"
+            define ABK where "ABK \<equiv> cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))"
+            have ABK_eq [simp]: "ABK \<inter> box a b = ABK"
+              using "*" I_def \<alpha>_def \<beta>_def ABK_def by auto
+            have int_fI: "f integrable_on ABK"
+              unfolding ABK_def
+              using ISuc_box I_def \<alpha>_def \<beta>_def int_f by force
+            then have "(\<lambda>x. f x \<bullet> j) integrable_on ABK"
               by (simp add: integrable_component)
-            moreover have "g integrable_on ?I"
-              by (metis I_int inf.orderI int_gab integrable_on_open_interval integrable_on_subcbox)
+            moreover have "g integrable_on ABK"
+              by (metis ABK_def ABK_eq IntE box_subset_cbox int_gab integrable_on_subcbox subset_eq)
             moreover
-            have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral ?I f)"
+            have "\<bar>integral ABK (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral ABK f)"
               by (simp add: Basis_le_norm int_fI \<open>j \<in> Basis\<close>)
-            with 1 I_int have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> Bf"
-              by (blast intro: order_trans [OF _ Bf])
+            then have "\<bar>integral ABK (\<lambda>x. f x \<bullet> j)\<bar> \<le> Bf"
+              by (metis ABK_eq  ABK_def Bf IntE dual_order.trans subset_eq)
             ultimately show ?thesis
-              apply (simp add: integral_restrict_Int integral_diff)
-              using "*" box_subset_cbox by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
+              using "*" box_subset_cbox
+              apply (simp add: integral_restrict_Int integral_diff ABK_def I_def \<alpha>_def \<beta>_def)
+               by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
           qed
           then show "bounded (range (\<lambda>k. integral (box a b) (?\<phi> k)))"
-            apply (simp add: bounded_pos)
-            apply (rule_tac x="Bf+Bg" in exI)
-            using \<open>0 < Bf\<close> \<open>0 < Bg\<close>  by auto
+            by (auto simp add: bounded_iff)
         qed
         then show "(\<lambda>x. f x \<bullet> j - g x) integrable_on cbox a b"
           by (simp add: integrable_on_open_interval)
@@ -1860,15 +1877,10 @@ next
       ultimately have "(\<lambda>x. f x \<bullet> j) integrable_on cbox a b"
         by auto
       then show ?thesis
-        apply (rule absolutely_integrable_component_lbound [OF absint_g])
-        by (simp add: gf)
+        using absint_g absolutely_integrable_absolutely_integrable_lbound gf by blast
     qed
   qed
 qed
-
-subsection\<open>Second Mean Value Theorem\<close>
-
-
 
 subsection\<open>Second mean value theorem and corollaries\<close>
 
@@ -1921,10 +1933,12 @@ proof -
     let ?\<mu> = "Inf {x. g x \<ge> y}"
     case False
     have lower: "?\<mu> \<le> x" if "g x \<ge> y" for x
-      apply (rule cInf_lower)
-      using False
-       apply (auto simp: that bdd_below_def)
-      by (meson dual_order.trans g linear)
+    proof (rule cInf_lower)
+      show "x \<in> {x. y \<le> g x}"
+        using False by (auto simp: that)
+      show "bdd_below {x. y \<le> g x}"
+        by (metis False bdd_belowI dual_order.trans g linear mem_Collect_eq)
+    qed
     have greatest: "?\<mu> \<ge> z" if  "(\<And>x. g x \<ge> y \<Longrightarrow> z \<le> x)" for z
       by (metis False cInf_greatest empty_iff mem_Collect_eq that)
     show ?thesis
@@ -1936,7 +1950,7 @@ proof -
         by (force simp: \<zeta>)
     next
       case False
-      have "(y \<le> g x) = (?\<mu> < x)" for x
+      have "(y \<le> g x) \<longleftrightarrow> (?\<mu> < x)" for x
       proof
         show "?\<mu> < x" if "y \<le> g x"
           using that False less_eq_real_def lower by blast
@@ -1949,9 +1963,7 @@ proof -
     qed
   qed auto
   show ?thesis
-    apply (rule equiintegrable_on_subset [OF equiintegrable_on_Un [OF gt equiintegrable_on_Un [OF ge equiintegrable_on_Un [OF ffab 0]]]])
-    using \<dagger> apply (simp add: UN_subset_iff)
-    done
+    using \<dagger> by (simp add: UN_subset_iff equiintegrable_on_subset [OF equiintegrable_on_Un [OF gt equiintegrable_on_Un [OF ge equiintegrable_on_Un [OF ffab 0]]]])
 qed
 
 
@@ -1992,15 +2004,19 @@ proof -
     have "\<exists>d. d \<in> {a..b} \<and> integral {a..b} (\<lambda>x. if g x \<ge> y then f x else 0) = integral {d..b} f" for y
     proof -
       let ?X = "{x. g x \<ge> y}"
-      have *: "\<exists>a. ?X = {x. a \<le> x} \<or> ?X = {x. a < x}"
+      have *: "\<exists>a. ?X = {a..} \<or> ?X = {a<..}"
         if 1: "?X \<noteq> {}" and 2: "?X \<noteq> UNIV"
       proof -
         let ?\<mu> = "Inf{x. g x \<ge> y}"
         have lower: "?\<mu> \<le> x" if "g x \<ge> y" for x
-          apply (rule cInf_lower)
-          using 1 2 apply (auto simp: that bdd_below_def)
-          by (meson dual_order.trans g linear)
-        have greatest: "?\<mu> \<ge> z" if  "(\<And>x. g x \<ge> y \<Longrightarrow> z \<le> x)" for z
+        proof (rule cInf_lower)
+          show "x \<in> {x. y \<le> g x}"
+            using 1 2 by (auto simp: that)
+          show "bdd_below {x. y \<le> g x}"
+            unfolding bdd_below_def
+            by (metis "2" UNIV_eq_I dual_order.trans g less_eq_real_def mem_Collect_eq not_le)
+        qed
+        have greatest: "?\<mu> \<ge> z" if "\<And>x. g x \<ge> y \<Longrightarrow> z \<le> x" for z
           by (metis cInf_greatest mem_Collect_eq that 1)
         show ?thesis
         proof (cases "g ?\<mu> \<ge> y")
@@ -2023,51 +2039,43 @@ proof -
             by (force simp: \<zeta>)
         qed
       qed
-      then consider "?X = {}" | "?X = UNIV" | d where "?X = {x. d \<le> x} \<or>?X = {x. d < x}"
+      then consider "?X = {}" | "?X = UNIV" | (intv) d where "?X = {d..} \<or> ?X = {d<..}"
         by metis
       then have "\<exists>d. d \<in> {a..b} \<and> integral {a..b} (\<lambda>x. if x \<in> ?X then f x else 0) = integral {d..b} f"
       proof cases
-        case 1
-        then show ?thesis
-          using \<open>a \<le> b\<close> by auto
-      next
-        case 2
-        then show ?thesis
-          using \<open>a \<le> b\<close> by auto
-      next
-        case (3 d)
+        case (intv d)
         show ?thesis
         proof (cases "d < a")
           case True
-          with 3 show ?thesis
-            apply (rule_tac x=a in exI)
-            apply (auto simp: \<open>a \<le> b\<close> iff del: mem_Collect_eq intro!: Henstock_Kurzweil_Integration.integral_cong, simp_all)
-            done
+          with intv have "integral {a..b} (\<lambda>x. if y \<le> g x then f x else 0) = integral {a..b} f"
+            by (intro Henstock_Kurzweil_Integration.integral_cong) force
+          then show ?thesis
+            by (rule_tac x=a in exI) (simp add: \<open>a \<le> b\<close>)
         next
           case False
           show ?thesis
           proof (cases "b < d")
             case True
             have "integral {a..b} (\<lambda>x. if x \<in> {x. y \<le> g x} then f x else 0) = integral {a..b} (\<lambda>x. 0)"
-              by (rule Henstock_Kurzweil_Integration.integral_cong) (use 3 True in fastforce)
+              by (rule Henstock_Kurzweil_Integration.integral_cong) (use intv True in fastforce)
             then show ?thesis
               using \<open>a \<le> b\<close> by auto
           next
             case False
-            with \<open>\<not> d < a\<close> have eq: "Collect ((\<le>) d) \<inter> {a..b} = {d..b}" "Collect ((<) d) \<inter> {a..b} = {d<..b}"
+            with \<open>\<not> d < a\<close> have eq: "{d..} \<inter> {a..b} = {d..b}" "{d<..} \<inter> {a..b} = {d<..b}"
               by force+
             moreover have "integral {d<..b} f = integral {d..b} f"
               by (rule integral_spike_set [OF empty_imp_negligible negligible_subset [OF negligible_sing [of d]]]) auto
-            ultimately
-            show ?thesis
-              using \<open>\<not> d < a\<close> False 3
-              apply (rule_tac x=d in exI)
-              apply (auto simp: \<open>a \<le> b\<close> iff del: mem_Collect_eq; subst Henstock_Kurzweil_Integration.integral_restrict_Int)
-               apply (simp_all add: \<open>a \<le> b\<close> not_less eq)
-              done
+            ultimately 
+            have "integral {a..b} (\<lambda>x. if x \<in> {x. y \<le> g x} then f x else 0) =  integral {d..b} f"
+              unfolding integral_restrict_Int using intv by presburger
+            moreover have "d \<in> {a..b}"
+              using \<open>\<not> d < a\<close> \<open>a \<le> b\<close> False by auto
+            ultimately show ?thesis
+              by auto
           qed
         qed
-      qed
+      qed (use \<open>a \<le> b\<close> in auto)
       then show ?thesis
         by auto
     qed
@@ -2179,14 +2187,12 @@ proof -
       proof (rule tendsto_unique)
         show "(\<lambda>n. integral {c(\<sigma> n)..b} f) \<longlonglongrightarrow> integral {a..b} (\<lambda>x. g x *\<^sub>R f x)"
           using ** by (simp add: c \<phi>_def)
-        show "(\<lambda>n. integral {c(\<sigma> n)..b} f) \<longlonglongrightarrow> integral {d..b} f"
-          using indefinite_integral_continuous_1' [OF f]
-          using d unfolding o_def
-          apply (simp add: continuous_on_eq_continuous_within)
-          apply (drule_tac x=d in bspec)
-          using \<open>d \<in> {a..b}\<close> apply blast
-          apply (simp add: continuous_within_sequentially o_def)
-          using cab by auto
+        have "continuous (at d within {a..b}) (\<lambda>x. integral {x..b} f)"
+          using indefinite_integral_continuous_1' [OF f] \<open>d \<in> {a..b}\<close> 
+          by (simp add: continuous_on_eq_continuous_within)
+        then show "(\<lambda>n. integral {c(\<sigma> n)..b} f) \<longlonglongrightarrow> integral {d..b} f"
+          using d cab unfolding o_def
+          by (simp add: continuous_within_sequentially o_def)
       qed auto
     qed
   qed
@@ -2259,8 +2265,7 @@ corollary second_mean_value_theorem:
   assumes f: "f integrable_on {a..b}" and "a \<le> b"
    and g: "\<And>x y. \<lbrakk>a \<le> x; x \<le> y; y \<le> b\<rbrakk> \<Longrightarrow> g x \<le> g y"
  obtains c where "c \<in> {a..b}"
-                 "integral {a..b} (\<lambda>x. g x * f x)
-                = g a * integral {a..c} f + g b * integral {c..b} f"
+                 "integral {a..b} (\<lambda>x. g x * f x) = g a * integral {a..c} f + g b * integral {c..b} f"
     using second_mean_value_theorem_full [where g=g, OF assms]
     by (metis (full_types) integral_unique)
 
