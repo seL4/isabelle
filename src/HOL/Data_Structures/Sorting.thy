@@ -27,7 +27,7 @@ fun isort :: "'a::linorder list \<Rightarrow> 'a list" where
 
 subsubsection "Functional Correctness"
 
-lemma mset_insort: "mset (insort x xs) = add_mset x (mset xs)"
+lemma mset_insort: "mset (insort x xs) = {#x#} + mset xs"
 apply(induction xs)
 apply auto
 done
@@ -39,7 +39,7 @@ apply (simp add: mset_insort)
 done
 
 lemma set_insort: "set (insort x xs) = insert x (set xs)"
-by (metis mset_insort set_mset_add_mset_insert set_mset_mset)
+by(simp add: mset_insort flip: set_mset_mset)
 
 lemma sorted_insort: "sorted (insort a xs) = sorted xs"
 apply(induction xs)
@@ -386,7 +386,7 @@ fun isort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Righta
 
 subsubsection "Standard functional correctness"
 
-lemma mset_insort_key: "mset (insort_key f x xs) = add_mset x (mset xs)"
+lemma mset_insort_key: "mset (insort_key f x xs) = {#x#} + mset xs"
 by(induction xs) simp_all
 
 lemma mset_isort_key: "mset (isort_key f xs) = mset xs"
