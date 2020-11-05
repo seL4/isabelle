@@ -1002,7 +1002,7 @@ definition\<^marker>\<open>tag important\<close> tagged_partial_division_of (inf
     (\<forall>x1 K1 x2 K2. (x1, K1) \<in> s \<and> (x2, K2) \<in> s \<and> (x1, K1) \<noteq> (x2, K2) \<longrightarrow>
       interior K1 \<inter> interior K2 = {})"
 
-lemma tagged_partial_division_ofD[dest]:
+lemma tagged_partial_division_ofD:
   assumes "s tagged_partial_division_of i"
   shows "finite s"
     and "\<And>x K. (x,K) \<in> s \<Longrightarrow> x \<in> K"
@@ -2235,7 +2235,7 @@ lemma tagged_division_finer:
     and "\<forall>(x,k) \<in> p. k \<subseteq> d(x) \<longrightarrow> (x,k) \<in> q"
 proof -
   have p: "finite p" "p tagged_partial_division_of (cbox a b)"
-    using ptag unfolding tagged_division_of_def by auto
+    using ptag tagged_division_of_def by blast+
   have "(\<exists>q. q tagged_division_of (\<Union>{k. \<exists>x. (x,k) \<in> p}) \<and> d fine q \<and> (\<forall>(x,k) \<in> p. k \<subseteq> d(x) \<longrightarrow> (x,k) \<in> q))" 
     if "finite p" "p tagged_partial_division_of (cbox a b)" "gauge d" for p
     using that
