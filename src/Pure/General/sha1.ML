@@ -148,10 +148,10 @@ local
 val library_path =
   Path.explode ("$ML_HOME/" ^ (if ML_System.platform_is_windows then "sha1.dll" else "libsha1.so"));
 
-fun library_call args =
+val library_call =
   Foreign.buildCall3
     (Foreign.getSymbol (Foreign.loadLibrary (File.platform_path library_path)) "sha1_buffer",
-      (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer) args;
+      (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer);
 
 fun with_memory n =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn f =>
