@@ -326,7 +326,7 @@ lemma mset_get_min_rest:
 using assms
 by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits if_splits)
 
-lemma seT_get_min_rest:
+lemma set_get_min_rest:
   assumes "get_min_rest ts = (t', ts')"
   assumes "ts\<noteq>[]"
   shows "set ts = Set.insert t' (set ts')"
@@ -345,7 +345,7 @@ proof -
       case (2 t v va)
       then show ?case
         apply (clarsimp split: prod.splits if_splits)
-        apply (drule seT_get_min_rest; fastforce)
+        apply (drule set_get_min_rest; fastforce)
         done
     qed auto
   thus "invar_btree t'" and "invar_bheap ts'" by auto
