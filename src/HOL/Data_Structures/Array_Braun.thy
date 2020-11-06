@@ -444,12 +444,12 @@ declare brauns.simps[simp del]
 definition brauns1 :: "'a list \<Rightarrow> 'a tree" where
 "brauns1 xs = (if xs = [] then Leaf else brauns 0 xs ! 0)"
 
-fun t_brauns :: "nat \<Rightarrow> 'a list \<Rightarrow> nat" where
-"t_brauns k xs = (if xs = [] then 0 else
+fun T_brauns :: "nat \<Rightarrow> 'a list \<Rightarrow> nat" where
+"T_brauns k xs = (if xs = [] then 0 else
    let ys = take (2^k) xs;
        zs = drop (2^k) xs;
        ts = brauns (k+1) zs
-   in 4 * min (2^k) (length xs) + t_brauns (k+1) zs)"
+   in 4 * min (2^k) (length xs) + T_brauns (k+1) zs)"
 
 
 paragraph "Functional correctness"
@@ -498,8 +498,8 @@ by (simp add: brauns1_def braun_list_eq take_nths_00)
 
 paragraph "Running Time Analysis"
 
-theorem t_brauns:
-  "t_brauns k xs = 4 * length xs"
+theorem T_brauns:
+  "T_brauns k xs = 4 * length xs"
 proof (induction xs arbitrary: k rule: measure_induct_rule[where f = length])
   case (less xs)
   show ?case
@@ -509,7 +509,7 @@ proof (induction xs arbitrary: k rule: measure_induct_rule[where f = length])
   next
     assume "xs \<noteq> []"
     let ?zs = "drop (2^k) xs"
-    have "t_brauns k xs = t_brauns (k+1) ?zs + 4 * min (2^k) (length xs)"
+    have "T_brauns k xs = T_brauns (k+1) ?zs + 4 * min (2^k) (length xs)"
      using \<open>xs \<noteq> []\<close> by(simp)
     also have "\<dots> = 4 * length ?zs + 4 * min (2^k) (length xs)"
       using less[of ?zs "k+1"] \<open>xs \<noteq> []\<close>
@@ -555,10 +555,10 @@ declare list_fast_rec.simps[simp del]
 definition list_fast :: "'a tree \<Rightarrow> 'a list" where
 "list_fast t = list_fast_rec [t]"
 
-function t_list_fast_rec :: "'a tree list \<Rightarrow> nat" where
-"t_list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts
+function T_list_fast_rec :: "'a tree list \<Rightarrow> nat" where
+"T_list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts
   in length ts + (if us = [] then 0 else
-  5 * length us + t_list_fast_rec (map left us @ map right us)))"
+  5 * length us + T_list_fast_rec (map left us @ map right us)))"
 by (pat_completeness, auto)
 
 termination
@@ -567,7 +567,7 @@ termination
   apply (simp add: list_fast_rec_term)
   done
 
-declare t_list_fast_rec.simps[simp del]
+declare T_list_fast_rec.simps[simp del]
 
 paragraph "Functional Correctness"
 
@@ -637,21 +637,21 @@ lemma sum_tree_list_children: "\<forall>t \<in> set ts. t \<noteq> Leaf \<Longri
   (\<Sum>t\<leftarrow>ts. k * size t) = (\<Sum>t \<leftarrow> map left ts @ map right ts. k * size t) + k * length ts"
 by(induction ts)(auto simp add: neq_Leaf_iff algebra_simps)
 
-theorem t_list_fast_rec_ub:
-  "t_list_fast_rec ts \<le> sum_list (map (\<lambda>t. 7*size t + 1) ts)"
+theorem T_list_fast_rec_ub:
+  "T_list_fast_rec ts \<le> sum_list (map (\<lambda>t. 7*size t + 1) ts)"
 proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
   case (less ts)
   let ?us = "filter (\<lambda>t. t \<noteq> Leaf) ts"
   show ?case
   proof cases
     assume "?us = []"
-    thus ?thesis using t_list_fast_rec.simps[of ts]
+    thus ?thesis using T_list_fast_rec.simps[of ts]
       by(simp add: sum_list_Suc)
     next
     assume "?us \<noteq> []"
     let ?children = "map left ?us @ map right ?us"
-    have "t_list_fast_rec ts = t_list_fast_rec ?children + 5 * length ?us + length ts"
-     using \<open>?us \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp)
+    have "T_list_fast_rec ts = T_list_fast_rec ?children + 5 * length ?us + length ts"
+     using \<open>?us \<noteq> []\<close> T_list_fast_rec.simps[of ts] by(simp)
     also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 7 * size t + 1) + 5 * length ?us + length ts"
       using less[of "?children"] list_fast_rec_term[of "?us"] \<open>?us \<noteq> []\<close>
       by (simp)
