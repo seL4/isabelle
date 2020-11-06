@@ -2255,6 +2255,9 @@ lemma take_butlast: "n < length xs \<Longrightarrow> take n (butlast xs) = take 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
   by (simp add: butlast_conv_take drop_take ac_simps)
 
+lemma butlast_power: "(butlast ^^ n) xs = take (length xs - n) xs"
+  by (induct n) (auto simp: butlast_take)
+
 lemma hd_drop_conv_nth: "n < length xs \<Longrightarrow> hd(drop n xs) = xs!n"
   by(simp add: hd_conv_nth)
 
