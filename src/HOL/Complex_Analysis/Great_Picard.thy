@@ -42,14 +42,10 @@ lemma Schottky_lemma1:
   assumes "0 < n"
   shows "0 < n + sqrt(real n ^ 2 - 1)"
 proof -
-  have "(n-1)^2 \<le> n^2 - 1"
-    using assms by (simp add: algebra_simps power2_eq_square)
-  then have "real (n - 1) \<le> sqrt (real (n\<^sup>2 - 1))"
-    by (metis of_nat_le_iff of_nat_power real_le_rsqrt)
-  then have "n-1 \<le> sqrt(real n ^ 2 - 1)"
-    by (simp add: Suc_leI assms of_nat_diff)
+  have "0 < n * n"
+    by (simp add: assms)
   then show ?thesis
-    using assms by linarith
+    by (metis add.commute add.right_neutral add_pos_nonneg assms diff_ge_0_iff_ge nat_less_real_le of_nat_0 of_nat_0_less_iff of_nat_power power2_eq_square real_sqrt_ge_0_iff)
 qed
 
 
@@ -131,8 +127,8 @@ proof -
       have "((1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) / (real n + sqrt ((real n)\<^sup>2 - 1))) \<le> 2"
         using Schottky_lemma1 \<open>0 < n\<close>  by (simp add: field_split_simps)
       then have "ln ((1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) / (real n + sqrt ((real n)\<^sup>2 - 1))) \<le> ln 2"
-        apply (subst ln_le_cancel_iff)
-        using Schottky_lemma1 \<open>0 < n\<close> by auto (force simp: field_split_simps)
+        using Schottky_lemma1 [of n] \<open>0 < n\<close> 
+        by (simp add: field_split_simps add_pos_nonneg)
       also have "... \<le> 3"
         using ln_add_one_self_le_self [of 1] by auto
       finally show ?thesis .
@@ -146,11 +142,11 @@ proof -
     by (auto simp: abs_if)
   then show thesis
   proof
-    assume "\<bar>x - a\<bar> < 1 / 2"
+    assume "\<bar>x - a\<bar> < 1/2"
     then show ?thesis
       by (rule_tac n=n in that) (auto simp: a_def \<open>0 < n\<close>)
   next
-    assume "\<bar>x - b\<bar> < 1 / 2"
+    assume "\<bar>x - b\<bar> < 1/2"
     then show ?thesis
       by (rule_tac n="Suc n" in that) (auto simp: b_def \<open>0 < n\<close>)
   qed
@@ -165,54 +161,65 @@ lemma Schottky_lemma3:
 proof -
   have sqrt2 [simp]: "complex_of_real (sqrt x) * complex_of_real (sqrt x) = x" if "x \<ge> 0" for x::real
     by (metis abs_of_nonneg of_real_mult real_sqrt_mult_self that)
-  have 1: "\<exists>k. exp (\<i> * (of_int m * complex_of_real pi) -
-                 (ln (real n + sqrt ((real n)\<^sup>2 - 1)))) +
-            inverse
-             (exp (\<i> * (of_int m * complex_of_real pi) -
-                    (ln (real n + sqrt ((real n)\<^sup>2 - 1))))) = of_int k * 2"
+  define plusi where "plusi (e::complex) \<equiv> e + inverse e" for e
+  have 1: "\<exists>k. plusi (exp (\<i> * (of_int m * complex_of_real pi) - ln (real n + sqrt ((real n)\<^sup>2 - 1)))) = of_int k * 2" 
+           (is "\<exists>k. ?\<Phi> k")
          if "n > 0" for m n
   proof -
-    have eeq: "e \<noteq> 0 \<Longrightarrow> e + inverse e = n*2 \<longleftrightarrow> inverse e^2 - 2 * n*inverse e + 1 = 0" for n e::complex
-      by (auto simp: field_simps power2_eq_square)
+    have eeq: "e \<noteq> 0 \<Longrightarrow> plusi e = n \<longleftrightarrow> (inverse e) ^ 2 = n/e - 1" for n e::complex
+      by (auto simp: plusi_def field_simps power2_eq_square)
     have [simp]: "1 \<le> real n * real n"
-      by (metis One_nat_def add.commute nat_less_real_le of_nat_1 of_nat_Suc one_le_power power2_eq_square that)
-    show ?thesis
-      apply (simp add: eeq)
-      using Schottky_lemma1 [OF that]
-      apply (auto simp: eeq exp_diff exp_Euler exp_of_real algebra_simps sin_int_times_real cos_int_times_real)
-       apply (rule_tac x="int n" in exI)
-       apply (auto simp: power2_eq_square algebra_simps)
-       apply (rule_tac x="- int n" in exI)
-      apply (auto simp: power2_eq_square algebra_simps)
-      done
+      using nat_0_less_mult_iff nat_less_real_le that by force
+    consider "odd m" | "even m"
+      by blast
+    then have "\<exists>k. ?\<Phi> k"
+    proof cases
+      case 1
+      then have "?\<Phi> (- n)"
+        using Schottky_lemma1 [OF that]
+        by (simp add: eeq) (simp add: power2_eq_square exp_diff exp_Euler exp_of_real algebra_simps sin_int_times_real cos_int_times_real)
+      then show ?thesis ..
+    next
+      case 2
+      then have "?\<Phi> n"
+        using Schottky_lemma1 [OF that]
+        by (simp add: eeq) (simp add: power2_eq_square exp_diff exp_Euler exp_of_real algebra_simps)
+      then show ?thesis ..
+    qed
+    then show ?thesis by blast
   qed
-  have 2: "\<exists>k. exp (\<i> * (of_int m * complex_of_real pi) +
-                 (ln (real n + sqrt ((real n)\<^sup>2 - 1)))) +
-            inverse
-             (exp (\<i> * (of_int m * complex_of_real pi) +
-                    (ln (real n + sqrt ((real n)\<^sup>2 - 1))))) = of_int k * 2"
+  have 2: "\<exists>k. plusi (exp (\<i> * (of_int m * complex_of_real pi) +
+                      (ln (real n + sqrt ((real n)\<^sup>2 - 1))))) = of_int k * 2"
+           (is "\<exists>k. ?\<Phi> k")
             if "n > 0" for m n
   proof -
-    have eeq: "e \<noteq> 0 \<Longrightarrow> e + inverse e = n*2 \<longleftrightarrow> e^2 - 2 * n*e + 1 = 0" for n e::complex
-      by (auto simp: field_simps power2_eq_square)
+    have eeq: "e \<noteq> 0 \<Longrightarrow> plusi e = n \<longleftrightarrow> e^2 - n*e + 1 = 0" for n e::complex
+      by (auto simp: plusi_def field_simps power2_eq_square)
     have [simp]: "1 \<le> real n * real n"
       by (metis One_nat_def add.commute nat_less_real_le of_nat_1 of_nat_Suc one_le_power power2_eq_square that)
-    show ?thesis
-      apply (simp add: eeq)
-      using Schottky_lemma1 [OF that]
-      apply (auto simp: exp_add exp_Euler exp_of_real algebra_simps sin_int_times_real cos_int_times_real)
-       apply (rule_tac x="int n" in exI)
-       apply (auto simp: power2_eq_square algebra_simps)
-       apply (rule_tac x="- int n" in exI)
-      apply (auto simp: power2_eq_square algebra_simps)
-      done
+    consider "odd m" | "even m"
+      by blast
+    then have "\<exists>k. ?\<Phi> k"
+    proof cases
+      case 1
+      then have "?\<Phi> (- n)"
+        using Schottky_lemma1 [OF that]
+        by (simp add: eeq) (simp add: power2_eq_square exp_add exp_Euler exp_of_real algebra_simps sin_int_times_real cos_int_times_real)
+      then show ?thesis ..
+    next
+      case 2
+      then have "?\<Phi> n"
+        using Schottky_lemma1 [OF that]
+        by (simp add: eeq) (simp add: power2_eq_square exp_add exp_Euler exp_of_real algebra_simps)
+      then show ?thesis ..
+    qed
+    then show ?thesis by blast
   qed
   have "\<exists>x. cos (complex_of_real pi * z) = of_int x"
     using assms
-    apply safe
-      apply (auto simp: Ints_def cos_exp_eq exp_minus Complex_eq)
+    apply (auto simp: Ints_def cos_exp_eq exp_minus Complex_eq simp flip: plusi_def)
      apply (auto simp: algebra_simps dest: 1 2)
-      done
+    done
   then have "sin(pi * cos(pi * z)) ^ 2 = 0"
     by (simp add: Complex_Transcendental.sin_eq_0)
   then have "1 - cos(pi * cos(pi * z)) ^ 2 = 0"
@@ -251,12 +258,10 @@ proof -
   proof -
     have "cmod (2 * f 0 - 1) \<le> cmod (2 * f 0) + 1"
       by (metis norm_one norm_triangle_ineq4)
-    also have "... \<le> 2 + cmod (f 0) * 3"
-      by simp
+    also have "... \<le> 6 + 9 * cmod (f 0)"
+      by auto
     finally have "1 + norm(2 * f 0 - 1) / 3 \<le> (2 + norm(f 0) - 1) * 3"
-      apply (simp add: field_split_simps)
-      using norm_ge_zero [of "f 0 * 2 - 1"]
-      by linarith
+      by (simp add: divide_simps)
     with nh0 have "norm(h 0) \<le> (2 + norm(f 0) - 1) * 3"
       by linarith
     then have "1 + norm(h 0) / 3 \<le> 2 + norm(f 0)"
@@ -277,12 +282,11 @@ proof -
     proof -
       have w: "w \<in> ball 0 1"
         using segment_bound [OF that] \<open>z \<in> ball 0 1\<close> by simp
-      have ttt: "\<And>z. z \<in> frontier (cball 0 1) \<Longrightarrow> 1 - t \<le> dist w z"
-        using \<open>norm z \<le> t\<close> segment_bound1 [OF \<open>w \<in> closed_segment 0 z\<close>]
-        apply (simp add: dist_complex_def)
-        by (metis diff_left_mono dist_commute dist_complex_def norm_triangle_ineq2 order_trans)
       have *: "\<lbrakk>\<And>b. (\<exists>w \<in> T \<union> U. w \<in> ball b 1); \<And>x. x \<in> D \<Longrightarrow> g x \<notin> T \<union> U\<rbrakk> \<Longrightarrow> \<nexists>b. ball b 1 \<subseteq> g ` D" for T U D
         by force
+      have ttt: "1 - t \<le> dist w u" if "cmod u = 1" for u
+        using \<open>norm z \<le> t\<close> segment_bound1 [OF \<open>w \<in> closed_segment 0 z\<close>] norm_triangle_ineq2 [of u w] that
+        by (simp add: dist_norm norm_minus_commute)
       have "\<nexists>b. ball b 1 \<subseteq> g ` cball 0 1"
       proof (rule *)
         show "(\<exists>w \<in> (\<Union>m \<in> Ints. \<Union>n \<in> {0<..}. {Complex m (ln(n + sqrt(real n ^ 2 - 1)) / pi)}) \<union>
@@ -304,8 +308,7 @@ proof -
               by (simp add: dist_triangle_lt [of b "Complex m (Im b)"] dist_commute)
             with le m \<open>0 < n\<close> show ?thesis
               apply (rule_tac x = "Complex m (ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi)" in bexI)
-               apply (simp_all del: Complex_eq greaterThan_0)
-              by blast
+               by (force simp del: Complex_eq greaterThan_0)+
           next
             case ge
             then obtain n where "0 < n" and n: "\<bar>- Im b - ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi\<bar> < 1/2"
@@ -313,16 +316,13 @@ proof -
             have "dist b (Complex m (Im b)) \<le> 1/2"
               by (metis cancel_comm_monoid_add_class.diff_cancel cmod_eq_Re complex.sel(1) complex.sel(2) dist_norm m(2) minus_complex.code)
             moreover
-            have "dist (Complex m (- ln (n + sqrt ((real n)\<^sup>2 - 1)) / pi)) (Complex m (Im b)) < 1/2"
-              using n
-              apply (simp add: complex_norm cmod_eq_Re complex_diff dist_norm del: Complex_eq)
-              by (metis add.commute add_uminus_conv_diff)
+            have "dist (Complex m (- ln (n + sqrt ((real n)\<^sup>2 - 1)) / pi)) (Complex m (Im b)) 
+                = \<bar> - Im b - ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi\<bar>"
+              by (simp add: complex_norm dist_norm cmod_eq_Re complex_diff)
             ultimately have "dist b (Complex m (- ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi)) < 1"
-              by (simp add: dist_triangle_lt [of b "Complex m (Im b)"] dist_commute)
+              using n by (simp add: dist_triangle_lt [of b "Complex m (Im b)"] dist_commute)
             with ge m \<open>0 < n\<close> show ?thesis
-              apply (rule_tac x = "Complex m (- ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi)" in bexI)
-               apply (simp_all del: Complex_eq greaterThan_0)
-              by blast
+              by (rule_tac x = "Complex m (- ln (real n + sqrt ((real n)\<^sup>2 - 1)) / pi)" in bexI) auto
           qed
         qed
         show "g v \<notin> (\<Union>m \<in> Ints. \<Union>n \<in> {0<..}. {Complex m (ln(n + sqrt(real n ^ 2 - 1)) / pi)}) \<union>
@@ -396,8 +396,10 @@ proof -
         using Rpos by blast
       have holg: "g holomorphic_on cball 0 1"
         unfolding g_def
-        apply (intro holomorphic_intros holomorphic_on_compose holomorphic_on_subset [OF holf])
-        using Rpos by (auto simp: less_imp_le norm_mult)
+      proof (intro holomorphic_intros holomorphic_on_compose holomorphic_on_subset [OF holf])
+        show "(*) (complex_of_real (R (f 0))) ` cball 0 1 \<subseteq> cball 0 (R (f 0))"
+          using Rpos by (auto simp: less_imp_le norm_mult)
+      qed
       have *: "norm(g z) \<le> exp(pi * exp(pi * (2 + 2 * norm (f 0) + 12 * t / (1 - t))))"
            if "0 < t" "t < 1" "norm z \<le> t" for t z
       proof (rule Schottky [OF holg])
@@ -406,9 +408,9 @@ proof -
         show "\<And>z. z \<in> cball 0 1 \<Longrightarrow> \<not> (g z = 0 \<or> g z = 1)"
           using Rpos by (simp add: g_def less_imp_le norm_mult Rf)
       qed (auto simp: that)
-      have C1: "g holomorphic_on ball 0 (1 / 2)"
+      have C1: "g holomorphic_on ball 0 (1/2)"
         by (rule holomorphic_on_subset [OF holg]) auto
-      have C2: "continuous_on (cball 0 (1 / 2)) g"
+      have C2: "continuous_on (cball 0 (1/2)) g"
         by (meson cball_divide_subset_numeral holg holomorphic_on_imp_continuous_on holomorphic_on_subset)
       have C3: "cmod (g z) \<le> R (f 0) / 3" if "cmod (0 - z) = 1/2" for z
       proof -
@@ -426,9 +428,8 @@ proof -
         by (rule holomorphic_on_imp_differentiable_at [OF _ open_ball])
            (auto simp: Rpos [of "f 0"])
       have g_eq: "deriv g 0 = of_real ?r * deriv f 0"
-        apply (rule DERIV_imp_deriv)
-        apply (simp add: g_def)
-        by (metis DERIV_chain DERIV_cmult_Id fd0 field_differentiable_derivI mult.commute mult_zero_right)
+        unfolding g_def
+        by (metis DERIV_imp_deriv DERIV_chain DERIV_cmult_Id fd0 field_differentiable_derivI mult.commute mult_zero_right)
       show ?thesis
         using cmod_g'_le Rpos [of "f 0"]  by (simp add: g_eq norm_mult)
     qed
@@ -449,10 +450,10 @@ proof -
   show ?thesis
   proof (cases "\<forall>x. deriv f x = 0")
     case True
-    obtain c where "\<And>x. f(x) = c"
-      apply (rule DERIV_zero_connected_constant [OF connected_UNIV open_UNIV finite.emptyI contf])
-       apply (metis True DiffE holf holomorphic_derivI open_UNIV, auto)
-      done
+    have "(f has_field_derivative 0) (at x)" for x
+      by (metis True UNIV_I holf holomorphic_derivI open_UNIV)
+    then obtain c where "\<And>x. f(x) = c"
+      by (meson UNIV_I DERIV_zero_connected_constant [OF connected_UNIV open_UNIV finite.emptyI contf])
     then show ?thesis
       using that by auto
   next
@@ -468,12 +469,9 @@ proof -
         using f01 by (simp add: fw_def)
     qed
     have "(fw has_field_derivative deriv f w * inverse (deriv f w)) (at 0)"
-      apply (simp add: fw_def)
-      apply (rule DERIV_chain)
-      using holf holomorphic_derivI apply force
-      apply (intro derivative_eq_intros w)
-          apply (auto simp: field_simps)
-      done
+      unfolding fw_def
+      apply (intro DERIV_chain derivative_eq_intros w)+
+      using holf holomorphic_derivI by (force simp: field_simps)+
     then show ?thesis
       using norm_let1 w by (simp add: DERIV_imp_deriv)
   qed
@@ -538,8 +536,8 @@ proof -
     obtain c where c: "(\<lambda>x. (f(f x) - x)/(f x - x)) = (\<lambda>x. c)"
     proof (rule little_Picard_01)
       show "(\<lambda>x. (f(f x) - x)/(f x - x)) holomorphic_on UNIV"
-        apply (intro holomorphic_intros holf holomorphic_on_compose [unfolded o_def, OF holf])
-        using non_fp by auto
+        using non_fp
+        by (intro holomorphic_intros holf holomorphic_on_compose [unfolded o_def, OF holf]) auto
     qed auto
     then obtain "c \<noteq> 0" "c \<noteq> 1"
       by (metis (no_types, hide_lams) non_ff diff_zero divide_eq_0_iff right_inverse_eq)
@@ -549,10 +547,8 @@ proof -
     proof (rule DERIV_unique)
       show "((\<lambda>x. f (f x) - c * f x) has_field_derivative
               deriv f z * (deriv f (f z) - c)) (at z)"
-        apply (intro derivative_eq_intros)
-            apply (rule DERIV_chain [unfolded o_def, of f])
-             apply (auto simp: algebra_simps intro!: holomorphic_derivI [OF holfU])
-        done
+        by (rule derivative_eq_intros holomorphic_derivI [OF holfU] 
+                    DERIV_chain [unfolded o_def, where f=f and g=f] | simp add: algebra_simps)+
       show "((\<lambda>x. f (f x) - c * f x) has_field_derivative 1 * (1 - c)) (at z)"
         by (simp add: eq mult_commute_abs)
     qed
@@ -601,8 +597,8 @@ proof -
       next
         case False
         have "\<And>x. (1 - k) * x \<noteq> f 0"
-          using l [of 0] apply (simp add: algebra_simps)
-          by (metis diff_add_cancel l mult.commute non_fp)
+          using l [of 0]
+          by (simp add: algebra_simps) (metis diff_add_cancel l mult.commute non_fp)
         then show False
           by (metis False eq_iff_diff_eq_0 mult.commute nonzero_mult_div_cancel_right times_divide_eq_right)
       qed
@@ -641,17 +637,20 @@ proof -
         by simp
     next
       case (Suc d) then show ?case
-        apply simp
-          using seq_suble [OF sub_kk] order_trans strict_mono_less_eq [OF sub_rr] by blast
+        using seq_suble [OF sub_kk] strict_mono_less_eq [OF sub_rr]
+        by (simp add: order_subst1)
     qed
     then have "\<And>i j n. i \<le> j \<Longrightarrow> rr i n \<le> rr j n"
       by (metis le_iff_add)
     show "strict_mono (\<lambda>n. rr n n)"
-      apply (simp add: strict_mono_Suc_iff)
-      by (meson lessI less_le_trans seq_suble strict_monoD sub_kk sub_rr)
+      unfolding strict_mono_Suc_iff
+      by (simp add: Suc_le_lessD strict_monoD strict_mono_imp_increasing sub_kk sub_rr)
     have "\<exists>j. i \<le> j \<and> rr (n+d) i = rr n j" for d n i
-      apply (induction d arbitrary: i, auto)
-      by (meson order_trans seq_suble sub_kk)
+    proof (induction d arbitrary: i)
+      case (Suc d)
+      then show ?case
+        using seq_suble [OF sub_kk] by simp (meson order_trans)
+    qed auto
     then have "\<And>m n i. n \<le> m \<Longrightarrow> \<exists>j. i \<le> j \<and> rr m i = rr n j"
       by (metis le_iff_add)
     then show "P i (r \<circ> (\<lambda>n. rr n n))" for i
@@ -679,18 +678,13 @@ next
       have "f (r n) (\<sigma> i) \<in> cball 0 M" for n
         by (simp add: \<sigma> M)
       then show ?thesis
-        using compact_def [of "cball (0::'b) M"] apply simp
-        apply (drule_tac x="(\<lambda>n. f (r n) (\<sigma> i))" in spec)
-        apply (force simp: o_def)
-        done
+        using compact_def [of "cball (0::'b) M"] by (force simp: o_def)
     qed
-    show "\<And>i r k1 k2 N.
-               \<lbrakk>\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k1)) n (\<sigma> i)) \<longlonglongrightarrow> l; \<And>j. N \<le> j \<Longrightarrow> \<exists>j'\<ge>j. k2 j = k1 j'\<rbrakk>
-               \<Longrightarrow> \<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k2)) n (\<sigma> i)) \<longlonglongrightarrow> l"
-      apply (simp add: lim_sequentially)
-      apply (erule ex_forward all_forward imp_forward)+
-        apply auto
-      by (metis (no_types, hide_lams) le_cases order_trans)
+    show "\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k2)) n (\<sigma> i)) \<longlonglongrightarrow> l" 
+      if "\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k1)) n (\<sigma> i)) \<longlonglongrightarrow> l" "\<And>j. N \<le> j \<Longrightarrow> \<exists>j'\<ge>j. k2 j = k1 j'"
+      for i N and r k1 k2 :: "nat\<Rightarrow>nat"
+      using that
+      by (simp add: lim_sequentially) (metis (no_types, hide_lams) le_cases order_trans)
   qed auto
   with \<sigma> that show ?thesis
     by force
@@ -714,22 +708,18 @@ proof -
        if "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<and> x \<in> S \<longrightarrow> norm(\<F>(r n) x - g x) < e"
        for g:: "'a \<Rightarrow> 'b" and r :: "nat \<Rightarrow> nat"
   proof (rule uniform_limit_theorem [of _ "\<F> \<circ> r"])
-    show "\<forall>\<^sub>F n in sequentially. continuous_on S ((\<F> \<circ> r) n)"
-      apply (simp add: eventually_sequentially)
-      apply (rule_tac x=0 in exI)
-      using UEQ apply (force simp: continuous_on_iff)
-      done
+    have "continuous_on S (\<F> (r n))" for n
+      using UEQ by (force simp: continuous_on_iff)
+    then show "\<forall>\<^sub>F n in sequentially. continuous_on S ((\<F> \<circ> r) n)"
+      by (simp add: eventually_sequentially)
     show "uniform_limit S (\<F> \<circ> r) g sequentially"
-      apply (simp add: uniform_limit_iff eventually_sequentially)
-        by (metis dist_norm that)
+      using that by (metis (mono_tags, hide_lams) comp_apply dist_norm uniform_limit_sequentially_iff)
   qed auto
   moreover
   obtain R where "countable R" "R \<subseteq> S" and SR: "S \<subseteq> closure R"
     by (metis separable that)
   obtain k where "strict_mono k" and k: "\<And>x. x \<in> R \<Longrightarrow> \<exists>l. (\<lambda>n. \<F> (k n) x) \<longlonglongrightarrow> l"
-    apply (rule function_convergent_subsequence [OF \<open>countable R\<close> M])
-    using \<open>R \<subseteq> S\<close> apply force+
-    done
+    using \<open>R \<subseteq> S\<close> by (force intro: function_convergent_subsequence [OF \<open>countable R\<close> M])
   then have Cauchy: "Cauchy ((\<lambda>n. \<F> (k n) x))" if "x \<in> R" for x
     using convergent_eq_Cauchy that by blast
   have "\<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> x \<in> S \<longrightarrow> dist ((\<F> \<circ> k) m x) ((\<F> \<circ> k) n x) < e"
@@ -741,8 +731,7 @@ proof -
     obtain T where "T \<subseteq> R" and "finite T" and T: "S \<subseteq> (\<Union>c\<in>T. ball c d)"
     proof (rule compactE_image [OF  \<open>compact S\<close>, of R "(\<lambda>x. ball x d)"])
       have "closure R \<subseteq> (\<Union>c\<in>R. ball c d)"
-        apply clarsimp
-        using \<open>0 < d\<close> closure_approachable by blast
+        using \<open>0 < d\<close> by (auto simp: closure_approachable)
       with SR show "S \<subseteq> (\<Union>c\<in>R. ball c d)"
         by auto
     qed auto
@@ -777,12 +766,10 @@ proof -
     then show ?thesis
       by force
   qed
-  then have "\<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> S. norm(\<F>(k n) x - g x) < e"
-    using uniformly_convergent_eq_cauchy [of "\<lambda>x. x \<in> S" "\<F> \<circ> k"]
-    apply (simp add: o_def dist_norm)
-    by meson
+  then obtain g where "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> x \<in> S \<longrightarrow> norm ((\<F> \<circ> k) n x - g x) < e"
+    using uniformly_convergent_eq_cauchy [of "\<lambda>x. x \<in> S" "\<F> \<circ> k"] by (auto simp add: dist_norm)
   ultimately show thesis
-    by (metis that \<open>strict_mono k\<close>)
+    by (metis \<open>strict_mono k\<close> comp_apply that)
 qed
 
 
@@ -823,15 +810,15 @@ proof -
       proof -
         obtain r where "0 < r" and r: "cball z r \<subseteq> S"
           using z KS [of i] \<open>open S\<close> by (force simp: open_contains_cball)
-        have "cball z (2 / 3 * r) \<subseteq> cball z r"
+        have "cball z (2/3 * r) \<subseteq> cball z r"
           using \<open>0 < r\<close> by (simp add: cball_subset_cball_iff)
-        then have z23S: "cball z (2 / 3 * r) \<subseteq> S"
+        then have z23S: "cball z (2/3 * r) \<subseteq> S"
           using r by blast
         obtain M where "0 < M" and M: "\<And>n w. dist z w \<le> 2/3 * r \<Longrightarrow> norm(\<F> n w) \<le> M"
         proof -
           obtain N where N: "\<forall>n\<ge>N. cball z (2/3 * r) \<subseteq> K n"
-            using subK compact_cball [of z "(2 / 3 * r)"] z23S by force
-          have "cmod (\<F> n w) \<le> \<bar>B N\<bar> + 1" if "dist z w \<le> 2 / 3 * r" for n w
+            using subK compact_cball [of z "(2/3 * r)"] z23S by force
+          have "cmod (\<F> n w) \<le> \<bar>B N\<bar> + 1" if "dist z w \<le> 2/3 * r" for n w
           proof -
             have "w \<in> K N"
               using N mem_cball that by blast
@@ -849,27 +836,28 @@ proof -
               for n y
         proof -
           have "((\<lambda>w. \<F> n w / (w - \<xi>)) has_contour_integral
-                    (2 * pi) * \<i> * winding_number (circlepath z (2 / 3 * r)) \<xi> * \<F> n \<xi>)
-                (circlepath z (2 / 3 * r))"
-             if "dist \<xi> z < (2 / 3 * r)" for \<xi>
+                    (2 * pi) * \<i> * winding_number (circlepath z (2/3 * r)) \<xi> * \<F> n \<xi>)
+                (circlepath z (2/3 * r))"
+             if "dist \<xi> z < (2/3 * r)" for \<xi>
           proof (rule Cauchy_integral_formula_convex_simple)
             have "\<F> n holomorphic_on S"
               by (simp add: \<H> \<open>\<And>n. \<F> n \<in> \<H>\<close>)
-            with z23S show "\<F> n holomorphic_on cball z (2 / 3 * r)"
+            with z23S show "\<F> n holomorphic_on cball z (2/3 * r)"
               using holomorphic_on_subset by blast
           qed (use that \<open>0 < r\<close> in \<open>auto simp: dist_commute\<close>)
           then have *: "((\<lambda>w. \<F> n w / (w - \<xi>)) has_contour_integral (2 * pi) * \<i> * \<F> n \<xi>)
-                     (circlepath z (2 / 3 * r))"
-             if "dist \<xi> z < (2 / 3 * r)" for \<xi>
+                     (circlepath z (2/3 * r))"
+             if "dist \<xi> z < (2/3 * r)" for \<xi>
             using that by (simp add: winding_number_circlepath dist_norm)
            have y: "((\<lambda>w. \<F> n w / (w - y)) has_contour_integral (2 * pi) * \<i> * \<F> n y)
-                 (circlepath z (2 / 3 * r))"
-             apply (rule *)
-             using that \<open>0 < r\<close> by (simp only: dist_norm norm_minus_commute)
+                    (circlepath z (2/3 * r))"
+           proof (rule *)
+             show "dist y z < 2/3 * r"
+               using that \<open>0 < r\<close> by (simp only: dist_norm norm_minus_commute)
+           qed
            have z: "((\<lambda>w. \<F> n w / (w - z)) has_contour_integral (2 * pi) * \<i> * \<F> n z)
-                 (circlepath z (2 / 3 * r))"
-             apply (rule *)
-             using \<open>0 < r\<close> by simp
+                 (circlepath z (2/3 * r))"
+             using \<open>0 < r\<close> by (force intro!: *)
            have le_er: "cmod (\<F> n x / (x - y) - \<F> n x / (x - z)) \<le> e / r"
                 if "cmod (x - z) = r/3 + r/3" for x
            proof -
@@ -889,26 +877,26 @@ proof -
              also have "... = cmod (\<F> n x) * (cmod (y - z) / (cmod(x - y) * (2/3 * r)))"
                by (simp add: norm_mult norm_divide that)
              also have "... \<le> M * (cmod (y - z) / (cmod(x - y) * (2/3 * r)))"
-               apply (rule mult_mono)
-                  apply (rule leM)
-                 using \<open>r > 0\<close> \<open>M > 0\<close> neq by auto
-               also have "... < M * ((e * r / (6 * M)) / (cmod(x - y) * (2/3 * r)))"
-                 unfolding mult_less_cancel_left
-                 using y_near_z(2) \<open>M > 0\<close> \<open>r > 0\<close> neq
-                 apply (simp add: field_simps mult_less_0_iff norm_minus_commute)
-                 done
+               using \<open>r > 0\<close> \<open>M > 0\<close> by (intro mult_mono [OF leM]) auto
+             also have "... < M * ((e * r / (6 * M)) / (cmod(x - y) * (2/3 * r)))"
+               unfolding mult_less_cancel_left
+               using y_near_z(2) \<open>M > 0\<close> \<open>r > 0\<close> neq
+               by (simp add: field_simps mult_less_0_iff norm_minus_commute)
              also have "... \<le> e/r"
                using \<open>e > 0\<close> \<open>r > 0\<close> r4_le_xy by (simp add: field_split_simps)
              finally show ?thesis by simp
            qed
            have "(2 * pi) * cmod (\<F> n y - \<F> n z) = cmod ((2 * pi) * \<i> * \<F> n y - (2 * pi) * \<i> * \<F> n z)"
              by (simp add: right_diff_distrib [symmetric] norm_mult)
-           also have "cmod ((2 * pi) * \<i> * \<F> n y - (2 * pi) * \<i> * \<F> n z) \<le> e / r * (2 * pi * (2 / 3 * r))"
-             apply (rule has_contour_integral_bound_circlepath [OF has_contour_integral_diff [OF y z], of "e/r"])
-             using \<open>e > 0\<close> \<open>r > 0\<close> le_er by auto
-           also have "... = (2 * pi) * e * ((2 / 3))"
+           also have "cmod ((2 * pi) * \<i> * \<F> n y - (2 * pi) * \<i> * \<F> n z) \<le> e / r * (2 * pi * (2/3 * r))"
+
+           proof (rule has_contour_integral_bound_circlepath [OF has_contour_integral_diff [OF y z]])
+             show "\<And>x. cmod (x - z) = 2/3 * r \<Longrightarrow> cmod (\<F> n x / (x - y) - \<F> n x / (x - z)) \<le> e / r"
+               using le_er by auto
+           qed (use \<open>e > 0\<close> \<open>r > 0\<close> in auto)
+           also have "... = (2 * pi) * e * ((2/3))"
              using \<open>r > 0\<close> by (simp add: field_split_simps)
-           finally have "cmod (\<F> n y - \<F> n z) \<le> e * (2 / 3)"
+           finally have "cmod (\<F> n y - \<F> n z) \<le> e * (2/3)"
              by simp
            also have "... < e"
              using \<open>e > 0\<close> by simp
@@ -934,29 +922,30 @@ proof -
     then show ?thesis
       by auto
   qed
-  have "\<exists>k g. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r \<circ> k) n x - g x) < e)"
-         for i r
-    apply (rule *)
-    using rng_f by auto
-  then have **: "\<And>i r. \<exists>k. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> (r \<circ> k)) n x - g x) < e)"
-    by (force simp: o_assoc)
-  obtain k :: "nat \<Rightarrow> nat" where "strict_mono k"
-             and "\<And>i. \<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> (id \<circ> k)) n x - g x) < e"
-    (* TODO: clean up this mess *)
-    apply (rule subsequence_diagonalization_lemma [OF **, of id id])
-     apply (erule ex_forward all_forward imp_forward)+
-      apply force
-     apply (erule exE)
-    apply (rename_tac i r k1 k2 N g e Na)
-     apply (rule_tac x="max N Na" in exI)
-     apply fastforce+
-    done
-  then have lt_e: "\<And>i. \<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> k) n x - g x) < e"
-    by simp
+  define \<Phi> where "\<Phi> \<equiv> \<lambda>g i r. \<lambda>k::nat\<Rightarrow>nat. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> (r \<circ> k)) n x - g x) < e"
+  obtain k :: "nat \<Rightarrow> nat" where "strict_mono k" and k: "\<And>i. \<exists>g. \<Phi> g i id k"
+  proof (rule subsequence_diagonalization_lemma [where r=id])
+    show "\<exists>g. \<Phi> g i id (r \<circ> k2)" 
+      if ex: "\<exists>g. \<Phi> g i id (r \<circ> k1)" and "\<And>j. N \<le> j \<Longrightarrow> \<exists>j'\<ge>j. k2 j = k1 j'" 
+      for i k1 k2 N and r::"nat\<Rightarrow>nat"
+    proof -
+      obtain g where "\<Phi> g i id (r \<circ> k1)"
+        using ex by blast
+      then have "\<Phi> g i id (r \<circ> k2)"
+        using that
+        by (simp add: \<Phi>_def) (metis (no_types, hide_lams) le_trans linear)
+      then show ?thesis
+        by metis
+    qed
+    have "\<exists>k g. strict_mono (k::nat\<Rightarrow>nat) \<and> \<Phi> g i id (r \<circ> k)" for i r
+      unfolding \<Phi>_def o_assoc using rng_f by (force intro!: *)
+    then show "\<And>i r. \<exists>k. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<exists>g. \<Phi> g i id (r \<circ> k))"
+      by force
+  qed fastforce
   have "\<exists>l. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. norm(\<F> (k n) z - l) < e" if "z \<in> S" for z
   proof -
     obtain G where G: "\<And>i e. e > 0 \<Longrightarrow> \<exists>M. \<forall>n\<ge>M. \<forall>x\<in>K i. cmod ((\<F> \<circ> k) n x - G i x) < e"
-      using lt_e by metis
+      using k unfolding \<Phi>_def by (metis id_comp)
     obtain N where "\<And>n. n \<ge> N \<Longrightarrow> z \<in> K n"
       using subK [of "{z}"] that \<open>z \<in> S\<close> by auto
     moreover have "\<And>e. e > 0 \<Longrightarrow> \<exists>M. \<forall>n\<ge>M. \<forall>x\<in>K N. cmod ((\<F> \<circ> k) n x - G N x) < e"
@@ -976,11 +965,14 @@ proof -
       obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> T \<subseteq> K n"
         using subK [OF T] by blast
       obtain h where h: "\<And>e. e>0 \<Longrightarrow> \<exists>M. \<forall>n\<ge>M. \<forall>x\<in>K N. cmod ((\<F> \<circ> k) n x - h x) < e"
-        using lt_e by blast
+        using k unfolding \<Phi>_def by (metis id_comp)
       have geq: "g w = h w" if "w \<in> T" for w
-        apply (rule LIMSEQ_unique [of "\<lambda>n. \<F>(k n) w"])
-        using \<open>T \<subseteq> S\<close> g_lim that apply blast
-        using h N that by (force simp: lim_sequentially dist_norm)
+      proof (rule LIMSEQ_unique)
+        show "(\<lambda>n. \<F> (k n) w) \<longlonglongrightarrow> g w"
+          using \<open>T \<subseteq> S\<close> g_lim that by blast
+        show "(\<lambda>n. \<F> (k n) w) \<longlonglongrightarrow> h w"
+          using h N that by (force simp: lim_sequentially dist_norm)
+      qed
       show ?thesis
         using T h N \<open>0 < e\<close> by (fastforce simp add: geq)
     qed
@@ -1028,23 +1020,22 @@ proof
   then have holf0: "\<F> n holomorphic_on ball z0 r" for n
     by (meson holf holomorphic_on_subset)
   have *: "((\<lambda>z. deriv (\<F> n) z / \<F> n z) has_contour_integral 0) (circlepath z0 (r/2))" for n
-  proof (rule Cauchy_theorem_disc_simple [of _ z0 r])
+  proof (rule Cauchy_theorem_disc_simple)
     show "(\<lambda>z. deriv (\<F> n) z / \<F> n z) holomorphic_on ball z0 r"
-      apply (intro holomorphic_intros holomorphic_deriv holf holf0 open_ball nz)
-      using \<open>ball z0 r \<subseteq> S\<close> by blast
+      by (metis (no_types) \<open>open S\<close> holf holomorphic_deriv holomorphic_on_divide holomorphic_on_subset nz subS)
   qed (use \<open>0 < r\<close> in auto)
   have hol_dg: "deriv g holomorphic_on S"
     by (simp add: \<open>open S\<close> holg holomorphic_deriv)
   have "continuous_on (sphere z0 (r/2)) (deriv g)"
-    apply (intro holomorphic_on_imp_continuous_on holomorphic_on_subset [OF hol_dg])
-    using \<open>0 < r\<close> subS by auto
+    using \<open>0 < r\<close> subS 
+    by (intro holomorphic_on_imp_continuous_on holomorphic_on_subset [OF hol_dg]) auto
   then have "compact (deriv g ` (sphere z0 (r/2)))"
     by (rule compact_continuous_image [OF _ compact_sphere])
   then have bo_dg: "bounded (deriv g ` (sphere z0 (r/2)))"
     using compact_imp_bounded by blast
   have "continuous_on (sphere z0 (r/2)) (cmod \<circ> g)"
-    apply (intro continuous_intros holomorphic_on_imp_continuous_on holomorphic_on_subset [OF holg])
-    using \<open>0 < r\<close> subS by auto
+    using \<open>0 < r\<close> subS 
+    by (intro continuous_intros holomorphic_on_imp_continuous_on holomorphic_on_subset [OF holg]) auto
   then have "compact ((cmod \<circ> g) ` sphere z0 (r/2))"
     by (rule compact_continuous_image [OF _ compact_sphere])
   moreover have "(cmod \<circ> g) ` sphere z0 (r/2) \<noteq> {}"
@@ -1063,51 +1054,54 @@ proof
       proof (rule uniform_limitI)
         fix e::real
         assume "0 < e"
-        have *: "dist (deriv (\<F> n) w) (deriv g w) < e"
-          if e8: "\<And>x. dist z0 x \<le> 3 * r / 4 \<Longrightarrow> dist (\<F> n x) (g x) * 8 < r * e"
-          and w: "dist w z0 = r/2"  for n w
+
+        show "\<forall>\<^sub>F n in sequentially. \<forall>x \<in> sphere z0 (r/2). dist (deriv (\<F> n) x) (deriv g x) < e"
         proof -
-          have "ball w (r/4) \<subseteq> ball z0 r"  "cball w (r/4) \<subseteq> ball z0 r"
-            using \<open>0 < r\<close> by (simp_all add: ball_subset_ball_iff cball_subset_ball_iff w)
-          with subS have wr4_sub: "ball w (r/4) \<subseteq> S" "cball w (r/4) \<subseteq> S" by force+
+          have "dist (deriv (\<F> n) w) (deriv g w) < e"
+            if e8: "\<And>x. dist z0 x \<le> 3 * r / 4 \<Longrightarrow> dist (\<F> n x) (g x) * 8 < r * e"
+              and w: "w \<in> sphere z0 (r/2)"  for n w
+          proof -
+            have "ball w (r/4) \<subseteq> ball z0 r"  "cball w (r/4) \<subseteq> ball z0 r"
+              using \<open>0 < r\<close> w by (simp_all add: ball_subset_ball_iff cball_subset_ball_iff dist_commute)
+            with subS have wr4_sub: "ball w (r/4) \<subseteq> S" "cball w (r/4) \<subseteq> S" by force+
+            moreover
+            have "(\<lambda>z. \<F> n z - g z) holomorphic_on S"
+              by (intro holomorphic_intros holf holg)
+            ultimately have hol: "(\<lambda>z. \<F> n z - g z) holomorphic_on ball w (r/4)"
+              and cont: "continuous_on (cball w (r / 4)) (\<lambda>z. \<F> n z - g z)"
+              using holomorphic_on_subset by (blast intro: holomorphic_on_imp_continuous_on)+
+            have "w \<in> S"
+              using \<open>0 < r\<close> wr4_sub by auto
+            have "dist z0 y \<le> 3 * r / 4" if "dist w y < r/4" for y
+            proof (rule dist_triangle_le [where z=w])
+              show "dist z0 w + dist y w \<le> 3 * r / 4"
+                using w that by (simp add: dist_commute)
+            qed
+            with e8 have in_ball: "\<And>y. y \<in> ball w (r/4) \<Longrightarrow> \<F> n y - g y \<in> ball 0 (r/4 * e/2)"
+              by (simp add: dist_norm [symmetric])
+            have "\<F> n field_differentiable at w"
+              by (metis holomorphic_on_imp_differentiable_at \<open>w \<in> S\<close> holf \<open>open S\<close>)
+            moreover
+            have "g field_differentiable at w"
+              using \<open>w \<in> S\<close> \<open>open S\<close> holg holomorphic_on_imp_differentiable_at by auto
+            moreover
+            have "cmod (deriv (\<lambda>w. \<F> n w - g w) w) * 2 \<le> e"
+              using Cauchy_higher_deriv_bound [OF hol cont in_ball, of 1] \<open>r > 0\<close> by auto
+            ultimately have "dist (deriv (\<F> n) w) (deriv g w) \<le> e/2"
+              by (simp add: dist_norm)
+            then show ?thesis
+              using \<open>e > 0\<close> by auto
+          qed
           moreover
-          have "(\<lambda>z. \<F> n z - g z) holomorphic_on S"
-            by (intro holomorphic_intros holf holg)
-          ultimately have hol: "(\<lambda>z. \<F> n z - g z) holomorphic_on ball w (r/4)"
-            and cont: "continuous_on (cball w (r / 4)) (\<lambda>z. \<F> n z - g z)"
-            using holomorphic_on_subset by (blast intro: holomorphic_on_imp_continuous_on)+
-          have "w \<in> S"
-            using \<open>0 < r\<close> wr4_sub by auto
-          have "\<And>y. dist w y < r / 4 \<Longrightarrow> dist z0 y \<le> 3 * r / 4"
-            apply (rule dist_triangle_le [where z=w])
-            using w by (simp add: dist_commute)
-          with e8 have in_ball: "\<And>y. y \<in> ball w (r/4) \<Longrightarrow> \<F> n y - g y \<in> ball 0 (r/4 * e/2)"
-            by (simp add: dist_norm [symmetric])
-          have "\<F> n field_differentiable at w"
-            by (metis holomorphic_on_imp_differentiable_at \<open>w \<in> S\<close> holf \<open>open S\<close>)
-          moreover
-          have "g field_differentiable at w"
-            using \<open>w \<in> S\<close> \<open>open S\<close> holg holomorphic_on_imp_differentiable_at by auto
-          moreover
-          have "cmod (deriv (\<lambda>w. \<F> n w - g w) w) * 2 \<le> e"
-            apply (rule Cauchy_higher_deriv_bound [OF hol cont in_ball, of 1, simplified])
-            using \<open>r > 0\<close> by auto
-          ultimately have "dist (deriv (\<F> n) w) (deriv g w) \<le> e/2"
-            by (simp add: dist_norm)
-          then show ?thesis
-            using \<open>e > 0\<close> by auto
+          have "cball z0 (3 * r / 4) \<subseteq> ball z0 r"
+            by (simp add: cball_subset_ball_iff \<open>0 < r\<close>)
+          with subS have "uniform_limit (cball z0 (3 * r/4)) \<F> g sequentially"
+            by (force intro: ul_g)
+          then have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>cball z0 (3 * r / 4). dist (\<F> n x) (g x) < r / 4 * e / 2"
+            using \<open>0 < e\<close> \<open>0 < r\<close> by (force simp: intro!: uniform_limitD)
+          ultimately show ?thesis
+            by (force simp add: eventually_sequentially)
         qed
-        have "cball z0 (3 * r / 4) \<subseteq> ball z0 r"
-          by (simp add: cball_subset_ball_iff \<open>0 < r\<close>)
-        with subS have "uniform_limit (cball z0 (3 * r/4)) \<F> g sequentially"
-          by (force intro: ul_g)
-        then have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>cball z0 (3 * r / 4). dist (\<F> n x) (g x) < r / 4 * e / 2"
-          using \<open>0 < e\<close> \<open>0 < r\<close> by (force simp: intro!: uniform_limitD)
-        then show "\<forall>\<^sub>F n in sequentially. \<forall>x \<in> sphere z0 (r/2). dist (deriv (\<F> n) x) (deriv g x) < e"
-          apply (simp add: eventually_sequentially)
-          apply (elim ex_forward all_forward imp_forward asm_rl)
-          using * apply (force simp: dist_commute)
-          done
       qed
       show "uniform_limit (sphere z0 (r/2)) \<F> g sequentially"
       proof (rule uniform_limitI)
@@ -1118,8 +1112,7 @@ proof
         with subS have "uniform_limit (sphere z0 (r/2)) \<F> g sequentially"
           by (force intro: ul_g)
         then show "\<forall>\<^sub>F n in sequentially. \<forall>x \<in> sphere z0 (r/2). dist (\<F> n x) (g x) < e"
-          apply (rule uniform_limitD)
-          using \<open>0 < e\<close> by force
+          using \<open>0 < e\<close> uniform_limit_iff by blast
       qed
       show "b > 0" "\<And>x. x \<in> sphere z0 (r/2) \<Longrightarrow> b \<le> cmod (g x)"
         using b \<open>0 < r\<close> by (fastforce simp: geq hnz)+
@@ -1140,19 +1133,18 @@ proof
     have h_der: "(h has_field_derivative deriv h w) (at w)"
       using holh holomorphic_derivI w_inb by blast
     have "deriv g w = ((of_nat m * h w + deriv h w * (w - z0)) * (w - z0) ^ m) / (w - z0)"
-         if "r = dist z0 w * 2" "w \<noteq> z0"
+      if "r = dist z0 w * 2" "w \<noteq> z0"
     proof -
       have "((\<lambda>w. (w - z0) ^ m * h w) has_field_derivative
             (m * h w + deriv h w * (w - z0)) * (w - z0) ^ m / (w - z0)) (at w)"
         apply (rule derivative_eq_intros h_der refl)+
         using that \<open>m > 0\<close> \<open>0 < r\<close> apply (simp add: divide_simps distrib_right)
-        apply (metis Suc_pred mult.commute power_Suc)
-        done
+        by (metis Suc_pred mult.commute power_Suc)
       then show ?thesis
-        apply (rule DERIV_imp_deriv [OF has_field_derivative_transform_within_open [where S = "ball z0 r"]])
-        using that \<open>m > 0\<close> \<open>0 < r\<close>
-          apply (simp_all add: hnz geq)
-        done
+      proof (rule DERIV_imp_deriv [OF has_field_derivative_transform_within_open])
+        show "\<And>x. x \<in> ball z0 r \<Longrightarrow> (x - z0) ^ m * h x = g x"
+          by (simp add: hnz geq)
+      qed (use that \<open>m > 0\<close> \<open>0 < r\<close> in auto)
     qed
     with \<open>0 < r\<close> \<open>0 < m\<close> w w_inb show "deriv g w / g w = of_nat m / (w - z0) + deriv h w / h w"
       by (auto simp: geq field_split_simps hnz)
@@ -1164,10 +1156,8 @@ proof
     show "((\<lambda>x. m / (x - z0)) has_contour_integral 2 * of_real pi * \<i> * m) (circlepath z0 (r/2))"
       by (force simp: \<open>0 < r\<close> intro: Cauchy_integral_circlepath_simple)
     show "((\<lambda>x. deriv h x / h x) has_contour_integral 0) (circlepath z0 (r/2))"
-      apply (rule Cauchy_theorem_disc_simple [of _ z0 r])
       using hnz holh holomorphic_deriv holomorphic_on_divide \<open>0 < r\<close>
-         apply force+
-      done
+      by (fastforce intro!: Cauchy_theorem_disc_simple [of _ z0 r])
   qed
   ultimately show False using \<open>0 < m\<close> by auto
 qed
@@ -1215,17 +1205,9 @@ proof -
           using \<open>0 < e\<close> by (force simp: intro!: uniform_limitD)
         then have z1: "\<forall>\<^sub>F n in sequentially. dist (\<F> n z1) (g z1) < e/2"
           by simp
-        have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e/2 + e/2"
-          apply (rule eventually_mono [OF eventually_conj [OF K z1]])
-          apply (simp add: dist_norm algebra_simps del: divide_const_simps)
-          by (metis add.commute dist_commute dist_norm dist_triangle_add_half)
-        have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e/2 + e/2"
-          using eventually_conj [OF K z1]
-          apply (rule eventually_mono)
-          by (metis (no_types, hide_lams) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half field_sum_of_halves)
-        then
-        show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e"
-          by simp
+        show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e" 
+          apply (rule eventually_mono [OF  eventually_conj [OF K z1]])
+          by (metis (no_types, hide_lams) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half)
       qed
       show "\<not> (\<lambda>z. g z - g z1) constant_on S - {z1}"
         unfolding constant_on_def
@@ -1264,22 +1246,28 @@ proof -
     proof -
       have "h \<in> X"
         using \<open>Y \<subseteq> X\<close> \<open>h \<in> Y\<close>  by blast
-      with holX have "h holomorphic_on S" 
-        by auto
-      then have "h holomorphic_on cball w e"
-        by (metis e holomorphic_on_subset)
-      then have hol_h_o: "(h \<circ> (\<lambda>z. (w + of_real e * z))) holomorphic_on cball 0 1"
-        apply (intro holomorphic_intros holomorphic_on_compose)
-        apply (erule holomorphic_on_subset)
-        using that \<open>e > 0\<close> by (auto simp: dist_norm norm_mult)
+      have hol_h_o: "(h \<circ> (\<lambda>z. (w + of_real e * z))) holomorphic_on cball 0 1"
+      proof (intro holomorphic_intros holomorphic_on_compose)
+        have "h holomorphic_on S" 
+          using holX \<open>h \<in> X\<close> by auto
+        then have "h holomorphic_on cball w e"
+          by (metis e holomorphic_on_subset)
+        moreover have "(\<lambda>z. w + complex_of_real e * z) ` cball 0 1 \<subseteq> cball w e"
+          using that \<open>e > 0\<close> by (auto simp: dist_norm norm_mult)
+        ultimately show "h holomorphic_on (\<lambda>z. w + complex_of_real e * z) ` cball 0 1"
+          by (rule holomorphic_on_subset)
+      qed
       have norm_le_r: "cmod ((h \<circ> (\<lambda>z. w + complex_of_real e * z)) 0) \<le> r"
         by (auto simp: r \<open>h \<in> Y\<close>)
       have le12: "norm (of_real(inverse e) * (z - w)) \<le> 1/2"
         using that \<open>e > 0\<close> by (simp add: inverse_eq_divide dist_norm norm_minus_commute norm_divide)
-      have non01: "\<And>z::complex. cmod z \<le> 1 \<Longrightarrow> h (w + e * z) \<noteq> 0 \<and> h (w + e * z) \<noteq> 1"
-        apply (rule X01 [OF \<open>h \<in> X\<close>])
-          apply (rule subsetD [OF e])
-        using \<open>0 < e\<close>  by (auto simp: dist_norm norm_mult)
+      have non01: "h (w + e * z) \<noteq> 0 \<and> h (w + e * z) \<noteq> 1" if "z \<in> cball 0 1" for z::complex
+      proof (rule X01 [OF \<open>h \<in> X\<close>])
+        have "w + complex_of_real e * z \<in> cball w e"
+          using \<open>0 < e\<close> that by (auto simp: dist_norm norm_mult)
+        then show "w + complex_of_real e * z \<in> S"
+          by (rule subsetD [OF e])
+      qed
       have "cmod (h z) \<le> cmod (h (w + of_real e * (inverse e * (z - w))))"
         using \<open>0 < e\<close> by (simp add: field_split_simps)
       also have "... \<le> exp (pi * exp (pi * (14 + 2 * r)))"
@@ -1313,8 +1301,7 @@ proof -
     proof -
       obtain B Z where "0 < B" "open Z" "w \<in> Z" "Z \<subseteq> S" 
         and  "\<And>h z. \<lbrakk>h \<in> Y; z \<in> Z\<rbrakk> \<Longrightarrow> norm(h z) \<le> B"
-        apply (rule GPicard1 [OF S zero_less_one \<open>Y \<subseteq> X\<close> holX])
-        using no_hw_le1 X01 by force+
+        using GPicard1 [OF S zero_less_one \<open>Y \<subseteq> X\<close> holX] X01 no_hw_le1 by blast
       then show ?thesis
         unfolding U_def using \<open>w \<in> S\<close> by blast
     qed
@@ -1331,9 +1318,10 @@ proof -
         by metis
       define \<G> where "\<G> \<equiv> \<lambda>n z. inverse(\<F> n z)"
       have hol\<G>: "\<G> n holomorphic_on S" for n
-        apply (simp add: \<G>_def)
-        using FY X01 \<open>Y \<subseteq> X\<close> holX apply (blast intro: holomorphic_on_inverse)
-        done
+      proof (simp add: \<G>_def)
+        show "(\<lambda>z. inverse (\<F> n z)) holomorphic_on S"
+          using FY X01 \<open>Y \<subseteq> X\<close> holX by (blast intro: holomorphic_on_inverse)
+      qed
       have \<G>not0: "\<G> n z \<noteq> 0" and \<G>not1: "\<G> n z \<noteq> 1" if "z \<in> S" for n z
         using FY X01 \<open>Y \<subseteq> X\<close> that by (force simp: \<G>_def)+
       have \<G>_le1: "cmod (\<G> n v) \<le> 1" for n 
@@ -1387,7 +1375,8 @@ proof -
               and "\<And>h z'. \<lbrakk>h \<in> Y; z' \<in> T\<rbrakk> \<Longrightarrow> cmod (h z') \<le> C"
               using \<open>y \<in> U\<close> by (auto simp: U_def)
             then have le_C: "\<And>n. cmod (\<F> n y) \<le> C"
-              using FY by blast                
+              using FY by blast
+
             have "\<forall>\<^sub>F n in sequentially. dist (\<G> (j n) y) (h y) < inverse C"
               using uniform_limitD [OF ulim [of "{y}"], of "inverse C"] \<open>C > 0\<close> y
               by (simp add: dist_commute)
@@ -1396,11 +1385,10 @@ proof -
             moreover
             have "h y = h v"
               by (metis \<open>h v = c\<close> dist_commute that y)
-            ultimately have "norm (\<G> (j n) y) < inverse C"
-              by (simp add: \<open>h v = 0\<close>)
+            ultimately have "cmod (inverse (\<F> (j n) y)) < inverse C"
+              by (simp add: \<open>h v = 0\<close> \<G>_def)
             then have "C < norm (\<F> (j n) y)"
-              apply (simp add: \<G>_def)
-              by (metis FY X01 \<open>0 < C\<close> \<open>y \<in> S\<close> \<open>Y \<subseteq> X\<close> inverse_less_iff_less norm_inverse subsetD zero_less_norm_iff)
+              by (metis \<G>_def \<G>not0 \<open>y \<in> S\<close> inverse_less_imp_less inverse_zero norm_inverse zero_less_norm_iff)
             show False
               using \<open>C < cmod (\<F> (j n) y)\<close> le_C not_less by blast
           qed
@@ -1413,11 +1401,14 @@ proof -
       qed (use \<open>e > 0\<close> in auto)
       with \<open>h v = 0\<close> show False by blast
     qed
-    then show "v \<in> U"
-      apply (clarsimp simp add: U_def v)
-      apply (rule GPicard1[OF \<open>open S\<close> \<open>connected S\<close> \<open>v \<in> S\<close> _ \<open>Y \<subseteq> X\<close> holX])
-      using X01 no_hw_le1 apply (meson | force simp: not_less)+
-      done
+    then obtain r where "0 < r" and r: "\<And>h. h \<in> Y \<Longrightarrow> cmod (h v) \<le> r"
+      by (metis not_le)
+    moreover     
+    obtain B Z where "0 < B" "open Z" "v \<in> Z" "Z \<subseteq> S" "\<And>h z. \<lbrakk>h \<in> Y; z \<in> Z\<rbrakk> \<Longrightarrow> norm(h z) \<le> B"
+      using X01 
+      by (auto simp: r intro: GPicard1[OF \<open>open S\<close> \<open>connected S\<close> \<open>v \<in> S\<close> \<open>r>0\<close> \<open>Y \<subseteq> X\<close> holX] X01)
+    ultimately show "v \<in> U"
+      using v by (simp add: U_def) meson
   qed
   have "\<And>x. x \<in> K \<longrightarrow> x \<in> U"
     using \<open>U = S\<close> \<open>K \<subseteq> S\<close> by blast
@@ -1436,10 +1427,10 @@ proof -
     case True with L show ?thesis by simp
   next
     case False
-    with \<open>finite L\<close> show ?thesis 
-      apply (rule_tac x = "Max (F ` L)" in exI)
-      apply (simp add: linorder_class.Max_ge_iff)
-      using * F  by (metis L UN_E subsetD)
+    then have "\<forall>h z. h \<in> Y \<and> z \<in> K \<longrightarrow> (\<exists>x\<in>L. cmod (h z) \<le> F x)"
+      by (metis "*" L UN_E subset_iff)
+    with False \<open>finite L\<close> show ?thesis 
+      by (rule_tac x = "Max (F ` L)" in exI) (simp add: linorder_class.Max_ge_iff)
   qed
   with that show ?thesis by metis
 qed
@@ -1467,15 +1458,15 @@ proof -
       have *: "norm(f w) \<le> B" if "w \<in> cball 0 \<epsilon> - ball 0 d" for w
       proof (rule maximum_modulus_frontier [of f "cball 0 \<epsilon> - ball 0 d"])
         show "f holomorphic_on interior (cball 0 \<epsilon> - ball 0 d)"
-          apply (rule holomorphic_on_subset [OF holf])
-          using \<open>\<epsilon> < k\<close> \<open>0 < d\<close> that by auto
+          using \<open>\<epsilon> < k\<close> \<open>0 < d\<close> that by (auto intro:  holomorphic_on_subset [OF holf])
         show "continuous_on (closure (cball 0 \<epsilon> - ball 0 d)) f"
-          apply (rule holomorphic_on_imp_continuous_on)
-          apply (rule holomorphic_on_subset [OF holf])
-          using \<open>0 < d\<close> \<open>\<epsilon> < k\<close> by auto
+        proof (intro holomorphic_on_imp_continuous_on holomorphic_on_subset [OF holf])
+          show "closure (cball 0 \<epsilon> - ball 0 d) \<subseteq> ball 0 k - {0}"
+            using \<open>0 < d\<close> \<open>\<epsilon> < k\<close> by auto
+        qed
         show "\<And>z. z \<in> frontier (cball 0 \<epsilon> - ball 0 d) \<Longrightarrow> cmod (f z) \<le> B"
-          apply (simp add: frontier_def)
-          using \<epsilon> d less_eq_real_def by blast
+          unfolding frontier_def
+          using \<epsilon> d less_eq_real_def by force
       qed (use that in auto)
       show ?thesis
         using * \<open>d < cmod \<xi>\<close> that by auto
@@ -1505,9 +1496,8 @@ proof -
       by (intro holomorphic_intros) auto
   qed
   have h01: "\<And>n z. z \<in> ball 0 1 - {0} \<Longrightarrow> h n z \<noteq> 0 \<and> h n z \<noteq> 1" 
-    unfolding h_def
-    apply (rule f01)
-    using * by force
+    unfolding h_def 
+    using * by (force intro!: f01)
   obtain w where w: "w \<in> ball 0 1 - {0::complex}"
     by (rule_tac w = "1/2" in that) auto
   consider "infinite {n. norm(h n w) \<le> 1}" | "infinite {n. 1 \<le> norm(h n w)}"
@@ -1521,11 +1511,8 @@ proof -
     obtain B where B: "\<And>j z. \<lbrakk>norm z = 1/2; j \<in> range (h \<circ> r)\<rbrakk> \<Longrightarrow> norm(j z) \<le> B"
     proof (rule GPicard3 [OF _ _ w, where K = "sphere 0 (1/2)"])  
       show "range (h \<circ> r) \<subseteq> 
-            {g. g holomorphic_on ball 0 1 - {0} \<and> (\<forall>z\<in>ball 0 1 - {0}. g z \<noteq> 0 \<and> g z \<noteq> 1)}"
-        apply clarsimp
-        apply (intro conjI holomorphic_intros holomorphic_on_compose holh)
-        using h01 apply auto
-        done
+            {g. g holomorphic_on ball 0 1 - {0} \<and> (\<forall>z \<in> ball 0 1 - {0}. g z \<noteq> 0 \<and> g z \<noteq> 1)}"
+        using h01 by (auto intro: holomorphic_intros holomorphic_on_compose holh)
       show "connected (ball 0 1 - {0::complex})"
         by (simp add: connected_open_delete)
     qed (use r in auto)        
@@ -1558,8 +1545,7 @@ proof -
     have "0 < \<bar>B\<bar> + 1"
       by simp
     then show ?thesis
-      apply (rule that [OF \<open>0 < \<epsilon>\<close> \<open>\<epsilon> < 1\<close>])
-      using \<epsilon> by auto 
+      using \<epsilon> by (force intro!: that [OF \<open>0 < \<epsilon>\<close> \<open>\<epsilon> < 1\<close>])
   next
     case 2
     with infinite_enumerate obtain r :: "nat \<Rightarrow> nat" 
@@ -1569,10 +1555,7 @@ proof -
     proof (rule GPicard3 [OF _ _ w, where K = "sphere 0 (1/2)"])  
       show "range (\<lambda>n. inverse \<circ> h (r n)) \<subseteq> 
             {g. g holomorphic_on ball 0 1 - {0} \<and> (\<forall>z\<in>ball 0 1 - {0}. g z \<noteq> 0 \<and> g z \<noteq> 1)}"
-        apply clarsimp
-        apply (intro conjI holomorphic_intros holomorphic_on_compose_gen [unfolded o_def, OF _ holh] holomorphic_on_compose)
-        using h01 apply auto
-        done
+        using h01 by (auto intro!: holomorphic_intros holomorphic_on_compose_gen [unfolded o_def, OF _ holh] holomorphic_on_compose)
       show "connected (ball 0 1 - {0::complex})"
         by (simp add: connected_open_delete)
       show "\<And>j. j \<in> range (\<lambda>n. inverse \<circ> h (r n)) \<Longrightarrow> cmod (j w) \<le> 1"
@@ -1621,8 +1604,8 @@ proof -
     then have "inverse B > 0"
       by (simp add: field_split_simps)
     then show ?thesis
-      apply (rule that [OF \<open>0 < \<epsilon>\<close> \<open>\<epsilon> < 1\<close>])
-      using \<epsilon> by auto 
+      using \<epsilon> that [OF \<open>0 < \<epsilon>\<close> \<open>\<epsilon> < 1\<close>]
+      by (metis Diff_iff dist_0_norm insert_iff mem_ball)
   qed
 qed
 
@@ -1641,13 +1624,14 @@ proof -
     and B: "(\<forall>z \<in> ball 0 e - {0}. norm(?g z) \<le> B) \<or> (\<forall>z \<in> ball 0 e - {0}. norm(?g z) \<ge> B)"
   proof (rule GPicard5)
     show "?g holomorphic_on ball 0 1 - {0}"
-      apply (intro holomorphic_intros holomorphic_on_compose_gen [unfolded o_def, OF _ holf])
-      using \<open>0 < r\<close> \<open>a \<noteq> 0\<close> r
-      by (auto simp: dist_norm norm_mult subset_eq)
+    proof (intro holomorphic_intros holomorphic_on_compose_gen [unfolded o_def, OF _ holf])
+      show "(\<lambda>x. z + complex_of_real r * x) ` (ball 0 1 - {0}) \<subseteq> M - {z}"
+        using \<open>0 < r\<close> r
+        by (auto simp: dist_norm norm_mult subset_eq)
+    qed (use \<open>a \<noteq> 0\<close> in auto)
     show "\<And>w. w \<in> ball 0 1 - {0} \<Longrightarrow> f (z + of_real r * w) / a \<noteq> 0 \<and> f (z + of_real r * w) / a \<noteq> 1"
-      apply (simp add: field_split_simps \<open>a \<noteq> 0\<close>)
-      apply (rule f0a)
-      using \<open>0 < r\<close> r by (auto simp: dist_norm norm_mult subset_eq)
+      using f0a \<open>0 < r\<close> \<open>a \<noteq> 0\<close> r
+      by (auto simp: field_split_simps dist_norm norm_mult subset_eq)
   qed
   show ?thesis
   proof
@@ -1697,50 +1681,50 @@ proof -
       by (intro holomorphic_intros holf)
   qed (use fab in auto)
   have holfb: "f holomorphic_on ball z r - {z}"
-    apply (rule holomorphic_on_subset [OF holf])
-    using zrM by auto
+    using zrM by (auto intro: holomorphic_on_subset [OF holf])
   have holfb_i: "(\<lambda>z. inverse(f z - a)) holomorphic_on ball z r - {z}"
-    apply (intro holomorphic_intros holfb)
-    using fab zrM by fastforce
+    using fab zrM by (fastforce intro!: holomorphic_intros holfb)
   show ?thesis
     using r
   proof              
     assume "bounded ((\<lambda>z. f z - a) ` (ball z r - {z}))"
     then obtain B where B: "\<And>w. w \<in> (\<lambda>z. f z - a) ` (ball z r - {z}) \<Longrightarrow> norm w \<le> B"
       by (force simp: bounded_iff)
-    have "\<forall>\<^sub>F w in at z. cmod (f w - a) \<le> B"
-      apply (simp add: eventually_at)
-      apply (rule_tac x=r in exI)
-      using \<open>0 < r\<close> by (auto simp: dist_commute intro!: B)
-    then have "\<exists>B. \<forall>\<^sub>F w in at z. cmod (f w) \<le> B"
-      apply (rule_tac x="B + norm a" in exI)
-        apply (erule eventually_mono)
+    then have "\<forall>x. x \<noteq> z \<and> dist x z < r \<longrightarrow> cmod (f x - a) \<le> B"
+      by (simp add: dist_commute)
+    with \<open>0 < r\<close> have "\<forall>\<^sub>F w in at z. cmod (f w - a) \<le> B"
+      by (force simp add: eventually_at)
+    moreover have "\<And>x. cmod (f x - a) \<le> B \<Longrightarrow> cmod (f x) \<le> B + cmod a"
       by (metis add.commute add_le_cancel_right norm_triangle_sub order.trans)
+    ultimately have "\<exists>B. \<forall>\<^sub>F w in at z. cmod (f w) \<le> B"
+      by (metis (mono_tags, lifting) eventually_at)
     then obtain g where holg: "g holomorphic_on ball z r" and gf: "\<And>w. w \<in> ball z r - {z} \<Longrightarrow> g w = f w"
       using \<open>0 < r\<close> holomorphic_on_extend_bounded [OF holfb] by auto
     then have "g \<midarrow>z\<rightarrow> g z"
-      apply (simp add: continuous_at [symmetric])
-      using \<open>0 < r\<close> centre_in_ball field_differentiable_imp_continuous_at holomorphic_on_imp_differentiable_at by blast
+      unfolding continuous_at [symmetric]
+      using \<open>0 < r\<close> centre_in_ball field_differentiable_imp_continuous_at 
+            holomorphic_on_imp_differentiable_at by blast
     then have "(f \<longlongrightarrow> g z) (at z)"
-      apply (rule Lim_transform_within_open [of g "g z" z UNIV "ball z r"])
-      using  \<open>0 < r\<close> by (auto simp: gf)
+      using Lim_transform_within_open [of g "g z" z]
+      using \<open>0 < r\<close> centre_in_ball gf by blast
     then show ?thesis
       using that by blast
   next
     assume "bounded((inverse \<circ> (\<lambda>z. f z - a)) ` (ball z r - {z}))"
     then obtain B where B: "\<And>w. w \<in> (inverse \<circ> (\<lambda>z. f z - a)) ` (ball z r - {z}) \<Longrightarrow> norm w \<le> B"
       by (force simp: bounded_iff)
-    have "\<forall>\<^sub>F w in at z. cmod (inverse (f w - a)) \<le> B"
-      apply (simp add: eventually_at)
-      apply (rule_tac x=r in exI)
-      using \<open>0 < r\<close> by (auto simp: dist_commute intro!: B)
+    then have "\<forall>x. x \<noteq> z \<and> dist x z < r \<longrightarrow> cmod (inverse (f x - a)) \<le> B"
+      by (simp add: dist_commute)
+    with \<open>0 < r\<close> have "\<forall>\<^sub>F w in at z. cmod (inverse (f w - a)) \<le> B"
+      by (auto simp add: eventually_at)
     then have "\<exists>B. \<forall>\<^sub>F z in at z. cmod (inverse (f z - a)) \<le> B"
       by blast
     then obtain g where holg: "g holomorphic_on ball z r" and gf: "\<And>w. w \<in> ball z r - {z} \<Longrightarrow> g w = inverse (f w - a)"
       using \<open>0 < r\<close> holomorphic_on_extend_bounded [OF holfb_i] by auto
     then have gz: "g \<midarrow>z\<rightarrow> g z"
-      apply (simp add: continuous_at [symmetric])
-      using \<open>0 < r\<close> centre_in_ball field_differentiable_imp_continuous_at holomorphic_on_imp_differentiable_at by blast
+      unfolding continuous_at [symmetric]
+      using \<open>0 < r\<close> centre_in_ball field_differentiable_imp_continuous_at 
+            holomorphic_on_imp_differentiable_at by blast
     have gnz: "\<And>w. w \<in> ball z r - {z} \<Longrightarrow> g w \<noteq> 0"
       using gf fab zrM by fastforce
     show ?thesis
@@ -1764,8 +1748,7 @@ proof -
         have "(f \<longlongrightarrow> 0) (at z)"
         proof (rule Lim_transform_within_open [of "\<lambda>w. (1 + a * g w) / g w" _ _ _ "ball z r"])
           show "(\<lambda>w. (1 + a * g w) / g w) \<midarrow>z\<rightarrow> 0"
-            apply (rule tendsto_eq_intros refl gz \<open>g z \<noteq> 0\<close>)+
-            by (simp add: True)
+            by (rule tendsto_eq_intros refl gz \<open>g z \<noteq> 0\<close> | simp add: True)+
           show "\<And>x. \<lbrakk>x \<in> ball z r; x \<noteq> z\<rbrakk> \<Longrightarrow> (1 + a * g x) / g x = f x"
             using fab fab zrM by (fastforce simp add: gf field_split_simps)
         qed (use \<open>0 < r\<close> in auto)
@@ -1793,8 +1776,8 @@ corollary great_Picard_alt:
   assumes M: "open M" "z \<in> M" and holf: "f holomorphic_on (M - {z})"
     and non: "\<And>l. \<not> (f \<longlongrightarrow> l) (at z)" "\<And>l. \<not> ((inverse \<circ> f) \<longlongrightarrow> l) (at z)"
   obtains a where "- {a} \<subseteq> f ` (M - {z})"
-  apply (simp add: subset_iff image_iff)
-  by (metis great_Picard [OF M _ holf] non)
+unfolding subset_iff image_iff
+  by (metis great_Picard [OF M _ holf] non Compl_iff insertI1)
     
 
 corollary great_Picard_infinite:
@@ -1815,8 +1798,7 @@ proof -
       proof (cases "{x \<in> M - {z}. f x \<in> {a, b}} = {}")
         case True
         then show ?thesis
-          apply (rule_tac r=e in that)
-          using e \<open>e > 0\<close> by auto
+          using e \<open>e > 0\<close> that by fastforce
       next
         case False
         let ?r = "min e (Min (dist z ` {x \<in> M - {z}. f x \<in> {a,b}}))"
