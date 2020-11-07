@@ -47,6 +47,21 @@ object Url
     catch { case ERROR(_) => false }
 
 
+  /* trim index */
+
+  def trim_index(url: URL): URL =
+  {
+    Library.try_unprefix("/index.html", url.toString) match {
+      case Some(u) => Url(u)
+      case None =>
+        Library.try_unprefix("/index.php", url.toString) match {
+          case Some(u) => Url(u)
+          case None => url
+        }
+    }
+  }
+
+
   /* strings */
 
   def decode(s: String): String = URLDecoder.decode(s, UTF8.charset_name)

@@ -66,6 +66,7 @@ declare -a SOURCES=(
   src/Pure/General/linear_set.scala
   src/Pure/General/logger.scala
   src/Pure/General/long_name.scala
+  src/Pure/General/mailman.scala
   src/Pure/General/mercurial.scala
   src/Pure/General/multi_map.scala
   src/Pure/General/output.scala
