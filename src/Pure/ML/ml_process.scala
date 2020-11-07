@@ -188,9 +188,12 @@ Usage: isabelle process [OPTIONS]
     val sessions_structure = Sessions.load_structure(options, dirs = dirs)
     val store = Sessions.store(options)
 
-    val rc =
+    val result =
       ML_Process(options, sessions_structure, store, logic = logic, args = eval_args, modes = modes)
-        .result().print_stdout.rc
-    sys.exit(rc)
+        .result(
+          progress_stdout = Output.writeln(_, stdout = true),
+          progress_stderr = Output.writeln(_))
+
+    sys.exit(result.rc)
   })
 }

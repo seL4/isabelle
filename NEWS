@@ -224,6 +224,10 @@ java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
 
   ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
 
+* The command-line tool "isabelle process" now prints output to
+stdout/stderr separately and incrementally, instead of just one bulk to
+stdout after termination. Potential INCOMPATIBILITY for external tools.
+
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
