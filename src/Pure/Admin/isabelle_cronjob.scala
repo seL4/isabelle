@@ -27,6 +27,8 @@ object Isabelle_Cronjob
   val isabelle_repos: Path = main_dir + Path.explode("isabelle")
   val afp_repos: Path = main_dir + Path.explode("AFP")
 
+  val mailman_archives_dir = Path.explode("~/cronjob/Mailman")
+
   val build_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
 
@@ -67,6 +69,16 @@ object Isabelle_Cronjob
         Isabelle_System.bash(
           "rsync -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
             .check
+      })
+
+
+  /* Mailman archives */
+
+  val mailman_archives: Logger_Task =
+    Logger_Task("mailman_archives", logger =>
+      {
+        Mailman.isabelle_users.download(mailman_archives_dir)
+        Mailman.isabelle_dev.download(mailman_archives_dir)
       })
 
 
@@ -567,8 +579,7 @@ object Isabelle_Cronjob
         run_now(
           SEQ(List(
             init,
-            build_history_base,
-            build_release,
+            PAR(List(mailman_archives, SEQ(List(build_history_base, build_release)))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(

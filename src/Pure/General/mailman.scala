@@ -12,6 +12,8 @@ import java.net.URL
 
 object Mailman
 {
+  /* mailing list archives */
+
   def archive(url: URL, name: String = ""): Archive =
   {
     val text = Url.read(url)
@@ -57,4 +59,13 @@ object Mailman
         })
     }
   }
+
+
+  /* Isabelle mailing lists */
+
+  def isabelle_users: Archive =
+    archive(Url("https://lists.cam.ac.uk/pipermail/cl-isabelle-users"), name = "isabelle-users")
+
+  def isabelle_dev: Archive =
+    archive(Url("https://mailmanbroy.informatik.tu-muenchen.de/pipermail/isabelle-dev"))
 }
