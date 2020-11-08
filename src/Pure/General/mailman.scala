@@ -31,9 +31,7 @@ object Mailman
   {
     override def toString: String = list_name
 
-    def download(
-      target_dir: Path = Path.current,
-      progress: Progress = new Progress): List[Path] =
+    def download(target_dir: Path, progress: Progress = new Progress): List[Path] =
     {
       val dir = target_dir + Path.basic(list_name)
       Isabelle_System.make_directory(dir)
