@@ -415,9 +415,7 @@ object Build
         for (document_output <- proper_string(options.string("document_output"))) {
           val document_output_dir =
             Isabelle_System.make_directory(info.dir + Path.explode(document_output))
-          val base = deps(session_name)
-          File.write(document_output_dir + Path.explode("session.tex"),
-            base.session_theories.map(name => "\\input{" + name.theory_base_name + ".tex}\n\n").mkString)
+          Present.write_tex_index(document_output_dir, deps(session_name).session_theories)
         }
         Present.finish(progress, store.browser_info, graph_file, info, session_name)
       }

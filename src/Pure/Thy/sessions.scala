@@ -167,10 +167,7 @@ object Sessions
             val overall_syntax = dependencies.overall_syntax
 
             val session_theories =
-              for {
-                name <- dependencies.theories
-                if deps_base.theory_qualifier(name) == info.name
-              } yield name
+              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
 
             val theory_files = dependencies.theories.map(_.path)
 
@@ -240,9 +237,6 @@ object Sessions
 
             val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
 
-            val used_theories_session =
-              dependencies.theories.filter(name => deps_base.theory_qualifier(name) == session_name)
-
             val import_errors =
             {
               val known_sessions =
@@ -260,7 +254,7 @@ object Sessions
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  name <- used_theories_session.iterator
+                  name <- session_theories.iterator
                   path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
@@ -276,7 +270,7 @@ object Sessions
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
               val errs4 =
                 (for {
-                  name <- used_theories_session.iterator
+                  name <- session_theories.iterator
                   name1 <- resources.find_theory_node(name.theory)
                   if name.node != name1.node
                 } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)

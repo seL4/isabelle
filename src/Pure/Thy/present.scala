@@ -193,6 +193,17 @@ object Present
 
 
 
+  /** make document source **/
+
+  def write_tex_index(dir: Path, names: List[Document.Node.Name])
+  {
+    val path = dir + Path.explode("session.tex")
+    val text = names.map(name => "\\input{" + name.theory_base_name + ".tex}\n\n").mkString
+    File.write(path, text)
+  }
+
+
+
   /** build document **/
 
   val document_format = "pdf"
