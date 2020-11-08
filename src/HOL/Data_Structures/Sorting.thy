@@ -38,7 +38,7 @@ apply simp
 apply (simp add: mset_insort)
 done
 
-lemma set_insort: "set (insort x xs) = insert x (set xs)"
+lemma set_insort: "set (insort x xs) = {x} \<union> set xs"
 by(simp add: mset_insort flip: set_mset_mset)
 
 lemma sorted_insort: "sorted (insort a xs) = sorted xs"
