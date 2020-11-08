@@ -20,9 +20,11 @@ object Mailman
     val hrefs = """href="([^"]+\.txt(?:\.gz)?)"""".r.findAllMatchIn(text).map(_.group(1)).toList
     val title =
       """<title>The ([^</>]*) Archives</title>""".r.findFirstMatchIn(text).map(_.group(1))
+    val list_url =
+      Url(Library.take_suffix[Char](_ == '/', Url.trim_index(url).toString.toList)._1.mkString + "/")
     val list_name =
       (proper_string(name) orElse title).getOrElse(error("Failed to determine mailing list name"))
-    new Archive(Url.trim_index(url), list_name, hrefs)
+    new Archive(list_url, list_name, hrefs)
   }
 
   class Archive private[Mailman](val list_url: URL, val list_name: String, hrefs: List[String])
