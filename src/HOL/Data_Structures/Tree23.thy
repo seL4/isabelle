@@ -32,7 +32,7 @@ instance ..
 
 end
 
-text \<open>Balanced:\<close>
+text \<open>Completeness:\<close>
 
 fun complete :: "'a tree23 \<Rightarrow> bool" where
 "complete Leaf = True" |

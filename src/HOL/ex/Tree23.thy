@@ -12,9 +12,6 @@ text\<open>This is a very direct translation of some of the functions in table.M
 in the Isabelle source code. That source is due to Makarius Wenzel and Stefan
 Berghofer.
 
-So far this file contains only data types and functions, but no proofs. Feel
-free to have a go at the latter!
-
 Note that because of complicated patterns and mutual recursion, these
 function definitions take a few minutes and can also be seen as stress tests
 for the function definition facility.\<close>

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>Creating Balanced Trees\<close>
+section \<open>Creating Almost Complete Trees\<close>
 
 theory Balance
 imports
@@ -169,9 +169,9 @@ proof(induction n arbitrary: xs t zs rule: less_induct)
   qed
 qed
 
-lemma balanced_bal:
-  assumes "n \<le> length xs" "bal n xs = (t,ys)" shows "balanced t"
-unfolding balanced_def
+lemma acomplete_bal:
+  assumes "n \<le> length xs" "bal n xs = (t,ys)" shows "acomplete t"
+unfolding acomplete_def
 using height_bal[OF assms] min_height_bal[OF assms]
 by linarith
 
@@ -192,16 +192,16 @@ corollary height_balance_tree:
   "height (balance_tree t) = nat\<lceil>log 2 (size t + 1)\<rceil>"
 by (simp add: bal_tree_def balance_tree_def height_bal_list)
 
-corollary balanced_bal_list[simp]: "n \<le> length xs \<Longrightarrow> balanced (bal_list n xs)"
-unfolding bal_list_def by (metis  balanced_bal prod.collapse)
+corollary acomplete_bal_list[simp]: "n \<le> length xs \<Longrightarrow> acomplete (bal_list n xs)"
+unfolding bal_list_def by (metis  acomplete_bal prod.collapse)
 
-corollary balanced_balance_list[simp]: "balanced (balance_list xs)"
+corollary acomplete_balance_list[simp]: "acomplete (balance_list xs)"
 by (simp add: balance_list_def)
 
-corollary balanced_bal_tree[simp]: "n \<le> size t \<Longrightarrow> balanced (bal_tree n t)"
+corollary acomplete_bal_tree[simp]: "n \<le> size t \<Longrightarrow> acomplete (bal_tree n t)"
 by (simp add: bal_tree_def)
 
-corollary balanced_balance_tree[simp]: "balanced (balance_tree t)"
+corollary acomplete_balance_tree[simp]: "acomplete (balance_tree t)"
 by (simp add: balance_tree_def)
 
 lemma wbalanced_bal: "\<lbrakk> n \<le> length xs; bal n xs = (t,ys) \<rbrakk> \<Longrightarrow> wbalanced t"
@@ -226,9 +226,9 @@ proof(induction n arbitrary: xs t ys rule: less_induct)
   qed
 qed
 
-text\<open>An alternative proof via @{thm balanced_if_wbalanced}:\<close>
-lemma "\<lbrakk> n \<le> length xs; bal n xs = (t,ys) \<rbrakk> \<Longrightarrow> balanced t"
-by(rule balanced_if_wbalanced[OF wbalanced_bal])
+text\<open>An alternative proof via @{thm acomplete_if_wbalanced}:\<close>
+lemma "\<lbrakk> n \<le> length xs; bal n xs = (t,ys) \<rbrakk> \<Longrightarrow> acomplete t"
+by(rule acomplete_if_wbalanced[OF wbalanced_bal])
 
 lemma wbalanced_bal_list[simp]: "n \<le> length xs \<Longrightarrow> wbalanced (bal_list n xs)"
 by(simp add: bal_list_def) (metis prod.collapse wbalanced_bal)

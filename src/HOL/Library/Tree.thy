@@ -1,5 +1,5 @@
 (* Author: Tobias Nipkow *)
-(* Todo: minimal ipl of balanced trees *)
+(* Todo: minimal ipl of almost complete trees *)
 
 section \<open>Binary Tree\<close>
 
@@ -55,8 +55,9 @@ fun complete :: "'a tree \<Rightarrow> bool" where
 "complete Leaf = True" |
 "complete (Node l x r) = (complete l \<and> complete r \<and> height l = height r)"
 
-definition balanced :: "'a tree \<Rightarrow> bool" where
-"balanced t = (height t - min_height t \<le> 1)"
+text \<open>Almost complete:\<close>
+definition acomplete :: "'a tree \<Rightarrow> bool" where
+"acomplete t = (height t - min_height t \<le> 1)"
 
 text \<open>Weight balanced:\<close>
 fun wbalanced :: "'a tree \<Rightarrow> bool" where
@@ -290,24 +291,24 @@ lemma complete_iff_size1: "complete t \<longleftrightarrow> size1 t = 2 ^ height
 using complete_if_size1_height size1_if_complete by blast
 
 
-subsection \<open>\<^const>\<open>balanced\<close>\<close>
+subsection \<open>\<^const>\<open>acomplete\<close>\<close>
 
-lemma balanced_subtreeL: "balanced (Node l x r) \<Longrightarrow> balanced l"
-by(simp add: balanced_def)
+lemma acomplete_subtreeL: "acomplete (Node l x r) \<Longrightarrow> acomplete l"
+by(simp add: acomplete_def)
 
-lemma balanced_subtreeR: "balanced (Node l x r) \<Longrightarrow> balanced r"
-by(simp add: balanced_def)
+lemma acomplete_subtreeR: "acomplete (Node l x r) \<Longrightarrow> acomplete r"
+by(simp add: acomplete_def)
 
-lemma balanced_subtrees: "\<lbrakk> balanced t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> balanced s"
+lemma acomplete_subtrees: "\<lbrakk> acomplete t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> acomplete s"
 using [[simp_depth_limit=1]]
 by(induction t arbitrary: s)
-  (auto simp add: balanced_subtreeL balanced_subtreeR)
+  (auto simp add: acomplete_subtreeL acomplete_subtreeR)
 
 text\<open>Balanced trees have optimal height:\<close>
 
-lemma balanced_optimal:
+lemma acomplete_optimal:
 fixes t :: "'a tree" and t' :: "'b tree"
-assumes "balanced t" "size t \<le> size t'" shows "height t \<le> height t'"
+assumes "acomplete t" "size t \<le> size t'" shows "height t \<le> height t'"
 proof (cases "complete t")
   case True
   have "(2::nat) ^ height t \<le> 2 ^ height t'"
@@ -333,7 +334,7 @@ next
   hence *: "min_height t < height t'" by simp
   have "min_height t + 1 = height t"
     using min_height_le_height[of t] assms(1) False
-    by (simp add: complete_iff_height balanced_def)
+    by (simp add: complete_iff_height acomplete_def)
   with * show ?thesis by arith
 qed
 

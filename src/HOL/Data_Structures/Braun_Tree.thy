@@ -30,13 +30,13 @@ next
   thus ?case using Node.prems(1,2) Node.IH by auto
 qed
 
-text \<open>Braun trees are balanced:\<close>
+text \<open>Braun trees are almost complete:\<close>
 
-lemma balanced_if_braun: "braun t \<Longrightarrow> balanced t"
+lemma acomplete_if_braun: "braun t \<Longrightarrow> acomplete t"
 proof(induction t)
-  case Leaf show ?case by (simp add: balanced_def)
+  case Leaf show ?case by (simp add: acomplete_def)
 next
-  case (Node l x r) thus ?case using balanced_Node_if_wbal2 by force
+  case (Node l x r) thus ?case using acomplete_Node_if_wbal2 by force
 qed
 
 subsection \<open>Numbering Nodes\<close>

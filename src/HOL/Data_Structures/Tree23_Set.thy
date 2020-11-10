@@ -114,7 +114,7 @@ fun split_min :: "'a tree23 \<Rightarrow> 'a * 'a upD" where
 "split_min (Node3 l a m b r) = (let (x,l') = split_min l in (x, node31 l' a m b r))"
 
 text \<open>In the base cases of \<open>split_min\<close> and \<open>del\<close> it is enough to check if one subtree is a \<open>Leaf\<close>,
-in which case balancedness implies that so are the others. Exercise.\<close>
+in which case completeness implies that so are the others. Exercise.\<close>
 
 fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a upD" where
 "del x Leaf = TD Leaf" |
@@ -203,7 +203,7 @@ lemma inorder_delete: "\<lbrakk> complete t ; sorted(inorder t) \<rbrakk> \<Long
 by(simp add: delete_def inorder_del)
 
 
-subsection \<open>Balancedness\<close>
+subsection \<open>Completeness\<close>
 
 
 subsubsection "Proofs for insert"
@@ -225,7 +225,7 @@ lemma complete_ins: "complete t \<Longrightarrow> complete (treeI(ins a t)) \<an
 by (induct t) (auto split!: if_split upI.split) (* 15 secs in 2015 *)
 
 text\<open>Now an alternative proof (by Brian Huffman) that runs faster because
-two properties (balance and height) are combined in one predicate.\<close>
+two properties (completeness and height) are combined in one predicate.\<close>
 
 inductive full :: "nat \<Rightarrow> 'a tree23 \<Rightarrow> bool" where
 "full 0 Leaf" |
