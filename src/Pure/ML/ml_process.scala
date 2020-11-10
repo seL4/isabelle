@@ -32,7 +32,7 @@ object ML_Process
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        sessions_structure.selection(Sessions.Selection.session(logic_name)).
+        sessions_structure.selection(logic_name).
           build_requirements(List(logic_name)).
           map(a => File.platform_path(store.the_heap(a)))
       }

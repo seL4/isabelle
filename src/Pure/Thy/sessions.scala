@@ -711,6 +711,8 @@ object Sessions
         restrict(build_graph), restrict(imports_graph))
     }
 
+    def selection(session: String): Structure = selection(Selection.session(session))
+
     def selection_deps(
       options: Options,
       selection: Selection,
