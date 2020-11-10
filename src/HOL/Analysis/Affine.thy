@@ -1483,34 +1483,15 @@ qed
 lemma affine_independent_card_dim_diffs:
   fixes S :: "'a :: euclidean_space set"
   assumes "\<not> affine_dependent S" "a \<in> S"
-    shows "card S = dim {x - a|x. x \<in> S} + 1"
+    shows "card S = dim ((\<lambda>x. x - a) ` S) + 1"
 proof -
-  have 1: "{b - a|b. b \<in> (S - {a})} \<subseteq> {x - a|x. x \<in> S}" by auto
-  have 2: "x - a \<in> span {b - a |b. b \<in> S - {a}}" if "x \<in> S" for x
-  proof (cases "x = a")
-    case True then show ?thesis by (simp add: span_clauses)
-  next
-    case False then show ?thesis
-      using assms by (blast intro: span_base that)
-  qed
-  have "\<not> affine_dependent (insert a S)"
+  have non: "\<not> affine_dependent (insert a S)"
     by (simp add: assms insert_absorb)
-  then have 3: "independent {b - a |b. b \<in> S - {a}}"
-      using dependent_imp_affine_dependent by fastforce
-  have "{b - a |b. b \<in> S - {a}} = (\<lambda>b. b-a) ` (S - {a})"
-    by blast
-  then have "card {b - a |b. b \<in> S - {a}} = card ((\<lambda>b. b-a) ` (S - {a}))"
-    by simp
-  also have "\<dots> = card (S - {a})"
-    by (metis (no_types, lifting) card_image diff_add_cancel inj_onI)
-  also have "\<dots> = card S - 1"
-    by (simp add: aff_independent_finite assms)
-  finally have 4: "card {b - a |b. b \<in> S - {a}} = card S - 1" .
   have "finite S"
     by (meson assms aff_independent_finite)
   with \<open>a \<in> S\<close> have "card S \<noteq> 0" by auto
-  moreover have "dim {x - a |x. x \<in> S} = card S - 1"
-    using 2 by (blast intro: dim_unique [OF 1 _ 3 4])
+  moreover have "dim ((\<lambda>x. x - a) ` S) = card S - 1"
+    using aff_dim_eq_dim_subtract aff_dim_unique \<open>a \<in> S\<close> hull_inc insert_absorb non by fastforce
   ultimately show ?thesis
     by auto
 qed
