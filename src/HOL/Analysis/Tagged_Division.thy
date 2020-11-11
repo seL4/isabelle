@@ -2495,8 +2495,8 @@ proof -
               (((f j) + 1) / 2 ^ n) * (b \<bullet> j - a \<bullet> j) \<le> (((g j) + 1) / 2 ^ m) * (b \<bullet> j - a \<bullet> j)"
           using that \<open>j \<in> Basis\<close> by (simp add: subset_box field_split_simps aibi)
         then have "((g j) / 2 ^ m) \<le> ((f j) / 2 ^ n) \<and>
-          ((real(f j) + 1) / 2 ^ n) \<le> ((real(g j) + 1) / 2 ^ m)"
-          by (metis bjaj mult.commute of_nat_1 of_nat_add real_mult_le_cancel_iff2)
+                   ((real(f j) + 1) / 2 ^ n) \<le> ((real(g j) + 1) / 2 ^ m)"
+          by (metis bjaj mult.commute of_nat_1 of_nat_add mult_le_cancel_iff2)
         then have "inverse (2^n) \<le> (inverse (2^m) :: real)"
           by (rule dd)
         then have "m \<le> n"

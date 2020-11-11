@@ -92,7 +92,8 @@ next
           (e + norm (c (Suc n))) * (norm z * norm z ^ n)"
       by (simp add: norm_mult norm_power algebra_simps)
     also have "... \<le> (e * norm z) * (norm z * norm z ^ n)"
-      using norm2 by (metis real_mult_le_cancel_iff1)
+      using norm2
+      using assms mult_mono by fastforce
     also have "... = e * (norm z * (norm z * norm z ^ n))"
       by (simp add: algebra_simps)
     finally have "e * (norm z * norm z ^ n) + norm (c (Suc n) * (z * z ^ n))

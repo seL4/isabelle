@@ -3157,7 +3157,7 @@ next
       then show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
                          f ` S \<inter> cbox a b \<in> lmeasurable \<and>
                          \<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> < e"
-        using \<open>C>0\<close> \<open>D>0\<close> by (metis mult_zero_left real_mult_less_iff1)
+        using \<open>C>0\<close> \<open>D>0\<close> by (metis mult_zero_left mult_less_iff1)
     qed
   qed
 qed
@@ -4224,7 +4224,7 @@ proof
         moreover have "0 \<le> m"
           using False m_def by force
         ultimately show ?thesis
-          by (metis abs_of_nonneg floor_mono le_floor_iff m_def of_int_0_le_iff power2_eq_square power_mult real_mult_le_cancel_iff1 zero_less_numeral mult.commute zero_less_power)
+          by (metis abs_of_nonneg floor_mono le_floor_iff m_def of_int_0_le_iff power2_eq_square power_mult mult_le_cancel_iff1 zero_less_numeral mult.commute zero_less_power)
       qed
       then have "?g n x = m/2^n"
         by (rule indicator_sum_eq) (auto simp add: m_def field_split_simps, linarith)

@@ -1483,7 +1483,7 @@ proof -
         by blast+
       have neq: "{0..n/N} \<union> {n/N..(1 + real n) / N} = {0..(1 + real n) / N}"
         apply (auto simp: field_split_simps)
-        by (metis mult_zero_left of_nat_0_le_iff of_nat_0_less_iff order_trans real_mult_le_cancel_iff1)
+        by (metis not_less of_nat_0_le_iff of_nat_0_less_iff order_trans zero_le_mult_iff)
       then have neqQ': "{0..n/N} \<times> Q' \<union> {n/N..(1 + real n) / N} \<times> Q' = {0..(1 + real n) / N} \<times> Q'"
         by blast
       have cont: "continuous_on ({0..(1 + real n) / N} \<times> Q') (\<lambda>x. if x \<in> {0..n/N} \<times> Q' then k x else (p' \<circ> h) x)"

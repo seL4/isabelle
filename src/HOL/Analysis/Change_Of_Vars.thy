@@ -170,7 +170,7 @@ proof -
             have "norm (\<chi> k. m k * x $ k) \<le> norm (Max (range (\<lambda>k. \<bar>m k\<bar>)) *\<^sub>R x)"
               by (rule norm_le_componentwise_cart) (auto simp: abs_mult intro: mult_right_mono)
             also have "\<dots> < ?C"
-              using x by simp (metis \<open>B > 0\<close> \<open>?C > 0\<close> mult.commute real_mult_less_iff1 zero_less_mult_pos)
+              using x \<open>0 < (MAX k. \<bar>m k\<bar>) * B\<close> \<open>0 < B\<close> zero_less_mult_pos2 by fastforce
             finally have "norm (\<chi> k. m k * x $ k) < ?C" .
             then show "x \<in> (\<lambda>x. \<chi> k. x $ k / m k) ` ball 0 ?C"
               using stretch_Galois [of "inverse \<circ> m"] True by (auto simp: image_iff field_simps)
@@ -764,7 +764,7 @@ proof -
             fix x
             assume "e > 0"  "m < n"  "n * e \<le> \<bar>det (matrix (f' x))\<bar>"  "\<bar>det (matrix (f' x))\<bar> < (1 + real m) * e"
             then have "n < 1 + real m"
-              by (metis (no_types, hide_lams) less_le_trans mult.commute not_le real_mult_le_cancel_iff2)
+              by (metis (no_types, hide_lams) less_le_trans mult.commute not_le mult_le_cancel_iff2)
             then show "False"
               using less.hyps by linarith
           qed
@@ -780,7 +780,7 @@ proof -
         have False if "T n \<subseteq> T m" "x \<in> T n" for x
           using \<open>e > 0\<close> \<open>m < n\<close> that
           apply (auto simp: T_def  mult.commute intro: less_le_trans dest!: subsetD)
-          by (metis add.commute less_le_trans nat_less_real_le not_le real_mult_le_cancel_iff2)
+          by (metis add.commute less_le_trans nat_less_real_le not_le mult_le_cancel_iff2)
         then show ?case
           using less.prems by blast
       qed auto
@@ -2161,7 +2161,7 @@ proof -
           show "\<exists>t. norm (f y - f x - f' x t) \<le> d * norm (v - u)"
             apply (rule_tac x="y-x" in exI)
             using \<open>d > 0\<close> yx_le le_dyx mult_left_mono [where c=d]
-            by (meson order_trans real_mult_le_cancel_iff2)
+            by (meson order_trans mult_le_cancel_iff2)
         qed
         with subT show "f ` (K \<inter> S) \<subseteq> T" by blast
         show "?\<mu> T \<le> e / (2*c) ^ ?m * ?\<mu> K"

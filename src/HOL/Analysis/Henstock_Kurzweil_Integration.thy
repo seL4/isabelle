@@ -6323,7 +6323,7 @@ proof -
         obtain u v where  "K = cbox u v"
           using \<open>(x, K) \<in> \<D>\<close> p(1) by blast
         moreover have "content K * norm (f x) \<le> content K * g x"
-          by (metis K subsetD dual_order.antisym measure_nonneg mult_zero_left nle not_le real_mult_le_cancel_iff2)
+          by (meson K(1) K(2) content_pos_le mult_left_mono nle subsetD)
         then show ?thesis
           by simp
       qed

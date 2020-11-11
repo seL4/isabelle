@@ -435,4 +435,17 @@ lemma pochhammer_code [code]:
     (simp_all add: pochhammer_prod prod_atLeastAtMost_code [symmetric]
       atLeastLessThanSuc_atLeastAtMost)
 
+
+lemma mult_less_iff1: "0 < z \<Longrightarrow> x * z < y * z \<longleftrightarrow> x < y"
+  for x y z :: "'a::linordered_idom"
+  by simp 
+
+lemma mult_le_cancel_iff1: "0 < z \<Longrightarrow> x * z \<le> y * z \<longleftrightarrow> x \<le> y"
+  for x y z :: "'a::linordered_idom"
+  by simp
+
+lemma mult_le_cancel_iff2: "0 < z \<Longrightarrow> z * x \<le> z * y \<longleftrightarrow> x \<le> y"
+  for x y z :: "'a::linordered_idom"
+  by simp 
+
 end

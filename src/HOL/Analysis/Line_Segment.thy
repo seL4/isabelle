@@ -580,7 +580,7 @@ proof (intro conjI)
     apply (simp add: dist_norm algebra_simps x)
     by (metis abs_of_nonneg less_eq_real_def norm_minus_commute norm_scaleR real_vector.scale_right_diff_distrib \<open>0 < u\<close>)
   also have *: "...  < dist a b"
-    by (metis (no_types) assms dist_eq_0_iff dist_not_less_zero in_segment(2) linorder_neqE_linordered_idom mult.left_neutral real_mult_less_iff1 \<open>u < 1\<close>)
+    using assms mult_less_cancel_right2 u(2) by fastforce
   finally show "dist x a < dist a b" .
   have ab_ne0: "dist a b \<noteq> 0"
     using * by fastforce

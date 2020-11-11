@@ -2816,7 +2816,7 @@ proof -
       by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + x"
       apply (simp add: algebra_simps)
-      by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_div_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)
+      by (metis assms(2) floor_divide_lower mult.commute)
     also have "... < y"
       by (rule 1)
     finally have "?n * a < y" .
@@ -2829,7 +2829,7 @@ proof -
       by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + y"
       apply (simp add: algebra_simps)
-      by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_div_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)
+      by (metis assms(2) floor_divide_lower mult.commute)
     also have "... < x"
       by (rule 2)
     finally have "?n * a < x" .

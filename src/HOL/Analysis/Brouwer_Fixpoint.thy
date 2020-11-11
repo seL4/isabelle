@@ -2432,7 +2432,7 @@ proof -
       also have "\<dots> \<le> norm (f x - y) * B"
         by (metis B(2) g'.diff)
       also have "\<dots> \<le> e * B"
-        by (metis B(1) dist_norm mem_cball real_mult_le_cancel_iff1 that(1))
+        by (metis B(1) dist_norm mem_cball mult_le_cancel_iff1 that(1))
       also have "\<dots> \<le> e1"
         using B(1) e(3) pos_less_divide_eq by fastforce
       finally have "z \<in> cball x e1"
@@ -2454,7 +2454,7 @@ proof -
     have "norm (g' (z - f x)) \<le> norm (z - f x) * B"
       using B by auto
     also have "\<dots> \<le> e * B"
-      by (metis B(1) z dist_norm mem_cball norm_minus_commute real_mult_le_cancel_iff1)
+      by (metis B(1) z dist_norm mem_cball norm_minus_commute mult_le_cancel_iff1)
     also have "\<dots> < e0"
       using B(1) e(2) pos_less_divide_eq by blast
     finally have *: "norm (x + g' (z - f x) - x) < e0"
@@ -2493,7 +2493,7 @@ proof -
       using B
       by (auto simp add: field_simps)
     also have "\<dots> \<le> e * B"
-      by (metis B(1) dist_norm mem_cball norm_minus_commute real_mult_le_cancel_iff1 z(1))
+      by (metis B(1) dist_norm mem_cball norm_minus_commute mult_le_cancel_iff1 z(1))
     also have "\<dots> \<le> e1"
       using e B unfolding less_divide_eq by auto
     finally have "x + g'(z - f x) \<in> T"

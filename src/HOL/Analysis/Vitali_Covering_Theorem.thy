@@ -615,7 +615,7 @@ next
               apply (subst measure_UNION')
               using that pwC by (auto simp: case_prod_unfold elim: pairwise_mono)
             also have "\<dots> \<le> e"
-              by (metis mult.commute mult.left_neutral real_mult_le_cancel_iff1 \<open>e > 0\<close> le1)
+              by (metis mult.commute mult.left_neutral mult_le_cancel_iff1 \<open>e > 0\<close> le1)
             finally show ?thesis .
           qed
           have "\<Union>(U ` C) \<in> lmeasurable" "?\<mu> (\<Union>(U ` C)) \<le> e"

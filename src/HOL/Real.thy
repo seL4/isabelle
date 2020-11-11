@@ -950,24 +950,6 @@ lifting_update real.lifting
 lifting_forget real.lifting
 
 
-subsection \<open>More Lemmas\<close>
-
-text \<open>BH: These lemmas should not be necessary; they should be
-  covered by existing simp rules and simplification procedures.\<close>
-
-lemma real_mult_less_iff1 [simp]: "0 < z \<Longrightarrow> x * z < y * z \<longleftrightarrow> x < y"
-  for x y z :: real
-  by simp (* solved by linordered_ring_less_cancel_factor simproc *)
-
-lemma real_mult_le_cancel_iff1 [simp]: "0 < z \<Longrightarrow> x * z \<le> y * z \<longleftrightarrow> x \<le> y"
-  for x y z :: real
-  by simp (* solved by linordered_ring_le_cancel_factor simproc *)
-
-lemma real_mult_le_cancel_iff2 [simp]: "0 < z \<Longrightarrow> z * x \<le> z * y \<longleftrightarrow> x \<le> y"
-  for x y z :: real
-  by simp (* solved by linordered_ring_le_cancel_factor simproc *)
-
-
 subsection \<open>Embedding numbers into the Reals\<close>
 
 abbreviation real_of_nat :: "nat \<Rightarrow> real"

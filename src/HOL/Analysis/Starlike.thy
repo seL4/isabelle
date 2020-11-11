@@ -4142,7 +4142,7 @@ next
     have cont_f: "continuous_on (affine hull S) f"
     proof (clarsimp simp: dist_norm continuous_on_iff diff)
       show "\<And>x e. 0 < e \<Longrightarrow> \<exists>d>0. \<forall>y \<in> affine hull S. \<bar>f y - f x\<bar> * norm z < d \<longrightarrow> \<bar>f y - f x\<bar> < e"
-        by (metis \<open>z \<noteq> 0\<close> mult_pos_pos real_mult_less_iff1 zero_less_norm_iff)
+        by (metis \<open>z \<noteq> 0\<close> mult_pos_pos mult_less_iff1 zero_less_norm_iff)
     qed
     then have conn_fS: "connected (f ` S)"
       by (meson S connected_continuous_image continuous_on_subset hull_subset)
@@ -4212,7 +4212,7 @@ proof -
   have cont_f: "continuous_on (affine hull S) f"
   proof (clarsimp simp: dist_norm continuous_on_iff diff)
     show "\<And>x e. 0 < e \<Longrightarrow> \<exists>d>0. \<forall>y \<in> affine hull S. \<bar>f y  - f x\<bar> * norm z < d \<longrightarrow> \<bar>f y  - f x\<bar> < e"
-      by (metis \<open>z \<noteq> 0\<close> mult_pos_pos real_mult_less_iff1 zero_less_norm_iff)
+      by (metis \<open>z \<noteq> 0\<close> mult_pos_pos mult_less_iff1 zero_less_norm_iff)
   qed
   then have "connected (f ` S)"
     by (meson \<open>connected S\<close> connected_continuous_image continuous_on_subset hull_subset)

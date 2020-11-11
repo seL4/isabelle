@@ -1092,7 +1092,7 @@ proof -
   proof (cases "d = 0")
     case True
     from \<open>1 - c > 0\<close> have "(1 - c) * x \<le> 0 \<longleftrightarrow> x \<le> 0" for x
-      by (metis mult_zero_left mult.commute real_mult_le_cancel_iff1)
+      by (simp add: mult_le_0_iff)
     with c cf_z2[of 0] True have "z n = z0" for n
       by (simp add: z_def)
     with \<open>e > 0\<close> show ?thesis by simp
