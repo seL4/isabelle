@@ -1364,6 +1364,12 @@ proof
     using assms by blast+
 qed
 
+lemma Un_Int_eq [simp]: "(S \<union> T) \<inter> S = S" "(S \<union> T) \<inter> T = T" "S \<inter> (S \<union> T) = S" "T \<inter> (S \<union> T) = T"
+  by auto
+
+lemma Int_Un_eq [simp]: "(S \<inter> T) \<union> S = S" "(S \<inter> T) \<union> T = T" "S \<union> (S \<inter> T) = S" "T \<union> (S \<inter> T) = T"
+  by auto
+
 text \<open>\<^medskip> Set complement\<close>
 
 lemma Compl_disjoint [simp]: "A \<inter> - A = {}"
