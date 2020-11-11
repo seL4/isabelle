@@ -358,8 +358,8 @@ object Build_History
             else None
           })
 
-      build_out_progress.echo("Writing log file " + log_path.ext("xz") + " ...")
-      File.write_xz(log_path.ext("xz"),
+      build_out_progress.echo("Writing log file " + log_path.xz + " ...")
+      File.write_xz(log_path.xz,
         terminate_lines(
           Protocol.Meta_Info_Marker(meta_info) :: build_result.out_lines :::
           session_build_info :::
@@ -377,7 +377,7 @@ object Build_History
 
       first_build = false
 
-      (build_result, log_path.ext("xz"))
+      (build_result, log_path.xz)
     }
   }
 

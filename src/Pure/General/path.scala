@@ -193,6 +193,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
       prfx + Path.basic(s + "." + e)
     }
 
+  def xz: Path = ext("xz")
   def tex: Path = ext("tex")
   def pdf: Path = ext("pdf")
 
