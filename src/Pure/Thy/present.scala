@@ -283,8 +283,6 @@ object Present
 
           // prepare document
 
-          List("log", "blg").foreach(ext => (doc_dir + Path.explode(root).ext(ext)).file.delete)
-
           val result =
             if ((doc_dir + Path.explode("build")).is_file) {
               bash("./build pdf " + Bash.string(doc_name))
