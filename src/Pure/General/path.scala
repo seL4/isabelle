@@ -156,6 +156,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
   def is_absolute: Boolean = elems.nonEmpty && elems.last.isInstanceOf[Path.Root]
   def is_root: Boolean = elems match { case List(Path.Root(_)) => true case _ => false }
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
+  def starts_basic: Boolean = elems.nonEmpty && elems.last.isInstanceOf[Path.Basic]
 
   def +(other: Path): Path = new Path((other.elems :\ elems)(Path.apply_elem))
 
