@@ -50,6 +50,7 @@ object Build_Doc
       options + "document=pdf" + "document_output=~~/doc" + "document_output_sources=false"
     val deps = Sessions.load_structure(doc_options).selection_deps(selection)
     for (session <- selection.sessions) {
+      progress.expose_interrupt()
       Present.build_documents(session, deps, store, progress = progress)
     }
   }
