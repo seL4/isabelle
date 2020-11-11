@@ -77,9 +77,8 @@ object Present
   /* finish session */
 
   def finish(
-    progress: Progress,
     browser_info: Path,
-    graph_file: JFile,
+    graph_pdf: Bytes,
     info: Sessions.Info,
     name: String)
   {
@@ -89,9 +88,7 @@ object Present
     if (info.options.bool("browser_info")) {
       Isabelle_System.make_directory(session_fonts)
 
-      val session_graph = session_prefix + Path.basic("session_graph.pdf")
-      File.copy(graph_file, session_graph.file)
-      Isabelle_System.chmod("a+r", session_graph)
+      Bytes.write(session_prefix + session_graph_path, graph_pdf)
 
       HTML.write_isabelle_css(session_prefix)
 
@@ -193,131 +190,207 @@ object Present
 
 
 
-  /** make document source **/
+  /** build documents **/
 
-  def write_tex_index(dir: Path, names: List[Document.Node.Name])
-  {
-    val path = dir + Path.explode("session.tex")
-    val text = names.map(name => "\\input{" + name.theory_base_name + ".tex}\n\n").mkString
-    File.write(path, text)
-  }
+  val session_tex_path = Path.explode("session.tex")
+  val session_graph_path = Path.explode("session_graph.pdf")
 
+  def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
+  def document_tex_name(name: Document.Node.Name): String = "document/" + tex_name(name)
 
-
-  /** build document **/
-
-  val document_format = "pdf"
-
-  val default_document_name = "document"
-  def default_document_dir(name: String): Path = Path.explode("output") + Path.basic(name)
-
-  def document_tags(tags: List[String]): String =
-  {
-    cat_lines(
+  def isabelletags(tags: List[String]): String =
+    Library.terminate_lines(
       tags.map(tag =>
         tag.toList match {
           case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
           case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
           case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
           case cs => "\\isakeeptag{" + cs.mkString + "}"
-        })) + "\n"
-  }
+        }))
 
-  def build_document(
-    document_name: String = default_document_name,
-    document_dir: Option[Path] = None,
-    tags: List[String] = Nil)
+  def build_documents(
+    session: String,
+    deps: Sessions.Deps,
+    store: Sessions.Store,
+    progress: Progress = new Progress,
+    verbose: Boolean = false,
+    verbose_latex: Boolean = false): List[(String, Bytes)] =
   {
-    val document_target = Path.parent + Path.explode(document_name).ext(document_format)
+    /* session info */
 
-    val dir = document_dir getOrElse default_document_dir(document_name)
-    if (!dir.is_dir) error("Bad document output directory " + dir)
+    val info = deps.sessions_structure(session)
+    val options = info.options
+    val base = deps(session)
+    val graph_pdf = graphview.Graph_File.make_pdf(options, base.session_graph_display)
 
-    val root_name =
+
+    /* prepare document directory */
+
+    def prepare_dir(dir: Path, doc_name: String, doc_tags: List[String]): (Path, String) =
     {
-      val root1 = "root_" + document_name
-      if ((dir + Path.explode(root1).ext("tex")).is_file) root1 else "root"
+      val doc_dir = dir + Path.basic(doc_name)
+      Isabelle_System.make_directory(doc_dir)
+
+      Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
+      File.write(doc_dir + Path.explode("isabelletags.sty"), isabelletags(doc_tags))
+      for ((base_dir, src) <- info.document_files) File.copy_base(info.dir + base_dir, src, doc_dir)
+      Bytes.write(doc_dir + session_graph_path, graph_pdf)
+
+      File.write(doc_dir + session_tex_path,
+        Library.terminate_lines(
+          base.session_theories.map(name => "\\input{" + tex_name(name) + "}")))
+
+      using(store.open_database(session))(db =>
+        for (name <- base.session_theories) {
+          val tex =
+            Export.read_entry(db, session, name.theory, document_tex_name(name)) match {
+              case Some(entry) => entry.uncompressed(cache = store.xz_cache)
+              case None => Bytes.empty
+            }
+          Bytes.write(doc_dir + Path.basic(tex_name(name)), tex)
+        })
+
+      val root1 = "root_" + doc_name
+      val root = if ((doc_dir + Path.explode(root1).tex).is_file) root1 else "root"
+
+      (doc_dir, root)
     }
 
 
-    /* bash scripts */
+    /* produce documents */
 
-    def root_bash(ext: String): String = Bash.string(root_name + "." + ext)
+    val doc_output = info.document_output
 
-    def latex_bash(fmt: String, ext: String = "tex"): String =
-      "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root_name + "." + ext)
+    val docs =
+      for ((doc_name, doc_tags) <- info.documents)
+      yield {
+        Isabelle_System.with_tmp_dir("document")(tmp_dir =>
+        {
+          val (doc_dir, root) = prepare_dir(tmp_dir, doc_name, doc_tags)
+          doc_output.foreach(prepare_dir(_, doc_name, doc_tags))
 
-    def bash(script: String): Process_Result =
-      Isabelle_System.bash(script, cwd = dir.file)
+
+          // bash scripts
+
+          def root_bash(ext: String): String = Bash.string(root + "." + ext)
+
+          def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
+            "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root + "." + ext)
+
+          def bash(items: String*): Process_Result =
+            progress.bash(items.mkString(" && "), cwd = doc_dir.file, echo = verbose_latex)
 
 
-    /* prepare document */
+          // prepare document
 
-    File.write(dir + Path.explode("isabelletags.sty"), document_tags(tags))
+          val result =
+            if ((doc_dir + Path.explode("build")).is_file) {
+              bash("./build pdf " + Bash.string(doc_name))
+            }
+            else {
+              bash(
+                latex_bash(),
+                "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
+                "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
+                latex_bash(),
+                latex_bash())
+            }
 
-    List("log", "blg").foreach(ext => (dir + Path.explode(root_name).ext(ext)).file.delete)
 
-    val result =
-      if ((dir + Path.explode("build")).is_file) {
-        bash("./build " + Bash.string(document_format) + " " + Bash.string(document_name))
+          // result
+
+          val root_pdf = Path.basic(root).pdf
+          val result_path = doc_dir + root_pdf
+
+          if (!result.ok) {
+            cat_error(
+              Library.trim_line(result.err),
+              cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
+              "Failed to build document " + quote(doc_name))
+          }
+          else if (!result_path.is_file) {
+            error("Bad document result: expected to find " + root_pdf)
+          }
+          else doc_name -> Bytes.read(result_path)
+        })
       }
-      else {
-        bash(
-          List(
-            latex_bash("sty"),
-            latex_bash(document_format),
-            "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
-            "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
-            latex_bash(document_format),
-            latex_bash(document_format)).mkString(" && "))
+
+    def output(echo: Boolean, dir: Path)
+    {
+      Isabelle_System.make_directory(dir)
+      for ((name, pdf) <- docs) {
+        val path = dir + Path.basic(name).pdf
+        Bytes.write(path, pdf)
+        if (echo) progress.echo_document(path)
       }
-
-
-    /* result */
-
-    if (!result.ok) {
-      cat_error(
-        Library.trim_line(result.err),
-        cat_lines(Latex.latex_errors(dir, root_name) ::: Bibtex.bibtex_errors(dir, root_name)),
-        "Failed to build document in " + File.path(dir.absolute_file))
     }
 
-    bash("if [ -f " + root_bash(document_format) + " ]; then cp -f " +
-      root_bash(document_format) + " " + File.bash_path(document_target) + "; fi").check
+    if (info.options.bool("browser_info") || doc_output.isEmpty) {
+      output(verbose, store.browser_info + Path.basic(info.chapter) + Path.basic(session))
+    }
+
+    doc_output.foreach(output(true, _))
+
+    docs
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("document", "prepare theory session document", args =>
-  {
-    var document_dir: Option[Path] = None
-    var document_name = default_document_name
-    var tags: List[String] = Nil
+    Isabelle_Tool("document", "prepare session theory document", args =>
+    {
+      var verbose_latex = false
+      var dirs: List[Path] = Nil
+      var no_build = false
+      var options = Options.init()
+      var verbose_build = false
 
-    val getopts = Getopts("""
-Usage: isabelle document [OPTIONS]
+      val getopts = Getopts(
+        """
+Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
-    -d DIR       document output directory (default """ +
-      default_document_dir(default_document_name) + """)
-    -n NAME      document name (default """ + quote(default_document_name) + """)
-    -t TAGS      markup for tagged regions
+    -O           set option "document_output", relative to current directory
+    -V           verbose latex
+    -d DIR       include session directory
+    -n           no build of session
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose build
 
-  Prepare the theory session document in document directory, producing the
-  specified output format.
+  Prepare the theory document of a session.
 """,
-      "d:" -> (arg => document_dir = Some(Path.explode(arg))),
-      "n:" -> (arg => document_name = arg),
-      "t:" -> (arg => tags = space_explode(',', arg)))
+        "O:" -> (arg => options += ("document_output=" + Path.explode(arg).absolute.implode)),
+        "V" -> (_ => verbose_latex = true),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "n" -> (_ => no_build = true),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose_build = true))
 
-    val more_args = getopts(args)
-    if (more_args.nonEmpty) getopts.usage()
+      val more_args = getopts(args)
+      val session =
+        more_args match {
+          case List(a) => a
+          case _ => getopts.usage()
+        }
 
-    try {
-      build_document(document_dir = document_dir, document_name = document_name, tags = tags)
-    }
-    catch { case ERROR(msg) => Output.writeln(msg); sys.exit(2) }
-  })
+      val progress = new Console_Progress(verbose = verbose_build)
+      val store = Sessions.store(options)
+
+      progress.interrupt_handler {
+        if (!no_build) {
+          val res =
+            Build.build(options, selection = Sessions.Selection.session(session),
+              dirs = dirs, progress = progress, verbose = verbose_build)
+          if (!res.ok) error("Failed to build session " + quote(session))
+        }
+
+        val deps =
+          Sessions.load_structure(options + "document=pdf", dirs = dirs).
+            selection_deps(Sessions.Selection.session(session))
+
+        build_documents(session, deps, store, progress = progress,
+          verbose = true, verbose_latex = verbose_latex)
+      }
+    })
 }

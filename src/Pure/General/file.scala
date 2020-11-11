@@ -323,6 +323,14 @@ object File
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
 
+  def copy_base(base_dir: Path, src0: Path, target_dir: Path)
+  {
+    val src = src0.expand
+    val src_dir = src.dir
+    if (!src.starts_basic) error("Illegal path specification " + src + " beyond base directory")
+    copy(base_dir + src, Isabelle_System.make_directory(target_dir + src_dir))
+  }
+
 
   /* move */
 

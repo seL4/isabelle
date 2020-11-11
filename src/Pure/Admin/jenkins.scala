@@ -99,7 +99,7 @@ object Jenkins
     def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress)
     {
       val log_dir = dir + Build_Log.log_subdir(date)
-      val log_path = log_dir + log_filename.ext("xz")
+      val log_path = log_dir + log_filename.xz
 
       if (!log_path.is_file) {
         progress.echo(log_path.expand.implode)

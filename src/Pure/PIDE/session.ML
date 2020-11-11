@@ -9,8 +9,7 @@ sig
   val get_name: unit -> string
   val welcome: unit -> string
   val get_keywords: unit -> Keyword.keywords
-  val init: HTML.symbols -> bool -> Path.T -> string -> string -> (string * string) list ->
-    (Path.T * Path.T) list -> Path.T -> string -> string * string -> bool -> unit
+  val init: HTML.symbols -> bool -> Path.T -> string list -> string -> string * string -> bool -> unit
   val shutdown: unit -> unit
   val finish: unit -> unit
 end;
@@ -46,18 +45,12 @@ fun update_keywords () =
 
 (* init *)
 
-val document =
-  fn "" => false | "false" => false | "pdf" => true
-   | doc => error ("Bad document specification " ^ quote doc);
-
-fun init symbols info info_path doc doc_output doc_variants doc_files graph_file
-    parent (chapter, name) verbose =
+fun init symbols info info_path documents parent (chapter, name) verbose =
   (Synchronized.change session (fn ({name = parent_name, ...}, parent_finished) =>
     if parent_name <> parent orelse not parent_finished then
       error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
     else ({chapter = chapter, name = name}, false));
-    Present.init symbols info info_path (document doc)
-      doc_output doc_variants doc_files graph_file (chapter, name) verbose);
+    Present.init symbols info info_path documents (chapter, name) verbose);
 
 
 (* finish *)

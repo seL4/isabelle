@@ -44,4 +44,11 @@ object Graph_File
 
     write(file, graphview)
   }
+
+  def make_pdf(options: Options, graph: Graph_Display.Graph): Bytes =
+    Isabelle_System.with_tmp_file("graph", ext = "pdf")(graph_file =>
+    {
+      write(options, graph_file.file, graph)
+      Bytes.read(graph_file)
+    })
 }

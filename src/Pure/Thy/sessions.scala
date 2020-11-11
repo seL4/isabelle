@@ -452,6 +452,36 @@ object Sessions
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
+    def document_enabled: Boolean =
+      options.string("document") match {
+        case "" | "false" => false
+        case "pdf" => true
+        case doc => error("Bad document specification " + quote(doc))
+      }
+
+    def documents: List[(String, List[String])] =
+    {
+      val variants =
+        for (s <- Library.space_explode(':', options.string("document_variants")))
+        yield {
+          Library.space_explode('=', s) match {
+            case List(name) => (name, Nil)
+            case List(name, tags) => (name, Library.space_explode(',', tags))
+            case _ => error("Malformed document_variants: " + quote(s))
+          }
+        }
+      val dups = Library.duplicates(variants.map(_._1))
+      if (dups.nonEmpty) error("Duplicate document variants: " + commas_quote(dups))
+
+      if (!document_enabled || document_files.isEmpty) Nil else variants
+    }
+
+    def document_output: Option[Path] =
+      options.string("document_output") match {
+        case "" => None
+        case s => Some(dir + Path.explode(s))
+      }
+
     def bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
@@ -711,8 +741,9 @@ object Sessions
         restrict(build_graph), restrict(imports_graph))
     }
 
+    def selection(session: String): Structure = selection(Selection.session(session))
+
     def selection_deps(
-      options: Options,
       selection: Selection,
       progress: Progress = new Progress,
       loading_sessions: Boolean = false,

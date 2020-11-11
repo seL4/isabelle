@@ -165,12 +165,7 @@ object Build
     val options: Options = NUMA.policy_options(info.options, numa_node)
 
     private val sessions_structure = deps.sessions_structure
-
-    private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    graphview.Graph_File.write(options, graph_file, deps(session_name).session_graph_display)
-
-    private val export_consumer =
-      Export.consumer(store.open_database(session_name, output = true), cache = store.xz_cache)
+    private val documents = info.documents.map(_._1)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
@@ -180,22 +175,20 @@ object Build
           YXML.string_of_body(
             {
               import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(bool,
-                pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
-                pair(string, pair(string, pair(string, pair(Path.encode,
+              pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(Path.encode,
+                pair(list(string), pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
-                pair(list(string), list(string)))))))))))))))))(
-              (Symbol.codes, (command_timings0, (verbose,
-                (store.browser_info, (info.document_files, (File.standard_path(graph_file),
-                (parent, (info.chapter, (session_name, (Path.current,
+                pair(list(string), list(string))))))))))))))))(
+              (Symbol.codes, (command_timings0, (verbose, (store.browser_info,
+                (documents, (parent, (info.chapter, (session_name, (Path.current,
                 (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, info.bibtex_entries.map(_.info))))))))))))))))))
+                (base.loaded_theories.keys, info.bibtex_entries.map(_.info)))))))))))))))))
             })
 
         val env =
@@ -234,6 +227,9 @@ object Build
           }
         }
 
+        val export_consumer =
+          Export.consumer(store.open_database(session_name, output = true), cache = store.xz_cache)
+
         val stdout = new StringBuilder(1000)
         val stderr = new StringBuilder(1000)
         val messages = new mutable.ListBuffer[XML.Elem]
@@ -242,6 +238,7 @@ object Build
         val session_timings = new mutable.ListBuffer[Properties.T]
         val runtime_statistics = new mutable.ListBuffer[Properties.T]
         val task_statistics = new mutable.ListBuffer[Properties.T]
+        val document_output = new mutable.ListBuffer[String]
 
         def fun(
           name: String,
@@ -355,7 +352,7 @@ object Build
             use_prelude = use_prelude, eval_main = eval_main,
             cwd = info.dir.file, env = env)
 
-        val errors =
+        val build_errors =
           Isabelle_Thread.interrupt_handler(_ => process.terminate) {
             Exn.capture { process.await_startup } match {
               case Exn.Res(_) =>
@@ -367,25 +364,58 @@ object Build
 
         val process_result =
           Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
-        val process_output =
-          stdout.toString ::
-          messages.toList.map(message =>
-            Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
-          command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
-          theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
-          session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
-          runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
-          task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
+
+        val export_errors =
+          export_consumer.shutdown(close = true).map(Output.error_message_text)
+
+        val document_errors =
+          try {
+            if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && documents.nonEmpty) {
+              val document_progress =
+                new Progress {
+                  override def echo(msg: String): Unit =
+                    document_output.synchronized { document_output += msg }
+                  override def echo_document(path: Path): Unit =
+                    progress.echo_document(path)
+                }
+              Present.build_documents(session_name, deps, store, verbose = verbose,
+                verbose_latex = true, progress = document_progress)
+            }
+            val graph_pdf =
+              graphview.Graph_File.make_pdf(options, deps(session_name).session_graph_display)
+            Present.finish(store.browser_info, graph_pdf, info, session_name)
+            Nil
+          }
+          catch { case ERROR(msg) => List(msg) case e@Exn.Interrupt() => List(Exn.message(e)) }
 
         val result =
-          process_result.output(process_output).error(Library.trim_line(stderr.toString))
+        {
+          val more_output =
+            Library.trim_line(stdout.toString) ::
+              messages.toList.map(message =>
+                Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
+              command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+              theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+              session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
+              runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+              task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
+              document_output.toList
 
-        errors match {
-          case Exn.Res(Nil) => result
-          case Exn.Res(errs) =>
-            result.error_rc.output(
-              errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
-                errs.map(Protocol.Error_Message_Marker.apply))
+          val more_errors =
+            Library.trim_line(stderr.toString) :: export_errors ::: document_errors
+
+          process_result.output(more_output).errors(more_errors)
+        }
+
+        build_errors match {
+          case Exn.Res(build_errs) =>
+            val errs = build_errs ::: document_errors
+            if (errs.isEmpty) result
+            else {
+              result.error_rc.output(
+                errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                  errs.map(Protocol.Error_Message_Marker.apply))
+            }
           case Exn.Exn(Exn.Interrupt()) =>
             if (result.ok) result.copy(rc = Exn.Interrupt.return_code) else result
           case Exn.Exn(exn) => throw exn
@@ -404,23 +434,7 @@ object Build
 
     def join: (Process_Result, Option[String]) =
     {
-      val result0 = future_result.join
-      val result1 =
-        export_consumer.shutdown(close = true).map(Output.error_message_text) match {
-          case Nil => result0
-          case errs => result0.errors(errs).error_rc
-        }
-
-      if (result1.ok) {
-        for (document_output <- proper_string(options.string("document_output"))) {
-          val document_output_dir =
-            Isabelle_System.make_directory(info.dir + Path.explode(document_output))
-          Present.write_tex_index(document_output_dir, deps(session_name).session_theories)
-        }
-        Present.finish(progress, store.browser_info, graph_file, info, session_name)
-      }
-
-      graph_file.delete
+      val result1 = future_result.join
 
       val was_timeout =
         timeout_request match {

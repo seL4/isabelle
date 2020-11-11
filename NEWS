@@ -231,6 +231,11 @@ stdout after termination. Potential INCOMPATIBILITY for external tools.
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
+* The command-line tool "isabelle document" generates theory documents
+from the underlying session build database (using its exported {\LaTeX}
+sources). INCOMPATIBILITY, the former "isabelle document" tool was
+rather different and has been discontinued.
+
 * The command-line tool "isabelle sessions" explores the structure of
 Isabelle sessions and prints result names in topological order (on
 stdout).

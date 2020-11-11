@@ -42,7 +42,7 @@ Usage: isabelle console [OPTIONS]
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
-        "n" -> (arg => no_build = true),
+        "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "r" -> (_ => raw_ml_system = true))
 

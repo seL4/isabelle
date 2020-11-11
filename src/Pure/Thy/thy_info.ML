@@ -61,9 +61,8 @@ val _ =
     else
       let
         val body = Thy_Output.present_thy options thy segments;
-        val option = Present.document_option options;
       in
-        if #disabled option then ()
+        if Options.string options "document" = "false" then ()
         else
           let
             val thy_name = Context.theory_name thy;
@@ -71,9 +70,7 @@ val _ =
 
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-            val _ = Export.export thy (Path.binding0 document_path) (XML.blob output);
-            val _ = if #enabled option then Present.theory_output thy output else ();
-          in () end
+          in Export.export thy (Path.binding0 document_path) (XML.blob output) end
       end));
 
 

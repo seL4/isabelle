@@ -190,10 +190,9 @@ text \<open>
     \<^item> @{system_option_def "browser_info"} controls output of HTML browser
     info, see also \secref{sec:info}.
 
-    \<^item> @{system_option_def "document"} specifies the document output format,
-    see @{tool document} option \<^verbatim>\<open>-o\<close> in \secref{sec:tool-document}. In
-    practice, the most relevant values are \<^verbatim>\<open>document=false\<close> or
-    \<^verbatim>\<open>document=pdf\<close>.
+    \<^item> @{system_option_def "document"} controls document output for a
+    particular session or theory; \<^verbatim>\<open>document=pdf\<close> means enabled,
+    \<^verbatim>\<open>document=false\<close> means disabled (especially for particular theories).
 
     \<^item> @{system_option_def "document_output"} specifies an alternative
     directory for generated output of the document preparation system; the
@@ -203,10 +202,19 @@ text \<open>
     document.
 
     \<^item> @{system_option_def "document_variants"} specifies document variants as
-    a colon-separated list of \<open>name=tags\<close> entries, corresponding to @{tool
-    document} options \<^verbatim>\<open>-n\<close> and \<^verbatim>\<open>-t\<close>.
+    a colon-separated list of \<open>name=tags\<close> entries. The default name
+    \<^verbatim>\<open>document\<close>, without additional tags.
 
-    For example, \<^verbatim>\<open>document_variants=document:outline=/proof,/ML\<close> indicates
+    Tags are specified as a comma separated list of modifier/name pairs and
+    tell {\LaTeX} how to interpret certain Isabelle command regions:
+    ``\<^verbatim>\<open>+\<close>\<open>foo\<close>'' (or just ``\<open>foo\<close>'') means to keep, ``\<^verbatim>\<open>-\<close>\<open>foo\<close>'' to drop,
+    and ``\<^verbatim>\<open>/\<close>\<open>foo\<close>'' to fold text tagged as \<open>foo\<close>. The builtin default is
+    equivalent to the tag specification
+    ``\<^verbatim>\<open>+document,+theory,+proof,+ML,+visible,-invisible,+important,+unimportant\<close>'';
+    see also the {\LaTeX} macros \<^verbatim>\<open>\isakeeptag\<close>, \<^verbatim>\<open>\isadroptag\<close>, and
+    \<^verbatim>\<open>\isafoldtag\<close>, in \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close>.
+
+    In contrast, \<^verbatim>\<open>document_variants=document:outline=/proof,/ML\<close> indicates
     two documents: the one called \<^verbatim>\<open>document\<close> with default tags, and the other
     called \<^verbatim>\<open>outline\<close> where proofs and ML sections are folded.
 
