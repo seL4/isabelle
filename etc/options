@@ -8,7 +8,9 @@ option browser_info : bool = false
 option document : string = ""
   -- "build document in given format: pdf, dvi, false"
 option document_output : string = ""
-  -- "document output directory (default within $ISABELLE_BROWSER_INFO tree)"
+  -- "document output directory"
+option document_output_sources : bool = true
+  -- "copy generated sources into document output directory"
 option document_variants : string = "document"
   -- "alternative document variants (separated by colons)"
 option document_tags : string = ""

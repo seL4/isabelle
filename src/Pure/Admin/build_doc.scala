@@ -19,53 +19,39 @@ object Build_Doc
     progress: Progress = new Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
-    docs: List[String] = Nil): Int =
+    docs: List[String] = Nil)
   {
+    val store = Sessions.store(options)
+
     val sessions_structure = Sessions.load_structure(options)
-    val selection =
+    val selected =
       for {
-        name <- sessions_structure.build_topological_order
-        info = sessions_structure(name)
+        session <- sessions_structure.build_topological_order
+        info = sessions_structure(session)
         if info.groups.contains("doc")
         doc = info.options.string("document_variants")
         if all_docs || docs.contains(doc)
-      } yield (doc, name)
+      } yield (doc, session)
 
-    val selected_docs = selection.map(_._1)
-    val sessions = selection.map(_._2)
+    val documents = selected.map(_._1)
+    val selection = Sessions.Selection(sessions = selected.map(_._2))
 
-    docs.filter(doc => !selected_docs.contains(doc)) match {
+    docs.filter(doc => !documents.contains(doc)) match {
       case Nil =>
       case bad => error("No documentation session for " + commas_quote(bad))
     }
 
-    progress.echo("Build started for documentation " + commas_quote(selected_docs))
+    progress.echo("Build started for sessions " + commas_quote(selection.sessions))
+    Build.build(options, selection = selection, progress = progress, max_jobs = max_jobs).ok ||
+      error("Build failed")
 
-    val res1 =
-      Build.build(options,
-        selection = Sessions.Selection(requirements = true, sessions = sessions),
-        progress = progress, build_heap = true, max_jobs = max_jobs)
-    if (res1.ok) {
-      Isabelle_System.with_tmp_dir("document_output")(output =>
-        {
-          val res2 =
-            Build.build(
-              options.bool.update("browser_info", false).
-                string.update("document", "pdf").
-                string.update("document_output", output.implode),
-              selection = Sessions.Selection(sessions = sessions),
-              progress = progress, clean_build = true, max_jobs = max_jobs)
-          if (res2.ok) {
-            val doc_dir = Path.explode("~~/doc")
-            for (doc <- selected_docs) {
-              val name = Path.explode(doc + ".pdf")
-              File.copy(output + name, doc_dir + name)
-            }
-          }
-          res2.rc
-        })
+    progress.echo("Build started for documentation " + commas_quote(documents))
+    val doc_options =
+      options + "document=pdf" + "document_output=~~/doc" + "document_output_sources=false"
+    val deps = Sessions.load_structure(doc_options).selection_deps(selection)
+    for (session <- selection.sessions) {
+      Present.build_documents(session, deps, store, progress = progress)
     }
-    else res1.rc
   }
 
 
@@ -99,10 +85,9 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
       if (!all_docs && docs.isEmpty) getopts.usage()
 
       val progress = new Console_Progress()
-      val rc =
-        progress.interrupt_handler {
-          build_doc(options, progress, all_docs, max_jobs, docs)
-        }
-      sys.exit(rc)
+
+      progress.interrupt_handler {
+        build_doc(options, progress, all_docs, max_jobs, docs)
+      }
     })
 }
