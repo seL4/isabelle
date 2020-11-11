@@ -193,6 +193,9 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
       prfx + Path.basic(s + "." + e)
     }
 
+  def tex: Path = ext("tex")
+  def pdf: Path = ext("pdf")
+
   def backup: Path =
   {
     val (prfx, s) = split_path

@@ -89,9 +89,9 @@ val _ =
     (fn [args_yxml] =>
         let
           val (symbol_codes, (command_timings, (verbose, (browser_info,
-            (document_files, (graph_file, (parent_name, (chapter, (session_name, (master_dir,
+            (documents, (parent_name, (chapter, (session_name, (master_dir,
             (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-            (loaded_theories, bibtex_entries)))))))))))))))) =
+            (loaded_theories, bibtex_entries))))))))))))))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
@@ -99,12 +99,12 @@ val _ =
                 val path = Path.explode o string;
               in
                 pair (list (pair string int)) (pair (list properties) (pair bool (pair path
-                  (pair (list (pair path path)) (pair path (pair string (pair string (pair string
+                  (pair (list string) (pair string (pair string (pair string
                     (pair path
                       (pair (((list (pair Options.decode (list (pair string position))))))
                         (pair (list (pair string properties))
                           (pair (list (pair string string)) (pair (list string)
-                            (pair (list (pair string string)) (pair (list string) (list string))))))))))))))))
+                            (pair (list (pair string string)) (pair (list string) (list string)))))))))))))))
               end;
 
           val symbols = HTML.make_symbols symbol_codes;
@@ -124,11 +124,7 @@ val _ =
                   symbols
                   (Options.default_bool "browser_info")
                   browser_info
-                  (Options.default_string "document")
-                  (Options.default_string "document_output")
-                  (Present.document_variants (Options.default ()))
-                  document_files
-                  graph_file
+                  documents
                   parent_name
                   (chapter, session_name)
                   verbose;
