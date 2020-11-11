@@ -291,7 +291,6 @@ object Present
             }
             else {
               bash(
-                latex_bash("sty"),
                 latex_bash(),
                 "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
                 "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
