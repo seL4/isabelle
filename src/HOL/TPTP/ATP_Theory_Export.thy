@@ -25,8 +25,8 @@ val infer_policy = (* Unchecked_Inferences *) No_Inferences
 ML \<open>
 if do_it then
   "/tmp/isa_filter"
-  |> generate_casc_lbt_isa_files_for_theory ctxt thy (THF (Polymorphic, THF_Without_Choice))
-         infer_policy "poly_native_higher"
+  |> generate_casc_lbt_isa_files_for_theory ctxt thy
+      (THF (Without_FOOL, Polymorphic, THF_Without_Choice)) infer_policy "poly_native_higher"
 else
   ()
 \<close>

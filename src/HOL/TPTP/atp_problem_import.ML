@@ -298,8 +298,9 @@ fun translate_tptp_file thy format_str file_name =
     val (format, type_enc, lam_trans) =
       (case format_str of
         "FOF" => (FOF, "mono_guards??", liftingN)
-      | "TF0" => (TFF Monomorphic, "mono_native", liftingN)
-      | "TH0" => (THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+      | "TF0" => (TFF (Without_FOOL, Monomorphic), "mono_native", liftingN)
+      | "TH0" => (THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher",
+        keep_lamsN)
       | "DFG" => (DFG Monomorphic, "mono_native", liftingN)
       | _ => error ("Unknown format " ^ quote format_str ^
         " (expected \"FOF\", \"TF0\", \"TH0\", or \"DFG\")"))
