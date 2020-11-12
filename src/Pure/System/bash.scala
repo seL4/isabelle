@@ -45,6 +45,8 @@ object Bash
 
   /* process and result */
 
+  type Watchdog = (Time, Process => Boolean)
+
   def process(script: String,
       cwd: JFile = null,
       env: Map[String, String] = Isabelle_System.settings(),
@@ -168,6 +170,7 @@ object Bash
     def result(
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
+      watchdog: Option[Watchdog] = None,
       strict: Boolean = true): Process_Result =
     {
       stdin.close
@@ -177,9 +180,23 @@ object Bash
       val err_lines =
         Future.thread("bash_stderr") { File.read_lines(stderr, progress_stderr) }
 
+      val watchdog_thread =
+        for ((time, check) <- watchdog)
+        yield {
+          Future.thread("bash_watchdog") {
+            while (proc.isAlive) {
+              time.sleep
+              if (check(this)) interrupt()
+            }
+          }
+        }
+
       val rc =
         try { join }
         catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
+
+      watchdog_thread.foreach(_.cancel)
+
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join, false, get_timing)

@@ -347,11 +347,13 @@ object Isabelle_System
     redirect: Boolean = false,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
+    watchdog: Option[Bash.Watchdog] = None,
     strict: Boolean = true,
     cleanup: () => Unit = () => ()): Process_Result =
   {
     Bash.process(script, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
-      result(progress_stdout, progress_stderr, strict)
+      result(progress_stdout = progress_stdout, progress_stderr = progress_stderr,
+        watchdog = watchdog, strict = strict)
   }
 
   def jconsole(): Process_Result =
