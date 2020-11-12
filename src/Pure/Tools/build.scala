@@ -386,7 +386,7 @@ object Build
             Present.finish(store.browser_info, graph_pdf, info, session_name)
             Nil
           }
-          catch { case ERROR(msg) => List(msg) case e@Exn.Interrupt() => List(Exn.message(e)) }
+          catch { case Exn.Interrupt.ERROR(msg) => List(msg) }
 
         val result =
         {

@@ -93,6 +93,12 @@ object Exn
 
   object Interrupt
   {
+    object ERROR
+    {
+      def unapply(exn: Throwable): Option[String] =
+        if (is_interrupt(exn)) Some(message(exn)) else user_message(exn)
+    }
+
     def apply(): Throwable = new InterruptedException("Interrupt")
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
