@@ -21,11 +21,11 @@ fun inorder :: "('a*'b)tree \<Rightarrow> 'a list" where
 
 fun set_tree :: "('a*'b) tree \<Rightarrow> 'a set" where
 "set_tree Leaf = {}" |
-"set_tree (Node l (a,_) r) = Set.insert a (set_tree l \<union> set_tree r)"
+"set_tree (Node l (a,_) r) = {a} \<union> set_tree l \<union> set_tree r"
 
 fun bst :: "('a::linorder*'b) tree \<Rightarrow> bool" where
 "bst Leaf = True" |
-"bst (Node l (a, _) r) = (bst l \<and> bst r \<and> (\<forall>x \<in> set_tree l. x < a) \<and> (\<forall>x \<in> set_tree r. a < x))"
+"bst (Node l (a, _) r) = ((\<forall>x \<in> set_tree l. x < a) \<and> (\<forall>x \<in> set_tree r. a < x) \<and> bst l \<and> bst r)"
 
 lemma finite_set_tree[simp]: "finite(set_tree t)"
 by(induction t) auto

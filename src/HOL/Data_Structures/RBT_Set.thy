@@ -108,7 +108,7 @@ fun bheight :: "'a rbt \<Rightarrow> nat" where
 fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc Leaf = True" |
 "invc (Node l (a,c) r) =
-  (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
+  ((c = Red \<longrightarrow> color l = Black \<and> color r = Black) \<and> invc l \<and> invc r)"
 
 text \<open>Weaker version:\<close>
 abbreviation invc2 :: "'a rbt \<Rightarrow> bool" where
@@ -116,7 +116,7 @@ abbreviation invc2 :: "'a rbt \<Rightarrow> bool" where
 
 fun invh :: "'a rbt \<Rightarrow> bool" where
 "invh Leaf = True" |
-"invh (Node l (x, c) r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
+"invh (Node l (x, c) r) = (bheight l = bheight r \<and> invh l \<and> invh r)"
 
 lemma invc2I: "invc t \<Longrightarrow> invc2 t"
 by (cases t rule: tree2_cases) simp+

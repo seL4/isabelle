@@ -28,7 +28,7 @@ fun size1 :: "'a tree \<Rightarrow> nat" where
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
 "subtrees \<langle>\<rangle> = {\<langle>\<rangle>}" |
-"subtrees (\<langle>l, a, r\<rangle>) = insert \<langle>l, a, r\<rangle> (subtrees l \<union> subtrees r)"
+"subtrees (\<langle>l, a, r\<rangle>) = {\<langle>l, a, r\<rangle>} \<union> subtrees l \<union> subtrees r"
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree" where
 "mirror \<langle>\<rangle> = Leaf" |
@@ -53,7 +53,7 @@ fun min_height :: "'a tree \<Rightarrow> nat" where
 
 fun complete :: "'a tree \<Rightarrow> bool" where
 "complete Leaf = True" |
-"complete (Node l x r) = (complete l \<and> complete r \<and> height l = height r)"
+"complete (Node l x r) = (height l = height r \<and> complete l \<and> complete r)"
 
 text \<open>Almost complete:\<close>
 definition acomplete :: "'a tree \<Rightarrow> bool" where
@@ -90,7 +90,7 @@ text\<open>Binary Search Tree:\<close>
 fun bst_wrt :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a tree \<Rightarrow> bool" where
 "bst_wrt P \<langle>\<rangle> \<longleftrightarrow> True" |
 "bst_wrt P \<langle>l, a, r\<rangle> \<longleftrightarrow>
- bst_wrt P l \<and> bst_wrt P r \<and> (\<forall>x\<in>set_tree l. P x a) \<and> (\<forall>x\<in>set_tree r. P a x)"
+ (\<forall>x\<in>set_tree l. P x a) \<and> (\<forall>x\<in>set_tree r. P a x) \<and> bst_wrt P l \<and> bst_wrt P r"
 
 abbreviation bst :: "('a::linorder) tree \<Rightarrow> bool" where
 "bst \<equiv> bst_wrt (<)"
@@ -98,7 +98,7 @@ abbreviation bst :: "('a::linorder) tree \<Rightarrow> bool" where
 fun (in linorder) heap :: "'a tree \<Rightarrow> bool" where
 "heap Leaf = True" |
 "heap (Node l m r) =
-  (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
+  ((\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x) \<and> heap l \<and> heap r)"
 
 
 subsection \<open>\<^const>\<open>map_tree\<close>\<close>
