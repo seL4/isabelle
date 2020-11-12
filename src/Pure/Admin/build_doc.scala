@@ -50,7 +50,6 @@ object Build_Doc
     val errs =
       Par_List.map((doc_session: (String, String)) =>
         try {
-          progress.expose_interrupt()
           Present.build_documents(doc_session._2, deps, store, progress = progress)
           None
         }

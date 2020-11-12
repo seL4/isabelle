@@ -278,7 +278,8 @@ object Present
             "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root + "." + ext)
 
           def bash(items: String*): Process_Result =
-            progress.bash(items.mkString(" && "), cwd = doc_dir.file, echo = verbose_latex)
+            progress.bash(items.mkString(" && "), cwd = doc_dir.file,
+              echo = verbose_latex, watchdog = Time.seconds(0.5))
 
 
           // prepare document
