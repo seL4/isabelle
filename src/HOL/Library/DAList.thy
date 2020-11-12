@@ -128,9 +128,6 @@ end
 
 subsection \<open>Quickcheck generators\<close>
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 definition (in term_syntax)
   valterm_empty :: "('key :: typerep, 'value :: typerep) alist \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where "valterm_empty = Code_Evaluation.valtermify empty"
@@ -142,7 +139,11 @@ definition (in term_syntax)
   ('key, 'value) alist \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_update k v a = Code_Evaluation.valtermify update {\<cdot>} k {\<cdot>} v {\<cdot>}a"
 
-fun (in term_syntax) random_aux_alist
+context
+  includes state_combinator_syntax
+begin
+
+fun random_aux_alist
 where
   "random_aux_alist i j =
     (if i = 0 then Pair valterm_empty
@@ -151,6 +152,8 @@ where
          [(i, Quickcheck_Random.random j \<circ>\<rightarrow> (\<lambda>k. Quickcheck_Random.random j \<circ>\<rightarrow>
            (\<lambda>v. random_aux_alist (i - 1) j \<circ>\<rightarrow> (\<lambda>a. Pair (valterm_update k v a))))),
           (1, Pair valterm_empty)]))"
+
+end
 
 instantiation alist :: (random, random) random
 begin
@@ -162,9 +165,6 @@ where
 instance ..
 
 end
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 instantiation alist :: (exhaustive, exhaustive) exhaustive
 begin

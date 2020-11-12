@@ -1342,9 +1342,11 @@ end
 
 no_notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
 
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 instantiation fset :: (random) random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 fun random_aux_fset :: "natural \<Rightarrow> natural \<Rightarrow> natural \<times> natural \<Rightarrow> ('a fset \<times> (unit \<Rightarrow> term)) \<times> natural \<times> natural" where
@@ -1373,6 +1375,6 @@ instance ..
 
 end
 
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+end
 
 end

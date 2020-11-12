@@ -6,10 +6,6 @@ theory Random
 imports List Groups_List
 begin
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-
 subsection \<open>Auxiliary functions\<close>
 
 fun log :: "natural \<Rightarrow> natural \<Rightarrow> natural" where
@@ -45,6 +41,10 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 
 
 subsection \<open>Base selectors\<close>
+
+context
+  includes state_combinator_syntax
+begin
 
 fun iterate :: "natural \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "iterate k f x = (if k = 0 then Pair x else f x \<circ>\<rightarrow> iterate (k - 1) f)"
@@ -134,6 +134,8 @@ proof -
       fun_eq_iff pick_same [symmetric] less_natural_def)
 qed
 
+end
+
 
 subsection \<open>\<open>ML\<close> interface\<close>
 
@@ -182,8 +184,5 @@ hide_type (open) seed
 hide_const (open) inc_shift minus_shift log "next" split_seed
   iterate range select pick select_weight
 hide_fact (open) range_def
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 end

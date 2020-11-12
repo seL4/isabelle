@@ -771,12 +771,24 @@ lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
 
 text \<open>The composition-uncurry combinator.\<close>
 
-notation fcomp (infixl "\<circ>>" 60)
-
 definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"  (infixl "\<circ>\<rightarrow>" 60)
   where "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
 
-lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+bundle state_combinator_syntax
+begin
+
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+end
+
+context
+  includes state_combinator_syntax
+begin
+
+lemma scomp_unfold: "(\<circ>\<rightarrow>) = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
   by (simp add: fun_eq_iff scomp_def case_prod_unfold)
 
 lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = case_prod g (f x)"
@@ -796,6 +808,8 @@ lemma scomp_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarro
 
 lemma fcomp_scomp: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
   by (simp add: fun_eq_iff scomp_unfold)
+
+end
 
 code_printing
   constant scomp \<rightharpoonup> (Eval) infixl 3 "#->"

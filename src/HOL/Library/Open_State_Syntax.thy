@@ -8,6 +8,10 @@ theory Open_State_Syntax
 imports Main
 begin
 
+context
+  includes state_combinator_syntax
+begin
+
 subsection \<open>Motivation\<close>
 
 text \<open>
@@ -54,9 +58,6 @@ text \<open>
   value of type \<open>\<sigma>\<close>, the former value should not be used
   again.  To achieve this, we use a set of monad combinators:
 \<close>
-
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text \<open>
   Given two transformations \<^term>\<open>f\<close> and \<^term>\<open>g\<close>, they may be
@@ -110,6 +111,8 @@ text \<open>
 \<close>
 
 lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
+
+end
 
 
 subsection \<open>Do-syntax\<close>

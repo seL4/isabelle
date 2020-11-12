@@ -539,11 +539,11 @@ definition (in term_syntax)
       (Code_Evaluation.valtermify (+) {\<cdot>} A {\<cdot>} 
        (Code_Evaluation.valtermify single {\<cdot>} x))"
 
-
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 instantiation pmf :: (random) random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition
@@ -555,8 +555,7 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+end
 
 instantiation pmf :: (full_exhaustive) full_exhaustive
 begin

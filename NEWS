@@ -171,6 +171,9 @@ all problems.
   - Use veriT in proof preplay.
   - Take adventage of more cores in proof preplay.
 
+* Syntax for state monad combinators fcomp and scomp is organized in
+bundle state_combinator_syntax.  Minor INCOMPATIBILITY.
+
 
 *** FOL ***
 

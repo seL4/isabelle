@@ -3539,10 +3539,11 @@ definition (in term_syntax)
     \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "msetify xs = Code_Evaluation.valtermify mset {\<cdot>} xs"
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 instantiation multiset :: (random) random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition
@@ -3552,8 +3553,7 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+end
 
 instantiation multiset :: (full_exhaustive) full_exhaustive
 begin

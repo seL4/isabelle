@@ -1638,10 +1638,11 @@ definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where [code_unfold]: "valterm_ratreal k = Code_Evaluation.valtermify Ratreal {\<cdot>} k"
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 instantiation real :: random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition
@@ -1651,8 +1652,7 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+end
 
 instantiation real :: exhaustive
 begin

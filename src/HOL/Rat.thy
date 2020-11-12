@@ -1004,10 +1004,11 @@ definition (in term_syntax)
     rat \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 instantiation rat :: random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition
@@ -1020,8 +1021,7 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+end
 
 instantiation rat :: exhaustive
 begin

@@ -8,9 +8,6 @@ theory Quickcheck_Random
 imports Random Code_Evaluation Enum
 begin
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 setup \<open>Code_Target.add_derived_target ("Quickcheck", [(Code_Runtime.target, I)])\<close>
 
 subsection \<open>Catching Match exceptions\<close>
@@ -33,11 +30,17 @@ subsection \<open>Fundamental and numeric types\<close>
 instantiation bool :: random
 begin
 
+context
+  includes state_combinator_syntax
+begin
+
 definition
   "random i = Random.range 2 \<circ>\<rightarrow>
     (\<lambda>k. Pair (if k = 0 then Code_Evaluation.valtermify False else Code_Evaluation.valtermify True))"
 
 instance ..
+
+end
 
 end
 
@@ -55,10 +58,16 @@ end
 instantiation char :: random
 begin
 
+context
+  includes state_combinator_syntax
+begin
+
 definition
   "random _ = Random.select (Enum.enum :: char list) \<circ>\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
 
 instance ..
+
+end
 
 end
 
@@ -75,6 +84,10 @@ end
 instantiation nat :: random
 begin
 
+context
+  includes state_combinator_syntax
+begin
+
 definition random_nat :: "natural \<Rightarrow> Random.seed
   \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed"
 where
@@ -86,7 +99,13 @@ instance ..
 
 end
 
+end
+
 instantiation int :: random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition
@@ -98,7 +117,13 @@ instance ..
 
 end
 
+end
+
 instantiation natural :: random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition random_natural :: "natural \<Rightarrow> Random.seed
@@ -110,7 +135,13 @@ instance ..
 
 end
 
+end
+
 instantiation integer :: random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 definition random_integer :: "natural \<Rightarrow> Random.seed
@@ -121,6 +152,8 @@ where
       in (j, \<lambda>_. Code_Evaluation.term_of j)))"
 
 instance ..
+
+end
 
 end
 
@@ -153,8 +186,14 @@ end
 
 text \<open>Towards type copies and datatypes\<close>
 
+context
+  includes state_combinator_syntax
+begin
+
 definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
   where "collapse f = (f \<circ>\<rightarrow> id)"
+
+end
 
 definition beyond :: "natural \<Rightarrow> natural \<Rightarrow> natural"
   where "beyond k l = (if l > k then l else 0)"
@@ -170,6 +209,10 @@ definition (in term_syntax) [code_unfold]:
   "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
 
 instantiation set :: (random) random
+begin
+
+context
+  includes state_combinator_syntax
 begin
 
 fun random_aux_set
@@ -200,6 +243,8 @@ instance ..
 
 end
 
+end
+
 lemma random_aux_rec:
   fixes random_aux :: "natural \<Rightarrow> 'a"
   assumes "random_aux 0 = rhs 0"
@@ -222,9 +267,6 @@ code_printing
   not spoiling the regular trusted code generation\<close>
 
 code_reserved Quickcheck Random_Generators
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
 
