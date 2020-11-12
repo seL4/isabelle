@@ -105,13 +105,13 @@ and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 historical.}
 %
 The supported ATPs include agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
-\cite{schulz-2002}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
+\cite{schulz-2019}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
 \cite{leo3}, Satallax \cite{satallax}, SPASS \cite{weidenbach-et-al-2009},
 Vampire \cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
 Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or remotely
 via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
 solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, veriT \cite{bouton-et-al-2009},
-and Z3 \cite{z3}. These are always run locally.
+and Z3 \cite{de-moura-2008}. These are always run locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
@@ -160,21 +160,21 @@ There are three main ways to install automatic provers on your machine:
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
-already include properly setup executables for CVC4, E, SPASS, Vampire, and Z3,
-ready to use. To use Vampire, you must confirm that you are a noncommercial
-user, as indicated by the message that is displayed when Sledgehammer is
-invoked the first time.
+already include properly set up executables for CVC4, E, SPASS, Vampire, veriT,
+and Z3, ready to use. To use Vampire, you must confirm that you are a
+noncommercial user, as indicated by the message that is displayed when
+Sledgehammer is invoked the first time.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
-CVC4, E, SPASS, Vampire, and Z3 binary packages from \download. Extract the
-archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash
-components}%
+CVC4, E, SPASS, Vampire, veriT, and Z3 binary packages from \download. Extract
+the archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash
+etc\slash components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute path to CVC3, CVC4, E, SPASS, Vampire, or Z3. For
-example, if the \texttt{components} file does not exist yet and you extracted
-SPASS to \texttt{/usr/local/spass-3.8ds}, create it with the single line
+file with the absolute path to the prover. For example, if the
+\texttt{components} file does not exist yet and you extracted SPASS to
+\texttt{/usr/local/spass-3.8ds}, create it with the single line
 
 \prew
 \texttt{/usr/local/spass-3.8ds}
@@ -203,7 +203,7 @@ Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
 variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
 \texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
 of the executable, \emph{including the file name}. Sledgehammer has been tested
-with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT smtcomp2019, and Z3 4.3.2.
+with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT 2020.10-rmx, and Z3 4.3.2.
 Since Z3's output format is somewhat unstable, other versions of the solver
 might not work well with Sledgehammer. Ideally, also set
 \texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
@@ -247,8 +247,8 @@ attempt to prove a simple lemma:
 \postw
 
 Instead of issuing the \textbf{sledgehammer} command, you can also use the
-Sledgehammer panel in Isabelle/jEdit. Sledgehammer produces the following output
-after a few seconds:
+Sledgehammer panel in Isabelle/jEdit. Sledgehammer might produce something like
+the following output after a few seconds:
 
 \prew
 \slshape
@@ -267,9 +267,9 @@ Sledgehammer ran CVC4, E, SPASS, and Z3 in parallel. Depending on which
 provers are installed and how many processor cores are available, some of the
 provers might be missing or present with a \textit{remote\_} prefix.
 
-For each successful prover, Sledgehammer gives a one-line \textit{metis} or
-\textit{smt} method call. Rough timings are shown in parentheses, indicating how
-fast the call is. You can click the proof to insert it into the theory text.
+For each successful prover, Sledgehammer gives a one-line Isabelle proof. Rough
+timings are shown in parentheses, indicating how fast the call is. You can
+click the proof to insert it into the theory text.
 
 In addition, you can ask Sledgehammer for an Isar text proof by enabling the
 \textit{isar\_proofs} option (\S\ref{output-format}):
@@ -279,8 +279,8 @@ In addition, you can ask Sledgehammer for an Isar text proof by enabling the
 \postw
 
 When Isar proof construction is successful, it can yield proofs that are more
-readable and also faster than the \textit{metis} or \textit{smt} one-line
-proofs. This feature is experimental and is only available for ATPs.
+readable and also faster than \textit{metis} or \textit{smt} one-line
+proofs. This feature is experimental.
 
 
 \section{Hints}
@@ -448,15 +448,10 @@ and its cousin \textit{metis}~(\textit{mono\_tags}) are fully-typed
 versions of Metis. It is somewhat slower than \textit{metis}, but the proof
 search is fully typed, and it also includes more powerful rules such as the
 axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
-higher-order places (e.g., in set comprehensions). The method is automatically
-tried as a fallback when \textit{metis} fails, and it is sometimes
-generated by Sledgehammer instead of \textit{metis} if the proof obviously
-requires type information or if \textit{metis} failed when Sledgehammer
-preplayed the proof. (By default, Sledgehammer tries to run \textit{metis} with
-various sets of option for up to 1~second each time to ensure that the generated
-one-line proofs actually work and to display timing information. This can be
-configured using the \textit{preplay\_timeout} and \textit{dont\_preplay}
-options (\S\ref{timeouts}).)
+higher-order places (e.g., in set comprehensions). The method is tried as a
+fallback when \textit{metis} fails, and it is sometimes generated by
+Sledgehammer instead of \textit{metis} if the proof obviously requires type
+information or if \textit{metis} failed when Sledgehammer preplayed the proof.
 %
 At the other end of the soundness spectrum, \textit{metis} (\textit{no\_types})
 uses no type information at all during the proof search, which is more efficient
@@ -480,17 +475,18 @@ for a successful \textit{metis} proof, you can advantageously pass the
 to Metis?}
 
 Orthogonally to the encoding of types, it is important to choose an appropriate
-translation of $\lambda$-abstractions. Metis supports three translation schemes,
-in decreasing order of power: Curry combinators (the default),
+translation of $\lambda$-abstractions. Metis supports three translation
+schemes, in decreasing order of power: Curry combinators (the default),
 $\lambda$-lifting, and a ``hiding'' scheme that disables all reasoning under
 $\lambda$-abstractions. The more powerful schemes also give the automatic
-provers more rope to hang themselves. See the \textit{lam\_trans} option (\S\ref{problem-encoding}) for details.
+provers more rope to hang themselves. See the \textit{lam\_trans} option
+(\S\ref{problem-encoding}) for details.
 
 
 \point{Are the generated proofs minimal?}
 
 Automatic provers frequently use many more facts than are necessary.
-Sledgehammer includes a minimization tool that takes a set of facts returned by
+Sledgehammer includes a proof minimization tool that takes a set of facts returned by
 a given prover and repeatedly calls a prover or proof method with subsets of
 those facts to find a minimal set. Reducing the number of facts typically helps
 reconstruction, while decluttering the proof scripts.
@@ -730,7 +726,7 @@ prebuilt CVC4 package from \download. Sledgehammer has been tested with version
 1.5-prerelease.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
-developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
+developed by Stephan Schulz \cite{schulz-2019}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable and \texttt{E\_VERSION} to the version number (e.g., ``1.8''), or
 install the prebuilt E package from \download. Sledgehammer has been tested with
@@ -747,27 +743,27 @@ E to clausify problems, so make sure that E is installed as well.
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
 with support for the TPTP typed higher-order syntax (TH0). To use LEO-II, set
 the environment variable \texttt{LEO2\_HOME} to the directory that contains the
-\texttt{leo} executable. Sledgehammer requires version 1.3.4 or above.
+\texttt{leo} executable. Sledgehammer has been tested with version 1.3.4.
 
 \item[\labelitemi] \textbf{\textit{leo3}:} Leo-III is an automatic
 higher-order prover developed by Alexander Steen, Max Wisniewski, Christoph
 Benzm\"uller et al.\ \cite{leo3},
 with support for the TPTP typed higher-order syntax (TH0). To use Leo-III, set
 the environment variable \texttt{LEO3\_HOME} to the directory that contains the
-\texttt{leo3} executable. Sledgehammer requires version 1.1 or above.
+\texttt{leo3} executable. Sledgehammer has been tested with version 1.1.
 
 \item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
 support for the TPTP typed higher-order syntax (TH0). To use Satallax, set the
 environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
-\texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
+\texttt{satallax} executable. Sledgehammer has been tested with version 2.2.
 
 \item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
 version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
-\download. Sledgehammer requires version 3.8ds or above.
+\download. Sledgehammer has been tested with version 3.8ds.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order
 resolution prover developed by Andrei Voronkov and his colleagues
@@ -779,20 +775,20 @@ post-2010 numbering scheme).
 
 \item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is an
 SMT solver developed by David D\'eharbe, Pascal Fontaine, and their colleagues.
-It is specifically designed to produce detailed proofs for reconstruction in
-proof assistants. To use veriT, set the environment variable
-\texttt{VERIT\_SOLVER} to the complete path of the executable, including the
-file name. Sledgehammer has been tested with version smtcomp2019.
+It is designed to produce detailed proofs for reconstruction in proof
+assistants. To use veriT, set the environment variable \texttt{VERIT\_SOLVER}
+to the complete path of the executable, including the file name. Sledgehammer
+has been tested with version 2020.10-rmx.
 
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
-Microsoft Research \cite{z3}. To use Z3, set the environment variable
+Microsoft Research \cite{de-moura-2008}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the
 file name. Sledgehammer has been tested with a pre-release version of 4.4.0.
 
 \item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to
-be an ATP, exploiting Z3's support for the TPTP typed first-order format
-(TF0). It is included for experimental purposes. It requires version 4.3.1 of
-Z3 or above. To use it, set the environment variable \texttt{Z3\_TPTP\_HOME}
+be an ATP, exploiting Z3's support for the TPTP typed first-order format (TF0).
+It is included for experimental purposes. Sledgehammer has been tested with
+version 4.3.1. To use it, set the environment variable \texttt{Z3\_TPTP\_HOME}
 to the directory that contains the \texttt{z3\_tptp} executable.
 
 \item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
@@ -864,8 +860,8 @@ enabled unless you are conducting experiments.
 {\small See also \textit{verbose} (\S\ref{output-format}).}
 
 \optrue{minimize}{dont\_minimize}
-Specifies whether the minimization tool should be invoked automatically after
-proof search.
+Specifies whether the proof minimization tool should be invoked automatically
+after proof search.
 
 \nopagebreak
 {\small See also \textit{preplay\_timeout} (\S\ref{timeouts})
@@ -954,7 +950,7 @@ iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
 are relevant and 1 only theorems that refer to previously seen constants.
 
 \optrue{learn}{dont\_learn}
-Specifies whether MaSh should be run automatically by Sledgehammer to learn the
+Specifies whether Sledgehammer invocations should run MaSh to learn the
 available theories (and hence provide more accurate results). Learning takes
 place only if MaSh is enabled.
 
@@ -1307,7 +1303,7 @@ isabelle mirabelle -O output/ \
   sledgehammer[prover=e,prover_timeout=10] Huffman.thy
 \end{verbatim}
 
-This command specifies Sledgehammer as the action, using E as the prover with a
+This command specifies Sledgehammer as the action, using the E prover with a
 timeout of 10 seconds. The results are written to \texttt{output/Huffman.log}.
 
 \subsection{Example of Benchmarking Another Tool}
