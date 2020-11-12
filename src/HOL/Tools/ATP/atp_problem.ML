@@ -31,15 +31,16 @@ sig
      gen_prec : bool,
      gen_simp : bool}
 
+  datatype fool = Without_FOOL | With_FOOL
   datatype polymorphism = Monomorphic | Polymorphic
-  datatype thf_choice = THF_Predicate_Free | THF_Without_Choice | THF_With_Choice
+  datatype thf_choice = THF_Without_Choice | THF_With_Choice
 
   datatype atp_format =
     CNF |
     CNF_UEQ |
     FOF |
-    TFF of polymorphism |
-    THF of polymorphism * thf_choice |
+    TFF of fool * polymorphism |
+    THF of fool * polymorphism * thf_choice |
     DFG of polymorphism
 
   datatype atp_formula_role =
@@ -188,15 +189,16 @@ type term_order =
    gen_prec : bool,
    gen_simp : bool}
 
+datatype fool = Without_FOOL | With_FOOL
 datatype polymorphism = Monomorphic | Polymorphic
-datatype thf_choice = THF_Predicate_Free | THF_Without_Choice | THF_With_Choice
+datatype thf_choice = THF_Without_Choice | THF_With_Choice
 
 datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
-  TFF of polymorphism |
-  THF of polymorphism * thf_choice |
+  TFF of fool * polymorphism |
+  THF of fool * polymorphism * thf_choice |
   DFG of polymorphism
 
 datatype atp_formula_role =
@@ -915,9 +917,6 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
             end
         in add 1 |> apsnd SOME end)
 
-fun avoid_clash_with_alt_ergo_type_vars s =
-  if is_tptp_variable s then s else s ^ "_"
-
 fun avoid_clash_with_dfg_keywords s =
   let val n = String.size s in
     if n < 2 orelse (n = 2 andalso String.sub (s, 0) = String.sub (s, 1)) orelse
@@ -936,8 +935,7 @@ fun nice_atp_problem readable_names format problem =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
     val avoid_clash =
       (case format of
-        TFF Polymorphic => avoid_clash_with_alt_ergo_type_vars
-      | DFG _ => avoid_clash_with_dfg_keywords
+        DFG _ => avoid_clash_with_dfg_keywords
       | _ => I)
     val nice_name = nice_name avoid_clash
 

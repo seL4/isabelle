@@ -58,6 +58,7 @@ sig
   val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
+  val dummy_tfxN : string
 
   val agsyhol_core_rule : string
   val spass_input_rule : string
@@ -120,6 +121,7 @@ val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
+val dummy_tfxN = "dummy_tfx"
 
 val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
 val spass_input_rule = "Inp"
