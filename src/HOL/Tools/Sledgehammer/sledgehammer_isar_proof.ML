@@ -208,7 +208,7 @@ and chain_isar_steps _ [] = []
   | chain_isar_steps prev (i :: is) =
     chain_isar_step prev i :: chain_isar_steps (label_of_isar_step i) is
 and chain_isar_proof (proof as Proof {assumptions, steps, ...}) =
-    isar_proof_with_steps proof (chain_isar_steps (try (List.last #> fst) assumptions) steps)
+  isar_proof_with_steps proof (chain_isar_steps (try (List.last #> fst) assumptions) steps)
 
 fun kill_useless_labels_in_isar_proof proof =
   let

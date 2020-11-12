@@ -282,7 +282,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                 else
                   step :: insert_lemma_in_steps lem steps
             and insert_lemma_in_proof lem (proof as Proof {steps, ...}) =
-                isar_proof_with_steps proof (insert_lemma_in_steps lem steps)
+              isar_proof_with_steps proof (insert_lemma_in_steps lem steps)
 
             val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
