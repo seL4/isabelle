@@ -12,6 +12,7 @@ syntax
  "_statespace_updates" :: "('a \<Rightarrow> 'b) \<Rightarrow> updbinds \<Rightarrow> ('a \<Rightarrow> 'b)" ("_\<langle>_\<rangle>" [900,0] 900)
 (*>*)
 
+
 text \<open>Did you ever dream about records with multiple inheritance?
 Then you should definitely have a look at statespaces. They may be
 what you are dreaming of. Or at least almost \dots\<close>
@@ -192,39 +193,69 @@ lemma (in dup)
  shows "s<A := i>\<cdot>x = s\<cdot>x"
   by simp
 
-
-(*
-text "Hmm, I hoped this would work now..."
+text \<open>There were known problems with syntax-declarations. They only
+worked, when the context is already completely built. This is now overcome. e.g.:\<close>
 
 locale fooX = foo +
  assumes "s<a:=i>\<cdot>b = k"
-*)
 
-(* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
-text \<open>There are known problems with syntax-declarations. They currently
-only work, when the context is already built. Hopefully this will be 
-implemented correctly in future Isabelle versions.\<close>
 
-(*
-lemma 
-  assumes "foo f a b c p1 i1 p2 i2 p3 i3 p4 i4"
-  shows True
-proof
-  interpret foo [f a b c p1 i1 p2 i2 p3 i3 p4 i4] by fact
-  term "s<a := i>\<cdot>a = i"
-qed
-*)
-(*
-lemma 
-  includes foo
-  shows "s<a := i>\<cdot>a = i"
-*)
 
-text \<open>It would be nice to have nested state spaces. This is
-logically no problem. From the locale-implementation side this may be
-something like an 'includes' into a locale. When there is a more
-elaborate locale infrastructure in place this may be an easy exercise.
+text \<open>
+We can also put statespaces side-by-side by using ordinary @{command locale} expressions 
+(instead of the @{command statespace}).
 \<close> 
+
+
+locale side_by_side = foo + bar where b="B::'a" and c=C for B C 
+
+context side_by_side
+begin
+text \<open>Simplification within on of the statespaces works as expected.\<close>
+lemma "s<B := i>\<cdot>C = s\<cdot>C"
+  by simp
+
+lemma "s<a := i>\<cdot>b = s\<cdot>b"
+  by simp
+
+text \<open>In contrast to the statespace @{locale loo} there is no 'inter' statespece distinctness between the
+names of @{locale foo} and @{locale bar}. }\<close>
+end
+
+
+text \<open>Sharing of names in side-by-side statespaces is also possible as long as they are mapped
+to the same type.}\<close>
+
+statespace vars1 = n::nat m::nat
+statespace vars2 = n::nat k::nat
+
+locale vars1_vars2 = vars1 + vars2
+
+context vars1_vars2
+begin
+
+text \<open>Note that the distinctness theorem for @{locale vars1} is selected here to do the proof.\<close>
+lemma "s<n := i>\<cdot>m = s\<cdot>m"
+  by simp
+
+text \<open>Note that the distinctness theorem for @{locale vars2} is selected here to do the proof.\<close>
+lemma "s<n := i>\<cdot>k = s\<cdot>k"
+  by simp
+
+text \<open>Still there is no inter-statespace distinctness.\<close>
+lemma "s<k := i>\<cdot>m = s\<cdot>m"
+  (* apply simp *)
+  oops
+end
+
+statespace merge_vars1_vars2 = vars1 + vars2
+
+context merge_vars1_vars2
+begin
+text \<open>When defining a statespace instead of a side-by-side locale we get the distinctness of all variables.\<close>
+lemma "s<k := i>\<cdot>m = s\<cdot>m"
+  by simp
+end
 
 
 subsection \<open>Benchmarks\<close>
