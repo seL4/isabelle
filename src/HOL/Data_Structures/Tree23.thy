@@ -36,9 +36,9 @@ text \<open>Completeness:\<close>
 
 fun complete :: "'a tree23 \<Rightarrow> bool" where
 "complete Leaf = True" |
-"complete (Node2 l _ r) = (complete l & complete r & height l = height r)" |
+"complete (Node2 l _ r) = (height l = height r \<and> complete l & complete r)" |
 "complete (Node3 l _ m _ r) =
-  (complete l & complete m & complete r & height l = height m & height m = height r)"
+  (height l = height m & height m = height r & complete l & complete m & complete r)"
 
 lemma ht_sz_if_complete: "complete t \<Longrightarrow> 2 ^ height t \<le> size t + 1"
 by (induction t) auto

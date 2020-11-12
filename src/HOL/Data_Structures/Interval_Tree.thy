@@ -78,7 +78,7 @@ definition max3 :: "('a::linorder) ivl \<Rightarrow> 'a \<Rightarrow> 'a \<Right
 
 fun inv_max_hi :: "('a::{linorder,order_bot}) ivl_tree \<Rightarrow> bool" where
 "inv_max_hi Leaf \<longleftrightarrow> True" |
-"inv_max_hi (Node l (a, m) r) \<longleftrightarrow> (inv_max_hi l \<and> inv_max_hi r \<and> m = max3 a (max_hi l) (max_hi r))"
+"inv_max_hi (Node l (a, m) r) \<longleftrightarrow> (m = max3 a (max_hi l) (max_hi r) \<and> inv_max_hi l \<and> inv_max_hi r)"
 
 lemma max_hi_is_max:
   "inv_max_hi t \<Longrightarrow> a \<in> set_tree t \<Longrightarrow> high a \<le> max_hi t"
