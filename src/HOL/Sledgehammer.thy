@@ -33,20 +33,4 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer_mash.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 
-lemma "\<not> P"
-  sledgehammer [e, dont_slice, timeout = 1, type_enc = "mono_native_fool"] ()
-  oops
-
-lemma "P (x \<or> f False) = P (f False \<or> x)"
-  sledgehammer [prover = dummy_tfx, overlord] ()
-  oops
-
-lemma "P (y \<or> f False) = P (f False \<or> y)"
-  sledgehammer [e, overlord, type_enc = "mono_native_fool"] ()
-  oops
-
-lemma "P (f True) \<Longrightarrow> P (f (x = x))"
-  sledgehammer [e, dont_slice, timeout = 1, type_enc = "mono_native_fool", dont_preplay] ()
-  oops
-
 end

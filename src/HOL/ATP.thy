@@ -137,18 +137,4 @@ ML_file \<open>Tools/monomorph.ML\<close>
 ML_file \<open>Tools/ATP/atp_problem_generate.ML\<close>
 ML_file \<open>Tools/ATP/atp_proof_reconstruct.ML\<close>
 
-ML \<open>
-open ATP_Problem_Generate
-val _ = @{print} (type_enc_of_string Strict "mono_native")
-val _ = @{print} (type_enc_of_string Strict "mono_native_fool")
-val _ = @{print} (type_enc_of_string Strict "poly_native")
-val _ = @{print} (type_enc_of_string Strict "poly_native_fool")
-val _ = @{print} (type_enc_of_string Strict "mono_native?")
-val _ = @{print} (type_enc_of_string Strict "mono_native_fool?")
-val _ = @{print} (type_enc_of_string Strict "erased")
-(* val _ = @{print} (type_enc_of_string Strict "erased_fool") *)
-val _ = @{print} (type_enc_of_string Strict "poly_guards")
-(* val _ = @{print} (type_enc_of_string Strict "poly_guards_fool") *)
-\<close>
-
 end
