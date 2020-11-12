@@ -7,9 +7,6 @@ Build Isabelle documentation.
 package isabelle
 
 
-import java.io.{File => JFile}
-
-
 object Build_Doc
 {
   /* build_doc */
