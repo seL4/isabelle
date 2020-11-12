@@ -315,21 +315,21 @@ object Present
         })
       }
 
-    def output(echo: Boolean, dir: Path)
+    def output(dir: Path)
     {
       Isabelle_System.make_directory(dir)
       for ((name, pdf) <- docs) {
         val path = dir + Path.basic(name).pdf
         Bytes.write(path, pdf)
-        if (echo) progress.echo_document(path)
+        progress.echo_document(path)
       }
     }
 
     if (info.options.bool("browser_info") || doc_output.isEmpty) {
-      output(verbose, store.browser_info + Path.basic(info.chapter) + Path.basic(session))
+      output(store.browser_info + Path.basic(info.chapter) + Path.basic(session))
     }
 
-    doc_output.foreach(output(true, _))
+    doc_output.foreach(output)
 
     docs
   }
