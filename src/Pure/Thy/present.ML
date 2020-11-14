@@ -6,7 +6,6 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
-  val tex_path: string -> Path.T
   val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
   val init: HTML.symbols -> bool -> Path.T -> string list -> string * string -> bool -> unit
@@ -20,8 +19,6 @@ struct
 
 (** paths **)
 
-val tex_ext = Path.ext "tex";
-val tex_path = tex_ext o Path.basic;
 val html_ext = Path.ext "html";
 val html_path = html_ext o Path.basic;
 val index_path = Path.basic "index.html";

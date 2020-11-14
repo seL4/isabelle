@@ -66,11 +66,10 @@ val _ =
         else
           let
             val thy_name = Context.theory_name thy;
-            val document_path = Path.basic "document" + Present.tex_path thy_name;
-
+            val document_tex_name = Path.explode_binding0 ("document/" ^ thy_name ^ ".tex");
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-          in Export.export thy (Path.binding0 document_path) (XML.blob output) end
+          in Export.export thy document_tex_name (XML.blob output) end
       end));
 
 
