@@ -255,7 +255,6 @@ object Sessions
               {
                 case (thy, pos) =>
                   val ancestors = sessions_structure.build_requirements(List(session_name))
-                  val qualifier = deps_base.theory_qualifier(session_name)
 
                   def err(msg: String): Option[String] =
                     Some(msg + " " + quote(thy) + Position.here(pos))
@@ -263,6 +262,7 @@ object Sessions
                   known_theories.get(thy) match {
                     case None => err("Unknown document theory")
                     case Some(entry) =>
+                      val qualifier = deps_base.theory_qualifier(entry.name)
                       if (session_theories.contains(entry.name)) {
                         err("Redundant document theory from this session:")
                       }
