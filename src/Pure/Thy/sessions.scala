@@ -254,20 +254,20 @@ object Sessions
               info.document_theories.flatMap(
               {
                 case (thy, pos) =>
-                  val ancestors = sessions_structure.build_requirements(List(session_name))
+                  val parent_sessions = sessions_structure.build_requirements(List(session_name))
 
                   def err(msg: String): Option[String] =
                     Some(msg + " " + quote(thy) + Position.here(pos))
 
-                  known_theories.get(thy) match {
+                  known_theories.get(thy).map(_.name) match {
                     case None => err("Unknown document theory")
-                    case Some(entry) =>
-                      val qualifier = deps_base.theory_qualifier(entry.name)
-                      if (session_theories.contains(entry.name)) {
+                    case Some(name) =>
+                      val qualifier = deps_base.theory_qualifier(name)
+                      if (session_theories.contains(name)) {
                         err("Redundant document theory from this session:")
                       }
-                      else if (ancestors.contains(qualifier)) None
-                      else if (dependencies.theories.contains(entry.name)) None
+                      else if (parent_sessions.contains(qualifier)) None
+                      else if (dependencies.theories.contains(name)) None
                       else err("Document theory from other session not imported properly:")
                   }
               })
