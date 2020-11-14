@@ -223,8 +223,20 @@ object Present
     val base = deps(session)
     val graph_pdf = graphview.Graph_File.make_pdf(options, base.session_graph_display)
 
+    def find_tex(name: Document.Node.Name): Option[Bytes] =
+      deps.sessions_structure.build_requirements(List(session)).reverse.view
+        .map(session_name =>
+          using(store.open_database(session_name))(db =>
+            Export.read_entry(db, session_name, name.theory, document_tex_name(name)).
+              map(_.uncompressed(cache = store.xz_cache))))
+        .collectFirst({ case Some(x) => x })
+
 
     /* prepare document directory */
+
+    lazy val tex_files =
+      for (name <- base.session_theories ::: base.document_theories)
+        yield Path.basic(tex_name(name)) -> find_tex(name).getOrElse(Bytes.empty)
 
     def prepare_dir(dir: Path, doc_name: String, doc_tags: List[String]): (Path, String) =
     {
@@ -240,15 +252,7 @@ object Present
         Library.terminate_lines(
           base.session_theories.map(name => "\\input{" + tex_name(name) + "}")))
 
-      using(store.open_database(session))(db =>
-        for (name <- base.session_theories) {
-          val tex =
-            Export.read_entry(db, session, name.theory, document_tex_name(name)) match {
-              case Some(entry) => entry.uncompressed(cache = store.xz_cache)
-              case None => Bytes.empty
-            }
-          Bytes.write(doc_dir + Path.basic(tex_name(name)), tex)
-        })
+      for ((path, tex) <- tex_files) Bytes.write(doc_dir + path, tex)
 
       val root1 = "root_" + doc_name
       val root = if ((doc_dir + Path.explode(root1).tex).is_file) root1 else "root"

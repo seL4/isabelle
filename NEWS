@@ -32,6 +32,11 @@ on macOS by default, without the special MacOSX plugin.
 
 *** Document preparation ***
 
+* Keyword 'document_theories' within ROOT specifies theories from other
+sessions that should be included in the generated document source
+directory. This does not affect the generated session.tex: \input{...}
+needs to be used separately.
+
 * The standard LaTeX engine is now lualatex, according to settings
 variable ISABELLE_PDFLATEX. This is mostly upwards compatible with old
 pdflatex, but text encoding needs to conform strictly to utf8. Rare

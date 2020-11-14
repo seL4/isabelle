@@ -27,6 +27,9 @@ val theories =
 val in_path =
   Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.position Parse.path --| Parse.$$$ ")");
 
+val document_theories =
+  Parse.$$$ "document_theories" |-- Scan.repeat1 (Parse.position Parse.name);
+
 val document_files =
   Parse.$$$ "document_files" |--
     Parse.!!! (Scan.optional in_path ("document", Position.none)
@@ -55,11 +58,12 @@ val command_parser =
       Scan.optional
         (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.path))) [] --
       Scan.repeat theories --
+      Scan.optional document_theories [] --
       Scan.repeat document_files --
       Scan.repeat export_files))
-  >> (fn ((((session, _), _), dir),
-          ((((((((parent, descr), options), sessions), directories), theories),
-            document_files), export_files))) =>
+  >> (fn (((((session, _), _), dir),
+          (((((((((parent, descr), options), sessions), directories), theories),
+            document_theories), document_files), export_files)))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;
@@ -80,6 +84,10 @@ val command_parser =
             ignore (Completion.check_option_value ctxt x y (Options.default ()))
               handle ERROR msg => Output.error_message msg);
 
+        fun check_thy (path, pos) =
+          ignore (Resources.check_file ctxt (SOME Path.current) (Path.implode path, pos))
+            handle ERROR msg => Output.error_message msg;
+
         val _ =
           maps #2 theories |> List.app (fn (s, pos) =>
             let
@@ -87,11 +95,16 @@ val command_parser =
                 Resources.import_name session session_dir s
                   handle ERROR msg => error (msg ^ Position.here pos);
               val theory_path = the_default node_name (Resources.find_theory_file theory_name);
-              val _ = Resources.check_file ctxt (SOME Path.current) (Path.implode theory_path, pos);
-            in () end);
+            in check_thy (theory_path, pos) end);
 
         val _ =
           directories |> List.app (ignore o Resources.check_dir ctxt (SOME session_dir));
+
+        val _ =
+          document_theories |> List.app (fn (thy, pos) =>
+            (case Resources.find_theory_file thy of
+              NONE => Output.error_message ("Unknown theory " ^ quote thy ^ Position.here pos)
+            | SOME path => check_thy (path, pos)));
 
         val _ =
           document_files |> List.app (fn (doc_dir, doc_files) =>
