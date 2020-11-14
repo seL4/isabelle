@@ -53,6 +53,7 @@ object Sessions
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
     session_theories: List[Document.Node.Name] = Nil,
+    document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[(Document.Node.Name, Options)] = Nil,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
@@ -249,6 +250,30 @@ object Sessions
                 ": need to include sessions " + quote(qualifier) + " in ROOT"
             }
 
+            val document_errors =
+              info.document_theories.flatMap(
+              {
+                case (thy, pos) =>
+                  val ancestors = sessions_structure.build_requirements(List(session_name))
+                  val qualifier = deps_base.theory_qualifier(session_name)
+
+                  def err(msg: String): Option[String] =
+                    Some(msg + " " + quote(thy) + Position.here(pos))
+
+                  known_theories.get(thy) match {
+                    case None => err("Unknown document theory")
+                    case Some(entry) =>
+                      if (session_theories.contains(entry.name)) {
+                        err("Redundant document theory from this session:")
+                      }
+                      else if (ancestors.contains(qualifier)) None
+                      else if (dependencies.theories.contains(entry.name)) None
+                      else err("Document theory from other session not imported properly:")
+                  }
+              })
+            val document_theories =
+              info.document_theories.map({ case (thy, _) => known_theories(thy).name })
+
             val dir_errors =
             {
               val ok = info.dirs.map(_.canonical_file).toSet
@@ -297,6 +322,7 @@ object Sessions
                 session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
                 session_theories = session_theories,
+                document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
                 known_theories = known_theories,
@@ -306,7 +332,8 @@ object Sessions
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
                 errors = dependencies.errors ::: loaded_files_errors ::: import_errors :::
-                  dir_errors ::: sources_errors ::: path_errors ::: bibtex_errors)
+                  document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
+                  bibtex_errors)
 
             session_bases + (info.name -> base)
           }
@@ -391,6 +418,7 @@ object Sessions
                   imports = info.deps,
                   directories = Nil,
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
+                  document_theories = Nil,
                   document_files = Nil,
                   export_files = Nil))))
         }
@@ -426,6 +454,7 @@ object Sessions
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
+    document_theories: List[(String, Position.T)],
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
     meta_digest: SHA1.Digest)
@@ -539,12 +568,15 @@ object Sessions
         entry.export_files.map({ case (dir, prune, pats) => (Path.explode(dir), prune, pats) })
 
       val meta_digest =
-        SHA1.digest((name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
-          entry.theories_no_position, conditions, entry.document_files).toString)
+        SHA1.digest(
+          (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
+            entry.theories_no_position, conditions, entry.document_theories, entry.document_files)
+          .toString)
 
       Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
         entry.parent, entry.description, directories, session_options,
-        entry.imports, theories, global_theories, document_files, export_files, meta_digest)
+        entry.imports, theories, global_theories, entry.document_theories, document_files,
+        export_files, meta_digest)
     }
     catch {
       case ERROR(msg) =>
@@ -791,6 +823,7 @@ object Sessions
   private val SESSIONS = "sessions"
   private val THEORIES = "theories"
   private val GLOBAL = "global"
+  private val DOCUMENT_THEORIES = "document_theories"
   private val DOCUMENT_FILES = "document_files"
   private val EXPORT_FILES = "export_files"
 
@@ -804,6 +837,7 @@ object Sessions
       (OPTIONS, Keyword.QUASI_COMMAND) +
       (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
+      (DOCUMENT_THEORIES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND) +
       (EXPORT_FILES, Keyword.QUASI_COMMAND)
 
@@ -820,6 +854,7 @@ object Sessions
     imports: List[String],
     directories: List[String],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
+    document_theories: List[(String, Position.T)],
     document_files: List[(String, String)],
     export_files: List[(String, Int, List[String])]) extends Entry
   {
@@ -853,6 +888,9 @@ object Sessions
 
       val in_path = $$$("(") ~! ($$$(IN) ~ path ~ $$$(")")) ^^ { case _ ~ (_ ~ x ~ _) => x }
 
+      val document_theories =
+        $$$(DOCUMENT_THEORIES) ~! rep1(position(name)) ^^ { case _ ~ x => x }
+
       val document_files =
         $$$(DOCUMENT_FILES) ~!
           ((in_path | success("document")) ~ rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
@@ -874,10 +912,11 @@ object Sessions
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(DIRECTORIES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
+              (opt(document_theories) ^^ (x => x.getOrElse(Nil))) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
-              (rep(export_files))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k) }
+              rep(export_files)))) ^^
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l) }
     }
 
     def parse_root(path: Path): List[Entry] =

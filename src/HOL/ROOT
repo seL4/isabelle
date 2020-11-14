@@ -959,6 +959,8 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     VC_Principles
     Reference
     Complex_Types
+  document_theories
+    "HOL-SPARK-Examples.Greatest_Common_Divisor"
   document_files
     "complex_types.ads"
     "complex_types_app.adb"

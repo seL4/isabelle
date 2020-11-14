@@ -7,9 +7,6 @@ Build Isabelle documentation.
 package isabelle
 
 
-import java.io.{File => JFile}
-
-
 object Build_Doc
 {
   /* build_doc */
@@ -49,10 +46,20 @@ object Build_Doc
     val doc_options =
       options + "document=pdf" + "document_output=~~/doc" + "document_output_sources=false"
     val deps = Sessions.load_structure(doc_options).selection_deps(selection)
-    for (session <- selection.sessions) {
-      progress.expose_interrupt()
-      Present.build_documents(session, deps, store, progress = progress)
-    }
+
+    val errs =
+      Par_List.map((doc_session: (String, String)) =>
+        try {
+          Present.build_documents(doc_session._2, deps, store, progress = progress)
+          None
+        }
+        catch {
+          case Exn.Interrupt.ERROR(msg) =>
+            val sep = if (msg.contains('\n')) "\n" else " "
+            Some("Documentation " + doc_session._1 + " failed:" + sep + msg)
+        }, selected).flatten
+
+    if (errs.nonEmpty) error(cat_lines(errs))
   }
 
 
