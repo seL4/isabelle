@@ -85,10 +85,10 @@ object ML_Process
       session_base match {
         case None => ""
         case Some(base) =>
-          def print_table(table: List[(String, String)]): String =
+          def print_table: List[(String, String)] => String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
-                ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))(table)
+                ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))
           def print_list: List[String] => String =
             ML_Syntax.print_list(ML_Syntax.print_string_bytes)
           def print_sessions: List[(String, Position.T)] => String =
