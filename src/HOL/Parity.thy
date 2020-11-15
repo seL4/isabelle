@@ -906,15 +906,17 @@ lemma bit_eq_iff:
   \<open>a = b \<longleftrightarrow> (\<forall>n. bit a n \<longleftrightarrow> bit b n)\<close>
   by (auto intro: bit_eqI)
 
-lemma bit_exp_iff:
+named_theorems bit_simps \<open>Simplification rules for \<^const>\<open>bit\<close>\<close>
+
+lemma bit_exp_iff [bit_simps]:
   \<open>bit (2 ^ m) n \<longleftrightarrow> 2 ^ m \<noteq> 0 \<and> m = n\<close>
   by (auto simp add: bit_iff_odd exp_div_exp_eq)
 
-lemma bit_1_iff:
+lemma bit_1_iff [bit_simps]:
   \<open>bit 1 n \<longleftrightarrow> 1 \<noteq> 0 \<and> n = 0\<close>
   using bit_exp_iff [of 0 n] by simp
 
-lemma bit_2_iff:
+lemma bit_2_iff [bit_simps]:
   \<open>bit 2 n \<longleftrightarrow> 2 \<noteq> 0 \<and> n = 1\<close>
   using bit_exp_iff [of 1 n] by auto
 
@@ -931,7 +933,7 @@ proof -
   ultimately show ?thesis by (simp add: ac_simps)
 qed
 
-lemma bit_double_iff:
+lemma bit_double_iff [bit_simps]:
   \<open>bit (2 * a) n \<longleftrightarrow> bit a (n - 1) \<and> n \<noteq> 0 \<and> 2 ^ n \<noteq> 0\<close>
   using even_mult_exp_div_exp_iff [of a 1 n]
   by (cases n, auto simp add: bit_iff_odd ac_simps)
@@ -1193,7 +1195,7 @@ qed
 context semiring_bits
 begin
 
-lemma bit_of_bool_iff:
+lemma bit_of_bool_iff [bit_simps]:
   \<open>bit (of_bool b) n \<longleftrightarrow> b \<and> n = 0\<close>
 	by (simp add: bit_1_iff)
 
@@ -1201,7 +1203,7 @@ lemma even_of_nat_iff:
   \<open>even (of_nat n) \<longleftrightarrow> even n\<close>
   by (induction n rule: nat_bit_induct) simp_all
 
-lemma bit_of_nat_iff:
+lemma bit_of_nat_iff [bit_simps]:
   \<open>bit (of_nat m) n \<longleftrightarrow> (2::'a) ^ n \<noteq> 0 \<and> bit m n\<close>
 proof (cases \<open>(2::'a) ^ n = 0\<close>)
   case True
@@ -1492,15 +1494,15 @@ lemma even_push_bit_iff [simp]:
   \<open>even (push_bit n a) \<longleftrightarrow> n \<noteq> 0 \<or> even a\<close>
   by (simp add: push_bit_eq_mult) auto
 
-lemma bit_push_bit_iff:
+lemma bit_push_bit_iff [bit_simps]:
   \<open>bit (push_bit m a) n \<longleftrightarrow> m \<le> n \<and> 2 ^ n \<noteq> 0 \<and> bit a (n - m)\<close>
   by (auto simp add: bit_iff_odd push_bit_eq_mult even_mult_exp_div_exp_iff)
 
-lemma bit_drop_bit_eq:
+lemma bit_drop_bit_eq [bit_simps]:
   \<open>bit (drop_bit n a) = bit a \<circ> (+) n\<close>
   by (simp add: bit_iff_odd fun_eq_iff ac_simps flip: drop_bit_eq_div)
 
-lemma bit_take_bit_iff:
+lemma bit_take_bit_iff [bit_simps]:
   \<open>bit (take_bit m a) n \<longleftrightarrow> n < m \<and> bit a n\<close>
   by (simp add: bit_iff_odd drop_bit_take_bit not_le flip: drop_bit_eq_div)
 
@@ -1763,7 +1765,7 @@ lemma drop_bit_of_nat:
   "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
   by (simp add: drop_bit_eq_div Parity.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
 
-lemma bit_of_nat_iff_bit [simp]:
+lemma bit_of_nat_iff_bit [bit_simps]:
   \<open>bit (of_nat m) n \<longleftrightarrow> bit m n\<close>
 proof -
   have \<open>even (m div 2 ^ n) \<longleftrightarrow> even (of_nat (m div 2 ^ n))\<close>
@@ -1778,7 +1780,7 @@ lemma of_nat_drop_bit:
   \<open>of_nat (drop_bit m n) = drop_bit m (of_nat n)\<close>
   by (simp add: drop_bit_eq_div semiring_bit_shifts_class.drop_bit_eq_div of_nat_div)
 
-lemma bit_push_bit_iff_of_nat_iff:
+lemma bit_push_bit_iff_of_nat_iff [bit_simps]:
   \<open>bit (push_bit m (of_nat r)) n \<longleftrightarrow> m \<le> n \<and> bit (of_nat r) (n - m)\<close>
   by (auto simp add: bit_push_bit_iff)
 
@@ -1826,12 +1828,12 @@ next
     by (simp add: bit_Suc)
 qed
 
-lemma bit_minus_int_iff:
+lemma bit_minus_int_iff [bit_simps]:
   \<open>bit (- k) n \<longleftrightarrow> \<not> bit (k - 1) n\<close>
   for k :: int
   using bit_not_int_iff' [of \<open>k - 1\<close>] by simp
 
-lemma bit_nat_iff:
+lemma bit_nat_iff [bit_simps]:
   \<open>bit (nat k) n \<longleftrightarrow> k \<ge> 0 \<and> bit k n\<close>
 proof (cases \<open>k \<ge> 0\<close>)
   case True
@@ -1839,7 +1841,7 @@ proof (cases \<open>k \<ge> 0\<close>)
   ultimately have \<open>k = int m\<close>
     by simp
   then show ?thesis
-    by (auto intro: ccontr)
+    by (simp add: bit_simps)
 next
   case False
   then show ?thesis

@@ -16,9 +16,9 @@ class semiring_bit_operations = semiring_bit_shifts +
     and or :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>OR\<close>  59)
     and xor :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>XOR\<close> 59)
     and mask :: \<open>nat \<Rightarrow> 'a\<close>
-  assumes bit_and_iff: \<open>\<And>n. bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
-    and bit_or_iff: \<open>\<And>n. bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
-    and bit_xor_iff: \<open>\<And>n. bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+  assumes bit_and_iff [bit_simps]: \<open>\<And>n. bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
+    and bit_or_iff [bit_simps]: \<open>\<And>n. bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+    and bit_xor_iff [bit_simps]: \<open>\<And>n. bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
     and mask_eq_exp_minus_1: \<open>mask n = 2 ^ n - 1\<close>
 begin
 
@@ -119,7 +119,7 @@ lemma drop_bit_xor [simp]:
   \<open>drop_bit n (a XOR b) = drop_bit n a XOR drop_bit n b\<close>
   by (rule bit_eqI) (auto simp add: bit_drop_bit_eq bit_xor_iff)
 
-lemma bit_mask_iff:
+lemma bit_mask_iff [bit_simps]:
   \<open>bit (mask m) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
   by (simp add: mask_eq_exp_minus_1 bit_mask_iff)
 
@@ -182,7 +182,7 @@ end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
   fixes not :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>NOT\<close>)
-  assumes bit_not_iff: \<open>\<And>n. bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+  assumes bit_not_iff [bit_simps]: \<open>\<And>n. bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
   assumes minus_eq_not_minus_1: \<open>- a = NOT (a - 1)\<close>
 begin
 
@@ -205,7 +205,7 @@ lemma minus_eq_not_plus_1:
   \<open>- a = NOT a + 1\<close>
   using not_eq_complement [of a] by simp
 
-lemma bit_minus_iff:
+lemma bit_minus_iff [bit_simps]:
   \<open>bit (- a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit (a - 1) n\<close>
   by (simp add: minus_eq_not_minus_1 bit_not_iff)
 
@@ -213,7 +213,7 @@ lemma even_not_iff [simp]:
   "even (NOT a) \<longleftrightarrow> odd a"
   using bit_not_iff [of a 0] by auto
 
-lemma bit_not_exp_iff:
+lemma bit_not_exp_iff [bit_simps]:
   \<open>bit (NOT (2 ^ m)) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n \<noteq> m\<close>
   by (auto simp add: bit_not_iff bit_exp_iff)
 
@@ -221,9 +221,9 @@ lemma bit_minus_1_iff [simp]:
   \<open>bit (- 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
   by (simp add: bit_minus_iff)
 
-lemma bit_minus_exp_iff:
+lemma bit_minus_exp_iff [bit_simps]:
   \<open>bit (- (2 ^ m)) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n \<ge> m\<close>
-  oops
+  by (auto simp add: bit_simps simp flip: mask_eq_exp_minus_1)
 
 lemma bit_minus_2_iff [simp]:
   \<open>bit (- 2) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n > 0\<close>
@@ -361,7 +361,7 @@ definition unset_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
 definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   where \<open>flip_bit n a = a XOR push_bit n 1\<close>
 
-lemma bit_set_bit_iff:
+lemma bit_set_bit_iff [bit_simps]:
   \<open>bit (set_bit m a) n \<longleftrightarrow> bit a n \<or> (m = n \<and> 2 ^ n \<noteq> 0)\<close>
   by (auto simp add: set_bit_def push_bit_of_1 bit_or_iff bit_exp_iff)
 
@@ -369,7 +369,7 @@ lemma even_set_bit_iff:
   \<open>even (set_bit m a) \<longleftrightarrow> even a \<and> m \<noteq> 0\<close>
   using bit_set_bit_iff [of m a 0] by auto
 
-lemma bit_unset_bit_iff:
+lemma bit_unset_bit_iff [bit_simps]:
   \<open>bit (unset_bit m a) n \<longleftrightarrow> bit a n \<and> m \<noteq> n\<close>
   by (auto simp add: unset_bit_def push_bit_of_1 bit_and_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
 
@@ -377,7 +377,7 @@ lemma even_unset_bit_iff:
   \<open>even (unset_bit m a) \<longleftrightarrow> even a \<or> m = 0\<close>
   using bit_unset_bit_iff [of m a 0] by auto
 
-lemma bit_flip_bit_iff:
+lemma bit_flip_bit_iff [bit_simps]:
   \<open>bit (flip_bit m a) n \<longleftrightarrow> (m = n \<longleftrightarrow> \<not> bit a n) \<and> 2 ^ n \<noteq> 0\<close>
   by (auto simp add: flip_bit_def push_bit_of_1 bit_xor_iff bit_exp_iff exp_eq_0_imp_not_bit)
 
@@ -583,7 +583,7 @@ lemma not_int_div_2:
   \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
   by (simp add: not_int_def)
 
-lemma bit_not_int_iff:
+lemma bit_not_int_iff [bit_simps]:
   \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
   for k :: int
   by (simp add: bit_not_int_iff' not_int_def)
@@ -973,7 +973,7 @@ lemma even_of_int_iff:
   \<open>even (of_int k) \<longleftrightarrow> even k\<close>
   by (induction k rule: int_bit_induct) simp_all
 
-lemma bit_of_int_iff:
+lemma bit_of_int_iff [bit_simps]:
   \<open>bit (of_int k) n \<longleftrightarrow> (2::'a) ^ n \<noteq> 0 \<and> bit k n\<close>
 proof (cases \<open>(2::'a) ^ n = 0\<close>)
   case True
@@ -1157,7 +1157,7 @@ subsection \<open>Bit concatenation\<close>
 definition concat_bit :: \<open>nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int\<close>
   where \<open>concat_bit n k l = take_bit n k OR push_bit n l\<close>
 
-lemma bit_concat_bit_iff:
+lemma bit_concat_bit_iff [bit_simps]:
   \<open>bit (concat_bit m k l) n \<longleftrightarrow> n < m \<and> bit k n \<or> m \<le> n \<and> bit l (n - m)\<close>
   by (simp add: concat_bit_def bit_or_iff bit_and_iff bit_take_bit_iff bit_push_bit_iff ac_simps)
 
@@ -1259,7 +1259,7 @@ lemma even_signed_take_bit_iff:
   \<open>even (signed_take_bit m a) \<longleftrightarrow> even a\<close>
   by (auto simp add: signed_take_bit_def even_or_iff even_mask_iff bit_double_iff)
 
-lemma bit_signed_take_bit_iff:
+lemma bit_signed_take_bit_iff [bit_simps]:
   \<open>bit (signed_take_bit m a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> bit a (min m n)\<close>
   by (simp add: signed_take_bit_def bit_take_bit_iff bit_or_iff bit_not_iff bit_mask_iff min_def not_le)
     (use exp_eq_0_imp_not_bit in blast)
@@ -1560,11 +1560,11 @@ definition mask_nat :: \<open>nat \<Rightarrow> nat\<close>
 instance proof
   fix m n q :: nat
   show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
-    by (auto simp add: bit_nat_iff and_nat_def bit_and_iff less_le bit_eq_iff)
+    by (simp add: and_nat_def bit_simps)
   show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
-    by (auto simp add: bit_nat_iff or_nat_def bit_or_iff less_le bit_eq_iff)
+    by (simp add: or_nat_def bit_simps)
   show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
-    by (auto simp add: bit_nat_iff xor_nat_def bit_xor_iff less_le bit_eq_iff)
+    by (simp add: xor_nat_def bit_simps)
 qed (simp add: mask_nat_def)
 
 end

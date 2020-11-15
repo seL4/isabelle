@@ -1065,7 +1065,7 @@ subsubsection \<open>Generic unsigned conversion\<close>
 context semiring_bits
 begin
 
-lemma bit_unsigned_iff:
+lemma bit_unsigned_iff [bit_simps]:
   \<open>bit (unsigned w) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> bit w n\<close>
   for w :: \<open>'b::len word\<close>
   by (transfer fixing: bit) (simp add: bit_of_nat_iff bit_nat_iff bit_take_bit_iff)
@@ -1175,7 +1175,7 @@ subsubsection \<open>Generic signed conversion\<close>
 context ring_bit_operations
 begin
 
-lemma bit_signed_iff:
+lemma bit_signed_iff [bit_simps]:
   \<open>bit (signed w) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> bit w (min (LENGTH('b) - Suc 0) n)\<close>
   for w :: \<open>'b::len word\<close>
   by (transfer fixing: bit)
@@ -1779,10 +1779,10 @@ lemma shiftl1_eq_mult_2:
   \<open>shiftl1 = (*) 2\<close>
   by (rule ext, transfer) simp
 
-lemma bit_shiftl1_iff:
+lemma bit_shiftl1_iff [bit_simps]:
   \<open>bit (shiftl1 w) n \<longleftrightarrow> 0 < n \<and> n < LENGTH('a) \<and> bit w (n - 1)\<close>
     for w :: \<open>'a::len word\<close>
-  by (simp add: shiftl1_eq_mult_2 bit_double_iff exp_eq_zero_iff not_le) (simp add: ac_simps)
+  by (simp add: shiftl1_eq_mult_2 bit_double_iff not_le) (simp add: ac_simps)
 
 lift_definition shiftr1 :: \<open>'a::len word \<Rightarrow> 'a word\<close>
   \<comment> \<open>shift right as unsigned or as signed, ie logical or arithmetic\<close>
@@ -1793,7 +1793,7 @@ lemma shiftr1_eq_div_2:
   \<open>shiftr1 w = w div 2\<close>
   by transfer simp
 
-lemma bit_shiftr1_iff:
+lemma bit_shiftr1_iff [bit_simps]:
   \<open>bit (shiftr1 w) n \<longleftrightarrow> bit w (Suc n)\<close>
   by transfer (auto simp flip: bit_Suc simp add: bit_take_bit_iff)
 
@@ -1820,7 +1820,7 @@ lemma set_Bit_eq:
   \<open>setBit w n = set_bit n w\<close>
   by transfer simp
 
-lemma bit_setBit_iff:
+lemma bit_setBit_iff [bit_simps]:
   \<open>bit (setBit w m) n \<longleftrightarrow> (m = n \<and> n < LENGTH('a) \<or> bit w n)\<close>
   for w :: \<open>'a::len word\<close>
   by transfer (auto simp add: bit_set_bit_iff)
@@ -1833,7 +1833,7 @@ lemma clear_Bit_eq:
   \<open>clearBit w n = unset_bit n w\<close>
   by transfer simp
 
-lemma bit_clearBit_iff:
+lemma bit_clearBit_iff [bit_simps]:
   \<open>bit (clearBit w m) n \<longleftrightarrow> m \<noteq> n \<and> bit w n\<close>
   for w :: \<open>'a::len word\<close>
   by transfer (auto simp add: bit_unset_bit_iff)
@@ -1913,7 +1913,7 @@ lift_definition signed_drop_bit :: \<open>nat \<Rightarrow> 'a word \<Rightarrow
   using signed_take_bit_decr_length_iff
   by (simp add: take_bit_drop_bit) force
 
-lemma bit_signed_drop_bit_iff:
+lemma bit_signed_drop_bit_iff [bit_simps]:
   \<open>bit (signed_drop_bit m w) n \<longleftrightarrow> bit w (if LENGTH('a) - m \<le> n \<and> n < LENGTH('a) then LENGTH('a) - 1 else m + n)\<close>
   for w :: \<open>'a::len word\<close>
   apply transfer
@@ -2025,7 +2025,7 @@ next
     by simp
 qed
 
-lemma bit_word_rotr_iff:
+lemma bit_word_rotr_iff [bit_simps]:
   \<open>bit (word_rotr m w) n \<longleftrightarrow>
     n < LENGTH('a) \<and> bit w ((n + m) mod LENGTH('a))\<close>
   for w :: \<open>'a::len word\<close>
@@ -2057,13 +2057,13 @@ proof transfer
     by simp
 qed
 
-lemma bit_word_rotl_iff:
+lemma bit_word_rotl_iff [bit_simps]:
   \<open>bit (word_rotl m w) n \<longleftrightarrow>
     n < LENGTH('a) \<and> bit w ((n + (LENGTH('a) - m mod LENGTH('a))) mod LENGTH('a))\<close>
   for w :: \<open>'a::len word\<close>
   by (simp add: word_rotl_eq_word_rotr bit_word_rotr_iff)
 
-lemma bit_word_roti_iff:
+lemma bit_word_roti_iff [bit_simps]:
   \<open>bit (word_roti k w) n \<longleftrightarrow>
     n < LENGTH('a) \<and> bit w (nat ((int n + k) mod int LENGTH('a)))\<close>
   for w :: \<open>'a::len word\<close>
@@ -2130,7 +2130,7 @@ lemma word_cat_eq' [code]:
   for a :: \<open>'a::len word\<close> and b :: \<open>'b::len word\<close>
   by transfer (simp add: concat_bit_take_bit_eq)
 
-lemma bit_word_cat_iff:
+lemma bit_word_cat_iff [bit_simps]:
   \<open>bit (word_cat v w :: 'c::len word) n \<longleftrightarrow> n < LENGTH('c) \<and> (if n < LENGTH('b) then bit w n else bit v (n - LENGTH('b)))\<close> 
   for v :: \<open>'a::len word\<close> and w :: \<open>'b::len word\<close>
   by transfer (simp add: bit_concat_bit_iff bit_take_bit_iff)
@@ -3623,7 +3623,7 @@ lemmas le_word_or1 = xtrans(3) [OF word_bw_comms (2) le_word_or2]
 lemmas word_and_le1 = xtrans(3) [OF word_ao_absorbs (4) [symmetric] le_word_or2]
 lemmas word_and_le2 = xtrans(3) [OF word_ao_absorbs (8) [symmetric] le_word_or2]
 
-lemma bit_horner_sum_bit_word_iff:
+lemma bit_horner_sum_bit_word_iff [bit_simps]:
   \<open>bit (horner_sum of_bool (2 :: 'a::len word) bs) n
     \<longleftrightarrow> n < min LENGTH('a) (length bs) \<and> bs ! n\<close>
   by transfer (simp add: bit_horner_sum_bit_iff)
@@ -3631,7 +3631,7 @@ lemma bit_horner_sum_bit_word_iff:
 definition word_reverse :: \<open>'a::len word \<Rightarrow> 'a word\<close>
   where \<open>word_reverse w = horner_sum of_bool 2 (rev (map (bit w) [0..<LENGTH('a)]))\<close>
 
-lemma bit_word_reverse_iff:
+lemma bit_word_reverse_iff [bit_simps]:
   \<open>bit (word_reverse w) n \<longleftrightarrow> n < LENGTH('a) \<and> bit w (LENGTH('a) - Suc n)\<close>
   for w :: \<open>'a::len word\<close>
   by (cases \<open>n < LENGTH('a)\<close>)
@@ -3698,7 +3698,7 @@ lemma uint_shiftr1: "uint (shiftr1 w) = uint w div 2"
   apply (simp add: drop_bit_take_bit min_def)
   done
 
-lemma bit_sshiftr1_iff:
+lemma bit_sshiftr1_iff [bit_simps]:
   \<open>bit (sshiftr1 w) n \<longleftrightarrow> bit w (if n = LENGTH('a) - 1 then LENGTH('a) - 1 else Suc n)\<close>
   for w :: \<open>'a::len word\<close>
   apply transfer
@@ -3714,7 +3714,7 @@ lemma sshiftr1_div_2: "sint (sshiftr1 w) = sint w div 2"
   using sint_signed_drop_bit_eq [of 1 w]
   by (simp add: drop_bit_Suc sshiftr1_eq_signed_drop_bit_Suc_0) 
 
-lemma bit_bshiftr1_iff:
+lemma bit_bshiftr1_iff [bit_simps]:
   \<open>bit (bshiftr1 b w) n \<longleftrightarrow> b \<and> n = LENGTH('a) - 1 \<or> bit w (Suc n)\<close>
   for w :: \<open>'a::len word\<close>
   apply transfer
@@ -3813,7 +3813,7 @@ lemma mask_Suc_rec:
 context
 begin
 
-qualified lemma bit_mask_iff:
+qualified lemma bit_mask_iff [bit_simps]:
   \<open>bit (mask m :: 'a::len word) n \<longleftrightarrow> n < min LENGTH('a) m\<close>
   by (simp add: bit_mask_iff exp_eq_zero_iff not_le)
 
@@ -3945,7 +3945,7 @@ definition slice1 :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len
     then ucast (drop_bit (LENGTH('a) - n) w)
     else push_bit (n - LENGTH('a)) (ucast w))\<close>
 
-lemma bit_slice1_iff:
+lemma bit_slice1_iff [bit_simps]:
   \<open>bit (slice1 m w :: 'b::len word) n \<longleftrightarrow> m - LENGTH('a) \<le> n \<and> n < min LENGTH('b) m
     \<and> bit w (n + (LENGTH('a) - m) - (m - LENGTH('a)))\<close>
   for w :: \<open>'a::len word\<close>
@@ -3955,7 +3955,7 @@ lemma bit_slice1_iff:
 definition slice :: \<open>nat \<Rightarrow> 'a::len word \<Rightarrow> 'b::len word\<close>
   where \<open>slice n = slice1 (LENGTH('a) - n)\<close>
 
-lemma bit_slice_iff:
+lemma bit_slice_iff [bit_simps]:
   \<open>bit (slice m w :: 'b::len word) n \<longleftrightarrow> n < min LENGTH('b) (LENGTH('a) - m) \<and> bit w (n + LENGTH('a) - (LENGTH('a) - m))\<close>
   for w :: \<open>'a::len word\<close>
   by (simp add: slice_def word_size bit_slice1_iff)
@@ -4008,7 +4008,7 @@ subsubsection \<open>Revcast\<close>
 definition revcast :: \<open>'a::len word \<Rightarrow> 'b::len word\<close>
   where \<open>revcast = slice1 LENGTH('b)\<close>
 
-lemma bit_revcast_iff:
+lemma bit_revcast_iff [bit_simps]:
   \<open>bit (revcast w :: 'b::len word) n \<longleftrightarrow> LENGTH('b) - LENGTH('a) \<le> n \<and> n < LENGTH('b)
     \<and> bit w (n + (LENGTH('a) - LENGTH('b)) - (LENGTH('b) - LENGTH('a)))\<close>
   for w :: \<open>'a::len word\<close>
