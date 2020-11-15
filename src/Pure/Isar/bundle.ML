@@ -6,8 +6,9 @@ Bundled declarations (notes etc.).
 
 signature BUNDLE =
 sig
+  type name = string
   val check: Proof.context -> xstring * Position.T -> string
-  val get: Proof.context -> string -> Attrib.thms
+  val get: Proof.context -> name -> Attrib.thms
   val read: Proof.context -> xstring * Position.T -> Attrib.thms
   val print_bundles: bool -> Proof.context -> unit
   val bundle: binding * Attrib.thms ->
@@ -15,13 +16,13 @@ sig
   val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
   val init: binding -> theory -> local_theory
-  val unbundle: string list -> local_theory -> local_theory
+  val unbundle: name list -> local_theory -> local_theory
   val unbundle_cmd: (xstring * Position.T) list -> local_theory -> local_theory
-  val includes: string list -> Proof.context -> Proof.context
+  val includes: name list -> Proof.context -> Proof.context
   val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
-  val include_: string list -> Proof.state -> Proof.state
+  val include_: name list -> Proof.state -> Proof.state
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
-  val including: string list -> Proof.state -> Proof.state
+  val including: name list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
 end;
 
@@ -41,6 +42,8 @@ structure Data = Generic_Data
 
 
 (* bundles *)
+
+type name = string
 
 val get_all_generic = #1 o Data.get;
 val get_all = get_all_generic o Context.Proof;

@@ -11,7 +11,7 @@ sig
   val locale_of: local_theory -> string option
   val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
-  val init: string list -> string -> theory -> local_theory
+  val init: Bundle.name list -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->

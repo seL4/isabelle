@@ -32,7 +32,7 @@ sig
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
-  val add_locale: binding -> binding -> string list ->
+  val add_locale: binding -> binding -> Bundle.name list ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
   val add_locale_cmd: binding -> binding -> (xstring * Position.T) list ->
     expression -> Element.context list -> theory -> string * local_theory

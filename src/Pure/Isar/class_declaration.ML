@@ -6,7 +6,7 @@ Declaring classes and subclass relations.
 
 signature CLASS_DECLARATION =
 sig
-  val class: binding -> string list -> class list ->
+  val class: binding -> Bundle.name list -> class list ->
     Element.context_i list -> theory -> string * local_theory
   val class_cmd: binding -> (xstring * Position.T) list -> xstring list ->
     Element.context list -> theory -> string * local_theory
