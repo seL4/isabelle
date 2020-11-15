@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* November 2020: Florian Haftmann
+  Bundle mixins for locale and class expressions.
+
 * October 2020: Jasmin Blanchette, Martin Desharnais, Mathias Fleury
   Use veriT in proof preplay in Sledgehammer.
 
@@ -14,6 +17,10 @@ Contributions to this Isabelle version
 
 * October 2020: Jasmin Blanchette, Martin Desharnais
   Integration of E 2.5 for Sledgehammer.
+
+* September 2020: Florian Haftmann
+  Substantial reworking and modularization of Word library, with
+  generic type conversions.
 
 * August 2020: Makarius Wenzel
   Improved monitoring of runtime statistics: ML GC progress and Java.
@@ -24,20 +31,16 @@ Contributions to this Isabelle version
 * June 2020: Makarius Wenzel
   Batch-builds via "isabelle build" allow to invoke Scala from ML.
 
+* June 2020: Florian Haftmann
+  Simproc defined_all for more aggressive substitution with variables
+  from assumptions.
+
 * May 2020: Makarius Wenzel
   Antiquotations for Isabelle systems programming, notably @{scala_function}
   and @{scala} to invoke Scala from ML.
 
 * May 2020: Florian Haftmann
   Generic algebraically founded bit operations NOT, AND, OR, XOR.
-
-* Sept. 2020: Florian Haftmann
-  Substantial reworking and modularization of Word library, with
-  generic type conversions.
-
-* June 2020: Florian Haftmann
-  Simproc defined_all for more aggressive substitution with variables
-  from assumptions.
 
 
 Contributions to Isabelle2020
