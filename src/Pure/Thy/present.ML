@@ -6,7 +6,6 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
-  val theory_qualifier: theory -> string
   val init: HTML.symbols -> bool -> Path.T -> string list -> string * string -> bool -> unit
   val finish: unit -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
@@ -26,30 +25,6 @@ val session_graph_path = Path.basic "session_graph.pdf";
 val document_path = Path.ext "pdf" o Path.basic;
 
 fun show_path path = Path.implode (Path.expand (File.full_path Path.current path));
-
-
-
-(** theory data **)
-
-type browser_info = {chapter: string, name: string};
-val empty_browser_info: browser_info = {chapter = "Unsorted", name = "Unknown"};
-
-structure Browser_Info = Theory_Data
-(
-  type T = browser_info
-  val empty = empty_browser_info;
-  val extend = I;
-  val merge = #1;
-);
-
-fun reset_browser_info thy =
-  if Browser_Info.get thy = empty_browser_info then NONE
-  else SOME (Browser_Info.put empty_browser_info thy);
-
-val _ =
-  Theory.setup
-   (Theory.at_begin reset_browser_info #>
-    Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
 
 
 
@@ -162,7 +137,8 @@ fun finish () = with_session_info () (fn {name, chapter, info, info_path, verbos
 
 fun theory_link (curr_chapter, curr_session) thy =
   let
-    val {chapter, name = session, ...} = Browser_Info.get thy;
+    val session = Resources.theory_qualifier (Context.theory_long_name thy);
+    val chapter = Resources.session_chapter session;
     val link = html_path (Context.theory_name thy);
   in
     if curr_session = session then SOME link
@@ -188,6 +164,6 @@ fun begin_theory update_time mk_text thy =
         if is_session_theory thy then
           add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name))
         else ();
-    in thy |> Browser_Info.put {chapter = chapter, name = session_name} end);
+    in thy end);
 
 end;

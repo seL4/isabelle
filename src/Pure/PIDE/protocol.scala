@@ -301,6 +301,7 @@ trait Protocol
     protocol_command("Prover.init_session",
       encode_sessions(resources.sessions_structure.session_positions),
       encode_table(resources.sessions_structure.dest_session_directories),
+      encode_table(resources.sessions_structure.session_chapters),
       encode_bibtex_entries(resources.sessions_structure.bibtex_entries),
       encode_list(resources.session_base.doc_names),
       encode_table(resources.session_base.global_theories.toList),

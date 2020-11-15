@@ -89,8 +89,8 @@ val _ =
         let
           val (symbol_codes, (command_timings, (verbose, (browser_info,
             (documents, (parent_name, (chapter, (session_name, (master_dir,
-            (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-            (loaded_theories, bibtex_entries))))))))))))))) =
+            (theories, (session_positions, (session_directories, (session_chapters,
+            (doc_names, (global_theories, (loaded_theories, bibtex_entries)))))))))))))))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
@@ -102,9 +102,10 @@ val _ =
                     (pair path
                       (pair (((list (pair Options.decode (list (pair string position))))))
                         (pair (list (pair string properties))
-                          (pair (list (pair string string)) (pair (list string)
+                          (pair (list (pair string string))
                             (pair (list (pair string string)) (pair (list string)
-                              (list (pair string (list string)))))))))))))))))
+                              (pair (list (pair string string)) (pair (list string)
+                                (list (pair string (list string))))))))))))))))))
               end;
 
           val symbols = HTML.make_symbols symbol_codes;
@@ -115,6 +116,7 @@ val _ =
                 Resources.init_session
                   {session_positions = session_positions,
                    session_directories = session_directories,
+                   session_chapters = session_chapters,
                    bibtex_entries = bibtex_entries,
                    docs = doc_names,
                    global_theories = global_theories,

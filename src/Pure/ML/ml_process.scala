@@ -102,6 +102,7 @@ object ML_Process
           "Resources.init_session" +
             "{session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
+            ", session_chapters = " + print_table(sessions_structure.session_chapters) +
             ", bibtex_entries = " + print_bibtex_entries(sessions_structure.bibtex_entries) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +

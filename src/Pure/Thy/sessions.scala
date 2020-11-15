@@ -811,6 +811,9 @@ object Sessions
           case entries => Some(name -> entries.map(_.info))
         })
 
+    def session_chapters: List[(String, String)] =
+      build_topological_order.map(name => name -> apply(name).chapter)
+
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")
   }
