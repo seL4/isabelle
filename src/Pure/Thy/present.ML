@@ -6,11 +6,10 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
-  val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
   val init: HTML.symbols -> bool -> Path.T -> string list -> string * string -> bool -> unit
   val finish: unit -> unit
-  val begin_theory: string list -> int -> (unit -> HTML.text) -> theory -> theory
+  val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
 end;
 
 structure Present: PRESENT =
@@ -32,8 +31,8 @@ fun show_path path = Path.implode (Path.expand (File.full_path Path.current path
 
 (** theory data **)
 
-type browser_info = {chapter: string, name: string, bibtex_entries: string list};
-val empty_browser_info: browser_info = {chapter = "Unsorted", name = "Unknown", bibtex_entries = []};
+type browser_info = {chapter: string, name: string};
+val empty_browser_info: browser_info = {chapter = "Unsorted", name = "Unknown"};
 
 structure Browser_Info = Theory_Data
 (
@@ -50,9 +49,7 @@ fun reset_browser_info thy =
 val _ =
   Theory.setup
    (Theory.at_begin reset_browser_info #>
-    Browser_Info.put {chapter = Context.PureN, name = Context.PureN, bibtex_entries = []});
-
-val get_bibtex_entries = #bibtex_entries o Browser_Info.get;
+    Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
 
 
 
@@ -175,7 +172,7 @@ fun theory_link (curr_chapter, curr_session) thy =
     else SOME (Path.parent + Path.parent + Path.basic chapter + Path.basic session + link)
   end;
 
-fun begin_theory bibtex_entries update_time mk_text thy =
+fun begin_theory update_time mk_text thy =
   with_session_info thy (fn {symbols, name = session_name, chapter, ...} =>
     let
       val name = Context.theory_name thy;
@@ -187,14 +184,10 @@ fun begin_theory bibtex_entries update_time mk_text thy =
 
       val _ = update_html name (HTML.theory symbols name parent_specs (mk_text ()));
 
-      val bibtex_entries' =
+      val _ =
         if is_session_theory thy then
-          (add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
-           bibtex_entries)
-        else [];
-    in
-      thy
-      |> Browser_Info.put {chapter = chapter, name = session_name, bibtex_entries = bibtex_entries'}
-    end);
+          add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name))
+        else ();
+    in thy |> Browser_Info.put {chapter = chapter, name = session_name} end);
 
 end;

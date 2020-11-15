@@ -91,10 +91,15 @@ object ML_Process
           def print_sessions(list: List[(String, Position.T)]): String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
+          def print_bibtex_entries(list: List[(String, List[String])]): String =
+            ML_Syntax.print_list(
+              ML_Syntax.print_pair(ML_Syntax.print_string_bytes,
+                ML_Syntax.print_list(ML_Syntax.print_string_bytes)))(list)
 
           List("Resources.init_session" +
             "{session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
+            ", bibtex_entries = " + print_bibtex_entries(sessions_structure.bibtex_entries) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}")

@@ -25,17 +25,20 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Prover.init_session"
-    (fn [session_positions_yxml, session_directories_yxml, doc_names_yxml, global_theories_yxml,
-          loaded_theories_yxml] =>
+    (fn [session_positions_yxml, session_directories_yxml, bibtex_entries_yxml, doc_names_yxml,
+          global_theories_yxml, loaded_theories_yxml] =>
       let
         val decode_table = YXML.parse_body #> let open XML.Decode in list (pair string string) end;
         val decode_list = YXML.parse_body #> let open XML.Decode in list string end;
         val decode_sessions =
           YXML.parse_body #> let open XML.Decode in list (pair string properties) end;
+        val decode_bibtex_entries =
+          YXML.parse_body #> let open XML.Decode in list (pair string (list string)) end;
       in
         Resources.init_session
           {session_positions = decode_sessions session_positions_yxml,
            session_directories = decode_table session_directories_yxml,
+           bibtex_entries = decode_bibtex_entries bibtex_entries_yxml,
            docs = decode_list doc_names_yxml,
            global_theories = decode_table global_theories_yxml,
            loaded_theories = decode_list loaded_theories_yxml}

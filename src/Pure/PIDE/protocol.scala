@@ -303,11 +303,18 @@ trait Protocol
     Symbol.encode_yxml(list(pair(string, properties))(lst))
   }
 
+  private def encode_bibtex_entries(lst: List[(String, List[String])]): String =
+  {
+    import XML.Encode._
+    Symbol.encode_yxml(list(pair(string, list(string)))(lst))
+  }
+
   def init_session(resources: Resources)
   {
     protocol_command("Prover.init_session",
       encode_sessions(resources.sessions_structure.session_positions),
       encode_table(resources.sessions_structure.dest_session_directories),
+      encode_bibtex_entries(resources.sessions_structure.bibtex_entries),
       encode_list(resources.session_base.doc_names),
       encode_table(resources.session_base.global_theories.toList),
       encode_list(resources.session_base.loaded_theories.keys))
