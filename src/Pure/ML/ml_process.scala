@@ -86,15 +86,15 @@ object ML_Process
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
                 ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))(table)
-          def print_list(list: List[String]): String =
-            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(list)
-          def print_sessions(list: List[(String, Position.T)]): String =
+          def print_list: List[String] => String =
+            ML_Syntax.print_list(ML_Syntax.print_string_bytes)
+          def print_sessions: List[(String, Position.T)] => String =
             ML_Syntax.print_list(
-              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
-          def print_bibtex_entries(list: List[(String, List[String])]): String =
+              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))
+          def print_bibtex_entries: List[(String, List[String])] => String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes,
-                ML_Syntax.print_list(ML_Syntax.print_string_bytes)))(list)
+                ML_Syntax.print_list(ML_Syntax.print_string_bytes)))
 
           List("Resources.init_session" +
             "{session_positions = " + print_sessions(sessions_structure.session_positions) +
