@@ -395,6 +395,12 @@ proof -
     by (simp add: horner_sum_eq_sum_funpow ac_simps)
 qed
 
+lemma horner_sum_append:
+  \<open>horner_sum f a (xs @ ys) = horner_sum f a xs + a ^ length xs * horner_sum f a ys\<close>
+  using sum.atLeastLessThan_shift_bounds [of _ 0 \<open>length xs\<close> \<open>length ys\<close>]
+    atLeastLessThan_add_Un [of 0 \<open>length xs\<close> \<open>length ys\<close>]
+  by (simp add: horner_sum_eq_sum sum_distrib_left sum.union_disjoint ac_simps nth_append power_add)
+
 end
 
 context semiring_bit_shifts
@@ -433,7 +439,7 @@ end
 context unique_euclidean_semiring_with_bit_shifts
 begin
 
-lemma bit_horner_sum_bit_iff:
+lemma bit_horner_sum_bit_iff [bit_simps]:
   \<open>bit (horner_sum of_bool 2 bs) n \<longleftrightarrow> n < length bs \<and> bs ! n\<close>
 proof (induction bs arbitrary: n)
   case Nil
