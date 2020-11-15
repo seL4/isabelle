@@ -78,9 +78,12 @@ object ML_Process
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     // session base
-    val eval_session_base =
+    val init_session = Isabelle_System.tmp_file("init_session", ext = "ML")
+    val init_session_name = init_session.getAbsolutePath
+    Isabelle_System.chmod("600", File.path(init_session))
+    File.write(init_session,
       session_base match {
-        case None => Nil
+        case None => ""
         case Some(base) =>
           def print_table(table: List[(String, String)]): String =
             ML_Syntax.print_list(
@@ -96,14 +99,14 @@ object ML_Process
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes,
                 ML_Syntax.print_list(ML_Syntax.print_string_bytes)))
 
-          List("Resources.init_session" +
+          "Resources.init_session" +
             "{session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
             ", bibtex_entries = " + print_bibtex_entries(sessions_structure.bibtex_entries) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
-            ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}")
-      }
+            ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}"
+      })
 
     // process
     val eval_process =
@@ -136,7 +139,9 @@ object ML_Process
     // bash
     val bash_args =
       ml_runtime_options :::
-      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base).flatMap(List("--eval", _)) :::
+      (eval_init ::: eval_modes ::: eval_options).flatMap(List("--eval", _)) :::
+      List("--use", init_session_name,
+        "--eval", "OS.FileSys.remove " + ML_Syntax.print_string_bytes(init_session_name)) :::
       use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
     Bash.process(
@@ -148,6 +153,7 @@ object ML_Process
       cleanup = () =>
         {
           isabelle_process_options.delete
+          init_session.delete
           Isabelle_System.rm_tree(isabelle_tmp)
           cleanup()
         })
