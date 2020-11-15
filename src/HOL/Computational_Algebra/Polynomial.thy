@@ -3131,7 +3131,7 @@ lemma is_unit_pCons_iff: "is_unit (pCons a p) \<longleftrightarrow> p = 0 \<and>
   for p :: "'a::field poly"
   by (cases "p = 0") (auto simp: is_unit_triv is_unit_iff_degree)
 
-lemma is_unit_monom_trival: "is_unit p \<Longrightarrow> monom (coeff p (degree p)) 0 = p"
+lemma is_unit_monom_trivial: "is_unit p \<Longrightarrow> monom (coeff p (degree p)) 0 = p"
   for p :: "'a::field poly"
   by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
 

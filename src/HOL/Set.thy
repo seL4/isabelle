@@ -383,7 +383,7 @@ lemma bexE [elim!]: "\<exists>x\<in>A. P x \<Longrightarrow> (\<And>x. x \<in> A
   unfolding Bex_def by blast
 
 lemma ball_triv [simp]: "(\<forall>x\<in>A. P) \<longleftrightarrow> ((\<exists>x. x \<in> A) \<longrightarrow> P)"
-  \<comment> \<open>Trival rewrite rule.\<close>
+  \<comment> \<open>trivial rewrite rule.\<close>
   by (simp add: Ball_def)
 
 lemma bex_triv [simp]: "(\<exists>x\<in>A. P) \<longleftrightarrow> ((\<exists>x. x \<in> A) \<and> P)"

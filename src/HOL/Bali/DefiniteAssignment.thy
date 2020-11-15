@@ -566,7 +566,7 @@ where
      in this rule. For example, if \<^term>\<open>e\<close> is constantly \<^term>\<open>True\<close> then 
      \<^term>\<open>assigns_if False e = UNIV\<close> and therefor \<^term>\<open>nrm C2=UNIV\<close>.
      So finally \<^term>\<open>nrm A = nrm C1\<close>. For the break maps this trick 
-     workd too, because the trival break map will map all labels to 
+     workd too, because the trivial break map will map all labels to 
      \<^term>\<open>UNIV\<close>. In the example, if no break occurs in \<^term>\<open>c2\<close> the break
      maps will trivially map to \<^term>\<open>UNIV\<close> and if a break occurs it will map
      to \<^term>\<open>UNIV\<close> too, because \<^term>\<open>assigns_if False e = UNIV\<close>. So

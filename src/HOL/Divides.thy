@@ -440,7 +440,7 @@ next
     by auto
 qed
 
-lemma zmod_trival_iff:
+lemma zmod_trivial_iff:
   fixes i k :: int
   shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
 proof -
@@ -488,7 +488,7 @@ next
       using pos_mod_bound [of l k] apply linarith 
       done
     with \<open>l > 0\<close> have \<open>(k mod l - 1) mod l = k mod l - 1\<close>
-      by (simp add: zmod_trival_iff)
+      by (simp add: zmod_trivial_iff)
     ultimately show ?thesis
       apply (simp only: zmod_zminus1_eq_if)
       apply (simp add: mod_eq_0_iff_dvd algebra_simps mod_simps)
@@ -1240,7 +1240,7 @@ proof -
   have \<open>(k + 1) mod 2 ^ n = (k mod 2 ^ n + 1) mod 2 ^ n\<close>
     by (simp add: mod_simps)
   also have \<open>\<dots> = k mod 2 ^ n + 1\<close>
-    using * by (simp add: zmod_trival_iff)
+    using * by (simp add: zmod_trivial_iff)
   finally have \<open>(k + 1) mod 2 ^ n = k mod 2 ^ n + 1\<close> .
   then show ?thesis
     by (simp add: take_bit_eq_mod)
@@ -1259,7 +1259,7 @@ proof -
   have \<open>(k - 1) mod 2 ^ n = (k mod 2 ^ n - 1) mod 2 ^ n\<close>
     by (simp add: mod_simps)
   also have \<open>\<dots> = k mod 2 ^ n - 1\<close>
-    by (simp add: zmod_trival_iff)
+    by (simp add: zmod_trivial_iff)
       (use \<open>k mod 2 ^ n < 2 ^ n\<close> * in linarith)
   finally have \<open>(k - 1) mod 2 ^ n = k mod 2 ^ n - 1\<close> .
   then show ?thesis
