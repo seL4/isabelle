@@ -285,29 +285,24 @@ trait Protocol
 
   /* session base */
 
-  private def encode_table(table: List[(String, String)]): String =
-  {
-    import XML.Encode._
-    Symbol.encode_yxml(list(pair(string, string))(table))
-  }
-
-  private def encode_list(lst: List[String]): String =
-  {
-    import XML.Encode._
-    Symbol.encode_yxml(list(string)(lst))
-  }
-
-  private def encode_sessions(lst: List[(String, Position.T)]): String =
-  {
-    import XML.Encode._
-    Symbol.encode_yxml(list(pair(string, properties))(lst))
-  }
-
   def init_session(resources: Resources)
   {
+    import XML.Encode._
+
+    def encode_table(arg: List[(String, String)]): String =
+      Symbol.encode_yxml(list(pair(string, string))(arg))
+    def encode_list(arg: List[String]): String =
+      Symbol.encode_yxml(list(string)(arg))
+    def encode_sessions(arg: List[(String, Position.T)]): String =
+      Symbol.encode_yxml(list(pair(string, properties))(arg))
+    def encode_bibtex_entries(arg: List[(String, List[String])]): String =
+      Symbol.encode_yxml(list(pair(string, list(string)))(arg))
+
     protocol_command("Prover.init_session",
       encode_sessions(resources.sessions_structure.session_positions),
       encode_table(resources.sessions_structure.dest_session_directories),
+      encode_table(resources.sessions_structure.session_chapters),
+      encode_bibtex_entries(resources.sessions_structure.bibtex_entries),
       encode_list(resources.session_base.doc_names),
       encode_table(resources.session_base.global_theories.toList),
       encode_list(resources.session_base.loaded_theories.keys))

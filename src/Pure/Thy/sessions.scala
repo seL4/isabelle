@@ -511,7 +511,7 @@ object Sessions
         case s => Some(dir + Path.explode(s))
       }
 
-    def bibtex_entries: List[Text.Info[String]] =
+    lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
         if Bibtex.is_bibtex(file.file_name)
@@ -803,6 +803,16 @@ object Sessions
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds_rev(ss)
     def imports_topological_order: List[String] = imports_graph.topological_order
+
+    def bibtex_entries: List[(String, List[String])] =
+      build_topological_order.flatMap(name =>
+        apply(name).bibtex_entries match {
+          case Nil => None
+          case entries => Some(name -> entries.map(_.info))
+        })
+
+    def session_chapters: List[(String, String)] =
+      build_topological_order.map(name => name -> apply(name).chapter)
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")

@@ -55,11 +55,10 @@ fun session_timing f x =
 
 (* build theories *)
 
-fun build_theories symbols bibtex_entries last_timing qualifier master_dir (options, thys) =
+fun build_theories symbols last_timing qualifier master_dir (options, thys) =
   let
     val context =
-      {options = options, symbols = symbols, bibtex_entries = bibtex_entries,
-        last_timing = last_timing};
+      {options = options, symbols = symbols, last_timing = last_timing};
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
   in
@@ -90,8 +89,8 @@ val _ =
         let
           val (symbol_codes, (command_timings, (verbose, (browser_info,
             (documents, (parent_name, (chapter, (session_name, (master_dir,
-            (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-            (loaded_theories, bibtex_entries))))))))))))))) =
+            (theories, (session_positions, (session_directories, (session_chapters,
+            (doc_names, (global_theories, (loaded_theories, bibtex_entries)))))))))))))))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
@@ -103,8 +102,10 @@ val _ =
                     (pair path
                       (pair (((list (pair Options.decode (list (pair string position))))))
                         (pair (list (pair string properties))
-                          (pair (list (pair string string)) (pair (list string)
-                            (pair (list (pair string string)) (pair (list string) (list string)))))))))))))))
+                          (pair (list (pair string string))
+                            (pair (list (pair string string)) (pair (list string)
+                              (pair (list (pair string string)) (pair (list string)
+                                (list (pair string (list string))))))))))))))))))
               end;
 
           val symbols = HTML.make_symbols symbol_codes;
@@ -115,6 +116,8 @@ val _ =
                 Resources.init_session
                   {session_positions = session_positions,
                    session_directories = session_directories,
+                   session_chapters = session_chapters,
+                   bibtex_entries = bibtex_entries,
                    docs = doc_names,
                    global_theories = global_theories,
                    loaded_theories = loaded_theories};
@@ -133,8 +136,7 @@ val _ =
 
               val res1 =
                 theories |>
-                  (List.app
-                      (build_theories symbols bibtex_entries last_timing session_name master_dir)
+                  (List.app (build_theories symbols last_timing session_name master_dir)
                     |> session_timing
                     |> Exn.capture);
               val res2 = Exn.capture Session.finish ();

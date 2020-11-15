@@ -180,15 +180,18 @@ object Build
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
-                pair(list(string), pair(list(pair(string, string)),
-                pair(list(string), list(string))))))))))))))))(
+                pair(list(pair(string, string)),
+                pair(list(string),
+                pair(list(pair(string, string)),
+                pair(list(string), list(pair(string, list(string)))))))))))))))))))(
               (Symbol.codes, (command_timings0, (verbose, (store.browser_info,
                 (documents, (parent, (info.chapter, (session_name, (Path.current,
                 (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
+                (sessions_structure.session_chapters,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, info.bibtex_entries.map(_.info)))))))))))))))))
+                (base.loaded_theories.keys, sessions_structure.bibtex_entries)))))))))))))))))
             })
 
         val env =

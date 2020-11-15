@@ -21,7 +21,6 @@ sig
   type context =
     {options: Options.T,
      symbols: HTML.symbols,
-     bibtex_entries: string list,
      last_timing: Toplevel.transition -> Time.time}
   val use_theories: context -> string -> Path.T -> (string * Position.T) list -> unit
   val use_thy: string -> unit
@@ -66,11 +65,10 @@ val _ =
         else
           let
             val thy_name = Context.theory_name thy;
-            val document_path = Path.basic "document" + Present.tex_path thy_name;
-
+            val document_tex_name = Path.explode_binding0 ("document/" ^ thy_name ^ ".tex");
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-          in Export.export thy (Path.binding0 document_path) (XML.blob output) end
+          in Export.export thy document_tex_name (XML.blob output) end
       end));
 
 
@@ -188,13 +186,11 @@ fun update_thy deps theory = change_thys (update deps theory);
 type context =
   {options: Options.T,
    symbols: HTML.symbols,
-   bibtex_entries: string list,
    last_timing: Toplevel.transition -> Time.time};
 
 fun default_context (): context =
   {options = Options.default (),
    symbols = HTML.no_symbols,
-   bibtex_entries = [],
    last_timing = K Time.zeroTime};
 
 
@@ -304,7 +300,7 @@ fun excursion keywords master_dir last_timing init elements =
 
 fun eval_thy (context: context) update_time master_dir header text_pos text parents =
   let
-    val {options, symbols, bibtex_entries, last_timing} = context;
+    val {options, symbols, last_timing} = context;
     val (name, _) = #name header;
     val keywords =
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
@@ -315,7 +311,7 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
 
     fun init () =
       Resources.begin_theory master_dir header parents
-      |> Present.begin_theory bibtex_entries update_time
+      |> Present.begin_theory update_time
         (fn () => implode (map (HTML.present_span symbols keywords) spans));
 
     val (results, thy) =
