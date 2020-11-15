@@ -179,6 +179,9 @@ all problems.
 * Syntax for state monad combinators fcomp and scomp is organized in
 bundle state_combinator_syntax.  Minor INCOMPATIBILITY.
 
+* Syntax for reflected term syntax is organized in bundle term_syntax,
+discontinuing previous locale term_syntax.  Minor INCOMPATIBILITY.
+
 
 *** FOL ***
 

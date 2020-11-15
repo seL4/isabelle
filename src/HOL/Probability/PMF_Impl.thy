@@ -530,21 +530,21 @@ end
 definition single :: "'a \<Rightarrow> 'a multiset" where
 "single s = {#s#}"
 
-definition (in term_syntax)
-  pmfify :: "('a::typerep multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<Rightarrow>
-             'a \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
-             'a pmf \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
-  [code_unfold]: "pmfify A x =  
-    Code_Evaluation.valtermify pmf_of_multiset {\<cdot>} 
-      (Code_Evaluation.valtermify (+) {\<cdot>} A {\<cdot>} 
-       (Code_Evaluation.valtermify single {\<cdot>} x))"
-
 instantiation pmf :: (random) random
 begin
 
 context
-  includes state_combinator_syntax
+  includes state_combinator_syntax term_syntax
 begin
+
+definition
+  pmfify :: "('b::typerep multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<Rightarrow>
+             'b \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
+             'b pmf \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  [code_unfold]: "pmfify A x =  
+    Code_Evaluation.valtermify pmf_of_multiset {\<cdot>} 
+      (Code_Evaluation.valtermify (+) {\<cdot>} A {\<cdot>} 
+       (Code_Evaluation.valtermify single {\<cdot>} x))"
 
 definition
   "Quickcheck_Random.random i = 

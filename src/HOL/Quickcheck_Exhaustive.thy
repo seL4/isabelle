@@ -180,9 +180,15 @@ instance ..
 
 end
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   [code_unfold]: "valtermify_pair x y =
     Code_Evaluation.valtermify (Pair :: 'a::typerep \<Rightarrow> 'b::typerep \<Rightarrow> 'a \<times> 'b) {\<cdot>} x {\<cdot>} y"
+
+end
 
 instantiation prod :: (full_exhaustive, full_exhaustive) full_exhaustive
 begin
@@ -253,10 +259,16 @@ definition [code_unfold]:
       (\<lambda>_::'a. v,
         \<lambda>u::unit. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a::typerep)) (t ())))"
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   [code_unfold]: "valtermify_fun_upd g a b =
     Code_Evaluation.valtermify
       (fun_upd :: ('a::typerep \<Rightarrow> 'b::typerep) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b) {\<cdot>} g {\<cdot>} a {\<cdot>} b"
+
+end
 
 instantiation "fun" :: ("{equal,full_exhaustive}", full_exhaustive) full_exhaustive
 begin
@@ -296,10 +308,16 @@ where
      else check_all (\<lambda>(x, xt).
       check_all_n_lists (\<lambda>(xs, xst). f ((x # xs), (\<lambda>_. (xt () # xst ())))) (n - 1)))"
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   [code_unfold]: "termify_fun_upd g a b =
     (Code_Evaluation.termify
       (fun_upd :: ('a::typerep \<Rightarrow> 'b::typerep) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b) <\<cdot>> g <\<cdot>> a <\<cdot>> b)"
+
+end
 
 definition mk_map_term ::
   "(unit \<Rightarrow> typerep) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow>
@@ -357,7 +375,11 @@ instance ..
 
 end
 
-fun (in term_syntax) check_all_subsets ::
+context
+  includes term_syntax
+begin
+
+fun check_all_subsets ::
   "(('a::typerep) set \<times> (unit \<Rightarrow> term) \<Rightarrow> (bool \<times> term list) option) \<Rightarrow>
     ('a \<times> (unit \<Rightarrow> term)) list \<Rightarrow> (bool \<times> term list) option"
 where
@@ -365,17 +387,18 @@ where
 | "check_all_subsets f (x # xs) =
     check_all_subsets (\<lambda>s. case f s of Some ts \<Rightarrow> Some ts | None \<Rightarrow> f (valtermify_insert x s)) xs"
 
-
-definition (in term_syntax)
+definition
   [code_unfold]: "term_emptyset = Code_Evaluation.termify ({} :: ('a::typerep) set)"
 
-definition (in term_syntax)
+definition
   [code_unfold]: "termify_insert x s =
     Code_Evaluation.termify (insert :: ('a::typerep) \<Rightarrow> 'a set \<Rightarrow> 'a set)  <\<cdot>> x <\<cdot>> s"
 
-definition (in term_syntax) setify :: "('a::typerep) itself \<Rightarrow> term list \<Rightarrow> term"
+definition setify :: "('a::typerep) itself \<Rightarrow> term list \<Rightarrow> term"
 where
   "setify T ts = foldr (termify_insert T) ts (term_emptyset T)"
+
+end
 
 instantiation set :: (check_all) check_all
 begin
@@ -423,9 +446,15 @@ instance ..
 
 end
 
-definition (in term_syntax) [code_unfold]:
+context
+  includes term_syntax
+begin
+
+definition [code_unfold]:
   "termify_pair x y =
     Code_Evaluation.termify (Pair :: 'a::typerep \<Rightarrow> 'b :: typerep \<Rightarrow> 'a * 'b) <\<cdot>> x <\<cdot>> y"
+
+end
 
 instantiation prod :: (check_all, check_all) check_all
 begin
@@ -442,13 +471,19 @@ instance ..
 
 end
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   [code_unfold]: "valtermify_Inl x =
     Code_Evaluation.valtermify (Inl :: 'a::typerep \<Rightarrow> 'a + 'b :: typerep) {\<cdot>} x"
 
-definition (in term_syntax)
+definition
   [code_unfold]: "valtermify_Inr x =
     Code_Evaluation.valtermify (Inr :: 'b::typerep \<Rightarrow> 'a::typerep + 'b) {\<cdot>} x"
+
+end
 
 instantiation sum :: (check_all, check_all) check_all
 begin

@@ -816,8 +816,14 @@ instance ..
 
 end
 
-definition (in term_syntax) [code_unfold]:
+context
+  includes term_syntax
+begin
+
+definition [code_unfold]:
   "valtermify_interval x y = Code_Evaluation.valtermify (Ivl::'a::{preorder,typerep}\<Rightarrow>_) {\<cdot>} x {\<cdot>} y"
+
+end
 
 instantiation interval :: ("{full_exhaustive,preorder,typerep}") full_exhaustive
 begin

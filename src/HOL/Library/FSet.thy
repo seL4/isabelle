@@ -1314,11 +1314,17 @@ text \<open>Setup adapted from sets.\<close>
 
 notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
 
-definition (in term_syntax) [code_unfold]:
+context
+  includes term_syntax
+begin
+
+definition [code_unfold]:
 "valterm_femptyset = Code_Evaluation.valtermify ({||} :: ('a :: typerep) fset)"
 
-definition (in term_syntax) [code_unfold]:
+definition [code_unfold]:
 "valtermify_finsert x s = Code_Evaluation.valtermify finsert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+
+end
 
 instantiation fset :: (exhaustive) exhaustive
 begin

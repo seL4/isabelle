@@ -318,8 +318,14 @@ instance ..
 
 end
 
-definition (in term_syntax) [code_unfold]:
+context
+  includes term_syntax
+begin
+
+definition [code_unfold]:
   "valtermify_float x y = Code_Evaluation.valtermify Float {\<cdot>} x {\<cdot>} y"
+
+end
 
 instantiation float :: full_exhaustive
 begin

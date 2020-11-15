@@ -201,12 +201,17 @@ definition beyond :: "natural \<Rightarrow> natural \<Rightarrow> natural"
 lemma beyond_zero: "beyond k 0 = 0"
   by (simp add: beyond_def)
 
+context
+  includes term_syntax
+begin
 
-definition (in term_syntax) [code_unfold]:
+definition [code_unfold]:
   "valterm_emptyset = Code_Evaluation.valtermify ({} :: ('a :: typerep) set)"
 
-definition (in term_syntax) [code_unfold]:
+definition [code_unfold]:
   "valtermify_insert x s = Code_Evaluation.valtermify insert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+
+end
 
 instantiation set :: (random) random
 begin

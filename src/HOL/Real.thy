@@ -1634,9 +1634,15 @@ lemma real_floor_code [code]: "\<lfloor>Ratreal x\<rfloor> = \<lfloor>x\<rfloor>
 
 text \<open>Quickcheck\<close>
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where [code_unfold]: "valterm_ratreal k = Code_Evaluation.valtermify Ratreal {\<cdot>} k"
+
+end
 
 instantiation real :: random
 begin

@@ -52,18 +52,13 @@ definition termify :: "'a \<Rightarrow> term" where
 abbreviation valtermify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
   "valtermify x \<equiv> (x, \<lambda>u. termify x)"
 
-locale term_syntax
+bundle term_syntax
 begin
 
 notation App (infixl "<\<cdot>>" 70)
   and valapp (infixl "{\<cdot>}" 70)
 
 end
-
-interpretation term_syntax .
-
-no_notation App (infixl "<\<cdot>>" 70)
-  and valapp (infixl "{\<cdot>}" 70)
 
 
 subsection \<open>Tools setup and evaluation\<close>

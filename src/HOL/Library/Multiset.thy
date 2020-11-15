@@ -3534,10 +3534,16 @@ text \<open>
 
 text \<open>Quickcheck generators\<close>
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   msetify :: "'a::typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
     \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "msetify xs = Code_Evaluation.valtermify mset {\<cdot>} xs"
+
+end
 
 instantiation multiset :: (random) random
 begin

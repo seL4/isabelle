@@ -128,20 +128,20 @@ end
 
 subsection \<open>Quickcheck generators\<close>
 
-definition (in term_syntax)
+context
+  includes state_combinator_syntax term_syntax
+begin
+
+definition
   valterm_empty :: "('key :: typerep, 'value :: typerep) alist \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where "valterm_empty = Code_Evaluation.valtermify empty"
 
-definition (in term_syntax)
+definition
   valterm_update :: "'key :: typerep \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
   'value :: typerep \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
   ('key, 'value) alist \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
   ('key, 'value) alist \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_update k v a = Code_Evaluation.valtermify update {\<cdot>} k {\<cdot>} v {\<cdot>}a"
-
-context
-  includes state_combinator_syntax
-begin
 
 fun random_aux_alist
 where

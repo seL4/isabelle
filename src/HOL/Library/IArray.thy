@@ -89,7 +89,8 @@ lemma [code]:
   "IArray.all p = Not \<circ> IArray.exists (Not \<circ> p)"
   by (simp add: fun_eq_iff)
 
-context term_syntax
+context
+  includes term_syntax
 begin
 
 lemma [code]:

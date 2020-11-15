@@ -998,11 +998,17 @@ lemma [code]: "of_rat p = (let (a, b) = quotient_of p in of_int a / of_int b)"
 
 text \<open>Quickcheck\<close>
 
-definition (in term_syntax)
+context
+  includes term_syntax
+begin
+
+definition
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
     int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
     rat \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
+
+end
 
 instantiation rat :: random
 begin
