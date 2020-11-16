@@ -201,11 +201,11 @@ Usage: isabelle process [OPTIONS]
     val more_args = getopts(args)
     if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-    val sessions_structure = Sessions.load_structure(options, dirs = dirs)
+    val base_info = Sessions.base_info(options, logic, dirs = dirs).check
     val store = Sessions.store(options)
-
     val result =
-      ML_Process(options, sessions_structure, store, logic = logic, args = eval_args, modes = modes)
+      ML_Process(options, base_info.sessions_structure, store, logic = logic, args = eval_args,
+        modes = modes, session_base = Some(base_info.base))
         .result(
           progress_stdout = Output.writeln(_, stdout = true),
           progress_stderr = Output.writeln(_))
