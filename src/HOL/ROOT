@@ -9,6 +9,8 @@ session HOL (main) = Pure +
   theories
     Main (global)
     Complex_Main (global)
+  document_theories
+    Tools.Code_Generator
   document_files
     "root.bib"
     "root.tex"
