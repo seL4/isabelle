@@ -155,6 +155,7 @@ object HTML
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
   val no_text: XML.Tree = XML.Text("")
   val break: XML.Body = List(XML.elem("br"))
+  val nl: XML.Body = List(XML.Text("\n"))
 
   class Operator(val name: String)
   {
@@ -197,8 +198,10 @@ object HTML
   def description(items: List[(XML.Body, XML.Body)]): XML.Elem =
     descr(items.flatMap({ case (x, y) => List(dt(x), dd(y)) }))
 
-  def link(href: String, body: XML.Body = Nil): XML.Elem =
+  def link(href: String, body: XML.Body): XML.Elem =
     XML.Elem(Markup("a", List("href" -> href)), if (body.isEmpty) text(href) else body)
+
+  def link(path: Path, body: XML.Body): XML.Elem = link(path.implode, body)
 
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)

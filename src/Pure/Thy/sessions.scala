@@ -459,6 +459,8 @@ object Sessions
     export_files: List[(Path, Int, List[String])],
     meta_digest: SHA1.Digest)
   {
+    def chapter_session: Path = Path.basic(chapter) + Path.basic(name)
+
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base =

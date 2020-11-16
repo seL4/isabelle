@@ -1,5 +1,5 @@
 (*  Title:      Pure/Thy/html.ML
-    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
+    Author:     Makarius
 
 HTML presentation elements.
 *)
@@ -11,11 +11,14 @@ sig
   val no_symbols: symbols
   val present_span: symbols -> Keyword.keywords -> Command_Span.span -> Output.output
   type text = string
+  val name: symbols -> string -> text
+  val keyword: symbols -> string -> text
+  val command: symbols -> string -> text
+  val href_name: string -> string -> string
+  val href_path: Url.T -> string -> string
+  val href_opt_path: Url.T option -> string -> string
   val begin_document: symbols -> string -> text
   val end_document: text
-  val begin_session_index: symbols -> string -> Url.T -> (Url.T * string) list -> text
-  val theory_entry: symbols -> Url.T * string -> text
-  val theory: symbols -> string -> (Url.T option * string) list -> text -> text
 end;
 
 structure HTML: HTML =
@@ -120,8 +123,6 @@ fun href_path path txt = href_name (Url.implode path) txt;
 fun href_opt_path NONE txt = txt
   | href_opt_path (SOME p) txt = href_path p txt;
 
-fun para txt = "\n<p>" ^ txt ^ "</p>\n";
-
 
 (* document *)
 
@@ -141,28 +142,5 @@ fun begin_document symbols title =
   "<h1>" ^ output symbols title ^ "</h1>\n";
 
 val end_document = "\n</div>\n</body>\n</html>\n";
-
-
-(* session index *)
-
-fun begin_session_index symbols session graph docs =
-  begin_document symbols ("Session " ^ output symbols session) ^
-  para ("View " ^ href_path graph "theory dependencies" ^
-    implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
-  "\n</div>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
-
-fun theory_entry symbols (p, s) = "<li>" ^ href_path p (output symbols s) ^ "</li>\n";
-
-
-(* theory *)
-
-fun theory symbols A Bs txt =
-  begin_document symbols ("Theory " ^ A) ^ "\n" ^
-  command symbols "theory" ^ " " ^ name symbols A ^ "<br/>\n" ^
-  keyword symbols "imports" ^ " " ^
-    space_implode " " (map (uncurry href_opt_path o apsnd (name symbols)) Bs) ^
-  "<br/>\n" ^
-  enclose "\n</div>\n<div class=\"source\">\n<pre class=\"source\">" "</pre>\n" txt ^
-  end_document;
 
 end;

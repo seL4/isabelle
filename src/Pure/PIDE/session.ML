@@ -9,7 +9,7 @@ sig
   val get_name: unit -> string
   val welcome: unit -> string
   val get_keywords: unit -> Keyword.keywords
-  val init: bool -> Path.T -> string list -> string -> string * string -> bool -> unit
+  val init: string -> string * string -> unit
   val shutdown: unit -> unit
   val finish: unit -> unit
 end;
@@ -45,12 +45,11 @@ fun update_keywords () =
 
 (* init *)
 
-fun init info info_path documents parent (chapter, name) verbose =
+fun init parent (chapter, name) =
   (Synchronized.change session (fn ({name = parent_name, ...}, parent_finished) =>
     if parent_name <> parent orelse not parent_finished then
       error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
-    else ({chapter = chapter, name = name}, false));
-    Present.init info info_path documents (chapter, name) verbose);
+    else ({chapter = chapter, name = name}, false)));
 
 
 (* finish *)
@@ -64,7 +63,6 @@ fun finish () =
  (shutdown ();
   Par_List.map (Global_Theory.get_thm_names o Thy_Info.get_theory) (Thy_Info.get_names ());
   Thy_Info.finish ();
-  Present.finish ();
   shutdown ();
   update_keywords ();
   Synchronized.change session (apsnd (K true)));

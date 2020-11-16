@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/present.scala
     Author:     Makarius
 
-Theory presentation: HTML.
+Theory presentation: HTML and LaTeX documents.
 */
 
 package isabelle
@@ -74,27 +74,72 @@ object Present
   }
 
 
-  /* finish session */
+  /* present session */
 
-  def finish(
-    browser_info: Path,
-    graph_pdf: Bytes,
-    info: Sessions.Info,
-    name: String)
+  val session_graph_path = Path.explode("session_graph.pdf")
+  val readme_path = Path.basic("README.html")
+
+  def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
+  def document_html_name(name: Document.Node.Name): String = "document/" + html_name(name)
+
+  def theory_link(name: Document.Node.Name): XML.Tree =
+    HTML.link(html_name(name), HTML.text(name.theory_base_name))
+
+  def session_html(session: String, deps: Sessions.Deps, store: Sessions.Store): Path =
   {
-    val session_prefix = browser_info + Path.basic(info.chapter) + Path.basic(name)
-    val session_fonts = session_prefix + Path.explode("fonts")
+    val info = deps.sessions_structure(session)
+    val options = info.options
+    val base = deps(session)
 
-    if (info.options.bool("browser_info")) {
-      Isabelle_System.make_directory(session_fonts)
+    val session_dir = store.browser_info + info.chapter_session
+    val session_fonts = Isabelle_System.make_directory(session_dir + Path.explode("fonts"))
+    for (entry <- Isabelle_Fonts.fonts(hidden = true))
+      File.copy(entry.path, session_fonts)
 
-      Bytes.write(session_prefix + session_graph_path, graph_pdf)
+    Bytes.write(session_dir + session_graph_path,
+      graphview.Graph_File.make_pdf(options, base.session_graph_display))
 
-      HTML.write_isabelle_css(session_prefix)
+    val links =
+    {
+      val deps_link =
+        HTML.link(session_graph_path, HTML.text("theory dependencies"))
 
-      for (entry <- Isabelle_Fonts.fonts(hidden = true))
-        File.copy(entry.path, session_fonts)
+      val readme_links =
+        if ((info.dir + readme_path).is_file) {
+          File.copy(info.dir + readme_path, session_dir + readme_path)
+          List(HTML.link(readme_path, HTML.text("README")))
+        }
+        else Nil
+
+      val document_links =
+        for ((name, _) <- info.documents)
+          yield HTML.link(Path.basic(name).pdf, HTML.text(name))
+
+      Library.separate(HTML.break ::: HTML.nl,
+        (deps_link :: readme_links ::: document_links).
+          map(link => HTML.text("View ") ::: List(link))).flatten
     }
+
+    val theories =
+      using(store.open_database(session))(db =>
+        for {
+          name <- base.session_theories
+          entry <- Export.read_entry(db, session, name.theory, document_html_name(name))
+        } yield name -> entry.uncompressed(cache = store.xz_cache))
+
+    val theories_body =
+      HTML.itemize(for ((name, _) <- theories) yield List(theory_link(name)))
+
+    val title = "Session " + session
+    HTML.write_document(session_dir, "index.html",
+      List(HTML.title(title + " (" + Distribution.version + ")")),
+      HTML.div("head", List(HTML.chapter(title), HTML.par(links))) ::
+       (if (theories.isEmpty) Nil
+        else List(HTML.div("theories", List(HTML.section("Theories"), theories_body)))))
+
+    for ((name, html) <- theories) Bytes.write(session_dir + Path.basic(html_name(name)), html)
+
+    session_dir
   }
 
 
@@ -193,7 +238,6 @@ object Present
   /** build documents **/
 
   val session_tex_path = Path.explode("session.tex")
-  val session_graph_path = Path.explode("session_graph.pdf")
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
   def document_tex_name(name: Document.Node.Name): String = "document/" + tex_name(name)
@@ -331,7 +375,7 @@ object Present
     }
 
     if (info.options.bool("browser_info") || doc_output.isEmpty) {
-      output(store.browser_info + Path.basic(info.chapter) + Path.basic(session))
+      output(store.browser_info + info.chapter_session)
     }
 
     doc_output.foreach(output)

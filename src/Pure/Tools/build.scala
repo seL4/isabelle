@@ -165,7 +165,6 @@ object Build
     val options: Options = NUMA.policy_options(info.options, numa_node)
 
     private val sessions_structure = deps.sessions_structure
-    private val documents = info.documents.map(_._1)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
@@ -175,23 +174,22 @@ object Build
           YXML.string_of_body(
             {
               import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(Path.encode,
-                pair(list(string), pair(string, pair(string, pair(string, pair(Path.encode,
+              pair(list(pair(string, int)), pair(list(properties), pair(string, pair(string,
+                pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(pair(string, string)),
                 pair(list(string),
                 pair(list(pair(string, string)),
-                pair(list(string), list(pair(string, list(string)))))))))))))))))))(
-              (Symbol.codes, (command_timings0, (verbose, (store.browser_info,
-                (documents, (parent, (info.chapter, (session_name, (Path.current,
-                (info.theories,
+                pair(list(string), list(pair(string, list(string))))))))))))))))(
+              (Symbol.codes, (command_timings0, (parent, (info.chapter,
+                (session_name, (Path.current, (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
                 (sessions_structure.session_chapters,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, sessions_structure.bibtex_entries)))))))))))))))))
+                (base.loaded_theories.keys, sessions_structure.bibtex_entries))))))))))))))
             })
 
         val env =
@@ -373,20 +371,23 @@ object Build
 
         val document_errors =
           try {
-            if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && documents.nonEmpty) {
-              val document_progress =
-                new Progress {
-                  override def echo(msg: String): Unit =
-                    document_output.synchronized { document_output += msg }
-                  override def echo_document(path: Path): Unit =
-                    progress.echo_document(path)
-                }
-              Present.build_documents(session_name, deps, store, verbose = verbose,
-                verbose_latex = true, progress = document_progress)
+            if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok) {
+              if (info.documents.nonEmpty) {
+                val document_progress =
+                  new Progress {
+                    override def echo(msg: String): Unit =
+                      document_output.synchronized { document_output += msg }
+                    override def echo_document(path: Path): Unit =
+                      progress.echo_document(path)
+                  }
+                Present.build_documents(session_name, deps, store, verbose = verbose,
+                  verbose_latex = true, progress = document_progress)
+              }
+              if (info.options.bool("browser_info")) {
+                val dir = Present.session_html(session_name, deps, store)
+                if (verbose) progress.echo("Browser info at " + dir.absolute)
+              }
             }
-            val graph_pdf =
-              graphview.Graph_File.make_pdf(options, deps(session_name).session_graph_display)
-            Present.finish(store.browser_info, graph_pdf, info, session_name)
             Nil
           }
           catch { case Exn.Interrupt.ERROR(msg) => List(msg) }

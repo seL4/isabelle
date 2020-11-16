@@ -53,6 +53,7 @@ fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
   Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
+   (Present.export_html thy (map #span segments);
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -62,12 +63,12 @@ val _ =
         else
           let
             val thy_name = Context.theory_name thy;
-            val document_tex_name = Path.explode_binding0 ("document/" ^ thy_name ^ ".tex");
+            val document_tex_name = Present.document_tex_name thy;
 
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
           in Export.export thy document_tex_name (XML.blob output) end
-      end));
+      end)));
 
 
 
@@ -302,13 +303,7 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
     val elements = Thy_Element.parse_elements keywords spans;
 
-    val symbols = Resources.html_symbols ();
-    val html = implode (map (HTML.present_span symbols keywords) spans);
-
-    fun init () =
-      Resources.begin_theory master_dir header parents
-      |> Present.begin_theory update_time html;
-
+    fun init () = Resources.begin_theory master_dir header parents;
     val (results, thy) =
       cond_timeit true ("theory " ^ quote name)
         (fn () => excursion keywords master_dir last_timing init elements);

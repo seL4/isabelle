@@ -86,25 +86,23 @@ val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
         let
-          val (html_symbols, (command_timings, (verbose, (browser_info,
-            (documents, (parent_name, (chapter, (session_name, (master_dir,
-            (theories, (session_positions, (session_directories, (session_chapters,
-            (doc_names, (global_theories, (loaded_theories, bibtex_entries)))))))))))))))) =
+          val (html_symbols, (command_timings, (parent_name, (chapter,
+            (session_name, (master_dir, (theories, (session_positions, (session_directories,
+            (session_chapters, (doc_names,
+            (global_theories, (loaded_theories, bibtex_entries))))))))))))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
                 val path = Path.explode o string;
               in
-                pair (list (pair string int)) (pair (list properties) (pair bool (pair path
-                  (pair (list string) (pair string (pair string (pair string
-                    (pair path
-                      (pair (((list (pair Options.decode (list (pair string position))))))
-                        (pair (list (pair string properties))
-                          (pair (list (pair string string))
-                            (pair (list (pair string string)) (pair (list string)
-                              (pair (list (pair string string)) (pair (list string)
-                                (list (pair string (list string))))))))))))))))))
+                pair (list (pair string int)) (pair (list properties) (pair string (pair string
+                  (pair string (pair path
+                    (pair (((list (pair Options.decode (list (pair string position))))))
+                      (pair (list (pair string properties)) (pair (list (pair string string))
+                        (pair (list (pair string string)) (pair (list string)
+                          (pair (list (pair string string)) (pair (list string)
+                            (list (pair string (list string)))))))))))))))
               end;
 
           fun build () =
@@ -120,14 +118,7 @@ val _ =
                    global_theories = global_theories,
                    loaded_theories = loaded_theories};
 
-              val _ =
-                Session.init
-                  (Options.default_bool "browser_info")
-                  browser_info
-                  documents
-                  parent_name
-                  (chapter, session_name)
-                  verbose;
+              val _ = Session.init parent_name (chapter, session_name);
 
               val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
