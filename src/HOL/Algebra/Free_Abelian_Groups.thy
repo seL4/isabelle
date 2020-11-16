@@ -2,7 +2,7 @@ section\<open>Free Abelian Groups\<close>
 
 theory Free_Abelian_Groups
   imports
-    Product_Groups "HOL-Cardinals.Cardinal_Arithmetic"
+    Product_Groups FiniteProduct "HOL-Cardinals.Cardinal_Arithmetic"
    "HOL-Library.Countable_Set" "HOL-Library.Poly_Mapping" "HOL-Library.Equipollence"
 
 begin
