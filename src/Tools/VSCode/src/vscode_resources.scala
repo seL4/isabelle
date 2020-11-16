@@ -73,7 +73,7 @@ class VSCode_Resources(
     val options: Options,
     session_base_info: Sessions.Base_Info,
     log: Logger = No_Logger)
-  extends Resources(session_base_info.sessions_structure, session_base_info.check_base, log = log)
+  extends Resources(session_base_info.sessions_structure, session_base_info.check.base, log = log)
 {
   resources =>
 

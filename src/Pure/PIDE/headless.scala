@@ -558,7 +558,7 @@ object Headless
       val session_base_info: Sessions.Base_Info,
       log: Logger = No_Logger)
     extends isabelle.Resources(
-      session_base_info.sessions_structure, session_base_info.check_base, log = log)
+      session_base_info.sessions_structure, session_base_info.check.base, log = log)
   {
     resources =>
 

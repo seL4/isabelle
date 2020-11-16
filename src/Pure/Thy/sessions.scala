@@ -357,7 +357,7 @@ object Sessions
     base: Base,
     infos: List[Info])
   {
-    def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
+    def check: Base_Info = if (errors.isEmpty) this else error(cat_lines(errors))
   }
 
   def base_info(options: Options,

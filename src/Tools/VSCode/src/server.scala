@@ -264,9 +264,7 @@ class Server(
         val base_info =
           Sessions.base_info(
             options, session_name, dirs = session_dirs, include_sessions = include_sessions,
-            session_ancestor = session_ancestor, session_requirements = session_requirements)
-
-        base_info.check_base
+            session_ancestor = session_ancestor, session_requirements = session_requirements).check
 
         def build(no_build: Boolean = false): Build.Results =
           Build.build(options,

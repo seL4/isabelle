@@ -72,7 +72,7 @@ Usage: isabelle console [OPTIONS]
           session_base =
             if (raw_ml_system) None
             else Some(Sessions.base_info(
-              options, logic, dirs = dirs, include_sessions = include_sessions).check_base))
+              options, logic, dirs = dirs, include_sessions = include_sessions).check.base))
 
       POSIX_Interrupt.handler { process.interrupt } {
         new TTY_Loop(process.stdin, process.stdout).join

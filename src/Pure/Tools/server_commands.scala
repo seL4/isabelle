@@ -73,8 +73,7 @@ object Server_Commands
 
       val base_info =
         Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
-          include_sessions = args.include_sessions)
-      val base = base_info.check_base
+          include_sessions = args.include_sessions).check
 
       val results =
         Build.build(options,
