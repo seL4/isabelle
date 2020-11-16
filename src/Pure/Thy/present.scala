@@ -7,8 +7,6 @@ Theory presentation: HTML and LaTeX documents.
 package isabelle
 
 
-import java.io.{File => JFile}
-
 import scala.collection.immutable.SortedMap
 
 
