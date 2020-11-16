@@ -6,9 +6,9 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
-  val init: HTML.symbols -> bool -> Path.T -> string list -> string * string -> bool -> unit
+  val init: bool -> Path.T -> string list -> string * string -> bool -> unit
   val finish: unit -> unit
-  val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
+  val begin_theory: int -> HTML.text -> theory -> theory
 end;
 
 structure Present: PRESENT =
@@ -61,12 +61,11 @@ fun add_html_index txt = change_browser_info (apsnd (cons txt));
 (* session_info *)
 
 type session_info =
-  {symbols: HTML.symbols, name: string, chapter: string, info_path: Path.T, info: bool,
+  {name: string, chapter: string, info_path: Path.T, info: bool,
     verbose: bool, readme: Path.T option};
 
-fun make_session_info
-  (symbols, name, chapter, info_path, info, verbose, readme) =
-  {symbols = symbols, name = name, chapter = chapter, info_path = info_path, info = info,
+fun make_session_info (name, chapter, info_path, info, verbose, readme) =
+  {name = name, chapter = chapter, info_path = info_path, info = info,
     verbose = verbose, readme = readme}: session_info;
 
 
@@ -88,16 +87,15 @@ fun is_session_theory thy =
 
 (* init session *)
 
-fun init symbols info info_path documents (chapter, name) verbose =
+fun init info info_path documents (chapter, name) verbose =
   let
     val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
-
+    val symbols = Resources.html_symbols ();
     val docs =
       (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
         map (fn name => (Url.File (document_path name), name)) documents;
   in
-    session_info :=
-      SOME (make_session_info (symbols, name, chapter, info_path, info, verbose, readme));
+    session_info := SOME (make_session_info (name, chapter, info_path, info, verbose, readme));
     Synchronized.change browser_info (K empty_browser_info);
     add_html_index (0, HTML.begin_session_index symbols name (Url.File session_graph_path) docs)
   end;
@@ -148,8 +146,8 @@ fun theory_link (curr_chapter, curr_session) thy =
     else SOME (Path.parent + Path.parent + Path.basic chapter + Path.basic session + link)
   end;
 
-fun begin_theory update_time mk_text thy =
-  with_session_info thy (fn {symbols, name = session_name, chapter, ...} =>
+fun begin_theory update_time html thy =
+  with_session_info thy (fn {name = session_name, chapter, ...} =>
     let
       val name = Context.theory_name thy;
 
@@ -158,7 +156,8 @@ fun begin_theory update_time mk_text thy =
           (Option.map Url.File (theory_link (chapter, session_name) parent),
             (Context.theory_name parent)));
 
-      val _ = update_html name (HTML.theory symbols name parent_specs (mk_text ()));
+      val symbols = Resources.html_symbols ();
+      val _ = update_html name (HTML.theory symbols name parent_specs html);
 
       val _ =
         if is_session_theory thy then

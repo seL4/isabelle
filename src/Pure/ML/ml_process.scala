@@ -85,6 +85,9 @@ object ML_Process
       session_base match {
         case None => ""
         case Some(base) =>
+          def print_symbols: List[(String, Int)] => String =
+            ML_Syntax.print_list(
+              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_int))
           def print_table: List[(String, String)] => String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
@@ -100,7 +103,8 @@ object ML_Process
                 ML_Syntax.print_list(ML_Syntax.print_string_bytes)))
 
           "Resources.init_session" +
-            "{session_positions = " + print_sessions(sessions_structure.session_positions) +
+            "{html_symbols = " + print_symbols(Symbol.codes) +
+            ", session_positions = " + print_sessions(sessions_structure.session_positions) +
             ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
             ", session_chapters = " + print_table(sessions_structure.session_chapters) +
             ", bibtex_entries = " + print_bibtex_entries(sessions_structure.bibtex_entries) +
