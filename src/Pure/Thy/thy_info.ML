@@ -19,7 +19,7 @@ sig
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
   type context = {options: Options.T, last_timing: Toplevel.transition -> Time.time}
-  val use_theories: context -> string -> Path.T -> (string * Position.T) list -> unit
+  val use_theories: context -> string -> (string * Position.T) list -> unit
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -428,13 +428,12 @@ end;
 
 (* use theories *)
 
-fun use_theories context qualifier master_dir imports =
-  let val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty
+fun use_theories context qualifier imports =
+  let val (_, tasks) = require_thys context [] qualifier Path.current imports String_Graph.empty
   in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
-  use_theories (default_context ()) Resources.default_qualifier
-    Path.current [(name, Position.none)];
+  use_theories (default_context ()) Resources.default_qualifier [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)

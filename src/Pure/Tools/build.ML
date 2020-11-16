@@ -55,7 +55,7 @@ fun session_timing f x =
 
 (* build theories *)
 
-fun build_theories last_timing qualifier master_dir (options, thys) =
+fun build_theories last_timing qualifier (options, thys) =
   let
     val context = {options = options, last_timing = last_timing};
     val condition = space_explode "," (Options.string options "condition");
@@ -65,7 +65,7 @@ fun build_theories last_timing qualifier master_dir (options, thys) =
       (Options.set_default options;
         Isabelle_Process.init_options ();
         Future.fork I;
-        (Thy_Info.use_theories context qualifier master_dir
+        (Thy_Info.use_theories context qualifier
         |>
           (case Options.string options "profiling" of
             "" => I
@@ -87,22 +87,21 @@ val _ =
     (fn [args_yxml] =>
         let
           val (html_symbols, (command_timings, (parent_name, (chapter,
-            (session_name, (master_dir, (theories, (session_positions, (session_directories,
+            (session_name, (theories,
+            (session_positions, (session_directories,
             (session_chapters, (doc_names,
-            (global_theories, (loaded_theories, bibtex_entries))))))))))))) =
+            (global_theories, (loaded_theories, bibtex_entries)))))))))))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
-                val path = Path.explode o string;
               in
                 pair (list (pair string int)) (pair (list properties) (pair string (pair string
-                  (pair string (pair path
-                    (pair (((list (pair Options.decode (list (pair string position))))))
-                      (pair (list (pair string properties)) (pair (list (pair string string))
+                  (pair string (pair (((list (pair Options.decode (list (pair string position))))))
+                    (pair (list (pair string properties)) (pair (list (pair string string))
+                      (pair (list (pair string string)) (pair (list string)
                         (pair (list (pair string string)) (pair (list string)
-                          (pair (list (pair string string)) (pair (list string)
-                            (list (pair string (list string)))))))))))))))
+                          (list (pair string (list string))))))))))))))
               end;
 
           fun build () =
@@ -124,7 +123,7 @@ val _ =
 
               val res1 =
                 theories |>
-                  (List.app (build_theories last_timing session_name master_dir)
+                  (List.app (build_theories last_timing session_name)
                     |> session_timing
                     |> Exn.capture);
               val res2 = Exn.capture Session.finish ();
