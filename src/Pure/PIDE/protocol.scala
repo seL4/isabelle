@@ -289,6 +289,8 @@ trait Protocol
   {
     import XML.Encode._
 
+    def encode_symbols(arg: List[(String, Int)]): String =
+      Symbol.encode_yxml(list(pair(string, int))(arg))
     def encode_table(arg: List[(String, String)]): String =
       Symbol.encode_yxml(list(pair(string, string))(arg))
     def encode_list(arg: List[String]): String =
@@ -299,6 +301,7 @@ trait Protocol
       Symbol.encode_yxml(list(pair(string, list(string)))(arg))
 
     protocol_command("Prover.init_session",
+      encode_symbols(Symbol.codes),
       encode_sessions(resources.sessions_structure.session_positions),
       encode_table(resources.sessions_structure.dest_session_directories),
       encode_table(resources.sessions_structure.session_chapters),
