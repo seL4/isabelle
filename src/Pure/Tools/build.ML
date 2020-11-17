@@ -7,38 +7,6 @@ Build Isabelle sessions.
 structure Build: sig end =
 struct
 
-(* command timings *)
-
-type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name, time*)
-
-val empty_timings: timings = Symtab.empty;
-
-fun update_timings props =
-  (case Markup.parse_command_timing_properties props of
-    SOME ({file, offset, name}, time) =>
-      Symtab.map_default (file, Inttab.empty)
-        (Inttab.map_default (offset, (name, time)) (fn (_, t) => (name, t + time)))
-  | NONE => I);
-
-fun approximative_id name pos =
-  (case (Position.file_of pos, Position.offset_of pos) of
-    (SOME file, SOME offset) =>
-      if name = "" then NONE else SOME {file = file, offset = offset, name = name}
-  | _ => NONE);
-
-fun get_timings timings tr =
-  (case approximative_id (Toplevel.name_of tr) (Toplevel.pos_of tr) of
-    SOME {file, offset, name} =>
-      (case Symtab.lookup timings file of
-        SOME offsets =>
-          (case Inttab.lookup offsets offset of
-            SOME (name', time) => if name = name' then SOME time else NONE
-          | NONE => NONE)
-      | NONE => NONE)
-  | NONE => NONE)
-  |> the_default Time.zeroTime;
-
-
 (* session timing *)
 
 fun session_timing f x =
@@ -55,9 +23,8 @@ fun session_timing f x =
 
 (* build theories *)
 
-fun build_theories last_timing qualifier (options, thys) =
+fun build_theories qualifier (options, thys) =
   let
-    val context = {options = options, last_timing = last_timing};
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
   in
@@ -65,7 +32,7 @@ fun build_theories last_timing qualifier (options, thys) =
       (Options.set_default options;
         Isabelle_Process.init_options ();
         Future.fork I;
-        (Thy_Info.use_theories context qualifier
+        (Thy_Info.use_theories options qualifier
         |>
           (case Options.string options "profiling" of
             "" => I
@@ -87,25 +54,23 @@ val _ =
     (fn [resources_yxml, args_yxml] =>
         let
           val _ = Resources.init_session_yxml resources_yxml;
-          val (command_timings, (parent_name, (chapter, (session_name, theories)))) =
+          val (parent_name, (chapter, (session_name, theories))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
               in
-                pair (list properties) (pair string (pair string
-                  (pair string (list (pair Options.decode (list (pair string position)))))))
+                pair string (pair string (pair string
+                  (list (pair Options.decode (list (pair string position))))))
               end;
 
           fun build () =
             let
               val _ = Session.init parent_name (chapter, session_name);
 
-              val last_timing = get_timings (fold update_timings command_timings empty_timings);
-
               val res1 =
                 theories |>
-                  (List.app (build_theories last_timing session_name)
+                  (List.app (build_theories session_name)
                     |> session_timing
                     |> Exn.capture);
               val res2 = Exn.capture Session.finish ();

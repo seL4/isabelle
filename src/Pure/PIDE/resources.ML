@@ -13,6 +13,7 @@ sig
      session_directories: (string * string) list,
      session_chapters: (string * string) list,
      bibtex_entries: (string * string list) list,
+     command_timings: Properties.T list,
      docs: string list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
@@ -24,6 +25,7 @@ sig
   val html_symbols: unit -> HTML.symbols
   val check_session: Proof.context -> string * Position.T -> string
   val session_chapter: string -> string
+  val last_timing: Toplevel.transition -> Time.time
   val check_doc: Proof.context -> string * Position.T -> string
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
@@ -50,6 +52,41 @@ end;
 structure Resources: RESOURCES =
 struct
 
+(* command timings *)
+
+type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name, time*)
+
+val empty_timings: timings = Symtab.empty;
+
+fun update_timings props =
+  (case Markup.parse_command_timing_properties props of
+    SOME ({file, offset, name}, time) =>
+      Symtab.map_default (file, Inttab.empty)
+        (Inttab.map_default (offset, (name, time)) (fn (_, t) => (name, t + time)))
+  | NONE => I);
+
+fun make_timings command_timings =
+  fold update_timings command_timings empty_timings;
+
+fun approximative_id name pos =
+  (case (Position.file_of pos, Position.offset_of pos) of
+    (SOME file, SOME offset) =>
+      if name = "" then NONE else SOME {file = file, offset = offset, name = name}
+  | _ => NONE);
+
+fun get_timings timings tr =
+  (case approximative_id (Toplevel.name_of tr) (Toplevel.pos_of tr) of
+    SOME {file, offset, name} =>
+      (case Symtab.lookup timings file of
+        SOME offsets =>
+          (case Inttab.lookup offsets offset of
+            SOME (name', time) => if name = name' then SOME time else NONE
+          | NONE => NONE)
+      | NONE => NONE)
+  | NONE => NONE)
+  |> the_default Time.zeroTime;
+
+
 (* session base *)
 
 val default_qualifier = "Draft";
@@ -65,6 +102,7 @@ val empty_session_base =
    session_directories = Symtab.empty: Path.T list Symtab.table,
    session_chapters = Symtab.empty: string Symtab.table,
    bibtex_entries = Symtab.empty: string list Symtab.table,
+   timings = empty_timings,
    docs = []: (string * entry) list,
    global_theories = Symtab.empty: string Symtab.table,
    loaded_theories = Symtab.empty: unit Symtab.table};
@@ -74,7 +112,7 @@ val global_session_base =
 
 fun init_session
     {html_symbols, session_positions, session_directories, session_chapters,
-      bibtex_entries, docs, global_theories, loaded_theories} =
+      bibtex_entries, command_timings, docs, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       {html_symbols = HTML.make_symbols html_symbols,
@@ -84,6 +122,7 @@ fun init_session
            session_directories Symtab.empty,
        session_chapters = Symtab.make session_chapters,
        bibtex_entries = Symtab.make bibtex_entries,
+       timings = make_timings command_timings,
        docs = sort_by #1 (map (apsnd make_entry o rpair []) docs),
        global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make_set loaded_theories});
@@ -91,13 +130,14 @@ fun init_session
 fun init_session_yxml yxml =
   let
     val (html_symbols, (session_positions, (session_directories, (session_chapters,
-          (bibtex_entries, (docs, (global_theories, loaded_theories))))))) =
+          (bibtex_entries, (command_timings, (docs, (global_theories, loaded_theories)))))))) =
       YXML.parse_body yxml |>
         let open XML.Decode in
-          pair (list (pair string int)) (pair (list (pair string properties))
-            (pair (list (pair string string)) (pair (list (pair string string))
-              (pair (list (pair string (list string))) (pair (list string)
-                (pair (list (pair string string)) (list string)))))))
+          pair (list (pair string int))
+            (pair (list (pair string properties))
+              (pair (list (pair string string)) (pair (list (pair string string))
+                (pair (list (pair string (list string))) (pair (list properties)
+                  (pair (list string) (pair (list (pair string string)) (list string))))))))
         end;
   in
     init_session
@@ -106,6 +146,7 @@ fun init_session_yxml yxml =
        session_directories = session_directories,
        session_chapters = session_chapters,
        bibtex_entries = bibtex_entries,
+       command_timings = command_timings,
        docs = docs,
        global_theories = global_theories,
        loaded_theories = loaded_theories}
@@ -122,6 +163,7 @@ fun finish_session_base () =
        session_directories = Symtab.empty,
        session_chapters = Symtab.empty,
        bibtex_entries = Symtab.empty,
+       timings = empty_timings,
        docs = [],
        global_theories = global_theories,
        loaded_theories = loaded_theories});
@@ -144,6 +186,8 @@ val check_session =
 
 fun session_chapter name =
   the_default "Unsorted" (Symtab.lookup (get_session_base #session_chapters) name);
+
+fun last_timing tr = get_timings (get_session_base #timings) tr;
 
 val check_doc = check_name #docs "documentation" (Markup.doc o #1);
 

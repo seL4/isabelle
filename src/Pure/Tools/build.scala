@@ -187,7 +187,7 @@ object Build
           }
           else Nil
 
-        val resources = new Resources(sessions_structure, base)
+        val resources = new Resources(sessions_structure, base, command_timings = command_timings0)
         val session =
           new Session(options, resources) {
             override val xml_cache: XML.Cache = store.xml_cache
@@ -341,9 +341,9 @@ object Build
                   YXML.string_of_body(
                     {
                       import XML.Encode._
-                      pair(list(properties), pair(string, pair(string, pair(string,
-                        list(pair(Options.encode, list(pair(string, properties))))))))(
-                        (command_timings0, (parent, (info.chapter, (session_name, info.theories)))))
+                      pair(string, pair(string, pair(string,
+                        list(pair(Options.encode, list(pair(string, properties)))))))(
+                        (parent, (info.chapter, (session_name, info.theories))))
                     })
                 session.protocol_command("build_session", resources_yxml, args_yxml)
                 Build_Session_Errors.result
