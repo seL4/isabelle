@@ -54,20 +54,17 @@ val _ =
     (fn [resources_yxml, args_yxml] =>
         let
           val _ = Resources.init_session_yxml resources_yxml;
-          val (parent_name, (chapter, (session_name, theories))) =
+          val (session_name, theories) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
-              in
-                pair string (pair string (pair string
-                  (list (pair Options.decode (list (pair string position))))))
-              end;
+              in pair string (list (pair Options.decode (list (pair string position)))) end;
+
+          val _ = Session.init session_name;
 
           fun build () =
             let
-              val _ = Session.init parent_name (chapter, session_name);
-
               val res1 =
                 theories |>
                   (List.app (build_theories session_name)

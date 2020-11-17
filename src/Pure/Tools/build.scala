@@ -341,9 +341,8 @@ object Build
                   YXML.string_of_body(
                     {
                       import XML.Encode._
-                      pair(string, pair(string, pair(string,
-                        list(pair(Options.encode, list(pair(string, properties)))))))(
-                        (parent, (info.chapter, (session_name, info.theories))))
+                      pair(string, list(pair(Options.encode, list(pair(string, properties)))))(
+                        (session_name, info.theories))
                     })
                 session.protocol_command("build_session", resources_yxml, args_yxml)
                 Build_Session_Errors.result
