@@ -41,18 +41,19 @@ fun theory_link thy thy' =
     val ((session, chapter), (session', chapter')) = apply2 get_session_chapter (thy, thy');
     val link = html_name thy';
   in
-    if session = session' then SOME link
-    else if chapter = chapter' then SOME (Path.parent + Path.basic session' + link)
-    else if chapter' = Context.PureN then NONE
-    else SOME (Path.parent + Path.parent + Path.basic chapter' + Path.basic session' + link)
+    if session = session' then link
+    else if chapter = chapter' then Path.parent + Path.basic session' + link
+    else Path.parent + Path.parent + Path.basic chapter' + Path.basic session' + link
   end;
 
 fun theory_document symbols A Bs body =
   HTML.begin_document symbols ("Theory " ^ A) ^ "\n" ^
   HTML.command symbols "theory" ^ " " ^ HTML.name symbols A ^ "<br/>\n" ^
-  HTML.keyword symbols "imports" ^ " " ^
-    space_implode " " (map (uncurry HTML.href_opt_path o apsnd (HTML.name symbols)) Bs) ^
-  "<br/>\n\n</div>\n<div class=\"source\">\n<pre class=\"source\">" ::
+  (if null Bs then ""
+   else
+    HTML.keyword symbols "imports" ^ " " ^
+      space_implode " " (map (uncurry HTML.href_path o apsnd (HTML.name symbols)) Bs) ^ "<br/>\n") ^
+  "\n</div>\n<div class=\"source\">\n<pre class=\"source\">" ::
   body @ ["</pre>\n", HTML.end_document];
 
 in
@@ -62,7 +63,7 @@ fun export_html thy spans =
     val name = Context.theory_name thy;
     val parents =
       Theory.parents_of thy |> map (fn thy' =>
-        (Option.map Url.File (theory_link thy thy'), Context.theory_name thy'));
+        (Url.File (theory_link thy thy'), Context.theory_name thy'));
 
     val symbols = Resources.html_symbols ();
     val keywords = Thy_Header.get_keywords thy;
