@@ -16,6 +16,8 @@ sig
      docs: string list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
+  val init_session_yxml: string -> unit
+  val init_session_file: Path.T -> unit
   val finish_session_base: unit -> unit
   val global_theory: string -> string option
   val loaded_theory: string -> bool
@@ -85,6 +87,32 @@ fun init_session
        docs = sort_by #1 (map (apsnd make_entry o rpair []) docs),
        global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make_set loaded_theories});
+
+fun init_session_yxml yxml =
+  let
+    val (html_symbols, (session_positions, (session_directories, (session_chapters,
+          (bibtex_entries, (docs, (global_theories, loaded_theories))))))) =
+      YXML.parse_body yxml |>
+        let open XML.Decode in
+          pair (list (pair string int)) (pair (list (pair string properties))
+            (pair (list (pair string string)) (pair (list (pair string string))
+              (pair (list (pair string (list string))) (pair (list string)
+                (pair (list (pair string string)) (list string)))))))
+        end;
+  in
+    init_session
+      {html_symbols = html_symbols,
+       session_positions = session_positions,
+       session_directories = session_directories,
+       session_chapters = session_chapters,
+       bibtex_entries = bibtex_entries,
+       docs = docs,
+       global_theories = global_theories,
+       loaded_theories = loaded_theories}
+  end;
+
+fun init_session_file path =
+  init_session_yxml (File.read path) before File.rm path;
 
 fun finish_session_base () =
   Synchronized.change global_session_base

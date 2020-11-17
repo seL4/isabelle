@@ -78,40 +78,16 @@ object ML_Process
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     // session base
-    val init_session = Isabelle_System.tmp_file("init_session", ext = "ML")
-    val init_session_name = init_session.getAbsolutePath
+    val init_session = Isabelle_System.tmp_file("init_session")
     Isabelle_System.chmod("600", File.path(init_session))
-    File.write(init_session,
+    val eval_init_session =
       session_base match {
-        case None => ""
+        case None => Nil
         case Some(base) =>
-          def print_symbols: List[(String, Int)] => String =
-            ML_Syntax.print_list(
-              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_int))
-          def print_table: List[(String, String)] => String =
-            ML_Syntax.print_list(
-              ML_Syntax.print_pair(
-                ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))
-          def print_list: List[String] => String =
-            ML_Syntax.print_list(ML_Syntax.print_string_bytes)
-          def print_sessions: List[(String, Position.T)] => String =
-            ML_Syntax.print_list(
-              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))
-          def print_bibtex_entries: List[(String, List[String])] => String =
-            ML_Syntax.print_list(
-              ML_Syntax.print_pair(ML_Syntax.print_string_bytes,
-                ML_Syntax.print_list(ML_Syntax.print_string_bytes)))
-
-          "Resources.init_session" +
-            "{html_symbols = " + print_symbols(Symbol.codes) +
-            ", session_positions = " + print_sessions(sessions_structure.session_positions) +
-            ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
-            ", session_chapters = " + print_table(sessions_structure.session_chapters) +
-            ", bibtex_entries = " + print_bibtex_entries(sessions_structure.bibtex_entries) +
-            ", docs = " + print_list(base.doc_names) +
-            ", global_theories = " + print_table(base.global_theories.toList) +
-            ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}"
-      })
+          File.write(init_session, new Resources(sessions_structure, base).init_session_yxml)
+          List("Resources.init_session_file (Path.explode " +
+            ML_Syntax.print_string_bytes(File.path(init_session).implode) + ")")
+      }
 
     // process
     val eval_process =
@@ -144,9 +120,7 @@ object ML_Process
     // bash
     val bash_args =
       ml_runtime_options :::
-      (eval_init ::: eval_modes ::: eval_options).flatMap(List("--eval", _)) :::
-      List("--use", init_session_name,
-        "--eval", "OS.FileSys.remove " + ML_Syntax.print_string_bytes(init_session_name)) :::
+      (eval_init ::: eval_modes ::: eval_options ::: eval_init_session).flatMap(List("--eval", _)) :::
       use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
     Bash.process(

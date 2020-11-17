@@ -84,39 +84,21 @@ fun build_theories last_timing qualifier (options, thys) =
 
 val _ =
   Isabelle_Process.protocol_command "build_session"
-    (fn [args_yxml] =>
+    (fn [resources_yxml, args_yxml] =>
         let
-          val (html_symbols, (command_timings, (parent_name, (chapter,
-            (session_name, (theories,
-            (session_positions, (session_directories,
-            (session_chapters, (doc_names,
-            (global_theories, (loaded_theories, bibtex_entries)))))))))))) =
+          val _ = Resources.init_session_yxml resources_yxml;
+          val (command_timings, (parent_name, (chapter, (session_name, theories)))) =
             YXML.parse_body args_yxml |>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
               in
-                pair (list (pair string int)) (pair (list properties) (pair string (pair string
-                  (pair string (pair (((list (pair Options.decode (list (pair string position))))))
-                    (pair (list (pair string properties)) (pair (list (pair string string))
-                      (pair (list (pair string string)) (pair (list string)
-                        (pair (list (pair string string)) (pair (list string)
-                          (list (pair string (list string))))))))))))))
+                pair (list properties) (pair string (pair string
+                  (pair string (list (pair Options.decode (list (pair string position)))))))
               end;
 
           fun build () =
             let
-              val _ =
-                Resources.init_session
-                  {html_symbols = html_symbols,
-                   session_positions = session_positions,
-                   session_directories = session_directories,
-                   session_chapters = session_chapters,
-                   bibtex_entries = bibtex_entries,
-                   docs = doc_names,
-                   global_theories = global_theories,
-                   loaded_theories = loaded_theories};
-
               val _ = Session.init parent_name (chapter, session_name);
 
               val last_timing = get_timings (fold update_timings command_timings empty_timings);

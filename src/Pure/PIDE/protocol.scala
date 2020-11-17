@@ -283,33 +283,10 @@ trait Protocol
     protocol_command("Prover.options", Symbol.encode_yxml(opts.encode))
 
 
-  /* session base */
+  /* resources */
 
-  def init_session(resources: Resources)
-  {
-    import XML.Encode._
-
-    def encode_symbols(arg: List[(String, Int)]): String =
-      Symbol.encode_yxml(list(pair(string, int))(arg))
-    def encode_table(arg: List[(String, String)]): String =
-      Symbol.encode_yxml(list(pair(string, string))(arg))
-    def encode_list(arg: List[String]): String =
-      Symbol.encode_yxml(list(string)(arg))
-    def encode_sessions(arg: List[(String, Position.T)]): String =
-      Symbol.encode_yxml(list(pair(string, properties))(arg))
-    def encode_bibtex_entries(arg: List[(String, List[String])]): String =
-      Symbol.encode_yxml(list(pair(string, list(string)))(arg))
-
-    protocol_command("Prover.init_session",
-      encode_symbols(Symbol.codes),
-      encode_sessions(resources.sessions_structure.session_positions),
-      encode_table(resources.sessions_structure.dest_session_directories),
-      encode_table(resources.sessions_structure.session_chapters),
-      encode_bibtex_entries(resources.sessions_structure.bibtex_entries),
-      encode_list(resources.session_base.doc_names),
-      encode_table(resources.session_base.global_theories.toList),
-      encode_list(resources.session_base.loaded_theories.keys))
-  }
+  def init_session(resources: Resources): Unit =
+    protocol_command("Prover.init_session", resources.init_session_yxml)
 
 
   /* interned items */

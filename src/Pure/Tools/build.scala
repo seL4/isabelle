@@ -170,26 +170,6 @@ object Build
       Future.thread("build", uninterruptible = true) {
         val parent = info.parent.getOrElse("")
         val base = deps(parent)
-        val args_yxml =
-          YXML.string_of_body(
-            {
-              import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(string, pair(string,
-                pair(string, pair(list(pair(Options.encode, list(pair(string, properties)))),
-                pair(list(pair(string, properties)),
-                pair(list(pair(string, string)),
-                pair(list(pair(string, string)),
-                pair(list(string),
-                pair(list(pair(string, string)),
-                pair(list(string), list(pair(string, list(string)))))))))))))))(
-              (Symbol.codes, (command_timings0, (parent, (info.chapter,
-                (session_name, (info.theories,
-                (sessions_structure.session_positions,
-                (sessions_structure.dest_session_directories,
-                (sessions_structure.session_chapters,
-                (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, sessions_structure.bibtex_entries)))))))))))))
-            })
 
         val env =
           Isabelle_System.settings() +
@@ -207,7 +187,7 @@ object Build
           }
           else Nil
 
-        val resources = new Resources(sessions_structure, deps(parent))
+        val resources = new Resources(sessions_structure, base)
         val session =
           new Session(options, resources) {
             override val xml_cache: XML.Cache = store.xml_cache
@@ -356,7 +336,16 @@ object Build
           Isabelle_Thread.interrupt_handler(_ => process.terminate) {
             Exn.capture { process.await_startup } match {
               case Exn.Res(_) =>
-                session.protocol_command("build_session", args_yxml)
+                val resources_yxml = resources.init_session_yxml
+                val args_yxml =
+                  YXML.string_of_body(
+                    {
+                      import XML.Encode._
+                      pair(list(properties), pair(string, pair(string, pair(string,
+                        list(pair(Options.encode, list(pair(string, properties))))))))(
+                        (command_timings0, (parent, (info.chapter, (session_name, info.theories)))))
+                    })
+                session.protocol_command("build_session", resources_yxml, args_yxml)
                 Build_Session_Errors.result
               case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
             }
