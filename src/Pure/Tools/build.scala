@@ -38,7 +38,7 @@ object Build
     {
       val no_timings: Timings = (Nil, 0.0)
 
-      store.access_database(session_name) match {
+      store.try_open_database(session_name) match {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) =
@@ -545,7 +545,7 @@ object Build
       if (soft_build && !fresh_build) {
         val outdated =
           deps0.sessions_structure.build_topological_order.flatMap(name =>
-            store.access_database(name) match {
+            store.try_open_database(name) match {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
                   case Some(build)
@@ -702,7 +702,7 @@ object Build
 
                 val (current, heap_digest) =
                 {
-                  store.access_database(session_name) match {
+                  store.try_open_database(session_name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, session_name)) match {
                         case Some(build) =>
