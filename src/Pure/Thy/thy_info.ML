@@ -18,8 +18,7 @@ sig
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  type context = {options: Options.T, last_timing: Toplevel.transition -> Time.time}
-  val use_theories: context -> string -> (string * Position.T) list -> unit
+  val use_theories: Options.T -> string -> (string * Position.T) list -> unit
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -180,14 +179,6 @@ fun update deps theory thys =
 fun update_thy deps theory = change_thys (update deps theory);
 
 
-(* context *)
-
-type context = {options: Options.T, last_timing: Toplevel.transition -> Time.time};
-
-fun default_context (): context =
-  {options = Options.default (), last_timing = K Time.zeroTime};
-
-
 (* scheduling loader tasks *)
 
 datatype result =
@@ -272,12 +263,12 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
 (* eval theory *)
 
-fun excursion keywords master_dir last_timing init elements =
+fun excursion keywords master_dir init elements =
   let
     fun prepare_span st span =
       Command_Span.content span
       |> Command.read keywords (Command.read_thy st) master_dir init ([], ~1)
-      |> (fn tr => Toplevel.timing (last_timing tr) tr);
+      |> (fn tr => Toplevel.timing (Resources.last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
       let
@@ -292,9 +283,8 @@ fun excursion keywords master_dir last_timing init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy (context: context) update_time master_dir header text_pos text parents =
+fun eval_thy options update_time master_dir header text_pos text parents =
   let
-    val {options, last_timing} = context;
     val (name, _) = #name header;
     val keywords =
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
@@ -306,7 +296,7 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
     fun init () = Resources.begin_theory master_dir header parents;
     val (results, thy) =
       cond_timeit true ("theory " ^ quote name)
-        (fn () => excursion keywords master_dir last_timing init elements);
+        (fn () => excursion keywords master_dir init elements);
 
     fun present () =
       let
@@ -325,7 +315,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy context initiators update_time deps text (name, pos) keywords parents =
+fun load_thy options initiators update_time deps text (name, pos) keywords parents =
   let
     val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -348,7 +338,7 @@ fun load_thy context initiators update_time deps text (name, pos) keywords paren
 
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      eval_thy context update_time dir header text_pos text
+      eval_thy options update_time dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
     val timing_result = Timing.result timing_start;
@@ -380,9 +370,9 @@ fun check_thy_deps dir name =
 
 in
 
-fun require_thys context initiators qualifier dir strs tasks =
-      fold_map (require_thy context initiators qualifier dir) strs tasks |>> forall I
-and require_thy context initiators qualifier dir (s, require_pos) tasks =
+fun require_thys options initiators qualifier dir strs tasks =
+      fold_map (require_thy options initiators qualifier dir) strs tasks |>> forall I
+and require_thy options initiators qualifier dir (s, require_pos) tasks =
   let
     val {master_dir, theory_name, ...} = Resources.import_name qualifier dir s;
   in
@@ -403,7 +393,7 @@ and require_thy context initiators qualifier dir (s, require_pos) tasks =
 
           val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =
-            require_thys context (theory_name :: initiators) qualifier' dir' imports tasks;
+            require_thys options (theory_name :: initiators) qualifier' dir' imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
@@ -415,7 +405,7 @@ and require_thy context initiators qualifier dir (s, require_pos) tasks =
                   let
                     val update_time = serial ();
                     val load =
-                      load_thy context initiators update_time
+                      load_thy options initiators update_time
                         dep text (theory_name, theory_pos) keywords;
                   in Task (parents, load) end);
 
@@ -428,12 +418,12 @@ end;
 
 (* use theories *)
 
-fun use_theories context qualifier imports =
-  let val (_, tasks) = require_thys context [] qualifier Path.current imports String_Graph.empty
+fun use_theories options qualifier imports =
+  let val (_, tasks) = require_thys options [] qualifier Path.current imports String_Graph.empty
   in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
-  use_theories (default_context ()) Resources.default_qualifier [(name, Position.none)];
+  use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)

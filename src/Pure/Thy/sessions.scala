@@ -1171,7 +1171,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Store private[Sessions](val options: Options)
   {
-    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
+    store =>
+
+    override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
 
     val xml_cache: XML.Cache = XML.make_cache()
     val xz_cache: XZ.Cache = XZ.make_cache()
@@ -1227,33 +1229,41 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* database */
 
-    private def database_server: Boolean = options.bool("build_database_server")
+    def database_server: Boolean = options.bool("build_database_server")
 
-    def access_database(name: String, output: Boolean = false): Option[SQL.Database] =
+    def open_database_server(): SQL.Database =
+      PostgreSQL.open_database(
+        user = options.string("build_database_user"),
+        password = options.string("build_database_password"),
+        database = options.string("build_database_name"),
+        host = options.string("build_database_host"),
+        port = options.int("build_database_port"),
+        ssh =
+          options.proper_string("build_database_ssh_host").map(ssh_host =>
+            SSH.open_session(options,
+              host = ssh_host,
+              user = options.string("build_database_ssh_user"),
+              port = options.int("build_database_ssh_port"))),
+        ssh_close = true)
+
+    def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
     {
-      if (database_server) {
-        val db =
-          PostgreSQL.open_database(
-            user = options.string("build_database_user"),
-            password = options.string("build_database_password"),
-            database = options.string("build_database_name"),
-            host = options.string("build_database_host"),
-            port = options.int("build_database_port"),
-            ssh =
-              options.proper_string("build_database_ssh_host").map(ssh_host =>
-                SSH.open_session(options,
-                  host = ssh_host,
-                  user = options.string("build_database_ssh_user"),
-                  port = options.int("build_database_ssh_port"))),
-            ssh_close = true)
-        if (output || has_session_info(db, name)) Some(db) else { db.close; None }
-      }
+      def check(db: SQL.Database): Option[SQL.Database] =
+        if (output || session_info_exists(db)) Some(db) else { db.close; None }
+
+      if (database_server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
-      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database)
+      else {
+        (for {
+          dir <- input_dirs.view
+          path = dir + database(name) if path.is_file
+          db <- check(SQLite.open_database(path))
+        } yield db).headOption
+      }
     }
 
     def open_database(name: String, output: Boolean = false): SQL.Database =
-      access_database(name, output = output) getOrElse
+      try_open_database(name, output = output) getOrElse
         error("Missing build database for session " + quote(name))
 
     def clean_output(name: String): (Boolean, Boolean) =
@@ -1261,11 +1271,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       val relevant_db =
         database_server &&
         {
-          access_database(name) match {
+          try_open_database(name) match {
             case Some(db) =>
               try {
                 db.transaction {
-                  val relevant_db = has_session_info(db, name)
+                  val relevant_db = session_info_defined(db, name)
                   init_session_info(db, name)
                   relevant_db
                 }
@@ -1318,17 +1328,22 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       }
     }
 
-    def has_session_info(db: SQL.Database, name: String): Boolean =
+    def session_info_exists(db: SQL.Database): Boolean =
     {
+      val tables = db.tables
+      tables.contains(Session_Info.table.name) &&
+      tables.contains(Export.Data.table.name)
+    }
+
+    def session_info_defined(db: SQL.Database, name: String): Boolean =
       db.transaction {
-        db.tables.contains(Session_Info.table.name) &&
+        session_info_exists(db) &&
         {
           db.using_statement(
             Session_Info.table.select(List(Session_Info.session_name),
               Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
         }
       }
-    }
 
     def write_session_info(
       db: SQL.Database,

@@ -16,7 +16,6 @@ sig
   val command: symbols -> string -> text
   val href_name: string -> string -> string
   val href_path: Url.T -> string -> string
-  val href_opt_path: Url.T option -> string -> string
   val begin_document: symbols -> string -> text
   val end_document: text
 end;
@@ -119,9 +118,6 @@ val command = enclose "<span class=\"command\">" "</span>" oo output;
 
 fun href_name s txt = "<a href=" ^ quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Url.implode path) txt;
-
-fun href_opt_path NONE txt = txt
-  | href_opt_path (SOME p) txt = href_path p txt;
 
 
 (* document *)

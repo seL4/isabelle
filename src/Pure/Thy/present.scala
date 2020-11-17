@@ -119,10 +119,10 @@ object Present
     }
 
     val theories =
-      using(store.open_database(session))(db =>
+      using(Export.open_database_context(deps.sessions_structure, store))(context =>
         for {
           name <- base.session_theories
-          entry <- Export.read_entry(db, session, name.theory, document_html_name(name))
+          entry <- context.try_entry(session, name.theory, document_html_name(name))
         } yield name -> entry.uncompressed(cache = store.xz_cache))
 
     val theories_body =
@@ -265,20 +265,17 @@ object Present
     val base = deps(session)
     val graph_pdf = graphview.Graph_File.make_pdf(options, base.session_graph_display)
 
-    def find_tex(name: Document.Node.Name): Option[Bytes] =
-      deps.sessions_structure.build_requirements(List(session)).reverse.view
-        .map(session_name =>
-          using(store.open_database(session_name))(db =>
-            Export.read_entry(db, session_name, name.theory, document_tex_name(name)).
-              map(_.uncompressed(cache = store.xz_cache))))
-        .collectFirst({ case Some(x) => x })
-
 
     /* prepare document directory */
 
     lazy val tex_files =
-      for (name <- base.session_theories ::: base.document_theories)
-        yield Path.basic(tex_name(name)) -> find_tex(name).getOrElse(Bytes.empty)
+      using(Export.open_database_context(deps.sessions_structure, store))(context =>
+        for (name <- base.session_theories ::: base.document_theories)
+        yield {
+          val entry = context.entry(session, name.theory, document_tex_name(name))
+          Path.basic(tex_name(name)) -> entry.uncompressed(cache = store.xz_cache)
+        }
+      )
 
     def prepare_dir(dir: Path, doc_name: String, doc_tags: List[String]): (Path, String) =
     {

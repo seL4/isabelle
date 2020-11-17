@@ -38,7 +38,7 @@ object Build
     {
       val no_timings: Timings = (Nil, 0.0)
 
-      store.access_database(session_name) match {
+      store.try_open_database(session_name) match {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) =
@@ -170,26 +170,6 @@ object Build
       Future.thread("build", uninterruptible = true) {
         val parent = info.parent.getOrElse("")
         val base = deps(parent)
-        val args_yxml =
-          YXML.string_of_body(
-            {
-              import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(string, pair(string,
-                pair(string, pair(list(pair(Options.encode, list(pair(string, properties)))),
-                pair(list(pair(string, properties)),
-                pair(list(pair(string, string)),
-                pair(list(pair(string, string)),
-                pair(list(string),
-                pair(list(pair(string, string)),
-                pair(list(string), list(pair(string, list(string)))))))))))))))(
-              (Symbol.codes, (command_timings0, (parent, (info.chapter,
-                (session_name, (info.theories,
-                (sessions_structure.session_positions,
-                (sessions_structure.dest_session_directories,
-                (sessions_structure.session_chapters,
-                (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, sessions_structure.bibtex_entries)))))))))))))
-            })
 
         val env =
           Isabelle_System.settings() +
@@ -207,7 +187,7 @@ object Build
           }
           else Nil
 
-        val resources = new Resources(sessions_structure, deps(parent))
+        val resources = new Resources(sessions_structure, base, command_timings = command_timings0)
         val session =
           new Session(options, resources) {
             override val xml_cache: XML.Cache = store.xml_cache
@@ -356,7 +336,16 @@ object Build
           Isabelle_Thread.interrupt_handler(_ => process.terminate) {
             Exn.capture { process.await_startup } match {
               case Exn.Res(_) =>
-                session.protocol_command("build_session", args_yxml)
+                val resources_yxml = resources.init_session_yxml
+                val args_yxml =
+                  YXML.string_of_body(
+                    {
+                      import XML.Encode._
+                      pair(string, pair(string, pair(string,
+                        list(pair(Options.encode, list(pair(string, properties)))))))(
+                        (parent, (info.chapter, (session_name, info.theories))))
+                    })
+                session.protocol_command("build_session", resources_yxml, args_yxml)
                 Build_Session_Errors.result
               case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
             }
@@ -545,7 +534,7 @@ object Build
       if (soft_build && !fresh_build) {
         val outdated =
           deps0.sessions_structure.build_topological_order.flatMap(name =>
-            store.access_database(name) match {
+            store.try_open_database(name) match {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
                   case Some(build)
@@ -702,7 +691,7 @@ object Build
 
                 val (current, heap_digest) =
                 {
-                  store.access_database(session_name) match {
+                  store.try_open_database(session_name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, session_name)) match {
                         case Some(build) =>
