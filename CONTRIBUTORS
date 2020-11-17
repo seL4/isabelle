@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * November 2020: Florian Haftmann
   Bundle mixins for locale and class expressions.
 
+* November 2020: Jakub Kądziołka
+  Stronger lemmas about orders of group elements (generate_pow_card)
+
 * October 2020: Jasmin Blanchette, Martin Desharnais, Mathias Fleury
   Use veriT in proof preplay in Sledgehammer.
 

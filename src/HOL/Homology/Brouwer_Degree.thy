@@ -1,7 +1,7 @@
 section\<open>Homology, III: Brouwer Degree\<close>
 
 theory Brouwer_Degree
-  imports Homology_Groups
+  imports Homology_Groups "HOL-Algebra.Multiplicative_Group"
 
 begin
 

@@ -10,6 +10,7 @@ imports
   Coset
   UnivPoly
   Generated_Groups
+  Elementary_Groups
 begin
 
 section \<open>Simplification Rules for Polynomials\<close>
@@ -263,6 +264,8 @@ proof -
   finally show ?thesis by force
 qed
 
+
+
 section \<open>Order of an Element of a Group\<close>
 text_raw \<open>\label{sec:order-elem}\<close>
 
@@ -474,6 +477,82 @@ proof
   thus "?L \<subseteq> ?R" by auto
 qed
 
+lemma (in group)
+  assumes "x \<in> carrier G"
+  shows finite_cyclic_subgroup:
+        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> x [^] n = \<one>)" (is "?fin \<longleftrightarrow> ?nat1")
+    and infinite_cyclic_subgroup:
+        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>m n::nat. x [^] m = x [^] n \<longrightarrow> m = n)" (is "\<not> ?fin \<longleftrightarrow> ?nateq")
+    and finite_cyclic_subgroup_int:
+        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>i::int. i \<noteq> 0 \<and> x [^] i = \<one>)" (is "?fin \<longleftrightarrow> ?int1")
+    and infinite_cyclic_subgroup_int:
+        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>i j::int. x [^] i = x [^] j \<longrightarrow> i = j)" (is "\<not> ?fin \<longleftrightarrow> ?inteq")
+proof -
+  have 1: "\<not> ?fin" if ?nateq
+  proof -
+    have "infinite (range (\<lambda>n::nat. x [^] n))"
+      using that range_inj_infinite [of "(\<lambda>n::nat. x [^] n)"] by (auto simp: inj_on_def)
+    moreover have "range (\<lambda>n::nat. x [^] n) \<subseteq> range (\<lambda>i::int. x [^] i)"
+      apply clarify
+      by (metis assms group.int_pow_neg int_pow_closed int_pow_neg_int is_group local.inv_equality nat_pow_closed r_inv rangeI)
+    ultimately show ?thesis
+      using carrier_subgroup_generated_by_singleton [OF assms] finite_subset by auto
+  qed
+  have 2: "m = n" if mn: "x [^] m = x [^] n" and eq [rule_format]: "?inteq" for m n::nat
+    using eq [of "int m" "int n"]
+    by (simp add: int_pow_int mn)
+  have 3: ?nat1 if non: "\<not> ?inteq"
+  proof -
+    obtain i j::int where eq: "x [^] i = x [^] j" and "i \<noteq> j"
+      using non by auto
+    show ?thesis
+    proof (cases i j rule: linorder_cases)
+      case less
+      then have [simp]: "x [^] (j - i) = \<one>"
+        by (simp add: eq assms int_pow_diff)
+      show ?thesis
+        using less by (rule_tac x="nat (j-i)" in exI) auto
+    next
+      case greater
+      then have [simp]: "x [^] (i - j) = \<one>"
+        by (simp add: eq assms int_pow_diff)
+      then show ?thesis
+        using greater by (rule_tac x="nat (i-j)" in exI) auto
+    qed (use \<open>i \<noteq> j\<close> in auto)
+  qed
+  have 4: "\<exists>i::int. (i \<noteq> 0) \<and> x [^] i = \<one>" if "n \<noteq> 0" "x [^] n = \<one>" for n::nat
+    apply (rule_tac x="int n" in exI)
+    by (simp add: int_pow_int that)
+  have 5: "finite (carrier (subgroup_generated G {x}))" if "i \<noteq> 0" and 1: "x [^] i = \<one>" for i::int
+  proof -
+    obtain n::nat where n: "n > 0" "x [^] n = \<one>"
+      using "1" "3" \<open>i \<noteq> 0\<close> by fastforce
+    have "x [^] a \<in> ([^]) x ` {0..<n}" for a::int
+    proof
+      show "x [^] a = x [^] nat (a mod int n)"
+        using n
+        by simp (metis (no_types, lifting) assms dvd_minus_mod dvd_trans int_pow_eq int_pow_eq_id int_pow_int)
+      show "nat (a mod int n) \<in> {0..<n}"
+        using n  apply (simp add:  split: split_nat)
+        using Euclidean_Division.pos_mod_bound by presburger
+    qed
+    then have "carrier (subgroup_generated G {x}) \<subseteq> ([^]) x ` {0..<n}"
+      using carrier_subgroup_generated_by_singleton [OF assms] by auto
+    then show ?thesis
+      using finite_surj by blast
+  qed
+  show "?fin \<longleftrightarrow> ?nat1" "\<not> ?fin \<longleftrightarrow> ?nateq" "?fin \<longleftrightarrow> ?int1" "\<not> ?fin \<longleftrightarrow> ?inteq"
+    using 1 2 3 4 5 by meson+
+qed
+
+lemma (in group) finite_cyclic_subgroup_order:
+   "x \<in> carrier G \<Longrightarrow> finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x \<noteq> 0"
+  by (simp add: finite_cyclic_subgroup ord_eq_0)
+
+lemma (in group) infinite_cyclic_subgroup_order:
+   "x \<in> carrier G \<Longrightarrow> infinite (carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x = 0"
+  by (simp add: finite_cyclic_subgroup_order)
+
 lemma generate_pow_on_finite_carrier: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "finite (carrier G)" and a: "a \<in> carrier G"
   shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: nat set) }"
@@ -516,30 +595,102 @@ next
   qed
 qed
 
-lemma generate_pow_card: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
-  assumes "finite (carrier G)" and a: "a \<in> carrier G"
-  shows "ord a = card (generate G { a })"
-proof -
-  have "generate G { a } = (([^]) a) ` {0..ord a - 1}"
-    using generate_pow_on_finite_carrier[OF assms] unfolding ord_elems[OF assms] by auto
-  thus ?thesis
-    using ord_inj[OF a] ord_ge_1[OF assms] by (simp add: card_image)
+lemma ord_elems_inf_carrier:
+ assumes "a \<in> carrier G" "ord a \<noteq> 0"
+ shows "{a[^]x | x. x \<in> (UNIV :: nat set)} = {a[^]x | x. x \<in> {0 .. ord a - 1}}" (is "?L = ?R")
+proof
+ show "?R \<subseteq> ?L" by blast
+ { fix y assume "y \<in> ?L"
+   then obtain x::nat where x: "y = a[^]x" by auto
+   define r q where "r = x mod ord a" and "q = x div ord a"
+   then have "x = q * ord a + r"
+     by (simp add: div_mult_mod_eq)
+   hence "y = (a[^]ord a)[^]q \<otimes> a[^]r"
+     using x assms by (metis mult.commute nat_pow_mult nat_pow_pow)
+   hence "y = a[^]r" using assms by simp
+   have "r < ord a" using assms by (simp add: r_def)
+   hence "r \<in> {0 .. ord a - 1}" by (force simp: r_def)
+   hence "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" using \<open>y=a[^]r\<close> by blast
+ }
+ thus "?L \<subseteq> ?R" by auto
 qed
 
-lemma ord_dvd_group_order: 
-  assumes "a \<in> carrier G"
-  shows "(ord a) dvd (order G)"
-proof (cases "finite (carrier G)")
+lemma generate_pow_nat:
+ assumes a: "a \<in> carrier G" and "ord a \<noteq> 0"
+ shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: nat set) }"
+proof
+ show "{ a [^] k | k. k \<in> (UNIV :: nat set) } \<subseteq> generate G { a }"
+ proof
+   fix b assume "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+   then obtain k :: nat where "b = a [^] k" by blast
+   hence "b = a [^] (int k)"
+     by (simp add: int_pow_int)
+   thus "b \<in> generate G { a }"
+     unfolding generate_pow[OF a] by blast
+ qed
+next
+ show "generate G { a } \<subseteq> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+ proof
+   fix b assume "b \<in> generate G { a }"
+   then obtain k :: int where k: "b = a [^] k"
+     unfolding generate_pow[OF a] by blast
+   show "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+   proof (cases "k < 0")
+     assume "\<not> k < 0"
+     hence "b = a [^] (nat k)"
+       by (simp add: k)
+     thus ?thesis by blast
+   next
+     assume "k < 0"
+     hence b: "b = inv (a [^] (nat (- k)))"
+       using k a by (auto simp: int_pow_neg)
+     obtain m where m: "ord a * m \<ge> nat (- k)"
+       by (metis assms(2) dvd_imp_le dvd_triv_right le_zero_eq mult_eq_0_iff not_gr_zero)
+     hence "a [^] (ord a * m) = \<one>"
+       by (metis a nat_pow_one nat_pow_pow pow_ord_eq_1)
+     then obtain k' :: nat where "(a [^] (nat (- k))) \<otimes> (a [^] k') = \<one>"
+       using m a nat_le_iff_add nat_pow_mult by auto
+     hence "b = a [^] k'"
+       using b a by (metis inv_unique' nat_pow_closed nat_pow_comm)
+     thus "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }" by blast
+   qed
+ qed
+qed
+
+lemma generate_pow_card:
+  assumes a: "a \<in> carrier G"
+  shows "ord a = card (generate G { a })"
+proof (cases "ord a = 0")
   case True
+  then have "infinite (carrier (subgroup_generated G {a}))"
+    using infinite_cyclic_subgroup_order[OF a] by auto
+  then have "infinite (generate G {a})"
+    unfolding subgroup_generated_def
+    using a by simp
   then show ?thesis
-    using lagrange[OF generate_is_subgroup[of "{a}"]] assms
-    unfolding generate_pow_card[OF True assms]
-    by (metis dvd_triv_right empty_subsetI insert_subset)
+    using `ord a = 0` by auto
 next
   case False
-  then show ?thesis
-    using order_gt_0_iff_finite by auto
+  note finite_subgroup = this
+  then have "generate G { a } = (([^]) a) ` {0..ord a - 1}"
+    using generate_pow_nat ord_elems_inf_carrier a by auto
+  hence "card (generate G {a}) = card {0..ord a - 1}"
+    using ord_inj[OF a] card_image by metis
+  also have "... = ord a" using finite_subgroup by auto
+  finally show ?thesis.. 
 qed
+
+lemma (in group) cyclic_order_is_ord:
+ assumes "g \<in> carrier G"
+ shows "ord g = order (subgroup_generated G {g})"
+ unfolding order_def subgroup_generated_def
+ using assms generate_pow_card by simp
+
+lemma ord_dvd_group_order:
+  assumes "a \<in> carrier G" shows "(ord a) dvd (order G)"
+  using lagrange[OF generate_is_subgroup[of "{a}"]] assms
+  unfolding generate_pow_card[OF assms]
+  by (metis dvd_triv_right empty_subsetI insert_subset)
 
 lemma (in group) pow_order_eq_1:
   assumes "a \<in> carrier G" shows "a [^] order G = \<one>"

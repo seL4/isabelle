@@ -5,7 +5,7 @@ section \<open>Elementary Group Constructions\<close>
 *)
 
 theory Elementary_Groups
-imports Generated_Groups Multiplicative_Group "HOL-Library.Infinite_Set"
+imports Generated_Groups "HOL-Library.Infinite_Set"
 begin
 
 subsection\<open>Direct sum/product lemmas\<close>
@@ -585,83 +585,6 @@ qed
 lemma isomorphic_group_cyclicity:
    "\<lbrakk>G \<cong> H; group G; group H\<rbrakk> \<Longrightarrow> cyclic_group G \<longleftrightarrow> cyclic_group H"
   by (meson ex_in_conv group.cyclic_group_epimorphic_image group.iso_sym is_iso_def iso_iff_mon_epi)
-
-
-lemma (in group)
-  assumes "x \<in> carrier G"
-  shows finite_cyclic_subgroup:
-        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> x [^] n = \<one>)" (is "?fin \<longleftrightarrow> ?nat1")
-    and infinite_cyclic_subgroup:
-        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>m n::nat. x [^] m = x [^] n \<longrightarrow> m = n)" (is "\<not> ?fin \<longleftrightarrow> ?nateq")
-    and finite_cyclic_subgroup_int:
-        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>i::int. i \<noteq> 0 \<and> x [^] i = \<one>)" (is "?fin \<longleftrightarrow> ?int1")
-    and infinite_cyclic_subgroup_int:
-        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>i j::int. x [^] i = x [^] j \<longrightarrow> i = j)" (is "\<not> ?fin \<longleftrightarrow> ?inteq")
-proof -
-  have 1: "\<not> ?fin" if ?nateq
-  proof -
-    have "infinite (range (\<lambda>n::nat. x [^] n))"
-      using that range_inj_infinite [of "(\<lambda>n::nat. x [^] n)"] by (auto simp: inj_on_def)
-    moreover have "range (\<lambda>n::nat. x [^] n) \<subseteq> range (\<lambda>i::int. x [^] i)"
-      apply clarify
-      by (metis assms group.int_pow_neg int_pow_closed int_pow_neg_int is_group local.inv_equality nat_pow_closed r_inv rangeI)
-    ultimately show ?thesis
-      using carrier_subgroup_generated_by_singleton [OF assms] finite_subset by auto
-  qed
-  have 2: "m = n" if mn: "x [^] m = x [^] n" and eq [rule_format]: "?inteq" for m n::nat
-    using eq [of "int m" "int n"]
-    by (simp add: int_pow_int mn)
-  have 3: ?nat1 if non: "\<not> ?inteq"
-  proof -
-    obtain i j::int where eq: "x [^] i = x [^] j" and "i \<noteq> j"
-      using non by auto
-    show ?thesis
-    proof (cases i j rule: linorder_cases)
-      case less
-      then have [simp]: "x [^] (j - i) = \<one>"
-        by (simp add: eq assms int_pow_diff)
-      show ?thesis
-        using less by (rule_tac x="nat (j-i)" in exI) auto
-    next
-      case greater
-      then have [simp]: "x [^] (i - j) = \<one>"
-        by (simp add: eq assms int_pow_diff)
-      then show ?thesis
-        using greater by (rule_tac x="nat (i-j)" in exI) auto
-    qed (use \<open>i \<noteq> j\<close> in auto)
-  qed
-  have 4: "\<exists>i::int. (i \<noteq> 0) \<and> x [^] i = \<one>" if "n \<noteq> 0" "x [^] n = \<one>" for n::nat
-    apply (rule_tac x="int n" in exI)
-    by (simp add: int_pow_int that)
-  have 5: "finite (carrier (subgroup_generated G {x}))" if "i \<noteq> 0" and 1: "x [^] i = \<one>" for i::int
-  proof -
-    obtain n::nat where n: "n > 0" "x [^] n = \<one>"
-      using "1" "3" \<open>i \<noteq> 0\<close> by fastforce
-    have "x [^] a \<in> ([^]) x ` {0..<n}" for a::int
-    proof
-      show "x [^] a = x [^] nat (a mod int n)"
-        using n
-        by simp (metis (no_types, lifting) assms dvd_minus_mod dvd_trans int_pow_eq int_pow_eq_id int_pow_int)
-      show "nat (a mod int n) \<in> {0..<n}"
-        using n  apply (simp add:  split: split_nat)
-        using Euclidean_Division.pos_mod_bound by presburger
-    qed
-    then have "carrier (subgroup_generated G {x}) \<subseteq> ([^]) x ` {0..<n}"
-      using carrier_subgroup_generated_by_singleton [OF assms] by auto
-    then show ?thesis
-      using finite_surj by blast
-  qed
-  show "?fin \<longleftrightarrow> ?nat1" "\<not> ?fin \<longleftrightarrow> ?nateq" "?fin \<longleftrightarrow> ?int1" "\<not> ?fin \<longleftrightarrow> ?inteq"
-    using 1 2 3 4 5 by meson+
-qed
-
-lemma (in group) finite_cyclic_subgroup_order:
-   "x \<in> carrier G \<Longrightarrow> finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x \<noteq> 0"
-  by (simp add: finite_cyclic_subgroup ord_eq_0)
-
-lemma (in group) infinite_cyclic_subgroup_order:
-   "x \<in> carrier G \<Longrightarrow> infinite (carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x = 0"
-  by (simp add: finite_cyclic_subgroup_order)
 
 
 end
