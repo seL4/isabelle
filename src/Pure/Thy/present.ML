@@ -42,9 +42,9 @@ fun theory_link thy thy' =
     val link = html_name thy';
   in
     if session = session' then SOME link
-    else if chapter = chapter' then SOME (Path.parent + Path.basic session + link)
-    else if chapter = Context.PureN then NONE
-    else SOME (Path.parent + Path.parent + Path.basic chapter + Path.basic session + link)
+    else if chapter = chapter' then SOME (Path.parent + Path.basic session' + link)
+    else if chapter' = Context.PureN then NONE
+    else SOME (Path.parent + Path.parent + Path.basic chapter' + Path.basic session' + link)
   end;
 
 fun theory_document symbols A Bs body =
