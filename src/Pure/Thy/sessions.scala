@@ -254,7 +254,11 @@ object Sessions
               info.document_theories.flatMap(
               {
                 case (thy, pos) =>
-                  val parent_sessions = sessions_structure.build_requirements(List(session_name))
+                  val parent_sessions =
+                    if (sessions_structure.build_graph.defined(session_name)) {
+                      sessions_structure.build_requirements(List(session_name))
+                    }
+                    else Nil
 
                   def err(msg: String): Option[String] =
                     Some(msg + " " + quote(thy) + Position.here(pos))
