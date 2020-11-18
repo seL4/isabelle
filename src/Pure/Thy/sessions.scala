@@ -492,20 +492,21 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def documents: List[(String, List[String])] =
+    def documents_variants: List[Present.Document_Variant] =
     {
       val variants =
-        for (s <- Library.space_explode(':', options.string("document_variants")))
-        yield {
-          Library.space_explode('=', s) match {
-            case List(name) => (name, Nil)
-            case List(name, tags) => (name, Library.space_explode(',', tags))
-            case _ => error("Malformed document_variants: " + quote(s))
-          }
-        }
-      val dups = Library.duplicates(variants.map(_._1))
+        Library.space_explode(':', options.string("document_variants")).
+          map(Present.Document_Variant.parse)
+
+      val dups = Library.duplicates(variants.map(_.name))
       if (dups.nonEmpty) error("Duplicate document variants: " + commas_quote(dups))
 
+      variants
+    }
+
+    def documents: List[Present.Document_Variant] =
+    {
+      val variants = documents_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
     }
 

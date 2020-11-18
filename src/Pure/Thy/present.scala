@@ -12,6 +12,34 @@ import scala.collection.immutable.SortedMap
 
 object Present
 {
+  /* document variants */
+
+  object Document_Variant
+  {
+    def parse(s: String): Document_Variant =
+      Library.space_explode('=', s) match {
+        case List(name) => Document_Variant(name)
+        case List(name, tags) => Document_Variant(name, Library.space_explode(',', tags))
+        case _ => error("Malformed document variant: " + quote(s))
+      }
+  }
+
+  sealed case class Document_Variant(name: String, tags: List[String] = Nil)
+  {
+    def print: String = if (tags.isEmpty) name else name + "=" + tags.mkString(",")
+    def path: Path = Path.basic(name)
+    def latex_sty: String =
+      Library.terminate_lines(
+        tags.map(tag =>
+          tag.toList match {
+            case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
+            case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
+            case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
+            case cs => "\\isakeeptag{" + cs.mkString + "}"
+          }))
+  }
+
+
   /* presentation context */
 
   object Context
@@ -141,8 +169,8 @@ object Present
         else Nil
 
       val document_links =
-        for ((name, _) <- info.documents)
-          yield HTML.link(Path.basic(name).pdf, HTML.text(name))
+        for (doc <- info.documents)
+          yield HTML.link(doc.path.pdf, HTML.text(doc.name))
 
       Library.separate(HTML.break ::: HTML.nl,
         (deps_link :: readme_links ::: document_links).
@@ -271,16 +299,6 @@ object Present
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
   def document_tex_name(name: Document.Node.Name): String = "document/" + tex_name(name)
 
-  def isabelletags(tags: List[String]): String =
-    Library.terminate_lines(
-      tags.map(tag =>
-        tag.toList match {
-          case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
-          case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
-          case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
-          case cs => "\\isakeeptag{" + cs.mkString + "}"
-        }))
-
   def build_documents(
     session: String,
     deps: Sessions.Deps,
@@ -288,7 +306,7 @@ object Present
     progress: Progress = new Progress,
     presentation: Context = Context.none,
     verbose: Boolean = false,
-    verbose_latex: Boolean = false): List[(String, Bytes)] =
+    verbose_latex: Boolean = false): List[(Document_Variant, Bytes)] =
   {
     /* session info */
 
@@ -309,13 +327,13 @@ object Present
         }
       )
 
-    def prepare_dir(dir: Path, doc_name: String, doc_tags: List[String]): (Path, String) =
+    def prepare_dir(dir: Path, doc: Document_Variant): (Path, String) =
     {
-      val doc_dir = dir + Path.basic(doc_name)
+      val doc_dir = dir + Path.basic(doc.name)
       Isabelle_System.make_directory(doc_dir)
 
       Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
-      File.write(doc_dir + Path.explode("isabelletags.sty"), isabelletags(doc_tags))
+      File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
       for ((base_dir, src) <- info.document_files) File.copy_base(info.dir + base_dir, src, doc_dir)
       Bytes.write(doc_dir + session_graph_path, graph_pdf)
 
@@ -325,7 +343,7 @@ object Present
 
       for ((path, tex) <- tex_files) Bytes.write(doc_dir + path, tex)
 
-      val root1 = "root_" + doc_name
+      val root1 = "root_" + doc.name
       val root = if ((doc_dir + Path.explode(root1).tex).is_file) root1 else "root"
 
       (doc_dir, root)
@@ -336,13 +354,13 @@ object Present
 
     val doc_output = info.document_output
 
-    val docs =
-      for ((doc_name, doc_tags) <- info.documents)
+    val documents =
+      for (doc <- info.documents)
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
-          val (doc_dir, root) = prepare_dir(tmp_dir, doc_name, doc_tags)
-          doc_output.foreach(prepare_dir(_, doc_name, doc_tags))
+          val (doc_dir, root) = prepare_dir(tmp_dir, doc)
+          doc_output.foreach(prepare_dir(_, doc))
 
 
           // bash scripts
@@ -361,7 +379,7 @@ object Present
 
           val result =
             if ((doc_dir + Path.explode("build")).is_file) {
-              bash("./build pdf " + Bash.string(doc_name))
+              bash("./build pdf " + Bash.string(doc.name))
             }
             else {
               bash(
@@ -382,20 +400,20 @@ object Present
             cat_error(
               Library.trim_line(result.err),
               cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
-              "Failed to build document " + quote(doc_name))
+              "Failed to build document " + quote(doc.name))
           }
           else if (!result_path.is_file) {
             error("Bad document result: expected to find " + root_pdf)
           }
-          else doc_name -> Bytes.read(result_path)
+          else doc -> Bytes.read(result_path)
         })
       }
 
     def output(dir: Path)
     {
       Isabelle_System.make_directory(dir)
-      for ((name, pdf) <- docs) {
-        val path = dir + Path.basic(name).pdf
+      for ((doc, pdf) <- documents) {
+        val path = dir + doc.path.pdf
         Bytes.write(path, pdf)
         progress.echo_document(path)
       }
@@ -407,7 +425,7 @@ object Present
 
     doc_output.foreach(output)
 
-    docs
+    documents
   }
 
 
