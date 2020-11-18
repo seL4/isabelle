@@ -437,7 +437,6 @@ object Present
       var presentation = Present.Context.none
       var verbose_latex = false
       var dirs: List[Path] = Nil
-      var no_build = false
       var options = Options.init()
       var verbose_build = false
 
@@ -450,7 +449,6 @@ Usage: isabelle document [OPTIONS] SESSION
     -O           set option "document_output", relative to current directory
     -V           verbose latex
     -d DIR       include session directory
-    -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose build
 
@@ -460,7 +458,6 @@ Usage: isabelle document [OPTIONS] SESSION
         "O:" -> (arg => options += ("document_output=" + Path.explode(arg).absolute.implode)),
         "V" -> (_ => verbose_latex = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose_build = true))
 
@@ -475,12 +472,10 @@ Usage: isabelle document [OPTIONS] SESSION
       val store = Sessions.store(options)
 
       progress.interrupt_handler {
-        if (!no_build) {
-          val res =
-            Build.build(options, selection = Sessions.Selection.session(session),
-              dirs = dirs, progress = progress, verbose = verbose_build)
-          if (!res.ok) error("Failed to build session " + quote(session))
-        }
+        val res =
+          Build.build(options, selection = Sessions.Selection.session(session),
+            dirs = dirs, progress = progress, verbose = verbose_build)
+        if (!res.ok) error("Failed to build session " + quote(session))
 
         val deps =
           Sessions.load_structure(options + "document=pdf", dirs = dirs).
