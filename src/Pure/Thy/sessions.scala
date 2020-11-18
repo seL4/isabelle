@@ -492,11 +492,11 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def documents_variants: List[Present.Document_Variant] =
+    def documents_variants: List[Presentation.Document_Variant] =
     {
       val variants =
         Library.space_explode(':', options.string("document_variants")).
-          map(Present.Document_Variant.parse)
+          map(Presentation.Document_Variant.parse)
 
       val dups = Library.duplicates(variants.map(_.name))
       if (dups.nonEmpty) error("Duplicate document variants: " + commas_quote(dups))
@@ -504,7 +504,7 @@ object Sessions
       variants
     }
 
-    def documents: List[Present.Document_Variant] =
+    def documents: List[Presentation.Document_Variant] =
     {
       val variants = documents_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants

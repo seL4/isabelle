@@ -158,7 +158,7 @@ object Build
     deps: Sessions.Deps,
     store: Sessions.Store,
     do_store: Boolean,
-    presentation: Present.Context,
+    presentation: Presentation.Context,
     verbose: Boolean,
     val numa_node: Option[Int],
     command_timings0: List[Properties.T])
@@ -368,11 +368,11 @@ object Build
                     override def echo_document(path: Path): Unit =
                       progress.echo_document(path)
                   }
-                Present.build_documents(session_name, deps, store, verbose = verbose,
+                Presentation.build_documents(session_name, deps, store, verbose = verbose,
                   verbose_latex = true, progress = document_progress)
               }
               if (presentation.enabled(info)) {
-                val dir = Present.session_html(session_name, deps, store, presentation)
+                val dir = Presentation.session_html(session_name, deps, store, presentation)
                 if (verbose) progress.echo("Browser info at " + dir.absolute)
               }
             }
@@ -482,7 +482,7 @@ object Build
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
-    presentation: Present.Context = Present.Context.none,
+    presentation: Presentation.Context = Presentation.Context.none,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -803,9 +803,9 @@ object Build
       val dir = presentation.dir(store)
 
       for ((chapter, entries) <- browser_chapters)
-        Present.update_chapter_index(dir, chapter, entries)
+        Presentation.update_chapter_index(dir, chapter, entries)
 
-      if (browser_chapters.nonEmpty) Present.make_global_index(dir)
+      if (browser_chapters.nonEmpty) Presentation.make_global_index(dir)
     }
 
     results
@@ -821,7 +821,7 @@ object Build
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
-    var presentation = Present.Context.none
+    var presentation = Presentation.Context.none
     var requirements = false
     var soft_build = false
     var exclude_session_groups: List[String] = Nil
@@ -872,7 +872,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
-      "P:" -> (arg => presentation = Present.Context.make(arg)),
+      "P:" -> (arg => presentation = Presentation.Context.make(arg)),
       "R" -> (_ => requirements = true),
       "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),

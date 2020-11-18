@@ -10,7 +10,7 @@ package isabelle
 import scala.collection.immutable.SortedMap
 
 
-object Present
+object Presentation
 {
   /* document variants */
 
@@ -434,7 +434,7 @@ object Present
   val isabelle_tool =
     Isabelle_Tool("document", "prepare session theory document", args =>
     {
-      var presentation = Present.Context.none
+      var presentation = Presentation.Context.none
       var verbose_latex = false
       var dirs: List[Path] = Nil
       var options = Options.init()
