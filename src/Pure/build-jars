@@ -153,7 +153,7 @@ declare -a SOURCES=(
   src/Pure/Thy/file_format.scala
   src/Pure/Thy/html.scala
   src/Pure/Thy/latex.scala
-  src/Pure/Thy/present.scala
+  src/Pure/Thy/presentation.scala
   src/Pure/Thy/sessions.scala
   src/Pure/Thy/thy_element.scala
   src/Pure/Thy/thy_header.scala

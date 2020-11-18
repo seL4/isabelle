@@ -254,7 +254,11 @@ object Sessions
               info.document_theories.flatMap(
               {
                 case (thy, pos) =>
-                  val parent_sessions = sessions_structure.build_requirements(List(session_name))
+                  val parent_sessions =
+                    if (sessions_structure.build_graph.defined(session_name)) {
+                      sessions_structure.build_requirements(List(session_name))
+                    }
+                    else Nil
 
                   def err(msg: String): Option[String] =
                     Some(msg + " " + quote(thy) + Position.here(pos))
@@ -459,8 +463,6 @@ object Sessions
     export_files: List[(Path, Int, List[String])],
     meta_digest: SHA1.Digest)
   {
-    def chapter_session: Path = Path.basic(chapter) + Path.basic(name)
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base =
@@ -490,20 +492,21 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def documents: List[(String, List[String])] =
+    def documents_variants: List[Presentation.Document_Variant] =
     {
       val variants =
-        for (s <- Library.space_explode(':', options.string("document_variants")))
-        yield {
-          Library.space_explode('=', s) match {
-            case List(name) => (name, Nil)
-            case List(name, tags) => (name, Library.space_explode(',', tags))
-            case _ => error("Malformed document_variants: " + quote(s))
-          }
-        }
-      val dups = Library.duplicates(variants.map(_._1))
+        Library.space_explode(':', options.string("document_variants")).
+          map(Presentation.Document_Variant.parse)
+
+      val dups = Library.duplicates(variants.map(_.name))
       if (dups.nonEmpty) error("Duplicate document variants: " + commas_quote(dups))
 
+      variants
+    }
+
+    def documents: List[Presentation.Document_Variant] =
+    {
+      val variants = documents_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
     }
 
@@ -512,6 +515,8 @@ object Sessions
         case "" => None
         case s => Some(dir + Path.explode(s))
       }
+
+    def browser_info: Boolean = options.bool("browser_info")
 
     lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
@@ -1193,7 +1198,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       if (system_heaps) List(system_output_dir)
       else List(user_output_dir, system_output_dir)
 
-    val browser_info: Path =
+    def presentation_dir: Path =
       if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
@@ -1325,6 +1330,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.create_table(Export.Data.table)
         db.using_statement(
           Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute)
+
+        db.create_table(Presentation.Data.table)
+        db.using_statement(
+          Presentation.Data.table.delete(
+            Presentation.Data.session_name.where_equal(name)))(_.execute)
       }
     }
 

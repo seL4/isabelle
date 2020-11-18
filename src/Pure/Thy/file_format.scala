@@ -88,7 +88,7 @@ abstract class File_Format extends Isabelle_System.Service
     } yield s
   }
 
-  def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] = None
+  def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] = None
 
 
   /* PIDE session agent */

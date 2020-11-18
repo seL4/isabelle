@@ -29,7 +29,7 @@ object Bibtex
     override def theory_content(name: String): String =
       """theory "bib" imports Pure begin bibtex_file """ + quote(name) + """ end"""
 
-    override def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] =
+    override def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
     {
       val name = snapshot.node_name
       if (detect(name.node)) {
@@ -39,7 +39,7 @@ object Bibtex
             File.write(bib, snapshot.node.source)
             Bibtex.html_output(List(bib), style = "unsort", title = title)
           }
-        Some(Present.Preview(title, content))
+        Some(Presentation.Preview(title, content))
       }
       else None
     }

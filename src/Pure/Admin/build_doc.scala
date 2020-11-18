@@ -50,7 +50,7 @@ object Build_Doc
     val errs =
       Par_List.map((doc_session: (String, String)) =>
         try {
-          Present.build_documents(doc_session._2, deps, store, progress = progress)
+          Presentation.build_documents(doc_session._2, deps, store, progress = progress)
           None
         }
         catch {

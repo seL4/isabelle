@@ -132,19 +132,19 @@ text \<open>
     -O           set option "document_output", relative to current directory
     -V           verbose latex
     -d DIR       include session directory
-    -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose build
 
   Prepare the theory document of a session.\<close>}
 
   Generated {\LaTeX} sources are taken from the session build database:
-  @{tool_ref build} is invoked beforehand to ensure that it is up-to-date, but
-  option \<^verbatim>\<open>-n\<close> suppresses that. Further files are generated on the spot,
-  notably essential Isabelle style files, and \<^verbatim>\<open>session.tex\<close> to input all
-  theory sources from the session (excluding imports from other sessions).
+  @{tool_ref build} is invoked beforehand to ensure that it is up-to-date.
+  Further files are generated on the spot, notably essential Isabelle style
+  files, and \<^verbatim>\<open>session.tex\<close> to input all theory sources from the session
+  (excluding imports from other sessions).
 
-  \<^medskip> Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> have the same meaning as for @{tool build}.
+  \<^medskip> Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> have the same meaning as for @{tool
+  build}.
 
   \<^medskip> Option \<^verbatim>\<open>-V\<close> prints full output of {\LaTeX} tools.
 

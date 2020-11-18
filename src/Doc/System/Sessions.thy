@@ -317,6 +317,7 @@ text \<open>
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
+    -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
@@ -400,6 +401,11 @@ text \<open>
   command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>, which abbreviates
   \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean options. Multiple occurrences of \<^verbatim>\<open>-o\<close> on
   the command-line are applied in the given order.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-P\<close> enables PDF/HTML presentation in the given directory, where
+  ``\<^verbatim>\<open>-P:\<close>'' refers to the default @{setting_ref ISABELLE_BROWSER_INFO} (or
+  @{setting_ref ISABELLE_BROWSER_INFO_SYSTEM}).
 
   \<^medskip>
   Option \<^verbatim>\<open>-b\<close> ensures that heap images are produced for all selected

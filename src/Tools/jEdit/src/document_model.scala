@@ -320,7 +320,7 @@ object Document_Model
         yield {
           val snapshot = model.await_stable_snapshot()
           val preview =
-            Present.preview(PIDE.resources, snapshot, fonts_url = HTML.fonts_dir(fonts_root),
+            Presentation.preview(PIDE.resources, snapshot, fonts_url = HTML.fonts_dir(fonts_root),
               plain_text = query.startsWith(plain_text_prefix))
           HTTP.Response.html(preview.content)
         })
