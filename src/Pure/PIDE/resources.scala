@@ -37,14 +37,14 @@ class Resources(
       pair(list(string),
       pair(list(pair(string, string)), list(string)))))))))(
        (Symbol.codes,
-       (resources.sessions_structure.session_positions,
-       (resources.sessions_structure.dest_session_directories,
-       (resources.sessions_structure.session_chapters,
-       (resources.sessions_structure.bibtex_entries,
+       (sessions_structure.session_positions,
+       (sessions_structure.dest_session_directories,
+       (sessions_structure.session_chapters,
+       (sessions_structure.bibtex_entries,
        (command_timings,
-       (resources.session_base.doc_names,
-       (resources.session_base.global_theories.toList,
-        resources.session_base.loaded_theories.keys))))))))))
+       (session_base.doc_names,
+       (session_base.global_theories.toList,
+        session_base.loaded_theories.keys))))))))))
   }
 
 
