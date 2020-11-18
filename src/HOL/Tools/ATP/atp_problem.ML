@@ -370,6 +370,10 @@ fun is_format_typed (TFF _) = true
   | is_format_typed (DFG _) = true
   | is_format_typed _ = false
 
+fun is_format_with_fool (THF (With_FOOL, _, _)) = true
+  | is_format_with_fool (TFF (With_FOOL, _)) = true
+  | is_format_with_fool _ = false
+
 fun tptp_string_of_role Axiom = "axiom"
   | tptp_string_of_role Definition = "definition"
   | tptp_string_of_role Lemma = "lemma"
@@ -465,7 +469,7 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
         "[" ^ commas (map of_term ts) ^ "]"
       else if is_tptp_equal s then
         space_implode (" " ^ tptp_equal ^ " ") (map of_term ts)
-        |> is_format_higher_order format ? parens
+        |> (is_format_higher_order format orelse is_format_with_fool format) ? parens
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
         (case ts of
           [AAbs (((s', ty), tm), [])] =>
