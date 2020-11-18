@@ -1330,6 +1330,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.create_table(Export.Data.table)
         db.using_statement(
           Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute)
+
+        db.create_table(Presentation.Data.table)
+        db.using_statement(
+          Presentation.Data.table.delete(
+            Presentation.Data.session_name.where_equal(name)))(_.execute)
       }
     }
 

@@ -130,7 +130,6 @@ text \<open>
 
   Options are:
     -O           set option "document_output", relative to current directory
-    -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -V           verbose latex
     -d DIR       include session directory
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -144,7 +143,7 @@ text \<open>
   files, and \<^verbatim>\<open>session.tex\<close> to input all theory sources from the session
   (excluding imports from other sessions).
 
-  \<^medskip> Options \<^verbatim>\<open>-P\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> have the same meaning as for @{tool
+  \<^medskip> Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> have the same meaning as for @{tool
   build}.
 
   \<^medskip> Option \<^verbatim>\<open>-V\<close> prints full output of {\LaTeX} tools.

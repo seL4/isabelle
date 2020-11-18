@@ -360,19 +360,30 @@ object Build
         val document_errors =
           try {
             if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok) {
-              if (info.documents.nonEmpty) {
-                val document_progress =
-                  new Progress {
-                    override def echo(msg: String): Unit =
-                      document_output.synchronized { document_output += msg }
-                    override def echo_document(path: Path): Unit =
-                      progress.echo_document(path)
-                  }
-                Presentation.build_documents(session_name, deps, store, verbose = verbose,
-                  verbose_latex = true, progress = document_progress)
-              }
+              val documents =
+                if (info.documents.isEmpty) Nil
+                else {
+                  val document_progress =
+                    new Progress {
+                      override def echo(msg: String): Unit =
+                        document_output.synchronized { document_output += msg }
+                      override def echo_document(path: Path): Unit =
+                        progress.echo_document(path)
+                    }
+                  val documents =
+                    Presentation.build_documents(session_name, deps, store, verbose = verbose,
+                      verbose_latex = true, progress = document_progress)
+                  using(store.open_database(session_name, output = true))(db =>
+                    for ((doc, pdf) <- documents) {
+                      db.transaction {
+                        Presentation.write_document(db, session_name, doc, pdf)
+                      }
+                    })
+                  documents
+                }
               if (presentation.enabled(info)) {
                 val dir = Presentation.session_html(session_name, deps, store, presentation)
+                for ((doc, pdf) <- documents) Bytes.write(dir + doc.path.pdf, pdf)
                 if (verbose) progress.echo("Browser info at " + dir.absolute)
               }
             }

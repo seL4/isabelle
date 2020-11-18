@@ -16,18 +16,24 @@ object Presentation
 
   object Document_Variant
   {
-    def parse(s: String): Document_Variant =
-      Library.space_explode('=', s) match {
-        case List(name) => Document_Variant(name)
-        case List(name, tags) => Document_Variant(name, Library.space_explode(',', tags))
-        case _ => error("Malformed document variant: " + quote(s))
+    def parse(name: String, tags: String): Document_Variant =
+      Document_Variant(name, Library.space_explode(',', tags))
+
+    def parse(opt: String): Document_Variant =
+      Library.space_explode('=', opt) match {
+        case List(name) => Document_Variant(name, Nil)
+        case List(name, tags) => parse(name, tags)
+        case _ => error("Malformed document variant: " + quote(opt))
       }
   }
 
-  sealed case class Document_Variant(name: String, tags: List[String] = Nil)
+  sealed case class Document_Variant(name: String, tags: List[String], sources: String = "")
   {
-    def print: String = if (tags.isEmpty) name else name + "=" + tags.mkString(",")
+    def print_tags: String = tags.mkString(",")
+    def print: String = if (tags.isEmpty) name else name + "=" + print_tags
+
     def path: Path = Path.basic(name)
+
     def latex_sty: String =
       Library.terminate_lines(
         tags.map(tag =>
@@ -37,6 +43,71 @@ object Presentation
             case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
             case cs => "\\isakeeptag{" + cs.mkString + "}"
           }))
+
+    def set_sources(s: String): Document_Variant = copy(sources = s)
+  }
+
+
+  /* SQL data model */
+
+  object Data
+  {
+    val session_name = SQL.Column.string("session_name").make_primary_key
+    val name = SQL.Column.string("name").make_primary_key
+    val tags = SQL.Column.string("tags")
+    val sources = SQL.Column.string("sources")
+    val pdf = SQL.Column.bytes("pdf")
+
+    val table = SQL.Table("isabelle_documents", List(session_name, name, tags, sources, pdf))
+
+    def where_equal(session_name: String, name: String = ""): SQL.Source =
+      "WHERE " + Data.session_name.equal(session_name) +
+        (if (name == "") "" else " AND " + Data.name.equal(name))
+  }
+
+  def read_document_variants(db: SQL.Database, session_name: String): List[Document_Variant] =
+  {
+    val select =
+      Data.table.select(List(Data.name, Data.tags, Data.sources), Data.where_equal(session_name))
+    db.using_statement(select)(stmt =>
+      stmt.execute_query().iterator(res =>
+      {
+        val name = res.string(Data.name)
+        val tags = res.string(Data.tags)
+        val sources = res.string(Data.sources)
+        Document_Variant.parse(name, tags).set_sources(sources)
+      }).toList)
+  }
+
+  def read_document(db: SQL.Database, session_name: String, name: String)
+    : Option[(Document_Variant, Bytes)] =
+  {
+    val select = Data.table.select(sql = Data.where_equal(session_name, name))
+    db.using_statement(select)(stmt =>
+    {
+      val res = stmt.execute_query()
+      if (res.next()) {
+        val name = res.string(Data.name)
+        val tags = res.string(Data.tags)
+        val sources = res.string(Data.sources)
+        val pdf = res.bytes(Data.pdf)
+        Some(Document_Variant.parse(name, tags).set_sources(sources) -> pdf)
+      }
+      else None
+    })
+  }
+
+  def write_document(db: SQL.Database, session_name: String, doc: Document_Variant, pdf: Bytes)
+  {
+    db.using_statement(Data.table.insert())(stmt =>
+    {
+      stmt.string(1) = session_name
+      stmt.string(2) = doc.name
+      stmt.string(3) = doc.print_tags
+      stmt.string(4) = doc.sources
+      stmt.bytes(5) = pdf
+      stmt.execute()
+    })
   }
 
 
@@ -304,7 +375,6 @@ object Presentation
     deps: Sessions.Deps,
     store: Sessions.Store,
     progress: Progress = new Progress,
-    presentation: Context = Context.none,
     verbose: Boolean = false,
     verbose_latex: Boolean = false): List[(Document_Variant, Bytes)] =
   {
@@ -327,7 +397,7 @@ object Presentation
         }
       )
 
-    def prepare_dir(dir: Path, doc: Document_Variant): (Path, String) =
+    def prepare_dir1(dir: Path, doc: Document_Variant): (Path, String) =
     {
       val doc_dir = dir + Path.basic(doc.name)
       Isabelle_System.make_directory(doc_dir)
@@ -335,7 +405,6 @@ object Presentation
       Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
       File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
       for ((base_dir, src) <- info.document_files) File.copy_base(info.dir + base_dir, src, doc_dir)
-      Bytes.write(doc_dir + session_graph_path, graph_pdf)
 
       File.write(doc_dir + session_tex_path,
         Library.terminate_lines(
@@ -349,6 +418,14 @@ object Presentation
       (doc_dir, root)
     }
 
+    def prepare_dir2(dir: Path, doc: Document_Variant): Unit =
+    {
+      val doc_dir = dir + Path.basic(doc.name)
+
+      // non-deterministic, but irrelevant
+      Bytes.write(doc_dir + session_graph_path, graph_pdf)
+    }
+
 
     /* produce documents */
 
@@ -359,71 +436,83 @@ object Presentation
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
-          val (doc_dir, root) = prepare_dir(tmp_dir, doc)
-          doc_output.foreach(prepare_dir(_, doc))
+          // prepare sources
+
+          val (doc_dir, root) = prepare_dir1(tmp_dir, doc)
+          val digests = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
+          val sources = SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
+          prepare_dir2(tmp_dir, doc)
+
+          doc_output.foreach(prepare_dir1(_, doc))
+          doc_output.foreach(prepare_dir2(_, doc))
 
 
-          // bash scripts
+          // old document from database
 
-          def root_bash(ext: String): String = Bash.string(root + "." + ext)
+          val old_document =
+            using(store.open_database(session))(db =>
+              for {
+                document@(doc, pdf) <- read_document(db, session, doc.name)
+                if doc.sources == sources
+              }
+              yield {
+                Bytes.write(doc_dir + doc.path.pdf, pdf)
+                document
+              })
 
-          def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
-            "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root + "." + ext)
+          old_document getOrElse {
+            // bash scripts
 
-          def bash(items: String*): Process_Result =
-            progress.bash(items.mkString(" && "), cwd = doc_dir.file,
-              echo = verbose_latex, watchdog = Time.seconds(0.5))
+            def root_bash(ext: String): String = Bash.string(root + "." + ext)
+
+            def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
+              "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root + "." + ext)
+
+            def bash(items: String*): Process_Result =
+              progress.bash(items.mkString(" && "), cwd = doc_dir.file,
+                echo = verbose_latex, watchdog = Time.seconds(0.5))
 
 
-          // prepare document
+            // prepare document
 
-          val result =
-            if ((doc_dir + Path.explode("build")).is_file) {
-              bash("./build pdf " + Bash.string(doc.name))
+            val result =
+              if ((doc_dir + Path.explode("build")).is_file) {
+                bash("./build pdf " + Bash.string(doc.name))
+              }
+              else {
+                bash(
+                  latex_bash(),
+                  "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
+                  "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
+                  latex_bash(),
+                  latex_bash())
+              }
+
+
+            // result
+
+            val root_pdf = Path.basic(root).pdf
+            val result_path = doc_dir + root_pdf
+
+            if (!result.ok) {
+              cat_error(
+                Library.trim_line(result.err),
+                cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
+                "Failed to build document " + quote(doc.name))
             }
-            else {
-              bash(
-                latex_bash(),
-                "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
-                "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
-                latex_bash(),
-                latex_bash())
+            else if (!result_path.is_file) {
+              error("Bad document result: expected to find " + root_pdf)
             }
-
-
-          // result
-
-          val root_pdf = Path.basic(root).pdf
-          val result_path = doc_dir + root_pdf
-
-          if (!result.ok) {
-            cat_error(
-              Library.trim_line(result.err),
-              cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
-              "Failed to build document " + quote(doc.name))
+            else doc.set_sources(sources) -> Bytes.read(result_path)
           }
-          else if (!result_path.is_file) {
-            error("Bad document result: expected to find " + root_pdf)
-          }
-          else doc -> Bytes.read(result_path)
         })
       }
 
-    def output(dir: Path)
-    {
-      Isabelle_System.make_directory(dir)
-      for ((doc, pdf) <- documents) {
-        val path = dir + doc.path.pdf
-        Bytes.write(path, pdf)
-        progress.echo_document(path)
-      }
+    for (dir <- doc_output; (doc, pdf) <- documents) {
+      val path = dir + doc.path.pdf
+      Bytes.write(path, pdf)
+      progress.echo_document(path)
     }
-
-    if (presentation.enabled(info) || doc_output.isEmpty) {
-      output(presentation.dir(store, info))
-    }
-
-    doc_output.foreach(output)
 
     documents
   }
@@ -434,7 +523,6 @@ object Presentation
   val isabelle_tool =
     Isabelle_Tool("document", "prepare session theory document", args =>
     {
-      var presentation = Presentation.Context.none
       var verbose_latex = false
       var dirs: List[Path] = Nil
       var options = Options.init()
@@ -445,7 +533,6 @@ object Presentation
 Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
-    -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -O           set option "document_output", relative to current directory
     -V           verbose latex
     -d DIR       include session directory
@@ -454,7 +541,6 @@ Usage: isabelle document [OPTIONS] SESSION
 
   Prepare the theory document of a session.
 """,
-        "P:" -> (arg => presentation = Context.make(arg)),
         "O:" -> (arg => options += ("document_output=" + Path.explode(arg).absolute.implode)),
         "V" -> (_ => verbose_latex = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -481,8 +567,12 @@ Usage: isabelle document [OPTIONS] SESSION
           Sessions.load_structure(options + "document=pdf", dirs = dirs).
             selection_deps(Sessions.Selection.session(session))
 
+        if (deps.sessions_structure(session).document_output.isEmpty) {
+          progress.echo_warning("No document_output")
+        }
+
         build_documents(session, deps, store, progress = progress,
-          presentation = presentation, verbose = true, verbose_latex = verbose_latex)
+          verbose = true, verbose_latex = verbose_latex)
       }
     })
 }
