@@ -12,6 +12,33 @@ import scala.collection.immutable.SortedMap
 
 object Present
 {
+  /* presentation context */
+
+  object Context
+  {
+    val none: Context = new Context { def enabled: Boolean = false }
+    val standard: Context = new Context { def enabled: Boolean = true }
+
+    def dir(path: Path): Context =
+      new Context {
+        def enabled: Boolean = true
+        override def dir(store: Sessions.Store): Path = path
+      }
+
+    def make(s: String): Context =
+      if (s == ":") standard else dir(Path.explode(s))
+  }
+
+  abstract class Context private
+  {
+    def enabled: Boolean
+    def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
+    def dir(store: Sessions.Store): Path = store.presentation_dir
+    def dir(store: Sessions.Store, info: Sessions.Info): Path =
+      dir(store) + Path.basic(info.chapter) + Path.basic(info.name)
+  }
+
+
   /* maintain chapter index -- NOT thread-safe */
 
   private val sessions_path = Path.basic(".sessions")
@@ -83,13 +110,17 @@ object Present
   def theory_link(name: Document.Node.Name): XML.Tree =
     HTML.link(html_name(name), HTML.text(name.theory_base_name))
 
-  def session_html(session: String, deps: Sessions.Deps, store: Sessions.Store): Path =
+  def session_html(
+    session: String,
+    deps: Sessions.Deps,
+    store: Sessions.Store,
+    presentation: Context): Path =
   {
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
 
-    val session_dir = store.browser_info + info.chapter_session
+    val session_dir = presentation.dir(store, info)
     val session_fonts = Isabelle_System.make_directory(session_dir + Path.explode("fonts"))
     for (entry <- Isabelle_Fonts.fonts(hidden = true))
       File.copy(entry.path, session_fonts)
@@ -255,6 +286,7 @@ object Present
     deps: Sessions.Deps,
     store: Sessions.Store,
     progress: Progress = new Progress,
+    presentation: Context = Context.none,
     verbose: Boolean = false,
     verbose_latex: Boolean = false): List[(String, Bytes)] =
   {
@@ -369,8 +401,8 @@ object Present
       }
     }
 
-    if (info.options.bool("browser_info") || doc_output.isEmpty) {
-      output(store.browser_info + info.chapter_session)
+    if (presentation.enabled(info) || doc_output.isEmpty) {
+      output(presentation.dir(store, info))
     }
 
     doc_output.foreach(output)
@@ -384,6 +416,7 @@ object Present
   val isabelle_tool =
     Isabelle_Tool("document", "prepare session theory document", args =>
     {
+      var presentation = Present.Context.none
       var verbose_latex = false
       var dirs: List[Path] = Nil
       var no_build = false
@@ -395,6 +428,7 @@ object Present
 Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
+    -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -O           set option "document_output", relative to current directory
     -V           verbose latex
     -d DIR       include session directory
@@ -404,6 +438,7 @@ Usage: isabelle document [OPTIONS] SESSION
 
   Prepare the theory document of a session.
 """,
+        "P:" -> (arg => presentation = Context.make(arg)),
         "O:" -> (arg => options += ("document_output=" + Path.explode(arg).absolute.implode)),
         "V" -> (_ => verbose_latex = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -434,7 +469,7 @@ Usage: isabelle document [OPTIONS] SESSION
             selection_deps(Sessions.Selection.session(session))
 
         build_documents(session, deps, store, progress = progress,
-          verbose = true, verbose_latex = verbose_latex)
+          presentation = presentation, verbose = true, verbose_latex = verbose_latex)
       }
     })
 }

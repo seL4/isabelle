@@ -158,6 +158,7 @@ object Build
     deps: Sessions.Deps,
     store: Sessions.Store,
     do_store: Boolean,
+    presentation: Present.Context,
     verbose: Boolean,
     val numa_node: Option[Int],
     command_timings0: List[Properties.T])
@@ -370,8 +371,8 @@ object Build
                 Present.build_documents(session_name, deps, store, verbose = verbose,
                   verbose_latex = true, progress = document_progress)
               }
-              if (info.options.bool("browser_info")) {
-                val dir = Present.session_html(session_name, deps, store)
+              if (presentation.enabled(info)) {
+                val dir = Present.session_html(session_name, deps, store, presentation)
                 if (verbose) progress.echo("Browser info at " + dir.absolute)
               }
             }
@@ -481,6 +482,7 @@ object Build
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
+    presentation: Present.Context = Present.Context.none,
     progress: Progress = new Progress,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
@@ -729,8 +731,8 @@ object Build
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, session_name, info, deps, store, do_store, verbose,
-                      numa_node, queue.command_timings(session_name))
+                    new Job(progress, session_name, info, deps, store, do_store, presentation,
+                      verbose, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -794,14 +796,16 @@ object Build
           (name, result) <- results0.iterator
           if result.ok
           info = full_sessions(name)
-          if info.options.bool("browser_info")
+          if presentation.enabled(info)
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
             map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
 
-      for ((chapter, entries) <- browser_chapters)
-        Present.update_chapter_index(store.browser_info, chapter, entries)
+      val dir = presentation.dir(store)
 
-      if (browser_chapters.nonEmpty) Present.make_global_index(store.browser_info)
+      for ((chapter, entries) <- browser_chapters)
+        Present.update_chapter_index(dir, chapter, entries)
+
+      if (browser_chapters.nonEmpty) Present.make_global_index(dir)
     }
 
     results
@@ -817,6 +821,7 @@ object Build
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
+    var presentation = Present.Context.none
     var requirements = false
     var soft_build = false
     var exclude_session_groups: List[String] = Nil
@@ -842,6 +847,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
+    -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
@@ -866,6 +872,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
+      "P:" -> (arg => presentation = Present.Context.make(arg)),
       "R" -> (_ => requirements = true),
       "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -908,6 +915,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             exclude_sessions = exclude_sessions,
             session_groups = session_groups,
             sessions = sessions),
+          presentation = presentation,
           progress = progress,
           check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,

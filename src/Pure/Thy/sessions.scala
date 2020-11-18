@@ -463,8 +463,6 @@ object Sessions
     export_files: List[(Path, Int, List[String])],
     meta_digest: SHA1.Digest)
   {
-    def chapter_session: Path = Path.basic(chapter) + Path.basic(name)
-
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base =
@@ -516,6 +514,8 @@ object Sessions
         case "" => None
         case s => Some(dir + Path.explode(s))
       }
+
+    def browser_info: Boolean = options.bool("browser_info")
 
     lazy val bibtex_entries: List[Text.Info[String]] =
       (for {
@@ -1197,7 +1197,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       if (system_heaps) List(system_output_dir)
       else List(user_output_dir, system_output_dir)
 
-    val browser_info: Path =
+    def presentation_dir: Path =
       if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
