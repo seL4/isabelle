@@ -440,7 +440,7 @@ object Presentation
 
           val (doc_dir, root) = prepare_dir1(tmp_dir, doc)
           val digests = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
-          val sources = SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
+          val sources = SHA1.digest_set(digests).toString
           prepare_dir2(tmp_dir, doc)
 
           doc_output.foreach(prepare_dir1(_, doc))

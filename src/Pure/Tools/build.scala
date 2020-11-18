@@ -533,7 +533,7 @@ object Build
         full_sessions(session_name).meta_digest ::
         deps.sources(session_name) :::
         deps.imported_sources(session_name)
-      SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
+      SHA1.digest_set(digests).toString
     }
 
     val deps =
