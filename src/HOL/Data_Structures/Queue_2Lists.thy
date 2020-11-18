@@ -3,7 +3,9 @@
 section \<open>Queue Implementation via 2 Lists\<close>
 
 theory Queue_2Lists
-imports Queue_Spec
+imports
+  Queue_Spec
+  Reverse
 begin
 
 text \<open>Definitions:\<close>
@@ -11,7 +13,7 @@ text \<open>Definitions:\<close>
 type_synonym 'a queue = "'a list \<times> 'a list"
 
 fun norm :: "'a queue \<Rightarrow> 'a queue" where
-"norm (fs,rs) = (if fs = [] then (rev rs, []) else (fs,rs))"
+"norm (fs,rs) = (if fs = [] then (itrev rs [], []) else (fs,rs))"
 
 fun enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
 "enq a (fs,rs) = norm(fs, a # rs)"
@@ -42,7 +44,7 @@ proof (standard, goal_cases)
 next
   case (2 q) thus ?case by(cases q) (simp)
 next
-  case (3 q) thus ?case by(cases q) (simp)
+  case (3 q) thus ?case by(cases q) (simp add: itrev_Nil)
 next
   case (4 q) thus ?case by(cases q) (auto simp: neq_Nil_conv)
 next
@@ -58,7 +60,7 @@ qed
 text \<open>Running times:\<close>
 
 fun T_norm :: "'a queue \<Rightarrow> nat" where
-"T_norm (fs,rs) = (if fs = [] then length rs else 0) + 1"
+"T_norm (fs,rs) = (if fs = [] then T_itrev rs [] else 0) + 1"
 
 fun T_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
 "T_enq a (fs,rs) = T_norm(fs, a # rs) + 1"
@@ -77,10 +79,10 @@ text \<open>Amortized running times:\<close>
 fun \<Phi> :: "'a queue \<Rightarrow> nat" where
 "\<Phi>(fs,rs) = length rs"
 
-lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 3"
-by(auto)
+lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 4"
+by(auto simp: T_itrev)
 
-lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
-by(auto)
+lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 3"
+by(auto simp: T_itrev)
 
 end
