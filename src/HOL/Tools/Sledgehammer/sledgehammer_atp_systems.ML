@@ -296,7 +296,7 @@ val e_config : atp_config =
        val modern = string_ord (getenv "E_VERSION", "2.3") <> LESS
        val (format, enc) =
          if modern then
-           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher_fool")
+           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher")
          else
            (TFF (Without_FOOL, Monomorphic), "mono_native")
      in

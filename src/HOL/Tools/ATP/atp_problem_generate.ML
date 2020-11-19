@@ -1109,15 +1109,14 @@ fun introduce_proxies_in_iterm type_enc =
     fun intro top_level args (IApp (tm1, tm2)) =
         IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
-        (* is_type_enc_fool *)
         (case proxify_const s of
           SOME proxy_base =>
           let
             val argc = length args
             val plain_const = IConst (name, T, [])
             fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
-            fun if_card_matches card x = if card = argc then x else plain_const
             val is_fool = is_type_enc_fool type_enc
+            fun if_card_matches card x = if not is_fool orelse card = argc then x else plain_const
           in
             if top_level orelse is_fool orelse is_type_enc_higher_order type_enc then
               (case (top_level, s) of
