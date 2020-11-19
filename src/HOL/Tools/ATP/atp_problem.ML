@@ -33,14 +33,14 @@ sig
 
   datatype fool = Without_FOOL | With_FOOL
   datatype polymorphism = Monomorphic | Polymorphic
-  datatype thf_choice = THF_Without_Choice | THF_With_Choice
+  datatype thf_flavor = THF_Without_Choice | THF_With_Choice
 
   datatype atp_format =
     CNF |
     CNF_UEQ |
     FOF |
     TFF of fool * polymorphism |
-    THF of fool * polymorphism * thf_choice |
+    THF of fool * polymorphism * thf_flavor |
     DFG of polymorphism
 
   datatype atp_formula_role =
@@ -191,14 +191,14 @@ type term_order =
 
 datatype fool = Without_FOOL | With_FOOL
 datatype polymorphism = Monomorphic | Polymorphic
-datatype thf_choice = THF_Without_Choice | THF_With_Choice
+datatype thf_flavor = THF_Without_Choice | THF_With_Choice
 
 datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
   TFF of fool * polymorphism |
-  THF of fool * polymorphism * thf_choice |
+  THF of fool * polymorphism * thf_flavor |
   DFG of polymorphism
 
 datatype atp_formula_role =

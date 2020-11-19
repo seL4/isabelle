@@ -135,7 +135,7 @@ type stature = scope * status
 
 datatype order =
   First_Order |
-  Higher_Order of thf_choice
+  Higher_Order of thf_flavor
 datatype phantom_policy = Without_Phantom_Type_Vars | With_Phantom_Type_Vars
 datatype polymorphism =
   Type_Class_Polymorphic |
