@@ -225,8 +225,8 @@ class Build_Job(progress: Progress,
                   new Progress {
                     override def echo(msg: String): Unit =
                       document_output.synchronized { document_output += msg }
-                    override def echo_document(path: Path): Unit =
-                      progress.echo_document(path)
+                    override def echo_document(msg: String): Unit =
+                      progress.echo_document(msg)
                   }
                 val documents =
                   Presentation.build_documents(session_name, deps, store, verbose = verbose,

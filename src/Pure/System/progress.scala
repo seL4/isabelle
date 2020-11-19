@@ -32,7 +32,7 @@ class Progress
 
   def echo_warning(msg: String) { echo(Output.warning_text(msg)) }
   def echo_error_message(msg: String) { echo(Output.error_message_text(msg)) }
-  def echo_document(path: Path) { echo("Document at " + path.absolute) }
+  def echo_document(msg: String) { echo(Output.error_message_text(msg)) }
 
   def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
     Timing.timeit(message, enabled, echo)(e)

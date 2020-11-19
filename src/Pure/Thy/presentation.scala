@@ -511,7 +511,7 @@ object Presentation
     for (dir <- doc_output; (doc, pdf) <- documents) {
       val path = dir + doc.path.pdf
       Bytes.write(path, pdf)
-      progress.echo_document(path)
+      progress.echo_document("Document at " + path.absolute)
     }
 
     documents
