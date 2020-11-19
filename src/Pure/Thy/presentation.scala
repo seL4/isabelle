@@ -436,6 +436,10 @@ object Presentation
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
+          progress.echo_document("Building document " + session + "/" + doc.name + " ...")
+          val start = Time.now()
+
+
           // prepare sources
 
           val (doc_dir, root) = prepare_dir1(tmp_dir, doc)
@@ -503,7 +507,14 @@ object Presentation
             else if (!result_path.is_file) {
               error("Bad document result: expected to find " + root_pdf)
             }
-            else doc.set_sources(sources) -> Bytes.read(result_path)
+            else {
+              val stop = Time.now()
+              val timing = stop - start
+              progress.echo_document("Finished document " + session + "/" + doc.name +
+                " (" + timing.message_hms + " elapsed time)")
+
+              doc.set_sources(sources) -> Bytes.read(result_path)
+            }
           }
         })
       }
