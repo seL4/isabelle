@@ -150,7 +150,8 @@ val library_path =
 
 val library_call =
   Foreign.buildCall3
-    (Foreign.getSymbol (Foreign.loadLibrary (File.platform_path library_path)) "sha1_buffer",
+    (Foreign.getSymbol
+      (Foreign.loadLibraryIndirect (fn () => File.platform_path library_path)) "sha1_buffer",
       (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer);
 
 fun with_memory n =
