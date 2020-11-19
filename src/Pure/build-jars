@@ -160,6 +160,7 @@ declare -a SOURCES=(
   src/Pure/Thy/thy_syntax.scala
   src/Pure/Tools/build.scala
   src/Pure/Tools/build_docker.scala
+  src/Pure/Tools/build_job.scala
   src/Pure/Tools/check_keywords.scala
   src/Pure/Tools/debugger.scala
   src/Pure/Tools/doc.scala
