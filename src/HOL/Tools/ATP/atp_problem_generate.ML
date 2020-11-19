@@ -162,6 +162,9 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Bool_Free, _, _, _)) = false
+  | is_type_enc_full_higher_order (Native (Higher_Order _, _, _, _)) = true
+  | is_type_enc_full_higher_order _ = false
 fun is_type_enc_fool (Native (_, With_FOOL, _, _)) = true
   | is_type_enc_fool _ = false
 fun is_type_enc_higher_order (Native (Higher_Order _, _, _, _)) = true
@@ -692,7 +695,9 @@ fun type_enc_of_string strictness s =
   end
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
-fun min_hologic THF_Without_Choice _ = THF_Without_Choice
+fun min_hologic THF_Lambda_Bool_Free _ = THF_Lambda_Bool_Free
+  | min_hologic _ THF_Lambda_Bool_Free = THF_Lambda_Bool_Free
+  | min_hologic THF_Without_Choice _ = THF_Without_Choice
   | min_hologic _ THF_Without_Choice = THF_Without_Choice
   | min_hologic _ _ = THF_With_Choice
 
@@ -912,7 +917,7 @@ fun raw_atp_type_of_typ type_enc =
         ((if s = \<^type_name>\<open>fun\<close> andalso is_type_enc_higher_order type_enc then
             `I tptp_fun_type
           else if s = \<^type_name>\<open>bool\<close> andalso
-            (is_type_enc_higher_order type_enc orelse is_type_enc_fool type_enc) then
+            (is_type_enc_full_higher_order type_enc orelse is_type_enc_fool type_enc) then
             `I tptp_bool_type
           else
             `make_fixed_type_const s, []), map term Ts)
@@ -957,11 +962,17 @@ fun native_atp_type_of_raw_atp_type type_enc pred_sym ary =
     fun to_ho (ty as AType (((s, _), _), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
       | to_ho _ = raise Fail "unexpected type"
+    fun to_lfho (ty as AType (((s, _), _), tys)) =
+        if s = tptp_fun_type then to_afun to_ho to_lfho tys
+        else if pred_sym then bool_atype
+        else to_atype ty
+      | to_lfho _ = raise Fail "unexpected type"
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (AType (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
       | to_fo _ _ = raise Fail "unexpected type"
   in
-    if is_type_enc_higher_order type_enc then to_ho
+    if is_type_enc_full_higher_order type_enc then to_ho
+    else if is_type_enc_higher_order type_enc then to_lfho
     else to_fo ary
   end
 
@@ -1118,7 +1129,7 @@ fun introduce_proxies_in_iterm type_enc =
             val is_fool = is_type_enc_fool type_enc
             fun if_card_matches card x = if not is_fool orelse card = argc then x else plain_const
           in
-            if top_level orelse is_fool orelse is_type_enc_higher_order type_enc then
+            if top_level orelse is_fool orelse is_type_enc_full_higher_order type_enc then
               (case (top_level, s) of
                 (_, "c_False") => IConst (`I tptp_false, T, [])
               | (_, "c_True") => IConst (`I tptp_true, T, [])
@@ -1277,7 +1288,7 @@ fun presimp_prop ctxt type_enc t =
               |> transform_elim_prop
               |> Object_Logic.atomize_term ctxt
     val need_trueprop = (fastype_of t = \<^typ>\<open>bool\<close>)
-    val is_ho = is_type_enc_higher_order type_enc
+    val is_ho = is_type_enc_full_higher_order type_enc
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> (if is_ho then unextensionalize_def
@@ -1290,7 +1301,7 @@ fun presimp_prop ctxt type_enc t =
 (* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "=" for technical
    reasons. *)
 fun should_use_iff_for_eq CNF _ = false
-  | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
+  | should_use_iff_for_eq (THF _) format = not (is_type_enc_full_higher_order format)
   | should_use_iff_for_eq _ _ = true
 
 fun make_formula ctxt format type_enc iff_for_eq name stature role t =
@@ -1423,7 +1434,7 @@ fun default_sym_tab_entries type_enc =
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [], in_conj = false}))
-  |> not (is_type_enc_fool type_enc orelse is_type_enc_higher_order type_enc)
+  |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
     ? cons (prefixed_predicator_name,
       {pred_sym = true, min_ary = 1, max_ary = 1, types = [], in_conj = false})
 
@@ -1621,10 +1632,12 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
         (IConst ((s, _), _, _), _) =>
         if is_pred_sym sym_tab s then tm else predicatify completish tm
       | _ => predicatify completish tm)
+    val is_ho = is_type_enc_higher_order type_enc
+    val is_full_ho = is_type_enc_full_higher_order type_enc
+    val is_fool = is_type_enc_fool type_enc
     val do_iterm =
-      (not (is_type_enc_higher_order type_enc) ?
-        (introduce_app_ops #>
-         not (is_type_enc_fool type_enc) ? introduce_predicators))
+      (not is_ho ? introduce_app_ops)
+      #> (not (is_full_ho orelse is_fool) ? introduce_predicators)
       #> filter_type_args_in_iterm thy ctrss type_enc
   in update_iformula (formula_map do_iterm) end
 
@@ -2622,7 +2635,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
       else
         Sufficient_App_Op_And_Predicator
     val lam_trans =
-      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
+      if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
       else lam_trans
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts

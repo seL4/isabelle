@@ -33,7 +33,7 @@ sig
 
   datatype fool = Without_FOOL | With_FOOL
   datatype polymorphism = Monomorphic | Polymorphic
-  datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+  datatype thf_flavor = THF_Lambda_Bool_Free | THF_Without_Choice | THF_With_Choice
 
   datatype atp_format =
     CNF |
@@ -191,7 +191,7 @@ type term_order =
 
 datatype fool = Without_FOOL | With_FOOL
 datatype polymorphism = Monomorphic | Polymorphic
-datatype thf_flavor = THF_Without_Choice | THF_With_Choice
+datatype thf_flavor = THF_Lambda_Bool_Free | THF_Without_Choice | THF_With_Choice
 
 datatype atp_format =
   CNF |
