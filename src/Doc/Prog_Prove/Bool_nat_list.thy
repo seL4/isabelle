@@ -438,7 +438,7 @@ Type  \<^typ>\<open>int\<close> is already part of theory \<^theory>\<open>Main\
 theory \<^theory>\<open>Complex_Main\<close> instead of \<^theory>\<open>Main\<close>.
 \end{warn}
 
-There are three conversion functions, meaning inclusions:
+There are three coercion functions that are inclusions and do not lose information:
 \begin{quote}
 \begin{tabular}{rcl}
 \<^const>\<open>int\<close> &\<open>::\<close>& \<^typ>\<open>nat \<Rightarrow> int\<close>\\
@@ -447,7 +447,7 @@ There are three conversion functions, meaning inclusions:
 \end{tabular}
 \end{quote}
 
-Isabelle inserts these conversion functions automatically once you import \<open>Complex_Main\<close>.
+Isabelle inserts these inclusions automatically once you import \<open>Complex_Main\<close>.
 If there are multiple type-correct completions, Isabelle chooses an arbitrary one.
 For example, the input \noquotes{@{term[source] "(i::int) + (n::nat)"}} has the unique
 type-correct completion \<^term>\<open>(i::int) + int(n::nat)\<close>. In contrast,
