@@ -577,7 +577,8 @@ object Sessions
       val meta_digest =
         SHA1.digest(
           (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
-            entry.theories_no_position, conditions, entry.document_theories, entry.document_files)
+            entry.theories_no_position, conditions, entry.document_theories_no_position,
+            entry.document_files)
           .toString)
 
       Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
@@ -877,6 +878,8 @@ object Sessions
   {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
+    def document_theories_no_position: List[String] =
+      document_theories.map(_._1)
   }
 
   private object Parser extends Options.Parser
