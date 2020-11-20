@@ -12,7 +12,7 @@ section \<open>Random Permutations\<close>
 
 theory Random_Permutations
 imports 
-  "~~/src/HOL/Probability/Probability_Mass_Function" 
+  Probability_Mass_Function
   "HOL-Library.Multiset_Permutations"
 begin
 

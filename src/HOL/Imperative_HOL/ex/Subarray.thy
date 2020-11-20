@@ -5,7 +5,7 @@
 section \<open>Theorems about sub arrays\<close>
 
 theory Subarray
-imports "~~/src/HOL/Imperative_HOL/Array" List_Sublist
+imports "../Array" List_Sublist
 begin
 
 definition subarray :: "nat \<Rightarrow> nat \<Rightarrow> ('a::heap) array \<Rightarrow> heap \<Rightarrow> 'a list" where

@@ -6,7 +6,7 @@ section \<open>An imperative implementation of Quicksort on arrays\<close>
 
 theory Imperative_Quicksort
 imports
-  "~~/src/HOL/Imperative_HOL/Imperative_HOL"
+  "../Imperative_HOL"
   Subarray
   "HOL-Library.Multiset"
   "HOL-Library.Code_Target_Numeral"

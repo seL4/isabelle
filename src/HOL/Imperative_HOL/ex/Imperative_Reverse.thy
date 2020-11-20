@@ -5,7 +5,7 @@
 section \<open>An imperative in-place reversal on arrays\<close>
 
 theory Imperative_Reverse
-imports Subarray "~~/src/HOL/Imperative_HOL/Imperative_HOL"
+imports Subarray "../Imperative_HOL"
 begin
 
 fun swap :: "'a::heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where

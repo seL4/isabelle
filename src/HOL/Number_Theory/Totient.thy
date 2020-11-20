@@ -10,7 +10,7 @@ theory Totient
 imports
   Complex_Main
   "HOL-Computational_Algebra.Primes"
-  "~~/src/HOL/Number_Theory/Cong"
+  Cong
 begin
   
 definition totatives :: "nat \<Rightarrow> nat set" where
