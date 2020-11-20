@@ -86,6 +86,9 @@ object Document
       abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil)
     {
+      def imports_offset: Map[Int, Name] =
+        (for { (name, Position.Offset(i)) <- imports_pos } yield i -> name).toMap
+
       def imports: List[Name] = imports_pos.map(_._1)
 
       def append_errors(msgs: List[String]): Header =

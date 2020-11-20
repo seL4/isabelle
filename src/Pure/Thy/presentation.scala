@@ -206,8 +206,30 @@ object Presentation
   def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
   def document_html_name(name: Document.Node.Name): String = "document/" + html_name(name)
 
-  def theory_link(name: Document.Node.Name): XML.Tree =
-    HTML.link(html_name(name), HTML.text(name.theory_base_name))
+  def token_markups(keywords: Keyword.Keywords, tok: Token): List[String] = {
+    if (keywords.is_command(tok, Keyword.theory_end))
+      List(Markup.KEYWORD2, Markup.KEYWORD)
+    else if (keywords.is_command(tok, Keyword.proof_asm))
+      List(Markup.KEYWORD3, Markup.COMMAND)
+    else if (keywords.is_command(tok, Keyword.improper))
+      List(Markup.KEYWORD1, Markup.IMPROPER, Markup.COMMAND)
+    else if (tok.is_command) List(Markup.KEYWORD1, Markup.COMMAND)
+    else if (tok.is_delimiter) List(Markup.DELIMITER, Markup.KEYWORD)
+    else if (tok.is_keyword) List(Markup.KEYWORD2, Markup.KEYWORD)
+    else if (tok.is_comment) List(Markup.COMMENT)
+    else {
+      tok.kind match {
+        case Token.Kind.VAR => List(Markup.VAR)
+        case Token.Kind.TYPE_IDENT => List(Markup.TFREE)
+        case Token.Kind.TYPE_VAR => List(Markup.TVAR)
+        case Token.Kind.STRING => List(Markup.STRING)
+        case Token.Kind.ALT_STRING => List(Markup.ALT_STRING)
+        case Token.Kind.VERBATIM => List(Markup.VERBATIM)
+        case Token.Kind.CARTOUCHE => List(Markup.CARTOUCHE)
+        case _ => Nil
+      }
+    }
+  }
 
   def session_html(
     session: String,
@@ -248,24 +270,62 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    val theories =
-      using(Export.open_database_context(deps.sessions_structure, store))(context =>
-        for {
-          name <- base.session_theories
-          entry <- context.try_entry(session, name.theory, document_html_name(name))
-        } yield name -> entry.uncompressed(cache = store.xz_cache))
+    def theory_link(name1: Document.Node.Name, body: XML.Body): XML.Tree =
+    {
+      val session1 = base.theory_qualifier(name1)
+      val info1 = deps.sessions_structure(session1)
+      val prefix =
+        if (session == session1) ""
+        else if (info.chapter == info1.chapter) "../" + session1 + "/"
+        else "../../" + info1.chapter + "/" + session1 + "/"
+      HTML.link(prefix + html_name(name1), body)
+    }
 
-    val theories_body =
-      HTML.itemize(for ((name, _) <- theories) yield List(theory_link(name)))
+    val theories =
+      for (name <- base.session_theories)
+      yield {
+        val syntax = base.theory_syntax(name)
+        val keywords = syntax.keywords
+        val spans = syntax.parse_spans(Symbol.decode(File.read(name.path)))
+
+        val thy_body =
+        {
+          val imports_offset = base.known_theories(name.theory).header.imports_offset
+          var token_offset = 1
+          spans.flatMap(span =>
+          {
+            val is_init = span.is_kind(keywords, Keyword.theory_begin, false)
+            span.content.flatMap(tok =>
+            {
+              val text = HTML.text(tok.source)
+              val item =
+                if (is_init && imports_offset.isDefinedAt(token_offset)) {
+                  List(theory_link(imports_offset(token_offset), text))
+                }
+                else text
+
+              token_offset += tok.symbol_length
+
+              (token_markups(keywords, tok) :\ item)(
+                { case (c, body) => List(HTML.span(c, body)) })
+            })
+          })
+        }
+
+        val title = "Theory " + name.theory_base_name
+        HTML.write_document(session_dir, html_name(name),
+          List(HTML.title(title)),
+          HTML.div("head", List(HTML.chapter(title))) :: List(HTML.pre("source", thy_body)))
+
+        List(HTML.link(html_name(name), HTML.text(name.theory_base_name)))
+      }
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
       List(HTML.title(title + " (" + Distribution.version + ")")),
       HTML.div("head", List(HTML.chapter(title), HTML.par(links))) ::
        (if (theories.isEmpty) Nil
-        else List(HTML.div("theories", List(HTML.section("Theories"), theories_body)))))
-
-    for ((name, html) <- theories) Bytes.write(session_dir + Path.basic(html_name(name)), html)
+        else List(HTML.div("theories", List(HTML.section("Theories"), HTML.itemize(theories))))))
 
     session_dir
   }

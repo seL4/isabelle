@@ -35,58 +35,7 @@ struct
 fun document_name ext thy =
   Path.explode_binding0 ("document/" ^ Context.theory_name thy ^ "." ^ ext);
 
-val document_html_name = document_name "html";
 val document_tex_name = document_name "tex";
-
-fun html_name thy = Path.basic (Context.theory_name thy ^ ".html");
-
-
-(* theory as HTML *)
-
-local
-
-fun get_session_chapter thy =
-  let
-    val session = Resources.theory_qualifier (Context.theory_long_name thy);
-    val chapter = Resources.session_chapter session;
-  in (session, chapter) end;
-
-fun theory_link thy thy' =
-  let
-    val ((session, chapter), (session', chapter')) = apply2 get_session_chapter (thy, thy');
-    val link = html_name thy';
-  in
-    if session = session' then link
-    else if chapter = chapter' then Path.parent + Path.basic session' + link
-    else Path.parent + Path.parent + Path.basic chapter' + Path.basic session' + link
-  end;
-
-fun theory_document symbols A Bs body =
-  HTML.begin_document symbols ("Theory " ^ A) ^ "\n" ^
-  HTML.command symbols "theory" ^ " " ^ HTML.name symbols A ^ "<br/>\n" ^
-  (if null Bs then ""
-   else
-    HTML.keyword symbols "imports" ^ " " ^
-      space_implode " " (map (uncurry HTML.href_path o apsnd (HTML.name symbols)) Bs) ^ "<br/>\n") ^
-  "\n</div>\n<div class=\"source\">\n<pre class=\"source\">" ::
-  body @ ["</pre>\n", HTML.end_document];
-
-in
-
-fun export_html thy spans =
-  let
-    val name = Context.theory_name thy;
-    val parents =
-      Theory.parents_of thy |> map (fn thy' =>
-        (Url.File (theory_link thy thy'), Context.theory_name thy'));
-
-    val symbols = Resources.html_symbols ();
-    val keywords = Thy_Header.get_keywords thy;
-    val body = map (HTML.present_span symbols keywords) spans;
-    val html = XML.blob (theory_document symbols name parents body);
-  in Export.export thy (document_html_name thy) html end
-
-end;
 
 
 (* hook for consolidated theory *)
@@ -113,7 +62,6 @@ fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
   Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
-   (export_html thy (map #span segments);
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -128,7 +76,7 @@ val _ =
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
           in Export.export thy document_tex_name (XML.blob output) end
-      end)));
+      end));
 
 
 

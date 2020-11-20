@@ -28,15 +28,13 @@ class Resources(
     import XML.Encode._
 
     YXML.string_of_body(
-      pair(list(pair(string, int)),
       pair(list(pair(string, properties)),
       pair(list(pair(string, string)),
       pair(list(pair(string, string)),
       pair(list(pair(string, list(string))),
       pair(list(properties),
       pair(list(string),
-      pair(list(pair(string, string)), list(string)))))))))(
-       (Symbol.codes,
+      pair(list(pair(string, string)), list(string))))))))(
        (sessions_structure.session_positions,
        (sessions_structure.dest_session_directories,
        (sessions_structure.session_chapters,
@@ -44,7 +42,7 @@ class Resources(
        (command_timings,
        (session_base.doc_names,
        (session_base.global_theories.toList,
-        session_base.loaded_theories.keys))))))))))
+        session_base.loaded_theories.keys)))))))))
   }
 
 

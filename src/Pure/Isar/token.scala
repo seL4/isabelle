@@ -328,6 +328,8 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_end: Boolean = is_command("end")
   def is_begin_or_command: Boolean = is_begin || is_command
 
+  def symbol_length: Symbol.Offset = Symbol.iterator(source).length
+
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
     else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)

@@ -8,8 +8,7 @@ signature RESOURCES =
 sig
   val default_qualifier: string
   val init_session:
-    {html_symbols: (string * int) list,
-     session_positions: (string * Properties.T) list,
+    {session_positions: (string * Properties.T) list,
      session_directories: (string * string) list,
      session_chapters: (string * string) list,
      bibtex_entries: (string * string list) list,
@@ -22,7 +21,6 @@ sig
   val finish_session_base: unit -> unit
   val global_theory: string -> string option
   val loaded_theory: string -> bool
-  val html_symbols: unit -> HTML.symbols
   val check_session: Proof.context -> string * Position.T -> string
   val session_chapter: string -> string
   val last_timing: Toplevel.transition -> Time.time
@@ -97,8 +95,7 @@ fun make_entry props : entry =
   {pos = Position.of_properties props, serial = serial ()};
 
 val empty_session_base =
-  {html_symbols = HTML.no_symbols,
-   session_positions = []: (string * entry) list,
+  {session_positions = []: (string * entry) list,
    session_directories = Symtab.empty: Path.T list Symtab.table,
    session_chapters = Symtab.empty: string Symtab.table,
    bibtex_entries = Symtab.empty: string list Symtab.table,
@@ -111,12 +108,11 @@ val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session
-    {html_symbols, session_positions, session_directories, session_chapters,
+    {session_positions, session_directories, session_chapters,
       bibtex_entries, command_timings, docs, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
-      {html_symbols = HTML.make_symbols html_symbols,
-       session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
+      {session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
        session_directories =
          fold_rev (fn (dir, name) => Symtab.cons_list (name, Path.explode dir))
            session_directories Symtab.empty,
@@ -129,20 +125,18 @@ fun init_session
 
 fun init_session_yxml yxml =
   let
-    val (html_symbols, (session_positions, (session_directories, (session_chapters,
-          (bibtex_entries, (command_timings, (docs, (global_theories, loaded_theories)))))))) =
+    val (session_positions, (session_directories, (session_chapters,
+          (bibtex_entries, (command_timings, (docs, (global_theories, loaded_theories))))))) =
       YXML.parse_body yxml |>
         let open XML.Decode in
-          pair (list (pair string int))
-            (pair (list (pair string properties))
-              (pair (list (pair string string)) (pair (list (pair string string))
-                (pair (list (pair string (list string))) (pair (list properties)
-                  (pair (list string) (pair (list (pair string string)) (list string))))))))
+          (pair (list (pair string properties))
+            (pair (list (pair string string)) (pair (list (pair string string))
+              (pair (list (pair string (list string))) (pair (list properties)
+                (pair (list string) (pair (list (pair string string)) (list string))))))))
         end;
   in
     init_session
-      {html_symbols = html_symbols,
-       session_positions = session_positions,
+      {session_positions = session_positions,
        session_directories = session_directories,
        session_chapters = session_chapters,
        bibtex_entries = bibtex_entries,
@@ -158,8 +152,7 @@ fun init_session_file path =
 fun finish_session_base () =
   Synchronized.change global_session_base
     (fn {global_theories, loaded_theories, ...} =>
-      {html_symbols = HTML.no_symbols,
-       session_positions = [],
+      {session_positions = [],
        session_directories = Symtab.empty,
        session_chapters = Symtab.empty,
        bibtex_entries = Symtab.empty,
@@ -172,8 +165,6 @@ fun get_session_base f = f (Synchronized.value global_session_base);
 
 fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;
-
-fun html_symbols () = get_session_base #html_symbols;
 
 fun check_name which kind markup ctxt arg =
   Completion.check_item kind markup (get_session_base which |> sort_by #1) ctxt arg;

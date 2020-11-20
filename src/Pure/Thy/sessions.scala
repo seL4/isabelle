@@ -80,6 +80,9 @@ object Sessions
     def loaded_theory_syntax(name: Document.Node.Name): Option[Outer_Syntax] =
       loaded_theory_syntax(name.theory)
 
+    def theory_syntax(name: Document.Node.Name): Outer_Syntax =
+      loaded_theory_syntax(name) getOrElse overall_syntax
+
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
   }
