@@ -134,7 +134,7 @@ object Presentation
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
     def dir(store: Sessions.Store): Path = store.presentation_dir
     def dir(store: Sessions.Store, info: Sessions.Info): Path =
-      dir(store) + Path.basic(info.chapter) + Path.basic(info.name)
+      dir(store) + Path.explode(info.chapter_session)
   }
 
 
@@ -277,7 +277,7 @@ object Presentation
       val prefix =
         if (session == session1) ""
         else if (info.chapter == info1.chapter) "../" + session1 + "/"
-        else "../../" + info1.chapter + "/" + session1 + "/"
+        else "../../" + info1.chapter_session + "/"
       HTML.link(prefix + html_name(name1), body)
     }
 
