@@ -242,10 +242,17 @@ stdout after termination. Potential INCOMPATIBILITY for external tools.
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
 
+* The command-line tool "isabelle build" provides option -P DIR to
+produce PDF/HTML presentation in the specified directory; -P: refers to
+the standard directory according to ISABELLE_BROWSER_INFO /
+ISABELLE_BROWSER_INFO_SYSTEM settings. Generated PDF documents are taken
+from the build database -- from this or earlier builds with option
+document=pdf.
+
 * The command-line tool "isabelle document" generates theory documents
-from the underlying session build database (using its exported \LaTeX
-sources or existing PDF files). INCOMPATIBILITY, the former "isabelle
-document" tool was rather different and has been discontinued.
+on the spot, using the underlying session build database (exported
+\LaTeX sources or existing PDF files). INCOMPATIBILITY, the former
+"isabelle document" tool was rather different and has been discontinued.
 
 * The command-line tool "isabelle sessions" explores the structure of
 Isabelle sessions and prints result names in topological order (on
