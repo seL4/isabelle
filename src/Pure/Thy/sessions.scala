@@ -497,7 +497,7 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def documents_variants: List[Presentation.Document_Variant] =
+    def document_variants: List[Presentation.Document_Variant] =
     {
       val variants =
         Library.space_explode(':', options.string("document_variants")).
@@ -511,7 +511,7 @@ object Sessions
 
     def documents: List[Presentation.Document_Variant] =
     {
-      val variants = documents_variants
+      val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
     }
 
