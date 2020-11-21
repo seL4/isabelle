@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/url.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Basic URLs, see RFC 1738 and RFC 2396.
+Basic URLs (see RFC 1738 and RFC 2396).
 *)
 
 signature URL =
@@ -11,11 +11,7 @@ sig
     Http of string * Path.T |
     Https of string * Path.T |
     Ftp of string * Path.T
-  val append: T -> T -> T
-  val implode: T -> string
   val explode: string -> T
-  val pretty: T -> Pretty.T
-  val print: T -> string
 end;
 
 structure Url: URL =
@@ -28,25 +24,6 @@ datatype T =
   Http of string * Path.T |
   Https of string * Path.T |
   Ftp of string * Path.T;
-
-
-(* append *)
-
-fun append (File p) (File p') = File (p + p')
-  | append (Http (h, p)) (File p') = Http (h, p + p')
-  | append (Https (h, p)) (File p') = Https (h, p + p')
-  | append (Ftp (h, p)) (File p') = Ftp (h, p + p')
-  | append _ url = url;
-
-
-(* implode *)
-
-fun implode_path p = if Path.is_current p then "" else Path.implode p;
-
-fun implode_url (File p) = implode_path p
-  | implode_url (Http (h, p)) = "http://" ^ h ^ implode_path p
-  | implode_url (Https (h, p)) = "https://" ^ h ^ implode_path p
-  | implode_url (Ftp (h, p)) = "ftp://" ^ h ^ implode_path p;
 
 
 (* explode *)
@@ -75,20 +52,8 @@ val scan_url =
 
 in
 
-fun explode_url s = Symbol.scanner "Malformed URL" scan_url (Symbol.explode s);
+fun explode s = Symbol.scanner "Malformed URL" scan_url (Symbol.explode s);
 
 end;
-
-
-(* print *)
-
-val pretty = Pretty.mark_str o `Markup.url o implode_url;
-
-val print = Pretty.unformatted_string_of o pretty;
-
-
-(*final declarations of this structure!*)
-val implode = implode_url;
-val explode = explode_url;
 
 end;
