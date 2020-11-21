@@ -1182,12 +1182,15 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Database_Context private[Sessions](
     val store: Sessions.Store,
-    sessions_structure: Sessions.Structure,
+    val sessions_structure: Sessions.Structure,
     database_server: Option[SQL.Database]) extends AutoCloseable
   {
+    def xml_cache: XML.Cache = store.xml_cache
+    def xz_cache: XZ.Cache = store.xz_cache
+
     def close { database_server.foreach(_.close) }
 
-    def try_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
+    def read_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
     {
       val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
       val attempts =
@@ -1204,9 +1207,19 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       attempts.collectFirst({ case Some(entry) => entry })
     }
 
-    def export(session: String, theory_name: String, name: String): Export.Entry =
-      try_export(session, theory_name, name) getOrElse
+    def get_export(session: String, theory_name: String, name: String): Export.Entry =
+      read_export(session, theory_name, name) getOrElse
         Export.empty_entry(session, theory_name, name)
+
+    def read_document(session_name: String, name: String): Option[Presentation.Document_PDF] =
+      database_server match {
+        case Some(db) => Presentation.read_document(db, session_name, name)
+        case None =>
+          store.try_open_database(session_name) match {
+            case Some(db) => using(db)(Presentation.read_document(_, session_name, name))
+            case None => None
+          }
+      }
 
     override def toString: String =
     {

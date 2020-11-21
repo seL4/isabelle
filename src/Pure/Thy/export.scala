@@ -244,7 +244,7 @@ object Export
         context: Sessions.Database_Context, session: String, theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          context.try_export(session, theory_name, export_name)
+          context.read_export(session, theory_name, export_name)
 
         def focus(other_theory: String): Provider = this
 

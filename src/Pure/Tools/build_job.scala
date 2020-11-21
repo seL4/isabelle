@@ -227,12 +227,13 @@ class Build_Job(progress: Progress,
                   progress.echo_document(msg)
               }
             val documents =
-              Presentation.build_documents(session_name, deps, store,
-                output_sources = info.document_output,
-                output_pdf = info.document_output,
-                progress = document_progress,
-                verbose = verbose,
-                verbose_latex = true)
+              using(store.open_database_context(deps.sessions_structure))(db_context =>
+                Presentation.build_documents(session_name, deps, db_context,
+                  output_sources = info.document_output,
+                  output_pdf = info.document_output,
+                  progress = document_progress,
+                  verbose = verbose,
+                  verbose_latex = true))
             using(store.open_database(session_name, output = true))(db =>
               for ((doc, pdf) <- documents) {
                 db.transaction {

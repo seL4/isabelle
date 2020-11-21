@@ -14,6 +14,8 @@ object Presentation
 {
   /* document variants */
 
+  type Document_PDF = (Document_Variant, Bytes)
+
   object Document_Variant
   {
     def parse(name: String, tags: String): Document_Variant =
@@ -79,8 +81,7 @@ object Presentation
       }).toList)
   }
 
-  def read_document(db: SQL.Database, session_name: String, name: String)
-    : Option[(Document_Variant, Bytes)] =
+  def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_PDF] =
   {
     val select = Data.table.select(sql = Data.where_equal(session_name, name))
     db.using_statement(select)(stmt =>
@@ -234,14 +235,14 @@ object Presentation
   def session_html(
     session: String,
     deps: Sessions.Deps,
-    store: Sessions.Store,
-    presentation: Context) =
+    db_context: Sessions.Database_Context,
+    presentation: Context)
   {
     val info = deps.sessions_structure(session)
     val options = info.options
     val base = deps(session)
 
-    val session_dir = presentation.dir(store, info)
+    val session_dir = presentation.dir(db_context.store, info)
     val session_fonts = Isabelle_System.make_directory(session_dir + Path.explode("fonts"))
     for (entry <- Isabelle_Fonts.fonts(hidden = true))
       File.copy(entry.path, session_fonts)
@@ -250,11 +251,10 @@ object Presentation
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
 
     val documents =
-      using(store.open_database(session))(db =>
-        for {
-          doc <- info.document_variants
-          (_, pdf) <- Presentation.read_document(db, session, doc.name)
-        } yield { Bytes.write(session_dir + doc.path.pdf, pdf); doc })
+      for {
+        doc <- info.document_variants
+        (_, pdf) <- db_context.read_document(session, doc.name)
+      } yield { Bytes.write(session_dir + doc.path.pdf, pdf); doc }
 
     val links =
     {
@@ -438,12 +438,12 @@ object Presentation
   def build_documents(
     session: String,
     deps: Sessions.Deps,
-    store: Sessions.Store,
+    db_context: Sessions.Database_Context,
     progress: Progress = new Progress,
     output_sources: Option[Path] = None,
     output_pdf: Option[Path] = None,
     verbose: Boolean = false,
-    verbose_latex: Boolean = false): List[(Document_Variant, Bytes)] =
+    verbose_latex: Boolean = false): List[Document_PDF] =
   {
     /* session info */
 
@@ -456,13 +456,11 @@ object Presentation
     /* prepare document directory */
 
     lazy val tex_files =
-      using(store.open_database_context(deps.sessions_structure))(context =>
-        for (name <- base.session_theories ::: base.document_theories)
-        yield {
-          val entry = context.export(session, name.theory, document_tex_name(name))
-          Path.basic(tex_name(name)) -> entry.uncompressed(cache = store.xz_cache)
-        }
-      )
+      for (name <- base.session_theories ::: base.document_theories)
+      yield {
+        val entry = db_context.get_export(session, name.theory, document_tex_name(name))
+        Path.basic(tex_name(name)) -> entry.uncompressed(cache = db_context.xz_cache)
+      }
 
     def prepare_dir1(dir: Path, doc: Document_Variant): (Path, String) =
     {
@@ -521,15 +519,14 @@ object Presentation
           // old document from database
 
           val old_document =
-            using(store.open_database(session))(db =>
-              for {
-                document@(doc, pdf) <- read_document(db, session, doc.name)
-                if doc.sources == sources
-              }
-              yield {
-                Bytes.write(doc_dir + doc.path.pdf, pdf)
-                document
-              })
+            for {
+              document@(doc, pdf) <- db_context.read_document(session, doc.name)
+              if doc.sources == sources
+            }
+            yield {
+              Bytes.write(doc_dir + doc.path.pdf, pdf)
+              document
+            }
 
           old_document getOrElse {
             // bash scripts
@@ -661,9 +658,10 @@ Usage: isabelle document [OPTIONS] SESSION
           progress.echo_warning("No output directory")
         }
 
-        build_documents(session, deps, store, progress = progress,
-          output_sources = output_sources, output_pdf = output_pdf,
-          verbose = true, verbose_latex = verbose_latex)
+        using(store.open_database_context(deps.sessions_structure))(db_context =>
+          build_documents(session, deps, db_context, progress = progress,
+            output_sources = output_sources, output_pdf = output_pdf,
+            verbose = true, verbose_latex = verbose_latex))
       }
     })
 }

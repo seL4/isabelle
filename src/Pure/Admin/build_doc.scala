@@ -52,8 +52,10 @@ object Build_Doc
         case (doc, session) =>
           try {
             progress.echo("Documentation " + doc + " ...")
-            Presentation.build_documents(session, deps, store,
-              output_pdf = Some(Path.explode("~~/src/doc")))
+
+            using(store.open_database_context(deps.sessions_structure))(db_context =>
+              Presentation.build_documents(session, deps, db_context,
+                output_pdf = Some(Path.explode("~~/src/doc"))))
             None
           }
           catch {
