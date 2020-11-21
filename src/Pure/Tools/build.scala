@@ -492,14 +492,18 @@ object Build
 
     if (!no_build) {
       val presentation_dir = presentation.dir(store)
-      progress.echo("Presentation in " + presentation_dir.absolute + " ...")
+      progress.echo("Presentation in " + presentation_dir.absolute)
 
       val presentation_chapters =
-        for { info <- results.infos if results(info.name).ok && presentation.enabled(info) }
+        (for {
+          session_name <- deps.sessions_structure.build_topological_order.iterator
+          info = results.info(session_name)
+          if presentation.enabled(info) && results(session_name).ok }
         yield {
-          Presentation.session_html(info.name, deps, store, presentation)
-          (info.chapter, (info.name, info.description))
-        }
+          progress.echo("Presenting " + session_name + " ...")
+          Presentation.session_html(session_name, deps, store, presentation)
+          (info.chapter, (session_name, info.description))
+        }).toList
 
       val browser_chapters =
         presentation_chapters.groupBy(_._1).
