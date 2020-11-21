@@ -235,7 +235,7 @@ object Presentation
     session: String,
     deps: Sessions.Deps,
     store: Sessions.Store,
-    presentation: Context): Path =
+    presentation: Context) =
   {
     val info = deps.sessions_structure(session)
     val options = info.options
@@ -248,6 +248,13 @@ object Presentation
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
+
+    val documents =
+      using(store.open_database(session))(db =>
+        for {
+          doc <- info.document_variants
+          (_, pdf) <- Presentation.read_document(db, session, doc.name)
+        } yield { Bytes.write(session_dir + doc.path.pdf, pdf); doc })
 
     val links =
     {
@@ -262,8 +269,7 @@ object Presentation
         else Nil
 
       val document_links =
-        for (doc <- info.documents)
-          yield HTML.link(doc.path.pdf, HTML.text(doc.name))
+        documents.map(doc => HTML.link(doc.path.pdf, HTML.text(doc.name)))
 
       Library.separate(HTML.break ::: HTML.nl,
         (deps_link :: readme_links ::: document_links).
@@ -326,8 +332,6 @@ object Presentation
       HTML.div("head", List(HTML.chapter(title), HTML.par(links))) ::
        (if (theories.isEmpty) Nil
         else List(HTML.div("theories", List(HTML.section("Theories"), HTML.itemize(theories))))))
-
-    session_dir
   }
 
 

@@ -154,6 +154,7 @@ object Build
   class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
   {
     def sessions: Set[String] = results.keySet
+    def infos: List[Sessions.Info] = results.values.map(_._2).toList
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
@@ -448,17 +449,19 @@ object Build
 
     /* build results */
 
-    val results0 =
-      if (deps.is_empty) {
-        progress.echo_warning("Nothing to build")
-        Map.empty[String, Result]
-      }
-      else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
-
     val results =
+    {
+      val results0 =
+        if (deps.is_empty) {
+          progress.echo_warning("Nothing to build")
+          Map.empty[String, Result]
+        }
+        else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
+
       new Results(
         (for ((name, result) <- results0.iterator)
           yield (name, (result.process, result.info))).toMap)
+    }
 
     if (export_files) {
       for (name <- full_sessions.imports_selection(selection).iterator if results(name).ok) {
@@ -485,24 +488,27 @@ object Build
     }
 
 
-    /* global browser info */
+    /* PDF/HTML presentation */
 
     if (!no_build) {
-      val browser_chapters =
-        (for {
-          (name, result) <- results0.iterator
-          if result.ok
-          info = full_sessions(name)
-          if presentation.enabled(info)
-        } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
-            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
+      val presentation_dir = presentation.dir(store)
+      progress.echo("Presentation in " + presentation_dir.absolute + " ...")
 
-      val dir = presentation.dir(store)
+      val presentation_chapters =
+        for { info <- results.infos if results(info.name).ok && presentation.enabled(info) }
+        yield {
+          Presentation.session_html(info.name, deps, store, presentation)
+          (info.chapter, (info.name, info.description))
+        }
+
+      val browser_chapters =
+        presentation_chapters.groupBy(_._1).
+          map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
 
       for ((chapter, entries) <- browser_chapters)
-        Presentation.update_chapter_index(dir, chapter, entries)
+        Presentation.update_chapter_index(presentation_dir, chapter, entries)
 
-      if (browser_chapters.nonEmpty) Presentation.make_global_index(dir)
+      if (browser_chapters.nonEmpty) Presentation.make_global_index(presentation_dir)
     }
 
     results
