@@ -1180,6 +1180,45 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
   }
 
+  class Database_Context private[Sessions](
+    val store: Sessions.Store,
+    sessions_structure: Sessions.Structure,
+    database_server: Option[SQL.Database]) extends AutoCloseable
+  {
+    def close { database_server.foreach(_.close) }
+
+    def try_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
+    {
+      val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
+      val attempts =
+        database_server match {
+          case Some(db) =>
+            hierarchy.map(session_name => Export.read_entry(db, session_name, theory_name, name))
+          case None =>
+            hierarchy.map(session_name =>
+              store.try_open_database(session_name) match {
+                case Some(db) => using(db)(Export.read_entry(_, session_name, theory_name, name))
+                case None => None
+              })
+        }
+      attempts.collectFirst({ case Some(entry) => entry })
+    }
+
+    def export(session: String, theory_name: String, name: String): Export.Entry =
+      try_export(session, theory_name, name) getOrElse
+        Export.empty_entry(session, theory_name, name)
+
+    override def toString: String =
+    {
+      val s =
+        database_server match {
+          case Some(db) => db.toString
+          case None => "input_dirs = " + store.input_dirs.map(_.absolute).mkString(", ")
+        }
+      "Database_Context(" + s + ")"
+    }
+  }
+
   def store(options: Options): Store = new Store(options)
 
   class Store private[Sessions](val options: Options)
@@ -1258,6 +1297,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               user = options.string("build_database_ssh_user"),
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
+
+    def open_database_context(sessions_structure: Sessions.Structure): Database_Context =
+      new Database_Context(store, sessions_structure,
+        if (database_server) Some(open_database_server()) else None)
 
     def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
     {

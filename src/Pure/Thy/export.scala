@@ -185,55 +185,6 @@ object Export
   }
 
 
-  /* database context */
-
-  def open_database_context(
-    sessions_structure: Sessions.Structure,
-    store: Sessions.Store): Database_Context =
-  {
-    new Database_Context(sessions_structure, store,
-      if (store.database_server) Some(store.open_database_server()) else None)
-  }
-
-  class Database_Context private[Export](
-    sessions_structure: Sessions.Structure,
-    store: Sessions.Store,
-    database_server: Option[SQL.Database]) extends AutoCloseable
-  {
-    def close { database_server.foreach(_.close) }
-
-    def try_entry(session: String, theory_name: String, name: String): Option[Entry] =
-    {
-      val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
-      val attempts =
-        database_server match {
-          case Some(db) =>
-            hierarchy.map(session_name => read_entry(db, session_name, theory_name, name))
-          case None =>
-            hierarchy.map(session_name =>
-              store.try_open_database(session_name) match {
-                case Some(db) => using(db)(read_entry(_, session_name, theory_name, name))
-                case None => None
-              })
-        }
-      attempts.collectFirst({ case Some(entry) => entry })
-    }
-
-    def entry(session: String, theory_name: String, name: String): Entry =
-      try_entry(session, theory_name, name) getOrElse empty_entry(session, theory_name, name)
-
-    override def toString: String =
-    {
-      val s =
-        database_server match {
-          case Some(db) => db.toString
-          case None => "input_dirs = " + store.input_dirs.map(_.absolute).mkString(", ")
-        }
-      "Database_Context(" + s + ")"
-    }
-  }
-
-
   /* database consumer thread */
 
   def consumer(db: SQL.Database, cache: XZ.Cache = XZ.cache()): Consumer = new Consumer(db, cache)
@@ -290,10 +241,10 @@ object Export
       }
 
     def database_context(
-        context: Database_Context, session: String, theory_name: String): Provider =
+        context: Sessions.Database_Context, session: String, theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          context.try_entry(session, theory_name, export_name)
+          context.try_export(session, theory_name, export_name)
 
         def focus(other_theory: String): Provider = this
 

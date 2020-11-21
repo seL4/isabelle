@@ -335,6 +335,7 @@ object Presentation
   }
 
 
+
   /** preview **/
 
   sealed case class Preview(title: String, content: String)
@@ -455,10 +456,10 @@ object Presentation
     /* prepare document directory */
 
     lazy val tex_files =
-      using(Export.open_database_context(deps.sessions_structure, store))(context =>
+      using(store.open_database_context(deps.sessions_structure))(context =>
         for (name <- base.session_theories ::: base.document_theories)
         yield {
-          val entry = context.entry(session, name.theory, document_tex_name(name))
+          val entry = context.export(session, name.theory, document_tex_name(name))
           Path.basic(tex_name(name)) -> entry.uncompressed(cache = store.xz_cache)
         }
       )
