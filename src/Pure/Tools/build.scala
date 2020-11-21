@@ -491,28 +491,31 @@ object Build
     /* PDF/HTML presentation */
 
     if (!no_build) {
-      val presentation_dir = presentation.dir(store)
-      progress.echo("Presentation in " + presentation_dir.absolute)
-
       val presentation_chapters =
         (for {
           session_name <- deps.sessions_structure.build_topological_order.iterator
           info = results.info(session_name)
           if presentation.enabled(info) && results(session_name).ok }
-        yield {
+        yield (info.chapter, (session_name, info.description))).toList
+
+      if (presentation_chapters.nonEmpty) {
+        val presentation_dir = presentation.dir(store)
+        progress.echo("Presentation in " + presentation_dir.absolute)
+
+        for ((_, (session_name, _)) <- presentation_chapters) {
           progress.echo("Presenting " + session_name + " ...")
           Presentation.session_html(session_name, deps, store, presentation)
-          (info.chapter, (session_name, info.description))
-        }).toList
+        }
 
-      val browser_chapters =
-        presentation_chapters.groupBy(_._1).
-          map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
+        val browser_chapters =
+          presentation_chapters.groupBy(_._1).
+            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
 
-      for ((chapter, entries) <- browser_chapters)
-        Presentation.update_chapter_index(presentation_dir, chapter, entries)
+        for ((chapter, entries) <- browser_chapters)
+          Presentation.update_chapter_index(presentation_dir, chapter, entries)
 
-      if (browser_chapters.nonEmpty) Presentation.make_global_index(presentation_dir)
+        if (browser_chapters.nonEmpty) Presentation.make_global_index(presentation_dir)
+      }
     }
 
     results
