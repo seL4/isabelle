@@ -439,6 +439,8 @@ object Presentation
     deps: Sessions.Deps,
     store: Sessions.Store,
     progress: Progress = new Progress,
+    output_sources: Option[Path] = None,
+    output_pdf: Option[Path] = None,
     verbose: Boolean = false,
     verbose_latex: Boolean = false): List[(Document_Variant, Bytes)] =
   {
@@ -493,8 +495,6 @@ object Presentation
 
     /* produce documents */
 
-    val doc_output = info.document_output
-
     val documents =
       for (doc <- info.documents)
       yield {
@@ -511,8 +511,10 @@ object Presentation
           val sources = SHA1.digest_set(digests).toString
           prepare_dir2(tmp_dir, doc)
 
-          doc_output.foreach(prepare_dir1(_, doc))
-          doc_output.foreach(prepare_dir2(_, doc))
+          for (dir <- output_sources) {
+            prepare_dir1(dir, doc)
+            prepare_dir2(dir, doc)
+          }
 
 
           // old document from database
@@ -583,7 +585,8 @@ object Presentation
         })
       }
 
-    for (dir <- doc_output; (doc, pdf) <- documents) {
+    for (dir <- output_pdf; (doc, pdf) <- documents) {
+      Isabelle_System.make_directory(dir)
       val path = dir + doc.path.pdf
       Bytes.write(path, pdf)
       progress.echo_document("Document at " + path.absolute)
@@ -598,6 +601,8 @@ object Presentation
   val isabelle_tool =
     Isabelle_Tool("document", "prepare session theory document", args =>
     {
+      var output_sources: Option[Path] = None
+      var output_pdf: Option[Path] = None
       var verbose_latex = false
       var dirs: List[Path] = Nil
       var options = Options.init()
@@ -608,7 +613,9 @@ object Presentation
 Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
-    -O           set option "document_output", relative to current directory
+    -O DIR       output directory for LaTeX sources and resulting PDF
+    -P DIR       output directory for resulting PDF
+    -S DIR       output directory for LaTeX sources
     -V           verbose latex
     -d DIR       include session directory
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -616,7 +623,14 @@ Usage: isabelle document [OPTIONS] SESSION
 
   Prepare the theory document of a session.
 """,
-        "O:" -> (arg => options += ("document_output=" + Path.explode(arg).absolute.implode)),
+        "O:" -> (arg =>
+          {
+            val dir = Path.explode(arg)
+            output_sources = Some(dir)
+            output_pdf = Some(dir)
+          }),
+        "P:" -> (arg => { output_pdf = Some(Path.explode(arg)) }),
+        "S:" -> (arg => { output_sources = Some(Path.explode(arg)) }),
         "V" -> (_ => verbose_latex = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "o:" -> (arg => options = options + arg),
@@ -642,11 +656,12 @@ Usage: isabelle document [OPTIONS] SESSION
           Sessions.load_structure(options + "document=pdf", dirs = dirs).
             selection_deps(Sessions.Selection.session(session))
 
-        if (deps.sessions_structure(session).document_output.isEmpty) {
-          progress.echo_warning("No document_output")
+        if (output_sources.isEmpty && output_pdf.isEmpty) {
+          progress.echo_warning("No output directory")
         }
 
         build_documents(session, deps, store, progress = progress,
+          output_sources = output_sources, output_pdf = output_pdf,
           verbose = true, verbose_latex = verbose_latex)
       }
     })

@@ -129,7 +129,9 @@ text \<open>
 \<open>Usage: isabelle document [OPTIONS] SESSION
 
   Options are:
-    -O           set option "document_output", relative to current directory
+    -O DIR       output directory for LaTeX sources and resulting PDF
+    -P DIR       output directory for resulting PDF
+    -S DIR       output directory for LaTeX sources
     -V           verbose latex
     -d DIR       include session directory
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -148,9 +150,9 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-V\<close> prints full output of {\LaTeX} tools.
 
-  \<^medskip> Option \<^verbatim>\<open>-O\<close>~\<open>dir\<close> specifies the @{system_option document_output} option
-  relative to the current directory, while \<^verbatim>\<open>-o document_output=\<close>\<open>dir\<close> is
-  relative to the session directory.
+  \<^medskip> Option \<^verbatim>\<open>-O\<close>~\<open>dir\<close> specifies the output directory for generated {\LaTeX}
+  sources and the result PDF file. Options \<^verbatim>\<open>-P\<close> and \<^verbatim>\<open>-S\<close> only refer to the
+  PDF and sources, respectively.
 
   For example, for output directory ``\<^verbatim>\<open>output\<close>'' and the default document
   variant ``\<^verbatim>\<open>document\<close>'', the generated document sources are placed into the

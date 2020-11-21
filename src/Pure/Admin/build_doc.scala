@@ -43,21 +43,25 @@ object Build_Doc
       error("Build failed")
 
     progress.echo("Build started for documentation " + commas_quote(documents))
-    val doc_options =
-      options + "document=pdf" + "document_output=~~/doc" + "document_output_sources=false"
+    val doc_options = options + "document=pdf"
     val deps = Sessions.load_structure(doc_options).selection_deps(selection)
 
     val errs =
-      Par_List.map((doc_session: (String, String)) =>
-        try {
-          Presentation.build_documents(doc_session._2, deps, store, progress = progress)
-          None
-        }
-        catch {
-          case Exn.Interrupt.ERROR(msg) =>
-            val sep = if (msg.contains('\n')) "\n" else " "
-            Some("Documentation " + doc_session._1 + " failed:" + sep + msg)
-        }, selected).flatten
+      Par_List.map[(String, String), Option[String]](
+      {
+        case (doc, session) =>
+          try {
+            progress.echo("Documentation " + doc + " ...")
+            Presentation.build_documents(session, deps, store,
+              output_pdf = Some(Path.explode("~~/src/doc")))
+            None
+          }
+          catch {
+            case Exn.Interrupt.ERROR(msg) =>
+              val sep = if (msg.contains('\n')) "\n" else " "
+              Some("Documentation " + doc + " failed:" + sep + msg)
+          }
+      }, selected).flatten
 
     if (errs.nonEmpty) error(cat_lines(errs))
   }

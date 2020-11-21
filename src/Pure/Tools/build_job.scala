@@ -217,7 +217,8 @@ class Build_Job(progress: Progress,
 
       val document_errors =
         try {
-          if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
+          if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
+          {
             val document_progress =
               new Progress {
                 override def echo(msg: String): Unit =
@@ -226,8 +227,12 @@ class Build_Job(progress: Progress,
                   progress.echo_document(msg)
               }
             val documents =
-              Presentation.build_documents(session_name, deps, store, verbose = verbose,
-                verbose_latex = true, progress = document_progress)
+              Presentation.build_documents(session_name, deps, store,
+                output_sources = info.document_output,
+                output_pdf = info.document_output,
+                progress = document_progress,
+                verbose = verbose,
+                verbose_latex = true)
             using(store.open_database(session_name, output = true))(db =>
               for ((doc, pdf) <- documents) {
                 db.transaction {
