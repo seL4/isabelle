@@ -228,19 +228,19 @@ other projects may now participate on equal terms.
 * ML statistics via an external Poly/ML process: this allows monitoring
 the runtime system while the ML program sleeps.
 
-* Batch-builds via "isabelle build" use a PIDE session with special
-protocol: this allows to invoke Isabelle/Scala operations from
-Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for the
-java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
-
-  ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
-
 * The command-line tool "isabelle process" now prints output to
 stdout/stderr separately and incrementally, instead of just one bulk to
 stdout after termination. Potential INCOMPATIBILITY for external tools.
 
 * The command-line tool "isabelle console" now supports interrupts
 properly (on Linux and macOS).
+
+* Batch-builds via "isabelle build" use a PIDE session with special
+protocol: this allows to invoke Isabelle/Scala operations from
+Isabelle/ML. Big build jobs (e.g. AFP) require extra heap space for the
+java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
+
+  ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
 
 * The command-line tool "isabelle build" provides option -P DIR to
 produce PDF/HTML presentation in the specified directory; -P: refers to
@@ -251,7 +251,7 @@ document=pdf.
 
 * The command-line tool "isabelle document" generates theory documents
 on the spot, using the underlying session build database (exported
-\LaTeX sources or existing PDF files). INCOMPATIBILITY, the former
+LaTeX sources or existing PDF files). INCOMPATIBILITY, the former
 "isabelle document" tool was rather different and has been discontinued.
 
 * The command-line tool "isabelle sessions" explores the structure of
