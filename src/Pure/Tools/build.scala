@@ -490,7 +490,7 @@ object Build
 
     /* PDF/HTML presentation */
 
-    if (!no_build) {
+    if (!no_build && !progress.stopped && results.ok) {
       val presentation_chapters =
         (for {
           session_name <- deps.sessions_structure.build_topological_order.iterator
@@ -503,6 +503,7 @@ object Build
         progress.echo("Presentation in " + presentation_dir.absolute)
 
         for ((_, (session_name, _)) <- presentation_chapters) {
+          progress.expose_interrupt()
           progress.echo("Presenting " + session_name + " ...")
           Presentation.session_html(session_name, deps, store, presentation)
         }
