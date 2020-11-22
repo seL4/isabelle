@@ -1921,6 +1921,15 @@ proof -
   finally show ?thesis .
 qed
 
+lemma last_plus: 
+  fixes n::nat  shows "m \<le> n \<Longrightarrow> F g {m..n} = g n \<^bold>* F g {m..<n}"
+  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost commute)
+
+lemma head_if:
+  fixes n :: nat
+  shows "F g {m..n} = (if n < m then \<^bold>1 else  F g {m..<n} \<^bold>* g(n))"
+  by (simp add: commute last_plus)
+
 lemma ub_add_nat: 
   assumes "(m::nat) \<le> n + 1"
   shows "F g {m..n + p} = F g {m..n} \<^bold>* F g {n + 1..n + p}"
@@ -2001,10 +2010,6 @@ lemma atMost_shift:
   "F g {..n} = g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..<n}"
   by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost 
        atLeastSucAtMost_greaterThanAtMost le0 head shift_bounds_Suc_ivl)
-
-lemma last_plus: 
-  fixes n::nat  shows "m \<le> n \<Longrightarrow> F g {m..n} = g n \<^bold>* F g {m..<n}"
-  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost commute)
 
 lemma nested_swap:
      "F (\<lambda>i. F (\<lambda>j. a i j) {0..<i}) {0..n} = F (\<lambda>j. F (\<lambda>i. a i j) {Suc j..n}) {0..<n}"
