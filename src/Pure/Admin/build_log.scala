@@ -489,8 +489,6 @@ object Build_Log
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
-    val Session_Failed = new Regex("""^(\S+) FAILED""")
-    val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -514,8 +512,6 @@ object Build_Log
     var timing = Map.empty[String, Timing]
     var ml_timing = Map.empty[String, Timing]
     var started = Set.empty[String]
-    var failed = Set.empty[String]
-    var cancelled = Set.empty[String]
     var sources = Map.empty[String, String]
     var heap_sizes = Map.empty[String, Long]
     var theory_timings = Map.empty[String, Map[String, Timing]]
@@ -524,7 +520,7 @@ object Build_Log
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      failed ++ cancelled ++ started ++ sources.keySet ++ heap_sizes.keySet ++
+      started ++ sources.keySet ++ heap_sizes.keySet ++
       theory_timings.keySet ++ ml_statistics.keySet
 
 
@@ -596,9 +592,7 @@ object Build_Log
       Map(
         (for (name <- all_sessions.toList) yield {
           val status =
-            if (failed(name)) Session_Status.failed
-            else if (cancelled(name)) Session_Status.cancelled
-            else if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
+            if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
               Session_Status.finished
             else if (started(name)) Session_Status.failed
             else Session_Status.existing
