@@ -62,9 +62,6 @@ object Export_Theory
 
   /** theory content **/
 
-  val export_prefix: String = "theory/"
-  val export_prefix_proofs: String = "proofs/"
-
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
     consts: List[Const],
@@ -115,7 +112,7 @@ object Export_Theory
     val parents =
       if (theory_name == Thy_Header.PURE) Nil
       else {
-        provider(export_prefix + "parents") match {
+        provider(Export.THEORY_PREFIX + "parents") match {
           case Some(entry) => split_lines(entry.uncompressed().text)
           case None =>
             error("Missing theory export in session " + quote(session_name) + ": " +
@@ -239,7 +236,7 @@ object Export_Theory
   }
 
   def read_types(provider: Export.Provider): List[Type] =
-    provider.uncompressed_yxml(export_prefix + "types").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "types").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.TYPE, tree)
         val (syntax, args, abbrev) =
@@ -271,7 +268,7 @@ object Export_Theory
   }
 
   def read_consts(provider: Export.Provider): List[Const] =
-    provider.uncompressed_yxml(export_prefix + "consts").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "consts").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.CONST, tree)
         val (syntax, (typargs, (typ, (abbrev, propositional)))) =
@@ -318,7 +315,7 @@ object Export_Theory
   }
 
   def read_axioms(provider: Export.Provider): List[Axiom] =
-    provider.uncompressed_yxml(export_prefix + "axioms").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "axioms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.AXIOM, tree)
         val prop = decode_prop(body)
@@ -348,7 +345,7 @@ object Export_Theory
   }
 
   def read_thms(provider: Export.Provider): List[Thm] =
-    provider.uncompressed_yxml(export_prefix + "thms").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "thms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.THM, tree)
         val (prop, deps, prf) =
@@ -379,7 +376,7 @@ object Export_Theory
   def read_proof(
     provider: Export.Provider, id: Thm_Id, cache: Option[Term.Cache] = None): Option[Proof] =
   {
-    for { entry <- provider.focus(id.theory_name)(export_prefix_proofs + id.serial) }
+    for { entry <- provider.focus(id.theory_name)(Export.PROOFS_PREFIX + id.serial) }
     yield {
       val body = entry.uncompressed_yxml()
       val (typargs, (args, (prop_body, proof_body))) =
@@ -454,7 +451,7 @@ object Export_Theory
   }
 
   def read_classes(provider: Export.Provider): List[Class] =
-    provider.uncompressed_yxml(export_prefix + "classes").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "classes").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.CLASS, tree)
         val (params, axioms) =
@@ -483,7 +480,7 @@ object Export_Theory
   }
 
   def read_locales(provider: Export.Provider): List[Locale] =
-    provider.uncompressed_yxml(export_prefix + "locales").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "locales").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.LOCALE, tree)
         val (typargs, args, axioms) =
@@ -520,7 +517,7 @@ object Export_Theory
   }
 
   def read_locale_dependencies(provider: Export.Provider): List[Locale_Dependency] =
-    provider.uncompressed_yxml(export_prefix + "locale_dependencies").map((tree: XML.Tree) =>
+    provider.uncompressed_yxml(Export.THEORY_PREFIX + "locale_dependencies").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.LOCALE_DEPENDENCY, tree)
         val (source, (target, (prefix, (subst_types, subst_terms)))) =
@@ -544,7 +541,7 @@ object Export_Theory
 
   def read_classrel(provider: Export.Provider): List[Classrel] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "classrel")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "classrel")
     val classrel =
     {
       import XML.Decode._
@@ -562,7 +559,7 @@ object Export_Theory
 
   def read_arities(provider: Export.Provider): List[Arity] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "arities")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "arities")
     val arities =
     {
       import XML.Decode._
@@ -583,7 +580,7 @@ object Export_Theory
 
   def read_constdefs(provider: Export.Provider): List[Constdef] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "constdefs")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "constdefs")
     val constdefs =
     {
       import XML.Decode._
@@ -609,7 +606,7 @@ object Export_Theory
 
   def read_typedefs(provider: Export.Provider): List[Typedef] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "typedefs")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "typedefs")
     val typedefs =
     {
       import XML.Decode._
@@ -645,7 +642,7 @@ object Export_Theory
 
   def read_datatypes(provider: Export.Provider): List[Datatype] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "datatypes")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "datatypes")
     val datatypes =
     {
       import XML.Decode._
@@ -741,7 +738,7 @@ object Export_Theory
 
   def read_spec_rules(provider: Export.Provider): List[Spec_Rule] =
   {
-    val body = provider.uncompressed_yxml(export_prefix + "spec_rules")
+    val body = provider.uncompressed_yxml(Export.THEORY_PREFIX + "spec_rules")
     val spec_rules =
     {
       import XML.Decode._
