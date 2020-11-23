@@ -59,8 +59,9 @@ object Dump
         }),
       Aspect("latex", "generated LaTeX source",
         { case args =>
-            for (entry <- args.snapshot.exports if entry.name == "document.tex")
+            for (entry <- args.snapshot.exports if entry.name.startsWith("document/")) {
               args.write(Path.explode(entry.name), entry.uncompressed())
+            }
         }),
       Aspect("theory", "foundational theory content",
         { case args =>
