@@ -120,9 +120,9 @@ class Build_Job(progress: Progress,
 
           private def loading_theory(msg: Prover.Protocol_Output): Boolean =
             msg.properties match {
-              case Markup.Loading_Theory(name) =>
+              case Markup.Loading_Theory(Markup.Name(name)) =>
                 progress.theory(Progress.Theory(name, session = session_name))
-                true
+                false
               case _ => false
             }
 
@@ -156,6 +156,18 @@ class Build_Job(progress: Progress,
       session.runtime_statistics += Session.Consumer("ML_statistics")
         {
           case Session.Runtime_Statistics(props) => runtime_statistics += props
+        }
+
+      session.finished_theories += Session.Consumer[Command.State]("finished_theories")
+        {
+          case st =>
+            val command = st.command
+            val theory_name = command.node_name.theory
+            val args = Protocol.Export.Args(theory_name = theory_name, name = Export.MARKUP)
+            val xml =
+              st.markups(Command.Markup_Index.markup)
+                .to_XML(command.range, command.source, Markup.Elements.full)
+            export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")

@@ -18,14 +18,18 @@ object Command_Span
         case Command_Span(name, _) => proper_string(name) getOrElse "<command>"
         case Ignored_Span => "<ignored>"
         case Malformed_Span => "<malformed>"
+        case Theory_Span => "<theory>"
       }
   }
   case class Command_Span(name: String, pos: Position.T) extends Kind
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
+  case object Theory_Span extends Kind
 
   sealed case class Span(kind: Kind, content: List[Token])
   {
+    def is_theory: Boolean = kind == Theory_Span
+
     def name: String =
       kind match { case Command_Span(name, _) => name case _ => "" }
 
@@ -67,8 +71,11 @@ object Command_Span
 
   val empty: Span = Span(Ignored_Span, Nil)
 
-  def unparsed(source: String): Span =
-    Span(Malformed_Span, List(Token(Token.Kind.UNPARSED, source)))
+  def unparsed(source: String, theory: Boolean): Span =
+  {
+    val kind = if (theory) Theory_Span else Malformed_Span
+    Span(kind, List(Token(Token.Kind.UNPARSED, source)))
+  }
 
 
   /* XML data representation */

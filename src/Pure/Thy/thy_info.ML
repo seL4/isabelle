@@ -62,6 +62,7 @@ fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
   Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
+   (Output.try_protocol_message (Markup.finished_theory (Context.theory_long_name thy)) [];
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -76,7 +77,7 @@ val _ =
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
           in Export.export thy document_tex_name (XML.blob output) end
-      end));
+      end)));
 
 
 
@@ -326,26 +327,28 @@ fun required_by _ [] = ""
 
 fun load_thy options initiators update_time deps text (name, pos) keywords parents =
   let
-    val _ = remove_thy name;
-    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val _ = Output.try_protocol_message (Markup.loading_theory name) [];
+    val exec_id = Document_ID.make ();
+    val id = Document_ID.print exec_id;
+    val _ =
+      Execution.running Document_ID.none exec_id [] orelse
+        raise Fail ("Failed to register execution: " ^ id);
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val header = Thy_Header.make (name, pos) imports keywords;
-
     val _ =
       (imports ~~ parents) |> List.app (fn ((_, pos), thy) =>
         Context_Position.reports_global thy [(pos, Theory.get_markup thy)]);
 
-    val exec_id = Document_ID.make ();
-    val _ =
-      Execution.running Document_ID.none exec_id [] orelse
-        raise Fail ("Failed to register execution: " ^ Document_ID.print exec_id);
+    val text_pos = Position.put_id id (Path.position thy_path);
+    val text_props = Position.properties_of text_pos;
+
+    val _ = remove_thy name;
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) (XML.blob [text]);
 
     val timing_start = Timing.start ();
 
-    val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
       eval_thy options update_time dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);

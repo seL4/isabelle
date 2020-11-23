@@ -169,6 +169,9 @@ object Rendering
 
   /* markup elements */
 
+  val position_elements =
+    Markup.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+
   val semantic_completion_elements =
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 

@@ -596,7 +596,8 @@ object Markup
   }
   object Task_Statistics extends Properties_Function("task_statistics")
 
-  object Loading_Theory extends Name_Function("loading_theory")
+  object Loading_Theory extends Properties_Function("loading_theory")
+  object Finished_Theory extends Name_Function("finished_theory")
   object Build_Session_Finished extends Function("build_session_finished")
 
   object Commands_Accepted extends Function("commands_accepted")

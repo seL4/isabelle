@@ -331,16 +331,19 @@ object Command
         xml_cache: XML.Cache): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
-          (this /: msgs)((state, msg) =>
-            msg match {
-              case elem @ XML.Elem(markup, Nil) =>
-                state.
-                  add_status(markup).
-                  add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
-              case _ =>
-                Output.warning("Ignored status message: " + msg)
-                state
-            })
+          if (command.span.is_theory) this
+          else {
+            (this /: msgs)((state, msg) =>
+              msg match {
+                case elem @ XML.Elem(markup, Nil) =>
+                  state.
+                    add_status(markup).
+                    add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
+                case _ =>
+                  Output.warning("Ignored status message: " + msg)
+                  state
+              })
+          }
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -348,38 +351,42 @@ object Command
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name, atts @ Position.Identified(id, chunk_name)), args) =>
+                case XML.Elem(Markup(name, atts), args) =>
+                  command.reported_position(atts) match {
+                    case Some((id, chunk_name)) =>
+                      val target =
+                        if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
+                          Some((chunk_name, command.chunks(chunk_name)))
+                        else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
+                        else None
 
-                  val target =
-                    if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
-                      Some((chunk_name, command.chunks(chunk_name)))
-                    else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
-                    else None
-
-                  (target, atts) match {
-                    case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
-                      target_chunk.incorporate(symbol_range) match {
-                        case Some(range) =>
-                          val props = Position.purge(atts)
-                          val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
-                          state.add_markup(false, target_name, Text.Info(range, elem))
-                        case None => bad(); state
+                      (target, atts) match {
+                        case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
+                          target_chunk.incorporate(symbol_range) match {
+                            case Some(range) =>
+                              val props = Position.purge(atts)
+                              val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
+                              state.add_markup(false, target_name, Text.Info(range, elem))
+                            case None => bad(); state
+                          }
+                        case _ =>
+                          // silently ignore excessive reports
+                          state
                       }
-                    case _ =>
-                      // silently ignore excessive reports
-                      state
+
+                    case None
+                    if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
+                      val range = command.core_range
+                      val props = Position.purge(atts)
+                      val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
+                      state.add_markup(false, Symbol.Text_Chunk.Default, Text.Info(range, elem))
+
+                    case _ => bad(); state
                   }
-
-                case XML.Elem(Markup(name, atts), args)
-                if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
-                  val range = command.core_range
-                  val props = Position.purge(atts)
-                  val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
-                  state.add_markup(false, Symbol.Text_Chunk.Default, Text.Info(range, elem))
-
                 case _ => bad(); state
               }
             })
+
         case XML.Elem(Markup(name, props), body) =>
           props match {
             case Markup.Serial(i) =>
@@ -392,8 +399,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol_Message.positions(
-                    self_id, command.span.position, chunk_name, chunk, message)
+                  range <- command.message_positions(self_id, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message_markup))
               }
               st
@@ -425,24 +431,21 @@ object Command
     Command(Document_ID.none, Document.Node.Name.empty, no_blobs, Command_Span.empty)
 
   def unparsed(
-    id: Document_ID.Command,
     source: String,
-    results: Results,
-    markup: Markup_Tree): Command =
+    theory: Boolean = false,
+    id: Document_ID.Command = Document_ID.none,
+    node_name: Document.Node.Name = Document.Node.Name.empty,
+    results: Results = Results.empty,
+    markup: Markup_Tree = Markup_Tree.empty): Command =
   {
-    val (source1, span1) = Command_Span.unparsed(source).compact_source
-    new Command(id, Document.Node.Name.empty, no_blobs, span1, source1, results, markup)
+    val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
+    new Command(id, node_name, no_blobs, span1, source1, results, markup)
   }
 
-  def text(source: String): Command =
-    unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
+  def text(source: String): Command = unparsed(source)
 
   def rich_text(id: Document_ID.Command, results: Results, body: XML.Body): Command =
-  {
-    val text = XML.content(body)
-    val markup = Markup_Tree.from_XML(body)
-    unparsed(id, text, results, markup)
-  }
+    unparsed(XML.content(body), id = id, results = results, markup = Markup_Tree.from_XML(body))
 
 
   /* perspective */
@@ -612,6 +615,61 @@ final class Command private(
       (length /: span.content.reverse.iterator.takeWhile(_.is_ignored))(_ - _.source.length))
 
   def source(range: Text.Range): String = range.substring(source)
+
+
+  /* reported positions */
+
+  def reported_position(pos: Position.T): Option[(Document_ID.Generic, Symbol.Text_Chunk.Name)] =
+    pos match {
+      case Position.Id(id) =>
+        val chunk_name =
+          pos match {
+            case Position.File(name) if name != node_name.node =>
+              Symbol.Text_Chunk.File(name)
+            case _ => Symbol.Text_Chunk.Default
+          }
+        Some((id, chunk_name))
+      case _ => None
+    }
+
+  def message_positions(
+    self_id: Document_ID.Generic => Boolean,
+    chunk_name: Symbol.Text_Chunk.Name,
+    chunk: Symbol.Text_Chunk,
+    message: XML.Elem): Set[Text.Range] =
+  {
+    def elem(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
+      reported_position(props) match {
+        case Some((id, name)) if self_id(id) && name == chunk_name =>
+          val opt_range =
+            Position.Range.unapply(props) orElse {
+              if (name == Symbol.Text_Chunk.Default)
+                Position.Range.unapply(span.position)
+              else None
+            }
+          opt_range match {
+            case Some(symbol_range) =>
+              chunk.incorporate(symbol_range) match {
+                case Some(range) => set + range
+                case _ => set
+              }
+            case None => set
+          }
+        case _ => set
+      }
+    def tree(set: Set[Text.Range], t: XML.Tree): Set[Text.Range] =
+      t match {
+        case XML.Wrapped_Elem(Markup(name, props), _, body) =>
+          body.foldLeft(if (Rendering.position_elements(name)) elem(props, set) else set)(tree)
+        case XML.Elem(Markup(name, props), body) =>
+          body.foldLeft(if (Rendering.position_elements(name)) elem(props, set) else set)(tree)
+        case XML.Text(_) => set
+      }
+
+    val set = tree(Set.empty, message)
+    if (set.isEmpty) elem(message.markup.properties, set)
+    else set
+  }
 
 
   /* accumulated results */
