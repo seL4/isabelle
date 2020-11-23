@@ -499,7 +499,7 @@ object Presentation
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
-          progress.echo_document("Building document " + session + "/" + doc.name + " ...")
+          progress.echo_document("Preparing " + session + "/" + doc.name + " ...")
           val start = Time.now()
 
 
@@ -574,7 +574,7 @@ object Presentation
             else {
               val stop = Time.now()
               val timing = stop - start
-              progress.echo_document("Finished document " + session + "/" + doc.name +
+              progress.echo_document("Finished " + session + "/" + doc.name +
                 " (" + timing.message_hms + " elapsed time)")
 
               doc.set_sources(sources) -> Bytes.read(result_path)

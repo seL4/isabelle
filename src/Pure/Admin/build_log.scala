@@ -485,7 +485,7 @@ object Build_Log
     val Session_Finished1 =
       new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
     val Session_Finished2 =
-      new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
+      new Regex("""^Finished ([^\s/]+) \((\d+):(\d+):(\d+) elapsed time.*$""")
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
