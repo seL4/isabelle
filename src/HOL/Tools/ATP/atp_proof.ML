@@ -561,7 +561,8 @@ fun parse_tstp_hol_line problem =
               (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
             else
               (((num, [s]), phi), "", [])
-          | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
+          | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
+          | Introduced_Source rule => (((num, []), phi), rule, []))
       in
         [(name, role', phi, rule, map (rpair []) deps)]
       end)
