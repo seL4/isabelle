@@ -223,6 +223,8 @@ class Build_Job(progress: Progress,
       val process_result =
         Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
 
+      session.stop()
+
       val export_errors =
         export_consumer.shutdown(close = true).map(Output.error_message_text)
 
