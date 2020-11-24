@@ -246,9 +246,9 @@ class Build_Job(progress: Progress,
                   verbose = verbose,
                   verbose_latex = true))
             using(store.open_database(session_name, output = true))(db =>
-              for ((doc, pdf) <- documents) {
+              for (doc <- documents) {
                 db.transaction {
-                  Presentation.write_document(db, session_name, doc, pdf)
+                  Presentation.write_document(db, session_name, doc)
                 }
               })
           }
