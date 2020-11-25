@@ -239,11 +239,7 @@ class Build_Job(progress: Progress,
                   progress = progress,
                   verbose = verbose))
             using(store.open_database(session_name, output = true))(db =>
-              for (doc <- documents) {
-                db.transaction {
-                  doc.write(db, session_name)
-                }
-              })
+              documents.foreach(_.write(db, session_name)))
             (documents.flatMap(_.log_lines), Nil)
           }
           (Nil, Nil)
