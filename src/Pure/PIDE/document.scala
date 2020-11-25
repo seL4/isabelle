@@ -672,6 +672,8 @@ object Document
     versions: Map[Document_ID.Version, Version] = Map.empty,
     /*inlined auxiliary files*/
     blobs: Set[SHA1.Digest] = Set.empty,
+    /*loaded theories in batch builds*/
+    theories: Map[Document_ID.Exec, Command.State] = Map.empty,
     /*static markup from define_command*/
     commands: Map[Document_ID.Command, Command.State] = Map.empty,
     /*dynamic markup from execution*/
@@ -721,7 +723,7 @@ object Document
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
     def lookup_id(id: Document_ID.Generic): Option[Command.State] =
-      commands.get(id) orElse execs.get(id)
+      theories.get(id) orElse commands.get(id) orElse execs.get(id)
 
     private def self_id(st: Command.State)(id: Document_ID.Generic): Boolean =
       id == st.command.id ||
@@ -738,18 +740,21 @@ object Document
     def accumulate(id: Document_ID.Generic, message: XML.Elem, xml_cache: XML.Cache)
       : (Command.State, State) =
     {
-      execs.get(id) match {
-        case Some(st) =>
-          val new_st = st.accumulate(self_id(st), other_id, message, xml_cache)
-          val execs1 = execs + (id -> new_st)
-          (new_st, copy(execs = execs1, commands_redirection = redirection(new_st)))
+      def update(st: Command.State): (Command.State, State) =
+      {
+        val st1 = st.accumulate(self_id(st), other_id, message, xml_cache)
+        (st1, copy(commands_redirection = redirection(st1)))
+      }
+      execs.get(id).map(update) match {
+        case Some((st1, state1)) => (st1, state1.copy(execs = execs + (id -> st1)))
         case None =>
-          commands.get(id) match {
-            case Some(st) =>
-              val new_st = st.accumulate(self_id(st), other_id, message, xml_cache)
-              val commands1 = commands + (id -> new_st)
-              (new_st, copy(commands = commands1, commands_redirection = redirection(new_st)))
-            case None => fail
+          commands.get(id).map(update) match {
+            case Some((st1, state1)) => (st1, state1.copy(commands = commands + (id -> st1)))
+            case None =>
+              theories.get(id).map(update) match {
+                case Some((st1, state1)) => (st1, state1.copy(theories = theories + (id -> st1)))
+                case None => fail
+              }
           }
       }
     }
@@ -780,6 +785,19 @@ object Document
           command <- version.nodes(node_name).commands.iterator
           st <- command_states(version, command).iterator
         } yield st.exports)
+
+    def begin_theory(node_name: Node.Name, id: Document_ID.Exec, source: String): State =
+      if (theories.isDefinedAt(id)) fail
+      else {
+        val command = Command.unparsed(source, theory = true, id = id, node_name = node_name)
+        copy(theories = theories + (id -> command.empty_state))
+      }
+
+    def end_theory(theory: String): (Command.State, State) =
+      theories.find({ case (_, st) => st.command.node_name.theory == theory }) match {
+        case None => fail
+        case Some((id, st)) => (st, copy(theories = theories - id))
+      }
 
     def assign(id: Document_ID.Version, edited: List[String], update: Assign_Update)
       : ((List[Node.Name], List[Command]), State) =

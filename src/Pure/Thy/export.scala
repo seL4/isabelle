@@ -13,7 +13,13 @@ import scala.util.matching.Regex
 
 object Export
 {
-  /* name structure */
+  /* artefact names */
+
+  val MARKUP = "PIDE/markup"
+  val MESSAGES = "PIDE/messages"
+  val DOCUMENT_PREFIX = "document/"
+  val THEORY_PREFIX: String = "theory/"
+  val PROOFS_PREFIX: String = "proofs/"
 
   def explode_name(s: String): List[String] = space_explode('/', s)
   def implode_name(elems: Iterable[String]): String = elems.mkString("/")
@@ -89,6 +95,7 @@ object Export
 
     def compound_name: String = Export.compound_name(theory_name, name)
 
+    def name_has_prefix(s: String): Boolean = name.startsWith(s)
     val name_elems: List[String] = explode_name(name)
 
     def name_extends(elems: List[String]): Boolean =

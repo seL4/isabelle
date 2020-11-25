@@ -112,29 +112,12 @@ object Position
       }
   }
 
-  object Identified
-  {
-    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name)] =
-      pos match {
-        case Id(id) =>
-          val chunk_name =
-            pos match {
-              case File(name) => Symbol.Text_Chunk.File(name)
-              case _ => Symbol.Text_Chunk.Default
-            }
-          Some((id, chunk_name))
-        case _ => None
-      }
-  }
-
-  def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
-
 
   /* here: user output */
 
   def here(props: T, delimited: Boolean = true): String =
   {
-    val pos = props.filter(p => Markup.POSITION_PROPERTIES(p._1))
+    val pos = props.filter(Markup.position_property)
     if (pos.isEmpty) ""
     else {
       val s0 =

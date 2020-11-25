@@ -56,7 +56,8 @@ structure Presentation = Theory_Data
 );
 
 fun apply_presentation (context: presentation_context) thy =
-  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+ (ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+  Output.try_protocol_message (Markup.finished_theory (Context.theory_long_name thy)) []);
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
@@ -292,7 +293,7 @@ fun excursion keywords master_dir init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy options update_time master_dir header text_pos text parents =
+fun eval_thy options master_dir header text_pos text parents =
   let
     val (name, _) = #name header;
     val keywords =
@@ -324,30 +325,32 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy options initiators update_time deps text (name, pos) keywords parents =
+fun load_thy options initiators deps text (name, pos) keywords parents =
   let
-    val _ = remove_thy name;
-    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val _ = Output.try_protocol_message (Markup.loading_theory name) [];
+    val exec_id = Document_ID.make ();
+    val id = Document_ID.print exec_id;
+    val _ =
+      Execution.running Document_ID.none exec_id [] orelse
+        raise Fail ("Failed to register execution: " ^ id);
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val header = Thy_Header.make (name, pos) imports keywords;
-
     val _ =
       (imports ~~ parents) |> List.app (fn ((_, pos), thy) =>
         Context_Position.reports_global thy [(pos, Theory.get_markup thy)]);
 
-    val exec_id = Document_ID.make ();
-    val _ =
-      Execution.running Document_ID.none exec_id [] orelse
-        raise Fail ("Failed to register execution: " ^ Document_ID.print exec_id);
+    val text_pos = Position.put_id id (Path.position thy_path);
+    val text_props = Position.properties_of text_pos;
+
+    val _ = remove_thy name;
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) (XML.blob [text]);
 
     val timing_start = Timing.start ();
 
-    val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      eval_thy options update_time dir header text_pos text
+      eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
     val timing_result = Timing.result timing_start;
@@ -411,12 +414,8 @@ and require_thy options initiators qualifier dir (s, require_pos) tasks =
               (case deps of
                 NONE => raise Fail "Malformed deps"
               | SOME (dep, text) =>
-                  let
-                    val update_time = serial ();
-                    val load =
-                      load_thy options initiators update_time
-                        dep text (theory_name, theory_pos) keywords;
-                  in Task (parents, load) end);
+                  Task (parents,
+                    load_thy options initiators dep text (theory_name, theory_pos) keywords));
 
           val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)

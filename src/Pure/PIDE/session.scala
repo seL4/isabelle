@@ -181,6 +181,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* outlets */
 
+  val finished_theories = new Session.Outlet[Command.State](dispatcher)
   val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
   val theory_timings = new Session.Outlet[Session.Theory_Timing](dispatcher)
   val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
@@ -475,7 +476,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       {
         try {
           val st = global_state.change_result(f)
-          change_buffer.invoke(false, Nil, List(st.command))
+          if (!st.command.span.is_theory) {
+            change_buffer.invoke(false, Nil, List(st.command))
+          }
         }
         catch { case _: Document.State.Fail => bad_output() }
       }
@@ -501,6 +504,17 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 val id = Value.Long.unapply(args.id.get).get
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
                 change_command(_.add_export(id, (args.serial, export)))
+
+              case Protocol.Loading_Theory(node_name, id) =>
+                try { global_state.change(_.begin_theory(node_name, id, msg.text)) }
+                catch { case _: Document.State.Fail => bad_output() }
+
+              case Markup.Finished_Theory(theory) =>
+                try {
+                  val st = global_state.change_result(_.end_theory(theory))
+                  finished_theories.post(st)
+                }
+                catch { case _: Document.State.Fail => bad_output() }
 
               case List(Markup.Commands_Accepted.PROPERTY) =>
                 msg.text match {

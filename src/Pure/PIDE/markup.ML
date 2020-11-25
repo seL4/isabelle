@@ -59,8 +59,8 @@ sig
   val end_offsetN: string
   val fileN: string
   val idN: string
-  val position_properties': string list
   val position_properties: string list
+  val position_property: Properties.entry -> bool
   val positionN: string val position: T
   val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
@@ -220,6 +220,7 @@ sig
   val theory_timing: Properties.entry
   val session_timing: Properties.entry
   val loading_theory: string -> Properties.T
+  val finished_theory: string -> Properties.T
   val build_session_finished: Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
@@ -379,8 +380,8 @@ val end_offsetN = "end_offset";
 val fileN = "file";
 val idN = "id";
 
-val position_properties' = [fileN, idN];
-val position_properties = [lineN, offsetN, end_offsetN] @ position_properties';
+val position_properties = [lineN, offsetN, end_offsetN, fileN, idN];
+fun position_property (entry: Properties.entry) = member (op =) position_properties (#1 entry);
 
 val (positionN, position) = markup_elem "position";
 
@@ -692,7 +693,8 @@ val theory_timing = (functionN, "theory_timing");
 
 val session_timing = (functionN, "session_timing");
 
-fun loading_theory name = [("function", "loading_theory"), ("name", name)];
+fun loading_theory name = [("function", "loading_theory"), (nameN, name)];
+fun finished_theory name = [("function", "finished_theory"), (nameN, name)];
 
 val build_session_finished = [("function", "build_session_finished")];
 

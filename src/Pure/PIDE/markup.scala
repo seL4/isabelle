@@ -144,6 +144,8 @@ object Markup
   val DEF_ID = "def_id"
 
   val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, FILE, ID)
+  def position_property(entry: Properties.Entry): Boolean = POSITION_PROPERTIES(entry._1)
+
   val POSITION = "position"
 
 
@@ -587,6 +589,7 @@ object Markup
   }
 
   val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
+  def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
   object Theory_Timing extends Properties_Function("theory_timing")
@@ -596,7 +599,8 @@ object Markup
   }
   object Task_Statistics extends Properties_Function("task_statistics")
 
-  object Loading_Theory extends Name_Function("loading_theory")
+  object Loading_Theory extends Properties_Function("loading_theory")
+  object Finished_Theory extends Name_Function("finished_theory")
   object Build_Session_Finished extends Function("build_session_finished")
 
   object Commands_Accepted extends Function("commands_accepted")

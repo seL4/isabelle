@@ -1211,7 +1211,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       read_export(session, theory_name, name) getOrElse
         Export.empty_entry(session, theory_name, name)
 
-    def read_document(session_name: String, name: String): Option[Presentation.Document_PDF] =
+    def read_document(session_name: String, name: String): Option[Presentation.Document_Output] =
       database_server match {
         case Some(db) => Presentation.read_document(db, session_name, name)
         case None =>
