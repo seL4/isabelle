@@ -345,13 +345,14 @@ object Command
               })
           }
 
-        case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
+        case XML.Elem(Markup(Markup.REPORT, atts0), msgs) =>
           (this /: msgs)((state, msg) =>
             {
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name, atts), args) =>
+                case XML.Elem(Markup(name, atts1), args) =>
+                  val atts = atts1 ::: atts0
                   command.reported_position(atts) match {
                     case Some((id, chunk_name)) =>
                       val target =

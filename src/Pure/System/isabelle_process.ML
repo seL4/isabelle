@@ -148,11 +148,10 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       if forall (fn s => s = "") ss then ()
       else
         let
-          val props' =
-            (case (Properties.defined props Markup.idN, Position.get_id (Position.thread_data ())) of
-              (false, SOME id') => props @ [(Markup.idN, id')]
-            | _ => props);
-        in message name props' (XML.blob ss) end;
+          val pos_props =
+            if exists Markup.position_property props then props
+            else props @ Position.properties_of (Position.thread_data ());
+        in message name pos_props (XML.blob ss) end;
 
     fun report_message ss =
       if Context_Position.pide_reports ()
