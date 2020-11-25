@@ -76,7 +76,6 @@ class Build_Job(progress: Progress,
       val session_timings = new mutable.ListBuffer[Properties.T]
       val runtime_statistics = new mutable.ListBuffer[Properties.T]
       val task_statistics = new mutable.ListBuffer[Properties.T]
-      val document_output = new mutable.ListBuffer[String]
 
       def fun(
         name: String,
@@ -228,35 +227,28 @@ class Build_Job(progress: Progress,
       val export_errors =
         export_consumer.shutdown(close = true).map(Output.error_message_text)
 
-      val document_errors =
+      val (document_output, document_errors) =
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
           {
-            val document_progress =
-              new Progress {
-                override def echo(msg: String): Unit =
-                  document_output.synchronized { document_output += msg }
-                override def echo_document(msg: String): Unit =
-                  progress.echo_document(msg)
-              }
             val documents =
               using(store.open_database_context(deps.sessions_structure))(db_context =>
                 Presentation.build_documents(session_name, deps, db_context,
                   output_sources = info.document_output,
                   output_pdf = info.document_output,
-                  progress = document_progress,
-                  verbose = verbose,
-                  verbose_latex = true))
+                  progress = progress,
+                  verbose = verbose))
             using(store.open_database(session_name, output = true))(db =>
               for (doc <- documents) {
                 db.transaction {
                   Presentation.write_document(db, session_name, doc)
                 }
               })
+            (documents.flatMap(_.log_lines), Nil)
           }
-          Nil
+          (Nil, Nil)
         }
-        catch { case Exn.Interrupt.ERROR(msg) => List(msg) }
+        catch { case Exn.Interrupt.ERROR(msg) => (Nil, List(msg)) }
 
       val result =
       {
@@ -269,7 +261,7 @@ class Build_Job(progress: Progress,
             session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
             runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
-            document_output.toList
+            document_output
 
         val more_errors =
           Library.trim_line(stderr.toString) :: export_errors ::: document_errors

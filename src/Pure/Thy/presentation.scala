@@ -58,6 +58,7 @@ object Presentation
     extends Document_Name
   {
     def log: String = log_xz.uncompress().text
+    def log_lines: List[String] = split_lines(log)
   }
 
 
@@ -508,7 +509,7 @@ object Presentation
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
-          progress.echo_document("Preparing " + session + "/" + doc.name + " ...")
+          progress.echo("Preparing " + session + "/" + doc.name + " ...")
           val start = Time.now()
 
 
@@ -583,7 +584,7 @@ object Presentation
             else {
               val stop = Time.now()
               val timing = stop - start
-              progress.echo_document("Finished " + session + "/" + doc.name +
+              progress.echo("Finished " + session + "/" + doc.name +
                 " (" + timing.message_hms + " elapsed time)")
 
               val log_xz = Bytes(cat_lines(result.out_lines ::: result.err_lines)).compress()
@@ -598,7 +599,7 @@ object Presentation
       Isabelle_System.make_directory(dir)
       val path = dir + doc.path.pdf
       Bytes.write(path, doc.pdf)
-      progress.echo_document("Document at " + path.absolute)
+      progress.echo("Document at " + path.absolute)
     }
 
     documents
