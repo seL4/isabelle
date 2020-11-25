@@ -90,7 +90,7 @@ fun ord (pos1 as Pos ((i, j, k), props), pos2 as Pos ((i', j', k'), props')) =
 
 fun norm_props (props: Properties.T) =
   maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
-    Markup.position_properties';
+    [Markup.fileN, Markup.idN];
 
 fun make {line = i, offset = j, end_offset = k, props} = Pos ((i, j, k), norm_props props);
 fun dest (Pos ((i, j, k), props)) = {line = i, offset = j, end_offset = k, props = props};

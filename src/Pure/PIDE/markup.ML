@@ -59,7 +59,6 @@ sig
   val end_offsetN: string
   val fileN: string
   val idN: string
-  val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
   val expressionN: string val expression: string -> T
@@ -380,8 +379,7 @@ val end_offsetN = "end_offset";
 val fileN = "file";
 val idN = "id";
 
-val position_properties' = [fileN, idN];
-val position_properties = [lineN, offsetN, end_offsetN] @ position_properties';
+val position_properties = [lineN, offsetN, end_offsetN, fileN, idN];
 
 val (positionN, position) = markup_elem "position";
 
