@@ -241,7 +241,7 @@ class Build_Job(progress: Progress,
             using(store.open_database(session_name, output = true))(db =>
               for (doc <- documents) {
                 db.transaction {
-                  Presentation.write_document(db, session_name, doc)
+                  doc.write(db, session_name)
                 }
               })
             (documents.flatMap(_.log_lines), Nil)
