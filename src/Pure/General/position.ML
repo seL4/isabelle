@@ -40,7 +40,6 @@ sig
   val def_properties_of: T -> Properties.T
   val entity_markup: string -> string * T -> Markup.T
   val entity_properties_of: bool -> serial -> T -> Properties.T
-  val default_properties: T -> Properties.T -> Properties.T
   val markup: T -> Markup.T -> Markup.T
   val is_reported: T -> bool
   val is_reported_range: T -> bool
@@ -210,10 +209,6 @@ fun entity_markup kind (name, pos) =
 fun entity_properties_of def serial pos =
   if def then (Markup.defN, Value.print_int serial) :: properties_of pos
   else (Markup.refN, Value.print_int serial) :: def_properties_of pos;
-
-fun default_properties default props =
-  if exists (member (op =) Markup.position_properties o #1) props then props
-  else properties_of default @ props;
 
 val markup = Markup.properties o properties_of;
 
