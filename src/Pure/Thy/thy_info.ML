@@ -293,7 +293,7 @@ fun excursion keywords master_dir init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy options update_time master_dir header text_pos text parents =
+fun eval_thy options master_dir header text_pos text parents =
   let
     val (name, _) = #name header;
     val keywords =
@@ -325,7 +325,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy options initiators update_time deps text (name, pos) keywords parents =
+fun load_thy options initiators deps text (name, pos) keywords parents =
   let
     val exec_id = Document_ID.make ();
     val id = Document_ID.print exec_id;
@@ -350,7 +350,7 @@ fun load_thy options initiators update_time deps text (name, pos) keywords paren
     val timing_start = Timing.start ();
 
     val (theory, present, weight) =
-      eval_thy options update_time dir header text_pos text
+      eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
     val timing_result = Timing.result timing_start;
@@ -414,12 +414,8 @@ and require_thy options initiators qualifier dir (s, require_pos) tasks =
               (case deps of
                 NONE => raise Fail "Malformed deps"
               | SOME (dep, text) =>
-                  let
-                    val update_time = serial ();
-                    val load =
-                      load_thy options initiators update_time
-                        dep text (theory_name, theory_pos) keywords;
-                  in Task (parents, load) end);
+                  Task (parents,
+                    load_thy options initiators dep text (theory_name, theory_pos) keywords));
 
           val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)
