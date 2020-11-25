@@ -15,8 +15,8 @@ object Export
 {
   /* artefact names */
 
-  val MARKUP = "markup.yxml"
-  val MESSAGES = "messages.yxml"
+  val MARKUP = "PIDE/markup"
+  val MESSAGES = "PIDE/messages"
   val DOCUMENT_PREFIX = "document/"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
