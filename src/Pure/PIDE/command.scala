@@ -374,13 +374,6 @@ object Command
                           state
                       }
 
-                    case None
-                    if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
-                      val range = command.core_range
-                      val props = Position.purge(atts)
-                      val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
-                      state.add_markup(false, Symbol.Text_Chunk.Default, Text.Info(range, elem))
-
                     case _ => bad(); state
                   }
                 case _ => bad(); state
