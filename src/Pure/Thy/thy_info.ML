@@ -56,7 +56,7 @@ structure Presentation = Theory_Data
 );
 
 fun apply_presentation (context: presentation_context) thy =
- (ignore (Par_List.map (fn (f, _) => f context thy (Presentation.get thy)));
+ (ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
   Output.try_protocol_message (Markup.finished_theory (Context.theory_long_name thy)) []);
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
