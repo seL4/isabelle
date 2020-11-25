@@ -589,6 +589,7 @@ object Markup
   }
 
   val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
+  def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
   object Theory_Timing extends Properties_Function("theory_timing")

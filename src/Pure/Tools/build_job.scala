@@ -132,24 +132,25 @@ class Build_Job(progress: Progress,
               case _ => false
             }
 
-          private def command_timing(props: Properties.T): Option[Properties.T] =
-            for {
-              props1 <- Markup.Command_Timing.unapply(props)
-              elapsed <- Markup.Elapsed.unapply(props1)
-              elapsed_time = Time.seconds(elapsed)
-              if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
-            } yield props1.filter(p => Markup.command_timing_properties(p._1))
-
           override val functions =
             List(
               Markup.Build_Session_Finished.name -> build_session_finished,
               Markup.Loading_Theory.name -> loading_theory,
               Markup.EXPORT -> export,
-              fun(Markup.Command_Timing.name, command_timings, command_timing),
               fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
               fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
               fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
         })
+
+      session.command_timings += Session.Consumer("command_timings")
+        {
+          case Session.Command_Timing(props) =>
+            for {
+              elapsed <- Markup.Elapsed.unapply(props)
+              elapsed_time = Time.seconds(elapsed)
+              if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
+            } command_timings += props.filter(Markup.command_timing_property)
+        }
 
       session.runtime_statistics += Session.Consumer("ML_statistics")
         {
