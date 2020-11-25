@@ -142,7 +142,7 @@ object Command
         Markup_Index(status, chunk_name)
       }
 
-      (Markups.empty /: list(pair(markup_index, Markup_Tree.from_XML(_)))(body))(_ + _)
+      (Markups.empty /: list(pair(markup_index, Markup_Tree.from_XML))(body))(_ + _)
     }
   }
 
