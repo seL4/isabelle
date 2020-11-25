@@ -56,13 +56,13 @@ structure Presentation = Theory_Data
 );
 
 fun apply_presentation (context: presentation_context) thy =
-  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+ (ignore (Par_List.map (fn (f, _) => f context thy (Presentation.get thy)));
+  Output.try_protocol_message (Markup.finished_theory (Context.theory_long_name thy)) []);
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
   Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
-   (Output.try_protocol_message (Markup.finished_theory (Context.theory_long_name thy)) [];
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -77,7 +77,7 @@ val _ =
             val latex = Latex.isabelle_body thy_name body;
             val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
           in Export.export thy document_tex_name (XML.blob output) end
-      end)));
+      end));
 
 
 
