@@ -144,6 +144,8 @@ object Markup
   val DEF_ID = "def_id"
 
   val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, FILE, ID)
+  def position_property(entry: Properties.Entry): Boolean = POSITION_PROPERTIES(entry._1)
+
   val POSITION = "position"
 
 

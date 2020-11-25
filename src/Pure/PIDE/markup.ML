@@ -60,6 +60,7 @@ sig
   val fileN: string
   val idN: string
   val position_properties: string list
+  val position_property: Properties.entry -> bool
   val positionN: string val position: T
   val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
@@ -380,6 +381,7 @@ val fileN = "file";
 val idN = "id";
 
 val position_properties = [lineN, offsetN, end_offsetN, fileN, idN];
+fun position_property (entry: Properties.entry) = member (op =) position_properties (#1 entry);
 
 val (positionN, position) = markup_elem "position";
 

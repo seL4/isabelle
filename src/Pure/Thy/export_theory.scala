@@ -192,7 +192,7 @@ object Export_Theory
       case XML.Elem(Markup(Markup.ENTITY, props), body) =>
         val name = Markup.Name.unapply(props) getOrElse err()
         val xname = Markup.XName.unapply(props) getOrElse err()
-        val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) && a != Markup.ID })
+        val pos = props.filter(p => Markup.position_property(p) && p._1 != Markup.ID)
         val id = Position.Id.unapply(props)
         val serial = Markup.Serial.unapply(props) getOrElse err()
         (Entity(kind, name, xname, pos, id, serial), body)

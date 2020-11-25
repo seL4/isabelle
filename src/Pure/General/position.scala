@@ -112,14 +112,12 @@ object Position
       }
   }
 
-  def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
-
 
   /* here: user output */
 
   def here(props: T, delimited: Boolean = true): String =
   {
-    val pos = props.filter(p => Markup.POSITION_PROPERTIES(p._1))
+    val pos = props.filter(Markup.position_property)
     if (pos.isEmpty) ""
     else {
       val s0 =

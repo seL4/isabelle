@@ -364,7 +364,7 @@ object Command
                         case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
                           target_chunk.incorporate(symbol_range) match {
                             case Some(range) =>
-                              val props = Position.purge(atts)
+                              val props = atts.filterNot(Markup.position_property)
                               val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
                               state.add_markup(false, target_name, Text.Info(range, elem))
                             case None => bad(); state
