@@ -161,12 +161,17 @@ class Build_Job(progress: Progress,
         {
           case st =>
             val command = st.command
-            val theory_name = command.node_name.theory
-            val args = Protocol.Export.Args(theory_name = theory_name, name = Export.MARKUP)
-            val xml =
-              st.markups(Command.Markup_Index.markup)
-                .to_XML(command.range, command.source, Markup.Elements.full)
-            export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
+            val markup = st.markups(Command.Markup_Index.markup)
+
+            def export(name: String, xml: XML.Body)
+            {
+              val theory_name = command.node_name.theory
+              val args = Protocol.Export.Args(theory_name = theory_name, name = name)
+              export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
+            }
+
+            export(Export.MARKUP,
+              markup.to_XML(command.range, command.source, Markup.Elements.full))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
