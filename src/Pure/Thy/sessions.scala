@@ -1465,6 +1465,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_task_statistics(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.task_statistics)
 
+    def read_theories(db: SQL.Database, name: String): List[String] =
+      read_theory_timings(db, name).flatMap(Markup.Name.unapply)
+
     def read_errors(db: SQL.Database, name: String): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = xz_cache)
 

@@ -265,12 +265,19 @@ class Build_Job(progress: Progress,
 
       val result =
       {
+        val theory_timing =
+          theory_timings.iterator.map(
+            { case props @ Markup.Name(name) => name -> props }).toMap
+        val used_theory_timings =
+          for { (name, _) <- deps(session_name).used_theories }
+            yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
+
         val more_output =
           Library.trim_line(stdout.toString) ::
             messages.toList.map(message =>
               Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
-            theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+            used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
             session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
             runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
