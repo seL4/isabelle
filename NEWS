@@ -242,6 +242,9 @@ java process, e.g. like this in $ISABELLE_HOME_USER/etc/settings:
 
   ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS -Xmx8g"
 
+This includes full PIDE markup, if option "build_pide_reports" is
+enabled.
+
 * The command-line tool "isabelle build" provides option -P DIR to
 produce PDF/HTML presentation in the specified directory; -P: refers to
 the standard directory according to ISABELLE_BROWSER_INFO /

@@ -418,7 +418,7 @@ object Command
     span: Command_Span.Span): Command =
   {
     val (source, span1) = span.compact_source
-    new Command(id, node_name, blobs_info, span1, source, Results.empty, Markup_Tree.empty)
+    new Command(id, node_name, blobs_info, span1, source, Results.empty, Markups.empty)
   }
 
   val empty: Command =
@@ -430,16 +430,17 @@ object Command
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
     results: Results = Results.empty,
-    markup: Markup_Tree = Markup_Tree.empty): Command =
+    markups: Markups = Markups.empty): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
-    new Command(id, node_name, no_blobs, span1, source1, results, markup)
+    new Command(id, node_name, no_blobs, span1, source1, results, markups)
   }
 
   def text(source: String): Command = unparsed(source)
 
   def rich_text(id: Document_ID.Command, results: Results, body: XML.Body): Command =
-    unparsed(XML.content(body), id = id, results = results, markup = Markup_Tree.from_XML(body))
+    unparsed(XML.content(body), id = id, results = results,
+      markups = Markups.init(Markup_Tree.from_XML(body)))
 
 
   /* perspective */
@@ -554,7 +555,7 @@ final class Command private(
     val span: Command_Span.Span,
     val source: String,
     val init_results: Command.Results,
-    val init_markup: Markup_Tree)
+    val init_markups: Command.Markups)
 {
   override def toString: String = id + "/" + span.kind.toString
 
@@ -669,7 +670,7 @@ final class Command private(
   /* accumulated results */
 
   val init_state: Command.State =
-    Command.State(this, results = init_results, markups = Command.Markups.init(init_markup))
+    Command.State(this, results = init_results, markups = init_markups)
 
   val empty_state: Command.State = Command.State(this)
 }

@@ -51,6 +51,10 @@ class Build_Job(progress: Progress,
           override val xml_cache: XML.Cache = store.xml_cache
           override val xz_cache: XZ.Cache = store.xz_cache
         }
+      def make_rendering(snapshot: Document.Snapshot): Rendering =
+        new Rendering(snapshot, options, session) {
+          override def model: Document.Model = ???
+        }
 
       object Build_Session_Errors
       {
@@ -157,16 +161,26 @@ class Build_Job(progress: Progress,
           case Session.Runtime_Statistics(props) => runtime_statistics += props
         }
 
-      session.finished_theories += Session.Consumer[Command.State]("finished_theories")
+      session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
         {
-          case st =>
-            val command = st.command
-            val theory_name = command.node_name.theory
-            val args = Protocol.Export.Args(theory_name = theory_name, name = Export.MARKUP)
-            val xml =
-              st.markups(Command.Markup_Index.markup)
-                .to_XML(command.range, command.source, Markup.Elements.full)
-            export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
+          case snapshot =>
+            val rendering = make_rendering(snapshot)
+
+            def export(name: String, xml: XML.Body)
+            {
+              val theory_name = snapshot.node_name.theory
+              val args = Protocol.Export.Args(theory_name = theory_name, name = name)
+              val bytes = Bytes(YXML.string_of_body(xml))
+              if (!bytes.is_empty) export_consumer(session_name, args, bytes)
+            }
+            def export_text(name: String, text: String): Unit =
+              export(name, List(XML.Text(text)))
+
+            export(Export.MARKUP, snapshot.xml_markup())
+            export(Export.MESSAGES, snapshot.messages.map(_._1))
+
+            val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
+            export_text(Export.CITATIONS, cat_lines(citations))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
@@ -232,16 +246,18 @@ class Build_Job(progress: Progress,
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
           {
-            val documents =
-              using(store.open_database_context(deps.sessions_structure))(db_context =>
-                Presentation.build_documents(session_name, deps, db_context,
-                  output_sources = info.document_output,
-                  output_pdf = info.document_output,
-                  progress = progress,
-                  verbose = verbose))
-            using(store.open_database(session_name, output = true))(db =>
-              documents.foreach(_.write(db, session_name)))
-            (documents.flatMap(_.log_lines), Nil)
+            using(store.open_database_context(deps.sessions_structure))(db_context =>
+              {
+                val documents =
+                  Presentation.build_documents(session_name, deps, db_context,
+                    output_sources = info.document_output,
+                    output_pdf = info.document_output,
+                    progress = progress,
+                    verbose = verbose)
+                db_context.output_database(session_name)(db =>
+                  documents.foreach(_.write(db, session_name)))
+                (documents.flatMap(_.log_lines), Nil)
+              })
           }
           (Nil, Nil)
         }
@@ -260,10 +276,9 @@ class Build_Job(progress: Progress,
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
             document_output
 
-        val more_errors =
-          Library.trim_line(stderr.toString) :: export_errors ::: document_errors
-
-        process_result.output(more_output).errors(more_errors)
+        process_result.output(more_output)
+          .error(Library.trim_line(stderr.toString))
+          .errors_rc(export_errors ::: document_errors)
       }
 
       build_errors match {

@@ -181,7 +181,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* outlets */
 
-  val finished_theories = new Session.Outlet[Command.State](dispatcher)
+  val finished_theories = new Session.Outlet[Document.Snapshot](dispatcher)
   val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
   val theory_timings = new Session.Outlet[Session.Theory_Timing](dispatcher)
   val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
@@ -511,8 +511,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
               case Markup.Finished_Theory(theory) =>
                 try {
-                  val st = global_state.change_result(_.end_theory(theory))
-                  finished_theories.post(st)
+                  val snapshot = global_state.change_result(_.end_theory(theory))
+                  finished_theories.post(snapshot)
                 }
                 catch { case _: Document.State.Fail => bad_output() }
 

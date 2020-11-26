@@ -202,7 +202,7 @@ object Build
       options +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
-        "pide_reports=false"  // FIXME
+        ("pide_reports=" + options.bool("build_pide_reports"))
 
     val store = Sessions.store(build_options)
 

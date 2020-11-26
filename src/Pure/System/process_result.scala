@@ -53,6 +53,9 @@ final case class Process_Result(
 
   def error_rc: Process_Result = if (interrupted) this else copy(rc = rc max 1)
 
+  def errors_rc(errs: List[String]): Process_Result =
+    if (errs.isEmpty) this else errors(errs).error_rc
+
   def check_rc(pred: Int => Boolean): Process_Result =
     if (pred(rc)) this
     else if (interrupted) throw Exn.Interrupt()

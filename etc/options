@@ -150,6 +150,9 @@ section "PIDE Build"
 option pide_reports : bool = true
   -- "report PIDE markup"
 
+option build_pide_reports : bool = false
+  -- "report PIDE markup in batch build"
+
 
 section "Editor Session"
 

@@ -48,29 +48,22 @@ object Dump
   val known_aspects: List[Aspect] =
     List(
       Aspect("markup", "PIDE markup (YXML format)",
-        { case args =>
-            args.write(Path.explode(Export.MARKUP),
-              args.snapshot.markup_to_XML(Text.Range.full, Markup.Elements.full))
-        }),
+        args => args.write(Path.explode(Export.MARKUP), args.snapshot.xml_markup())),
       Aspect("messages", "output messages (YXML format)",
-        { case args =>
-            args.write(Path.explode(Export.MESSAGES),
-              args.snapshot.messages.iterator.map(_._1).toList)
-        }),
+        args => args.write(Path.explode(Export.MESSAGES), args.snapshot.messages.map(_._1))),
       Aspect("latex", "generated LaTeX source",
-        { case args =>
-            for {
-              entry <- args.snapshot.exports
-              if entry.name_has_prefix(Export.DOCUMENT_PREFIX)
-            } args.write(Path.explode(entry.name), entry.uncompressed())
-        }),
+        args =>
+          for {
+            entry <- args.snapshot.exports
+            if entry.name_has_prefix(Export.DOCUMENT_PREFIX)
+          } args.write(Path.explode(entry.name), entry.uncompressed())),
       Aspect("theory", "foundational theory content",
-        { case args =>
-            for {
-              entry <- args.snapshot.exports
-              if entry.name_has_prefix(Export.THEORY_PREFIX)
-            } args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("export_theory"))
+        args =>
+          for {
+            entry <- args.snapshot.exports
+            if entry.name_has_prefix(Export.THEORY_PREFIX)
+          } args.write(Path.explode(entry.name), entry.uncompressed()),
+        options = List("export_theory"))
     ).sortBy(_.name)
 
   def show_aspects: String =
