@@ -263,10 +263,9 @@ class Build_Job(progress: Progress,
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
             document_output
 
-        val more_errors =
-          Library.trim_line(stderr.toString) :: export_errors ::: document_errors
-
-        process_result.output(more_output).errors(more_errors)
+        process_result.output(more_output)
+          .error(Library.trim_line(stderr.toString))
+          .errors_rc(export_errors ::: document_errors)
       }
 
       build_errors match {
