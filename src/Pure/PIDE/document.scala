@@ -569,7 +569,7 @@ object Document
           .define_version(version1, state0.the_assignment(version))
           .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
 
-      state1.snapshot()
+      state1.snapshot(name = node_name)
     }
 
     def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
@@ -814,10 +814,18 @@ object Document
         copy(theories = theories + (id -> command.empty_state))
       }
 
-    def end_theory(theory: String): (Command.State, State) =
-      theories.find({ case (_, st) => st.command.node_name.theory == theory }) match {
+    def end_theory(theory: String): (Snapshot, State) =
+      theories.collectFirst({ case (_, st) if st.command.node_name.theory == theory => st }) match {
         case None => fail
-        case Some((id, st)) => (st, copy(theories = theories - id))
+        case Some(st) =>
+          val command = st.command
+          val node_name = command.node_name
+          val command1 =
+            Command.unparsed(command.source, theory = true, id = command.id, node_name = node_name,
+              results = st.results, markup = st.markup(Command.Markup_Index.markup))
+          val state1 = copy(theories = theories - command1.id)
+          val snapshot = state1.snapshot(name = node_name).command_snippet(command1)
+          (snapshot, state1)
       }
 
     def assign(id: Document_ID.Version, edited: List[String], update: Assign_Update)

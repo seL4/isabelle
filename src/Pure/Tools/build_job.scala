@@ -157,21 +157,16 @@ class Build_Job(progress: Progress,
           case Session.Runtime_Statistics(props) => runtime_statistics += props
         }
 
-      session.finished_theories += Session.Consumer[Command.State]("finished_theories")
+      session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
         {
-          case st =>
-            val command = st.command
-            val markup = st.markups(Command.Markup_Index.markup)
-
+          case snapshot =>
             def export(name: String, xml: XML.Body)
             {
-              val theory_name = command.node_name.theory
+              val theory_name = snapshot.node_name.theory
               val args = Protocol.Export.Args(theory_name = theory_name, name = name)
               export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
             }
-
-            export(Export.MARKUP,
-              markup.to_XML(command.range, command.source, Markup.Elements.full))
+            export(Export.MARKUP, snapshot.markup_to_XML(Text.Range.full, Markup.Elements.full))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
