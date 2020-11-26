@@ -27,42 +27,6 @@ import org.gjt.sp.jedit.gui.KeyEventTranslator
 import org.gjt.sp.util.{SyntaxUtilities, Log}
 
 
-object Pretty_Text_Area
-{
-  /* auxiliary */
-
-  private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
-    formatted_body: XML.Body): (String, Document.State) =
-  {
-    val command = Command.rich_text(Document_ID.make(), base_results, formatted_body)
-    val node_name = command.node_name
-    val edits: List[Document.Edit_Text] =
-      List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
-
-    val state0 = base_snapshot.state.define_command(command)
-    val version0 = base_snapshot.version
-    val nodes0 = version0.nodes
-
-    val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
-    val version1 = Document.Version.make(nodes1)
-    val state1 =
-      state0.continue_history(Future.value(version0), edits, Future.value(version1))
-        .define_version(version1, state0.the_assignment(version0))
-        .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
-
-    (command.source, state1)
-  }
-
-  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
-    formatted_body: XML.Body): (String, JEdit_Rendering) =
-  {
-    val (text, state) = document_state(base_snapshot, base_results, formatted_body)
-    val model = File_Model.empty(PIDE.session)
-    val rendering = JEdit_Rendering(state.snapshot(), model, PIDE.options.value)
-    (text, rendering)
-  }
-}
-
 class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
@@ -77,7 +41,7 @@ class Pretty_Text_Area(
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
-    Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
+    JEdit_Rendering.text(current_base_snapshot, Nil)._2
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
@@ -127,15 +91,15 @@ class Pretty_Text_Area(
       val metric = JEdit_Lib.pretty_metric(getPainter)
       val margin = (getPainter.getWidth.toDouble / metric.unit) max 20.0
 
-      val base_snapshot = current_base_snapshot
-      val base_results = current_base_results
+      val snapshot = current_base_snapshot
+      val results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
 
       future_refresh.map(_.cancel)
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =
-            try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
+            try { JEdit_Rendering.text(snapshot, formatted_body, results = results) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 

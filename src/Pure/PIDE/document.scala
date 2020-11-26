@@ -552,6 +552,26 @@ object Document
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
+    def command_snippet(command: Command): Snapshot =
+    {
+      val node_name = command.node_name
+
+      val nodes0 = version.nodes
+      val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
+      val version1 = Document.Version.make(nodes1)
+
+      val edits: List[Edit_Text] =
+        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source))))
+
+      val state0 = state.define_command(command)
+      val state1 =
+        state0.continue_history(Future.value(version), edits, Future.value(version1))
+          .define_version(version1, state0.the_assignment(version))
+          .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
+
+      state1.snapshot()
+    }
+
     def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
     def messages: List[(XML.Tree, Position.T)]
     def exports: List[Export.Entry]

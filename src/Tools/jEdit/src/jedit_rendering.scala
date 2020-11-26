@@ -21,8 +21,20 @@ import scala.collection.immutable.SortedMap
 
 object JEdit_Rendering
 {
+  /* make rendering */
+
   def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
     new JEdit_Rendering(snapshot, model, options)
+
+  def text(snapshot: Document.Snapshot, formatted_body: XML.Body,
+    results: Command.Results = Command.Results.empty): (String, JEdit_Rendering) =
+  {
+    val command = Command.rich_text(Document_ID.make(), results, formatted_body)
+    val snippet = snapshot.command_snippet(command)
+    val model = File_Model.empty(PIDE.session)
+    val rendering = apply(snippet, model, PIDE.options.value)
+    (command.source, rendering)
+  }
 
 
   /* popup window bounds */
