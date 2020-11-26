@@ -167,6 +167,7 @@ class Build_Job(progress: Progress,
               export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
             }
             export(Export.MARKUP, snapshot.xml_markup())
+            export(Export.MESSAGES, snapshot.messages.map(_._1))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
