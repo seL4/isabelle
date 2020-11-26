@@ -76,7 +76,7 @@ class Pretty_Text_Area(
 
     getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
     getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
-    get_background().map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+    get_background().foreach(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
     getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
     getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
     getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
@@ -95,7 +95,7 @@ class Pretty_Text_Area(
       val results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
 
-      future_refresh.map(_.cancel)
+      future_refresh.foreach(_.cancel)
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =
