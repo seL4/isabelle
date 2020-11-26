@@ -266,7 +266,7 @@ object Presentation
     val documents =
       for {
         doc <- info.document_variants
-        document <- db_context.read_document(session, doc.name)
+        document <- db_context.input_database(session)(read_document(_, _, doc.name))
       } yield { Bytes.write(session_dir + doc.path.pdf, document.pdf); doc }
 
     val links =
@@ -533,7 +533,7 @@ object Presentation
 
           val old_document =
             for {
-              old_doc <- db_context.read_document(session, doc.name)
+              old_doc <- db_context.input_database(session)(read_document(_, _, doc.name))
               if old_doc.sources == sources
             }
             yield {

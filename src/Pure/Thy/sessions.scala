@@ -1196,6 +1196,16 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         case None => using(store.open_database(session, output = true))(f)
       }
 
+    def input_database[A](session: String)(f: (SQL.Database, String) => Option[A]): Option[A] =
+      database_server match {
+        case Some(db) => f(db, session)
+        case None =>
+          store.try_open_database(session) match {
+            case Some(db) => using(db)(f(_, session))
+            case None => None
+          }
+      }
+
     def read_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
     {
       val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
@@ -1216,16 +1226,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def get_export(session: String, theory_name: String, name: String): Export.Entry =
       read_export(session, theory_name, name) getOrElse
         Export.empty_entry(session, theory_name, name)
-
-    def read_document(session_name: String, name: String): Option[Presentation.Document_Output] =
-      database_server match {
-        case Some(db) => Presentation.read_document(db, session_name, name)
-        case None =>
-          store.try_open_database(session_name) match {
-            case Some(db) => using(db)(Presentation.read_document(_, session_name, name))
-            case None => None
-          }
-      }
 
     override def toString: String =
     {
