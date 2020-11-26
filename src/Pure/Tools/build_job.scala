@@ -51,6 +51,10 @@ class Build_Job(progress: Progress,
           override val xml_cache: XML.Cache = store.xml_cache
           override val xz_cache: XZ.Cache = store.xz_cache
         }
+      def make_rendering(snapshot: Document.Snapshot): Rendering =
+        new Rendering(snapshot, options, session) {
+          override def model: Document.Model = ???
+        }
 
       object Build_Session_Errors
       {
@@ -160,14 +164,23 @@ class Build_Job(progress: Progress,
       session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
         {
           case snapshot =>
+            val rendering = make_rendering(snapshot)
+
             def export(name: String, xml: XML.Body)
             {
               val theory_name = snapshot.node_name.theory
               val args = Protocol.Export.Args(theory_name = theory_name, name = name)
-              export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
+              val bytes = Bytes(YXML.string_of_body(xml))
+              if (!bytes.is_empty) export_consumer(session_name, args, bytes)
             }
+            def export_text(name: String, text: String): Unit =
+              export(name, List(XML.Text(text)))
+
             export(Export.MARKUP, snapshot.xml_markup())
             export(Export.MESSAGES, snapshot.messages.map(_._1))
+
+            val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
+            export_text(Export.CITATIONS, cat_lines(citations))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
