@@ -296,13 +296,13 @@ abstract class Rendering(
           Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
 
-  def citation(range: Text.Range): Option[Text.Info[String]] =
+  def citations(range: Text.Range): List[Text.Info[String]] =
     snapshot.select(range, Rendering.citation_elements, _ =>
       {
         case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
           Some(Text.Info(snapshot.convert(info_range), name))
         case _ => None
-      }).headOption.map(_.info)
+      }).map(_.info)
 
 
   /* file-system path completion */

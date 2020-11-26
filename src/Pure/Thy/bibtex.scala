@@ -191,7 +191,7 @@ object Bibtex
     models: Map[A, B]): Option[Completion.Result] =
   {
     for {
-      Text.Info(r, name) <- rendering.citation(rendering.before_caret_range(caret))
+      Text.Info(r, name) <- rendering.citations(rendering.before_caret_range(caret)).headOption
       name1 <- Completion.clean_name(name)
 
       original <- rendering.model.get_text(r)
