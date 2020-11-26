@@ -45,8 +45,8 @@ object Update
         val snapshot = args.snapshot
         for ((node_name, node) <- snapshot.nodes) {
           val xml =
-            snapshot.state.markup_to_XML(snapshot.version, node_name,
-              Text.Range.full, Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
+            snapshot.state.xml_markup(snapshot.version, node_name,
+              elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
 
           val source1 = Symbol.encode(XML.content(update_xml(xml)))
           if (source1 != Symbol.encode(node.source)) {

@@ -166,7 +166,7 @@ class Build_Job(progress: Progress,
               val args = Protocol.Export.Args(theory_name = theory_name, name = name)
               export_consumer(session_name, args, Bytes(YXML.string_of_body(xml)))
             }
-            export(Export.MARKUP, snapshot.markup_to_XML(Text.Range.full, Markup.Elements.full))
+            export(Export.MARKUP, snapshot.xml_markup())
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")

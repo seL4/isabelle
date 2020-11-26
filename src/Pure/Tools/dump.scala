@@ -50,7 +50,7 @@ object Dump
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
             args.write(Path.explode(Export.MARKUP),
-              args.snapshot.markup_to_XML(Text.Range.full, Markup.Elements.full))
+              args.snapshot.xml_markup())
         }),
       Aspect("messages", "output messages (YXML format)",
         { case args =>

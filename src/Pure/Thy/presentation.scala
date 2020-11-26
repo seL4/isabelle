@@ -437,7 +437,7 @@ object Presentation
     }
 
   def pide_document(snapshot: Document.Snapshot): XML.Body =
-    make_html(snapshot.markup_to_XML(Text.Range.full, document_elements))
+    make_html(snapshot.xml_markup(elements = document_elements))
 
 
 

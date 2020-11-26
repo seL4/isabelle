@@ -572,7 +572,9 @@ object Document
       state1.snapshot(name = node_name)
     }
 
-    def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
+    def xml_markup(
+      range: Text.Range = Text.Range.full,
+      elements: Markup.Elements = Markup.Elements.full): XML.Body
     def messages: List[(XML.Tree, Position.T)]
     def exports: List[Export.Entry]
     def exports_map: Map[String, Export.Entry]
@@ -1002,11 +1004,11 @@ object Document
         range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index, range, elements)
 
-    def markup_to_XML(
+    def xml_markup(
       version: Version,
       node_name: Node.Name,
-      range: Text.Range,
-      elements: Markup.Elements): XML.Body =
+      range: Text.Range = Text.Range.full,
+      elements: Markup.Elements = Markup.Elements.full): XML.Body =
     {
       val node = version.nodes(node_name)
       if (node_name.is_theory) {
@@ -1126,8 +1128,10 @@ object Document
           }
           else version.nodes.commands_loading(other_node_name).headOption
 
-        def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body =
-          state.markup_to_XML(version, node_name, range, elements)
+        def xml_markup(
+            range: Text.Range = Text.Range.full,
+            elements: Markup.Elements = Markup.Elements.full): XML.Body =
+          state.xml_markup(version, node_name, range = range, elements = elements)
 
         lazy val messages: List[(XML.Tree, Position.T)] =
           (for {
