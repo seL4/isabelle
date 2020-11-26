@@ -110,7 +110,7 @@ lemma invar_btree_link:
 using assms
 by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) simp
 
-lemma invar_link_otree:
+lemma invar_otree_link:
   assumes "invar_otree t\<^sub>1"
   assumes "invar_otree t\<^sub>2"
   shows "invar_otree (link t\<^sub>1 t\<^sub>2)"
@@ -152,7 +152,7 @@ lemma invar_oheap_ins_tree:
   assumes "invar_oheap ts"
   shows "invar_oheap (ins_tree t ts)"
 using assms
-by (induction t ts rule: ins_tree.induct) (auto simp: invar_link_otree)
+by (induction t ts rule: ins_tree.induct) (auto simp: invar_otree_link)
 
 lemma mset_heap_ins_tree[simp]:
   "mset_heap (ins_tree t ts) = mset_tree t + mset_heap ts"
@@ -252,7 +252,7 @@ lemma invar_oheap_merge:
   shows "invar_oheap (merge ts\<^sub>1 ts\<^sub>2)"
 using assms
 by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
-   (auto simp: invar_oheap_ins_tree invar_link_otree)
+   (auto simp: invar_oheap_ins_tree invar_otree_link)
 
 lemma invar_merge[simp]: "\<lbrakk> invar ts\<^sub>1; invar ts\<^sub>2 \<rbrakk> \<Longrightarrow> invar (merge ts\<^sub>1 ts\<^sub>2)"
 by (auto simp: invar_def invar_bheap_merge invar_oheap_merge)
