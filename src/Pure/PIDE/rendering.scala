@@ -97,8 +97,8 @@ object Rendering
   def output_messages(results: Command.Results): List[XML.Tree] =
   {
     val (states, other) =
-      results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
-        .partition(Protocol.is_state(_))
+      results.iterator.map(_._2).filterNot(Protocol.is_result).toList
+        .partition(Protocol.is_state)
     states ::: other
   }
 
