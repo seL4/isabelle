@@ -654,11 +654,11 @@ fun type_enc_of_string strictness s =
           | (_, Undercover_Types) => raise Same.SAME
           | (Mangled_Monomorphic, _) =>
             if is_type_level_uniform level then
-              Native (Higher_Order THF_With_Choice, Without_FOOL, Mangled_Monomorphic, level)
+              Native (Higher_Order THF_With_Choice, fool, Mangled_Monomorphic, level)
             else
               raise Same.SAME
            | (poly as Raw_Polymorphic _, All_Types) =>
-             Native (Higher_Order THF_With_Choice, Without_FOOL, poly, All_Types)
+             Native (Higher_Order THF_With_Choice, fool, poly, All_Types)
            | _ => raise Same.SAME))
       end
 
