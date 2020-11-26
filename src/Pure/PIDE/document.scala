@@ -732,7 +732,8 @@ object Document
     def define_command(command: Command): State =
     {
       val id = command.id
-      copy(commands = commands + (id -> command.init_state))
+      if (commands.isDefinedAt(id)) fail
+      else copy(commands = commands + (id -> command.init_state))
     }
 
     def defined_command(id: Document_ID.Command): Boolean = commands.isDefinedAt(id)
