@@ -265,10 +265,13 @@ locale Interval_Set = Set +
   fixes has_overlap :: "'t \<Rightarrow> 'a::linorder ivl \<Rightarrow> bool"
   assumes set_overlap: "invar s \<Longrightarrow> has_overlap s x = Interval_Tree.has_overlap (set s) x"
 
+fun invar :: "('a::{linorder,order_bot}) ivl_tree \<Rightarrow> bool" where
+"invar t = (inv_max_hi t \<and> sorted(inorder t))"
+
 interpretation S: Interval_Set
   where empty = Leaf and insert = insert and delete = delete
   and has_overlap = search and isin = isin and set = set_tree
-  and invar = "\<lambda>t. inv_max_hi t \<and> sorted (inorder t)"
+  and invar = invar
 proof (standard, goal_cases)
   case 1
   then show ?case by auto
