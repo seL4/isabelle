@@ -1423,20 +1423,20 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
 
 (** predicators and application operators **)
 
-type sym_info =
-  {pred_sym : bool, min_ary : int, max_ary : int, types : typ list,
-   in_conj : bool}
+type sym_info = {pred_sym : bool, min_ary : int, max_ary : int, types : typ list, in_conj : bool}
 
 fun default_sym_tab_entries type_enc =
-  (make_fixed_const NONE \<^const_name>\<open>undefined\<close>,
-     {pred_sym = false, min_ary = 0, max_ary = 0, types = [], in_conj = false}) ::
-  ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
-  ([tptp_equal, tptp_old_equal]
-   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [], in_conj = false}))
-  |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
-    ? cons (prefixed_predicator_name,
-      {pred_sym = true, min_ary = 1, max_ary = 1, types = [], in_conj = false})
+  let
+    fun mk_sym_info pred n =
+      {pred_sym = pred, min_ary = n, max_ary = n, types = [], in_conj = false}
+  in
+    (make_fixed_const NONE \<^const_name>\<open>undefined\<close>, mk_sym_info false 0) ::
+    (map (rpair (mk_sym_info true 0)) [tptp_false, tptp_true]) @
+    (map (rpair (mk_sym_info true 1)) tptp_unary_builtins) @
+    (map (rpair (mk_sym_info true 2)) (tptp_old_equal :: tptp_binary_builtins))
+    |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
+      ? cons (prefixed_predicator_name, mk_sym_info true 1)
+  end
 
 datatype app_op_level =
   Min_App_Op |
