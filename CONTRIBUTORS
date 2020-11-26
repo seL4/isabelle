@@ -5,6 +5,8 @@ listed as an author in one of the source files of this Isabelle distribution.
 
 Contributions to this Isabelle version
 --------------------------------------
+* November 2020: Stepan Holub
+  Removed preconditions from lemma comm_append_are_replicate
 
 * November 2020: Florian Haftmann
   Bundle mixins for locale and class expressions.

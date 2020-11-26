@@ -4543,47 +4543,44 @@ lemma replicate_length_filter:
   by (induct xs) auto
 
 lemma comm_append_are_replicate:
-  "\<lbrakk> xs \<noteq> []; ys \<noteq> []; xs @ ys = ys @ xs \<rbrakk>
-  \<Longrightarrow> \<exists>m n zs. concat (replicate m zs) = xs \<and> concat (replicate n zs) = ys"
-proof (induction "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
+  "xs @ ys = ys @ xs \<Longrightarrow> \<exists>m n zs. concat (replicate m zs) = xs \<and> concat (replicate n zs) = ys"
+proof (induction "length (xs @ ys) + length xs" arbitrary: xs ys rule: less_induct)
   case less
-
-  define xs' ys' where "xs' = (if (length xs \<le> length ys) then xs else ys)"
-    and "ys' = (if (length xs \<le> length ys) then ys else xs)"
-  then have
-    prems': "length xs' \<le> length ys'"
-            "xs' @ ys' = ys' @ xs'"
-      and "xs' \<noteq> []"
-      and len: "length (xs @ ys) = length (xs' @ ys')"
-    using less by (auto intro: less.hyps)
-
-  from prems'
-  obtain ws where "ys' = xs' @ ws"
-    by (auto simp: append_eq_append_conv2)
-
-  have "\<exists>m n zs. concat (replicate m zs) = xs' \<and> concat (replicate n zs) = ys'"
-  proof (cases "ws = []")
-    case True
-    then have "concat (replicate 1 xs') = xs'"
-      and "concat (replicate 1 xs') = ys'"
-      using \<open>ys' = xs' @ ws\<close> by auto
-    then show ?thesis by blast
-  next
-    case False
-    from \<open>ys' = xs' @ ws\<close> and \<open>xs' @ ys' = ys' @ xs'\<close>
-    have "xs' @ ws = ws @ xs'" by simp
-    then have "\<exists>m n zs. concat (replicate m zs) = xs' \<and> concat (replicate n zs) = ws"
-      using False and \<open>xs' \<noteq> []\<close> and \<open>ys' = xs' @ ws\<close> and len
-      by (intro less.hyps) auto
-    then obtain m n zs where *: "concat (replicate m zs) = xs'"
-      and "concat (replicate n zs) = ws" by blast
-    then have "concat (replicate (m + n) zs) = ys'"
-      using \<open>ys' = xs' @ ws\<close>
-      by (simp add: replicate_add)
-    with * show ?thesis by blast
-  qed
+  consider (1) "length ys < length xs" | (2) "xs = []" | (3) "length xs \<le> length ys \<and> xs \<noteq> []"
+    by linarith
   then show ?case
-    using xs'_def ys'_def by meson
+  proof (cases)
+    case 1
+    then show ?thesis
+      using less.hyps[OF _ less.prems[symmetric]] nat_add_left_cancel_less by auto
+  next
+    case 2
+    then have "concat (replicate 0 ys) = xs \<and> concat (replicate 1 ys) = ys"
+      by simp
+    then show ?thesis
+      by blast
+  next
+    case 3
+    then have "length xs \<le> length ys" and "xs \<noteq> []"
+      by blast+
+    from \<open>length xs \<le> length ys\<close> and  \<open>xs @ ys = ys @ xs\<close>
+    obtain ws where "ys = xs @ ws"
+      by (auto simp: append_eq_append_conv2)
+    from this and \<open>xs \<noteq> []\<close>
+    have "length ws < length ys"
+      by simp
+    from \<open>xs @ ys = ys @ xs\<close>[unfolded \<open>ys = xs @ ws\<close>]
+    have "xs @ ws = ws @ xs"
+      by simp
+    from less.hyps[OF _ this] \<open>length ws < length ys\<close>
+    obtain m n' zs where "concat (replicate m zs) = xs" and  "concat (replicate n' zs) = ws"
+      by auto
+    then have "concat (replicate (m+n') zs) = ys"
+      using \<open>ys = xs @ ws\<close>
+      by (simp add: replicate_add)
+    then show ?thesis
+      using \<open>concat (replicate m zs) = xs\<close> by blast
+  qed
 qed
 
 lemma comm_append_is_replicate:
@@ -4594,7 +4591,7 @@ lemma comm_append_is_replicate:
 proof -
   obtain m n zs where "concat (replicate m zs) = xs"
     and "concat (replicate n zs) = ys"
-    using comm_append_are_replicate[of xs ys, OF assms] by blast
+    using comm_append_are_replicate[OF assms(3)] by blast
   then have "m + n > 1" and "concat (replicate (m+n) zs) = xs @ ys"
     using \<open>xs \<noteq> []\<close> and \<open>ys \<noteq> []\<close>
     by (auto simp: replicate_add)
