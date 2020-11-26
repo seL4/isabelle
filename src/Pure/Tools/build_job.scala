@@ -232,16 +232,18 @@ class Build_Job(progress: Progress,
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
           {
-            val documents =
-              using(store.open_database_context(deps.sessions_structure))(db_context =>
-                Presentation.build_documents(session_name, deps, db_context,
-                  output_sources = info.document_output,
-                  output_pdf = info.document_output,
-                  progress = progress,
-                  verbose = verbose))
-            using(store.open_database(session_name, output = true))(db =>
-              documents.foreach(_.write(db, session_name)))
-            (documents.flatMap(_.log_lines), Nil)
+            using(store.open_database_context(deps.sessions_structure))(db_context =>
+              {
+                val documents =
+                  Presentation.build_documents(session_name, deps, db_context,
+                    output_sources = info.document_output,
+                    output_pdf = info.document_output,
+                    progress = progress,
+                    verbose = verbose)
+                db_context.output_database(session_name)(db =>
+                  documents.foreach(_.write(db, session_name)))
+                (documents.flatMap(_.log_lines), Nil)
+              })
           }
           (Nil, Nil)
         }

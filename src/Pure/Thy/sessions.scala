@@ -1190,6 +1190,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def close { database_server.foreach(_.close) }
 
+    def output_database[A](session: String)(f: SQL.Database => A): A =
+      database_server match {
+        case Some(db) => f(db)
+        case None => using(store.open_database(session, output = true))(f)
+      }
+
     def read_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
     {
       val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
