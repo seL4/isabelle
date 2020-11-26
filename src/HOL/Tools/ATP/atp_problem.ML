@@ -455,7 +455,14 @@ fun string_of_bound_var format (s, ty) =
    else
      "")
 
-fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
+local
+  val unary_builtins = [tptp_not]
+  val binary_builtins =
+    [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff, tptp_equal]
+  val builtins = unary_builtins @ binary_builtins
+in
+
+fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> member (op =) builtins s ? parens
   | tptp_string_of_term format (ATerm ((s, tys), ts)) =
     let
       val of_type = string_of_type format
@@ -489,12 +496,11 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
                "]: " ^ of_term tm ^ ""
                |> parens) (map of_term args)
         | _ => app ())
-      else if s = tptp_not then
-        (* agsyHOL doesn't like negations applied like this: "~ @ t". *)
-        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens | _ => s)
-      else if member (op =) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff,
-                             tptp_not_iff, tptp_equal] s then
-        (* agsyHOL doesn't like connectives applied like this: "& @ t1 @ t2". *)
+      else if member (op =) unary_builtins s then
+        (* generate e.g. "~ t" instead of "~ @ t". *)
+        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens)
+      else if member (op =) binary_builtins s then
+        (* generate e.g. "t1 & t2" instead of "& @ t1 @ t2". *)
         (case ts of
           [t1, t2] => (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens) |> parens
         | _ => app ())
@@ -534,6 +540,8 @@ and tptp_string_of_formula format (ATyQuant (q, xs, phi)) =
                   (map (tptp_string_of_formula format) phis)
     |> parens
   | tptp_string_of_formula format (AAtom tm) = tptp_string_of_term format tm
+
+end
 
 fun tptp_string_of_format CNF = tptp_cnf
   | tptp_string_of_format CNF_UEQ = tptp_cnf
