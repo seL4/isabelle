@@ -18,6 +18,7 @@ object Command
 
   sealed case class Blob(
     name: Document.Node.Name,
+    src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
 
   type Blobs_Info = (List[Exn.Result[Blob]], Int)
@@ -441,9 +442,10 @@ object Command
         val blobs =
           files.map(file =>
             (Exn.capture {
-              val name = Document.Node.Name(resources.append(node_name, Path.explode(file)))
+              val src_path = Path.explode(file)
+              val name = Document.Node.Name(resources.append(node_name, src_path))
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
-              Blob(name, content)
+              Blob(name, src_path, content)
             }).user_error)
         (blobs, index)
     }

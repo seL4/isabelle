@@ -131,12 +131,12 @@ object Thy_Header
   {
     val header: Parser[Thy_Header] =
     {
-      val opt_files =
+      val loaded_files =
         $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
         success(Nil)
 
       val keyword_spec =
-        atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
+        atom("outer syntax keyword specification", _.is_name) ~ loaded_files ~ tags ^^
         { case x ~ y ~ z => Keyword.Spec(x, y, z) }
 
       val keyword_decl =

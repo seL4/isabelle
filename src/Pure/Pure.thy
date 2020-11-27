@@ -111,14 +111,14 @@ ML \<open>
 local
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
-      (Resources.provide_parse_files "external_file" >> (fn files => Toplevel.theory (#2 o files)));
+      (Resources.provide_parse_file >> (fn get_file => Toplevel.theory (#2 o get_file)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>bibtex_file\<close> "check bibtex database file in Prover IDE"
-      (Resources.provide_parse_files "bibtex_file" >> (fn files =>
+      (Resources.provide_parse_file >> (fn get_file =>
         Toplevel.theory (fn thy =>
           let
-            val ([{lines, pos, ...}], thy') = files thy;
+            val ({lines, pos, ...}, thy') = get_file thy;
             val _ = Bibtex.check_database_output pos (cat_lines lines);
           in thy' end)));
 
@@ -177,31 +177,31 @@ val semi = Scan.option \<^keyword>\<open>;\<close>;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>ML_file\<close> "read and evaluate Isabelle/ML file"
-    (Resources.parse_files "ML_file" --| semi >> ML_File.ML NONE);
+    (Resources.parse_file --| semi >> ML_File.ML NONE);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>ML_file_debug\<close>
     "read and evaluate Isabelle/ML file (with debugger information)"
-    (Resources.parse_files "ML_file_debug" --| semi >> ML_File.ML (SOME true));
+    (Resources.parse_file --| semi >> ML_File.ML (SOME true));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>ML_file_no_debug\<close>
     "read and evaluate Isabelle/ML file (no debugger information)"
-    (Resources.parse_files "ML_file_no_debug" --| semi >> ML_File.ML (SOME false));
+    (Resources.parse_file --| semi >> ML_File.ML (SOME false));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>SML_file\<close> "read and evaluate Standard ML file"
-    (Resources.parse_files "SML_file" --| semi >> ML_File.SML NONE);
+    (Resources.parse_file --| semi >> ML_File.SML NONE);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>SML_file_debug\<close>
     "read and evaluate Standard ML file (with debugger information)"
-    (Resources.parse_files "SML_file_debug" --| semi >> ML_File.SML (SOME true));
+    (Resources.parse_file --| semi >> ML_File.SML (SOME true));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>SML_file_no_debug\<close>
     "read and evaluate Standard ML file (no debugger information)"
-    (Resources.parse_files "SML_file_no_debug" --| semi >> ML_File.SML (SOME false));
+    (Resources.parse_file --| semi >> ML_File.SML (SOME false));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>SML_export\<close> "evaluate SML within Isabelle/ML environment"

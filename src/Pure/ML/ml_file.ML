@@ -6,18 +6,18 @@ Commands to load ML files.
 
 signature ML_FILE =
 sig
-  val command: string -> bool option -> (theory -> Token.file list) ->
+  val command: string -> bool option -> (theory -> Token.file) ->
     Toplevel.transition -> Toplevel.transition
-  val ML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
-  val SML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
+  val ML: bool option -> (theory -> Token.file) -> Toplevel.transition -> Toplevel.transition
+  val SML: bool option -> (theory -> Token.file) -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure ML_File: ML_FILE =
 struct
 
-fun command environment debug files = Toplevel.generic_theory (fn gthy =>
+fun command environment debug get_file = Toplevel.generic_theory (fn gthy =>
   let
-    val [file: Token.file] = files (Context.theory_of gthy);
+    val file = get_file (Context.theory_of gthy);
     val provide = Resources.provide_file file;
     val source = Token.file_source file;
 

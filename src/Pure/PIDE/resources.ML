@@ -37,10 +37,13 @@ sig
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
-  val parse_files: string -> (theory -> Token.file list) parser
+  val extensions: string list -> Path.T -> Path.T list
+  val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
+  val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_file: Token.file -> theory -> theory
-  val provide_parse_files: string -> (theory -> Token.file list * theory) parser
+  val provide_parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list * theory) parser
+  val provide_parse_file: (theory -> Token.file * theory) parser
   val loaded_files_current: theory -> bool
   val check_path: Proof.context -> Path.T option -> string * Position.T -> Path.T
   val check_file: Proof.context -> Path.T option -> string * Position.T -> Path.T
@@ -290,17 +293,21 @@ fun check_thy dir thy_name =
 
 (* load files *)
 
-fun parse_files cmd =
+fun extensions exts path = map (fn ext => Path.ext ext path) exts;
+
+fun parse_files make_paths =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       [] =>
         let
-          val keywords = Thy_Header.get_keywords thy;
           val master_dir = master_directory thy;
           val pos = Token.pos_of tok;
-          val src_paths = Keyword.command_files keywords cmd (Path.explode name);
+          val src_paths = make_paths (Path.explode name);
         in map (Command.read_file master_dir pos) src_paths end
     | files => map Exn.release files));
+
+val parse_file = parse_files single >> (fn f => f #> the_single);
+
 
 fun provide (src_path, id) =
   map_files (fn (master_dir, imports, provided) =>
@@ -310,12 +317,15 @@ fun provide (src_path, id) =
 
 fun provide_file (file: Token.file) = provide (#src_path file, #digest file);
 
-fun provide_parse_files cmd =
-  parse_files cmd >> (fn files => fn thy =>
+fun provide_parse_files make_paths =
+  parse_files make_paths >> (fn files => fn thy =>
     let
       val fs = files thy;
       val thy' = fold (fn {src_path, digest, ...} => provide (src_path, digest)) fs thy;
     in (fs, thy') end);
+
+val provide_parse_file = provide_parse_files single >> (fn f => f #>> the_single);
+
 
 fun load_file thy src_path =
   let

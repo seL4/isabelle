@@ -6,11 +6,11 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type blob = (string * (SHA1.digest * string list) option) Exn.result
+  type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option}
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
-    blob list * int -> Token.T list -> Toplevel.transition
+    blob Exn.result list * int -> Token.T list -> Toplevel.transition
   type eval
   val eval_command_id: eval -> Document_ID.command
   val eval_exec_id: eval -> Document_ID.exec
@@ -20,7 +20,7 @@ sig
   val eval_result_command: eval -> Toplevel.transition
   val eval_result_state: eval -> Toplevel.state
   val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
-    blob list * int -> Document_ID.command -> Token.T list -> eval -> eval
+    blob Exn.result list * int -> Document_ID.command -> Token.T list -> eval -> eval
   type print
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print0: {pri: int, print_fn: print_fn} -> eval -> print
@@ -53,8 +53,7 @@ fun task_context group f =
 
 (* read *)
 
-type blob =
-  (string * (SHA1.digest * string list) option) Exn.result;  (*file node name, digest, lines*)
+type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option};
 
 fun read_file_node file_node master_dir pos src_path =
   let
@@ -89,29 +88,21 @@ fun blob_file src_path lines digest file_node =
       | SOME exec_id => Position.put_id exec_id);
   in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
 
-fun resolve_files keywords master_dir (blobs, blobs_index) toks =
+fun resolve_files master_dir (blobs, blobs_index) toks =
   (case Outer_Syntax.parse_spans toks of
     [Command_Span.Span (Command_Span.Command_Span (cmd, _), _)] =>
       (case try (nth toks) blobs_index of
         SOME tok =>
           let
             val pos = Token.pos_of tok;
-            val path = Path.explode (Token.content_of tok)
-              handle ERROR msg => error (msg ^ Position.here pos);
-            fun make_file src_path (Exn.Res (file_node, NONE)) =
+            fun make_file (Exn.Res {file_node, src_path, content = NONE}) =
                   Exn.interruptible_capture (fn () =>
                     read_file_node file_node master_dir pos src_path) ()
-              | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
+              | make_file (Exn.Res {file_node, src_path, content = SOME (digest, lines)}) =
                   (Position.report pos Markup.language_path;
                     Exn.Res (blob_file src_path lines digest file_node))
-              | make_file _ (Exn.Exn e) = Exn.Exn e;
-            val src_paths = Keyword.command_files keywords cmd path;
-            val files =
-              if null blobs then
-                map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
-              else if length src_paths = length blobs then
-                map2 make_file src_paths blobs
-              else error ("Misalignment of inlined files" ^ Position.here pos);
+              | make_file (Exn.Exn e) = Exn.Exn e;
+            val files = map make_file blobs;
           in
             toks |> map_index (fn (i, tok) =>
               if i = blobs_index then Token.put_files files tok else tok)
@@ -157,7 +148,7 @@ fun read keywords thy master_dir init blobs_info span =
         Position.here_list verbatim);
   in
     if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
-    else Outer_Syntax.parse_span thy init (resolve_files keywords master_dir blobs_info span)
+    else Outer_Syntax.parse_span thy init (resolve_files master_dir blobs_info span)
   end;
 
 end;
