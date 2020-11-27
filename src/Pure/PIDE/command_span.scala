@@ -67,6 +67,18 @@ object Command_Span
       }
       (source, Span(kind, content1.toList))
     }
+
+    def loaded_files(syntax: Outer_Syntax): (List[String], Int) =
+      syntax.load_command(name) match {
+        case Some(exts) =>
+          find_file(clean_tokens(content)) match {
+            case Some((file, i)) =>
+              if (exts.isEmpty) (List(file), i)
+              else (exts.map(ext => file + "." + ext), i)
+            case None => (Nil, -1)
+          }
+        case None => (Nil, -1)
+      }
   }
 
   val empty: Span = Span(Ignored_Span, Nil)
@@ -76,6 +88,28 @@ object Command_Span
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
   }
+
+
+  /* loaded files */
+
+  def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
+  {
+    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
+      toks match {
+        case (t1, i1) :: (t2, i2) :: rest =>
+          if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
+          else (t1, i1) :: clean((t2, i2) :: rest)
+        case _ => toks
+      }
+    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
+  }
+
+  def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
+    if (tokens.exists({ case (t, _) => t.is_command })) {
+      tokens.dropWhile({ case (t, _) => !t.is_command }).
+        collectFirst({ case (t, i) if t.is_embedded => (t.content, i) })
+    }
+    else None
 
 
   /* XML data representation */

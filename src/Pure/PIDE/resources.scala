@@ -117,8 +117,10 @@ class Resources(
         val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
         val spans = syntax.parse_spans(text)
         val dir = Path.explode(name.master_dir)
-        spans.iterator.flatMap(Command.span_files(syntax, _)._1).
-          map(a => (dir + Path.explode(a)).expand).toList
+        (for {
+          span <- spans.iterator
+          file <- span.loaded_files(syntax)._1
+        } yield (dir + Path.explode(file)).expand).toList
       }
       else Nil
     }

@@ -468,37 +468,6 @@ object Command
 
   /* blobs: inlined errors and auxiliary files */
 
-  private def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
-  {
-    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
-      toks match {
-        case (t1, i1) :: (t2, i2) :: rest =>
-          if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
-          else (t1, i1) :: clean((t2, i2) :: rest)
-        case _ => toks
-      }
-    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
-  }
-
-  private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
-    if (tokens.exists({ case (t, _) => t.is_command })) {
-      tokens.dropWhile({ case (t, _) => !t.is_command }).
-        collectFirst({ case (t, i) if t.is_embedded => (t.content, i) })
-    }
-    else None
-
-  def span_files(syntax: Outer_Syntax, span: Command_Span.Span): (List[String], Int) =
-    syntax.load_command(span.name) match {
-      case Some(exts) =>
-        find_file(clean_tokens(span.content)) match {
-          case Some((file, i)) =>
-            if (exts.isEmpty) (List(file), i)
-            else (exts.map(ext => file + "." + ext), i)
-          case None => (Nil, -1)
-        }
-      case None => (Nil, -1)
-    }
-
   def blobs_info(
     resources: Resources,
     syntax: Outer_Syntax,
@@ -534,12 +503,12 @@ object Command
 
       // auxiliary files
       case _ =>
-        val (files, index) = span_files(syntax, span)
+        val (files, index) = span.loaded_files(syntax)
         val blobs =
           files.map(file =>
             (Exn.capture {
               val name = Document.Node.Name(resources.append(node_name, Path.explode(file)))
-              val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
+              val blob = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               (name, blob)
             }).user_error)
         (blobs, index)
