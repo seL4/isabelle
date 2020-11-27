@@ -315,9 +315,9 @@ trait Protocol
 
     val blobs_yxml =
     {
-      val encode_blob: T[Command.Blob] =
+      val encode_blob: T[Exn.Result[Command.Blob]] =
         variant(List(
-          { case Exn.Res((a, b)) =>
+          { case Exn.Res(Command.Blob(a, b)) =>
               (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 

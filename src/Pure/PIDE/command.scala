@@ -16,8 +16,11 @@ object Command
 {
   type Edit = (Option[Command], Option[Command])
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Symbol.Text_Chunk)])]
-  type Blobs_Info = (List[Blob], Int)
+  sealed case class Blob(
+    name: Document.Node.Name,
+    content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
+
+  type Blobs_Info = (List[Exn.Result[Blob]], Int)
   val no_blobs: Blobs_Info = (Nil, -1)
 
 
@@ -428,7 +431,7 @@ object Command
               "Bad theory import " +
                 Markup.Path(import_name.node).markup(quote(import_name.toString)) +
                 Position.here(pos) + Completion.report_theories(pos, completion)
-            Exn.Exn(ERROR(msg)): Command.Blob
+            Exn.Exn[Command.Blob](ERROR(msg))
           }
         (errors, -1)
 
@@ -439,8 +442,8 @@ object Command
           files.map(file =>
             (Exn.capture {
               val name = Document.Node.Name(resources.append(node_name, Path.explode(file)))
-              val blob = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
-              (name, blob)
+              val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
+              Blob(name, content)
             }).user_error)
         (blobs, index)
     }
@@ -474,23 +477,23 @@ final class Command private(
 
   /* blobs */
 
-  def blobs: List[Command.Blob] = blobs_info._1
+  def blobs: List[Exn.Result[Command.Blob]] = blobs_info._1
   def blobs_index: Int = blobs_info._2
 
   def blobs_ok: Boolean =
     blobs.forall({ case Exn.Res(_) => true case _ => false })
 
   def blobs_names: List[Document.Node.Name] =
-    for (Exn.Res((name, _)) <- blobs) yield name
+    for (Exn.Res(blob) <- blobs) yield blob.name
 
   def blobs_undefined: List[Document.Node.Name] =
-    for (Exn.Res((name, None)) <- blobs) yield name
+    for (Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name
 
   def blobs_defined: List[(Document.Node.Name, SHA1.Digest)] =
-    for (Exn.Res((name, Some((digest, _)))) <- blobs) yield (name, digest)
+    for (Exn.Res(blob) <- blobs; (digest, _) <- blob.content) yield (blob.name, digest)
 
   def blobs_changed(doc_blobs: Document.Blobs): Boolean =
-    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
+    blobs.exists({ case Exn.Res(blob) => doc_blobs.changed(blob.name) case _ => false })
 
 
   /* source chunks */
@@ -499,8 +502,8 @@ final class Command private(
 
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
-      (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield Symbol.Text_Chunk.File(name.node) -> file)).toMap
+      (for (Exn.Res(blob) <- blobs; (_, file) <- blob.content)
+        yield Symbol.Text_Chunk.File(blob.name.node) -> file)).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range
