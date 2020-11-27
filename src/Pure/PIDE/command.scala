@@ -415,26 +415,30 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val imports_pos = resources.check_thy_reader(node_name, reader).imports_pos
+        val header = resources.check_thy_reader(node_name, reader)
+        val imports_pos = header.imports_pos
         val raw_imports =
           try {
             val read_imports = Thy_Header.read(reader, Token.Pos.none).imports
             if (imports_pos.length == read_imports.length) read_imports else error("")
           }
-          catch { case exn: Throwable => List.fill(imports_pos.length)("") }
+          catch { case _: Throwable => List.fill(imports_pos.length)("") }
 
-        val errors =
+        val errs1 =
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
-            val msg =
-              "Bad theory import " +
-                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
-                Position.here(pos) + Completion.report_theories(pos, completion)
-            Exn.Exn[Command.Blob](ERROR(msg))
+            "Bad theory import " +
+              Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+              Position.here(pos) + Completion.report_theories(pos, completion)
           }
-        (errors, -1)
+        val errs2 =
+          for {
+            (_, spec) <- header.keywords
+            if !Command_Span.load_commands.exists(_.name == spec.load_command)
+          } yield { "Unknown load command specification: " + quote(spec.load_command) }
+      ((errs1 ::: errs2).map(msg => Exn.Exn[Command.Blob](ERROR(msg))), -1)
 
       // auxiliary files
       case _ =>

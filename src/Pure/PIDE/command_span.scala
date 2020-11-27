@@ -18,13 +18,25 @@ object Command_Span
 
   val no_loaded_files: Loaded_Files = (Nil, -1)
 
-  def loaded_files(exts: List[String], tokens: List[(Token, Int)]): Loaded_Files =
-    tokens.collectFirst({ case (t, i) if t.is_embedded => (t.content, i) }) match {
-      case Some((file, i)) =>
-        if (exts.isEmpty) (List(file), i)
-        else (exts.map(ext => file + "." + ext), i)
-      case None => no_loaded_files
-    }
+  class Load_Command(val name: String) extends Isabelle_System.Service
+  {
+    override def toString: String = name
+
+    def extensions: List[String] = Nil
+
+    def loaded_files(tokens: List[(Token, Int)]): Loaded_Files =
+      tokens.collectFirst({ case (t, i) if t.is_embedded => (t.content, i) }) match {
+        case Some((file, i)) =>
+          extensions match {
+            case Nil => (List(file), i)
+            case exts => (exts.map(ext => file + "." + ext), i)
+          }
+        case None => no_loaded_files
+      }
+  }
+
+  lazy val load_commands: List[Load_Command] =
+    new Load_Command("") :: Isabelle_System.make_services(classOf[Load_Command])
 
 
   /* span kind */
@@ -107,8 +119,12 @@ object Command_Span
 
     def loaded_files(syntax: Outer_Syntax): Loaded_Files =
       syntax.load_command(name) match {
-        case Some(exts) => isabelle.Command_Span.loaded_files(exts, clean_arguments)
         case None => no_loaded_files
+        case Some(a) =>
+          load_commands.find(_.name == a) match {
+            case Some(load_command) => load_command.loaded_files(clean_arguments)
+            case None => error("Undefined load command function: " + a)
+          }
       }
   }
 

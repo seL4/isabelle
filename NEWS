@@ -272,6 +272,13 @@ Isabelle_System.Service in Isabelle/Scala. This supersedes former
 "isabelle_scala_tools" and "isabelle_file_format": minor
 INCOMPATIBILITY.
 
+* The syntax of theory load commands (for auxiliary files) is now
+specified in Isabelle/Scala, as instance of class
+isabelle.Command_Span.Load_Command registered via isabelle_scala_service
+in etc/settings. This allows more flexible schemes than just a list of
+file extensions. Minor INCOMPATIBILITY, e.g. see theory
+HOL-SPARK.SPARK_Setup to emulate the old behaviour.
+
 * Isabelle server allows user-defined commands via
 isabelle_scala_service.
 
