@@ -110,13 +110,13 @@ object Keyword
   {
     val none: Spec = Spec("")
   }
-  sealed case class Spec(kind: String, exts: List[String] = Nil, tags: List[String] = Nil)
+  sealed case class Spec(kind: String, load_command: String = "", tags: List[String] = Nil)
   {
     def is_none: Boolean = kind == ""
 
     override def toString: String =
       kind +
-        (if (exts.isEmpty) "" else " (" + commas_quote(exts) + ")") +
+        (if (load_command.isEmpty) "" else " (" + quote(load_command) + ")") +
         (if (tags.isEmpty) "" else tags.map(quote).mkString(" % ", " % ", ""))
   }
 
@@ -127,16 +127,20 @@ object Keyword
 
   class Keywords private(
     val kinds: Map[String, String] = Map.empty,
-    val load_commands: Map[String, List[String]] = Map.empty)
+    val load_commands: Map[String, String] = Map.empty)
   {
     override def toString: String =
     {
       val entries =
         for ((name, kind) <- kinds.toList.sortBy(_._1)) yield {
-          val exts = load_commands.getOrElse(name, Nil)
+          val load_decl =
+            load_commands.get(name) match {
+              case Some(load_command) => " (" + quote(load_command) + ")"
+              case None => ""
+            }
           val kind_decl =
             if (kind == "") ""
-            else " :: " + quote(kind) + (if (exts.isEmpty) "" else " (" + commas_quote(exts) + ")")
+            else " :: " + quote(kind) + load_decl
           quote(name) + kind_decl
         }
       entries.mkString("keywords\n  ", " and\n  ", "")
@@ -167,14 +171,14 @@ object Keyword
 
     /* add keywords */
 
-    def + (name: String, kind: String = "", exts: List[String] = Nil): Keywords =
+    def + (name: String, kind: String = "", load_command: String = ""): Keywords =
     {
       val kinds1 = kinds + (name -> kind)
       val load_commands1 =
         if (kind == THY_LOAD) {
           if (!Symbol.iterator(name).forall(Symbol.is_ascii))
             error("Bad theory load command " + quote(name))
-          load_commands + (name -> exts)
+          load_commands + (name -> load_command)
         }
         else load_commands
       new Keywords(kinds1, load_commands1)
@@ -187,8 +191,8 @@ object Keyword
             keywords + Symbol.decode(name) + Symbol.encode(name)
           else
             keywords +
-              (Symbol.decode(name), spec.kind, spec.exts) +
-              (Symbol.encode(name), spec.kind, spec.exts)
+              (Symbol.decode(name), spec.kind, spec.load_command) +
+              (Symbol.encode(name), spec.kind, spec.load_command)
       }
 
 
@@ -206,12 +210,6 @@ object Keyword
 
     def is_indent_command(token: Token): Boolean =
       token.is_begin_or_command || is_quasi_command(token)
-
-
-    /* load commands */
-
-    def load_commands_in(text: String): Boolean =
-      load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
 
     /* lexicons */

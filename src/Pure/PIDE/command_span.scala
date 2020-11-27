@@ -12,6 +12,35 @@ import scala.collection.mutable
 
 object Command_Span
 {
+  /* loaded files */
+
+  type Loaded_Files = (List[String], Int)
+
+  val no_loaded_files: Loaded_Files = (Nil, -1)
+
+  class Load_Command(val name: String) extends Isabelle_System.Service
+  {
+    override def toString: String = name
+
+    def extensions: List[String] = Nil
+
+    def loaded_files(tokens: List[(Token, Int)]): Loaded_Files =
+      tokens.collectFirst({ case (t, i) if t.is_embedded => (t.content, i) }) match {
+        case Some((file, i)) =>
+          extensions match {
+            case Nil => (List(file), i)
+            case exts => (exts.map(ext => file + "." + ext), i)
+          }
+        case None => no_loaded_files
+      }
+  }
+
+  lazy val load_commands: List[Load_Command] =
+    new Load_Command("") :: Isabelle_System.make_services(classOf[Load_Command])
+
+
+  /* span kind */
+
   sealed abstract class Kind {
     override def toString: String =
       this match {
@@ -25,6 +54,9 @@ object Command_Span
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
   case object Theory_Span extends Kind
+
+
+  /* span */
 
   sealed case class Span(kind: Kind, content: List[Token])
   {
@@ -67,6 +99,33 @@ object Command_Span
       }
       (source, Span(kind, content1.toList))
     }
+
+    def clean_arguments: List[(Token, Int)] =
+    {
+      if (name.nonEmpty) {
+        def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
+          toks match {
+            case (t1, i1) :: (t2, i2) :: rest =>
+              if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
+              else (t1, i1) :: clean((t2, i2) :: rest)
+            case _ => toks
+          }
+        clean(content.zipWithIndex.filter({ case (t, _) => t.is_proper }))
+          .dropWhile({ case (t, _) => !t.is_command })
+          .dropWhile({ case (t, _) => t.is_command })
+      }
+      else Nil
+    }
+
+    def loaded_files(syntax: Outer_Syntax): Loaded_Files =
+      syntax.load_command(name) match {
+        case None => no_loaded_files
+        case Some(a) =>
+          load_commands.find(_.name == a) match {
+            case Some(load_command) => load_command.loaded_files(clean_arguments)
+            case None => error("Undefined load command function: " + a)
+          }
+      }
   }
 
   val empty: Span = Span(Ignored_Span, Nil)
@@ -75,31 +134,5 @@ object Command_Span
   {
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
-  }
-
-
-  /* XML data representation */
-
-  def encode: XML.Encode.T[Span] = (span: Span) =>
-  {
-    import XML.Encode._
-    val kind: T[Kind] =
-      variant(List(
-        { case Command_Span(a, b) => (List(a), properties(b)) },
-        { case Ignored_Span => (Nil, Nil) },
-        { case Malformed_Span => (Nil, Nil) }))
-    pair(kind, list(Token.encode))((span.kind, span.content))
-  }
-
-  def decode: XML.Decode.T[Span] = (body: XML.Body) =>
-  {
-    import XML.Decode._
-    val kind: T[Kind] =
-      variant(List(
-        { case (List(a), b) => Command_Span(a, properties(b)) },
-        { case (Nil, Nil) => Ignored_Span },
-        { case (Nil, Nil) => Malformed_Span }))
-    val (k, toks) = pair(kind, list(Token.decode))(body)
-    Span(k, toks)
   }
 }

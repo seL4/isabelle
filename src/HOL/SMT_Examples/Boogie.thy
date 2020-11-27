@@ -6,7 +6,7 @@ section \<open>Proving Boogie-generated verification conditions\<close>
 
 theory Boogie
 imports Main
-keywords "boogie_file" :: thy_load ("b2i")
+keywords "boogie_file" :: thy_load
 begin
 
 text \<open>
@@ -58,19 +58,19 @@ declare [[smt_read_only_certificates = true]]
 external_file \<open>Boogie_Max.certs\<close>
 declare [[smt_certificates = "Boogie_Max.certs"]]
 
-boogie_file \<open>Boogie_Max\<close>
+boogie_file \<open>Boogie_Max.b2i\<close>
 
 
 external_file \<open>Boogie_Dijkstra.certs\<close>
 declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
 
-boogie_file \<open>Boogie_Dijkstra\<close>
+boogie_file \<open>Boogie_Dijkstra.b2i\<close>
 
 
 declare [[z3_extensions = true]]
 external_file \<open>VCC_Max.certs\<close>
 declare [[smt_certificates = "VCC_Max.certs"]]
 
-boogie_file \<open>VCC_Max\<close>
+boogie_file \<open>VCC_Max.b2i\<close>
 
 end

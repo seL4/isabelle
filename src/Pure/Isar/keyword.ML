@@ -38,7 +38,7 @@ sig
   val prf_script_asm_goal: string
   val before_command: string
   val quasi_command: string
-  type spec = (string * string list) * string list
+  type spec = string * string list
   val no_spec: spec
   val before_command_spec: spec
   val quasi_command_spec: spec
@@ -57,7 +57,6 @@ sig
   val dest_commands: keywords -> string list
   val command_markup: keywords -> string -> Markup.T option
   val command_kind: keywords -> string -> string option
-  val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
   val is_vacuous: keywords -> string -> bool
   val is_diag: keywords -> string -> bool
@@ -132,27 +131,24 @@ val command_kinds =
 
 (* specifications *)
 
-type spec = (string * string list) * string list;
+type spec = string * string list;
 
-val no_spec: spec = (("", []), []);
-val before_command_spec: spec = ((before_command, []), []);
-val quasi_command_spec: spec = ((quasi_command, []), []);
-val document_heading_spec: spec = (("document_heading", []), ["document"]);
-val document_body_spec: spec = (("document_body", []), ["document"]);
+val no_spec: spec = ("", []);
+val before_command_spec: spec = (before_command, []);
+val quasi_command_spec: spec = (quasi_command, []);
+val document_heading_spec: spec = ("document_heading", ["document"]);
+val document_body_spec: spec = ("document_body", ["document"]);
 
 type entry =
  {pos: Position.T,
   id: serial,
   kind: string,
-  files: string list,  (*extensions of embedded files*)
   tags: string list};
 
-fun check_spec pos ((kind, files), tags) : entry =
+fun check_spec pos (kind, tags) : entry =
   if not (member (op =) command_kinds kind) then
     error ("Unknown outer syntax keyword kind " ^ quote kind)
-  else if not (null files) andalso kind <> thy_load then
-    error ("Illegal specification of files for " ^ quote kind)
-  else {pos = pos, id = serial (), kind = kind, files = files, tags = tags};
+  else {pos = pos, id = serial (), kind = kind, tags = tags};
 
 
 (** keyword tables **)
@@ -191,7 +187,7 @@ fun merge_keywords
     Symtab.merge (K true) (commands1, commands2));
 
 val add_keywords =
-  fold (fn ((name, pos), spec as ((kind, _), _)) => map_keywords (fn (minor, major, commands) =>
+  fold (fn ((name, pos), spec as (kind, _)) => map_keywords (fn (minor, major, commands) =>
     if kind = "" orelse kind = before_command orelse kind = quasi_command then
       let
         val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
@@ -224,14 +220,6 @@ fun command_markup keywords name =
         (Markup.entity Markup.command_keywordN name));
 
 fun command_kind keywords = Option.map #kind o lookup_command keywords;
-
-fun command_files keywords name path =
-  (case lookup_command keywords name of
-    NONE => []
-  | SOME {kind, files, ...} =>
-      if kind <> thy_load then []
-      else if null files then [path]
-      else map (fn ext => Path.ext ext path) files);
 
 fun command_tags keywords name =
   (case lookup_command keywords name of

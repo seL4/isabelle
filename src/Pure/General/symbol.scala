@@ -214,24 +214,6 @@ object Symbol
     case class Id(id: Document_ID.Generic) extends Name
     case class File(name: String) extends Name
 
-    val encode_name: XML.Encode.T[Name] =
-    {
-      import XML.Encode._
-      variant(List(
-        { case Default => (Nil, Nil) },
-        { case Id(a) => (List(long_atom(a)), Nil) },
-        { case File(a) => (List(a), Nil) }))
-    }
-
-    val decode_name: XML.Decode.T[Name] =
-    {
-      import XML.Decode._
-      variant(List(
-        { case (Nil, Nil) => Default },
-        { case (List(a), Nil) => Id(long_atom(a)) },
-        { case (List(a), Nil) => File(a) }))
-    }
-
     def apply(text: CharSequence): Text_Chunk =
       new Text_Chunk(Text.Range(0, text.length), Index(text))
   }

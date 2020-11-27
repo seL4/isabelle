@@ -9,6 +9,7 @@
 ## sources
 
 declare -a SOURCES=(
+  src/HOL/SPARK/Tools/spark.scala
   src/HOL/Tools/Nitpick/kodkod.scala
   src/Pure/Admin/afp.scala
   src/Pure/Admin/build_csdp.scala

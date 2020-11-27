@@ -16,8 +16,12 @@ object Command
 {
   type Edit = (Option[Command], Option[Command])
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Symbol.Text_Chunk)])]
-  type Blobs_Info = (List[Blob], Int)
+  sealed case class Blob(
+    name: Document.Node.Name,
+    src_path: Path,
+    content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
+
+  type Blobs_Info = (List[Exn.Result[Blob]], Int)
   val no_blobs: Blobs_Info = (Nil, -1)
 
 
@@ -31,15 +35,6 @@ object Command
     val empty: Results = new Results(SortedMap.empty)
     def make(args: TraversableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
     def merge(args: TraversableOnce[Results]): Results = (empty /: args)(_ ++ _)
-
-
-    /* XML data representation */
-
-    val encode: XML.Encode.T[Results] = (results: Results) =>
-    { import XML.Encode._; list(pair(long, tree))(results.rep.toList) }
-
-    val decode: XML.Decode.T[Results] = (body: XML.Body) =>
-    { import XML.Decode._; make(list(pair(long, tree))(body)) }
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])
@@ -115,35 +110,6 @@ object Command
     val empty: Markups = new Markups(Map.empty)
     def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
     def merge(args: TraversableOnce[Markups]): Markups = (empty /: args)(_ ++ _)
-
-
-    /* XML data representation */
-
-    def encode(source_length: Int): XML.Encode.T[Markups] = (markups: Markups) =>
-    {
-      import XML.Encode._
-
-      val markup_index: T[Markup_Index] = (index: Markup_Index) =>
-        pair(bool, Symbol.Text_Chunk.encode_name)(index.status, index.chunk_name)
-
-      val markup_tree: T[Markup_Tree] =
-        _.to_XML(Text.Range(0, source_length), Symbol.spaces(source_length), Markup.Elements.full)
-
-      list(pair(markup_index, markup_tree))(markups.rep.toList)
-    }
-
-    val decode: XML.Decode.T[Markups] = (body: XML.Body) =>
-    {
-      import XML.Decode._
-
-      val markup_index: T[Markup_Index] = (body: XML.Body) =>
-      {
-        val (status, chunk_name) = pair(bool, Symbol.Text_Chunk.decode_name)(body)
-        Markup_Index(status, chunk_name)
-      }
-
-      (Markups.empty /: list(pair(markup_index, Markup_Tree.from_XML))(body))(_ + _)
-    }
   }
 
   final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
@@ -221,37 +187,6 @@ object Command
     def merge(command: Command, states: List[State]): State =
       State(command, states.flatMap(_.status), merge_results(states),
         merge_exports(states), merge_markups(states))
-
-
-    /* XML data representation */
-
-    val encode: XML.Encode.T[State] = (st: State) =>
-    {
-      import XML.Encode._
-
-      val command = st.command
-      val blobs_names = command.blobs_names.map(_.node)
-      val blobs_index = command.blobs_index
-      require(command.blobs_ok)
-
-      pair(long, pair(string, pair(pair(list(string), int), pair(Command_Span.encode,
-          pair(list(Markup.encode), pair(Results.encode, Markups.encode(command.source.length)))))))(
-        (command.id, (command.node_name.node, ((blobs_names, blobs_index), (command.span,
-          (st.status, (st.results, st.markups)))))))
-    }
-
-    def decode(node_name: String => Document.Node.Name): XML.Decode.T[State] = (body: XML.Body) =>
-    {
-      import XML.Decode._
-      val (id, (node, ((blobs_names, blobs_index), (span, (status, (results, markups)))))) =
-        pair(long, pair(string, pair(pair(list(string), int), pair(Command_Span.decode,
-          pair(list(Markup.decode), pair(Results.decode, Markups.decode))))))(body)
-
-      val blobs_info: Blobs_Info =
-        (blobs_names.map(name => Exn.Res((node_name(name), None)): Blob), blobs_index)
-      val command = Command(id, node_name(node), blobs_info, span)
-      State(command, status, results, Exports.empty, markups)
-    }
   }
 
   sealed case class State(
@@ -468,37 +403,6 @@ object Command
 
   /* blobs: inlined errors and auxiliary files */
 
-  private def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
-  {
-    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
-      toks match {
-        case (t1, i1) :: (t2, i2) :: rest =>
-          if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
-          else (t1, i1) :: clean((t2, i2) :: rest)
-        case _ => toks
-      }
-    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
-  }
-
-  private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
-    if (tokens.exists({ case (t, _) => t.is_command })) {
-      tokens.dropWhile({ case (t, _) => !t.is_command }).
-        collectFirst({ case (t, i) if t.is_embedded => (t.content, i) })
-    }
-    else None
-
-  def span_files(syntax: Outer_Syntax, span: Command_Span.Span): (List[String], Int) =
-    syntax.load_command(span.name) match {
-      case Some(exts) =>
-        find_file(clean_tokens(span.content)) match {
-          case Some((file, i)) =>
-            if (exts.isEmpty) (List(file), i)
-            else (exts.map(ext => file + "." + ext), i)
-          case None => (Nil, -1)
-        }
-      case None => (Nil, -1)
-    }
-
   def blobs_info(
     resources: Resources,
     syntax: Outer_Syntax,
@@ -511,36 +415,41 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val imports_pos = resources.check_thy_reader(node_name, reader).imports_pos
+        val header = resources.check_thy_reader(node_name, reader)
+        val imports_pos = header.imports_pos
         val raw_imports =
           try {
             val read_imports = Thy_Header.read(reader, Token.Pos.none).imports
             if (imports_pos.length == read_imports.length) read_imports else error("")
           }
-          catch { case exn: Throwable => List.fill(imports_pos.length)("") }
+          catch { case _: Throwable => List.fill(imports_pos.length)("") }
 
-        val errors =
+        val errs1 =
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
-            val msg =
-              "Bad theory import " +
-                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
-                Position.here(pos) + Completion.report_theories(pos, completion)
-            Exn.Exn(ERROR(msg)): Command.Blob
+            "Bad theory import " +
+              Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+              Position.here(pos) + Completion.report_theories(pos, completion)
           }
-        (errors, -1)
+        val errs2 =
+          for {
+            (_, spec) <- header.keywords
+            if !Command_Span.load_commands.exists(_.name == spec.load_command)
+          } yield { "Unknown load command specification: " + quote(spec.load_command) }
+      ((errs1 ::: errs2).map(msg => Exn.Exn[Command.Blob](ERROR(msg))), -1)
 
       // auxiliary files
       case _ =>
-        val (files, index) = span_files(syntax, span)
+        val (files, index) = span.loaded_files(syntax)
         val blobs =
           files.map(file =>
             (Exn.capture {
-              val name = Document.Node.Name(resources.append(node_name, Path.explode(file)))
-              val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
-              (name, blob)
+              val src_path = Path.explode(file)
+              val name = Document.Node.Name(resources.append(node_name, src_path))
+              val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
+              Blob(name, src_path, content)
             }).user_error)
         (blobs, index)
     }
@@ -574,23 +483,23 @@ final class Command private(
 
   /* blobs */
 
-  def blobs: List[Command.Blob] = blobs_info._1
+  def blobs: List[Exn.Result[Command.Blob]] = blobs_info._1
   def blobs_index: Int = blobs_info._2
 
   def blobs_ok: Boolean =
     blobs.forall({ case Exn.Res(_) => true case _ => false })
 
   def blobs_names: List[Document.Node.Name] =
-    for (Exn.Res((name, _)) <- blobs) yield name
+    for (Exn.Res(blob) <- blobs) yield blob.name
 
   def blobs_undefined: List[Document.Node.Name] =
-    for (Exn.Res((name, None)) <- blobs) yield name
+    for (Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name
 
   def blobs_defined: List[(Document.Node.Name, SHA1.Digest)] =
-    for (Exn.Res((name, Some((digest, _)))) <- blobs) yield (name, digest)
+    for (Exn.Res(blob) <- blobs; (digest, _) <- blob.content) yield (blob.name, digest)
 
   def blobs_changed(doc_blobs: Document.Blobs): Boolean =
-    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
+    blobs.exists({ case Exn.Res(blob) => doc_blobs.changed(blob.name) case _ => false })
 
 
   /* source chunks */
@@ -599,8 +508,8 @@ final class Command private(
 
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
-      (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield Symbol.Text_Chunk.File(name.node) -> file)).toMap
+      (for (Exn.Res(blob) <- blobs; (_, file) <- blob.content)
+        yield Symbol.Text_Chunk.File(blob.name.node) -> file)).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range

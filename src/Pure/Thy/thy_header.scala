@@ -7,8 +7,6 @@ Static theory header information.
 package isabelle
 
 
-import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
@@ -131,13 +129,15 @@ object Thy_Header
   {
     val header: Parser[Thy_Header] =
     {
-      val opt_files =
-        $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
-        success(Nil)
+      def load_command =
+        ($$$("(") ~! (name <~ $$$(")")) ^^ { case _ ~ x => x }) | success("")
+
+      def load_command_spec(kind: String) =
+        (if (kind == Keyword.THY_LOAD) load_command else success("")) ^^ (x => (kind, x))
 
       val keyword_spec =
-        atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
-        { case x ~ y ~ z => Keyword.Spec(x, y, z) }
+        (atom("outer syntax keyword specification", _.is_name) >> load_command_spec) ~ tags ^^
+        { case (x, y) ~ z => Keyword.Spec(x, y, z) }
 
       val keyword_decl =
         rep1(string) ~
@@ -166,7 +166,7 @@ object Thy_Header
             Thy_Header((f(name), pos),
               imports.map({ case (a, b) => (f(a), b) }),
               keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
-                (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
+                (f(a), Keyword.Spec(f(b), f(c), d.map(f))) }),
               abbrevs.map({ case (a, b) => (f(a), f(b)) }))
         }
 

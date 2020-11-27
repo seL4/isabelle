@@ -56,16 +56,16 @@ final class Outer_Syntax private(
 
   /* keywords */
 
-  def + (name: String, kind: String = "", exts: List[String] = Nil): Outer_Syntax =
+  def + (name: String, kind: String = "", load_command: String = ""): Outer_Syntax =
     new Outer_Syntax(
-      keywords + (name, kind, exts), rev_abbrevs, language_context, has_tokens = true)
+      keywords + (name, kind, load_command), rev_abbrevs, language_context, has_tokens = true)
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
       case (syntax, (name, spec)) =>
         syntax +
-          (Symbol.decode(name), spec.kind, spec.exts) +
-          (Symbol.encode(name), spec.kind, spec.exts)
+          (Symbol.decode(name), spec.kind, spec.load_command) +
+          (Symbol.encode(name), spec.kind, spec.load_command)
     }
 
 
@@ -133,8 +133,11 @@ final class Outer_Syntax private(
 
   /* load commands */
 
-  def load_command(name: String): Option[List[String]] = keywords.load_commands.get(name)
-  def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
+  def load_command(name: String): Option[String] =
+    keywords.load_commands.get(name)
+
+  def has_load_commands(text: String): Boolean =
+    keywords.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
 
   /* language context */

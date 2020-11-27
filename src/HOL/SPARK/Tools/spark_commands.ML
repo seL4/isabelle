@@ -94,13 +94,13 @@ fun show_status thy (p, f) =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>spark_open_vcg\<close>
     "open a new SPARK environment and load a SPARK-generated .vcg file"
-    (Resources.provide_parse_files "spark_open_vcg" -- Parse.parname
+    (Resources.provide_parse_files (Resources.extensions ["vcg", "fdl", "rls"]) -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.vcg_header));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>spark_open\<close>
     "open a new SPARK environment and load a SPARK-generated .siv file"
-    (Resources.provide_parse_files "spark_open" -- Parse.parname
+    (Resources.provide_parse_files (Resources.extensions ["siv", "fdl", "rls"]) -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.siv_header));
 
 val pfun_type = Scan.option

@@ -150,8 +150,15 @@ object Path
 }
 
 
-final class Path private(private val elems: List[Path.Elem]) // reversed elements
+final class Path private(protected val elems: List[Path.Elem]) // reversed elements
 {
+  override def hashCode: Int = elems.hashCode
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Path => elems == other.elems
+      case _ => false
+    }
+
   def is_current: Boolean = elems.isEmpty
   def is_absolute: Boolean = elems.nonEmpty && elems.last.isInstanceOf[Path.Root]
   def is_root: Boolean = elems match { case List(Path.Root(_)) => true case _ => false }

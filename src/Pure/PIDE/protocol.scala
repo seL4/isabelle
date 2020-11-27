@@ -315,10 +315,11 @@ trait Protocol
 
     val blobs_yxml =
     {
-      val encode_blob: T[Command.Blob] =
+      val encode_blob: T[Exn.Result[Command.Blob]] =
         variant(List(
-          { case Exn.Res((a, b)) =>
-              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
+          { case Exn.Res(Command.Blob(a, b, c)) =>
+              (Nil, triple(string, string, option(string))(
+                (a.node, b.implode, c.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 
       Symbol.encode_yxml(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
@@ -397,11 +398,10 @@ trait Protocol
           { case Document.Node.Deps(header) =>
               val master_dir = File.standard_url(name.master_dir)
               val imports = header.imports.map(_.node)
-              val keywords =
-                header.keywords.map({ case (a, Keyword.Spec(b, c, d)) => (a, ((b, c), d)) })
+              val keywords = header.keywords.map({ case (a, Keyword.Spec(b, _, c)) => (a, (b, c)) })
               (Nil,
-                pair(string, pair(string, pair(list(string), pair(list(pair(string,
-                    pair(pair(string, list(string)), list(string)))), list(string)))))(
+                pair(string, pair(string, pair(list(string),
+                  pair(list(pair(string, pair(string, list(string)))), list(string)))))(
                 (master_dir, (name.theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),

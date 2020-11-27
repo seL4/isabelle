@@ -38,10 +38,13 @@ fun decode_command id name blobs_xml toks_xml sources : Document.command =
       blobs_xml |>
         let
           val message = YXML.string_of_body o Protocol_Message.command_positions id;
+          val blob =
+            triple string string (option string)
+            #> (fn (a, b, c) => {file_node = a, src_path = Path.explode b, digest = c});
         in
           pair
             (list (variant
-             [fn ([], a) => Exn.Res (pair string (option string) a),
+             [fn ([], a) => Exn.Res (blob a),
               fn ([], a) => Exn.Exn (ERROR (message a))]))
             int
         end;
@@ -109,8 +112,7 @@ val _ =
                         let
                           val (master, (name, (imports, (keywords, errors)))) =
                             pair string (pair string (pair (list string)
-                              (pair (list (pair string
-                                (pair (pair string (list string)) (list string))))
+                              (pair (list (pair string (pair string (list string))))
                                 (list YXML.string_of_body)))) a;
                           val imports' = map (rpair Position.none) imports;
                           val keywords' = map (fn (x, y) => ((x, Position.none), y)) keywords;
