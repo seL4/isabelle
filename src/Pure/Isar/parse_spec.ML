@@ -18,6 +18,7 @@ sig
     ((binding * string option * mixfix) list * Specification.multi_specs_cmd) parser
   val constdecl: (binding * string option * mixfix) parser
   val includes: (xstring * Position.T) list parser
+  val opening: (xstring * Position.T) list parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expression: string list parser
@@ -83,6 +84,8 @@ val constdecl =
 (* locale and context elements *)
 
 val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 Parse.name_position);
+
+val opening = Parse.$$$ "opening" |-- Parse.!!! (Scan.repeat1 Parse.name_position);
 
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- Parse.mixfix

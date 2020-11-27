@@ -57,6 +57,12 @@ checked within the Isabelle settings environment.
 * Session Pure-Examples contains notable examples for Isabelle/Pure
 (former entries of HOL-Isar_Examples).
 
+* Named contexts (locale and class specifications, locale and class
+context blocks) allow bundle mixins for the surface context.  This
+allows syntax notations to be organized within bundles conveniently.
+See src/HOL/ex/Specifications_with_bundle_mixins.thy for examples
+and the Isar reference manual for syntx descriptions.
+
 * Definitions in locales produce rule which can be added as congruence
 rule to protect foundational terms during simplification.
 

@@ -46,6 +46,7 @@ keywords
   and "instantiation" :: thy_decl_block
   and "instance" :: thy_goal
   and "overloading" :: thy_decl_block
+  and "opening" :: quasi_command
   and "code_datatype" :: thy_decl
   and "theorem" "lemma" "corollary" "proposition" :: thy_goal_stmt
   and "schematic_goal" :: thy_goal_stmt
@@ -626,8 +627,8 @@ local
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>context\<close> "begin local theory context"
-    ((Parse.name_position
-        >> (fn name => Toplevel.begin_main_target true (Target_Context.context_begin_named_cmd [] name)) ||
+    (((Parse.name_position -- Scan.optional Parse_Spec.opening [])
+        >> (fn (name, incls) => Toplevel.begin_main_target true (Target_Context.context_begin_named_cmd incls name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.begin_nested_target (Target_Context.context_begin_nested_cmd incls elems)))
       --| Parse.begin);
@@ -647,18 +648,19 @@ ML \<open>
 local
 
 val locale_context_elements =
-  Scan.optional Parse_Spec.includes [] -- Scan.repeat1 Parse_Spec.context_element;
+  Scan.repeat1 Parse_Spec.context_element;
 
 val locale_val =
-  Parse_Spec.locale_expression --
-    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! locale_context_elements) ([], []) ||
-  locale_context_elements >> pair ([], []);
+  ((Parse_Spec.locale_expression -- Scan.optional Parse_Spec.opening [])
+    || Parse_Spec.opening >> pair ([], []))
+  -- Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! locale_context_elements) []
+  || locale_context_elements >> pair (([], []), []);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>locale\<close> "define named specification context"
     (Parse.binding --
-      Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.!!! locale_val) (([], []), ([], [])) -- Parse.opt_begin
-      >> (fn ((name, (expr, (includes, elems))), begin) =>
+      Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.!!! locale_val) ((([], []), []), []) -- Parse.opt_begin
+      >> (fn ((name, ((expr, includes), elems)), begin) =>
           Toplevel.begin_main_target begin
             (Expression.add_locale_cmd name Binding.empty includes expr elems #> snd)));
 
@@ -710,17 +712,18 @@ ML \<open>
 local
 
 val class_context_elements =
-  Scan.optional Parse_Spec.includes [] -- Scan.repeat1 Parse_Spec.context_element;
+  Scan.repeat1 Parse_Spec.context_element;
 
 val class_val =
-  Parse_Spec.class_expression --
-    Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! class_context_elements) ([], []) ||
-  class_context_elements >> pair [];
+  ((Parse_Spec.class_expression -- Scan.optional Parse_Spec.opening [])
+    || Parse_Spec.opening >> pair [])
+  -- Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! class_context_elements) [] ||
+  class_context_elements >> pair ([], []);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>class\<close> "define type class"
-   (Parse.binding -- Scan.optional (\<^keyword>\<open>=\<close> |-- class_val) ([], ([], [])) -- Parse.opt_begin
-    >> (fn ((name, (supclasses, (includes, elems))), begin) =>
+   (Parse.binding -- Scan.optional (\<^keyword>\<open>=\<close> |-- class_val) (([], []), []) -- Parse.opt_begin
+    >> (fn ((name, ((supclasses, includes), elems)), begin) =>
         Toplevel.begin_main_target begin
           (Class_Declaration.class_cmd name includes supclasses elems #> snd)));
 

@@ -139,17 +139,19 @@ text \<open>
   \<^theory_text>\<open>instantiation\<close>, \<^theory_text>\<open>overloading\<close>.
 
   \<^rail>\<open>
-    @@{command context} @{syntax name} @'begin'
+    @@{command context} @{syntax name} @{syntax_ref "opening"}? @'begin'
     ;
     @@{command context} @{syntax_ref "includes"}? (@{syntax context_elem} * ) @'begin'
     ;
     @{syntax_def target}: '(' @'in' @{syntax name} ')'
   \<close>
 
-  \<^descr> \<^theory_text>\<open>context c begin\<close> opens a named context, by recommencing an existing
+  \<^descr> \<^theory_text>\<open>context c bundles begin\<close> opens a named context, by recommencing an existing
   locale or class \<open>c\<close>. Note that locale and class definitions allow to include
   the \<^theory_text>\<open>begin\<close> keyword as well, in order to continue the local theory
-  immediately after the initial specification.
+  immediately after the initial specification.  Optionally given
+  \<open>bundles\<close> only take effect in the surface context within the \<^theory_text>\<open>begin\<close> /
+  \<^theory_text>\<open>end\<close> block.
 
   \<^descr> \<^theory_text>\<open>context bundles elements begin\<close> opens an unnamed context, by extending
   the enclosing global or local theory target by the given declaration bundles
@@ -237,6 +239,10 @@ text \<open>
     (@@{command include} | @@{command including}) (@{syntax name}+)
     ;
     @{syntax_def "includes"}: @'includes' (@{syntax name}+)
+    ;
+    @{syntax_def "opening"}: @'opening' (@{syntax name}+)
+    ;
+    @@{command unbundle} (@{syntax name}+)
   \<close>
 
   \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
@@ -255,21 +261,26 @@ text \<open>
   \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
   current context; the ``\<open>!\<close>'' option indicates extra verbosity.
 
-  \<^descr> \<^theory_text>\<open>unbundle b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles in
-  the current local theory context. This is analogous to \<^theory_text>\<open>lemmas\<close>
-  (\secref{sec:theorems}) with the expanded bundles.
+  \<^descr> \<^theory_text>\<open>include b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles
+  in a proof body (forward mode). This is analogous to \<^theory_text>\<open>note\<close>
+  (\secref{sec:proof-facts}) with the expanded bundles.
 
-  \<^descr> \<^theory_text>\<open>include\<close> is similar to \<^theory_text>\<open>unbundle\<close>, but works in a proof body (forward
-  mode). This is analogous to \<^theory_text>\<open>note\<close> (\secref{sec:proof-facts}) with the
-  expanded bundles.
-
-  \<^descr> \<^theory_text>\<open>including\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof refinement
+  \<^descr> \<^theory_text>\<open>including b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof refinement
   (backward mode). This is analogous to \<^theory_text>\<open>using\<close> (\secref{sec:proof-facts})
   with the expanded bundles.
 
-  \<^descr> \<^theory_text>\<open>includes b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but works in situations
-  where a specification context is constructed, notably for \<^theory_text>\<open>context\<close> and
-  long statements of \<^theory_text>\<open>theorem\<close> etc.
+  \<^descr> \<^theory_text>\<open>includes b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but applies to a
+  confined specification context: unnamed \<^theory_text>\<open>context\<close>s and
+  long statements of \<^theory_text>\<open>theorem\<close>.
+
+  \<^descr> \<^theory_text>\<open>opening b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>includes\<close>, but applies to
+  a named specification context: \<^theory_text>\<open>locale\<close>s, \<^theory_text>\<open>class\<close>es and
+  named \<^theory_text>\<open>context\<close>s. The effect is confined to the surface context within the
+  specification block itself and the corresponding \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.
+
+  \<^descr> \<^theory_text>\<open>unbundle b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles in
+  the current local theory context. This is analogous to \<^theory_text>\<open>lemmas\<close>
+  (\secref{sec:theorems}) with the expanded bundles.
 
 
   Here is an artificial example of bundling various configuration options:
@@ -524,7 +535,8 @@ text \<open>
     @@{command print_locales} ('!'?)
     ;
     @{syntax_def locale}: @{syntax context_elem}+ |
-      @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
+      @{syntax_ref "opening"} ('+' (@{syntax context_elem}+))? |
+      @{syntax locale_expr} @{syntax_ref "opening"}? ('+' (@{syntax context_elem}+))?
     ;
     @{syntax_def context_elem}:
       @'fixes' @{syntax vars} |
@@ -534,9 +546,11 @@ text \<open>
       @'notes' (@{syntax thmdef}? @{syntax thms} + @'and')
   \<close>
 
-  \<^descr> \<^theory_text>\<open>locale loc = import + body\<close> defines a new locale \<open>loc\<close> as a context
+  \<^descr> \<^theory_text>\<open>locale loc = import bundles + body\<close> defines a new locale \<open>loc\<close> as a context
   consisting of a certain view of existing locales (\<open>import\<close>) plus some
-  additional elements (\<open>body\<close>). Both \<open>import\<close> and \<open>body\<close> are optional; the
+  additional elements (\<open>body\<close>);  given \<open>bundles\<close> take effect in the surface
+  context within both \<open>import\<close> and \<open>body\<close> and the potentially following
+  \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.  Each part is optional; the
   degenerate form \<^theory_text>\<open>locale loc\<close> defines an empty locale, which may still be
   useful to collect declarations of facts later on. Type-inference on locale
   expressions automatically takes care of the most general typing that the
@@ -816,8 +830,9 @@ text \<open>
     @@{command class} class_spec @'begin'?
     ;
     class_spec: @{syntax name} '='
-      ((@{syntax name} '+' (@{syntax context_elem}+)) |
-        @{syntax name} | (@{syntax context_elem}+))
+      ((@{syntax name} @{syntax_ref "opening"}? '+' (@{syntax context_elem}+)) |
+        @{syntax name} @{syntax_ref "opening"}? |
+        @{syntax_ref "opening"}? '+' (@{syntax context_elem}+))
     ;
     @@{command instantiation} (@{syntax name} + @'and') '::' @{syntax arity} @'begin'
     ;
@@ -831,7 +846,7 @@ text \<open>
     class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>
 
-  \<^descr> \<^theory_text>\<open>class c = superclasses + body\<close> defines a new class \<open>c\<close>, inheriting from
+  \<^descr> \<^theory_text>\<open>class c = superclasses bundles + body\<close> defines a new class \<open>c\<close>, inheriting from
   \<open>superclasses\<close>. This introduces a locale \<open>c\<close> with import of all locales
   \<open>superclasses\<close>.
 
@@ -845,6 +860,9 @@ text \<open>
   \<open>c_class_axioms.intro\<close>. This rule should be rarely needed directly --- the
   @{method intro_classes} method takes care of the details of class membership
   proofs.
+
+  Optionally given \<open>bundles\<close> take effect in the surface context within the
+  \<open>body\<close> and the potentially following \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.
 
   \<^descr> \<^theory_text>\<open>instantiation t :: (s\<^sub>1, \<dots>, s\<^sub>n)s begin\<close> opens a target (cf.\
   \secref{sec:target}) which allows to specify class operations \<open>f\<^sub>1, \<dots>, f\<^sub>n\<close>

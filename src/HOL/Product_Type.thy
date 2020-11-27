@@ -814,9 +814,6 @@ end
 code_printing
   constant scomp \<rightharpoonup> (Eval) infixl 3 "#->"
 
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
 text \<open>
   \<^term>\<open>map_prod\<close> --- action of the product functor upon functions.
 \<close>

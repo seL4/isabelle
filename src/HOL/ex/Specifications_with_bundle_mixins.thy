@@ -2,8 +2,7 @@ theory Specifications_with_bundle_mixins
   imports "HOL-Library.Perm"
 begin
 
-locale involutory =
-  includes permutation_syntax
+locale involutory = opening permutation_syntax +
   fixes f :: \<open>'a perm\<close>
   assumes involutory: \<open>\<And>x. f \<langle>$\<rangle> (f \<langle>$\<rangle> x) = x\<close>
 begin
@@ -23,8 +22,7 @@ thm involutory (*syntax from permutation_syntax only present in locale specifica
 end
 
 
-class at_most_two_elems =
-  includes permutation_syntax
+class at_most_two_elems = opening permutation_syntax +
   assumes swap_distinct: \<open>a \<noteq> b \<Longrightarrow> \<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c \<noteq> c\<close>
 begin
 
