@@ -119,30 +119,4 @@ object Command_Span
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
   }
-
-
-  /* XML data representation */
-
-  def encode: XML.Encode.T[Span] = (span: Span) =>
-  {
-    import XML.Encode._
-    val kind: T[Kind] =
-      variant(List(
-        { case Command_Span(a, b) => (List(a), properties(b)) },
-        { case Ignored_Span => (Nil, Nil) },
-        { case Malformed_Span => (Nil, Nil) }))
-    pair(kind, list(Token.encode))((span.kind, span.content))
-  }
-
-  def decode: XML.Decode.T[Span] = (body: XML.Body) =>
-  {
-    import XML.Decode._
-    val kind: T[Kind] =
-      variant(List(
-        { case (List(a), b) => Command_Span(a, properties(b)) },
-        { case (Nil, Nil) => Ignored_Span },
-        { case (Nil, Nil) => Malformed_Span }))
-    val (k, toks) = pair(kind, list(Token.decode))(body)
-    Span(k, toks)
-  }
 }

@@ -256,22 +256,6 @@ object Token
 
   def reader(tokens: List[Token], start: Token.Pos): Reader =
     new Token_Reader(tokens, start)
-
-
-  /* XML data representation */
-
-  val encode: XML.Encode.T[Token] = (tok: Token) =>
-  {
-    import XML.Encode._
-    pair(int, string)(tok.kind.id, tok.source)
-  }
-
-  val decode: XML.Decode.T[Token] = (body: XML.Body) =>
-  {
-    import XML.Decode._
-    val (k, s) = pair(int, string)(body)
-    Token(Kind(k), s)
-  }
 }
 
 
