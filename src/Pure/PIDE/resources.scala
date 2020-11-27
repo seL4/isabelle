@@ -113,7 +113,7 @@ class Resources(
     val (is_utf8, raw_text) =
       with_thy_reader(name, reader => (Scan.reader_is_utf8(reader), reader.source.toString))
     () => {
-      if (syntax.load_commands_in(raw_text)) {
+      if (syntax.has_load_commands(raw_text)) {
         val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
         val spans = syntax.parse_spans(text)
         val dir = Path.explode(name.master_dir)

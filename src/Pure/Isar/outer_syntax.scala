@@ -133,8 +133,11 @@ final class Outer_Syntax private(
 
   /* load commands */
 
-  def load_command(name: String): Option[List[String]] = keywords.load_commands.get(name)
-  def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
+  def load_command(name: String): Option[List[String]] =
+    keywords.load_commands.get(name)
+
+  def has_load_commands(text: String): Boolean =
+    keywords.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
 
   /* language context */

@@ -208,12 +208,6 @@ object Keyword
       token.is_begin_or_command || is_quasi_command(token)
 
 
-    /* load commands */
-
-    def load_commands_in(text: String): Boolean =
-      load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
-
-
     /* lexicons */
 
     private def make_lexicon(is_minor: Boolean): Scan.Lexicon =
