@@ -12,6 +12,23 @@ import scala.collection.mutable
 
 object Command_Span
 {
+  /* loaded files */
+
+  type Loaded_Files = (List[String], Int)
+
+  val no_loaded_files: Loaded_Files = (Nil, -1)
+
+  def loaded_files(exts: List[String], tokens: List[(Token, Int)]): Loaded_Files =
+    tokens.collectFirst({ case (t, i) if t.is_embedded => (t.content, i) }) match {
+      case Some((file, i)) =>
+        if (exts.isEmpty) (List(file), i)
+        else (exts.map(ext => file + "." + ext), i)
+      case None => no_loaded_files
+    }
+
+
+  /* span kind */
+
   sealed abstract class Kind {
     override def toString: String =
       this match {
@@ -25,6 +42,9 @@ object Command_Span
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
   case object Theory_Span extends Kind
+
+
+  /* span */
 
   sealed case class Span(kind: Kind, content: List[Token])
   {
@@ -68,16 +88,27 @@ object Command_Span
       (source, Span(kind, content1.toList))
     }
 
-    def loaded_files(syntax: Outer_Syntax): (List[String], Int) =
-      syntax.load_command(name) match {
-        case Some(exts) =>
-          find_file(clean_tokens(content)) match {
-            case Some((file, i)) =>
-              if (exts.isEmpty) (List(file), i)
-              else (exts.map(ext => file + "." + ext), i)
-            case None => (Nil, -1)
+    def clean_arguments: List[(Token, Int)] =
+    {
+      if (name.nonEmpty) {
+        def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
+          toks match {
+            case (t1, i1) :: (t2, i2) :: rest =>
+              if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
+              else (t1, i1) :: clean((t2, i2) :: rest)
+            case _ => toks
           }
-        case None => (Nil, -1)
+        clean(content.zipWithIndex.filter({ case (t, _) => t.is_proper }))
+          .dropWhile({ case (t, _) => !t.is_command })
+          .dropWhile({ case (t, _) => t.is_command })
+      }
+      else Nil
+    }
+
+    def loaded_files(syntax: Outer_Syntax): Loaded_Files =
+      syntax.load_command(name) match {
+        case Some(exts) => isabelle.Command_Span.loaded_files(exts, clean_arguments)
+        case None => no_loaded_files
       }
   }
 
@@ -88,28 +119,6 @@ object Command_Span
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
   }
-
-
-  /* loaded files */
-
-  def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
-  {
-    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
-      toks match {
-        case (t1, i1) :: (t2, i2) :: rest =>
-          if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
-          else (t1, i1) :: clean((t2, i2) :: rest)
-        case _ => toks
-      }
-    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
-  }
-
-  def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
-    if (tokens.exists({ case (t, _) => t.is_command })) {
-      tokens.dropWhile({ case (t, _) => !t.is_command }).
-        collectFirst({ case (t, i) if t.is_embedded => (t.content, i) })
-    }
-    else None
 
 
   /* XML data representation */
