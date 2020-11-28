@@ -1,7 +1,7 @@
-/*  Title:      Tools/VSCode/src/document_model.scala
+/*  Title:      Tools/VSCode/src/vscode_model.scala
     Author:     Makarius
 
-Document model for line-oriented text.
+VSCode document model for line-oriented text.
 */
 
 package isabelle.vscode
@@ -12,7 +12,7 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-object Document_Model
+object VSCode_Model
 {
   /* decorations */
 
@@ -46,34 +46,37 @@ object Document_Model
       try { Bibtex.entries(text) }
       catch { case ERROR(_) => Nil }
 
-    def recode_symbols: List[Protocol.TextEdit] =
+    def recode_symbols: List[LSP.TextEdit] =
       (for {
         (line, l) <- doc.lines.iterator.zipWithIndex
         text1 = Symbol.encode(line.text)
         if (line.text != text1)
       } yield {
         val range = Line.Range(Line.Position(l), Line.Position(l, line.text.length))
-        Protocol.TextEdit(range, text1)
+        LSP.TextEdit(range, text1)
       }).toList
   }
 
-  def init(session: Session, editor: Server.Editor, node_name: Document.Node.Name): Document_Model =
-    Document_Model(session, editor, node_name, Content.empty,
+  def init(session: Session, editor: Language_Server.Editor, node_name: Document.Node.Name)
+    : VSCode_Model =
+  {
+    VSCode_Model(session, editor, node_name, Content.empty,
       node_required = File_Format.registry.is_theory(node_name))
+  }
 }
 
-sealed case class Document_Model(
+sealed case class VSCode_Model(
   session: Session,
-  editor: Server.Editor,
+  editor: Language_Server.Editor,
   node_name: Document.Node.Name,
-  content: Document_Model.Content,
+  content: VSCode_Model.Content,
   version: Option[Long] = None,
   external_file: Boolean = false,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
-  published_decorations: List[Document_Model.Decoration] = Nil) extends Document.Model
+  published_decorations: List[VSCode_Model.Decoration] = Nil) extends Document.Model
 {
   model =>
 
@@ -82,12 +85,12 @@ sealed case class Document_Model(
 
   def get_text(range: Text.Range): Option[String] = content.doc.get_text(range)
 
-  def set_version(new_version: Long): Document_Model = copy(version = Some(new_version))
+  def set_version(new_version: Long): VSCode_Model = copy(version = Some(new_version))
 
 
   /* external file */
 
-  def external(b: Boolean): Document_Model = copy(external_file = b)
+  def external(b: Boolean): VSCode_Model = copy(external_file = b)
 
   def node_visible: Boolean = !external_file
 
@@ -155,7 +158,7 @@ sealed case class Document_Model(
 
   /* edits */
 
-  def change_text(text: String, range: Option[Line.Range] = None): Option[Document_Model] =
+  def change_text(text: String, range: Option[Line.Range] = None): Option[VSCode_Model] =
   {
     val insert = Line.normalize(text)
     range match {
@@ -163,7 +166,7 @@ sealed case class Document_Model(
         Text.Edit.replace(0, content.text, insert) match {
           case Nil => None
           case edits =>
-            val content1 = Document_Model.Content(Line.Document(insert))
+            val content1 = VSCode_Model.Content(Line.Document(insert))
             Some(copy(content = content1, pending_edits = pending_edits ::: edits))
         }
       case Some(remove) =>
@@ -171,7 +174,7 @@ sealed case class Document_Model(
           case None => error("Failed to apply document change: " + remove)
           case Some((Nil, _)) => None
           case Some((edits, doc1)) =>
-            val content1 = Document_Model.Content(doc1)
+            val content1 = VSCode_Model.Content(doc1)
             Some(copy(content = content1, pending_edits = pending_edits ::: edits))
         }
     }
@@ -182,12 +185,12 @@ sealed case class Document_Model(
       doc_blobs: Document.Blobs,
       file: JFile,
       caret: Option[Line.Position])
-    : Option[((List[Protocol.TextDocumentEdit], List[Document.Edit_Text]), Document_Model)] =
+    : Option[((List[LSP.TextDocumentEdit], List[Document.Edit_Text]), VSCode_Model)] =
   {
     val workspace_edits =
       if (unicode_symbols && version.isDefined) {
         val edits = content.recode_symbols
-        if (edits.nonEmpty) List(Protocol.TextDocumentEdit(file, version.get, edits))
+        if (edits.nonEmpty) List(LSP.TextDocumentEdit(file, version.get, edits))
         else Nil
       }
       else Nil
@@ -207,12 +210,12 @@ sealed case class Document_Model(
   /* publish annotations */
 
   def publish(rendering: VSCode_Rendering):
-    (Option[List[Text.Info[Command.Results]]], Option[List[Document_Model.Decoration]], Document_Model) =
+    (Option[List[Text.Info[Command.Results]]], Option[List[VSCode_Model.Decoration]], VSCode_Model) =
   {
     val diagnostics = rendering.diagnostics
     val decorations =
       if (node_visible) rendering.decorations
-      else { for (deco <- published_decorations) yield Document_Model.Decoration.empty(deco.typ) }
+      else { for (deco <- published_decorations) yield VSCode_Model.Decoration.empty(deco.typ) }
 
     val changed_diagnostics =
       if (diagnostics == published_diagnostics) None else Some(diagnostics)

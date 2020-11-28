@@ -35,18 +35,18 @@ object Dynamic_Output
             else this
         }
       if (st1.output != output) {
-        channel.write(Protocol.Dynamic_Output(
+        channel.write(LSP.Dynamic_Output(
           resources.output_pretty_message(Pretty.separate(st1.output))))
       }
       st1
     }
   }
 
-  def apply(server: Server): Dynamic_Output = new Dynamic_Output(server)
+  def apply(server: Language_Server): Dynamic_Output = new Dynamic_Output(server)
 }
 
 
-class Dynamic_Output private(server: Server)
+class Dynamic_Output private(server: Language_Server)
 {
   private val state = Synchronized(Dynamic_Output.State())
 

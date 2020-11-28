@@ -15,7 +15,7 @@ object State_Panel
   private val make_id = Counter.make()
   private val instances = Synchronized(Map.empty[Counter.ID, State_Panel])
 
-  def init(server: Server)
+  def init(server: Language_Server)
   {
     val instance = new State_Panel(server)
     instances.change(_ + (instance.id -> instance))
@@ -45,14 +45,14 @@ object State_Panel
 }
 
 
-class State_Panel private(val server: Server)
+class State_Panel private(val server: Language_Server)
 {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
 
   private def output(content: String): Unit =
-    server.channel.write(Protocol.State_Output(id, content))
+    server.channel.write(LSP.State_Output(id, content))
 
 
   /* query operation */

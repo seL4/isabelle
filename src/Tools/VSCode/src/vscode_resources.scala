@@ -19,13 +19,13 @@ object VSCode_Resources
   /* internal state */
 
   sealed case class State(
-    models: Map[JFile, Document_Model] = Map.empty,
+    models: Map[JFile, VSCode_Model] = Map.empty,
     caret: Option[(JFile, Line.Position)] = None,
     overlays: Document.Overlays = Document.Overlays.empty,
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
-    def update_models(changed: Traversable[(JFile, Document_Model)]): State =
+    def update_models(changed: Traversable[(JFile, VSCode_Model)]): State =
       copy(
         models = models ++ changed,
         pending_input = (pending_input /: changed) { case (set, (file, _)) => set + file },
@@ -63,7 +63,7 @@ object VSCode_Resources
 
   /* caret */
 
-  sealed case class Caret(file: JFile, model: Document_Model, offset: Text.Offset)
+  sealed case class Caret(file: JFile, model: VSCode_Model, offset: Text.Offset)
   {
     def node_name: Document.Node.Name = model.node_name
   }
@@ -114,9 +114,9 @@ class VSCode_Resources(
     else File.absolute_name(new JFile(dir + JFile.separator + File.platform_path(path)))
   }
 
-  def get_models: Map[JFile, Document_Model] = state.value.models
-  def get_model(file: JFile): Option[Document_Model] = get_models.get(file)
-  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
+  def get_models: Map[JFile, VSCode_Model] = state.value.models
+  def get_model(file: JFile): Option[VSCode_Model] = get_models.get(file)
+  def get_model(name: Document.Node.Name): Option[VSCode_Model] = get_model(node_file(name))
 
 
   /* file content */
@@ -156,7 +156,7 @@ class VSCode_Resources(
 
   def change_model(
     session: Session,
-    editor: Server.Editor,
+    editor: Language_Server.Editor,
     file: JFile,
     version: Long,
     text: String,
@@ -164,7 +164,7 @@ class VSCode_Resources(
   {
     state.change(st =>
       {
-        val model = st.models.getOrElse(file, Document_Model.init(session, editor, node_name(file)))
+        val model = st.models.getOrElse(file, VSCode_Model.init(session, editor, node_name(file)))
         val model1 =
           (model.change_text(text, range) getOrElse model).set_version(version).external(false)
         st.update_models(Some(file -> model1))
@@ -208,7 +208,7 @@ class VSCode_Resources(
 
   def resolve_dependencies(
     session: Session,
-    editor: Server.Editor,
+    editor: Language_Server.Editor,
     file_watcher: File_Watcher): (Boolean, Boolean) =
   {
     state.change_result(st =>
@@ -252,7 +252,7 @@ class VSCode_Resources(
             text <- { file_watcher.register_parent(file); read_file_content(node_name) }
           }
           yield {
-            val model = Document_Model.init(session, editor, node_name)
+            val model = VSCode_Model.init(session, editor, node_name)
             val model1 = (model.change_text(text) getOrElse model).external(true)
             (file, model1)
           }).toList
@@ -280,7 +280,7 @@ class VSCode_Resources(
           } yield (edits, (file, model1))).toList
 
         for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
-          channel.write(Protocol.WorkspaceEdit(workspace_edits))
+          channel.write(LSP.WorkspaceEdit(workspace_edits))
 
         session.update(st.document_blobs, changed_models.flatMap(res => res._1._2))
 
@@ -318,7 +318,7 @@ class VSCode_Resources(
           }
           yield {
             for (diags <- changed_diags)
-              channel.write(Protocol.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
+              channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
             if (pide_extensions) {
               for (decos <- changed_decos; deco <- decos)
                 channel.write(rendering.decoration_output(deco).json(file))

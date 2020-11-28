@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/server.scala
+/*  Title:      Tools/VSCode/src/language_server.scala
     Author:     Makarius
 
 Server for VS Code Language Server Protocol 2.0/3.0, see also
@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 
-object Server
+object Language_Server
 {
   type Editor = isabelle.Editor[Unit]
 
@@ -73,7 +73,7 @@ Usage: isabelle vscode_server [OPTIONS]
       val log = Logger.make(log_file)
       val channel = new Channel(System.in, System.out, log, verbose)
       val server =
-        new Server(channel, options, session_name = logic, session_dirs = dirs,
+        new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
           include_sessions = include_sessions, session_ancestor = logic_ancestor,
           session_requirements = logic_requirements, modes = modes, log = log)
 
@@ -94,10 +94,10 @@ Usage: isabelle vscode_server [OPTIONS]
   })
 }
 
-class Server(
+class Language_Server(
   val channel: Channel,
   options: Options,
-  session_name: String = Server.default_logic,
+  session_name: String = Language_Server.default_logic,
   session_dirs: List[Path] = Nil,
   include_sessions: List[String] = Nil,
   session_ancestor: Option[String] = None,
@@ -158,10 +158,10 @@ class Server(
     delay_output.invoke()
   }
 
-  private def change_document(file: JFile, version: Long, changes: List[Protocol.TextDocumentChange])
+  private def change_document(file: JFile, version: Long, changes: List[LSP.TextDocumentChange])
   {
-    val norm_changes = new mutable.ListBuffer[Protocol.TextDocumentChange]
-    @tailrec def norm(chs: List[Protocol.TextDocumentChange])
+    val norm_changes = new mutable.ListBuffer[LSP.TextDocumentChange]
+    @tailrec def norm(chs: List[LSP.TextDocumentChange])
     {
       if (chs.nonEmpty) {
         val (full_texts, rest1) = chs.span(_.range.isEmpty)
@@ -245,17 +245,17 @@ class Server(
 
   /* init and exit */
 
-  def init(id: Protocol.Id)
+  def init(id: LSP.Id)
   {
     def reply_ok(msg: String)
     {
-      channel.write(Protocol.Initialize.reply(id, ""))
+      channel.write(LSP.Initialize.reply(id, ""))
       channel.writeln(msg)
     }
 
     def reply_error(msg: String)
     {
-      channel.write(Protocol.Initialize.reply(id, msg))
+      channel.write(LSP.Initialize.reply(id, msg))
       channel.error_message(msg)
     }
 
@@ -312,9 +312,9 @@ class Server(
     }
   }
 
-  def shutdown(id: Protocol.Id)
+  def shutdown(id: LSP.Id)
   {
-    def reply(err: String): Unit = channel.write(Protocol.Shutdown.reply(id, err))
+    def reply(err: String): Unit = channel.write(LSP.Shutdown.reply(id, err))
 
     session_.change({
       case Some(session) =>
@@ -348,12 +348,12 @@ class Server(
 
   /* completion */
 
-  def completion(id: Protocol.Id, node_pos: Line.Node_Position)
+  def completion(id: LSP.Id, node_pos: Line.Node_Position)
   {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield rendering.completion(node_pos.pos, offset)) getOrElse Nil
-    channel.write(Protocol.Completion.reply(id, result))
+    channel.write(LSP.Completion.reply(id, result))
   }
 
 
@@ -385,7 +385,7 @@ class Server(
 
   /* hover */
 
-  def hover(id: Protocol.Id, node_pos: Line.Node_Position)
+  def hover(id: LSP.Id, node_pos: Line.Node_Position)
   {
     val result =
       for {
@@ -393,37 +393,36 @@ class Server(
         info <- rendering.tooltips(VSCode_Rendering.tooltip_elements, Text.Range(offset, offset + 1))
       } yield {
         val range = rendering.model.content.doc.range(info.range)
-        val contents =
-          info.info.map(t => Protocol.MarkedString(resources.output_pretty_tooltip(List(t))))
+        val contents = info.info.map(t => LSP.MarkedString(resources.output_pretty_tooltip(List(t))))
         (range, contents)
       }
-    channel.write(Protocol.Hover.reply(id, result))
+    channel.write(LSP.Hover.reply(id, result))
   }
 
 
   /* goto definition */
 
-  def goto_definition(id: Protocol.Id, node_pos: Line.Node_Position)
+  def goto_definition(id: LSP.Id, node_pos: Line.Node_Position)
   {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
-    channel.write(Protocol.GotoDefinition.reply(id, result))
+    channel.write(LSP.GotoDefinition.reply(id, result))
   }
 
 
   /* document highlights */
 
-  def document_highlights(id: Protocol.Id, node_pos: Line.Node_Position)
+  def document_highlights(id: LSP.Id, node_pos: Line.Node_Position)
   {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield {
           val model = rendering.model
           rendering.caret_focus_ranges(Text.Range(offset, offset + 1), model.content.text_range)
-            .map(r => Protocol.DocumentHighlight.text(model.content.doc.range(r)))
+            .map(r => LSP.DocumentHighlight.text(model.content.doc.range(r)))
         }) getOrElse Nil
-    channel.write(Protocol.DocumentHighlights.reply(id, result))
+    channel.write(LSP.DocumentHighlights.reply(id, result))
   }
 
 
@@ -437,34 +436,34 @@ class Server(
     {
       try {
         json match {
-          case Protocol.Initialize(id) => init(id)
-          case Protocol.Initialized(()) =>
-          case Protocol.Shutdown(id) => shutdown(id)
-          case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(file, _, version, text) =>
-            change_document(file, version, List(Protocol.TextDocumentChange(None, text)))
+          case LSP.Initialize(id) => init(id)
+          case LSP.Initialized(()) =>
+          case LSP.Shutdown(id) => shutdown(id)
+          case LSP.Exit(()) => exit()
+          case LSP.DidOpenTextDocument(file, _, version, text) =>
+            change_document(file, version, List(LSP.TextDocumentChange(None, text)))
             delay_load.invoke()
-          case Protocol.DidChangeTextDocument(file, version, changes) =>
+          case LSP.DidChangeTextDocument(file, version, changes) =>
             change_document(file, version, changes)
-          case Protocol.DidCloseTextDocument(file) => close_document(file)
-          case Protocol.Completion(id, node_pos) => completion(id, node_pos)
-          case Protocol.Include_Word(()) => update_dictionary(true, false)
-          case Protocol.Include_Word_Permanently(()) => update_dictionary(true, true)
-          case Protocol.Exclude_Word(()) => update_dictionary(false, false)
-          case Protocol.Exclude_Word_Permanently(()) => update_dictionary(false, true)
-          case Protocol.Reset_Words(()) => reset_dictionary()
-          case Protocol.Hover(id, node_pos) => hover(id, node_pos)
-          case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
-          case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
-          case Protocol.Caret_Update(caret) => update_caret(caret)
-          case Protocol.State_Init(()) => State_Panel.init(server)
-          case Protocol.State_Exit(id) => State_Panel.exit(id)
-          case Protocol.State_Locate(id) => State_Panel.locate(id)
-          case Protocol.State_Update(id) => State_Panel.update(id)
-          case Protocol.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
-          case Protocol.Preview_Request(file, column) => request_preview(file, column)
-          case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
-          case _ => if (!Protocol.ResponseMessage.is_empty(json)) log("### IGNORED")
+          case LSP.DidCloseTextDocument(file) => close_document(file)
+          case LSP.Completion(id, node_pos) => completion(id, node_pos)
+          case LSP.Include_Word(()) => update_dictionary(true, false)
+          case LSP.Include_Word_Permanently(()) => update_dictionary(true, true)
+          case LSP.Exclude_Word(()) => update_dictionary(false, false)
+          case LSP.Exclude_Word_Permanently(()) => update_dictionary(false, true)
+          case LSP.Reset_Words(()) => reset_dictionary()
+          case LSP.Hover(id, node_pos) => hover(id, node_pos)
+          case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
+          case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
+          case LSP.Caret_Update(caret) => update_caret(caret)
+          case LSP.State_Init(()) => State_Panel.init(server)
+          case LSP.State_Exit(id) => State_Panel.exit(id)
+          case LSP.State_Locate(id) => State_Panel.locate(id)
+          case LSP.State_Update(id) => State_Panel.update(id)
+          case LSP.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
+          case LSP.Preview_Request(file, column) => request_preview(file, column)
+          case LSP.Symbols_Request(()) => channel.write(LSP.Symbols())
+          case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
@@ -488,7 +487,7 @@ class Server(
 
   /* abstract editor operations */
 
-  object editor extends Server.Editor
+  object editor extends Language_Server.Editor
   {
     /* session */
 
@@ -545,7 +544,7 @@ class Server(
       else
         snapshot.find_command_position(id, offset).map(node_pos =>
           new Hyperlink {
-            def follow(unit: Unit) { channel.write(Protocol.Caret_Update(node_pos, focus)) }
+            def follow(unit: Unit) { channel.write(LSP.Caret_Update(node_pos, focus)) }
           })
     }
 

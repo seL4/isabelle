@@ -50,7 +50,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
           case Value.Int(n) if n >= 0 =>
             val msg = read_content(n)
             val json = JSON.parse(msg)
-            Protocol.Message.log("IN: " + n, json, log, verbose)
+            LSP.Message.log("IN: " + n, json, log, verbose)
             Some(json)
           case _ => error("Bad Content-Length: " + s)
         }
@@ -68,7 +68,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
     val n = content.length
     val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
 
-    Protocol.Message.log("OUT: " + n, json, log, verbose)
+    LSP.Message.log("OUT: " + n, json, log, verbose)
     out.synchronized {
       out.write(header)
       out.write(content)
@@ -80,15 +80,15 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
   /* display message */
 
   def display_message(message_type: Int, msg: String, show: Boolean = true): Unit =
-    write(Protocol.DisplayMessage(message_type, Output.clean_yxml(msg), show))
+    write(LSP.DisplayMessage(message_type, Output.clean_yxml(msg), show))
 
-  def error_message(msg: String) { display_message(Protocol.MessageType.Error, msg, true) }
-  def warning(msg: String) { display_message(Protocol.MessageType.Warning, msg, true) }
-  def writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, true) }
+  def error_message(msg: String) { display_message(LSP.MessageType.Error, msg, true) }
+  def warning(msg: String) { display_message(LSP.MessageType.Warning, msg, true) }
+  def writeln(msg: String) { display_message(LSP.MessageType.Info, msg, true) }
 
-  def log_error_message(msg: String) { display_message(Protocol.MessageType.Error, msg, false) }
-  def log_warning(msg: String) { display_message(Protocol.MessageType.Warning, msg, false) }
-  def log_writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, false) }
+  def log_error_message(msg: String) { display_message(LSP.MessageType.Error, msg, false) }
+  def log_warning(msg: String) { display_message(LSP.MessageType.Warning, msg, false) }
+  def log_writeln(msg: String) { display_message(LSP.MessageType.Info, msg, false) }
 
   object Error_Logger extends Logger
   {

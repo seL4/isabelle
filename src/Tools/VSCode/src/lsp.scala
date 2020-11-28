@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/protocol.scala
+/*  Title:      Tools/VSCode/src/lsp.scala
     Author:     Makarius
 
 Message formats for Language Server Protocol 3.0, see
@@ -13,7 +13,7 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-object Protocol
+object LSP
 {
   /* abstract message */
 

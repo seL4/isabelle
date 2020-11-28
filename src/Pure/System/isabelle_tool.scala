@@ -167,7 +167,7 @@ class Tools extends Isabelle_Scala_Tools(
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
   isabelle.vscode.Grammar.isabelle_tool,
-  isabelle.vscode.Server.isabelle_tool)
+  isabelle.vscode.Language_Server.isabelle_tool)
 
 class Admin_Tools extends Isabelle_Scala_Tools(
   Build_CSDP.isabelle_tool,

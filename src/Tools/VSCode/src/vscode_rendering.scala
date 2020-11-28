@@ -20,14 +20,14 @@ object VSCode_Rendering
   /* decorations */
 
   private def color_decorations(prefix: String, types: Set[Rendering.Color.Value],
-    colors: List[Text.Info[Rendering.Color.Value]]): List[Document_Model.Decoration] =
+    colors: List[Text.Info[Rendering.Color.Value]]): List[VSCode_Model.Decoration] =
   {
     val color_ranges =
       (Map.empty[Rendering.Color.Value, List[Text.Range]] /: colors) {
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
       }
     types.toList.map(c =>
-      Document_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
+      VSCode_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
   }
 
   private val background_colors =
@@ -42,8 +42,8 @@ object VSCode_Rendering
 
   private val message_severity =
     Map(
-      Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
-      Markup.ERROR -> Protocol.DiagnosticSeverity.Error)
+      Markup.LEGACY -> LSP.DiagnosticSeverity.Warning,
+      Markup.ERROR -> LSP.DiagnosticSeverity.Error)
 
 
   /* markup elements */
@@ -65,18 +65,18 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
-class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
+class VSCode_Rendering(snapshot: Document.Snapshot, _model: VSCode_Model)
   extends Rendering(snapshot, _model.resources.options, _model.session)
 {
   rendering =>
 
-  def model: Document_Model = _model
+  def model: VSCode_Model = _model
   def resources: VSCode_Resources = model.resources
 
 
   /* bibtex */
 
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, VSCode_Model)]] =
     Bibtex.entries_iterator(resources.get_models)
 
   def bibtex_completion(history: Completion.History, caret: Text.Offset): Option[Completion.Result] =
@@ -85,7 +85,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   /* completion */
 
-  def completion(caret_pos: Line.Position, caret: Text.Offset): List[Protocol.CompletionItem] =
+  def completion(caret_pos: Line.Position, caret: Text.Offset): List[LSP.CompletionItem] =
   {
     val doc = model.content.doc
     val line = caret_pos.line
@@ -119,7 +119,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
               case None => Nil
               case Some(result) =>
                 result.items.map(item =>
-                  Protocol.CompletionItem(
+                  LSP.CompletionItem(
                     label = item.replacement,
                     detail = Some(item.description.mkString(" ")),
                     range = Some(doc.range(item.range))))
@@ -146,7 +146,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
             case _ => None
           }).filterNot(info => info.info.is_empty)
 
-  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[Protocol.Diagnostic] =
+  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] =
   {
     (for {
       Text.Info(text_range, res) <- results.iterator
@@ -155,7 +155,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     } yield {
       val message = resources.output_pretty_message(body)
       val severity = VSCode_Rendering.message_severity.get(name)
-      Protocol.Diagnostic(range, message, severity = severity)
+      LSP.Diagnostic(range, message, severity = severity)
     }).toList
   }
 
@@ -212,8 +212,8 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   /* decorations */
 
-  def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    Par_List.map((f: () => List[Document_Model.Decoration]) => f(),
+  def decorations: List[VSCode_Model.Decoration] = // list of canonical length and order
+    Par_List.map((f: () => List[VSCode_Model.Decoration]) => f(),
       List(
         () =>
           VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
@@ -232,16 +232,16 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
             dotted(model.content.text_range)))).flatten :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
+  def decoration_output(decoration: VSCode_Model.Decoration): LSP.Decoration =
   {
     val content =
       for (Text.Info(text_range, msgs) <- decoration.content)
       yield {
         val range = model.content.doc.range(text_range)
-        Protocol.DecorationOpts(range,
-          msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
+        LSP.DecorationOpts(range,
+          msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
       }
-    Protocol.Decoration(decoration.typ, content)
+    LSP.Decoration(decoration.typ, content)
   }
 
 
