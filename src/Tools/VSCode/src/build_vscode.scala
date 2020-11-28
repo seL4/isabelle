@@ -44,7 +44,8 @@ object Build_VSCode
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vscode", "build Isabelle/VSCode extension module", args =>
+    Isabelle_Tool("build_vscode", "build Isabelle/VSCode extension module",
+      Scala_Project.here, args =>
     {
       var publish = false
 

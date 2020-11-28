@@ -243,4 +243,5 @@ class Scala_Functions extends Scala.Functions(
   Scala.Sleep,
   Scala.Toplevel,
   Doc.Doc_Names,
-  Bibtex.Check_Database)
+  Bibtex.Check_Database,
+  Isabelle_Tool.Isabelle_Tools)

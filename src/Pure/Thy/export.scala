@@ -372,7 +372,8 @@ object Export
 
   val default_export_dir: Path = Path.explode("export")
 
-  val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports", args =>
+  val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports",
+    Scala_Project.here, args =>
   {
     /* arguments */
 

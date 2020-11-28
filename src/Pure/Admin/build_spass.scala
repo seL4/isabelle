@@ -147,7 +147,7 @@ Viel SPASS!
 
   val isabelle_tool =
     Isabelle_Tool("build_spass", "build prover component from source distribution",
-    args =>
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
       var download_url = default_download_url

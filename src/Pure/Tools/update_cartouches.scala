@@ -84,7 +84,8 @@ object Update_Cartouches
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches", args =>
+    Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches",
+      Scala_Project.here, args =>
     {
       var replace_text = false
 

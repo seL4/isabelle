@@ -108,7 +108,7 @@ Isabelle component directory: x86_64-linux etc.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_e", "build prover component from source distribution",
+    Isabelle_Tool("build_e", "build prover component from source distribution", Scala_Project.here,
     args =>
     {
       var target_dir = Path.current

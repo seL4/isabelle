@@ -148,7 +148,8 @@ object Options
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("options", "print Isabelle system options", args =>
+  val isabelle_tool = Isabelle_Tool("options", "print Isabelle system options",
+    Scala_Project.here, args =>
   {
     var build_options = false
     var get_option = ""

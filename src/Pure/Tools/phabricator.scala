@@ -146,7 +146,8 @@ object Phabricator
   /* Isabelle tool wrapper */
 
   val isabelle_tool1 =
-    Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory", args =>
+    Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory",
+      Scala_Project.here, args =>
     {
       var list = false
       var name = default_name
@@ -535,7 +536,8 @@ WantedBy=multi-user.target
   /* Isabelle tool wrapper */
 
   val isabelle_tool2 =
-    Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux", args =>
+    Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux",
+      Scala_Project.here, args =>
     {
       var mercurial_source = ""
       var repo = ""
@@ -642,8 +644,8 @@ Usage: isabelle phabricator_setup [OPTIONS]
   /* Isabelle tool wrapper */
 
   val isabelle_tool3 =
-    Isabelle_Tool("phabricator_setup_mail",
-      "setup mail for one Phabricator installation", args =>
+    Isabelle_Tool("phabricator_setup_mail", "setup mail for one Phabricator installation",
+      Scala_Project.here, args =>
     {
       var test_user = ""
       var name = default_name
@@ -805,8 +807,8 @@ Alias=""" + ssh_name + """.service
   /* Isabelle tool wrapper */
 
   val isabelle_tool4 =
-    Isabelle_Tool("phabricator_setup_ssh",
-      "setup ssh service for all Phabricator installations", args =>
+    Isabelle_Tool("phabricator_setup_ssh", "setup ssh service for all Phabricator installations",
+      Scala_Project.here, args =>
     {
       var server_port = default_server_port
       var system_port = default_system_port

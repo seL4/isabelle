@@ -124,7 +124,7 @@ It has been built from sources like this:
 
   val isabelle_tool =
     Isabelle_Tool("build_verit", "build prover component from official download",
-    args =>
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
       var mingw = MinGW.none

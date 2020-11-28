@@ -63,7 +63,8 @@ object Check_Sources
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("check_sources", "some sanity checks for Isabelle sources", args =>
+    Isabelle_Tool("check_sources", "some sanity checks for Isabelle sources",
+      Scala_Project.here, args =>
     {
       val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]

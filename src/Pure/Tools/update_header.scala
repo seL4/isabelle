@@ -29,7 +29,8 @@ object Update_Header
     Set("chapter", "section", "subsection", "subsubsection", "paragraph", "subparagraph")
 
   val isabelle_tool =
-    Isabelle_Tool("update_header", "replace obsolete theory header command", args =>
+    Isabelle_Tool("update_header", "replace obsolete theory header command",
+      Scala_Project.here, args =>
     {
       var section = "section"
 

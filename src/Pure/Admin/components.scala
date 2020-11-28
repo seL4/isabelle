@@ -262,7 +262,8 @@ object Components
     List("isabelle_components_server", "isabelle_components_dir", "isabelle_components_contrib_dir")
 
   val isabelle_tool =
-    Isabelle_Tool("build_components", "build and publish Isabelle components", args =>
+    Isabelle_Tool("build_components", "build and publish Isabelle components",
+      Scala_Project.here, args =>
     {
       var publish = false
       var update_components_sha1 = false

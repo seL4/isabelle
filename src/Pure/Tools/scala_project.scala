@@ -161,7 +161,8 @@ dependencies {
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("scala_project", "setup Gradle project for Isabelle/Scala/jEdit", args =>
+    Isabelle_Tool("scala_project", "setup Gradle project for Isabelle/Scala/jEdit",
+      Scala_Project.here, args =>
     {
       var symlinks = false
 

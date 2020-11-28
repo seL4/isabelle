@@ -526,7 +526,8 @@ object Build
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions", args =>
+  val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions",
+    Scala_Project.here, args =>
   {
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 

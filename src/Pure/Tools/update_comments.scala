@@ -47,7 +47,8 @@ object Update_Comments
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("update_comments", "update formal comments in outer syntax", args =>
+    Isabelle_Tool("update_comments", "update formal comments in outer syntax",
+      Scala_Project.here, args =>
     {
       val getopts = Getopts("""
 Usage: isabelle update_comments [FILES|DIRS...]

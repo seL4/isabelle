@@ -1048,7 +1048,8 @@ object Sessions
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("sessions", "explore structure of Isabelle sessions", args =>
+  val isabelle_tool = Isabelle_Tool("sessions", "explore structure of Isabelle sessions",
+    Scala_Project.here, args =>
   {
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil

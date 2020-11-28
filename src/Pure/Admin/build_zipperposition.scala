@@ -90,7 +90,7 @@ ISABELLE_ZIPPERPOSITION="$COMPONENT/$ISABELLE_PLATFORM64/zipperposition"
 
   val isabelle_tool =
     Isabelle_Tool("build_zipperposition", "build prover component from OPAM repository",
-    args =>
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
       var version = default_version

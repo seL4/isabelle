@@ -204,7 +204,7 @@ not affect the running ML session. *)
   /** Isabelle tool wrappers **/
 
   val isabelle_tool1 =
-    Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
+    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here, args =>
     {
       var mingw = MinGW.none
       var arch_64 = Isabelle_Platform.self.is_arm
@@ -242,7 +242,8 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
     })
 
   val isabelle_tool2 =
-    Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component", args =>
+    Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component",
+      Scala_Project.here, args =>
     {
       var sha1_root: Option[Path] = None
 

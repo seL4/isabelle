@@ -61,7 +61,8 @@ object Build_Cygwin
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle", args =>
+    Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
+      Scala_Project.here, args =>
     {
       var mirror = default_mirror
       var more_packages: List[String] = Nil

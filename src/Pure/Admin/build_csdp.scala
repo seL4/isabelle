@@ -171,7 +171,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_csdp", "build prover component from official download",
+    Isabelle_Tool("build_csdp", "build prover component from official download", Scala_Project.here,
     args =>
     {
       var target_dir = Path.current

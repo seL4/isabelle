@@ -68,6 +68,7 @@ sig
   val export_pathN: string val export_path: string -> T
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
+  val toolN: string val tool: string -> T
   val markupN: string
   val consistentN: string
   val unbreakableN: string
@@ -403,6 +404,7 @@ val (pathN, path) = markup_string "path" nameN;
 val (export_pathN, export_path) = markup_string "export_path" nameN;
 val (urlN, url) = markup_string "url" nameN;
 val (docN, doc) = markup_string "doc" nameN;
+val (toolN, tool) = markup_string "tool" nameN;
 
 
 (* pretty printing *)

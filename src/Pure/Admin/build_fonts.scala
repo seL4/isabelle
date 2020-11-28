@@ -335,7 +335,7 @@ isabelle_fonts_hidden "$COMPONENT/""" + hinted_path(false).file_name + """/Vacuo
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_fonts", "construct Isabelle fonts", args =>
+    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here, args =>
     {
       var source_dirs: List[Path] = Nil
 

@@ -72,7 +72,7 @@ object Build_Doc
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_doc", "build Isabelle documentation", args =>
+    Isabelle_Tool("build_doc", "build Isabelle documentation", Scala_Project.here, args =>
     {
       var all_docs = false
       var max_jobs = 1

@@ -45,6 +45,10 @@ INCOMPATIBILITY.
 * Discontinued obsolete DVI format and ISABELLE_LATEX settings variable:
 document output is always PDF.
 
+* Antiquotation @{tool} refers to Isabelle command-line tools, with
+completion and formal reference to the source (external script or
+internal Scala function).
+
 * Antiquotation @{bash_function} refers to GNU bash functions that are
 checked within the Isabelle settings environment.
 

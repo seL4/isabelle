@@ -30,7 +30,8 @@ object Profiling_Report
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files", args =>
+    Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files",
+      Scala_Project.here, args =>
     {
       val getopts =
         Getopts("""

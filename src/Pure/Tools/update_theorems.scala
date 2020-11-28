@@ -31,7 +31,8 @@ object Update_Theorems
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("update_theorems", "update toplevel theorem keywords", args =>
+  val isabelle_tool = Isabelle_Tool("update_theorems", "update toplevel theorem keywords",
+    Scala_Project.here, args =>
   {
     val getopts = Getopts("""
 Usage: isabelle update_theorems [FILES|DIRS...]

@@ -573,7 +573,8 @@ plot [] """ + range + " " +
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_status", "present recent build status information from database", args =>
+    Isabelle_Tool("build_status", "present recent build status information from database",
+      Scala_Project.here, args =>
     {
       var target_dir = default_target_dir
       var ml_statistics = false

@@ -31,7 +31,8 @@ object Update_Then
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("update_then", "expand old Isar command conflations 'hence' and 'thus'", args =>
+    Isabelle_Tool("update_then", "expand old Isar command conflations 'hence' and 'thus'",
+      Scala_Project.here, args =>
     {
       val getopts = Getopts("""
 Usage: isabelle update_then [FILES|DIRS...]

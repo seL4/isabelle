@@ -141,7 +141,8 @@ object ML_Process
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)", args =>
+  val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)",
+    Scala_Project.here, args =>
   {
     var dirs: List[Path] = Nil
     var eval_args: List[String] = Nil

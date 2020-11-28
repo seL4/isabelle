@@ -432,6 +432,7 @@
 \<^term>                argument: cartouche
 \<^theory>              argument: cartouche
 \<^theory_context>      argument: cartouche
+\<^tool>                argument: cartouche
 \<^typ>                 argument: cartouche
 \<^type_abbrev>         argument: cartouche
 \<^type_name>           argument: cartouche

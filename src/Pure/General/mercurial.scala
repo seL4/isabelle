@@ -298,7 +298,8 @@ object Mercurial
   }
 
   val isabelle_tool =
-    Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository", args =>
+    Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository",
+      Scala_Project.here, args =>
     {
       var remote_name = ""
       var path_name = default_path_name

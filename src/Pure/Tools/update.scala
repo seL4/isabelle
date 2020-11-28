@@ -63,7 +63,8 @@ object Update
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("update", "update theory sources based on PIDE markup", args =>
+    Isabelle_Tool("update", "update theory sources based on PIDE markup", Scala_Project.here,
+      args =>
     {
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil

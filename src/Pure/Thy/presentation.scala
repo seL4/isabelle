@@ -612,7 +612,7 @@ object Presentation
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("document", "prepare session theory document", args =>
+    Isabelle_Tool("document", "prepare session theory document", Scala_Project.here, args =>
     {
       var output_sources: Option[Path] = None
       var output_pdf: Option[Path] = None

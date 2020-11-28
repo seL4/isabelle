@@ -214,7 +214,7 @@ esac
 
   val isabelle_tool =
     Isabelle_Tool("build_jdk", "build Isabelle jdk component from original archives",
-    args =>
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
 

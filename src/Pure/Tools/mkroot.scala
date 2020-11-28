@@ -176,7 +176,8 @@ Now use the following command line to build the session:
 
   /** Isabelle tool wrapper **/
 
-  val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory", args =>
+  val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory",
+    Scala_Project.here, args =>
   {
     var author = ""
     var init_repos = false

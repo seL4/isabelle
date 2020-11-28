@@ -420,7 +420,7 @@ object Dump
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("dump", "dump cumulative PIDE session database", args =>
+    Isabelle_Tool("dump", "dump cumulative PIDE session database", Scala_Project.here, args =>
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil

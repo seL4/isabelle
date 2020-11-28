@@ -9,7 +9,7 @@ package isabelle
 
 import java.net.URLClassLoader
 import scala.reflect.runtime.universe
-import scala.tools.reflect.{ToolBox,ToolBoxError}
+import scala.tools.reflect.{ToolBox, ToolBoxError}
 
 
 object Isabelle_Tool
@@ -66,21 +66,6 @@ object Isabelle_Tool
     catch { case _: SecurityException => false }
   }
 
-  private def list_external(): List[(String, String)] =
-  {
-    val Description = """.*\bDESCRIPTION: *(.*)""".r
-    for {
-      dir <- dirs() if dir.is_dir
-      file_name <- File.read_dir(dir) if is_external(dir, file_name)
-    } yield {
-      val source = File.read(dir + Path.explode(file_name))
-      val name = Library.perhaps_unsuffix(".scala", file_name)
-      val description =
-        split_lines(source).collectFirst({ case Description(s) => s }) getOrElse ""
-      (name, description)
-    }
-  }
-
   private def find_external(name: String): Option[List[String] => Unit] =
     dirs().collectFirst({
       case dir if is_external(dir, name + ".scala") =>
@@ -100,15 +85,63 @@ object Isabelle_Tool
   private lazy val internal_tools: List[Isabelle_Tool] =
     Isabelle_System.make_services(classOf[Isabelle_Scala_Tools]).flatMap(_.tools)
 
-  private def list_internal(): List[(String, String)] =
-    for (tool <- internal_tools.toList)
-      yield (tool.name, tool.description)
-
   private def find_internal(name: String): Option[List[String] => Unit] =
     internal_tools.collectFirst({
       case tool if tool.name == name =>
         args => Command_Line.tool { tool.body(args) }
       })
+
+
+  /* list tools */
+
+  abstract class Entry
+  {
+    def name: String
+    def position: Properties.T
+    def description: String
+    def print: String =
+      description match {
+        case "" => name
+        case descr => name + " - " + descr
+      }
+  }
+
+  sealed case class External(name: String, path: Path) extends Entry
+  {
+    def position: Properties.T = Position.File(path.absolute.implode)
+    def description: String =
+    {
+      val Pattern = """.*\bDESCRIPTION: *(.*)""".r
+      split_lines(File.read(path)).collectFirst({ case Pattern(s) => s }) getOrElse ""
+    }
+  }
+
+  def external_tools(): List[External] =
+  {
+    for {
+      dir <- dirs() if dir.is_dir
+      file_name <- File.read_dir(dir) if is_external(dir, file_name)
+    } yield {
+      val path = dir + Path.explode(file_name)
+      val name = Library.perhaps_unsuffix(".scala", file_name)
+      External(name, path)
+    }
+  }
+
+  def isabelle_tools(): List[Entry] =
+    (external_tools() ::: internal_tools).sortBy(_.name)
+
+  object Isabelle_Tools extends Scala.Fun("isabelle_tools")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String =
+      if (arg.nonEmpty) error("Bad argument: " + quote(arg))
+      else {
+        val result = isabelle_tools().map(entry => (entry.name, entry.position))
+        val body = { import XML.Encode._; list(pair(string, properties))(result) }
+        YXML.string_of_body(body)
+      }
+  }
 
 
   /* command line entry point */
@@ -118,9 +151,7 @@ object Isabelle_Tool
     Command_Line.tool {
       args.toList match {
         case Nil | List("-?") =>
-          val tool_descriptions =
-            (list_external() ::: list_internal()).sortBy(_._1).
-              map({ case (a, "") => a case (a, b) => a + " - " + b })
+          val tool_descriptions = isabelle_tools().map(_.print)
           Getopts("""
 Usage: isabelle TOOL [ARGS ...]
 
@@ -137,7 +168,14 @@ Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
   }
 }
 
-sealed case class Isabelle_Tool(name: String, description: String, body: List[String] => Unit)
+sealed case class Isabelle_Tool(
+  name: String,
+  description: String,
+  here: Scala_Project.Here,
+  body: List[String] => Unit) extends Isabelle_Tool.Entry
+{
+  def position: Position.T = here.position
+}
 
 class Isabelle_Scala_Tools(val tools: Isabelle_Tool*) extends Isabelle_System.Service
 

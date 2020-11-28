@@ -100,7 +100,8 @@ object Doc
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle documentation", args =>
+  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle documentation",
+    Scala_Project.here, args =>
   {
     val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]

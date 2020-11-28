@@ -100,7 +100,8 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_docker", "build Isabelle docker image", args =>
+    Isabelle_Tool("build_docker", "build Isabelle docker image",
+      Scala_Project.here, args =>
     {
       var base = default_base
       var entrypoint = false

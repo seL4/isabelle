@@ -418,7 +418,7 @@ object Server
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("server", "manage resident Isabelle servers", args =>
+    Isabelle_Tool("server", "manage resident Isabelle servers", Scala_Project.here, args =>
     {
       var console = false
       var log_file: Option[Path] = None

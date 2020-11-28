@@ -84,7 +84,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
 
   val isabelle_tool =
     Isabelle_Tool("build_sqlite", "build Isabelle sqlite-jdbc component from official download",
-    args =>
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
 
