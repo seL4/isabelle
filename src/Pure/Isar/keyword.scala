@@ -106,18 +106,18 @@ object Keyword
 
   /** keyword tables **/
 
-  object Spec
+  sealed case class Spec(
+    kind: String = "",
+    load_command: String = "",
+    tags: List[String] = Nil)
   {
-    val none: Spec = Spec("")
-  }
-  sealed case class Spec(kind: String, load_command: String = "", tags: List[String] = Nil)
-  {
-    def is_none: Boolean = kind == ""
-
     override def toString: String =
       kind +
         (if (load_command.isEmpty) "" else " (" + quote(load_command) + ")") +
         (if (tags.isEmpty) "" else tags.map(quote).mkString(" % ", " % ", ""))
+
+    def map(f: String => String): Spec =
+      copy(kind = f(kind), load_command = f(load_command), tags = tags.map(f))
   }
 
   object Keywords
@@ -187,7 +187,7 @@ object Keyword
     def add_keywords(header: Thy_Header.Keywords): Keywords =
       (this /: header) {
         case (keywords, (name, spec)) =>
-          if (spec.is_none)
+          if (spec.kind.isEmpty)
             keywords + Symbol.decode(name) + Symbol.encode(name)
           else
             keywords +
