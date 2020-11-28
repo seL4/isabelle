@@ -349,6 +349,7 @@ ML_file "Tools/find_consts.ML";
 ML_file "Tools/simplifier_trace.ML";
 ML_file_no_debug "Tools/debugger.ML";
 ML_file "Tools/named_theorems.ML";
+ML_file "Tools/doc.ML";
 ML_file "Tools/jedit.ML";
 ML_file "Tools/ghc.ML";
 ML_file "Tools/generated_files.ML"

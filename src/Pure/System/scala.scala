@@ -242,4 +242,5 @@ class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
   Scala.Toplevel,
+  Doc.Doc_Names,
   Bibtex.Check_Database)

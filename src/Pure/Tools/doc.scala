@@ -76,8 +76,13 @@ object Doc
     examples() ::: release_notes() ::: main_contents
   }
 
-  def doc_names(): List[String] =
-    for (Doc(name, _, _) <- contents()) yield name
+  object Doc_Names extends Scala.Fun("doc_names")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String =
+      if (arg.nonEmpty) error("Bad argument: " + quote(arg))
+      else cat_lines((for (Doc(name, _, _) <- contents()) yield name).sorted)
+  }
 
 
   /* view */
