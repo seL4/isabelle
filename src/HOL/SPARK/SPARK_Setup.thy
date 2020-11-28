@@ -6,14 +6,12 @@ Setup for SPARK/Ada verification environment.
 *)
 
 theory SPARK_Setup
-  imports
-  "HOL-Library.Word"
-keywords
-  "spark_open_vcg" :: thy_load (spark_vcg) and
-  "spark_open" :: thy_load (spark_siv) and
-  "spark_proof_functions" "spark_types" "spark_end" :: thy_decl and
-  "spark_vc" :: thy_goal and
-  "spark_status" :: diag
+  imports "HOL-Library.Word"
+  keywords "spark_open_vcg" :: thy_load (spark_vcg)
+    and "spark_open" :: thy_load (spark_siv)
+    and "spark_proof_functions" "spark_types" "spark_end" :: thy_decl
+    and "spark_vc" :: thy_goal
+    and "spark_status" :: diag
 begin
 
 ML_file \<open>Tools/fdl_lexer.ML\<close>
