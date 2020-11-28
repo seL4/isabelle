@@ -129,15 +129,17 @@ object Thy_Header
   {
     val header: Parser[Thy_Header] =
     {
-      def load_command =
-        ($$$("(") ~! (name <~ $$$(")")) ^^ { case _ ~ x => x }) | success("")
+      val load_command =
+        ($$$("(") ~! (position(name) <~ $$$(")")) ^^ { case _ ~ x => x }) |
+          success(("", Position.none))
 
-      def load_command_spec(kind: String) =
-        (if (kind == Keyword.THY_LOAD) load_command else success("")) ^^ (x => (kind, x))
-
+      val keyword_kind = atom("outer syntax keyword specification", _.is_name)
       val keyword_spec =
-        (atom("outer syntax keyword specification", _.is_name) >> load_command_spec) ~ tags ^^
-        { case (x, y) ~ z => Keyword.Spec(kind = x, load_command = y, tags = z) }
+        position(keyword_kind) ~ load_command ~ tags ^^
+          { case (a, b) ~ c ~ d =>
+              Keyword.Spec(kind = a, kind_pos = b,
+                load_command = c._1, load_command_pos = c._2, tags = d)
+          }
 
       val keyword_decl =
         rep1(string) ~
@@ -238,4 +240,19 @@ sealed case class Thy_Header(
       imports_pos.map({ case (a, b) => (f(a), b) }),
       keywords.map({ case (a, spec) => (f(a), spec.map(f)) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
+
+  def check_keywords: Thy_Header =
+  {
+    for ((_, spec) <- keywords) {
+      if (spec.kind != Keyword.THY_LOAD && spec.load_command.nonEmpty) {
+        error("Illegal load command specification for kind: " + quote(spec.kind) +
+          Position.here(spec.kind_pos))
+      }
+      if (!Command_Span.load_commands.exists(_.name == spec.load_command)) {
+        error("Unknown load command specification: " + quote(spec.load_command) +
+          Position.here(spec.load_command_pos))
+      }
+    }
+    this
+  }
 }

@@ -108,7 +108,9 @@ object Keyword
 
   sealed case class Spec(
     kind: String = "",
+    kind_pos: Position.T = Position.none,
     load_command: String = "",
+    load_command_pos: Position.T = Position.none,
     tags: List[String] = Nil)
   {
     override def toString: String =

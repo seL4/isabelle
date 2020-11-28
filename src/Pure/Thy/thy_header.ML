@@ -132,14 +132,12 @@ fun imports name =
   if name = Context.PureN then Scan.succeed []
   else Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 Parse.theory_name);
 
-fun loaded_files kind =
-  if kind = Keyword.thy_load then
-    Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") []
-  else Scan.succeed [];
+val load_command =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
 
 val keyword_spec =
   Parse.group (fn () => "outer syntax keyword specification")
-    ((Parse.name :-- loaded_files >> #1) -- Document_Source.old_tags);
+    ((Parse.name --| load_command) -- Document_Source.old_tags);
 
 val keyword_decl =
   Scan.repeat1 Parse.string_position --

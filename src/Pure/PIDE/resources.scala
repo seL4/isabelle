@@ -221,7 +221,7 @@ class Resources(
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start, strict)
+        val header = Thy_Header.read(reader, start, strict).check_keywords
 
         val base_name = node_name.theory_base_name
         if (Long_Name.is_qualified(header.name)) {

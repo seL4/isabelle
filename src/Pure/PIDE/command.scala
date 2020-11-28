@@ -424,21 +424,18 @@ object Command
           }
           catch { case _: Throwable => List.fill(imports_pos.length)("") }
 
-        val errs1 =
+        val errors =
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
-            "Bad theory import " +
-              Markup.Path(import_name.node).markup(quote(import_name.toString)) +
-              Position.here(pos) + Completion.report_theories(pos, completion)
+            val msg =
+              "Bad theory import " +
+                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+                Position.here(pos) + Completion.report_theories(pos, completion)
+            Exn.Exn[Command.Blob](ERROR(msg))
           }
-        val errs2 =
-          for {
-            (_, spec) <- header.keywords
-            if !Command_Span.load_commands.exists(_.name == spec.load_command)
-          } yield { "Unknown load command specification: " + quote(spec.load_command) }
-      ((errs1 ::: errs2).map(msg => Exn.Exn[Command.Blob](ERROR(msg))), -1)
+        (errors, -1)
 
       // auxiliary files
       case _ =>
