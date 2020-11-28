@@ -497,11 +497,9 @@ object Build_Log
       def unapply(line: String): Option[(String, (String, Timing))] =
         Protocol.Theory_Timing_Marker.unapply(line.replace('~', '-')).map(log_file.parse_props)
         match {
-          case Some((SESSION_NAME, name) :: props) =>
-            (props, props) match {
-              case (Markup.Name(thy), Markup.Timing_Properties(t)) => Some((name, thy -> t))
-              case _ => None
-            }
+          case Some((SESSION_NAME, session) :: props) =>
+            for (theory <- Markup.Name.unapply(props))
+            yield (session, theory -> Markup.Timing_Properties.parse(props))
           case _ => None
         }
     }
