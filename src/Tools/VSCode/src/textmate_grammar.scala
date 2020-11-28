@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/grammar.scala
+/*  Title:      Tools/VSCode/src/textmate_grammar.scala
     Author:     Makarius
 
 Generate static TextMate grammar for VSCode editor.
@@ -10,7 +10,7 @@ package isabelle.vscode
 import isabelle._
 
 
-object Grammar
+object TextMate_Grammar
 {
   /* generate grammar */
 

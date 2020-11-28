@@ -205,11 +205,11 @@ declare -a SOURCES=(
   src/Tools/VSCode/src/build_vscode.scala
   src/Tools/VSCode/src/channel.scala
   src/Tools/VSCode/src/dynamic_output.scala
-  src/Tools/VSCode/src/grammar.scala
   src/Tools/VSCode/src/language_server.scala
   src/Tools/VSCode/src/lsp.scala
   src/Tools/VSCode/src/preview_panel.scala
   src/Tools/VSCode/src/state_panel.scala
+  src/Tools/VSCode/src/textmate_grammar.scala
   src/Tools/VSCode/src/vscode_model.scala
   src/Tools/VSCode/src/vscode_rendering.scala
   src/Tools/VSCode/src/vscode_resources.scala

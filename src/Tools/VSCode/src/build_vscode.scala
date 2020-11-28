@@ -19,12 +19,12 @@ object Build_VSCode
 
   def build_grammar(options: Options, progress: Progress = new Progress)
   {
-    val logic = Grammar.default_logic
+    val logic = TextMate_Grammar.default_logic
     val keywords = Sessions.base_info(options, logic).check.base.overall_syntax.keywords
 
-    val output_path = extension_dir + Path.explode(Grammar.default_output(logic))
+    val output_path = extension_dir + Path.explode(TextMate_Grammar.default_output(logic))
     progress.echo(output_path.implode)
-    File.write_backup(output_path, Grammar.generate(keywords))
+    File.write_backup(output_path, TextMate_Grammar.generate(keywords))
   }
 
 
