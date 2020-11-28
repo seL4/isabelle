@@ -37,7 +37,6 @@ sig
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
-  val extensions: string list -> Path.T -> Path.T list
   val parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list) parser
   val parse_file: (theory -> Token.file) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
@@ -292,8 +291,6 @@ fun check_thy dir thy_name =
 
 
 (* load files *)
-
-fun extensions exts path = map (fn ext => Path.ext ext path) exts;
 
 fun parse_files make_paths =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
