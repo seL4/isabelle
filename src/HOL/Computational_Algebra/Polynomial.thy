@@ -193,22 +193,18 @@ lemma degree_pCons_le: "degree (pCons a p) \<le> Suc (degree p)"
   by (rule degree_le) (simp add: coeff_eq_0 coeff_pCons split: nat.split)
 
 lemma degree_pCons_eq: "p \<noteq> 0 \<Longrightarrow> degree (pCons a p) = Suc (degree p)"
-  apply (rule order_antisym [OF degree_pCons_le])
-  apply (rule le_degree, simp)
-  done
+  by (simp add: degree_pCons_le le_antisym le_degree)
 
 lemma degree_pCons_0: "degree (pCons a 0) = 0"
-  apply (rule order_antisym [OF _ le0])
-  apply (rule degree_le, simp add: coeff_pCons split: nat.split)
-  done
+proof -
+  have "degree (pCons a 0) \<le> Suc 0"
+    by (metis (no_types) degree_0 degree_pCons_le)
+  then show ?thesis
+    by (metis coeff_0 coeff_pCons_Suc degree_0 eq_zero_or_degree_less less_Suc0)
+qed
 
 lemma degree_pCons_eq_if [simp]: "degree (pCons a p) = (if p = 0 then 0 else Suc (degree p))"
-  apply (cases "p = 0", simp_all)
-  apply (rule order_antisym [OF _ le0])
-  apply (rule degree_le, simp add: coeff_pCons split: nat.split)
-  apply (rule order_antisym [OF degree_pCons_le])
-  apply (rule le_degree, simp)
-  done
+  by (simp add: degree_pCons_0 degree_pCons_eq)
 
 lemma pCons_0_0 [simp]: "pCons 0 0 = 0"
   by (rule poly_eqI) (simp add: coeff_pCons split: nat.split)
@@ -565,10 +561,7 @@ lemma degree_monom_le: "degree (monom a n) \<le> n"
   by (rule degree_le, simp)
 
 lemma degree_monom_eq: "a \<noteq> 0 \<Longrightarrow> degree (monom a n) = n"
-  apply (rule order_antisym [OF degree_monom_le])
-  apply (rule le_degree)
-  apply simp
-  done
+  by (metis coeff_monom leading_coeff_0_iff)
 
 lemma coeffs_monom [code abstract]:
   "coeffs (monom a n) = (if a = 0 then [] else replicate n 0 @ [a])"
@@ -703,14 +696,17 @@ lemma degree_add_le: "degree p \<le> n \<Longrightarrow> degree q \<le> n \<Long
 lemma degree_add_less: "degree p < n \<Longrightarrow> degree q < n \<Longrightarrow> degree (p + q) < n"
   by (auto intro: le_less_trans degree_add_le_max)
 
-lemma degree_add_eq_right: "degree p < degree q \<Longrightarrow> degree (p + q) = degree q"
-  apply (cases "q = 0")
-   apply simp
-  apply (rule order_antisym)
-   apply (simp add: degree_add_le)
-  apply (rule le_degree)
-  apply (simp add: coeff_eq_0)
-  done
+lemma degree_add_eq_right: assumes "degree p < degree q" shows "degree (p + q) = degree q"
+proof (cases "q = 0")
+  case False
+  show ?thesis
+  proof (rule order_antisym)
+    show "degree (p + q) \<le> degree q"
+      by (simp add: assms degree_add_le order.strict_implies_order)
+    show "degree q \<le> degree (p + q)"
+      by (simp add: False assms coeff_eq_0 le_degree)
+  qed
+qed (use assms in auto)
 
 lemma degree_add_eq_left: "degree q < degree p \<Longrightarrow> degree (p + q) = degree p"
   using degree_add_eq_right [of q p] by (simp add: add.commute)
@@ -789,10 +785,11 @@ lemma [code]: "p - q = p + - q"
   by (fact diff_conv_add_uminus)
 
 lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
-  apply (induct p arbitrary: q)
-   apply simp
-  apply (case_tac q, simp, simp add: algebra_simps)
-  done
+proof (induction p arbitrary: q)
+  case (pCons a p)
+  then show ?case
+    by (cases q) (simp add: algebra_simps)
+qed auto
 
 lemma poly_minus [simp]: "poly (- p) x = - poly p x"
   for x :: "'a::comm_ring"
@@ -1008,11 +1005,10 @@ next
 qed
 
 lemma degree_mult_le: "degree (p * q) \<le> degree p + degree q"
-  apply (rule degree_le)
-  apply (induct p)
-   apply simp
-  apply (simp add: coeff_eq_0 coeff_pCons split: nat.split)
-  done
+proof (rule degree_le)
+  show "\<forall>i>degree p + degree q. coeff (p * q) i = 0"
+    by (induct p) (simp_all add: coeff_eq_0 coeff_pCons split: nat.split)
+qed
 
 lemma mult_monom: "monom a m * monom b n = monom (a * b) (m + n)"
   by (induct m) (simp add: monom_0 smult_monom, simp add: monom_Suc)
@@ -1487,18 +1483,14 @@ lemma not_pos_poly_0 [simp]: "\<not> pos_poly 0"
   by (simp add: pos_poly_def)
 
 lemma pos_poly_add: "pos_poly p \<Longrightarrow> pos_poly q \<Longrightarrow> pos_poly (p + q)"
-  apply (induct p arbitrary: q)
-   apply simp
-  apply (case_tac q)
-  apply (force simp add: pos_poly_pCons add_pos_pos)
-  done
+proof (induction p arbitrary: q)
+  case (pCons a p)
+  then show ?case 
+    by (cases q; force simp add: pos_poly_pCons add_pos_pos)
+qed auto
 
 lemma pos_poly_mult: "pos_poly p \<Longrightarrow> pos_poly q \<Longrightarrow> pos_poly (p * q)"
-  unfolding pos_poly_def
-  apply (subgoal_tac "p \<noteq> 0 \<and> q \<noteq> 0")
-   apply (simp add: degree_mult_eq coeff_mult_degree_sum)
-  apply auto
-  done
+  by (simp add: pos_poly_def coeff_degree_mult)
 
 lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
   for p :: "'a::linordered_idom poly"
@@ -1536,30 +1528,15 @@ proof
   fix x y z :: "'a poly"
   show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
     unfolding less_eq_poly_def less_poly_def
-    apply safe
-     apply simp
-    apply (drule (1) pos_poly_add)
-    apply simp
-    done
+    using pos_poly_add by force
+  then show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
+    using less_eq_poly_def less_poly_def by force
   show "x \<le> x"
     by (simp add: less_eq_poly_def)
   show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-    unfolding less_eq_poly_def
-    apply safe
-    apply (drule (1) pos_poly_add)
-    apply (simp add: algebra_simps)
-    done
-  show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
-    unfolding less_eq_poly_def
-    apply safe
-    apply (drule (1) pos_poly_add)
-    apply simp
-    done
+    using less_eq_poly_def pos_poly_add by fastforce
   show "x \<le> y \<Longrightarrow> z + x \<le> z + y"
-    unfolding less_eq_poly_def
-    apply safe
-    apply (simp add: algebra_simps)
-    done
+    by (simp add: less_eq_poly_def)
   show "x \<le> y \<or> y \<le> x"
     unfolding less_eq_poly_def
     using pos_poly_total [of "x - y"]
@@ -1626,12 +1603,15 @@ lemma synthetic_div_correct:
   by (induct p) simp_all
 
 lemma synthetic_div_unique: "p + smult c q = pCons r q \<Longrightarrow> r = poly p c \<and> q = synthetic_div p c"
-  apply (induct p arbitrary: q r)
-   apply simp
-   apply (frule synthetic_div_unique_lemma)
-   apply simp
-  apply (case_tac q, force)
-  done
+proof (induction p arbitrary: q r)
+  case 0
+  then show ?case
+    using synthetic_div_unique_lemma by fastforce
+next
+  case (pCons a p)
+  then show ?case
+    by (cases q; force)
+qed
 
 lemma synthetic_div_correct': "[:-c, 1:] * synthetic_div p c + [:poly p c:] = p"
   for c :: "'a::comm_ring_1"
@@ -1701,11 +1681,11 @@ proof
 next
   assume ?lhs
   have "poly p = poly 0 \<longleftrightarrow> p = 0" for p :: "'a poly"
-    apply (cases "p = 0")
-     apply simp_all
-    apply (drule poly_roots_finite)
-    apply (auto simp add: infinite_UNIV_char_0)
-    done
+  proof (cases "p = 0")
+    case False
+    then show ?thesis
+      by (auto simp add: infinite_UNIV_char_0 dest: poly_roots_finite)
+  qed auto
   from \<open>?lhs\<close> and this [of "p - q"] show ?rhs
     by auto
 qed
@@ -1722,41 +1702,45 @@ definition order :: "'a::idom \<Rightarrow> 'a poly \<Rightarrow> nat"
 
 lemma coeff_linear_power: "coeff ([:a, 1:] ^ n) n = 1"
   for a :: "'a::comm_semiring_1"
-  apply (induct n)
-   apply simp_all
-  apply (subst coeff_eq_0)
-   apply (auto intro: le_less_trans degree_power_le)
-  done
+proof (induct n)
+  case (Suc n)
+  have "degree ([:a, 1:] ^ n) \<le> 1 * n"
+    by (metis One_nat_def degree_pCons_eq_if degree_power_le one_neq_zero one_pCons)
+  then have "coeff ([:a, 1:] ^ n) (Suc n) = 0"
+    by (simp add: coeff_eq_0)
+  then show ?case
+    using Suc.hyps by fastforce
+qed auto
 
 lemma degree_linear_power: "degree ([:a, 1:] ^ n) = n"
   for a :: "'a::comm_semiring_1"
-  apply (rule order_antisym)
-   apply (rule ord_le_eq_trans [OF degree_power_le])
-   apply simp
-  apply (rule le_degree)
-  apply (simp add: coeff_linear_power)
-  done
+proof (rule order_antisym)
+  show "degree ([:a, 1:] ^ n) \<le> n"
+    by (metis One_nat_def degree_pCons_eq_if degree_power_le mult.left_neutral one_neq_zero one_pCons)
+qed (simp add: coeff_linear_power le_degree)
 
 lemma order_1: "[:-a, 1:] ^ order a p dvd p"
-  apply (cases "p = 0")
-   apply simp
-  apply (cases "order a p")
-   apply simp
-  apply (subgoal_tac "nat < (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)")
-   apply (drule not_less_Least)
-   apply simp
-  apply (fold order_def)
-  apply simp
-  done
+proof (cases "p = 0")
+  case False
+  show ?thesis 
+  proof (cases "order a p")
+    case (Suc n)
+    then show ?thesis
+      by (metis lessI not_less_Least order_def)
+  qed auto
+qed auto
 
-lemma order_2: "p \<noteq> 0 \<Longrightarrow> \<not> [:-a, 1:] ^ Suc (order a p) dvd p"
-  unfolding order_def
-  apply (rule LeastI_ex)
-  apply (rule_tac x="degree p" in exI)
-  apply (rule notI)
-  apply (drule (1) dvd_imp_degree_le)
-  apply (simp only: degree_linear_power)
-  done
+lemma order_2: 
+  assumes "p \<noteq> 0" 
+  shows "\<not> [:-a, 1:] ^ Suc (order a p) dvd p"
+proof -
+  have False if "[:- a, 1:] ^ Suc (degree p) dvd p"
+    using dvd_imp_degree_le [OF that]
+    by (metis Suc_n_not_le_n assms degree_linear_power)
+  then show ?thesis
+    unfolding order_def
+    by (metis (no_types, lifting) LeastI)
+qed
 
 lemma order: "p \<noteq> 0 \<Longrightarrow> [:-a, 1:] ^ order a p dvd p \<and> \<not> [:-a, 1:] ^ Suc (order a p) dvd p"
   by (rule conjI [OF order_1 order_2])
@@ -1772,14 +1756,13 @@ proof -
   finally show ?thesis .
 qed
 
-lemma order_root: "poly p a = 0 \<longleftrightarrow> p = 0 \<or> order a p \<noteq> 0"
-  apply (cases "p = 0")
-   apply simp_all
-  apply (rule iffI)
-   apply (metis order_2 not_gr0 poly_eq_0_iff_dvd power_0 power_Suc_0 power_one_right)
-  unfolding poly_eq_0_iff_dvd
-  apply (metis dvd_power dvd_trans order_1)
-  done
+lemma order_root: "poly p a = 0 \<longleftrightarrow> p = 0 \<or> order a p \<noteq> 0" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis One_nat_def order_2 poly_eq_0_iff_dvd power_one_right)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (meson dvd_power dvd_trans neq0_conv order_1 poly_0 poly_eq_0_iff_dvd)
+qed
 
 lemma order_0I: "poly p a \<noteq> 0 \<Longrightarrow> order a p = 0"
   by (subst (asm) order_root) auto
@@ -1787,36 +1770,28 @@ lemma order_0I: "poly p a \<noteq> 0 \<Longrightarrow> order a p = 0"
 lemma order_unique_lemma:
   fixes p :: "'a::idom poly"
   assumes "[:-a, 1:] ^ n dvd p" "\<not> [:-a, 1:] ^ Suc n dvd p"
-  shows "n = order a p"
+  shows "order a p = n"
   unfolding Polynomial.order_def
-  apply (rule Least_equality [symmetric])
-   apply (fact assms)
-  apply (rule classical)
-  apply (erule notE)
-  unfolding not_less_eq_eq
-  using assms(1)
-  apply (rule power_le_dvd)
-  apply assumption
-  done
+  by (metis (mono_tags, lifting) Least_equality assms not_less_eq_eq power_le_dvd)
 
-lemma order_mult: "p * q \<noteq> 0 \<Longrightarrow> order a (p * q) = order a p + order a q"
+lemma order_mult: 
+  assumes "p * q \<noteq> 0" shows "order a (p * q) = order a p + order a q"
 proof -
-  define i where "i = order a p"
-  define j where "j = order a q"
-  define t where "t = [:-a, 1:]"
+  define i where "i \<equiv> order a p"
+  define j where "j \<equiv> order a q"
+  define t where "t \<equiv> [:-a, 1:]"
   have t_dvd_iff: "\<And>u. t dvd u \<longleftrightarrow> poly u a = 0"
     by (simp add: t_def dvd_iff_poly_eq_0)
-  assume "p * q \<noteq> 0"
-  then show "order a (p * q) = i + j"
-    apply clarsimp
-    apply (drule order [where a=a and p=p, folded i_def t_def])
-    apply (drule order [where a=a and p=q, folded j_def t_def])
-    apply clarify
-    apply (erule dvdE)+
-    apply (rule order_unique_lemma [symmetric], fold t_def)
-     apply (simp_all add: power_add t_dvd_iff)
-    done
+  have dvd: "t ^ i dvd p" "t ^ j dvd q" and "\<not> t ^ Suc i dvd p" "\<not> t ^ Suc j dvd q"
+    using assms i_def j_def order_1 order_2 t_def by auto
+  then have "\<not> t ^ Suc(i + j) dvd p * q"
+    by (elim dvdE) (simp add: power_add t_dvd_iff)
+  moreover have "t ^ (i + j) dvd p * q"
+    using dvd by (simp add: mult_dvd_mono power_add)
+  ultimately show "order a (p * q) = i + j"
+    using order_unique_lemma t_def by blast
 qed
+
 
 lemma order_smult:
   assumes "c \<noteq> 0"
@@ -1836,7 +1811,7 @@ next
     by simp
 qed
 
-(* Next three lemmas contributed by Wenda Li *)
+text \<open>Next three lemmas contributed by Wenda Li\<close>
 lemma order_1_eq_0 [simp]:"order x 1 = 0"
   by (metis order_root poly_1 zero_neq_one)
 
@@ -1885,12 +1860,7 @@ lemma dvd_imp_order_le: "q \<noteq> 0 \<Longrightarrow> p dvd q \<Longrightarrow
 text \<open>Now justify the standard squarefree decomposition, i.e. \<open>f / gcd f f'\<close>.\<close>
 
 lemma order_divides: "[:-a, 1:] ^ n dvd p \<longleftrightarrow> p = 0 \<or> n \<le> order a p"
-  apply (cases "p = 0")
-  apply auto
-   apply (drule order_2 [where a=a and p=p])
-   apply (metis not_less_eq_eq power_le_dvd)
-  apply (erule power_le_dvd [OF order_1])
-  done
+  by (meson dvd_0_right not_less_eq_eq order_1 order_2 power_le_dvd)
 
 lemma order_decomp:
   assumes "p \<noteq> 0"
@@ -2008,15 +1978,17 @@ lemma poly_pcompose: "poly (pcompose p q) x = poly p (poly q x)"
   by (induct p) (simp_all add: pcompose_pCons)
 
 lemma degree_pcompose_le: "degree (pcompose p q) \<le> degree p * degree q"
-  apply (induct p)
-   apply simp
-  apply (simp add: pcompose_pCons)
-  apply clarify
-  apply (rule degree_add_le)
-   apply simp
-  apply (rule order_trans [OF degree_mult_le])
-  apply simp
-  done
+proof (induction p)
+  case (pCons a p)
+  then show ?case
+  proof (clarsimp simp add: pcompose_pCons)
+    assume "degree (p \<circ>\<^sub>p q) \<le> degree p * degree q" "p \<noteq> 0"
+    then have "degree (q * p \<circ>\<^sub>p q) \<le> degree q + degree p * degree q"
+      by (meson add_le_cancel_left degree_mult_le dual_order.trans pCons.IH)
+    then show "degree ([:a:] + q * p \<circ>\<^sub>p q) \<le> degree q + degree p * degree q"
+      by (simp add: degree_add_le)
+  qed
+qed auto
 
 lemma pcompose_add: "pcompose (p + q) r = pcompose p r + pcompose q r"
   for p q r :: "'a::{comm_semiring_0, ab_semigroup_add} poly"
@@ -2028,8 +2000,7 @@ next
   have "pcompose (pCons a p + pCons b q) r = [:a + b:] + r * pcompose p r + r * pcompose q r"
     by (simp_all add: pcompose_pCons pCons.IH algebra_simps)
   also have "[:a + b:] = [:a:] + [:b:]" by simp
-  also have "\<dots> + r * pcompose p r + r * pcompose q r =
-    pcompose (pCons a p) r + pcompose (pCons b q) r"
+  also have "\<dots> + r * pcompose p r + r * pcompose q r = pcompose (pCons a p) r + pcompose (pCons b q) r"
     by (simp only: pcompose_pCons add_ac)
   finally show ?case .
 qed
@@ -2485,23 +2456,30 @@ qed
 
 lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
   for p :: "'a::{comm_semiring_1,semiring_no_zero_divisors,semiring_char_0} poly"
-  apply (rule iffI)
-   apply (cases p)
-   apply simp
-   apply (simp add: poly_eq_iff coeff_pderiv del: of_nat_Suc)
-  apply (simp add: poly_eq_iff coeff_pderiv coeff_eq_0)
-  done
+proof (cases "degree p")
+  case 0
+  then show ?thesis 
+    by (metis degree_eq_zeroE pderiv.simps)
+next
+  case (Suc n)
+  then show ?thesis
+    by (metis coeff_0 coeff_pderiv degree_0 leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)    
+qed
 
 lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
   for p :: "'a::{comm_semiring_1,semiring_no_zero_divisors,semiring_char_0} poly"
-  apply (rule order_antisym [OF degree_le])
-   apply (simp add: coeff_pderiv coeff_eq_0)
-  apply (cases "degree p")
-   apply simp
-  apply (rule le_degree)
-  apply (simp add: coeff_pderiv del: of_nat_Suc)
-  apply (metis degree_0 leading_coeff_0_iff nat.distinct(1))
-  done
+proof -
+  have "degree p - 1 \<le> degree (pderiv p)"
+  proof (cases "degree p")
+    case (Suc n)
+    then show ?thesis
+      by (metis coeff_pderiv degree_0 diff_Suc_1 le_degree leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)      
+  qed auto
+  moreover have "\<forall>i>degree p - 1. coeff (pderiv p) i = 0"
+    by (simp add: coeff_eq_0 coeff_pderiv)
+  ultimately show ?thesis
+    using order_antisym [OF degree_le] by blast
+qed
 
 lemma not_dvd_pderiv:
   fixes p :: "'a::{comm_semiring_1,semiring_no_zero_divisors,semiring_char_0} poly"
@@ -2540,14 +2518,11 @@ lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
   by (induct p) (auto simp: pderiv_add pderiv_smult pderiv_pCons algebra_simps)
 
 lemma pderiv_power_Suc: "pderiv (p ^ Suc n) = smult (of_nat (Suc n)) (p ^ n) * pderiv p"
-  apply (induct n)
-   apply simp
-  apply (subst power_Suc)
-  apply (subst pderiv_mult)
-  apply (erule ssubst)
-  apply (simp only: of_nat_Suc smult_add_left smult_1_left)
-  apply (simp add: algebra_simps)
-  done
+proof (induction n)
+  case (Suc n)
+  then show ?case
+    by (simp add: pderiv_mult smult_add_left algebra_simps)
+qed auto 
 
 lemma pderiv_pcompose: "pderiv (pcompose p q) = pcompose (pderiv p) q * pderiv q"
   by (induction p rule: pCons_induct)
@@ -2625,9 +2600,7 @@ lemma poly_IVT: "a < b \<Longrightarrow> poly p a * poly p b < 0 \<Longrightarro
 
 lemma poly_MVT: "a < b \<Longrightarrow> \<exists>x. a < x \<and> x < b \<and> poly p b - poly p a = (b - a) * poly (pderiv p) x"
   for a b :: real
-  using MVT [of a b "poly p"]
-  apply simp
-  by (metis (full_types) DERIV_continuous_on DERIV_unique has_field_derivative_at_within poly_DERIV)
+  by (simp add: MVT2)
 
 lemma poly_MVT':
   fixes a b :: real
@@ -2697,33 +2670,36 @@ proof -
     by auto
   from assms obtain n' where "n = Suc n'" "0 < Suc n'" "pderiv ([:- a, 1:] ^ Suc n' * q) \<noteq> 0"
     by (cases n) auto
-  have *: "k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l" for k l
-    by (auto simp del: of_nat_Suc simp: dvd_add_right_iff dvd_smult_iff)
-  have "n' = order a (pderiv ([:- a, 1:] ^ Suc n' * q))"
+  have "order a (pderiv ([:- a, 1:] ^ Suc n' * q)) = n'"
   proof (rule order_unique_lemma)
     show "[:- a, 1:] ^ n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
-      apply (subst lemma_order_pderiv1)
-      apply (rule dvd_add)
-       apply (metis dvdI dvd_mult2 power_Suc2)
-      apply (metis dvd_smult dvd_triv_right)
-      done
-    show "\<not> [:- a, 1:] ^ Suc n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
-      apply (subst lemma_order_pderiv1)
-      apply (metis * nd dvd_mult_cancel_right power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
-      done
+      unfolding lemma_order_pderiv1
+    proof (rule dvd_add)
+      show "[:- a, 1:] ^ n' dvd [:- a, 1:] ^ Suc n' * pderiv q"
+        by (metis dvdI dvd_mult2 power_Suc2)
+      show "[:- a, 1:] ^ n' dvd smult (of_nat (Suc n')) (q * [:- a, 1:] ^ n')"
+        by (metis dvd_smult dvd_triv_right)
+    qed
+    have "k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l" for k l
+      by (auto simp del: of_nat_Suc simp: dvd_add_right_iff dvd_smult_iff)
+    then show "\<not> [:- a, 1:] ^ Suc n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
+      unfolding lemma_order_pderiv1
+      by (metis nd dvd_mult_cancel_right power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
   qed
   then show ?thesis
     by (metis \<open>n = Suc n'\<close> pe)
 qed
 
-lemma order_pderiv: "pderiv p \<noteq> 0 \<Longrightarrow> order a p \<noteq> 0 \<Longrightarrow> order a p = Suc (order a (pderiv p))"
+lemma order_pderiv: "order a p = Suc (order a (pderiv p))"
+  if "pderiv p \<noteq> 0" "order a p \<noteq> 0"
   for p :: "'a::field_char_0 poly"
-  apply (cases "p = 0")
-   apply simp
-  apply (drule_tac a = a and p = p in order_decomp)
-  using neq0_conv
-  apply (blast intro: lemma_order_pderiv)
-  done
+proof (cases "p = 0")
+  case False
+  obtain q where "p = [:- a, 1:] ^ order a p * q \<and> \<not> [:- a, 1:] dvd q"
+    using False order_decomp by blast
+  then show ?thesis
+    using lemma_order_pderiv that by blast
+qed (use that in auto)
 
 lemma poly_squarefree_decomp_order:
   fixes p :: "'a::field_char_0 poly"
@@ -2739,26 +2715,21 @@ proof (rule classical)
     by (simp add: order_mult)
   with 1 have "order a p \<noteq> 0"
     by (auto split: if_splits)
-  from \<open>pderiv p \<noteq> 0\<close> \<open>pderiv p = e * d\<close> have "order a (pderiv p) = order a e + order a d"
+  from \<open>pderiv p \<noteq> 0\<close> \<open>pderiv p = e * d\<close> have oapp: "order a (pderiv p) = order a e + order a d"
     by (simp add: order_mult)
-  from \<open>pderiv p \<noteq> 0\<close> \<open>order a p \<noteq> 0\<close> have "order a p = Suc (order a (pderiv p))"
+  from \<open>pderiv p \<noteq> 0\<close> \<open>order a p \<noteq> 0\<close> have oap: "order a p = Suc (order a (pderiv p))"
     by (rule order_pderiv)
   from \<open>p \<noteq> 0\<close> \<open>p = q * d\<close> have "d \<noteq> 0"
     by simp
-  have "([:-a, 1:] ^ (order a (pderiv p))) dvd d"
-    apply (simp add: d)
-    apply (rule dvd_add)
-     apply (rule dvd_mult)
-     apply (simp add: order_divides \<open>p \<noteq> 0\<close> \<open>order a p = Suc (order a (pderiv p))\<close>)
-    apply (rule dvd_mult)
-    apply (simp add: order_divides)
-    done
+  have "[:- a, 1:] ^ order a (pderiv p) dvd r * p"
+    by (metis dvd_trans dvd_triv_right oap order_1 power_Suc)
+  then have "([:-a, 1:] ^ (order a (pderiv p))) dvd d"
+    by (simp add: d order_1)
   with \<open>d \<noteq> 0\<close> have "order a (pderiv p) \<le> order a d"
     by (simp add: order_divides)
   show ?thesis
     using \<open>order a p = order a q + order a d\<close>
-      and \<open>order a (pderiv p) = order a e + order a d\<close>
-      and \<open>order a p = Suc (order a (pderiv p))\<close>
+      and oapp oap
       and \<open>order a (pderiv p) \<le> order a d\<close>
     by auto
 qed
@@ -2783,16 +2754,19 @@ lemma pderiv_iszero: "pderiv p = 0 \<Longrightarrow> \<exists>h. p = [:h:]"
 
 lemma rsquarefree_roots: "rsquarefree p \<longleftrightarrow> (\<forall>a. \<not> (poly p a = 0 \<and> poly (pderiv p) a = 0))"
   for p :: "'a::field_char_0 poly"
-  apply (simp add: rsquarefree_def)
-  apply (case_tac "p = 0")
-   apply simp
-  apply simp
-  apply (case_tac "pderiv p = 0")
-   apply simp
-   apply (drule pderiv_iszero, clarsimp)
-   apply (metis coeff_0 coeff_pCons_0 degree_pCons_0 le0 le_antisym order_degree)
-  apply (force simp add: order_root order_pderiv2)
-  done
+proof (cases "p = 0")
+  case False
+  show ?thesis
+  proof (cases "pderiv p = 0")
+    case True
+    with \<open>p \<noteq> 0\<close> pderiv_iszero show ?thesis
+      by (force simp add: order_0I rsquarefree_def)
+  next
+    case False
+    with \<open>p \<noteq> 0\<close> order_pderiv2 show ?thesis
+      by (force simp add: rsquarefree_def order_root)
+  qed
+qed (simp add: rsquarefree_def)
 
 lemma poly_squarefree_decomp:
   fixes p :: "'a::field_char_0 poly"
@@ -3558,12 +3532,19 @@ proof -
 qed
 
 lemma eucl_rel_poly_exists: "\<exists>q r. eucl_rel_poly x y (q, r)"
-  apply (cases "y = 0")
-   apply (fast intro!: eucl_rel_poly_by_0)
-  apply (induct x)
-   apply (fast intro!: eucl_rel_poly_0)
-  apply (fast intro!: eucl_rel_poly_pCons)
-  done
+proof (cases "y = 0")
+  case False
+  show ?thesis
+  proof (induction x)
+    case 0
+    then show ?case
+      using eucl_rel_poly_0 by blast 
+  next
+    case (pCons a x)
+    then show ?case
+      using False eucl_rel_poly_pCons by blast
+  qed
+qed (use eucl_rel_poly_by0 in blast)
 
 lemma eucl_rel_poly_unique:
   assumes 1: "eucl_rel_poly x y (q1, r1)"
@@ -3776,19 +3757,25 @@ lemma poly_mod_minus_right [simp]: "x mod (- y) = x mod y"
   using mod_smult_right [of "- 1::'a"] by simp
 
 lemma eucl_rel_poly_mult:
-  "eucl_rel_poly x y (q, r) \<Longrightarrow> eucl_rel_poly q z (q', r') \<Longrightarrow>
-    eucl_rel_poly x (y * z) (q', y * r' + r)"
-  apply (cases "z = 0", simp add: eucl_rel_poly_iff)
-  apply (cases "y = 0", simp add: eucl_rel_poly_by_0_iff eucl_rel_poly_0_iff)
-  apply (cases "r = 0")
-   apply (cases "r' = 0")
-    apply (simp add: eucl_rel_poly_iff)
-   apply (simp add: eucl_rel_poly_iff field_simps degree_mult_eq)
-  apply (cases "r' = 0")
-   apply (simp add: eucl_rel_poly_iff degree_mult_eq)
-  apply (simp add: eucl_rel_poly_iff field_simps)
-  apply (simp add: degree_mult_eq degree_add_less)
-  done
+  assumes "eucl_rel_poly x y (q, r)" "eucl_rel_poly q z (q', r')"
+  shows "eucl_rel_poly x (y * z) (q', y * r' + r)"
+proof (cases "y = 0")
+  case True
+  with assms eucl_rel_poly_0_iff show ?thesis
+    by (force simp add: eucl_rel_poly_iff)
+next
+  case False
+  show ?thesis
+  proof (cases "r' = 0")
+    case True
+    with assms show ?thesis
+      by (auto simp add: eucl_rel_poly_iff degree_mult_eq)
+  next
+    case False
+    with assms \<open>y \<noteq> 0\<close> show ?thesis
+      by (auto simp add: eucl_rel_poly_iff degree_add_less degree_mult_eq field_simps)
+  qed
+qed
 
 lemma poly_div_mult_right: "x div (y * z) = (x div y) div z"
   for x y z :: "'a::field poly"
