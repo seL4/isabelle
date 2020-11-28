@@ -62,6 +62,37 @@ object Scala_Project
       "src/HOL/Tools/Nitpick" -> Path.explode("isabelle.nitpick"))
 
 
+  /* compile-time position */
+
+  def here: Here =
+  {
+    val exn = new Exception
+    exn.getStackTrace.toList match {
+      case _ :: caller :: _ =>
+        val name = proper_string(caller.getFileName).getOrElse("")
+        val line = caller.getLineNumber
+        new Here(name, line)
+      case _ => new Here("", 0)
+    }
+  }
+
+  class Here private[Scala_Project](name: String, line: Int)
+  {
+    override def toString: String = name + ":" + line
+    def position: Position.T =
+    {
+      if (name.startsWith("<")) Position.none
+      else {
+        val suffix = "/" + name
+        isabelle_files().find(_.endsWith(suffix)) match {
+          case None => Position.none
+          case Some(file) => Position.Line_File(line, "$ISABELLE_HOME/" + file)
+        }
+      }
+    }
+  }
+
+
   /* scala project */
 
   def scala_project(project_dir: Path, symlinks: Boolean = false)
