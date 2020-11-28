@@ -14,6 +14,7 @@ sig
      bibtex_entries: (string * string list) list,
      command_timings: Properties.T list,
      docs: string list,
+     scala_functions: (string * Position.T) list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
   val init_session_yxml: string -> unit
@@ -25,6 +26,7 @@ sig
   val session_chapter: string -> string
   val last_timing: Toplevel.transition -> Time.time
   val check_doc: Proof.context -> string * Position.T -> string
+  val scala_function_pos: string -> Position.T
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -103,6 +105,7 @@ val empty_session_base =
    bibtex_entries = Symtab.empty: string list Symtab.table,
    timings = empty_timings,
    docs = []: (string * entry) list,
+   scala_functions = Symtab.empty: Position.T Symtab.table,
    global_theories = Symtab.empty: string Symtab.table,
    loaded_theories = Symtab.empty: unit Symtab.table};
 
@@ -110,8 +113,8 @@ val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session
-    {session_positions, session_directories, session_chapters,
-      bibtex_entries, command_timings, docs, global_theories, loaded_theories} =
+    {session_positions, session_directories, session_chapters, bibtex_entries,
+      command_timings, docs, scala_functions, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       {session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
@@ -122,19 +125,22 @@ fun init_session
        bibtex_entries = Symtab.make bibtex_entries,
        timings = make_timings command_timings,
        docs = sort_by #1 (map (apsnd make_entry o rpair []) docs),
+       scala_functions = Symtab.make scala_functions,
        global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make_set loaded_theories});
 
 fun init_session_yxml yxml =
   let
-    val (session_positions, (session_directories, (session_chapters,
-          (bibtex_entries, (command_timings, (docs, (global_theories, loaded_theories))))))) =
+    val (session_positions, (session_directories, (session_chapters, (bibtex_entries,
+        (command_timings, (docs, (scala_functions, (global_theories, loaded_theories)))))))) =
       YXML.parse_body yxml |>
         let open XML.Decode in
           (pair (list (pair string properties))
             (pair (list (pair string string)) (pair (list (pair string string))
               (pair (list (pair string (list string))) (pair (list properties)
-                (pair (list string) (pair (list (pair string string)) (list string))))))))
+                (pair (list string)
+                  (pair (list (pair string properties))
+                    (pair (list (pair string string)) (list string)))))))))
         end;
   in
     init_session
@@ -144,6 +150,7 @@ fun init_session_yxml yxml =
        bibtex_entries = bibtex_entries,
        command_timings = command_timings,
        docs = docs,
+       scala_functions = map (apsnd Position.of_properties) scala_functions,
        global_theories = global_theories,
        loaded_theories = loaded_theories}
   end;
@@ -160,6 +167,7 @@ fun finish_session_base () =
        bibtex_entries = Symtab.empty,
        timings = empty_timings,
        docs = [],
+       scala_functions = Symtab.empty,
        global_theories = global_theories,
        loaded_theories = loaded_theories});
 
@@ -183,6 +191,10 @@ fun session_chapter name =
 fun last_timing tr = get_timings (get_session_base #timings) tr;
 
 val check_doc = check_name #docs "documentation" (Markup.doc o #1);
+
+fun scala_function_pos name =
+  Symtab.lookup (get_session_base #scala_functions) name
+  |> the_default Position.none;
 
 
 (* manage source files *)

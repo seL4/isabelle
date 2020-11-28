@@ -154,6 +154,7 @@ object Kodkod
 
   object Fun extends Scala.Fun("kodkod")
   {
+    val here = Scala_Project.here
     def apply(args: String): String =
     {
       val (timeout, (solve_all, (max_solutions, (max_threads, kki)))) =

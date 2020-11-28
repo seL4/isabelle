@@ -20,6 +20,8 @@ object Scala
   abstract class Fun(val name: String) extends Function[String, String]
   {
     override def toString: String = name
+    def position: Properties.T = here.position
+    def here: Scala_Project.Here
     def apply(arg: String): String
   }
 
@@ -34,11 +36,13 @@ object Scala
 
   object Echo extends Fun("echo")
   {
+    val here = Scala_Project.here
     def apply(arg: String): String = arg
   }
 
   object Sleep extends Fun("sleep")
   {
+    val here = Scala_Project.here
     def apply(seconds: String): String =
     {
       val t =
@@ -123,6 +127,7 @@ object Scala
 
   object Toplevel extends Fun("scala_toplevel")
   {
+    val here = Scala_Project.here
     def apply(arg: String): String =
     {
       val (interpret, source) =
