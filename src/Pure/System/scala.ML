@@ -82,7 +82,9 @@ fun check_function ctxt arg =
     (functions () |> sort_strings |> map (fn a => (a, Resources.scala_function_pos a))) ctxt arg;
 
 val _ = Theory.setup
- (ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
+ (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
+   (Scan.lift Parse.embedded_position) check_function #>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
     (Args.context -- Scan.lift Parse.embedded_position
       >> (uncurry check_function #> ML_Syntax.print_string)) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>

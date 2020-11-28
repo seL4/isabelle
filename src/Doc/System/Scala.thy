@@ -243,8 +243,7 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Invoke a predefined Scala function that is the identity on type
-  \<^ML_type>\<open>string\<close>:
+  Invoke the predefined Scala function \<^scala_function>\<open>echo\<close>:
 \<close>
 
 ML \<open>
