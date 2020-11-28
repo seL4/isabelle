@@ -23,7 +23,7 @@ object Scala_Project
 
   /* file and directories */
 
-  def isabelle_files(): List[String] =
+  lazy val isabelle_files: List[String] =
   {
     val files1 =
     {
@@ -50,6 +50,20 @@ object Scala_Project
 
     files1 ::: files2
   }
+
+  lazy val isabelle_scala_files: Map[String, Path] =
+    (Map.empty[String, Path] /: isabelle_files)({
+      case (map, name) =>
+        if (!name.startsWith("src/Tools/jEdit/") && name.endsWith(".scala")) {
+          val path = Path.explode("~~/" + name)
+          val base = path.base.implode
+          map.get(base) match {
+            case None => map + (base -> path)
+            case Some(path1) => error("Conflicting base names: " + path + " vs. " + path1)
+          }
+        }
+        else map
+    })
 
   val isabelle_dirs: List[(String, Path)] =
     List(
@@ -80,16 +94,10 @@ object Scala_Project
   {
     override def toString: String = name + ":" + line
     def position: Position.T =
-    {
-      if (name.startsWith("<")) Position.none
-      else {
-        val suffix = "/" + name
-        isabelle_files().find(_.endsWith(suffix)) match {
-          case None => Position.none
-          case Some(file) => Position.Line_File(line, "$ISABELLE_HOME/" + file)
-        }
+      isabelle_scala_files.get(name) match {
+        case Some(path) => Position.Line_File(line, path.implode)
+        case None => Position.none
       }
-    }
   }
 
 
@@ -109,7 +117,8 @@ object Scala_Project
 
     Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
 
-    val files = isabelle_files()
+    val files = isabelle_files
+    isabelle_scala_files
 
     for (file <- files if file.endsWith(".scala")) {
       val (path, target) =
