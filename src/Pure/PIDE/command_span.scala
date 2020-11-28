@@ -14,9 +14,11 @@ object Command_Span
 {
   /* loaded files */
 
-  type Loaded_Files = (List[String], Int)
-
-  val no_loaded_files: Loaded_Files = (Nil, -1)
+  object Loaded_Files
+  {
+    val none: Loaded_Files = Loaded_Files(Nil, -1)
+  }
+  sealed case class Loaded_Files(files: List[String], index: Int)
 
   class Load_Command(val name: String) extends Isabelle_System.Service
   {
@@ -28,10 +30,10 @@ object Command_Span
       tokens.collectFirst({ case (t, i) if t.is_embedded => (t.content, i) }) match {
         case Some((file, i)) =>
           extensions match {
-            case Nil => (List(file), i)
-            case exts => (exts.map(ext => file + "." + ext), i)
+            case Nil => Loaded_Files(List(file), i)
+            case exts => Loaded_Files(exts.map(ext => file + "." + ext), i)
           }
-        case None => no_loaded_files
+        case None => Loaded_Files.none
       }
   }
 
@@ -119,7 +121,7 @@ object Command_Span
 
     def loaded_files(syntax: Outer_Syntax): Loaded_Files =
       syntax.load_command(name) match {
-        case None => no_loaded_files
+        case None => Loaded_Files.none
         case Some(a) =>
           load_commands.find(_.name == a) match {
             case Some(load_command) => load_command.loaded_files(clean_arguments)

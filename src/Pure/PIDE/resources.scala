@@ -121,7 +121,7 @@ class Resources(
         val dir = Path.explode(name.master_dir)
         (for {
           span <- spans.iterator
-          file <- span.loaded_files(syntax)._1
+          file <- span.loaded_files(syntax).files
         } yield (dir + Path.explode(file)).expand).toList
       }
       else Nil

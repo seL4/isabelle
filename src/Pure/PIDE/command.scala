@@ -442,16 +442,16 @@ object Command
 
       // auxiliary files
       case _ =>
-        val (files, index) = span.loaded_files(syntax)
+        val loaded_files = span.loaded_files(syntax)
         val blobs =
-          files.map(file =>
+          loaded_files.files.map(file =>
             (Exn.capture {
               val src_path = Path.explode(file)
               val name = Document.Node.Name(resources.append(node_name, src_path))
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               Blob(name, src_path, content)
             }).user_error)
-        (blobs, index)
+        (blobs, loaded_files.index)
     }
   }
 }
