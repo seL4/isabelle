@@ -261,7 +261,8 @@ object Command
 
     def accumulate(
         self_id: Document_ID.Generic => Boolean,
-        other_id: Document_ID.Generic => Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
+        other_id: (Document.Node.Name, Document_ID.Generic) =>
+          Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
         message: XML.Elem,
         xml_cache: XML.Cache): State =
       message match {
@@ -293,7 +294,8 @@ object Command
                       val target =
                         if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
                           Some((chunk_name, command.chunks(chunk_name)))
-                        else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
+                        else if (chunk_name == Symbol.Text_Chunk.Default)
+                          other_id(command.node_name, id)
                         else None
 
                       (target, atts) match {
