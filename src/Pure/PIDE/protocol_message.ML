@@ -15,12 +15,16 @@ end;
 structure Protocol_Message: PROTOCOL_MESSAGE =
 struct
 
+(* message markers *)
+
 fun marker_text a text =
   Output.physical_writeln ("\f" ^ a ^ " = " ^ encode_lines text);
 
 fun marker a props =
   marker_text a (YXML.string_of_body (XML.Encode.properties props));
 
+
+(* inlined messages *)
 
 fun command_positions id =
   let
