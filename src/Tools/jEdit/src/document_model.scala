@@ -413,7 +413,7 @@ case class File_Model(
 
   def node_header: Document.Node.Header =
     PIDE.resources.special_header(node_name) getOrElse
-      PIDE.resources.check_thy_reader(node_name, Scan.char_reader(content.text), strict = false)
+      PIDE.resources.check_thy(node_name, Scan.char_reader(content.text), strict = false)
 
 
   /* content */
@@ -485,7 +485,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
     PIDE.resources.special_header(node_name) getOrElse
       JEdit_Lib.buffer_lock(buffer) {
-        PIDE.resources.check_thy_reader(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
+        PIDE.resources.check_thy(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
       }
   }
 

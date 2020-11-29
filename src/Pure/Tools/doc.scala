@@ -7,9 +7,6 @@ Access to Isabelle documentation.
 package isabelle
 
 
-import scala.util.matching.Regex
-
-
 object Doc
 {
   /* dirs */
@@ -41,8 +38,8 @@ object Doc
     }
     else None
 
-  private val Section_Entry = new Regex("""^(\S.*)\s*$""")
-  private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
+  private val Section_Entry = """^(\S.*)\s*$""".r
+  private val Doc_Entry = """^\s+(\S+)\s+(.+)\s*$""".r
 
   private def release_notes(): List[Entry] =
     Section("Release Notes", true) ::

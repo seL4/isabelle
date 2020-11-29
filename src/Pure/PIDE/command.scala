@@ -261,7 +261,8 @@ object Command
 
     def accumulate(
         self_id: Document_ID.Generic => Boolean,
-        other_id: Document_ID.Generic => Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
+        other_id: (Document.Node.Name, Document_ID.Generic) =>
+          Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
         message: XML.Elem,
         xml_cache: XML.Cache): State =
       message match {
@@ -293,7 +294,8 @@ object Command
                       val target =
                         if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
                           Some((chunk_name, command.chunks(chunk_name)))
-                        else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
+                        else if (chunk_name == Symbol.Text_Chunk.Default)
+                          other_id(command.node_name, id)
                         else None
 
                       (target, atts) match {
@@ -415,14 +417,14 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val header = resources.check_thy_reader(node_name, reader)
+        val header = resources.check_thy(node_name, reader)
         val imports_pos = header.imports_pos
         val raw_imports =
           try {
-            val read_imports = Thy_Header.read(reader, Token.Pos.none).imports
+            val read_imports = Thy_Header.read(node_name, reader).imports.map(_._1)
             if (imports_pos.length == read_imports.length) read_imports else error("")
           }
-          catch { case _: Throwable => List.fill(imports_pos.length)("") }
+          catch { case _: Throwable => List.fill(header.imports.length)("") }
 
         val errors =
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }

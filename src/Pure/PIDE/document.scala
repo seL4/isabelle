@@ -752,9 +752,14 @@ object Document
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
-    private def other_id(id: Document_ID.Generic)
+    private def other_id(node_name: Node.Name, id: Document_ID.Generic)
       : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] =
-      lookup_id(id).map(st => ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
+    {
+      for {
+        st <- lookup_id(id)
+        if st.command.node_name == node_name
+      } yield (Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)
+    }
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
       (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>

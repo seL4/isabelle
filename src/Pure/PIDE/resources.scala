@@ -60,8 +60,6 @@ class Resources(
   def is_hidden(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
-  def thy_path(path: Path): Path = path.ext("thy")
-
 
   /* file-system operations */
 
@@ -147,7 +145,7 @@ class Resources(
 
   def find_theory_node(theory: String): Option[Document.Node.Name] =
   {
-    val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
+    val thy_file = Path.basic(Long_Name.base_name(theory)).thy
     val session = session_base.theory_qualifier(theory)
     val dirs =
       sessions_structure.get(session) match {
@@ -161,7 +159,7 @@ class Resources(
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    def theory_node = make_theory_node(dir, thy_path(Path.explode(s)), theory)
+    def theory_node = make_theory_node(dir, Path.explode(s).thy, theory)
 
     if (!Thy_Header.is_base_name(s)) theory_node
     else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
@@ -216,41 +214,25 @@ class Resources(
     else error ("Cannot load theory file " + path)
   }
 
-  def check_thy_reader(node_name: Document.Node.Name, reader: Reader[Char],
-    start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
+  def check_thy(node_name: Document.Node.Name, reader: Reader[Char],
+    command: Boolean = true, strict: Boolean = true): Document.Node.Header =
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start, strict).check_keywords
-
-        val base_name = node_name.theory_base_name
-        if (Long_Name.is_qualified(header.name)) {
-          error("Bad theory name " + quote(header.name) + " with qualification" +
-            Position.here(header.pos))
-        }
-        if (base_name != header.name) {
-          error("Bad theory name " + quote(header.name) +
-            " for file " + thy_path(Path.basic(base_name)) + Position.here(header.pos) +
-            Completion.report_theories(header.pos, List(base_name)))
-        }
-
-        val imports_pos =
-          header.imports_pos.map({ case (s, pos) =>
+        val header = Thy_Header.read(node_name, reader, command = command, strict = strict)
+        val imports =
+          header.imports.map({ case (s, pos) =>
             val name = import_name(node_name, s)
             if (Sessions.exclude_theory(name.theory_base_name))
               error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
             (name, pos)
           })
-        Document.Node.Header(imports_pos, header.keywords, header.abbrevs)
+        Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }
     else Document.Node.no_header
   }
-
-  def check_thy(name: Document.Node.Name, start: Token.Pos = Token.Pos.command,
-      strict: Boolean = true): Document.Node.Header =
-    with_thy_reader(name, check_thy_reader(name, _, start, strict))
 
 
   /* special header */
@@ -351,7 +333,9 @@ class Resources(
 
             progress.expose_interrupt()
             val header =
-              try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
+              try {
+                with_thy_reader(name, check_thy(name, _, command = false)).cat_errors(message)
+              }
               catch { case ERROR(msg) => cat_error(msg, message) }
             val entry = Document.Node.Entry(name, header)
             dependencies1.require_thys(adjunct, header.imports_pos,

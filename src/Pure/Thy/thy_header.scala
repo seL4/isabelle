@@ -162,7 +162,7 @@ object Thy_Header
           { case None => Nil case Some(_ ~ xs) => xs }) ~
         (opt($$$(ABBREVS) ~! abbrevs) ^^
           { case None => Nil case Some(_ ~ xs) => xs }) ~
-        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a, b, c, d).map(Symbol.decode) }
+        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a._1, a._2, b, c, d) }
 
       val heading =
         (command(CHAPTER) |
@@ -213,44 +213,61 @@ object Thy_Header
       }
   }
 
-  def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
+  def read(node_name: Document.Node.Name, reader: Reader[Char],
+    command: Boolean = true,
+    strict: Boolean = true): Thy_Header =
   {
     val (_, tokens0) = read_tokens(reader, true)
     val text = Scan.reader_decode_utf8(reader, Token.implode(tokens0))
 
-    val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
-    val pos = (start /: drop_tokens)(_.advance(_))
+    val (skip_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
+    val pos =
+      if (command) Token.Pos.command
+      else (Token.Pos.file(node_name.node) /: skip_tokens)(_ advance _)
 
-    Parser.parse_header(tokens, pos)
+    Parser.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
   }
 }
 
 sealed case class Thy_Header(
-  name_pos: (String, Position.T),
-  imports_pos: List[(String, Position.T)],
+  name: String,
+  pos: Position.T,
+  imports: List[(String, Position.T)],
   keywords: Thy_Header.Keywords,
   abbrevs: Thy_Header.Abbrevs)
 {
-  def name: String = name_pos._1
-  def pos: Position.T = name_pos._2
-  def imports: List[String] = imports_pos.map(_._1)
-
   def map(f: String => String): Thy_Header =
-    Thy_Header((f(name), pos),
-      imports_pos.map({ case (a, b) => (f(a), b) }),
+    Thy_Header(f(name), pos,
+      imports.map({ case (a, b) => (f(a), b) }),
       keywords.map({ case (a, spec) => (f(a), spec.map(f)) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
 
-  def check_keywords: Thy_Header =
+  def check(node_name: Document.Node.Name): Thy_Header =
   {
+    val base_name = node_name.theory_base_name
+    if (Long_Name.is_qualified(name)) {
+      error("Bad theory name " + quote(name) + " with qualification" + Position.here(pos))
+    }
+    if (base_name != name) {
+      error("Bad theory name " + quote(name) + " for file " + Path.basic(base_name).thy +
+        Position.here(pos) + Completion.report_theories(pos, List(base_name)))
+    }
+
     for ((_, spec) <- keywords) {
       if (spec.kind != Keyword.THY_LOAD && spec.load_command.nonEmpty) {
         error("Illegal load command specification for kind: " + quote(spec.kind) +
           Position.here(spec.kind_pos))
       }
       if (!Command_Span.load_commands.exists(_.name == spec.load_command)) {
+        val completion =
+          for {
+            load_command <- Command_Span.load_commands
+            name = load_command.name
+            if name.startsWith(spec.load_command)
+          } yield (name, (Markup.LOAD_COMMAND, name))
         error("Unknown load command specification: " + quote(spec.load_command) +
-          Position.here(spec.load_command_pos))
+          Position.here(spec.load_command_pos) +
+          Completion.report_names(spec.load_command_pos, completion))
       }
     }
     this

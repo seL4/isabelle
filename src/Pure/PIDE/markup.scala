@@ -267,6 +267,7 @@ object Markup
 
   /* misc entities */
 
+  val THEORY = "theory"
   val CLASS = "class"
   val TYPE_NAME = "type_name"
   val FIXED = "fixed"
@@ -378,6 +379,8 @@ object Markup
   val VERBATIM = "verbatim"
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
+
+  val LOAD_COMMAND = "load_command"
 
 
   /* comments */
