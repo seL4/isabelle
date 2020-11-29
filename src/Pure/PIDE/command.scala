@@ -419,7 +419,7 @@ object Command
         val imports_pos = header.imports_pos
         val raw_imports =
           try {
-            val read_imports = Thy_Header.read(reader).imports
+            val read_imports = Thy_Header.read(node_name, reader).imports
             if (imports_pos.length == read_imports.length) read_imports else error("")
           }
           catch { case _: Throwable => List.fill(imports_pos.length)("") }

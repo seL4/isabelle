@@ -122,6 +122,8 @@ object Thy_Header
     for { Thy_File_Name(name) <- files } yield name
   }
 
+  def thy_path(path: Path): Path = path.ext("thy")
+
 
   /* parser */
 
@@ -213,7 +215,7 @@ object Thy_Header
       }
   }
 
-  def read(reader: Reader[Char],
+  def read(node_name: Document.Node.Name, reader: Reader[Char],
     start: Token.Pos = Token.Pos.none,
     strict: Boolean = true): Thy_Header =
   {
@@ -223,7 +225,7 @@ object Thy_Header
     val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos = (start /: drop_tokens)(_.advance(_))
 
-    Parser.parse_header(tokens, pos).check_keywords
+    Parser.parse_header(tokens, pos).check(node_name)
   }
 }
 
@@ -243,8 +245,18 @@ sealed case class Thy_Header(
       keywords.map({ case (a, spec) => (f(a), spec.map(f)) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
 
-  def check_keywords: Thy_Header =
+  def check(node_name: Document.Node.Name): Thy_Header =
   {
+    val base_name = node_name.theory_base_name
+    if (Long_Name.is_qualified(name)) {
+      error("Bad theory name " + quote(name) + " with qualification" + Position.here(pos))
+    }
+    if (base_name != name) {
+      error("Bad theory name " + quote(name) + " for file " +
+        Thy_Header.thy_path(Path.basic(base_name)) + Position.here(pos) +
+        Completion.report_theories(pos, List(base_name)))
+    }
+
     for ((_, spec) <- keywords) {
       if (spec.kind != Keyword.THY_LOAD && spec.load_command.nonEmpty) {
         error("Illegal load command specification for kind: " + quote(spec.kind) +

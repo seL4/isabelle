@@ -60,8 +60,6 @@ class Resources(
   def is_hidden(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
-  def thy_path(path: Path): Path = path.ext("thy")
-
 
   /* file-system operations */
 
@@ -147,7 +145,7 @@ class Resources(
 
   def find_theory_node(theory: String): Option[Document.Node.Name] =
   {
-    val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
+    val thy_file = Thy_Header.thy_path(Path.basic(Long_Name.base_name(theory)))
     val session = session_base.theory_qualifier(theory)
     val dirs =
       sessions_structure.get(session) match {
@@ -161,7 +159,7 @@ class Resources(
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    def theory_node = make_theory_node(dir, thy_path(Path.explode(s)), theory)
+    def theory_node = make_theory_node(dir, Thy_Header.thy_path(Path.explode(s)), theory)
 
     if (!Thy_Header.is_base_name(s)) theory_node
     else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
@@ -221,18 +219,7 @@ class Resources(
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start = start, strict = strict)
-
-        val base_name = node_name.theory_base_name
-        if (Long_Name.is_qualified(header.name)) {
-          error("Bad theory name " + quote(header.name) + " with qualification" +
-            Position.here(header.pos))
-        }
-        if (base_name != header.name) {
-          error("Bad theory name " + quote(header.name) +
-            " for file " + thy_path(Path.basic(base_name)) + Position.here(header.pos) +
-            Completion.report_theories(header.pos, List(base_name)))
-        }
+        val header = Thy_Header.read(node_name, reader, start = start, strict = strict)
 
         val imports_pos =
           header.imports_pos.map({ case (s, pos) =>
