@@ -600,7 +600,7 @@ object Headless
           progress.expose_interrupt()
           val text0 = File.read(path)
           val text = if (unicode_symbols) Symbol.decode(text0) else text0
-          val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
+          val node_header = resources.check_thy(node_name, Scan.char_reader(text))
           new Resources.Theory(node_name, node_header, text, true)
         }
 

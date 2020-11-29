@@ -415,7 +415,7 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val header = resources.check_thy_reader(node_name, reader)
+        val header = resources.check_thy(node_name, reader)
         val imports_pos = header.imports_pos
         val raw_imports =
           try {

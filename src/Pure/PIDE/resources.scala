@@ -216,7 +216,7 @@ class Resources(
     else error ("Cannot load theory file " + path)
   }
 
-  def check_thy_reader(node_name: Document.Node.Name, reader: Reader[Char],
+  def check_thy(node_name: Document.Node.Name, reader: Reader[Char],
     start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
   {
     if (node_name.is_theory && reader.source.length > 0) {
@@ -247,10 +247,6 @@ class Resources(
     }
     else Document.Node.no_header
   }
-
-  def check_thy(name: Document.Node.Name, start: Token.Pos = Token.Pos.command,
-      strict: Boolean = true): Document.Node.Header =
-    with_thy_reader(name, check_thy_reader(name, _, start, strict))
 
 
   /* special header */
@@ -351,7 +347,10 @@ class Resources(
 
             progress.expose_interrupt()
             val header =
-              try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
+              try {
+                val start = Token.Pos.file(name.node)
+                with_thy_reader(name, check_thy(name, _, start = start)).cat_errors(message)
+              }
               catch { case ERROR(msg) => cat_error(msg, message) }
             val entry = Document.Node.Entry(name, header)
             dependencies1.require_thys(adjunct, header.imports_pos,
