@@ -215,11 +215,11 @@ class Resources(
   }
 
   def check_thy(node_name: Document.Node.Name, reader: Reader[Char],
-    start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
+    command: Boolean = true, strict: Boolean = true): Document.Node.Header =
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(node_name, reader, start = start, strict = strict)
+        val header = Thy_Header.read(node_name, reader, command = command, strict = strict)
 
         val imports_pos =
           header.imports_pos.map({ case (s, pos) =>
@@ -335,8 +335,7 @@ class Resources(
             progress.expose_interrupt()
             val header =
               try {
-                val start = Token.Pos.file(name.node)
-                with_thy_reader(name, check_thy(name, _, start = start)).cat_errors(message)
+                with_thy_reader(name, check_thy(name, _, command = false)).cat_errors(message)
               }
               catch { case ERROR(msg) => cat_error(msg, message) }
             val entry = Document.Node.Entry(name, header)

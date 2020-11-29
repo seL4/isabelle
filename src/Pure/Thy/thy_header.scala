@@ -214,14 +214,16 @@ object Thy_Header
   }
 
   def read(node_name: Document.Node.Name, reader: Reader[Char],
-    start: Token.Pos = Token.Pos.none,
+    command: Boolean = true,
     strict: Boolean = true): Thy_Header =
   {
     val (_, tokens0) = read_tokens(reader, true)
     val text = Scan.reader_decode_utf8(reader, Token.implode(tokens0))
 
-    val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
-    val pos = (start /: drop_tokens)(_.advance(_))
+    val (skip_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
+    val pos =
+      if (command) Token.Pos.command
+      else (Token.Pos.file(node_name.node) /: skip_tokens)(_ advance _)
 
     Parser.parse_header(tokens, pos).check(node_name)
   }
