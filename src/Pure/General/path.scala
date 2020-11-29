@@ -257,9 +257,27 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def file_name: String = expand.base.implode
 
 
-  /* source position */
+  /* implode wrt. given directories */
 
-  def position: Position.T = Position.File(implode)
+  def implode_symbolic: String =
+  {
+    val directories =
+      Library.space_explode(':', Isabelle_System.getenv("ISABELLE_DIRECTORIES")).reverse
+    val full_name = expand.implode
+    directories.view.flatMap(a =>
+      try {
+        val b = Path.explode(a).expand.implode
+        if (full_name == b) Some(a)
+        else {
+          Library.try_unprefix(b + "/", full_name) match {
+            case Some(name) => Some(a + "/" + name)
+            case None => None
+          }
+        }
+      } catch { case ERROR(_) => None }).headOption.getOrElse(implode)
+  }
+
+  def position: Position.T = Position.File(implode_symbolic)
 
 
   /* platform files */
