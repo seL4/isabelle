@@ -267,6 +267,7 @@ object Markup
 
   /* misc entities */
 
+  val THEORY = "theory"
   val CLASS = "class"
   val TYPE_NAME = "type_name"
   val FIXED = "fixed"

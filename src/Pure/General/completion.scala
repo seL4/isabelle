@@ -153,7 +153,7 @@ object Completion
       YXML.string_of_tree(Semantic.Info(pos, Names(if (total > 0) total else names.length, names)))
 
   def report_theories(pos: Position.T, thys: List[String], total: Int = 0): String =
-    report_names(pos, thys.map(name => (name, ("theory", name))), total)
+    report_names(pos, thys.map(name => (name, (Markup.THEORY, name))), total)
 
   object Semantic
   {
