@@ -251,6 +251,7 @@ object GUI
     val default_font = label_font()
     val ui = UIManager.getDefaults
     for (prop <- List(
+      "ToggleButton.font",
       "CheckBoxMenuItem.font",
       "Label.font",
       "Menu.font",
