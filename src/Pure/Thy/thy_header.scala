@@ -162,7 +162,7 @@ object Thy_Header
           { case None => Nil case Some(_ ~ xs) => xs }) ~
         (opt($$$(ABBREVS) ~! abbrevs) ^^
           { case None => Nil case Some(_ ~ xs) => xs }) ~
-        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a._1, a._2, b, c, d).map(Symbol.decode) }
+        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a._1, a._2, b, c, d) }
 
       val heading =
         (command(CHAPTER) |
@@ -225,7 +225,7 @@ object Thy_Header
       if (command) Token.Pos.command
       else (Token.Pos.file(node_name.node) /: skip_tokens)(_ advance _)
 
-    Parser.parse_header(tokens, pos).check(node_name)
+    Parser.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
   }
 }
 
