@@ -380,6 +380,8 @@ object Markup
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
 
+  val LOAD_COMMAND = "load_command"
+
 
   /* comments */
 

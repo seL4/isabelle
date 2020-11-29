@@ -259,8 +259,15 @@ sealed case class Thy_Header(
           Position.here(spec.kind_pos))
       }
       if (!Command_Span.load_commands.exists(_.name == spec.load_command)) {
+        val completion =
+          for {
+            load_command <- Command_Span.load_commands
+            name = load_command.name
+            if name.startsWith(spec.load_command)
+          } yield (name, (Markup.LOAD_COMMAND, name))
         error("Unknown load command specification: " + quote(spec.load_command) +
-          Position.here(spec.load_command_pos))
+          Position.here(spec.load_command_pos) +
+          Completion.report_names(spec.load_command_pos, completion))
       }
     }
     this
