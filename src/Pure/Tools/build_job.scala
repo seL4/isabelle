@@ -170,7 +170,7 @@ class Build_Job(progress: Progress,
             {
               val theory_name = snapshot.node_name.theory
               val args = Protocol.Export.Args(theory_name = theory_name, name = name)
-              val bytes = Bytes(YXML.string_of_body(xml))
+              val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
               if (!bytes.is_empty) export_consumer(session_name, args, bytes)
             }
             def export_text(name: String, text: String): Unit =
