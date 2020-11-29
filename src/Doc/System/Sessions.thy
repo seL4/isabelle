@@ -151,7 +151,7 @@ text \<open>
   \<^descr> \isakeyword{document_theories}~\<open>names\<close> specifies theories from other
   sessions that should be included in the generated document source directory.
   These theories need to be explicit imports in the current session, or
-  impliciti imports from the underlying hierarchy of parent sessions. The
+  implicit imports from the underlying hierarchy of parent sessions. The
   generated \<^verbatim>\<open>session.tex\<close> file is not affected: the session's {\LaTeX} setup
   needs to \<^verbatim>\<open>\input{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close> generated \<^verbatim>\<open>.tex\<close> files separately.
 
