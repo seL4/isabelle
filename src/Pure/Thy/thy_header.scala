@@ -162,7 +162,7 @@ object Thy_Header
           { case None => Nil case Some(_ ~ xs) => xs }) ~
         (opt($$$(ABBREVS) ~! abbrevs) ^^
           { case None => Nil case Some(_ ~ xs) => xs }) ~
-        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a, b, c, d).map(Symbol.decode) }
+        $$$(BEGIN) ^^ { case a ~ b ~ c ~ d ~ _ => Thy_Header(a._1, a._2, b, c, d).map(Symbol.decode) }
 
       val heading =
         (command(CHAPTER) |
@@ -230,18 +230,15 @@ object Thy_Header
 }
 
 sealed case class Thy_Header(
-  name_pos: (String, Position.T),
-  imports_pos: List[(String, Position.T)],
+  name: String,
+  pos: Position.T,
+  imports: List[(String, Position.T)],
   keywords: Thy_Header.Keywords,
   abbrevs: Thy_Header.Abbrevs)
 {
-  def name: String = name_pos._1
-  def pos: Position.T = name_pos._2
-  def imports: List[String] = imports_pos.map(_._1)
-
   def map(f: String => String): Thy_Header =
-    Thy_Header((f(name), pos),
-      imports_pos.map({ case (a, b) => (f(a), b) }),
+    Thy_Header(f(name), pos,
+      imports.map({ case (a, b) => (f(a), b) }),
       keywords.map({ case (a, spec) => (f(a), spec.map(f)) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
 

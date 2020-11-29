@@ -419,10 +419,10 @@ object Command
         val imports_pos = header.imports_pos
         val raw_imports =
           try {
-            val read_imports = Thy_Header.read(node_name, reader).imports
+            val read_imports = Thy_Header.read(node_name, reader).imports.map(_._1)
             if (imports_pos.length == read_imports.length) read_imports else error("")
           }
-          catch { case _: Throwable => List.fill(imports_pos.length)("") }
+          catch { case _: Throwable => List.fill(header.imports.length)("") }
 
         val errors =
           for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }

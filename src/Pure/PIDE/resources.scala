@@ -220,15 +220,14 @@ class Resources(
     if (node_name.is_theory && reader.source.length > 0) {
       try {
         val header = Thy_Header.read(node_name, reader, command = command, strict = strict)
-
-        val imports_pos =
-          header.imports_pos.map({ case (s, pos) =>
+        val imports =
+          header.imports.map({ case (s, pos) =>
             val name = import_name(node_name, s)
             if (Sessions.exclude_theory(name.theory_base_name))
               error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
             (name, pos)
           })
-        Document.Node.Header(imports_pos, header.keywords, header.abbrevs)
+        Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }
