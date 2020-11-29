@@ -145,7 +145,7 @@ class Resources(
 
   def find_theory_node(theory: String): Option[Document.Node.Name] =
   {
-    val thy_file = Thy_Header.thy_path(Path.basic(Long_Name.base_name(theory)))
+    val thy_file = Path.basic(Long_Name.base_name(theory)).thy
     val session = session_base.theory_qualifier(theory)
     val dirs =
       sessions_structure.get(session) match {
@@ -159,7 +159,7 @@ class Resources(
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    def theory_node = make_theory_node(dir, Thy_Header.thy_path(Path.explode(s)), theory)
+    def theory_node = make_theory_node(dir, Path.explode(s).thy, theory)
 
     if (!Thy_Header.is_base_name(s)) theory_node
     else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)

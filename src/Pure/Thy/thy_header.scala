@@ -122,8 +122,6 @@ object Thy_Header
     for { Thy_File_Name(name) <- files } yield name
   }
 
-  def thy_path(path: Path): Path = path.ext("thy")
-
 
   /* parser */
 
@@ -252,9 +250,8 @@ sealed case class Thy_Header(
       error("Bad theory name " + quote(name) + " with qualification" + Position.here(pos))
     }
     if (base_name != name) {
-      error("Bad theory name " + quote(name) + " for file " +
-        Thy_Header.thy_path(Path.basic(base_name)) + Position.here(pos) +
-        Completion.report_theories(pos, List(base_name)))
+      error("Bad theory name " + quote(name) + " for file " + Path.basic(base_name).thy +
+        Position.here(pos) + Completion.report_theories(pos, List(base_name)))
     }
 
     for ((_, spec) <- keywords) {
