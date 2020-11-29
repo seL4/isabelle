@@ -213,7 +213,9 @@ object Thy_Header
       }
   }
 
-  def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
+  def read(reader: Reader[Char],
+    start: Token.Pos = Token.Pos.none,
+    strict: Boolean = true): Thy_Header =
   {
     val (_, tokens0) = read_tokens(reader, true)
     val text = Scan.reader_decode_utf8(reader, Token.implode(tokens0))
