@@ -221,7 +221,7 @@ object Thy_Header
     val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos = (start /: drop_tokens)(_.advance(_))
 
-    Parser.parse_header(tokens, pos)
+    Parser.parse_header(tokens, pos).check_keywords
   }
 }
 
