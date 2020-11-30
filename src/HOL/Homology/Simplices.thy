@@ -61,9 +61,14 @@ lemma standard_simplex_01: "standard_simplex p \<subseteq> UNIV \<rightarrow>\<^
 
 lemma compactin_standard_simplex:
    "compactin (powertop_real UNIV) (standard_simplex p)"
-  apply (rule closed_compactin [where K = "PiE UNIV (\<lambda>i. {0..1})"])
-    apply (simp_all add: compactin_PiE standard_simplex_01 closedin_standard_simplex)
-  done
+proof (rule closed_compactin)
+  show "compactin (powertop_real UNIV) (UNIV \<rightarrow>\<^sub>E {0..1})"
+    by (simp add: compactin_PiE)
+  show "standard_simplex p \<subseteq> UNIV \<rightarrow>\<^sub>E {0..1}"
+    by (simp add: standard_simplex_01)
+  show "closedin (powertop_real UNIV) (standard_simplex p)"
+    by (simp add: closedin_standard_simplex)
+qed
 
 lemma convex_standard_simplex:
    "\<lbrakk>x \<in> standard_simplex p; y \<in> standard_simplex p;
@@ -75,19 +80,20 @@ lemma path_connectedin_standard_simplex:
    "path_connectedin (powertop_real UNIV) (standard_simplex p)"
 proof -
   define g where "g \<equiv> \<lambda>x y::nat\<Rightarrow>real. \<lambda>u i. (1 - u) * x i + u * y i"
-  have 1: "continuous_map
+  have "continuous_map
                 (subtopology euclideanreal {0..1}) (powertop_real UNIV)
                 (g x y)"
     if "x \<in> standard_simplex p" "y \<in> standard_simplex p" for x y
     unfolding g_def continuous_map_componentwise
     by (force intro: continuous_intros)
-  have 2: "g x y ` {0..1} \<subseteq> standard_simplex p" "g x y 0 = x" "g x y 1 = y"
+  moreover
+  have "g x y ` {0..1} \<subseteq> standard_simplex p" "g x y 0 = x" "g x y 1 = y"
     if "x \<in> standard_simplex p" "y \<in> standard_simplex p" for x y
     using that by (auto simp: convex_standard_simplex g_def)
+  ultimately
   show ?thesis
     unfolding path_connectedin_def path_connected_space_def pathin_def
-    apply (simp add: topspace_standard_simplex topspace_product_topology continuous_map_in_subtopology)
-    by (metis 1 2)
+    by (metis continuous_map_in_subtopology euclidean_product_topology top_greatest topspace_euclidean topspace_euclidean_subtopology)
 qed
 
 lemma connectedin_standard_simplex:
@@ -125,9 +131,8 @@ proof -
     also have "\<dots> = (\<Sum>i = k..p-1. x i)"
       using sum.atLeastAtMost_reindex [of Suc k "p-1" "\<lambda>i. x (i - Suc 0)"] 1 by simp
     finally have eq2: "(\<Sum>i = k..p. if i = k then 0 else x (i -1)) = (\<Sum>i = k..p-1. x i)" .
-    with 1 show ?thesis
-      apply (simp add: eq eq2)
-      by (metis (mono_tags, lifting) One_nat_def assms(3) finite_atLeastAtMost finite_lessThan ivl_disj_int(4) ivl_disj_un(10) mem_Collect_eq standard_simplex_def sum.union_disjoint)
+    with 1 show ?thesis 
+      by (metis (no_types, lifting) One_nat_def eq finite_atLeastAtMost finite_lessThan ivl_disj_int(4) ivl_disj_un(10) sum.union_disjoint sumx)
   next
     case 2
     have [simp]: "({..p} \<inter> {x. x < p}) = {..p - Suc 0}"
@@ -264,12 +269,14 @@ definition chain_boundary :: "nat \<Rightarrow> ('a chain) \<Rightarrow> 'a chai
            frag_extend (\<lambda>f. (\<Sum>k\<le>p. frag_cmul ((-1) ^ k) (frag_of(singular_face p k f)))) c)"
 
 lemma singular_chain_boundary:
-  "singular_chain p X c
-        \<Longrightarrow> singular_chain (p - Suc 0) X (chain_boundary p c)"
+  assumes "singular_chain p X c"
+  shows "singular_chain (p - Suc 0) X (chain_boundary p c)"
   unfolding chain_boundary_def
-  apply (clarsimp intro!: singular_chain_extend singular_chain_sum singular_chain_cmul)
-  apply (auto simp: singular_chain_def intro: singular_simplex_singular_face)
-  done
+proof (clarsimp intro!: singular_chain_extend singular_chain_sum singular_chain_cmul)
+  show "\<And>d k. \<lbrakk>0 < p; d \<in> Poly_Mapping.keys c; k \<le> p\<rbrakk>
+       \<Longrightarrow> singular_chain (p - Suc 0) X (frag_of (singular_face p k d))"
+    using assms by (auto simp: singular_chain_def intro: singular_simplex_singular_face)
+qed
 
 lemma singular_chain_boundary_alt:
    "singular_chain (Suc p) X c \<Longrightarrow> singular_chain p X (chain_boundary (Suc p) c)"
@@ -316,21 +323,20 @@ definition mod_subset
 
 lemma mod_subset_empty [simp]:
    "(a,b) \<in> (mod_subset p (subtopology X {})) \<longleftrightarrow> a = b"
-  by (simp add: mod_subset_def singular_chain_empty topspace_subtopology)
+  by (simp add: mod_subset_def singular_chain_empty)
 
 lemma mod_subset_refl [simp]: "(c,c) \<in> mod_subset p X"
   by (auto simp: mod_subset_def)
 
 lemma mod_subset_cmul:
-  "(a,b) \<in> (mod_subset p X) \<Longrightarrow> (frag_cmul k a, frag_cmul k b) \<in> (mod_subset p X)"
-  apply (simp add: mod_subset_def)
-  by (metis add_diff_cancel diff_add_cancel frag_cmul_distrib2 singular_chain_cmul)
+  assumes "(a,b) \<in> mod_subset p X"
+  shows "(frag_cmul k a, frag_cmul k b) \<in> mod_subset p X"
+  using assms
+  by (simp add: mod_subset_def) (metis (no_types, lifting) add_diff_cancel diff_add_cancel frag_cmul_distrib2 singular_chain_cmul)
 
 lemma mod_subset_add:
-   "\<lbrakk>(c1,c2) \<in> (mod_subset p X); (d1,d2) \<in> (mod_subset p X)\<rbrakk>
-    \<Longrightarrow> (c1+d1, c2+d2) \<in> (mod_subset p X)"
-  apply (simp add: mod_subset_def)
-  by (simp add: add_diff_add singular_chain_add)
+   "\<lbrakk>(c1,c2) \<in> mod_subset p X; (d1,d2) \<in> mod_subset p X\<rbrakk> \<Longrightarrow> (c1+d1, c2+d2) \<in> mod_subset p X"
+  by (simp add: mod_subset_def add_diff_add singular_chain_add)
 
 subsection\<open>Relative cycles $Z_pX (S)$ where $X$ is a topology and $S$ a subset \<close>
 
@@ -441,8 +447,7 @@ lemma singular_relboundary_imp_chain:
 lemma singular_chain_imp_relboundary:
    "singular_chain p (subtopology X S) c \<Longrightarrow> singular_relboundary p X S c"
   unfolding singular_relboundary_def
-  apply (rule_tac x=0 in exI)
-  using mod_subset_def singular_chain_diff by fastforce
+  using mod_subset_def singular_chain_minus by fastforce
 
 lemma singular_relboundary_0 [simp]: "singular_relboundary p X S 0"
   unfolding singular_relboundary_def
@@ -569,10 +574,14 @@ lemma chain_homotopic_imp_homologous_rel:
              \<Longrightarrow> (chain_boundary (Suc p) (h c)) + (h'(chain_boundary p c)) = f c - g c"
     "singular_relcycle p X S c"
   shows "homologous_rel p X' T (f c) (g c)"
+proof -
+  have "singular_chain p (subtopology X' T) (chain_boundary (Suc p) (h c) - (f c - g c))"
+    using assms
+    by (metis (no_types, lifting) add_diff_cancel_left' minus_diff_eq singular_chain_minus singular_relcycle)
+  then show ?thesis
   using assms
-  unfolding singular_relcycle_def mod_subset_def homologous_rel_def singular_relboundary_def
-  apply (rule_tac x="h c" in exI, simp)
-  by (metis (no_types, lifting) add_diff_cancel_left' minus_diff_eq singular_chain_minus)
+    by (metis homologous_rel_def singular_relboundary singular_relcycle)
+qed
 
 
 subsection\<open>Show that all boundaries are cycles, the key "chain complex" property.\<close>
@@ -624,8 +633,8 @@ proof (cases "p -1 = 0")
               = 0"
         apply (simp add: sum.cartesian_product sum.Int_Diff [of "_ \<times> _" _ "{(x,y). y < x}"])
         apply (rule eq0)
-        apply (simp only: frag_cmul_sum prod.case_distrib [of "frag_cmul (-1)"] frag_cmul_cmul eql eqr flip: power_Suc)
-        apply (force simp: simp add: inj_on_def sum.reindex add.commute eqf intro: sum.cong)
+        unfolding frag_cmul_sum prod.case_distrib [of "frag_cmul (-1)"] frag_cmul_cmul eql eqr 
+        apply (force simp: inj_on_def sum.reindex add.commute eqf intro: sum.cong)
         done
       show ?thesis
         using False by (simp add: chain_boundary_of chain_boundary_sum chain_boundary_cmul frag_cmul_sum * flip: power_add)
@@ -725,8 +734,8 @@ definition chain_map :: "nat \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> (
 lemma singular_chain_chain_map:
    "\<lbrakk>singular_chain p X c; continuous_map X X' g\<rbrakk> \<Longrightarrow> singular_chain p X' (chain_map p g c)"
   unfolding chain_map_def
-  apply (rule singular_chain_extend)
-  by (metis comp_apply subsetD mem_Collect_eq singular_chain_def singular_chain_of singular_simplex_simplex_map)
+  by (force simp add: singular_chain_def subset_iff 
+      intro!: singular_chain_extend singular_simplex_simplex_map)
 
 lemma chain_map_0 [simp]: "chain_map p g 0 = 0"
   by (auto simp: chain_map_def)
@@ -757,10 +766,11 @@ lemma chain_map_eq:
    "\<lbrakk>singular_chain p X c; \<And>x. x \<in> topspace X \<Longrightarrow> f x = g x\<rbrakk>
     \<Longrightarrow> chain_map p f c = chain_map p g c"
   unfolding singular_chain_def
-  apply (erule frag_induction)
-    apply (auto simp: chain_map_diff)
-  apply (metis simplex_map_eq)
-  done
+proof (induction rule: frag_induction)
+  case (one x)
+  then show ?case
+    by (metis (no_types, lifting) chain_map_of mem_Collect_eq simplex_map_eq)
+qed (auto simp: chain_map_diff)
 
 lemma chain_map_id_gen:
    "\<lbrakk>singular_chain p X c; \<And>x. x \<in> topspace X \<Longrightarrow> f x = x\<rbrakk>
@@ -924,8 +934,8 @@ proof (cases "p = 0")
     with assms have "singular_simplex p X f"
       by (auto simp: singular_chain_def)
     then have *: "\<And>k. k \<le> p \<Longrightarrow> singular_face p k f = (\<lambda>x\<in>standard_simplex (p -1). a)"
-      apply (subst singular_simplex_singleton [OF tX, symmetric])
-      using False singular_simplex_singular_face by fastforce
+      using False singular_simplex_singular_face 
+      by (fastforce simp flip: singular_simplex_singleton [OF tX])
     define c where "c \<equiv> frag_of (\<lambda>x\<in>standard_simplex (p -1). a)"
     have "(\<Sum>k\<le>p. frag_cmul ((-1) ^ k) (frag_of (singular_face p k f)))
         = (\<Sum>k\<le>p. frag_cmul ((-1) ^ k) c)"
@@ -964,17 +974,19 @@ lemma singular_boundary_singleton:
   shows "singular_relboundary p X {} c \<longleftrightarrow> singular_chain p X c \<and> (odd p \<or> c = 0)"
 proof (cases "singular_chain p X c")
   case True
-  have eq: "frag_extend (\<lambda>f. frag_of (\<lambda>x\<in>standard_simplex p. a)) (frag_of (\<lambda>x\<in>standard_simplex (Suc p). a))
-          = frag_of (\<lambda>x\<in>standard_simplex p. a)"
-    by (simp add: singular_chain_singleton frag_extend_cmul assms)
   have "\<exists>d. singular_chain (Suc p) X d \<and> chain_boundary (Suc p) d = c"
     if "singular_chain p X c" and "odd p"
-    using assms that
-    apply (clarsimp simp: singular_chain_singleton)
-    apply (rule_tac x = "frag_cmul b (frag_of (\<lambda>x\<in>standard_simplex (Suc p). a))" in exI)
-    apply (subst chain_boundary_of_singleton [of X a "Suc p"])
-    apply (auto simp: singular_chain_singleton frag_extend_cmul eq)
-    done
+  proof -
+    obtain b where b: "c = frag_cmul b (frag_of(restrict (\<lambda>x. a) (standard_simplex p)))"
+      by (metis True assms singular_chain_singleton)
+    let ?d = "frag_cmul b (frag_of (\<lambda>x\<in>standard_simplex (Suc p). a))"
+    have scd: "singular_chain (Suc p) X ?d"
+      by (metis assms singular_chain_singleton)
+    moreover have "chain_boundary (Suc p) ?d = c"
+      by (simp add: assms scd chain_boundary_of_singleton [of X a "Suc p"] b frag_extend_cmul \<open>odd p\<close>)
+    ultimately show ?thesis
+      by metis
+  qed
   with True assms show ?thesis
     by (auto simp: singular_boundary chain_boundary_of_singleton)
 next
@@ -986,10 +998,13 @@ qed
 
 lemma singular_boundary_eq_cycle_singleton:
   assumes "topspace X = {a}" "1 \<le> p"
-  shows "singular_relboundary p X {} c \<longleftrightarrow> singular_relcycle p X {} c"
-  using assms
-  apply (auto simp: singular_boundary chain_boundary_boundary_alt singular_chain_boundary_alt singular_cycle)
-  by (metis Suc_neq_Zero le_zero_eq singular_boundary singular_boundary_singleton singular_chain_0 singular_cycle_singleton singular_relcycle)
+  shows "singular_relboundary p X {} c \<longleftrightarrow> singular_relcycle p X {} c" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: singular_relboundary_imp_relcycle)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (metis assms not_one_le_zero singular_boundary_singleton singular_cycle_singleton)
+qed
 
 lemma singular_boundary_set_eq_cycle_singleton:
   assumes "topspace X = {a}" "1 \<le> p"
@@ -1017,14 +1032,14 @@ lemma simplicial_simplex:
   "simplicial_simplex p S f \<longleftrightarrow> f ` (standard_simplex p) \<subseteq> S \<and> (\<exists>l. f = oriented_simplex p l)"
   (is "?lhs = ?rhs")
 proof
-  assume R: ?rhs
-  show ?lhs
-    using R
-    apply (clarsimp simp: simplicial_simplex_def singular_simplex_subtopology)
-    apply (simp add: singular_simplex_def oriented_simplex_def)
-    apply (clarsimp simp: continuous_map_componentwise)
-    apply (intro continuous_intros continuous_map_from_subtopology continuous_map_product_projection, auto)
-    done
+  assume R: ?rhs  
+  have "continuous_map (subtopology (powertop_real UNIV) (standard_simplex p))
+                (powertop_real UNIV) (\<lambda>x i. \<Sum>j\<le>p. l j i * x j)" for l :: " nat \<Rightarrow> 'a \<Rightarrow> real"
+    unfolding continuous_map_componentwise
+    by (force intro: continuous_intros continuous_map_from_subtopology continuous_map_product_projection)
+  with R show ?lhs
+    unfolding simplicial_simplex_def singular_simplex_subtopology
+    by (auto simp add: singular_simplex_def oriented_simplex_def)
 qed (simp add: simplicial_simplex_def singular_simplex_subtopology)
 
 lemma simplicial_simplex_empty [simp]: "\<not> simplicial_simplex p {} f"
@@ -1081,10 +1096,8 @@ proof
     assume "i \<le> p"
     let ?fi = "(\<lambda>j. if j = i then 1 else 0)"
     have "(\<Sum>j\<le>p. l j k * ?fi j) = (\<Sum>j\<le>p. l' j k * ?fi j)" for k
-      apply (rule fun_cong [where x=k])
-      using fun_cong [OF L, of ?fi]
-      apply (simp add: \<open>i \<le> p\<close> oriented_simplex_def)
-      done
+      using L \<open>i \<le> p\<close>
+      by (simp add: fun_eq_iff oriented_simplex_def split: if_split_asm)
     with \<open>i \<le> p\<close> show "l i = l' i"
       by (simp add: if_distrib ext cong: if_cong)
   qed
@@ -1102,8 +1115,7 @@ proof -
     show ?thesis
       unfolding simplical_face_def
       using sum.zero_middle [OF assms, where 'a=real, symmetric]
-      apply (simp add: if_distrib [of "\<lambda>x. _ * x"] if_distrib [of "\<lambda>f. f i * _"] atLeast0AtMost cong: if_cong)
-      done
+      by (simp add: if_distrib [of "\<lambda>x. _ * x"] if_distrib [of "\<lambda>f. f i * _"] atLeast0AtMost cong: if_cong)
   qed
   then show ?thesis
     using simplical_face_in_standard_simplex assms
@@ -1119,16 +1131,16 @@ proof -
   obtain m where l: "singular_simplex p ?X (oriented_simplex p m)"
        and feq: "f = oriented_simplex p m"
     using assms by (force simp: simplicial_simplex_def)
-  moreover have "\<exists>l. singular_face p k f = oriented_simplex (p - Suc 0) l"
-    apply (simp add: feq singular_face_def oriented_simplex_def)
+  moreover   
+  have "singular_face p k f = oriented_simplex (p - Suc 0) (\<lambda>i. if i < k then m i else m (Suc i))"
+    unfolding feq singular_face_def oriented_simplex_def
     apply (simp add: simplical_face_in_standard_simplex [OF p] restrict_compose_left subset_eq)
-    apply (rule_tac x="\<lambda>i. if i < k then m i else m (Suc i)" in exI)
     using sum.zero_middle [OF p, where 'a=real, symmetric]  unfolding simplical_face_def o_def
     apply (simp add: if_distrib [of "\<lambda>x. _ * x"] if_distrib [of "\<lambda>f. f _ * _"] atLeast0AtMost cong: if_cong)
     done
   ultimately
   show ?thesis
-    using assms by (simp add: singular_simplex_singular_face simplicial_simplex_def)
+    using p simplicial_simplex_def singular_simplex_singular_face by blast
 qed
 
 lemma simplicial_chain_boundary:
@@ -1141,9 +1153,7 @@ proof (induction rule: frag_induction)
   have "simplicial_chain (p - Suc 0) S (frag_of (singular_face p i f))"
     if "0 < p" "i \<le> p" for i
     using that one
-    apply (simp add: simplicial_simplex_def singular_simplex_singular_face)
-    apply (force simp: singular_face_oriented_simplex)
-    done
+    by (force simp: simplicial_simplex_def singular_simplex_singular_face singular_face_oriented_simplex)
   then have "simplicial_chain (p - Suc 0) S (chain_boundary p (frag_of f))"
     unfolding chain_boundary_def frag_extend_of
     by (auto intro!: simplicial_chain_cmul simplicial_chain_sum)
@@ -1167,14 +1177,9 @@ proof -
   have *: "\<And>x. \<exists>y. \<forall>v. (\<lambda>l. oriented_simplex (Suc x) (\<lambda>i. if i = 0 then v else l (i -1)))
                   = (y v \<circ> (oriented_simplex x))"
     apply (subst choice_iff [symmetric])
-    apply (subst function_factors_left [symmetric])
-    by (simp add: oriented_simplex_eq)
+    by (simp add: oriented_simplex_eq  choice_iff [symmetric] function_factors_left [symmetric])
   then show ?thesis
-    apply (subst choice_iff [symmetric])
-    apply (subst fun_eq_iff [symmetric])
-    unfolding o_def
-    apply (blast intro: sym)
-    done
+    unfolding o_def by (metis(no_types))
 qed
 
 lemma simplicial_simplex_simplex_cone:
@@ -1287,10 +1292,8 @@ next
                      (\<Sum>k = 0..p. frag_cmul ((-1) ^ k) (frag_of (singular_face p k (oriented_simplex p l))))
          = - (\<Sum>k = Suc 0..Suc p. frag_cmul ((-1) ^ k)
                (frag_of (singular_face (Suc p) k (simplex_cone p v (oriented_simplex p l)))))"
-    apply (subst sum.atLeast_Suc_atMost_Suc_shift)
-    apply (simp add: frag_extend_sum frag_extend_cmul flip: sum_negf)
-    apply (auto simp: simplex_cone singular_face_oriented_simplex 0 intro: sum.cong)
-    done
+    unfolding sum.atLeast_Suc_atMost_Suc_shift
+    by (auto simp: 0 simplex_cone singular_face_oriented_simplex frag_extend_sum frag_extend_cmul simp flip: sum_negf)
   moreover have 2: "singular_face (Suc p) 0 (simplex_cone p v (oriented_simplex p l))
                     = oriented_simplex p l"
     by (simp add: simplex_cone singular_face_oriented_simplex)
@@ -1341,17 +1344,25 @@ proof -
     proof -
       have q: "(\<lambda>x i. \<Sum>j\<le>p. l j i * x j) ` standard_simplex p \<subseteq> standard_simplex q"
         using l by (simp add: simplicial_simplex_oriented_simplex)
+      let ?x = "(\<lambda>i. if i = j then 1 else 0)"
       have p: "l j \<in> (\<lambda>x i. \<Sum>j\<le>p. l j i * x j) ` standard_simplex p"
-        apply (rule_tac x="(\<lambda>i. if i = j then 1 else 0)" in rev_image_eqI)
-        using \<open>j\<le>p\<close> by (force simp: basis_in_standard_simplex if_distrib cong: if_cong)+
+      proof
+        show "l j = (\<lambda>i. \<Sum>j\<le>p. l j i * ?x j)"
+          using \<open>j\<le>p\<close> by (force simp: if_distrib cong: if_cong)
+        show "?x \<in> standard_simplex p"
+          by (simp add: that)
+      qed
       show ?thesis
-        apply (rule subsetD [OF standard_simplex_mono [OF \<open>q \<le> r\<close>]])
-        apply (rule subsetD [OF q p])
-        done
+        using standard_simplex_mono [OF \<open>q \<le> r\<close>] q p
+        by blast
     qed
-    show ?thesis
-      apply (simp add: geq oriented_simplex_def sum_distrib_left sum_distrib_right mult.assoc ssr lss)
+    have "g (\<lambda>i. \<Sum>j\<le>p. l j i * x j) i = (\<Sum>j\<le>r. \<Sum>n\<le>p. m j i * (l n j * x n))"
+      by (simp add: geq oriented_simplex_def sum_distrib_left ssr)
+    also have "... =  (\<Sum>j\<le>p. \<Sum>n\<le>r. m n i * (l j n * x j))"
       by (rule sum.swap)
+    also have "... = (\<Sum>j\<le>p. g (l j) i * x j)"
+      by (simp add: geq oriented_simplex_def sum_distrib_right mult.assoc lss)
+    finally show ?thesis .
   qed
   then show ?thesis
     by (force simp: oriented_simplex_def simplex_map_def o_def)
@@ -1449,13 +1460,11 @@ proof (induction p arbitrary: S c)
         using y feq by blast
       have "(\<lambda>i. \<Sum>j\<le>Suc p. l j i * ((if j \<le> Suc p then (1 - u) * inverse (p + 2) + u * x j else 0))) \<in> S"
       proof (rule l)
-        have i2p: "inverse (2 + real p) \<le> 1"
-          by (simp add: field_split_simps)
-        show "(\<lambda>j. if j \<le> Suc p then (1 - u) * inverse (real (p + 2)) + u * x j else 0) \<in> standard_simplex (Suc p)"
+        have "inverse (2 + real p) \<le> 1" "(2 + real p) * ((1 - u) * inverse (2 + real p)) + u = 1"
+          by (auto simp add: field_split_simps)
+        then show "(\<lambda>j. if j \<le> Suc p then (1 - u) * inverse (real (p + 2)) + u * x j else 0) \<in> standard_simplex (Suc p)"
           using x \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>
-          apply (simp add: sum.distrib standard_simplex_def i2p linepath_le_1 flip: sum_distrib_left del: sum.atMost_Suc)
-          apply (simp add: field_split_simps)
-          done
+          by (simp add: sum.distrib standard_simplex_def linepath_le_1 flip: sum_distrib_left del: sum.atMost_Suc)
       qed
       moreover have "(\<lambda>i. \<Sum>j\<le>Suc p. l j i * ((1 - u) * inverse (2 + real p) + u * x j))
                    = (\<lambda>i. (1 - u) * (\<Sum>j\<le>Suc p. l j i) / (real p + 2) + u * (\<Sum>j\<le>Suc p. l j i * x j))"
@@ -1499,9 +1508,8 @@ proof (induction p arbitrary: c)
     moreover have "simplicial_subdivision (p - Suc 0) (chain_boundary p (chain_boundary (Suc p) (frag_of f))) = 0"
       by (metis f chain_boundary_boundary_alt simplicial_simplex_def simplicial_subdivision_0 singular_chain_of)
     ultimately show ?case
-      apply (simp add: chain_boundary_simplicial_cone Suc)
-       apply (auto simp: chain_boundary_of frag_extend_diff simplicial_cone_def)
-      done
+      using chain_boundary_simplicial_cone Suc
+      by (auto simp: chain_boundary_of frag_extend_diff simplicial_cone_def)
   next
     case (diff a b)
     then show ?case
@@ -1510,7 +1518,7 @@ proof (induction p arbitrary: c)
 qed auto
 
 
-(*A MESS AND USED ONLY ONCE*)
+text \<open>A MESS AND USED ONLY ONCE\<close>
 lemma simplicial_subdivision_shrinks:
    "\<lbrakk>simplicial_chain p S c;
      \<And>f x y. \<lbrakk>f \<in> Poly_Mapping.keys c; x \<in> standard_simplex p; y \<in> standard_simplex p\<rbrakk> \<Longrightarrow> \<bar>f x k - f y k\<bar> \<le> d;
@@ -1525,7 +1533,7 @@ proof (induction p arbitrary: d c f x y)
              (simplicial_cone p (Sigp f)
                (simplicial_subdivision p (?CB f)))
            \<subseteq> {f. \<forall>x\<in>standard_simplex (Suc p). \<forall>y\<in>standard_simplex (Suc p).
-                      \<bar>f x k - f y k\<bar> \<le> real (Suc p) / real (Suc p + 1) * d}" (is "?lhs \<subseteq> ?rhs")
+                      \<bar>f x k - f y k\<bar> \<le> real (Suc p) / (real p + 2) * d}" (is "?lhs \<subseteq> ?rhs")
     if f: "f \<in> Poly_Mapping.keys c" for f
   proof -
     have ssf: "simplicial_simplex (Suc p) S f"
@@ -1560,10 +1568,13 @@ proof (induction p arbitrary: d c f x y)
         then obtain m where m: "g ` standard_simplex p \<subseteq> f ` standard_simplex (Suc p)"
           and geq: "g = oriented_simplex p m"
           using ssf by (auto simp: simplicial_simplex)
-        have m_in_gim: "\<And>i. i \<le> p \<Longrightarrow> m i \<in> g ` standard_simplex p"
-          apply (rule_tac x = "\<lambda>j. if j = i then 1 else 0" in image_eqI)
-           apply (simp_all add: geq oriented_simplex_def if_distrib cong: if_cong)
-          done
+        have m_in_gim: "m i \<in> g ` standard_simplex p" if "i \<le> p" for i
+        proof 
+          show "m i = g (\<lambda>j. if j = i then 1 else 0)"
+            by (simp add: geq oriented_simplex_def that if_distrib cong: if_cong)
+          show "(\<lambda>j. if j = i then 1 else 0) \<in> standard_simplex p"
+            by (simp add: oriented_simplex_def that)
+        qed
         obtain l where l: "f ` standard_simplex (Suc p) \<subseteq> S"
           and feq: "f = oriented_simplex (Suc p) l"
           using ssf by (auto simp: simplicial_simplex)
@@ -1600,10 +1611,13 @@ proof (induction p arbitrary: d c f x y)
                 proof (rule sum_bounded_above_divide)
                   fix i' :: "nat"
                   assume i': "i' \<in> {..Suc p} - {i}"
-                  have lf: "\<And>r. r \<le> Suc p \<Longrightarrow> l r \<in> f ` standard_simplex(Suc p)"
-                    apply (rule_tac x="\<lambda>j. if j = r then 1 else 0" in image_eqI)
-                     apply (auto simp: feq oriented_simplex_def if_distrib [of "\<lambda>x. _ * x"] cong: if_cong)
-                    done
+                  have lf: "l r \<in> f ` standard_simplex(Suc p)" if "r \<le> Suc p" for r
+                  proof
+                    show "l r = f (\<lambda>j. if j = r then 1 else 0)"
+                      using that by (simp add: feq oriented_simplex_def if_distrib cong: if_cong)
+                    show "(\<lambda>j. if j = r then 1 else 0) \<in> standard_simplex (Suc p)"
+                      by (auto simp: oriented_simplex_def that)
+                  qed
                   show "\<bar>l i k - l i' k\<bar> / real (p + 2) \<le> (1 + real p) * d / real (p + 2) / real (card ({..Suc p} - {i}))"
                     using i i' lf [of i] lf [of i'] 2
                     by (auto simp: image_iff divide_simps)
@@ -1628,9 +1642,8 @@ proof (induction p arbitrary: d c f x y)
                 \<longrightarrow> \<bar>(if j' = 0 then \<lambda>i. (\<Sum>j\<le>Suc p. l j i) / (2 + real p) else m (j' -1)) k -
                      (if j = 0 then \<lambda>i. (\<Sum>j\<le>Suc p. l j i) / (2 + real p) else m (j -1)) k\<bar>
                      \<le> (1 + real p) * d / (2 + real p)" for j j'
-              apply (rule_tac a=j and b = "j'" in linorder_less_wlog)
-                apply (force simp: zero nonz \<open>0 \<le> d\<close> simp del: sum.atMost_Suc)+
-              done
+              using \<open>0 \<le> d\<close> 
+              by (rule_tac a=j and b = "j'" in linorder_less_wlog; force simp: zero nonz simp del: sum.atMost_Suc)
             show ?thesis
               apply (rule convex_sum_bound_le)
               using x' apply blast
@@ -1642,9 +1655,9 @@ proof (induction p arbitrary: d c f x y)
               using jj by blast
           qed
           then show "\<bar>simplex_cone p (Sigp f) (oriented_simplex p m) x k - simplex_cone p (Sigp f) (oriented_simplex p m) y k\<bar>
-                \<le> (1 + real p) * d / (2 + real p)"
+                \<le> (1 + real p) * d / (real p + 2)"
             apply (simp add: feq Sigp_def simplicial_vertex_oriented_simplex simplex_cone del: sum.atMost_Suc)
-            apply (simp add: oriented_simplex_def x y del: sum.atMost_Suc)
+            apply (simp add: oriented_simplex_def algebra_simps x y del: sum.atMost_Suc)
             done
         qed
       qed
@@ -2334,10 +2347,7 @@ next
     show "chain_boundary (Suc p) (?h p c) + ?h (p - Suc 0) (chain_boundary p c) = (singular_subdivision p ^^ Suc n) c - c"
       using chain_boundary_singular_subdivision [of "Suc p" X]
       apply (simp add: chain_boundary_add f5 h k algebra_simps)
-      apply (erule thin_rl)
-      using h(4) [OF sc] k(4) [OF sc] singular_subdivision_add [of p "chain_boundary (Suc p) (k p c)" "k (p - Suc 0) (chain_boundary p c)"]
-      apply (simp add: algebra_simps)
-      by (smt add.assoc add.left_commute singular_subdivision_add)
+      by (smt add.assoc add.commute diff_add_cancel h(4) k(4) sc singular_subdivision_add)
   qed (auto simp: k h singular_subdivision_diff)
 qed
 
@@ -3196,8 +3206,7 @@ proof -
           qed
           show ?thesis
             unfolding simplex_map_def restrict_def
-            apply (rule ext)
-            apply (simp add: simplicial_simplex image_subset_iff o_def sf_eqh)
+            apply (simp add: simplicial_simplex image_subset_iff o_def sf_eqh fun_eq_iff)
             apply (simp add: singular_face_def)
             done
         qed
