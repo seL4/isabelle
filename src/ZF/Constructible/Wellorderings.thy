@@ -137,8 +137,8 @@ lemma (in M_basic) trans_on_imp_relativized:
 by (unfold transitive_rel_def trans_on_def, blast) 
 
 lemma (in M_basic) wf_on_imp_relativized: 
-     "wf[A](r) ==> wellfounded_on(M,A,r)" 
-apply (simp add: wellfounded_on_def wf_def wf_on_def, clarify) 
+     "wf[A](r) \<Longrightarrow> wellfounded_on(M,A,r)" 
+apply (clarsimp simp: wellfounded_on_def wf_def wf_on_def) 
 apply (drule_tac x=x in spec, blast) 
 done
 
@@ -164,17 +164,15 @@ lemma (in M_basic) order_isomorphism_abs [simp]:
       ==> order_isomorphism(M,A,r,B,s,f) \<longleftrightarrow> f \<in> ord_iso(A,r,B,s)"
 by (simp add: order_isomorphism_def ord_iso_def)
 
-lemma (in M_basic) pred_set_abs [simp]: 
+lemma (in M_trans) pred_set_abs [simp]: 
      "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) \<longleftrightarrow> B = Order.pred(A,x,r)"
 apply (simp add: pred_set_def Order.pred_def)
 apply (blast dest: transM) 
 done
 
 lemma (in M_basic) pred_closed [intro,simp]: 
-     "[| M(A); M(r); M(x) |] ==> M(Order.pred(A,x,r))"
-apply (simp add: Order.pred_def) 
-apply (insert pred_separation [of r x], simp) 
-done
+  "\<lbrakk>M(A); M(r); M(x)\<rbrakk> \<Longrightarrow> M(Order.pred(A, x, r))"
+  using pred_separation [of r x] by (simp add: Order.pred_def) 
 
 lemma (in M_basic) membership_abs [simp]: 
      "[| M(r); M(A) |] ==> membership(M,A,r) \<longleftrightarrow> r = Memrel(A)"
@@ -190,17 +188,12 @@ apply (simp add: membership_def Memrel_def, safe)
 done
 
 lemma (in M_basic) M_Memrel_iff:
-     "M(A) ==> 
-      Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> & x \<in> y}"
-apply (simp add: Memrel_def) 
-apply (blast dest: transM)
-done 
+     "M(A) \<Longrightarrow> Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> & x \<in> y}"
+unfolding Memrel_def by (blast dest: transM)
 
 lemma (in M_basic) Memrel_closed [intro,simp]: 
-     "M(A) ==> M(Memrel(A))"
-apply (simp add: M_Memrel_iff) 
-apply (insert Memrel_separation, simp)
-done
+     "M(A) \<Longrightarrow> M(Memrel(A))"
+  using Memrel_separation by (simp add: M_Memrel_iff) 
 
 
 subsection \<open>Main results of Kunen, Chapter 1 section 6\<close>
@@ -208,19 +201,19 @@ subsection \<open>Main results of Kunen, Chapter 1 section 6\<close>
 text\<open>Subset properties-- proved outside the locale\<close>
 
 lemma linear_rel_subset: 
-    "[| linear_rel(M,A,r);  B<=A |] ==> linear_rel(M,B,r)"
+    "\<lbrakk>linear_rel(M, A, r); B \<subseteq> A\<rbrakk> \<Longrightarrow> linear_rel(M, B, r)"
 by (unfold linear_rel_def, blast)
 
 lemma transitive_rel_subset: 
-    "[| transitive_rel(M,A,r);  B<=A |] ==> transitive_rel(M,B,r)"
+    "\<lbrakk>transitive_rel(M, A, r); B \<subseteq> A\<rbrakk> \<Longrightarrow> transitive_rel(M, B, r)"
 by (unfold transitive_rel_def, blast)
 
 lemma wellfounded_on_subset: 
-    "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
+    "\<lbrakk>wellfounded_on(M, A, r); B \<subseteq> A\<rbrakk> \<Longrightarrow> wellfounded_on(M, B, r)"
 by (unfold wellfounded_on_def subset_def, blast)
 
 lemma wellordered_subset: 
-    "[| wellordered(M,A,r);  B<=A |] ==> wellordered(M,B,r)"
+    "\<lbrakk>wellordered(M, A, r); B \<subseteq> A\<rbrakk> \<Longrightarrow> wellordered(M, B, r)"
 apply (unfold wellordered_def)
 apply (blast intro: linear_rel_subset transitive_rel_subset 
                     wellfounded_on_subset)

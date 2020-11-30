@@ -329,7 +329,7 @@ subsection\<open>Basic Properties of Cardinals\<close>
 lemma Least_cong: "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (\<mu> x. P(x)) = (\<mu> x. Q(x))"
 by simp
 
-(*Need AC to get @{term"X \<lesssim> Y ==> |X| \<le> |Y|"};  see well_ord_lepoll_imp_Card_le
+(*Need AC to get @{term"X \<lesssim> Y ==> |X| \<le> |Y|"};  see well_ord_lepoll_imp_cardinal_le
   Converse also requires AC, but see well_ord_cardinal_eqE*)
 lemma cardinal_cong: "X \<approx> Y ==> |X| = |Y|"
 apply (unfold eqpoll_def cardinal_def)
@@ -507,7 +507,7 @@ lemma Card_le_iff: "[| Ord(i);  Card(K) |] ==> (K \<le> |i|) \<longleftrightarro
 by (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
 
 (*Can use AC or finiteness to discharge first premise*)
-lemma well_ord_lepoll_imp_Card_le:
+lemma well_ord_lepoll_imp_cardinal_le:
   assumes wB: "well_ord(B,r)" and AB: "A \<lesssim> B"
   shows "|A| \<le> |B|"
 using Ord_cardinal [of A] Ord_cardinal [of B]
@@ -528,7 +528,7 @@ qed
 
 lemma lepoll_cardinal_le: "[| A \<lesssim> i; Ord(i) |] ==> |A| \<le> i"
 apply (rule le_trans)
-apply (erule well_ord_Memrel [THEN well_ord_lepoll_imp_Card_le], assumption)
+apply (erule well_ord_Memrel [THEN well_ord_lepoll_imp_cardinal_le], assumption)
 apply (erule Ord_cardinal_le)
 done
 

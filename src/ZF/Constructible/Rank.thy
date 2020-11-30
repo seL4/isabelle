@@ -397,7 +397,7 @@ by (blast intro: well_ord_imp_relativized relativized_imp_well_ord)
 
 
 text\<open>(b) Order types are absolute\<close>
-theorem (in M_ordertype) 
+theorem (in M_ordertype) ordertypes_are_absolute:
      "[| wellordered(M,A,r); f \<in> ord_iso(A, r, i, Memrel(i));
        M(A); M(r); M(f); M(i); Ord(i) |] ==> i = ordertype(A,r)"
 by (blast intro: Ord_ordertype relativized_imp_well_ord ordertype_ord_iso

@@ -80,21 +80,19 @@ primrec (*explicit lambda is required because the environment varies*)
       (\<lambda>env \<in> list(A). bool_of_o (\<forall>x\<in>A. satisfies(A,p) ` (Cons(x,env)) = 1))"
 
 
-lemma "p \<in> formula ==> satisfies(A,p) \<in> list(A) -> bool"
+lemma satisfies_type: "p \<in> formula \<Longrightarrow> satisfies(A,p) \<in> list(A) -> bool"
 by (induct set: formula) simp_all
 
 abbreviation
   sats :: "[i,i,i] => o" where
   "sats(A,p,env) == satisfies(A,p)`env = 1"
 
-lemma [simp]:
-  "env \<in> list(A)
-   ==> sats(A, Member(x,y), env) \<longleftrightarrow> nth(x,env) \<in> nth(y,env)"
+lemma sats_Member_iff [simp]:
+  "env \<in> list(A) \<Longrightarrow> sats(A, Member(x,y), env) \<longleftrightarrow> nth(x,env) \<in> nth(y,env)"
 by simp
 
-lemma [simp]:
-  "env \<in> list(A)
-   ==> sats(A, Equal(x,y), env) \<longleftrightarrow> nth(x,env) = nth(y,env)"
+lemma sats_Equal_iff [simp]:
+  "env \<in> list(A) \<Longrightarrow> sats(A, Equal(x,y), env) \<longleftrightarrow> nth(x,env) = nth(y,env)"
 by simp
 
 lemma sats_Nand_iff [simp]:

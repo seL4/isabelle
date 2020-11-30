@@ -151,7 +151,7 @@ proof (unfold cadd_def)
   have "K \<le> |K|"
     by (rule Card_cardinal_le [OF K])
   moreover have "|K| \<le> |K + L|" using K L
-    by (blast intro: well_ord_lepoll_imp_Card_le sum_lepoll_self
+    by (blast intro: well_ord_lepoll_imp_cardinal_le sum_lepoll_self
                      well_ord_radd well_ord_Memrel Card_is_Ord)
   ultimately show "K \<le> |K + L|"
     by (blast intro: le_trans)
@@ -173,7 +173,7 @@ lemma cadd_le_mono:
     "[| K' \<le> K;  L' \<le> L |] ==> (K' \<oplus> L') \<le> (K \<oplus> L)"
 apply (unfold cadd_def)
 apply (safe dest!: le_subset_iff [THEN iffD1])
-apply (rule well_ord_lepoll_imp_Card_le)
+apply (rule well_ord_lepoll_imp_cardinal_le)
 apply (blast intro: well_ord_radd well_ord_Memrel)
 apply (blast intro: sum_lepoll_mono subset_imp_lepoll)
 done
@@ -308,7 +308,7 @@ done
 lemma cmult_square_le: "Card(K) ==> K \<le> K \<otimes> K"
 apply (unfold cmult_def)
 apply (rule le_trans)
-apply (rule_tac [2] well_ord_lepoll_imp_Card_le)
+apply (rule_tac [2] well_ord_lepoll_imp_cardinal_le)
 apply (rule_tac [3] prod_square_lepoll)
 apply (simp add: le_refl Card_is_Ord Card_cardinal_eq)
 apply (blast intro: well_ord_rmult well_ord_Memrel Card_is_Ord)
@@ -325,7 +325,7 @@ done
 lemma cmult_le_self:
     "[| Card(K);  Ord(L);  0<L |] ==> K \<le> (K \<otimes> L)"
 apply (unfold cmult_def)
-apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_Card_le])
+apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_cardinal_le])
   apply assumption
  apply (blast intro: well_ord_rmult well_ord_Memrel Card_is_Ord)
 apply (blast intro: prod_lepoll_self ltD)
@@ -347,7 +347,7 @@ lemma cmult_le_mono:
     "[| K' \<le> K;  L' \<le> L |] ==> (K' \<otimes> L') \<le> (K \<otimes> L)"
 apply (unfold cmult_def)
 apply (safe dest!: le_subset_iff [THEN iffD1])
-apply (rule well_ord_lepoll_imp_Card_le)
+apply (rule well_ord_lepoll_imp_cardinal_le)
  apply (blast intro: well_ord_rmult well_ord_Memrel)
 apply (blast intro: prod_lepoll_mono subset_imp_lepoll)
 done
@@ -548,7 +548,7 @@ lemma ordermap_csquare_le:
   assumes K: "Limit(K)" and x: "x<K" and y: " y<K"
   defines "z \<equiv> succ(x \<union> y)"
   shows "|ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle>| \<le> |succ(z)| \<otimes> |succ(z)|"
-proof (unfold cmult_def, rule well_ord_lepoll_imp_Card_le)
+proof (unfold cmult_def, rule well_ord_lepoll_imp_cardinal_le)
   show "well_ord(|succ(z)| \<times> |succ(z)|,
                  rmult(|succ(z)|, Memrel(|succ(z)|), |succ(z)|, Memrel(|succ(z)|)))"
     by (blast intro: Ord_cardinal well_ord_Memrel well_ord_rmult)
@@ -627,10 +627,10 @@ qed
 
 (*Main result: Kunen's Theorem 10.12*)
 lemma InfCard_csquare_eq:
-  assumes IK: "InfCard(K)" shows "InfCard(K) ==> K \<otimes> K = K"
+  assumes IK: "InfCard(K)" shows "K \<otimes> K = K"
 proof -
   have  OK: "Ord(K)" using IK by (simp add: Card_is_Ord InfCard_is_Card)
-  show "InfCard(K) ==> K \<otimes> K = K" using OK
+  show "K \<otimes> K = K" using OK IK
   proof (induct rule: trans_induct)
     case (step i)
     show "i \<otimes> i = i"
@@ -935,6 +935,6 @@ next
 qed
 
 lemma Ord_nat_subset_into_Card: "[| Ord(i); i \<subseteq> nat |] ==> Card(i)"
-by (blast dest: Ord_subset_natD intro: Card_nat nat_into_Card)
+  by (blast dest: Ord_subset_natD intro: Card_nat nat_into_Card)
 
 end

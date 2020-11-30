@@ -33,9 +33,9 @@ lemma cardinal_disjoint_Un:
       ==> |A \<union> C| = |B \<union> D|"
 by (simp add: cardinal_eqpoll_iff eqpoll_disjoint_Un)
 
-lemma lepoll_imp_Card_le: "A \<lesssim> B ==> |A| \<le> |B|"
+lemma lepoll_imp_cardinal_le: "A \<lesssim> B ==> |A| \<le> |B|"
 apply (rule AC_well_ord [THEN exE])
-apply (erule well_ord_lepoll_imp_Card_le, assumption)
+apply (erule well_ord_lepoll_imp_cardinal_le, assumption)
 done
 
 lemma cadd_assoc: "(i \<oplus> j) \<oplus> k = i \<oplus> (j \<oplus> k)"
@@ -82,7 +82,7 @@ qed
 lemma le_Card_iff: "Card(K) ==> |A| \<le> K \<longleftrightarrow> A \<lesssim> K"
 apply (erule Card_cardinal_eq [THEN subst], rule iffI,
        erule Card_le_imp_lepoll)
-apply (erule lepoll_imp_Card_le)
+apply (erule lepoll_imp_cardinal_le)
 done
 
 lemma cardinal_0_iff_0 [simp]: "|A| = 0 \<longleftrightarrow> A = 0"
@@ -132,7 +132,7 @@ qed
 text\<open>Kunen's Lemma 10.20\<close>
 lemma surj_implies_cardinal_le: 
   assumes f: "f \<in> surj(X,Y)" shows "|Y| \<le> |X|"
-proof (rule lepoll_imp_Card_le)
+proof (rule lepoll_imp_cardinal_le)
   from f [THEN surj_implies_inj] obtain g where "g \<in> inj(Y,X)" ..
   thus "Y \<lesssim> X"
     by (auto simp add: lepoll_def)

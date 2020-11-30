@@ -103,7 +103,7 @@ lemmas InfCard_nat_Un_cardinal = InfCard_Un [OF InfCard_nat Card_cardinal]
 lemmas le_nat_Un_cardinal =
      Un_upper2_le [OF Ord_nat Card_cardinal [THEN Card_is_Ord]]
 
-lemmas UN_upper_cardinal = UN_upper [THEN subset_imp_lepoll, THEN lepoll_imp_Card_le]
+lemmas UN_upper_cardinal = UN_upper [THEN subset_imp_lepoll, THEN lepoll_imp_cardinal_le]
 
 (*The new version of Data_Arg.intrs, declared in Datatype.ML*)
 lemmas Data_Arg_intros =
