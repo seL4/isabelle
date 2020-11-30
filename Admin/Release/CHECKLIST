@@ -45,8 +45,6 @@ Checklist for official releases
 
 - check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
 
-- check "Handler catches all exceptions"
-
 - test old HD display: Linux, Windows, Mac OS X;
 
 - Mac OS X: check recent MacTeX;
