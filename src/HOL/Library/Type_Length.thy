@@ -113,7 +113,7 @@ begin
 lemma two_less_eq_exp_length [simp]:
   \<open>2 \<le> 2 ^ LENGTH('b::len)\<close>
   using mult_left_mono [of 1 \<open>2 ^ (LENGTH('b::len) - 1)\<close> 2]
-		  by (cases \<open>LENGTH('b::len)\<close>) simp_all
+  by (cases \<open>LENGTH('b::len)\<close>) simp_all
 
 end
 

@@ -161,7 +161,7 @@ lemma take_bit_eq_mask:
 
 lemma or_eq_0_iff:
   \<open>a OR b = 0 \<longleftrightarrow> a = 0 \<and> b = 0\<close>
-	by (auto simp add: bit_eq_iff bit_or_iff)
+  by (auto simp add: bit_eq_iff bit_or_iff)
 
 lemma disjunctive_add:
   \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
@@ -269,7 +269,7 @@ lemma (in ring_bit_operations) and_eq_minus_1_iff:
 proof
   assume \<open>a = - 1 \<and> b = - 1\<close>
   then show \<open>a AND b = - 1\<close>
-	by simp
+    by simp
 next
   assume \<open>a AND b = - 1\<close>
   have *: \<open>bit a n\<close> \<open>bit b n\<close> if \<open>2 ^ n \<noteq> 0\<close> for n
@@ -278,7 +278,7 @@ next
     have \<open>bit (a AND b) n = bit (- 1) n\<close>
       by (simp add: bit_eq_iff)
     then show \<open>bit a n\<close> \<open>bit b n\<close>
-	    using that by (simp_all add: bit_and_iff)
+      using that by (simp_all add: bit_and_iff)
   qed
   have \<open>a = - 1\<close>
     by (rule bit_eqI) (simp add: *)

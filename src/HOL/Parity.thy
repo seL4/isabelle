@@ -1197,7 +1197,7 @@ begin
 
 lemma bit_of_bool_iff [bit_simps]:
   \<open>bit (of_bool b) n \<longleftrightarrow> b \<and> n = 0\<close>
-	by (simp add: bit_1_iff)
+  by (simp add: bit_1_iff)
 
 lemma even_of_nat_iff:
   \<open>even (of_nat n) \<longleftrightarrow> even n\<close>
@@ -1536,7 +1536,7 @@ lemma take_bit_eq_0_iff:
 proof
   assume ?P
   then show ?Q
-	  by (simp add: take_bit_eq_mod mod_0_imp_dvd)
+    by (simp add: take_bit_eq_mod mod_0_imp_dvd)
 next
   assume ?Q
   then obtain b where \<open>a = push_bit n b\<close>
