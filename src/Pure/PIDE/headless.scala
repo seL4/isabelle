@@ -256,7 +256,7 @@ object Headless
       val dep_theories = dependencies.theories
       val dep_theories_set = dep_theories.toSet
       val dep_files =
-        dependencies.loaded_files(false).flatMap(_._2).
+        dependencies.loaded_files.flatMap(_._2).
           map(path => Document.Node.Name(resources.append("", path)))
 
       val use_theories_state =

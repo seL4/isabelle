@@ -165,25 +165,29 @@ final class Outer_Syntax private(
     val result = new mutable.ListBuffer[Command_Span.Span]
     val content = new mutable.ListBuffer[Token]
     val ignored = new mutable.ListBuffer[Token]
+    var start = 0
 
-    def ship(span: List[Token])
+    def ship(content: List[Token])
     {
       val kind =
-        if (span.forall(_.is_ignored)) Command_Span.Ignored_Span
-        else if (span.exists(_.is_error)) Command_Span.Malformed_Span
+        if (content.forall(_.is_ignored)) Command_Span.Ignored_Span
+        else if (content.exists(_.is_error)) Command_Span.Malformed_Span
         else
-          span.find(_.is_command) match {
+          content.find(_.is_command) match {
             case None => Command_Span.Malformed_Span
             case Some(cmd) =>
               val name = cmd.source
               val offset =
-                (0 /: span.takeWhile(_ != cmd)) {
+                (0 /: content.takeWhile(_ != cmd)) {
                   case (i, tok) => i + Symbol.length(tok.source) }
               val end_offset = offset + Symbol.length(name)
-              val pos = Position.Range(Text.Range(offset, end_offset) + 1)
-              Command_Span.Command_Span(name, pos)
+              val range = Text.Range(offset, end_offset) + 1
+              val pos = Position.Range(range)
+              val abs_pos = Position.Range(range + start)
+              Command_Span.Command_Span(name, pos, abs_pos)
           }
-      result += Command_Span.Span(kind, span)
+      for (tok <- content) start += Symbol.length(tok.source)
+      result += Command_Span.Span(kind, content)
     }
 
     def flush()
