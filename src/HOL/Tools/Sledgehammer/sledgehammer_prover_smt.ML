@@ -202,7 +202,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
           val _ = found_proof ();
           val preferred =
             if smt_proofs then
-              SMT_Method (if name = "verit" then SMT_Verit "default" else SMT_Default)
+              SMT_Method (if name = "verit" then SMT_Verit "default" else SMT_Z3)
             else
               Metis_Method (NONE, NONE);
           val methss = bunches_of_proof_methods ctxt try0 smt_proofs false liftingN;

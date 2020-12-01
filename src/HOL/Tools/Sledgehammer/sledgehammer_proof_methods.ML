@@ -10,7 +10,7 @@ sig
   type stature = ATP_Problem_Generate.stature
 
   datatype SMT_backend =
-    SMT_Default |
+    SMT_Z3 |
     SMT_Verit of string
 
   datatype proof_method =
@@ -53,7 +53,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 
 datatype SMT_backend =
-  SMT_Default |
+  SMT_Z3 |
   SMT_Verit of string
 
 datatype proof_method =
@@ -101,7 +101,7 @@ fun string_of_proof_method ss meth =
       | Metis_Method (type_enc_opt, lam_trans_opt) =>
         "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
       | Meson_Method => "meson"
-      | SMT_Method SMT_Default => "smt"
+      | SMT_Method SMT_Z3 => "smt (z3)"
       | SMT_Method (SMT_Verit strategy) =>
         "smt (" ^ commas ("verit" :: (if strategy = "default" then [] else [strategy])) ^ ")"
       | SATx_Method => "satx"
@@ -130,7 +130,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
           global_facts) ctxt local_facts)
       end
 
-    fun tac_of_smt SMT_Default = SMT_Solver.smt_tac
+    fun tac_of_smt SMT_Z3 = SMT_Solver.smt_tac
       | tac_of_smt (SMT_Verit strategy) = Verit_Proof.verit_tac_stgy strategy
   in
     (case meth of

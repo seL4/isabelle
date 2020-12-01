@@ -160,7 +160,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
 
             fun massage_methods (meths as meth :: _) =
               if not try0 then [meth]
-              else if smt_proofs then SMT_Method SMT_Default :: meths
+              else if smt_proofs then SMT_Method SMT_Z3 :: meths
               else meths
 
             val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
