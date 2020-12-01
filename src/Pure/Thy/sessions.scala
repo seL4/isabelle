@@ -173,10 +173,7 @@ object Sessions
             val theory_files = dependencies.theories.map(_.path)
 
             val (loaded_files, loaded_files_errors) =
-              try {
-                if (inlined_files) (dependencies.loaded_files(Sessions.is_pure(info.name)), Nil)
-                else (Nil, Nil)
-              }
+              try { if (inlined_files) (dependencies.loaded_files, Nil) else (Nil, Nil) }
               catch { case ERROR(msg) => (Nil, List(msg)) }
 
             val session_files =
