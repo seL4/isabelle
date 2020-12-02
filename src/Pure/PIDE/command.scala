@@ -14,15 +14,23 @@ import scala.collection.immutable.SortedMap
 
 object Command
 {
-  type Edit = (Option[Command], Option[Command])
+  /* blobs */
 
   sealed case class Blob(
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
 
-  type Blobs_Info = (List[Exn.Result[Blob]], Int)
-  val no_blobs: Blobs_Info = (Nil, -1)
+  object Blobs_Info
+  {
+    val none: Blobs_Info = Blobs_Info(Nil, -1)
+
+    def errors(msgs: List[String]): Blobs_Info =
+      Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))), -1)
+  }
+
+  sealed case class Blobs_Info(blobs: List[Exn.Result[Blob]], index: Int)
+
 
 
   /** accumulated results from prover **/
@@ -359,7 +367,7 @@ object Command
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, no_blobs, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.none, Command_Span.empty)
 
   def unparsed(
     source: String,
@@ -370,7 +378,7 @@ object Command
     markups: Markups = Markups.empty): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
-    new Command(id, node_name, no_blobs, span1, source1, results, markups)
+    new Command(id, node_name, Blobs_Info.none, span1, source1, results, markups)
   }
 
   def text(source: String): Command = unparsed(source)
@@ -380,7 +388,9 @@ object Command
       markups = Markups.init(Markup_Tree.from_XML(body)))
 
 
-  /* perspective */
+  /* edits and perspective */
+
+  type Edit = (Option[Command], Option[Command])
 
   object Perspective
   {
@@ -431,13 +441,11 @@ object Command
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
-            val msg =
-              "Bad theory import " +
-                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
-                Position.here(pos) + Completion.report_theories(pos, completion)
-            Exn.Exn[Command.Blob](ERROR(msg))
+            "Bad theory import " +
+              Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+              Position.here(pos) + Completion.report_theories(pos, completion)
           }
-        (errors, -1)
+        Blobs_Info.errors(errors)
 
       // auxiliary files
       case _ =>
@@ -450,7 +458,7 @@ object Command
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               Blob(name, src_path, content)
             }).user_error)
-        (blobs, loaded_files.index)
+        Blobs_Info(blobs, loaded_files.index)
     }
   }
 }
@@ -482,8 +490,8 @@ final class Command private(
 
   /* blobs */
 
-  def blobs: List[Exn.Result[Command.Blob]] = blobs_info._1
-  def blobs_index: Int = blobs_info._2
+  def blobs: List[Exn.Result[Command.Blob]] = blobs_info.blobs
+  def blobs_index: Int = blobs_info.index
 
   def blobs_ok: Boolean =
     blobs.forall({ case Exn.Res(_) => true case _ => false })
