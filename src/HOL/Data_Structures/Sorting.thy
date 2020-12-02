@@ -271,16 +271,19 @@ definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
 
 subsubsection "Functional Correctness"
 
+abbreviation mset_mset :: "'a list list \<Rightarrow> 'a multiset" where
+"mset_mset xss \<equiv> \<Union># (image_mset mset (mset xss))"
+
 lemma mset_merge_adj:
-  "\<Union># (image_mset mset (mset (merge_adj xss))) = \<Union># (image_mset mset (mset xss))"
+  "mset_mset (merge_adj xss) = mset_mset xss"
 by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
 
 lemma mset_merge_all:
-  "mset (merge_all xss) = (\<Union># (mset (map mset xss)))"
+  "mset (merge_all xss) = mset_mset xss"
 by(induction xss rule: merge_all.induct) (auto simp: mset_merge mset_merge_adj)
 
 lemma mset_msort_bu: "mset (msort_bu xs) = mset xs"
-by(simp add: msort_bu_def mset_merge_all comp_def)
+by(simp add: msort_bu_def mset_merge_all multiset.map_comp comp_def)
 
 lemma sorted_merge_adj:
   "\<forall>xs \<in> set xss. sorted xs \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). sorted xs"
