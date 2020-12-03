@@ -162,7 +162,7 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
-fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Bool_Free, _, _, _)) = false
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _, _)) = false
   | is_type_enc_full_higher_order (Native (Higher_Order _, _, _, _)) = true
   | is_type_enc_full_higher_order _ = false
 fun is_type_enc_fool (Native (_, With_FOOL, _, _)) = true
@@ -695,8 +695,8 @@ fun type_enc_of_string strictness s =
   end
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
-fun min_hologic THF_Lambda_Bool_Free _ = THF_Lambda_Bool_Free
-  | min_hologic _ THF_Lambda_Bool_Free = THF_Lambda_Bool_Free
+fun min_hologic THF_Lambda_Free _ = THF_Lambda_Free
+  | min_hologic _ THF_Lambda_Free = THF_Lambda_Free
   | min_hologic THF_Without_Choice _ = THF_Without_Choice
   | min_hologic _ THF_Without_Choice = THF_Without_Choice
   | min_hologic _ _ = THF_With_Choice
