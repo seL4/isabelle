@@ -512,15 +512,12 @@ text \<open>
 subsection \<open>Locale declarations\<close>
 
 text \<open>
-  \begin{tabular}{rcll}
+  \begin{tabular}{rcl}
     @{command_def "locale"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
     @{command_def "experiment"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
     @{command_def "print_locale"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "print_locales"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "locale_deps"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
-    @{method_def intro_locales} & : & \<open>method\<close> \\
-    @{method_def unfold_locales} & : & \<open>method\<close> \\
-    @{attribute_def trace_locales} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}
 
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
@@ -546,11 +543,10 @@ text \<open>
       @'notes' (@{syntax thmdef}? @{syntax thms} + @'and')
   \<close>
 
-  \<^descr> \<^theory_text>\<open>locale loc = import bundles + body\<close> defines a new locale \<open>loc\<close> as a context
-  consisting of a certain view of existing locales (\<open>import\<close>) plus some
-  additional elements (\<open>body\<close>);  given \<open>bundles\<close> take effect in the surface
-  context within both \<open>import\<close> and \<open>body\<close> and the potentially following
-  \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.  Each part is optional; the
+  \<^descr> \<^theory_text>\<open>locale loc = import opening bundles + body\<close> defines a new locale \<open>loc\<close>
+  as a context consisting of a certain view of existing locales (\<open>import\<close>) plus some
+  additional elements (\<open>body\<close>) with declaration \<open>bundles\<close> enriching the context
+  of the command itself. All \<open>import\<close>, \<open>bundles\<close> and \<open>body\<close> are optional; the
   degenerate form \<^theory_text>\<open>locale loc\<close> defines an empty locale, which may still be
   useful to collect declarations of facts later on. Type-inference on locale
   expressions automatically takes care of the most general typing that the
@@ -565,7 +561,11 @@ text \<open>
   and provides a notational convenience for the inheritance of parameters in
   locale declarations.
 
-  The \<open>body\<close> consists of context elements.
+  Declarations from \<open>bundles\<close>, see \secref{sec:bundle}, are effective in the
+  entire command including a subsequent \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block, but they do
+  not contribute to the declarations stored in the locale.
+
+  The \<open>body\<close> consists of context elements:
 
     \<^descr> @{element "fixes"}~\<open>x :: \<tau> (mx)\<close> declares a local parameter of type \<open>\<tau>\<close>
     and mixfix annotation \<open>mx\<close> (both are optional). The special syntax
@@ -619,7 +619,7 @@ text \<open>
   Separate introduction rules \<open>loc_axioms.intro\<close> and \<open>loc.intro\<close> are provided
   as well.
 
-  \<^descr> \<^theory_text>\<open>experiment exprs begin\<close> opens an anonymous locale context with private
+  \<^descr> \<^theory_text>\<open>experiment body begin\<close> opens an anonymous locale context with private
   naming policy. Specifications in its body are inaccessible from outside.
   This is useful to perform experiments, without polluting the name space.
 
@@ -632,20 +632,6 @@ text \<open>
 
   \<^descr> \<^theory_text>\<open>locale_deps\<close> visualizes all locales and their relations as a Hasse
   diagram. This includes locales defined as type classes (\secref{sec:class}).
-
-  \<^descr> @{method intro_locales} and @{method unfold_locales} repeatedly expand all
-  introduction rules of locale predicates of the theory. While @{method
-  intro_locales} only applies the \<open>loc.intro\<close> introduction rules and therefore
-  does not descend to assumptions, @{method unfold_locales} is more aggressive
-  and applies \<open>loc_axioms.intro\<close> as well. Both methods are aware of locale
-  specifications entailed by the context, both from target statements, and
-  from interpretations (see below). New goals that are entailed by the current
-  context are discharged automatically.
-
-  \<^descr> @{attribute trace_locales}, when set to
-  \<open>true\<close>, prints the locale instances activated during
-  roundup.  Useful for understanding local theories created by complex
-  locale hierarchies.
 \<close>
 
 
@@ -658,6 +644,9 @@ text \<open>
     @{command_def "global_interpretation"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "sublocale"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "print_interps"}\<open>\<^sup>*\<close> & :  & \<open>context \<rightarrow>\<close> \\
+    @{method_def intro_locales} & : & \<open>method\<close> \\
+    @{method_def unfold_locales} & : & \<open>method\<close> \\
+    @{attribute_def trace_locales} & : & \mbox{\<open>attribute\<close> \quad default \<open>false\<close>} \\
   \end{matharray}
 
   Locales may be instantiated, and the resulting instantiated declarations
@@ -733,7 +722,7 @@ text \<open>
   proof block. Note that for \<^theory_text>\<open>interpret\<close> the \<open>eqns\<close> should be explicitly
   universally quantified.
 
-  \<^descr> \<^theory_text>\<open>global_interpretation defines defs\<close> interprets \<open>expr\<close>
+  \<^descr> \<^theory_text>\<open>global_interpretation expr defines defs\<close> interprets \<open>expr\<close>
   into a global theory.
 
   When adding declarations to locales, interpreted versions of these
@@ -774,6 +763,26 @@ text \<open>
   current theory or proof context, including those due to a combination of an
   \<^theory_text>\<open>interpretation\<close> or \<^theory_text>\<open>interpret\<close> and one or several \<^theory_text>\<open>sublocale\<close>
   declarations.
+
+  \<^descr> @{method intro_locales} and @{method unfold_locales} repeatedly expand all
+  introduction rules of locale predicates of the theory. While @{method
+  intro_locales} only applies the \<open>loc.intro\<close> introduction rules and therefore
+  does not descend to assumptions, @{method unfold_locales} is more aggressive
+  and applies \<open>loc_axioms.intro\<close> as well. Both methods are aware of locale
+  specifications entailed by the context, both from target statements, and
+  from interpretations (see below). New goals that are entailed by the current
+  context are discharged automatically.
+
+  While @{method unfold_locales} is part of the default method for \<^theory_text>\<open>proof\<close>
+  and often invoked ``behind the scenes'', @{method intro_locales} helps
+  understand which proof obligations originated from which locale instances.
+  The latter method is useful while developing proofs but rare in finished
+  developments.
+
+  \<^descr> @{attribute trace_locales}, when set to \<open>true\<close>, prints the locale
+  instances activated during roundup. Use this when locale commands yield
+  obscure errors or for understanding local theories created by complex locale
+  hierarchies.
 
   \begin{warn}
     If a global theory inherits declarations (body elements) for a locale from
