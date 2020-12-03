@@ -1103,10 +1103,17 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
+fun eta_expand_iterm tm =
+  let
+    val T = domain_type (ityp_of tm)
+    val x = "CHANGEME"
+  in
+    IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
+  end
+
 fun introduce_proxies_in_iterm type_enc =
   let
-    fun tweak_ho_quant ho_quant T [IAbs _] = IConst (`I ho_quant, T, [])
-      | tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) _ =
+    fun tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) [] =
         (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
            limitations. This works in conjunction with special code in "ATP_Problem" that uses the
            syntactic sugar "!" and "?" whenever possible. *)
@@ -1115,7 +1122,7 @@ fun introduce_proxies_in_iterm type_enc =
                     IAbs ((`I "X", x_T),
                           IApp (IConst (`I "P", p_T, []),
                                 IConst (`I "X", x_T, [])))))
-      | tweak_ho_quant _ _ _ = raise Fail "unexpected type for quantifier"
+      | tweak_ho_quant ho_quant T _ = IConst (`I ho_quant, T, [])
     fun tweak_ho_equal T argc =
       if argc = 2 then
         IConst (`I tptp_equal, T, [])
@@ -1130,7 +1137,20 @@ fun introduce_proxies_in_iterm type_enc =
                             IConst (`I "Z", i_T, []))))
         end
     fun intro top_level args (IApp (tm1, tm2)) =
-        IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
+        let
+          val tm1' = intro top_level (tm2 :: args) tm1
+          val tm2' = intro false [] tm2
+          val tm2'' =
+            (case tm1' of
+              IConst ((s, _), _, _) =>
+              if s = tptp_ho_forall orelse s = tptp_ho_exists then
+                eta_expand_iterm tm2'
+              else
+                tm2'
+            | _ => tm2')
+        in
+          IApp (tm1', tm2'')
+        end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
           SOME proxy_base =>
