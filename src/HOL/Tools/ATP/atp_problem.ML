@@ -480,8 +480,8 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
         (case ts of
           [AAbs (((s', ty), tm), [])] =>
-          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
-             possible, to work around LEO-II 1.2.8 parser limitation. *)
+          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever possible, to work
+             around LEO-II, Leo-III, and Satallax parser limitation. *)
           tptp_string_of_formula format
               (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
@@ -489,8 +489,8 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
       else if s = tptp_choice then
         (case ts of
           [AAbs (((s', ty), tm), args)] =>
-          (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is
-             always applied to an abstraction. *)
+          (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always applied to an
+             abstraction. *)
           tptp_string_of_app format
               (tptp_choice ^ "[" ^ s' ^ " : " ^ of_type ty ^
                "]: " ^ of_term tm ^ ""

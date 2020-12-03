@@ -1107,16 +1107,28 @@ fun introduce_proxies_in_iterm type_enc =
   let
     fun tweak_ho_quant ho_quant T [IAbs _] = IConst (`I ho_quant, T, [])
       | tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) _ =
-        (* Eta-expand "!!" and "??", to work around LEO-II 1.2.8 parser
-           limitation. This works in conjuction with special code in
-           "ATP_Problem" that uses the syntactic sugar "!" and "?" whenever
-           possible. *)
+        (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
+           limitations. This works in conjunction with special code in "ATP_Problem" that uses the
+           syntactic sugar "!" and "?" whenever possible. *)
         IAbs ((`I "P", p_T),
               IApp (IConst (`I ho_quant, T, []),
                     IAbs ((`I "X", x_T),
                           IApp (IConst (`I "P", p_T, []),
                                 IConst (`I "X", x_T, [])))))
       | tweak_ho_quant _ _ _ = raise Fail "unexpected type for quantifier"
+    fun tweak_ho_equal T argc =
+      if argc = 2 then
+        IConst (`I tptp_equal, T, [])
+      else
+        (* Eta-expand partially applied THF equality, because the LEO-II and Satallax parsers
+           complain about not being able to infer the type of "=". *)
+        let val i_T = domain_type T in
+          IAbs ((`I "Y", i_T),
+                IAbs ((`I "Z", i_T),
+                      IApp (IApp (IConst (`I tptp_equal, T, []),
+                                  IConst (`I "Y", i_T, [])),
+                            IConst (`I "Z", i_T, []))))
+        end
     fun intro top_level args (IApp (tm1, tm2)) =
         IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
@@ -1124,46 +1136,50 @@ fun introduce_proxies_in_iterm type_enc =
           SOME proxy_base =>
           let
             val argc = length args
-            val plain_const = IConst (name, T, [])
+            fun plain_const () = IConst (name, T, [])
             fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
-            val is_fool = is_type_enc_fool type_enc
-            fun if_card_matches card x = if not is_fool orelse card = argc then x else plain_const
+            fun handle_fool card x = if card = argc then x else proxy_const ()
           in
-            if top_level orelse is_fool orelse is_type_enc_full_higher_order type_enc then
-              (case (top_level, s) of
-                (_, "c_False") => IConst (`I tptp_false, T, [])
-              | (_, "c_True") => IConst (`I tptp_true, T, [])
-              | (false, "c_Not") => if_card_matches 1 (IConst (`I tptp_not, T, []))
-              | (false, "c_conj") => if_card_matches 2 (IConst (`I tptp_and, T, []))
-              | (false, "c_disj") => if_card_matches 2 (IConst (`I tptp_or, T, []))
-              | (false, "c_implies") => if_card_matches 2 (IConst (`I tptp_implies, T, []))
-              | (false, "c_All") => if_card_matches 1 (tweak_ho_quant tptp_ho_forall T args)
-              | (false, "c_Ex") => if_card_matches 1 (tweak_ho_quant tptp_ho_exists T args)
-              | (false, s) =>
-                if is_tptp_equal s then
-                  if argc = 2 then
-                    IConst (`I tptp_equal, T, [])
-                  else if is_fool then
-                    proxy_const ()
+            (case s of
+              "c_False" => IConst (`I tptp_false, T, [])
+            | "c_True" => IConst (`I tptp_true, T, [])
+            | _ =>
+              if top_level then
+                plain_const ()
+              else if is_type_enc_full_higher_order type_enc then
+                (case s of
+                  "c_Not" => IConst (`I tptp_not, T, [])
+                | "c_conj" => IConst (`I tptp_and, T, [])
+                | "c_disj" => IConst (`I tptp_or, T, [])
+                | "c_implies" => IConst (`I tptp_implies, T, [])
+                | "c_All" => tweak_ho_quant tptp_ho_forall T args
+                | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+                | s =>
+                  if is_tptp_equal s then
+                    tweak_ho_equal T argc
                   else
-                    (* Eta-expand partially applied THF equality, because the
-                       LEO-II and Satallax parsers complain about not being able to
-                       infer the type of "=". *)
-                    let val i_T = domain_type T in
-                      IAbs ((`I "Y", i_T),
-                            IAbs ((`I "Z", i_T),
-                                  IApp (IApp (IConst (`I tptp_equal, T, []),
-                                              IConst (`I "Y", i_T, [])),
-                                        IConst (`I "Z", i_T, []))))
-                    end
-                else
-                  plain_const
-              | _ => plain_const)
-            else
-              IConst (proxy_base |>> prefix const_prefix, T, T_args)
+                    plain_const ())
+              else if is_type_enc_fool type_enc then
+                (case s of
+                  "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
+                | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
+                | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
+                | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
+                | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
+                | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+                | s =>
+                  if is_tptp_equal s then
+                    handle_fool 2 (IConst (`I tptp_equal, T, []))
+                  else
+                    plain_const ())
+              else
+                proxy_const ())
           end
-         | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
-                   else IConst (name, T, T_args))
+         | NONE =>
+           if s = tptp_choice then
+             tweak_ho_quant tptp_choice T args
+           else
+             IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
