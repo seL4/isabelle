@@ -8,7 +8,7 @@ theory Binomial_Heap
 imports
   "HOL-Library.Pattern_Aliases"
   Complex_Main
-  "HOL-Data_Structures.Priority_Queue_Specs"
+  Priority_Queue_Specs
 begin
 
 text \<open>
