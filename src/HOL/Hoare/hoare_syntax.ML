@@ -1,5 +1,6 @@
 (*  Title:      HOL/Hoare/hoare_syntax.ML
     Author:     Leonor Prensa Nieto & Tobias Nipkow
+    Author:     Walter Guttmann (extension to total-correctness proofs)
 
 Syntax translations for Hoare logic.
 *)
@@ -7,6 +8,7 @@ Syntax translations for Hoare logic.
 signature HOARE_SYNTAX =
 sig
   val hoare_vars_tr: term list -> term
+  val hoare_tc_vars_tr: term list -> term
   val spec_tr': string -> term list -> term
 end;
 
@@ -47,6 +49,8 @@ fun bexp_tr (Const ("TRUE", _)) _ = Syntax.const "TRUE"   (* FIXME !? *)
 
 fun assn_tr r xs = Syntax.const \<^const_syntax>\<open>Collect\<close> $ mk_abstuple xs r;
 
+fun var_tr v xs = mk_abstuple xs v;
+
 
 (* com_tr *)
 
@@ -57,8 +61,8 @@ fun com_tr (Const (\<^syntax_const>\<open>_assign\<close>, _) $ x $ e) xs =
       Syntax.const \<^const_syntax>\<open>Seq\<close> $ com_tr c1 xs $ com_tr c2 xs
   | com_tr (Const (\<^const_syntax>\<open>Cond\<close>,_) $ b $ c1 $ c2) xs =
       Syntax.const \<^const_syntax>\<open>Cond\<close> $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const (\<^const_syntax>\<open>While\<close>,_) $ b $ I $ c) xs =
-      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
+  | com_tr (Const (\<^const_syntax>\<open>While\<close>,_) $ b $ I $ V $ c) xs =
+      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr b xs $ assn_tr I xs $ var_tr V xs $ com_tr c xs
   | com_tr t _ = t;
 
 fun vars_tr (Const (\<^syntax_const>\<open>_idts\<close>, _) $ idt $ vars) = idt :: vars_tr vars
@@ -72,6 +76,13 @@ fun hoare_vars_tr [vars, pre, prg, post] =
          assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
       end
   | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
+
+fun hoare_tc_vars_tr [vars, pre, prg, post] =
+      let val xs = vars_tr vars
+      in Syntax.const \<^const_syntax>\<open>ValidTC\<close> $
+         assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
+      end
+  | hoare_tc_vars_tr ts = raise TERM ("hoare_tc_vars_tr", ts);
 
 end;
 
@@ -122,6 +133,9 @@ fun assn_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abst
 fun bexp_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abstuple T
   | bexp_tr' t = t;
 
+fun var_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abstuple T
+  | var_tr' t = t;
+
 
 (* com_tr' *)
 
@@ -142,8 +156,8 @@ fun com_tr' (Const (\<^const_syntax>\<open>Basic\<close>, _) $ f) =
       Syntax.const \<^const_syntax>\<open>Seq\<close> $ com_tr' c1 $ com_tr' c2
   | com_tr' (Const (\<^const_syntax>\<open>Cond\<close>, _) $ b $ c1 $ c2) =
       Syntax.const \<^const_syntax>\<open>Cond\<close> $ bexp_tr' b $ com_tr' c1 $ com_tr' c2
-  | com_tr' (Const (\<^const_syntax>\<open>While\<close>, _) $ b $ I $ c) =
-      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr' b $ assn_tr' I $ com_tr' c
+  | com_tr' (Const (\<^const_syntax>\<open>While\<close>, _) $ b $ I $ V $ c) =
+      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr' b $ assn_tr' I $ var_tr' V $ com_tr' c
   | com_tr' t = t;
 
 in

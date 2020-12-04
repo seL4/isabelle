@@ -45,7 +45,7 @@ fun ins :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a upI" where
         (case ins x l of
            TI l' => TI (Node2 l' a r) |
            OF l1 b l2 => TI (Node3 l1 b l2 a r)) |
-      EQ \<Rightarrow> TI (Node2 l x r) |
+      EQ \<Rightarrow> TI (Node2 l a r) |
       GT \<Rightarrow>
         (case ins x r of
            TI r' => TI (Node2 l a r') |
@@ -210,18 +210,11 @@ subsubsection "Proofs for insert"
 
 text\<open>First a standard proof that \<^const>\<open>ins\<close> preserves \<^const>\<open>complete\<close>.\<close>
 
-instantiation upI :: (type)height
-begin
+fun hI :: "'a upI \<Rightarrow> nat" where
+"hI (TI t) = height t" |
+"hI (OF l a r) = height l"
 
-fun height_upI :: "'a upI \<Rightarrow> nat" where
-"height (TI t) = height t" |
-"height (OF l a r) = height l"
-
-instance ..
-
-end
-
-lemma complete_ins: "complete t \<Longrightarrow> complete (treeI(ins a t)) \<and> height(ins a t) = height t"
+lemma complete_ins: "complete t \<Longrightarrow> complete (treeI(ins a t)) \<and> hI(ins a t) = height t"
 by (induct t) (auto split!: if_split upI.split) (* 15 secs in 2015 *)
 
 text\<open>Now an alternative proof (by Brian Huffman) that runs faster because
@@ -290,37 +283,30 @@ done
 
 subsection "Proofs for delete"
 
-instantiation upD :: (type)height
-begin
-
-fun height_upD :: "'a upD \<Rightarrow> nat" where
-"height (TD t) = height t" |
-"height (UF t) = height t + 1"
-
-instance ..
-
-end
+fun hD :: "'a upD \<Rightarrow> nat" where
+"hD (TD t) = height t" |
+"hD (UF t) = height t + 1"
 
 lemma complete_treeD_node21:
-  "\<lbrakk>complete r; complete (treeD l'); height r = height l' \<rbrakk> \<Longrightarrow> complete (treeD (node21 l' a r))"
+  "\<lbrakk>complete r; complete (treeD l'); height r = hD l' \<rbrakk> \<Longrightarrow> complete (treeD (node21 l' a r))"
 by(induct l' a r rule: node21.induct) auto
 
 lemma complete_treeD_node22:
-  "\<lbrakk>complete(treeD r'); complete l; height r' = height l \<rbrakk> \<Longrightarrow> complete (treeD (node22 l a r'))"
+  "\<lbrakk>complete(treeD r'); complete l; hD r' = height l \<rbrakk> \<Longrightarrow> complete (treeD (node22 l a r'))"
 by(induct l a r' rule: node22.induct) auto
 
 lemma complete_treeD_node31:
-  "\<lbrakk> complete (treeD l'); complete m; complete r; height l' = height r; height m = height r \<rbrakk>
+  "\<lbrakk> complete (treeD l'); complete m; complete r; hD l' = height r; height m = height r \<rbrakk>
   \<Longrightarrow> complete (treeD (node31 l' a m b r))"
 by(induct l' a m b r rule: node31.induct) auto
 
 lemma complete_treeD_node32:
-  "\<lbrakk> complete l; complete (treeD m'); complete r; height l = height r; height m' = height r \<rbrakk>
+  "\<lbrakk> complete l; complete (treeD m'); complete r; height l = height r; hD m' = height r \<rbrakk>
   \<Longrightarrow> complete (treeD (node32 l a m' b r))"
 by(induct l a m' b r rule: node32.induct) auto
 
 lemma complete_treeD_node33:
-  "\<lbrakk> complete l; complete m; complete(treeD r'); height l = height r'; height m = height r' \<rbrakk>
+  "\<lbrakk> complete l; complete m; complete(treeD r'); height l = hD r'; height m = hD r' \<rbrakk>
   \<Longrightarrow> complete (treeD (node33 l a m b r'))"
 by(induct l a m b r' rule: node33.induct) auto
 
@@ -328,37 +314,37 @@ lemmas completes = complete_treeD_node21 complete_treeD_node22
   complete_treeD_node31 complete_treeD_node32 complete_treeD_node33
 
 lemma height'_node21:
-   "height r > 0 \<Longrightarrow> height(node21 l' a r) = max (height l') (height r) + 1"
+   "height r > 0 \<Longrightarrow> hD(node21 l' a r) = max (hD l') (height r) + 1"
 by(induct l' a r rule: node21.induct)(simp_all)
 
 lemma height'_node22:
-   "height l > 0 \<Longrightarrow> height(node22 l a r') = max (height l) (height r') + 1"
+   "height l > 0 \<Longrightarrow> hD(node22 l a r') = max (height l) (hD r') + 1"
 by(induct l a r' rule: node22.induct)(simp_all)
 
 lemma height'_node31:
-  "height m > 0 \<Longrightarrow> height(node31 l a m b r) =
-   max (height l) (max (height m) (height r)) + 1"
+  "height m > 0 \<Longrightarrow> hD(node31 l a m b r) =
+   max (hD l) (max (height m) (height r)) + 1"
 by(induct l a m b r rule: node31.induct)(simp_all add: max_def)
 
 lemma height'_node32:
-  "height r > 0 \<Longrightarrow> height(node32 l a m b r) =
-   max (height l) (max (height m) (height r)) + 1"
+  "height r > 0 \<Longrightarrow> hD(node32 l a m b r) =
+   max (height l) (max (hD m) (height r)) + 1"
 by(induct l a m b r rule: node32.induct)(simp_all add: max_def)
 
 lemma height'_node33:
-  "height m > 0 \<Longrightarrow> height(node33 l a m b r) =
-   max (height l) (max (height m) (height r)) + 1"
+  "height m > 0 \<Longrightarrow> hD(node33 l a m b r) =
+   max (height l) (max (height m) (hD r)) + 1"
 by(induct l a m b r rule: node33.induct)(simp_all add: max_def)
 
 lemmas heights = height'_node21 height'_node22
   height'_node31 height'_node32 height'_node33
 
 lemma height_split_min:
-  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> complete t \<Longrightarrow> height t' = height t"
+  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> complete t \<Longrightarrow> hD t' = height t"
 by(induct t arbitrary: x t' rule: split_min.induct)
   (auto simp: heights split: prod.splits)
 
-lemma height_del: "complete t \<Longrightarrow> height(del x t) = height t"
+lemma height_del: "complete t \<Longrightarrow> hD(del x t) = height t"
 by(induction x t rule: del.induct)
   (auto simp: heights max_def height_split_min split: prod.splits)
 

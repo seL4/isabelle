@@ -1,5 +1,6 @@
 (*  Title:      HOL/Hoare/hoare_tac.ML
     Author:     Leonor Prensa Nieto & Tobias Nipkow
+    Author:     Walter Guttmann (extension to total-correctness proofs)
 
 Derivation of the proof rules and, most importantly, the VCG tactic.
 *)
@@ -9,6 +10,7 @@ sig
   val hoare_rule_tac: Proof.context -> term list * thm -> (int -> tactic) -> bool ->
     int -> tactic
   val hoare_tac: Proof.context -> (int -> tactic) -> int -> tactic
+  val hoare_tc_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
 structure Hoare: HOARE =
@@ -194,6 +196,40 @@ fun hoare_rule_tac ctxt (vars, Mlem) tac =
 
 fun hoare_tac ctxt tac = SUBGOAL (fn (goal, i) =>
   SELECT_GOAL (hoare_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
+
+
+(* total correctness rules *)
+
+fun hoare_tc_rule_tac ctxt (vars, Mlem) tac =
+  let
+    val var_names = map (fst o dest_Free) vars;
+    fun wlp_tac i =
+      resolve_tac ctxt @{thms SeqRuleTC} i THEN rule_tac false (i + 1)
+    and rule_tac pre_cond i st = st |> (*abstraction over st prevents looping*)
+      ((wlp_tac i THEN rule_tac pre_cond i)
+        ORELSE
+        (FIRST [
+          resolve_tac ctxt @{thms SkipRuleTC} i,
+          EVERY [
+            resolve_tac ctxt @{thms BasicRuleTC} i,
+            resolve_tac ctxt [Mlem] i,
+            split_simp_tac ctxt i],
+          EVERY [
+            resolve_tac ctxt @{thms CondRuleTC} i,
+            rule_tac false (i + 2),
+            rule_tac false (i + 1)],
+          EVERY [
+            resolve_tac ctxt @{thms WhileRuleTC} i,
+            basic_simp_tac ctxt var_names tac (i + 2),
+            rule_tac true (i + 1)]]
+         THEN (
+           if pre_cond then basic_simp_tac ctxt var_names tac i
+           else resolve_tac ctxt [subset_refl] i)));
+  in rule_tac end;
+
+
+fun hoare_tc_tac ctxt tac = SUBGOAL (fn (goal, i) =>
+  SELECT_GOAL (hoare_tc_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
 
 end;
 

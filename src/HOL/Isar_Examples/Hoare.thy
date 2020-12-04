@@ -21,12 +21,13 @@ text \<open>
 
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
+type_synonym 'a var = "'a \<Rightarrow> nat"
 
 datatype 'a com =
     Basic "'a \<Rightarrow> 'a"
   | Seq "'a com" "'a com"    ("(_;/ _)" [60, 61] 60)
   | Cond "'a bexp" "'a com" "'a com"
-  | While "'a bexp" "'a assn" "'a com"
+  | While "'a bexp" "'a assn" "'a var" "'a com"
 
 abbreviation Skip  ("SKIP")
   where "SKIP \<equiv> Basic id"
@@ -43,7 +44,7 @@ primrec Sem :: "'a com \<Rightarrow> 'a sem"
     "Sem (Basic f) s s' \<longleftrightarrow> s' = f s"
   | "Sem (c1; c2) s s' \<longleftrightarrow> (\<exists>s''. Sem c1 s s'' \<and> Sem c2 s'' s')"
   | "Sem (Cond b c1 c2) s s' \<longleftrightarrow> (if s \<in> b then Sem c1 s s' else Sem c2 s s')"
-  | "Sem (While b x c) s s' \<longleftrightarrow> (\<exists>n. iter n b (Sem c) s s')"
+  | "Sem (While b x y c) s s' \<longleftrightarrow> (\<exists>n. iter n b (Sem c) s s')"
 
 definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"  ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
   where "\<turnstile> P c Q \<longleftrightarrow> (\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> P \<longrightarrow> s' \<in> Q)"
@@ -147,10 +148,10 @@ text \<open>
 
 theorem while:
   assumes body: "\<turnstile> (P \<inter> b) c P"
-  shows "\<turnstile> P (While b X c) (P \<inter> -b)"
+  shows "\<turnstile> P (While b X Y c) (P \<inter> -b)"
 proof
   fix s s' assume s: "s \<in> P"
-  assume "Sem (While b X c) s s'"
+  assume "Sem (While b X Y c) s s'"
   then obtain n where "iter n b (Sem c) s s'" by auto
   from this and s show "s' \<in> P \<inter> -b"
   proof (induct n arbitrary: s)
@@ -207,7 +208,7 @@ translations
   "B [a/\<acute>x]" \<rightharpoonup> "\<lbrace>\<acute>(_update_name x (\<lambda>_. a)) \<in> B\<rbrace>"
   "\<acute>x := a" \<rightharpoonup> "CONST Basic (_quote (\<acute>(_update_name x (\<lambda>_. a))))"
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond \<lbrace>b\<rbrace> c1 c2"
-  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> i c"
+  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> i (\<lambda>_. 0) c"
   "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
 
 parse_translation \<open>
@@ -335,10 +336,10 @@ lemma [trans, intro?]:
 
 text \<open>While statements --- with optional invariant.\<close>
 
-lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b P c) (P \<inter> -b)"
+lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b P V c) (P \<inter> -b)"
   by (rule while)
 
-lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b undefined c) (P \<inter> -b)"
+lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b undefined V c) (P \<inter> -b)"
   by (rule while)
 
 
@@ -387,7 +388,7 @@ lemma iter_aux:
   by (induct n) auto
 
 lemma WhileRule:
-    "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i c) q"
+    "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i v c) q"
   apply (clarsimp simp: Valid_def)
   apply (drule iter_aux)
     prefer 2
@@ -400,6 +401,11 @@ lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
   by blast
 
 lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
+lemmas SeqRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
+lemmas SkipRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
+lemmas BasicRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
+lemmas CondRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
+lemmas WhileRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
 
 ML_file \<open>~~/src/HOL/Hoare/hoare_tac.ML\<close>
 

@@ -62,6 +62,32 @@ IMPORTANT:
 This is a logic of partial correctness. You can only prove that your program
 does the right thing <i>if</i> it terminates, but not <i>that</i> it
 terminates.
+A logic of total correctness is also provided and described below.
+
+<H3>Total correctness</H3>
+
+To prove termination, each WHILE-loop must be annotated with a variant:
+<UL>
+<LI> <kbd>WHILE _ INV {_} VAR {_} DO _ OD</kbd>
+</UL>
+A variant is an expression with type <kbd>nat</kbd>, which may use program
+variables and normal variables.
+<P>
+
+A total-correctness goal has the form
+<PRE>
+VARS x y ... [P] prog [Q]
+</PRE>
+enclosing the pre- and postcondition in square brackets.
+<P>
+
+Methods <kbd>vcg_tc</kbd> and <kbd>vcg_tc_simp</kbd> can be used to derive
+verification conditions.
+<P>
+
+From a total-correctness proof, a function can be extracted which
+for every input satisfying the precondition returns an output
+satisfying the postcondition.
 
 <H3>Notes on the implementation</H3>
 

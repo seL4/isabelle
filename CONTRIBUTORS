@@ -5,6 +5,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 
 Contributions to this Isabelle version
 --------------------------------------
+* December 2020 Walter Guttmann
+  Extension of session HOL/Hoare with total correctness proof system
+
 * November 2020: Stepan Holub
   Removed preconditions from lemma comm_append_are_replicate
 

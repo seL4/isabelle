@@ -98,14 +98,14 @@ by(simp add: delete_def inorder_del)
 
 subsection \<open>Balancedness\<close>
 
-lemma complete_upd: "complete t \<Longrightarrow> complete (treeI(upd x y t)) \<and> height(upd x y t) = height t"
+lemma complete_upd: "complete t \<Longrightarrow> complete (treeI(upd x y t)) \<and> hI(upd x y t) = height t"
 by (induct t) (auto split!: if_split upI.split)(* 16 secs in 2015 *)
 
 corollary complete_update: "complete t \<Longrightarrow> complete (update x y t)"
 by (simp add: update_def complete_upd)
 
 
-lemma height_del: "complete t \<Longrightarrow> height(del x t) = height t"
+lemma height_del: "complete t \<Longrightarrow> hD(del x t) = height t"
 by(induction x t rule: del.induct)
   (auto simp add: heights max_def height_split_min split: prod.split)
 

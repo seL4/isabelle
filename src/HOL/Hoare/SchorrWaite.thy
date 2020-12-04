@@ -222,7 +222,7 @@ theorem SchorrWaiteAlgorithm:
   (is "VARS c m l r t p q root {?Pre c m l r root} (?c1; ?c2; ?c3) {?Post c m l r}")
 proof (vcg)
   let "While {(c, m, l, r, t, p, q, root). ?whileB m t p}
-    {(c, m, l, r, t, p, q, root). ?inv c m l r t p} ?body" = ?c3
+    {(c, m, l, r, t, p, q, root). ?inv c m l r t p} _ ?body" = ?c3
   {
 
     fix c m l r t p q root
