@@ -3,7 +3,7 @@
 *)
 
 theory Hoare
-imports Examples ExamplesAbort Pointers0 Pointer_Examples Pointer_ExamplesAbort SchorrWaite Separation
+imports Examples ExamplesAbort ExamplesTC Pointers0 Pointer_Examples Pointer_ExamplesAbort SchorrWaite Separation
 begin
 
 end

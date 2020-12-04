@@ -280,7 +280,7 @@ primrec timeit :: "'a time com \<Rightarrow> 'a time com"
     "timeit (Basic f) = (Basic f; Basic(\<lambda>s. s\<lparr>time := Suc (time s)\<rparr>))"
   | "timeit (c1; c2) = (timeit c1; timeit c2)"
   | "timeit (Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
-  | "timeit (While b iv c) = While b iv (timeit c)"
+  | "timeit (While b iv v c) = While b iv v (timeit c)"
 
 record tvars = tstate +
   I :: nat
