@@ -87,6 +87,8 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Session "Hoare" now provides a total correctness logic as well.
+
 * An updated version of the veriT solver is now included as Isabelle
 component. It can be used in the "smt" proof method via "smt (verit)" or
 via "declare [[smt_solver = verit]]" in the context; see also session
