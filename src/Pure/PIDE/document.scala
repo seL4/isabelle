@@ -538,13 +538,18 @@ object Document
     val init: Snapshot = State.init.snapshot()
   }
 
-  abstract class Snapshot private[Document](
+  class Snapshot private[Document](
     val state: State,
     val version: Version,
     val node_name: Node.Name,
     edits: List[Text.Edit],
     snippet_command: Option[Command])
   {
+    override def toString: String =
+      "Snapshot(node = " + node_name.node + ", version = " + version.id +
+        (if (is_outdated) ", outdated" else "") + ")"
+
+
     /* edits */
 
     def is_outdated: Boolean = edits.nonEmpty
@@ -560,18 +565,37 @@ object Document
     def revert(range: Text.Range): Text.Range = range.map(revert)
 
 
-    def node: Node
-    def nodes: List[(Node.Name, Node)]
+    /* local node content */
 
-    def commands_loading: List[Command]
-    def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
-    def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
+    val node: Node = version.nodes(node_name)
+
+    def nodes: List[(Node.Name, Node)] =
+      (node_name :: node.load_commands.flatMap(_.blobs_names)).
+        map(name => (name, version.nodes(name)))
 
     def node_files: List[Node.Name] =
       snippet_command match {
         case None => List(node_name)
         case Some(command) => node_name :: command.blobs_names
       }
+
+
+    /* theory load commands */
+
+    val commands_loading: List[Command] =
+      if (node_name.is_theory) Nil
+      else version.nodes.commands_loading(node_name)
+
+    def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range] =
+      (for {
+        cmd <- node.load_commands.iterator
+        blob_name <- cmd.blobs_names.iterator
+        if pred(blob_name)
+        start <- node.command_start(cmd)
+      } yield convert(cmd.core_range + start)).toList
+
+
+    /* command as add-on snippet */
 
     def command_snippet(command: Command): Snapshot =
     {
@@ -593,9 +617,13 @@ object Document
       state1.snapshot(node_name = node_name, snippet_command = Some(command))
     }
 
+
+    /* XML markup */
+
     def xml_markup(
-      range: Text.Range = Text.Range.full,
-      elements: Markup.Elements = Markup.Elements.full): XML.Body
+        range: Text.Range = Text.Range.full,
+        elements: Markup.Elements = Markup.Elements.full): XML.Body =
+      state.xml_markup(version, node_name, range = range, elements = elements)
 
     def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full): List[XML.Body] =
     {
@@ -611,31 +639,131 @@ object Document
       }
     }
 
-    def messages: List[(XML.Tree, Position.T)]
-    def exports: List[Export.Entry]
-    def exports_map: Map[String, Export.Entry]
 
-    def find_command(id: Document_ID.Generic): Option[(Node, Command)]
+    /* messages */
+
+    lazy val messages: List[(XML.Tree, Position.T)] =
+      (for {
+        (command, start) <-
+          Document.Node.Commands.starts_pos(
+            node.commands.iterator, Token.Pos.file(node_name.node))
+        pos = command.span.keyword_pos(start).position(command.span.name)
+        (_, tree) <- state.command_results(version, command).iterator
+       } yield (tree, pos)).toList
+
+
+    /* exports */
+
+    lazy val exports: List[Export.Entry] =
+      state.node_exports(version, node_name).iterator.map(_._2).toList
+
+    lazy val exports_map: Map[String, Export.Entry] =
+      (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
+
+
+    /* find command */
+
+    def find_command(id: Document_ID.Generic): Option[(Node, Command)] =
+      state.lookup_id(id) match {
+        case None => None
+        case Some(st) =>
+          val command = st.command
+          val node = version.nodes(command.node_name)
+          if (node.commands.contains(command)) Some((node, command)) else None
+      }
+
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
-      : Option[Line.Node_Position]
+        : Option[Line.Node_Position] =
+      for ((node, command) <- find_command(id))
+      yield {
+        val name = command.node_name.node
+        val sources_iterator =
+          node.commands.iterator.takeWhile(_ != command).map(_.source) ++
+            (if (offset == 0) Iterator.empty
+             else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
+        val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
+        Line.Node_Position(name, pos)
+      }
+
+    def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
+      if (other_node_name.is_theory) {
+        val other_node = version.nodes(other_node_name)
+        val iterator = other_node.command_iterator(revert(offset) max 0)
+        if (iterator.hasNext) {
+          val (command0, _) = iterator.next
+          other_node.commands.reverse.iterator(command0).find(command => !command.is_ignored)
+        }
+        else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
+      }
+      else version.nodes.commands_loading(other_node_name).headOption
+
+
+    /* command results */
+
+    def command_results(range: Text.Range): Command.Results =
+      Command.State.merge_results(
+        select[List[Command.State]](range, Markup.Elements.full, command_states =>
+          { case _ => Some(command_states) }).flatMap(_.info))
+
+    def command_results(command: Command): Command.Results =
+      state.command_results(version, command)
+
+
+    /* command ids: static and dynamic */
+
+    def command_id_map: Map[Document_ID.Generic, Command] =
+      state.command_id_map(version, version.nodes(node_name).commands)
+
+
+    /* cumulate markup */
 
     def cumulate[A](
       range: Text.Range,
       info: A,
       elements: Markup.Elements,
       result: List[Command.State] => (A, Text.Markup) => Option[A],
-      status: Boolean = false): List[Text.Info[A]]
+      status: Boolean = false): List[Text.Info[A]] =
+    {
+      val former_range = revert(range).inflate_singularity
+      val (chunk_name, command_iterator) =
+        commands_loading.headOption match {
+          case None => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
+          case Some(command) => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
+        }
+      val markup_index = Command.Markup_Index(status, chunk_name)
+      (for {
+        (command, command_start) <- command_iterator
+        chunk <- command.chunks.get(chunk_name).iterator
+        states = state.command_states(version, command)
+        res = result(states)
+        markup_range <- (former_range - command_start).try_restrict(chunk.range).iterator
+        markup = Command.State.merge_markup(states, markup_index, markup_range, elements)
+        Text.Info(r0, a) <- markup.cumulate[A](markup_range, info, elements,
+          {
+            case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
+          }).iterator
+        r1 <- convert(r0 + command_start).try_restrict(range).iterator
+      } yield Text.Info(r1, a)).toList
+    }
 
     def select[A](
       range: Text.Range,
       elements: Markup.Elements,
       result: List[Command.State] => Text.Markup => Option[A],
-      status: Boolean = false): List[Text.Info[A]]
-
-    def command_results(range: Text.Range): Command.Results
-    def command_results(command: Command): Command.Results
-
-    def command_id_map: Map[Document_ID.Generic, Command]
+      status: Boolean = false): List[Text.Info[A]] =
+    {
+      def result1(states: List[Command.State]): (Option[A], Text.Markup) => Option[Option[A]] =
+      {
+        val res = result(states)
+        (_: Option[A], x: Text.Markup) =>
+          res(x) match {
+            case None => None
+            case some => Some(some)
+          }
+      }
+      for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
+        yield Text.Info(r, x)
+    }
   }
 
 
@@ -1129,159 +1257,6 @@ object Document
         })
 
       new Snapshot(this, version, node_name, edits, snippet_command)
-      {
-        /* local node content */
-
-        val node: Node = version.nodes(node_name)
-
-        def nodes: List[(Node.Name, Node)] =
-          (node_name :: node.load_commands.flatMap(_.blobs_names)).
-            map(name => (name, version.nodes(name)))
-
-        val commands_loading: List[Command] =
-          if (node_name.is_theory) Nil
-          else version.nodes.commands_loading(node_name)
-
-        def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range] =
-          (for {
-            cmd <- node.load_commands.iterator
-            blob_name <- cmd.blobs_names.iterator
-            if pred(blob_name)
-            start <- node.command_start(cmd)
-          } yield convert(cmd.core_range + start)).toList
-
-        def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
-          if (other_node_name.is_theory) {
-            val other_node = version.nodes(other_node_name)
-            val iterator = other_node.command_iterator(revert(offset) max 0)
-            if (iterator.hasNext) {
-              val (command0, _) = iterator.next
-              other_node.commands.reverse.iterator(command0).find(command => !command.is_ignored)
-            }
-            else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
-          }
-          else version.nodes.commands_loading(other_node_name).headOption
-
-        def xml_markup(
-            range: Text.Range = Text.Range.full,
-            elements: Markup.Elements = Markup.Elements.full): XML.Body =
-          state.xml_markup(version, node_name, range = range, elements = elements)
-
-        lazy val messages: List[(XML.Tree, Position.T)] =
-          (for {
-            (command, start) <-
-              Document.Node.Commands.starts_pos(
-                node.commands.iterator, Token.Pos.file(node_name.node))
-            pos = command.span.keyword_pos(start).position(command.span.name)
-            (_, tree) <- state.command_results(version, command).iterator
-           } yield (tree, pos)).toList
-
-        lazy val exports: List[Export.Entry] =
-          state.node_exports(version, node_name).iterator.map(_._2).toList
-
-        lazy val exports_map: Map[String, Export.Entry] =
-          (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
-
-
-        /* find command */
-
-        def find_command(id: Document_ID.Generic): Option[(Node, Command)] =
-          state.lookup_id(id) match {
-            case None => None
-            case Some(st) =>
-              val command = st.command
-              val node = version.nodes(command.node_name)
-              if (node.commands.contains(command)) Some((node, command)) else None
-          }
-
-        def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
-            : Option[Line.Node_Position] =
-          for ((node, command) <- find_command(id))
-          yield {
-            val name = command.node_name.node
-            val sources_iterator =
-              node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-                (if (offset == 0) Iterator.empty
-                 else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
-            val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
-            Line.Node_Position(name, pos)
-          }
-
-
-        /* cumulate markup */
-
-        def cumulate[A](
-          range: Text.Range,
-          info: A,
-          elements: Markup.Elements,
-          result: List[Command.State] => (A, Text.Markup) => Option[A],
-          status: Boolean = false): List[Text.Info[A]] =
-        {
-          val former_range = revert(range).inflate_singularity
-          val (chunk_name, command_iterator) =
-            commands_loading.headOption match {
-              case None => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
-              case Some(command) => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
-            }
-          val markup_index = Command.Markup_Index(status, chunk_name)
-          (for {
-            (command, command_start) <- command_iterator
-            chunk <- command.chunks.get(chunk_name).iterator
-            states = state.command_states(version, command)
-            res = result(states)
-            markup_range <- (former_range - command_start).try_restrict(chunk.range).iterator
-            markup = Command.State.merge_markup(states, markup_index, markup_range, elements)
-            Text.Info(r0, a) <- markup.cumulate[A](markup_range, info, elements,
-              {
-                case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
-              }).iterator
-            r1 <- convert(r0 + command_start).try_restrict(range).iterator
-          } yield Text.Info(r1, a)).toList
-        }
-
-        def select[A](
-          range: Text.Range,
-          elements: Markup.Elements,
-          result: List[Command.State] => Text.Markup => Option[A],
-          status: Boolean = false): List[Text.Info[A]] =
-        {
-          def result1(states: List[Command.State]): (Option[A], Text.Markup) => Option[Option[A]] =
-          {
-            val res = result(states)
-            (_: Option[A], x: Text.Markup) =>
-              res(x) match {
-                case None => None
-                case some => Some(some)
-              }
-          }
-          for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
-            yield Text.Info(r, x)
-        }
-
-
-        /* command results */
-
-        def command_results(range: Text.Range): Command.Results =
-          Command.State.merge_results(
-            select[List[Command.State]](range, Markup.Elements.full, command_states =>
-              { case _ => Some(command_states) }).flatMap(_.info))
-
-        def command_results(command: Command): Command.Results =
-          state.command_results(version, command)
-
-
-        /* command ids: static and dynamic */
-
-        def command_id_map: Map[Document_ID.Generic, Command] =
-          state.command_id_map(version, version.nodes(node_name).commands)
-
-
-        /* output */
-
-        override def toString: String =
-          "Snapshot(node = " + node_name.node + ", version = " + version.id +
-            (if (is_outdated) ", outdated" else "") + ")"
-      }
     }
   }
 }
