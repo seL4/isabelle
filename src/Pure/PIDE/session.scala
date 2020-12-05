@@ -130,6 +130,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   val xml_cache: XML.Cache = XML.make_cache()
   val xz_cache: XZ.Cache = XZ.make_cache()
 
+  def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
+    Command.Blobs_Info.none
+
 
   /* global flags */
 
@@ -506,7 +509,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 change_command(_.add_export(id, (args.serial, export)))
 
               case Protocol.Loading_Theory(node_name, id) =>
-                try { global_state.change(_.begin_theory(node_name, id, msg.text)) }
+                val blobs_info = build_blobs_info(node_name)
+                try { global_state.change(_.begin_theory(node_name, id, msg.text, blobs_info)) }
                 catch { case _: Document.State.Fail => bad_output() }
 
               case Markup.Finished_Theory(theory) =>

@@ -43,7 +43,8 @@ object Update
         progress.echo("Processing theory " + args.print_node + " ...")
 
         val snapshot = args.snapshot
-        for ((node_name, node) <- snapshot.nodes) {
+        for (node_name <- snapshot.node_files) {
+          val node = snapshot.get_node(node_name)
           val xml =
             snapshot.state.xml_markup(snapshot.version, node_name,
               elements = Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))

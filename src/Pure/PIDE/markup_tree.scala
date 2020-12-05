@@ -58,7 +58,7 @@ object Markup_Tree
       var result: List[XML.Elem] = Nil
       for (elem <- rev_markup if elements(elem.name))
         result ::= elem
-      result.toList
+      result
     }
 
     def + (markup: Text.Markup): Entry = copy(rev_markup = markup.info :: rev_markup)

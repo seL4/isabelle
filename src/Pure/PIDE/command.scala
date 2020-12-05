@@ -8,21 +8,44 @@ Prover commands with accumulated results from execution.
 package isabelle
 
 
-import scala.collection.mutable
 import scala.collection.immutable.SortedMap
 
 
 object Command
 {
-  type Edit = (Option[Command], Option[Command])
+  /* blobs */
+
+  object Blob
+  {
+    def read_file(name: Document.Node.Name, src_path: Path): Blob =
+    {
+      val bytes = Bytes.read(name.path)
+      val chunk = Symbol.Text_Chunk(bytes.text)
+      Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
+    }
+  }
 
   sealed case class Blob(
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
+  {
+    def read_file: String = File.read(name.path)
 
-  type Blobs_Info = (List[Exn.Result[Blob]], Int)
-  val no_blobs: Blobs_Info = (Nil, -1)
+    def chunk_file: Symbol.Text_Chunk.File =
+      Symbol.Text_Chunk.File(name.node)
+  }
+
+  object Blobs_Info
+  {
+    val none: Blobs_Info = Blobs_Info(Nil, -1)
+
+    def errors(msgs: List[String]): Blobs_Info =
+      Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))), -1)
+  }
+
+  sealed case class Blobs_Info(blobs: List[Exn.Result[Blob]], index: Int)
+
 
 
   /** accumulated results from prover **/
@@ -101,6 +124,7 @@ object Command
   object Markup_Index
   {
     val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
+    def blob(blob: Blob): Markup_Index = Markup_Index(false, blob.chunk_file)
   }
 
   sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)
@@ -287,10 +311,9 @@ object Command
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name, atts1), args) =>
-                  val atts = atts1 ::: atts0
-                  command.reported_position(atts) match {
-                    case Some((id, chunk_name)) =>
+                case XML.Elem(Markup(name, atts), args) =>
+                  command.reported_position(atts) orElse command.reported_position(atts0) match {
+                    case Some((id, chunk_name, target_range)) =>
                       val target =
                         if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
                           Some((chunk_name, command.chunks(chunk_name)))
@@ -298,8 +321,8 @@ object Command
                           other_id(command.node_name, id)
                         else None
 
-                      (target, atts) match {
-                        case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
+                      (target, target_range) match {
+                        case (Some((target_name, target_chunk)), Some(symbol_range)) =>
                           target_chunk.incorporate(symbol_range) match {
                             case Some(range) =>
                               val props = atts.filterNot(Markup.position_property)
@@ -359,18 +382,19 @@ object Command
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, no_blobs, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, Blobs_Info.none, Command_Span.empty)
 
   def unparsed(
     source: String,
     theory: Boolean = false,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
+    blobs_info: Blobs_Info = Blobs_Info.none,
     results: Results = Results.empty,
     markups: Markups = Markups.empty): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
-    new Command(id, node_name, no_blobs, span1, source1, results, markups)
+    new Command(id, node_name, blobs_info, span1, source1, results, markups)
   }
 
   def text(source: String): Command = unparsed(source)
@@ -380,7 +404,9 @@ object Command
       markups = Markups.init(Markup_Tree.from_XML(body)))
 
 
-  /* perspective */
+  /* edits and perspective */
+
+  type Edit = (Option[Command], Option[Command])
 
   object Perspective
   {
@@ -431,13 +457,11 @@ object Command
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) resources.complete_import_name(node_name, s) else Nil
-            val msg =
-              "Bad theory import " +
-                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
-                Position.here(pos) + Completion.report_theories(pos, completion)
-            Exn.Exn[Command.Blob](ERROR(msg))
+            "Bad theory import " +
+              Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+              Position.here(pos) + Completion.report_theories(pos, completion)
           }
-        (errors, -1)
+        Blobs_Info.errors(errors)
 
       // auxiliary files
       case _ =>
@@ -450,8 +474,28 @@ object Command
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               Blob(name, src_path, content)
             }).user_error)
-        (blobs, loaded_files.index)
+        Blobs_Info(blobs, loaded_files.index)
     }
+  }
+
+  def build_blobs_info(
+    syntax: Outer_Syntax,
+    node_name: Document.Node.Name,
+    load_commands: List[Command_Span.Span]): Blobs_Info =
+  {
+    val blobs =
+      for {
+        span <- load_commands
+        file <- span.loaded_files(syntax).files
+      } yield {
+        (Exn.capture {
+          val dir = node_name.master_dir_path
+          val src_path = Path.explode(file)
+          val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
+          Blob.read_file(name, src_path)
+        }).user_error
+      }
+    Blobs_Info(blobs, -1)
   }
 }
 
@@ -482,8 +526,8 @@ final class Command private(
 
   /* blobs */
 
-  def blobs: List[Exn.Result[Command.Blob]] = blobs_info._1
-  def blobs_index: Int = blobs_info._2
+  def blobs: List[Exn.Result[Command.Blob]] = blobs_info.blobs
+  def blobs_index: Int = blobs_info.index
 
   def blobs_ok: Boolean =
     blobs.forall({ case Exn.Res(_) => true case _ => false })
@@ -508,7 +552,7 @@ final class Command private(
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
       (for (Exn.Res(blob) <- blobs; (_, file) <- blob.content)
-        yield Symbol.Text_Chunk.File(blob.name.node) -> file)).toMap
+        yield blob.chunk_file -> file)).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range
@@ -522,7 +566,9 @@ final class Command private(
 
   /* reported positions */
 
-  def reported_position(pos: Position.T): Option[(Document_ID.Generic, Symbol.Text_Chunk.Name)] =
+  def reported_position(pos: Position.T)
+    : Option[(Document_ID.Generic, Symbol.Text_Chunk.Name, Option[Symbol.Range])] =
+  {
     pos match {
       case Position.Id(id) =>
         val chunk_name =
@@ -531,9 +577,10 @@ final class Command private(
               Symbol.Text_Chunk.File(name)
             case _ => Symbol.Text_Chunk.Default
           }
-        Some((id, chunk_name))
+        Some((id, chunk_name, Position.Range.unapply(pos)))
       case _ => None
     }
+  }
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
@@ -543,11 +590,11 @@ final class Command private(
   {
     def elem(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       reported_position(props) match {
-        case Some((id, name)) if self_id(id) && name == chunk_name =>
+        case Some((id, name, reported_range)) if self_id(id) && name == chunk_name =>
           val opt_range =
-            Position.Range.unapply(props) orElse {
+            reported_range orElse {
               if (name == Symbol.Text_Chunk.Default)
-                Position.Range.unapply(span.position)
+                Position.Range.unapply(span.absolute_position)
               else None
             }
           opt_range match {

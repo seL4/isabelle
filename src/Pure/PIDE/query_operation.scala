@@ -84,7 +84,7 @@ class Query_Operation[Editor_Context](
               (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
               if props.contains((Markup.INSTANCE, state0.instance))
             } yield elem).toList
-          val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
+          val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
           (snapshot, command_results, results, removed)
         case None =>
           (Document.Snapshot.init, Command.Results.empty, Nil, true)
