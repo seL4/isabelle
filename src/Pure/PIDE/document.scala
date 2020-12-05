@@ -558,6 +558,13 @@ object Document
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
     def get_snippet_command: Option[Command]
+
+    def node_files: List[Node.Name] =
+      get_snippet_command match {
+        case None => List(node_name)
+        case Some(command) => node_name :: command.blobs_names
+      }
+
     def command_snippet(command: Command): Snapshot =
     {
       val node_name = command.node_name
@@ -582,9 +589,19 @@ object Document
       range: Text.Range = Text.Range.full,
       elements: Markup.Elements = Markup.Elements.full): XML.Body
 
-    def xml_markup_blobs(
-      read_blob: Node.Name => String,
-      elements: Markup.Elements = Markup.Elements.full): List[(XML.Body, Command.Blob)]
+    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full): List[XML.Body] =
+    {
+      get_snippet_command match {
+        case None => Nil
+        case Some(command) =>
+          for (Exn.Res(blob) <- command.blobs)
+          yield {
+            val text = blob.read_file
+            val markup = command.init_markups(Command.Markup_Index.blob(blob))
+            markup.to_XML(Text.Range(0, text.length), text, elements)
+          }
+      }
+    }
 
     def messages: List[(XML.Tree, Position.T)]
     def exports: List[Export.Entry]
@@ -1160,22 +1177,6 @@ object Document
             range: Text.Range = Text.Range.full,
             elements: Markup.Elements = Markup.Elements.full): XML.Body =
           state.xml_markup(version, node_name, range = range, elements = elements)
-
-        def xml_markup_blobs(read_blob: Node.Name => String,
-          elements: Markup.Elements = Markup.Elements.full): List[(XML.Body, Command.Blob)] =
-        {
-          get_snippet_command match {
-            case None => Nil
-            case Some(command) =>
-              for (Exn.Res(blob) <- command.blobs)
-              yield {
-                val text = read_blob(blob.name)
-                val markup = command.init_markups(Command.Markup_Index.blob(blob))
-                val xml = markup.to_XML(Text.Range(0, text.size), text, elements)
-                (xml, blob)
-              }
-          }
-        }
 
         lazy val messages: List[(XML.Tree, Position.T)] =
           (for {

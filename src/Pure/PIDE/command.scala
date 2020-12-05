@@ -16,11 +16,23 @@ object Command
 {
   /* blobs */
 
+  object Blob
+  {
+    def read_file(name: Document.Node.Name, src_path: Path): Blob =
+    {
+      val bytes = Bytes.read(name.path)
+      val chunk = Symbol.Text_Chunk(bytes.text)
+      Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
+    }
+  }
+
   sealed case class Blob(
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
   {
+    def read_file: String = File.read(name.path)
+
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)
   }
@@ -479,12 +491,10 @@ object Command
         file <- span.loaded_files(syntax).files
       } yield {
         (Exn.capture {
-          val dir = Path.explode(node_name.master_dir)
+          val dir = node_name.master_dir_path
           val src_path = Path.explode(file)
           val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
-          val bytes = Bytes.read(name.path)
-          val chunk = Symbol.Text_Chunk(bytes.text)
-          Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
+          Blob.read_file(name, src_path)
         }).user_error
       }
     Blobs_Info(blobs, -1)

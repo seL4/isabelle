@@ -187,13 +187,12 @@ class Build_Job(progress: Progress,
             def export_text(name: String, text: String): Unit =
               export(name, List(XML.Text(text)))
 
-            val blobs = snapshot.xml_markup_blobs(name => File.read(name.path))
-            val chunks = for ((_, blob) <- blobs) yield blob.name.symbolic.node
-            export_text(Export.FILES, cat_lines(snapshot.node_name.symbolic.node :: chunks))
+            export_text(Export.FILES, cat_lines(snapshot.node_files.map(_.symbolic.node)))
 
-            for (((xml, _), i) <- blobs.zipWithIndex) export(Export.MARKUP + (i + 1), xml)
+            for ((xml, i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+              export(Export.MARKUP + (i + 1), xml)
+            }
             export(Export.MARKUP, snapshot.xml_markup())
-
             export(Export.MESSAGES, snapshot.messages.map(_._1))
 
             val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))

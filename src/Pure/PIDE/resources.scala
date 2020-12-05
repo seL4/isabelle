@@ -124,7 +124,7 @@ class Resources(
   def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name, spans: List[Command_Span.Span])
     : List[Path] =
   {
-    val dir = Path.explode(name.master_dir)
+    val dir = name.master_dir_path
     for { span <- spans; file <- span.loaded_files(syntax).files }
       yield (dir + Path.explode(file)).expand
   }
