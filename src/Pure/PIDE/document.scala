@@ -552,7 +552,9 @@ object Document
 
     /* nodes */
 
-    val node: Node = version.nodes(node_name)
+    def get_node(name: Node.Name): Node = version.nodes(name)
+
+    val node: Node = get_node(node_name)
 
     def node_files: List[Node.Name] =
       node_name :: (node.load_commands ::: snippet_command.toList).flatMap(_.blobs_names)
@@ -661,8 +663,8 @@ object Document
         case None => None
         case Some(st) =>
           val command = st.command
-          val node = version.nodes(command.node_name)
-          if (node.commands.contains(command)) Some((node, command)) else None
+          val command_node = get_node(command.node_name)
+          if (command_node.commands.contains(command)) Some((command_node, command)) else None
       }
 
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -680,7 +682,7 @@ object Document
 
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
       if (other_node_name.is_theory) {
-        val other_node = version.nodes(other_node_name)
+        val other_node = get_node(other_node_name)
         val iterator = other_node.command_iterator(revert(offset) max 0)
         if (iterator.hasNext) {
           val (command0, _) = iterator.next
@@ -705,7 +707,7 @@ object Document
     /* command ids: static and dynamic */
 
     def command_id_map: Map[Document_ID.Generic, Command] =
-      state.command_id_map(version, version.nodes(node_name).commands)
+      state.command_id_map(version, get_node(node_name).commands)
 
 
     /* cumulate markup */
