@@ -531,25 +531,25 @@ object Document
   }
 
 
-  /* snapshot */
+  /* snapshot: persistent user-view of document state */
 
   object Snapshot
   {
     val init: Snapshot = State.init.snapshot()
   }
 
-  abstract class Snapshot
+  abstract class Snapshot(
+    val state: State,
+    val version: Version,
+    val is_outdated: Boolean,
+    val node_name: Node.Name,
+    val snippet_command: Option[Command])
   {
-    def state: State
-    def version: Version
-    def is_outdated: Boolean
-
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
 
-    def node_name: Node.Name
     def node: Node
     def nodes: List[(Node.Name, Node)]
 
@@ -557,10 +557,8 @@ object Document
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
-    def get_snippet_command: Option[Command]
-
     def node_files: List[Node.Name] =
-      get_snippet_command match {
+      snippet_command match {
         case None => List(node_name)
         case Some(command) => node_name :: command.blobs_names
       }
@@ -582,7 +580,7 @@ object Document
           .define_version(version1, state0.the_assignment(version))
           .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
 
-      state1.snapshot(name = node_name, snippet_command = Some(command))
+      state1.snapshot(node_name = node_name, snippet_command = Some(command))
     }
 
     def xml_markup(
@@ -591,7 +589,7 @@ object Document
 
     def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full): List[XML.Body] =
     {
-      get_snippet_command match {
+      snippet_command match {
         case None => Nil
         case Some(command) =>
           for (Exn.Res(blob) <- command.blobs)
@@ -867,7 +865,7 @@ object Document
             Command.unparsed(command.source, theory = true, id = command.id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - command1.id)
-          val snapshot = state1.snapshot(name = node_name).command_snippet(command1)
+          val snapshot = state1.snapshot(node_name = node_name).command_snippet(command1)
           (snapshot, state1)
       }
 
@@ -1097,9 +1095,8 @@ object Document
         it.hasNext && command_states(version, it.next).exists(_.consolidated)
       }
 
-    // persistent user-view
     def snapshot(
-      name: Node.Name = Node.Name.empty,
+      node_name: Node.Name = Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil,
       snippet_command: Option[Command] = None): Snapshot =
     {
@@ -1112,8 +1109,8 @@ object Document
       val rev_pending_changes =
         for {
           change <- history.undo_list.takeWhile(_ != stable)
-          (a, edits) <- change.rev_edits
-          if a == name
+          (name, edits) <- change.rev_edits
+          if name == node_name
         } yield edits
 
       val edits =
@@ -1123,15 +1120,13 @@ object Document
         })
       lazy val reverse_edits = edits.reverse
 
-      new Snapshot
+      new Snapshot(
+        state = this,
+        version = stable.version.get_finished,
+        is_outdated = pending_edits.nonEmpty || latest != stable,
+        node_name = node_name,
+        snippet_command = snippet_command)
       {
-        /* global information */
-
-        val state: State = State.this
-        val version: Version = stable.version.get_finished
-        val is_outdated: Boolean = pending_edits.nonEmpty || latest != stable
-
-
         /* local node content */
 
         def convert(offset: Text.Offset): Text.Offset = (offset /: edits)((i, edit) => edit.convert(i))
@@ -1140,8 +1135,7 @@ object Document
         def convert(range: Text.Range): Text.Range = range.map(convert)
         def revert(range: Text.Range): Text.Range = range.map(revert)
 
-        val node_name: Node.Name = name
-        val node: Node = version.nodes(name)
+        val node: Node = version.nodes(node_name)
 
         def nodes: List[(Node.Name, Node)] =
           (node_name :: node.load_commands.flatMap(_.blobs_names)).
@@ -1170,8 +1164,6 @@ object Document
             else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
           }
           else version.nodes.commands_loading(other_node_name).headOption
-
-        def get_snippet_command: Option[Command] = snippet_command
 
         def xml_markup(
             range: Text.Range = Text.Range.full,
