@@ -907,6 +907,10 @@ qed
 lemma power_gt_expt: "n > Suc 0 \<Longrightarrow> n^k > k"
   by (induction k) (auto simp: less_trans_Suc n_less_m_mult_n)
 
+lemma less_exp:
+  \<open>n < 2 ^ n\<close>
+  by (simp add: power_gt_expt)
+
 lemma power_dvd_imp_le:
   fixes i :: nat
   assumes "i ^ m dvd i ^ n" "1 < i"

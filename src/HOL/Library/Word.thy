@@ -908,6 +908,18 @@ lemma not_bit_length [simp]:
   \<open>\<not> bit w LENGTH('a)\<close> for w :: \<open>'a::len word\<close>
   by transfer simp
 
+lemma finite_bit_word [simp]:
+  \<open>finite {n. bit w n}\<close>
+  for w :: \<open>'a::len word\<close>
+proof -
+  have \<open>{n. bit w n} \<subseteq> {0..LENGTH('a)}\<close>
+    by (auto dest: bit_imp_le_length)
+  moreover have \<open>finite {0..LENGTH('a)}\<close>
+    by simp
+  ultimately show ?thesis
+    by (rule finite_subset)
+qed
+
 instantiation word :: (len) semiring_bit_shifts
 begin
 

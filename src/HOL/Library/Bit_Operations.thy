@@ -154,6 +154,10 @@ lemma mask_numeral:
   \<open>mask (numeral n) = 1 + 2 * mask (pred_numeral n)\<close>
   by (simp add: numeral_eq_Suc mask_Suc_double one_or_eq ac_simps)
 
+lemma take_bit_mask [simp]:
+  \<open>take_bit m (mask n) = mask (min m n)\<close>
+  by (rule bit_eqI) (simp add: bit_simps)
+
 lemma take_bit_eq_mask:
   \<open>take_bit n a = a AND mask n\<close>
   by (rule bit_eqI)
@@ -966,6 +970,32 @@ proof (rule bit_eqI)
   qed
 qed
 
+lemma take_bit_eq_mask_iff:
+  \<open>take_bit n k = mask n \<longleftrightarrow> take_bit n (k + 1) = 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  for k :: int
+proof
+  assume ?P
+  then have \<open>take_bit n (take_bit n k + take_bit n 1) = 0\<close>
+    by (simp add: mask_eq_exp_minus_1)
+  then show ?Q
+    by (simp only: take_bit_add)
+next
+  assume ?Q
+  then have \<open>take_bit n (k + 1) - 1 = - 1\<close>
+    by simp
+  then have \<open>take_bit n (take_bit n (k + 1) - 1) = take_bit n (- 1)\<close>
+    by simp
+  moreover have \<open>take_bit n (take_bit n (k + 1) - 1) = take_bit n k\<close>
+    by (simp add: take_bit_eq_mod mod_simps)
+  ultimately show ?P
+    by (simp add: take_bit_minus_one_eq_mask)
+qed
+
+lemma take_bit_eq_mask_iff_exp_dvd:
+  \<open>take_bit n k = mask n \<longleftrightarrow> 2 ^ n dvd k + 1\<close>
+  for k :: int
+  by (simp add: take_bit_eq_mask_iff flip: take_bit_eq_0_iff)
+
 context ring_bit_operations
 begin
 
@@ -1630,6 +1660,31 @@ lemma of_nat_mask_eq:
   by (induction n) (simp_all add: mask_Suc_double Bit_Operations.mask_Suc_double of_nat_or_eq)
 
 end
+
+lemma Suc_mask_eq_exp:
+  \<open>Suc (mask n) = 2 ^ n\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+lemma less_eq_mask:
+  \<open>n \<le> mask n\<close>
+  by (simp add: mask_eq_exp_minus_1 le_diff_conv2)
+    (metis Suc_mask_eq_exp diff_Suc_1 diff_le_diff_pow diff_zero le_refl not_less_eq_eq power_0)
+
+lemma less_mask:
+  \<open>n < mask n\<close> if \<open>Suc 0 < n\<close>
+proof -
+  define m where \<open>m = n - 2\<close>
+  with that have *: \<open>n = m + 2\<close>
+    by simp
+  have \<open>Suc (Suc (Suc m)) < 4 * 2 ^ m\<close>
+    by (induction m) simp_all
+  then have \<open>Suc (m + 2) < Suc (mask (m + 2))\<close>
+    by (simp add: Suc_mask_eq_exp)
+  then have \<open>m + 2 < mask (m + 2)\<close>
+    by (simp add: less_le)
+  with * show ?thesis
+    by simp
+qed
 
 
 subsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
