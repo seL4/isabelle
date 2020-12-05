@@ -311,10 +311,9 @@ object Command
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name, atts1), args) =>
-                  val atts = atts1 ::: atts0
-                  command.reported_position(atts) match {
-                    case Some((id, chunk_name)) =>
+                case XML.Elem(Markup(name, atts), args) =>
+                  command.reported_position(atts) orElse command.reported_position(atts0) match {
+                    case Some((id, chunk_name, target_range)) =>
                       val target =
                         if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
                           Some((chunk_name, command.chunks(chunk_name)))
@@ -322,8 +321,8 @@ object Command
                           other_id(command.node_name, id)
                         else None
 
-                      (target, atts) match {
-                        case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
+                      (target, target_range) match {
+                        case (Some((target_name, target_chunk)), Some(symbol_range)) =>
                           target_chunk.incorporate(symbol_range) match {
                             case Some(range) =>
                               val props = atts.filterNot(Markup.position_property)
@@ -567,7 +566,9 @@ final class Command private(
 
   /* reported positions */
 
-  def reported_position(pos: Position.T): Option[(Document_ID.Generic, Symbol.Text_Chunk.Name)] =
+  def reported_position(pos: Position.T)
+    : Option[(Document_ID.Generic, Symbol.Text_Chunk.Name, Option[Symbol.Range])] =
+  {
     pos match {
       case Position.Id(id) =>
         val chunk_name =
@@ -576,9 +577,10 @@ final class Command private(
               Symbol.Text_Chunk.File(name)
             case _ => Symbol.Text_Chunk.Default
           }
-        Some((id, chunk_name))
+        Some((id, chunk_name, Position.Range.unapply(pos)))
       case _ => None
     }
+  }
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
@@ -588,9 +590,9 @@ final class Command private(
   {
     def elem(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       reported_position(props) match {
-        case Some((id, name)) if self_id(id) && name == chunk_name =>
+        case Some((id, name, reported_range)) if self_id(id) && name == chunk_name =>
           val opt_range =
-            Position.Range.unapply(props) orElse {
+            reported_range orElse {
               if (name == Symbol.Text_Chunk.Default)
                 Position.Range.unapply(span.position)
               else None
