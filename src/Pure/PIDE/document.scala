@@ -557,7 +557,7 @@ object Document
     val node: Node = get_node(node_name)
 
     def node_files: List[Node.Name] =
-      node_name :: (node.load_commands ::: snippet_command.toList).flatMap(_.blobs_names)
+      node_name :: node.load_commands.flatMap(_.blobs_names)
 
 
     /* edits */
