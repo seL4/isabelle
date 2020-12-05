@@ -1100,11 +1100,9 @@ object Document
       pending_edits: List[Text.Edit] = Nil,
       snippet_command: Option[Command] = None): Snapshot =
     {
-      val stable = recent_stable
-      val latest = history.tip
-
-
       /* pending edits and unstable changes */
+
+      val stable = recent_stable
 
       val rev_pending_changes =
         for {
@@ -1123,7 +1121,7 @@ object Document
       new Snapshot(
         state = this,
         version = stable.version.get_finished,
-        is_outdated = pending_edits.nonEmpty || latest != stable,
+        is_outdated = edits.nonEmpty,
         node_name = node_name,
         snippet_command = snippet_command)
       {
