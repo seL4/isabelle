@@ -8,7 +8,6 @@ Prover commands with accumulated results from execution.
 package isabelle
 
 
-import scala.collection.mutable
 import scala.collection.immutable.SortedMap
 
 
