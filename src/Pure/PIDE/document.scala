@@ -550,6 +550,14 @@ object Document
         (if (is_outdated) ", outdated" else "") + ")"
 
 
+    /* nodes */
+
+    val node: Node = version.nodes(node_name)
+
+    def node_files: List[Node.Name] =
+      node_name :: (node.load_commands ::: snippet_command.toList).flatMap(_.blobs_names)
+
+
     /* edits */
 
     def is_outdated: Boolean = edits.nonEmpty
@@ -563,21 +571,6 @@ object Document
 
     def convert(range: Text.Range): Text.Range = range.map(convert)
     def revert(range: Text.Range): Text.Range = range.map(revert)
-
-
-    /* local node content */
-
-    val node: Node = version.nodes(node_name)
-
-    def nodes: List[(Node.Name, Node)] =
-      (node_name :: node.load_commands.flatMap(_.blobs_names)).
-        map(name => (name, version.nodes(name)))
-
-    def node_files: List[Node.Name] =
-      snippet_command match {
-        case None => List(node_name)
-        case Some(command) => node_name :: command.blobs_names
-      }
 
 
     /* theory load commands */
