@@ -122,6 +122,9 @@ object Command_Span
       else Nil
     }
 
+    def is_load_command(syntax: Outer_Syntax): Boolean =
+      syntax.load_command(name).isDefined
+
     def loaded_files(syntax: Outer_Syntax): Loaded_Files =
       syntax.load_command(name) match {
         case None => Loaded_Files.none

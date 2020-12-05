@@ -106,36 +106,38 @@ class Resources(
 
   /* theory files */
 
-  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): () => List[Path] =
+  def load_commands(syntax: Outer_Syntax, name: Document.Node.Name)
+    : () => List[Command_Span.Span] =
   {
     val (is_utf8, raw_text) =
       with_thy_reader(name, reader => (Scan.reader_is_utf8(reader), reader.source.toString))
-    () => {
-      if (syntax.has_load_commands(raw_text)) {
-        val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
-        val spans = syntax.parse_spans(text)
-        val dir = Path.explode(name.master_dir)
-        (for {
-          span <- spans.iterator
-          file <- span.loaded_files(syntax).files
-        } yield (dir + Path.explode(file)).expand).toList
+    () =>
+      {
+        if (syntax.has_load_commands(raw_text)) {
+          val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
+          syntax.parse_spans(text).filter(_.is_load_command(syntax))
+        }
+        else Nil
       }
-      else Nil
-    }
+  }
+
+  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name, spans: List[Command_Span.Span])
+    : List[Path] =
+  {
+    val dir = Path.explode(name.master_dir)
+    for { span <- spans; file <- span.loaded_files(syntax).files }
+      yield (dir + Path.explode(file)).expand
   }
 
   def pure_files(syntax: Outer_Syntax): List[Path] =
   {
     val pure_dir = Path.explode("~~/src/Pure")
-    val roots =
-      for { (name, _) <- Thy_Header.ml_roots }
-      yield (pure_dir + Path.explode(name)).expand
-    val files =
-      for {
-        (path, (_, theory)) <- roots zip Thy_Header.ml_roots
-        file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
-      } yield file
-    roots ::: files
+    for {
+      (name, theory) <- Thy_Header.ml_roots
+      path = (pure_dir + Path.explode(name)).expand
+      node_name = Document.Node.Name(path.implode, path.dir.implode, theory)
+      file <- loaded_files(syntax, node_name, load_commands(syntax, node_name)())
+    } yield file
   }
 
   def theory_name(qualifier: String, theory: String): String =
@@ -398,18 +400,30 @@ class Resources(
         graph2.map_node(name, _ => syntax)
       })
 
-    def loaded_files: List[(String, List[Path])] =
-    {
+    def get_syntax(name: Document.Node.Name): Outer_Syntax =
+      loaded_theories.get_node(name.theory)
+
+    def load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
       theories.zip(
-        Par_List.map((e: () => List[Path]) => e(),
-          theories.map(name =>
-            resources.loaded_files(loaded_theories.get_node(name.theory), name))))
-        .map({ case (name, files) =>
-          val files1 =
-            if (name.theory == Thy_Header.PURE) resources.pure_files(overall_syntax) ::: files
-            else files
-          (name.theory, files1) })
+        Par_List.map((e: () => List[Command_Span.Span]) => e(),
+          theories.map(name => resources.load_commands(get_syntax(name), name))))
+      .filter(p => p._2.nonEmpty)
+
+    def loaded_files(name: Document.Node.Name, spans: List[Command_Span.Span])
+      : (String, List[Path]) =
+    {
+      val theory = name.theory
+      val syntax = get_syntax(name)
+      val files1 = resources.loaded_files(syntax, name, spans)
+      val files2 = if (theory == Thy_Header.PURE) pure_files(syntax) else Nil
+      (theory, files1 ::: files2)
     }
+
+    def loaded_files: List[Path] =
+      for {
+        (name, spans) <- load_commands
+        file <- loaded_files(name, spans)._2
+      } yield file
 
     def imported_files: List[Path] =
     {
@@ -418,7 +432,7 @@ class Resources(
           filter(session_base.loaded_theories.defined)
 
       base_theories.map(theory => session_base.known_theories(theory).name.path) :::
-      base_theories.flatMap(session_base.known_loaded_files(_))
+      base_theories.flatMap(session_base.known_loaded_files.withDefaultValue(Nil))
     }
 
     lazy val overall_syntax: Outer_Syntax =

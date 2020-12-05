@@ -28,6 +28,7 @@ class Build_Job(progress: Progress,
     Future.thread("build", uninterruptible = true) {
       val parent = info.parent.getOrElse("")
       val base = deps(parent)
+      val result_base = deps(session_name)
 
       val env =
         Isabelle_System.settings() +
@@ -50,6 +51,16 @@ class Build_Job(progress: Progress,
         new Session(options, resources) {
           override val xml_cache: XML.Cache = store.xml_cache
           override val xz_cache: XZ.Cache = store.xz_cache
+
+          override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
+          {
+            result_base.load_commands.get(name.expand) match {
+              case Some(spans) =>
+                val syntax = result_base.theory_syntax(name)
+                Command.build_blobs_info(syntax, name, spans)
+              case None => Command.Blobs_Info.none
+            }
+          }
         }
       def make_rendering(snapshot: Document.Snapshot): Rendering =
         new Rendering(snapshot, options, session) {
@@ -176,7 +187,13 @@ class Build_Job(progress: Progress,
             def export_text(name: String, text: String): Unit =
               export(name, List(XML.Text(text)))
 
+            val blobs = snapshot.xml_markup_blobs(name => File.read(name.path))
+            val chunks = for ((_, blob) <- blobs) yield blob.name.symbolic.node
+            export_text(Export.FILES, cat_lines(snapshot.node_name.symbolic.node :: chunks))
+
+            for (((xml, _), i) <- blobs.zipWithIndex) export(Export.MARKUP + (i + 1), xml)
             export(Export.MARKUP, snapshot.xml_markup())
+
             export(Export.MESSAGES, snapshot.messages.map(_._1))
 
             val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))

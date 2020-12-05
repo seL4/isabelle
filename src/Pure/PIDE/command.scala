@@ -20,6 +20,10 @@ object Command
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
+  {
+    def chunk_file: Symbol.Text_Chunk.File =
+      Symbol.Text_Chunk.File(name.node)
+  }
 
   object Blobs_Info
   {
@@ -109,6 +113,7 @@ object Command
   object Markup_Index
   {
     val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
+    def blob(blob: Blob): Markup_Index = Markup_Index(false, blob.chunk_file)
   }
 
   sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)
@@ -374,11 +379,12 @@ object Command
     theory: Boolean = false,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
+    blobs_info: Blobs_Info = Blobs_Info.none,
     results: Results = Results.empty,
     markups: Markups = Markups.empty): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source, theory).compact_source
-    new Command(id, node_name, Blobs_Info.none, span1, source1, results, markups)
+    new Command(id, node_name, blobs_info, span1, source1, results, markups)
   }
 
   def text(source: String): Command = unparsed(source)
@@ -461,6 +467,28 @@ object Command
         Blobs_Info(blobs, loaded_files.index)
     }
   }
+
+  def build_blobs_info(
+    syntax: Outer_Syntax,
+    node_name: Document.Node.Name,
+    load_commands: List[Command_Span.Span]): Blobs_Info =
+  {
+    val blobs =
+      for {
+        span <- load_commands
+        file <- span.loaded_files(syntax).files
+      } yield {
+        (Exn.capture {
+          val dir = Path.explode(node_name.master_dir)
+          val src_path = Path.explode(file)
+          val name = Document.Node.Name((dir + src_path).expand.implode_symbolic)
+          val bytes = Bytes.read(name.path)
+          val chunk = Symbol.Text_Chunk(bytes.text)
+          Blob(name, src_path, Some((bytes.sha1_digest, chunk)))
+        }).user_error
+      }
+    Blobs_Info(blobs, -1)
+  }
 }
 
 
@@ -516,7 +544,7 @@ final class Command private(
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
       (for (Exn.Res(blob) <- blobs; (_, file) <- blob.content)
-        yield Symbol.Text_Chunk.File(blob.name.node) -> file)).toMap
+        yield blob.chunk_file -> file)).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range

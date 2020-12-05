@@ -128,6 +128,11 @@ object Document
       def path: Path = Path.explode(File.standard_path(node))
       def master_dir_path: Path = Path.explode(File.standard_path(master_dir))
 
+      def expand: Name =
+        Name(path.expand.implode, master_dir_path.expand.implode, theory)
+      def symbolic: Name =
+        Name(path.implode_symbolic, master_dir_path.implode_symbolic, theory)
+
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
@@ -552,6 +557,7 @@ object Document
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
+    def get_snippet_command: Option[Command]
     def command_snippet(command: Command): Snapshot =
     {
       val node_name = command.node_name
@@ -569,12 +575,17 @@ object Document
           .define_version(version1, state0.the_assignment(version))
           .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
 
-      state1.snapshot(name = node_name)
+      state1.snapshot(name = node_name, snippet_command = Some(command))
     }
 
     def xml_markup(
       range: Text.Range = Text.Range.full,
       elements: Markup.Elements = Markup.Elements.full): XML.Body
+
+    def xml_markup_blobs(
+      read_blob: Node.Name => String,
+      elements: Markup.Elements = Markup.Elements.full): List[(XML.Body, Command.Blob)]
+
     def messages: List[(XML.Tree, Position.T)]
     def exports: List[Export.Entry]
     def exports_map: Map[String, Export.Entry]
@@ -814,12 +825,20 @@ object Document
           st <- command_states(version, command).iterator
         } yield st.exports)
 
-    def begin_theory(node_name: Node.Name, id: Document_ID.Exec, source: String): State =
+    def begin_theory(
+      node_name: Node.Name,
+      id: Document_ID.Exec,
+      source: String,
+      blobs_info: Command.Blobs_Info): State =
+    {
       if (theories.isDefinedAt(id)) fail
       else {
-        val command = Command.unparsed(source, theory = true, id = id, node_name = node_name)
+        val command =
+          Command.unparsed(source, theory = true, id = id, node_name = node_name,
+            blobs_info = blobs_info)
         copy(theories = theories + (id -> command.empty_state))
       }
+    }
 
     def end_theory(theory: String): (Snapshot, State) =
       theories.collectFirst({ case (_, st) if st.command.node_name.theory == theory => st }) match {
@@ -829,7 +848,7 @@ object Document
           val node_name = command.node_name
           val command1 =
             Command.unparsed(command.source, theory = true, id = command.id, node_name = node_name,
-              results = st.results, markups = st.markups)
+              blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - command1.id)
           val snapshot = state1.snapshot(name = node_name).command_snippet(command1)
           (snapshot, state1)
@@ -1062,8 +1081,10 @@ object Document
       }
 
     // persistent user-view
-    def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
-      : Snapshot =
+    def snapshot(
+      name: Node.Name = Node.Name.empty,
+      pending_edits: List[Text.Edit] = Nil,
+      snippet_command: Option[Command] = None): Snapshot =
     {
       val stable = recent_stable
       val latest = history.tip
@@ -1133,10 +1154,28 @@ object Document
           }
           else version.nodes.commands_loading(other_node_name).headOption
 
+        def get_snippet_command: Option[Command] = snippet_command
+
         def xml_markup(
             range: Text.Range = Text.Range.full,
             elements: Markup.Elements = Markup.Elements.full): XML.Body =
           state.xml_markup(version, node_name, range = range, elements = elements)
+
+        def xml_markup_blobs(read_blob: Node.Name => String,
+          elements: Markup.Elements = Markup.Elements.full): List[(XML.Body, Command.Blob)] =
+        {
+          get_snippet_command match {
+            case None => Nil
+            case Some(command) =>
+              for (Exn.Res(blob) <- command.blobs)
+              yield {
+                val text = read_blob(blob.name)
+                val markup = command.init_markups(Command.Markup_Index.blob(blob))
+                val xml = markup.to_XML(Text.Range(0, text.size), text, elements)
+                (xml, blob)
+              }
+          }
+        }
 
         lazy val messages: List[(XML.Tree, Position.T)] =
           (for {

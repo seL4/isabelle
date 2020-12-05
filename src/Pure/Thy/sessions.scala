@@ -55,6 +55,7 @@ object Sessions
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[(Document.Node.Name, Options)] = Nil,
+    load_commands: Map[Document.Node.Name, List[Command_Span.Span]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -172,9 +173,14 @@ object Sessions
 
             val theory_files = dependencies.theories.map(_.path)
 
-            val (loaded_files, loaded_files_errors) =
-              try { if (inlined_files) (dependencies.loaded_files, Nil) else (Nil, Nil) }
+            dependencies.load_commands
+
+            val (load_commands, load_commands_errors) =
+              try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
               catch { case ERROR(msg) => (Nil, List(msg)) }
+
+            val loaded_files =
+              load_commands.map({ case (name, spans) => dependencies.loaded_files(name, spans) })
 
             val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::
@@ -325,13 +331,14 @@ object Sessions
                 document_theories = document_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = dependencies.theories_adjunct,
+                load_commands = load_commands.toMap,
                 known_theories = known_theories,
                 known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: loaded_files_errors ::: import_errors :::
+                errors = dependencies.errors ::: load_commands_errors ::: import_errors :::
                   document_errors ::: dir_errors ::: sources_errors ::: path_errors :::
                   bibtex_errors)
 

@@ -168,6 +168,9 @@ local
 
 in end\<close>
 
+external_file "ROOT0.ML"
+external_file "ROOT.ML"
+
 
 subsection \<open>Embedded ML text\<close>
 
