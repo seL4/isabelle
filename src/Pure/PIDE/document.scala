@@ -538,17 +538,27 @@ object Document
     val init: Snapshot = State.init.snapshot()
   }
 
-  abstract class Snapshot(
+  abstract class Snapshot private[Document](
     val state: State,
     val version: Version,
-    val is_outdated: Boolean,
     val node_name: Node.Name,
-    val snippet_command: Option[Command])
+    edits: List[Text.Edit],
+    snippet_command: Option[Command])
   {
-    def convert(i: Text.Offset): Text.Offset
-    def revert(i: Text.Offset): Text.Offset
-    def convert(range: Text.Range): Text.Range
-    def revert(range: Text.Range): Text.Range
+    /* edits */
+
+    def is_outdated: Boolean = edits.nonEmpty
+
+    private lazy val reverse_edits = edits.reverse
+
+    def convert(offset: Text.Offset): Text.Offset =
+      (offset /: edits)((i, edit) => edit.convert(i))
+    def revert(offset: Text.Offset): Text.Offset =
+      (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
+    def convert(range: Text.Range): Text.Range = range.map(convert)
+    def revert(range: Text.Range): Text.Range = range.map(revert)
+
 
     def node: Node
     def nodes: List[(Node.Name, Node)]
@@ -1103,6 +1113,7 @@ object Document
       /* pending edits and unstable changes */
 
       val stable = recent_stable
+      val version = stable.version.get_finished
 
       val rev_pending_changes =
         for {
@@ -1116,22 +1127,10 @@ object Document
           case (edits, Node.Edits(es)) => es ::: edits
           case (edits, _) => edits
         })
-      lazy val reverse_edits = edits.reverse
 
-      new Snapshot(
-        state = this,
-        version = stable.version.get_finished,
-        is_outdated = edits.nonEmpty,
-        node_name = node_name,
-        snippet_command = snippet_command)
+      new Snapshot(this, version, node_name, edits, snippet_command)
       {
         /* local node content */
-
-        def convert(offset: Text.Offset): Text.Offset = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset): Text.Offset = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-
-        def convert(range: Text.Range): Text.Range = range.map(convert)
-        def revert(range: Text.Range): Text.Range = range.map(revert)
 
         val node: Node = version.nodes(node_name)
 
