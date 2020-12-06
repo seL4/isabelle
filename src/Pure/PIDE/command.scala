@@ -322,7 +322,8 @@ object Command
                         else None
 
                       (target, target_range) match {
-                        case (Some((target_name, target_chunk)), Some(symbol_range)) =>
+                        case (Some((target_name, target_chunk)), Some(symbol_range))
+                        if !symbol_range.is_singularity =>
                           target_chunk.incorporate(symbol_range) match {
                             case Some(range) =>
                               val props = atts.filterNot(Markup.position_property)
