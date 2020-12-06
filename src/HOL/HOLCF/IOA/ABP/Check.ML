@@ -1,5 +1,5 @@
 (*  Title:      HOL/HOLCF/IOA/ABP/Check.ML
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
 
 The Model Checker.
 *)

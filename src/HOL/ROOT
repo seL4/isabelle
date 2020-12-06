@@ -1125,7 +1125,7 @@ session "HOLCF-FOCUS" in "HOLCF/FOCUS" = "HOLCF-Library" +
 
 session IOA (timing) in "HOLCF/IOA" = HOLCF +
   description "
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
     Copyright   1997 TU München
 
     A formalization of I/O automata in HOLCF.
@@ -1138,7 +1138,7 @@ session IOA (timing) in "HOLCF/IOA" = HOLCF +
 
 session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
   description "
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
 
     The Alternating Bit Protocol performed in I/O-Automata:
     combining IOA with Model Checking.
@@ -1158,7 +1158,7 @@ session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
     Author:     Tobias Nipkow & Konrad Slind
 
     A network transmission protocol, performed in the
-    I/O automata formalization by Olaf Mueller.
+    I/O automata formalization by Olaf Müller.
   "
   theories
     Overview
@@ -1166,7 +1166,7 @@ session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
 
 session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
   description "
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
 
     Memory storage case study.
   "
@@ -1174,7 +1174,7 @@ session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
 
 session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
   description "
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
   "
   theories
     TrivEx

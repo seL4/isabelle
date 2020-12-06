@@ -1,5 +1,5 @@
 (*  Title:      HOL/HOLCF/Lift.thy
-    Author:     Olaf Mueller
+    Author:     Olaf Müller
 *)
 
 section \<open>Lifting types of class type to flat pcpo's\<close>
