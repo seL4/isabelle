@@ -19,6 +19,9 @@ object Sessions
 {
   /* session and theory names */
 
+  val ROOT: Path = Path.explode("ROOT")
+  val ROOTS: Path = Path.explode("ROOTS")
+
   val root_name: String = "ROOT"
   val theory_name: String = "Pure.Sessions"
 
@@ -833,9 +836,6 @@ object Sessions
 
 
   /* parser */
-
-  val ROOT: Path = Path.explode("ROOT")
-  val ROOTS: Path = Path.explode("ROOTS")
 
   private val CHAPTER = "chapter"
   private val SESSION = "session"

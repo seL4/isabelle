@@ -32,7 +32,7 @@ object Mkroot
     val name = proper_string(session_name) getOrElse session_dir.absolute_file.getName
     val parent = proper_string(session_parent) getOrElse Isabelle_System.getenv("ISABELLE_LOGIC")
 
-    val root_path = session_dir + Path.explode("ROOT")
+    val root_path = session_dir + Sessions.ROOT
     if (root_path.file.exists) error("Cannot overwrite existing " + root_path)
 
     val document_path = session_dir + Path.explode("document")
