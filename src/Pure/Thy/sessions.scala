@@ -44,7 +44,12 @@ object Sessions
   {
     val format_name: String = roots_name
     val file_ext = ""
-    override def detect(name: String): Boolean = name == roots_name
+
+    override def detect(name: String): Boolean =
+      Thy_Header.split_file_name(name) match {
+        case Some((_, file_name)) => file_name == roots_name
+        case None => false
+      }
 
     override def theory_suffix: String = "ROOTS_file"
     override def theory_content(name: String): String =

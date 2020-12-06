@@ -70,21 +70,22 @@ abstract class File_Format extends Isabelle_System.Service
   def make_theory_name(resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] =
   {
     for {
-      (_, ext_name) <- Thy_Header.split_file_name(name.node)
-      if detect(ext_name) && theory_suffix.nonEmpty
+      (_, thy) <- Thy_Header.split_file_name(name.node)
+      if detect(name.node) && theory_suffix.nonEmpty
     }
     yield {
       val thy_node = resources.append(name.node, Path.explode(theory_suffix))
-      Document.Node.Name(thy_node, name.master_dir, ext_name)
+      Document.Node.Name(thy_node, name.master_dir, thy)
     }
   }
 
   def make_theory_content(resources: Resources, thy_name: Document.Node.Name): Option[String] =
   {
     for {
-      (prefix, suffix) <- Thy_Header.split_file_name(thy_name.node) if suffix == theory_suffix
-      (_, ext_name) <- Thy_Header.split_file_name(prefix) if detect(ext_name)
-      s <- proper_string(theory_content(ext_name))
+      (prefix, suffix) <- Thy_Header.split_file_name(thy_name.node)
+      if detect(prefix) && suffix == theory_suffix
+      (_, thy) <- Thy_Header.split_file_name(prefix)
+      s <- proper_string(theory_content(thy))
     } yield s
   }
 
