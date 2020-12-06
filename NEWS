@@ -26,6 +26,8 @@ Ongoing ML ongoing garbage collection is shown as "ML cleanup".
 collection and sharing of live data on the ML heap. It also includes
 information about the Java Runtime system.
 
+* PIDE support for session ROOTS: markup for directories.
+
 * Update to jedit-5.6.0, the latest release. This version works properly
 on macOS by default, without the special MacOSX plugin.
 

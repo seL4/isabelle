@@ -19,9 +19,10 @@ object Sessions
 {
   /* session and theory names */
 
-  val ROOT: Path = Path.explode("ROOT")
   val ROOTS: Path = Path.explode("ROOTS")
+  val ROOT: Path = Path.explode("ROOT")
 
+  val roots_name: String = "ROOTS"
   val root_name: String = "ROOT"
   val theory_name: String = "Pure.Sessions"
 
@@ -35,6 +36,21 @@ object Sessions
 
   def exclude_theory(name: String): Boolean =
     name == root_name || name == "README" || name == "index" || name == "bib"
+
+
+  /* ROOTS file format */
+
+  class File_Format extends isabelle.File_Format
+  {
+    val format_name: String = roots_name
+    val file_ext = ""
+    override def detect(name: String): Boolean = name == roots_name
+
+    override def theory_suffix: String = "ROOTS_file"
+    override def theory_content(name: String): String =
+      """theory "ROOTS" imports Pure begin ROOTS_file """ +
+        Outer_Syntax.quote_string(name) + """ end"""
+  }
 
 
   /* base info and source dependencies */

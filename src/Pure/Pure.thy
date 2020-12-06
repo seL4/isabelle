@@ -20,7 +20,7 @@ keywords
     "type_alias" "declare" "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "type_synonym" "definition" "abbreviation" "lemmas" :: thy_defn
   and "axiomatization" :: thy_stmt
-  and "external_file" "bibtex_file" :: thy_load
+  and "external_file" "bibtex_file" "ROOTS_file" :: thy_load
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
   and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
@@ -121,6 +121,25 @@ local
           let
             val ({lines, pos, ...}, thy') = get_file thy;
             val _ = Bibtex.check_database_output pos (cat_lines lines);
+          in thy' end)));
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>ROOTS_file\<close> "session ROOTS file"
+      (Resources.provide_parse_file >> (fn get_file =>
+        Toplevel.theory (fn thy =>
+          let
+            val ({src_path, lines, pos = pos0, ...}, thy') = get_file thy;
+            val ctxt = Proof_Context.init_global thy';
+            val dir = Path.dir (Path.expand (Resources.master_directory thy' + src_path));
+            val _ =
+              (lines, pos0) |-> fold (fn line => fn pos1 =>
+                let
+                  val pos2 = pos1 |> fold Position.advance (Symbol.explode line);
+                  val pos = Position.range_position (pos1, pos2);
+                  val _ =
+                    ignore (Resources.check_dir ctxt (SOME dir) (line, pos))
+                      handle ERROR msg => Output.error_message msg;
+                in pos2 |> Position.advance "\n" end);
           in thy' end)));
 
   val _ =

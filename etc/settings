@@ -25,6 +25,7 @@ isabelle_scala_service 'isabelle.Tools'
 
 isabelle_scala_service 'isabelle.Scala_Functions'
 
+isabelle_scala_service 'isabelle.Sessions$File_Format'
 isabelle_scala_service 'isabelle.Bibtex$File_Format'
 
 isabelle_scala_service 'isabelle.ML_Statistics$Handler'
