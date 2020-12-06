@@ -1160,7 +1160,9 @@ session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
     A network transmission protocol, performed in the
     I/O automata formalization by Olaf Mueller.
   "
-  theories Correctness
+  theories
+    Overview
+    Correctness
 
 session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
   description "
