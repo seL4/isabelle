@@ -1140,7 +1140,14 @@ session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
   description "
     Author:     Olaf Mueller
 
-    The Alternating Bit Protocol performed in I/O-Automata.
+    The Alternating Bit Protocol performed in I/O-Automata:
+    combining IOA with Model Checking.
+
+    Theory Correctness contains the proof of the abstraction from unbounded
+    channels to finite ones.
+
+    Fole Check.ML contains a simple ModelChecker prototype checking Spec
+    against the finite version of the ABP-protocol.
   "
   theories
     Correctness
