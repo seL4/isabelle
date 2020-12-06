@@ -27,7 +27,8 @@ object Bibtex
 
     override def theory_suffix: String = "bibtex_file"
     override def theory_content(name: String): String =
-      """theory "bib" imports Pure begin bibtex_file """ + quote(name) + """ end"""
+      """theory "bib" imports Pure begin bibtex_file """ +
+        Outer_Syntax.quote_string(name) + """ end"""
 
     override def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
     {
