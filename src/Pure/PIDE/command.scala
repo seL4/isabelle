@@ -38,13 +38,13 @@ object Command
 
   object Blobs_Info
   {
-    val none: Blobs_Info = Blobs_Info(Nil, -1)
+    val none: Blobs_Info = Blobs_Info(Nil)
 
     def errors(msgs: List[String]): Blobs_Info =
-      Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))), -1)
+      Blobs_Info(msgs.map(msg => Exn.Exn[Blob](ERROR(msg))))
   }
 
-  sealed case class Blobs_Info(blobs: List[Exn.Result[Blob]], index: Int)
+  sealed case class Blobs_Info(blobs: List[Exn.Result[Blob]], index: Int = -1)
 
 
 
@@ -475,7 +475,7 @@ object Command
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
               Blob(name, src_path, content)
             }).user_error)
-        Blobs_Info(blobs, loaded_files.index)
+        Blobs_Info(blobs, index = loaded_files.index)
     }
   }
 
@@ -496,7 +496,7 @@ object Command
           Blob.read_file(name, src_path)
         }).user_error
       }
-    Blobs_Info(blobs, -1)
+    Blobs_Info(blobs)
   }
 }
 
