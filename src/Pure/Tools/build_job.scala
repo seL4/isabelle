@@ -177,17 +177,23 @@ class Build_Job(progress: Progress,
           case snapshot =>
             val rendering = make_rendering(snapshot)
 
-            def export(name: String, xml: XML.Body)
+            def export(name: String, xml: XML.Body, compress: Boolean = true)
             {
               val theory_name = snapshot.node_name.theory
-              val args = Protocol.Export.Args(theory_name = theory_name, name = name)
+              val args =
+                Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
               val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
               if (!bytes.is_empty) export_consumer(session_name, args, bytes)
             }
-            def export_text(name: String, text: String): Unit =
-              export(name, List(XML.Text(text)))
+            def export_text(name: String, text: String, compress: Boolean = true): Unit =
+              export(name, List(XML.Text(text)), compress = compress)
 
-            export_text(Export.FILES, cat_lines(snapshot.node_files.map(_.symbolic.node)))
+            for (command <- snapshot.snippet_command) {
+              export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
+            }
+
+            export_text(Export.FILES,
+              cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
 
             for ((xml, i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export(Export.MARKUP + (i + 1), xml)

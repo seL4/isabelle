@@ -543,7 +543,7 @@ object Document
     val version: Version,
     val node_name: Node.Name,
     edits: List[Text.Edit],
-    snippet_command: Option[Command])
+    val snippet_command: Option[Command])
   {
     override def toString: String =
       "Snapshot(node = " + node_name.node + ", version = " + version.id +

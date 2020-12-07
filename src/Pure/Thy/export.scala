@@ -15,8 +15,9 @@ object Export
 {
   /* artefact names */
 
-  val MARKUP = "PIDE/markup"
+  val DOCUMENT_ID = "PIDE/document_id"
   val FILES = "PIDE/files"
+  val MARKUP = "PIDE/markup"
   val MESSAGES = "PIDE/messages"
   val DOCUMENT_PREFIX = "document/"
   val CITATIONS = DOCUMENT_PREFIX + "citations"
