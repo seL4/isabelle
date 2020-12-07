@@ -139,7 +139,7 @@ class Build_Job(progress: Progress,
       }
 
       val export_consumer =
-        Export.consumer(store.open_database(session_name, output = true), cache = store.xz_cache)
+        Export.consumer(store.open_database(session_name, output = true), store.xz_cache)
 
       val stdout = new StringBuilder(1000)
       val stderr = new StringBuilder(1000)
