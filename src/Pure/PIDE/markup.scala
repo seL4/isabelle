@@ -194,6 +194,15 @@ object Markup
           }
         case _ => None
       }
+
+    object Path
+    {
+      def unapply(markup: Markup): Option[Boolean] =
+        markup match {
+          case Language(PATH, _, _, delimited) => Some(delimited)
+          case _ => None
+        }
+    }
   }
 
 

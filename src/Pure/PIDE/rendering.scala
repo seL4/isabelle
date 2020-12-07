@@ -307,13 +307,13 @@ abstract class Rendering(
 
   /* file-system path completion */
 
-  def language_path(range: Text.Range): Option[Text.Range] =
+  def language_path(range: Text.Range): Option[Text.Info[Boolean]] =
     snapshot.select(range, Rendering.language_elements, _ =>
       {
-        case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
-          Some(snapshot.convert(info_range))
+        case Text.Info(info_range, XML.Elem(Markup.Language.Path(delimited), _)) =>
+          Some((delimited, snapshot.convert(info_range)))
         case _ => None
-      }).headOption.map(_.info)
+      }).headOption.map({ case Text.Info(_, (delimited, range)) => Text.Info(range, delimited) })
 
   def path_completion(caret: Text.Offset): Option[Completion.Result] =
   {
@@ -357,11 +357,14 @@ abstract class Rendering(
       s.startsWith(Symbol.open_decoded) && s.endsWith(Symbol.close_decoded)
 
     for {
-      r1 <- language_path(before_caret_range(caret))
+      Text.Info(r1, delimited) <- language_path(before_caret_range(caret))
       s1 <- model.get_text(r1)
-      if is_wrapped(s1)
-      r2 = Text.Range(r1.start + 1, r1.stop - 1)
-      s2 = s1.substring(1, s1.length - 1)
+      (r2, s2) <-
+        if (is_wrapped(s1)) {
+          Some((Text.Range(r1.start + 1, r1.stop - 1), s1.substring(1, s1.length - 1)))
+        }
+        else if (delimited) Some((r1, s1))
+        else None
       if Path.is_valid(s2)
       paths = complete(s2)
       if paths.nonEmpty
