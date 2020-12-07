@@ -19,6 +19,7 @@ sig
   val source_explode: source -> Symbol_Pos.T list
   val source_content_range: source -> string * Position.range
   val source_content: source -> string * Position.T
+  val string_of: source -> string
   val equal_content: source * source -> bool
 end;
 
@@ -63,7 +64,9 @@ fun source_content_range source =
 
 val source_content = source_content_range #> apsnd #1;
 
-val equal_content = (op =) o apply2 (source_explode #> Symbol_Pos.content);
+val string_of = source_explode #> Symbol_Pos.content;
+
+val equal_content = (op =) o apply2 string_of;
 
 end;
 
