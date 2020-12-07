@@ -131,8 +131,10 @@ object Command
 
   object Markups
   {
+    type Entry = (Markup_Index, Markup_Tree)
     val empty: Markups = new Markups(Map.empty)
     def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
+    def make(args: TraversableOnce[Entry]): Markups = (empty /: args)(_ + _)
     def merge(args: TraversableOnce[Markups]): Markups = (empty /: args)(_ ++ _)
   }
 
@@ -146,7 +148,7 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
-    def + (entry: (Markup_Index, Markup_Tree)): Markups =
+    def + (entry: Markups.Entry): Markups =
     {
       val (index, tree) = entry
       new Markups(rep + (index -> (this(index).merge(tree, Text.Range.full, Markup.Elements.full))))

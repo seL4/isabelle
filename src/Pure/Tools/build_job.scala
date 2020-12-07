@@ -10,6 +10,64 @@ package isabelle
 import scala.collection.mutable
 
 
+object Build_Job
+{
+  def read_theory(
+    db_context: Sessions.Database_Context, node_name: Document.Node.Name): Command =
+  {
+    val session = db_context.sessions_structure.bootstrap.theory_qualifier(node_name)
+
+    def read(name: String): Export.Entry =
+      db_context.get_export(session, node_name.theory, name)
+
+    def read_xml(name: String): XML.Body =
+      db_context.xml_cache.body(
+        YXML.parse_body(Symbol.decode(UTF8.decode_permissive(read(name).uncompressed))))
+
+    (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
+      case (Value.Long(id), thy_file :: blobs_files) =>
+        val thy_path = Path.explode(thy_file)
+        val thy_source = Symbol.decode(File.read(thy_path))
+
+        val blobs =
+          blobs_files.map(file =>
+          {
+            val master_dir =
+              Thy_Header.split_file_name(file) match {
+                case Some((dir, _)) => dir
+                case None => ""
+              }
+            val path = Path.explode(file)
+            val src_path = File.relative_path(thy_path, path).getOrElse(path)
+            Command.Blob.read_file(Document.Node.Name(file, master_dir), src_path)
+          })
+        val blobs_info = Command.Blobs_Info(blobs.map(Exn.Res(_)))
+
+        val results =
+          Command.Results.make(
+            for {
+              tree @ XML.Elem(markup, _) <- read_xml(Export.MESSAGES)
+              i <- Markup.Serial.unapply(markup.properties)
+            } yield i -> tree)
+
+        val markup_index_blobs =
+          Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
+        val markups =
+          Command.Markups.make(
+            for ((index, i) <- markup_index_blobs.zipWithIndex)
+            yield {
+              val xml = read_xml(Export.MARKUP + (if (i == 0) "" else i.toString))
+              index -> Markup_Tree.from_XML(xml)
+            })
+
+        Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+          blobs_info = blobs_info, results = results, markups = markups)
+
+      case _ => error("Malformed PIDE exports for theory " + node_name)
+    }
+  }
+}
+
 class Build_Job(progress: Progress,
   session_name: String,
   val info: Sessions.Info,
