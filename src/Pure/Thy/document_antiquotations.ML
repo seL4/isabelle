@@ -323,7 +323,7 @@ val _ = Theory.setup
         val delimited = Input.is_delimited source;
         val _ =
           Context_Position.reports ctxt
-            [(pos, Markup.language_path delimited), (pos, Markup.url url)];
+            [(pos, Markup.language_url delimited), (pos, Markup.url url)];
       in Latex.enclose_block "\\url{" "}" [Latex.string (escape_url url)] end));
 
 
