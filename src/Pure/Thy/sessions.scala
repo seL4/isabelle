@@ -60,17 +60,6 @@ object Sessions
 
   /* base info and source dependencies */
 
-  object Base
-  {
-    def bootstrap(
-        session_directories: Map[JFile, String],
-        global_theories: Map[String, String]): Base =
-      Base(
-        session_directories = session_directories,
-        global_theories = global_theories,
-        overall_syntax = Thy_Header.bootstrap_syntax)
-  }
-
   sealed case class Base(
     pos: Position.T = Position.none,
     session_directories: Map[JFile, String] = Map.empty,
@@ -166,13 +155,8 @@ object Sessions
       }
     }
 
-    val bootstrap =
-      Sessions.Base.bootstrap(
-        sessions_structure.session_directories,
-        sessions_structure.global_theories)
-
     val session_bases =
-      (Map("" -> bootstrap) /: sessions_structure.imports_topological_order)({
+      (Map("" -> sessions_structure.bootstrap) /: sessions_structure.imports_topological_order)({
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -733,6 +717,12 @@ object Sessions
       val imports_graph: Graph[String, Info])
   {
     sessions_structure =>
+
+    def bootstrap: Base =
+      Base(
+        session_directories = session_directories,
+        global_theories = global_theories,
+        overall_syntax = Thy_Header.bootstrap_syntax)
 
     def dest_session_directories: List[(String, String)] =
       for ((file, session) <- session_directories.toList)
