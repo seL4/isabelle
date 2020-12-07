@@ -1146,7 +1146,7 @@ session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
     Theory Correctness contains the proof of the abstraction from unbounded
     channels to finite ones.
 
-    Fole Check.ML contains a simple ModelChecker prototype checking Spec
+    File Check.ML contains a simple ModelChecker prototype checking Spec
     against the finite version of the ABP-protocol.
   "
   theories
