@@ -26,7 +26,7 @@ sig
     -> (((string * string) * ({physical: bool} * (Path.T * Position.T)) option) * Token.T list) list
     -> local_theory -> local_theory
   val export_code_cmd: bool -> string list
-    -> (((string * string) * ({physical: bool} * (string * Position.T)) option) * Token.T list) list
+    -> (((string * string) * ({physical: bool} * Input.source) option) * Token.T list) list
     -> local_theory -> local_theory
   val produce_code: Proof.context -> bool -> string list
     -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
@@ -521,23 +521,29 @@ end; (* local *)
 
 (* code generation *)
 
-fun prep_destination (location, (s, pos)) =
-  if location = {physical = false}
-  then (location, Path.explode_pos (s, pos))
-  else
-    let
-      val _ =
-        if s = ""
-        then error ("Bad bad empty " ^ Markup.markup Markup.keyword2 "file" ^ " argument")
-        else ();
-      val _ =
-        legacy_feature
-          (Markup.markup Markup.keyword1 "export_code" ^ " with " ^
-            Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
-      val _ = Position.report pos Markup.language_path;
-      val path = #1 (Path.explode_pos (s, pos));
-      val _ = Position.report pos (Markup.path (Path.implode_symbolic path));
-    in (location, (path, pos)) end;
+fun prep_destination (location, source) =
+  let
+    val s = Input.string_of source
+    val pos = Input.pos_of source
+    val delimited = Input.is_delimited source
+  in
+    if location = {physical = false}
+    then (location, Path.explode_pos (s, pos))
+    else
+      let
+        val _ =
+          if s = ""
+          then error ("Bad bad empty " ^ Markup.markup Markup.keyword2 "file" ^ " argument")
+          else ();
+        val _ =
+          legacy_feature
+            (Markup.markup Markup.keyword1 "export_code" ^ " with " ^
+              Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
+        val _ = Position.report pos (Markup.language_path delimited);
+        val path = #1 (Path.explode_pos (s, pos));
+        val _ = Position.report pos (Markup.path (Path.implode_symbolic path));
+      in (location, (path, pos)) end
+  end;
 
 fun export_code all_public cs seris lthy =
   let
@@ -715,7 +721,7 @@ fun code_expr_inP (all_public, raw_cs) =
     -- Scan.optional (\<^keyword>\<open>module_name\<close> |-- Parse.name) ""
     -- Scan.option
         ((\<^keyword>\<open>file_prefix\<close> >> K {physical = false} || \<^keyword>\<open>file\<close> >> K {physical = true})
-          -- Parse.!!! (Parse.position Parse.path))
+          -- Parse.!!! Parse.path_input)
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 

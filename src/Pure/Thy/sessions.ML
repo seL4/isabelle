@@ -19,44 +19,44 @@ val theory_name = "Pure.Sessions";
 
 local
 
-val theory_entry = Parse.theory_name --| Parse.opt_keyword "global";
+val theory_entry = Parse.input Parse.theory_name --| Parse.opt_keyword "global";
 
 val theories =
   Parse.$$$ "theories" |-- Parse.!!! (Scan.optional Parse.options [] -- Scan.repeat1 theory_entry);
 
 val in_path =
-  Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.position Parse.path --| Parse.$$$ ")");
+  Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.path_input --| Parse.$$$ ")");
 
 val document_theories =
-  Parse.$$$ "document_theories" |-- Scan.repeat1 (Parse.position Parse.name);
+  Parse.$$$ "document_theories" |-- Scan.repeat1 (Parse.input Parse.theory_name);
 
 val document_files =
   Parse.$$$ "document_files" |--
-    Parse.!!! (Scan.optional in_path ("document", Position.none)
-      -- Scan.repeat1 (Parse.position Parse.path));
+    Parse.!!! (Scan.optional in_path (Input.string "document") -- Scan.repeat1 Parse.path_input);
 
 val prune =
   Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.nat --| Parse.$$$ "]")) 0;
 
 val export_files =
   Parse.$$$ "export_files" |--
-    Parse.!!!
-      (Scan.optional in_path ("export", Position.none) -- prune -- Scan.repeat1 Parse.embedded);
+    Parse.!!! (Scan.optional in_path (Input.string "export") -- prune -- Scan.repeat1 Parse.embedded);
+
+fun path_source source path =
+  Input.source (Input.is_delimited source) (Path.implode path) (Input.range_of source);
 
 in
 
 val command_parser =
   Parse.session_name --
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
-  Scan.optional (Parse.$$$ "in" |-- Parse.!!! (Parse.position Parse.path)) (".", Position.none) --
+  Scan.optional (Parse.$$$ "in" |-- Parse.!!! Parse.path_input) (Input.string ".") --
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
       Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
-      Scan.optional
-        (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.path))) [] --
+      Scan.optional (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 Parse.path_input)) [] --
       Scan.repeat theories --
       Scan.optional document_theories [] --
       Scan.repeat document_files --
@@ -84,27 +84,34 @@ val command_parser =
             ignore (Completion.check_option_value ctxt x y (Options.default ()))
               handle ERROR msg => Output.error_message msg);
 
-        fun check_thy (path, pos) =
-          ignore (Resources.check_file ctxt (SOME Path.current) (Path.implode path, pos))
+        fun check_thy source =
+          ignore (Resources.check_file ctxt (SOME Path.current) source)
             handle ERROR msg => Output.error_message msg;
 
         val _ =
-          maps #2 theories |> List.app (fn (s, pos) =>
+          maps #2 theories |> List.app (fn source =>
             let
+              val s = Input.string_of source;
+              val pos = Input.pos_of source;
               val {node_name, theory_name, ...} =
                 Resources.import_name session session_dir s
                   handle ERROR msg => error (msg ^ Position.here pos);
-              val theory_path = the_default node_name (Resources.find_theory_file theory_name);
-            in check_thy (theory_path, pos) end);
+              val thy_path = the_default node_name (Resources.find_theory_file theory_name);
+            in check_thy (path_source source thy_path) end);
 
         val _ =
           directories |> List.app (ignore o Resources.check_dir ctxt (SOME session_dir));
 
         val _ =
-          document_theories |> List.app (fn (thy, pos) =>
-            (case Resources.find_theory_file thy of
-              NONE => Output.error_message ("Unknown theory " ^ quote thy ^ Position.here pos)
-            | SOME path => check_thy (path, pos)));
+          document_theories |> List.app (fn source =>
+            let
+              val thy = Input.string_of source;
+              val pos = Input.pos_of source;
+            in
+              (case Resources.find_theory_file thy of
+                NONE => Output.error_message ("Unknown theory " ^ quote thy ^ Position.here pos)
+              | SOME path => check_thy (path_source source path))
+            end);
 
         val _ =
           document_files |> List.app (fn (doc_dir, doc_files) =>

@@ -7,7 +7,7 @@ Prover command execution: read -- eval -- print.
 signature COMMAND =
 sig
   type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option}
-  val read_file: Path.T -> Position.T -> Path.T -> Token.file
+  val read_file: Path.T -> Position.T -> bool -> Path.T -> Token.file
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob Exn.result list * int -> Token.T list -> Toplevel.transition
@@ -55,11 +55,11 @@ fun task_context group f =
 
 type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option};
 
-fun read_file_node file_node master_dir pos src_path =
+fun read_file_node file_node master_dir pos delimited src_path =
   let
     val _ =
       if Context_Position.pide_reports ()
-      then Position.report pos Markup.language_path else ();
+      then Position.report pos (Markup.language_path delimited) else ();
     val _ =
       (case try Url.explode file_node of
         NONE => ()
@@ -90,16 +90,19 @@ fun blob_file src_path lines digest file_node =
 
 fun resolve_files master_dir (blobs, blobs_index) toks =
   (case Outer_Syntax.parse_spans toks of
-    [Command_Span.Span (Command_Span.Command_Span (cmd, _), _)] =>
+    [Command_Span.Span (Command_Span.Command_Span _, _)] =>
       (case try (nth toks) blobs_index of
         SOME tok =>
           let
-            val pos = Token.pos_of tok;
+            val source = Token.input_of tok;
+            val pos = Input.pos_of source;
+            val delimited = Input.is_delimited source;
+
             fun make_file (Exn.Res {file_node, src_path, content = NONE}) =
                   Exn.interruptible_capture (fn () =>
-                    read_file_node file_node master_dir pos src_path) ()
+                    read_file_node file_node master_dir pos delimited src_path) ()
               | make_file (Exn.Res {file_node, src_path, content = SOME (digest, lines)}) =
-                  (Position.report pos Markup.language_path;
+                  (Position.report pos (Markup.language_path delimited);
                     Exn.Res (blob_file src_path lines digest file_node))
               | make_file (Exn.Exn e) = Exn.Exn e;
             val files = map make_file blobs;

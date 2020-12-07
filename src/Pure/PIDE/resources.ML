@@ -44,9 +44,9 @@ sig
   val provide_parse_files: (Path.T -> Path.T list) -> (theory -> Token.file list * theory) parser
   val provide_parse_file: (theory -> Token.file * theory) parser
   val loaded_files_current: theory -> bool
-  val check_path: Proof.context -> Path.T option -> string * Position.T -> Path.T
-  val check_file: Proof.context -> Path.T option -> string * Position.T -> Path.T
-  val check_dir: Proof.context -> Path.T option -> string * Position.T -> Path.T
+  val check_path: Proof.context -> Path.T option -> Input.source -> Path.T
+  val check_file: Proof.context -> Path.T option -> Input.source -> Path.T
+  val check_dir: Proof.context -> Path.T option -> Input.source -> Path.T
 end;
 
 structure Resources: RESOURCES =
@@ -288,14 +288,16 @@ fun check_thy dir thy_name =
 (* load files *)
 
 fun parse_files make_paths =
-  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
+  Scan.ahead Parse.not_eof -- Parse.path_input >> (fn (tok, source) => fn thy =>
     (case Token.get_files tok of
       [] =>
         let
           val master_dir = master_directory thy;
-          val pos = Token.pos_of tok;
+          val name = Input.string_of source;
+          val pos = Input.pos_of source;
+          val delimited = Input.is_delimited source;
           val src_paths = make_paths (Path.explode name);
-        in map (Command.read_file master_dir pos) src_paths end
+        in map (Command.read_file master_dir pos delimited) src_paths end
     | files => map Exn.release files));
 
 val parse_file = parse_files single >> (fn f => f #> the_single);
@@ -336,11 +338,15 @@ fun loaded_files_current thy =
 
 (* formal check *)
 
-fun formal_check check_file ctxt opt_dir (name, pos) =
+fun formal_check check_file ctxt opt_dir source =
   let
-    fun err msg = error (msg ^ Position.here pos);
+    val name = Input.string_of source;
+    val pos = Input.pos_of source;
+    val delimited = Input.is_delimited source;
 
-    val _ = Context_Position.report ctxt pos Markup.language_path;
+    val _ = Context_Position.report ctxt pos (Markup.language_path delimited);
+
+    fun err msg = error (msg ^ Position.here pos);
     val dir =
       (case opt_dir of
         SOME dir => dir
@@ -348,7 +354,7 @@ fun formal_check check_file ctxt opt_dir (name, pos) =
     val path = dir + Path.explode name handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.implode_symbolic path));
-    val _ = check_file path handle ERROR msg => err msg;
+    val _ : Path.T = check_file path handle ERROR msg => err msg;
   in path end;
 
 val check_path = formal_check I;
@@ -360,16 +366,16 @@ val check_dir = formal_check File.check_dir;
 
 local
 
-fun document_antiq (check: Proof.context -> Path.T option -> string * Position.T -> Path.T) =
-  Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
+fun document_antiq (check: Proof.context -> Path.T option -> Input.source -> Path.T) =
+  Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>
     let
-      val _ = check ctxt NONE (name, pos);
-      val latex = Latex.string (Latex.output_ascii_breakable "/" name);
+      val _ = check ctxt NONE source;
+      val latex = Latex.string (Latex.output_ascii_breakable "/" (Input.string_of source));
     in Latex.enclose_block "\\isatt{" "}" [latex] end);
 
 fun ML_antiq check =
-  Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
-    check ctxt (SOME Path.current) (name, pos) |> ML_Syntax.print_path);
+  Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>
+    check ctxt (SOME Path.current) source |> ML_Syntax.print_path);
 
 in
 

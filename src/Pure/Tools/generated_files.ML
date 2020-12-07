@@ -41,7 +41,7 @@ sig
     Path.binding -> Input.source -> unit
   val compile_generated_files_cmd: Proof.context ->
     ((string * Position.T) list * (string * Position.T) option) list ->
-    ((string * Position.T) list * (string * Position.T)) list ->
+    (Input.source list * Input.source) list ->
     ((string * Position.T) list * bool option) list ->
     string * Position.T -> Input.source -> unit
   val execute: Path.T -> Input.source -> string -> string
@@ -319,7 +319,9 @@ fun compile_generated_files_cmd ctxt args external export export_prefix source =
     (external |> map (fn (raw_files, raw_base_dir) =>
       let
         val base_dir = Resources.check_dir ctxt NONE raw_base_dir;
-        fun check (s, pos) = (Resources.check_file ctxt (SOME base_dir) (s, pos); Path.explode s);
+        fun check source =
+         (Resources.check_file ctxt (SOME base_dir) source;
+          Path.explode (Input.string_of source));
         val files = map check raw_files;
       in (files, base_dir) end))
     ((map o apfst o map) Path.explode_binding export)
@@ -380,8 +382,8 @@ val _ =
 
 fun path_antiquotation binding check =
   antiquotation binding
-    (Args.context -- Scan.lift (Parse.position Parse.path) >>
-      (fn (ctxt, (name, pos)) => (check ctxt (SOME Path.current) (name, pos) |> Path.implode)))
+    (Args.context -- Scan.lift Parse.path_input >>
+      (fn (ctxt, source) => (check ctxt (SOME Path.current) source |> Path.implode)))
     (fn {file_type, argument, ...} => #make_string file_type argument);
 
 val _ =

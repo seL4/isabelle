@@ -315,9 +315,15 @@ val escape_url =
   translate_string (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_position)
-    (fn ctxt => fn (url, pos) =>
-      let val _ = Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url url)];
+  (Thy_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
+    (fn ctxt => fn source =>
+      let
+        val url = Input.string_of source;
+        val pos = Input.pos_of source;
+        val delimited = Input.is_delimited source;
+        val _ =
+          Context_Position.reports ctxt
+            [(pos, Markup.language_path delimited), (pos, Markup.url url)];
       in Latex.enclose_block "\\url{" "}" [Latex.string (escape_url url)] end));
 
 

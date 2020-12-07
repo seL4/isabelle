@@ -135,13 +135,13 @@ local
               (lines, pos0) |-> fold (fn line => fn pos1 =>
                 let
                   val pos2 = pos1 |> fold Position.advance (Symbol.explode line);
-                  val pos = Position.range_position (pos1, pos2);
+                  val range = Position.range (pos1, pos2);
                   val _ =
                     if line = "" then ()
                     else if String.isPrefix "#" line then
-                      Context_Position.report ctxt pos Markup.comment
+                      Context_Position.report ctxt (#1 range) Markup.comment
                     else
-                      (ignore (Resources.check_dir ctxt (SOME dir) (line, pos))
+                      (ignore (Resources.check_dir ctxt (SOME dir) (Input.source true line range))
                         handle ERROR msg => Output.error_message msg);
                 in pos2 |> Position.advance "\n" end);
           in thy' end)));
@@ -167,9 +167,9 @@ local
 
   val base_dir =
     Scan.optional (\<^keyword>\<open>(\<close> |--
-      Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.position Parse.path --| \<^keyword>\<open>)\<close>)) ("", Position.none);
+      Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.path_input --| \<^keyword>\<open>)\<close>)) (Input.string "");
 
-  val external_files = Scan.repeat1 (Parse.position Parse.path) -- base_dir;
+  val external_files = Scan.repeat1 Parse.path_input -- base_dir;
 
   val exe = Parse.reserved "exe" >> K true || Parse.reserved "executable" >> K false;
   val executable = \<^keyword>\<open>(\<close> |-- Parse.!!! (exe --| \<^keyword>\<open>)\<close>) >> SOME || Scan.succeed NONE;
