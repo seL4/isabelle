@@ -41,7 +41,7 @@ object Export_Theory
             for (theory <- Export.read_theory_names(db, session))
             yield {
               progress.echo("Reading theory " + theory)
-              read_theory(Export.Provider.database(db, session, theory),
+              read_theory(Export.Provider.database(db, store.xz_cache, session, theory),
                 session, theory, cache = Some(cache))
             }
           }
@@ -113,7 +113,7 @@ object Export_Theory
       if (theory_name == Thy_Header.PURE) Nil
       else {
         provider(Export.THEORY_PREFIX + "parents") match {
-          case Some(entry) => split_lines(entry.uncompressed().text)
+          case Some(entry) => split_lines(entry.uncompressed.text)
           case None =>
             error("Missing theory export in session " + quote(session_name) + ": " +
               quote(theory_name))
@@ -145,7 +145,8 @@ object Export_Theory
     using(store.open_database(session_name))(db =>
     {
       db.transaction {
-        read(Export.Provider.database(db, session_name, theory_name), session_name, theory_name)
+        read(Export.Provider.database(
+          db, store.xz_cache, session_name, theory_name), session_name, theory_name)
       }
     })
   }
@@ -378,7 +379,7 @@ object Export_Theory
   {
     for { entry <- provider.focus(id.theory_name)(Export.PROOFS_PREFIX + id.serial) }
     yield {
-      val body = entry.uncompressed_yxml()
+      val body = entry.uncompressed_yxml
       val (typargs, (args, (prop_body, proof_body))) =
       {
         import XML.Decode._

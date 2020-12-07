@@ -56,13 +56,13 @@ object Dump
           for {
             entry <- args.snapshot.exports
             if entry.name_has_prefix(Export.DOCUMENT_PREFIX)
-          } args.write(Path.explode(entry.name), entry.uncompressed())),
+          } args.write(Path.explode(entry.name), entry.uncompressed)),
       Aspect("theory", "foundational theory content",
         args =>
           for {
             entry <- args.snapshot.exports
             if entry.name_has_prefix(Export.THEORY_PREFIX)
-          } args.write(Path.explode(entry.name), entry.uncompressed()),
+          } args.write(Path.explode(entry.name), entry.uncompressed),
         options = List("export_theory"))
     ).sortBy(_.name)
 

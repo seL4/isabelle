@@ -472,7 +472,7 @@ object Presentation
       for (name <- base.session_theories ::: base.document_theories)
       yield {
         val entry = db_context.get_export(session, name.theory, document_tex_name(name))
-        Path.basic(tex_name(name)) -> entry.uncompressed(cache = db_context.xz_cache)
+        Path.basic(tex_name(name)) -> entry.uncompressed
       }
 
     def prepare_dir1(dir: Path, doc: Document_Variant): (Path, String) =

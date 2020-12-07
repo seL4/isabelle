@@ -49,7 +49,7 @@ object Isabelle_Export
                 } yield {
                   val is_dir = entry.name_elems.length > depth
                   val path = Export.implode_name(theory :: entry.name_elems.take(depth))
-                  val file_size = if (is_dir) None else Some(entry.uncompressed().length.toLong)
+                  val file_size = if (is_dir) None else Some(entry.uncompressed.length.toLong)
                   (path, file_size)
                 }).toSet.toList
               (for ((path, file_size) <- entries.iterator) yield {
@@ -76,7 +76,7 @@ object Isabelle_Export
               if node_name.theory == theory
               (_, entry) <- snapshot.state.node_exports(version, node_name).iterator
               if entry.name_elems == name_elems
-            } yield entry.uncompressed()).find(_ => true).getOrElse(Bytes.empty)
+            } yield entry.uncompressed).find(_ => true).getOrElse(Bytes.empty)
 
           bytes.stream()
       }

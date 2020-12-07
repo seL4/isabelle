@@ -1224,11 +1224,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       val attempts =
         database_server match {
           case Some(db) =>
-            hierarchy.map(session_name => Export.read_entry(db, session_name, theory_name, name))
+            hierarchy.map(session_name =>
+              Export.read_entry(db, store.xz_cache, session_name, theory_name, name))
           case None =>
             hierarchy.map(session_name =>
               store.try_open_database(session_name) match {
-                case Some(db) => using(db)(Export.read_entry(_, session_name, theory_name, name))
+                case Some(db) =>
+                  using(db)(Export.read_entry(_, store.xz_cache, session_name, theory_name, name))
                 case None => None
               })
         }

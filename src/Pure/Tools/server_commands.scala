@@ -276,7 +276,7 @@ object Server_Commands
                     val matcher = Export.make_matcher(args.export_pattern)
                     for { entry <- snapshot.exports if matcher(entry.theory_name, entry.name) }
                     yield {
-                      val (base64, body) = entry.uncompressed().maybe_base64
+                      val (base64, body) = entry.uncompressed.maybe_base64
                       JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
                     }
                   }))

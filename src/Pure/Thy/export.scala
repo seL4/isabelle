@@ -85,14 +85,16 @@ object Export
   def compound_name(a: String, b: String): String = a + ":" + b
 
   def empty_entry(session_name: String, theory_name: String, name: String): Entry =
-    Entry(session_name, theory_name, name, false, Future.value(false, Bytes.empty))
+    Entry(session_name, theory_name, name, false,
+      Future.value(false, Bytes.empty), XZ.no_cache())
 
   sealed case class Entry(
     session_name: String,
     theory_name: String,
     name: String,
     executable: Boolean,
-    body: Future[(Boolean, Bytes)])
+    body: Future[(Boolean, Bytes)],
+    cache: XZ.Cache)
   {
     override def toString: String = name
 
@@ -104,16 +106,16 @@ object Export
     def name_extends(elems: List[String]): Boolean =
       name_elems.startsWith(elems) && name_elems != elems
 
-    def text: String = uncompressed().text
+    def text: String = uncompressed.text
 
-    def uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
+    def uncompressed: Bytes =
     {
       val (compressed, bytes) = body.join
       if (compressed) bytes.uncompress(cache = cache) else bytes
     }
 
-    def uncompressed_yxml(cache: XZ.Cache = XZ.cache()): XML.Body =
-      YXML.parse_body(UTF8.decode_permissive(uncompressed(cache = cache)))
+    def uncompressed_yxml: XML.Body =
+      YXML.parse_body(UTF8.decode_permissive(uncompressed))
 
     def write(db: SQL.Database)
     {
@@ -156,16 +158,19 @@ object Export
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
-  def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes,
-    cache: XZ.Cache = XZ.cache()): Entry =
+  def make_entry(
+    session_name: String, args: Protocol.Export.Args, bytes: Bytes,
+    cache: XZ.Cache): Entry =
   {
-    Entry(session_name, args.theory_name, args.name, args.executable,
-      if (args.compress) Future.fork(body.maybe_compress(cache = cache))
-      else Future.value((false, body)))
+    val body =
+      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache))
+      else Future.value((false, bytes))
+    Entry(session_name, args.theory_name, args.name, args.executable, body, cache)
   }
 
-  def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String)
-    : Option[Entry] =
+  def read_entry(
+    db: SQL.Database, cache: XZ.Cache,
+    session_name: String, theory_name: String, name: String): Option[Entry] =
   {
     val select =
       Data.table.select(List(Data.executable, Data.compressed, Data.body),
@@ -176,20 +181,24 @@ object Export
       if (res.next()) {
         val executable = res.bool(Data.executable)
         val compressed = res.bool(Data.compressed)
-        val body = res.bytes(Data.body)
-        Some(Entry(session_name, theory_name, name, executable, Future.value(compressed, body)))
+        val bytes = res.bytes(Data.body)
+        val body = Future.value(compressed, bytes)
+        Some(Entry(session_name, theory_name, name, executable, body, cache))
       }
       else None
     })
   }
 
-  def read_entry(dir: Path, session_name: String, theory_name: String, name: String): Option[Entry] =
+  def read_entry(
+    dir: Path, cache: XZ.Cache,
+    session_name: String, theory_name: String, name: String): Option[Entry] =
   {
     val path = dir + Path.basic(theory_name) + Path.explode(name)
     if (path.is_file) {
       val executable = File.is_executable(path)
       val uncompressed = Bytes.read(path)
-      Some(Entry(session_name, theory_name, name, executable, Future.value((false, uncompressed))))
+      val body = Future.value((false, uncompressed))
+      Some(Entry(session_name, theory_name, name, executable, body, cache))
     }
     else None
   }
@@ -197,7 +206,7 @@ object Export
 
   /* database consumer thread */
 
-  def consumer(db: SQL.Database, cache: XZ.Cache = XZ.cache()): Consumer = new Consumer(db, cache)
+  def consumer(db: SQL.Database, cache: XZ.Cache): Consumer = new Consumer(db, cache)
 
   class Consumer private[Export](db: SQL.Database, cache: XZ.Cache)
   {
@@ -227,7 +236,7 @@ object Export
           })
 
     def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit =
-      consumer.send(make_entry(session_name, args, body, cache = cache) -> args.strict)
+      consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
 
     def shutdown(close: Boolean = false): List[String] =
     {
@@ -261,14 +270,16 @@ object Export
         override def toString: String = context.toString
       }
 
-    def database(db: SQL.Database, session_name: String, theory_name: String): Provider =
+    def database(
+        db: SQL.Database, cache: XZ.Cache,
+        session_name: String, theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          read_entry(db, session_name, theory_name, export_name)
+          read_entry(db, cache, session_name, theory_name, export_name)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
-          else Provider.database(db, session_name, other_theory)
+          else Provider.database(db, cache, session_name, other_theory)
 
         override def toString: String = db.toString
       }
@@ -290,14 +301,16 @@ object Export
         override def toString: String = snapshot.toString
       }
 
-    def directory(dir: Path, session_name: String, theory_name: String): Provider =
+    def directory(
+        dir: Path, cache: XZ.Cache,
+        session_name: String, theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          read_entry(dir, session_name, theory_name, export_name)
+          read_entry(dir, cache, session_name, theory_name, export_name)
 
         def focus(other_theory: String): Provider =
           if (other_theory == theory_name) this
-          else Provider.directory(dir, session_name, other_theory)
+          else Provider.directory(dir, cache, session_name, other_theory)
 
         override def toString: String = dir.toString
       }
@@ -307,9 +320,9 @@ object Export
   {
     def apply(export_name: String): Option[Entry]
 
-    def uncompressed_yxml(export_name: String, cache: XZ.Cache = XZ.cache()): XML.Body =
+    def uncompressed_yxml(export_name: String): XML.Body =
       apply(export_name) match {
-        case Some(entry) => entry.uncompressed_yxml(cache = cache)
+        case Some(entry) => entry.uncompressed_yxml
         case None => Nil
       }
 
@@ -350,7 +363,7 @@ object Export
           for {
             (theory_name, group) <- exports.toList.groupBy(_._1).toList.sortBy(_._1)
             name <- group.map(_._2).sorted
-            entry <- read_entry(db, session_name, theory_name, name)
+            entry <- read_entry(db, store.xz_cache, session_name, theory_name, name)
           } {
             val elems = theory_name :: space_explode('/', name)
             val path =
@@ -361,7 +374,7 @@ object Export
 
             progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
             Isabelle_System.make_directory(path.dir)
-            Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
+            Bytes.write(path, entry.uncompressed)
             File.set_executable(path, entry.executable)
           }
         }
