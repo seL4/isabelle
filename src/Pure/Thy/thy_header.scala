@@ -90,6 +90,12 @@ object Thy_Header
       case _ => None
     }
 
+  def dir_name(s: String): String =
+    split_file_name(s) match {
+      case Some((dir, _)) => dir
+      case None => ""
+    }
+
   def import_name(s: String): String =
     s match {
       case File_Name(name) if !name.endsWith(".thy") => name

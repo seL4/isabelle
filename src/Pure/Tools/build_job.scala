@@ -13,12 +13,10 @@ import scala.collection.mutable
 object Build_Job
 {
   def read_theory(
-    db_context: Sessions.Database_Context, node_name: Document.Node.Name): Command =
+    db_context: Sessions.Database_Context, session: String, theory: String): Option[Command] =
   {
-    val session = db_context.sessions_structure.bootstrap.theory_qualifier(node_name)
-
     def read(name: String): Export.Entry =
-      db_context.get_export(session, node_name.theory, name)
+      db_context.get_export(session, theory, name)
 
     def read_xml(name: String): XML.Body =
       db_context.xml_cache.body(
@@ -26,17 +24,14 @@ object Build_Job
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
+        val node_name = Document.Node.Name(thy_file, Thy_Header.dir_name(thy_file), theory)
         val thy_path = Path.explode(thy_file)
         val thy_source = Symbol.decode(File.read(thy_path))
 
         val blobs =
           blobs_files.map(file =>
           {
-            val master_dir =
-              Thy_Header.split_file_name(file) match {
-                case Some((dir, _)) => dir
-                case None => ""
-              }
+            val master_dir = Thy_Header.dir_name(file)
             val path = Path.explode(file)
             val src_path = File.relative_path(thy_path, path).getOrElse(path)
             Command.Blob.read_file(Document.Node.Name(file, master_dir), src_path)
@@ -60,10 +55,11 @@ object Build_Job
               index -> Markup_Tree.from_XML(xml)
             })
 
-        Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
-          blobs_info = blobs_info, results = results, markups = markups)
-
-      case _ => error("Malformed PIDE exports for theory " + node_name)
+        val command =
+          Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
+            blobs_info = blobs_info, results = results, markups = markups)
+        Some(command)
+      case _ => None
     }
   }
 }
