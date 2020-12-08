@@ -821,6 +821,8 @@ object Sessions
       deps
     }
 
+    def hierarchy(session: String): List[String] = build_graph.all_preds(List(session))
+
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds_rev(ss)
@@ -1194,7 +1196,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   class Database_Context private[Sessions](
     val store: Sessions.Store,
-    val sessions_structure: Sessions.Structure,
     database_server: Option[SQL.Database]) extends AutoCloseable
   {
     def xml_cache: XML.Cache = store.xml_cache
@@ -1218,16 +1219,16 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           }
       }
 
-    def read_export(session: String, theory_name: String, name: String): Option[Export.Entry] =
+    def read_export(
+      sessions: List[String], theory_name: String, name: String): Option[Export.Entry] =
     {
-      val hierarchy = sessions_structure.build_graph.all_preds(List(session)).view
       val attempts =
         database_server match {
           case Some(db) =>
-            hierarchy.map(session_name =>
+            sessions.view.map(session_name =>
               Export.read_entry(db, store.xz_cache, session_name, theory_name, name))
           case None =>
-            hierarchy.map(session_name =>
+            sessions.view.map(session_name =>
               store.try_open_database(session_name) match {
                 case Some(db) =>
                   using(db)(Export.read_entry(_, store.xz_cache, session_name, theory_name, name))
@@ -1237,9 +1238,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       attempts.collectFirst({ case Some(entry) => entry })
     }
 
-    def get_export(session: String, theory_name: String, name: String): Export.Entry =
-      read_export(session, theory_name, name) getOrElse
-        Export.empty_entry(session, theory_name, name)
+    def get_export(
+        session_hierarchy: List[String], theory_name: String, name: String): Export.Entry =
+      read_export(session_hierarchy, theory_name, name) getOrElse
+        Export.empty_entry(theory_name, name)
 
     override def toString: String =
     {
@@ -1331,9 +1333,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    def open_database_context(sessions_structure: Sessions.Structure): Database_Context =
-      new Database_Context(store, sessions_structure,
-        if (database_server) Some(open_database_server()) else None)
+    def open_database_context(): Database_Context =
+      new Database_Context(store, if (database_server) Some(open_database_server()) else None)
 
     def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
     {

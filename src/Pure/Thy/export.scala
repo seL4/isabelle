@@ -84,9 +84,8 @@ object Export
 
   def compound_name(a: String, b: String): String = a + ":" + b
 
-  def empty_entry(session_name: String, theory_name: String, name: String): Entry =
-    Entry(session_name, theory_name, name, false,
-      Future.value(false, Bytes.empty), XZ.no_cache())
+  def empty_entry(theory_name: String, name: String): Entry =
+    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XZ.no_cache())
 
   sealed case class Entry(
     session_name: String,
@@ -260,10 +259,12 @@ object Export
       }
 
     def database_context(
-        context: Sessions.Database_Context, session: String, theory_name: String): Provider =
+        context: Sessions.Database_Context,
+        sessions: List[String],
+        theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
-          context.read_export(session, theory_name, export_name)
+          context.read_export(sessions, theory_name, export_name)
 
         def focus(other_theory: String): Provider = this
 

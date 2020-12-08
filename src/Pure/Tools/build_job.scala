@@ -12,11 +12,13 @@ import scala.collection.mutable
 
 object Build_Job
 {
+  /* theory markup/messages from database */
+
   def read_theory(
     db_context: Sessions.Database_Context, session: String, theory: String): Option[Command] =
   {
     def read(name: String): Export.Entry =
-      db_context.get_export(session, theory, name)
+      db_context.get_export(List(session), theory, name)
 
     def read_xml(name: String): XML.Body =
       db_context.xml_cache.body(
@@ -322,7 +324,7 @@ class Build_Job(progress: Progress,
         try {
           if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
           {
-            using(store.open_database_context(deps.sessions_structure))(db_context =>
+            using(store.open_database_context())(db_context =>
               {
                 val documents =
                   Presentation.build_documents(session_name, deps, db_context,

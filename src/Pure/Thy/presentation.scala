@@ -461,6 +461,7 @@ object Presentation
     /* session info */
 
     val info = deps.sessions_structure(session)
+    val hierarchy = deps.sessions_structure.hierarchy(session)
     val options = info.options
     val base = deps(session)
     val graph_pdf = graphview.Graph_File.make_pdf(options, base.session_graph_display)
@@ -471,7 +472,7 @@ object Presentation
     lazy val tex_files =
       for (name <- base.session_theories ::: base.document_theories)
       yield {
-        val entry = db_context.get_export(session, name.theory, document_tex_name(name))
+        val entry = db_context.get_export(hierarchy, name.theory, document_tex_name(name))
         Path.basic(tex_name(name)) -> entry.uncompressed
       }
 
@@ -673,7 +674,7 @@ Usage: isabelle document [OPTIONS] SESSION
           progress.echo_warning("No output directory")
         }
 
-        using(store.open_database_context(deps.sessions_structure))(db_context =>
+        using(store.open_database_context())(db_context =>
           build_documents(session, deps, db_context, progress = progress,
             output_sources = output_sources, output_pdf = output_pdf,
             verbose = true, verbose_latex = verbose_latex))
