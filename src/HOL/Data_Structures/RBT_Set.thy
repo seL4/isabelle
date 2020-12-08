@@ -265,13 +265,13 @@ by(cases t rule: tree2_cases) auto
 
 lemma inv_del: "\<lbrakk> invh t; invc t \<rbrakk> \<Longrightarrow>
    invh (del x t) \<and>
-   (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
-    color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
+   (color t = Red \<longrightarrow> bheight (del x t) = bheight t \<and> invc (del x t)) \<and>
+   (color t = Black \<longrightarrow> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
 by(induct x t rule: del.induct)
   (auto simp: inv_baldL inv_baldR inv_join dest!: neq_LeafD)
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete x t)"
-by (metis delete_def rbt_def color_paint_Black inv_del invc2I invh_paint)
+by (metis delete_def rbt_def color_paint_Black inv_del invh_paint)
 
 text \<open>Overall correctness:\<close>
 
