@@ -15,7 +15,10 @@ object Build_Job
   /* theory markup/messages from database */
 
   def read_theory(
-    db_context: Sessions.Database_Context, session: String, theory: String): Option[Command] =
+    db_context: Sessions.Database_Context,
+    resources: Resources,
+    session: String,
+    theory: String): Option[Command] =
   {
     def read(name: String): Export.Entry =
       db_context.get_export(List(session), theory, name)
@@ -26,17 +29,16 @@ object Build_Job
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
-        val node_name = Document.Node.Name(thy_file, Thy_Header.dir_name(thy_file), theory)
         val thy_path = Path.explode(thy_file)
         val thy_source = Symbol.decode(File.read(thy_path))
+        val node_name = resources.file_node(thy_path, theory = theory)
 
         val blobs =
           blobs_files.map(file =>
           {
-            val master_dir = Thy_Header.dir_name(file)
             val path = Path.explode(file)
             val src_path = File.relative_path(thy_path, path).getOrElse(path)
-            Command.Blob.read_file(Document.Node.Name(file, master_dir), src_path)
+            Command.Blob.read_file(resources.file_node(path), src_path)
           })
         val blobs_info = Command.Blobs_Info(blobs.map(Exn.Res(_)))
 

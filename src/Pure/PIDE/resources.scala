@@ -69,7 +69,7 @@ class Resources(
   def append(node_name: Document.Node.Name, source_path: Path): String =
     append(node_name.master_dir, source_path)
 
-  def make_theory_node(dir: String, file: Path, theory: String): Document.Node.Name =
+  def file_node(file: Path, dir: String = "", theory: String = ""): Document.Node.Name =
   {
     val node = append(dir, file)
     val master_dir = append(dir, file.dir)
@@ -155,13 +155,13 @@ class Resources(
         case None => Nil
       }
     dirs.collectFirst({
-      case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
+      case dir if (dir + thy_file).is_file => file_node(dir + thy_file, theory = theory) })
   }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    def theory_node = make_theory_node(dir, Path.explode(s).thy, theory)
+    def theory_node = file_node(Path.explode(s).thy, dir = dir, theory = theory)
 
     if (!Thy_Header.is_base_name(s)) theory_node
     else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
