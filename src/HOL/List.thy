@@ -2128,6 +2128,12 @@ lemma take_all [simp]: "length xs \<le> n \<Longrightarrow> take n xs = xs"
 lemma drop_all [simp]: "length xs \<le> n \<Longrightarrow> drop n xs = []"
   by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
+lemma take_all_iff [simp]: "take n xs = xs \<longleftrightarrow> length xs \<le> n"
+by (metis length_take min.order_iff take_all)
+
+lemma drop_all_iff [simp]: "drop n xs = [] \<longleftrightarrow> length xs \<le> n"
+by (metis diff_is_0_eq drop_all length_drop list.size(3))
+
 lemma take_append [simp]:
   "take n (xs @ ys) = (take n xs @ take (n - length xs) ys)"
   by (induct n arbitrary: xs) (auto, case_tac xs, auto)
