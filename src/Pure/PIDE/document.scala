@@ -998,7 +998,7 @@ object Document
             Command.unparsed(command.source, theory = true, id = command.id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - command1.id)
-          val snapshot = state1.snapshot(node_name = node_name).command_snippet(command1)
+          val snapshot = state1.command_snippet(command1)
           (snapshot, state1)
       }
 
@@ -1253,5 +1253,8 @@ object Document
 
       new Snapshot(this, version, node_name, edits, snippet_command)
     }
+
+    def command_snippet(command: Command): Snapshot =
+      snapshot().command_snippet(command)
   }
 }

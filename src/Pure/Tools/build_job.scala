@@ -107,7 +107,7 @@ object Build_Job
               case None => progress.echo(thy_heading + ": MISSING")
               case Some(command) =>
                 progress.echo(thy_heading)
-                val snapshot = Document.State.init.snapshot().command_snippet(command)
+                val snapshot = Document.State.init.command_snippet(command)
                 val rendering = new Rendering(snapshot, options, session)
                 for (Text.Info(_, t) <- rendering.text_messages(Text.Range.full)) {
                   progress.echo(
