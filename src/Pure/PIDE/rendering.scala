@@ -230,14 +230,14 @@ object Rendering
       Markup.Markdown_Bullet.name)
 }
 
-abstract class Rendering(
+class Rendering(
   val snapshot: Document.Snapshot,
   val options: Options,
   val session: Session)
 {
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
-  def model: Document.Model
+  def get_text(range: Text.Range): Option[String] = None
 
 
   /* caret */
@@ -275,7 +275,7 @@ abstract class Rendering(
     semantic_completion(completed_range, caret_range) match {
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
-        model.get_text(range) match {
+        get_text(range) match {
           case Some(original) => (false, names.complete(range, history, unicode, original))
           case None => (false, None)
         }
@@ -358,7 +358,7 @@ abstract class Rendering(
 
     for {
       Text.Info(r1, delimited) <- language_path(before_caret_range(caret))
-      s1 <- model.get_text(r1)
+      s1 <- get_text(r1)
       (r2, s2) <-
         if (is_wrapped(s1)) {
           Some((Text.Range(r1.start + 1, r1.stop - 1), s1.substring(1, s1.length - 1)))

@@ -118,10 +118,6 @@ class Build_Job(progress: Progress,
             }
           }
         }
-      def make_rendering(snapshot: Document.Snapshot): Rendering =
-        new Rendering(snapshot, options, session) {
-          override def model: Document.Model = ???
-        }
 
       object Build_Session_Errors
       {
@@ -231,7 +227,7 @@ class Build_Job(progress: Progress,
       session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
         {
           case snapshot =>
-            val rendering = make_rendering(snapshot)
+            val rendering = new Rendering(snapshot, options, session)
 
             def export(name: String, xml: XML.Body, compress: Boolean = true)
             {

@@ -161,10 +161,10 @@ object JEdit_Rendering
 }
 
 
-class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, options: Options)
+class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, options: Options)
   extends Rendering(snapshot, options, PIDE.session)
 {
-  def model: Document_Model = _model
+  override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
 
   /* colors */

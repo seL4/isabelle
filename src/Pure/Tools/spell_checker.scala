@@ -56,7 +56,7 @@ object Spell_Checker
   {
     for {
       spell_range <- rendering.spell_checker_point(range)
-      text <- rendering.model.get_text(spell_range)
+      text <- rendering.get_text(spell_range)
       info <- marked_words(spell_range.start, text, info => info.range.overlaps(range)).headOption
     } yield info
   }
