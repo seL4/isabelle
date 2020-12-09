@@ -513,13 +513,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 try { global_state.change(_.begin_theory(node_name, id, msg.text, blobs_info)) }
                 catch { case _: Document.State.Fail => bad_output() }
 
-              case Markup.Finished_Theory(theory) =>
-                try {
-                  val snapshot = global_state.change_result(_.end_theory(theory))
-                  finished_theories.post(snapshot)
-                }
-                catch { case _: Document.State.Fail => bad_output() }
-
               case List(Markup.Commands_Accepted.PROPERTY) =>
                 msg.text match {
                   case Protocol.Commands_Accepted(ids) =>
@@ -584,6 +577,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
             case Markup.Process_Result(result) if output.is_exit =>
               if (prover.defined) protocol_handlers.exit()
+              for (id <- global_state.value.theories.keys) {
+                val snapshot = global_state.change_result(_.end_theory(id))
+                finished_theories.post(snapshot)
+              }
               file_formats.stop_session
               phase = Session.Terminated(result)
               prover.reset

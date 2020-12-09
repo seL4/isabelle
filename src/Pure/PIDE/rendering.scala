@@ -211,6 +211,7 @@ object Rendering
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
 
+  val message_elements = Markup.Elements(message_pri.keySet)
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements = Markup.Elements(Markup.ERROR)
 
@@ -230,14 +231,14 @@ object Rendering
       Markup.Markdown_Bullet.name)
 }
 
-abstract class Rendering(
+class Rendering(
   val snapshot: Document.Snapshot,
   val options: Options,
   val session: Session)
 {
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
-  def model: Document.Model
+  def get_text(range: Text.Range): Option[String] = None
 
 
   /* caret */
@@ -275,7 +276,7 @@ abstract class Rendering(
     semantic_completion(completed_range, caret_range) match {
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
-        model.get_text(range) match {
+        get_text(range) match {
           case Some(original) => (false, names.complete(range, history, unicode, original))
           case None => (false, None)
         }
@@ -358,7 +359,7 @@ abstract class Rendering(
 
     for {
       Text.Info(r1, delimited) <- language_path(before_caret_range(caret))
-      s1 <- model.get_text(r1)
+      s1 <- get_text(r1)
       (r2, s2) <-
         if (is_wrapped(s1)) {
           Some((Text.Range(r1.start + 1, r1.stop - 1), s1.substring(1, s1.length - 1)))
@@ -520,7 +521,7 @@ abstract class Rendering(
   }
 
 
-  /* message underline color */
+  /* messages */
 
   def message_underline_color(elements: Markup.Elements, range: Text.Range)
     : List[Text.Info[Rendering.Color.Value]] =
@@ -534,6 +535,39 @@ abstract class Rendering(
       Text.Info(r, pri) <- results
       color <- Rendering.message_underline_color.get(pri)
     } yield Text.Info(r, color)
+  }
+
+  def text_messages(range: Text.Range): List[Text.Info[XML.Tree]] =
+  {
+    val results =
+      snapshot.cumulate[Vector[XML.Tree]](range, Vector.empty, Rendering.message_elements,
+        states =>
+          {
+            case (res, Text.Info(_, elem)) =>
+              elem.markup.properties match {
+                case Markup.Serial(i) =>
+                  states.collectFirst(
+                  {
+                    case st if st.results.get(i).isDefined =>
+                      res :+ st.results.get(i).get
+                  })
+                case _ => None
+              }
+            case _ => None
+          })
+
+    var seen_serials = Set.empty[Long]
+    val seen: XML.Tree => Boolean =
+    {
+      case XML.Elem(Markup(_, Markup.Serial(i)), _) =>
+        val b = seen_serials(i); seen_serials += i; b
+      case _ => false
+    }
+    for {
+      Text.Info(range, trees) <- results
+      tree <- trees
+      if !seen(tree)
+    } yield Text.Info(range, tree)
   }
 
 

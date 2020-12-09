@@ -53,7 +53,7 @@ object Build_Doc
           try {
             progress.echo("Documentation " + doc + " ...")
 
-            using(store.open_database_context(deps.sessions_structure))(db_context =>
+            using(store.open_database_context())(db_context =>
               Presentation.build_documents(session, deps, db_context,
                 output_pdf = Some(Path.explode("~~/doc"))))
             None

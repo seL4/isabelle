@@ -65,13 +65,14 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
-class VSCode_Rendering(snapshot: Document.Snapshot, _model: VSCode_Model)
-  extends Rendering(snapshot, _model.resources.options, _model.session)
+class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
+  extends Rendering(snapshot, model.resources.options, model.session)
 {
   rendering =>
 
-  def model: VSCode_Model = _model
   def resources: VSCode_Resources = model.resources
+
+  override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
 
   /* bibtex */

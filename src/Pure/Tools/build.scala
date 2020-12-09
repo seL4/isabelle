@@ -502,7 +502,7 @@ object Build
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
 
-        using(store.open_database_context(deps.sessions_structure))(db_context =>
+        using(store.open_database_context())(db_context =>
           for ((_, (session_name, _)) <- presentation_chapters) {
             progress.expose_interrupt()
             progress.echo("Presenting " + session_name + " ...")
