@@ -988,16 +988,16 @@ object Document
       }
     }
 
-    def end_theory(theory: String): (Snapshot, State) =
-      theories.collectFirst({ case (_, st) if st.command.node_name.theory == theory => st }) match {
+    def end_theory(id: Document_ID.Exec): (Snapshot, State) =
+      theories.get(id) match {
         case None => fail
         case Some(st) =>
           val command = st.command
           val node_name = command.node_name
           val command1 =
-            Command.unparsed(command.source, theory = true, id = command.id, node_name = node_name,
+            Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
-          val state1 = copy(theories = theories - command1.id)
+          val state1 = copy(theories = theories - id)
           val snapshot = state1.command_snippet(command1)
           (snapshot, state1)
       }
