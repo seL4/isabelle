@@ -633,80 +633,83 @@ object Sessions
         sessions = Library.merge(sessions, other.sessions))
   }
 
-  def make(infos: List[Info]): Structure =
+  object Structure
   {
-    def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
-      : Graph[String, Info] =
+    def make(infos: List[Info]): Structure =
     {
-      def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =
+      def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
+        : Graph[String, Info] =
       {
-        if (!g.defined(parent))
-          error("Bad " + kind + " session " + quote(parent) + " for " +
-            quote(name) + Position.here(pos))
+        def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =
+        {
+          if (!g.defined(parent))
+            error("Bad " + kind + " session " + quote(parent) + " for " +
+              quote(name) + Position.here(pos))
 
-        try { g.add_edge_acyclic(parent, name) }
-        catch {
-          case exn: Graph.Cycles[_] =>
-            error(cat_lines(exn.cycles.map(cycle =>
-              "Cyclic session dependency of " +
-                cycle.map(c => quote(c.toString)).mkString(" via "))) + Position.here(pos))
+          try { g.add_edge_acyclic(parent, name) }
+          catch {
+            case exn: Graph.Cycles[_] =>
+              error(cat_lines(exn.cycles.map(cycle =>
+                "Cyclic session dependency of " +
+                  cycle.map(c => quote(c.toString)).mkString(" via "))) + Position.here(pos))
+          }
+        }
+        (graph /: graph.iterator) {
+          case (g, (name, (info, _))) => (g /: edges(info))(add_edge(info.pos, name, _, _))
         }
       }
-      (graph /: graph.iterator) {
-        case (g, (name, (info, _))) => (g /: edges(info))(add_edge(info.pos, name, _, _))
-      }
+
+      val info_graph =
+        (Graph.string[Info] /: infos) {
+          case (graph, info) =>
+            if (graph.defined(info.name))
+              error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
+                Position.here(graph.get_node(info.name).pos))
+            else graph.new_node(info.name, info)
+        }
+      val build_graph = add_edges(info_graph, "parent", _.parent)
+      val imports_graph = add_edges(build_graph, "imports", _.imports)
+
+      val session_positions: List[(String, Position.T)] =
+        (for ((name, (info, _)) <- info_graph.iterator) yield (name, info.pos)).toList
+
+      val session_directories: Map[JFile, String] =
+        (Map.empty[JFile, String] /:
+          (for {
+            session <- imports_graph.topological_order.iterator
+            info = info_graph.get_node(session)
+            dir <- info.dirs.iterator
+          } yield (info, dir)))({ case (dirs, (info, dir)) =>
+              val session = info.name
+              val canonical_dir = dir.canonical_file
+              dirs.get(canonical_dir) match {
+                case Some(session1) =>
+                  val info1 = info_graph.get_node(session1)
+                  error("Duplicate use of directory " + dir +
+                    "\n  for session " + quote(session1) + Position.here(info1.pos) +
+                    "\n  vs. session " + quote(session) + Position.here(info.pos))
+                case None => dirs + (canonical_dir -> session)
+              }
+            })
+
+      val global_theories: Map[String, String] =
+        (Thy_Header.bootstrap_global_theories.toMap /:
+          (for {
+            session <- imports_graph.topological_order.iterator
+            info = info_graph.get_node(session)
+            thy <- info.global_theories.iterator }
+           yield (info, thy)))({ case (global, (info, thy)) =>
+              val qualifier = info.name
+              global.get(thy) match {
+                case Some(qualifier1) if qualifier != qualifier1 =>
+                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
+                case _ => global + (thy -> qualifier)
+              }
+            })
+
+      new Structure(
+        session_positions, session_directories, global_theories, build_graph, imports_graph)
     }
-
-    val info_graph =
-      (Graph.string[Info] /: infos) {
-        case (graph, info) =>
-          if (graph.defined(info.name))
-            error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
-              Position.here(graph.get_node(info.name).pos))
-          else graph.new_node(info.name, info)
-      }
-    val build_graph = add_edges(info_graph, "parent", _.parent)
-    val imports_graph = add_edges(build_graph, "imports", _.imports)
-
-    val session_positions: List[(String, Position.T)] =
-      (for ((name, (info, _)) <- info_graph.iterator) yield (name, info.pos)).toList
-
-    val session_directories: Map[JFile, String] =
-      (Map.empty[JFile, String] /:
-        (for {
-          session <- imports_graph.topological_order.iterator
-          info = info_graph.get_node(session)
-          dir <- info.dirs.iterator
-        } yield (info, dir)))({ case (dirs, (info, dir)) =>
-            val session = info.name
-            val canonical_dir = dir.canonical_file
-            dirs.get(canonical_dir) match {
-              case Some(session1) =>
-                val info1 = info_graph.get_node(session1)
-                error("Duplicate use of directory " + dir +
-                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
-                  "\n  vs. session " + quote(session) + Position.here(info.pos))
-              case None => dirs + (canonical_dir -> session)
-            }
-          })
-
-    val global_theories: Map[String, String] =
-      (Thy_Header.bootstrap_global_theories.toMap /:
-        (for {
-          session <- imports_graph.topological_order.iterator
-          info = info_graph.get_node(session)
-          thy <- info.global_theories.iterator }
-         yield (info, thy)))({ case (global, (info, thy)) =>
-            val qualifier = info.name
-            global.get(thy) match {
-              case Some(qualifier1) if qualifier != qualifier1 =>
-                error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
-              case _ => global + (thy -> qualifier)
-            }
-          })
-
-    new Structure(
-      session_positions, session_directories, global_theories, build_graph, imports_graph)
   }
 
   final class Structure private[Sessions](
@@ -1059,7 +1062,7 @@ object Sessions
         }
       }).toList.map(_._2)
 
-    make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
+    Structure.make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
   }
 
 
