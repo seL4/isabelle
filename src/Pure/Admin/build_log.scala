@@ -614,7 +614,7 @@ object Build_Log
 
 
 
-  /** session info: produced by isabelle build as session log.gz file **/
+  /** session info: produced by isabelle build as session database **/
 
   sealed case class Session_Info(
     session_timing: Properties.T,

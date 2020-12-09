@@ -1233,8 +1233,6 @@ object Document
       pending_edits: List[Text.Edit] = Nil,
       snippet_command: Option[Command] = None): Snapshot =
     {
-      /* pending edits and unstable changes */
-
       val stable = recent_stable
       val version = stable.version.get_finished
 
