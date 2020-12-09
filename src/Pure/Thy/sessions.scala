@@ -635,6 +635,8 @@ object Sessions
 
   object Structure
   {
+    val empty: Structure = make(Nil)
+
     def make(infos: List[Info]): Structure =
     {
       def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])

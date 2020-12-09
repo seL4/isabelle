@@ -66,6 +66,104 @@ object Build_Job
       case _ => None
     }
   }
+
+
+  /* print messages */
+
+  def print_log(
+    options: Options,
+    session_name: String,
+    theories: List[String] = Nil,
+    progress: Progress = new Progress,
+    margin: Double = Pretty.default_margin,
+    breakgain: Double = Pretty.default_breakgain,
+    metric: Pretty.Metric = Pretty.Default_Metric)
+  {
+    val store = Sessions.store(options)
+
+    val resources = new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+    val session = new Session(options, resources)
+
+    using(store.open_database_context())(db_context =>
+    {
+      val result =
+        db_context.input_database(session_name)((db, _) =>
+        {
+          val theories = store.read_theories(db, session_name)
+          val errors = store.read_errors(db, session_name)
+          store.read_build(db, session_name).map(info => (theories, errors, info.return_code))
+        })
+      result match {
+        case None => error("Missing build database for session " + quote(session_name))
+        case Some((used_theories, errors, rc)) =>
+          val bad_theories = theories.filterNot(used_theories.toSet)
+          if (bad_theories.nonEmpty) error("Unknown theories " + commas_quote(bad_theories))
+
+          val print_theories =
+            if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
+          for (thy <- print_theories) {
+            val thy_heading = "\nTheory " + quote(thy)
+            read_theory(db_context, resources, session_name, thy) match {
+              case None => progress.echo(thy_heading + ": MISSING")
+              case Some(command) =>
+                progress.echo(thy_heading)
+                val snapshot = Document.State.init.snapshot().command_snippet(command)
+                val rendering = new Rendering(snapshot, options, session)
+                for (Text.Info(_, t) <- rendering.text_messages(Text.Range.full)) {
+                  progress.echo(
+                    Protocol.message_text(List(t), margin = margin, breakgain = breakgain,
+                      metric = metric))
+                }
+            }
+          }
+
+          if (errors.nonEmpty) {
+            progress.echo("\nErrors:\n" + Output.error_message_text(cat_lines(errors)))
+          }
+          if (rc != 0) progress.echo("\n" + Process_Result.print_return_code(rc))
+      }
+    })
+  }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool = Isabelle_Tool("log", "print messages from build database",
+    Scala_Project.here, args =>
+  {
+    /* arguments */
+
+    var theories: List[String] = Nil
+    var margin = Pretty.default_margin
+    var options = Options.init()
+
+    val getopts = Getopts("""
+Usage: isabelle log [OPTIONS] SESSION
+
+  Options are:
+    -T NAME      restrict to given theories (multiple options)
+    -m MARGIN    margin for pretty printing (default: """ + margin + """)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+
+  Print messages from the build database of the given session, without any
+  checks against current sources: results from a failed build can be
+  printed as well.
+""",
+      "T:" -> (arg => theories = theories ::: List(arg)),
+      "m:" -> (arg => margin = Value.Double.parse(arg)),
+      "o:" -> (arg => options = options + arg))
+
+    val more_args = getopts(args)
+    val session_name =
+      more_args match {
+        case List(session_name) => session_name
+        case _ => getopts.usage()
+      }
+
+    val progress = new Console_Progress()
+
+    print_log(options, session_name, theories = theories, margin = margin, progress = progress)
+  })
 }
 
 class Build_Job(progress: Progress,

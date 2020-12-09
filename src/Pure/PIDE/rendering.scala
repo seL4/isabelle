@@ -211,6 +211,7 @@ object Rendering
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
 
+  val message_elements = Markup.Elements(message_pri.keySet)
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements = Markup.Elements(Markup.ERROR)
 
@@ -520,7 +521,7 @@ class Rendering(
   }
 
 
-  /* message underline color */
+  /* messages */
 
   def message_underline_color(elements: Markup.Elements, range: Text.Range)
     : List[Text.Info[Rendering.Color.Value]] =
@@ -534,6 +535,39 @@ class Rendering(
       Text.Info(r, pri) <- results
       color <- Rendering.message_underline_color.get(pri)
     } yield Text.Info(r, color)
+  }
+
+  def text_messages(range: Text.Range): List[Text.Info[XML.Tree]] =
+  {
+    val results =
+      snapshot.cumulate[Vector[XML.Tree]](range, Vector.empty, Rendering.message_elements,
+        states =>
+          {
+            case (res, Text.Info(_, elem)) =>
+              elem.markup.properties match {
+                case Markup.Serial(i) =>
+                  states.collectFirst(
+                  {
+                    case st if st.results.get(i).isDefined =>
+                      res :+ st.results.get(i).get
+                  })
+                case _ => None
+              }
+            case _ => None
+          })
+
+    var seen_serials = Set.empty[Long]
+    val seen: XML.Tree => Boolean =
+    {
+      case XML.Elem(Markup(_, Markup.Serial(i)), _) =>
+        val b = seen_serials(i); seen_serials += i; b
+      case _ => false
+    }
+    for {
+      Text.Info(range, trees) <- results
+      tree <- trees
+      if !seen(tree)
+    } yield Text.Info(range, tree)
   }
 
 
