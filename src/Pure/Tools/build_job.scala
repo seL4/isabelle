@@ -49,15 +49,17 @@ object Build_Job
               i <- Markup.Serial.unapply(markup.properties)
             } yield i -> tree)
 
-        val markup_index_blobs =
+        val thy_xml = read_xml(Export.MARKUP)
+        val blobs_xml =
+          for (i <- (1 to blobs.length).toList)
+          yield read_xml(Export.MARKUP + i)
+
+        val markups_index =
           Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
         val markups =
           Command.Markups.make(
-            for ((index, i) <- markup_index_blobs.zipWithIndex)
-            yield {
-              val xml = read_xml(Export.MARKUP + (if (i == 0) "" else i.toString))
-              index -> Markup_Tree.from_XML(xml)
-            })
+            for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
+            yield index -> Markup_Tree.from_XML(xml))
 
         val command =
           Command.unparsed(thy_source, theory = true, id = id, node_name = node_name,
