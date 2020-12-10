@@ -124,9 +124,9 @@ object Build_Job
                 val messages = rendering.text_messages(Text.Range.full)
                 if (messages.nonEmpty) {
                   progress.echo(thy_heading)
-                  for (Text.Info(_, t) <- messages) {
+                  for (Text.Info(_, elem) <- messages) {
                     progress.echo(
-                      Protocol.message_text(List(t), margin = margin, breakgain = breakgain,
+                      Protocol.message_text(elem, margin = margin, breakgain = breakgain,
                         metric = metric))
                   }
                 }
@@ -470,7 +470,7 @@ class Build_Job(progress: Progress,
         val more_output =
           Library.trim_line(stdout.toString) ::
             messages.toList.map(message =>
-              Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))) :::
+              Symbol.encode(Protocol.message_text(message, metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
             used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
             session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::

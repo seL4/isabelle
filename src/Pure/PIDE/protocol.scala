@@ -116,12 +116,6 @@ object Protocol
 
   /* result messages */
 
-  def is_message(pred: XML.Elem => Boolean, body: XML.Body): Boolean =
-    body match {
-      case List(elem: XML.Elem) => pred(elem)
-      case _ => false
-    }
-
   def is_result(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.RESULT, _), _) => true
@@ -183,17 +177,17 @@ object Protocol
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
-  def message_text(body: XML.Body,
+  def message_text(elem: XML.Elem,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Pretty.Default_Metric): String =
   {
     val text =
-      Pretty.string_of(Protocol_Message.expose_no_reports(body),
+      Pretty.string_of(Protocol_Message.expose_no_reports(List(elem)),
         margin = margin, breakgain = breakgain, metric = metric)
 
-    if (is_message(is_warning, body) || is_message(is_legacy, body)) Output.warning_prefix(text)
-    else if (is_message(is_error, body)) Output.error_prefix(text)
+    if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(text)
+    else if (is_error(elem)) Output.error_prefix(text)
     else text
   }
 
