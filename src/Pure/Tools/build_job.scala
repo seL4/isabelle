@@ -116,7 +116,7 @@ object Build_Job
           val print_theories =
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {
-            val thy_heading = "Theory " + quote(thy) + ":"
+            val thy_heading = "\nTheory " + quote(thy) + ":"
             read_theory(db_context, resources, session_name, thy, unicode_symbols = unicode_symbols)
             match {
               case None => progress.echo(thy_heading + " MISSING")
@@ -137,7 +137,7 @@ object Build_Job
 
           if (errors.nonEmpty) {
             val msg = Symbol.output(unicode_symbols, cat_lines(errors))
-            progress.echo("\nErrors:\n" + Output.error_message_text(msg))
+            progress.echo("\nBuild errors:\n" + Output.error_message_text(msg))
           }
           if (rc != 0) progress.echo("\n" + Process_Result.print_return_code(rc))
       }
