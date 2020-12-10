@@ -543,32 +543,25 @@ class Rendering(
   def text_messages(range: Text.Range): List[Text.Info[XML.Elem]] =
   {
     val results =
-      snapshot.cumulate[Vector[XML.Elem]](range, Vector.empty, Rendering.message_elements,
-        states =>
+      snapshot.cumulate[Vector[Command.Results.Entry]](
+        range, Vector.empty, Rendering.message_elements, command_states =>
           {
             case (res, Text.Info(_, elem)) =>
-              elem.markup.properties match {
-                case Markup.Serial(i) =>
-                  states.collectFirst(
-                  {
-                    case st if st.results.get(i).isDefined =>
-                      res :+ st.results.get(i).get
-                  })
-                case _ => None
-              }
+              Command.State.get_result_proper(command_states, elem.markup.properties)
+                .map(res :+ _)
             case _ => None
           })
 
     var seen_serials = Set.empty[Long]
-    def seen(elem: XML.Elem): Boolean =
-      elem.markup.properties match {
-        case Markup.Serial(i) => val b = seen_serials(i); seen_serials += i; b
-        case _ => false
-      }
+    def seen(i: Long): Boolean =
+    {
+      val b = seen_serials(i)
+      seen_serials += i
+      b
+    }
     for {
-      Text.Info(range, elems) <- results
-      elem <- elems
-      if !seen(elem)
+      Text.Info(range, entries) <- results
+      (i, elem) <- entries if !seen(i)
     } yield Text.Info(range, elem)
   }
 
