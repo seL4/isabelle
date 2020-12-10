@@ -88,7 +88,7 @@ object Build_Job
     progress: Progress = new Progress,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
-    metric: Pretty.Metric = Pretty.Default_Metric,
+    metric: Pretty.Metric = Symbol.Metric,
     unicode_symbols: Boolean = false)
   {
     val store = Sessions.store(options)
