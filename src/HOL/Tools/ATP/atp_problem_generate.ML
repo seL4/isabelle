@@ -1103,13 +1103,28 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
-fun eta_expand_iterm tm =
-  let
-    val T = domain_type (ityp_of tm)
-    val x = "CHANGEME"
-  in
-    IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
+fun free_vars_iterm vars (IConst ((s, _), _, _)) = insert (op =) s vars
+  | free_vars_iterm vars (IVar ((s, _), _)) = insert (op =) s vars
+  | free_vars_iterm vars (IApp (tm1, tm2)) =
+    union (op =) (free_vars_iterm vars tm1) (free_vars_iterm vars tm2)
+  | free_vars_iterm vars (IAbs (((s, _), _), tm)) = remove (op =) s (free_vars_iterm vars tm)
+
+fun generate_unique_name (gen : int -> 'a) (unique : 'a -> bool) (n : int) : 'a =
+  let val x = gen n in
+    if unique x then x else generate_unique_name gen unique (n + 1)
   end
+
+fun eta_expand_quantifier_body (tm as IAbs _) = tm
+  | eta_expand_quantifier_body tm =
+    let
+      val free_vars = free_vars_iterm [] tm
+      val x = generate_unique_name
+        (fn n => "X" ^ (if n = 0 then "" else string_of_int n))
+        (fn name => not (exists (fn y => name = y) free_vars)) 0
+      val T = domain_type (ityp_of tm)
+    in
+      IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
+    end
 
 fun introduce_proxies_in_iterm type_enc =
   let
@@ -1144,7 +1159,7 @@ fun introduce_proxies_in_iterm type_enc =
             (case tm1' of
               IConst ((s, _), _, _) =>
               if s = tptp_ho_forall orelse s = tptp_ho_exists then
-                eta_expand_iterm tm2'
+                eta_expand_quantifier_body tm2'
               else
                 tm2'
             | _ => tm2')
