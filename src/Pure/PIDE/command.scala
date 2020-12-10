@@ -54,17 +54,17 @@ object Command
 
   object Results
   {
-    type Entry = (Long, XML.Tree)
+    type Entry = (Long, XML.Elem)
     val empty: Results = new Results(SortedMap.empty)
     def make(args: TraversableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
     def merge(args: TraversableOnce[Results]): Results = (empty /: args)(_ ++ _)
   }
 
-  final class Results private(private val rep: SortedMap[Long, XML.Tree])
+  final class Results private(private val rep: SortedMap[Long, XML.Elem])
   {
     def is_empty: Boolean = rep.isEmpty
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
-    def get(serial: Long): Option[XML.Tree] = rep.get(serial)
+    def get(serial: Long): Option[XML.Elem] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator
 
     def + (entry: Results.Entry): Results =
@@ -187,15 +187,15 @@ object Command
 
   object State
   {
-    def get_result(states: List[State], serial: Long): Option[XML.Tree] =
+    def get_result(states: List[State], serial: Long): Option[XML.Elem] =
       states.find(st => st.results.defined(serial)).map(st => st.results.get(serial).get)
 
     def get_result_proper(states: List[State], props: Properties.T): Option[Results.Entry] =
       for {
         serial <- Markup.Serial.unapply(props)
-        tree @ XML.Elem(_, body) <- get_result(states, serial)
-        if body.nonEmpty
-      } yield (serial -> tree)
+        elem <- get_result(states, serial)
+        if elem.body.nonEmpty
+      } yield serial -> elem
 
     def merge_results(states: List[State]): Results =
       Results.merge(states.map(_.results))

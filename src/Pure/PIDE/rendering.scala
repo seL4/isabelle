@@ -11,6 +11,9 @@ package isabelle
 import java.io.{File => JFile}
 import java.nio.file.FileSystems
 
+import scala.collection.immutable.SortedMap
+
+
 
 object Rendering
 {
@@ -94,7 +97,7 @@ object Rendering
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
 
-  def output_messages(results: Command.Results): List[XML.Tree] =
+  def output_messages(results: Command.Results): List[XML.Elem] =
   {
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result).toList
@@ -537,10 +540,10 @@ class Rendering(
     } yield Text.Info(r, color)
   }
 
-  def text_messages(range: Text.Range): List[Text.Info[XML.Tree]] =
+  def text_messages(range: Text.Range): List[Text.Info[XML.Elem]] =
   {
     val results =
-      snapshot.cumulate[Vector[XML.Tree]](range, Vector.empty, Rendering.message_elements,
+      snapshot.cumulate[Vector[XML.Elem]](range, Vector.empty, Rendering.message_elements,
         states =>
           {
             case (res, Text.Info(_, elem)) =>
@@ -557,17 +560,16 @@ class Rendering(
           })
 
     var seen_serials = Set.empty[Long]
-    val seen: XML.Tree => Boolean =
-    {
-      case XML.Elem(Markup(_, Markup.Serial(i)), _) =>
-        val b = seen_serials(i); seen_serials += i; b
-      case _ => false
-    }
+    def seen(elem: XML.Elem): Boolean =
+      elem.markup.properties match {
+        case Markup.Serial(i) => val b = seen_serials(i); seen_serials += i; b
+        case _ => false
+      }
     for {
-      Text.Info(range, trees) <- results
-      tree <- trees
-      if !seen(tree)
-    } yield Text.Info(range, tree)
+      Text.Info(range, elems) <- results
+      elem <- elems
+      if !seen(elem)
+    } yield Text.Info(range, elem)
   }
 
 
@@ -578,7 +580,7 @@ class Rendering(
   private sealed case class Tooltip_Info(
     range: Text.Range,
     timing: Timing = Timing.zero,
-    messages: List[Command.Results.Entry] = Nil,
+    messages: List[(Long, XML.Tree)] = Nil,
     rev_infos: List[(Boolean, XML.Tree)] = Nil)
   {
     def + (t: Timing): Tooltip_Info = copy(timing = timing + t)
@@ -688,7 +690,8 @@ class Rendering(
     else {
       val r = Text.Range(results.head.range.start, results.last.range.stop)
       val all_tips =
-        Command.Results.make(results.flatMap(_.messages)).iterator.map(_._2).toList :::
+        (SortedMap.empty[Long, XML.Tree] /: results.flatMap(_.messages))(_ + _)
+          .iterator.map(_._2).toList :::
         results.flatMap(res => res.infos(true)) :::
         results.flatMap(res => res.infos(false)).lastOption.toList
       if (all_tips.isEmpty) None else Some(Text.Info(r, all_tips))

@@ -327,10 +327,10 @@ object Dump
                 }
                 else {
                   val msgs =
-                    for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
+                    for ((elem, pos) <- snapshot.messages if Protocol.is_error(elem))
                     yield {
                       "Error" + Position.here(pos) + ":\n" +
-                        XML.content(Pretty.formatted(List(tree)))
+                        XML.content(Pretty.formatted(List(elem)))
                     }
                   progress.echo("FAILED to process theory " + name)
                   msgs.foreach(progress.echo_error_message)

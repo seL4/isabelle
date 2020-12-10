@@ -36,9 +36,9 @@ object Build_Job
         val results =
           Command.Results.make(
             for {
-              tree @ XML.Elem(markup, _) <- read_xml(Export.MESSAGES)
+              elem @ XML.Elem(markup, _) <- read_xml(Export.MESSAGES)
               i <- Markup.Serial.unapply(markup.properties)
-            } yield i -> tree)
+            } yield i -> elem)
 
         val blobs =
           blobs_files.map(file =>

@@ -637,14 +637,14 @@ object Document
 
     /* messages */
 
-    lazy val messages: List[(XML.Tree, Position.T)] =
+    lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
         (command, start) <-
           Document.Node.Commands.starts_pos(
             node.commands.iterator, Token.Pos.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
-        (_, tree) <- state.command_results(version, command).iterator
-       } yield (tree, pos)).toList
+        (_, elem) <- state.command_results(version, command).iterator
+       } yield (elem, pos)).toList
 
 
     /* exports */
