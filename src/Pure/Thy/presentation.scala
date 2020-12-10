@@ -448,6 +448,9 @@ object Presentation
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
   def document_tex_name(name: Document.Node.Name): String = "document/" + tex_name(name)
 
+  class Build_Error(val log_lines: List[String], val message: String)
+    extends Exn.User_Error(message)
+
   def build_documents(
     session: String,
     deps: Sessions.Deps,
@@ -576,14 +579,19 @@ object Presentation
             val root_pdf = Path.basic(root).pdf
             val result_path = doc_dir + root_pdf
 
+            val log_lines = result.out_lines ::: result.err_lines
+
             if (!result.ok) {
-              cat_error(
-                Library.trim_line(result.err),
-                cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
-                "Failed to build document " + quote(doc.name))
+              val message =
+                Exn.cat_message(
+                  Library.trim_line(result.err),
+                  cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
+                  "Failed to build document " + quote(doc.name))
+              throw new Build_Error(log_lines, message)
             }
             else if (!result_path.is_file) {
-              error("Bad document result: expected to find " + root_pdf)
+              val message = "Bad document result: expected to find " + root_pdf
+              throw new Build_Error(log_lines, message)
             }
             else {
               val stop = Time.now()
@@ -591,7 +599,7 @@ object Presentation
               progress.echo("Finished " + session + "/" + doc.name +
                 " (" + timing.message_hms + " elapsed time)")
 
-              val log_xz = Bytes(cat_lines(result.out_lines ::: result.err_lines)).compress()
+              val log_xz = Bytes(cat_lines(log_lines)).compress()
               val pdf = Bytes.read(result_path)
               Document_Output(doc.name, sources, log_xz, pdf)
             }

@@ -460,7 +460,10 @@ class Build_Job(progress: Progress,
           }
           else (Nil, Nil)
         }
-        catch { case Exn.Interrupt.ERROR(msg) => (Nil, List(msg)) }
+        catch {
+          case exn: Presentation.Build_Error => (exn.log_lines, List(exn.message))
+          case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
+        }
 
       val result =
       {
