@@ -18,14 +18,15 @@ object Build_Job
     db_context: Sessions.Database_Context,
     resources: Resources,
     session: String,
-    theory: String): Option[Command] =
+    theory: String,
+    unicode_symbols: Boolean = false): Option[Command] =
   {
     def read(name: String): Export.Entry =
       db_context.get_export(List(session), theory, name)
 
     def read_xml(name: String): XML.Body =
-      db_context.xml_cache.body(
-        YXML.parse_body(Symbol.decode(UTF8.decode_permissive(read(name).uncompressed))))
+      db_context.xml_cache.body(YXML.parse_body(
+        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed))))
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
@@ -89,7 +90,8 @@ object Build_Job
     progress: Progress = new Progress,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
-    metric: Pretty.Metric = Pretty.Default_Metric)
+    metric: Pretty.Metric = Pretty.Default_Metric,
+    unicode_symbols: Boolean = false)
   {
     val store = Sessions.store(options)
 
@@ -115,7 +117,8 @@ object Build_Job
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {
             val thy_heading = "Theory " + quote(thy) + ":"
-            read_theory(db_context, resources, session_name, thy) match {
+            read_theory(db_context, resources, session_name, thy, unicode_symbols = unicode_symbols)
+            match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
                 val snapshot = Document.State.init.command_snippet(command)
@@ -133,7 +136,8 @@ object Build_Job
           }
 
           if (errors.nonEmpty) {
-            progress.echo("\nErrors:\n" + Output.error_message_text(cat_lines(errors)))
+            val msg = Symbol.output(unicode_symbols, cat_lines(errors))
+            progress.echo("\nErrors:\n" + Output.error_message_text(msg))
           }
           if (rc != 0) progress.echo("\n" + Process_Result.print_return_code(rc))
       }
@@ -148,6 +152,7 @@ object Build_Job
   {
     /* arguments */
 
+    var unicode_symbols = false
     var theories: List[String] = Nil
     var margin = Pretty.default_margin
     var options = Options.init()
@@ -157,6 +162,7 @@ Usage: isabelle log [OPTIONS] SESSION
 
   Options are:
     -T NAME      restrict to given theories (multiple options)
+    -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
@@ -165,6 +171,7 @@ Usage: isabelle log [OPTIONS] SESSION
   printed as well.
 """,
       "T:" -> (arg => theories = theories ::: List(arg)),
+      "U" -> (_ => unicode_symbols = true),
       "m:" -> (arg => margin = Value.Double.parse(arg)),
       "o:" -> (arg => options = options + arg))
 
@@ -177,7 +184,8 @@ Usage: isabelle log [OPTIONS] SESSION
 
     val progress = new Console_Progress()
 
-    print_log(options, session_name, theories = theories, margin = margin, progress = progress)
+    print_log(options, session_name, theories = theories, margin = margin, progress = progress,
+      unicode_symbols = unicode_symbols)
   })
 }
 
