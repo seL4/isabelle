@@ -444,8 +444,7 @@ class Build_Job(progress: Progress,
 
       val (document_output, document_errors) =
         try {
-          if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty)
-          {
+          if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
             using(store.open_database_context())(db_context =>
               {
                 val documents =
@@ -459,7 +458,7 @@ class Build_Job(progress: Progress,
                 (documents.flatMap(_.log_lines), Nil)
               })
           }
-          (Nil, Nil)
+          else (Nil, Nil)
         }
         catch { case Exn.Interrupt.ERROR(msg) => (Nil, List(msg)) }
 
