@@ -347,8 +347,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
     val pris =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.gutter_elements, _ =>
         {
-          case (pri, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(serial)), _))) =>
-            Some(pri max gutter_message_pri(msg))
+          case (pri, Text.Info(_, elem)) => Some(pri max gutter_message_pri(elem))
           case _ => None
         }).map(_.info)
 
