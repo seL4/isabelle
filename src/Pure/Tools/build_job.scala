@@ -267,7 +267,6 @@ class Build_Job(progress: Progress,
 
       val stdout = new StringBuilder(1000)
       val stderr = new StringBuilder(1000)
-      val messages = new mutable.ListBuffer[XML.Elem]
       val command_timings = new mutable.ListBuffer[Properties.T]
       val theory_timings = new mutable.ListBuffer[Properties.T]
       val session_timings = new mutable.ListBuffer[Properties.T]
@@ -397,9 +396,6 @@ class Build_Job(progress: Progress,
             else if (msg.is_stderr) {
               stderr ++= Symbol.encode(XML.content(message))
             }
-            else if (Protocol.is_exported(message)) {
-              messages += message
-            }
             else if (msg.is_exit) {
               val err =
                 "Prover terminated" +
@@ -478,8 +474,6 @@ class Build_Job(progress: Progress,
 
         val more_output =
           Library.trim_line(stdout.toString) ::
-            messages.toList.map(message =>
-              Symbol.encode(Protocol.message_text(message, metric = Symbol.Metric))) :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
             used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
             session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::

@@ -223,8 +223,11 @@ corresponding Isabelle/Scala operation.
 
 *** System ***
 
-* The command-line tool "isabelle log" prints messages from the build
-database of the given session.
+* The command-line tool "isabelle log" prints prover messages from the
+build database of the given session, following the the order of theory
+sources, instead of erratic parallel evaluation. Consequently, the
+session log file is restricted to system messages of the overall build
+process, and thus becomes more informative.
 
 * Update/rebuild external provers on currently supported OS platforms,
 notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
