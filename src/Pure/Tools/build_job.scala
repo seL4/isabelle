@@ -102,17 +102,20 @@ object Build_Job
           val print_theories =
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {
-            val thy_heading = "\nTheory " + quote(thy)
+            val thy_heading = "Theory " + quote(thy) + ":"
             read_theory(db_context, resources, session_name, thy) match {
-              case None => progress.echo(thy_heading + ": MISSING")
+              case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
-                progress.echo(thy_heading)
                 val snapshot = Document.State.init.command_snippet(command)
                 val rendering = new Rendering(snapshot, options, session)
-                for (Text.Info(_, t) <- rendering.text_messages(Text.Range.full)) {
-                  progress.echo(
-                    Protocol.message_text(List(t), margin = margin, breakgain = breakgain,
-                      metric = metric))
+                val messages = rendering.text_messages(Text.Range.full)
+                if (messages.nonEmpty) {
+                  progress.echo(thy_heading)
+                  for (Text.Info(_, t) <- messages) {
+                    progress.echo(
+                      Protocol.message_text(List(t), margin = margin, breakgain = breakgain,
+                        metric = metric))
+                  }
                 }
             }
           }
