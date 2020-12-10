@@ -191,6 +191,7 @@ object Protocol
           else if (is_error(elem)) "Error"
           else if (is_information(elem)) "Information"
           else if (is_tracing(elem)) "Tracing"
+          else if (is_state(elem)) "State"
           else "Output"
         "\n" + h + Position.here(pos) + ":\n"
       }

@@ -546,6 +546,9 @@ text \<open>
   \<^medskip> Options \<^verbatim>\<open>-m\<close> and \<^verbatim>\<open>-U\<close> modify pretty printing and output of Isabelle
   symbols. The default is for an old-fashioned ASCII terminal at 80 characters
   per line (76 + 4 characters to prefix warnings or errors).
+
+  \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database, including
+  extra information and tracing messages etc.
 \<close>
 
 subsubsection \<open>Examples\<close>

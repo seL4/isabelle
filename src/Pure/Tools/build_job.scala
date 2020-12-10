@@ -85,6 +85,7 @@ object Build_Job
     options: Options,
     session_name: String,
     theories: List[String] = Nil,
+    verbose: Boolean = false,
     progress: Progress = new Progress,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
@@ -121,7 +122,9 @@ object Build_Job
               case Some(command) =>
                 val snapshot = Document.State.init.command_snippet(command)
                 val rendering = new Rendering(snapshot, options, session)
-                val messages = rendering.text_messages(Text.Range.full)
+                val messages =
+                  rendering.text_messages(Text.Range.full)
+                    .filter(message => verbose || Protocol.is_exported(message.info))
                 if (messages.nonEmpty) {
                   val line_document = Line.Document(command.source)
                   progress.echo(thy_heading)
@@ -157,6 +160,7 @@ object Build_Job
     var theories: List[String] = Nil
     var margin = Pretty.default_margin
     var options = Options.init()
+    var verbose = false
 
     val getopts = Getopts("""
 Usage: isabelle log [OPTIONS] SESSION
@@ -166,6 +170,7 @@ Usage: isabelle log [OPTIONS] SESSION
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           print all messages, including information, tracing etc.
 
   Print messages from the build database of the given session, without any
   checks against current sources: results from a failed build can be
@@ -174,7 +179,8 @@ Usage: isabelle log [OPTIONS] SESSION
       "T:" -> (arg => theories = theories ::: List(arg)),
       "U" -> (_ => unicode_symbols = true),
       "m:" -> (arg => margin = Value.Double.parse(arg)),
-      "o:" -> (arg => options = options + arg))
+      "o:" -> (arg => options = options + arg),
+      "v" -> (_ => verbose = true))
 
     val more_args = getopts(args)
     val session_name =
@@ -185,8 +191,8 @@ Usage: isabelle log [OPTIONS] SESSION
 
     val progress = new Console_Progress()
 
-    print_log(options, session_name, theories = theories, margin = margin, progress = progress,
-      unicode_symbols = unicode_symbols)
+    print_log(options, session_name, theories = theories, verbose = verbose, margin = margin,
+      progress = progress, unicode_symbols = unicode_symbols)
   })
 }
 
