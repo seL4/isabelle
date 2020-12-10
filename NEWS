@@ -223,6 +223,9 @@ corresponding Isabelle/Scala operation.
 
 *** System ***
 
+* The command-line tool "isabelle log" prints messages from the build
+database of the given session.
+
 * Update/rebuild external provers on currently supported OS platforms,
 notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
 

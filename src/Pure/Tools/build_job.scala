@@ -162,7 +162,7 @@ object Build_Job
 Usage: isabelle log [OPTIONS] SESSION
 
   Options are:
-    -T NAME      restrict to given theories (multiple options)
+    -T NAME      restrict to given theories (multiple options possible)
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)

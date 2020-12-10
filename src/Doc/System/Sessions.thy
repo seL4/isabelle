@@ -509,6 +509,54 @@ text \<open>
 \<close>
 
 
+section \<open>Print messages from build database \label{sec:tool-log}\<close>
+
+text \<open>
+  The @{tool_def "log"} tool prints prover messages from the build
+  database of the given session. Its command-line usage is:
+
+  @{verbatim [display]
+\<open>Usage: isabelle log [OPTIONS] SESSION
+
+  Options are:
+    -T NAME      restrict to given theories (multiple options possible)
+    -U           output Unicode symbols
+    -m MARGIN    margin for pretty printing (default: 76.0)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+
+  Print messages from the build database of the given session, without any
+  checks against current sources: results from a failed build can be
+  printed as well.\<close>}
+
+  The specified session database is taken as is, independently of the current
+  session structure and theories sources. The order of messages follows the
+  source positions of source files; thus the erratic evaluation of parallel
+  processing rarely matters. There is \<^emph>\<open>no\<close> implicit build process involved,
+  so it is possible to retrieve error messages from a failed session as well.
+
+  \<^medskip> Option \<^verbatim>\<open>-o\<close> allows to change system options, as in @{tool build}
+  (\secref{sec:tool-build}). This may affect the storage space for the build
+  database, notably via @{system_option system_heaps}, or @{system_option
+  build_database_server} and its relatives.
+
+  \<^medskip> Option \<^verbatim>\<open>-T\<close> restricts output to given theories: multiple entries are
+  possible by repeating this option on the command-line. The default is to
+  refer to \<^emph>\<open>all\<close> theories that were used in original session build process.
+
+  \<^medskip> Options \<^verbatim>\<open>-m\<close> and \<^verbatim>\<open>-U\<close> modify pretty printing and output of Isabelle
+  symbols. The default is for an old-fashioned ASCII terminal at 80 characters
+  per line (76 + 4 characters to prefix warnings or errors).
+\<close>
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Print messages from theory \<^verbatim>\<open>HOL.Nat\<close> of session \<^verbatim>\<open>HOL\<close>, using Unicode
+  rendering of Isabelle symbols and a margin of 100 characters:
+  @{verbatim [display] \<open>isabelle log -T HOL.Nat -U -m 100 HOL\<close>}
+\<close>
+
+
 section \<open>Retrieve theory exports \label{sec:tool-export}\<close>
 
 text \<open>
