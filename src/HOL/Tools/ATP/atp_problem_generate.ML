@@ -99,7 +99,7 @@ sig
   val is_type_enc_sound : type_enc -> bool
   val type_enc_of_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
-  val is_lambda_free : term -> bool
+  val is_first_order_lambda_free : term -> bool
   val do_cheaply_conceal_lambdas : typ list -> term -> term
   val mk_aconns :
     atp_connective -> ('a, 'b, 'c, 'd) atp_formula list
@@ -728,42 +728,62 @@ fun adjust_type_enc (THF (fool, Polymorphic, hologic)) (Native (order, fool', po
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
-fun is_lambda_free t =
+fun is_first_order_lambda_free t =
   (case t of
-    \<^const>\<open>Not\<close> $ t1 => is_lambda_free t1
-  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_lambda_free t1
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_lambda_free t1
-  | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+    \<^const>\<open>Not\<close> $ t1 => is_first_order_lambda_free t1
+  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_first_order_lambda_free t'
+  | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_first_order_lambda_free t1
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_first_order_lambda_free t'
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_first_order_lambda_free t1
+  | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
+  | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
+  | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 =>
+    is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
   | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
-    is_lambda_free t1 andalso is_lambda_free t2
+    is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
 
-fun simple_translate_lambdas do_lambdas ctxt t =
-  if is_lambda_free t then
+fun simple_translate_lambdas do_lambdas ctxt type_enc t =
+  if is_first_order_lambda_free t then
     t
   else
     let
-      fun trans Ts t =
+      fun trans_first_order Ts t =
         (case t of
-          \<^const>\<open>Not\<close> $ t1 => \<^const>\<open>Not\<close> $ trans Ts t1
+          \<^const>\<open>Not\<close> $ t1 => \<^const>\<open>Not\<close> $ trans_first_order Ts t1
         | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
+          t0 $ Abs (s, T, trans_first_order (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
+          trans_first_order Ts (t0 $ eta_expand Ts t1 1)
         | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as \<^const>\<open>HOL.conj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as \<^const>\<open>HOL.disj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+          t0 $ Abs (s, T, trans_first_order (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
+          trans_first_order Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as \<^const>\<open>HOL.conj\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
+        | (t0 as \<^const>\<open>HOL.disj\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
+        | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
         | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _]))) $ t1 $ t2 =>
-          t0 $ trans Ts t1 $ trans Ts t2
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
         | _ =>
           if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
           else t |> Envir.eta_contract |> do_lambdas ctxt Ts)
+
+      fun trans_fool Ts t =
+        (case t of
+          (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
+        | t1 $ t2 => trans_fool Ts t1 $ trans_fool Ts t2
+        | Abs _ => t |> Envir.eta_contract |> do_lambdas ctxt Ts
+        | _ => t)
+
+      val trans = if is_type_enc_fool type_enc then trans_fool else trans_first_order
       val (t, ctxt') = yield_singleton (Variable.import_terms true) t ctxt
     in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
 
@@ -809,18 +829,18 @@ fun lift_lams_part_1 ctxt type_enc =
           Lambda_Lifting.is_quantifier
   #> fst
 
-fun lift_lams_part_2 ctxt (facts, lifted) =
+fun lift_lams_part_2 ctxt type_enc (facts, lifted) =
   (facts, lifted)
   (* Lambda-lifting sometimes leaves some lambdas around; we need some way to
      get rid of them *)
-  |> apply2 (map (introduce_combinators ctxt))
+  |> apply2 (map (introduce_combinators ctxt type_enc))
   |> apply2 (map constify_lifted)
   (* Requires bound variables not to clash with any schematic variables (as
      should be the case right after lambda-lifting). *)
   |>> map (hol_open_form (unprefix hol_close_form_prefix))
   ||> map (hol_open_form I)
 
-fun lift_lams ctxt = lift_lams_part_2 ctxt oo lift_lams_part_1 ctxt
+fun lift_lams ctxt type_enc = lift_lams_part_2 ctxt type_enc o lift_lams_part_1 ctxt type_enc
 
 fun intentionalize_def (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -1887,17 +1907,17 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
   else if lam_trans = liftingN orelse lam_trans = lam_liftingN then
     lift_lams ctxt type_enc
   else if lam_trans = combsN then
-    map (introduce_combinators ctxt) #> rpair []
+    map (introduce_combinators ctxt type_enc) #> rpair []
   else if lam_trans = combs_and_liftingN then
     lift_lams_part_1 ctxt type_enc
-    ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
-    #> lift_lams_part_2 ctxt
+    ##> maps (fn t => [t, introduce_combinators ctxt type_enc (intentionalize_def t)])
+    #> lift_lams_part_2 ctxt type_enc
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
     ##> map (fn t => (case head_of (strip_qnt_body \<^const_name>\<open>All\<close> t) of
                        \<^term>\<open>(=) ::bool => bool => bool\<close> => t
-                     | _ => introduce_combinators ctxt (intentionalize_def t)))
-    #> lift_lams_part_2 ctxt
+                     | _ => introduce_combinators ctxt type_enc (intentionalize_def t)))
+    #> lift_lams_part_2 ctxt type_enc
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else
