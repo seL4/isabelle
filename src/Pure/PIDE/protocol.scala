@@ -192,17 +192,20 @@ object Protocol
           else if (is_information(elem)) "Information"
           else if (is_tracing(elem)) "Tracing"
           else "Output"
-        h + Position.here(pos) + ":\n"
+        "\n" + h + Position.here(pos) + ":\n"
       }
       else ""
-    val text2 =
+
+    val body =
       Pretty.string_of(Protocol_Message.expose_no_reports(List(elem)),
         margin = margin, breakgain = breakgain, metric = metric)
 
-    val text = text1 + text2
-    if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(text)
-    else if (is_error(elem)) Output.error_prefix(text)
-    else text
+    val text2 =
+      if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(body)
+      else if (is_error(elem)) Output.error_prefix(body)
+      else body
+
+    text1 + text2
   }
 
 
