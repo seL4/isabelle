@@ -60,7 +60,7 @@ object Presentation
     def log: String = log_xz.uncompress().text
     def log_lines: List[String] = split_lines(log)
 
-    def write(db: SQL.Database, session_name: String) =
+    def write(db: SQL.Database, session_name: String): Unit =
       write_document(db, session_name, this)
   }
 
