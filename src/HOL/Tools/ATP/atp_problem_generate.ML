@@ -2,6 +2,7 @@
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, UniBw Muenchen
 
 Translation of HOL to FOL for Metis and Sledgehammer.
 *)
@@ -1123,13 +1124,12 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
-fun free_vars_iterm vars (IConst ((s, _), _, _)) = insert (op =) s vars
-  | free_vars_iterm vars (IVar ((s, _), _)) = insert (op =) s vars
-  | free_vars_iterm vars (IApp (tm1, tm2)) =
-    union (op =) (free_vars_iterm vars tm1) (free_vars_iterm vars tm2)
-  | free_vars_iterm vars (IAbs (((s, _), _), tm)) = remove (op =) s (free_vars_iterm vars tm)
+fun vars_of_iterm vars (IConst ((s, _), _, _)) = insert (op =) s vars
+  | vars_of_iterm vars (IVar ((s, _), _)) = insert (op =) s vars
+  | vars_of_iterm vars (IApp (tm1, tm2)) = union (op =) (vars_of_iterm vars tm1) (vars_of_iterm vars tm2)
+  | vars_of_iterm vars (IAbs (_, tm)) = vars_of_iterm vars tm
 
-fun generate_unique_name (gen : int -> 'a) (unique : 'a -> bool) (n : int) : 'a =
+fun generate_unique_name gen unique n =
   let val x = gen n in
     if unique x then x else generate_unique_name gen unique (n + 1)
   end
@@ -1137,10 +1137,11 @@ fun generate_unique_name (gen : int -> 'a) (unique : 'a -> bool) (n : int) : 'a 
 fun eta_expand_quantifier_body (tm as IAbs _) = tm
   | eta_expand_quantifier_body tm =
     let
-      val free_vars = free_vars_iterm [] tm
+      (* We accumulate all variables because E 2.5 does not support variable shadowing. *)
+      val vars = vars_of_iterm [] tm
       val x = generate_unique_name
         (fn n => "X" ^ (if n = 0 then "" else string_of_int n))
-        (fn name => not (exists (fn y => name = y) free_vars)) 0
+        (fn name => not (exists (equal name) vars)) 0
       val T = domain_type (ityp_of tm)
     in
       IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
