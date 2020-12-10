@@ -123,11 +123,14 @@ object Build_Job
                 val rendering = new Rendering(snapshot, options, session)
                 val messages = rendering.text_messages(Text.Range.full)
                 if (messages.nonEmpty) {
+                  val line_document = Line.Document(command.source)
                   progress.echo(thy_heading)
-                  for (Text.Info(_, elem) <- messages) {
+                  for (Text.Info(range, elem) <- messages) {
+                    val line = line_document.position(range.start).line1
+                    val pos = Position.Line_File(line, command.node_name.node)
                     progress.echo(
-                      Protocol.message_text(elem, margin = margin, breakgain = breakgain,
-                        metric = metric))
+                      Protocol.message_text(elem, heading = true, pos = pos,
+                        margin = margin, breakgain = breakgain, metric = metric))
                   }
                 }
             }
