@@ -537,6 +537,9 @@ object Symbol
     }
   }
 
+  def output(unicode_symbols: Boolean, text: String): String =
+    if (unicode_symbols) Symbol.decode(text) else Symbol.encode(text)
+
   def fonts: Map[Symbol, String] = symbols.fonts
   def font_names: List[String] = symbols.font_names
   def font_index: Map[String, Int] = symbols.font_index

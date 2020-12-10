@@ -237,8 +237,8 @@ object Server_Commands
             args.commit_cleanup_delay.getOrElse(session.default_commit_cleanup_delay),
           id = id, progress = progress)
 
-      def output_text(s: String): String =
-        if (args.unicode_symbols) Symbol.decode(s) else Symbol.encode(s)
+      def output_text(text: String): String =
+        Symbol.output(args.unicode_symbols, text)
 
       def output_message(tree: XML.Tree, pos: Position.T): JSON.Object.T =
       {

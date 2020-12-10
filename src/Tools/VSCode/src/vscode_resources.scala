@@ -337,8 +337,8 @@ class VSCode_Resources(
 
   /* output text */
 
-  def output_text(s: String): String =
-    if (unicode_symbols) Symbol.decode(s) else Symbol.encode(s)
+  def output_text(text: String): String =
+    Symbol.output(unicode_symbols, text)
 
   def output_xml(xml: XML.Tree): String =
     output_text(XML.content(xml))
