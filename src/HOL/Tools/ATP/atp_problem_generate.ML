@@ -1160,40 +1160,43 @@ fun introduce_proxies_in_iterm type_enc =
             fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
             fun handle_fool card x = if card = argc then x else proxy_const ()
           in
-            (case s of
-              "c_False" => IConst (`I tptp_false, T, [])
-            | "c_True" => IConst (`I tptp_true, T, [])
-            | _ =>
-              if top_level then
-                plain_const ()
-              else if is_type_enc_full_higher_order type_enc then
-                (case s of
-                  "c_Not" => IConst (`I tptp_not, T, [])
-                | "c_conj" => IConst (`I tptp_and, T, [])
-                | "c_disj" => IConst (`I tptp_or, T, [])
-                | "c_implies" => IConst (`I tptp_implies, T, [])
-                | "c_All" => tweak_ho_quant tptp_ho_forall T args
-                | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
-                | s =>
-                  if is_tptp_equal s then
-                    tweak_ho_equal T argc
-                  else
-                    plain_const ())
-              else if is_type_enc_fool type_enc then
-                (case s of
-                  "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
-                | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
-                | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
-                | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
-                | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
-                | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
-                | s =>
-                  if is_tptp_equal s then
-                    handle_fool 2 (IConst (`I tptp_equal, T, []))
-                  else
-                    plain_const ())
-              else
-                proxy_const ())
+            if top_level then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | _ => plain_const ())
+            else if is_type_enc_full_higher_order type_enc then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | "c_Not" => IConst (`I tptp_not, T, [])
+              | "c_conj" => IConst (`I tptp_and, T, [])
+              | "c_disj" => IConst (`I tptp_or, T, [])
+              | "c_implies" => IConst (`I tptp_implies, T, [])
+              | "c_All" => tweak_ho_quant tptp_ho_forall T args
+              | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+              | s =>
+                if is_tptp_equal s then
+                  tweak_ho_equal T argc
+                else
+                  plain_const ())
+            else if is_type_enc_fool type_enc then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
+              | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
+              | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
+              | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
+              | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
+              | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+              | s =>
+                if is_tptp_equal s then
+                  handle_fool 2 (IConst (`I tptp_equal, T, []))
+                else
+                  plain_const ())
+            else
+              proxy_const ()
           end
          | NONE =>
            if s = tptp_choice then
