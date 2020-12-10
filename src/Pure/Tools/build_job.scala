@@ -30,17 +30,7 @@ object Build_Job
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
         val thy_path = Path.explode(thy_file)
-        val thy_source = Symbol.decode(File.read(thy_path))
         val node_name = resources.file_node(thy_path, theory = theory)
-
-        val blobs =
-          blobs_files.map(file =>
-          {
-            val path = Path.explode(file)
-            val src_path = File.relative_path(thy_path, path).getOrElse(path)
-            Command.Blob.read_file(resources.file_node(path), src_path)
-          })
-        val blobs_info = Command.Blobs_Info(blobs.map(Exn.Res(_)))
 
         val results =
           Command.Results.make(
@@ -49,10 +39,30 @@ object Build_Job
               i <- Markup.Serial.unapply(markup.properties)
             } yield i -> tree)
 
-        val thy_xml = read_xml(Export.MARKUP)
+        val blobs =
+          blobs_files.map(file =>
+          {
+            val path = Path.explode(file)
+            val name = resources.file_node(path)
+            val src_path = File.relative_path(thy_path, path).getOrElse(path)
+            Command.Blob(name, src_path, None)
+          })
         val blobs_xml =
           for (i <- (1 to blobs.length).toList)
-          yield read_xml(Export.MARKUP + i)
+            yield read_xml(Export.MARKUP + i)
+
+        val blobs_info =
+          Command.Blobs_Info(
+            for { (Command.Blob(name, src_path, _), xml) <- blobs zip blobs_xml }
+              yield {
+                val text = XML.content(xml)
+                val chunk = Symbol.Text_Chunk(text)
+                val digest = SHA1.digest(Symbol.encode(text))
+                Exn.Res(Command.Blob(name, src_path, Some((digest, chunk))))
+              })
+
+        val thy_xml = read_xml(Export.MARKUP)
+        val thy_source = XML.content(thy_xml)
 
         val markups_index =
           Command.Markup_Index.markup :: blobs.map(Command.Markup_Index.blob)
