@@ -88,17 +88,17 @@ fun split :: "('a*'b)tree \<Rightarrow> 'a \<Rightarrow> ('a*'b)tree \<times> bo
      GT \<Rightarrow> let (r1,b,r2) = split r x in (join l a r1, b, r2) |
      EQ \<Rightarrow> (l, True, r))"
 
-lemma split: "split t x = (l,xin,r) \<Longrightarrow> bst t \<Longrightarrow>
+lemma split: "split t x = (l,b,r) \<Longrightarrow> bst t \<Longrightarrow>
   set_tree l = {a \<in> set_tree t. a < x} \<and> set_tree r = {a \<in> set_tree t. x < a}
-  \<and> (xin = (x \<in> set_tree t)) \<and> bst l \<and> bst r"
-proof(induction t arbitrary: l xin r rule: tree2_induct)
+  \<and> (b = (x \<in> set_tree t)) \<and> bst l \<and> bst r"
+proof(induction t arbitrary: l b r rule: tree2_induct)
   case Leaf thus ?case by simp
 next
   case Node thus ?case by(force split!: prod.splits if_splits intro!: bst_join)
 qed
 
-lemma split_inv: "split t x = (l,xin,r) \<Longrightarrow> inv t \<Longrightarrow> inv l \<and> inv r"
-proof(induction t arbitrary: l xin r rule: tree2_induct)
+lemma split_inv: "split t x = (l,b,r) \<Longrightarrow> inv t \<Longrightarrow> inv l \<and> inv r"
+proof(induction t arbitrary: l b r rule: tree2_induct)
   case Leaf thus ?case by simp
 next
   case Node
@@ -181,9 +181,9 @@ fun inter :: "('a*'b)tree \<Rightarrow> ('a*'b)tree \<Rightarrow> ('a*'b)tree" w
   (if t1 = Leaf then Leaf else
    if t2 = Leaf then Leaf else
    case t1 of Node l1 (a, _) r1 \<Rightarrow>
-   let (l2,ain,r2) = split t2 a;
+   let (l2,b,r2) = split t2 a;
        l' = inter l1 l2; r' = inter r1 r2
-   in if ain then join l' a r' else join2 l' r')"
+   in if b then join l' a r' else join2 l' r')"
 
 declare inter.simps [simp del]
 
@@ -203,8 +203,8 @@ proof(induction t1 t2 rule: inter.induct)
       case False
       let ?L1 = "set_tree l1" let ?R1 = "set_tree r1"
       have *: "a \<notin> ?L1 \<union> ?R1" using \<open>bst t1\<close> by (fastforce)
-      obtain l2 ain r2 where sp: "split t2 a = (l2,ain,r2)" using prod_cases3 by blast
-      let ?L2 = "set_tree l2" let ?R2 = "set_tree r2" let ?A = "if ain then {a} else {}"
+      obtain l2 b r2 where sp: "split t2 a = (l2,b,r2)" using prod_cases3 by blast
+      let ?L2 = "set_tree l2" let ?R2 = "set_tree r2" let ?A = "if b then {a} else {}"
       have t2: "set_tree t2 = ?L2 \<union> ?R2 \<union> ?A" and
            **: "?L2 \<inter> ?R2 = {}" "a \<notin> ?L2 \<union> ?R2" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"
         using split[OF sp] \<open>bst t1\<close> \<open>bst t2\<close> by (force, force, force, force, force)
@@ -267,8 +267,8 @@ proof(induction t1 t2 rule: diff.induct)
     next
       case False
       let ?L2 = "set_tree l2" let ?R2 = "set_tree r2"
-      obtain l1 ain r1 where sp: "split t1 a = (l1,ain,r1)" using prod_cases3 by blast
-      let ?L1 = "set_tree l1" let ?R1 = "set_tree r1" let ?A = "if ain then {a} else {}"
+      obtain l1 b r1 where sp: "split t1 a = (l1,b,r1)" using prod_cases3 by blast
+      let ?L1 = "set_tree l1" let ?R1 = "set_tree r1" let ?A = "if b then {a} else {}"
       have t1: "set_tree t1 = ?L1 \<union> ?R1 \<union> ?A" and
            **: "a \<notin> ?L1 \<union> ?R1" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"
         using split[OF sp] \<open>bst t1\<close> \<open>bst t2\<close> by (force, force, force, force)
