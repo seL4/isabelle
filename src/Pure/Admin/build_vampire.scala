@@ -61,7 +61,9 @@ object Build_Vampire
         progress.bash("git checkout --quiet --detach " + Bash.string(rev),
           cwd = source_dir.file, echo = verbose).check
 
-        val build_dir = Isabelle_System.make_directory(source_dir + Path.explode("build"))
+        val build_dir = source_dir + Path.explode("build")
+        Isabelle_System.rm_tree(build_dir)
+        Isabelle_System.make_directory(build_dir)
 
         val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
         val cmake_out =
