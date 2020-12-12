@@ -656,7 +656,7 @@ object Build_Log
     }
 
   def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.cache()): List[String] =
-    if (bytes.isEmpty) Nil
+    if (bytes.is_empty) Nil
     else {
       XML.Decode.list(YXML.string_of_body)(YXML.parse_body(bytes.uncompress(cache = cache).text))
     }

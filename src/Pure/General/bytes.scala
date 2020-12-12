@@ -152,14 +152,12 @@ final class Bytes private(
 
   override def toString: String = "Bytes(" + length + ")"
 
-  def isEmpty: Boolean = length == 0
-
-  def proper: Option[Bytes] = if (isEmpty) None else Some(this)
-  def proper_text: Option[String] = if (isEmpty) None else Some(text)
+  def proper: Option[Bytes] = if (is_empty) None else Some(this)
+  def proper_text: Option[String] = if (is_empty) None else Some(text)
 
   def +(other: Bytes): Bytes =
-    if (other.isEmpty) this
-    else if (isEmpty) other
+    if (other.is_empty) this
+    else if (is_empty) other
     else {
       val new_bytes = new Array[Byte](length + other.length)
       System.arraycopy(bytes, offset, new_bytes, 0, length)

@@ -61,7 +61,7 @@ object Properties
     cache: XZ.Cache = XZ.cache(),
     xml_cache: Option[XML.Cache] = None): List[T] =
   {
-    if (bs.isEmpty) Nil
+    if (bs.is_empty) Nil
     else {
       val ps =
         XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress(cache = cache).text))
