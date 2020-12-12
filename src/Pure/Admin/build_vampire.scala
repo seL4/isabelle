@@ -12,6 +12,7 @@ object Build_Vampire
   val default_repository = "https://github.com/vprover/vampire.git"
   val default_version1 = "4.5.1"
   val default_version2 = "df87588848db"
+  val default_jobs = 1
 
   def make_component_name(version: String) = "vampire-" + version
 
@@ -22,6 +23,7 @@ object Build_Vampire
     repository: String = default_repository,
     version1: String = default_version1,
     version2: String = default_version2,
+    jobs: Int = default_jobs,
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
@@ -71,7 +73,7 @@ object Build_Vampire
           split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
             .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
 
-        progress.bash("make", cwd = build_dir.file, echo = verbose).check
+        progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
 
         File.copy(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
           platform_dir + Path.basic(exe).platform_exe)
@@ -127,6 +129,7 @@ The precise commit id is revealed by executing "vampire --version".
       var repository = default_repository
       var version1 = default_version1
       var version2 = default_version2
+      var jobs = default_jobs
       var component_name = ""
       var verbose = false
 
@@ -138,6 +141,7 @@ Usage: isabelle build_vampire [OPTIONS]
     -U URL       repository (default: """" + default_repository + """")
     -V REV1      standard version (default: """" + default_version1 + """")
     -W REV2      polymorphic version (default: """" + default_version2 + """")
+    -j NUMBER    parallel jobs for make (default: """ + default_jobs + """)
     -n NAME      component name (default: """" + make_component_name("REV1") + """")
     -v           verbose
 
@@ -147,6 +151,7 @@ Usage: isabelle build_vampire [OPTIONS]
         "U:" -> (arg => repository = arg),
         "V:" -> (arg => version1 = arg),
         "W:" -> (arg => version2 = arg),
+        "j:" -> (arg => jobs = Value.Nat.parse(arg)),
         "n:" -> (arg => component_name = arg),
         "v" -> (_ => verbose = true))
 
@@ -156,7 +161,7 @@ Usage: isabelle build_vampire [OPTIONS]
       val progress = new Console_Progress()
 
       build_vampire(repository = repository, version1 = version1, version2 = version2,
-        component_name = component_name, verbose = verbose, progress = progress,
+        component_name = component_name, jobs = jobs, verbose = verbose, progress = progress,
         target_dir = target_dir)
     })
 }
