@@ -12,7 +12,8 @@ object Build_Vampire
   val default_repository = "https://github.com/vprover/vampire.git"
   val default_version1 = "4.5.1"
   val default_version2 = "7638614fc288"
-  val default_component_name = "vampire-" + default_version1
+
+  def make_component_name(version: String) = "vampire-" + version
 
 
   /* build Vampire */
@@ -21,7 +22,7 @@ object Build_Vampire
     repository: String = default_repository,
     version1: String = default_version1,
     version2: String = default_version2,
-    component_name: String = default_component_name,
+    component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current)
@@ -30,7 +31,8 @@ object Build_Vampire
     {
       /* component and platform */
 
-      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component_name))
+      val component = proper_string(component_name) getOrElse make_component_name(version1)
+      val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
       progress.echo("Component " + component_dir)
 
       val platform_name =
@@ -116,7 +118,7 @@ The precise commit id is revealed by executing "vampire --version".
       var repository = default_repository
       var version1 = default_version1
       var version2 = default_version2
-      var component_name = default_component_name
+      var component_name = ""
       var verbose = false
 
       val getopts = Getopts("""
@@ -125,9 +127,9 @@ Usage: isabelle build_vampire [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -U URL       repository (default: """" + default_repository + """")
-    -V REV       standard version (default: """" + default_version1 + """")
-    -W REV       polymorphic version (default: """" + default_version2 + """")
-    -n NAME      component name (default: """" + default_component_name + """")
+    -V REV1      standard version (default: """" + default_version1 + """")
+    -W REV2      polymorphic version (default: """" + default_version2 + """")
+    -n NAME      component name (default: """" + make_component_name("REV1") + """")
     -v           verbose
 
   Build prover component from official download.
