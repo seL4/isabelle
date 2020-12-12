@@ -47,25 +47,62 @@ object Build_Vampire
       progress.bash("git clone " + Bash.string(repository) + " vampire",
         cwd = tmp_dir.file, echo = verbose).check
 
-      val build_dir = tmp_dir + Path.explode("vampire")
+      val source_dir = tmp_dir + Path.explode("vampire")
 
-      File.copy(build_dir + Path.explode("LICENCE"), component_dir)
+      File.copy(source_dir + Path.explode("LICENCE"), component_dir)
 
 
-      /* build versions */
+      /* build */
 
-      for { (rev, exe) <- List(version1 -> "vampire", version2 -> "vampire_polymorphic") } {
+      val build_static = Platform.is_linux
+
+      def build_init(exe: String, rev: String): Unit =
+      {
         progress.echo("Building " + exe + " (rev " + rev + ")")
-        progress.bash(
-          List("git checkout --quiet --detach " + Bash.string(rev),
-            "make clean",
-            "make vampire_rel").mkString(" && "),
-          cwd = build_dir.file, echo = verbose).check
+        progress.bash("git checkout --quiet --detach " + Bash.string(rev),
+          cwd = source_dir.file, echo = verbose).check
+      }
+
+
+      /* build standard version */
+
+      {
+        val exe = "vampire"
+        build_init(exe, version1)
+
+        val build_dir = Isabelle_System.make_directory(source_dir + Path.explode("build"))
+
+        val cmake_opts = if (build_static) "-DBUILD_SHARED_LIBS=0 " else ""
+        val cmake_out =
+          progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" ..""",
+            cwd = build_dir.file, echo = verbose).check.out
+
+        val Pattern = """-- Setting binary name to (\S*)""".r
+        val binary =
+          split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
+            .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
+
+        progress.bash("make", cwd = build_dir.file, echo = verbose).check
+
+        File.copy(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
+          platform_dir + Path.basic(exe).platform_exe)
+      }
+
+
+      /* build polymorphic version */
+
+      {
+        val exe = "vampire_polymorphic"
+        build_init(exe, version2)
+
+        val target = if (build_static) "vampire_rel_static" else "vampire_rel"
+        progress.bash("make " + target, cwd = source_dir.file, echo = verbose).check
 
         val rev_count =
-          progress.bash("git rev-list HEAD --count", cwd = build_dir.file).check.out
-        val build = Path.basic("vampire_rel_detached_" + rev_count)
-        File.copy(build_dir + build.platform_exe, platform_dir + Path.basic(exe).platform_exe)
+          progress.bash("git rev-list HEAD --count", cwd = source_dir.file).check.out
+        val binary = target + "_detached_" + rev_count
+        File.copy(source_dir + Path.basic(binary).platform_exe,
+          platform_dir + Path.basic(exe).platform_exe)
       }
 
 
@@ -90,14 +127,13 @@ VAMPIRE_EXTRA_OPTIONS=""
         "This Isabelle component provides two versions of Vampire from\n" + repository + """
 
   * vampire: standard version (regular stable release)
+
+      cmake . && make
+
   * vampire_polymorphic: special version for polymorphic FOL and HOL
     (intermediate repository version)
 
-The executables have been built like this:
-
-    git checkout COMMIT
-    make clean
-    make vampire_rel
+      make vampire_rel
 
 The precise commit id is revealed by executing "vampire --version".
 
