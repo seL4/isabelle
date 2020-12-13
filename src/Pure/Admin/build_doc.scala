@@ -51,7 +51,7 @@ object Build_Doc
       {
         case (doc, session) =>
           try {
-            progress.echo("Documentation " + doc + " ...")
+            progress.echo("Documentation " + quote(doc) + " ...")
 
             using(store.open_database_context())(db_context =>
               Presentation.build_documents(session, deps, db_context,
@@ -61,7 +61,7 @@ object Build_Doc
           catch {
             case Exn.Interrupt.ERROR(msg) =>
               val sep = if (msg.contains('\n')) "\n" else " "
-              Some("Documentation " + doc + " failed:" + sep + msg)
+              Some("Documentation " + quote(doc) + " failed:" + sep + msg)
           }
       }, selected).flatten
 
