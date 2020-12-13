@@ -42,58 +42,38 @@ Official (full support):
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.1.x https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
 
-Old (partial support):
-
-  x86_64-darwin     OS X 10.11 El Capitan (macbroy2 MacPro4,1)
-
 New (experimental):
 
   arm64-linux       Raspberry Pi OS 64bit beta (Debian 10 / Buster)
+
+  x86_64-darwin     macOS 11 Big Sur
 
 
 64 bit vs. 32 bit platform personality
 --------------------------------------
 
 Isabelle requires 64 bit hardware running a 64 bit operating
-system. Windows and macOS allow x86 executables as well, but for
-Linux this requires separate installation of 32 bit shared
-libraries. The POSIX emulation on Windows via Cygwin64 works
-exclusively for x86_64.
+system. Only Windows still supports native x86 executables, but the
+POSIX emulation on Windows via Cygwin64 works exclusively for x86_64.
 
-Poly/ML supports both for x86_64 and x86, and the latter is preferred
-for space and performance reasons. Java is always the x86_64 version
-on all platforms.
-
-Add-on executables are expected to work without manual user
-configuration. Each component settings script needs to determine the
-platform details appropriately.
-
-
-The Isabelle settings environment provides the following important
-variables to help configuring platform-dependent tools:
-
-  ISABELLE_PLATFORM64  (potentially empty)
-  ISABELLE_PLATFORM32  (potentially empty)
-
-Each can be empty, but not both at the same time. Using GNU bash
-notation, tools may express their platform preference, e.g. first 64
-bit and second 32 bit, or the opposite:
-
-  "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
-  "${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"
-
-
-There is a another set of settings for native Windows (instead of the
-POSIX emulation of Cygwin used before):
+The Isabelle settings environment provides variable
+ISABELLE_PLATFORM64 to refer to the standard platform personality. On
+Windows this is for Cygwin64, but the following native platform
+identifiers are available as well:
 
   ISABELLE_WINDOWS_PLATFORM64
   ISABELLE_WINDOWS_PLATFORM32
 
 These are always empty on Linux and macOS, and non-empty on
-Windows. They can be used like this to prefer native Windows and then
-Unix (first 64 bit second 32 bit):
+Windows. For example, this is how to refer to native Windows and
+fall-back on Unix (always 64 bit):
 
-  "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
+  "${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+
+And this is for old 32 bit executables on Windows, but still 64 bit on
+Unix:
+
+  "${ISABELLE_WINDOWS_PLATFORM32:-$ISABELLE_PLATFORM64}"
 
 
 Dependable system tools
