@@ -176,6 +176,7 @@ object Rendering
   {
     def apply(ids: Set[Long]): Focus = new Focus(ids)
     val empty: Focus = apply(Set.empty)
+    def merge(args: TraversableOnce[Focus]): Focus = (empty /: args)(_ ++ _)
   }
 
   sealed class Focus private[Rendering](protected val rep: Set[Long])
@@ -239,7 +240,7 @@ object Rendering
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements = Markup.Elements(Markup.ERROR)
 
-  val entity_focus_elements = Markup.Elements(Markup.ENTITY)
+  val entity_elements = Markup.Elements(Markup.ENTITY)
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
 
@@ -502,9 +503,9 @@ class Rendering(
       check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def)
     : Rendering.Focus =
   {
-    val results =
-      snapshot.cumulate[Rendering.Focus](range, Rendering.Focus.empty,
-        Rendering.entity_focus_elements, _ =>
+    Rendering.Focus.merge(
+      snapshot.cumulate[Rendering.Focus](range, Rendering.Focus.empty, Rendering.entity_elements,
+        _ =>
           {
             case (focus, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
@@ -513,9 +514,7 @@ class Rendering(
                 case _ => None
               }
             case _ => None
-          })
-    (Rendering.Focus.empty /: results){
-      case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 }
+          }).iterator.map(_.info))
   }
 
   def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Rendering.Focus =
@@ -533,7 +532,7 @@ class Rendering(
     val focus = caret_focus(caret_range, visible_range)
     if (focus.defined) {
       val results =
-        snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_focus_elements, _ =>
+        snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_elements, _ =>
           {
             case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {

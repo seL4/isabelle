@@ -225,7 +225,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
   /* caret focus */
 
   def entity_ref(range: Text.Range, focus: Rendering.Focus): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.entity_focus_elements, _ =>
+    snapshot.select(range, Rendering.entity_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Ref(i)), _))
         if focus(i) => Some(entity_ref_color)
