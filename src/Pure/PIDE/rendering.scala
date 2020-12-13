@@ -447,8 +447,8 @@ class Rendering(
                 Some((Nil, Some(Rendering.Color.intensify)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
                 props match {
-                  case Markup.Entity.Def(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
-                  case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
+                  case Markup.Def(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
+                  case Markup.Ref(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
                   case _ => None
                 }
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Bullet(depth), _))) =>
@@ -509,8 +509,8 @@ class Rendering(
           {
             case (focus, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
-                case Markup.Entity.Def(i) if check(true, i) => Some(focus + i)
-                case Markup.Entity.Ref(i) if check(false, i) => Some(focus + i)
+                case Markup.Def(i) if check(true, i) => Some(focus + i)
+                case Markup.Ref(i) if check(false, i) => Some(focus + i)
                 case _ => None
               }
             case _ => None
@@ -536,8 +536,8 @@ class Rendering(
           {
             case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
-                case Markup.Entity.Def(i) if focus(i) => Some(true)
-                case Markup.Entity.Ref(i) if focus(i) => Some(true)
+                case Markup.Def(i) if focus(i) => Some(true)
+                case Markup.Ref(i) if focus(i) => Some(true)
                 case _ => None
               }
           })

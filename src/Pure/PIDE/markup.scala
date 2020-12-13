@@ -104,11 +104,11 @@ object Markup
   val BINDING = "binding"
   val ENTITY = "entity"
 
+  val Def = new Properties.Long("def")
+  val Ref = new Properties.Long("ref")
+
   object Entity
   {
-    val Def = new Properties.Long("def")
-    val Ref = new Properties.Long("ref")
-
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
         case Markup(ENTITY, props) =>
