@@ -170,6 +170,27 @@ object Rendering
       Markup.TVAR -> "schematic type variable")
 
 
+  /* entity focus */
+
+  object Focus
+  {
+    def apply(ids: Set[Long]): Focus = new Focus(ids)
+    val empty: Focus = apply(Set.empty)
+  }
+
+  sealed class Focus private[Rendering](protected val rep: Set[Long])
+  {
+    def defined: Boolean = rep.nonEmpty
+    def apply(id: Long): Boolean = rep.contains(id)
+    def + (id: Long): Focus = if (rep.contains(id)) this else new Focus(rep + id)
+    def ++ (other: Focus): Focus =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.rep.iterator)(_ + _)
+    override def toString: String = rep.mkString("Focus(", ",", ")")
+  }
+
+
   /* markup elements */
 
   val position_elements =
@@ -218,7 +239,7 @@ object Rendering
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements = Markup.Elements(Markup.ERROR)
 
-  val caret_focus_elements = Markup.Elements(Markup.ENTITY)
+  val entity_focus_elements = Markup.Elements(Markup.ENTITY)
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
 
@@ -407,7 +428,7 @@ class Rendering(
 
   /* text background */
 
-  def background(elements: Markup.Elements, range: Text.Range, focus: Set[Long])
+  def background(elements: Markup.Elements, range: Text.Range, focus: Rendering.Focus)
     : List[Text.Info[Rendering.Color.Value]] =
   {
     for {
@@ -478,38 +499,41 @@ class Rendering(
   /* caret focus */
 
   private def entity_focus(range: Text.Range,
-    check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def): Set[Long] =
+      check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def)
+    : Rendering.Focus =
   {
     val results =
-      snapshot.cumulate[Set[Long]](range, Set.empty, Rendering.caret_focus_elements, _ =>
+      snapshot.cumulate[Rendering.Focus](range, Rendering.Focus.empty,
+        Rendering.entity_focus_elements, _ =>
           {
-            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            case (focus, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
-                case Markup.Entity.Def(i) if check(true, i) => Some(serials + i)
-                case Markup.Entity.Ref(i) if check(false, i) => Some(serials + i)
+                case Markup.Entity.Def(i) if check(true, i) => Some(focus + i)
+                case Markup.Entity.Ref(i) if check(false, i) => Some(focus + i)
                 case _ => None
               }
             case _ => None
           })
-    (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
+    (Rendering.Focus.empty /: results){
+      case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 }
   }
 
-  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
+  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Rendering.Focus =
   {
     val focus_defs = entity_focus(caret_range)
-    if (focus_defs.nonEmpty) focus_defs
+    if (focus_defs.defined) focus_defs
     else {
       val visible_defs = entity_focus(visible_range)
-      entity_focus(caret_range, (is_def: Boolean, i: Long) => !is_def && visible_defs.contains(i))
+      entity_focus(caret_range, (is_def: Boolean, i: Long) => !is_def && visible_defs(i))
     }
   }
 
   def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
   {
     val focus = caret_focus(caret_range, visible_range)
-    if (focus.nonEmpty) {
+    if (focus.defined) {
       val results =
-        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
+        snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_focus_elements, _ =>
           {
             case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {

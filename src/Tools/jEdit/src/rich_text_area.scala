@@ -75,7 +75,7 @@ class Rich_Text_Area(
 
   @volatile private var painter_rendering: JEdit_Rendering = null
   @volatile private var painter_clip: Shape = null
-  @volatile private var caret_focus: Set[Long] = Set.empty
+  @volatile private var caret_focus = Rendering.Focus.empty
 
   private val set_state = new TextAreaExtension
   {
@@ -89,7 +89,7 @@ class Rich_Text_Area(
         JEdit_Lib.visible_range(text_area) match {
           case Some(visible_range) if caret_enabled && !painter_rendering.snapshot.is_outdated =>
             painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
-          case _ => Set.empty[Long]
+          case _ => Rendering.Focus.empty
         }
     }
   }
@@ -102,7 +102,7 @@ class Rich_Text_Area(
     {
       painter_rendering = null
       painter_clip = null
-      caret_focus = Set.empty
+      caret_focus = Rendering.Focus.empty
     }
   }
 

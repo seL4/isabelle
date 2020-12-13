@@ -218,7 +218,8 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
       List(
         () =>
           VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
-            background(VSCode_Rendering.background_elements, model.content.text_range, Set.empty)),
+            background(VSCode_Rendering.background_elements, model.content.text_range,
+              Rendering.Focus.empty)),
         () =>
           VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
             foreground(model.content.text_range)),
