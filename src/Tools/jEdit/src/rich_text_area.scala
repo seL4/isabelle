@@ -233,7 +233,7 @@ class Rich_Text_Area(
       robust_body(()) {
         val x = evt.getX
         val y = evt.getY
-        val control = (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
+        val control = JEdit_Lib.command_modifier(evt)
 
         if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {

@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.{File => JFile}
-import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension}
+import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
@@ -394,4 +394,10 @@ object JEdit_Lib
       !Debug.ALT_KEY_PRESSED_DISABLED ||
     (mod & InputEvent.META_DOWN_MASK) != 0
   }
+
+  def command_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
+
+  def shift_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
 }

@@ -205,11 +205,7 @@ class Pretty_Text_Area(
     key_pressed = (evt: KeyEvent) =>
       {
         val strict_control =
-        {
-          val mod = evt.getModifiersEx
-          (mod & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 &&
-          (mod & InputEvent.SHIFT_DOWN_MASK) == 0
-        }
+          JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
 
         evt.getKeyCode match {
           case KeyEvent.VK_C | KeyEvent.VK_INSERT
