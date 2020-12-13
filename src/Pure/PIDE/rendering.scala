@@ -436,7 +436,7 @@ class Rendering(
     for {
       Text.Info(r, result) <-
         snapshot.cumulate[(List[Markup], Option[Rendering.Color.Value])](
-          range, (List(Markup.Empty), None), Rendering.background_elements,
+          range, (List(Markup.Empty), None), elements,
           command_states =>
             {
               case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
