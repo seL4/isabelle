@@ -457,7 +457,7 @@ class Rendering(
                     case _ => Rendering.Color.markdown_bullet4
                   }
                 Some((Nil, Some(color)))
-              case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
+              case (_, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                 command_states.collectFirst(
                   { case st if st.results.defined(serial) => st.results.get(serial).get }) match
                 {
