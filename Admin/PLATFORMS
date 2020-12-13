@@ -44,7 +44,7 @@ Official (full support):
 
 Old (partial support):
 
-  x86_64-darwin     Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
+  x86_64-darwin     OS X 10.11 El Capitan (macbroy2 MacPro4,1)
 
 New (experimental):
 
@@ -55,7 +55,7 @@ New (experimental):
 --------------------------------------
 
 Isabelle requires 64 bit hardware running a 64 bit operating
-system. Windows and Mac OS X allow x86 executables as well, but for
+system. Windows and macOS allow x86 executables as well, but for
 Linux this requires separate installation of 32 bit shared
 libraries. The POSIX emulation on Windows via Cygwin64 works
 exclusively for x86_64.
@@ -89,7 +89,7 @@ POSIX emulation of Cygwin used before):
   ISABELLE_WINDOWS_PLATFORM64
   ISABELLE_WINDOWS_PLATFORM32
 
-These are always empty on Linux and Mac OS X, and non-empty on
+These are always empty on Linux and macOS, and non-empty on
 Windows. They can be used like this to prefer native Windows and then
 Unix (first 64 bit second 32 bit):
 
@@ -116,12 +116,12 @@ The following portable system tools can be taken for granted:
 Known problems
 --------------
 
-* Mac OS X: If MacPorts is installed there is some danger that
+* macOS: If MacPorts is installed there is some danger that
   accidental references to its shared libraries are created
   (e.g. libgmp).  Use otool -L to check if compiled binaries also work
   without MacPorts.
 
-* Mac OS X: If MacPorts is installed and its version of Perl takes
+* macOS: If MacPorts is installed and its version of Perl takes
   precedence over /usr/bin/perl in the PATH, then the end-user needs
   to take care of installing extra modules, e.g. for HTTP support.
   Such add-ons are usually included in Apple's /usr/bin/perl by

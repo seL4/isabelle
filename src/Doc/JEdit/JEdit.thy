@@ -49,7 +49,7 @@ text \<open>
     experts. Technically, Isabelle/jEdit consists of the original jEdit code
     base with minimal patches and a special plugin for Isabelle. This is
     integrated as a desktop application for the main operating system
-    families: Linux, Windows, Mac OS X.
+    families: Linux, Windows, macOS.
 
   End-users of Isabelle download and run a standalone application that exposes
   jEdit as a text editor on the surface. Thus there is occasionally a tendency
@@ -98,7 +98,7 @@ text \<open>
   underlines, hyperlinks, popup windows, icons, clickable output etc.
 
   Using the mouse together with the modifier key \<^verbatim>\<open>CONTROL\<close> (Linux, Windows)
-  or \<^verbatim>\<open>COMMAND\<close> (Mac OS X) exposes formal content via tooltips and/or
+  or \<^verbatim>\<open>COMMAND\<close> (macOS) exposes formal content via tooltips and/or
   hyperlinks (see also \secref{sec:tooltips-hyperlinks}). Output (in popups
   etc.) may be explored recursively, using the same techniques as in the
   editor source buffer.
@@ -219,7 +219,7 @@ section \<open>Command-line invocation \label{sec:command-line}\<close>
 
 text \<open>
   Isabelle/jEdit is normally invoked as a single-instance desktop application,
-  based on platform-specific executables for Linux, Windows, Mac OS X.
+  based on platform-specific executables for Linux, Windows, macOS.
 
   It is also possible to invoke the Prover IDE on the command-line, with some
   extra options and environment settings. The command-line usage of @{tool_def
@@ -338,7 +338,7 @@ text \<open>
 
     \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default.
 
-    \<^descr>[Mac OS X:] Regular \<^emph>\<open>Mac OS X\<close> is used by default.
+    \<^descr>[macOS:] Regular \<^emph>\<open>Mac OS X\<close> is used by default.
 
     The bundled \<^emph>\<open>MacOSX\<close> plugin provides various functions that are expected
     from applications on that particular platform: quit from menu or dock,
@@ -1241,7 +1241,7 @@ section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
 text \<open>
   Formally processed text (prover input or output) contains rich markup that
   can be explored by using the \<^verbatim>\<open>CONTROL\<close> modifier key on Linux and Windows,
-  or \<^verbatim>\<open>COMMAND\<close> on Mac OS X. Hovering with the mouse while the modifier is
+  or \<^verbatim>\<open>COMMAND\<close> on macOS. Hovering with the mouse while the modifier is
   pressed reveals a \<^emph>\<open>tooltip\<close> (grey box over the text with a yellow popup)
   and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text with change of mouse
   pointer); see also \figref{fig:tooltip}.
@@ -2178,14 +2178,14 @@ text \<open>
 
   \<^bold>\<open>Workaround:\<close> Rebind keys via \<^emph>\<open>Global Options~/ Shortcuts\<close>.
 
-  \<^item> \<^bold>\<open>Problem:\<close> The Mac OS X key sequence \<^verbatim>\<open>COMMAND+COMMA\<close> for application
+  \<^item> \<^bold>\<open>Problem:\<close> The macOS key sequence \<^verbatim>\<open>COMMAND+COMMA\<close> for application
   \<^emph>\<open>Preferences\<close> is in conflict with the jEdit default keyboard shortcut for
   \<^emph>\<open>Incremental Search Bar\<close> (action @{action_ref "quick-search"}).
 
   \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to the
   national keyboard layout, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
 
-  \<^item> \<^bold>\<open>Problem:\<close> On Mac OS X with native Apple look-and-feel, some exotic
+  \<^item> \<^bold>\<open>Problem:\<close> On macOS with native Apple look-and-feel, some exotic
   national keyboards may cause a conflict of menu accelerator keys with
   regular jEdit key bindings. This leads to duplicate execution of the
   corresponding jEdit action.
@@ -2193,12 +2193,12 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Disable the native Apple menu bar via Java runtime option
   \<^verbatim>\<open>-Dapple.laf.useScreenMenuBar=false\<close>.
 
-  \<^item> \<^bold>\<open>Problem:\<close> Mac OS X system fonts sometimes lead to character drop-outs in
+  \<^item> \<^bold>\<open>Problem:\<close> macOS system fonts sometimes lead to character drop-outs in
   the main text area.
 
   \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>Isabelle DejaVu\<close> fonts.
 
-  \<^item> \<^bold>\<open>Problem:\<close> On Mac OS X the Java printer dialog sometimes does not work.
+  \<^item> \<^bold>\<open>Problem:\<close> On macOS the Java printer dialog sometimes does not work.
 
   \<^bold>\<open>Workaround:\<close> Use action @{action isabelle.draft} and print via the Web
   browser.
@@ -2241,10 +2241,10 @@ text \<open>
 
   \<^item> \<^bold>\<open>Problem:\<close> Full-screen mode via jEdit action @{action_ref
   "toggle-full-screen"} (default keyboard shortcut \<^verbatim>\<open>F11\<close>) works on Windows,
-  but not on Mac OS X or various Linux/X11 window managers.
+  but not on macOS or various Linux/X11 window managers.
 
   \<^bold>\<open>Workaround:\<close> Use native full-screen control of the window manager (notably
-  on Mac OS X).
+  on macOS).
 
   \<^item> \<^bold>\<open>Problem:\<close> Heap space of the JVM may fill up and render the Prover IDE
   unresponsive, e.g.\ when editing big Isabelle sessions with many theories.

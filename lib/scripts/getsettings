@@ -17,7 +17,7 @@ export ISABELLE_SETTINGS_PRESENT=true
 
 set -o allexport
 
-#sane environment defaults (notably on Mac OS X)
+#sane environment defaults (notably on macOS)
 if [ "$ISABELLE_APP" = true -a -x /usr/libexec/path_helper ]; then
   eval $(/usr/libexec/path_helper -s)
 fi

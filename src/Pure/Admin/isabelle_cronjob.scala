@@ -237,7 +237,7 @@ object Isabelle_Cronjob
           " -e ISABELLE_SWIPL=swipl",
         args = "-N -a -d '~~/src/Benchmarks'",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("Benchmarks")),
-      Remote_Build("Mac OS X 10.14 Mojave (Old)", "lapnipkow3",
+      Remote_Build("macOS 10.14 Mojave (Old)", "lapnipkow3",
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("AFP old bulky", "lrzcloud1", self_update = true,
@@ -264,19 +264,19 @@ object Isabelle_Cronjob
         detect =
           Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
           Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
-      Remote_Build("Poly/ML 5.7 Mac OS X", "macbroy2",
+      Remote_Build("Poly/ML 5.7 macOS", "macbroy2",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x4,4 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-a",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7")),
-      Remote_Build("Poly/ML 5.7.1 Mac OS X", "macbroy2",
+      Remote_Build("Poly/ML 5.7.1 macOS", "macbroy2",
         history_base = "a9d5b59c3e12",
         options = "-m32 -B -M1x4,4 -t polyml-5.7.1-pre2 -i 'init_component /home/isabelle/contrib/polyml-test-905dae2ebfda'",
         args = "-a",
         detect =
         Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
         Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
-      Remote_Build("Mac OS X", "macbroy2",
+      Remote_Build("macOS", "macbroy2",
         options = "-m32 -M8" +
           " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
           " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
@@ -286,11 +286,11 @@ object Isabelle_Cronjob
         args = "-a",
         detect = Build_Log.Prop.build_tags.undefined,
         history_base = "2c0f24e927dd"),
-      Remote_Build("Mac OS X, quick_and_dirty", "macbroy2",
+      Remote_Build("macOS, quick_and_dirty", "macbroy2",
         options = "-m32 -M8 -t quick_and_dirty -p pide_session=false", args = "-a -o quick_and_dirty",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
         history_base = "2c0f24e927dd"),
-      Remote_Build("Mac OS X, skip_proofs", "macbroy2",
+      Remote_Build("macOS, skip_proofs", "macbroy2",
         options = "-m32 -M8 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
         history_base = "2c0f24e927dd"),
@@ -298,10 +298,10 @@ object Isabelle_Cronjob
         options = "-m32 -B -M1x2,2 -t polyml-test -i 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
-      Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2 -p pide_session=false", args = "-a",
+      Remote_Build("macOS 10.12 Sierra", "macbroy30", options = "-m32 -M2 -p pide_session=false", args = "-a",
         detect = Build_Log.Prop.build_start + " > date '2017-03-03'"),
-      Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a"),
-      Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
+      Remote_Build("macOS 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a"),
+      Remote_Build("macOS 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
         detect = Build_Log.Prop.build_start + " < date '2017-03-03'")) :::
       {
         for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
@@ -323,11 +323,11 @@ object Isabelle_Cronjob
     List(
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
-      List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
+      List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
         options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("Mac OS X 10.14 Mojave", "mini2",
+        Remote_Build("macOS 10.14 Mojave", "mini2",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
@@ -335,14 +335,14 @@ object Isabelle_Cronjob
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           self_update = true, args = "-a -d '~~/src/Benchmarks'"),
-        Remote_Build("Mac OS X, quick_and_dirty", "mini2",
+        Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           self_update = true, args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
-        Remote_Build("Mac OS X, skip_proofs", "mini2",
+        Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
-      List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
+      List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
         self_update = true,
         options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",

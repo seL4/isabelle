@@ -20,7 +20,7 @@ else
 fi
 export -f platform_path standard_path
 
-#GNU tar (notably on Mac OS X)
+#GNU tar (notably on macOS)
 if type -p gnutar >/dev/null
 then
   function tar() { gnutar "$@"; }

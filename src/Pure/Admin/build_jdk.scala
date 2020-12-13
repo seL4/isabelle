@@ -225,7 +225,7 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
     -D DIR       target directory (default ".")
 
   Build jdk component from tar.gz archives, with original jdk archives
-  for Linux (arm64 and x86_64), Windows (x86_64), Mac OS X (x86_64).
+  for Linux (arm64 and x86_64), Windows (x86_64), macOS (x86_64).
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)))
 

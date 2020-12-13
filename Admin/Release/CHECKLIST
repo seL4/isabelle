@@ -45,9 +45,9 @@ Checklist for official releases
 
 - check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
 
-- test old HD display: Linux, Windows, Mac OS X;
+- test old HD display: Linux, Windows, macOS;
 
-- Mac OS X: check recent MacTeX;
+- macOS: check recent MacTeX;
 
 - Windows: check recent MiKTeX;
 
@@ -69,7 +69,7 @@ Repository fork
 Packaging
 =========
 
-- Mac OS X: provide "gnutar" executable via shell PATH
+- macOS: provide "gnutar" executable via shell PATH
   (e.g. copy of /usr/bin/gnutar from Mountain Lion)
 
 - fully-automated packaging (e.g. on lxcisa0):
