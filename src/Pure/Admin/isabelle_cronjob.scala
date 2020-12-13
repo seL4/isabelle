@@ -276,6 +276,24 @@ object Isabelle_Cronjob
         detect =
         Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
         Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
+      Remote_Build("Mac OS X", "macbroy2",
+        options = "-m32 -M8" +
+          " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
+          " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+          " -e ISABELLE_OPAM_ROOT=\"$ISABELLE_HOME/opam\"" +
+          " -e ISABELLE_SMLNJ=/home/isabelle/smlnj/110.85/bin/sml" +
+          " -p pide_session=false",
+        args = "-a",
+        detect = Build_Log.Prop.build_tags.undefined,
+        history_base = "2c0f24e927dd"),
+      Remote_Build("Mac OS X, quick_and_dirty", "macbroy2",
+        options = "-m32 -M8 -t quick_and_dirty -p pide_session=false", args = "-a -o quick_and_dirty",
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
+        history_base = "2c0f24e927dd"),
+      Remote_Build("Mac OS X, skip_proofs", "macbroy2",
+        options = "-m32 -M8 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
+        history_base = "2c0f24e927dd"),
       Remote_Build("Poly/ML test", "lxbroy8",
         options = "-m32 -B -M1x2,2 -t polyml-test -i 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
         args = "-N -g timing",
@@ -305,36 +323,25 @@ object Isabelle_Cronjob
     List(
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
-      List(
-        Remote_Build("Mac OS X", "macbroy2",
-          options = "-m32 -M8" +
-            " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
-            " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_OPAM_ROOT=\"$ISABELLE_HOME/opam\"" +
-            " -e ISABELLE_SMLNJ=/home/isabelle/smlnj/110.85/bin/sml" +
-            " -p pide_session=false",
-          args = "-a",
-          detect = Build_Log.Prop.build_tags.undefined,
-          history_base = "2c0f24e927dd"),
-        Remote_Build("Mac OS X, quick_and_dirty", "macbroy2",
-          options = "-m32 -M8 -t quick_and_dirty -p pide_session=false", args = "-a -o quick_and_dirty",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
-          history_base = "2c0f24e927dd"),
-        Remote_Build("Mac OS X, skip_proofs", "macbroy2",
-          options = "-m32 -M8 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
-          history_base = "2c0f24e927dd")),
       List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
         options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("Mac OS X 10.14 Mojave", "mini2",
-        options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
-          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-          " -e ISABELLE_GHC_SETUP=true" +
-          " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
-          " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
-          " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-        self_update = true, args = "-a -d '~~/src/Benchmarks'")),
+      List(
+        Remote_Build("Mac OS X 10.14 Mojave", "mini2",
+          options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+            " -e ISABELLE_GHC_SETUP=true" +
+            " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
+            " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
+            " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
+          self_update = true, args = "-a -d '~~/src/Benchmarks'"),
+        Remote_Build("Mac OS X, quick_and_dirty", "mini2",
+          options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
+          self_update = true, args = "-a -o quick_and_dirty",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
+        Remote_Build("Mac OS X, skip_proofs", "mini2",
+          options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
       List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
         self_update = true,
