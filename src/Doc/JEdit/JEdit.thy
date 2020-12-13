@@ -332,25 +332,19 @@ text \<open>
 
     \<^descr>[Linux:] The platform-independent \<^emph>\<open>Metal\<close> is used by default.
 
-    The Linux-specific \<^emph>\<open>GTK+\<close> often works, but the overall GTK theme and
-    options need to be selected to suite Java/AWT/Swing. Note that the Java
-    Virtual Machine has no direct influence of GTK rendering.
+    The Linux-specific \<^emph>\<open>GTK+\<close> look-and-feel often works, but the overall GTK
+    theme and options need to be selected to suite Java/AWT/Swing. Note that
+    the Java Virtual Machine has no direct influence of GTK rendering: it
+    happens within external C libraries.
 
-    \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default.
+    \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> look-and-feel is used by default.
 
-    \<^descr>[macOS:] Regular \<^emph>\<open>Mac OS X\<close> is used by default.
-
-    The bundled \<^emph>\<open>MacOSX\<close> plugin provides various functions that are expected
-    from applications on that particular platform: quit from menu or dock,
-    preferences menu, drag-and-drop of text files on the application,
-    full-screen mode for main editor windows. It is advisable to have the
-    \<^emph>\<open>MacOSX\<close> plugin enabled all the time on that platform.
+    \<^descr>[macOS:] Regular \<^emph>\<open>Mac OS X\<close> look-and-feel is used by default.
 
   Users may experiment with different Swing look-and-feels, but need to keep
   in mind that this extra variance of GUI functionality often causes problems.
-  The platform-independent \<^emph>\<open>Metal\<close> and \<^emph>\<open>Nimbus\<close> should always work on all
-  platforms, although they are technically and stylistically outdated. The
-  historic \<^emph>\<open>CDE/Motif\<close> should be ignored.
+  The platform-independent \<^emph>\<open>Metal\<close> look-and-feel should work smoothly on all
+  platforms, although its is technically and stylistically outdated.
 
   Changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close> may update the
   GUI only partially: a proper restart of Isabelle/jEdit is usually required.
