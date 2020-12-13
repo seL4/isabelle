@@ -445,12 +445,8 @@ class Rendering(
                 Some((Nil, Some(Rendering.Color.bad)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 Some((Nil, Some(Rendering.Color.intensify)))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-                props match {
-                  case Markup.Def(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
-                  case Markup.Ref(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
-                  case _ => None
-                }
+              case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) =>
+                Some((Nil, Some(Rendering.Color.entity)))
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Bullet(depth), _))) =>
                 val color =
                   depth % 4 match {
@@ -534,12 +530,8 @@ class Rendering(
       val results =
         snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_elements, _ =>
           {
-            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-              props match {
-                case Markup.Def(i) if focus(i) => Some(true)
-                case Markup.Ref(i) if focus(i) => Some(true)
-                case _ => None
-              }
+            case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) => Some(true)
+            case _ => None
           })
       for (info <- results if info.info) yield info.range
     }

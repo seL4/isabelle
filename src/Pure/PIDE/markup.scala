@@ -109,6 +109,22 @@ object Markup
 
   object Entity
   {
+    object Def
+    {
+      def unapply(markup: Markup): Option[Long] =
+        if (markup.name == ENTITY) Markup.Def.unapply(markup.properties) else None
+    }
+    object Ref
+    {
+      def unapply(markup: Markup): Option[Long] =
+        if (markup.name == ENTITY) Markup.Ref.unapply(markup.properties) else None
+    }
+    object Id
+    {
+      def unapply(markup: Markup): Option[Long] =
+        Def.unapply(markup) orElse Ref.unapply(markup)
+    }
+
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
         case Markup(ENTITY, props) =>
