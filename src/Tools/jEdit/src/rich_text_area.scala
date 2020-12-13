@@ -16,13 +16,12 @@ import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
 import java.awt.font.TextAttribute
 import javax.swing.SwingUtilities
 import java.text.AttributedString
-import java.util.ArrayList
 
 import scala.util.matching.Regex
 
 import org.gjt.sp.util.Log
-import org.gjt.sp.jedit.{OperatingSystem, Debug, View}
-import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
+import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.syntax.Chunk
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
