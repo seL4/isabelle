@@ -176,7 +176,8 @@ object Rendering
   {
     def apply(ids: Set[Long]): Focus = new Focus(ids)
     val empty: Focus = apply(Set.empty)
-    def merge(args: TraversableOnce[Focus]): Focus = (empty /: args)(_ ++ _)
+    def make(args: List[Text.Info[Focus]]): Focus =
+      (empty /: args)({ case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 })
   }
 
   sealed class Focus private[Rendering](protected val rep: Set[Long])
@@ -496,21 +497,21 @@ class Rendering(
   /* entity focus */
 
   def entity_focus_defs(range: Text.Range): Rendering.Focus =
-    Rendering.Focus.merge(
-      snapshot.cumulate[Rendering.Focus](range, Rendering.Focus.empty, Rendering.entity_elements, _ =>
+    Rendering.Focus.make(
+      snapshot.cumulate(range, Rendering.Focus.empty, Rendering.entity_elements, _ =>
         {
           case (focus, Text.Info(_, XML.Elem(Markup.Entity.Def(i), _))) => Some(focus + i)
           case _ => None
-        }).iterator.map(_.info))
+        }))
 
   def entity_focus(range: Text.Range, visible_defs: Rendering.Focus): Rendering.Focus =
-    Rendering.Focus.merge(
-      snapshot.cumulate[Rendering.Focus](range, Rendering.Focus.empty, Rendering.entity_elements, _ =>
+    Rendering.Focus.make(
+      snapshot.cumulate(range, Rendering.Focus.empty, Rendering.entity_elements, _ =>
         {
           case (focus, Text.Info(_, XML.Elem(Markup.Entity.Ref(i), _)))
           if visible_defs(i) => Some(focus + i)
           case _ => None
-        }).iterator.map(_.info))
+        }))
 
 
   /* caret focus */
