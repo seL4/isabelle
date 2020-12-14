@@ -647,7 +647,7 @@ private datatype( 'a, 'b) result =
 
 lemma
   fixes clock :: \<open>'astate \<Rightarrow> nat\<close> and
-fun_evaluate_match :: \<open>'astate \<Rightarrow> 'vsemv_env \<Rightarrow> _ \<Rightarrow> ('pat \<times> 'exp0) list \<Rightarrow> _ \<Rightarrow>
+    fun_evaluate_match :: \<open>'astate \<Rightarrow> 'vsemv_env \<Rightarrow> _ \<Rightarrow> ('pat \<times> 'exp0) list \<Rightarrow> _ \<Rightarrow>
       'astate*((('v)list),('v))result\<close>
   assumes
          " fix_clock (st::'astate) (fun_evaluate st (env::'vsemv_env) [e::'exp0]) =

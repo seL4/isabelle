@@ -73,7 +73,9 @@ datatype verit_rule =
    Eq_Simplify | ITE_Simplify | Sum_Simplify | Prod_Simplify |
    Qnt_Simplify | Not_Not | Tautological_Clause | Duplicate_Literals |
    (*Unsupported rule*)
-   Unsupported
+   Unsupported |
+   (*For compression*)
+   Theory_Resolution2
 
 
 fun verit_rule_of "bind" = Bind
@@ -82,13 +84,12 @@ fun verit_rule_of "bind" = Bind
   | verit_rule_of "equiv1" = Equiv1
   | verit_rule_of "equiv2" = Equiv2
   | verit_rule_of "equiv_pos1" = Equiv_pos1
-  | verit_rule_of "equiv_pos2" = Equiv_pos2
+   (*Equiv_pos2 covered below*)
   | verit_rule_of "equiv_neg1" = Equiv_neg1
   | verit_rule_of "equiv_neg2" = Equiv_neg2
   | verit_rule_of "sko_forall" = Skolem_Forall
   | verit_rule_of "sko_ex" = Skolem_Ex
   | verit_rule_of "eq_reflexive" = Eq_Reflexive
-  | verit_rule_of "th_resolution" = Theory_Resolution
   | verit_rule_of "forall_inst" = Forall_Inst
   | verit_rule_of "implies_pos" = Implies_Pos
   | verit_rule_of "or" = Or
@@ -156,6 +157,9 @@ fun verit_rule_of "bind" = Bind
      else if r = Verit_Proof.ite_intro_rule then ITE_Intro
      else if r = Verit_Proof.eq_congruent_rule then Eq_Congruent
      else if r = Verit_Proof.eq_congruent_pred_rule then Eq_Congruent_Pred
+     else if r = Verit_Proof.theory_resolution2_rule then Theory_Resolution2
+     else if r = Verit_Proof.th_resolution_rule then Theory_Resolution
+     else if r = Verit_Proof.equiv_pos2_rule then Equiv_pos2
      else (@{print} ("Unsupport rule", r); Unsupported)
 
 fun string_of_verit_rule Bind = "Bind"
@@ -171,6 +175,7 @@ fun string_of_verit_rule Bind = "Bind"
   | string_of_verit_rule Skolem_Ex = "Skolem_Ex"
   | string_of_verit_rule Eq_Reflexive = "Eq_Reflexive"
   | string_of_verit_rule Theory_Resolution = "Theory_Resolution"
+  | string_of_verit_rule Theory_Resolution2 = "Theory_Resolution2"
   | string_of_verit_rule Forall_Inst = "forall_inst"
   | string_of_verit_rule Or = "Or"
   | string_of_verit_rule Not_Or = "Not_Or"
@@ -536,6 +541,8 @@ local
     match_tac ctxt @{thms verit_or_neg}
     THEN' K (unfold_tac ctxt @{thms not_not disj_assoc[symmetric]})
     THEN' TRY' (match_tac ctxt @{thms notE} THEN_ALL_NEW assume_tac ctxt)
+
+  val theory_resolution2_lemma = @{lemma \<open>a \<Longrightarrow> a = b \<Longrightarrow> b\<close> by blast}
 in
 
 fun prove_abstract abstracter tac ctxt thms t =
@@ -560,6 +567,10 @@ val duplicate_literals =
   prove_abstract SMT_Replay_Methods.abstract_bool_shallow duplicate_literals_prove
 
 val unit_res = prove_abstract SMT_Replay_Methods.abstract_bool_shallow SMT_Replay_Methods.prop_tac
+
+(*match_instantiate does not work*)
+fun theory_resolution2 ctxt prems t =
+  SMT_Replay_Methods.prove ctxt t (fn _ => match_tac ctxt [theory_resolution2_lemma OF prems])
 
 end
 
@@ -1145,6 +1156,7 @@ fun choose And = ignore_args and_rule
   | choose Or_Neg = ignore_args or_neg_rule
   | choose Or_Pos = ignore_args or_pos_rule
   | choose Or_Simplify = ignore_args rewrite_or_simplify
+  | choose Theory_Resolution2 = ignore_args theory_resolution2
   | choose Prod_Simplify = ignore_args prod_simplify
   | choose Qnt_Join = ignore_args qnt_join
   | choose Qnt_Rm_Unused = ignore_args qnt_rm_unused
