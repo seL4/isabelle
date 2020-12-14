@@ -10,9 +10,9 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Color, Point, Toolkit, Cursor, MouseInfo}
+import java.awt.{Graphics2D, Shape, Color, Point, Cursor, MouseInfo}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
-  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
+  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter, KeyEvent}
 import java.awt.font.TextAttribute
 import javax.swing.SwingUtilities
 import java.text.AttributedString
@@ -71,6 +71,32 @@ class Rich_Text_Area(
     pick_extension("org.gjt.sp.jedit.textarea.TextAreaPainter$PaintText")
 
 
+  /* caret focus modifier */
+
+  @volatile private var caret_focus_modifier = false
+
+  def caret_focus_range: Text.Range =
+    if (caret_focus_modifier) Text.Range.full
+    else JEdit_Lib.visible_range(text_area) getOrElse Text.Range.offside
+
+  private val key_listener =
+    JEdit_Lib.key_listener(
+      key_pressed = (evt: KeyEvent) =>
+      {
+        val mod = PIDE.options.string("jedit_focus_modifier")
+        val old = caret_focus_modifier
+        caret_focus_modifier = (mod.nonEmpty && mod == JEdit_Lib.modifier_string(evt))
+        if (caret_focus_modifier != old) caret_update()
+      },
+      key_released = _ =>
+      {
+        if (caret_focus_modifier) {
+          caret_focus_modifier = false
+          caret_update()
+        }
+      })
+
+
   /* common painter state */
 
   @volatile private var painter_rendering: JEdit_Rendering = null
@@ -86,11 +112,10 @@ class Rich_Text_Area(
       painter_rendering = get_rendering()
       painter_clip = gfx.getClip
       caret_focus =
-        JEdit_Lib.visible_range(text_area) match {
-          case Some(visible_range) if caret_enabled && !painter_rendering.snapshot.is_outdated =>
-            painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
-          case _ => Rendering.Focus.empty
+        if (caret_enabled && !painter_rendering.snapshot.is_outdated) {
+          painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), caret_focus_range)
         }
+        else Rendering.Focus.empty
     }
   }
 
@@ -674,6 +699,7 @@ class Rich_Text_Area(
     painter.removeExtension(orig_text_painter)
     painter.addMouseListener(mouse_listener)
     painter.addMouseMotionListener(mouse_motion_listener)
+    text_area.addKeyListener(key_listener)
     text_area.addFocusListener(focus_listener)
     view.addWindowListener(window_listener)
   }
@@ -684,6 +710,7 @@ class Rich_Text_Area(
     val painter = text_area.getPainter
     view.removeWindowListener(window_listener)
     text_area.removeFocusListener(focus_listener)
+    text_area.removeKeyListener(key_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)
     painter.removeMouseListener(mouse_listener)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)

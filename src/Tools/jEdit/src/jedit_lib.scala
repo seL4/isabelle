@@ -17,8 +17,8 @@ import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
-import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
-import org.gjt.sp.jedit.gui.KeyEventWorkaround
+import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
+import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
@@ -400,4 +400,10 @@ object JEdit_Lib
 
   def shift_modifier(evt: InputEvent): Boolean =
     (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
+
+  def modifier_string(evt: InputEvent): String =
+    KeyEventTranslator.getModifierString(evt) match {
+      case null => ""
+      case s => s
+    }
 }
