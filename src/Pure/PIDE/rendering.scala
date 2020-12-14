@@ -439,7 +439,7 @@ class Rendering(
           range, (List(Markup.Empty), None), elements,
           command_states =>
             {
-              case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
+              case ((markups, color), Text.Info(_, XML.Elem(markup, _)))
               if markups.nonEmpty && Document_Status.Command_Status.proper_elements(markup.name) =>
                 Some((markup :: markups, color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
@@ -472,7 +472,7 @@ class Rendering(
                 else None
             })
       color <-
-        (result match {
+        result match {
           case (markups, opt_color) if markups.nonEmpty =>
             val status = Document_Status.Command_Status.make(markups.iterator)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
@@ -480,7 +480,7 @@ class Rendering(
             else if (status.is_canceled) Some(Rendering.Color.canceled)
             else opt_color
           case (_, opt_color) => opt_color
-        })
+        }
     } yield Text.Info(r, color)
   }
 
