@@ -525,12 +525,11 @@ class Rendering(
 
   def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
   {
-    val focus_defs = caret_focus(caret_range, visible_range)
-    if (focus_defs.defined) {
+    val focus = caret_focus(caret_range, visible_range)
+    if (focus.defined) {
       snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_elements, _ =>
         {
-          case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _)))
-          if focus_defs(i) => Some(true)
+          case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) => Some(true)
           case _ => None
         }).flatMap(info => if (info.info) Some(info.range) else None)
     }
