@@ -541,14 +541,16 @@ by (induction ts\<^sub>1 ts\<^sub>2 rule: T_merge.induct)
    (auto simp: T_ins_tree_length algebra_simps)
 
 text \<open>Finally, we get the desired logarithmic bound\<close>
-lemma T_merge_bound_aux:
+lemma T_merge_bound:
   fixes ts\<^sub>1 ts\<^sub>2
   defines "n\<^sub>1 \<equiv> size (mset_heap ts\<^sub>1)"
   defines "n\<^sub>2 \<equiv> size (mset_heap ts\<^sub>2)"
-  assumes BINVARS: "invar ts\<^sub>1" "invar ts\<^sub>2"
+  assumes "invar ts\<^sub>1" "invar ts\<^sub>2"
   shows "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 2"
 proof -
   define n where "n = n\<^sub>1 + n\<^sub>2"
+
+  note BINVARS = \<open>invar ts\<^sub>1\<close> \<open>invar ts\<^sub>2\<close>
 
   from T_merge_length[of ts\<^sub>1 ts\<^sub>2]
   have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1" by auto
@@ -574,14 +576,6 @@ proof -
   finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n + 1) + 2" by auto
   thus ?thesis unfolding n_def by (auto simp: algebra_simps)
 qed
-
-lemma T_merge_bound:
-  fixes ts\<^sub>1 ts\<^sub>2
-  defines "n\<^sub>1 \<equiv> size (mset_heap ts\<^sub>1)"
-  defines "n\<^sub>2 \<equiv> size (mset_heap ts\<^sub>2)"
-  assumes "invar ts\<^sub>1" "invar ts\<^sub>2"
-  shows "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 2"
-using assms T_merge_bound_aux unfolding invar_def by blast
 
 subsubsection \<open>\<open>T_get_min\<close>\<close>
 
@@ -616,7 +610,7 @@ fun T_get_min_rest :: "'a::linorder heap \<Rightarrow> nat" where
 lemma T_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min_rest ts = length ts"
   by (induction ts rule: T_get_min_rest.induct) auto
 
-lemma T_get_min_rest_bound_aux:
+lemma T_get_min_rest_bound:
   assumes "invar ts"
   assumes "ts\<noteq>[]"
   shows "T_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
@@ -630,12 +624,6 @@ proof -
   qed
   finally show ?thesis by auto
 qed
-
-lemma T_get_min_rest_bound:
-  assumes "invar ts"
-  assumes "ts\<noteq>[]"
-  shows "T_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
-using assms T_get_min_rest_bound_aux unfolding invar_def by blast
 
 text\<open>Note that although the definition of function \<^const>\<open>rev\<close> has quadratic complexity,
 it can and is implemented (via suitable code lemmas) as a linear time function.
@@ -665,17 +653,17 @@ proof -
   finally show ?thesis by (auto simp: algebra_simps)
 qed
 
-lemma T_del_min_bound_aux:
+lemma T_del_min_bound:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
-  assumes BINVAR: "invar ts"
+  assumes "invar ts"
   assumes "ts\<noteq>[]"
   shows "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
 proof -
   obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
 
-  note BINVAR' = invar_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> BINVAR]
+  note BINVAR' = invar_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> \<open>invar ts\<close>]
   hence BINVAR1: "invar (rev ts\<^sub>1)" by (blast intro: invar_children)
 
   define n\<^sub>1 where "n\<^sub>1 = size (mset_heap ts\<^sub>1)"
@@ -694,11 +682,11 @@ proof -
   have "T_del_min ts = T_get_min_rest ts + T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2"
     unfolding T_del_min_def by (simp add: GM)
   also have "\<dots> \<le> log 2 (n+1) + T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2"
-    using T_get_min_rest_bound_aux[OF assms(2-)] by (auto simp: n_def)
+    using T_get_min_rest_bound[OF assms(2-)] by (auto simp: n_def)
   also have "\<dots> \<le> 2*log 2 (n+1) + T_merge (rev ts\<^sub>1) ts\<^sub>2 + 1"
     using T_rev_ts1_bound by auto
   also have "\<dots> \<le> 2*log 2 (n+1) + 4 * log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 3"
-    using T_merge_bound_aux[OF \<open>invar (rev ts\<^sub>1)\<close> \<open>invar ts\<^sub>2\<close>]
+    using T_merge_bound[OF \<open>invar (rev ts\<^sub>1)\<close> \<open>invar ts\<^sub>2\<close>]
     by (auto simp: n\<^sub>1_def n\<^sub>2_def algebra_simps)
   also have "n\<^sub>1 + n\<^sub>2 \<le> n"
     unfolding n\<^sub>1_def n\<^sub>2_def n_def
@@ -708,13 +696,5 @@ proof -
     by auto
   thus ?thesis by (simp add: algebra_simps)
 qed
-
-lemma T_del_min_bound:
-  fixes ts
-  defines "n \<equiv> size (mset_heap ts)"
-  assumes "invar ts"
-  assumes "ts\<noteq>[]"
-  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
-using assms T_del_min_bound_aux unfolding invar_def by blast
 
 end
