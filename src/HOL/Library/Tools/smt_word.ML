@@ -37,8 +37,17 @@ local
       Option.map (rpair [] o index1 "BitVec") (try dest_binT T)
     | word_typ _ = NONE
 
+  (*CVC4 does not support "_bvk T" when k does not fit in the BV of size T, so remove the bits that
+   will be ignored according to the SMT-LIB*)
   fun word_num (Type (\<^type_name>\<open>word\<close>, [T])) k =
-        Option.map (index1 ("bv" ^ string_of_int k)) (try dest_binT T)
+        let
+          val size = try dest_binT T
+          fun max_int size = IntInf.pow (2, size)
+        in
+          (case size of
+            NONE => NONE
+          | SOME size => SOME (index1 ("bv" ^ string_of_int (Int.rem(k, max_int size))) size))
+        end
     | word_num _ _ = NONE
 
   fun if_fixed pred m n T ts =

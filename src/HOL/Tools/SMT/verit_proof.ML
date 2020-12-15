@@ -52,6 +52,9 @@ sig
   val eq_congruent_rule : string
   val eq_congruent_pred_rule : string
   val skolemization_steps : string list
+  val theory_resolution2_rule: string
+  val equiv_pos2_rule: string
+  val th_resolution_rule: string
 
   val is_skolemization: string -> bool
   val is_skolemization_step: veriT_replay_node -> bool
@@ -151,7 +154,7 @@ fun verit_add_stgy stgy context =
   let
     val {default_strategy,strategies} = Data.get context
   in
-    Data.map 
+    Data.map
       (K (mk_verit_strategy default_strategy (AList.update (op =) stgy strategies)))
       context
   end
@@ -160,7 +163,7 @@ fun verit_rm_stgy stgy context =
   let
     val {default_strategy,strategies} = Data.get context
   in
-    Data.map 
+    Data.map
       (K (mk_verit_strategy default_strategy (AList.delete (op =) stgy strategies)))
       context
   end
@@ -242,6 +245,9 @@ val eq_congruent_pred_rule = "eq_congruent_pred"
 val eq_congruent_rule = "eq_congruent"
 val ite_intro_rule = "ite_intro"
 val default_skolem_rule = "sko_forall" (*arbitrary, but must be one of the skolems*)
+val theory_resolution2_rule = "__theory_resolution2" (*arbitrary*)
+val equiv_pos2_rule = "equiv_pos2"
+val th_resolution_rule = "th_resolution"
 
 val skolemization_steps = ["sko_forall", "sko_ex"]
 val is_skolemization = member (op =) skolemization_steps
@@ -682,7 +688,39 @@ fun postprocess_proof compress ctxt step cx =
   in
     postprocess step (cx, [])
     |> (fn (step, (cx, _)) => (step, cx))
-   end
+  end
+
+fun combine_proof_steps ((step1 : veriT_replay_node) :: step2 :: steps) =
+      let
+        val (VeriT_Replay_Node {id = id1, rule = rule1, args = args1, prems = prems1,
+            proof_ctxt = proof_ctxt1, concl = concl1, bounds = bounds1, insts = insts1,
+            declarations = declarations1,
+            subproof = (bound_sub1, assms_sub1, assms_extra1, subproof1)}) = step1
+        val (VeriT_Replay_Node {id = id2, rule = rule2, args = args2, prems = prems2,
+            proof_ctxt = proof_ctxt2, concl = concl2, bounds = bounds2, insts = insts2,
+            declarations = declarations2,
+            subproof = (bound_sub2, assms_sub2, assms_extra2, subproof2)}) = step2
+        val goals1 =
+          (case concl1 of
+            _ $ (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $
+                  (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ (Const (\<^const_name>\<open>HOL.Not\<close>, _) $a) $ b)) => [a,b]
+          | _ => [])
+        val goal2 = (case concl2 of _ $ a => a)
+      in
+        if rule1 = equiv_pos2_rule andalso rule2 = th_resolution_rule andalso member (op =) prems2 id1
+          andalso member (op =) goals1 goal2
+        then
+          mk_replay_node id2 theory_resolution2_rule args2 (filter_out (curry (op =) id1) prems2)
+            proof_ctxt2 concl2 bounds2 insts2 declarations2
+            (bound_sub2, assms_sub2, assms_extra2, combine_proof_steps subproof2) ::
+          combine_proof_steps steps
+        else
+          mk_replay_node id1 rule1 args1 prems1
+            proof_ctxt1 concl1 bounds1 insts1 declarations1
+            (bound_sub1, assms_sub1, assms_extra1, combine_proof_steps subproof1) ::
+          combine_proof_steps (step2 :: steps)
+      end
+  | combine_proof_steps steps = steps
 
 
 val linearize_proof =
@@ -749,7 +787,7 @@ matter too much for Sledgehammer.
 B. Skolems in subproofs
 Supporting this is more or less hopeless as long as the Isar reconstruction of Sledgehammer
 does not support more features like definitions. veriT is able to generate proofs with skolemization
-happening in subproofs inside the formula. 
+happening in subproofs inside the formula.
   (assume "A \<or> P"
    ...
    P \<longleftrightarrow> Q :skolemization in the subproof
@@ -781,7 +819,7 @@ fun remove_skolem_definitions_proof steps =
       val promote_to_skolem = exists (fn t => member (op =) skolems t) prems
       val promote_from_assms = fold has_skolem_substep subproof NONE <> NONE
       val promote_step = promote_to_skolem orelse promote_from_assms
-      val skolem_step_to_skip = is_skolemization rule orelse 
+      val skolem_step_to_skip = is_skolemization rule orelse
         (promote_from_assms andalso length prems > 1)
       val is_skolem = is_skolemization rule orelse promote_step
       val prems = prems
@@ -820,9 +858,9 @@ local
         |> map single
         |> map SMTLIB.parse
         |> map remove_all_qm2
-      val (raw_steps, _, _) = 
+      val (raw_steps, _, _) =
         parse_raw_proof_steps NONE smtlib_lines_without_qm SMTLIB_Proof.empty_name_binding
-      
+
       fun process step (cx, cx') =
         let fun postprocess step (cx, cx') =
           let val (step, cx) = postprocess_proof compress ctxt step cx
@@ -832,6 +870,7 @@ local
         (empty_context ctxt typs funs, [])
         |> fold_map process raw_steps
         |> (fn (steps, (cx, _)) => (flat steps, cx))
+        |> compress? apfst combine_proof_steps
     in step end
 in
 
