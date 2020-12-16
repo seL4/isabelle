@@ -16,6 +16,9 @@ Rare INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Action "isabelle.goto-entity" (shortcut CS+d) jumps to the definition
+of the formal entity at the caret position.
+
 * Auto nitpick is enabled by default: it is now reasonably fast due to
 Kodkod invocation within Isabelle/Scala.
 

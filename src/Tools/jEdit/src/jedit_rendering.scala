@@ -285,6 +285,18 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
   }
 
+  def hyperlink_entity(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
+  {
+    snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
+      range, Vector.empty, Rendering.entity_elements, _ =>
+        {
+          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
+            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
+          case _ => None
+        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
+  }
+
 
   /* active elements */
 
