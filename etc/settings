@@ -150,7 +150,7 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 ISABELLE_OPAM_ROOT="$USER_HOME/.opam"
 
-ISABELLE_OCAML_VERSION="ocaml-base-compiler.4.05.0"
+ISABELLE_OCAML_VERSION="ocaml-base-compiler.4.07.0"
 
 
 ###

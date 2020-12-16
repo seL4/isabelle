@@ -9,7 +9,7 @@ package isabelle
 
 object Build_Zipperposition
 {
-  val default_version = "1.6"
+  val default_version = "2.0"
 
 
   /* build Zipperposition */
@@ -22,7 +22,7 @@ object Build_Zipperposition
   {
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      Isabelle_System.require_command("patchelf")
+      if (!Platform.is_windows) Isabelle_System.require_command("patchelf")
 
 
       /* component */
@@ -60,8 +60,10 @@ object Build_Zipperposition
       val exe_path = prg_path.platform_exe
       File.copy(build_dir + Path.basic("bin") + prg_path, platform_dir + exe_path)
 
-      Executable.libraries_closure(
-        platform_dir + exe_path, filter = Set("libgmp"), patchelf = true)
+      if (!Platform.is_windows) {
+        Executable.libraries_closure(
+          platform_dir + exe_path, filter = Set("libgmp"), patchelf = true)
+      }
 
 
       /* settings */
