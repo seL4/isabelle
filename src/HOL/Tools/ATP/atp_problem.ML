@@ -33,7 +33,7 @@ sig
 
   datatype fool = Without_FOOL | With_FOOL
   datatype polymorphism = Monomorphic | Polymorphic
-  datatype thf_flavor = THF_Lambda_Bool_Free | THF_Without_Choice | THF_With_Choice
+  datatype thf_flavor = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
   datatype atp_format =
     CNF |
@@ -97,6 +97,8 @@ sig
   val tptp_true : string
   val tptp_lambda : string
   val tptp_empty_list : string
+  val tptp_unary_builtins : string list
+  val tptp_binary_builtins : string list
   val dfg_individual_type : string
   val isabelle_info_prefix : string
   val isabelle_info : bool -> string -> int -> (string, 'a) atp_term list
@@ -191,7 +193,7 @@ type term_order =
 
 datatype fool = Without_FOOL | With_FOOL
 datatype polymorphism = Monomorphic | Polymorphic
-datatype thf_flavor = THF_Lambda_Bool_Free | THF_Without_Choice | THF_With_Choice
+datatype thf_flavor = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
 datatype atp_format =
   CNF |
@@ -256,6 +258,10 @@ val tptp_false = "$false"
 val tptp_true = "$true"
 val tptp_lambda = "^"
 val tptp_empty_list = "[]"
+
+val tptp_unary_builtins = [tptp_not]
+val tptp_binary_builtins =
+  [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff, tptp_equal]
 
 val dfg_individual_type = "iii" (* cannot clash *)
 
@@ -455,7 +461,8 @@ fun string_of_bound_var format (s, ty) =
    else
      "")
 
-fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
+fun tptp_string_of_term _ (ATerm ((s, []), [])) =
+    s |> member (op =) (tptp_unary_builtins @ tptp_binary_builtins) s ? parens
   | tptp_string_of_term format (ATerm ((s, tys), ts)) =
     let
       val of_type = string_of_type format
@@ -473,8 +480,8 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
         (case ts of
           [AAbs (((s', ty), tm), [])] =>
-          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
-             possible, to work around LEO-II 1.2.8 parser limitation. *)
+          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever possible, to work
+             around LEO-II, Leo-III, and Satallax parser limitation. *)
           tptp_string_of_formula format
               (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
@@ -482,19 +489,18 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
       else if s = tptp_choice then
         (case ts of
           [AAbs (((s', ty), tm), args)] =>
-          (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is
-             always applied to an abstraction. *)
+          (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always applied to an
+             abstraction. *)
           tptp_string_of_app format
               (tptp_choice ^ "[" ^ s' ^ " : " ^ of_type ty ^
                "]: " ^ of_term tm ^ ""
                |> parens) (map of_term args)
         | _ => app ())
-      else if s = tptp_not then
-        (* agsyHOL doesn't like negations applied like this: "~ @ t". *)
-        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens | _ => s)
-      else if member (op =) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff,
-                             tptp_not_iff, tptp_equal] s then
-        (* agsyHOL doesn't like connectives applied like this: "& @ t1 @ t2". *)
+      else if member (op =) tptp_unary_builtins s then
+        (* generate e.g. "~ t" instead of "~ @ t". *)
+        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens)
+      else if member (op =) tptp_binary_builtins s then
+        (* generate e.g. "t1 & t2" instead of "& @ t1 @ t2". *)
         (case ts of
           [t1, t2] => (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens) |> parens
         | _ => app ())

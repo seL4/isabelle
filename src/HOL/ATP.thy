@@ -1,6 +1,7 @@
 (*  Title:      HOL/ATP.thy
     Author:     Fabian Immler, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, UniBw Muenchen
 *)
 
 section \<open>Automatic Theorem Provers (ATPs)\<close>
