@@ -119,7 +119,7 @@ object Markup
       def unapply(markup: Markup): Option[Long] =
         if (markup.name == ENTITY) Markup.Ref.unapply(markup.properties) else None
     }
-    object Id
+    object Occ
     {
       def unapply(markup: Markup): Option[Long] =
         Def.unapply(markup) orElse Ref.unapply(markup)

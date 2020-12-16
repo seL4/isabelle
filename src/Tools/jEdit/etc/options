@@ -39,6 +39,9 @@ public option jedit_timing_threshold : real = 0.1
 public option jedit_text_overview : bool = true
   -- "paint text overview column"
 
+public option jedit_focus_modifier : string = "CS"
+  -- "keyboard modifier to enable entity focus regardless of def visibility"
+
 public option isabelle_fonts_hinted : bool = true
   -- "use hinted Isabelle DejaVu fonts (change requires restart)"
 

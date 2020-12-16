@@ -67,6 +67,11 @@
 	    isabelle.jedit.Isabelle.newline(textArea);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.goto-entity">
+	  <CODE>
+	    isabelle.jedit.Isabelle.goto_entity(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.select-entity">
 	  <CODE>
 	    isabelle.jedit.Isabelle.select_entity(textArea);
