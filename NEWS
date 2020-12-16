@@ -19,6 +19,11 @@ Rare INCOMPATIBILITY.
 * Action "isabelle.goto-entity" (shortcut CS+d) jumps to the definition
 of the formal entity at the caret position.
 
+* The visual feedback on caret entity focus is normally restricted to
+definitions within the visible text area. The keyboard modifier "CS"
+overrides this: then all defining and referencing positions are shown.
+See also option "jedit_focus_modifier".
+
 * Auto nitpick is enabled by default: it is now reasonably fast due to
 Kodkod invocation within Isabelle/Scala.
 
