@@ -159,7 +159,7 @@ section "Editor Session"
 public option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
 
-public option editor_input_delay : real = 0.3
+public option editor_input_delay : real = 0.2
   -- "delay for user input (text edits, cursor movement etc.)"
 
 public option editor_generated_input_delay : real = 1.0
