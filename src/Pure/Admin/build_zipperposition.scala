@@ -9,7 +9,7 @@ package isabelle
 
 object Build_Zipperposition
 {
-  val default_version = "1.6"
+  val default_version = "2.0"
 
 
   /* build Zipperposition */
