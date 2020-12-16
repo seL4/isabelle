@@ -359,7 +359,8 @@ object Isabelle
     for (doc_view <- Document_View.get(text_area)) {
       val rendering = doc_view.get_rendering()
       val caret_range = JEdit_Lib.caret_range(text_area)
-      val active_focus = rendering.caret_focus_ranges(caret_range, Text.Range.full)
+      val buffer_range = JEdit_Lib.buffer_range(text_area.getBuffer)
+      val active_focus = rendering.caret_focus_ranges(caret_range, buffer_range)
       if (active_focus.nonEmpty) {
         text_area.selectNone()
         for (r <- active_focus)
