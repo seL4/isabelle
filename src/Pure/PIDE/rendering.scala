@@ -453,7 +453,7 @@ class Rendering(
                 Some((Nil, Some(Rendering.Color.bad)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 Some((Nil, Some(Rendering.Color.intensify)))
-              case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) =>
+              case (_, Text.Info(_, XML.Elem(Markup.Entity.Occ(i), _))) if focus(i) =>
                 Some((Nil, Some(Rendering.Color.entity)))
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Bullet(depth), _))) =>
                 val color =
@@ -542,7 +542,7 @@ class Rendering(
     if (focus.defined) {
       snapshot.cumulate[Boolean](defs_range, false, Rendering.entity_elements, _ =>
         {
-          case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) => Some(true)
+          case (_, Text.Info(_, XML.Elem(Markup.Entity.Occ(i), _))) if focus(i) => Some(true)
           case _ => None
         }).flatMap(info => if (info.info) Some(info.range) else None)
     }
