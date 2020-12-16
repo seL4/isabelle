@@ -485,7 +485,7 @@ fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> nat" wh
   )"
 
 definition T_insert :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> nat" where
-"T_insert x ts = T_ins_tree (Node 0 x []) ts"
+"T_insert x ts = T_ins_tree (Node 0 x []) ts + 1"
 
 lemma T_ins_tree_simple_bound: "T_ins_tree t ts \<le> length ts + 1"
 by (induction t ts rule: T_ins_tree.induct) auto
@@ -494,21 +494,22 @@ subsubsection \<open>\<open>T_insert\<close>\<close>
 
 lemma T_insert_bound:
   assumes "invar ts"
-  shows "T_insert x ts \<le> log 2 (size (mset_heap ts) + 1) + 1"
+  shows "T_insert x ts \<le> log 2 (size (mset_heap ts) + 1) + 2"
 proof -
 
-  have 1: "T_insert x ts \<le> length ts + 1"
-    unfolding T_insert_def by (rule T_ins_tree_simple_bound)
-  also have "\<dots> \<le> log 2 (2 * (size (mset_heap ts) + 1))"
+  have 1: "T_insert x ts \<le> length ts + 2"
+    unfolding T_insert_def using T_ins_tree_simple_bound by auto
+  also have "\<dots> \<le> log 2 (2 * (size (mset_heap ts) + 1)) + 1"
   proof -
     from size_mset_heap[of ts] assms
     have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       unfolding invar_def by auto
     hence "2 ^ (length ts + 1) \<le> 2 * (size (mset_heap ts) + 1)" by auto
-    thus ?thesis using le_log2_of_power by blast
+    hence "length ts + 1 \<le> log 2 (2 * (size (mset_heap ts) + 1))"
+      using le_log2_of_power by blast
+    thus ?thesis by simp
   qed
-  finally show ?thesis
-    by (simp only: log_mult of_nat_mult) auto
+  finally show ?thesis by (simp only: log_mult of_nat_mult) auto
 qed
 
 subsubsection \<open>\<open>T_merge\<close>\<close>
