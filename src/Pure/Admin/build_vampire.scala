@@ -29,6 +29,8 @@ object Build_Vampire
     progress: Progress = new Progress,
     target_dir: Path = Path.current)
   {
+    Isabelle_System.require_command("git", "cmake")
+
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
       /* component and platform */
