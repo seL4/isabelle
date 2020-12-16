@@ -352,7 +352,18 @@ object Isabelle
   }
 
 
-  /* selection */
+  /* formal entities */
+
+  def goto_entity(view: View)
+  {
+    val text_area = view.getTextArea
+    for {
+      doc_view <- Document_View.get(text_area)
+      rendering = doc_view.get_rendering()
+      caret_range = JEdit_Lib.caret_range(text_area)
+      link <- rendering.hyperlink_entity(caret_range)
+    } link.info.follow(view)
+  }
 
   def select_entity(text_area: JEditTextArea)
   {

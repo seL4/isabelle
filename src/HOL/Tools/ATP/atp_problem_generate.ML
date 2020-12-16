@@ -2,6 +2,7 @@
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, UniBw Muenchen
 
 Translation of HOL to FOL for Metis and Sledgehammer.
 *)
@@ -99,7 +100,7 @@ sig
   val is_type_enc_sound : type_enc -> bool
   val type_enc_of_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
-  val is_lambda_free : term -> bool
+  val is_first_order_lambda_free : term -> bool
   val do_cheaply_conceal_lambdas : typ list -> term -> term
   val mk_aconns :
     atp_connective -> ('a, 'b, 'c, 'd) atp_formula list
@@ -162,7 +163,7 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
-fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Bool_Free, _, _, _)) = false
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _, _)) = false
   | is_type_enc_full_higher_order (Native (Higher_Order _, _, _, _)) = true
   | is_type_enc_full_higher_order _ = false
 fun is_type_enc_fool (Native (_, With_FOOL, _, _)) = true
@@ -654,11 +655,11 @@ fun type_enc_of_string strictness s =
           | (_, Undercover_Types) => raise Same.SAME
           | (Mangled_Monomorphic, _) =>
             if is_type_level_uniform level then
-              Native (Higher_Order THF_With_Choice, Without_FOOL, Mangled_Monomorphic, level)
+              Native (Higher_Order THF_With_Choice, fool, Mangled_Monomorphic, level)
             else
               raise Same.SAME
            | (poly as Raw_Polymorphic _, All_Types) =>
-             Native (Higher_Order THF_With_Choice, Without_FOOL, poly, All_Types)
+             Native (Higher_Order THF_With_Choice, fool, poly, All_Types)
            | _ => raise Same.SAME))
       end
 
@@ -695,8 +696,8 @@ fun type_enc_of_string strictness s =
   end
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
-fun min_hologic THF_Lambda_Bool_Free _ = THF_Lambda_Bool_Free
-  | min_hologic _ THF_Lambda_Bool_Free = THF_Lambda_Bool_Free
+fun min_hologic THF_Lambda_Free _ = THF_Lambda_Free
+  | min_hologic _ THF_Lambda_Free = THF_Lambda_Free
   | min_hologic THF_Without_Choice _ = THF_Without_Choice
   | min_hologic _ THF_Without_Choice = THF_Without_Choice
   | min_hologic _ _ = THF_With_Choice
@@ -728,42 +729,62 @@ fun adjust_type_enc (THF (fool, Polymorphic, hologic)) (Native (order, fool', po
     (if is_type_enc_sound type_enc then Tags else Guards) stuff
   | adjust_type_enc _ type_enc = type_enc
 
-fun is_lambda_free t =
+fun is_first_order_lambda_free t =
   (case t of
-    \<^const>\<open>Not\<close> $ t1 => is_lambda_free t1
-  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_lambda_free t1
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_lambda_free t1
-  | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+    \<^const>\<open>Not\<close> $ t1 => is_first_order_lambda_free t1
+  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_first_order_lambda_free t'
+  | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_first_order_lambda_free t1
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_first_order_lambda_free t'
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_first_order_lambda_free t1
+  | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
+  | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
+  | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 =>
+    is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
   | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
-    is_lambda_free t1 andalso is_lambda_free t2
+    is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
 
-fun simple_translate_lambdas do_lambdas ctxt t =
-  if is_lambda_free t then
+fun simple_translate_lambdas do_lambdas ctxt type_enc t =
+  if is_first_order_lambda_free t then
     t
   else
     let
-      fun trans Ts t =
+      fun trans_first_order Ts t =
         (case t of
-          \<^const>\<open>Not\<close> $ t1 => \<^const>\<open>Not\<close> $ trans Ts t1
+          \<^const>\<open>Not\<close> $ t1 => \<^const>\<open>Not\<close> $ trans_first_order Ts t1
         | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
+          t0 $ Abs (s, T, trans_first_order (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
+          trans_first_order Ts (t0 $ eta_expand Ts t1 1)
         | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as \<^const>\<open>HOL.conj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as \<^const>\<open>HOL.disj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+          t0 $ Abs (s, T, trans_first_order (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
+          trans_first_order Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as \<^const>\<open>HOL.conj\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
+        | (t0 as \<^const>\<open>HOL.disj\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
+        | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 =>
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
         | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _]))) $ t1 $ t2 =>
-          t0 $ trans Ts t1 $ trans Ts t2
+          t0 $ trans_first_order Ts t1 $ trans_first_order Ts t2
         | _ =>
           if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
           else t |> Envir.eta_contract |> do_lambdas ctxt Ts)
+
+      fun trans_fool Ts t =
+        (case t of
+          (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
+          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
+        | t1 $ t2 => trans_fool Ts t1 $ trans_fool Ts t2
+        | Abs _ => t |> Envir.eta_contract |> do_lambdas ctxt Ts
+        | _ => t)
+
+      val trans = if is_type_enc_fool type_enc then trans_fool else trans_first_order
       val (t, ctxt') = yield_singleton (Variable.import_terms true) t ctxt
     in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
 
@@ -809,18 +830,18 @@ fun lift_lams_part_1 ctxt type_enc =
           Lambda_Lifting.is_quantifier
   #> fst
 
-fun lift_lams_part_2 ctxt (facts, lifted) =
+fun lift_lams_part_2 ctxt type_enc (facts, lifted) =
   (facts, lifted)
   (* Lambda-lifting sometimes leaves some lambdas around; we need some way to
      get rid of them *)
-  |> apply2 (map (introduce_combinators ctxt))
+  |> apply2 (map (introduce_combinators ctxt type_enc))
   |> apply2 (map constify_lifted)
   (* Requires bound variables not to clash with any schematic variables (as
      should be the case right after lambda-lifting). *)
   |>> map (hol_open_form (unprefix hol_close_form_prefix))
   ||> map (hol_open_form I)
 
-fun lift_lams ctxt = lift_lams_part_2 ctxt oo lift_lams_part_1 ctxt
+fun lift_lams ctxt type_enc = lift_lams_part_2 ctxt type_enc o lift_lams_part_1 ctxt type_enc
 
 fun intentionalize_def (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -1103,67 +1124,121 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
+fun vars_of_iterm vars (IConst ((s, _), _, _)) = insert (op =) s vars
+  | vars_of_iterm vars (IVar ((s, _), _)) = insert (op =) s vars
+  | vars_of_iterm vars (IApp (tm1, tm2)) = union (op =) (vars_of_iterm vars tm1) (vars_of_iterm vars tm2)
+  | vars_of_iterm vars (IAbs (_, tm)) = vars_of_iterm vars tm
+
+fun generate_unique_name gen unique n =
+  let val x = gen n in
+    if unique x then x else generate_unique_name gen unique (n + 1)
+  end
+
+fun eta_expand_quantifier_body (tm as IAbs _) = tm
+  | eta_expand_quantifier_body tm =
+    let
+      (* We accumulate all variables because E 2.5 does not support variable shadowing. *)
+      val vars = vars_of_iterm [] tm
+      val x = generate_unique_name
+        (fn n => "X" ^ (if n = 0 then "" else string_of_int n))
+        (fn name => not (exists (equal name) vars)) 0
+      val T = domain_type (ityp_of tm)
+    in
+      IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
+    end
+
 fun introduce_proxies_in_iterm type_enc =
   let
-    fun tweak_ho_quant ho_quant T [IAbs _] = IConst (`I ho_quant, T, [])
-      | tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) _ =
-        (* Eta-expand "!!" and "??", to work around LEO-II 1.2.8 parser
-           limitation. This works in conjuction with special code in
-           "ATP_Problem" that uses the syntactic sugar "!" and "?" whenever
-           possible. *)
+    fun tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) [] =
+        (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
+           limitations. This works in conjunction with special code in "ATP_Problem" that uses the
+           syntactic sugar "!" and "?" whenever possible. *)
         IAbs ((`I "P", p_T),
               IApp (IConst (`I ho_quant, T, []),
                     IAbs ((`I "X", x_T),
                           IApp (IConst (`I "P", p_T, []),
                                 IConst (`I "X", x_T, [])))))
-      | tweak_ho_quant _ _ _ = raise Fail "unexpected type for quantifier"
+      | tweak_ho_quant ho_quant T _ = IConst (`I ho_quant, T, [])
+    fun tweak_ho_equal T argc =
+      if argc = 2 then
+        IConst (`I tptp_equal, T, [])
+      else
+        (* Eta-expand partially applied THF equality, because the LEO-II and Satallax parsers
+           complain about not being able to infer the type of "=". *)
+        let val i_T = domain_type T in
+          IAbs ((`I "Y", i_T),
+                IAbs ((`I "Z", i_T),
+                      IApp (IApp (IConst (`I tptp_equal, T, []),
+                                  IConst (`I "Y", i_T, [])),
+                            IConst (`I "Z", i_T, []))))
+        end
     fun intro top_level args (IApp (tm1, tm2)) =
-        IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
+        let
+          val tm1' = intro top_level (tm2 :: args) tm1
+          val tm2' = intro false [] tm2
+          val tm2'' =
+            (case tm1' of
+              IConst ((s, _), _, _) =>
+              if s = tptp_ho_forall orelse s = tptp_ho_exists then
+                eta_expand_quantifier_body tm2'
+              else
+                tm2'
+            | _ => tm2')
+        in
+          IApp (tm1', tm2'')
+        end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
           SOME proxy_base =>
           let
             val argc = length args
-            val plain_const = IConst (name, T, [])
+            fun plain_const () = IConst (name, T, [])
             fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
-            val is_fool = is_type_enc_fool type_enc
-            fun if_card_matches card x = if not is_fool orelse card = argc then x else plain_const
+            fun handle_fool card x = if card = argc then x else proxy_const ()
           in
-            if top_level orelse is_fool orelse is_type_enc_full_higher_order type_enc then
-              (case (top_level, s) of
-                (_, "c_False") => IConst (`I tptp_false, T, [])
-              | (_, "c_True") => IConst (`I tptp_true, T, [])
-              | (false, "c_Not") => if_card_matches 1 (IConst (`I tptp_not, T, []))
-              | (false, "c_conj") => if_card_matches 2 (IConst (`I tptp_and, T, []))
-              | (false, "c_disj") => if_card_matches 2 (IConst (`I tptp_or, T, []))
-              | (false, "c_implies") => if_card_matches 2 (IConst (`I tptp_implies, T, []))
-              | (false, "c_All") => if_card_matches 1 (tweak_ho_quant tptp_ho_forall T args)
-              | (false, "c_Ex") => if_card_matches 1 (tweak_ho_quant tptp_ho_exists T args)
-              | (false, s) =>
+            if top_level then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | _ => plain_const ())
+            else if is_type_enc_full_higher_order type_enc then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | "c_Not" => IConst (`I tptp_not, T, [])
+              | "c_conj" => IConst (`I tptp_and, T, [])
+              | "c_disj" => IConst (`I tptp_or, T, [])
+              | "c_implies" => IConst (`I tptp_implies, T, [])
+              | "c_All" => tweak_ho_quant tptp_ho_forall T args
+              | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+              | s =>
                 if is_tptp_equal s then
-                  if argc = 2 then
-                    IConst (`I tptp_equal, T, [])
-                  else if is_fool then
-                    proxy_const ()
-                  else
-                    (* Eta-expand partially applied THF equality, because the
-                       LEO-II and Satallax parsers complain about not being able to
-                       infer the type of "=". *)
-                    let val i_T = domain_type T in
-                      IAbs ((`I "Y", i_T),
-                            IAbs ((`I "Z", i_T),
-                                  IApp (IApp (IConst (`I tptp_equal, T, []),
-                                              IConst (`I "Y", i_T, [])),
-                                        IConst (`I "Z", i_T, []))))
-                    end
+                  tweak_ho_equal T argc
                 else
-                  plain_const
-              | _ => plain_const)
+                  plain_const ())
+            else if is_type_enc_fool type_enc then
+              (case s of
+                "c_False" => IConst (`I tptp_false, T, [])
+              | "c_True" => IConst (`I tptp_true, T, [])
+              | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
+              | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
+              | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
+              | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
+              | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
+              | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+              | s =>
+                if is_tptp_equal s then
+                  handle_fool 2 (IConst (`I tptp_equal, T, []))
+                else
+                  plain_const ())
             else
-              IConst (proxy_base |>> prefix const_prefix, T, T_args)
+              proxy_const ()
           end
-         | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
-                   else IConst (name, T, T_args))
+         | NONE =>
+           if s = tptp_choice then
+             tweak_ho_quant tptp_choice T args
+           else
+             IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1423,20 +1498,20 @@ fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
 
 (** predicators and application operators **)
 
-type sym_info =
-  {pred_sym : bool, min_ary : int, max_ary : int, types : typ list,
-   in_conj : bool}
+type sym_info = {pred_sym : bool, min_ary : int, max_ary : int, types : typ list, in_conj : bool}
 
 fun default_sym_tab_entries type_enc =
-  (make_fixed_const NONE \<^const_name>\<open>undefined\<close>,
-     {pred_sym = false, min_ary = 0, max_ary = 0, types = [], in_conj = false}) ::
-  ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
-  ([tptp_equal, tptp_old_equal]
-   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [], in_conj = false}))
-  |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
-    ? cons (prefixed_predicator_name,
-      {pred_sym = true, min_ary = 1, max_ary = 1, types = [], in_conj = false})
+  let
+    fun mk_sym_info pred n =
+      {pred_sym = pred, min_ary = n, max_ary = n, types = [], in_conj = false}
+  in
+    (make_fixed_const NONE \<^const_name>\<open>undefined\<close>, mk_sym_info false 0) ::
+    (map (rpair (mk_sym_info true 0)) [tptp_false, tptp_true]) @
+    (map (rpair (mk_sym_info true 1)) tptp_unary_builtins) @
+    (map (rpair (mk_sym_info true 2)) (tptp_old_equal :: tptp_binary_builtins))
+    |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
+      ? cons (prefixed_predicator_name, mk_sym_info true 1)
+  end
 
 datatype app_op_level =
   Min_App_Op |
@@ -1833,17 +1908,17 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
   else if lam_trans = liftingN orelse lam_trans = lam_liftingN then
     lift_lams ctxt type_enc
   else if lam_trans = combsN then
-    map (introduce_combinators ctxt) #> rpair []
+    map (introduce_combinators ctxt type_enc) #> rpair []
   else if lam_trans = combs_and_liftingN then
     lift_lams_part_1 ctxt type_enc
-    ##> maps (fn t => [t, introduce_combinators ctxt (intentionalize_def t)])
-    #> lift_lams_part_2 ctxt
+    ##> maps (fn t => [t, introduce_combinators ctxt type_enc (intentionalize_def t)])
+    #> lift_lams_part_2 ctxt type_enc
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
     ##> map (fn t => (case head_of (strip_qnt_body \<^const_name>\<open>All\<close> t) of
                        \<^term>\<open>(=) ::bool => bool => bool\<close> => t
-                     | _ => introduce_combinators ctxt (intentionalize_def t)))
-    #> lift_lams_part_2 ctxt
+                     | _ => introduce_combinators ctxt type_enc (intentionalize_def t)))
+    #> lift_lams_part_2 ctxt type_enc
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else

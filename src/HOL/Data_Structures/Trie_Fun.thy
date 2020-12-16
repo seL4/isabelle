@@ -17,12 +17,12 @@ fun isin :: "'a trie \<Rightarrow> 'a list \<Rightarrow> bool" where
 "isin (Nd b m) [] = b" |
 "isin (Nd b m) (k # xs) = (case m k of None \<Rightarrow> False | Some t \<Rightarrow> isin t xs)"
 
-fun insert :: "('a::linorder) list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
+fun insert :: "'a list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
 "insert [] (Nd b m) = Nd True m" |
 "insert (x#xs) (Nd b m) =
    Nd b (m(x := Some(insert xs (case m x of None \<Rightarrow> empty | Some t \<Rightarrow> t))))"
 
-fun delete :: "('a::linorder) list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
+fun delete :: "'a list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
 "delete [] (Nd b m) = Nd False m" |
 "delete (x#xs) (Nd b m) = Nd b
    (case m x of

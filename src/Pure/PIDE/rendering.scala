@@ -178,6 +178,13 @@ object Rendering
     val empty: Focus = apply(Set.empty)
     def make(args: List[Text.Info[Focus]]): Focus =
       (empty /: args)({ case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 })
+
+    val full: Focus =
+      new Focus(Set.empty)
+      {
+        override def apply(id: Long): Boolean = true
+        override def toString: String = "Focus.full"
+      }
   }
 
   sealed class Focus private[Rendering](protected val rep: Set[Long])
@@ -439,14 +446,14 @@ class Rendering(
           range, (List(Markup.Empty), None), elements,
           command_states =>
             {
-              case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
+              case ((markups, color), Text.Info(_, XML.Elem(markup, _)))
               if markups.nonEmpty && Document_Status.Command_Status.proper_elements(markup.name) =>
                 Some((markup :: markups, color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                 Some((Nil, Some(Rendering.Color.bad)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 Some((Nil, Some(Rendering.Color.intensify)))
-              case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _))) if focus(i) =>
+              case (_, Text.Info(_, XML.Elem(Markup.Entity.Occ(i), _))) if focus(i) =>
                 Some((Nil, Some(Rendering.Color.entity)))
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Bullet(depth), _))) =>
                 val color =
@@ -472,7 +479,7 @@ class Rendering(
                 else None
             })
       color <-
-        (result match {
+        result match {
           case (markups, opt_color) if markups.nonEmpty =>
             val status = Document_Status.Command_Status.make(markups.iterator)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
@@ -480,7 +487,7 @@ class Rendering(
             else if (status.is_canceled) Some(Rendering.Color.canceled)
             else opt_color
           case (_, opt_color) => opt_color
-        })
+        }
     } yield Text.Info(r, color)
   }
 
@@ -504,33 +511,38 @@ class Rendering(
           case _ => None
         }))
 
-  def entity_focus(range: Text.Range, visible_defs: Rendering.Focus): Rendering.Focus =
+  def entity_focus(range: Text.Range, defs_focus: Rendering.Focus): Rendering.Focus =
     Rendering.Focus.make(
       snapshot.cumulate(range, Rendering.Focus.empty, Rendering.entity_elements, _ =>
         {
           case (focus, Text.Info(_, XML.Elem(Markup.Entity.Ref(i), _)))
-          if visible_defs(i) => Some(focus + i)
+          if defs_focus(i) => Some(focus + i)
           case _ => None
         }))
 
 
   /* caret focus */
 
-  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Rendering.Focus =
+  def caret_focus(caret_range: Text.Range, defs_range: Text.Range): Rendering.Focus =
   {
     val focus = entity_focus_defs(caret_range)
     if (focus.defined) focus
-    else entity_focus(caret_range, entity_focus_defs(visible_range))
+    else if (defs_range == Text.Range.offside) Rendering.Focus.empty
+    else {
+      val defs_focus =
+        if (defs_range == Text.Range.full) Rendering.Focus.full
+        else entity_focus_defs(defs_range)
+      entity_focus(caret_range, defs_focus)
+    }
   }
 
-  def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
+  def caret_focus_ranges(caret_range: Text.Range, defs_range: Text.Range): List[Text.Range] =
   {
-    val focus_defs = caret_focus(caret_range, visible_range)
-    if (focus_defs.defined) {
-      snapshot.cumulate[Boolean](visible_range, false, Rendering.entity_elements, _ =>
+    val focus = caret_focus(caret_range, defs_range)
+    if (focus.defined) {
+      snapshot.cumulate[Boolean](defs_range, false, Rendering.entity_elements, _ =>
         {
-          case (_, Text.Info(_, XML.Elem(Markup.Entity.Id(i), _)))
-          if focus_defs(i) => Some(true)
+          case (_, Text.Info(_, XML.Elem(Markup.Entity.Occ(i), _))) if focus(i) => Some(true)
           case _ => None
         }).flatMap(info => if (info.info) Some(info.range) else None)
     }

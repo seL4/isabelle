@@ -1287,8 +1287,9 @@ text \<open>
   defining position with all its referencing positions. This correspondence is
   highlighted in the text according to the cursor position, see also
   \figref{fig:scope1}. Here the referencing positions are rendered with an
-  additional border, in reminiscence to a hyperlink: clicking there moves the
-  cursor to the original defining position.
+  additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
+  modifier, or the action @{action_def "isabelle.goto-entity"} (shortcut
+  \<^verbatim>\<open>CS+d\<close>) jumps to the original defining position.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1300,8 +1301,9 @@ text \<open>
 
   The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close>)
   supports semantic selection of all occurrences of the formal entity at the
-  caret position. This facilitates systematic renaming, using regular jEdit
-  editing of a multi-selection, see also \figref{fig:scope2}.
+  caret position, with a defining position in the current editor buffer. This
+  facilitates systematic renaming, using regular jEdit editing of a
+  multi-selection, see also \figref{fig:scope2}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1310,6 +1312,12 @@ text \<open>
   \caption{The result of semantic selection and systematic renaming}
   \label{fig:scope2}
   \end{figure}
+
+  By default, the visual feedback on scopes is restricted to definitions
+  within the visible text area. The keyboard modifier \<^verbatim>\<open>CS\<close> overrides this:
+  then all defining and referencing positions are shown. This modifier may be
+  configured via option @{system_option jedit_focus_modifier}; the default
+  coincides with the modifier for the above keyboard actions.
 \<close>
 
 
