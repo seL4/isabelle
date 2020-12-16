@@ -448,7 +448,7 @@ by (simp add: size_mset_btree)
 text \<open>The length of a binomial heap is bounded by the number of its elements\<close>
 lemma size_mset_heap:
   assumes "invar ts"
-  shows "2^length ts \<le> size (mset_heap ts) + 1"
+  shows "length ts \<le> log 2 (size (mset_heap ts) + 1)"
 proof -
   from \<open>invar ts\<close> have
     ASC: "sorted_wrt (<) (map rank ts)" and
@@ -465,7 +465,8 @@ proof -
     by (auto cong: map_cong simp: size_mset_tree)
   also have "\<dots> = size (mset_heap ts) + 1"
     unfolding mset_heap_def by (induction ts) auto
-  finally show ?thesis .
+  finally have "2^length ts \<le> size (mset_heap ts) + 1" .
+  then show ?thesis using le_log2_of_power by blast
 qed
 
 subsubsection \<open>Timing Functions\<close>
@@ -496,20 +497,11 @@ lemma T_insert_bound:
   assumes "invar ts"
   shows "T_insert x ts \<le> log 2 (size (mset_heap ts) + 1) + 2"
 proof -
-
-  have 1: "T_insert x ts \<le> length ts + 2"
-    unfolding T_insert_def using T_ins_tree_simple_bound by auto
-  also have "\<dots> \<le> log 2 (2 * (size (mset_heap ts) + 1)) + 1"
-  proof -
-    from size_mset_heap[of ts] assms
-    have "2 ^ length ts \<le> size (mset_heap ts) + 1"
-      unfolding invar_def by auto
-    hence "2 ^ (length ts + 1) \<le> 2 * (size (mset_heap ts) + 1)" by auto
-    hence "length ts + 1 \<le> log 2 (2 * (size (mset_heap ts) + 1))"
-      using le_log2_of_power by blast
-    thus ?thesis by simp
-  qed
-  finally show ?thesis by (simp only: log_mult of_nat_mult) auto
+  have "real (T_insert x ts) \<le> real (length ts) + 2"
+    unfolding T_insert_def using T_ins_tree_simple_bound 
+    using of_nat_mono by fastforce
+  also note size_mset_heap[OF \<open>invar ts\<close>]
+  finally show ?thesis by simp
 qed
 
 subsubsection \<open>\<open>T_merge\<close>\<close>
@@ -547,35 +539,21 @@ lemma T_merge_bound:
   defines "n\<^sub>1 \<equiv> size (mset_heap ts\<^sub>1)"
   defines "n\<^sub>2 \<equiv> size (mset_heap ts\<^sub>2)"
   assumes "invar ts\<^sub>1" "invar ts\<^sub>2"
-  shows "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 2"
+  shows "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
 proof -
-  define n where "n = n\<^sub>1 + n\<^sub>2"
+  note n_defs = assms(1,2)
 
-  note BINVARS = \<open>invar ts\<^sub>1\<close> \<open>invar ts\<^sub>2\<close>
-
-  from T_merge_length[of ts\<^sub>1 ts\<^sub>2]
-  have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1" by auto
-  hence "(2::nat)^T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2^(2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1)"
-    by (rule power_increasing) auto
-  also have "\<dots> = 2*(2^length ts\<^sub>1)\<^sup>2*(2^length ts\<^sub>2)\<^sup>2"
-    by (auto simp: algebra_simps power_add power_mult)
-  also note BINVARS(1)[THEN size_mset_heap]
-  also note BINVARS(2)[THEN size_mset_heap]
-  finally have "2 ^ T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (n\<^sub>1 + 1)\<^sup>2 * (n\<^sub>2 + 1)\<^sup>2"
-    by (auto simp: power2_nat_le_eq_le n\<^sub>1_def n\<^sub>2_def)
-  from le_log2_of_power[OF this] have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> log 2 \<dots>"
-    by simp
-  also have "\<dots> = log 2 2 + 2*log 2 (n\<^sub>1 + 1) + 2*log 2 (n\<^sub>2 + 1)"
-    by (simp add: log_mult log_nat_power)
-  also have "n\<^sub>2 \<le> n" by (auto simp: n_def)
-  finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> log 2 2 + 2*log 2 (n\<^sub>1 + 1) + 2*log 2 (n + 1)"
-    by auto
-  also have "n\<^sub>1 \<le> n" by (auto simp: n_def)
-  finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> log 2 2 + 4*log 2 (n + 1)"
-    by auto
-  also have "log 2 2 \<le> 2" by auto
-  finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n + 1) + 2" by auto
-  thus ?thesis unfolding n_def by (auto simp: algebra_simps)
+  have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * real (length ts\<^sub>1) + 2 * real (length ts\<^sub>2) + 1"
+    using T_merge_length[of ts\<^sub>1 ts\<^sub>2] by simp
+  also note size_mset_heap[OF \<open>invar ts\<^sub>1\<close>]
+  also note size_mset_heap[OF \<open>invar ts\<^sub>2\<close>]
+  finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * log 2 (n\<^sub>1 + 1) + 2 * log 2 (n\<^sub>2 + 1) + 1"
+    unfolding n_defs by (simp add: algebra_simps)
+  also have "log 2 (n\<^sub>1 + 1) \<le> log 2 (n\<^sub>1 + n\<^sub>2 + 1)" 
+    unfolding n_defs by (simp add: algebra_simps)
+  also have "log 2 (n\<^sub>2 + 1) \<le> log 2 (n\<^sub>1 + n\<^sub>2 + 1)" 
+    unfolding n_defs by (simp add: algebra_simps)
+  finally show ?thesis by (simp add: algebra_simps)
 qed
 
 subsubsection \<open>\<open>T_get_min\<close>\<close>
@@ -593,13 +571,8 @@ lemma T_get_min_bound:
   shows "T_get_min ts \<le> log 2 (size (mset_heap ts) + 1)"
 proof -
   have 1: "T_get_min ts = length ts" using assms T_get_min_estimate by auto
-  also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
-  proof -
-    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
-      unfolding invar_def by auto
-    thus ?thesis using le_log2_of_power by blast
-  qed
-  finally show ?thesis by auto
+  also note size_mset_heap[OF \<open>invar ts\<close>]
+  finally show ?thesis .
 qed
 
 subsubsection \<open>\<open>T_del_min\<close>\<close>
@@ -617,13 +590,8 @@ lemma T_get_min_rest_bound:
   shows "T_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
 proof -
   have 1: "T_get_min_rest ts = length ts" using assms T_get_min_rest_estimate by auto
-  also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
-  proof -
-    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
-      by auto
-    thus ?thesis using le_log2_of_power by blast
-  qed
-  finally show ?thesis by auto
+  also note size_mset_heap[OF \<open>invar ts\<close>]
+  finally show ?thesis .
 qed
 
 text\<open>Note that although the definition of function \<^const>\<open>rev\<close> has quadratic complexity,
@@ -637,65 +605,40 @@ definition T_del_min :: "'a::linorder heap \<Rightarrow> nat" where
                     \<Rightarrow> T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2
   )"
 
-lemma T_rev_ts1_bound_aux:
-  fixes ts
-  defines "n \<equiv> size (mset_heap ts)"
-  assumes BINVAR: "invar (rev ts)"
-  shows "T_rev ts \<le> 1 + log 2 (n+1)"
-proof -
-  have "T_rev ts = length ts + 1" by (auto simp: T_rev_def)
-  hence "2^T_rev ts = 2*2^length ts" by auto
-  also have "\<dots> \<le> 2*n+2" using size_mset_heap[OF BINVAR] by (auto simp: n_def)
-  finally have "2 ^ T_rev ts \<le> 2 * n + 2" .
-  from le_log2_of_power[OF this] have "T_rev ts \<le> log 2 (2 * (n + 1))"
-    by auto
-  also have "\<dots> = 1 + log 2 (n+1)"
-    by (simp only: of_nat_mult log_mult) auto
-  finally show ?thesis by (auto simp: algebra_simps)
-qed
-
 lemma T_del_min_bound:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
-  assumes "invar ts"
-  assumes "ts\<noteq>[]"
-  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
+  assumes "invar ts" and "ts\<noteq>[]"
+  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 2"
 proof -
   obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
 
-  note BINVAR' = invar_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> \<open>invar ts\<close>]
-  hence BINVAR1: "invar (rev ts\<^sub>1)" by (blast intro: invar_children)
+  have I1: "invar (rev ts\<^sub>1)" and I2: "invar ts\<^sub>2"
+    using invar_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> \<open>invar ts\<close>] invar_children
+    by auto
 
   define n\<^sub>1 where "n\<^sub>1 = size (mset_heap ts\<^sub>1)"
   define n\<^sub>2 where "n\<^sub>2 = size (mset_heap ts\<^sub>2)"
 
-  have T_rev_ts1_bound: "T_rev ts\<^sub>1 \<le> 1 + log 2 (n+1)"
-  proof -
-    note T_rev_ts1_bound_aux[OF BINVAR1, simplified, folded n\<^sub>1_def]
-    also have "n\<^sub>1 \<le> n"
-      unfolding n\<^sub>1_def n_def
-      using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
-      by (auto simp: mset_heap_def)
-    finally show ?thesis by (auto simp: algebra_simps)
-  qed
-
-  have "T_del_min ts = T_get_min_rest ts + T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2"
-    unfolding T_del_min_def by (simp add: GM)
-  also have "\<dots> \<le> log 2 (n+1) + T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2"
-    using T_get_min_rest_bound[OF assms(2-)] by (auto simp: n_def)
-  also have "\<dots> \<le> 2*log 2 (n+1) + T_merge (rev ts\<^sub>1) ts\<^sub>2 + 1"
-    using T_rev_ts1_bound by auto
-  also have "\<dots> \<le> 2*log 2 (n+1) + 4 * log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 3"
-    using T_merge_bound[OF \<open>invar (rev ts\<^sub>1)\<close> \<open>invar ts\<^sub>2\<close>]
-    by (auto simp: n\<^sub>1_def n\<^sub>2_def algebra_simps)
-  also have "n\<^sub>1 + n\<^sub>2 \<le> n"
-    unfolding n\<^sub>1_def n\<^sub>2_def n_def
+  have "n\<^sub>1 \<le> n" "n\<^sub>1 + n\<^sub>2 \<le> n" unfolding n_def n\<^sub>1_def n\<^sub>2_def
     using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
     by (auto simp: mset_heap_def)
-  finally have "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
-    by auto
-  thus ?thesis by (simp add: algebra_simps)
+
+  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
+    unfolding T_del_min_def GM
+    by simp
+  also have "T_get_min_rest ts \<le> log 2 (n+1)" 
+    using T_get_min_rest_bound[OF \<open>invar ts\<close> \<open>ts\<noteq>[]\<close>] unfolding n_def by simp
+  also have "T_rev ts\<^sub>1 \<le> 1 + log 2 (n\<^sub>1 + 1)"
+    unfolding T_rev_def n\<^sub>1_def using size_mset_heap[OF I1] by simp
+  also have "T_merge (rev ts\<^sub>1) ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
+    unfolding n\<^sub>1_def n\<^sub>2_def using T_merge_bound[OF I1 I2] by (simp add: algebra_simps)
+  finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 2"
+    by (simp add: algebra_simps)
+  also note \<open>n\<^sub>1 + n\<^sub>2 \<le> n\<close>
+  also note \<open>n\<^sub>1 \<le> n\<close>
+  finally show ?thesis by (simp add: algebra_simps)
 qed
 
 end
