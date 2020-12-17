@@ -518,9 +518,12 @@ fun used_facts_in_atp_proof ctxt facts atp_proof =
 
 fun used_facts_in_unsound_atp_proof _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt facts atp_proof =
-    let val used_facts = used_facts_in_atp_proof ctxt facts atp_proof in
-      if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
-         not (is_axiom_used_in_proof (is_some o resolve_conjecture) atp_proof) then
+    let
+      val used_facts = used_facts_in_atp_proof ctxt facts atp_proof
+      val all_global_facts = forall (fn (_, (sc, _)) => sc = Global) used_facts
+      val axiom_used = is_axiom_used_in_proof (is_some o resolve_conjecture) atp_proof
+    in
+      if all_global_facts andalso not axiom_used then
         SOME (map fst used_facts)
       else
         NONE

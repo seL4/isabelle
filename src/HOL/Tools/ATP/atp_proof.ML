@@ -234,14 +234,18 @@ fun extract_known_atp_failure known_failures output =
   |> Option.map fst
 
 fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures output =
-  (case (extract_tstplike_proof proof_delims output,
-      extract_known_atp_failure known_failures output) of
-    (_, SOME ProofIncomplete) => ("", NONE)
-  | (_, SOME ProofUnparsable) => ("", NONE)
-  | ("", SOME ProofMissing) => ("", NONE)
-  | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
-  | res as ("", _) => res
-  | (tstplike_proof, _) => (tstplike_proof, NONE))
+  let
+    val known_atp_failure = extract_known_atp_failure known_failures output
+    val tstplike_proof = extract_tstplike_proof proof_delims output
+  in
+    (case (tstplike_proof, known_atp_failure) of
+      (_, SOME ProofIncomplete) => ("", NONE)
+    | (_, SOME ProofUnparsable) => ("", NONE)
+    | ("", SOME ProofMissing) => ("", NONE)
+    | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
+    | res as ("", _) => res
+    | (tstplike_proof, _) => (tstplike_proof, NONE))
+  end
 
 type atp_step_name = string * string list
 
@@ -294,7 +298,6 @@ datatype source =
   Introduced_Source of string
 
 val dummy_phi = AAtom (ATerm (("", []), []))
-val dummy_inference = Inference_Source ("", [])
 val dummy_atype = AType (("", []), [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
@@ -316,11 +319,11 @@ and parse_introduced_source x =
   (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
    --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
 and parse_source x =
-  (parse_file_source >> File_Source
-   || parse_inference_source >> Inference_Source
-   || parse_introduced_source >> Introduced_Source
-   || scan_general_id >> (fn s => Inference_Source ("", [s])) (* for E *)
-   || skip_term >> K dummy_inference) x
+  (parse_file_source >> File_Source >> SOME
+   || parse_inference_source >> Inference_Source >> SOME
+   || parse_introduced_source >> Introduced_Source >> SOME
+   || scan_general_id >> (fn s => SOME (Inference_Source ("", [s]))) (* for E *)
+   || skip_term >> K NONE) x
 
 fun list_app (f, args) = fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
 
@@ -407,7 +410,7 @@ and parse_fol_quantified_formula x =
    >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, _), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term)) dummy_inference
+  Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term)) NONE
 
 val waldmeister_conjecture_name = "conjecture_1"
 
@@ -551,18 +554,19 @@ fun parse_tstp_hol_line problem =
   -- Symbol.scan_ascii_id --| $$ "," -- (parse_hol_formula || skip_term >> K dummy_phi)
      -- parse_tstp_extra_arguments --| $$ ")"
   --| $$ "."
-  >> (fn (((num, role), phi), deps) =>
+  >> (fn (((num, role), phi), src) =>
       let
         val role' = role_of_tptp_string role
         val ((name, phi), rule, deps) =
-          (case deps of
-            File_Source (_, SOME s) =>
+          (case src of
+            SOME (File_Source (_, SOME s)) =>
             if role' = Definition then
               (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
             else
               (((num, [s]), phi), "", [])
-          | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
-          | Introduced_Source rule => (((num, []), phi), rule, []))
+          | SOME (Inference_Source (rule, deps)) => (((num, []), phi), rule, deps)
+          | SOME (Introduced_Source rule) => (((num, []), phi), rule, [])
+          | _ => (((num, [num]), phi), "", []))
       in
         [(name, role', phi, rule, map (rpair []) deps)]
       end)
@@ -578,7 +582,7 @@ fun parse_tstp_fol_line problem =
             val ((name, phi), role', rule, deps) =
               (* Waldmeister isn't exactly helping. *)
               (case src of
-                File_Source (_, SOME s) =>
+                SOME (File_Source (_, SOME s)) =>
                 (if s = waldmeister_conjecture_name then
                    (case find_formula_in_problem (mk_anot phi) problem of
                      (* Waldmeister hack: Get the original orientation of the equation to avoid
@@ -590,10 +594,11 @@ fun parse_tstp_fol_line problem =
                  else
                    ((num, [s]), phi),
                  role, "", [])
-              | File_Source _ =>
+              | SOME (File_Source _) =>
                 (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])
-              | Inference_Source (rule, deps) => (((num, []), phi), role, rule, deps)
-              | Introduced_Source rule => (((num, []), phi), Lemma, rule, []))
+              | SOME (Inference_Source (rule, deps)) => (((num, []), phi), role, rule, deps)
+              | SOME (Introduced_Source rule) => (((num, []), phi), Lemma, rule, [])
+              | _ => (((num, [num]), phi), role, "", []))
 
             fun mk_step () = (name, role', phi, rule, map (rpair []) deps)
           in
@@ -749,7 +754,6 @@ fun atp_proof_of_tstplike_proof _ _ "" = []
     | NONE =>
       tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof local_prover problem
-      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1)))
-      |> local_prover = zipperpositionN ? rev)
+      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1))))
 
 end;
