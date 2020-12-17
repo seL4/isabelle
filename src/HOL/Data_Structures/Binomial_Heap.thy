@@ -478,6 +478,9 @@ text \<open>
 definition T_link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> nat" where
 [simp]: "T_link _ _ = 1"
 
+text \<open>This function is non-canonical: we omitted a \<open>+1\<close> in the \<open>else\<close>-part,
+  to keep the following analysis simpler and more to the point.
+\<close>
 fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> nat" where
   "T_ins_tree t [] = 1"
 | "T_ins_tree t\<^sub>1 (t\<^sub>2 # rest) = (
@@ -603,13 +606,13 @@ definition "T_rev xs = length xs + 1"
 definition T_del_min :: "'a::linorder heap \<Rightarrow> nat" where
   "T_del_min ts = T_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
                     \<Rightarrow> T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2
-  )"
+  ) + 1"
 
 lemma T_del_min_bound:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
   assumes "invar ts" and "ts\<noteq>[]"
-  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 2"
+  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
 proof -
   obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
@@ -625,7 +628,7 @@ proof -
     using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
     by (auto simp: mset_heap_def)
 
-  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
+  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2) + 1"
     unfolding T_del_min_def GM
     by simp
   also have "T_get_min_rest ts \<le> log 2 (n+1)" 
@@ -634,7 +637,7 @@ proof -
     unfolding T_rev_def n\<^sub>1_def using size_mset_heap[OF I1] by simp
   also have "T_merge (rev ts\<^sub>1) ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
     unfolding n\<^sub>1_def n\<^sub>2_def using T_merge_bound[OF I1 I2] by (simp add: algebra_simps)
-  finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 2"
+  finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 3"
     by (simp add: algebra_simps)
   also note \<open>n\<^sub>1 + n\<^sub>2 \<le> n\<close>
   also note \<open>n\<^sub>1 \<le> n\<close>
