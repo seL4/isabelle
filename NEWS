@@ -19,6 +19,9 @@ Rare INCOMPATIBILITY.
 * Improved markup for theory header imports: hyperlinks for theory files
 work without formal checking of content.
 
+* The prover process can download auxiliary files (e.g. 'ML_file') for
+theories with remote URL. This requires the external "curl" program.
+
 * Action "isabelle.goto-entity" (shortcut CS+d) jumps to the definition
 of the formal entity at the caret position.
 

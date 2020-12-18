@@ -60,19 +60,29 @@ fun read_file_node file_node master_dir pos delimited src_path =
     val _ =
       if Context_Position.pide_reports ()
       then Position.report pos (Markup.language_path delimited) else ();
-    val _ =
+
+    fun read_file () =
+      let
+        val path = File.check_file (File.full_path master_dir src_path);
+        val text = File.read path;
+        val file_pos = Path.position path;
+      in (text, file_pos) end;
+
+    fun read_url () =
+      let
+        val text = Isabelle_System.download file_node;
+        val file_pos = Position.file file_node;
+      in (text, file_pos) end;
+
+    val (text, file_pos) =
       (case try Url.explode file_node of
-        NONE => ()
-      | SOME (Url.File _) => ()
-      | _ =>
-          error ("Prover cannot load remote file " ^
-            Markup.markup (Markup.url file_node) (quote file_node)));
-    val full_path = File.check_file (File.full_path master_dir src_path);
-    val text = File.read full_path;
+        NONE => read_file ()
+      | SOME (Url.File _) => read_file ()
+      | _ => read_url ());
+
     val lines = split_lines text;
     val digest = SHA1.digest text;
-    val file_pos = Position.copy_id pos (Path.position full_path);
-  in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
+  in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
   handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";
