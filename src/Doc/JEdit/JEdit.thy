@@ -1317,7 +1317,8 @@ text \<open>
   within the visible text area. The keyboard modifier \<^verbatim>\<open>CS\<close> overrides this:
   then all defining and referencing positions are shown. This modifier may be
   configured via option @{system_option jedit_focus_modifier}; the default
-  coincides with the modifier for the above keyboard actions.
+  coincides with the modifier for the above keyboard actions. The empty string
+  means to disable this additional visual feedback.
 \<close>
 
 
