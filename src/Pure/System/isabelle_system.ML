@@ -20,6 +20,7 @@ sig
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
+  val download: string -> string
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
@@ -119,5 +120,15 @@ fun with_tmp_file name ext f =
 fun with_tmp_dir name f =
   let val path = create_tmp_path name ""
   in Exn.release (Exn.capture f (make_directory path) before ignore (try rm_tree path)) end;
+
+
+(* download file *)
+
+fun download url =
+  with_tmp_file "download" "" (fn path =>
+    ("curl --fail --silent --location " ^ Bash.string url ^ " > " ^ File.bash_path path)
+    |> Bash.process
+    |> (fn {rc = 0, ...} => File.read path
+         | {err, ...} => cat_error ("Failed to download " ^ quote url) err));
 
 end;
