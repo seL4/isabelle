@@ -428,7 +428,8 @@ fun define_command {command_id, name, parents, blobs_digests, blobs_index, token
                 val (tokens, _) = fold_map Token.make tokens (Position.id id);
                 val imports =
                   if name = Thy_Header.theoryN then
-                    #imports (Thy_Header.read_tokens Position.none tokens)
+                    (#imports (Thy_Header.read_tokens Position.none tokens)
+                      handle ERROR _ => [])
                   else [];
                 val _ =
                   if length parents = length imports then
