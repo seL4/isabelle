@@ -66,7 +66,7 @@ fun read_file_node file_node master_dir pos delimited src_path =
       | SOME (Url.File _) => ()
       | _ =>
           error ("Prover cannot load remote file " ^
-            Markup.markup (Markup.path file_node) (quote file_node)));
+            Markup.markup (Markup.url file_node) (quote file_node)));
     val full_path = File.check_file (File.full_path master_dir src_path);
     val text = File.read full_path;
     val lines = split_lines text;
