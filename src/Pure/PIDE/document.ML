@@ -22,6 +22,7 @@ sig
   type command =
    {command_id: Document_ID.command,
     name: string,
+    parents: string list,
     blobs_digests: blob_digest list,
     blobs_index: int,
     tokens: ((int * int) * string) list}
@@ -410,11 +411,12 @@ fun blob_reports pos (blob_digest: blob_digest) =
 type command =
   {command_id: Document_ID.command,
    name: string,
+   parents: string list,
    blobs_digests: blob_digest list,
    blobs_index: int,
    tokens: ((int * int) * string) list};
 
-fun define_command {command_id, name, blobs_digests, blobs_index, tokens} =
+fun define_command {command_id, name, parents, blobs_digests, blobs_index, tokens} =
   map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
@@ -424,6 +426,23 @@ fun define_command {command_id, name, blobs_digests, blobs_index, tokens} =
             (fn () =>
               let
                 val (tokens, _) = fold_map Token.make tokens (Position.id id);
+                val imports =
+                  if name = Thy_Header.theoryN then
+                    #imports (Thy_Header.read_tokens Position.none tokens)
+                  else [];
+                val _ =
+                  if length parents = length imports then
+                    (parents, imports) |> ListPair.app (fn (parent, (_, pos)) =>
+                      let val markup =
+                        (case Thy_Info.lookup_theory parent of
+                          SOME thy => Theory.get_markup thy
+                        | NONE =>
+                            (case try Url.explode parent of
+                              NONE => Markup.path parent
+                            | SOME (Url.File path) => Markup.path (Path.implode path)
+                            | SOME _ => Markup.url parent))
+                      in Position.report pos markup end)
+                  else ();
                 val _ =
                   if blobs_index < 0
                   then (*inlined errors*)
@@ -598,8 +617,8 @@ fun init_theory deps node span =
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
                 NONE => Toplevel.init_toplevel ()
               | SOME (_, eval) => maybe_eval_result eval)
-        | some => some)
-        |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));
+            |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy)))
+        | SOME thy => SOME (thy, (Position.none, Markup.empty))));
 
     val parents =
       if null parents_reports then [Theory.get_pure ()] else map #1 parents_reports;

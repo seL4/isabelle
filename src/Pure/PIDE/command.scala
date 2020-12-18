@@ -445,8 +445,8 @@ object Command
     span.name match {
       // inlined errors
       case Thy_Header.THEORY =>
-        val reader = Scan.char_reader(Token.implode(span.content))
-        val header = resources.check_thy(node_name, reader)
+        val reader = span.content_reader
+        val header = resources.check_thy(node_name, span.content_reader)
         val imports_pos = header.imports_pos
         val raw_imports =
           try {
@@ -565,6 +565,23 @@ final class Command private(
       (length /: span.content.reverse.iterator.takeWhile(_.is_ignored))(_ - _.source.length))
 
   def source(range: Text.Range): String = range.substring(source)
+
+
+  /* theory parents */
+
+  def theory_parents(resources: Resources): List[Document.Node.Name] =
+    if (span.name == Thy_Header.THEORY) {
+      try {
+        val header = Thy_Header.read(node_name, span.content_reader)
+        for ((s, _) <- header.imports)
+        yield {
+          try { resources.import_name(node_name, s) }
+          catch { case ERROR(_) => Document.Node.Name.empty }
+        }
+      }
+      catch { case ERROR(_) => Nil }
+    }
+    else Nil
 
 
   /* reported positions */

@@ -321,9 +321,13 @@ trait Protocol
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
     protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
 
-  private def encode_command(command: Command): (String, String, String, String, List[String]) =
+  private def encode_command(resources: Resources, command: Command)
+    : (String, String, String, String, String, List[String]) =
   {
     import XML.Encode._
+
+    val parents = command.theory_parents(resources).map(name => File.standard_url(name.node))
+    val parents_yxml = Symbol.encode_yxml(list(string)(parents))
 
     val blobs_yxml =
     {
@@ -344,38 +348,42 @@ trait Protocol
     }
     val toks_sources = command.span.content.map(tok => Symbol.encode(tok.source))
 
-    (Document_ID(command.id), Symbol.encode(command.span.name), blobs_yxml, toks_yxml, toks_sources)
+    (Document_ID(command.id), Symbol.encode(command.span.name), parents_yxml,
+      blobs_yxml, toks_yxml, toks_sources)
   }
 
-  def define_command(command: Command)
+  def define_command(resources: Resources, command: Command)
   {
-    val (command_id, name, blobs_yxml, toks_yxml, toks_sources) = encode_command(command)
+    val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
+      encode_command(resources, command)
     protocol_command_args(
-      "Document.define_command", command_id :: name :: blobs_yxml :: toks_yxml :: toks_sources)
+      "Document.define_command", command_id :: name :: parents_yxml :: blobs_yxml ::
+        toks_yxml :: toks_sources)
   }
 
-  def define_commands(commands: List[Command])
+  def define_commands(resources: Resources, commands: List[Command])
   {
     protocol_command_args("Document.define_commands",
       commands.map(command =>
       {
         import XML.Encode._
-        val (command_id, name, blobs_yxml, toks_yxml, toks_sources) = encode_command(command)
+        val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
+          encode_command(resources, command)
         val body =
-          pair(string, pair(string, pair(string, pair(string, list(string)))))(
-            command_id, (name, (blobs_yxml, (toks_yxml, toks_sources))))
+          pair(string, pair(string, pair(string, pair(string, pair(string, list(string))))))(
+            command_id, (name, (parents_yxml, (blobs_yxml, (toks_yxml, toks_sources)))))
         YXML.string_of_body(body)
       }))
   }
 
-  def define_commands_bulk(commands: List[Command])
+  def define_commands_bulk(resources: Resources, commands: List[Command])
   {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
-    irregular.foreach(define_command)
+    irregular.foreach(define_command(resources, _))
     regular match {
       case Nil =>
-      case List(command) => define_command(command)
-      case _ => define_commands(regular)
+      case List(command) => define_command(resources, command)
+      case _ => define_commands(resources, regular)
     }
   }
 

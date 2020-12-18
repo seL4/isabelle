@@ -16,6 +16,9 @@ Rare INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Improved markup for theory header imports: hyperlinks for theory files
+work without formal checking of content.
+
 * Action "isabelle.goto-entity" (shortcut CS+d) jumps to the definition
 of the formal entity at the caret position.
 

@@ -452,7 +452,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         for { (_, edit) <- change.doc_edits } {
           edit.foreach({ case (c1, c2) => c1.foreach(id_command); c2.foreach(id_command) })
         }
-        if (id_commands.nonEmpty) prover.get.define_commands_bulk(id_commands.toList)
+        if (id_commands.nonEmpty) {
+          prover.get.define_commands_bulk(resources, id_commands.toList)
+        }
       }
 
       val assignment = global_state.value.the_assignment(change.previous).check_finished

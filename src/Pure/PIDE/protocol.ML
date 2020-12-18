@@ -31,9 +31,10 @@ val _ =
   Isabelle_Process.protocol_command "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 
-fun decode_command id name blobs_xml toks_xml sources : Document.command =
+fun decode_command id name parents_xml blobs_xml toks_xml sources : Document.command =
   let
     open XML.Decode;
+    val parents = list string parents_xml;
     val (blobs_digests, blobs_index) =
       blobs_xml |>
         let
@@ -52,6 +53,7 @@ fun decode_command id name blobs_xml toks_xml sources : Document.command =
   in
    {command_id = Document_ID.parse id,
     name = name,
+    parents = parents,
     blobs_digests = blobs_digests,
     blobs_index = blobs_index,
     tokens = toks ~~ sources}
@@ -62,9 +64,11 @@ fun commands_accepted ids =
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
-    (fn id :: name :: blobs :: toks :: sources =>
+    (fn id :: name :: parents :: blobs :: toks :: sources =>
       let
-        val command = decode_command id name (YXML.parse_body blobs) (YXML.parse_body toks) sources;
+        val command =
+          decode_command id name (YXML.parse_body parents) (YXML.parse_body blobs)
+            (YXML.parse_body toks) sources;
         val _ = Document.change_state (Document.define_command command);
       in commands_accepted [id] end);
 
@@ -75,9 +79,10 @@ val _ =
         fun decode arg =
           let
             open XML.Decode;
-            val (id, (name, (blobs_xml, (toks_xml, sources)))) =
-              pair string (pair string (pair I (pair I (list string)))) (YXML.parse_body arg);
-          in decode_command id name blobs_xml toks_xml sources end;
+            val (id, (name, (parents_xml, (blobs_xml, (toks_xml, sources))))) =
+              pair string (pair string (pair I (pair I (pair I (list string)))))
+                (YXML.parse_body arg);
+          in decode_command id name parents_xml blobs_xml toks_xml sources end;
 
         val commands = map decode args;
         val _ = Document.change_state (fold Document.define_command commands);
