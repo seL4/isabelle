@@ -30,7 +30,7 @@ struct
 
 fun bash_output_check s =
   (case Bash.process s of
-    {rc = 0, out, ...} => (trim_line out)
+    {rc = 0, out, ...} => trim_line out
   | {err, ...} => error (trim_line err));
 
 fun bash_output s =
