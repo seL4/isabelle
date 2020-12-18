@@ -441,7 +441,7 @@ fun define_command {command_id, name, parents, blobs_digests, blobs_index, token
                             (case try Url.explode parent of
                               NONE => Markup.path parent
                             | SOME (Url.File path) => Markup.path (Path.implode path)
-                            | SOME _ => Markup.url parent))
+                            | SOME _ => Markup.path parent))
                       in Position.report pos markup end)
                   else ();
                 val _ =
