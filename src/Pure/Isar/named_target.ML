@@ -125,7 +125,7 @@ fun init includes ident thy =
         setup = setup_context target #> Data.put (SOME target) #> Bundle.includes includes,
         conclude = I}
        (operations target)
-    |> not (null includes) ? Local_Theory.mark_brittle
+    |> not (null includes) ? Local_Theory.revoke_reinitializability
   end;
 
 val theory_init = init [] "";

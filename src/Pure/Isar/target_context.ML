@@ -37,7 +37,7 @@ fun switch_named_cmd NONE (Context.Theory thy) =
       (Context.Proof o Local_Theory.reset, lthy)
   | switch_named_cmd (SOME name) (Context.Proof lthy) =
       (Context.Proof o Named_Target.reinit lthy o Local_Theory.exit_global,
-        (context_begin_named_cmd [] name o Local_Theory.exit_global_nonbrittle) lthy);
+        (context_begin_named_cmd [] name o Local_Theory.exit_global_reinitializable) lthy);
 
 fun includes raw_includes lthy =
   Bundle.includes (map (Bundle.check lthy) raw_includes) lthy;

@@ -623,7 +623,7 @@ fun add_registration_local_theory' registration lthy =
   end;
 
 fun add_registration_local_theory registration =
-  Local_Theory.mark_brittle #> add_registration_local_theory' registration
+  Local_Theory.revoke_reinitializability #> add_registration_local_theory' registration
 
 fun add_registration_proof registration ctxt = ctxt
   |> Proof_Context.set_stmt false
