@@ -3227,7 +3227,8 @@ lemmas unat_arith_simps =
 \<comment> \<open>\<open>unat_arith_tac\<close>: tactic to reduce word arithmetic to \<open>nat\<close>, try to solve via \<open>arith\<close>\<close>
 ML \<open>
 val unat_arith_simpset =
-  @{context}
+  @{context} (* TODO: completely explicitly determined simpset *)
+  |> fold Simplifier.del_simp @{thms unsigned_of_nat unsigned_of_int}
   |> fold Simplifier.add_simp @{thms unat_arith_simps}
   |> fold Splitter.add_split @{thms if_split_asm}
   |> fold Simplifier.add_cong @{thms power_False_cong}
