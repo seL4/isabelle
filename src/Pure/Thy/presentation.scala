@@ -376,7 +376,7 @@ object Presentation
       Preview(title, content)
     }
     else {
-      resources.make_preview(snapshot) match {
+      resources.file_preview(snapshot) match {
         case Some(preview) => preview
         case None =>
           val title =

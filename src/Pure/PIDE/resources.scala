@@ -54,11 +54,11 @@ class Resources(
   def make_theory_content(thy_name: Document.Node.Name): Option[String] =
     File_Format.registry.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
 
-  def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
-    File_Format.registry.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
-
   def is_hidden(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
+
+  def file_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
+    File_Format.registry.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
 
 
   /* file-system operations */
