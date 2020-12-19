@@ -152,7 +152,7 @@ object Presentation
   }
 
 
-  /* maintain chapter index -- NOT thread-safe */
+  /* maintain chapter index */
 
   private val sessions_path = Path.basic(".sessions")
 
