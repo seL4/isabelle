@@ -120,7 +120,7 @@ object Build_Job
             match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
-                val snapshot = Document.State.init.command_snippet(command)
+                val snapshot = Document.State.init.snippet(command)
                 val rendering = new Rendering(snapshot, options, session)
                 val messages =
                   rendering.text_messages(Text.Range.full)
