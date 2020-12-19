@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/present.scala
     Author:     Makarius
 
-Theory presentation: HTML and LaTeX documents.
+HTML/PDF presentation of theory documents.
 */
 
 package isabelle
@@ -12,6 +12,100 @@ import scala.collection.immutable.SortedMap
 
 object Presentation
 {
+  /** HTML documents **/
+
+  sealed case class HTML_Document(title: String, content: String)
+
+
+  /* HTML body */
+
+  private val div_elements =
+    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
+      HTML.descr.name)
+
+  private def html_div(html: XML.Body): Boolean =
+    html exists {
+      case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
+      case XML.Text(_) => false
+    }
+
+  private def html_class(c: String, html: XML.Body): XML.Tree =
+    if (html.forall(_ == HTML.no_text)) HTML.no_text
+    else if (html_div(html)) HTML.div(c, html)
+    else HTML.span(c, html)
+
+  private def html_body(xml: XML.Body): XML.Body =
+    xml map {
+      case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
+        html_class(Markup.Language.DOCUMENT, html_body(body))
+      case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(html_body(body))
+      case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(html_body(body))
+      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => HTML.no_text
+      case XML.Elem(Markup.Markdown_List(kind), body) =>
+        if (kind == Markup.ENUMERATE) HTML.enum(html_body(body)) else HTML.list(html_body(body))
+      case XML.Elem(markup, body) =>
+        val name = markup.name
+        val html =
+          markup.properties match {
+            case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
+              List(html_class(kind, html_body(body)))
+            case _ =>
+              html_body(body)
+          }
+        Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
+          case Some(c) => html_class(c.toString, html)
+          case None => html_class(name, html)
+        }
+      case XML.Text(text) =>
+        XML.Text(Symbol.decode(text))
+    }
+
+
+  /* PIDE HTML document */
+
+  val html_elements: Markup.Elements =
+    Rendering.foreground_elements ++ Rendering.text_color_elements ++ Rendering.markdown_elements +
+      Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE
+
+  def html_document(
+    resources: Resources,
+    snapshot: Document.Snapshot,
+    plain_text: Boolean = false,
+    fonts_url: String => String = HTML.fonts_url()): HTML_Document =
+  {
+    require(!snapshot.is_outdated)
+
+    def output_document(title: String, body: XML.Body): String =
+      HTML.output_document(
+        List(
+          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
+          HTML.title(title)),
+        List(HTML.source(body)), css = "", structural = false)
+
+    val name = snapshot.node_name
+
+    if (plain_text) {
+      val title = "File " + quote(name.path.file_name)
+      val content = output_document(title, HTML.text(snapshot.node.source))
+      HTML_Document(title, content)
+    }
+    else {
+      resources.html_document(snapshot) match {
+        case Some(document) => document
+        case None =>
+          val title =
+            if (name.is_theory) "Theory " + quote(name.theory_base_name)
+            else "File " + quote(name.path.file_name)
+          val body = html_body(snapshot.xml_markup(elements = html_elements))
+          HTML_Document(title, output_document(title, body))
+      }
+    }
+  }
+
+
+
+  /** PDF LaTeX documents **/
+
   /* document info */
 
   abstract class Document_Name
@@ -151,6 +245,9 @@ object Presentation
       dir(store) + Path.explode(info.chapter_session)
   }
 
+
+
+  /** HTML presentation **/
 
   /* maintain chapter index */
 
@@ -346,98 +443,6 @@ object Presentation
        (if (theories.isEmpty) Nil
         else List(HTML.div("theories", List(HTML.section("Theories"), HTML.itemize(theories))))))
   }
-
-
-
-  /** preview **/
-
-  sealed case class Preview(title: String, content: String)
-
-  def preview(
-    resources: Resources,
-    snapshot: Document.Snapshot,
-    plain_text: Boolean = false,
-    fonts_url: String => String = HTML.fonts_url()): Preview =
-  {
-    require(!snapshot.is_outdated)
-
-    def output_document(title: String, body: XML.Body): String =
-      HTML.output_document(
-        List(
-          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
-          HTML.title(title)),
-        List(HTML.source(body)), css = "", structural = false)
-
-    val name = snapshot.node_name
-
-    if (plain_text) {
-      val title = "File " + quote(name.path.file_name)
-      val content = output_document(title, HTML.text(snapshot.node.source))
-      Preview(title, content)
-    }
-    else {
-      resources.file_preview(snapshot) match {
-        case Some(preview) => preview
-        case None =>
-          val title =
-            if (name.is_theory) "Theory " + quote(name.theory_base_name)
-            else "File " + quote(name.path.file_name)
-          val content = output_document(title, pide_document(snapshot))
-          Preview(title, content)
-      }
-    }
-  }
-
-
-  /* PIDE document */
-
-  private val document_elements =
-    Rendering.foreground_elements ++ Rendering.text_color_elements ++ Rendering.markdown_elements +
-    Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE
-
-  private val div_elements =
-    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
-      HTML.descr.name)
-
-  private def html_div(html: XML.Body): Boolean =
-    html exists {
-      case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
-      case XML.Text(_) => false
-    }
-
-  private def html_class(c: String, html: XML.Body): XML.Tree =
-    if (html.forall(_ == HTML.no_text)) HTML.no_text
-    else if (html_div(html)) HTML.div(c, html)
-    else HTML.span(c, html)
-
-  private def make_html(xml: XML.Body): XML.Body =
-    xml map {
-      case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
-        html_class(Markup.Language.DOCUMENT, make_html(body))
-      case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(make_html(body))
-      case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(make_html(body))
-      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => HTML.no_text
-      case XML.Elem(Markup.Markdown_List(kind), body) =>
-        if (kind == Markup.ENUMERATE) HTML.enum(make_html(body)) else HTML.list(make_html(body))
-      case XML.Elem(markup, body) =>
-        val name = markup.name
-        val html =
-          markup.properties match {
-            case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
-              List(html_class(kind, make_html(body)))
-            case _ =>
-              make_html(body)
-          }
-        Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
-          case Some(c) => html_class(c.toString, html)
-          case None => html_class(name, html)
-        }
-      case XML.Text(text) =>
-        XML.Text(Symbol.decode(text))
-    }
-
-  def pide_document(snapshot: Document.Snapshot): XML.Body =
-    make_html(snapshot.xml_markup(elements = document_elements))
 
 
 

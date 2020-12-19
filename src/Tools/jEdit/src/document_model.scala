@@ -310,7 +310,7 @@ object Document_Model
     val fonts_root = http_root + "/fonts"
     val preview_root = http_root + "/preview"
 
-    val preview =
+    val html =
       HTTP.get(preview_root, arg =>
         for {
           query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode)
@@ -319,13 +319,14 @@ object Document_Model
         }
         yield {
           val snapshot = model.await_stable_snapshot()
-          val preview =
-            Presentation.preview(PIDE.resources, snapshot, fonts_url = HTML.fonts_dir(fonts_root),
+          val document =
+            Presentation.html_document(PIDE.resources, snapshot,
+              fonts_url = HTML.fonts_dir(fonts_root),
               plain_text = query.startsWith(plain_text_prefix))
-          HTTP.Response.html(preview.content)
+          HTTP.Response.html(document.content)
         })
 
-    List(HTTP.fonts(fonts_root), preview)
+    List(HTTP.fonts(fonts_root), html)
   }
 }
 

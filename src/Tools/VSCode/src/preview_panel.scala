@@ -30,8 +30,8 @@ class Preview_Panel(resources: VSCode_Resources)
               val snapshot = model.snapshot()
               if (snapshot.is_outdated) m
               else {
-                val preview = Presentation.preview(resources, snapshot)
-                channel.write(LSP.Preview_Response(file, column, preview.title, preview.content))
+                val document = Presentation.html_document(resources, snapshot)
+                channel.write(LSP.Preview_Response(file, column, document.title, document.content))
                 m - file
               }
             case None => m - file

@@ -57,8 +57,8 @@ class Resources(
   def is_hidden(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
 
-  def file_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
-    File_Format.registry.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
+  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
+    File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 
 
   /* file-system operations */
