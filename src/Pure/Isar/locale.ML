@@ -615,15 +615,12 @@ val add_registration_theory' = Context.theory_map o add_registration;
 
 val add_registration_theory = Local_Theory.raw_theory o add_registration_theory';
 
-fun add_registration_local_theory' registration lthy =
+fun add_registration_local_theory registration lthy =
   let val n = Local_Theory.level lthy in
     lthy
     |> Local_Theory.map_contexts (fn level =>
       level = n - 1 ? Context.proof_map (add_registration registration))
   end;
-
-fun add_registration_local_theory registration =
-  Local_Theory.revoke_reinitializability #> add_registration_local_theory' registration
 
 fun add_registration_proof registration ctxt = ctxt
   |> Proof_Context.set_stmt false
@@ -658,7 +655,7 @@ fun add_dependency' loc {inst = (name, morph), mixin, export} thy =
 
 fun add_dependency loc registration =
   Local_Theory.raw_theory (add_dependency' loc registration)
-  #> add_registration_local_theory' registration;
+  #> add_registration_local_theory registration;
 
 
 (*** Storing results ***)

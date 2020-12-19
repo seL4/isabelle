@@ -16,7 +16,8 @@ sig
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
     theory -> 'b * theory
-  val reinit: local_theory -> theory -> local_theory
+  val revoke_reinitializability: local_theory -> local_theory
+  val exit_global_reinitialize: local_theory -> (theory -> local_theory) * theory
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -48,11 +49,11 @@ fun class_of_target (SOME (Class class)) = SOME class
 
 structure Data = Proof_Data
 (
-  type T = target option;
+  type T = (target * bool) option;
   fun init _ = NONE;
 );
 
-val get_bottom_target = Data.get;
+val get_bottom_target = Option.map fst o Data.get;
 
 fun get_target lthy =
   if Local_Theory.level lthy = 1
@@ -71,6 +72,9 @@ val locale_of = locale_of_target o get_target;
 val bottom_locale_of = locale_of_target o get_bottom_target;
 
 val class_of = class_of_target o get_target;
+
+fun is_reinitializable lthy =
+  Local_Theory.level lthy = 1 andalso (the_default false o Option.map snd o Data.get) lthy;
 
 
 (* operations *)
@@ -115,6 +119,11 @@ fun setup_context Theory = Proof_Context.init_global
   | setup_context (Locale locale) = Locale.init locale
   | setup_context (Class class) = Class.init class;
 
+fun setup target includes =
+  setup_context target
+  #> Data.put (SOME (target, null includes))
+  #> Bundle.includes includes;
+
 fun init includes ident thy =
   let
     val target = target_of_ident thy ident;
@@ -122,10 +131,9 @@ fun init includes ident thy =
     thy
     |> Local_Theory.init
        {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
-        setup = setup_context target #> Data.put (SOME target) #> Bundle.includes includes,
+        setup = setup target includes,
         conclude = I}
        (operations target)
-    |> not (null includes) ? Local_Theory.revoke_reinitializability
   end;
 
 val theory_init = init [] "";
@@ -134,6 +142,11 @@ fun theory_map g = theory_init #> g #> Local_Theory.exit_global;
 
 fun theory_map_result f g = theory_init #> g #> Local_Theory.exit_result_global f;
 
-fun reinit lthy = init [] (ident_of lthy);
+val revoke_reinitializability = (Data.map o Option.map o apsnd) (K false);
+
+fun exit_global_reinitialize lthy =
+  if is_reinitializable lthy
+  then (init [] (ident_of lthy), Local_Theory.exit_global lthy)
+  else error "Non-reinitializable local theory context";
 
 end;
