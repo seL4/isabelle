@@ -16,6 +16,22 @@ object Presentation
 
   sealed case class HTML_Document(title: String, content: String)
 
+  def html_context(fonts_url: String => String = HTML.fonts_url()): HTML_Context =
+    new HTML_Context(fonts_url)
+
+  final class HTML_Context private[Presentation](fonts_url: String => String)
+  {
+    def output_document(title: String, body: XML.Body): String =
+      HTML.output_document(
+        List(
+          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
+          HTML.title(title)),
+        List(HTML.source(body)), css = "", structural = false)
+
+    def html_document(title: String, body: XML.Body): HTML_Document =
+      HTML_Document(title, output_document(title, body))
+  }
+
 
   /* HTML body */
 
@@ -70,24 +86,16 @@ object Presentation
   def html_document(
     resources: Resources,
     snapshot: Document.Snapshot,
-    plain_text: Boolean = false,
-    fonts_url: String => String = HTML.fonts_url()): HTML_Document =
+    context: HTML_Context,
+    plain_text: Boolean = false): HTML_Document =
   {
     require(!snapshot.is_outdated)
 
-    def output_document(title: String, body: XML.Body): String =
-      HTML.output_document(
-        List(
-          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
-          HTML.title(title)),
-        List(HTML.source(body)), css = "", structural = false)
-
     val name = snapshot.node_name
-
     if (plain_text) {
       val title = "File " + quote(name.path.file_name)
-      val content = output_document(title, HTML.text(snapshot.node.source))
-      HTML_Document(title, content)
+      val body = HTML.text(snapshot.node.source)
+      context.html_document(title, body)
     }
     else {
       resources.html_document(snapshot) match {
@@ -97,7 +105,7 @@ object Presentation
             if (name.is_theory) "Theory " + quote(name.theory_base_name)
             else "File " + quote(name.path.file_name)
           val body = html_body(snapshot.xml_markup(elements = html_elements))
-          HTML_Document(title, output_document(title, body))
+          context.html_document(title, body)
       }
     }
   }
@@ -312,7 +320,8 @@ object Presentation
   /* present session */
 
   val session_graph_path = Path.explode("session_graph.pdf")
-  val readme_path = Path.basic("README.html")
+  val readme_path = Path.explode("README.html")
+  val files_path = Path.explode("files")
 
   def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
   def document_html_name(name: Document.Node.Name): String = "document/" + html_name(name)
