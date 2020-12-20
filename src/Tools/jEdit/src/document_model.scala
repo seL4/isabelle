@@ -16,7 +16,7 @@ import java.io.{File => JFile}
 import scala.collection.mutable
 import scala.annotation.tailrec
 
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
 
@@ -153,11 +153,11 @@ object Document_Model
     state.change_result(st =>
       st.buffer_models.get(buffer) match {
         case Some(buffer_model) if buffer_model.node_name == node_name =>
-          buffer_model.init_token_marker
+          buffer_model.init_token_marker()
           (buffer_model, st)
         case _ =>
           val res = st.close_buffer(buffer).open_buffer(session, node_name, buffer)
-          buffer.propertiesChanged
+          buffer.propertiesChanged()
           res
       })
   }
@@ -168,7 +168,7 @@ object Document_Model
     state.change(st =>
       if (st.buffer_models.isDefinedAt(buffer)) {
         val res = st.close_buffer(buffer)
-        buffer.propertiesChanged
+        buffer.propertiesChanged()
         res
       }
       else st)
@@ -298,7 +298,7 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview?" +
+          PIDE.plugin.http_server.url + PIDE.plugin.http_root + "/preview?" +
             (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
@@ -643,7 +643,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
       Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
         invoke(text_area)
-    buffer.invalidateCachedFoldLevels
+    buffer.invalidateCachedFoldLevels()
   }
 
   def init_token_marker()
