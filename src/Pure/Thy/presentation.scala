@@ -343,7 +343,6 @@ object Presentation
   val files_path = Path.explode("files")
 
   def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
-  def document_html_name(name: Document.Node.Name): String = "document/" + html_name(name)
 
   def token_markups(keywords: Keyword.Keywords, tok: Token): List[String] = {
     if (keywords.is_command(tok, Keyword.theory_end))
