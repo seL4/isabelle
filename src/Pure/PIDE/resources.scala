@@ -12,6 +12,12 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
+object Resources
+{
+  def empty: Resources =
+    new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+}
+
 class Resources(
   val sessions_structure: Sessions.Structure,
   val session_base: Sessions.Base,
@@ -54,11 +60,11 @@ class Resources(
   def make_theory_content(thy_name: Document.Node.Name): Option[String] =
     File_Format.registry.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
 
-  def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
-    File_Format.registry.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
-
   def is_hidden(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
+
+  def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
+    File_Format.registry.get(snapshot.node_name).flatMap(_.html_document(snapshot))
 
 
   /* file-system operations */

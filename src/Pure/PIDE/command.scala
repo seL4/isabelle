@@ -30,7 +30,7 @@ object Command
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)])
   {
-    def read_file: String = File.read(name.path)
+    def read_file: Bytes = Bytes.read(name.path)
 
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)

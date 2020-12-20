@@ -30,7 +30,7 @@ object JEdit_Rendering
     results: Command.Results = Command.Results.empty): (String, JEdit_Rendering) =
   {
     val command = Command.rich_text(Document_ID.make(), results, formatted_body)
-    val snippet = snapshot.command_snippet(command)
+    val snippet = snapshot.snippet(command)
     val model = File_Model.empty(PIDE.session)
     val rendering = apply(snippet, model, PIDE.options.value)
     (command.source, rendering)

@@ -592,7 +592,7 @@ object Document
 
     /* command as add-on snippet */
 
-    def command_snippet(command: Command): Snapshot =
+    def snippet(command: Command): Snapshot =
     {
       val node_name = command.node_name
 
@@ -620,16 +620,23 @@ object Document
         elements: Markup.Elements = Markup.Elements.full): XML.Body =
       state.xml_markup(version, node_name, range = range, elements = elements)
 
-    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full): List[XML.Body] =
+    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full)
+      : List[(Path, XML.Body)] =
     {
       snippet_command match {
         case None => Nil
         case Some(command) =>
           for (Exn.Res(blob) <- command.blobs)
           yield {
-            val text = blob.read_file
-            val markup = command.init_markups(Command.Markup_Index.blob(blob))
-            markup.to_XML(Text.Range(0, text.length), text, elements)
+            val bytes = blob.read_file
+            val text = bytes.text
+            val xml =
+              if (Bytes(text) == bytes) {
+                val markup = command.init_markups(Command.Markup_Index.blob(blob))
+                markup.to_XML(Text.Range(0, text.length), text, elements)
+              }
+              else Nil
+            blob.src_path -> xml
           }
       }
     }
@@ -998,8 +1005,7 @@ object Document
             Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - id)
-          val snapshot = state1.command_snippet(command1)
-          (snapshot, state1)
+          (state1.snippet(command1), state1)
       }
 
     def assign(id: Document_ID.Version, edited: List[String], update: Assign_Update)
@@ -1252,7 +1258,7 @@ object Document
       new Snapshot(this, version, node_name, edits, snippet_command)
     }
 
-    def command_snippet(command: Command): Snapshot =
-      snapshot().command_snippet(command)
+    def snippet(command: Command): Snapshot =
+      snapshot().snippet(command)
   }
 }

@@ -30,7 +30,7 @@ object Bibtex
       """theory "bib" imports Pure begin bibtex_file """ +
         Outer_Syntax.quote_string(name) + """ end"""
 
-    override def make_preview(snapshot: Document.Snapshot): Option[Presentation.Preview] =
+    override def html_document(snapshot: Document.Snapshot): Option[Presentation.HTML_Document] =
     {
       val name = snapshot.node_name
       if (detect(name.node)) {
@@ -40,7 +40,7 @@ object Bibtex
             File.write(bib, snapshot.node.source)
             Bibtex.html_output(List(bib), style = "unsort", title = title)
           }
-        Some(Presentation.Preview(title, content))
+        Some(Presentation.HTML_Document(title, content))
       }
       else None
     }

@@ -30,8 +30,7 @@ object Build_Job
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
-        val thy_path = Path.explode(thy_file)
-        val node_name = resources.file_node(thy_path, theory = theory)
+        val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
 
         val results =
           Command.Results.make(
@@ -43,7 +42,7 @@ object Build_Job
           {
             val path = Path.explode(file)
             val name = resources.file_node(path)
-            val src_path = File.relative_path(thy_path, path).getOrElse(path)
+            val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
             Command.Blob(name, src_path, None)
           })
         val blobs_xml =
@@ -94,7 +93,7 @@ object Build_Job
   {
     val store = Sessions.store(options)
 
-    val resources = new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+    val resources = Resources.empty
     val session = new Session(options, resources)
 
     using(store.open_database_context())(db_context =>
@@ -120,7 +119,7 @@ object Build_Job
             match {
               case None => progress.echo(thy_heading + " MISSING")
               case Some(command) =>
-                val snapshot = Document.State.init.command_snippet(command)
+                val snapshot = Document.State.init.snippet(command)
                 val rendering = new Rendering(snapshot, options, session)
                 val messages =
                   rendering.text_messages(Text.Range.full)
@@ -376,7 +375,7 @@ class Build_Job(progress: Progress,
             export_text(Export.FILES,
               cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
 
-            for ((xml, i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+            for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export(Export.MARKUP + (i + 1), xml)
             }
             export(Export.MARKUP, snapshot.xml_markup())
