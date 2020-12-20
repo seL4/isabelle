@@ -7,7 +7,7 @@ Proofs trace the inferences of the solver. They can be used to check unsatisfiab
 
 The proof language is inspired by:
 
-  Leonardo  de  Moura  and  Nikolaj  Bj/orner. Proofs and Refutations, and Z3. In
+  Leonardo de Moura and Nikolaj Bjørner. Proofs and Refutations, and Z3. In
   Proceedings of the LPAR 2008 Workshops, Knowledge Exchange: Automated Provers and Proof
   Assistants, and the 7th International Workshop on the Implementation of Logics,
   volume 418 of CEUR Workshop Proceedings. CEUR-WS.org, 2008.

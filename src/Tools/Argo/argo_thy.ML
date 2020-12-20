@@ -9,7 +9,7 @@ exchange knowledge among each other. This should be changed in the future. Relev
   Greg Nelson and Derek C. Oppen. Simplification by cooperating decision procedures. In ACM
   Transactions on Programming Languages and Systems, 1(2):245-257, 1979.
 
-  Leonardo de Moura and Nikolaj Bj/orner. Model-based Theory Combination. In Electronic Notes
+  Leonardo de Moura and Nikolaj Bjørner. Model-based Theory Combination. In Electronic Notes
   in Theoretical Computer Science, volume 198(2), pages 37-49, 2008.
 *)
 
