@@ -30,8 +30,7 @@ object Build_Job
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>
-        val thy_path = Path.explode(thy_file)
-        val node_name = resources.file_node(thy_path, theory = theory)
+        val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
 
         val results =
           Command.Results.make(
@@ -43,7 +42,7 @@ object Build_Job
           {
             val path = Path.explode(file)
             val name = resources.file_node(path)
-            val src_path = File.relative_path(thy_path, path).getOrElse(path)
+            val src_path = File.relative_path(node_name.master_dir_path, path).getOrElse(path)
             Command.Blob(name, src_path, None)
           })
         val blobs_xml =
