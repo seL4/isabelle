@@ -502,11 +502,15 @@ object Build
         val presentation_dir = presentation.dir(store)
         progress.echo("Presentation in " + presentation_dir.absolute)
 
+        val resources = Resources.empty
+        val html_context = Presentation.html_context()
+
         using(store.open_database_context())(db_context =>
           for ((_, (session_name, _)) <- presentation_chapters) {
             progress.expose_interrupt()
             progress.echo("Presenting " + session_name + " ...")
-            Presentation.session_html(session_name, deps, db_context, presentation)
+            Presentation.session_html(
+              resources, session_name, deps, db_context, html_context, presentation)
           })
 
         val browser_chapters =

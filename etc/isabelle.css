@@ -20,7 +20,7 @@ body {
   font-family: "Isabelle DejaVu Sans Mono", monospace;
 }
 
-.theories { background-color: #FFFFFF; padding: 10px; }
+.contents { background-color: #FFFFFF; padding: 10px; }
 .sessions { background-color: #FFFFFF; padding: 10px; }
 .document { white-space: normal; font-family: "Isabelle DejaVu Serif", serif; }
 

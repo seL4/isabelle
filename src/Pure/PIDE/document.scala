@@ -620,16 +620,23 @@ object Document
         elements: Markup.Elements = Markup.Elements.full): XML.Body =
       state.xml_markup(version, node_name, range = range, elements = elements)
 
-    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full): List[XML.Body] =
+    def xml_markup_blobs(elements: Markup.Elements = Markup.Elements.full)
+      : List[(Path, XML.Body)] =
     {
       snippet_command match {
         case None => Nil
         case Some(command) =>
           for (Exn.Res(blob) <- command.blobs)
           yield {
-            val text = blob.read_file
-            val markup = command.init_markups(Command.Markup_Index.blob(blob))
-            markup.to_XML(Text.Range(0, text.length), text, elements)
+            val bytes = blob.read_file
+            val text = bytes.text
+            val xml =
+              if (Bytes(text) == bytes) {
+                val markup = command.init_markups(Command.Markup_Index.blob(blob))
+                markup.to_XML(Text.Range(0, text.length), text, elements)
+              }
+              else Nil
+            blob.src_path -> xml
           }
       }
     }

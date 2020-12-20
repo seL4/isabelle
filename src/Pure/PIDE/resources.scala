@@ -12,6 +12,12 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
+object Resources
+{
+  def empty: Resources =
+    new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+}
+
 class Resources(
   val sessions_structure: Sessions.Structure,
   val session_base: Sessions.Base,

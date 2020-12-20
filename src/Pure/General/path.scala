@@ -67,6 +67,15 @@ object Path
       case Parent => ".."
     }
 
+  private def squash_elem(elem: Elem): String =
+    elem match {
+      case Root("") => "ROOT"
+      case Root(s) => "SERVER_" + s
+      case Basic(s) => s
+      case Variable(s) => s
+      case Parent => "PARENT"
+    }
+
 
   /* path constructors */
 
@@ -201,6 +210,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
     }
 
   def xz: Path = ext("xz")
+  def html: Path = ext("html")
   def tex: Path = ext("tex")
   def pdf: Path = ext("pdf")
   def thy: Path = ext("thy")
@@ -233,6 +243,8 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
 
   def drop_ext: Path = split_ext._1
   def get_ext: String = split_ext._2
+
+  def squash: Path = new Path(elems.map(elem => Path.Basic(Path.squash_elem(elem))))
 
 
   /* expand */

@@ -14,6 +14,8 @@ object Presentation
 {
   /** HTML documents **/
 
+  val fonts_path = Path.explode("fonts")
+
   sealed case class HTML_Document(title: String, content: String)
 
   def html_context(fonts_url: String => String = HTML.fonts_url()): HTML_Context =
@@ -21,6 +23,25 @@ object Presentation
 
   final class HTML_Context private[Presentation](fonts_url: String => String)
   {
+    def init_fonts(dir: Path)
+    {
+      val fonts_dir = Isabelle_System.make_directory(dir + fonts_path)
+      for (entry <- Isabelle_Fonts.fonts(hidden = true))
+        File.copy(entry.path, fonts_dir)
+    }
+
+    def head(title: String, rest: XML.Body = Nil): XML.Tree =
+      HTML.div("head", HTML.chapter(title) :: rest)
+
+    def source(body: XML.Body): XML.Tree = HTML.pre("source", body)
+
+    def contents(heading: String, items: List[XML.Body], css_class: String = "contents")
+      : List[XML.Elem] =
+    {
+      if (items.isEmpty) Nil
+      else List(HTML.div(css_class, List(HTML.section(heading), HTML.itemize(items))))
+    }
+
     def output_document(title: String, body: XML.Body): String =
       HTML.output_document(
         List(
@@ -86,26 +107,24 @@ object Presentation
   def html_document(
     resources: Resources,
     snapshot: Document.Snapshot,
-    context: HTML_Context,
+    html_context: HTML_Context,
     plain_text: Boolean = false): HTML_Document =
   {
     require(!snapshot.is_outdated)
 
     val name = snapshot.node_name
     if (plain_text) {
-      val title = "File " + quote(name.path.file_name)
+      val title = "File " + Symbol.cartouche_decoded(name.path.file_name)
       val body = HTML.text(snapshot.node.source)
-      context.html_document(title, body)
+      html_context.html_document(title, body)
     }
     else {
-      resources.html_document(snapshot) match {
-        case Some(document) => document
-        case None =>
-          val title =
-            if (name.is_theory) "Theory " + quote(name.theory_base_name)
-            else "File " + quote(name.path.file_name)
-          val body = html_body(snapshot.xml_markup(elements = html_elements))
-          context.html_document(title, body)
+      resources.html_document(snapshot) getOrElse {
+        val title =
+          if (name.is_theory) "Theory " + quote(name.theory_base_name)
+          else "File " + Symbol.cartouche_decoded(name.path.file_name)
+        val body = html_body(snapshot.xml_markup(elements = html_elements))
+        html_context.html_document(title, body)
       }
     }
   }
@@ -352,9 +371,11 @@ object Presentation
   }
 
   def session_html(
+    resources: Resources,
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
+    html_context: HTML_Context,
     presentation: Context)
   {
     val info = deps.sessions_structure(session)
@@ -362,9 +383,8 @@ object Presentation
     val base = deps(session)
 
     val session_dir = presentation.dir(db_context.store, info)
-    val session_fonts = Isabelle_System.make_directory(session_dir + Path.explode("fonts"))
-    for (entry <- Isabelle_Fonts.fonts(hidden = true))
-      File.copy(entry.path, session_fonts)
+
+    html_context.init_fonts(session_dir)
 
     Bytes.write(session_dir + session_graph_path,
       graphview.Graph_File.make_pdf(options, base.session_graph_display))
@@ -406,6 +426,39 @@ object Presentation
       HTML.link(prefix + html_name(name1), body)
     }
 
+    val files: List[XML.Body] =
+    {
+      var seen_files = List.empty[(Path, String, Document.Node.Name)]
+      (for {
+        thy_name <- base.session_theories.iterator
+        thy_command <-
+          Build_Job.read_theory(db_context, resources, session, thy_name.theory).iterator
+        snapshot = Document.State.init.snippet(thy_command)
+        (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements).iterator
+        if xml.nonEmpty
+      } yield {
+        val file_title = src_path.implode_short
+        val file_name = (files_path + src_path.squash.html).implode
+
+        seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
+          case None => seen_files ::= (src_path, file_name, thy_name)
+          case Some((_, _, thy_name1)) =>
+            error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
+              " in theory " + thy_name1 + " vs. " + thy_name)
+        }
+
+        val file_path = session_dir + Path.explode(file_name)
+        html_context.init_fonts(file_path.dir)
+
+        val title = "File " + Symbol.cartouche_decoded(file_title)
+        HTML.write_document(file_path.dir, file_path.file_name,
+          List(HTML.title(title)),
+          List(html_context.head(title), html_context.source(html_body(xml))))
+
+        List(HTML.link(file_name, HTML.text(file_title)))
+      }).toList
+    }
+
     val theories =
       for (name <- base.session_theories)
       yield {
@@ -440,7 +493,7 @@ object Presentation
         val title = "Theory " + name.theory_base_name
         HTML.write_document(session_dir, html_name(name),
           List(HTML.title(title)),
-          HTML.div("head", List(HTML.chapter(title))) :: List(HTML.pre("source", thy_body)))
+          List(html_context.head(title), html_context.source(thy_body)))
 
         List(HTML.link(html_name(name), HTML.text(name.theory_base_name)))
       }
@@ -448,9 +501,9 @@ object Presentation
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
       List(HTML.title(title + " (" + Distribution.version + ")")),
-      HTML.div("head", List(HTML.chapter(title), HTML.par(links))) ::
-       (if (theories.isEmpty) Nil
-        else List(HTML.div("theories", List(HTML.section("Theories"), HTML.itemize(theories))))))
+      html_context.head(title, List(HTML.par(links))) ::
+        html_context.contents("Theories", theories) :::
+        html_context.contents("Files", files))
   }
 
 

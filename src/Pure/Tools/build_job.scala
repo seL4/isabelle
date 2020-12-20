@@ -94,7 +94,7 @@ object Build_Job
   {
     val store = Sessions.store(options)
 
-    val resources = new Resources(Sessions.Structure.empty, Sessions.Structure.empty.bootstrap)
+    val resources = Resources.empty
     val session = new Session(options, resources)
 
     using(store.open_database_context())(db_context =>
@@ -376,7 +376,7 @@ class Build_Job(progress: Progress,
             export_text(Export.FILES,
               cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
 
-            for ((xml, i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+            for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
               export(Export.MARKUP + (i + 1), xml)
             }
             export(Export.MARKUP, snapshot.xml_markup())
