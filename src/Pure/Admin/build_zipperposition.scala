@@ -72,7 +72,7 @@ object Build_Zipperposition
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_ZIPPERPOSITION="$COMPONENT/$ISABELLE_PLATFORM64/zipperposition"
+ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 """)
 
 

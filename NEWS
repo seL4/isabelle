@@ -110,6 +110,9 @@ component. It can be used in the "smt" proof method via "smt (verit)" or
 via "declare [[smt_solver = verit]]" in the context; see also session
 HOL-Word-SMT_Examples.
 
+* Zipperposition 2.0 is included as Isabelle component for
+experimentation, e.g. in "sledgehammer [prover = zipperposition]".
+
 * Nitpick/Kodkod may be invoked directly within the running
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
@@ -245,9 +248,6 @@ process, and thus becomes more informative.
 
 * Update/rebuild external provers on currently supported OS platforms,
 notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
-
-* External prover Zipperposition 2.0 is available as component for
-experimentation.
 
 * Discontinued obsolete isabelle display tool, and DVI_VIEWER settings
 variable.
