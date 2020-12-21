@@ -3,32 +3,32 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2021
+-----------------------------
 
 * December 2020: Martin Desharnais
-  Zipperposition 2.0 as external prover for Sledgehammer (experimental).
+  Zipperposition 2.0 as external prover for Sledgehammer.
 
-* December 2020 Walter Guttmann
-  Extension of session HOL/Hoare with total correctness proof system
+* December 2020: Walter Guttmann
+  Extension of session HOL-Hoare with total correctness proof system.
 
 * November 2020: Stepan Holub
-  Removed preconditions from lemma comm_append_are_replicate
+  Removed preconditions from lemma comm_append_are_replicate.
 
 * November 2020: Florian Haftmann
   Bundle mixins for locale and class expressions.
 
 * November 2020: Jakub Kądziołka
-  Stronger lemmas about orders of group elements (generate_pow_card)
+  Stronger lemmas about orders of group elements (generate_pow_card).
 
 * October 2020: Jasmin Blanchette, Martin Desharnais, Mathias Fleury
-  Use veriT in proof preplay in Sledgehammer.
+  Support veriT as external prover in Sledgehammer.
 
 * October 2020: Mathias Fleury
   Updated proof reconstruction for the SMT solver veriT in the smt method.
 
 * October 2020: Jasmin Blanchette, Martin Desharnais
-  Integration of E 2.5 for Sledgehammer.
+  Support E prover 2.5 as external prover in Sledgehammer.
 
 * September 2020: Florian Haftmann
   Substantial reworking and modularization of Word library, with
@@ -38,7 +38,7 @@ Contributions to this Isabelle version
   Improved monitoring of runtime statistics: ML GC progress and Java.
 
 * July 2020: Martin Desharnais
-  Integration of Metis 2.4.
+  Update to Metis 2.4.
 
 * June 2020: Makarius Wenzel
   Batch-builds via "isabelle build" allow to invoke Scala from ML.
