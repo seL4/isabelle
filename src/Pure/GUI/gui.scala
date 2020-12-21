@@ -6,16 +6,13 @@ Basic GUI tools (for AWT/Swing).
 
 package isabelle
 
-import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
-import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFocusManager}
-import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
+import java.awt.{Component, Container, Font, Image, KeyboardFocusManager, Window, Point,
+  Rectangle, Dimension, GraphicsEnvironment, MouseInfo}
+import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
-  JButton, JTextField, JLabel}
-
-
-import scala.collection.JavaConverters
-import scala.swing.{ComboBox, TextArea, ScrollPane}
+import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
+  JTextField, JWindow, LookAndFeel, UIManager, SwingUtilities}
+import scala.swing.{ComboBox, ScrollPane, TextArea}
 import scala.swing.event.SelectionChanged
 
 
@@ -159,6 +156,48 @@ object GUI
       yield new ImageIcon(getClass.getClassLoader.getResource(icon))
 
   def isabelle_image(): Image = isabelle_icon().getImage
+
+
+  /* location within multi-screen environment */
+
+  final case class Screen_Location(point: Point, bounds: Rectangle)
+  {
+    def relative(parent: Component, size: Dimension): Point =
+    {
+      val w = size.width
+      val h = size.height
+
+      val x0 = parent.getLocationOnScreen.x
+      val y0 = parent.getLocationOnScreen.y
+      val x1 = x0 + parent.getWidth - w
+      val y1 = y0 + parent.getHeight - h
+      val x2 = point.x min (bounds.x + bounds.width - w)
+      val y2 = point.y min (bounds.y + bounds.height - h)
+
+      val location = new Point((x2 min x1) max x0, (y2 min y1) max y0)
+      SwingUtilities.convertPointFromScreen(location, parent)
+      location
+    }
+  }
+
+  def screen_location(component: Component, point: Point): Screen_Location =
+  {
+    val screen_point = new Point(point.x, point.y)
+    if (component != null) SwingUtilities.convertPointToScreen(screen_point, component)
+
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment
+    val screen_bounds =
+      (for {
+        device <- ge.getScreenDevices.iterator
+        config <- device.getConfigurations.iterator
+        bounds = config.getBounds
+      } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+
+    Screen_Location(screen_point, screen_bounds)
+  }
+
+  def mouse_location(): Screen_Location =
+    screen_location(null, MouseInfo.getPointerInfo.getLocation)
 
 
   /* component hierachy */

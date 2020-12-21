@@ -243,7 +243,7 @@ class Pretty_Tooltip private(
 
   private val popup =
   {
-    val screen = JEdit_Lib.screen_location(layered, location)
+    val screen = GUI.screen_location(layered, location)
     val size =
     {
       val bounds = JEdit_Rendering.popup_bounds
