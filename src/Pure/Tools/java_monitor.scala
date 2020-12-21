@@ -43,8 +43,8 @@ object Java_Monitor
       val jconsole = new JConsole(false)
 
       val screen = GUI.mouse_location()
-      val width = 1200 min screen.bounds.width
-      val height = 900 min screen.bounds.height
+      val width = (1200 max (screen.bounds.width / 2)) min screen.bounds.width
+      val height = (900 max (screen.bounds.height / 2)) min screen.bounds.height
       jconsole.setBounds(
         screen.bounds.x + (screen.bounds.width - width) / 2,
         screen.bounds.y + (screen.bounds.height - height) / 2,
