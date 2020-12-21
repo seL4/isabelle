@@ -246,6 +246,9 @@ process, and thus becomes more informative.
 * Update/rebuild external provers on currently supported OS platforms,
 notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
 
+* External prover Zipperposition 2.0 is available as component for
+experimentation.
+
 * Discontinued obsolete isabelle display tool, and DVI_VIEWER settings
 variable.
 
