@@ -141,9 +141,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
         permanent_updates
 
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
-    val factory_constructor = factory_class.getConstructor()
-    factory_constructor.setAccessible(true)
-    val factory = factory_constructor.newInstance()
+    val factory = Untyped.constructor(factory_class).newInstance()
 
     val add = Untyped.method(factory_class, "add", classOf[String])
 
