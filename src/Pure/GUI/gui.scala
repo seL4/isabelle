@@ -35,13 +35,13 @@ object GUI
 
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
 
+  def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
+
   def is_macos_laf(): Boolean =
-    Platform.is_macos &&
-    UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
+    Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
   def is_windows_laf(): Boolean =
-    Platform.is_windows &&
-    UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
+    Platform.is_windows && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
 
   /* plain focus traversal, notably for text fields */
