@@ -217,9 +217,9 @@
 	    isabelle.jedit.Keymap_Merge.check_dialog(view);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.jconsole">
+	<ACTION NAME="isabelle.java-monitor">
 	  <CODE>
-	    isabelle.jedit.Isabelle.jconsole(view);
+	    isabelle.jedit.Isabelle.java_monitor(view);
 	  </CODE>
 	</ACTION>
 </ACTIONS>

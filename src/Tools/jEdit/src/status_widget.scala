@@ -149,7 +149,7 @@ object Status_Widget
 
     setToolTipText("Java heap memory (double-click for monitor application)")
 
-    override def action: String = "isabelle.jconsole"
+    override def action: String = "isabelle.java-monitor"
   }
 
   class Java_Factory extends StatusWidgetFactory

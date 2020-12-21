@@ -2110,9 +2110,9 @@ text \<open>
   of the Isabelle/ML process; this includes information about ongoing garbage
   collection (shown as ``ML cleanup''). A double-click opens a new instance of
   the \<^emph>\<open>Monitor\<close> panel, as explained below. There is a similar widget for the
-  Java VM: a double-click opens the external \<^verbatim>\<open>jconsole\<close> application, with
-  detailed information and controls for the Java process underlying
-  Isabelle/Scala/jEdit.
+  JVM: a double-click opens an external Java monitor process with detailed
+  information and controls for the Java process underlying
+  Isabelle/Scala/jEdit (this is based on \<^verbatim>\<open>jconsole\<close>).
 
   \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent

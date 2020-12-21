@@ -588,17 +588,8 @@ object Isabelle
   }
 
 
-  /* jconsole */
+  /* java monitor */
 
-  def jconsole(view: View) {
-    Future.thread(name = "jconsole", daemon = true) {
-      try { Isabelle_System.jconsole() }
-      catch {
-        case exn: Throwable =>
-          GUI_Thread.later {
-            GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
-          }
-      }
-    }
-  }
+  def java_monitor(view: View): Unit =
+    Java_Monitor.java_monitor_external(view, look_and_feel = GUI.current_laf())
 }
