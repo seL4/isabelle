@@ -91,13 +91,13 @@ interpretation S2: Set
 where empty = empty and isin = isin and insert = insert and delete = delete
 and set = "set o abs" and invar = invar
 proof (standard, goal_cases)
-  case 1 show ?case by (simp)
+  case 1 show ?case by (simp add: isin_case split: list.split)
 next
-  case 2 thus ?case by (simp add: isin_set isin_abs)
+  case 2 thus ?case by (simp add: isin_abs)
 next
-  case 3 thus ?case by (simp add: set_insert abs_insert)
+  case 3 thus ?case by (simp add: set_insert abs_insert del: set_def)
 next
-  case 4 thus ?case by (simp add: set_delete abs_delete)
+  case 4 thus ?case by (simp add: set_delete abs_delete del: set_def)
 next
   case 5 thus ?case by (simp add: M.map_specs RBT_Set.empty_def[symmetric])
 next
