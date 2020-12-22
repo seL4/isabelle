@@ -9,7 +9,8 @@ package isabelle
 
 import java.awt.Component
 import javax.swing.UIManager
-import sun.tools.jconsole.{JConsole, LocalVirtualMachine, VMPanel, ProxyClient}
+import sun.tools.jconsole.{JConsole, LocalVirtualMachine, VMPanel, ProxyClient,
+  Messages, Resources => JConsoleResources}
 
 
 object Java_Monitor
@@ -38,6 +39,13 @@ object Java_Monitor
         case Some(laf) =>
           UIManager.setLookAndFeel(laf)
           System.setProperty("swing.defaultlaf", laf)
+      }
+
+      Desktop_App.about_handler {
+        GUI.dialog(null, "Java Monitor",
+          JConsoleResources.format(
+            Messages.JCONSOLE_VERSION, System.getProperty("java.runtime.version"))
+        )
       }
 
       val jconsole = new JConsole(false)
