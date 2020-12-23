@@ -614,7 +614,7 @@ lemma summable_geometric: "norm c < 1 \<Longrightarrow> summable (\<lambda>n. c^
 lemma suminf_geometric: "norm c < 1 \<Longrightarrow> suminf (\<lambda>n. c^n) = 1 / (1 - c)"
   by (rule sums_unique[symmetric]) (rule geometric_sums)
 
-lemma summable_geometric_iff: "summable (\<lambda>n. c ^ n) \<longleftrightarrow> norm c < 1"
+lemma summable_geometric_iff [simp]: "summable (\<lambda>n. c ^ n) \<longleftrightarrow> norm c < 1"
 proof
   assume "summable (\<lambda>n. c ^ n :: 'a :: real_normed_field)"
   then have "(\<lambda>n. norm c ^ n) \<longlonglongrightarrow> 0"

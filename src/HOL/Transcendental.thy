@@ -1886,10 +1886,8 @@ proof -
     next
       fix x :: real
       assume "x \<in> {- 1<..<1}"
-      then have "norm (-x) < 1" by auto
-      show "summable (\<lambda>n. (- 1) ^ n * (1 / real (n + 1)) * real (Suc n) * x^n)"
-        unfolding One_nat_def
-        by (auto simp: power_mult_distrib[symmetric] summable_geometric[OF \<open>norm (-x) < 1\<close>])
+      then show "summable (\<lambda>n. (- 1) ^ n * (1 / real (n + 1)) * real (Suc n) * x^n)"
+        by (simp add: abs_if flip: power_mult_distrib)
     qed
     then have "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)"
       unfolding One_nat_def by auto
