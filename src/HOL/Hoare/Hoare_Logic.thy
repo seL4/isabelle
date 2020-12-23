@@ -10,7 +10,7 @@ later.
 *)
 
 theory Hoare_Logic
-imports Main
+imports Hoare_Tac
 begin
 
 type_synonym 'a bexp = "'a set"
@@ -192,28 +192,35 @@ proof -
     using assms(1) ValidTC_def by force
 qed
 
-lemma Compl_Collect: "-(Collect b) = {x. \<not>(b x)}"
-  by blast
 
-lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
-ML_file \<open>hoare_tac.ML\<close>
+declare BasicRule [Hoare_Tac.BasicRule]
+  and SkipRule [Hoare_Tac.SkipRule]
+  and SeqRule [Hoare_Tac.SeqRule]
+  and CondRule [Hoare_Tac.CondRule]
+  and WhileRule [Hoare_Tac.WhileRule]
+
+declare BasicRuleTC [Hoare_Tac.BasicRuleTC]
+  and SkipRuleTC [Hoare_Tac.SkipRuleTC]
+  and SeqRuleTC [Hoare_Tac.SeqRuleTC]
+  and CondRuleTC [Hoare_Tac.CondRuleTC]
+  and WhileRuleTC [Hoare_Tac.WhileRuleTC]
 
 method_setup vcg = \<open>
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac)))\<close>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare_Tac.hoare_tac ctxt (K all_tac)))\<close>
   "verification condition generator"
 
 method_setup vcg_simp = \<open>
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
+    SIMPLE_METHOD' (Hoare_Tac.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
   "verification condition generator plus simplification"
 
 method_setup vcg_tc = \<open>
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tc_tac ctxt (K all_tac)))\<close>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare_Tac.hoare_tc_tac ctxt (K all_tac)))\<close>
   "verification condition generator"
 
 method_setup vcg_tc_simp = \<open>
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tc_tac ctxt (asm_full_simp_tac ctxt)))\<close>
+    SIMPLE_METHOD' (Hoare_Tac.hoare_tc_tac ctxt (asm_full_simp_tac ctxt)))\<close>
   "verification condition generator plus simplification"
 
 end

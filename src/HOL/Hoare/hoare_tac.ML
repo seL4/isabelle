@@ -5,7 +5,7 @@
 Derivation of the proof rules and, most importantly, the VCG tactic.
 *)
 
-signature HOARE =
+signature HOARE_TAC =
 sig
   val hoare_rule_tac: Proof.context -> term list * thm -> (int -> tactic) -> bool ->
     int -> tactic
@@ -13,7 +13,7 @@ sig
   val hoare_tc_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
-structure Hoare: HOARE =
+structure Hoare_Tac: HOARE_TAC =
 struct
 
 (*** The tactics ***)
@@ -77,7 +77,7 @@ fun get_vars c =
   in mk_vars pre end;
 
 fun mk_CollectC tm =
-  let val T as Type ("fun",[t,_]) = fastype_of tm;
+  let val Type ("fun",[t,_]) = fastype_of tm;
   in HOLogic.Collect_const t $ tm end;
 
 fun inclt ty = Const (\<^const_name>\<open>Orderings.less_eq\<close>, [ty,ty] ---> HOLogic.boolT);
@@ -164,25 +164,26 @@ fun basic_simp_tac ctxt var_names tac =
 
 fun hoare_rule_tac ctxt (vars, Mlem) tac =
   let
+    val get_thms = Proof_Context.get_thms ctxt;
     val var_names = map (fst o dest_Free) vars;
     fun wlp_tac i =
-      resolve_tac ctxt @{thms SeqRule} i THEN rule_tac false (i + 1)
+      resolve_tac ctxt (get_thms \<^named_theorems>\<open>SeqRule\<close>) i THEN rule_tac false (i + 1)
     and rule_tac pre_cond i st = st |> (*abstraction over st prevents looping*)
       ((wlp_tac i THEN rule_tac pre_cond i)
         ORELSE
         (FIRST [
-          resolve_tac ctxt @{thms SkipRule} i,
-          resolve_tac ctxt @{thms AbortRule} i,
+          resolve_tac ctxt (get_thms \<^named_theorems>\<open>SkipRule\<close>) i,
+          resolve_tac ctxt (get_thms \<^named_theorems>\<open>AbortRule\<close>) i,
           EVERY [
-            resolve_tac ctxt @{thms BasicRule} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>BasicRule\<close>) i,
             resolve_tac ctxt [Mlem] i,
             split_simp_tac ctxt i],
           EVERY [
-            resolve_tac ctxt @{thms CondRule} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>CondRule\<close>) i,
             rule_tac false (i + 2),
             rule_tac false (i + 1)],
           EVERY [
-            resolve_tac ctxt @{thms WhileRule} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>WhileRule\<close>) i,
             basic_simp_tac ctxt var_names tac (i + 2),
             rule_tac true (i + 1)]]
          THEN (
@@ -202,24 +203,25 @@ fun hoare_tac ctxt tac = SUBGOAL (fn (goal, i) =>
 
 fun hoare_tc_rule_tac ctxt (vars, Mlem) tac =
   let
+    val get_thms = Proof_Context.get_thms ctxt;
     val var_names = map (fst o dest_Free) vars;
     fun wlp_tac i =
-      resolve_tac ctxt @{thms SeqRuleTC} i THEN rule_tac false (i + 1)
+      resolve_tac ctxt (get_thms \<^named_theorems>\<open>SeqRuleTC\<close>) i THEN rule_tac false (i + 1)
     and rule_tac pre_cond i st = st |> (*abstraction over st prevents looping*)
       ((wlp_tac i THEN rule_tac pre_cond i)
         ORELSE
         (FIRST [
-          resolve_tac ctxt @{thms SkipRuleTC} i,
+          resolve_tac ctxt (get_thms \<^named_theorems>\<open>SkipRuleTC\<close>) i,
           EVERY [
-            resolve_tac ctxt @{thms BasicRuleTC} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>BasicRuleTC\<close>) i,
             resolve_tac ctxt [Mlem] i,
             split_simp_tac ctxt i],
           EVERY [
-            resolve_tac ctxt @{thms CondRuleTC} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>CondRuleTC\<close>) i,
             rule_tac false (i + 2),
             rule_tac false (i + 1)],
           EVERY [
-            resolve_tac ctxt @{thms WhileRuleTC} i,
+            resolve_tac ctxt (get_thms \<^named_theorems>\<open>WhileRuleTC\<close>) i,
             basic_simp_tac ctxt var_names tac (i + 2),
             rule_tac true (i + 1)]]
          THEN (
@@ -232,4 +234,3 @@ fun hoare_tc_tac ctxt tac = SUBGOAL (fn (goal, i) =>
   SELECT_GOAL (hoare_tc_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
 
 end;
-
