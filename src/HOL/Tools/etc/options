@@ -8,7 +8,7 @@ public option auto_time_start : real = 1.0
 public option auto_time_limit : real = 2.0
   -- "time limit for automatically tried tools (seconds > 0)"
 
-public option auto_nitpick : bool = true
+public option auto_nitpick : bool = false
   -- "run Nitpick automatically"
 
 public option auto_sledgehammer : bool = false
