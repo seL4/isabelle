@@ -3,7 +3,11 @@
     Copyright   2002 TUM
 *)
 
-theory HeapSyntax imports Hoare_Logic Heap begin
+section \<open>Heap syntax\<close>
+
+theory HeapSyntax
+  imports Hoare_Logic Heap
+begin
 
 subsection "Field access and update"
 

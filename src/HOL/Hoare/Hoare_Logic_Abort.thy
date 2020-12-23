@@ -7,7 +7,7 @@
 section \<open>Hoare Logic with an Abort statement for modelling run time errors\<close>
 
 theory Hoare_Logic_Abort
-imports Hoare_Syntax Hoare_Tac
+  imports Hoare_Syntax Hoare_Tac
 begin
 
 type_synonym 'a bexp = "'a set"

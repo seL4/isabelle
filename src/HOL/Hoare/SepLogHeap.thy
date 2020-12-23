@@ -1,19 +1,21 @@
 (*  Title:      HOL/Hoare/SepLogHeap.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
-
-Heap abstractions (at the moment only Path and List)
-for Separation Logic.
 *)
 
+section \<open>Heap abstractions for Separation Logic\<close>
+
+text \<open>(at the moment only Path and List)\<close>
+
 theory SepLogHeap
-imports Main
+  imports Main
 begin
 
 type_synonym heap = "(nat \<Rightarrow> nat option)"
 
 text\<open>\<open>Some\<close> means allocated, \<open>None\<close> means
 free. Address \<open>0\<close> serves as the null reference.\<close>
+
 
 subsection "Paths in the heap"
 

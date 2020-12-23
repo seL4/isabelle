@@ -1,9 +1,9 @@
 (*  Title:      HOL/Hoare/Hoare_Tac.thy
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Author:     Walter Guttmann (extension to total-correctness proofs)
-
-Derivation of the proof rules and, most importantly, the VCG tactic.
 *)
+
+section \<open>Hoare logic VCG tactic\<close>
 
 theory Hoare_Tac
   imports Main

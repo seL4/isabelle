@@ -1,14 +1,15 @@
 (*  Title:      HOL/Hoare/SchorrWaite.thy
     Author:     Farhad Mehta
     Copyright   2003 TUM
-
-Proof of the Schorr-Waite graph marking algorithm.
 *)
 
+section \<open>Proof of the Schorr-Waite graph marking algorithm\<close>
 
-theory SchorrWaite imports HeapSyntax begin
+theory SchorrWaite
+  imports HeapSyntax
+begin
 
-section \<open>Machinery for the Schorr-Waite proof\<close>
+subsection \<open>Machinery for the Schorr-Waite proof\<close>
 
 definition
   \<comment> \<open>Relations induced by a mapping\<close>
@@ -194,8 +195,7 @@ apply (induct xs)
 done
 
 
-section\<open>The Schorr-Waite algorithm\<close>
-
+subsection \<open>The Schorr-Waite algorithm\<close>
 
 theorem SchorrWaiteAlgorithm: 
 "VARS c m l r t p q root
@@ -573,4 +573,3 @@ proof (vcg)
   qed
 
 end
-

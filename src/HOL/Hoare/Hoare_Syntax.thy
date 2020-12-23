@@ -1,9 +1,9 @@
 (*  Title:      HOL/Hoare/Hoare_Syntax.thy
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Author:     Walter Guttmann (extension to total-correctness proofs)
-
-Concrete syntax for Hoare logic, with translations for variables.
 *)
+
+section \<open>Concrete syntax for Hoare logic, with translations for variables\<close>
 
 theory Hoare_Syntax
   imports Main

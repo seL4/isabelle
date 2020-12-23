@@ -1,15 +1,17 @@
 (*  Title:      HOL/Hoare/Pointer_ExamplesAbort.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
-
-Examples of verifications of pointer programs
 *)
 
-theory Pointer_ExamplesAbort imports HeapSyntaxAbort begin
+section \<open>Examples of verifications of pointer programs\<close>
 
-section "Verifications"
+theory Pointer_ExamplesAbort
+  imports HeapSyntaxAbort
+begin
 
-subsection "List reversal"
+subsection "Verifications"
+
+subsubsection "List reversal"
 
 text "Interestingly, this proof is the same as for the unguarded program:"
 

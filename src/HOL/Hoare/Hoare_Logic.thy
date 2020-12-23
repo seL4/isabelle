@@ -4,17 +4,19 @@
     Author:     Walter Guttmann (extension to total-correctness proofs)
 *)
 
-section \<open>Sugared semantic embedding of Hoare logic\<close>
+section \<open>Hoare logic\<close>
+
+theory Hoare_Logic
+  imports Hoare_Syntax Hoare_Tac
+begin
+
+subsection \<open>Sugared semantic embedding of Hoare logic\<close>
 
 text \<open>
   Strictly speaking a shallow embedding (as implemented by Norbert Galm
   following Mike Gordon) would suffice. Maybe the datatype com comes in useful
   later.
 \<close>
-
-theory Hoare_Logic
-imports Hoare_Syntax Hoare_Tac
-begin
 
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
@@ -167,7 +169,7 @@ proof -
 qed
 
 
-subsection \<open>Concrete syntax\<close>
+subsubsection \<open>Concrete syntax\<close>
 
 setup \<open>
   Hoare_Syntax.setup
@@ -181,7 +183,7 @@ setup \<open>
 \<close>
 
 
-subsection \<open>Proof methods: VCG\<close>
+subsubsection \<open>Proof methods: VCG\<close>
 
 declare BasicRule [Hoare_Tac.BasicRule]
   and SkipRule [Hoare_Tac.SkipRule]

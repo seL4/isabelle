@@ -9,10 +9,13 @@ If we suppress the H parameter for "List", we have to hardwired this
 into parser and pretty printer, which is not very modular.
 Alternative: some syntax like <P> which stands for P H. No more
 compact, but avoids the funny H.
-
 *)
 
-theory Separation imports Hoare_Logic_Abort SepLogHeap begin
+section \<open>Separation logic\<close>
+
+theory Separation
+  imports Hoare_Logic_Abort SepLogHeap
+begin
 
 text\<open>The semantic definition of a few connectives:\<close>
 
