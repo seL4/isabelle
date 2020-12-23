@@ -103,8 +103,6 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
-* Session "Hoare" now provides a total correctness logic as well.
-
 * An updated version of the veriT solver is now included as Isabelle
 component. It can be used in the "smt" proof method via "smt (verit)" or
 via "declare [[smt_solver = verit]]" in the context; see also session
@@ -212,6 +210,11 @@ bundle state_combinator_syntax.  Minor INCOMPATIBILITY.
 
 * Syntax for reflected term syntax is organized in bundle term_syntax,
 discontinuing previous locale term_syntax.  Minor INCOMPATIBILITY.
+
+* Session "HOL-Hoare": concrete syntax only for Hoare triples, not
+abstract language constructors.
+
+* Session "HOL-Hoare": now provides a total correctness logic as well.
 
 
 *** FOL ***

@@ -7,13 +7,40 @@ Syntax translations for Hoare logic.
 
 signature HOARE_SYNTAX =
 sig
-  val hoare_vars_tr: term list -> term
-  val hoare_tc_vars_tr: term list -> term
-  val spec_tr': string -> term list -> term
+  val hoare_vars_tr: Proof.context -> term list -> term
+  val hoare_tc_vars_tr: Proof.context -> term list -> term
+  val spec_tr': string -> Proof.context -> term list -> term
+  val setup:
+    {Basic: string, Skip: string, Seq: string, Cond: string, While: string,
+      Valid: string, ValidTC: string} -> theory -> theory
 end;
 
 structure Hoare_Syntax: HOARE_SYNTAX =
 struct
+
+(** theory data **)
+
+structure Data = Theory_Data
+(
+  type T =
+    {Basic: string, Skip: string, Seq: string, Cond: string, While: string,
+      Valid: string, ValidTC: string} option;
+  val empty: T = NONE;
+  val extend = I;
+  fun merge (data1, data2) =
+    if is_some data1 andalso is_some data2 andalso data1 <> data2 then
+      error "Cannot merge syntax from different Hoare Logics"
+    else merge_options (data1, data2);
+);
+
+fun const_syntax ctxt which =
+  (case Data.get (Proof_Context.theory_of ctxt) of
+    SOME consts => which consts
+  | NONE => error "Undefined Hoare syntax consts");
+
+val syntax_const = Syntax.const oo const_syntax;
+
+
 
 (** parse translation **)
 
@@ -54,35 +81,33 @@ fun var_tr v xs = mk_abstuple xs v;
 
 (* com_tr *)
 
-fun com_tr (Const (\<^syntax_const>\<open>_assign\<close>, _) $ x $ e) xs =
-      Syntax.const \<^const_syntax>\<open>Basic\<close> $ mk_fexp x e xs
-  | com_tr (Const (\<^const_syntax>\<open>Basic\<close>,_) $ f) _ = Syntax.const \<^const_syntax>\<open>Basic\<close> $ f
-  | com_tr (Const (\<^const_syntax>\<open>Seq\<close>,_) $ c1 $ c2) xs =
-      Syntax.const \<^const_syntax>\<open>Seq\<close> $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const (\<^const_syntax>\<open>Cond\<close>,_) $ b $ c1 $ c2) xs =
-      Syntax.const \<^const_syntax>\<open>Cond\<close> $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const (\<^const_syntax>\<open>While\<close>,_) $ b $ I $ V $ c) xs =
-      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr b xs $ assn_tr I xs $ var_tr V xs $ com_tr c xs
-  | com_tr t _ = t;
+fun com_tr ctxt =
+  let
+    fun tr (Const (\<^syntax_const>\<open>_assign\<close>, _) $ x $ e) xs =
+          syntax_const ctxt #Basic $ mk_fexp x e xs
+      | tr (Const (\<^syntax_const>\<open>_Seq\<close>,_) $ c1 $ c2) xs =
+          syntax_const ctxt #Seq $ tr c1 xs $ tr c2 xs
+      | tr (Const (\<^syntax_const>\<open>_Cond\<close>,_) $ b $ c1 $ c2) xs =
+          syntax_const ctxt #Cond $ bexp_tr b xs $ tr c1 xs $ tr c2 xs
+      | tr (Const (\<^syntax_const>\<open>_While\<close>,_) $ b $ I $ V $ c) xs =
+          syntax_const ctxt #While $ bexp_tr b xs $ assn_tr I xs $ var_tr V xs $ tr c xs
+      | tr t _ = t;
+  in tr end;
 
 fun vars_tr (Const (\<^syntax_const>\<open>_idts\<close>, _) $ idt $ vars) = idt :: vars_tr vars
   | vars_tr t = [t];
 
 in
 
-fun hoare_vars_tr [vars, pre, prg, post] =
+fun hoare_vars_tr ctxt [vars, pre, prg, post] =
       let val xs = vars_tr vars
-      in Syntax.const \<^const_syntax>\<open>Valid\<close> $
-         assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
-      end
-  | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
+      in syntax_const ctxt #Valid $ assn_tr pre xs $ com_tr ctxt prg xs $ assn_tr post xs end
+  | hoare_vars_tr _ ts = raise TERM ("hoare_vars_tr", ts);
 
-fun hoare_tc_vars_tr [vars, pre, prg, post] =
+fun hoare_tc_vars_tr ctxt [vars, pre, prg, post] =
       let val xs = vars_tr vars
-      in Syntax.const \<^const_syntax>\<open>ValidTC\<close> $
-         assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
-      end
-  | hoare_tc_vars_tr ts = raise TERM ("hoare_tc_vars_tr", ts);
+      in syntax_const ctxt #ValidTC $ assn_tr pre xs $ com_tr ctxt prg xs $ assn_tr post xs end
+  | hoare_tc_vars_tr _ ts = raise TERM ("hoare_tc_vars_tr", ts);
 
 end;
 
@@ -139,32 +164,55 @@ fun var_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abstu
 
 (* com_tr' *)
 
-fun mk_assign f =
+fun mk_assign ctxt f =
   let
     val (vs, ts) = mk_vts f;
-    val (ch, which) = find_ch (vs ~~ ts) (length vs - 1) (rev vs);
+    val (ch, (a, b)) = find_ch (vs ~~ ts) (length vs - 1) (rev vs);
   in
     if ch
-    then Syntax.const \<^syntax_const>\<open>_assign\<close> $ fst which $ snd which
-    else Syntax.const \<^const_syntax>\<open>annskip\<close>
+    then Syntax.const \<^syntax_const>\<open>_assign\<close> $ a $ b
+    else syntax_const ctxt #Skip
   end;
 
-fun com_tr' (Const (\<^const_syntax>\<open>Basic\<close>, _) $ f) =
-      if is_f f then mk_assign f
-      else Syntax.const \<^const_syntax>\<open>Basic\<close> $ f
-  | com_tr' (Const (\<^const_syntax>\<open>Seq\<close>,_) $ c1 $ c2) =
-      Syntax.const \<^const_syntax>\<open>Seq\<close> $ com_tr' c1 $ com_tr' c2
-  | com_tr' (Const (\<^const_syntax>\<open>Cond\<close>, _) $ b $ c1 $ c2) =
-      Syntax.const \<^const_syntax>\<open>Cond\<close> $ bexp_tr' b $ com_tr' c1 $ com_tr' c2
-  | com_tr' (Const (\<^const_syntax>\<open>While\<close>, _) $ b $ I $ V $ c) =
-      Syntax.const \<^const_syntax>\<open>While\<close> $ bexp_tr' b $ assn_tr' I $ var_tr' V $ com_tr' c
-  | com_tr' t = t;
+fun com_tr' ctxt t =
+  let
+    val (head, args) = apfst (try (#1 o Term.dest_Const)) (Term.strip_comb t);
+    fun arg k = nth args (k - 1);
+    val n = length args;
+  in
+    (case head of
+      NONE => t
+    | SOME c =>
+        if c = const_syntax ctxt #Basic andalso n = 1 andalso is_f (arg 1) then
+          mk_assign ctxt (arg 1)
+        else if c = const_syntax ctxt #Seq andalso n = 2 then
+          Syntax.const \<^syntax_const>\<open>_Seq\<close> $ com_tr' ctxt (arg 1) $ com_tr' ctxt (arg 2)
+        else if c = const_syntax ctxt #Cond andalso n = 3 then
+          Syntax.const \<^syntax_const>\<open>_Cond\<close> $
+            bexp_tr' (arg 1) $ com_tr' ctxt (arg 2) $ com_tr' ctxt (arg 3)
+        else if c = const_syntax ctxt #While andalso n = 4 then
+          Syntax.const \<^syntax_const>\<open>_While\<close> $
+            bexp_tr' (arg 1) $ assn_tr' (arg 2) $ var_tr' (arg 3) $ com_tr' ctxt (arg 4)
+        else t)
+  end;
 
 in
 
-fun spec_tr' syn [p, c, q] = Syntax.const syn $ assn_tr' p $ com_tr' c $ assn_tr' q;
+fun spec_tr' syn ctxt [p, c, q] =
+  Syntax.const syn $ assn_tr' p $ com_tr' ctxt c $ assn_tr' q;
 
 end;
 
-end;
 
+(** setup **)
+
+fun setup consts =
+  Data.put (SOME consts) #>
+  Sign.parse_translation
+   [(\<^syntax_const>\<open>_hoare_vars\<close>, hoare_vars_tr),
+    (\<^syntax_const>\<open>_hoare_vars_tc\<close>, hoare_tc_vars_tr)] #>
+  Sign.print_translation
+   [(#Valid consts, spec_tr' \<^syntax_const>\<open>_hoare\<close>),
+    (#ValidTC consts, spec_tr' \<^syntax_const>\<open>_hoare_tc\<close>)];
+
+end;
