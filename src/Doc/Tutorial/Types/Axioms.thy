@@ -1,4 +1,4 @@
-(*<*)theory Axioms imports Overloading Setup begin(*>*)
+(*<*)theory Axioms imports Overloading "../Setup" begin(*>*)
 
 subsection \<open>Axioms\<close>
 

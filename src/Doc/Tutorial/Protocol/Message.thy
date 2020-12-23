@@ -7,8 +7,7 @@ Inductive relations "parts", "analz" and "synth"
 
 section\<open>Theory of Agents and Messages for Security Protocols\<close>
 
-theory Message imports Main begin
-ML_file \<open>../../antiquote_setup.ML\<close>
+theory Message imports "../Setup" begin
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A \<union> (B \<union> A) = B \<union> A"
