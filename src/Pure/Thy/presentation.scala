@@ -374,6 +374,7 @@ object Presentation
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
+    progress: Progress = new Progress,
     html_context: HTML_Context,
     presentation: Context)
   {
@@ -431,6 +432,8 @@ object Presentation
 
       for (thy_name <- base.session_theories)
       yield {
+        progress.expose_interrupt()
+
         val syntax = base.theory_syntax(thy_name)
         val keywords = syntax.keywords
         val spans = syntax.parse_spans(Symbol.decode(File.read(thy_name.path)))
@@ -467,6 +470,8 @@ object Presentation
             (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements).iterator
             if xml.nonEmpty
           } yield {
+            progress.expose_interrupt()
+
             val file_name = (files_path + src_path.squash.html).implode
 
             seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
