@@ -21,11 +21,10 @@ datatype 'a com =
 | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
 | While "'a bexp" "'a assn" "'a var" "'a com"  ("(1WHILE _/ INV {_} / VAR {_} //DO _ /OD)"  [0,0,0,0] 61)
 
-syntax (xsymbols)
+syntax
   "_whilePC" :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
-
 translations
-  "WHILE b INV {x} DO c OD" => "WHILE b INV {x} VAR {0} DO c OD"
+  "WHILE b INV {x} DO c OD" \<rightharpoonup> "WHILE b INV {x} VAR {0} DO c OD"
 
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
@@ -80,7 +79,7 @@ syntax
 syntax
   "_hoare_abort_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
                  ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
-syntax ("" output)
+syntax (output)
   "_hoare_abort"      :: "['a assn,'a com,'a assn] => bool"
                  ("{_} // _ // {_}" [0,55,0] 50)
 
@@ -91,7 +90,7 @@ print_translation \<open>[(\<^const_syntax>\<open>Valid\<close>, K (Hoare_Syntax
 syntax
  "_hoare_abort_tc_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
                           ("VARS _// [_] // _ // [_]" [0,0,55,0] 50)
-syntax ("" output)
+syntax (output)
  "_hoare_abort_tc"      :: "['a assn,'a com,'a assn] => bool"
                           ("[_] // _ // [_]" [0,55,0] 50)
 
