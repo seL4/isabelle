@@ -13,6 +13,9 @@ New in Isabelle2021 (February 2021)
 included distinct_subgoals_tac no longer affects unrelated subgoals.
 Rare INCOMPATIBILITY.
 
+* HTML presentation includes auxiliary files (e.g. ML) for each theory,
+with rich markup.
+
 
 *** Isabelle/jEdit Prover IDE ***
 
