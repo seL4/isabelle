@@ -311,7 +311,15 @@ session "HOL-Hoare" in Hoare = HOL +
     Verification of imperative programs (verification conditions are generated
     automatically from pre/post conditions and loop invariants).
   "
-  theories Hoare
+  theories
+    Examples
+    ExamplesAbort
+    ExamplesTC
+    Pointers0
+    Pointer_Examples
+    Pointer_ExamplesAbort
+    SchorrWaite
+    Separation
   document_files "root.bib" "root.tex"
 
 session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
