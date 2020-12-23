@@ -3,13 +3,15 @@
     Copyright   1998 TUM
 *)
 
-chapter \<open>Various examples\<close>
+section \<open>Various examples\<close>
 
-theory Examples imports Hoare_Logic Arith2 begin
+theory Examples
+  imports Hoare_Logic Arith2
+begin
 
-section \<open>ARITHMETIC\<close>
+subsection \<open>Arithmetic\<close>
 
-subsection \<open>multiplication by successive addition\<close>
+subsubsection \<open>Multiplication by successive addition\<close>
 
 lemma multiply_by_add: "VARS m s a b
   {a=A \<and> b=B}
@@ -54,7 +56,7 @@ apply vcg_simp
 done
 
 
-subsection \<open>Euclid's algorithm for GCD\<close>
+subsubsection \<open>Euclid's algorithm for GCD\<close>
 
 lemma Euclid_GCD: "VARS a b
  {0<A & 0<B}
@@ -87,7 +89,7 @@ apply(erule gcd_nnn)
 done
 
 
-subsection \<open>Dijkstra's extension of Euclid's algorithm for simultaneous GCD and SCM\<close>
+subsubsection \<open>Dijkstra's extension of Euclid's algorithm for simultaneous GCD and SCM\<close>
 
 text \<open>
   From E.W. Disjkstra. Selected Writings on Computing, p 98 (EWD474),
@@ -112,7 +114,7 @@ apply(simp add: distribs gcd_nnn)
 done
 
 
-subsection \<open>Power by iterated squaring and multiplication\<close>
+subsubsection \<open>Power by iterated squaring and multiplication\<close>
 
 lemma power_by_mult: "VARS a b c
  {a=A & b=B}
@@ -132,7 +134,7 @@ apply simp
 done
 
 
-subsection \<open>Factorial\<close>
+subsubsection \<open>Factorial\<close>
 
 lemma factorial: "VARS a b
  {a=A}
@@ -185,7 +187,7 @@ apply arith
 done
 
 
-subsection \<open>Square root\<close>
+subsubsection \<open>Square root\<close>
 
 \<comment> \<open>the easy way:\<close>
 
@@ -221,7 +223,7 @@ apply vcg_simp
 done
 
 
-section \<open>LISTS\<close>
+subsection \<open>Lists\<close>
 
 lemma imperative_reverse: "VARS y x
  {x=X}
@@ -276,9 +278,9 @@ apply auto
 done
 
 
-section \<open>ARRAYS\<close>
+subsection \<open>Arrays\<close>
 
-subsection \<open>Search for a key\<close>
+subsubsection \<open>Search for a key\<close>
 
 lemma zero_search: "VARS A i
  {True}

@@ -7,7 +7,7 @@ A formulation of Hoare logic suitable for Isar.
 section \<open>Hoare Logic\<close>
 
 theory Hoare
-  imports Main
+  imports "HOL-Hoare.Hoare_Tac"
 begin
 
 subsection \<open>Abstract syntax and semantics\<close>
@@ -397,22 +397,16 @@ lemma WhileRule:
   apply blast
   done
 
-lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
-  by blast
-
-lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
-lemmas SeqRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
-lemmas SkipRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
-lemmas BasicRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
-lemmas CondRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
-lemmas WhileRuleTC = SkipRule  \<comment> \<open>dummy version\<close>
-
-ML_file \<open>~~/src/HOL/Hoare/hoare_tac.ML\<close>
+declare BasicRule [Hoare_Tac.BasicRule]
+  and SkipRule [Hoare_Tac.SkipRule]
+  and SeqRule [Hoare_Tac.SeqRule]
+  and CondRule [Hoare_Tac.CondRule]
+  and WhileRule [Hoare_Tac.WhileRule]
 
 method_setup hoare =
   \<open>Scan.succeed (fn ctxt =>
     (SIMPLE_METHOD'
-      (Hoare.hoare_tac ctxt
+      (Hoare_Tac.hoare_tac ctxt
         (simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm "Record.K_record_comp"}] )))))\<close>
   "verification condition generator for Hoare logic"
 

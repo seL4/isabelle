@@ -1,12 +1,12 @@
 (*  Title:      HOL/Hoare/Arith2.thy
     Author:     Norbert Galm
     Copyright   1995 TUM
-
-More arithmetic.  Much of this duplicates ex/Primes.
 *)
 
+section \<open>More arithmetic\<close>
+
 theory Arith2
-imports Main
+  imports Main
 begin
 
 definition cd :: "[nat, nat, nat] \<Rightarrow> bool"
@@ -21,7 +21,7 @@ where
 | "fac (Suc n) = Suc n * fac n"
 
 
-subsubsection \<open>cd\<close>
+subsection \<open>cd\<close>
 
 lemma cd_nnn: "0<n \<Longrightarrow> cd n n n"
   apply (simp add: cd_def)
@@ -48,7 +48,7 @@ lemma cd_diff_r: "m\<le>n \<Longrightarrow> cd x m n = cd x m (n-m)"
   done
 
 
-subsubsection \<open>gcd\<close>
+subsection \<open>gcd\<close>
 
 lemma gcd_nnn: "0<n \<Longrightarrow> n = gcd n n"
   apply (unfold gcd_def)
@@ -79,7 +79,7 @@ lemma gcd_diff_r: "m\<le>n \<Longrightarrow> gcd m n = gcd m (n-m)"
   done
 
 
-subsubsection \<open>pow\<close>
+subsection \<open>pow\<close>
 
 lemma sq_pow_div2 [simp]:
     "m mod 2 = 0 \<Longrightarrow> ((n::nat)*n)^(m div 2) = n^m"

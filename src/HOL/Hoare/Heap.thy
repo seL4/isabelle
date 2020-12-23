@@ -1,12 +1,15 @@
 (*  Title:      HOL/Hoare/Heap.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
-
-Pointers, heaps and heap abstractions.
-See the paper by Mehta and Nipkow.
 *)
 
-theory Heap imports Main begin
+section \<open>Pointers, heaps and heap abstractions\<close>
+
+text \<open>See the paper by Mehta and Nipkow.\<close>
+
+theory Heap
+  imports Main
+begin
 
 subsection "References"
 
@@ -22,9 +25,9 @@ primrec addr :: "'a ref \<Rightarrow> 'a" where
   "addr (Ref a) = a"
 
 
-section "The heap"
+subsection "The heap"
 
-subsection "Paths in the heap"
+subsubsection "Paths in the heap"
 
 primrec Path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool" where
   "Path h x [] y \<longleftrightarrow> x = y"
@@ -55,7 +58,7 @@ lemma Path_snoc:
 by simp
 
 
-subsection "Non-repeating paths"
+subsubsection "Non-repeating paths"
 
 definition distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
   where "distPath h x as y \<longleftrightarrow> Path h x as y \<and> distinct as"
@@ -78,9 +81,9 @@ apply (simp only:distPath_def)
 by (case_tac Ps, auto)
 
 
-subsection "Lists on the heap"
+subsubsection "Lists on the heap"
 
-subsubsection "Relational abstraction"
+paragraph "Relational abstraction"
 
 definition List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool"
   where "List h x as = Path h x as Null"
@@ -131,7 +134,7 @@ apply (auto simp add:fun_upd_apply)
 done
 
 
-subsection "Functional abstraction"
+subsubsection "Functional abstraction"
 
 definition islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool"
   where "islist h p \<longleftrightarrow> (\<exists>as. List h p as)"

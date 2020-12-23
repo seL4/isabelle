@@ -2,12 +2,12 @@
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   2003 TUM
     Author:     Walter Guttmann (extension to total-correctness proofs)
-
-Like Hoare_Logic.thy, but with an Abort statement for modelling run time errors.
 *)
 
+section \<open>Hoare Logic with an Abort statement for modelling run time errors\<close>
+
 theory Hoare_Logic_Abort
-imports Main
+  imports Hoare_Syntax Hoare_Tac
 begin
 
 type_synonym 'a bexp = "'a set"
@@ -17,15 +17,9 @@ type_synonym 'a var = "'a \<Rightarrow> nat"
 datatype 'a com =
   Basic "'a \<Rightarrow> 'a"
 | Abort
-| Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
-| Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
-| While "'a bexp" "'a assn" "'a var" "'a com"  ("(1WHILE _/ INV {_} / VAR {_} //DO _ /OD)"  [0,0,0,0] 61)
-
-syntax (xsymbols)
-  "_whilePC" :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
-
-translations
-  "WHILE b INV {x} DO c OD" => "WHILE b INV {x} VAR {0} DO c OD"
+| Seq "'a com" "'a com"
+| Cond "'a bexp" "'a com" "'a com"
+| While "'a bexp" "'a assn" "'a var" "'a com"
 
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
@@ -36,18 +30,18 @@ where
   "Sem (Basic f) None None"
 | "Sem (Basic f) (Some s) (Some (f s))"
 | "Sem Abort s None"
-| "Sem c1 s s'' \<Longrightarrow> Sem c2 s'' s' \<Longrightarrow> Sem (c1;c2) s s'"
-| "Sem (IF b THEN c1 ELSE c2 FI) None None"
-| "s \<in> b \<Longrightarrow> Sem c1 (Some s) s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) (Some s) s'"
-| "s \<notin> b \<Longrightarrow> Sem c2 (Some s) s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) (Some s) s'"
+| "Sem c1 s s'' \<Longrightarrow> Sem c2 s'' s' \<Longrightarrow> Sem (Seq c1 c2) s s'"
+| "Sem (Cond b c1 c2) None None"
+| "s \<in> b \<Longrightarrow> Sem c1 (Some s) s' \<Longrightarrow> Sem (Cond b c1 c2) (Some s) s'"
+| "s \<notin> b \<Longrightarrow> Sem c2 (Some s) s' \<Longrightarrow> Sem (Cond b c1 c2) (Some s) s'"
 | "Sem (While b x y c) None None"
 | "s \<notin> b \<Longrightarrow> Sem (While b x y c) (Some s) (Some s)"
 | "s \<in> b \<Longrightarrow> Sem c (Some s) s'' \<Longrightarrow> Sem (While b x y c) s'' s' \<Longrightarrow>
    Sem (While b x y c) (Some s) s'"
 
 inductive_cases [elim!]:
-  "Sem (Basic f) s s'" "Sem (c1;c2) s s'"
-  "Sem (IF b THEN c1 ELSE c2 FI) s s'"
+  "Sem (Basic f) s s'" "Sem (Seq c1 c2) s s'"
+  "Sem (Cond b c1 c2) s s'"
 
 lemma Sem_deterministic:
   assumes "Sem c s s1"
@@ -74,30 +68,6 @@ lemma tc_extract_function:
   "ValidTC p c q \<Longrightarrow> \<exists>f . \<forall>s . s \<in> p \<longrightarrow> f s \<in> q"
   by (meson ValidTC_def)
 
-syntax
-  "_assign" :: "idt => 'b => 'a com"  ("(2_ :=/ _)" [70, 65] 61)
-
-syntax
-  "_hoare_abort_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
-                 ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
-syntax ("" output)
-  "_hoare_abort"      :: "['a assn,'a com,'a assn] => bool"
-                 ("{_} // _ // {_}" [0,55,0] 50)
-
-ML_file \<open>hoare_syntax.ML\<close>
-parse_translation \<open>[(\<^syntax_const>\<open>_hoare_abort_vars\<close>, K Hoare_Syntax.hoare_vars_tr)]\<close>
-print_translation \<open>[(\<^const_syntax>\<open>Valid\<close>, K (Hoare_Syntax.spec_tr' \<^syntax_const>\<open>_hoare_abort\<close>))]\<close>
-
-syntax
- "_hoare_abort_tc_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
-                          ("VARS _// [_] // _ // [_]" [0,0,55,0] 50)
-syntax ("" output)
- "_hoare_abort_tc"      :: "['a assn,'a com,'a assn] => bool"
-                          ("[_] // _ // [_]" [0,55,0] 50)
-
-parse_translation \<open>[(\<^syntax_const>\<open>_hoare_abort_tc_vars\<close>, K Hoare_Syntax.hoare_tc_vars_tr)]\<close>
-print_translation \<open>[(\<^const_syntax>\<open>ValidTC\<close>, K (Hoare_Syntax.spec_tr' \<^syntax_const>\<open>_hoare_abort_tc\<close>))]\<close>
-
 text \<open>The proof rules for partial correctness\<close>
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
@@ -106,7 +76,7 @@ by (auto simp:Valid_def)
 lemma BasicRule: "p \<subseteq> {s. f s \<in> q} \<Longrightarrow> Valid p (Basic f) q"
 by (auto simp:Valid_def)
 
-lemma SeqRule: "Valid P c1 Q \<Longrightarrow> Valid Q c2 R \<Longrightarrow> Valid P (c1;c2) R"
+lemma SeqRule: "Valid P c1 Q \<Longrightarrow> Valid Q c2 R \<Longrightarrow> Valid P (Seq c1 c2) R"
 by (auto simp:Valid_def)
 
 lemma CondRule:
@@ -115,11 +85,11 @@ lemma CondRule:
 by (fastforce simp:Valid_def image_def)
 
 lemma While_aux:
-  assumes "Sem (WHILE b INV {i} VAR {v} DO c OD) s s'"
+  assumes "Sem (While b i v c) s s'"
   shows "\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` (I \<inter> b) \<longrightarrow> s' \<in> Some ` I \<Longrightarrow>
     s \<in> Some ` I \<Longrightarrow> s' \<in> Some ` (I \<inter> -b)"
   using assms
-  by (induct "WHILE b INV {i} VAR {v} DO c OD" s s') auto
+  by (induct "While b i v c" s s') auto
 
 lemma WhileRule:
  "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i v c) q"
@@ -148,7 +118,7 @@ lemma BasicRuleTC:
 lemma SeqRuleTC:
   assumes "ValidTC p c1 q"
       and "ValidTC q c2 r"
-    shows "ValidTC p (c1;c2) r"
+    shows "ValidTC p (Seq c1 c2) r"
   by (meson assms Sem.intros(4) ValidTC_def)
 
 lemma CondRuleTC:
@@ -202,43 +172,65 @@ proof -
 qed
 
 
-subsection \<open>Derivation of the proof rules and, most importantly, the VCG tactic\<close>
+subsection \<open>Concrete syntax\<close>
 
-lemma Compl_Collect: "-(Collect b) = {x. \<not>(b x)}"
-  by blast
-
-ML_file \<open>hoare_tac.ML\<close>
-
-method_setup vcg = \<open>
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac)))\<close>
-  "verification condition generator"
-
-method_setup vcg_simp = \<open>
-  Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
-  "verification condition generator plus simplification"
-
-method_setup vcg_tc = \<open>
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tc_tac ctxt (K all_tac)))\<close>
-  "verification condition generator"
-
-method_setup vcg_tc_simp = \<open>
-  Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tc_tac ctxt (asm_full_simp_tac ctxt)))\<close>
-  "verification condition generator plus simplification"
+setup \<open>
+  Hoare_Syntax.setup
+   {Basic = \<^const_syntax>\<open>Basic\<close>,
+    Skip = \<^const_syntax>\<open>annskip\<close>,
+    Seq = \<^const_syntax>\<open>Seq\<close>,
+    Cond = \<^const_syntax>\<open>Cond\<close>,
+    While = \<^const_syntax>\<open>While\<close>,
+    Valid = \<^const_syntax>\<open>Valid\<close>,
+    ValidTC = \<^const_syntax>\<open>ValidTC\<close>}
+\<close>
 
 \<comment> \<open>Special syntax for guarded statements and guarded array updates:\<close>
 syntax
   "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
   "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
 translations
-  "P \<rightarrow> c" == "IF P THEN c ELSE CONST Abort FI"
-  "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
+  "P \<rightarrow> c" \<rightleftharpoons> "IF P THEN c ELSE CONST Abort FI"
+  "a[i] := v" \<rightharpoonup> "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
   \<comment> \<open>reverse translation not possible because of duplicate \<open>a\<close>\<close>
 
 text \<open>
   Note: there is no special syntax for guarded array access. Thus
   you must write \<open>j < length a \<rightarrow> a[i] := a!j\<close>.
 \<close>
+
+
+subsection \<open>Proof methods: VCG\<close>
+
+declare BasicRule [Hoare_Tac.BasicRule]
+  and SkipRule [Hoare_Tac.SkipRule]
+  and AbortRule [Hoare_Tac.AbortRule]
+  and SeqRule [Hoare_Tac.SeqRule]
+  and CondRule [Hoare_Tac.CondRule]
+  and WhileRule [Hoare_Tac.WhileRule]
+
+declare BasicRuleTC [Hoare_Tac.BasicRuleTC]
+  and SkipRuleTC [Hoare_Tac.SkipRuleTC]
+  and SeqRuleTC [Hoare_Tac.SeqRuleTC]
+  and CondRuleTC [Hoare_Tac.CondRuleTC]
+  and WhileRuleTC [Hoare_Tac.WhileRuleTC]
+
+method_setup vcg = \<open>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare_Tac.hoare_tac ctxt (K all_tac)))\<close>
+  "verification condition generator"
+
+method_setup vcg_simp = \<open>
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD' (Hoare_Tac.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
+  "verification condition generator plus simplification"
+
+method_setup vcg_tc = \<open>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare_Tac.hoare_tc_tac ctxt (K all_tac)))\<close>
+  "verification condition generator"
+
+method_setup vcg_tc_simp = \<open>
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD' (Hoare_Tac.hoare_tc_tac ctxt (asm_full_simp_tac ctxt)))\<close>
+  "verification condition generator plus simplification"
 
 end

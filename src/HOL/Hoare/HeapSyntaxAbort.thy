@@ -3,7 +3,11 @@
     Copyright   2002 TUM
 *)
 
-theory HeapSyntaxAbort imports Hoare_Logic_Abort Heap begin
+section \<open>Heap syntax (abort)\<close>
+
+theory HeapSyntaxAbort
+  imports Hoare_Logic_Abort Heap
+begin
 
 subsection "Field access and update"
 

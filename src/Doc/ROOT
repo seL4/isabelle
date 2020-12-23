@@ -405,6 +405,8 @@ session Tutorial (doc) in "Tutorial" = HOL +
   options [document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
   directories "Advanced" "CTL" "CodeGen" "Datatype" "Documents" "Fun" "Ifexpr"
     "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
+  theories [document = false]
+    Base
   theories [threads = 1]
     "ToyList/ToyList_Test"
   theories [thy_output_indent = 5]
@@ -443,8 +445,6 @@ session Tutorial (doc) in "Tutorial" = HOL +
   theories
     "Protocol/NS_Public"
     "Documents/Documents"
-  theories [document = false]
-    "Types/Setup"
   theories [thy_output_margin = 64, thy_output_indent = 0]
     "Types/Numbers"
     "Types/Pairs"

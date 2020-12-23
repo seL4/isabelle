@@ -1,17 +1,20 @@
 (*  Title:      HOL/Hoare/Pointer_Examples.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
-
-Examples of verifications of pointer programs.
 *)
 
-theory Pointer_Examples imports HeapSyntax begin
+section \<open>Examples of verifications of pointer programs\<close>
+
+theory Pointer_Examples
+  imports HeapSyntax
+begin
 
 axiomatization where unproven: "PROP A"
 
-section "Verifications"
 
-subsection "List reversal"
+subsection "Verifications"
+
+subsubsection "List reversal"
 
 text "A short but unreadable proof:"
 
@@ -105,7 +108,7 @@ apply vcg_simp
 done
 
 
-subsection "Searching in a list"
+subsubsection "Searching in a list"
 
 text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
@@ -174,7 +177,8 @@ apply vcg_simp
 apply clarsimp
 done
 
-subsection "Splicing two lists"
+
+subsubsection "Splicing two lists"
 
 lemma "VARS tl p q pp qq
   {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {} \<and> size Qs \<le> size Ps}
@@ -204,7 +208,7 @@ apply (fastforce simp:List_app)
 done
 
 
-subsection "Merging two lists"
+subsubsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
@@ -392,7 +396,7 @@ done
 text"The proof is automatic, but requires a numbet of special lemmas."
 
 
-subsection "Cyclic list reversal"
+subsubsection "Cyclic list reversal"
 
 
 text\<open>We consider two algorithms for the reversal of circular lists.
@@ -468,7 +472,7 @@ apply (auto simp:fun_upd_apply)
 done
 
 
-subsection "Storage allocation"
+subsubsection "Storage allocation"
 
 definition new :: "'a set \<Rightarrow> 'a"
   where "new A = (SOME a. a \<notin> A)"

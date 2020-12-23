@@ -5,9 +5,7 @@
 section \<open>Examples using Hoare Logic for Total Correctness\<close>
 
 theory ExamplesTC
-
-imports Hoare_Logic
-
+  imports Hoare_Logic
 begin
 
 text \<open>

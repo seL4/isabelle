@@ -311,7 +311,15 @@ session "HOL-Hoare" in Hoare = HOL +
     Verification of imperative programs (verification conditions are generated
     automatically from pre/post conditions and loop invariants).
   "
-  theories Hoare
+  theories
+    Examples
+    ExamplesAbort
+    ExamplesTC
+    Pointers0
+    Pointer_Examples
+    Pointer_ExamplesAbort
+    SchorrWaite
+    Separation
   document_files "root.bib" "root.tex"
 
 session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
@@ -369,6 +377,7 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
   "
+  options [kodkod_scala]
   sessions "HOL-Library"
   theories [quick_and_dirty] Nitpick_Examples
 
@@ -709,6 +718,8 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
     Miscellaneous Isabelle/Isar examples.
   "
   options [quick_and_dirty]
+  sessions
+    "HOL-Hoare"
   theories
     Structured_Statements
     Basic_Logic

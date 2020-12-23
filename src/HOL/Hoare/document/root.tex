@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{report}
+\documentclass[11pt,a4paper]{article}
 \usepackage{graphicx}
 \usepackage[english]{babel}
 \usepackage{isabelle,isabellesym}
@@ -10,7 +10,12 @@
 \begin{document}
 
 \title{Hoare Logic}
-\author{Various}
+\author{
+  Norbert Galm \\
+  Walter Guttmann \\
+  Farhad Mehta \\
+  Tobias Nipkow \\
+  Leonor Prensa Nieto}
 \maketitle
 
 \begin{abstract}
@@ -27,7 +32,11 @@ See \cite{MehtaN-CADE03,MehtaN-IC05} for an excellent exposition.
 \thispagestyle{empty}
 \tableofcontents
 
-\newpage
+\begin{center}
+  \includegraphics[scale=0.5]{session_graph}
+\end{center}
+
+\clearpage
 
 \input{session}
 

@@ -374,6 +374,7 @@ object Presentation
     session: String,
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
+    progress: Progress = new Progress,
     html_context: HTML_Context,
     presentation: Context)
   {
@@ -425,49 +426,21 @@ object Presentation
       HTML.link(prefix + html_name(name1), body)
     }
 
-    val files: List[XML.Body] =
+    val theories: List[XML.Body] =
     {
       var seen_files = List.empty[(Path, String, Document.Node.Name)]
-      (for {
-        thy_name <- base.session_theories.iterator
-        thy_command <-
-          Build_Job.read_theory(db_context, resources, session, thy_name.theory).iterator
-        snapshot = Document.State.init.snippet(thy_command)
-        (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements).iterator
-        if xml.nonEmpty
-      } yield {
-        val file_title = src_path.implode_short
-        val file_name = (files_path + src_path.squash.html).implode
 
-        seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
-          case None => seen_files ::= (src_path, file_name, thy_name)
-          case Some((_, _, thy_name1)) =>
-            error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
-              " in theory " + thy_name1 + " vs. " + thy_name)
-        }
-
-        val file_path = session_dir + Path.explode(file_name)
-        html_context.init_fonts(file_path.dir)
-
-        val title = "File " + Symbol.cartouche_decoded(file_title)
-        HTML.write_document(file_path.dir, file_path.file_name,
-          List(HTML.title(title)),
-          List(html_context.head(title), html_context.source(html_body(xml))))
-
-        List(HTML.link(file_name, HTML.text(file_title)))
-      }).toList
-    }
-
-    val theories =
-      for (name <- base.session_theories)
+      for (thy_name <- base.session_theories)
       yield {
-        val syntax = base.theory_syntax(name)
+        progress.expose_interrupt()
+
+        val syntax = base.theory_syntax(thy_name)
         val keywords = syntax.keywords
-        val spans = syntax.parse_spans(Symbol.decode(File.read(name.path)))
+        val spans = syntax.parse_spans(Symbol.decode(File.read(thy_name.path)))
 
         val thy_body =
         {
-          val imports_offset = base.known_theories(name.theory).header.imports_offset
+          val imports_offset = base.known_theories(thy_name.theory).header.imports_offset
           var token_offset = 1
           spans.flatMap(span =>
           {
@@ -489,20 +462,52 @@ object Presentation
           })
         }
 
-        val title = "Theory " + name.theory_base_name
-        HTML.write_document(session_dir, html_name(name),
-          List(HTML.title(title)),
-          List(html_context.head(title), html_context.source(thy_body)))
+        val files =
+          (for {
+            thy_command <-
+              Build_Job.read_theory(db_context, resources, session, thy_name.theory).iterator
+            snapshot = Document.State.init.snippet(thy_command)
+            (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements).iterator
+            if xml.nonEmpty
+          } yield {
+            progress.expose_interrupt()
 
-        List(HTML.link(html_name(name), HTML.text(name.theory_base_name)))
+            val file_name = (files_path + src_path.squash.html).implode
+
+            seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
+              case None => seen_files ::= (src_path, file_name, thy_name)
+              case Some((_, _, thy_name1)) =>
+                error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
+                  " in theory " + thy_name1 + " vs. " + thy_name)
+            }
+
+            val file_path = session_dir + Path.explode(file_name)
+            html_context.init_fonts(file_path.dir)
+
+            val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
+            HTML.write_document(file_path.dir, file_path.file_name,
+              List(HTML.title(file_title)),
+              List(html_context.head(file_title), html_context.source(html_body(xml))))
+
+            List(HTML.link(file_name, HTML.text(file_title)))
+          }).toList
+
+        val thy_title = "Theory " + thy_name.theory_base_name
+        HTML.write_document(session_dir, html_name(thy_name),
+          List(HTML.title(thy_title)),
+          List(html_context.head(thy_title), html_context.source(thy_body)))
+
+        List(HTML.link(html_name(thy_name),
+          HTML.text(thy_name.theory_base_name) :::
+            (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
       }
+    }
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
       List(HTML.title(title + " (" + Distribution.version + ")")),
       html_context.head(title, List(HTML.par(links))) ::
-        html_context.contents("Theories", theories) :::
-        html_context.contents("Files", files))
+        html_context.contents("Theories", theories))
   }
 
 

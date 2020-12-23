@@ -202,6 +202,7 @@ object Build
       options +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
+        "kodkod_scala=false" +
         ("pide_reports=" + options.bool("build_pide_reports"))
 
     val store = Sessions.store(build_options)
@@ -510,7 +511,7 @@ object Build
             progress.expose_interrupt()
             progress.echo("Presenting " + session_name + " ...")
             Presentation.session_html(
-              resources, session_name, deps, db_context, html_context, presentation)
+              resources, session_name, deps, db_context, progress, html_context, presentation)
           })
 
         val browser_chapters =

@@ -9,7 +9,11 @@ specifications (a bit). However, the proofs don't seem to get simpler
 - in fact in some case they appear to get (a bit) more complicated.
 *)
 
-theory Pointers0 imports Hoare_Logic begin
+section \<open>Alternative pointers\<close>
+
+theory Pointers0
+  imports Hoare_Logic
+begin
 
 subsection "References"
 
@@ -40,9 +44,9 @@ lemma "VARS v n
 by vcg_simp
 
 
-section "The heap"
+subsection "The heap"
 
-subsection "Paths in the heap"
+subsubsection "Paths in the heap"
 
 primrec Path :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
 where
@@ -68,9 +72,9 @@ by(induct as, simp+)
 lemma [simp]: "\<And>x. u \<notin> set as \<Longrightarrow> Path (f(u := v)) x as y = Path f x as y"
 by(induct as, simp, simp add:eq_sym_conv)
 
-subsection "Lists on the heap"
+subsubsection "Lists on the heap"
 
-subsubsection "Relational abstraction"
+paragraph "Relational abstraction"
 
 definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool"
   where "List h x as = Path h x as Null"
@@ -118,7 +122,7 @@ apply(induct as, simp)
 apply(fastforce dest:List_hd_not_in_tl)
 done
 
-subsection "Functional abstraction"
+subsubsection "Functional abstraction"
 
 definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool"
   where "islist h p \<longleftrightarrow> (\<exists>as. List h p as)"
@@ -173,9 +177,9 @@ apply(simp add:List_conv_islist_list)
 done
 
 
-section "Verifications"
+subsection "Verifications"
 
-subsection "List reversal"
+subsubsection "List reversal"
 
 text "A short but unreadable proof:"
 
@@ -256,7 +260,7 @@ apply vcg_simp
 done
 
 
-subsection "Searching in a list"
+subsubsection "Searching in a list"
 
 text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
@@ -312,7 +316,7 @@ apply(fastforce elim:converse_rtranclE)
 done
 
 
-subsection "Merging two lists"
+subsubsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
@@ -398,7 +402,7 @@ done
 (* TODO: merging with islist/list instead of List: an improvement?
    needs (is)path, which is not so easy to prove either. *)
 
-subsection "Storage allocation"
+subsubsection "Storage allocation"
 
 definition new :: "'a set \<Rightarrow> 'a::ref"
   where "new A = (SOME a. a \<notin> A & a \<noteq> Null)"
@@ -426,6 +430,5 @@ lemma "~finite(UNIV::('a::ref)set) \<Longrightarrow>
 apply vcg_simp
  apply (clarsimp simp: subset_insert_iff neq_Nil_conv fun_upd_apply new_notin)
 done
-
 
 end

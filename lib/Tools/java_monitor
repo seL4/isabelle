@@ -4,4 +4,4 @@
 #
 # DESCRIPTION: monitor another Java process
 
-isabelle java isabelle.Java_Monitor "$@"
+isabelle java "-Dapple.awt.application.name=Java Monitor" isabelle.Java_Monitor "$@"

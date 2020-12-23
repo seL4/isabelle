@@ -1,4 +1,4 @@
-(*<*)theory Overloading imports Main Setup begin
+(*<*)theory Overloading imports "../Setup" begin
 
 hide_class (open) plus (*>*)
 

@@ -45,6 +45,7 @@ declare -a SOURCES=(
   src/Pure/Concurrent/par_list.scala
   src/Pure/Concurrent/synchronized.scala
   src/Pure/GUI/color_value.scala
+  src/Pure/GUI/desktop_app.scala
   src/Pure/GUI/gui.scala
   src/Pure/GUI/gui_thread.scala
   src/Pure/GUI/popup.scala

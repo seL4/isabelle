@@ -1,6 +1,4 @@
-(*<*)theory Advanced imports Even begin
-ML_file \<open>../../antiquote_setup.ML\<close>
-(*>*)
+(*<*)theory Advanced imports Even begin(*>*)
 
 text \<open>
 The premises of introduction rules may contain universal quantifiers and
