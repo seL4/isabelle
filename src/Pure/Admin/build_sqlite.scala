@@ -67,6 +67,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
           "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE.zentus" -> ".",
           "org/sqlite/native/Linux/aarch64/libsqlitejdbc.so" -> "arm64-linux",
           "org/sqlite/native/Linux/x86_64/libsqlitejdbc.so" -> "x86_64-linux",
+          "org/sqlite/native/Mac/aarch64/libsqlitejdbc.jnilib" -> "arm64-darwin",
           "org/sqlite/native/Mac/x86_64/libsqlitejdbc.jnilib" -> "x86_64-darwin",
           "org/sqlite/native/Windows/x86_64/sqlitejdbc.dll" -> "x86_64-windows")
 
@@ -95,7 +96,8 @@ Usage: isabelle build_sqlite [OPTIONS] DOWNLOAD
     -D DIR       target directory (default ".")
 
   Build sqlite-jdbc component from the specified download URL (JAR), see also
-  https://github.com/xerial/sqlite-jdbc/releases
+  https://github.com/xerial/sqlite-jdbc and
+  https://oss.sonatype.org/content/repositories/releases/org/xerial/sqlite-jdbc
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)))
 

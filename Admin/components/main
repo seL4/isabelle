@@ -17,7 +17,7 @@ postgresql-42.2.18
 scala-2.12.12
 smbc-0.4.1
 spass-3.8ds-2
-sqlite-jdbc-3.32.3.2
+sqlite-jdbc-3.34.0
 ssh-java-20190323
 stack-2.5.1
 vampire-4.2.2
