@@ -206,11 +206,14 @@ end;
 
 (** setup **)
 
+val _ =
+  Theory.setup
+   (Sign.parse_translation
+    [(\<^syntax_const>\<open>_hoare_vars\<close>, hoare_vars_tr),
+     (\<^syntax_const>\<open>_hoare_vars_tc\<close>, hoare_tc_vars_tr)]);
+
 fun setup consts =
   Data.put (SOME consts) #>
-  Sign.parse_translation
-   [(\<^syntax_const>\<open>_hoare_vars\<close>, hoare_vars_tr),
-    (\<^syntax_const>\<open>_hoare_vars_tc\<close>, hoare_tc_vars_tr)] #>
   Sign.print_translation
    [(#Valid consts, spec_tr' \<^syntax_const>\<open>_hoare\<close>),
     (#ValidTC consts, spec_tr' \<^syntax_const>\<open>_hoare_tc\<close>)];
