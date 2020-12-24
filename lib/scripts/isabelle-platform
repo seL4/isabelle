@@ -6,6 +6,7 @@
 ISABELLE_PLATFORM_FAMILY=""
 ISABELLE_PLATFORM32=""
 ISABELLE_PLATFORM64=""
+ISABELLE_APPLE_PLATFORM64=""
 ISABELLE_WINDOWS_PLATFORM32=""
 ISABELLE_WINDOWS_PLATFORM64=""
 
@@ -34,6 +35,13 @@ case $(uname -s) in
         ;;
       *)
         ISABELLE_PLATFORM64=x86_64-darwin
+        case $(uname -m) in
+          arm64)
+            ISABELLE_APPLE_PLATFORM64=arm64-darwin
+            ;;
+          *)
+            ;;
+        esac
         ;;
     esac
     ;;
