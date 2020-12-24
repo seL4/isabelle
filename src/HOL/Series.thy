@@ -627,6 +627,29 @@ qed (rule summable_geometric)
 
 end
 
+text \<open>Biconditional versions for constant factors\<close>
+context
+  fixes c :: "'a::real_normed_field"
+begin
+
+lemma summable_cmult_iff [simp]: "summable (\<lambda>n. c * f n) \<longleftrightarrow> c=0 \<or> summable f"
+proof -
+  have "\<lbrakk>summable (\<lambda>n. c * f n); c \<noteq> 0\<rbrakk> \<Longrightarrow> summable f"
+    using summable_mult_D by blast
+  then show ?thesis
+    by (auto simp: summable_mult)
+qed
+
+lemma summable_divide_iff [simp]: "summable (\<lambda>n. f n / c) \<longleftrightarrow> c=0 \<or> summable f"
+proof -
+  have "\<lbrakk>summable (\<lambda>n. f n / c); c \<noteq> 0\<rbrakk> \<Longrightarrow> summable f"
+    by (auto dest: summable_divide [where c = "1/c"])
+  then show ?thesis
+    by (auto simp: summable_divide)
+qed
+
+end
+
 lemma power_half_series: "(\<lambda>n. (1/2::real)^Suc n) sums 1"
 proof -
   have 2: "(\<lambda>n. (1/2::real)^n) sums 2"
