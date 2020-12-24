@@ -350,6 +350,7 @@ object Isabelle_Cronjob
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m32 -M4" +
+            " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
@@ -359,6 +360,7 @@ object Isabelle_Cronjob
             Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m64 -M4" +
+            " -C /cygdrive/d/isatest/contrib" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
