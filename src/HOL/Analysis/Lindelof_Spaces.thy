@@ -200,7 +200,7 @@ proof -
   have UU_eq: "\<Union>\<U> = topspace X"
     by (meson UU fin locally_finite_in_def subset_antisym)
   obtain T where T: "\<And>x. x \<in> topspace X \<Longrightarrow> openin X (T x) \<and> x \<in> T x \<and> finite {U \<in> \<U>. U \<inter> T x \<noteq> {}}"
-    using fin unfolding locally_finite_in_def by meson
+    using fin unfolding locally_finite_in_def by metis
   then obtain I where "countable I" "I \<subseteq> topspace X" and I: "topspace X \<subseteq> \<Union>(T ` I)"
     using X unfolding Lindelof_space_alt
     by (drule_tac x="image T (topspace X)" in spec) (auto simp: ex_countable_subset_image)

@@ -175,8 +175,8 @@ qed
 lemma
   fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
   assumes "convergent_prod f"
-  shows   convergent_prod_imp_convergent: "convergent (\<lambda>n. \<Prod>i\<le>n. f i)"
-    and   convergent_prod_to_zero_iff:    "(\<lambda>n. \<Prod>i\<le>n. f i) \<longlonglongrightarrow> 0 \<longleftrightarrow> (\<exists>i. f i = 0)"
+  shows   convergent_prod_imp_convergent:     "convergent (\<lambda>n. \<Prod>i\<le>n. f i)"
+    and   convergent_prod_to_zero_iff [simp]: "(\<lambda>n. \<Prod>i\<le>n. f i) \<longlonglongrightarrow> 0  \<longleftrightarrow>  (\<exists>i. f i = 0)"
 proof -
   from assms obtain M L 
     where M: "\<And>n. n \<ge> M \<Longrightarrow> f n \<noteq> 0" and "(\<lambda>n. \<Prod>i\<le>n. f (i + M)) \<longlonglongrightarrow> L" and "L \<noteq> 0"
@@ -960,7 +960,7 @@ lemma prodinf_le_const:
   shows "prodinf f \<le> x"
   by (metis lessThan_Suc_atMost assms convergent_prod_LIMSEQ LIMSEQ_le_const2)
 
-lemma prodinf_eq_one_iff: 
+lemma prodinf_eq_one_iff [simp]: 
   fixes f :: "nat \<Rightarrow> real"
   assumes f: "convergent_prod f" and ge1: "\<And>n. 1 \<le> f n"
   shows "prodinf f = 1 \<longleftrightarrow> (\<forall>n. f n = 1)"
@@ -1227,7 +1227,7 @@ next
     by (auto simp: has_prod_def raw_has_prod_Suc_iff assms)
 qed
 
-lemma convergent_prod_Suc_iff:
+lemma convergent_prod_Suc_iff [simp]:
   shows "convergent_prod (\<lambda>n. f (Suc n)) = convergent_prod f"
 proof
   assume "convergent_prod f"
@@ -1374,10 +1374,10 @@ context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
 begin
 
-lemma convergent_prod_inverse_iff: "convergent_prod (\<lambda>n. inverse (f n)) \<longleftrightarrow> convergent_prod f"
+lemma convergent_prod_inverse_iff [simp]: "convergent_prod (\<lambda>n. inverse (f n)) \<longleftrightarrow> convergent_prod f"
   by (auto dest: convergent_prod_inverse)
 
-lemma convergent_prod_const_iff:
+lemma convergent_prod_const_iff [simp]:
   fixes c :: "'a :: {real_normed_field}"
   shows "convergent_prod (\<lambda>_. c) \<longleftrightarrow> c = 1"
 proof
@@ -1793,7 +1793,7 @@ lemma tendsto_eq_of_real:
   obtains r where "q = of_real r"
   using tendsto_eq_of_real_lim assms by blast
 
-lemma has_prod_of_real_iff:
+lemma has_prod_of_real_iff [simp]:
   "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) has_prod of_real c \<longleftrightarrow> f has_prod c"
   (is "?lhs = ?rhs")
 proof

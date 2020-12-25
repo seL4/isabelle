@@ -643,7 +643,8 @@ lemma summable_offset:
   assumes "summable (\<lambda>n. f (n + k) :: 'a :: real_normed_vector)"
   shows   "summable f"
 proof -
-  from assms have "convergent (\<lambda>m. \<Sum>n<m. f (n + k))" by (simp add: summable_iff_convergent)
+  from assms have "convergent (\<lambda>m. \<Sum>n<m. f (n + k))"
+    using summable_iff_convergent by blast
   hence "convergent (\<lambda>m. (\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)))"
     by (intro convergent_add convergent_const)
   also have "(\<lambda>m. (\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k))) = (\<lambda>m. \<Sum>n<m+k. f n)"

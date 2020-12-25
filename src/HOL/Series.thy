@@ -432,7 +432,7 @@ lemma sums_zero_iff_shift:
   shows "(\<lambda>i. f (i+n)) sums s \<longleftrightarrow> (\<lambda>i. f i) sums s"
   by (simp add: assms sums_iff_shift)
 
-lemma summable_iff_shift: "summable (\<lambda>n. f (n + k)) \<longleftrightarrow> summable f"
+lemma summable_iff_shift [simp]: "summable (\<lambda>n. f (n + k)) \<longleftrightarrow> summable f"
   by (metis diff_add_cancel summable_def sums_iff_shift [abs_def])
 
 lemma sums_split_initial_segment: "f sums s \<Longrightarrow> (\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i))"
