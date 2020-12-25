@@ -1342,7 +1342,7 @@ lemma has_prod_one_iff_shift:
   shows "(\<lambda>i. f (i+n)) has_prod a \<longleftrightarrow> (\<lambda>i. f i) has_prod a"
   by (simp add: assms has_prod_iff_shift)
 
-lemma convergent_prod_iff_shift:
+lemma convergent_prod_iff_shift [simp]:
   shows "convergent_prod (\<lambda>i. f (i + n)) \<longleftrightarrow> convergent_prod f"
   apply safe
   using convergent_prod_offset apply blast
