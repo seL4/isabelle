@@ -405,7 +405,9 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-P\<close> enables PDF/HTML presentation in the given directory, where
   ``\<^verbatim>\<open>-P:\<close>'' refers to the default @{setting_ref ISABELLE_BROWSER_INFO} (or
-  @{setting_ref ISABELLE_BROWSER_INFO_SYSTEM}).
+  @{setting_ref ISABELLE_BROWSER_INFO_SYSTEM}). This applies only to
+  explicitly selected sessions; note that option \<open>-R\<close> allows to select all
+  requirements separately.
 
   \<^medskip>
   Option \<^verbatim>\<open>-b\<close> ensures that heap images are produced for all selected

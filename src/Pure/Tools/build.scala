@@ -215,6 +215,8 @@ object Build
     val full_sessions =
       Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
+    val full_sessions_selection = full_sessions.imports_selection(selection)
+
     def sources_stamp(deps: Sessions.Deps, session_name: String): String =
     {
       val digests =
@@ -277,7 +279,7 @@ object Build
     store.prepare_output_dir()
 
     if (clean_build) {
-      for (name <- full_sessions.imports_descendants(full_sessions.imports_selection(selection))) {
+      for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
         val (relevant, ok) = store.clean_output(name)
         if (relevant) {
           if (ok) progress.echo("Cleaned " + name)
@@ -492,11 +494,12 @@ object Build
     /* PDF/HTML presentation */
 
     if (!no_build && !progress.stopped && results.ok) {
+      val selected = full_sessions_selection.toSet
       val presentation_chapters =
         (for {
           session_name <- deps.sessions_structure.build_topological_order.iterator
           info = results.info(session_name)
-          if presentation.enabled(info) && results(session_name).ok }
+          if selected(session_name) && presentation.enabled(info) && results(session_name).ok }
         yield (info.chapter, (session_name, info.description))).toList
 
       if (presentation_chapters.nonEmpty) {
