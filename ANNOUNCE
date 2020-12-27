@@ -1,41 +1,37 @@
-Subject: Announcing Isabelle2020
+Subject: Announcing Isabelle2021
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2020 is now available.
+Isabelle2021 is now available.
 
-This version introduces many changes over Isabelle2019: see the NEWS
-file for further details. Here are some notable points:
+This version introduces many changes over Isabelle2020: see the NEWS
+file for further details. Here are various details:
 
-* PIDE: much faster startup of Isabelle/jEdit thanks to more scalable
-session directory structure.
+* Improved HTML presentation in Isabelle/Scala, using PIDE markup.
 
-* PIDE: updated Isabelle/VSCode to follow recent moves of VSCode.
+* Improved PDF document preparation in Isabelle/Scala, using LuaLaTeX.
 
-* Pure: improved treatment of theorem dependencies and proof terms,
-accessible via command 'thm_deps'.
+* Isabelle/jEdit: improved monitoring of Java and ML process.
 
-* Pure: proper treatment of oracles within internal proof objects,
-accessible via command 'thm_oracles'.
+* Isabelle/jEdit: various IDE feedback improvements.
 
-* HOL: various library improvements.
+* Pure: improved handling of named contexts and local syntax bundles.
 
-* HOL: better organization of HOL-Analysis vs. HOL-Complex_Analysis.
+* HOL: substantially reworked support for Word library.
 
-* ML: more scalable export artifacts via XML blobs.
+* HOL: various syntax and library improvements.
 
-* Scala: support for external IDEs based on Gradle (e.g. IntelliJ IDEA).
+* HOL: various Sledgehammer and SMT improvements, with updated external tools.
 
-* Scala: support for Ubuntu server applications (Linux-Apache-MySQL-PHP).
+* HOL: support for Nitpick/Kodkod in Isabelle/Scala.
 
-* System: Isabelle/Phabricator as self-hosted project management platform.
+* ML: routine support for Isabelle/Scala functions in Isabelle/ML.
 
-* System: update to current Poly/ML 5.8.1 with improved robustness,
-especially on Windows.
+* System: support for Isabelle/Scala services defined in user-space.
 
-* System: improved support for macOS, notably 10.15 Catalina.
+* Experimental support for ARM64 platform on Linux and macOS (Apple Silicon).
 
 
-You may get Isabelle2020 from the following mirror sites:
+You may get Isabelle2021 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
