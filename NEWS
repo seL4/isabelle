@@ -39,9 +39,6 @@ definitions within the visible text area. The keyboard modifier "CS"
 overrides this: then all defining and referencing positions are shown.
 See also option "jedit_focus_modifier".
 
-* Auto nitpick is enabled by default: it is now reasonably fast due to
-Kodkod invocation within Isabelle/Scala.
-
 * The jEdit status line includes widgets both for JVM and ML heap usage.
 Ongoing ML ongoing garbage collection is shown as "ML cleanup".
 
@@ -134,7 +131,8 @@ defect and two incompleteness defects. Very slight INCOMPATIBILITY.
 * Nitpick/Kodkod may be invoked directly within the running
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
-guarded by system option "kodkod_scala" (default: true).
+guarded by system option "kodkod_scala" (default: true in PIDE
+interaction, false in batch builds).
 
 * Simproc "defined_all" and rewrite rule "subst_all" perform more
 aggressive substitution with variables from assumptions.
