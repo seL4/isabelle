@@ -566,16 +566,16 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     if (Mercurial.is_repository(isabelle_repos_other, ssh = ssh)) {
       ssh.rm_tree(isabelle_repos_other)
     }
-    val other_hg =
-      Mercurial.clone_repository(
-        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev_id, ssh = ssh)
+
+    Mercurial.clone_repository(
+      ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev_id, ssh = ssh)
 
     val afp_options =
       if (afp_rev.isEmpty) ""
       else {
         val afp_repos = isabelle_repos_other + Path.explode("AFP")
-        val afp_hg = Mercurial.setup_repository(afp_repos_source, afp_repos, ssh = ssh)
-        " -A " + Bash.string(afp_rev.get)
+        Mercurial.setup_repository(afp_repos_source, afp_repos, ssh = ssh)
+          " -A " + Bash.string(afp_rev.get)
       }
 
 
