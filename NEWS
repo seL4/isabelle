@@ -169,7 +169,7 @@ division, instantiated for type int.
 least one bit. INCOMPATIBILITY.
 
 * Theory "Word": Bit operations NOT, AND, OR, XOR are based on generic
-algebraic bit operations from HOL-Library.Bit_Operations.
+algebraic bit operations from theory "HOL-Library.Bit_Operations".
 INCOMPATIBILITY.
 
 * Theory "Word": Most operations on type word are set up for transfer
