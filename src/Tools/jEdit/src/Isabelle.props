@@ -5,7 +5,7 @@
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
 plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
-plugin.isabelle.jedit.Plugin.version=11.1
+plugin.isabelle.jedit.Plugin.version=11.2
 plugin.isabelle.jedit.Plugin.description=Isabelle Prover IDE
 
 #system parameters
