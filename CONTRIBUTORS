@@ -12,6 +12,10 @@ Contributions to Isabelle2021
 * December 2020: Walter Guttmann
   Extension of session HOL-Hoare with total correctness proof system.
 
+* November / December 2020: Makarius Wenzel
+  Improved HTML presentation and PDF document preparation, using mostly
+  Isabelle/Scala instead of Isabelle/ML.
+
 * November 2020: Stepan Holub
   Removed preconditions from lemma comm_append_are_replicate.
 
@@ -31,8 +35,12 @@ Contributions to Isabelle2021
   Support E prover 2.5 as external prover in Sledgehammer.
 
 * September 2020: Florian Haftmann
-  Substantial reworking and modularization of Word library, with
-  generic type conversions.
+  Substantial reworking and modularization of Word library, with generic type
+  conversions.
+
+* August 2020: Makarius Wenzel
+  Finally enable PIDE protocol for batch-builds, with various consequences of
+  handling session build databases, Isabelle/Scala within Isabelle/ML etc.
 
 * August 2020: Makarius Wenzel
   Improved monitoring of runtime statistics: ML GC progress and Java.

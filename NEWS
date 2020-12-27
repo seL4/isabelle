@@ -9,12 +9,18 @@ New in Isabelle2021 (February 2021)
 
 *** General ***
 
+* HTML presentation includes auxiliary files (e.g. ML) for each theory,
+with rich markup.
+
 * Proof method "subst" is confined to the original subgoal range: its
 included distinct_subgoals_tac no longer affects unrelated subgoals.
 Rare INCOMPATIBILITY.
 
-* HTML presentation includes auxiliary files (e.g. ML) for each theory,
-with rich markup.
+* Theory_Data extend operation is obsolete and needs to be the identity
+function; merge should be conservative and not reset to the empty value.
+Subtle INCOMPATIBILITY and change of semantics (due to
+Theory.join_theory from Isabelle2020). Special extend/merge behaviour at
+the begin of a new theory can be achieved via Theory.at_begin.
 
 
 *** Isabelle/jEdit Prover IDE ***
@@ -81,46 +87,54 @@ checked within the Isabelle settings environment.
 (former entries of HOL-Isar_Examples).
 
 * Named contexts (locale and class specifications, locale and class
-context blocks) allow bundle mixins for the surface context.  This
-allows syntax notations to be organized within bundles conveniently.
-See src/HOL/ex/Specifications_with_bundle_mixins.thy for examples
-and the Isar reference manual for syntx descriptions.
+context blocks) allow bundle mixins for the surface context. This allows
+syntax notations to be organized within bundles conveniently. See theory
+"HOL-ex.Specifications_with_bundle_mixins" for examples and the isar-ref
+manual for syntax descriptions.
 
 * Definitions in locales produce rule which can be added as congruence
 rule to protect foundational terms during simplification.
 
 * Consolidated terminology and function signatures for nested targets:
 
-  * Local_Theory.begin_nested replaces Local_Theory.open_target.
+  - Local_Theory.begin_nested replaces Local_Theory.open_target
 
-  * Local_Theory.end_nested replaces Local_Theory.close_target.
+  - Local_Theory.end_nested replaces Local_Theory.close_target
 
-  * Combination of Local_Theory.begin_nested and
+  - Combination of Local_Theory.begin_nested and
     Local_Theory.end_nested(_result) replaces
-    Local_Theory.subtarget(_result).
+    Local_Theory.subtarget(_result)
 
 INCOMPATIBILITY.
 
-* Local_Theory.init replaces Generic_Target.init.  Minor INCOMPATIBILITY.
+* Local_Theory.init replaces Generic_Target.init. Minor INCOMPATIBILITY.
 
 
 *** HOL ***
+
+* Session HOL-Examples contains notable examples for Isabelle/HOL
+(former entries of HOL-Isar_Examples, HOL-ex etc.).
 
 * An updated version of the veriT solver is now included as Isabelle
 component. It can be used in the "smt" proof method via "smt (verit)" or
 via "declare [[smt_solver = verit]]" in the context; see also session
 HOL-Word-SMT_Examples.
 
-* Zipperposition 2.0 is included as Isabelle component for
+* Zipperposition 2.0 is now included as Isabelle component for
 experimentation, e.g. in "sledgehammer [prover = zipperposition]".
+
+* Sledgehammer:
+  - support veriT in proof preplay
+  - take adventage of more cores in proof preplay
+
+* Updated the Metis prover underlying the "metis" proof method to
+version 2.4 (release 20180810). The new version fixes one soundness
+defect and two incompleteness defects. Very slight INCOMPATIBILITY.
 
 * Nitpick/Kodkod may be invoked directly within the running
 Isabelle/Scala session (instead of an external Java process): this
 improves reactivity and saves resources. This experimental feature is
 guarded by system option "kodkod_scala" (default: true).
-
-* Session HOL-Examples contains notable examples for Isabelle/HOL
-(former entries of HOL-Isar_Examples, HOL-ex etc.).
 
 * Simproc "defined_all" and rewrite rule "subst_all" perform more
 aggressive substitution with variables from assumptions.
@@ -132,16 +146,18 @@ INCOMPATIBILITY, consider repairing proofs locally like this:
 on datatypes to "False" if either side is a proper subexpression of the
 other (for any datatype with a reasonable size function).
 
+* Syntax for state monad combinators fcomp and scomp is organized in
+bundle state_combinator_syntax.  Minor INCOMPATIBILITY.
+
+* Syntax for reflected term syntax is organized in bundle term_syntax,
+discontinuing previous locale term_syntax.  Minor INCOMPATIBILITY.
+
 * New constant "power_int" for exponentiation with integer exponent,
 written as "x powi n".
 
 * Added the "at most 1" quantifier, Uniq.
 
-* For the natural numbers, Sup {} = 0.
-
-* Updated the Metis prover underlying the "metis" proof method to
-  version 2.4 (release 20180810). The new version fixes one soundness
-  defect and two incompleteness defects. Very slight INCOMPATIBILITY.
+* For the natural numbers, "Sup {} = 0".
 
 * Library theory "Bit_Operations" with generic bit operations.
 
@@ -151,33 +167,33 @@ division, instantiated for type int.
 * Self-contained library theory "Word" taken over from former session
 "HOL-Word".
 
-* Theory "Word": Type word is restricted to bit strings consisting
-of at least one bit.  INCOMPATIBILITY.
+* Theory "Word": Type word is restricted to bit strings consisting of at
+least one bit. INCOMPATIBILITY.
 
-* Theory "Word": Bit operations NOT, AND, OR, XOR are based on
-generic algebraic bit operations from HOL-Library.Bit_Operations.
+* Theory "Word": Bit operations NOT, AND, OR, XOR are based on generic
+algebraic bit operations from HOL-Library.Bit_Operations.
 INCOMPATIBILITY.
 
-* Theory "Word": Most operations on type word are set up
-for transfer and lifting.  INCOMPATIBILITY.
+* Theory "Word": Most operations on type word are set up for transfer
+and lifting. INCOMPATIBILITY.
 
-* Theory "Word": Generic type conversions.  INCOMPATIBILITY,
-sometimes additional rewrite rules must be added to applications to
-get a confluent system again.
+* Theory "Word": Generic type conversions. INCOMPATIBILITY, sometimes
+additional rewrite rules must be added to applications to get a
+confluent system again.
 
-* Theory "Word": Uniform polymorphic "mask" operation for both
-types int and word.  INCOMPATIBILITY.
+* Theory "Word": Uniform polymorphic "mask" operation for both types int
+and word. INCOMPATIBILITY.
 
 * Theory "Word": Syntax for signed compare operators has been
-consolidated with syntax of regular compare operators.
-Minor INCOMPATIBILITY.
+consolidated with syntax of regular compare operators. Minor
+INCOMPATIBILITY.
 
 * Former session "HOL-Word": Various operations dealing with bit values
 represented as reversed lists of bools are separated into theory
-Reversed_Bit_Lists in session Word_Lib in the AFP.  INCOMPATIBILITY.
+Reversed_Bit_Lists in session Word_Lib in the AFP. INCOMPATIBILITY.
 
 * Former session "HOL-Word": Theory "Word_Bitwise" has been moved to AFP
-entry Word_Lib as theory "Bitwise".  INCOMPATIBILITY.
+entry Word_Lib as theory "Bitwise". INCOMPATIBILITY.
 
 * Former session "HOL-Word": Compound operation "bin_split" simplifies
 by default into its components "drop_bit" and "take_bit".
@@ -189,30 +205,20 @@ Generic_set_bit respectively in session Word_Lib in the AFP.
 INCOMPATIBILITY.
 
 * Former session "HOL-Word": Ancient int numeral representation has been
-factored out in separate theory "Ancient_Numeral" in session Word_Lib
-in the AFP.  INCOMPATIBILITY.
+factored out in separate theory "Ancient_Numeral" in session Word_Lib in
+the AFP. INCOMPATIBILITY.
 
 * Former session "HOL-Word": Operations "bin_last", "bin_rest",
 "bin_nth", "bintrunc", "sbintrunc", "norm_sint", "bin_cat" and
-"max_word" are now mere input abbreviations.  Minor INCOMPATIBILITY.
+"max_word" are now mere input abbreviations. Minor INCOMPATIBILITY.
 
 * Former session "HOL-Word": Misc ancient material has been factored out
-into separate theories and moved to session Word_Lib in the AFP.  See
-theory "Guide" there for further information.  INCOMPATIBILITY.
+into separate theories and moved to session Word_Lib in the AFP. See
+theory "Guide" there for further information. INCOMPATIBILITY.
 
 * Session HOL-TPTP: The "tptp_isabelle" and "tptp_sledgehammer" commands
 are in working order again, as opposed to outputting "GaveUp" on nearly
 all problems.
-
-* Sledgehammer:
-  - Use veriT in proof preplay.
-  - Take adventage of more cores in proof preplay.
-
-* Syntax for state monad combinators fcomp and scomp is organized in
-bundle state_combinator_syntax.  Minor INCOMPATIBILITY.
-
-* Syntax for reflected term syntax is organized in bundle term_syntax,
-discontinuing previous locale term_syntax.  Minor INCOMPATIBILITY.
 
 * Session "HOL-Hoare": concrete syntax only for Hoare triples, not
 abstract language constructors.
@@ -230,12 +236,6 @@ as in HOL.
 
 *** ML ***
 
-* Theory_Data extend operation is obsolete and needs to be the identity
-function; merge should be conservative and not reset to the empty value.
-Subtle INCOMPATIBILITY and change of semantics (due to
-Theory.join_theory from Isabelle2020). Special extend/merge behaviour at
-the begin of a new theory can be achieved via Theory.at_begin.
-
 * Antiquotations @{scala_function}, @{scala}, @{scala_thread} refer to
 registered Isabelle/Scala functions (of type String => String):
 invocation works via the PIDE protocol.
@@ -243,17 +243,23 @@ invocation works via the PIDE protocol.
 * Path.append is available as overloaded "+" operator, similar to
 corresponding Isabelle/Scala operation.
 
+* ML statistics via an external Poly/ML process: this allows monitoring
+the runtime system while the ML program sleeps.
+
 
 *** System ***
+
+* Isabelle server allows user-defined commands via
+isabelle_scala_service.
+
+* Update/rebuild external provers on currently supported OS platforms,
+notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
 
 * The command-line tool "isabelle log" prints prover messages from the
 build database of the given session, following the the order of theory
 sources, instead of erratic parallel evaluation. Consequently, the
 session log file is restricted to system messages of the overall build
 process, and thus becomes more informative.
-
-* Update/rebuild external provers on currently supported OS platforms,
-notably CVC4 1.8, E prover 2.5, SPASS 3.8ds, CSDP 6.1.1.
 
 * Discontinued obsolete isabelle display tool, and DVI_VIEWER settings
 variable.
@@ -267,9 +273,6 @@ components) augments the list of special directories for persistent
 symbolic path names. This improves portability of heap images and
 session databases. It used to be hard-wired for Isabelle + AFP, but
 other projects may now participate on equal terms.
-
-* ML statistics via an external Poly/ML process: this allows monitoring
-the runtime system while the ML program sleeps.
 
 * The command-line tool "isabelle process" now prints output to
 stdout/stderr separately and incrementally, instead of just one bulk to
@@ -321,9 +324,6 @@ isabelle.Command_Span.Load_Command registered via isabelle_scala_service
 in etc/settings. This allows more flexible schemes than just a list of
 file extensions. Minor INCOMPATIBILITY, e.g. see theory
 HOL-SPARK.SPARK_Setup to emulate the old behaviour.
-
-* Isabelle server allows user-defined commands via
-isabelle_scala_service.
 
 * Isabelle/Phabricator supports Ubuntu 20.04 LTS.
 
