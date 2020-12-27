@@ -5,8 +5,8 @@
 section \<open>Classical first-order logic\<close>
 
 theory FOL
-imports IFOL
-keywords "print_claset" "print_induct_rules" :: diag
+  imports IFOL
+  keywords "print_claset" "print_induct_rules" :: diag
 begin
 
 ML_file \<open>~~/src/Provers/classical.ML\<close>

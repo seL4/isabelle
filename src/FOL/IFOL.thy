@@ -6,8 +6,7 @@ section \<open>Intuitionistic first-order logic\<close>
 
 theory IFOL
   imports Pure
-abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
-
+  abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
 begin
 
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
