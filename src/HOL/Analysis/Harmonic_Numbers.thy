@@ -33,6 +33,9 @@ lemma harm_nonneg: "harm n \<ge> (0 :: 'a :: {real_normed_field,linordered_field
 lemma harm_pos: "n > 0 \<Longrightarrow> harm n > (0 :: 'a :: {real_normed_field,linordered_field})"
   unfolding harm_def by (intro sum_pos) simp_all
 
+lemma harm_mono: "m \<le> n \<Longrightarrow> harm m \<le> (harm n :: 'a :: {real_normed_field,linordered_field})"
+by(simp add: harm_def sum_mono2)
+
 lemma of_real_harm: "of_real (harm n) = harm n"
   unfolding harm_def by simp
 
