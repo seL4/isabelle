@@ -5436,6 +5436,20 @@ lemma sorted_wrt_nth_less:
   "\<lbrakk> sorted_wrt P xs; i < j; j < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) (xs ! j)"
 by(auto simp: sorted_wrt_iff_nth_less)
 
+lemma sorted_wrt_iff_nth_Suc_transp: assumes "transp P"
+  shows "sorted_wrt P xs \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> P (xs!i) (xs!(Suc i)))" (is "?L = ?R")
+proof
+  assume ?L
+  thus ?R
+    by (simp add: sorted_wrt_iff_nth_less) 
+next
+  assume ?R
+  have "i < j \<Longrightarrow> j < length xs \<Longrightarrow> P (xs ! i) (xs ! j)" for i j
+    by(induct i j rule: less_Suc_induct)(simp add: \<open>?R\<close>, meson assms transpE transp_less)
+  thus ?L
+    by (simp add: sorted_wrt_iff_nth_less)
+qed
+
 lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
 
@@ -5507,11 +5521,43 @@ lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
 by (auto simp: sorted_iff_nth_mono)
 
+lemma sorted_iff_nth_Suc: 
+  "sorted xs \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> xs!i \<le> xs!(Suc i))"
+by(simp add: sorted_sorted_wrt sorted_wrt_iff_nth_Suc_transp)
+
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
 using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
       rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
 by auto
+
+lemma sorted_rev_iff_nth_mono:
+  "sorted (rev xs) \<longleftrightarrow> (\<forall> i j. i \<le> j \<longrightarrow> j < length xs \<longrightarrow> xs!j \<le> xs!i)" (is "?L = ?R")
+proof
+  assume ?L thus ?R
+    by (blast intro: sorted_rev_nth_mono)
+next
+  assume ?R
+  have "rev xs ! k \<le> rev xs ! l" if asms: "k \<le> l" "l < length(rev xs)" for k l
+  proof -
+    have "k < length xs"  "l < length xs"
+      "length xs - Suc l \<le> length xs - Suc k" "length xs - Suc k < length xs"
+      using asms by auto
+    thus "rev xs ! k \<le> rev xs ! l"
+      using \<open>?R\<close> \<open>k \<le> l\<close> unfolding rev_nth[OF \<open>k < length xs\<close>] rev_nth[OF \<open>l < length xs\<close>] by blast
+  qed
+  thus ?L by (simp add: sorted_iff_nth_mono)
+qed
+
+lemma sorted_rev_iff_nth_Suc: 
+  "sorted (rev xs) \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> xs!(Suc i) \<le> xs!i)"
+proof-
+  interpret dual: linorder "(\<lambda>x y. y \<le> x)" "(\<lambda>x y. y < x)"
+    using dual_linorder .
+  show ?thesis
+    using dual_linorder dual.sorted_iff_nth_Suc dual.sorted_iff_nth_mono 
+    unfolding sorted_rev_iff_nth_mono by simp
+qed
 
 lemma sorted_map_remove1:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
