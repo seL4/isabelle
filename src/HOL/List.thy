@@ -6617,19 +6617,27 @@ qed (auto simp add: lexord_def; (blast | meson Cons_eq_appendI))
 
 lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
 
+lemma lexord_same_pref_iff:
+  "(xs @ ys, xs @ zs) \<in> lexord r \<longleftrightarrow> (\<exists>x \<in> set xs. (x,x) \<in> r) \<or> (ys, zs) \<in> lexord r"
+by(induction xs) auto
+
+lemma lexord_same_pref_if_irrefl[simp]:
+  "irrefl r \<Longrightarrow> (xs @ ys, xs @ zs) \<in> lexord r \<longleftrightarrow> (ys, zs) \<in> lexord r"
+by (simp add: irrefl_def lexord_same_pref_iff)
+
 lemma lexord_append_rightI: "\<exists> b z. y = b # z \<Longrightarrow> (x, x @ y) \<in> lexord r"
-  by (induct_tac x, auto)
+by (metis append_Nil2 lexord_Nil_left lexord_same_pref_iff)
 
 lemma lexord_append_left_rightI:
   "(a,b) \<in> r \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
-  by (induct_tac u, auto)
+by (simp add: lexord_same_pref_iff)
 
-lemma lexord_append_leftI: " (u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
-  by (induct x, auto)
+lemma lexord_append_leftI: "(u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
+by (simp add: lexord_same_pref_iff)
 
 lemma lexord_append_leftD:
   "\<lbrakk>(x @ u, x @ v) \<in> lexord r; (\<forall>a. (a,a) \<notin> r) \<rbrakk> \<Longrightarrow> (u,v) \<in> lexord r"
-  by (erule rev_mp, induct_tac x, auto)
+by (simp add: lexord_same_pref_iff)
 
 lemma lexord_take_index_conv:
    "((x,y) \<in> lexord r) =
@@ -6654,6 +6662,47 @@ proof (induction x arbitrary: y)
   case (Cons a x y) then show ?case
     by (cases y) (force+)
 qed auto
+
+lemma lexord_sufI:
+  assumes "(u,w) \<in> lexord r" "length w \<le> length u"
+  shows "(u@v,w@z) \<in> lexord r"
+proof-
+  from leD[OF assms(2)] assms(1)[unfolded lexord_take_index_conv[of u w r] min_absorb2[OF assms(2)]]
+  obtain i where "take i u = take i w" and "(u!i,w!i) \<in> r" and "i < length w"
+    by blast   
+  hence "((u@v)!i, (w@z)!i) \<in> r"
+    unfolding nth_append using less_le_trans[OF \<open>i < length w\<close> assms(2)] \<open>(u!i,w!i) \<in> r\<close>
+    by presburger
+  moreover have "i < min (length (u@v)) (length (w@z))"
+    using assms(2) \<open>i < length w\<close> by simp
+  moreover have "take i (u@v) = take i (w@z)"
+    using assms(2) \<open>i < length w\<close> \<open>take i u = take i w\<close> by simp 
+  ultimately show ?thesis
+    using lexord_take_index_conv by blast
+qed
+
+lemma lexord_sufE: 
+  assumes "(xs@zs,ys@qs) \<in> lexord r" "xs \<noteq> ys" "length xs = length ys" "length zs = length qs"
+  shows "(xs,ys) \<in> lexord r"
+proof-
+  obtain i where "i < length (xs@zs)" and "i < length (ys@qs)" and "take i (xs@zs) = take i (ys@qs)"
+  and "((xs@zs) ! i, (ys@qs) ! i) \<in> r"
+    using assms(1) lex_take_index[unfolded lexord_lex,of "xs @ zs" "ys @ qs" r]
+      length_append[of xs zs, unfolded assms(3,4), folded length_append[of ys qs]]
+    by blast
+  have "length (take i xs) = length (take i ys)"
+    by (simp add: assms(3))
+  have "i < length xs"
+    using assms(2,3) le_less_linear take_all[of xs i] take_all[of ys i]
+      \<open>take i (xs @ zs) = take i (ys @ qs)\<close> append_eq_append_conv take_append
+    by metis
+  hence "(xs ! i, ys ! i) \<in> r"
+    using \<open>((xs @ zs) ! i, (ys @ qs) ! i) \<in> r\<close> assms(3) by (simp add: nth_append)
+  moreover have "take i xs = take i ys"
+    using assms(3) \<open>take i (xs @ zs) = take i (ys @ qs)\<close> by auto
+  ultimately show ?thesis
+    unfolding lexord_take_index_conv using \<open>i < length xs\<close> assms(3) by fastforce
+qed
 
 lemma lexord_irreflexive: "\<forall>x. (x,x) \<notin> r \<Longrightarrow> (xs,xs) \<notin> lexord r"
 by (induct xs) auto
@@ -6844,9 +6893,11 @@ proof
 qed
 
 lemma lexordp_into_lexordp_eq:
-  assumes "lexordp xs ys"
-  shows "lexordp_eq xs ys"
-using assms by induct simp_all
+  "lexordp xs ys \<Longrightarrow> lexordp_eq xs ys"
+by (induction rule: lexordp.induct) simp_all
+
+lemma lexordp_eq_pref: "lexordp_eq u (u @ v)"
+by (metis append_Nil2 lexordp_append_rightI lexordp_eq_refl lexordp_into_lexordp_eq)
 
 end
 
