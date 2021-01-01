@@ -46,7 +46,7 @@ fun graph_at (GP (_, gs), i) = nth gs i ;
 fun num_prog_pts (GP (arities, _)) = length arities ;
 fun num_graphs (GP (_, gs)) = length gs ;
 fun arity (GP (arities, gl)) i = nth arities i ;
-fun ndigits (GP (arities, _)) = IntInf.log2 (Integer.sum arities) + 1
+fun ndigits (GP (arities, _)) = Integer.log2 (Integer.sum arities) + 1
 
 
 (** Propositional formulas **)

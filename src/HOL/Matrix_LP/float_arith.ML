@@ -105,7 +105,7 @@ fun find_most_significant q r =
       else
         (exp5 (~ d), d)
 
-    val L = Real.floor (int2real (IntInf.log2 q) + int2real r * ln2_10)
+    val L = Real.floor (int2real (Integer.log2 q) + int2real r * ln2_10)
     val L1 = L + 1
 
     val (q1, r1) = subtract (q, r) (bin2dec L1) 

@@ -16,6 +16,7 @@ sig
   val div_mod: int -> int -> int * int
   val square: int -> int
   val pow: int -> int -> int (* exponent -> base -> result *)
+  val log2: int -> int
   val gcd: int -> int -> int
   val lcm: int -> int -> int
   val gcds: int list -> int
@@ -43,6 +44,8 @@ fun div_mod x y = IntInf.divMod (x, y);
 fun square x = x * x;
 
 fun pow k l = IntInf.pow (l, k);
+
+val log2 = IntInf.log2;
 
 fun gcd x y = PolyML.IntInf.gcd (x, y);
 fun lcm x y = abs (PolyML.IntInf.lcm (x, y));

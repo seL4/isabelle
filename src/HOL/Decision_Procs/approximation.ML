@@ -156,7 +156,7 @@ fun float2_float10 prec round_down (m, e) = (
 
     val (x, r) = Integer.div_mod m (Integer.pow (~e) 2)
 
-    val p = ((if x = 0 then prec else prec - (IntInf.log2 x + 1)) * 3) div 10 + 1
+    val p = ((if x = 0 then prec else prec - (Integer.log2 x + 1)) * 3) div 10 + 1
 
     val (digits, e10, r) = if p > 0 then frac (x <> 0) p r 0 0 else (0,0,0)
 
