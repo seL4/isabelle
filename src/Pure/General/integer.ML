@@ -14,6 +14,7 @@ sig
   val prod: int list -> int
   val sign: int -> order
   val div_mod: int -> int -> int * int
+  val quot_rem: int -> int -> int * int
   val square: int -> int
   val pow: int -> int -> int (* exponent -> base -> result *)
   val log2: int -> int
@@ -40,6 +41,7 @@ fun prod xs = fold mult xs 1;
 fun sign x = int_ord (x, 0);
 
 fun div_mod x y = IntInf.divMod (x, y);
+fun quot_rem x y = IntInf.quotRem (x, y);
 
 fun square x = x * x;
 

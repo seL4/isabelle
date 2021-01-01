@@ -23,7 +23,7 @@ fun dest_num_syntax (Const (\<^const_syntax>\<open>Num.Bit0\<close>, _) $ t) = 2
 
 fun mk_num_syntax n =
   if n > 0 then
-    (case IntInf.quotRem (n, 2) of
+    (case Integer.quot_rem n 2 of
       (0, 1) => Syntax.const \<^const_syntax>\<open>One\<close>
     | (n, 0) => Syntax.const \<^const_syntax>\<open>Bit0\<close> $ mk_num_syntax n
     | (n, 1) => Syntax.const \<^const_syntax>\<open>Bit1\<close> $ mk_num_syntax n)
