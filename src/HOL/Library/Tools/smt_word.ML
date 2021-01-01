@@ -42,7 +42,7 @@ local
   fun word_num (Type (\<^type_name>\<open>word\<close>, [T])) k =
         let
           val size = try dest_binT T
-          fun max_int size = IntInf.pow (2, size)
+          fun max_int size = Integer.pow size 2
         in
           (case size of
             NONE => NONE
