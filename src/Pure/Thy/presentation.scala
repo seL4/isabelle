@@ -375,6 +375,7 @@ object Presentation
     deps: Sessions.Deps,
     db_context: Sessions.Database_Context,
     progress: Progress = new Progress,
+    verbose: Boolean = false,
     html_context: HTML_Context,
     presentation: Context)
   {
@@ -393,7 +394,11 @@ object Presentation
       for {
         doc <- info.document_variants
         document <- db_context.input_database(session)(read_document(_, _, doc.name))
-      } yield { Bytes.write(session_dir + doc.path.pdf, document.pdf); doc }
+      } yield {
+        if (verbose) progress.echo("Presenting document " + session + "/" + doc.name)
+        Bytes.write(session_dir + doc.path.pdf, document.pdf)
+        doc
+      }
 
     val links =
     {
@@ -433,6 +438,7 @@ object Presentation
       for (thy_name <- base.session_theories)
       yield {
         progress.expose_interrupt()
+        if (verbose) progress.echo("Presenting theory " + thy_name)
 
         val syntax = base.theory_syntax(thy_name)
         val keywords = syntax.keywords
@@ -480,6 +486,8 @@ object Presentation
                 error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
                   " in theory " + thy_name1 + " vs. " + thy_name)
             }
+
+            if (verbose) progress.echo("Presenting file " + src_path)
 
             val file_path = session_dir + Path.explode(file_name)
             html_context.init_fonts(file_path.dir)

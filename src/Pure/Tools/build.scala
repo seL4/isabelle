@@ -514,7 +514,8 @@ object Build
             progress.expose_interrupt()
             progress.echo("Presenting " + session_name + " ...")
             Presentation.session_html(
-              resources, session_name, deps, db_context, progress, html_context, presentation)
+              resources, session_name, deps, db_context, progress = progress,
+              verbose = verbose, html_context = html_context, presentation = presentation)
           })
 
         val browser_chapters =
