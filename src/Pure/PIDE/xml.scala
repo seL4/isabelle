@@ -229,6 +229,10 @@ object XML
         }
     }
 
+    // support hash-consing
+    def tree0(x: XML.Tree): XML.Tree =
+      if (no_cache) x else synchronized { lookup(x) getOrElse store(x) }
+
     // main methods
     def props(x: Properties.T): Properties.T =
       if (no_cache) x else synchronized { cache_props(x) }

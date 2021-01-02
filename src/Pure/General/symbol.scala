@@ -521,8 +521,12 @@ object Symbol
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
-  def decode_yxml(text: String): XML.Body = YXML.parse_body(decode(text))
-  def decode_yxml_failsafe(text: String): XML.Body = YXML.parse_body_failsafe(decode(text))
+  def decode_yxml(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
+    YXML.parse_body(decode(text), cache = cache)
+
+  def decode_yxml_failsafe(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
+    YXML.parse_body_failsafe(decode(text), cache = cache)
+
   def encode_yxml(body: XML.Body): String = encode(YXML.string_of_body(body))
 
   def decode_strict(text: String): String =

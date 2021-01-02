@@ -76,7 +76,7 @@ object YXML
   }
 
 
-  def parse_body(source: CharSequence): XML.Body =
+  def parse_body(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body =
   {
     /* stack operations */
 
@@ -91,7 +91,7 @@ object YXML
     def push(name: String, atts: XML.Attributes)
     {
       if (name == "") err_element()
-      else stack = (Markup(name, atts), buffer()) :: stack
+      else stack = (cache.markup(Markup(name, atts)), buffer()) :: stack
     }
 
     def pop()
@@ -100,7 +100,7 @@ object YXML
         case (Markup.Empty, _) :: _ => err_unbalanced("")
         case (markup, body) :: pending =>
           stack = pending
-          add(XML.Elem(markup, body.toList))
+          add(cache.tree0(XML.Elem(markup, body.toList)))
       }
     }
 
@@ -113,7 +113,7 @@ object YXML
         Library.separated_chunks(is_Y, chunk).toList match {
           case ch :: name :: atts if ch.length == 0 =>
             push(name.toString, atts.map(parse_attrib))
-          case txts => for (txt <- txts) add(XML.Text(txt.toString))
+          case txts => for (txt <- txts) add(cache.tree0(XML.Text(cache.string(txt.toString))))
         }
       }
     }
@@ -123,15 +123,15 @@ object YXML
     }
   }
 
-  def parse(source: CharSequence): XML.Tree =
-    parse_body(source) match {
+  def parse(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
+    parse_body(source, cache = cache) match {
       case List(result) => result
       case Nil => XML.no_text
       case _ => err("multiple XML trees")
     }
 
-  def parse_elem(source: CharSequence): XML.Tree =
-    parse_body(source) match {
+  def parse_elem(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
+    parse_body(source, cache = cache) match {
       case List(elem: XML.Elem) => elem
       case _ => err("single XML element expected")
     }
@@ -142,15 +142,15 @@ object YXML
   private def markup_broken(source: CharSequence) =
     XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
-  def parse_body_failsafe(source: CharSequence): XML.Body =
+  def parse_body_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body =
   {
-    try { parse_body(source) }
+    try { parse_body(source, cache = cache) }
     catch { case ERROR(_) => List(markup_broken(source)) }
   }
 
-  def parse_failsafe(source: CharSequence): XML.Tree =
+  def parse_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
   {
-    try { parse(source) }
+    try { parse(source, cache = cache) }
     catch { case ERROR(_) => markup_broken(source) }
   }
 }
