@@ -874,7 +874,7 @@ object Build_Log
         user = user, password = password, database = database, host = host, port = port,
         ssh =
           if (ssh_host == "") None
-          else Some(SSH.open_session(options, host = ssh_host, user = ssh_user, port = port)),
+          else Some(SSH.open_session(options, host = ssh_host, user = ssh_user, port = ssh_port)),
         ssh_close = true)
     }
 
