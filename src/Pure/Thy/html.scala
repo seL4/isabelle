@@ -153,7 +153,6 @@ object HTML
   /* structured markup operators */
 
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
-  val no_text: XML.Tree = XML.Text("")
   val break: XML.Body = List(XML.elem("br"))
   val nl: XML.Body = List(XML.Text("\n"))
 

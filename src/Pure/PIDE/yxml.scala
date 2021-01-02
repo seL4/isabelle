@@ -125,7 +125,7 @@ object YXML
   def parse(source: CharSequence): XML.Tree =
     parse_body(source) match {
       case List(result) => result
-      case Nil => XML.Text("")
+      case Nil => XML.no_text
       case _ => err("multiple XML trees")
     }
 

@@ -67,7 +67,7 @@ object Presentation
     }
 
   private def html_class(c: String, html: XML.Body): XML.Tree =
-    if (html.forall(_ == HTML.no_text)) HTML.no_text
+    if (html.forall(_ == XML.no_text)) XML.no_text
     else if (html_div(html)) HTML.div(c, html)
     else HTML.span(c, html)
 
@@ -77,7 +77,7 @@ object Presentation
         html_class(Markup.Language.DOCUMENT, html_body(body))
       case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(html_body(body))
       case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(html_body(body))
-      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => HTML.no_text
+      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => XML.no_text
       case XML.Elem(Markup.Markdown_List(kind), body) =>
         if (kind == Markup.ENUMERATE) HTML.enum(html_body(body)) else HTML.list(html_body(body))
       case XML.Elem(markup, body) =>

@@ -34,6 +34,7 @@ object XML
   def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
   def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
 
+  val no_text: Text = Text("")
   val newline: Text = Text("\n")
 
 
