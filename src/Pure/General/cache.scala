@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/cache.scala
     Author:     Makarius
 
-cache for partial sharing (weak table).
+Cache for partial sharing (weak table).
 */
 
 package isabelle
