@@ -18,8 +18,8 @@ object YXML
   val X = '\u0005'
   val Y = '\u0006'
 
-  val is_X = (c: Char) => c == X
-  val is_Y = (c: Char) => c == Y
+  val is_X: Char => Boolean = _ == X
+  val is_Y: Char => Boolean = _ == Y
 
   val X_string: String = X.toString
   val Y_string: String = Y.toString
@@ -30,9 +30,9 @@ object YXML
   def detect_elem(s: String): Boolean = s.startsWith(XY_string)
 
 
-  /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
+  /* string representation */
 
-  def traversal(string: String => Unit, body: XML.Body): Unit =
+  def traversal(string: String => Unit, body: XML.Body)
   {
     def tree(t: XML.Tree): Unit =
       t match {
@@ -67,7 +67,8 @@ object YXML
     if (name == "") err("unbalanced element")
     else err("unbalanced element " + quote(name))
 
-  private def parse_attrib(source: CharSequence) = {
+  private def parse_attrib(source: CharSequence): (String, String) =
+  {
     val s = source.toString
     val i = s.indexOf('=')
     if (i <= 0) err_attribute()
@@ -84,7 +85,7 @@ object YXML
 
     def add(x: XML.Tree)
     {
-      (stack: @unchecked) match { case ((_, body) :: _) => body += x }
+      (stack: @unchecked) match { case (_, body) :: _ => body += x }
     }
 
     def push(name: String, atts: XML.Attributes)
@@ -96,8 +97,8 @@ object YXML
     def pop()
     {
       (stack: @unchecked) match {
-        case ((Markup.Empty, _) :: _) => err_unbalanced("")
-        case ((markup, body) :: pending) =>
+        case (Markup.Empty, _) :: _ => err_unbalanced("")
+        case (markup, body) :: pending =>
           stack = pending
           add(XML.Elem(markup, body.toList))
       }
