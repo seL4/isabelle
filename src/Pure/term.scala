@@ -136,7 +136,7 @@ object Term
   object Cache
   {
     def make(
-        max_string: Int = Integer.MAX_VALUE,
+        max_string: Int = isabelle.Cache.default_max_string,
         initial_size: Int = isabelle.Cache.default_initial_size): Cache =
       new Cache(initial_size, max_string)
 
