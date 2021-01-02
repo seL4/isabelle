@@ -45,7 +45,7 @@ class Cache(max_string: Int, initial_size: Int)
 
   protected def store[A](x: A): A =
   {
-    if (table == null) x
+    if (table == null || x == null) x
     else {
       table.put(x, new WeakReference[Any](x))
       x
@@ -54,7 +54,8 @@ class Cache(max_string: Int, initial_size: Int)
 
   protected def cache_string(x: String): String =
   {
-    if (x == "") ""
+    if (x == null) null
+    else if (x == "") ""
     else if (x == "true") "true"
     else if (x == "false") "false"
     else if (x == "0.0") "0.0"
