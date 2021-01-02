@@ -62,7 +62,7 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
       case _ =>
     }
 
-  session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
+  session.start(receiver => new Prover(receiver, session.cache, channel, process))
 
   def await_startup(): Isabelle_Process =
     startup.join match {

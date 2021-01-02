@@ -16,7 +16,9 @@ object Cache
   val default_max_string = 100
   val default_initial_size = 131071
 
-  def make(max_string: Int = default_max_string, initial_size: Int = default_initial_size): Cache =
+  def make(
+      max_string: Int = default_max_string,
+      initial_size: Int = default_initial_size): Cache =
     new Cache(max_string, initial_size)
 
   val none: Cache = make(max_string = 0)

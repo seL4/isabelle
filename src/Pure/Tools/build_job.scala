@@ -25,7 +25,7 @@ object Build_Job
       db_context.get_export(List(session), theory, name)
 
     def read_xml(name: String): XML.Body =
-      db_context.xml_cache.body(YXML.parse_body(
+      db_context.cache.body(YXML.parse_body(
         Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed))))
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
@@ -234,8 +234,7 @@ class Build_Job(progress: Progress,
       val resources = new Resources(sessions_structure, base, command_timings = command_timings0)
       val session =
         new Session(options, resources) {
-          override val xml_cache: XML.Cache = store.xml_cache
-          override val xz_cache: XZ.Cache = store.xz_cache
+          override val cache: XML.Cache = store.cache
 
           override def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
           {
@@ -262,7 +261,7 @@ class Build_Job(progress: Progress,
       }
 
       val export_consumer =
-        Export.consumer(store.open_database(session_name, output = true), store.xz_cache)
+        Export.consumer(store.open_database(session_name, output = true), store.cache)
 
       val stdout = new StringBuilder(1000)
       val stderr = new StringBuilder(1000)

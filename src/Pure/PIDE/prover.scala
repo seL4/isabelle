@@ -64,7 +64,7 @@ object Prover
 
 class Prover(
   receiver: Prover.Receiver,
-  xml_cache: XML.Cache,
+  cache: XML.Cache,
   channel: System_Channel,
   process: Bash.Process) extends Protocol
 {
@@ -77,14 +77,14 @@ class Prover(
 
   private def protocol_output(props: Properties.T, bytes: Bytes)
   {
-    receiver(new Prover.Protocol_Output(xml_cache.props(props), bytes))
+    receiver(new Prover.Protocol_Output(cache.props(props), bytes))
   }
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
   {
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
     val reports = Protocol_Message.reports(props, body)
-    for (msg <- main :: reports) receiver(new Prover.Output(xml_cache.elem(msg)))
+    for (msg <- main :: reports) receiver(new Prover.Output(cache.elem(msg)))
   }
 
   private def exit_message(result: Process_Result)

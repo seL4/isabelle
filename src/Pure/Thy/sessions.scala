@@ -1203,8 +1203,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val store: Sessions.Store,
     database_server: Option[SQL.Database]) extends AutoCloseable
   {
-    def xml_cache: XML.Cache = store.xml_cache
-    def xz_cache: XZ.Cache = store.xz_cache
+    def cache: XML.Cache = store.cache
 
     def close { database_server.foreach(_.close) }
 
@@ -1231,12 +1230,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         database_server match {
           case Some(db) =>
             sessions.view.map(session_name =>
-              Export.read_entry(db, store.xz_cache, session_name, theory_name, name))
+              Export.read_entry(db, store.cache, session_name, theory_name, name))
           case None =>
             sessions.view.map(session_name =>
               store.try_open_database(session_name) match {
                 case Some(db) =>
-                  using(db)(Export.read_entry(_, store.xz_cache, session_name, theory_name, name))
+                  using(db)(Export.read_entry(_, store.cache, session_name, theory_name, name))
                 case None => None
               })
         }
@@ -1259,15 +1258,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
   }
 
-  def store(options: Options,
-      xml_cache: XML.Cache = XML.Cache.make(),
-      xz_cache: XZ.Cache = XZ.Cache.make()): Store =
-    new Store(options, xml_cache, xz_cache)
+  def store(options: Options, cache: XML.Cache = XML.Cache.make()): Store =
+    new Store(options, cache)
 
-  class Store private[Sessions](
-    val options: Options,
-    val xml_cache: XML.Cache,
-    val xz_cache: XZ.Cache)
+  class Store private[Sessions](val options: Options, val cache: XML.Cache)
   {
     store =>
 
@@ -1407,8 +1401,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       })
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
-      Properties.uncompress(
-        read_bytes(db, name, column), cache = xz_cache, xml_cache = xml_cache)
+      Properties.uncompress(read_bytes(db, name, column), cache = cache)
 
 
     /* session info */
@@ -1459,11 +1452,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         {
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
-          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = xz_cache)
-          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = xz_cache)
-          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = xz_cache)
-          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = xz_cache)
-          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = xz_cache)
+          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.xz)
+          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.xz)
+          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.xz)
+          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.xz)
+          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.xz)
           stmt.string(8) = build.sources
           stmt.string(9) = cat_lines(build.input_heaps)
           stmt.string(10) = build.output_heap getOrElse ""
@@ -1474,7 +1467,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def read_session_timing(db: SQL.Database, name: String): Properties.T =
-      Properties.decode(read_bytes(db, name, Session_Info.session_timing), xml_cache = xml_cache)
+      Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache)
 
     def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.command_timings)
@@ -1492,7 +1485,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       read_theory_timings(db, name).flatMap(Markup.Name.unapply)
 
     def read_errors(db: SQL.Database, name: String): List[String] =
-      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = xz_cache)
+      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache.xz)
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
     {

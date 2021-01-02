@@ -144,7 +144,7 @@ object Term
   }
 
   class Cache private[Term](max_string: Int, initial_size: Int)
-    extends isabelle.Cache(max_string = max_string, initial_size = initial_size)
+    extends isabelle.Cache(max_string, initial_size)
   {
     protected def cache_indexname(x: Indexname): Indexname =
       lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))

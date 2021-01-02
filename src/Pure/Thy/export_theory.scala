@@ -41,8 +41,8 @@ object Export_Theory
             for (theory <- Export.read_theory_names(db, session))
             yield {
               progress.echo("Reading theory " + theory)
-              read_theory(Export.Provider.database(db, store.xz_cache, session, theory),
-                session, theory, cache = cache)
+              val provider = Export.Provider.database(db, store.cache, session, theory)
+              read_theory(provider, session, theory, cache = cache)
             }
           }
         }))
@@ -145,8 +145,8 @@ object Export_Theory
     using(store.open_database(session_name))(db =>
     {
       db.transaction {
-        read(Export.Provider.database(
-          db, store.xz_cache, session_name, theory_name), session_name, theory_name)
+        val provider = Export.Provider.database(db, store.cache, session_name, theory_name)
+        read(provider, session_name, theory_name)
       }
     })
   }

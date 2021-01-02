@@ -85,7 +85,7 @@ object Export
   def compound_name(a: String, b: String): String = a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
-    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XZ.Cache.none)
+    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XML.Cache.none)
 
   sealed case class Entry(
     session_name: String,
@@ -93,7 +93,7 @@ object Export
     name: String,
     executable: Boolean,
     body: Future[(Boolean, Bytes)],
-    cache: XZ.Cache)
+    cache: XML.Cache)
   {
     override def toString: String = name
 
@@ -110,7 +110,7 @@ object Export
     def uncompressed: Bytes =
     {
       val (compressed, bytes) = body.join
-      if (compressed) bytes.uncompress(cache = cache) else bytes
+      if (compressed) bytes.uncompress(cache = cache.xz) else bytes
     }
 
     def uncompressed_yxml: XML.Body =
@@ -158,17 +158,15 @@ object Export
   }
 
   def make_entry(
-    session_name: String, args: Protocol.Export.Args, bytes: Bytes,
-    cache: XZ.Cache): Entry =
+    session_name: String, args: Protocol.Export.Args, bytes: Bytes, cache: XML.Cache): Entry =
   {
     val body =
-      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache))
+      if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.xz))
       else Future.value((false, bytes))
     Entry(session_name, args.theory_name, args.name, args.executable, body, cache)
   }
 
-  def read_entry(
-    db: SQL.Database, cache: XZ.Cache,
+  def read_entry(db: SQL.Database, cache: XML.Cache,
     session_name: String, theory_name: String, name: String): Option[Entry] =
   {
     val select =
@@ -188,8 +186,7 @@ object Export
     })
   }
 
-  def read_entry(
-    dir: Path, cache: XZ.Cache,
+  def read_entry(dir: Path, cache: XML.Cache,
     session_name: String, theory_name: String, name: String): Option[Entry] =
   {
     val path = dir + Path.basic(theory_name) + Path.explode(name)
@@ -205,9 +202,9 @@ object Export
 
   /* database consumer thread */
 
-  def consumer(db: SQL.Database, cache: XZ.Cache): Consumer = new Consumer(db, cache)
+  def consumer(db: SQL.Database, cache: XML.Cache): Consumer = new Consumer(db, cache)
 
-  class Consumer private[Export](db: SQL.Database, cache: XZ.Cache)
+  class Consumer private[Export](db: SQL.Database, cache: XML.Cache)
   {
     private val errors = Synchronized[List[String]](Nil)
 
@@ -271,9 +268,9 @@ object Export
         override def toString: String = context.toString
       }
 
-    def database(
-        db: SQL.Database, cache: XZ.Cache,
-        session_name: String, theory_name: String): Provider =
+    def database(db: SQL.Database, cache: XML.Cache, session_name: String, theory_name: String)
+      : Provider =
+    {
       new Provider {
         def apply(export_name: String): Option[Entry] =
           read_entry(db, cache, session_name, theory_name, export_name)
@@ -284,6 +281,7 @@ object Export
 
         override def toString: String = db.toString
       }
+    }
 
     def snapshot(snapshot: Document.Snapshot): Provider =
       new Provider {
@@ -302,9 +300,9 @@ object Export
         override def toString: String = snapshot.toString
       }
 
-    def directory(
-        dir: Path, cache: XZ.Cache,
-        session_name: String, theory_name: String): Provider =
+    def directory(dir: Path, cache: XML.Cache, session_name: String, theory_name: String)
+      : Provider =
+    {
       new Provider {
         def apply(export_name: String): Option[Entry] =
           read_entry(dir, cache, session_name, theory_name, export_name)
@@ -315,6 +313,7 @@ object Export
 
         override def toString: String = dir.toString
       }
+    }
   }
 
   trait Provider
@@ -364,7 +363,7 @@ object Export
           for {
             (theory_name, group) <- exports.toList.groupBy(_._1).toList.sortBy(_._1)
             name <- group.map(_._2).sorted
-            entry <- read_entry(db, store.xz_cache, session_name, theory_name, name)
+            entry <- read_entry(db, store.cache, session_name, theory_name, name)
           } {
             val elems = theory_name :: space_explode('/', name)
             val path =

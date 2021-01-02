@@ -290,7 +290,7 @@ object Command
         other_id: (Document.Node.Name, Document_ID.Generic) =>
           Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
         message: XML.Elem,
-        xml_cache: XML.Cache): State =
+        cache: XML.Cache): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
@@ -329,7 +329,7 @@ object Command
                           target_chunk.incorporate(symbol_range) match {
                             case Some(range) =>
                               val props = atts.filterNot(Markup.position_property)
-                              val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
+                              val elem = cache.elem(XML.Elem(Markup(name, props), args))
                               state.add_markup(false, target_name, Text.Info(range, elem))
                             case None => bad(); state
                           }
@@ -348,9 +348,9 @@ object Command
           props match {
             case Markup.Serial(i) =>
               val markup_message =
-                xml_cache.elem(XML.Elem(Markup(Markup.message(name), props), body))
+                cache.elem(XML.Elem(Markup(Markup.message(name), props), body))
               val message_markup =
-                xml_cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
+                cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
 
               var st = add_result(i -> markup_message)
               if (Protocol.is_inlined(message)) {

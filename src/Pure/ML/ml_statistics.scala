@@ -99,7 +99,7 @@ object ML_Statistics
     private def consume(props: Properties.T): Unit = synchronized
     {
       if (session != null) {
-        val props1 = (session.xml_cache.props(props ::: Java_Statistics.jvm_statistics()))
+        val props1 = (session.cache.props(props ::: Java_Statistics.jvm_statistics()))
         session.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }

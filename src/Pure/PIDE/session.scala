@@ -127,8 +127,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 {
   session =>
 
-  val xml_cache: XML.Cache = XML.Cache.make()
-  val xz_cache: XZ.Cache = XZ.Cache.make()
+  val cache: XML.Cache = XML.Cache.make()
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info =
     Command.Blobs_Info.none
@@ -496,7 +495,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
                 command_timings.post(Session.Command_Timing(props))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
-                change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
+                change_command(_.accumulate(state_id, cache.elem(message), cache))
 
               case Markup.Theory_Timing(props) =>
                 theory_timings.post(Session.Theory_Timing(props))
@@ -507,7 +506,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
-                val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
+                val export = Export.make_entry("", args, msg.bytes, cache)
                 change_command(_.add_export(id, (args.serial, export)))
 
               case Protocol.Loading_Theory(node_name, id) =>
@@ -519,7 +518,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 msg.text match {
                   case Protocol.Commands_Accepted(ids) =>
                     ids.foreach(id =>
-                      change_command(_.accumulate(id, Protocol.Commands_Accepted.message, xml_cache)))
+                      change_command(_.accumulate(id, Protocol.Commands_Accepted.message, cache)))
                   case _ => bad_output()
                 }
 
@@ -554,7 +553,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         case _ =>
           output.properties match {
             case Position.Id(state_id) =>
-              change_command(_.accumulate(state_id, output.message, xml_cache))
+              change_command(_.accumulate(state_id, output.message, cache))
 
             case _ if output.is_init =>
               val init_ok =

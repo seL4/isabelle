@@ -286,8 +286,7 @@ object Build_Status
             val ml_stats =
               ML_Statistics(
                 if (ml_statistics) {
-                  Properties.uncompress(
-                    res.bytes(Build_Log.Data.ml_statistics), cache = store.xz_cache)
+                  Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics), cache = store.cache)
                 }
                 else Nil,
                 domain = ml_statistics_domain,
@@ -320,8 +319,8 @@ object Build_Status
                 stored_heap = ML_Statistics.mem_scale(res.long(Build_Log.Data.heap_size)),
                 status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
                 errors =
-                  Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors),
-                    cache = store.xz_cache))
+                  Build_Log.uncompress_errors(
+                    res.bytes(Build_Log.Data.errors), cache = store.cache.xz))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val session =

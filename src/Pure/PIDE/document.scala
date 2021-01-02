@@ -931,12 +931,12 @@ object Document
       (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
         graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id) })
 
-    def accumulate(id: Document_ID.Generic, message: XML.Elem, xml_cache: XML.Cache)
+    def accumulate(id: Document_ID.Generic, message: XML.Elem, cache: XML.Cache)
       : (Command.State, State) =
     {
       def update(st: Command.State): (Command.State, State) =
       {
-        val st1 = st.accumulate(self_id(st), other_id, message, xml_cache)
+        val st1 = st.accumulate(self_id(st), other_id, message, cache)
         (st1, copy(commands_redirection = redirection(st1)))
       }
       execs.get(id).map(update) match {

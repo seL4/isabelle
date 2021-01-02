@@ -133,7 +133,7 @@ object Debugger
           Symbol.decode_yxml_failsafe(UTF8.decode_permissive(msg.bytes)) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = XML.Elem(Markup(Markup.message(name), props), body)
-              debugger.add_output(thread_name, i -> session.xml_cache.elem(message))
+              debugger.add_output(thread_name, i -> session.cache.elem(message))
               true
             case _ => false
           }
