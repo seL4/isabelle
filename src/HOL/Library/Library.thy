@@ -1,4 +1,4 @@
-  (*<*)
+(*<*)
 theory Library
 imports
   AList
