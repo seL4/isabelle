@@ -655,10 +655,11 @@ object Build_Log
         compress(cache = cache))
     }
 
-  def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.Cache()): List[String] =
+  def uncompress_errors(bytes: Bytes, cache: XML.Cache = XML.Cache.make()): List[String] =
     if (bytes.is_empty) Nil
     else {
-      XML.Decode.list(YXML.string_of_body)(YXML.parse_body(bytes.uncompress(cache = cache).text))
+      XML.Decode.list(YXML.string_of_body)(
+        YXML.parse_body(bytes.uncompress(cache = cache.xz).text, cache = cache))
     }
 
 
@@ -1158,7 +1159,7 @@ object Build_Log
                 sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName),
-                errors = uncompress_errors(res.bytes(Data.errors), cache = cache.xz),
+                errors = uncompress_errors(res.bytes(Data.errors), cache = cache),
                 ml_statistics =
                   if (ml_statistics) {
                     Properties.uncompress(res.bytes(Data.ml_statistics), cache = cache)

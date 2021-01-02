@@ -114,7 +114,7 @@ object Export
     }
 
     def uncompressed_yxml: XML.Body =
-      YXML.parse_body(UTF8.decode_permissive(uncompressed))
+      YXML.parse_body(UTF8.decode_permissive(uncompressed), cache = cache)
 
     def write(db: SQL.Database)
     {

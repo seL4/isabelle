@@ -1485,7 +1485,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       read_theory_timings(db, name).flatMap(Markup.Name.unapply)
 
     def read_errors(db: SQL.Database, name: String): List[String] =
-      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache.xz)
+      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
     {

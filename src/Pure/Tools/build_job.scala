@@ -25,8 +25,9 @@ object Build_Job
       db_context.get_export(List(session), theory, name)
 
     def read_xml(name: String): XML.Body =
-      db_context.cache.body(YXML.parse_body(
-        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed))))
+      YXML.parse_body(
+        Symbol.output(unicode_symbols, UTF8.decode_permissive(read(name).uncompressed)),
+        cache = db_context.cache)
 
     (read(Export.DOCUMENT_ID).text, split_lines(read(Export.FILES).text)) match {
       case (Value.Long(id), thy_file :: blobs_files) =>

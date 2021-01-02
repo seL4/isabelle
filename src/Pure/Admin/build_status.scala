@@ -320,7 +320,7 @@ object Build_Status
                 status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
                 errors =
                   Build_Log.uncompress_errors(
-                    res.bytes(Build_Log.Data.errors), cache = store.cache.xz))
+                    res.bytes(Build_Log.Data.errors), cache = store.cache))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val session =
