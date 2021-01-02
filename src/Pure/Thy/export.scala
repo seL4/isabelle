@@ -85,7 +85,7 @@ object Export
   def compound_name(a: String, b: String): String = a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
-    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XZ.no_cache())
+    Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XZ.Cache.none)
 
   sealed case class Entry(
     session_name: String,

@@ -7,30 +7,49 @@ Cache for partial sharing (weak table).
 package isabelle
 
 
-import java.util.{Collections, WeakHashMap}
+import java.util.{Collections, WeakHashMap, Map => JMap}
 import java.lang.ref.WeakReference
 
 
-class Cache(initial_size: Int = 131071, max_string: Int = 100)
+object Cache
 {
-  private val table =
-    Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
+  val default_max_string = 100
+  val default_initial_size = 131071
 
-  def size: Int = table.size
+  def make(max_string: Int = default_max_string, initial_size: Int = default_initial_size): Cache =
+    new Cache(max_string, initial_size)
 
-  override def toString: String = "Cache(" + size + ")"
+  val none: Cache = make(max_string = 0)
+}
+
+class Cache(max_string: Int, initial_size: Int)
+{
+  val no_cache: Boolean = max_string == 0
+
+  private val table: JMap[Any, WeakReference[Any]] =
+    if (max_string == 0) null
+    else  Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
+
+  override def toString: String =
+    if (no_cache) "Cache.none" else "Cache(size = " + table.size + ")"
 
   protected def lookup[A](x: A): Option[A] =
   {
-    val ref = table.get(x)
-    if (ref == null) None
-    else Option(ref.asInstanceOf[WeakReference[A]].get)
+    if (table == null) None
+    else {
+      val ref = table.get(x)
+      if (ref == null) None
+      else Option(ref.asInstanceOf[WeakReference[A]].get)
+    }
   }
 
   protected def store[A](x: A): A =
   {
-    table.put(x, new WeakReference[Any](x))
-    x
+    if (table == null) x
+    else {
+      table.put(x, new WeakReference[Any](x))
+      x
+    }
   }
 
   protected def cache_string(x: String): String =
@@ -51,5 +70,6 @@ class Cache(initial_size: Int = 131071, max_string: Int = 100)
   }
 
   // main methods
-  def string(x: String): String = synchronized { cache_string(x) }
+  def string(x: String): String =
+    if (no_cache) x else synchronized { cache_string(x) }
 }

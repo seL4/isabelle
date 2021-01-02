@@ -28,7 +28,10 @@ object XZ
 
   type Cache = ArrayCache
 
-  def no_cache(): ArrayCache = ArrayCache.getDummyCache()
-  def cache(): ArrayCache = ArrayCache.getDefaultCache()
-  def make_cache(): ArrayCache = new BasicArrayCache
+  object Cache
+  {
+    def none: ArrayCache = ArrayCache.getDummyCache()
+    def apply(): ArrayCache = ArrayCache.getDefaultCache()
+    def make(): ArrayCache = new BasicArrayCache
+  }
 }

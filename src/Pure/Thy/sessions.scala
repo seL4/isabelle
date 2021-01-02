@@ -1259,16 +1259,19 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
   }
 
-  def store(options: Options): Store = new Store(options)
+  def store(options: Options,
+      xml_cache: XML.Cache = XML.Cache.make(),
+      xz_cache: XZ.Cache = XZ.Cache.make()): Store =
+    new Store(options, xml_cache, xz_cache)
 
-  class Store private[Sessions](val options: Options)
+  class Store private[Sessions](
+    val options: Options,
+    val xml_cache: XML.Cache,
+    val xz_cache: XZ.Cache)
   {
     store =>
 
     override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
-
-    val xml_cache: XML.Cache = XML.make_cache()
-    val xz_cache: XZ.Cache = XZ.make_cache()
 
 
     /* directories */
@@ -1405,7 +1408,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
       Properties.uncompress(
-        read_bytes(db, name, column), cache = xz_cache, xml_cache = Some(xml_cache))
+        read_bytes(db, name, column), cache = xz_cache, xml_cache = xml_cache)
 
 
     /* session info */
@@ -1471,7 +1474,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def read_session_timing(db: SQL.Database, name: String): Properties.T =
-      Properties.decode(read_bytes(db, name, Session_Info.session_timing), Some(xml_cache))
+      Properties.decode(read_bytes(db, name, Session_Info.session_timing), xml_cache = xml_cache)
 
     def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.command_timings)

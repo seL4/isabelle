@@ -170,11 +170,18 @@ object XML
 
   /** cache **/
 
-  def make_cache(initial_size: Int = 131071, max_string: Int = 100): Cache =
-    new Cache(initial_size, max_string)
+  object Cache
+  {
+    def make(
+        max_string: Int = isabelle.Cache.default_max_string,
+        initial_size: Int = isabelle.Cache.default_initial_size): Cache =
+      new Cache(max_string, initial_size)
 
-  class Cache private[XML](initial_size: Int, max_string: Int)
-    extends isabelle.Cache(initial_size, max_string)
+    val none: Cache = make(max_string = 0)
+  }
+
+  class Cache private[XML](max_string: Int, initial_size: Int)
+    extends isabelle.Cache(max_string, initial_size)
   {
     protected def cache_props(x: Properties.T): Properties.T =
     {
@@ -222,11 +229,16 @@ object XML
     }
 
     // main methods
-    def props(x: Properties.T): Properties.T = synchronized { cache_props(x) }
-    def markup(x: Markup): Markup = synchronized { cache_markup(x) }
-    def tree(x: XML.Tree): XML.Tree = synchronized { cache_tree(x) }
-    def body(x: XML.Body): XML.Body = synchronized { cache_body(x) }
-    def elem(x: XML.Elem): XML.Elem = synchronized { cache_tree(x).asInstanceOf[XML.Elem] }
+    def props(x: Properties.T): Properties.T =
+      if (no_cache) x else synchronized { cache_props(x) }
+    def markup(x: Markup): Markup =
+      if (no_cache) x else synchronized { cache_markup(x) }
+    def tree(x: XML.Tree): XML.Tree =
+      if (no_cache) x else synchronized { cache_tree(x) }
+    def body(x: XML.Body): XML.Body =
+      if (no_cache) x else synchronized { cache_body(x) }
+    def elem(x: XML.Elem): XML.Elem =
+      if (no_cache) x else synchronized { cache_tree(x).asInstanceOf[XML.Elem] }
   }
 
 

@@ -37,18 +37,12 @@ object Properties
 
   def encode(ps: T): Bytes = Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
 
-  def decode(bs: Bytes, xml_cache: Option[XML.Cache] = None): T =
-  {
-    val ps = XML.Decode.properties(YXML.parse_body(bs.text))
-    xml_cache match {
-      case None => ps
-      case Some(cache) => cache.props(ps)
-    }
-  }
+  def decode(bs: Bytes, xml_cache: XML.Cache = XML.Cache.none): T =
+    xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
 
   def compress(ps: List[T],
     options: XZ.Options = XZ.options(),
-    cache: XZ.Cache = XZ.cache()): Bytes =
+    cache: XZ.Cache = XZ.Cache()): Bytes =
   {
     if (ps.isEmpty) Bytes.empty
     else {
@@ -58,17 +52,14 @@ object Properties
   }
 
   def uncompress(bs: Bytes,
-    cache: XZ.Cache = XZ.cache(),
-    xml_cache: Option[XML.Cache] = None): List[T] =
+    cache: XZ.Cache = XZ.Cache(),
+    xml_cache: XML.Cache = XML.Cache.none): List[T] =
   {
     if (bs.is_empty) Nil
     else {
       val ps =
         XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress(cache = cache).text))
-      xml_cache match {
-        case None => ps
-        case Some(cache) => ps.map(cache.props)
-      }
+      if (xml_cache.no_cache) ps else ps.map(xml_cache.props)
     }
   }
 

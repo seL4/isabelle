@@ -31,7 +31,7 @@ object Export_Theory
     sessions_structure: Sessions.Structure,
     session_name: String,
     progress: Progress = new Progress,
-    cache: Term.Cache = Term.make_cache()): Session =
+    cache: Term.Cache = Term.Cache.make()): Session =
   {
     val thys =
       sessions_structure.build_requirements(List(session_name)).flatMap(session =>
@@ -42,7 +42,7 @@ object Export_Theory
             yield {
               progress.echo("Reading theory " + theory)
               read_theory(Export.Provider.database(db, store.xz_cache, session, theory),
-                session, theory, cache = Some(cache))
+                session, theory, cache = cache)
             }
           }
         }))
@@ -107,7 +107,7 @@ object Export_Theory
   }
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
-    cache: Option[Term.Cache] = None): Theory =
+    cache: Term.Cache = Term.Cache.none): Theory =
   {
     val parents =
       if (theory_name == Thy_Header.PURE) Nil
@@ -134,7 +134,7 @@ object Export_Theory
         read_typedefs(provider),
         read_datatypes(provider),
         read_spec_rules(provider))
-    if (cache.isDefined) theory.cache(cache.get) else theory
+    if (cache.no_cache) theory else theory.cache(cache)
   }
 
   def read_pure[A](store: Sessions.Store, read: (Export.Provider, String, String) => A): A =
@@ -151,11 +151,11 @@ object Export_Theory
     })
   }
 
-  def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
+  def read_pure_theory(store: Sessions.Store, cache: Term.Cache = Term.Cache.none): Theory =
     read_pure(store, read_theory(_, _, _, cache = cache))
 
   def read_pure_proof(
-      store: Sessions.Store, id: Thm_Id, cache: Option[Term.Cache] = None): Option[Proof] =
+      store: Sessions.Store, id: Thm_Id, cache: Term.Cache = Term.Cache.none): Option[Proof] =
     read_pure(store, (provider, _, _) => read_proof(provider, id, cache = cache))
 
 
@@ -375,7 +375,7 @@ object Export_Theory
   }
 
   def read_proof(
-    provider: Export.Provider, id: Thm_Id, cache: Option[Term.Cache] = None): Option[Proof] =
+    provider: Export.Provider, id: Thm_Id, cache: Term.Cache = Term.Cache.none): Option[Proof] =
   {
     for { entry <- provider.focus(id.theory_name)(Export.PROOFS_PREFIX + id.serial) }
     yield {
@@ -391,7 +391,7 @@ object Export_Theory
       val proof = Term_XML.Decode.proof_env(env)(proof_body)
 
       val result = Proof(typargs, args, prop, proof)
-      cache.map(result.cache(_)) getOrElse result
+      if (cache.no_cache) result else result.cache(cache)
     }
   }
 
@@ -400,7 +400,7 @@ object Export_Theory
     provider: Export.Provider,
     proof: Term.Proof,
     suppress: Thm_Id => Boolean = _ => false,
-    cache: Option[Term.Cache] = None): List[(Thm_Id, Proof)] =
+    cache: Term.Cache = Term.Cache.none): List[(Thm_Id, Proof)] =
   {
     var seen = Set.empty[Long]
     var result = SortedMap.empty[Long, (Thm_Id, Proof)]

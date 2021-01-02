@@ -244,7 +244,7 @@ object Build_Log
 
     /* properties (YXML) */
 
-    val xml_cache: XML.Cache = XML.make_cache()
+    val xml_cache: XML.Cache = XML.Cache.make()
 
     def parse_props(text: String): Properties.T =
       try { xml_cache.props(XML.Decode.properties(YXML.parse_body(text))) }
@@ -648,14 +648,14 @@ object Build_Log
       errors = log_file.filter(Protocol.Error_Message_Marker))
   }
 
-  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.cache()): Option[Bytes] =
+  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.Cache()): Option[Bytes] =
     if (errors.isEmpty) None
     else {
       Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).
         compress(cache = cache))
     }
 
-  def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.cache()): List[String] =
+  def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.Cache()): List[String] =
     if (bytes.is_empty) Nil
     else {
       XML.Decode.list(YXML.string_of_body)(YXML.parse_body(bytes.uncompress(cache = cache).text))
@@ -850,13 +850,16 @@ object Build_Log
 
   /* database access */
 
-  def store(options: Options): Store = new Store(options)
+  def store(options: Options,
+      xml_cache: XML.Cache = XML.Cache.make(),
+      xz_cache: XZ.Cache = XZ.Cache.make()): Store =
+    new Store(options, xml_cache, xz_cache)
 
-  class Store private[Build_Log](options: Options)
+  class Store private[Build_Log](
+    options: Options,
+    val xml_cache: XML.Cache,
+    val xz_cache: XZ.Cache)
   {
-    val xml_cache: XML.Cache = XML.make_cache()
-    val xz_cache: XZ.Cache = XZ.make_cache()
-
     def open_database(
       user: String = options.string("build_log_database_user"),
       password: String = options.string("build_log_database_password"),
@@ -1164,7 +1167,7 @@ object Build_Log
                 ml_statistics =
                   if (ml_statistics) {
                     Properties.uncompress(
-                      res.bytes(Data.ml_statistics), cache = xz_cache, Some(xml_cache))
+                      res.bytes(Data.ml_statistics), cache = xz_cache, xml_cache = xml_cache)
                   }
                   else Nil)
             session_name -> session_entry
