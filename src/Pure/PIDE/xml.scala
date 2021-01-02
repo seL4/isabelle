@@ -20,6 +20,9 @@ object XML
   type Body = List[Tree]
   case class Elem(markup: Markup, body: Body) extends Tree
   {
+    private lazy val hash: Int = (markup, body).hashCode()
+    override def hashCode(): Int = hash
+
     def name: String = markup.name
 
     def update_attributes(more_attributes: Attributes): Elem =
@@ -29,6 +32,10 @@ object XML
     def + (att: Attribute): Elem = Elem(markup + att, body)
   }
   case class Text(content: String) extends Tree
+  {
+    private lazy val hash: Int = content.hashCode()
+    override def hashCode(): Int = hash
+  }
 
   def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
   def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
