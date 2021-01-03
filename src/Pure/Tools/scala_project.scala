@@ -38,6 +38,7 @@ object Scala_Project
           List(
             Path.explode("~~/lib/classes/Pure.shasum"),
             Path.explode("~~/src/Tools/jEdit/dist/Isabelle-jEdit.shasum"))
+        if path.is_file
         line <- Library.trim_split_lines(File.read(path))
         name =
           if (line.length > 42 && line(41) == '*') line.substring(42)
