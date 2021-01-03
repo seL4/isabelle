@@ -204,14 +204,24 @@ object GUI
 
   sealed case class Screen_Size(bounds: Rectangle, insets: Insets)
   {
-    def x0: Int = bounds.x
-    def y0: Int = bounds.y
-    def w0: Int = bounds.width
-    def h0: Int = bounds.height
-    def x: Int = x0 + insets.left
-    def y: Int = y0 + insets.top
-    def w: Int = w0 - insets.left - insets.right
-    def h: Int = h0 - insets.top - insets.bottom
+    def full_screen_bounds: Rectangle =
+      if (Platform.is_linux) {
+        // avoid menu bar and docking areas
+        new Rectangle(
+          bounds.x + insets.left,
+          bounds.y + insets.top,
+          bounds.width - insets.left - insets.right,
+          bounds.height - insets.top - insets.bottom)
+      }
+      else if (Platform.is_macos) {
+        // avoid menu bar, but ignore docking areas
+        new Rectangle(
+          bounds.x,
+          bounds.y + insets.top,
+          bounds.width,
+          bounds.height - insets.top)
+      }
+      else bounds
   }
 
   def screen_size(component: Component): Screen_Size =
