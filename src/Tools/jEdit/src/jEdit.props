@@ -260,6 +260,7 @@ isabelle.toggle-continuous-checking.label=Toggle continuous checking
 isabelle.toggle-continuous-checking.shortcut=C+e ENTER
 isabelle.toggle-full-screen.label=Toggle full-screen mode
 isabelle.toggle-full-screen.shortcut=F11
+isabelle.toggle-full-screen.shortcut2=S+F11
 isabelle.toggle-node-required.label=Toggle node required
 isabelle.toggle-node-required.shortcut=C+e SPACE
 isabelle.tooltip.label=Show tooltip
