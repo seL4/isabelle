@@ -56,6 +56,13 @@ object Presentation
 
   /* HTML body */
 
+  val html_elements1: Markup.Elements =
+    Rendering.foreground_elements ++ Rendering.text_color_elements +
+      Markup.NUMERAL + Markup.COMMENT
+
+  val html_elements2: Markup.Elements =
+    html_elements1 ++ Rendering.markdown_elements + Markup.LANGUAGE
+
   private val div_elements =
     Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
       HTML.descr.name)
@@ -100,14 +107,11 @@ object Presentation
 
   /* PIDE HTML document */
 
-  val html_elements: Markup.Elements =
-    Rendering.foreground_elements ++ Rendering.text_color_elements ++ Rendering.markdown_elements +
-      Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE
-
   def html_document(
     resources: Resources,
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
+    html_elements: Markup.Elements,
     plain_text: Boolean = false): HTML_Document =
   {
     require(!snapshot.is_outdated)
@@ -377,6 +381,7 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
+    html_elements: Markup.Elements,
     presentation: Context)
   {
     val info = deps.sessions_structure(session)
