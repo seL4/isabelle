@@ -6,8 +6,8 @@ Basic GUI tools (for AWT/Swing).
 
 package isabelle
 
-import java.awt.{Component, Container, Font, Image, KeyboardFocusManager, Window, Point,
-  Rectangle, Dimension, GraphicsEnvironment, MouseInfo}
+import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
+  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
@@ -198,6 +198,29 @@ object GUI
 
   def mouse_location(): Screen_Location =
     screen_location(null, MouseInfo.getPointerInfo.getLocation)
+
+
+  /* screen size */
+
+  sealed case class Screen_Size(bounds: Rectangle, insets: Insets)
+  {
+    def x0: Int = bounds.x
+    def y0: Int = bounds.y
+    def w0: Int = bounds.width
+    def h0: Int = bounds.height
+    def x: Int = x0 + insets.left
+    def y: Int = y0 + insets.top
+    def w: Int = w0 - insets.left - insets.right
+    def h: Int = h0 - insets.top - insets.bottom
+  }
+
+  def screen_size(component: Component): Screen_Size =
+  {
+    val config = component.getGraphicsConfiguration
+    val bounds = config.getBounds
+    val insets = Toolkit.getDefaultToolkit.getScreenInsets(config)
+    Screen_Size(bounds, insets)
+  }
 
 
   /* component hierachy */
