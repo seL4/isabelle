@@ -9,12 +9,13 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Frame, Point}
+import java.awt.{Point, Frame, Rectangle}
 
 import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
-import org.gjt.sp.jedit.{jEdit, View, Buffer}
+import org.gjt.sp.jedit.{jEdit, View, Buffer, EditBus}
+import org.gjt.sp.jedit.msg.ViewUpdate
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
@@ -225,6 +226,32 @@ object Isabelle
   def set_node_required(view: View) { Document_Model.view_node_required(view, set = true) }
   def reset_node_required(view: View) { Document_Model.view_node_required(view, set = false) }
   def toggle_node_required(view: View) { Document_Model.view_node_required(view, toggle = true) }
+
+
+  /* full screen */
+
+  // see toggleFullScreen() method in jEdit/org/gjt/sp/jedit/View.java
+  def toggle_full_screen(view: View)
+  {
+    if (Untyped.get[Boolean](view, "fullScreenMode")) view.toggleFullScreen()
+    else {
+      Untyped.set[Boolean](view, "fullScreenMode", true)
+      val screen = GUI.screen_size(view)
+      view.dispose()
+
+      view.updateFullScreenProps()
+      Untyped.set[Rectangle](view, "windowedBounds", view.getBounds)
+      view.setUndecorated(true)
+      view.setBounds(screen.full_screen_bounds)
+      view.validate()
+
+      view.setVisible(true)
+      view.toFront()
+      view.closeAllMenus()
+      view.getEditPane.getTextArea.requestFocus()
+      EditBus.send(new ViewUpdate(view, ViewUpdate.FULL_SCREEN_TOGGLED))
+    }
+  }
 
 
   /* font size */
