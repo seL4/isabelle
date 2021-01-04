@@ -405,7 +405,7 @@ object Presentation
         doc
       }
 
-    val links =
+    val view_links =
     {
       val deps_link =
         HTML.link(session_graph_path, HTML.text("theory dependencies"))
@@ -519,7 +519,7 @@ object Presentation
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
       List(HTML.title(title + " (" + Distribution.version + ")")),
-      html_context.head(title, List(HTML.par(links))) ::
+      html_context.head(title, List(HTML.par(view_links))) ::
         html_context.contents("Theories", theories))
   }
 
