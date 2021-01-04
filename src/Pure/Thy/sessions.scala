@@ -476,6 +476,11 @@ object Sessions
   {
     def chapter_session: String = chapter + "/" + name
 
+    def relative_path(info1: Info): String =
+      if (name == info1.name) ""
+      else if (chapter == info1.chapter) "../" + info1.name + "/"
+      else "../../" + info1.chapter_session + "/"
+
     def deps: List[String] = parent.toList ::: imports
 
     def deps_base(session_bases: String => Base): Base =

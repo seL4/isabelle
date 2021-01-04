@@ -348,6 +348,15 @@ object Presentation
 
   def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
 
+  def theory_link(deps: Sessions.Deps, session0: String,
+    name: Document.Node.Name, body: XML.Body): XML.Tree =
+  {
+    val session1 = deps(session0).theory_qualifier(name)
+    val info0 = deps.sessions_structure(session0)
+    val info1 = deps.sessions_structure(session1)
+    HTML.link(info0.relative_path(info1) + html_name(name), body)
+  }
+
   def token_markups(keywords: Keyword.Keywords, tok: Token): List[String] = {
     if (keywords.is_command(tok, Keyword.theory_end))
       List(Markup.KEYWORD2, Markup.KEYWORD)
@@ -425,17 +434,6 @@ object Presentation
           map(link => HTML.text("View ") ::: List(link))).flatten
     }
 
-    def theory_link(name1: Document.Node.Name, body: XML.Body): XML.Tree =
-    {
-      val session1 = base.theory_qualifier(name1)
-      val info1 = deps.sessions_structure(session1)
-      val prefix =
-        if (session == session1) ""
-        else if (info.chapter == info1.chapter) "../" + session1 + "/"
-        else "../../" + info1.chapter_session + "/"
-      HTML.link(prefix + html_name(name1), body)
-    }
-
     val theories: List[XML.Body] =
     {
       var seen_files = List.empty[(Path, String, Document.Node.Name)]
@@ -461,7 +459,7 @@ object Presentation
               val text = HTML.text(tok.source)
               val item =
                 if (is_init && imports_offset.isDefinedAt(token_offset)) {
-                  List(theory_link(imports_offset(token_offset), text))
+                  List(theory_link(deps, session, imports_offset(token_offset), text))
                 }
                 else text
 
