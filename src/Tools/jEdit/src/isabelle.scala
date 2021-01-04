@@ -233,7 +233,8 @@ object Isabelle
   // see toggleFullScreen() method in jEdit/org/gjt/sp/jedit/View.java
   def toggle_full_screen(view: View)
   {
-    if (Untyped.get[Boolean](view, "fullScreenMode")) view.toggleFullScreen()
+    if (PIDE.options.bool("jedit_toggle_full_screen") ||
+        Untyped.get[Boolean](view, "fullScreenMode")) view.toggleFullScreen()
     else {
       Untyped.set[Boolean](view, "fullScreenMode", true)
       val screen = GUI.screen_size(view)
