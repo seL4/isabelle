@@ -272,11 +272,14 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
 (* eval theory *)
 
-fun excursion keywords master_dir init elements =
+fun excursion keywords master_dir init text_pos elements =
   let
-    fun prepare_span st =
-      Command.read_span keywords st master_dir init
-      #> (fn tr => Toplevel.timing (Resources.last_timing tr) tr);
+    fun prepare_span st span =
+      let
+        val tr =
+          Position.setmp_thread_data (Position.copy_id text_pos Position.none)
+            (fn () => Command.read_span keywords st master_dir init span) ();
+      in Toplevel.timing (Resources.last_timing tr) tr end;
 
     fun element_result span_elem (st, _) =
       let
@@ -304,7 +307,7 @@ fun eval_thy options master_dir header text_pos text parents =
     fun init () = Resources.begin_theory master_dir header parents;
     val (results, thy) =
       cond_timeit true ("theory " ^ quote name)
-        (fn () => excursion keywords master_dir init elements);
+        (fn () => excursion keywords master_dir init text_pos elements);
 
     fun present () =
       let
@@ -323,30 +326,33 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy options initiators deps text (name, pos) keywords parents =
+fun load_thy options initiators deps text (name, header_pos) keywords parents =
   let
+    val {master = (thy_path, _), imports} = deps;
+    val dir = Path.dir thy_path;
+
     val exec_id = Document_ID.make ();
     val id = Document_ID.print exec_id;
+    val put_id = Position.put_id id;
     val _ =
       Execution.running Document_ID.none exec_id [] orelse
         raise Fail ("Failed to register execution: " ^ id);
 
-    val {master = (thy_path, _), imports} = deps;
-    val dir = Path.dir thy_path;
-    val header = Thy_Header.make (name, pos) imports keywords;
-    val _ =
-      (imports ~~ parents) |> List.app (fn ((_, pos), thy) =>
-        Context_Position.reports_global thy [(pos, Theory.get_markup thy)]);
-
-    val text_pos = Position.put_id id (Path.position thy_path);
+    val text_pos = put_id (Path.position thy_path);
     val text_props = Position.properties_of text_pos;
 
     val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
     val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) (XML.blob [text]);
 
+    val _ =
+      Position.setmp_thread_data (Position.id_only id) (fn () =>
+        (parents, map #2 imports) |> ListPair.app (fn (thy, pos) =>
+          Context_Position.reports_global thy [(put_id pos, Theory.get_markup thy)])) ();
+
     val timing_start = Timing.start ();
 
+    val header = Thy_Header.make (name, put_id header_pos) imports keywords;
     val (theory, present, weight) =
       eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
