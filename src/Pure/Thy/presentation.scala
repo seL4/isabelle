@@ -437,18 +437,22 @@ object Presentation
     val theories: List[XML.Body] =
     {
       var seen_files = List.empty[(Path, String, Document.Node.Name)]
-
-      for (thy_name <- base.session_theories)
+      for {
+        thy_name <- base.session_theories
+        thy_command <- Build_Job.read_theory(db_context, resources, session, thy_name.theory)
+      }
       yield {
         progress.expose_interrupt()
         if (verbose) progress.echo("Presenting theory " + thy_name)
 
-        val syntax = base.theory_syntax(thy_name)
-        val keywords = syntax.keywords
-        val spans = syntax.parse_spans(Symbol.decode(File.read(thy_name.path)))
+        val snapshot = Document.State.init.snippet(thy_command)
 
         val thy_body =
         {
+          val syntax = base.theory_syntax(thy_name)
+          val keywords = syntax.keywords
+          val spans = syntax.parse_spans(Symbol.decode(File.read(thy_name.path)))
+
           val imports_offset = base.known_theories(thy_name.theory).header.imports_offset
           var token_offset = 1
           spans.flatMap(span =>
@@ -472,14 +476,13 @@ object Presentation
         }
 
         val files =
-          (for {
-            thy_command <-
-              Build_Job.read_theory(db_context, resources, session, thy_name.theory).iterator
-            snapshot = Document.State.init.snippet(thy_command)
-            (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements).iterator
+          for {
+            (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements)
             if xml.nonEmpty
-          } yield {
+          }
+          yield {
             progress.expose_interrupt()
+            if (verbose) progress.echo("Presenting file " + src_path)
 
             val file_name = (files_path + src_path.squash.html).implode
 
@@ -490,8 +493,6 @@ object Presentation
                   " in theory " + thy_name1 + " vs. " + thy_name)
             }
 
-            if (verbose) progress.echo("Presenting file " + src_path)
-
             val file_path = session_dir + Path.explode(file_name)
             html_context.init_fonts(file_path.dir)
 
@@ -501,7 +502,7 @@ object Presentation
               List(html_context.head(file_title), html_context.source(html_body(xml))))
 
             List(HTML.link(file_name, HTML.text(file_title)))
-          }).toList
+          }
 
         val thy_title = "Theory " + thy_name.theory_base_name
         HTML.write_document(session_dir, html_name(thy_name),
