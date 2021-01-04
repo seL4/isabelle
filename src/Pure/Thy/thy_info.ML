@@ -274,10 +274,9 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
 fun excursion keywords master_dir init elements =
   let
-    fun prepare_span st span =
-      Command_Span.content span
-      |> Command.read keywords (Command.read_thy st) master_dir init ([], ~1)
-      |> (fn tr => Toplevel.timing (Resources.last_timing tr) tr);
+    fun prepare_span st =
+      Command.read_span keywords st master_dir init
+      #> (fn tr => Toplevel.timing (Resources.last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
       let

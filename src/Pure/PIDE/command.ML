@@ -11,6 +11,8 @@ sig
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob Exn.result list * int -> Token.T list -> Toplevel.transition
+  val read_span: Keyword.keywords -> Toplevel.state -> Path.T -> (unit -> theory) ->
+    Command_Span.span -> Toplevel.transition
   type eval
   val eval_command_id: eval -> Document_ID.command
   val eval_exec_id: eval -> Document_ID.exec
@@ -165,6 +167,9 @@ fun read keywords thy master_dir init blobs_info span =
   end;
 
 end;
+
+fun read_span keywords st master_dir init =
+  Command_Span.content #> read keywords (read_thy st) master_dir init ([], ~1);
 
 
 (* eval *)
