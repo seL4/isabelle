@@ -67,7 +67,7 @@
 	    isabelle.jedit.Isabelle.newline(textArea);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.toggle-full-screen">
+	<ACTION NAME="toggle-full-screen">
 	  <CODE>
 	    isabelle.jedit.Isabelle.toggle_full_screen(view);
 	  </CODE>
