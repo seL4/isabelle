@@ -2243,11 +2243,20 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Use suitable version of Linux desktops.
 
   \<^item> \<^bold>\<open>Problem:\<close> Full-screen mode via jEdit action @{action_ref
-  "toggle-full-screen"} (default keyboard shortcut \<^verbatim>\<open>F11\<close>) works on Windows,
-  but not on macOS or various Linux/X11 window managers.
+  "toggle-full-screen"} (default keyboard shortcut \<^verbatim>\<open>F11\<close> or \<^verbatim>\<open>S+F11\<close>) works
+  robustly on Windows, but not on macOS or various Linux/X11 window managers.
+  For the latter platforms, it is approximated by educated guesses on the
+  window size (excluding the macOS menu bar).
 
-  \<^bold>\<open>Workaround:\<close> Use native full-screen control of the window manager (notably
-  on macOS).
+  \<^bold>\<open>Workaround:\<close> Use native full-screen control of the macOS window manager,
+  unless it is macOS 11.1 (Big Sur).
+
+  \<^item> \<^bold>\<open>Problem:\<close> Native full-screen mode on macOS 11.1 is incompatible with
+  Java window management: it puts dialog windows (Search, Hypersearch, etc.)
+  into an unusable state.
+
+  \<^bold>\<open>Workaround:\<close> use the approximative action @{action_ref
+  "toggle-full-screen"}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Heap space of the JVM may fill up and render the Prover IDE
   unresponsive, e.g.\ when editing big Isabelle sessions with many theories.
