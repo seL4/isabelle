@@ -751,7 +751,7 @@ qed
 
 lemma prime_factorization_prod_mset:
   assumes "0 \<notin># A"
-  shows "prime_factorization (prod_mset A) = \<Union>#(image_mset prime_factorization A)"
+  shows "prime_factorization (prod_mset A) = \<Sum>\<^sub>#(image_mset prime_factorization A)"
   using assms by (induct A) (auto simp add: prime_factorization_mult)
 
 lemma prime_factors_prod:

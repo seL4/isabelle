@@ -272,7 +272,7 @@ definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
 subsubsection "Functional Correctness"
 
 abbreviation mset_mset :: "'a list list \<Rightarrow> 'a multiset" where
-"mset_mset xss \<equiv> \<Union># (image_mset mset (mset xss))"
+"mset_mset xss \<equiv> \<Sum>\<^sub># (image_mset mset (mset xss))"
 
 lemma mset_merge_adj:
   "mset_mset (merge_adj xss) = mset_mset xss"

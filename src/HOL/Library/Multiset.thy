@@ -2293,6 +2293,8 @@ lemma sum_unfold_sum_mset:
 
 end
 
+notation sum_mset ("\<Sum>\<^sub>#")
+
 syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
 syntax
@@ -2389,14 +2391,10 @@ lemma sum_mset_constant [simp]:
   shows \<open>(\<Sum>x\<in>#A. y) = of_nat (size A) * y\<close>
   by (induction A) (auto simp: algebra_simps)
 
-abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#")
-  where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
-    could likewise refer to \<open>\<Squnion>#\<close>\<close>
-
-lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set_mset MM. set_mset M)"
+lemma set_mset_Union_mset[simp]: "set_mset (\<Sum>\<^sub># MM) = (\<Union>M \<in> set_mset MM. set_mset M)"
   by (induct MM) auto
 
-lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
+lemma in_Union_mset_iff[iff]: "x \<in># \<Sum>\<^sub># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
   by (induct MM) auto
 
 lemma count_sum:
@@ -2408,10 +2406,10 @@ lemma sum_eq_empty_iff:
   shows "sum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
   using assms by induct simp_all
 
-lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
+lemma Union_mset_empty_conv[simp]: "\<Sum>\<^sub># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
   by (induction M) auto
 
-lemma Union_image_single_mset[simp]: "\<Union># (image_mset (\<lambda>x. {#x#}) m) = m"
+lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#x#}) m) = m"
 by(induction m) auto
 
 

@@ -162,6 +162,9 @@ written as "x powi n".
 * Library theory "Signed_Division" provides operations for signed
 division, instantiated for type int.
 
+* Theory "Multiset": removed misleading notation \<Union># for sum_mset;
+replaced with \<Sum>\<^sub>#.
+
 * Self-contained library theory "Word" taken over from former session
 "HOL-Word".
 
