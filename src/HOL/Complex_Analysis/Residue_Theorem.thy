@@ -1,6 +1,6 @@
 section \<open>The Residue Theorem, the Argument Principle and Rouch\'{e}'s Theorem\<close>
 theory Residue_Theorem
-  imports Complex_Residues
+  imports Complex_Residues "HOL-Library.Landau_Symbols"
 begin
 
 subsection \<open>Cauchy's residue theorem\<close>
@@ -664,6 +664,130 @@ proof -
     unfolding sum_distrib_left by (simp add:algebra_simps)
   finally have "contour_integral g ff = c * (\<Sum>p\<in>pz. w p * h p * of_int (zorder f p))" .
   then show ?thesis unfolding ff_def c_def w_def by simp
+qed
+
+
+subsection \<open>Coefficient asymptotics for generating functions\<close>
+
+text \<open>
+  For a formal power series that has a meromorphic continuation on some disc in the
+  context plane, we can use the Residue Theorem to extract precise asymptotic information
+  from the residues at the poles. This can be used to derive the asymptotic behaviour
+  of the coefficients (\<open>a\<^sub>n \<sim> \<dots>\<close>). If the function is meromorphic on the entire 
+  complex plane, one can even derive a full asymptotic expansion.
+
+  We will first show the relationship between the coefficients and the sum over the residues
+  with an explicit remainder term (the contour integral along the circle used in the
+  Residue theorem).
+\<close>
+theorem
+  fixes f :: "complex \<Rightarrow> complex" and n :: nat and r :: real
+  defines "g \<equiv> (\<lambda>w. f w / w ^ Suc n)" and "\<gamma> \<equiv> circlepath 0 r"
+  assumes "open A" "connected A" "cball 0 r \<subseteq> A" "r > 0" 
+  assumes "f holomorphic_on A - S" "S \<subseteq> ball 0 r" "finite S" "0 \<notin> S"
+  shows   fps_coeff_conv_residues:
+            "(deriv ^^ n) f 0 / fact n = 
+                contour_integral \<gamma> g / (2 * pi * \<i>) - (\<Sum>z\<in>S. residue g z)" (is ?thesis1)
+    and   fps_coeff_residues_bound:
+            "(\<And>z. norm z = r \<Longrightarrow> z \<notin> k \<Longrightarrow> norm (f z) \<le> C) \<Longrightarrow> C \<ge> 0 \<Longrightarrow> finite k \<Longrightarrow>
+               norm ((deriv ^^ n) f 0 / fact n + (\<Sum>z\<in>S. residue g z)) \<le> C / r ^ n"
+proof -
+  have holo: "g holomorphic_on A - insert 0 S"
+    unfolding g_def using assms by (auto intro!: holomorphic_intros)
+  have "contour_integral \<gamma> g = 2 * pi * \<i> * (\<Sum>z\<in>insert 0 S. winding_number \<gamma> z * residue g z)"
+  proof (rule Residue_theorem)
+    show "g holomorphic_on A - insert 0 S" by fact
+    from assms show "\<forall>z. z \<notin> A \<longrightarrow> winding_number \<gamma> z = 0"
+      unfolding \<gamma>_def by (intro allI impI winding_number_zero_outside[of _ "cball 0 r"]) auto
+  qed (insert assms, auto simp: \<gamma>_def)
+  also have "winding_number \<gamma> z = 1" if "z \<in> insert 0 S" for z
+    unfolding \<gamma>_def using assms that by (intro winding_number_circlepath) auto
+  hence "(\<Sum>z\<in>insert 0 S. winding_number \<gamma> z * residue g z) = (\<Sum>z\<in>insert 0 S. residue g z)"
+    by (intro sum.cong) simp_all
+  also have "\<dots> = residue g 0 + (\<Sum>z\<in>S. residue g z)" 
+    using \<open>0 \<notin> S\<close> and \<open>finite S\<close> by (subst sum.insert) auto
+  also from \<open>r > 0\<close> have "0 \<in> cball 0 r" by simp
+  with assms have "0 \<in> A - S" by blast
+  with assms have "residue g 0 = (deriv ^^ n) f 0 / fact n"
+    unfolding g_def by (subst residue_holomorphic_over_power'[of "A - S"])
+                       (auto simp: finite_imp_closed)
+  finally show ?thesis1
+    by (simp add: field_simps)
+
+  assume C: "\<And>z. norm z = r \<Longrightarrow> z \<notin> k \<Longrightarrow> norm (f z) \<le> C" "C \<ge> 0" and k: "finite k"
+  have "(deriv ^^ n) f 0 / fact n + (\<Sum>z\<in>S. residue g z) = contour_integral \<gamma> g / (2 * pi * \<i>)"
+    using \<open>?thesis1\<close> by (simp add: algebra_simps)
+  also have "norm \<dots> = norm (contour_integral \<gamma> g) / (2 * pi)"
+    by (simp add: norm_divide norm_mult)
+  also have "norm (contour_integral \<gamma> g) \<le> C / r ^ Suc n * (2 * pi * r)"
+  proof (rule has_contour_integral_bound_circlepath_strong)
+    from \<open>open A\<close> and \<open>finite S\<close> have "open (A - insert 0 S)"
+      by (blast intro: finite_imp_closed)
+    with assms show "(g has_contour_integral contour_integral \<gamma> g) (circlepath 0 r)"
+      unfolding \<gamma>_def
+      by (intro has_contour_integral_integral contour_integrable_holomorphic_simple [OF holo]) auto
+  next
+    fix z assume z: "norm (z - 0) = r" "z \<notin> k"
+    hence "norm (g z) = norm (f z) / r ^ Suc n"
+      by (simp add: norm_divide g_def norm_mult norm_power)
+    also have "\<dots> \<le> C / r ^ Suc n" 
+      using k and \<open>r > 0\<close> and z by (intro divide_right_mono C zero_le_power) auto
+    finally show "norm (g z) \<le> C / r ^ Suc n" .
+  qed (insert C(2) k \<open>r > 0\<close>, auto)
+  also from \<open>r > 0\<close> have "C / r ^ Suc n * (2 * pi * r) / (2 * pi) = C / r ^ n"
+    by simp
+  finally show "norm ((deriv ^^ n) f 0 / fact n + (\<Sum>z\<in>S. residue g z)) \<le> \<dots>"
+    by - (simp_all add: divide_right_mono)
+qed
+
+text \<open>
+  Since the circle is fixed, we can get an upper bound on the values of the generating
+  function on the circle and therefore show that the integral is $O(r^{-n})$.
+\<close>
+corollary fps_coeff_residues_bigo:
+  fixes f :: "complex \<Rightarrow> complex" and r :: real
+  assumes "open A" "connected A" "cball 0 r \<subseteq> A" "r > 0" 
+  assumes "f holomorphic_on A - S" "S \<subseteq> ball 0 r" "finite S" "0 \<notin> S"
+  assumes g: "eventually (\<lambda>n. g n = -(\<Sum>z\<in>S. residue (\<lambda>z. f z / z ^ Suc n) z)) sequentially"
+                (is "eventually (\<lambda>n. _ = -?g' n) _")
+  shows   "(\<lambda>n. (deriv ^^ n) f 0 / fact n - g n) \<in> O(\<lambda>n. 1 / r ^ n)" (is "(\<lambda>n. ?c n - _) \<in> O(_)")
+proof -
+  from assms have "compact (f ` sphere 0 r)"
+    by (intro compact_continuous_image holomorphic_on_imp_continuous_on
+              holomorphic_on_subset[OF \<open>f holomorphic_on A - S\<close>]) auto
+  hence "bounded (f ` sphere 0 r)" by (rule compact_imp_bounded)
+  then obtain C where C: "\<And>z. z \<in> sphere 0 r \<Longrightarrow> norm (f z) \<le> C"
+    by (auto simp: bounded_iff sphere_def)
+  have "0 \<le> norm (f (of_real r))" by simp
+  also from C[of "of_real r"] and \<open>r > 0\<close> have "\<dots> \<le> C" by simp
+  finally have C_nonneg: "C \<ge> 0" .
+
+  have "(\<lambda>n. ?c n + ?g' n) \<in> O(\<lambda>n. of_real (1 / r ^ n))"
+  proof (intro bigoI[of _ C] always_eventually allI )
+    fix n :: nat
+    from assms and C and C_nonneg have "norm (?c n + ?g' n) \<le> C / r ^ n"
+      by (intro fps_coeff_residues_bound[where A = A and k = "{}"]) auto
+    also have "\<dots> = C * norm (complex_of_real (1 / r ^ n))" 
+      using \<open>r > 0\<close> by (simp add: norm_divide norm_power)
+    finally show "norm (?c n + ?g' n) \<le> \<dots>" .
+  qed
+  also have "?this \<longleftrightarrow> (\<lambda>n. ?c n - g n) \<in> O(\<lambda>n. of_real (1 / r ^ n))"
+    by (intro landau_o.big.in_cong eventually_mono[OF g]) simp_all
+  finally show ?thesis .
+qed
+
+corollary fps_coeff_residues_bigo':
+  fixes f :: "complex \<Rightarrow> complex" and r :: real
+  assumes exp: "f has_fps_expansion F"
+  assumes "open A" "connected A" "cball 0 r \<subseteq> A" "r > 0" 
+  assumes "f holomorphic_on A - S" "S \<subseteq> ball 0 r" "finite S" "0 \<notin> S"
+  assumes "eventually (\<lambda>n. g n = -(\<Sum>z\<in>S. residue (\<lambda>z. f z / z ^ Suc n) z)) sequentially"
+             (is "eventually (\<lambda>n. _ = -?g' n) _")
+  shows   "(\<lambda>n. fps_nth F n - g n) \<in> O(\<lambda>n. 1 / r ^ n)" (is "(\<lambda>n. ?c n - _) \<in> O(_)")
+proof -
+  have "fps_nth F = (\<lambda>n. (deriv ^^ n) f 0 / fact n)"
+    using fps_nth_fps_expansion[OF exp] by (intro ext) simp_all
+  with fps_coeff_residues_bigo[OF assms(2-)] show ?thesis by simp
 qed
 
 subsection \<open>Rouche's theorem \<close>
