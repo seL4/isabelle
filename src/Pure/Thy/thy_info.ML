@@ -272,28 +272,6 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
 (* eval theory *)
 
-fun excursion keywords master_dir init text_pos elements =
-  let
-    fun prepare_span st span =
-      let
-        val tr =
-          Position.setmp_thread_data (Position.copy_id text_pos Position.none)
-            (fn () => Command.read_span keywords st master_dir init span) ();
-      in Toplevel.timing (Resources.last_timing tr) tr end;
-
-    fun element_result span_elem (st, _) =
-      let
-        val elem = Thy_Element.map_element (prepare_span st) span_elem;
-        val (results, st') = Toplevel.element_result keywords elem st;
-        val pos' = Toplevel.pos_of (Thy_Element.last_element elem);
-      in (results, (st', pos')) end;
-
-    val (results, (end_state, end_pos)) =
-      fold_map element_result elements (Toplevel.init_toplevel (), Position.none);
-
-    val thy = Toplevel.end_theory end_pos end_state;
-  in (results, thy) end;
-
 fun eval_thy options master_dir header text_pos text parents =
   let
     val (name, _) = #name header;
@@ -304,10 +282,32 @@ fun eval_thy options master_dir header text_pos text parents =
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
     val elements = Thy_Element.parse_elements keywords spans;
 
+    val text_id = Position.copy_id text_pos Position.none;
+
     fun init () = Resources.begin_theory master_dir header parents;
-    val (results, thy) =
-      cond_timeit true ("theory " ^ quote name)
-        (fn () => excursion keywords master_dir init text_pos elements);
+
+    fun excursion () =
+      let
+        fun element_result span_elem (st, _) =
+          let
+            fun prepare span =
+              let
+                val tr =
+                  Position.setmp_thread_data text_id
+                    (fn () => Command.read_span keywords st master_dir init span) ();
+              in Toplevel.timing (Resources.last_timing tr) tr end;
+            val elem = Thy_Element.map_element prepare span_elem;
+            val (results, st') = Toplevel.element_result keywords elem st;
+            val pos' = Toplevel.pos_of (Thy_Element.last_element elem);
+          in (results, (st', pos')) end;
+
+        val (results, (end_state, end_pos)) =
+          fold_map element_result elements (Toplevel.init_toplevel (), Position.none);
+
+        val thy = Toplevel.end_theory end_pos end_state;
+      in (results, thy) end;
+
+    val (results, thy) = cond_timeit true ("theory " ^ quote name) excursion;
 
     fun present () =
       let
@@ -316,6 +316,7 @@ fun eval_thy options master_dir header text_pos text parents =
         val context: presentation_context =
           {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
       in apply_presentation context thy end;
+
   in (thy, present, size text) end;
 
 
