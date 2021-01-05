@@ -305,8 +305,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <dict>
 <key>CFBundleDevelopmentRegion</key>
 <string>English</string>
-<key>CFBundleIconFile</key>
-<string>isabelle.icns</string>
 <key>CFBundleIdentifier</key>
 <string>de.tum.in.isabelle.""" + isabelle_name + """</string>
 <key>CFBundleDisplayName</key>
@@ -340,8 +338,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <array>
 <string>thy</string>
 </array>
-<key>CFBundleTypeIconFile</key>
-<string>theory.icns</string>
 <key>CFBundleTypeName</key>
 <string>Isabelle theory file</string>
 <key>CFBundleTypeRole</key>
