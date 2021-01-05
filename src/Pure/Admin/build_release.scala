@@ -643,15 +643,12 @@ rm -rf "${DIST_NAME}-old"
 
             // MacOS application bundle
 
-            File.move(isabelle_target + Path.explode("contrib/macos_app"), tmp_dir)
-
             val isabelle_app = Path.explode(isabelle_name + ".app")
             val app_dir = tmp_dir + isabelle_app
-            File.move(tmp_dir + Path.explode("macos_app/Isabelle.app"), app_dir)
-
             val app_contents = app_dir + Path.explode("Contents")
-            val app_resources = app_contents + Path.explode("Resources")
-            File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
+
+            File.move(tmp_dir + Path.explode(isabelle_name),
+              Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
 
             val isabelle_home = Path.explode("Contents/Resources/" + isabelle_name)
             val isabelle_options = Path.explode("Isabelle.options")
