@@ -163,8 +163,11 @@ object GUI
 
   def set_application_icon()
   {
-    if (Platform.is_macos) {
-      Taskbar.getTaskbar.setIconImage(isabelle_image_large())
+    if (Platform.is_macos && Taskbar.isTaskbarSupported) {
+      val taskbar = Taskbar.getTaskbar
+      if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+        taskbar.setIconImage(isabelle_image_large())
+      }
     }
   }
 
