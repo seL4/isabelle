@@ -273,7 +273,7 @@ unset XMODIFIERS
 
 exec "$ISABELLE_HOME/contrib/""" + jdk_component + """/x86_64-linux/jre/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
-  -classpath """" + classpath.map("$ISABELLE_HOME/" + _).mkString(":") + """" \
+  -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
   isabelle.Main "$@"
 """
