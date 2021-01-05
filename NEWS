@@ -169,7 +169,8 @@ written as "x powi n".
 division, instantiated for type int.
 
 * Theory "Multiset": removed misleading notation \<Union># for sum_mset;
-replaced with \<Sum>\<^sub>#.
+replaced with \<Sum>\<^sub>#. Analogous notation for prod_mset also 
+exists now.
 
 * Self-contained library theory "Word" taken over from former session
 "HOL-Word".

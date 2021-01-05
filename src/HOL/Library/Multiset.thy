@@ -2470,6 +2470,8 @@ lemma dvd_prod_mset:
 
 end
 
+notation prod_mset ("\<Prod>\<^sub>#")
+
 syntax (ASCII)
   "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
 syntax
