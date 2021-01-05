@@ -382,12 +382,15 @@ object Presentation
   def html_name(name: Document.Node.Name): String = name.theory_base_name + ".html"
 
   def theory_link(deps: Sessions.Deps, session0: String,
-    name: Document.Node.Name, body: XML.Body): XML.Tree =
+    name: Document.Node.Name, body: XML.Body): Option[XML.Tree] =
   {
     val session1 = deps(session0).theory_qualifier(name)
-    val info0 = deps.sessions_structure(session0)
-    val info1 = deps.sessions_structure(session1)
-    HTML.link(info0.relative_path(info1) + html_name(name), body)
+    val info0 = deps.sessions_structure.get(session0)
+    val info1 = deps.sessions_structure.get(session1)
+    if (info0.isDefined && info1.isDefined) {
+      Some(HTML.link(info0.get.relative_path(info1.get) + html_name(name), body))
+    }
+    else None
   }
 
   def session_html(
@@ -448,10 +451,9 @@ object Presentation
 
       def entity_link(props: Properties.T, body: XML.Body): Option[XML.Tree] =
         (props, props, props) match {
-          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file))
-          if base.known_theories.isDefinedAt(theory) =>
-            val node_name = base.known_theories(theory).name
-            Some(theory_link(deps, session, node_name, body))
+          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file)) =>
+            val node_name = resources.file_node(Path.explode(thy_file), theory = theory)
+            theory_link(deps, session, node_name, body)
           case _ => None
         }
 
