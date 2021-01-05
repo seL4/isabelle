@@ -58,18 +58,20 @@ object Presentation
 
   sealed case class Elements(
     html: Markup.Elements = Markup.Elements.empty,
+    entity: Markup.Elements = Markup.Elements.empty,
     language: Markup.Elements = Markup.Elements.empty)
 
   val elements1: Elements =
     Elements(
       html =
         Rendering.foreground_elements ++ Rendering.text_color_elements +
-        Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE)
+        Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE,
+      entity = Markup.Elements(Markup.THEORY))
 
   val elements2: Elements =
     Elements(
       html = elements1.html ++ Rendering.markdown_elements,
-      language = elements1.language + Markup.Language.DOCUMENT)
+      language = Markup.Elements(Markup.Language.DOCUMENT))
 
 
   /* HTML */
@@ -78,7 +80,10 @@ object Presentation
     Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
       HTML.descr.name)
 
-  def make_html(elements: Elements, xml: XML.Body): XML.Body =
+  def make_html(
+    elements: Elements,
+    entity_link: (Properties.T, XML.Body) => Option[XML.Tree],
+    xml: XML.Body): XML.Body =
   {
     def html_div(html: XML.Body): Boolean =
       html exists {
@@ -93,6 +98,15 @@ object Presentation
 
     def html_body(xml_body: XML.Body): XML.Body =
       xml_body flatMap {
+        case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
+          val body1 = html_body(body)
+          if (elements.entity(kind)) {
+            entity_link(props, body1) match {
+              case Some(link) => List(link)
+              case None => body1
+            }
+          }
+          else body1
         case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(name)), body) =>
           html_class(if (elements.language(name)) name else "", html_body(body))
         case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) =>
@@ -146,7 +160,7 @@ object Presentation
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val body = make_html(elements, snapshot.xml_markup(elements = elements.html))
+        val body = make_html(elements, (_, _) => None, snapshot.xml_markup(elements = elements.html))
         html_context.html_document(title, body)
       }
     }
@@ -376,31 +390,6 @@ object Presentation
     HTML.link(info0.relative_path(info1) + html_name(name), body)
   }
 
-  def token_markups(keywords: Keyword.Keywords, tok: Token): List[String] = {
-    if (keywords.is_command(tok, Keyword.theory_end))
-      List(Markup.KEYWORD2, Markup.KEYWORD)
-    else if (keywords.is_command(tok, Keyword.proof_asm))
-      List(Markup.KEYWORD3, Markup.COMMAND)
-    else if (keywords.is_command(tok, Keyword.improper))
-      List(Markup.KEYWORD1, Markup.IMPROPER, Markup.COMMAND)
-    else if (tok.is_command) List(Markup.KEYWORD1, Markup.COMMAND)
-    else if (tok.is_delimiter) List(Markup.DELIMITER, Markup.KEYWORD)
-    else if (tok.is_keyword) List(Markup.KEYWORD2, Markup.KEYWORD)
-    else if (tok.is_comment) List(Markup.COMMENT)
-    else {
-      tok.kind match {
-        case Token.Kind.VAR => List(Markup.VAR)
-        case Token.Kind.TYPE_IDENT => List(Markup.TFREE)
-        case Token.Kind.TYPE_VAR => List(Markup.TVAR)
-        case Token.Kind.STRING => List(Markup.STRING)
-        case Token.Kind.ALT_STRING => List(Markup.ALT_STRING)
-        case Token.Kind.VERBATIM => List(Markup.VERBATIM)
-        case Token.Kind.CARTOUCHE => List(Markup.CARTOUCHE)
-        case _ => Nil
-      }
-    }
-  }
-
   def session_html(
     resources: Resources,
     session: String,
@@ -456,6 +445,16 @@ object Presentation
     val theories: List[XML.Body] =
     {
       var seen_files = List.empty[(Path, String, Document.Node.Name)]
+
+      def entity_link(props: Properties.T, body: XML.Body): Option[XML.Tree] =
+        (props, props, props) match {
+          case (Markup.Kind(Markup.THEORY), Markup.Name(theory), Position.Def_File(thy_file))
+          if base.known_theories.isDefinedAt(theory) =>
+            val node_name = base.known_theories(theory).name
+            Some(theory_link(deps, session, node_name, body))
+          case _ => None
+        }
+
       for {
         thy_name <- base.session_theories
         thy_command <- Build_Job.read_theory(db_context, resources, session, thy_name.theory)
@@ -465,34 +464,6 @@ object Presentation
         if (verbose) progress.echo("Presenting theory " + thy_name)
 
         val snapshot = Document.State.init.snippet(thy_command)
-
-        val thy_body =
-        {
-          val syntax = base.theory_syntax(thy_name)
-          val keywords = syntax.keywords
-          val spans = syntax.parse_spans(Symbol.decode(File.read(thy_name.path)))
-
-          val imports_offset = base.known_theories(thy_name.theory).header.imports_offset
-          var token_offset = 1
-          spans.flatMap(span =>
-          {
-            val is_init = span.is_kind(keywords, Keyword.theory_begin, false)
-            span.content.flatMap(tok =>
-            {
-              val text = HTML.text(tok.source)
-              val item =
-                if (is_init && imports_offset.isDefinedAt(token_offset)) {
-                  List(theory_link(deps, session, imports_offset(token_offset), text))
-                }
-                else text
-
-              token_offset += tok.symbol_length
-
-              (token_markups(keywords, tok) :\ item)(
-                { case (c, body) => List(HTML.span(c, body)) })
-            })
-          })
-        }
 
         val files =
           for {
@@ -518,12 +489,14 @@ object Presentation
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)),
-              List(html_context.head(file_title), html_context.source(make_html(elements, xml))))
+              List(html_context.head(file_title),
+                html_context.source(make_html(elements, entity_link, xml))))
 
             List(HTML.link(file_name, HTML.text(file_title)))
           }
 
         val thy_title = "Theory " + thy_name.theory_base_name
+        val thy_body = make_html(elements, entity_link, snapshot.xml_markup(elements = elements.html))
         HTML.write_document(session_dir, html_name(thy_name),
           List(HTML.title(thy_title)),
           List(html_context.head(thy_title), html_context.source(thy_body)))
