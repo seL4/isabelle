@@ -98,6 +98,7 @@ object Presentation
 
     def html_body(xml_body: XML.Body): XML.Body =
       xml_body flatMap {
+        case XML.Wrapped_Elem(markup, _, body) => html_body(List(XML.Elem(markup, body)))
         case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
           val body1 = html_body(body)
           if (elements.entity(kind)) {
