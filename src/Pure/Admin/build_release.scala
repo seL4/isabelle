@@ -246,7 +246,40 @@ directory individually.
   }
 
 
-  /* main */
+  /* Isabelle_app script */
+
+  def isabelle_app_script(classpath: List[Path], jdk_component: String): String =
+    """#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# Main Isabelle application script.
+
+# minimal Isabelle environment
+
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
+source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
+
+
+# Java runtime options
+
+declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
+
+
+# main
+
+#paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
+unset XMODIFIERS
+
+exec "$ISABELLE_HOME/contrib/""" + jdk_component + """/x86_64-linux/jre/bin/java" \
+  "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
+  -classpath """" + classpath.map("$ISABELLE_HOME/" + _).mkString(":") + """" \
+  "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
+  isabelle.Main "$@"
+"""
+
+
+    /* main */
 
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
@@ -510,10 +543,7 @@ rm -rf "${DIST_NAME}-old"
               terminate_lines(java_options_title :: java_options))
 
             val isabelle_app = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
-            File.write(isabelle_app,
-              File.read(Path.explode("~~/Admin/Linux/Isabelle_app"))
-                .replace("{CLASSPATH}", classpath.map("$ISABELLE_HOME/" + _).mkString(":"))
-                .replace("/jdk/", "/" + jdk_component + "/"))
+            File.write(isabelle_app, isabelle_app_script(classpath, jdk_component))
             File.set_executable(isabelle_app, true)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
