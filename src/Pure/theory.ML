@@ -132,7 +132,7 @@ fun init_markup (name, pos) thy =
 
 fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
-  in theory_markup false (Context.theory_name thy) id pos end;
+  in theory_markup false (Context.theory_long_name thy) id pos end;
 
 fun check long ctxt (name, pos) =
   let
