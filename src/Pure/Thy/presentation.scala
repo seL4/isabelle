@@ -67,42 +67,47 @@ object Presentation
     Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
       HTML.descr.name)
 
-  private def html_div(html: XML.Body): Boolean =
-    html exists {
-      case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
-      case XML.Text(_) => false
-    }
+  def make_html_body(xml: XML.Body): XML.Body =
+  {
+    def html_div(html: XML.Body): Boolean =
+      html exists {
+        case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
+        case XML.Text(_) => false
+      }
 
-  private def html_class(c: String, html: XML.Body): XML.Tree =
-    if (html.forall(_ == XML.no_text)) XML.no_text
-    else if (html_div(html)) HTML.div(c, html)
-    else HTML.span(c, html)
+    def html_class(c: String, html: XML.Body): XML.Tree =
+      if (html.forall(_ == XML.no_text)) XML.no_text
+      else if (html_div(html)) HTML.div(c, html)
+      else HTML.span(c, html)
 
-  private def html_body(xml: XML.Body): XML.Body =
-    xml map {
-      case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
-        html_class(Markup.Language.DOCUMENT, html_body(body))
-      case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(html_body(body))
-      case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(html_body(body))
-      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => XML.no_text
-      case XML.Elem(Markup.Markdown_List(kind), body) =>
-        if (kind == Markup.ENUMERATE) HTML.enum(html_body(body)) else HTML.list(html_body(body))
-      case XML.Elem(markup, body) =>
-        val name = markup.name
-        val html =
-          markup.properties match {
-            case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
-              List(html_class(kind, html_body(body)))
-            case _ =>
-              html_body(body)
+    def html_body(xml_body: XML.Body): XML.Body =
+      xml_body map {
+        case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
+          html_class(Markup.Language.DOCUMENT, html_body(body))
+        case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(html_body(body))
+        case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(html_body(body))
+        case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => XML.no_text
+        case XML.Elem(Markup.Markdown_List(kind), body) =>
+          if (kind == Markup.ENUMERATE) HTML.enum(html_body(body)) else HTML.list(html_body(body))
+        case XML.Elem(markup, body) =>
+          val name = markup.name
+          val html =
+            markup.properties match {
+              case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
+                List(html_class(kind, html_body(body)))
+              case _ =>
+                html_body(body)
+            }
+          Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
+            case Some(c) => html_class(c.toString, html)
+            case None => html_class(name, html)
           }
-        Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
-          case Some(c) => html_class(c.toString, html)
-          case None => html_class(name, html)
-        }
-      case XML.Text(text) =>
-        XML.Text(Symbol.decode(text))
-    }
+        case XML.Text(text) =>
+          XML.Text(Symbol.decode(text))
+      }
+
+    html_body(xml)
+  }
 
 
   /* PIDE HTML document */
@@ -127,7 +132,7 @@ object Presentation
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val body = html_body(snapshot.xml_markup(elements = html_elements))
+        val body = make_html_body(snapshot.xml_markup(elements = html_elements))
         html_context.html_document(title, body)
       }
     }
@@ -499,7 +504,7 @@ object Presentation
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)),
-              List(html_context.head(file_title), html_context.source(html_body(xml))))
+              List(html_context.head(file_title), html_context.source(make_html_body(xml))))
 
             List(HTML.link(file_name, HTML.text(file_title)))
           }
