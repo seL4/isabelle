@@ -260,6 +260,9 @@ directory individually.
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
+COMPONENT="$ISABELLE_HOME/contrib/""" + jdk_component + """"
+source "$COMPONENT/etc/settings"
+
 
 # Java runtime options
 
@@ -271,7 +274,7 @@ declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.opti
 #paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
 unset XMODIFIERS
 
-exec "$ISABELLE_HOME/contrib/""" + jdk_component + """/x86_64-linux/jre/bin/java" \
+exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
   -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
