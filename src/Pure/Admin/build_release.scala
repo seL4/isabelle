@@ -246,7 +246,7 @@ directory individually.
   }
 
 
-  /* Isabelle application script */
+  /* Isabelle application */
 
   def make_isabelle_app(
     path: Path,
@@ -288,6 +288,82 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """
     File.write(path, script)
     File.set_executable(path, true)
+  }
+
+
+  def make_isabelle_plist(path: Path, isabelle_name: String, java_options: List[String])
+  {
+    File.write(path, """<?xml version="1.0" ?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>CFBundleDevelopmentRegion</key>
+<string>English</string>
+<key>CFBundleExecutable</key>
+<string>JavaAppLauncher</string>
+<key>CFBundleIconFile</key>
+<string>isabelle.icns</string>
+<key>CFBundleIdentifier</key>
+<string>de.tum.in.isabelle.""" + isabelle_name + """</string>
+<key>CFBundleDisplayName</key>
+<string>""" + isabelle_name + """</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleName</key>
+<string>""" + isabelle_name + """</string>
+<key>CFBundlePackageType</key>
+<string>APPL</string>
+<key>CFBundleShortVersionString</key>
+<string>1.0</string>
+<key>CFBundleSignature</key>
+<string>????</string>
+<key>CFBundleVersion</key>
+<string>1</string>
+<key>NSHumanReadableCopyright</key>
+<string></string>
+<key>LSMinimumSystemVersion</key>
+<string>10.7</string>
+<key>LSApplicationCategoryType</key>
+<string>public.app-category.developer-tools</string>
+<key>NSHighResolutionCapable</key>
+<string>true</string>
+<key>NSSupportsAutomaticGraphicsSwitching</key>
+<string>true</string>
+<key>JVMRuntime</key>
+<string>bundled.jdk</string>
+<key>JVMMainClassName</key>
+<string>isabelle.Main</string>
+<key>CFBundleDocumentTypes</key>
+<array>
+<dict>
+<key>CFBundleTypeExtensions</key>
+<array>
+<string>thy</string>
+</array>
+<key>CFBundleTypeIconFile</key>
+<string>theory.icns</string>
+<key>CFBundleTypeName</key>
+<string>Isabelle theory file</string>
+<key>CFBundleTypeRole</key>
+<string>Editor</string>
+<key>LSTypeIsPackage</key>
+<false/>
+</dict>
+</array>
+<key>JVMOptions</key>
+<array>
+""" + terminate_lines(java_options.map(opt => "<string>" + opt + "</string>")) + """
+<string>-splash:$APP_ROOT/Contents/Resources/""" + isabelle_name + """/lib/logo/isabelle.gif</string>
+<string>-Dapple.awt.application.name=""" + isabelle_name + """</string>
+<string>-Disabelle.root=$APP_ROOT/Contents/Resources/""" + isabelle_name + """</string>
+<string>-Disabelle.app=true</string>
+</array>
+<key>JVMArguments</key>
+<array>
+</array>
+</dict>
+</plist>
+""")
   }
 
 
@@ -589,11 +665,8 @@ rm -rf "${DIST_NAME}-old"
             val app_resources = app_contents + Path.explode("Resources")
             File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
 
-            File.write(app_contents + Path.explode("Info.plist"),
-              File.read(Path.explode("~~/Admin/MacOS/Info.plist"))
-                .replace("{ISABELLE_NAME}", isabelle_name)
-                .replace("{JAVA_OPTIONS}",
-                  terminate_lines(java_options.map(opt => "<string>" + opt + "</string>"))))
+            make_isabelle_plist(
+              app_contents + Path.explode("Info.plist"), isabelle_name, java_options)
 
             for (cp <- classpath) {
               File.link(
