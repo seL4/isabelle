@@ -268,7 +268,7 @@ directory individually.
 
 # minimal Isabelle environment
 
-ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)""" + isabelle_home_prefix + """"; pwd)"
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/""" + isabelle_home_prefix + """"; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 #paranoia settings -- avoid intrusion of alien options
@@ -624,7 +624,7 @@ rm -rf "${DIST_NAME}-old"
 
             make_isabelle_app(
               isabelle_target + Path.explode("lib/scripts/Isabelle_app"),
-              "/../..", jdk_component, classpath)
+              "../..", jdk_component, classpath)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
             File.move(linux_app + Path.explode("Isabelle"),
@@ -657,19 +657,20 @@ rm -rf "${DIST_NAME}-old"
             val app_resources = app_contents + Path.explode("Resources")
             File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
 
-            val isabelle_home_prefix = "Contents/Resources/" + isabelle_name
+            val isabelle_home = Path.explode("Contents/Resources/" + isabelle_name)
+            val isabelle_options = Path.explode("Isabelle.options")
 
             File.link(
-              Path.explode(isabelle_home_prefix),
-              app_dir + Path.explode("Isabelle"),
-              force = true)
+              isabelle_home, app_dir + Path.explode("Isabelle"), force = true)
+            File.link(
+              isabelle_home + isabelle_options, app_dir + isabelle_options, force = true)
 
             make_isabelle_app(
               app_dir + Path.explode(isabelle_name),
-              isabelle_home_prefix, jdk_component, classpath)
+              isabelle_home.implode, jdk_component, classpath)
 
             make_isabelle_options(
-              app_dir + Path.explode("Isabelle.options"),
+              app_dir + isabelle_options,
               java_options ::: List("-Disabelle.app=true"))
 
             make_isabelle_plist(app_contents + Path.explode("Info.plist"), isabelle_name)
