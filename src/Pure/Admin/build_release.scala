@@ -248,7 +248,11 @@ directory individually.
 
   /* Isabelle application script */
 
-  def make_isabelle_app(path: Path, classpath: List[Path], jdk_component: String)
+  def make_isabelle_app(
+    path: Path,
+    isabelle_home_prefix: String,
+    jdk_component: String,
+    classpath: List[Path])
   {
     val script = """#!/usr/bin/env bash
 #
@@ -258,7 +262,7 @@ directory individually.
 
 # minimal Isabelle environment
 
-ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)""" + isabelle_home_prefix + """"; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 #paranoia settings -- avoid intrusion of alien options
@@ -552,7 +556,7 @@ rm -rf "${DIST_NAME}-old"
 
             make_isabelle_app(
               isabelle_target + Path.explode("lib/scripts/Isabelle_app"),
-              classpath, jdk_component)
+              "/../..", jdk_component, classpath)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
             File.move(linux_app + Path.explode("Isabelle"),
