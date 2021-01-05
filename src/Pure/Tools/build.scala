@@ -516,7 +516,7 @@ object Build
             Presentation.session_html(
               resources, session_name, deps, db_context, progress = progress,
               verbose = verbose, html_context = html_context,
-              html_elements = Presentation.html_elements1, presentation = presentation)
+              elements = Presentation.elements1, presentation = presentation)
           })
 
         val browser_chapters =

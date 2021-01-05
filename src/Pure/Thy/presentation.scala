@@ -54,20 +54,31 @@ object Presentation
   }
 
 
-  /* HTML body */
+  /* presentation elements */
 
-  val html_elements1: Markup.Elements =
-    Rendering.foreground_elements ++ Rendering.text_color_elements +
-      Markup.NUMERAL + Markup.COMMENT
+  sealed case class Elements(
+    html: Markup.Elements = Markup.Elements.empty,
+    language: Markup.Elements = Markup.Elements.empty)
 
-  val html_elements2: Markup.Elements =
-    html_elements1 ++ Rendering.markdown_elements + Markup.LANGUAGE
+  val elements1: Elements =
+    Elements(
+      html =
+        Rendering.foreground_elements ++ Rendering.text_color_elements +
+        Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE)
+
+  val elements2: Elements =
+    Elements(
+      html = elements1.html ++ Rendering.markdown_elements,
+      language = elements1.language + Markup.Language.DOCUMENT)
+
+
+  /* HTML */
 
   private val div_elements =
     Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
       HTML.descr.name)
 
-  def make_html_body(xml: XML.Body): XML.Body =
+  def make_html(elements: Elements, xml: XML.Body): XML.Body =
   {
     def html_div(html: XML.Body): Boolean =
       html exists {
@@ -75,26 +86,29 @@ object Presentation
         case XML.Text(_) => false
       }
 
-    def html_class(c: String, html: XML.Body): XML.Tree =
-      if (html.forall(_ == XML.no_text)) XML.no_text
-      else if (html_div(html)) HTML.div(c, html)
-      else HTML.span(c, html)
+    def html_class(c: String, html: XML.Body): XML.Body =
+      if (c == "") html
+      else if (html_div(html)) List(HTML.div(c, html))
+      else List(HTML.span(c, html))
 
     def html_body(xml_body: XML.Body): XML.Body =
-      xml_body map {
-        case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
-          html_class(Markup.Language.DOCUMENT, html_body(body))
-        case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(html_body(body))
-        case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(html_body(body))
-        case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => XML.no_text
+      xml_body flatMap {
+        case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(name)), body) =>
+          html_class(if (elements.language(name)) name else "", html_body(body))
+        case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) =>
+          List(HTML.par(html_body(body)))
+        case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) =>
+          List(HTML.item(html_body(body)))
+        case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => Nil
         case XML.Elem(Markup.Markdown_List(kind), body) =>
-          if (kind == Markup.ENUMERATE) HTML.enum(html_body(body)) else HTML.list(html_body(body))
+          if (kind == Markup.ENUMERATE) List(HTML.enum(html_body(body)))
+          else List(HTML.list(html_body(body)))
         case XML.Elem(markup, body) =>
           val name = markup.name
           val html =
             markup.properties match {
               case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
-                List(html_class(kind, html_body(body)))
+                html_class(kind, html_body(body))
               case _ =>
                 html_body(body)
             }
@@ -103,7 +117,7 @@ object Presentation
             case None => html_class(name, html)
           }
         case XML.Text(text) =>
-          XML.Text(Symbol.decode(text))
+          HTML.text(Symbol.decode(text))
       }
 
     html_body(xml)
@@ -116,7 +130,7 @@ object Presentation
     resources: Resources,
     snapshot: Document.Snapshot,
     html_context: HTML_Context,
-    html_elements: Markup.Elements,
+    elements: Elements,
     plain_text: Boolean = false): HTML_Document =
   {
     require(!snapshot.is_outdated)
@@ -132,7 +146,7 @@ object Presentation
         val title =
           if (name.is_theory) "Theory " + quote(name.theory_base_name)
           else "File " + Symbol.cartouche_decoded(name.path.file_name)
-        val body = make_html_body(snapshot.xml_markup(elements = html_elements))
+        val body = make_html(elements, snapshot.xml_markup(elements = elements.html))
         html_context.html_document(title, body)
       }
     }
@@ -395,7 +409,7 @@ object Presentation
     progress: Progress = new Progress,
     verbose: Boolean = false,
     html_context: HTML_Context,
-    html_elements: Markup.Elements,
+    elements: Elements,
     presentation: Context)
   {
     val info = deps.sessions_structure(session)
@@ -482,7 +496,7 @@ object Presentation
 
         val files =
           for {
-            (src_path, xml) <- snapshot.xml_markup_blobs(elements = html_elements)
+            (src_path, xml) <- snapshot.xml_markup_blobs(elements = elements.html)
             if xml.nonEmpty
           }
           yield {
@@ -504,7 +518,7 @@ object Presentation
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
               List(HTML.title(file_title)),
-              List(html_context.head(file_title), html_context.source(make_html_body(xml))))
+              List(html_context.head(file_title), html_context.source(make_html(elements, xml))))
 
             List(HTML.link(file_name, HTML.text(file_title)))
           }
