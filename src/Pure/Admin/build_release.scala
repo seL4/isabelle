@@ -305,6 +305,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <dict>
 <key>CFBundleDevelopmentRegion</key>
 <string>English</string>
+<key>CFBundleIconFile</key>
+<string>isabelle.icns</string>
 <key>CFBundleIdentifier</key>
 <string>de.tum.in.isabelle.""" + isabelle_name + """</string>
 <key>CFBundleDisplayName</key>
@@ -646,9 +648,10 @@ rm -rf "${DIST_NAME}-old"
             val isabelle_app = Path.explode(isabelle_name + ".app")
             val app_dir = tmp_dir + isabelle_app
             val app_contents = app_dir + Path.explode("Contents")
+            val app_resources =
+              Isabelle_System.make_directory(app_contents + Path.explode("Resources"))
 
-            File.move(tmp_dir + Path.explode(isabelle_name),
-              Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
+            File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
 
             val isabelle_home = Path.explode("Contents/Resources/" + isabelle_name)
             val isabelle_options = Path.explode("Isabelle.options")
@@ -657,6 +660,9 @@ rm -rf "${DIST_NAME}-old"
               isabelle_home, app_dir + Path.explode("Isabelle"), force = true)
             File.link(
               isabelle_home + isabelle_options, app_dir + isabelle_options, force = true)
+
+            File.copy(
+              app_dir + isabelle_home + Path.explode("lib/logo/isabelle.icns"), app_resources)
 
             make_isabelle_app(
               app_dir + Path.explode(isabelle_name),
