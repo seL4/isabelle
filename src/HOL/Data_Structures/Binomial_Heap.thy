@@ -483,9 +483,9 @@ text \<open>This function is non-canonical: we omitted a \<open>+1\<close> in th
 \<close>
 fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> nat" where
   "T_ins_tree t [] = 1"
-| "T_ins_tree t\<^sub>1 (t\<^sub>2 # rest) = (
+| "T_ins_tree t\<^sub>1 (t\<^sub>2 # ts) = (
     (if rank t\<^sub>1 < rank t\<^sub>2 then 1
-     else T_link t\<^sub>1 t\<^sub>2 + T_ins_tree (link t\<^sub>1 t\<^sub>2) rest)
+     else T_link t\<^sub>1 t\<^sub>2 + T_ins_tree (link t\<^sub>1 t\<^sub>2) ts)
   )"
 
 definition T_insert :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> nat" where
