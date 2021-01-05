@@ -352,7 +352,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 </array>
 <key>JVMOptions</key>
 <array>
-""" + terminate_lines(java_options.map(opt => "<string>" + opt + "</string>")) + """
+""" + cat_lines(java_options.map(opt => "<string>" + opt + "</string>")) + """
 <string>-splash:$APP_ROOT/Contents/Resources/""" + isabelle_name + """/lib/logo/isabelle.gif</string>
 <string>-Dapple.awt.application.name=""" + isabelle_name + """</string>
 <string>-Disabelle.root=$APP_ROOT/Contents/Resources/""" + isabelle_name + """</string>
