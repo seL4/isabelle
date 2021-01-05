@@ -7,7 +7,7 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
-  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
+  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit, Taskbar}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
@@ -164,11 +164,7 @@ object GUI
   def set_application_icon()
   {
     if (Platform.is_macos) {
-      val image = isabelle_image_large()
-      val app =
-        Class.forName("com.apple.eawt.Application")
-          .getDeclaredMethod("getApplication").invoke(null)
-      app.getClass.getDeclaredMethod("setDockIconImage", classOf[Image]).invoke(app, image)
+      Taskbar.getTaskbar.setIconImage(isabelle_image_large())
     }
   }
 
