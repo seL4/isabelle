@@ -260,19 +260,20 @@ directory individually.
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
+#paranoia settings -- avoid intrusion of alien options
+unset "_JAVA_OPTIONS"
+unset "JAVA_TOOL_OPTIONS"
+
+#paranoia settings -- avoid problems of Java/Swing versus XIM/IBus etc.
+unset XMODIFIERS
+
 COMPONENT="$ISABELLE_HOME/contrib/""" + jdk_component + """"
 source "$COMPONENT/etc/settings"
 
 
-# Java runtime options
-
-declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
-
-
 # main
 
-#paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
-unset XMODIFIERS
+declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
 
 exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
