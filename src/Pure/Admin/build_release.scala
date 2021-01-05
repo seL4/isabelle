@@ -246,10 +246,11 @@ directory individually.
   }
 
 
-  /* Isabelle_app script */
+  /* Isabelle application script */
 
-  def isabelle_app_script(classpath: List[Path], jdk_component: String): String =
-    """#!/usr/bin/env bash
+  def make_isabelle_app(path: Path, classpath: List[Path], jdk_component: String)
+  {
+    val script = """#!/usr/bin/env bash
 #
 # Author: Makarius
 #
@@ -281,9 +282,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
   isabelle.Main "$@"
 """
+    File.write(path, script)
+    File.set_executable(path, true)
+  }
 
 
-    /* main */
+  /* main */
 
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
@@ -546,9 +550,9 @@ rm -rf "${DIST_NAME}-old"
             File.write(isabelle_target + Path.explode("Isabelle.options"),
               terminate_lines(java_options_title :: java_options))
 
-            val isabelle_app = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
-            File.write(isabelle_app, isabelle_app_script(classpath, jdk_component))
-            File.set_executable(isabelle_app, true)
+            make_isabelle_app(
+              isabelle_target + Path.explode("lib/scripts/Isabelle_app"),
+              classpath, jdk_component)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
             File.move(linux_app + Path.explode("Isabelle"),
