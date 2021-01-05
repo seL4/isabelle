@@ -248,6 +248,12 @@ directory individually.
 
   /* Isabelle application */
 
+  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n")
+  {
+    val title = "# Java runtime options"
+    File.write(path, (title :: options).map(_ + line_ending).mkString)
+  }
+
   def make_isabelle_app(
     path: Path,
     isabelle_home_prefix: String,
@@ -291,7 +297,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   }
 
 
-  def make_isabelle_plist(path: Path, isabelle_name: String, java_options: List[String])
+  def make_isabelle_plist(path: Path, isabelle_name: String)
   {
     File.write(path, """<?xml version="1.0" ?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -299,8 +305,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <dict>
 <key>CFBundleDevelopmentRegion</key>
 <string>English</string>
-<key>CFBundleExecutable</key>
-<string>JavaAppLauncher</string>
 <key>CFBundleIconFile</key>
 <string>isabelle.icns</string>
 <key>CFBundleIdentifier</key>
@@ -329,10 +333,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <string>true</string>
 <key>NSSupportsAutomaticGraphicsSwitching</key>
 <string>true</string>
-<key>JVMRuntime</key>
-<string>bundled.jdk</string>
-<key>JVMMainClassName</key>
-<string>isabelle.Main</string>
 <key>CFBundleDocumentTypes</key>
 <array>
 <dict>
@@ -349,17 +349,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>LSTypeIsPackage</key>
 <false/>
 </dict>
-</array>
-<key>JVMOptions</key>
-<array>
-""" + cat_lines(java_options.map(opt => "<string>" + opt + "</string>")) + """
-<string>-splash:$APP_ROOT/Contents/Resources/""" + isabelle_name + """/lib/logo/isabelle.gif</string>
-<string>-Dapple.awt.application.name=""" + isabelle_name + """</string>
-<string>-Disabelle.root=$APP_ROOT/Contents/Resources/""" + isabelle_name + """</string>
-<string>-Disabelle.app=true</string>
-</array>
-<key>JVMArguments</key>
-<array>
 </array>
 </dict>
 </plist>
@@ -576,7 +565,6 @@ rm -rf "${DIST_NAME}-old"
 
         // Java parameters
 
-        val java_options_title = "# Java runtime options"
         val java_options: List[String] =
           (for {
             variable <-
@@ -585,7 +573,11 @@ rm -rf "${DIST_NAME}-old"
                 "JEDIT_JAVA_SYSTEM_OPTIONS",
                 "JEDIT_JAVA_OPTIONS")
             opt <- Word.explode(other_isabelle.getenv(variable))
-          } yield opt) ::: List("-Disabelle.jedit_server=" + isabelle_name)
+          }
+          yield {
+            val s = "-Dapple.awt.application.name="
+            if (opt.startsWith(s)) s + isabelle_name else opt
+          }) ::: List("-Disabelle.jedit_server=" + isabelle_name)
 
         val classpath: List[Path] =
         {
@@ -627,8 +619,8 @@ rm -rf "${DIST_NAME}-old"
                .replaceAll("view.fontsize=.*", "view.fontsize=24")
                .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16"))
 
-            File.write(isabelle_target + Path.explode("Isabelle.options"),
-              terminate_lines(java_options_title :: java_options))
+            make_isabelle_options(
+              isabelle_target + Path.explode("Isabelle.options"), java_options)
 
             make_isabelle_app(
               isabelle_target + Path.explode("lib/scripts/Isabelle_app"),
@@ -665,31 +657,22 @@ rm -rf "${DIST_NAME}-old"
             val app_resources = app_contents + Path.explode("Resources")
             File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
 
-            make_isabelle_plist(
-              app_contents + Path.explode("Info.plist"), isabelle_name, java_options)
-
-            for (cp <- classpath) {
-              File.link(
-                Path.explode("../Resources/" + isabelle_name + "/") + cp,
-                app_contents + Path.explode("Java"),
-                force = true)
-            }
+            val isabelle_home_prefix = "Contents/Resources/" + isabelle_name
 
             File.link(
-              Path.explode("../Resources/" + isabelle_name + "/contrib/" +
-                jdk_component + "/x86_64-darwin"),
-              app_contents + Path.explode("PlugIns/bundled.jdk"),
-              force = true)
-
-            File.link(
-              Path.explode("../../Info.plist"),
-              app_resources + Path.explode(isabelle_name + "/" + isabelle_name + ".plist"),
-              force = true)
-
-            File.link(
-              Path.explode("Contents/Resources/" + isabelle_name),
+              Path.explode(isabelle_home_prefix),
               app_dir + Path.explode("Isabelle"),
               force = true)
+
+            make_isabelle_app(
+              app_dir + Path.explode(isabelle_name),
+              isabelle_home_prefix, jdk_component, classpath)
+
+            make_isabelle_options(
+              app_dir + Path.explode("Isabelle.options"),
+              java_options ::: List("-Disabelle.app=true"))
+
+            make_isabelle_plist(app_contents + Path.explode("Info.plist"), isabelle_name)
 
 
             // application archive
@@ -714,8 +697,9 @@ rm -rf "${DIST_NAME}-old"
 
             val app_template = Path.explode("~~/Admin/Windows/launch4j")
 
-            File.write(isabelle_target + Path.explode(isabelle_name + ".l4j.ini"),
-              (java_options_title :: java_options).map(_ + "\r\n").mkString)
+            make_isabelle_options(
+              isabelle_target + Path.explode(isabelle_name + ".l4j.ini"),
+              java_options, line_ending = "\r\n")
 
             val isabelle_xml = Path.explode("isabelle.xml")
             val isabelle_exe = Path.explode(isabelle_name + ".exe")
