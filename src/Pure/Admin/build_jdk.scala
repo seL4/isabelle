@@ -111,8 +111,6 @@ esac
 
   /* extract archive */
 
-  private def suppress_name(name: String): Boolean = name.startsWith("._")
-
   def extract_archive(dir: Path, archive: Path): JDK_Platform =
   {
     try {
@@ -127,7 +125,7 @@ esac
       }
 
       val dir_entry =
-        File.read_dir(tmp_dir).filterNot(suppress_name) match {
+        File.read_dir(tmp_dir) match {
           case List(s) => s
           case _ => error("Archive contains multiple directories")
         }
@@ -201,9 +199,6 @@ esac
           }
           Files.setPosixFilePermissions(path, perms)
         }
-
-        File.find_files((component_dir + Path.explode("x86_64-darwin")).file,
-          file => suppress_name(file.getName)).foreach(_.delete)
 
         progress.echo("Sharing ...")
         val main_dir :: other_dirs =
