@@ -7,7 +7,7 @@ Contributions to Isabelle2021
 -----------------------------
 
 * December 2020: Stepan Holub
-  Contributed lemmas for List
+  Contributed lemmas for theory HOL.List.
 
 * December 2020: Martin Desharnais
   Zipperposition 2.0 as external prover for Sledgehammer.
