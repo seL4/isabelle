@@ -326,7 +326,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>NSHumanReadableCopyright</key>
 <string></string>
 <key>LSMinimumSystemVersion</key>
-<string>10.10</string>
+<string>10.11</string>
 <key>LSApplicationCategoryType</key>
 <string>public.app-category.developer-tools</string>
 <key>NSHighResolutionCapable</key>
