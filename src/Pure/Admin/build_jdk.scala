@@ -22,8 +22,7 @@ object Build_JDK
     platform_regex: Regex,
     exe: String = "java",
     macos_home: Boolean = false,
-    jdk_version: String = "",
-    jdk_home: String = "")
+    jdk_version: String = "")
   {
     override def toString: String = platform_name
 
@@ -40,9 +39,8 @@ object Build_JDK
           case _ => error("Cannot determine major version from " + quote(jdk_name))
         }
       }
-      val jdk_home = if (macos_home) "zulu-" + major_version + ".jdk/Contents/Home" else ""
 
-      val path = jdk_dir + Path.explode(jdk_home) + Path.explode("bin") + Path.explode(exe)
+      val path = jdk_dir + Path.explode("bin") + Path.explode(exe)
       if (path.is_file) {
         val file_descr = Isabelle_System.bash("file -b " + File.bash_path(path)).check.out
         if (platform_regex.pattern.matcher(file_descr).matches) {
@@ -51,8 +49,7 @@ object Build_JDK
             Isabelle_System.bash("strings " + File.bash_path(path)).check
               .out_lines.flatMap({ case Version(s) => Some(s) case _ => None })
           version_lines match {
-            case List(jdk_version) =>
-              Some(copy(jdk_version = jdk_version, jdk_home = jdk_home))
+            case List(jdk_version) => Some(copy(jdk_version = jdk_version))
             case _ => error("Expected unique version within executable " + path)
           }
         }
@@ -87,7 +84,7 @@ subdirectories.
 
   /* settings */
 
-  def settings(jdk_home: String): String =
+  val settings: String =
 """# -*- shell-script -*- :mode=shellscript:
 
 case "$ISABELLE_PLATFORM_FAMILY" in
@@ -100,13 +97,13 @@ case "$ISABELLE_PLATFORM_FAMILY" in
     ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
   macos)
-    if [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_APPLE_PLATFORM64/""" + jdk_home + """" ]
+    if [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_APPLE_PLATFORM64" ]
     then
       ISABELLE_JAVA_PLATFORM="$ISABELLE_APPLE_PLATFORM64"
     else
       ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
     fi
-    ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM/""" + jdk_home + """"
+    ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
 esac
 """
@@ -142,8 +139,6 @@ esac
 
       val platform_dir = dir + platform.platform_path
       if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
-
-      File.link(Path.current, jdk_dir + Path.explode(platform.jdk_home) + Path.explode("jre"))
 
       File.move(jdk_dir, platform_dir)
 
@@ -181,16 +176,12 @@ esac
           case missing => error("Missing platforms: " + commas_quote(missing.map(_.platform_name)))
         }
 
-        val jdk_home =
-          platforms.flatMap(platform => proper_string(platform.jdk_home))
-            .headOption.getOrElse(error("Missing JDK home for macOS"))
-
         val jdk_name = "jdk-" + jdk_version
         val jdk_path = Path.explode(jdk_name)
         val component_dir = dir + jdk_path
 
         Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-        File.write(Components.settings(component_dir), settings(jdk_home))
+        File.write(Components.settings(component_dir), settings)
         File.write(component_dir + Path.explode("README"), readme(jdk_version))
 
         for (platform <- platforms) File.move(dir + platform.platform_path, component_dir)
