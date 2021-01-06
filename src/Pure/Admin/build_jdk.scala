@@ -7,6 +7,7 @@ Build Isabelle jdk component from original platform installations.
 package isabelle
 
 
+import java.io.{File => JFile}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
@@ -201,18 +202,19 @@ esac
         }
 
         progress.echo("Sharing ...")
-        val main_dir :: other_dirs =
-          platforms.map(platform => (component_dir + platform.platform_path).file.toPath)
-        for {
-          file1 <- File.find_files(main_dir.toFile).iterator
-          path1 = file1.toPath
-          dir2 <- other_dirs.iterator
-        } {
-          val path2 = dir2.resolve(main_dir.relativize(path1))
-          val file2 = path2.toFile
-          if (!Files.isSymbolicLink(path2) && file2.isFile && File.eq_content(file1, file2)) {
+        val all_files: Multi_Map[SHA1.Digest, JFile] =
+          (Multi_Map.empty[SHA1.Digest, JFile] /:
+            File.find_files(component_dir.file, file => Files.isSymbolicLink(file.toPath)))
+          {
+            case (seen, file) =>
+              val digest = SHA1.digest(Bytes.read(file))
+              seen.insert(digest, file)
+          }
+        for ((_, file1 :: files2) <- all_files.iterator_list; file2 <- files2) {
+          if (file2.isFile && File.eq_content(file1, file2)) {
             file2.delete
-            Files.createLink(path2, path1)
+            progress.echo(file1 + " -> " + file2)
+            Files.createLink(file2.toPath, file1.toPath)
           }
         }
 
