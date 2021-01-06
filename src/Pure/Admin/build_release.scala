@@ -340,6 +340,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <array>
 <string>thy</string>
 </array>
+<key>CFBundleTypeIconFile</key>
+<string>theory.icns</string>
 <key>CFBundleTypeName</key>
 <string>Isabelle theory file</string>
 <key>CFBundleTypeRole</key>
@@ -661,8 +663,9 @@ rm -rf "${DIST_NAME}-old"
             File.link(
               isabelle_home + isabelle_options, app_dir + isabelle_options, force = true)
 
-            File.copy(
-              app_dir + isabelle_home + Path.explode("lib/logo/isabelle.icns"), app_resources)
+            for (icon <- List("lib/logo/isabelle.icns", "lib/logo/theory.icns")) {
+              File.copy(app_dir + isabelle_home + Path.explode(icon), app_resources)
+            }
 
             make_isabelle_app(
               app_dir + Path.explode(isabelle_name),
