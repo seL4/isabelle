@@ -7,7 +7,6 @@ Build Isabelle jdk component from original platform installations.
 package isabelle
 
 
-import java.io.{File => JFile}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
@@ -16,59 +15,79 @@ import scala.util.matching.Regex
 
 object Build_JDK
 {
-  /* version */
+  /* platform and version information */
 
-  def detect_version(s: String): String =
+  sealed case class JDK_Platform(
+    platform_name: String,
+    platform_regex: Regex,
+    exe: String = "java",
+    macos_home: Boolean = false,
+    jdk_version: String = "",
+    jdk_home: String = "")
   {
-    val Version_Dir_Entry = """^jdk-([0-9.]+\+\d+)$""".r
-    s match {
-      case Version_Dir_Entry(version) => version
-      case _ => error("Cannot detect JDK version from " + quote(s))
-    }
-  }
+    override def toString: String = platform_name
 
+    def platform_path: Path = Path.explode(platform_name)
 
-  /* platform */
-
-  sealed case class JDK_Platform(name: String, home: String, exe: String, regex: Regex)
-  {
-    override def toString: String = name
-
-    def detect(jdk_dir: Path): Boolean =
+    def detect(jdk_dir: Path): Option[JDK_Platform] =
     {
-      val path = jdk_dir + Path.explode(exe)
+      val major_version =
+      {
+        val Major_Version = """.*jdk(\d+).*$""".r
+        val jdk_name = jdk_dir.file.getName
+        jdk_name match {
+          case Major_Version(s) => s
+          case _ => error("Cannot determine major version from " + quote(jdk_name))
+        }
+      }
+      val jdk_home = if (macos_home) "zulu-" + major_version + ".jdk/Contents/Home" else ""
+
+      val path = jdk_dir + Path.explode(jdk_home) + Path.explode("bin") + Path.explode(exe)
       if (path.is_file) {
         val file_descr = Isabelle_System.bash("file -b " + File.bash_path(path)).check.out
-        regex.pattern.matcher(file_descr).matches
+        if (platform_regex.pattern.matcher(file_descr).matches) {
+          val Version = ("^(" + major_version + """\.[0-9.]+\+\d+)(?:-LTS)?$""").r
+          val version_lines =
+            Isabelle_System.bash("strings " + File.bash_path(path)).check
+              .out_lines.flatMap({ case Version(s) => Some(s) case _ => None })
+          version_lines match {
+            case List(jdk_version) =>
+              Some(copy(jdk_version = jdk_version, jdk_home = jdk_home))
+            case _ => error("Expected unique version within executable " + path)
+          }
+        }
+        else None
       }
-      else false
+      else None
     }
   }
-  val jdk_platforms =
+
+  val templates: List[JDK_Platform] =
     List(
-      JDK_Platform("arm64-linux", ".", "bin/java", """.*ELF 64-bit.*ARM aarch64.*""".r),
-      JDK_Platform("x86_64-linux", ".", "bin/java", """.*ELF 64-bit.*x86[-_]64.*""".r),
-      JDK_Platform("x86_64-windows", ".", "bin/java.exe", """.*PE32\+ executable.*x86[-_]64.*""".r),
-      JDK_Platform("x86_64-darwin", "Contents/Home", "Contents/Home/bin/java",
-        """.*Mach-O 64-bit.*x86[-_]64.*""".r))
+      JDK_Platform("arm64-darwin", """.*Mach-O 64-bit.*arm64.*""".r, macos_home = true),
+      JDK_Platform("arm64-linux", """.*ELF 64-bit.*ARM aarch64.*""".r),
+      JDK_Platform("x86_64-darwin", """.*Mach-O 64-bit.*x86[-_]64.*""".r, macos_home = true),
+      JDK_Platform("x86_64-linux", """.*ELF 64-bit.*x86[-_]64.*""".r),
+      JDK_Platform("x86_64-windows", """.*PE32\+ executable.*x86[-_]64.*""".r, exe = "java.exe"))
 
 
   /* README */
 
-  def readme(version: String): String =
-"""This is OpenJDK """ + version + """ as required for Isabelle.
+  def readme(jdk_version: String): String =
+"""This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
+https://www.azul.com/downloads/zulu-community/?package=jdk
 
-See https://adoptopenjdk.net for the original downloads, which are covered
-the GPL2 (with various liberal exceptions, see legal/*).
+The main license is GPL2, but some modules are covered by other (more liberal)
+licenses, see legal/* for details.
 
-Linux (arm64 and x86_64), Windows (x86_64), and macOS (x86_64) all work
-uniformly, depending on certain platform-specific subdirectories.
+Linux, Windows, macOS all work uniformly, depending on platform-specific
+subdirectories.
 """
 
 
   /* settings */
 
-  val settings =
+  def settings(jdk_home: String): String =
 """# -*- shell-script -*- :mode=shellscript:
 
 case "$ISABELLE_PLATFORM_FAMILY" in
@@ -81,8 +100,13 @@ case "$ISABELLE_PLATFORM_FAMILY" in
     ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
   macos)
-    ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
-    ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM/Contents/Home"
+    if [ -n "$ISABELLE_APPLE_PLATFORM64" -a -d "$COMPONENT/$ISABELLE_APPLE_PLATFORM64/""" + jdk_home + """" ]
+    then
+      ISABELLE_JAVA_PLATFORM="$ISABELLE_APPLE_PLATFORM64"
+    else
+      ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
+    fi
+    ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM/""" + jdk_home + """"
     ;;
 esac
 """
@@ -92,7 +116,7 @@ esac
 
   private def suppress_name(name: String): Boolean = name.startsWith("._")
 
-  def extract_archive(dir: Path, archive: Path): (String, JDK_Platform) =
+  def extract_archive(dir: Path, archive: Path): JDK_Platform =
   {
     try {
       val tmp_dir = Isabelle_System.make_directory(dir + Path.explode("tmp"))
@@ -110,20 +134,20 @@ esac
           case List(s) => s
           case _ => error("Archive contains multiple directories")
         }
-      val version = detect_version(dir_entry)
 
       val jdk_dir = tmp_dir + Path.explode(dir_entry)
       val platform =
-        jdk_platforms.find(_.detect(jdk_dir)) getOrElse error("Failed to detect JDK platform")
+        templates.view.flatMap(_.detect(jdk_dir))
+          .headOption.getOrElse(error("Failed to detect JDK platform"))
 
-      val platform_dir = dir + Path.explode(platform.name)
+      val platform_dir = dir + platform.platform_path
       if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
 
-      File.link(Path.current, jdk_dir + Path.explode(platform.home) + Path.explode("jre"))
+      File.link(Path.current, jdk_dir + Path.explode(platform.jdk_home) + Path.explode("jre"))
 
       File.move(jdk_dir, platform_dir)
 
-      (version, platform)
+      platform
     }
     catch { case ERROR(msg) => cat_error(msg, "The error(s) above occurred for " + archive) }
   }
@@ -141,31 +165,35 @@ esac
     Isabelle_System.with_tmp_dir("jdk")(dir =>
       {
         progress.echo("Extracting ...")
-        val extracted = archives.map(extract_archive(dir, _))
+        val platforms = archives.map(extract_archive(dir, _))
 
-        val version =
-          extracted.map(_._1).distinct match {
+        val jdk_version =
+          platforms.map(_.jdk_version).distinct match {
             case List(version) => version
             case Nil => error("No archives")
             case versions =>
               error("Archives contain multiple JDK versions: " + commas_quote(versions))
           }
 
-        val missing_platforms =
-          jdk_platforms.filterNot(p1 => extracted.exists({ case (_, p2) => p1.name == p2.name }))
-        if (missing_platforms.nonEmpty)
-          error("Missing platforms: " + commas_quote(missing_platforms.map(_.name)))
+        templates.filterNot(p1 => platforms.exists(p2 => p1.platform_name == p2.platform_name))
+        match {
+          case Nil =>
+          case missing => error("Missing platforms: " + commas_quote(missing.map(_.platform_name)))
+        }
 
-        val jdk_name = "jdk-" + version
+        val jdk_home =
+          platforms.flatMap(platform => proper_string(platform.jdk_home))
+            .headOption.getOrElse(error("Missing JDK home for macOS"))
+
+        val jdk_name = "jdk-" + jdk_version
         val jdk_path = Path.explode(jdk_name)
         val component_dir = dir + jdk_path
 
         Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-        File.write(Components.settings(component_dir), settings)
-        File.write(component_dir + Path.explode("README"), readme(version))
+        File.write(Components.settings(component_dir), settings(jdk_home))
+        File.write(component_dir + Path.explode("README"), readme(jdk_version))
 
-        for ((_, platform) <- extracted)
-          File.move(dir + Path.explode(platform.name), component_dir)
+        for (platform <- platforms) File.move(dir + platform.platform_path, component_dir)
 
         for (file <- File.find_files(component_dir.file, include_dirs = true)) {
           val path = file.toPath
@@ -188,7 +216,7 @@ esac
 
         progress.echo("Sharing ...")
         val main_dir :: other_dirs =
-          jdk_platforms.map(platform => (component_dir + Path.explode(platform.name)).file.toPath)
+          platforms.map(platform => (component_dir + platform.platform_path).file.toPath)
         for {
           file1 <- File.find_files(main_dir.toFile).iterator
           path1 = file1.toPath
@@ -225,7 +253,7 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
     -D DIR       target directory (default ".")
 
   Build jdk component from tar.gz archives, with original jdk archives
-  for Linux (arm64 and x86_64), Windows (x86_64), macOS (x86_64).
+  for Linux, Windows, and macOS.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)))
 
