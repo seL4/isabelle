@@ -201,22 +201,6 @@ esac
           Files.setPosixFilePermissions(path, perms)
         }
 
-        progress.echo("Sharing ...")
-        val all_files: Multi_Map[SHA1.Digest, JFile] =
-          (Multi_Map.empty[SHA1.Digest, JFile] /:
-            File.find_files(component_dir.file, file => Files.isSymbolicLink(file.toPath)))
-          {
-            case (seen, file) =>
-              val digest = SHA1.digest(Bytes.read(file))
-              seen.insert(digest, file)
-          }
-        for ((_, file1 :: files2) <- all_files.iterator_list; file2 <- files2) {
-          if (file2.isFile && File.eq_content(file1, file2)) {
-            file2.delete
-            Files.createLink(file2.toPath, file1.toPath)
-          }
-        }
-
         progress.echo("Archiving ...")
         Isabelle_System.gnutar(
           "-czf " + File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name,
