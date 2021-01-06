@@ -9,8 +9,10 @@ New in Isabelle2021 (February 2021)
 
 *** General ***
 
-* HTML presentation includes auxiliary files (e.g. ML) for each theory,
-with rich markup.
+* HTML presentation uses rich markup produced by Isabelle/PIDE,
+resulting in more colors and links.
+
+* HTML presentation includes auxiliary files (e.g. ML) for each theory.
 
 * Proof method "subst" is confined to the original subgoal range: its
 included distinct_subgoals_tac no longer affects unrelated subgoals.
