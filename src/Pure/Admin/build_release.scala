@@ -297,7 +297,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   }
 
 
-  def make_isabelle_plist(path: Path, isabelle_name: String)
+  def make_isabelle_plist(path: Path, isabelle_name: String, isabelle_rev: String)
   {
     File.write(path, """<?xml version="1.0" ?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -318,7 +318,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>CFBundlePackageType</key>
 <string>APPL</string>
 <key>CFBundleShortVersionString</key>
-<string>1.0</string>
+<string>""" + isabelle_rev + """</string>
 <key>CFBundleSignature</key>
 <string>????</string>
 <key>CFBundleVersion</key>
@@ -326,7 +326,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>NSHumanReadableCopyright</key>
 <string></string>
 <key>LSMinimumSystemVersion</key>
-<string>10.7</string>
+<string>10.10</string>
 <key>LSApplicationCategoryType</key>
 <string>public.app-category.developer-tools</string>
 <key>NSHighResolutionCapable</key>
@@ -675,7 +675,8 @@ rm -rf "${DIST_NAME}-old"
               app_dir + isabelle_options,
               java_options ::: List("-Disabelle.app=true"))
 
-            make_isabelle_plist(app_contents + Path.explode("Info.plist"), isabelle_name)
+            make_isabelle_plist(
+              app_contents + Path.explode("Info.plist"), isabelle_name, release.ident)
 
 
             // application archive
