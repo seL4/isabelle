@@ -213,7 +213,6 @@ esac
         for ((_, file1 :: files2) <- all_files.iterator_list; file2 <- files2) {
           if (file2.isFile && File.eq_content(file1, file2)) {
             file2.delete
-            progress.echo(file1 + " -> " + file2)
             Files.createLink(file2.toPath, file1.toPath)
           }
         }
