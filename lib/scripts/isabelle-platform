@@ -35,8 +35,8 @@ case $(uname -s) in
         ;;
       *)
         ISABELLE_PLATFORM64=x86_64-darwin
-        case $(uname -m) in
-          arm64)
+        case $(uname -a) in
+          *arm64*|*ARM64*)
             ISABELLE_APPLE_PLATFORM64=arm64-darwin
             ;;
           *)
