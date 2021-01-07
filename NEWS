@@ -171,31 +171,30 @@ written as "x powi n".
 division, instantiated for type int.
 
 * Theory "Multiset": removed misleading notation \<Union># for sum_mset;
-replaced with \<Sum>\<^sub>#. Analogous notation for prod_mset also 
-exists now.
+replaced with \<Sum>\<^sub>#. Analogous notation for prod_mset also exists now.
 
-* Self-contained library theory "Word" taken over from former session
-"HOL-Word".
+* New theory "HOL-Library.Word" takes over material from former session
+"HOL-Word". INCOMPATIBILITY: need to adjust imports.
 
-* Theory "Word": Type word is restricted to bit strings consisting of at
-least one bit. INCOMPATIBILITY.
+* Theory "HOL-Library.Word": Type word is restricted to bit strings
+consisting of at least one bit. INCOMPATIBILITY.
 
-* Theory "Word": Bit operations NOT, AND, OR, XOR are based on generic
-algebraic bit operations from theory "HOL-Library.Bit_Operations".
-INCOMPATIBILITY.
+* Theory "HOL-Library.Word": Bit operations NOT, AND, OR, XOR are based
+on generic algebraic bit operations from theory
+"HOL-Library.Bit_Operations". INCOMPATIBILITY.
 
-* Theory "Word": Most operations on type word are set up for transfer
-and lifting. INCOMPATIBILITY.
+* Theory "HOL-Library.Word": Most operations on type word are set up for
+transfer and lifting. INCOMPATIBILITY.
 
-* Theory "Word": Generic type conversions. INCOMPATIBILITY, sometimes
-additional rewrite rules must be added to applications to get a
-confluent system again.
+* Theory "HOL-Library.Word": Generic type conversions. INCOMPATIBILITY,
+sometimes additional rewrite rules must be added to applications to get
+a confluent system again.
 
-* Theory "Word": Uniform polymorphic "mask" operation for both types int
-and word. INCOMPATIBILITY.
+* Theory "HOL-Library.Word": Uniform polymorphic "mask" operation for
+both types int and word. INCOMPATIBILITY.
 
-* Theory "Word": Syntax for signed compare operators has been
-consolidated with syntax of regular compare operators. Minor
+* Theory "HOL-Library.Word": Syntax for signed compare operators has
+been consolidated with syntax of regular compare operators. Minor
 INCOMPATIBILITY.
 
 * Former session "HOL-Word": Various operations dealing with bit values
