@@ -26,8 +26,6 @@ object Main
           Isabelle_System.init()
           Isabelle_Fonts.init()
 
-          GUI.set_application_icon()
-
 
           /* ROOTS template */
 

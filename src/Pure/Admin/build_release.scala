@@ -258,7 +258,8 @@ directory individually.
     path: Path,
     isabelle_home_prefix: String,
     jdk_component: String,
-    classpath: List[Path])
+    classpath: List[Path],
+    dock_icon: Boolean = false)
   {
     val script = """#!/usr/bin/env bash
 #
@@ -290,7 +291,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
   -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
-  isabelle.Main "$@"
+""" + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
+""" else "") + """isabelle.Main "$@"
 """
     File.write(path, script)
     File.set_executable(path, true)
@@ -669,7 +671,7 @@ rm -rf "${DIST_NAME}-old"
 
             make_isabelle_app(
               app_dir + Path.explode(isabelle_name),
-              isabelle_home.implode, jdk_component, classpath)
+              isabelle_home.implode, jdk_component, classpath, dock_icon = true)
 
             make_isabelle_options(
               app_dir + isabelle_options,

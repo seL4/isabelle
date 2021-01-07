@@ -157,20 +157,6 @@ object GUI
 
   def isabelle_image(): Image = isabelle_icon().getImage
 
-  def isabelle_image_large(): Image =
-    Toolkit.getDefaultToolkit.getImage(
-      File.platform_path(Path.explode("~~/lib/logo/isabelle_transparent-128.png")))
-
-  def set_application_icon()
-  {
-    if (Platform.is_macos && Taskbar.isTaskbarSupported) {
-      val taskbar = Taskbar.getTaskbar
-      if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
-        taskbar.setIconImage(isabelle_image_large())
-      }
-    }
-  }
-
 
   /* location within multi-screen environment */
 
