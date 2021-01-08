@@ -957,6 +957,12 @@ qed
 
 end
 
+lemma Ints_sum [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<int>) \<Longrightarrow> sum f A \<in> \<int>"
+  by (induction A rule: infinite_finite_induct) auto
+
+lemma Ints_prod [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<int>) \<Longrightarrow> prod f A \<in> \<int>"
+  by (induction A rule: infinite_finite_induct) auto
+
 lemma (in linordered_idom) Ints_abs [simp]:
   shows "a \<in> \<int> \<Longrightarrow> abs a \<in> \<int>"
   by (auto simp: abs_if)

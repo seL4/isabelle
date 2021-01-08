@@ -586,6 +586,12 @@ lemma complex_add_cnj: "z + cnj z = complex_of_real (2 * Re z)"
 lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * \<i>"
   by (simp add: complex_eq_iff)
 
+lemma Ints_cnj [intro]: "x \<in> \<int> \<Longrightarrow> cnj x \<in> \<int>"
+  by (auto elim!: Ints_cases)
+
+lemma cnj_in_Ints_iff [simp]: "cnj x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
+  using Ints_cnj[of x] Ints_cnj[of "cnj x"] by auto
+
 lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
   by (simp add: complex_eq_iff power2_eq_square)
 

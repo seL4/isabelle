@@ -358,6 +358,23 @@ lemma of_real_eq_of_real_power_int_cancel_iff [simp]:
      power_int b w = x"
   by (metis of_real_power_int of_real_eq_iff)
 
+lemma of_real_in_Ints_iff [simp]: "of_real x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
+proof safe
+  fix x assume "(of_real x :: 'a) \<in> \<int>"
+  then obtain n where "(of_real x :: 'a) = of_int n"
+    by (auto simp: Ints_def)
+  also have "of_int n = of_real (real_of_int n)"
+    by simp
+  finally have "x = real_of_int n"
+    by (subst (asm) of_real_eq_iff)
+  thus "x \<in> \<int>"
+    by auto
+qed (auto simp: Ints_def)
+
+lemma Ints_of_real [intro]: "x \<in> \<int> \<Longrightarrow> of_real x \<in> \<int>"
+  by simp
+
+
 text \<open>Every real algebra has characteristic zero.\<close>
 instance real_algebra_1 < ring_char_0
 proof

@@ -815,6 +815,20 @@ proof -
   then show thesis ..
 qed
 
+lemma Rats_cases':
+  assumes "(x :: 'a :: field_char_0) \<in> \<rat>"
+  obtains a b where "b > 0" "coprime a b" "x = of_int a / of_int b"
+proof -
+  from assms obtain r where "x = of_rat r"
+    by (auto simp: Rats_def)
+  obtain a b where quot: "quotient_of r = (a,b)" by force
+  have "b > 0" using quotient_of_denom_pos[OF quot] .
+  moreover have "coprime a b" using quotient_of_coprime[OF quot] .
+  moreover have "x = of_int a / of_int b" unfolding \<open>x = of_rat r\<close>
+      quotient_of_div[OF quot] by (simp add: of_rat_divide)
+  ultimately show ?thesis using that by blast
+qed
+
 lemma Rats_of_rat [simp]: "of_rat r \<in> \<rat>"
   by (simp add: Rats_def)
 

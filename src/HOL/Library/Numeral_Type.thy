@@ -223,6 +223,30 @@ lemma induct:
   "(\<And>z. \<lbrakk>0 \<le> z; z < n\<rbrakk> \<Longrightarrow> P (of_int z)) \<Longrightarrow> P (x::'a)"
 by (cases x rule: cases) simp
 
+lemma UNIV_eq: "(UNIV :: 'a set) = Abs ` {0..<n}"
+  using type type_definition.univ by blast
+
+lemma CARD_eq: "CARD('a) = nat n"
+proof -
+  have "CARD('a) = card (Abs ` {0..<n})"
+    by (simp add: UNIV_eq)
+  also have "inj_on Abs {0..<n}"
+    by (metis Abs_inverse inj_onI)
+  hence "card (Abs ` {0..<n}) = nat n"
+    using size1 by (subst card_image) auto
+  finally show ?thesis .
+qed
+
+lemma CHAR_eq [simp]: "CHAR('a) = CARD('a)"
+proof (rule CHAR_eqI)
+  show "of_nat (CARD('a)) = (0 :: 'a)"
+    by (simp add: CARD_eq of_nat_eq zero_def)
+next
+  fix n assume "of_nat n = (0 :: 'a)"
+  thus "CARD('a) dvd n"
+    by (metis CARD_eq Rep_0 Rep_Abs_mod Rep_le_n mod_0_imp_dvd nat_dvd_iff of_nat_eq)
+qed
+
 end
 
 
@@ -574,6 +598,7 @@ subsection \<open>Examples\<close>
 
 lemma "CARD(0) = 0" by simp
 lemma "CARD(17) = 17" by simp
+lemma "CHAR(23) = 23" by simp
 lemma "8 * 11 ^ 3 - 6 = (2::5)" by simp
 
 end

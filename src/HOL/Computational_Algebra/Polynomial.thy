@@ -1389,6 +1389,14 @@ lemma degree_mult_eq: "p \<noteq> 0 \<Longrightarrow> q \<noteq> 0 \<Longrightar
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   by (rule order_antisym [OF degree_mult_le le_degree]) (simp add: coeff_mult_degree_sum)
 
+lemma degree_prod_eq_sum_degree:
+  fixes A :: "'a set"
+  and f :: "'a \<Rightarrow> 'b::idom poly"
+  assumes f0: "\<forall>i\<in>A. f i \<noteq> 0"
+  shows "degree (\<Prod>i\<in>A. (f i)) = (\<Sum>i\<in>A. degree (f i))"
+  using assms
+  by (induction A rule: infinite_finite_induct) (auto simp: degree_mult_eq)
+
 lemma degree_mult_eq_0:
   "degree (p * q) = 0 \<longleftrightarrow> p = 0 \<or> q = 0 \<or> (p \<noteq> 0 \<and> q \<noteq> 0 \<and> degree p = 0 \<and> degree q = 0)"
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -1453,6 +1461,10 @@ lemma const_poly_dvd_const_poly_iff [simp]: "[:a:] dvd [:b:] \<longleftrightarro
 lemma lead_coeff_mult: "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
   for p q :: "'a::{comm_semiring_0, semiring_no_zero_divisors} poly"
   by (cases "p = 0 \<or> q = 0") (auto simp: coeff_mult_degree_sum degree_mult_eq)
+
+lemma lead_coeff_prod: "lead_coeff (prod f A) = (\<Prod>x\<in>A. lead_coeff (f x))"
+  for f :: "'a \<Rightarrow> 'b::{comm_semiring_1, semiring_no_zero_divisors} poly"
+  by (induction A rule: infinite_finite_induct) (auto simp: lead_coeff_mult)
 
 lemma lead_coeff_smult: "lead_coeff (smult c p) = c * lead_coeff p"
   for p :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -2147,6 +2159,46 @@ next
 qed
 
 
+subsection \<open>Closure properties of coefficients\<close>
+
+
+context
+  fixes R :: "'a :: comm_semiring_1 set"
+  assumes R_0: "0 \<in> R"
+  assumes R_plus: "\<And>x y. x \<in> R \<Longrightarrow> y \<in> R \<Longrightarrow> x + y \<in> R"
+  assumes R_mult: "\<And>x y. x \<in> R \<Longrightarrow> y \<in> R \<Longrightarrow> x * y \<in> R"
+begin
+
+lemma coeff_mult_semiring_closed:
+  assumes "\<And>i. coeff p i \<in> R" "\<And>i. coeff q i \<in> R"
+  shows   "coeff (p * q) i \<in> R"
+proof -
+  have R_sum: "sum f A \<in> R" if "\<And>x. x \<in> A \<Longrightarrow> f x \<in> R" for A and f :: "nat \<Rightarrow> 'a"
+    using that by (induction A rule: infinite_finite_induct) (auto intro: R_0 R_plus)
+  show ?thesis
+    unfolding coeff_mult by (auto intro!: R_sum R_mult assms)
+qed
+
+lemma coeff_pcompose_semiring_closed:
+  assumes "\<And>i. coeff p i \<in> R" "\<And>i. coeff q i \<in> R"
+  shows   "coeff (pcompose p q) i \<in> R"
+  using assms(1)
+proof (induction p arbitrary: i)
+  case (pCons a p i)
+  have [simp]: "a \<in> R"
+    using pCons.prems[of 0] by auto
+  have "coeff p i \<in> R" for i
+    using pCons.prems[of "Suc i"] by auto
+  hence "coeff (p \<circ>\<^sub>p q) i \<in> R" for i
+    using pCons.prems by (intro pCons.IH)
+  thus ?case
+    by (auto simp: pcompose_pCons coeff_pCons split: nat.splits
+             intro!: assms R_plus coeff_mult_semiring_closed)
+qed auto
+
+end
+
+
 subsection \<open>Shifting polynomials\<close>
 
 definition poly_shift :: "nat \<Rightarrow> 'a::zero poly \<Rightarrow> 'a poly"
@@ -2463,7 +2515,8 @@ proof (cases "degree p")
 next
   case (Suc n)
   then show ?thesis
-    by (metis coeff_0 coeff_pderiv degree_0 leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)    
+    using coeff_0 coeff_pderiv degree_0 leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff
+    by (metis coeff_0 coeff_pderiv degree_0 leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)
 qed
 
 lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
@@ -2866,6 +2919,264 @@ next
     by (elim Ints_cases) simp
   ultimately show "\<exists>p. (\<forall>i. coeff p i \<in> \<rat>) \<and> p \<noteq> 0 \<and> poly p x = 0" by auto
 qed
+
+
+subsection \<open>Algebraic integers\<close>
+
+inductive algebraic_int :: "'a :: field \<Rightarrow> bool" where
+  "\<lbrakk>lead_coeff p = 1; \<forall>i. coeff p i \<in> \<int>; poly p x = 0\<rbrakk> \<Longrightarrow> algebraic_int x"
+
+lemma algebraic_int_altdef_ipoly:
+  fixes x :: "'a :: field_char_0"
+  shows "algebraic_int x \<longleftrightarrow> (\<exists>p. poly (map_poly of_int p) x = 0 \<and> lead_coeff p = 1)"
+proof
+  assume "algebraic_int x"
+  then obtain p where p: "lead_coeff p = 1" "\<forall>i. coeff p i \<in> \<int>" "poly p x = 0"
+    by (auto elim: algebraic_int.cases)
+  define the_int where "the_int = (\<lambda>x::'a. THE r. x = of_int r)"
+  define p' where "p' = map_poly the_int p"
+  have of_int_the_int: "of_int (the_int x) = x" if "x \<in> \<int>" for x
+    unfolding the_int_def by (rule sym, rule theI') (insert that, auto simp: Ints_def)
+  have the_int_0_iff: "the_int x = 0 \<longleftrightarrow> x = 0" if "x \<in> \<int>" for x
+    using of_int_the_int[OF that] by auto
+  have [simp]: "the_int 0 = 0"
+    by (subst the_int_0_iff) auto
+  have "map_poly of_int p' = map_poly (of_int \<circ> the_int) p"
+    by (simp add: p'_def map_poly_map_poly)
+  also from p of_int_the_int have "\<dots> = p"
+    by (subst poly_eq_iff) (auto simp: coeff_map_poly)
+  finally have p_p': "map_poly of_int p' = p" .
+
+  show "(\<exists>p. poly (map_poly of_int p) x = 0 \<and> lead_coeff p = 1)"
+  proof (intro exI conjI notI)
+    from p show "poly (map_poly of_int p') x = 0" by (simp add: p_p')
+  next
+    show "lead_coeff p' = 1"
+      using p by (simp flip: p_p' add: degree_map_poly coeff_map_poly)
+  qed
+next
+  assume "\<exists>p. poly (map_poly of_int p) x = 0 \<and> lead_coeff p = 1"
+  then obtain p where p: "poly (map_poly of_int p) x = 0" "lead_coeff p = 1"
+    by auto
+  define p' where "p' = (map_poly of_int p :: 'a poly)"
+  from p have "lead_coeff p' = 1" "poly p' x = 0" "\<forall>i. coeff p' i \<in> \<int>"
+    by (auto simp: p'_def coeff_map_poly degree_map_poly)
+  thus "algebraic_int x"
+    by (intro algebraic_int.intros)
+qed
+
+theorem rational_algebraic_int_is_int:
+  assumes "algebraic_int x" and "x \<in> \<rat>"
+  shows   "x \<in> \<int>"
+proof -
+  from assms(2) obtain a b where ab: "b > 0" "Rings.coprime a b" and x_eq: "x = of_int a / of_int b"
+    by (auto elim: Rats_cases')
+  from \<open>b > 0\<close> have [simp]: "b \<noteq> 0"
+    by auto
+  from assms(1) obtain p
+    where p: "lead_coeff p = 1" "\<forall>i. coeff p i \<in> \<int>" "poly p x = 0"
+    by (auto simp: algebraic_int.simps)
+
+  define q :: "'a poly" where "q = [:-of_int a, of_int b:]"
+  have "poly q x = 0" "q \<noteq> 0" "\<forall>i. coeff q i \<in> \<int>"
+    by (auto simp: x_eq q_def coeff_pCons split: nat.splits)
+  define n where "n = degree p"
+  have "n > 0"
+    using p by (intro Nat.gr0I) (auto simp: n_def elim!: degree_eq_zeroE)
+  have "(\<Sum>i<n. coeff p i * of_int (a ^ i * b ^ (n - i - 1))) \<in> \<int>"
+    using p by auto
+  then obtain R where R: "of_int R = (\<Sum>i<n. coeff p i * of_int (a ^ i * b ^ (n - i - 1)))"
+    by (auto simp: Ints_def)
+  have [simp]: "coeff p n = 1"
+    using p by (auto simp: n_def)
+
+  have "0 = poly p x * of_int b ^ n"
+    using p by simp
+  also have "\<dots> = (\<Sum>i\<le>n. coeff p i * x ^ i * of_int b ^ n)"
+    by (simp add: poly_altdef n_def sum_distrib_right)
+  also have "\<dots> = (\<Sum>i\<le>n. coeff p i * of_int (a ^ i * b ^ (n - i)))"
+    by (intro sum.cong) (auto simp: x_eq field_simps simp flip: power_add)
+  also have "{..n} = insert n {..<n}"
+    using \<open>n > 0\<close> by auto
+  also have "(\<Sum>i\<in>\<dots>. coeff p i * of_int (a ^ i * b ^ (n - i))) =
+               coeff p n * of_int (a ^ n) + (\<Sum>i<n. coeff p i * of_int (a ^ i * b ^ (n - i)))"
+    by (subst sum.insert) auto
+  also have "(\<Sum>i<n. coeff p i * of_int (a ^ i * b ^ (n - i))) =
+             (\<Sum>i<n. coeff p i * of_int (a ^ i * b * b ^ (n - i - 1)))"
+    by (intro sum.cong) (auto simp flip: power_add power_Suc simp: Suc_diff_Suc)
+  also have "\<dots> = of_int (b * R)"
+    by (simp add: R sum_distrib_left sum_distrib_right mult_ac)
+  finally have "of_int (a ^ n) = (-of_int (b * R) :: 'a)"
+    by (auto simp: add_eq_0_iff)
+  hence "a ^ n = -b * R"
+    by (simp flip: of_int_mult of_int_power of_int_minus)
+  hence "b dvd a ^ n"
+    by simp
+  with \<open>Rings.coprime a b\<close> have "b dvd 1"
+    by (meson coprime_power_left_iff dvd_refl not_coprimeI)
+  with x_eq and \<open>b > 0\<close> show ?thesis
+    by auto
+qed
+
+lemma algebraic_int_imp_algebraic [dest]: "algebraic_int x \<Longrightarrow> algebraic x"
+  by (auto simp: algebraic_int.simps algebraic_def)
+
+lemma int_imp_algebraic_int:
+  assumes "x \<in> \<int>"
+  shows   "algebraic_int x"
+proof
+  show "\<forall>i. coeff [:-x, 1:] i \<in> \<int>"
+    using assms by (auto simp: coeff_pCons split: nat.splits)
+qed auto
+
+lemma algebraic_int_0 [simp, intro]: "algebraic_int 0"
+  and algebraic_int_1 [simp, intro]: "algebraic_int 1"
+  and algebraic_int_numeral [simp, intro]: "algebraic_int (numeral n)"
+  and algebraic_int_of_nat [simp, intro]: "algebraic_int (of_nat k)"
+  and algebraic_int_of_int [simp, intro]: "algebraic_int (of_int k)"
+  by (simp_all add: int_imp_algebraic_int)
+
+lemma algebraic_int_ii [simp, intro]: "algebraic_int \<i>"
+proof
+  show "poly [:1, 0, 1:] \<i> = 0"
+    by simp
+qed (auto simp: coeff_pCons split: nat.splits)
+
+lemma algebraic_int_minus [intro]:
+  assumes "algebraic_int x"
+  shows   "algebraic_int (-x)"
+proof -
+  from assms obtain p where p: "lead_coeff p = 1" "\<forall>i. coeff p i \<in> \<int>" "poly p x = 0"
+    by (auto simp: algebraic_int.simps)
+  define s where "s = (if even (degree p) then 1 else -1 :: 'a)"
+
+  define q where "q = Polynomial.smult s (pcompose p [:0, -1:])"
+  have "lead_coeff q = s * lead_coeff (pcompose p [:0, -1:])"
+    by (simp add: q_def)
+  also have "lead_coeff (pcompose p [:0, -1:]) = lead_coeff p * (- 1) ^ degree p"
+    by (subst lead_coeff_comp) auto
+  finally have "poly q (-x) = 0" and "lead_coeff q = 1"
+    using p by (auto simp: q_def poly_pcompose s_def)
+  moreover have "coeff q i \<in> \<int>" for i
+  proof -
+    have "coeff (pcompose p [:0, -1:]) i \<in> \<int>"
+      using p by (intro coeff_pcompose_semiring_closed) (auto simp: coeff_pCons split: nat.splits)
+    thus ?thesis by (simp add: q_def s_def)
+  qed
+  ultimately show ?thesis
+    by (auto simp: algebraic_int.simps)
+qed
+
+lemma algebraic_int_minus_iff [simp]:
+  "algebraic_int (-x) \<longleftrightarrow> algebraic_int (x :: 'a :: field_char_0)"
+  using algebraic_int_minus[of x] algebraic_int_minus[of "-x"] by auto
+
+lemma algebraic_int_inverse [intro]:
+  assumes "poly p x = 0" and "\<forall>i. coeff p i \<in> \<int>" and "coeff p 0 = 1"
+  shows   "algebraic_int (inverse x)"
+proof
+  from assms have [simp]: "x \<noteq> 0"
+    by (auto simp: poly_0_coeff_0)
+  show "poly (reflect_poly p) (inverse x) = 0"
+    using assms by (simp add: poly_reflect_poly_nz)
+qed (use assms in \<open>auto simp: coeff_reflect_poly\<close>)
+
+lemma algebraic_int_root:
+  assumes "algebraic_int y" 
+      and "poly p x = y" and "\<forall>i. coeff p i \<in> \<int>" and "lead_coeff p = 1" and "degree p > 0"
+  shows   "algebraic_int x"
+proof -
+  from assms obtain q where q: "poly q y = 0" "\<forall>i. coeff q i \<in> \<int>" "lead_coeff q = 1"
+    by (auto simp: algebraic_int.simps)
+  show ?thesis
+  proof
+    from assms q show "lead_coeff (pcompose q p) = 1"
+      by (subst lead_coeff_comp) auto
+    from assms q show "\<forall>i. coeff (pcompose q p) i \<in> \<int>"
+      by (intro allI coeff_pcompose_semiring_closed) auto
+    show "poly (pcompose q p) x = 0"
+      using assms q by (simp add: poly_pcompose)
+  qed
+qed
+
+lemma algebraic_int_abs_real [simp]:
+  "algebraic_int \<bar>x :: real\<bar> \<longleftrightarrow> algebraic_int x"
+  by (auto simp: abs_if)
+
+lemma algebraic_int_nth_root_real [intro]:
+  assumes "algebraic_int x"
+  shows   "algebraic_int (root n x)"
+proof (cases "n = 0")
+  case False
+  show ?thesis
+  proof (rule algebraic_int_root)
+    show "poly (monom 1 n) (root n x) = (if even n then \<bar>x\<bar> else x)"
+      using sgn_power_root[of n x] False
+      by (auto simp add: poly_monom sgn_if split: if_splits)
+  qed (use False assms in \<open>auto simp: degree_monom_eq\<close>)
+qed auto
+
+lemma algebraic_int_sqrt [intro]: "algebraic_int x \<Longrightarrow> algebraic_int (sqrt x)"
+  by (auto simp: sqrt_def)
+
+lemma algebraic_int_csqrt [intro]: "algebraic_int x \<Longrightarrow> algebraic_int (csqrt x)"
+  by (rule algebraic_int_root[where p = "monom 1 2"])
+     (auto simp: poly_monom degree_monom_eq)
+
+lemma poly_map_poly_cnj [simp]: "poly (map_poly cnj p) x = cnj (poly p (cnj x))"
+  by (induction p) (auto simp: map_poly_pCons)
+
+lemma algebraic_int_cnj [intro]:
+  assumes "algebraic_int x"
+  shows   "algebraic_int (cnj x)"
+proof -
+  from assms obtain p where p: "lead_coeff p = 1" "\<forall>i. coeff p i \<in> \<int>" "poly p x = 0"
+    by (auto simp: algebraic_int.simps)
+  show ?thesis
+  proof
+    show "poly (map_poly cnj p) (cnj x) = 0"
+      using p by simp
+    show "lead_coeff (map_poly cnj p) = 1"
+      using p by (simp add: coeff_map_poly degree_map_poly)
+    show "\<forall>i. coeff (map_poly cnj p) i \<in> \<int>"
+      using p by (auto simp: coeff_map_poly)
+  qed
+qed
+
+lemma algebraic_int_cnj_iff [simp]: "algebraic_int (cnj x) \<longleftrightarrow> algebraic_int x"
+  using algebraic_int_cnj[of x] algebraic_int_cnj[of "cnj x"] by auto
+
+lemma algebraic_int_of_real [intro]:
+  assumes "algebraic_int x"
+  shows   "algebraic_int (of_real x)"
+proof -
+  from assms obtain p where p: "poly p x = 0" "\<forall>i. coeff p i \<in> \<int>" "lead_coeff p = 1"
+    by (auto simp: algebraic_int.simps)
+  show "algebraic_int (of_real x :: 'a)"
+  proof
+    have "poly (map_poly of_real p) (of_real x) = (of_real (poly p x) :: 'a)"
+      by (induction p) (auto simp: map_poly_pCons)
+    thus "poly (map_poly of_real p) (of_real x) = (0 :: 'a)"
+      using p by simp
+  qed (use p in \<open>auto simp: coeff_map_poly degree_map_poly\<close>)
+qed
+
+lemma algebraic_int_of_real_iff [simp]:
+  "algebraic_int (of_real x :: 'a :: {field_char_0, real_algebra_1}) \<longleftrightarrow> algebraic_int x"
+proof
+  assume "algebraic_int (of_real x :: 'a)"
+  then obtain p
+    where p: "poly (map_poly of_int p) (of_real x :: 'a) = 0" "lead_coeff p = 1"
+    by (auto simp: algebraic_int_altdef_ipoly)
+  show "algebraic_int x"
+    unfolding algebraic_int_altdef_ipoly
+  proof (intro exI[of _ p] conjI)
+    have "of_real (poly (map_poly real_of_int p) x) = poly (map_poly of_int p) (of_real x :: 'a)"
+      by (induction p) (auto simp: map_poly_pCons)
+    also note p(1)
+    finally show "poly (map_poly real_of_int p) x = 0" by simp
+  qed (use p in auto)
+qed auto
 
 
 subsection \<open>Division of polynomials\<close>
