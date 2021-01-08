@@ -222,14 +222,14 @@ local
 val before_command =
   Scan.option (Parse.position (Parse.private >> K true || Parse.qualified >> K false));
 
-fun parse_command thy markers =
+fun parse_command thy core_range markers =
   Scan.ahead (before_command |-- Parse.position Parse.command) :|-- (fn (name, pos) =>
     let
       val keywords = Thy_Header.get_keywords thy;
       val tr0 =
         Toplevel.empty
         |> Toplevel.name name
-        |> Toplevel.position pos
+        |> Toplevel.positions pos core_range
         |> Keyword.is_proof_open keywords name ? Toplevel.skip_proof_open
         |> Keyword.is_proof_close keywords name ? Toplevel.skip_proof_close;
       val command_markers =
@@ -256,21 +256,22 @@ in
 
 fun parse_span thy init span =
   let
-    val range = Token.range_of span;
+    val full_range = Token.range_of span;
     val core_range = Token.core_range_of span;
 
     val markers = map Token.input_of (filter Token.is_document_marker span);
     fun parse () =
       filter Token.is_proper span
       |> Source.of_list
-      |> Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy markers) xs))
+      |> Source.source Token.stopper
+          (Scan.bulk (fn xs => Parse.!!! (parse_command thy core_range markers) xs))
       |> Source.exhaust;
   in
     (case parse () of
       [tr] => Toplevel.modify_init init tr
-    | [] => Toplevel.ignored (#1 range)
-    | _ => Toplevel.malformed (#1 core_range) "Exactly one command expected")
-    handle ERROR msg => Toplevel.malformed (#1 core_range) msg
+    | [] => Toplevel.ignored full_range
+    | _ => Toplevel.malformed core_range "Exactly one command expected")
+    handle ERROR msg => Toplevel.malformed core_range msg
   end;
 
 fun parse_text thy init pos text =
