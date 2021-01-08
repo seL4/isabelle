@@ -156,7 +156,7 @@ fun read keywords thy master_dir init blobs_info span =
         Position.here_list verbatim);
   in
     if exists #1 token_reports
-    then Toplevel.malformed (Token.core_range_of span) "Malformed command syntax"
+    then Toplevel.malformed (#1 (Token.core_range_of span)) "Malformed command syntax"
     else Outer_Syntax.parse_span thy init (resolve_files master_dir blobs_info span)
   end;
 

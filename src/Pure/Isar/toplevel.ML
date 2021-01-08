@@ -33,11 +33,10 @@ sig
   val empty: transition
   val name_of: transition -> string
   val pos_of: transition -> Position.T
-  val body_range_of: transition -> Position.range
   val timing_of: transition -> Time.time
   val type_error: transition -> string
   val name: string -> transition -> transition
-  val positions: Position.T -> Position.range -> transition -> transition
+  val position: Position.T -> transition -> transition
   val markers: Input.source list -> transition -> transition
   val timing: Time.time -> transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
@@ -48,8 +47,8 @@ sig
   val keep': (bool -> state -> unit) -> transition -> transition
   val keep_proof: (state -> unit) -> transition -> transition
   val is_ignored: transition -> bool
-  val ignored: Position.range -> transition
-  val malformed: Position.range -> string -> transition
+  val ignored: Position.T -> transition
+  val malformed: Position.T -> string -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
@@ -336,27 +335,24 @@ end;
 
 datatype transition = Transition of
  {name: string,               (*command name*)
-  pos: Position.T,            (*source position: reference point*)
-  body_range: Position.range, (*source position: main body*)
+  pos: Position.T,            (*source position*)
   markers: Input.source list, (*semantic document markers*)
   timing: Time.time,          (*prescient timing information*)
   trans: trans list};         (*primitive transitions (union)*)
 
-fun make_transition (name, pos, body_range, markers, timing, trans) =
-  Transition {name = name, pos = pos, body_range = body_range, markers = markers,
-    timing = timing, trans = trans};
+fun make_transition (name, pos, markers, timing, trans) =
+  Transition {name = name, pos = pos, markers = markers, timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, body_range, markers, timing, trans}) =
-  make_transition (f (name, pos, body_range, markers, timing, trans));
+fun map_transition f (Transition {name, pos, markers, timing, trans}) =
+  make_transition (f (name, pos, markers, timing, trans));
 
-val empty = make_transition ("", Position.none, Position.no_range, [], Time.zeroTime, []);
+val empty = make_transition ("", Position.none, [], Time.zeroTime, []);
 
 
 (* diagnostics *)
 
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
-fun body_range_of (Transition {body_range, ...}) = body_range;
 fun timing_of (Transition {timing, ...}) = timing;
 
 fun command_msg msg tr =
@@ -369,23 +365,23 @@ fun type_error tr = command_msg "Bad context for " tr;
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, body_range, markers, timing, trans) =>
-  (name, pos, body_range, markers, timing, trans));
+fun name name = map_transition (fn (_, pos, markers, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun positions pos body_range = map_transition (fn (name, _, _, markers, timing, trans) =>
-  (name, pos, body_range, markers, timing, trans));
+fun position pos = map_transition (fn (name, _, markers, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun markers markers = map_transition (fn (name, pos, body_range, _, timing, trans) =>
-  (name, pos, body_range, markers, timing, trans));
+fun markers markers = map_transition (fn (name, pos, _, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun timing timing = map_transition (fn (name, pos, body_range, markers, _, trans) =>
-  (name, pos, body_range, markers, timing, trans));
+fun timing timing = map_transition (fn (name, pos, markers, _, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, body_range, markers, timing, trans) =>
-  (name, pos, body_range, markers, timing, tr :: trans));
+fun add_trans tr = map_transition (fn (name, pos, markers, timing, trans) =>
+  (name, pos, markers, timing, tr :: trans));
 
-val reset_trans = map_transition (fn (name, pos, body_range, markers, timing, _) =>
-  (name, pos, body_range, markers, timing, []));
+val reset_trans = map_transition (fn (name, pos, markers, timing, _) =>
+  (name, pos, markers, timing, []));
 
 
 (* basic transitions *)
@@ -414,11 +410,11 @@ fun keep_proof f =
 
 fun is_ignored tr = name_of tr = "<ignored>";
 
-fun ignored range =
-  empty |> name "<ignored>" |> positions (#1 range) range |> keep (fn _ => ());
+fun ignored pos =
+  empty |> name "<ignored>" |> position pos |> keep (fn _ => ());
 
-fun malformed range msg =
-  empty |> name "<malformed>" |> positions (#1 range) range |> keep (fn _ => error msg);
+fun malformed pos msg =
+  empty |> name "<malformed>" |> position pos |> keep (fn _ => error msg);
 
 
 (* theory transitions *)
@@ -598,9 +594,9 @@ val skip_proof_close = transaction0 (fn _ =>
 
 (* runtime position *)
 
-fun exec_id id (tr as Transition {pos, body_range, ...}) =
+fun exec_id id (tr as Transition {pos, ...}) =
   let val put_id = Position.put_id (Document_ID.print id)
-  in positions (put_id pos) (apply2 put_id body_range) tr end;
+  in position (put_id pos) tr end;
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
