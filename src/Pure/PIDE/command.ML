@@ -234,7 +234,7 @@ fun check_token_comments ctxt tok =
 fun check_span_comments ctxt span tr =
   Toplevel.setmp_thread_position tr (fn () => maps (check_token_comments ctxt) span) ();
 
-fun command_indent tr st =
+fun report_indent tr st =
   (case try Toplevel.proof_of st of
     SOME prf =>
       let val keywords = Thy_Header.get_keywords (Proof.theory_of prf) in
@@ -250,7 +250,6 @@ fun command_indent tr st =
       end
   | NONE => ());
 
-
 fun status tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.status [Markup.markup_only m]) ();
 
@@ -260,7 +259,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
 
     val st = reset_state keywords tr state;
 
-    val _ = command_indent tr st;
+    val _ = report_indent tr st;
     val _ = status tr Markup.running;
     val (errs1, result) = run keywords true tr st;
     val errs2 =
