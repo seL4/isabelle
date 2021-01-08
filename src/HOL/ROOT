@@ -288,6 +288,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Heaps
     Leftist_Heap
     Binomial_Heap
+    Selection
   document_files "root.tex" "root.bib"
 
 session "HOL-Import" in Import = HOL +

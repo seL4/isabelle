@@ -165,6 +165,13 @@ written as "x powi n".
 
 * For the natural numbers, "Sup {} = 0".
 
+* New constant semiring_char gives the characteristic of any type of
+class semiring_1, with the convenient notation CHAR('a). For example,
+CHAR(nat) = CHAR(int) = CHAR(real) = 0, CHAR(17) = 17.
+
+* HOL-Computational_Algebra.Polynomial: Definition and basic properties
+of algebraic integers.
+
 * Library theory "Bit_Operations" with generic bit operations.
 
 * Library theory "Signed_Division" provides operations for signed

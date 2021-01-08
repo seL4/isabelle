@@ -6,6 +6,12 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2021
 -----------------------------
 
+* January 2021: Manuel Eberl
+  Characteristic of a semiring
+
+* January 2021: Manuel Eberl
+  Algebraic integers in HOL-Computational_Algebra
+
 * December 2020: Stepan Holub
   Contributed lemmas for theory HOL.List.
 
