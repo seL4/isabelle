@@ -19,6 +19,8 @@ class Plugin extends EBPlugin
   {
     Isabelle_System.init()
 
+    GUI.use_isabelle_fonts()
+
     Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
     Syntax_Style.dummy_style_extender()

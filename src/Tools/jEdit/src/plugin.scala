@@ -401,8 +401,6 @@ class Plugin extends EBPlugin
             if (buffer != null && text_area != null) init_view(buffer, text_area)
           }
 
-          GUI.use_isabelle_fonts()
-
           spell_checker.update(options.value)
           session.update_options(options.value)
 
