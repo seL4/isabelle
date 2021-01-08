@@ -35,8 +35,15 @@ fun outcome_of unsat sat unknown timeout solver_name line =
     " failed -- enable tracing using the " ^ quote (Config.name_of SMT_Config.trace) ^
     " option for details"))
 
+(* When used with bitvectors, CVC4 can produce error messages like:
+
+$ISABELLE_TMP_PREFIX/... No set-logic command was given before this point.
+
+These message should be ignored.
+*)
 fun is_blank_or_error_line "" = true
-  | is_blank_or_error_line s = String.isPrefix "(error " s
+  | is_blank_or_error_line s =
+  String.isPrefix "(error " s orelse String.isPrefix (getenv "ISABELLE_TMP_PREFIX") s
 
 fun on_first_line test_outcome solver_name lines =
   let
