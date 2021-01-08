@@ -144,13 +144,6 @@ fun read_thy st = Toplevel.theory_of st
 fun read keywords thy master_dir init blobs_info span =
   let
     val command_reports = Outer_Syntax.command_reports thy;
-
-    val core_range = Token.range_of (drop_suffix Token.is_ignored span);
-    val pos =
-      (case find_first Token.is_command span of
-        SOME tok => Token.pos_of tok
-      | NONE => #1 core_range);
-
     val token_reports = map (reports_of_token keywords) span;
     val _ = Position.reports_text (maps #2 token_reports @ maps command_reports span);
 
@@ -162,7 +155,8 @@ fun read keywords thy master_dir init blobs_info span =
       else legacy_feature ("Old-style {* verbatim *} token -- use \<open>cartouche\<close> instead" ^
         Position.here_list verbatim);
   in
-    if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
+    if exists #1 token_reports
+    then Toplevel.malformed (#1 (Token.core_range_of span)) "Malformed command syntax"
     else Outer_Syntax.parse_span thy init (resolve_files master_dir blobs_info span)
   end;
 
