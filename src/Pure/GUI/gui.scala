@@ -18,7 +18,7 @@ import scala.swing.event.SelectionChanged
 
 object GUI
 {
-  /* Swing look-and-feel */
+  /* Swing look-and-feels */
 
   def find_laf(name: String): Option[String] =
     UIManager.getInstalledLookAndFeels().
@@ -42,6 +42,19 @@ object GUI
 
   def is_windows_laf(): Boolean =
     Platform.is_windows && UIManager.getSystemLookAndFeelClassName() == current_laf()
+
+
+  /* additional look-and-feels */
+
+  class Look_And_Feel(val laf: LookAndFeel) extends Isabelle_System.Service
+  {
+    def setup: Unit = UIManager.installLookAndFeel(laf.getName, laf.getClass.getName)
+  }
+
+  lazy val look_and_feels: List[Look_And_Feel] =
+    Isabelle_System.make_services(classOf[Look_And_Feel])
+
+  def setup_lafs(): Unit = look_and_feels.foreach(_.setup)
 
 
   /* plain focus traversal, notably for text fields */
@@ -342,3 +355,6 @@ object GUI
     }
   }
 }
+
+class FlatLightLaf extends GUI.Look_And_Feel(new com.formdev.flatlaf.FlatLightLaf)
+class FlatDarkLaf extends GUI.Look_And_Feel(new com.formdev.flatlaf.FlatDarkLaf)
