@@ -146,7 +146,8 @@ object Text_Structure
             else if (Token_Markup.Line_Context.after(buffer, current_line).structure.blank) 0
             else {
               line_head(current_line) match {
-                case Some(info @ Text.Info(range, tok)) =>
+                case Some(info) =>
+                  val tok = info.info
                   if (tok.is_begin ||
                       keywords.is_before_command(tok) ||
                       keywords.is_command(tok, Keyword.theory)) 0

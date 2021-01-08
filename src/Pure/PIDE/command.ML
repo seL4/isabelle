@@ -243,10 +243,8 @@ fun report_indent tr st =
             NONE => ()
           | SOME 0 => ()
           | SOME n =>
-              let
-                val pos = #1 (Toplevel.body_range_of tr);
-                val m = Markup.command_indent (n - 1);
-              in Toplevel.setmp_thread_position tr (fn () => Position.report pos m) () end)
+              let val report = Markup.markup_only (Markup.command_indent (n - 1));
+              in Toplevel.setmp_thread_position tr (fn () => Output.report [report]) () end)
         else ()
       end
   | NONE => ());
