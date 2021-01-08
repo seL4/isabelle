@@ -47,7 +47,7 @@ object Session_Build
 
     private val text = new TextArea {
       editable = false
-      columns = 65
+      columns = 60
       rows = 24
     }
     text.font = GUI.copy_font((new Label).font)
