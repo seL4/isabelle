@@ -234,26 +234,25 @@ fun check_token_comments ctxt tok =
 fun check_span_comments ctxt span tr =
   Toplevel.setmp_thread_position tr (fn () => maps (check_token_comments ctxt) span) ();
 
-fun report tr m =
-  Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();
-
-fun status tr m =
-  Toplevel.setmp_thread_position tr (fn () => Output.status [Markup.markup_only m]) ();
-
 fun command_indent tr st =
   (case try Toplevel.proof_of st of
     SOME prf =>
       let val keywords = Thy_Header.get_keywords (Proof.theory_of prf) in
         if Keyword.command_kind keywords (Toplevel.name_of tr) = SOME Keyword.prf_script then
-          (case try Proof.goal prf of
-            SOME {goal, ...} =>
-              let val n = Thm.nprems_of goal
-              in if n > 1 then report tr (Markup.command_indent (n - 1)) else () end
-          | NONE => ())
+          (case try (Thm.nprems_of o #goal o Proof.goal) prf of
+            NONE => ()
+          | SOME 0 => ()
+          | SOME n =>
+              let
+                val m = Markup.command_indent (n - 1);
+              in Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) () end)
         else ()
       end
   | NONE => ());
 
+
+fun status tr m =
+  Toplevel.setmp_thread_position tr (fn () => Output.status [Markup.markup_only m]) ();
 
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let
