@@ -1606,6 +1606,9 @@ proof -
   thus ?thesis by simp
 qed
 
+lemma multiplicity_zero_1 [simp]: "multiplicity 0 x = 0"
+  by (metis (mono_tags) local.dvd_0_left multiplicity_zero not_dvd_imp_multiplicity_0)
+
 lemma inj_on_Prod_primes:
   assumes "\<And>P p. P \<in> A \<Longrightarrow> p \<in> P \<Longrightarrow> prime p"
   assumes "\<And>P. P \<in> A \<Longrightarrow> finite P"
