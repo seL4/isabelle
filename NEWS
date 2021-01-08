@@ -27,6 +27,9 @@ the begin of a new theory can be achieved via Theory.at_begin.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Improved GUI look-and-feel: the portable and scalable FlatLightLaf is
+used by default on all platforms (appearance similar to IntelliJ IDEA).
+
 * Improved markup for theory header imports: hyperlinks for theory files
 work without formal checking of content.
 

@@ -642,8 +642,7 @@ rm -rf "${DIST_NAME}-old"
 
           case Platform.Family.macos =>
             File.change(isabelle_target + jedit_props,
-              _.replaceAll("lookAndFeel=.*", "lookAndFeel=com.apple.laf.AquaLookAndFeel")
-               .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
+              _.replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
 
 
@@ -692,9 +691,7 @@ rm -rf "${DIST_NAME}-old"
 
           case Platform.Family.windows =>
             File.change(isabelle_target + jedit_props,
-              _.replaceAll("lookAndFeel=.*",
-                  "lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-               .replaceAll("foldPainter=.*", "foldPainter=Square"))
+              _.replaceAll("foldPainter=.*", "foldPainter=Square"))
 
 
             // application launcher
