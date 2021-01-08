@@ -744,7 +744,7 @@ lemma finite_ranking_induct[consumes 1, case_names empty insert]:
   assumes "P {}" 
   assumes "\<And>x S. finite S \<Longrightarrow> (\<And>y. y \<in> S \<Longrightarrow> f y \<le> f x) \<Longrightarrow> P S \<Longrightarrow> P (insert x S)"
   shows "P S"
-  using `finite S` 
+  using \<open>finite S\<close> 
 proof (induction rule: finite_psubset_induct)
   case (psubset A)
   {

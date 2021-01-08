@@ -668,7 +668,7 @@ proof (cases "ord a = 0")
     unfolding subgroup_generated_def
     using a by simp
   then show ?thesis
-    using `ord a = 0` by auto
+    using \<open>ord a = 0\<close> by auto
 next
   case False
   note finite_subgroup = this
