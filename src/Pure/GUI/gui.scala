@@ -7,7 +7,7 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
-  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit, Taskbar}
+  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
@@ -27,15 +27,27 @@ object GUI
   def is_macos_laf(): Boolean =
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
-  class Look_And_Feel(val laf: LookAndFeel) extends Isabelle_System.Service
+  class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service
   {
-    def setup: Unit = UIManager.installLookAndFeel(laf.getName, laf.getClass.getName)
+    def info: UIManager.LookAndFeelInfo =
+      new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName)
   }
 
   lazy val look_and_feels: List[Look_And_Feel] =
     Isabelle_System.make_services(classOf[Look_And_Feel])
 
-  def setup_lafs(): Unit = look_and_feels.foreach(_.setup)
+  def init_lafs()
+  {
+    val old_lafs =
+      Set(
+        "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
+        "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel")
+    val lafs =
+      UIManager.getInstalledLookAndFeels().toList
+        .filterNot(info => old_lafs(info.getClassName))
+    val more_lafs = look_and_feels.map(_.info)
+    UIManager.setInstalledLookAndFeels((more_lafs ::: lafs).toArray)
+  }
 
 
   /* additional look-and-feels */

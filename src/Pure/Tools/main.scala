@@ -26,7 +26,7 @@ object Main
           Isabelle_System.init()
           Isabelle_Fonts.init()
 
-          GUI.setup_lafs()
+          GUI.init_lafs()
 
 
           /* ROOTS template */
