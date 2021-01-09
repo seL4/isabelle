@@ -3033,7 +3033,7 @@ lemma algebraic_int_0 [simp, intro]: "algebraic_int 0"
   and algebraic_int_1 [simp, intro]: "algebraic_int 1"
   and algebraic_int_numeral [simp, intro]: "algebraic_int (numeral n)"
   and algebraic_int_of_nat [simp, intro]: "algebraic_int (of_nat k)"
-  and algebraic_int_of_int [simp, intro]: "algebraic_int (of_int k)"
+  and algebraic_int_of_int [simp, intro]: "algebraic_int (of_int m)"
   by (simp_all add: int_imp_algebraic_int)
 
 lemma algebraic_int_ii [simp, intro]: "algebraic_int \<i>"
