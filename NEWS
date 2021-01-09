@@ -27,8 +27,9 @@ the begin of a new theory can be achieved via Theory.at_begin.
 
 *** Isabelle/jEdit Prover IDE ***
 
-* Improved GUI look-and-feel: the portable and scalable FlatLightLaf is
-used by default on all platforms (appearance similar to IntelliJ IDEA).
+* Improved GUI look-and-feel: the portable and scalable "FlatLaf Light"
+is used by default on all platforms (appearance similar to IntelliJ
+IDEA).
 
 * Improved markup for theory header imports: hyperlinks for theory files
 work without formal checking of content.
@@ -344,6 +345,9 @@ in etc/settings. This allows more flexible schemes than just a list of
 file extensions. Minor INCOMPATIBILITY, e.g. see theory
 HOL-SPARK.SPARK_Setup to emulate the old behaviour.
 
+* JVM system property "isabelle.laf" has been discontinued; the default
+Swing look-and-feel is ""FlatLaf Light".
+
 * Isabelle/Phabricator supports Ubuntu 20.04 LTS.
 
 * Isabelle/Phabricator setup has been updated to follow ongoing
@@ -354,6 +358,8 @@ directory (e.g. /var/www/phabricator-vcs/libphutil).
 
 * Experimental support for arm64-linux platform. The reference platform
 is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+
+
 
 
 
