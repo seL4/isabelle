@@ -614,7 +614,7 @@ final class Command private(
           val opt_range =
             reported_range orElse {
               if (name == Symbol.Text_Chunk.Default)
-                Position.Range.unapply(span.absolute_position)
+                Position.Range.unapply(span.position)
               else None
             }
           opt_range match {

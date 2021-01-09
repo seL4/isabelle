@@ -165,7 +165,6 @@ final class Outer_Syntax private(
     val result = new mutable.ListBuffer[Command_Span.Span]
     val content = new mutable.ListBuffer[Token]
     val ignored = new mutable.ListBuffer[Token]
-    var start = 0
 
     def ship(content: List[Token])
     {
@@ -182,11 +181,8 @@ final class Outer_Syntax private(
                   case (i, tok) => i + Symbol.length(tok.source) }
               val end_offset = offset + Symbol.length(name)
               val range = Text.Range(offset, end_offset) + 1
-              val pos = Position.Range(range)
-              val abs_pos = Position.Range(range + start)
-              Command_Span.Command_Span(name, pos, abs_pos)
+              Command_Span.Command_Span(name, Position.Range(range))
           }
-      for (tok <- content) start += Symbol.length(tok.source)
       result += Command_Span.Span(kind, content)
     }
 

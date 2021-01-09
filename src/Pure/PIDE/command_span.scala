@@ -47,13 +47,13 @@ object Command_Span
   sealed abstract class Kind {
     override def toString: String =
       this match {
-        case Command_Span(name, _, _) => proper_string(name) getOrElse "<command>"
+        case Command_Span(name, _) => proper_string(name) getOrElse "<command>"
         case Ignored_Span => "<ignored>"
         case Malformed_Span => "<malformed>"
         case Theory_Span => "<theory>"
       }
   }
-  case class Command_Span(name: String, pos: Position.T, abs_pos: Position.T) extends Kind
+  case class Command_Span(name: String, pos: Position.T) extends Kind
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
   case object Theory_Span extends Kind
@@ -70,9 +70,6 @@ object Command_Span
 
     def position: Position.T =
       kind match { case k: Command_Span => k.pos case _ => Position.none }
-
-    def absolute_position: Position.T =
-      kind match { case k: Command_Span => k.abs_pos case _ => Position.none }
 
     def keyword_pos(start: Token.Pos): Token.Pos =
       kind match {
