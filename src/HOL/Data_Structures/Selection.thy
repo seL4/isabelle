@@ -673,7 +673,7 @@ lemma T_chop_le: "T_chop d xs \<le> 5 * length xs + 1"
   by (induction d xs rule: T_chop.induct) (auto simp: T_chop_reduce T_take_eq T_drop_eq)
 
 text \<open>
-  The option ‘domintros’ here allows us to explicitly reason about where the function does and
+  The option \<open>domintros\<close> here allows us to explicitly reason about where the function does and
   does not terminate. With this, we can skip the termination proof this time because we can
   reuse the one for \<^const>\<open>mom_select\<close>.
 \<close>
