@@ -83,7 +83,7 @@ object Build_Status
     name: String, threads: Int, entries: List[Entry],
     ml_statistics: ML_Statistics, ml_statistics_date: Long)
   {
-    require(entries.nonEmpty)
+    require(entries.nonEmpty, "no entries")
 
     lazy val sorted_entries: List[Entry] = entries.sortBy(entry => - entry.date)
 

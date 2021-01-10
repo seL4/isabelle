@@ -835,12 +835,12 @@ object Document
     {
       override def toString: String = "Assignment(" + command_execs.size + "," + is_finished + ")"
 
-      def check_finished: Assignment = { require(is_finished); this }
+      def check_finished: Assignment = { require(is_finished, "assignment not finished"); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
       def assign(update: Assign_Update): Assignment =
       {
-        require(!is_finished)
+        require(!is_finished, "assignment already finished")
         val command_execs1 =
           (command_execs /: update) {
             case (res, (command_id, exec_ids)) =>
@@ -1120,7 +1120,7 @@ object Document
     def command_id_map(version: Version, commands: Iterable[Command])
       : Map[Document_ID.Generic, Command] =
     {
-      require(is_assigned(version))
+      require(is_assigned(version), "version not assigned (command_id_map)")
       val assignment = the_assignment(version).check_finished
       (for {
         command <- commands.iterator
@@ -1130,7 +1130,7 @@ object Document
 
     def command_maybe_consolidated(version: Version, command: Command): Boolean =
     {
-      require(is_assigned(version))
+      require(is_assigned(version), "version not assigned (command_maybe_consolidated)")
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil) match {
           case eval_id :: print_ids =>
@@ -1145,7 +1145,7 @@ object Document
     private def command_states_self(version: Version, command: Command)
       : List[(Document_ID.Generic, Command.State)] =
     {
-      require(is_assigned(version))
+      require(is_assigned(version), "version not assigned (command_states_self)")
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
           .map(id => id -> the_dynamic_state(id)) match {

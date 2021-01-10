@@ -18,7 +18,7 @@ object Build_Cygwin
     mirror: String = default_mirror,
     more_packages: List[String] = Nil)
   {
-    require(Platform.is_windows)
+    require(Platform.is_windows, "Windows platform expected")
 
     Isabelle_System.with_tmp_dir("cygwin")(tmp_dir =>
       {

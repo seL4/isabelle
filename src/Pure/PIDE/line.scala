@@ -147,7 +147,7 @@ object Line
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
         lines_rest match {
-          case Nil => require(i == 0); Position(lines_count)
+          case Nil => require(i == 0, "bad Line.position.move"); Position(lines_count)
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
@@ -241,7 +241,7 @@ object Line
 
 final class Line private(val text: String)
 {
-  require(text.forall(c => c != '\r' && c != '\n'))
+  require(text.forall(c => c != '\r' && c != '\n'), "bad line text")
 
   override def equals(that: Any): Boolean =
     that match {

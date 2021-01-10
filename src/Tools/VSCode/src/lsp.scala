@@ -71,7 +71,7 @@ object LSP
       id.isInstanceOf[Int] ||
       id.isInstanceOf[Long] ||
       id.isInstanceOf[Double] ||
-      id.isInstanceOf[String])
+      id.isInstanceOf[String], "bad id type")
 
     override def toString: String = id.toString
   }

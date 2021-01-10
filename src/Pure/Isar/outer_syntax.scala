@@ -147,7 +147,7 @@ final class Outer_Syntax private(
 
   def no_tokens: Outer_Syntax =
   {
-    require(keywords.is_empty)
+    require(keywords.is_empty, "bad syntax keywords")
     new Outer_Syntax(
       rev_abbrevs = rev_abbrevs,
       language_context = language_context,

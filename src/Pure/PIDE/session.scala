@@ -164,7 +164,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def require_dispatcher[A](body: => A): A =
   {
-    require(dispatcher.check_thread)
+    require(dispatcher.check_thread, "not on dispatcher thread")
     body
   }
 
@@ -404,7 +404,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       consolidate: List[Document.Node.Name] = Nil)
     //{{{
     {
-      require(prover.defined)
+      require(prover.defined, "prover process not defined (handle_raw_edits)")
 
       if (edits.nonEmpty) prover.get.discontinue_execution()
 
@@ -423,7 +423,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def handle_change(change: Session.Change)
     //{{{
     {
-      require(prover.defined)
+      require(prover.defined, "prover process not defined (handle_change)")
 
       // define commands
       {

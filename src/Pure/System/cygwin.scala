@@ -19,7 +19,7 @@ object Cygwin
 
   def init(isabelle_root: String, cygwin_root: String)
   {
-    require(Platform.is_windows)
+    require(Platform.is_windows, "Windows platform expected")
 
     def exec(cmdline: String*)
     {

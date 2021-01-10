@@ -23,7 +23,7 @@ object Date
   {
     def make(fmts: List[DateTimeFormatter], tune: String => String = s => s): Format =
     {
-      require(fmts.nonEmpty)
+      require(fmts.nonEmpty, "no date formats")
 
       new Format {
         def apply(date: Date): String = fmts.head.format(date.rep)

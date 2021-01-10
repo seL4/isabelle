@@ -127,7 +127,7 @@ class Pretty_Text_Area(
   def update(base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body)
   {
     GUI_Thread.require {}
-    require(!base_snapshot.is_outdated)
+    require(!base_snapshot.is_outdated, "document snapshot outdated")
 
     current_base_snapshot = base_snapshot
     current_base_results = base_results

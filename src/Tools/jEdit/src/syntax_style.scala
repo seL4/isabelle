@@ -23,7 +23,7 @@ object Syntax_Style
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
-  private def check_range(i: Int) { require(0 <= i && i < plain_range) }
+  private def check_range(i: Int) { require(0 <= i && i < plain_range, "bad syntax style range") }
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }

@@ -568,7 +568,7 @@ class Completion_Popup private(
 
   GUI_Thread.require {}
 
-  require(items.nonEmpty)
+  require(items.nonEmpty, "no completion items")
   val multi: Boolean = items.length > 1
 
 

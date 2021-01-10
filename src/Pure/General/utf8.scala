@@ -84,7 +84,7 @@ object UTF8
   def decode_chars(decode: String => String,
     buffer: Array[Byte], start: Int, end: Int): CharSequence =
   {
-    require(0 <= start && start <= end && end <= buffer.length)
+    require(0 <= start && start <= end && end <= buffer.length, "bad decode range")
     new Decode_Chars(decode, buffer, start, end)
   }
 }

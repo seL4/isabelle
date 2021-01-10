@@ -22,7 +22,7 @@ object GUI_Thread
 
   def require[A](body: => A): A =
   {
-    Predef.require(SwingUtilities.isEventDispatchThread)
+    Predef.require(SwingUtilities.isEventDispatchThread, "GUI thread expected")
     body
   }
 

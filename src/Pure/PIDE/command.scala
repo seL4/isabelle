@@ -424,8 +424,8 @@ object Command
     {
       val cmds1 = this.commands
       val cmds2 = that.commands
-      require(!cmds1.exists(_.is_undefined))
-      require(!cmds2.exists(_.is_undefined))
+      require(!cmds1.exists(_.is_undefined), "cmds1 not defined")
+      require(!cmds2.exists(_.is_undefined), "cmds2 not defined")
       cmds1.length == cmds2.length &&
         (cmds1.iterator zip cmds2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
     }

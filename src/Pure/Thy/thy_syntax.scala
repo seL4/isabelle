@@ -140,7 +140,7 @@ object Thy_Syntax
             edit_text(es, insert_text(Some(cmd), e.text))
 
           case None =>
-            require(e.is_insert && e.start == 0)
+            require(e.is_insert && e.start == 0, "bad text edit")
             edit_text(es, insert_text(None, e.text))
         }
       case Nil => commands

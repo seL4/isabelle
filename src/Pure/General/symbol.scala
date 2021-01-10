@@ -30,7 +30,7 @@ object Symbol
 
   def spaces(n: Int): String =
   {
-    require(n >= 0)
+    require(n >= 0, "negative spaces")
     if (n < static_spaces.length) static_spaces.substring(0, n)
     else space * n
   }
@@ -96,7 +96,7 @@ object Symbol
     private val matcher = symbol_total.pattern.matcher(text)
     def apply(start: Int, end: Int): Int =
     {
-      require(0 <= start && start < end && end <= text.length)
+      require(0 <= start && start < end && end <= text.length, "bad matcher range")
       if (is_plain(text.charAt(start))) 1
       else {
         matcher.region(start, end).lookingAt

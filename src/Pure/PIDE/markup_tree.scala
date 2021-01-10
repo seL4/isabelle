@@ -31,7 +31,7 @@ object Markup_Tree
             case (branches, tree) =>
               (branches /: tree.branches) {
                 case (bs, (r, entry)) =>
-                  require(!bs.isDefinedAt(r))
+                  require(!bs.isDefinedAt(r), "cannot merge markup trees")
                   bs + (r -> entry)
               }
           })

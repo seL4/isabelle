@@ -201,7 +201,7 @@ object ML_Statistics
   def apply(ml_statistics0: List[Properties.T], heading: String = "",
     domain: String => Boolean = (key: String) => true): ML_Statistics =
   {
-    require(ml_statistics0.forall(props => Now.unapply(props).isDefined))
+    require(ml_statistics0.forall(props => Now.unapply(props).isDefined), "missing \"now\" field")
 
     val ml_statistics = ml_statistics0.sortBy(now)
     val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)

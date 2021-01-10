@@ -179,7 +179,7 @@ class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
   def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
     if (new_handler == null) body
     else {
-      require(is_self)
+      require(is_self, "interrupt handler on other thread")
 
       val old_handler = handler
       handler = new_handler

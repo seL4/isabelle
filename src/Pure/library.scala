@@ -168,7 +168,7 @@ object Library
 
   class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
   {
-    require(0 <= start && start <= end && end <= text.length)
+    require(0 <= start && start <= end && end <= text.length, "bad reverse range")
 
     def this(text: CharSequence) = this(text, 0, text.length)
 

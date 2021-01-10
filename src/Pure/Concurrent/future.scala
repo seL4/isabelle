@@ -34,7 +34,7 @@ trait Future[A]
 {
   def peek: Option[Exn.Result[A]]
   def is_finished: Boolean = peek.isDefined
-  def get_finished: A = { require(is_finished); Exn.release(peek.get) }
+  def get_finished: A = { require(is_finished, "future not finished"); Exn.release(peek.get) }
   def join_result: Exn.Result[A]
   def join: A = Exn.release(join_result)
   def map[B](f: A => B): Future[B] = Future.fork { f(join) }

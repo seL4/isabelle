@@ -148,7 +148,7 @@ object Presentation
     elements: Elements,
     plain_text: Boolean = false): HTML_Document =
   {
-    require(!snapshot.is_outdated)
+    require(!snapshot.is_outdated, "document snapshot outdated")
 
     val name = snapshot.node_name
     if (plain_text) {

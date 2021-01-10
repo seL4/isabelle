@@ -927,7 +927,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
   {
     /* connection */
 
-    require(ssh_host.nonEmpty && ssh_port >= 0)
+    require(ssh_host.nonEmpty && ssh_port >= 0, "bad ssh host or port")
 
     private def ssh_user_prefix: String = SSH.user_prefix(ssh_user)
     private def ssh_port_suffix: String = SSH.port_suffix(ssh_port)
@@ -1060,7 +1060,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       public: Boolean = false,
       vcs: API.VCS.Value = API.VCS.hg): API.Repository =
     {
-      require(name.nonEmpty)
+      require(name.nonEmpty, "bad repository name")
 
       val transactions =
         API.edits("vcs", vcs.toString) :::

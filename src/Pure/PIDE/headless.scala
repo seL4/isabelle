@@ -517,7 +517,7 @@ object Headless
 
       def remove_theories(remove: List[Document.Node.Name]): State =
       {
-        require(remove.forall(name => !is_required(name)))
+        require(remove.forall(name => !is_required(name)), "attempt to remove required nodes")
         copy(theories = theories -- remove)
       }
 

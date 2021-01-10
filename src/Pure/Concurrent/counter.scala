@@ -20,7 +20,7 @@ final class Counter private
   private var count: Counter.ID = 0
 
   def apply(): Counter.ID = synchronized {
-    require(count > java.lang.Long.MIN_VALUE)
+    require(count > java.lang.Long.MIN_VALUE, "counter overflow")
     count -= 1
     count
   }

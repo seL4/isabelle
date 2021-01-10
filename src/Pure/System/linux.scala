@@ -97,7 +97,7 @@ object Linux
     system: Boolean = false,
     ssh_setup: Boolean = false)
   {
-    require(!description.contains(','))
+    require(!description.contains(','), "malformed description")
 
     if (user_exists(name)) error("User already exists: " + quote(name))
 
@@ -153,7 +153,7 @@ fi
 
   def generate_password(length: Int = 10): String =
   {
-    require(length >= 6)
+    require(length >= 6, "password too short")
     Isabelle_System.bash("pwgen " + length + " 1").check.out
   }
 }

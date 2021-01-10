@@ -107,7 +107,7 @@ object Scan
 
     def quoted_content(quote: Symbol.Symbol, source: String): String =
     {
-      require(parseAll(quoted(quote), source).successful)
+      require(parseAll(quoted(quote), source).successful, "no quoted text")
       val body = source.substring(1, source.length - 1)
       if (body.exists(_ == '\\')) {
         val content =
@@ -149,7 +149,7 @@ object Scan
 
     def verbatim_content(source: String): String =
     {
-      require(parseAll(verbatim, source).successful)
+      require(parseAll(verbatim, source).successful, "no verbatim text")
       source.substring(2, source.length - 2)
     }
 
@@ -176,7 +176,7 @@ object Scan
 
     def cartouche_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
     {
-      require(depth >= 0)
+      require(depth >= 0, "bad cartouche depth")
 
       def apply(in: Input) =
       {
@@ -235,7 +235,7 @@ object Scan
 
     private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
     {
-      require(depth >= 0)
+      require(depth >= 0, "bad comment depth")
 
       val comment_text: Parser[List[String]] =
         rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
@@ -286,7 +286,7 @@ object Scan
 
     def comment_content(source: String): String =
     {
-      require(parseAll(comment, source).successful)
+      require(parseAll(comment, source).successful, "no comment")
       source.substring(2, source.length - 2)
     }
 

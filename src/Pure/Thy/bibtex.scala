@@ -445,7 +445,8 @@ object Bibtex
     private def delimited_depth(delim: Delimited): Parser[(String, Delimited)] =
       new Parser[(String, Delimited)]
       {
-        require(if (delim.quoted) delim.depth > 0 else delim.depth >= 0)
+        require(if (delim.quoted) delim.depth > 0 else delim.depth >= 0,
+          "bad delimiter depth")
 
         def apply(in: Input) =
         {
