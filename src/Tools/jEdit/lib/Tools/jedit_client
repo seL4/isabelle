@@ -23,7 +23,7 @@ function usage()
   echo "  Options are:"
   echo "    -c           only check presence of server"
   echo "    -n           only report server name"
-  echo "    -s NAME      server name (default $SERVER_NAME)"
+  echo "    -s NAME      server name (default \"$SERVER_NAME\")"
   echo
   echo "  Connect to already running Isabelle/jEdit instance and open FILES"
   echo

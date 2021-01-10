@@ -296,7 +296,7 @@ text \<open>
   Options are:
     -c           only check presence of server
     -n           only report server name
-    -s NAME      server name (default Isabelle)
+    -s NAME      server name (default "Isabelle")
 
   Connect to already running Isabelle/jEdit instance and open FILES\<close>}
 
