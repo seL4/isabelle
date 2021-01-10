@@ -2188,6 +2188,13 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to the
   national keyboard layout, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
 
+  \<^item> \<^bold>\<open>Problem:\<close> On macOS Big Sur full-screen mode causes problems with dialog windows
+  (e.g. \<^emph>\<open>Search and Replace\<close> or \<^emph>\<open>Hypersearch Results\<close>).
+
+  \<^bold>\<open>Workaround:\<close> Go to \<^emph>\<open>System Preferences / General\<close> and change the default
+  ``\<^emph>\<open>Prefer tabs: \<^bold>\<open>in full screen\<close> when opening documents\<close>'' to
+  ``\<^emph>\<open>\<^bold>\<open>never\<close>\<close>''.
+
   \<^item> \<^bold>\<open>Problem:\<close> On macOS with native Apple look-and-feel, some exotic
   national keyboards may cause a conflict of menu accelerator keys with
   regular jEdit key bindings. This leads to duplicate execution of the
