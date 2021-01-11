@@ -330,6 +330,8 @@ object HTML
     """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">"""
 
+  val footer: String = """</html>"""
+
   val head_meta: XML.Elem =
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
@@ -340,12 +342,14 @@ object HTML
     structural: Boolean = true): String =
   {
     cat_lines(
-      List(header,
+      List(
+        header,
         output(
           XML.elem("head", head_meta :: (if (css == "") Nil else List(style_file(css))) ::: head),
           hidden = hidden, structural = structural),
         output(XML.elem("body", body),
-          hidden = hidden, structural = structural)))
+          hidden = hidden, structural = structural),
+        footer))
   }
 
 
