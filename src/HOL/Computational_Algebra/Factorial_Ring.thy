@@ -898,6 +898,26 @@ proof -
   ultimately show ?thesis by (rule finite_subset)
 qed
 
+lemma infinite_unit_divisor_powers:
+ assumes "y \<noteq> 0"
+ assumes "is_unit x"
+ shows "infinite {n. x^n dvd y}"
+proof -
+ from `is_unit x` have "is_unit (x^n)" for n
+   using is_unit_power_iff by auto
+ hence "x^n dvd y" for n
+   by auto
+ hence "{n. x^n dvd y} = UNIV"
+   by auto
+ thus ?thesis
+   by auto
+qed
+
+corollary is_unit_iff_infinite_divisor_powers:
+ assumes "y \<noteq> 0"
+ shows "is_unit x \<longleftrightarrow> infinite {n. x^n dvd y}"
+ using infinite_unit_divisor_powers finite_divisor_powers assms by auto
+
 lemma prime_elem_iff_irreducible: "prime_elem x \<longleftrightarrow> irreducible x"
   by (blast intro: irreducible_imp_prime_elem prime_elem_imp_irreducible)
 
@@ -1606,8 +1626,8 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma multiplicity_zero_1 [simp]: "multiplicity 0 x = 0"
-  by (metis (mono_tags) local.dvd_0_left multiplicity_zero not_dvd_imp_multiplicity_0)
+lemma multiplicity_zero_left [simp]: "multiplicity 0 x = 0"
+ by (cases "x = 0") (auto intro: not_dvd_imp_multiplicity_0)
 
 lemma inj_on_Prod_primes:
   assumes "\<And>P p. P \<in> A \<Longrightarrow> p \<in> P \<Longrightarrow> prime p"
@@ -2127,6 +2147,91 @@ proof (rule ccontr)
     using assms(3) by (intro prod.mono_neutral_left) (auto simp: prime_factors_multiplicity)
   finally have "normalize n = p ^ multiplicity p n" by auto
   with assms show False by auto
+qed
+
+text \<open>Now a string of results due to Jakub Kądziołka\<close>
+
+lemma multiplicity_dvd_iff_dvd:
+ assumes "x \<noteq> 0"
+ shows "p^k dvd x \<longleftrightarrow> p^k dvd p^multiplicity p x"
+proof (cases "is_unit p")
+ case True
+ then have "is_unit (p^k)"
+   using is_unit_power_iff by simp
+ hence "p^k dvd x"
+   by auto
+ moreover from `is_unit p` have "p^k dvd p^multiplicity p x"
+   using multiplicity_unit_left is_unit_power_iff by simp
+ ultimately show ?thesis by simp
+next
+ case False
+ show ?thesis
+ proof (cases "p = 0")
+   case True
+   then have "p^multiplicity p x = 1"
+     by simp
+   moreover have "p^k dvd x \<Longrightarrow> k = 0"
+   proof (rule ccontr)
+     assume "p^k dvd x" and "k \<noteq> 0"
+     with `p = 0` have "p^k = 0" by auto
+     with `p^k dvd x` have "0 dvd x" by auto
+     hence "x = 0" by auto
+     with `x \<noteq> 0` show False by auto
+   qed
+   ultimately show ?thesis
+     by (auto simp add: is_unit_power_iff `\<not> is_unit p`)
+ next
+   case False
+   with `x \<noteq> 0` `\<not> is_unit p` show ?thesis
+     by (simp add: power_dvd_iff_le_multiplicity dvd_power_iff multiplicity_same_power)
+ qed
+qed
+
+lemma multiplicity_decomposeI:
+ assumes "x = p^k * x'" and "\<not> p dvd x'" and "p \<noteq> 0"
+ shows "multiplicity p x = k"
+  using assms local.multiplicity_eqI local.power_Suc2 by force
+
+lemma multiplicity_sum_lt:
+ assumes "multiplicity p a < multiplicity p b" "a \<noteq> 0" "b \<noteq> 0"
+ shows "multiplicity p (a + b) = multiplicity p a"
+proof -
+ let ?vp = "multiplicity p"
+ have unit: "\<not> is_unit p"
+ proof
+   assume "is_unit p"
+   then have "?vp a = 0" and "?vp b = 0" using multiplicity_unit_left by auto
+   with assms show False by auto
+ qed
+
+ from multiplicity_decompose' obtain a' where a': "a = p^?vp a * a'" "\<not> p dvd a'"
+   using unit assms by metis
+ from multiplicity_decompose' obtain b' where b': "b = p^?vp b * b'"
+   using unit assms by metis
+
+ show "?vp (a + b) = ?vp a"
+ proof (rule multiplicity_decomposeI)
+   let ?k = "?vp b - ?vp a"
+   from assms have k: "?k > 0" by simp
+   with b' have "b = p^?vp a * p^?k * b'"
+     by (simp flip: power_add)
+   with a' show *: "a + b = p^?vp a * (a' + p^?k * b')"
+     by (simp add: ac_simps distrib_left)
+   moreover show "\<not> p dvd a' + p^?k * b'"
+     using a' k dvd_add_left_iff by auto
+   show "p \<noteq> 0" using assms by auto
+ qed
+qed
+
+corollary multiplicity_sum_min:
+ assumes "multiplicity p a \<noteq> multiplicity p b" "a \<noteq> 0" "b \<noteq> 0"
+ shows "multiplicity p (a + b) = min (multiplicity p a) (multiplicity p b)"
+proof -
+ let ?vp = "multiplicity p"
+ from assms have "?vp a < ?vp b \<or> ?vp a > ?vp b"
+   by auto
+ then show ?thesis
+   by (metis assms multiplicity_sum_lt min.commute add_commute min.strict_order_iff)    
 qed
 
 end

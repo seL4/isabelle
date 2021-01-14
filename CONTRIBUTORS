@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2021: Jakub Kądziołka
+  Some lemmas for HOL-Computational_Algebra.
+
 
 Contributions to Isabelle2021
 -----------------------------
