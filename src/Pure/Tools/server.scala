@@ -272,7 +272,7 @@ object Server
     {
       val json =
         for ((name, node_status) <- nodes_status.present)
-          yield name.json + ("status" -> nodes_status(name).json)
+          yield name.json + ("status" -> node_status.json)
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 
