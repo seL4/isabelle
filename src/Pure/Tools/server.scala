@@ -189,7 +189,7 @@ object Server
       catch { case _: IOException => None }
 
     def await_close(): Unit =
-      try { Byte_Message.read(in, 1) }
+      try { Byte_Message.read(in, 1); socket.close() }
       catch { case _: IOException => }
 
     def write_message(msg: String): Unit =
