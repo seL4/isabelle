@@ -8,19 +8,26 @@ Sets with canonical linear order, or immutable linked-lists.
 package isabelle
 
 
-import scala.collection.SetLike
-import scala.collection.generic.{SetFactory, CanBuildFrom, GenericSetTemplate, GenericCompanion}
-import scala.collection.mutable.{Builder, SetBuilder}
-import scala.language.higherKinds
+import scala.collection.mutable
+import scala.collection.immutable.SetOps
+import scala.collection.{IterableFactory, IterableFactoryDefaults}
 
 
-object Linear_Set extends SetFactory[Linear_Set]
+object Linear_Set extends IterableFactory[Linear_Set]
 {
   private val empty_val: Linear_Set[Nothing] = new Linear_Set[Nothing](None, None, Map(), Map())
   override def empty[A]: Linear_Set[A] = empty_val.asInstanceOf[Linear_Set[A]]
 
-  implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, Linear_Set[A]] = setCanBuildFrom[A]
-  def newBuilder[A]: Builder[A, Linear_Set[A]] = new SetBuilder[A, Linear_Set[A]](empty[A])
+  def from[A](entries: IterableOnce[A]): Linear_Set[A] = (empty[A] /: entries)(_.incl(_))
+
+  override def newBuilder[A]: mutable.Builder[A, Linear_Set[A]] = new Builder[A]
+  private class Builder[A] extends mutable.Builder[A, Linear_Set[A]]
+  {
+    private var res = empty[A]
+    override def clear() { res = empty[A] }
+    override def addOne(elem: A): this.type = { res = res.incl(elem); this }
+    override def result(): Linear_Set[A] = res
+  }
 
   class Duplicate[A](x: A) extends Exception
   class Undefined[A](x: A) extends Exception
@@ -30,13 +37,10 @@ object Linear_Set extends SetFactory[Linear_Set]
 
 final class Linear_Set[A] private(
     start: Option[A], end: Option[A], val nexts: Map[A, A], prevs: Map[A, A])
-  extends scala.collection.immutable.Set[A]
-  with GenericSetTemplate[A, Linear_Set]
-  with SetLike[A, Linear_Set[A]]
+  extends Iterable[A]
+    with SetOps[A, Linear_Set, Linear_Set[A]]
+    with IterableFactoryDefaults[A, Linear_Set]
 {
-  override def companion: GenericCompanion[Linear_Set] = Linear_Set
-
-
   /* relative addressing */
 
   def next(elem: A): Option[A] =
@@ -78,7 +82,7 @@ final class Linear_Set[A] private(
             }
       }
 
-  def append_after(hook: Option[A], elems: Traversable[A]): Linear_Set[A] =  // FIXME reverse fold
+  def append_after(hook: Option[A], elems: Iterable[A]): Linear_Set[A] =  // FIXME reverse fold
     ((hook, this) /: elems) {
       case ((last, set), elem) => (Some(elem), set.insert_after(last, elem))
     }._2
@@ -114,8 +118,6 @@ final class Linear_Set[A] private(
 
 
   /* Set methods */
-
-  override def stringPrefix = "Linear_Set"
 
   override def isEmpty: Boolean = start.isEmpty
   override def size: Int = if (isEmpty) 0 else nexts.size + 1
@@ -153,7 +155,10 @@ final class Linear_Set[A] private(
 
   override def last: A = reverse.head
 
-  def + (elem: A): Linear_Set[A] = insert_after(end, elem)
+  def incl(elem: A): Linear_Set[A] = insert_after(end, elem)
+  def excl(elem: A): Linear_Set[A] = delete_after(prev(elem))
 
-  def - (elem: A): Linear_Set[A] = delete_after(prev(elem))
+  override def iterableFactory: IterableFactory[Linear_Set] = Linear_Set
+
+  override def toString: String = mkString("Linear_Set(", ", ", ")")
 }

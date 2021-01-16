@@ -11,7 +11,7 @@ import java.io.{File => JFile, StringWriter, PrintWriter}
 
 import scala.tools.nsc.{GenericRunnerSettings, ConsoleWriter, NewLinePrintWriter}
 import scala.tools.nsc.interpreter.{IMain, Results}
-
+import scala.tools.nsc.interpreter.shell.ReplReporterImpl
 
 object Scala
 {
@@ -96,7 +96,7 @@ object Scala
         print_writer: PrintWriter = default_print_writer,
         class_loader: ClassLoader = null): IMain =
       {
-        new IMain(settings, print_writer)
+        new IMain(settings, new ReplReporterImpl(settings, print_writer))
         {
           override def parentClassLoader: ClassLoader =
             if (class_loader == null) super.parentClassLoader
