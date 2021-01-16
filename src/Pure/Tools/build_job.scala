@@ -523,10 +523,9 @@ class Build_Job(progress: Progress,
       }
 
     val result2 =
-      if (result1.interrupted) {
-        if (was_timeout) result1.error(Output.error_message_text("Timeout")).was_timeout
-        else result1.error(Output.error_message_text("Interrupt"))
-      }
+      if (result1.ok) result1
+      else if (was_timeout) result1.error(Output.error_message_text("Timeout")).timeout_rc
+      else if (result1.interrupted) result1.error(Output.error_message_text("Interrupt"))
       else result1
 
     val heap_digest =
