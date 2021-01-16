@@ -17,4 +17,6 @@ object UUID
   def unapply(s: String): Option[T] =
     try { Some(java.util.UUID.fromString(s)) }
     catch { case _: IllegalArgumentException => None }
+
+  def unapply(body: XML.Body): Option[T] = unapply(XML.content(body))
 }

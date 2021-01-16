@@ -150,6 +150,7 @@ object Server
 
     def start { thread }
     def join { thread.join }
+    def stop { socket.close; join }
   }
 
 
@@ -186,6 +187,10 @@ object Server
     def read_message(): Option[String] =
       try { Byte_Message.read_line_message(in).map(_.text) }
       catch { case _: IOException => None }
+
+    def await_close(): Unit =
+      try { Byte_Message.read(in, 1) }
+      catch { case _: IOException => }
 
     def write_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
