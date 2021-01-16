@@ -486,7 +486,7 @@ code_printing class_instance array :: HOL.equal \<rightharpoonup> (Haskell) -
 
 text \<open>Scala\<close>
 
-code_printing type_constructor array \<rightharpoonup> (Scala) "!collection.mutable.ArraySeq[_]"
+code_printing type_constructor array \<rightharpoonup> (Scala) "!Array.T[_]"
 code_printing constant Array \<rightharpoonup> (Scala) "!sys.error(\"bare Array\")"
 code_printing constant Array.new' \<rightharpoonup> (Scala) "('_: Unit)/ => / Array.alloc((_))((_))"
 code_printing constant Array.make' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.make((_))((_))"
