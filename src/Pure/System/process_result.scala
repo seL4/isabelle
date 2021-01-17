@@ -26,14 +26,16 @@ object Process_Result
       137 -> "KILL SIGNAL",
       138 -> "BUS ERROR",
       139 -> "SEGMENTATION VIOLATION",
+      142 -> "TIMEOUT",
       143 -> "TERMINATION SIGNAL")
+
+  val timeout_rc = 142
 }
 
 final case class Process_Result(
   rc: Int,
   out_lines: List[String] = Nil,
   err_lines: List[String] = Nil,
-  timeout: Boolean = false,
   timing: Timing = Timing.zero)
 {
   def out: String = cat_lines(out_lines)
@@ -46,10 +48,11 @@ final case class Process_Result(
   def error(err: String): Process_Result =
     if (err.isEmpty) this else errors(List(err))
 
-  def was_timeout: Process_Result = copy(rc = 1, timeout = true)
-
   def ok: Boolean = rc == 0
   def interrupted: Boolean = rc == Exn.Interrupt.return_code
+
+  def timeout_rc: Process_Result = copy(rc = Process_Result.timeout_rc)
+  def timeout: Boolean = rc == Process_Result.timeout_rc
 
   def error_rc: Process_Result = if (interrupted) this else copy(rc = rc max 1)
 

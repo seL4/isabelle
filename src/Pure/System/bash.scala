@@ -199,7 +199,7 @@ object Bash
 
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Process_Result(rc, out_lines.join, err_lines.join, false, get_timing)
+      Process_Result(rc, out_lines.join, err_lines.join, get_timing)
     }
   }
 }

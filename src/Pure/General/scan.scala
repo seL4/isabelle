@@ -9,10 +9,9 @@ package isabelle
 
 import scala.annotation.tailrec
 import scala.collection.{IndexedSeq, Traversable, TraversableOnce}
-import scala.collection.immutable.PagedSeq
 import scala.util.matching.Regex
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition,
-  Reader, CharSequenceReader}
+  Reader, CharSequenceReader, PagedSeq}
 import scala.util.parsing.combinator.RegexParsers
 import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream}
 import java.net.URL

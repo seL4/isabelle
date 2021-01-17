@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/file_format.scala
     Author:     Makarius
 
-Support for user-defined file formats.
+Support for user-defined file formats, associated with active session.
 */
 
 package isabelle

@@ -6,24 +6,33 @@ Maps with multiple entries per key.
 
 package isabelle
 
+import scala.collection.mutable
+import scala.collection.{IterableFactory, MapFactory, MapFactoryDefaults}
+import scala.collection.immutable.{Iterable, MapOps}
 
-import scala.collection.GenTraversableOnce
-import scala.collection.generic.{ImmutableMapFactory, CanBuildFrom}
 
-
-object Multi_Map extends ImmutableMapFactory[Multi_Map]
+object Multi_Map extends MapFactory[Multi_Map]
 {
   private val empty_val: Multi_Map[Any, Nothing] = new Multi_Map[Any, Nothing](Map.empty)
-  override def empty[A, B]: Multi_Map[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
+  def empty[A, B]: Multi_Map[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
 
-  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), Multi_Map[A, B]] =
-    new MapCanBuildFrom[A, B]
+  def from[A, B](entries: IterableOnce[(A, B)]): Multi_Map[A, B] =
+    (empty[A, B] /: entries)({ case (m, (a, b)) => m.insert(a, b) })
+
+  override def newBuilder[A, B]: mutable.Builder[(A, B), Multi_Map[A, B]] = new Builder[A, B]
+  private class Builder[A, B] extends mutable.Builder[(A, B), Multi_Map[A, B]]
+  {
+    private var res = empty[A, B]
+    override def clear() { res = empty[A, B] }
+    override def addOne(p: (A, B)): this.type = { res = res.insert(p._1, p._2); this }
+    override def result(): Multi_Map[A, B] = res
+  }
 }
 
-
 final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
-  extends scala.collection.immutable.Map[A, B]
-  with scala.collection.immutable.MapLike[A, B, Multi_Map[A, B]]
+  extends Iterable[(A, B)]
+    with MapOps[A, B, Multi_Map, Multi_Map[A, B]]
+    with MapFactoryDefaults[A, B, Multi_Map, Iterable]
 {
   /* Multi_Map operations */
 
@@ -61,8 +70,6 @@ final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
 
   /* Map operations */
 
-  override def stringPrefix = "Multi_Map"
-
   override def empty: Multi_Map[A, Nothing] = Multi_Map.empty
   override def isEmpty: Boolean = rep.isEmpty
 
@@ -73,11 +80,12 @@ final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
 
   def get(a: A): Option[B] = get_list(a).headOption
 
-  def + [B1 >: B](p: (A, B1)): Multi_Map[A, B1] = insert(p._1, p._2)
+  override def updated[B1 >: B](a: A, b: B1): Multi_Map[A, B1] = insert(a, b)
 
-  override def ++ [B1 >: B](entries: GenTraversableOnce[(A, B1)]): Multi_Map[A, B1] =
-    (this.asInstanceOf[Multi_Map[A, B1]] /: entries)(_ + _)
-
-  def - (a: A): Multi_Map[A, B] =
+  override def removed(a: A): Multi_Map[A, B] =
     if (rep.isDefinedAt(a)) new Multi_Map(rep - a) else this
+
+  override def mapFactory: MapFactory[Multi_Map] = Multi_Map
+
+  override def toString: String = mkString("Multi_Map(", ", ", ")")
 }

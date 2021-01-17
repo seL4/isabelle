@@ -121,6 +121,39 @@ object Server
   }
 
 
+  /* handler: port, password, thread */
+
+  abstract class Handler(port0: Int)
+  {
+    val socket: ServerSocket = new ServerSocket(port0, 50, Server.localhost)
+    def port: Int = socket.getLocalPort
+    val password: String = UUID.random_string()
+
+    override def toString: String = print(port, password)
+
+    def handle(connection: Server.Connection): Unit
+
+    private lazy val thread: Thread =
+      Isabelle_Thread.fork(name = "server_handler") {
+        var finished = false
+        while (!finished) {
+          Exn.capture(socket.accept) match {
+            case Exn.Res(client) =>
+              Isabelle_Thread.fork(name = "server_connection") {
+                using(Connection(client))(connection =>
+                  if (connection.read_password(password)) handle(connection))
+              }
+            case Exn.Exn(_) => finished = true
+          }
+        }
+      }
+
+    def start { thread }
+    def join { thread.join }
+    def stop { socket.close; join }
+  }
+
+
   /* socket connection */
 
   object Connection
@@ -154,6 +187,10 @@ object Server
     def read_message(): Option[String] =
       try { Byte_Message.read_line_message(in).map(_.text) }
       catch { case _: IOException => None }
+
+    def await_close(): Unit =
+      try { Byte_Message.read(in, 1); socket.close() }
+      catch { case _: IOException => }
 
     def write_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
@@ -240,7 +277,7 @@ object Server
     {
       val json =
         for ((name, node_status) <- nodes_status.present)
-          yield name.json + ("status" -> nodes_status(name).json)
+          yield name.json + ("status" -> node_status.json)
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 
@@ -477,11 +514,9 @@ Usage: isabelle server [OPTIONS]
     })
 }
 
-class Server private(_port: Int, val log: Logger)
+class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
 {
   server =>
-
-  private val server_socket = new ServerSocket(_port, 50, Server.localhost)
 
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
   def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))
@@ -498,7 +533,7 @@ class Server private(_port: Int, val log: Logger)
 
   def shutdown()
   {
-    server_socket.close
+    server.socket.close
 
     val sessions = _sessions.change_result(sessions => (sessions, Map.empty))
     for ((_, session) <- sessions) {
@@ -510,75 +545,53 @@ class Server private(_port: Int, val log: Logger)
     }
   }
 
-  def port: Int = server_socket.getLocalPort
-  val password: String = UUID.random_string()
+  override def join { super.join; shutdown() }
 
-  override def toString: String = Server.print(port, password)
-
-  private def handle(connection: Server.Connection)
+  override def handle(connection: Server.Connection)
   {
     using(new Server.Context(server, connection))(context =>
     {
-      if (connection.read_password(password)) {
-        connection.reply_ok(
-          JSON.Object(
-            "isabelle_id" -> Isabelle_System.isabelle_id(),
-            "isabelle_version" -> Distribution.version))
+      connection.reply_ok(
+        JSON.Object(
+          "isabelle_id" -> Isabelle_System.isabelle_id(),
+          "isabelle_version" -> Distribution.version))
 
-        var finished = false
-        while (!finished) {
-          connection.read_message() match {
-            case None => finished = true
-            case Some("") => context.notify("Command 'help' provides list of commands")
-            case Some(msg) =>
-              val (name, argument) = Server.Argument.split(msg)
-              Server.command_table.get(name) match {
-                case Some(cmd) =>
-                  argument match {
-                    case Server.Argument(arg) =>
-                      if (cmd.command_body.isDefinedAt((context, arg))) {
-                        Exn.capture { cmd.command_body((context, arg)) } match {
-                          case Exn.Res(task: Server.Task) =>
-                            connection.reply_ok(JSON.Object(task.ident))
-                            task.start
-                          case Exn.Res(res) => connection.reply_ok(res)
-                          case Exn.Exn(exn) =>
-                            val err = Server.json_error(exn)
-                            if (err.isEmpty) throw exn else connection.reply_error(err)
-                        }
+      var finished = false
+      while (!finished) {
+        connection.read_message() match {
+          case None => finished = true
+          case Some("") => context.notify("Command 'help' provides list of commands")
+          case Some(msg) =>
+            val (name, argument) = Server.Argument.split(msg)
+            Server.command_table.get(name) match {
+              case Some(cmd) =>
+                argument match {
+                  case Server.Argument(arg) =>
+                    if (cmd.command_body.isDefinedAt((context, arg))) {
+                      Exn.capture { cmd.command_body((context, arg)) } match {
+                        case Exn.Res(task: Server.Task) =>
+                          connection.reply_ok(JSON.Object(task.ident))
+                          task.start
+                        case Exn.Res(res) => connection.reply_ok(res)
+                        case Exn.Exn(exn) =>
+                          val err = Server.json_error(exn)
+                          if (err.isEmpty) throw exn else connection.reply_error(err)
                       }
-                      else {
-                        connection.reply_error_message(
-                          "Bad argument for command " + Library.single_quote(name),
-                          "argument" -> argument)
-                      }
-                    case _ =>
+                    }
+                    else {
                       connection.reply_error_message(
-                        "Malformed argument for command " + Library.single_quote(name),
+                        "Bad argument for command " + Library.single_quote(name),
                         "argument" -> argument)
-                  }
-                case None => connection.reply_error("Bad command " + Library.single_quote(name))
-              }
-          }
+                    }
+                  case _ =>
+                    connection.reply_error_message(
+                      "Malformed argument for command " + Library.single_quote(name),
+                      "argument" -> argument)
+                }
+              case None => connection.reply_error("Bad command " + Library.single_quote(name))
+            }
         }
       }
     })
   }
-
-  private lazy val server_thread: Thread =
-    Isabelle_Thread.fork(name = "server") {
-      var finished = false
-      while (!finished) {
-        Exn.capture(server_socket.accept) match {
-          case Exn.Res(socket) =>
-            Isabelle_Thread.fork(name = "server_connection")
-              { using(Server.Connection(socket))(handle) }
-          case Exn.Exn(_) => finished = true
-        }
-      }
-    }
-
-  def start { server_thread }
-
-  def join { server_thread.join; shutdown() }
 }

@@ -579,7 +579,7 @@ subsubsection \<open>Scala\<close>
 
 code_printing code_module "Heap" \<rightharpoonup> (Scala)
 \<open>object Heap {
-  def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
+  def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g(f(()))(())
 }
 
 class Ref[A](x: A) {
@@ -596,20 +596,29 @@ object Ref {
 }
 
 object Array {
-  import collection.mutable.ArraySeq
-  def alloc[A](n: BigInt)(x: A): ArraySeq[A] =
-    ArraySeq.fill(n.toInt)(x)
-  def make[A](n: BigInt)(f: BigInt => A): ArraySeq[A] =
-    ArraySeq.tabulate(n.toInt)((k: Int) => f(BigInt(k)))
-  def len[A](a: ArraySeq[A]): BigInt =
-    BigInt(a.length)
-  def nth[A](a: ArraySeq[A], n: BigInt): A =
-    a(n.toInt)
-  def upd[A](a: ArraySeq[A], n: BigInt, x: A): Unit =
-    a.update(n.toInt, x)
-  def freeze[A](a: ArraySeq[A]): List[A] =
-    a.toList
+  class T[A](n: Int)
+  {
+    val array: Array[AnyRef] = new Array[AnyRef](n)
+    def apply(i: Int): A = array(i).asInstanceOf[A]
+    def update(i: Int, x: A): Unit = array(i) = x.asInstanceOf[AnyRef]
+    def length: Int = array.length
+    def toList: List[A] = array.toList.asInstanceOf[List[A]]
+    override def toString: String = array.mkString("Array.T(", ",", ")")
+  }
+  def make[A](n: BigInt)(f: BigInt => A): T[A] =
+  {
+    val m = n.toInt
+    val a = new T[A](m)
+    for (i <- 0 until m) a(i) = f(i)
+    a
+  }
+  def alloc[A](n: BigInt)(x: A): T[A] = make(n)(_ => x)
+  def len[A](a: T[A]): BigInt = BigInt(a.length)
+  def nth[A](a: T[A], n: BigInt): A = a(n.toInt)
+  def upd[A](a: T[A], n: BigInt, x: A): Unit = a.update(n.toInt, x)
+  def freeze[A](a: T[A]): List[A] = a.toList
 }
+
 \<close>
 
 code_reserved Scala Heap Ref Array
