@@ -46,10 +46,10 @@ val _ =
         (Scan.option (Parse.verbatim || Parse.cartouche) -- Parse.and_list1 Args.name_position))
       (fn ctxt => fn (opt, citations) =>
         let
-          val thy = Proof_Context.theory_of ctxt;
-          val bibtex_entries = Resources.theory_bibtex_entries (Context.theory_long_name thy);
+          val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
+          val bibtex_entries = Resources.theory_bibtex_entries thy_name;
           val _ =
-            if null bibtex_entries andalso Context.theory_long_name thy <> Context.PureN then ()
+            if null bibtex_entries andalso thy_name <> Context.PureN then ()
             else
               citations |> List.app (fn (name, pos) =>
                 if member (op =) bibtex_entries name then ()
