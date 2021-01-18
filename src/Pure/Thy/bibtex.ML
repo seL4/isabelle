@@ -46,6 +46,10 @@ val _ =
         (Scan.option (Parse.verbatim || Parse.cartouche) -- Parse.and_list1 Args.name_position))
       (fn ctxt => fn (opt, citations) =>
         let
+          val _ =
+            Context_Position.reports ctxt
+              (map (fn (name, pos) => (pos, Markup.citation name)) citations);
+
           val thy_name = Context.theory_long_name (Proof_Context.theory_of ctxt);
           val bibtex_entries = Resources.theory_bibtex_entries thy_name;
           val _ =
@@ -54,9 +58,7 @@ val _ =
               citations |> List.app (fn (name, pos) =>
                 if member (op =) bibtex_entries name then ()
                 else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
-          val _ =
-            Context_Position.reports ctxt
-              (map (fn (name, pos) => (pos, Markup.citation name)) citations);
+
           val opt_arg = (case opt of NONE => "" | SOME s => "[" ^ s ^ "]");
           val arg = "{" ^ space_implode "," (map #1 citations) ^ "}";
         in Latex.string ("\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg) end));
