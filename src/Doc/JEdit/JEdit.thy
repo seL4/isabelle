@@ -305,7 +305,7 @@ text \<open>
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
-  name (e.g.\ \<^verbatim>\<open>Isabelle2020\<close>). Thus @{tool jedit_client} can connect to the
+  name (e.g.\ \<^verbatim>\<open>Isabelle2021\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
