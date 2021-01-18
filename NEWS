@@ -359,6 +359,10 @@ directory (e.g. /var/www/phabricator-vcs/libphutil).
 * Experimental support for arm64-linux platform. The reference platform
 is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
 
+* Partial support for arm64-darwin (Apple Silicon): most x86_64
+executables work well with runtime translation by Rosetta, but
+occasional problems remain (e.g. external provers).
+
 
 
 New in Isabelle2020 (April 2020)
