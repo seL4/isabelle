@@ -229,7 +229,6 @@ session JEdit (doc) in "JEdit" = HOL +
     "bibtex-mode.png"
     "build"
     "cite-completion.png"
-    "isabelle-jedit-hdpi.png"
     "isabelle-jedit.png"
     "markdown-document.png"
     "ml-debugger.png"

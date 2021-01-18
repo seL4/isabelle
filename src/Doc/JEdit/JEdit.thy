@@ -73,11 +73,11 @@ text \<open>
   \end{figure}
 
   Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some plugins for
-  the jEdit text editor, while preserving its general look-and-feel as far as
-  possible. The main plugin is called ``Isabelle'' and has its own menu
-  \<^emph>\<open>Plugins~/ Isabelle\<close> with access to several actions and add-on panels (see
-  also \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/
-  Isabelle\<close> (see also \secref{sec:options}).
+  the jEdit text editor, while preserving its overall look-and-feel. The main
+  plugin is called ``Isabelle'' and has its own menu \<^emph>\<open>Plugins~/ Isabelle\<close>
+  with access to several actions and add-on panels (see also
+  \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/ Isabelle\<close>
+  (see also \secref{sec:options}).
 
   The options allow to specify a logic session name, but the same selector is
   also accessible in the \<^emph>\<open>Theories\<close> panel (\secref{sec:theories}). After
@@ -320,56 +320,54 @@ text \<open>
 
 section \<open>GUI rendering\<close>
 
-subsection \<open>Look-and-feel \label{sec:look-and-feel}\<close>
-
 text \<open>
-  jEdit is a Java/AWT/Swing application with the ambition to support
-  ``native'' look-and-feel on all platforms, within the limits of what Java
-  provider and major operating systems allow (see also \secref{sec:problems}).
-
-  Isabelle/jEdit enables platform-specific look-and-feel by default as
-  follows.
-
-    \<^descr>[Linux:] The platform-independent \<^emph>\<open>Metal\<close> is used by default.
-
-    The Linux-specific \<^emph>\<open>GTK+\<close> look-and-feel often works, but the overall GTK
-    theme and options need to be selected to suite Java/AWT/Swing. Note that
-    the Java Virtual Machine has no direct influence of GTK rendering: it
-    happens within external C libraries.
-
-    \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> look-and-feel is used by default.
-
-    \<^descr>[macOS:] Regular \<^emph>\<open>Mac OS X\<close> look-and-feel is used by default.
-
-  Users may experiment with different Swing look-and-feels, but need to keep
-  in mind that this extra variance of GUI functionality often causes problems.
-  The platform-independent \<^emph>\<open>Metal\<close> look-and-feel should work smoothly on all
-  platforms, although its is technically and stylistically outdated.
-
-  Changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close> may update the
-  GUI only partially: a proper restart of Isabelle/jEdit is usually required.
+  Isabelle/jEdit is a classic Java/AWT/Swing application: its GUI rendering
+  usually works well, but there are technical side-conditions on the Java
+  window system and graphics engine. When researching problems and solutions
+  on the Web, it often helps to include other well-known Swing applications,
+  notably IntelliJ IDEA and Netbeans.
 \<close>
 
 
-subsection \<open>Displays with high resolution \label{sec:hdpi}\<close>
+subsection \<open>Portable and scalable look-and-feel\<close>
 
 text \<open>
-  In 2020, we usually see displays with high resolution like ``Ultra HD'' /
-  ``4K'' at $3840 \times 2160$, or more. Old ``Full HD'' displays at $1920
-  \times 1080$ pixels are still being used, but Java 11 font-rendering might
-  look bad on it. GUI layouts are lagging behind the high resolution trends,
-  and implicitly assume very old-fashioned $1024 \times 768$ or $1280 \times
-  1024$ screens and fonts with 12 or 14 pixels. Java and jEdit do provide
-  reasonable support for high resolution, but this requires manual
-  adjustments as described below.
+  In the past, \<^emph>\<open>system look-and-feels\<close> tried hard to imitate native GUI
+  elements on specific platforms (Windows, macOS/Aqua, Linux/GTK+), but many
+  technical problems have accumulated in recent years (e.g.\ see
+  \secref{sec:problems}).
 
-  \<^medskip> The \<^bold>\<open>operating-system\<close> often provides some configuration for global
-  scaling of text fonts, e.g.\ to enlarge it uniformly by $200\%$. This
-  impacts regular GUI elements, when used with native look-and-feel: Linux
-  \<^emph>\<open>GTK+\<close>, \<^emph>\<open>Windows\<close>, \<^emph>\<open>Mac OS X\<close>, respectively. Alternatively, it is
-  possible to use the platform-independent \<^emph>\<open>Metal\<close> look-and-feel and change
-  its main font sizes via jEdit options explained below. The Isabelle/jEdit
-  \<^bold>\<open>application\<close> provides further options to adjust font sizes in particular
+  In 2021, we are de-facto back to \<^emph>\<open>portable look-and-feels\<close>, which also
+  happen to be \emph{scalable} on high-resolution displays:
+
+    \<^item> \<^verbatim>\<open>FlatLaf Light\<close> is the default for Isabelle/jEdit on all platforms. It
+    generally looks good and adapts itself pretty well to high-resolution
+    displays.
+
+    \<^item> \<^verbatim>\<open>FlatLaf Dark\<close> is an alternative, but it requires further changes of
+    editor colors by the user (or by the jEdit plugin \<^verbatim>\<open>Editor Scheme\<close>). Also
+    note that Isabelle/PIDE has its own extensive set of rendering options
+    that need to be revisited.
+
+    \<^item> \<^verbatim>\<open>Metal\<close> still works smoothly, although it is stylistically outdated. It
+    can accommodate high-resolution displays via font properties (see below).
+
+  Changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close> often updates
+  the GUI only partially: a full restart of Isabelle/jEdit is required to see
+  the true effect.
+\<close>
+
+
+subsection \<open>Adjusting fonts\<close>
+
+text \<open>
+  The preferred font family for Isabelle/jEdit is \<^verbatim>\<open>Isabelle DejaVu\<close>: it is
+  used by default for the main text area and various GUI elements. The default
+  font sizes attempt to deliver a usable application for common display types,
+  such as ``Full HD'' at $1920 \times 1080$ and ``Ultra HD'' at $3840 \times
+  2160$.
+
+  \<^medskip> Isabelle/jEdit provides various options to adjust font sizes in particular
   GUI elements. Here is a summary of all relevant font properties:
 
     \<^item> \<^emph>\<open>Global Options / Text Area / Text font\<close>: the main text area font,
@@ -383,7 +381,7 @@ text \<open>
 
     \<^item> \<^emph>\<open>Global Options / Appearance / Button, menu and label font\<close> as well as
     \<^emph>\<open>List and text field font\<close>: this specifies the primary and secondary font
-    for the \<^emph>\<open>Metal\<close> look-and-feel (\secref{sec:look-and-feel}).
+    for the \<^emph>\<open>Metal\<close> look-and-feel.
 
     \<^item> \<^emph>\<open>Plugin Options / Isabelle / General / Reset Font Size\<close>: the main text
     area font size for action @{action_ref "isabelle.reset-font-size"}, e.g.\
@@ -391,19 +389,6 @@ text \<open>
 
     \<^item> \<^emph>\<open>Plugin Options / Console / General / Font\<close>: the console window font,
     e.g.\ relevant for Isabelle/Scala command-line.
-
-  In \figref{fig:isabelle-jedit-hdpi} the \<^emph>\<open>Metal\<close> look-and-feel is configured
-  with custom fonts at 36 pixels, and the main text area and console at 40
-  pixels. This leads to fairly good rendering quality, despite the
-  old-fashioned appearance of \<^emph>\<open>Metal\<close>.
-
-  \begin{sidewaysfigure}[!htb]
-  \begin{center}
-  \includegraphics[width=\textwidth]{isabelle-jedit-hdpi}
-  \end{center}
-  \caption{Metal look-and-feel with custom fonts for high resolution}
-  \label{fig:isabelle-jedit-hdpi}
-  \end{sidewaysfigure}
 \<close>
 
 
@@ -715,10 +700,9 @@ text \<open>
 subsection \<open>PIDE resources via virtual file-systems\<close>
 
 text \<open>
-  The jEdit file browser is docked by default, e.g. see
-  \figref{fig:isabelle-jedit-hdpi} (left docking area). It provides immediate
-  access to the local file-system, as well as important Isabelle resources via
-  the \<^emph>\<open>Favorites\<close> menu. Environment variables like \<^verbatim>\<open>$ISABELLE_HOME\<close> are
+  The jEdit file browser is docked by default. It provides immediate access to
+  the local file-system, as well as important Isabelle resources via the
+  \<^emph>\<open>Favorites\<close> menu. Environment variables like \<^verbatim>\<open>$ISABELLE_HOME\<close> are
   discussed in \secref{sec:local-files}. Virtual file-systems are more
   special: the idea is to present structured information like a directory
   tree. The following URLs are offered in the \<^emph>\<open>Favorites\<close> menu, or by
