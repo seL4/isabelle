@@ -57,9 +57,6 @@ information about the Java Runtime system.
 * Update to jedit-5.6.0, the latest release. This version works properly
 on macOS by default, without the special MacOSX plugin.
 
-* On macOS Big Sur full-screen mode works requires to change "System
-Preferences / General / Prefer tabs: in full screen" to never.
-
 * Action "full-screen-mode" (shortcut F11 or S+F11) has been modified
 for better approximate window size on macOS and Linux/X11.
 
