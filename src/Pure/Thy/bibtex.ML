@@ -49,7 +49,7 @@ val _ =
           val thy = Proof_Context.theory_of ctxt;
           val bibtex_entries = Resources.theory_bibtex_entries (Context.theory_long_name thy);
           val _ =
-            if null bibtex_entries andalso Context.theory_name thy <> Context.PureN then ()
+            if null bibtex_entries andalso Context.theory_long_name thy <> Context.PureN then ()
             else
               citations |> List.app (fn (name, pos) =>
                 if member (op =) bibtex_entries name then ()
