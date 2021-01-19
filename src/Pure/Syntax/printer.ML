@@ -138,7 +138,7 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           (if Lexicon.is_terminal s then 1000 else p);
 
         fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
-              apfst (cons (String (not (exists Symbol.is_block_ctrl (Symbol.explode s)), s)))
+              apfst (cons (String (not (Lexicon.suppress_literal_markup s), s)))
                 (xsyms_to_syms xsyms)
           | xsyms_to_syms (Syntax_Ext.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
@@ -232,7 +232,7 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
             val (Ts, args') = synT m (symbs, args);
             val T =
               if do_mark
-              then Pretty.marks_str (m @ [Lexicon.literal_markup s], s)
+              then Pretty.marks_str (m @ Lexicon.literal_markup s, s)
               else Pretty.str s;
           in (T :: Ts, args') end
       | synT m (Block ({markup, consistent, unbreakable, indent}, bsymbs) :: symbs, args) =

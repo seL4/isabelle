@@ -40,8 +40,10 @@ sig
   val terminals: string list
   val is_terminal: string -> bool
   val get_terminal: string -> token option
-  val literal_markup: string -> Markup.T
-  val report_of_token: token -> Position.report
+  val suppress_literal_markup: string -> bool
+  val suppress_markup: token -> bool
+  val literal_markup: string -> Markup.T list
+  val reports_of_token: token -> Position.report list
   val reported_token_range: Proof.context -> token -> string
   val valued_token: token -> bool
   val implode_string: Symbol.symbol list -> string
@@ -197,28 +199,35 @@ fun get_terminal s =
 
 (* markup *)
 
+val suppress_literal_markup = Symbol.has_block_ctrl o Symbol.explode;
+fun suppress_markup tok = is_literal tok andalso suppress_literal_markup (str_of_token tok);
+
 fun literal_markup s =
-  if Symbol.is_ascii_identifier s orelse exists Symbol.is_letter (Symbol.explode s)
-  then Markup.literal
-  else Markup.delimiter;
+  let val syms = Symbol.explode s in
+    if Symbol.has_block_ctrl syms then []
+    else if Symbol.is_ascii_identifier s orelse exists Symbol.is_letter syms
+    then [Markup.literal]
+    else [Markup.delimiter]
+  end;
 
 val token_kind_markup =
- fn Type_Ident => Markup.tfree
-  | Type_Var => Markup.tvar
-  | Num => Markup.numeral
-  | Float => Markup.numeral
-  | Str => Markup.inner_string
-  | String => Markup.inner_string
-  | Cartouche => Markup.inner_cartouche
-  | Comment _ => Markup.comment1
-  | _ => Markup.empty;
+ fn Type_Ident => [Markup.tfree]
+  | Type_Var => [Markup.tvar]
+  | Num => [Markup.numeral]
+  | Float => [Markup.numeral]
+  | Str => [Markup.inner_string]
+  | String => [Markup.inner_string]
+  | Cartouche => [Markup.inner_cartouche]
+  | Comment _ => [Markup.comment1]
+  | _ => [];
 
-fun report_of_token tok =
+fun reports_of_token tok =
   let
-    val markup =
+    val pos = pos_of_token tok;
+    val markups =
       if is_literal tok then literal_markup (str_of_token tok)
       else token_kind_markup (kind_of_token tok);
-  in (pos_of_token tok, markup) end;
+  in map (pair pos) markups end;
 
 fun reported_token_range ctxt tok =
   if is_proper tok
