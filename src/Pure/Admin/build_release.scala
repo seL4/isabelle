@@ -290,10 +290,8 @@ declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.opti
 if [ "$ISABELLE_PLATFORM_FAMILY" = "macos" ]; then
   JAVA_VERSION="$("$ISABELLE_JDK_HOME/bin/java" -version 2>&1 | head -n 1 | cut -d '"' -f2)"
   JAVA_DOMAIN="com.azul.zulu.${JAVA_VERSION}.java"
-  if defaults read "$JAVA_DOMAIN" AppleWindowTabbingMode >/dev/null 2>/dev/null
-  then :
-  else defaults write "$JAVA_DOMAIN" AppleWindowTabbingMode manual >/dev/null 2>/dev/null
-  fi
+  defaults read "$JAVA_DOMAIN" AppleWindowTabbingMode >/dev/null 2>/dev/null ||
+    defaults write "$JAVA_DOMAIN" AppleWindowTabbingMode manual >/dev/null 2>/dev/null
 fi
 
 exec "$ISABELLE_JDK_HOME/bin/java" \
