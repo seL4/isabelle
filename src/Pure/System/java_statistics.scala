@@ -21,8 +21,8 @@ object Java_Statistics
   def memory_status(): Memory_Status =
   {
     val heap_size = Runtime.getRuntime.totalMemory()
-    val heap_used = heap_size - Runtime.getRuntime.freeMemory()
-    Memory_Status(heap_size, heap_used)
+    val heap_free = Runtime.getRuntime.freeMemory()
+    Memory_Status(heap_size, heap_free)
   }
 
 
