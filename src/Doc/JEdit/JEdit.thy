@@ -2172,13 +2172,6 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to the
   national keyboard layout, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
 
-  \<^item> \<^bold>\<open>Problem:\<close> On macOS Big Sur full-screen mode causes problems with dialog windows
-  (e.g. \<^emph>\<open>Search and Replace\<close> or \<^emph>\<open>Hypersearch Results\<close>).
-
-  \<^bold>\<open>Workaround:\<close> Go to \<^emph>\<open>System Preferences / General\<close> and change the default
-  ``\<^emph>\<open>Prefer tabs: \<^bold>\<open>in full screen\<close> when opening documents\<close>'' to
-  ``\<^emph>\<open>\<^bold>\<open>never\<close>\<close>''.
-
   \<^item> \<^bold>\<open>Problem:\<close> On macOS with native Apple look-and-feel, some exotic
   national keyboards may cause a conflict of menu accelerator keys with
   regular jEdit key bindings. This leads to duplicate execution of the
@@ -2239,15 +2232,7 @@ text \<open>
   For the latter platforms, it is approximated by educated guesses on the
   window size (excluding the macOS menu bar).
 
-  \<^bold>\<open>Workaround:\<close> Use native full-screen control of the macOS window manager,
-  unless it is macOS 11.1 (Big Sur).
-
-  \<^item> \<^bold>\<open>Problem:\<close> Native full-screen mode on macOS 11.1 is incompatible with
-  Java window management: it puts dialog windows (Search, Hypersearch, etc.)
-  into an unusable state.
-
-  \<^bold>\<open>Workaround:\<close> use the approximative action @{action_ref
-  "toggle-full-screen"}.
+  \<^bold>\<open>Workaround:\<close> Use native full-screen control of the macOS window manager.
 
   \<^item> \<^bold>\<open>Problem:\<close> Heap space of the JVM may fill up and render the Prover IDE
   unresponsive, e.g.\ when editing big Isabelle sessions with many theories.

@@ -60,6 +60,9 @@ on macOS by default, without the special MacOSX plugin.
 * Action "full-screen-mode" (shortcut F11 or S+F11) has been modified
 for better approximate window size on macOS and Linux/X11.
 
+* Improved GUI support for macOS 11.1 Big Sur: native fullscreen mode,
+but non-native look-and-feel (FlatLaf).
+
 
 *** Document preparation ***
 
