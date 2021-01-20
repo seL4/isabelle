@@ -7,11 +7,6 @@ Build other history versions.
 package isabelle
 
 
-import java.io.{File => JFile}
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-
 object Build_History
 {
   /* log files */
