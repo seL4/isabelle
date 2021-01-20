@@ -1,6 +1,6 @@
 {
-    "name": "Isabelle",
-    "displayName": "Isabelle",
+    "name": "Isabelle2021",
+    "displayName": "Isabelle2021",
     "description": "Isabelle Prover IDE",
     "keywords": [
         "theorem prover",
@@ -10,7 +10,7 @@
         "document preparation"
     ],
     "icon": "isabelle.png",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
