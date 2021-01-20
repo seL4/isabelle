@@ -355,6 +355,50 @@ proof -
     by (simp add: quotient_def card_UN_disjoint)
 qed
 
+text \<open>By Jakub Kądziołka:\<close>
+
+lemma sum_fun_comp:
+  assumes "finite S" "finite R" "g ` S \<subseteq> R"
+  shows "(\<Sum>x \<in> S. f (g x)) = (\<Sum>y \<in> R. of_nat (card {x \<in> S. g x = y}) * f y)"
+proof -
+  let ?r = "relation_of (\<lambda>p q. g p = g q) S"
+  have eqv: "equiv S ?r"
+    unfolding relation_of_def by (auto intro: comp_equivI)
+  have finite: "C \<in> S//?r \<Longrightarrow> finite C" for C
+    by (fact finite_equiv_class[OF `finite S` equiv_type[OF `equiv S ?r`]])
+  have disjoint: "A \<in> S//?r \<Longrightarrow> B \<in> S//?r \<Longrightarrow> A \<noteq> B \<Longrightarrow> A \<inter> B = {}" for A B
+    using eqv quotient_disj by blast
+
+  let ?cls = "\<lambda>y. {x \<in> S. y = g x}"
+  have quot_as_img: "S//?r = ?cls ` g ` S"
+    by (auto simp add: relation_of_def quotient_def)
+  have cls_inj: "inj_on ?cls (g ` S)"
+    by (auto intro: inj_onI)
+
+  have rest_0: "(\<Sum>y \<in> R - g ` S. of_nat (card (?cls y)) * f y) = 0"
+  proof -
+    have "of_nat (card (?cls y)) * f y = 0" if asm: "y \<in> R - g ` S" for y
+    proof -
+      from asm have *: "?cls y = {}" by auto
+      show ?thesis unfolding * by simp
+    qed
+    thus ?thesis by simp
+  qed
+
+  have "(\<Sum>x \<in> S. f (g x)) = (\<Sum>C \<in> S//?r. \<Sum>x \<in> C. f (g x))"
+    using eqv finite disjoint
+    by (simp flip: sum.Union_disjoint[simplified] add: Union_quotient)
+  also have "... = (\<Sum>y \<in> g ` S. \<Sum>x \<in> ?cls y. f (g x))"
+    unfolding quot_as_img by (simp add: sum.reindex[OF cls_inj])
+  also have "... = (\<Sum>y \<in> g ` S. \<Sum>x \<in> ?cls y. f y)"
+    by auto
+  also have "... = (\<Sum>y \<in> g ` S. of_nat (card (?cls y)) * f y)"
+    by (simp flip: sum_constant)
+  also have "... = (\<Sum>y \<in> R. of_nat (card (?cls y)) * f y)"
+    using rest_0 by (simp add: sum.subset_diff[OF \<open>g ` S \<subseteq> R\<close> \<open>finite R\<close>])
+  finally show ?thesis
+    by (simp add: eq_commute)
+qed
 
 subsection \<open>Projection\<close>
 
