@@ -122,7 +122,7 @@ export function setup(context: ExtensionContext, entries: [Entry])
   if (prettify_symbols_mode) {
     prettify_symbols_mode.activate().then(() =>
     {
-      const substitutions = [] as [Substitution]
+      const substitutions: Substitution[] = []
       for (const entry of names) {
         const sym = entry[0]
         substitutions.push(
