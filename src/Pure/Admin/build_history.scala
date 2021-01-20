@@ -575,7 +575,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
       else {
         val afp_repos = isabelle_repos_other + Path.explode("AFP")
         Mercurial.setup_repository(afp_repos_source, afp_repos, ssh = ssh)
-          " -A " + Bash.string(afp_rev.get)
+        " -A " + Bash.string(afp_rev.get)
       }
 
 
@@ -585,11 +585,19 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     {
       val output_file = tmp_dir + Path.explode("output")
 
-      execute("Admin/build_history",
-        "-o " + ssh.bash_path(output_file) +
-          (if (rev == "") "" else " -r " + Bash.string(rev_id)) + " " +
-          options + afp_options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
-        echo = true, strict = false)
+      val rev_options = if (rev == "") "" else " -r " + Bash.string(rev_id)
+
+      try {
+        execute("Admin/build_history",
+          "-o " + ssh.bash_path(output_file) + rev_options + afp_options + " " + options + " " +
+            ssh.bash_path(isabelle_repos_other) + " " + args,
+          echo = true, strict = false)
+      }
+      catch {
+        case ERROR(msg) =>
+          cat_error(msg,
+            "The error(s) above occurred for build_bistory " + rev_options + afp_options)
+      }
 
       for (line <- split_lines(ssh.read(output_file)))
       yield {
