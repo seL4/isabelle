@@ -119,24 +119,28 @@ text \<open>
 \<close>
 
 
-section \<open>Resolving Isabelle components \label{sec:tool-components}\<close>
+section \<open>Managing Isabelle components \label{sec:tool-components}\<close>
 
 text \<open>
-  The @{tool_def components} tool resolves Isabelle components:
+  The @{tool_def components} tool manages Isabelle components:
   @{verbatim [display]
 \<open>Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 
   Options are:
     -I           init user settings
-    -R URL       component repository
-                 (default $ISABELLE_COMPONENT_REPOSITORY)
+    -R URL       component repository (default $ISABELLE_COMPONENT_REPOSITORY)
     -a           resolve all missing components
     -l           list status
+    -u DIR       update $ISABELLE_HOME_USER/components: add directory
+    -x DIR       update $ISABELLE_HOME_USER/components: remove directory
 
-  Resolve Isabelle components via download and installation.
-  COMPONENTS are identified via base name.
+  Resolve Isabelle components via download and installation: given COMPONENTS
+  are identified via base name. Further operations manage etc/settings and
+  etc/components in $ISABELLE_HOME_USER.
 
-  ISABELLE_COMPONENT_REPOSITORY="https://isabelle.in.tum.de/components"\<close>}
+  ISABELLE_COMPONENT_REPOSITORY="..."
+  ISABELLE_HOME_USER="..."
+\<close>}
 
   Components are initialized as described in \secref{sec:components} in a
   permissive manner, which can mark components as ``missing''. This state is
@@ -153,13 +157,20 @@ text \<open>
   installation takes place in the location that was specified in the attempt
   to initialize the component before.
 
+  \<^medskip>
   Option \<^verbatim>\<open>-l\<close> lists the current state of available and missing components
   with their location (full name) within the file-system.
 
+  \<^medskip>
   Option \<^verbatim>\<open>-I\<close> initializes the user settings file to subscribe to the standard
   components specified in the Isabelle repository clone --- this does not make
   any sense for regular Isabelle releases. If the file already exists, it
   needs to be edited manually according to the printed explanation.
+
+  \<^medskip>
+  Options \<^verbatim>\<open>-u\<close> and \<^verbatim>\<open>-x\<close> operate on user components listed in
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>: this avoid manual editing if
+  Isabelle configuration files.
 \<close>
 
 

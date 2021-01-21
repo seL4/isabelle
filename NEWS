@@ -288,6 +288,10 @@ variable.
 (for DVI documents) has been discontinued. Former option -n has been
 turned into -o with explicit file name. Minor INCOMPATIBILITY.
 
+* The command-line tool "isabelle components" supports new options -u
+and -x to manage $ISABELLE_HOME_USER/etc/components without manual
+editing of Isabelle configuration files.
+
 * The shell function "isabelle_directory" (within etc/settings of
 components) augments the list of special directories for persistent
 symbolic path names. This improves portability of heap images and
