@@ -132,7 +132,7 @@ object Components
 
   /** manage user components **/
 
-  val components_path = Path.explode("$ISABELLE_HOME_USER/components")
+  val components_path = Path.explode("$ISABELLE_HOME_USER/etc/components")
 
   def read_components(): List[String] =
     if (components_path.is_file) Library.trim_split_lines(File.read(components_path))
