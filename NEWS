@@ -63,6 +63,10 @@ for better approximate window size on macOS and Linux/X11.
 * Improved GUI support for macOS 11.1 Big Sur: native fullscreen mode,
 but non-native look-and-feel (FlatLaf).
 
+* IDE support for Naproche-SAD: Proof Checking of Natural Mathematical
+Documents. See also $NAPROCHE_HOME/examples for files with .ftl or
+.ftl.tex extension.
+
 
 *** Document preparation ***
 
