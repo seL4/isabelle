@@ -12,7 +12,7 @@ file for further details. Here are various details:
 
 * Isabelle/jEdit: improved monitoring of Java and ML process.
 
-* Isabelle/jEdit: look-and-feel and IDE feedback improvements.
+* Isabelle/jEdit: improved look-and-feel and IDE feedback.
 
 * Pure: improved handling of named contexts and local syntax bundles.
 
@@ -28,7 +28,7 @@ file for further details. Here are various details:
 
 * System: support for Isabelle/Scala services defined in user-space.
 
-* Experimental support for ARM64 platform on Linux and macOS (Apple Silicon).
+* Partial support for ARM64 platform on Linux and macOS (Apple Silicon).
 
 
 You may get Isabelle2021 from the following mirror sites:

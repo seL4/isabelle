@@ -139,7 +139,7 @@ object Server
         while (!finished) {
           Exn.capture(socket.accept) match {
             case Exn.Res(client) =>
-              Isabelle_Thread.fork(name = "server_connection") {
+              Isabelle_Thread.fork(name = "client") {
                 using(Connection(client))(connection =>
                   if (connection.read_password(password)) handle(connection))
               }

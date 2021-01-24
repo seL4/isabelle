@@ -77,8 +77,9 @@ proof -
   then have 0: "Partial_order I"
     by (auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def
       trans_def I_def elim: trans_init_seg_of)
-  { fix R assume "R \<in> Chains I"
-    then have Ris: "R \<in> Chains init_seg_of" using mono_Chains [OF I_init] by blast
+  have "\<Union>R \<in> ?K \<and> (\<forall>r\<in>R. (r,\<Union>R) \<in> I)" if "R \<in> Chains I" for R
+  proof -
+    from that have Ris: "R \<in> Chains init_seg_of" using mono_Chains [OF I_init] by blast
     have subch: "chain\<^sub>\<subseteq> R" using \<open>R \<in> Chains I\<close> I_init
       by (auto simp: init_seg_of_def chain_subset_def Chains_def)
     have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r" and
@@ -106,10 +107,10 @@ proof -
       by (rule downset_on_Union [OF \<open>\<And>r. r \<in> R \<Longrightarrow> downset_on (Field r) p\<close>])
     moreover have "extension_on (Field (\<Union>R)) (\<Union>R) p"
       by (rule chain_subset_extension_on_Union [OF subch \<open>\<And>r. r \<in> R \<Longrightarrow> extension_on (Field r) r p\<close>])
-    ultimately have "\<Union>R \<in> ?K \<and> (\<forall>r\<in>R. (r,\<Union>R) \<in> I)"
+    ultimately show ?thesis
       using mono_Chains [OF I_init] and \<open>R \<in> Chains I\<close>
       by (simp (no_asm) add: I_def del: Field_Union) (metis Chains_wo)
-  }
+  qed
   then have 1: "\<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" if "R\<in>Chains I" for R 
     using that by (subst FI) blast
   txt \<open>Zorn's Lemma yields a maximal wellorder m.\<close>
@@ -196,8 +197,6 @@ proof -
     where "p \<subseteq> r" and wo: "Well_order r" and univ: "Field r = UNIV" by blast
   let ?r = "{(x, y). x \<in> A \<and> y \<in> A \<and> (x, y) \<in> r}"
   from \<open>p \<subseteq> r\<close> have "p \<subseteq> ?r" using \<open>Field p \<subseteq> A\<close> by (auto simp: Field_def)
-  have 1: "Field ?r = A" using wo univ
-    by (fastforce simp: Field_def order_on_defs refl_on_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf (r - Id)"
     using \<open>Well_order r\<close> by (simp_all add: order_on_defs)
   have "refl_on A ?r" using \<open>Refl r\<close> by (auto simp: refl_on_def univ)

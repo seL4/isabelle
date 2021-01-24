@@ -10,7 +10,6 @@ package isabelle
 import java.nio.file.Files
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 
 object Isabelle_Cronjob

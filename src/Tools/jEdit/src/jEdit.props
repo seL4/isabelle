@@ -187,6 +187,7 @@ gatchan.highlight.overview=false
 helpviewer.font=Isabelle DejaVu Serif
 helpviewer.fontsize=12
 home.shortcut=
+hypersearch-results.dock-position=right
 insert-newline-indent.shortcut=
 insert-newline.shortcut=
 isabelle-debugger.dock-position=floating

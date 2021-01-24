@@ -1,14 +1,15 @@
 # Isabelle Prover IDE support
 
 This extension connects VSCode to the Isabelle Prover IDE infrastructure: it
-requires a repository version of Isabelle.
+requires Isabelle2021.
 
 The implementation is centered around the VSCode Language Server protocol, but
 with many add-ons that are specific to VSCode and Isabelle/PIDE.
 
 See also:
 
-  * <https://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
+  * <https://isabelle.in.tum.de/website-Isabelle2021>
+  * <https://isabelle.in.tum.de/repos/isabelle/file/Isabelle2021/src/Tools/VSCode>
   * <https://github.com/Microsoft/language-server-protocol>
 
 
@@ -58,8 +59,8 @@ See also:
 
 ### Isabelle/VSCode Installation
 
-  * Download a recent Isabelle development snapshot from
-  <https://isabelle.in.tum.de/devel/release_snapshot>
+  * Download Isabelle2021 from <https://isabelle.in.tum.de/website-Isabelle2021>
+    or any of its mirror sites.
 
   * Unpack and run the main Isabelle/jEdit application as usual, to ensure that
   the logic image is built properly and Isabelle works as expected.
@@ -68,7 +69,7 @@ See also:
 
   * Open the VSCode *Extensions* view and install the following:
 
-      + *Isabelle* (needs to fit to the underlying Isabelle release).
+      + *Isabelle2021* (needs to fit to the underlying Isabelle release).
 
       + *Prettify Symbols Mode* (important for display of Isabelle symbols).
 
@@ -89,17 +90,17 @@ See also:
 
       + Linux:
         ```
-        "isabelle.home": "/home/makarius/Isabelle"
+        "isabelle.home": "/home/makarius/Isabelle2021"
         ```
 
       + Mac OS X:
         ```
-        "isabelle.home": "/Users/makarius/Isabelle.app/Isabelle"
+        "isabelle.home": "/Users/makarius/Isabelle.app/Isabelle2021"
         ```
 
       + Windows:
         ```
-        "isabelle.home": "C:\\Users\\makarius\\Isabelle"
+        "isabelle.home": "C:\\Users\\makarius\\Isabelle2021"
         ```
 
   * Restart the VSCode application to ensure that all extensions are properly

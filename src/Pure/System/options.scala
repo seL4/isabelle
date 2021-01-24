@@ -120,7 +120,7 @@ object Options
           case bad => error(bad.toString)
         }
       try { (options.set_section("") /: ops) { case (opts, op) => op(opts) } }
-      catch { case ERROR(msg) => error(msg + Position.File(file_name)) }
+      catch { case ERROR(msg) => error(msg + Position.here(Position.File(file_name))) }
     }
 
     def parse_prefs(options: Options, content: String): Options =

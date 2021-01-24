@@ -287,6 +287,8 @@ source "$COMPONENT/etc/settings"
 
 declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
 
+"$ISABELLE_HOME/lib/scripts/java-gui-setup"
+
 exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
   -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
@@ -310,7 +312,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>CFBundleIconFile</key>
 <string>isabelle.icns</string>
 <key>CFBundleIdentifier</key>
-<string>de.tum.in.isabelle.""" + isabelle_name + """</string>
+<string>de.tum.in.isabelle</string>
 <key>CFBundleDisplayName</key>
 <string>""" + isabelle_name + """</string>
 <key>CFBundleInfoDictionaryVersion</key>
@@ -320,11 +322,11 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 <key>CFBundlePackageType</key>
 <string>APPL</string>
 <key>CFBundleShortVersionString</key>
-<string>""" + isabelle_rev + """</string>
+<string>""" + isabelle_name + """</string>
 <key>CFBundleSignature</key>
 <string>????</string>
 <key>CFBundleVersion</key>
-<string>1</string>
+<string>""" + isabelle_rev + """</string>
 <key>NSHumanReadableCopyright</key>
 <string></string>
 <key>LSMinimumSystemVersion</key>

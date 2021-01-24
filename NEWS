@@ -4,11 +4,6 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
-
-
-
 New in Isabelle2021 (February 2021)
 -----------------------------------
 
@@ -62,11 +57,15 @@ information about the Java Runtime system.
 * Update to jedit-5.6.0, the latest release. This version works properly
 on macOS by default, without the special MacOSX plugin.
 
-* On macOS Big Sur full-screen mode works requires to change "System
-Preferences / General / Prefer tabs: in full screen" to never.
-
 * Action "full-screen-mode" (shortcut F11 or S+F11) has been modified
 for better approximate window size on macOS and Linux/X11.
+
+* Improved GUI support for macOS 11.1 Big Sur: native fullscreen mode,
+but non-native look-and-feel (FlatLaf).
+
+* IDE support for Naproche-SAD: Proof Checking of Natural Mathematical
+Documents. See also $NAPROCHE_HOME/examples for files with .ftl or
+.ftl.tex extension.
 
 
 *** Document preparation ***
@@ -293,6 +292,10 @@ variable.
 (for DVI documents) has been discontinued. Former option -n has been
 turned into -o with explicit file name. Minor INCOMPATIBILITY.
 
+* The command-line tool "isabelle components" supports new options -u
+and -x to manage $ISABELLE_HOME_USER/etc/components without manual
+editing of Isabelle configuration files.
+
 * The shell function "isabelle_directory" (within etc/settings of
 components) augments the list of special directories for persistent
 symbolic path names. This improves portability of heap images and
@@ -363,6 +366,10 @@ directory (e.g. /var/www/phabricator-vcs/libphutil).
 
 * Experimental support for arm64-linux platform. The reference platform
 is Raspberry Pi 4 with 8 GB RAM running Pi OS (64 bit).
+
+* Partial support for arm64-darwin (Apple Silicon): most x86_64
+executables work well with runtime translation by Rosetta, but
+occasional problems remain (e.g. external provers).
 
 
 

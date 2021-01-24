@@ -1,6 +1,6 @@
 {
-    "name": "Isabelle",
-    "displayName": "Isabelle",
+    "name": "Isabelle2021",
+    "displayName": "Isabelle2021",
     "description": "Isabelle Prover IDE",
     "keywords": [
         "theorem prover",
@@ -10,7 +10,7 @@
         "document preparation"
     ],
     "icon": "isabelle.png",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
@@ -189,92 +189,350 @@
                     "default": "",
                     "description": "Cygwin installation on Windows (only relevant when running directly from the Isabelle repository)."
                 },
-                "isabelle.unprocessed_light_color": { "type": "string", "default": "rgba(255, 160, 160, 1.00)" },
-                "isabelle.unprocessed_dark_color": { "type": "string", "default": "rgba(97, 0, 97, 1.00)" },
-                "isabelle.unprocessed1_light_color": { "type": "string", "default": "rgba(255, 160, 160, 0.20)" },
-                "isabelle.unprocessed1_dark_color": { "type": "string", "default": "rgba(97, 0, 97, 0.20)" },
-                "isabelle.running_light_color": { "type": "string", "default": "rgba(97, 0, 97, 1.00)" },
-                "isabelle.running_dark_color": { "type": "string", "default": "rgba(255, 160, 160, 1.00)" },
-                "isabelle.running1_light_color": { "type": "string", "default": "rgba(97, 0, 97, 0.40)" },
-                "isabelle.running1_dark_color": { "type": "string", "default": "rgba(255, 160, 160, 0.40)" },
-                "isabelle.canceled_light_color": { "type": "string", "default": "rgba(255, 106, 106, 0.40)" },
-                "isabelle.canceled_dark_color": { "type": "string", "default": "rgba(255, 106, 106, 0.40)" },
-                "isabelle.bad_light_color": { "type": "string", "default": "rgba(255, 106, 106, 0.40)" },
-                "isabelle.bad_dark_color": { "type": "string", "default": "rgba(255, 106, 106, 0.40)" },
-                "isabelle.intensify_light_color": { "type": "string", "default": "rgba(255, 204, 102, 0.40)" },
-                "isabelle.intensify_dark_color": { "type": "string", "default": "rgba(204, 136, 0, 0.20)" },
-                "isabelle.markdown_bullet1_light_color": { "type": "string", "default": "rgba(218, 254, 218, 1.00)" },
-                "isabelle.markdown_bullet1_dark_color": { "type": "string", "default": "rgba(5, 199, 5, 0.20)" },
-                "isabelle.markdown_bullet2_light_color": { "type": "string", "default": "rgba(255, 240, 204, 1.00)" },
-                "isabelle.markdown_bullet2_dark_color": { "type": "string", "default": "rgba(204, 143, 0, 0.20)" },
-                "isabelle.markdown_bullet3_light_color": { "type": "string", "default": "rgba(231, 231, 255, 1.00)" },
-                "isabelle.markdown_bullet3_dark_color": { "type": "string", "default": "rgba(0, 0, 204, 0.20)" },
-                "isabelle.markdown_bullet4_light_color": { "type": "string", "default": "rgba(255, 224, 240, 1.00)" },
-                "isabelle.markdown_bullet4_dark_color": { "type": "string", "default": "rgba(204, 0, 105, 0.20)" },
-                "isabelle.quoted_light_color": { "type": "string", "default": "rgba(139, 139, 139, 0.10)" },
-                "isabelle.quoted_dark_color": { "type": "string", "default": "rgba(150, 150, 150, 0.15)" },
-                "isabelle.antiquoted_light_color": { "type": "string", "default": "rgba(255, 200, 50, 0.10)" },
-                "isabelle.antiquoted_dark_color": { "type": "string", "default": "rgba(255, 214, 102, 0.15)" },
-                "isabelle.writeln_light_color": { "type": "string", "default": "rgba(192, 192, 192, 1.0)" },
-                "isabelle.writeln_dark_color": { "type": "string", "default": "rgba(192, 192, 192, 1.0)" },
-                "isabelle.information_light_color": { "type": "string", "default": "rgba(193, 223, 238, 1.0)" },
-                "isabelle.information_dark_color": { "type": "string", "default": "rgba(193, 223, 238, 1.0)" },
-                "isabelle.warning_light_color": { "type": "string", "default": "rgba(255, 140, 0, 1.0)" },
-                "isabelle.warning_dark_color": { "type": "string", "default": "rgba(255, 140, 0, 1.0)" },
-                "isabelle.error_light_color": { "type": "string", "default": "rgba(178, 34, 34, 1.00)" },
-                "isabelle.error_dark_color": { "type": "string", "default": "rgba(178, 34, 34, 1.00)" },
-                "isabelle.spell_checker_light_color": { "type": "string", "default": "rgba(0, 0, 255, 1.0)" },
-                "isabelle.spell_checker_dark_color": { "type": "string", "default": "rgba(86, 156, 214, 1.00)" },
-                "isabelle.main_light_color": { "type": "string", "default": "rgba(0, 0, 0, 1.00)" },
-                "isabelle.main_dark_color": { "type": "string", "default": "rgba(212, 212, 212, 1.00)" },
-                "isabelle.keyword1_light_color": { "type": "string", "default": "rgba(175, 0, 219, 1.00)" },
-                "isabelle.keyword1_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
-                "isabelle.keyword2_light_color": { "type": "string", "default": "rgba(9, 136, 90, 1.00)" },
-                "isabelle.keyword2_dark_color": { "type": "string", "default": "rgba(181, 206, 168, 1.00)" },
-                "isabelle.keyword3_light_color": { "type": "string", "default": "rgba(38, 127, 153, 1.00)" },
-                "isabelle.keyword3_dark_color": { "type": "string", "default": "rgba(78, 201, 176), 1.00)" },
-                "isabelle.quasi_keyword_light_color": { "type": "string", "default": "rgba(153, 102, 255, 1.00)" },
-                "isabelle.quasi_keyword_dark_color": { "type": "string", "default": "rgba(153, 102, 255, 1.00)" },
-                "isabelle.improper_light_color": { "type": "string", "default": "rgba(205, 49, 49, 1.00)" },
-                "isabelle.improper_dark_color": { "type": "string", "default": "rgba(244, 71, 71, 1.00)" },
-                "isabelle.operator_light_color": { "type": "string", "default": "rgba(50, 50, 50, 1.00)" },
-                "isabelle.operator_dark_color": { "type": "string", "default": "rgba(212, 212, 212, 1.00)" },
-                "isabelle.tfree_light_color": { "type": "string", "default": "rgba(160, 32, 240, 1.00)" },
-                "isabelle.tfree_dark_color": { "type": "string", "default": "rgba(160, 32, 240, 1.00)" },
-                "isabelle.tvar_light_color": { "type": "string", "default": "rgba(160, 32, 240, 1.00)" },
-                "isabelle.tvar_dark_color": { "type": "string", "default": "rgba(160, 32, 240, 1.00)" },
-                "isabelle.free_light_color": { "type": "string", "default": "rgba(0, 0, 255, 1.00)" },
-                "isabelle.free_dark_color": { "type": "string", "default": "rgba(86, 156, 214, 1.00)" },
-                "isabelle.skolem_light_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
-                "isabelle.skolem_dark_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
-                "isabelle.bound_light_color": { "type": "string", "default": "rgba(0, 128, 0, 1.00)" },
-                "isabelle.bound_dark_color": { "type": "string", "default": "rgba(96, 139, 78, 1.00)" },
-                "isabelle.var_light_color": { "type": "string", "default": "rgba(0, 16, 128, 1.00)" },
-                "isabelle.var_dark_color": { "type": "string", "default": "rgba(156, 220, 254, 1.00)" },
-                "isabelle.inner_numeral_light_color": { "type": "string", "default": "rgba(9, 136, 90, 1.00)" },
-                "isabelle.inner_numeral_dark_color": { "type": "string", "default": "rgba(181, 206, 168, 1.00)" },
-                "isabelle.inner_quoted_light_color": { "type": "string", "default": "rgba(163, 21, 21, 1.00)" },
-                "isabelle.inner_quoted_dark_color": { "type": "string", "default": "rgba(206, 145, 120, 1.00)" },
-                "isabelle.inner_cartouche_light_color": { "type": "string", "default": "rgba(129, 31, 63, 1.00)" },
-                "isabelle.inner_cartouche_dark_color": { "type": "string", "default": "rgba(209, 105, 105, 1.00)" },
-                "isabelle.inner_comment_light_color": { "type": "string", "default": "rgba(0, 128, 0, 1.00)" },
-                "isabelle.inner_comment_dark_color": { "type": "string", "default": "rgba(96, 139, 78, 1.00)" },
-                "isabelle.comment1_light_color": { "type": "string", "default": "rgba(129, 31, 63, 1.00)" },
-                "isabelle.comment1_dark_color": { "type": "string", "default": "rgba(100, 102, 149, 1.00)" },
-                "isabelle.comment2_light_color": { "type": "string", "default": "rgba(209, 105, 105, 1.00)" },
-                "isabelle.comment2_dark_color": { "type": "string", "default": "rgba(206, 155, 120, 1.00)" },
-                "isabelle.comment3_light_color": { "type": "string", "default": "rgba(0, 128, 0, 1.00)" },
-                "isabelle.comment3_dark_color": { "type": "string", "default": "rgba(96, 139, 78, 1.00)" },
-                "isabelle.dynamic_light_color": { "type": "string", "default": "rgba(121, 94, 38, 1.00)" },
-                "isabelle.dynamic_dark_color": { "type": "string", "default": "rgba(220, 220, 170, 1.00)" },
-                "isabelle.class_parameter_light_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
-                "isabelle.class_parameter_dark_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
-                "isabelle.antiquote_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
-                "isabelle.antiquote_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
-                "isabelle.raw_text_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
-                "isabelle.raw_text_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
-                "isabelle.plain_text_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
-                "isabelle.plain_text_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" }
+                "isabelle.unprocessed_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 160, 160, 1.00)"
+                },
+                "isabelle.unprocessed_dark_color": {
+                    "type": "string",
+                    "default": "rgba(97, 0, 97, 1.00)"
+                },
+                "isabelle.unprocessed1_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 160, 160, 0.20)"
+                },
+                "isabelle.unprocessed1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(97, 0, 97, 0.20)"
+                },
+                "isabelle.running_light_color": {
+                    "type": "string",
+                    "default": "rgba(97, 0, 97, 1.00)"
+                },
+                "isabelle.running_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 160, 160, 1.00)"
+                },
+                "isabelle.running1_light_color": {
+                    "type": "string",
+                    "default": "rgba(97, 0, 97, 0.40)"
+                },
+                "isabelle.running1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 160, 160, 0.40)"
+                },
+                "isabelle.canceled_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.canceled_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.bad_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.bad_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.intensify_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 204, 102, 0.40)"
+                },
+                "isabelle.intensify_dark_color": {
+                    "type": "string",
+                    "default": "rgba(204, 136, 0, 0.20)"
+                },
+                "isabelle.markdown_bullet1_light_color": {
+                    "type": "string",
+                    "default": "rgba(218, 254, 218, 1.00)"
+                },
+                "isabelle.markdown_bullet1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(5, 199, 5, 0.20)"
+                },
+                "isabelle.markdown_bullet2_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 240, 204, 1.00)"
+                },
+                "isabelle.markdown_bullet2_dark_color": {
+                    "type": "string",
+                    "default": "rgba(204, 143, 0, 0.20)"
+                },
+                "isabelle.markdown_bullet3_light_color": {
+                    "type": "string",
+                    "default": "rgba(231, 231, 255, 1.00)"
+                },
+                "isabelle.markdown_bullet3_dark_color": {
+                    "type": "string",
+                    "default": "rgba(0, 0, 204, 0.20)"
+                },
+                "isabelle.markdown_bullet4_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 224, 240, 1.00)"
+                },
+                "isabelle.markdown_bullet4_dark_color": {
+                    "type": "string",
+                    "default": "rgba(204, 0, 105, 0.20)"
+                },
+                "isabelle.quoted_light_color": {
+                    "type": "string",
+                    "default": "rgba(139, 139, 139, 0.10)"
+                },
+                "isabelle.quoted_dark_color": {
+                    "type": "string",
+                    "default": "rgba(150, 150, 150, 0.15)"
+                },
+                "isabelle.antiquoted_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 200, 50, 0.10)"
+                },
+                "isabelle.antiquoted_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 214, 102, 0.15)"
+                },
+                "isabelle.writeln_light_color": {
+                    "type": "string",
+                    "default": "rgba(192, 192, 192, 1.0)"
+                },
+                "isabelle.writeln_dark_color": {
+                    "type": "string",
+                    "default": "rgba(192, 192, 192, 1.0)"
+                },
+                "isabelle.information_light_color": {
+                    "type": "string",
+                    "default": "rgba(193, 223, 238, 1.0)"
+                },
+                "isabelle.information_dark_color": {
+                    "type": "string",
+                    "default": "rgba(193, 223, 238, 1.0)"
+                },
+                "isabelle.warning_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 140, 0, 1.0)"
+                },
+                "isabelle.warning_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 140, 0, 1.0)"
+                },
+                "isabelle.error_light_color": {
+                    "type": "string",
+                    "default": "rgba(178, 34, 34, 1.00)"
+                },
+                "isabelle.error_dark_color": {
+                    "type": "string",
+                    "default": "rgba(178, 34, 34, 1.00)"
+                },
+                "isabelle.spell_checker_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 0, 255, 1.0)"
+                },
+                "isabelle.spell_checker_dark_color": {
+                    "type": "string",
+                    "default": "rgba(86, 156, 214, 1.00)"
+                },
+                "isabelle.main_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 0, 0, 1.00)"
+                },
+                "isabelle.main_dark_color": {
+                    "type": "string",
+                    "default": "rgba(212, 212, 212, 1.00)"
+                },
+                "isabelle.keyword1_light_color": {
+                    "type": "string",
+                    "default": "rgba(175, 0, 219, 1.00)"
+                },
+                "isabelle.keyword1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(197, 134, 192, 1.00)"
+                },
+                "isabelle.keyword2_light_color": {
+                    "type": "string",
+                    "default": "rgba(9, 136, 90, 1.00)"
+                },
+                "isabelle.keyword2_dark_color": {
+                    "type": "string",
+                    "default": "rgba(181, 206, 168, 1.00)"
+                },
+                "isabelle.keyword3_light_color": {
+                    "type": "string",
+                    "default": "rgba(38, 127, 153, 1.00)"
+                },
+                "isabelle.keyword3_dark_color": {
+                    "type": "string",
+                    "default": "rgba(78, 201, 176), 1.00)"
+                },
+                "isabelle.quasi_keyword_light_color": {
+                    "type": "string",
+                    "default": "rgba(153, 102, 255, 1.00)"
+                },
+                "isabelle.quasi_keyword_dark_color": {
+                    "type": "string",
+                    "default": "rgba(153, 102, 255, 1.00)"
+                },
+                "isabelle.improper_light_color": {
+                    "type": "string",
+                    "default": "rgba(205, 49, 49, 1.00)"
+                },
+                "isabelle.improper_dark_color": {
+                    "type": "string",
+                    "default": "rgba(244, 71, 71, 1.00)"
+                },
+                "isabelle.operator_light_color": {
+                    "type": "string",
+                    "default": "rgba(50, 50, 50, 1.00)"
+                },
+                "isabelle.operator_dark_color": {
+                    "type": "string",
+                    "default": "rgba(212, 212, 212, 1.00)"
+                },
+                "isabelle.tfree_light_color": {
+                    "type": "string",
+                    "default": "rgba(160, 32, 240, 1.00)"
+                },
+                "isabelle.tfree_dark_color": {
+                    "type": "string",
+                    "default": "rgba(160, 32, 240, 1.00)"
+                },
+                "isabelle.tvar_light_color": {
+                    "type": "string",
+                    "default": "rgba(160, 32, 240, 1.00)"
+                },
+                "isabelle.tvar_dark_color": {
+                    "type": "string",
+                    "default": "rgba(160, 32, 240, 1.00)"
+                },
+                "isabelle.free_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 0, 255, 1.00)"
+                },
+                "isabelle.free_dark_color": {
+                    "type": "string",
+                    "default": "rgba(86, 156, 214, 1.00)"
+                },
+                "isabelle.skolem_light_color": {
+                    "type": "string",
+                    "default": "rgba(210, 105, 30, 1.00)"
+                },
+                "isabelle.skolem_dark_color": {
+                    "type": "string",
+                    "default": "rgba(210, 105, 30, 1.00)"
+                },
+                "isabelle.bound_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 128, 0, 1.00)"
+                },
+                "isabelle.bound_dark_color": {
+                    "type": "string",
+                    "default": "rgba(96, 139, 78, 1.00)"
+                },
+                "isabelle.var_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 16, 128, 1.00)"
+                },
+                "isabelle.var_dark_color": {
+                    "type": "string",
+                    "default": "rgba(156, 220, 254, 1.00)"
+                },
+                "isabelle.inner_numeral_light_color": {
+                    "type": "string",
+                    "default": "rgba(9, 136, 90, 1.00)"
+                },
+                "isabelle.inner_numeral_dark_color": {
+                    "type": "string",
+                    "default": "rgba(181, 206, 168, 1.00)"
+                },
+                "isabelle.inner_quoted_light_color": {
+                    "type": "string",
+                    "default": "rgba(163, 21, 21, 1.00)"
+                },
+                "isabelle.inner_quoted_dark_color": {
+                    "type": "string",
+                    "default": "rgba(206, 145, 120, 1.00)"
+                },
+                "isabelle.inner_cartouche_light_color": {
+                    "type": "string",
+                    "default": "rgba(129, 31, 63, 1.00)"
+                },
+                "isabelle.inner_cartouche_dark_color": {
+                    "type": "string",
+                    "default": "rgba(209, 105, 105, 1.00)"
+                },
+                "isabelle.inner_comment_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 128, 0, 1.00)"
+                },
+                "isabelle.inner_comment_dark_color": {
+                    "type": "string",
+                    "default": "rgba(96, 139, 78, 1.00)"
+                },
+                "isabelle.comment1_light_color": {
+                    "type": "string",
+                    "default": "rgba(129, 31, 63, 1.00)"
+                },
+                "isabelle.comment1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(100, 102, 149, 1.00)"
+                },
+                "isabelle.comment2_light_color": {
+                    "type": "string",
+                    "default": "rgba(209, 105, 105, 1.00)"
+                },
+                "isabelle.comment2_dark_color": {
+                    "type": "string",
+                    "default": "rgba(206, 155, 120, 1.00)"
+                },
+                "isabelle.comment3_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 128, 0, 1.00)"
+                },
+                "isabelle.comment3_dark_color": {
+                    "type": "string",
+                    "default": "rgba(96, 139, 78, 1.00)"
+                },
+                "isabelle.dynamic_light_color": {
+                    "type": "string",
+                    "default": "rgba(121, 94, 38, 1.00)"
+                },
+                "isabelle.dynamic_dark_color": {
+                    "type": "string",
+                    "default": "rgba(220, 220, 170, 1.00)"
+                },
+                "isabelle.class_parameter_light_color": {
+                    "type": "string",
+                    "default": "rgba(210, 105, 30, 1.00)"
+                },
+                "isabelle.class_parameter_dark_color": {
+                    "type": "string",
+                    "default": "rgba(210, 105, 30, 1.00)"
+                },
+                "isabelle.antiquote_light_color": {
+                    "type": "string",
+                    "default": "rgba(102, 0, 204, 1.00)"
+                },
+                "isabelle.antiquote_dark_color": {
+                    "type": "string",
+                    "default": "rgba(197, 134, 192, 1.00)"
+                },
+                "isabelle.raw_text_light_color": {
+                    "type": "string",
+                    "default": "rgba(102, 0, 204, 1.00)"
+                },
+                "isabelle.raw_text_dark_color": {
+                    "type": "string",
+                    "default": "rgba(197, 134, 192, 1.00)"
+                },
+                "isabelle.plain_text_light_color": {
+                    "type": "string",
+                    "default": "rgba(102, 0, 204, 1.00)"
+                },
+                "isabelle.plain_text_dark_color": {
+                    "type": "string",
+                    "default": "rgba(197, 134, 192, 1.00)"
+                }
             }
         }
     },
@@ -285,9 +543,9 @@
     },
     "devDependencies": {
         "@types/mocha": "^2.2.48",
-        "@types/node": "^7.0.66",
+        "@types/node": "^7.10.14",
         "mocha": "^3.5.3",
-        "typescript": "^2.9.2",
+        "typescript": "^3.7.9",
         "vscode": "^1.1.36"
     },
     "dependencies": {

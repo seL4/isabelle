@@ -130,6 +130,55 @@ object Components
     File.write(components_sha1, entries.sortBy(_.file_name).mkString("", "\n", "\n"))
 
 
+  /** manage user components **/
+
+  val components_path = Path.explode("$ISABELLE_HOME_USER/etc/components")
+
+  def read_components(): List[String] =
+    if (components_path.is_file) Library.trim_split_lines(File.read(components_path))
+    else Nil
+
+  def write_components(lines: List[String]): Unit =
+  {
+    Isabelle_System.make_directory(components_path.dir)
+    File.write(components_path, Library.terminate_lines(lines))
+  }
+
+  def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit =
+  {
+    val path = path0.expand.absolute
+    if (!(path + Path.explode("etc/settings")).is_file &&
+        !(path + Path.explode("etc/components")).is_file) error("Bad component directory: " + path)
+
+    val lines1 = read_components()
+    val lines2 =
+      lines1.filter(line =>
+        line.isEmpty || line.startsWith("#") || !File.eq(Path.explode(line), path))
+    val lines3 = if (add) lines2 ::: List(path.implode) else lines2
+
+    if (lines1 != lines3) write_components(lines3)
+
+    val prefix = if (lines1 == lines3) "Unchanged" else if (add) "Added" else "Removed"
+    progress.echo(prefix + " component " + path)
+  }
+
+
+  /* main entry point */
+
+  def main(args: Array[String]): Unit =
+  {
+    Command_Line.tool {
+      for (arg <- args) {
+        val add =
+          if (arg.startsWith("+")) true
+          else if (arg.startsWith("-")) false
+          else error("Bad argument: " + quote(arg))
+        val path = Path.explode(arg.substring(1))
+        update_components(add, path, progress = new Console_Progress)
+      }
+    }
+  }
+
 
   /** build and publish components **/
 

@@ -59,6 +59,7 @@ sig
   val is_quasi: symbol -> bool
   val is_blank: symbol -> bool
   val is_block_ctrl: symbol -> bool
+  val has_block_ctrl: symbol list -> bool
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
   val beginning: int -> symbol list -> string
@@ -408,6 +409,7 @@ fun is_quasi s = kind s = Quasi;
 fun is_blank s = kind s = Blank;
 
 val is_block_ctrl = member (op =) ["\<^bsub>", "\<^esub>", "\<^bsup>", "\<^esup>"];
+val has_block_ctrl = exists is_block_ctrl;
 
 fun is_quasi_letter s = let val k = kind s in k = Letter orelse k = Quasi end;
 fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Quasi end;

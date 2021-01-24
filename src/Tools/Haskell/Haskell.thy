@@ -67,7 +67,6 @@ module Isabelle.Library (
   space_explode, split_lines, trim_line, clean_name)
 where
 
-import Data.Maybe
 import qualified Data.List as List
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
@@ -181,7 +180,6 @@ module Isabelle.Value
   (print_bool, parse_bool, parse_nat, print_int, parse_int, print_real, parse_real)
 where
 
-import Data.Maybe
 import qualified Data.List as List
 import qualified Text.Read as Read
 
@@ -306,6 +304,8 @@ Quasi-abstract markup elements.
 
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/markup.ML\<close>.
 -}
+
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.Markup (
   T, empty, is_empty, properties,
@@ -759,7 +759,6 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
 module Isabelle.File (setup, read, write, append) where
 
 import Prelude hiding (read)
-import System.IO (IO)
 import qualified System.IO as IO
 
 setup :: IO.Handle -> IO ()
@@ -791,10 +790,10 @@ Untyped XML trees and representation of ML values.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 module Isabelle.XML (Attributes, Body, Tree(..), wrap_elem, unwrap_elem, content_of)
 where
-
-import qualified Data.List as List
 
 import Isabelle.Library
 import qualified Isabelle.Properties as Properties
@@ -873,6 +872,8 @@ XML as data representation language.
 
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
+
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.XML.Encode (
   A, T, V, P,
@@ -965,6 +966,8 @@ XML as data representation language.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 module Isabelle.XML.Decode (
   A, T, V, P,
 
@@ -973,8 +976,6 @@ module Isabelle.XML.Decode (
   tree, properties, string, int, bool, unit, pair, triple, list, option, variant
 )
 where
-
-import Data.List ((!!))
 
 import Isabelle.Library
 import qualified Isabelle.Value as Value
@@ -1077,6 +1078,8 @@ inlining into plain text.
 
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
 -}
+
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-incomplete-patterns #-}
 
 module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
   buffer_body, buffer, string_of_body, string_of, parse_body, parse)
@@ -1204,6 +1207,8 @@ Generic pretty printing module.
 
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/pretty.ML\<close>.
 -}
+
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.Pretty (
   T, symbolic, formatted, unformatted,
@@ -1416,7 +1421,6 @@ module Isabelle.Term_XML.Encode (indexname, sort, typ, typ_body, term)
 where
 
 import Isabelle.Library
-import qualified Isabelle.XML as XML
 import Isabelle.XML.Encode
 import Isabelle.Term
 
@@ -1457,11 +1461,12 @@ XML data representation of lambda terms.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+
 module Isabelle.Term_XML.Decode (indexname, sort, typ, typ_body, term)
 where
 
 import Isabelle.Library
-import qualified Isabelle.XML as XML
 import Isabelle.XML.Decode
 import Isabelle.Term
 
@@ -1514,7 +1519,6 @@ module Isabelle.UUID (
 where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString
 import Data.UUID (UUID)
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
@@ -1564,11 +1568,14 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+
 module Isabelle.Byte_Message (
     write, write_line,
     read, read_block, trim_line, read_line,
     make_message, write_message, read_message,
-    make_line_message, write_line_message, read_line_message
+    make_line_message, write_line_message, read_line_message,
+    read_yxml, write_yxml
   )
 where
 
@@ -1577,11 +1584,10 @@ import Data.Maybe
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.UTF8 as UTF8
-import Data.Word (Word8)
+import qualified Isabelle.XML as XML
+import qualified Isabelle.YXML as YXML
 
-import Control.Monad (when)
 import Network.Socket (Socket)
-import qualified Network.Socket as Socket
 import qualified Network.Socket.ByteString as ByteString
 
 import Isabelle.Library hiding (trim_line)
@@ -1713,6 +1719,16 @@ read_line_message socket = do
       case Value.parse_nat (UTF8.toString line) of
         Nothing -> return $ Just line
         Just n -> fmap trim_line . fst <$> read_block socket n
+
+
+read_yxml :: Socket -> IO (Maybe XML.Body)
+read_yxml socket = do
+  res <- read_line_message socket
+  return (YXML.parse_body . UTF8.toString <$> res)
+
+write_yxml :: Socket -> XML.Body -> IO ()
+write_yxml socket body =
+  write_line_message socket (UTF8.fromString (YXML.string_of_body body))
 \<close>
 
 generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
@@ -1739,7 +1755,6 @@ module Isabelle.Isabelle_Thread (
 where
 
 import Data.Unique
-import Data.Maybe
 import Data.IORef
 import System.IO.Unsafe
 
@@ -1747,7 +1762,6 @@ import qualified Data.List as List
 import Control.Monad (when, forM_)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Control.Exception.Base (SomeException)
 import Control.Exception as Exception
 import Control.Concurrent (ThreadId)
 import qualified Control.Concurrent as Concurrent
@@ -1898,7 +1912,7 @@ TCP server on localhost.
 
 module Isabelle.Server (
   localhost_name, localhost, publish_text, publish_stdout,
-  server
+  server, connection
 )
 where
 
@@ -1913,6 +1927,7 @@ import Isabelle.Library
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
+import qualified Data.ByteString.UTF8 as UTF8
 
 
 {- server address -}
@@ -1963,6 +1978,32 @@ server publish handle =
             Left exn -> IO.hPutStrLn IO.stderr $ Exception.displayException exn
             Right () -> return ())
       return ()
+
+
+{- client connection -}
+
+connection :: String -> String -> (Socket -> IO a) -> IO a
+connection port password client =
+  Socket.withSocketsDo $ do
+    addr <- resolve
+    Exception.bracket (open addr) Socket.close body
+  where
+    resolve = do
+      let hints =
+            Socket.defaultHints {
+              Socket.addrFlags = [Socket.AI_NUMERICHOST, Socket.AI_NUMERICSERV],
+              Socket.addrSocketType = Socket.Stream }
+      head <$> Socket.getAddrInfo (Just hints) (Just "127.0.0.1") (Just port)
+
+    open addr = do
+      socket <- Socket.socket (Socket.addrFamily addr) (Socket.addrSocketType addr)
+                  (Socket.addrProtocol addr)
+      Socket.connect socket $ Socket.addrAddress addr
+      return socket
+
+    body socket = do
+      Byte_Message.write_line socket (UTF8.fromString password)
+      client socket
 \<close>
 
 export_generated_files _

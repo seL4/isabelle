@@ -71,7 +71,7 @@ text \<open>
   Isabelle installation: it needs to be a suitable version of Ubuntu Linux.
   The default \<^verbatim>\<open>ubuntu\<close> refers to the latest LTS version provided by Canonical
   as the official Ubuntu vendor\<^footnote>\<open>\<^url>\<open>https://hub.docker.com/_/ubuntu\<close>\<close>. For
-  Isabelle2020 this should be Ubuntu 18.04 LTS.
+  Isabelle2021 this should be Ubuntu 20.04 LTS.
 
   Option \<^verbatim>\<open>-p\<close> includes additional Ubuntu packages, using the terminology
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
@@ -98,45 +98,49 @@ text \<open>
   Produce a Dockerfile (without image) from a remote Isabelle distribution:
   @{verbatim [display]
 \<open>  isabelle build_docker -E -n -o Dockerfile
-    https://isabelle.in.tum.de/website-Isabelle2020/dist/Isabelle2020_linux.tar.gz\<close>}
+    https://isabelle.in.tum.de/website-Isabelle2021/dist/Isabelle2021_linux.tar.gz\<close>}
 
   Build a standard Isabelle Docker image from a local Isabelle distribution,
   with \<^verbatim>\<open>bin/isabelle\<close> as executable entry point:
 
   @{verbatim [display]
-\<open>  isabelle build_docker -E -t test/isabelle:Isabelle2020 Isabelle2020_linux.tar.gz\<close>}
+\<open>  isabelle build_docker -E -t test/isabelle:Isabelle2021 Isabelle2021_linux.tar.gz\<close>}
 
   Invoke the raw Isabelle/ML process within that image:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2020 process -e "Session.welcome ()"\<close>}
+\<open>  docker run test/isabelle:Isabelle2021 process -e "Session.welcome ()"\<close>}
 
   Invoke a Linux command-line tool within the contained Isabelle system
   environment:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2020 env uname -a\<close>}
+\<open>  docker run test/isabelle:Isabelle2021 env uname -a\<close>}
   The latter should always report a Linux operating system, even when running
   on Windows or macOS.
 \<close>
 
 
-section \<open>Resolving Isabelle components \label{sec:tool-components}\<close>
+section \<open>Managing Isabelle components \label{sec:tool-components}\<close>
 
 text \<open>
-  The @{tool_def components} tool resolves Isabelle components:
+  The @{tool_def components} tool manages Isabelle components:
   @{verbatim [display]
 \<open>Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 
   Options are:
     -I           init user settings
-    -R URL       component repository
-                 (default $ISABELLE_COMPONENT_REPOSITORY)
+    -R URL       component repository (default $ISABELLE_COMPONENT_REPOSITORY)
     -a           resolve all missing components
     -l           list status
+    -u DIR       update $ISABELLE_HOME_USER/components: add directory
+    -x DIR       update $ISABELLE_HOME_USER/components: remove directory
 
-  Resolve Isabelle components via download and installation.
-  COMPONENTS are identified via base name.
+  Resolve Isabelle components via download and installation: given COMPONENTS
+  are identified via base name. Further operations manage etc/settings and
+  etc/components in $ISABELLE_HOME_USER.
 
-  ISABELLE_COMPONENT_REPOSITORY="https://isabelle.in.tum.de/components"\<close>}
+  ISABELLE_COMPONENT_REPOSITORY="..."
+  ISABELLE_HOME_USER="..."
+\<close>}
 
   Components are initialized as described in \secref{sec:components} in a
   permissive manner, which can mark components as ``missing''. This state is
@@ -153,13 +157,20 @@ text \<open>
   installation takes place in the location that was specified in the attempt
   to initialize the component before.
 
+  \<^medskip>
   Option \<^verbatim>\<open>-l\<close> lists the current state of available and missing components
   with their location (full name) within the file-system.
 
+  \<^medskip>
   Option \<^verbatim>\<open>-I\<close> initializes the user settings file to subscribe to the standard
   components specified in the Isabelle repository clone --- this does not make
   any sense for regular Isabelle releases. If the file already exists, it
   needs to be edited manually according to the printed explanation.
+
+  \<^medskip>
+  Options \<^verbatim>\<open>-u\<close> and \<^verbatim>\<open>-x\<close> operate on user components listed in
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>: this avoid manual editing if
+  Isabelle configuration files.
 \<close>
 
 
@@ -357,7 +368,7 @@ text \<open>
 
   \<^medskip>
   The default is to output the full version string of the Isabelle
-  distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2020: April 2020\<close>.
+  distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2021: February 2021\<close>.
 
   The \<^verbatim>\<open>-i\<close> option produces a short identification derived from the Mercurial
   id of the @{setting ISABELLE_HOME} directory.

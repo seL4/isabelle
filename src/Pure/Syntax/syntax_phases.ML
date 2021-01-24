@@ -158,6 +158,10 @@ fun parsetree_to_ast ctxt trf parsetree =
     fun report pos = Position.store_reports reports [pos];
     val append_reports = Position.append_reports reports;
 
+    fun report_pos tok =
+      if Lexicon.suppress_markup tok then Position.none
+      else Lexicon.pos_of_token tok;
+
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
@@ -169,7 +173,7 @@ fun parsetree_to_ast ctxt trf parsetree =
       else [];
 
     fun ast_of_position tok =
-      Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok));
+      Ast.Variable (Term_Position.encode (report_pos tok));
 
     fun ast_of_dummy a tok =
       Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
@@ -179,13 +183,13 @@ fun parsetree_to_ast ctxt trf parsetree =
 
     and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
-            val pos = Lexicon.pos_of_token tok;
+            val pos = report_pos tok;
             val (c, rs) = Proof_Context.check_class ctxt (Lexicon.str_of_token tok, pos);
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
-            val pos = Lexicon.pos_of_token tok;
+            val pos = report_pos tok;
             val (Type (c, _), rs) =
               Proof_Context.check_type_name {proper = true, strict = false} ctxt
                 (Lexicon.str_of_token tok, pos);
@@ -204,7 +208,7 @@ fun parsetree_to_ast ctxt trf parsetree =
             val _ = pts |> List.app
               (fn Parser.Node _ => () | Parser.Tip tok =>
                 if Lexicon.valued_token tok then ()
-                else report (Lexicon.pos_of_token tok) (markup_entity ctxt) a);
+                else report (report_pos tok) (markup_entity ctxt) a);
           in [trans a (maps asts_of pts)] end
       | asts_of (Parser.Tip tok) = asts_of_token tok
 
@@ -340,7 +344,7 @@ fun parse_asts ctxt raw root (syms, pos) =
     val ast_tr = Syntax.parse_ast_translation syn;
 
     val toks = Syntax.tokenize syn raw syms;
-    val _ = Context_Position.reports ctxt (map Lexicon.report_of_token toks);
+    val _ = Context_Position.reports ctxt (maps Lexicon.reports_of_token toks);
 
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
