@@ -1574,7 +1574,8 @@ module Isabelle.Byte_Message (
     write, write_line,
     read, read_block, trim_line, read_line,
     make_message, write_message, read_message,
-    make_line_message, write_line_message, read_line_message
+    make_line_message, write_line_message, read_line_message,
+    read_yxml, write_yxml
   )
 where
 
@@ -1583,6 +1584,8 @@ import Data.Maybe
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.UTF8 as UTF8
+import qualified Isabelle.XML as XML
+import qualified Isabelle.YXML as YXML
 
 import Network.Socket (Socket)
 import qualified Network.Socket.ByteString as ByteString
@@ -1716,6 +1719,16 @@ read_line_message socket = do
       case Value.parse_nat (UTF8.toString line) of
         Nothing -> return $ Just line
         Just n -> fmap trim_line . fst <$> read_block socket n
+
+
+read_yxml :: Socket -> IO (Maybe XML.Body)
+read_yxml socket = do
+  res <- read_line_message socket
+  return (YXML.parse_body . UTF8.toString <$> res)
+
+write_yxml :: Socket -> XML.Body -> IO ()
+write_yxml socket body =
+  write_line_message socket (UTF8.fromString (YXML.string_of_body body))
 \<close>
 
 generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
@@ -1899,7 +1912,7 @@ TCP server on localhost.
 
 module Isabelle.Server (
   localhost_name, localhost, publish_text, publish_stdout,
-  server
+  server, connection
 )
 where
 
@@ -1914,6 +1927,7 @@ import Isabelle.Library
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
+import qualified Data.ByteString.UTF8 as UTF8
 
 
 {- server address -}
@@ -1964,6 +1978,32 @@ server publish handle =
             Left exn -> IO.hPutStrLn IO.stderr $ Exception.displayException exn
             Right () -> return ())
       return ()
+
+
+{- client connection -}
+
+connection :: String -> String -> (Socket -> IO a) -> IO a
+connection port password client =
+  Socket.withSocketsDo $ do
+    addr <- resolve
+    Exception.bracket (open addr) Socket.close body
+  where
+    resolve = do
+      let hints =
+            Socket.defaultHints {
+              Socket.addrFlags = [Socket.AI_NUMERICHOST, Socket.AI_NUMERICSERV],
+              Socket.addrSocketType = Socket.Stream }
+      head <$> Socket.getAddrInfo (Just hints) (Just "127.0.0.1") (Just port)
+
+    open addr = do
+      socket <- Socket.socket (Socket.addrFamily addr) (Socket.addrSocketType addr)
+                  (Socket.addrProtocol addr)
+      Socket.connect socket $ Socket.addrAddress addr
+      return socket
+
+    body socket = do
+      Byte_Message.write_line socket (UTF8.fromString password)
+      client socket
 \<close>
 
 export_generated_files _
