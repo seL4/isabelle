@@ -4,13 +4,15 @@ Important notes on Mercurial repository access for Isabelle
 Quick start in 30min
 --------------------
 
-1a. Linux and Mac OS X: ensure that Mercurial is installed
-    (see also https://www.mercurial-scm.org)
+1. Platform prerequisites: ensure that "curl" and "hg" (Mercurial) are installed
 
-1b. Windows: ensure that Cygwin64 with curl and Mercurial is installed
-    (see also https://www.cygwin.com)
+  (a) Linux: e.g. "sudo apt install curl mercurial
 
-2. Clone repository (bash shell commands):
+  (b) macOS: e.g. "brew install mercurial" or download from https://www.mercurial-scm.org
+
+  (c) Windows: use Cygwin64 with packages "curl" and "mercurial" (via Cygwin setup-x86_64.exe)
+
+2. Initial repository clone (bash shell commands):
 
     hg clone https://isabelle.in.tum.de/repos/isabelle
 
@@ -24,17 +26,19 @@ Quick start in 30min
 
     ./bin/isabelle build -b HOL  #optional: build session image manually
 
-3. Update repository (bash shell commands):
+3. Update repository to particular version (bash shell commands):
 
     cd isabelle
 
-    hg pull -u
+    hg pull https://isabelle.in.tum.de/repos/isabelle
+
+    hg update -r VERSION   #for VERSION e.g. "tip", "Isabelle2021", "9e967acf8f0f"
 
     ./bin/isabelle components -a
 
     ./bin/isabelle jedit -l HOL
 
-4. Access documentation (bash shell commands):
+4. Build documentation (bash shell commands):
 
     ./bin/isabelle build_doc -a
 
