@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+cd "$THIS"
+
+source "../../lib/scripts/isabelle-platform"
+
+PLATFORM="${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}"
+mkdir -p "$PLATFORM"
+
+EXE="$PLATFORM/Isabelle"
+gcc -Wall Isabelle.c -o "$EXE"
+echo "$EXE"
