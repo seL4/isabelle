@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
   dname = dirname(dcmd);
 
   cmd_line = malloc(sizeof(char *) * (argc + 1));
-  if (cmd_line == NULL) fail("Failed to allocate command line");
+  if (cmd_line == NULL) fail("Failed to allocate memory");
 
   cmd = cmd_line[0];
   cmd = malloc(strlen(dname) + strlen("/lib/scripts/Isabelle_app") + 1);
-  if (cmd == NULL) fail("Failed to allocate command name");
+  if (cmd == NULL) fail("Failed to allocate memory");
   sprintf(cmd, "%s/lib/scripts/Isabelle_app", dname);
 
   for (i = 1; i < argc; i++) cmd_line[i] = argv[i];
