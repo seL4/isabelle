@@ -33,6 +33,13 @@ object Platform
       unapply(name) getOrElse error("Bad platform family: " + quote(name))
   }
 
+  def standard_platform(platform: Family.Value): String =
+    platform match {
+      case Platform.Family.linux => "x86_64-linux"
+      case Platform.Family.macos => "x86_64-darwin"
+      case Platform.Family.windows => "x86_64-cygwin"
+    }
+
 
   /* platform identifiers */
 

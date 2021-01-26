@@ -255,8 +255,9 @@ directory individually.
   }
 
   def make_isabelle_app(
-    path: Path,
-    isabelle_home_prefix: String,
+    platform: Platform.Family.Value,
+    isabelle_target: Path,
+    isabelle_name: String,
     jdk_component: String,
     classpath: List[Path],
     dock_icon: Boolean = false)
@@ -269,7 +270,7 @@ directory individually.
 
 # minimal Isabelle environment
 
-ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/""" + isabelle_home_prefix + """"; pwd)"
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 #paranoia settings -- avoid intrusion of alien options
@@ -296,8 +297,15 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
 """ else "") + """isabelle.Main "$@"
 """
-    File.write(path, script)
-    File.set_executable(path, true)
+    val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
+    File.write(script_path, script)
+    File.set_executable(script_path, true)
+
+    val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
+    File.move(
+      component_dir + Path.explode(Platform.standard_platform(platform)) + Path.explode("Isabelle"),
+      isabelle_target + Path.explode(isabelle_name))
+    Isabelle_System.rm_tree(component_dir)
   }
 
 
@@ -626,14 +634,7 @@ rm -rf "${DIST_NAME}-old"
             make_isabelle_options(
               isabelle_target + Path.explode("Isabelle.options"), java_options)
 
-            make_isabelle_app(
-              isabelle_target + Path.explode("lib/scripts/Isabelle_app"),
-              "../..", jdk_component, classpath)
-
-            val linux_app = isabelle_target + Path.explode("contrib/linux_app")
-            File.move(linux_app + Path.explode("Isabelle"),
-              isabelle_target + Path.explode(isabelle_name))
-            Isabelle_System.rm_tree(linux_app)
+            make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component, classpath)
 
             val archive_name = isabelle_name + "_linux.tar.gz"
             progress.echo("Packaging " + archive_name + " ...")
@@ -648,44 +649,35 @@ rm -rf "${DIST_NAME}-old"
                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d"))
 
 
-            // MacOS application bundle
+            // macOS application bundle
 
-            val isabelle_app = Path.explode(isabelle_name + ".app")
-            val app_dir = tmp_dir + isabelle_app
-            val app_contents = app_dir + Path.explode("Contents")
-            val app_resources =
-              Isabelle_System.make_directory(app_contents + Path.explode("Resources"))
-
-            File.move(tmp_dir + Path.explode(isabelle_name), app_resources)
-
-            val isabelle_home = Path.explode("Contents/Resources/" + isabelle_name)
-            val isabelle_options = Path.explode("Isabelle.options")
-
-            File.link(
-              isabelle_home, app_dir + Path.explode("Isabelle"), force = true)
-            File.link(
-              isabelle_home + isabelle_options, app_dir + isabelle_options, force = true)
+            val app_contents = isabelle_target + Path.explode("Contents")
 
             for (icon <- List("lib/logo/isabelle.icns", "lib/logo/theory.icns")) {
-              File.copy(app_dir + isabelle_home + Path.explode(icon), app_resources)
+              File.copy(isabelle_target + Path.explode(icon),
+                Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
             }
-
-            make_isabelle_app(
-              app_dir + Path.explode(isabelle_name),
-              isabelle_home.implode, jdk_component, classpath, dock_icon = true)
-
-            make_isabelle_options(
-              app_dir + isabelle_options,
-              java_options ::: List("-Disabelle.app=true"))
 
             make_isabelle_plist(
               app_contents + Path.explode("Info.plist"), isabelle_name, release.ident)
+
+            make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component,
+              classpath, dock_icon = true)
+
+            val isabelle_options = Path.explode("Isabelle.options")
+            make_isabelle_options(
+              isabelle_target + isabelle_options,
+              java_options ::: List("-Disabelle.app=true"))
 
 
             // application archive
 
             val archive_name = isabelle_name + "_macos.tar.gz"
             progress.echo("Packaging " + archive_name + " ...")
+
+            val isabelle_app = Path.explode(isabelle_name + ".app")
+            File.move(tmp_dir + Path.explode(isabelle_name), tmp_dir + isabelle_app)
+
             execute_tar(tmp_dir,
               "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
               File.bash_path(isabelle_app))
