@@ -9,6 +9,12 @@ New in Isabelle2021 (February 2021)
 
 *** General ***
 
+* On macOS, the IsabelleXYZ.app directory layout now follows the other
+platforms, without indirection via Contents/Resources/. INCOMPATIBILITY,
+use e.g. IsabelleXYZ.app/bin/isabelle instead of former
+IsabelleXYZ.app/Isabelle/bin/isabelle or
+IsabelleXYZ.app/Isabelle/Contents/Resources/IsabelleXYZ/bin/isabelle.
+
 * HTML presentation uses rich markup produced by Isabelle/PIDE,
 resulting in more colors and links.
 
