@@ -199,12 +199,12 @@ fun get_terminal s =
 
 (* markup *)
 
-val suppress_literal_markup = Symbol.has_block_ctrl o Symbol.explode;
+val suppress_literal_markup = Symbol.has_control_block o Symbol.explode;
 fun suppress_markup tok = is_literal tok andalso suppress_literal_markup (str_of_token tok);
 
 fun literal_markup s =
   let val syms = Symbol.explode s in
-    if Symbol.has_block_ctrl syms then []
+    if Symbol.has_control_block syms then []
     else if Symbol.is_ascii_identifier s orelse exists Symbol.is_letter syms
     then [Markup.literal]
     else [Markup.delimiter]
