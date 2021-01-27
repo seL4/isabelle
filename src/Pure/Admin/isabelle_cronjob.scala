@@ -104,7 +104,7 @@ object Isabelle_Cronjob
                 isabelle_identifier = "cronjob_build_history",
                 self_update = true,
                 rev = "build_history_base",
-                options = "-f",
+                options = "-C '$USER_HOME/.isabelle/contrib' -f",
                 args = "HOL")
 
             for ((log_name, bytes) <- results) {
@@ -415,6 +415,7 @@ object Isabelle_Cronjob
                 rev = rev,
                 afp_rev = afp_rev,
                 options =
+                  " -C '$USER_HOME/.isabelle/contrib'" +
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                   " -f -h " + Bash.string(r.host) + " " +
                   (r.java_heap match {
