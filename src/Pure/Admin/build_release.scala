@@ -288,7 +288,7 @@ source "$COMPONENT/etc/settings"
 
 declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
 
-"$ISABELLE_HOME/lib/scripts/java-gui-setup"
+"$ISABELLE_HOME/bin/isabelle" env "$ISABELLE_HOME/lib/scripts/java-gui-setup"
 
 exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
