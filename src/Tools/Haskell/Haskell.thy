@@ -377,8 +377,11 @@ properties :: Properties.T -> T -> T
 properties more_props (elem, props) =
   (elem, fold_rev Properties.put more_props props)
 
-markup_elem name = (name, (name, []) :: T)
-markup_string name prop = (name, \s -> (name, [(prop, s)]) :: T)
+markup_elem :: String -> T
+markup_elem name = (name, [])
+
+markup_string :: String -> String -> String -> T
+markup_string name prop = \s -> (name, [(prop, s)])
 
 
 {- misc properties -}
@@ -401,11 +404,14 @@ kindN = \<open>Markup.kindN\<close>
 
 {- formal entities -}
 
-bindingN :: String; binding :: T
-(bindingN, binding) = markup_elem \<open>Markup.bindingN\<close>
+bindingN :: String
+bindingN = \<open>Markup.bindingN\<close>
+binding :: T
+binding = markup_elem bindingN
 
-entityN :: String; entity :: String -> String -> T
+entityN :: String
 entityN = \<open>Markup.entityN\<close>
+entity :: String -> String -> T
 entity kind name =
   (entityN,
     (if null name then [] else [(nameN, name)]) ++ (if null kind then [] else [(kindN, kind)]))
@@ -419,11 +425,15 @@ refN = \<open>Markup.refN\<close>
 
 {- completion -}
 
-completionN :: String; completion :: T
-(completionN, completion) = markup_elem \<open>Markup.completionN\<close>
+completionN :: String
+completionN = \<open>Markup.completionN\<close>
+completion :: T
+completion = markup_elem completionN
 
-no_completionN :: String; no_completion :: T
-(no_completionN, no_completion) = markup_elem \<open>Markup.no_completionN\<close>
+no_completionN :: String
+no_completionN = \<open>Markup.no_completionN\<close>
+no_completion :: T
+no_completion = markup_elem no_completionN
 
 
 {- position -}
@@ -440,8 +450,10 @@ fileN, idN :: String
 fileN = \<open>Markup.fileN\<close>
 idN = \<open>Markup.idN\<close>
 
-positionN :: String; position :: T
-(positionN, position) = markup_elem \<open>Markup.positionN\<close>
+positionN :: String
+positionN = \<open>Markup.positionN\<close>
+position :: T
+position = markup_elem positionN
 
 
 {- expression -}
@@ -455,29 +467,37 @@ expression kind = (expressionN, if kind == "" then [] else [(kindN, kind)])
 
 {- citation -}
 
-citationN :: String; citation :: String -> T
-(citationN, citation) = markup_string \<open>Markup.citationN\<close> nameN
+citationN :: String
+citationN = \<open>Markup.citationN\<close>
+citation :: String -> T
+citation = markup_string nameN citationN
 
 
 {- external resources -}
 
-pathN :: String; path :: String -> T
-(pathN, path) = markup_string \<open>Markup.pathN\<close> nameN
+pathN :: String
+pathN = \<open>Markup.pathN\<close>
+path :: String -> T
+path = markup_string pathN nameN
 
-urlN :: String; url :: String -> T
-(urlN, url) = markup_string \<open>Markup.urlN\<close> nameN
+urlN :: String
+urlN = \<open>Markup.urlN\<close>
+url :: String -> T
+url = markup_string urlN nameN
 
-docN :: String; doc :: String -> T
-(docN, doc) = markup_string \<open>Markup.docN\<close> nameN
+docN :: String
+docN = \<open>Markup.docN\<close>
+doc :: String -> T
+doc = markup_string docN nameN
 
 
 {- pretty printing -}
 
 markupN, consistentN, unbreakableN, indentN :: String
-markupN = \<open>Markup.markupN\<close>;
-consistentN = \<open>Markup.consistentN\<close>;
-unbreakableN = \<open>Markup.unbreakableN\<close>;
-indentN = \<open>Markup.indentN\<close>;
+markupN = \<open>Markup.markupN\<close>
+consistentN = \<open>Markup.consistentN\<close>
+unbreakableN = \<open>Markup.unbreakableN\<close>
+indentN = \<open>Markup.indentN\<close>
 
 widthN :: String
 widthN = \<open>Markup.widthN\<close>
@@ -498,183 +518,285 @@ break w i =
     (if w /= 0 then [(widthN, Value.print_int w)] else []) ++
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
-fbreakN :: String; fbreak :: T
-(fbreakN, fbreak) = markup_elem \<open>Markup.fbreakN\<close>
+fbreakN :: String
+fbreakN = \<open>Markup.fbreakN\<close>
+fbreak :: T
+fbreak = markup_elem fbreakN
 
-itemN :: String; item :: T
-(itemN, item) = markup_elem \<open>Markup.itemN\<close>
+itemN :: String
+itemN = \<open>Markup.itemN\<close>
+item :: T
+item = markup_elem itemN
 
 
 {- text properties -}
 
-wordsN :: String; words :: T
-(wordsN, words) = markup_elem \<open>Markup.wordsN\<close>
+wordsN :: String
+wordsN = \<open>Markup.wordsN\<close>
+words :: T
+words = markup_elem wordsN
 
 
 {- inner syntax -}
 
-tfreeN :: String; tfree :: T
-(tfreeN, tfree) = markup_elem \<open>Markup.tfreeN\<close>
+tfreeN :: String
+tfreeN = \<open>Markup.tfreeN\<close>
+tfree :: T
+tfree = markup_elem tfreeN
 
-tvarN :: String; tvar :: T
-(tvarN, tvar) = markup_elem \<open>Markup.tvarN\<close>
+tvarN :: String
+tvarN = \<open>Markup.tvarN\<close>
+tvar :: T
+tvar = markup_elem tvarN
 
-freeN :: String; free :: T
-(freeN, free) = markup_elem \<open>Markup.freeN\<close>
+freeN :: String
+freeN = \<open>Markup.freeN\<close>
+free :: T
+free = markup_elem freeN
 
-skolemN :: String; skolem :: T
-(skolemN, skolem) = markup_elem \<open>Markup.skolemN\<close>
+skolemN :: String
+skolemN = \<open>Markup.skolemN\<close>
+skolem :: T
+skolem = markup_elem skolemN
 
-boundN :: String; bound :: T
-(boundN, bound) = markup_elem \<open>Markup.boundN\<close>
+boundN :: String
+boundN = \<open>Markup.boundN\<close>
+bound :: T
+bound = markup_elem boundN
 
-varN :: String; var :: T
-(varN, var) = markup_elem \<open>Markup.varN\<close>
+varN :: String
+varN = \<open>Markup.varN\<close>
+var :: T
+var = markup_elem varN
 
-numeralN :: String; numeral :: T
-(numeralN, numeral) = markup_elem \<open>Markup.numeralN\<close>
+numeralN :: String
+numeralN = \<open>Markup.numeralN\<close>
+numeral :: T
+numeral = markup_elem numeralN
 
-literalN :: String; literal :: T
-(literalN, literal) = markup_elem \<open>Markup.literalN\<close>
+literalN :: String
+literalN = \<open>Markup.literalN\<close>
+literal :: T
+literal = markup_elem literalN
 
-delimiterN :: String; delimiter :: T
-(delimiterN, delimiter) = markup_elem \<open>Markup.delimiterN\<close>
+delimiterN :: String
+delimiterN = \<open>Markup.delimiterN\<close>
+delimiter :: T
+delimiter = markup_elem delimiterN
 
-inner_stringN :: String; inner_string :: T
-(inner_stringN, inner_string) = markup_elem \<open>Markup.inner_stringN\<close>
+inner_stringN :: String
+inner_stringN = \<open>Markup.inner_stringN\<close>
+inner_string :: T
+inner_string = markup_elem inner_stringN
 
-inner_cartoucheN :: String; inner_cartouche :: T
-(inner_cartoucheN, inner_cartouche) = markup_elem \<open>Markup.inner_cartoucheN\<close>
+inner_cartoucheN :: String
+inner_cartoucheN = \<open>Markup.inner_cartoucheN\<close>
+inner_cartouche :: T
+inner_cartouche = markup_elem inner_cartoucheN
 
 
-token_rangeN :: String; token_range :: T
-(token_rangeN, token_range) = markup_elem \<open>Markup.token_rangeN\<close>
+token_rangeN :: String
+token_rangeN = \<open>Markup.token_rangeN\<close>
+token_range :: T
+token_range = markup_elem token_rangeN
 
 
-sortingN :: String; sorting :: T
-(sortingN, sorting) = markup_elem \<open>Markup.sortingN\<close>
+sortingN :: String
+sortingN = \<open>Markup.sortingN\<close>
+sorting :: T
+sorting = markup_elem sortingN
 
-typingN :: String; typing :: T
-(typingN, typing) = markup_elem \<open>Markup.typingN\<close>
+typingN :: String
+typingN = \<open>Markup.typingN\<close>
+typing :: T
+typing = markup_elem typingN
 
-class_parameterN :: String; class_parameter :: T
-(class_parameterN, class_parameter) = markup_elem \<open>Markup.class_parameterN\<close>
+class_parameterN :: String
+class_parameterN = \<open>Markup.class_parameterN\<close>
+class_parameter :: T
+class_parameter = markup_elem class_parameterN
 
 
 {- antiquotations -}
 
-antiquotedN :: String; antiquoted :: T
-(antiquotedN, antiquoted) = markup_elem \<open>Markup.antiquotedN\<close>
+antiquotedN :: String
+antiquotedN = \<open>Markup.antiquotedN\<close>
+antiquoted :: T
+antiquoted = markup_elem antiquotedN
 
-antiquoteN :: String; antiquote :: T
-(antiquoteN, antiquote) = markup_elem \<open>Markup.antiquoteN\<close>
+antiquoteN :: String
+antiquoteN = \<open>Markup.antiquoteN\<close>
+antiquote :: T
+antiquote = markup_elem antiquoteN
 
 
 {- text structure -}
 
-paragraphN :: String; paragraph :: T
-(paragraphN, paragraph) = markup_elem \<open>Markup.paragraphN\<close>
+paragraphN :: String
+paragraphN = \<open>Markup.paragraphN\<close>
+paragraph :: T
+paragraph = markup_elem paragraphN
 
-text_foldN :: String; text_fold :: T
-(text_foldN, text_fold) = markup_elem \<open>Markup.text_foldN\<close>
+text_foldN :: String
+text_foldN = \<open>Markup.text_foldN\<close>
+text_fold :: T
+text_fold = markup_elem text_foldN
 
 
 {- outer syntax -}
 
-keyword1N :: String; keyword1 :: T
-(keyword1N, keyword1) = markup_elem \<open>Markup.keyword1N\<close>
+keyword1N :: String
+keyword1N = \<open>Markup.keyword1N\<close>
+keyword1 :: T
+keyword1 = markup_elem keyword1N
 
-keyword2N :: String; keyword2 :: T
-(keyword2N, keyword2) = markup_elem \<open>Markup.keyword2N\<close>
+keyword2N :: String
+keyword2N = \<open>Markup.keyword2N\<close>
+keyword2 :: T
+keyword2 = markup_elem keyword2N
 
-keyword3N :: String; keyword3 :: T
-(keyword3N, keyword3) = markup_elem \<open>Markup.keyword3N\<close>
+keyword3N :: String
+keyword3N = \<open>Markup.keyword3N\<close>
+keyword3 :: T
+keyword3 = markup_elem keyword3N
 
-quasi_keywordN :: String; quasi_keyword :: T
-(quasi_keywordN, quasi_keyword) = markup_elem \<open>Markup.quasi_keywordN\<close>
+quasi_keywordN :: String
+quasi_keywordN = \<open>Markup.quasi_keywordN\<close>
+quasi_keyword :: T
+quasi_keyword = markup_elem quasi_keywordN
 
-improperN :: String; improper :: T
-(improperN, improper) = markup_elem \<open>Markup.improperN\<close>
+improperN :: String
+improperN = \<open>Markup.improperN\<close>
+improper :: T
+improper = markup_elem improperN
 
-operatorN :: String; operator :: T
-(operatorN, operator) = markup_elem \<open>Markup.operatorN\<close>
+operatorN :: String
+operatorN = \<open>Markup.operatorN\<close>
+operator :: T
+operator = markup_elem operatorN
 
-stringN :: String; string :: T
-(stringN, string) = markup_elem \<open>Markup.stringN\<close>
+stringN :: String
+stringN = \<open>Markup.stringN\<close>
+string :: T
+string = markup_elem stringN
 
-alt_stringN :: String; alt_string :: T
-(alt_stringN, alt_string) = markup_elem \<open>Markup.alt_stringN\<close>
+alt_stringN :: String
+alt_stringN = \<open>Markup.alt_stringN\<close>
+alt_string :: T
+alt_string = markup_elem alt_stringN
 
-verbatimN :: String; verbatim :: T
-(verbatimN, verbatim) = markup_elem \<open>Markup.verbatimN\<close>
+verbatimN :: String
+verbatimN = \<open>Markup.verbatimN\<close>
+verbatim :: T
+verbatim = markup_elem verbatimN
 
-cartoucheN :: String; cartouche :: T
-(cartoucheN, cartouche) = markup_elem \<open>Markup.cartoucheN\<close>
+cartoucheN :: String
+cartoucheN = \<open>Markup.cartoucheN\<close>
+cartouche :: T
+cartouche = markup_elem cartoucheN
 
-commentN :: String; comment :: T
-(commentN, comment) = markup_elem \<open>Markup.commentN\<close>
+commentN :: String
+commentN = \<open>Markup.commentN\<close>
+comment :: T
+comment = markup_elem commentN
 
 
 {- comments -}
 
-comment1N :: String; comment1 :: T
-(comment1N, comment1) = markup_elem \<open>Markup.comment1N\<close>
+comment1N :: String
+comment1N = \<open>Markup.comment1N\<close>
+comment1 :: T
+comment1 = markup_elem comment1N
 
-comment2N :: String; comment2 :: T
-(comment2N, comment2) = markup_elem \<open>Markup.comment2N\<close>
+comment2N :: String
+comment2N = \<open>Markup.comment2N\<close>
+comment2 :: T
+comment2 = markup_elem comment2N
 
-comment3N :: String; comment3 :: T
-(comment3N, comment3) = markup_elem \<open>Markup.comment3N\<close>
+comment3N :: String
+comment3N = \<open>Markup.comment3N\<close>
+comment3 :: T
+comment3 = markup_elem comment3N
 
 
 {- command status -}
 
 forkedN, joinedN, runningN, finishedN, failedN, canceledN,
   initializedN, finalizedN, consolidatedN :: String
+forkedN = \<open>Markup.forkedN\<close>
+joinedN = \<open>Markup.joinedN\<close>
+runningN = \<open>Markup.runningN\<close>
+finishedN = \<open>Markup.finishedN\<close>
+failedN = \<open>Markup.failedN\<close>
+canceledN = \<open>Markup.canceledN\<close>
+initializedN = \<open>Markup.initializedN\<close>
+finalizedN = \<open>Markup.finalizedN\<close>
+consolidatedN = \<open>Markup.consolidatedN\<close>
+
 forked, joined, running, finished, failed, canceled,
   initialized, finalized, consolidated :: T
-(forkedN, forked) = markup_elem \<open>Markup.forkedN\<close>
-(joinedN, joined) = markup_elem \<open>Markup.joinedN\<close>
-(runningN, running) = markup_elem \<open>Markup.runningN\<close>
-(finishedN, finished) = markup_elem \<open>Markup.finishedN\<close>
-(failedN, failed) = markup_elem \<open>Markup.failedN\<close>
-(canceledN, canceled) = markup_elem \<open>Markup.canceledN\<close>
-(initializedN, initialized) = markup_elem \<open>Markup.initializedN\<close>
-(finalizedN, finalized) = markup_elem \<open>Markup.finalizedN\<close>
-(consolidatedN, consolidated) = markup_elem \<open>Markup.consolidatedN\<close>
+forked = markup_elem forkedN
+joined = markup_elem joinedN
+running = markup_elem runningN
+finished = markup_elem finishedN
+failed = markup_elem failedN
+canceled = markup_elem canceledN
+initialized = markup_elem initializedN
+finalized = markup_elem finalizedN
+consolidated = markup_elem consolidatedN
 
 
 {- messages -}
 
-writelnN :: String; writeln :: T
-(writelnN, writeln) = markup_elem \<open>Markup.writelnN\<close>
+writelnN :: String
+writelnN = \<open>Markup.writelnN\<close>
+writeln :: T
+writeln = markup_elem writelnN
 
-stateN :: String; state :: T
-(stateN, state) = markup_elem \<open>Markup.stateN\<close>
+stateN :: String
+stateN = \<open>Markup.stateN\<close>
+state :: T
+state = markup_elem stateN
 
-informationN :: String; information :: T
-(informationN, information) = markup_elem \<open>Markup.informationN\<close>
+informationN :: String
+informationN = \<open>Markup.informationN\<close>
+information :: T
+information = markup_elem informationN
 
-tracingN :: String; tracing :: T
-(tracingN, tracing) = markup_elem \<open>Markup.tracingN\<close>
+tracingN :: String
+tracingN = \<open>Markup.tracingN\<close>
+tracing :: T
+tracing = markup_elem tracingN
 
-warningN :: String; warning :: T
-(warningN, warning) = markup_elem \<open>Markup.warningN\<close>
+warningN :: String
+warningN = \<open>Markup.warningN\<close>
+warning :: T
+warning = markup_elem warningN
 
-legacyN :: String; legacy :: T
-(legacyN, legacy) = markup_elem \<open>Markup.legacyN\<close>
+legacyN :: String
+legacyN = \<open>Markup.legacyN\<close>
+legacy :: T
+legacy = markup_elem legacyN
 
-errorN :: String; error :: T
-(errorN, error) = markup_elem \<open>Markup.errorN\<close>
+errorN :: String
+errorN = \<open>Markup.errorN\<close>
+error :: T
+error = markup_elem errorN
 
-reportN :: String; report :: T
-(reportN, report) = markup_elem \<open>Markup.reportN\<close>
+reportN :: String
+reportN = \<open>Markup.reportN\<close>
+report :: T
+report = markup_elem reportN
 
-no_reportN :: String; no_report :: T
-(no_reportN, no_report) = markup_elem \<open>Markup.no_reportN\<close>
+no_reportN :: String
+no_reportN = \<open>Markup.no_reportN\<close>
+no_report :: T
+no_report = markup_elem no_reportN
 
-intensifyN :: String; intensify :: T
-(intensifyN, intensify) = markup_elem \<open>Markup.intensifyN\<close>
+intensifyN :: String
+intensifyN = \<open>Markup.intensifyN\<close>
+intensify :: T
+intensify = markup_elem intensifyN
 
 
 {- output -}
