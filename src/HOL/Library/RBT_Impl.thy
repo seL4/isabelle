@@ -1869,35 +1869,506 @@ by(auto simp add: map_filter_def filter_map o_def)
 lemma set_map_filter: "set (List.map_filter P xs) = the ` (P ` set xs - {None})"
 by(auto simp add: List.map_filter_def intro: rev_image_eqI)
 
+(* Split and Join *)
+
+definition is_rbt_empty :: "('a, 'b) rbt \<Rightarrow> bool" where
+  "is_rbt_empty t \<longleftrightarrow> (case t of RBT_Impl.Empty \<Rightarrow> True | _ \<Rightarrow> False)"
+
+lemma is_rbt_empty_prop[simp]: "is_rbt_empty t \<longleftrightarrow> t = RBT_Impl.Empty"
+  by (auto simp: is_rbt_empty_def split: RBT_Impl.rbt.splits)
+
+definition small_rbt :: "('a, 'b) rbt \<Rightarrow> bool" where
+  "small_rbt t \<longleftrightarrow> bheight t < 4"
+
+definition flip_rbt :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool" where
+  "flip_rbt t1 t2 \<longleftrightarrow> bheight t2 < bheight t1"
+
+abbreviation MR where "MR l a b r \<equiv> Branch RBT_Impl.R l a b r"
+abbreviation MB where "MB l a b r \<equiv> Branch RBT_Impl.B l a b r"
+
+fun rbt_baliL :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_baliL (MR (MR t1 a b t2) a' b' t3) a'' b'' t4 = MR (MB t1 a b t2) a' b' (MB t3 a'' b'' t4)"
+| "rbt_baliL (MR t1 a b (MR t2 a' b' t3)) a'' b'' t4 = MR (MB t1 a b t2) a' b' (MB t3 a'' b'' t4)"
+| "rbt_baliL t1 a b t2 = MB t1 a b t2"
+
+fun rbt_baliR :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_baliR t1 a b (MR t2 a' b' (MR t3 a'' b'' t4)) = MR (MB t1 a b t2) a' b' (MB t3 a'' b'' t4)"
+| "rbt_baliR t1 a b (MR (MR t2 a' b' t3) a'' b'' t4) = MR (MB t1 a b t2) a' b' (MB t3 a'' b'' t4)"
+| "rbt_baliR t1 a b t2 = MB t1 a b t2"
+
+fun rbt_baldL :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_baldL (MR t1 a b t2) a' b' t3 = MR (MB t1 a b t2) a' b' t3"
+| "rbt_baldL t1 a b (MB t2 a' b' t3) = rbt_baliR t1 a b (MR t2 a' b' t3)"
+| "rbt_baldL t1 a b (MR (MB t2 a' b' t3) a'' b'' t4) =
+  MR (MB t1 a b t2) a' b' (rbt_baliR t3 a'' b'' (paint RBT_Impl.R t4))"
+| "rbt_baldL t1 a b t2 = MR t1 a b t2"
+
+fun rbt_baldR :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_baldR t1 a b (MR t2 a' b' t3) = MR t1 a b (MB t2 a' b' t3)"
+| "rbt_baldR (MB t1 a b t2) a' b' t3 = rbt_baliL (MR t1 a b t2) a' b' t3"
+| "rbt_baldR (MR t1 a b (MB t2 a' b' t3)) a'' b'' t4 =
+  MR (rbt_baliL (paint RBT_Impl.R t1) a b t2) a' b' (MB t3 a'' b'' t4)"
+| "rbt_baldR t1 a b t2 = MR t1 a b t2"
+
+fun rbt_app :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_app RBT_Impl.Empty t = t"
+| "rbt_app t RBT_Impl.Empty = t"
+| "rbt_app (MR t1 a b t2) (MR t3 a'' b'' t4) = (case rbt_app t2 t3 of
+    MR u2 a' b' u3 \<Rightarrow> (MR (MR t1 a b u2) a' b' (MR u3 a'' b'' t4))
+  | t23 \<Rightarrow> MR t1 a b (MR t23 a'' b'' t4))"
+| "rbt_app (MB t1 a b t2) (MB t3 a'' b'' t4) = (case rbt_app t2 t3 of
+    MR u2 a' b' u3 \<Rightarrow> MR (MB t1 a b u2) a' b' (MB u3 a'' b'' t4)
+  | t23 \<Rightarrow> rbt_baldL t1 a b (MB t23 a'' b'' t4))"
+| "rbt_app t1 (MR t2 a b t3) = MR (rbt_app t1 t2) a b t3"
+| "rbt_app (MR t1 a b t2) t3 = MR t1 a b (rbt_app t2 t3)"
+
+fun rbt_joinL :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_joinL l a b r = (if bheight l \<ge> bheight r then MR l a b r
+    else case r of MB l' a' b' r' \<Rightarrow> rbt_baliL (rbt_joinL l a b l') a' b' r'
+    | MR l' a' b' r' \<Rightarrow> MR (rbt_joinL l a b l') a' b' r')"
+
+declare rbt_joinL.simps[simp del]
+
+fun rbt_joinR :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_joinR l a b r = (if bheight l \<le> bheight r then MR l a b r
+    else case l of MB l' a' b' r' \<Rightarrow> rbt_baliR l' a' b' (rbt_joinR r' a b r)
+    | MR l' a' b' r' \<Rightarrow> MR l' a' b' (rbt_joinR r' a b r))"
+
+declare rbt_joinR.simps[simp del]
+
+definition rbt_join :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_join l a b r =
+    (let bhl = bheight l; bhr = bheight r
+    in if bhl > bhr
+    then paint RBT_Impl.B (rbt_joinR l a b r)
+    else if bhl < bhr
+    then paint RBT_Impl.B (rbt_joinL l a b r)
+    else MB l a b r)"
+
+lemma size_paint[simp]: "size (paint c t) = size t"
+  by (cases t) auto
+
+lemma size_baliL[simp]: "size (rbt_baliL t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_baliL.induct) auto
+
+lemma size_baliR[simp]: "size (rbt_baliR t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_baliR.induct) auto
+
+lemma size_baldL[simp]: "size (rbt_baldL t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_baldL.induct) auto
+
+lemma size_baldR[simp]: "size (rbt_baldR t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_baldR.induct) auto
+
+lemma size_rbt_app[simp]: "size (rbt_app t1 t2) = size t1 + size t2"
+  by (induction t1 t2 rule: rbt_app.induct)
+     (auto split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma size_rbt_joinL[simp]: "size (rbt_joinL t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_joinL.induct)
+     (auto simp: rbt_joinL.simps split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma size_rbt_joinR[simp]: "size (rbt_joinR t1 a b t2) = Suc (size t1 + size t2)"
+  by (induction t1 a b t2 rule: rbt_joinR.induct)
+     (auto simp: rbt_joinR.simps split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma size_rbt_join[simp]: "size (rbt_join t1 a b t2) = Suc (size t1 + size t2)"
+  by (auto simp: rbt_join_def Let_def)
+
+definition "inv_12 t \<longleftrightarrow> inv1 t \<and> inv2 t"
+
+lemma rbt_Node: "inv_12 (RBT_Impl.Branch c l a b r) \<Longrightarrow> inv_12 l \<and> inv_12 r"
+  by (auto simp: inv_12_def)
+
+lemma paint2: "paint c2 (paint c1 t) = paint c2 t"
+  by (cases t) auto
+
+lemma inv1_rbt_baliL: "inv1l l \<Longrightarrow> inv1 r \<Longrightarrow> inv1 (rbt_baliL l a b r)"
+  by (induct l a b r rule: rbt_baliL.induct) auto
+
+lemma inv1_rbt_baliR: "inv1 l \<Longrightarrow> inv1l r \<Longrightarrow> inv1 (rbt_baliR l a b r)"
+  by (induct l a b r rule: rbt_baliR.induct) auto
+
+lemma rbt_bheight_rbt_baliL: "bheight l = bheight r \<Longrightarrow> bheight (rbt_baliL l a b r) = Suc (bheight l)"
+  by (induct l a b r rule: rbt_baliL.induct) auto
+
+lemma rbt_bheight_rbt_baliR: "bheight l = bheight r \<Longrightarrow> bheight (rbt_baliR l a b r) = Suc (bheight l)"
+  by (induct l a b r rule: rbt_baliR.induct) auto
+
+lemma inv2_rbt_baliL: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r \<Longrightarrow> inv2 (rbt_baliL l a b r)"
+  by (induct l a b r rule: rbt_baliL.induct) auto
+
+lemma inv2_rbt_baliR: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r \<Longrightarrow> inv2 (rbt_baliR l a b r)"
+  by (induct l a b r rule: rbt_baliR.induct) auto
+
+lemma inv_rbt_baliR: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> inv1 l \<Longrightarrow> inv1l r \<Longrightarrow> bheight l = bheight r \<Longrightarrow>
+  inv1 (rbt_baliR l a b r) \<and> inv2 (rbt_baliR l a b r) \<and> bheight (rbt_baliR l a b r) = Suc (bheight l)"
+  by (induct l a b r rule: rbt_baliR.induct) auto
+
+lemma inv_rbt_baliL: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> inv1l l \<Longrightarrow> inv1 r \<Longrightarrow> bheight l = bheight r \<Longrightarrow>
+  inv1 (rbt_baliL l a b r) \<and> inv2 (rbt_baliL l a b r) \<and> bheight (rbt_baliL l a b r) = Suc (bheight l)"
+  by (induct l a b r rule: rbt_baliL.induct) auto
+
+lemma inv2_rbt_baldL_inv1: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l + 1 = bheight r \<Longrightarrow> inv1 r \<Longrightarrow>
+  inv2 (rbt_baldL l a b r) \<and> bheight (rbt_baldL l a b r) = bheight r"
+  by (induct l a b r rule: rbt_baldL.induct) (auto simp: inv2_rbt_baliR rbt_bheight_rbt_baliR)
+
+lemma inv2_rbt_baldL_B: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l + 1 = bheight r \<Longrightarrow> color_of r = RBT_Impl.B \<Longrightarrow>
+  inv2 (rbt_baldL l a b r) \<and> bheight (rbt_baldL l a b r) = bheight r"
+  by (induct l a b r rule: rbt_baldL.induct) (auto simp add: inv2_rbt_baliR rbt_bheight_rbt_baliR)
+
+lemma inv1_rbt_baldL: "inv1l l \<Longrightarrow> inv1 r \<Longrightarrow> color_of r = RBT_Impl.B \<Longrightarrow> inv1 (rbt_baldL l a b r)"
+  by (induct l a b r rule: rbt_baldL.induct) (simp_all add: inv1_rbt_baliR)
+
+lemma inv1lI: "inv1 t \<Longrightarrow> inv1l t"
+  by (cases t) auto
+
+lemma neq_Black[simp]: "(c \<noteq> RBT_Impl.B) = (c = RBT_Impl.R)"
+  by (cases c) auto
+
+lemma inv1l_rbt_baldL: "inv1l l \<Longrightarrow> inv1 r \<Longrightarrow> inv1l (rbt_baldL l a b r)"
+  by (induct l a b r rule: rbt_baldL.induct) (auto simp: inv1_rbt_baliR paint2)
+
+lemma inv2_rbt_baldR_inv1: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r + 1 \<Longrightarrow> inv1 l \<Longrightarrow>
+  inv2 (rbt_baldR l a b r) \<and> bheight (rbt_baldR l a b r) = bheight l"
+  by (induct l a b r rule: rbt_baldR.induct) (auto simp: inv2_rbt_baliL rbt_bheight_rbt_baliL)
+
+lemma inv1_rbt_baldR: "inv1 l \<Longrightarrow> inv1l r \<Longrightarrow> color_of l = RBT_Impl.B \<Longrightarrow> inv1 (rbt_baldR l a b r)"
+  by (induct l a b r rule: rbt_baldR.induct) (simp_all add: inv1_rbt_baliL)
+
+lemma inv1l_rbt_baldR: "inv1 l \<Longrightarrow> inv1l r \<Longrightarrow>inv1l (rbt_baldR l a b r)"
+  by (induct l a b r rule: rbt_baldR.induct) (auto simp: inv1_rbt_baliL paint2)
+
+lemma inv2_rbt_app: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r \<Longrightarrow>
+  inv2 (rbt_app l r) \<and> bheight (rbt_app l r) = bheight l"
+  by (induct l r rule: rbt_app.induct)
+     (auto simp: inv2_rbt_baldL_B split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma inv1_rbt_app: "inv1 l \<Longrightarrow> inv1 r \<Longrightarrow> (color_of l = RBT_Impl.B \<and>
+  color_of r = RBT_Impl.B \<longrightarrow> inv1 (rbt_app l r)) \<and> inv1l (rbt_app l r)"
+  by (induct l r rule: rbt_app.induct)
+     (auto simp: inv1_rbt_baldL split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma inv_rbt_baldL: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l + 1 = bheight r \<Longrightarrow> inv1l l \<Longrightarrow> inv1 r \<Longrightarrow>
+  inv2 (rbt_baldL l a b r) \<and> bheight (rbt_baldL l a b r) = bheight r \<and>
+  inv1l (rbt_baldL l a b r) \<and> (color_of r = RBT_Impl.B \<longrightarrow> inv1 (rbt_baldL l a b r))"
+  by (induct l a b r rule: rbt_baldL.induct) (auto simp: inv_rbt_baliR rbt_bheight_rbt_baliR paint2)
+
+lemma inv_rbt_baldR: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r + 1 \<Longrightarrow> inv1 l \<Longrightarrow> inv1l r \<Longrightarrow>
+  inv2 (rbt_baldR l a b r) \<and> bheight (rbt_baldR l a b r) = bheight l \<and>
+  inv1l (rbt_baldR l a b r) \<and> (color_of l = RBT_Impl.B \<longrightarrow> inv1 (rbt_baldR l a b r))"
+  by (induct l a b r rule: rbt_baldR.induct) (auto simp: inv_rbt_baliL rbt_bheight_rbt_baliL paint2)
+
+lemma inv_rbt_app: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l = bheight r \<Longrightarrow> inv1 l \<Longrightarrow> inv1 r \<Longrightarrow>
+  inv2 (rbt_app l r) \<and> bheight (rbt_app l r) = bheight l \<and>
+  inv1l (rbt_app l r) \<and> (color_of l = RBT_Impl.B \<and> color_of r = RBT_Impl.B \<longrightarrow> inv1 (rbt_app l r))"
+  by (induct l r rule: rbt_app.induct)
+     (auto simp: inv2_rbt_baldL_B inv_rbt_baldL split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma inv1l_rbt_joinL: "inv1 l \<Longrightarrow> inv1 r \<Longrightarrow> bheight l \<le> bheight r \<Longrightarrow>
+  inv1l (rbt_joinL l a b r) \<and>
+  (bheight l \<noteq> bheight r \<and> color_of r = RBT_Impl.B \<longrightarrow> inv1 (rbt_joinL l a b r))"
+proof (induct l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  then show ?case
+    by (auto simp: inv1_rbt_baliL rbt_joinL.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma inv1l_rbt_joinR: "inv1 l \<Longrightarrow> inv2 l \<Longrightarrow> inv1 r \<Longrightarrow> inv2 r \<Longrightarrow> bheight l \<ge> bheight r \<Longrightarrow>
+  inv1l (rbt_joinR l a b r) \<and>
+  (bheight l \<noteq> bheight r \<and> color_of l = RBT_Impl.B \<longrightarrow> inv1 (rbt_joinR l a b r))"
+proof (induct l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  then show ?case
+    by (fastforce simp: inv1_rbt_baliR rbt_joinR.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma bheight_rbt_joinL: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l \<le> bheight r \<Longrightarrow>
+  bheight (rbt_joinL l a b r) = bheight r"
+proof (induct l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  then show ?case
+    by (auto simp: rbt_bheight_rbt_baliL rbt_joinL.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma inv2_rbt_joinL: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l \<le> bheight r \<Longrightarrow> inv2 (rbt_joinL l a b r)"
+proof (induct l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  then show ?case
+    by (auto simp: inv2_rbt_baliL bheight_rbt_joinL rbt_joinL.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma bheight_rbt_joinR: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l \<ge> bheight r \<Longrightarrow>
+  bheight (rbt_joinR l a b r) = bheight l"
+proof (induct l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  then show ?case
+    by (fastforce simp: rbt_bheight_rbt_baliR rbt_joinR.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma inv2_rbt_joinR: "inv2 l \<Longrightarrow> inv2 r \<Longrightarrow> bheight l \<ge> bheight r \<Longrightarrow> inv2 (rbt_joinR l a b r)"
+proof (induct l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  then show ?case
+    by (fastforce simp: inv2_rbt_baliR bheight_rbt_joinR rbt_joinR.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma keys_paint[simp]: "RBT_Impl.keys (paint c t) = RBT_Impl.keys t"
+  by (cases t) auto
+
+lemma keys_rbt_baliL: "RBT_Impl.keys (rbt_baliL l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+  by (cases "(l,a,b,r)" rule: rbt_baliL.cases) auto
+
+lemma keys_rbt_baliR: "RBT_Impl.keys (rbt_baliR l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+  by (cases "(l,a,b,r)" rule: rbt_baliR.cases) auto
+
+lemma keys_rbt_baldL: "RBT_Impl.keys (rbt_baldL l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+  by (cases "(l,a,b,r)" rule: rbt_baldL.cases) (auto simp: keys_rbt_baliL keys_rbt_baliR)
+
+lemma keys_rbt_baldR: "RBT_Impl.keys (rbt_baldR l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+  by (cases "(l,a,b,r)" rule: rbt_baldR.cases) (auto simp: keys_rbt_baliL keys_rbt_baliR)
+
+lemma keys_rbt_app: "RBT_Impl.keys (rbt_app l r) = RBT_Impl.keys l @ RBT_Impl.keys r"
+  by (induction l r rule: rbt_app.induct)
+     (auto simp: keys_rbt_baldL keys_rbt_baldR split: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+
+lemma keys_rbt_joinL: "bheight l \<le> bheight r \<Longrightarrow>
+  RBT_Impl.keys (rbt_joinL l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+proof (induction l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  thus ?case
+    by (auto simp: keys_rbt_baliL rbt_joinL.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma keys_rbt_joinR: "RBT_Impl.keys (rbt_joinR l a b r) = RBT_Impl.keys l @ a # RBT_Impl.keys r"
+proof (induction l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  thus ?case
+    by (force simp: keys_rbt_baliR rbt_joinR.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma rbt_set_rbt_baliL: "set (RBT_Impl.keys (rbt_baliL l a b r)) =
+  set (RBT_Impl.keys l) \<union> {a} \<union> set (RBT_Impl.keys r)"
+  by (cases "(l,a,b,r)" rule: rbt_baliL.cases) auto
+
+lemma set_rbt_joinL: "set (RBT_Impl.keys (rbt_joinL l a b r)) =
+  set (RBT_Impl.keys l) \<union> {a} \<union> set (RBT_Impl.keys r)"
+proof (induction l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  thus ?case
+    by (auto simp: rbt_set_rbt_baliL rbt_joinL.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma rbt_set_rbt_baliR: "set (RBT_Impl.keys (rbt_baliR l a b r)) =
+  set (RBT_Impl.keys l) \<union> {a} \<union> set (RBT_Impl.keys r)"
+  by (cases "(l,a,b,r)" rule: rbt_baliR.cases) auto
+
+lemma set_rbt_joinR: "set (RBT_Impl.keys (rbt_joinR l a b r)) =
+  set (RBT_Impl.keys l) \<union> {a} \<union> set (RBT_Impl.keys r)"
+proof (induction l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  thus ?case
+    by (force simp: rbt_set_rbt_baliR rbt_joinR.simps[of l a b r]
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma set_keys_paint: "set (RBT_Impl.keys (paint c t)) = set (RBT_Impl.keys t)"
+  by (cases t) auto
+
+lemma set_rbt_join: "set (RBT_Impl.keys (rbt_join l a b r)) =
+  set (RBT_Impl.keys l) \<union> {a} \<union> set (RBT_Impl.keys r)"
+  by (simp add: set_rbt_joinL set_rbt_joinR set_keys_paint rbt_join_def Let_def)
+
+lemma inv_rbt_join: "inv_12 l \<Longrightarrow> inv_12 r \<Longrightarrow> inv_12 (rbt_join l a b r)"
+  by (auto simp: rbt_join_def Let_def inv1l_rbt_joinL inv1l_rbt_joinR
+      inv2_rbt_joinL inv2_rbt_joinR inv_12_def)
+
+fun rbt_recolor :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_recolor (Branch RBT_Impl.R t1 k v t2) =
+    (if color_of t1 = RBT_Impl.B \<and> color_of t2 = RBT_Impl.B then Branch RBT_Impl.B t1 k v t2
+    else Branch RBT_Impl.R t1 k v t2)"
+| "rbt_recolor t = t"
+
+lemma rbt_recolor: "inv_12 t \<Longrightarrow> inv_12 (rbt_recolor t)"
+  by (induction t rule: rbt_recolor.induct) (auto simp: inv_12_def)
+
+fun rbt_split_min :: "('a, 'b) rbt \<Rightarrow> 'a \<times> 'b \<times> ('a, 'b) rbt" where
+  "rbt_split_min RBT_Impl.Empty = undefined"
+| "rbt_split_min (RBT_Impl.Branch _ l a b r) =
+    (if is_rbt_empty l then (a,b,r) else let (a',b',l') = rbt_split_min l in (a',b',rbt_join l' a b r))"
+
+lemma rbt_split_min_set:
+  "rbt_split_min t = (a,b,t') \<Longrightarrow> t \<noteq> RBT_Impl.Empty \<Longrightarrow>
+  a \<in> set (RBT_Impl.keys t) \<and> set (RBT_Impl.keys t) = {a} \<union> set (RBT_Impl.keys t')"
+  by (induction t arbitrary: t') (auto simp: set_rbt_join split: prod.splits if_splits)
+
+lemma rbt_split_min_inv: "rbt_split_min t = (a,b,t') \<Longrightarrow> inv_12 t \<Longrightarrow> t \<noteq> RBT_Impl.Empty \<Longrightarrow> inv_12 t'"
+  by (induction t arbitrary: t')
+     (auto simp: inv_rbt_join split: if_splits prod.splits dest: rbt_Node)
+
+definition rbt_join2 :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_join2 l r = (if is_rbt_empty r then l else let (a,b,r') = rbt_split_min r in rbt_join l a b r')"
+
+lemma set_rbt_join2[simp]: "set (RBT_Impl.keys (rbt_join2 l r)) =
+  set (RBT_Impl.keys l) \<union> set (RBT_Impl.keys r)"
+  by (simp add: rbt_join2_def rbt_split_min_set set_rbt_join split: prod.split)
+
+lemma inv_rbt_join2: "inv_12 l \<Longrightarrow> inv_12 r \<Longrightarrow> inv_12 (rbt_join2 l r)"
+  by (simp add: rbt_join2_def inv_rbt_join rbt_split_min_set rbt_split_min_inv split: prod.split)
+
 context ord begin
 
-definition rbt_union_with_key :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-where
-  "rbt_union_with_key f t1 t2 =
-  (case RBT_Impl.compare_height t1 t1 t2 t2
-   of compare.EQ \<Rightarrow> rbtreeify (sunion_with f (entries t1) (entries t2))
-    | compare.LT \<Rightarrow> fold (rbt_insert_with_key (\<lambda>k v w. f k w v)) t1 t2
-    | compare.GT \<Rightarrow> fold (rbt_insert_with_key f) t2 t1)"
+fun rbt_split :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> ('a, 'b) rbt \<times> 'b option \<times> ('a, 'b) rbt" where
+  "rbt_split RBT_Impl.Empty k = (RBT_Impl.Empty, None, RBT_Impl.Empty)"
+| "rbt_split (RBT_Impl.Branch _ l a b r) x =
+  (if x < a then (case rbt_split l x of (l1, \<beta>, l2) \<Rightarrow> (l1, \<beta>, rbt_join l2 a b r))
+  else if a < x then (case rbt_split r x of (r1, \<beta>, r2) \<Rightarrow> (rbt_join l a b r1, \<beta>, r2))
+  else (l, Some b, r))"
 
-definition rbt_union_with where
-  "rbt_union_with f = rbt_union_with_key (\<lambda>_. f)"
+lemma rbt_split: "rbt_split t x = (l,\<beta>,r) \<Longrightarrow> inv_12 t \<Longrightarrow> inv_12 l \<and> inv_12 r"
+  by (induction t arbitrary: l r)
+     (auto simp: set_rbt_join inv_rbt_join rbt_greater_prop rbt_less_prop
+      split: if_splits prod.splits dest!: rbt_Node)
 
-definition rbt_union where
-  "rbt_union = rbt_union_with_key (%_ _ rv. rv)"
+lemma rbt_split_size: "(l2,\<beta>,r2) = rbt_split t2 a \<Longrightarrow> size l2 + size r2 \<le> size t2"
+  by (induction t2 a arbitrary: l2 r2 rule: rbt_split.induct) (auto split: if_splits prod.splits)
 
-definition rbt_inter_with_key :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
-where
-  "rbt_inter_with_key f t1 t2 =
-  (case RBT_Impl.compare_height t1 t1 t2 t2 
-   of compare.EQ \<Rightarrow> rbtreeify (sinter_with f (entries t1) (entries t2))
-    | compare.LT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). map_option (\<lambda>w. (k, f k v w)) (rbt_lookup t2 k)) (entries t1))
-    | compare.GT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). map_option (\<lambda>w. (k, f k w v)) (rbt_lookup t1 k)) (entries t2)))"
+function rbt_union_rec :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_union_rec f t1 t2 = (let (f, t2, t1) =
+    if flip_rbt t2 t1 then (\<lambda>k v v'. f k v' v, t1, t2) else (f, t2, t1) in
+    if small_rbt t2 then RBT_Impl.fold (rbt_insert_with_key f) t2 t1
+    else (case t1 of RBT_Impl.Empty \<Rightarrow> t2
+      | RBT_Impl.Branch _ l1 a b r1 \<Rightarrow>
+        case rbt_split t2 a of (l2, \<beta>, r2) \<Rightarrow>
+          rbt_join (rbt_union_rec f l1 l2) a (case \<beta> of None \<Rightarrow> b | Some b' \<Rightarrow> f a b b') (rbt_union_rec f r1 r2)))"
+  by pat_completeness auto
+termination
+  using rbt_split_size
+  by (relation "measure (\<lambda>(f,t1,t2). size t1 + size t2)") (fastforce split: if_splits)+
 
-definition rbt_inter_with where
-  "rbt_inter_with f = rbt_inter_with_key (\<lambda>_. f)"
+declare rbt_union_rec.simps[simp del]
 
-definition rbt_inter where
-  "rbt_inter = rbt_inter_with_key (\<lambda>_ _ rv. rv)"
+function rbt_union_swap_rec :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_union_swap_rec f \<gamma> t1 t2 = (let (\<gamma>, t2, t1) =
+    if flip_rbt t2 t1 then (\<not>\<gamma>, t1, t2) else (\<gamma>, t2, t1);
+    f' = (if \<gamma> then (\<lambda>k v v'. f k v' v) else f) in
+    if small_rbt t2 then RBT_Impl.fold (rbt_insert_with_key f') t2 t1
+    else (case t1 of RBT_Impl.Empty \<Rightarrow> t2
+      | RBT_Impl.Branch _ l1 a b r1 \<Rightarrow>
+        case rbt_split t2 a of (l2, \<beta>, r2) \<Rightarrow>
+          rbt_join (rbt_union_swap_rec f \<gamma> l1 l2) a (case \<beta> of None \<Rightarrow> b | Some b' \<Rightarrow> f' a b b') (rbt_union_swap_rec f \<gamma> r1 r2)))"
+  by pat_completeness auto
+termination
+  using rbt_split_size
+  by (relation "measure (\<lambda>(f,\<gamma>,t1,t2). size t1 + size t2)") (fastforce split: if_splits)+
+
+declare rbt_union_swap_rec.simps[simp del]
+
+lemma rbt_union_swap_rec: "rbt_union_swap_rec f \<gamma> t1 t2 =
+  rbt_union_rec (if \<gamma> then (\<lambda>k v v'. f k v' v) else f) t1 t2"
+proof (induction f \<gamma> t1 t2 rule: rbt_union_swap_rec.induct)
+  case (1 f \<gamma> t1 t2)
+  show ?case
+    using 1[OF refl _ refl refl _ refl _ refl]
+    unfolding rbt_union_swap_rec.simps[of _ _ t1] rbt_union_rec.simps[of _ t1]
+    by (auto simp: Let_def split: rbt.splits prod.splits option.splits) (* slow *)
+qed
+
+lemma rbt_fold_rbt_insert:
+  assumes "inv_12 t2"
+  shows "inv_12 (RBT_Impl.fold (rbt_insert_with_key f) t1 t2)"
+proof -
+  define xs where "xs = RBT_Impl.entries t1"
+  from assms show ?thesis
+    unfolding RBT_Impl.fold_def xs_def[symmetric]
+    by (induct xs rule: rev_induct)
+       (auto simp: inv_12_def rbt_insert_with_key_def ins_inv1_inv2)
+qed
+
+lemma rbt_union_rec: "inv_12 t1 \<Longrightarrow> inv_12 t2 \<Longrightarrow> inv_12 (rbt_union_rec f t1 t2)"
+proof (induction f t1 t2 rule: rbt_union_rec.induct)
+  case (1 t1 t2)
+  thus ?case
+    by (auto simp: rbt_union_rec.simps[of t1 t2] inv_rbt_join rbt_split rbt_fold_rbt_insert
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits prod.split if_splits dest: rbt_Node)
+qed
+
+definition "map_filter_inter f t1 t2 = List.map_filter (\<lambda>(k, v).
+  case rbt_lookup t1 k of None \<Rightarrow> None
+  | Some v' \<Rightarrow> Some (k, f k v' v)) (RBT_Impl.entries t2)"
+
+function rbt_inter_rec :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_inter_rec f t1 t2 = (let (f, t2, t1) =
+    if flip_rbt t2 t1 then (\<lambda>k v v'. f k v' v, t1, t2) else (f, t2, t1) in
+    if small_rbt t2 then rbtreeify (map_filter_inter f t1 t2)
+    else case t1 of RBT_Impl.Empty \<Rightarrow> RBT_Impl.Empty
+    | RBT_Impl.Branch _ l1 a b r1 \<Rightarrow>
+      case rbt_split t2 a of (l2, \<beta>, r2) \<Rightarrow> let l' = rbt_inter_rec f l1 l2; r' = rbt_inter_rec f r1 r2 in
+      (case \<beta> of None \<Rightarrow> rbt_join2 l' r' | Some b' \<Rightarrow> rbt_join l' a (f a b b') r'))"
+  by pat_completeness auto
+termination
+  using rbt_split_size
+  by (relation "measure (\<lambda>(f,t1,t2). size t1 + size t2)") (fastforce split: if_splits)+
+
+declare rbt_inter_rec.simps[simp del]
+
+function rbt_inter_swap_rec :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_inter_swap_rec f \<gamma> t1 t2 = (let (\<gamma>, t2, t1) =
+    if flip_rbt t2 t1 then (\<not>\<gamma>, t1, t2) else (\<gamma>, t2, t1);
+    f' = (if \<gamma> then (\<lambda>k v v'. f k v' v) else f) in
+    if small_rbt t2 then rbtreeify (map_filter_inter f' t1 t2)
+    else case t1 of RBT_Impl.Empty \<Rightarrow> RBT_Impl.Empty
+    | RBT_Impl.Branch _ l1 a b r1 \<Rightarrow>
+      case rbt_split t2 a of (l2, \<beta>, r2) \<Rightarrow> let l' = rbt_inter_swap_rec f \<gamma> l1 l2; r' = rbt_inter_swap_rec f \<gamma> r1 r2 in
+      (case \<beta> of None \<Rightarrow> rbt_join2 l' r' | Some b' \<Rightarrow> rbt_join l' a (f' a b b') r'))"
+  by pat_completeness auto
+termination
+  using rbt_split_size
+  by (relation "measure (\<lambda>(f,\<gamma>,t1,t2). size t1 + size t2)") (fastforce split: if_splits)+
+
+declare rbt_inter_swap_rec.simps[simp del]
+
+lemma rbt_inter_swap_rec: "rbt_inter_swap_rec f \<gamma> t1 t2 =
+  rbt_inter_rec (if \<gamma> then (\<lambda>k v v'. f k v' v) else f) t1 t2"
+proof (induction f \<gamma> t1 t2 rule: rbt_inter_swap_rec.induct)
+  case (1 f \<gamma> t1 t2)
+  show ?case
+    using 1[OF refl _ refl refl _ refl _ refl]
+    unfolding rbt_inter_swap_rec.simps[of _ _ t1] rbt_inter_rec.simps[of _ t1]
+    by (auto simp add: Let_def split: rbt.splits prod.splits option.splits)
+qed
+
+lemma rbt_rbtreeify[simp]: "inv_12 (rbtreeify kvs)"
+  by (simp add: inv_12_def rbtreeify_def inv1_rbtreeify_g inv2_rbtreeify_g)
+
+lemma rbt_inter_rec: "inv_12 t1 \<Longrightarrow> inv_12 t2 \<Longrightarrow> inv_12 (rbt_inter_rec f t1 t2)"
+proof(induction f t1 t2 rule: rbt_inter_rec.induct)
+  case (1 t1 t2)
+  thus ?case
+    by (auto simp: rbt_inter_rec.simps[of t1 t2] inv_rbt_join inv_rbt_join2 rbt_split Let_def
+        split!: RBT_Impl.rbt.splits RBT_Impl.color.splits prod.split if_splits
+        option.splits dest!: rbt_Node)
+qed
+
+definition "filter_minus t1 t2 = filter (\<lambda>(k, _). rbt_lookup t2 k = None) (RBT_Impl.entries t1)"
+
+fun rbt_minus_rec :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  "rbt_minus_rec t1 t2 = (if small_rbt t2 then RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1
+    else if small_rbt t1 then rbtreeify (filter_minus t1 t2)
+    else case t2 of RBT_Impl.Empty \<Rightarrow> t1
+      | RBT_Impl.Branch _ l2 a b r2 \<Rightarrow>
+        case rbt_split t1 a of (l1, _, r1) \<Rightarrow> rbt_join2 (rbt_minus_rec l1 l2) (rbt_minus_rec r1 r2))"
+
+declare rbt_minus_rec.simps[simp del]
 
 end
 
@@ -1921,6 +2392,173 @@ proof -
     by(induct xs rule: rev_induct)(auto simp add: rbt_insertwk_is_rbt)
 qed
 
+lemma rbt_delete: "inv_12 t \<Longrightarrow> inv_12 (rbt_delete x t)"
+  using rbt_del_inv1_inv2[of t x]
+  by (auto simp: inv_12_def rbt_delete_def rbt_del_inv1_inv2)
+
+lemma rbt_sorted_delete: "rbt_sorted t \<Longrightarrow> rbt_sorted (rbt_delete x t)"
+  by (auto simp: rbt_delete_def rbt_del_rbt_sorted)
+
+lemma rbt_fold_rbt_delete:
+  assumes "inv_12 t2"
+  shows "inv_12 (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t1 t2)"
+proof -
+  define xs where "xs = RBT_Impl.entries t1"
+  from assms show ?thesis
+    unfolding RBT_Impl.fold_def xs_def[symmetric]
+    by (induct xs rule: rev_induct) (auto simp: rbt_delete)
+qed
+
+lemma rbt_minus_rec: "inv_12 t1 \<Longrightarrow> inv_12 t2 \<Longrightarrow> inv_12 (rbt_minus_rec t1 t2)"
+proof(induction t1 t2 rule: rbt_minus_rec.induct)
+  case (1 t1 t2)
+  thus ?case
+    by (auto simp: rbt_minus_rec.simps[of t1 t2] inv_rbt_join inv_rbt_join2 rbt_split
+        rbt_fold_rbt_delete split!: RBT_Impl.rbt.splits RBT_Impl.color.splits prod.split if_splits
+        dest: rbt_Node)
+qed
+
+end
+
+context linorder begin
+
+lemma rbt_sorted_rbt_baliL: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_sorted (rbt_baliL l a b r)"
+  using rbt_greater_trans rbt_less_trans
+  by (cases "(l,a,b,r)" rule: rbt_baliL.cases) fastforce+
+
+lemma rbt_lookup_rbt_baliL: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_lookup (rbt_baliL l a b r) k =
+  (if k < a then rbt_lookup l k else if k = a then Some b else rbt_lookup r k)"
+  by (cases "(l,a,b,r)" rule: rbt_baliL.cases) (auto split!: if_splits)
+
+lemma rbt_sorted_rbt_baliR: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_sorted (rbt_baliR l a b r)"
+  using rbt_greater_trans rbt_less_trans
+  by (cases "(l,a,b,r)" rule: rbt_baliR.cases) fastforce+
+
+lemma rbt_lookup_rbt_baliR: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_lookup (rbt_baliR l a b r) k =
+  (if k < a then rbt_lookup l k else if k = a then Some b else rbt_lookup r k)"
+  by (cases "(l,a,b,r)" rule: rbt_baliR.cases) (auto split!: if_splits)
+
+lemma rbt_sorted_rbt_joinL: "rbt_sorted (RBT_Impl.Branch c l a b r) \<Longrightarrow> bheight l \<le> bheight r \<Longrightarrow>
+  rbt_sorted (rbt_joinL l a b r)"
+proof (induction l a b r arbitrary: c rule: rbt_joinL.induct)
+  case (1 l a b r)
+  thus ?case
+    by (auto simp: rbt_set_rbt_baliL rbt_joinL.simps[of l a b r] set_rbt_joinL rbt_less_prop
+        intro!: rbt_sorted_rbt_baliL split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma rbt_lookup_rbt_joinL: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_lookup (rbt_joinL l a b r) k =
+  (if k < a then rbt_lookup l k else if k = a then Some b else rbt_lookup r k)"
+proof (induction l a b r rule: rbt_joinL.induct)
+  case (1 l a b r)
+  have less_rbt_joinL:
+    "rbt_sorted r1 \<Longrightarrow> r1 |\<guillemotleft> x \<Longrightarrow> a \<guillemotleft>| r1 \<Longrightarrow> a < x \<Longrightarrow> rbt_joinL l a b r1 |\<guillemotleft> x" for x r1
+    using 1(5)
+    by (auto simp: rbt_less_prop rbt_greater_prop set_rbt_joinL)
+  show ?case
+    using 1 less_rbt_joinL rbt_lookup_rbt_baliL[OF rbt_sorted_rbt_joinL[of _ l a b], where ?k=k]
+    by (auto simp: rbt_joinL.simps[of l a b r] split!: if_splits rbt.splits color.splits)
+qed
+
+lemma rbt_sorted_rbt_joinR: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_sorted (rbt_joinR l a b r)"
+proof (induction l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  thus ?case
+    by (auto simp: rbt_set_rbt_baliR rbt_joinR.simps[of l a b r] set_rbt_joinR rbt_greater_prop
+        intro!: rbt_sorted_rbt_baliR split!: RBT_Impl.rbt.splits RBT_Impl.color.splits)
+qed
+
+lemma rbt_lookup_rbt_joinR: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_lookup (rbt_joinR l a b r) k =
+  (if k < a then rbt_lookup l k else if k = a then Some b else rbt_lookup r k)"
+proof (induction l a b r rule: rbt_joinR.induct)
+  case (1 l a b r)
+  have less_rbt_joinR:
+    "rbt_sorted l1 \<Longrightarrow> x \<guillemotleft>| l1 \<Longrightarrow> l1 |\<guillemotleft> a \<Longrightarrow> x < a \<Longrightarrow> x \<guillemotleft>| rbt_joinR l1 a b r" for x l1
+    using 1(6)
+    by (auto simp: rbt_less_prop rbt_greater_prop set_rbt_joinR)
+  show ?case
+    using 1 less_rbt_joinR rbt_lookup_rbt_baliR[OF _ rbt_sorted_rbt_joinR[of _ r a b], where ?k=k]
+    by (auto simp: rbt_joinR.simps[of l a b r] split!: if_splits rbt.splits color.splits)
+qed
+
+lemma rbt_sorted_paint: "rbt_sorted (paint c t) = rbt_sorted t"
+  by (cases t) auto
+
+lemma rbt_sorted_rbt_join: "rbt_sorted (RBT_Impl.Branch c l a b r) \<Longrightarrow>
+  rbt_sorted (rbt_join l a b r)"
+  by (auto simp: rbt_sorted_paint rbt_sorted_rbt_joinL rbt_sorted_rbt_joinR rbt_join_def Let_def)
+
+lemma rbt_lookup_rbt_join: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow> l |\<guillemotleft> a \<Longrightarrow> a \<guillemotleft>| r \<Longrightarrow>
+  rbt_lookup (rbt_join l a b r) k =
+  (if k < a then rbt_lookup l k else if k = a then Some b else rbt_lookup r k)"
+  by (auto simp: rbt_join_def Let_def rbt_lookup_rbt_joinL rbt_lookup_rbt_joinR)
+
+lemma rbt_split_min_rbt_sorted: "rbt_split_min t = (a,b,t') \<Longrightarrow> rbt_sorted t \<Longrightarrow> t \<noteq> RBT_Impl.Empty \<Longrightarrow>
+  rbt_sorted t' \<and> (\<forall>x \<in> set (RBT_Impl.keys t'). a < x)"
+  by (induction t arbitrary: t')
+     (fastforce simp: rbt_split_min_set rbt_sorted_rbt_join set_rbt_join rbt_less_prop rbt_greater_prop
+      split: if_splits prod.splits)+
+
+lemma rbt_split_min_rbt_lookup: "rbt_split_min t = (a,b,t') \<Longrightarrow> rbt_sorted t \<Longrightarrow> t \<noteq> RBT_Impl.Empty \<Longrightarrow>
+  rbt_lookup t k = (if k < a then None else if k = a then Some b else rbt_lookup t' k)"
+  by (induction t arbitrary: a b t')
+     (auto simp: rbt_less_trans antisym_conv3 rbt_less_prop rbt_split_min_set rbt_lookup_rbt_join
+      rbt_split_min_rbt_sorted split!: if_splits prod.splits)
+
+lemma rbt_sorted_rbt_join2: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow>
+  \<forall>x \<in> set (RBT_Impl.keys l). \<forall>y \<in> set (RBT_Impl.keys r). x < y \<Longrightarrow> rbt_sorted (rbt_join2 l r)"
+  by (simp add: rbt_join2_def rbt_sorted_rbt_join rbt_split_min_set rbt_split_min_rbt_sorted set_rbt_join
+      rbt_greater_prop rbt_less_prop split: prod.split)
+
+lemma rbt_lookup_rbt_join2: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow>
+  \<forall>x \<in> set (RBT_Impl.keys l). \<forall>y \<in> set (RBT_Impl.keys r). x < y \<Longrightarrow>
+  rbt_lookup (rbt_join2 l r) k = (case rbt_lookup l k of None \<Rightarrow> rbt_lookup r k | Some v \<Rightarrow> Some v)"
+  using rbt_lookup_keys
+  by (fastforce simp: rbt_join2_def rbt_greater_prop rbt_less_prop rbt_lookup_rbt_join
+      rbt_split_min_rbt_lookup rbt_split_min_rbt_sorted rbt_split_min_set split: option.splits prod.splits)
+
+lemma rbt_split_props: "rbt_split t x = (l,\<beta>,r) \<Longrightarrow> rbt_sorted t \<Longrightarrow>
+  set (RBT_Impl.keys l) = {a \<in> set (RBT_Impl.keys t). a < x} \<and>
+  set (RBT_Impl.keys r) = {a \<in> set (RBT_Impl.keys t). x < a} \<and>
+  rbt_sorted l \<and> rbt_sorted r"
+  by (induction t arbitrary: l r)
+     (force simp: Let_def set_rbt_join rbt_greater_prop rbt_less_prop
+      split: if_splits prod.splits intro!: rbt_sorted_rbt_join)+
+
+lemma rbt_split_lookup: "rbt_split t x = (l,\<beta>,r) \<Longrightarrow> rbt_sorted t \<Longrightarrow>
+  rbt_lookup t k = (if k < x then rbt_lookup l k else if k = x then \<beta> else rbt_lookup r k)"
+proof (induction t arbitrary: x l \<beta> r)
+  case (Branch c t1 a b t2)
+  have "rbt_sorted r1" "r1 |\<guillemotleft> a" if "rbt_split t1 x = (l, \<beta>, r1)" for r1
+    using rbt_split_props Branch(4) that
+    by (fastforce simp: rbt_less_prop)+
+  moreover have "rbt_sorted l1" "a \<guillemotleft>| l1" if "rbt_split t2 x = (l1, \<beta>, r)" for l1
+    using rbt_split_props Branch(4) that
+    by (fastforce simp: rbt_greater_prop)+
+  ultimately show ?case
+    using Branch rbt_lookup_rbt_join[of t1 _ a b k] rbt_lookup_rbt_join[of _ t2 a b k]
+    by (auto split!: if_splits prod.splits)
+qed simp
+
+lemma rbt_sorted_fold_insertwk: "rbt_sorted t \<Longrightarrow>
+  rbt_sorted (RBT_Impl.fold (rbt_insert_with_key f) t' t)"
+  by (induct t' arbitrary: t)
+     (simp_all add: rbt_insertwk_rbt_sorted)
+
+lemma rbt_lookup_iff_keys:
+  "rbt_sorted t \<Longrightarrow> set (RBT_Impl.keys t) = {k. \<exists>v. rbt_lookup t k = Some v}"
+  "rbt_sorted t \<Longrightarrow> rbt_lookup t k = None \<longleftrightarrow> k \<notin> set (RBT_Impl.keys t)"
+  "rbt_sorted t \<Longrightarrow> (\<exists>v. rbt_lookup t k = Some v) \<longleftrightarrow> k \<in> set (RBT_Impl.keys t)"
+  using entry_in_tree_keys rbt_lookup_keys[of t]
+  by force+
+
 lemma rbt_lookup_fold_rbt_insertwk:
   assumes t1: "rbt_sorted t1" and t2: "rbt_sorted t2"
   shows "rbt_lookup (fold (rbt_insert_with_key f) t1 t2) k =
@@ -1939,9 +2577,363 @@ proof -
     done
 qed
 
+lemma rbt_lookup_union_rec: "rbt_sorted t1 \<Longrightarrow> rbt_sorted t2 \<Longrightarrow>
+  rbt_sorted (rbt_union_rec f t1 t2) \<and> rbt_lookup (rbt_union_rec f t1 t2) k =
+  (case rbt_lookup t1 k of None \<Rightarrow> rbt_lookup t2 k
+  | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v
+              | Some w \<Rightarrow> Some (f k v w)))"
+proof(induction f t1 t2 arbitrary: k rule: rbt_union_rec.induct)
+  case (1 f t1 t2)
+  obtain f' t1' t2' where flip: "(f', t2', t1') =
+    (if flip_rbt t2 t1 then (\<lambda>k v v'. f k v' v, t1, t2) else (f, t2, t1))"
+    by fastforce
+  have rbt_sorted': "rbt_sorted t1'" "rbt_sorted t2'"
+    using 1(3,4) flip
+    by (auto split: if_splits)
+  show ?case
+  proof (cases t1')
+    case Empty
+    show ?thesis
+      unfolding rbt_union_rec.simps[of _ t1] flip[symmetric]
+      using flip rbt_sorted' rbt_split_props[of t2]
+      by (auto simp: Empty rbt_lookup_fold_rbt_insertwk
+          intro!: rbt_sorted_fold_insertwk split: if_splits option.splits)
+  next
+    case (Branch c l1 a b r1)
+    {
+      assume not_small: "\<not>small_rbt t2'"
+      obtain l2 \<beta> r2 where rbt_split_t2': "rbt_split t2' a = (l2, \<beta>, r2)"
+        by (cases "rbt_split t2' a") auto
+      have rbt_sort: "rbt_sorted l1" "rbt_sorted r1"
+        using 1(3,4) flip
+        by (auto simp: Branch split: if_splits)
+      note rbt_split_t2'_props = rbt_split_props[OF rbt_split_t2' rbt_sorted'(2)]
+      have union_l1_l2: "rbt_sorted (rbt_union_rec f' l1 l2)" "rbt_lookup (rbt_union_rec f' l1 l2) k =
+        (case rbt_lookup l1 k of None \<Rightarrow> rbt_lookup l2 k
+        | Some v \<Rightarrow> (case rbt_lookup l2 k of None \<Rightarrow> Some v | Some w \<Rightarrow> Some (f' k v w)))" for k
+        using 1(1)[OF flip refl refl _ Branch rbt_split_t2'[symmetric]] rbt_sort rbt_split_t2'_props
+        by (auto simp: not_small)
+      have union_r1_r2: "rbt_sorted (rbt_union_rec f' r1 r2)" "rbt_lookup (rbt_union_rec f' r1 r2) k =
+        (case rbt_lookup r1 k of None \<Rightarrow> rbt_lookup r2 k
+        | Some v \<Rightarrow> (case rbt_lookup r2 k of None \<Rightarrow> Some v | Some w \<Rightarrow> Some (f' k v w)))" for k
+        using 1(2)[OF flip refl refl _ Branch rbt_split_t2'[symmetric]] rbt_sort rbt_split_t2'_props
+        by (auto simp: not_small)
+      have union_l1_l2_keys: "set (RBT_Impl.keys (rbt_union_rec f' l1 l2)) =
+       set (RBT_Impl.keys l1) \<union> set (RBT_Impl.keys l2)"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_lookup_iff_keys(1) union_l1_l2 split: option.splits)
+      have union_r1_r2_keys: "set (RBT_Impl.keys (rbt_union_rec f' r1 r2)) =
+        set (RBT_Impl.keys r1) \<union> set (RBT_Impl.keys r2)"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_lookup_iff_keys(1) union_r1_r2 split: option.splits)
+      have union_l1_l2_less: "rbt_union_rec f' l1 l2 |\<guillemotleft> a"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_less_prop union_l1_l2_keys)
+      have union_r1_r2_greater: "a \<guillemotleft>| rbt_union_rec f' r1 r2"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_greater_prop union_r1_r2_keys)
+      have "rbt_lookup (rbt_union_rec f t1 t2) k =
+       (case rbt_lookup t1' k of None \<Rightarrow> rbt_lookup t2' k
+       | Some v \<Rightarrow> (case rbt_lookup t2' k of None \<Rightarrow> Some v | Some w \<Rightarrow> Some (f' k v w)))"
+        using rbt_sorted' union_l1_l2 union_r1_r2 rbt_split_t2'_props
+          union_l1_l2_less union_r1_r2_greater not_small
+        by (auto simp: rbt_union_rec.simps[of _ t1] flip[symmetric] Branch
+            rbt_split_t2' rbt_lookup_rbt_join rbt_split_lookup[OF rbt_split_t2'] split: option.splits)
+      moreover have "rbt_sorted (rbt_union_rec f t1 t2)"
+        using rbt_sorted' rbt_split_t2'_props not_small
+        by (auto simp: rbt_union_rec.simps[of _ t1] flip[symmetric] Branch rbt_split_t2'
+            union_l1_l2 union_r1_r2 union_l1_l2_keys union_r1_r2_keys rbt_less_prop
+            rbt_greater_prop intro!: rbt_sorted_rbt_join)
+      ultimately have ?thesis
+        using flip
+        by (auto split: if_splits option.splits)
+    }
+    then show ?thesis
+      unfolding rbt_union_rec.simps[of _ t1] flip[symmetric]
+      using rbt_sorted' flip
+      by (auto simp: rbt_sorted_fold_insertwk rbt_lookup_fold_rbt_insertwk split: option.splits)
+  qed
+qed
+
+lemma rbtreeify_map_filter_inter:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b"
+  assumes "rbt_sorted t2"
+  shows "rbt_sorted (rbtreeify (map_filter_inter f t1 t2))"
+    "rbt_lookup (rbtreeify (map_filter_inter f t1 t2)) k =
+    (case rbt_lookup t1 k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f k v w)))"
+proof -
+  have map_of_map_filter: "map_of (List.map_filter (\<lambda>(k, v).
+    case rbt_lookup t1 k of None \<Rightarrow> None | Some v' \<Rightarrow> Some (k, f k v' v)) xs) k =
+    (case rbt_lookup t1 k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case map_of xs k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f k v w)))" for xs k
+    by (induction xs) (auto simp: List.map_filter_def split: option.splits) (* slow *)
+  have map_fst_map_filter: "map fst (List.map_filter (\<lambda>(k, v).
+    case rbt_lookup t1 k of None \<Rightarrow> None | Some v' \<Rightarrow> Some (k, f k v' v)) xs) =
+    filter (\<lambda>k. rbt_lookup t1 k \<noteq> None) (map fst xs)" for xs
+    by (induction xs) (auto simp: List.map_filter_def split: option.splits)
+  have "sorted (map fst (map_filter_inter f t1 t2))"
+    using sorted_filter[of id] rbt_sorted_entries[OF assms]
+    by (auto simp: map_filter_inter_def map_fst_map_filter)
+  moreover have "distinct (map fst (map_filter_inter f t1 t2))"
+    using distinct_filter distinct_entries[OF assms]
+    by (auto simp: map_filter_inter_def map_fst_map_filter)
+  ultimately show
+    "rbt_sorted (rbtreeify (map_filter_inter f t1 t2))"
+    "rbt_lookup (rbtreeify (map_filter_inter f t1 t2)) k =
+      (case rbt_lookup t1 k of None \<Rightarrow> None
+      | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f k v w)))"
+    using rbt_sorted_rbtreeify
+    by (auto simp: rbt_lookup_rbtreeify map_filter_inter_def map_of_map_filter
+        map_of_entries[OF assms] split: option.splits)
+qed
+
+lemma rbt_lookup_inter_rec: "rbt_sorted t1 \<Longrightarrow> rbt_sorted t2 \<Longrightarrow>
+  rbt_sorted (rbt_inter_rec f t1 t2) \<and> rbt_lookup (rbt_inter_rec f t1 t2) k =
+  (case rbt_lookup t1 k of None \<Rightarrow> None
+  | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f k v w)))"
+proof(induction f t1 t2 arbitrary: k rule: rbt_inter_rec.induct)
+  case (1 f t1 t2)
+  obtain f' t1' t2' where flip: "(f', t2', t1') =
+    (if flip_rbt t2 t1 then (\<lambda>k v v'. f k v' v, t1, t2) else (f, t2, t1))"
+    by fastforce
+  have rbt_sorted': "rbt_sorted t1'" "rbt_sorted t2'"
+    using 1(3,4) flip
+    by (auto split: if_splits)
+  show ?case
+  proof (cases t1')
+    case Empty
+    show ?thesis
+      unfolding rbt_inter_rec.simps[of _ t1] flip[symmetric]
+      using flip rbt_sorted' rbt_split_props[of t2] rbtreeify_map_filter_inter[OF rbt_sorted'(2)]
+      by (auto simp: Empty split: option.splits)
+  next
+    case (Branch c l1 a b r1)
+    {
+      assume not_small: "\<not>small_rbt t2'"
+      obtain l2 \<beta> r2 where rbt_split_t2': "rbt_split t2' a = (l2, \<beta>, r2)"
+        by (cases "rbt_split t2' a") auto
+      note rbt_split_t2'_props = rbt_split_props[OF rbt_split_t2' rbt_sorted'(2)]
+      have rbt_sort: "rbt_sorted l1" "rbt_sorted r1" "rbt_sorted l2" "rbt_sorted r2"
+        using 1(3,4) flip
+        by (auto simp: Branch rbt_split_t2'_props split: if_splits)
+      have inter_l1_l2: "rbt_sorted (rbt_inter_rec f' l1 l2)" "rbt_lookup (rbt_inter_rec f' l1 l2) k =
+        (case rbt_lookup l1 k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup l2 k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f' k v w)))" for k
+        using 1(1)[OF flip refl refl _ Branch rbt_split_t2'[symmetric]] rbt_sort rbt_split_t2'_props
+        by (auto simp: not_small)
+      have inter_r1_r2: "rbt_sorted (rbt_inter_rec f' r1 r2)" "rbt_lookup (rbt_inter_rec f' r1 r2) k =
+        (case rbt_lookup r1 k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup r2 k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f' k v w)))" for k
+        using 1(2)[OF flip refl refl _ Branch rbt_split_t2'[symmetric]] rbt_sort rbt_split_t2'_props
+        by (auto simp: not_small)
+      have inter_l1_l2_keys: "set (RBT_Impl.keys (rbt_inter_rec f' l1 l2)) =
+        set (RBT_Impl.keys l1) \<inter> set (RBT_Impl.keys l2)"
+        using inter_l1_l2(1)
+        by (auto simp: rbt_lookup_iff_keys(1) inter_l1_l2(2) rbt_sort split: option.splits)
+      have inter_r1_r2_keys: "set (RBT_Impl.keys (rbt_inter_rec f' r1 r2)) =
+        set (RBT_Impl.keys r1) \<inter> set (RBT_Impl.keys r2)"
+        using inter_r1_r2(1)
+        by (auto simp: rbt_lookup_iff_keys(1) inter_r1_r2(2) rbt_sort split: option.splits)
+      have inter_l1_l2_less: "rbt_inter_rec f' l1 l2 |\<guillemotleft> a"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_less_prop inter_l1_l2_keys)
+      have inter_r1_r2_greater: "a \<guillemotleft>| rbt_inter_rec f' r1 r2"
+        using rbt_sorted'(1) rbt_split_t2'_props
+        by (auto simp: Branch rbt_greater_prop inter_r1_r2_keys)
+      have rbt_lookup_join2: "rbt_lookup (rbt_join2 (rbt_inter_rec f' l1 l2) (rbt_inter_rec f' r1 r2)) k =
+        (case rbt_lookup (rbt_inter_rec f' l1 l2) k of None \<Rightarrow> rbt_lookup (rbt_inter_rec f' r1 r2) k
+        | Some v \<Rightarrow> Some v)" for k
+        using rbt_lookup_rbt_join2[OF inter_l1_l2(1) inter_r1_r2(1)] rbt_sorted'(1)
+        by (fastforce simp: Branch inter_l1_l2_keys inter_r1_r2_keys rbt_less_prop rbt_greater_prop)
+      have rbt_lookup_l1_k: "rbt_lookup l1 k = Some v \<Longrightarrow> k < a" for k v
+        using rbt_sorted'(1) rbt_lookup_iff_keys(3)
+        by (auto simp: Branch rbt_less_prop)
+      have rbt_lookup_r1_k: "rbt_lookup r1 k = Some v \<Longrightarrow> a < k" for k v
+        using rbt_sorted'(1) rbt_lookup_iff_keys(3)
+        by (auto simp: Branch rbt_greater_prop)
+      have "rbt_lookup (rbt_inter_rec f t1 t2) k =
+        (case rbt_lookup t1' k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup t2' k of None \<Rightarrow> None | Some w \<Rightarrow> Some (f' k v w)))"
+        by (auto simp: Let_def rbt_inter_rec.simps[of _ t1] flip[symmetric] not_small Branch
+            rbt_split_t2' rbt_lookup_join2 rbt_lookup_rbt_join inter_l1_l2_less inter_r1_r2_greater
+            rbt_split_lookup[OF rbt_split_t2' rbt_sorted'(2)] inter_l1_l2 inter_r1_r2
+            split!: if_splits option.splits dest: rbt_lookup_l1_k rbt_lookup_r1_k)
+      moreover have "rbt_sorted (rbt_inter_rec f t1 t2)"
+        using rbt_sorted' inter_l1_l2 inter_r1_r2 rbt_split_t2'_props not_small
+        by (auto simp: Let_def rbt_inter_rec.simps[of _ t1] flip[symmetric] Branch rbt_split_t2'
+            rbt_less_prop rbt_greater_prop inter_l1_l2_less inter_r1_r2_greater
+            inter_l1_l2_keys inter_r1_r2_keys intro!: rbt_sorted_rbt_join rbt_sorted_rbt_join2
+            split: if_splits option.splits dest!: bspec)
+      ultimately have ?thesis
+        using flip
+        by (auto split: if_splits split: option.splits)
+    }
+    then show ?thesis
+      unfolding rbt_inter_rec.simps[of _ t1] flip[symmetric]
+      using rbt_sorted' flip rbtreeify_map_filter_inter[OF rbt_sorted'(2)]
+      by (auto split: option.splits)
+  qed
+qed
+
+lemma rbt_lookup_delete:
+  assumes "inv_12 t" "rbt_sorted t"
+  shows "rbt_lookup (rbt_delete x t) k = (if x = k then None else rbt_lookup t k)"
+proof -
+  note rbt_sorted_del = rbt_del_rbt_sorted[OF assms(2), of x]
+  show ?thesis
+    using assms rbt_sorted_del rbt_del_in_tree rbt_lookup_from_in_tree[OF assms(2) rbt_sorted_del]
+    by (fastforce simp: inv_12_def rbt_delete_def rbt_lookup_iff_keys(2) keys_entries)
+qed
+
+lemma fold_rbt_delete:
+  assumes "inv_12 t1" "rbt_sorted t1" "rbt_sorted t2"
+  shows "inv_12 (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) \<and>
+    rbt_sorted (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) \<and>
+    rbt_lookup (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) k =
+    (case rbt_lookup t1 k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
+proof -
+  define xs where "xs = RBT_Impl.entries t2"
+  show "inv_12 (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) \<and>
+    rbt_sorted (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) \<and>
+    rbt_lookup (RBT_Impl.fold (\<lambda>k _ t. rbt_delete k t) t2 t1) k =
+    (case rbt_lookup t1 k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
+    using assms(1,2)
+    unfolding map_of_entries[OF assms(3), symmetric] RBT_Impl.fold_def xs_def[symmetric]
+    by (induction xs arbitrary: t1 rule: rev_induct)
+       (auto simp: rbt_delete rbt_sorted_delete rbt_lookup_delete split!: option.splits)
+qed
+
+lemma rbtreeify_filter_minus:
+  assumes "rbt_sorted t1"
+  shows "rbt_sorted (rbtreeify (filter_minus t1 t2)) \<and>
+    rbt_lookup (rbtreeify (filter_minus t1 t2)) k =
+    (case rbt_lookup t1 k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
+proof -
+  have map_of_filter: "map_of (filter (\<lambda>(k, _). rbt_lookup t2 k = None) xs) k =
+    (case map_of xs k of None \<Rightarrow> None
+    | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | Some x \<Rightarrow> Map.empty x))"
+      for xs :: "('a \<times> 'b) list"
+    by (induction xs) (auto split: option.splits)
+  have map_fst_filter_minus: "map fst (filter_minus t1 t2) =
+    filter (\<lambda>k. rbt_lookup t2 k = None) (map fst (RBT_Impl.entries t1))"
+    by (auto simp: filter_minus_def filter_map comp_def case_prod_unfold)
+  have "sorted (map fst (filter_minus t1 t2))" "distinct (map fst (filter_minus t1 t2))"
+    using distinct_filter distinct_entries[OF assms]
+      sorted_filter[of id] rbt_sorted_entries[OF assms]
+    by (auto simp: map_fst_filter_minus intro!: rbt_sorted_rbtreeify)
+  then show ?thesis
+    by (auto simp: rbt_lookup_rbtreeify filter_minus_def map_of_filter map_of_entries[OF assms]
+        intro!: rbt_sorted_rbtreeify)
+qed
+
+lemma rbt_lookup_minus_rec: "inv_12 t1 \<Longrightarrow> rbt_sorted t1 \<Longrightarrow> rbt_sorted t2 \<Longrightarrow>
+  rbt_sorted (rbt_minus_rec t1 t2) \<and> rbt_lookup (rbt_minus_rec t1 t2) k =
+  (case rbt_lookup t1 k of None \<Rightarrow> None
+  | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
+proof(induction t1 t2 arbitrary: k rule: rbt_minus_rec.induct)
+  case (1 t1 t2)
+  show ?case
+  proof (cases t2)
+    case Empty
+    show ?thesis
+      using rbtreeify_filter_minus[OF 1(4)] 1(4)
+      by (auto simp: rbt_minus_rec.simps[of t1] Empty split: option.splits)
+  next
+    case (Branch c l2 a b r2)
+    {
+      assume not_small: "\<not>small_rbt t2" "\<not>small_rbt t1"
+      obtain l1 \<beta> r1 where rbt_split_t1: "rbt_split t1 a = (l1, \<beta>, r1)"
+        by (cases "rbt_split t1 a") auto
+      note rbt_split_t1_props = rbt_split_props[OF rbt_split_t1 1(4)]
+      have minus_l1_l2: "rbt_sorted (rbt_minus_rec l1 l2)"
+        "rbt_lookup (rbt_minus_rec l1 l2) k =
+        (case rbt_lookup l1 k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup l2 k of None \<Rightarrow> Some v | Some x \<Rightarrow> None))" for k
+        using 1(1)[OF not_small Branch rbt_split_t1[symmetric] refl] 1(5) rbt_split_t1_props
+          rbt_split[OF rbt_split_t1 1(3)]
+        by (auto simp: Branch)
+      have minus_r1_r2: "rbt_sorted (rbt_minus_rec r1 r2)"
+        "rbt_lookup (rbt_minus_rec r1 r2) k =
+        (case rbt_lookup r1 k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup r2 k of None \<Rightarrow> Some v | Some x \<Rightarrow> None))" for k
+        using 1(2)[OF not_small Branch rbt_split_t1[symmetric] refl] 1(5) rbt_split_t1_props
+          rbt_split[OF rbt_split_t1 1(3)]
+        by (auto simp: Branch)
+      have minus_l1_l2_keys: "set (RBT_Impl.keys (rbt_minus_rec l1 l2)) =
+        set (RBT_Impl.keys l1) - set (RBT_Impl.keys l2)"
+        using minus_l1_l2(1) 1(5) rbt_lookup_iff_keys(3) rbt_split_t1_props
+        by (auto simp: Branch rbt_lookup_iff_keys(1) minus_l1_l2(2) split: option.splits)
+      have minus_r1_r2_keys: "set (RBT_Impl.keys (rbt_minus_rec r1 r2)) =
+        set (RBT_Impl.keys r1) - set (RBT_Impl.keys r2)"
+        using minus_r1_r2(1) 1(5) rbt_lookup_iff_keys(3) rbt_split_t1_props
+        by (auto simp: Branch rbt_lookup_iff_keys(1) minus_r1_r2(2) split: option.splits)
+      have rbt_lookup_join2: "rbt_lookup (rbt_join2 (rbt_minus_rec l1 l2) (rbt_minus_rec r1 r2)) k =
+        (case rbt_lookup (rbt_minus_rec l1 l2) k of None \<Rightarrow> rbt_lookup (rbt_minus_rec r1 r2) k
+        | Some v \<Rightarrow> Some v)" for k
+        using rbt_lookup_rbt_join2[OF minus_l1_l2(1) minus_r1_r2(1)] rbt_split_t1_props
+        by (fastforce simp: minus_l1_l2_keys minus_r1_r2_keys)
+      have lookup_l1_r1_a: "rbt_lookup l1 a = None" "rbt_lookup r1 a = None"
+        using rbt_split_t1_props
+        by (auto simp: rbt_lookup_iff_keys(2))
+      have "rbt_lookup (rbt_minus_rec t1 t2) k =
+        (case rbt_lookup t1 k of None \<Rightarrow> None
+        | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
+        using not_small rbt_lookup_iff_keys(2)[of l1] rbt_lookup_iff_keys(3)[of l1]
+          rbt_lookup_iff_keys(3)[of r1] rbt_split_t1_props
+        by (auto simp: rbt_minus_rec.simps[of t1] Branch rbt_split_t1 rbt_lookup_join2
+            minus_l1_l2(2) minus_r1_r2(2) rbt_split_lookup[OF rbt_split_t1 1(4)] lookup_l1_r1_a
+            split: option.splits)
+      moreover have "rbt_sorted (rbt_minus_rec t1 t2)"
+        using not_small minus_l1_l2(1) minus_r1_r2(1) rbt_split_t1_props rbt_sorted_rbt_join2
+        by (fastforce simp: rbt_minus_rec.simps[of t1] Branch rbt_split_t1 minus_l1_l2_keys minus_r1_r2_keys)
+      ultimately have ?thesis
+        by (auto split: if_splits split: option.splits)
+    }
+    then show ?thesis
+      using fold_rbt_delete[OF 1(3,4,5)] rbtreeify_filter_minus[OF 1(4)]
+      by (auto simp: rbt_minus_rec.simps[of t1])
+  qed
+qed
+
+end
+
+context ord begin
+
+definition rbt_union_with_key :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
+where
+  "rbt_union_with_key f t1 t2 = paint B (rbt_union_swap_rec f False t1 t2)"
+
+definition rbt_union_with where
+  "rbt_union_with f = rbt_union_with_key (\<lambda>_. f)"
+
+definition rbt_union where
+  "rbt_union = rbt_union_with_key (%_ _ rv. rv)"
+
+definition rbt_inter_with_key :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
+where
+  "rbt_inter_with_key f t1 t2 = paint B (rbt_inter_swap_rec f False t1 t2)"
+
+definition rbt_inter_with where
+  "rbt_inter_with f = rbt_inter_with_key (\<lambda>_. f)"
+
+definition rbt_inter where
+  "rbt_inter = rbt_inter_with_key (\<lambda>_ _ rv. rv)"
+
+definition rbt_minus where
+  "rbt_minus t1 t2 = paint B (rbt_minus_rec t1 t2)"
+
+end
+
+context linorder begin
+
 lemma is_rbt_rbt_unionwk [simp]:
   "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_union_with_key f t1 t2)"
-by(simp add: rbt_union_with_key_def Let_def is_rbt_fold_rbt_insertwk is_rbt_rbtreeify rbt_sorted_entries distinct_entries split: compare.split)
+  using rbt_union_rec rbt_lookup_union_rec
+  by (fastforce simp: rbt_union_with_key_def rbt_union_swap_rec is_rbt_def inv_12_def)
 
 lemma rbt_lookup_rbt_unionwk:
   "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> 
@@ -1949,7 +2941,8 @@ lemma rbt_lookup_rbt_unionwk:
   (case rbt_lookup t1 k of None \<Rightarrow> rbt_lookup t2 k 
    | Some v \<Rightarrow> case rbt_lookup t2 k of None \<Rightarrow> Some v 
               | Some w \<Rightarrow> Some (f k v w))"
-by(auto simp add: rbt_union_with_key_def Let_def rbt_lookup_fold_rbt_insertwk rbt_sorted_entries distinct_entries map_of_sunion_with map_of_entries rbt_lookup_rbtreeify split: option.split compare.split)
+  using rbt_lookup_union_rec
+  by (auto simp: rbt_union_with_key_def rbt_union_swap_rec)
 
 lemma rbt_unionw_is_rbt: "\<lbrakk> is_rbt lt; is_rbt rt \<rbrakk> \<Longrightarrow> is_rbt (rbt_union_with f lt rt)"
 by(simp add: rbt_union_with_def)
@@ -1963,15 +2956,16 @@ lemma rbt_lookup_rbt_union:
 by(rule ext)(simp add: rbt_lookup_rbt_unionwk rbt_union_def map_add_def split: option.split)
 
 lemma rbt_interwk_is_rbt [simp]:
-  "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with_key f t1 t2)"
-by(auto simp add: rbt_inter_with_key_def Let_def map_map_filter split_def o_def option.map_comp map_filter_map_option_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries intro: is_rbt_rbtreeify split: compare.split)
+  "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with_key f t1 t2)"
+  using rbt_inter_rec rbt_lookup_inter_rec
+  by (fastforce simp: rbt_inter_with_key_def rbt_inter_swap_rec is_rbt_def inv_12_def rbt_sorted_paint)
 
 lemma rbt_interw_is_rbt:
-  "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with f t1 t2)"
+  "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with f t1 t2)"
 by(simp add: rbt_inter_with_def)
 
 lemma rbt_inter_is_rbt:
-  "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter t1 t2)"
+  "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter t1 t2)"
 by(simp add: rbt_inter_def)
 
 lemma rbt_lookup_rbt_interwk:
@@ -1980,12 +2974,25 @@ lemma rbt_lookup_rbt_interwk:
   (case rbt_lookup t1 k of None \<Rightarrow> None 
    | Some v \<Rightarrow> case rbt_lookup t2 k of None \<Rightarrow> None
                | Some w \<Rightarrow> Some (f k v w))"
-by(auto 4 3 simp add: rbt_inter_with_key_def Let_def map_of_entries[symmetric] rbt_lookup_rbtreeify map_map_filter split_def o_def option.map_comp map_filter_map_option_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries map_of_sinter_with map_of_eq_None_iff set_map_filter split: option.split compare.split intro: rev_image_eqI dest: rbt_sorted_entries_right_unique)
+  using rbt_lookup_inter_rec
+  by (auto simp: rbt_inter_with_key_def rbt_inter_swap_rec)
 
 lemma rbt_lookup_rbt_inter:
   "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk>
   \<Longrightarrow> rbt_lookup (rbt_inter t1 t2) = rbt_lookup t2 |` dom (rbt_lookup t1)"
 by(auto simp add: rbt_inter_def rbt_lookup_rbt_interwk restrict_map_def split: option.split)
+
+lemma rbt_minus_is_rbt:
+  "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_minus t1 t2)"
+  using rbt_minus_rec[of t1 t2] rbt_lookup_minus_rec[of t1 t2]
+  by (auto simp: rbt_minus_def is_rbt_def inv_12_def)
+
+lemma rbt_lookup_rbt_minus:
+  "\<lbrakk> is_rbt t1; is_rbt t2 \<rbrakk>
+  \<Longrightarrow> rbt_lookup (rbt_minus t1 t2) = rbt_lookup t1 |` (- dom (rbt_lookup t2))"
+  by (rule ext)
+     (auto simp: rbt_minus_def is_rbt_def inv_12_def restrict_map_def rbt_lookup_minus_rec
+      split: option.splits)
 
 end
 
@@ -2006,14 +3013,19 @@ lemmas [code] =
   ord.rbt_del_from_right.simps
   ord.rbt_del.simps
   ord.rbt_delete_def
-  ord.sunion_with.simps
-  ord.sinter_with.simps
+  ord.rbt_split.simps
+  ord.rbt_union_swap_rec.simps
+  ord.map_filter_inter_def
+  ord.rbt_inter_swap_rec.simps
+  ord.filter_minus_def
+  ord.rbt_minus_rec.simps
   ord.rbt_union_with_key_def
   ord.rbt_union_with_def
   ord.rbt_union_def
   ord.rbt_inter_with_key_def
   ord.rbt_inter_with_def
   ord.rbt_inter_def
+  ord.rbt_minus_def
   ord.rbt_map_entry.simps
   ord.rbt_bulkload_def
 
