@@ -28,11 +28,8 @@ object HTML
 
   def output(s: StringBuilder, text: String, hidden: Boolean, permissive: Boolean)
   {
-    def output_char(c: Char): Unit =
-      XML.output_char(s, c, permissive = permissive)
-
     def output_string(str: String): Unit =
-      str.iterator.foreach(output_char)
+      XML.output_string(s, str, permissive = permissive)
 
     def output_hidden(body: => Unit): Unit =
       if (hidden) { s ++= "<span class=\"hidden\">"; body; s ++= "</span>" }
@@ -63,9 +60,9 @@ object HTML
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) =>
             output_hidden(output_symbol(ctrl))
-            s += '<'; s ++= elem; s += '>'
+            XML.output_elem(s, Markup(elem, Nil))
             output_symbol(sym)
-            s ++= "</"; s ++= elem; s += '>'
+            XML.output_elem_end(s, elem)
           case _ =>
             output_symbol(ctrl)
             output_symbol(sym)
@@ -88,27 +85,15 @@ object HTML
 
   def output(s: StringBuilder, body: XML.Body, hidden: Boolean, structural: Boolean)
   {
-    def elem(markup: Markup)
-    {
-      s ++= markup.name
-      for ((a, b) <- markup.properties) {
-        s += ' '
-        s ++= a
-        s += '='
-        s += '"'
-        output(s, b, hidden = hidden, permissive = false)
-        s += '"'
-      }
-    }
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(markup, Nil) =>
-          s += '<'; elem(markup); s ++= "/>"
+          XML.output_elem(s, markup, end = true)
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
-          s += '<'; elem(markup); s += '>'
+          XML.output_elem(s, markup)
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s += '>'
+          XML.output_elem_end(s, markup.name)
           if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
           output(s, txt, hidden = hidden, permissive = true)

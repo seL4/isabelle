@@ -146,27 +146,43 @@ object XML
     else str.iterator.foreach(output_char(s, _, permissive = permissive))
   }
 
+  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false)
+  {
+    s += '<'
+    s ++= markup.name
+    for ((a, b) <- markup.properties) {
+      s += ' '
+      s ++= a
+      s += '='
+      s += '"'
+      output_string(s, b)
+      s += '"'
+    }
+    if (end) s += '/'
+    s += '>'
+  }
+
+  def output_elem_end(s: StringBuilder, name: String)
+  {
+    s += '<'
+    s += '/'
+    s ++= name
+    s += '>'
+  }
+
   def string_of_body(body: Body): String =
   {
     val s = new StringBuilder
 
-    def text(txt: String) { output_string(s, txt) }
-    def elem(markup: Markup)
-    {
-      s ++= markup.name
-      for ((a, b) <- markup.properties) {
-        s += ' '; s ++= a; s += '='; s += '"'; text(b); s += '"'
-      }
-    }
     def tree(t: Tree): Unit =
       t match {
         case XML.Elem(markup, Nil) =>
-          s += '<'; elem(markup); s ++= "/>"
+          output_elem(s, markup, end = true)
         case XML.Elem(markup, ts) =>
-          s += '<'; elem(markup); s += '>'
+          output_elem(s, markup)
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s += '>'
-        case XML.Text(txt) => text(txt)
+          output_elem_end(s, markup.name)
+        case XML.Text(txt) => output_string(s, txt)
       }
     body.foreach(tree)
     s.toString
