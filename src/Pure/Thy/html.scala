@@ -26,7 +26,7 @@ object HTML
 
   def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
 
-  def output_char_permissive(c: Char, s: StringBuilder)
+  def output_char_permissive(s: StringBuilder, c: Char)
   {
     c match {
       case '<' => s ++= "&lt;"
@@ -36,11 +36,11 @@ object HTML
     }
   }
 
-  def output(text: String, s: StringBuilder, hidden: Boolean, permissive: Boolean)
+  def output(s: StringBuilder, text: String, hidden: Boolean, permissive: Boolean)
   {
     def output_char(c: Char): Unit =
-      if (permissive) output_char_permissive(c, s)
-      else XML.output_char(c, s)
+      if (permissive) output_char_permissive(s, c)
+      else XML.output_char(s, c)
 
     def output_string(str: String): Unit =
       str.iterator.foreach(output_char)
@@ -88,7 +88,7 @@ object HTML
   }
 
   def output(text: String): String =
-    Library.make_string(output(text, _, hidden = false, permissive = true))
+    Library.make_string(output(_, text, hidden = false, permissive = true))
 
 
   /* output XML as HTML */
@@ -97,7 +97,7 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(body: XML.Body, s: StringBuilder, hidden: Boolean, structural: Boolean)
+  def output(s: StringBuilder, body: XML.Body, hidden: Boolean, structural: Boolean)
   {
     def elem(markup: Markup)
     {
@@ -107,7 +107,7 @@ object HTML
         s ++= a
         s += '='
         s += '"'
-        output(b, s, hidden = hidden, permissive = false)
+        output(s, b, hidden = hidden, permissive = false)
         s += '"'
       }
     }
@@ -122,13 +122,13 @@ object HTML
           s ++= "</"; s ++= markup.name; s += '>'
           if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
-          output(txt, s, hidden = hidden, permissive = true)
+          output(s, txt, hidden = hidden, permissive = true)
       }
     body.foreach(tree)
   }
 
   def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
-    Library.make_string(output(body, _, hidden, structural))
+    Library.make_string(output(_, body, hidden, structural))
 
   def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
     output(List(tree), hidden, structural)

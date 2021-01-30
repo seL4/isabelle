@@ -128,7 +128,7 @@ object XML
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(c: Char, s: StringBuilder)
+  def output_char(s: StringBuilder, c: Char)
   {
     c match {
       case '<' => s ++= "&lt;"
@@ -140,17 +140,17 @@ object XML
     }
   }
 
-  def output_string(str: String, s: StringBuilder)
+  def output_string(s: StringBuilder, str: String)
   {
     if (str == null) s ++= str
-    else str.iterator.foreach(c => output_char(c, s))
+    else str.iterator.foreach(c => output_char(s, c))
   }
 
   def string_of_body(body: Body): String =
   {
     val s = new StringBuilder
 
-    def text(txt: String) { output_string(txt, s) }
+    def text(txt: String) { output_string(s, txt) }
     def elem(markup: Markup)
     {
       s ++= markup.name
