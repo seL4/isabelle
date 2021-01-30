@@ -83,22 +83,24 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(s: StringBuilder, body: XML.Body, hidden: Boolean, structural: Boolean)
+  def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean)
   {
-    def tree(t: XML.Tree): Unit =
-      t match {
+    def output_body(body: XML.Body): Unit =
+    {
+      body foreach {
         case XML.Elem(markup, Nil) =>
           XML.output_elem(s, markup, end = true)
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
           XML.output_elem(s, markup)
-          ts.foreach(tree)
+          output_body(ts)
           XML.output_elem_end(s, markup.name)
           if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
           output(s, txt, hidden = hidden, permissive = true)
       }
-    body.foreach(tree)
+    }
+    output_body(xml)
   }
 
   def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
