@@ -38,7 +38,7 @@ Official (full support):
   x86_64-darwin     macOS 10.13 High Sierra (lapbroy68 MacBookPro11,2)
                     macOS 10.14 Mojave (mini2 Macmini8,1)
                     macOS 10.15 Catalina (laramac01 Macmini8,1)
-                    macOS 11.1 Big Sur
+                    macOS 11.1 Big Sur (mini1 Macmini8,1)
 
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.1.x https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
