@@ -11,18 +11,21 @@ object HTML
 {
   /* output text with control symbols */
 
-  private val control =
+  private lazy val control =
     Map(
-      Symbol.sub -> "sub", Symbol.sub_decoded -> "sub",
-      Symbol.sup -> "sup", Symbol.sup_decoded -> "sup",
-      Symbol.bold -> "b", Symbol.bold_decoded -> "b")
+      Symbol.sub -> sub, Symbol.sub_decoded -> sub,
+      Symbol.sup -> sup, Symbol.sup_decoded -> sup,
+      Symbol.bold -> bold, Symbol.bold_decoded -> bold)
 
-  private val control_block =
+  private lazy val control_block_begin =
     Map(
-      Symbol.bsub -> "<sub>", Symbol.bsub_decoded -> "<sub>",
-      Symbol.esub -> "</sub>", Symbol.esub_decoded -> "</sub>",
-      Symbol.bsup -> "<sup>", Symbol.bsup_decoded -> "<sup>",
-      Symbol.esup -> "</sup>", Symbol.esup_decoded -> "</sup>")
+      Symbol.bsub -> sub, Symbol.bsub_decoded -> sub,
+      Symbol.bsup -> sup, Symbol.bsup_decoded -> sup)
+
+  private lazy val control_block_end =
+    Map(
+      Symbol.esub -> sub, Symbol.esub_decoded -> sub,
+      Symbol.esup -> sup, Symbol.esup_decoded -> sup)
 
   def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
 
@@ -36,20 +39,25 @@ object HTML
 
     def output_symbol(sym: Symbol.Symbol): Unit =
       if (sym != "") {
-        control_block.get(sym) match {
-          case Some(html) if html.startsWith("</") =>
-            s ++= html; output_hidden(output_string(sym))
-          case Some(html) =>
-            output_hidden(output_string(sym)); s ++= html
+        control_block_begin.get(sym) match {
+          case Some(op) =>
+            output_hidden(output_string(sym))
+            XML.output_elem(s, Markup(op.name, Nil))
           case None =>
-            if (hidden && Symbol.is_control_encoded(sym)) {
-              output_hidden(output_string(Symbol.control_prefix))
-              s ++= "<span class=\"control\">"
-              output_string(Symbol.control_name(sym).get)
-              s ++= "</span>"
-              output_hidden(output_string(Symbol.control_suffix))
+            control_block_end.get(sym) match {
+              case Some(op) =>
+                XML.output_elem_end(s, op.name)
+                output_hidden(output_string(sym))
+              case None =>
+                if (hidden && Symbol.is_control_encoded(sym)) {
+                  output_hidden(output_string(Symbol.control_prefix))
+                  s ++= "<span class=\"control\">"
+                  output_string(Symbol.control_name(sym).get)
+                  s ++= "</span>"
+                  output_hidden(output_string(Symbol.control_suffix))
+                }
+                else output_string(sym)
             }
-            else output_string(sym)
         }
       }
 
@@ -58,11 +66,11 @@ object HTML
       if (is_control(sym)) { output_symbol(ctrl); ctrl = sym }
       else {
         control.get(ctrl) match {
-          case Some(elem) if Symbol.is_controllable(sym) =>
+          case Some(op) if Symbol.is_controllable(sym) =>
             output_hidden(output_symbol(ctrl))
-            XML.output_elem(s, Markup(elem, Nil))
+            XML.output_elem(s, Markup(op.name, Nil))
             output_symbol(sym)
-            XML.output_elem_end(s, elem)
+            XML.output_elem_end(s, op.name)
           case _ =>
             output_symbol(ctrl)
             output_symbol(sym)
@@ -150,6 +158,8 @@ object HTML
   val span = new Operator("span")
   val pre = new Operator("pre")
   val par = new Operator("p")
+  val sub = new Operator("sub")
+  val sup = new Operator("sup")
   val emph = new Operator("em")
   val bold = new Operator("b")
   val code = new Operator("code")
