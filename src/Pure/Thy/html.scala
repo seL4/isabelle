@@ -115,7 +115,34 @@ object HTML
 
   def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
 
-  def output(s: StringBuilder, text: String, hidden: Boolean, permissive: Boolean)
+  def is_control_block_begin(sym: Symbol.Symbol): Boolean = control_block_begin.isDefinedAt(sym)
+  def is_control_block_end(sym: Symbol.Symbol): Boolean = control_block_end.isDefinedAt(sym)
+  def is_control_block_pair(bg: Symbol.Symbol, en: Symbol.Symbol): Boolean =
+  {
+    val bg_decoded = Symbol.decode(bg)
+    val en_decoded = Symbol.decode(en)
+    bg_decoded == Symbol.bsub_decoded && en_decoded == Symbol.esub_decoded ||
+    bg_decoded == Symbol.bsup_decoded && en_decoded == Symbol.esup_decoded
+  }
+
+  def check_control_blocks(body: XML.Body): Boolean =
+  {
+    var ok = true
+    var open = List.empty[Symbol.Symbol]
+    for { XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
+      if (is_control_block_begin(sym)) open ::= sym
+      else if (is_control_block_end(sym)) {
+        open match {
+          case bg :: rest if is_control_block_pair(bg, sym) => open = rest
+          case _ => ok = false
+        }
+      }
+    }
+    ok && open.isEmpty
+  }
+
+  def output(s: StringBuilder, text: String,
+    control_blocks: Boolean, hidden: Boolean, permissive: Boolean)
   {
     def output_string(str: String): Unit =
       XML.output_string(s, str, permissive = permissive)
@@ -126,15 +153,15 @@ object HTML
     def output_symbol(sym: Symbol.Symbol): Unit =
       if (sym != "") {
         control_block_begin.get(sym) match {
-          case Some(op) =>
+          case Some(op) if control_blocks =>
             output_hidden(output_string(sym))
             XML.output_elem(s, Markup(op.name, Nil))
-          case None =>
+          case _ =>
             control_block_end.get(sym) match {
-              case Some(op) =>
+              case Some(op) if control_blocks =>
                 XML.output_elem_end(s, op.name)
                 output_hidden(output_string(sym))
-              case None =>
+              case _ =>
                 if (hidden && Symbol.is_control_encoded(sym)) {
                   output_hidden(output_string(Symbol.control_prefix))
                   s ++= "<span class=\"control\">"
@@ -168,7 +195,11 @@ object HTML
   }
 
   def output(text: String): String =
-    Library.make_string(output(_, text, hidden = false, permissive = true))
+  {
+    val control_blocks = check_control_blocks(List(XML.Text(text)))
+    Library.make_string(output(_, text,
+      control_blocks = control_blocks, hidden = false, permissive = true))
+  }
 
 
   /* output XML as HTML */
@@ -181,6 +212,7 @@ object HTML
   {
     def output_body(body: XML.Body): Unit =
     {
+      val control_blocks = check_control_blocks(body)
       body foreach {
         case XML.Elem(markup, Nil) =>
           XML.output_elem(s, markup, end = true)
@@ -191,7 +223,7 @@ object HTML
           XML.output_elem_end(s, markup.name)
           if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
-          output(s, txt, hidden = hidden, permissive = true)
+          output(s, txt, control_blocks = control_blocks, hidden = hidden, permissive = true)
       }
     }
     output_body(xml)
