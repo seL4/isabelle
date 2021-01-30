@@ -9,20 +9,106 @@ package isabelle
 
 object HTML
 {
+  /* attributes */
+
+  class Attribute(val name: String, value: String)
+  {
+    def xml: XML.Attribute = name -> value
+    def apply(elem: XML.Elem): XML.Elem = elem + xml
+  }
+
+  def id(s: String): Attribute = new Attribute("id", s)
+  def class_(name: String): Attribute = new Attribute("class", name)
+
+  def width(w: Int): Attribute = new Attribute("width", w.toString)
+  def height(h: Int): Attribute = new Attribute("height", h.toString)
+  def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
+
+
+  /* structured markup operators */
+
+  def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
+  val break: XML.Body = List(XML.elem("br"))
+  val nl: XML.Body = List(XML.Text("\n"))
+
+  class Operator(val name: String)
+  {
+    def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
+    def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
+    def apply(c: String, body: XML.Body): XML.Elem = apply(class_(c), body)
+  }
+
+  class Heading(name: String) extends Operator(name)
+  {
+    def apply(txt: String): XML.Elem = super.apply(text(txt))
+    def apply(att: Attribute, txt: String): XML.Elem = super.apply(att, text(txt))
+    def apply(c: String, txt: String): XML.Elem = super.apply(c, text(txt))
+  }
+
+  val div = new Operator("div")
+  val span = new Operator("span")
+  val pre = new Operator("pre")
+  val par = new Operator("p")
+  val sub = new Operator("sub")
+  val sup = new Operator("sup")
+  val emph = new Operator("em")
+  val bold = new Operator("b")
+  val code = new Operator("code")
+  val item = new Operator("li")
+  val list = new Operator("ul")
+  val enum = new Operator("ol")
+  val descr = new Operator("dl")
+  val dt = new Operator("dt")
+  val dd = new Operator("dd")
+
+  val title = new Heading("title")
+  val chapter = new Heading("h1")
+  val section = new Heading("h2")
+  val subsection = new Heading("h3")
+  val subsubsection = new Heading("h4")
+  val paragraph = new Heading("h5")
+  val subparagraph = new Heading("h6")
+
+  def itemize(items: List[XML.Body]): XML.Elem = list(items.map(item(_)))
+  def enumerate(items: List[XML.Body]): XML.Elem = enum(items.map(item(_)))
+  def description(items: List[(XML.Body, XML.Body)]): XML.Elem =
+    descr(items.flatMap({ case (x, y) => List(dt(x), dd(y)) }))
+
+  def link(href: String, body: XML.Body): XML.Elem =
+    XML.Elem(Markup("a", List("href" -> href)), if (body.isEmpty) text(href) else body)
+
+  def link(path: Path, body: XML.Body): XML.Elem = link(path.implode, body)
+
+  def image(src: String, alt: String = ""): XML.Elem =
+    XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
+
+  def source(body: XML.Body): XML.Elem = pre("source", body)
+  def source(src: String): XML.Elem = source(text(src))
+
+  def style(s: String): XML.Elem = XML.elem("style", text(s))
+  def style_file(href: String): XML.Elem =
+    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
+  def style_file(path: Path): XML.Elem = style_file(Url.print_file(path.file))
+
+  def script(s: String): XML.Elem = XML.elem("script", text(s))
+  def script_file(href: String): XML.Elem = XML.Elem(Markup("script", List("src" -> href)), Nil)
+  def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
+
+
   /* output text with control symbols */
 
-  private lazy val control =
+  private val control =
     Map(
       Symbol.sub -> sub, Symbol.sub_decoded -> sub,
       Symbol.sup -> sup, Symbol.sup_decoded -> sup,
       Symbol.bold -> bold, Symbol.bold_decoded -> bold)
 
-  private lazy val control_block_begin =
+  private val control_block_begin =
     Map(
       Symbol.bsub -> sub, Symbol.bsub_decoded -> sub,
       Symbol.bsup -> sup, Symbol.bsup_decoded -> sup)
 
-  private lazy val control_block_end =
+  private val control_block_end =
     Map(
       Symbol.esub -> sub, Symbol.esub_decoded -> sub,
       Symbol.esup -> sup, Symbol.esup_decoded -> sup)
@@ -116,92 +202,6 @@ object HTML
 
   def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
     output(List(tree), hidden, structural)
-
-
-  /* attributes */
-
-  class Attribute(val name: String, value: String)
-  {
-    def xml: XML.Attribute = name -> value
-    def apply(elem: XML.Elem): XML.Elem = elem + xml
-  }
-
-  def id(s: String): Attribute = new Attribute("id", s)
-  def class_(name: String): Attribute = new Attribute("class", name)
-
-  def width(w: Int): Attribute = new Attribute("width", w.toString)
-  def height(h: Int): Attribute = new Attribute("height", h.toString)
-  def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
-
-
-  /* structured markup operators */
-
-  def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
-  val break: XML.Body = List(XML.elem("br"))
-  val nl: XML.Body = List(XML.Text("\n"))
-
-  class Operator(val name: String)
-  {
-    def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
-    def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
-    def apply(c: String, body: XML.Body): XML.Elem = apply(class_(c), body)
-  }
-
-  class Heading(name: String) extends Operator(name)
-  {
-    def apply(txt: String): XML.Elem = super.apply(text(txt))
-    def apply(att: Attribute, txt: String): XML.Elem = super.apply(att, text(txt))
-    def apply(c: String, txt: String): XML.Elem = super.apply(c, text(txt))
-  }
-
-  val div = new Operator("div")
-  val span = new Operator("span")
-  val pre = new Operator("pre")
-  val par = new Operator("p")
-  val sub = new Operator("sub")
-  val sup = new Operator("sup")
-  val emph = new Operator("em")
-  val bold = new Operator("b")
-  val code = new Operator("code")
-  val item = new Operator("li")
-  val list = new Operator("ul")
-  val enum = new Operator("ol")
-  val descr = new Operator("dl")
-  val dt = new Operator("dt")
-  val dd = new Operator("dd")
-
-  val title = new Heading("title")
-  val chapter = new Heading("h1")
-  val section = new Heading("h2")
-  val subsection = new Heading("h3")
-  val subsubsection = new Heading("h4")
-  val paragraph = new Heading("h5")
-  val subparagraph = new Heading("h6")
-
-  def itemize(items: List[XML.Body]): XML.Elem = list(items.map(item(_)))
-  def enumerate(items: List[XML.Body]): XML.Elem = enum(items.map(item(_)))
-  def description(items: List[(XML.Body, XML.Body)]): XML.Elem =
-    descr(items.flatMap({ case (x, y) => List(dt(x), dd(y)) }))
-
-  def link(href: String, body: XML.Body): XML.Elem =
-    XML.Elem(Markup("a", List("href" -> href)), if (body.isEmpty) text(href) else body)
-
-  def link(path: Path, body: XML.Body): XML.Elem = link(path.implode, body)
-
-  def image(src: String, alt: String = ""): XML.Elem =
-    XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
-
-  def source(body: XML.Body): XML.Elem = pre("source", body)
-  def source(src: String): XML.Elem = source(text(src))
-
-  def style(s: String): XML.Elem = XML.elem("style", text(s))
-  def style_file(href: String): XML.Elem =
-    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
-  def style_file(path: Path): XML.Elem = style_file(Url.print_file(path.file))
-
-  def script(s: String): XML.Elem = XML.elem("script", text(s))
-  def script_file(href: String): XML.Elem = XML.Elem(Markup("script", List("src" -> href)), Nil)
-  def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
 
 
   /* messages */
