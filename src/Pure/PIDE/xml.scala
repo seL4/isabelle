@@ -128,22 +128,22 @@ object XML
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(s: StringBuilder, c: Char)
+  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false)
   {
     c match {
       case '<' => s ++= "&lt;"
       case '>' => s ++= "&gt;"
       case '&' => s ++= "&amp;"
-      case '"' => s ++= "&quot;"
-      case '\'' => s ++= "&apos;"
+      case '"' if !permissive => s ++= "&quot;"
+      case '\'' if !permissive => s ++= "&apos;"
       case _ => s += c
     }
   }
 
-  def output_string(s: StringBuilder, str: String)
+  def output_string(s: StringBuilder, str: String, permissive: Boolean = false)
   {
     if (str == null) s ++= str
-    else str.iterator.foreach(c => output_char(s, c))
+    else str.iterator.foreach(output_char(s, _, permissive = permissive))
   }
 
   def string_of_body(body: Body): String =

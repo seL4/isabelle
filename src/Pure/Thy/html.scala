@@ -26,21 +26,10 @@ object HTML
 
   def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
 
-  def output_char_permissive(s: StringBuilder, c: Char)
-  {
-    c match {
-      case '<' => s ++= "&lt;"
-      case '>' => s ++= "&gt;"
-      case '&' => s ++= "&amp;"
-      case _ => s += c
-    }
-  }
-
   def output(s: StringBuilder, text: String, hidden: Boolean, permissive: Boolean)
   {
     def output_char(c: Char): Unit =
-      if (permissive) output_char_permissive(s, c)
-      else XML.output_char(s, c)
+      XML.output_char(s, c, permissive = permissive)
 
     def output_string(str: String): Unit =
       str.iterator.foreach(output_char)
