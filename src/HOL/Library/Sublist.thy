@@ -476,40 +476,19 @@ theorem prefix_cases:
   obtains "prefix xs ys" | "strict_prefix ys xs" | "xs \<parallel> ys"
   unfolding parallel_def strict_prefix_def by blast
 
+lemma parallel_cancel:  "a#xs \<parallel> a#ys \<Longrightarrow> xs \<parallel> ys"
+  by (simp add: parallel_def)
+
 theorem parallel_decomp:
   "xs \<parallel> ys \<Longrightarrow> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
-proof (induct xs rule: rev_induct)
-  case Nil
-  then have False by auto
-  then show ?case ..
-next
-  case (snoc x xs)
-  show ?case
-  proof (rule prefix_cases)
-    assume le: "prefix xs ys"
-    then obtain ys' where ys: "ys = xs @ ys'" ..
-    show ?thesis
-    proof (cases ys')
-      assume "ys' = []"
-      then show ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
-    next
-      fix c cs assume ys': "ys' = c # cs"
-      have "x \<noteq> c" using snoc.prems ys ys' by fastforce
-      thus "\<exists>as b bs c cs. b \<noteq> c \<and> xs @ [x] = as @ b # bs \<and> ys = as @ c # cs"
-        using ys ys' by blast
-    qed
-  next
-    assume "strict_prefix ys xs"
-    then have "prefix ys (xs @ [x])" by (simp add: strict_prefix_def)
-    with snoc have False by blast
-    then show ?thesis ..
-  next
-    assume "xs \<parallel> ys"
-    with snoc obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
-      and xs: "xs = as @ b # bs" and ys: "ys = as @ c # cs"
-      by blast
-    from xs have "xs @ [x] = as @ b # (bs @ [x])" by simp
-    with neq ys show ?thesis by blast
+proof (induct rule: list_induct2', blast, force, force)
+  case (4 x xs y ys)
+  then show ?case
+  proof (cases "x \<noteq> y", blast)
+    assume "\<not> x \<noteq> y" hence "x = y" by blast
+    then show ?thesis
+      using "4.hyps"[OF parallel_cancel[OF "4.prems"[folded \<open>x = y\<close>]]]
+      by (meson Cons_eq_appendI)
   qed
 qed
 
