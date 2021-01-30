@@ -97,18 +97,18 @@ object HTML
 
   /* output text with control symbols */
 
-  private val control =
+  private val control: Map[Symbol.Symbol, Operator] =
     Map(
       Symbol.sub -> sub, Symbol.sub_decoded -> sub,
       Symbol.sup -> sup, Symbol.sup_decoded -> sup,
       Symbol.bold -> bold, Symbol.bold_decoded -> bold)
 
-  private val control_block_begin =
+  private val control_block_begin: Map[Symbol.Symbol, Operator] =
     Map(
       Symbol.bsub -> sub, Symbol.bsub_decoded -> sub,
       Symbol.bsup -> sup, Symbol.bsup_decoded -> sup)
 
-  private val control_block_end =
+  private val control_block_end: Map[Symbol.Symbol, Operator] =
     Map(
       Symbol.esub -> sub, Symbol.esub_decoded -> sub,
       Symbol.esup -> sup, Symbol.esup_decoded -> sup)

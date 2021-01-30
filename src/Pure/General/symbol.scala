@@ -629,14 +629,14 @@ object Symbol
     !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) &&
     !is_malformed(sym) && sym != "\""
 
-  val sub = "\\<^sub>"
-  val sup = "\\<^sup>"
-  val bold = "\\<^bold>"
-  val emph = "\\<^emph>"
-  val bsub = "\\<^bsub>"
-  val esub = "\\<^esub>"
-  val bsup = "\\<^bsup>"
-  val esup = "\\<^esup>"
+  val sub: Symbol = "\\<^sub>"
+  val sup: Symbol = "\\<^sup>"
+  val bold: Symbol = "\\<^bold>"
+  val emph: Symbol = "\\<^emph>"
+  val bsub: Symbol = "\\<^bsub>"
+  val esub: Symbol = "\\<^esub>"
+  val bsup: Symbol = "\\<^bsup>"
+  val esup: Symbol = "\\<^esup>"
 
   def sub_decoded: Symbol = symbols.sub_decoded
   def sup_decoded: Symbol = symbols.sup_decoded
