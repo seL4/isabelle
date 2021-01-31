@@ -1883,8 +1883,8 @@ definition small_rbt :: "('a, 'b) rbt \<Rightarrow> bool" where
 definition flip_rbt :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool" where
   "flip_rbt t1 t2 \<longleftrightarrow> bheight t2 < bheight t1"
 
-abbreviation MR where "MR l a b r \<equiv> Branch RBT_Impl.R l a b r"
-abbreviation MB where "MB l a b r \<equiv> Branch RBT_Impl.B l a b r"
+abbreviation (input) MR where "MR l a b r \<equiv> Branch RBT_Impl.R l a b r"
+abbreviation (input) MB where "MB l a b r \<equiv> Branch RBT_Impl.B l a b r"
 
 fun rbt_baliL :: "('a, 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
   "rbt_baliL (MR (MR t1 a b t2) a' b' t3) a'' b'' t4 = MR (MB t1 a b t2) a' b' (MB t3 a'' b'' t4)"
@@ -3082,6 +3082,6 @@ setup \<open>
      (\<^const_name>\<open>rbt_bulkload\<close>, SOME \<^typ>\<open>('a \<times> 'b) list \<Rightarrow> ('a::linorder,'b) rbt\<close>)]
 \<close>
 
-hide_const (open) R B Empty entries keys fold gen_keys gen_entries
+hide_const (open) MR MB R B Empty entries keys fold gen_keys gen_entries
 
 end
