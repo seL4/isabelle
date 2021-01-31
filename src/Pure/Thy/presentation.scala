@@ -458,34 +458,54 @@ object Presentation
           case _ => None
         }
 
-      val read_theories =
-        Par_List.map[Document.Node.Name, Option[(Document.Node.Name, Command)]](
-          name => Build_Job.read_theory(db_context, resources, session, name.theory).map((name, _)),
-          base.session_theories)
+      sealed case class Theory(
+        name: Document.Node.Name,
+        command: Command,
+        files_html: List[(Path, XML.Tree)],
+        html: XML.Tree)
 
-      for ((thy_name, thy_command) <- read_theories.flatten)
-      yield {
+      def read_theory(name: Document.Node.Name): Option[Theory] =
+      {
         progress.expose_interrupt()
-        if (verbose) progress.echo("Presenting theory " + thy_name)
 
-        val snapshot = Document.State.init.snippet(thy_command)
+        for (command <- Build_Job.read_theory(db_context, resources, session, name.theory))
+        yield {
+          val snapshot = Document.State.init.snippet(command)
+
+          val files_html =
+            for {
+              (src_path, xml) <- snapshot.xml_markup_blobs(elements = elements.html)
+              if xml.nonEmpty
+            }
+            yield {
+              progress.expose_interrupt()
+              (src_path, html_context.source(make_html(elements, entity_link, xml)))
+            }
+
+          val html =
+            html_context.source(
+              make_html(elements, entity_link, snapshot.xml_markup(elements = elements.html)))
+
+          Theory(name, command, files_html, html)
+        }
+      }
+
+      for (thy <- Par_List.map(read_theory, base.session_theories).flatten)
+      yield {
+        if (verbose) progress.echo("Presenting theory " + thy.name)
 
         val files =
-          for {
-            (src_path, xml) <- snapshot.xml_markup_blobs(elements = elements.html)
-            if xml.nonEmpty
-          }
+          for { (src_path, file_html) <- thy.files_html }
           yield {
-            progress.expose_interrupt()
             if (verbose) progress.echo("Presenting file " + src_path)
 
             val file_name = (files_path + src_path.squash.html).implode
 
             seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
-              case None => seen_files ::= (src_path, file_name, thy_name)
+              case None => seen_files ::= (src_path, file_name, thy.name)
               case Some((_, _, thy_name1)) =>
                 error("Incoherent use of file name " + src_path + " as " + quote(file_name) +
-                  " in theory " + thy_name1 + " vs. " + thy_name)
+                  " in theory " + thy_name1 + " vs. " + thy.name)
             }
 
             val file_path = session_dir + Path.explode(file_name)
@@ -493,21 +513,18 @@ object Presentation
 
             val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
             HTML.write_document(file_path.dir, file_path.file_name,
-              List(HTML.title(file_title)),
-              List(html_context.head(file_title),
-                html_context.source(make_html(elements, entity_link, xml))))
+              List(HTML.title(file_title)), List(html_context.head(file_title), file_html))
 
             List(HTML.link(file_name, HTML.text(file_title)))
           }
 
-        val thy_title = "Theory " + thy_name.theory_base_name
-        val thy_body = make_html(elements, entity_link, snapshot.xml_markup(elements = elements.html))
-        HTML.write_document(session_dir, html_name(thy_name),
-          List(HTML.title(thy_title)),
-          List(html_context.head(thy_title), html_context.source(thy_body)))
+        val thy_title = "Theory " + thy.name.theory_base_name
 
-        List(HTML.link(html_name(thy_name),
-          HTML.text(thy_name.theory_base_name) :::
+        HTML.write_document(session_dir, html_name(thy.name),
+          List(HTML.title(thy_title)), List(html_context.head(thy_title), thy.html))
+
+        List(HTML.link(html_name(thy.name),
+          HTML.text(thy.name.theory_base_name) :::
             (if (files.isEmpty) Nil else List(HTML.itemize(files)))))
       }
     }
