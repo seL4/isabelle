@@ -467,6 +467,7 @@ object Presentation
       def read_theory(name: Document.Node.Name): Option[Theory] =
       {
         progress.expose_interrupt()
+        if (verbose) progress.echo("Presenting theory " + name)
 
         for (command <- Build_Job.read_theory(db_context, resources, session, name.theory))
         yield {
@@ -479,6 +480,8 @@ object Presentation
             }
             yield {
               progress.expose_interrupt()
+              if (verbose) progress.echo("Presenting file " + src_path)
+
               (src_path, html_context.source(make_html(elements, entity_link, xml)))
             }
 
@@ -492,13 +495,9 @@ object Presentation
 
       for (thy <- Par_List.map(read_theory, base.session_theories).flatten)
       yield {
-        if (verbose) progress.echo("Presenting theory " + thy.name)
-
         val files =
           for { (src_path, file_html) <- thy.files_html }
           yield {
-            if (verbose) progress.echo("Presenting file " + src_path)
-
             val file_name = (files_path + src_path.squash.html).implode
 
             seen_files.find(p => p._1 == src_path || p._2 == file_name) match {
