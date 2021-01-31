@@ -458,10 +458,12 @@ object Presentation
           case _ => None
         }
 
-      for {
-        thy_name <- base.session_theories
-        thy_command <- Build_Job.read_theory(db_context, resources, session, thy_name.theory)
-      }
+      val read_theories =
+        Par_List.map[Document.Node.Name, Option[(Document.Node.Name, Command)]](
+          name => Build_Job.read_theory(db_context, resources, session, name.theory).map((name, _)),
+          base.session_theories)
+
+      for ((thy_name, thy_command) <- read_theories.flatten)
       yield {
         progress.expose_interrupt()
         if (verbose) progress.echo("Presenting theory " + thy_name)
