@@ -9,6 +9,8 @@ Contributions to this Isabelle version
 * January 2021: Jakub Kądziołka
   Some lemmas for HOL-Computational_Algebra.
 
+* January 2021: Martin Rasyzk
+  Fast set operations for red-black trees.
 
 Contributions to Isabelle2021
 -----------------------------
