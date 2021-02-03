@@ -73,6 +73,9 @@ but non-native look-and-feel (FlatLaf).
 Documents. See also $NAPROCHE_HOME/examples for files with .ftl or
 .ftl.tex extension.
 
+* Hyperlinks to various file-formats (.pdf, .png, etc.) open an external
+viewer, instead of re-using the jEdit text editor.
+
 
 *** Document preparation ***
 

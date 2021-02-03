@@ -404,10 +404,22 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")
 
+  def open_external_file(name: String): Boolean =
+  {
+    val ext = Library.take_suffix((c: Char) => c != '.', name.toList)._2.mkString
+    val external =
+      ext.nonEmpty &&
+      Library.space_explode(':', getenv("ISABELLE_EXTERNAL_FILES")).contains(ext)
+    if (external) {
+      if (ext == "pdf" && Path.is_wellformed(name)) pdf_viewer(Path.explode(name))
+      else open(name)
+    }
+    external
+  }
+
   def export_isabelle_identifier(isabelle_identifier: String): String =
     if (isabelle_identifier == "") ""
     else "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
-
 
 
   /** Isabelle resources **/

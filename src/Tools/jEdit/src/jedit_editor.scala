@@ -166,7 +166,7 @@ class JEdit_Editor extends Editor[View]
           catch { case ERROR(_) => false }
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
-        else {
+        else if (!Isabelle_System.open_external_file(name)) {
           val args =
             if (line <= 0) Array(name)
             else if (column <= 0) Array(name, "+line:" + (line + 1))
