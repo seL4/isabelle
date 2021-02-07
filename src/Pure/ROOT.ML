@@ -293,6 +293,7 @@ ML_file "Proof/extraction.ML";
 
 (*Isabelle system*)
 ML_file "PIDE/protocol_command.ML";
+ML_file "System/scala.ML";
 ML_file "System/bash.ML";
 ML_file "System/isabelle_system.ML";
 
@@ -325,7 +326,6 @@ subsection "Isabelle/Isar system";
 ML_file "System/command_line.ML";
 ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
-ML_file "System/scala.ML";
 ML_file "System/scala_compiler.ML";
 ML_file "System/isabelle_tool.ML";
 ML_file "Thy/bibtex.ML";
