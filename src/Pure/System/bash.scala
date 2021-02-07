@@ -230,7 +230,7 @@ object Bash
         val string = XML.Encode.string
         variant(List(
           { case _ if is_interrupt => (Nil, Nil) },
-          { case Exn.Exn(exn) => (List(Exn.message(exn)), Nil) },
+          { case Exn.Exn(exn) => (Nil, string(Exn.message(exn))) },
           { case Exn.Res((res, pid)) =>
               val out = Library.terminate_lines(res.out_lines)
               val err = Library.terminate_lines(res.err_lines)

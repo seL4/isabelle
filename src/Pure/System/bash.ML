@@ -191,12 +191,12 @@ fun process_scala script =
     let open XML.Decode in
       variant
        [fn ([], []) => raise Exn.Interrupt,
-        fn ([a], []) => error a,
+        fn ([], a) => error (YXML.string_of_body a),
         fn ([a, b], c) =>
           let
             val rc = int_atom a;
             val pid = int_atom b;
-            val (out, err) = pair string string c;
+            val (out, err) = pair I I c |> apply2 YXML.string_of_body;
           in {out = out, err = err, rc = rc, terminate = fn () => terminate (SOME pid)} end]
     end;
 
