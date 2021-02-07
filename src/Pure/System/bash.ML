@@ -184,7 +184,8 @@ val process_ml = Thread_Attributes.uninterruptible (fn restore_attributes => fn 
   end);
 
 fun process_scala script =
-  Scala.function "bash_process" script
+  Scala.function "bash_process"
+    ("export ISABELLE_TMP=" ^ string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
   |> YXML.parse_body
   |>
     let open XML.Decode in
