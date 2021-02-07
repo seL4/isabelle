@@ -28,7 +28,7 @@ file for further details. Here are various details:
 
 * System: support for Isabelle/Scala services defined in user-space.
 
-* Partial support for ARM64 platform on Linux and macOS (Apple Silicon).
+* Support for macOS Big Sur on Intel and Apple Silicon (ARM).
 
 
 You may get Isabelle2021 from the following mirror sites:
