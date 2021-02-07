@@ -865,10 +865,7 @@ fun parse_solutions sol =
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output")
     fun parse_solution s = map dest_eq (space_explode ";" s)
-    val sols = (case Library.trim_split_lines sol of [] => [] | s => fst (split_last s))
-  in
-    map parse_solution sols
-  end
+  in map parse_solution (Library.trim_split_lines sol) end
 
 
 (* calling external interpreter and getting results *)
