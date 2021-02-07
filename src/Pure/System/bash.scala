@@ -202,4 +202,41 @@ object Bash
       Process_Result(rc, out_lines.join, err_lines.join, get_timing)
     }
   }
+
+
+  /* Scala function */
+
+  object Process extends Scala.Fun("bash_process")
+  {
+    val here = Scala_Project.here
+    def apply(script: String): String =
+    {
+      val result =
+        Exn.capture {
+          val proc = process(script)
+          val res = proc.result()
+          (res, proc.pid)
+        }
+
+      val is_interrupt =
+        result match {
+          case Exn.Res((res, _)) => res.rc == Exn.Interrupt.return_code
+          case Exn.Exn(exn) => Exn.is_interrupt(exn)
+        }
+
+      val encode: XML.Encode.T[Exn.Result[(Process_Result, String)]] =
+      {
+        import XML.Encode._
+        val string = XML.Encode.string
+        variant(List(
+          { case _ if is_interrupt => (Nil, Nil) },
+          { case Exn.Exn(exn) => (List(Exn.message(exn)), Nil) },
+          { case Exn.Res((res, pid)) =>
+              val out = Library.terminate_lines(res.out_lines)
+              val err = Library.terminate_lines(res.err_lines)
+              (List(int_atom(res.rc), pid), pair(string, string)(out, err)) }))
+      }
+      YXML.string_of_body(encode(result))
+    }
+  }
 }

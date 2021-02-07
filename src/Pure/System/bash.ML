@@ -115,7 +115,7 @@ open Bash;
 val string = Bash_Syntax.string;
 val strings = Bash_Syntax.strings;
 
-val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
+val process_ml = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;
@@ -182,6 +182,25 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
     in {out = out, err = err, rc = rc, terminate = fn () => terminate pid} end
     handle exn => (terminate (read_pid 10); cleanup (); Exn.reraise exn)
   end);
+
+fun process_scala script =
+  Scala.function "bash_process" script
+  |> YXML.parse_body
+  |>
+    let open XML.Decode in
+      variant
+       [fn ([], []) => raise Exn.Interrupt,
+        fn ([a], []) => error a,
+        fn ([a, b], c) =>
+          let
+            val rc = int_atom a;
+            val pid = int_atom b;
+            val (out, err) = pair string string c;
+          in {out = out, err = err, rc = rc, terminate = fn () => terminate (SOME pid)} end]
+    end;
+
+fun process script =
+  if ML_System.platform_is_rosetta () then process_scala script else process_ml script;
 
 end;
 \<close>
