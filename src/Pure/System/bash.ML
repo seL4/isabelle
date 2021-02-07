@@ -24,9 +24,9 @@ fun terminate NONE = ()
             (kill s; kill Kill.SIGNONE) andalso
             (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
         val _ =
-          multi_kill 10 Kill.SIGINT andalso
-          multi_kill 10 Kill.SIGTERM andalso
-          multi_kill 10 Kill.SIGKILL;
+          multi_kill 7 Kill.SIGINT andalso
+          multi_kill 3 Kill.SIGTERM andalso
+          multi_kill 1 Kill.SIGKILL;
       in () end;
 
 end;
