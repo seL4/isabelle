@@ -27,7 +27,7 @@ fun report () =
       |> map (fn (x, (y, _)) => (x, y)) |> rev
       |> let open XML.Encode in list (pair string string) end);
 
-val _ = Isabelle_Process.protocol_command "print_operations" (fn [] => report ());
+val _ = Protocol_Command.define "print_operations" (fn [] => report ());
 
 in
 

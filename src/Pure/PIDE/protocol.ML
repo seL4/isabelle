@@ -8,27 +8,27 @@ structure Protocol: sig end =
 struct
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.echo"
+  Protocol_Command.define "Prover.echo"
     (fn args => List.app writeln args);
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.stop"
+  Protocol_Command.define "Prover.stop"
     (fn rc :: msgs =>
       (List.app Output.system_message msgs;
-       raise Isabelle_Process.STOP (Value.parse_int rc)));
+       raise Protocol_Command.STOP (Value.parse_int rc)));
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.options"
+  Protocol_Command.define "Prover.options"
     (fn [options_yxml] =>
       (Options.set_default (Options.decode (YXML.parse_body options_yxml));
        Isabelle_Process.init_options_interactive ()));
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.init_session"
+  Protocol_Command.define "Prover.init_session"
     (fn [yxml] => Resources.init_session_yxml yxml);
 
 val _ =
-  Isabelle_Process.protocol_command "Document.define_blob"
+  Protocol_Command.define "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 
 fun decode_command id name parents_xml blobs_xml toks_xml sources : Document.command =
@@ -63,7 +63,7 @@ fun commands_accepted ids =
   Output.protocol_message Markup.commands_accepted [XML.Text (space_implode "," ids)];
 
 val _ =
-  Isabelle_Process.protocol_command "Document.define_command"
+  Protocol_Command.define "Document.define_command"
     (fn id :: name :: parents :: blobs :: toks :: sources =>
       let
         val command =
@@ -73,7 +73,7 @@ val _ =
       in commands_accepted [id] end);
 
 val _ =
-  Isabelle_Process.protocol_command "Document.define_commands"
+  Protocol_Command.define "Document.define_commands"
     (fn args =>
       let
         fun decode arg =
@@ -89,15 +89,15 @@ val _ =
       in commands_accepted (map (Value.print_int o #command_id) commands) end);
 
 val _ =
-  Isabelle_Process.protocol_command "Document.discontinue_execution"
+  Protocol_Command.define "Document.discontinue_execution"
     (fn [] => Execution.discontinue ());
 
 val _ =
-  Isabelle_Process.protocol_command "Document.cancel_exec"
+  Protocol_Command.define "Document.cancel_exec"
     (fn [exec_id] => Execution.cancel (Document_ID.parse exec_id));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.update"
+  Protocol_Command.define "Document.update"
     (Future.task_context "Document.update" (Future.new_group NONE)
       (fn old_id_string :: new_id_string :: consolidate_yxml :: edits_yxml =>
         Document.change_state (fn state =>
@@ -150,7 +150,7 @@ val _ =
           in Document.start_execution state' end)));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.remove_versions"
+  Protocol_Command.define "Document.remove_versions"
     (fn [versions_yxml] => Document.change_state (fn state =>
       let
         val versions =
@@ -161,17 +161,17 @@ val _ =
       in state1 end));
 
 val _ =
-  Isabelle_Process.protocol_command "Document.dialog_result"
+  Protocol_Command.define "Document.dialog_result"
     (fn [serial, result] =>
       Active.dialog_result (Value.parse_int serial) result
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn);
 
 val _ =
-  Isabelle_Process.protocol_command "ML_Heap.full_gc"
+  Protocol_Command.define "ML_Heap.full_gc"
     (fn [] => ML_Heap.full_gc ());
 
 val _ =
-  Isabelle_Process.protocol_command "ML_Heap.share_common_data"
+  Protocol_Command.define "ML_Heap.share_common_data"
     (fn [] => ML_Heap.share_common_data ());
 
 end;

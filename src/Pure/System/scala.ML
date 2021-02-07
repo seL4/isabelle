@@ -28,7 +28,7 @@ val results =
   Synchronized.var "Scala.results" (Symtab.empty: string Exn.result Symtab.table);
 
 val _ =
-  Isabelle_Process.protocol_command "Scala.result"
+  Protocol_Command.define "Scala.result"
     (fn [id, tag, res] =>
       let
         val result =

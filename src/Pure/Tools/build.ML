@@ -50,7 +50,7 @@ fun build_theories qualifier (options, thys) =
 (* build session *)
 
 val _ =
-  Isabelle_Process.protocol_command "build_session"
+  Protocol_Command.define "build_session"
     (fn [resources_yxml, args_yxml] =>
         let
           val _ = Resources.init_session_yxml resources_yxml;

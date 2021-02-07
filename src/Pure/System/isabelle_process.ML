@@ -7,8 +7,6 @@ Isabelle process wrapper.
 signature ISABELLE_PROCESS =
 sig
   val is_active: unit -> bool
-  exception STOP of int
-  val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
   val init_options: unit -> unit
@@ -31,38 +29,6 @@ val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 
 val protocol_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val protocol_modes2 = [isabelle_processN, Pretty.symbolicN];
-
-
-(* protocol commands *)
-
-exception STOP of int;
-
-val is_protocol_exn = fn STOP _ => true | _ => false;
-
-local
-
-val commands =
-  Synchronized.var "Isabelle_Process.commands"
-    (Symtab.empty: (string list -> unit) Symtab.table);
-
-in
-
-fun protocol_command name cmd =
-  Synchronized.change commands (fn cmds =>
-   (if not (Symtab.defined cmds name) then ()
-    else warning ("Redefining Isabelle protocol command " ^ quote name);
-    Symtab.update (name, cmd) cmds));
-
-fun run_command name args =
-  (case Symtab.lookup (Synchronized.value commands) name of
-    NONE => error ("Undefined Isabelle protocol command " ^ quote name)
-  | SOME cmd =>
-      (Runtime.exn_trace_system (fn () => cmd args)
-        handle exn =>
-          if is_protocol_exn exn then Exn.reraise exn
-          else error ("Isabelle protocol command failure: " ^ quote name)));
-
-end;
 
 
 (* restricted tracing messages *)
@@ -192,11 +158,11 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       let
         val _ =
           (case Byte_Message.read_message in_stream of
-            NONE => raise STOP 0
+            NONE => raise Protocol_Command.STOP 0
           | SOME [] => Output.system_message "Isabelle process: no input"
-          | SOME (name :: args) => run_command name args)
+          | SOME (name :: args) => Protocol_Command.run name args)
           handle exn =>
-            if is_protocol_exn exn then Exn.reraise exn
+            if Protocol_Command.is_protocol_exn exn then Exn.reraise exn
             else (Runtime.exn_system_message exn handle crash => recover crash);
       in protocol_loop () end;
 
@@ -219,7 +185,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     val _ = Options.reset_default ();
   in
     (case result of
-      Exn.Exn (STOP rc) => if rc = 0 then () else exit rc
+      Exn.Exn (Protocol_Command.STOP rc) => if rc = 0 then () else exit rc
     | _ => Exn.release result)
   end);
 
