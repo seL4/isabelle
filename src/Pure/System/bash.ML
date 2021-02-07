@@ -11,10 +11,32 @@ sig
   val process: string -> {out: string, err: string, rc: int, terminate: unit -> unit}
 end;
 
+structure Bash: sig val terminate: int option -> unit end =
+struct
+
+fun terminate NONE = ()
+  | terminate (SOME pid) =
+      let
+        val kill = Kill.kill_group pid;
+
+        fun multi_kill count s =
+          count = 0 orelse
+            (kill s; kill Kill.SIGNONE) andalso
+            (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
+        val _ =
+          multi_kill 10 Kill.SIGINT andalso
+          multi_kill 10 Kill.SIGTERM andalso
+          multi_kill 10 Kill.SIGKILL;
+      in () end;
+
+end;
+
 if ML_System.platform_is_windows then ML
 \<open>
 structure Bash: BASH =
 struct
+
+open Bash;
 
 val string = Bash_Syntax.string;
 val strings = Bash_Syntax.strings;
@@ -63,28 +85,6 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
             NONE => (OS.Process.sleep (seconds 0.1); read_pid (count - 1))
           | some => some);
 
-    fun terminate NONE = ()
-      | terminate (SOME pid) =
-          let
-            fun kill s =
-              let
-                val cmd = getenv_strict "CYGWIN_ROOT" ^ "\\bin\\bash.exe";
-                val arg = "kill -" ^ s ^ " -" ^ string_of_int pid;
-              in
-                OS.Process.isSuccess (Windows.simpleExecute ("", quote cmd ^ " -c " ^ quote arg))
-                  handle OS.SysErr _ => false
-              end;
-
-            fun multi_kill count s =
-              count = 0 orelse
-                (kill s; kill "0") andalso
-                (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
-            val _ =
-              multi_kill 10 "INT" andalso
-              multi_kill 10 "TERM" andalso
-              multi_kill 10 "KILL";
-          in () end;
-
     fun cleanup () =
      (Isabelle_Thread.interrupt_unsynchronized system_thread;
       cleanup_files ());
@@ -109,6 +109,8 @@ else ML
 \<open>
 structure Bash: BASH =
 struct
+
+open Bash;
 
 val string = Bash_Syntax.string;
 val strings = Bash_Syntax.strings;
@@ -162,24 +164,6 @@ val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn scr
           (case (Int.fromString (File.read pid_path) handle IO.Io _ => NONE) of
             NONE => (OS.Process.sleep (seconds 0.1); read_pid (count - 1))
           | some => some);
-
-    fun terminate NONE = ()
-      | terminate (SOME pid) =
-          let
-            fun kill s =
-              (Posix.Process.kill
-                (Posix.Process.K_GROUP (Posix.Process.wordToPid (LargeWord.fromInt pid)), s); true)
-              handle OS.SysErr _ => false;
-
-            fun multi_kill count s =
-              count = 0 orelse
-                (kill s; kill (Posix.Signal.fromWord 0w0)) andalso
-                (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
-            val _ =
-              multi_kill 10 Posix.Signal.int andalso
-              multi_kill 10 Posix.Signal.term andalso
-              multi_kill 10 Posix.Signal.kill;
-          in () end;
 
     fun cleanup () =
      (Isabelle_Thread.interrupt_unsynchronized system_thread;
