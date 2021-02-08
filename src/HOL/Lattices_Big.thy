@@ -560,6 +560,12 @@ next
   ultimately show ?thesis by (simp add: max.absorb1)
 qed
 
+lemma Max_const[simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max ((\<lambda>_. c) ` A) = c"
+using Max_in image_is_empty by blast
+
+lemma Min_const[simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min ((\<lambda>_. c) ` A) = c"
+using Min_in image_is_empty by blast
+
 lemma Min_le [simp]:
   assumes "finite A" and "x \<in> A"
   shows "Min A \<le> x"
@@ -670,6 +676,12 @@ lemma Max_mono:
   using assms by (fact Max.subset_imp)
 
 end
+
+lemma sum_le_card_Max: "finite A \<Longrightarrow> sum f A \<le> card A * Max (f ` A)"
+using sum_bounded_above[of A f "Max (f ` A)"] by simp
+
+lemma card_Min_le_sum: "finite A \<Longrightarrow> card A * Min (f ` A) \<le> sum f A"
+using sum_bounded_below[of A "Min (f ` A)" f] by simp
 
 context linorder  (* FIXME *)
 begin
