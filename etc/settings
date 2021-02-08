@@ -112,7 +112,7 @@ ISABELLE_LOGIC=HOL
 
 
 ###
-### Docs
+### Docs and external files
 ###
 
 # Where to look for docs (multiple dirs separated by ':').
@@ -135,6 +135,8 @@ case "$ISABELLE_PLATFORM_FAMILY" in
 esac
 
 PDF_VIEWER="$ISABELLE_OPEN"
+
+ISABELLE_EXTERNAL_FILES="bmp:eps:gif:jpeg:jpg:pdf:png:xmp"
 
 
 ###

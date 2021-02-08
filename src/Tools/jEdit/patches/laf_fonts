@@ -1,0 +1,13 @@
+--- 5.6.0/jEdit-orig/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2020-09-03 05:31:04.000000000 +0200
++++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2021-02-01 18:00:07.541681144 +0100
+@@ -414,7 +414,9 @@
+ 
+ 		// adjust swing properties for button, menu, and label, and list and
+ 		// textfield fonts
+-		setFonts();
++		if (!jEdit.getProperty("lookAndFeel").startsWith("com.formdev.flatlaf.")) {
++			setFonts();
++		}
+ 
+ 		// This is handled a little differently from other jEdit settings
+ 		// as this flag needs to be known very early in the

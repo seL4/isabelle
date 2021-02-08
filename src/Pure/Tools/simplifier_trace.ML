@@ -400,7 +400,7 @@ val _ = Theory.setup
      trace_apply = simp_apply})
 
 val _ =
-  Isabelle_Process.protocol_command "Simplifier_Trace.reply"
+  Protocol_Command.define "Simplifier_Trace.reply"
     (fn [serial_string, reply] =>
       let
         val serial = Value.parse_int serial_string

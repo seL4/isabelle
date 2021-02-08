@@ -1,7 +1,7 @@
 (*  Title:      Pure/System/scala.ML
     Author:     Makarius
 
-Support for Scala at runtime.
+Invoke Scala functions from the ML runtime.
 *)
 
 signature SCALA =
@@ -9,14 +9,10 @@ sig
   exception Null
   val function: string -> string -> string
   val function_thread: string -> string -> string
-  val functions: unit -> string list
-  val check_function: Proof.context -> string * Position.T -> string
 end;
 
 structure Scala: SCALA =
 struct
-
-(** protocol for Scala function invocation from ML **)
 
 exception Null;
 
@@ -28,7 +24,7 @@ val results =
   Synchronized.var "Scala.results" (Symtab.empty: string Exn.result Symtab.table);
 
 val _ =
-  Isabelle_Process.protocol_command "Scala.result"
+  Protocol_Command.define "Scala.result"
     (fn [id, tag, res] =>
       let
         val result =
@@ -70,30 +66,5 @@ val function = gen_function false;
 val function_thread = gen_function true;
 
 end;
-
-
-
-(** registered Scala functions **)
-
-fun functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
-
-fun check_function ctxt arg =
-  Completion.check_entity Markup.scala_functionN
-    (functions () |> sort_strings |> map (fn a => (a, Resources.scala_function_pos a))) ctxt arg;
-
-val _ = Theory.setup
- (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
-   (Scan.lift Parse.embedded_position) check_function #>
-  ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
-    (Args.context -- Scan.lift Parse.embedded_position
-      >> (uncurry check_function #> ML_Syntax.print_string)) #>
-  ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
-      let val name = check_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)) #>
-  ML_Antiquotation.value_embedded \<^binding>\<open>scala_thread\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
-      let val name = check_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function_thread " ^ ML_Syntax.print_string name) end)));
 
 end;

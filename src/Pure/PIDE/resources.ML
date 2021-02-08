@@ -24,7 +24,8 @@ sig
   val check_session: Proof.context -> string * Position.T -> string
   val session_chapter: string -> string
   val last_timing: Toplevel.transition -> Time.time
-  val scala_function_pos: string -> Position.T
+  val scala_functions: unit -> string list
+  val check_scala_function: Proof.context -> string * Position.T -> string
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -175,9 +176,34 @@ fun session_chapter name =
 
 fun last_timing tr = get_timings (get_session_base1 #timings) tr;
 
+
+(* Scala functions *)
+
+(*raw bootstrap environment*)
+fun scala_functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
+
+(*regular resources*)
 fun scala_function_pos name =
-  Symtab.lookup (get_session_base1 #scala_functions) name
-  |> the_default Position.none;
+  (name, the_default Position.none (Symtab.lookup (get_session_base1 #scala_functions) name));
+
+fun check_scala_function ctxt arg =
+  Completion.check_entity Markup.scala_functionN
+    (scala_functions () |> sort_strings |> map scala_function_pos) ctxt arg;
+
+val _ = Theory.setup
+ (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
+    (Scan.lift Parse.embedded_position) check_scala_function #>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
+    (Args.context -- Scan.lift Parse.embedded_position
+      >> (uncurry check_scala_function #> ML_Syntax.print_string)) #>
+  ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      let val name = check_scala_function ctxt arg
+      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)) #>
+  ML_Antiquotation.value_embedded \<^binding>\<open>scala_thread\<close>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      let val name = check_scala_function ctxt arg
+      in ML_Syntax.atomic ("Scala.function_thread " ^ ML_Syntax.print_string name) end)));
 
 
 (* manage source files *)

@@ -243,7 +243,7 @@ end;
 (** protocol commands **)
 
 val _ =
-  Isabelle_Process.protocol_command "Debugger.init"
+  Protocol_Command.define "Debugger.init"
     (fn [] =>
      (init_input ();
       PolyML.DebuggerInterface.setOnBreakPoint
@@ -256,15 +256,15 @@ val _ =
           else ()))));
 
 val _ =
-  Isabelle_Process.protocol_command "Debugger.exit"
+  Protocol_Command.define "Debugger.exit"
     (fn [] => (PolyML.DebuggerInterface.setOnBreakPoint NONE; exit_input ()));
 
 val _ =
-  Isabelle_Process.protocol_command "Debugger.break"
+  Protocol_Command.define "Debugger.break"
     (fn [b] => set_break (Value.parse_bool b));
 
 val _ =
-  Isabelle_Process.protocol_command "Debugger.breakpoint"
+  Protocol_Command.define "Debugger.breakpoint"
     (fn [node_name, id0, breakpoint0, breakpoint_state0] =>
       let
         val id = Value.parse_int id0;
@@ -289,7 +289,7 @@ val _ =
       end);
 
 val _ =
-  Isabelle_Process.protocol_command "Debugger.input"
+  Protocol_Command.define "Debugger.input"
     (fn thread_name :: msg => input thread_name msg);
 
 end;
