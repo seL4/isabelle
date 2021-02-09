@@ -92,6 +92,9 @@ object Isabelle_Cronjob
 
   /* integrity test of build_history vs. build_history_base */
 
+  def build_history_options0: String =
+    " -C '$USER_HOME/.isabelle/contrib' -f "
+
   val build_history_base: Logger_Task =
     Logger_Task("build_history_base", logger =>
       {
@@ -104,7 +107,7 @@ object Isabelle_Cronjob
                 isabelle_identifier = "cronjob_build_history",
                 self_update = true,
                 rev = "build_history_base",
-                options = "-C '$USER_HOME/.isabelle/contrib' -f",
+                options = build_history_options0,
                 args = "HOL")
 
             for ((log_name, bytes) <- results) {
@@ -222,6 +225,14 @@ object Isabelle_Cronjob
         pick_days(2000, 1)
       })
     }
+
+    def build_history_options: String =
+      " -h " + Bash.string(host) + " " +
+      (java_heap match {
+        case "" => ""
+        case h =>
+          "-e 'ISABELLE_TOOL_JAVA_OPTIONS=\"$ISABELLE_TOOL_JAVA_OPTIONS -Xmx" + h + "\"' "
+      }) + options
   }
 
   val remote_builds_old: List[Remote_Build] =
@@ -415,14 +426,8 @@ object Isabelle_Cronjob
                 rev = rev,
                 afp_rev = afp_rev,
                 options =
-                  " -C '$USER_HOME/.isabelle/contrib'" +
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                  " -f -h " + Bash.string(r.host) + " " +
-                  (r.java_heap match {
-                    case "" => ""
-                    case h =>
-                      "-e 'ISABELLE_TOOL_JAVA_OPTIONS=\"$ISABELLE_TOOL_JAVA_OPTIONS -Xmx" + h + "\"' "
-                  }) + r.options,
+                  build_history_options0 + r.build_history_options,
                 args = "-o timeout=10800 " + r.args)
 
             for ((log_name, bytes) <- results) {
