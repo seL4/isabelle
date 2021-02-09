@@ -107,6 +107,7 @@ object Build_History
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
+    component_repository: String = Components.default_component_repository,
     components_base: Path = Components.default_components_base,
     fresh: Boolean = false,
     hostname: String = "",
@@ -187,7 +188,9 @@ object Build_History
 
       val component_settings =
         other_isabelle.init_components(
-          components_base = components_base, catalogs = List("main", "optional"))
+          component_repository = component_repository,
+          components_base = components_base,
+          catalogs = List("main", "optional"))
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
@@ -407,6 +410,7 @@ object Build_History
       var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
       var afp_partition = 0
+      var component_repository = Components.default_component_repository
       var more_settings: List[String] = Nil
       var more_preferences: List[String] = Nil
       var fresh = false
@@ -434,6 +438,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -P NUMBER    AFP partition number (0, 1, 2, default: 0=unrestricted)
+    -R URL       remote repository for Isabelle components (default: """ +
+      Components.default_component_repository + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
@@ -462,6 +468,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
         "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
+        "R:" -> (arg => component_repository = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
@@ -495,8 +502,9 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         build_history(Options.init(), root, user_home = user_home, progress = progress, rev = rev,
           afp_rev = afp_rev, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
-          components_base = components_base, fresh = fresh, hostname = hostname,
-          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
+          component_repository = component_repository, components_base = components_base,
+          fresh = fresh, hostname = hostname, multicore_base = multicore_base,
+          multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,

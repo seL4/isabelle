@@ -69,11 +69,14 @@ class Other_Isabelle(
   /* components */
 
   def init_components(
+    component_repository: String = Components.default_component_repository,
     components_base: Path = Components.default_components_base,
     catalogs: List[String] = Nil,
     components: List[String] = Nil): List[String] =
   {
     val dir = Components.admin(isabelle_home)
+
+    ("ISABELLE_COMPONENT_REPOSITORY=" + Bash.string(component_repository)) ::
     catalogs.map(name =>
       "init_components " + File.bash_path(components_base) + " " +
         File.bash_path(dir + Path.basic(name))) :::

@@ -93,6 +93,7 @@ object Isabelle_Cronjob
   /* integrity test of build_history vs. build_history_base */
 
   def build_history_options0: String =
+    " -R " + Bash.string(Components.default_component_repository) +
     " -C '$USER_HOME/.isabelle/contrib' -f "
 
   val build_history_base: Logger_Task =
