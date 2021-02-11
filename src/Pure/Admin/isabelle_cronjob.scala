@@ -345,7 +345,8 @@ object Isabelle_Cronjob
             " -e ISABELLE_MLTON=/usr/local/bin/mlton" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          self_update = true, args = "-a -d '~~/src/Benchmarks'"),
+          self_update = true, args = "-a -d '~~/src/Benchmarks'")),
+      List(
         Remote_Build("macOS 10.14 Mojave", "mini2",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
