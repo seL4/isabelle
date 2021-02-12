@@ -553,9 +553,9 @@ val zipperposition_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(0.333, (((128, "meshN"), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
+     [(0.333, (((128, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
       (0.333, (((32, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), zipperposition_s6)),
-      (0.334, (((512, "meshN"), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
+      (0.334, (((512, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
