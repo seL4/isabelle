@@ -50,7 +50,9 @@ class Other_Isabelle(
     bash("bin/isabelle " + cmdline, redirect = redirect, echo = echo, strict = strict)
 
   def resolve_components(echo: Boolean): Unit =
-    other_isabelle("components -a", redirect = true, echo = echo).check
+    other_isabelle(
+      "env ISABELLE_TOOLS=" + Bash.string(Isabelle_System.getenv("ISABELLE_TOOLS")) +
+      " isabelle components -a", redirect = true, echo = echo).check
 
   def getenv(name: String): String =
     other_isabelle("getenv -b " + Bash.string(name)).check.out
