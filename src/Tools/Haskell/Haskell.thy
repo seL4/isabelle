@@ -167,7 +167,7 @@ clean_name = reverse #> dropWhile (== '_') #> reverse
 \<close>
 
 generate_file "Isabelle/Value.hs" = \<open>
-{-  Title:      Haskell/Tools/Value.hs
+{-  Title:      Isabelle/Value.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -296,7 +296,7 @@ remove name props =
 \<close>
 
 generate_file "Isabelle/Markup.hs" = \<open>
-{-  Title:      Haskell/Tools/Markup.hs
+{-  Title:      Isabelle/Markup.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 

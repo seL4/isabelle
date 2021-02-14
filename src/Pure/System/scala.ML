@@ -53,11 +53,11 @@ fun gen_function thread name arg =
             (case Symtab.lookup tab id of
               SOME (Exn.Exn Match) => NONE
             | SOME result => SOME (result, Symtab.delete id tab)
-            | NONE => SOME (Exn.Exn Exn.Interrupt, tab)))
-        handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn);
+            | NONE => SOME (Exn.Exn Exn.Interrupt, tab)));
     in
       invoke ();
       Exn.release (restore_attributes await_result ())
+        handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn)
     end) ();
 
 in

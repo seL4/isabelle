@@ -69,12 +69,14 @@ for better approximate window size on macOS and Linux/X11.
 * Improved GUI support for macOS 11.1 Big Sur: native fullscreen mode,
 but non-native look-and-feel (FlatLaf).
 
-* IDE support for Naproche-SAD: Proof Checking of Natural Mathematical
-Documents. See also $NAPROCHE_HOME/examples for files with .ftl or
-.ftl.tex extension.
-
 * Hyperlinks to various file-formats (.pdf, .png, etc.) open an external
 viewer, instead of re-using the jEdit text editor.
+
+* IDE support for Naproche-SAD: Proof Checking of Natural Mathematical
+Documents. See also $NAPROCHE_HOME/examples for files with .ftl or
+.ftl.tex extension. The corresponding Naproche-SAD server process can be
+disabled by setting the system option naproche_server=false and
+restarting the Isabelle application.
 
 
 *** Document preparation ***
