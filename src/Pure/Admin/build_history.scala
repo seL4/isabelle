@@ -192,7 +192,7 @@ object Build_History
           components_base = components_base,
           catalogs = List("main", "optional"))
       other_isabelle.init_settings(component_settings ::: init_settings)
-      other_isabelle.resolve_components(verbose)
+      other_isabelle.resolve_components(echo = verbose)
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
 
@@ -205,7 +205,7 @@ object Build_History
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
       if (first_build) {
-        other_isabelle.resolve_components(verbose)
+        other_isabelle.resolve_components(echo = verbose)
 
         if (fresh)
           Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
