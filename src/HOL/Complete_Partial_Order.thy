@@ -123,11 +123,7 @@ proof (rule chainI)
       proof (cases "\<exists>z\<in>M. f x \<le> z")
         case True
         then have "f x \<le> Sup M"
-          apply rule
-          apply (erule order_trans)
-          apply (rule ccpo_Sup_upper[OF chM])
-          apply assumption
-          done
+          by (blast intro: ccpo_Sup_upper[OF chM] order_trans)
         then show ?thesis ..
       next
         case False
@@ -141,11 +137,7 @@ proof (rule chainI)
     proof (cases "\<exists>x\<in>M. y \<le> x")
       case True
       then have "y \<le> Sup M"
-        apply rule
-        apply (erule order_trans)
-        apply (rule ccpo_Sup_upper[OF Sup(1)])
-        apply assumption
-        done
+        by (blast intro: ccpo_Sup_upper[OF Sup(1)] order_trans)
       then show ?thesis ..
     next
       case False with Sup
@@ -328,20 +320,17 @@ proof (rule ccpo.admissibleI)
     qed
   qed
   moreover
-  have "Sup A = Sup {x \<in> A. P x}" if "\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y" for P
+  have "Sup A = Sup {x \<in> A. P x}" if "\<And>x. x\<in>A \<Longrightarrow> \<exists>y\<in>A. x \<le> y \<and> P y" for P
   proof (rule antisym)
     have chain_P: "chain (\<le>) {x \<in> A. P x}"
       by (rule chain_compr [OF chain])
     show "Sup A \<le> Sup {x \<in> A. P x}"
-      apply (rule ccpo_Sup_least [OF chain])
-      apply (drule that [rule_format])
-      apply clarify
-      apply (erule order_trans)
-      apply (simp add: ccpo_Sup_upper [OF chain_P])
-      done
+    proof (rule ccpo_Sup_least [OF chain])
+      show "\<And>x. x \<in> A \<Longrightarrow> x \<le> \<Squnion> {x \<in> A. P x}"
+          by (blast intro: ccpo_Sup_upper[OF chain_P] order_trans dest: that)
+      qed
     show "Sup {x \<in> A. P x} \<le> Sup A"
       apply (rule ccpo_Sup_least [OF chain_P])
-      apply clarify
       apply (simp add: ccpo_Sup_upper [OF chain])
       done
   qed
@@ -350,13 +339,15 @@ proof (rule ccpo.admissibleI)
     | "\<exists>x. x \<in> A \<and> Q x" "Sup A = Sup {x \<in> A. Q x}"
     by blast
   then show "P (Sup A) \<or> Q (Sup A)"
-    apply cases
-     apply simp_all
-     apply (rule disjI1)
-     apply (rule ccpo.admissibleD [OF P chain_compr [OF chain]]; simp)
-    apply (rule disjI2)
-    apply (rule ccpo.admissibleD [OF Q chain_compr [OF chain]]; simp)
-    done
+  proof cases
+    case 1
+    then show ?thesis
+      using ccpo.admissibleD [OF P chain_compr [OF chain]] by force
+  next
+    case 2
+    then show ?thesis 
+      using ccpo.admissibleD [OF Q chain_compr [OF chain]] by force
+  qed
 qed
 
 end
