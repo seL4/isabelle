@@ -32,6 +32,7 @@ sig
   val theorems_of_sucessful_proof : Toplevel.state option -> thm list
   val get_setting : (string * string) list -> string * string -> string
   val get_int_setting : (string * string) list -> string * int -> int
+  val get_bool_setting : (string * string) list -> string * bool -> bool
   val cpu_time : ('a -> 'b) -> 'a -> 'b * int
 end
 
@@ -205,6 +206,12 @@ fun get_setting settings (key, default) =
 
 fun get_int_setting settings (key, default) =
   (case Option.map Int.fromString (AList.lookup (op =) settings key) of
+    SOME (SOME i) => i
+  | SOME NONE => error ("bad option: " ^ key)
+  | NONE => default)
+
+fun get_bool_setting settings (key, default) =
+  (case Option.map Bool.fromString (AList.lookup (op =) settings key) of
     SOME (SOME i) => i
   | SOME NONE => error ("bad option: " ^ key)
   | NONE => default)

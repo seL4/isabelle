@@ -55,7 +55,7 @@ val stride_default = 1
 val max_facts_default = "smart"
 val slice_default = "true"
 val max_calls_default = 10000000
-val trivial_default = "false"
+val check_trivial_default = false
 
 (*If a key is present in args then augment a list with its pair*)
 (*This is used to avoid fixing default values at the Mirabelle level, and
@@ -613,6 +613,7 @@ fun sledgehammer_action args =
   let
     val stride = Mirabelle.get_int_setting args (strideK, stride_default)
     val max_calls = Mirabelle.get_int_setting args (max_callsK, max_calls_default)
+    val check_trivial = Mirabelle.get_bool_setting args (check_trivialK, check_trivial_default)
   in
     fn id => fn (st as {pre, name, log, ...}: Mirabelle.run_args) =>
       let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
@@ -636,8 +637,7 @@ fun sledgehammer_action args =
                 val named_thms =
                   Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
                 val trivial =
-                  if AList.lookup (op =) args check_trivialK |> the_default trivial_default
-                                  |> Value.parse_bool then
+                  if check_trivial then
                     Try0.try0 (SOME try_timeout) ([], [], [], []) pre
                     handle Timeout.TIMEOUT _ => false
                   else false
