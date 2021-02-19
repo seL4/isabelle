@@ -1079,4 +1079,87 @@ proof (rule tendsto_at_botI_sequentially)
   qed
 qed
 
+
+
+theorem integral_Markov_inequality':
+  fixes u :: "'a \<Rightarrow> real"
+  assumes [measurable]: "set_integrable M A u" and "A \<in> sets M"
+  assumes "AE x in M. x \<in> A \<longrightarrow> u x \<ge> 0" and "0 < (c::real)"
+  shows "emeasure M {x\<in>A. u x \<ge> c} \<le> (1/c::real) * (\<integral>x\<in>A. u x \<partial>M)"
+proof -
+  have "(\<lambda>x. u x * indicator A x) \<in> borel_measurable M" 
+    using assms by (auto simp: set_integrable_def mult_ac)
+  hence "(\<lambda>x. ennreal (u x * indicator A x)) \<in> borel_measurable M"
+    by measurable
+  also have "(\<lambda>x. ennreal (u x * indicator A x)) = (\<lambda>x. ennreal (u x) * indicator A x)"
+    by (intro ext) (auto simp: indicator_def)
+  finally have meas: "\<dots> \<in> borel_measurable M" .
+  from assms(3) have AE: "AE x in M. 0 \<le> u x * indicator A x"
+    by eventually_elim (auto simp: indicator_def)
+  have nonneg: "set_lebesgue_integral M A u \<ge> 0"
+    unfolding set_lebesgue_integral_def
+    by (intro Bochner_Integration.integral_nonneg_AE eventually_mono[OF AE]) (auto simp: mult_ac)
+
+  have A: "A \<subseteq> space M"
+    using \<open>A \<in> sets M\<close> by (simp add: sets.sets_into_space)
+  have "{x \<in> A. u x \<ge> c} = {x \<in> A. ennreal(1/c) * u x \<ge> 1}"
+    using \<open>c>0\<close> A by (auto simp: ennreal_mult'[symmetric])
+  then have "emeasure M {x \<in> A. u x \<ge> c} = emeasure M ({x \<in> A. ennreal(1/c) * u x \<ge> 1})"
+    by simp
+  also have "... \<le> ennreal(1/c) * (\<integral>\<^sup>+ x. ennreal(u x) * indicator A x \<partial>M)"
+    by (intro nn_integral_Markov_inequality meas assms)
+  also have "(\<integral>\<^sup>+ x. ennreal(u x) * indicator A x \<partial>M) = ennreal (set_lebesgue_integral M A u)"
+    unfolding set_lebesgue_integral_def nn_integral_set_ennreal using assms AE
+    by (subst nn_integral_eq_integral) (simp_all add: mult_ac set_integrable_def)
+  finally show ?thesis
+    using \<open>c > 0\<close> nonneg by (subst ennreal_mult) auto
+qed
+
+theorem integral_Markov_inequality'_measure:
+  assumes [measurable]: "set_integrable M A u" and "A \<in> sets M" 
+     and "AE x in M. x \<in> A \<longrightarrow> 0 \<le> u x" "0 < (c::real)"
+  shows "measure M {x\<in>A. u x \<ge> c} \<le> (\<integral>x\<in>A. u x \<partial>M) / c"
+proof -
+  have nonneg: "set_lebesgue_integral M A u \<ge> 0"
+    unfolding set_lebesgue_integral_def
+    by (intro Bochner_Integration.integral_nonneg_AE eventually_mono[OF assms(3)])
+       (auto simp: mult_ac)
+  have le: "emeasure M {x\<in>A. u x \<ge> c} \<le> ennreal ((1/c) * (\<integral>x\<in>A. u x \<partial>M))"
+    by (rule integral_Markov_inequality') (use assms in auto)
+  also have "\<dots> < top"
+    by auto
+  finally have "ennreal (measure M {x\<in>A. u x \<ge> c}) = emeasure M {x\<in>A. u x \<ge> c}"
+    by (intro emeasure_eq_ennreal_measure [symmetric]) auto
+  also note le
+  finally show ?thesis using nonneg
+    by (subst (asm) ennreal_le_iff)
+       (auto intro!: divide_nonneg_pos Bochner_Integration.integral_nonneg_AE assms)
+qed
+
+theorem%important (in finite_measure) Chernoff_ineq_ge:
+  assumes s: "s > 0"
+  assumes integrable: "set_integrable M A (\<lambda>x. exp (s * f x))" and "A \<in> sets M"
+  shows   "measure M {x\<in>A. f x \<ge> a} \<le> exp (-s * a) * (\<integral>x\<in>A. exp (s * f x) \<partial>M)"
+proof -
+  have "{x\<in>A. f x \<ge> a} = {x\<in>A. exp (s * f x) \<ge> exp (s * a)}"
+    using s by auto
+  also have "measure M \<dots> \<le> set_lebesgue_integral M A (\<lambda>x. exp (s * f x)) / exp (s * a)"
+    by (intro integral_Markov_inequality'_measure assms) auto
+  finally show ?thesis 
+    by (simp add: exp_minus field_simps)
+qed
+
+theorem%important (in finite_measure) Chernoff_ineq_le:
+  assumes s: "s > 0"
+  assumes integrable: "set_integrable M A (\<lambda>x. exp (-s * f x))" and "A \<in> sets M"
+  shows   "measure M {x\<in>A. f x \<le> a} \<le> exp (s * a) * (\<integral>x\<in>A. exp (-s * f x) \<partial>M)"
+proof -
+  have "{x\<in>A. f x \<le> a} = {x\<in>A. exp (-s * f x) \<ge> exp (-s * a)}"
+    using s by auto
+  also have "measure M \<dots> \<le> set_lebesgue_integral M A (\<lambda>x. exp (-s * f x)) / exp (-s * a)"
+    by (intro integral_Markov_inequality'_measure assms) auto
+  finally show ?thesis 
+    by (simp add: exp_minus field_simps)
+qed
+
 end

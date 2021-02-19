@@ -4,6 +4,18 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* HOL-Analysis/HOL-Probability: indexed products of discrete
+distributions, negative binomial distribution, Hoeffding's inequality,
+Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
+more small lemmas. Some theorems that were stated awkwardly before were
+corrected. Minor INCOMPATIBILITY.
+
+
 New in Isabelle2021 (February 2021)
 -----------------------------------
 

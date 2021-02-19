@@ -1138,6 +1138,33 @@ proof -
   qed
 qed
 
+lemma (in prob_space) indep_vars_iff_distr_eq_PiM':
+  fixes I :: "'i set" and X :: "'i \<Rightarrow> 'a \<Rightarrow> 'b"
+  assumes "I \<noteq> {}"
+  assumes rv: "\<And>i. i \<in> I \<Longrightarrow> random_variable (M' i) (X i)"
+  shows "indep_vars M' X I \<longleftrightarrow>
+           distr M (\<Pi>\<^sub>M i\<in>I. M' i) (\<lambda>x. \<lambda>i\<in>I. X i x) = (\<Pi>\<^sub>M i\<in>I. distr M (M' i) (X i))"
+proof -
+  from assms obtain j where j: "j \<in> I"
+    by auto
+  define N' where "N' = (\<lambda>i. if i \<in> I then M' i else M' j)"
+  define Y where "Y = (\<lambda>i. if i \<in> I then X i else X j)"
+  have rv: "random_variable (N' i) (Y i)" for i
+    using j by (auto simp: N'_def Y_def intro: assms)
+
+  have "indep_vars M' X I = indep_vars N' Y I"
+    by (intro indep_vars_cong) (auto simp: N'_def Y_def)
+  also have "\<dots> \<longleftrightarrow> distr M (\<Pi>\<^sub>M i\<in>I. N' i) (\<lambda>x. \<lambda>i\<in>I. Y i x) = (\<Pi>\<^sub>M i\<in>I. distr M (N' i) (Y i))"
+    by (intro indep_vars_iff_distr_eq_PiM rv assms)
+  also have "(\<Pi>\<^sub>M i\<in>I. N' i) = (\<Pi>\<^sub>M i\<in>I. M' i)"
+    by (intro PiM_cong) (simp_all add: N'_def)
+  also have "(\<lambda>x. \<lambda>i\<in>I. Y i x) = (\<lambda>x. \<lambda>i\<in>I. X i x)"
+    by (simp_all add: Y_def fun_eq_iff)
+  also have "(\<Pi>\<^sub>M i\<in>I. distr M (N' i) (Y i)) = (\<Pi>\<^sub>M i\<in>I. distr M (M' i) (X i))"
+    by (intro PiM_cong distr_cong) (simp_all add: N'_def Y_def)
+  finally show ?thesis .
+qed
+
 lemma (in prob_space) indep_varD:
   assumes indep: "indep_var Ma A Mb B"
   assumes sets: "Xa \<in> sets Ma" "Xb \<in> sets Mb"

@@ -2,15 +2,17 @@
     Author:     Johannes Hölzl, TU München
     Author:     Manuel Eberl, TU München
 
-Defines the subprobability spaces, the subprobability functor and the Giry monad on subprobability
+Defines subprobability spaces, the subprobability functor and the Giry monad on subprobability
 spaces.
 *)
+
+section \<open>The Giry monad\<close>
 
 theory Giry_Monad
   imports Probability_Measure "HOL-Library.Monad_Syntax"
 begin
 
-section \<open>Sub-probability spaces\<close>
+subsection \<open>Sub-probability spaces\<close>
 
 locale subprob_space = finite_measure +
   assumes emeasure_space_le_1: "emeasure M (space M) \<le> 1"
@@ -521,7 +523,7 @@ next
   qed
 qed
 
-section \<open>Properties of return\<close>
+subsection \<open>Properties of ``return''\<close>
 
 definition return :: "'a measure \<Rightarrow> 'a \<Rightarrow> 'a measure" where
   "return R x = measure_of (space R) (sets R) (\<lambda>A. indicator A x)"
@@ -757,7 +759,7 @@ lemma space_select_sets[simp]:
   "sets M = sets (subprob_algebra N) \<Longrightarrow> space (select_sets M) = space N"
   by (intro sets_eq_imp_space_eq sets_select_sets)
 
-section \<open>Join\<close>
+subsection \<open>Join\<close>
 
 definition join :: "'a measure measure \<Rightarrow> 'a measure" where
   "join M = measure_of (space (select_sets M)) (sets (select_sets M)) (\<lambda>B. \<integral>\<^sup>+ M'. emeasure M' B \<partial>M)"
@@ -1783,5 +1785,29 @@ lemma bind_distr_return:
     distr M N f \<bind> (\<lambda>x. return L (g x)) = distr M L (\<lambda>x. g (f x))"
   by (subst bind_distr[OF _ measurable_compose[OF _ return_measurable]])
      (auto intro!: bind_return_distr')
+
+lemma (in prob_space) AE_eq_constD:
+  assumes "AE x in M. x = y"
+  shows   "M = return M y" "y \<in> space M"
+proof -
+  have "AE x in M. x \<in> space M"
+    by auto
+  with assms have "AE x in M. y \<in> space M"
+    by eventually_elim auto
+  thus "y \<in> space M"
+    by simp
+
+  show "M = return M y"
+  proof (rule measure_eqI)
+    fix X assume X: "X \<in> sets M"
+    have "AE x in M. (x \<in> X) = (x \<in> (if y \<in> X then space M else {}))"
+      using assms by eventually_elim (use X \<open>y \<in> space M\<close> in auto)
+    hence "emeasure M X = emeasure M (if y \<in> X then space M else {})"
+      using X by (intro emeasure_eq_AE) auto
+    also have "\<dots> = emeasure (return M y) X"
+      using X by (auto simp: emeasure_space_1)
+    finally show "emeasure M X = \<dots>" .
+  qed auto
+qed
 
 end

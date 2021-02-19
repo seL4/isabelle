@@ -465,6 +465,21 @@ lemma (in prob_space) variance_mean_zero:
   "expectation X = 0 \<Longrightarrow> variance X = expectation (\<lambda>x. (X x)^2)"
   by simp
 
+theorem%important (in prob_space) Chebyshev_inequality:
+  assumes [measurable]: "random_variable borel f"
+  assumes "integrable M (\<lambda>x. f x ^ 2)"
+  defines "\<mu> \<equiv> expectation f"
+  assumes "a > 0"
+  shows "prob {x\<in>space M. \<bar>f x - \<mu>\<bar> \<ge> a} \<le> variance f / a\<^sup>2"
+  unfolding \<mu>_def
+proof (rule second_moment_method)
+  have integrable: "integrable M f"
+    using assms by (blast dest: square_integrable_imp_integrable)
+  show "integrable M (\<lambda>x. (f x - expectation f)\<^sup>2)"
+    using assms integrable unfolding power2_eq_square ring_distribs
+    by (intro Bochner_Integration.integrable_diff) auto
+qed (use assms in auto)
+
 locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_space M2 for M1 M2
 
 sublocale pair_prob_space \<subseteq> P?: prob_space "M1 \<Otimes>\<^sub>M M2"
@@ -499,6 +514,18 @@ proof -
   also have "\<dots> = ennreal (\<Prod>i\<in>I. measure (M i) (X i))"
     using X by (simp add: M.emeasure_eq_measure prod_ennreal measure_nonneg)
   finally show ?thesis by (simp add: measure_nonneg prod_nonneg)
+qed
+
+lemma product_prob_spaceI:
+  assumes "\<And>i. prob_space (M i)"
+  shows   "product_prob_space M"
+  unfolding product_prob_space_def product_prob_space_axioms_def product_sigma_finite_def
+proof safe
+  fix i
+  interpret prob_space "M i"
+    by (rule assms)
+  show "sigma_finite_measure (M i)" "prob_space (M i)"
+    by unfold_locales
 qed
 
 subsection \<open>Distributions\<close>
@@ -1225,5 +1252,54 @@ lemma emeasure_distr_restrict:
 
 lemma (in prob_space) prob_space_completion: "prob_space (completion M)"
   by (rule prob_spaceI) (simp add: emeasure_space_1)
+
+lemma distr_PiM_finite_prob_space:
+  assumes fin: "finite I"
+  assumes "product_prob_space M"
+  assumes "product_prob_space M'"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> f \<in> measurable (M i) (M' i)"
+  shows   "distr (PiM I M) (PiM I M') (compose I f) = PiM I (\<lambda>i. distr (M i) (M' i) f)"
+proof -
+  interpret M: product_prob_space M by fact
+  interpret M': product_prob_space M' by fact
+  define N where "N = (\<lambda>i. if i \<in> I then distr (M i) (M' i) f else M' i)"
+  have [intro]: "prob_space (N i)" for i
+    by (auto simp: N_def intro!: M.M.prob_space_distr M'.prob_space)
+
+  interpret N: product_prob_space N
+    by (intro product_prob_spaceI) (auto simp: N_def M'.prob_space intro: M.M.prob_space_distr)
+
+  have "distr (PiM I M) (PiM I M') (compose I f) = PiM I N"
+  proof (rule N.PiM_eqI)
+    have N_events_eq: "sets (Pi\<^sub>M I N) = sets (Pi\<^sub>M I M')"
+      unfolding N_def by (intro sets_PiM_cong) auto
+    also have "\<dots> = sets (distr (Pi\<^sub>M I M) (Pi\<^sub>M I M') (compose I f))"
+      by simp
+    finally show "sets (distr (Pi\<^sub>M I M) (Pi\<^sub>M I M') (compose I f)) = sets (Pi\<^sub>M I N)"  ..
+
+    fix A assume A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> N.M.events i"
+    have "emeasure (distr (Pi\<^sub>M I M) (Pi\<^sub>M I M') (compose I f)) (Pi\<^sub>E I A) =
+          emeasure (Pi\<^sub>M I M) (compose I f -` Pi\<^sub>E I A \<inter> space (Pi\<^sub>M I M))"
+    proof (intro emeasure_distr)
+      show "compose I f \<in> Pi\<^sub>M I M \<rightarrow>\<^sub>M Pi\<^sub>M I M'"
+        unfolding compose_def by measurable
+      show "Pi\<^sub>E I A \<in> sets (Pi\<^sub>M I M')"
+        unfolding N_events_eq [symmetric] by (intro sets_PiM_I_finite fin A)
+    qed
+    also have "compose I f -` Pi\<^sub>E I A \<inter> space (Pi\<^sub>M I M) = Pi\<^sub>E I (\<lambda>i. f -` A i \<inter> space (M i))"
+      using A by (auto simp: space_PiM PiE_def Pi_def extensional_def N_def compose_def)
+    also have "emeasure (Pi\<^sub>M I M) (Pi\<^sub>E I (\<lambda>i. f -` A i \<inter> space (M i))) =
+          (\<Prod>i\<in>I. emeasure (M i) (f -` A i \<inter> space (M i)))"
+      using A by (intro M.emeasure_PiM fin) (auto simp: N_def)
+    also have "\<dots> = (\<Prod>i\<in>I. emeasure (distr (M i) (M' i) f) (A i))"
+      using A by (intro prod.cong emeasure_distr [symmetric]) (auto simp: N_def)
+    also have "\<dots> = (\<Prod>i\<in>I. emeasure (N i) (A i))"
+      unfolding N_def by (intro prod.cong) (auto simp: N_def)
+    finally show "emeasure (distr (Pi\<^sub>M I M) (Pi\<^sub>M I M') (compose I f)) (Pi\<^sub>E I A) = \<dots>" .
+  qed fact+
+  also have "PiM I N = PiM I (\<lambda>i. distr (M i) (M' i) f)"
+    by (intro PiM_cong) (auto simp: N_def)
+  finally show ?thesis .
+qed
 
 end

@@ -1640,6 +1640,12 @@ lemma borel_measurable_minus_ennreal[measurable (raw)]:
   shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. f x - g x) \<in> M \<rightarrow>\<^sub>M borel"
   unfolding is_borel_def[symmetric] by transfer simp
 
+lemma borel_measurable_power_ennreal [measurable (raw)]:
+  fixes f :: "_ \<Rightarrow> ennreal"
+  assumes f: "f \<in> borel_measurable M"
+  shows "(\<lambda>x. (f x) ^ n) \<in> borel_measurable M"
+  by (induction n) (use f in auto)
+
 lemma borel_measurable_prod_ennreal[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ennreal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"

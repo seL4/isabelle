@@ -1315,6 +1315,27 @@ lemma integrable_iff_bounded:
   using integrableI_bounded[of f M] has_bochner_integral_implies_finite_norm[of M f]
   unfolding integrable.simps has_bochner_integral.simps[abs_def] by auto
 
+lemma (in finite_measure) square_integrable_imp_integrable:
+  fixes f :: "'a \<Rightarrow> 'b :: {second_countable_topology, banach, real_normed_div_algebra}"
+  assumes [measurable]: "f \<in> borel_measurable M"
+  assumes "integrable M (\<lambda>x. f x ^ 2)"
+  shows   "integrable M f"
+proof -
+  have less_top: "emeasure M (space M) < top"
+    using finite_emeasure_space by (meson top.not_eq_extremum)
+  have "nn_integral M (\<lambda>x. norm (f x)) ^ 2 \<le>
+        nn_integral M (\<lambda>x. norm (f x) ^ 2) * emeasure M (space M)"
+    using Cauchy_Schwarz_nn_integral[of "\<lambda>x. norm (f x)" M "\<lambda>_. 1"]
+    by (simp add: ennreal_power)
+  also have "\<dots> < \<infinity>"
+    using assms(2) less_top
+    by (subst (asm) integrable_iff_bounded) (auto simp: norm_power ennreal_mult_less_top)
+  finally have "nn_integral M (\<lambda>x. norm (f x)) < \<infinity>"
+    by (simp add: power_less_top_ennreal)
+  thus ?thesis
+    by (simp add: integrable_iff_bounded)
+qed
+
 lemma integrable_bound:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
     and g :: "'a \<Rightarrow> 'c::{banach, second_countable_topology}"
@@ -2065,14 +2086,48 @@ proof -
 
   have "{x \<in> space M. u x \<ge> c} = {x \<in> space M. ennreal(1/c) * u x \<ge> 1} \<inter> (space M)"
     using \<open>c>0\<close> by (auto simp: ennreal_mult'[symmetric])
-  then have "emeasure M {x \<in> space M. u x \<ge> c} = emeasure M ({x \<in> space M. ennreal(1/c) * u x \<ge> 1} \<inter> (space M))"
+  then have "emeasure M {x \<in> space M. u x \<ge> c} = emeasure M ({x \<in> space M. ennreal(1/c) * u x \<ge> 1})"
     by simp
   also have "... \<le> ennreal(1/c) * (\<integral>\<^sup>+ x. ennreal(u x) * indicator (space M) x \<partial>M)"
     by (rule nn_integral_Markov_inequality) (auto simp add: assms)
   also have "... \<le> ennreal(1/c) * (\<integral>x. u x \<partial>M)"
-    apply (rule mult_left_mono) using * \<open>c>0\<close> by auto
+    by (rule mult_left_mono) (use * \<open>c > 0\<close> in auto)
   finally show ?thesis
     using \<open>0<c\<close> by (simp add: ennreal_mult'[symmetric])
+qed
+
+theorem integral_Markov_inequality_measure:
+  assumes [measurable]: "integrable M u" and "A \<in> sets M" and "AE x in M. 0 \<le> u x" "0 < (c::real)"
+  shows "measure M {x\<in>space M. u x \<ge> c} \<le> (\<integral>x. u x \<partial>M) / c"
+proof -
+  have le: "emeasure M {x\<in>space M. u x \<ge> c} \<le> ennreal ((1/c) * (\<integral>x. u x \<partial>M))"
+    by (rule integral_Markov_inequality) (use assms in auto)
+  also have "\<dots> < top"
+    by auto
+  finally have "ennreal (measure M {x\<in>space M. u x \<ge> c}) = emeasure M {x\<in>space M. u x \<ge> c}"
+    by (intro emeasure_eq_ennreal_measure [symmetric]) auto
+  also note le
+  finally show ?thesis
+    by (subst (asm) ennreal_le_iff)
+       (auto intro!: divide_nonneg_pos Bochner_Integration.integral_nonneg_AE assms)
+qed
+
+theorem%important (in finite_measure) second_moment_method:
+  assumes [measurable]: "f \<in> M \<rightarrow>\<^sub>M borel"
+  assumes "integrable M (\<lambda>x. f x ^ 2)"
+  defines "\<mu> \<equiv> lebesgue_integral M f"
+  assumes "a > 0"
+  shows "measure M {x\<in>space M. \<bar>f x\<bar> \<ge> a} \<le> lebesgue_integral M (\<lambda>x. f x ^ 2) / a\<^sup>2"
+proof -
+  have integrable: "integrable M f"
+    using assms by (blast dest: square_integrable_imp_integrable)
+  have "{x\<in>space M. \<bar>f x\<bar> \<ge> a} = {x\<in>space M. f x ^ 2 \<ge> a\<^sup>2}"
+    using \<open>a > 0\<close> by (simp flip: abs_le_square_iff)
+  hence "measure M {x\<in>space M. \<bar>f x\<bar> \<ge> a} = measure M {x\<in>space M. f x ^ 2 \<ge> a\<^sup>2}"
+    by simp
+  also have "\<dots> \<le> lebesgue_integral M (\<lambda>x. f x ^ 2) / a\<^sup>2"
+    using assms by (intro integral_Markov_inequality_measure) auto
+  finally show ?thesis .
 qed
 
 lemma integral_ineq_eq_0_then_AE:

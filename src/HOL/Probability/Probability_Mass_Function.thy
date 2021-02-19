@@ -1,6 +1,7 @@
 (*  Title:      HOL/Probability/Probability_Mass_Function.thy
     Author:     Johannes Hölzl, TU München
     Author:     Andreas Lochbihler, ETH Zurich
+    Author:     Manuel Eberl, TU München
 *)
 
 section \<open> Probability mass function \<close>
@@ -529,6 +530,16 @@ lemma integral_map_pmf[simp]:
   shows "integral\<^sup>L (map_pmf g p) f = integral\<^sup>L p (\<lambda>x. f (g x))"
   by (simp add: integral_distr map_pmf_rep_eq)
 
+lemma integrable_map_pmf_eq [simp]:
+  fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "integrable (map_pmf f p) g \<longleftrightarrow> integrable (measure_pmf p) (\<lambda>x. g (f x))"              
+  by (subst map_pmf_rep_eq, subst integrable_distr_eq) auto
+
+lemma integrable_map_pmf [intro]:
+  fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "integrable (measure_pmf p) (\<lambda>x. g (f x)) \<Longrightarrow> integrable (map_pmf f p) g"
+  by (subst integrable_map_pmf_eq)
+
 lemma pmf_abs_summable [intro]: "pmf p abs_summable_on A"
   by (rule abs_summable_on_subset[OF _ subset_UNIV])
      (auto simp:  abs_summable_on_def integrable_iff_bounded nn_integral_pmf)
@@ -669,12 +680,37 @@ lemma pmf_map_inj: "inj_on f (set_pmf M) \<Longrightarrow> x \<in> set_pmf M \<L
   by (auto simp: pmf.rep_eq map_pmf_rep_eq measure_distr AE_measure_pmf_iff inj_onD
            intro!: measure_pmf.finite_measure_eq_AE)
 
+lemma pair_return_pmf [simp]: "pair_pmf (return_pmf x) (return_pmf y) = return_pmf (x, y)"
+  by (auto simp: pair_pmf_def bind_return_pmf)
+
 lemma pmf_map_inj': "inj f \<Longrightarrow> pmf (map_pmf f M) (f x) = pmf M x"
 apply(cases "x \<in> set_pmf M")
  apply(simp add: pmf_map_inj[OF subset_inj_on])
 apply(simp add: pmf_eq_0_set_pmf[symmetric])
 apply(auto simp add: pmf_eq_0_set_pmf dest: injD)
 done
+
+lemma expectation_pair_pmf_fst [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (fst x)) = measure_pmf.expectation p f"
+proof -
+  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (fst x)) = 
+          measure_pmf.expectation (map_pmf fst (pair_pmf p q)) f" by simp
+  also have "map_pmf fst (pair_pmf p q) = p"
+    by (simp add: map_fst_pair_pmf)
+  finally show ?thesis .
+qed
+
+lemma expectation_pair_pmf_snd [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (snd x)) = measure_pmf.expectation q f"
+proof -
+  have "measure_pmf.expectation (pair_pmf p q) (\<lambda>x. f (snd x)) = 
+          measure_pmf.expectation (map_pmf snd (pair_pmf p q)) f" by simp
+  also have "map_pmf snd (pair_pmf p q) = q"
+    by (simp add: map_snd_pair_pmf)
+  finally show ?thesis .
+qed
 
 lemma pmf_map_outside: "x \<notin> f ` set_pmf M \<Longrightarrow> pmf (map_pmf f M) x = 0"
   unfolding pmf_eq_0_set_pmf by simp
@@ -1711,8 +1747,107 @@ lemma pmf_geometric[simp]: "pmf geometric_pmf n = (1 - p)^n * p"
 
 end
 
+lemma geometric_pmf_1 [simp]: "geometric_pmf 1 = return_pmf 0"
+  by (intro pmf_eqI) (auto simp: indicator_def)
+
 lemma set_pmf_geometric: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (geometric_pmf p) = UNIV"
   by (auto simp: set_pmf_iff)
+
+lemma geometric_sums_times_n:
+  fixes c::"'a::{banach,real_normed_field}"
+  assumes "norm c < 1"
+  shows "(\<lambda>n. c^n * of_nat n) sums (c / (1 - c)\<^sup>2)"
+proof -
+  have "(\<lambda>n. c * z ^ n) sums (c / (1 - z))" if "norm z < 1" for z
+    using geometric_sums sums_mult that by fastforce
+  moreover have "((\<lambda>z. c / (1 - z)) has_field_derivative (c / (1 - c)\<^sup>2)) (at c)"
+      using assms by (auto intro!: derivative_eq_intros simp add: semiring_normalization_rules)
+  ultimately have "(\<lambda>n. diffs (\<lambda>n. c) n * c ^ n) sums (c / (1 - c)\<^sup>2)"
+    using assms by (intro termdiffs_sums_strong)
+  then have "(\<lambda>n. of_nat (Suc n) * c ^ (Suc n)) sums (c / (1 - c)\<^sup>2)"
+    unfolding diffs_def by (simp add: power_eq_if mult.assoc)
+  then show ?thesis
+    by (subst (asm) sums_Suc_iff) (auto simp add: mult.commute)
+qed
+
+lemma geometric_sums_times_norm:
+  fixes c::"'a::{banach,real_normed_field}"
+  assumes "norm c < 1"
+  shows "(\<lambda>n. norm (c^n * of_nat n)) sums (norm c / (1 - norm c)\<^sup>2)"
+proof -
+  have "norm (c^n * of_nat n) = (norm c) ^ n * of_nat n" for n::nat
+    by (simp add: norm_power norm_mult)
+  then show ?thesis
+    using geometric_sums_times_n[of "norm c"] assms
+    by force
+qed
+
+lemma integrable_real_geometric_pmf:
+  assumes "p \<in> {0<..1}"
+  shows   "integrable (geometric_pmf p) real"
+proof -
+  have "summable (\<lambda>x. p * ((1 - p) ^ x * real x))"
+    using geometric_sums_times_norm[of "1 - p"] assms
+    by (intro summable_mult) (auto simp: sums_iff)
+  hence "summable (\<lambda>x. (1 - p) ^ x * real x)"
+    by (rule summable_mult_D) (use assms in auto)
+  thus ?thesis
+    unfolding measure_pmf_eq_density using assms
+    by (subst integrable_density)
+       (auto simp: integrable_count_space_nat_iff mult_ac)
+qed
+
+lemma expectation_geometric_pmf:
+  assumes "p \<in> {0<..1}"
+  shows   "measure_pmf.expectation (geometric_pmf p) real = (1 - p) / p"
+proof -
+  have "(\<lambda>n. p * ((1 - p) ^ n * n)) sums (p * ((1 - p) / p^2))"
+    using assms geometric_sums_times_n[of "1-p"] by (intro sums_mult) auto
+  moreover have "(\<lambda>n. p * ((1 - p) ^ n * n)) = (\<lambda>n. (1 - p) ^ n * p  * real n)"
+    by auto
+  ultimately have *: "(\<lambda>n. (1 - p) ^ n * p  * real n) sums ((1 - p) / p)"
+    using assms sums_subst by (auto simp add: power2_eq_square)
+  have "measure_pmf.expectation (geometric_pmf p) real =
+        (\<integral>n. pmf (geometric_pmf p) n * real n \<partial>count_space UNIV)"
+    unfolding measure_pmf_eq_density by (subst integral_density) auto
+  also have "integrable (count_space UNIV) (\<lambda>n. pmf (geometric_pmf p) n * real n)"
+    using * assms unfolding integrable_count_space_nat_iff by (simp add: sums_iff)
+  hence "(\<integral>n. pmf (geometric_pmf p) n * real n \<partial>count_space UNIV) = (1 - p) / p"
+    using * assms by (subst integral_count_space_nat) (simp_all add: sums_iff)
+  finally show ?thesis by auto
+qed
+
+lemma geometric_bind_pmf_unfold:
+  assumes "p \<in> {0<..1}"
+  shows "geometric_pmf p =
+     do {b \<leftarrow> bernoulli_pmf p;
+         if b then return_pmf 0 else map_pmf Suc (geometric_pmf p)}"
+proof -
+  have *: "(Suc -` {i}) = (if i = 0 then {} else {i - 1})" for i
+    by force
+  have "pmf (geometric_pmf p) i =
+        pmf (bernoulli_pmf p \<bind>
+            (\<lambda>b. if b then return_pmf 0 else map_pmf Suc (geometric_pmf p)))
+            i" for i
+  proof -
+    have "pmf (geometric_pmf p) i =
+          (if i = 0 then p else (1 - p) * pmf (geometric_pmf p) (i - 1))"
+      using assms by (simp add: power_eq_if)
+    also have "\<dots> = (if i = 0  then p else (1 - p) * pmf (map_pmf Suc (geometric_pmf p)) i)"
+      by (simp add: pmf_map indicator_def measure_pmf_single *)
+    also have "\<dots> = measure_pmf.expectation (bernoulli_pmf p)
+          (\<lambda>x. pmf (if x then return_pmf 0 else map_pmf Suc (geometric_pmf p)) i)"
+      using assms by (auto simp add: pmf_map *)
+    also have "\<dots> = pmf (bernoulli_pmf p \<bind>
+                   (\<lambda>b. if b then return_pmf 0 else map_pmf Suc (geometric_pmf p)))
+                   i"
+      by (auto simp add: pmf_bind)
+    finally show ?thesis .
+  qed
+  then show ?thesis
+    using pmf_eqI by blast
+qed
+
 
 subsubsection \<open> Uniform Multiset Distribution \<close>
 
@@ -1945,6 +2080,23 @@ lemma set_pmf_binomial_1[simp]: "set_pmf (binomial_pmf n 1) = {n}"
 lemma set_pmf_binomial[simp]: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (binomial_pmf n p) = {..n}"
   by (simp add: set_pmf_binomial_eq)
 
+lemma finite_set_pmf_binomial_pmf [intro]: "p \<in> {0..1} \<Longrightarrow> finite (set_pmf (binomial_pmf n p))"
+  by (subst set_pmf_binomial_eq) auto
+
+lemma expectation_binomial_pmf':
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes p: "p \<in> {0..1}"
+  shows   "measure_pmf.expectation (binomial_pmf n p) f =
+             (\<Sum>k\<le>n. (real (n choose k) * p ^ k * (1 - p) ^ (n - k)) *\<^sub>R f k)"
+  using p by (subst integral_measure_pmf[where A = "{..n}"])
+             (auto simp: set_pmf_binomial_eq split: if_splits)
+
+lemma integrable_binomial_pmf [simp, intro]:
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes p: "p \<in> {0..1}"
+  shows "integrable (binomial_pmf n p) f"
+  by (rule integrable_measure_pmf_finite) (use assms in auto)
+
 context includes lifting_syntax
 begin
 
@@ -2008,6 +2160,222 @@ lemma binomial_pmf_altdef:
   by (induction n)
      (insert assms, auto simp: binomial_pmf_Suc map_pmf_def bind_return_pmf bind_assoc_pmf
         bind_return_pmf' binomial_pmf_0 intro!: bind_pmf_cong)
+
+
+subsection \<open>Negative Binomial distribution\<close>
+
+text \<open>
+  The negative binomial distribution counts the number of times a weighted coin comes up
+  tails before having come up heads \<open>n\<close> times. In other words: how many failures do we see before
+  seeing the \<open>n\<close>-th success?
+
+  An alternative view is that the negative binomial distribution is the sum of \<open>n\<close> i.i.d.
+  geometric variables (this is the definition that we use).
+
+  Note that there are sometimes different conventions for this distributions in the literature;
+  for instance, sometimes the number of \<^emph>\<open>attempts\<close> is counted instead of the number of failures.
+  This only shifts the entire distribution by a constant number and is thus not a big difference.
+  I think that the convention we use is the most natural one since the support of the distribution
+  starts at 0, whereas for the other convention it starts at \<open>n\<close>.
+\<close>
+primrec neg_binomial_pmf :: "nat \<Rightarrow> real \<Rightarrow> nat pmf" where
+  "neg_binomial_pmf 0 p = return_pmf 0"
+| "neg_binomial_pmf (Suc n) p =
+     map_pmf (\<lambda>(x,y). (x + y)) (pair_pmf (geometric_pmf p) (neg_binomial_pmf n p))"
+
+lemma neg_binomial_pmf_Suc_0 [simp]: "neg_binomial_pmf (Suc 0) p = geometric_pmf p"
+  by (auto simp: pair_pmf_def bind_return_pmf map_pmf_def bind_assoc_pmf bind_return_pmf')
+
+lemmas neg_binomial_pmf_Suc [simp del] = neg_binomial_pmf.simps(2)
+
+lemma neg_binomial_prob_1 [simp]: "neg_binomial_pmf n 1 = return_pmf 0"
+  by (induction n) (simp_all add: neg_binomial_pmf_Suc)
+
+text \<open>
+  We can now show the aforementioned intuition about counting the failures before the
+  \<open>n\<close>-th success with the following recurrence:
+\<close>
+lemma neg_binomial_pmf_unfold:
+  assumes p: "p \<in> {0<..1}"
+  shows "neg_binomial_pmf (Suc n) p =
+           do {b \<leftarrow> bernoulli_pmf p;
+               if b then neg_binomial_pmf n p else map_pmf Suc (neg_binomial_pmf (Suc n) p)}"
+  (is "_ = ?rhs")
+  unfolding neg_binomial_pmf_Suc
+  by (subst geometric_bind_pmf_unfold[OF p])
+     (auto simp: map_pmf_def pair_pmf_def bind_assoc_pmf bind_return_pmf bind_return_pmf'
+           intro!: bind_pmf_cong)
+
+text \<open>
+  Next, we show an explicit formula for the probability mass function of the negative
+  binomial distribution:
+\<close>
+lemma pmf_neg_binomial:
+  assumes p: "p \<in> {0<..1}"
+  shows   "pmf (neg_binomial_pmf n p) k = real ((k + n - 1) choose k) * p ^ n * (1 - p) ^ k"
+proof (induction n arbitrary: k)
+  case 0
+  thus ?case using assms by (auto simp: indicator_def)
+next
+  case (Suc n)
+  show ?case
+  proof (cases "n = 0")
+    case True
+    thus ?thesis using assms by auto
+  next
+    case False
+    let ?f = "pmf (neg_binomial_pmf n p)"
+    have "pmf (neg_binomial_pmf (Suc n) p) k =
+            pmf (geometric_pmf p \<bind> (\<lambda>x. map_pmf ((+) x) (neg_binomial_pmf n p))) k"
+      by (auto simp: pair_pmf_def bind_return_pmf map_pmf_def bind_assoc_pmf neg_binomial_pmf_Suc)
+    also have "\<dots> = measure_pmf.expectation (geometric_pmf p) 
+                      (\<lambda>x. measure_pmf.prob (neg_binomial_pmf n p) ((+) x -` {k}))"
+      by (simp add: pmf_bind pmf_map)
+    also have "(\<lambda>x. (+) x -` {k}) = (\<lambda>x. if x \<le> k then {k - x} else {})"
+      by (auto simp: fun_eq_iff)
+    also have "(\<lambda>x. measure_pmf.prob (neg_binomial_pmf n p) (\<dots> x)) =
+               (\<lambda>x. if x \<le> k then ?f(k - x) else 0)"
+      by (auto simp: fun_eq_iff measure_pmf_single)
+    also have "measure_pmf.expectation (geometric_pmf p) \<dots> =
+                 (\<Sum>i\<le>k. pmf (neg_binomial_pmf n p) (k - i) * pmf (geometric_pmf p) i)"
+      by (subst integral_measure_pmf_real[where A = "{..k}"]) (auto split: if_splits)
+    also have "\<dots> = p^(n+1) * (1-p)^k * real (\<Sum>i\<le>k. (k - i + n - 1) choose (k - i))"
+      unfolding sum_distrib_left of_nat_sum
+    proof (intro sum.cong refl, goal_cases)
+      case (1 i)
+      have "pmf (neg_binomial_pmf n p) (k - i) * pmf (geometric_pmf p) i =
+              real ((k - i + n - 1) choose (k - i)) * p^(n+1) * ((1-p)^(k-i) * (1-p)^i)"
+        using assms Suc.IH by (simp add: mult_ac)
+      also have "(1-p)^(k-i) * (1-p)^i = (1-p)^k"
+        using 1 by (subst power_add [symmetric]) auto
+      finally show ?case by simp
+    qed
+    also have "(\<Sum>i\<le>k. (k - i + n - 1) choose (k - i)) = (\<Sum>i\<le>k. (n - 1 + i) choose i)"
+      by (intro sum.reindex_bij_witness[of _ "\<lambda>i. k - i" "\<lambda>i. k - i"]) 
+         (use \<open>n \<noteq> 0\<close> in \<open>auto simp: algebra_simps\<close>)
+    also have "\<dots> = (n + k) choose k"
+      by (subst sum_choose_lower) (use \<open>n \<noteq> 0\<close> in auto)
+    finally show ?thesis
+      by (simp add: add_ac)
+  qed
+qed
+
+(* TODO: Move? *)
+lemma gbinomial_0_left: "0 gchoose k = (if k = 0 then 1 else 0)"
+  by (cases k) auto
+
+text \<open>
+  The following alternative formula highlights why it is called `negative binomial distribution':
+\<close>
+lemma pmf_neg_binomial':
+  assumes p: "p \<in> {0<..1}"
+  shows   "pmf (neg_binomial_pmf n p) k = (-1) ^ k * ((-real n) gchoose k) * p ^ n * (1 - p) ^ k"
+proof (cases "n > 0")
+  case n: True
+  have "pmf (neg_binomial_pmf n p) k = real ((k + n - 1) choose k) * p ^ n * (1 - p) ^ k"
+    by (rule pmf_neg_binomial) fact+
+  also have "real ((k + n - 1) choose k) = ((real k + real n - 1) gchoose k)"
+    using n by (subst binomial_gbinomial) (auto simp: of_nat_diff)
+  also have "\<dots> = (-1) ^ k * ((-real n) gchoose k)"
+    by (subst gbinomial_negated_upper) auto
+  finally show ?thesis by simp
+qed (auto simp: indicator_def gbinomial_0_left)
+
+text \<open>
+  The cumulative distribution function of the negative binomial distribution can be
+  expressed in terms of that of the `normal' binomial distribution.
+\<close>
+lemma prob_neg_binomial_pmf_atMost:
+  assumes p: "p \<in> {0<..1}"
+  shows "measure_pmf.prob (neg_binomial_pmf n p) {..k} =
+         measure_pmf.prob (binomial_pmf (n + k) (1 - p)) {..k}"
+proof (cases "n = 0")
+  case [simp]: True
+  have "set_pmf (binomial_pmf (n + k) (1 - p)) \<subseteq> {..n+k}"
+    using p by (subst set_pmf_binomial_eq) auto
+  hence "measure_pmf.prob (binomial_pmf (n + k) (1 - p)) {..k} = 1"
+    by (subst measure_pmf.prob_eq_1) (auto intro!: AE_pmfI)
+  thus ?thesis by simp
+next
+  case False
+  hence n: "n > 0" by auto
+  have "measure_pmf.prob (binomial_pmf (n + k) (1 - p)) {..k} = (\<Sum>i\<le>k. pmf (binomial_pmf (n + k) (1 - p)) i)"
+    by (intro measure_measure_pmf_finite) auto
+  also have "\<dots> = (\<Sum>i\<le>k. real ((n + k) choose i) * p ^ (n + k - i) * (1 - p) ^ i)"
+    using p by (simp add: mult_ac)
+  also have "\<dots> = p ^ n * (\<Sum>i\<le>k. real ((n + k) choose i) * (1 - p) ^ i * p ^ (k - i))"
+    unfolding sum_distrib_left by (intro sum.cong) (auto simp: algebra_simps simp flip: power_add)
+  also have "(\<Sum>i\<le>k. real ((n + k) choose i) * (1 - p) ^ i * p ^ (k - i)) =
+             (\<Sum>i\<le>k. ((n + i - 1) choose i) * (1 - p) ^ i)"
+    using gbinomial_partial_sum_poly_xpos[of k "real n" "1 - p" p] n
+    by (simp add: binomial_gbinomial add_ac of_nat_diff)
+  also have "p ^ n * \<dots> = (\<Sum>i\<le>k. pmf (neg_binomial_pmf n p) i)"
+    using p unfolding sum_distrib_left by (simp add: pmf_neg_binomial algebra_simps)
+  also have "\<dots> = measure_pmf.prob (neg_binomial_pmf n p) {..k}"
+    by (intro measure_measure_pmf_finite [symmetric]) auto
+  finally show ?thesis ..
+qed
+
+lemma prob_neg_binomial_pmf_lessThan:
+  assumes p: "p \<in> {0<..1}"
+  shows "measure_pmf.prob (neg_binomial_pmf n p) {..<k} =
+         measure_pmf.prob (binomial_pmf (n + k - 1) (1 - p)) {..<k}"
+proof (cases "k = 0")
+  case False
+  hence "{..<k} = {..k-1}"
+    by auto
+  thus ?thesis
+    using prob_neg_binomial_pmf_atMost[OF p, of n "k - 1"] False by simp
+qed auto  
+
+text \<open>
+  The expected value of the negative binomial distribution is $n(1-p)/p$:
+\<close>
+lemma nn_integral_neg_binomial_pmf_real:
+  assumes p: "p \<in> {0<..1}"
+  shows "nn_integral (measure_pmf (neg_binomial_pmf n p)) of_nat = ennreal (n * (1 - p) / p)"
+proof (induction n)
+  case 0
+  thus ?case by auto
+next
+  case (Suc n)
+  have "nn_integral (measure_pmf (neg_binomial_pmf (Suc n) p)) of_nat =
+        nn_integral (measure_pmf (geometric_pmf p)) of_nat +
+        nn_integral (measure_pmf (neg_binomial_pmf n p)) of_nat"
+    by (simp add: neg_binomial_pmf_Suc case_prod_unfold nn_integral_add nn_integral_pair_pmf')
+  also have "nn_integral (measure_pmf (geometric_pmf p)) of_nat = ennreal ((1-p) / p)"
+    unfolding ennreal_of_nat_eq_real_of_nat
+    using expectation_geometric_pmf[OF p] integrable_real_geometric_pmf[OF p]
+    by (subst nn_integral_eq_integral) auto
+  also have "nn_integral (measure_pmf (neg_binomial_pmf n p)) of_nat = n * (1 - p) / p" using p
+    by (subst Suc.IH)
+       (auto simp: ennreal_of_nat_eq_real_of_nat ennreal_mult simp flip: divide_ennreal ennreal_minus)
+  also have "ennreal ((1 - p) / p) + ennreal (real n * (1 - p) / p) =
+             ennreal ((1-p) / p + real n * (1 - p) / p)"
+    by (intro ennreal_plus [symmetric] divide_nonneg_pos mult_nonneg_nonneg) (use p in auto)
+  also have "(1-p) / p + real n * (1 - p) / p = real (Suc n) * (1 - p) / p"
+    using p by (auto simp: field_simps)
+  finally show ?case
+    by (simp add: ennreal_of_nat_eq_real_of_nat)
+qed
+
+lemma integrable_neg_binomial_pmf_real:
+  assumes p: "p \<in> {0<..1}"
+  shows "integrable (measure_pmf (neg_binomial_pmf n p)) real"
+  using nn_integral_neg_binomial_pmf_real[OF p, of n]
+  by (subst integrable_iff_bounded) (auto simp flip: ennreal_of_nat_eq_real_of_nat)
+
+lemma expectation_neg_binomial_pmf:
+  assumes p: "p \<in> {0<..1}"
+  shows "measure_pmf.expectation (neg_binomial_pmf n p) real = n * (1 - p) / p"
+proof -
+  have "nn_integral (measure_pmf (neg_binomial_pmf n p)) of_nat = ennreal (n * (1 - p) / p)"
+    by (intro nn_integral_neg_binomial_pmf_real p)
+  also have "of_nat = (\<lambda>x. ennreal (real x))"
+    by (simp add: ennreal_of_nat_eq_real_of_nat fun_eq_iff)
+  finally show ?thesis
+    using p by (subst (asm) nn_integral_eq_integrable) auto
+qed
 
 
 subsection \<open>PMFs from association lists\<close>

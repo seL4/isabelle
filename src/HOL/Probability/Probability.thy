@@ -10,6 +10,8 @@ imports
   Projective_Limit
   Random_Permutations
   SPMF
+  Product_PMF
+  Hoeffding
   Stream_Space
   Tree_Space
   Conditional_Expectation

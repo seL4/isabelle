@@ -1174,13 +1174,18 @@ next
 qed
 
 theorem nn_integral_Markov_inequality:
-  assumes u: "u \<in> borel_measurable M" and "A \<in> sets M"
-  shows "(emeasure M) ({x\<in>space M. 1 \<le> c * u x} \<inter> A) \<le> c * (\<integral>\<^sup>+ x. u x * indicator A x \<partial>M)"
+  assumes u: "(\<lambda>x. u x * indicator A x) \<in> borel_measurable M" and "A \<in> sets M"
+  shows "(emeasure M) ({x\<in>A. 1 \<le> c * u x}) \<le> c * (\<integral>\<^sup>+ x. u x * indicator A x \<partial>M)"
     (is "(emeasure M) ?A \<le> _ * ?PI")
 proof -
-  have "?A \<in> sets M"
-    using \<open>A \<in> sets M\<close> u by auto
-  hence "(emeasure M) ?A = (\<integral>\<^sup>+ x. indicator ?A x \<partial>M)"
+  define u' where "u' = (\<lambda>x. u x * indicator A x)"
+  have [measurable]: "u' \<in> borel_measurable M"
+    using u unfolding u'_def .
+  have "{x\<in>space M. c * u' x \<ge> 1} \<in> sets M"
+    by measurable
+  also have "{x\<in>space M. c * u' x \<ge> 1} = ?A"
+    using sets.sets_into_space[OF \<open>A \<in> sets M\<close>] by (auto simp: u'_def indicator_def)
+  finally have "(emeasure M) ?A = (\<integral>\<^sup>+ x. indicator ?A x \<partial>M)"
     using nn_integral_indicator by simp
   also have "\<dots> \<le> (\<integral>\<^sup>+ x. c * (u x * indicator A x) \<partial>M)"
     using u by (auto intro!: nn_integral_mono_AE simp: indicator_def)
@@ -1188,6 +1193,37 @@ proof -
     using assms by (auto intro!: nn_integral_cmult)
   finally show ?thesis .
 qed
+
+lemma Chernoff_ineq_nn_integral_ge:
+  assumes s: "s > 0" and [measurable]: "A \<in> sets M"
+  assumes [measurable]: "(\<lambda>x. f x * indicator A x) \<in> borel_measurable M"
+  shows   "emeasure M {x\<in>A. f x \<ge> a} \<le>
+           ennreal (exp (-s * a)) * nn_integral M (\<lambda>x. ennreal (exp (s * f x)) * indicator A x)"
+proof -
+  define f' where "f' = (\<lambda>x. f x * indicator A x)"
+  have [measurable]: "f' \<in> borel_measurable M"
+    using assms(3) unfolding f'_def by assumption
+  have "(\<lambda>x. ennreal (exp (s * f' x)) * indicator A x) \<in> borel_measurable M"
+    by simp
+  also have "(\<lambda>x. ennreal (exp (s * f' x)) * indicator A x) =
+             (\<lambda>x. ennreal (exp (s * f x)) * indicator A x)"
+    by (auto simp: f'_def indicator_def fun_eq_iff)
+  finally have meas: "\<dots> \<in> borel_measurable M" .
+
+  have "{x\<in>A. f x \<ge> a} = {x\<in>A. ennreal (exp (-s * a)) * ennreal (exp (s * f x)) \<ge> 1}"
+    using s by (auto simp: exp_minus field_simps simp flip: ennreal_mult)
+  also have "emeasure M \<dots> \<le> ennreal (exp (-s * a)) *
+               (\<integral>\<^sup>+x. ennreal (exp (s * f x)) * indicator A x \<partial>M)"
+    by (intro order.trans[OF nn_integral_Markov_inequality] meas) auto
+  finally show ?thesis .
+qed
+
+lemma Chernoff_ineq_nn_integral_le:
+  assumes s: "s > 0" and [measurable]: "A \<in> sets M"
+  assumes [measurable]: "f \<in> borel_measurable M"
+  shows   "emeasure M {x\<in>A. f x \<le> a} \<le>
+           ennreal (exp (s * a)) * nn_integral M (\<lambda>x. ennreal (exp (-s * f x)) * indicator A x)"
+  using Chernoff_ineq_nn_integral_ge[of s A M "\<lambda>x. -f x" "-a"] assms by simp
 
 lemma nn_integral_noteq_infinite:
   assumes g: "g \<in> borel_measurable M" and "integral\<^sup>N M g \<noteq> \<infinity>"
@@ -1432,7 +1468,7 @@ proof -
 qed
 
 lemma nn_integral_0_iff:
-  assumes u: "u \<in> borel_measurable M"
+  assumes u [measurable]: "u \<in> borel_measurable M"
   shows "integral\<^sup>N M u = 0 \<longleftrightarrow> emeasure M {x\<in>space M. u x \<noteq> 0} = 0"
     (is "_ \<longleftrightarrow> (emeasure M) ?A = 0")
 proof -
@@ -1449,9 +1485,13 @@ proof -
     have "0 = (SUP n. (emeasure M) (?M n \<inter> ?A))"
     proof -
       { fix n :: nat
-        from nn_integral_Markov_inequality[OF u, of ?A "of_nat n"] u
-        have "(emeasure M) (?M n \<inter> ?A) \<le> 0"
-          by (simp add: ennreal_of_nat_eq_real_of_nat u_eq *)
+        have "emeasure M {x \<in> ?A. 1 \<le> of_nat n * u x} \<le>
+                of_nat n * \<integral>\<^sup>+ x. u x * indicator ?A x \<partial>M"
+          by (intro nn_integral_Markov_inequality) auto
+        also have "{x \<in> ?A. 1 \<le> of_nat n * u x} = (?M n \<inter> ?A)"
+          by (auto simp: ennreal_of_nat_eq_real_of_nat u_eq * )
+        finally have "emeasure M (?M n \<inter> ?A) \<le> 0"
+          by (simp add: ennreal_of_nat_eq_real_of_nat u_eq * )
         moreover have "0 \<le> (emeasure M) (?M n \<inter> ?A)" using u by auto
         ultimately have "(emeasure M) (?M n \<inter> ?A) = 0" by auto }
       thus ?thesis by simp
@@ -1616,6 +1656,93 @@ next
          (\<lambda>s. integral\<^sup>N (M s) (f x)) = g (\<lambda>s. integral\<^sup>N (M s) x)"
     by (subst step) auto
 qed (insert bound, auto simp add: le_fun_def INF_apply[abs_def] top_fun_def intro!: meas f g)
+
+
+text \<open>Cauchy--Schwarz inequality for \<^const>\<open>nn_integral\<close>\<close>
+
+lemma sum_of_squares_ge_ennreal:
+  fixes a b :: ennreal
+  shows "2 * a * b \<le> a\<^sup>2 + b\<^sup>2"
+proof (cases a; cases b)
+  fix x y
+  assume xy: "x \<ge> 0" "y \<ge> 0" and [simp]: "a = ennreal x" "b = ennreal y"
+  have "0 \<le> (x - y)\<^sup>2"
+    by simp
+  also have "\<dots> = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
+    by (simp add: algebra_simps power2_eq_square)
+  finally have "2 * x * y \<le> x\<^sup>2 + y\<^sup>2"
+    by simp
+  hence "ennreal (2 * x * y) \<le> ennreal (x\<^sup>2 + y\<^sup>2)"
+    by (intro ennreal_leI)
+  thus ?thesis using xy
+    by (simp add: ennreal_mult ennreal_power)
+qed auto
+
+lemma Cauchy_Schwarz_nn_integral:
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  shows "(\<integral>\<^sup>+x. f x * g x \<partial>M)\<^sup>2 \<le> (\<integral>\<^sup>+x. f x ^ 2 \<partial>M) * (\<integral>\<^sup>+x. g x ^ 2 \<partial>M)"
+proof (cases "(\<integral>\<^sup>+x. f x * g x \<partial>M) = 0")
+  case False
+  define F where "F = nn_integral M (\<lambda>x. f x ^ 2)"
+  define G where "G = nn_integral M (\<lambda>x. g x ^ 2)"
+  from False have "\<not>(AE x in M. f x = 0 \<or> g x = 0)"
+    by (auto simp: nn_integral_0_iff_AE)
+  hence "\<not>(AE x in M. f x = 0)" and "\<not>(AE x in M. g x = 0)"
+    by (auto intro: AE_disjI1 AE_disjI2)
+  hence nz: "F \<noteq> 0" "G \<noteq> 0"
+    by (auto simp: nn_integral_0_iff_AE F_def G_def)
+
+  show ?thesis
+  proof (cases "F = \<infinity> \<or> G = \<infinity>")
+    case True
+    thus ?thesis using nz
+      by (auto simp: F_def G_def)
+  next
+    case False
+    define F' where "F' = ennreal (sqrt (enn2real F))"
+    define G' where "G' = ennreal (sqrt (enn2real G))"
+    from False have fin: "F < top" "G < top"
+      by (simp_all add: top.not_eq_extremum)
+    have F'_sqr: "F'\<^sup>2 = F"
+      using False by (cases F) (auto simp: F'_def ennreal_power)
+    have G'_sqr: "G'\<^sup>2 = G"
+      using False by (cases G) (auto simp: G'_def ennreal_power)
+    have nz': "F' \<noteq> 0" "G' \<noteq> 0" and fin': "F' \<noteq> \<infinity>" "G' \<noteq> \<infinity>"
+      using F'_sqr G'_sqr nz fin by auto
+    from fin' have fin'': "F' < top" "G' < top"
+      by (auto simp: top.not_eq_extremum)
+
+    have "2 * (F' / F') * (G' / G') * (\<integral>\<^sup>+x. f x * g x \<partial>M) =
+          F' * G' * (\<integral>\<^sup>+x. 2 * (f x / F') * (g x / G') \<partial>M)"
+      using nz' fin''
+      by (simp add: divide_ennreal_def algebra_simps ennreal_inverse_mult flip: nn_integral_cmult)
+    also have "F'/ F' = 1"
+      using nz' fin'' by simp
+    also have "G'/ G' = 1"
+      using nz' fin'' by simp
+    also have "2 * 1 * 1 = (2 :: ennreal)" by simp
+    also have "F' * G' * (\<integral>\<^sup>+ x. 2 * (f x / F') * (g x / G') \<partial>M) \<le>
+               F' * G' * (\<integral>\<^sup>+x. (f x / F')\<^sup>2 + (g x / G')\<^sup>2 \<partial>M)"
+      by (intro mult_left_mono nn_integral_mono sum_of_squares_ge_ennreal) auto
+    also have "\<dots> = F' * G' * (F / F'\<^sup>2 + G / G'\<^sup>2)" using nz
+      by (auto simp: nn_integral_add algebra_simps nn_integral_divide F_def G_def)
+    also have "F / F'\<^sup>2 = 1"
+      using nz F'_sqr fin by simp
+    also have "G / G'\<^sup>2 = 1"
+      using nz G'_sqr fin by simp
+    also have "F' * G' * (1 + 1) = 2 * (F' * G')"
+      by (simp add: mult_ac)
+    finally have "(\<integral>\<^sup>+x. f x * g x \<partial>M) \<le> F' * G'"
+      by (subst (asm) ennreal_mult_le_mult_iff) auto
+    hence "(\<integral>\<^sup>+x. f x * g x \<partial>M)\<^sup>2 \<le> (F' * G')\<^sup>2"
+      by (intro power_mono_ennreal)
+    also have "\<dots> = F * G"
+      by (simp add: algebra_simps F'_sqr G'_sqr)
+    finally show ?thesis
+      by (simp add: F_def G_def)
+  qed
+qed auto
+
 
 (* TODO: rename? *)
 subsection \<open>Integral under concrete measures\<close>

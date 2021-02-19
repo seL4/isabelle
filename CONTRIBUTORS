@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2021: Manuel Eberl
+  New material in HOL-Analysis/HOL-Probability, most notably Hoeffding's
+  inequality and the negative binomial distribution
+
 * January 2021: Jakub Kądziołka
   Some lemmas for HOL-Computational_Algebra.
 
