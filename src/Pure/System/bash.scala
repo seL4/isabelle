@@ -227,8 +227,8 @@ object Bash
           { case _ if is_interrupt => (Nil, Nil) },
           { case Exn.Exn(exn) => (Nil, string(Exn.message(exn))) },
           { case Exn.Res(res) =>
-              val out = Library.terminate_lines(res.out_lines)
-              val err = Library.terminate_lines(res.err_lines)
+              val out = if (res.out_lines.isEmpty) "" else Library.terminate_lines(res.out_lines)
+              val err = if (res.err_lines.isEmpty) "" else Library.terminate_lines(res.err_lines)
               (List(int_atom(res.rc)), pair(string, string)(out, err)) }))
       }
       YXML.string_of_body(encode(result))
