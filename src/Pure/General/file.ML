@@ -48,10 +48,10 @@ struct
 val standard_path = Path.implode o Path.expand;
 val platform_path = ML_System.platform_path o standard_path;
 
-val bash_path = Bash_Syntax.string o standard_path;
-val bash_paths = Bash_Syntax.strings o map standard_path;
+val bash_path = Bash.string o standard_path;
+val bash_paths = Bash.strings o map standard_path;
 
-val bash_platform_path = Bash_Syntax.string o platform_path;
+val bash_platform_path = Bash.string o platform_path;
 
 
 (* full_path *)

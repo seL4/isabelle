@@ -6,6 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
+  val bash_process: string -> {out: string, err: string, rc: int}
   val bash_output_check: string -> string
   val bash_output: string -> string * int
   val bash: string -> int
@@ -28,14 +29,30 @@ struct
 
 (* bash *)
 
+fun bash_process script =
+  Scala.function_thread "bash_process"
+    ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
+  |> YXML.parse_body
+  |>
+    let open XML.Decode in
+      variant
+       [fn ([], []) => raise Exn.Interrupt,
+        fn ([], a) => error (YXML.string_of_body a),
+        fn ([a], c) =>
+          let
+            val rc = int_atom a;
+            val (out, err) = pair I I c |> apply2 YXML.string_of_body;
+          in {out = out, err = err, rc = rc} end]
+    end;
+
 fun bash_output_check s =
-  (case Bash.process s of
+  (case bash_process s of
     {rc = 0, out, ...} => trim_line out
   | {err, ...} => error (trim_line err));
 
 fun bash_output s =
   let
-    val {out, err, rc, ...} = Bash.process s;
+    val {out, err, rc, ...} = bash_process s;
     val _ = warning (trim_line err);
   in (out, rc) end;
 
@@ -127,7 +144,7 @@ fun with_tmp_dir name f =
 fun download url =
   with_tmp_file "download" "" (fn path =>
     ("curl --fail --silent --location " ^ Bash.string url ^ " > " ^ File.bash_path path)
-    |> Bash.process
+    |> bash_process
     |> (fn {rc = 0, ...} => File.read path
          | {err, ...} => cat_error ("Failed to download " ^ quote url) err));
 

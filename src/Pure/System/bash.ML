@@ -1,36 +1,35 @@
 (*  Title:      Pure/System/bash.ML
     Author:     Makarius
 
-GNU bash processes, with propagation of interrupts -- POSIX version.
+Syntax for GNU bash.
 *)
 
 signature BASH =
 sig
   val string: string -> string
   val strings: string list -> string
-  val process: string -> {out: string, err: string, rc: int}
 end;
 
 structure Bash: BASH =
 struct
 
-val string = Bash_Syntax.string;
-val strings = Bash_Syntax.strings;
+fun string "" = "\"\""
+  | string str =
+      str |> translate_string (fn ch =>
+        let val c = ord ch in
+          (case ch of
+            "\t" => "$'\\t'"
+          | "\n" => "$'\\n'"
+          | "\f" => "$'\\f'"
+          | "\r" => "$'\\r'"
+          | _ =>
+              if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
+                exists_string (fn c => c = ch) "+,-./:_" then ch
+              else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
+              else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
+              else "\\" ^ ch)
+        end);
 
-fun process script =
-  Scala.function_thread "bash_process"
-    ("export ISABELLE_TMP=" ^ string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
-  |> YXML.parse_body
-  |>
-    let open XML.Decode in
-      variant
-       [fn ([], []) => raise Exn.Interrupt,
-        fn ([], a) => error (YXML.string_of_body a),
-        fn ([a], c) =>
-          let
-            val rc = int_atom a;
-            val (out, err) = pair I I c |> apply2 YXML.string_of_body;
-          in {out = out, err = err, rc = rc} end]
-    end;
+val strings = space_implode " " o map string;
 
 end;

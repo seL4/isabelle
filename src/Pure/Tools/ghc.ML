@@ -84,8 +84,9 @@ fun new_project dir {name, depends, modules} =
     val template_path = dir + (Path.basic name |> Path.ext "hsfiles");
     val _ = File.write template_path (project_template {depends = depends, modules = modules});
     val {rc, err, ...} =
-      Bash.process ("cd " ^ File.bash_path dir ^ "; isabelle ghc_stack new " ^ Bash.string name ^
-        " --bare " ^ File.bash_platform_path template_path);
+      Isabelle_System.bash_process
+        ("cd " ^ File.bash_path dir ^ "; isabelle ghc_stack new " ^ Bash.string name ^
+          " --bare " ^ File.bash_platform_path template_path);
   in if rc = 0 then () else error err end;
 
 end;
