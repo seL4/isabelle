@@ -1,4 +1,4 @@
-#hard-wired components
+#built-in components
 src/Tools/jEdit
 src/Tools/Graphview
 src/Tools/VSCode
