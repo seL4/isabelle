@@ -219,19 +219,13 @@ object Bash
           case Exn.Exn(exn) => Exn.is_interrupt(exn)
         }
 
-      val encode: XML.Encode.T[Exn.Result[Process_Result]] =
-      {
-        import XML.Encode._
-        val string = XML.Encode.string
-        variant(List(
-          { case _ if is_interrupt => (Nil, Nil) },
-          { case Exn.Exn(exn) => (Nil, string(Exn.message(exn))) },
-          { case Exn.Res(res) =>
-              val out = if (res.out_lines.isEmpty) "" else Library.terminate_lines(res.out_lines)
-              val err = if (res.err_lines.isEmpty) "" else Library.terminate_lines(res.err_lines)
-              (List(int_atom(res.rc)), pair(string, string)(out, err)) }))
+      result match {
+        case _ if is_interrupt => ""
+        case Exn.Exn(exn) => Exn.message(exn)
+        case Exn.Res(res) =>
+          (res.rc.toString :: res.out_lines.length.toString ::
+            res.out_lines ::: res.err_lines).mkString("\u0000")
       }
-      YXML.string_of_body(encode(result))
     }
   }
 }

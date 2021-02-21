@@ -6,7 +6,9 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  val bash_process: string -> {out: string, err: string, rc: int}
+  type process_result =
+    {rc: int, out_lines: string list, err_lines: string list, out: string, err: string}
+  val bash_process: string -> process_result
   val bash_output_check: string -> string
   val bash_output: string -> string * int
   val bash: string -> int
@@ -29,21 +31,21 @@ struct
 
 (* bash *)
 
-fun bash_process script =
+type process_result =
+  {rc: int, out_lines: string list, err_lines: string list, out: string, err: string};
+
+fun bash_process script : process_result =
   Scala.function_thread "bash_process"
     ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
-  |> YXML.parse_body
-  |>
-    let open XML.Decode in
-      variant
-       [fn ([], []) => raise Exn.Interrupt,
-        fn ([], a) => error (YXML.string_of_body a),
-        fn ([a], c) =>
+  |> space_explode "\000"
+  |> (fn [] => raise Exn.Interrupt
+      | [err] => error err
+      | a :: b :: lines =>
           let
-            val rc = int_atom a;
-            val (out, err) = pair I I c |> apply2 YXML.string_of_body;
-          in {out = out, err = err, rc = rc} end]
-    end;
+            val rc = Value.parse_int a;
+            val ((out, err), (out_lines, err_lines)) =
+              chop (Value.parse_int b) lines |> `(apply2 cat_lines);
+          in {rc = rc, out_lines = out_lines, err_lines = err_lines, out = out, err = err} end);
 
 fun bash_output_check s =
   (case bash_process s of
