@@ -283,7 +283,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
                       string_of_int k))
               val _ = Quickcheck.add_timing timing current_result
             in
-              if response = "NONE\n" then with_size genuine_only (k + 1)
+              if response = "NONE" then with_size genuine_only (k + 1)
               else
                 let
                   val output_value = the_default "NONE"
