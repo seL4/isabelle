@@ -22,7 +22,7 @@ object Doc
       dir <- dirs()
       catalog = dir + Path.basic("Contents")
       if catalog.is_file
-      line <- split_lines(Library.trim_line(File.read(catalog)))
+      line <- Library.trim_split_lines(File.read(catalog))
     } yield (dir, line)
 
   sealed abstract class Entry
