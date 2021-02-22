@@ -14,16 +14,18 @@ begin
 
 subsection \<open>The type of multisets\<close>
 
-definition "multiset = {f :: 'a \<Rightarrow> nat. finite {x. f x > 0}}"
-
-typedef 'a multiset = "multiset :: ('a \<Rightarrow> nat) set"
+typedef 'a multiset = \<open>{f :: 'a \<Rightarrow> nat. finite {x. f x > 0}}\<close>
   morphisms count Abs_multiset
-  unfolding multiset_def
 proof
-  show "(\<lambda>x. 0::nat) \<in> {f. finite {x. f x > 0}}" by simp
+  show \<open>(\<lambda>x. 0::nat) \<in> {f. finite {x. f x > 0}}\<close>
+    by simp
 qed
 
 setup_lifting type_definition_multiset
+
+lemma count_Abs_multiset:
+  \<open>count (Abs_multiset f) = f\<close> if \<open>finite {x. f x > 0}\<close>
+  by (rule Abs_multiset_inverse) (simp add: that)
 
 lemma multiset_eq_iff: "M = N \<longleftrightarrow> (\<forall>a. count M a = count N a)"
   by (simp only: count_inject [symmetric] fun_eq_iff)
@@ -33,37 +35,15 @@ lemma multiset_eqI: "(\<And>x. count A x = count B x) \<Longrightarrow> A = B"
 
 text \<open>Preservation of the representing set \<^term>\<open>multiset\<close>.\<close>
 
-lemma const0_in_multiset: "(\<lambda>a. 0) \<in> multiset"
-  by (simp add: multiset_def)
-
-lemma only1_in_multiset: "(\<lambda>b. if b = a then n else 0) \<in> multiset"
-  by (simp add: multiset_def)
-
-lemma union_preserves_multiset: "M \<in> multiset \<Longrightarrow> N \<in> multiset \<Longrightarrow> (\<lambda>a. M a + N a) \<in> multiset"
-  by (simp add: multiset_def)
-
 lemma diff_preserves_multiset:
-  assumes "M \<in> multiset"
-  shows "(\<lambda>a. M a - N a) \<in> multiset"
-proof -
-  have "{x. N x < M x} \<subseteq> {x. 0 < M x}"
-    by auto
-  with assms show ?thesis
-    by (auto simp add: multiset_def intro: finite_subset)
-qed
+  \<open>finite {x. 0 < M x - N x}\<close> if \<open>finite {x. 0 < M x}\<close> for M N :: \<open>'a \<Rightarrow> nat\<close>
+  using that by (rule rev_finite_subset) auto
 
 lemma filter_preserves_multiset:
-  assumes "M \<in> multiset"
-  shows "(\<lambda>x. if P x then M x else 0) \<in> multiset"
-proof -
-  have "{x. (P x \<longrightarrow> 0 < M x) \<and> P x} \<subseteq> {x. 0 < M x}"
-    by auto
-  with assms show ?thesis
-    by (auto simp add: multiset_def intro: finite_subset)
-qed
+  \<open>finite {x. 0 < (if P x then M x else 0)}\<close> if \<open>finite {x. 0 < M x}\<close> for M N :: \<open>'a \<Rightarrow> nat\<close>
+  using that by (rule rev_finite_subset) auto
 
-lemmas in_multiset = const0_in_multiset only1_in_multiset
-  union_preserves_multiset diff_preserves_multiset filter_preserves_multiset
+lemmas in_multiset = diff_preserves_multiset filter_preserves_multiset
 
 
 subsection \<open>Representing multisets\<close>
@@ -74,19 +54,19 @@ instantiation multiset :: (type) cancel_comm_monoid_add
 begin
 
 lift_definition zero_multiset :: "'a multiset" is "\<lambda>a. 0"
-by (rule const0_in_multiset)
+  by simp
 
 abbreviation Mempty :: "'a multiset" ("{#}") where
   "Mempty \<equiv> 0"
 
 lift_definition plus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
-by (rule union_preserves_multiset)
+  by simp
 
 lift_definition minus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
-by (rule diff_preserves_multiset)
+  by (rule diff_preserves_multiset)
 
 instance
-  by (standard; transfer; simp add: fun_eq_iff)
+  by (standard; transfer) (simp_all add: fun_eq_iff)
 
 end
 
@@ -99,9 +79,9 @@ qualified definition is_empty :: "'a multiset \<Rightarrow> bool" where
 end
 
 lemma add_mset_in_multiset:
-  assumes M: \<open>M \<in> multiset\<close>
-  shows \<open>(\<lambda>b. if b = a then Suc (M b) else M b) \<in> multiset\<close>
-  using assms by (simp add: multiset_def flip: insert_Collect)
+  \<open>finite {x. 0 < (if x = a then Suc (M x) else M x)}\<close>
+  if \<open>finite {x. 0 < M x}\<close>
+  using that by (simp add: flip: insert_Collect)
 
 lift_definition add_mset :: "'a \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is
   "\<lambda>a M b. if b = a then Suc (M b) else M b"
@@ -246,7 +226,7 @@ lemma set_mset_eq_empty_iff [simp]:
 
 lemma finite_set_mset [iff]:
   "finite (set_mset M)"
-  using count [of M] by (simp add: multiset_def)
+  using count [of M] by simp
 
 lemma set_mset_add_mset_insert [simp]: \<open>set_mset (add_mset a A) = insert a (set_mset A)\<close>
   by (auto simp flip: count_greater_eq_Suc_zero_iff split: if_splits)
@@ -1029,18 +1009,18 @@ begin
 lift_definition Inf_multiset :: "'a multiset set \<Rightarrow> 'a multiset" is
   "\<lambda>A i. if A = {} then 0 else Inf ((\<lambda>f. f i) ` A)"
 proof -
-  fix A :: "('a \<Rightarrow> nat) set" assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<in> multiset"
-  have "finite {i. (if A = {} then 0 else Inf ((\<lambda>f. f i) ` A)) > 0}" unfolding multiset_def
+  fix A :: "('a \<Rightarrow> nat) set"
+  assume *: "\<And>f. f \<in> A \<Longrightarrow> finite {x. 0 < f x}"
+  show \<open>finite {i. 0 < (if A = {} then 0 else INF f\<in>A. f i)}\<close>
   proof (cases "A = {}")
     case False
     then obtain f where "f \<in> A" by blast
     hence "{i. Inf ((\<lambda>f. f i) ` A) > 0} \<subseteq> {i. f i > 0}"
       by (auto intro: less_le_trans[OF _ cInf_lower])
-    moreover from \<open>f \<in> A\<close> * have "finite \<dots>" by (simp add: multiset_def)
+    moreover from \<open>f \<in> A\<close> * have "finite \<dots>" by simp
     ultimately have "finite {i. Inf ((\<lambda>f. f i) ` A) > 0}" by (rule finite_subset)
     with False show ?thesis by simp
   qed simp_all
-  thus "(\<lambda>i. if A = {} then 0 else INF f\<in>A. f i) \<in> multiset" by (simp add: multiset_def)
 qed
 
 instance ..
@@ -1098,10 +1078,9 @@ proof -
 qed
 
 lemma Sup_multiset_in_multiset:
-  assumes "A \<noteq> {}" "subset_mset.bdd_above A"
-  shows   "(\<lambda>i. SUP X\<in>A. count X i) \<in> multiset"
-  unfolding multiset_def
-proof
+  \<open>finite {i. 0 < (SUP M\<in>A. count M i)}\<close>
+  if \<open>A \<noteq> {}\<close> \<open>subset_mset.bdd_above A\<close>
+proof -
   have "{i. Sup ((\<lambda>X. count X i) ` A) > 0} \<subseteq> (\<Union>X\<in>A. {i. 0 < count X i})"
   proof safe
     fix i assume pos: "(SUP X\<in>A. count X i) > 0"
@@ -1109,20 +1088,21 @@ proof
     proof (rule ccontr)
       assume "i \<notin> (\<Union>X\<in>A. {i. 0 < count X i})"
       hence "\<forall>X\<in>A. count X i \<le> 0" by (auto simp: count_eq_zero_iff)
-      with assms have "(SUP X\<in>A. count X i) \<le> 0"
+      with that have "(SUP X\<in>A. count X i) \<le> 0"
         by (intro cSup_least bdd_above_multiset_imp_bdd_above_count) auto
       with pos show False by simp
     qed
   qed
-  moreover from assms have "finite \<dots>" by (rule bdd_above_multiset_imp_finite_support)
-  ultimately show "finite {i. Sup ((\<lambda>X. count X i) ` A) > 0}" by (rule finite_subset)
+  moreover from that have "finite \<dots>"
+    by (rule bdd_above_multiset_imp_finite_support)
+  ultimately show "finite {i. Sup ((\<lambda>X. count X i) ` A) > 0}"
+    by (rule finite_subset)
 qed
 
 lemma count_Sup_multiset_nonempty:
-  assumes "A \<noteq> {}" "subset_mset.bdd_above A"
-  shows   "count (Sup A) x = (SUP X\<in>A. count X x)"
-  using assms by (simp add: Sup_multiset_def Abs_multiset_inverse Sup_multiset_in_multiset)
-
+  \<open>count (Sup A) x = (SUP X\<in>A. count X x)\<close>
+  if \<open>A \<noteq> {}\<close> \<open>subset_mset.bdd_above A\<close>
+  using that by (simp add: Sup_multiset_def Sup_multiset_in_multiset count_Abs_multiset)
 
 interpretation subset_mset: conditionally_complete_lattice Inf Sup "(\<inter>#)" "(\<subseteq>#)" "(\<subset>#)" "(\<union>#)"
 proof
@@ -3700,7 +3680,7 @@ proof -
     by (rule natLeq_cinfinite)
   show "ordLeq3 (card_of (set_mset X)) natLeq" for X
     by transfer
-      (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
+      (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric])
   show "rel_mset R OO rel_mset S \<le> rel_mset (R OO S)" for R S
     unfolding rel_mset_def[abs_def] OO_def
     apply clarify
@@ -3749,9 +3729,8 @@ lemma rel_mset_Zero: "rel_mset R {#} {#}"
 unfolding rel_mset_def Grp_def by auto
 
 declare multiset.count[simp]
-declare Abs_multiset_inverse[simp]
+declare count_Abs_multiset[simp]
 declare multiset.count_inverse[simp]
-declare union_preserves_multiset[simp]
 
 lemma rel_mset_Plus:
   assumes ab: "R a b"

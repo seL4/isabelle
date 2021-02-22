@@ -100,7 +100,7 @@ text \<open>Implementing multisets by means of association lists\<close>
 definition count_of :: "('a \<times> nat) list \<Rightarrow> 'a \<Rightarrow> nat"
   where "count_of xs x = (case map_of xs x of None \<Rightarrow> 0 | Some n \<Rightarrow> n)"
 
-lemma count_of_multiset: "count_of xs \<in> multiset"
+lemma count_of_multiset: "finite {x. 0 < count_of xs x}"
 proof -
   let ?A = "{x::'a. 0 < (case map_of xs x of None \<Rightarrow> 0::nat | Some n \<Rightarrow> n)}"
   have "?A \<subseteq> dom (map_of xs)"
@@ -117,7 +117,7 @@ proof -
   with finite_dom_map_of [of xs] have "finite ?A"
     by (auto intro: finite_subset)
   then show ?thesis
-    by (simp add: count_of_def fun_eq_iff multiset_def)
+    by (simp add: count_of_def fun_eq_iff)
 qed
 
 lemma count_simps [simp]:
@@ -291,7 +291,7 @@ proof (induct al)
   let ?inv = "{xs :: ('a \<times> nat) list. (distinct \<circ> map fst) xs}"
   note cs[simp del] = count_simps
   have count[simp]: "\<And>x. count (Abs_multiset (count_of x)) = count_of x"
-    by (rule Abs_multiset_inverse[OF count_of_multiset])
+    by (rule Abs_multiset_inverse) (simp add: count_of_multiset)
   assume ys: "ys \<in> ?inv"
   then show "fold_mset f e (Bag (Alist ys)) = fold_impl fn e (DAList.impl_of (Alist ys))"
     unfolding Bag_def unfolding Alist_inverse[OF ys]

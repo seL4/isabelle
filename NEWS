@@ -3,6 +3,10 @@ Isabelle NEWS -- history of user-relevant changes
 
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
+*** HOL ***
+
+* Theory Multiset: dedicated predicate "multiset" is gone, use
+explict expression instead.  Minor INCOMPATIBILITY.
 
 New in this Isabelle version
 ----------------------------
