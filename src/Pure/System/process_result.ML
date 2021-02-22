@@ -41,13 +41,13 @@ val out_lines = #out_lines o rep;
 val err_lines = #err_lines o rep;
 val timing = #timing o rep;
 
+end;
+
 val out = trim_line o cat_lines o out_lines;
 val err = trim_line o cat_lines o err_lines;
 
 fun ok result = rc result = 0;
 
 fun check result = if ok result then result else error (err result);
-
-end;
 
 end;
