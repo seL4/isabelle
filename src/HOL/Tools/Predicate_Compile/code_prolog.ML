@@ -818,11 +818,12 @@ fun invoke system file =
     if getenv env_var = "" then
       (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
     else
-      (case Isabelle_System.bash_output (cmd ^ File.bash_path file) of
-        (out, 0) => out
-      | (_, rc) =>
-          error ("Error caused by prolog system " ^ env_var ^
-            ": return code " ^ string_of_int rc))
+      let val res = Isabelle_System.bash_process (cmd ^ File.bash_path file) in
+        res |> Process_Result.check |> Process_Result.out
+          handle ERROR msg =>
+            cat_error ("Error caused by prolog system " ^ env_var ^
+              ": return code " ^ string_of_int (Process_Result.rc res)) msg
+      end
   end
 
 
@@ -865,7 +866,7 @@ fun parse_solutions sol =
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output")
     fun parse_solution s = map dest_eq (space_explode ";" s)
-  in map parse_solution (Library.trim_split_lines sol) end
+  in map parse_solution (split_lines sol) end
 
 
 (* calling external interpreter and getting results *)

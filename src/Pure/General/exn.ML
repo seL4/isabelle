@@ -105,7 +105,7 @@ fun interruptible_capture f x =
 (* POSIX return code *)
 
 fun return_code exn rc =
-  if is_interrupt exn then (130: int) else rc;
+  if is_interrupt exn then 130 else rc;
 
 fun capture_exit rc f x =
   f x handle exn => exit (return_code exn rc);

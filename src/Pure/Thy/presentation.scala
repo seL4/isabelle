@@ -680,7 +680,7 @@ object Presentation
             if (!result.ok) {
               val message =
                 Exn.cat_message(
-                  Library.trim_line(result.err),
+                  result.err,
                   cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
                   "Failed to build document " + quote(doc.name))
               throw new Build_Error(log_lines, message)

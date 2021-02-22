@@ -35,10 +35,13 @@ fun parse_dockables (XML.Elem (("DOCKABLES", _), body)) =
 val xml_file = XML.parse o File.read;
 
 fun xml_resource name =
-  let val script = "unzip -p \"$JEDIT_HOME/dist/jedit.jar\" " ^ Bash.string name in
-    (case Isabelle_System.bash_output script of
-      (txt, 0) => XML.parse txt
-    | (_, rc) => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc))
+  let
+    val res =
+      Isabelle_System.bash_process ("unzip -p \"$JEDIT_HOME/dist/jedit.jar\" " ^ Bash.string name);
+    val rc = Process_Result.rc res;
+  in
+    res |> Process_Result.check |> Process_Result.out |> XML.parse
+      handle ERROR _ => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc)
   end;
 
 

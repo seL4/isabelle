@@ -6,10 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  type process_result =
-    {rc: int, out_lines: string list, err_lines: string list, out: string, err: string}
-  val bash_process: string -> process_result
-  val bash_output_check: string -> string
+  val bash_process: string -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
   val bash_functions: unit -> string list
@@ -31,45 +28,42 @@ struct
 
 (* bash *)
 
-type process_result =
-  {rc: int, out_lines: string list, err_lines: string list, out: string, err: string};
-
-fun bash_process script : process_result =
+fun bash_process script =
   Scala.function_thread "bash_process"
     ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
   |> space_explode "\000"
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
-      | a :: b :: lines =>
+      | a :: b :: c :: d :: lines =>
           let
             val rc = Value.parse_int a;
-            val ((out, err), (out_lines, err_lines)) =
-              chop (Value.parse_int b) lines |> `(apply2 cat_lines);
-          in {rc = rc, out_lines = out_lines, err_lines = err_lines, out = out, err = err} end);
+            val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
+            val (out_lines, err_lines) = chop (Value.parse_int d) lines;
+          in
+            Process_Result.make
+             {rc = rc,
+              out_lines = out_lines,
+              err_lines = err_lines,
+              timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
+         end
+      | _ => raise Fail "Malformed Isabelle/Scala result");
 
-fun bash_output_check s =
-  (case bash_process s of
-    {rc = 0, out, ...} => trim_line out
-  | {err, ...} => error (trim_line err));
+val bash = bash_process #> Process_Result.print #> Process_Result.rc;
 
 fun bash_output s =
   let
-    val {out, err, rc, ...} = bash_process s;
-    val _ = warning (trim_line err);
-  in (out, rc) end;
-
-fun bash s =
-  let
-    val (out, rc) = bash_output s;
-    val _ = writeln (trim_line out);
-  in rc end;
+    val res = bash_process s;
+    val _ = warning (Process_Result.err res);
+  in (Process_Result.out res, Process_Result.rc res) end;
 
 
 (* bash functions *)
 
 fun bash_functions () =
-  bash_output_check "declare -Fx"
-  |> split_lines |> map_filter (space_explode " " #> try List.last);
+  bash_process "declare -Fx"
+  |> Process_Result.check
+  |> Process_Result.out_lines
+  |> map_filter (space_explode " " #> try List.last);
 
 fun check_bash_function ctxt arg =
   Completion.check_entity Markup.bash_functionN
@@ -145,9 +139,12 @@ fun with_tmp_dir name f =
 
 fun download url =
   with_tmp_file "download" "" (fn path =>
-    ("curl --fail --silent --location " ^ Bash.string url ^ " > " ^ File.bash_path path)
-    |> bash_process
-    |> (fn {rc = 0, ...} => File.read path
-         | {err, ...} => cat_error ("Failed to download " ^ quote url) err));
+    let
+      val s = "curl --fail --silent --location " ^ Bash.string url ^ " > " ^ File.bash_path path;
+      val res = bash_process s;
+    in
+      if Process_Result.ok res then File.read path
+      else cat_error ("Failed to download " ^ quote url) (Process_Result.err res)
+    end);
 
 end;

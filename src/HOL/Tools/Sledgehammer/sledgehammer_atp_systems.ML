@@ -574,7 +574,7 @@ fun get_remote_systems () =
       (warning
          (case extract_known_atp_failure known_perl_failures output of
            SOME failure => string_of_atp_failure failure
-         | NONE => trim_line output); []))) ()
+         | NONE => output); []))) ()
   handle Timeout.TIMEOUT _ => []
 
 fun find_remote_system name [] systems =
