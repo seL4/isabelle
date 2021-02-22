@@ -16,6 +16,7 @@ sig
   val out_lines: T -> string list
   val err_lines: T -> string list
   val timing: T -> Timing.timing
+  val timing_elapsed: T -> Time.time
   val out: T -> string
   val err: T -> string
   val ok: T -> bool
@@ -40,7 +41,9 @@ fun rep (Process_Result args) = args;
 val rc = #rc o rep;
 val out_lines = #out_lines o rep;
 val err_lines = #err_lines o rep;
+
 val timing = #timing o rep;
+val timing_elapsed = #elapsed o timing;
 
 end;
 
