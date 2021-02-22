@@ -223,8 +223,11 @@ object Bash
         case _ if is_interrupt => ""
         case Exn.Exn(exn) => Exn.message(exn)
         case Exn.Res(res) =>
-          (res.rc.toString :: res.out_lines.length.toString ::
-            res.out_lines ::: res.err_lines).mkString("\u0000")
+         (res.rc.toString ::
+          res.timing.elapsed.ms.toString ::
+          res.timing.cpu.ms.toString ::
+          res.out_lines.length.toString ::
+          res.out_lines ::: res.err_lines).mkString("\u0000")
       }
     }
   }

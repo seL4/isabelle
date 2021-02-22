@@ -7,7 +7,12 @@ Isabelle system support.
 signature ISABELLE_SYSTEM =
 sig
   type process_result =
-    {rc: int, out_lines: string list, err_lines: string list, out: string, err: string}
+   {rc: int,
+    out_lines: string list,
+    err_lines: string list,
+    out: string,
+    err: string,
+    timing: Timing.timing}
   val bash_process: string -> process_result
   val bash_output_check: string -> string
   val bash_output: string -> string * int
@@ -32,7 +37,12 @@ struct
 (* bash *)
 
 type process_result =
-  {rc: int, out_lines: string list, err_lines: string list, out: string, err: string};
+ {rc: int,
+  out_lines: string list,
+  err_lines: string list,
+  out: string,
+  err: string,
+  timing: Timing.timing};
 
 fun bash_process script : process_result =
   Scala.function_thread "bash_process"
@@ -40,12 +50,21 @@ fun bash_process script : process_result =
   |> space_explode "\000"
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
-      | a :: b :: lines =>
+      | a :: b :: c :: d :: lines =>
           let
             val rc = Value.parse_int a;
+            val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
             val ((out, err), (out_lines, err_lines)) =
-              chop (Value.parse_int b) lines |> `(apply2 cat_lines);
-          in {rc = rc, out_lines = out_lines, err_lines = err_lines, out = out, err = err} end);
+              chop (Value.parse_int d) lines |> `(apply2 cat_lines);
+          in
+           {rc = rc,
+            out_lines = out_lines,
+            err_lines = err_lines,
+            out = out,
+            err = err,
+            timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
+         end
+      | _ => raise Fail "Malformed Isabelle/Scala result");
 
 fun bash_output_check s =
   (case bash_process s of
