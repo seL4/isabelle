@@ -13,114 +13,160 @@ ML_file \<open>~~/src/Provers/order.ML\<close>
 
 subsection \<open>Abstract ordering\<close>
 
-locale ordering =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold>\<le>" 50)
-   and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold><" 50)
-  assumes strict_iff_order: "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b"
-  assumes refl: "a \<^bold>\<le> a" \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
-    and antisym: "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> a \<Longrightarrow> a = b"
-    and trans: "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>\<le> c"
+locale partial_preordering =
+  fixes less_eq :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close> (infix \<open>\<^bold>\<le>\<close> 50)
+  assumes refl: \<open>a \<^bold>\<le> a\<close> \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
+    and trans: \<open>a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>\<le> c\<close>
+
+locale preordering = partial_preordering +
+  fixes less :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close> (infix \<open>\<^bold><\<close> 50)
+  assumes strict_iff_not: \<open>a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> \<not> b \<^bold>\<le> a\<close>
 begin
 
 lemma strict_implies_order:
-  "a \<^bold>< b \<Longrightarrow> a \<^bold>\<le> b"
-  by (simp add: strict_iff_order)
+  \<open>a \<^bold>< b \<Longrightarrow> a \<^bold>\<le> b\<close>
+  by (simp add: strict_iff_not)
+
+lemma irrefl: \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
+  \<open>\<not> a \<^bold>< a\<close>
+  by (simp add: strict_iff_not)
+
+lemma asym:
+  \<open>a \<^bold>< b \<Longrightarrow> b \<^bold>< a \<Longrightarrow> False\<close>
+  by (auto simp add: strict_iff_not)
+
+lemma strict_trans1:
+  \<open>a \<^bold>\<le> b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c\<close>
+  by (auto simp add: strict_iff_not intro: trans)
+
+lemma strict_trans2:
+  \<open>a \<^bold>< b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>< c\<close>
+  by (auto simp add: strict_iff_not intro: trans)
+
+lemma strict_trans:
+  \<open>a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c\<close>
+  by (auto intro: strict_trans1 strict_implies_order)
+
+end
+
+lemma preordering_strictI: \<comment> \<open>Alternative introduction rule with bias towards strict order\<close>
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
+  assumes less_eq_less: \<open>\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b\<close>
+    assumes asym: \<open>\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a\<close>
+  assumes irrefl: \<open>\<And>a. \<not> a \<^bold>< a\<close>
+  assumes trans: \<open>\<And>a b c. a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c\<close>
+  shows \<open>preordering (\<^bold>\<le>) (\<^bold><)\<close>
+proof
+  fix a b
+  show \<open>a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> \<not> b \<^bold>\<le> a\<close>
+    by (auto simp add: less_eq_less asym irrefl)
+next
+  fix a
+  show \<open>a \<^bold>\<le> a\<close>
+    by (auto simp add: less_eq_less)
+next
+  fix a b c
+  assume \<open>a \<^bold>\<le> b\<close> and \<open>b \<^bold>\<le> c\<close> then show \<open>a \<^bold>\<le> c\<close>
+    by (auto simp add: less_eq_less intro: trans)
+qed
+
+lemma preordering_dualI:
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
+  assumes \<open>preordering (\<lambda>a b. b \<^bold>\<le> a) (\<lambda>a b. b \<^bold>< a)\<close>
+  shows \<open>preordering (\<^bold>\<le>) (\<^bold><)\<close>
+proof -
+  from assms interpret preordering \<open>\<lambda>a b. b \<^bold>\<le> a\<close> \<open>\<lambda>a b. b \<^bold>< a\<close> .
+  show ?thesis
+    by standard (auto simp: strict_iff_not refl intro: trans)
+qed
+
+locale ordering = partial_preordering +
+  fixes less :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close> (infix \<open>\<^bold><\<close> 50)
+  assumes strict_iff_order: \<open>a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b\<close>
+  assumes antisym: \<open>a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> a \<Longrightarrow> a = b\<close>
+begin
+
+sublocale preordering \<open>(\<^bold>\<le>)\<close> \<open>(\<^bold><)\<close>
+proof
+  show \<open>a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> \<not> b \<^bold>\<le> a\<close> for a b
+    by (auto simp add: strict_iff_order intro: antisym)
+qed
 
 lemma strict_implies_not_eq:
-  "a \<^bold>< b \<Longrightarrow> a \<noteq> b"
+  \<open>a \<^bold>< b \<Longrightarrow> a \<noteq> b\<close>
   by (simp add: strict_iff_order)
 
 lemma not_eq_order_implies_strict:
-  "a \<noteq> b \<Longrightarrow> a \<^bold>\<le> b \<Longrightarrow> a \<^bold>< b"
+  \<open>a \<noteq> b \<Longrightarrow> a \<^bold>\<le> b \<Longrightarrow> a \<^bold>< b\<close>
   by (simp add: strict_iff_order)
 
 lemma order_iff_strict:
-  "a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
+  \<open>a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b\<close>
   by (auto simp add: strict_iff_order refl)
 
-lemma irrefl: \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
-  "\<not> a \<^bold>< a"
-  by (simp add: strict_iff_order)
-
-lemma asym:
-  "a \<^bold>< b \<Longrightarrow> b \<^bold>< a \<Longrightarrow> False"
-  by (auto simp add: strict_iff_order intro: antisym)
-
-lemma strict_trans1:
-  "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
-  by (auto simp add: strict_iff_order intro: trans antisym)
-
-lemma strict_trans2:
-  "a \<^bold>< b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>< c"
-  by (auto simp add: strict_iff_order intro: trans antisym)
-
-lemma strict_trans:
-  "a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
-  by (auto intro: strict_trans1 strict_implies_order)
-
-lemma eq_iff: "a = b \<longleftrightarrow> a \<^bold>\<le> b \<and> b \<^bold>\<le> a"
+lemma eq_iff: \<open>a = b \<longleftrightarrow> a \<^bold>\<le> b \<and> b \<^bold>\<le> a\<close>
   by (auto simp add: refl intro: antisym)
 
 end
 
-text \<open>Alternative introduction rule with bias towards strict order\<close>
-
-lemma ordering_strictI:
-  fixes less_eq (infix "\<^bold>\<le>" 50)
-    and less (infix "\<^bold><" 50)
-  assumes less_eq_less: "\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
-    assumes asym: "\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a"
-  assumes irrefl: "\<And>a. \<not> a \<^bold>< a"
-  assumes trans: "\<And>a b c. a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
-  shows "ordering less_eq less"
+lemma ordering_strictI: \<comment> \<open>Alternative introduction rule with bias towards strict order\<close>
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
+  assumes less_eq_less: \<open>\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b\<close>
+    assumes asym: \<open>\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a\<close>
+  assumes irrefl: \<open>\<And>a. \<not> a \<^bold>< a\<close>
+  assumes trans: \<open>\<And>a b c. a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c\<close>
+  shows \<open>ordering (\<^bold>\<le>) (\<^bold><)\<close>
 proof
   fix a b
-  show "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b"
+  show \<open>a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b\<close>
     by (auto simp add: less_eq_less asym irrefl)
 next
   fix a
-  show "a \<^bold>\<le> a"
+  show \<open>a \<^bold>\<le> a\<close>
     by (auto simp add: less_eq_less)
 next
   fix a b c
-  assume "a \<^bold>\<le> b" and "b \<^bold>\<le> c" then show "a \<^bold>\<le> c"
+  assume \<open>a \<^bold>\<le> b\<close> and \<open>b \<^bold>\<le> c\<close> then show \<open>a \<^bold>\<le> c\<close>
     by (auto simp add: less_eq_less intro: trans)
 next
   fix a b
-  assume "a \<^bold>\<le> b" and "b \<^bold>\<le> a" then show "a = b"
+  assume \<open>a \<^bold>\<le> b\<close> and \<open>b \<^bold>\<le> a\<close> then show \<open>a = b\<close>
     by (auto simp add: less_eq_less asym)
 qed
 
 lemma ordering_dualI:
-  fixes less_eq (infix "\<^bold>\<le>" 50)
-    and less (infix "\<^bold><" 50)
-  assumes "ordering (\<lambda>a b. b \<^bold>\<le> a) (\<lambda>a b. b \<^bold>< a)"
-  shows "ordering less_eq less"
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
+  assumes \<open>ordering (\<lambda>a b. b \<^bold>\<le> a) (\<lambda>a b. b \<^bold>< a)\<close>
+  shows \<open>ordering (\<^bold>\<le>) (\<^bold><)\<close>
 proof -
-  from assms interpret ordering "\<lambda>a b. b \<^bold>\<le> a" "\<lambda>a b. b \<^bold>< a" .
+  from assms interpret ordering \<open>\<lambda>a b. b \<^bold>\<le> a\<close> \<open>\<lambda>a b. b \<^bold>< a\<close> .
   show ?thesis
     by standard (auto simp: strict_iff_order refl intro: antisym trans)
 qed
 
 locale ordering_top = ordering +
-  fixes top :: "'a"  ("\<^bold>\<top>")
-  assumes extremum [simp]: "a \<^bold>\<le> \<^bold>\<top>"
+  fixes top :: \<open>'a\<close>  (\<open>\<^bold>\<top>\<close>)
+  assumes extremum [simp]: \<open>a \<^bold>\<le> \<^bold>\<top>\<close>
 begin
 
 lemma extremum_uniqueI:
-  "\<^bold>\<top> \<^bold>\<le> a \<Longrightarrow> a = \<^bold>\<top>"
+  \<open>\<^bold>\<top> \<^bold>\<le> a \<Longrightarrow> a = \<^bold>\<top>\<close>
   by (rule antisym) auto
 
 lemma extremum_unique:
-  "\<^bold>\<top> \<^bold>\<le> a \<longleftrightarrow> a = \<^bold>\<top>"
+  \<open>\<^bold>\<top> \<^bold>\<le> a \<longleftrightarrow> a = \<^bold>\<top>\<close>
   by (auto intro: antisym)
 
 lemma extremum_strict [simp]:
-  "\<not> (\<^bold>\<top> \<^bold>< a)"
+  \<open>\<not> (\<^bold>\<top> \<^bold>< a)\<close>
   using extremum [of a] by (auto simp add: order_iff_strict intro: asym irrefl)
 
 lemma not_eq_extremum:
-  "a \<noteq> \<^bold>\<top> \<longleftrightarrow> a \<^bold>< \<^bold>\<top>"
+  \<open>a \<noteq> \<^bold>\<top> \<longleftrightarrow> a \<^bold>< \<^bold>\<top>\<close>
   by (auto simp add: order_iff_strict intro: not_eq_order_implies_strict extremum)
 
 end
@@ -164,6 +210,16 @@ class preorder = ord +
   and order_refl [iff]: "x \<le> x"
   and order_trans: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
 begin
+
+sublocale order: preordering less_eq less + dual_order: preordering greater_eq greater
+proof -
+  interpret preordering less_eq less
+    by standard (auto intro: order_trans simp add: less_le_not_le)
+  show \<open>preordering less_eq less\<close>
+    by (fact preordering_axioms)
+  then show \<open>preordering greater_eq greater\<close>
+    by (rule preordering_dualI)
+qed
 
 text \<open>Reflexivity.\<close>
 
@@ -217,7 +273,7 @@ by (rule less_asym)
 text \<open>Dual order\<close>
 
 lemma dual_preorder:
-  "class.preorder (\<ge>) (>)"
+  \<open>class.preorder (\<ge>) (>)\<close>
   by standard (auto simp add: less_le_not_le intro: order_trans)
 
 end
