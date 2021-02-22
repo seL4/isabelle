@@ -19,6 +19,45 @@ more small lemmas. Some theorems that were stated awkwardly before were
 corrected. Minor INCOMPATIBILITY.
 
 
+*** ML ***
+
+* External bash processes are always managed by Isabelle/Scala, in
+contrast to Isabelle2021 where this was only done for macOS on Apple
+Silicon.
+
+The main Isabelle/ML interface is Isabelle_System.bash_process with
+result type Process_Result.T (resembling class Process_Result in Scala);
+derived operations Isabelle_System.bash and Isabelle_System.bash_output
+provide similar functionality as before. Rare INCOMPATIBILITY due to
+subtle semantic differences:
+
+  - Processes invoked from Isabelle/ML actually run in the context of
+    the Java VM of Isabelle/Scala. The settings environment and current
+    working directory are usually the same on both sides, but there can be
+    subtle corner cases (e.g. unexpected uses of "cd" or "putenv" in ML).
+
+  - Output via stdout and stderr is line-oriented: Unix vs. Windows
+    line-endings are normalized towards Unix; presence or absence of a
+    final newline is irrelevant. The original lines are available as
+    Process_Result.out_lines/err_lines; the concatenated versions
+    Process_Result.out/err *omit* a trailing newline (using
+    Library.trim_line, which was occasional seen in applications before,
+    but is no longer necessary).
+
+  - Output needs to be plain text encoded in UTF-8: Isabelle/Scala
+    recodes it temporarily as UTF-16. This works for well-formed Unicode
+    text, but not for arbitrary byte strings. In such cases, the bash
+    script should write tempory files, managed by Isabelle/ML operations
+    like Isabelle_System.with_tmp_file to create a file name and
+    File.read to retrieve its content.
+
+New Process_Result.timing works as in Isabelle/Scala, based on direct
+measurements of the bash_process wrapper in C: elapsed time is always
+available, CPU time is only available on Linux and macOS, GC time is
+unavailable.
+
+
+
 New in Isabelle2021 (February 2021)
 -----------------------------------
 
