@@ -263,11 +263,11 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
           " -o " ^ File.bash_platform_path executable ^ ";"
         val compilation_time =
           Isabelle_System.bash_process cmd
-          |> Process_Result.print
-          |> Process_Result.timing_elapsed |> Time.toMilliseconds;
+          |> Process_Result.check
+          |> Process_Result.timing_elapsed |> Time.toMilliseconds
+          handle ERROR msg => cat_error "Compilation with GHC failed" msg
         val _ = Quickcheck.add_timing ("Haskell compilation", compilation_time) current_result
         fun haskell_string_of_bool v = if v then "True" else "False"
-        val _ = if Isabelle_System.bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size genuine_only k =
           if k > size then (NONE, !current_result)
           else
@@ -277,9 +277,9 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
               val res =
                 Isabelle_System.bash_process
                   (File.bash_path executable ^ " " ^ haskell_string_of_bool genuine_only ^ " " ^
-                    string_of_int k);
-              val _ = warning (Process_Result.err res);
-              val response = Process_Result.out res;
+                    string_of_int k)
+                |> Process_Result.check
+              val response = Process_Result.out res
               val timing = res |> Process_Result.timing_elapsed |> Time.toMilliseconds;
               val _ =
                 Quickcheck.add_timing
