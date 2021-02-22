@@ -19,8 +19,6 @@ sig
   val out: T -> string
   val err: T -> string
   val ok: T -> bool
-  val interrupted: T -> bool
-  val check_rc: (int -> bool) -> T -> T
   val check: T -> T
 end;
 
@@ -47,14 +45,8 @@ val out = trim_line o cat_lines o out_lines;
 val err = trim_line o cat_lines o err_lines;
 
 fun ok result = rc result = 0;
-fun interrupted result = rc result = Exn.interrupt_return_code;
 
-fun check_rc pred result =
-  if pred (rc result) then result
-  else if interrupted result then raise Exn.Interrupt
-  else error (err result);
-
-val check = check_rc (fn rc => rc = 0);
+fun check result = if ok result then result else error (err result);
 
 end;
 
