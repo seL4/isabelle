@@ -294,6 +294,7 @@ ML_file "Proof/extraction.ML";
 (*Isabelle system*)
 ML_file "PIDE/protocol_command.ML";
 ML_file "System/scala.ML";
+ML_file "System/process_result.ML";
 ML_file "System/isabelle_system.ML";
 
 
