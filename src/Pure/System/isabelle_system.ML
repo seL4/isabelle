@@ -7,7 +7,6 @@ Isabelle system support.
 signature ISABELLE_SYSTEM =
 sig
   val bash_process: string -> Process_Result.T
-  val bash_output_check: string -> string
   val bash_output: string -> string * int
   val bash: string -> int
   val bash_functions: unit -> string list
@@ -49,12 +48,6 @@ fun bash_process script =
          end
       | _ => raise Fail "Malformed Isabelle/Scala result");
 
-fun bash_output_check s =
-  let val res = bash_process s in
-    if Process_Result.ok res then Process_Result.out res
-    else error (Process_Result.err res)
-  end;
-
 fun bash_output s =
   let
     val res = bash_process s;
@@ -71,8 +64,10 @@ fun bash s =
 (* bash functions *)
 
 fun bash_functions () =
-  bash_output_check "declare -Fx"
-  |> split_lines |> map_filter (space_explode " " #> try List.last);
+  bash_process "declare -Fx"
+  |> Process_Result.check
+  |> Process_Result.out_lines
+  |> map_filter (space_explode " " #> try List.last);
 
 fun check_bash_function ctxt arg =
   Completion.check_entity Markup.bash_functionN
