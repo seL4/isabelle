@@ -48,17 +48,13 @@ fun bash_process script =
          end
       | _ => raise Fail "Malformed Isabelle/Scala result");
 
+val bash = bash_process #> Process_Result.print #> Process_Result.rc;
+
 fun bash_output s =
   let
     val res = bash_process s;
     val _ = warning (Process_Result.err res);
   in (Process_Result.out res, Process_Result.rc res) end;
-
-fun bash s =
-  let
-    val (out, rc) = bash_output s;
-    val _ = writeln out;
-  in rc end;
 
 
 (* bash functions *)

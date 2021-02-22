@@ -20,6 +20,7 @@ sig
   val err: T -> string
   val ok: T -> bool
   val check: T -> T
+  val print: T -> T
 end;
 
 structure Process_Result: PROCESS_RESULT =
@@ -49,5 +50,10 @@ val err = trim_line o cat_lines o err_lines;
 fun ok result = rc result = 0;
 
 fun check result = if ok result then result else error (err result);
+
+fun print result =
+ (warning (err result);
+  writeln (out result);
+  make {rc = rc result, out_lines = [], err_lines = [], timing = timing result});
 
 end;
