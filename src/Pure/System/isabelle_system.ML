@@ -51,20 +51,20 @@ fun bash_process script =
 
 fun bash_output_check s =
   let val res = bash_process s in
-    if Process_Result.ok res then trim_line (Process_Result.out res)
-    else error (trim_line (Process_Result.err res))
+    if Process_Result.ok res then Process_Result.out res
+    else error (Process_Result.err res)
   end;
 
 fun bash_output s =
   let
     val res = bash_process s;
-    val _ = warning (trim_line (Process_Result.err res));
+    val _ = warning (Process_Result.err res);
   in (Process_Result.out res, Process_Result.rc res) end;
 
 fun bash s =
   let
     val (out, rc) = bash_output s;
-    val _ = writeln (trim_line out);
+    val _ = writeln out;
   in rc end;
 
 

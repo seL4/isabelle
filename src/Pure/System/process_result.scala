@@ -38,8 +38,8 @@ final case class Process_Result(
   err_lines: List[String] = Nil,
   timing: Timing = Timing.zero)
 {
-  def out: String = cat_lines(out_lines)
-  def err: String = cat_lines(err_lines)
+  def out: String = Library.trim_line(cat_lines(out_lines))
+  def err: String = Library.trim_line(cat_lines(err_lines))
 
   def output(outs: List[String]): Process_Result =
     copy(out_lines = out_lines ::: outs.flatMap(split_lines))
