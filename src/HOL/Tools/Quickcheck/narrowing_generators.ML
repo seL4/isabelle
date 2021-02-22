@@ -214,10 +214,6 @@ fun with_overlord_dir name f =
   |> Exn.capture f
   |> Exn.release
 
-fun elapsed_time description e =
-  let val ({elapsed, ...}, result) = Timing.timing e ()
-  in (result, (description, Time.toMilliseconds elapsed)) end
-
 fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
     ctxt cookie (code_modules, _) =
   let
@@ -265,9 +261,11 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
               (map File.bash_platform_path
                 (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ File.bash_platform_path executable ^ ";"
-        val (_, compilation_time) =
-          elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd)
-        val _ = Quickcheck.add_timing compilation_time current_result
+        val compilation_time =
+          Isabelle_System.bash_process cmd
+          |> Process_Result.print
+          |> Process_Result.timing |> #elapsed |> Time.toMilliseconds;
+        val _ = Quickcheck.add_timing ("Haskell compilation", compilation_time) current_result
         fun haskell_string_of_bool v = if v then "True" else "False"
         val _ = if Isabelle_System.bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size genuine_only k =
@@ -276,12 +274,16 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
             let
               val _ = verbose_message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
               val _ = current_size := k
-              val ((response, _), timing) =
-                elapsed_time ("execution of size " ^ string_of_int k)
-                  (fn () => Isabelle_System.bash_output
-                    (File.bash_path executable ^ " " ^ haskell_string_of_bool genuine_only ^ " " ^
-                      string_of_int k))
-              val _ = Quickcheck.add_timing timing current_result
+              val res =
+                Isabelle_System.bash_process
+                  (File.bash_path executable ^ " " ^ haskell_string_of_bool genuine_only ^ " " ^
+                    string_of_int k);
+              val _ = warning (Process_Result.err res);
+              val response = Process_Result.out res;
+              val timing = res |> Process_Result.timing |> #elapsed |> Time.toMilliseconds;
+              val _ =
+                Quickcheck.add_timing
+                  ("execution of size " ^ string_of_int k, timing) current_result
             in
               if response = "NONE" then with_size genuine_only (k + 1)
               else
