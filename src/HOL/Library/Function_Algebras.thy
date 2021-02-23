@@ -132,6 +132,14 @@ instance "fun" :: (type, comm_semiring_0_cancel) comm_semiring_0_cancel ..
 
 instance "fun" :: (type, semiring_1) semiring_1 ..
 
+lemma numeral_fun: \<^marker>\<open>contributor \<open>Akihisa Yamada\<close>\<close>
+  \<open>numeral n = (\<lambda>x::'a. numeral n)\<close>
+  by (induction n) (simp_all only: numeral.simps plus_fun_def, simp_all)
+
+lemma numeral_fun_apply [simp]: \<^marker>\<open>contributor \<open>Akihisa Yamada\<close>\<close>
+  \<open>numeral n x = numeral n\<close>
+  by (simp add: numeral_fun)
+
 lemma of_nat_fun: "of_nat n = (\<lambda>x::'a. of_nat n)"
 proof -
   have comp: "comp = (\<lambda>f g x. f (g x))"
