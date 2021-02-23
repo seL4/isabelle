@@ -18,6 +18,9 @@ Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
 more small lemmas. Some theorems that were stated awkwardly before were
 corrected. Minor INCOMPATIBILITY.
 
+* Theory "Permutation" in HOL-Library has been renamed to the more
+specific "List_Permutation".
+
 
 *** ML ***
 

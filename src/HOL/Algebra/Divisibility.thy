@@ -6,7 +6,7 @@
 section \<open>Divisibility in monoids and rings\<close>
 
 theory Divisibility
-  imports "HOL-Library.Permutation" Coset Group
+  imports "HOL-Library.List_Permutation" Coset Group
 begin
 
 section \<open>Factorial Monoids\<close>

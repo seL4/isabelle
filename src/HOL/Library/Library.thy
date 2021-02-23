@@ -50,6 +50,7 @@ imports
   Lattice_Constructions
   Linear_Temporal_Logic_on_Streams
   ListVector
+  List_Permutation
   Lub_Glb
   Mapping
   Monad_Syntax
@@ -66,7 +67,6 @@ imports
   Pattern_Aliases
   Periodic_Fun
   Perm
-  Permutation
   Permutations
   Poly_Mapping
   Power_By_Squaring

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Permutation.thy
+(*  Title:      HOL/Library/List_Permutation.thy
     Author:     Lawrence C Paulson and Thomas M Rasmussen and Norbert Voelker
 *)
 
-section \<open>Permutations\<close>
+section \<open>Permuted Lists\<close>
 
-theory Permutation
+theory List_Permutation
 imports Multiset
 begin
 
