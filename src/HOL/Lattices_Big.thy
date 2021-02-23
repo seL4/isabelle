@@ -675,17 +675,6 @@ lemma Max_mono:
   shows "Max M \<le> Max N"
   using assms by (fact Max.subset_imp)
 
-end
-
-lemma sum_le_card_Max: "finite A \<Longrightarrow> sum f A \<le> card A * Max (f ` A)"
-using sum_bounded_above[of A f "Max (f ` A)"] by simp
-
-lemma card_Min_le_sum: "finite A \<Longrightarrow> card A * Min (f ` A) \<le> sum f A"
-using sum_bounded_below[of A "Min (f ` A)" f] by simp
-
-context linorder  (* FIXME *)
-begin
-
 lemma mono_Min_commute:
   assumes "mono f"
   assumes "finite A" and "A \<noteq> {}"
@@ -809,6 +798,12 @@ proof
 qed
 
 end
+
+lemma sum_le_card_Max: "finite A \<Longrightarrow> sum f A \<le> card A * Max (f ` A)"
+using sum_bounded_above[of A f "Max (f ` A)"] by simp
+
+lemma card_Min_le_sum: "finite A \<Longrightarrow> card A * Min (f ` A) \<le> sum f A"
+using sum_bounded_below[of A "Min (f ` A)" f] by simp
 
 context linordered_ab_semigroup_add
 begin
