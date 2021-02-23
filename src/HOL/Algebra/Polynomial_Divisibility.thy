@@ -1507,7 +1507,7 @@ lemma (in domain) alg_mult_eq_count_roots:
   assumes "p \<in> carrier (poly_ring R)" shows "alg_mult p = count (roots p)"
   using finite_number_of_roots[OF assms]
   unfolding sym[OF alg_mult_gt_zero_iff_is_root[OF assms]]
-  by (simp add: multiset_def roots_def) 
+  by (simp add: roots_def) 
 
 lemma (in domain) roots_mem_iff_is_root:
   assumes "p \<in> carrier (poly_ring R)" shows "x \<in># roots p \<longleftrightarrow> is_root p x"

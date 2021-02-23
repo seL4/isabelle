@@ -1291,7 +1291,7 @@ proof -
         finally have "\<bar>q y\<bar> > \<bar>q 0\<bar> - e" by auto
         then show ?thesis unfolding e_def by simp
       qed
-      have "emeasure M {x \<in> space M. \<bar>X x\<bar> < d} \<le> emeasure M ({x \<in> space M. 1 \<le> ennreal(1/e) * \<bar>q(X x)\<bar>} \<inter> space M)"
+      have "emeasure M {x \<in> space M. \<bar>X x\<bar> < d} \<le> emeasure M ({x \<in> space M. 1 \<le> ennreal(1/e) * \<bar>q(X x)\<bar>})"
         by (rule emeasure_mono, auto simp add: * \<open>e>0\<close> less_imp_le ennreal_mult''[symmetric])
       also have "... \<le> (1/e) * (\<integral>\<^sup>+x. ennreal(\<bar>q(X x)\<bar>) * indicator (space M) x \<partial>M)"
         by (rule nn_integral_Markov_inequality, auto)
@@ -1304,7 +1304,7 @@ proof -
 
       have "{x \<in> space M. \<bar>X x\<bar> \<ge> d} = {x \<in> space M. 1 \<le> ennreal(1/d) * \<bar>X x\<bar>} \<inter> space M"
         by (auto simp add: \<open>d>0\<close> ennreal_mult''[symmetric])
-      then have "emeasure M {x \<in> space M. \<bar>X x\<bar> \<ge> d} = emeasure M ({x \<in> space M. 1 \<le> ennreal(1/d) * \<bar>X x\<bar>} \<inter> space M)"
+      then have "emeasure M {x \<in> space M. \<bar>X x\<bar> \<ge> d} = emeasure M ({x \<in> space M. 1 \<le> ennreal(1/d) * \<bar>X x\<bar>})"
         by auto
       also have "... \<le> (1/d) * (\<integral>\<^sup>+x. ennreal(\<bar>X x\<bar>) * indicator (space M) x \<partial>M)"
         by (rule nn_integral_Markov_inequality, auto)

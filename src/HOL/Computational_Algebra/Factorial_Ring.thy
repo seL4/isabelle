@@ -1208,8 +1208,7 @@ lemma multiplicity_prime_power [simp]: "prime_elem p \<Longrightarrow> multiplic
 
 lift_definition prime_factorization :: "'a \<Rightarrow> 'a multiset" is
   "\<lambda>x p. if prime p then multiplicity p x else 0"
-  unfolding multiset_def
-proof clarify
+proof -
   fix x :: 'a
   show "finite {p. 0 < (if prime p then multiplicity p x else 0)}" (is "finite ?A")
   proof (cases "x = 0")
@@ -2097,7 +2096,7 @@ proof
   from \<open>finite S\<close> S(1) have "(\<Prod>p\<in>S. p ^ f p) \<noteq> 0" by auto
   with S(2) have nz: "n \<noteq> 0" by auto
   from S_eq \<open>finite S\<close> have count_A: "count A = f"
-    unfolding A_def by (subst multiset.Abs_multiset_inverse) (simp_all add: multiset_def)
+    unfolding A_def by (subst multiset.Abs_multiset_inverse) simp_all
   from S_eq count_A have set_mset_A: "set_mset A = S"
     by (simp only: set_mset_def)
   from S(2) have "normalize n = (\<Prod>p\<in>S. p ^ f p)" .

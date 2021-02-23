@@ -80,6 +80,10 @@ Packaging
 
   isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2021 Isabelle2021_linux.tar.gz
 
+  docker login
+
+  docker push makarius/isabelle:Isabelle2021
+
   https://hub.docker.com/r/makarius/isabelle
   https://docs.docker.com/engine/reference/commandline/push
 

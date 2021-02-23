@@ -211,32 +211,24 @@ object Bash
     val here = Scala_Project.here
     def apply(script: String): String =
     {
-      val result =
-        Exn.capture {
-          val proc = process(script)
-          val res = proc.result()
-          (res, proc.pid)
-        }
+      val result = Exn.capture { Isabelle_System.bash(script) }
 
       val is_interrupt =
         result match {
-          case Exn.Res((res, _)) => res.rc == Exn.Interrupt.return_code
+          case Exn.Res(res) => res.rc == Exn.Interrupt.return_code
           case Exn.Exn(exn) => Exn.is_interrupt(exn)
         }
 
-      val encode: XML.Encode.T[Exn.Result[(Process_Result, String)]] =
-      {
-        import XML.Encode._
-        val string = XML.Encode.string
-        variant(List(
-          { case _ if is_interrupt => (Nil, Nil) },
-          { case Exn.Exn(exn) => (Nil, string(Exn.message(exn))) },
-          { case Exn.Res((res, pid)) =>
-              val out = Library.terminate_lines(res.out_lines)
-              val err = Library.terminate_lines(res.err_lines)
-              (List(int_atom(res.rc), pid), pair(string, string)(out, err)) }))
+      result match {
+        case _ if is_interrupt => ""
+        case Exn.Exn(exn) => Exn.message(exn)
+        case Exn.Res(res) =>
+         (res.rc.toString ::
+          res.timing.elapsed.ms.toString ::
+          res.timing.cpu.ms.toString ::
+          res.out_lines.length.toString ::
+          res.out_lines ::: res.err_lines).mkString("\u0000")
       }
-      YXML.string_of_body(encode(result))
     }
   }
 }

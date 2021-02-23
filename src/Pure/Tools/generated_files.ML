@@ -332,7 +332,9 @@ fun compile_generated_files_cmd ctxt args external export export_prefix source =
 (* execute compiler -- auxiliary *)
 
 fun execute dir title compile =
-  Isabelle_System.bash_output_check ("cd " ^ File.bash_path dir ^ " && " ^ compile)
+  Isabelle_System.bash_process ("cd " ^ File.bash_path dir ^ " && " ^ compile)
+  |> Process_Result.check
+  |> Process_Result.out
     handle ERROR msg =>
       let val (s, pos) = Input.source_content title
       in error (s ^ " failed" ^ Position.here pos ^ ":\n" ^ msg) end;

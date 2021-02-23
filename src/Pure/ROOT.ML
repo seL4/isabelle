@@ -79,7 +79,7 @@ ML_file "General/rat.ML";
 ML_file "PIDE/xml.ML";
 ML_file "General/path.ML";
 ML_file "General/url.ML";
-ML_file "System/bash_syntax.ML";
+ML_file "System/bash.ML";
 ML_file "General/file.ML";
 ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
@@ -294,8 +294,7 @@ ML_file "Proof/extraction.ML";
 (*Isabelle system*)
 ML_file "PIDE/protocol_command.ML";
 ML_file "System/scala.ML";
-ML_file "System/kill.ML";
-ML_file "System/bash.ML";
+ML_file "System/process_result.ML";
 ML_file "System/isabelle_system.ML";
 
 
@@ -356,3 +355,4 @@ ML_file "Tools/doc.ML";
 ML_file "Tools/jedit.ML";
 ML_file "Tools/ghc.ML";
 ML_file "Tools/generated_files.ML"
+

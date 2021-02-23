@@ -392,4 +392,51 @@ qed simp_all
 
 end
 
+lemma PiM_return:
+  assumes "finite I"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> {a i} \<in> sets (M i)"
+  shows "PiM I (\<lambda>i. return (M i) (a i)) = return (PiM I M) (restrict a I)"
+proof -
+  have [simp]: "a i \<in> space (M i)" if "i \<in> I" for i
+    using assms(2)[OF that] by (meson insert_subset sets.sets_into_space)
+  interpret prob_space "PiM I (\<lambda>i. return (M i) (a i))"
+    by (intro prob_space_PiM prob_space_return) auto
+  have "AE x in PiM I (\<lambda>i. return (M i) (a i)). \<forall>i\<in>I. x i = restrict a I i"
+    by (intro eventually_ball_finite ballI AE_PiM_component prob_space_return assms)
+       (auto simp: AE_return)
+  moreover have "AE x in PiM I (\<lambda>i. return (M i) (a i)). x \<in> space (PiM I (\<lambda>i. return (M i) (a i)))"
+    by simp
+  ultimately have "AE x in PiM I (\<lambda>i. return (M i) (a i)). x = restrict a I"
+    by eventually_elim (auto simp: fun_eq_iff space_PiM)
+  hence "Pi\<^sub>M I (\<lambda>i. return (M i) (a i)) = return (Pi\<^sub>M I (\<lambda>i. return (M i) (a i))) (restrict a I)"
+    by (rule AE_eq_constD)
+  also have "\<dots> = return (PiM I M) (restrict a I)"
+    by (intro return_cong sets_PiM_cong) auto
+  finally show ?thesis .
+qed
+
+lemma distr_PiM_finite_prob_space':
+  assumes fin: "finite I"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> prob_space (M' i)"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> f \<in> measurable (M i) (M' i)"
+  shows   "distr (PiM I M) (PiM I M') (compose I f) = PiM I (\<lambda>i. distr (M i) (M' i) f)"
+proof -
+  define N where "N = (\<lambda>i. if i \<in> I then M i else return (count_space UNIV) undefined)"
+  define N' where "N' = (\<lambda>i. if i \<in> I then M' i else return (count_space UNIV) undefined)"
+  have [simp]: "PiM I N = PiM I M" "PiM I N' = PiM I M'"
+    by (intro PiM_cong; simp add: N_def N'_def)+
+
+  have "distr (PiM I N) (PiM I N') (compose I f) = PiM I (\<lambda>i. distr (N i) (N' i) f)"
+  proof (rule distr_PiM_finite_prob_space)
+    show "product_prob_space N"
+      by (rule product_prob_spaceI) (auto simp: N_def intro!: prob_space_return assms)
+    show "product_prob_space N'"
+      by (rule product_prob_spaceI) (auto simp: N'_def intro!: prob_space_return assms)
+  qed (auto simp: N_def N'_def fin)
+  also have "Pi\<^sub>M I (\<lambda>i. distr (N i) (N' i) f) = Pi\<^sub>M I (\<lambda>i. distr (M i) (M' i) f)"
+    by (intro PiM_cong) (simp_all add: N_def N'_def)
+  finally show ?thesis by simp
+qed
+
 end

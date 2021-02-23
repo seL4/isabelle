@@ -555,6 +555,32 @@ lemma ennreal_numeral_less_top[simp]: "numeral i < (top::ennreal)"
 lemma ennreal_add_bot[simp]: "bot + x = (x::ennreal)"
   by transfer simp
 
+lemma add_top_right_ennreal [simp]: "x + top = (top :: ennreal)"
+  by (cases x) auto
+
+lemma add_top_left_ennreal [simp]: "top + x = (top :: ennreal)"
+  by (cases x) auto
+
+lemma ennreal_top_mult_left [simp]: "x \<noteq> 0 \<Longrightarrow> x * top = (top :: ennreal)"
+  by (subst ennreal_mult_eq_top_iff) auto
+
+lemma ennreal_top_mult_right [simp]: "x \<noteq> 0 \<Longrightarrow> top * x = (top :: ennreal)"
+  by (subst ennreal_mult_eq_top_iff) auto
+
+
+lemma power_top_ennreal [simp]: "n > 0 \<Longrightarrow> top ^ n = (top :: ennreal)"
+  by (induction n) auto
+
+lemma power_eq_top_ennreal_iff: "x ^ n = top \<longleftrightarrow> x = (top :: ennreal) \<and> n > 0"
+  by (induction n) (auto simp: ennreal_mult_eq_top_iff)
+
+lemma ennreal_mult_le_mult_iff: "c \<noteq> 0 \<Longrightarrow> c \<noteq> top \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> a \<le> (b :: ennreal)"
+  including ennreal.lifting
+  by (transfer, subst ereal_mult_le_mult_iff) (auto simp: top_ereal_def)
+
+lemma power_mono_ennreal: "x \<le> y \<Longrightarrow> x ^ n \<le> (y ^ n :: ennreal)"
+  by (induction n) (auto intro!: mult_mono)
+
 instance ennreal :: semiring_char_0
 proof (standard, safe intro!: linorder_injI)
   have *: "1 + of_nat k \<noteq> (0::ennreal)" for k
@@ -682,6 +708,9 @@ lemma ennreal_times_divide: "a * (b / c) = a * b / (c::ennreal)"
 lemma ennreal_zero_less_divide: "0 < a / b \<longleftrightarrow> (0 < a \<and> b < (top::ennreal))"
   unfolding divide_ennreal_def
   by transfer (auto simp: ereal_zero_less_0_iff top_ereal_def ereal_0_gt_inverse)
+
+lemma add_divide_distrib_ennreal: "(a + b) / c = a / c + b / (c :: ennreal)"
+  by (simp add: divide_ennreal_def ring_distribs)
 
 lemma divide_right_mono_ennreal:
   fixes a b c :: ennreal
@@ -976,12 +1005,21 @@ next
   qed
 qed
 
+lemma power_divide_distrib_ennreal [algebra_simps]:
+  "(x / y) ^ n = x ^ n / (y ^ n :: ennreal)"
+  by (simp add: divide_ennreal_def algebra_simps ennreal_inverse_power)
+
 lemma ennreal_divide_numeral: "0 \<le> x \<Longrightarrow> ennreal x / numeral b = ennreal (x / numeral b)"
   by (subst divide_ennreal[symmetric]) auto
 
 lemma prod_ennreal: "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Prod>i\<in>A. ennreal (f i)) = ennreal (prod f A)"
   by (induction A rule: infinite_finite_induct)
      (auto simp: ennreal_mult prod_nonneg)
+
+lemma prod_mono_ennreal:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<le> (g x :: ennreal)"
+  shows   "prod f A \<le> prod g A"
+  using assms by (induction A rule: infinite_finite_induct) (auto intro!: mult_mono)
 
 lemma mult_right_ennreal_cancel: "a * ennreal c = b * ennreal c \<longleftrightarrow> (a = b \<or> c \<le> 0)"
 proof (cases "0 \<le> c")

@@ -11,7 +11,6 @@ sig
   val platform_is_windows: bool
   val platform_is_64: bool
   val platform_is_arm: bool
-  val platform_is_rosetta: unit -> bool
   val platform_path: string -> string
   val standard_path: string -> string
 end;
@@ -24,12 +23,6 @@ val SOME platform = OS.Process.getEnv "ML_PLATFORM";
 val platform_is_windows = String.isSuffix "windows" platform;
 val platform_is_64 = String.isPrefix "x86_64-" platform;
 val platform_is_arm = String.isPrefix "arm64-" platform;
-
-fun platform_is_rosetta () =
-  (case OS.Process.getEnv "ISABELLE_APPLE_PLATFORM64" of
-    NONE => false
-  | SOME "" => false
-  | SOME apple_platform => apple_platform <> platform);
 
 val platform_path =
   if platform_is_windows then

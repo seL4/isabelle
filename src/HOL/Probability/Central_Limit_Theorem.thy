@@ -14,7 +14,6 @@ theorem (in prob_space) central_limit_theorem_zero_mean:
     and \<sigma> :: real
     and S :: "nat \<Rightarrow> 'a \<Rightarrow> real"
   assumes X_indep: "indep_vars (\<lambda>i. borel) X UNIV"
-    and X_integrable: "\<And>n. integrable M (X n)"
     and X_mean_0: "\<And>n. expectation (X n) = 0"
     and \<sigma>_pos: "\<sigma> > 0"
     and X_square_integrable: "\<And>n. integrable M (\<lambda>x. (X n x)\<^sup>2)"
@@ -27,8 +26,10 @@ proof -
   define \<phi> where "\<phi> n = char (distr M borel (?S' n))" for n
   define \<psi> where "\<psi> n t = char \<mu> (t / sqrt (\<sigma>\<^sup>2 * n))" for n t
 
-  have X_rv [simp, measurable]: "\<And>n. random_variable borel (X n)"
+  have X_rv [simp, measurable]: "random_variable borel (X n)" for n
     using X_indep unfolding indep_vars_def2 by simp
+  have X_integrable [simp, intro]: "integrable M (X n)" for n
+    by (rule square_integrable_imp_integrable[OF _ X_square_integrable]) simp_all
   interpret \<mu>: real_distribution \<mu>
     by (subst X_distrib [symmetric, of 0], rule real_distribution_distr, simp)
 
@@ -120,7 +121,6 @@ theorem (in prob_space) central_limit_theorem:
     and \<sigma> :: real
     and S :: "nat \<Rightarrow> 'a \<Rightarrow> real"
   assumes X_indep: "indep_vars (\<lambda>i. borel) X UNIV"
-    and X_integrable: "\<And>n. integrable M (X n)"
     and X_mean: "\<And>n. expectation (X n) = m"
     and \<sigma>_pos: "\<sigma> > 0"
     and X_square_integrable: "\<And>n. integrable M (\<lambda>x. (X n x)\<^sup>2)"
@@ -131,8 +131,12 @@ theorem (in prob_space) central_limit_theorem:
 proof (intro central_limit_theorem_zero_mean)
   show "indep_vars (\<lambda>i. borel) X' UNIV"
     unfolding X'_def[abs_def] using X_indep by (rule indep_vars_compose2) auto
-  show "integrable M (X' n)" "expectation (X' n) = 0" for n
-    using X_integrable X_mean by (auto simp: X'_def[abs_def] prob_space)
+  have X_rv [simp, measurable]: "random_variable borel (X n)" for n
+    using X_indep unfolding indep_vars_def2 by simp
+  have X_integrable [simp, intro]: "integrable M (X n)" for n
+    by (rule square_integrable_imp_integrable[OF _ X_square_integrable]) simp_all
+  show "expectation (X' n) = 0" for n
+    using X_mean by (auto simp: X'_def[abs_def] prob_space)
   show "\<sigma> > 0" "integrable M (\<lambda>x. (X' n x)\<^sup>2)" "variance (X' n) = \<sigma>\<^sup>2" for n
     using \<open>0 < \<sigma>\<close> X_integrable X_mean X_square_integrable X_variance unfolding X'_def
     by (auto simp: prob_space power2_diff)

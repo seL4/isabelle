@@ -279,9 +279,8 @@ object Components
                 }
                 yield {
                   progress.echo("Digesting remote " + entry.name)
-                  Library.trim_line(
-                    ssh.execute("cd " + ssh.bash_path(components_dir) +
-                      "; sha1sum " + Bash.string(entry.name)).check.out)
+                  ssh.execute("cd " + ssh.bash_path(components_dir) +
+                    "; sha1sum " + Bash.string(entry.name)).check.out
                 }
               write_components_sha1(read_components_sha1(lines))
             }

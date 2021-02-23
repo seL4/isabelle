@@ -10,47 +10,93 @@ theory Conditionally_Complete_Lattices
 imports Finite_Set Lattices_Big Set_Interval
 begin
 
+locale preordering_bdd = preordering
+begin
+
+definition bdd :: \<open>'a set \<Rightarrow> bool\<close>
+  where unfold: \<open>bdd A \<longleftrightarrow> (\<exists>M. \<forall>x \<in> A. x \<^bold>\<le> M)\<close>
+
+lemma empty [simp, intro]:
+  \<open>bdd {}\<close>
+  by (simp add: unfold)
+
+lemma I [intro]:
+  \<open>bdd A\<close> if \<open>\<And>x. x \<in> A \<Longrightarrow> x \<^bold>\<le> M\<close>
+  using that by (auto simp add: unfold)
+
+lemma E:
+  assumes \<open>bdd A\<close>
+  obtains M where \<open>\<And>x. x \<in> A \<Longrightarrow> x \<^bold>\<le> M\<close>
+  using assms that by (auto simp add: unfold)
+
+lemma I2:
+  \<open>bdd (f ` A)\<close> if \<open>\<And>x. x \<in> A \<Longrightarrow> f x \<^bold>\<le> M\<close>
+  using that by (auto simp add: unfold)
+
+lemma mono:
+  \<open>bdd A\<close> if \<open>bdd B\<close> \<open>A \<subseteq> B\<close>
+  using that by (auto simp add: unfold)
+
+lemma Int1 [simp]:
+  \<open>bdd (A \<inter> B)\<close> if \<open>bdd A\<close>
+  using mono that by auto
+
+lemma Int2 [simp]:
+  \<open>bdd (A \<inter> B)\<close> if \<open>bdd B\<close>
+  using mono that by auto
+
+end
+
 context preorder
 begin
 
-definition "bdd_above A \<longleftrightarrow> (\<exists>M. \<forall>x \<in> A. x \<le> M)"
-definition "bdd_below A \<longleftrightarrow> (\<exists>m. \<forall>x \<in> A. m \<le> x)"
+sublocale bdd_above: preordering_bdd \<open>(\<le>)\<close> \<open>(<)\<close>
+  defines bdd_above_primitive_def: bdd_above = bdd_above.bdd ..
 
-lemma bdd_aboveI[intro]: "(\<And>x. x \<in> A \<Longrightarrow> x \<le> M) \<Longrightarrow> bdd_above A"
-  by (auto simp: bdd_above_def)
+sublocale bdd_below: preordering_bdd \<open>(\<ge>)\<close> \<open>(>)\<close>
+  defines bdd_below_primitive_def: bdd_below = bdd_below.bdd ..
 
-lemma bdd_belowI[intro]: "(\<And>x. x \<in> A \<Longrightarrow> m \<le> x) \<Longrightarrow> bdd_below A"
-  by (auto simp: bdd_below_def)
+lemma bdd_above_def: \<open>bdd_above A \<longleftrightarrow> (\<exists>M. \<forall>x \<in> A. x \<le> M)\<close>
+  by (fact bdd_above.unfold)
+
+lemma bdd_below_def: \<open>bdd_below A \<longleftrightarrow> (\<exists>M. \<forall>x \<in> A. M \<le> x)\<close>
+  by (fact bdd_below.unfold)
+
+lemma bdd_aboveI: "(\<And>x. x \<in> A \<Longrightarrow> x \<le> M) \<Longrightarrow> bdd_above A"
+  by (fact bdd_above.I)
+
+lemma bdd_belowI: "(\<And>x. x \<in> A \<Longrightarrow> m \<le> x) \<Longrightarrow> bdd_below A"
+  by (fact bdd_below.I)
 
 lemma bdd_aboveI2: "(\<And>x. x \<in> A \<Longrightarrow> f x \<le> M) \<Longrightarrow> bdd_above (f`A)"
-  by force
+  by (fact bdd_above.I2)
 
 lemma bdd_belowI2: "(\<And>x. x \<in> A \<Longrightarrow> m \<le> f x) \<Longrightarrow> bdd_below (f`A)"
-  by force
+  by (fact bdd_below.I2)
 
-lemma bdd_above_empty [simp, intro]: "bdd_above {}"
-  unfolding bdd_above_def by auto
+lemma bdd_above_empty: "bdd_above {}"
+  by (fact bdd_above.empty)
 
-lemma bdd_below_empty [simp, intro]: "bdd_below {}"
-  unfolding bdd_below_def by auto
+lemma bdd_below_empty: "bdd_below {}"
+  by (fact bdd_below.empty)
 
 lemma bdd_above_mono: "bdd_above B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> bdd_above A"
-  by (metis (full_types) bdd_above_def order_class.le_neq_trans psubsetD)
+  by (fact bdd_above.mono)
 
 lemma bdd_below_mono: "bdd_below B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> bdd_below A"
-  by (metis bdd_below_def order_class.le_neq_trans psubsetD)
+  by (fact bdd_below.mono)
 
-lemma bdd_above_Int1 [simp]: "bdd_above A \<Longrightarrow> bdd_above (A \<inter> B)"
-  using bdd_above_mono by auto
+lemma bdd_above_Int1: "bdd_above A \<Longrightarrow> bdd_above (A \<inter> B)"
+  by (fact bdd_above.Int1)
 
-lemma bdd_above_Int2 [simp]: "bdd_above B \<Longrightarrow> bdd_above (A \<inter> B)"
-  using bdd_above_mono by auto
+lemma bdd_above_Int2: "bdd_above B \<Longrightarrow> bdd_above (A \<inter> B)"
+  by (fact bdd_above.Int2)
 
-lemma bdd_below_Int1 [simp]: "bdd_below A \<Longrightarrow> bdd_below (A \<inter> B)"
-  using bdd_below_mono by auto
+lemma bdd_below_Int1: "bdd_below A \<Longrightarrow> bdd_below (A \<inter> B)"
+  by (fact bdd_below.Int1)
 
-lemma bdd_below_Int2 [simp]: "bdd_below B \<Longrightarrow> bdd_below (A \<inter> B)"
-  using bdd_below_mono by auto
+lemma bdd_below_Int2: "bdd_below B \<Longrightarrow> bdd_below (A \<inter> B)"
+  by (fact bdd_below.Int2)
 
 lemma bdd_above_Ioo [simp, intro]: "bdd_above {a <..< b}"
   by (auto simp add: bdd_above_def intro!: exI[of _ b] less_imp_le)
@@ -90,11 +136,21 @@ lemma bdd_below_Ici [simp, intro]: "bdd_below {a ..}"
 
 end
 
-lemma (in order_top) bdd_above_top[simp, intro!]: "bdd_above A"
-  by (rule bdd_aboveI[of _ top]) simp
+context order_top
+begin
 
-lemma (in order_bot) bdd_above_bot[simp, intro!]: "bdd_below A"
-  by (rule bdd_belowI[of _ bot]) simp
+lemma bdd_above_top [simp, intro!]: "bdd_above A"
+  by (rule bdd_aboveI [of _ top]) simp
+
+end
+
+context order_bot
+begin
+
+lemma bdd_below_bot [simp, intro!]: "bdd_below A"
+  by (rule bdd_belowI [of _ bot]) simp
+
+end
 
 lemma bdd_above_image_mono: "mono f \<Longrightarrow> bdd_above A \<Longrightarrow> bdd_above (f`A)"
   by (auto simp: bdd_above_def mono_def)
