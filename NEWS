@@ -54,6 +54,13 @@ subtle semantic differences:
     like Isabelle_System.with_tmp_file to create a file name and
     File.read to retrieve its content.
 
+  - Just like any other Scala function invoked from ML,
+    Isabelle_System.bash_process requires a proper PIDE session context.
+    This could be a regular batch session (e.g. "isabelle build"), a
+    PIDE editor session (e.g. "isabelle jedit"), or headless PIDE (e.g.
+    "isabelle dump" or "isabelle server"). Note that old "isabelle
+    console" or raw "isabelle process" don't have that.
+
 New Process_Result.timing works as in Isabelle/Scala, based on direct
 measurements of the bash_process wrapper in C: elapsed time is always
 available, CPU time is only available on Linux and macOS, GC time is
