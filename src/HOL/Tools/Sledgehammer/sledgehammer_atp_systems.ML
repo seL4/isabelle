@@ -550,7 +550,7 @@ val zipperposition_config : atp_config =
      |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
-   prem_role = Conjecture,
+   prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
      [(0.333, (((128, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
