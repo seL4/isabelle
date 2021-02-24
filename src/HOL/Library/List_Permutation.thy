@@ -8,7 +8,7 @@ theory List_Permutation
 imports Multiset
 begin
 
-subsection \<open>An inductive definition\<dots>\<close>
+subsection \<open>An inductive definition \ldots\<close>
 
 inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixr \<open><~~>\<close> 50)
 where
@@ -20,7 +20,7 @@ where
 proposition perm_refl [iff]: "l <~~> l"
   by (induct l) auto
 
-text \<open>\<dots>that is equivalent to an already existing notion:\<close>
+text \<open>\ldots that is equivalent to an already existing notion:\<close>
 
 lemma perm_iff_eq_mset:
   \<open>xs <~~> ys \<longleftrightarrow> mset xs = mset ys\<close>
