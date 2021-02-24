@@ -30,6 +30,7 @@ open Sledgehammer
 val cvc4N = "cvc4"
 val veritN = "verit"
 val z3N = "z3"
+val zipperN = "zipperposition"
 
 val runN = "run"
 val supported_proversN = "supported_provers"
@@ -177,7 +178,7 @@ fun remotify_prover_if_not_installed ctxt name =
 fun default_provers_param_value mode ctxt =
   [cvc4N] @
   (if is_vampire_noncommercial_license_accepted () = SOME false then [] else [vampireN]) @
-  [z3N, eN, spassN, veritN]
+  [z3N, eN, spassN, veritN, zipperN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads () - (if mode = Try then 1 else 0))
