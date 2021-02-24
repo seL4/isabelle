@@ -1863,18 +1863,21 @@ proof -
 qed
 
 lemma set_eq_iff_mset_eq_distinct:
-  "distinct x \<Longrightarrow> distinct y \<Longrightarrow>
-    (set x = set y) = (mset x = mset y)"
-by (auto simp: multiset_eq_iff distinct_count_atmost_1)
+  \<open>distinct x \<Longrightarrow> distinct y \<Longrightarrow> set x = set y \<longleftrightarrow> mset x = mset y\<close>
+  by (auto simp: multiset_eq_iff distinct_count_atmost_1)
 
 lemma set_eq_iff_mset_remdups_eq:
-   "(set x = set y) = (mset (remdups x) = mset (remdups y))"
+  \<open>set x = set y \<longleftrightarrow> mset (remdups x) = mset (remdups y)\<close>
 apply (rule iffI)
 apply (simp add: set_eq_iff_mset_eq_distinct[THEN iffD1])
 apply (drule distinct_remdups [THEN distinct_remdups
       [THEN set_eq_iff_mset_eq_distinct [THEN iffD2]]])
 apply simp
 done
+
+lemma mset_eq_imp_distinct_iff:
+  \<open>distinct xs \<longleftrightarrow> distinct ys\<close> if \<open>mset xs = mset ys\<close>
+  using that by (auto simp add: distinct_count_atmost_1 dest: mset_eq_setD)
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
 proof (induct ls arbitrary: i)
@@ -2509,9 +2512,7 @@ proof -
 qed
 
 
-subsection \<open>Alternative representations\<close>
-
-subsubsection \<open>Lists\<close>
+subsection \<open>Multiset as order-ignorant lists\<close>
 
 context linorder
 begin
@@ -2718,6 +2719,119 @@ lemma mset_swap:
   "i < length ls \<Longrightarrow> j < length ls \<Longrightarrow>
     mset (ls[j := ls ! i, i := ls ! j]) = mset ls"
   by (cases "i = j") (simp_all add: mset_update nth_mem_mset)
+
+lemma mset_eq_permutation:
+  assumes \<open>mset xs = mset ys\<close>
+  obtains f where 
+    \<open>bij_betw f {..<length xs} {..<length ys}\<close>
+    \<open>ys = map (\<lambda>n. xs ! f n) [0..<length xs]\<close>
+proof -
+  from assms have \<open>length ys = length xs\<close>
+    by (auto dest: mset_eq_length)
+  from assms have \<open>\<exists>f. f ` {..<length xs} = {..<length xs} \<and> ys = map (\<lambda>n. xs ! f n) [0..<length xs]\<close>
+  proof (induction xs arbitrary: ys rule: rev_induct)
+    case Nil
+    then show ?case by simp
+  next
+    case (snoc x xs)
+    from snoc.prems have \<open>x \<in> set ys\<close>
+      by (auto dest: union_single_eq_member)
+    then obtain zs ws where split: \<open>ys = zs @ x # ws\<close> and \<open>x \<notin> set zs\<close>
+      by (auto dest: split_list_first)
+    then have \<open>remove1 x ys = zs @ ws\<close>
+      by (simp add: remove1_append)
+    moreover from snoc.prems [symmetric] have \<open>mset xs = mset (remove1 x ys)\<close>
+      by simp
+    ultimately have \<open>mset xs = mset (zs @ ws)\<close>
+      by simp
+    then have \<open>\<exists>f. f ` {..<length xs} = {..<length xs} \<and> zs @ ws = map (\<lambda>n. xs ! f n) [0..<length xs]\<close>
+      by (rule snoc.IH)
+    then obtain f where
+      raw_surj: \<open>f ` {..<length xs} = {..<length xs}\<close>
+      and hyp: \<open>zs @ ws = map (\<lambda>n. xs ! f n) [0..<length xs]\<close> by blast
+    define l and k where \<open>l = length zs\<close> and \<open>k = length ws\<close>
+    then have [simp]: \<open>length zs = l\<close> \<open>length ws = k\<close>
+      by simp_all
+    from \<open>mset xs = mset (zs @ ws)\<close> have \<open>length xs = length (zs @ ws)\<close>
+      by (rule mset_eq_length)
+    then have [simp]: \<open>length xs = l + k\<close>
+      by simp
+    from raw_surj have f_surj: \<open>f ` {..<l + k} = {..<l + k}\<close>
+      by simp
+    have [simp]: \<open>[0..<l + k] = [0..<l] @ [l..<l + k]\<close>
+      by (rule nth_equalityI) (simp_all add: nth_append)
+    have [simp]: \<open>[l..<l + k] @ [l + k] = [l] @ [Suc l..<Suc (l + k)]\<close>
+      by (rule nth_equalityI)
+        (auto simp add: nth_append nth_Cons split: nat.split)
+    define g :: \<open>nat \<Rightarrow> nat\<close>
+      where \<open>g n = (if n < l then f n
+        else if n = l then l + k
+        else f (n - 1))\<close> for n
+    have \<open>{..<Suc (l + k)} = {..<l} \<union> {l} \<union> {Suc l..<Suc (l + k)}\<close>
+      by auto
+    then have \<open>g ` {..<Suc (l + k)} = g ` {..<l} \<union> {g l} \<union> g ` {Suc l..<Suc (l + k)}\<close>
+      by auto
+    also have \<open>g ` {Suc l..<Suc (l + k)} = f ` {l..<l + k}\<close>
+      apply (auto simp add: g_def Suc_le_lessD)
+      apply (auto simp add: image_def)
+      apply (metis Suc_le_mono atLeastLessThan_iff diff_Suc_Suc diff_zero lessI less_trans_Suc)
+      done
+    finally have \<open>g ` {..<Suc (l + k)} = f ` {..<l} \<union> {l + k} \<union> f ` {l..<l + k}\<close>
+      by (simp add: g_def)
+    also have \<open>\<dots> = {..<Suc (l + k)}\<close>
+      by simp (metis atLeastLessThan_add_Un f_surj image_Un le_add1 le_add_same_cancel1 lessThan_Suc lessThan_atLeast0)
+    finally have g_surj: \<open>g ` {..<Suc (l + k)} = {..<Suc (l + k)}\<close> .
+    from hyp have zs_f: \<open>zs = map (\<lambda>n. xs ! f n) [0..<l]\<close>
+      and ws_f: \<open>ws = map (\<lambda>n. xs ! f n) [l..<l + k]\<close>
+      by simp_all
+    have \<open>zs = map (\<lambda>n. (xs @ [x]) ! g n) [0..<l]\<close>
+    proof (rule sym, rule map_upt_eqI)
+      fix n
+      assume \<open>n < length zs\<close>
+      then have \<open>n < l\<close>
+        by simp
+      with f_surj have \<open>f n < l + k\<close>
+        by auto
+      with \<open>n < l\<close> show \<open>zs ! n = (xs @ [x]) ! g (0 + n)\<close>
+        by (simp add: zs_f g_def nth_append)
+    qed simp
+    moreover have \<open>x = (xs @ [x]) ! g l\<close>
+      by (simp add: g_def nth_append)
+    moreover have \<open>ws = map (\<lambda>n. (xs @ [x]) ! g n) [Suc l..<Suc (l + k)]\<close>
+    proof (rule sym, rule map_upt_eqI)
+      fix n
+      assume \<open>n < length ws\<close>
+      then have \<open>n < k\<close>
+        by simp
+      with f_surj have \<open>f (l + n) < l + k\<close>
+        by auto
+      with \<open>n < k\<close> show \<open>ws ! n = (xs @ [x]) ! g (Suc l + n)\<close>
+        by (simp add: ws_f g_def nth_append)
+    qed simp
+    ultimately have \<open>zs @ x # ws = map (\<lambda>n. (xs @ [x]) ! g n) [0..<length (xs @ [x])]\<close>
+      by simp
+    with g_surj show ?case
+      by (auto simp add: split)
+  qed
+  then obtain f where
+    surj: \<open>f ` {..<length xs} = {..<length xs}\<close>
+    and hyp: \<open>ys = map (\<lambda>n. xs ! f n) [0..<length xs]\<close> by blast
+  from surj have \<open>bij_betw f {..<length xs} {..<length ys}\<close>
+    by (simp add: bij_betw_def \<open>length ys = length xs\<close> eq_card_imp_inj_on)
+  then show thesis
+    using hyp ..
+qed
+
+proposition mset_eq_finite:
+  \<open>finite {ys. mset ys = mset xs}\<close>
+proof -
+  have \<open>{ys. mset ys = mset xs} \<subseteq> {ys. set ys \<subseteq> set xs \<and> length ys \<le> length xs}\<close>
+    by (auto simp add: dest: mset_eq_setD mset_eq_length)
+  moreover have \<open>finite {ys. set ys \<subseteq> set xs \<and> length ys \<le> length xs}\<close>
+    using finite_lists_length_le by blast
+  ultimately show ?thesis
+    by (rule finite_subset)
+qed
 
 
 subsection \<open>The multiset order\<close>
@@ -3653,10 +3767,21 @@ qed
 lemma ex_mset: "\<exists>xs. mset xs = X"
   by (induct X) (simp, metis mset.simps(2))
 
-inductive pred_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> bool"
+inductive pred_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> bool" 
 where
   "pred_mset P {#}"
 | "\<lbrakk>P a; pred_mset P M\<rbrakk> \<Longrightarrow> pred_mset P (add_mset a M)"
+
+lemma pred_mset_iff: \<comment> \<open>TODO: alias for \<^const>\<open>Multiset.Ball\<close>\<close>
+  \<open>pred_mset P M \<longleftrightarrow> Multiset.Ball M P\<close>  (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  then show ?Q by induction simp_all
+next
+  assume ?Q
+  then show ?P
+    by (induction M) (auto intro: pred_mset.intros)
+qed
 
 bnf "'a multiset"
   map: image_mset
@@ -3709,18 +3834,10 @@ proof -
   show "z \<in> set_mset {#} \<Longrightarrow> False" for z
     by auto
   show "pred_mset P = (\<lambda>x. Ball (set_mset x) P)" for P
-  proof (intro ext iffI)
-    fix x
-    assume "pred_mset P x"
-    then show "Ball (set_mset x) P" by (induct pred: pred_mset; simp)
-  next
-    fix x
-    assume "Ball (set_mset x) P"
-    then show "pred_mset P x" by (induct x; auto intro: pred_mset.intros)
-  qed
+    by (simp add: fun_eq_iff pred_mset_iff)
 qed
 
-inductive rel_mset'
+inductive rel_mset' :: \<open>('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset \<Rightarrow> bool\<close>
 where
   Zero[intro]: "rel_mset' R {#} {#}"
 | Plus[intro]: "\<lbrakk>R a b; rel_mset' R M N\<rbrakk> \<Longrightarrow> rel_mset' R (add_mset a M) (add_mset b N)"

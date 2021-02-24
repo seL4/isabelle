@@ -3389,7 +3389,24 @@ by (simp add: drop_Cons')
 
 lemma nth_Cons_numeral [simp]:
   "(x # xs) ! numeral v = xs ! (numeral v - 1)"
-by (simp add: nth_Cons')
+  by (simp add: nth_Cons')
+
+lemma map_upt_eqI:
+  \<open>map f [m..<n] = xs\<close> if \<open>length xs = n - m\<close>
+    \<open>\<And>i. i < length xs \<Longrightarrow> xs ! i = f (m + i)\<close>
+proof (rule nth_equalityI)
+  from \<open>length xs = n - m\<close> show \<open>length (map f [m..<n]) = length xs\<close>
+    by simp
+next
+  fix i
+  assume \<open>i < length (map f [m..<n])\<close>
+  then have \<open>i < n - m\<close>
+    by simp
+  with that have \<open>xs ! i = f (m + i)\<close>
+    by simp
+  with \<open>i < n - m\<close> show \<open>map f [m..<n] ! i = xs ! i\<close>
+    by simp
+qed
 
 
 subsubsection \<open>\<open>upto\<close>: interval-list on \<^typ>\<open>int\<close>\<close>
