@@ -1028,6 +1028,17 @@ lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
 lemma cos_arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (arg y) = 0"
   using cis_arg [of y] by (simp add: complex_eq_iff)
 
+lemma arg_ii [simp]: "arg \<i> = pi/2"
+  by (rule arg_unique; simp add: sgn_eq)
+
+lemma arg_minus_ii [simp]: "arg (-\<i>) = -pi/2"
+proof (rule arg_unique)
+  show "sgn (- \<i>) = cis (- pi / 2)"
+    by (simp add: sgn_eq)
+  show "- pi / 2 \<le> pi"
+    using pi_not_less_zero by linarith
+qed auto
+
 subsection \<open>Complex n-th roots\<close>
 
 lemma bij_betw_roots_unity:
