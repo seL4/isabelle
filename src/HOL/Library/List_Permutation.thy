@@ -8,6 +8,8 @@ theory List_Permutation
 imports Multiset
 begin
 
+subsection \<open>An inductive definition\<dots>\<close>
+
 inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixr \<open><~~>\<close> 50)
 where
   Nil [intro!]: "[] <~~> []"
@@ -18,139 +20,87 @@ where
 proposition perm_refl [iff]: "l <~~> l"
   by (induct l) auto
 
+text \<open>\<dots>that is equivalent to an already existing notion:\<close>
 
-subsection \<open>Some examples of rule induction on permutations\<close>
-
-proposition perm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
-  by (induction "[] :: 'a list" ys pred: perm) simp_all
-
-
-text \<open>\medskip This more general theorem is easier to understand!\<close>
-
-proposition perm_length: "xs <~~> ys \<Longrightarrow> length xs = length ys"
-  by (induct pred: perm) simp_all
-
-proposition perm_sym: "xs <~~> ys \<Longrightarrow> ys <~~> xs"
-  by (induct pred: perm) auto
-
-
-subsection \<open>Ways of making new permutations\<close>
-
-text \<open>We can insert the head anywhere in the list.\<close>
-
-proposition perm_append_Cons: "a # xs @ ys <~~> xs @ a # ys"
-  by (induct xs) auto
-
-proposition perm_append_swap: "xs @ ys <~~> ys @ xs"
-  by (induct xs) (auto intro: perm_append_Cons)
-
-proposition perm_append_single: "a # xs <~~> xs @ [a]"
-  by (rule perm.trans [OF _ perm_append_swap]) simp
-
-proposition perm_rev: "rev xs <~~> xs"
-  by (induct xs) (auto intro!: perm_append_single intro: perm_sym)
-
-proposition perm_append1: "xs <~~> ys \<Longrightarrow> l @ xs <~~> l @ ys"
-  by (induct l) auto
-
-proposition perm_append2: "xs <~~> ys \<Longrightarrow> xs @ l <~~> ys @ l"
-  by (blast intro!: perm_append_swap perm_append1)
-
-
-subsection \<open>Further results\<close>
-
-proposition perm_empty [iff]: "[] <~~> xs \<longleftrightarrow> xs = []"
-  by (blast intro: perm_empty_imp)
-
-proposition perm_empty2 [iff]: "xs <~~> [] \<longleftrightarrow> xs = []"
-  using perm_sym by auto
-
-proposition perm_sing_imp: "ys <~~> xs \<Longrightarrow> xs = [y] \<Longrightarrow> ys = [y]"
-  by (induct pred: perm) auto
-
-proposition perm_sing_eq [iff]: "ys <~~> [y] \<longleftrightarrow> ys = [y]"
-  by (blast intro: perm_sing_imp)
-
-proposition perm_sing_eq2 [iff]: "[y] <~~> ys \<longleftrightarrow> ys = [y]"
-  by (blast dest: perm_sym)
-
-
-subsection \<open>Removing elements\<close>
-
-proposition perm_remove: "x \<in> set ys \<Longrightarrow> ys <~~> x # remove1 x ys"
-  by (induct ys) auto
-
-
-text \<open>\medskip Congruence rule\<close>
-
-proposition perm_remove_perm: "xs <~~> ys \<Longrightarrow> remove1 z xs <~~> remove1 z ys"
-  by (induct pred: perm) auto
-
-proposition remove_hd [simp]: "remove1 z (z # xs) = xs"
-  by auto
-
-proposition cons_perm_imp_perm: "z # xs <~~> z # ys \<Longrightarrow> xs <~~> ys"
-  by (drule perm_remove_perm [where z = z]) auto
-
-proposition cons_perm_eq [iff]: "z#xs <~~> z#ys \<longleftrightarrow> xs <~~> ys"
-  by (meson cons_perm_imp_perm perm.Cons)
-
-proposition append_perm_imp_perm: "zs @ xs <~~> zs @ ys \<Longrightarrow> xs <~~> ys"
-  by (induct zs arbitrary: xs ys rule: rev_induct) auto
-
-proposition perm_append1_eq [iff]: "zs @ xs <~~> zs @ ys \<longleftrightarrow> xs <~~> ys"
-  by (blast intro: append_perm_imp_perm perm_append1)
-
-proposition perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~> ys"
-  by (meson perm.trans perm_append1_eq perm_append_swap)
-
-theorem mset_eq_perm: "mset xs = mset ys \<longleftrightarrow> xs <~~> ys"
+lemma perm_iff_eq_mset:
+  \<open>xs <~~> ys \<longleftrightarrow> mset xs = mset ys\<close>
 proof
-  assume "mset xs = mset ys"
-  then show "xs <~~> ys"
+  assume \<open>mset xs = mset ys\<close>
+  then show \<open>xs <~~> ys\<close>
   proof (induction xs arbitrary: ys)
-    case (Cons x xs)
-    then have "x \<in> set ys"
-      using mset_eq_setD by fastforce
+    case Nil
     then show ?case
-      by (metis Cons.IH Cons.prems mset_remove1 perm.Cons perm.trans perm_remove perm_sym remove_hd)
-  qed auto
+      by simp
+  next
+    case (Cons x xs)
+    from Cons.prems [symmetric] have \<open>mset xs = mset (remove1 x ys)\<close>
+      by simp
+    then have \<open>xs <~~> remove1 x ys\<close>
+      by (rule Cons.IH)
+    then have \<open>x # xs <~~> x # remove1 x ys\<close>
+      by (rule perm.Cons)
+    moreover from Cons.prems have \<open>x \<in> set ys\<close>
+      by (auto dest: union_single_eq_member)
+    then have \<open>x # remove1 x ys <~~> ys\<close>
+      by (induction ys) auto
+    ultimately show \<open>x # xs <~~> ys\<close>
+      by (rule perm.trans)
+  qed
 next
-  assume "xs <~~> ys"
-  then show "mset xs = mset ys"
-    by induction (simp_all add: union_ac)
+  assume \<open>xs <~~> ys\<close>
+  then show \<open>mset xs = mset ys\<close>
+    by induction simp_all
 qed
 
+lemma list_permuted_induct [consumes 1, case_names Nil swap Cons trans]:
+  \<open>P xs ys\<close>
+  if \<open>mset xs = mset ys\<close>
+  \<open>P [] []\<close>
+  \<open>\<And>y x zs. P (y # x # zs) (x # y # zs)\<close>
+  \<open>\<And>xs ys z. mset xs = mset ys \<Longrightarrow> P xs ys \<Longrightarrow> P (z # xs) (z # ys)\<close>
+  \<open>\<And>xs ys zs. mset xs = mset ys \<Longrightarrow> mset ys = mset zs \<Longrightarrow> P xs ys \<Longrightarrow> P ys zs \<Longrightarrow> P xs zs\<close>
+proof -
+  from \<open>mset xs = mset ys\<close> have \<open>xs <~~> ys\<close>
+    by (simp add: perm_iff_eq_mset)
+  then show ?thesis
+    using that(2-3) apply (rule perm.induct)
+     apply (simp_all add: perm_iff_eq_mset)
+     apply (fact that(4))
+    subgoal for xs ys zs
+      apply (rule that(5) [of xs ys zs])
+         apply simp_all
+      done
+    done
+qed
+
+
+subsection \<open>\<dots>that is equivalent to an already existing notion:\<close>
+
+theorem mset_eq_perm: \<open>mset xs = mset ys \<longleftrightarrow> xs <~~> ys\<close>
+  by (simp add: perm_iff_eq_mset)
+
+
+subsection \<open>Nontrivial conclusions\<close>
+
+proposition perm_swap:
+  \<open>xs[i := xs ! j, j := xs ! i] <~~> xs\<close>
+  if \<open>i < length xs\<close> \<open>j < length xs\<close>
+  using that by (cases \<open>i = j\<close>) (simp_all add: perm_iff_eq_mset mset_update)
+
 proposition mset_le_perm_append: "mset xs \<subseteq># mset ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
-  apply (rule iffI)
-  apply (metis mset_append mset_eq_perm mset_subset_eq_exists_conv surjD surj_mset)
-  by (metis mset_append mset_eq_perm mset_subset_eq_exists_conv)
+  by (auto simp add: perm_iff_eq_mset mset_subset_eq_exists_conv ex_mset dest: sym)
 
 proposition perm_set_eq: "xs <~~> ys \<Longrightarrow> set xs = set ys"
-  by (metis mset_eq_perm mset_eq_setD)
+  by (rule mset_eq_setD) (simp add: perm_iff_eq_mset)
 
 proposition perm_distinct_iff: "xs <~~> ys \<Longrightarrow> distinct xs = distinct ys"
-  by (metis card_distinct distinct_card perm_length perm_set_eq)
+  by (auto simp add: perm_iff_eq_mset distinct_count_atmost_1 dest: mset_eq_setD)
 
 theorem eq_set_perm_remdups: "set xs = set ys \<Longrightarrow> remdups xs <~~> remdups ys"
-proof (induction xs arbitrary: ys rule: length_induct)
-  case (1 xs)
-  show ?case
-  proof (cases "remdups xs")
-    case Nil
-    with "1.prems" show ?thesis
-      using "1.prems" by auto
-  next
-    case (Cons x us)
-    then have "x \<in> set (remdups ys)"
-      using "1.prems" set_remdups by fastforce
-    then show ?thesis
-      using "1.prems" mset_eq_perm set_eq_iff_mset_remdups_eq by blast
-  qed
-qed 
+  by (simp add: perm_iff_eq_mset set_eq_iff_mset_remdups_eq)
 
 proposition perm_remdups_iff_eq_set: "remdups x <~~> remdups y \<longleftrightarrow> set x = set y"
-  by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
+  by (simp add: perm_iff_eq_mset set_eq_iff_mset_remdups_eq)
 
 theorem permutation_Ex_bij:
   assumes "xs <~~> ys"
@@ -209,22 +159,95 @@ next
     with bij have "f i < length ys"
       unfolding bij_betw_def by force
     with \<open>i < length xs\<close> show "xs ! i = zs ! (g \<circ> f) i"
-      using trans(1,3)[THEN perm_length] perm by auto
+      using trans(1,3) perm by auto
   qed
 qed
 
 proposition perm_finite: "finite {B. B <~~> A}"
-proof (rule finite_subset[where B="{xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"])
- show "finite {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
-   using finite_lists_length_le by blast
+proof (rule finite_subset [where B="{xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"])
+  show "finite {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
+    using finite_lists_length_le by blast
 next
- show "{B. B <~~> A} \<subseteq> {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
-   by (clarsimp simp add: perm_length perm_set_eq)
+  show "{B. B <~~> A} \<subseteq> {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
+    by (auto simp add: perm_iff_eq_mset dest: mset_eq_setD mset_eq_length)
 qed
 
-proposition perm_swap:
-    assumes "i < length xs" "j < length xs"
-    shows "xs[i := xs ! j, j := xs ! i] <~~> xs"
-  using assms by (simp add: mset_eq_perm[symmetric] mset_swap)
+
+subsection \<open>Trivial conclusions:\<close>
+
+proposition perm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
+  by (simp add: perm_iff_eq_mset)
+
+
+text \<open>\medskip This more general theorem is easier to understand!\<close>
+
+proposition perm_length: "xs <~~> ys \<Longrightarrow> length xs = length ys"
+  by (rule mset_eq_length) (simp add: perm_iff_eq_mset)
+
+proposition perm_sym: "xs <~~> ys \<Longrightarrow> ys <~~> xs"
+  by (simp add: perm_iff_eq_mset)
+
+
+text \<open>We can insert the head anywhere in the list.\<close>
+
+proposition perm_append_Cons: "a # xs @ ys <~~> xs @ a # ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append_swap: "xs @ ys <~~> ys @ xs"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append_single: "a # xs <~~> xs @ [a]"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_rev: "rev xs <~~> xs"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append1: "xs <~~> ys \<Longrightarrow> l @ xs <~~> l @ ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append2: "xs <~~> ys \<Longrightarrow> xs @ l <~~> ys @ l"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_empty [iff]: "[] <~~> xs \<longleftrightarrow> xs = []"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_empty2 [iff]: "xs <~~> [] \<longleftrightarrow> xs = []"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_sing_imp: "ys <~~> xs \<Longrightarrow> xs = [y] \<Longrightarrow> ys = [y]"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_sing_eq [iff]: "ys <~~> [y] \<longleftrightarrow> ys = [y]"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_sing_eq2 [iff]: "[y] <~~> ys \<longleftrightarrow> ys = [y]"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_remove: "x \<in> set ys \<Longrightarrow> ys <~~> x # remove1 x ys"
+  by (simp add: perm_iff_eq_mset)
+
+
+text \<open>\medskip Congruence rule\<close>
+
+proposition perm_remove_perm: "xs <~~> ys \<Longrightarrow> remove1 z xs <~~> remove1 z ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition remove_hd [simp]: "remove1 z (z # xs) = xs"
+  by (simp add: perm_iff_eq_mset)
+
+proposition cons_perm_imp_perm: "z # xs <~~> z # ys \<Longrightarrow> xs <~~> ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition cons_perm_eq [simp]: "z#xs <~~> z#ys \<longleftrightarrow> xs <~~> ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition append_perm_imp_perm: "zs @ xs <~~> zs @ ys \<Longrightarrow> xs <~~> ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append1_eq [iff]: "zs @ xs <~~> zs @ ys \<longleftrightarrow> xs <~~> ys"
+  by (simp add: perm_iff_eq_mset)
+
+proposition perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~> ys"
+  by (simp add: perm_iff_eq_mset)
 
 end
