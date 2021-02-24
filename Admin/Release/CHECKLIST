@@ -84,6 +84,9 @@ Packaging
 
   docker push makarius/isabelle:Isabelle2021
 
+  docker tag ... latest
+  docker push makarius/isabelle:latest
+
   https://hub.docker.com/r/makarius/isabelle
   https://docs.docker.com/engine/reference/commandline/push
 
