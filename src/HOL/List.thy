@@ -827,6 +827,7 @@ lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
 lemma inj_on_Cons1 [simp]: "inj_on ((#) x) A"
 by(simp add: inj_on_def)
 
+
 subsubsection \<open>\<^const>\<open>length\<close>\<close>
 
 text \<open>
@@ -854,13 +855,12 @@ by (induct xs) auto
 lemma length_pos_if_in_set: "x \<in> set xs \<Longrightarrow> length xs > 0"
 by auto
 
-lemma length_Suc_conv:
-"(length xs = Suc n) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
+lemma length_Suc_conv: "(length xs = Suc n) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
 by (induct xs) auto
 
 lemma Suc_length_conv:
   "(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
-  by (induct xs; simp; blast)
+by (induct xs; simp; blast)
 
 lemma Suc_le_length_iff:
   "(Suc n \<le> length xs) = (\<exists>x ys. xs = x # ys \<and> n \<le> length ys)"
@@ -913,45 +913,6 @@ by (induct xs ys rule: list_induct2') auto
 
 lemma neq_if_length_neq: "length xs \<noteq> length ys \<Longrightarrow> (xs = ys) == False"
 by (rule Eq_FalseI) auto
-
-simproc_setup list_neq ("(xs::'a list) = ys") = \<open>
-(*
-Reduces xs=ys to False if xs and ys cannot be of the same length.
-This is the case if the atomic sublists of one are a submultiset
-of those of the other list and there are fewer Cons's in one than the other.
-*)
-
-let
-
-fun len (Const(\<^const_name>\<open>Nil\<close>,_)) acc = acc
-  | len (Const(\<^const_name>\<open>Cons\<close>,_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
-  | len (Const(\<^const_name>\<open>append\<close>,_) $ xs $ ys) acc = len xs (len ys acc)
-  | len (Const(\<^const_name>\<open>rev\<close>,_) $ xs) acc = len xs acc
-  | len (Const(\<^const_name>\<open>map\<close>,_) $ _ $ xs) acc = len xs acc
-  | len t (ts,n) = (t::ts,n);
-
-val ss = simpset_of \<^context>;
-
-fun list_neq ctxt ct =
-  let
-    val (Const(_,eqT) $ lhs $ rhs) = Thm.term_of ct;
-    val (ls,m) = len lhs ([],0) and (rs,n) = len rhs ([],0);
-    fun prove_neq() =
-      let
-        val Type(_,listT::_) = eqT;
-        val size = HOLogic.size_const listT;
-        val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
-        val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
-        val thm = Goal.prove ctxt [] [] neq_len
-          (K (simp_tac (put_simpset ss ctxt) 1));
-      in SOME (thm RS @{thm neq_if_length_neq}) end
-  in
-    if m < n andalso submultiset (op aconv) (ls,rs) orelse
-       n < m andalso submultiset (op aconv) (rs,ls)
-    then prove_neq() else NONE
-  end;
-in K list_neq end
-\<close>
 
 
 subsubsection \<open>\<open>@\<close> -- append\<close>
@@ -1471,6 +1432,110 @@ lemma append_Cons_eq_iff:
 by(auto simp: append_eq_Cons_conv Cons_eq_append_conv append_eq_append_conv2)
 
 
+subsubsection \<open>\<^const>\<open>concat\<close>\<close>
+
+lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
+  by (induct xs) auto
+
+lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
+  by (induct xss) auto
+
+lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
+  by (induct xss) auto
+
+lemma set_concat [simp]: "set (concat xs) = (\<Union>x\<in>set xs. set x)"
+  by (induct xs) auto
+
+lemma concat_map_singleton[simp]: "concat(map (%x. [f x]) xs) = map f xs"
+  by (induct xs) auto
+
+lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
+  by (induct xs) auto
+
+lemma rev_concat: "rev (concat xs) = concat (map rev (rev xs))"
+  by (induct xs) auto
+
+lemma length_concat_rev[simp]: "length (concat (rev xs)) = length (concat xs)"
+by (induction xs) auto
+
+lemma concat_eq_concat_iff: "\<forall>(x, y) \<in> set (zip xs ys). length x = length y \<Longrightarrow> length xs = length ys \<Longrightarrow> (concat xs = concat ys) = (xs = ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs ys)
+  thus ?case by (cases ys) auto
+qed (auto)
+
+lemma concat_injective: "concat xs = concat ys \<Longrightarrow> length xs = length ys \<Longrightarrow> \<forall>(x, y) \<in> set (zip xs ys). length x = length y \<Longrightarrow> xs = ys"
+  by (simp add: concat_eq_concat_iff)
+
+lemma concat_eq_appendD:
+  assumes "concat xss = ys @ zs" "xss \<noteq> []"
+  shows "\<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2"
+  using assms
+proof(induction xss arbitrary: ys)
+  case (Cons xs xss)
+  from Cons.prems consider
+    us where "xs @ us = ys" "concat xss = us @ zs" |
+    us where "xs = ys @ us" "us @ concat xss = zs"
+    by(auto simp add: append_eq_append_conv2)
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis using Cons.IH[OF 1(2)]
+      by(cases xss)(auto intro: exI[where x="[]"], metis append.assoc append_Cons concat.simps(2))
+  qed(auto intro: exI[where x="[]"])
+qed simp
+
+lemma concat_eq_append_conv:
+  "concat xss = ys @ zs \<longleftrightarrow>
+  (if xss = [] then ys = [] \<and> zs = []
+   else \<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2)"
+  by(auto dest: concat_eq_appendD)
+
+lemma hd_concat: "\<lbrakk>xs \<noteq> []; hd xs \<noteq> []\<rbrakk> \<Longrightarrow> hd (concat xs) = hd (hd xs)"
+  by (metis concat.simps(2) hd_Cons_tl hd_append2)
+
+
+simproc_setup list_neq ("(xs::'a list) = ys") = \<open>
+(*
+Reduces xs=ys to False if xs and ys cannot be of the same length.
+This is the case if the atomic sublists of one are a submultiset
+of those of the other list and there are fewer Cons's in one than the other.
+*)
+
+let
+
+fun len (Const(\<^const_name>\<open>Nil\<close>,_)) acc = acc
+  | len (Const(\<^const_name>\<open>Cons\<close>,_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
+  | len (Const(\<^const_name>\<open>append\<close>,_) $ xs $ ys) acc = len xs (len ys acc)
+  | len (Const(\<^const_name>\<open>rev\<close>,_) $ xs) acc = len xs acc
+  | len (Const(\<^const_name>\<open>map\<close>,_) $ _ $ xs) acc = len xs acc
+  | len (Const(\<^const_name>\<open>concat\<close>,T) $ (Const(\<^const_name>\<open>rev\<close>,_) $ xss)) acc
+    = len (Const(\<^const_name>\<open>concat\<close>,T) $ xss) acc 
+  | len t (ts,n) = (t::ts,n);
+
+val ss = simpset_of \<^context>;
+
+fun list_neq ctxt ct =
+  let
+    val (Const(_,eqT) $ lhs $ rhs) = Thm.term_of ct;
+    val (ls,m) = len lhs ([],0) and (rs,n) = len rhs ([],0);
+    fun prove_neq() =
+      let
+        val Type(_,listT::_) = eqT;
+        val size = HOLogic.size_const listT;
+        val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
+        val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
+        val thm = Goal.prove ctxt [] [] neq_len
+          (K (simp_tac (put_simpset ss ctxt) 1));
+      in SOME (thm RS @{thm neq_if_length_neq}) end
+  in
+    if m < n andalso submultiset (op aconv) (ls,rs) orelse
+       n < m andalso submultiset (op aconv) (rs,ls)
+    then prove_neq() else NONE
+  end;
+in K list_neq end
+\<close>
+
 subsubsection \<open>\<^const>\<open>filter\<close>\<close>
 
 lemma filter_append [simp]: "filter P (xs @ ys) = filter P xs @ filter P ys"
@@ -1480,6 +1545,9 @@ lemma rev_filter: "rev (filter P xs) = filter P (rev xs)"
 by (induct xs) simp_all
 
 lemma filter_filter [simp]: "filter P (filter Q xs) = filter (\<lambda>x. Q x \<and> P x) xs"
+by (induct xs) auto
+
+lemma filter_concat: "filter p (concat xs) = concat (map (filter p) xs)"
 by (induct xs) auto
 
 lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
@@ -1650,69 +1718,6 @@ lemma partition_filter_conv[simp]:
   unfolding partition_filter1[symmetric] by simp
 
 declare partition.simps[simp del]
-
-
-subsubsection \<open>\<^const>\<open>concat\<close>\<close>
-
-lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
-  by (induct xs) auto
-
-lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
-  by (induct xss) auto
-
-lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
-  by (induct xss) auto
-
-lemma set_concat [simp]: "set (concat xs) = (\<Union>x\<in>set xs. set x)"
-  by (induct xs) auto
-
-lemma concat_map_singleton[simp]: "concat(map (%x. [f x]) xs) = map f xs"
-  by (induct xs) auto
-
-lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
-  by (induct xs) auto
-
-lemma filter_concat: "filter p (concat xs) = concat (map (filter p) xs)"
-  by (induct xs) auto
-
-lemma rev_concat: "rev (concat xs) = concat (map rev (rev xs))"
-  by (induct xs) auto
-
-lemma concat_eq_concat_iff: "\<forall>(x, y) \<in> set (zip xs ys). length x = length y \<Longrightarrow> length xs = length ys \<Longrightarrow> (concat xs = concat ys) = (xs = ys)"
-proof (induct xs arbitrary: ys)
-  case (Cons x xs ys)
-  thus ?case by (cases ys) auto
-qed (auto)
-
-lemma concat_injective: "concat xs = concat ys \<Longrightarrow> length xs = length ys \<Longrightarrow> \<forall>(x, y) \<in> set (zip xs ys). length x = length y \<Longrightarrow> xs = ys"
-  by (simp add: concat_eq_concat_iff)
-
-lemma concat_eq_appendD:
-  assumes "concat xss = ys @ zs" "xss \<noteq> []"
-  shows "\<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2"
-  using assms
-proof(induction xss arbitrary: ys)
-  case (Cons xs xss)
-  from Cons.prems consider
-    us where "xs @ us = ys" "concat xss = us @ zs" |
-    us where "xs = ys @ us" "us @ concat xss = zs"
-    by(auto simp add: append_eq_append_conv2)
-  then show ?case
-  proof cases
-    case 1
-    then show ?thesis using Cons.IH[OF 1(2)]
-      by(cases xss)(auto intro: exI[where x="[]"], metis append.assoc append_Cons concat.simps(2))
-  qed(auto intro: exI[where x="[]"])
-qed simp
-
-lemma concat_eq_append_conv:
-  "concat xss = ys @ zs \<longleftrightarrow>
-  (if xss = [] then ys = [] \<and> zs = []
-   else \<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2)"
-  by(auto dest: concat_eq_appendD)
-
-lemma hd_concat: "\<lbrakk>xs \<noteq> []; hd xs \<noteq> []\<rbrakk> \<Longrightarrow> hd (concat xs) = hd (hd xs)"
-  by (metis concat.simps(2) hd_Cons_tl hd_append2)
 
 
 subsubsection \<open>\<^const>\<open>nth\<close>\<close>
