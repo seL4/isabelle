@@ -655,7 +655,7 @@ object Bibtex
       }
 
       for ((a, b) <- bib_files zip bib_names) {
-        File.copy(a.ext("bib"), tmp_dir + Path.basic(b).ext("bib"))
+        Isabelle_System.copy_file(a.ext("bib"), tmp_dir + Path.basic(b).ext("bib"))
       }
 
 
@@ -668,7 +668,7 @@ object Bibtex
             error("Bad style for bibtex HTML output: " + quote(style) +
               "\n(expected: " + commas_quote(output_styles.map(_._1)) + ")")
         }
-      File.copy(Path.explode("$BIB2XHTML_HOME/bst") + Path.explode(bst), tmp_dir)
+      Isabelle_System.copy_file(Path.explode("$BIB2XHTML_HOME/bst") + Path.explode(bst), tmp_dir)
 
 
       /* result */

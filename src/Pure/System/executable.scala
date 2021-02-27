@@ -49,7 +49,7 @@ object Executable
       }
 
     if (libs.nonEmpty) {
-      libs.foreach(lib => File.copy(Path.explode(lib), exe_dir))
+      libs.foreach(lib => Isabelle_System.copy_file(Path.explode(lib), exe_dir))
 
       if (Platform.is_linux) {
         if (patchelf) {

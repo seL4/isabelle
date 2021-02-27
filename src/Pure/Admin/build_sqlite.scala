@@ -73,7 +73,7 @@ classpath "$ISABELLE_SQLITE_HOME/""" + download_name + """.jar"
 
       for ((file, dir) <- jar_files) {
         val target = Isabelle_System.make_directory(component_dir + Path.explode(dir))
-        File.copy(jar_dir + Path.explode(file), target)
+        Isabelle_System.copy_file(jar_dir + Path.explode(file), target)
       }
 
       File.set_executable(component_dir + Path.explode("x86_64-windows/sqlitejdbc.dll"), true)

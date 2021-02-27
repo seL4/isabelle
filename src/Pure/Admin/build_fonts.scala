@@ -244,7 +244,7 @@ object Build_Fonts
             progress.echo("Font " + target_file.toString + " ...")
 
             if (hinted) auto_hint(source_file, tmp_file)
-            else File.copy(source_file, tmp_file)
+            else Isabelle_System.copy_file(source_file, tmp_file)
 
             Fontforge.execute(
               Fontforge.commands(
@@ -328,7 +328,7 @@ isabelle_fonts_hidden "$COMPONENT/""" + hinted_path(false).file_name + """/Vacuo
 
 
     // README
-    File.copy(Path.explode("~~/Admin/isabelle_fonts/README"), target_dir)
+    Isabelle_System.copy_file(Path.explode("~~/Admin/isabelle_fonts/README"), target_dir)
   }
 
 

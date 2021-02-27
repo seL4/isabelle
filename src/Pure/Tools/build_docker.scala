@@ -86,7 +86,8 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
             if (!Url.is_readable(app_archive))
               error("Cannot access remote archive " + app_archive)
           }
-          else File.copy(Path.explode(app_archive), tmp_dir + Path.explode("Isabelle.tar.gz"))
+          else Isabelle_System.copy_file(Path.explode(app_archive),
+            tmp_dir + Path.explode("Isabelle.tar.gz"))
 
           val quiet_option = if (verbose) "" else " -q"
           val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)

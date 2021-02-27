@@ -10,8 +10,8 @@ package isabelle
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
-import java.nio.file.{StandardOpenOption, StandardCopyOption, Path => JPath,
-  Files, SimpleFileVisitor, FileVisitOption, FileVisitResult, FileSystemException}
+import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
+  FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
@@ -265,13 +265,13 @@ object File
 
   def write_backup(path: Path, text: CharSequence)
   {
-    if (path.is_file) move(path, path.backup)
+    if (path.is_file) Isabelle_System.move_file(path, path.backup)
     write(path, text)
   }
 
   def write_backup2(path: Path, text: CharSequence)
   {
-    if (path.is_file) move(path, path.backup2)
+    if (path.is_file) Isabelle_System.move_file(path, path.backup2)
     write(path, text)
   }
 
@@ -308,60 +308,6 @@ object File
     else Bytes.read(file1) == Bytes.read(file2)
 
   def eq_content(path1: Path, path2: Path): Boolean = eq_content(path1.file, path2.file)
-
-
-  /* copy */
-
-  def copy(src: JFile, dst: JFile)
-  {
-    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
-    if (!eq(src, target))
-      Files.copy(src.toPath, target.toPath,
-        StandardCopyOption.COPY_ATTRIBUTES,
-        StandardCopyOption.REPLACE_EXISTING)
-  }
-
-  def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
-
-  def copy_base(base_dir: Path, src0: Path, target_dir: Path)
-  {
-    val src = src0.expand
-    val src_dir = src.dir
-    if (!src.starts_basic) error("Illegal path specification " + src + " beyond base directory")
-    copy(base_dir + src, Isabelle_System.make_directory(target_dir + src_dir))
-  }
-
-
-  /* move */
-
-  def move(src: JFile, dst: JFile)
-  {
-    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
-    if (!eq(src, target))
-      Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
-  }
-
-  def move(path1: Path, path2: Path): Unit = move(path1.file, path2.file)
-
-
-  /* symbolic link */
-
-  def link(src: Path, dst: Path, force: Boolean = false)
-  {
-    val src_file = src.file
-    val dst_file = dst.file
-    val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.getName) else dst_file
-
-    if (force) target.delete
-
-    try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
-    catch {
-      case _: UnsupportedOperationException if Platform.is_windows =>
-        Cygwin.link(standard_path(src), target)
-      case _: FileSystemException if Platform.is_windows =>
-        Cygwin.link(standard_path(src), target)
-    }
-  }
 
 
   /* permissions */

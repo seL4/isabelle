@@ -9,8 +9,10 @@ package isabelle
 
 
 import java.io.{File => JFile, IOException}
-import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
+import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
+  StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
+
 
 import scala.annotation.tailrec
 
@@ -206,8 +208,64 @@ object Isabelle_System
     if (path.is_dir) error("Directory already exists: " + path.absolute)
     else make_directory(path)
 
+
+
+  /* copy */
+
   def copy_dir(dir1: Path, dir2: Path): Unit =
     bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check
+
+  def copy_file(src: JFile, dst: JFile): Unit =
+  {
+    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
+    if (!eq(src, target)) {
+      Files.copy(src.toPath, target.toPath,
+        StandardCopyOption.COPY_ATTRIBUTES,
+        StandardCopyOption.REPLACE_EXISTING)
+    }
+  }
+
+  def copy_file(path1: Path, path2: Path): Unit = copy_file(path1.file, path2.file)
+
+  def copy_file_base(base_dir: Path, src0: Path, target_dir: Path): Unit =
+  {
+    val src = src0.expand
+    val src_dir = src.dir
+    if (!src.starts_basic) error("Illegal path specification " + src + " beyond base directory")
+    copy_file(base_dir + src, Isabelle_System.make_directory(target_dir + src_dir))
+  }
+
+
+  /* move */
+
+  def move_file(src: JFile, dst: JFile)
+  {
+    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
+    if (!eq(src, target))
+      Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
+  }
+
+  def move_file(path1: Path, path2: Path): Unit = move_file(path1.file, path2.file)
+
+
+  /* symbolic link */
+
+  def symlink(src: Path, dst: Path, force: Boolean = false)
+  {
+    val src_file = src.file
+    val dst_file = dst.file
+    val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.getName) else dst_file
+
+    if (force) target.delete
+
+    try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
+    catch {
+      case _: UnsupportedOperationException if Platform.is_windows =>
+        Cygwin.link(File.standard_path(src), target)
+      case _: FileSystemException if Platform.is_windows =>
+        Cygwin.link(File.standard_path(src), target)
+    }
+  }
 
 
   /* tmp files */
@@ -291,8 +349,8 @@ object Isabelle_System
 
     f(new_dir)
 
-    if (dir.is_dir) File.move(dir, old_dir)
-    File.move(new_dir, dir)
+    if (dir.is_dir) move_file(dir, old_dir)
+    move_file(new_dir, dir)
     rm_tree(old_dir)
   }
 
@@ -445,7 +503,7 @@ object Isabelle_System
   {
     args.find(_ != "") match {
       case Some(logic) => logic
-      case None => Isabelle_System.getenv_strict("ISABELLE_LOGIC")
+      case None => getenv_strict("ISABELLE_LOGIC")
     }
   }
 }

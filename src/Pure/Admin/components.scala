@@ -72,7 +72,7 @@ object Components
       }
       for (dir <- copy_dir) {
         Isabelle_System.make_directory(dir)
-        File.copy(archive, dir)
+        Isabelle_System.copy_file(archive, dir)
       }
       unpack(target_dir getOrElse base_dir, archive, progress = progress)
     }

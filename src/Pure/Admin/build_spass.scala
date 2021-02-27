@@ -94,12 +94,13 @@ object Build_SPASS
 
       /* install */
 
-      File.copy(build_dir + Path.basic("LICENCE"), component_dir + Path.basic("LICENSE"))
+      Isabelle_System.copy_file(build_dir + Path.basic("LICENCE"),
+        component_dir + Path.basic("LICENSE"))
 
       val install_files = List("SPASS")
       for (name <- install_files ::: install_files.map(_ + ".exe")) {
         val path = build_dir + Path.basic(name)
-        if (path.is_file) File.copy(path, platform_dir)
+        if (path.is_file) Isabelle_System.copy_file(path, platform_dir)
       }
 
 

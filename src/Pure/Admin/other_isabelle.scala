@@ -65,7 +65,7 @@ class Other_Isabelle(
 
   def copy_fonts(target_dir: Path): Unit =
     Isabelle_Fonts.make_entries(getenv = getenv, hidden = true).
-      foreach(entry => File.copy(entry.path, target_dir))
+      foreach(entry => Isabelle_System.copy_file(entry.path, target_dir))
 
 
   /* components */

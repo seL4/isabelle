@@ -53,7 +53,7 @@ object Build_Vampire
 
       val source_dir = tmp_dir + Path.explode("vampire")
 
-      File.copy(source_dir + Path.explode("LICENCE"), component_dir)
+      Isabelle_System.copy_file(source_dir + Path.explode("LICENCE"), component_dir)
 
 
       /* build versions */
@@ -79,7 +79,7 @@ object Build_Vampire
 
         progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
 
-        File.copy(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
+        Isabelle_System.copy_file(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
           platform_dir + Path.basic(exe).platform_exe)
       }
 

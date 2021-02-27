@@ -112,13 +112,13 @@ object Build_PolyML
     Isabelle_System.rm_tree(platform_dir)
     Isabelle_System.make_directory(platform_dir)
 
-    for (file <- sha1_files) File.copy(file, platform_dir)
+    for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
     for {
       d <- List("target/bin", "target/lib")
       dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
-    } File.move(dir + Path.explode(entry), platform_dir)
+    } Isabelle_System.move_file(dir + Path.explode(entry), platform_dir)
 
     Executable.libraries_closure(
       platform_dir + Path.basic("poly").platform_exe, mingw = mingw, filter = info.libs)
@@ -159,7 +159,7 @@ object Build_PolyML
 
     val src_dir = component_dir + Path.explode("src")
     File.read_dir(component_dir) match {
-      case List(s) => File.move(component_dir + Path.basic(s), src_dir)
+      case List(s) => Isabelle_System.move_file(component_dir + Path.basic(s), src_dir)
       case _ => error("Source archive contains multiple directories")
     }
 
@@ -187,10 +187,10 @@ not affect the running ML session. *)
     Isabelle_System.new_directory(component_dir)
     extract_sources(source_archive, component_dir)
 
-    File.copy(Path.explode("~~/Admin/polyml/README"), component_dir)
+    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/README"), component_dir)
 
     val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
-    File.copy(Path.explode("~~/Admin/polyml/settings"), etc_dir)
+    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/settings"), etc_dir)
 
     sha1_root match {
       case Some(dir) =>

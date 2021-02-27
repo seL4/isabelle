@@ -54,11 +54,12 @@ object Build_Zipperposition
 
       /* install */
 
-      File.copy(build_dir + Path.explode("doc/zipperposition/LICENSE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("doc/zipperposition/LICENSE"),
+        component_dir)
 
       val prg_path = Path.basic("zipperposition")
       val exe_path = prg_path.platform_exe
-      File.copy(build_dir + Path.basic("bin") + prg_path, platform_dir + exe_path)
+      Isabelle_System.copy_file(build_dir + Path.basic("bin") + prg_path, platform_dir + exe_path)
 
       if (!Platform.is_windows) {
         Executable.libraries_closure(

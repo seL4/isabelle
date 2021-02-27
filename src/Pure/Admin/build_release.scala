@@ -302,7 +302,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     File.set_executable(script_path, true)
 
     val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
-    File.move(
+    Isabelle_System.move_file(
       component_dir + Path.explode(Platform.standard_platform(platform)) + Path.explode("Isabelle"),
       isabelle_target + Path.explode(isabelle_name))
     Isabelle_System.rm_tree(component_dir)
@@ -654,7 +654,7 @@ rm -rf "${DIST_NAME}-old"
             val app_contents = isabelle_target + Path.explode("Contents")
 
             for (icon <- List("lib/logo/isabelle.icns", "lib/logo/theory.icns")) {
-              File.copy(isabelle_target + Path.explode(icon),
+              Isabelle_System.copy_file(isabelle_target + Path.explode(icon),
                 Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
             }
 
@@ -676,7 +676,8 @@ rm -rf "${DIST_NAME}-old"
             progress.echo("Packaging " + archive_name + " ...")
 
             val isabelle_app = Path.explode(isabelle_name + ".app")
-            File.move(tmp_dir + Path.explode(isabelle_name), tmp_dir + isabelle_app)
+            Isabelle_System.move_file(tmp_dir + Path.explode(isabelle_name),
+              tmp_dir + isabelle_app)
 
             execute_tar(tmp_dir,
               "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
@@ -690,7 +691,7 @@ rm -rf "${DIST_NAME}-old"
 
             // application launcher
 
-            File.move(isabelle_target + Path.explode("contrib/windows_app"), tmp_dir)
+            Isabelle_System.move_file(isabelle_target + Path.explode("contrib/windows_app"), tmp_dir)
 
             val app_template = Path.explode("~~/Admin/Windows/launch4j")
 
@@ -717,7 +718,7 @@ rm -rf "${DIST_NAME}-old"
             execute(tmp_dir,
               "\"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
 
-            File.copy(app_template + Path.explode("manifest.xml"),
+            Isabelle_System.copy_file(app_template + Path.explode("manifest.xml"),
               isabelle_target + isabelle_exe.ext("manifest"))
 
 
@@ -725,7 +726,8 @@ rm -rf "${DIST_NAME}-old"
 
             val cygwin_template = Path.explode("~~/Admin/Windows/Cygwin")
 
-            File.copy(cygwin_template + Path.explode("Cygwin-Terminal.bat"), isabelle_target)
+            Isabelle_System.copy_file(cygwin_template + Path.explode("Cygwin-Terminal.bat"),
+              isabelle_target)
 
             val cygwin_mirror =
               File.read(isabelle_target + Path.explode("contrib/cygwin/isabelle/cygwin_mirror"))
@@ -737,7 +739,7 @@ rm -rf "${DIST_NAME}-old"
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
               val path = Path.explode(name)
-              File.copy(cygwin_template + path,
+              Isabelle_System.copy_file(cygwin_template + path,
                 isabelle_target + Path.explode("contrib/cygwin") + path)
             }
 
@@ -808,7 +810,7 @@ rm -rf "${DIST_NAME}-old"
             List(List(isabelle_link)) ::: (if (afp_rev == "") Nil else List(List(afp_link))))))
 
       for ((bundle, _) <- website_platform_bundles)
-        File.copy(release.dist_dir + Path.explode(bundle), dir)
+        Isabelle_System.copy_file(release.dist_dir + Path.explode(bundle), dir)
     }
 
 

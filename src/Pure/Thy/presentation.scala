@@ -27,7 +27,7 @@ object Presentation
     {
       val fonts_dir = Isabelle_System.make_directory(dir + fonts_path)
       for (entry <- Isabelle_Fonts.fonts(hidden = true))
-        File.copy(entry.path, fonts_dir)
+        Isabelle_System.copy_file(entry.path, fonts_dir)
     }
 
     def head(title: String, rest: XML.Body = Nil): XML.Tree =
@@ -364,7 +364,7 @@ object Presentation
   {
     if (!(browser_info + Path.explode("index.html")).is_file) {
       Isabelle_System.make_directory(browser_info)
-      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+      Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
         File.read(Path.explode("~~/lib/html/library_index_header.template")) +
@@ -433,7 +433,7 @@ object Presentation
 
       val readme_links =
         if ((info.dir + readme_path).is_file) {
-          File.copy(info.dir + readme_path, session_dir + readme_path)
+          Isabelle_System.copy_file(info.dir + readme_path, session_dir + readme_path)
           List(HTML.link(readme_path, HTML.text("README")))
         }
         else Nil
@@ -582,7 +582,9 @@ object Presentation
 
       Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
       File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
-      for ((base_dir, src) <- info.document_files) File.copy_base(info.dir + base_dir, src, doc_dir)
+      for ((base_dir, src) <- info.document_files) {
+        Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
+      }
 
       File.write(doc_dir + session_tex_path,
         Library.terminate_lines(

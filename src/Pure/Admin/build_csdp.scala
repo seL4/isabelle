@@ -124,8 +124,8 @@ object Build_CSDP
 
       /* install */
 
-      File.copy(build_dir + Path.explode("LICENSE"), component_dir)
-      File.copy(build_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
         Executable.libraries_closure(platform_dir + Path.explode("csdp.exe"), mingw = mingw,

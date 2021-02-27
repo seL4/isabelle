@@ -84,10 +84,10 @@ object Build_VeriT
 
       /* install */
 
-      File.copy(build_dir + Path.explode("LICENSE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
 
       val exe_path = Path.basic("veriT").platform_exe
-      File.copy(build_dir + exe_path, platform_dir)
+      Isabelle_System.copy_file(build_dir + exe_path, platform_dir)
       Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"), mingw = mingw)
 
 

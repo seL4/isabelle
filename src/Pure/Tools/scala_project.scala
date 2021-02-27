@@ -129,7 +129,8 @@ object Scala_Project
         }).getOrElse(error("Unknown directory prefix for " + quote(file)))
 
       Isabelle_System.make_directory(target)
-      if (symlinks) File.link(path, target) else File.copy(path, target)
+      if (symlinks) Isabelle_System.symlink(path, target)
+      else Isabelle_System.copy_file(path, target)
     }
 
     val jars =

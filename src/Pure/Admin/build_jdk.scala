@@ -139,7 +139,7 @@ esac
       val platform_dir = dir + platform.platform_path
       if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
 
-      File.move(jdk_dir, platform_dir)
+      Isabelle_System.move_file(jdk_dir, platform_dir)
 
       platform
     }
@@ -183,7 +183,9 @@ esac
         File.write(Components.settings(component_dir), settings)
         File.write(component_dir + Path.explode("README"), readme(jdk_version))
 
-        for (platform <- platforms) File.move(dir + platform.platform_path, component_dir)
+        for (platform <- platforms) {
+          Isabelle_System.move_file(dir + platform.platform_path, component_dir)
+        }
 
         for (file <- File.find_files(component_dir.file, include_dirs = true)) {
           val path = file.toPath
