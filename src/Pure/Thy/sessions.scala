@@ -1013,7 +1013,7 @@ object Sessions
 
   private def check_session_dir(dir: Path): Path =
     if (is_session_dir(dir)) File.pwd() + dir.expand
-    else error("Bad session root directory: " + dir.toString)
+    else error("Bad session root directory: " + dir.expand.toString)
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
