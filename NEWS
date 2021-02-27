@@ -66,6 +66,14 @@ measurements of the bash_process wrapper in C: elapsed time is always
 available, CPU time is only available on Linux and macOS, GC time is
 unavailable.
 
+* Likewise, the following Isabelle/ML system operations are run in the
+context of Isabelle/Scala:
+
+  - Isabelle_System.make_directory
+  - Isabelle_System.copy_dir
+  - Isabelle_System.copy_file
+  - Isabelle_System.copy_base_file
+
 
 
 New in Isabelle2021 (February 2021)

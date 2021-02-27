@@ -180,6 +180,21 @@ object Isabelle_System
 
   /** file-system operations **/
 
+  /* scala functions */
+
+  private def apply_paths(arg: String, fun: List[Path] => Unit): String =
+    { fun(Library.space_explode('\u0000', arg).map(Path.explode)); "" }
+
+  private def apply_paths1(arg: String, fun: Path => Unit): String =
+    apply_paths(arg, { case List(path) => fun(path) })
+
+  private def apply_paths2(arg: String, fun: (Path, Path) => Unit): String =
+    apply_paths(arg, { case List(path1, path2) => fun(path1, path2) })
+
+  private def apply_paths3(arg: String, fun: (Path, Path, Path) => Unit): String =
+    apply_paths(arg, { case List(path1, path2, path3) => fun(path1, path2, path3) })
+
+
   /* permissions */
 
   def chmod(arg: String, path: Path): Unit =
@@ -198,30 +213,48 @@ object Isabelle_System
     path
   }
 
-  object Make_Directory extends Scala.Fun("make_directory")
-  {
-    val here = Scala_Project.here
-    def apply(arg: String): String = { make_directory(Path.explode(arg)); "" }
-  }
-
   def new_directory(path: Path): Path =
     if (path.is_dir) error("Directory already exists: " + path.absolute)
     else make_directory(path)
 
-
-
-  /* copy */
-
   def copy_dir(dir1: Path, dir2: Path): Unit =
-    bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check
+  {
+    val res = bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2))
+    if (!res.ok) {
+      cat_error("Failed to copy directory " + dir1.absolute + " to " + dir2.absolute, res.err)
+    }
+  }
+
+
+  object Make_Directory extends Scala.Fun("make_directory")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = apply_paths1(arg, make_directory)
+  }
+
+  object Copy_Dir extends Scala.Fun("copy_dir")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = apply_paths2(arg, copy_dir)
+  }
+
+
+  /* copy files */
 
   def copy_file(src: JFile, dst: JFile): Unit =
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target)) {
-      Files.copy(src.toPath, target.toPath,
-        StandardCopyOption.COPY_ATTRIBUTES,
-        StandardCopyOption.REPLACE_EXISTING)
+      try {
+        Files.copy(src.toPath, target.toPath,
+          StandardCopyOption.COPY_ATTRIBUTES,
+          StandardCopyOption.REPLACE_EXISTING)
+      }
+      catch {
+        case ERROR(msg) =>
+          cat_error("Failed top copy file " +
+            File.path(src).absolute + " to " + File.path(dst).absolute, msg)
+      }
     }
   }
 
@@ -236,7 +269,20 @@ object Isabelle_System
   }
 
 
-  /* move */
+  object Copy_File extends Scala.Fun("copy_file")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = apply_paths2(arg, copy_file)
+  }
+
+  object Copy_File_Base extends Scala.Fun("copy_file_base")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = apply_paths3(arg, copy_file_base)
+  }
+
+
+  /* move files */
 
   def move_file(src: JFile, dst: JFile)
   {

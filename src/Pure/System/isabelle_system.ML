@@ -69,39 +69,24 @@ fun check_bash_function ctxt arg =
     (bash_functions () |> map (rpair Position.none)) ctxt arg;
 
 
-(* directory operations *)
+(* directory and file operations *)
+
+fun scala_function name args =
+  ignore (Scala.function name (space_implode "\000" (map (Path.implode o File.absolute_path) args)));
 
 fun system_command cmd =
   if bash cmd <> 0 then error ("System command failed: " ^ cmd) else ();
 
 fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
-fun make_directory path =
-  (Scala.function "make_directory" (Path.implode (File.absolute_path path)); path);
+fun make_directory path = (scala_function "make_directory" [path]; path);
 
-fun copy_dir src dst =
-  if File.eq (src, dst) then ()
-  else (system_command ("cp -p -R -f " ^ File.bash_path src ^ "/. " ^ File.bash_path dst); ());
+fun copy_dir src dst = scala_function "copy_dir" [src, dst];
 
-fun copy_file src0 dst0 =
-  let
-    val src = Path.expand src0;
-    val dst = Path.expand dst0;
-    val target = if File.is_dir dst then dst + Path.base src else dst;
-  in
-    if File.eq (src, target) then ()
-    else
-      ignore (system_command ("cp -p -f " ^ File.bash_path src ^ " " ^ File.bash_path target))
-  end;
+fun copy_file src dst = scala_function "copy_file" [src, dst];
 
-fun copy_file_base (base_dir, src0) target_dir =
-  let
-    val src = Path.expand src0;
-    val src_dir = Path.dir src;
-    val _ =
-      if Path.starts_basic src then ()
-      else error ("Illegal path specification " ^ Path.print src ^ " beyond base directory");
-  in copy_file (base_dir + src) (make_directory (target_dir + src_dir)) end;
+fun copy_file_base (base_dir, src) target_dir =
+  scala_function "copy_file_base" [base_dir, src, target_dir];
 
 
 (* tmp files *)

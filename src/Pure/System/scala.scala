@@ -246,4 +246,7 @@ class Scala_Functions extends Scala.Functions(
   Bash.Process,
   Bibtex.Check_Database,
   Isabelle_System.Make_Directory,
+  Isabelle_System.Copy_Dir,
+  Isabelle_System.Copy_File,
+  Isabelle_System.Copy_File_Base,
   Isabelle_Tool.Isabelle_Tools)
