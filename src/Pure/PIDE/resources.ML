@@ -48,6 +48,7 @@ sig
   val check_path: Proof.context -> Path.T option -> Input.source -> Path.T
   val check_file: Proof.context -> Path.T option -> Input.source -> Path.T
   val check_dir: Proof.context -> Path.T option -> Input.source -> Path.T
+  val check_session_dir: Proof.context -> Path.T option -> Input.source -> Path.T
 end;
 
 structure Resources: RESOURCES =
@@ -386,6 +387,19 @@ fun formal_check check_file ctxt opt_dir source =
 val check_path = formal_check I;
 val check_file = formal_check File.check_file;
 val check_dir = formal_check File.check_dir;
+
+fun check_session_dir ctxt opt_dir s =
+  let
+    val dir = Path.expand (check_dir ctxt opt_dir s);
+    val ok =
+      File.is_file (dir + Path.explode("ROOT")) orelse
+      File.is_file (dir + Path.explode("ROOTS"));
+  in
+    if ok then dir
+    else
+      error ("Bad session root directory (missing ROOT or ROOTS): " ^
+        Path.print dir ^ Position.here (Input.pos_of s))
+  end;
 
 
 (* antiquotations *)

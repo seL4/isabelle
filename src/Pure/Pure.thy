@@ -136,12 +136,13 @@ local
                 let
                   val pos2 = pos1 |> fold Position.advance (Symbol.explode line);
                   val range = Position.range (pos1, pos2);
+                  val source = Input.source true line range;
                   val _ =
                     if line = "" then ()
                     else if String.isPrefix "#" line then
                       Context_Position.report ctxt (#1 range) Markup.comment
                     else
-                      (ignore (Resources.check_dir ctxt (SOME dir) (Input.source true line range))
+                      (ignore (Resources.check_session_dir ctxt (SOME dir) source)
                         handle ERROR msg => Output.error_message msg);
                 in pos2 |> Position.advance "\n" end);
           in thy' end)));
