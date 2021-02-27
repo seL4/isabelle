@@ -35,11 +35,21 @@ object Main
             val roots = Path.explode("$ISABELLE_HOME_USER/ROOTS")
             if (!roots.is_file) File.write(roots, """# Additional session root directories
 #
-#   * each line contains one directory entry in Isabelle path notation
+#   * each line contains one directory entry in Isabelle path notation, e.g.
+#
+#       $ISABELLE_HOME/../AFP/thys
+#
+#     for a copy of AFP put side-by-side to the Isabelle distribution
+#
+#   * Isabelle/jEdit provides formal markup for C-hover-click and completion
+#
 #   * lines starting with "#" are stripped
-#   * changes require application restart
+#
+#   * changes require restart of the Isabelle application
 #
 #:mode=text:encoding=UTF-8:
+
+#$ISABELLE_HOME/../AFP/thys
 """)
           }
 
