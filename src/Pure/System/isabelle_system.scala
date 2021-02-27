@@ -191,11 +191,15 @@ object Isabelle_System
 
   def make_directory(path: Path): Path =
   {
-    if (!path.is_dir) {
-      bash("perl -e \"use File::Path make_path; make_path('" + File.standard_path(path) + "');\"")
-      if (!path.is_dir) error("Failed to create directory: " + path.absolute)
-    }
+    try { Files.createDirectories(path.file.toPath) }
+    catch { case ERROR(_) => error("Failed to create directory: " + path.absolute) }
     path
+  }
+
+  object Make_Directory extends Scala.Fun("make_directory")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = { make_directory(Path.explode(arg)); "" }
   }
 
   def new_directory(path: Path): Path =

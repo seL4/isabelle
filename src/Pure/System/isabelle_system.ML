@@ -78,13 +78,7 @@ fun system_command cmd =
 fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
 fun make_directory path =
-  let
-    val _ =
-      if File.is_dir path then ()
-      else
-       (bash ("perl -e \"use File::Path make_path; make_path('" ^ File.standard_path path ^ "');\"");
-        if File.is_dir path then () else error ("Failed to create directory: " ^ Path.print path));
-  in path end;
+  (Scala.function "make_directory" (Path.implode (File.absolute_path path)); path);
 
 fun mkdir path =
   if File.is_dir path then () else OS.FileSys.mkDir (File.platform_path path);

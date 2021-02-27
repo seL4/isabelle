@@ -11,6 +11,7 @@ sig
   val bash_path: Path.T -> string
   val bash_paths: Path.T list -> string
   val bash_platform_path: Path.T -> string
+  val absolute_path: Path.T -> Path.T
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val exists: Path.T -> bool
@@ -56,15 +57,16 @@ val bash_platform_path = Bash.string o platform_path;
 
 (* full_path *)
 
+val absolute_path =
+  Path.expand #> (fn path =>
+    if Path.is_absolute path then path
+    else Path.explode (ML_System.standard_path (OS.FileSys.getDir ())) + path);
+
 fun full_path dir path =
   let
     val path' = Path.expand path;
     val _ = Path.is_current path' andalso error "Bad file specification";
-    val path'' = dir + path';
-  in
-    if Path.is_absolute path'' then path''
-    else Path.explode (ML_System.standard_path (OS.FileSys.getDir ())) + path''
-  end;
+  in absolute_path (dir + path') end;
 
 
 (* tmp_path *)
