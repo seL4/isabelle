@@ -286,18 +286,14 @@ fun suggestion_name_of base_name n alt =
 
 fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc dir_name =
   let
-    val dir = Path.explode dir_name
-    val _ = Isabelle_System.mkdir dir
+    val dir = Isabelle_System.make_directory (Path.explode dir_name)
     val file_order_path = ap dir file_order_name
     val _ = File.write file_order_path ""
     val problem_order_path = ap dir problem_order_name
     val _ = File.write problem_order_path ""
-    val problem_dir = ap dir problem_name
-    val _ = Isabelle_System.mkdir problem_dir
-    val suggestion_dir = ap dir suggestion_name
-    val _ = Isabelle_System.mkdir suggestion_dir
-    val include_dir = ap problem_dir include_name
-    val _ = Isabelle_System.mkdir include_dir
+    val problem_dir = Isabelle_System.make_directory (ap dir problem_name)
+    val suggestion_dir = Isabelle_System.make_directory (ap dir suggestion_name)
+    val include_dir = Isabelle_System.make_directory (ap problem_dir include_name)
 
     val (facts, (prelude, groups)) =
       problem_of_theory ctxt thy format infer_policy type_enc

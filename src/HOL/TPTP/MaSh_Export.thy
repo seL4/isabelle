@@ -10,7 +10,7 @@ begin
 
 ML \<open>
 if do_it then
-  Isabelle_System.mkdir (Path.explode prefix)
+  ignore (Isabelle_System.make_directory (Path.explode prefix))
 else
   ()
 \<close>

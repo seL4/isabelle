@@ -29,7 +29,7 @@ val prob_dir = prefix ^ "mash_problems"
 
 ML \<open>
 if do_it then
-  Isabelle_System.mkdir (Path.explode prob_dir)
+  ignore (Isabelle_System.make_directory (Path.explode prob_dir))
 else
   ()
 \<close>
