@@ -19,8 +19,8 @@ function usage()
   echo "    -R URL       component repository (default \$ISABELLE_COMPONENT_REPOSITORY)"
   echo "    -a           resolve all missing components"
   echo "    -l           list status"
-  echo "    -u DIR       update \$ISABELLE_HOME_USER/components: add directory"
-  echo "    -x DIR       update \$ISABELLE_HOME_USER/components: remove directory"
+  echo "    -u DIR       update \$ISABELLE_HOME_USER/etc/components: add directory"
+  echo "    -x DIR       update \$ISABELLE_HOME_USER/etc/components: remove directory"
   echo
   echo "  Resolve Isabelle components via download and installation: given COMPONENTS"
   echo "  are identified via base name. Further operations manage etc/settings and"
