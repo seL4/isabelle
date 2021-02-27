@@ -294,7 +294,7 @@ object File
   /* eq */
 
   def eq(file1: JFile, file2: JFile): Boolean =
-    try { java.nio.file.Files.isSameFile(file1.toPath, file2.toPath) }
+    try { Files.isSameFile(file1.toPath, file2.toPath) }
     catch { case ERROR(_) => false }
 
   def eq(path1: Path, path2: Path): Boolean = eq(path1.file, path2.file)
