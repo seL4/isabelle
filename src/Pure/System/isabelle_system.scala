@@ -340,9 +340,7 @@ object Isabelle_System
 
   /* tmp dirs */
 
-  def rm_tree(root: Path): Unit = rm_tree(root.file)
-
-  def rm_tree(root: JFile)
+  def rm_tree(root: JFile): Unit =
   {
     root.delete
     if (root.isDirectory) {
@@ -367,6 +365,14 @@ object Isabelle_System
         }
       )
     }
+  }
+
+  def rm_tree(root: Path): Unit = rm_tree(root.file)
+
+  object Rm_Tree extends Scala.Fun("rm_tree")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = apply_paths1(arg, rm_tree)
   }
 
   def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile =

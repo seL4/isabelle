@@ -11,13 +11,13 @@ sig
   val bash: string -> int
   val bash_functions: unit -> string list
   val check_bash_function: Proof.context -> string * Position.T -> string
-  val rm_tree: Path.T -> unit
   val make_directory: Path.T -> Path.T
   val copy_dir: Path.T -> Path.T -> unit
   val copy_file: Path.T -> Path.T -> unit
   val copy_file_base: Path.T * Path.T -> Path.T -> unit
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
+  val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val download: string -> string
 end;
@@ -74,11 +74,6 @@ fun check_bash_function ctxt arg =
 fun scala_function name args =
   ignore (Scala.function name (space_implode "\000" (map (Path.implode o File.absolute_path) args)));
 
-fun system_command cmd =
-  if bash cmd <> 0 then error ("System command failed: " ^ cmd) else ();
-
-fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
-
 fun make_directory path = (scala_function "make_directory" [path]; path);
 
 fun copy_dir src dst = scala_function "copy_dir" [src, dst];
@@ -104,6 +99,8 @@ fun with_tmp_file name ext f =
 
 
 (* tmp dirs *)
+
+fun rm_tree path = scala_function "rm_tree" [path];
 
 fun with_tmp_dir name f =
   let val path = create_tmp_path name ""

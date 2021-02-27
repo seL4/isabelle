@@ -73,6 +73,7 @@ context of Isabelle/Scala:
   - Isabelle_System.copy_dir
   - Isabelle_System.copy_file
   - Isabelle_System.copy_base_file
+  - Isabelle_System.rm_tree
   - Isabelle_System.download
 
 
