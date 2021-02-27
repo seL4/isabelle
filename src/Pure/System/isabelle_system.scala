@@ -225,14 +225,14 @@ object Isabelle_System
     }
   }
 
-  def copy_file(path1: Path, path2: Path): Unit = copy_file(path1.file, path2.file)
+  def copy_file(src: Path, dst: Path): Unit = copy_file(src.file, dst.file)
 
-  def copy_file_base(base_dir: Path, src0: Path, target_dir: Path): Unit =
+  def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit =
   {
-    val src = src0.expand
-    val src_dir = src.dir
-    if (!src.starts_basic) error("Illegal path specification " + src + " beyond base directory")
-    copy_file(base_dir + src, Isabelle_System.make_directory(target_dir + src_dir))
+    val src1 = src.expand
+    val src1_dir = src1.dir
+    if (!src.starts_basic) error("Illegal path specification " + src1 + " beyond base directory")
+    copy_file(base_dir + src1, Isabelle_System.make_directory(target_dir + src1_dir))
   }
 
 
@@ -245,7 +245,7 @@ object Isabelle_System
       Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
   }
 
-  def move_file(path1: Path, path2: Path): Unit = move_file(path1.file, path2.file)
+  def move_file(src: Path, dst: Path): Unit = move_file(src.file, dst.file)
 
 
   /* symbolic link */
