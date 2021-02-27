@@ -90,34 +90,6 @@ object Isabelle_Cronjob
       })
 
 
-  /* integrity test of build_history vs. build_history_base */
-
-  def build_history_options0: String =
-    " -R " + Bash.string(Components.default_component_repository) +
-    " -C '$USER_HOME/.isabelle/contrib' -f "
-
-  val build_history_base: Logger_Task =
-    Logger_Task("build_history_base", logger =>
-      {
-        using(logger.ssh_context.open_session("lxbroy10"))(ssh =>
-          {
-            val results =
-              Build_History.remote_build_history(ssh,
-                isabelle_repos,
-                isabelle_repos.ext("build_history_base"),
-                isabelle_identifier = "cronjob_build_history",
-                self_update = true,
-                rev = "build_history_base",
-                options = build_history_options0,
-                args = "HOL")
-
-            for ((log_name, bytes) <- results) {
-              Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
-            }
-          })
-      })
-
-
   /* remote build_history */
 
   sealed case class Item(
@@ -429,7 +401,9 @@ object Isabelle_Cronjob
                 afp_rev = afp_rev,
                 options =
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                  build_history_options0 + r.build_history_options,
+                  " -R " + Bash.string(Components.default_component_repository) +
+                  " -C '$USER_HOME/.isabelle/contrib' -f " +
+                  r.build_history_options,
                 args = "-o timeout=10800 " + r.args)
 
             for ((log_name, bytes) <- results) {
@@ -603,7 +577,7 @@ object Isabelle_Cronjob
         run_now(
           SEQ(List(
             init,
-            PAR(List(mailman_archives, SEQ(List(build_history_base, build_release)))),
+            PAR(List(mailman_archives, build_release)),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
