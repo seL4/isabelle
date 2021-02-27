@@ -114,12 +114,7 @@ fun with_tmp_dir name f =
 
 fun download url =
   with_tmp_file "download" "" (fn path =>
-    let
-      val s = "curl --fail --silent --location " ^ Bash.string url ^ " > " ^ File.bash_path path;
-      val res = bash_process s;
-    in
-      if Process_Result.ok res then File.read path
-      else cat_error ("Failed to download " ^ quote url) (Process_Result.err res)
-    end);
+   (Scala.function "download" (url ^ "\000" ^ Path.implode (File.absolute_path path));
+    File.read path));
 
 end;

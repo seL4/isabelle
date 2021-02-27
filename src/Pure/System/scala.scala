@@ -249,4 +249,5 @@ class Scala_Functions extends Scala.Functions(
   Isabelle_System.Copy_Dir,
   Isabelle_System.Copy_File,
   Isabelle_System.Copy_File_Base,
+  Isabelle_System.Download,
   Isabelle_Tool.Isabelle_Tools)

@@ -489,21 +489,6 @@ object Isabelle_System
     }
   }
 
-  private lazy val curl_check: Unit =
-    try { require_command("curl") }
-    catch { case ERROR(msg) => error(msg + " --- cannot download files") }
-
-  def download(url: String, file: Path, progress: Progress = new Progress): Unit =
-  {
-    curl_check
-    progress.echo("Getting " + quote(url))
-    try {
-      bash("curl --fail --silent --location " + Bash.string(url) +
-        " > " + File.bash_path(file)).check
-    }
-    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url), msg) }
-  }
-
   def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =
@@ -551,5 +536,32 @@ object Isabelle_System
       case Some(logic) => logic
       case None => getenv_strict("ISABELLE_LOGIC")
     }
+  }
+
+
+  /* download file */
+
+  private lazy val curl_check: Unit =
+    try { require_command("curl") }
+    catch { case ERROR(msg) => error(msg + " --- cannot download files") }
+
+  def download(url: String, file: Path, progress: Progress = new Progress): Unit =
+  {
+    curl_check
+    progress.echo("Getting " + quote(url))
+    try {
+      bash("curl --fail --silent --location " + Bash.string(url) +
+        " > " + File.bash_path(file)).check
+    }
+    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url), msg) }
+  }
+
+  object Download extends Scala.Fun("download")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String =
+      Library.space_explode('\u0000', arg) match {
+        case List(url, file) => download(url, Path.explode(file)); ""
+      }
   }
 }
