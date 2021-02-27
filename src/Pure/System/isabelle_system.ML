@@ -13,7 +13,6 @@ sig
   val check_bash_function: Proof.context -> string * Position.T -> string
   val rm_tree: Path.T -> unit
   val make_directory: Path.T -> Path.T
-  val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
   val copy_file: Path.T -> Path.T -> unit
   val copy_file_base: Path.T * Path.T -> Path.T -> unit
@@ -79,9 +78,6 @@ fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
 fun make_directory path =
   (Scala.function "make_directory" (Path.implode (File.absolute_path path)); path);
-
-fun mkdir path =
-  if File.is_dir path then () else OS.FileSys.mkDir (File.platform_path path);
 
 fun copy_dir src dst =
   if File.eq (src, dst) then ()
