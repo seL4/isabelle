@@ -218,7 +218,7 @@ object Isabelle_System
   def copy_file(src: JFile, dst: JFile): Unit =
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
-    if (!eq(src, target)) {
+    if (!File.eq(src, target)) {
       Files.copy(src.toPath, target.toPath,
         StandardCopyOption.COPY_ATTRIBUTES,
         StandardCopyOption.REPLACE_EXISTING)
@@ -241,7 +241,7 @@ object Isabelle_System
   def move_file(src: JFile, dst: JFile)
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
-    if (!eq(src, target))
+    if (!File.eq(src, target))
       Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
   }
 
