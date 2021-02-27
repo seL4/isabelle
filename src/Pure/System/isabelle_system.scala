@@ -231,7 +231,7 @@ object Isabelle_System
   {
     val src1 = src.expand
     val src1_dir = src1.dir
-    if (!src.starts_basic) error("Illegal path specification " + src1 + " beyond base directory")
+    if (!src1.starts_basic) error("Illegal path specification " + src1 + " beyond base directory")
     copy_file(base_dir + src1, Isabelle_System.make_directory(target_dir + src1_dir))
   }
 
