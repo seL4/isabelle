@@ -8,30 +8,7 @@ theory Permutations
   imports Multiset Disjoint_Sets
 begin
 
-subsection \<open>Transpositions\<close>
-
-lemma swap_id_idempotent [simp]: "Fun.swap a b id \<circ> Fun.swap a b id = id"
-  by (rule ext) (auto simp add: Fun.swap_def)
-
-lemma inv_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
-  by (rule inv_unique_comp) simp_all
-
-lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
-  by (simp add: Fun.swap_def)
-
-lemma bij_swap_comp:
-  assumes "bij p"
-  shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"
-  using surj_f_inv_f[OF bij_is_surj[OF \<open>bij p\<close>]]
-  by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF \<open>bij p\<close>])
-
-lemma bij_swap_compose_bij:
-  assumes "bij p"
-  shows "bij (Fun.swap a b id \<circ> p)"
-  by (simp only: bij_swap_comp[OF \<open>bij p\<close>] bij_swap_iff \<open>bij p\<close>)
-
-
-subsection \<open>Basic consequences of the definition\<close>
+subsection \<open>Basic definition and consequences\<close>
 
 definition permutes  (infixr "permutes" 41)
   where "(p permutes S) \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)"
@@ -426,21 +403,6 @@ proof -
 qed
 
 
-subsection \<open>Various combinations of transpositions with 2, 1 and 0 common elements\<close>
-
-lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>
-  Fun.swap a b id \<circ> Fun.swap a c id = Fun.swap b c id \<circ> Fun.swap a b id"
-  by (simp add: fun_eq_iff Fun.swap_def)
-
-lemma swap_id_common': "a \<noteq> b \<Longrightarrow> a \<noteq> c \<Longrightarrow>
-  Fun.swap a c id \<circ> Fun.swap b c id = Fun.swap b c id \<circ> Fun.swap a b id"
-  by (simp add: fun_eq_iff Fun.swap_def)
-
-lemma swap_id_independent: "a \<noteq> c \<Longrightarrow> a \<noteq> d \<Longrightarrow> b \<noteq> c \<Longrightarrow> b \<noteq> d \<Longrightarrow>
-  Fun.swap a b id \<circ> Fun.swap c d id = Fun.swap c d id \<circ> Fun.swap a b id"
-  by (simp add: fun_eq_iff Fun.swap_def)
-
-
 subsection \<open>Permutations as transposition sequences\<close>
 
 inductive swapidseq :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
@@ -536,6 +498,22 @@ lemma swapidseq_inverse:
 
 lemma permutation_inverse: "permutation p \<Longrightarrow> permutation (inv p)"
   using permutation_def swapidseq_inverse by blast
+
+
+
+subsection \<open>Various combinations of transpositions with 2, 1 and 0 common elements\<close>
+
+lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>
+  Fun.swap a b id \<circ> Fun.swap a c id = Fun.swap b c id \<circ> Fun.swap a b id"
+  by (simp add: fun_eq_iff Fun.swap_def)
+
+lemma swap_id_common': "a \<noteq> b \<Longrightarrow> a \<noteq> c \<Longrightarrow>
+  Fun.swap a c id \<circ> Fun.swap b c id = Fun.swap b c id \<circ> Fun.swap a b id"
+  by (simp add: fun_eq_iff Fun.swap_def)
+
+lemma swap_id_independent: "a \<noteq> c \<Longrightarrow> a \<noteq> d \<Longrightarrow> b \<noteq> c \<Longrightarrow> b \<noteq> d \<Longrightarrow>
+  Fun.swap a b id \<circ> Fun.swap c d id = Fun.swap c d id \<circ> Fun.swap a b id"
+  by (simp add: fun_eq_iff Fun.swap_def)
 
 
 subsection \<open>The identity map only has even transposition sequences\<close>
@@ -744,13 +722,6 @@ qed
 
 subsection \<open>A more abstract characterization of permutations\<close>
 
-lemma bij_iff: "bij f \<longleftrightarrow> (\<forall>x. \<exists>!y. f y = x)"
-  unfolding bij_def inj_def surj_def
-  apply auto
-   apply metis
-  apply metis
-  done
-
 lemma permutation_bijective:
   assumes "permutation p"
   shows "bij p"
@@ -791,7 +762,7 @@ qed
 lemma permutation_lemma:
   assumes "finite S"
     and "bij p"
-    and "\<forall>x. x\<notin> S \<longrightarrow> p x = x"
+    and "\<forall>x. x \<notin> S \<longrightarrow> p x = x"
   shows "permutation p"
   using assms
 proof (induct S arbitrary: p rule: finite_induct)
@@ -872,10 +843,11 @@ lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. fi
 
 subsection \<open>Hence a sort of induction principle composing by swaps\<close>
 
-lemma permutes_induct: "finite S \<Longrightarrow> P id \<Longrightarrow>
-  (\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> P p \<Longrightarrow> P p \<Longrightarrow> permutation p \<Longrightarrow> P (Fun.swap a b id \<circ> p)) \<Longrightarrow>
-  (\<And>p. p permutes S \<Longrightarrow> P p)"
-proof (induct S rule: finite_induct)
+lemma permutes_induct [consumes 2, case_names id swap]:
+  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
+  and id: \<open>P id\<close>
+  and swap: \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> permutation p \<Longrightarrow> P p \<Longrightarrow> P (Fun.swap a b id \<circ> p)\<close>
+using \<open>finite S\<close> \<open>p permutes S\<close> id swap proof (induction S arbitrary: p)
   case empty
   then show ?case by auto
 next
@@ -884,25 +856,26 @@ next
   let ?q = "Fun.swap x (p x) id \<circ> ?r"
   have qp: "?q = p"
     by (simp add: o_assoc)
-  from permutes_insert_lemma[OF insert.prems(3)] insert have Pr: "P ?r"
+  from permutes_insert_lemma[OF \<open>p permutes insert x F\<close>] insert have Pr: "P ?r"
     by blast
-  from permutes_in_image[OF insert.prems(3), of x]
+  from permutes_in_image[OF \<open>p permutes insert x F\<close>, of x]
   have pxF: "p x \<in> insert x F"
     by simp
   have xF: "x \<in> insert x F"
     by simp
   have rp: "permutation ?r"
     unfolding permutation_permutes
-    using insert.hyps(1) permutes_insert_lemma[OF insert.prems(3)]
+    using insert.hyps(1) permutes_insert_lemma[OF \<open>p permutes insert x F\<close>]
     by blast
-  from insert.prems(2)[OF xF pxF Pr Pr rp] qp show ?case
+  from insert.prems(3)[OF xF pxF rp Pr] qp show ?case
     by (simp only:)
 qed
 
 
 subsection \<open>Sign of a permutation as a real number\<close>
 
-definition "sign p = (if evenperm p then (1::int) else -1)"
+definition sign :: \<open>('a \<Rightarrow> 'a) \<Rightarrow> int\<close> \<comment> \<open>TODO: prefer less generic name\<close>
+  where \<open>sign p = (if evenperm p then (1::int) else -1)\<close>
 
 lemma sign_nz: "sign p \<noteq> 0"
   by (simp add: sign_def)
@@ -1470,7 +1443,7 @@ lemma inverse_permutation_of_list_id:
 
 lemma inverse_permutation_of_list_unique':
   "distinct (map snd xs) \<Longrightarrow> (x, y) \<in> set xs \<Longrightarrow> inverse_permutation_of_list xs y = x"
-  by (induct xs) (force simp: inverse_permutation_of_list.simps)+
+  by (induct xs) (force simp: inverse_permutation_of_list.simps(2))+
 
 lemma inverse_permutation_of_list_unique:
   "list_permutes xs A \<Longrightarrow> (x,y) \<in> set xs \<Longrightarrow> inverse_permutation_of_list xs y = x"

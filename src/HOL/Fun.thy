@@ -891,6 +891,18 @@ lemma bij_betw_swap_iff [simp]: "x \<in> A \<Longrightarrow> y \<in> A \<Longrig
 lemma bij_swap_iff [simp]: "bij (swap a b f) \<longleftrightarrow> bij f"
   by simp
 
+subsection \<open>Transpositions\<close>
+
+lemma swap_id_idempotent [simp]: "Fun.swap a b id \<circ> Fun.swap a b id = id"
+  by (rule ext) (auto simp add: Fun.swap_def)
+
+lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
+  by (simp add: Fun.swap_def)
+
+lemma bij_swap_compose_bij:
+  \<open>bij (Fun.swap a b id \<circ> p)\<close> if \<open>bij p\<close>
+  using that by (rule bij_comp) simp
+
 hide_const (open) swap
 
 
