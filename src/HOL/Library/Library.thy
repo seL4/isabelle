@@ -24,6 +24,7 @@ imports
   Diagonal_Subsequence
   Discrete
   Disjoint_Sets
+  Disjoint_FSets
   Dlist
   Dual_Ordered_Lattice
   Equipollence

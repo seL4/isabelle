@@ -1949,6 +1949,10 @@ lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<
 lemma pairwise_disjnt_iff: "pairwise disjnt \<A> \<longleftrightarrow> (\<forall>x. \<exists>\<^sub>\<le>\<^sub>1 X. X \<in> \<A> \<and> x \<in> X)"
   by (auto simp: Uniq_def disjnt_iff pairwise_def)
 
+lemma disjnt_insert: \<^marker>\<open>contributor \<open>Lars Hupel\<close>\<close>
+  \<open>disjnt (insert x M) N\<close> if \<open>x \<notin> N\<close> \<open>disjnt M N\<close>
+  using that by (simp add: disjnt_def)
+
 lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
   by blast
 

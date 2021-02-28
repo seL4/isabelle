@@ -468,6 +468,38 @@ proof -
   with that show thesis by blast
 qed
 
+lemma bij_iff: \<^marker>\<open>contributor \<open>Amine Chaieb\<close>\<close>
+  \<open>bij f \<longleftrightarrow> (\<forall>x. \<exists>!y. f y = x)\<close>  (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  then have \<open>inj f\<close> \<open>surj f\<close>
+    by (simp_all add: bij_def)
+  show ?Q
+  proof
+    fix y
+    from \<open>surj f\<close> obtain x where \<open>y = f x\<close>
+      by (auto simp add: surj_def)
+    with \<open>inj f\<close> show \<open>\<exists>!x. f x = y\<close>
+      by (auto simp add: inj_def)
+  qed
+next
+  assume ?Q
+  then have \<open>inj f\<close>
+    by (auto simp add: inj_def)
+  moreover have \<open>\<exists>x. y = f x\<close> for y
+  proof -
+    from \<open>?Q\<close> obtain x where \<open>f x = y\<close>
+      by blast
+    then have \<open>y = f x\<close>
+      by simp
+    then show ?thesis ..
+  qed
+  then have \<open>surj f\<close>
+    by (auto simp add: surj_def)
+  ultimately show ?P
+    by (rule bijI)
+qed
+
 lemma surj_image_vimage_eq: "surj f \<Longrightarrow> f ` (f -` A) = A"
   by simp
 

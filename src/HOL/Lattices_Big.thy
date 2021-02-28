@@ -872,6 +872,10 @@ qed
 
 end
 
+lemma disjnt_ge_max: \<^marker>\<open>contributor \<open>Lars Hupel\<close>\<close>
+  \<open>disjnt X Y\<close> if \<open>finite Y\<close> \<open>\<And>x. x \<in> X \<Longrightarrow> x > Max Y\<close>
+  using that by (auto simp add: disjnt_def) (use Max_less_iff in blast)
+
 
 subsection \<open>Arg Min\<close>
 
