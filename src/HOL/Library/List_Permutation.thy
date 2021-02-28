@@ -5,7 +5,7 @@
 section \<open>Permuted Lists\<close>
 
 theory List_Permutation
-imports Multiset
+imports Permutations
 begin
 
 subsection \<open>An inductive definition \ldots\<close>
@@ -82,12 +82,17 @@ theorem permutation_Ex_bij:
   assumes "xs <~~> ys"
   shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
 proof -
-  from assms have \<open>mset ys = mset xs\<close>
-    by (simp add: perm_iff_eq_mset)
-  then obtain f where \<open>bij_betw f {..<length ys} {..<length xs}\<close>
-    \<open>xs = map (\<lambda>n. ys ! f n) [0..<length ys]\<close>
+  from assms have \<open>mset xs = mset ys\<close> \<open>length xs = length ys\<close>
+    by (auto simp add: perm_iff_eq_mset dest: mset_eq_length)
+  from \<open>mset xs = mset ys\<close> obtain p where \<open>p permutes {..<length ys}\<close> \<open>permute_list p ys = xs\<close>
     by (rule mset_eq_permutation)
-  then show ?thesis by auto
+  then have \<open>bij_betw p {..<length xs} {..<length ys}\<close>
+    by (simp add: \<open>length xs = length ys\<close> permutes_imp_bij)
+  moreover have \<open>\<forall>i<length xs. xs ! i = ys ! (p i)\<close>
+    using \<open>permute_list p ys = xs\<close> \<open>length xs = length ys\<close> \<open>p permutes {..<length ys}\<close> permute_list_nth
+    by auto
+  ultimately show ?thesis
+    by blast
 qed
 
 proposition perm_finite: "finite {B. B <~~> A}"
