@@ -14,8 +14,6 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
 import java.nio.file.attribute.BasicFileAttributes
 
 
-import scala.annotation.tailrec
-
 
 object Isabelle_System
 {
@@ -549,19 +547,14 @@ object Isabelle_System
 
   /* download file */
 
-  private lazy val curl_check: Unit =
-    try { require_command("curl") }
-    catch { case ERROR(msg) => error(msg + " --- cannot download files") }
-
-  def download(url: String, file: Path, progress: Progress = new Progress): Unit =
+  def download(url_name: String, file: Path, progress: Progress = new Progress): Unit =
   {
-    curl_check
-    progress.echo("Getting " + quote(url))
-    try {
-      bash("curl --fail --silent --location " + Bash.string(url) +
-        " > " + File.bash_path(file)).check
-    }
-    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url), msg) }
+    val url = Url(url_name)
+    progress.echo("Getting " + quote(url_name))
+    val bytes =
+      try { Url.read_bytes(url) }
+      catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
+    Bytes.write(file, bytes)
   }
 
   object Download extends Scala.Fun("download")
