@@ -60,35 +60,37 @@ object Kodkod
 
     class Exit extends Exception("EXIT")
 
-    val context =
-      new Context {
-        private var rc = 0
-        private val out = new StringBuilder
-        private val err = new StringBuilder
+    class Exec_Context extends Context
+    {
+      private var rc = 0
+      private val out = new StringBuilder
+      private val err = new StringBuilder
 
-        def return_code(i: Int): Unit = synchronized { rc = rc max i}
+      def return_code(i: Int): Unit = synchronized { rc = rc max i}
 
-        override def output(s: String): Unit = synchronized {
-          Exn.Interrupt.expose()
-          out ++= s
-          out += '\n'
-        }
-
-        override def error(s: String): Unit = synchronized {
-          Exn.Interrupt.expose()
-          err ++= s
-          err += '\n'
-        }
-
-        override def exit(i: Int): Unit =
-          synchronized {
-            return_code(i)
-            executor_kill()
-            throw new Exit
-          }
-
-        def result(): Result = synchronized { Result(rc, out.toString, err.toString) }
+      override def output(s: String): Unit = synchronized {
+        Exn.Interrupt.expose()
+        out ++= s
+        out += '\n'
       }
+
+      override def error(s: String): Unit = synchronized {
+        Exn.Interrupt.expose()
+        err ++= s
+        err += '\n'
+      }
+
+      override def exit(i: Int): Unit =
+        synchronized {
+          return_code(i)
+          executor_kill()
+          throw new Exit
+        }
+
+      def result(): Result = synchronized { Result(rc, out.toString, err.toString) }
+    }
+
+    val context = new Exec_Context
 
 
     /* main */
