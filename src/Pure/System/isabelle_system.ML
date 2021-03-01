@@ -113,7 +113,7 @@ fun with_tmp_dir name f =
 
 fun download url =
   with_tmp_file "download" "" (fn path =>
-   (scala_function0 "download" [url, absolute_path path];
+   (Scala.function_thread "download" (cat_strings0 [url, absolute_path path]);
     File.read path));
 
 end;
