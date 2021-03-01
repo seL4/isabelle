@@ -765,8 +765,8 @@ object Build_Log
 
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
-      val eq1 = version1(table) + " = " + SQL.string(rev)
-      val eq2 = version2(table) + " = " + SQL.string(rev2)
+      val eq1 = version1(table).toString + " = " + SQL.string(rev)
+      val eq2 = version2(table).toString + " = " + SQL.string(rev2)
 
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns,
@@ -1136,7 +1136,7 @@ object Build_Log
         if (ml_statistics) {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
-            table1 + SQL.join_outer + table2 + " ON " +
+            table1.toString + SQL.join_outer + table2 + " ON " +
             Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
             Data.session_name(table1) + " = " + Data.session_name(table2)
           (columns, SQL.enclose(join))
