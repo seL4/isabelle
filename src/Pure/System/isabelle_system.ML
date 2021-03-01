@@ -71,8 +71,9 @@ fun check_bash_function ctxt arg =
 
 (* directory and file operations *)
 
-fun scala_function name args =
-  ignore (Scala.function name (space_implode "\000" (map (Path.implode o File.absolute_path) args)));
+val absolute_path = Path.implode o File.absolute_path;
+fun scala_function0 name = ignore o Scala.function name o space_implode "\000";
+fun scala_function name = scala_function0 name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);
 
@@ -111,7 +112,7 @@ fun with_tmp_dir name f =
 
 fun download url =
   with_tmp_file "download" "" (fn path =>
-   (Scala.function "download" (url ^ "\000" ^ Path.implode (File.absolute_path path));
+   (scala_function0 "download" [url, absolute_path path];
     File.read path));
 
 end;
