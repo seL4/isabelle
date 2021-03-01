@@ -194,7 +194,7 @@ object Token_Markup
     {
       private var next_span = command_span(syntax, buffer, offset)
       def hasNext: Boolean = next_span.isDefined
-      def next: Text.Info[Command_Span.Span] =
+      def next(): Text.Info[Command_Span.Span] =
       {
         val span = next_span.getOrElse(Iterator.empty.next)
         next_span = command_span(syntax, buffer, next_offset(span.range))

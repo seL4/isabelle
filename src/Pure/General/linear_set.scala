@@ -127,7 +127,7 @@ final class Linear_Set[A] private(
 
   private def make_iterator(from: Option[A]): Iterator[A] = new Iterator[A] {
     private var next_elem = from
-    def hasNext(): Boolean = next_elem.isDefined
+    def hasNext: Boolean = next_elem.isDefined
     def next(): A =
       next_elem match {
         case Some(elem) =>

@@ -65,8 +65,8 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
       override lazy val peer = button
       name = opt_name
       val title = opt_title
-      def load = button.setSelectedColor(Color_Value(string(opt_name)))
-      def save = string(opt_name) = Color_Value.print(button.getSelectedColor)
+      def load(): Unit = button.setSelectedColor(Color_Value(string(opt_name)))
+      def save(): Unit = string(opt_name) = Color_Value.print(button.getSelectedColor)
     }
     component.tooltip = GUI.tooltip_lines(opt.print_default)
     component
@@ -84,8 +84,8 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
         new CheckBox with Option_Component {
           name = opt_name
           val title = opt_title
-          def load = selected = bool(opt_name)
-          def save = bool(opt_name) = selected
+          def load(): Unit = selected = bool(opt_name)
+          def save(): Unit = bool(opt_name) = selected
         }
       else {
         val default_font = GUI.copy_font(UIManager.getFont("TextField.font"))
@@ -94,8 +94,8 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
             if (default_font != null) font = default_font
             name = opt_name
             val title = opt_title
-            def load = text = value.check_name(opt_name).value
-            def save =
+            def load(): Unit = text = value.check_name(opt_name).value
+            def save(): Unit =
               try { JEdit_Options.this += (opt_name, text) }
               catch {
                 case ERROR(msg) =>

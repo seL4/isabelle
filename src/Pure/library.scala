@@ -82,7 +82,7 @@ object Library
       }
       private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
 
-      def hasNext(): Boolean = state.isDefined
+      def hasNext: Boolean = state.isDefined
       def next(): CharSequence =
         state match {
           case Some((s, i)) => state = next_chunk(i); s

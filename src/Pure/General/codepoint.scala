@@ -18,7 +18,7 @@ object Codepoint
   {
     var offset = 0
     def hasNext: Boolean = offset < s.length
-    def next: A =
+    def next(): A =
     {
       val c = s.codePointAt(offset)
       val i = offset

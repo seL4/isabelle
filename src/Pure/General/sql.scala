@@ -269,7 +269,7 @@ object SQL
     {
       private var _next: Boolean = res.next()
       def hasNext: Boolean = _next
-      def next: A = { val x = get(res); _next = res.next(); x }
+      def next(): A = { val x = get(res); _next = res.next(); x }
     }
 
     def bool(column: Column): Boolean = rep.getBoolean(column.name)

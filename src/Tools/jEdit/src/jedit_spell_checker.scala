@@ -91,7 +91,7 @@ object JEdit_Spell_Checker
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
       val title = opt.title()
-      def load: Unit =
+      def load(): Unit =
       {
         val lang = PIDE.options.string(option_name)
         entries.find(_.lang == lang) match {
@@ -99,7 +99,7 @@ object JEdit_Spell_Checker
           case None =>
         }
       }
-      def save: Unit = PIDE.options.string(option_name) = selection.item.lang
+      def save(): Unit = PIDE.options.string(option_name) = selection.item.lang
     }
 
     component.load()

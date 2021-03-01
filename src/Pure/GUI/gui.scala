@@ -251,7 +251,7 @@ object GUI
 
   def ancestors(component: Component): Iterator[Container] = new Iterator[Container] {
     private var next_elem = get_parent(component)
-    def hasNext(): Boolean = next_elem.isDefined
+    def hasNext: Boolean = next_elem.isDefined
     def next(): Container =
       next_elem match {
         case Some(parent) =>

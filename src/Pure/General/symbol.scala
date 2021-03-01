@@ -117,7 +117,7 @@ object Symbol
       private val matcher = new Matcher(text)
       private var i = 0
       def hasNext: Boolean = i < text.length
-      def next: Symbol =
+      def next(): Symbol =
       {
         val n = matcher(i, text.length)
         val s =

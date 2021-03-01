@@ -396,7 +396,7 @@ final class Layout private(
     new Iterator[Layout.Info] {
       private var index = 0
       def hasNext: Boolean = output_graph.defined(Layout.Dummy(edge._1, edge._2, index))
-      def next: Layout.Info =
+      def next(): Layout.Info =
       {
         val info = output_graph.get_node(Layout.Dummy(edge._1, edge._2, index))
         index += 1
