@@ -8,6 +8,12 @@ theory List_Permutation
 imports Permutations
 begin
 
+text \<open>
+  Note that multisets already provide the notion of permutated list and hence
+  this theory mostly echoes material already logically present in theory
+  \<^text>\<open>Permutations\<close>; it should be seldom needed.
+\<close>
+
 subsection \<open>An inductive definition \ldots\<close>
 
 inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixr \<open><~~>\<close> 50)

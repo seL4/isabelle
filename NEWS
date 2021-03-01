@@ -19,7 +19,11 @@ more small lemmas. Some theorems that were stated awkwardly before were
 corrected. Minor INCOMPATIBILITY.
 
 * Theory "Permutation" in HOL-Library has been renamed to the more
-specific "List_Permutation".
+specific "List_Permutation".  Note that most notions from that
+theory are already present in theory "Permutations".  INCOMPATIBILITY.
+
+* Lemma "permutes_induct" has been given named premised.
+INCOMPATIBILITY.
 
 
 *** ML ***
