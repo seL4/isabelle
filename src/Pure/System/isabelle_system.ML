@@ -82,7 +82,8 @@ fun copy_dir src dst = scala_function "copy_dir" [src, dst];
 fun copy_file src dst = scala_function "copy_file" [src, dst];
 
 fun copy_file_base (base_dir, src) target_dir =
-  scala_function "copy_file_base" [base_dir, src, target_dir];
+  scala_function0 "copy_file_base"
+    [absolute_path base_dir, Path.implode src, absolute_path target_dir];
 
 
 (* tmp files *)
