@@ -28,7 +28,7 @@ sealed case class Line_Structure(
     val command1 = tokens.exists(_.is_begin_or_command)
 
     val command_depth =
-      tokens.iterator.filter(_.is_proper).toStream.headOption match {
+      tokens.iterator.filter(_.is_proper).nextOption() match {
         case Some(tok) =>
           if (keywords.is_command(tok, Keyword.close_structure))
             Some(after_span_depth - 1)

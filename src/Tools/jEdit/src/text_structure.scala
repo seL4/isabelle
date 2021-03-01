@@ -60,7 +60,7 @@ object Text_Structure
             else buffer.getCurrentIndentForLine(line, null)
 
           def line_head(line: Int): Option[Text.Info[Token]] =
-            nav.iterator(line, 1).toStream.headOption
+            nav.iterator(line, 1).nextOption()
 
           def head_is_quasi_command(line: Int): Boolean =
             line_head(line) match {
@@ -93,7 +93,7 @@ object Text_Structure
                   (for {
                     text_area <- JEdit_Lib.jedit_text_areas(buffer)
                     doc_view <- Document_View.get(text_area)
-                  } yield doc_view.get_rendering).toStream.headOption
+                  } yield doc_view.get_rendering).nextOption()
                 }
               else None
             val limit = PIDE.options.value.int("jedit_indent_script_limit")

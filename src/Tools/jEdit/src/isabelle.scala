@@ -280,7 +280,7 @@ object Isabelle
       buffer_syntax(buffer) match {
         case Some(syntax) =>
           val nav = new Text_Structure.Navigator(syntax, buffer, true)
-          nav.iterator(line, 1).toStream.headOption match {
+          nav.iterator(line, 1).nextOption() match {
             case Some(Text.Info(range, tok))
             if range.stop == caret && syntax.keywords.is_indent_command(tok) =>
               buffer.indentLine(line, true)
