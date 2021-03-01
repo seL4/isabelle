@@ -415,18 +415,18 @@ object Build_Status
               File.write(data_file,
                 cat_lines(
                   session.finished_entries.map(entry =>
-                    List(entry.date,
-                      entry.timing.elapsed.minutes,
-                      entry.timing.resources.minutes,
-                      entry.ml_timing.elapsed.minutes,
-                      entry.ml_timing.resources.minutes,
-                      entry.maximum_code,
-                      entry.maximum_code,
-                      entry.average_stack,
-                      entry.maximum_stack,
-                      entry.average_heap,
-                      entry.average_heap,
-                      entry.stored_heap).mkString(" "))))
+                    List(entry.date.toString,
+                      entry.timing.elapsed.minutes.toString,
+                      entry.timing.resources.minutes.toString,
+                      entry.ml_timing.elapsed.minutes.toString,
+                      entry.ml_timing.resources.minutes.toString,
+                      entry.maximum_code.toString,
+                      entry.maximum_code.toString,
+                      entry.average_stack.toString,
+                      entry.maximum_stack.toString,
+                      entry.average_heap.toString,
+                      entry.average_heap.toString,
+                      entry.stored_heap.toString).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.finished_entries){ case (m, entry) =>

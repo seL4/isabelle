@@ -22,7 +22,7 @@ object Font_Info
   val min_size = 5
   val max_size = 250
 
-  def restrict_size(size: Float): Float = size max min_size min max_size
+  def restrict_size(size: Float): Float = size max min_size.toFloat min max_size.toFloat
 
 
   /* main jEdit font */

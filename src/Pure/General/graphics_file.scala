@@ -63,13 +63,13 @@ object Graphics_File
     {
       val document = new Document()
       try {
-        document.setPageSize(new Rectangle(width, height))
+        document.setPageSize(new Rectangle(width.toFloat, height.toFloat))
         val writer = PdfWriter.getInstance(document, out)
         document.open()
 
         val cb = writer.getDirectContent()
-        val tp = cb.createTemplate(width, height)
-        val gfx = tp.createGraphics(width, height, font_mapper())
+        val tp = cb.createTemplate(width.toFloat, height.toFloat)
+        val gfx = tp.createGraphics(width.toFloat, height.toFloat, font_mapper())
 
         paint(gfx)
         gfx.dispose
