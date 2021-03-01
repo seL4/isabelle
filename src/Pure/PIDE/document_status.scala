@@ -59,7 +59,7 @@ object Document_Status
 
     def merge(status_iterator: Iterator[Command_Status]): Command_Status =
       if (status_iterator.hasNext) {
-        val status0 = status_iterator.next
+        val status0 = status_iterator.next()
         (status0 /: status_iterator)(_ + _)
       }
       else empty

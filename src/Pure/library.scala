@@ -108,7 +108,7 @@ object Library
   def first_line(source: CharSequence): String =
   {
     val lines = separated_chunks(_ == '\n', source)
-    if (lines.hasNext) lines.next.toString
+    if (lines.hasNext) lines.next().toString
     else ""
   }
 

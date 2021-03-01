@@ -1099,7 +1099,7 @@ object Build_Log
       db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
       {
         val res = stmt.execute_query()
-        if (!res.next) None
+        if (!res.next()) None
         else {
           val results =
             columns.map(c => c.name ->

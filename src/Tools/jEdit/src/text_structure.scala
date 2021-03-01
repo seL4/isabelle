@@ -221,7 +221,7 @@ object Text_Structure
       restrict: Token => Boolean,
       it: Iterator[Text.Info[Token]]): Option[(Text.Range, Text.Range)] =
     {
-      val range1 = it.next.range
+      val range1 = it.next().range
       it.takeWhile(info => !info.info.is_command || restrict(info.info)).
         scanLeft((range1, 1))(
           { case ((r, d), Text.Info(range, tok)) =>

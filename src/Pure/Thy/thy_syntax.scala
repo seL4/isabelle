@@ -275,7 +275,7 @@ object Thy_Syntax
                       var last = last_visible
                       var i = 0
                       while (i < reparse_limit && it.hasNext) {
-                        last = it.next
+                        last = it.next()
                         i += last.length
                       }
                       reparse_spans(resources, syntax, get_blob, can_import,

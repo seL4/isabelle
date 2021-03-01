@@ -117,7 +117,7 @@ class Mutator_Dialog(
   private val add_button = new Button {
     action = Action("Add") {
       add_panel(
-        new Mutator_Panel(Mutator.Info(true, graphview.Colors.next, mutator_box.selection.item)))
+        new Mutator_Panel(Mutator.Info(true, graphview.Colors.next(), mutator_box.selection.item)))
     }
   }
 

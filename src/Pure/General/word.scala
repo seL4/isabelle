@@ -57,7 +57,7 @@ object Word
         else if (Codepoint.iterator(str).forall(Character.isUpperCase)) Some(Uppercase)
         else {
           val it = Codepoint.iterator(str)
-          if (Character.isUpperCase(it.next) && it.forall(Character.isLowerCase))
+          if (Character.isUpperCase(it.next()) && it.forall(Character.isLowerCase))
             Some(Capitalized)
           else None
         }

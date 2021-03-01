@@ -142,7 +142,7 @@ object Build
         skip(name)
           || !graph.defined(name)  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
           || !graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name))) }
+      if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
     }
   }

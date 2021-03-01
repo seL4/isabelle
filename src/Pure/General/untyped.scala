@@ -47,7 +47,7 @@ object Untyped
         field.setAccessible(true)
         field
       }
-    if (iterator.hasNext) iterator.next
+    if (iterator.hasNext) iterator.next()
     else error("No field " + quote(x) + " for " + obj)
   }
 
