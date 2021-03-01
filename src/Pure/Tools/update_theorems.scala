@@ -9,7 +9,7 @@ package isabelle
 
 object Update_Theorems
 {
-  def update_theorems(path: Path)
+  def update_theorems(path: Path): Unit =
   {
     val text0 = File.read(path)
     val text1 =

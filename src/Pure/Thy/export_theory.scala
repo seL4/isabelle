@@ -405,7 +405,7 @@ object Export_Theory
     var seen = Set.empty[Long]
     var result = SortedMap.empty[Long, (Thm_Id, Proof)]
 
-    def boxes(context: Option[(Long, Term.Proof)], prf: Term.Proof)
+    def boxes(context: Option[(Long, Term.Proof)], prf: Term.Proof): Unit =
     {
       prf match {
         case Term.Abst(_, _, p) => boxes(context, p)

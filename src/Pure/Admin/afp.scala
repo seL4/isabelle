@@ -90,7 +90,7 @@ class AFP private(options: Options, val base_dir: Path)
     val Extra_Line = """^\s+(.*)$""".r
     val Blank_Line = """^\s*$""".r
 
-    def flush()
+    def flush(): Unit =
     {
       if (section != "") result += (section -> props.reverse.filter(p => p._2.nonEmpty))
       section = ""

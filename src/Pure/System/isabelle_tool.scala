@@ -146,7 +146,7 @@ object Isabelle_Tool
 
   /* command line entry point */
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       args.toList match {

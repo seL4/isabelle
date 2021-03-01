@@ -14,7 +14,7 @@ object Update
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty)
+    selection: Sessions.Selection = Sessions.Selection.empty): Unit =
   {
     val context =
       Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,

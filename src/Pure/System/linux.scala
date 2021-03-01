@@ -95,7 +95,7 @@ object Linux
   def user_add(name: String,
     description: String = "",
     system: Boolean = false,
-    ssh_setup: Boolean = false)
+    ssh_setup: Boolean = false): Unit =
   {
     require(!description.contains(','), "malformed description")
 
@@ -124,19 +124,17 @@ fi
   def service_operation(op: String, name: String): Unit =
     Isabelle_System.bash("systemctl " + Bash.string(op) + " " + Bash.string(name)).check
 
-  def service_enable(name: String) { service_operation("enable", name) }
-  def service_disable(name: String) { service_operation("disable", name) }
-  def service_start(name: String) { service_operation("start", name) }
-  def service_stop(name: String) { service_operation("stop", name) }
-  def service_restart(name: String) { service_operation("restart", name) }
+  def service_enable(name: String): Unit = service_operation("enable", name)
+  def service_disable(name: String): Unit = service_operation("disable", name)
+  def service_start(name: String): Unit = service_operation("start", name)
+  def service_stop(name: String): Unit = service_operation("stop", name)
+  def service_restart(name: String): Unit = service_operation("restart", name)
 
-  def service_shutdown(name: String)
-  {
+  def service_shutdown(name: String): Unit =
     try { service_stop(name) }
     catch { case ERROR(_) => }
-  }
 
-  def service_install(name: String, spec: String)
+  def service_install(name: String, spec: String): Unit =
   {
     service_shutdown(name)
 

@@ -103,7 +103,7 @@ object Completion
           frequency(item2.name) compare frequency(item1.name)
       }
 
-    def save()
+    def save(): Unit =
     {
       Isabelle_System.make_directory(COMPLETION_HISTORY.dir)
       File.write_backup(COMPLETION_HISTORY,
@@ -119,7 +119,7 @@ object Completion
     private var history = History.empty
     def value: History = synchronized { history }
 
-    def load()
+    def load(): Unit =
     {
       val h = History.load()
       synchronized { history = h }

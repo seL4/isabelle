@@ -23,7 +23,7 @@ object Presentation
 
   final class HTML_Context private[Presentation](fonts_url: String => String)
   {
-    def init_fonts(dir: Path)
+    def init_fonts(dir: Path): Unit =
     {
       val fonts_dir = Isabelle_System.make_directory(dir + fonts_path)
       for (entry <- Isabelle_Fonts.fonts(hidden = true))
@@ -270,7 +270,7 @@ object Presentation
     })
   }
 
-  def write_document(db: SQL.Database, session_name: String, doc: Document_Output)
+  def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
   {
     db.using_statement(Data.table.insert())(stmt =>
     {
@@ -328,13 +328,14 @@ object Presentation
     else Nil
   }
 
-  private def write_sessions(dir: Path, sessions: List[(String, String)])
+  private def write_sessions(dir: Path, sessions: List[(String, String)]): Unit =
   {
     import XML.Encode._
     File.write(dir + sessions_path, YXML.string_of_body(list(pair(string, string))(sessions)))
   }
 
-  def update_chapter_index(browser_info: Path, chapter: String, new_sessions: List[(String, String)])
+  def update_chapter_index(
+    browser_info: Path, chapter: String, new_sessions: List[(String, String)]): Unit =
   {
     val dir = Isabelle_System.make_directory(browser_info + Path.basic(chapter))
 
@@ -360,7 +361,7 @@ object Presentation
                   else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))))
   }
 
-  def make_global_index(browser_info: Path)
+  def make_global_index(browser_info: Path): Unit =
   {
     if (!(browser_info + Path.explode("index.html")).is_file) {
       Isabelle_System.make_directory(browser_info)
@@ -403,7 +404,7 @@ object Presentation
     verbose: Boolean = false,
     html_context: HTML_Context,
     elements: Elements,
-    presentation: Context)
+    presentation: Context): Unit =
   {
     val info = deps.sessions_structure(session)
     val options = info.options

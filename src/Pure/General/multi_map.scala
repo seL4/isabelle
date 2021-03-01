@@ -23,7 +23,7 @@ object Multi_Map extends MapFactory[Multi_Map]
   private class Builder[A, B] extends mutable.Builder[(A, B), Multi_Map[A, B]]
   {
     private var res = empty[A, B]
-    override def clear() { res = empty[A, B] }
+    override def clear(): Unit = { res = empty[A, B] }
     override def addOne(p: (A, B)): this.type = { res = res.insert(p._1, p._2); this }
     override def result(): Multi_Map[A, B] = res
   }

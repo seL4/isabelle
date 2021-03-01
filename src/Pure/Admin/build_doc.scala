@@ -16,7 +16,7 @@ object Build_Doc
     progress: Progress = new Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
-    docs: List[String] = Nil)
+    docs: List[String] = Nil): Unit =
   {
     val store = Sessions.store(options)
 

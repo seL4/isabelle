@@ -27,8 +27,8 @@ abstract class Editor[Context]
   /* overlays */
 
   def node_overlays(name: Document.Node.Name): Document.Node.Overlays
-  def insert_overlay(command: Command, fn: String, args: List[String])
-  def remove_overlay(command: Command, fn: String, args: List[String])
+  def insert_overlay(command: Command, fn: String, args: List[String]): Unit
+  def remove_overlay(command: Command, fn: String, args: List[String]): Unit
 
 
   /* hyperlinks */

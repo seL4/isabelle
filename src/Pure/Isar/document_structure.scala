@@ -69,7 +69,7 @@ object Document_Structure
     var stack: List[(Command, mutable.ListBuffer[Document])] =
       List((Command.empty, buffer()))
 
-    def open(command: Command) { stack = (command, buffer()) :: stack }
+    def open(command: Command): Unit = { stack = (command, buffer()) :: stack }
 
     def close(): Boolean =
       stack match {
@@ -81,7 +81,7 @@ object Document_Structure
           false
       }
 
-    def flush() { if (is_plain_theory(stack.head._1)) close() }
+    def flush(): Unit = if (is_plain_theory(stack.head._1)) close()
 
     def result(): List[Document] =
     {
@@ -89,7 +89,7 @@ object Document_Structure
       stack.head._2.toList
     }
 
-    def add(command: Command)
+    def add(command: Command): Unit =
     {
       if (command.span.is_begin || is_plain_theory(command)) { flush(); open(command) }
       else if (command.span.is_end) { flush(); close() }
@@ -125,7 +125,7 @@ object Document_Structure
     private var stack: List[(Int, Item, mutable.ListBuffer[Document])] =
       List((0, No_Item, buffer()))
 
-    @tailrec private def close(level: Int => Boolean)
+    @tailrec private def close(level: Int => Boolean): Unit =
     {
       stack match {
         case (lev, item, body) :: (_, _, body2) :: _ if level(lev) =>
@@ -142,7 +142,7 @@ object Document_Structure
       stack.head._3.toList
     }
 
-    def add(item: Item)
+    def add(item: Item): Unit =
     {
       item.heading_level match {
         case Some(i) =>

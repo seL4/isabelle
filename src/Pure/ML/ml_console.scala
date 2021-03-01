@@ -11,7 +11,7 @@ object ML_Console
 {
   /* command line entry point */
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var dirs: List[Path] = Nil

@@ -31,11 +31,11 @@ object Syntax_Style
     }
   }
 
-  def set_style_extender(extender: SyntaxUtilities.StyleExtender)
+  def set_style_extender(extender: SyntaxUtilities.StyleExtender): Unit =
   {
     SyntaxUtilities.setStyleExtender(extender)
     GUI_Thread.later { jEdit.propertiesChanged }
   }
 
-  def dummy_style_extender() { set_style_extender(Dummy_Extender) }
+  def dummy_style_extender(): Unit = set_style_extender(Dummy_Extender)
 }

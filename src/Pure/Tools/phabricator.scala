@@ -129,7 +129,7 @@ object Phabricator
     else Nil
   }
 
-  def write_config(configs: List[Config])
+  def write_config(configs: List[Config]): Unit =
   {
     File.write(global_config,
       configs.map(config => config.name + ":" + config.root.implode).mkString("", "\n", "\n"))
@@ -187,7 +187,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   /** setup **/
 
-  def user_setup(name: String, description: String, ssh_setup: Boolean = false)
+  def user_setup(name: String, description: String, ssh_setup: Boolean = false): Unit =
   {
     if (!Linux.user_exists(name)) {
       Linux.user_add(name, description = description, system = true, ssh_setup = ssh_setup)
@@ -210,7 +210,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     command
   }
 
-  def mercurial_setup(mercurial_source: String, progress: Progress = new Progress)
+  def mercurial_setup(mercurial_source: String, progress: Progress = new Progress): Unit =
   {
     progress.echo("\nMercurial installation from source " + quote(mercurial_source) + " ...")
     Isabelle_System.with_tmp_dir("mercurial")(tmp_dir =>
@@ -237,7 +237,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     repo: String = "",
     package_update: Boolean = false,
     mercurial_source: String = "",
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     /* system environment */
 
@@ -604,7 +604,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     name: String = default_name,
     config_file: Option[Path] = None,
     test_user: String = "",
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     Linux.check_system_root()
 
@@ -613,7 +613,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
 
     val mail_config = config_file getOrElse default_config_file
 
-    def setup_mail
+    def setup_mail: Unit =
     {
       progress.echo("Using mail configuration from " + mail_config)
       config.execute("config set cluster.mailers --stdin < " + File.bash_path(mail_config))
@@ -722,7 +722,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   def phabricator_setup_ssh(
     server_port: Int = default_server_port,
     system_port: Int = default_system_port,
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     Linux.check_system_root()
 

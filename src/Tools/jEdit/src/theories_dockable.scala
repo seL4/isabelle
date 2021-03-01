@@ -73,7 +73,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Status of prover session"
 
-  private def handle_phase(phase: Session.Phase)
+  private def handle_phase(phase: Session.Phase): Unit =
   {
     GUI_Thread.require {}
     session_phase.text = " " + phase_text(phase) + " "
@@ -125,7 +125,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     var checkbox_geometry: Option[(Point, Dimension)] = None
     val checkbox = new CheckBox {
       opaque = false
-      override def paintComponent(gfx: Graphics2D)
+      override def paintComponent(gfx: Graphics2D): Unit =
       {
         super.paintComponent(gfx)
         if (location != null && size != null)
@@ -140,9 +140,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       opaque = false
       xAlignment = Alignment.Leading
 
-      override def paintComponent(gfx: Graphics2D)
+      override def paintComponent(gfx: Graphics2D): Unit =
       {
-        def paint_segment(x: Int, w: Int, color: Color)
+        def paint_segment(x: Int, w: Int, color: Color): Unit =
         {
           gfx.setColor(color)
           gfx.fillRect(x, 0, w, size.height)
@@ -175,7 +175,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
-    def label_border(name: Document.Node.Name)
+    def label_border(name: Document.Node.Name): Unit =
     {
       val st = nodes_status.overall_node_status(name)
       val color =
@@ -210,7 +210,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
   status.renderer = new Node_Renderer
 
-  private def handle_update(domain: Option[Set[Document.Node.Name]] = None, trim: Boolean = false)
+  private def handle_update(
+    domain: Option[Set[Document.Node.Name]] = None, trim: Boolean = false): Unit =
   {
     GUI_Thread.require {}
 
@@ -250,7 +251,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later { handle_update(domain = Some(changed.nodes), trim = changed.assignment) }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.phase_changed += main
     PIDE.session.global_options += main
@@ -260,7 +261,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     handle_update()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.phase_changed -= main
     PIDE.session.global_options -= main

@@ -162,13 +162,13 @@ class Debugger private(session: Session)
 
   /* protocol commands */
 
-  def update_thread(thread_name: String, debug_states: List[Debugger.Debug_State])
+  def update_thread(thread_name: String, debug_states: List[Debugger.Debug_State]): Unit =
   {
     state.change(_.update_thread(thread_name, debug_states))
     delay_update.invoke()
   }
 
-  def add_output(thread_name: String, entry: Command.Results.Entry)
+  def add_output(thread_name: String, entry: Command.Results.Entry): Unit =
   {
     state.change(_.add_output(thread_name, entry))
     delay_update.invoke()
@@ -176,7 +176,7 @@ class Debugger private(session: Session)
 
   def is_active(): Boolean = session.is_ready && state.value.is_active
 
-  def ready()
+  def ready(): Unit =
   {
     if (is_active())
       session.protocol_command("Debugger.init")
@@ -201,7 +201,7 @@ class Debugger private(session: Session)
     })
 
   def is_break(): Boolean = state.value.break
-  def set_break(b: Boolean)
+  def set_break(b: Boolean): Unit =
   {
     state.change(st => {
       val st1 = st.set_break(b)
@@ -220,7 +220,7 @@ class Debugger private(session: Session)
   def breakpoint_state(breakpoint: Long): Boolean =
     state.value.active_breakpoints(breakpoint)
 
-  def toggle_breakpoint(command: Command, breakpoint: Long)
+  def toggle_breakpoint(command: Command, breakpoint: Long): Unit =
   {
     state.change(st =>
       {
@@ -252,7 +252,7 @@ class Debugger private(session: Session)
   }
 
   def focus(): List[Debugger.Context] = state.value.focus.toList.map(_._2)
-  def set_focus(c: Debugger.Context)
+  def set_focus(c: Debugger.Context): Unit =
   {
     state.change(_.set_focus(c))
     delay_update.invoke()
@@ -266,13 +266,13 @@ class Debugger private(session: Session)
   def step_over(thread_name: String): Unit = input(thread_name, "step_over")
   def step_out(thread_name: String): Unit = input(thread_name, "step_out")
 
-  def clear_output(thread_name: String)
+  def clear_output(thread_name: String): Unit =
   {
     state.change(_.clear_output(thread_name))
     delay_update.invoke()
   }
 
-  def eval(c: Debugger.Context, SML: Boolean, context: String, expression: String)
+  def eval(c: Debugger.Context, SML: Boolean, context: String, expression: String): Unit =
   {
     state.change(st => {
       input(c.thread_name, "eval", c.debug_index.getOrElse(0).toString,
@@ -282,7 +282,7 @@ class Debugger private(session: Session)
     delay_update.invoke()
   }
 
-  def print_vals(c: Debugger.Context, SML: Boolean, context: String)
+  def print_vals(c: Debugger.Context, SML: Boolean, context: String): Unit =
   {
     require(c.debug_index.isDefined)
 

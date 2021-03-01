@@ -300,7 +300,7 @@ trait Protocol
   /* protocol commands */
 
   def protocol_command_raw(name: String, args: List[Bytes]): Unit
-  def protocol_command_args(name: String, args: List[String])
+  def protocol_command_args(name: String, args: List[String]): Unit
   def protocol_command(name: String, args: String*): Unit
 
 
@@ -352,7 +352,7 @@ trait Protocol
       blobs_yxml, toks_yxml, toks_sources)
   }
 
-  def define_command(resources: Resources, command: Command)
+  def define_command(resources: Resources, command: Command): Unit =
   {
     val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
       encode_command(resources, command)
@@ -361,7 +361,7 @@ trait Protocol
         toks_yxml :: toks_sources)
   }
 
-  def define_commands(resources: Resources, commands: List[Command])
+  def define_commands(resources: Resources, commands: List[Command]): Unit =
   {
     protocol_command_args("Document.define_commands",
       commands.map(command =>
@@ -376,7 +376,7 @@ trait Protocol
       }))
   }
 
-  def define_commands_bulk(resources: Resources, commands: List[Command])
+  def define_commands_bulk(resources: Resources, commands: List[Command]): Unit =
   {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
     irregular.foreach(define_command(resources, _))
@@ -400,7 +400,7 @@ trait Protocol
   /* document versions */
 
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
-    edits: List[Document.Edit_Command], consolidate: List[Document.Node.Name])
+    edits: List[Document.Edit_Command], consolidate: List[Document.Node.Name]): Unit =
   {
     val consolidate_yxml =
     {
@@ -433,7 +433,7 @@ trait Protocol
       Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml)
   }
 
-  def remove_versions(versions: List[Document.Version])
+  def remove_versions(versions: List[Document.Version]): Unit =
   {
     val versions_yxml =
     { import XML.Encode._

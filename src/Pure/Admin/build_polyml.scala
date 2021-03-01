@@ -45,7 +45,7 @@ object Build_PolyML
     progress: Progress = new Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    mingw: MinGW = MinGW.none)
+    mingw: MinGW = MinGW.none): Unit =
   {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
@@ -147,7 +147,7 @@ object Build_PolyML
 
   /** skeleton for component **/
 
-  private def extract_sources(source_archive: Path, component_dir: Path)
+  private def extract_sources(source_archive: Path, component_dir: Path): Unit =
   {
     if (source_archive.get_ext == "zip") {
       Isabelle_System.bash(
@@ -182,7 +182,7 @@ not affect the running ML session. *)
   def build_polyml_component(
     source_archive: Path,
     component_dir: Path,
-    sha1_root: Option[Path] = None)
+    sha1_root: Option[Path] = None): Unit =
   {
     Isabelle_System.new_directory(component_dir)
     extract_sources(source_archive, component_dir)

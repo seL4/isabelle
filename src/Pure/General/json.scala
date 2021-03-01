@@ -176,7 +176,7 @@ object JSON
     {
       val result = new StringBuilder
 
-      def string(s: String)
+      def string(s: String): Unit =
       {
         result += '"'
         result ++=
@@ -195,7 +195,7 @@ object JSON
         result += '"'
       }
 
-      def array(list: List[T])
+      def array(list: List[T]): Unit =
       {
         result += '['
         Library.separate(None, list.map(Some(_))).foreach({
@@ -205,7 +205,7 @@ object JSON
         result += ']'
       }
 
-      def object_(obj: Object.T)
+      def object_(obj: Object.T): Unit =
       {
         result += '{'
         Library.separate(None, obj.toList.map(Some(_))).foreach({
@@ -218,7 +218,7 @@ object JSON
         result += '}'
       }
 
-      def json_format(x: T)
+      def json_format(x: T): Unit =
       {
         x match {
           case null => result ++= "null"

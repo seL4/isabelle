@@ -22,23 +22,23 @@ class Dockable(view: View, position: String)
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 
-  def focusOnDefaultComponent() { JEdit_Lib.request_focus_view(view) }
+  def focusOnDefaultComponent(): Unit = JEdit_Lib.request_focus_view(view)
 
-  def set_content(c: Component) { add(c, BorderLayout.CENTER) }
-  def set_content(c: scala.swing.Component) { add(c.peer, BorderLayout.CENTER) }
+  def set_content(c: Component): Unit = add(c, BorderLayout.CENTER)
+  def set_content(c: scala.swing.Component): Unit = add(c.peer, BorderLayout.CENTER)
 
   def detach_operation: Option[() => Unit] = None
 
-  protected def init() { }
-  protected def exit() { }
+  protected def init(): Unit = {}
+  protected def exit(): Unit = {}
 
-  override def addNotify()
+  override def addNotify(): Unit =
   {
     super.addNotify()
     init()
   }
 
-  override def removeNotify()
+  override def removeNotify(): Unit =
   {
     exit()
     super.removeNotify()

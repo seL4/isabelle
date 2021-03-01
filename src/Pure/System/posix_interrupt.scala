@@ -15,7 +15,7 @@ object POSIX_Interrupt
   def handler[A](h: => Unit)(e: => A): A =
   {
     val SIGINT = new Signal("INT")
-    val new_handler = new SignalHandler { def handle(s: Signal) { h } }
+    val new_handler = new SignalHandler { def handle(s: Signal): Unit = h }
     val old_handler = Signal.handle(SIGINT, new_handler)
     try { e } finally { Signal.handle(SIGINT, old_handler) }
   }

@@ -134,7 +134,7 @@ object Document_Model
 
   /* syntax */
 
-  def syntax_changed(names: List[Document.Node.Name])
+  def syntax_changed(names: List[Document.Node.Name]): Unit =
   {
     GUI_Thread.require {}
 
@@ -162,7 +162,7 @@ object Document_Model
       })
   }
 
-  def exit(buffer: Buffer)
+  def exit(buffer: Buffer): Unit =
   {
     GUI_Thread.require {}
     state.change(st =>
@@ -174,7 +174,7 @@ object Document_Model
       else st)
   }
 
-  def provide_files(session: Session, files: List[(Document.Node.Name, String)])
+  def provide_files(session: Session, files: List[(Document.Node.Name, String)]): Unit =
   {
     GUI_Thread.require {}
     state.change(st =>
@@ -190,7 +190,8 @@ object Document_Model
       if model.node_required
     } yield node_name).toSet
 
-  def node_required(name: Document.Node.Name, toggle: Boolean = false, set: Boolean = false)
+  def node_required(
+    name: Document.Node.Name, toggle: Boolean = false, set: Boolean = false): Unit =
   {
     GUI_Thread.require {}
 
@@ -292,7 +293,7 @@ object Document_Model
 
   private val plain_text_prefix = "plain_text="
 
-  def open_preview(view: View, plain_text: Boolean)
+  def open_preview(view: View, plain_text: Boolean): Unit =
   {
     Document_Model.get(view.getBuffer) match {
       case Some(model) =>
@@ -497,7 +498,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   // owned by GUI thread
   private var _node_required = false
   def node_required: Boolean = _node_required
-  def set_node_required(b: Boolean) { GUI_Thread.require { _node_required = b } }
+  def set_node_required(b: Boolean): Unit = GUI_Thread.require { _node_required = b }
 
   def document_view_iterator: Iterator[Document_View] =
     for {
@@ -623,13 +624,13 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   private val buffer_listener: BufferListener = new BufferAdapter
   {
     override def contentInserted(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, length: Int)
+      start_line: Int, offset: Int, num_lines: Int, length: Int): Unit =
     {
       pending_edits.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
-      start_line: Int, offset: Int, num_lines: Int, removed_length: Int)
+      start_line: Int, offset: Int, num_lines: Int, removed_length: Int): Unit =
     {
       pending_edits.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
     }
@@ -638,7 +639,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* syntax */
 
-  def syntax_changed()
+  def syntax_changed(): Unit =
   {
     JEdit_Lib.buffer_line_manager(buffer).setFirstInvalidLineContext(0)
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
@@ -647,7 +648,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     buffer.invalidateCachedFoldLevels()
   }
 
-  def init_token_marker()
+  def init_token_marker(): Unit =
   {
     Isabelle.buffer_token_marker(buffer) match {
       case Some(marker) if marker != buffer.getTokenMarker =>

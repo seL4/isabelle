@@ -15,13 +15,13 @@ import java.awt.{Color, Graphics2D}
 
 object Graph_File
 {
-  def write(file: JFile, graphview: Graphview)
+  def write(file: JFile, graphview: Graphview): Unit =
   {
     val box = graphview.bounding_box()
     val w = box.width.ceil.toInt
     val h = box.height.ceil.toInt
 
-    def paint(gfx: Graphics2D)
+    def paint(gfx: Graphics2D): Unit =
     {
       gfx.setColor(graphview.background_color)
       gfx.fillRect(0, 0, w, h)
@@ -35,7 +35,7 @@ object Graph_File
     else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
   }
 
-  def write(options: Options, file: JFile, graph: Graph_Display.Graph)
+  def write(options: Options, file: JFile, graph: Graph_Display.Graph): Unit =
   {
     val the_options = options
     val graphview =

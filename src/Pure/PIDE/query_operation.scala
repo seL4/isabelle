@@ -54,7 +54,7 @@ class Query_Operation[Editor_Context](
 
   def get_location: Option[Command] = current_state.value.location
 
-  private def remove_overlay()
+  private def remove_overlay(): Unit =
   {
     val state = current_state.value
     for (command <- state.location) {
@@ -65,7 +65,7 @@ class Query_Operation[Editor_Context](
 
   /* content update */
 
-  private def content_update()
+  private def content_update(): Unit =
   {
     editor.require_dispatcher {}
 
@@ -176,7 +176,7 @@ class Query_Operation[Editor_Context](
   def cancel_query(): Unit =
     editor.require_dispatcher { editor.session.cancel_exec(current_state.value.exec_id) }
 
-  def apply_query(query: List[String])
+  def apply_query(query: List[String]): Unit =
   {
     editor.require_dispatcher {}
 
@@ -200,7 +200,7 @@ class Query_Operation[Editor_Context](
     }
   }
 
-  def locate_query()
+  def locate_query(): Unit =
   {
     editor.require_dispatcher {}
 
@@ -229,11 +229,13 @@ class Query_Operation[Editor_Context](
         }
     }
 
-  def activate() {
+  def activate(): Unit =
+  {
     editor.session.commands_changed += main
   }
 
-  def deactivate() {
+  def deactivate(): Unit =
+  {
     editor.session.commands_changed -= main
     remove_overlay()
     current_state.change(_ => Query_Operation.State.empty)

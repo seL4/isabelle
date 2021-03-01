@@ -302,7 +302,7 @@ object Token_Markup
   {
     for (mode <- orig_provider.getModes) addMode(mode)
 
-    override def loadMode(mode: Mode, xmh: XModeHandler)
+    override def loadMode(mode: Mode, xmh: XModeHandler): Unit =
     {
       super.loadMode(mode, xmh)
       Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)

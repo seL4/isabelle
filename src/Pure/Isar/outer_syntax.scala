@@ -166,7 +166,7 @@ final class Outer_Syntax private(
     val content = new mutable.ListBuffer[Token]
     val ignored = new mutable.ListBuffer[Token]
 
-    def ship(content: List[Token])
+    def ship(content: List[Token]): Unit =
     {
       val kind =
         if (content.forall(_.is_ignored)) Command_Span.Ignored_Span
@@ -186,7 +186,7 @@ final class Outer_Syntax private(
       result += Command_Span.Span(kind, content)
     }
 
-    def flush()
+    def flush(): Unit =
     {
       if (content.nonEmpty) { ship(content.toList); content.clear }
       if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear }

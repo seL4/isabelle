@@ -26,7 +26,7 @@ object Build_CSDP
         Some("  * " + platform + ":\n" + changed.map(p => "    " + p._1 + "=" + p._2)
           .mkString("\n"))
 
-    def change(path: Path)
+    def change(path: Path): Unit =
     {
       def change_line(line: String, entry: (String, String)): String =
         line.replaceAll(entry._1 + "=.*", entry._1 + "=" + entry._2)
@@ -56,7 +56,7 @@ object Build_CSDP
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none)
+    mingw: MinGW = MinGW.none): Unit =
   {
     mingw.check
 

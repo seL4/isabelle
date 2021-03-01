@@ -19,7 +19,7 @@ object Build_VeriT
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none)
+    mingw: MinGW = MinGW.none): Unit =
   {
     mingw.check
 

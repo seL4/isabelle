@@ -17,11 +17,11 @@ import scala.collection.JavaConverters
 
 class File_Watcher private[File_Watcher]  // dummy template
 {
-  def register(dir: JFile) { }
-  def register_parent(file: JFile) { }
-  def deregister(dir: JFile) { }
-  def purge(retain: Set[JFile]) { }
-  def shutdown() { }
+  def register(dir: JFile): Unit = {}
+  def register_parent(file: JFile): Unit = {}
+  def deregister(dir: JFile): Unit = {}
+  def purge(retain: Set[JFile]): Unit = {}
+  def shutdown(): Unit = {}
 }
 
 object File_Watcher
@@ -126,7 +126,7 @@ object File_Watcher
 
     /* shutdown */
 
-    override def shutdown()
+    override def shutdown(): Unit =
     {
       watcher_thread.interrupt
       watcher_thread.join

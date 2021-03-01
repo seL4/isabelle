@@ -60,7 +60,7 @@ class PIDE_Docking_Framework extends DockableWindowManagerProvider
       if (detach_operation.isDefined) {
         val detach_item = new JMenuItem("Detach")
         detach_item.addActionListener(new ActionListener {
-          def actionPerformed(evt: ActionEvent) { detach_operation.get.apply() }
+          def actionPerformed(evt: ActionEvent): Unit = detach_operation.get.apply()
         })
         menu.add(detach_item)
       }

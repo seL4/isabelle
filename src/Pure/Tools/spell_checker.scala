@@ -28,7 +28,7 @@ object Spell_Checker
     def apostrophe(c: Int): Boolean =
       c == '\'' && (offset + 1 == text.length || text(offset + 1) != '\'')
 
-    @tailrec def scan(pred: Int => Boolean)
+    @tailrec def scan(pred: Int => Boolean): Unit =
     {
       if (offset < text.length) {
         val c = text.codePointAt(offset)
@@ -125,7 +125,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       case None => false
     }
 
-  private def load()
+  private def load(): Unit =
   {
     val main_dictionary = split_lines(File.read_gzip(dictionary.path))
 
@@ -154,7 +154,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
   load()
 
-  private def save()
+  private def save(): Unit =
   {
     val permanent_decls =
       (for {
@@ -178,7 +178,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     }
   }
 
-  def update(word: String, include: Boolean, permanent: Boolean)
+  def update(word: String, include: Boolean, permanent: Boolean): Unit =
   {
     updates += (word -> Spell_Checker.Update(include, permanent))
 
@@ -189,7 +189,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     else { save(); load() }
   }
 
-  def reset()
+  def reset(): Unit =
   {
     updates = SortedMap.empty
     load()

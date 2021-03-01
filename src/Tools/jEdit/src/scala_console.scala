@@ -28,7 +28,7 @@ class Scala_Console extends Shell("Scala")
   {
     val buf = new StringBuilder(100)
 
-    override def flush()
+    override def flush(): Unit =
     {
       val s = buf.synchronized { val s = buf.toString; buf.clear; s }
       val str = UTF8.decode_permissive(s)
@@ -39,9 +39,9 @@ class Scala_Console extends Shell("Scala")
       Time.seconds(0.01).sleep  // FIXME adhoc delay to avoid loosing output
     }
 
-    override def close() { flush () }
+    override def close(): Unit = flush()
 
-    def write(byte: Int)
+    def write(byte: Int): Unit =
     {
       val c = byte.toChar
       buf.synchronized { buf.append(c) }
@@ -51,10 +51,10 @@ class Scala_Console extends Shell("Scala")
 
   private val console_writer = new Writer
   {
-    def flush() { console_stream.flush() }
-    def close() { console_stream.flush() }
+    def flush(): Unit = console_stream.flush()
+    def close(): Unit = console_stream.flush()
 
-    def write(cbuf: Array[Char], off: Int, len: Int)
+    def write(cbuf: Array[Char], off: Int, len: Int): Unit =
     {
       if (len > 0) {
         UTF8.bytes(new String(cbuf.slice(off, off + len))).foreach(console_stream.write(_))
@@ -80,7 +80,7 @@ class Scala_Console extends Shell("Scala")
     }
   }
 
-  private def report_error(str: String)
+  private def report_error(str: String): Unit =
   {
     if (global_console == null || global_err == null) isabelle.Output.writeln(str)
     else GUI_Thread.later { global_err.print(global_console.getErrorColor, str) }
@@ -97,7 +97,7 @@ class Scala_Console extends Shell("Scala")
   private class Interpreter
   {
     private val running = Synchronized[Option[Thread]](None)
-    def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
+    def interrupt: Unit = running.change(opt => { opt.foreach(_.interrupt); opt })
 
     private val interp =
       Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).
@@ -135,14 +135,14 @@ class Scala_Console extends Shell("Scala")
 
   /* jEdit console methods */
 
-  override def openConsole(console: Console)
+  override def openConsole(console: Console): Unit =
   {
     val interp = new Interpreter
     interp.thread.send(Start(console))
     interpreters += (console -> interp)
   }
 
-  override def closeConsole(console: Console)
+  override def closeConsole(console: Console): Unit =
   {
     interpreters.get(console) match {
       case Some(interp) =>
@@ -153,7 +153,7 @@ class Scala_Console extends Shell("Scala")
     }
   }
 
-  override def printInfoMessage(out: Output)
+  override def printInfoMessage(out: Output): Unit =
   {
     out.print(null,
      "This shell evaluates Isabelle/Scala expressions.\n\n" +
@@ -164,19 +164,18 @@ class Scala_Console extends Shell("Scala")
      "  PIDE    -- Isabelle/PIDE plugin (e.g. PIDE.session, PIDE.snapshot, PIDE.rendering)\n")
   }
 
-  override def printPrompt(console: Console, out: Output)
+  override def printPrompt(console: Console, out: Output): Unit =
   {
     out.writeAttrs(ConsolePane.colorAttributes(console.getInfoColor), "scala>")
     out.writeAttrs(ConsolePane.colorAttributes(console.getPlainColor), " ")
   }
 
-  override def execute(console: Console, input: String, out: Output, err: Output, command: String)
+  override def execute(
+    console: Console, input: String, out: Output, err: Output, command: String): Unit =
   {
     interpreters(console).thread.send(Execute(console, out, err, command))
   }
 
-  override def stop(console: Console)
-  {
+  override def stop(console: Console): Unit =
     interpreters.get(console).foreach(_.interrupt)
-  }
 }

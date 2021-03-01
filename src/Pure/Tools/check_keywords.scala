@@ -35,7 +35,7 @@ object Check_Keywords
     progress: Progress,
     keywords: Keyword.Keywords,
     check: Set[String],
-    paths: List[Path])
+    paths: List[Path]): Unit =
   {
     val parallel_args = paths.map(path => (File.read(path), Token.Pos.file(path.expand.implode)))
 

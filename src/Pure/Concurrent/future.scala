@@ -61,7 +61,7 @@ private class Value_Future[A](x: A) extends Future[A]
 {
   val peek: Option[Exn.Result[A]] = Some(Exn.Res(x))
   def join_result: Exn.Result[A] = peek.get
-  def cancel {}
+  def cancel: Unit = {}
 }
 
 
@@ -83,7 +83,7 @@ private class Task_Future[A](body: => A) extends Future[A]
       case _ => None
     }
 
-  private def try_run()
+  private def try_run(): Unit =
   {
     val do_run =
       status.change_result {

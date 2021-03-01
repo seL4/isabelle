@@ -37,7 +37,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val process_indicator = new Process_Indicator
 
-  private def consume_status(status: Query_Operation.Status.Value)
+  private def consume_status(status: Query_Operation.Status.Value): Unit =
   {
     status match {
       case Query_Operation.Status.WAITING =>
@@ -61,11 +61,11 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize()
+  private def handle_resize(): Unit =
   {
     GUI_Thread.require {}
 
@@ -76,7 +76,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* controls */
 
-  private def clicked {
+  private def clicked: Unit =
+  {
     provers.addCurrentToHistory()
     PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(
@@ -91,7 +92,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
-    override def processKeyEvent(evt: KeyEvent)
+    override def processKeyEvent(evt: KeyEvent): Unit =
     {
       if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
       super.processKeyEvent(evt)
@@ -100,7 +101,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     setColumns(30)
   }
 
-  private def update_provers()
+  private def update_provers(): Unit =
   {
     val new_provers = PIDE.options.string("sledgehammer_provers")
     if (new_provers != provers.getText) {
@@ -144,7 +145,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   add(controls.peer, BorderLayout.NORTH)
 
-  override def focusOnDefaultComponent() { provers.requestFocus }
+  override def focusOnDefaultComponent(): Unit = provers.requestFocus
 
 
   /* main */
@@ -154,7 +155,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       case _: Session.Global_Options => GUI_Thread.later { update_provers(); handle_resize() }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.global_options += main
     update_provers()
@@ -162,7 +163,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     sledgehammer.activate()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     sledgehammer.deactivate()
     PIDE.session.global_options -= main

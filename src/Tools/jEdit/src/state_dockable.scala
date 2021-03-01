@@ -43,11 +43,11 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize()
+  private def handle_resize(): Unit =
   {
     GUI_Thread.require {}
 
@@ -61,7 +61,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   def update_request(): Unit =
     GUI_Thread.require { print_state.apply_query(Nil) }
 
-  def update()
+  def update(): Unit =
   {
     GUI_Thread.require {}
 
@@ -126,7 +126,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
         GUI_Thread.later { auto_update() }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -136,7 +136,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     auto_update()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     print_state.deactivate()
     PIDE.session.caret_focus -= main

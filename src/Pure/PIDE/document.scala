@@ -179,7 +179,7 @@ object Document
 
     sealed abstract class Edit[A, B]
     {
-      def foreach(f: A => Unit)
+      def foreach(f: A => Unit): Unit =
       {
         this match {
           case Edits(es) => es.foreach(f)

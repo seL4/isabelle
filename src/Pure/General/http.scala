@@ -47,7 +47,7 @@ object HTTP
     def read_request(): Bytes =
       using(http_exchange.getRequestBody)(Bytes.read_stream(_))
 
-    def write_response(code: Int, response: Response)
+    def write_response(code: Int, response: Response): Unit =
     {
       http_exchange.getResponseHeaders().set("Content-Type", response.content_type)
       http_exchange.sendResponseHeaders(code, response.bytes.length.toLong)
@@ -64,7 +64,7 @@ object HTTP
   }
 
   def handler(root: String, body: Exchange => Unit): Handler =
-    new Handler(root, new HttpHandler { def handle(x: HttpExchange) { body(new Exchange(x)) } })
+    new Handler(root, new HttpHandler { def handle(x: HttpExchange): Unit = body(new Exchange(x)) })
 
 
   /* particular methods */
@@ -106,8 +106,8 @@ object HTTP
 
   class Server private[HTTP](val http_server: HttpServer)
   {
-    def += (handler: Handler) { http_server.createContext(handler.root, handler.handler) }
-    def -= (handler: Handler) { http_server.removeContext(handler.root) }
+    def += (handler: Handler): Unit = http_server.createContext(handler.root, handler.handler)
+    def -= (handler: Handler): Unit = http_server.removeContext(handler.root)
 
     def start: Unit = http_server.start
     def stop: Unit = http_server.stop(0)

@@ -24,7 +24,7 @@ object Linear_Set extends IterableFactory[Linear_Set]
   private class Builder[A] extends mutable.Builder[A, Linear_Set[A]]
   {
     private var res = empty[A]
-    override def clear() { res = empty[A] }
+    override def clear(): Unit = { res = empty[A] }
     override def addOne(elem: A): this.type = { res = res.incl(elem); this }
     override def result(): Linear_Set[A] = res
   }

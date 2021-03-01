@@ -62,7 +62,7 @@ class TTY_Loop(
     catch { case e: IOException => case Exn.Interrupt() => }
   }
 
-  def join { console_output.join; console_input.join }
+  def join: Unit = { console_output.join; console_input.join }
 
-  def cancel { console_input.cancel }
+  def cancel: Unit = console_input.cancel
 }

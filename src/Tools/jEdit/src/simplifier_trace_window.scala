@@ -159,13 +159,13 @@ class Simplifier_Trace_Window(
   open()
   do_paint()
 
-  def do_update()
+  def do_update(): Unit =
   {
     val xml = tree.format
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
-  def do_paint()
+  def do_paint(): Unit =
   {
     GUI_Thread.later {
       pretty_text_area.resize(
@@ -173,10 +173,7 @@ class Simplifier_Trace_Window(
     }
   }
 
-  def handle_resize()
-  {
-    do_paint()
-  }
+  def handle_resize(): Unit = do_paint()
 
 
   /* resize */
@@ -185,8 +182,8 @@ class Simplifier_Trace_Window(
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   peer.addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
 

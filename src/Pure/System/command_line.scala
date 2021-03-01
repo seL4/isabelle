@@ -23,7 +23,7 @@ object Command_Line
 
   var debug = false
 
-  def tool(body: => Unit)
+  def tool(body: => Unit): Unit =
   {
     val thread =
       Isabelle_Thread.fork(name = "command_line", inherit_locals = true) {

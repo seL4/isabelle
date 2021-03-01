@@ -31,7 +31,7 @@ object Build_Docker
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
-    verbose: Boolean = false)
+    verbose: Boolean = false): Unit =
   {
     val isabelle_name =
       app_archive match {

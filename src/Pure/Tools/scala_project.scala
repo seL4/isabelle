@@ -104,7 +104,7 @@ object Scala_Project
 
   /* scala project */
 
-  def scala_project(project_dir: Path, symlinks: Boolean = false)
+  def scala_project(project_dir: Path, symlinks: Boolean = false): Unit =
   {
     if (symlinks && Platform.is_windows)
       error("Cannot create symlinks on Windows")

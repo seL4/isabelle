@@ -92,13 +92,13 @@ class Plugin extends EBPlugin
 
   /* global changes */
 
-  def options_changed()
+  def options_changed(): Unit =
   {
     session.global_options.post(Session.Global_Options(options.value))
     delay_load.invoke()
   }
 
-  def deps_changed()
+  def deps_changed(): Unit =
   {
     delay_load.invoke()
   }
@@ -115,7 +115,7 @@ class Plugin extends EBPlugin
   private val delay_load_active = Synchronized(false)
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
-  private def delay_load_action()
+  private def delay_load_action(): Unit =
   {
     if (Isabelle.continuous_checking && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled)
@@ -229,7 +229,7 @@ class Plugin extends EBPlugin
 
   /* document model and view */
 
-  def exit_models(buffers: List[Buffer])
+  def exit_models(buffers: List[Buffer]): Unit =
   {
     GUI_Thread.now {
       buffers.foreach(buffer =>
@@ -240,7 +240,7 @@ class Plugin extends EBPlugin
       }
   }
 
-  def init_models()
+  def init_models(): Unit =
   {
     GUI_Thread.now {
       PIDE.editor.flush()
@@ -289,13 +289,13 @@ class Plugin extends EBPlugin
   @volatile private var startup_failure: Option[Throwable] = None
   @volatile private var startup_notified = false
 
-  private def init_editor(view: View)
+  private def init_editor(view: View): Unit =
   {
     Keymap_Merge.check_dialog(view)
     Session_Build.check_dialog(view)
   }
 
-  private def init_title(view: View)
+  private def init_title(view: View): Unit =
   {
     val title =
       proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
@@ -308,7 +308,7 @@ class Plugin extends EBPlugin
     }
   }
 
-  override def handleMessage(message: EBMessage)
+  override def handleMessage(message: EBMessage): Unit =
   {
     GUI_Thread.assert {}
 
@@ -415,7 +415,7 @@ class Plugin extends EBPlugin
   private var orig_mode_provider: ModeProvider = null
   private var pide_mode_provider: ModeProvider = null
 
-  def init_mode_provider()
+  def init_mode_provider(): Unit =
   {
     orig_mode_provider = ModeProvider.instance
     if (orig_mode_provider.isInstanceOf[ModeProvider]) {
@@ -424,7 +424,7 @@ class Plugin extends EBPlugin
     }
   }
 
-  def exit_mode_provider()
+  def exit_mode_provider(): Unit =
   {
     if (ModeProvider.instance == pide_mode_provider)
       ModeProvider.instance = orig_mode_provider
@@ -442,7 +442,7 @@ class Plugin extends EBPlugin
 
   private val shutting_down = Synchronized(false)
 
-  override def start()
+  override def start(): Unit =
   {
     /* strict initialization */
 
@@ -481,7 +481,7 @@ class Plugin extends EBPlugin
     if (view != null) init_editor(view)
   }
 
-  override def stop()
+  override def stop(): Unit =
   {
     http_server.stop
 

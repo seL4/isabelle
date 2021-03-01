@@ -24,7 +24,8 @@ object Info_Dockable
   private var implicit_results = Command.Results.empty
   private var implicit_info: XML.Body = Nil
 
-  private def set_implicit(snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
+  private def set_implicit(
+    snapshot: Document.Snapshot, results: Command.Results, info: XML.Body): Unit =
   {
     GUI_Thread.require {}
 
@@ -36,7 +37,8 @@ object Info_Dockable
   private def reset_implicit(): Unit =
     set_implicit(Document.Snapshot.init, Command.Results.empty, Nil)
 
-  def apply(view: View, snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
+  def apply(
+    view: View, snapshot: Document.Snapshot, results: Command.Results, info: XML.Body): Unit =
   {
     set_implicit(snapshot, results, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")
@@ -54,8 +56,10 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val window_focus_listener =
     new WindowFocusListener {
-      def windowGainedFocus(e: WindowEvent) { Info_Dockable.set_implicit(snapshot, results, info) }
-      def windowLostFocus(e: WindowEvent) { Info_Dockable.reset_implicit() }
+      def windowGainedFocus(e: WindowEvent): Unit =
+        Info_Dockable.set_implicit(snapshot, results, info)
+      def windowLostFocus(e: WindowEvent): Unit =
+        Info_Dockable.reset_implicit()
     }
 
 
@@ -68,7 +72,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
-  private def handle_resize()
+  private def handle_resize(): Unit =
   {
     GUI_Thread.require {}
 
@@ -83,8 +87,8 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
   private val controls =
@@ -100,14 +104,14 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
       case _: Session.Global_Options => GUI_Thread.later { handle_resize() }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
     handle_resize()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main

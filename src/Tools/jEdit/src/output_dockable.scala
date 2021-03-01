@@ -35,7 +35,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
 
-  private def handle_resize()
+  private def handle_resize(): Unit =
   {
     GUI_Thread.require {}
 
@@ -43,7 +43,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
-  private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
+  private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit =
   {
     GUI_Thread.require {}
 
@@ -73,7 +73,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* controls */
 
   private def output_state: Boolean = PIDE.options.bool("editor_output_state")
-  private def output_state_=(b: Boolean)
+  private def output_state_=(b: Boolean): Unit =
   {
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
@@ -131,7 +131,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         GUI_Thread.later { handle_update(do_update, None) }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -139,7 +139,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     handle_update(true, None)
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
@@ -154,7 +154,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 }

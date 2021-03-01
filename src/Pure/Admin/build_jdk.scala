@@ -152,7 +152,7 @@ esac
   def build_jdk(
     archives: List[Path],
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current): Unit =
   {
     if (Platform.is_windows) error("Cannot build jdk on Windows")
 

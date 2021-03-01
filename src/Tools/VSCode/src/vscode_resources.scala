@@ -160,7 +160,7 @@ class VSCode_Resources(
     file: JFile,
     version: Long,
     text: String,
-    range: Option[Line.Range] = None)
+    range: Option[Line.Range] = None): Unit =
   {
     state.change(st =>
       {
@@ -267,7 +267,7 @@ class VSCode_Resources(
 
   /* pending input */
 
-  def flush_input(session: Session, channel: Channel)
+  def flush_input(session: Session, channel: Channel): Unit =
   {
     state.change(st =>
       {
@@ -351,8 +351,8 @@ class VSCode_Resources(
 
   /* caret handling */
 
-  def update_caret(caret: Option[(JFile, Line.Position)])
-  { state.change(_.update_caret(caret)) }
+  def update_caret(caret: Option[(JFile, Line.Position)]): Unit =
+    state.change(_.update_caret(caret))
 
   def get_caret(): Option[VSCode_Resources.Caret] =
   {

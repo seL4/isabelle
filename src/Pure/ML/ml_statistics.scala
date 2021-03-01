@@ -54,9 +54,9 @@ object ML_Statistics
   def monitor(pid: Long,
     stats_dir: String = "",
     delay: Time = Time.seconds(0.5),
-    consume: Properties.T => Unit = Console.println)
+    consume: Properties.T => Unit = Console.println): Unit =
   {
-    def progress_stdout(line: String)
+    def progress_stdout(line: String): Unit =
     {
       val props =
         Library.space_explode(',', line).flatMap((entry: String) =>
@@ -289,7 +289,7 @@ final class ML_Statistics private(
 
   /* charts */
 
-  def update_data(data: XYSeriesCollection, selected_fields: List[String])
+  def update_data(data: XYSeriesCollection, selected_fields: List[String]): Unit =
   {
     data.removeAllSeries
     for (field <- selected_fields) {

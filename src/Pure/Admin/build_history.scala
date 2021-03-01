@@ -399,7 +399,7 @@ object Build_History
       }
   }
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var afp_rev: Option[String] = None

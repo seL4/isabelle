@@ -441,7 +441,7 @@ object Isabelle_Cronjob
             true
           })
 
-    def shutdown() { thread.shutdown() }
+    def shutdown(): Unit = { thread.shutdown() }
 
     val hostname: String = Isabelle_System.hostname()
 
@@ -453,7 +453,7 @@ object Isabelle_Cronjob
     def start_logger(start_date: Date, task_name: String): Logger =
       new Logger(this, start_date, task_name)
 
-    def run_task(start_date: Date, task: Logger_Task)
+    def run_task(start_date: Date, task: Logger_Task): Unit =
     {
       val logger = start_logger(start_date, task.name)
       val res = Exn.capture { task.body(logger) }
@@ -482,7 +482,7 @@ object Isabelle_Cronjob
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
-    def log_end(end_date: Date, err: Option[String])
+    def log_end(end_date: Date, err: Option[String]): Unit =
     {
       val elapsed_time = end_date.time - start_date.time
       val msg =
@@ -506,7 +506,7 @@ object Isabelle_Cronjob
 
   /** cronjob **/
 
-  def cronjob(progress: Progress, exclude_task: Set[String])
+  def cronjob(progress: Progress, exclude_task: Set[String]): Unit =
   {
     /* soft lock */
 
@@ -525,9 +525,9 @@ object Isabelle_Cronjob
 
     val log_service = Log_Service(Options.init(), progress = progress)
 
-    def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
+    def run(start_date: Date, task: Logger_Task): Unit = log_service.run_task(start_date, task)
 
-    def run_now(task: Logger_Task) { run(Date.now(), task) }
+    def run_now(task: Logger_Task): Unit = run(Date.now(), task)
 
 
     /* structured tasks */
@@ -538,7 +538,7 @@ object Isabelle_Cronjob
 
     def PAR(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
       {
-        @tailrec def join(running: List[Task])
+        @tailrec def join(running: List[Task]): Unit =
         {
           running.partition(_.is_finished) match {
             case (Nil, Nil) =>
@@ -604,7 +604,7 @@ object Isabelle_Cronjob
 
   /** command line entry point **/
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var force = false

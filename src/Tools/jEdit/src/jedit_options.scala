@@ -44,7 +44,7 @@ object JEdit_Options
           PIDE.session.update_options(PIDE.options.value)
         }
       }
-    def load() { selected = stored }
+    def load(): Unit = { selected = stored }
     load()
   }
 }

@@ -148,9 +148,9 @@ object Server
         }
       }
 
-    def start { thread }
-    def join { thread.join }
-    def stop { socket.close; join }
+    def start: Unit = thread
+    def join: Unit = thread.join
+    def stop: Unit = { socket.close; join }
   }
 
 
@@ -166,9 +166,9 @@ object Server
   {
     override def toString: String = socket.toString
 
-    def close() { socket.close }
+    def close(): Unit = socket.close
 
-    def set_timeout(t: Time) { socket.setSoTimeout(t.ms.toInt) }
+    def set_timeout(t: Time): Unit = socket.setSoTimeout(t.ms.toInt)
 
     private val in = new BufferedInputStream(socket.getInputStream)
     private val out = new BufferedOutputStream(socket.getOutputStream)
@@ -195,18 +195,18 @@ object Server
     def write_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
 
-    def reply(r: Reply.Value, arg: Any)
+    def reply(r: Reply.Value, arg: Any): Unit =
     {
       val argument = Argument.print(arg)
       write_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
 
-    def reply_ok(arg: Any) { reply(Reply.OK, arg) }
-    def reply_error(arg: Any) { reply(Reply.ERROR, arg) }
+    def reply_ok(arg: Any): Unit = reply(Reply.OK, arg)
+    def reply_error(arg: Any): Unit = reply(Reply.ERROR, arg)
     def reply_error_message(message: String, more: JSON.Object.Entry*): Unit =
       reply_error(Reply.error_message(message) ++ more)
 
-    def notify(arg: Any) { reply(Reply.NOTE, arg) }
+    def notify(arg: Any): Unit = reply(Reply.NOTE, arg)
   }
 
 
@@ -219,8 +219,8 @@ object Server
 
     def command_list: List[String] = command_table.keys.toList.sorted
 
-    def reply(r: Reply.Value, arg: Any) { connection.reply(r, arg) }
-    def notify(arg: Any) { connection.notify(arg) }
+    def reply(r: Reply.Value, arg: Any): Unit = connection.reply(r, arg)
+    def notify(arg: Any): Unit = connection.notify(arg)
     def message(kind: String, msg: String, more: JSON.Object.Entry*): Unit =
       notify(Reply.message(msg, kind = kind) ++ more)
     def writeln(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WRITELN, msg, more:_*)
@@ -251,7 +251,7 @@ object Server
     def cancel_task(id: UUID.T): Unit =
       _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel); tasks })
 
-    def close()
+    def close(): Unit =
     {
       while(_tasks.change_result(tasks => { tasks.foreach(_.cancel); (tasks.nonEmpty, tasks) }))
       { _tasks.value.foreach(_.join) }
@@ -265,7 +265,7 @@ object Server
     override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
     override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
 
-    override def theory(theory: Progress.Theory)
+    override def theory(theory: Progress.Theory): Unit =
     {
       val entries: List[JSON.Object.Entry] =
         List("theory" -> theory.theory, "session" -> theory.session) :::
@@ -273,7 +273,7 @@ object Server
       context.writeln(theory.message, entries ::: more.toList:_*)
     }
 
-    override def nodes_status(nodes_status: Document_Status.Nodes_Status)
+    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
     {
       val json =
         for ((name, node_status) <- nodes_status.present)
@@ -292,7 +292,7 @@ object Server
     val ident: JSON.Object.Entry = ("task" -> id.toString)
 
     val progress: Connection_Progress = context.progress(ident)
-    def cancel { progress.stop }
+    def cancel: Unit = progress.stop
 
     private lazy val thread = Isabelle_Thread.fork(name = "server_task")
     {
@@ -306,8 +306,8 @@ object Server
       progress.stop
       context.remove_task(task)
     }
-    def start { thread }
-    def join { thread.join }
+    def start: Unit = thread
+    def join: Unit = thread.join
   }
 
 
@@ -521,7 +521,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
   def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))
   def the_session(id: UUID.T): Headless.Session = _sessions.value.getOrElse(id, err_session(id))
-  def add_session(entry: (UUID.T, Headless.Session)) { _sessions.change(_ + entry) }
+  def add_session(entry: (UUID.T, Headless.Session)): Unit = _sessions.change(_ + entry)
   def remove_session(id: UUID.T): Headless.Session =
   {
     _sessions.change_result(sessions =>
@@ -531,7 +531,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
       })
   }
 
-  def shutdown()
+  def shutdown(): Unit =
   {
     server.socket.close
 
@@ -545,9 +545,9 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
     }
   }
 
-  override def join { super.join; shutdown() }
+  override def join: Unit = { super.join; shutdown() }
 
-  override def handle(connection: Server.Connection)
+  override def handle(connection: Server.Connection): Unit =
   {
     using(new Server.Context(server, connection))(context =>
     {

@@ -45,7 +45,7 @@ object Text_Structure
     private val keyword_close = Keyword.proof_close
 
     def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
-      actions: java.util.List[IndentAction])
+      actions: java.util.List[IndentAction]): Unit =
     {
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -327,7 +327,7 @@ object Text_Structure
         case None => null
       }
 
-    def selectMatch(text_area: TextArea)
+    def selectMatch(text_area: TextArea): Unit =
     {
       def get_span(offset: Text.Offset): Option[Text.Range] =
         for {

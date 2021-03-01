@@ -33,19 +33,22 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   setRequestFocusEnabled(false)
 
   addMouseListener(new MouseAdapter {
-    override def mousePressed(event: MouseEvent) {
+    override def mousePressed(event: MouseEvent): Unit =
+    {
       val line = (event.getY * lines()) / getHeight
       if (line >= 0 && line < text_area.getLineCount)
         text_area.setCaretPosition(text_area.getLineStartOffset(line))
     }
   })
 
-  override def addNotify() {
+  override def addNotify(): Unit =
+  {
     super.addNotify()
     ToolTipManager.sharedInstance.registerComponent(this)
   }
 
-  override def removeNotify() {
+  override def removeNotify(): Unit =
+  {
     ToolTipManager.sharedInstance.unregisterComponent(this)
     super.removeNotify
   }
@@ -77,7 +80,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private val delay_repaint =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) { repaint() }
 
-  override def paintComponent(gfx: Graphics)
+  override def paintComponent(gfx: Graphics): Unit =
   {
     super.paintComponent(gfx)
     GUI_Thread.assert {}

@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 
 object Update_Comments
 {
-  def update_comments(path: Path)
+  def update_comments(path: Path): Unit =
   {
     def make_comment(tok: Token): String =
       Symbol.comment + Symbol.space + Symbol.cartouche(Symbol.trim_blanks(tok.content))

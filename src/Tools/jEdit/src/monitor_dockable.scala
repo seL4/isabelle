@@ -29,7 +29,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private var statistics = Queue.empty[Properties.T]
   private var statistics_length = 0
 
-  private def add_statistics(stats: Properties.T)
+  private def add_statistics(stats: Properties.T): Unit =
   {
     statistics = statistics.enqueue(stats)
     statistics_length += 1
@@ -42,7 +42,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
       case _ =>
     }
   }
-  private def clear_statistics()
+  private def clear_statistics(): Unit =
   {
     statistics = Queue.empty
     statistics_length = 0
@@ -133,12 +133,12 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
         update_delay.invoke()
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.runtime_statistics += main
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.runtime_statistics -= main
   }

@@ -16,7 +16,7 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
 {
   protected val components: List[(String, List[Option_Component])]
 
-  override def _init()
+  override def _init(): Unit =
   {
     val dummy_property = "options.isabelle.dummy"
 
@@ -30,7 +30,7 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
     }
   }
 
-  override def _save()
+  override def _save(): Unit =
   {
     for ((_, cs) <- components) cs.foreach(_.save())
   }

@@ -40,7 +40,7 @@ object Font_Info
 
   object main_change
   {
-    private def change_size(change: Float => Float)
+    private def change_size(change: Float => Float): Unit =
     {
       GUI_Thread.require {}
 
@@ -72,13 +72,13 @@ object Font_Info
         })
     }
 
-    def step(i: Int)
+    def step(i: Int): Unit =
     {
       steps += i
       delay.invoke()
     }
 
-    def reset(size: Float)
+    def reset(size: Float): Unit =
     {
       delay.revoke()
       steps = 0

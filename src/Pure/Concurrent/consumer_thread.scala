@@ -66,7 +66,7 @@ final class Consumer_Thread[A] private(
     val ack: Option[Synchronized[Option[Exn.Result[Unit]]]] =
       if (acknowledge) Some(Synchronized(None)) else None
 
-    def await
+    def await: Unit =
     {
       for (a <- ack) {
         Exn.release(a.guarded_access({ case None => None case res => Some((res.get, res)) }))
@@ -74,7 +74,7 @@ final class Consumer_Thread[A] private(
     }
   }
 
-  private def request(req: Request)
+  private def request(req: Request): Unit =
   {
     synchronized {
       if (is_active) mailbox.send(Some(req))
@@ -113,10 +113,10 @@ final class Consumer_Thread[A] private(
 
   assert(is_active)
 
-  def send(arg: A) { request(new Request(arg)) }
-  def send_wait(arg: A) { request(new Request(arg, acknowledge = true)) }
+  def send(arg: A): Unit = request(new Request(arg))
+  def send_wait(arg: A): Unit = request(new Request(arg, acknowledge = true))
 
-  def shutdown()
+  def shutdown(): Unit =
   {
     synchronized { if (is_active) { active = false; mailbox.send(None) } }
     thread.join

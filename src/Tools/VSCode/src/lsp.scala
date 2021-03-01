@@ -21,7 +21,7 @@ object LSP
   {
     val empty: JSON.Object.T = JSON.Object("jsonrpc" -> "2.0")
 
-    def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean)
+    def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean): Unit =
     {
       val header =
         json match {

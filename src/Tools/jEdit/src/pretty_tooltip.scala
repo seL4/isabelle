@@ -45,7 +45,7 @@ object Pretty_Tooltip
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    info: Text.Info[XML.Body])
+    info: Text.Info[XML.Body]): Unit =
   {
     GUI_Thread.require {}
 
@@ -118,7 +118,7 @@ object Pretty_Tooltip
     dismiss_unfocused()
   }
 
-  def dismiss_unfocused()
+  def dismiss_unfocused(): Unit =
   {
     stack.span(tip => !tip.pretty_text_area.isFocusOwner) match {
       case (Nil, _) =>
@@ -129,7 +129,7 @@ object Pretty_Tooltip
     }
   }
 
-  def dismiss(tip: Pretty_Tooltip)
+  def dismiss(tip: Pretty_Tooltip): Unit =
   {
     deactivate()
     hierarchy(tip) match {
@@ -209,12 +209,12 @@ class Pretty_Tooltip private(
     }
 
   pretty_text_area.addFocusListener(new FocusAdapter {
-    override def focusGained(e: FocusEvent)
+    override def focusGained(e: FocusEvent): Unit =
     {
       tip_border(true)
       Pretty_Tooltip.focus_delay.invoke()
     }
-    override def focusLost(e: FocusEvent)
+    override def focusLost(e: FocusEvent): Unit =
     {
       tip_border(false)
       Pretty_Tooltip.focus_delay.invoke()
@@ -226,7 +226,7 @@ class Pretty_Tooltip private(
 
   /* main content */
 
-  def tip_border(has_focus: Boolean)
+  def tip_border(has_focus: Boolean): Unit =
   {
     tip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
     tip.repaint()
@@ -276,7 +276,7 @@ class Pretty_Tooltip private(
     new Popup(layered, tip, screen.relative(layered, size), size)
   }
 
-  private def show_popup
+  private def show_popup: Unit =
   {
     popup.show
     pretty_text_area.requestFocus

@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.View
 
 object Session_Build
 {
-  def check_dialog(view: View)
+  def check_dialog(view: View): Unit =
   {
     val options = PIDE.options.value
     Isabelle_Thread.fork() {
@@ -78,7 +78,7 @@ object Session_Build
 
     setContentPane(layout_panel.peer)
 
-    private def set_actions(cs: Component*)
+    private def set_actions(cs: Component*): Unit =
     {
       action_panel.contents.clear
       action_panel.contents ++= cs
@@ -108,7 +108,7 @@ object Session_Build
         }
       }
 
-    private def conclude()
+    private def conclude(): Unit =
     {
       setVisible(false)
       dispose()
@@ -120,13 +120,14 @@ object Session_Build
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 
     addWindowListener(new WindowAdapter {
-      override def windowClosing(e: WindowEvent) {
+      override def windowClosing(e: WindowEvent): Unit =
+      {
         if (_return_code.isDefined) conclude()
         else stopping()
       }
     })
 
-    private def stopping()
+    private def stopping(): Unit =
     {
       progress.stop
       set_actions(new Label("Stopping ..."))

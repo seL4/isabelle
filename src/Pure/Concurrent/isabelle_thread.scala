@@ -107,7 +107,7 @@ object Isabelle_Thread
   class Interrupt_Handler private(handle: Isabelle_Thread => Unit, name: String)
     extends Function[Isabelle_Thread, Unit]
   {
-    def apply(thread: Isabelle_Thread) { handle(thread) }
+    def apply(thread: Isabelle_Thread): Unit = handle(thread)
     override def toString: String = name
   }
 
@@ -138,7 +138,7 @@ class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
   thread.setPriority(pri)
   thread.setDaemon(daemon)
 
-  override def run { main.run() }
+  override def run: Unit = main.run()
 
   def is_self: Boolean = Thread.currentThread == thread
 

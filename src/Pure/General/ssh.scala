@@ -157,7 +157,7 @@ object SSH
 
   /* logging */
 
-  def logging(verbose: Boolean = true, debug: Boolean = false)
+  def logging(verbose: Boolean = true, debug: Boolean = false): Unit =
   {
     JSch.setLogger(if (verbose) new Logger(debug) else null)
   }
@@ -166,7 +166,7 @@ object SSH
   {
     def isEnabled(level: Int): Boolean = level != JSch_Logger.DEBUG || debug
 
-    def log(level: Int, msg: String)
+    def log(level: Int, msg: String): Unit =
     {
       level match {
         case JSch_Logger.ERROR | JSch_Logger.FATAL => Output.error_message(msg)
@@ -213,7 +213,7 @@ object SSH
     override def toString: String =
       local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
 
-    def close()
+    def close(): Unit =
     {
       ssh.session.delPortForwardingL(local_host, local_port)
       if (ssh_close) ssh.close()
@@ -239,7 +239,7 @@ object SSH
   {
     override def toString: String = "exec " + session.toString
 
-    def close() { channel.disconnect }
+    def close(): Unit = channel.disconnect
 
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
@@ -265,7 +265,7 @@ object SSH
       {
         val result = new mutable.ListBuffer[String]
         val line_buffer = new ByteArrayOutputStream(100)
-        def line_flush()
+        def line_flush(): Unit =
         {
           val line = Library.trim_line(line_buffer.toString(UTF8.charset_name))
           progress(line)
@@ -291,7 +291,7 @@ object SSH
       val out_lines = Future.thread("ssh_stdout") { read_lines(stdout, progress_stdout) }
       val err_lines = Future.thread("ssh_stderr") { read_lines(stderr, progress_stderr) }
 
-      def terminate()
+      def terminate(): Unit =
       {
         close
         out_lines.join
@@ -347,7 +347,7 @@ object SSH
     val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
     sftp.connect(connect_timeout(options))
 
-    def close() { sftp.disconnect; session.disconnect; on_close() }
+    def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
 
     val settings: Map[String, String] =
     {
@@ -418,9 +418,9 @@ object SSH
       follow_links: Boolean = false): List[Path] =
     {
       val result = new mutable.ListBuffer[Path]
-      def check(path: Path) { if (pred(path)) result += path }
+      def check(path: Path): Unit = { if (pred(path)) result += path }
 
-      def find(dir: Path)
+      def find(dir: Path): Unit =
       {
         if (include_dirs) check(dir)
         if (follow_links || !is_link(dir)) {

@@ -29,7 +29,7 @@ class JEdit_Editor extends Editor[View]
       session.update(doc_blobs, edits)
     }
   override def flush(): Unit = flush_edits()
-  def purge() { flush_edits(purge = true) }
+  def purge(): Unit = flush_edits(purge = true)
 
   private val delay1_flush =
     Delay.last(PIDE.options.seconds("editor_input_delay"), gui = true) { flush() }
@@ -105,7 +105,7 @@ class JEdit_Editor extends Editor[View]
 
   /* navigation */
 
-  def push_position(view: View)
+  def push_position(view: View): Unit =
   {
     val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
     if (navigator != null) {
@@ -114,7 +114,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset)
+  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit =
   {
     GUI_Thread.require {}
 
@@ -131,7 +131,7 @@ class JEdit_Editor extends Editor[View]
   def goto_file(focus: Boolean, view: View, name: String): Unit =
     goto_file(focus, view, Line.Node_Position.offside(name))
 
-  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position)
+  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit =
   {
     GUI_Thread.require {}
 
@@ -176,7 +176,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_doc(view: View, path: Path)
+  def goto_doc(view: View, path: Path): Unit =
   {
     if (path.is_file)
       goto_file(true, view, File.platform_path(path))

@@ -27,7 +27,7 @@ object Thy_Syntax
       val visible = new mutable.ListBuffer[Command]
       val visible_overlay = new mutable.ListBuffer[Command]
       @tailrec
-      def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)])
+      def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)]): Unit =
       {
         (ranges, commands) match {
           case (range :: more_ranges, (command, offset) #:: more_commands) =>

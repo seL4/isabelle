@@ -9,7 +9,7 @@ package isabelle
 
 object Update_Header
 {
-  def update_header(section: String, path: Path)
+  def update_header(section: String, path: Path): Unit =
   {
     val text0 = File.read(path)
     val text1 =

@@ -55,7 +55,7 @@ object Build_Status
     verbose: Boolean = false,
     target_dir: Path = default_target_dir,
     ml_statistics: Boolean = false,
-    image_size: (Int, Int) = default_image_size)
+    image_size: (Int, Int) = default_image_size): Unit =
   {
     val ml_statistics_domain =
       Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
@@ -363,7 +363,7 @@ object Build_Status
   def present_data(data: Data,
     progress: Progress = new Progress,
     target_dir: Path = default_target_dir,
-    image_size: (Int, Int) = default_image_size)
+    image_size: (Int, Int) = default_image_size): Unit =
   {
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)

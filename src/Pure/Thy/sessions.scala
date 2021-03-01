@@ -753,7 +753,7 @@ object Sessions
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
 
-    def check_sessions(names: List[String])
+    def check_sessions(names: List[String]): Unit =
     {
       val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
       if (bad_sessions.nonEmpty)
@@ -1210,7 +1210,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   {
     def cache: XML.Cache = store.cache
 
-    def close { database_server.foreach(_.close) }
+    def close: Unit = database_server.foreach(_.close)
 
     def output_database[A](session: String)(f: SQL.Database => A): A =
       database_server match {
@@ -1304,7 +1304,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
-    def prepare_output_dir() { Isabelle_System.make_directory(output_dir + Path.basic("log")) }
+    def prepare_output_dir(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
 
     /* heap */
@@ -1411,7 +1411,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session info */
 
-    def init_session_info(db: SQL.Database, name: String)
+    def init_session_info(db: SQL.Database, name: String): Unit =
     {
       db.transaction {
         db.create_table(Session_Info.table)
@@ -1450,7 +1450,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       db: SQL.Database,
       name: String,
       build_log: Build_Log.Session_Info,
-      build: Build.Session_Info)
+      build: Build.Session_Info): Unit =
     {
       db.transaction {
         db.using_statement(Session_Info.table.insert())(stmt =>

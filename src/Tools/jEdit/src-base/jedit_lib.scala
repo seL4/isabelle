@@ -14,7 +14,7 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 object JEdit_Lib
 {
-  def request_focus_view(alt_view: View = null)
+  def request_focus_view(alt_view: View = null): Unit =
   {
     val view = if (alt_view != null) alt_view else jEdit.getActiveView()
     if (view != null) {

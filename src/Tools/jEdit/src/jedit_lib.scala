@@ -98,7 +98,7 @@ object JEdit_Lib
   def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A =
   {
     val undo_in_progress = buffer.isUndoInProgress
-    def set(b: Boolean) { Untyped.set[Boolean](buffer, "undoInProgress", b) }
+    def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
     try { set(true); body } finally { set(undo_in_progress) }
   }
 
@@ -196,7 +196,7 @@ object JEdit_Lib
     else None
   }
 
-  def invalidate_range(text_area: TextArea, range: Text.Range)
+  def invalidate_range(text_area: TextArea, range: Text.Range): Unit =
   {
     val buffer = text_area.getBuffer
     buffer_range(buffer).try_restrict(range) match {
@@ -211,7 +211,7 @@ object JEdit_Lib
     }
   }
 
-  def invalidate(text_area: TextArea)
+  def invalidate(text_area: TextArea): Unit =
   {
     val visible_lines = text_area.getVisibleLines
     if (visible_lines > 0) text_area.invalidateScreenLineRange(0, visible_lines)
@@ -316,12 +316,10 @@ object JEdit_Lib
 
   /* key event handling */
 
-  def request_focus_view(alt_view: View = null)
-  {
+  def request_focus_view(alt_view: View = null): Unit =
     isabelle.jedit_base.JEdit_Lib.request_focus_view(alt_view)
-  }
 
-  def propagate_key(view: View, evt: KeyEvent)
+  def propagate_key(view: View, evt: KeyEvent): Unit =
   {
     if (view != null && !evt.isConsumed)
       view.getInputHandler().processKeyEvent(evt, View.ACTION_BAR, false)
@@ -332,7 +330,7 @@ object JEdit_Lib
     key_pressed: KeyEvent => Unit = _ => (),
     key_released: KeyEvent => Unit = _ => ()): KeyListener =
   {
-    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit)
+    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit): Unit =
     {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
       if (evt != null) handle(evt)
@@ -340,9 +338,9 @@ object JEdit_Lib
 
     new KeyListener
     {
-      def keyTyped(evt: KeyEvent) { process_key_event(evt, key_typed) }
-      def keyPressed(evt: KeyEvent) { process_key_event(evt, key_pressed) }
-      def keyReleased(evt: KeyEvent) { process_key_event(evt, key_released) }
+      def keyTyped(evt: KeyEvent): Unit = process_key_event(evt, key_typed)
+      def keyPressed(evt: KeyEvent): Unit = process_key_event(evt, key_pressed)
+      def keyReleased(evt: KeyEvent): Unit = process_key_event(evt, key_released)
     }
   }
 

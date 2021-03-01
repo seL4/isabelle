@@ -125,7 +125,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
   private class File_Content(buffer: Buffer) extends
     BufferIORequest(null, buffer, null, VFSManager.getVFSForPath(buffer.getPath), buffer.getPath)
   {
-    def _run() { }
+    def _run(): Unit = {}
     def content(): Bytes =
     {
       val out = new File_Content_Output(buffer)
@@ -139,7 +139,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
 
   /* theory text edits */
 
-  override def commit(change: Session.Change)
+  override def commit(change: Session.Change): Unit =
   {
     if (change.syntax_changed.nonEmpty)
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }

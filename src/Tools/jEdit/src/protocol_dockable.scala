@@ -40,12 +40,12 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later { text_area.append(output.message.toString + "\n\n") }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.all_messages += main
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.all_messages -= main
   }

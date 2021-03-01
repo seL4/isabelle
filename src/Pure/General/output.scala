@@ -21,7 +21,7 @@ object Output
   def error_prefix(s: String): String = Library.prefix_lines("*** ", s)
   def error_message_text(msg: String): String = error_prefix(clean_yxml(msg))
 
-  def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
+  def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
   {
     if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(writeln_text(msg) + "\n")
@@ -29,7 +29,7 @@ object Output
     }
   }
 
-  def warning(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
+  def warning(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
   {
     if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(warning_text(msg) + "\n")
@@ -37,7 +37,7 @@ object Output
     }
   }
 
-  def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
+  def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
   {
     if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(error_message_text(msg) + "\n")

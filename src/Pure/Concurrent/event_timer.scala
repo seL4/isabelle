@@ -24,7 +24,7 @@ object Event_Timer
 
   def request(time: Time, repeat: Option[Time] = None)(event: => Unit): Request =
   {
-    val task = new TimerTask { def run { event } }
+    val task = new TimerTask { def run: Unit = event }
     repeat match {
       case None => event_timer.schedule(task, new JDate(time.ms))
       case Some(rep) => event_timer.schedule(task, new JDate(time.ms), rep.ms)

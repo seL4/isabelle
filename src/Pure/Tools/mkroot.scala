@@ -25,7 +25,7 @@ object Mkroot
     init_repos: Boolean = false,
     title: String = "",
     author: String = "",
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     Isabelle_System.make_directory(session_dir)
 

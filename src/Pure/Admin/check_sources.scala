@@ -9,7 +9,7 @@ package isabelle
 
 object Check_Sources
 {
-  def check_file(path: Path)
+  def check_file(path: Path): Unit =
   {
     val file_name = path.implode
     val file_pos = path.position
@@ -49,7 +49,7 @@ object Check_Sources
       Output.warning("Bidirectional Unicode text" + Position.here(file_pos))
   }
 
-  def check_hg(root: Path)
+  def check_hg(root: Path): Unit =
   {
     Output.writeln("Checking " + root + " ...")
     val hg = Mercurial.repository(root)

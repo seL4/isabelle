@@ -128,7 +128,7 @@ object Bash
 
     // cleanup
 
-    private def do_cleanup()
+    private def do_cleanup(): Unit =
     {
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }

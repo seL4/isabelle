@@ -41,13 +41,13 @@ object File_Format
     def prover_options(options: Options): Options =
       (options /: agents)({ case (opts, agent) => agent.prover_options(opts) })
 
-    def stop_session { agents.foreach(_.stop) }
+    def stop_session: Unit = agents.foreach(_.stop)
   }
 
   trait Agent
   {
     def prover_options(options: Options): Options = options
-    def stop {}
+    def stop: Unit = {}
   }
 
   object No_Agent extends Agent

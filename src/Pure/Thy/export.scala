@@ -116,7 +116,7 @@ object Export
     def uncompressed_yxml: XML.Body =
       YXML.parse_body(UTF8.decode_permissive(uncompressed), cache = cache)
 
-    def write(db: SQL.Database)
+    def write(db: SQL.Database): Unit =
     {
       val (compressed, bytes) = body.join
       db.using_statement(Data.table.insert())(stmt =>
@@ -339,7 +339,7 @@ object Export
     progress: Progress = new Progress,
     export_prune: Int = 0,
     export_list: Boolean = false,
-    export_patterns: List[String] = Nil)
+    export_patterns: List[String] = Nil): Unit =
   {
     using(store.open_database(session_name))(db =>
     {

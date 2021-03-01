@@ -70,24 +70,24 @@ class Prover(
 {
   /** receiver output **/
 
-  private def system_output(text: String)
+  private def system_output(text: String): Unit =
   {
     receiver(new Prover.Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
-  private def protocol_output(props: Properties.T, bytes: Bytes)
+  private def protocol_output(props: Properties.T, bytes: Bytes): Unit =
   {
     receiver(new Prover.Protocol_Output(cache.props(props), bytes))
   }
 
-  private def output(kind: String, props: Properties.T, body: XML.Body)
+  private def output(kind: String, props: Properties.T, body: XML.Body): Unit =
   {
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
     val reports = Protocol_Message.reports(props, body)
     for (msg <- main :: reports) receiver(new Prover.Output(cache.elem(msg)))
   }
 
-  private def exit_message(result: Process_Result)
+  private def exit_message(result: Process_Result): Unit =
   {
     output(Markup.EXIT, Markup.Process_Result(result),
       List(XML.Text(result.print_return_code)))
@@ -104,7 +104,7 @@ class Prover(
       Process_Result(rc, timing = timing)
     }
 
-  private def terminate_process()
+  private def terminate_process(): Unit =
   {
     try { process.terminate }
     catch {
@@ -161,9 +161,9 @@ class Prover(
 
   /* management methods */
 
-  def join() { process_manager.join() }
+  def join(): Unit = process_manager.join()
 
-  def terminate()
+  def terminate(): Unit =
   {
     system_output("Terminating prover process")
     command_input_close()
@@ -186,7 +186,7 @@ class Prover(
 
   private def command_input_close(): Unit = command_input.foreach(_.shutdown)
 
-  private def command_input_init(raw_stream: OutputStream)
+  private def command_input_init(raw_stream: OutputStream): Unit =
   {
     val name = "command_input"
     val stream = new BufferedOutputStream(raw_stream)
@@ -357,7 +357,7 @@ class Prover(
       case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
-  def protocol_command_args(name: String, args: List[String])
+  def protocol_command_args(name: String, args: List[String]): Unit =
   {
     receiver(new Prover.Input(name, args))
     protocol_command_raw(name, args.map(Bytes(_)))

@@ -54,7 +54,7 @@ object Build_Release
 
   private val ISABELLE_ID = """ISABELLE_ID="(.+)"""".r
 
-  def patch_release(release: Release, is_official: Boolean)
+  def patch_release(release: Release, is_official: Boolean): Unit =
   {
     val dir = release.isabelle_dir
 
@@ -89,7 +89,7 @@ object Build_Release
 
   /* ANNOUNCE */
 
-  def make_announce(release: Release)
+  def make_announce(release: Release): Unit =
   {
     File.write(release.isabelle_dir + Path.explode("ANNOUNCE"),
 """
@@ -104,7 +104,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
 
   /* NEWS */
 
-  def make_news(other_isabelle: Other_Isabelle, dist_version: String)
+  def make_news(other_isabelle: Other_Isabelle, dist_version: String): Unit =
   {
     val target = other_isabelle.isabelle_home + Path.explode("doc")
     val target_fonts = Isabelle_System.make_directory(target + Path.explode("fonts"))
@@ -140,7 +140,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
       }
   }
 
-  def record_bundled_components(dir: Path)
+  def record_bundled_components(dir: Path): Unit =
   {
     val catalogs =
       List("main", "bundled").map((_, new Bundled())) :::
@@ -172,7 +172,8 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     (components, jdk_component)
   }
 
-  def activate_components(dir: Path, platform: Platform.Family.Value, more_names: List[String])
+  def activate_components(
+    dir: Path, platform: Platform.Family.Value, more_names: List[String]): Unit =
   {
     def contrib_name(name: String): String =
       Components.contrib(name = name).implode
@@ -188,7 +189,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
         }) ::: more_names.map(contrib_name))
   }
 
-  def make_contrib(dir: Path)
+  def make_contrib(dir: Path): Unit =
   {
     Isabelle_System.make_directory(Components.contrib(dir))
     File.write(Components.contrib(dir, "README"),
@@ -215,7 +216,7 @@ directory individually.
     options: Options,
     platform: Platform.Family.Value,
     build_sessions: List[String],
-    local_dir: Path)
+    local_dir: Path): Unit =
   {
     val server_option = "build_host_" + platform.toString
     options.string(server_option) match {
@@ -248,7 +249,7 @@ directory individually.
 
   /* Isabelle application */
 
-  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n")
+  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n"): Unit =
   {
     val title = "# Java runtime options"
     File.write(path, (title :: options).map(_ + line_ending).mkString)
@@ -260,7 +261,7 @@ directory individually.
     isabelle_name: String,
     jdk_component: String,
     classpath: List[Path],
-    dock_icon: Boolean = false)
+    dock_icon: Boolean = false): Unit =
   {
     val script = """#!/usr/bin/env bash
 #
@@ -309,7 +310,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   }
 
 
-  def make_isabelle_plist(path: Path, isabelle_name: String, isabelle_rev: String)
+  def make_isabelle_plist(path: Path, isabelle_name: String, isabelle_rev: String): Unit =
   {
     File.write(path, """<?xml version="1.0" ?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -852,7 +853,7 @@ rm -rf "${DIST_NAME}-old"
 
   /** command line entry point **/
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var afp_rev = ""

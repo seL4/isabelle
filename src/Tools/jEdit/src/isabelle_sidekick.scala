@@ -64,7 +64,7 @@ object Isabelle_Sidekick
   class Asset(name: String, range: Text.Range) extends Keyword_Asset("", name, range)
 
   def swing_markup_tree(tree: Markup_Tree, parent: DefaultMutableTreeNode,
-    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
+    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode): Unit =
   {
     for ((_, entry) <- tree.branches) {
       val node = swing_node(Text.Info(entry.range, entry.markup))
@@ -119,7 +119,7 @@ class Isabelle_Sidekick_Structure(
     def make_tree(
       parent: DefaultMutableTreeNode,
       offset: Text.Offset,
-      documents: List[Document_Structure.Document])
+      documents: List[Document_Structure.Document]): Unit =
     {
       (offset /: documents) { case (i, document) =>
         document match {

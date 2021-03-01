@@ -74,7 +74,7 @@ object Completion_Popup
         case None => false
       }
 
-    def exit(text_area: JEditTextArea)
+    def exit(text_area: JEditTextArea): Unit =
     {
       GUI_Thread.require {}
       apply(text_area) match {
@@ -183,7 +183,7 @@ object Completion_Popup
 
     /* completion action: text area */
 
-    private def insert(item: Completion.Item)
+    private def insert(item: Completion.Item): Unit =
     {
       GUI_Thread.require {}
 
@@ -239,7 +239,7 @@ object Completion_Popup
       val history = PIDE.plugin.completion_history.value
       val unicode = Isabelle_Encoding.is_active(buffer)
 
-      def open_popup(result: Completion.Result)
+      def open_popup(result: Completion.Result): Unit =
       {
         val font =
           painter.getFont.deriveFont(
@@ -257,11 +257,13 @@ object Completion_Popup
           val completion =
             new Completion_Popup(Some(range), layered, loc2, font, items)
             {
-              override def complete(item: Completion.Item) {
+              override def complete(item: Completion.Item): Unit =
+              {
                 PIDE.plugin.completion_history.update(item)
                 insert(item)
               }
-              override def propagate(evt: KeyEvent) {
+              override def propagate(evt: KeyEvent): Unit =
+              {
                 if (view.getKeyEventInterceptor == null)
                   JEdit_Lib.propagate_key(view, evt)
                 else if (view.getKeyEventInterceptor == inner_key_listener) {
@@ -275,7 +277,8 @@ object Completion_Popup
                 }
                 if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
-              override def shutdown(focus: Boolean) {
+              override def shutdown(focus: Boolean): Unit =
+              {
                 if (view.getKeyEventInterceptor == inner_key_listener)
                   view.setKeyEventInterceptor(null)
                 if (focus) text_area.requestFocus
@@ -342,7 +345,7 @@ object Completion_Popup
 
     /* input key events */
 
-    def input(evt: KeyEvent)
+    def input(evt: KeyEvent): Unit =
     {
       GUI_Thread.require {}
 
@@ -400,12 +403,10 @@ object Completion_Popup
     private val outer_key_listener =
       JEdit_Lib.key_listener(key_typed = input)
 
-    private def activate()
-    {
+    private def activate(): Unit =
       text_area.addKeyListener(outer_key_listener)
-    }
 
-    private def deactivate()
+    private def deactivate(): Unit =
     {
       dismissed()
       text_area.removeKeyListener(outer_key_listener)
@@ -449,7 +450,7 @@ object Completion_Popup
 
     /* insert */
 
-    private def insert(item: Completion.Item)
+    private def insert(item: Completion.Item): Unit =
     {
       GUI_Thread.require {}
 
@@ -471,7 +472,7 @@ object Completion_Popup
 
     /* completion action: text field */
 
-    def action()
+    def action(): Unit =
     {
       GUI.layered_pane(text_field) match {
         case Some(layered) if text_field.isEditable =>
@@ -492,14 +493,15 @@ object Completion_Popup
               val completion =
                 new Completion_Popup(None, layered, loc, text_field.getFont, items)
                 {
-                  override def complete(item: Completion.Item) {
+                  override def complete(item: Completion.Item): Unit =
+                  {
                     PIDE.plugin.completion_history.update(item)
                     insert(item)
                   }
-                  override def propagate(evt: KeyEvent) {
+                  override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
-                  }
-                  override def shutdown(focus: Boolean) { if (focus) text_field.requestFocus }
+                  override def shutdown(focus: Boolean): Unit =
+                    if (focus) text_field.requestFocus
                 }
               dismissed()
               completion_popup = Some(completion)
@@ -514,7 +516,7 @@ object Completion_Popup
 
     /* process key event */
 
-    private def process(evt: KeyEvent)
+    private def process(evt: KeyEvent): Unit =
     {
       if (PIDE.options.bool("jedit_completion")) {
         dismissed()
@@ -534,7 +536,7 @@ object Completion_Popup
         action()
       }
 
-    override def processKeyEvent(evt0: KeyEvent)
+    override def processKeyEvent(evt0: KeyEvent): Unit =
     {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
       if (evt != null) {
@@ -574,9 +576,9 @@ class Completion_Popup private(
 
   /* actions */
 
-  def complete(item: Completion.Item) { }
-  def propagate(evt: KeyEvent) { }
-  def shutdown(focus: Boolean) { }
+  def complete(item: Completion.Item): Unit = {}
+  def propagate(evt: KeyEvent): Unit = {}
+  def shutdown(focus: Boolean): Unit = {}
 
 
   /* list view */
@@ -601,7 +603,7 @@ class Completion_Popup private(
     }
   }
 
-  private def move_items(n: Int)
+  private def move_items(n: Int): Unit =
   {
     val i = list_view.peer.getSelectedIndex
     val j = ((i + n) min (items.length - 1)) max 0
@@ -611,7 +613,7 @@ class Completion_Popup private(
     }
   }
 
-  private def move_pages(n: Int)
+  private def move_pages(n: Int): Unit =
   {
     val page_size = list_view.peer.getVisibleRowCount - 1
     move_items(page_size * n)
@@ -660,14 +662,15 @@ class Completion_Popup private(
   list_view.peer.addKeyListener(inner_key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent) {
+    override def mouseClicked(e: MouseEvent): Unit =
+    {
       if (complete_selected()) e.consume
       hide_popup()
     }
   })
 
   list_view.peer.addFocusListener(new FocusAdapter {
-    override def focusLost(e: FocusEvent) { hide_popup() }
+    override def focusLost(e: FocusEvent): Unit = hide_popup()
   })
 
 
@@ -697,13 +700,13 @@ class Completion_Popup private(
     new Popup(layered, completion, screen.relative(layered, size), size)
   }
 
-  private def show_popup(focus: Boolean)
+  private def show_popup(focus: Boolean): Unit =
   {
     popup.show
     if (focus) list_view.requestFocus
   }
 
-  private def hide_popup()
+  private def hide_popup(): Unit =
   {
     shutdown(list_view.peer.isFocusOwner)
     popup.hide

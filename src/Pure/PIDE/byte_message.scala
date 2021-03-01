@@ -60,7 +60,7 @@ object Byte_Message
   private def make_header(ns: List[Int]): List[Bytes] =
     List(Bytes(ns.mkString(",")), Bytes.newline)
 
-  def write_message(stream: OutputStream, chunks: List[Bytes])
+  def write_message(stream: OutputStream, chunks: List[Bytes]): Unit =
   {
     write(stream, make_header(chunks.map(_.length)) ::: chunks)
     flush(stream)
@@ -92,7 +92,7 @@ object Byte_Message
     len > 0 && Symbol.is_ascii_line_terminator(msg.charAt(len - 1))
   }
 
-  def write_line_message(stream: OutputStream, msg: Bytes)
+  def write_line_message(stream: OutputStream, msg: Bytes): Unit =
   {
     if (is_length(msg) || is_terminated(msg))
       error ("Bad content for line message:\n" ++ msg.text.take(100))

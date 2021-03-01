@@ -34,7 +34,7 @@ object Document_View
     }
   }
 
-  def exit(text_area: JEditTextArea)
+  def exit(text_area: JEditTextArea): Unit =
   {
     GUI_Thread.require {}
     get(text_area) match {
@@ -109,7 +109,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       // no robust_body
       PIDE.editor.invoke_generated()
@@ -123,7 +123,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       rich_text_area.robust_body(()) {
         GUI_Thread.assert {}
@@ -190,7 +190,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     }
 
   private val caret_listener = new CaretListener {
-    override def caretUpdate(e: CaretEvent) { delay_caret_update.invoke() }
+    override def caretUpdate(e: CaretEvent): Unit = delay_caret_update.invoke()
   }
 
 
@@ -228,7 +228,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   /* activation */
 
-  private def activate()
+  private def activate(): Unit =
   {
     val painter = text_area.getPainter
 
@@ -246,7 +246,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     session.commands_changed += main
   }
 
-  private def deactivate()
+  private def deactivate(): Unit =
   {
     val painter = text_area.getPainter
 

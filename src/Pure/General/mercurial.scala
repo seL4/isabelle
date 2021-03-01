@@ -119,7 +119,8 @@ object Mercurial
 
     def parent(): String = log(rev = "p1()", template = "{node|short}")
 
-    def push(remote: String = "", rev: String = "", force: Boolean = false, options: String = "")
+    def push(
+      remote: String = "", rev: String = "", force: Boolean = false, options: String = ""): Unit =
     {
       hg.command("push", opt_rev(rev) + opt_flag("--force", force) + optional(remote), options).
         check_rc(rc => rc == 0 | rc == 1)
@@ -129,7 +130,7 @@ object Mercurial
       hg.command("pull", opt_rev(rev) + optional(remote), options).check
 
     def update(
-      rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
+      rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = ""): Unit =
     {
       hg.command("update",
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
@@ -161,7 +162,7 @@ object Mercurial
     val outside = new mutable.ListBuffer[Path]
     val unknown = new mutable.ListBuffer[Path]
 
-    @tailrec def check(paths: List[Path])
+    @tailrec def check(paths: List[Path]): Unit =
     {
       paths match {
         case path :: rest =>
@@ -185,7 +186,7 @@ object Mercurial
 
   /* setup remote vs. local repository */
 
-  private def edit_hgrc(local_hg: Repository, path_name: String, source: String)
+  private def edit_hgrc(local_hg: Repository, path_name: String, source: String): Unit =
   {
     val hgrc = local_hg.root + Path.explode(".hg/hgrc")
     def header(line: String): Boolean = line.startsWith("[paths]")
@@ -230,7 +231,7 @@ object Mercurial
     remote_name: String = "",
     path_name: String = default_path_name,
     remote_exists: Boolean = false,
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     /* local repository */
 

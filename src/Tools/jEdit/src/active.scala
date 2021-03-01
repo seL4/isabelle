@@ -24,7 +24,7 @@ object Active
     ServiceManager.getServiceNames(classOf[Handler]).toList
       .map(ServiceManager.getService(classOf[Handler], _))
 
-  def action(view: View, text: String, elem: XML.Elem)
+  def action(view: View, text: String, elem: XML.Elem): Unit =
   {
     GUI_Thread.require {}
 

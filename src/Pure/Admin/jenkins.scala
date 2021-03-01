@@ -40,7 +40,7 @@ object Jenkins
 
 
   def download_logs(
-    options: Options, job_names: List[String], dir: Path, progress: Progress = new Progress)
+    options: Options, job_names: List[String], dir: Path, progress: Progress = new Progress): Unit =
   {
     val store = Sessions.store(options)
     val infos = job_names.flatMap(build_job_infos)
@@ -96,7 +96,7 @@ object Jenkins
       }
     }
 
-    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress)
+    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress): Unit =
     {
       val log_dir = dir + Build_Log.log_subdir(date)
       val log_path = log_dir + log_filename.xz

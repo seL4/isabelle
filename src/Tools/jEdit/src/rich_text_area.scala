@@ -107,7 +107,7 @@ class Rich_Text_Area(
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       painter_rendering = get_rendering()
       painter_clip = gfx.getClip
@@ -123,7 +123,7 @@ class Rich_Text_Area(
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       painter_rendering = null
       painter_clip = null
@@ -131,7 +131,7 @@ class Rich_Text_Area(
     }
   }
 
-  def robust_rendering(body: JEdit_Rendering => Unit)
+  def robust_rendering(body: JEdit_Rendering => Unit): Unit =
   {
     robust_body(()) { body(painter_rendering) }
   }
@@ -149,7 +149,7 @@ class Rich_Text_Area(
     def text_info: Option[(String, Text.Info[A])] = the_text_info
     def info: Option[Text.Info[A]] = the_text_info.map(_._2)
 
-    def update(new_info: Option[Text.Info[A]])
+    def update(new_info: Option[Text.Info[A]]): Unit =
     {
       val old_text_info = the_text_info
       val new_text_info =
@@ -173,10 +173,10 @@ class Rich_Text_Area(
       }
     }
 
-    def update_rendering(r: JEdit_Rendering, range: Text.Range)
-    { update(rendering(r)(range)) }
+    def update_rendering(r: JEdit_Rendering, range: Text.Range): Unit =
+      update(rendering(r)(range))
 
-    def reset { update(None) }
+    def reset: Unit = update(None)
   }
 
   // owned by GUI thread
@@ -201,16 +201,17 @@ class Rich_Text_Area(
     active_areas.exists({ case (area, _) => area.is_active })
 
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { robust_body(()) { active_reset() } }
+    override def focusLost(e: FocusEvent): Unit = { robust_body(()) { active_reset() } }
   }
 
   private val window_listener = new WindowAdapter {
-    override def windowIconified(e: WindowEvent) { robust_body(()) { active_reset() } }
-    override def windowDeactivated(e: WindowEvent) { robust_body(()) { active_reset() } }
+    override def windowIconified(e: WindowEvent): Unit = { robust_body(()) { active_reset() } }
+    override def windowDeactivated(e: WindowEvent): Unit = { robust_body(()) { active_reset() } }
   }
 
   private val mouse_listener = new MouseAdapter {
-    override def mouseClicked(e: MouseEvent) {
+    override def mouseClicked(e: MouseEvent): Unit =
+    {
       robust_body(()) {
         hyperlink_area.info match {
           case Some(Text.Info(range, link)) =>
@@ -246,7 +247,8 @@ class Rich_Text_Area(
     }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
-    override def mouseDragged(evt: MouseEvent) {
+    override def mouseDragged(evt: MouseEvent): Unit =
+    {
       robust_body(()) {
         active_reset()
         Completion_Popup.Text_Area.dismissed(text_area)
@@ -254,7 +256,8 @@ class Rich_Text_Area(
       }
     }
 
-    override def mouseMoved(evt: MouseEvent) {
+    override def mouseMoved(evt: MouseEvent): Unit =
+    {
       robust_body(()) {
         val x = evt.getX
         val y = evt.getY
@@ -311,7 +314,7 @@ class Rich_Text_Area(
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       robust_rendering { rendering =>
         val fm = text_area.getPainter.getFontMetrics
@@ -489,7 +492,7 @@ class Rich_Text_Area(
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       robust_rendering { rendering =>
         val painter = text_area.getPainter
@@ -550,7 +553,7 @@ class Rich_Text_Area(
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int): Unit =
     {
       robust_rendering { rendering =>
         val search_pattern = get_search_pattern()
@@ -633,7 +636,7 @@ class Rich_Text_Area(
   private class Caret_Painter(before: Boolean) extends TextAreaExtension
   {
     override def paintValidLine(gfx: Graphics2D,
-      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int): Unit =
     {
       robust_rendering { _ =>
         if (before) gfx.clipRect(0, 0, 0, 0)
@@ -650,7 +653,7 @@ class Rich_Text_Area(
   private val caret_painter = new TextAreaExtension
   {
     override def paintValidLine(gfx: Graphics2D,
-      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int): Unit =
     {
       robust_rendering { rendering =>
         if (caret_visible) {
@@ -683,7 +686,7 @@ class Rich_Text_Area(
 
   /* activation */
 
-  def activate()
+  def activate(): Unit =
   {
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_state)
@@ -704,7 +707,7 @@ class Rich_Text_Area(
     view.addWindowListener(window_listener)
   }
 
-  def deactivate()
+  def deactivate(): Unit =
   {
     active_reset()
     val painter = text_area.getPainter

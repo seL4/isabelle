@@ -80,7 +80,7 @@ object Isabelle_System
 
       if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
 
-      def set_cygwin_root()
+      def set_cygwin_root(): Unit =
       {
         if (Platform.is_windows)
           _settings = Some(_settings.getOrElse(Map.empty) + ("CYGWIN_ROOT" -> cygwin_root1))
@@ -284,7 +284,7 @@ object Isabelle_System
 
   /* move files */
 
-  def move_file(src: JFile, dst: JFile)
+  def move_file(src: JFile, dst: JFile): Unit =
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target))
@@ -296,7 +296,7 @@ object Isabelle_System
 
   /* symbolic link */
 
-  def symlink(src: Path, dst: Path, force: Boolean = false)
+  def symlink(src: Path, dst: Path, force: Boolean = false): Unit =
   {
     val src_file = src.file
     val dst_file = dst.file
@@ -391,7 +391,7 @@ object Isabelle_System
 
   /* quasi-atomic update of directory */
 
-  def update_directory(dir: Path, f: Path => Unit)
+  def update_directory(dir: Path, f: Path => Unit): Unit =
   {
     val new_dir = dir.ext("new")
     val old_dir = dir.ext("old")
@@ -488,7 +488,7 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def require_command(cmds: String*)
+  def require_command(cmds: String*): Unit =
   {
     for (cmd <- cmds) {
       if (!bash(Bash.string(cmd) + " --version").ok) error("Missing command: " + quote(cmd))

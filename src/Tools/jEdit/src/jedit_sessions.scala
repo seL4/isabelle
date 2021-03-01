@@ -134,7 +134,7 @@ object JEdit_Sessions
       infos = PIDE.resources.session_base_info.infos).rc
   }
 
-  def session_start(options0: Options)
+  def session_start(options0: Options): Unit =
   {
     val session = PIDE.session
     val options = session_options(options0)
