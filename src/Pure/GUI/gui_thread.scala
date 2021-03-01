@@ -39,7 +39,7 @@ object GUI_Thread
     }
   }
 
-  def later(body: => Unit)
+  def later(body: => Unit): Unit =
   {
     if (SwingUtilities.isEventDispatchThread) body
     else SwingUtilities.invokeLater(() => body)

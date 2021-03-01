@@ -39,9 +39,9 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
       var entry: Entry = null
-      override def paintComponent(gfx: Graphics2D)
+      override def paintComponent(gfx: Graphics2D): Unit =
       {
-        def paint_rectangle(color: Color)
+        def paint_rectangle(color: Color): Unit =
         {
           val size = peer.getSize()
           val insets = border.getBorderInsets(peer)
@@ -81,7 +81,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     def timing: Double
     def print: String
-    def follow(snapshot: Document.Snapshot)
+    def follow(snapshot: Document.Snapshot): Unit
   }
 
   private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
@@ -89,15 +89,16 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     def print: String =
       Time.print_seconds(timing) + "s theory " + quote(name.theory)
-    def follow(snapshot: Document.Snapshot) { PIDE.editor.goto_file(true, view, name.node) }
+    def follow(snapshot: Document.Snapshot): Unit =
+      PIDE.editor.goto_file(true, view, name.node)
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry
   {
     def print: String =
       "  " + Time.print_seconds(timing) + "s command " + quote(command.span.name)
-    def follow(snapshot: Document.Snapshot)
-    { PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view)) }
+    def follow(snapshot: Document.Snapshot): Unit =
+      PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view))
   }
 
 
@@ -175,7 +176,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       else List(entry))
   }
 
-  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
+  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None): Unit =
   {
     GUI_Thread.require {}
 
@@ -211,13 +212,13 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         GUI_Thread.later { handle_update(Some(changed.nodes)) }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.commands_changed += main
     handle_update()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.commands_changed -= main
   }

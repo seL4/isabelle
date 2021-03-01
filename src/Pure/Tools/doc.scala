@@ -84,7 +84,7 @@ object Doc
 
   /* view */
 
-  def view(path: Path)
+  def view(path: Path): Unit =
   {
     if (path.is_file) Output.writeln(Library.trim_line(File.read(path)), stdout = true)
     else {

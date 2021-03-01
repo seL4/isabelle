@@ -19,7 +19,7 @@ object Build_E
     download_url: String = default_download_url,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current): Unit =
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {

@@ -31,7 +31,7 @@ class Mutator_Dialog(
 
   private var _panels: List[Mutator_Panel] = Nil
   private def panels = _panels
-  private def panels_=(panels: List[Mutator_Panel])
+  private def panels_=(panels: List[Mutator_Panel]): Unit =
   {
     _panels = panels
     paint_panels()
@@ -43,7 +43,7 @@ class Mutator_Dialog(
     case Mutator_Event.New_List(ms) => panels = get_panels(ms)
   }
 
-  override def open()
+  override def open(): Unit =
   {
     if (!visible) panels = get_panels(container())
     super.open
@@ -82,17 +82,17 @@ class Mutator_Dialog(
     panels = moveDown(panels)
   }
 
-  private def removePanel(m: Mutator_Panel)
+  private def removePanel(m: Mutator_Panel): Unit =
   {
     panels = panels.filter(_ != m).toList
   }
 
-  private def add_panel(m: Mutator_Panel)
+  private def add_panel(m: Mutator_Panel): Unit =
   {
     panels = panels ::: List(m)
   }
 
-  def paint_panels()
+  def paint_panels(): Unit =
   {
     Focus_Traveral_Policy.clear
     filter_panel.contents.clear
@@ -117,7 +117,7 @@ class Mutator_Dialog(
   private val add_button = new Button {
     action = Action("Add") {
       add_panel(
-        new Mutator_Panel(Mutator.Info(true, graphview.Colors.next, mutator_box.selection.item)))
+        new Mutator_Panel(Mutator.Info(true, graphview.Colors.next(), mutator_box.selection.item)))
     }
   }
 
@@ -351,9 +351,9 @@ class Mutator_Dialog(
   {
     private var items = Vector.empty[java.awt.Component]
 
-    def add(c: java.awt.Component) { items = items :+ c }
-    def addAll(cs: TraversableOnce[java.awt.Component]) { items = items ++ cs }
-    def clear() { items = Vector.empty }
+    def add(c: java.awt.Component): Unit = { items = items :+ c }
+    def addAll(cs: TraversableOnce[java.awt.Component]): Unit = { items = items ++ cs }
+    def clear(): Unit = { items = Vector.empty }
 
     def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
     {

@@ -19,7 +19,7 @@ object Mutator
   sealed case class Info(enabled: Boolean, color: Color, mutator: Mutator)
 
   def make(graphview: Graphview, m: Mutator): Info =
-    Info(true, graphview.Colors.next, m)
+    Info(true, graphview.Colors.next(), m)
 
   class Graph_Filter(
     val name: String,

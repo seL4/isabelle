@@ -94,7 +94,7 @@ object JEdit_Sessions
     val component = new ComboBox(entries) with Option_Component {
       name = jedit_logic_option
       val title = "Logic"
-      def load: Unit =
+      def load(): Unit =
       {
         val logic = options.string(jedit_logic_option)
         entries.find(_.name == logic) match {
@@ -102,7 +102,7 @@ object JEdit_Sessions
           case None =>
         }
       }
-      def save: Unit = options.string(jedit_logic_option) = selection.item.name
+      def save(): Unit = options.string(jedit_logic_option) = selection.item.name
     }
 
     component.load()
@@ -134,7 +134,7 @@ object JEdit_Sessions
       infos = PIDE.resources.session_base_info.infos).rc
   }
 
-  def session_start(options0: Options)
+  def session_start(options0: Options): Unit =
   {
     val session = PIDE.session
     val options = session_options(options0)

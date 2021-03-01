@@ -20,7 +20,7 @@ object Isabelle_Devel
 
   /* index */
 
-  def make_index()
+  def make_index(): Unit =
   {
     val redirect = "https://isabelle-dev.sketis.net/home/menu/view/20"
 
@@ -38,7 +38,7 @@ object Isabelle_Devel
     options: Options,
     rev: String = "",
     afp_rev: String = "",
-    parallel_jobs: Int = 1)
+    parallel_jobs: Int = 1): Unit =
   {
     Isabelle_System.with_tmp_dir("isadist")(base_dir =>
       {
@@ -54,7 +54,7 @@ object Isabelle_Devel
 
   /* maintain build_log database */
 
-  def build_log_database(options: Options, log_dirs: List[Path])
+  def build_log_database(options: Options, log_dirs: List[Path]): Unit =
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
@@ -68,7 +68,7 @@ object Isabelle_Devel
 
   /* present build status */
 
-  def build_status(options: Options)
+  def build_status(options: Options): Unit =
   {
     Isabelle_System.update_directory(root + Path.explode(BUILD_STATUS),
       dir => Build_Status.build_status(options, target_dir = dir, ml_statistics = true))

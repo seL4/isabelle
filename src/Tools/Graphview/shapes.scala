@@ -23,7 +23,7 @@ object Shapes
   def shape(info: Layout.Info): Rectangle2D.Double =
     new Rectangle2D.Double(info.x - info.width2, info.y - info.height2, info.width, info.height)
 
-  def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node)
+  def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit =
   {
     val metrics = graphview.metrics
     val extra = metrics.char_width
@@ -37,7 +37,7 @@ object Shapes
       info.height + 2 * extra))
   }
 
-  def paint_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node)
+  def paint_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit =
   {
     val metrics = graphview.metrics
     val info = graphview.layout.get_node(node)
@@ -66,7 +66,7 @@ object Shapes
     }
   }
 
-  def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info)
+  def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info): Unit =
   {
     gfx.setStroke(default_stroke)
     gfx.setColor(graphview.dummy_color)
@@ -75,7 +75,7 @@ object Shapes
 
   object Straight_Edge
   {
-    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge)
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit =
     {
       val p = graphview.layout.get_node(edge._1)
       val q = graphview.layout.get_node(edge._2)
@@ -105,7 +105,7 @@ object Shapes
   {
     private val slack = 0.1
 
-    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge)
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge): Unit =
     {
       val p = graphview.layout.get_node(edge._1)
       val q = graphview.layout.get_node(edge._2)
@@ -210,7 +210,7 @@ object Shapes
       }
     }
 
-    def paint(gfx: Graphics2D, path: GeneralPath, shape: Shape)
+    def paint(gfx: Graphics2D, path: GeneralPath, shape: Shape): Unit =
     {
       position(path, shape) match {
         case None =>

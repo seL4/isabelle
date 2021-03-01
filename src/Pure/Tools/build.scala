@@ -142,7 +142,7 @@ object Build
         skip(name)
           || !graph.defined(name)  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
           || !graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name))) }
+      if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
     }
   }
@@ -302,10 +302,8 @@ object Build
         }
     }
 
-    def sleep()
-    {
+    def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop) { Time.seconds(0.5).sleep }
-    }
 
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
 

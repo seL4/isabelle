@@ -87,7 +87,7 @@ object Bibtex
     def make_pos(length: Int): Position.T =
       Position.Offset(offset) ::: Position.End_Offset(offset + length) ::: Position.Line(line)
 
-    def advance_pos(tok: Token)
+    def advance_pos(tok: Token): Unit =
     {
       for (s <- Symbol.iterator(tok.source)) {
         if (Symbol.is_newline(s)) line += 1

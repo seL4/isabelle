@@ -14,8 +14,6 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
 import java.nio.file.attribute.BasicFileAttributes
 
 
-import scala.annotation.tailrec
-
 
 object Isabelle_System
 {
@@ -82,7 +80,7 @@ object Isabelle_System
 
       if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
 
-      def set_cygwin_root()
+      def set_cygwin_root(): Unit =
       {
         if (Platform.is_windows)
           _settings = Some(_settings.getOrElse(Map.empty) + ("CYGWIN_ROOT" -> cygwin_root1))
@@ -129,7 +127,7 @@ object Isabelle_System
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- File.read(dump).split("\u0000") if entry != "") yield {
+            (for (entry <- Library.split_strings0(File.read(dump)) if entry != "") yield {
               val i = entry.indexOf('=')
               if (i <= 0) entry -> ""
               else entry.substring(0, i) -> entry.substring(i + 1)
@@ -183,7 +181,7 @@ object Isabelle_System
   /* scala functions */
 
   private def apply_paths(arg: String, fun: List[Path] => Unit): String =
-    { fun(Library.space_explode('\u0000', arg).map(Path.explode)); "" }
+    { fun(Library.split_strings0(arg).map(Path.explode)); "" }
 
   private def apply_paths1(arg: String, fun: Path => Unit): String =
     apply_paths(arg, { case List(path) => fun(path) })
@@ -286,7 +284,7 @@ object Isabelle_System
 
   /* move files */
 
-  def move_file(src: JFile, dst: JFile)
+  def move_file(src: JFile, dst: JFile): Unit =
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target))
@@ -298,7 +296,7 @@ object Isabelle_System
 
   /* symbolic link */
 
-  def symlink(src: Path, dst: Path, force: Boolean = false)
+  def symlink(src: Path, dst: Path, force: Boolean = false): Unit =
   {
     val src_file = src.file
     val dst_file = dst.file
@@ -393,7 +391,7 @@ object Isabelle_System
 
   /* quasi-atomic update of directory */
 
-  def update_directory(dir: Path, f: Path => Unit)
+  def update_directory(dir: Path, f: Path => Unit): Unit =
   {
     val new_dir = dir.ext("new")
     val old_dir = dir.ext("old")
@@ -490,7 +488,7 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def require_command(cmds: String*)
+  def require_command(cmds: String*): Unit =
   {
     for (cmd <- cmds) {
       if (!bash(Bash.string(cmd) + " --version").ok) error("Missing command: " + quote(cmd))
@@ -549,26 +547,21 @@ object Isabelle_System
 
   /* download file */
 
-  private lazy val curl_check: Unit =
-    try { require_command("curl") }
-    catch { case ERROR(msg) => error(msg + " --- cannot download files") }
-
-  def download(url: String, file: Path, progress: Progress = new Progress): Unit =
+  def download(url_name: String, file: Path, progress: Progress = new Progress): Unit =
   {
-    curl_check
-    progress.echo("Getting " + quote(url))
-    try {
-      bash("curl --fail --silent --location " + Bash.string(url) +
-        " > " + File.bash_path(file)).check
-    }
-    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url), msg) }
+    val url = Url(url_name)
+    progress.echo("Getting " + quote(url_name))
+    val bytes =
+      try { Url.read_bytes(url) }
+      catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
+    Bytes.write(file, bytes)
   }
 
   object Download extends Scala.Fun("download")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =
-      Library.space_explode('\u0000', arg) match {
+      Library.split_strings0(arg) match {
         case List(url, file) => download(url, Path.explode(file)); ""
       }
   }

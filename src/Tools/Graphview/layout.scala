@@ -294,10 +294,12 @@ object Layout
           val r = level(i)
           val d = r.deflection(graph, top_down)
           val dx =
-            if (d < 0.0 && i > 0)
+            if (d < 0.0 && i > 0) {
               - (level(i - 1).distance(metrics, graph, r) min (- d))
-            else if (d >= 0.0 && i < level.length - 1)
+            }
+            else if (d >= 0.0 && i < level.length - 1) {
               r.distance(metrics, graph, level(i + 1)) min d
+            }
             else d
           (r.move(graph, dx), moved || d != 0.0)
       }
@@ -396,7 +398,7 @@ final class Layout private(
     new Iterator[Layout.Info] {
       private var index = 0
       def hasNext: Boolean = output_graph.defined(Layout.Dummy(edge._1, edge._2, index))
-      def next: Layout.Info =
+      def next(): Layout.Info =
       {
         val info = output_graph.get_node(Layout.Dummy(edge._1, edge._2, index))
         index += 1

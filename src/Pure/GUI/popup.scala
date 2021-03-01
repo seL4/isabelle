@@ -17,7 +17,7 @@ class Popup(
   location: Point,
   size: Dimension)
 {
-  def show
+  def show: Unit =
   {
     component.setLocation(location)
     component.setSize(size)
@@ -28,7 +28,7 @@ class Popup(
     layered.repaint(component.getBounds())
   }
 
-  def hide
+  def hide: Unit =
   {
     val bounds = component.getBounds()
     layered.remove(component)

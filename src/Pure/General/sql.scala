@@ -196,8 +196,8 @@ object SQL
 
     object bool
     {
-      def update(i: Int, x: Boolean) { rep.setBoolean(i, x) }
-      def update(i: Int, x: Option[Boolean])
+      def update(i: Int, x: Boolean): Unit = rep.setBoolean(i, x)
+      def update(i: Int, x: Option[Boolean]): Unit =
       {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.BOOLEAN)
@@ -205,8 +205,8 @@ object SQL
     }
     object int
     {
-      def update(i: Int, x: Int) { rep.setInt(i, x) }
-      def update(i: Int, x: Option[Int])
+      def update(i: Int, x: Int): Unit = rep.setInt(i, x)
+      def update(i: Int, x: Option[Int]): Unit =
       {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.INTEGER)
@@ -214,8 +214,8 @@ object SQL
     }
     object long
     {
-      def update(i: Int, x: Long) { rep.setLong(i, x) }
-      def update(i: Int, x: Option[Long])
+      def update(i: Int, x: Long): Unit = rep.setLong(i, x)
+      def update(i: Int, x: Option[Long]): Unit =
       {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.BIGINT)
@@ -223,8 +223,8 @@ object SQL
     }
     object double
     {
-      def update(i: Int, x: Double) { rep.setDouble(i, x) }
-      def update(i: Int, x: Option[Double])
+      def update(i: Int, x: Double): Unit = rep.setDouble(i, x)
+      def update(i: Int, x: Option[Double]): Unit =
       {
         if (x.isDefined) update(i, x.get)
         else rep.setNull(i, java.sql.Types.DOUBLE)
@@ -232,12 +232,12 @@ object SQL
     }
     object string
     {
-      def update(i: Int, x: String) { rep.setString(i, x) }
+      def update(i: Int, x: String): Unit = rep.setString(i, x)
       def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
     }
     object bytes
     {
-      def update(i: Int, bytes: Bytes)
+      def update(i: Int, bytes: Bytes): Unit =
       {
         if (bytes == null) rep.setBytes(i, null)
         else rep.setBinaryStream(i, bytes.stream(), bytes.length)
@@ -269,7 +269,7 @@ object SQL
     {
       private var _next: Boolean = res.next()
       def hasNext: Boolean = _next
-      def next: A = { val x = get(res); _next = res.next(); x }
+      def next(): A = { val x = get(res); _next = res.next(); x }
     }
 
     def bool(column: Column): Boolean = rep.getBoolean(column.name)
@@ -322,7 +322,7 @@ object SQL
 
     def connection: Connection
 
-    def close() { connection.close }
+    def close(): Unit = connection.close
 
     def transaction[A](body: => A): A =
     {
@@ -432,7 +432,7 @@ object SQLite
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
 
-    def rebuild { using_statement("VACUUM")(_.execute()) }
+    def rebuild: Unit = using_statement("VACUUM")(_.execute())
   }
 }
 
@@ -509,6 +509,6 @@ object PostgreSQL
       table.insert_cmd("INSERT",
         sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 
-    override def close() { super.close; port_forwarding.foreach(_.close) }
+    override def close(): Unit = { super.close; port_forwarding.foreach(_.close) }
   }
 }

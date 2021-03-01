@@ -67,7 +67,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
     new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
   }
 
-  def update_layout()
+  def update_layout(): Unit =
   {
     val metrics = Metrics(make_font())
     val visible_graph = model.make_visible_graph()
@@ -139,7 +139,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
     }
   }
 
-  def paint(gfx: Graphics2D)
+  def paint(gfx: Graphics2D): Unit =
   {
     gfx.setRenderingHints(Metrics.rendering_hints)
 

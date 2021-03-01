@@ -37,7 +37,7 @@ object Update_Cartouches
     }
   }
 
-  def update_cartouches(replace_text: Boolean, path: Path)
+  def update_cartouches(replace_text: Boolean, path: Path): Unit =
   {
     val text0 = File.read(path)
 

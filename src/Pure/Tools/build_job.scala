@@ -90,7 +90,7 @@ object Build_Job
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Symbol.Metric,
-    unicode_symbols: Boolean = false)
+    unicode_symbols: Boolean = false): Unit =
   {
     val store = Sessions.store(options)
 
@@ -254,7 +254,7 @@ class Build_Job(progress: Progress,
 
         def result: Exn.Result[List[String]] = promise.join_result
         def cancel: Unit = promise.cancel
-        def apply(errs: List[String])
+        def apply(errs: List[String]): Unit =
         {
           try { promise.fulfill(errs) }
           catch { case _: IllegalStateException => }
@@ -286,7 +286,7 @@ class Build_Job(progress: Progress,
 
       session.init_protocol_handler(new Session.Protocol_Handler
         {
-          override def exit() { Build_Session_Errors.cancel }
+          override def exit(): Unit = Build_Session_Errors.cancel
 
           private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
           {
@@ -357,7 +357,7 @@ class Build_Job(progress: Progress,
           case snapshot =>
             val rendering = new Rendering(snapshot, options, session)
 
-            def export(name: String, xml: XML.Body, compress: Boolean = true)
+            def export(name: String, xml: XML.Body, compress: Boolean = true): Unit =
             {
               val theory_name = snapshot.node_name.theory
               val args =

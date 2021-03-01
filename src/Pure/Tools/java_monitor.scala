@@ -26,7 +26,7 @@ object Java_Monitor
   def java_monitor_internal(
     pid: Long = default_pid,
     look_and_feel: String = "",
-    update_interval: Time = default_update_interval)
+    update_interval: Time = default_update_interval): Unit =
   {
     val vm =
       if (pid.toInt.toLong == pid) LocalVirtualMachine.getLocalVirtualMachine(pid.toInt)
@@ -102,7 +102,7 @@ object Java_Monitor
     parent: Component,
     pid: Long = default_pid,
     look_and_feel: String = "",
-    update_interval: Time = default_update_interval)
+    update_interval: Time = default_update_interval): Unit =
   {
     Future.thread(name = "java_monitor", daemon = true) {
       try {
@@ -124,7 +124,7 @@ object Java_Monitor
 
   /* command line entry point */
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var look_and_feel = ""

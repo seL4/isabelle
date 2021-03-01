@@ -138,7 +138,7 @@ object Dump
 
     def session_dirs: List[Path] = dirs ::: select_dirs
 
-    def build_logic(logic: String)
+    def build_logic(logic: String): Unit =
     {
       Build.build_logic(options, logic, build_heap = true, progress = progress,
         dirs = session_dirs, strict = true)
@@ -226,12 +226,12 @@ object Dump
 
     private val errors = Synchronized(List.empty[String])
 
-    def add_errors(more_errs: List[String])
+    def add_errors(more_errs: List[String]): Unit =
     {
       errors.change(errs => errs ::: more_errs)
     }
 
-    def check_errors
+    def check_errors: Unit =
     {
       val errs = errors.value
       if (errs.nonEmpty) error(errs.mkString("\n\n"))
@@ -289,7 +289,7 @@ object Dump
 
     /* process */
 
-    def process(process_theory: Args => Unit, unicode_symbols: Boolean = false)
+    def process(process_theory: Args => Unit, unicode_symbols: Boolean = false): Unit =
     {
       val session = resources.start_session(progress = progress)
 
@@ -394,7 +394,7 @@ object Dump
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
-    selection: Sessions.Selection = Sessions.Selection.empty)
+    selection: Sessions.Selection = Sessions.Selection.empty): Unit =
   {
     val context =
       Context(options, aspects = aspects, progress = progress, dirs = dirs,

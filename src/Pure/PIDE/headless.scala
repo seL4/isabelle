@@ -278,7 +278,7 @@ object Headless
         Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
       }
 
-      def check_state(beyond_limit: Boolean = false)
+      def check_state(beyond_limit: Boolean = false): Unit =
       {
         val state = session.get_state()
         for {
@@ -589,7 +589,7 @@ object Headless
       theories: List[Document.Node.Name],
       files: List[Document.Node.Name],
       unicode_symbols: Boolean,
-      progress: Progress)
+      progress: Progress): Unit =
     {
       val loaded_theories =
         for (node_name <- theories)
@@ -627,7 +627,7 @@ object Headless
         })
     }
 
-    def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
+    def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit =
     {
       state.change(st =>
       {
@@ -637,7 +637,7 @@ object Headless
       })
     }
 
-    def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
+    def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name]): Unit =
     {
       state.change(st =>
       {

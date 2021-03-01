@@ -23,7 +23,8 @@ object Syntax_Style
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
-  private def check_range(i: Int) { require(0 <= i && i < plain_range, "bad syntax style range") }
+  private def check_range(i: Int): Unit =
+    require(0 <= i && i < plain_range, "bad syntax style range")
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
@@ -107,7 +108,7 @@ object Syntax_Style
   def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
     var result = Map[Text.Offset, Byte => Byte]()
-    def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte)
+    def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte): Unit =
     {
       for (i <- start until stop) result += (i -> style)
     }
@@ -148,7 +149,7 @@ object Syntax_Style
 
   /* editing support for control symbols */
 
-  def edit_control_style(text_area: TextArea, control_sym: String)
+  def edit_control_style(text_area: TextArea, control_sym: String): Unit =
   {
     GUI_Thread.assert {}
 

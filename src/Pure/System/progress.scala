@@ -25,19 +25,19 @@ object Progress
 
 class Progress
 {
-  def echo(msg: String) {}
-  def echo_if(cond: Boolean, msg: String) { if (cond) echo(msg) }
-  def theory(theory: Progress.Theory) {}
-  def nodes_status(nodes_status: Document_Status.Nodes_Status) {}
+  def echo(msg: String): Unit = {}
+  def echo_if(cond: Boolean, msg: String): Unit = { if (cond) echo(msg) }
+  def theory(theory: Progress.Theory): Unit = {}
+  def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
 
-  def echo_warning(msg: String) { echo(Output.warning_text(msg)) }
-  def echo_error_message(msg: String) { echo(Output.error_message_text(msg)) }
+  def echo_warning(msg: String): Unit = echo(Output.warning_text(msg))
+  def echo_error_message(msg: String): Unit = echo(Output.error_message_text(msg))
 
   def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
     Timing.timeit(message, enabled, echo)(e)
 
   @volatile protected var is_stopped = false
-  def stop { is_stopped = true }
+  def stop: Unit = { is_stopped = true }
   def stopped: Boolean =
   {
     if (Thread.interrupted) is_stopped = true
@@ -45,7 +45,7 @@ class Progress
   }
 
   def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop } { e }
-  def expose_interrupt() { if (stopped) throw Exn.Interrupt() }
+  def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
   def bash(script: String,

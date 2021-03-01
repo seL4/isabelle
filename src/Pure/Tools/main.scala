@@ -14,7 +14,7 @@ object Main
 {
   /* main entry point */
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     if (args.nonEmpty && args(0) == "-init") {
       Isabelle_System.init()
@@ -108,7 +108,7 @@ object Main
 
           /* environment */
 
-          def putenv(name: String, value: String)
+          def putenv(name: String, value: String): Unit =
           {
             val misc =
               Class.forName("org.gjt.sp.jedit.MiscUtilities", true, ClassLoader.getSystemClassLoader)

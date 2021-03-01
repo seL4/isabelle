@@ -23,8 +23,8 @@ object Mutator_Event
   {
     private val receivers = Synchronized[List[Receiver]](Nil)
 
-    def += (r: Receiver) { receivers.change(Library.insert(r)) }
-    def -= (r: Receiver) { receivers.change(Library.remove(r)) }
-    def event(x: Message) { receivers.value.reverse.foreach(r => r(x)) }
+    def += (r: Receiver): Unit = receivers.change(Library.insert(r))
+    def -= (r: Receiver): Unit = receivers.change(Library.remove(r))
+    def event(x: Message): Unit = receivers.value.reverse.foreach(r => r(x))
   }
 }

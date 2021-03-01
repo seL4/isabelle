@@ -14,7 +14,7 @@ object Build_SQLite
   def build_sqlite(
     download_url: String,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current): Unit =
   {
     val Download_Name = """^.*/([^/]+)\.jar""".r
     val download_name =

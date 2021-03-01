@@ -80,7 +80,7 @@ object Isabelle_Session
 
   /* open browser */
 
-  def open_browser(view: View)
+  def open_browser(view: View): Unit =
   {
     val path =
       PIDE.maybe_snapshot(view) match {

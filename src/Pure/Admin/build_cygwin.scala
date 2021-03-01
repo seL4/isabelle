@@ -16,7 +16,7 @@ object Build_Cygwin
 
   def build_cygwin(progress: Progress,
     mirror: String = default_mirror,
-    more_packages: List[String] = Nil)
+    more_packages: List[String] = Nil): Unit =
   {
     require(Platform.is_windows, "Windows platform expected")
 

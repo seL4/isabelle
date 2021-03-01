@@ -32,7 +32,7 @@ object UTF8
     val buf = new java.lang.StringBuilder(text.length)
     var code = -1
     var rest = 0
-    def flush()
+    def flush(): Unit =
     {
       if (code != -1) {
         if (rest == 0 && Character.isValidCodePoint(code))
@@ -42,13 +42,13 @@ object UTF8
         rest = 0
       }
     }
-    def init(x: Int, n: Int)
+    def init(x: Int, n: Int): Unit =
     {
       flush()
       code = x
       rest = n
     }
-    def push(x: Int)
+    def push(x: Int): Unit =
     {
       if (rest <= 0) init(x, -1)
       else {

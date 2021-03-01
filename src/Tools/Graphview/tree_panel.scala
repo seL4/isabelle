@@ -23,7 +23,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
 {
   /* main actions */
 
-  private def selection_action()
+  private def selection_action(): Unit =
   {
     if (tree != null) {
       graphview.current_node = None
@@ -45,7 +45,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
     }
   }
 
-  private def point_action(path: TreePath)
+  private def point_action(path: TreePath): Unit =
   {
     if (tree_pane != null && path != null) {
       val action_node =
@@ -131,11 +131,12 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
         if (ok) selection_field_foreground else graphview.error_color
     }
 
-  selection_field.peer.getDocument.addDocumentListener(new DocumentListener {
-    def changedUpdate(e: DocumentEvent) { selection_delay.invoke() }
-    def insertUpdate(e: DocumentEvent) { selection_delay.invoke() }
-    def removeUpdate(e: DocumentEvent) { selection_delay.invoke() }
-  })
+  selection_field.peer.getDocument.addDocumentListener(
+    new DocumentListener {
+      def changedUpdate(e: DocumentEvent): Unit = selection_delay.invoke()
+      def insertUpdate(e: DocumentEvent): Unit = selection_delay.invoke()
+      def removeUpdate(e: DocumentEvent): Unit = selection_delay.invoke()
+    })
 
   private val selection_apply = new Button {
     action = Action("<html><b>Apply</b></html>") { selection_action () }
@@ -148,7 +149,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
 
   /* main layout */
 
-  def refresh()
+  def refresh(): Unit =
   {
     val new_nodes = graphview.visible_graph.topological_order
     if (new_nodes != nodes) {

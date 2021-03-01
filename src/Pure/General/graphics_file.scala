@@ -22,7 +22,8 @@ object Graphics_File
 {
   /* PNG */
 
-  def write_png(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int, dpi: Int = 72)
+  def write_png(
+    file: JFile, paint: Graphics2D => Unit, width: Int, height: Int, dpi: Int = 72): Unit =
   {
     val scale = dpi / 72.0f
     val w = (width * scale).round
@@ -54,7 +55,7 @@ object Graphics_File
     mapper
   }
 
-  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
+  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int): Unit =
   {
     import com.lowagie.text.{Document, Rectangle}
 
@@ -62,13 +63,13 @@ object Graphics_File
     {
       val document = new Document()
       try {
-        document.setPageSize(new Rectangle(width, height))
+        document.setPageSize(new Rectangle(width.toFloat, height.toFloat))
         val writer = PdfWriter.getInstance(document, out)
         document.open()
 
         val cb = writer.getDirectContent()
-        val tp = cb.createTemplate(width, height)
-        val gfx = tp.createGraphics(width, height, font_mapper())
+        val tp = cb.createTemplate(width.toFloat, height.toFloat)
+        val gfx = tp.createGraphics(width.toFloat, height.toFloat, font_mapper())
 
         paint(gfx)
         gfx.dispose

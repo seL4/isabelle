@@ -28,7 +28,7 @@ object Untyped
 
   def classes(obj: AnyRef): Iterator[Class[_ <: AnyRef]] = new Iterator[Class[_ <: AnyRef]] {
     private var next_elem: Class[_ <: AnyRef] = obj.getClass
-    def hasNext(): Boolean = next_elem != null
+    def hasNext: Boolean = next_elem != null
     def next(): Class[_ <: AnyRef] = {
       val c = next_elem
       next_elem = c.getSuperclass.asInstanceOf[Class[_ <: AnyRef]]
@@ -47,7 +47,7 @@ object Untyped
         field.setAccessible(true)
         field
       }
-    if (iterator.hasNext) iterator.next
+    if (iterator.hasNext) iterator.next()
     else error("No field " + quote(x) + " for " + obj)
   }
 

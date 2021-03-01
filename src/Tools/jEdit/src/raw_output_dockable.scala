@@ -32,6 +32,6 @@ class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, p
         }
     }
 
-  override def init() { PIDE.session.raw_output_messages += main }
-  override def exit() { PIDE.session.raw_output_messages -= main }
+  override def init(): Unit = { PIDE.session.raw_output_messages += main }
+  override def exit(): Unit = { PIDE.session.raw_output_messages -= main }
 }

@@ -192,7 +192,7 @@ object Scala
         }
       }
 
-    private def cancel(id: String, future: Future[Unit])
+    private def cancel(id: String, future: Future[Unit]): Unit =
     {
       future.cancel
       result(id, Scala.Tag.INTERRUPT, "")
@@ -202,7 +202,7 @@ object Scala
     {
       msg.properties match {
         case Markup.Invoke_Scala(name, id, thread) =>
-          def body
+          def body: Unit =
           {
             val (tag, res) = Scala.function(name, msg.text)
             result(id, tag, res)

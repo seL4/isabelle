@@ -72,7 +72,9 @@ fun read_file_node file_node master_dir pos delimited src_path =
 
     fun read_url () =
       let
-        val text = Isabelle_System.download file_node;
+        val text =
+          Isabelle_System.with_tmp_file "file" "" (fn file =>
+            (Isabelle_System.download file_node file; File.read file));
         val file_pos = Position.file file_node;
       in (text, file_pos) end;
 

@@ -17,11 +17,11 @@ object Cygwin
 {
   /* init (e.g. after extraction via 7zip) */
 
-  def init(isabelle_root: String, cygwin_root: String)
+  def init(isabelle_root: String, cygwin_root: String): Unit =
   {
     require(Platform.is_windows, "Windows platform expected")
 
-    def exec(cmdline: String*)
+    def exec(cmdline: String*): Unit =
     {
       val cwd = new JFile(isabelle_root)
       val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
@@ -56,7 +56,7 @@ object Cygwin
     }
   }
 
-  def link(content: String, target: JFile)
+  def link(content: String, target: JFile): Unit =
   {
     val target_path = target.toPath
 

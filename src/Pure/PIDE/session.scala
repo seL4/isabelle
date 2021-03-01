@@ -28,10 +28,10 @@ object Session
   {
     private val consumers = Synchronized[List[Consumer[A]]](Nil)
 
-    def += (c: Consumer[A]) { consumers.change(Library.update(c)) }
-    def -= (c: Consumer[A]) { consumers.change(Library.remove(c)) }
+    def += (c: Consumer[A]): Unit = consumers.change(Library.update(c))
+    def -= (c: Consumer[A]): Unit = consumers.change(Library.remove(c))
 
-    def post(a: A)
+    def post(a: A): Unit =
     {
       for (c <- consumers.value.iterator) {
         dispatcher.send(() =>
@@ -290,7 +290,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         delay_flush.invoke()
       }
 
-    def shutdown()
+    def shutdown(): Unit =
     {
       delay_flush.revoke()
       flush()
@@ -324,13 +324,13 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
     private val state = Synchronized(init_state)
 
-    def exit()
+    def exit(): Unit =
     {
       delay.revoke()
       state.change(_ => None)
     }
 
-    def update(new_nodes: Set[Document.Node.Name] = Set.empty)
+    def update(new_nodes: Set[Document.Node.Name] = Set.empty): Unit =
     {
       val active =
         state.change_result(st =>
@@ -351,9 +351,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
     def defined: Boolean = variable.value.isDefined
     def get: Prover = variable.value.get
-    def set(p: Prover) { variable.change(_ => Some(p)) }
-    def reset { variable.change(_ => None) }
-    def await_reset() { variable.guarded_access({ case None => Some((), None) case _ => None }) }
+    def set(p: Prover): Unit = variable.change(_ => Some(p))
+    def reset: Unit = variable.change(_ => None)
+    def await_reset(): Unit = variable.guarded_access({ case None => Some((), None) case _ => None })
   }
 
 
@@ -401,7 +401,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def handle_raw_edits(
       doc_blobs: Document.Blobs = Document.Blobs.empty,
       edits: List[Document.Edit_Text] = Nil,
-      consolidate: List[Document.Node.Name] = Nil)
+      consolidate: List[Document.Node.Name] = Nil): Unit =
     //{{{
     {
       require(prover.defined, "prover process not defined (handle_raw_edits)")
@@ -420,7 +420,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
     /* resulting changes */
 
-    def handle_change(change: Session.Change)
+    def handle_change(change: Session.Change): Unit =
     //{{{
     {
       require(prover.defined, "prover process not defined (handle_change)")
@@ -428,7 +428,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       // define commands
       {
         val id_commands = new mutable.ListBuffer[Command]
-        def id_command(command: Command)
+        def id_command(command: Command): Unit =
         {
           for {
             (name, digest) <- command.blobs_defined
@@ -467,16 +467,16 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
     /* prover output */
 
-    def handle_output(output: Prover.Output)
+    def handle_output(output: Prover.Output): Unit =
     //{{{
     {
-      def bad_output()
+      def bad_output(): Unit =
       {
         if (verbose)
           Output.warning("Ignoring bad prover output: " + output.message.toString)
       }
 
-      def change_command(f: Document.State => (Command.State, Document.State))
+      def change_command(f: Document.State => (Command.State, Document.State)): Unit =
       {
         try {
           val st = global_state.change_result(f)
@@ -721,7 +721,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     else snapshot
   }
 
-  def start(start_prover: Prover.Receiver => Prover)
+  def start(start_prover: Prover.Receiver => Prover): Unit =
   {
     file_formats
     _phase.change(
@@ -757,20 +757,18 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     }
   }
 
-  def protocol_command(name: String, args: String*)
-  { manager.send(Protocol_Command(name, args.toList)) }
+  def protocol_command(name: String, args: String*): Unit =
+    manager.send(Protocol_Command(name, args.toList))
 
-  def cancel_exec(exec_id: Document_ID.Exec)
-  { manager.send(Cancel_Exec(exec_id)) }
+  def cancel_exec(exec_id: Document_ID.Exec): Unit =
+    manager.send(Cancel_Exec(exec_id))
 
-  def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
-  {
+  def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text]): Unit =
     if (edits.nonEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits))
-  }
 
-  def update_options(options: Options)
-  { manager.send_wait(Update_Options(options)) }
+  def update_options(options: Options): Unit =
+    manager.send_wait(Update_Options(options))
 
-  def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
-  { manager.send(Session.Dialog_Result(id, serial, result)) }
+  def dialog_result(id: Document_ID.Generic, serial: Long, result: String): Unit =
+    manager.send(Session.Dialog_Result(id, serial, result))
 }

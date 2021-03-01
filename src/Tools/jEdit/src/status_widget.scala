@@ -50,7 +50,7 @@ object Status_Widget
 
     def get_status: (String, Double)
 
-    override def paintComponent(gfx: Graphics)
+    override def paintComponent(gfx: Graphics): Unit =
     {
       super.paintComponent(gfx)
 
@@ -89,7 +89,7 @@ object Status_Widget
     def action: String
 
     addMouseListener(new MouseAdapter {
-      override def mouseClicked(evt: MouseEvent)
+      override def mouseClicked(evt: MouseEvent): Unit =
       {
         if (evt.getClickCount == 2) {
           view.getInputHandler.invokeAction(action)
@@ -114,7 +114,7 @@ object Status_Widget
         status.heap_used_fraction)
     }
 
-    private def update_status(new_status: Java_Statistics.Memory_Status)
+    private def update_status(new_status: Java_Statistics.Memory_Status): Unit =
     {
       if (status != new_status) {
         status = new_status
@@ -127,18 +127,17 @@ object Status_Widget
 
     private val timer =
       new Timer(500, new ActionListener {
-        override def actionPerformed(e: ActionEvent) {
+        override def actionPerformed(e: ActionEvent): Unit =
           update_status(Java_Statistics.memory_status())
-        }
       })
 
-    override def addNotify()
+    override def addNotify(): Unit =
     {
       super.addNotify()
       timer.start()
     }
 
-    override def removeNotify()
+    override def removeNotify(): Unit =
     {
       super.removeNotify()
       timer.stop()
@@ -176,7 +175,7 @@ object Status_Widget
             status.heap_used_fraction)
       }
 
-    private def update_status(new_status: ML_Statistics.Memory_Status)
+    private def update_status(new_status: ML_Statistics.Memory_Status): Unit =
     {
       if (status != new_status) {
         status = new_status
@@ -194,13 +193,13 @@ object Status_Widget
           GUI_Thread.later { update_status(status) }
       }
 
-    override def addNotify()
+    override def addNotify(): Unit =
     {
       super.addNotify()
       PIDE.session.runtime_statistics += main
     }
 
-    override def removeNotify()
+    override def removeNotify(): Unit =
     {
       super.removeNotify()
       PIDE.session.runtime_statistics -= main

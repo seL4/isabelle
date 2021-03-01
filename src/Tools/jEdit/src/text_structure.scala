@@ -45,7 +45,7 @@ object Text_Structure
     private val keyword_close = Keyword.proof_close
 
     def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
-      actions: java.util.List[IndentAction])
+      actions: java.util.List[IndentAction]): Unit =
     {
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -60,7 +60,7 @@ object Text_Structure
             else buffer.getCurrentIndentForLine(line, null)
 
           def line_head(line: Int): Option[Text.Info[Token]] =
-            nav.iterator(line, 1).toStream.headOption
+            nav.iterator(line, 1).nextOption()
 
           def head_is_quasi_command(line: Int): Boolean =
             line_head(line) match {
@@ -93,7 +93,7 @@ object Text_Structure
                   (for {
                     text_area <- JEdit_Lib.jedit_text_areas(buffer)
                     doc_view <- Document_View.get(text_area)
-                  } yield doc_view.get_rendering).toStream.headOption
+                  } yield doc_view.get_rendering).nextOption()
                 }
               else None
             val limit = PIDE.options.value.int("jedit_indent_script_limit")
@@ -221,7 +221,7 @@ object Text_Structure
       restrict: Token => Boolean,
       it: Iterator[Text.Info[Token]]): Option[(Text.Range, Text.Range)] =
     {
-      val range1 = it.next.range
+      val range1 = it.next().range
       it.takeWhile(info => !info.info.is_command || restrict(info.info)).
         scanLeft((range1, 1))(
           { case ((r, d), Text.Info(range, tok)) =>
@@ -327,7 +327,7 @@ object Text_Structure
         case None => null
       }
 
-    def selectMatch(text_area: TextArea)
+    def selectMatch(text_area: TextArea): Unit =
     {
       def get_span(offset: Text.Offset): Option[Text.Range] =
         for {

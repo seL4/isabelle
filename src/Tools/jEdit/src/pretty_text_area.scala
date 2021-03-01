@@ -53,7 +53,7 @@ class Pretty_Text_Area(
 
   def get_background(): Option[Color] = None
 
-  def refresh()
+  def refresh(): Unit =
   {
     GUI_Thread.require {}
 
@@ -116,7 +116,7 @@ class Pretty_Text_Area(
     }
   }
 
-  def resize(font_info: Font_Info)
+  def resize(font_info: Font_Info): Unit =
   {
     GUI_Thread.require {}
 
@@ -124,7 +124,8 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def update(base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body)
+  def update(
+    base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body): Unit =
   {
     GUI_Thread.require {}
     require(!base_snapshot.is_outdated, "document snapshot outdated")
@@ -135,7 +136,7 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def detach
+  def detach: Unit =
   {
     GUI_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
@@ -159,9 +160,9 @@ class Pretty_Text_Area(
             search_action(this)
           }
         getDocument.addDocumentListener(new DocumentListener {
-          def changedUpdate(e: DocumentEvent) { input_delay.invoke() }
-          def insertUpdate(e: DocumentEvent) { input_delay.invoke() }
-          def removeUpdate(e: DocumentEvent) { input_delay.invoke() }
+          def changedUpdate(e: DocumentEvent): Unit = input_delay.invoke()
+          def insertUpdate(e: DocumentEvent): Unit = input_delay.invoke()
+          def removeUpdate(e: DocumentEvent): Unit = input_delay.invoke()
         })
         setColumns(20)
         setToolTipText(search_label.tooltip)
@@ -170,7 +171,7 @@ class Pretty_Text_Area(
 
   private val search_field_foreground = search_field.foreground
 
-  private def search_action(text_field: JTextField)
+  private def search_action(text_field: JTextField): Unit =
   {
     val (pattern, ok) =
       text_field.getText match {
@@ -197,7 +198,7 @@ class Pretty_Text_Area(
     new DefaultInputHandlerProvider(new TextAreaInputHandler(text_area) {
       override def getAction(action: String): JEditBeanShellAction =
         text_area.getActionContext.getAction(action)
-      override def processKeyEvent(evt: KeyEvent, from: Int, global: Boolean) {}
+      override def processKeyEvent(evt: KeyEvent, from: Int, global: Boolean): Unit = {}
       override def handleKey(key: KeyEventTranslator.Key, dry_run: Boolean): Boolean = false
     })
 

@@ -179,7 +179,7 @@ object Build_Fonts
   /* hinting */
 
   // see https://www.freetype.org/ttfautohint/doc/ttfautohint.html
-  private def auto_hint(source: Path, target: Path)
+  private def auto_hint(source: Path, target: Path): Unit =
   {
     Isabelle_System.bash("ttfautohint -i " +
       File.bash_path(source) + " " + File.bash_path(target)).check
@@ -216,7 +216,7 @@ object Build_Fonts
     target_prefix: String = "Isabelle",
     target_version: String = "",
     target_dir: Path = default_target_dir,
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     progress.echo("Directory " + target_dir)
     hinting.foreach(hinted => Isabelle_System.make_directory(target_dir + hinted_path(hinted)))

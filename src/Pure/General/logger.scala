@@ -23,12 +23,12 @@ trait Logger
 
 object No_Logger extends Logger
 {
-  def apply(msg: => String) { }
+  def apply(msg: => String): Unit = {}
 }
 
 class File_Logger(path: Path) extends Logger
 {
-  def apply(msg: => String) { synchronized { File.append(path, msg + "\n") } }
+  def apply(msg: => String): Unit = synchronized { File.append(path, msg + "\n") }
 
   override def toString: String = path.toString
 }

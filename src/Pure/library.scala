@@ -82,7 +82,7 @@ object Library
       }
       private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
 
-      def hasNext(): Boolean = state.isDefined
+      def hasNext: Boolean = state.isDefined
       def next(): CharSequence =
         state match {
           case Some((s, i)) => state = next_chunk(i); s
@@ -108,15 +108,26 @@ object Library
   def first_line(source: CharSequence): String =
   {
     val lines = separated_chunks(_ == '\n', source)
-    if (lines.hasNext) lines.next.toString
+    if (lines.hasNext) lines.next().toString
     else ""
   }
+
+  def trim_line(s: String): String =
+    if (s.endsWith("\r\n")) s.substring(0, s.length - 2)
+    else if (s.endsWith("\r") || s.endsWith("\n")) s.substring(0, s.length - 1)
+    else s
+
+  def trim_split_lines(s: String): List[String] =
+    split_lines(trim_line(s)).map(trim_line)
 
   def encode_lines(s: String): String = s.replace('\n', '\u000b')
   def decode_lines(s: String): String = s.replace('\u000b', '\n')
 
 
   /* strings */
+
+  def cat_strings0(strs: TraversableOnce[String]): String = strs.mkString("\u0000")
+  def split_strings0(str: String): List[String] = space_explode('\u0000', str)
 
   def make_string(f: StringBuilder => Unit): String =
   {
@@ -133,14 +144,6 @@ object Library
 
   def perhaps_unprefix(prfx: String, s: String): String = try_unprefix(prfx, s) getOrElse s
   def perhaps_unsuffix(sffx: String, s: String): String = try_unsuffix(sffx, s) getOrElse s
-
-  def trim_line(s: String): String =
-    if (s.endsWith("\r\n")) s.substring(0, s.length - 2)
-    else if (s.endsWith("\r") || s.endsWith("\n")) s.substring(0, s.length - 1)
-    else s
-
-  def trim_split_lines(s: String): List[String] =
-    split_lines(trim_line(s)).map(trim_line)
 
   def isolate_substring(s: String): String = new String(s.toCharArray)
 
@@ -282,6 +285,7 @@ object Library
 
   def is_subclass[A, B](a: Class[A], b: Class[B]): Boolean =
   {
+    import scala.language.existentials
     @tailrec def subclass(c: Class[_]): Boolean =
     {
       c == b ||

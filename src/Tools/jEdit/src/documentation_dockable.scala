@@ -49,9 +49,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   tree.setRowHeight(0)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
-  override def focusOnDefaultComponent() { tree.requestFocusInWindow }
+  override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
-  private def action(node: DefaultMutableTreeNode)
+  private def action(node: DefaultMutableTreeNode): Unit =
   {
     node.getUserObject match {
       case Text_File(_, path) =>
@@ -63,7 +63,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   tree.addKeyListener(new KeyAdapter {
-    override def keyPressed(e: KeyEvent)
+    override def keyPressed(e: KeyEvent): Unit =
     {
       if (e.getKeyCode == KeyEvent.VK_ENTER) {
         e.consume
@@ -78,7 +78,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     }
   })
   tree.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent)
+    override def mouseClicked(e: MouseEvent): Unit =
     {
       val click = tree.getPathForLocation(e.getX, e.getY)
       if (click != null && e.getClickCount == 1) {
@@ -94,7 +94,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   {
     var expand = true
     var visible = 0
-    def make_visible(row: Int) { visible += 1; tree.expandRow(row) }
+    def make_visible(row: Int): Unit = { visible += 1; tree.expandRow(row) }
     for ((entry, row) <- docs.zipWithIndex) {
       entry match {
         case Doc.Section(_, important) =>

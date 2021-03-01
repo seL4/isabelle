@@ -153,7 +153,7 @@ object Simplifier_Trace
           (id, context.questions(serial))
       }
 
-    def do_cancel(serial: Long, id: Document_ID.Command)
+    def do_cancel(serial: Long, id: Document_ID.Command): Unit =
     {
       // To save memory, we could try to remove empty contexts at this point.
       // However, if a new serial gets attached to the same command_id after we deleted
@@ -162,7 +162,7 @@ object Simplifier_Trace
       contexts += (id -> (contexts(id) - serial))
     }
 
-    def do_reply(session: Session, serial: Long, answer: Answer)
+    def do_reply(session: Session, serial: Long, answer: Answer): Unit =
     {
       session.protocol_command(
         "Simplifier_Trace.reply", Value.Long(serial), answer.name)
@@ -298,14 +298,14 @@ object Simplifier_Trace
   {
     private var the_session: Session = null
 
-    override def init(session: Session)
+    override def init(session: Session): Unit =
     {
       try { the_manager(session) }
       catch { case ERROR(_) => managers.change(map => map + (session -> make_manager)) }
       the_session = session
     }
 
-    override def exit()
+    override def exit(): Unit =
     {
       val session = the_session
       if (session != null) {

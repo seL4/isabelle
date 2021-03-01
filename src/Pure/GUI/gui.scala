@@ -36,7 +36,7 @@ object GUI
   lazy val look_and_feels: List[Look_And_Feel] =
     Isabelle_System.make_services(classOf[Look_And_Feel])
 
-  def init_lafs()
+  def init_lafs(): Unit =
   {
     val old_lafs =
       Set(
@@ -54,7 +54,7 @@ object GUI
 
   /* plain focus traversal, notably for text fields */
 
-  def plain_focus_traversal(component: Component)
+  def plain_focus_traversal(component: Component): Unit =
   {
     val dummy_button = new JButton
     def apply(id: Int): Unit =
@@ -78,7 +78,7 @@ object GUI
   }
 
   private def simple_dialog(kind: Int, default_title: String,
-    parent: Component, title: String, message: Iterable[Any])
+    parent: Component, title: String, message: Iterable[Any]): Unit =
   {
     GUI_Thread.now {
       val java_message =
@@ -127,7 +127,8 @@ object GUI
 
     private def print(i: Int): String = i.toString + "%"
 
-    def set_item(i: Int) {
+    def set_item(i: Int): Unit =
+    {
       peer.getEditor match {
         case null =>
         case editor => editor.setItem(print(i))
@@ -251,7 +252,7 @@ object GUI
 
   def ancestors(component: Component): Iterator[Container] = new Iterator[Container] {
     private var next_elem = get_parent(component)
-    def hasNext(): Boolean = next_elem.isDefined
+    def hasNext: Boolean = next_elem.isDefined
     def next(): Container =
       next_elem match {
         case Some(parent) =>
@@ -272,9 +273,9 @@ object GUI
       case _ => None
     }
 
-  def traverse_components(component: Component, apply: Component => Unit)
+  def traverse_components(component: Component, apply: Component => Unit): Unit =
   {
-    def traverse(comp: Component)
+    def traverse(comp: Component): Unit =
     {
       apply(comp)
       comp match {
@@ -326,7 +327,7 @@ object GUI
     "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
   }
 
-  def use_isabelle_fonts()
+  def use_isabelle_fonts(): Unit =
   {
     val default_font = label_font()
     val ui = UIManager.getDefaults

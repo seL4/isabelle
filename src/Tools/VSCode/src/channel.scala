@@ -61,7 +61,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
 
   /* write message */
 
-  def write(json: JSON.T)
+  def write(json: JSON.T): Unit =
   {
     val msg = JSON.Format(json)
     val content = UTF8.bytes(msg)
@@ -82,17 +82,17 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
   def display_message(message_type: Int, msg: String, show: Boolean = true): Unit =
     write(LSP.DisplayMessage(message_type, Output.clean_yxml(msg), show))
 
-  def error_message(msg: String) { display_message(LSP.MessageType.Error, msg, true) }
-  def warning(msg: String) { display_message(LSP.MessageType.Warning, msg, true) }
-  def writeln(msg: String) { display_message(LSP.MessageType.Info, msg, true) }
+  def error_message(msg: String): Unit = display_message(LSP.MessageType.Error, msg, true)
+  def warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, true)
+  def writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, true)
 
-  def log_error_message(msg: String) { display_message(LSP.MessageType.Error, msg, false) }
-  def log_warning(msg: String) { display_message(LSP.MessageType.Warning, msg, false) }
-  def log_writeln(msg: String) { display_message(LSP.MessageType.Info, msg, false) }
+  def log_error_message(msg: String): Unit = display_message(LSP.MessageType.Error, msg, false)
+  def log_warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, false)
+  def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
   object Error_Logger extends Logger
   {
-    def apply(msg: => String) { log_error_message(msg) }
+    def apply(msg: => String): Unit = log_error_message(msg)
   }
 
 

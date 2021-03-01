@@ -92,7 +92,7 @@ object Text
     {
       val result = new mutable.ListBuffer[Range]
       var last: Option[Range] = None
-      def ship(next: Option[Range]) { result ++= last; last = next }
+      def ship(next: Option[Range]): Unit = { result ++= last; last = next }
 
       for (range <- ranges.sortBy(_.start))
       {

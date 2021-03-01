@@ -32,7 +32,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
 
   private val painter = new Panel
   {
-    override def paint(gfx: Graphics2D)
+    override def paint(gfx: Graphics2D): Unit =
     {
       super.paintComponent(gfx)
 
@@ -44,7 +44,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     }
   }
 
-  def set_preferred_size()
+  def set_preferred_size(): Unit =
   {
     val box = graphview.bounding_box()
     val s = Transform.scale_discrete
@@ -52,7 +52,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     painter.revalidate()
   }
 
-  def refresh()
+  def refresh(): Unit =
   {
     if (painter != null) {
       set_preferred_size()
@@ -60,7 +60,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     }
   }
 
-  def scroll_to_node(node: Graph_Display.Node)
+  def scroll_to_node(node: Graph_Display.Node): Unit =
   {
     val gap = graphview.metrics.gap
     val info = graphview.layout.get_node(node)
@@ -120,14 +120,14 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
 
   /* transform */
 
-  def rescale(s: Double)
+  def rescale(s: Double): Unit =
   {
     Transform.scale = s
     if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
     refresh()
   }
 
-  def fit_to_window()
+  def fit_to_window(): Unit =
   {
     Transform.fit_to_window()
     refresh()
@@ -137,7 +137,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
   {
     private var _scale: Double = 1.0
     def scale: Double = _scale
-    def scale_=(s: Double)
+    def scale_=(s: Double): Unit =
     {
       _scale = (s min 10.0) max 0.1
     }
@@ -156,7 +156,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       t
     }
 
-    def fit_to_window()
+    def fit_to_window(): Unit =
     {
       if (graphview.visible_graph.is_empty)
         rescale(1.0)
@@ -187,7 +187,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     private var draginfo: (Point, List[Graph_Display.Node], List[Layout.Dummy]) =
       (new Point(0, 0), Nil, Nil)
 
-    def pressed(at: Point)
+    def pressed(at: Point): Unit =
     {
       val c = Transform.pane_to_graph_coordinates(at)
       val l =
@@ -205,7 +205,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       draginfo = (at, l, d)
     }
 
-    def dragged(to: Point)
+    def dragged(to: Point): Unit =
     {
       val (from, p, d) = draginfo
 
@@ -229,7 +229,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       draginfo = (to, p, d)
     }
 
-    def clicked(at: Point, m: Key.Modifiers, clicks: Int, right_click: Boolean)
+    def clicked(at: Point, m: Key.Modifiers, clicks: Int, right_click: Boolean): Unit =
     {
       val c = Transform.pane_to_graph_coordinates(at)
 

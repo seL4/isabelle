@@ -194,9 +194,9 @@ object Token_Markup
     {
       private var next_span = command_span(syntax, buffer, offset)
       def hasNext: Boolean = next_span.isDefined
-      def next: Text.Info[Command_Span.Span] =
+      def next(): Text.Info[Command_Span.Span] =
       {
-        val span = next_span.getOrElse(Iterator.empty.next)
+        val span = next_span.getOrElse(Iterator.empty.next())
         next_span = command_span(syntax, buffer, next_offset(span.range))
         span
       }
@@ -302,7 +302,7 @@ object Token_Markup
   {
     for (mode <- orig_provider.getModes) addMode(mode)
 
-    override def loadMode(mode: Mode, xmh: XModeHandler)
+    override def loadMode(mode: Mode, xmh: XModeHandler): Unit =
     {
       super.loadMode(mode, xmh)
       Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)

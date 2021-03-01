@@ -71,7 +71,7 @@ object Isabelle_Fonts
 
   /* system init */
 
-  def init()
+  def init(): Unit =
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
     for (entry <- fonts()) ge.registerFont(entry.font)

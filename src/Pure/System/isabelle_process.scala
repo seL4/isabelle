@@ -77,5 +77,5 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
     result
   }
 
-  def terminate { process.terminate }
+  def terminate: Unit = process.terminate
 }

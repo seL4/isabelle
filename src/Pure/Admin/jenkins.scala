@@ -40,7 +40,7 @@ object Jenkins
 
 
   def download_logs(
-    options: Options, job_names: List[String], dir: Path, progress: Progress = new Progress)
+    options: Options, job_names: List[String], dir: Path, progress: Progress = new Progress): Unit =
   {
     val store = Sessions.store(options)
     val infos = job_names.flatMap(build_job_infos)
@@ -56,8 +56,8 @@ object Jenkins
     build_log_jobs.map(job_name =>
       Build_Status.Profile("jenkins " + job_name,
         sql =
-          Build_Log.Prop.build_engine + " = " + SQL.string(Build_Log.Jenkins.engine) + " AND " +
-          Build_Log.Data.session_name + " <> " + SQL.string("Pure") + " AND " +
+          Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_Log.Jenkins.engine) +
+          " AND " + Build_Log.Data.session_name + " <> " + SQL.string("Pure") + " AND " +
           Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
           " AND " + Build_Log.Data.log_name + " LIKE " + SQL.string("%" + job_name)))
 
@@ -96,7 +96,7 @@ object Jenkins
       }
     }
 
-    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress)
+    def download_log(store: Sessions.Store, dir: Path, progress: Progress = new Progress): Unit =
     {
       val log_dir = dir + Build_Log.log_subdir(date)
       val log_path = log_dir + log_filename.xz

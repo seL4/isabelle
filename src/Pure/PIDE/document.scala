@@ -179,7 +179,7 @@ object Document
 
     sealed abstract class Edit[A, B]
     {
-      def foreach(f: A => Unit)
+      def foreach(f: A => Unit): Unit =
       {
         this match {
           case Edits(es) => es.foreach(f)
@@ -692,7 +692,7 @@ object Document
         val other_node = get_node(other_node_name)
         val iterator = other_node.command_iterator(revert(offset) max 0)
         if (iterator.hasNext) {
-          val (command0, _) = iterator.next
+          val (command0, _) = iterator.next()
           other_node.commands.reverse.iterator(command0).find(command => !command.is_ignored)
         }
         else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
@@ -1231,7 +1231,7 @@ object Document
       !name.is_theory ||
       {
         val it = version.nodes(name).commands.reverse.iterator
-        it.hasNext && command_states(version, it.next).exists(_.consolidated)
+        it.hasNext && command_states(version, it.next()).exists(_.consolidated)
       }
 
     def snapshot(

@@ -143,6 +143,8 @@ sig
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
   val split_lines: string -> string list
+  val cat_strings0: string list -> string
+  val split_strings0: string -> string list
   val plain_words: string -> string
   val prefix_lines: string -> string -> string
   val prefix: string -> string -> string
@@ -738,6 +740,9 @@ fun space_explode _ "" = []
   | space_explode sep s = String.fields (fn c => str c = sep) s;
 
 val split_lines = space_explode "\n";
+
+val cat_strings0 = space_implode "\000";
+val split_strings0 = space_explode "\000";
 
 fun plain_words s = space_explode "_" s |> space_implode " ";
 

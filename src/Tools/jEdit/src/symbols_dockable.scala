@@ -32,7 +32,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button
   {
-    def update_font { font = GUI.font(size = font_size) }
+    def update_font: Unit = { font = GUI.font(size = font_size) }
     update_font
 
     text = "<html>" + HTML.output(Symbol.decode(txt)) + "</html>"
@@ -84,7 +84,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
   {
-    def update_font
+    def update_font: Unit =
     {
       font =
         Symbol.fonts.get(symbol) match {
@@ -183,7 +183,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   /* main */
 
   private val edit_bus_handler: EBComponent =
-    new EBComponent { def handleMessage(msg: EBMessage) { abbrevs_refresh_delay.invoke() } }
+    new EBComponent { def handleMessage(msg: EBMessage): Unit = abbrevs_refresh_delay.invoke() }
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
@@ -206,14 +206,14 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       case _: Session.Commands_Changed => abbrevs_refresh_delay.invoke()
     }
 
-  override def init()
+  override def init(): Unit =
   {
     EditBus.addToBus(edit_bus_handler)
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     EditBus.removeFromBus(edit_bus_handler)
     PIDE.session.global_options -= main

@@ -28,7 +28,8 @@ object Graphview_Dockable
   private val no_graph: Exn.Result[Graph_Display.Graph] = Exn.Exn(ERROR("No graph"))
   private var implicit_graph = no_graph
 
-  private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph])
+  private def set_implicit(
+    snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph]): Unit =
   {
     GUI_Thread.require {}
 
@@ -71,9 +72,10 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
 
   private val window_focus_listener =
     new WindowFocusListener {
-      def windowGainedFocus(e: WindowEvent) {
-        Graphview_Dockable.set_implicit(snapshot, graph_result) }
-      def windowLostFocus(e: WindowEvent) { Graphview_Dockable.reset_implicit() }
+      def windowGainedFocus(e: WindowEvent): Unit =
+        Graphview_Dockable.set_implicit(snapshot, graph_result)
+      def windowLostFocus(e: WindowEvent): Unit =
+        Graphview_Dockable.reset_implicit()
     }
 
   val graphview =
@@ -127,7 +129,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   set_content(graphview)
 
 
-  override def focusOnDefaultComponent()
+  override def focusOnDefaultComponent(): Unit =
   {
     graphview match {
       case main_panel: isabelle.graphview.Main_Panel =>
@@ -151,13 +153,13 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
         }
     }
 
-  override def init()
+  override def init(): Unit =
   {
     GUI.parent_window(this).foreach(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     GUI.parent_window(this).foreach(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main

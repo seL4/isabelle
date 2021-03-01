@@ -9,7 +9,7 @@ package isabelle
 
 object Update_Then
 {
-  def update_then(path: Path)
+  def update_then(path: Path): Unit =
   {
     val text0 = File.read(path)
     val text1 =

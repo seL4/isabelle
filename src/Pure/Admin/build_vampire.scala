@@ -27,7 +27,7 @@ object Build_Vampire
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current): Unit =
   {
     Isabelle_System.require_command("git", "cmake")
 

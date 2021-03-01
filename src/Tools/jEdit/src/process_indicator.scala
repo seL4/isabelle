@@ -30,7 +30,8 @@ class Process_Indicator
     private var current_frame = 0
     private val timer =
       new Timer(0, new ActionListener {
-        override def actionPerformed(e: ActionEvent) {
+        override def actionPerformed(e: ActionEvent): Unit =
+        {
           current_frame = (current_frame + 1) % active_icons.length
           setImage(active_icons(current_frame))
           label.repaint
@@ -38,7 +39,7 @@ class Process_Indicator
       })
     timer.setRepeats(true)
 
-    def update(rate: Int)
+    def update(rate: Int): Unit =
     {
       if (rate == 0) {
         setImage(passive_icon)
@@ -59,7 +60,7 @@ class Process_Indicator
 
   def component: Component = label
 
-  def update(tip: String, rate: Int)
+  def update(tip: String, rate: Int): Unit =
   {
     label.tooltip = tip
     animation.update(rate)

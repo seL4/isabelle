@@ -15,7 +15,7 @@ import org.gjt.sp.util.SyntaxUtilities
 
 class Plugin extends EBPlugin
 {
-  override def start()
+  override def start(): Unit =
   {
     Isabelle_System.init()
 
@@ -26,10 +26,10 @@ class Plugin extends EBPlugin
     Syntax_Style.dummy_style_extender()
   }
 
-  override def stop()
+  override def stop(): Unit =
   {
     Syntax_Style.set_style_extender(new SyntaxUtilities.StyleExtender)
   }
 
-  override def handleMessage(message: EBMessage) { }
+  override def handleMessage(message: EBMessage): Unit = {}
 }

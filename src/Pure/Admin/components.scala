@@ -59,7 +59,7 @@ object Components
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
-    progress: Progress = new Progress)
+    progress: Progress = new Progress): Unit =
   {
     Isabelle_System.make_directory(base_dir)
     for (name <- names) {
@@ -78,7 +78,7 @@ object Components
     }
   }
 
-  def purge(dir: Path, platform: Platform.Family.Value)
+  def purge(dir: Path, platform: Platform.Family.Value): Unit =
   {
     def purge_platforms(platforms: String*): Set[String] =
       platforms.flatMap(name =>
@@ -191,7 +191,7 @@ object Components
     progress: Progress = new Progress,
     publish: Boolean = false,
     force: Boolean = false,
-    update_components_sha1: Boolean = false)
+    update_components_sha1: Boolean = false): Unit =
   {
     val archives: List[Path] =
       for (path <- components) yield {

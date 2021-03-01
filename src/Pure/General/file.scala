@@ -160,7 +160,7 @@ object File
     follow_links: Boolean = false): List[JFile] =
   {
     val result = new mutable.ListBuffer[JFile]
-    def check(file: JFile) { if (pred(file)) result += file }
+    def check(file: JFile): Unit = if (pred(file)) result += file
 
     if (start.isFile) check(start)
     else if (start.isDirectory) {
@@ -243,7 +243,8 @@ object File
   def writer(file: JFile): BufferedWriter =
     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8.charset))
 
-  def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
+  def write_file(
+    file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream): Unit =
   {
     val stream = make_stream(new FileOutputStream(file))
     using(new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset)))(_.append(text))
@@ -263,13 +264,13 @@ object File
     write_xz(path.file, text, options)
   def write_xz(path: Path, text: CharSequence): Unit = write_xz(path, text, XZ.options())
 
-  def write_backup(path: Path, text: CharSequence)
+  def write_backup(path: Path, text: CharSequence): Unit =
   {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)
     write(path, text)
   }
 
-  def write_backup2(path: Path, text: CharSequence)
+  def write_backup2(path: Path, text: CharSequence): Unit =
   {
     if (path.is_file) Isabelle_System.move_file(path, path.backup2)
     write(path, text)
@@ -318,7 +319,7 @@ object File
     else path.file.canExecute
   }
 
-  def set_executable(path: Path, flag: Boolean)
+  def set_executable(path: Path, flag: Boolean): Unit =
   {
     if (Platform.is_windows && flag) Isabelle_System.chmod("a+x", path)
     else if (Platform.is_windows) Isabelle_System.chmod("a-x", path)

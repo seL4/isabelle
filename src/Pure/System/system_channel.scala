@@ -25,7 +25,7 @@ class System_Channel private
 
   override def toString: String = address
 
-  def shutdown() { server.close }
+  def shutdown(): Unit = server.close
 
   def rendezvous(): (OutputStream, InputStream) =
   {

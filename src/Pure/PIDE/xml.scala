@@ -128,7 +128,7 @@ object XML
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false)
+  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false): Unit =
   {
     c match {
       case '<' => s ++= "&lt;"
@@ -140,13 +140,13 @@ object XML
     }
   }
 
-  def output_string(s: StringBuilder, str: String, permissive: Boolean = false)
+  def output_string(s: StringBuilder, str: String, permissive: Boolean = false): Unit =
   {
     if (str == null) s ++= str
     else str.iterator.foreach(output_char(s, _, permissive = permissive))
   }
 
-  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false)
+  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false): Unit =
   {
     s += '<'
     s ++= markup.name
@@ -162,7 +162,7 @@ object XML
     s += '>'
   }
 
-  def output_elem_end(s: StringBuilder, name: String)
+  def output_elem_end(s: StringBuilder, name: String): Unit =
   {
     s += '<'
     s += '/'

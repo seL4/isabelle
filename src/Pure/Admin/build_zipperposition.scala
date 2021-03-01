@@ -18,7 +18,7 @@ object Build_Zipperposition
     version: String = default_version,
     verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current)
+    target_dir: Path = Path.current): Unit =
   {
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {

@@ -96,7 +96,7 @@ class Other_Isabelle(
     }
     else false
 
-  def init_settings(settings: List[String])
+  def init_settings(settings: List[String]): Unit =
   {
     if (!clean_settings())
       error("Cannot proceed with existing user settings file: " + etc_settings)
@@ -111,7 +111,7 @@ class Other_Isabelle(
 
   /* cleanup */
 
-  def cleanup()
+  def cleanup(): Unit =
   {
     clean_settings()
     etc.file.delete

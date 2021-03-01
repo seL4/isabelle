@@ -159,7 +159,7 @@ object Isabelle_Cronjob
         permissive = proxy_host.nonEmpty)
 
     def sql: SQL.Source =
-      Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+      Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
       SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
@@ -219,7 +219,7 @@ object Isabelle_Cronjob
           " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind -e ISABELLE_SMLNJ=sml" +
           " -e ISABELLE_SWIPL=swipl",
         args = "-N -a -d '~~/src/Benchmarks'",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("Benchmarks")),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("Benchmarks")),
       Remote_Build("macOS 10.14 Mojave (Old)", "lapnipkow3",
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         self_update = true, args = "-a -d '~~/src/Benchmarks'"),
@@ -229,36 +229,36 @@ object Isabelle_Cronjob
         args = "-g large -g slow",
         afp = true,
         bulky = true,
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
       Remote_Build("AFP old", "lxbroy7",
           args = "-N -X large -X slow",
           afp = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
       Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7") + " AND " +
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("polyml-5.7") + " AND " +
           Build_Log.Settings.ML_OPTIONS + " <> " + SQL.string("-H 500")),
       Remote_Build("Poly/ML 5.7.1 Linux", "lxbroy8",
         history_base = "a9d5b59c3e12",
         options = "-m32 -B -M1x2,2 -t polyml-5.7.1-pre2 -i 'init_component /home/isabelle/contrib/polyml-test-905dae2ebfda'",
         args = "-N -g timing",
         detect =
-          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
+          Build_Log.Prop.build_tags.toString + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
           Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
       Remote_Build("Poly/ML 5.7 macOS", "macbroy2",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x4,4 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-a",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7")),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("polyml-5.7")),
       Remote_Build("Poly/ML 5.7.1 macOS", "macbroy2",
         history_base = "a9d5b59c3e12",
         options = "-m32 -B -M1x4,4 -t polyml-5.7.1-pre2 -i 'init_component /home/isabelle/contrib/polyml-test-905dae2ebfda'",
         args = "-a",
         detect =
-        Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
-        Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
+          Build_Log.Prop.build_tags.toString + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
+          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2")),
       Remote_Build("macOS", "macbroy2",
         options = "-m32 -M8" +
           " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
@@ -271,21 +271,21 @@ object Isabelle_Cronjob
         history_base = "2c0f24e927dd"),
       Remote_Build("macOS, quick_and_dirty", "macbroy2",
         options = "-m32 -M8 -t quick_and_dirty -p pide_session=false", args = "-a -o quick_and_dirty",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty"),
         history_base = "2c0f24e927dd"),
       Remote_Build("macOS, skip_proofs", "macbroy2",
         options = "-m32 -M8 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
         history_base = "2c0f24e927dd"),
       Remote_Build("Poly/ML test", "lxbroy8",
         options = "-m32 -B -M1x2,2 -t polyml-test -i 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
         args = "-N -g timing",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("polyml-test")),
       Remote_Build("macOS 10.12 Sierra", "macbroy30", options = "-m32 -M2 -p pide_session=false", args = "-a",
-        detect = Build_Log.Prop.build_start + " > date '2017-03-03'"),
+        detect = Build_Log.Prop.build_start.toString + " > date '2017-03-03'"),
       Remote_Build("macOS 10.10 Yosemite", "macbroy31", options = "-m32 -M2 -p pide_session=false", args = "-a"),
       Remote_Build("macOS 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
-        detect = Build_Log.Prop.build_start + " < date '2017-03-03'")) :::
+        detect = Build_Log.Prop.build_start.toString + " < date '2017-03-03'")) :::
       {
         for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
         yield {
@@ -297,7 +297,7 @@ object Isabelle_Cronjob
               " -e ISABELLE_SMLNJ=sml",
             args = "-N -X large -X slow",
             afp = true,
-            detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))
+            detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"))
         }
       }
 
@@ -330,10 +330,10 @@ object Isabelle_Cronjob
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           self_update = true, args = "-a -o quick_and_dirty",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty")),
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
         self_update = true,
@@ -348,7 +348,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect =
-            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows") + " OR " +
+            Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
             Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m64 -M4" +
@@ -357,7 +357,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
+          detect = Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86_64-windows"))))
   }
 
   val remote_builds2: List[List[Remote_Build]] =
@@ -373,7 +373,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_SMLNJ=sml",
           args = "-a -X large -X slow",
           afp = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
         Remote_Build("AFP", "lrzcloud2", actual_host = "10.195.4.41", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           java_heap = "8g",
@@ -381,7 +381,7 @@ object Isabelle_Cronjob
           args = "-g large -g slow",
           afp = true,
           bulky = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"))))
 
   def remote_build_history(rev: String, afp_rev: Option[String], i: Int, r: Remote_Build)
     : Logger_Task =
@@ -441,7 +441,7 @@ object Isabelle_Cronjob
             true
           })
 
-    def shutdown() { thread.shutdown() }
+    def shutdown(): Unit = { thread.shutdown() }
 
     val hostname: String = Isabelle_System.hostname()
 
@@ -453,7 +453,7 @@ object Isabelle_Cronjob
     def start_logger(start_date: Date, task_name: String): Logger =
       new Logger(this, start_date, task_name)
 
-    def run_task(start_date: Date, task: Logger_Task)
+    def run_task(start_date: Date, task: Logger_Task): Unit =
     {
       val logger = start_logger(start_date, task.name)
       val res = Exn.capture { task.body(logger) }
@@ -482,7 +482,7 @@ object Isabelle_Cronjob
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
-    def log_end(end_date: Date, err: Option[String])
+    def log_end(end_date: Date, err: Option[String]): Unit =
     {
       val elapsed_time = end_date.time - start_date.time
       val msg =
@@ -506,7 +506,7 @@ object Isabelle_Cronjob
 
   /** cronjob **/
 
-  def cronjob(progress: Progress, exclude_task: Set[String])
+  def cronjob(progress: Progress, exclude_task: Set[String]): Unit =
   {
     /* soft lock */
 
@@ -525,9 +525,9 @@ object Isabelle_Cronjob
 
     val log_service = Log_Service(Options.init(), progress = progress)
 
-    def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
+    def run(start_date: Date, task: Logger_Task): Unit = log_service.run_task(start_date, task)
 
-    def run_now(task: Logger_Task) { run(Date.now(), task) }
+    def run_now(task: Logger_Task): Unit = run(Date.now(), task)
 
 
     /* structured tasks */
@@ -538,7 +538,7 @@ object Isabelle_Cronjob
 
     def PAR(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
       {
-        @tailrec def join(running: List[Task])
+        @tailrec def join(running: List[Task]): Unit =
         {
           running.partition(_.is_finished) match {
             case (Nil, Nil) =>
@@ -570,7 +570,7 @@ object Isabelle_Cronjob
     /* main */
 
     val main_start_date = Date.now()
-    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+    File.write(main_state_file, main_start_date.toString + " " + log_service.hostname)
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
@@ -604,7 +604,7 @@ object Isabelle_Cronjob
 
   /** command line entry point **/
 
-  def main(args: Array[String])
+  def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var force = false

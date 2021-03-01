@@ -53,7 +53,7 @@ object Wrap_Panel
         val dim = new Dimension(0, 0)
         var row_width = 0
         var row_height = 0
-        def add_row()
+        def add_row(): Unit =
         {
           dim.width = dim.width max row_width
           if (dim.height > 0) dim.height += vgap
@@ -118,7 +118,7 @@ class Wrap_Panel(contents0: List[Component] = Nil,
   private def layoutManager = peer.getLayout.asInstanceOf[Wrap_Panel.Layout]
 
   def vGap: Int = layoutManager.getVgap
-  def vGap_=(n: Int) { layoutManager.setVgap(n) }
+  def vGap_=(n: Int): Unit = layoutManager.setVgap(n)
   def hGap: Int = layoutManager.getHgap
-  def hGap_=(n: Int) { layoutManager.setHgap(n) }
+  def hGap_=(n: Int): Unit = layoutManager.setHgap(n)
 }

@@ -390,7 +390,7 @@ final class Options private(
 
   /* save preferences */
 
-  def save_prefs(file: Path = Options.PREFS)
+  def save_prefs(file: Path = Options.PREFS): Unit =
   {
     val defaults: Options = Options.init(prefs = "")
     val changed =

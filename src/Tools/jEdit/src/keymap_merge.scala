@@ -127,7 +127,7 @@ object Keymap_Merge
     private def select(head: Int, tail: List[Int], b: Boolean): Unit =
       selected.change(set => if (b) set + head -- tail else set - head ++ tail)
 
-    def apply(keymap_name: String, keymap: Keymap)
+    def apply(keymap_name: String, keymap: Keymap): Unit =
     {
       GUI_Thread.require {}
 
@@ -164,7 +164,7 @@ object Keymap_Merge
     override def isCellEditable(row: Int, column: Int): Boolean =
       has_entry(row) && column == 0
 
-    override def setValueAt(value: AnyRef, row: Int, column: Int)
+    override def setValueAt(value: AnyRef, row: Int, column: Int): Unit =
     {
       value match {
         case obj: java.lang.Boolean if has_entry(row) && column == 0 =>
@@ -212,7 +212,7 @@ object Keymap_Merge
 
   /** check with optional dialog **/
 
-  def check_dialog(view: View)
+  def check_dialog(view: View): Unit =
   {
     GUI_Thread.require {}
 

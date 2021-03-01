@@ -32,7 +32,7 @@ object YXML
 
   /* string representation */
 
-  def traversal(string: String => Unit, body: XML.Body)
+  def traversal(string: String => Unit, body: XML.Body): Unit =
   {
     def tree(t: XML.Tree): Unit =
       t match {
@@ -83,26 +83,20 @@ object YXML
     def buffer(): mutable.ListBuffer[XML.Tree] = new mutable.ListBuffer[XML.Tree]
     var stack: List[(Markup, mutable.ListBuffer[XML.Tree])] = List((Markup.Empty, buffer()))
 
-    def add(x: XML.Tree)
-    {
+    def add(x: XML.Tree): Unit =
       (stack: @unchecked) match { case (_, body) :: _ => body += x }
-    }
 
-    def push(name: String, atts: XML.Attributes)
-    {
+    def push(name: String, atts: XML.Attributes): Unit =
       if (name == "") err_element()
       else stack = (cache.markup(Markup(name, atts)), buffer()) :: stack
-    }
 
-    def pop()
-    {
+    def pop(): Unit =
       (stack: @unchecked) match {
         case (Markup.Empty, _) :: _ => err_unbalanced("")
         case (markup, body) :: pending =>
           stack = pending
           add(cache.tree0(XML.Elem(markup, body.toList)))
       }
-    }
 
 
     /* parse chunks */

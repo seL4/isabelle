@@ -128,7 +128,7 @@ object Bash
 
     // cleanup
 
-    private def do_cleanup()
+    private def do_cleanup(): Unit =
     {
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }
@@ -223,11 +223,12 @@ object Bash
         case _ if is_interrupt => ""
         case Exn.Exn(exn) => Exn.message(exn)
         case Exn.Res(res) =>
-         (res.rc.toString ::
-          res.timing.elapsed.ms.toString ::
-          res.timing.cpu.ms.toString ::
-          res.out_lines.length.toString ::
-          res.out_lines ::: res.err_lines).mkString("\u0000")
+          Library.cat_strings0(
+            res.rc.toString ::
+            res.timing.elapsed.ms.toString ::
+            res.timing.cpu.ms.toString ::
+            res.out_lines.length.toString ::
+            res.out_lines ::: res.err_lines)
       }
     }
   }

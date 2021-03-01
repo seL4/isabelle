@@ -143,7 +143,7 @@ object Path
 
   /* case-insensitive names */
 
-  def check_case_insensitive(paths: List[Path])
+  def check_case_insensitive(paths: List[Path]): Unit =
   {
     val table =
       (Multi_Map.empty[String, String] /: paths)({ case (tab, path) =>

@@ -142,7 +142,7 @@ object HTML
   }
 
   def output(s: StringBuilder, text: String,
-    control_blocks: Boolean, hidden: Boolean, permissive: Boolean)
+    control_blocks: Boolean, hidden: Boolean, permissive: Boolean): Unit =
   {
     def output_string(str: String): Unit =
       XML.output_string(s, str, permissive = permissive)
@@ -208,7 +208,7 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean)
+  def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean): Unit =
   {
     def output_body(body: XML.Body): Unit =
     {
@@ -401,7 +401,7 @@ object HTML
 
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
-  def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts"))
+  def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts")): Unit =
   {
     File.write(dir + isabelle_css.base,
       fonts_css(make_url) + "\n\n" + File.read(isabelle_css))
@@ -413,7 +413,7 @@ object HTML
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
     css: String = isabelle_css.file_name,
     hidden: Boolean = true,
-    structural: Boolean = true)
+    structural: Boolean = true): Unit =
   {
     init_dir(dir)
     File.write(dir + Path.basic(name),

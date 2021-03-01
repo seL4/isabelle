@@ -765,8 +765,8 @@ object Build_Log
 
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
-      val eq1 = version1(table) + " = " + SQL.string(rev)
-      val eq2 = version2(table) + " = " + SQL.string(rev2)
+      val eq1 = version1(table).toString + " = " + SQL.string(rev)
+      val eq2 = version2(table).toString + " = " + SQL.string(rev2)
 
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns,
@@ -874,7 +874,8 @@ object Build_Log
         ssh_close = true)
     }
 
-    def update_database(db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
+    def update_database(
+      db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false): Unit =
     {
       val log_files =
         dirs.flatMap(dir =>
@@ -887,7 +888,7 @@ object Build_Log
     }
 
     def snapshot_database(db: PostgreSQL.Database, sqlite_database: Path,
-      days: Int = 100, ml_statistics: Boolean = false)
+      days: Int = 100, ml_statistics: Boolean = false): Unit =
     {
       Isabelle_System.make_directory(sqlite_database.dir)
       sqlite_database.file.delete
@@ -952,7 +953,7 @@ object Build_Log
       db.using_statement(table.select(List(column), distinct = true))(stmt =>
         stmt.execute_query().iterator(_.string(column)).toSet)
 
-    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info)
+    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
     {
       val table = Data.meta_info_table
       db.using_statement(db.insert_permissive(table))(stmt =>
@@ -968,7 +969,7 @@ object Build_Log
       })
     }
 
-    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info)
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
     {
       val table = Data.sessions_table
       db.using_statement(db.insert_permissive(table))(stmt =>
@@ -999,7 +1000,7 @@ object Build_Log
       })
     }
 
-    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info)
+    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
     {
       val table = Data.theories_table
       db.using_statement(db.insert_permissive(table))(stmt =>
@@ -1023,7 +1024,7 @@ object Build_Log
       })
     }
 
-    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info)
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
     {
       val table = Data.ml_statistics_table
       db.using_statement(db.insert_permissive(table))(stmt =>
@@ -1042,7 +1043,7 @@ object Build_Log
       })
     }
 
-    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false)
+    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit =
     {
       abstract class Table_Status(table: SQL.Table)
       {
@@ -1052,7 +1053,7 @@ object Build_Log
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
 
         def update_db(db: SQL.Database, log_file: Log_File): Unit
-        def update(log_file: Log_File)
+        def update(log_file: Log_File): Unit =
         {
           if (!known(log_file.name)) {
             update_db(db, log_file)
@@ -1098,7 +1099,7 @@ object Build_Log
       db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
       {
         val res = stmt.execute_query()
-        if (!res.next) None
+        if (!res.next()) None
         else {
           val results =
             columns.map(c => c.name ->
@@ -1135,7 +1136,7 @@ object Build_Log
         if (ml_statistics) {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
-            table1 + SQL.join_outer + table2 + " ON " +
+            table1.toString + SQL.join_outer + table2 + " ON " +
             Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
             Data.session_name(table1) + " = " + Data.session_name(table2)
           (columns, SQL.enclose(join))

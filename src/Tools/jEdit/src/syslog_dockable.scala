@@ -35,13 +35,13 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main =
     Session.Consumer[Prover.Output](getClass.getName) { case _ => syslog_delay.invoke() }
 
-  override def init()
+  override def init(): Unit =
   {
     PIDE.session.syslog_messages += main
     syslog_delay.invoke()
   }
 
-  override def exit()
+  override def exit(): Unit =
   {
     PIDE.session.syslog_messages -= main
   }

@@ -23,7 +23,7 @@ class Main_Panel(graphview: Graphview) extends SplitPane(Orientation.Vertical)
   leftComponent = tree_panel
   rightComponent = graph_panel
 
-  def update_layout()
+  def update_layout(): Unit =
   {
     graphview.update_layout()
     tree_panel.refresh()
