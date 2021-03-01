@@ -905,8 +905,8 @@ done
 
 
 lemma (in Tarski) intY1_func: "(\<lambda>x \<in> intY1. f x) \<in> intY1 \<rightarrow> intY1"
-apply (rule restrict_in_funcset)
-apply (metis intY1_f_closed restrict_in_funcset)
+apply (rule restrictI)
+apply (metis intY1_f_closed)
 done
 
 
@@ -1018,15 +1018,8 @@ declare (in CLF) fixf_po[intro] P_def [simp] A_def [simp] r_def [simp]
 
 theorem (in CLF) Tarski_full:
      "(| pset = P, order = induced P r|) \<in> CompleteLattice"
+  using A_def CLF_axioms P_def Tarski.intro Tarski_axioms.intro fixf_po r_def by blast
 (*sledgehammer*)
-apply (rule CompleteLatticeI_simp)
-apply (rule fixf_po, clarify)
-(*never proved, 2007-01-22*)
-(*sledgehammer*)
-apply (simp add: P_def A_def r_def)
-apply (blast intro!: Tarski.tarski_full_lemma [OF Tarski.intro, OF CLF.intro Tarski_axioms.intro,
-  OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro] cl_po cl_co f_cl)
-done
 
 declare (in CLF) fixf_po [rule del] P_def [simp del] A_def [simp del] r_def [simp del]
          Tarski.tarski_full_lemma [rule del] cl_po [rule del] cl_co [rule del]

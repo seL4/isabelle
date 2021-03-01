@@ -175,9 +175,6 @@ subsection \<open>Bounded Abstraction: \<^term>\<open>restrict\<close>\<close>
 lemma restrict_cong: "I = J \<Longrightarrow> (\<And>i. i \<in> J =simp=> f i = g i) \<Longrightarrow> restrict f I = restrict g J"
   by (auto simp: restrict_def fun_eq_iff simp_implies_def)
 
-lemma restrict_in_funcset: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> (\<lambda>x\<in>A. f x) \<in> A \<rightarrow> B"
-  by (simp add: Pi_def restrict_def)
-
 lemma restrictI[intro!]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> (\<lambda>x\<in>A. f x) \<in> Pi A B"
   by (simp add: Pi_def restrict_def)
 
@@ -435,6 +432,9 @@ lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Lo
 lemma PiE_iff: "f \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
   by (simp add: PiE_def Pi_iff)
 
+lemma restrict_PiE_iff [simp]: "restrict f I \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i \<in> I. f i \<in> X i)"
+  by (simp add: PiE_iff)
+
 lemma ext_funcset_to_sing_iff [simp]: "A \<rightarrow>\<^sub>E {a} = {\<lambda>x\<in>A. a}"
   by (auto simp: PiE_def Pi_iff extensionalityI)
 
@@ -495,10 +495,7 @@ qed
 lemma extensional_funcset_fun_upd_restricts_rangeI:
   "\<forall>y \<in> S. f x \<noteq> f y \<Longrightarrow> f \<in> (insert x S) \<rightarrow>\<^sub>E T \<Longrightarrow> f(x := undefined) \<in> S \<rightarrow>\<^sub>E (T - {f x})"
   unfolding extensional_funcset_def extensional_def
-  apply auto
-  apply (case_tac "x = xa")
-  apply auto
-  done
+  by (auto split: if_split_asm)
 
 lemma extensional_funcset_fun_upd_extends_rangeI:
   assumes "a \<in> T" "f \<in> S \<rightarrow>\<^sub>E (T - {a})"
