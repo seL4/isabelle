@@ -126,6 +126,9 @@ object Library
 
   /* strings */
 
+  def cat_strings0(strs: TraversableOnce[String]): String = strs.mkString("\u0000")
+  def split_strings0(str: String): List[String] = space_explode('\u0000', str)
+
   def make_string(f: StringBuilder => Unit): String =
   {
     val s = new StringBuilder

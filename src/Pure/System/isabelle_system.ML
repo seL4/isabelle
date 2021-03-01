@@ -30,7 +30,7 @@ struct
 fun bash_process script =
   Scala.function_thread "bash_process"
     ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
-  |> space_explode "\000"
+  |> split_strings0
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
       | a :: b :: c :: d :: lines =>
@@ -72,7 +72,7 @@ fun check_bash_function ctxt arg =
 (* directory and file operations *)
 
 val absolute_path = Path.implode o File.absolute_path;
-fun scala_function0 name = ignore o Scala.function name o space_implode "\000";
+fun scala_function0 name = ignore o Scala.function name o cat_strings0;
 fun scala_function name = scala_function0 name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);

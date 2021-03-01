@@ -129,7 +129,7 @@ object Isabelle_System
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- File.read(dump).split("\u0000") if entry != "") yield {
+            (for (entry <- Library.split_strings0(File.read(dump)) if entry != "") yield {
               val i = entry.indexOf('=')
               if (i <= 0) entry -> ""
               else entry.substring(0, i) -> entry.substring(i + 1)
@@ -183,7 +183,7 @@ object Isabelle_System
   /* scala functions */
 
   private def apply_paths(arg: String, fun: List[Path] => Unit): String =
-    { fun(Library.space_explode('\u0000', arg).map(Path.explode)); "" }
+    { fun(Library.split_strings0(arg).map(Path.explode)); "" }
 
   private def apply_paths1(arg: String, fun: Path => Unit): String =
     apply_paths(arg, { case List(path) => fun(path) })
@@ -568,7 +568,7 @@ object Isabelle_System
   {
     val here = Scala_Project.here
     def apply(arg: String): String =
-      Library.space_explode('\u0000', arg) match {
+      Library.split_strings0(arg) match {
         case List(url, file) => download(url, Path.explode(file)); ""
       }
   }
