@@ -19,7 +19,7 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val download: string -> string
+  val download: string -> Path.T -> unit
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
@@ -111,9 +111,7 @@ fun with_tmp_dir name f =
 
 (* download file *)
 
-fun download url =
-  with_tmp_file "download" "" (fn path =>
-   (Scala.function_thread "download" (cat_strings0 [url, absolute_path path]);
-    File.read path));
+fun download url file =
+  ignore (Scala.function_thread "download" (cat_strings0 [url, absolute_path file]));
 
 end;
