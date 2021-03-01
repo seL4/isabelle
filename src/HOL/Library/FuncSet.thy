@@ -73,7 +73,7 @@ lemma funcset_to_empty_iff: "A \<rightarrow> {} = (if A={} then UNIV else {})"
 
 lemma Pi_eq_empty[simp]: "(\<Pi> x \<in> A. B x) = {} \<longleftrightarrow> (\<exists>x\<in>A. B x = {})"
 proof -
-  have "\<exists>x\<in>A. B x = {}" if "\<And>f. \<exists>y. y \<in> A \<and> f y \<notin> B y" 
+  have "\<exists>x\<in>A. B x = {}" if "\<And>f. \<exists>y. y \<in> A \<and> f y \<notin> B y"
     using that [of "\<lambda>u. SOME y. y \<in> B u"] some_in_eq by blast
   then show ?thesis
     by force
@@ -432,7 +432,7 @@ lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Lo
 lemma PiE_iff: "f \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
   by (simp add: PiE_def Pi_iff)
 
-lemma restrict_PiE_iff [simp]: "restrict f I \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i \<in> I. f i \<in> X i)"
+lemma restrict_PiE_iff: "restrict f I \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i \<in> I. f i \<in> X i)"
   by (simp add: PiE_iff)
 
 lemma ext_funcset_to_sing_iff [simp]: "A \<rightarrow>\<^sub>E {a} = {\<lambda>x\<in>A. a}"
@@ -537,7 +537,7 @@ proof -
     by auto
 qed
 
-lemma PiE_singleton: 
+lemma PiE_singleton:
   assumes "f \<in> extensional A"
   shows   "PiE A (\<lambda>x. {f x}) = {f}"
 proof -

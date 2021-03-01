@@ -682,7 +682,7 @@ proof (rule isoI)
           by (auto simp: PiE_def Pi_def in_keys_iff)
         then show "(\<lambda>i\<in>I. Abs_poly_mapping (?f i))
                  \<in> {x \<in> \<Pi>\<^sub>E i\<in>I. {c. Poly_Mapping.keys c \<subseteq> S i}. finite {i \<in> I. x i \<noteq> 0}}"
-          using fin unfolding J_def by (simp add: eq in_keys_iff cong: conj_cong)
+          using fin unfolding J_def by (force simp add: eq in_keys_iff cong: conj_cong)
       qed
     qed
     then show "carrier ?H \<subseteq> ?h ` carrier ?G"
