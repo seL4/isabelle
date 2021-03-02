@@ -815,16 +815,16 @@ subsection \<open>Factorization and Factorial Monoids\<close>
 
 subsubsection \<open>Function definitions\<close>
 
-definition factors :: "[_, 'a list, 'a] \<Rightarrow> bool"
+definition factors :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
   where "factors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (\<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
 
-definition wfactors ::"[_, 'a list, 'a] \<Rightarrow> bool"
+definition wfactors ::"('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
   where "wfactors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (\<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
 
-abbreviation list_assoc :: "('a,_) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
+abbreviation list_assoc :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
   where "list_assoc G \<equiv> list_all2 (\<sim>\<^bsub>G\<^esub>)"
 
-definition essentially_equal :: "[_, 'a list, 'a list] \<Rightarrow> bool"
+definition essentially_equal :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "essentially_equal G fs1 fs2 \<longleftrightarrow> (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>]\<^bsub>G\<^esub> fs2)"
 
 
@@ -878,12 +878,27 @@ text \<open>Permutations\<close>
 lemma perm_map [intro]:
   assumes p: "a <~~> b"
   shows "map f a <~~> map f b"
-  using p by induct auto
+  using p by (simp add: perm_iff_eq_mset)
 
 lemma perm_map_switch:
   assumes m: "map f a = map f b" and p: "b <~~> c"
   shows "\<exists>d. a <~~> d \<and> map f d = map f c"
-  using p m by (induct arbitrary: a) (simp, force, force, blast)
+proof -
+  from m have \<open>length a = length b\<close>
+    by (rule map_eq_imp_length_eq)
+  from p have \<open>mset c = mset b\<close>
+    by (simp add: perm_iff_eq_mset)
+  then obtain p where \<open>p permutes {..<length b}\<close> \<open>permute_list p b = c\<close>
+    by (rule mset_eq_permutation)
+  with \<open>length a = length b\<close> have \<open>p permutes {..<length a}\<close>
+    by simp
+  moreover define d where \<open>d = permute_list p a\<close>
+  ultimately have \<open>mset a = mset d\<close> \<open>map f d = map f c\<close>
+    using m \<open>p permutes {..<length b}\<close> \<open>permute_list p b = c\<close>
+    by (auto simp flip: permute_list_map)
+  then show ?thesis
+    by (auto simp add: perm_iff_eq_mset)
+qed
 
 lemma (in monoid) perm_assoc_switch:
   assumes a:"as [\<sim>] bs" and p: "bs <~~> cs"
@@ -1572,7 +1587,7 @@ text \<open>Gives useful operations like intersection\<close>
 
 abbreviation "assocs G x \<equiv> eq_closure_of (division_rel G) {x}"
 
-definition "fmset G as = mset (map (\<lambda>a. assocs G a) as)"
+definition "fmset G as = mset (map (assocs G) as)"
 
 
 text \<open>Helper lemmas\<close>
@@ -1639,6 +1654,7 @@ lemma (in comm_monoid_cancel) ee_fmset:
     and ascarr: "set as \<subseteq> carrier G" and bscarr: "set bs \<subseteq> carrier G"
   shows "fmset G as = fmset G bs"
   using ee
+  thm essentially_equal_def
 proof (elim essentially_equalE)
   fix as'
   assume prm: "as <~~> as'"
@@ -1652,37 +1668,29 @@ proof (elim essentially_equalE)
   finally show "fmset G as = fmset G bs" .
 qed
 
-lemma (in monoid_cancel) fmset_ee_aux:
-  assumes "cas <~~> cbs" "cas = map (assocs G) as" "cbs = map (assocs G) bs"
-  shows "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs"
-  using assms
-proof (induction cas cbs arbitrary: as bs rule: perm.induct)
-  case (Cons xs ys z)
-  then show ?case
-    by (clarsimp simp add: map_eq_Cons_conv) blast
-next
-  case (trans xs ys zs)
-  then obtain as' where " as <~~> as' \<and> map (assocs G) as' = ys"
-    by (metis (no_types, lifting) ex_map_conv mset_eq_perm set_mset_mset)
-  then show ?case
-    using trans.IH(2) trans.prems(2) by blast
-qed auto
-
 lemma (in comm_monoid_cancel) fmset_ee:
   assumes mset: "fmset G as = fmset G bs"
     and ascarr: "set as \<subseteq> carrier G" and bscarr: "set bs \<subseteq> carrier G"
   shows "essentially_equal G as bs"
 proof -
-  from mset have "map (assocs G) as <~~> map (assocs G) bs"
-    by (simp add: fmset_def mset_eq_perm del: mset_map)
-  then obtain as' where tp: "as <~~> as'" and tm: "map (assocs G) as' = map (assocs G) bs"
-    using fmset_ee_aux by blast
-  with ascarr have as'carr: "set as' \<subseteq> carrier G"
-    using perm_closed by blast
-  from tm as'carr[THEN subsetD] bscarr[THEN subsetD] have "as' [\<sim>] bs"
-    by (induct as' arbitrary: bs) (simp, fastforce dest: assocs_eqD[THEN associated_sym])
-  with tp show "essentially_equal G as bs"
-    by (fast intro: essentially_equalI)
+  from mset have "mset (map (assocs G) bs) = mset (map (assocs G) as)"
+    by (simp add: fmset_def)
+  then obtain p where \<open>p permutes {..<length (map (assocs G) as)}\<close>
+    \<open>permute_list p (map (assocs G) as) = map (assocs G) bs\<close>
+    by (rule mset_eq_permutation)
+  then have \<open>p permutes {..<length as}\<close>
+    \<open>map (assocs G) (permute_list p as) = map (assocs G) bs\<close>
+    by (simp_all add: permute_list_map) 
+  moreover define as' where \<open>as' = permute_list p as\<close>
+  ultimately have tp: "as <~~> as'" and tm: "map (assocs G) as' = map (assocs G) bs"
+    by (simp_all add: perm_iff_eq_mset)
+  from tp show ?thesis
+  proof (rule essentially_equalI)
+    from tm tp ascarr have as'carr: "set as' \<subseteq> carrier G"
+      using perm_closed by blast
+    from tm as'carr[THEN subsetD] bscarr[THEN subsetD] show "as' [\<sim>] bs"
+      by (induct as' arbitrary: bs) (simp, fastforce dest: assocs_eqD[THEN associated_sym])
+  qed
 qed
 
 lemma (in comm_monoid_cancel) ee_is_fmset:
