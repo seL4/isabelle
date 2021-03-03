@@ -12,7 +12,7 @@ import java.nio.file.FileSystems
 import java.nio.file.{WatchKey, WatchEvent, Path => JPath}
 import java.nio.file.StandardWatchEventKinds.{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY}
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters._
 
 
 class File_Watcher private[File_Watcher]  // dummy template
@@ -101,9 +101,8 @@ object File_Watcher
                 val (remove, changed) =
                   st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
                     case Some(dir) =>
-                      val events =
-                        JavaConverters.collectionAsScalaIterable(
-                          key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]])
+                      val events: Iterable[WatchEvent[JPath]] =
+                        key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]].asScala
                       val remove = if (key.reset) None else Some(dir)
                       val changed =
                         (Set.empty[JFile] /: events.iterator) {

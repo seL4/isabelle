@@ -11,7 +11,7 @@ import isabelle._
 
 import javax.swing.text.Segment
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters._
 
 import org.gjt.sp.jedit.buffer.{JEditBuffer, FoldHandler}
 
@@ -42,8 +42,7 @@ object Fold_Handling
             takeWhile(_.improper).map(_ => structure.depth max 0).toList
         else Nil
 
-      if (result.isEmpty) null
-      else JavaConverters.seqAsJavaList(result.map(Integer.valueOf))
+      if (result.isEmpty) null else result.map(Integer.valueOf).asJava
     }
   }
 

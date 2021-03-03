@@ -11,8 +11,6 @@ import isabelle._
 
 import javax.swing.text.Segment
 
-import scala.collection.JavaConverters
-
 import org.gjt.sp.jedit.{Mode, Buffer}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, DummyTokenHandler,
   ParserRuleSet, ModeProvider, XModeHandler}
@@ -308,7 +306,7 @@ object Token_Markup
       Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)
       Isabelle.indent_rule(mode.getName).foreach(indent_rule =>
         Untyped.set[java.util.List[IndentRule]](
-          mode, "indentRules", JavaConverters.seqAsJavaList(List(indent_rule))))
+          mode, "indentRules", java.util.List.of(indent_rule)))
     }
   }
 }

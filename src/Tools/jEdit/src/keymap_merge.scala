@@ -13,7 +13,7 @@ import java.awt.{Color, Dimension, BorderLayout}
 import javax.swing.{JPanel, JTable, JScrollPane, JOptionPane}
 import javax.swing.table.AbstractTableModel
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters._
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.util.GenericGUIUtilities
@@ -68,7 +68,7 @@ object Keymap_Merge
     if (props == null) Nil
     else {
       var result = List.empty[Shortcut]
-      for (entry <- JavaConverters.mapAsScalaMap(props)) {
+      for (entry <- props.asScala) {
         entry match {
           case (a: String, b: String) if is_shortcut(a) =>
             result ::= new Shortcut(a, b)
