@@ -108,8 +108,9 @@ object Scala
       {
         val out = new StringWriter
         val interp = interpreter(new PrintWriter(out))
+        val marker = '\u000b'
         val ok =
-          interp.withLabel("\u0001") {
+          interp.withLabel(marker.toString) {
             if (interpret) interp.interpret(source) == Results.Success
             else (new interp.ReadEvalPrint).compile(source)
           }
@@ -117,7 +118,7 @@ object Scala
 
         val Error = """(?s)^\S* error: (.*)$""".r
         val errors =
-          space_explode('\u0001', Library.strip_ansi_color(out.toString)).
+          space_explode(marker, Library.strip_ansi_color(out.toString)).
             collect({ case Error(msg) => "Scala error: " + Library.trim_line(msg) })
 
         if (!ok && errors.isEmpty) List("Error") else errors
