@@ -15,6 +15,7 @@ import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
+import scala.jdk.CollectionConverters._
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
@@ -105,7 +106,8 @@ object JEdit_Lib
 
   /* main jEdit components */
 
-  def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
+  def jedit_buffers(): Iterator[Buffer] =
+    jEdit.getBufferManager().getBuffers().asScala.iterator
 
   def jedit_buffer(name: String): Option[Buffer] =
     jedit_buffers().find(buffer => buffer_name(buffer) == name)
@@ -113,7 +115,8 @@ object JEdit_Lib
   def jedit_buffer(name: Document.Node.Name): Option[Buffer] =
     jedit_buffer(name.node)
 
-  def jedit_views(): Iterator[View] = jEdit.getViews().iterator
+  def jedit_views(): Iterator[View] =
+    jEdit.getViewManager().getViews().asScala.iterator
 
   def jedit_view(view: View = null): View =
     if (view == null) jEdit.getActiveView() else view
