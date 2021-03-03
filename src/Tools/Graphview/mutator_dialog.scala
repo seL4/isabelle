@@ -352,7 +352,7 @@ class Mutator_Dialog(
     private var items = Vector.empty[java.awt.Component]
 
     def add(c: java.awt.Component): Unit = { items = items :+ c }
-    def addAll(cs: TraversableOnce[java.awt.Component]): Unit = { items = items ++ cs }
+    def addAll(cs: IterableOnce[java.awt.Component]): Unit = { items = items ++ cs }
     def clear(): Unit = { items = Vector.empty }
 
     def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component =

@@ -644,7 +644,7 @@ object Sessions
 
     def make(infos: List[Info]): Structure =
     {
-      def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
+      def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Iterable[String])
         : Graph[String, Info] =
       {
         def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =

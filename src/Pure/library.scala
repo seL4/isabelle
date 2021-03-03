@@ -96,9 +96,9 @@ object Library
 
   /* lines */
 
-  def terminate_lines(lines: TraversableOnce[String]): String = lines.mkString("", "\n", "\n")
+  def terminate_lines(lines: IterableOnce[String]): String = lines.mkString("", "\n", "\n")
 
-  def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
+  def cat_lines(lines: IterableOnce[String]): String = lines.mkString("\n")
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
@@ -126,7 +126,7 @@ object Library
 
   /* strings */
 
-  def cat_strings0(strs: TraversableOnce[String]): String = strs.mkString("\u0000")
+  def cat_strings0(strs: IterableOnce[String]): String = strs.mkString("\u0000")
   def split_strings0(str: String): List[String] = space_explode('\u0000', str)
 
   def make_string(f: StringBuilder => Unit): String =

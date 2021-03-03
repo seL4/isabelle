@@ -221,7 +221,7 @@ class Language_Server(
       if (resources.flush_output(channel)) delay_output.invoke()
     }
 
-  def update_output(changed_nodes: Traversable[JFile]): Unit =
+  def update_output(changed_nodes: Iterable[JFile]): Unit =
   {
     resources.update_output(changed_nodes)
     delay_output.invoke()

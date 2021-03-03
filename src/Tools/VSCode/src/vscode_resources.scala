@@ -25,7 +25,7 @@ object VSCode_Resources
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
-    def update_models(changed: Traversable[(JFile, VSCode_Model)]): State =
+    def update_models(changed: Iterable[(JFile, VSCode_Model)]): State =
       copy(
         models = models ++ changed,
         pending_input = (pending_input /: changed) { case (set, (file, _)) => set + file },
@@ -293,7 +293,7 @@ class VSCode_Resources(
 
   /* pending output */
 
-  def update_output(changed_nodes: Traversable[JFile]): Unit =
+  def update_output(changed_nodes: Iterable[JFile]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
   def update_output_visible(): Unit =
