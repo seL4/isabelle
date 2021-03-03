@@ -345,19 +345,30 @@ fun type_of1 (Ts, Const (_,T)) = T
 
 fun type_of t : typ = type_of1 ([],t);
 
-(*Determines the type of a term, with minimal checking*)
-fun fastype_of1 (Ts, f$u) =
-    (case fastype_of1 (Ts,f) of
-        Type("fun",[_,T]) => T
-        | _ => raise TERM("fastype_of: expected function type", [f$u]))
-  | fastype_of1 (_, Const (_,T)) = T
-  | fastype_of1 (_, Free (_,T)) = T
-  | fastype_of1 (Ts, Bound i) = (nth Ts i
-         handle General.Subscript => raise TERM("fastype_of: Bound", [Bound i]))
-  | fastype_of1 (_, Var (_,T)) = T
-  | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
+(*Determine the type of a term, with minimal checking*)
+local
 
-fun fastype_of t : typ = fastype_of1 ([],t);
+fun fastype_of_term Ts (Abs (_, T, t)) = T --> fastype_of_term (T :: Ts) t
+  | fastype_of_term Ts (t $ _) = range_type_of Ts t
+  | fastype_of_term Ts a = fastype_of_atom Ts a
+and fastype_of_atom _ (Const (_, T)) = T
+  | fastype_of_atom _ (Free (_, T)) = T
+  | fastype_of_atom _ (Var (_, T)) = T
+  | fastype_of_atom Ts (Bound i) = fastype_of_bound Ts i
+and fastype_of_bound (T :: Ts) i = if i = 0 then T else fastype_of_bound Ts (i - 1)
+  | fastype_of_bound [] i = raise TERM ("fastype_of: Bound", [Bound i])
+and range_type_of Ts (Abs (_, T, u)) = fastype_of_term (T :: Ts) u
+  | range_type_of Ts (t $ u) = range_type_ofT (t $ u) (range_type_of Ts t)
+  | range_type_of Ts a = range_type_ofT a (fastype_of_atom Ts a)
+and range_type_ofT _ (Type ("fun", [_, T])) = T
+  | range_type_ofT t _ = raise TERM ("fastype_of: expected function type", [t]);
+
+in
+
+val fastype_of1 = uncurry fastype_of_term;
+val fastype_of = fastype_of_term [];
+
+end;
 
 (*Determine the argument type of a function*)
 fun argument_type_of tm k =
