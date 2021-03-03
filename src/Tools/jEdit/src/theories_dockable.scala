@@ -159,7 +159,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
                 (node_status.failed, PIDE.options.color_value("error_color"))
               ).filter(_._1 > 0)
 
-            ((size.width - 2) /: segments)({ case (last, (n, color)) =>
+            segments.foldLeft(size.width - 2)({ case (last, (n, color)) =>
               val w = (n * ((size.width - 4) - segments.length) / node_status.total) max 4
               paint_segment(last - w, w, color)
               last - w - 1

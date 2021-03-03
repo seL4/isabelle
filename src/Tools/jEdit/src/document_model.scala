@@ -127,7 +127,7 @@ object Document_Model
             (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
           }).toList
         if (changed_models.isEmpty) (false, st)
-        else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
+        else (true, st.copy(models = changed_models.foldLeft(st.models)(_ + _)))
       })
   }
 
@@ -178,7 +178,9 @@ object Document_Model
   {
     GUI_Thread.require {}
     state.change(st =>
-      (st /: files) { case (st1, (node_name, text)) => st1.provide_file(session, node_name, text) })
+      files.foldLeft(st) {
+        case (st1, (node_name, text)) => st1.provide_file(session, node_name, text)
+      })
   }
 
 

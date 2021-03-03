@@ -363,7 +363,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
           case _ => None
         }).map(_.info)
 
-    gutter_message_content.get((0 /: pris)(_ max _))
+    gutter_message_content.get(pris.foldLeft(0)(_ max _))
   }
 
 
@@ -379,7 +379,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, model: Document_Model, option
         {
           case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
         })
-    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+    val pri = results.foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
     Rendering.message_background_color.get(pri).map(message_color =>
       {

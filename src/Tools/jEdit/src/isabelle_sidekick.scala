@@ -121,7 +121,7 @@ class Isabelle_Sidekick_Structure(
       offset: Text.Offset,
       documents: List[Document_Structure.Document]): Unit =
     {
-      (offset /: documents) { case (i, document) =>
+      documents.foldLeft(offset) { case (i, document) =>
         document match {
           case Document_Structure.Block(name, text, body) =>
             val range = Text.Range(i, i + document.length)

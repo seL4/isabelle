@@ -257,9 +257,8 @@ class JEdit_Editor extends Editor[View]
         PIDE.resources.get_file_content(PIDE.resources.node_name(name)) match {
           case Some(text) =>
             hyperlink(
-              (Line.Position.zero /:
-                (Symbol.iterator(text).
-                  zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_)))
+              Symbol.iterator(text).zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1).
+                foldLeft(Line.Position.zero)(_.advance(_)))
           case None =>
             hyperlink(Line.Position((line1 - 1) max 0))
         }
