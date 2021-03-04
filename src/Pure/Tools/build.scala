@@ -99,16 +99,8 @@ object Build
 
       object Ordering extends scala.math.Ordering[String]
       {
-        def compare_timing(name1: String, name2: String): Int =
-        {
-          val t1 = session_timing(name1)
-          val t2 = session_timing(name2)
-          if (t1 == 0.0 || t2 == 0.0) 0
-          else t1 compare t2
-        }
-
         def compare(name1: String, name2: String): Int =
-          compare_timing(name2, name1) match {
+          session_timing(name2) compare session_timing(name1) match {
             case 0 =>
               sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
                 case 0 => name1 compare name2
@@ -132,16 +124,11 @@ object Build
     def is_empty: Boolean = graph.is_empty
 
     def - (name: String): Queue =
-      new Queue(graph.del_node(name),
-        order - name,  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
-        command_timings)
+      new Queue(graph.del_node(name), order - name, command_timings)
 
     def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
     {
-      val it = order.iterator.dropWhile(name =>
-        skip(name)
-          || !graph.defined(name)  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
-          || !graph.is_minimal(name))
+      val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
       if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
     }
