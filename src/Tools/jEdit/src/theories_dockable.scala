@@ -25,7 +25,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 {
   /* status */
 
-  private val status = new ListView(Nil: List[Document.Node.Name]) {
+  private val status = new ListView(List.empty[Document.Node.Name]) {
     background =
     {
       // enforce default value

@@ -104,7 +104,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* timing view */
 
-  private val timing_view = new ListView(Nil: List[Entry]) {
+  private val timing_view = new ListView(List.empty[Entry]) {
     listenTo(mouse.clicks)
     reactions += {
       case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>

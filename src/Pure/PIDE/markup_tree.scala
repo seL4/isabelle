@@ -94,7 +94,7 @@ object Markup_Tree
 
         case (elems, body) =>
           val (end_offset, subtrees) =
-             body.foldLeft((offset, Nil: List[Markup_Tree]))(make_trees)
+             body.foldLeft((offset, List.empty[Markup_Tree]))(make_trees)
           if (offset == end_offset) acc
           else {
             val range = Text.Range(offset, end_offset)
@@ -105,7 +105,7 @@ object Markup_Tree
     }
 
   def from_XML(body: XML.Body): Markup_Tree =
-    merge_disjoint(body.foldLeft((0, Nil: List[Markup_Tree]))(make_trees)._2)
+    merge_disjoint(body.foldLeft((0, List.empty[Markup_Tree]))(make_trees)._2)
 }
 
 

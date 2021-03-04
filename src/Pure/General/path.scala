@@ -54,7 +54,7 @@ object Path
     }
 
   private def norm_elems(elems: List[Elem]): List[Elem] =
-    elems.foldRight(Nil: List[Elem])(apply_elem)
+    elems.foldRight(List.empty[Elem])(apply_elem)
 
   private def implode_elem(elem: Elem, short: Boolean): String =
     elem match {

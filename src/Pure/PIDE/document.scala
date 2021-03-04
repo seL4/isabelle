@@ -1027,7 +1027,7 @@ object Document
         if (execs.isDefinedAt(exec_id)) None else Some(exec_id -> st)
 
       val (changed_commands, new_execs) =
-        update.foldLeft((Nil: List[Command], execs)) {
+        update.foldLeft((List.empty[Command], execs)) {
           case ((commands1, execs1), (command_id, exec)) =>
             val st = the_static_state(command_id)
             val command = st.command
