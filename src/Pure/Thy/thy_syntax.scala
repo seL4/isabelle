@@ -27,7 +27,7 @@ object Thy_Syntax
       val visible = new mutable.ListBuffer[Command]
       val visible_overlay = new mutable.ListBuffer[Command]
       @tailrec
-      def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)]): Unit =
+      def check_ranges(ranges: List[Text.Range], commands: LazyList[(Command, Text.Offset)]): Unit =
       {
         (ranges, commands) match {
           case (range :: more_ranges, (command, offset) #:: more_commands) =>
@@ -55,7 +55,7 @@ object Thy_Syntax
 
       val commands =
         (if (overlays.is_empty) node.command_iterator(perspective.range)
-         else node.command_iterator()).toStream
+         else node.command_iterator()).to(LazyList)
       check_ranges(perspective.ranges, commands)
       (Command.Perspective(visible.toList), Command.Perspective(visible_overlay.toList))
     }

@@ -186,10 +186,10 @@ object Thy_Header
   private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
-    def make_tokens(in: Reader[Char]): Stream[Token] =
+    def make_tokens(in: Reader[Char]): LazyList[Token] =
       token(in) match {
         case Token.Parsers.Success(tok, rest) => tok #:: make_tokens(rest)
-        case _ => Stream.empty
+        case _ => LazyList.empty
       }
 
     val all_tokens = make_tokens(reader)
