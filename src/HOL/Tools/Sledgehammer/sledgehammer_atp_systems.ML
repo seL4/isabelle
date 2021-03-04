@@ -418,34 +418,38 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
 val spass_config : atp_config =
-  {exec = (["SPASS_HOME"], ["SPASS"]),
-   arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn file_name => fn _ =>
-     "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
-     "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
-     |> extra_options <> "" ? prefix (extra_options ^ " "),
-   proof_delims = [("Here is a proof", "Formulae used in the proof")],
-   known_failures =
-     [(GaveUp, "SPASS beiseite: Completion found"),
-      (TimedOut, "SPASS beiseite: Ran out of time"),
-      (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
-      (MalformedInput, "Undefined symbol"),
-      (MalformedInput, "Free Variable"),
-      (Unprovable, "No formulae and clauses found in input file"),
-      (InternalError, "Please report this error")] @
-      known_perl_failures,
-   prem_role = Conjecture,
-   best_slices = fn _ =>
-     (* FUDGE *)
-     [(0.1667, (((150, meshN), DFG Monomorphic, "mono_native", combsN, true), "")),
-      (0.1667, (((500, meshN), DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
-      (0.1666, (((50, meshN), DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0)),
-      (0.1000, (((250, meshN), DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0)),
-      (0.1000, (((1000, mepoN), DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
-      (0.1000, (((150, meshN), DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
-      (0.1000, (((300, meshN), DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.1000, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+  let
+    val format = DFG Monomorphic
+  in
+    {exec = (["SPASS_HOME"], ["SPASS"]),
+     arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn file_name => fn _ =>
+       "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
+       "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
+       |> extra_options <> "" ? prefix (extra_options ^ " "),
+     proof_delims = [("Here is a proof", "Formulae used in the proof")],
+     known_failures =
+       [(GaveUp, "SPASS beiseite: Completion found"),
+        (TimedOut, "SPASS beiseite: Ran out of time"),
+        (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
+        (MalformedInput, "Undefined symbol"),
+        (MalformedInput, "Free Variable"),
+        (Unprovable, "No formulae and clauses found in input file"),
+        (InternalError, "Please report this error")] @
+        known_perl_failures,
+     prem_role = Conjecture,
+     best_slices = fn _ =>
+       (* FUDGE *)
+       [(0.1667, (((150, meshN), format, "mono_native", combsN, true), "")),
+        (0.1667, (((500, meshN), format, "mono_native", liftingN, true), spass_H2SOS)),
+        (0.1666, (((50, meshN), format,  "mono_native", liftingN, true), spass_H2LR0LT0)),
+        (0.1000, (((250, meshN), format, "mono_native", combsN, true), spass_H2NuVS0)),
+        (0.1000, (((1000, mepoN), format, "mono_native", liftingN, true), spass_H1SOS)),
+        (0.1000, (((150, meshN), format, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
+        (0.1000, (((300, meshN), format, "mono_native", combsN, true), spass_H2SOS)),
+        (0.1000, (((100, meshN), format, "mono_native", combs_and_liftingN, true), spass_H2))],
+     best_max_mono_iters = default_max_mono_iters,
+     best_max_new_mono_instances = default_max_new_mono_instances}
+  end
 
 val spass = (spassN, fn () => spass_config)
 
@@ -486,32 +490,36 @@ val remote_vampire_command =
   "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
 
 val vampire_config : atp_config =
-  {exec = (["VAMPIRE_HOME"], ["vampire"]),
-   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name => fn _ =>
-     (check_vampire_noncommercial ();
-      vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
-      " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ file_name
-      |> sos = sosN ? prefix "--sos on "),
-   proof_delims =
-     [("=========== Refutation ==========",
-       "======= End of refutation =======")] @
-     tstp_proof_delims,
-   known_failures =
-     [(GaveUp, "UNPROVABLE"),
-      (GaveUp, "CANNOT PROVE"),
-      (Unprovable, "Satisfiability detected"),
-      (Unprovable, "Termination reason: Satisfiable"),
-      (Interrupted, "Aborted by signal SIGINT")] @
-     known_szs_status_failures,
-   prem_role = Hypothesis,
-   best_slices = fn ctxt =>
-     (* FUDGE *)
-     [(0.333, (((500, meshN), TFF (Without_FOOL, Monomorphic), "mono_native", combs_or_liftingN, false), sosN)),
-      (0.333, (((150, meshN), TFF (Without_FOOL, Monomorphic), "poly_tags??", combs_or_liftingN, false), sosN)),
-      (0.334, (((50, meshN), TFF (Without_FOOL, Monomorphic), "mono_native", combs_or_liftingN, false), no_sosN))]
-     |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
+  let
+    val format = TFF (Without_FOOL, Monomorphic)
+  in
+    {exec = (["VAMPIRE_HOME"], ["vampire"]),
+     arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name => fn _ =>
+       (check_vampire_noncommercial ();
+        vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
+        " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ file_name
+        |> sos = sosN ? prefix "--sos on "),
+     proof_delims =
+       [("=========== Refutation ==========",
+         "======= End of refutation =======")] @
+       tstp_proof_delims,
+     known_failures =
+       [(GaveUp, "UNPROVABLE"),
+        (GaveUp, "CANNOT PROVE"),
+        (Unprovable, "Satisfiability detected"),
+        (Unprovable, "Termination reason: Satisfiable"),
+        (Interrupted, "Aborted by signal SIGINT")] @
+       known_szs_status_failures,
+     prem_role = Hypothesis,
+     best_slices = fn ctxt =>
+       (* FUDGE *)
+       [(0.333, (((500, meshN), format, "mono_native", combs_or_liftingN, false), sosN)),
+        (0.333, (((150, meshN), format, "poly_tags??", combs_or_liftingN, false), sosN)),
+        (0.334, (((50, meshN), format, "mono_native", combs_or_liftingN, false), no_sosN))]
+       |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
+     best_max_mono_iters = default_max_mono_iters,
+     best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
+  end
 
 val vampire = (vampireN, fn () => vampire_config)
 
@@ -519,20 +527,24 @@ val vampire = (vampireN, fn () => vampire_config)
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
 val z3_tptp_config : atp_config =
-  {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
-   proof_delims = [("SZS status Theorem", "")],
-   known_failures = known_szs_status_failures,
-   prem_role = Hypothesis,
-   best_slices =
-     (* FUDGE *)
-     K [(0.5, (((250, meshN), TFF (Without_FOOL, Monomorphic), "mono_native", combsN, false), "")),
-        (0.25, (((125, mepoN), TFF (Without_FOOL, Monomorphic), "mono_native", combsN, false), "")),
-        (0.125, (((62, mashN), TFF (Without_FOOL, Monomorphic), "mono_native", combsN, false), "")),
-        (0.125, (((31, meshN), TFF (Without_FOOL, Monomorphic), "mono_native", combsN, false), ""))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
+  let
+    val format = TFF (Without_FOOL, Monomorphic)
+  in
+    {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
+     arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+       "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
+     proof_delims = [("SZS status Theorem", "")],
+     known_failures = known_szs_status_failures,
+     prem_role = Hypothesis,
+     best_slices =
+       (* FUDGE *)
+       K [(0.5, (((250, meshN), format, "mono_native", combsN, false), "")),
+          (0.25, (((125, mepoN), format, "mono_native", combsN, false), "")),
+          (0.125, (((62, mashN), format, "mono_native", combsN, false), "")),
+          (0.125, (((31, meshN), format, "mono_native", combsN, false), ""))],
+     best_max_mono_iters = default_max_mono_iters,
+     best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
+  end
 
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
@@ -544,20 +556,24 @@ val zipperposition_s6 = "--tptp-def-as-rewrite --rewrite-before-cnf true --mode 
 val zipperposition_cdots = "--mode ho-competitive --boolean-reasoning cases-simpl --ext-rules ext-family --ext-rules-max-depth 1 --ho-prim-enum pragmatic --ho-prim-max 1 --bool-subterm-selection A --avatar off --recognize-injectivity true --ho-elim-leibniz 1 --ho-unif-level full-framework --no-max-vars -q '6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)' -q '6|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-processed|fifo' -q '1|prefer-non-goals|conjecture-relative-var(1,l,f)' -q '4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)' --select e-selection7 --ho-choice-inst true --sine 50 --sine-tolerance 2 --sine-depth-max 4 --sine-depth-min 1 --scan-clause-ac true --lambdasup 0 --kbo-weight-fun invfreqrank"
 
 val zipperposition_config : atp_config =
-  {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
-   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn file_name => fn _ =>
-     "--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
-     |> extra_options <> "" ? prefix (extra_options ^ " "),
-   proof_delims = tstp_proof_delims,
-   known_failures = known_szs_status_failures,
-   prem_role = Hypothesis,
-   best_slices = fn _ =>
-     (* FUDGE *)
-     [(0.333, (((128, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
-      (0.333, (((32, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), zipperposition_s6)),
-      (0.334, (((512, "meshN"), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+  let
+    val format = THF (Without_FOOL, Polymorphic, THF_Without_Choice)
+  in
+    {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
+     arguments = fn _ => fn _ => fn extra_options => fn timeout => fn file_name => fn _ =>
+       "--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
+       |> extra_options <> "" ? prefix (extra_options ^ " "),
+     proof_delims = tstp_proof_delims,
+     known_failures = known_szs_status_failures,
+     prem_role = Hypothesis,
+     best_slices = fn _ =>
+       (* FUDGE *)
+       [(0.333, (((128, "meshN"), format, "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
+        (0.333, (((32, "meshN"), format, "poly_native_higher", keep_lamsN, false), zipperposition_s6)),
+        (0.334, (((512, "meshN"), format, "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
+     best_max_mono_iters = default_max_mono_iters,
+     best_max_new_mono_instances = default_max_new_mono_instances}
+  end
 
 val zipperposition = (zipperpositionN, fn () => zipperposition_config)
 
