@@ -519,7 +519,7 @@ final class Command private(
     val init_results: Command.Results,
     val init_markups: Command.Markups)
 {
-  override def toString: String = id + "/" + span.kind.toString
+  override def toString: String = id.toString + "/" + span.kind.toString
 
 
   /* classification */
