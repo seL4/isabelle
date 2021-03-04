@@ -18,7 +18,7 @@ object Linear_Set extends IterableFactory[Linear_Set]
   private val empty_val: Linear_Set[Nothing] = new Linear_Set[Nothing](None, None, Map(), Map())
   override def empty[A]: Linear_Set[A] = empty_val.asInstanceOf[Linear_Set[A]]
 
-  def from[A](entries: IterableOnce[A]): Linear_Set[A] = (empty[A] /: entries)(_.incl(_))
+  def from[A](entries: IterableOnce[A]): Linear_Set[A] = entries.foldLeft(empty[A])(_.incl(_))
 
   override def newBuilder[A]: mutable.Builder[A, Linear_Set[A]] = new Builder[A]
   private class Builder[A] extends mutable.Builder[A, Linear_Set[A]]
@@ -83,7 +83,7 @@ final class Linear_Set[A] private(
       }
 
   def append_after(hook: Option[A], elems: Iterable[A]): Linear_Set[A] =  // FIXME reverse fold
-    ((hook, this) /: elems) {
+    elems.foldLeft((hook, this)) {
       case ((last, set), elem) => (Some(elem), set.insert_after(last, elem))
     }._2
 

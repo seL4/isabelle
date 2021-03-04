@@ -121,18 +121,19 @@ class Isabelle_Sidekick_Structure(
       offset: Text.Offset,
       documents: List[Document_Structure.Document]): Unit =
     {
-      documents.foldLeft(offset) { case (i, document) =>
-        document match {
-          case Document_Structure.Block(name, text, body) =>
-            val range = Text.Range(i, i + document.length)
-            val node =
-              new DefaultMutableTreeNode(
-                new Isabelle_Sidekick.Keyword_Asset(name, Library.first_line(text), range))
-            parent.add(node)
-            make_tree(node, i, body)
-          case _ =>
-        }
-        i + document.length
+      documents.foldLeft(offset) {
+        case (i, document) =>
+          document match {
+            case Document_Structure.Block(name, text, body) =>
+              val range = Text.Range(i, i + document.length)
+              val node =
+                new DefaultMutableTreeNode(
+                  new Isabelle_Sidekick.Keyword_Asset(name, Library.first_line(text), range))
+              parent.add(node)
+              make_tree(node, i, body)
+            case _ =>
+          }
+          i + document.length
       }
     }
 

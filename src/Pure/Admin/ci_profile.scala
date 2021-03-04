@@ -56,7 +56,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
       case session if group.forall(results.info(session).groups.contains(_)) =>
         results(session).timing
     }
-    (Timing.zero /: timings)(_ + _)
+    timings.foldLeft(Timing.zero)(_ + _)
   }
 
   private def with_documents(options: Options): Options =

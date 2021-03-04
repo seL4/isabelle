@@ -74,12 +74,13 @@ object Server
   }
 
   private lazy val command_table: Map[String, Command] =
-    (Map.empty[String, Command] /: Isabelle_System.make_services(classOf[Commands]).flatMap(_.entries))(
-      { case (cmds, cmd) =>
+    Isabelle_System.make_services(classOf[Commands]).flatMap(_.entries).
+      foldLeft(Map.empty[String, Command]) {
+        case (cmds, cmd) =>
           val name = cmd.command_name
           if (cmds.isDefinedAt(name)) error("Duplicate Isabelle server command: " + quote(name))
           else cmds + (name -> cmd)
-      })
+      }
 
 
   /* output reply */

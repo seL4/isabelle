@@ -56,8 +56,8 @@ object Command
   {
     type Entry = (Long, XML.Elem)
     val empty: Results = new Results(SortedMap.empty)
-    def make(args: IterableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
-    def merge(args: IterableOnce[Results]): Results = (empty /: args)(_ ++ _)
+    def make(args: IterableOnce[Results.Entry]): Results = args.foldLeft(empty)(_ + _)
+    def merge(args: IterableOnce[Results]): Results = args.foldLeft(empty)(_ ++ _)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Elem])
@@ -74,7 +74,7 @@ object Command
     def ++ (other: Results): Results =
       if (this eq other) this
       else if (rep.isEmpty) other
-      else (this /: other.iterator)(_ + _)
+      else other.iterator.foldLeft(this)(_ + _)
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -92,7 +92,7 @@ object Command
   {
     type Entry = (Long, Export.Entry)
     val empty: Exports = new Exports(SortedMap.empty)
-    def merge(args: IterableOnce[Exports]): Exports = (empty /: args)(_ ++ _)
+    def merge(args: IterableOnce[Exports]): Exports = args.foldLeft(empty)(_ ++ _)
   }
 
   final class Exports private(private val rep: SortedMap[Long, Export.Entry])
@@ -107,7 +107,7 @@ object Command
     def ++ (other: Exports): Exports =
       if (this eq other) this
       else if (rep.isEmpty) other
-      else (this /: other.iterator)(_ + _)
+      else other.iterator.foldLeft(this)(_ + _)
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -134,8 +134,8 @@ object Command
     type Entry = (Markup_Index, Markup_Tree)
     val empty: Markups = new Markups(Map.empty)
     def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
-    def make(args: IterableOnce[Entry]): Markups = (empty /: args)(_ + _)
-    def merge(args: IterableOnce[Markups]): Markups = (empty /: args)(_ ++ _)
+    def make(args: IterableOnce[Entry]): Markups = args.foldLeft(empty)(_ + _)
+    def merge(args: IterableOnce[Markups]): Markups = args.foldLeft(empty)(_ ++ _)
   }
 
   final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
@@ -157,7 +157,7 @@ object Command
     def ++ (other: Markups): Markups =
       if (this eq other) this
       else if (rep.isEmpty) other
-      else (this /: other.rep.iterator)(_ + _)
+      else other.rep.iterator.foldLeft(this)(_ + _)
 
     def redirection_iterator: Iterator[Document_ID.Generic] =
       for (Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
@@ -295,21 +295,23 @@ object Command
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
           else {
-            (this /: msgs)((state, msg) =>
-              msg match {
-                case elem @ XML.Elem(markup, Nil) =>
-                  state.
-                    add_status(markup).
-                    add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
-                case _ =>
-                  Output.warning("Ignored status message: " + msg)
-                  state
-              })
+            msgs.foldLeft(this) {
+              case (state, msg) =>
+                msg match {
+                  case elem @ XML.Elem(markup, Nil) =>
+                    state.
+                      add_status(markup).
+                      add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
+                  case _ =>
+                    Output.warning("Ignored status message: " + msg)
+                    state
+                }
+            }
           }
 
         case XML.Elem(Markup(Markup.REPORT, atts0), msgs) =>
-          (this /: msgs)((state, msg) =>
-            {
+          msgs.foldLeft(this) {
+            case (state, msg) =>
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
@@ -342,7 +344,7 @@ object Command
                   }
                 case _ => bad(); state
               }
-            })
+          }
 
         case XML.Elem(Markup(name, props), body) =>
           props match {
@@ -562,7 +564,7 @@ final class Command private(
 
   val core_range: Text.Range =
     Text.Range(0,
-      (length /: span.content.reverse.iterator.takeWhile(_.is_ignored))(_ - _.source.length))
+      span.content.reverse.iterator.takeWhile(_.is_ignored).foldLeft(length)(_ - _.source.length))
 
   def source(range: Text.Range): String = range.substring(source)
 

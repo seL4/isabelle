@@ -67,8 +67,8 @@ object Latex
         case None => None
         case Some(file) =>
           val source_line =
-            (0 /: source_lines.iterator.takeWhile({ case (m, _) => m <= l }))(
-              { case (_, (_, n)) => n })
+            source_lines.iterator.takeWhile({ case (m, _) => m <= l }).
+              foldLeft(0) { case (_, (_, n)) => n }
           if (source_line == 0) None else Some(Position.Line_File(source_line, file))
       }
 

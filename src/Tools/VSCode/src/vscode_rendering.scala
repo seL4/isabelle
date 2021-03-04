@@ -23,7 +23,7 @@ object VSCode_Rendering
     colors: List[Text.Info[Rendering.Color.Value]]): List[VSCode_Model.Decoration] =
   {
     val color_ranges =
-      (Map.empty[Rendering.Color.Value, List[Text.Range]] /: colors) {
+      colors.foldLeft(Map.empty[Rendering.Color.Value, List[Text.Range]]) {
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
       }
     types.toList.map(c =>
@@ -324,7 +324,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
                 Text.Info(entry_range, (entry, model)) <- bibtex_entries_iterator()
                 if entry == name
               } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
-            if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))
+            if (iterator.isEmpty) None else Some(iterator.foldLeft(links)(_ :+ _))
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }

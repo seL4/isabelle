@@ -105,7 +105,7 @@ object File_Watcher
                         key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]].asScala
                       val remove = if (key.reset) None else Some(dir)
                       val changed =
-                        (Set.empty[JFile] /: events.iterator) {
+                        events.iterator.foldLeft(Set.empty[JFile]) {
                           case (set, event) => set + dir.toPath.resolve(event.context).toFile
                         }
                       (remove, changed)

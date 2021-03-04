@@ -60,7 +60,7 @@ object Document_Status
     def merge(status_iterator: Iterator[Command_Status]): Command_Status =
       if (status_iterator.hasNext) {
         val status0 = status_iterator.next()
-        (status0 /: status_iterator)(_ + _)
+        status_iterator.foldLeft(status0)(_ + _)
       }
       else empty
   }
@@ -198,10 +198,10 @@ object Document_Status
         st <- state.command_states(version, command)
       } {
         val command_timing =
-          (0.0 /: st.status)({
+          st.status.foldLeft(0.0) {
             case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
             case (timing, _) => timing
-          })
+          }
         total += command_timing
         if (command_timing > 0.0 && command_timing >= threshold) {
           command_timings += (command -> command_timing)

@@ -268,7 +268,7 @@ final class ML_Statistics private(
   /* content */
 
   def maximum(field: String): Double =
-    (0.0 /: content)({ case (m, e) => m max e.get(field) })
+    content.foldLeft(0.0) { case (m, e) => m max e.get(field) }
 
   def average(field: String): Double =
   {

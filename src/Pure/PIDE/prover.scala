@@ -349,7 +349,7 @@ class Prover(
     command_input match {
       case Some(thread) if thread.is_active =>
         if (trace) {
-          val payload = (0 /: args)({ case (n, b) => n + b.length })
+          val payload = args.foldLeft(0) { case (n, b) => n + b.length }
           Output.writeln(
             "protocol_command " + name + ", args = " + args.length + ", payload = " + payload)
         }

@@ -146,10 +146,10 @@ object Path
   def check_case_insensitive(paths: List[Path]): Unit =
   {
     val table =
-      (Multi_Map.empty[String, String] /: paths)({ case (tab, path) =>
+      paths.foldLeft(Multi_Map.empty[String, String]) { case (tab, path) =>
         val name = path.expand.implode
         tab.insert(Word.lowercase(name), name)
-      })
+      }
     val collisions =
       (for { (_, coll) <- table.iterator_list if coll.length > 1 } yield coll).toList.flatten
     if (collisions.nonEmpty) {

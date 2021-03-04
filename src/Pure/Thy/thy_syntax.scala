@@ -191,7 +191,7 @@ object Thy_Syntax
         val inserted =
           blobs_spans2.map({ case (blobs, span) =>
             Command(Document_ID.make(), node_name, blobs, span) })
-        (commands /: cmds2)(_ - _).append_after(hook, inserted)
+        cmds2.foldLeft(commands)(_ - _).append_after(hook, inserted)
     }
   }
 
@@ -310,12 +310,12 @@ object Thy_Syntax
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
       else {
         val reparse =
-          (syntax_changed /: nodes0.iterator)({
+          nodes0.iterator.foldLeft(syntax_changed) {
             case (reparse, (name, node)) =>
               if (node.load_commands_changed(doc_blobs) && !reparse.contains(name))
                 name :: reparse
               else reparse
-            })
+          }
         val reparse_set = reparse.toSet
 
         var nodes = nodes0
@@ -338,7 +338,7 @@ object Thy_Syntax
                     commands, commands.head, commands.last))
               else node
             val node2 =
-              (node1 /: edits)(
+              edits.foldLeft(node1)(
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
               if (reparse_set.contains(name))

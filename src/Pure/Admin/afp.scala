@@ -136,7 +136,7 @@ class AFP private(options: Options, val base_dir: Path)
       }
 
     val entries_map =
-      (SortedMap.empty[String, AFP.Entry] /: entries)({ case (m, e) => m + (e.name -> e) })
+      entries.foldLeft(SortedMap.empty[String, AFP.Entry]) { case (m, e) => m + (e.name -> e) }
 
     val extra_metadata =
       (for ((name, _) <- entry_metadata.iterator if !entries_map.isDefinedAt(name)) yield name).
@@ -153,8 +153,9 @@ class AFP private(options: Options, val base_dir: Path)
   /* sessions */
 
   val sessions_map: SortedMap[String, AFP.Entry] =
-    (SortedMap.empty[String, AFP.Entry] /: entries)(
-      { case (m1, e) => (m1 /: e.sessions)({ case (m2, s) => m2 + (s -> e) }) })
+    entries.foldLeft(SortedMap.empty[String, AFP.Entry]) {
+      case (m1, e) => e.sessions.foldLeft(m1) { case (m2, s) => m2 + (s -> e) }
+    }
 
   val sessions: List[String] = entries.flatMap(_.sessions)
 
@@ -171,22 +172,25 @@ class AFP private(options: Options, val base_dir: Path)
   lazy val entries_graph: Graph[String, Unit] =
   {
     val session_entries =
-      (Map.empty[String, String] /: entries) {
-        case (m1, e) => (m1 /: e.sessions) { case (m2, s) => m2 + (s -> e.name) }
+      entries.foldLeft(Map.empty[String, String]) {
+        case (m1, e) => e.sessions.foldLeft(m1) { case (m2, s) => m2 + (s -> e.name) }
       }
-    (Graph.empty[String, Unit] /: entries) { case (g, entry) =>
-      val e1 = entry.name
-      (g.default_node(e1, ()) /: sessions_deps(entry)) { case (g1, s) =>
-        (g1 /: session_entries.get(s).filterNot(_ == e1)) { case (g2, e2) =>
-          try { g2.default_node(e2, ()).add_edge_acyclic(e2, e1) }
-          catch {
-            case exn: Graph.Cycles[_] =>
-              error(cat_lines(exn.cycles.map(cycle =>
-                "Cyclic dependency of " + cycle.map(c => quote(c.toString)).mkString(" via ") +
-                " due to session " + quote(s))))
-          }
+    entries.foldLeft(Graph.empty[String, Unit]) {
+      case (g, entry) =>
+        val e1 = entry.name
+        sessions_deps(entry).foldLeft(g.default_node(e1, ())) {
+          case (g1, s) =>
+            session_entries.get(s).filterNot(_ == e1).foldLeft(g1) {
+              case (g2, e2) =>
+                try { g2.default_node(e2, ()).add_edge_acyclic(e2, e1) }
+                catch {
+                  case exn: Graph.Cycles[_] =>
+                    error(cat_lines(exn.cycles.map(cycle =>
+                      "Cyclic dependency of " + cycle.map(c => quote(c.toString)).mkString(" via ") +
+                      " due to session " + quote(s))))
+                }
+            }
         }
-      }
     }
   }
 

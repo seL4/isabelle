@@ -17,7 +17,7 @@ object Document_Structure
 
   sealed abstract class Document { def length: Int }
   case class Block(name: String, text: String, body: List[Document]) extends Document
-  { val length: Int = (0 /: body)(_ + _.length) }
+  { val length: Int = body.foldLeft(0)(_ + _.length) }
   case class Atom(length: Int) extends Document
 
   def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =

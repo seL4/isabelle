@@ -177,7 +177,7 @@ object Rendering
     def apply(ids: Set[Long]): Focus = new Focus(ids)
     val empty: Focus = apply(Set.empty)
     def make(args: List[Text.Info[Focus]]): Focus =
-      (empty /: args)({ case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 })
+      args.foldLeft(empty) { case (focus1, Text.Info(_, focus2)) => focus1 ++ focus2 }
 
     val full: Focus =
       new Focus(Set.empty)
@@ -195,7 +195,7 @@ object Rendering
     def ++ (other: Focus): Focus =
       if (this eq other) this
       else if (rep.isEmpty) other
-      else (this /: other.rep.iterator)(_ + _)
+      else other.rep.iterator.foldLeft(this)(_ + _)
     override def toString: String = rep.mkString("Focus(", ",", ")")
   }
 
@@ -709,7 +709,7 @@ class Rendering(
     else {
       val r = Text.Range(results.head.range.start, results.last.range.stop)
       val all_tips =
-        (SortedMap.empty[Long, XML.Tree] /: results.flatMap(_.messages))(_ + _)
+        results.flatMap(_.messages).foldLeft(SortedMap.empty[Long, XML.Tree])(_ + _)
           .iterator.map(_._2).toList :::
         results.flatMap(res => res.infos(true)) :::
         results.flatMap(res => res.infos(false)).lastOption.toList

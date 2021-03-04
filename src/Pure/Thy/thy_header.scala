@@ -223,7 +223,7 @@ object Thy_Header
     val (skip_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos =
       if (command) Token.Pos.command
-      else (Token.Pos.file(node_name.node) /: skip_tokens)(_ advance _)
+      else skip_tokens.foldLeft(Token.Pos.file(node_name.node))(_ advance _)
 
     Parser.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
   }

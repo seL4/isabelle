@@ -33,10 +33,16 @@ object Graph
     symmetric: Boolean = false)(implicit ord: Ordering[Key]): Graph[Key, A] =
   {
     val graph1 =
-      (empty[Key, A](ord) /: entries) { case (graph, ((x, info), _)) => graph.new_node(x, info) }
+      entries.foldLeft(empty[Key, A](ord)) {
+        case (graph, ((x, info), _)) => graph.new_node(x, info)
+      }
     val graph2 =
-      (graph1 /: entries) { case (graph, ((x, _), ys)) =>
-        (graph /: ys)({ case (g, y) => if (symmetric) g.add_edge(y, x) else g.add_edge(x, y) }) }
+      entries.foldLeft(graph1) {
+        case (graph, ((x, _), ys)) =>
+          ys.foldLeft(graph) {
+            case (g, y) => if (symmetric) g.add_edge(y, x) else g.add_edge(x, y)
+          }
+      }
     graph2
   }
 
@@ -119,8 +125,8 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   {
     def reach(length: Long)(rs: Map[Key, Long], x: Key): Map[Key, Long] =
       if (rs.get(x) match { case Some(n) => n >= length case None => false }) rs
-      else ((rs + (x -> length)) /: next(x))(reach(length + count(x)))
-    (Map.empty[Key, Long] /: xs)(reach(0))
+      else next(x).foldLeft(rs + (x -> length))(reach(length + count(x)))
+    xs.foldLeft(Map.empty[Key, Long])(reach(0))
   }
   def node_height(count: Key => Long): Map[Key, Long] =
     reachable_length(count, imm_preds, maximals)
@@ -138,7 +144,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     {
       val (n, rs) = res
       if (rs.contains(x)) res
-      else ((n + count(x), rs + x) /: next(x))(reach)
+      else next(x).foldLeft((n + count(x), rs + x))(reach)
     }
 
     @tailrec def reachs(size: Long, rs: Keys, rest: List[Key]): Keys =
@@ -162,7 +168,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
       if (r_set(x)) reached
       else {
         val (rs1, r_set1) =
-          if (rev) ((rs, r_set + x) /: next(x))({ case (b, a) => reach(a, b) })
+          if (rev) next(x).foldLeft((rs, r_set + x)) { case (b, a) => reach(a, b) }
           else (next(x) :\ (rs, r_set + x))(reach)
         (x :: rs1, r_set1)
       }
@@ -173,7 +179,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
       val (rs, r_set1) = reach(x, (Nil, r_set))
       (rs :: rss, r_set1)
     }
-    ((List.empty[List[Key]], empty_keys) /: xs)(reachs)
+    xs.foldLeft((List.empty[List[Key]], empty_keys))(reachs)
   }
 
   /*immediate*/
@@ -195,12 +201,14 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /* minimal and maximal elements */
 
   def minimals: List[Key] =
-    (List.empty[Key] /: rep) {
-      case (ms, (m, (_, (preds, _)))) => if (preds.isEmpty) m :: ms else ms }
+    rep.foldLeft(List.empty[Key]) {
+      case (ms, (m, (_, (preds, _)))) => if (preds.isEmpty) m :: ms else ms
+    }
 
   def maximals: List[Key] =
-    (List.empty[Key] /: rep) {
-      case (ms, (m, (_, (_, succs)))) => if (succs.isEmpty) m :: ms else ms }
+    rep.foldLeft(List.empty[Key]) {
+      case (ms, (m, (_, (_, succs)))) => if (succs.isEmpty) m :: ms else ms
+    }
 
   def is_minimal(x: Key): Boolean = imm_preds(x).isEmpty
   def is_maximal(x: Key): Boolean = imm_succs(x).isEmpty
@@ -231,11 +239,11 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   {
     val (preds, succs) = get_entry(x)._2
     new Graph[Key, A](
-      (((rep - x) /: preds)(del_adjacent(false, x)) /: succs)(del_adjacent(true, x)))
+      succs.foldLeft(preds.foldLeft(rep - x)(del_adjacent(false, x)))(del_adjacent(true, x)))
   }
 
   def restrict(pred: Key => Boolean): Graph[Key, A] =
-    (this /: iterator){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
+    iterator.foldLeft(this) { case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
 
   def exclude(pred: Key => Boolean): Graph[Key, A] = restrict(name => !pred(name))
 
@@ -283,7 +291,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     val (_, x_set) = reachable(imm_succs, List(x))
     def paths(path: List[Key])(ps: List[List[Key]], z: Key): List[List[Key]] =
       if (x == z) (z :: path) :: ps
-      else (ps /: irreducible_preds(x_set, path, z))(paths(z :: path))
+      else irreducible_preds(x_set, path, z).foldLeft(ps)(paths(z :: path))
     if ((x == y) && !is_edge(x, x)) List(Nil) else paths(Nil)(Nil, y)
   }
 
@@ -298,7 +306,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     graph
   }
 
-  def transitive_closure: Graph[Key, A] = (this /: keys_iterator)(_.transitive_step(_))
+  def transitive_closure: Graph[Key, A] = keys_iterator.foldLeft(this)(_.transitive_step(_))
 
   def transitive_reduction_acyclic: Graph[Key, A] =
   {
@@ -328,7 +336,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     }
 
   def add_deps_acyclic(y: Key, xs: List[Key]): Graph[Key, A] =
-    (this /: xs)(_.add_edge_acyclic(_, y))
+    xs.foldLeft(this)(_.add_edge_acyclic(_, y))
 
   def topological_order: List[Key] = all_succs(minimals)
 }

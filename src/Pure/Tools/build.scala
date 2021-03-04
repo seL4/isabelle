@@ -159,8 +159,8 @@ object Build
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
     val rc: Int =
-      (0 /: results.iterator.map(
-        { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
+      results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
+        foldLeft(0)(_ max _)
     def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
@@ -661,7 +661,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     }
 
     val total_timing =
-      (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
+      results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
         copy(elapsed = elapsed_time)
     progress.echo(total_timing.message_resources)
 

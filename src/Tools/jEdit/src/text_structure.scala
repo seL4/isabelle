@@ -130,11 +130,12 @@ object Text_Structure
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
 
           def indent_brackets: Int =
-            prev_line_span.foldLeft(0)(
-              { case (i, tok) =>
-                  if (tok.is_open_bracket) i + indent_size
-                  else if (tok.is_close_bracket) i - indent_size
-                  else i })
+            prev_line_span.foldLeft(0) {
+              case (i, tok) =>
+                if (tok.is_open_bracket) i + indent_size
+                else if (tok.is_close_bracket) i - indent_size
+                else i
+            }
 
           def indent_extra: Int =
             if (prev_span.exists(keywords.is_quasi_command)) indent_size

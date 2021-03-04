@@ -101,11 +101,11 @@ object XML
   {
     def traverse(x: A, t: Tree): A =
       t match {
-        case XML.Wrapped_Elem(_, _, ts) => (x /: ts)(traverse)
-        case XML.Elem(_, ts) => (x /: ts)(traverse)
+        case XML.Wrapped_Elem(_, _, ts) => ts.foldLeft(x)(traverse)
+        case XML.Elem(_, ts) => ts.foldLeft(x)(traverse)
         case XML.Text(s) => op(x, s)
       }
-    (a /: body)(traverse)
+    body.foldLeft(a)(traverse)
   }
 
   def text_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + s.length }

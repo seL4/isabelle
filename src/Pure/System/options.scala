@@ -119,7 +119,7 @@ object Options
           case Success(result, _) => result
           case bad => error(bad.toString)
         }
-      try { (options.set_section("") /: ops) { case (opts, op) => op(opts) } }
+      try { ops.foldLeft(options.set_section("")) { case (opts, op) => op(opts) } }
       catch { case ERROR(msg) => error(msg + Position.here(Position.File(file_name))) }
     }
 
@@ -137,7 +137,7 @@ object Options
       dir <- Isabelle_System.components()
       file = dir + OPTIONS if file.is_file
     } { options = Parser.parse_file(options, file.implode, File.read(file)) }
-    (Options.Parser.parse_prefs(options, prefs) /: opts)(_ + _)
+    opts.foldLeft(Options.Parser.parse_prefs(options, prefs))(_ + _)
   }
 
 
@@ -181,9 +181,9 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
       val options0 = Options.init()
       val options1 =
         if (build_options)
-          (options0 /: Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")))(_ + _)
+          Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
         else options0
-      (options1 /: more_options)(_ + _)
+      more_options.foldLeft(options1)(_ + _)
     }
 
     if (get_option != "")
@@ -363,7 +363,7 @@ final class Options private(
   }
 
   def ++ (specs: List[Options.Spec]): Options =
-    (this /: specs)({ case (x, (y, z)) => x + (y, z) })
+    specs.foldLeft(this) { case (x, (y, z)) => x + (y, z) }
 
 
   /* sections */

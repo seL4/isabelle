@@ -323,9 +323,9 @@ object Scan
     /* auxiliary operations */
 
     private def dest(tree: Lexicon.Tree, result: List[String]): List[String] =
-      (result /: tree.branches.toList) ((res, entry) =>
-        entry match { case (_, (s, tr)) =>
-          if (s.isEmpty) dest(tr, res) else dest(tr, s :: res) })
+      tree.branches.toList.foldLeft(result) {
+        case (res, (_, (s, tr))) => if (s.isEmpty) dest(tr, res) else dest(tr, s :: res)
+      }
 
     private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] =
     {
@@ -390,7 +390,7 @@ object Scan
         new Lexicon(extend(rep, 0))
       }
 
-    def ++ (elems: IterableOnce[String]): Lexicon = (this /: elems)(_ + _)
+    def ++ (elems: IterableOnce[String]): Lexicon = elems.foldLeft(this)(_ + _)
 
     def ++ (other: Lexicon): Lexicon =
       if (this eq other) this

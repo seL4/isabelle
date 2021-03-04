@@ -45,7 +45,7 @@ sealed case class Line_Structure(
       else span_depth
 
     val (span_depth1, after_span_depth1, element_depth1) =
-      ((span_depth, after_span_depth, element_depth) /: tokens) {
+      tokens.foldLeft((span_depth, after_span_depth, element_depth)) {
         case (depths @ (x, y, z), tok) =>
           if (tok.is_begin) (z + 2, z + 1, z + 1)
           else if (tok.is_end) (z + 1, z - 1, z - 1)

@@ -267,7 +267,7 @@ class Pretty_Tooltip private(
       val h = painter.getLineHeight * lines + geometry.deco_height
       val margin1 =
         if (h <= h_max) {
-          split_lines(XML.content(formatted)).foldLeft(0.0)({ case (m, line) => m max metric(line) })
+          split_lines(XML.content(formatted)).foldLeft(0.0) { case (m, line) => m max metric(line) }
         }
         else margin
       val w = (metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width

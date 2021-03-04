@@ -17,7 +17,7 @@ object Multi_Map extends MapFactory[Multi_Map]
   def empty[A, B]: Multi_Map[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
 
   def from[A, B](entries: IterableOnce[(A, B)]): Multi_Map[A, B] =
-    (empty[A, B] /: entries)({ case (m, (a, b)) => m.insert(a, b) })
+    entries.foldLeft(empty[A, B]) { case (m, (a, b)) => m.insert(a, b) }
 
   override def newBuilder[A, B]: mutable.Builder[(A, B), Multi_Map[A, B]] = new Builder[A, B]
   private class Builder[A, B] extends mutable.Builder[(A, B), Multi_Map[A, B]]
@@ -63,7 +63,7 @@ final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
     if (this eq other) this
     else if (isEmpty) other
     else
-      (this.asInstanceOf[Multi_Map[A, B1]] /: other.rep.iterator) {
+      other.rep.iterator.foldLeft(this.asInstanceOf[Multi_Map[A, B1]]) {
         case (m1, (a, bs)) => (bs :\ m1) { case (b, m2) => m2.insert(a, b) }
       }
 

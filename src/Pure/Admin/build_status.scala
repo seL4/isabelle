@@ -429,11 +429,13 @@ object Build_Status
                       entry.stored_heap.toString).mkString(" "))))
 
               val max_time =
-                ((0.0 /: session.finished_entries){ case (m, entry) =>
-                  m.max(entry.timing.elapsed.minutes).
-                    max(entry.timing.resources.minutes).
-                    max(entry.ml_timing.elapsed.minutes).
-                    max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
+                (session.finished_entries.foldLeft(0.0) {
+                  case (m, entry) =>
+                    m.max(entry.timing.elapsed.minutes).
+                      max(entry.timing.resources.minutes).
+                      max(entry.ml_timing.elapsed.minutes).
+                      max(entry.ml_timing.resources.minutes)
+                } max 0.1) * 1.1
               val timing_range = "[0:" + max_time + "]"
 
               def gnuplot(plot_name: String, plots: List[String], range: String): Image =
