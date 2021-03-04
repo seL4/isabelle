@@ -56,7 +56,6 @@ fun run_atp ctxt format problem =
     val _ = problem
       |> lines_of_atp_problem format ord (K [])
       |> File.write_list prob_file
-    val exec = exec false
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
       File.bash_path (Path.explode path) ^ " " ^

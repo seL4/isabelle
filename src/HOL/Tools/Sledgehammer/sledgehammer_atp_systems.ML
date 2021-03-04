@@ -14,7 +14,7 @@ sig
 
   type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
-    {exec : bool -> string list * string list,
+    {exec : string list * string list,
      arguments : Proof.context -> bool -> string -> Time.time -> string ->
        term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
@@ -73,7 +73,7 @@ val default_max_new_mono_instances = 100 (* FUDGE *)
 type slice_spec = (int * string) * atp_format * string * string * bool
 
 type atp_config =
-  {exec : bool -> string list * string list,
+  {exec : string list * string list,
    arguments : Proof.context -> bool -> string -> Time.time -> string ->
      term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
@@ -165,7 +165,7 @@ val term_order =
 (* agsyHOL *)
 
 val agsyhol_config : atp_config =
-  {exec = K (["AGSYHOL_HOME"], ["agsyHOL"]),
+  {exec = (["AGSYHOL_HOME"], ["agsyHOL"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims = tstp_proof_delims,
@@ -183,7 +183,7 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 (* Alt-Ergo *)
 
 val alt_ergo_config : atp_config =
-  {exec = K (["WHY3_HOME"], ["why3"]),
+  {exec = (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      "--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^ string_of_int (to_secs 1 timeout) ^
      " " ^ file_name,
@@ -272,7 +272,7 @@ fun e_term_order_info_arguments false false _ = ""
     end
 
 val e_config : atp_config =
-  {exec = fn _ => (["E_HOME"], ["eprover"]),
+  {exec = (["E_HOME"], ["eprover"]),
    arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn file_name =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
        "--auto-schedule --tstp-in --tstp-out --silent " ^
@@ -320,7 +320,7 @@ val e = (eN, fn () => e_config)
 (* iProver *)
 
 val iprover_config : atp_config =
-  {exec = K (["IPROVER_HOME"], ["iproveropt", "iprover"]),
+  {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      "--clausifier \"$E_HOME\"/eprover " ^
      "--clausifier_options \"--tstp-format --silent --cnf\" " ^
@@ -342,7 +342,7 @@ val iprover = (iproverN, fn () => iprover_config)
 (* LEO-II *)
 
 val leo2_config : atp_config =
-  {exec = K (["LEO2_HOME"], ["leo.opt", "leo"]),
+  {exec = (["LEO2_HOME"], ["leo.opt", "leo"]),
    arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn file_name => fn _ =>
      "--foatp e --atp e=\"$E_HOME\"/eprover \
      \--atp epclextract=\"$E_HOME\"/epclextract \
@@ -368,7 +368,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 
 (* Include choice? Disabled now since it's disabled for Satallax as well. *)
 val leo3_config : atp_config =
-  {exec = K (["LEO3_HOME"], ["leo3"]),
+  {exec = (["LEO3_HOME"], ["leo3"]),
    arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn file_name => fn _ =>
      file_name ^ " " ^ "--atp cvc=$CVC4_SOLVER --atp e=\"$E_HOME\"/eprover \
      \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
@@ -389,7 +389,7 @@ val leo3 = (leo3N, fn () => leo3_config)
 
 (* Choice is disabled until there is proper reconstruction for it. *)
 val satallax_config : atp_config =
-  {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
+  {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      (case getenv "E_HOME" of
        "" => ""
@@ -418,7 +418,7 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
 val spass_config : atp_config =
-  {exec = K (["SPASS_HOME"], ["SPASS"]),
+  {exec = (["SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn file_name => fn _ =>
      "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
      "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
@@ -486,7 +486,7 @@ val remote_vampire_command =
   "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
 
 val vampire_config : atp_config =
-  {exec = K (["VAMPIRE_HOME"], ["vampire"]),
+  {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name => fn _ =>
      (check_vampire_noncommercial ();
       vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
@@ -519,7 +519,7 @@ val vampire = (vampireN, fn () => vampire_config)
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
 val z3_tptp_config : atp_config =
-  {exec = K (["Z3_TPTP_HOME"], ["z3_tptp"]),
+  {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
    proof_delims = [("SZS status Theorem", "")],
@@ -544,7 +544,7 @@ val zipperposition_s6 = "--tptp-def-as-rewrite --rewrite-before-cnf true --mode 
 val zipperposition_cdots = "--mode ho-competitive --boolean-reasoning cases-simpl --ext-rules ext-family --ext-rules-max-depth 1 --ho-prim-enum pragmatic --ho-prim-max 1 --bool-subterm-selection A --avatar off --recognize-injectivity true --ho-elim-leibniz 1 --ho-unif-level full-framework --no-max-vars -q '6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)' -q '6|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-processed|fifo' -q '1|prefer-non-goals|conjecture-relative-var(1,l,f)' -q '4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)' --select e-selection7 --ho-choice-inst true --sine 50 --sine-tolerance 2 --sine-depth-max 4 --sine-depth-min 1 --scan-clause-ac true --lambdasup 0 --kbo-weight-fun invfreqrank"
 
 val zipperposition_config : atp_config =
-  {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
+  {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
    arguments = fn _ => fn _ => fn extra_options => fn timeout => fn file_name => fn _ =>
      "--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
      |> extra_options <> "" ? prefix (extra_options ^ " "),
@@ -604,7 +604,7 @@ fun the_remote_system name versions =
 val max_remote_secs = 1000   (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
-  {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
+  {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
    arguments = fn _ => fn _ => fn command => fn timeout => fn file_name => fn _ =>
      (if command <> "" then "-c " ^ quote command ^ " " else "") ^
      "-s " ^ the_remote_system system_name system_versions ^ " " ^
@@ -666,7 +666,7 @@ val remote_zipperposition =
 (* Dummy prover *)
 
 fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
-  {exec = K (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
+  {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
    arguments = K (K (K (K (K (K ""))))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
@@ -698,7 +698,7 @@ val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
   let val {exec, ...} = get_atp thy name () in
-    exists (fn var => getenv var <> "") (fst (exec false))
+    exists (fn var => getenv var <> "") (fst exec)
   end
 
 fun refresh_systems_on_tptp () =

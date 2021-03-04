@@ -158,7 +158,6 @@ fun run_atp mode name
         Path.explode dest_dir + problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir)
-    val exec = exec full_proofs
     val command0 =
       (case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
