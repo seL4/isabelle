@@ -37,6 +37,7 @@ sig
   val max_new_instances: int Config.T
   val max_thm_instances: int Config.T
   val max_new_const_instances_per_round: int Config.T
+  val max_duplicated_instances: int Config.T
 
   (* monomorphization *)
   val monomorph: (term -> typ list Symtab.table) -> Proof.context ->
@@ -73,6 +74,9 @@ val max_thm_instances =
 
 val max_new_const_instances_per_round =
   Attrib.setup_config_int \<^binding>\<open>monomorph_max_new_const_instances_per_round\<close> (K 5)
+
+val max_duplicated_instances =
+  Attrib.setup_config_int \<^binding>\<open>monomorph_max_duplicated_instances\<close> (K 16000)
 
 fun limit_rounds ctxt f =
   let
@@ -173,28 +177,32 @@ fun add_new_grounds used_grounds new_grounds thm =
       | add _ = I
   in Term.fold_aterms add (Thm.prop_of thm) end
 
-fun add_insts max_instances max_thm_insts ctxt round used_grounds
+fun add_insts max_instances max_duplicated_instances max_thm_insts ctxt round used_grounds
     new_grounds id thm tvars schematics cx =
   let
     exception ENOUGH of
-      typ list Symtab.table * (int * ((int * (sort * typ) Vartab.table) * thm) list Inttab.table)
+      typ list Symtab.table * (int * int * ((int * (sort * typ) Vartab.table) * thm) list Inttab.table)
 
     val thy = Proof_Context.theory_of ctxt
 
-    fun add subst (cx as (next_grounds, (n, insts))) =
-      if n >= max_instances then
+    fun add subst (cx as (next_grounds, (hits, misses, insts))) =
+      if hits >= max_instances orelse misses >= max_duplicated_instances then
         raise ENOUGH cx
       else
         let
           val thm' = instantiate ctxt subst thm
           val rthm = ((round, subst), thm')
-          val rthms = Inttab.lookup_list insts id;
+          val rthms = Inttab.lookup_list insts id
           val n_insts' =
             if member (eq_snd Thm.eq_thm) rthms rthm then
-              (n, insts)
+              (hits, misses + 1, insts)
             else
-              (if length rthms >= max_thm_insts then n else n + 1,
-               Inttab.cons_list (id, rthm) insts)
+              let
+                val (hits', misses') =
+                  if length rthms >= max_thm_insts then (hits, misses + 1) else (hits + 1, misses)
+              in
+                (hits', misses', Inttab.cons_list (id, rthm) insts)
+              end
           val next_grounds' =
             add_new_grounds used_grounds new_grounds thm' next_grounds
         in (next_grounds', n_insts') end
@@ -241,17 +249,20 @@ fun add_insts max_instances max_thm_insts ctxt round used_grounds
 fun is_new round initial_round = (round = initial_round)
 fun is_active round initial_round = (round > initial_round)
 
-fun find_instances max_instances max_thm_insts max_new_grounds thm_infos ctxt round
-    (known_grounds, new_grounds0, insts) =
+fun find_instances max_instances max_duplicated_instances max_thm_insts max_new_grounds thm_infos
+    ctxt round (known_grounds, new_grounds0, insts) =
   let
     val new_grounds =
       Symtab.map (fn _ => fn grounds =>
         if length grounds <= max_new_grounds then grounds
         else take max_new_grounds (sort Term_Ord.typ_ord grounds)) new_grounds0
 
-    val add_new = add_insts max_instances max_thm_insts ctxt round
-    fun consider_all pred f (cx as (_, (n, _))) =
-      if n >= max_instances then cx else fold_schematics pred f thm_infos cx
+    val add_new = add_insts max_instances max_duplicated_instances max_thm_insts ctxt round
+    fun consider_all pred f (cx as (_, (hits, misses, _))) =
+      if hits >= max_instances orelse misses >= max_duplicated_instances then
+        cx
+      else
+        fold_schematics pred f thm_infos cx
 
     val known_grounds' = Symtab.merge_list (op =) (known_grounds, new_grounds)
     val empty_grounds = clear_grounds known_grounds'
@@ -274,11 +285,12 @@ fun collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts =
     val empty_grounds = clear_grounds known_grounds
     val max_instances = Config.get ctxt max_new_instances
       |> fold (fn Schematic _ => Integer.add 1 | _ => I) thm_infos
+    val max_duplicated_instances = Config.get ctxt max_duplicated_instances
+    val (_, _, (_, _, insts)) =
+      limit_rounds ctxt (find_instances max_instances max_duplicated_instances max_thm_insts
+      max_new_grounds thm_infos) (empty_grounds, known_grounds, (0, 0, Inttab.empty))
   in
-    (empty_grounds, known_grounds, (0, Inttab.empty))
-    |> limit_rounds ctxt (find_instances max_instances max_thm_insts
-      max_new_grounds thm_infos)
-    |> (fn (_, _, (_, insts)) => insts)
+    insts
   end
 
 
