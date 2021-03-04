@@ -64,7 +64,7 @@ final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
     else if (isEmpty) other
     else
       other.rep.iterator.foldLeft(this.asInstanceOf[Multi_Map[A, B1]]) {
-        case (m1, (a, bs)) => (bs :\ m1) { case (b, m2) => m2.insert(a, b) }
+        case (m1, (a, bs)) => bs.foldRight(m1) { case (b, m2) => m2.insert(a, b) }
       }
 
 

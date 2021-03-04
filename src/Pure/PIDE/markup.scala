@@ -733,7 +733,7 @@ sealed case class Markup(name: String, properties: Properties.T)
 
   def update_properties(more_props: Properties.T): Markup =
     if (more_props.isEmpty) this
-    else Markup(name, (more_props :\ properties) { case (p, ps) => Properties.put(ps, p) })
+    else Markup(name, more_props.foldRight(properties) { case (p, ps) => Properties.put(ps, p) })
 
   def + (entry: Properties.Entry): Markup =
     Markup(name, Properties.put(properties, entry))

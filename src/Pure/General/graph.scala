@@ -169,7 +169,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
       else {
         val (rs1, r_set1) =
           if (rev) next(x).foldLeft((rs, r_set + x)) { case (b, a) => reach(a, b) }
-          else (next(x) :\ (rs, r_set + x))(reach)
+          else next(x).foldRight((rs, r_set + x))(reach)
         (x :: rs1, r_set1)
       }
     }

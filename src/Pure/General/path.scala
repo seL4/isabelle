@@ -54,7 +54,7 @@ object Path
     }
 
   private def norm_elems(elems: List[Elem]): List[Elem] =
-    (elems :\ (Nil: List[Elem]))(apply_elem)
+    elems.foldRight(Nil: List[Elem])(apply_elem)
 
   private def implode_elem(elem: Elem, short: Boolean): String =
     elem match {
@@ -174,7 +174,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
   def starts_basic: Boolean = elems.nonEmpty && elems.last.isInstanceOf[Path.Basic]
 
-  def +(other: Path): Path = new Path((other.elems :\ elems)(Path.apply_elem))
+  def +(other: Path): Path = new Path(other.elems.foldRight(elems)(Path.apply_elem))
 
 
   /* implode */
