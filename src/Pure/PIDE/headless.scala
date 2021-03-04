@@ -337,7 +337,7 @@ object Headless
                         domain = Some(domain), trim = changed.assignment)
 
                     if (nodes_status_delay >= Time.zero && nodes_status_changed) {
-                      delay_nodes_status.invoke
+                      delay_nodes_status.invoke()
                     }
 
                     val theory_progress =
@@ -357,8 +357,8 @@ object Headless
 
               if (commit.isDefined && commit_cleanup_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
-                  delay_commit_clean.revoke
-                else delay_commit_clean.invoke
+                  delay_commit_clean.revoke()
+                else delay_commit_clean.invoke()
               }
             }
         }
@@ -368,7 +368,7 @@ object Headless
         session.commands_changed += consumer
         check_state()
         use_theories_state.guarded_access(_.join_result)
-        check_progress.cancel
+        check_progress.cancel()
       }
       finally {
         session.commands_changed -= consumer
@@ -575,7 +575,7 @@ object Headless
 
       progress.echo("Starting session " + session_base_info.session + " ...")
       Isabelle_Process(session, options, session_base_info.sessions_structure, store,
-        logic = session_base_info.session, modes = print_mode).await_startup
+        logic = session_base_info.session, modes = print_mode).await_startup()
 
       session
     }

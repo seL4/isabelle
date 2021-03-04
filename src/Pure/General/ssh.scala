@@ -141,15 +141,15 @@ object SSH
 
         val fw =
           try { proxy.port_forwarding(remote_host = connect_host, remote_port = make_port(port)) }
-          catch { case exn: Throwable => proxy.close; throw exn }
+          catch { case exn: Throwable => proxy.close(); throw exn }
 
         try {
           connect_session(host = fw.local_host, port = fw.local_port,
             host_key_permissive = permissive,
             nominal_host = host, nominal_user = user, user = user,
-            on_close = () => { fw.close; proxy.close })
+            on_close = () => { fw.close(); proxy.close() })
         }
-        catch { case exn: Throwable => fw.close; proxy.close; throw exn }
+        catch { case exn: Throwable => fw.close(); proxy.close(); throw exn }
       }
     }
   }
@@ -259,7 +259,7 @@ object SSH
       progress_stderr: String => Unit = (_: String) => (),
       strict: Boolean = true): Process_Result =
     {
-      stdin.close
+      stdin.close()
 
       def read_lines(stream: InputStream, progress: String => Unit): List[String] =
       {
@@ -293,7 +293,7 @@ object SSH
 
       def terminate(): Unit =
       {
-        close
+        close()
         out_lines.join
         err_lines.join
         exit_status.join
@@ -303,7 +303,7 @@ object SSH
         try { exit_status.join }
         catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
 
-      close
+      close()
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join)

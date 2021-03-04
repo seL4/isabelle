@@ -25,7 +25,7 @@ class System_Channel private
 
   override def toString: String = address
 
-  def shutdown(): Unit = server.close
+  def shutdown(): Unit = server.close()
 
   def rendezvous(): (OutputStream, InputStream) =
   {
@@ -36,8 +36,8 @@ class System_Channel private
 
       if (Byte_Message.read_line(in_stream).map(_.text) == Some(password)) (out_stream, in_stream)
       else {
-        out_stream.close
-        in_stream.close
+        out_stream.close()
+        in_stream.close()
         error("Failed to connect system channel: bad password")
       }
     }

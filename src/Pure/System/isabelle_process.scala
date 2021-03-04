@@ -37,7 +37,7 @@ object Isabelle_Process
           modes = modes, cwd = cwd, env = env)
       }
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
-    process.stdin.close
+    process.stdin.close()
 
     new Isabelle_Process(session, channel, process)
   }
@@ -77,5 +77,5 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
     result
   }
 
-  def terminate: Unit = process.terminate
+  def terminate(): Unit = process.terminate()
 }

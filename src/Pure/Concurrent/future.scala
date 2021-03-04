@@ -38,7 +38,7 @@ trait Future[A]
   def join_result: Exn.Result[A]
   def join: A = Exn.release(join_result)
   def map[B](f: A => B): Future[B] = Future.fork { f(join) }
-  def cancel: Unit
+  def cancel(): Unit
 
   override def toString: String =
     peek match {
@@ -61,7 +61,7 @@ private class Value_Future[A](x: A) extends Future[A]
 {
   val peek: Option[Exn.Result[A]] = Some(Exn.Res(x))
   def join_result: Exn.Result[A] = peek.get
-  def cancel: Unit = {}
+  def cancel(): Unit = {}
 }
 
 
@@ -93,7 +93,7 @@ private class Task_Future[A](body: => A) extends Future[A]
     if (do_run) {
       val result = Exn.capture(body)
       status.change(_ => Terminated)
-      status.change(_ => Finished(if (Thread.interrupted) Exn.Exn(Exn.Interrupt()) else result))
+      status.change(_ => Finished(if (Thread.interrupted()) Exn.Exn(Exn.Interrupt()) else result))
     }
   }
   private val task = Isabelle_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
@@ -107,11 +107,11 @@ private class Task_Future[A](body: => A) extends Future[A]
     }
   }
 
-  def cancel =
+  def cancel(): Unit =
   {
     status.change {
       case Ready => task.cancel(false); Finished(Exn.Exn(Exn.Interrupt()))
-      case st @ Running(thread) => thread.interrupt; st
+      case st @ Running(thread) => thread.interrupt(); st
       case st => st
     }
   }
@@ -133,7 +133,7 @@ private class Promise_Future[A] extends Promise[A]
 
   def fulfill(x: A): Unit = fulfill_result(Exn.Res(x))
 
-  def cancel: Unit =
+  def cancel(): Unit =
     state.change(st => if (st.isEmpty) Some(Exn.Exn(Exn.Interrupt())) else st)
 }
 
@@ -157,5 +157,5 @@ private class Thread_Future[A](
 
   def peek: Option[Exn.Result[A]] = result.peek
   def join_result: Exn.Result[A] = result.join_result
-  def cancel: Unit = thread.interrupt
+  def cancel(): Unit = thread.interrupt()
 }

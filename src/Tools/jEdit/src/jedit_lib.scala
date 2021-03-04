@@ -50,7 +50,7 @@ object JEdit_Lib
 
     dummy_window.setContentPane(outer)
     dummy_window.pack
-    dummy_window.revalidate
+    dummy_window.revalidate()
 
     val geometry =
       Window_Geometry(

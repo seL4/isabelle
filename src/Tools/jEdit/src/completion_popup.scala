@@ -281,7 +281,7 @@ object Completion_Popup
               {
                 if (view.getKeyEventInterceptor == inner_key_listener)
                   view.setKeyEventInterceptor(null)
-                if (focus) text_area.requestFocus
+                if (focus) text_area.requestFocus()
                 JEdit_Lib.invalidate_range(text_area, range)
               }
             }
@@ -501,7 +501,7 @@ object Completion_Popup
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
                   override def shutdown(focus: Boolean): Unit =
-                    if (focus) text_field.requestFocus
+                    if (focus) text_field.requestFocus()
                 }
               dismissed()
               completion_popup = Some(completion)
@@ -703,7 +703,7 @@ class Completion_Popup private(
   private def show_popup(focus: Boolean): Unit =
   {
     popup.show
-    if (focus) list_view.requestFocus
+    if (focus) list_view.requestFocus()
   }
 
   private def hide_popup(): Unit =

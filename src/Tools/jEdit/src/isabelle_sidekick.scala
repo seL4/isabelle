@@ -180,7 +180,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
   {
     val opt_snapshot =
       Document_Model.get(buffer) match {
-        case Some(model) if model.is_theory => Some(model.snapshot)
+        case Some(model) if model.is_theory => Some(model.snapshot())
         case _ => None
       }
     opt_snapshot match {

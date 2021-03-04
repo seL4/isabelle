@@ -93,7 +93,7 @@ object ML_Statistics
     override def exit(): Unit = synchronized
     {
       session = null
-      monitoring.cancel
+      monitoring.cancel()
     }
 
     private def consume(props: Properties.T): Unit = synchronized

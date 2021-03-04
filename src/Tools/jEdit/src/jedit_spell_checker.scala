@@ -87,7 +87,7 @@ object JEdit_Spell_Checker
     val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)
 
-    val entries = Spell_Checker.dictionaries()
+    val entries = Spell_Checker.dictionaries
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
       val title = opt.title()

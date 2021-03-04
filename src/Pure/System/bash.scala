@@ -108,7 +108,7 @@ object Bash
     def terminate(): Unit = Isabelle_Thread.try_uninterruptible
     {
       kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
-      proc.destroy
+      proc.destroy()
       do_cleanup()
     }
 
@@ -173,7 +173,7 @@ object Bash
       watchdog: Option[Watchdog] = None,
       strict: Boolean = true): Process_Result =
     {
-      stdin.close
+      stdin.close()
 
       val out_lines =
         Future.thread("bash_stdout") { File.read_lines(stdout, progress_stdout) }
@@ -195,7 +195,7 @@ object Bash
         try { join }
         catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
 
-      watchdog_thread.foreach(_.cancel)
+      watchdog_thread.foreach(_.cancel())
 
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 

@@ -102,9 +102,9 @@ object Exn
     def apply(): Throwable = new InterruptedException("Interrupt")
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
-    def dispose(): Unit = Thread.interrupted
-    def expose(): Unit = if (Thread.interrupted) throw apply()
-    def impose(): Unit = Thread.currentThread.interrupt
+    def dispose(): Unit = Thread.interrupted()
+    def expose(): Unit = if (Thread.interrupted()) throw apply()
+    def impose(): Unit = Thread.currentThread.interrupt()
 
     val return_code = 130
   }

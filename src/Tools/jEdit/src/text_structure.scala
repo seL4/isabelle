@@ -93,7 +93,7 @@ object Text_Structure
                   (for {
                     text_area <- JEdit_Lib.jedit_text_areas(buffer)
                     doc_view <- Document_View.get(text_area)
-                  } yield doc_view.get_rendering).nextOption()
+                  } yield doc_view.get_rendering()).nextOption()
                 }
               else None
             val limit = PIDE.options.value.int("jedit_indent_script_limit")

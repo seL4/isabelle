@@ -55,7 +55,7 @@ object Mailman
               Some(path)
             }
           }
-          finally { connection.getInputStream.close }
+          finally { connection.getInputStream.close() }
         })
     }
   }

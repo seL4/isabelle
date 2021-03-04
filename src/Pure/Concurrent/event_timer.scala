@@ -19,7 +19,7 @@ object Event_Timer
 
   final class Request private[Event_Timer](val time: Time, val repeat: Option[Time], task: TimerTask)
   {
-    def cancel: Boolean = task.cancel
+    def cancel(): Boolean = task.cancel()
   }
 
   def request(time: Time, repeat: Option[Time] = None)(event: => Unit): Request =

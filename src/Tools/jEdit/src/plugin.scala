@@ -29,7 +29,7 @@ object PIDE
   def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now
   {
     val buffer = JEdit_Lib.jedit_view(view).getBuffer
-    Document_Model.get(buffer).map(_.snapshot)
+    Document_Model.get(buffer).map(_.snapshot())
   }
 
   def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now
@@ -393,7 +393,7 @@ class Plugin extends EBPlugin
 
         case msg: PropertiesChanged =>
           for {
-            view <- JEdit_Lib.jedit_views
+            view <- JEdit_Lib.jedit_views()
             edit_pane <- JEdit_Lib.jedit_edit_panes(view)
           } {
             val buffer = edit_pane.getBuffer
@@ -458,13 +458,13 @@ class Plugin extends EBPlugin
       completion_history.load()
       spell_checker.update(options.value)
 
-      JEdit_Lib.jedit_views.foreach(init_title)
+      JEdit_Lib.jedit_views().foreach(init_title)
 
       isabelle.jedit_base.Syntax_Style.set_style_extender(Syntax_Style.Extender)
       init_mode_provider()
-      JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init)
+      JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.init)
 
-      http_server.start
+      http_server.start()
 
       startup_failure = None
     }
@@ -483,11 +483,11 @@ class Plugin extends EBPlugin
 
   override def stop(): Unit =
   {
-    http_server.stop
+    http_server.stop()
 
     isabelle.jedit_base.Syntax_Style.dummy_style_extender()
     exit_mode_provider()
-    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit)
+    JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.exit)
 
     if (startup_failure.isEmpty) {
       options.value.save_prefs()

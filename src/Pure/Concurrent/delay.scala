@@ -37,7 +37,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
   {
     val new_run =
       running match {
-        case Some(request) => if (first) false else { request.cancel; true }
+        case Some(request) => if (first) false else { request.cancel(); true }
         case None => true
       }
     if (new_run)
@@ -47,7 +47,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
   def revoke(): Unit = synchronized
   {
     running match {
-      case Some(request) => request.cancel; running = None
+      case Some(request) => request.cancel(); running = None
       case None =>
     }
   }
@@ -57,7 +57,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
     running match {
       case Some(request) =>
         val alt_time = Time.now() + alt_delay
-        if (request.time < alt_time && request.cancel) {
+        if (request.time < alt_time && request.cancel()) {
           running = Some(Event_Timer.request(alt_time)(run))
         }
       case None =>

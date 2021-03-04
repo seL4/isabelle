@@ -74,7 +74,7 @@ Usage: isabelle console [OPTIONS]
             else Some(Sessions.base_info(
               options, logic, dirs = dirs, include_sessions = include_sessions).check.base))
 
-      POSIX_Interrupt.handler { process.interrupt } {
+      POSIX_Interrupt.handler { process.interrupt() } {
         new TTY_Loop(process.stdin, process.stdout).join
         val rc = process.join
         if (rc != 0) sys.exit(rc)

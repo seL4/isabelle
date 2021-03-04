@@ -88,7 +88,7 @@ object Spell_Checker
     }
   }
 
-  def dictionaries(): List[Dictionary] =
+  def dictionaries: List[Dictionary] =
     for {
       path <- Path.split(Isabelle_System.getenv("JORTHO_DICTIONARIES"))
       if path.is_file

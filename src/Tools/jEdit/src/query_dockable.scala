@@ -258,7 +258,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     def select: Unit =
     {
-      control_panel.contents.clear
+      control_panel.contents.clear()
       control_panel.contents += query_label
       update_items().foreach(item => control_panel.contents += item.checkbox)
       control_panel.contents ++=
@@ -291,13 +291,13 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private def select_operation(): Unit =
   {
-    for (op <- get_operation()) { op.select; op.query.requestFocus }
-    operations_pane.revalidate
+    for (op <- get_operation()) { op.select; op.query.requestFocus() }
+    operations_pane.revalidate()
   }
 
   override def focusOnDefaultComponent(): Unit =
   {
-    for (op <- get_operation()) op.query.requestFocus
+    for (op <- get_operation()) op.query.requestFocus()
   }
 
   select_operation()

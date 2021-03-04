@@ -1214,7 +1214,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   {
     def cache: XML.Cache = store.cache
 
-    def close: Unit = database_server.foreach(_.close)
+    def close(): Unit = database_server.foreach(_.close())
 
     def output_database[A](session: String)(f: SQL.Database => A): A =
       database_server match {
@@ -1350,7 +1350,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
     {
       def check(db: SQL.Database): Option[SQL.Database] =
-        if (output || session_info_exists(db)) Some(db) else { db.close; None }
+        if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
       if (database_server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
@@ -1380,7 +1380,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
                   init_session_info(db, name)
                   relevant_db
                 }
-              } finally { db.close }
+              } finally { db.close() }
             case None => false
           }
         }
@@ -1420,16 +1420,16 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       db.transaction {
         db.create_table(Session_Info.table)
         db.using_statement(
-          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
+          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute())
 
         db.create_table(Export.Data.table)
         db.using_statement(
-          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute)
+          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute())
 
         db.create_table(Presentation.Data.table)
         db.using_statement(
           Presentation.Data.table.delete(
-            Presentation.Data.session_name.where_equal(name)))(_.execute)
+            Presentation.Data.session_name.where_equal(name)))(_.execute())
       }
     }
 

@@ -174,7 +174,7 @@ class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
   // non-synchronized, only changed on self-thread
   @volatile private var handler = Isabelle_Thread.Interrupt_Handler.interruptible
 
-  override def interrupt: Unit = handler(thread)
+  override def interrupt(): Unit = handler(thread)
 
   def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
     if (new_handler == null) body
@@ -184,12 +184,12 @@ class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
       val old_handler = handler
       handler = new_handler
       try {
-        if (clear_interrupt) interrupt
+        if (clear_interrupt) interrupt()
         body
       }
       finally {
         handler = old_handler
-        if (clear_interrupt) interrupt
+        if (clear_interrupt) interrupt()
       }
     }
 }

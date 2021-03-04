@@ -43,7 +43,7 @@ object Url
     catch { case ERROR(_) => false }
 
   def is_readable(name: String): Boolean =
-    try { Url(name).openStream.close; true }
+    try { Url(name).openStream.close(); true }
     catch { case ERROR(_) => false }
 
 

@@ -43,7 +43,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           Completion.split_template(Isabelle_Encoding.perhaps_decode(text_area.getBuffer, txt))
         text_area.setSelectedText(s1 + s2)
         text_area.moveCaretPosition(text_area.getCaretPosition - s2.length)
-        text_area.requestFocus
+        text_area.requestFocus()
       }
     tooltip = GUI.tooltip_lines(cat_lines(txt :: abbrs.map(a => "abbrev: " + a)))
   }
@@ -67,12 +67,12 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
                 forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
             } yield (txt, abbr)): _*).iterator_list.toList
 
-        contents.clear
+        contents.clear()
         for ((txt, abbrs) <- entries.sortBy(_._1))
           contents += new Abbrev_Component(txt, abbrs.filterNot(_ == "").sorted)
 
-        revalidate
-        repaint
+        revalidate()
+        repaint()
       }
     }
 
@@ -101,7 +101,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           Syntax_Style.edit_control_style(text_area, symbol)
         else
           text_area.setSelectedText(Isabelle_Encoding.perhaps_decode(text_area.getBuffer, symbol))
-        text_area.requestFocus
+        text_area.requestFocus()
       }
     tooltip =
       GUI.tooltip_lines(
@@ -113,7 +113,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     action = Action("Reset") {
       val text_area = view.getTextArea
       Syntax_Style.edit_control_style(text_area, "")
-      text_area.requestFocus
+      text_area.requestFocus()
     }
     tooltip = "Reset control symbols within text"
   }
@@ -135,14 +135,14 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         val results =
           for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym
 
-        results_panel.contents.clear
+        results_panel.contents.clear()
         for (sym <- results.take(search_limit))
           results_panel.contents += new Symbol_Component(sym, false)
         if (results.length > search_limit)
           results_panel.contents +=
             new Label("...") { tooltip = "(" + (results.length - search_limit) + " more)" }
-        revalidate
-        repaint
+        revalidate()
+        repaint()
       }
       search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
   }
@@ -170,7 +170,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     listenTo(selection)
     reactions += {
       case SelectionChanged(_) if selection.page == search_page =>
-        search_panel.search_field.requestFocus
+        search_panel.search_field.requestFocus()
     }
 
     for (page <- pages)

@@ -66,7 +66,7 @@ class JEdit_Editor extends Editor[View]
   {
     GUI_Thread.require {}
     Document_Model.get(name) match {
-      case Some(model) => model.snapshot
+      case Some(model) => model.snapshot()
       case None => session.snapshot(name)
     }
   }

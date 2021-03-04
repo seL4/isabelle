@@ -253,7 +253,7 @@ class Build_Job(progress: Progress,
         private val promise: Promise[List[String]] = Future.promise
 
         def result: Exn.Result[List[String]] = promise.join_result
-        def cancel: Unit = promise.cancel
+        def cancel(): Unit = promise.cancel()
         def apply(errs: List[String]): Unit =
         {
           try { promise.fulfill(errs) }
@@ -286,7 +286,7 @@ class Build_Job(progress: Progress,
 
       session.init_protocol_handler(new Session.Protocol_Handler
         {
-          override def exit(): Unit = Build_Session_Errors.cancel
+          override def exit(): Unit = Build_Session_Errors.cancel()
 
           private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
           {
@@ -416,8 +416,8 @@ class Build_Job(progress: Progress,
           cwd = info.dir.file, env = env)
 
       val build_errors =
-        Isabelle_Thread.interrupt_handler(_ => process.terminate) {
-          Exn.capture { process.await_startup } match {
+        Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
+          Exn.capture { process.await_startup() } match {
             case Exn.Res(_) =>
               val resources_yxml = resources.init_session_yxml
               val args_yxml =
@@ -434,7 +434,7 @@ class Build_Job(progress: Progress,
         }
 
       val process_result =
-        Isabelle_Thread.interrupt_handler(_ => process.terminate) { process.await_shutdown }
+        Isabelle_Thread.interrupt_handler(_ => process.terminate()) { process.await_shutdown() }
 
       session.stop()
 
@@ -502,13 +502,13 @@ class Build_Job(progress: Progress,
       }
     }
 
-  def terminate: Unit = future_result.cancel
+  def terminate(): Unit = future_result.cancel()
   def is_finished: Boolean = future_result.is_finished
 
   private val timeout_request: Option[Event_Timer.Request] =
   {
     if (info.timeout > Time.zero)
-      Some(Event_Timer.request(Time.now() + info.timeout) { terminate })
+      Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
     else None
   }
 
@@ -519,7 +519,7 @@ class Build_Job(progress: Progress,
     val was_timeout =
       timeout_request match {
         case None => false
-        case Some(request) => !request.cancel
+        case Some(request) => !request.cancel()
       }
 
     val result2 =

@@ -479,7 +479,7 @@ object Scan
       def pos: InputPosition = new OffsetPosition(source, offset)
       def atEnd: Boolean = !seq.isDefinedAt(offset)
       override def drop(n: Int): Paged_Reader = new Paged_Reader(offset + n)
-      def close: Unit = buffered_stream.close
+      def close(): Unit = buffered_stream.close()
     }
     new Paged_Reader(0)
   }

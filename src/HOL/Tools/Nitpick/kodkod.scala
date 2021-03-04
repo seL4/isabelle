@@ -96,7 +96,7 @@ object Kodkod
     /* main */
 
     try {
-      val lexer = new KodkodiLexer(new ANTLRInputStream(Bytes(source).stream))
+      val lexer = new KodkodiLexer(new ANTLRInputStream(Bytes(source).stream()))
       val parser =
         KodkodiParser.create(context, executor,
           false, solve_all, prove, max_solutions, cleanup_inst, lexer)
@@ -114,7 +114,7 @@ object Kodkod
       try { parser.problems() }
       catch { case exn: RecognitionException => parser.reportError(exn) }
 
-      timeout_request.foreach(_.cancel)
+      timeout_request.foreach(_.cancel())
 
       if (parser.getTokenStream.LA(1) != KodkodiParser.EOF) {
         context.error("Error: trailing tokens")

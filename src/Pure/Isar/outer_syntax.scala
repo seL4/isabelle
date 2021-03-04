@@ -189,8 +189,8 @@ final class Outer_Syntax private(
 
     def flush(): Unit =
     {
-      if (content.nonEmpty) { ship(content.toList); content.clear }
-      if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear }
+      if (content.nonEmpty) { ship(content.toList); content.clear() }
+      if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear() }
     }
 
     for (tok <- toks) {
@@ -199,7 +199,7 @@ final class Outer_Syntax private(
         tok.is_command &&
           (!content.exists(keywords.is_before_command) || content.exists(_.is_command)))
       { flush(); content += tok }
-      else { content ++= ignored; ignored.clear; content += tok }
+      else { content ++= ignored; ignored.clear(); content += tok }
     }
     flush()
 

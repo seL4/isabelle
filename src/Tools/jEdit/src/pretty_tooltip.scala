@@ -280,12 +280,12 @@ class Pretty_Tooltip private(
   private def show_popup: Unit =
   {
     popup.show
-    pretty_text_area.requestFocus
+    pretty_text_area.requestFocus()
     pretty_text_area.update(rendering.snapshot, results, info.info)
   }
 
   private def hide_popup: Unit = popup.hide
 
-  private def request_focus: Unit = pretty_text_area.requestFocus
+  private def request_focus: Unit = pretty_text_area.requestFocus()
 }
 

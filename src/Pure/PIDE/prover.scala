@@ -106,7 +106,7 @@ class Prover(
 
   private def terminate_process(): Unit =
   {
-    try { process.terminate }
+    try { process.terminate() }
     catch {
       case exn @ ERROR(_) => system_output("Failed to terminate prover process: " + exn.getMessage)
     }
@@ -184,7 +184,7 @@ class Prover(
 
   private var command_input: Option[Consumer_Thread[List[Bytes]]] = None
 
-  private def command_input_close(): Unit = command_input.foreach(_.shutdown)
+  private def command_input_close(): Unit = command_input.foreach(_.shutdown())
 
   private def command_input_init(raw_stream: OutputStream): Unit =
   {
@@ -204,7 +204,7 @@ class Prover(
                 }
                 catch { case e: IOException => system_output(name + ": " + e.getMessage); false }
             },
-          finish = { case () => stream.close; system_output(name + " terminated") }
+          finish = { case () => stream.close(); system_output(name + " terminated") }
         )
       )
   }
@@ -233,10 +233,10 @@ class Prover(
           }
           if (result.nonEmpty) {
             output(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
-            result.clear
+            result.clear()
           }
           else {
-            reader.close
+            reader.close()
             finished = true
           }
           //}}}
@@ -333,7 +333,7 @@ class Prover(
         case e: IOException => system_output("Cannot read message:\n" + e.getMessage)
         case e: Protocol_Error => system_output("Malformed message:\n" + e.getMessage)
       }
-      stream.close
+      stream.close()
 
       system_output(name + " terminated")
     }

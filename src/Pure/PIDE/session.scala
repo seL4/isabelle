@@ -624,7 +624,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             delay_prune.revoke()
             if (prover.defined) {
               global_state.change(_ => Document.State.init)
-              prover.get.terminate
+              prover.get.terminate()
             }
 
           case Get_State(promise) =>

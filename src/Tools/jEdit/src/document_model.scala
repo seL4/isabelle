@@ -592,7 +592,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         val edits = get_edits
         val (reparse, perspective) = node_perspective(doc_blobs, hidden)
         if (reparse || edits.nonEmpty || last_perspective != perspective) {
-          pending.clear
+          pending.clear()
           last_perspective = perspective
           node_edits(node_header(), edits, perspective)
         }

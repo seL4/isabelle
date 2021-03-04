@@ -60,7 +60,7 @@ object Build
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
             case _: XML.Error => ignore_error("")
           }
-          finally { db.close }
+          finally { db.close() }
       }
     }
 
@@ -290,7 +290,7 @@ object Build
     }
 
     def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop) { Time.seconds(0.5).sleep }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { Time.seconds(0.5).sleep }
 
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
 
@@ -306,7 +306,7 @@ object Build
       if (pending.is_empty) results
       else {
         if (progress.stopped) {
-          for ((_, (_, job)) <- running) job.terminate
+          for ((_, (_, job)) <- running) job.terminate()
         }
 
         running.find({ case (_, (_, job)) => job.is_finished }) match {

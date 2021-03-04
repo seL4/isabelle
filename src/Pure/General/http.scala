@@ -109,8 +109,8 @@ object HTTP
     def += (handler: Handler): Unit = http_server.createContext(handler.root, handler.handler)
     def -= (handler: Handler): Unit = http_server.removeContext(handler.root)
 
-    def start: Unit = http_server.start
-    def stop: Unit = http_server.stop(0)
+    def start(): Unit = http_server.start
+    def stop(): Unit = http_server.stop(0)
 
     def address: InetSocketAddress = http_server.getAddress
     def url: String = "http://" + address.getHostName + ":" + address.getPort

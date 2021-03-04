@@ -149,9 +149,9 @@ object Server
         }
       }
 
-    def start: Unit = thread
+    def start(): Unit = thread
     def join: Unit = thread.join
-    def stop: Unit = { socket.close; join }
+    def stop(): Unit = { socket.close(); join }
   }
 
 
@@ -167,7 +167,7 @@ object Server
   {
     override def toString: String = socket.toString
 
-    def close(): Unit = socket.close
+    def close(): Unit = socket.close()
 
     def set_timeout(t: Time): Unit = socket.setSoTimeout(t.ms.toInt)
 
@@ -250,11 +250,11 @@ object Server
       _tasks.change(_ - task)
 
     def cancel_task(id: UUID.T): Unit =
-      _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel); tasks })
+      _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel()); tasks })
 
     def close(): Unit =
     {
-      while(_tasks.change_result(tasks => { tasks.foreach(_.cancel); (tasks.nonEmpty, tasks) }))
+      while(_tasks.change_result(tasks => { tasks.foreach(_.cancel()); (tasks.nonEmpty, tasks) }))
       { _tasks.value.foreach(_.join) }
     }
   }
@@ -293,7 +293,7 @@ object Server
     val ident: JSON.Object.Entry = ("task" -> id.toString)
 
     val progress: Connection_Progress = context.progress(ident)
-    def cancel: Unit = progress.stop
+    def cancel(): Unit = progress.stop()
 
     private lazy val thread = Isabelle_Thread.fork(name = "server_task")
     {
@@ -304,7 +304,7 @@ object Server
           val err = json_error(exn)
           if (err.isEmpty) throw exn else context.reply(Reply.FAILED, err + ident)
       }
-      progress.stop
+      progress.stop()
       context.remove_task(task)
     }
     def start: Unit = thread
@@ -351,7 +351,7 @@ object Server
       connection
     }
 
-    def active(): Boolean =
+    def active: Boolean =
       try {
         using(connection())(connection =>
           {
@@ -411,7 +411,7 @@ object Server
           db.create_table(Data.table)
           list(db).filterNot(_.active).foreach(server_info =>
             db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(
-              _.execute))
+              _.execute()))
         }
         db.transaction {
           find(db, name) match {
@@ -422,7 +422,7 @@ object Server
               val server = new Server(port, log)
               val server_info = Info(name, server.port, server.password)
 
-              db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
+              db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute())
               db.using_statement(Data.table.insert())(stmt =>
               {
                 stmt.string(1) = server_info.name
@@ -431,7 +431,7 @@ object Server
                 stmt.execute()
               })
 
-              server.start
+              server.start()
               (server_info, Some(server))
           }
         }
@@ -534,7 +534,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
 
   def shutdown(): Unit =
   {
-    server.socket.close
+    server.socket.close()
 
     val sessions = _sessions.change_result(sessions => (sessions, Map.empty))
     for ((_, session) <- sessions) {

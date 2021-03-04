@@ -341,8 +341,8 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     tooltip = "Use editor font and colors for painting"
   }
 
-  private val colorations = new Button { action = Action("Colorations") { color_dialog.open } }
-  private val filters = new Button { action = Action("Filters") { mutator_dialog.open } }
+  private val colorations = new Button { action = Action("Colorations") { color_dialog.open() } }
+  private val filters = new Button { action = Action("Filters") { mutator_dialog.open() } }
 
   private val controls =
     Wrap_Panel(

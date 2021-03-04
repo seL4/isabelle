@@ -157,7 +157,7 @@ Usage: isabelle TOOL [ARGS ...]
 
   Start Isabelle TOOL with ARGS; pass "-?" for tool-specific help.
 
-Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
+Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage()
         case tool_name :: tool_args =>
           find_external(tool_name) orElse find_internal(tool_name) match {
             case Some(tool) => tool(tool_args)
