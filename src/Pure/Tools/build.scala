@@ -8,7 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.SortedSet
+import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 

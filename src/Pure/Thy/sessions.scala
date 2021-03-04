@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 
-import scala.collection.{SortedSet, SortedMap}
+import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
 
 
