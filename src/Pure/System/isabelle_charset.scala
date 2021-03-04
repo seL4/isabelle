@@ -12,8 +12,6 @@ import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder, CoderResult}
 import java.nio.charset.spi.CharsetProvider
 
-import scala.collection.JavaConverters
-
 
 object Isabelle_Charset
 {
@@ -47,6 +45,6 @@ class Isabelle_Charset_Provider extends CharsetProvider
   {
     // FIXME inactive
     // Iterator(Isabelle_Charset.charset)
-    JavaConverters.asJavaIterator(Iterator())
+    java.util.List.of[Charset]().listIterator()
   }
 }
