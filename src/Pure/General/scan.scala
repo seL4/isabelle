@@ -390,7 +390,8 @@ object Scan
         new Lexicon(extend(rep, 0))
       }
 
-    def ++ (elems: IterableOnce[String]): Lexicon = elems.foldLeft(this)(_ + _)
+    def ++ (elems: IterableOnce[String]): Lexicon =
+      elems.iterator.foldLeft(this)(_ + _)
 
     def ++ (other: Lexicon): Lexicon =
       if (this eq other) this

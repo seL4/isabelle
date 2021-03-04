@@ -56,8 +56,10 @@ object Command
   {
     type Entry = (Long, XML.Elem)
     val empty: Results = new Results(SortedMap.empty)
-    def make(args: IterableOnce[Results.Entry]): Results = args.foldLeft(empty)(_ + _)
-    def merge(args: IterableOnce[Results]): Results = args.foldLeft(empty)(_ ++ _)
+    def make(args: IterableOnce[Results.Entry]): Results =
+      args.iterator.foldLeft(empty)(_ + _)
+    def merge(args: IterableOnce[Results]): Results =
+      args.iterator.foldLeft(empty)(_ ++ _)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Elem])
@@ -92,7 +94,8 @@ object Command
   {
     type Entry = (Long, Export.Entry)
     val empty: Exports = new Exports(SortedMap.empty)
-    def merge(args: IterableOnce[Exports]): Exports = args.foldLeft(empty)(_ ++ _)
+    def merge(args: IterableOnce[Exports]): Exports =
+      args.iterator.foldLeft(empty)(_ ++ _)
   }
 
   final class Exports private(private val rep: SortedMap[Long, Export.Entry])
@@ -134,8 +137,10 @@ object Command
     type Entry = (Markup_Index, Markup_Tree)
     val empty: Markups = new Markups(Map.empty)
     def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
-    def make(args: IterableOnce[Entry]): Markups = args.foldLeft(empty)(_ + _)
-    def merge(args: IterableOnce[Markups]): Markups = args.foldLeft(empty)(_ ++ _)
+    def make(args: IterableOnce[Entry]): Markups =
+      args.iterator.foldLeft(empty)(_ + _)
+    def merge(args: IterableOnce[Markups]): Markups =
+      args.iterator.foldLeft(empty)(_ ++ _)
   }
 
   final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
