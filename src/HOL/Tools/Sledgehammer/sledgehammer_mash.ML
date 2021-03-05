@@ -1266,7 +1266,7 @@ fun launch_thread timeout task =
   let
     val hard_timeout = Time.scale learn_timeout_slack timeout
     val birth_time = Time.now ()
-    val death_time = birth_time + hard_timeout
+    val death_time = birth_time + Timeout.scale_time hard_timeout
     val desc = ("Machine learner for Sledgehammer", "")
   in
     Async_Manager_Legacy.thread MaShN birth_time death_time desc task

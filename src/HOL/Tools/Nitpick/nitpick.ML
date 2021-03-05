@@ -947,7 +947,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
   in
     let
       val unknown_outcome = (unknownN, [])
-      val deadline = Time.now () + timeout
+      val deadline = Timeout.end_time timeout
       val outcome as (outcome_code, _) =
         Timeout.apply (timeout + timeout_bonus)
             (pick_them_nits_in_term deadline state params mode i n step subst

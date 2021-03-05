@@ -66,7 +66,7 @@ option print_mode : string = ""
   -- "additional print modes for prover output (separated by commas)"
 
 
-section "Parallel Processing"
+section "Parallel Processing and Timing"
 
 public option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
@@ -86,6 +86,9 @@ option parallel_subproofs_threshold : real = 0.01
 
 option command_timing_threshold : real = 0.1
   -- "default threshold for persistent command timing (seconds)"
+
+public option timeout_scale : real = 1.0
+  -- "scale factor for timeout in Isabelle/ML and session build"
 
 
 section "Detail of Proof Checking"
@@ -107,9 +110,6 @@ option condition : string = ""
 
 option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
-
-option timeout_scale : real = 1.0
-  -- "scale factor for session timeout"
 
 option process_output_limit : int = 100
   -- "build process output limit (in million characters, 0 = unlimited)"
