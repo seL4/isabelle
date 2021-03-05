@@ -2386,6 +2386,21 @@ qed auto
 lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
   by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
 
+lemma list_all_take_drop_conv:
+  "list_all P (take n xs) \<and> list_all P (drop n xs) \<longleftrightarrow> list_all P xs"
+proof (induction xs arbitrary: n)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  then show ?case
+    by (cases n) simp_all
+qed
+
+lemmas list_all_takeI = list_all_take_drop_conv[THEN iffD2, THEN conjunct1]
+lemmas list_all_dropI = list_all_take_drop_conv[THEN iffD2, THEN conjunct2]
+lemmas list_all_take_dropD = conjI[THEN list_all_take_drop_conv[THEN iffD1]]
+
 
 subsubsection \<open>\<^const>\<open>takeWhile\<close> and \<^const>\<open>dropWhile\<close>\<close>
 
@@ -2573,6 +2588,14 @@ lemma takeWhile_idem [simp]:
 lemma dropWhile_idem [simp]:
   "dropWhile P (dropWhile P xs) = dropWhile P xs"
   by (induct xs) auto
+
+lemma list_all_takeWhile_dropWhile_conv:
+  "list_all P (takeWhile Q xs) \<and> list_all P (dropWhile Q xs) \<longleftrightarrow> list_all P xs"
+  by (induction xs; simp)
+
+lemmas list_all_takeWhileI = list_all_takeWhile_dropWhile_conv[THEN iffD2, THEN conjunct1]
+lemmas list_all_dropWhileI = list_all_takeWhile_dropWhile_conv[THEN iffD2, THEN conjunct2]
+lemmas list_all_takeWhile_dropWhileD = conjI[THEN list_all_takeWhile_dropWhile_conv[THEN iffD1]]
 
 
 subsubsection \<open>\<^const>\<open>zip\<close>\<close>
