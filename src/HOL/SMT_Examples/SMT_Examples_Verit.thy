@@ -314,7 +314,6 @@ lemma "\<lbrakk> x3 = \<bar>x2\<bar> - x1; x4 = \<bar>x3\<bar> - x2; x5 = \<bar>
          x6 = \<bar>x5\<bar> - x4; x7 = \<bar>x6\<bar> - x5; x8 = \<bar>x7\<bar> - x6;
          x9 = \<bar>x8\<bar> - x7; x10 = \<bar>x9\<bar> - x8; x11 = \<bar>x10\<bar> - x9 \<rbrakk>
  \<Longrightarrow> x1 = x10 \<and> x2 = (x11::int)"
-  supply [[smt_timeout=360]]
   by (smt (verit))
 
 
