@@ -1264,7 +1264,7 @@ val learn_timeout_slack = 20.0
 
 fun launch_thread timeout task =
   let
-    val hard_timeout = time_mult learn_timeout_slack timeout
+    val hard_timeout = Time.scale learn_timeout_slack timeout
     val birth_time = Time.now ()
     val death_time = birth_time + hard_timeout
     val desc = ("Machine learner for Sledgehammer", "")
@@ -1546,7 +1546,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
       fun maybe_launch_thread exact min_num_facts_to_learn =
         if not (Async_Manager_Legacy.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
-          let val timeout = time_mult learn_timeout_slack timeout in
+          let val timeout = Time.scale learn_timeout_slack timeout in
             (if verbose then
                writeln ("Started MaShing through " ^
                  (if exact then "" else "up to ") ^ string_of_int min_num_facts_to_learn ^

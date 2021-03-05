@@ -57,7 +57,7 @@ fun par_list_map_filter_with_timeout _ _ _ _ [] = []
           else
             let val y = f timeout x in
               (case get_time y of
-                SOME time => next_timeout := time_min (time, !next_timeout)
+                SOME time => next_timeout := Time.min (time, !next_timeout)
               | _ => ());
               SOME y
             end

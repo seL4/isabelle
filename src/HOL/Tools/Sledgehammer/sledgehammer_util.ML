@@ -13,8 +13,6 @@ sig
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
   val with_cleanup : ('a -> unit) -> ('a -> 'b) -> 'a -> 'b
-  val time_mult : real -> Time.time -> Time.time
-  val time_min : Time.time * Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time : string -> string -> Time.time
   val subgoal_count : Proof.state -> int
@@ -48,9 +46,6 @@ fun with_cleanup clean_up f x =
   Exn.capture f x
   |> tap (fn _ => clean_up x)
   |> Exn.release
-
-fun time_mult k t = Time.fromMilliseconds (Real.ceil (k * Real.fromInt (Time.toMilliseconds t)))
-fun time_min (x, y) = if x < y then x else y
 
 fun parse_bool_option option name s =
   (case s of
