@@ -138,6 +138,9 @@ lemma set_mono_prefix: "prefix xs ys \<Longrightarrow> set xs \<subseteq> set ys
 lemma take_is_prefix: "prefix (take n xs) xs"
   unfolding prefix_def by (metis append_take_drop_id)
 
+lemma takeWhile_is_prefix: "prefix (takeWhile P xs) xs"
+  unfolding prefix_def by (metis takeWhile_dropWhile_id)
+
 lemma prefixeq_butlast: "prefix (butlast xs) xs"
 by (simp add: butlast_conv_take take_is_prefix)
 
@@ -595,7 +598,10 @@ lemma filter_mono_suffix: "suffix xs ys \<Longrightarrow> suffix (filter P xs) (
 by (auto simp: suffix_def)
 
 lemma suffix_drop: "suffix (drop n as) as"
-  unfolding suffix_def by (rule exI [where x = "take n as"]) simp
+  unfolding suffix_def by (metis append_take_drop_id)
+
+lemma suffix_dropWhile: "suffix (dropWhile P xs) xs"
+  unfolding suffix_def by (metis takeWhile_dropWhile_id)
 
 lemma suffix_take: "suffix xs ys \<Longrightarrow> ys = take (length ys - length xs) ys @ xs"
   by (auto elim!: suffixE)
@@ -1293,10 +1299,16 @@ lemma suffix_imp_sublist [simp, intro]: "suffix xs ys \<Longrightarrow> sublist 
   by (auto simp: sublist_def suffix_def intro: exI[of _ "[]"])
 
 lemma sublist_take [simp, intro]: "sublist (take n xs) xs"
-  by (rule prefix_imp_sublist) (simp_all add: take_is_prefix)
+  by (rule prefix_imp_sublist[OF take_is_prefix])
+
+lemma sublist_takeWhile [simp, intro]: "sublist (takeWhile P xs) xs"
+  by (rule prefix_imp_sublist[OF takeWhile_is_prefix])
 
 lemma sublist_drop [simp, intro]: "sublist (drop n xs) xs"
-  by (rule suffix_imp_sublist) (simp_all add: suffix_drop)
+  by (rule suffix_imp_sublist[OF suffix_drop])
+
+lemma sublist_dropWhile [simp, intro]: "sublist (dropWhile P xs) xs"
+  by (rule suffix_imp_sublist[OF suffix_dropWhile])
     
 lemma sublist_tl [simp, intro]: "sublist (tl xs) xs"
   by (rule suffix_imp_sublist) (simp_all add: suffix_drop)
