@@ -159,7 +159,7 @@ fun run_chaku_on_prop state
   let
     val ctxt = Proof.context_of state;
 
-    val timer = Timer.startRealTimer ()
+    val time_start = Time.now ()
 
     val print = writeln;
     val print_n = if mode = Normal then writeln else K ();
@@ -310,10 +310,10 @@ fun run_chaku_on_prop state
     val _ = spying spy (fn () => (state, i, "starting " ^ str_of_mode mode ^ " mode"));
 
     val outcome as (outcome_code, _) =
-      Timeout.apply (Time.+ (timeout, timeout_slack)) run ()
+      Timeout.apply (timeout + timeout_slack) run ()
       handle Timeout.TIMEOUT _ => (print_n "Time out"; (unknownN, NONE));
 
-    val _ = print_v (fn () => "Total time: " ^ string_of_time (Timer.checkRealTimer timer));
+    val _ = print_v (fn () => "Total time: " ^ string_of_time (Time.now () - time_start));
 
     val _ = spying spy (fn () => (state, i, "outcome: " ^ outcome_code));
   in

@@ -201,7 +201,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                            subst def_assm_ts nondef_assm_ts orig_t =
   let
     val time_start = Time.now ()
-    val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val keywords = Thy_Header.get_keywords thy
@@ -933,8 +932,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       handle Timeout.TIMEOUT _ =>
              (print_nt (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then potentialN else unknownN)
-    val _ = print_v (fn () =>
-                "Total time: " ^ string_of_time (Timer.checkRealTimer timer))
+    val _ = print_v (fn () => "Total time: " ^ string_of_time (Time.now () - time_start))
     val _ = spying spy (fn () => (state, i, "outcome: " ^ outcome_code))
   in (outcome_code, Queue.content (Synchronized.value outcome)) end
 
