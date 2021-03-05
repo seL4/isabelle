@@ -1385,6 +1385,12 @@ proof -
     by (simp add: ys zs1 zs2)
 qed
 
+lemma sublist_list_all: "sublist xs ys \<Longrightarrow> list_all P ys \<Longrightarrow> list_all P xs"
+  by (auto simp: sublist_def)
+
+lemmas prefix_list_all = prefix_imp_sublist[THEN sublist_list_all]
+lemmas suffix_list_all = suffix_imp_sublist[THEN sublist_list_all]
+
 subsubsection \<open>\<open>sublists\<close>\<close>
 
 primrec sublists :: "'a list \<Rightarrow> 'a list list" where
