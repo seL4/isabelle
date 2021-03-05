@@ -22,7 +22,7 @@ corrected. Minor INCOMPATIBILITY.
 specific "List_Permutation".  Note that most notions from that
 theory are already present in theory "Permutations".  INCOMPATIBILITY.
 
-* Lemma "permutes_induct" has been given named premised.
+* Lemma "permutes_induct" has been given named premises.
 INCOMPATIBILITY.
 
 
