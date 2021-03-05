@@ -1,11 +1,11 @@
-c4510ae6be30b994919ed3a724999fe0329aac46 6 0
+f4ff5c44833ca360a0e6110670545870e993732e 6 0
 unsat
 ((set-logic AUFLIA)
 (proof
 (let ((@x30 (rewrite (= (not true) false))))
 (mp (asserted (not true)) @x30 false))))
 
-032a981d2d971a3ae58910db408d3838b7de586f 7 0
+44c9e70361e406cdaa5515db0484a14de1f3823e 7 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -13,7 +13,7 @@ unsat
 (let ((@x40 (trans @x36 (rewrite (= (not true) false)) (= (not (or p$ (not p$))) false))))
 (mp (asserted (not (or p$ (not p$)))) @x40 false)))))
 
-d251ca4335382db5b789cf4827abd98b9e46f2bf 9 0
+642064746d4dfc4babb357dafe234a81ef017f2c 9 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -23,7 +23,7 @@ unsat
 (let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= (and p$ true) p$)) false))))
 (mp (asserted (not (= (and p$ true) p$))) @x47 false)))))))
 
-98b44ed25900b5731029a0f9910e7ccad7cfa5cf 13 0
+0a1454d805d51972201b1f0614ae4d2b1ee0c238 13 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -37,7 +37,7 @@ unsat
 (let (($x29 (or p$ q$)))
 (mp (and-elim (not-or-elim @x44 (and $x29 (not p$))) $x29) @x58 false)))))))))))
 
-d79b20c3fa2c3156619ed0d2d824ef5eb5776ea3 11 0
+34112335b57502835b641cecdefffafb46f85d80 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -49,7 +49,7 @@ unsat
 (let ((@x45 (trans (monotonicity (rewrite (= $x34 true)) (= $x35 (not true))) (rewrite (= (not true) false)) (= $x35 false))))
 (mp (asserted $x35) @x45 false)))))))))
 
-bd97c872cfd055e1504521fb8cd9167911452904 23 0
+20bc477eba70622207284dac695d9d5d493c254c 23 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -73,7 +73,7 @@ unsat
 (let ((@x58 (monotonicity (trans @x49 (rewrite (= (=> $x31 $x44) $x51)) (= $x37 $x51)) (= $x38 $x56))))
 (mp (asserted $x38) (trans @x58 @x67 (= $x38 false)) false)))))))))))))))))))))
 
-2b81235bea88ad32b47b62d270d5f8604cdbea46 24 0
+31d9c9d3ff37ebd83ab46c7b87647ef17b2c57d5 24 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -98,7 +98,7 @@ unsat
 (let ((@x82 (trans (monotonicity @x75 (= $x37 (not true))) (rewrite (= (not true) false)) (= $x37 false))))
 (mp (asserted $x37) @x82 false))))))))))))))))))))))
 
-a4102e588c1974e32fabf0cded52102a5448e5f2 39 0
+330b2c9cc52cf5f35a134a2209b0d4127652f7c0 39 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -138,7 +138,7 @@ unsat
 (let ((@x40 (mp (asserted (or a$ (or b$ (or c$ d$)))) (rewrite (= (or a$ (or b$ (or c$ d$))) $x37)) $x37)))
 (mp @x40 @x202 false)))))))))))))))))))))))))))))))))))))
 
-2281aab3f66d02faebd1a91e2e39f2078773cec5 27 0
+ad87d7e797bdb9354f6592e3ce911c29af823c87 27 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -166,7 +166,7 @@ unsat
 (let ((@x61 ((_ quant-inst a$ b$) $x149)))
 (unit-resolution @x61 @x485 @x57 false)))))))))))))))))))
 
-4ca4f2a22247b4d3cfbc48b28d5380dcd65f92bd 637 0
+475916706487c818c9d90b517b53e98cbd0b98a4 637 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -804,7 +804,7 @@ unsat
 (let ((@x1722 (unit-resolution @x1662 (unit-resolution @x472 @x1718 $x467) (unit-resolution @x565 @x1715 $x482) $x355)))
 (unit-resolution @x1647 @x1722 (unit-resolution @x472 @x1718 $x467) (unit-resolution @x565 @x1715 $x482) (unit-resolution @x480 @x1718 $x397) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-5b5847cff590025b823cc0b87a8a109505cf26d0 38 0
+53d98ae38981e94d40d6d86fc0074ee3a2e0fb7e 38 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!0 () Int)
@@ -843,7 +843,7 @@ unsat
 (let ((@x79 (and-elim (mp @x72 @x77 (and $x48 $x63)) $x48)))
 (unit-resolution @x79 @x81 false))))))))))))))))))))
 
-373c19e76251b161134a463d5e2a74af5c6b8f8c 53 0
+e22c0f9d8d283fe65facdddeef75c43b520c8702 53 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!0 () A$)
@@ -897,7 +897,7 @@ unsat
 (let ((@x161 ((_ quant-inst c$) $x160)))
 (unit-resolution @x161 @x485 (unit-resolution @x525 @x485 $x517) false)))))))))))))))))))))))))))))))))))))))
 
-73d33aacc4f76cc1b4edd5b56d4a9b1cb27da391 53 0
+3b83f9f26b0c0bdbb99d25d8249a78edb7dbd8f3 53 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!3 () A$)
@@ -951,7 +951,7 @@ unsat
 (let ((@x211 ((_ quant-inst c$) $x549)))
 (unit-resolution @x211 @x199 (unit-resolution @x592 @x199 $x584) false)))))))))))))))))))))))))))))))))))))))
 
-5865554a06d92ae737f15d4517f201cb6a56c4e7 26 0
+c5dafcf16dd97b4d38e39a04bbc990e4ad5fdbd3 26 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -978,7 +978,7 @@ unsat
 (let ((@x70 ((_ quant-inst x$) $x156)))
 (unit-resolution @x70 @x491 @x49 false)))))))))))))))))))
 
-2e7aa15df0632240a3bbe8b448df847c6a5afa7c 7 0
+c810fdd7e33dce88857a4a5d351d4d48aeec706d 7 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -986,7 +986,7 @@ unsat
 (let ((@x39 (trans @x35 (rewrite (= (not true) false)) (= (not (= 3 3)) false))))
 (mp (asserted (not (= 3 3))) @x39 false)))))
 
-b2313f7d5e8f2049d0fc86a5290b5b01c50a1956 7 0
+4405deb1e8af2d0b383b4c76fef214640ee54b60 7 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -994,7 +994,7 @@ unsat
 (let ((@x39 (trans @x35 (rewrite (= (not true) false)) (= (not (= 3.0 3.0)) false))))
 (mp (asserted (not (= 3.0 3.0))) @x39 false)))))
 
-6114093ed426a317c79d6cee4b92be3fd329859f 9 0
+9db6968bb918051eba4a8f252eb4d7b31abc0008 9 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1004,7 +1004,7 @@ unsat
 (let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (+ 3 1) 4)) false))))
 (mp (asserted (not (= (+ 3 1) 4))) @x48 false)))))))
 
-a203b3db2a53411ee3d79b9aeda0b90634f85bed 16 0
+4236229b55c8c35ee3fdabff17499992a72bc2e9 16 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1021,7 +1021,7 @@ unsat
 (let ((@x63 (trans (monotonicity @x56 (= $x35 (not true))) (rewrite (= (not true) false)) (= $x35 false))))
 (mp (asserted $x35) @x63 false))))))))))))))
 
-2a15e56e254da2b0d703c710a918cea09184c4fd 11 0
+edfffa3c123ab0c63cd525084a50aa3c5ed5a484 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1033,7 +1033,7 @@ unsat
 (let ((@x59 (trans @x55 (rewrite (= (not true) false)) (= (not (< 5 (ite (<= 3 8) 8 3))) false))))
 (mp (asserted (not (< 5 (ite (<= 3 8) 8 3)))) @x59 false)))))))))
 
-e5c3e298abc0852046f636c11356417cc1ca2609 88 0
+f9514ad0d68d1d07ca6390dfeefcb474eb113622 88 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -1122,7 +1122,7 @@ unsat
 (let ((@x234 (unit-resolution @x136 (unit-resolution @x138 (lemma @x231 (not $x134)) $x83) $x133)))
 ((_ th-lemma arith farkas -2 1 -1 -1 1) (unit-resolution @x138 (lemma @x231 (not $x134)) $x83) @x221 @x126 @x226 (unit-resolution @x159 @x234 $x149) false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-d09b2dcc4d3d4032a6fad44744e069f775d9561a 12 0
+dfe0238fb899e04c38457f444509fee29d6fc513 12 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1135,7 +1135,7 @@ unsat
 (let ((@x53 (trans @x49 (rewrite (= (not true) false)) (= (not $x32) false))))
 (mp (asserted (not $x32)) @x53 false))))))))))
 
-a8c64b00c4a9d6a3ceb426e6cbf6c1185a064051 16 0
+46bed4652ccbc7e1a58c0efb03590e49ee15643a 16 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1152,7 +1152,7 @@ unsat
 (let ((@x70 (trans @x48 @x68 (= (not (or (<= 4 (+ x$ 3)) $x33)) false))))
 (mp (asserted (not (or (<= 4 (+ x$ 3)) $x33))) @x70 false))))))))))))))
 
-591b2369e8eb5c0fb224471236573b23130483ae 18 0
+ef89c4f1b53c97f5cf2e25105c9bb8f92779adb7 18 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1171,7 +1171,7 @@ unsat
 (let ((@x83 (mp (asserted $x58) (trans (monotonicity @x66 (= $x58 $x67)) @x80 (= $x58 $x70)) $x70)))
 (mp @x83 @x90 false))))))))))))))))
 
-895fc717670fb918a1eb39f2d045d84196651462 11 0
+77b18cda19c5fffd05747f5d9240aebf138e344d 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1183,7 +1183,7 @@ unsat
 (let ((@x57 (trans @x53 (rewrite (= (not true) false)) (= (not (not (= (+ 2 2) 5))) false))))
 (mp (asserted (not (not (= (+ 2 2) 5)))) @x57 false)))))))))
 
-1660d807dc8fd7dfaeb6cc49abbc1931fb4d9cf2 19 0
+42e94ca5e1eca47637b565820dbeb8f0c3f0cfbe 19 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -1203,7 +1203,7 @@ unsat
 (let ((@x67 (mp (asserted (not (< a$ 0.0))) @x66 $x58)))
 ((_ th-lemma arith farkas 7 3/2 1) @x67 @x52 @x40 false)))))))))))))))))
 
-efc376658e37c2b65f19b46a152779e140165df2 22 0
+0be06fbd57421bc1e05bb76b65b7d775f798777d 22 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1226,7 +1226,7 @@ unsat
 (let ((@x78 (trans (monotonicity @x71 (= $x40 (not true))) (rewrite (= (not true) false)) (= $x40 false))))
 (mp (asserted $x40) @x78 false))))))))))))))))))))
 
-78d6ded86e460dba6a16db8a6cfb789446760fa1 159 0
+d419775b36e6eb4a3ae9788e677f2c6bd6596508 159 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -1386,7 +1386,7 @@ unsat
 (let ((@x433 (mp (not-or-elim @x205 (not $x57)) @x432 $x422)))
 (unit-resolution @x433 @x488 (mp @x478 @x480 $x44) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-b0ad6ddc59e366ae155bead277fca4821b2e4a76 878 0
+8eb414a6a3d3ad6d5e5412da8fced2ed014e80e6 878 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2265,7 +2265,7 @@ unsat
 (let ((@x1972 (unit-resolution @x623 (unit-resolution @x625 (unit-resolution @x1804 @x1969 $x823) $x363) $x620)))
 (unit-resolution @x926 @x1972 @x1966 false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-b6bd2aa84f7a041a3cc8dfe1a48fdb09417bc088 20 0
+acc0a8679fada55f807fa45c47b89f2dc4f0cc19 20 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -2286,7 +2286,7 @@ unsat
 (let ((@x62 (monotonicity @x59 (= $x36 (not $x43)))))
 (mp (asserted $x36) (trans @x62 @x71 (= $x36 false)) false))))))))))))))))))
 
-504214aed097fba8e46b5c49f98f792e49e4d9da 113 0
+f2ecc8d02c730cd119d0a8be84bc5bf03ed0f98b 113 0
 unsat
 ((set-logic <null>)
 (proof
@@ -2400,7 +2400,7 @@ unsat
 (let ((@x74 (mp (asserted $x36) @x73 $x67)))
 ((_ th-lemma arith farkas -1 1 1) @x74 (unit-resolution ((_ th-lemma arith) (or false $x305)) (true-axiom true) $x305) @x332 false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-39e19cd0e196322692e5b34ecb957ba2c2639785 112 0
+2b90909cb79318775a857f179e3de90ebc09360b 112 0
 unsat
 ((set-logic <null>)
 (proof
@@ -2513,7 +2513,7 @@ unsat
 (let ((@x70 (mp (asserted (not (< (+ x$ (+ ?x29 ?x29)) (+ x$ 3)))) @x69 $x63)))
 ((_ th-lemma arith farkas -1 1 1) @x70 @x331 (unit-resolution ((_ th-lemma arith) (or false $x319)) (true-axiom true) $x319) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-de96fa1082a7149e62c54905aee3da41c59c5479 32 0
+9e8bd1ccee1598c51f1f67ef729241282bee8975 32 0
 unsat
 ((set-logic <null>)
 (proof
@@ -2546,7 +2546,7 @@ unsat
 (let ((@x117 (unit-resolution ((_ th-lemma arith assign-bounds 1) (or $x102 (not $x100))) (unit-resolution ((_ th-lemma arith triangle-eq) (or (not $x95) $x100)) @x98 $x100) $x102)))
 (unit-resolution ((_ th-lemma arith triangle-eq) (or $x28 (not $x101) (not $x102))) @x117 @x110 @x30 false))))))))))))))))))))))))))))))
 
-19fdabe4ecba83d920b61b6176c852edbe5b4e52 12 0
+e975f8a0748f1ab04103c4bce1c336d67c9ddc7f 12 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2559,7 +2559,7 @@ unsat
 (let ((@x46 (trans @x42 (rewrite (= (not true) false)) (= $x29 false))))
 (mp (asserted $x29) @x46 false)))))))))
 
-f637cb0c23ca92610342419cb3bf8dde26b30396 12 0
+693a453fa295b294a12bfe4fc2548b88f93af81d 12 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -2572,7 +2572,7 @@ unsat
 (let ((@x46 (trans @x42 (rewrite (= (not true) false)) (= $x29 false))))
 (mp (asserted $x29) @x46 false)))))))))
 
-d29a5d1704622986b68c2f57db285b698846058a 22 0
+da9745bea43c7d7581f4f1a982ea54a4f665c150 22 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2595,7 +2595,7 @@ unsat
 (let ((@x49 (mp~ (mp (asserted $x30) (monotonicity @x40 (= $x30 $x41)) $x41) @x48 $x46)))
 (mp (mp @x49 @x54 $x52) (rewrite (= $x52 false)) false)))))))))))))
 
-50834eb84d2f2eeb597ca8bfd0cbd46e1a977307 22 0
+d1b4498be99afb5671326f37a46458328653a778 22 0
 unsat
 ((set-logic AUFLIRA)
 (proof
@@ -2618,7 +2618,7 @@ unsat
 (let ((@x48 (mp~ (mp (asserted $x29) (monotonicity @x39 (= $x29 $x40)) $x40) @x47 $x45)))
 (mp (mp @x48 @x53 $x51) (rewrite (= $x51 false)) false)))))))))))))
 
-5680cf7f1f7eeede61b8763480c833540efc6501 31 0
+47b866c871f79f79347596e68e9f0a6717e9f9ae 31 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!0 () Int)
@@ -2650,7 +2650,7 @@ unsat
 (let ((@x74 (mp (mp~ (mp (asserted $x32) @x51 $x49) @x67 $x63) (quant-intro (rewrite (= $x60 $x54)) (= $x63 $x71)) $x71)))
 (mp @x74 (rewrite (= $x71 false)) false))))))))))))))))))
 
-3c28d4739f1b1a92e69b6d9cc30eb0a41a881398 22 0
+f8895baf351fb020e98a9589d9032cb37daead5c 22 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v1!0 () Int)
@@ -2673,7 +2673,7 @@ unsat
 (let ((@x70 (trans (symm (and-elim @x65 (= ?v0!1 0)) (= 0 ?v0!1)) @x68 (= 0 ?v1!0))))
 (mp (trans @x70 @x67 (= 0 1)) (rewrite (= (= 0 1) false)) false))))))))))))))))
 
-67d24fd230a14f7ae0f516e21c1c266eaa6a1dee 55 0
+c6ae686b0a4faf5664648d4de310ae4c5a1de7ec 55 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2729,7 +2729,7 @@ unsat
 (let ((@x50 (monotonicity @x47 (= $x36 $x48))))
 (mp (asserted $x36) (trans @x50 @x101 (= $x36 false)) false)))))))))))))))))))))))))))
 
-9b33558f7e3d33274980f3cf1408c789ce3fe411 42 0
+326e4de3d7358a1ce81c3b38c63746b57dca63fa 42 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2772,7 +2772,7 @@ unsat
 (let ((@x60 (monotonicity (quant-intro @x54 (= $x37 $x55)) (= $x38 $x58))))
 (mp (asserted $x38) (trans @x60 @x97 (= $x38 false)) false))))))))))))))))))))))))))
 
-c91b2faa74b6f14adc03f118d0ebf326186d3e82 32 0
+8948c34be010e83eefa29947fdeb482617c77a6d 32 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2805,7 +2805,7 @@ unsat
 (let ((@x53 (monotonicity @x50 (= $x37 $x51))))
 (mp (asserted $x37) (trans @x53 @x76 (= $x37 false)) false)))))))))))))))))))
 
-5e6af334bdbf0a7d43561ad8b7c602bb6c3adb5b 43 0
+933b139b2a650c91137f9f7c9b004c8f0d9521d1 43 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!1 () Int)
@@ -2849,7 +2849,7 @@ unsat
 (let ((@x103 (not-or-elim @x102 $x81)))
 (unit-resolution (unit-resolution ((_ th-lemma arith triangle-eq) (or $x87 $x84 $x93)) @x103 (or $x87 $x93)) @x106 @x105 false)))))))))))))))))))))))))))))))))
 
-225395f9fe2308e0df959c87e4b0367c509ed3da 46 0
+b488c2ec223d613631144f2dcdf7e5867fbbb258 46 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!0 () Int)
@@ -2896,7 +2896,7 @@ unsat
 (let ((@x109 (lemma @x108 $x84)))
 (unit-resolution (unit-resolution (def-axiom (or $x88 $x83 $x86)) @x92 (or $x83 $x86)) (unit-resolution ((_ th-lemma arith farkas 1 1) (or $x93 $x85)) @x109 $x93) (unit-resolution ((_ th-lemma arith farkas 1 1) (or $x87 $x85)) @x109 $x87) false)))))))))))))))))))))))))))))))))
 
-588d2c3e5f2a3b0948546d186f05535d11e37c8d 31 0
+da417520952f17eeef46bee85072a2ecad83fc46 31 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -2928,7 +2928,7 @@ unsat
 (let ((@x66 (mp~ (mp (asserted $x33) @x60 $x56) (nnf-pos (refl (~ $x53 $x53)) (~ $x56 $x56)) $x56)))
 (unit-resolution @x66 @x464 false)))))))))))))))))))))))))
 
-c3173310bcd1c740d9eae3d871d668c6d70c7e74 62 0
+623edcfe9613936b08dbdc0269a0746af35c83aa 62 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!1 () Int)
@@ -2991,7 +2991,7 @@ unsat
 (let ((@x515 (unit-resolution (def-axiom (or z3name!0 $x220)) (unit-resolution @x131 @x238 $x88) $x220)))
 (unit-resolution ((_ th-lemma arith triangle-eq) (or (not $x220) (>= ?x96 3))) @x515 @x245 false))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-774e453e6283d3bbc1a31f77b233e45c4351f009 39 0
+42b10c0c66daf8181b08c93c22f4ecaa3220e964 39 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3031,7 +3031,7 @@ unsat
 (let ((@x75 (trans @x71 (rewrite (= (not (not $x61)) $x61)) (= $x39 $x61))))
 (mp (asserted $x39) (trans @x75 @x85 (= $x39 false)) false)))))))))))))))))))))))
 
-6af2141813330b3665fb5ee9c13bc207b1c8e65f 52 0
+a32c06c0a3798bb49bc988f268a9de26ca0e273b 52 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v1!1 () Int)
@@ -3084,7 +3084,7 @@ unsat
 (let ((@x117 (and-elim (not-or-elim @x112 (and $x100 $x102)) $x102)))
 ((_ th-lemma arith farkas 1 1 1) @x117 @x116 @x118 false)))))))))))))))))))))))))))))))))))
 
-0d5f058bd16e2d94079694a8780fe58470075f77 45 0
+dd6dcae1cf0d709ea38f21e7928a94234cce9953 45 0
 unsat
 ((set-logic AUFLIRA)
 (declare-fun ?v1!1 () Int)
@@ -3130,7 +3130,7 @@ unsat
 (let ((@x115 (and-elim (not-or-elim @x111 (and $x100 (not (<= ?v2!0 0.0)))) $x100)))
 (unit-resolution ((_ th-lemma arith farkas 1 1) (or (not $x105) $x99)) @x115 @x117 false))))))))))))))))))))))))))))))
 
-aca38f846738c1caa428f8dcd62269d0e0e0f1ad 110 0
+3eba422177cb1a37290b37910c836f326aae81a7 110 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3241,7 +3241,7 @@ unsat
 (let ((@x125 (mp (mp @x110 (quant-intro @x115 (= $x107 $x116)) $x116) (quant-intro (rewrite (= $x113 $x104)) (= $x116 $x122)) $x122)))
 (mp (mp @x125 @x156 $x152) @x180 false))))))))))))))))))))))))))))))))))))))))))))))
 
-245c1030f1ccfb215e92ef15fb3eb734710324df 23 0
+cf55ed5d5e3fbc48182cb17ef320bda064703b0c 23 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v1!0 () Int)
@@ -3265,7 +3265,7 @@ unsat
 (let ((@x73 (not-or-elim @x70 $x62)))
 (unit-resolution ((_ th-lemma arith farkas 1 1) (or (not $x62) (not $x64))) @x73 @x74 false)))))))))))))))))
 
-1ce41c6c9b94498d7f0910606954c5a3eb9e79cc 26 0
+47c99edbec21b5ca2d3944c6aeff150e7def6e0b 26 0
 unsat
 ((set-logic <null>)
 (proof
@@ -3292,7 +3292,7 @@ unsat
 (let ((@x73 (and-elim (not-or-elim (mp (asserted $x35) @x69 $x65) $x52) $x49)))
 ((_ th-lemma arith farkas 1 1 1) @x73 @x72 @x74 false))))))))))))))))))))))))
 
-120e7571f7a3d5bdf7efb7d07b2863a6d193cfc4 26 0
+d19214170f32152ce058c34f982fe481da9e80ff 26 0
 unsat
 ((set-logic <null>)
 (proof
@@ -3319,7 +3319,7 @@ unsat
 (let ((@x92 (trans @x88 (rewrite (= (not true) false)) (= $x39 false))))
 (mp (asserted $x39) @x92 false))))))))))))))))))))))))
 
-9643a0be0523c30ccea2649b7d41baba98b9e1c7 23 0
+6338e51142f708a9900dc576fef69c89a46c7f58 23 0
 unsat
 ((set-logic <null>)
 (proof
@@ -3343,7 +3343,7 @@ unsat
 (let ((@x82 (trans (monotonicity @x75 (= $x39 (not true))) (rewrite (= (not true) false)) (= $x39 false))))
 (mp (asserted $x39) @x82 false)))))))))))))))))))))
 
-cf35af4ec81d7dbaa379643034cb419106fa4ff8 51 0
+760eefae5bab2da16eec8daa0cc978ac4329de62 51 0
 unsat
 ((set-logic <null>)
 (proof
@@ -3395,7 +3395,7 @@ unsat
 (let ((@x152 (trans (monotonicity @x145 (= $x52 (not true))) (rewrite (= (not true) false)) (= $x52 false))))
 (mp (asserted $x52) @x152 false)))))))))))))))))))))))))))))))))))))))))))))))))
 
-1d394bb8e58206d50a13d379fbea25a1cbf1305d 12 0
+12dc1d685081b4234b95f046bcf34da3681d7c1e 12 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3408,7 +3408,7 @@ unsat
 (let ((@x37 (rewrite (= $x34 $x32))))
 (mp (asserted $x34) (trans @x37 @x39 (= $x34 false)) false))))))))))
 
-7e42c634f1307c931bb3205b7d29a61bf5cbb1dd 23 0
+f2f21091bf9deb3a38832129de5449a872415f16 23 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3432,7 +3432,7 @@ unsat
 (let ((@x70 (not-or-elim (mp (asserted $x36) (trans @x44 @x66 (= $x36 $x64)) $x64) $x45)))
 (unit-resolution ((_ th-lemma arith farkas 1 1) $x61) @x70 @x71 false)))))))))))))))))))))
 
-c9b8971d778e9001682f5b3a4e16c461840b29c5 22 0
+dbe03d888710bfc170c0322723b6fe3d138c2de7 22 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3455,7 +3455,7 @@ unsat
 (let ((@x50 (monotonicity @x47 (= $x36 (not (< 0 (ite $x32 0 1)))))))
 (mp (asserted $x36) (trans @x50 @x73 (= $x36 false)) false))))))))))))))))))))
 
-cbf2808ec09a5b4982758153f97196673f93edba 37 0
+30cc2762602a7a30eb3ec186f081112e21381d17 37 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3493,7 +3493,7 @@ unsat
 (let ((@x119 (not-or-elim (mp (asserted $x42) @x115 $x111) $x86)))
 (unit-resolution ((_ th-lemma arith farkas 1 1) (or (not $x86) (not $x91))) @x119 @x126 false)))))))))))))))))))))))))))))))))))
 
-b06d43652b73c2768eef10e5038b2c417733fa71 64 0
+093b4bdc35e8040f16c5dca022c87a6f58a6b797 64 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3558,7 +3558,7 @@ unsat
 (let ((@x526 (unit-resolution ((_ th-lemma arith triangle-eq) (or (not $x229) $x237)) (unit-resolution (def-axiom (or $x76 $x229)) @x533 $x229) $x237)))
 ((_ th-lemma arith farkas 1 1 1) (unit-resolution @x545 (unit-resolution @x552 @x565 $x234) $x337) @x533 @x526 false))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-678cc460f8a4ff76257174915fd3463bc39fc2f5 264 0
+c03c5a5464afed237861dfdc891e37969d566ebb 264 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v1!0 (Nat$) Nat$)
@@ -3823,7 +3823,7 @@ unsat
 (let ((@x133 (not-or-elim (mp (asserted $x96) @x129 $x125) (not (>= ?x89 1)))))
 ((_ th-lemma arith farkas -4 1 1) @x133 (unit-resolution (def-axiom (or $x683 $x668)) @x479 $x668) @x551 false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-f6c311f26c2b2fcfdbba6a5ea33668ca436fbf9f 23 0
+60d94e0cd230c2f830228f101b7544d16a19dfd6 23 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3847,7 +3847,7 @@ unsat
 (let ((@x54 (not-or-elim (mp (asserted (not (=> $x39 $x40))) @x50 (not (or (not $x39) $x40))) (not $x40))))
 (unit-resolution @x54 @x150 false)))))))))))))))))))
 
-197edb4480e92508ed0f53a2d22e3b77c6f0c371 42 0
+abc6aef55894d3d204d52d3df341120d4c77014e 42 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3890,7 +3890,7 @@ unsat
 (let ((@x76 (not-or-elim (mp (asserted (not (=> $x57 $x60))) @x70 (not (or (not $x57) $x60))) (not $x60))))
 (unit-resolution @x76 (trans @x489 @x504 $x60) false))))))))))))))))))))))))))))))))))))
 
-cc9c148ca28c075f5144e44f79eebd527c2d0a6e 51 0
+d251f21fb3589ab6ed61bce83e553bbcd5ee429c 51 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3942,7 +3942,7 @@ unsat
 (let ((@x78 (not-or-elim (mp (asserted (not (=> $x54 $x62))) @x72 (not (or (not $x54) $x62))) (not $x62))))
 (unit-resolution @x78 @x462 false)))))))))))))))))))))))))))))))))))))))))))
 
-94f8dc0b729718a91a4b2c16a293ab5ccce66764 24 0
+481375169802669da2461e9c7ce3d0e407b7bc16 24 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -3967,7 +3967,7 @@ unsat
 (let ((@x80 (mp (not-or-elim @x70 (not $x44)) (rewrite (= (not $x44) $x77)) $x77)))
 (mp @x80 @x93 false))))))))))))))))))))))
 
-08613a28dc6a32b8391e714c444a61d28a9dfe5b 45 0
+847a42093e0c7ebac5b356b94c79945004bf96e9 45 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4013,7 +4013,7 @@ unsat
 (let ((@x496 ((_ quant-inst x$) $x163)))
 (unit-resolution @x496 @x508 (unit-resolution @x84 (lemma @x495 $x47) $x73) false)))))))))))))))))))))))))))))))))
 
-4f66483c86f0c5a32686585d9e938dbb7086da72 11 0
+7db89748bff125dc0b538776ae3b570548832266 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4025,7 +4025,7 @@ unsat
 (let ((@x42 (trans (monotonicity (rewrite (= $x31 true)) (= $x32 (not true))) (rewrite (= (not true) false)) (= $x32 false))))
 (mp (asserted $x32) @x42 false))))))))
 
-756c9cf46ff832b47dec2dc62b830e47ac31bac1 11 0
+f60c850fda8f88ddfddcac265e198fed2855c01b 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4037,7 +4037,7 @@ unsat
 (let ((@x42 (trans (monotonicity (rewrite (= $x31 true)) (= $x32 (not true))) (rewrite (= (not true) false)) (= $x32 false))))
 (mp (asserted $x32) @x42 false))))))))
 
-8ddba6affa2abbe3cf3994f41ccb915988ccdafd 46 0
+f9e10e513fd0588f5d6c281610f4889bb0668a34 46 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4084,7 +4084,7 @@ unsat
 (let ((@x478 (mp ((_ quant-inst 3 42) (or (not $x52) $x171)) (trans (monotonicity @x131 $x137) (rewrite (= $x134 $x134)) $x137) $x134)))
 (unit-resolution (unit-resolution @x478 @x78 $x168) (mp @x77 @x472 (not $x168)) false)))))))))))))))))))))))))))))))))))
 
-1a5b849ab8104f63cc08e8abf718c3988390afde 75 0
+88fa92ffd8ea964848bdbb197defe1efa7fdd2e7 75 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4160,7 +4160,7 @@ unsat
 (let ((@x82 (asserted $x81)))
 (unit-resolution @x82 @x466 false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-b4e508855de4e3fc04daa5e54a806efd9a7631e0 11 0
+f06072929c8d142e53379b87462f703ce8c8fca8 11 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4172,7 +4172,7 @@ unsat
 (let ((@x42 (trans (monotonicity (rewrite (= $x31 true)) (= $x32 (not true))) (rewrite (= (not true) false)) (= $x32 false))))
 (mp (asserted $x32) @x42 false))))))))
 
-4fd0a6f6e50e6e78d532ce03c828f7347a53b208 109 0
+c36d2d391586c8a6d1e6b8e7a73bd245b4c2def7 109 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4282,7 +4282,7 @@ unsat
 (let ((@x81 (asserted $x80)))
 (unit-resolution @x81 (trans @x397 ((_ th-lemma arith eq-propagate 1 1 -4 -4) @x410 @x422 @x428 @x438 (= ?x490 6)) $x79) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-a09daf2232b40165a00a066ec5933156007bdafb 348 0
+703387d92be4ef7e4f1bc652b2328a3b33f53830 348 0
 unsat
 ((set-logic <null>)
 (proof
@@ -4631,7 +4631,7 @@ unsat
 (let ((@x895 (unit-resolution ((_ th-lemma arith triangle-eq) (or $x117 $x807 (not $x673))) @x891 (or $x807 (not $x673)))))
 ((_ th-lemma arith farkas -2 -2 1 -1 1 1) (unit-resolution @x895 @x889 $x807) @x485 @x745 @x488 (unit-resolution ((_ th-lemma arith triangle-eq) (or $x134 $x679)) @x584 $x679) (unit-resolution ((_ th-lemma arith) (or false $x564)) @x26 $x564) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-d8a2ea999dd5c80012745e4f4f27b069ecc2aed2 64 0
+9c0ac00b9444829edc9751ffc537b6a41af5144b 64 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4696,7 +4696,7 @@ unsat
 (let ((@x570 (mp ((_ quant-inst (sup$ ?x108) (sup$ ?x111) (sup$ ?x108)) (or $x251 (or $x160 $x247 $x117))) (rewrite (= (or $x251 (or $x160 $x247 $x117)) $x252)) $x252)))
 (unit-resolution @x570 @x584 @x114 @x116 @x119 false)))))))))))))))))))))))))))))))))))))))
 
-6e9f5761c7179fbcc82d651f00cba7c8afa1e7bd 25 0
+3d46cc152552934c74a9b7e72f528acd2da80760 25 0
 unsat
 ((set-logic AUFLIA)
 (proof
@@ -4722,7 +4722,7 @@ unsat
 (let ((@x258 ((_ quant-inst 1) $x257)))
 (unit-resolution @x258 @x620 @x145 false))))))))))))))))))
 
-8cb478278000a15878db9a263de25709c0d86abf 101 0
+83f2e868ac360af426c9844684088eb79f31b9ad 101 0
 unsat
 ((set-logic AUFLIA)
 (proof

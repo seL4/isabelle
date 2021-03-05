@@ -1,4 +1,4 @@
-2ceb8911b8a9522de42b725075da13c9ad4d2310 2983 0
+0a2d12aeeed9535b86d7d58cd35af090d5095447 2983 0
 unsat
 ((set-logic AUFLIA)
 (declare-fun ?v0!20 () B_Vertex$)

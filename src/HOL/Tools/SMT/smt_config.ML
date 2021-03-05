@@ -179,7 +179,7 @@ val setup_solver =
 (* options *)
 
 val oracle = Attrib.setup_config_bool \<^binding>\<open>smt_oracle\<close> (K true)
-val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 1000000.0)
+val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 0.0)
 val reconstruction_step_timeout = Attrib.setup_config_real \<^binding>\<open>smt_reconstruction_step_timeout\<close> (K 10.0)
 val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<close> (K 1)
 val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false)
