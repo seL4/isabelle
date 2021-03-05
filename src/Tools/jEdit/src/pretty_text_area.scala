@@ -95,7 +95,7 @@ class Pretty_Text_Area(
       val results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
 
-      future_refresh.foreach(_.cancel)
+      future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =

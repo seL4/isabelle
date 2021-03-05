@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 
-import scala.collection.{SortedSet, SortedMap}
+import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
 
 
@@ -156,7 +156,7 @@ object Sessions
     }
 
     val session_bases =
-      (Map("" -> sessions_structure.bootstrap) /: sessions_structure.imports_topological_order)({
+      sessions_structure.imports_topological_order.foldLeft(Map("" -> sessions_structure.bootstrap)) {
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
@@ -230,22 +230,24 @@ object Sessions
                   .transitive_reduction_acyclic
 
               val graph0 =
-                (Graph_Display.empty_graph /: required_subgraph.topological_order)(
-                  { case (g, session) =>
-                      val a = session_node(session)
-                      val bs = required_subgraph.imm_preds(session).toList.map(session_node)
-                      ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
+                required_subgraph.topological_order.foldLeft(Graph_Display.empty_graph) {
+                  case (g, session) =>
+                    val a = session_node(session)
+                    val bs = required_subgraph.imm_preds(session).toList.map(session_node)
+                    bs.foldLeft((a :: bs).foldLeft(g)(_.default_node(_, Nil)))(_.add_edge(_, a))
+                }
 
-              (graph0 /: dependencies.entries)(
-                { case (g, entry) =>
-                    val a = node(entry.name)
-                    val bs = entry.header.imports.map(node).filterNot(_ == a)
-                    ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
+              dependencies.entries.foldLeft(graph0) {
+                case (g, entry) =>
+                  val a = node(entry.name)
+                  val bs = entry.header.imports.map(node).filterNot(_ == a)
+                  bs.foldLeft((a :: bs).foldLeft(g)(_.default_node(_, Nil)))(_.add_edge(_, a))
+              }
             }
 
             val known_theories =
-              (deps_base.known_theories /:
-                dependencies.entries.iterator.map(entry => entry.name.theory -> entry))(_ + _)
+              dependencies.entries.iterator.map(entry => entry.name.theory -> entry).
+                foldLeft(deps_base.known_theories)(_ + _)
 
             val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
 
@@ -357,7 +359,7 @@ object Sessions
               cat_error(msg, "The error(s) above occurred in session " +
                 quote(info.name) + Position.here(info.pos))
           }
-      })
+      }
 
     Deps(sessions_structure, session_bases)
   }
@@ -489,14 +491,13 @@ object Sessions
       val imports_bases = imports.map(session_bases)
       parent_base.copy(
         known_theories =
-          (parent_base.known_theories /:
-            (for {
-              base <- imports_bases.iterator
-              (_, entry) <- base.known_theories.iterator
-            } yield (entry.name.theory -> entry)))(_ + _),
+          (for {
+            base <- imports_bases.iterator
+            (_, entry) <- base.known_theories.iterator
+          } yield (entry.name.theory -> entry)).foldLeft(parent_base.known_theories)(_ + _),
         known_loaded_files =
-          (parent_base.known_loaded_files /:
-            imports_bases.iterator.map(_.known_loaded_files))(_ ++ _))
+          imports_bases.iterator.map(_.known_loaded_files).
+            foldLeft(parent_base.known_loaded_files)(_ ++ _))
     }
 
     def dirs: List[Path] = dir :: directories
@@ -661,13 +662,14 @@ object Sessions
                   cycle.map(c => quote(c.toString)).mkString(" via "))) + Position.here(pos))
           }
         }
-        (graph /: graph.iterator) {
-          case (g, (name, (info, _))) => (g /: edges(info))(add_edge(info.pos, name, _, _))
+        graph.iterator.foldLeft(graph) {
+          case (g, (name, (info, _))) =>
+            edges(info).foldLeft(g)(add_edge(info.pos, name, _, _))
         }
       }
 
       val info_graph =
-        (Graph.string[Info] /: infos) {
+        infos.foldLeft(Graph.string[Info]) {
           case (graph, info) =>
             if (graph.defined(info.name))
               error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
@@ -681,12 +683,12 @@ object Sessions
         (for ((name, (info, _)) <- info_graph.iterator) yield (name, info.pos)).toList
 
       val session_directories: Map[JFile, String] =
-        (Map.empty[JFile, String] /:
-          (for {
-            session <- imports_graph.topological_order.iterator
-            info = info_graph.get_node(session)
-            dir <- info.dirs.iterator
-          } yield (info, dir)))({ case (dirs, (info, dir)) =>
+        (for {
+          session <- imports_graph.topological_order.iterator
+          info = info_graph.get_node(session)
+          dir <- info.dirs.iterator
+        } yield (info, dir)).foldLeft(Map.empty[JFile, String]) {
+            case (dirs, (info, dir)) =>
               val session = info.name
               val canonical_dir = dir.canonical_file
               dirs.get(canonical_dir) match {
@@ -697,22 +699,22 @@ object Sessions
                     "\n  vs. session " + quote(session) + Position.here(info.pos))
                 case None => dirs + (canonical_dir -> session)
               }
-            })
+          }
 
       val global_theories: Map[String, String] =
-        (Thy_Header.bootstrap_global_theories.toMap /:
-          (for {
-            session <- imports_graph.topological_order.iterator
-            info = info_graph.get_node(session)
-            thy <- info.global_theories.iterator }
-           yield (info, thy)))({ case (global, (info, thy)) =>
+        (for {
+          session <- imports_graph.topological_order.iterator
+          info = info_graph.get_node(session)
+          thy <- info.global_theories.iterator }
+          yield (info, thy)).foldLeft(Thy_Header.bootstrap_global_theories.toMap) {
+            case (global, (info, thy)) =>
               val qualifier = info.name
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
                 case _ => global + (thy -> qualifier)
               }
-            })
+          }
 
       new Structure(
         session_positions, session_directories, global_theories, build_graph, imports_graph)
@@ -739,9 +741,10 @@ object Sessions
         yield (File.standard_path(file), session)
 
     lazy val chapters: SortedMap[String, List[Info]] =
-      (SortedMap.empty[String, List[Info]] /: build_graph.iterator)(
-        { case (chs, (_, (info, _))) =>
-            chs + (info.chapter -> (info :: chs.getOrElse(info.chapter, Nil))) })
+      build_graph.iterator.foldLeft(SortedMap.empty[String, List[Info]]) {
+        case (chs, (_, (info, _))) =>
+          chs + (info.chapter -> (info :: chs.getOrElse(info.chapter, Nil)))
+      }
 
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
@@ -1061,13 +1064,14 @@ object Sessions
       } yield res
 
     val unique_roots =
-      ((Map.empty[JFile, (Boolean, Path)] /: roots) { case (m, (select, path)) =>
-        val file = path.canonical_file
-        m.get(file) match {
-          case None => m + (file -> (select, path))
-          case Some((select1, path1)) => m + (file -> (select1 || select, path1))
-        }
-      }).toList.map(_._2)
+      roots.foldLeft(Map.empty[JFile, (Boolean, Path)]) {
+        case (m, (select, path)) =>
+          val file = path.canonical_file
+          m.get(file) match {
+            case None => m + (file -> (select, path))
+            case Some((select1, path1)) => m + (file -> (select1 || select, path1))
+          }
+      }.toList.map(_._2)
 
     Structure.make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
   }
@@ -1210,7 +1214,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   {
     def cache: XML.Cache = store.cache
 
-    def close: Unit = database_server.foreach(_.close)
+    def close(): Unit = database_server.foreach(_.close())
 
     def output_database[A](session: String)(f: SQL.Database => A): A =
       database_server match {
@@ -1346,7 +1350,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def try_open_database(name: String, output: Boolean = false): Option[SQL.Database] =
     {
       def check(db: SQL.Database): Option[SQL.Database] =
-        if (output || session_info_exists(db)) Some(db) else { db.close; None }
+        if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
       if (database_server) check(open_database_server())
       else if (output) Some(SQLite.open_database(output_database(name)))
@@ -1376,7 +1380,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
                   init_session_info(db, name)
                   relevant_db
                 }
-              } finally { db.close }
+              } finally { db.close() }
             case None => false
           }
         }
@@ -1416,16 +1420,16 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       db.transaction {
         db.create_table(Session_Info.table)
         db.using_statement(
-          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
+          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute())
 
         db.create_table(Export.Data.table)
         db.using_statement(
-          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute)
+          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute())
 
         db.create_table(Presentation.Data.table)
         db.using_statement(
           Presentation.Data.table.delete(
-            Presentation.Data.session_name.where_equal(name)))(_.execute)
+            Presentation.Data.session_name.where_equal(name)))(_.execute())
       }
     }
 

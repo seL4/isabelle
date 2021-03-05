@@ -336,14 +336,14 @@ object Symbol
     }
 
     private val symbols: List[(Symbol, Properties.T)] =
-      (((List.empty[(Symbol, Properties.T)], Set.empty[Symbol]) /:
-          split_lines(symbols_spec).reverse)
-        { case (res, No_Decl()) => res
+      split_lines(symbols_spec).reverse.
+        foldLeft((List.empty[(Symbol, Properties.T)], Set.empty[Symbol])) {
+          case (res, No_Decl()) => res
           case ((list, known), decl) =>
             val (sym, props) = read_decl(decl)
             if (known(sym)) (list, known)
             else ((sym, props) :: list, known + sym)
-        })._1
+        }._1
 
 
     /* basic properties */

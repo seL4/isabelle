@@ -108,10 +108,10 @@ object Layout
             }).toList)
 
       val initial_levels: Levels =
-        (empty_levels /: initial_graph.topological_order) {
+        initial_graph.topological_order.foldLeft(empty_levels) {
           case (levels, vertex) =>
             val level =
-              1 + (-1 /: initial_graph.imm_preds(vertex)) { case (m, v) => m max levels(v) }
+              1 + initial_graph.imm_preds(vertex).foldLeft(-1) { case (m, v) => m max levels(v) }
             levels + (vertex -> level)
         }
 
@@ -121,25 +121,26 @@ object Layout
       val dummy_info = Info(0.0, 0.0, metrics.dummy_size2, metrics.dummy_size2, Nil)
 
       val (dummy_graph, dummy_levels) =
-        ((initial_graph, initial_levels) /: input_graph.edges_iterator) {
-            case ((graph, levels), (node1, node2)) =>
-              val v1 = Node(node1); val l1 = levels(v1)
-              val v2 = Node(node2); val l2 = levels(v2)
-              if (l2 - l1 <= 1) (graph, levels)
-              else {
-                val dummies_levels =
-                  (for { (l, i) <- ((l1 + 1) until l2).iterator.zipWithIndex }
-                    yield (Dummy(node1, node2, i), l)).toList
-                val dummies = dummies_levels.map(_._1)
+        input_graph.edges_iterator.foldLeft((initial_graph, initial_levels)) {
+          case ((graph, levels), (node1, node2)) =>
+            val v1 = Node(node1); val l1 = levels(v1)
+            val v2 = Node(node2); val l2 = levels(v2)
+            if (l2 - l1 <= 1) (graph, levels)
+            else {
+              val dummies_levels =
+                (for { (l, i) <- ((l1 + 1) until l2).iterator.zipWithIndex }
+                  yield (Dummy(node1, node2, i), l)).toList
+              val dummies = dummies_levels.map(_._1)
 
-                val levels1 = (levels /: dummies_levels)(_ + _)
-                val graph1 =
-                  ((graph /: dummies)(_.new_node(_, dummy_info)).del_edge(v1, v2) /:
-                    (v1 :: dummies ::: List(v2)).sliding(2)) {
-                      case (g, List(a, b)) => g.add_edge(a, b) }
-                (graph1, levels1)
-              }
-          }
+              val levels1 = dummies_levels.foldLeft(levels)(_ + _)
+              val graph1 =
+                (v1 :: dummies ::: List(v2)).sliding(2).
+                  foldLeft(dummies.foldLeft(graph)(_.new_node(_, dummy_info)).del_edge(v1, v2)) {
+                    case (g, List(a, b)) => g.add_edge(a, b)
+                  }
+              (graph1, levels1)
+            }
+        }
 
 
       /* minimize edge crossings and initial coordinates */
@@ -147,25 +148,26 @@ object Layout
       val levels = minimize_crossings(options, dummy_graph, level_list(dummy_levels))
 
       val levels_graph: Graph =
-        (((dummy_graph, 0.0) /: levels) {
+        levels.foldLeft((dummy_graph, 0.0)) {
           case ((graph, y), level) =>
-            val num_lines = (0 /: level) { case (n, v) => n max graph.get_node(v).lines.length }
-            val num_edges = (0 /: level) { case (n, v) => n + graph.imm_succs(v).size }
+            val num_lines = level.foldLeft(0) { case (n, v) => n max graph.get_node(v).lines.length }
+            val num_edges = level.foldLeft(0) { case (n, v) => n + graph.imm_succs(v).size }
 
             val y1 = y + metrics.node_height2(num_lines)
 
             val graph1 =
-              (((graph, 0.0) /: level) { case ((g, x), v) =>
-                val info = g.get_node(v)
-                val g1 = g.map_node(v, _ => info.copy(x = x + info.width2, y = y1))
-                val x1 = x + info.width + metrics.gap
-                (g1, x1)
-              })._1
+              level.foldLeft((graph, 0.0)) {
+                case ((g, x), v) =>
+                  val info = g.get_node(v)
+                  val g1 = g.map_node(v, _ => info.copy(x = x + info.width2, y = y1))
+                  val x1 = x + info.width + metrics.gap
+                  (g1, x1)
+              }._1
 
             val y2 = y1 + metrics.level_height2(num_lines, num_edges)
 
             (graph1, y2)
-        })._1
+        }._1
 
 
       /* pendulum/rubberband layout */
@@ -188,37 +190,41 @@ object Layout
     options: Options, graph: Graph, levels: List[Level]): List[Level] =
   {
     def resort(parent: Level, child: Level, top_down: Boolean): Level =
-      child.map(v => {
-          val ps = if (top_down) graph.imm_preds(v) else graph.imm_succs(v)
-          val weight =
-            (0.0 /: ps) { (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)
-          (v, weight)
+      child.map(v =>
+      {
+        val ps = if (top_down) graph.imm_preds(v) else graph.imm_succs(v)
+        val weight =
+          ps.foldLeft(0.0) { case (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)
+        (v, weight)
       }).sortBy(_._2).map(_._1)
 
-    ((levels, count_crossings(graph, levels)) /:
-      (1 to (2 * options.int("graphview_iterations_minimize_crossings")))) {
-      case ((old_levels, old_crossings), iteration) =>
-        val top_down = (iteration % 2 == 1)
-        val new_levels =
-          if (top_down)
-            (List(old_levels.head) /: old_levels.tail)((tops, bot) =>
-              resort(tops.head, bot, top_down) :: tops).reverse
-          else {
-            val rev_old_levels = old_levels.reverse
-            (List(rev_old_levels.head) /: rev_old_levels.tail)((bots, top) =>
-              resort(bots.head, top, top_down) :: bots)
-          }
-        val new_crossings = count_crossings(graph, new_levels)
-        if (new_crossings < old_crossings)
-          (new_levels, new_crossings)
-        else
-          (old_levels, old_crossings)
-    }._1
+    (1 to (2 * options.int("graphview_iterations_minimize_crossings"))).
+      foldLeft((levels, count_crossings(graph, levels))) {
+        case ((old_levels, old_crossings), iteration) =>
+          val top_down = (iteration % 2 == 1)
+          val new_levels =
+            if (top_down) {
+              old_levels.tail.foldLeft(List(old_levels.head)) {
+                case (tops, bot) => resort(tops.head, bot, top_down) :: tops
+              }.reverse
+            }
+            else {
+              val rev_old_levels = old_levels.reverse
+              rev_old_levels.tail.foldLeft(List(rev_old_levels.head)) {
+                case (bots, top) => resort(bots.head, top, top_down) :: bots
+              }
+            }
+          val new_crossings = count_crossings(graph, new_levels)
+          if (new_crossings < old_crossings)
+            (new_levels, new_crossings)
+          else
+            (old_levels, old_crossings)
+      }._1
   }
 
   private def level_list(levels: Levels): List[Level] =
   {
-    val max_lev = (-1 /: levels) { case (m, (_, l)) => m max l }
+    val max_lev = levels.foldLeft(-1) { case (m, (_, l)) => m max l }
     val buckets = new Array[Level](max_lev + 1)
     for (l <- 0 to max_lev) { buckets(l) = Nil }
     for ((v, l) <- levels) { buckets(l) = v :: buckets(l) }
@@ -260,7 +266,7 @@ object Layout
       }).sum / content.length).round.toDouble
 
     def move(graph: Graph, dx: Double): Graph =
-      if (dx == 0.0) graph else (graph /: content)(move_vertex(_, _, dx))
+      if (dx == 0.0) graph else content.foldLeft(graph)(move_vertex(_, _, dx))
 
     def combine(that: Region): Region = new Region(content ::: that.content)
   }
@@ -289,7 +295,7 @@ object Layout
 
     def deflect(level: List[Region], top_down: Boolean, graph: Graph): (Graph, Boolean) =
     {
-      ((graph, false) /: level.indices) {
+      level.indices.foldLeft((graph, false)) {
         case ((graph, moved), i) =>
           val r = level(i)
           val d = r.deflection(graph, top_down)
@@ -307,22 +313,23 @@ object Layout
 
     val initial_regions = levels.map(level => level.map(l => new Region(List(l))))
 
-    ((levels_graph, initial_regions, true) /:
-      (1 to (2 * options.int("graphview_iterations_pendulum")))) {
-      case ((graph, regions, moved), iteration) =>
-        val top_down = (iteration % 2 == 1)
-        if (moved) {
-          val (graph1, regions1, moved1) =
-            ((graph, List.empty[List[Region]], false) /:
-              (if (top_down) regions else regions.reverse)) { case ((graph, tops, moved), bot) =>
-                val bot1 = combine_regions(graph, top_down, bot)
-                val (graph1, moved1) = deflect(bot1, top_down, graph)
-                (graph1, bot1 :: tops, moved || moved1)
-            }
-          (graph1, regions1.reverse, moved1)
-        }
-        else (graph, regions, moved)
-    }._1
+    (1 to (2 * options.int("graphview_iterations_pendulum"))).
+      foldLeft((levels_graph, initial_regions, true)) {
+        case ((graph, regions, moved), iteration) =>
+          val top_down = (iteration % 2 == 1)
+          if (moved) {
+            val (graph1, regions1, moved1) =
+              (if (top_down) regions else regions.reverse).
+                foldLeft((graph, List.empty[List[Region]], false)) {
+                  case ((graph, tops, moved), bot) =>
+                    val bot1 = combine_regions(graph, top_down, bot)
+                    val (graph1, moved1) = deflect(bot1, top_down, graph)
+                    (graph1, bot1 :: tops, moved || moved1)
+                }
+            (graph1, regions1.reverse, moved1)
+          }
+          else (graph, regions, moved)
+      }._1
   }
 
 
@@ -346,18 +353,19 @@ object Layout
   {
     val gap = metrics.gap
 
-    (graph /: (1 to (2 * options.int("graphview_iterations_rubberband")))) { case (graph, _) =>
-      (graph /: levels) { case (graph, level) =>
-        val m = level.length - 1
-        (graph /: level.iterator.zipWithIndex) {
-          case (g, (v, i)) =>
-            val d = force_weight(g, v)
-            if (d < 0.0 && (i == 0 || vertex_right(g, level(i - 1)) + gap < vertex_left(g, v) + d) ||
-                d > 0.0 && (i == m || vertex_left(g, level(i + 1)) - gap > vertex_right(g, v) + d))
-              move_vertex(g, v, d.round.toDouble)
-            else g
+    (1 to (2 * options.int("graphview_iterations_rubberband"))).foldLeft(graph) {
+      case (graph, _) =>
+        levels.foldLeft(graph) { case (graph, level) =>
+          val m = level.length - 1
+          level.iterator.zipWithIndex.foldLeft(graph) {
+            case (g, (v, i)) =>
+              val d = force_weight(g, v)
+              if (d < 0.0 && (i == 0 || vertex_right(g, level(i - 1)) + gap < vertex_left(g, v) + d) ||
+                  d > 0.0 && (i == m || vertex_left(g, level(i + 1)) - gap > vertex_right(g, v) + d))
+                move_vertex(g, v, d.round.toDouble)
+              else g
+          }
         }
-      }
     }
   }
 }

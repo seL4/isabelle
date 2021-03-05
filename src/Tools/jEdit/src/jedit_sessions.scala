@@ -18,10 +18,10 @@ object JEdit_Sessions
 {
   /* session options */
 
-  def session_dirs(): List[Path] =
+  def session_dirs: List[Path] =
     Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS")).filterNot(p => p.implode == "-")
 
-  def session_no_build(): Boolean =
+  def session_no_build: Boolean =
     Isabelle_System.getenv("JEDIT_NO_BUILD") == "true"
 
   def session_options(options: Options): Options =
@@ -41,7 +41,7 @@ object JEdit_Sessions
     options2
   }
 
-  def sessions_structure(options: Options, dirs: List[Path] = session_dirs()): Sessions.Structure =
+  def sessions_structure(options: Options, dirs: List[Path] = session_dirs): Sessions.Structure =
     Sessions.load_structure(session_options(options), dirs = dirs)
 
 
@@ -119,7 +119,7 @@ object JEdit_Sessions
 
   def session_base_info(options: Options): Sessions.Base_Info =
     Sessions.base_info(options,
-      dirs = JEdit_Sessions.session_dirs(),
+      dirs = JEdit_Sessions.session_dirs,
       include_sessions = logic_include_sessions,
       session = logic_name(options),
       session_ancestor = logic_ancestor,
@@ -130,7 +130,7 @@ object JEdit_Sessions
   {
     Build.build(session_options(options),
       selection = Sessions.Selection.session(PIDE.resources.session_name),
-      progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs(),
+      progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
       infos = PIDE.resources.session_base_info.infos).rc
   }
 

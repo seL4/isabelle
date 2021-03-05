@@ -8,7 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.SortedSet
+import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 
@@ -60,7 +60,7 @@ object Build
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
             case _: XML.Error => ignore_error("")
           }
-          finally { db.close }
+          finally { db.close() }
       }
     }
 
@@ -99,16 +99,8 @@ object Build
 
       object Ordering extends scala.math.Ordering[String]
       {
-        def compare_timing(name1: String, name2: String): Int =
-        {
-          val t1 = session_timing(name1)
-          val t2 = session_timing(name2)
-          if (t1 == 0.0 || t2 == 0.0) 0
-          else t1 compare t2
-        }
-
         def compare(name1: String, name2: String): Int =
-          compare_timing(name2, name1) match {
+          session_timing(name2) compare session_timing(name1) match {
             case 0 =>
               sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
                 case 0 => name1 compare name2
@@ -132,16 +124,11 @@ object Build
     def is_empty: Boolean = graph.is_empty
 
     def - (name: String): Queue =
-      new Queue(graph.del_node(name),
-        order - name,  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
-        command_timings)
+      new Queue(graph.del_node(name), order - name, command_timings)
 
     def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
     {
-      val it = order.iterator.dropWhile(name =>
-        skip(name)
-          || !graph.defined(name)  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
-          || !graph.is_minimal(name))
+      val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
       if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
       else None
     }
@@ -159,8 +146,8 @@ object Build
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
     val rc: Int =
-      (0 /: results.iterator.map(
-        { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
+      results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
+        foldLeft(0)(_ max _)
     def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
@@ -303,7 +290,7 @@ object Build
     }
 
     def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop) { Time.seconds(0.5).sleep }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { Time.seconds(0.5).sleep }
 
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
 
@@ -319,7 +306,7 @@ object Build
       if (pending.is_empty) results
       else {
         if (progress.stopped) {
-          for ((_, (_, job)) <- running) job.terminate
+          for ((_, (_, job)) <- running) job.terminate()
         }
 
         running.find({ case (_, (_, job)) => job.is_finished }) match {
@@ -661,7 +648,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     }
 
     val total_timing =
-      (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
+      results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
         copy(elapsed = elapsed_time)
     progress.echo(total_timing.message_resources)
 

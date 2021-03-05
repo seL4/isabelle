@@ -221,7 +221,7 @@ class Rich_Text_Area(
                 case _: ArrayIndexOutOfBoundsException =>
                 case _: IllegalArgumentException =>
               }
-              text_area.requestFocus
+              text_area.requestFocus()
             }
             link.follow(view)
           case None =>

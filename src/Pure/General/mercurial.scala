@@ -144,11 +144,11 @@ object Mercurial
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
       val log_result =
         log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
-      (Graph.string[Unit] /: split_lines(log_result)) {
+      split_lines(log_result).foldLeft(Graph.string[Unit]) {
         case (graph, Node(x, y, z)) =>
           val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
-          val graph1 = (graph /: (x :: deps))(_.default_node(_, ()))
-          (graph1 /: deps)({ case (g, dep) => g.add_edge(dep, x) })
+          val graph1 = (x :: deps).foldLeft(graph)(_.default_node(_, ()))
+          deps.foldLeft(graph1)({ case (g, dep) => g.add_edge(dep, x) })
         case (graph, _) => graph
       }
     }

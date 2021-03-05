@@ -43,14 +43,15 @@ object Graph_Display
   def build_graph(entries: List[Entry]): Graph =
   {
     val node =
-      (Map.empty[String, Node] /: entries) {
+      entries.foldLeft(Map.empty[String, Node]) {
         case (m, ((ident, (name, _)), _)) => m + (ident -> Node(name, ident))
       }
-    (((empty_graph /: entries) {
+    entries.foldLeft(
+      entries.foldLeft(empty_graph) {
         case (g, ((ident, (_, content)), _)) => g.new_node(node(ident), content)
-      }) /: entries) {
+      }) {
         case (g1, ((ident, _), parents)) =>
-          (g1 /: parents) { case (g2, parent) => g2.add_edge(node(parent), node(ident)) }
+          parents.foldLeft(g1) { case (g2, parent) => g2.add_edge(node(parent), node(ident)) }
       }
   }
 

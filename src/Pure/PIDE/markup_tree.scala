@@ -20,16 +20,16 @@ object Markup_Tree
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
   def merge(trees: List[Markup_Tree], range: Text.Range, elements: Markup.Elements): Markup_Tree =
-    (empty /: trees)(_.merge(_, range, elements))
+    trees.foldLeft(empty)(_.merge(_, range, elements))
 
   def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
     trees match {
       case Nil => empty
       case head :: tail =>
         new Markup_Tree(
-          (head.branches /: tail) {
+          tail.foldLeft(head.branches) {
             case (branches, tree) =>
-              (branches /: tree.branches) {
+              tree.branches.foldLeft(branches) {
                 case (bs, (r, entry)) =>
                   require(!bs.isDefinedAt(r), "cannot merge markup trees")
                   bs + (r -> entry)
@@ -93,7 +93,8 @@ object Markup_Tree
           (offset + XML.text_length(body), markup_trees)
 
         case (elems, body) =>
-          val (end_offset, subtrees) = ((offset, Nil: List[Markup_Tree]) /: body)(make_trees)
+          val (end_offset, subtrees) =
+             body.foldLeft((offset, List.empty[Markup_Tree]))(make_trees)
           if (offset == end_offset) acc
           else {
             val range = Text.Range(offset, end_offset)
@@ -104,7 +105,7 @@ object Markup_Tree
     }
 
   def from_XML(body: XML.Body): Markup_Tree =
-    merge_disjoint(((0, Nil: List[Markup_Tree]) /: body)(make_trees)._2)
+    merge_disjoint(body.foldLeft((0, List.empty[Markup_Tree]))(make_trees)._2)
 }
 
 
@@ -163,13 +164,15 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   def merge(other: Markup_Tree, root_range: Text.Range, elements: Markup.Elements): Markup_Tree =
   {
     def merge_trees(tree1: Markup_Tree, tree2: Markup_Tree): Markup_Tree =
-      (tree1 /: tree2.branches)(
-        { case (tree, (range, entry)) =>
-            if (!range.overlaps(root_range)) tree
-            else
-              (merge_trees(tree, entry.subtree) /: entry.filter_markup(elements))(
-                { case (t, elem) => t + Text.Info(range, elem) })
-        })
+      tree2.branches.foldLeft(tree1) {
+        case (tree, (range, entry)) =>
+          if (!range.overlaps(root_range)) tree
+          else {
+            entry.filter_markup(elements).foldLeft(merge_trees(tree, entry.subtree)) {
+              case (t, elem) => t + Text.Info(range, elem)
+            }
+          }
+      }
 
     if (this eq other) this
     else {
@@ -236,7 +239,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       else List(XML.Text(text.subSequence(start, stop).toString))
 
     def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
-      (body /: rev_markups) {
+      rev_markups.foldLeft(body) {
         case (b, elem) =>
           if (!elements(elem.name)) b
           else if (elem.body.isEmpty) List(XML.Elem(elem.markup, b))

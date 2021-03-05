@@ -54,7 +54,7 @@ class Model(val full_graph: Graph_Display.Graph)
     full_graph.keys_iterator.find(node => node.ident == ident)
 
   def make_visible_graph(): Graph_Display.Graph =
-    (full_graph /: Mutators()) {
+    Mutators().foldLeft(full_graph) {
       case (g, m) => if (!m.enabled) g else m.mutator.mutate(full_graph, g)
     }
 
@@ -64,9 +64,9 @@ class Model(val full_graph: Graph_Display.Graph)
   private def build_colors(): Unit =
   {
     _colors =
-      (Map.empty[Graph_Display.Node, Color] /: Colors()) {
+      Colors().foldLeft(Map.empty[Graph_Display.Node, Color]) {
         case (colors, m) =>
-          (colors /: m.mutator.mutate(full_graph, full_graph).keys_iterator) {
+          m.mutator.mutate(full_graph, full_graph).keys_iterator.foldLeft(colors) {
             case (colors, node) => colors + (node -> m.color)
           }
       }

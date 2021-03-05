@@ -199,7 +199,7 @@ object File
     val output = new StringBuilder(100)
     var c = -1
     while ({ c = reader.read; c != -1 }) output += c.toChar
-    reader.close
+    reader.close()
     output.toString
   }
 
@@ -233,7 +233,7 @@ object File
       progress(line.get)
       result += line.get
     }
-    reader.close
+    reader.close()
     result.toList
   }
 

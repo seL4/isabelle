@@ -46,7 +46,8 @@ class Metrics private(val font: Font)
   def dummy_size2: Double = (char_width / 2).ceil
 
   def node_width2(lines: List[String]): Double =
-    (((0.0 /: lines)({ case (w, s) => w max string_bounds(s).getWidth }) + 2 * char_width) / 2).ceil
+    ((lines.foldLeft(0.0)({ case (w, s) => w max string_bounds(s).getWidth }) + 2 * char_width) / 2)
+      .ceil
 
   def node_height2(num_lines: Int): Double =
     ((height.ceil * (num_lines max 1) + char_width) / 2).ceil

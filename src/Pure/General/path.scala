@@ -54,7 +54,7 @@ object Path
     }
 
   private def norm_elems(elems: List[Elem]): List[Elem] =
-    (elems :\ (Nil: List[Elem]))(apply_elem)
+    elems.foldRight(List.empty[Elem])(apply_elem)
 
   private def implode_elem(elem: Elem, short: Boolean): String =
     elem match {
@@ -146,10 +146,10 @@ object Path
   def check_case_insensitive(paths: List[Path]): Unit =
   {
     val table =
-      (Multi_Map.empty[String, String] /: paths)({ case (tab, path) =>
+      paths.foldLeft(Multi_Map.empty[String, String]) { case (tab, path) =>
         val name = path.expand.implode
         tab.insert(Word.lowercase(name), name)
-      })
+      }
     val collisions =
       (for { (_, coll) <- table.iterator_list if coll.length > 1 } yield coll).toList.flatten
     if (collisions.nonEmpty) {
@@ -174,7 +174,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
   def starts_basic: Boolean = elems.nonEmpty && elems.last.isInstanceOf[Path.Basic]
 
-  def +(other: Path): Path = new Path((other.elems :\ elems)(Path.apply_elem))
+  def +(other: Path): Path = new Path(other.elems.foldRight(elems)(Path.apply_elem))
 
 
   /* implode */

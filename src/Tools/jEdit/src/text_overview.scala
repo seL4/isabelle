@@ -116,7 +116,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private def is_running(): Boolean = !future_refresh.value.is_finished
 
   def invoke(): Unit = delay_refresh.invoke()
-  def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change(x => { x.cancel; x }) }
+  def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change(x => { x.cancel(); x }) }
 
   private val delay_refresh =
     Delay.first(PIDE.options.seconds("editor_update_delay"), gui = true) {

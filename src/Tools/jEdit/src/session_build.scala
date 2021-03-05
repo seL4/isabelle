@@ -80,10 +80,10 @@ object Session_Build
 
     private def set_actions(cs: Component*): Unit =
     {
-      action_panel.contents.clear
+      action_panel.contents.clear()
       action_panel.contents ++= cs
-      layout_panel.revalidate
-      layout_panel.repaint
+      layout_panel.revalidate()
+      layout_panel.repaint()
     }
 
 
@@ -94,7 +94,7 @@ object Session_Build
     private def return_code(rc: Int): Unit =
       GUI_Thread.later {
         _return_code = Some(rc)
-        delay_exit.invoke
+        delay_exit.invoke()
       }
 
     private val delay_exit =
@@ -129,7 +129,7 @@ object Session_Build
 
     private def stopping(): Unit =
     {
-      progress.stop
+      progress.stop()
       set_actions(new Label("Stopping ..."))
     }
 

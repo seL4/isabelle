@@ -136,7 +136,7 @@ class Language_Server(
       val (invoke_input, invoke_load) =
         resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) delay_input.invoke()
-      if (invoke_load) delay_load.invoke
+      if (invoke_load) delay_load.invoke()
     }
 
   private val file_watcher =
@@ -307,7 +307,7 @@ class Language_Server(
 
       try {
         Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
-          modes = modes, logic = base_info.session).await_startup
+          modes = modes, logic = base_info.session).await_startup()
         reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
       }
       catch { case ERROR(msg) => reply_error(msg) }

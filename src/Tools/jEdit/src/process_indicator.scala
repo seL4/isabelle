@@ -34,7 +34,7 @@ class Process_Indicator
         {
           current_frame = (current_frame + 1) % active_icons.length
           setImage(active_icons(current_frame))
-          label.repaint
+          label.repaint()
         }
       })
     timer.setRepeats(true)
@@ -44,7 +44,7 @@ class Process_Indicator
       if (rate == 0) {
         setImage(passive_icon)
         timer.stop
-        label.repaint
+        label.repaint()
       }
       else {
         val delay = 1000 / rate

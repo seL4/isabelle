@@ -389,7 +389,9 @@ object Bibtex
 
     def heading_length: Int =
       if (name == "") 1
-      else (0 /: tokens.takeWhile(tok => !tok.is_open)){ case (n, tok) => n + tok.source.length }
+      else {
+        tokens.takeWhile(tok => !tok.is_open).foldLeft(0) { case (n, tok) => n + tok.source.length }
+      }
 
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
     def is_malformed: Boolean = kind == "" || tokens.exists(_.is_malformed)

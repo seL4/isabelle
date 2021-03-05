@@ -105,7 +105,7 @@ object Dump
             "completion_limit=0" +
             "editor_tracing_messages=0" +
             "editor_presentation"
-        (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+        aspects.foldLeft(options1) { case (opts, aspect) => aspect.options.foldLeft(opts)(_ + _) }
       }
 
       val sessions_structure: Sessions.Structure =

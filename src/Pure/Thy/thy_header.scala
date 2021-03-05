@@ -186,10 +186,10 @@ object Thy_Header
   private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
-    def make_tokens(in: Reader[Char]): Stream[Token] =
+    def make_tokens(in: Reader[Char]): LazyList[Token] =
       token(in) match {
         case Token.Parsers.Success(tok, rest) => tok #:: make_tokens(rest)
-        case _ => Stream.empty
+        case _ => LazyList.empty
       }
 
     val all_tokens = make_tokens(reader)
@@ -223,7 +223,7 @@ object Thy_Header
     val (skip_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos =
       if (command) Token.Pos.command
-      else (Token.Pos.file(node_name.node) /: skip_tokens)(_ advance _)
+      else skip_tokens.foldLeft(Token.Pos.file(node_name.node))(_ advance _)
 
     Parser.parse_header(tokens, pos).map(Symbol.decode).check(node_name)
   }

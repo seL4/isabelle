@@ -51,10 +51,11 @@ object Mutator
     extends Graph_Filter(
       name,
       description,
-      g => (g /: g.dest) {
+      g => g.dest.foldLeft(g) {
         case (graph, ((from, _), tos)) =>
-          (graph /: tos)((gr, to) =>
-            if (pred(gr, (from, to))) gr else gr.del_edge(from, to))
+          tos.foldLeft(graph) {
+            case (gr, to) => if (pred(gr, (from, to))) gr else gr.del_edge(from, to)
+          }
       })
 
   class Node_Family_Filter(
@@ -116,26 +117,24 @@ object Mutator
   {
     // Add Nodes
     val with_nodes =
-      (to /: keys)((graph, key) => graph.default_node(key, from.get_node(key)))
+      keys.foldLeft(to) { case (graph, key) => graph.default_node(key, from.get_node(key)) }
 
     // Add Edges
-    (with_nodes /: keys) {
-      (gv, key) => {
+    keys.foldLeft(with_nodes) {
+      case (gv, key) =>
         def add_edges(g: Graph_Display.Graph, keys: from.Keys, succs: Boolean) =
-          (g /: keys) {
-            (graph, end) => {
+          keys.foldLeft(g) {
+            case (graph, end) =>
               if (!graph.keys_iterator.contains(end)) graph
               else {
                 if (succs) graph.add_edge(key, end)
                 else graph.add_edge(end, key)
               }
-            }
           }
 
         add_edges(
           add_edges(gv, from.imm_preds(key), false),
           from.imm_succs(key), true)
-      }
     }
   }
 

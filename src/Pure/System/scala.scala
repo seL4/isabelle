@@ -114,7 +114,7 @@ object Scala
             if (interpret) interp.interpret(source) == Results.Success
             else (new interp.ReadEvalPrint).compile(source)
           }
-        out.close
+        out.close()
 
         val Error = """(?s)^\S* error: (.*)$""".r
         val errors =
@@ -195,7 +195,7 @@ object Scala
 
     private def cancel(id: String, future: Future[Unit]): Unit =
     {
-      future.cancel
+      future.cancel()
       result(id, Scala.Tag.INTERRUPT, "")
     }
 

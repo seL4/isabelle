@@ -74,7 +74,7 @@ object Command_Span
     def keyword_pos(start: Token.Pos): Token.Pos =
       kind match {
         case _: Command_Span =>
-          (start /: content.iterator.takeWhile(tok => !tok.is_command))(_.advance(_))
+          content.iterator.takeWhile(tok => !tok.is_command).foldLeft(start)(_.advance(_))
         case _ => start
       }
 
@@ -89,7 +89,7 @@ object Command_Span
 
     def content_reader: CharSequenceReader = Scan.char_reader(Token.implode(content))
 
-    def length: Int = (0 /: content)(_ + _.source.length)
+    def length: Int = content.foldLeft(0)(_ + _.source.length)
 
     def compact_source: (String, Span) =
     {

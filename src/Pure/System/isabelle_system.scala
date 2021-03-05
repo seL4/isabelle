@@ -421,7 +421,7 @@ object Isabelle_System
     proc.command(command_line:_*)  // fragile on Windows
     if (cwd != null) proc.directory(cwd)
     if (env != null) {
-      proc.environment.clear
+      proc.environment.clear()
       for ((x, y) <- env) proc.environment.put(x, y)
     }
     proc.redirectErrorStream(redirect)
@@ -430,15 +430,15 @@ object Isabelle_System
 
   def process_output(proc: Process): (String, Int) =
   {
-    proc.getOutputStream.close
+    proc.getOutputStream.close()
 
     val output = File.read_stream(proc.getInputStream)
     val rc =
       try { proc.waitFor }
       finally {
-        proc.getInputStream.close
-        proc.getErrorStream.close
-        proc.destroy
+        proc.getInputStream.close()
+        proc.getErrorStream.close()
+        proc.destroy()
         Exn.Interrupt.dispose()
       }
     (output, rc)

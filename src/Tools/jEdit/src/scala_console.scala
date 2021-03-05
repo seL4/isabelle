@@ -30,7 +30,7 @@ class Scala_Console extends Shell("Scala")
 
     override def flush(): Unit =
     {
-      val s = buf.synchronized { val s = buf.toString; buf.clear; s }
+      val s = buf.synchronized { val s = buf.toString; buf.clear(); s }
       val str = UTF8.decode_permissive(s)
       GUI_Thread.later {
         if (global_out == null) System.out.print(str)
@@ -97,7 +97,7 @@ class Scala_Console extends Shell("Scala")
   private class Interpreter
   {
     private val running = Synchronized[Option[Thread]](None)
-    def interrupt: Unit = running.change(opt => { opt.foreach(_.interrupt); opt })
+    def interrupt(): Unit = running.change(opt => { opt.foreach(_.interrupt()); opt })
 
     private val interp =
       Scala.Compiler.context(error = report_error, jar_dirs = JEdit_Lib.directories).
@@ -146,8 +146,8 @@ class Scala_Console extends Shell("Scala")
   {
     interpreters.get(console) match {
       case Some(interp) =>
-        interp.interrupt
-        interp.thread.shutdown
+        interp.interrupt()
+        interp.thread.shutdown()
         interpreters -= console
       case None =>
     }
@@ -177,5 +177,5 @@ class Scala_Console extends Shell("Scala")
   }
 
   override def stop(console: Console): Unit =
-    interpreters.get(console).foreach(_.interrupt)
+    interpreters.get(console).foreach(_.interrupt())
 }

@@ -3729,7 +3729,6 @@ next
     then have eba8: "(e * (b-a)) / 8 > 0"
       using ab by (auto simp add: field_simps)
     note derf_exp = derf[unfolded has_vector_derivative_def has_derivative_at_alt, THEN conjunct2, rule_format]
-    thm derf_exp
     have bounded: "\<And>x. x \<in> {a<..<b} \<Longrightarrow> bounded_linear (\<lambda>u. u *\<^sub>R f' x)"
       by (simp add: bounded_linear_scaleR_left)
     have "\<forall>x \<in> box a b. \<exists>d>0. \<forall>y. norm (y-x) < d \<longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e/2 * norm (y-x)"

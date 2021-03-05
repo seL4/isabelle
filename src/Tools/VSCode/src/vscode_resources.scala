@@ -28,8 +28,8 @@ object VSCode_Resources
     def update_models(changed: Iterable[(JFile, VSCode_Model)]): State =
       copy(
         models = models ++ changed,
-        pending_input = (pending_input /: changed) { case (set, (file, _)) => set + file },
-        pending_output = (pending_output /: changed) { case (set, (file, _)) => set + file })
+        pending_input = changed.foldLeft(pending_input) { case (set, (file, _)) => set + file },
+        pending_output = changed.foldLeft(pending_output) { case (set, (file, _)) => set + file })
 
     def update_caret(new_caret: Option[(JFile, Line.Position)]): State =
       if (caret == new_caret) this

@@ -23,7 +23,7 @@ object POSIX_Interrupt
   def exception[A](e: => A): A =
   {
     val thread = Thread.currentThread
-    handler { thread.interrupt } { e }
+    handler { thread.interrupt() } { e }
   }
 }
 

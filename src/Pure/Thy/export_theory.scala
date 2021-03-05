@@ -48,12 +48,16 @@ object Export_Theory
         }))
 
     val graph0 =
-      (Graph.string[Option[Theory]] /: thys) {
-        case (g, thy) => g.default_node(thy.name, Some(thy)) }
+      thys.foldLeft(Graph.string[Option[Theory]]) {
+        case (g, thy) => g.default_node(thy.name, Some(thy))
+      }
     val graph1 =
-      (graph0 /: thys) { case (g0, thy) =>
-        (g0 /: thy.parents) { case (g1, parent) =>
-          g1.default_node(parent, None).add_edge_acyclic(parent, thy.name) } }
+      thys.foldLeft(graph0) {
+        case (g0, thy) =>
+          thy.parents.foldLeft(g0) {
+            case (g1, parent) => g1.default_node(parent, None).add_edge_acyclic(parent, thy.name)
+          }
+      }
 
     Session(session_name, graph1)
   }

@@ -72,14 +72,14 @@ object File_Watcher
         st.dirs.get(dir) match {
           case None => st
           case Some(key) =>
-            key.cancel
+            key.cancel()
             st.copy(dirs = st.dirs - dir)
         })
 
     override def purge(retain: Set[JFile]): Unit =
       state.change(st =>
         st.copy(dirs = st.dirs --
-          (for ((dir, key) <- st.dirs.iterator if !retain(dir)) yield { key.cancel; dir })))
+          (for ((dir, key) <- st.dirs.iterator if !retain(dir)) yield { key.cancel(); dir })))
 
 
     /* changed directory entries */
@@ -105,7 +105,7 @@ object File_Watcher
                         key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]].asScala
                       val remove = if (key.reset) None else Some(dir)
                       val changed =
-                        (Set.empty[JFile] /: events.iterator) {
+                        events.iterator.foldLeft(Set.empty[JFile]) {
                           case (set, event) => set + dir.toPath.resolve(event.context).toFile
                         }
                       (remove, changed)
@@ -127,9 +127,9 @@ object File_Watcher
 
     override def shutdown(): Unit =
     {
-      watcher_thread.interrupt
+      watcher_thread.interrupt()
       watcher_thread.join
-      delay_changed.revoke
+      delay_changed.revoke()
     }
   }
 }

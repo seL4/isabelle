@@ -53,7 +53,7 @@ object Scala_Project
   }
 
   lazy val isabelle_scala_files: Map[String, Path] =
-    (Map.empty[String, Path] /: isabelle_files)({
+    isabelle_files.foldLeft(Map.empty[String, Path]) {
       case (map, name) =>
         if (!name.startsWith("src/Tools/jEdit/") && name.endsWith(".scala")) {
           val path = Path.explode("~~/" + name)
@@ -64,7 +64,7 @@ object Scala_Project
           }
         }
         else map
-    })
+    }
 
   val isabelle_dirs: List[(String, Path)] =
     List(

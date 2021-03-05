@@ -160,13 +160,15 @@ object Keyword
         val kinds1 =
           if (kinds eq other.kinds) kinds
           else if (kinds.isEmpty) other.kinds
-          else (kinds /: other.kinds) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
+          else other.kinds.foldLeft(kinds) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
         val load_commands1 =
           if (load_commands eq other.load_commands) load_commands
           else if (load_commands.isEmpty) other.load_commands
-          else
-            (load_commands /: other.load_commands) {
-              case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
+          else {
+            other.load_commands.foldLeft(load_commands) {
+              case (m, e) => if (m.isDefinedAt(e._1)) m else m + e
+            }
+          }
         new Keywords(kinds1, load_commands1)
       }
 
@@ -187,7 +189,7 @@ object Keyword
     }
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
-      (this /: header) {
+      header.foldLeft(this) {
         case (keywords, (name, spec)) =>
           if (spec.kind.isEmpty)
             keywords + Symbol.decode(name) + Symbol.encode(name)
@@ -217,13 +219,12 @@ object Keyword
     /* lexicons */
 
     private def make_lexicon(is_minor: Boolean): Scan.Lexicon =
-      (Scan.Lexicon.empty /: kinds)(
-        {
-          case (lex, (name, kind)) =>
-            if ((kind == "" || kind == BEFORE_COMMAND || kind == QUASI_COMMAND) == is_minor)
-              lex + name
-            else lex
-        })
+      kinds.foldLeft(Scan.Lexicon.empty) {
+        case (lex, (name, kind)) =>
+          if ((kind == "" || kind == BEFORE_COMMAND || kind == QUASI_COMMAND) == is_minor)
+            lex + name
+          else lex
+      }
 
     lazy val minor: Scan.Lexicon = make_lexicon(true)
     lazy val major: Scan.Lexicon = make_lexicon(false)

@@ -95,7 +95,7 @@ object Active
                   Isabelle.insert_line_padding(text_area, text)
                 else text_area.setSelectedText(text)
             }
-            text_area.requestFocus
+            text_area.requestFocus()
           }
           true
 

@@ -291,11 +291,12 @@ class Resources(
   def session_dependencies(info: Sessions.Info, progress: Progress = new Progress)
     : Dependencies[Options] =
   {
-    (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
-      dependencies.require_thys(options,
-        for { (thy, pos) <- thys } yield (import_name(info, thy), pos),
-        progress = progress)
-    })
+    info.theories.foldLeft(Dependencies.empty[Options]) {
+      case (dependencies, (options, thys)) =>
+        dependencies.require_thys(options,
+          for { (thy, pos) <- thys } yield (import_name(info, thy), pos),
+          progress = progress)
+    }
   }
 
   object Dependencies
@@ -361,7 +362,7 @@ class Resources(
         thys: List[(Document.Node.Name, Position.T)],
         progress: Progress = new Progress,
         initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
-      (this /: thys)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
+      thys.foldLeft(this)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
 
@@ -392,19 +393,20 @@ class Resources(
     }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
-      (session_base.loaded_theories /: entries)({ case (graph, entry) =>
-        val name = entry.name.theory
-        val imports = entry.header.imports.map(_.theory)
+      entries.foldLeft(session_base.loaded_theories) {
+        case (graph, entry) =>
+          val name = entry.name.theory
+          val imports = entry.header.imports.map(_.theory)
 
-        val graph1 = (graph /: (name :: imports))(_.default_node(_, Outer_Syntax.empty))
-        val graph2 = (graph1 /: imports)(_.add_edge(_, name))
+          val graph1 = (name :: imports).foldLeft(graph)(_.default_node(_, Outer_Syntax.empty))
+          val graph2 = imports.foldLeft(graph1)(_.add_edge(_, name))
 
-        val syntax0 = if (name == Thy_Header.PURE) List(Thy_Header.bootstrap_syntax) else Nil
-        val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node)
-        val syntax = Outer_Syntax.merge(syntax0 ::: syntax1) + entry.header
+          val syntax0 = if (name == Thy_Header.PURE) List(Thy_Header.bootstrap_syntax) else Nil
+          val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node)
+          val syntax = Outer_Syntax.merge(syntax0 ::: syntax1) + entry.header
 
-        graph2.map_node(name, _ => syntax)
-      })
+          graph2.map_node(name, _ => syntax)
+      }
 
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
       loaded_theories.get_node(name.theory)

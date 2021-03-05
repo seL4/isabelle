@@ -16,7 +16,7 @@ object Outer_Syntax
 
   val empty: Outer_Syntax = new Outer_Syntax()
 
-  def merge(syns: List[Outer_Syntax]): Outer_Syntax = (empty /: syns)(_ ++ _)
+  def merge(syns: List[Outer_Syntax]): Outer_Syntax = syns.foldLeft(empty)(_ ++ _)
 
 
   /* string literals */
@@ -61,7 +61,7 @@ final class Outer_Syntax private(
       keywords + (name, kind, load_command), rev_abbrevs, language_context, has_tokens = true)
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
-    (this /: keywords) {
+    keywords.foldLeft(this) {
       case (syntax, (name, spec)) =>
         syntax +
           (Symbol.decode(name), spec.kind, spec.load_command) +
@@ -177,8 +177,9 @@ final class Outer_Syntax private(
             case Some(cmd) =>
               val name = cmd.source
               val offset =
-                (0 /: content.takeWhile(_ != cmd)) {
-                  case (i, tok) => i + Symbol.length(tok.source) }
+                content.takeWhile(_ != cmd).foldLeft(0) {
+                  case (i, tok) => i + Symbol.length(tok.source)
+                }
               val end_offset = offset + Symbol.length(name)
               val range = Text.Range(offset, end_offset) + 1
               Command_Span.Command_Span(name, Position.Range(range))
@@ -188,8 +189,8 @@ final class Outer_Syntax private(
 
     def flush(): Unit =
     {
-      if (content.nonEmpty) { ship(content.toList); content.clear }
-      if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear }
+      if (content.nonEmpty) { ship(content.toList); content.clear() }
+      if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear() }
     }
 
     for (tok <- toks) {
@@ -198,7 +199,7 @@ final class Outer_Syntax private(
         tok.is_command &&
           (!content.exists(keywords.is_before_command) || content.exists(_.is_command)))
       { flush(); content += tok }
-      else { content ++= ignored; ignored.clear; content += tok }
+      else { content ++= ignored; ignored.clear(); content += tok }
     }
     flush()
 

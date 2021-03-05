@@ -118,7 +118,7 @@ object Line
 
     private def length(lines: List[Line]): Int =
       if (lines.isEmpty) 0
-      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
+      else (lines.foldLeft(0) { case (n, line) => n + line.text.length + 1 }) - 1
 
     def text(lines: List[Line]): String = lines.mkString("", "\n", "")
   }
@@ -169,7 +169,7 @@ object Line
       if (0 <= l && l < n) {
         if (0 <= c && c <= lines(l).text.length) {
           val line_offset =
-            (0 /: lines.iterator.take(l)) { case (n, line) => n + line.text.length + 1 }
+            lines.iterator.take(l).foldLeft(0) { case (n, line) => n + line.text.length + 1 }
           Some(line_offset + c)
         }
         else None

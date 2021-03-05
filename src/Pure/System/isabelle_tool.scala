@@ -29,11 +29,14 @@ object Isabelle_Tool
     val tool_box = universe.runtimeMirror(class_loader).mkToolBox()
 
     try {
-      val symbol = tool_box.parse(source) match {
-        case tree: universe.ModuleDef => tool_box.define(tree)
-        case _ => err("Source does not describe a module (Scala object)")
-      }
-      tool_box.compile(universe.Ident(symbol))() match {
+      val tree = tool_box.parse(source)
+      val module =
+        try { tree.asInstanceOf[universe.ModuleDef] }
+        catch {
+          case _: java.lang.ClassCastException =>
+            err("Source does not describe a module (Scala object)")
+        }
+      tool_box.compile(universe.Ident(tool_box.define(module)))() match {
         case body: Body => body
         case _ => err("Ill-typed source: Isabelle_Tool.Body expected")
       }
@@ -157,7 +160,7 @@ Usage: isabelle TOOL [ARGS ...]
 
   Start Isabelle TOOL with ARGS; pass "-?" for tool-specific help.
 
-Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
+Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage()
         case tool_name :: tool_args =>
           find_external(tool_name) orElse find_internal(tool_name) match {
             case Some(tool) => tool(tool_args)

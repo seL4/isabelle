@@ -24,22 +24,23 @@ class Preview_Panel(resources: VSCode_Resources)
     pending.change_result(map =>
     {
       val map1 =
-        (map /: map.iterator)({ case (m, (file, column)) =>
-          resources.get_model(file) match {
-            case Some(model) =>
-              val snapshot = model.snapshot()
-              if (snapshot.is_outdated) m
-              else {
-                val html_context = Presentation.html_context()
-                val document =
-                  Presentation.html_document(
-                    resources, snapshot, html_context, Presentation.elements2)
-                channel.write(LSP.Preview_Response(file, column, document.title, document.content))
-                m - file
-              }
-            case None => m - file
-          }
-        })
+        map.iterator.foldLeft(map) {
+          case (m, (file, column)) =>
+            resources.get_model(file) match {
+              case Some(model) =>
+                val snapshot = model.snapshot()
+                if (snapshot.is_outdated) m
+                else {
+                  val html_context = Presentation.html_context()
+                  val document =
+                    Presentation.html_document(
+                      resources, snapshot, html_context, Presentation.elements2)
+                  channel.write(LSP.Preview_Response(file, column, document.title, document.content))
+                  m - file
+                }
+              case None => m - file
+            }
+        }
       (map1.nonEmpty, map1)
     })
   }

@@ -55,7 +55,7 @@ object Shapes
     gfx.setFont(metrics.font)
 
     val text_width =
-      (0.0 /: info.lines) { case (w, line) => w max metrics.string_bounds(line).getWidth }
+      info.lines.foldLeft(0.0) { case (w, line) => w max metrics.string_bounds(line).getWidth }
     val text_height =
       (info.lines.length max 1) * metrics.height.ceil
     val x = (s.getCenterX - text_width / 2).round.toInt
@@ -126,7 +126,7 @@ object Shapes
         val dy = coords(2).y - coords(0).y
 
         val (dx2, dy2) =
-          ((dx, dy) /: coords.sliding(3)) {
+          coords.sliding(3).foldLeft((dx, dy)) {
             case ((dx, dy), List(l, m, r)) =>
               val dx2 = r.x - l.x
               val dy2 = r.y - l.y

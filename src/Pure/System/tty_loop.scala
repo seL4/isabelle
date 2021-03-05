@@ -30,7 +30,7 @@ class TTY_Loop(
         if (result.nonEmpty) {
           System.out.print(result.toString)
           System.out.flush()
-          result.clear
+          result.clear()
         }
         else {
           reader.close()
@@ -64,5 +64,5 @@ class TTY_Loop(
 
   def join: Unit = { console_output.join; console_input.join }
 
-  def cancel: Unit = console_input.cancel
+  def cancel(): Unit = console_input.cancel()
 }

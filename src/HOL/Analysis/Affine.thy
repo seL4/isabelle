@@ -1612,26 +1612,29 @@ lemma disjoint_affine_hull:
   assumes "\<not> affine_dependent s" "t \<subseteq> s" "u \<subseteq> s" "t \<inter> u = {}"
     shows "(affine hull t) \<inter> (affine hull u) = {}"
 proof -
-  have "finite s" using assms by (simp add: aff_independent_finite)
-  then have "finite t" "finite u" using assms finite_subset by blast+
-  { fix y
-    assume yt: "y \<in> affine hull t" and yu: "y \<in> affine hull u"
-    then obtain a b
-           where a1 [simp]: "sum a t = 1" and [simp]: "sum (\<lambda>v. a v *\<^sub>R v) t = y"
-             and [simp]: "sum b u = 1" "sum (\<lambda>v. b v *\<^sub>R v) u = y"
+  from assms(1) have "finite s"
+    by (simp add: aff_independent_finite)
+  with assms(2,3) have "finite t" "finite u"
+    by (blast intro: finite_subset)+
+  have False if "y \<in> affine hull t" and "y \<in> affine hull u" for y
+  proof -
+    from that obtain a b
+      where a1 [simp]: "sum a t = 1"
+        and [simp]: "sum (\<lambda>v. a v *\<^sub>R v) t = y"
+        and [simp]: "sum b u = 1" "sum (\<lambda>v. b v *\<^sub>R v) u = y"
       by (auto simp: affine_hull_finite \<open>finite t\<close> \<open>finite u\<close>)
     define c where "c x = (if x \<in> t then a x else if x \<in> u then -(b x) else 0)" for x
-    have [simp]: "s \<inter> t = t" "s \<inter> - t \<inter> u = u" using assms by auto
+    from assms(2,3,4) have [simp]: "s \<inter> t = t" "s \<inter> - t \<inter> u = u"
+      by auto
     have "sum c s = 0"
       by (simp add: c_def comm_monoid_add_class.sum.If_cases \<open>finite s\<close> sum_negf)
     moreover have "\<not> (\<forall>v\<in>s. c v = 0)"
       by (metis (no_types) IntD1 \<open>s \<inter> t = t\<close> a1 c_def sum.neutral zero_neq_one)
     moreover have "(\<Sum>v\<in>s. c v *\<^sub>R v) = 0"
-      by (simp add: c_def if_smult sum_negf
-             comm_monoid_add_class.sum.If_cases \<open>finite s\<close>)
-    ultimately have False
-      using assms \<open>finite s\<close> by (auto simp: affine_dependent_explicit)
-  }
+      by (simp add: c_def if_smult sum_negf comm_monoid_add_class.sum.If_cases \<open>finite s\<close>)
+    ultimately show ?thesis
+      using assms(1) \<open>finite s\<close> by (auto simp: affine_dependent_explicit)
+  qed
   then show ?thesis by blast
 qed
 

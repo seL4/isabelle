@@ -46,7 +46,7 @@ class Mutator_Dialog(
   override def open(): Unit =
   {
     if (!visible) panels = get_panels(container())
-    super.open
+    super.open()
   }
 
   minimumSize = new Dimension(700, 200)
@@ -94,8 +94,8 @@ class Mutator_Dialog(
 
   def paint_panels(): Unit =
   {
-    Focus_Traveral_Policy.clear
-    filter_panel.contents.clear
+    Focus_Traveral_Policy.clear()
+    filter_panel.contents.clear()
     panels.map(x => {
         filter_panel.contents += x
         Focus_Traveral_Policy.addAll(x.focusList)
@@ -106,8 +106,8 @@ class Mutator_Dialog(
     Focus_Traveral_Policy.add(add_button.peer)
     Focus_Traveral_Policy.add(apply_button.peer)
     Focus_Traveral_Policy.add(cancel_button.peer)
-    filter_panel.revalidate
-    filter_panel.repaint
+    filter_panel.revalidate()
+    filter_panel.repaint()
   }
 
   val filter_panel: BoxPanel = new BoxPanel(Orientation.Vertical) {}
@@ -130,7 +130,7 @@ class Mutator_Dialog(
   }
 
   private val cancel_button = new Button {
-    action = Action("Close") { close }
+    action = Action("Close") { close() }
   }
   defaultButton = cancel_button
 

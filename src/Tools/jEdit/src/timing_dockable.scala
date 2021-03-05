@@ -104,7 +104,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* timing view */
 
-  private val timing_view = new ListView(Nil: List[Entry]) {
+  private val timing_view = new ListView(List.empty[Entry]) {
     listenTo(mouse.clicks)
     reactions += {
       case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
@@ -186,9 +186,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       (restriction match {
         case Some(names) => names.iterator.map(name => (name, snapshot.get_node(name)))
         case None => snapshot.version.nodes.iterator
-      })
-      .foldLeft(nodes_timing)(
-        { case (timing1, (name, node)) =>
+      }).foldLeft(nodes_timing) {
+          case (timing1, (name, node)) =>
             if (PIDE.resources.session_base.loaded_theory(name)) timing1
             else {
               val node_timing =
@@ -196,7 +195,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
                   snapshot.state, snapshot.version, node.commands, threshold = timing_threshold)
               timing1 + (name -> node_timing)
             }
-        })
+        }
     nodes_timing = nodes_timing1
 
     val entries = make_entries()

@@ -183,9 +183,9 @@ object Isabelle_Cronjob
 
           if (historic || items.exists(_.known_versions(rev, afp_rev))) {
             val longest_run =
-              (List.empty[Item] /: runs)({ case (item1, item2) =>
-                if (item1.length >= item2.length) item1 else item2
-              })
+              runs.foldLeft(List.empty[Item]) {
+                case (item1, item2) => if (item1.length >= item2.length) item1 else item2
+              }
             if (longest_run.isEmpty) None
             else Some(longest_run(longest_run.length / 2).versions)
           }

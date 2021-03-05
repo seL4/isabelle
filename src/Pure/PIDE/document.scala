@@ -246,7 +246,7 @@ object Document
         var p = pos
         for (command <- commands) yield {
           val start = p
-          p = (p /: command.span.content)(_.advance(_))
+          p = command.span.content.foldLeft(p)(_.advance(_))
           (command, start)
         }
       }
@@ -385,7 +385,7 @@ object Document
     def purge_suppressed: Option[Nodes] =
       graph.keys_iterator.filter(is_suppressed).toList match {
         case Nil => None
-        case del => Some(new Nodes((graph /: del)(_.del_node(_))))
+        case del => Some(new Nodes(del.foldLeft(graph)(_.del_node(_))))
       }
 
     def + (entry: (Node.Name, Node)): Nodes =
@@ -393,9 +393,12 @@ object Document
       val (name, node) = entry
       val imports = node.header.imports
       val graph1 =
-        (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
-      val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
-      val graph3 = (graph2 /: imports)((g, dep) => g.add_edge(dep, name))
+        imports.foldLeft(graph.default_node(name, Node.empty)) {
+          case (g, p) => g.default_node(p, Node.empty)
+        }
+      val graph2 =
+        graph1.imm_preds(name).foldLeft(graph1) { case (g, dep) => g.del_edge(dep, name) }
+      val graph3 = imports.foldLeft(graph2) { case (g, dep) => g.add_edge(dep, name) }
       new Nodes(graph3.map_node(name, _ => node))
     }
 
@@ -449,8 +452,8 @@ object Document
     def purge_suppressed(
       versions: Map[Document_ID.Version, Version]): Map[Document_ID.Version, Version] =
     {
-      (versions /:
-        (for ((id, v) <- versions.iterator; v1 <- v.purge_suppressed) yield (id, v1)))(_ + _)
+      (for ((id, v) <- versions.iterator; v1 <- v.purge_suppressed) yield (id, v1)).
+        foldLeft(versions)(_ + _)
     }
   }
 
@@ -567,9 +570,9 @@ object Document
     private lazy val reverse_edits = edits.reverse
 
     def convert(offset: Text.Offset): Text.Offset =
-      (offset /: edits)((i, edit) => edit.convert(i))
+      edits.foldLeft(offset) { case (i, edit) => edit.convert(i) }
     def revert(offset: Text.Offset): Text.Offset =
-      (offset /: reverse_edits)((i, edit) => edit.revert(i))
+      reverse_edits.foldLeft(offset) { case (i, edit) => edit.revert(i) }
 
     def convert(range: Text.Range): Text.Range = range.map(convert)
     def revert(range: Text.Range): Text.Range = range.map(revert)
@@ -683,7 +686,7 @@ object Document
           node.commands.iterator.takeWhile(_ != command).map(_.source) ++
             (if (offset == 0) Iterator.empty
              else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
-        val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
+        val pos = sources_iterator.foldLeft(Line.Position.zero)(_.advance(_))
         Line.Node_Position(name, pos)
       }
 
@@ -842,7 +845,7 @@ object Document
       {
         require(!is_finished, "assignment already finished")
         val command_execs1 =
-          (command_execs /: update) {
+          update.foldLeft(command_execs) {
             case (res, (command_id, exec_ids)) =>
               if (exec_ids.isEmpty) res - command_id
               else res + (command_id -> exec_ids)
@@ -928,8 +931,10 @@ object Document
     }
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
-      (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
-        graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id) })
+      st.markups.redirection_iterator.foldLeft(commands_redirection) {
+        case (graph, id) =>
+          graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id)
+      }
 
     def accumulate(id: Document_ID.Generic, message: XML.Elem, cache: XML.Cache)
       : (Command.State, State) =
@@ -1022,7 +1027,7 @@ object Document
         if (execs.isDefinedAt(exec_id)) None else Some(exec_id -> st)
 
       val (changed_commands, new_execs) =
-        ((Nil: List[Command], execs) /: update) {
+        update.foldLeft((List.empty[Command], execs)) {
           case ((commands1, execs1), (command_id, exec)) =>
             val st = the_static_state(command_id)
             val command = st.command
@@ -1250,10 +1255,10 @@ object Document
         } yield edits
 
       val edits =
-        (pending_edits /: rev_pending_changes)({
+        rev_pending_changes.foldLeft(pending_edits) {
           case (edits, Node.Edits(es)) => es ::: edits
           case (edits, _) => edits
-        })
+        }
 
       new Snapshot(this, version, node_name, edits, snippet_command)
     }

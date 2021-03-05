@@ -253,7 +253,7 @@ object SQL
     def execute(): Boolean = rep.execute()
     def execute_query(): Result = new Result(this, rep.executeQuery())
 
-    def close(): Unit = rep.close
+    def close(): Unit = rep.close()
   }
 
 
@@ -322,7 +322,7 @@ object SQL
 
     def connection: Connection
 
-    def close(): Unit = connection.close
+    def close(): Unit = connection.close()
 
     def transaction[A](body: => A): A =
     {
@@ -483,7 +483,7 @@ object PostgreSQL
       val connection = DriverManager.getConnection(url, user, password)
       new Database(name, connection, port_forwarding)
     }
-    catch { case exn: Throwable => port_forwarding.foreach(_.close); throw exn }
+    catch { case exn: Throwable => port_forwarding.foreach(_.close()); throw exn }
   }
 
   class Database private[PostgreSQL](
@@ -509,6 +509,6 @@ object PostgreSQL
       table.insert_cmd("INSERT",
         sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 
-    override def close(): Unit = { super.close; port_forwarding.foreach(_.close) }
+    override def close(): Unit = { super.close(); port_forwarding.foreach(_.close()) }
   }
 }

@@ -154,7 +154,8 @@ object Headless
           if (add.isEmpty) front
           else {
             val preds = add.map(dep_graph.imm_preds)
-            val base1 = (preds.head /: preds.tail)(_ ++ _).toList.filter(already_committed.keySet)
+            val base1 =
+              preds.tail.foldLeft(preds.head)(_ ++ _).toList.filter(already_committed.keySet)
             frontier(base1, front ++ add)
           }
         }
@@ -182,21 +183,21 @@ object Headless
           commit match {
             case None => already_committed
             case Some(commit_fn) =>
-              (already_committed /: dep_graph.topological_order)(
-                { case (committed, name) =>
-                    def parents_committed: Boolean =
-                      version.nodes(name).header.imports.forall(parent =>
-                        loaded_theory(parent) || committed.isDefinedAt(parent))
-                    if (!committed.isDefinedAt(name) && parents_committed &&
-                        state.node_consolidated(version, name))
-                    {
-                      val snapshot = stable_snapshot(state, version, name)
-                      val status = Document_Status.Node_Status.make(state, version, name)
-                      commit_fn(snapshot, status)
-                      committed + (name -> status)
-                    }
-                    else committed
-                })
+              dep_graph.topological_order.foldLeft(already_committed) {
+                case (committed, name) =>
+                  def parents_committed: Boolean =
+                    version.nodes(name).header.imports.forall(parent =>
+                      loaded_theory(parent) || committed.isDefinedAt(parent))
+                  if (!committed.isDefinedAt(name) && parents_committed &&
+                      state.node_consolidated(version, name))
+                  {
+                    val snapshot = stable_snapshot(state, version, name)
+                    val status = Document_Status.Node_Status.make(state, version, name)
+                    commit_fn(snapshot, status)
+                    committed + (name -> status)
+                  }
+                  else committed
+              }
           }
 
         def finished_theory(name: Document.Node.Name): Boolean =
@@ -336,7 +337,7 @@ object Headless
                         domain = Some(domain), trim = changed.assignment)
 
                     if (nodes_status_delay >= Time.zero && nodes_status_changed) {
-                      delay_nodes_status.invoke
+                      delay_nodes_status.invoke()
                     }
 
                     val theory_progress =
@@ -356,8 +357,8 @@ object Headless
 
               if (commit.isDefined && commit_cleanup_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
-                  delay_commit_clean.revoke
-                else delay_commit_clean.invoke
+                  delay_commit_clean.revoke()
+                else delay_commit_clean.invoke()
               }
             }
         }
@@ -367,7 +368,7 @@ object Headless
         session.commands_changed += consumer
         check_state()
         use_theories_state.guarded_access(_.join_result)
-        check_progress.cancel
+        check_progress.cancel()
       }
       finally {
         session.commands_changed -= consumer
@@ -472,8 +473,8 @@ object Headless
               case None => Some(name -> new_blob)
             }
           })
-        val blobs1 = (blobs /: new_blobs)(_ + _)
-        val blobs2 = (blobs /: new_blobs)({ case (map, (a, b)) => map + (a -> b.unchanged) })
+        val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
+        val blobs2 = new_blobs.foldLeft(blobs) { case (map, (a, b)) => map + (a -> b.unchanged) }
         (Document.Blobs(blobs1), copy(blobs = blobs2))
       }
 
@@ -501,19 +502,20 @@ object Headless
       def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
 
       def insert_required(id: UUID.T, names: List[Document.Node.Name]): State =
-        copy(required = (required /: names)(_.insert(_, id)))
+        copy(required = names.foldLeft(required)(_.insert(_, id)))
 
       def remove_required(id: UUID.T, names: List[Document.Node.Name]): State =
-        copy(required = (required /: names)(_.remove(_, id)))
+        copy(required = names.foldLeft(required)(_.remove(_, id)))
 
       def update_theories(update: List[(Document.Node.Name, Theory)]): State =
         copy(theories =
-          (theories /: update)({ case (thys, (name, thy)) =>
-            thys.get(name) match {
-              case Some(thy1) if thy1 == thy => thys
-              case _ => thys + (name -> thy)
-            }
-          }))
+          update.foldLeft(theories) {
+            case (thys, (name, thy)) =>
+              thys.get(name) match {
+                case Some(thy1) if thy1 == thy => thys
+                case _ => thys + (name -> thy)
+              }
+          })
 
       def remove_theories(remove: List[Document.Node.Name]): State =
       {
@@ -573,7 +575,7 @@ object Headless
 
       progress.echo("Starting session " + session_base_info.session + " ...")
       Isabelle_Process(session, options, session_base_info.sessions_structure, store,
-        logic = session_base_info.session, modes = print_mode).await_startup
+        logic = session_base_info.session, modes = print_mode).await_startup()
 
       session
     }

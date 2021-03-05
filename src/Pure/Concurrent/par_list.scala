@@ -19,7 +19,7 @@ object Par_List
         state.change { case (futures, canceled) =>
           if (!canceled) {
             for ((future, i) <- futures.iterator.zipWithIndex if i != self)
-              future.cancel
+              future.cancel()
           }
           (futures, true)
         }

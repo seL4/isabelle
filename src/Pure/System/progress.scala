@@ -37,14 +37,14 @@ class Progress
     Timing.timeit(message, enabled, echo)(e)
 
   @volatile protected var is_stopped = false
-  def stop: Unit = { is_stopped = true }
+  def stop(): Unit = { is_stopped = true }
   def stopped: Boolean =
   {
-    if (Thread.interrupted) is_stopped = true
+    if (Thread.interrupted()) is_stopped = true
     is_stopped
   }
 
-  def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop } { e }
+  def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop() } { e }
   def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 

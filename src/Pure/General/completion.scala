@@ -32,7 +32,7 @@ object Completion
   {
     def empty(range: Text.Range): Result = Result(range, "", false, Nil)
     def merge(history: History, results: Option[Result]*): Option[Result] =
-      ((None: Option[Result]) /: results)({
+      results.foldLeft(None: Option[Result]) {
         case (result1, None) => result1
         case (None, result2) => result2
         case (result1 @ Some(res1), Some(res2)) =>
@@ -41,7 +41,7 @@ object Completion
             val items = (res1.items ::: res2.items).sorted(history.ordering)
             Some(Result(res1.range, res1.original, false, items))
           }
-      })
+      }
   }
 
   sealed case class Result(
@@ -78,7 +78,7 @@ object Completion
           }
         }
         else Nil
-      (empty /: content)(_ + _)
+      content.foldLeft(empty)(_ + _)
     }
   }
 
@@ -356,7 +356,7 @@ final class Completion private(
 
   def add_keywords(names: List[String]): Completion =
   {
-    val keywords1 = (keywords /: names) { case (ks, k) => if (ks(k)) ks else ks + k }
+    val keywords1 = names.foldLeft(keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
     if (keywords eq keywords1) this
     else new Completion(keywords1, words_lex, words_map, abbrevs_lex, abbrevs_map)
   }
@@ -386,7 +386,7 @@ final class Completion private(
   }
 
   def add_abbrevs(abbrevs: List[(String, String)]): Completion =
-    (this /: abbrevs)(_.add_abbrev(_))
+    abbrevs.foldLeft(this)(_.add_abbrev(_))
 
   private def add_abbrev(abbrev: (String, String)): Completion =
     abbrev match {

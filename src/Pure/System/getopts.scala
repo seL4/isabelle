@@ -15,7 +15,7 @@ object Getopts
   def apply(usage_text: String, option_specs: (String, String => Unit)*): Getopts =
   {
     val options =
-      (Map.empty[Char, (Boolean, String => Unit)] /: option_specs) {
+      option_specs.foldLeft(Map.empty[Char, (Boolean, String => Unit)]) {
         case (m, (s, f)) =>
           val (a, entry) =
             if (s.size == 1) (s(0), (false, f))
