@@ -85,6 +85,7 @@ ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
 ML_file "General/socket_io.ML";
 ML_file "General/seq.ML";
+ML_file "General/time.ML";
 ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 

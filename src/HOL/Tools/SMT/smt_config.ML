@@ -41,6 +41,7 @@ sig
   val compress_verit_proofs: Proof.context -> bool
 
   (*tools*)
+  val get_timeout: Proof.context -> Time.time option
   val with_time_limit: Proof.context -> real Config.T -> ('a -> 'b) -> 'a -> 'b
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
 
@@ -178,7 +179,7 @@ val setup_solver =
 (* options *)
 
 val oracle = Attrib.setup_config_bool \<^binding>\<open>smt_oracle\<close> (K true)
-val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 1000000.0)
+val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 0.0)
 val reconstruction_step_timeout = Attrib.setup_config_real \<^binding>\<open>smt_reconstruction_step_timeout\<close> (K 10.0)
 val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<close> (K 1)
 val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false)
@@ -217,6 +218,10 @@ fun compress_verit_proofs ctxt  = Config.get ctxt trace_verit_compression
 
 
 (* tools *)
+
+fun get_timeout ctxt =
+  let val t = seconds (Config.get ctxt timeout);
+  in if Timeout.ignored t then NONE else SOME (Timeout.scale_time t) end;
 
 fun with_time_limit ctxt timeout_config f x =
   Timeout.apply (seconds (Config.get ctxt timeout_config)) f x

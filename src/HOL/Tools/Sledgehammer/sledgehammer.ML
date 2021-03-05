@@ -123,7 +123,7 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
   let
     val ctxt = Proof.context_of state
 
-    val hard_timeout = time_mult 5.0 timeout
+    val hard_timeout = Time.scale 5.0 timeout
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts

@@ -34,9 +34,9 @@ fun can_apply timeout_opt pre post tac st =
   end;
 
 fun apply_generic timeout_opt name command pre post apply st =
-  let val timer = Timer.startRealTimer () in
+  let val time_start = Time.now () in
     if try (can_apply timeout_opt pre post apply) st = SOME true then
-      SOME (name, command, Time.toMilliseconds (Timer.checkRealTimer timer))
+      SOME (name, command, Time.toMilliseconds (Time.now () - time_start))
     else
       NONE
   end;

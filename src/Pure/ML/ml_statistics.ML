@@ -141,22 +141,6 @@ end;
 
 (* monitor process *)
 
-(* FIXME workaround for 100% CPU usage in OS.Process.sleep *)
-structure OS =
-struct
-  open OS;
-  structure Process =
-  struct
-    open Process;
-    fun sleep t =
-      let
-        open Thread;
-        val lock = Mutex.mutex ();
-        val cond = ConditionVar.conditionVar ();
-      in ConditionVar.waitUntil (cond, lock, Time.now () + t) end;
-  end;
-end;
-
 fun monitor pid delay =
   let
     fun loop () =

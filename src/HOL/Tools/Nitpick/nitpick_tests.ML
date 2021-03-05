@@ -211,7 +211,7 @@ fun problem_for_nut ctxt (name, u) =
 fun run_all_tests () =
   let
     val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params \<^theory> []
-    val deadline = Time.now () + timeout
+    val deadline = Timeout.end_time timeout
     val max_threads = 1
     val max_solutions = 1
   in

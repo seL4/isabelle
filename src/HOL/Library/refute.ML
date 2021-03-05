@@ -993,7 +993,7 @@ fun find_model ctxt
       else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
     fun wrapper () =
       let
-        val timer = Timer.startRealTimer ()
+        val time_start = Time.now ()
         val t =
           if no_assms then t
           else if negate then Logic.list_implies (assm_ts, t)
@@ -1029,9 +1029,9 @@ fun find_model ctxt
           else ()
         fun find_model_loop universe =
           let
-            val msecs_spent = Time.toMilliseconds (Timer.checkRealTimer timer)
-            val _ = maxtime = 0 orelse msecs_spent < 1000 * maxtime
-                    orelse raise Timeout.TIMEOUT (Time.fromMilliseconds msecs_spent)
+            val time_spent = Time.now () - time_start
+            val _ = maxtime = 0 orelse time_spent < Timeout.scale_time (Time.fromSeconds maxtime)
+                    orelse raise Timeout.TIMEOUT time_spent
             val init_model = (universe, [])
             val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
               bounds = [], wellformed = True}
@@ -1114,15 +1114,13 @@ fun find_model ctxt
     writeln ("Trying to find a model that "
       ^ (if negate then "refutes" else "satisfies") ^ ": "
       ^ Syntax.string_of_term ctxt t);
-    if maxtime > 0 then (
-      Timeout.apply (Time.fromSeconds maxtime)
-        wrapper ()
-      handle Timeout.TIMEOUT _ =>
-        (writeln ("Search terminated, time limit (" ^
-            string_of_int maxtime
-            ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.");
-         check_expect "unknown")
-    ) else wrapper ()
+    Timeout.apply (Time.fromSeconds maxtime)
+      wrapper ()
+    handle Timeout.TIMEOUT _ =>
+      (writeln ("Search terminated, time limit (" ^
+          string_of_int maxtime
+          ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.");
+       check_expect "unknown")
   end;
 
 

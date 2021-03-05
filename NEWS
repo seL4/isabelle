@@ -7,6 +7,16 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Timeouts for Isabelle/ML tools are subject to system option
+"timeout_scale" --- this already used for the overall session build
+process before, and allows to adapt to slow machines. The underlying
+Timeout.apply in Isabelle/ML treats an original timeout specification 0
+as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
+in boundary cases.
+
+
 *** HOL ***
 
 * Theory Multiset: dedicated predicate "multiset" is gone, use

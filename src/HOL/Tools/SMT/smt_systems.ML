@@ -57,10 +57,12 @@ fun on_first_non_unsupported_line test_outcome solver_name lines =
 (* CVC3 *)
 
 local
-  fun cvc3_options ctxt = [
-    "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
-    "-lang", "smt2",
-    "-timeout", string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]
+  fun cvc3_options ctxt =
+    ["-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
+     "-lang", "smt2"] @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["-timeout", string_of_int (Real.ceil (Time.toReal t))])
 in
 
 val cvc3: SMT_Solver.solver_config = {
@@ -83,11 +85,13 @@ end
 val cvc4_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc4_extensions\<close> (K false)
 
 local
-  fun cvc4_options ctxt = [
-    "--no-stats",
-    "--random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
-    "--lang=smt2",
-    "--tlimit", string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout))]
+  fun cvc4_options ctxt =
+    ["--no-stats",
+     "--random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+     "--lang=smt2"] @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)])
 
   fun select_class ctxt =
     if Config.get ctxt cvc4_extensions then
@@ -125,6 +129,15 @@ local
       SMTLIB_Interface.hosmtlibC
     else
       SMTLIB_Interface.smtlibC
+
+  fun veriT_options ctxt =
+   ["--proof-with-sharing",
+    "--proof-define-skolems",
+    "--proof-prune",
+    "--proof-merge",
+    "--disable-print-success",
+    "--disable-banner"] @
+    Verit_Proof.veriT_current_strategy (Context.Proof ctxt)
 in
 
 val veriT: SMT_Solver.solver_config = {
@@ -132,14 +145,7 @@ val veriT: SMT_Solver.solver_config = {
   class = select_class,
   avail = is_some o check_tool "ISABELLE_VERIT",
   command = the o check_tool "ISABELLE_VERIT",
-  options = (fn ctxt => [
-    "--proof-with-sharing",
-    "--proof-define-skolems",
-    "--proof-prune",
-    "--proof-merge",
-    "--disable-print-success",
-    "--disable-banner"] @
-    Verit_Proof.veriT_current_strategy (Context.Proof ctxt)),
+  options = veriT_options,
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "timeout"),
@@ -156,9 +162,11 @@ val z3_extensions = Attrib.setup_config_bool \<^binding>\<open>z3_extensions\<cl
 local
   fun z3_options ctxt =
     ["smt.random_seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
-     "smt.refine_inj_axioms=false",
-     "-T:" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout)),
-     "-smt2"]
+     "smt.refine_inj_axioms=false"] @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["-T:" ^ string_of_int (Real.ceil (Time.toReal t))]) @
+    ["-smt2"]
 
   fun select_class ctxt =
     if Config.get ctxt z3_extensions then Z3_Interface.smtlib_z3C else SMTLIB_Interface.smtlibC

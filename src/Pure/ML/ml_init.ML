@@ -33,19 +33,3 @@ struct
     if n = 1 then String.str (String.sub (s, i))
     else String.substring (s, i, n);
 end;
-
-(* FIXME workaround for 100% CPU usage in OS.Process.sleep *)
-structure OS =
-struct
-  open OS;
-  structure Process =
-  struct
-    open Process;
-    fun sleep t =
-      let
-        open Thread;
-        val lock = Mutex.mutex ();
-        val cond = ConditionVar.conditionVar ();
-      in ConditionVar.waitUntil (cond, lock, Time.now () + t) end;
-  end;
-end;

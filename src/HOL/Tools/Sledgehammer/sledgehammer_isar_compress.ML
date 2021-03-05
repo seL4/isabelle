@@ -129,7 +129,7 @@ val merge_slack_time = seconds 0.01
 val merge_slack_factor = 1.5
 
 fun adjust_merge_timeout max time =
-  let val timeout = time_mult merge_slack_factor (merge_slack_time + time) in
+  let val timeout = Time.scale merge_slack_factor (merge_slack_time + time) in
     if max < timeout then max else timeout
   end
 
