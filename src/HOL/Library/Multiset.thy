@@ -53,16 +53,19 @@ text \<open>Multiset enumeration\<close>
 instantiation multiset :: (type) cancel_comm_monoid_add
 begin
 
-lift_definition zero_multiset :: "'a multiset" is "\<lambda>a. 0"
+lift_definition zero_multiset :: \<open>'a multiset\<close>
+  is \<open>\<lambda>a. 0\<close>
   by simp
 
-abbreviation Mempty :: "'a multiset" ("{#}") where
-  "Mempty \<equiv> 0"
+abbreviation empty_mset :: \<open>'a multiset\<close> (\<open>{#}\<close>)
+  where \<open>empty_mset \<equiv> 0\<close>
 
-lift_definition plus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
+lift_definition plus_multiset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>
+  is \<open>\<lambda>M N a. M a + N a\<close>
   by simp
 
-lift_definition minus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
+lift_definition minus_multiset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>
+  is \<open>\<lambda>M N a. M a - N a\<close>
   by (rule diff_preserves_multiset)
 
 instance
@@ -121,30 +124,30 @@ subsection \<open>Basic operations\<close>
 
 subsubsection \<open>Conversion to set and membership\<close>
 
-definition set_mset :: "'a multiset \<Rightarrow> 'a set"
-  where "set_mset M = {x. count M x > 0}"
+definition set_mset :: \<open>'a multiset \<Rightarrow> 'a set\<close>
+  where \<open>set_mset M = {x. count M x > 0}\<close>
 
-abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "Melem a M \<equiv> a \<in> set_mset M"
-
-notation
-  Melem  ("'(\<in>#')") and
-  Melem  ("(_/ \<in># _)" [51, 51] 50)
-
-notation  (ASCII)
-  Melem  ("'(:#')") and
-  Melem  ("(_/ :# _)" [51, 51] 50)
-
-abbreviation not_Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
-  where "not_Melem a M \<equiv> a \<notin> set_mset M"
+abbreviation member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bool\<close>
+  where \<open>member_mset a M \<equiv> a \<in> set_mset M\<close>
 
 notation
-  not_Melem  ("'(\<notin>#')") and
-  not_Melem  ("(_/ \<notin># _)" [51, 51] 50)
+  member_mset  (\<open>'(\<in>#')\<close>) and
+  member_mset  (\<open>(_/ \<in># _)\<close> [51, 51] 50)
 
 notation  (ASCII)
-  not_Melem  ("'(~:#')") and
-  not_Melem  ("(_/ ~:# _)" [51, 51] 50)
+  member_mset  (\<open>'(:#')\<close>) and
+  member_mset  (\<open>(_/ :# _)\<close> [51, 51] 50)
+
+abbreviation not_member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bool\<close>
+  where \<open>not_member_mset a M \<equiv> a \<notin> set_mset M\<close>
+
+notation
+  not_member_mset  (\<open>'(\<notin>#')\<close>) and
+  not_member_mset  (\<open>(_/ \<notin># _)\<close> [51, 51] 50)
+
+notation  (ASCII)
+  not_member_mset  (\<open>'(~:#')\<close>) and
+  not_member_mset  (\<open>(_/ ~:# _)\<close> [51, 51] 50)
 
 context
 begin
@@ -671,26 +674,26 @@ qed simp
 
 subsubsection \<open>Intersection and bounded union\<close>
 
-definition inf_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "\<inter>#" 70) where
-  multiset_inter_def: "inf_subset_mset A B = A - (A - B)"
+definition inter_mset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>  (infixl \<open>\<inter>#\<close> 70)
+  where \<open>A \<inter># B = A - (A - B)\<close>
 
-interpretation subset_mset: semilattice_inf inf_subset_mset "(\<subseteq>#)" "(\<subset>#)"
+interpretation subset_mset: semilattice_inf \<open>(\<inter>#)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
 proof -
   have [simp]: "m \<le> n \<Longrightarrow> m \<le> q \<Longrightarrow> m \<le> n - (n - q)" for m n q :: nat
     by arith
   show "class.semilattice_inf (\<inter>#) (\<subseteq>#) (\<subset>#)"
-    by standard (auto simp add: multiset_inter_def subseteq_mset_def)
+    by standard (auto simp add: inter_mset_def subseteq_mset_def)
 qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-definition sup_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"(infixl "\<union>#" 70)
-  where "sup_subset_mset A B = A + (B - A)" \<comment> \<open>FIXME irregular fact name\<close>
+definition union_mset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>  (infixl \<open>\<union>#\<close> 70)
+  where \<open>A \<union># B = A + (B - A)\<close>
 
-interpretation subset_mset: semilattice_sup sup_subset_mset "(\<subseteq>#)" "(\<subset>#)"
+interpretation subset_mset: semilattice_sup \<open>(\<union>#)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
 proof -
   have [simp]: "m \<le> n \<Longrightarrow> q \<le> n \<Longrightarrow> m + (q - m) \<le> n" for m n q :: nat
     by arith
   show "class.semilattice_sup (\<union>#) (\<subseteq>#) (\<subset>#)"
-    by standard (auto simp add: sup_subset_mset_def subseteq_mset_def)
+    by standard (auto simp add: union_mset_def subseteq_mset_def)
 qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 interpretation subset_mset: bounded_lattice_bot "(\<inter>#)" "(\<subseteq>#)" "(\<subset>#)"
@@ -701,14 +704,13 @@ interpretation subset_mset: bounded_lattice_bot "(\<inter>#)" "(\<subseteq>#)" "
 
 subsubsection \<open>Additional intersection facts\<close>
 
-lemma multiset_inter_count [simp]:
-  fixes A B :: "'a multiset"
-  shows "count (A \<inter># B) x = min (count A x) (count B x)"
-  by (simp add: multiset_inter_def)
+lemma count_inter_mset [simp]:
+  \<open>count (A \<inter># B) x = min (count A x) (count B x)\<close>
+  by (simp add: inter_mset_def)
 
 lemma set_mset_inter [simp]:
   "set_mset (A \<inter># B) = set_mset A \<inter> set_mset B"
-  by (simp only: set_eq_iff count_greater_zero_iff [symmetric] multiset_inter_count) simp
+  by (simp only: set_mset_def) auto
 
 lemma diff_intersect_left_idem [simp]:
   "M - M \<inter># N = M - N"
@@ -766,10 +768,9 @@ lemma inter_mset_empty_distrib_right: "A \<inter># (B + C) = {#} \<longleftright
 lemma inter_mset_empty_distrib_left: "(A + B) \<inter># C = {#} \<longleftrightarrow> A \<inter># C = {#} \<and> B \<inter># C = {#}"
   by (meson disjunct_not_in union_iff)
 
-lemma add_mset_inter_add_mset[simp]:
+lemma add_mset_inter_add_mset [simp]:
   "add_mset a A \<inter># add_mset a B = add_mset a (A \<inter># B)"
-  by (metis add_mset_add_single add_mset_diff_bothsides diff_subset_eq_self multiset_inter_def
-      subset_mset.diff_add_assoc2)
+  by (rule multiset_eqI) simp
 
 lemma add_mset_disjoint [simp]:
   "add_mset a A \<inter># B = {#} \<longleftrightarrow> a \<notin># B \<and> A \<inter># B = {#}"
@@ -838,14 +839,13 @@ lemma inter_subset_eq_union:
 
 subsubsection \<open>Additional bounded union facts\<close>
 
-lemma sup_subset_mset_count [simp]: \<comment> \<open>FIXME irregular fact name\<close>
-  "count (A \<union># B) x = max (count A x) (count B x)"
-  by (simp add: sup_subset_mset_def)
+lemma count_union_mset [simp]:
+  \<open>count (A \<union># B) x = max (count A x) (count B x)\<close>
+  by (simp add: union_mset_def)
 
 lemma set_mset_sup [simp]:
-  "set_mset (A \<union># B) = set_mset A \<union> set_mset B"
-  by (simp only: set_eq_iff count_greater_zero_iff [symmetric] sup_subset_mset_count)
-    (auto simp add: not_in_iff elim: mset_add)
+  \<open>set_mset (A \<union># B) = set_mset A \<union> set_mset B\<close>
+  by (simp only: set_mset_def) (auto simp add: less_max_iff_disj)
 
 lemma sup_union_left1 [simp]: "\<not> x \<in># N \<Longrightarrow> (add_mset x M) \<union># N = add_mset x (M \<union># N)"
   by (simp add: multiset_eq_iff not_in_iff)
@@ -894,12 +894,19 @@ lemma replicate_mset_Suc [simp]: "replicate_mset (Suc n) x = add_mset x (replica
 lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
   unfolding replicate_mset_def by (induct n) auto
 
-fun repeat_mset :: "nat \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
-  "repeat_mset 0 _ = {#}" |
-  "repeat_mset (Suc n) A = A + repeat_mset n A"
+lift_definition repeat_mset :: \<open>nat \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>
+  is \<open>\<lambda>n M a. n * M a\<close> by simp
 
 lemma count_repeat_mset [simp]: "count (repeat_mset i A) a = i * count A a"
-  by (induction i) auto
+  by transfer rule
+
+lemma repeat_mset_0 [simp]:
+  \<open>repeat_mset 0 M = {#}\<close>
+  by transfer simp
+
+lemma repeat_mset_Suc [simp]:
+  \<open>repeat_mset (Suc n) M = M + repeat_mset n M\<close>
+  by transfer simp
 
 lemma repeat_mset_right [simp]: "repeat_mset a (repeat_mset b A) = repeat_mset (a * b) A"
   by (auto simp: multiset_eq_iff left_diff_distrib')
@@ -928,7 +935,7 @@ lemma repeat_mset_distrib_add_mset[simp]:
   by (auto simp: multiset_eq_iff)
 
 lemma repeat_mset_empty[simp]: "repeat_mset n {#} = {#}"
-  by (induction n) simp_all
+  by transfer simp
 
 
 subsubsection \<open>Simprocs\<close>
@@ -3254,10 +3261,10 @@ setup \<open>
   let
     fun msetT T = Type (\<^type_name>\<open>multiset\<close>, [T]);
 
-    fun mk_mset T [] = Const (\<^const_abbrev>\<open>Mempty\<close>, msetT T)
+    fun mk_mset T [] = Const (\<^const_abbrev>\<open>empty_mset\<close>, msetT T)
       | mk_mset T [x] =
         Const (\<^const_name>\<open>add_mset\<close>, T --> msetT T --> msetT T) $ x $
-          Const (\<^const_abbrev>\<open>Mempty\<close>, msetT T)
+          Const (\<^const_abbrev>\<open>empty_mset\<close>, msetT T)
       | mk_mset T (x :: xs) =
         Const (\<^const_name>\<open>plus\<close>, msetT T --> msetT T --> msetT T) $
           mk_mset T [x] $ mk_mset T xs
@@ -3274,7 +3281,7 @@ setup \<open>
       resolve_tac ctxt @{thms nonempty_single}
 
     fun regroup_munion_conv ctxt =
-      Function_Lib.regroup_conv ctxt \<^const_abbrev>\<open>Mempty\<close> \<^const_name>\<open>plus\<close>
+      Function_Lib.regroup_conv ctxt \<^const_abbrev>\<open>empty_mset\<close> \<^const_name>\<open>plus\<close>
         (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
     fun unfold_pwleq_tac ctxt i =

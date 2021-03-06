@@ -12,7 +12,7 @@ text \<open>Delete prexisting code equations\<close>
 
 declare [[code drop: "{#}" Multiset.is_empty add_mset
   "plus :: 'a multiset \<Rightarrow> _" "minus :: 'a multiset \<Rightarrow> _"
-  inf_subset_mset sup_subset_mset image_mset filter_mset count
+  inter_mset union_mset image_mset filter_mset count
   "size :: _ multiset \<Rightarrow> nat" sum_mset prod_mset
   set_mset sorted_list_of_multiset subset_mset subseteq_mset
   equal_multiset_inst.equal_multiset]]
@@ -261,8 +261,8 @@ proof -
     unfolding mset_less_eq_Bag0 by auto
 qed
 
-declare multiset_inter_def [code]
-declare sup_subset_mset_def [code]
+declare inter_mset_def [code]
+declare union_mset_def [code]
 declare mset.simps [code]
 
 

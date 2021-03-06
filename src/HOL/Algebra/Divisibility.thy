@@ -2128,11 +2128,11 @@ proof -
   proof (simp add: isgcd_def, safe)
     from csmset
     have "fmset G cs \<subseteq># fmset G as"
-      by (simp add: multiset_inter_def subset_mset_def)
+      by simp
     then show "c divides a" by (rule fmsubset_divides) fact+
   next
     from csmset have "fmset G cs \<subseteq># fmset G bs"
-      by (simp add: multiset_inter_def subseteq_mset_def, force)
+      by simp
     then show "c divides b"
       by (rule fmsubset_divides) fact+
   next

@@ -22,6 +22,18 @@ in boundary cases.
 * Theory Multiset: dedicated predicate "multiset" is gone, use
 explict expression instead.  Minor INCOMPATIBILITY.
 
+* Theory Multiset: consolidated abbreviations Mempty, Melem, not_Melem
+to empty_mset, member_mset, not_member_mset respectively.  Minor
+INCOMPATIBILITY.
+
+* Theory Multiset: consolidated operation and fact names:
+    inf_subset_mset ~> inter_mset
+    sup_subset_mset ~> union_mset
+    multiset_inter_def ~> inter_mset_def
+    sup_subset_mset_def ~> union_mset_def
+    multiset_inter_count ~> count_inter_mset
+    sup_subset_mset_count ~> count_union_mset
+
 * HOL-Analysis/HOL-Probability: indexed products of discrete
 distributions, negative binomial distribution, Hoeffding's inequality,
 Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
