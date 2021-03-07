@@ -132,22 +132,22 @@ abbreviation member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bo
 
 notation
   member_mset  (\<open>'(\<in>#')\<close>) and
-  member_mset  (\<open>(_/ \<in># _)\<close> [51, 51] 50)
+  member_mset  (\<open>(_/ \<in># _)\<close> [50, 51] 50)
 
 notation  (ASCII)
   member_mset  (\<open>'(:#')\<close>) and
-  member_mset  (\<open>(_/ :# _)\<close> [51, 51] 50)
+  member_mset  (\<open>(_/ :# _)\<close> [50, 51] 50)
 
 abbreviation not_member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bool\<close>
   where \<open>not_member_mset a M \<equiv> a \<notin> set_mset M\<close>
 
 notation
   not_member_mset  (\<open>'(\<notin>#')\<close>) and
-  not_member_mset  (\<open>(_/ \<notin># _)\<close> [51, 51] 50)
+  not_member_mset  (\<open>(_/ \<notin># _)\<close> [50, 51] 50)
 
 notation  (ASCII)
   not_member_mset  (\<open>'(~:#')\<close>) and
-  not_member_mset  (\<open>(_/ ~:# _)\<close> [51, 51] 50)
+  not_member_mset  (\<open>(_/ ~:# _)\<close> [50, 51] 50)
 
 context
 begin

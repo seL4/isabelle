@@ -34,6 +34,10 @@ INCOMPATIBILITY.
     multiset_inter_count ~> count_inter_mset
     sup_subset_mset_count ~> count_union_mset
 
+* Theory Multiset: syntax precendence for membership operations has been
+adjusted to match the corresponding precendences on sets.  Rare
+INCOMPATIBILITY.
+
 * HOL-Analysis/HOL-Probability: indexed products of discrete
 distributions, negative binomial distribution, Hoeffding's inequality,
 Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
