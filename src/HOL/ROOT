@@ -875,7 +875,8 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Stream_Processor
     Cyclic_List
     Free_Idempotent_Monoid
-    LDL
+    Regex_ACI
+    Regex_ACIDZ
     TLList
     Misc_Codatatype
     Misc_Datatype

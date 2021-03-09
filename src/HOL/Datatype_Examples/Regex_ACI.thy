@@ -1,8 +1,8 @@
-theory LDL imports
-  "HOL-Library.Confluent_Quotient"
+theory Regex_ACI
+  imports "HOL-Library.Confluent_Quotient"
 begin
 
-datatype 'a rexp = Atom 'a | Alt "'a rexp" "'a rexp" | Conc "'a rexp" "'a rexp" | Star "'a rexp"
+datatype 'a rexp = Zero | Eps | Atom 'a | Alt "'a rexp" "'a rexp" | Conc "'a rexp" "'a rexp" | Star "'a rexp"
 
 inductive ACI (infix "~" 64) where
   a1: "Alt (Alt r s) t ~ Alt r (Alt s t)"
@@ -123,7 +123,7 @@ proof (induct r r' rule: rtranclp.induct)
     by (auto elim!: rtranclp.rtrancl_into_rtrancl)
 qed auto
 
-lemma map_rexp_ACI_inv: "map_rexp f x ~ y \<Longrightarrow> \<exists>z. x ~~ z \<and> y = map_rexp f z"
+lemma map_rexp_ACI_inv: "map_rexp f x ~ y \<Longrightarrow> \<exists>z. x ~~ z \<and> y = map_rexp f z \<and> set_rexp z \<subseteq> set_rexp x"
 proof (induct "map_rexp f x" y arbitrary: x rule: ACI.induct)
   case (a1 r s t)
   then obtain r' s' t' where "x = Alt (Alt r' s') t'"
@@ -159,6 +159,7 @@ next
     by (auto simp: Alt_eq_map_rexp_iff)
   moreover from A(2)[OF this(2)[symmetric]] A(4)[OF this(3)[symmetric]] obtain rr' ss' where
     "r' ~~ rr'" "rr = map_rexp f rr'" "s' ~~ ss'" "ss = map_rexp f ss'"
+    "set_rexp rr' \<subseteq> set_rexp r'" "set_rexp ss' \<subseteq> set_rexp s'"
     by blast
   ultimately show ?case using A(1,3)
     by (intro exI[of _ "Alt rr' ss'"]) (auto intro!: AA)
@@ -169,6 +170,7 @@ next
     by (auto simp: Conc_eq_map_rexp_iff)
   moreover from C(2)[OF this(2)[symmetric]] C(4)[OF this(3)[symmetric]] obtain rr' ss' where
     "r' ~~ rr'" "rr = map_rexp f rr'" "s' ~~ ss'" "ss = map_rexp f ss'"
+    "set_rexp rr' \<subseteq> set_rexp r'" "set_rexp ss' \<subseteq> set_rexp s'"
     by blast
   ultimately show ?case using C(1,3)
     by (intro exI[of _ "Conc rr' ss'"]) (auto intro!: CC)
@@ -177,6 +179,7 @@ next
   then obtain r' where "x = Star r'" "map_rexp f r' = r"
     by (auto simp: Star_eq_map_rexp_iff)
   moreover from S(2)[OF this(2)[symmetric]] obtain rr' where "r' ~~ rr'" "rr = map_rexp f rr'"
+    "set_rexp rr' \<subseteq> set_rexp r'"
     by blast
   ultimately show ?case
     by (intro exI[of _ "Star rr'"]) (auto intro!: SS)
@@ -298,8 +301,8 @@ lemma confluent_quotient_ACI:
   "confluent_quotient (~) (~~) (~~) (~~) (~~) (~~)
      (map_rexp fst) (map_rexp snd) (map_rexp fst) (map_rexp snd)
      rel_rexp rel_rexp rel_rexp set_rexp set_rexp"
-  by unfold_locales (auto dest: ACIcl_set_eq simp: rexp.in_rel rexp.rel_compp map_rexp_ACI_inv
-      intro: equivpI reflpI sympI transpI ACIcl_map_respects
+  by unfold_locales (auto dest: ACIcl_set_eq ACIcl_map_respects simp: rexp.in_rel rexp.rel_compp map_rexp_ACI_inv
+      intro: equivpI reflpI sympI transpI
       strong_confluentp_imp_confluentp[OF strong_confluentp_ACI])
 
 inductive ACIEQ (infix "\<approx>" 64) where

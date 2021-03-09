@@ -223,13 +223,13 @@ lemma semiconfluentp_cancel1: "semiconfluentp cancel1\<inverse>\<inverse>"
 
 lemma retract_cancel1_aux:
   assumes "cancel1 ys (map f xs)"
-  shows "\<exists>zs. cancel1 zs xs \<and> ys = map f zs"
+  shows "\<exists>zs. cancel1 zs xs \<and> ys = map f zs \<and> set zs \<subseteq> set xs"
   using assms
   by cases(fastforce simp add: map_eq_append_conv append_eq_map_conv intro: cancel1.intros)
 
 lemma retract_cancel1:
   assumes "cancel1 ys (map f xs)"
-  shows "\<exists>zs. eq xs zs \<and> ys = map f zs"
+  shows "\<exists>zs. eq xs zs \<and> ys = map f zs \<and> set zs \<subseteq> set xs"
   using retract_cancel1_aux[OF assms] by(blast intro: symclpI)
 
 lemma cancel1_set_eq:

@@ -277,9 +277,9 @@ qualified lemma dlist_eq_into_doubles: "Dlist.dlist_eq \<le> equivclp double"
   by(auto 4 4 simp add: Dlist.dlist_eq_def vimage2p_def
      intro: equivclp_trans converse_rtranclp_into_equivclp rtranclp_into_equivclp remdups_into_doubles)
 
-qualified lemma factor_double_map: "double (map f xs) ys \<Longrightarrow> \<exists>zs. Dlist.dlist_eq xs zs \<and> ys = map f zs"
+qualified lemma factor_double_map: "double (map f xs) ys \<Longrightarrow> \<exists>zs. Dlist.dlist_eq xs zs \<and> ys = map f zs \<and> set zs \<subseteq> set xs"
   by(auto simp add: double.simps Dlist.dlist_eq_def vimage2p_def map_eq_append_conv)
-    (metis list.simps(9) map_append remdups.simps(2) remdups_append2)
+    (metis (no_types, hide_lams) list.simps(9) map_append remdups.simps(2) remdups_append2 set_append set_eq_subset set_remdups)
 
 qualified lemma dlist_eq_set_eq: "Dlist.dlist_eq xs ys \<Longrightarrow> set xs = set ys"
   by(simp add: Dlist.dlist_eq_def vimage2p_def)(metis set_remdups)
@@ -293,7 +293,6 @@ qualified lemma confluent_quotient_dlist:
   by(unfold_locales)(auto intro: strong_confluentp_imp_confluentp strong_confluentp_double
     dest: factor_double_map dlist_eq_into_doubles[THEN predicate2D] dlist_eq_set_eq
     simp add: list.in_rel list.rel_compp dlist_eq_map_respect Dlist.equivp_dlist_eq equivp_imp_transp)
-
 
 lifting_update dlist.lifting
 lifting_forget dlist.lifting

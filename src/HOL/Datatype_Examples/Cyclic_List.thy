@@ -26,8 +26,8 @@ lemma cyclic_set_eq: "cyclic xs ys \<Longrightarrow> set xs = set ys"
 
 lemma retract_cyclic1:
   assumes "cyclic1 (map f xs) ys"
-  shows "\<exists>zs. cyclic xs zs \<and> ys = map f zs"
-  using assms by(auto simp add: cyclic1.simps rotate1_map intro: cyclic1.intros symclpI1)
+  shows "\<exists>zs. cyclic xs zs \<and> ys = map f zs \<and> set zs \<subseteq> set xs"
+  using assms by(force simp add: cyclic1.simps rotate1_map intro: cyclic1.intros symclpI1)
 
 lemma confluent_quotient_cyclic1:
   "confluent_quotient cyclic1 cyclic cyclic cyclic cyclic cyclic (map fst) (map snd) (map fst) (map snd) list_all2 list_all2 list_all2 set set"
