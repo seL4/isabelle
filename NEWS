@@ -17,6 +17,13 @@ as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
 in boundary cases.
 
 
+*** Document preparation ***
+
+* More accurate LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
+\guilsinglright. Minor INCOMPATIBILITY, use \usepackage[T1]{fontenc}
+(which is now also the default in "isabelle mkroot").
+
+
 *** HOL ***
 
 * Theory Multiset: dedicated predicate "multiset" is gone, use
