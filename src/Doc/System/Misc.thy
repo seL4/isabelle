@@ -332,25 +332,29 @@ text \<open>
 section \<open>Creating instances of the Isabelle logo\<close>
 
 text \<open>
-  The @{tool_def logo} tool creates instances of the generic Isabelle logo,
-  for inclusion in PDF{\LaTeX} documents.
-  @{verbatim [display]
-\<open>Usage: isabelle logo [OPTIONS] [XYZ]
+  The @{tool_def logo} tool creates variants of the Isabelle logo, for
+  inclusion in PDF{\LaTeX} documents.
 
-  Create instance XYZ of the Isabelle logo (PDF).
+  @{verbatim [display]
+\<open>Usage: isabelle logo [OPTIONS] [NAME]
 
   Options are:
-    -o FILE      alternative output file (default "isabelle_xyx.pdf")
-    -q           quiet mode\<close>}
+    -o FILE      alternative output file
+    -q           quiet mode
 
-  Option \<^verbatim>\<open>-o\<close> specifies an alternative output file: the default is
-  \<^verbatim>\<open>isabelle_\<close>\<open>xyz\<close>\<^verbatim>\<open>.pdf\<close> (in lower-case).
+  Create variant NAME of the Isabelle logo as "isabelle_name.pdf".\<close>}
 
+  Option \<^verbatim>\<open>-o\<close> provides an alternative output file, instead of the default in
+  the current directory: \<^verbatim>\<open>isabelle_\<close>\<open>name\<close>\<^verbatim>\<open>.pdf\<close> with the lower-case version
+  of the given name.
+
+  \<^medskip>
   Option \<^verbatim>\<open>-q\<close> omits printing of the resulting output file name.
 
   \<^medskip>
   Implementors of Isabelle tools and applications are encouraged to make
-  derived Isabelle logos for their own projects using this template.
+  derived Isabelle logos for their own projects using this template. The
+  license is the same as for the regular Isabelle distribution (BSD).
 \<close>
 
 

@@ -13,6 +13,8 @@ elif [ -e "$ISABELLE_OPAM_ROOT/config" ]
 then
   isabelle_opam switch create -y "$ISABELLE_OCAML_VERSION"
 else
+  mkdir -p "$ISABELLE_OPAM_ROOT"
+  cd "$ISABELLE_OPAM_ROOT"
   isabelle_opam init -y --disable-sandboxing --no-setup --compiler="$ISABELLE_OCAML_VERSION"
 fi
 

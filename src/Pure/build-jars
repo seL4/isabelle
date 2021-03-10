@@ -170,6 +170,7 @@ declare -a SOURCES=(
   src/Pure/Tools/dump.scala
   src/Pure/Tools/fontforge.scala
   src/Pure/Tools/java_monitor.scala
+  src/Pure/Tools/logo.scala
   src/Pure/Tools/main.scala
   src/Pure/Tools/mkroot.scala
   src/Pure/Tools/phabricator.scala

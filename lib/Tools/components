@@ -145,13 +145,12 @@ else
         type -p curl > /dev/null || fail "Cannot download files: missing curl"
         echo "Getting \"$REMOTE\""
         mkdir -p "$(dirname "$FULL_NAME")"
-        curl --fail --silent --location "$REMOTE" > "${FULL_NAME}.tar.gz.part" || \
-          fail "Failed to download \"$REMOTE\""
-        if perl -e "exit((stat('${FULL_NAME}.tar.gz.part'))[7] == 0 ? 0 : 1);"
+        if curl --fail --silent --location "$REMOTE" > "${FULL_NAME}.tar.gz.part"
         then
-          rm -f "${FULL_NAME}.tar.gz.part"
+          mv -f "${FULL_NAME}.tar.gz.part" "${FULL_NAME}.tar.gz"
         else
-          mv "${FULL_NAME}.tar.gz.part" "${FULL_NAME}.tar.gz"
+          rm -f "${FULL_NAME}.tar.gz.part"
+          fail "Failed to download \"$REMOTE\""
         fi
       fi
       if [ -e "${FULL_NAME}.tar.gz" ]; then

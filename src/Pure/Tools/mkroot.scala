@@ -71,6 +71,7 @@ object Mkroot
 
       File.write(root_tex,
 """\documentclass[11pt,a4paper]{article}
+\""" + """usepackage[T1]{fontenc}
 \""" + """usepackage{isabelle,isabellesym}
 
 % further packages required for unusual symbols (see also
