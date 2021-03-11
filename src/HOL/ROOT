@@ -878,6 +878,7 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Regex_ACI
     Regex_ACIDZ
     TLList
+    FAE_Sequence
     Misc_Codatatype
     Misc_Datatype
     Misc_Primcorec
