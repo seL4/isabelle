@@ -553,7 +553,9 @@ lemma pos_minus_divideR_less_eq [field_simps]:
 
 lemma scaleR_image_atLeastAtMost: "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {c *\<^sub>R x..c *\<^sub>R y}"
   apply (auto intro!: scaleR_left_mono simp: image_iff Bex_def)
-  by (meson local.eq_iff pos_divideR_le_eq pos_le_divideR_eq)
+  using pos_divideR_le_eq [of c] pos_le_divideR_eq [of c]
+  apply (meson local.order_eq_iff) 
+  done
 
 end
 

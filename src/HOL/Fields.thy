@@ -1128,7 +1128,7 @@ lemma [field_split_simps, divide_simps]:
     and minus_divide_le_eq: "- (b / c) \<le> a \<longleftrightarrow> (if 0 < c then - b \<le> a * c else if c < 0 then a * c \<le> - b else 0 \<le> a)"
     and less_minus_divide_eq: "a < - (b / c) \<longleftrightarrow> (if 0 < c then a * c < - b else if c < 0 then - b < a * c else  a < 0)"
     and minus_divide_less_eq: "- (b / c) < a \<longleftrightarrow> (if 0 < c then - b < a * c else if c < 0 then a * c < - b else 0 < a)"
-  by (auto simp: field_simps not_less dest: antisym)
+  by (auto simp: field_simps not_less dest: order.antisym)
 
 text \<open>Division and Signs\<close>
 

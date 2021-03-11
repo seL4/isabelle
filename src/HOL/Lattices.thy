@@ -209,7 +209,7 @@ lemma le_inf_iff: "x \<le> y \<sqinter> z \<longleftrightarrow> x \<le> y \<and>
   by (blast intro: le_infI elim: le_infE)
 
 lemma le_iff_inf: "x \<le> y \<longleftrightarrow> x \<sqinter> y = x"
-  by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1] simp add: le_inf_iff)
+  by (auto intro: le_infI1 order.antisym dest: order.eq_iff [THEN iffD1] simp add: le_inf_iff)
 
 lemma inf_mono: "a \<le> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<sqinter> b \<le> c \<sqinter> d"
   by (fast intro: inf_greatest le_infI1 le_infI2)
@@ -238,7 +238,7 @@ lemma le_sup_iff: "x \<squnion> y \<le> z \<longleftrightarrow> x \<le> z \<and>
   by (blast intro: le_supI elim: le_supE)
 
 lemma le_iff_sup: "x \<le> y \<longleftrightarrow> x \<squnion> y = y"
-  by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1] simp add: le_sup_iff)
+  by (auto intro: le_supI2 order.antisym dest: order.eq_iff [THEN iffD1] simp add: le_sup_iff)
 
 lemma sup_mono: "a \<le> c \<Longrightarrow> b \<le> d \<Longrightarrow> a \<squnion> b \<le> c \<squnion> d"
   by (fast intro: sup_least le_supI1 le_supI2)
@@ -258,11 +258,11 @@ sublocale inf: semilattice inf
 proof
   fix a b c
   show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
-    by (rule antisym) (auto intro: le_infI1 le_infI2 simp add: le_inf_iff)
+    by (rule order.antisym) (auto intro: le_infI1 le_infI2 simp add: le_inf_iff)
   show "a \<sqinter> b = b \<sqinter> a"
-    by (rule antisym) (auto simp add: le_inf_iff)
+    by (rule order.antisym) (auto simp add: le_inf_iff)
   show "a \<sqinter> a = a"
-    by (rule antisym) (auto simp add: le_inf_iff)
+    by (rule order.antisym) (auto simp add: le_inf_iff)
 qed
 
 sublocale inf: semilattice_order inf less_eq less
@@ -287,10 +287,10 @@ lemma inf_right_idem: "(x \<sqinter> y) \<sqinter> y = x \<sqinter> y"
   by (fact inf.right_idem) (* already simp *)
 
 lemma inf_absorb1: "x \<le> y \<Longrightarrow> x \<sqinter> y = x"
-  by (rule antisym) auto
+  by (rule order.antisym) auto
 
 lemma inf_absorb2: "y \<le> x \<Longrightarrow> x \<sqinter> y = y"
-  by (rule antisym) auto
+  by (rule order.antisym) auto
 
 lemmas inf_aci = inf_commute inf_assoc inf_left_commute inf_left_idem
 
@@ -303,11 +303,11 @@ sublocale sup: semilattice sup
 proof
   fix a b c
   show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
-    by (rule antisym) (auto intro: le_supI1 le_supI2 simp add: le_sup_iff)
+    by (rule order.antisym) (auto intro: le_supI1 le_supI2 simp add: le_sup_iff)
   show "a \<squnion> b = b \<squnion> a"
-    by (rule antisym) (auto simp add: le_sup_iff)
+    by (rule order.antisym) (auto simp add: le_sup_iff)
   show "a \<squnion> a = a"
-    by (rule antisym) (auto simp add: le_sup_iff)
+    by (rule order.antisym) (auto simp add: le_sup_iff)
 qed
 
 sublocale sup: semilattice_order sup greater_eq greater
@@ -329,10 +329,10 @@ lemma sup_left_idem [simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
   by (fact sup.left_idem)
 
 lemma sup_absorb1: "y \<le> x \<Longrightarrow> x \<squnion> y = x"
-  by (rule antisym) auto
+  by (rule order.antisym) auto
 
 lemma sup_absorb2: "x \<le> y \<Longrightarrow> x \<squnion> y = y"
-  by (rule antisym) auto
+  by (rule order.antisym) auto
 
 lemmas sup_aci = sup_commute sup_assoc sup_left_commute sup_left_idem
 
@@ -349,10 +349,10 @@ lemma dual_lattice: "class.lattice sup (\<ge>) (>) inf"
     (unfold_locales, auto)
 
 lemma inf_sup_absorb [simp]: "x \<sqinter> (x \<squnion> y) = x"
-  by (blast intro: antisym inf_le1 inf_greatest sup_ge1)
+  by (blast intro: order.antisym inf_le1 inf_greatest sup_ge1)
 
 lemma sup_inf_absorb [simp]: "x \<squnion> (x \<sqinter> y) = x"
-  by (blast intro: antisym sup_ge1 sup_least inf_le1)
+  by (blast intro: order.antisym sup_ge1 sup_least inf_le1)
 
 lemmas inf_sup_aci = inf_aci sup_aci
 
@@ -817,7 +817,7 @@ lemma (in semilattice_inf) inf_unique:
     and le2: "\<And>x y. x \<triangle> y \<le> y"
     and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
   shows "x \<sqinter> y = x \<triangle> y"
-proof (rule antisym)
+proof (rule order.antisym)
   show "x \<triangle> y \<le> x \<sqinter> y"
     by (rule le_infI) (rule le1, rule le2)
   have leI: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
@@ -832,7 +832,7 @@ lemma (in semilattice_sup) sup_unique:
     and ge2: "\<And>x y. y \<le> x \<nabla> y"
     and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"
   shows "x \<squnion> y = x \<nabla> y"
-proof (rule antisym)
+proof (rule order.antisym)
   show "x \<squnion> y \<le> x \<nabla> y"
     by (rule le_supI) (rule ge1, rule ge2)
   have leI: "\<And>x y z. x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<nabla> y \<le> z"

@@ -1047,7 +1047,7 @@ proof
     then have "b \<le> a" by (simp add: linorder_not_le)
     then have "c + b \<le> c + a" by (rule add_left_mono)
     then have "c + a = c + b"
-      using le1 by (iprover intro: antisym)
+      using le1 by (iprover intro: order.antisym)
     then have "a = b"
       by simp
     with * show False
@@ -1181,7 +1181,7 @@ lemma abs_minus_le_zero: "- \<bar>a\<bar> \<le> 0"
 lemma abs_of_nonneg [simp]:
   assumes nonneg: "0 \<le> a"
   shows "\<bar>a\<bar> = a"
-proof (rule antisym)
+proof (rule order.antisym)
   show "a \<le> \<bar>a\<bar>" by (rule abs_ge_self)
   from nonneg le_imp_neg_le have "- a \<le> 0" by simp
   from this nonneg have "- a \<le> a" by (rule order_trans)
@@ -1189,12 +1189,12 @@ proof (rule antisym)
 qed
 
 lemma abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
-  by (rule antisym) (auto intro!: abs_ge_self abs_leI order_trans [of "- \<bar>a\<bar>" 0 "\<bar>a\<bar>"])
+  by (rule order.antisym) (auto intro!: abs_ge_self abs_leI order_trans [of "- \<bar>a\<bar>" 0 "\<bar>a\<bar>"])
 
 lemma abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
 proof -
   have "\<bar>a\<bar> = 0 \<Longrightarrow> a = 0"
-  proof (rule antisym)
+  proof (rule order.antisym)
     assume zero: "\<bar>a\<bar> = 0"
     with abs_ge_self show "a \<le> 0" by auto
     from zero have "\<bar>-a\<bar> = 0" by simp
@@ -1216,7 +1216,7 @@ qed
 lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0"
 proof
   assume "\<bar>a\<bar> \<le> 0"
-  then have "\<bar>a\<bar> = 0" by (rule antisym) simp
+  then have "\<bar>a\<bar> = 0" by (rule order.antisym) simp
   then show "a = 0" by simp
 next
   assume "a = 0"
@@ -1319,7 +1319,7 @@ qed
 
 lemma abs_add_abs [simp]: "\<bar>\<bar>a\<bar> + \<bar>b\<bar>\<bar> = \<bar>a\<bar> + \<bar>b\<bar>"
   (is "?L = ?R")
-proof (rule antisym)
+proof (rule order.antisym)
   show "?L \<ge> ?R" by (rule abs_ge_self)
   have "?L \<le> \<bar>\<bar>a\<bar>\<bar> + \<bar>\<bar>b\<bar>\<bar>" by (rule abs_triangle_ineq)
   also have "\<dots> = ?R" by simp
@@ -1362,7 +1362,7 @@ lemma zero_le[simp]: "0 \<le> x"
   by (auto simp: le_iff_add)
 
 lemma le_zero_eq[simp]: "n \<le> 0 \<longleftrightarrow> n = 0"
-  by (auto intro: antisym)
+  by (auto intro: order.antisym)
 
 lemma not_less_zero[simp]: "\<not> n < 0"
   by (auto simp: less_le)

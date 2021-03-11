@@ -5620,7 +5620,9 @@ proof -
   proof(induct rule:list_induct2[OF 1])
     case 1 show ?case by simp
   next
-    case 2 thus ?case by simp (metis Diff_insert_absorb antisym insertE insert_iff)
+    case (2 x xs y ys)
+    then show ?case
+      by (cases \<open>x = y\<close>) (auto simp add: insert_eq_iff)
   qed
 qed
 
@@ -5739,7 +5741,7 @@ by (induct xs) simp_all
 lemma insort_key_left_comm:
   assumes "f x \<noteq> f y"
   shows "insort_key f y (insort_key f x xs) = insort_key f x (insort_key f y xs)"
-by (induct xs) (auto simp add: assms dest: antisym)
+by (induct xs) (auto simp add: assms dest: order.antisym)
 
 lemma insort_left_comm:
   "insort x (insort y xs) = insort y (insort x xs)"

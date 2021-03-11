@@ -1805,7 +1805,7 @@ lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"
 text \<open>Every \<open>linordered_nonzero_semiring\<close> has characteristic zero.\<close>
 
 subclass semiring_char_0
-  by standard (auto intro!: injI simp add: eq_iff)
+  by standard (auto intro!: injI simp add: order.eq_iff)
 
 text \<open>Special cases where either operand is zero\<close>
 

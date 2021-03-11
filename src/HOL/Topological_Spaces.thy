@@ -853,7 +853,7 @@ lemma (in order_topology)
     and at_within_Icc_at_left:  "at b within {a..b} = at_left b"
   using order_tendstoD(2)[OF tendsto_ident_at assms, of "{a<..}"]
   using order_tendstoD(1)[OF tendsto_ident_at assms, of "{..<b}"]
-  by (auto intro!: order_class.antisym filter_leI
+  by (auto intro!: order_class.order_antisym filter_leI
       simp: eventually_at_filter less_le
       elim: eventually_elim2)
 

@@ -10,7 +10,7 @@ class semilattice_inf_ab_group_add = ordered_ab_group_add + semilattice_inf
 begin
 
 lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)"
-  apply (rule antisym)
+  apply (rule order.antisym)
    apply (simp_all add: le_infI)
   apply (rule add_le_imp_le_left [of "uminus a"])
   apply (simp only: add.assoc [symmetric], simp add: diff_le_eq add.commute)
@@ -30,7 +30,7 @@ class semilattice_sup_ab_group_add = ordered_ab_group_add + semilattice_sup
 begin
 
 lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)"
-  apply (rule antisym)
+  apply (rule order.antisym)
    apply (rule add_le_imp_le_left [of "uminus a"])
    apply (simp only: add.assoc [symmetric], simp)
    apply (simp add: le_diff_eq add.commute)
@@ -231,7 +231,7 @@ proof
 qed
 
 lemma double_zero [simp]: "a + a = 0 \<longleftrightarrow> a = 0"
-  using add_nonneg_eq_0_iff eq_iff by auto
+  using add_nonneg_eq_0_iff order.eq_iff by auto
 
 lemma zero_less_double_add_iff_zero_less_single_add [simp]: "0 < a + a \<longleftrightarrow> 0 < a"
   by (meson le_less_trans less_add_same_cancel2 less_le_not_le

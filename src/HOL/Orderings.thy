@@ -282,21 +282,23 @@ end
 subsection \<open>Partial orders\<close>
 
 class order = preorder +
-  assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
+  assumes order_antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
 begin
 
 lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
-  by (auto simp add: less_le_not_le intro: antisym)
+  by (auto simp add: less_le_not_le intro: order_antisym)
 
 sublocale order: ordering less_eq less + dual_order: ordering greater_eq greater
 proof -
   interpret ordering less_eq less
-    by standard (auto intro: antisym order_trans simp add: less_le)
+    by standard (auto intro: order_antisym order_trans simp add: less_le)
   show "ordering less_eq less"
     by (fact ordering_axioms)
   then show "ordering greater_eq greater"
     by (rule ordering_dualI)
 qed
+
+print_theorems
 
 text \<open>Reflexivity.\<close>
 
@@ -328,11 +330,11 @@ by (rule order.not_eq_order_implies_strict)
 
 text \<open>Asymmetry.\<close>
 
-lemma eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
+lemma order_eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
   by (fact order.eq_iff)
 
 lemma antisym_conv: "y \<le> x \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
-  by (simp add: eq_iff)
+  by (simp add: order.eq_iff)
 
 lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
   by (fact order.strict_implies_not_eq)
@@ -344,7 +346,7 @@ lemma antisym_conv2: "x \<le> y \<Longrightarrow> \<not> x < y \<longleftrightar
   by (simp add: local.less_le)
 
 lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
-  by (auto simp: less_le antisym)
+  by (auto simp: less_le order.antisym)
 
 text \<open>Least value operator\<close>
 
@@ -357,7 +359,7 @@ lemma Least_equality:
     and "\<And>y. P y \<Longrightarrow> x \<le> y"
   shows "Least P = x"
 unfolding Least_def by (rule the_equality)
-  (blast intro: assms antisym)+
+  (blast intro: assms order.antisym)+
 
 lemma LeastI2_order:
   assumes "P x"
@@ -365,7 +367,7 @@ lemma LeastI2_order:
     and "\<And>x. P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> x \<le> y \<Longrightarrow> Q x"
   shows "Q (Least P)"
 unfolding Least_def by (rule theI2)
-  (blast intro: assms antisym)+
+  (blast intro: assms order.antisym)+
 
 lemma Least_ex1:
   assumes   "\<exists>!x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<le> y)"
@@ -385,12 +387,12 @@ lemma GreatestI2_order:
     \<And>x. \<lbrakk> P x; \<forall>y. P y \<longrightarrow> x \<ge> y \<rbrakk> \<Longrightarrow> Q x \<rbrakk>
   \<Longrightarrow> Q (Greatest P)"
 unfolding Greatest_def
-by (rule theI2) (blast intro: antisym)+
+by (rule theI2) (blast intro: order.antisym)+
 
 lemma Greatest_equality:
   "\<lbrakk> P x;  \<And>y. P y \<Longrightarrow> x \<ge> y \<rbrakk> \<Longrightarrow> Greatest P = x"
 unfolding Greatest_def
-by (rule the_equality) (blast intro: antisym)+
+by (rule the_equality) (blast intro: order.antisym)+
 
 end
 
@@ -458,14 +460,14 @@ lemma linorder_wlog[case_names le sym]:
 
 lemma not_less: "\<not> x < y \<longleftrightarrow> y \<le> x"
   unfolding less_le
-  using linear by (blast intro: antisym)
+  using linear by (blast intro: order.antisym)
 
 lemma not_less_iff_gr_or_eq: "\<not>(x < y) \<longleftrightarrow> (x > y \<or> x = y)"
   by (auto simp add:not_less le_less)
 
 lemma not_le: "\<not> x \<le> y \<longleftrightarrow> y < x"
   unfolding less_le
-  using linear by (blast intro: antisym)
+  using linear by (blast intro: order.antisym)
 
 lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x < y \<or> y < x"
 by (cut_tac x = x and y = y in less_linear, auto)
@@ -474,7 +476,7 @@ lemma neqE: "x \<noteq> y \<Longrightarrow> (x < y \<Longrightarrow> R) \<Longri
 by (simp add: neq_iff) blast
 
 lemma antisym_conv3: "\<not> y < x \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
-by (blast intro: antisym dest: not_less [THEN iffD1])
+by (blast intro: order.antisym dest: not_less [THEN iffD1])
 
 lemma leI: "\<not> x < y \<Longrightarrow> y \<le> x"
 unfolding not_less .
@@ -643,7 +645,7 @@ declare order_refl  [order add le_refl: order "(=) :: 'a => 'a => bool" "(<=)" "
 
 declare less_imp_le [order add less_imp_le: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare antisym [order add eqI: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
+declare order.antisym [order add eqI: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
 declare eq_refl [order add eqD1: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
@@ -688,7 +690,7 @@ declare not_less [THEN iffD1, order add not_lessD: linorder "(=) :: 'a => 'a => 
 
 declare not_le [THEN iffD1, order add not_leD: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare antisym [order add eqI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
+declare order.antisym [order add eqI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
 declare eq_refl [order add eqD1: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
@@ -1024,7 +1026,7 @@ lemmas (in preorder) [trans] =
   order_trans
 
 lemmas (in order) [trans] =
-  antisym
+  order.antisym
 
 lemmas (in ord) [trans] =
   ord_le_eq_trans
@@ -1059,7 +1061,7 @@ lemmas order_trans_rules =
   le_less_trans
   less_le_trans
   order_trans
-  antisym
+  order.antisym
   ord_le_eq_trans
   ord_eq_le_trans
   ord_less_eq_trans
@@ -1647,10 +1649,10 @@ end
 
 instance "fun" :: (type, preorder) preorder proof
 qed (auto simp add: le_fun_def less_fun_def
-  intro: order_trans antisym)
+  intro: order_trans order.antisym)
 
 instance "fun" :: (type, order) order proof
-qed (auto simp add: le_fun_def intro: antisym)
+qed (auto simp add: le_fun_def intro: order.antisym)
 
 instantiation "fun" :: (type, bot) bot
 begin
@@ -1766,6 +1768,9 @@ lemma top2I: "\<top> x y"
 
 subsection \<open>Name duplicates\<close>
 
+lemmas antisym = order.antisym
+lemmas eq_iff = order.eq_iff
+
 lemmas order_eq_refl = preorder_class.eq_refl
 lemmas order_less_irrefl = preorder_class.less_irrefl
 lemmas order_less_imp_le = preorder_class.less_imp_le
@@ -1785,8 +1790,7 @@ lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
 lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
 lemmas order_neq_le_trans = order_class.neq_le_trans
 lemmas order_le_neq_trans = order_class.le_neq_trans
-lemmas order_antisym = order_class.antisym
-lemmas order_eq_iff = order_class.eq_iff
+lemmas order_eq_iff = order_class.order.eq_iff
 lemmas order_antisym_conv = order_class.antisym_conv
 
 lemmas linorder_linear = linorder_class.linear

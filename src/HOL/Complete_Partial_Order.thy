@@ -80,7 +80,7 @@ lemma chain_singleton: "Complete_Partial_Order.chain (\<le>) {x}"
   by (rule chainI) simp
 
 lemma ccpo_Sup_singleton [simp]: "\<Squnion>{x} = x"
-  by (rule antisym) (auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
+  by (rule order.antisym) (auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
 
 
 subsection \<open>Transfinite iteration of a function\<close>
@@ -164,7 +164,7 @@ lemma iterates_fixp:
 lemma fixp_unfold:
   assumes f: "monotone (\<le>) (\<le>) f"
   shows "fixp f = f (fixp f)"
-proof (rule antisym)
+proof (rule order.antisym)
   show "fixp f \<le> f (fixp f)"
     by (intro iterates_le_f iterates_fixp f)
   have "f (fixp f) \<le> Sup (iterates f)"
@@ -321,7 +321,7 @@ proof (rule ccpo.admissibleI)
   qed
   moreover
   have "Sup A = Sup {x \<in> A. P x}" if "\<And>x. x\<in>A \<Longrightarrow> \<exists>y\<in>A. x \<le> y \<and> P y" for P
-  proof (rule antisym)
+  proof (rule order.antisym)
     have chain_P: "chain (\<le>) {x \<in> A. P x}"
       by (rule chain_compr [OF chain])
     show "Sup A \<le> Sup {x \<in> A. P x}"
@@ -358,7 +358,7 @@ instance complete_lattice \<subseteq> ccpo
 lemma lfp_eq_fixp:
   assumes mono: "mono f"
   shows "lfp f = fixp f"
-proof (rule antisym)
+proof (rule order.antisym)
   from mono have f': "monotone (\<le>) (\<le>) f"
     unfolding mono_def monotone_def .
   show "lfp f \<le> fixp f"

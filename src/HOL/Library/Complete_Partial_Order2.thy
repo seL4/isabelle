@@ -49,7 +49,7 @@ context ccpo begin
 
 lemma ccpo_fun: "class.ccpo (fun_lub Sup) (fun_ord (\<le>)) (mk_less (fun_ord (\<le>)))"
   by standard (auto 4 3 simp add: mk_less_def fun_ord_def fun_lub_apply
-    intro: order.trans antisym chain_imageI ccpo_Sup_upper ccpo_Sup_least)
+    intro: order.trans order.antisym chain_imageI ccpo_Sup_upper ccpo_Sup_least)
 
 lemma ccpo_Sup_below_iff: "Complete_Partial_Order.chain (\<le>) Y \<Longrightarrow> Sup Y \<le> x \<longleftrightarrow> (\<forall>y\<in>Y. y \<le> x)"
 by(fast intro: order_trans[OF ccpo_Sup_upper] ccpo_Sup_least)
@@ -58,7 +58,7 @@ lemma Sup_minus_bot:
   assumes chain: "Complete_Partial_Order.chain (\<le>) A"
   shows "\<Squnion>(A - {\<Squnion>{}}) = \<Squnion>A"
     (is "?lhs = ?rhs")
-proof (rule antisym)
+proof (rule order.antisym)
   show "?lhs \<le> ?rhs"
     by (blast intro: ccpo_Sup_least chain_Diff[OF chain] ccpo_Sup_upper[OF chain])
   show "?rhs \<le> ?lhs"
@@ -117,7 +117,7 @@ proof(rule ccpo_Sup_least)
 qed(rule x)
 
 lemma diag_Sup: "\<Squnion>((\<lambda>x. \<Squnion>(f x ` Y)) ` Y) = \<Squnion>((\<lambda>x. f x x) ` Y)" (is "?lhs = ?rhs")
-proof(rule antisym)
+proof(rule order.antisym)
   have chain1: "Complete_Partial_Order.chain (\<le>) ((\<lambda>x. \<Squnion>(f x ` Y)) ` Y)"
     using chain by(rule chain_imageI)(rule Sup_mono)
   have chain2: "\<And>y'. y' \<in> Y \<Longrightarrow> Complete_Partial_Order.chain (\<le>) (f y' ` Y)" using chain
@@ -264,7 +264,8 @@ next
     qed
     finally show "x \<le> ?lhs" .
   qed
-  ultimately show "?lhs = ?rhs" by(rule antisym)
+  ultimately show "?lhs = ?rhs"
+    by (rule order.antisym)
 qed
 
 lemma fixp_mono:
@@ -715,7 +716,7 @@ proof(intro mcontI contI)
         thus ?thesis by(rule order_trans)(auto intro: ccpo_Sup_upper[OF chain'] simp add: y ybound)
       qed(auto intro: ccpo_Sup_upper[OF chain'] simp add: x)
     qed
-    hence "\<Squnion>Y = \<Squnion>?Y" by(rule antisym)(blast intro: ccpo_Sup_least[OF chain'] ccpo_Sup_upper[OF chain])
+    hence "\<Squnion>Y = \<Squnion>?Y" by(rule order.antisym)(blast intro: ccpo_Sup_least[OF chain'] ccpo_Sup_upper[OF chain])
     hence "f (\<Squnion>Y) = f (\<Squnion>?Y)" by simp
     also have "f (\<Squnion>?Y) = \<Or>(f ` ?Y)" using chain' by(rule cont)(insert y ybound, auto)
     also have "\<Or>(f ` ?Y) = \<Or>(?g ` Y)"
@@ -732,7 +733,7 @@ proof(intro mcontI contI)
       hence "\<Or>(insert bot (f ` ?Y)) \<sqsubseteq> \<Or>(f ` ?Y)" using chain''
         by(auto intro: c.ccpo_Sup_least c.ccpo_Sup_upper[OF chain''']) 
       with _ have "\<dots> = \<Or>(insert bot (f ` ?Y))"
-        by(rule c.antisym)(blast intro: c.ccpo_Sup_least[OF chain'''] c.ccpo_Sup_upper[OF chain''])
+        by(rule c.order.antisym)(blast intro: c.ccpo_Sup_least[OF chain'''] c.ccpo_Sup_upper[OF chain''])
       also have "insert bot (f ` ?Y) = ?g ` Y" using False by auto
       finally show ?thesis .
     qed
@@ -1473,7 +1474,7 @@ lemma cont_Sup:
   shows "cont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
 apply(rule contI)
 apply(simp add: contD[OF assms])
-apply(blast intro: Sup_least Sup_upper order_trans antisym)
+apply(blast intro: Sup_least Sup_upper order_trans order.antisym)
 done
 
 lemma mcont_Sup: "mcont lub ord Union (\<subseteq>) f \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
@@ -1496,7 +1497,7 @@ proof(rule contI)
   assume chain: "Complete_Partial_Order.chain ord Y"
     and Y: "Y \<noteq> {}"
   show "\<Squnion>(g (lub Y) ` f (lub Y)) = \<Squnion>((\<lambda>x. \<Squnion>(g x ` f x)) ` Y)" (is "?lhs = ?rhs")
-  proof(rule antisym)
+  proof(rule order.antisym)
     show "?lhs \<le> ?rhs"
     proof(rule Sup_least)
       fix x
@@ -1616,7 +1617,7 @@ proof -
     by(rule ab.fixp_induct)(auto simp add: f g step bot)
   also have "ccpo.fixp (prod_lub luba lubb) (rel_prod orda ordb) (map_prod f g) = 
             (ccpo.fixp luba orda f, ccpo.fixp lubb ordb g)" (is "?lhs = (?rhs1, ?rhs2)")
-  proof(rule ab.antisym)
+  proof(rule ab.order.antisym)
     have "ccpo.admissible ?lub ?ord (\<lambda>xy. ?ord xy (?rhs1, ?rhs2))"
       by(rule admissible_leI[OF ccpo_rel_prodI])(auto simp add: prod_lub_def chain_empty intro: a.ccpo_Sup_least b.ccpo_Sup_least)
     thus "?ord ?lhs (?rhs1, ?rhs2)"

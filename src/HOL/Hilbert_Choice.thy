@@ -938,7 +938,7 @@ context complete_distrib_lattice
 begin
 
 lemma Sup_Inf: "\<Squnion> (Inf ` A) = \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
-proof (rule antisym)
+proof (rule order.antisym)
   show "\<Squnion> (Inf ` A) \<le> \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
     using Inf_lower2 Sup_upper
     by (fastforce simp add: intro: Sup_least INF_greatest)
@@ -985,7 +985,7 @@ lemma dual_complete_distrib_lattice:
                 class.complete_distrib_lattice_axioms_def Sup_Inf)
 
 lemma sup_Inf: "a \<squnion> \<Sqinter>B = \<Sqinter>((\<squnion>) a ` B)"
-proof (rule antisym)
+proof (rule order.antisym)
   show "a \<squnion> \<Sqinter>B \<le> \<Sqinter>((\<squnion>) a ` B)"
     using Inf_lower sup.mono by (fastforce intro: INF_greatest)
 next
@@ -1002,7 +1002,7 @@ lemma inf_Sup: "a \<sqinter> \<Squnion>B = \<Squnion>((\<sqinter>) a ` B)"
   by (rule complete_distrib_lattice.sup_Inf)
 
 lemma INF_SUP: "(\<Sqinter>y. \<Squnion>x. P x y) = (\<Squnion>f. \<Sqinter>x. P (f x) x)"
-proof (rule antisym)
+proof (rule order.antisym)
   show "(SUP x. INF y. P (x y) y) \<le> (INF y. SUP x. P x y)"
     by (rule SUP_least, rule INF_greatest, rule SUP_upper2, simp_all, rule INF_lower2, simp, blast)
 next
@@ -1044,7 +1044,7 @@ qed
 
 lemma INF_SUP_set: "(\<Sqinter>B\<in>A. \<Squnion>(g ` B)) = (\<Squnion>B\<in>{f ` A |f. \<forall>C\<in>A. f C \<in> C}. \<Sqinter>(g ` B))"
                     (is "_ = (\<Squnion>B\<in>?F. _)")
-proof (rule antisym)
+proof (rule order.antisym)
   have "\<Sqinter> ((g \<circ> f) ` A) \<le> \<Squnion> (g ` B)" if "\<And>B. B \<in> A \<Longrightarrow> f B \<in> B" "B \<in> A" for f B
     using that by (auto intro: SUP_upper2 INF_lower2)
   then show "(\<Squnion>x\<in>?F. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"

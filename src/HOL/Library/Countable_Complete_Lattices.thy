@@ -64,13 +64,13 @@ lemma ccSUP_le_iff: "countable A \<Longrightarrow> (SUP i \<in> A. f i) \<le> u 
   using ccSup_le_iff [of "f ` A"] by simp
 
 lemma ccInf_insert [simp]: "countable A \<Longrightarrow> Inf (insert a A) = inf a (Inf A)"
-  by (force intro: le_infI le_infI1 le_infI2 antisym ccInf_greatest ccInf_lower)
+  by (force intro: le_infI le_infI1 le_infI2 order.antisym ccInf_greatest ccInf_lower)
 
 lemma ccINF_insert [simp]: "countable A \<Longrightarrow> (INF x\<in>insert a A. f x) = inf (f a) (Inf (f ` A))"
   unfolding image_insert by simp
 
 lemma ccSup_insert [simp]: "countable A \<Longrightarrow> Sup (insert a A) = sup a (Sup A)"
-  by (force intro: le_supI le_supI1 le_supI2 antisym ccSup_least ccSup_upper)
+  by (force intro: le_supI le_supI1 le_supI2 order.antisym ccSup_least ccSup_upper)
 
 lemma ccSUP_insert [simp]: "countable A \<Longrightarrow> (SUP x\<in>insert a A. f x) = sup (f a) (Sup (f ` A))"
   unfolding image_insert by simp
@@ -133,24 +133,24 @@ lemma ccSup_inter_less_eq: "countable A \<Longrightarrow> countable B \<Longrigh
   by (auto intro: ccSup_least ccSup_upper)
 
 lemma ccInf_union_distrib: "countable A \<Longrightarrow> countable B \<Longrightarrow> Inf (A \<union> B) = inf (Inf A) (Inf B)"
-  by (rule antisym) (auto intro: ccInf_greatest ccInf_lower le_infI1 le_infI2)
+  by (rule order.antisym) (auto intro: ccInf_greatest ccInf_lower le_infI1 le_infI2)
 
 lemma ccINF_union:
   "countable A \<Longrightarrow> countable B \<Longrightarrow> (INF i\<in>A \<union> B. M i) = inf (INF i\<in>A. M i) (INF i\<in>B. M i)"
-  by (auto intro!: antisym ccINF_mono intro: le_infI1 le_infI2 ccINF_greatest ccINF_lower)
+  by (auto intro!: order.antisym ccINF_mono intro: le_infI1 le_infI2 ccINF_greatest ccINF_lower)
 
 lemma ccSup_union_distrib: "countable A \<Longrightarrow> countable B \<Longrightarrow> Sup (A \<union> B) = sup (Sup A) (Sup B)"
-  by (rule antisym) (auto intro: ccSup_least ccSup_upper le_supI1 le_supI2)
+  by (rule order.antisym) (auto intro: ccSup_least ccSup_upper le_supI1 le_supI2)
 
 lemma ccSUP_union:
   "countable A \<Longrightarrow> countable B \<Longrightarrow> (SUP i\<in>A \<union> B. M i) = sup (SUP i\<in>A. M i) (SUP i\<in>B. M i)"
-  by (auto intro!: antisym ccSUP_mono intro: le_supI1 le_supI2 ccSUP_least ccSUP_upper)
+  by (auto intro!: order.antisym ccSUP_mono intro: le_supI1 le_supI2 ccSUP_least ccSUP_upper)
 
 lemma ccINF_inf_distrib: "countable A \<Longrightarrow> inf (INF a\<in>A. f a) (INF a\<in>A. g a) = (INF a\<in>A. inf (f a) (g a))"
-  by (rule antisym) (rule ccINF_greatest, auto intro: le_infI1 le_infI2 ccINF_lower ccINF_mono)
+  by (rule order.antisym) (rule ccINF_greatest, auto intro: le_infI1 le_infI2 ccINF_lower ccINF_mono)
 
 lemma ccSUP_sup_distrib: "countable A \<Longrightarrow> sup (SUP a\<in>A. f a) (SUP a\<in>A. g a) = (SUP a\<in>A. sup (f a) (g a))"
-  by (rule antisym[rotated]) (rule ccSUP_least, auto intro: le_supI1 le_supI2 ccSUP_upper ccSUP_mono)
+  by (rule order.antisym[rotated]) (rule ccSUP_least, auto intro: le_supI1 le_supI2 ccSUP_upper ccSUP_mono)
 
 lemma ccINF_const [simp]: "A \<noteq> {} \<Longrightarrow> (INF i \<in> A. f) = f"
   unfolding image_constant_conv by auto
@@ -165,10 +165,10 @@ lemma ccSUP_bot [simp]: "(SUP x\<in>A. bot) = bot"
   by (cases "A = {}") simp_all
 
 lemma ccINF_commute: "countable A \<Longrightarrow> countable B \<Longrightarrow> (INF i\<in>A. INF j\<in>B. f i j) = (INF j\<in>B. INF i\<in>A. f i j)"
-  by (iprover intro: ccINF_lower ccINF_greatest order_trans antisym)
+  by (iprover intro: ccINF_lower ccINF_greatest order_trans order.antisym)
 
 lemma ccSUP_commute: "countable A \<Longrightarrow> countable B \<Longrightarrow> (SUP i\<in>A. SUP j\<in>B. f i j) = (SUP j\<in>B. SUP i\<in>A. f i j)"
-  by (iprover intro: ccSUP_upper ccSUP_least order_trans antisym)
+  by (iprover intro: ccSUP_upper ccSUP_least order_trans order.antisym)
 
 end
 

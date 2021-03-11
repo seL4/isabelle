@@ -520,6 +520,9 @@ notation (ASCII)
   supseteq_mset  (infix ">=#" 50) and
   supset_mset  (infix ">#" 50)
 
+global_interpretation subset_mset: ordering \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
+  by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order.trans order.antisym)
+
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "(+)" "(-)" "(\<subseteq>#)" "(\<subset>#)"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
@@ -3113,7 +3116,8 @@ proof -
   show "OFCLASS('a multiset, order_class)"
     by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
 qed
-end \<comment> \<open>FIXME avoid junk stemming from type class interpretation\<close>
+
+end
 
 lemma mset_le_irrefl [elim!]:
   fixes M :: "'a::preorder multiset"

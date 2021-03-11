@@ -581,7 +581,7 @@ lemma Min_eqI:
   assumes "\<And>y. y \<in> A \<Longrightarrow> y \<ge> x"
     and "x \<in> A"
   shows "Min A = x"
-proof (rule antisym)
+proof (rule order.antisym)
   from \<open>x \<in> A\<close> have "A \<noteq> {}" by auto
   with assms show "Min A \<ge> x" by simp
 next
@@ -593,7 +593,7 @@ lemma Max_eqI:
   assumes "\<And>y. y \<in> A \<Longrightarrow> y \<le> x"
     and "x \<in> A"
   shows "Max A = x"
-proof (rule antisym)
+proof (rule order.antisym)
   from \<open>x \<in> A\<close> have "A \<noteq> {}" by auto
   with assms show "Max A \<le> x" by simp
 next
@@ -602,19 +602,19 @@ qed
 
 lemma eq_Min_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> m = Min A  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. m \<le> a)"
-by (meson Min_in Min_le antisym)
+by (meson Min_in Min_le order.antisym)
 
 lemma Min_eq_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A = m  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. m \<le> a)"
-by (meson Min_in Min_le antisym)
+by (meson Min_in Min_le order.antisym)
 
 lemma eq_Max_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> m = Max A  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. a \<le> m)"
-by (meson Max_in Max_ge antisym)
+by (meson Max_in Max_ge order.antisym)
 
 lemma Max_eq_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A = m  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. a \<le> m)"
-by (meson Max_in Max_ge antisym)
+by (meson Max_in Max_ge order.antisym)
 
 context
   fixes A :: "'a set"
@@ -662,7 +662,7 @@ proof cases
   assume "A = {}" thus ?thesis using assms by simp
 next
   assume "A \<noteq> {}" thus ?thesis using assms
-    by(blast intro: antisym Max_in Max_ge_iff[THEN iffD2])
+    by(blast intro: order.antisym Max_in Max_ge_iff[THEN iffD2])
 qed
 
 lemma Min_antimono:
@@ -814,7 +814,7 @@ lemma Min_add_commute:
   shows "Min ((\<lambda>x. f x + k) ` S) = Min(f ` S) + k"
 proof -
   have m: "\<And>x y. min x y + k = min (x+k) (y+k)"
-    by(simp add: min_def antisym add_right_mono)
+    by (simp add: min_def order.antisym add_right_mono)
   have "(\<lambda>x. f x + k) ` S = (\<lambda>y. y + k) ` (f ` S)" by auto
   also have "Min \<dots> = Min (f ` S) + k"
     using assms hom_Min_commute [of "\<lambda>y. y+k" "f ` S", OF m, symmetric] by simp
@@ -827,7 +827,7 @@ lemma Max_add_commute:
   shows "Max ((\<lambda>x. f x + k) ` S) = Max(f ` S) + k"
 proof -
   have m: "\<And>x y. max x y + k = max (x+k) (y+k)"
-    by(simp add: max_def antisym add_right_mono)
+    by (simp add: max_def order.antisym add_right_mono)
   have "(\<lambda>x. f x + k) ` S = (\<lambda>y. y + k) ` (f ` S)" by auto
   also have "Max \<dots> = Max (f ` S) + k"
     using assms hom_Max_commute [of "\<lambda>y. y+k" "f ` S", OF m, symmetric] by simp

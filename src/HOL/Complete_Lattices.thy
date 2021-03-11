@@ -119,11 +119,11 @@ begin
 
 lemma Sup_eqI:
   "(\<And>y. y \<in> A \<Longrightarrow> y \<le> x) \<Longrightarrow> (\<And>y. (\<And>z. z \<in> A \<Longrightarrow> z \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> \<Squnion>A = x"
-  by (blast intro: antisym Sup_least Sup_upper)
+  by (blast intro: order.antisym Sup_least Sup_upper)
 
 lemma Inf_eqI:
   "(\<And>i. i \<in> A \<Longrightarrow> x \<le> i) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> i) \<Longrightarrow> y \<le> x) \<Longrightarrow> \<Sqinter>A = x"
-  by (blast intro: antisym Inf_greatest Inf_lower)
+  by (blast intro: order.antisym Inf_greatest Inf_lower)
 
 lemma SUP_eqI:
   "(\<And>i. i \<in> A \<Longrightarrow> f i \<le> x) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> (\<Squnion>i\<in>A. f i) = x"
@@ -170,13 +170,13 @@ lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<le> u \<longleftrightarrow> (\<for
   using Sup_le_iff [of "f ` A"] by simp
 
 lemma Inf_insert [simp]: "\<Sqinter>(insert a A) = a \<sqinter> \<Sqinter>A"
-  by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
+  by (auto intro: le_infI le_infI1 le_infI2 order.antisym Inf_greatest Inf_lower)
 
 lemma INF_insert: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
   by simp
 
 lemma Sup_insert [simp]: "\<Squnion>(insert a A) = a \<squnion> \<Squnion>A"
-  by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
+  by (auto intro: le_supI le_supI1 le_supI2 order.antisym Sup_least Sup_upper)
 
 lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
   by simp
@@ -188,16 +188,16 @@ lemma SUP_empty: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
   by simp
 
 lemma Inf_UNIV [simp]: "\<Sqinter>UNIV = \<bottom>"
-  by (auto intro!: antisym Inf_lower)
+  by (auto intro!: order.antisym Inf_lower)
 
 lemma Sup_UNIV [simp]: "\<Squnion>UNIV = \<top>"
-  by (auto intro!: antisym Sup_upper)
+  by (auto intro!: order.antisym Sup_upper)
 
 lemma Inf_eq_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
+  by (auto intro: order.antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Sup_eq_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
+  by (auto intro: order.antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Inf_superset_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<le> \<Sqinter>B"
   by (auto intro: Inf_greatest Inf_lower)
@@ -268,13 +268,13 @@ lemma INF_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<ge> g j"
     and "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<ge> f i"
   shows "\<Sqinter>(f ` A) = \<Sqinter>(g ` B)"
-  by (intro antisym INF_greatest) (blast intro: INF_lower2 dest: assms)+
+  by (intro order.antisym INF_greatest) (blast intro: INF_lower2 dest: assms)+
 
 lemma SUP_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
     and "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
   shows "\<Squnion>(f ` A) = \<Squnion>(g ` B)"
-  by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
+  by (intro order.antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
 
 lemma less_eq_Inf_inter: "\<Sqinter>A \<squnion> \<Sqinter>B \<le> \<Sqinter>(A \<inter> B)"
   by (auto intro: Inf_greatest Inf_lower)
@@ -283,23 +283,23 @@ lemma Sup_inter_less_eq: "\<Squnion>(A \<inter> B) \<le> \<Squnion>A \<sqinter> 
   by (auto intro: Sup_least Sup_upper)
 
 lemma Inf_union_distrib: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"
-  by (rule antisym) (auto intro: Inf_greatest Inf_lower le_infI1 le_infI2)
+  by (rule order.antisym) (auto intro: Inf_greatest Inf_lower le_infI1 le_infI2)
 
 lemma INF_union: "(\<Sqinter>i \<in> A \<union> B. M i) = (\<Sqinter>i \<in> A. M i) \<sqinter> (\<Sqinter>i\<in>B. M i)"
-  by (auto intro!: antisym INF_mono intro: le_infI1 le_infI2 INF_greatest INF_lower)
+  by (auto intro!: order.antisym INF_mono intro: le_infI1 le_infI2 INF_greatest INF_lower)
 
 lemma Sup_union_distrib: "\<Squnion>(A \<union> B) = \<Squnion>A \<squnion> \<Squnion>B"
-  by (rule antisym) (auto intro: Sup_least Sup_upper le_supI1 le_supI2)
+  by (rule order.antisym) (auto intro: Sup_least Sup_upper le_supI1 le_supI2)
 
 lemma SUP_union: "(\<Squnion>i \<in> A \<union> B. M i) = (\<Squnion>i \<in> A. M i) \<squnion> (\<Squnion>i\<in>B. M i)"
-  by (auto intro!: antisym SUP_mono intro: le_supI1 le_supI2 SUP_least SUP_upper)
+  by (auto intro!: order.antisym SUP_mono intro: le_supI1 le_supI2 SUP_least SUP_upper)
 
 lemma INF_inf_distrib: "(\<Sqinter>a\<in>A. f a) \<sqinter> (\<Sqinter>a\<in>A. g a) = (\<Sqinter>a\<in>A. f a \<sqinter> g a)"
-  by (rule antisym) (rule INF_greatest, auto intro: le_infI1 le_infI2 INF_lower INF_mono)
+  by (rule order.antisym) (rule INF_greatest, auto intro: le_infI1 le_infI2 INF_lower INF_mono)
 
 lemma SUP_sup_distrib: "(\<Squnion>a\<in>A. f a) \<squnion> (\<Squnion>a\<in>A. g a) = (\<Squnion>a\<in>A. f a \<squnion> g a)"
   (is "?L = ?R")
-proof (rule antisym)
+proof (rule order.antisym)
   show "?L \<le> ?R"
     by (auto intro: le_supI1 le_supI2 SUP_upper SUP_mono)
   show "?R \<le> ?L"
@@ -344,11 +344,17 @@ lemma SUP_bot_conv [simp]:
   "\<bottom> = (\<Squnion>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. B x = \<bottom>)"
   using Sup_bot_conv [of "B ` A"] by simp_all
 
+lemma INF_constant: "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
+  by (auto intro: order.antisym INF_lower INF_greatest)
+
+lemma SUP_constant: "(\<Squnion>y\<in>A. c) = (if A = {} then \<bottom> else c)"
+  by (auto intro: order.antisym SUP_upper SUP_least)
+
 lemma INF_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>A. f) = f"
-  by (auto intro: antisym INF_lower INF_greatest)
+  by (simp add: INF_constant)
 
 lemma SUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>i\<in>A. f) = f"
-  by (auto intro: antisym SUP_upper SUP_least)
+  by (simp add: SUP_constant)
 
 lemma INF_top [simp]: "(\<Sqinter>x\<in>A. \<top>) = \<top>"
   by (cases "A = {}") simp_all
@@ -357,10 +363,10 @@ lemma SUP_bot [simp]: "(\<Squnion>x\<in>A. \<bottom>) = \<bottom>"
   by (cases "A = {}") simp_all
 
 lemma INF_commute: "(\<Sqinter>i\<in>A. \<Sqinter>j\<in>B. f i j) = (\<Sqinter>j\<in>B. \<Sqinter>i\<in>A. f i j)"
-  by (iprover intro: INF_lower INF_greatest order_trans antisym)
+  by (iprover intro: INF_lower INF_greatest order_trans order.antisym)
 
 lemma SUP_commute: "(\<Squnion>i\<in>A. \<Squnion>j\<in>B. f i j) = (\<Squnion>j\<in>B. \<Squnion>i\<in>A. f i j)"
-  by (iprover intro: SUP_upper SUP_least order_trans antisym)
+  by (iprover intro: SUP_upper SUP_least order_trans order.antisym)
 
 lemma INF_absorb:
   assumes "k \<in> I"
@@ -379,17 +385,11 @@ proof -
 qed
 
 lemma INF_inf_const1: "I \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>I. inf x (f i)) = inf x (\<Sqinter>i\<in>I. f i)"
-  by (intro antisym INF_greatest inf_mono order_refl INF_lower)
+  by (intro order.antisym INF_greatest inf_mono order_refl INF_lower)
      (auto intro: INF_lower2 le_infI2 intro!: INF_mono)
 
 lemma INF_inf_const2: "I \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>I. inf (f i) x) = inf (\<Sqinter>i\<in>I. f i) x"
   using INF_inf_const1[of I x f] by (simp add: inf_commute)
-
-lemma INF_constant: "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
-  by simp
-
-lemma SUP_constant: "(\<Squnion>y\<in>A. c) = (if A = {} then \<bottom> else c)"
-  by simp
 
 lemma less_INF_D:
   assumes "y < (\<Sqinter>i\<in>A. f i)" "i \<in> A"
@@ -430,10 +430,10 @@ lemma SUP_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longr
   by (auto intro: SUP_eqI)
 
 lemma INF_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> \<Sqinter>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
-  by (auto intro: INF_eq_const INF_lower antisym)
+  by (auto intro: INF_eq_const INF_lower order.antisym)
 
 lemma SUP_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> \<Squnion>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
-  by (auto intro: SUP_eq_const SUP_upper antisym)
+  by (auto intro: SUP_eq_const SUP_upper order.antisym)
 
 end
 
@@ -448,13 +448,13 @@ class complete_distrib_lattice = complete_lattice +
 begin
   
 lemma Inf_Sup: "Inf (Sup ` A) = Sup (Inf ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)})"
-  by (rule antisym, rule Inf_Sup_le, rule Sup_Inf_le)
+  by (rule order.antisym, rule Inf_Sup_le, rule Sup_Inf_le)
 
 subclass distrib_lattice
 proof
   fix a b c
   show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)"
-  proof (rule antisym, simp_all, safe)
+  proof (rule order.antisym, simp_all, safe)
     show "b \<sqinter> c \<le> a \<squnion> b"
       by (rule le_infI1, simp)
     show "b \<sqinter> c \<le> a \<squnion> c"
@@ -500,7 +500,7 @@ class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
 begin
 
 lemma uminus_Inf: "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
-proof (rule antisym)
+proof (rule order.antisym)
   show "- \<Sqinter>A \<le> \<Squnion>(uminus ` A)"
     by (rule compl_le_swap2, rule Inf_greatest, rule compl_le_swap2, rule Sup_upper) simp
   show "\<Squnion>(uminus ` A) \<le> - \<Sqinter>A"
@@ -530,10 +530,10 @@ lemma dual_complete_linorder:
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
 lemma complete_linorder_inf_min: "inf = min"
-  by (auto intro: antisym simp add: min_def fun_eq_iff)
+  by (auto intro: order.antisym simp add: min_def fun_eq_iff)
 
 lemma complete_linorder_sup_max: "sup = max"
-  by (auto intro: antisym simp add: max_def fun_eq_iff)
+  by (auto intro: order.antisym simp add: max_def fun_eq_iff)
 
 lemma Inf_less_iff: "\<Sqinter>S < a \<longleftrightarrow> (\<exists>x\<in>S. x < a)"
   by (simp add: not_le [symmetric] le_Inf_iff)

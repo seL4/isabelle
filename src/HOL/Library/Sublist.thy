@@ -18,8 +18,14 @@ definition prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 definition strict_prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "strict_prefix xs ys \<longleftrightarrow> prefix xs ys \<and> xs \<noteq> ys"
 
+global_interpretation prefix_order: ordering prefix strict_prefix
+  by standard (auto simp add: prefix_def strict_prefix_def)
+
 interpretation prefix_order: order prefix strict_prefix
   by standard (auto simp: prefix_def strict_prefix_def)
+
+global_interpretation prefix_bot: ordering_top \<open>\<lambda>xs ys. prefix ys xs\<close> \<open>\<lambda>xs ys. strict_prefix ys xs\<close> \<open>[]\<close>
+  by standard (simp add: prefix_def)
 
 interpretation prefix_bot: order_bot Nil prefix strict_prefix
   by standard (simp add: prefix_def)
@@ -74,7 +80,7 @@ proof
 next
   assume "xs = ys @ [y] \<or> prefix xs ys"
   then show "prefix xs (ys @ [y])"
-    by (metis prefix_order.eq_iff prefix_order.order_trans prefixI)
+    by auto (metis append.assoc prefix_def) 
 qed
 
 lemma Cons_prefix_Cons [simp]: "prefix (x # xs) (y # ys) = (x = y \<and> prefix xs ys)"
@@ -90,7 +96,7 @@ lemma same_prefix_prefix [simp]: "prefix (xs @ ys) (xs @ zs) = prefix ys zs"
   by (induct xs) simp_all
 
 lemma same_prefix_nil [simp]: "prefix (xs @ ys) xs = (ys = [])"
-  by (metis append_Nil2 append_self_conv prefix_order.eq_iff prefixI)
+  by (simp add: prefix_def) 
 
 lemma prefix_prefix [simp]: "prefix xs ys \<Longrightarrow> prefix xs (ys @ zs)"
   unfolding prefix_def by fastforce
@@ -390,10 +396,13 @@ next
   qed
 qed
 
-lemma Longest_common_prefix_unique: "L \<noteq> {} \<Longrightarrow>
-  \<exists>! ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps)"
-by(rule ex_ex1I[OF Longest_common_prefix_ex];
-   meson equals0I prefix_length_prefix prefix_order.antisym)
+lemma Longest_common_prefix_unique:
+  \<open>\<exists>! ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> length qs \<le> length ps)\<close>
+  if \<open>L \<noteq> {}\<close>
+  using that apply (rule ex_ex1I[OF Longest_common_prefix_ex])
+  using that apply (auto simp add: prefix_def)
+  apply (metis append_eq_append_conv_if order.antisym)
+  done
 
 lemma Longest_common_prefix_eq:
  "\<lbrakk> L \<noteq> {};  \<forall>xs \<in> L. prefix ps xs;
@@ -516,8 +525,14 @@ definition suffix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 definition strict_suffix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "strict_suffix xs ys \<longleftrightarrow> suffix xs ys \<and> xs \<noteq> ys"
 
+global_interpretation suffix_order: ordering suffix strict_suffix
+  by standard (auto simp: suffix_def strict_suffix_def)
+
 interpretation suffix_order: order suffix strict_suffix
   by standard (auto simp: suffix_def strict_suffix_def)
+
+global_interpretation suffix_bot: ordering_top \<open>\<lambda>xs ys. suffix ys xs\<close> \<open>\<lambda>xs ys. strict_suffix ys xs\<close> \<open>[]\<close>
+  by standard (simp add: suffix_def)
 
 interpretation suffix_bot: order_bot Nil suffix strict_suffix
   by standard (simp add: suffix_def)
@@ -1020,28 +1035,34 @@ lemma subseq_Cons2_iff [simp]:
 
 lemma subseq_append': "subseq (zs @ xs) (zs @ ys) \<longleftrightarrow> subseq xs ys"
   by (induct zs) simp_all
-    
-interpretation subseq_order: order subseq strict_subseq
+
+global_interpretation subseq_order: ordering subseq strict_subseq
 proof
-  fix xs ys :: "'a list"
-  {
-    assume "subseq xs ys" and "subseq ys xs"
-    thus "xs = ys"
-    proof (induct)
-      case list_emb_Nil
-      from list_emb_Nil2 [OF this] show ?case by simp
-    next
-      case list_emb_Cons2
-      thus ?case by simp
-    next
-      case list_emb_Cons
-      hence False using subseq_Cons' by fastforce
-      thus ?case ..
-    qed
-  }
-  thus "strict_subseq xs ys \<longleftrightarrow> (subseq xs ys \<and> \<not>subseq ys xs)"
+  show \<open>subseq xs xs\<close> for xs :: \<open>'a list\<close>
+    using refl by (rule list_emb_refl)
+  show \<open>subseq xs zs\<close> if \<open>subseq xs ys\<close> and \<open>subseq ys zs\<close>
+    for xs ys zs :: \<open>'a list\<close>
+    using trans [OF refl] that by (rule list_emb_trans) simp
+  show \<open>xs = ys\<close> if \<open>subseq xs ys\<close> and \<open>subseq ys xs\<close>
+    for xs ys :: \<open>'a list\<close>
+  using that proof induction
+    case list_emb_Nil
+    from list_emb_Nil2 [OF this] show ?case by simp
+  next
+    case list_emb_Cons2
+    then show ?case by simp
+  next
+    case list_emb_Cons
+    hence False using subseq_Cons' by fastforce
+    then show ?case ..
+  qed
+  show \<open>strict_subseq xs ys \<longleftrightarrow> subseq xs ys \<and> xs \<noteq> ys\<close>
+    for xs ys :: \<open>'a list\<close>
     by (auto simp: strict_subseq_def)
-qed (auto simp: list_emb_refl intro: list_emb_trans)
+qed
+
+interpretation subseq_order: order subseq strict_subseq
+  by (rule ordering_orderI) standard
 
 lemma in_set_subseqs [simp]: "xs \<in> set (subseqs ys) \<longleftrightarrow> subseq xs ys"
 proof

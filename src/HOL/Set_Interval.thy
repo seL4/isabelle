@@ -300,7 +300,7 @@ lemma atLeastAtMost_singleton': "a = b \<Longrightarrow> {a .. b} = {a}" by simp
 
 lemma Icc_eq_Icc[simp]:
   "{l..h} = {l'..h'} = (l=l' \<and> h=h' \<or> \<not> l\<le>h \<and> \<not> l'\<le>h')"
-  by(simp add: order_class.eq_iff)(auto intro: order_trans)
+  by (simp add: order_class.order.eq_iff) (auto intro: order_trans)
 
 lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"
@@ -477,8 +477,19 @@ lemma atLeastLessThan_eq_iff:
   shows "{a ..< b} = {c ..< d} \<longleftrightarrow> a = c \<and> b = d"
   using atLeastLessThan_inj assms by auto
 
-lemma (in linorder) Ioc_inj: "{a <.. b} = {c <.. d} \<longleftrightarrow> (b \<le> a \<and> d \<le> c) \<or> a = c \<and> b = d"
-  by (metis eq_iff greaterThanAtMost_empty_iff2 greaterThanAtMost_iff le_cases not_le)
+lemma (in linorder) Ioc_inj: 
+  \<open>{a <.. b} = {c <.. d} \<longleftrightarrow> (b \<le> a \<and> d \<le> c) \<or> a = c \<and> b = d\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?Q
+  then show ?P
+    by auto
+next
+  assume ?P
+  then have \<open>a < x \<and> x \<le> b \<longleftrightarrow> c < x \<and> x \<le> d\<close> for x
+    by (simp add: set_eq_iff)
+  from this [of a] this [of b] this [of c] this [of d] show ?Q
+    by auto
+qed
 
 lemma (in order) Iio_Int_singleton: "{..<k} \<inter> {x} = (if x < k then {x} else {})"
   by auto

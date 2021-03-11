@@ -70,7 +70,7 @@ next
     show "sorted_col i (xs2 # xss)" using "3.prems"(3) by simp
     show "\<And>x. sorted_from (i+1) [ys\<leftarrow>xs2 # xss . ys ! i = x]"
       using "3.prems"(4)
-        sorted_antimono_suffix[OF map_mono_suffix[OF filter_mono_suffix[OF suffix_ConsI[OF suffix_order.order.refl]]]]
+        sorted_antimono_suffix[OF map_mono_suffix[OF filter_mono_suffix[OF suffix_ConsI[OF suffix_order.refl]]]]
       by fastforce
   qed
   with * show ?case by (auto)

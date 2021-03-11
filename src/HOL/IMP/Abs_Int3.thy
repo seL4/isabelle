@@ -20,7 +20,7 @@ assumes narrow2: "y \<le> x \<Longrightarrow> x \<triangle> y \<le> x"
 begin
 
 lemma narrowid[simp]: "x \<triangle> x = x"
-by (metis eq_iff narrow1 narrow2)
+by (rule order.antisym) (simp_all add: narrow1 narrow2)
 
 end
 

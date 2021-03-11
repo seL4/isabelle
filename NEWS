@@ -58,6 +58,14 @@ theory are already present in theory "Permutations".  INCOMPATIBILITY.
 * Lemma "permutes_induct" has been given named premises.
 INCOMPATIBILITY.
 
+* Theorems "antisym" and "eq_iff" in class "order" have been renamed to
+"order.antisym" and "order.eq_iff", to coexist locally with "antisym"
+and "eq_iff" from locale "ordering".  INCOMPATIBILITY: significant
+potential for change can be avoided if interpretations of type class
+"order" are replaced or augmented by interpretations of locale
+"ordering".
+
+
 
 *** ML ***
 

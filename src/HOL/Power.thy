@@ -480,8 +480,9 @@ lemma of_nat_zero_less_power_iff [simp]: "of_nat x ^ n > 0 \<longleftrightarrow>
   by (induct n) auto
 
 text \<open>Surely we can strengthen this? It holds for \<open>0<a<1\<close> too.\<close>
-lemma power_inject_exp [simp]: "1 < a \<Longrightarrow> a ^ m = a ^ n \<longleftrightarrow> m = n"
-  by (force simp add: order_antisym power_le_imp_le_exp)
+lemma power_inject_exp [simp]:
+  \<open>a ^ m = a ^ n \<longleftrightarrow> m = n\<close> if \<open>1 < a\<close>
+  using that by (force simp add: order_class.order.antisym power_le_imp_le_exp)
 
 text \<open>
   Can relax the first premise to \<^term>\<open>0<a\<close> in the case of the
@@ -609,7 +610,7 @@ proof (rule contrapos_pp [OF less])
 qed
 
 lemma power_inject_base: "a ^ Suc n = b ^ Suc n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a = b"
-  by (blast intro: power_le_imp_le_base antisym eq_refl sym)
+  by (blast intro: power_le_imp_le_base order.antisym eq_refl sym)
 
 lemma power_eq_imp_eq_base: "a ^ n = b ^ n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 < n \<Longrightarrow> a = b"
   by (cases n) (simp_all del: power_Suc, rule power_inject_base)
