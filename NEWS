@@ -19,8 +19,8 @@ in boundary cases.
 
 *** Document preparation ***
 
-* More accurate LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
-\guilsinglright. Minor INCOMPATIBILITY, use \usepackage[T1]{fontenc}
+* Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
+\guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}
 (which is now also the default in "isabelle mkroot").
 
 
