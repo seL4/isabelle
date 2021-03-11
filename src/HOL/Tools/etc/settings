@@ -2,3 +2,5 @@
 
 isabelle_scala_service 'isabelle.nitpick.Kodkod$Handler'
 isabelle_scala_service 'isabelle.nitpick.Scala_Functions'
+
+ISABELLE_ATP="$COMPONENT/ATP"
