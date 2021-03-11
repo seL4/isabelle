@@ -62,6 +62,10 @@ lemma permutes_inverses:
 lemma permutes_subset: "p permutes S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> p permutes T"
   unfolding permutes_def by blast
 
+lemma permutes_imp_permutes_insert:
+  \<open>p permutes insert x S\<close> if \<open>p permutes S\<close>
+  using that by (rule permutes_subset) auto
+
 lemma permutes_empty[simp]: "p permutes {} \<longleftrightarrow> p = id"
   by (auto simp add: fun_eq_iff permutes_def)
 
