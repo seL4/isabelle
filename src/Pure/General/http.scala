@@ -56,18 +56,7 @@ object HTTP
   }
 
 
-  /* handler */
-
-  class Handler private[HTTP](val root: String, val handler: HttpHandler)
-  {
-    override def toString: String = root
-  }
-
-  def handler(root: String, body: Exchange => Unit): Handler =
-    new Handler(root, new HttpHandler { def handle(x: HttpExchange): Unit = body(new Exchange(x)) })
-
-
-  /* particular methods */
+  /* handler for request method */
 
   sealed case class Arg(method: String, uri: URI, request: Bytes)
   {
@@ -79,27 +68,39 @@ object HTTP
         })
   }
 
-  def method(name: String, root: String, body: Arg => Option[Response]): Handler =
-    handler(root, http =>
-      {
-        val request = http.read_request()
-        if (http.request_method == name) {
-          val arg = Arg(name, http.request_uri, request)
-          Exn.capture(body(arg)) match {
-            case Exn.Res(Some(response)) =>
-              http.write_response(200, response)
-            case Exn.Res(None) =>
-              http.write_response(404, Response.empty)
-            case Exn.Exn(ERROR(msg)) =>
-              http.write_response(500, Response.text(Output.error_message_text(msg)))
-            case Exn.Exn(exn) => throw exn
-          }
-        }
-        else http.write_response(400, Response.empty)
-      })
+  object Handler
+  {
+    def apply(root: String, body: Exchange => Unit): Handler =
+      new Handler(root,
+        new HttpHandler { def handle(x: HttpExchange): Unit = body(new Exchange(x)) })
 
-  def get(root: String, body: Arg => Option[Response]): Handler = method("GET", root, body)
-  def post(root: String, body: Arg => Option[Response]): Handler = method("POST", root, body)
+    def method(name: String, root: String, body: Arg => Option[Response]): Handler =
+      apply(root, http =>
+        {
+          val request = http.read_request()
+          if (http.request_method == name) {
+            val arg = Arg(name, http.request_uri, request)
+            Exn.capture(body(arg)) match {
+              case Exn.Res(Some(response)) =>
+                http.write_response(200, response)
+              case Exn.Res(None) =>
+                http.write_response(404, Response.empty)
+              case Exn.Exn(ERROR(msg)) =>
+                http.write_response(500, Response.text(Output.error_message_text(msg)))
+              case Exn.Exn(exn) => throw exn
+            }
+          }
+          else http.write_response(400, Response.empty)
+        })
+
+    def get(root: String, body: Arg => Option[Response]): Handler = method("GET", root, body)
+    def post(root: String, body: Arg => Option[Response]): Handler = method("POST", root, body)
+  }
+
+  class Handler private(val root: String, val handler: HttpHandler)
+  {
+    override def toString: String = root
+  }
 
 
   /* server */
@@ -138,7 +139,7 @@ object HTTP
   /* welcome */
 
   val welcome: Handler =
-    get("/", arg =>
+    Handler.get("/", arg =>
       if (arg.uri.toString == "/") {
         val id = Isabelle_System.isabelle_id()
         Some(Response.text("Welcome to Isabelle/" + id + ": " + Distribution.version))
@@ -152,7 +153,7 @@ object HTTP
     Isabelle_Fonts.fonts(hidden = true)
 
   def fonts(root: String = "/fonts"): Handler =
-    get(root, arg =>
+    Handler.get(root, arg =>
       {
         val uri_name = arg.uri.toString
         if (uri_name == root) {
