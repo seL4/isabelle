@@ -47,7 +47,10 @@ object Url
     catch { case ERROR(_) => false }
 
 
-  /* trim index */
+  /* file name */
+
+  def file_name(url: URL): String =
+    Library.take_suffix[Char](c => c != '/' && c != '\\', url.getFile.toString.toList)._2.mkString
 
   def trim_index(url: URL): URL =
   {

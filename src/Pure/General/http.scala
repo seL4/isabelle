@@ -7,7 +7,8 @@ HTTP server support.
 package isabelle
 
 
-import java.net.{InetSocketAddress, URI, URL}
+import java.io.{File => JFile}
+import java.net.{InetSocketAddress, URI, URL, URLConnection, HttpURLConnection}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 
@@ -15,29 +16,125 @@ object HTTP
 {
   /** content **/
 
-  val default_mime_type: String = "application/octet-stream"
+  val mime_type_bytes: String = "application/octet-stream"
+  val mime_type_text: String = "text/plain; charset=utf-8"
+  val mime_type_html: String = "text/html; charset=utf-8"
 
-  sealed case class Content(bytes: Bytes, mime_type: String = default_mime_type)
+  val default_mime_type: String = mime_type_bytes
+  val default_encoding: String = UTF8.charset_name
+
+  sealed case class Content(
+    bytes: Bytes,
+    file_name: String = "",
+    mime_type: String = default_mime_type,
+    encoding: String = default_encoding)
   {
-    def text: String = bytes.text
+    def text: String = new String(bytes.array, encoding)
   }
+
+  def read_content(file: JFile): Content =
+  {
+    val bytes = Bytes.read(file)
+    val file_name = file.getName
+    val mime_type =
+      Option(URLConnection.guessContentTypeFromName(file_name)).getOrElse(default_mime_type)
+    Content(bytes, file_name = file_name, mime_type = mime_type)
+  }
+
+  def read_content(path: Path): Content = read_content(path.file)
 
 
 
   /** client **/
 
+  val NEWLINE: String = "\r\n"
+
   object Client
   {
-    def get(url: URL): Content =
+    def set_user_agent(connection: URLConnection, user_agent: String): Unit =
+      proper_string(user_agent).foreach(s => connection.setRequestProperty("User-Agent", s))
+
+    def get_content(connection: URLConnection): Content =
     {
-      val connection = url.openConnection
+      val Charset = """.*\bcharset="?([\S^"]+)"?.*""".r
       using(connection.getInputStream)(stream =>
       {
-        val length = connection.getContentLength
+        val bytes = Bytes.read_stream(stream, hint = connection.getContentLength)
+        val file_name = Url.file_name(connection.getURL)
         val mime_type = Option(connection.getContentType).getOrElse(default_mime_type)
-        val bytes = Bytes.read_stream(stream, hint = length)
-        Content(bytes, mime_type = mime_type)
+        val encoding =
+          (connection.getContentEncoding, mime_type) match {
+            case (enc, _) if enc != null => enc
+            case (_, Charset(enc)) => enc
+            case _ => default_encoding
+          }
+        Content(bytes, file_name = file_name, mime_type = mime_type, encoding = encoding)
       })
+    }
+
+    def get(url: URL, user_agent: String = ""): Content =
+    {
+      val connection = url.openConnection
+      set_user_agent(connection, user_agent)
+      get_content(connection)
+    }
+
+    def post(url: URL, parameters: List[(String, Any)], user_agent: String = ""): Content =
+    {
+      val connection = url.openConnection
+      connection match {
+        case http_connection: HttpURLConnection =>
+          http_connection.setRequestMethod("POST")
+          connection.setDoOutput(true)
+
+          set_user_agent(connection, user_agent)
+
+          val boundary = UUID.random_string()
+          connection.setRequestProperty(
+            "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
+
+          using(connection.getOutputStream)(out =>
+          {
+            def output(s: String): Unit = out.write(UTF8.bytes(s))
+            def output_newline(n: Int = 1): Unit = (1 to n).foreach(_ => output(NEWLINE))
+            def output_boundary(end: Boolean = false): Unit =
+              output("--" + boundary + (if (end) "--" else "") + NEWLINE)
+            def output_name(name: String): Unit =
+              output("Content-Disposition: form-data; name=" + quote(name))
+            def output_value(value: Any): Unit =
+            {
+              output_newline(2)
+              output(value.toString)
+            }
+            def output_content(content: Content): Unit =
+            {
+              proper_string(content.file_name).foreach(s => output("; filename=" + quote(s)))
+              output_newline()
+              proper_string(content.mime_type).foreach(s => output("Content-Type: " + s))
+              output_newline(2)
+              content.bytes.write_stream(out)
+            }
+
+            output_newline(2)
+
+            for { (name, value) <- parameters } {
+              output_boundary()
+              output_name(name)
+              value match {
+                case content: Content => output_content(content)
+                case file: JFile => output_content(read_content(file))
+                case path: Path => output_content(read_content(path))
+                case _ => output_value(value)
+              }
+              output_newline()
+            }
+            output_boundary(end = true)
+            out.flush()
+          })
+          get_content(connection)
+
+        case _ => error("Bad URL (not HTTP): " + quote(url.toString))
+      }
     }
   }
 
@@ -51,12 +148,12 @@ object HTTP
   {
     def apply(
         bytes: Bytes = Bytes.empty,
-        content_type: String = "application/octet-stream"): Response =
+        content_type: String = mime_type_bytes): Response =
       new Response(bytes, content_type)
 
     val empty: Response = apply()
-    def text(s: String): Response = apply(Bytes(s), "text/plain; charset=utf-8")
-    def html(s: String): Response = apply(Bytes(s), "text/html; charset=utf-8")
+    def text(s: String): Response = apply(Bytes(s), mime_type_text)
+    def html(s: String): Response = apply(Bytes(s), mime_type_html)
   }
 
   class Response private[HTTP](val bytes: Bytes, val content_type: String)
