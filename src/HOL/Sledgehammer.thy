@@ -13,6 +13,7 @@ keywords
   "sledgehammer_params" :: thy_decl
 begin
 
+ML_file \<open>Tools/ATP/system_on_tptp.ML\<close>
 ML_file \<open>Tools/Sledgehammer/async_manager_legacy.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_util.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_fact.ML\<close>
