@@ -53,7 +53,8 @@ object Bytes
   def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =
     if (limit == 0) empty
     else {
-      val out = new ByteArrayOutputStream(if (limit == Integer.MAX_VALUE) hint else limit)
+      val out_size = (if (limit == Integer.MAX_VALUE) hint else limit) max 1024
+      val out = new ByteArrayOutputStream(out_size)
       val buf = new Array[Byte](8192)
       var m = 0
 
