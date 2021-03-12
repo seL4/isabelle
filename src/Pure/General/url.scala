@@ -80,13 +80,6 @@ object Url
   def read(name: String): String = read(Url(name), false)
   def read_gzip(name: String): String = read(Url(name), true)
 
-  def read_bytes(url: URL): Bytes =
-  {
-    val connection = url.openConnection
-    val length = connection.getContentLength
-    using(connection.getInputStream)(Bytes.read_stream(_, hint = length))
-  }
-
 
   /* file URIs */
 

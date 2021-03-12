@@ -551,10 +551,10 @@ object Isabelle_System
   {
     val url = Url(url_name)
     progress.echo("Getting " + quote(url_name))
-    val bytes =
-      try { Url.read_bytes(url) }
+    val content =
+      try { HTTP.Client.get(url) }
       catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
-    Bytes.write(file, bytes)
+    Bytes.write(file, content.bytes)
   }
 
   object Download extends Scala.Fun("download")

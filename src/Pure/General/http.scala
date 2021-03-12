@@ -7,14 +7,42 @@ HTTP server support.
 package isabelle
 
 
-import java.net.{InetAddress, InetSocketAddress, URI}
+import java.net.{InetSocketAddress, URI, URL}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
-
-import scala.collection.immutable.SortedMap
 
 
 object HTTP
 {
+  /** content **/
+
+  val default_mime_type: String = "application/octet-stream"
+
+  sealed case class Content(bytes: Bytes, mime_type: String = default_mime_type)
+  {
+    def text: String = bytes.text
+  }
+
+
+
+  /** client **/
+
+  object Client
+  {
+    def get(url: URL): Content =
+    {
+      val connection = url.openConnection
+      using(connection.getInputStream)(stream =>
+      {
+        val length = connection.getContentLength
+        val mime_type = Option(connection.getContentType).getOrElse(default_mime_type)
+        val bytes = Bytes.read_stream(stream, hint = length)
+        Content(bytes, mime_type = mime_type)
+      })
+    }
+  }
+
+
+
   /** server **/
 
   /* response */
