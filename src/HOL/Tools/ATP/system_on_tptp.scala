@@ -13,21 +13,26 @@ import java.net.URL
 
 object SystemOnTPTP
 {
+  /* requests */
+
   def get_url(options: Options): URL = Url(options.string("SystemOnTPTP"))
 
-  def proper_lines(text: String): List[String] =
-    Library.trim_split_lines(text).filterNot(_.startsWith("%"))
+  def post_request(url: URL, parameters: List[(String, Any)]): HTTP.Content =
+  {
+    val parameters0 =
+      List("NoHTML" -> 1, "QuietFlag" -> "-q0")
+        .filterNot(p0 => parameters.exists(p => p0._1 == p._1))
+    HTTP.Client.post(url, parameters0 ::: parameters, user_agent = "Sledgehammer")
+  }
+
+
+  /* list systems */
+
+  def proper_lines(content: HTTP.Content): List[String] =
+    Library.trim_split_lines(content.text).filterNot(_.startsWith("%"))
 
   def list_systems(url: URL): List[String] =
-  {
-    val result =
-      HTTP.Client.post(url, user_agent = "Sledgehammer", parameters =
-        List("NoHTML" -> 1,
-          "QuietFlag" -> "-q0",
-          "SubmitButton" -> "ListSystems",
-          "ListStatus" -> "READY"))
-    proper_lines(result.text)
-  }
+    proper_lines(post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY")))
 
   object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
