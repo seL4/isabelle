@@ -17,7 +17,8 @@ object Scala
 {
   /** registered functions **/
 
-  abstract class Fun(val name: String) extends Function[String, String]
+  abstract class Fun(val name: String, val thread: Boolean = false)
+    extends Function[String, String]
   {
     override def toString: String = name
     def position: Properties.T = here.position
@@ -155,7 +156,13 @@ object Scala
     val NULL, OK, ERROR, FAIL, INTERRUPT = Value
   }
 
-  def function(name: String, arg: String): (Tag.Value, String) =
+  def function_thread(name: String): Boolean =
+    functions.find(fun => fun.name == name) match {
+      case Some(fun) => fun.thread
+      case None => false
+    }
+
+  def function_body(name: String, arg: String): (Tag.Value, String) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
         Exn.capture { fun(arg) } match {
@@ -202,14 +209,14 @@ object Scala
     private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
     {
       msg.properties match {
-        case Markup.Invoke_Scala(name, id, thread) =>
+        case Markup.Invoke_Scala(name, id) =>
           def body: Unit =
           {
-            val (tag, res) = Scala.function(name, msg.text)
+            val (tag, res) = Scala.function_body(name, msg.text)
             result(id, tag, res)
           }
           val future =
-            if (thread) {
+            if (Scala.function_thread(name)) {
               Future.thread(name = Isabelle_Thread.make_name(base = "invoke_scala"))(body)
             }
             else Future.fork(body)

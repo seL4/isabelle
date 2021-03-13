@@ -154,7 +154,7 @@ object Kodkod
 
   /** scala function **/
 
-  object Fun extends Scala.Fun("kodkod")
+  object Fun extends Scala.Fun("kodkod", thread = true)
   {
     val here = Scala_Project.here
     def apply(args: String): String =

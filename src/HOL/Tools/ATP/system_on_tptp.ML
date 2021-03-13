@@ -15,6 +15,6 @@ struct
 
 fun get_url () = Options.default_string \<^system_option>\<open>SystemOnTPTP\<close>
 
-fun list_systems () = get_url () |> \<^scala_thread>\<open>SystemOnTPTP.list_systems\<close> |> split_lines
+fun list_systems () = get_url () |> \<^scala>\<open>SystemOnTPTP.list_systems\<close> |> split_lines
 
 end

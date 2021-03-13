@@ -210,13 +210,11 @@ text \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "scala_function"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "scala"} & : & \<open>ML_antiquotation\<close> \\
-  @{ML_antiquotation_def "scala_thread"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
     (@{ML_antiquotation scala_function} |
-     @{ML_antiquotation scala} |
-     @{ML_antiquotation scala_thread}) @{syntax embedded}
+     @{ML_antiquotation scala}) @{syntax embedded}
   \<close>
 
   \<^descr> \<open>@{scala_function name}\<close> inlines the checked function name as ML string

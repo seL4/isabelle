@@ -557,7 +557,7 @@ object Isabelle_System
     Bytes.write(file, content.bytes)
   }
 
-  object Download extends Scala.Fun("download")
+  object Download extends Scala.Fun("download", thread = true)
   {
     val here = Scala_Project.here
     def apply(arg: String): String =

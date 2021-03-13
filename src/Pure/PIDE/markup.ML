@@ -215,7 +215,7 @@ sig
   val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
-  val invoke_scala: string -> string -> bool -> Properties.T
+  val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
@@ -683,8 +683,7 @@ val commands_accepted = [(functionN, "commands_accepted")];
 val assign_update = [(functionN, "assign_update")];
 val removed_versions = [(functionN, "removed_versions")];
 
-fun invoke_scala name id thread =
-  [(functionN, "invoke_scala"), (nameN, name), (idN, id), ("thread", Value.print_bool thread)];
+fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 

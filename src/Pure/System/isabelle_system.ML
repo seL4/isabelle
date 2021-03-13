@@ -28,7 +28,7 @@ struct
 (* bash *)
 
 fun bash_process script =
-  Scala.function_thread "bash_process"
+  Scala.function "bash_process"
     ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
   |> split_strings0
   |> (fn [] => raise Exn.Interrupt
@@ -112,6 +112,6 @@ fun with_tmp_dir name f =
 (* download file *)
 
 fun download url file =
-  ignore (Scala.function_thread "download" (cat_strings0 [url, absolute_path file]));
+  ignore (Scala.function "download" (cat_strings0 [url, absolute_path file]));
 
 end;

@@ -29,7 +29,7 @@ object SystemOnTPTP
     proper_lines(result.text)
   }
 
-  object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems")
+  object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
     val here = Scala_Project.here
     def apply(url: String): String = cat_lines(list_systems(Url(url)))

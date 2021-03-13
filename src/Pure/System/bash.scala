@@ -206,7 +206,7 @@ object Bash
 
   /* Scala function */
 
-  object Process extends Scala.Fun("bash_process")
+  object Process extends Scala.Fun("bash_process", thread = true)
   {
     val here = Scala_Project.here
     def apply(script: String): String =

@@ -8,7 +8,6 @@ signature SCALA =
 sig
   exception Null
   val function: string -> string -> string
-  val function_thread: string -> string -> string
 end;
 
 structure Scala: SCALA =
@@ -37,13 +36,15 @@ val _ =
           | _ => raise Fail ("Bad tag: " ^ tag));
       in Synchronized.change results (Symtab.map_entry id (K result)) end);
 
-fun gen_function thread name arg =
+in
+
+fun function name arg =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val id = new_id ();
       fun invoke () =
        (Synchronized.change results (Symtab.update (id, Exn.Exn Match));
-        Output.protocol_message (Markup.invoke_scala name id thread) [XML.Text arg]);
+        Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg]);
       fun cancel () =
        (Synchronized.change results (Symtab.delete_safe id);
         Output.protocol_message (Markup.cancel_scala id) []);
@@ -59,11 +60,6 @@ fun gen_function thread name arg =
       Exn.release (restore_attributes await_result ())
         handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn)
     end) ();
-
-in
-
-val function = gen_function false;
-val function_thread = gen_function true;
 
 end;
 

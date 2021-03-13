@@ -636,10 +636,9 @@ object Markup
 
   object Invoke_Scala extends Function("invoke_scala")
   {
-    def unapply(props: Properties.T): Option[(String, String, Boolean)] =
+    def unapply(props: Properties.T): Option[(String, String)] =
       props match {
-        case List(PROPERTY, (NAME, name), (ID, id), ("thread", Value.Boolean(thread))) =>
-          Some((name, id, thread))
+        case List(PROPERTY, (NAME, name), (ID, id)) => Some((name, id))
         case _ => None
       }
   }
