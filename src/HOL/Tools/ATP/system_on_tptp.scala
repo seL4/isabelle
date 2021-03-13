@@ -25,7 +25,11 @@ object SystemOnTPTP
     val parameters0 =
       List("NoHTML" -> 1, "QuietFlag" -> "-q01")
         .filterNot(p0 => parameters.exists(p => p0._1 == p._1))
-    HTTP.Client.post(url, parameters0 ::: parameters, timeout = timeout, user_agent = "Sledgehammer")
+    try {
+      HTTP.Client.post(url, parameters0 ::: parameters,
+        timeout = timeout, user_agent = "Sledgehammer")
+    }
+    catch { case ERROR(msg) => cat_error("Failed to access SystemOnTPTP server", msg) }
   }
 
 
