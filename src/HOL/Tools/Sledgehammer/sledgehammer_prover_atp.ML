@@ -175,17 +175,6 @@ fun run_atp mode name
         end
       | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^ " is not set"))
 
-    fun split_time s =
-      let
-        val split = String.tokens (fn c => str c = "\n")
-        val (output, t) = s |> split |> (try split_last #> the_default ([], "0")) |>> cat_lines
-        val num = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
-        val digit = Scan.one Symbol.is_ascii_digit
-        val num3 = digit ::: digit ::: (digit >> single) >> (fst o read_int)
-        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
-        val as_time = raw_explode #> Scan.read Symbol.stopper time #> the_default 0
-      in (output, as_time t |> Time.fromMilliseconds) end
-
     fun run () =
       let
         (* If slicing is disabled, we expand the last slice to fill the entire time available. *)
@@ -276,9 +265,7 @@ fun run_atp mode name
             val args =
               arguments ctxt full_proofs extra slice_timeout (File.bash_path prob_path)
                 (ord, ord_info, sel_weights)
-            val command =
-              "(exec 2>&1; " ^ File.bash_path command0 ^ " " ^ args ^ " " ^ ")"
-              |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
+            val command = "exec 2>&1; " ^ File.bash_path command0 ^ " " ^ args
 
             val _ =
               atp_problem
@@ -287,9 +274,11 @@ fun run_atp mode name
               |> File.write_list prob_path
 
             val ((output, run_time), (atp_proof, outcome)) =
-              Timeout.apply generous_slice_timeout Isabelle_System.bash_output command
-              |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
-              |> fst |> split_time
+              Timeout.apply generous_slice_timeout Isabelle_System.bash_process command
+              |> (fn res =>
+                (Process_Result.out res |>
+                  (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I),
+                 Process_Result.timing_elapsed res))
               |> (fn accum as (output, _) =>
                 (accum,
                  extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
