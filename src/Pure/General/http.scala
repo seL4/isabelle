@@ -30,6 +30,7 @@ object HTTP
     encoding: String = default_encoding)
   {
     def text: String = new String(bytes.array, encoding)
+    def text_lines: List[String] = Library.trim_split_lines(text)
   }
 
   def read_content(file: JFile): Content =

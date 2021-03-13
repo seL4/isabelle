@@ -35,11 +35,8 @@ object SystemOnTPTP
 
   /* list systems */
 
-  def proper_lines(content: HTTP.Content): List[String] =
-    Library.trim_split_lines(content.text).filterNot(_.startsWith("%"))
-
   def list_systems(url: URL): List[String] =
-    proper_lines(post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY")))
+    post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY")).text_lines
 
   object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
