@@ -1035,7 +1035,7 @@ fun uncached_solve_any_problem overlord deadline max_threads0 max_solutions prob
             (timeout, (solve_all, (max_solutions, (max_threads, kki))))
             |> let open XML.Encode in pair int (pair bool (pair int (pair int string))) end
             |> YXML.string_of_body
-            |> \<^scala_thread>\<open>kodkod\<close>
+            |> \<^scala>\<open>kodkod\<close>
             |> YXML.parse_body
             |> let open XML.Decode in triple int string string end
 

@@ -74,6 +74,7 @@ object Scala_Project
       "src/Tools/jEdit/src-base/" -> Path.explode("isabelle.jedit_base"),
       "src/Tools/jEdit/src/" -> Path.explode("isabelle.jedit"),
       "src/HOL/SPARK/Tools" -> Path.explode("isabelle.spark"),
+      "src/HOL/Tools/ATP" -> Path.explode("isabelle.atp"),
       "src/HOL/Tools/Nitpick" -> Path.explode("isabelle.nitpick"))
 
 

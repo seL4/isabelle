@@ -218,7 +218,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       val archive =
         if (Url.is_wellformed(mercurial_source)) {
           val archive = tmp_dir + Path.basic("mercurial.tar.gz")
-          Bytes.write(archive, Url.read_bytes(Url(mercurial_source)))
+          Isabelle_System.download(mercurial_source, archive)
           archive
         }
         else Path.explode(mercurial_source)

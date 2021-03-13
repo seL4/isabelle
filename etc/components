@@ -7,5 +7,4 @@ src/HOL/Mutabelle
 src/HOL/Library/Sum_of_Squares
 src/HOL/SPARK
 src/HOL/Tools
-src/HOL/Tools/ATP
 src/HOL/TPTP

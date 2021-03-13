@@ -35,6 +35,9 @@ public option sledgehammer_timeout : int = 30
 public option vampire_noncommercial : string = "unknown"
   -- "status of Vampire activation for noncommercial use (yes, no, unknown)"
 
+public option SystemOnTPTP : string = "http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply"
+  -- "URL for SystemOnTPTP service"
+
 public option MaSh : string = "sml"
   -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"
 

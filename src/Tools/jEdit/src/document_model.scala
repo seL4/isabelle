@@ -314,7 +314,7 @@ object Document_Model
     val preview_root = http_root + "/preview"
 
     val html =
-      HTTP.get(preview_root, arg =>
+      HTTP.Handler.get(preview_root, arg =>
         for {
           query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode)
           name = Library.perhaps_unprefix(plain_text_prefix, query)

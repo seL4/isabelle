@@ -200,11 +200,7 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
       let val name = check_scala_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)) #>
-  ML_Antiquotation.value_embedded \<^binding>\<open>scala_thread\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
-      let val name = check_scala_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function_thread " ^ ML_Syntax.print_string name) end)));
+      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)));
 
 
 (* manage source files *)

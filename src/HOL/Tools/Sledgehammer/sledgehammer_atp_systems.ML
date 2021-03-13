@@ -580,18 +580,13 @@ val zipperposition = (zipperpositionN, fn () => zipperposition_config)
 
 (* Remote ATP invocation via SystemOnTPTP *)
 
-val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
+val no_remote_systems = {url = "", systems = [] : string list}
+val remote_systems = Synchronized.var "atp_remote_systems" no_remote_systems
 
 fun get_remote_systems () =
-  Timeout.apply (seconds 10.0) (fn () =>
-    (case Isabelle_System.bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
-      (output, 0) => split_lines output
-    | (output, _) =>
-      (warning
-         (case extract_known_atp_failure known_perl_failures output of
-           SOME failure => string_of_atp_failure failure
-         | NONE => output); []))) ()
-  handle Timeout.TIMEOUT _ => []
+  Timeout.apply (seconds 10.0) SystemOnTPTP.list_systems ()
+    handle ERROR msg => (warning msg; no_remote_systems)
+      | Timeout.TIMEOUT _ => no_remote_systems
 
 fun find_remote_system name [] systems =
     find_first (String.isPrefix (name ^ "---")) systems
@@ -601,9 +596,10 @@ fun find_remote_system name [] systems =
     | res => res
 
 fun get_remote_system name versions =
-  Synchronized.change_result remote_systems (fn systems =>
-    (if null systems then get_remote_systems () else systems)
-    |> `(`(find_remote_system name versions)))
+  Synchronized.change_result remote_systems (fn remote =>
+    (if #url remote <> SystemOnTPTP.get_url () orelse null (#systems remote)
+      then get_remote_systems () else remote) |> ` #systems)
+  |> `(find_remote_system name versions)
 
 fun the_remote_system name versions =
   (case get_remote_system name versions of

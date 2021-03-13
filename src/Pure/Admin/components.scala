@@ -67,8 +67,7 @@ object Components
       val archive = base_dir + Path.explode(archive_name)
       if (!archive.is_file) {
         val remote = Components.default_component_repository + "/" + archive_name
-        progress.echo("Getting " + remote)
-        Bytes.write(archive, Url.read_bytes(Url(remote)))
+        Isabelle_System.download(remote, archive, progress = progress)
       }
       for (dir <- copy_dir) {
         Isabelle_System.make_directory(dir)
