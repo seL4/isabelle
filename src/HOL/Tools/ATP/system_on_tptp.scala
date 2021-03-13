@@ -17,12 +17,15 @@ object SystemOnTPTP
 
   def get_url(options: Options): URL = Url(options.string("SystemOnTPTP"))
 
-  def post_request(url: URL, parameters: List[(String, Any)]): HTTP.Content =
+  def post_request(
+    url: URL,
+    parameters: List[(String, Any)],
+    timeout: Time = HTTP.Client.default_timeout): HTTP.Content =
   {
     val parameters0 =
-      List("NoHTML" -> 1, "QuietFlag" -> "-q0")
+      List("NoHTML" -> 1, "QuietFlag" -> "-q01")
         .filterNot(p0 => parameters.exists(p => p0._1 == p._1))
-    HTTP.Client.post(url, parameters0 ::: parameters, user_agent = "Sledgehammer")
+    HTTP.Client.post(url, parameters0 ::: parameters, timeout = timeout, user_agent = "Sledgehammer")
   }
 
 

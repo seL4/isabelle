@@ -51,10 +51,19 @@ object HTTP
 
   object Client
   {
-    def open_connection(url: URL, user_agent: String = ""): HttpURLConnection =
+    val default_timeout = Time.seconds(180)
+
+    def open_connection(url: URL,
+      timeout: Time = default_timeout,
+      user_agent: String = ""): HttpURLConnection =
     {
       url.openConnection match {
         case connection: HttpURLConnection =>
+          if (0 < timeout.ms && timeout.ms <= Integer.MAX_VALUE) {
+            val ms = timeout.ms.toInt
+            connection.setConnectTimeout(ms)
+            connection.setReadTimeout(ms)
+          }
           proper_string(user_agent).foreach(s => connection.setRequestProperty("User-Agent", s))
           connection
         case _ => error("Bad URL (not HTTP): " + quote(url.toString))
@@ -79,12 +88,14 @@ object HTTP
       })
     }
 
-    def get(url: URL, user_agent: String = ""): Content =
-      get_content(open_connection(url, user_agent = user_agent))
+    def get(url: URL, timeout: Time = default_timeout, user_agent: String = ""): Content =
+      get_content(open_connection(url, timeout = timeout, user_agent = user_agent))
 
-    def post(url: URL, parameters: List[(String, Any)], user_agent: String = ""): Content =
+    def post(url: URL, parameters: List[(String, Any)],
+      timeout: Time = default_timeout,
+      user_agent: String = ""): Content =
     {
-      val connection = open_connection(url, user_agent = user_agent)
+      val connection = open_connection(url, timeout = timeout, user_agent = user_agent)
       connection.setRequestMethod("POST")
       connection.setDoOutput(true)
 
