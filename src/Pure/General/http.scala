@@ -51,10 +51,17 @@ object HTTP
 
   object Client
   {
-    def set_user_agent(connection: URLConnection, user_agent: String): Unit =
-      proper_string(user_agent).foreach(s => connection.setRequestProperty("User-Agent", s))
+    def open_connection(url: URL, user_agent: String = ""): HttpURLConnection =
+    {
+      url.openConnection match {
+        case connection: HttpURLConnection =>
+          proper_string(user_agent).foreach(s => connection.setRequestProperty("User-Agent", s))
+          connection
+        case _ => error("Bad URL (not HTTP): " + quote(url.toString))
+      }
+    }
 
-    def get_content(connection: URLConnection): Content =
+    def get_content(connection: HttpURLConnection): Content =
     {
       val Charset = """.*\bcharset="?([\S^"]+)"?.*""".r
       using(connection.getInputStream)(stream =>
@@ -73,68 +80,58 @@ object HTTP
     }
 
     def get(url: URL, user_agent: String = ""): Content =
-    {
-      val connection = url.openConnection
-      set_user_agent(connection, user_agent)
-      get_content(connection)
-    }
+      get_content(open_connection(url, user_agent = user_agent))
 
     def post(url: URL, parameters: List[(String, Any)], user_agent: String = ""): Content =
     {
-      val connection = url.openConnection
-      connection match {
-        case http_connection: HttpURLConnection =>
-          http_connection.setRequestMethod("POST")
-          connection.setDoOutput(true)
+      val connection = open_connection(url, user_agent = user_agent)
+      connection.setRequestMethod("POST")
+      connection.setDoOutput(true)
 
-          set_user_agent(connection, user_agent)
+      val boundary = UUID.random_string()
+      connection.setRequestProperty(
+        "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
 
-          val boundary = UUID.random_string()
-          connection.setRequestProperty(
-            "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
+      using(connection.getOutputStream)(out =>
+      {
+        def output(s: String): Unit = out.write(UTF8.bytes(s))
+        def output_newline(n: Int = 1): Unit = (1 to n).foreach(_ => output(NEWLINE))
+        def output_boundary(end: Boolean = false): Unit =
+          output("--" + boundary + (if (end) "--" else "") + NEWLINE)
+        def output_name(name: String): Unit =
+          output("Content-Disposition: form-data; name=" + quote(name))
+        def output_value(value: Any): Unit =
+        {
+          output_newline(2)
+          output(value.toString)
+        }
+        def output_content(content: Content): Unit =
+        {
+          proper_string(content.file_name).foreach(s => output("; filename=" + quote(s)))
+          output_newline()
+          proper_string(content.mime_type).foreach(s => output("Content-Type: " + s))
+          output_newline(2)
+          content.bytes.write_stream(out)
+        }
 
-          using(connection.getOutputStream)(out =>
-          {
-            def output(s: String): Unit = out.write(UTF8.bytes(s))
-            def output_newline(n: Int = 1): Unit = (1 to n).foreach(_ => output(NEWLINE))
-            def output_boundary(end: Boolean = false): Unit =
-              output("--" + boundary + (if (end) "--" else "") + NEWLINE)
-            def output_name(name: String): Unit =
-              output("Content-Disposition: form-data; name=" + quote(name))
-            def output_value(value: Any): Unit =
-            {
-              output_newline(2)
-              output(value.toString)
-            }
-            def output_content(content: Content): Unit =
-            {
-              proper_string(content.file_name).foreach(s => output("; filename=" + quote(s)))
-              output_newline()
-              proper_string(content.mime_type).foreach(s => output("Content-Type: " + s))
-              output_newline(2)
-              content.bytes.write_stream(out)
-            }
+        output_newline(2)
 
-            output_newline(2)
+        for { (name, value) <- parameters } {
+          output_boundary()
+          output_name(name)
+          value match {
+            case content: Content => output_content(content)
+            case file: JFile => output_content(read_content(file))
+            case path: Path => output_content(read_content(path))
+            case _ => output_value(value)
+          }
+          output_newline()
+        }
+        output_boundary(end = true)
+        out.flush()
+      })
 
-            for { (name, value) <- parameters } {
-              output_boundary()
-              output_name(name)
-              value match {
-                case content: Content => output_content(content)
-                case file: JFile => output_content(read_content(file))
-                case path: Path => output_content(read_content(path))
-                case _ => output_value(value)
-              }
-              output_newline()
-            }
-            output_boundary(end = true)
-            out.flush()
-          })
-          get_content(connection)
-
-        case _ => error("Bad URL (not HTTP): " + quote(url.toString))
-      }
+      get_content(connection)
     }
   }
 
