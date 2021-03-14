@@ -59,8 +59,7 @@ fun run_atp ctxt format problem =
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
       File.bash_path (Path.explode path) ^ " " ^
-      arguments ctxt false "" atp_timeout (File.bash_path prob_file)
-                (ord, K [], K [])
+      arguments ctxt false "" atp_timeout prob_file (ord, K [], K [])
     val outcome =
       Timeout.apply atp_timeout Isabelle_System.bash_output command
       |> fst
