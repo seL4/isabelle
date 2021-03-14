@@ -72,7 +72,8 @@ object SystemOnTPTP
     val here = Scala_Project.here
     def apply(arg: String): String =
     {
-      val List(url, system, problem, extra, Value.Int(timeout)) = Library.split_strings0(arg)
+      val List(url, system, problem_path, extra, Value.Int(timeout)) = Library.split_strings0(arg)
+      val problem = File.read(Path.explode(problem_path))
       val res = run_system(Url(url), system, problem, extra = extra, timeout = Time.ms(timeout))
 
       val bad_prover = "WARNING: " + system + " does not exist"

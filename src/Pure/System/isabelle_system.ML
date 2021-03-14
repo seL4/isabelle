@@ -11,6 +11,7 @@ sig
   val bash: string -> int
   val bash_functions: unit -> string list
   val check_bash_function: Proof.context -> string * Position.T -> string
+  val absolute_path: Path.T -> string
   val make_directory: Path.T -> Path.T
   val copy_dir: Path.T -> Path.T -> unit
   val copy_file: Path.T -> Path.T -> unit
