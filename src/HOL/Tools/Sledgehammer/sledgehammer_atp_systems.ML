@@ -366,7 +366,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 val leo3_config : atp_config =
   {exec = (["LEO3_HOME"], ["leo3"]),
    arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem => fn _ =>
-     File.bash_path problem ^ " " ^ "--atp cvc=$CVC4_SOLVER --atp e=\"$E_HOME\"/eprover \
+     File.bash_path problem ^ " " ^ "--atp cvc=\"$CVC4_SOLVER\" --atp e=\"$E_HOME\"/eprover \
      \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
      (if full_proofs then "--nleq --naeq " else ""),
    proof_delims = tstp_proof_delims,
