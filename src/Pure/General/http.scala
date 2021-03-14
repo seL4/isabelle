@@ -27,7 +27,8 @@ object HTTP
     bytes: Bytes,
     file_name: String = "",
     mime_type: String = default_mime_type,
-    encoding: String = default_encoding)
+    encoding: String = default_encoding,
+    elapsed_time: Time = Time.zero)
   {
     def text: String = new String(bytes.array, encoding)
     def text_lines: List[String] = Library.trim_split_lines(text)
@@ -74,9 +75,13 @@ object HTTP
     def get_content(connection: HttpURLConnection): Content =
     {
       val Charset = """.*\bcharset="?([\S^"]+)"?.*""".r
+
+      val start = Time.now()
       using(connection.getInputStream)(stream =>
       {
         val bytes = Bytes.read_stream(stream, hint = connection.getContentLength)
+        val stop = Time.now()
+
         val file_name = Url.file_name(connection.getURL)
         val mime_type = Option(connection.getContentType).getOrElse(default_mime_type)
         val encoding =
@@ -85,7 +90,8 @@ object HTTP
             case (_, Charset(enc)) => enc
             case _ => default_encoding
           }
-        Content(bytes, file_name = file_name, mime_type = mime_type, encoding = encoding)
+        Content(bytes, file_name = file_name, mime_type = mime_type,
+          encoding = encoding, elapsed_time = stop - start)
       })
     }
 
