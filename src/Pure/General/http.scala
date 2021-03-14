@@ -53,7 +53,7 @@ object HTTP
 
   object Client
   {
-    val default_timeout = Time.seconds(180)
+    val default_timeout: Time = Time.seconds(180)
 
     def open_connection(url: URL,
       timeout: Time = default_timeout,
@@ -189,9 +189,9 @@ object HTTP
 
     def write_response(code: Int, response: Response): Unit =
     {
-      http_exchange.getResponseHeaders().set("Content-Type", response.content_type)
+      http_exchange.getResponseHeaders.set("Content-Type", response.content_type)
       http_exchange.sendResponseHeaders(code, response.bytes.length.toLong)
-      using(http_exchange.getResponseBody)(response.bytes.write_stream(_))
+      using(http_exchange.getResponseBody)(response.bytes.write_stream)
     }
   }
 
@@ -211,8 +211,7 @@ object HTTP
   object Handler
   {
     def apply(root: String, body: Exchange => Unit): Handler =
-      new Handler(root,
-        new HttpHandler { def handle(x: HttpExchange): Unit = body(new Exchange(x)) })
+      new Handler(root, (x: HttpExchange) => body(new Exchange(x)))
 
     def method(name: String, root: String, body: Arg => Option[Response]): Handler =
       apply(root, http =>
@@ -250,7 +249,7 @@ object HTTP
     def += (handler: Handler): Unit = http_server.createContext(handler.root, handler.handler)
     def -= (handler: Handler): Unit = http_server.removeContext(handler.root)
 
-    def start(): Unit = http_server.start
+    def start(): Unit = http_server.start()
     def stop(): Unit = http_server.stop(0)
 
     def address: InetSocketAddress = http_server.getAddress
