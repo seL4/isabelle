@@ -260,4 +260,5 @@ class Scala_Functions extends Scala.Functions(
   Isabelle_System.Rm_Tree,
   Isabelle_System.Download,
   Isabelle_Tool.Isabelle_Tools,
-  isabelle.atp.SystemOnTPTP.List_Systems)
+  isabelle.atp.SystemOnTPTP.List_Systems,
+  isabelle.atp.SystemOnTPTP.Run_System)
