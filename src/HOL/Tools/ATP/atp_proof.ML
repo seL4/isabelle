@@ -25,12 +25,9 @@ sig
     ProofIncomplete |
     ProofUnparsable |
     UnsoundProof of bool * string list |
-    CantConnect |
     TimedOut |
     Inappropriate |
     OutOfResources |
-    NoPerl |
-    NoLibwwwPerl |
     MalformedInput |
     MalformedOutput |
     Interrupted |
@@ -139,12 +136,9 @@ datatype atp_failure =
   ProofIncomplete |
   ProofUnparsable |
   UnsoundProof of bool * string list |
-  CantConnect |
   TimedOut |
   Inappropriate |
   OutOfResources |
-  NoPerl |
-  NoLibwwwPerl |
   MalformedInput |
   MalformedOutput |
   Interrupted |
@@ -180,14 +174,10 @@ fun string_of_atp_failure MaybeUnprovable = "The generated problem is maybe unpr
   | string_of_atp_failure (UnsoundProof (true, ss)) =
     "The prover derived \"False\"" ^ from_lemmas ss ^
     ", which could be due to a bug in Sledgehammer or to inconsistent axioms (including \"sorry\"s)"
-  | string_of_atp_failure CantConnect = "Cannot connect to server"
   | string_of_atp_failure TimedOut = "Timed out"
   | string_of_atp_failure Inappropriate =
     "The generated problem lies outside the prover's scope"
   | string_of_atp_failure OutOfResources = "The prover ran out of resources"
-  | string_of_atp_failure NoPerl = "Perl" ^ missing_message_tail
-  | string_of_atp_failure NoLibwwwPerl =
-    "The Perl module \"libwww-perl\"" ^ missing_message_tail
   | string_of_atp_failure MalformedInput = "The generated problem is malformed"
   | string_of_atp_failure MalformedOutput = "The prover output is malformed"
   | string_of_atp_failure Interrupted = "The prover was interrupted"

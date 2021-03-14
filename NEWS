@@ -16,6 +16,12 @@ Timeout.apply in Isabelle/ML treats an original timeout specification 0
 as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
 in boundary cases.
 
+* Remote provers from SystemOnTPTP (notably for Sledgehammer) are now
+managed via Isabelle/Scala instead of perl; the dependency on
+libwww-perl has been eliminated (notably on Linux). Rare
+INCOMPATIBILITY: HTTP proxy configuration now works via JVM properties
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/doc-files/net-properties.html
+
 
 *** Document preparation ***
 

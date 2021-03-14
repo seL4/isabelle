@@ -110,11 +110,6 @@ val tstp_proof_delims =
    ("% SZS output start Refutation", "% SZS output end Refutation"),
    ("% SZS output start Proof", "% SZS output end Proof")]
 
-val known_perl_failures =
-  [(CantConnect, "HTTP error"),
-   (NoPerl, "env: perl"),
-   (NoLibwwwPerl, "Can't locate HTTP")]
-
 fun known_szs_failures wrap =
   [(Unprovable, wrap "CounterSatisfiable"),
    (Unprovable, wrap "Satisfiable"),
@@ -435,8 +430,7 @@ val spass_config : atp_config =
         (MalformedInput, "Undefined symbol"),
         (MalformedInput, "Free Variable"),
         (Unprovable, "No formulae and clauses found in input file"),
-        (InternalError, "Please report this error")] @
-        known_perl_failures,
+        (InternalError, "Please report this error")],
      prem_role = Conjecture,
      best_slices = fn _ =>
        (* FUDGE *)
@@ -626,7 +620,7 @@ fun remote_config system_name system_versions proof_delims known_failures prem_r
       Isabelle_System.absolute_path problem,
       command, string_of_int (Int.min (max_remote_secs, to_secs 1 timeout) * 1000)]),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
-   known_failures = known_failures @ known_perl_failures @ known_says_failures,
+   known_failures = known_failures @ known_says_failures,
    prem_role = prem_role,
    best_slices = fn ctxt => [(1.0, best_slice ctxt)],
    best_max_mono_iters = default_max_mono_iters,
