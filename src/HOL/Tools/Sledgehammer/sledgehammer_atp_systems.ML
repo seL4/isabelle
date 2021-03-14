@@ -46,6 +46,7 @@ sig
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
   val is_vampire_noncommercial_license_accepted : unit -> bool option
+  val isabelle_scala_function: string list * string list
   val remote_atp : string -> string -> string list -> (string * string) list ->
     (atp_failure * string) list -> atp_formula_role -> (Proof.context -> slice_spec * string) ->
     string * (unit -> atp_config)
@@ -615,13 +616,15 @@ fun the_remote_system name versions =
 
 val max_remote_secs = 1000   (* give Geoff Sutcliffe's servers a break *)
 
+val isabelle_scala_function = (["SCALA_HOME"], ["bin/scala"])
+
 fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
-  {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
+  {exec = isabelle_scala_function,
    arguments = fn _ => fn _ => fn command => fn timeout => fn problem => fn _ =>
-     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
-     "-s " ^ the_remote_system system_name system_versions ^ " " ^
-     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
-     " " ^ File.bash_path problem,
+    (cat_strings0
+     [the_remote_system system_name system_versions,
+      Isabelle_System.absolute_path problem,
+      command, string_of_int (Int.min (max_remote_secs, to_secs 1 timeout) * 1000)]),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    prem_role = prem_role,

@@ -158,7 +158,7 @@ fun run_atp mode name
         Path.explode dest_dir + problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir)
-    val command0 =
+    val executable =
       (case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
         let
@@ -264,20 +264,27 @@ fun run_atp mode name
             val ord = effective_term_order ctxt name
             val args =
               arguments ctxt full_proofs extra slice_timeout prob_path (ord, ord_info, sel_weights)
-            val command = "exec 2>&1; " ^ File.bash_path command0 ^ " " ^ args
+            val command = File.bash_path executable ^ " " ^ args
+
+            fun run_command () =
+              if exec = isabelle_scala_function then
+                let val {output, timing} = SystemOnTPTP.run_system_encoded args
+                in (output, timing) end
+              else
+                let val res = Isabelle_System.bash_process ("exec 2>&1; " ^ command)
+                in (Process_Result.out res, Process_Result.timing_elapsed res) end
 
             val _ =
               atp_problem
               |> lines_of_atp_problem format ord ord_info
-              |> cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
+              |> (exec <> isabelle_scala_function) ?
+                cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
 
             val ((output, run_time), (atp_proof, outcome)) =
-              Timeout.apply generous_slice_timeout Isabelle_System.bash_process command
-              |> (fn res =>
-                (Process_Result.out res |>
-                  (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I),
-                 Process_Result.timing_elapsed res))
+              Timeout.apply generous_slice_timeout run_command ()
+              |>> overlord ?
+                (fn output => prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") output)
               |> (fn accum as (output, _) =>
                 (accum,
                  extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
@@ -285,6 +292,7 @@ fun run_atp mode name
                    atp_problem
                  handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
               handle Timeout.TIMEOUT _ => (("", slice_timeout), ([], SOME TimedOut))
+                | ERROR msg => (("", Time.zeroTime), ([], SOME (UnknownError msg)))
 
             val outcome =
               (case outcome of
