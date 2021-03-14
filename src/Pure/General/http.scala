@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/http.scala
     Author:     Makarius
 
-HTTP server support.
+HTTP client and server support.
 */
 
 package isabelle
