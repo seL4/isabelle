@@ -35,12 +35,12 @@ object SystemOnTPTP
 
   /* list systems */
 
-  def list_systems(url: URL): List[String] =
-    post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY")).text_lines
+  def list_systems(url: URL): HTTP.Content =
+    post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY"))
 
   object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
     val here = Scala_Project.here
-    def apply(url: String): String = cat_lines(list_systems(Url(url)))
+    def apply(url: String): String = list_systems(Url(url)).string
   }
 }

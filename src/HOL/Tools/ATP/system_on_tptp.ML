@@ -18,7 +18,7 @@ fun get_url () = Options.default_string \<^system_option>\<open>SystemOnTPTP\<cl
 fun list_systems () =
   let
     val url = get_url ()
-    val systems = split_lines (\<^scala>\<open>SystemOnTPTP.list_systems\<close> url)
+    val systems = trim_split_lines (\<^scala>\<open>SystemOnTPTP.list_systems\<close> url)
   in {url = url, systems = systems} end
 
 end

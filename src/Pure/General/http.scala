@@ -30,8 +30,8 @@ object HTTP
     encoding: String = default_encoding,
     elapsed_time: Time = Time.zero)
   {
-    def text: String = new String(bytes.array, encoding)
-    def text_lines: List[String] = Library.trim_split_lines(text)
+    def string: String = new String(bytes.array, encoding)
+    def trim_split_lines: List[String] = Library.trim_split_lines(string)
   }
 
   def read_content(file: JFile): Content =
