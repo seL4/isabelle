@@ -22,12 +22,11 @@ object SystemOnTPTP
     parameters: List[(String, Any)],
     timeout: Time = HTTP.Client.default_timeout): HTTP.Content =
   {
-    val parameters0 =
-      List("NoHTML" -> 1, "QuietFlag" -> "-q0")
-        .filterNot(p0 => parameters.exists(p => p0._1 == p._1))
     try {
-      HTTP.Client.post(url, parameters0 ::: parameters,
-        timeout = timeout, user_agent = "Sledgehammer")
+      HTTP.Client.post(url,
+        ("NoHTML" -> 1) :: parameters,
+        timeout = timeout,
+        user_agent = "Sledgehammer")
     }
     catch { case ERROR(msg) => cat_error("Failed to access SystemOnTPTP server", msg) }
   }
@@ -36,7 +35,10 @@ object SystemOnTPTP
   /* list systems */
 
   def list_systems(url: URL): HTTP.Content =
-    post_request(url, List("SubmitButton" -> "ListSystems", "ListStatus" -> "READY"))
+    post_request(url,
+      List("SubmitButton" -> "ListSystems",
+        "ListStatus" -> "READY",
+        "QuietFlag" -> "-q0"))
 
   object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
@@ -74,8 +76,8 @@ object SystemOnTPTP
     {
       val List(url, system, problem_path, extra, Value.Int(timeout)) = Library.split_strings0(arg)
       val problem = File.read(Path.explode(problem_path))
-      val res = run_system(Url(url), system, problem, extra = extra, timeout = Time.ms(timeout))
 
+      val res = run_system(Url(url), system, problem, extra = extra, timeout = Time.ms(timeout))
       val text = res.text
       val timing = res.elapsed_time.ms
 
