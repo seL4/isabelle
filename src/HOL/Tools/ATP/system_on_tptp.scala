@@ -41,7 +41,7 @@ object SystemOnTPTP
   object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
   {
     val here = Scala_Project.here
-    def apply(url: String): String = list_systems(Url(url)).string
+    def apply(url: String): String = list_systems(Url(url)).text
   }
 
 
@@ -76,11 +76,14 @@ object SystemOnTPTP
       val problem = File.read(Path.explode(problem_path))
       val res = run_system(Url(url), system, problem, extra = extra, timeout = Time.ms(timeout))
 
+      val text = res.text
+      val timing = res.elapsed_time.ms
+
       val bad_prover = "WARNING: " + system + " does not exist"
-      if (res.trim_split_lines.exists(_.startsWith(bad_prover))) {
+      if (split_lines(text).exists(_.startsWith(bad_prover))) {
         error("The ATP " + quote(system) + " is not available at SystemOnTPTP")
       }
-      else Library.cat_strings0(List(res.string, res.elapsed_time.ms.toString))
+      else Library.cat_strings0(List(text, timing.toString))
     }
   }
 }
