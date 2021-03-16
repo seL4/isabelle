@@ -218,6 +218,8 @@ object Build_Fonts
     target_dir: Path = default_target_dir,
     progress: Progress = new Progress): Unit =
   {
+    Isabelle_System.require_command("ttfautohint")
+
     progress.echo("Directory " + target_dir)
     hinting.foreach(hinted => Isabelle_System.make_directory(target_dir + hinted_path(hinted)))
 
@@ -307,7 +309,8 @@ object Build_Fonts
 
     // etc/settings
 
-    val settings_path = Isabelle_System.make_directory(Components.settings(target_dir))
+    val settings_path = Components.settings(target_dir)
+    Isabelle_System.make_directory(settings_path.dir)
 
     def fonts_settings(hinted: Boolean): String =
       "\n  isabelle_fonts \\\n" +
