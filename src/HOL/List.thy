@@ -4372,7 +4372,7 @@ lemma remove1_idem: "x \<notin> set xs \<Longrightarrow> remove1 x xs = xs"
 by (induct xs) simp_all
 
 lemma remove1_split:
-  "a \<in> set xs \<Longrightarrow> \<exists>ls rs. xs = ls @ a # rs \<and> remove1 a xs = ls @ rs"
+  "a \<in> set xs \<Longrightarrow> remove1 a xs = ys \<longleftrightarrow> (\<exists>ls rs. xs = ls @ a # rs \<and> a \<notin> set ls \<and> ys = ls @ rs)"
 by (metis remove1.simps(2) remove1_append split_list_first)
 
 
