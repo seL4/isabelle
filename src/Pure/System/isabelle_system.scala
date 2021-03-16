@@ -491,7 +491,7 @@ object Isabelle_System
   def require_command(cmds: String*): Unit =
   {
     for (cmd <- cmds) {
-      if (!bash(Bash.string(cmd) + " --version").ok) error("Missing command: " + quote(cmd))
+      if (!bash(Bash.string(cmd) + " --version").ok) error("Missing system command: " + quote(cmd))
     }
   }
 
