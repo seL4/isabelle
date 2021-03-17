@@ -371,6 +371,36 @@
 \newcommand{\isasymcomment}{\isatext{\isastylecmt---}}
 \newcommand{\isasymproof}{\isamath{\,\langle\mathit{proof}\rangle}}
 
+%Z notation
+\newcommand{\isaZhbar}[1]{\rlap{\raise.0001ex\hbox{\isamath{-}}}#1}
+\newcommand{\isaZpvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 5mu}\hfil\cr#1}}
+\newcommand{\isaZfvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 3mu\mapstochar\mkern 5mu}\hfil\cr#1}}
+\newcommand{\isaZdarrow}[3]{\ooalign{\isamath{#1}\hfil\cr\isamath{\mkern#3mu\isamath{#2}}}}
+\newcommand{\isasymlblot}{\isamath{{\langle}\mkern -3.5mu{|}}}
+\newcommand{\isasymrblot}{\isamath{{|}\mkern -3.5mu{\rangle}}}
+\newcommand{\isasymZpower}{\isamath{\mathbb P}}  %requires amssymb
+\newcommand{\isasymZfinset}{\isamath{\mathbb F}}  %requires amssymb
+\newcommand{\isasymZarithmos}{\isamath{\mathbb A}}  %requires amssymb
+\newcommand{\isasymZuniv}{\isamath{\mathbb U}}  %requires amssymb
+\newcommand{\isasymZworld}{\isamath{\mathbb W}}  %requires amssymb
+\newcommand{\isasymZsemi}{\isamath{\fatsemi}}  %requires stmaryrd
+\newcommand{\isasymZinj}{\isamath{\rightarrowtail}}  %requires amssymb
+\newcommand{\isasymZpinj}{\isaZpvbar{\isamath{\rightarrowtail}}}  %requires amssymb
+\newcommand{\isasymZfinj}{\isaZfvbar{\isasymZinj}}  %requires amssymb
+\newcommand{\isasymZsurj}{\isaZdarrow{\rightarrow}{\rightarrow}{4}}  %requires amssymb
+\newcommand{\isasymZpsurj}{\isaZpvbar{\isasymZsurj}}  %requires amssymb
+\newcommand{\isasymZbij}{\isaZdarrow{\rightarrowtail}{\rightarrow}{5}}  %requires amssymb
+\newcommand{\isasymZpfun}{\isaZpvbar{\isamath{\rightarrow}}}
+\newcommand{\isasymZffun}{\isaZfvbar{\isamath{\rightarrow}}}
+\newcommand{\isasymZdres}{\isamath{\lhd}}  %requires amssymb
+\newcommand{\isasymZndres}{\isaZhbar{\isamath{\lhd}}}  %requires amssymb
+\newcommand{\isasymZrres}{\isamath{\rhd}}  %requires amssymb
+\newcommand{\isasymZnrres}{\isaZhbar{\isamath{\rhd}}}  %requires amssymb
+\newcommand{\isasymZspot}{\isamath{\bullet}}
+\newcommand{\isasymZtypecolon}{\isatext{\raise 0.6ex\hbox{\oalign{\hfil\isamath{\scriptscriptstyle\mathrm{o}}\hfil\cr\hfil\isamath{\scriptscriptstyle\mathrm{o}}\hfil}}}}
+\newcommand{\isasymZhide}{\isamath{\backslash}}
+\newcommand{\isasymZcat}{\isatext{\raise 0.8ex\hbox{\isamath{\mathchar\frown}}}}
+
 \newcommand{\isactrlmarker}{\isatext{\ding{48}}}  %requires pifont
 \newcommand{\isactrlassert}{\isakeywordcontrol{assert}}
 \newcommand{\isactrlcancel}{\isakeywordcontrol{cancel}}

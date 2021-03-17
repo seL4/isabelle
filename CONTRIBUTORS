@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2021: Simon Foster
+  More symbol definitions for Z Notation (Isabelle fonts and LaTeX).
+
 * February 2021: Manuel Eberl
   New material in HOL-Analysis/HOL-Probability, most notably Hoeffding's
   inequality and the negative binomial distribution
@@ -15,6 +18,7 @@ Contributions to this Isabelle version
 
 * January 2021: Martin Rasyzk
   Fast set operations for red-black trees.
+
 
 Contributions to Isabelle2021
 -----------------------------

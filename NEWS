@@ -22,6 +22,10 @@ libwww-perl has been eliminated (notably on Linux). Rare
 INCOMPATIBILITY: HTTP proxy configuration now works via JVM properties
 https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/doc-files/net-properties.html
 
+* More symbol definitions for the Z Notation (Isabelle fonts and LaTeX).
+See also the group "Z Notation" in the Symbols dockable of
+Isabelle/jEdit.
+
 
 *** Document preparation ***
 

@@ -65,6 +65,7 @@ object Build_Fonts
         0x2032,  // minute
         0x2033,  // second
         0x2038,  // caret
+        0x2040,  // sequence concatenation
         0x20cd,  // currency symbol
       ) ++
       (0x2100 to 0x214f) ++  // Letterlike Symbols

@@ -85,8 +85,8 @@ object Mkroot
 %\""" + """usepackage{eurosym}
   %for \<euro>
 
-%\""" + """usepackage[only,bigsqcap]{stmaryrd}
-  %for \<Sqinter>
+%\""" + """usepackage[only,bigsqcap,fatsemi]{stmaryrd}
+  %for \<Sqinter>, \<Zsemi>
 
 %\""" + """usepackage{eufrak}
   %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
