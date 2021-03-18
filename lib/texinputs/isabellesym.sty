@@ -212,6 +212,8 @@
 \newcommand{\isasymrbrakk}{\isamath{\mathclose{\rbrack\mkern-3mu\rbrack}}}
 \newcommand{\isasymlbrace}{\isamath{\mathopen{\lbrace\mkern-4.5mu\mid}}}
 \newcommand{\isasymrbrace}{\isamath{\mathclose{\mid\mkern-4.5mu\rbrace}}}
+\newcommand{\isasymlblot}{\isamath{{\langle}\mkern -3.5mu{|}}}
+\newcommand{\isasymrblot}{\isamath{{|}\mkern -3.5mu{\rangle}}}
 \newcommand{\isasymguillemotleft}{\isatext{\flqq}}  %requires babel
 \newcommand{\isasymguillemotright}{\isatext{\frqq}}  %requires babel
 \newcommand{\isasymbottom}{\isamath{\bot}}
@@ -364,20 +366,12 @@
 \newcommand{\isasymsome}{\isamath{\epsilon\,}}
 \newcommand{\isasymbind}{\isamath{\mathbin{>\!\!\!>\mkern-6.7mu=}}}
 \newcommand{\isasymthen}{\isamath{\mathbin{>\!\!\!>}}}
-\newcommand{\isasymopen}{\isatext{\guilsinglleft}}
-\newcommand{\isasymclose}{\isatext{\guilsinglright}}
-\newcommand{\isasymhole}{\isatext{\normalfont\rmfamily\wasylozenge}}  %requires wasysym
-\newcommand{\isasymnewline}{\isatext{\fbox{$\hookleftarrow$}}}
-\newcommand{\isasymcomment}{\isatext{\isastylecmt---}}
-\newcommand{\isasymproof}{\isamath{\,\langle\mathit{proof}\rangle}}
 
 %Z notation
 \newcommand{\isaZhbar}[1]{\rlap{\raise.0001ex\hbox{\isamath{-}}}#1}
 \newcommand{\isaZpvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 5mu}\hfil\cr#1}}
 \newcommand{\isaZfvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 3mu\mapstochar\mkern 5mu}\hfil\cr#1}}
 \newcommand{\isaZdarrow}[3]{\ooalign{\isamath{#1}\hfil\cr\isamath{\mkern#3mu\isamath{#2}}}}
-\newcommand{\isasymlblot}{\isamath{{\langle}\mkern -3.5mu{|}}}
-\newcommand{\isasymrblot}{\isamath{{|}\mkern -3.5mu{\rangle}}}
 \newcommand{\isasymZpower}{\isamath{\mathbb P}}  %requires amssymb
 \newcommand{\isasymZfinset}{\isamath{\mathbb F}}  %requires amssymb
 \newcommand{\isasymZarithmos}{\isamath{\mathbb A}}  %requires amssymb
@@ -401,6 +395,13 @@
 \newcommand{\isasymZtypecolon}{\isatext{\raise 0.6ex\hbox{\oalign{\hfil\isamath{\scriptscriptstyle\mathrm{o}}\hfil\cr\hfil\isamath{\scriptscriptstyle\mathrm{o}}\hfil}}}}
 \newcommand{\isasymZhide}{\isamath{\backslash}}
 \newcommand{\isasymZcat}{\isatext{\raise 0.8ex\hbox{\isamath{\mathchar\frown}}}}
+
+\newcommand{\isasymhole}{\isatext{\normalfont\rmfamily\wasylozenge}}  %requires wasysym
+\newcommand{\isasymnewline}{\isatext{\fbox{$\hookleftarrow$}}}
+\newcommand{\isasymcomment}{\isatext{\isastylecmt---}}
+\newcommand{\isasymopen}{\isatext{\guilsinglleft}}
+\newcommand{\isasymclose}{\isatext{\guilsinglright}}
+\newcommand{\isasymproof}{\isamath{\,\langle\mathit{proof}\rangle}}
 
 \newcommand{\isactrlmarker}{\isatext{\ding{48}}}  %requires pifont
 \newcommand{\isactrlassert}{\isakeywordcontrol{assert}}
