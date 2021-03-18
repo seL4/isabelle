@@ -523,7 +523,7 @@ notation (ASCII)
 global_interpretation subset_mset: ordering \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order.trans order.antisym)
 
-interpretation subset_mset: ordered_ab_semigroup_add_imp_le "(+)" "(-)" "(\<subseteq>#)" "(\<subset>#)"
+interpretation subset_mset: ordered_ab_semigroup_add_imp_le \<open>(+)\<close> \<open>(-)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -680,16 +680,30 @@ subsubsection \<open>Intersection and bounded union\<close>
 definition inter_mset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>  (infixl \<open>\<inter>#\<close> 70)
   where \<open>A \<inter># B = A - (A - B)\<close>
 
+lemma count_inter_mset [simp]:
+  \<open>count (A \<inter># B) x = min (count A x) (count B x)\<close>
+  by (simp add: inter_mset_def)
+
+(*global_interpretation subset_mset: semilattice_order \<open>(\<inter>#)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
+  by standard (simp_all add: multiset_eq_iff subseteq_mset_def subset_mset_def min_def)*)
+
 interpretation subset_mset: semilattice_inf \<open>(\<inter>#)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
-proof -
-  have [simp]: "m \<le> n \<Longrightarrow> m \<le> q \<Longrightarrow> m \<le> n - (n - q)" for m n q :: nat
-    by arith
-  show "class.semilattice_inf (\<inter>#) (\<subseteq>#) (\<subset>#)"
-    by standard (auto simp add: inter_mset_def subseteq_mset_def)
-qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+  by standard (simp_all add: multiset_eq_iff subseteq_mset_def)
+  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 definition union_mset :: \<open>'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset\<close>  (infixl \<open>\<union>#\<close> 70)
   where \<open>A \<union># B = A + (B - A)\<close>
+
+lemma count_union_mset [simp]:
+  \<open>count (A \<union># B) x = max (count A x) (count B x)\<close>
+  by (simp add: union_mset_def)
+
+global_interpretation subset_mset: semilattice_neutr_order \<open>(\<union>#)\<close> \<open>{#}\<close> \<open>(\<supseteq>#)\<close> \<open>(\<supset>#)\<close>
+  apply standard
+      apply (simp_all add: multiset_eq_iff subseteq_mset_def subset_mset_def max_def)
+   apply (auto simp add: le_antisym dest: sym)
+   apply (metis nat_le_linear)+
+  done
 
 interpretation subset_mset: semilattice_sup \<open>(\<union>#)\<close> \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
 proof -
@@ -706,10 +720,6 @@ interpretation subset_mset: bounded_lattice_bot "(\<inter>#)" "(\<subseteq>#)" "
 
 
 subsubsection \<open>Additional intersection facts\<close>
-
-lemma count_inter_mset [simp]:
-  \<open>count (A \<inter># B) x = min (count A x) (count B x)\<close>
-  by (simp add: inter_mset_def)
 
 lemma set_mset_inter [simp]:
   "set_mset (A \<inter># B) = set_mset A \<inter> set_mset B"
@@ -841,10 +851,6 @@ lemma inter_subset_eq_union:
 
 
 subsubsection \<open>Additional bounded union facts\<close>
-
-lemma count_union_mset [simp]:
-  \<open>count (A \<union># B) x = max (count A x) (count B x)\<close>
-  by (simp add: union_mset_def)
 
 lemma set_mset_sup [simp]:
   \<open>set_mset (A \<union># B) = set_mset A \<union> set_mset B\<close>
@@ -1054,20 +1060,19 @@ definition Sup_multiset :: "'a multiset set \<Rightarrow> 'a multiset" where
 lemma Sup_multiset_empty: "Sup {} = {#}"
   by (simp add: Sup_multiset_def)
 
-lemma Sup_multiset_unbounded: "\<not>subset_mset.bdd_above A \<Longrightarrow> Sup A = {#}"
+lemma Sup_multiset_unbounded: "\<not> subset_mset.bdd_above A \<Longrightarrow> Sup A = {#}"
   by (simp add: Sup_multiset_def)
 
 instance ..
 
 end
 
-
 lemma bdd_above_multiset_imp_bdd_above_count:
   assumes "subset_mset.bdd_above (A :: 'a multiset set)"
   shows   "bdd_above ((\<lambda>X. count X x) ` A)"
 proof -
   from assms obtain Y where Y: "\<forall>X\<in>A. X \<subseteq># Y"
-    by (auto simp: subset_mset.bdd_above_def)
+    by (meson subset_mset.bdd_above.E)
   hence "count X x \<le> count Y x" if "X \<in> A" for X
     using that by (auto intro: mset_subset_eq_count)
   thus ?thesis by (intro bdd_aboveI[of _ "count Y x"]) auto
@@ -1078,7 +1083,7 @@ lemma bdd_above_multiset_imp_finite_support:
   shows   "finite (\<Union>X\<in>A. {x. count X x > 0})"
 proof -
   from assms obtain Y where Y: "\<forall>X\<in>A. X \<subseteq># Y"
-    by (auto simp: subset_mset.bdd_above_def)
+    by (meson subset_mset.bdd_above.E)
   hence "count X x \<le> count Y x" if "X \<in> A" for X x
     using that by (auto intro: mset_subset_eq_count)
   hence "(\<Union>X\<in>A. {x. count X x > 0}) \<subseteq> {x. count Y x > 0}"
@@ -1155,7 +1160,8 @@ next
 next
   fix X :: "'a multiset" and A
   assume nonempty: "A \<noteq> {}" and ge: "\<And>Y. Y \<in> A \<Longrightarrow> Y \<subseteq># X"
-  from ge have bdd: "subset_mset.bdd_above A" by (rule subset_mset.bdd_aboveI[of _ X])
+  from ge have bdd: "subset_mset.bdd_above A"
+    by blast
   show "Sup A \<subseteq># X"
   proof (rule mset_subset_eqI)
     fix x
