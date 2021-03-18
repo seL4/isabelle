@@ -148,17 +148,17 @@
 \<Phi>                  code: 0x0003a6  group: greek
 \<Psi>                  code: 0x0003a8  group: greek
 \<Omega>                code: 0x0003a9  group: greek
-\<bool>                 code: 0x01d539  group: letter
+\<bool>                 code: 0x01d539  group: letter  group: Z_Notation
 \<complex>              code: 0x002102  group: letter
-\<nat>                  code: 0x002115  group: letter
+\<nat>                  code: 0x002115  group: letter  group: Z_Notation
 \<rat>                  code: 0x00211a  group: letter
-\<real>                 code: 0x00211d  group: letter
+\<real>                 code: 0x00211d  group: letter  group: Z_Notation
 \<int>                  code: 0x002124  group: letter
 \<leftarrow>            code: 0x002190  group: arrow  abbrev: <.
 \<longleftarrow>        code: 0x0027f5  group: arrow  abbrev: <.
 \<longlongleftarrow>    code: 0x00290e  group: arrow  abbrev: <.
 \<longlonglongleftarrow> code: 0x0021e0 group: arrow  abbrev: <.
-\<rightarrow>           code: 0x002192  group: arrow  abbrev: .>  abbrev: ->
+\<rightarrow>           code: 0x002192  group: arrow  group: Z_Notation  abbrev: .>  abbrev: ->
 \<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: .>  abbrev: -->
 \<longlongrightarrow>   code: 0x00290f  group: arrow  abbrev: .>  abbrev: --->
 \<longlonglongrightarrow> code: 0x0021e2 group: arrow abbrev: .>  abbrev: --->
@@ -183,7 +183,7 @@
 \<leftharpoonup>        code: 0x0021bc  group: arrow  abbrev: <.
 \<rightharpoonup>       code: 0x0021c0  group: arrow  abbrev: .>
 \<rightleftharpoons>    code: 0x0021cc  group: arrow  abbrev: <> abbrev: ==
-\<leadsto>              code: 0x00219d  group: arrow  abbrev: .> abbrev: ~>
+\<leadsto>              code: 0x00219d  group: arrow  group: Z_Notation  abbrev: .> abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  group: arrow
 \<downharpoonright>     code: 0x0021c2  group: arrow
 \<upharpoonleft>        code: 0x0021bf  group: arrow
@@ -301,7 +301,7 @@
 \<triangleright>        code: 0x0025b9  group: relation
 \<triangle>             code: 0x0025b3  group: relation
 \<triangleq>            code: 0x00225c  group: relation
-\<oplus>                code: 0x002295  group: operator
+\<oplus>                code: 0x002295  group: operator  group: Z_Notation
 \<Oplus>                code: 0x002a01  group: operator
 \<otimes>               code: 0x002297  group: operator
 \<Otimes>               code: 0x002a02  group: operator
@@ -360,7 +360,7 @@
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
 \<bind>                 code: 0x00291c  group: operator  abbrev: >>=
-\<then>                 code: 0x002aa2  group: operator  abbrev: >>
+\<then>                 code: 0x002aa2  group: operator  group: Z_Notation  abbrev: >>
 \<some>                 code: 0x0003f5
 \<Zpower>               code: 0x002119  group: Z_Notation  group: letter
 \<Zfinset>              code: 0x01D53D  group: Z_Notation  group: letter
