@@ -201,18 +201,18 @@
 \<Down>                 code: 0x0021d3  group: arrow
 \<updown>               code: 0x002195  group: arrow
 \<Updown>               code: 0x0021d5  group: arrow
-\<langle>               code: 0x0027e8  group: punctuation  abbrev: <<
-\<rangle>               code: 0x0027e9  group: punctuation  abbrev: >>
-\<llangle>              code: 0x0027ea  group: punctuation  abbrev: <<
-\<rrangle>              code: 0x0027eb  group: punctuation  abbrev: >>
+\<langle>               code: 0x0027e8  group: punctuation  group: Z_Notation  abbrev: <<
+\<rangle>               code: 0x0027e9  group: punctuation  group: Z_Notation  abbrev: >>
+\<llangle>              code: 0x0027ea  group: punctuation  group: Z_Notation  abbrev: <<
+\<rrangle>              code: 0x0027eb  group: punctuation  group: Z_Notation  abbrev: >>
 \<lceil>                code: 0x002308  group: punctuation  abbrev: [.
 \<rceil>                code: 0x002309  group: punctuation  abbrev: .]
 \<lfloor>               code: 0x00230a  group: punctuation  abbrev: [.
 \<rfloor>               code: 0x00230b  group: punctuation  abbrev: .]
-\<lparr>                code: 0x002987  group: punctuation  abbrev: (|
-\<rparr>                code: 0x002988  group: punctuation  abbrev: |)
-\<lbrakk>               code: 0x0027e6  group: punctuation  abbrev: [|
-\<rbrakk>               code: 0x0027e7  group: punctuation  abbrev: |]
+\<lparr>                code: 0x002987  group: punctuation  group: Z_Notation  abbrev: (|
+\<rparr>                code: 0x002988  group: punctuation  group: Z_Notation  abbrev: |)
+\<lbrakk>               code: 0x0027e6  group: punctuation  group: Z_Notation  abbrev: [|
+\<rbrakk>               code: 0x0027e7  group: punctuation  group: Z_Notation  abbrev: |]
 \<lbrace>               code: 0x002983  group: punctuation  abbrev: {|
 \<rbrace>               code: 0x002984  group: punctuation  abbrev: |}
 \<lblot>                code: 0x002989  group: punctuation  group: Z_Notation  abbrev: <<
@@ -267,7 +267,7 @@
 \<Sqinter>              code: 0x002a05  group: operator  abbrev: INF
 \<setminus>             code: 0x002216  group: operator
 \<propto>               code: 0x00221d  group: operator
-\<uplus>                code: 0x00228e  group: operator
+\<uplus>                code: 0x00228e  group: operator  group: Z_Notation
 \<Uplus>                code: 0x002a04  group: operator
 \<noteq>                code: 0x002260  group: relation  abbrev: ~=
 \<sim>                  code: 0x00223c  group: relation
@@ -332,7 +332,7 @@
 \<partial>              code: 0x002202
 \<flat>                 code: 0x00266d
 \<natural>              code: 0x00266e
-\<sharp>                code: 0x00266f
+\<sharp>                code: 0x00266f  group: Z_Notation
 \<angle>                code: 0x002220
 \<copyright>            code: 0x0000a9
 \<registered>           code: 0x0000ae
@@ -385,6 +385,7 @@
 \<Ztypecolon>           code: 0x002982  group: Z_Notation  group: relation
 \<Zhide>                code: 0x0029F9  group: Z_Notation  group: operator
 \<Zcat>                 code: 0x002040  group: Z_Notation  group: operator
+\<Zinbag>               code: 0x0022FF  group: Z_Notation  group: relation
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
 \<comment>              code: 0x002015  group: document  argument: space_cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
