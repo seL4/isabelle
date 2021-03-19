@@ -173,11 +173,11 @@
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: .>  abbrev: =>
 \<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: .>  abbrev: ==>
 \<Rrightarrow>          code: 0x0021db  group: arrow  abbrev: .>
-\<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <>  abbrev: <->
+\<leftrightarrow>       code: 0x002194  group: arrow  group: Z_Notation  abbrev: <>  abbrev: <->
 \<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <>  abbrev: <->  abbrev: <-->
 \<Leftrightarrow>       code: 0x0021d4  group: arrow  abbrev: <>
 \<Longleftrightarrow>   code: 0x0027fa  group: arrow  abbrev: <>
-\<mapsto>               code: 0x0021a6  group: arrow  abbrev: .>  abbrev: |->
+\<mapsto>               code: 0x0021a6  group: arrow  group: Z_Notation  abbrev: .>  abbrev: |->
 \<longmapsto>           code: 0x0027fc  group: arrow  abbrev: .>  abbrev: |-->
 \<midarrow>             code: 0x002500  group: arrow  abbrev: <>
 \<Midarrow>             code: 0x002550  group: arrow  abbrev: <>
@@ -191,9 +191,9 @@
 \<leadsto>              code: 0x00219d  group: arrow  group: Z_Notation  abbrev: .> abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  group: arrow
 \<downharpoonright>     code: 0x0021c2  group: arrow
-\<upharpoonleft>        code: 0x0021bf  group: arrow
+\<upharpoonleft>        code: 0x0021bf  group: arrow  group: Z_Notation
 #\<upharpoonright>       code: 0x0021be  group: arrow
-\<restriction>          code: 0x0021be  group: operator
+\<restriction>          code: 0x0021be  group: operator  group: Z_Notation
 \<Colon>                code: 0x002237  group: punctuation
 \<up>                   code: 0x002191  group: arrow
 \<Up>                   code: 0x0021d1  group: arrow
@@ -381,12 +381,13 @@
 \<Zrres>                code: 0x0025B7  group: Z_Notation  group: relation
 \<Znrres>               code: 0x002A65  group: Z_Notation  group: relation
 \<Zspot>                code: 0x002981  group: Z_Notation  group: punctuation
-\<Zsemi>                code: 0x002A1F  group: Z_Notation  group: punctuation
+\<Zsemi>                code: 0x002A1F  group: Z_Notation
 \<Zproject>             code: 0x002A21  group: Z_Notation  group: operator
 \<Ztypecolon>           code: 0x002982  group: Z_Notation  group: relation
 \<Zhide>                code: 0x0029F9  group: Z_Notation  group: operator
 \<Zcat>                 code: 0x002040  group: Z_Notation  group: operator
 \<Zinbag>               code: 0x0022FF  group: Z_Notation  group: relation
+\<Zprime>               code: 0x002032  group: Z_Notation  group: punctuation
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
 \<comment>              code: 0x002015  group: document  argument: space_cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
