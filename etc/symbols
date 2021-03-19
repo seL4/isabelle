@@ -367,7 +367,7 @@
 \<bind>                 code: 0x00291c  group: operator  abbrev: >>=
 \<then>                 code: 0x002aa2  group: operator  group: Z_Notation  abbrev: >>
 \<some>                 code: 0x0003f5
-\<Zsemi>                code: 0x002A1F  group: Z_Notation  group: punctuation
+\<Zcomp>                code: 0x002A3E  group: Z_Notation  group: punctuation
 \<Zinj>                 code: 0x0021A3  group: Z_Notation  group: arrow  abbrev: .>
 \<Zpinj>                code: 0x002914  group: Z_Notation  group: arrow  abbrev: .>
 \<Zfinj>                code: 0x002915  group: Z_Notation  group: arrow  abbrev: .>
@@ -381,6 +381,7 @@
 \<Zrres>                code: 0x0025B7  group: Z_Notation  group: relation
 \<Znrres>               code: 0x002A65  group: Z_Notation  group: relation
 \<Zspot>                code: 0x002981  group: Z_Notation  group: punctuation
+\<Zsemi>                code: 0x002A1F  group: Z_Notation  group: punctuation
 \<Zproject>             code: 0x002A21  group: Z_Notation  group: operator
 \<Ztypecolon>           code: 0x002982  group: Z_Notation  group: relation
 \<Zhide>                code: 0x0029F9  group: Z_Notation  group: operator
