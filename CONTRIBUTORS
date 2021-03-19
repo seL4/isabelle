@@ -6,8 +6,8 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* March 2021: Simon Foster
-  More symbol definitions for Z Notation (Isabelle fonts and LaTeX).
+* March 2021: Simon Foster and Leo Freitas
+  More symbol definitions for Z Notation: Isabelle fonts and LaTeX macros.
 
 * February 2021: Manuel Eberl
   New material in HOL-Analysis/HOL-Probability, most notably Hoeffding's
