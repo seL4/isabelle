@@ -39,6 +39,39 @@
 \DeclareRobustCommand{\isactrlesup}{\egroup\egroup\endmath\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
 
+%blackboard-bold (requires font txmia from txfonts)
+\DeclareSymbolFont{bbbfont}{U}{txmia}{m}{it}
+\SetSymbolFont{bbbfont}{bold}{U}{txmia}{bx}{it}
+\DeclareMathSymbol{\bbbA}{\mathord}{bbbfont}{129}
+\DeclareMathSymbol{\bbbB}{\mathord}{bbbfont}{130}
+\DeclareMathSymbol{\bbbC}{\mathord}{bbbfont}{131}
+\DeclareMathSymbol{\bbbD}{\mathord}{bbbfont}{132}
+\DeclareMathSymbol{\bbbE}{\mathord}{bbbfont}{133}
+\DeclareMathSymbol{\bbbF}{\mathord}{bbbfont}{134}
+\DeclareMathSymbol{\bbbG}{\mathord}{bbbfont}{135}
+\DeclareMathSymbol{\bbbH}{\mathord}{bbbfont}{136}
+\DeclareMathSymbol{\bbbI}{\mathord}{bbbfont}{137}
+\DeclareMathSymbol{\bbbJ}{\mathord}{bbbfont}{138}
+\DeclareMathSymbol{\bbbK}{\mathord}{bbbfont}{139}
+\DeclareMathSymbol{\bbbL}{\mathord}{bbbfont}{140}
+\DeclareMathSymbol{\bbbM}{\mathord}{bbbfont}{141}
+\DeclareMathSymbol{\bbbN}{\mathord}{bbbfont}{142}
+\DeclareMathSymbol{\bbbO}{\mathord}{bbbfont}{143}
+\DeclareMathSymbol{\bbbP}{\mathord}{bbbfont}{144}
+\DeclareMathSymbol{\bbbQ}{\mathord}{bbbfont}{145}
+\DeclareMathSymbol{\bbbR}{\mathord}{bbbfont}{146}
+\DeclareMathSymbol{\bbbS}{\mathord}{bbbfont}{147}
+\DeclareMathSymbol{\bbbT}{\mathord}{bbbfont}{148}
+\DeclareMathSymbol{\bbbU}{\mathord}{bbbfont}{149}
+\DeclareMathSymbol{\bbbV}{\mathord}{bbbfont}{150}
+\DeclareMathSymbol{\bbbW}{\mathord}{bbbfont}{151}
+\DeclareMathSymbol{\bbbX}{\mathord}{bbbfont}{152}
+\DeclareMathSymbol{\bbbY}{\mathord}{bbbfont}{153}
+\DeclareMathSymbol{\bbbZ}{\mathord}{bbbfont}{154}
+\newcommand{\checkbbbfont}{{%
+\setbox\@tempboxa=\hbox{$\bbbA$}%
+\ifdim\wd\@tempboxa=\z@\PackageError{isabelle/pxfonts}{Missing font txmia}{}\fi}}
+
 \newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
 
 \newdimen\isa@parindent\newdimen\isa@parskip

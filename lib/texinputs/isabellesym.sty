@@ -150,12 +150,32 @@
 \newcommand{\isasymPhi}{\isamath{\Phi}}
 \newcommand{\isasymPsi}{\isamath{\Psi}}
 \newcommand{\isasymOmega}{\isamath{\Omega}}
-\newcommand{\isasymbool}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{B}}}
-\newcommand{\isasymcomplex}{\isamath{\mathrm{C}\mkern-15mu{\phantom{\mathrm{t}}\vrule}\mkern9mu}}
-\newcommand{\isasymnat}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{N}}}
-\newcommand{\isasymrat}{\isamath{\mathrm{Q}\mkern-16mu{\phantom{\mathrm{t}}\vrule}\mkern10mu}}
-\newcommand{\isasymreal}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{R}}}
-\newcommand{\isasymint}{\isamath{\mathsf{Z}\mkern-7.5mu\mathsf{Z}}}
+\newcommand{\isasymZarithmos}{\checkbbbfont\isamath{\bbbA}}  %requires font txmia from txfonts
+\newcommand{\isasymbool}{\checkbbbfont\isamath{\bbbB}}  %requires font txmia from txfonts
+\newcommand{\isasymcomplex}{\checkbbbfont\isamath{\bbbC}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbD}{\checkbbbfont\isamath{\bbbD}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbE}{\checkbbbfont\isamath{\bbbE}}  %requires font txmia from txfonts
+\newcommand{\isasymZfinset}{\checkbbbfont\isamath{\bbbF}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbG}{\checkbbbfont\isamath{\bbbG}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbH}{\checkbbbfont\isamath{\bbbH}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbI}{\checkbbbfont\isamath{\bbbI}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbJ}{\checkbbbfont\isamath{\bbbJ}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbK}{\checkbbbfont\isamath{\bbbK}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbL}{\checkbbbfont\isamath{\bbbL}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbM}{\checkbbbfont\isamath{\bbbM}}  %requires font txmia from txfonts
+\newcommand{\isasymnat}{\checkbbbfont\isamath{\bbbN}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbO}{\checkbbbfont\isamath{\bbbO}}  %requires font txmia from txfonts
+\newcommand{\isasymZpower}{\checkbbbfont\isamath{\bbbP}}  %requires font txmia from txfonts
+\newcommand{\isasymrat}{\checkbbbfont\isamath{\bbbQ}}  %requires font txmia from txfonts
+\newcommand{\isasymreal}{\checkbbbfont\isamath{\bbbR}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbS}{\checkbbbfont\isamath{\bbbS}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbT}{\checkbbbfont\isamath{\bbbT}}  %requires font txmia from txfonts
+\newcommand{\isasymZuniv}{\checkbbbfont\isamath{\bbbU}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbV}{\checkbbbfont\isamath{\bbbV}}  %requires font txmia from txfonts
+\newcommand{\isasymZworld}{\checkbbbfont\isamath{\bbbW}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbX}{\checkbbbfont\isamath{\bbbX}}  %requires font txmia from txfonts
+\newcommand{\isasymbbbY}{\checkbbbfont\isamath{\bbbY}}  %requires font txmia from txfonts
+\newcommand{\isasymint}{\checkbbbfont\isamath{\bbbZ}}  %requires font txmia from txfonts
 \newcommand{\isasymleftarrow}{\isamath{\leftarrow}}
 \newcommand{\isasymrightarrow}{\isamath{\rightarrow}}
 \newcommand{\isasymlongleftarrow}{\isamath{\longleftarrow}}
@@ -372,11 +392,6 @@
 \newcommand{\isaZpvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 5mu}\hfil\cr#1}}
 \newcommand{\isaZfvbar}[1]{\ooalign{\hfil\isamath{\mapstochar\mkern 3mu\mapstochar\mkern 5mu}\hfil\cr#1}}
 \newcommand{\isaZdarrow}[3]{\ooalign{\isamath{#1}\hfil\cr\isamath{\mkern#3mu\isamath{#2}}}}
-\newcommand{\isasymZpower}{\isamath{\mathbb P}}  %requires amssymb
-\newcommand{\isasymZfinset}{\isamath{\mathbb F}}  %requires amssymb
-\newcommand{\isasymZarithmos}{\isamath{\mathbb A}}  %requires amssymb
-\newcommand{\isasymZuniv}{\isamath{\mathbb U}}  %requires amssymb
-\newcommand{\isasymZworld}{\isamath{\mathbb W}}  %requires amssymb
 \newcommand{\isasymZcomp}{\isamath{\fatsemi}}  %requires stmaryrd
 \newcommand{\isasymZinj}{\isamath{\rightarrowtail}}  %requires amssymb
 \newcommand{\isasymZpinj}{\isaZpvbar{\isamath{\rightarrowtail}}}  %requires amssymb

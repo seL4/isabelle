@@ -877,6 +877,9 @@ configuration, "-Djdk.gtk.version=3" might work better or worse.
 
 *** Document preparation ***
 
+* High-quality blackboard-bold fonts from "txmia" (package "txfonts"),
+for A..Z.
+
 * Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
 are stripped from document output: the effect is to modify the semantic
 presentation context or to emit markup to the PIDE document. Some

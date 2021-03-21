@@ -151,13 +151,28 @@
 \<Zarithmos>            code: 0x01D538  group: Z_Notation  group: letter
 \<bool>                 code: 0x01d539  group: letter  group: Z_Notation
 \<complex>              code: 0x002102  group: letter
+\<bbbD>                 code: 0x01D53B  group: letter
+\<bbbE>                 code: 0x01D53C  group: letter
 \<Zfinset>              code: 0x01D53D  group: Z_Notation  group: letter
+\<bbbG>                 code: 0x01D53E  group: letter
+\<bbbH>                 code: 0x00210D  group: letter
+\<bbbI>                 code: 0x01D540  group: letter
+\<bbbJ>                 code: 0x01D541  group: letter
+\<bbbK>                 code: 0x01D542  group: letter
+\<bbbL>                 code: 0x01D543  group: letter
+\<bbbM>                 code: 0x01D544  group: letter
 \<nat>                  code: 0x002115  group: letter  group: Z_Notation
+\<bbbO>                 code: 0x01D546  group: letter
 \<Zpower>               code: 0x002119  group: Z_Notation  group: letter
 \<rat>                  code: 0x00211a  group: letter
 \<real>                 code: 0x00211d  group: letter  group: Z_Notation
+\<bbbS>                 code: 0x01D54A  group: letter
+\<bbbT>                 code: 0x01D54B  group: letter
 \<Zuniv>                code: 0x01D54C  group: Z_Notation  group: letter
+\<bbbV>                 code: 0x01D54D  group: letter
 \<Zworld>               code: 0x01D54E  group: Z_Notation  group: letter
+\<bbbX>                 code: 0x01D54F  group: letter
+\<bbbY>                 code: 0x01D550  group: letter
 \<int>                  code: 0x002124  group: letter
 \<leftarrow>            code: 0x002190  group: arrow  abbrev: <.
 \<longleftarrow>        code: 0x0027f5  group: arrow  abbrev: <.
