@@ -282,8 +282,8 @@ lemma combine_matrix_commute:
 by (simp add: combine_matrix_def commutative_def combine_infmatrix_def)
 
 text\<open>
-On the contrary, given an associative function $f$ we cannot expect $f'$ to be associative. A counterexample is given by $A=\ganz$, $B=\{-1, 0, 1\}$,
-as $f$ we take addition on $\ganz$, which is clearly associative. The abstraction is given by  $u(a) = 0$ for $a \notin B$. Then we have
+On the contrary, given an associative function $f$ we cannot expect $f'$ to be associative. A counterexample is given by $A=\bbbZ$, $B=\{-1, 0, 1\}$,
+as $f$ we take addition on $\bbbZ$, which is clearly associative. The abstraction is given by  $u(a) = 0$ for $a \notin B$. Then we have
 \[ f' (f' 1 1) -1 = u(f (u (f 1 1)) -1) = u(f (u 2) -1) = u (f 0 -1) = -1, \]
 but on the other hand we have
 \[ f' 1 (f' 1 -1) = u (f 1 (u (f 1 -1))) = u (f 1 0) = 1.\]
