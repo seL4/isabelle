@@ -877,8 +877,8 @@ configuration, "-Djdk.gtk.version=3" might work better or worse.
 
 *** Document preparation ***
 
-* High-quality blackboard-bold symbols from font "txmia" (package
-"txfonts"), for A..Z.
+* High-quality blackboard-bold symbols for A..Z, from font "txmia"
+(package "pxfonts").
 
 * Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
 are stripped from document output: the effect is to modify the semantic
