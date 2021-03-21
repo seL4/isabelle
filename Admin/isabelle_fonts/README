@@ -15,9 +15,12 @@ additional symbols are from Symbola, see http://greekfonts.teilar.gr "In lieu
 of a licence; fonts and documents in this site are free for any use; George
 Douros".
 
+The blackboard-bold glyphs are from font "txmia" (package "pxfonts"):
+these are subject to GPL.
+
 
     Makarius
-    19-Mar-2021
+    21-Mar-2021
 
 
 ----------------------------------------------------------------------------
