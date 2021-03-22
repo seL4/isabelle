@@ -234,11 +234,6 @@ proof -
     by auto
 qed
 
-lemma swap_image:
-  "Fun.swap i j f ` A = (if i \<in> A then (if j \<in> A then f ` A else f ` ((A - {i}) \<union> {j}))
-                                  else (if j \<in> A then f ` ((A - {j}) \<union> {i}) else f ` A))"
-  by (auto simp: swap_def cong: image_cong_simp)
-
 lemmas swap_apply1 = swap_apply(1)
 lemmas swap_apply2 = swap_apply(2)
 
@@ -2597,6 +2592,5 @@ proof (rule has_derivative_inverse_strong[where g'="g' x" and f=f])
   unfolding continuous_on_eq_continuous_at[OF \<open>open S\<close>]
   using derf has_derivative_continuous by blast
 qed (use assms in auto)
-
 
 end

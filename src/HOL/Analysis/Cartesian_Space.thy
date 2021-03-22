@@ -1295,7 +1295,7 @@ proof -
           case False
           have *: "A $ i $ Fun.swap k l id j = 0" if "j \<noteq> k" "j \<notin> K" "i \<noteq> j" for i j
             using False l insert.prems that
-            by (auto simp: swap_def insert split: if_split_asm)
+            by (auto simp: swap_id_eq insert split: if_split_asm)
           have "P (\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j)"
             by (rule swap_cols [OF nonzero_hyp False]) (auto simp: l *)
           moreover
@@ -1418,7 +1418,7 @@ proof -
     have eq: "(\<Sum>j\<in>UNIV. if i = Fun.swap m n id j then x $ j else 0) =
               (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
       for i and x :: "real^'n"
-      unfolding swap_def by (rule sum.cong) auto
+      by (rule sum.cong) (auto simp add: swap_id_eq)
     have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = ((*v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
       by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
     with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"

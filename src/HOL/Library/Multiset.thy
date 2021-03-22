@@ -2027,6 +2027,10 @@ proof (rule mset_subset_eqI)
     by (cases "x \<in># A") simp_all
 qed
 
+lemma mset_set_upto_eq_mset_upto:
+  \<open>mset_set {..<n} = mset [0..<n]\<close>
+  by (induction n) (auto simp: ac_simps lessThan_Suc)
+
 context linorder
 begin
 

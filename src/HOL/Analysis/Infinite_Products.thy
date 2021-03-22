@@ -686,8 +686,10 @@ proof -
   show ?thesis
   proof
     assume cf: "convergent_prod f"
+    with f have "\<not> (\<lambda>n. prod f {..n}) \<longlonglongrightarrow> 0"
+      by simp
     then have "\<not> (\<lambda>n. prod g {..n}) \<longlonglongrightarrow> 0"
-      using tendsto_mult_left * convergent_prod_to_zero_iff f filterlim_cong by fastforce
+      using * \<open>C \<noteq> 0\<close> filterlim_cong by fastforce
     then show "convergent_prod g"
       by (metis convergent_mult_const_iff \<open>C \<noteq> 0\<close> cong cf convergent_LIMSEQ_iff convergent_prod_iff_convergent convergent_prod_imp_convergent g)
   next

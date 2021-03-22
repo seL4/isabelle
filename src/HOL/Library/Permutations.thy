@@ -8,90 +8,206 @@ theory Permutations
   imports Multiset Disjoint_Sets
 begin
 
+subsection \<open>Auxiliary\<close>
+
+abbreviation (input) fixpoints :: \<open>('a \<Rightarrow> 'a) \<Rightarrow> 'a set\<close>
+  where \<open>fixpoints f \<equiv> {x. f x = x}\<close>
+
+lemma inj_on_fixpoints:
+  \<open>inj_on f (fixpoints f)\<close>
+  by (rule inj_onI) simp
+
+lemma bij_betw_fixpoints:
+  \<open>bij_betw f (fixpoints f) (fixpoints f)\<close>
+  using inj_on_fixpoints by (auto simp add: bij_betw_def)
+
+
 subsection \<open>Basic definition and consequences\<close>
 
-definition permutes  (infixr "permutes" 41)
-  where "(p permutes S) \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)"
+definition permutes :: \<open>('a \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> bool\<close>  (infixr \<open>permutes\<close> 41)
+  where \<open>p permutes S \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)\<close>
 
-lemma permutes_in_image: "p permutes S \<Longrightarrow> p x \<in> S \<longleftrightarrow> x \<in> S"
-  unfolding permutes_def by metis
+lemma bij_imp_permutes:
+  \<open>p permutes S\<close> if \<open>bij_betw p S S\<close> and stable: \<open>\<And>x. x \<notin> S \<Longrightarrow> p x = x\<close>
+proof -
+  note \<open>bij_betw p S S\<close>
+  moreover have \<open>bij_betw p (- S) (- S)\<close>
+    by (auto simp add: stable intro!: bij_betw_imageI inj_onI)
+  ultimately have \<open>bij_betw p (S \<union> - S) (S \<union> - S)\<close>
+    by (rule bij_betw_combine) simp
+  then have \<open>\<exists>!x. p x = y\<close> for y
+    by (simp add: bij_iff)
+  with stable show ?thesis
+    by (simp add: permutes_def)
+qed
 
-lemma permutes_not_in: "f permutes S \<Longrightarrow> x \<notin> S \<Longrightarrow> f x = x"
-  by (auto simp: permutes_def)
+context
+  fixes p :: \<open>'a \<Rightarrow> 'a\<close> and S :: \<open>'a set\<close>
+  assumes perm: \<open>p permutes S\<close>
+begin
 
-lemma permutes_image: "p permutes S \<Longrightarrow> p ` S = S"
-  unfolding permutes_def
-  apply (rule set_eqI)
-  apply (simp add: image_iff)
-  apply metis
-  done
+lemma permutes_inj:
+  \<open>inj p\<close>
+  using perm by (auto simp: permutes_def inj_on_def)
 
-lemma permutes_inj: "p permutes S \<Longrightarrow> inj p"
-  unfolding permutes_def inj_def by blast
+lemma permutes_image:
+  \<open>p ` S = S\<close>
+proof (rule set_eqI)
+  fix x
+  show \<open>x \<in> p ` S \<longleftrightarrow> x \<in> S\<close>
+  proof
+    assume \<open>x \<in> p ` S\<close>
+    then obtain y where \<open>y \<in> S\<close> \<open>p y = x\<close>
+      by blast
+    with perm show \<open>x \<in> S\<close>
+      by (cases \<open>y = x\<close>) (auto simp add: permutes_def)
+  next
+    assume \<open>x \<in> S\<close>
+    with perm obtain y where \<open>y \<in> S\<close> \<open>p y = x\<close>
+      by (metis permutes_def)
+    then show \<open>x \<in> p ` S\<close>
+      by blast
+  qed
+qed
 
-lemma permutes_inj_on: "f permutes S \<Longrightarrow> inj_on f A"
-  by (auto simp: permutes_def inj_on_def)
+lemma permutes_not_in:
+  \<open>x \<notin> S \<Longrightarrow> p x = x\<close>
+  using perm by (auto simp: permutes_def)
 
-lemma permutes_surj: "p permutes s \<Longrightarrow> surj p"
-  unfolding permutes_def surj_def by metis
+lemma permutes_image_complement:
+  \<open>p ` (- S) = - S\<close>
+  by (auto simp add: permutes_not_in)
 
-lemma permutes_bij: "p permutes s \<Longrightarrow> bij p"
-  unfolding bij_def by (metis permutes_inj permutes_surj)
+lemma permutes_in_image:
+  \<open>p x \<in> S \<longleftrightarrow> x \<in> S\<close>
+  using permutes_image permutes_inj by (auto dest: inj_image_mem_iff)
 
-lemma permutes_imp_bij: "p permutes S \<Longrightarrow> bij_betw p S S"
-  by (metis UNIV_I bij_betw_subset permutes_bij permutes_image subsetI)
-
-lemma bij_imp_permutes: "bij_betw p S S \<Longrightarrow> (\<And>x. x \<notin> S \<Longrightarrow> p x = x) \<Longrightarrow> p permutes S"
-  unfolding permutes_def bij_betw_def inj_on_def
-  by auto (metis image_iff)+
+lemma permutes_surj:
+  \<open>surj p\<close>
+proof -
+  have \<open>p ` (S \<union> - S) = p ` S \<union> p ` (- S)\<close>
+    by (rule image_Un)
+  then show ?thesis
+    by (simp add: permutes_image permutes_image_complement)
+qed
 
 lemma permutes_inv_o:
-  assumes permutes: "p permutes S"
   shows "p \<circ> inv p = id"
     and "inv p \<circ> p = id"
-  using permutes_inj[OF permutes] permutes_surj[OF permutes]
-  unfolding inj_iff[symmetric] surj_iff[symmetric] by blast+
+  using permutes_inj permutes_surj
+  unfolding inj_iff [symmetric] surj_iff [symmetric] by auto
 
 lemma permutes_inverses:
-  fixes p :: "'a \<Rightarrow> 'a"
-  assumes permutes: "p permutes S"
   shows "p (inv p x) = x"
     and "inv p (p x) = x"
-  using permutes_inv_o[OF permutes, unfolded fun_eq_iff o_def] by auto
+  using permutes_inv_o [unfolded fun_eq_iff o_def] by auto
 
-lemma permutes_subset: "p permutes S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> p permutes T"
-  unfolding permutes_def by blast
+lemma permutes_inv_eq:
+  \<open>inv p y = x \<longleftrightarrow> p x = y\<close>
+  by (auto simp add: permutes_inverses)
+
+lemma permutes_inj_on:
+  \<open>inj_on p A\<close>
+  by (rule inj_on_subset [of _ UNIV]) (auto intro: permutes_inj)
+
+lemma permutes_bij:
+  \<open>bij p\<close>
+  unfolding bij_def by (metis permutes_inj permutes_surj)
+
+lemma permutes_imp_bij:
+  \<open>bij_betw p S S\<close>
+  by (simp add: bij_betw_def permutes_image permutes_inj_on)
+
+lemma permutes_subset:
+  \<open>p permutes T\<close> if \<open>S \<subseteq> T\<close>
+proof (rule bij_imp_permutes)
+  define R where \<open>R = T - S\<close>
+  with that have \<open>T = R \<union> S\<close> \<open>R \<inter> S = {}\<close>
+    by auto
+  then have \<open>p x = x\<close> if \<open>x \<in> R\<close> for x
+    using that by (auto intro: permutes_not_in)
+  then have \<open>p ` R = R\<close>
+    by simp
+  with \<open>T = R \<union> S\<close> show \<open>bij_betw p T T\<close>
+    by (simp add: bij_betw_def permutes_inj_on image_Un permutes_image)
+  fix x
+  assume \<open>x \<notin> T\<close>
+  with \<open>T = R \<union> S\<close> show \<open>p x = x\<close>
+    by (simp add: permutes_not_in)
+qed
 
 lemma permutes_imp_permutes_insert:
-  \<open>p permutes insert x S\<close> if \<open>p permutes S\<close>
-  using that by (rule permutes_subset) auto
+  \<open>p permutes insert x S\<close>
+  by (rule permutes_subset) auto
 
-lemma permutes_empty[simp]: "p permutes {} \<longleftrightarrow> p = id"
-  by (auto simp add: fun_eq_iff permutes_def)
+end
 
-lemma permutes_sing[simp]: "p permutes {a} \<longleftrightarrow> p = id"
-  by (simp add: fun_eq_iff permutes_def) metis  (*somewhat slow*)
+lemma permutes_id [simp]:
+  \<open>id permutes S\<close>
+  by (auto intro: bij_imp_permutes)
+
+lemma permutes_empty [simp]:
+  \<open>p permutes {} \<longleftrightarrow> p = id\<close>
+proof
+  assume \<open>p permutes {}\<close>
+  then show \<open>p = id\<close>
+    by (auto simp add: fun_eq_iff permutes_not_in)
+next
+  assume \<open>p = id\<close>
+  then show \<open>p permutes {}\<close>
+    by simp
+qed
+
+lemma permutes_sing [simp]:
+  \<open>p permutes {a} \<longleftrightarrow> p = id\<close>
+proof
+  assume perm: \<open>p permutes {a}\<close>
+  show \<open>p = id\<close>
+  proof
+    fix x
+    from perm have \<open>p ` {a} = {a}\<close>
+      by (rule permutes_image)
+    with perm show \<open>p x = id x\<close>
+      by (cases \<open>x = a\<close>) (auto simp add: permutes_not_in)
+  qed
+next
+  assume \<open>p = id\<close>
+  then show \<open>p permutes {a}\<close>
+    by simp
+qed
 
 lemma permutes_univ: "p permutes UNIV \<longleftrightarrow> (\<forall>y. \<exists>!x. p x = y)"
   by (simp add: permutes_def)
 
-lemma permutes_inv_eq: "p permutes S \<Longrightarrow> inv p y = x \<longleftrightarrow> p x = y"
-  unfolding permutes_def inv_def
-  apply auto
-  apply (erule allE[where x=y])
-  apply (erule allE[where x=y])
-  apply (rule someI_ex)
-  apply blast
-  apply (rule some1_equality)
-  apply blast
-  apply blast
-  done
-
 lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> Fun.swap a b id permutes S"
-  unfolding permutes_def Fun.swap_def fun_upd_def by auto metis
+  by (rule bij_imp_permutes) (auto simp add: swap_id_eq)
 
-lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
-  by (simp add: Ball_def permutes_def) metis
+lemma permutes_superset:
+  \<open>p permutes T\<close> if \<open>p permutes S\<close> \<open>\<And>x. x \<in> S - T \<Longrightarrow> p x = x\<close>
+proof -
+  define R U where \<open>R = T \<inter> S\<close> and \<open>U = S - T\<close>
+  then have \<open>T = R \<union> (T - S)\<close> \<open>S = R \<union> U\<close> \<open>R \<inter> U = {}\<close>
+    by auto
+  from that \<open>U = S - T\<close> have \<open>p ` U = U\<close>
+    by simp
+  from \<open>p permutes S\<close> have \<open>bij_betw p (R \<union> U) (R \<union> U)\<close>
+    by (simp add: permutes_imp_bij \<open>S = R \<union> U\<close>)
+  moreover have \<open>bij_betw p U U\<close>
+    using that \<open>U = S - T\<close> by (simp add: bij_betw_def permutes_inj_on)
+  ultimately have \<open>bij_betw p R R\<close>
+    using \<open>R \<inter> U = {}\<close> \<open>R \<inter> U = {}\<close> by (rule bij_betw_partition)
+  then have \<open>p permutes R\<close>
+  proof (rule bij_imp_permutes)
+    fix x
+    assume \<open>x \<notin> R\<close>
+    with \<open>R = T \<inter> S\<close> \<open>p permutes S\<close> show \<open>p x = x\<close>
+      by (cases \<open>x \<in> S\<close>) (auto simp add: permutes_not_in that(2))
+  qed
+  then have \<open>p permutes R \<union> (T - S)\<close>
+    by (rule permutes_subset) simp
+  with \<open>T = R \<union> (T - S)\<close> show ?thesis
+    by simp
+qed
 
 lemma permutes_bij_inv_into: \<^marker>\<open>contributor \<open>Lukas Bulwahn\<close>\<close>
   fixes A :: "'a set"
@@ -138,9 +254,6 @@ qed
 
 
 subsection \<open>Group properties\<close>
-
-lemma permutes_id: "id permutes S"
-  by (simp add: permutes_def)
 
 lemma permutes_compose: "p permutes S \<Longrightarrow> q permutes S \<Longrightarrow> q \<circ> p permutes S"
   unfolding permutes_def o_def by metis
@@ -346,7 +459,7 @@ next
         from pF \<open>x \<notin> F\<close> eq have "b = ?g (b, p) x"
           by (auto simp: permutes_def Fun.swap_def fun_upd_def fun_eq_iff)
         also from qF \<open>x \<notin> F\<close> eq have "\<dots> = ?g (c, q) x"
-          by (auto simp: swap_def fun_upd_def fun_eq_iff)
+          by (auto simp: fun_upd_def fun_eq_iff)
         also from qF \<open>x \<notin> F\<close> have "\<dots> = c"
           by (auto simp: permutes_def Fun.swap_def fun_upd_def fun_eq_iff)
         finally have "b = c" .
@@ -386,6 +499,55 @@ lemma finite_permutations:
   assumes "finite S"
   shows "finite {p. p permutes S}"
   using card_permutations[OF refl assms] by (auto intro: card_ge_0_finite)
+
+
+subsection \<open>Hence a sort of induction principle composing by swaps\<close>
+
+lemma permutes_induct [consumes 2, case_names id swap]:
+  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
+  and id: \<open>P id\<close>
+  and swap: \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> p permutes S \<Longrightarrow> P p \<Longrightarrow> P (Fun.swap a b id \<circ> p)\<close>
+using \<open>finite S\<close> \<open>p permutes S\<close> swap proof (induction S arbitrary: p)
+  case empty
+  with id show ?case
+    by (simp only: permutes_empty)
+next
+  case (insert x S p)
+  define q where \<open>q = Fun.swap x (p x) id \<circ> p\<close>
+  then have swap_q: \<open>Fun.swap x (p x) id \<circ> q = p\<close>
+    by (simp add: o_assoc)
+  from \<open>p permutes insert x S\<close> have \<open>q permutes S\<close>
+    by (simp add: q_def permutes_insert_lemma)
+  then have \<open>q permutes insert x S\<close>
+    by (simp add: permutes_imp_permutes_insert)
+  from \<open>q permutes S\<close> have \<open>P q\<close>
+    by (auto intro: insert.IH insert.prems(2) permutes_imp_permutes_insert)
+  have \<open>x \<in> insert x S\<close>
+    by simp
+  moreover from \<open>p permutes insert x S\<close> have \<open>p x \<in> insert x S\<close>
+    using permutes_in_image [of p \<open>insert x S\<close> x] by simp
+  ultimately have \<open>P (Fun.swap x (p x) id \<circ> q)\<close>
+    using \<open>q permutes insert x S\<close> \<open>P q\<close>
+    by (rule insert.prems(2))
+  then show ?case
+    by (simp add: swap_q)
+qed
+
+lemma permutes_rev_induct [consumes 2, case_names id swap]:
+  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
+  and id': \<open>P id\<close>
+  and swap': \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> p permutes S \<Longrightarrow> P p \<Longrightarrow> P (Fun.swap a b p)\<close>
+using \<open>p permutes S\<close> \<open>finite S\<close> proof (induction rule: permutes_induct)
+  case id
+  from id' show ?case .
+next
+  case (swap a b p)
+  have \<open>P (Fun.swap (inv p a) (inv p b) p)\<close>
+    by (rule swap') (auto simp add: swap permutes_in_image permutes_inv)
+  also have \<open>Fun.swap (inv p a) (inv p b) p = Fun.swap a b id \<circ> p\<close>
+    by (rule bij_swap_comp [symmetric]) (rule permutes_bij, rule swap)
+  finally show ?case .
+qed
 
 
 subsection \<open>Permutations of index set for iterated operations\<close>
@@ -834,46 +996,38 @@ qed
 
 subsection \<open>Relation to \<open>permutes\<close>\<close>
 
-lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. finite S \<and> p permutes S)"
-  unfolding permutation permutes_def bij_iff[symmetric]
-  apply (rule iffI, clarify)
-   apply (rule exI[where x="{x. p x \<noteq> x}"])
-   apply simp
-  apply clarsimp
-  apply (rule_tac B="S" in finite_subset)
-   apply auto
-  done
-
-
-subsection \<open>Hence a sort of induction principle composing by swaps\<close>
-
-lemma permutes_induct [consumes 2, case_names id swap]:
-  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
-  and id: \<open>P id\<close>
-  and swap: \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> permutation p \<Longrightarrow> P p \<Longrightarrow> P (Fun.swap a b id \<circ> p)\<close>
-using \<open>finite S\<close> \<open>p permutes S\<close> id swap proof (induction S arbitrary: p)
-  case empty
-  then show ?case by auto
-next
-  case (insert x F p)
-  let ?r = "Fun.swap x (p x) id \<circ> p"
-  let ?q = "Fun.swap x (p x) id \<circ> ?r"
-  have qp: "?q = p"
-    by (simp add: o_assoc)
-  from permutes_insert_lemma[OF \<open>p permutes insert x F\<close>] insert have Pr: "P ?r"
-    by blast
-  from permutes_in_image[OF \<open>p permutes insert x F\<close>, of x]
-  have pxF: "p x \<in> insert x F"
-    by simp
-  have xF: "x \<in> insert x F"
-    by simp
-  have rp: "permutation ?r"
-    unfolding permutation_permutes
-    using insert.hyps(1) permutes_insert_lemma[OF \<open>p permutes insert x F\<close>]
-    by blast
-  from insert.prems(3)[OF xF pxF rp Pr] qp show ?case
-    by (simp only:)
+lemma permutes_imp_permutation:
+  \<open>permutation p\<close> if \<open>finite S\<close> \<open>p permutes S\<close>
+proof -
+  from \<open>p permutes S\<close> have \<open>{x. p x \<noteq> x} \<subseteq> S\<close>
+    by (auto dest: permutes_not_in)
+  then have \<open>finite {x. p x \<noteq> x}\<close>
+    using \<open>finite S\<close> by (rule finite_subset)
+  moreover from \<open>p permutes S\<close> have \<open>bij p\<close>
+    by (auto dest: permutes_bij)
+  ultimately show ?thesis
+    by (simp add: permutation)
 qed
+
+lemma permutation_permutesE:
+  assumes \<open>permutation p\<close>
+  obtains S where \<open>finite S\<close> \<open>p permutes S\<close>
+proof -
+  from assms have fin: \<open>finite {x. p x \<noteq> x}\<close>
+    by (simp add: permutation)
+  from assms have \<open>bij p\<close>
+    by (simp add: permutation)
+  also have \<open>UNIV = {x. p x \<noteq> x} \<union> {x. p x = x}\<close>
+    by auto
+  finally have \<open>bij_betw p {x. p x \<noteq> x} {x. p x \<noteq> x}\<close>
+    by (rule bij_betw_partition) (auto simp add: bij_betw_fixpoints)
+  then have \<open>p permutes {x. p x \<noteq> x}\<close>
+    by (auto intro: bij_imp_permutes)
+  with fin show thesis ..
+qed
+
+lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. finite S \<and> p permutes S)"
+  by (auto elim: permutation_permutesE intro: permutes_imp_permutation)
 
 
 subsection \<open>Sign of a permutation as a real number\<close>
@@ -1083,9 +1237,6 @@ proof -
     unfolding p'_def using bij_betwE by fastforce
   ultimately show ?thesis ..
 qed
-
-lemma mset_set_upto_eq_mset_upto: "mset_set {..<n} = mset [0..<n]"
-  by (induct n) (auto simp: add.commute lessThan_Suc)
 
 \<comment> \<open>... and derive the existing property:\<close>
 lemma mset_eq_permutation:

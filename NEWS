@@ -65,8 +65,8 @@ corrected. Minor INCOMPATIBILITY.
 specific "List_Permutation".  Note that most notions from that
 theory are already present in theory "Permutations".  INCOMPATIBILITY.
 
-* Lemma "permutes_induct" has been given named premises.
-INCOMPATIBILITY.
+* Lemma "permutes_induct" has been given stronger
+hypotheses and named premises.  INCOMPATIBILITY.
 
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
@@ -75,6 +75,9 @@ potential for change can be avoided if interpretations of type class
 "order" are replaced or augmented by interpretations of locale
 "ordering".
 
+* Theorem "swap_def" now is always qualified as "Fun.swap_def".  Minor
+INCOMPATIBILITY; note that for most applications less elementary lemmas
+exists.
 
 
 *** ML ***

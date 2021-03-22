@@ -500,6 +500,23 @@ next
     by (rule bijI)
 qed
 
+lemma bij_betw_partition:
+  \<open>bij_betw f A B\<close>
+  if \<open>bij_betw f (A \<union> C) (B \<union> D)\<close> \<open>bij_betw f C D\<close> \<open>A \<inter> C = {}\<close> \<open>B \<inter> D = {}\<close>
+proof -
+  from that have \<open>inj_on f (A \<union> C)\<close> \<open>inj_on f C\<close> \<open>f ` (A \<union> C) = B \<union> D\<close> \<open>f ` C = D\<close>
+    by (simp_all add: bij_betw_def)
+  then have \<open>inj_on f A\<close> and \<open>f ` (A - C) \<inter> f ` (C - A) = {}\<close>
+    by (simp_all add: inj_on_Un)
+  with \<open>A \<inter> C = {}\<close> have \<open>f ` A \<inter> f ` C = {}\<close>
+    by auto
+  with \<open>f ` (A \<union> C) = B \<union> D\<close> \<open>f ` C = D\<close>  \<open>B \<inter> D = {}\<close>
+  have \<open>f ` A = B\<close>
+    by blast
+  with \<open>inj_on f A\<close> show ?thesis
+    by (simp add: bij_betw_def)
+qed
+
 lemma surj_image_vimage_eq: "surj f \<Longrightarrow> f ` (f -` A) = A"
   by simp
 
@@ -823,8 +840,11 @@ lemma override_on_insert': "override_on f g (insert x X) = (override_on (f(x:=g 
 
 subsection \<open>\<open>swap\<close>\<close>
 
-definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
-  where "swap a b f = f (a := f b, b:= f a)"
+context
+begin
+
+qualified definition swap :: \<open>'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)\<close>
+  where \<open>swap a b f = f (a := f b, b:= f a)\<close>
 
 lemma swap_apply [simp]:
   "swap a b f a = f b"
@@ -891,19 +911,29 @@ lemma bij_betw_swap_iff [simp]: "x \<in> A \<Longrightarrow> y \<in> A \<Longrig
 lemma bij_swap_iff [simp]: "bij (swap a b f) \<longleftrightarrow> bij f"
   by simp
 
+lemma swap_image:
+  \<open>swap i j f ` A = f ` (A - {i, j}
+    \<union> (if i \<in> A then {j} else {}) \<union> (if j \<in> A then {i} else {}))\<close>
+  by (auto simp add: swap_def)
+
+
 subsection \<open>Transpositions\<close>
 
-lemma swap_id_idempotent [simp]: "Fun.swap a b id \<circ> Fun.swap a b id = id"
-  by (rule ext) (auto simp add: Fun.swap_def)
+lemma swap_id_eq: "swap a b id x = (if x = a then b else if x = b then a else x)"
+  by (simp add: swap_def)
 
-lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
-  by (simp add: Fun.swap_def)
+lemma swap_unfold:
+  \<open>swap a b p = p \<circ> swap a b id\<close>
+  by (simp add: fun_eq_iff swap_def)
+
+lemma swap_id_idempotent [simp]: "swap a b id \<circ> swap a b id = id"
+  by (simp flip: swap_unfold)
 
 lemma bij_swap_compose_bij:
-  \<open>bij (Fun.swap a b id \<circ> p)\<close> if \<open>bij p\<close>
+  \<open>bij (swap a b id \<circ> p)\<close> if \<open>bij p\<close>
   using that by (rule bij_comp) simp
 
-hide_const (open) swap
+end
 
 
 subsection \<open>Inversion of injective functions\<close>
