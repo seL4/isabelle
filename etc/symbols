@@ -300,9 +300,9 @@
 \<succ>                 code: 0x00227b  group: relation
 \<preceq>               code: 0x00227c  group: relation
 \<succeq>               code: 0x00227d  group: relation
-\<parallel>             code: 0x002225  group: punctuation  abbrev: ||
-\<interleave>           code: 0x002af4  group: punctuation  abbrev: ||
-\<sslash>               code: 0x002afd  group: punctuation  abbrev: ||
+\<parallel>             code: 0x002225  group: relation  abbrev: ||
+\<interleave>           code: 0x002af4  group: relation  abbrev: ||
+\<sslash>               code: 0x002afd  group: relation  abbrev: ||
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
 \<bbar>                 code: 0x002aff  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
