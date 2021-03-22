@@ -2329,7 +2329,7 @@ lemma sum_mset_mono:
 
 end
 
-context ordered_cancel_comm_monoid_diff
+context cancel_comm_monoid_add
 begin
 
 lemma sum_mset_diff:
