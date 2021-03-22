@@ -880,8 +880,11 @@ configuration, "-Djdk.gtk.version=3" might work better or worse.
 
 *** Document preparation ***
 
-* High-quality blackboard-bold symbols for A..Z, from font "txmia"
-(package "pxfonts").
+* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (package
+"pifont").
+
+* High-quality blackboard-bold symbols from font "txmia" (package
+"pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
 
 * Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
 are stripped from document output: the effect is to modify the semantic
