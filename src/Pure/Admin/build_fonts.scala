@@ -90,6 +90,8 @@ object Build_Fonts
         0x266d,  // musical flat
         0x266e,  // musical natural
         0x266f,  // musical sharp
+        0x2713,  // check mark
+        0x2717,  // ballot X
         0x2756,  // UNDEFINED
         0x2759,  // BOLD
         0x27a7,  // DESCR

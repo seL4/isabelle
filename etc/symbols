@@ -301,6 +301,8 @@
 \<preceq>               code: 0x00227c  group: relation
 \<succeq>               code: 0x00227d  group: relation
 \<parallel>             code: 0x002225  group: punctuation  abbrev: ||
+\<interleave>           code: 0x002af4  group: punctuation  abbrev: ||
+\<sslash>               code: 0x002afd  group: punctuation  abbrev: ||
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
 \<bbar>                 code: 0x002aff  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
@@ -409,6 +411,8 @@
 \<^cancel>              code: 0x002326  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
 \<^latex>                               group: document  argument: cartouche
 \<^marker>              code: 0x002710  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<checkmark>            code: 0x002713
+\<crossmark>            code: 0x002717
 \<open>                 code: 0x002039  group: punctuation  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: >>
 \<^here>                code: 0x002302  font: Isabelle␣DejaVu␣Sans␣Mono
