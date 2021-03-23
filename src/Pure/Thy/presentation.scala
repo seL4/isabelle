@@ -680,12 +680,15 @@ object Presentation
 
             val log_lines = result.out_lines ::: result.err_lines
 
-            if (!result.ok) {
+            val errors =
+              (if (result.ok) Nil else List(result.err)) :::
+              Latex.latex_errors(doc_dir, root) :::
+              Bibtex.bibtex_errors(doc_dir, root)
+
+            if (errors.nonEmpty) {
               val message =
                 Exn.cat_message(
-                  result.err,
-                  cat_lines(Latex.latex_errors(doc_dir, root) ::: Bibtex.bibtex_errors(doc_dir, root)),
-                  "Failed to build document " + quote(doc.name))
+                  (errors ::: List("Failed to build document " + quote(doc.name))):_*)
               throw new Build_Error(log_lines, message)
             }
             else if (!result_path.is_file) {

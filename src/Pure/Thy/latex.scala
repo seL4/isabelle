@@ -138,6 +138,7 @@ object Latex
         "<everyeof>",
         "<write>").mkString("^(?:", "|", ") (.*)$").r
 
+    val Bad_Font = """^LaTeX Font Warning: (Font .*\btxmia\b.* undefined).*$""".r
     val Bad_File = """^! LaTeX Error: (File `.*' not found\.)$""".r
 
     val error_ignore =
@@ -167,6 +168,8 @@ object Latex
           val pos = tex_file_position(file, line)
           val msg2 = error_suffix1(rest1) orElse error_suffix2(rest1) getOrElse ""
           filter(rest1, (Exn.cat_message(msg1, msg2), pos) :: result)
+        case Bad_Font(msg) :: rest =>
+          filter(rest, (msg, Position.none) :: result)
         case Bad_File(msg) :: rest =>
           filter(rest, (msg, Position.none) :: result)
         case _ :: rest => filter(rest, result)
