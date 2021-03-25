@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/List_Permutation.thy
-    Author:     Lawrence C Paulson and Thomas M Rasmussen and Norbert Voelker
+(*  Author:     Lawrence C Paulson and Thomas M Rasmussen and Norbert Voelker
 *)
 
 section \<open>Permuted Lists\<close>

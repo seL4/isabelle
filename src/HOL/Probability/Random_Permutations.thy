@@ -12,8 +12,8 @@ section \<open>Random Permutations\<close>
 
 theory Random_Permutations
 imports 
+  "HOL-Combinatorics.Multiset_Permutations"
   Probability_Mass_Function
-  "HOL-Library.Multiset_Permutations"
 begin
 
 text \<open>

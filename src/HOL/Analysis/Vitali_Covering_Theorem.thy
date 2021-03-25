@@ -5,8 +5,9 @@
 section  \<open>Vitali Covering Theorem and an Application to Negligibility\<close>
 
 theory Vitali_Covering_Theorem
-  imports Equivalence_Lebesgue_Henstock_Integration "HOL-Library.Permutations"
-
+imports
+  "HOL-Combinatorics.Permutations"
+  Equivalence_Lebesgue_Henstock_Integration
 begin
 
 lemma stretch_Galois:

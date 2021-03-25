@@ -93,6 +93,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
     "HOL-Library"
+    "HOL-Combinatorics"
     "HOL-Computational_Algebra"
   theories
     Analysis
@@ -121,6 +122,15 @@ session "HOL-Homology" (timing) in Homology = "HOL-Analysis" +
     "HOL-Algebra"
   theories
     Homology
+  document_files
+    "root.tex"
+
+session "HOL-Combinatorics" (main timing) in "Combinatorics" = "HOL" +
+  sessions
+    "HOL-Library"
+  theories
+    Combinatorics
+    Guide
   document_files
     "root.tex"
 
@@ -390,6 +400,7 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   "
   sessions
     "HOL-Cardinals"
+    "HOL-Combinatorics"
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -805,6 +816,8 @@ session "HOL-TPTP" in TPTP = HOL +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
+  sessions
+    "HOL-Combinatorics"
   theories
     Probability
   document_files "root.tex"

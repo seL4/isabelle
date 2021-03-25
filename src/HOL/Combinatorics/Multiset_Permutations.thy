@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Multiset_Permutations.thy
-    Author:     Manuel Eberl (TU München)
+(*  Author:     Manuel Eberl (TU München)
 
 Defines the set of permutations of a given multiset (or set), i.e. the set of all lists whose 
 entries correspond to the multiset (resp. set).
@@ -8,9 +7,8 @@ entries correspond to the multiset (resp. set).
 section \<open>Permutations of a Multiset\<close>
 
 theory Multiset_Permutations
-imports 
-  Complex_Main 
-  Multiset
+imports
+  Complex_Main
   Permutations
 begin
 

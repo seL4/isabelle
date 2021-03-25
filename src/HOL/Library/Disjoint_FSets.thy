@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Disjoint_FSets.thy
-    Author:     Lars Hupel, TU München
+(*  Author:     Lars Hupel, TU München
 *)
 
 section \<open>Disjoint FSets\<close>
@@ -7,7 +6,7 @@ section \<open>Disjoint FSets\<close>
 theory Disjoint_FSets
   imports
     "HOL-Library.Finite_Map"
-    "HOL-Library.Disjoint_Sets"
+    Disjoint_Sets
 begin
 
 context

@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Disjoint_Sets.thy
-    Author:     Johannes Hölzl, TU München
+(*  Author:     Johannes Hölzl, TU München
 *)
 
 section \<open>Partitions and Disjoint Sets\<close>

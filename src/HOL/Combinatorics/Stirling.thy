@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Stirling.thy
-    Author:     Amine Chaieb
+(*  Author:     Amine Chaieb
     Author:     Florian Haftmann
     Author:     Lukas Bulwahn
     Author:     Manuel Eberl

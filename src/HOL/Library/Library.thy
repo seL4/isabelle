@@ -51,13 +51,11 @@ imports
   Lattice_Constructions
   Linear_Temporal_Logic_on_Streams
   ListVector
-  List_Permutation
   Lub_Glb
   Mapping
   Monad_Syntax
   More_List
   Multiset_Order
-  Multiset_Permutations
   Nonpos_Ints
   Numeral_Type
   Omega_Words_Fun
@@ -68,7 +66,6 @@ imports
   Pattern_Aliases
   Periodic_Fun
   Perm
-  Permutations
   Poly_Mapping
   Power_By_Squaring
   Preorder
@@ -89,7 +86,6 @@ imports
   Set_Idioms
   Signed_Division
   State_Monad
-  Stirling
   Stream
   Sorting_Algorithms
   Sublist

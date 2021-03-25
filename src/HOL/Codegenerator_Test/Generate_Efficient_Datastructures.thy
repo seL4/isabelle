@@ -29,17 +29,15 @@ declare [[code drop:
   Euclidean_Algorithm.Lcm
   "Gcd :: _ poly set \<Rightarrow> _"
   "Lcm :: _ poly set \<Rightarrow> _"
-  permutations_of_set
-  permutations_of_multiset
 ]]
 
 text \<open>
   If code generation fails with a message like
   \<open>"List.set" is not a constructor, on left hand side of equation: ...\<close>,
-  feel free to add an RBT implementation for the corrsponding operation
-  of delete that code equation (see above).
+  feel free to add an RBT implementation for the corresponding operation
+  or delete that code equation (see above).
 \<close>
- 
+
 export_code _ checking SML OCaml? Haskell? Scala
 
 end

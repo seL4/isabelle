@@ -3,8 +3,9 @@
 *)
 
 theory Sym_Groups
-  imports Cycles Solvable_Groups
-
+  imports
+    "HOL-Combinatorics.Cycles"
+    Solvable_Groups
 begin
 
 section \<open>Symmetric Groups\<close>
@@ -169,8 +170,20 @@ lemma swapidseq_ext_zero:
   using assms empty by (induct set: "finite", fastforce, simp add: single)
 
 lemma swapidseq_ext_imp_swapidseq:
-  assumes "swapidseq_ext S n p" shows "swapidseq n p"
-  using assms by (induction, simp, simp, meson comp_Suc)
+  \<open>swapidseq n p\<close> if \<open>swapidseq_ext S n p\<close>
+using that proof induction
+  case empty
+  then show ?case
+    by (simp add: fun_eq_iff)
+next
+  case (single S n p a)
+  then show ?case by simp
+next
+  case (comp S n p a b)
+  then have \<open>swapidseq (Suc n) (Fun.swap a b id \<circ> p)\<close>
+    by (simp add: comp_Suc)
+  then show ?case by (simp add: comp_def)
+qed
 
 lemma swapidseq_ext_zero_imp_id:
   assumes "swapidseq_ext S 0 p" shows "p = id"

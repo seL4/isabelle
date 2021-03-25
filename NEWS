@@ -61,13 +61,6 @@ Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
 more small lemmas. Some theorems that were stated awkwardly before were
 corrected. Minor INCOMPATIBILITY.
 
-* Theory "Permutation" in HOL-Library has been renamed to the more
-specific "List_Permutation".  Note that most notions from that
-theory are already present in theory "Permutations".  INCOMPATIBILITY.
-
-* Lemma "permutes_induct" has been given stronger
-hypotheses and named premises.  INCOMPATIBILITY.
-
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
 and "eq_iff" from locale "ordering".  INCOMPATIBILITY: significant
@@ -78,6 +71,19 @@ potential for change can be avoided if interpretations of type class
 * Theorem "swap_def" now is always qualified as "Fun.swap_def".  Minor
 INCOMPATIBILITY; note that for most applications less elementary lemmas
 exists.
+
+* Dedicated session HOL-Combinatorics.  INCOMPATIBILITY: theories
+"Permutations", "List_Permutation" (formerly "Permutation"), "Stirling",
+"Multiset_Permutations"  have been
+moved there from session HOL-Library.  See theory "Guide" for an
+overview about existing material on basic combinatorics.
+
+* Theory "Permutation" in HOL-Library has been renamed to the more
+specific "List_Permutation".  Note that most notions from that
+theory are already present in theory "Permutations".  INCOMPATIBILITY.
+
+* Lemma "permutes_induct" has been given stronger
+hypotheses and named premises.  INCOMPATIBILITY.
 
 
 *** ML ***

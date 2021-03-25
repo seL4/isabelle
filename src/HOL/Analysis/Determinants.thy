@@ -6,8 +6,8 @@ section \<open>Traces and Determinants of Square Matrices\<close>
 
 theory Determinants
 imports
+  "HOL-Combinatorics.Permutations"
   Cartesian_Space
-  "HOL-Library.Permutations"
 begin
 
 subsection  \<open>Trace\<close>

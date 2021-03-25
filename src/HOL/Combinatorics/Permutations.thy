@@ -1,11 +1,12 @@
-(*  Title:      HOL/Library/Permutations.thy
-    Author:     Amine Chaieb, University of Cambridge
+(*  Author:     Amine Chaieb, University of Cambridge
 *)
 
 section \<open>Permutations, both general and specifically on finite sets.\<close>
 
 theory Permutations
-  imports Multiset Disjoint_Sets
+  imports
+    "HOL-Library.Multiset"
+    "HOL-Library.Disjoint_Sets"
 begin
 
 subsection \<open>Auxiliary\<close>
