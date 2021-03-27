@@ -93,7 +93,7 @@ else
   export LANG=C
   export HGPLAIN=
 
-  if "${HG:-hg}" id -r "$REV" >/dev/null 2>/dev/null
+  if "${HG:-hg}" -R "$ISABELLE_HOME" id -r "$REV" >/dev/null 2>/dev/null
   then
     PULL=""
   else
@@ -107,10 +107,10 @@ else
   exec bash -c '
     set -e
     if [ -n "$PULL" ]; then
-      "${HG:-hg}" pull -r "$REV"
+      "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV"
     fi
-    "${HG:-hg}" update -r "$REV" $CLEAN
+    "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
     isabelle components -a
-    "${HG:-hg}" log -r "$REV"
+    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
   '
 fi
