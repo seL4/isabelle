@@ -131,7 +131,11 @@ else
     set -e
     "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
-    isabelle components -a
+    env ISABELLE_SETTINGS_PRESENT="" \
+      ISABELLE_SITE_SETTINGS_PRESENT="" \
+      ISABELLE_COMPONENTS="" \
+      ISABELLE_COMPONENTS_MISSING="" \
+      isabelle components -a
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
     if [ ! -f "$ISABELLE_HOME/lib/Tools/setup" ]; then
       echo >&2 "### The isabelle setup tool has disappeared in this version"
