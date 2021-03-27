@@ -17,11 +17,12 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -r REV       version according to Mercurial notation"
   echo "    -C           enforce clean update of working directory (no backup!)"
   echo "    -R           version is current official release"
   echo "    -U URL       Isabelle repository server (default: \"$ISABELLE_REPOS\")"
   echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
+  echo "    -r REV       version according to Mercurial notation, or \".\" for remote tip"
+  echo "    -u           version is remote tip"
   echo
   echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
@@ -47,7 +48,7 @@ VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CRU:V:r:" OPT
+while getopts "CRU:V:r:u" OPT
 do
   case "$OPT" in
     C)
@@ -74,6 +75,12 @@ do
       VERSION_PATH=""
       VERSION_REV="$OPTARG"
       ;;
+    u)
+      VERSION="true"
+      VERSION_RELEASE=""
+      VERSION_PATH=""
+      VERSION_REV="."
+      ;;
     \?)
       usage
       ;;
@@ -95,7 +102,6 @@ if [ -z "$VERSION" ]; then
 elif [ ! -d "$ISABELLE_HOME/.hg" ]; then
   fail "Not a repository clone: cannot specify version"
 else
-  export REV=""
   if [ -n "$VERSION_REV" ]; then
     REV="$VERSION_REV"
   elif [ -n "$VERSION_RELEASE" ]; then
@@ -117,21 +123,32 @@ else
   export LANG=C
   export HGPLAIN=
 
-  if "${HG:-hg}" -R "$ISABELLE_HOME" id -r "$REV" >/dev/null 2>/dev/null
-  then
-    PULL=""
+  if [ "$REV" = "." ]; then
+    REV="tip"
+    PULL="true"
+    PULL_REV=""
   else
-    PULL=true
+    PULL_REV="true"
+    if "${HG:-hg}" -R "$ISABELLE_HOME" id -r "$REV" >/dev/null 2>/dev/null
+    then
+      PULL=""
+    else
+      PULL=true
+    fi
   fi
 
   isabelle components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
-  export CLEAN PULL
+  export CLEAN PULL PULL_REV REV
   exec bash -c '
     set -e
     if [ -n "$PULL" ]; then
-      "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
+      if [ -n "$PULL_REV" ]; then
+        "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
+      else
+        "${HG:-hg}" -R "$ISABELLE_HOME" pull "$ISABELLE_REPOS"
+      fi
     fi
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
     isabelle components -a
