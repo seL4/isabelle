@@ -19,15 +19,15 @@ function setup_repos ()
   local SOURCE="$2"
   mkdir -p "$REPOS_DIR"
   if [ ! -d "$REPOS_DIR/$NAME" ]; then
-    hg clone --noupdate -q "$SOURCE" "$REPOS_DIR/$NAME"
+    "${HG:-hg}" clone --noupdate -q "$SOURCE" "$REPOS_DIR/$NAME"
   fi
 }
 
 function identify_repos ()
 {
   local NAME="$1"
-  hg pull -R "$REPOS_DIR/$NAME" -q
-  local ID="$(hg tip -R "$REPOS_DIR/$NAME" --template "{node|short}")"
+  "${HG:-hg}" pull -R "$REPOS_DIR/$NAME" -q
+  local ID="$("${HG:-hg}" tip -R "$REPOS_DIR/$NAME" --template "{node|short}")"
   echo "$NAME version: $ID"
 }
 

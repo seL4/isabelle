@@ -9,4 +9,4 @@ shift
 
 cd "$(dirname "$ALIAS")"
 
-hg churn --aliases "$ALIAS" "$@"
+"${HG:-hg}" churn --aliases "$ALIAS" "$@"
