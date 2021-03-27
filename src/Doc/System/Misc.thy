@@ -375,7 +375,9 @@ text \<open>
   distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2021: February 2021\<close>.
 
   The \<^verbatim>\<open>-i\<close> option produces a short identification derived from the Mercurial
-  id of the @{setting ISABELLE_HOME} directory.
+  id of the @{setting ISABELLE_HOME} directory. This requires either a
+  repository clone or a repository archive (e.g. download of
+  \<^url>\<open>https://isabelle.sketis.net/repos/isabelle/archive/tip.tar.gz\<close>).
 \<close>
 
 end

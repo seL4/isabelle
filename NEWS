@@ -141,6 +141,12 @@ context of Isabelle/Scala:
   - Isabelle_System.download
 
 
+*** System ***
+
+* Command-line tool "isabelle version" supports repository archives
+(without full .hg directory).
+
+
 
 New in Isabelle2021 (February 2021)
 -----------------------------------

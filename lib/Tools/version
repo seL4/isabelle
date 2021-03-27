@@ -59,8 +59,12 @@ shift $(($OPTIND - 1))
 if [ -n "$SHORT_ID" ]; then
   if [ -n "$ISABELLE_ID" ]; then
     echo "$ISABELLE_ID"
-  else
+  elif [ -d "$ISABELLE_HOME/.hg" ]; then
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || echo undefined
+  elif [ -f "$ISABELLE_HOME/.hg_archival.txt" ]; then
+    fgrep node: < "$ISABELLE_HOME/.hg_archival.txt" | cut -d " " -f2 | head -c12
+  else
+    echo undefined
   fi
 else
   echo 'repository version'    # filled in automatically!
