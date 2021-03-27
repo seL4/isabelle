@@ -24,11 +24,19 @@ Quick start in 30min
 
     ./bin/isabelle build -b HOL  #alternative: build session image manually
 
-3. Update repository to particular version (bash shell commands):
+3. Update repository to particular versions (bash shell commands):
 
     cd isabelle
 
-    ./bin/isabelle -r VERSION   #for VERSION e.g. "tip", "Isabelle2021", "9e967acf8f0f"
+    #current remote version
+    ./bin/isabelle setup -u
+
+    #explicit changeset id or tag (e.g. "Isabelle2021")
+    ./bin/isabelle setup -r 7cdcf131699d
+
+    #current official release
+    ./bin/isabelle setup -R
+
 
 4. Build documentation (bash shell commands):
 
