@@ -98,16 +98,8 @@ splitarray ":" "$ISABELLE_COMPONENTS_MISSING"; declare -a MISSING_COMPONENTS=("$
 
 if [ -n "$INIT_SETTINGS" ]; then
   SETTINGS="$ISABELLE_HOME_USER/etc/settings"
-  SETTINGS_CONTENT='init_components "$ISABELLE_COMPONENTS_BASE" "$ISABELLE_HOME/Admin/components/main"'
-  if [ -e "$SETTINGS" ]; then
-    echo "User settings file already exists!"
-    echo
-    echo "Edit \"$SETTINGS\" manually"
-    echo "and add the following line near its start:"
-    echo
-    echo "  $SETTINGS_CONTENT"
-    echo
-  else
+  SETTINGS_CONTENT='init_components "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}" "$ISABELLE_HOME/Admin/components/main"'
+  if [ ! -e "$SETTINGS" ]; then
     echo "Initializing \"$SETTINGS\""
     mkdir -p "$(dirname "$SETTINGS")"
     {
@@ -115,6 +107,17 @@ if [ -n "$INIT_SETTINGS" ]; then
       echo
       echo "$SETTINGS_CONTENT"
     } > "$SETTINGS"
+  elif grep "init_components.*components/main" "$SETTINGS" >/dev/null 2>/dev/null
+  then
+    :
+  else
+    echo "User settings file already exists!"
+    echo
+    echo "Edit \"$SETTINGS\" manually"
+    echo "and add the following line near its start:"
+    echo
+    echo "  $SETTINGS_CONTENT"
+    echo
   fi
 elif [ -n "$LIST_ONLY" ]; then
   echo

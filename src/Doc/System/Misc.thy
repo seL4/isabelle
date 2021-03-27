@@ -164,8 +164,9 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-I\<close> initializes the user settings file to subscribe to the standard
   components specified in the Isabelle repository clone --- this does not make
-  any sense for regular Isabelle releases. If the file already exists, it
-  needs to be edited manually according to the printed explanation.
+  any sense for regular Isabelle releases. An existing file that does not
+  contain a suitable line ``\<^verbatim>\<open>init_components\<close>\<open>\<dots>\<close>\<^verbatim>\<open>components/main\<close>'' needs
+  to be edited according to the printed explanation.
 
   \<^medskip>
   Options \<^verbatim>\<open>-u\<close> and \<^verbatim>\<open>-x\<close> operate on user components listed in
