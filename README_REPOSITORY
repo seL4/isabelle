@@ -28,7 +28,7 @@ Quick start in 30min
 
     cd isabelle
 
-    #current remote version
+    #remote tip version
     ./bin/isabelle setup -u
 
     #explicit changeset id or tag (e.g. "Isabelle2021")
