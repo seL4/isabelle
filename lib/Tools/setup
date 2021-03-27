@@ -9,14 +9,18 @@
 
 PRG="$(basename "$0")"
 
+ISABELLE_REPOS="https://isabelle.sketis.net/repos/isabelle"
+
 function usage()
 {
   echo
   echo "Usage: isabelle $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -r REV       explicit Mercurial version"
+  echo "    -r REV       version according to Mercurial notation"
   echo "    -C           enforce clean update of working directory (no backup!)"
+  echo "    -R           version is current official release"
+  echo "    -U URL       Isabelle repository server (default: \"$ISABELLE_REPOS\")"
   echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
   echo
   echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
@@ -37,19 +41,37 @@ function fail()
 #options
 
 CLEAN=""
+
+VERSION=""
+VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CV:r:" OPT
+while getopts "CRU:V:r:" OPT
 do
   case "$OPT" in
     C)
       CLEAN="--clean"
       ;;
+    R)
+      VERSION="true"
+      VERSION_RELEASE="true"
+      VERSION_PATH=""
+      VERSION_REV=""
+      ;;
+    U)
+      ISABELLE_REPOS="$OPTARG"
+      ;;
     V)
+      VERSION="true"
+      VERSION_RELEASE=""
       VERSION_PATH="$OPTARG"
+      VERSION_REV=""
       ;;
     r)
+      VERSION="true"
+      VERSION_RELEASE=""
+      VERSION_PATH=""
       VERSION_REV="$OPTARG"
       ;;
     \?)
@@ -68,16 +90,18 @@ shift $(($OPTIND - 1))
 
 ## main
 
-if [ -z "$VERSION_REV" -a -z "$VERSION_PATH" ]; then
+if [ -z "$VERSION" ]; then
   isabelle components -I && isabelle components -a
-elif [ -n "$VERSION_REV" -a -n "$VERSION_PATH" ]; then
-  fail "Duplicate version specification (options -r and -V)"
 elif [ ! -d "$ISABELLE_HOME/.hg" ]; then
   fail "Not a repository clone: cannot specify version"
 else
   export REV=""
   if [ -n "$VERSION_REV" ]; then
     REV="$VERSION_REV"
+  elif [ -n "$VERSION_RELEASE" ]; then
+    URL="$ISABELLE_REPOS/raw-file/tip/Admin/Release/official"
+    REV="$(curl -s -f "$URL" | head -n1)"
+    [ -z "$REV" ] && fail "Failed to access \"$URL\""
   elif [ -f "$VERSION_PATH" ]; then
     REV="$(cat "$VERSION_PATH")"
   elif [ -d "$VERSION_PATH" ]; then
@@ -107,7 +131,7 @@ else
   exec bash -c '
     set -e
     if [ -n "$PULL" ]; then
-      "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV"
+      "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
     fi
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
     isabelle components -a
