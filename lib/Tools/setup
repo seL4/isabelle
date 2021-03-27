@@ -21,7 +21,7 @@ function usage()
   echo "    -R           version is current official release"
   echo "    -U URL       Isabelle repository server (default: \"$ISABELLE_REPOS\")"
   echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
-  echo "    -r REV       version according to Mercurial notation, or \".\" for remote tip"
+  echo "    -r REV       version according to Mercurial notation"
   echo "    -u           version is remote tip"
   echo
   echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
@@ -79,7 +79,7 @@ do
       VERSION="true"
       VERSION_RELEASE=""
       VERSION_PATH=""
-      VERSION_REV="."
+      VERSION_REV="tip"
       ;;
     \?)
       usage
@@ -123,33 +123,13 @@ else
   export LANG=C
   export HGPLAIN=
 
-  if [ "$REV" = "." ]; then
-    REV="tip"
-    PULL="true"
-    PULL_REV=""
-  else
-    PULL_REV="true"
-    if "${HG:-hg}" -R "$ISABELLE_HOME" id -r "$REV" >/dev/null 2>/dev/null
-    then
-      PULL=""
-    else
-      PULL=true
-    fi
-  fi
-
   isabelle components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
-  export CLEAN PULL PULL_REV REV
+  export CLEAN REV ISABELLE_REPOS
   exec bash -c '
     set -e
-    if [ -n "$PULL" ]; then
-      if [ -n "$PULL_REV" ]; then
-        "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
-      else
-        "${HG:-hg}" -R "$ISABELLE_HOME" pull "$ISABELLE_REPOS"
-      fi
-    fi
+    "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
     isabelle components -a
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
