@@ -11,6 +11,9 @@ cd "$HOME/cronjob"
 mkdir -p run log
 
 {
+  export LANG=C
+  export HGPLAIN=
+
   "${HG:-hg}" -R isabelle pull "https://isabelle.sketis.net/repos/isabelle" || echo "self_update pull failed" >&2
   "${HG:-hg}" -R isabelle update -C || echo "self_update update failed" >&2
   isabelle/bin/isabelle components -a 2>&1 || echo "self_update components failed" >&2
