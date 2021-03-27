@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: setup for Isabelle repository clone or repository archive
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -r REV       explicit Mercurial version"
+  echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
+  echo
+  echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
+  echo "  repository clone (all versions) or repository archive (fixed version)."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+#options
+
+VERSION_REV=""
+VERSION_PATH=""
+
+while getopts "r:V:" OPT
+do
+  case "$OPT" in
+    r)
+      VERSION_REV="$OPTARG"
+      ;;
+    V)
+      VERSION_PATH="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+if [ -z "$VERSION_REV" -a -z "$VERSION_PATH" ]; then
+  isabelle components -I && isabelle components -a
+elif [ -n "$VERSION_REV" -a -n "$VERSION_PATH" ]; then
+  fail "Duplicate version specification (options -r and -V)"
+elif [ ! -d "$ISABELLE_HOME/.hg" ]; then
+  fail "Not a repository clone: cannot specify version"
+else
+  export REV=""
+  if [ -n "$VERSION_REV" ]; then
+    REV="$VERSION_REV"
+  elif [ -f "$VERSION_PATH" ]; then
+    REV="$(cat "$VERSION_PATH")"
+  elif [ -d "$VERSION_PATH" ]; then
+    if [ -f "$VERSION_PATH/ISABELLE_VERSION" ]; then
+      REV="$(cat "$VERSION_PATH/ISABELLE_VERSION")"
+    else
+      fail "Missing file \"$VERSION_PATH/ISABELLE_VERSION\""
+    fi
+  else
+    fail "Missing file \"$VERSION_PATH\""
+  fi
+
+  export LANG=C
+  export HGPLAIN=
+
+  if "${HG:-hg}" id -r "$REV" >/dev/null 2>/dev/null
+  then
+    export PULL=""
+  else
+    export PULL=true
+  fi
+
+  isabelle components -I
+
+  #Atomic exec: avoid inplace update of running script!
+  exec bash -c '
+    set -e
+    if [ -n "$PULL" ]; then
+      "${HG:-hg}" pull -r "$REV"
+    fi
+    "${HG:-hg}" update -r "$REV"
+    "${HG:-hg}" log -r "$REV"
+    isabelle components -a
+  '
+fi

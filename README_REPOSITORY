@@ -18,25 +18,17 @@ Quick start in 30min
 
     cd isabelle
 
-    ./bin/isabelle components -I
+    ./bin/isabelle setup
 
-    ./bin/isabelle components -a
+    ./bin/isabelle jedit -l HOL  #start Prover IDE and let it build session image
 
-    ./bin/isabelle jedit -l HOL
-
-    ./bin/isabelle build -b HOL  #optional: build session image manually
+    ./bin/isabelle build -b HOL  #alternative: build session image manually
 
 3. Update repository to particular version (bash shell commands):
 
     cd isabelle
 
-    hg pull https://isabelle.in.tum.de/repos/isabelle
-
-    hg update -r VERSION   #for VERSION e.g. "tip", "Isabelle2021", "9e967acf8f0f"
-
-    ./bin/isabelle components -a
-
-    ./bin/isabelle jedit -l HOL
+    ./bin/isabelle -r VERSION   #for VERSION e.g. "tip", "Isabelle2021", "9e967acf8f0f"
 
 4. Build documentation (bash shell commands):
 
