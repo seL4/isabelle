@@ -139,7 +139,7 @@ else
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
     if [ ! -f "$ISABELLE_HOME/lib/Tools/setup" ]; then
       echo >&2 "### The isabelle setup tool has disappeared in this version"
-      echo >&2 "### (need to invoke "${HG:-hg} update" before using it again)"
+      echo >&2 "### (need to invoke \"${HG:-hg} update\" before using it again)"
     fi
   '
 fi
