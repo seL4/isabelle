@@ -16,6 +16,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -r REV       explicit Mercurial version"
+  echo "    -C           enforce clean update of working directory (no backup!)"
   echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
   echo
   echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
@@ -35,17 +36,21 @@ function fail()
 
 #options
 
-VERSION_REV=""
+CLEAN=""
 VERSION_PATH=""
+VERSION_REV=""
 
-while getopts "r:V:" OPT
+while getopts "CV:r:" OPT
 do
   case "$OPT" in
-    r)
-      VERSION_REV="$OPTARG"
+    C)
+      CLEAN="--clean"
       ;;
     V)
       VERSION_PATH="$OPTARG"
+      ;;
+    r)
+      VERSION_REV="$OPTARG"
       ;;
     \?)
       usage
@@ -90,21 +95,22 @@ else
 
   if "${HG:-hg}" id -r "$REV" >/dev/null 2>/dev/null
   then
-    export PULL=""
+    PULL=""
   else
-    export PULL=true
+    PULL=true
   fi
 
   isabelle components -I
 
   #Atomic exec: avoid inplace update of running script!
+  export CLEAN PULL
   exec bash -c '
     set -e
     if [ -n "$PULL" ]; then
       "${HG:-hg}" pull -r "$REV"
     fi
-    "${HG:-hg}" update -r "$REV"
-    "${HG:-hg}" log -r "$REV"
+    "${HG:-hg}" update -r "$REV" $CLEAN
     isabelle components -a
+    "${HG:-hg}" log -r "$REV"
   '
 fi
