@@ -100,7 +100,7 @@ else
     PULL=true
   fi
 
-  isabelle components -I
+  isabelle components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
   export CLEAN PULL
