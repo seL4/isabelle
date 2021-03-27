@@ -367,6 +367,7 @@ text \<open>
 
   Options are:
     -i           short identification (derived from Mercurial id)
+    -t           symbolic tags (derived from Mercurial id)
 
   Display Isabelle version information.\<close>}
 
@@ -374,9 +375,13 @@ text \<open>
   The default is to output the full version string of the Isabelle
   distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2021: February 2021\<close>.
 
-  The \<^verbatim>\<open>-i\<close> option produces a short identification derived from the Mercurial
-  id of the @{setting ISABELLE_HOME} directory. This requires either a
-  repository clone or a repository archive (e.g. download of
+  \<^medskip>
+  Option \<^verbatim>\<open>-i\<close> produces a short identification derived from the Mercurial id
+  of the @{setting ISABELLE_HOME} directory; option \<^verbatim>\<open>-t\<close> prints version tags
+  (if available).
+
+  These options require either a repository clone or a repository archive
+  (e.g. download of
   \<^url>\<open>https://isabelle.sketis.net/repos/isabelle/archive/tip.tar.gz\<close>).
 \<close>
 

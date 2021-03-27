@@ -15,6 +15,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -i           short identification (derived from Mercurial id)"
+  echo "    -t           symbolic tags (derived from Mercurial id)"
   echo
   echo "  Display Isabelle version information."
   echo
@@ -33,12 +34,16 @@ function fail()
 # options
 
 SHORT_ID=""
+TAGS=""
 
-while getopts "i" OPT
+while getopts "it" OPT
 do
   case "$OPT" in
     i)
       SHORT_ID=true
+      ;;
+    t)
+      TAGS=true
       ;;
     \?)
       usage
@@ -56,16 +61,33 @@ shift $(($OPTIND - 1))
 
 ## main
 
-if [ -n "$SHORT_ID" ]; then
-  if [ -n "$ISABELLE_ID" ]; then
-    echo "$ISABELLE_ID"
-  elif [ -d "$ISABELLE_HOME/.hg" ]; then
-    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || echo undefined
-  elif [ -f "$ISABELLE_HOME/.hg_archival.txt" ]; then
-    fgrep node: < "$ISABELLE_HOME/.hg_archival.txt" | cut -d " " -f2 | head -c12
-  else
-    echo undefined
-  fi
-else
+if [ -z "$SHORT_ID" -a -z "$TAGS" ]; then
   echo 'repository version'    # filled in automatically!
+fi
+
+if [ -n "$SHORT_ID" ]; then
+  if [ -d "$ISABELLE_HOME/.hg" ]; then
+    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"
+  elif [ -f "$ISABELLE_HOME/.hg_archival.txt" ]; then
+    RESULT="$(fgrep node: < "$ISABELLE_HOME/.hg_archival.txt" | cut -d " " -f2 | head -c12)"
+    [ -n "$RESULT" ] && echo "$RESULT"
+  elif [ -n "$ISABELLE_ID" ]; then
+    echo "$ISABELLE_ID"
+  fi
+fi
+
+if [ -n "$TAGS" ]; then
+  RESULT=""
+  if [ -d "$ISABELLE_HOME/.hg" ]; then
+    RESULT=$("${HG:-hg}" -R "$ISABELLE_HOME" id -t 2>/dev/null)
+    RC="$?"
+  elif [ -f "$ISABELLE_HOME/.hg_archival.txt" ]; then
+    RESULT="$(fgrep tag: < "$ISABELLE_HOME/.hg_archival.txt" | cut -d " " -f2)"
+    RC="$?"
+  fi
+  if [ "$RC" -ne 0 ]; then
+    exit "$RC"
+  elif [ -n "$RESULT" -a "$RESULT" != "tip" ]; then
+    echo "$RESULT"
+  fi
 fi

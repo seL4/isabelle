@@ -144,7 +144,7 @@ context of Isabelle/Scala:
 *** System ***
 
 * Command-line tool "isabelle version" supports repository archives
-(without full .hg directory).
+(without full .hg directory). More options.
 
 
 
