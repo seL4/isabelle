@@ -88,7 +88,7 @@ object Mercurial
       repository: Boolean = true): Process_Result =
     {
       val cmdline =
-        "export HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
+        "export LANG=C HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
           (if (repository) " --repository " + ssh.bash_path(root) else "") +
           " --noninteractive " + name + " " + options + " " + args
       ssh.execute(cmdline)

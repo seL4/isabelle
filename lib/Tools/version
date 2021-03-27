@@ -67,6 +67,9 @@ fi
 
 HG_ARCHIVAL="$ISABELLE_HOME/.hg_archival.txt"
 
+export LANG=C
+export HGPLAIN=
+
 if [ -n "$SHORT_ID" ]; then
   if [ -d "$ISABELLE_HOME/.hg" ]; then
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"

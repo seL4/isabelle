@@ -7,7 +7,8 @@ set -e
 
 source "$HOME/.bashrc"
 
-LANG=C
+export LANG=C
+export HGPLAIN=
 
 REPOS_DIR="$HOME/cronjob/plain_identify_repos"
 ISABELLE_REPOS_SOURCE="https://isabelle.sketis.net/repos/isabelle"

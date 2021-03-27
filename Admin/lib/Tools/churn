@@ -9,4 +9,7 @@ shift
 
 cd "$(dirname "$ALIAS")"
 
+export LANG=C
+export HGPLAIN=
+
 "${HG:-hg}" churn --aliases "$ALIAS" "$@"
