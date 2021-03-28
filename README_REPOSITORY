@@ -12,37 +12,34 @@ Quick start in 30min
 
   (c) Windows: use Cygwin64 with packages "curl" and "mercurial" (via Cygwin setup-x86_64.exe)
 
-2. Initial repository clone (bash shell commands):
+2. Setup repository clone (bash shell commands):
 
     hg clone https://isabelle.in.tum.de/repos/isabelle
+    isabelle/Admin/setup
 
-    cd isabelle
+    #optional: start Prover IDE and let it build session image
+    isabelle/bin/isabelle jedit -l HOL
 
-    ./bin/isabelle setup
-
-    ./bin/isabelle jedit -l HOL  #start Prover IDE and let it build session image
-
-    ./bin/isabelle build -b HOL  #alternative: build session image manually
+    #optional: build session image manually
+    isabelle/bin/isabelle build -b HOL
 
 3. Update repository to particular versions (bash shell commands):
 
-    cd isabelle
-
     #remote tip version
-    ./bin/isabelle setup -u
+    isabelle/Admin/setup -u
 
     #explicit changeset id or tag (e.g. "Isabelle2021")
-    ./bin/isabelle setup -r 7cdcf131699d
+    isabelle/Admin/setup -r 7cdcf131699d
 
     #current official release
-    ./bin/isabelle setup -R
+    isabelle/Admin/setup -R
 
 
 4. Build documentation (bash shell commands):
 
-    ./bin/isabelle build_doc -a
+    isabelle/bin/isabelle build_doc -a
 
-    ./bin/isabelle doc system
+    isabelle/bin/isabelle doc system
 
 
 Introduction
