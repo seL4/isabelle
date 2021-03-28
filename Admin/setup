@@ -28,10 +28,11 @@ function usage()
   echo "    -f           fresh build of Isabelle/Scala/jEdit"
   echo "    -n           no build of Isabelle/Scala/jEdit"
   echo "    -r REV       version according to Mercurial notation"
-  echo "    -u           version is remote tip"
+  echo "    -u           version is tip of Isabelle repository server"
   echo
   echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
+  echo "  Download required components and build Isabelle/Scala/jEdit (default)."
   echo
   exit 1
 }
