@@ -20,10 +20,11 @@ function usage()
   echo "Usage: Admin/setup [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -C           enforce clean update of working directory (no backup!)"
+  echo "    -C           force clean working directory (no backup!)"
   echo "    -R           version is current official release"
   echo "    -U URL       Isabelle repository server (default: \"$ISABELLE_REPOS\")"
   echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
+  echo "    -c           check clean working directory"
   echo "    -r REV       version according to Mercurial notation"
   echo "    -u           version is remote tip"
   echo
@@ -44,18 +45,19 @@ function fail()
 
 #options
 
-CLEAN=""
+CLEAN_FORCE=""
+CLEAN_CHECK=""
 
 VERSION=""
 VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CRU:V:r:u" OPT
+while getopts "CRU:V:cr:u" OPT
 do
   case "$OPT" in
     C)
-      CLEAN="--clean"
+      CLEAN_FORCE="--clean"
       ;;
     R)
       VERSION="true"
@@ -71,6 +73,9 @@ do
       VERSION_RELEASE=""
       VERSION_PATH="$OPTARG"
       VERSION_REV=""
+      ;;
+    c)
+      CLEAN_CHECK="--check"
       ;;
     r)
       VERSION="true"
@@ -134,7 +139,7 @@ else
   exec bash -c '
     set -e
     "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
-    "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
+    "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN_FORCE $CLEAN_CHECK
     "$ISABELLE_HOME/bin/isabelle" components -a
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
     if [ ! -f "$ISABELLE_HOME/Admin/setup" ]; then
