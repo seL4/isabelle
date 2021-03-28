@@ -32,7 +32,7 @@ then
 fi
 
 #OCaml management via OPAM
-function isabelle_opam()
+function isabelle_opam ()
 {
   if [ -z "$ISABELLE_OPAM" ]; then
     echo "Unknown ISABELLE_OPAM -- OCaml management tools unavailable" >&2
@@ -44,7 +44,7 @@ function isabelle_opam()
 export -f isabelle_opam
 
 #GHC management via Stack
-function isabelle_stack()
+function isabelle_stack ()
 {
   if [ -z "$ISABELLE_STACK" ]; then
     echo "Unknown ISABELLE_STACK -- GHC management tools unavailable" >&2
