@@ -74,7 +74,7 @@ if [ -n "$SHORT_ID" ]; then
   if [ -d "$ISABELLE_HOME/.hg" ]; then
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"
   elif [ -f "$HG_ARCHIVAL" ]; then
-    RESULT="$(fgrep node: < "$HG_ARCHIVAL" | cut -d " " -f2 | head -c12)"
+    RESULT="$(grep "^node:" < "$HG_ARCHIVAL" | cut -d " " -f2 | head -c12)"
     [ -n "$RESULT" ] && echo "$RESULT"
   elif [ -n "$ISABELLE_ID" ]; then
     echo "$ISABELLE_ID"
@@ -87,7 +87,7 @@ if [ -n "$TAGS" ]; then
     RESULT=$("${HG:-hg}" -R "$ISABELLE_HOME" id -t 2>/dev/null)
     RC="$?"
   elif [ -f "$HG_ARCHIVAL" ]; then
-    RESULT="$(fgrep tag: < "$HG_ARCHIVAL" | cut -d " " -f2)"
+    RESULT="$(grep "^tag:" < "$HG_ARCHIVAL" | cut -d " " -f2)"
     RC="$?"
   fi
   if [ "$RC" -ne 0 ]; then
