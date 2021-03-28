@@ -5,16 +5,19 @@
 # DESCRIPTION: setup for Isabelle repository clone or repository archive
 
 
-## diagnostics
+## environment
 
-PRG="$(basename "$0")"
+export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
 ISABELLE_REPOS="https://isabelle.sketis.net/repos/isabelle"
+
+
+## diagnostics
 
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo "Usage: Admin/setup [OPTIONS]"
   echo
   echo "  Options are:"
   echo "    -C           enforce clean update of working directory (no backup!)"
@@ -98,7 +101,8 @@ shift $(($OPTIND - 1))
 ## main
 
 if [ -z "$VERSION" ]; then
-  isabelle components -I && isabelle components -a
+  "$ISABELLE_HOME/bin/isabelle" components -I && \
+  "$ISABELLE_HOME/bin/isabelle" components -a
 elif [ ! -d "$ISABELLE_HOME/.hg" ]; then
   fail "Not a repository clone: cannot specify version"
 else
@@ -123,7 +127,7 @@ else
   export LANG=C
   export HGPLAIN=
 
-  isabelle components -I || exit "$?"
+  "$ISABELLE_HOME/bin/isabelle" components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
   export CLEAN REV ISABELLE_REPOS
@@ -131,14 +135,10 @@ else
     set -e
     "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN
-    env ISABELLE_SETTINGS_PRESENT="" \
-      ISABELLE_SITE_SETTINGS_PRESENT="" \
-      ISABELLE_COMPONENTS="" \
-      ISABELLE_COMPONENTS_MISSING="" \
-      isabelle components -a
+    "$ISABELLE_HOME/bin/isabelle" components -a
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
-    if [ ! -f "$ISABELLE_HOME/lib/Tools/setup" ]; then
-      echo >&2 "### The isabelle setup tool has disappeared in this version"
+    if [ ! -f "$ISABELLE_HOME/Admin/setup" ]; then
+      echo >&2 "### The Admin/setup script has disappeared in this version"
       echo >&2 "### (need to invoke \"${HG:-hg} update\" before using it again)"
     fi
   '
