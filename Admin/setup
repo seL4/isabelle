@@ -148,7 +148,7 @@ else
   "$ISABELLE_HOME/bin/isabelle" components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
-  export CLEAN REV ISABELLE_REPOS BUILD_OPTIONS
+  export CLEAN_FORCE CLEAN_CHECK REV ISABELLE_REPOS BUILD_OPTIONS
   exec bash -c '
     set -e
     "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
