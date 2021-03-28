@@ -17,12 +17,6 @@ Quick start in 30min
     hg clone https://isabelle.in.tum.de/repos/isabelle
     isabelle/Admin/setup
 
-    #optional: start Prover IDE and let it build session image
-    isabelle/bin/isabelle jedit -l HOL
-
-    #optional: build session image manually
-    isabelle/bin/isabelle build -b HOL
-
 3. Update repository to particular versions (bash shell commands):
 
     #remote tip version
@@ -34,8 +28,15 @@ Quick start in 30min
     #current official release
     isabelle/Admin/setup -R
 
+4. Run application:
 
-4. Build documentation (bash shell commands):
+    #start Prover IDE and let it build session image
+    isabelle/bin/isabelle jedit -l HOL
+
+    #alternative: build session image manually
+    isabelle/bin/isabelle build -b HOL
+
+5. Build documentation (bash shell commands):
 
     isabelle/bin/isabelle build_doc -a
 
