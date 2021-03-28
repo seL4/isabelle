@@ -143,10 +143,10 @@ else
     fail "Missing file \"$VERSION_PATH\""
   fi
 
+  "$ISABELLE_HOME/bin/isabelle" components -I || exit "$?"
+
   export LANG=C
   export HGPLAIN=
-
-  "$ISABELLE_HOME/bin/isabelle" components -I || exit "$?"
 
   #Atomic exec: avoid inplace update of running script!
   export CLEAN_FORCE CLEAN_CHECK REV ISABELLE_REPOS BUILD_OPTIONS
