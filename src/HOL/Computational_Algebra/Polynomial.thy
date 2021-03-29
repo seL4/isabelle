@@ -597,7 +597,7 @@ lemma lead_coeff_monom [simp]: "lead_coeff (monom c n) = c"
 lemma last_coeffs_eq_coeff_degree:
   "last (coeffs p) = lead_coeff p" if "p \<noteq> 0"
   using that by (simp add: coeffs_def)
-  
+
 
 subsection \<open>Addition and subtraction\<close>
 
@@ -911,7 +911,7 @@ proof -
     using that by (simp add: fun_eq_iff)
   show ?thesis
     by (rule coeffs_eqI) (auto simp add: no_trailing_map nth_default_map_eq nth_default_coeffs_eq eq_0)
-qed  
+qed
 
 lemma smult_eq_iff:
   fixes b :: "'a :: field"
@@ -1068,7 +1068,7 @@ lemma monom_eq_1_iff:
 
 lemma monom_altdef:
   "monom c n = smult c ([:0, 1:] ^ n)"
-  by (induct n) (simp_all add: monom_0 monom_Suc)  
+  by (induct n) (simp_all add: monom_0 monom_Suc)
 
 instance poly :: ("{comm_semiring_1,semiring_1_no_zero_divisors}") semiring_1_no_zero_divisors ..
 instance poly :: (comm_ring) comm_ring ..
@@ -1497,7 +1497,7 @@ lemma not_pos_poly_0 [simp]: "\<not> pos_poly 0"
 lemma pos_poly_add: "pos_poly p \<Longrightarrow> pos_poly q \<Longrightarrow> pos_poly (p + q)"
 proof (induction p arbitrary: q)
   case (pCons a p)
-  then show ?case 
+  then show ?case
     by (cases q; force simp add: pos_poly_pCons add_pos_pos)
 qed auto
 
@@ -1734,7 +1734,7 @@ qed (simp add: coeff_linear_power le_degree)
 lemma order_1: "[:-a, 1:] ^ order a p dvd p"
 proof (cases "p = 0")
   case False
-  show ?thesis 
+  show ?thesis
   proof (cases "order a p")
     case (Suc n)
     then show ?thesis
@@ -1742,8 +1742,8 @@ proof (cases "p = 0")
   qed auto
 qed auto
 
-lemma order_2: 
-  assumes "p \<noteq> 0" 
+lemma order_2:
+  assumes "p \<noteq> 0"
   shows "\<not> [:-a, 1:] ^ Suc (order a p) dvd p"
 proof -
   have False if "[:- a, 1:] ^ Suc (degree p) dvd p"
@@ -1786,7 +1786,7 @@ lemma order_unique_lemma:
   unfolding Polynomial.order_def
   by (metis (mono_tags, lifting) Least_equality assms not_less_eq_eq power_le_dvd)
 
-lemma order_mult: 
+lemma order_mult:
   assumes "p * q \<noteq> 0" shows "order a (p * q) = order a p + order a q"
 proof -
   define i where "i \<equiv> order a p"
@@ -1828,7 +1828,7 @@ lemma order_1_eq_0 [simp]:"order x 1 = 0"
   by (metis order_root poly_1 zero_neq_one)
 
 lemma order_uminus[simp]: "order x (-p) = order x p"
-  by (metis neg_equal_0_iff_equal order_smult smult_1_left smult_minus_left) 
+  by (metis neg_equal_0_iff_equal order_smult smult_1_left smult_minus_left)
 
 lemma order_power_n_n: "order a ([:-a,1:]^n)=n"
 proof (induct n) (*might be proved more concisely using nat_less_induct*)
@@ -2510,7 +2510,7 @@ lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
   for p :: "'a::{comm_semiring_1,semiring_no_zero_divisors,semiring_char_0} poly"
 proof (cases "degree p")
   case 0
-  then show ?thesis 
+  then show ?thesis
     by (metis degree_eq_zeroE pderiv.simps)
 next
   case (Suc n)
@@ -2526,7 +2526,7 @@ proof -
   proof (cases "degree p")
     case (Suc n)
     then show ?thesis
-      by (metis coeff_pderiv degree_0 diff_Suc_1 le_degree leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)      
+      by (metis coeff_pderiv degree_0 diff_Suc_1 le_degree leading_coeff_0_iff mult_eq_0_iff nat.distinct(1) of_nat_eq_0_iff)
   qed auto
   moreover have "\<forall>i>degree p - 1. coeff (pderiv p) i = 0"
     by (simp add: coeff_eq_0 coeff_pderiv)
@@ -2575,7 +2575,7 @@ proof (induction n)
   case (Suc n)
   then show ?case
     by (simp add: pderiv_mult smult_add_left algebra_simps)
-qed auto 
+qed auto
 
 lemma pderiv_pcompose: "pderiv (pcompose p q) = pcompose (pderiv p) q * pderiv q"
   by (induction p rule: pCons_induct)
@@ -2610,23 +2610,23 @@ lemma DERIV_add_const: "DERIV f x :> D \<Longrightarrow> DERIV (\<lambda>x. a + 
 lemma poly_DERIV [simp]: "DERIV (\<lambda>x. poly p x) x :> poly (pderiv p) x"
   by (induct p) (auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
-lemma poly_isCont[simp]: 
+lemma poly_isCont[simp]:
   fixes x::"'a::real_normed_field"
   shows "isCont (\<lambda>x. poly p x) x"
 by (rule poly_DERIV [THEN DERIV_isCont])
 
 lemma tendsto_poly [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. poly p (f x)) \<longlongrightarrow> poly p a) F"
-  for f :: "_ \<Rightarrow> 'a::real_normed_field"  
+  for f :: "_ \<Rightarrow> 'a::real_normed_field"
   by (rule isCont_tendsto_compose [OF poly_isCont])
 
 lemma continuous_within_poly: "continuous (at z within s) (poly p)"
   for z :: "'a::{real_normed_field}"
-  by (simp add: continuous_within tendsto_poly)  
-    
+  by (simp add: continuous_within tendsto_poly)
+
 lemma continuous_poly [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. poly p (f x))"
   for f :: "_ \<Rightarrow> 'a::real_normed_field"
   unfolding continuous_def by (rule tendsto_poly)
-      
+
 lemma continuous_on_poly [continuous_intros]:
   fixes p :: "'a :: {real_normed_field} poly"
   assumes "continuous_on A f"
@@ -3082,7 +3082,7 @@ proof
 qed (use assms in \<open>auto simp: coeff_reflect_poly\<close>)
 
 lemma algebraic_int_root:
-  assumes "algebraic_int y" 
+  assumes "algebraic_int y"
       and "poly p x = y" and "\<forall>i. coeff p i \<in> \<int>" and "lead_coeff p = 1" and "degree p > 0"
   shows   "algebraic_int x"
 proof -
@@ -3735,14 +3735,14 @@ next
   then show "is_unit (unit_factor p)"
     by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff unit_factor_is_unit)
 next
-  fix a b :: "'a poly" assume "is_unit a" 
+  fix a b :: "'a poly" assume "is_unit a"
   thus "unit_factor (a * b) = a * unit_factor b"
     by (auto simp: unit_factor_poly_def lead_coeff_mult unit_factor_mult elim!: is_unit_polyE)
 qed (simp_all add: normalize_poly_def unit_factor_poly_def monom_0 lead_coeff_mult unit_factor_mult)
 
 end
 
-instance poly :: ("{semidom_divide_unit_factor,idom_divide,normalization_semidom_multiplicative}") 
+instance poly :: ("{semidom_divide_unit_factor,idom_divide,normalization_semidom_multiplicative}")
   normalization_semidom_multiplicative
   by intro_classes (auto simp: unit_factor_poly_def lead_coeff_mult unit_factor_mult)
 
@@ -3849,7 +3849,7 @@ proof (cases "y = 0")
   proof (induction x)
     case 0
     then show ?case
-      using eucl_rel_poly_0 by blast 
+      using eucl_rel_poly_0 by blast
   next
     case (pCons a x)
     then show ?case
@@ -4337,9 +4337,9 @@ proof (cases "g = 0")
     (rev (coeffs f)) (rev (coeffs g))
     (1 + length (coeffs f) -
     length (coeffs g)) = (q, r)"
-    using qr hd_rev [OF \<open>coeffs g \<noteq> []\<close>] by simp
+    by (metis hd_rev qr rev.simps(1) rev_swap)
   ultimately show ?thesis
-    by (auto simp: degree_eq_length_coeffs pseudo_divmod_def pseudo_divmod_list_def Let_def)
+    by (simp add: degree_eq_length_coeffs pseudo_divmod_def pseudo_divmod_list_def)
 next
   case True
   then show ?thesis
@@ -4872,7 +4872,7 @@ next
     by simp_all
   then show ?thesis ..
 qed
-  
+
 lemma content_dvd_contentI [intro]: "p dvd q \<Longrightarrow> content p dvd content q"
   using const_poly_dvd_iff_dvd_content content_dvd dvd_trans by blast
 
@@ -4984,7 +4984,7 @@ proof -
   also have "primitive_part \<dots> = smult (unit_factor a) (primitive_part p)"
     by (subst primitive_part_mult) simp_all
   finally show ?thesis .
-qed  
+qed
 
 lemma primitive_part_dvd_primitive_partI [intro]:
   fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide,
@@ -4992,13 +4992,13 @@ lemma primitive_part_dvd_primitive_partI [intro]:
   shows "p dvd q \<Longrightarrow> primitive_part p dvd primitive_part q"
   by (auto elim!: dvdE simp: primitive_part_mult)
 
-lemma content_prod_mset: 
+lemma content_prod_mset:
   fixes A :: "'a :: {factorial_semiring, semiring_Gcd, normalization_semidom_multiplicative}
       poly multiset"
   shows "content (prod_mset A) = prod_mset (image_mset content A)"
   by (induction A) (simp_all add: content_mult mult_ac)
 
-lemma content_prod_eq_1_iff: 
+lemma content_prod_eq_1_iff:
   fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, normalization_semidom_multiplicative} poly"
   shows "content (p * q) = 1 \<longleftrightarrow> content p = 1 \<and> content q = 1"
 proof safe
@@ -5009,7 +5009,7 @@ proof safe
     hence "content p dvd 1" by (rule dvdI)
     hence "content p = 1" by simp
   } note B = this
-  from A B[of p q] B [of q p] show "content p = 1" "content q = 1" 
+  from A B[of p q] B [of q p] show "content p = 1" "content q = 1"
     by (simp_all add: content_mult mult_ac)
 qed (auto simp: content_mult)
 

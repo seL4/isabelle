@@ -1954,6 +1954,9 @@ lemma list_update_code [code]:
 
 subsubsection \<open>\<^const>\<open>last\<close> and \<^const>\<open>butlast\<close>\<close>
 
+lemma hd_Nil_eq_last: "hd Nil = last Nil"
+  unfolding hd_def last_def by simp
+
 lemma last_snoc [simp]: "last (xs @ [x]) = x"
   by (induct xs) auto
 
@@ -1981,11 +1984,11 @@ lemma last_tl: "xs = [] \<or> tl xs \<noteq> [] \<Longrightarrow>last (tl xs) = 
 lemma butlast_tl: "butlast (tl xs) = tl (butlast xs)"
   by (induct xs) simp_all
 
-lemma hd_rev: "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
-  by(rule rev_exhaust[of xs]) simp_all
+lemma hd_rev: "hd(rev xs) = last xs"
+  by (metis hd_Cons_tl hd_Nil_eq_last last_snoc rev_eq_Cons_iff rev_is_Nil_conv)
 
-lemma last_rev: "xs \<noteq> [] \<Longrightarrow> last(rev xs) = hd xs"
-  by(cases xs) simp_all
+lemma last_rev: "last(rev xs) = hd xs"
+  by (metis hd_rev rev_swap)
 
 lemma last_in_set[simp]: "as \<noteq> [] \<Longrightarrow> last as \<in> set as"
   by (induct as) auto
