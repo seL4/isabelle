@@ -445,11 +445,11 @@ The Isar equivalent is this:
 
 \begin{samepage}
 \begin{quote}
-\isakeyword{have} \<open>"t\<^sub>1 = t\<^sub>2"\<close> \isasymproof\\
-\isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
+\isacom{have} \<open>"t\<^sub>1 = t\<^sub>2"\<close> \isasymproof\\
+\isacom{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
 \quad $\vdots$\\
-\isakeyword{also have} \<open>"... = t\<^sub>n"\<close> \isasymproof \\
-\isakeyword{finally show} \<open>"t\<^sub>1 = t\<^sub>n"\<close>\ \texttt{.}
+\isacom{also have} \<open>"... = t\<^sub>n"\<close> \isasymproof \\
+\isacom{finally show} \<open>"t\<^sub>1 = t\<^sub>n"\<close>\ \texttt{.}
 \end{quote}
 \end{samepage}
 
@@ -461,21 +461,21 @@ automatically instantiates with the right-hand side of the previous equation.
 In general, if \<open>this\<close> is the theorem \<^term>\<open>p t\<^sub>1 t\<^sub>2\<close> then ``\<open>...\<close>''
 stands for \<open>t\<^sub>2\<close>.
 \item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the
-assumptions. This works here because the result of \isakeyword{finally}
+assumptions. This works here because the result of \isacom{finally}
 is the theorem \mbox{\<open>t\<^sub>1 = t\<^sub>n\<close>},
-\isakeyword{show} \<open>"t\<^sub>1 = t\<^sub>n"\<close> states the theorem explicitly,
-and ``\<open>.\<close>'' proves the theorem with the result of \isakeyword{finally}.
+\isacom{show} \<open>"t\<^sub>1 = t\<^sub>n"\<close> states the theorem explicitly,
+and ``\<open>.\<close>'' proves the theorem with the result of \isacom{finally}.
 \end{description}
 The above proof template also works for arbitrary mixtures of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close>,
 for example:
 \begin{quote}
-\isakeyword{have} \<open>"t\<^sub>1 < t\<^sub>2"\<close> \isasymproof\\
-\isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
+\isacom{have} \<open>"t\<^sub>1 < t\<^sub>2"\<close> \isasymproof\\
+\isacom{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
 \quad $\vdots$\\
-\isakeyword{also have} \<open>"... \<le> t\<^sub>n"\<close> \isasymproof \\
-\isakeyword{finally show} \<open>"t\<^sub>1 < t\<^sub>n"\<close>\ \texttt{.}
+\isacom{also have} \<open>"... \<le> t\<^sub>n"\<close> \isasymproof \\
+\isacom{finally show} \<open>"t\<^sub>1 < t\<^sub>n"\<close>\ \texttt{.}
 \end{quote}
-The relation symbol in the \isakeyword{finally} step needs to be the most precise one
+The relation symbol in the \isacom{finally} step needs to be the most precise one
 possible. In the example above, you must not write \<open>t\<^sub>1 \<le> t\<^sub>n\<close> instead of \mbox{\<open>t\<^sub>1 < t\<^sub>n\<close>}.
 
 \begin{warn}
@@ -484,24 +484,24 @@ in (in)equation chains (by default).
 \end{warn}
 
 If you want to go beyond merely using the above proof patterns and want to
-understand what \isakeyword{also} and \isakeyword{finally} mean, read on.
+understand what \isacom{also} and \isacom{finally} mean, read on.
 There is an Isar theorem variable called \<open>calculation\<close>, similar to \<open>this\<close>.
-When the first \isakeyword{also} in a chain is encountered, Isabelle sets
-\<open>calculation := this\<close>. In each subsequent \isakeyword{also} step,
+When the first \isacom{also} in a chain is encountered, Isabelle sets
+\<open>calculation := this\<close>. In each subsequent \isacom{also} step,
 Isabelle composes the theorems \<open>calculation\<close> and \<open>this\<close> (i.e.\ the two previous
 (in)equalities) using some predefined set of rules including transitivity
 of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but also mixed rules like \<^prop>\<open>\<lbrakk> x \<le> y; y < z \<rbrakk> \<Longrightarrow> x < z\<close>.
 The result of this composition is assigned to \<open>calculation\<close>. Consider
 \begin{quote}
-\isakeyword{have} \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close> \isasymproof\\
-\isakeyword{also} \isakeyword{have} \<open>"... < t\<^sub>3"\<close> \isasymproof\\
-\isakeyword{also} \isakeyword{have} \<open>"... = t\<^sub>4"\<close> \isasymproof\\
-\isakeyword{finally show} \<open>"t\<^sub>1 < t\<^sub>4"\<close>\ \texttt{.}
+\isacom{have} \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close> \isasymproof\\
+\isacom{also} \isacom{have} \<open>"... < t\<^sub>3"\<close> \isasymproof\\
+\isacom{also} \isacom{have} \<open>"... = t\<^sub>4"\<close> \isasymproof\\
+\isacom{finally show} \<open>"t\<^sub>1 < t\<^sub>4"\<close>\ \texttt{.}
 \end{quote}
-After the first \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close>,
-and after the second \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 < t\<^sub>3"\<close>.
-The command \isakeyword{finally} is short for \isakeyword{also from} \<open>calculation\<close>.
-Therefore the \isakeyword{also} hidden in \isakeyword{finally} sets \<open>calculation\<close>
+After the first \isacom{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close>,
+and after the second \isacom{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 < t\<^sub>3"\<close>.
+The command \isacom{finally} is short for \isacom{also from} \<open>calculation\<close>.
+Therefore the \isacom{also} hidden in \isacom{finally} sets \<open>calculation\<close>
 to \<open>t\<^sub>1 < t\<^sub>4\<close> and the final ``\texttt{.}'' succeeds.
 
 For more information on this style of proof see @{cite "BauerW-TPHOLs01"}.
@@ -993,7 +993,7 @@ proof(induction rule: ev.induct)
 next
   case (evSS m)
   have "evn(Suc(Suc m)) = evn m" by simp
-  thus ?case using \<open>evn m\<close> by blast
+  thus ?case using `evn m` by blast
 qed
 
 text\<open>

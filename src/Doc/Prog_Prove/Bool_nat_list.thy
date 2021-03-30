@@ -186,7 +186,7 @@ fun rev :: "'a list \<Rightarrow> 'a list" where
 text\<open>By default, variables \<open>xs\<close>, \<open>ys\<close> and \<open>zs\<close> are of
 \<open>list\<close> type.
 
-Command \indexed{\isacommand{value}}{value} evaluates a term. For example,\<close>
+Command \indexed{\isacom{value}}{value} evaluates a term. For example,\<close>
 
 value "rev(Cons True (Cons False Nil))"
 

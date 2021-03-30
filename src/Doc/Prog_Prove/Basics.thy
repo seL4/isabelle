@@ -132,7 +132,7 @@ that everybody can contribute to.
 \subsection{Quotation Marks}
 
 The textual definition of a theory follows a fixed syntax with keywords like
-\isacommand{begin} and \isacommand{datatype}.  Embedded in this syntax are
+\isacom{begin} and \isacom{datatype}.  Embedded in this syntax are
 the types and formulas of HOL.  To distinguish the two levels, everything
 HOL-specific (terms and types) must be enclosed in quotation marks:
 \texttt{"}\dots\texttt{"}. Quotation marks around a

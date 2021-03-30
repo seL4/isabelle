@@ -6,7 +6,9 @@
 \usepackage{alltt}
 
 \usepackage[T1]{fontenc}
-\usepackage{ccfonts}
+\usepackage[boldsans]{ccfonts}
+\DeclareFontSeriesDefault[rm]{bf}{bx}%bf default for rm: bold extended
+\DeclareFontSeriesDefault[sf]{bf}{sbc}%bf default for sf: semibold
 \usepackage[euler-digits]{eulervm}
 
 \usepackage{isabelle,isabellesym}
@@ -50,8 +52,9 @@
 \protected\def\isacharunderscorekeyword{\raisebox{2pt}{\_}}
 % isabelle keyword, adapted from isabelle.sty
 \renewcommand{\isakeyword}[1]
-{\emph{\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
-\def\isacharbraceleft{\{}\def\isacharbraceright{\}}\def\bfdefault{sbc}\textbf{#1}}}
+{\emph{\sffamily\bfseries%
+\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
+\def\isacharbraceleft{\{}\def\isacharbraceright{\}}#1}}
 
 % add \noindent to text blocks automatically
 \renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
