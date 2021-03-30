@@ -10,8 +10,10 @@ package isabelle
 
 object Par_List
 {
-  def managed_results[A, B](f: A => B, xs: List[A]): List[Exn.Result[B]] =
-    if (xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
+  def managed_results[A, B](f: A => B, xs: List[A], sequential: Boolean = false)
+      : List[Exn.Result[B]] =
+  {
+    if (sequential || xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
     else {
       val state = Synchronized[(List[Future[B]], Boolean)]((Nil, false))
 
@@ -39,9 +41,10 @@ object Par_List
       }
       finally { cancel_other() }
     }
+  }
 
-  def map[A, B](f: A => B, xs: List[A]): List[B] =
-    Exn.release_first(managed_results(f, xs))
+  def map[A, B](f: A => B, xs: List[A], sequential: Boolean = false): List[B] =
+    Exn.release_first(managed_results(f, xs, sequential = sequential))
 
   def get_some[A, B](f: A => Option[B], xs: List[A]): Option[B] =
   {

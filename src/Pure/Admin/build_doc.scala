@@ -16,6 +16,7 @@ object Build_Doc
     progress: Progress = new Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
+    sequential: Boolean = false,
     docs: List[String] = Nil): Unit =
   {
     val store = Sessions.store(options)
@@ -63,7 +64,7 @@ object Build_Doc
               val sep = if (msg.contains('\n')) "\n" else " "
               Some("Documentation " + quote(doc) + " failed:" + sep + msg)
           }
-      }, selected).flatten
+      }, selected, sequential = sequential).flatten
 
     if (errs.nonEmpty) error(cat_lines(errs))
   }
@@ -76,6 +77,7 @@ object Build_Doc
     {
       var all_docs = false
       var max_jobs = 1
+      var sequential = false
       var options = Options.init()
 
       val getopts =
@@ -86,13 +88,15 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
     -a           select all documentation sessions
     -j INT       maximum number of parallel jobs (default 1)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           sequential LaTeX jobs
 
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
           "a" -> (_ => all_docs = true),
           "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-          "o:" -> (arg => options = options + arg))
+          "o:" -> (arg => options = options + arg),
+          "s" -> (_ => sequential = true))
 
       val docs = getopts(args)
 
@@ -101,7 +105,8 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
       val progress = new Console_Progress()
 
       progress.interrupt_handler {
-        build_doc(options, progress, all_docs, max_jobs, docs)
+        build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
+          sequential = sequential, docs = docs)
       }
     })
 }
