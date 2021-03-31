@@ -22,17 +22,19 @@ function usage()
   echo "  Options are:"
   echo "    -C           force clean working directory (no backup!)"
   echo "    -R           version is current official release"
-  echo "    -U URL       Isabelle repository server (default: \"$ISABELLE_REPOS\")"
-  echo "    -V PATH      version from explicit file or directory (file \"ISABELLE_VERSION\")"
+  echo "    -U URL       Isabelle repository server"
+  echo "                 (default: \"$ISABELLE_REPOS\")"
+  echo "    -V PATH      version from explicit file, or directory that contains"
+  echo "                 the file \"ISABELLE_VERSION\""
   echo "    -c           check clean working directory"
   echo "    -f           fresh build of Isabelle/Scala/jEdit"
   echo "    -n           no build of Isabelle/Scala/jEdit"
-  echo "    -r REV       version according to Mercurial notation"
-  echo "    -u           version is tip (after pull from Isabelle repository server)"
+  echo "    -r REV       version in Mercurial notation (changeset id or tag)"
+  echo "    -u           version is tip of Isabelle repository server"
   echo
   echo "  Initialize the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
-  echo "  Download required components and build Isabelle/Scala/jEdit (default)."
+  echo "  Download required components. Build Isabelle/Scala/jEdit by default."
   echo
   exit 1
 }
@@ -123,7 +125,7 @@ if [ -z "$VERSION" ]; then
     "$ISABELLE_HOME/bin/isabelle" jedit $BUILD_OPTIONS
   fi
 elif [ ! -d "$ISABELLE_HOME/.hg" ]; then
-  fail "Not a repository clone: cannot specify version"
+  fail "Not a repository clone: cannot switch version"
 else
   if [ -n "$VERSION_REV" ]; then
     REV="$VERSION_REV"
