@@ -404,7 +404,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             execute_tar(tmp_dir, "-xzf " +
               File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
             Isabelle_System.isabelle_id(root = tmp_dir + release.isabelle)
-              .getOrElse(error("Failed to determine ISABELLE_ID from " + release.isabelle_archive))
           })
 
       if (release.ident != archive_ident) {

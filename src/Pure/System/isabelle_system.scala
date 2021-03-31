@@ -189,16 +189,16 @@ object Isabelle_System
 
   /* Isabelle distribution identification */
 
-  def isabelle_id(root: Path = Path.ISABELLE_HOME): Option[String] =
-    getetc("ISABELLE_ID", root = root) orElse Mercurial.archive_id(root) orElse {
-      if (Mercurial.is_repository(root)) Some(Mercurial.repository(root).parent())
-      else None
+  def isabelle_id(root: Path = Path.ISABELLE_HOME): String =
+    getetc("ISABELLE_ID", root = root) orElse Mercurial.archive_id(root) getOrElse {
+      if (Mercurial.is_repository(root)) Mercurial.repository(root).parent()
+      else error("Failed to identify Isabelle distribution " + root)
     }
 
   object Isabelle_Id extends Scala.Fun("isabelle_id")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = isabelle_id().get
+    def apply(arg: String): String = isabelle_id()
   }
 
   def isabelle_tags(root: Path = Path.ISABELLE_HOME): String =
