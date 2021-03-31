@@ -27,10 +27,7 @@ fun get_name () = Synchronized.value session;
 
 fun description () = "Isabelle/" ^ get_name ();
 
-fun welcome () =
-  if Distribution.is_identified then
-    "Welcome to " ^ description () ^ " (" ^ Distribution.version ^ ")"
-  else "Unofficial version of " ^ description () ^ " (" ^ Distribution.version ^ ")";
+fun welcome () = "Welcome to " ^ description () ^ Isabelle_System.isabelle_heading ();
 
 
 (* base syntax *)

@@ -308,7 +308,7 @@ class Language_Server(
       try {
         Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
           modes = modes, logic = base_info.session).await_startup()
-        reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
+        reply_ok("Welcome to Isabelle/" + base_info.session + Isabelle_System.isabelle_heading())
       }
       catch { case ERROR(msg) => reply_error(msg) }
     }

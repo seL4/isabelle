@@ -555,7 +555,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
       connection.reply_ok(
         JSON.Object(
           "isabelle_id" -> Isabelle_System.isabelle_id(),
-          "isabelle_version" -> Distribution.version))
+          "isabelle_name" -> Isabelle_System.isabelle_name()))
 
       var finished = false
       while (!finished) {

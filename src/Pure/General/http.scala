@@ -280,7 +280,7 @@ object HTTP
     Handler.get(root, arg =>
       if (arg.uri.toString == root) {
         val id = Isabelle_System.isabelle_id()
-        Some(Response.text("Welcome to Isabelle/" + id + ": " + Distribution.version))
+        Some(Response.text("Welcome to Isabelle/" + id + Isabelle_System.isabelle_heading()))
       }
       else None)
 

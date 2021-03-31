@@ -195,6 +195,12 @@ object Isabelle_System
       else None
     }
 
+  object Isabelle_Id extends Scala.Fun("isabelle_id")
+  {
+    val here = Scala_Project.here
+    def apply(arg: String): String = isabelle_id().get
+  }
+
   def isabelle_tags(root: Path = Path.ISABELLE_HOME): String =
     getetc("ISABELLE_TAGS", root = root) orElse Mercurial.archive_tags(root) getOrElse {
       if (Mercurial.is_repository(root)) {
@@ -203,6 +209,16 @@ object Isabelle_System
       }
       else ""
     }
+
+  def isabelle_identifier(): Option[String] = proper_string(getenv("ISABELLE_IDENTIFIER"))
+
+  def isabelle_heading(): String =
+    isabelle_identifier() match {
+      case None => ""
+      case Some(version) => " (" + version + ")"
+    }
+
+  def isabelle_name(): String = getenv_strict("ISABELLE_NAME")
 
 
   /** file-system operations **/

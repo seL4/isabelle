@@ -21,6 +21,10 @@ sig
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val download: string -> Path.T -> unit
+  val isabelle_id: unit -> string
+  val isabelle_identifier: unit -> string option
+  val isabelle_heading: unit -> string
+  val isabelle_name: unit -> string
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
@@ -114,5 +118,19 @@ fun with_tmp_dir name f =
 
 fun download url file =
   ignore (Scala.function "download" (cat_strings0 [url, absolute_path file]));
+
+
+(* Isabelle distribution identification *)
+
+fun isabelle_id () = Scala.function "isabelle_id" "";
+
+fun isabelle_identifier () = try getenv_strict "ISABELLE_IDENTIFIER";
+
+fun isabelle_heading () =
+  (case isabelle_identifier () of
+    NONE => ""
+  | SOME version => " (" ^ version ^ ")");
+
+fun isabelle_name () = getenv_strict "ISABELLE_NAME";
 
 end;

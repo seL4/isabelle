@@ -62,7 +62,7 @@ shift $(($OPTIND - 1))
 ## main
 
 if [ -z "$SHORT_ID" -a -z "$TAGS" ]; then
-  echo 'repository version'    # filled in automatically!
+  echo "$ISABELLE_NAME"
 fi
 
 HG_ARCHIVAL="$ISABELLE_HOME/.hg_archival.txt"

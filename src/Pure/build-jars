@@ -131,7 +131,6 @@ declare -a SOURCES=(
   src/Pure/System/bash.scala
   src/Pure/System/command_line.scala
   src/Pure/System/cygwin.scala
-  src/Pure/System/distribution.scala
   src/Pure/System/executable.scala
   src/Pure/System/getopts.scala
   src/Pure/System/isabelle_charset.scala

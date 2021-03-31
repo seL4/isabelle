@@ -348,7 +348,7 @@ object Presentation
 
     val title = "Isabelle/" + chapter + " sessions"
     HTML.write_document(dir, "index.html",
-      List(HTML.title(title + " (" + Distribution.version + ")")),
+      List(HTML.title(title + Isabelle_System.isabelle_heading())),
       HTML.chapter(title) ::
        (if (sessions.isEmpty) Nil
         else
@@ -531,7 +531,7 @@ object Presentation
 
     val title = "Session " + session
     HTML.write_document(session_dir, "index.html",
-      List(HTML.title(title + " (" + Distribution.version + ")")),
+      List(HTML.title(title + Isabelle_System.isabelle_heading())),
       html_context.head(title, List(HTML.par(view_links))) ::
         html_context.contents("Theories", theories))
   }

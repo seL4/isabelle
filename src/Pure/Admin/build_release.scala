@@ -32,6 +32,7 @@ object Build_Release
     val isabelle_dir: Path = dist_dir + isabelle
     val isabelle_id: Path = isabelle_dir + Path.explode("etc/ISABELLE_ID")
     val isabelle_tags: Path = isabelle_dir + Path.explode("etc/ISABELLE_TAGS")
+    val isabelle_identifier: Path = isabelle_dir + Path.explode("etc/ISABELLE_IDENTIFIER")
     val isabelle_archive: Path = dist_dir + Path.explode(dist_name + ".tar.gz")
     val isabelle_library_archive: Path = dist_dir + Path.explode(dist_name + "_library.tar.gz")
 
@@ -54,33 +55,12 @@ object Build_Release
 
   /* patch release */
 
-  private val getsettings_path = Path.explode("lib/scripts/getsettings")
-
   def patch_release(release: Release): Unit =
   {
     val dir = release.isabelle_dir
 
-    for (name <- List("src/Pure/System/distribution.ML", "src/Pure/System/distribution.scala"))
-    {
-      File.change(dir + Path.explode(name),
-        _.replace("val is_identified = false", "val is_identified = true"))
-    }
-
-    File.change(dir + getsettings_path,
-      _.replace("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
-
     File.change(dir + Path.explode("lib/html/library_index_header.template"),
       _.replace("{ISABELLE}", release.dist_name))
-
-    for {
-      name <-
-        List(
-          "src/Pure/System/distribution.ML",
-          "src/Pure/System/distribution.scala",
-          "lib/Tools/version") }
-    {
-      File.change(dir + Path.explode(name), _.replace("repository version", release.dist_version))
-    }
 
     File.change(dir + Path.explode("README"),
       _.replace("some repository version of Isabelle", release.dist_version))
@@ -420,7 +400,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
-            val getsettings = release.isabelle + getsettings_path
+            val getsettings = release.isabelle + Path.explode("lib/scripts/getsettings")
             execute_tar(tmp_dir, "-xzf " +
               File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
             Isabelle_System.isabelle_id(root = tmp_dir + release.isabelle)
@@ -454,6 +434,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       File.write(release.isabelle_id, release.ident)
       File.write(release.isabelle_tags, release.tags)
+      File.write(release.isabelle_identifier, release.dist_name)
 
       patch_release(release)
 

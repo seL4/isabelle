@@ -71,8 +71,12 @@ if [ -z "$ISABELLE_PLATFORM_FAMILY" ]; then
   exit 2
 fi
 
-#Isabelle distribution identifier -- filled in automatically!
-[ -z "$ISABELLE_IDENTIFIER" ] && ISABELLE_IDENTIFIER=""
+if [ -z "$ISABELLE_IDENTIFIER" -a -f "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER" ]
+then
+  ISABELLE_IDENTIFIER="$(cat "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER")"
+fi
+
+ISABELLE_NAME="${ISABELLE_IDENTIFIER:-Isabelle}"
 
 
 # components
