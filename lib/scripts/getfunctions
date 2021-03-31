@@ -113,6 +113,40 @@ function classpath ()
 }
 export -f classpath
 
+#java_library
+function java_library ()
+{
+  local X=""
+  for X in "$@"
+  do
+    case "$ISABELLE_PLATFORM_FAMILY" in
+      linux)
+        if [ -z "$LD_LIBRARY_PATH" ]; then
+          export LD_LIBRARY_PATH="$X"
+        else
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$X"
+        fi
+        ;;
+      macos)
+        if [ -z "$JAVA_LIBRARY_PATH" ]; then
+          export JAVA_LIBRARY_PATH="$X"
+        else
+          export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$X"
+        fi
+        ;;
+      windows)
+        if [ -z "$PATH" ]; then
+          export PATH="$X"
+        else
+          export PATH="$PATH:$X"
+        fi
+        ;;
+    esac
+  done
+  export ISABELLE_CLASSPATH
+}
+export -f java_library
+
 #Isabelle fonts
 function isabelle_fonts ()
 {
