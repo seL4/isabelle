@@ -8,5 +8,4 @@ structure Distribution =
 struct
   val version = "repository version";
   val is_identified = false;
-  val is_official = false;
 end;

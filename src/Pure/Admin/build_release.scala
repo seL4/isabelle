@@ -54,15 +54,14 @@ object Build_Release
 
   private val ISABELLE_ID = """ISABELLE_ID="(.+)"""".r
 
-  def patch_release(release: Release, is_official: Boolean): Unit =
+  def patch_release(release: Release): Unit =
   {
     val dir = release.isabelle_dir
 
     for (name <- List("src/Pure/System/distribution.ML", "src/Pure/System/distribution.scala"))
     {
       File.change(dir + Path.explode(name),
-        _.replace("val is_identified = false", "val is_identified = true")
-         .replace("val is_official = false", "val is_official = " + is_official))
+        _.replace("val is_identified = false", "val is_identified = true"))
     }
 
     File.change(dir + getsettings_path,
@@ -380,7 +379,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     progress: Progress = new Progress,
     rev: String = "",
     afp_rev: String = "",
-    official_release: Boolean = false,
     proper_release_name: Option[String] = None,
     platform_families: List[Platform.Family.Value] = default_platform_families,
     more_components: List[Path] = Nil,
@@ -453,7 +451,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       progress.echo_warning("Preparing distribution " + quote(release.dist_name))
 
-      patch_release(release, proper_release_name.isDefined && official_release)
+      patch_release(release)
 
       if (proper_release_name.isEmpty) make_announce(release)
 
@@ -858,7 +856,6 @@ rm -rf "${DIST_NAME}-old"
     Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base
-      var official_release = false
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
       var build_sessions: List[String] = Nil
@@ -876,7 +873,6 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -A REV       corresponding AFP changeset id
     -C DIR       base directory for Isabelle components (default: """ +
         Components.default_components_base + """)
-    -O           official release (not release-candidate)
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
     -b SESSIONS  build platform-specific session images (separated by commas)
@@ -891,7 +887,6 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 """,
         "A:" -> (arg => afp_rev = arg),
         "C:" -> (arg => components_base = Path.explode(arg)),
-        "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),
         "b:" -> (arg => build_sessions = space_explode(',', arg)),
@@ -916,7 +911,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         error("Building for windows requires 7z")
 
       build_release(Path.explode(base_dir), options, components_base = components_base,
-        progress = progress, rev = rev, afp_rev = afp_rev, official_release = official_release,
+        progress = progress, rev = rev, afp_rev = afp_rev,
         proper_release_name = proper_release_name, website = website,
         platform_families =
           if (platform_families.isEmpty) default_platform_families

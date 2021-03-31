@@ -326,12 +326,6 @@ class Plugin extends EBPlugin
     if (startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
-          if (Distribution.is_identified && !Distribution.is_official) {
-            GUI.warning_dialog(jEdit.getActiveView, "Isabelle version for testing",
-              "This is " + Distribution.version + ".",
-              "It is for testing only, not for production use.")
-          }
-
           if (resources.session_errors.nonEmpty) {
             GUI.warning_dialog(jEdit.getActiveView,
               "Bad session structure: may cause problems with theory imports",
