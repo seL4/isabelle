@@ -132,7 +132,11 @@ object Mercurial
 
     def id(rev: String = "tip"): String = identify(rev, options = "-i")
 
-    def tags(rev: String = "tip"): String = identify(rev, options = "-t")
+    def tags(rev: String = "tip"): String =
+    {
+      val result = identify(rev, options = "-t")
+      Library.space_explode(' ', result).filterNot(_ == "tip").mkString(" ")
+    }
 
     def paths(args: String = "", options: String = ""): List[String] =
       hg.command("paths", args = args, options = options).check.out_lines
