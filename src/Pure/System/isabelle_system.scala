@@ -156,7 +156,7 @@ object Isabelle_System
   }
 
 
-  /* getenv */
+  /* getenv -- dynamic process environment */
 
   private def getenv_error(name: String): Nothing =
     error("Undefined Isabelle environment variable: " + quote(name))
@@ -170,9 +170,30 @@ object Isabelle_System
 
   def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
 
-  def isabelle_id(): String =
-    proper_string(getenv("ISABELLE_ID")) getOrElse
-      Mercurial.repository(Path.explode("~~")).parent()
+
+  /* getetc -- static distribution parameters */
+
+  def getetc(name: String, root: Path = Path.explode("~~")): Option[String] =
+  {
+    val path = root + Path.basic("etc") + Path.basic(name)
+    if (path.is_file) {
+      Library.trim_split_lines(File.read(path)) match {
+        case Nil => None
+        case List(s) => Some(s)
+        case _ => error("Single line expected in " + path.absolute)
+      }
+    }
+    else None
+  }
+
+
+  /* Isabelle distribution identifier */
+
+  def isabelle_id(root: Path = Path.explode("~~")): Option[String] =
+    getetc("ISABELLE_ID", root = root) orElse Mercurial.archive_id(root) orElse {
+      if (Mercurial.is_repository(root)) Some(Mercurial.repository(root).parent())
+      else None
+    }
 
 
 

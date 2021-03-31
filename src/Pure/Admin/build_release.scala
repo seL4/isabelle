@@ -27,12 +27,14 @@ object Build_Release
     val dist_version: String,
     val ident: String)
   {
-    val isabelle_dir: Path = dist_dir + Path.explode(dist_name)
+    val isabelle: Path = Path.explode(dist_name)
+    val isabelle_dir: Path = dist_dir + isabelle
+    val isabelle_id: Path = isabelle_dir + Path.explode("etc/ISABELLE_ID")
     val isabelle_archive: Path = dist_dir + Path.explode(dist_name + ".tar.gz")
     val isabelle_library_archive: Path = dist_dir + Path.explode(dist_name + "_library.tar.gz")
 
     def other_isabelle(dir: Path): Other_Isabelle =
-      Other_Isabelle(dir + Path.explode(dist_name),
+      Other_Isabelle(dir + isabelle,
         isabelle_identifier = dist_name + "-build",
         progress = progress)
 
@@ -52,8 +54,6 @@ object Build_Release
 
   private val getsettings_path = Path.explode("lib/scripts/getsettings")
 
-  private val ISABELLE_ID = """ISABELLE_ID="(.+)"""".r
-
   def patch_release(release: Release): Unit =
   {
     val dir = release.isabelle_dir
@@ -65,8 +65,7 @@ object Build_Release
     }
 
     File.change(dir + getsettings_path,
-      _.replace("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
-       .replace("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
+      _.replace("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
 
     File.change(dir + Path.explode("lib/html/library_index_header.template"),
       _.replace("{ISABELLE}", release.dist_name))
@@ -418,12 +417,11 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
-            val getsettings = Path.explode(release.dist_name) + getsettings_path
+            val getsettings = release.isabelle + getsettings_path
             execute_tar(tmp_dir, "-xzf " +
               File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
-            split_lines(File.read(tmp_dir + getsettings))
-              .collectFirst({ case ISABELLE_ID(ident) => ident })
-              .getOrElse(error("Failed to read ISABELLE_ID from " + release.isabelle_archive))
+            Isabelle_System.isabelle_id(root = tmp_dir + release.isabelle)
+              .getOrElse(error("Failed to determine ISABELLE_ID from " + release.isabelle_archive))
           })
 
       if (release.ident != archive_ident) {
@@ -450,6 +448,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
       progress.echo_warning("Preparing distribution " + quote(release.dist_name))
+
+      File.write(release.isabelle_id, release.ident)
 
       patch_release(release)
 

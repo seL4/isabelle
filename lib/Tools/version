@@ -71,13 +71,14 @@ export LANG=C
 export HGPLAIN=
 
 if [ -n "$SHORT_ID" ]; then
-  if [ -d "$ISABELLE_HOME/.hg" ]; then
-    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"
+  if [ -f "$ISABELLE_HOME/etc/ISABELLE_ID" ]; then
+    ID="$(cat "$ISABELLE_HOME/etc/ISABELLE_ID")"
+    echo "$ID"
   elif [ -f "$HG_ARCHIVAL" ]; then
     RESULT="$(grep "^node:" < "$HG_ARCHIVAL" | cut -d " " -f2 | head -c12)"
     [ -n "$RESULT" ] && echo "$RESULT"
-  elif [ -n "$ISABELLE_ID" ]; then
-    echo "$ISABELLE_ID"
+  elif [ -d "$ISABELLE_HOME/.hg" ]; then
+    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"
   fi
 fi
 

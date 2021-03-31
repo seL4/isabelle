@@ -29,6 +29,24 @@ object Mercurial
   def opt_template(s: String): String = optional(s, "--template")
 
 
+  /* repository archives */
+
+  private val Archive_Node = """^node: (\S{12}).*$""".r
+
+  sealed case class Archive_Info(lines: List[String])
+  {
+    def id: Option[String] = lines.collectFirst({ case Archive_Node(a) => a })
+  }
+
+  def archive_info(root: Path): Option[Archive_Info] =
+  {
+    val path = root + Path.explode(".hg_archival.txt")
+    if (path.is_file) Some(Archive_Info(Library.trim_split_lines(File.read(path)))) else None
+  }
+
+  def archive_id(root: Path): Option[String] = archive_info(root).flatMap(_.id)
+
+
   /* repository access */
 
   def is_repository(root: Path, ssh: SSH.System = SSH.Local): Boolean =
