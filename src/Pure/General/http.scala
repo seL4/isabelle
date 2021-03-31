@@ -271,14 +271,14 @@ object HTTP
   /** Isabelle resources **/
 
   lazy val isabelle_resources: List[Handler] =
-    List(welcome, fonts())
+    List(welcome(), fonts())
 
 
   /* welcome */
 
-  val welcome: Handler =
-    Handler.get("/", arg =>
-      if (arg.uri.toString == "/") {
+  def welcome(root: String = "/"): Handler =
+    Handler.get(root, arg =>
+      if (arg.uri.toString == root) {
         val id = Isabelle_System.isabelle_id()
         Some(Response.text("Welcome to Isabelle/" + id + ": " + Distribution.version))
       }

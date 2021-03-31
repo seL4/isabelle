@@ -330,7 +330,7 @@ object Document_Model
           HTTP.Response.html(document.content)
         })
 
-    List(HTTP.fonts(fonts_root), html)
+    List(HTTP.welcome(http_root), HTTP.fonts(fonts_root), html)
   }
 }
 
