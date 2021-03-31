@@ -11,7 +11,7 @@ object Other_Isabelle
 {
   def apply(isabelle_home: Path,
       isabelle_identifier: String = "",
-      user_home: Path = Path.explode("$USER_HOME"),
+      user_home: Path = Path.USER_HOME,
       progress: Progress = new Progress): Other_Isabelle =
     new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
 }

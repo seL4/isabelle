@@ -173,7 +173,7 @@ object Isabelle_System
 
   /* getetc -- static distribution parameters */
 
-  def getetc(name: String, root: Path = Path.explode("~~")): Option[String] =
+  def getetc(name: String, root: Path = Path.ISABELLE_HOME): Option[String] =
   {
     val path = root + Path.basic("etc") + Path.basic(name)
     if (path.is_file) {
@@ -189,13 +189,13 @@ object Isabelle_System
 
   /* Isabelle distribution identification */
 
-  def isabelle_id(root: Path = Path.explode("~~")): Option[String] =
+  def isabelle_id(root: Path = Path.ISABELLE_HOME): Option[String] =
     getetc("ISABELLE_ID", root = root) orElse Mercurial.archive_id(root) orElse {
       if (Mercurial.is_repository(root)) Some(Mercurial.repository(root).parent())
       else None
     }
 
-  def isabelle_tags(root: Path = Path.explode("~~")): String =
+  def isabelle_tags(root: Path = Path.ISABELLE_HOME): String =
     getetc("ISABELLE_TAGS", root = root) orElse Mercurial.archive_tags(root) getOrElse {
       if (Mercurial.is_repository(root)) {
         val hg = Mercurial.repository(root)

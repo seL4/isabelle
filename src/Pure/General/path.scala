@@ -87,6 +87,9 @@ object Path
   def variable(s: String): Path = new Path(List(variable_elem(s)))
   val parent: Path = new Path(List(Parent))
 
+  val USER_HOME: Path = variable("USER_HOME")
+  val ISABELLE_HOME: Path = variable("ISABELLE_HOME")
+
 
   /* explode */
 

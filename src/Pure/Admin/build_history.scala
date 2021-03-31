@@ -91,7 +91,7 @@ object Build_History
 
   /** build_history **/
 
-  private val default_user_home = Path.explode("$USER_HOME")
+  private val default_user_home = Path.USER_HOME
   private val default_rev = "tip"
   private val default_multicore = (1, 1)
   private val default_heap = 1500
@@ -125,8 +125,8 @@ object Build_History
   {
     /* sanity checks */
 
-    if (File.eq(Path.explode("~~"), root))
-      error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
+    if (File.eq(Path.ISABELLE_HOME, root))
+      error("Repository coincides with ISABELLE_HOME=" + Path.ISABELLE_HOME.expand)
 
     for ((threads, _) <- multicore_list if threads < 1)
       error("Bad threads value < 1: " + threads)
@@ -556,7 +556,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         strict = strict).check
 
     if (self_update) {
-      val hg = Mercurial.repository(Path.explode("~~"))
+      val hg = Mercurial.repository(Path.ISABELLE_HOME)
       hg.push(self_hg.root_url, force = true)
       self_hg.update(rev = hg.parent(), clean = true)
 

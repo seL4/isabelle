@@ -73,7 +73,7 @@ object ML_Statistics
     Bash.process(env_prefix + "exec \"$POLYML_EXE\" -q --use src/Pure/ML/ml_statistics.ML --eval " +
         Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
           ML_Syntax.print_double(delay.seconds)),
-        cwd = Path.explode("~~").file)
+        cwd = Path.ISABELLE_HOME.file)
       .result(progress_stdout = progress_stdout, strict = false).check
   }
 

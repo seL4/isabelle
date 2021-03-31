@@ -27,7 +27,7 @@ object Scala_Project
   {
     val files1 =
     {
-      val isabelle_home = Path.explode("~~").canonical
+      val isabelle_home = Path.ISABELLE_HOME.canonical
       Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH")).
         map(path => File.relative_path(isabelle_home, path).getOrElse(path).implode)
     }
@@ -126,7 +126,7 @@ object Scala_Project
       val (path, target) =
         isabelle_dirs.collectFirst({
           case (prfx, p) if file.startsWith(prfx) =>
-            (Path.explode("~~") + Path.explode(file), scala_src_dir + p)
+            (Path.ISABELLE_HOME + Path.explode(file), scala_src_dir + p)
         }).getOrElse(error("Unknown directory prefix for " + quote(file)))
 
       Isabelle_System.make_directory(target)

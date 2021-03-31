@@ -388,7 +388,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     build_library: Boolean = false,
     parallel_jobs: Int = 1): Release =
   {
-    val hg = Mercurial.repository(Path.explode("$ISABELLE_HOME"))
+    val hg = Mercurial.repository(Path.ISABELLE_HOME)
 
     val release =
     {
