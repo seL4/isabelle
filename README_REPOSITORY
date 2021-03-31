@@ -33,7 +33,7 @@ Quick start in 30min
     #start Prover IDE and let it build session image
     isabelle/bin/isabelle jedit -l HOL
 
-    #alternative: build session image manually
+    #alternative: build session image separately
     isabelle/bin/isabelle build -b HOL
 
 5. Build documentation (bash shell commands):
