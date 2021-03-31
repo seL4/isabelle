@@ -189,8 +189,6 @@ lemma injf_max_order_preserving2: "\<forall>x. \<exists>y \<in> E. x < y \<Longr
   apply (drule_tac x = m in spec)
   apply (drule subsetD)
    apply auto
-  apply (drule_tac x = "injf_max m E" in order_less_trans)
-   apply auto
   done
 
 lemma inj_injf_max: "\<forall>x. \<exists>y \<in> E. x < y \<Longrightarrow> inj (\<lambda>n. injf_max n E)"

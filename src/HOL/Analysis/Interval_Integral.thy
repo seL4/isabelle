@@ -438,8 +438,9 @@ proof -
     by (rule interval_integral_endpoints_reverse)
   show ?thesis
     using integrable
-    by (cases a b b c a c rule: linorder_le_cases[case_product linorder_le_cases linorder_cases])
-       (simp_all add: min_absorb1 min_absorb2 max_absorb1 max_absorb2 field_simps 1 2 3)
+    apply (cases a b b c a c rule: linorder_le_cases[case_product linorder_le_cases linorder_cases])
+    apply simp_all (* remove some looping cases *)
+    by (simp_all add: min_absorb1 min_absorb2 max_absorb1 max_absorb2 field_simps 1 2 3)
 qed
 
 lemma interval_integrable_isCont:
