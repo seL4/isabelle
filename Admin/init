@@ -30,7 +30,7 @@ function usage()
   echo "    -f           fresh build of Isabelle/Scala/jEdit"
   echo "    -n           no build of Isabelle/Scala/jEdit"
   echo "    -r REV       version in Mercurial notation (changeset id or tag)"
-  echo "    -u           version is tip of Isabelle repository server"
+  echo "    -u           version is latest tip from repository server or local clone"
   echo
   echo "  Initialize the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
