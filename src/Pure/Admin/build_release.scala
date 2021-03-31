@@ -25,11 +25,13 @@ object Build_Release
     val dist_name: String,
     val dist_dir: Path,
     val dist_version: String,
-    val ident: String)
+    val ident: String,
+    val tags: String)
   {
     val isabelle: Path = Path.explode(dist_name)
     val isabelle_dir: Path = dist_dir + isabelle
     val isabelle_id: Path = isabelle_dir + Path.explode("etc/ISABELLE_ID")
+    val isabelle_tags: Path = isabelle_dir + Path.explode("etc/ISABELLE_TAGS")
     val isabelle_archive: Path = dist_dir + Path.explode(dist_name + ".tar.gz")
     val isabelle_library_archive: Path = dist_dir + Path.explode(dist_name + "_library.tar.gz")
 
@@ -398,6 +400,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       val ident =
         try { hg.id(version) }
         catch { case ERROR(msg) => cat_error("Bad repository version: " + version, msg) }
+      val tags = hg.tags(rev = ident)
 
       val dist_version =
         proper_release_name match {
@@ -405,7 +408,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           case None => "Isabelle repository snapshot " + ident + " " + Date.Format.date(date)
         }
 
-      new Release(progress, date, dist_name, dist_dir, dist_version, ident)
+      new Release(progress, date, dist_name, dist_dir, dist_version, ident, tags)
     }
 
 
@@ -450,6 +453,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       progress.echo_warning("Preparing distribution " + quote(release.dist_name))
 
       File.write(release.isabelle_id, release.ident)
+      File.write(release.isabelle_tags, release.tags)
 
       patch_release(release)
 

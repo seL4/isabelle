@@ -187,7 +187,7 @@ object Isabelle_System
   }
 
 
-  /* Isabelle distribution identifier */
+  /* Isabelle distribution identification */
 
   def isabelle_id(root: Path = Path.explode("~~")): Option[String] =
     getetc("ISABELLE_ID", root = root) orElse Mercurial.archive_id(root) orElse {
@@ -195,6 +195,14 @@ object Isabelle_System
       else None
     }
 
+  def isabelle_tags(root: Path = Path.explode("~~")): String =
+    getetc("ISABELLE_TAGS", root = root) orElse Mercurial.archive_tags(root) getOrElse {
+      if (Mercurial.is_repository(root)) {
+        val hg = Mercurial.repository(root)
+        hg.tags(rev = hg.parent())
+      }
+      else ""
+    }
 
 
   /** file-system operations **/

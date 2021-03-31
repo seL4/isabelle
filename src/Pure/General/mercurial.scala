@@ -32,10 +32,12 @@ object Mercurial
   /* repository archives */
 
   private val Archive_Node = """^node: (\S{12}).*$""".r
+  private val Archive_Tag = """^tag: (\S+).*$""".r
 
   sealed case class Archive_Info(lines: List[String])
   {
     def id: Option[String] = lines.collectFirst({ case Archive_Node(a) => a })
+    def tags: List[String] = for (Archive_Tag(tag) <- lines if tag != "tip") yield tag
   }
 
   def archive_info(root: Path): Option[Archive_Info] =
@@ -44,7 +46,11 @@ object Mercurial
     if (path.is_file) Some(Archive_Info(Library.trim_split_lines(File.read(path)))) else None
   }
 
-  def archive_id(root: Path): Option[String] = archive_info(root).flatMap(_.id)
+  def archive_id(root: Path): Option[String] =
+    archive_info(root).flatMap(_.id)
+
+  def archive_tags(root: Path): Option[String] =
+    archive_info(root).map(info => info.tags.mkString(" "))
 
 
   /* repository access */
@@ -125,6 +131,8 @@ object Mercurial
       hg.command("id", opt_rev(rev), options).check.out_lines.headOption getOrElse ""
 
     def id(rev: String = "tip"): String = identify(rev, options = "-i")
+
+    def tags(rev: String = "tip"): String = identify(rev, options = "-t")
 
     def paths(args: String = "", options: String = ""): List[String] =
       hg.command("paths", args = args, options = options).check.out_lines

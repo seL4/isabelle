@@ -72,24 +72,38 @@ export HGPLAIN=
 
 if [ -n "$SHORT_ID" ]; then
   if [ -f "$ISABELLE_HOME/etc/ISABELLE_ID" ]; then
-    ID="$(cat "$ISABELLE_HOME/etc/ISABELLE_ID")"
-    echo "$ID"
+    RESULT="$(cat "$ISABELLE_HOME/etc/ISABELLE_ID")"
+    RC="$?"
+  elif [ -d "$ISABELLE_HOME/.hg" ]; then
+    RESULT=$("${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null)
+    RC="$?"
   elif [ -f "$HG_ARCHIVAL" ]; then
     RESULT="$(grep "^node:" < "$HG_ARCHIVAL" | cut -d " " -f2 | head -c12)"
-    [ -n "$RESULT" ] && echo "$RESULT"
-  elif [ -d "$ISABELLE_HOME/.hg" ]; then
-    "${HG:-hg}" -R "$ISABELLE_HOME" log -r "p1()" --template="{node|short}\n" 2>/dev/null || exit "$?"
+    RC="$?"
+  else
+    RESULT=""
+    RC="0"
+  fi
+  if [ "$RC" -ne 0 ]; then
+    exit "$RC"
+  elif [ -n "$RESULT" ]; then
+    echo "$RESULT"
   fi
 fi
 
 if [ -n "$TAGS" ]; then
-  RESULT=""
-  if [ -d "$ISABELLE_HOME/.hg" ]; then
+  if [ -f "$ISABELLE_HOME/etc/ISABELLE_TAGS" ]; then
+    RESULT="$(cat "$ISABELLE_HOME/etc/ISABELLE_TAGS")"
+    RC="$?"
+  elif [ -d "$ISABELLE_HOME/.hg" ]; then
     RESULT=$("${HG:-hg}" -R "$ISABELLE_HOME" id -t 2>/dev/null)
     RC="$?"
   elif [ -f "$HG_ARCHIVAL" ]; then
     RESULT="$(grep "^tag:" < "$HG_ARCHIVAL" | cut -d " " -f2)"
     RC="$?"
+  else
+    RESULT=""
+    RC="0"
   fi
   if [ "$RC" -ne 0 ]; then
     exit "$RC"
