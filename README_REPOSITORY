@@ -12,21 +12,21 @@ Quick start in 30min
 
   (c) Windows: use Cygwin64 with packages "curl" and "mercurial" (via Cygwin setup-x86_64.exe)
 
-2. Setup repository clone (bash shell commands):
+2. Initial repository clone (bash shell commands):
 
     hg clone https://isabelle.in.tum.de/repos/isabelle
-    isabelle/Admin/setup
+    isabelle/Admin/init
 
-3. Update repository to particular versions (bash shell commands):
+3. Switch repository to particular version (bash shell commands):
 
     #remote tip version
-    isabelle/Admin/setup -u
+    isabelle/Admin/init -u
 
     #explicit changeset id or tag (e.g. "Isabelle2021")
-    isabelle/Admin/setup -r 7cdcf131699d
+    isabelle/Admin/init -r 7cdcf131699d
 
     #current official release
-    isabelle/Admin/setup -R
+    isabelle/Admin/init -R
 
 4. Run application:
 

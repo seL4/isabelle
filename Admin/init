@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: setup for Isabelle repository clone or repository archive
+# DESCRIPTION: initialize Isabelle repository clone or repository archive
 
 
 ## environment
@@ -17,7 +17,7 @@ ISABELLE_REPOS="https://isabelle.sketis.net/repos/isabelle"
 function usage()
 {
   echo
-  echo "Usage: Admin/setup [OPTIONS]"
+  echo "Usage: Admin/init [OPTIONS]"
   echo
   echo "  Options are:"
   echo "    -C           force clean working directory (no backup!)"
@@ -30,7 +30,7 @@ function usage()
   echo "    -r REV       version according to Mercurial notation"
   echo "    -u           version is tip (after pull from Isabelle repository server)"
   echo
-  echo "  Setup the current ISABELLE_HOME directory, which needs to be a"
+  echo "  Initialize the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
   echo "  Download required components and build Isabelle/Scala/jEdit (default)."
   echo
@@ -159,8 +159,8 @@ else
       "$ISABELLE_HOME/bin/isabelle" jedit $BUILD_OPTIONS
     fi
     "${HG:-hg}" -R "$ISABELLE_HOME" log -r "$REV"
-    if [ ! -f "$ISABELLE_HOME/Admin/setup" ]; then
-      echo >&2 "### The Admin/setup script has disappeared in this version"
+    if [ ! -f "$ISABELLE_HOME/Admin/init" ]; then
+      echo >&2 "### The Admin/init script has disappeared in this version"
       echo >&2 "### (need to invoke \"${HG:-hg} update\" before using it again)"
     fi
   '
