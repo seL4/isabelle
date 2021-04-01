@@ -1,13 +1,13 @@
 The Isabelle System Distribution
 ================================
 
-Version information
--------------------
-
-This is some repository version of Isabelle.
-
 See the NEWS file in the distribution for details on user-relevant
-changes.
+changes.  The ANNOUNCE file recounts notable changes for the latest
+official release.
+
+The core of Isabelle is subject to a 3-clause BSD license, but add-on
+components have their own license schemes (similar to a Linux
+distribution).
 
 
 Installation

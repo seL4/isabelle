@@ -53,17 +53,6 @@ object Build_Release
 
   /** generated content **/
 
-  /* patch release */
-
-  def patch_release(release: Release): Unit =
-  {
-    val dir = release.isabelle_dir
-
-    File.change(dir + Path.explode("README"),
-      _.replace("some repository version of Isabelle", release.dist_version))
-  }
-
-
   /* ANNOUNCE */
 
   def make_announce(release: Release): Unit =
@@ -431,8 +420,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       File.write(release.isabelle_id, release.ident)
       File.write(release.isabelle_tags, release.tags)
       File.write(release.isabelle_identifier, release.dist_name)
-
-      patch_release(release)
 
       if (proper_release_name.isEmpty) make_announce(release)
 
