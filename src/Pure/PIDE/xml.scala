@@ -190,6 +190,7 @@ object XML
 
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
+  def text(s: String): String = string_of_tree(XML.Text(s))
 
 
   /** cache **/

@@ -59,9 +59,6 @@ object Build_Release
   {
     val dir = release.isabelle_dir
 
-    File.change(dir + Path.explode("lib/html/library_index_header.template"),
-      _.replace("{ISABELLE}", release.dist_name))
-
     File.change(dir + Path.explode("README"),
       _.replace("some repository version of Isabelle", release.dist_version))
   }

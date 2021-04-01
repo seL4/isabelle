@@ -367,10 +367,92 @@ object Presentation
       Isabelle_System.make_directory(browser_info)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         browser_info + Path.explode("isabelle.gif"))
+      val title = "The " + XML.text(Isabelle_System.isabelle_name()) + " Library"
       File.write(browser_info + Path.explode("index.html"),
-        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
+"""<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>""" + title + """</title>
+</head>
+
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#404040">
+  <center>
+    <table width="100%" border="0" cellspacing="10" cellpadding="0">
+      <tr>
+        <td width="20%" valign="middle" align="center"><a href="http://isabelle.in.tum.de/"><img align="bottom" src="isabelle.gif" width="100" height="86" alt="[Isabelle]" border="0" /></a></td>
+
+        <td width="80%" valign="middle" align="center">
+          <table width="90%" border="0" cellspacing="0" cellpadding="20">
+            <tr>
+              <td valign="middle" align="center" bgcolor="#AACCCC"><font face="Helvetica,Arial" size="+2">""" + title + """</font></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </center>
+  <hr />
+  <ul>
+    <li>Higher-Order Logic</li>
+
+    <li style="list-style: none">
+      <ul>
+        <li><a href="HOL/index.html">HOL (Higher-Order Logic)</a>
+        is a version of classical higher-order logic resembling
+        that of the <a href="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</a>.
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li>First-Order Logic</li>
+
+    <li style="list-style: none">
+      <ul>
+        <li><a href="FOL/index.html">FOL (Many-sorted First-Order Logic)</a>
+        provides basic classical and intuitionistic first-order logic. It is
+        polymorphic.
+        </li>
+
+        <li><a href="ZF/index.html">ZF (Set Theory)</a>
+        offers a formulation of Zermelo-Fraenkel set theory on top of FOL.
+        </li>
+
+        <li><a href="CCL/index.html">CCL (Classical Computational Logic)</a></li>
+
+        <li><a href="LCF/index.html">LCF (Logic of Computable Functions)</a></li>
+
+        <li><a href="FOLP/index.html">FOLP (FOL with Proof Terms)</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li>Miscellaneous</li>
+
+    <li style="list-style: none">
+      <ul>
+        <li><a href="Sequents/index.html">Sequents (first-order, modal and linear logics)</a></li>
+
+        <li><a href="CTT/index.html">CTT (Constructive Type Theory)</a>
+        is an extensional version of Martin-L&ouml;f's Type Theory.</li>
+
+        <li><a href="Cube/index.html">Cube (The Lambda Cube)</a></li>
+
+        <li><a href="Pure/index.html">The Pure logical framework</a></li>
+
+        <li><a href="Doc/index.html">Sources of Documentation</a></li>
+      </ul>
+    </li>
+  </ul>
+</body>
+</html>
+""")
     }
   }
 
