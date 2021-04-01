@@ -83,8 +83,11 @@ begin
 
 lemma inorder_del:
   "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
-by(induction h arbitrary: t) (auto simp: del_list_simps inorder_n2
+  apply (induction h arbitrary: t)
+  apply (auto simp: del_list_simps inorder_n2)
+  apply (auto simp: del_list_simps inorder_n2
      inorder_split_min[OF UnI1] inorder_split_min[OF UnI2] split: option.splits)
+  done
 
 lemma inorder_delete:
   "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"

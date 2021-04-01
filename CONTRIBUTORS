@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2021: Lukas Stevens
+  New order prover
+
 * March 2021: Florian Haftmann
   Dedicated session for combinatorics.
 

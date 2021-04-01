@@ -9,7 +9,8 @@ imports HOL
 keywords "print_orders" :: diag
 begin
 
-ML_file \<open>~~/src/Provers/order.ML\<close>
+ML_file \<open>~~/src/Provers/order_procedure.ML\<close>
+ML_file \<open>~~/src/Provers/order_tac.ML\<close>
 
 subsection \<open>Abstract ordering\<close>
 
@@ -520,114 +521,59 @@ qed
 subsection \<open>Reasoning tools setup\<close>
 
 ML \<open>
-signature ORDERS =
-sig
-  val print_structures: Proof.context -> unit
-  val order_tac: Proof.context -> thm list -> int -> tactic
-  val add_struct: string * term list -> string -> attribute
-  val del_struct: string * term list -> attribute
-end;
+structure Logic_Signature : LOGIC_SIGNATURE = struct
+  val mk_Trueprop = HOLogic.mk_Trueprop
+  val dest_Trueprop = HOLogic.dest_Trueprop
+  val Trueprop_conv = HOLogic.Trueprop_conv
+  val Not = HOLogic.Not
+  val conj = HOLogic.conj
+  val disj = HOLogic.disj
+  
+  val notI = @{thm notI}
+  val ccontr = @{thm ccontr}
+  val conjI = @{thm conjI}  
+  val conjE = @{thm conjE}
+  val disjE = @{thm disjE}
 
-structure Orders: ORDERS =
-struct
+  val not_not_conv = Conv.rewr_conv @{thm eq_reflection[OF not_not]}
+  val de_Morgan_conj_conv = Conv.rewr_conv @{thm eq_reflection[OF de_Morgan_conj]}
+  val de_Morgan_disj_conv = Conv.rewr_conv @{thm eq_reflection[OF de_Morgan_disj]}
+  val conj_disj_distribL_conv = Conv.rewr_conv @{thm eq_reflection[OF conj_disj_distribL]}
+  val conj_disj_distribR_conv = Conv.rewr_conv @{thm eq_reflection[OF conj_disj_distribR]}
+end
 
-(* context data *)
+structure HOL_Base_Order_Tac = Base_Order_Tac(
+  structure Logic_Sig = Logic_Signature;
+  (* Exclude types with specialised solvers. *)
+  val excluded_types = [HOLogic.natT, HOLogic.intT, HOLogic.realT]
+)
 
-fun struct_eq ((s1: string, ts1), (s2, ts2)) =
-  s1 = s2 andalso eq_list (op aconv) (ts1, ts2);
+structure HOL_Order_Tac = Order_Tac(structure Base_Tac = HOL_Base_Order_Tac)
 
-structure Data = Generic_Data
-(
-  type T = ((string * term list) * Order_Tac.less_arith) list;
-    (* Order structures:
-       identifier of the structure, list of operations and record of theorems
-       needed to set up the transitivity reasoner,
-       identifier and operations identify the structure uniquely. *)
-  val empty = [];
-  val extend = I;
-  fun merge data = AList.join struct_eq (K fst) data;
-);
-
-fun print_structures ctxt =
+fun print_orders ctxt0 =
   let
-    val structs = Data.get (Context.Proof ctxt);
+    val ctxt = Config.put show_sorts true ctxt0
+    val orders = HOL_Order_Tac.Data.get (Context.Proof ctxt)
     fun pretty_term t = Pretty.block
       [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.brk 1,
         Pretty.str "::", Pretty.brk 1,
-        Pretty.quote (Syntax.pretty_typ ctxt (type_of t))];
-    fun pretty_struct ((s, ts), _) = Pretty.block
-      [Pretty.str s, Pretty.str ":", Pretty.brk 1,
-       Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];
+        Pretty.quote (Syntax.pretty_typ ctxt (type_of t)), Pretty.brk 1]
+    fun pretty_order ({kind = kind, ops = ops, ...}, _) =
+      Pretty.block ([Pretty.str (@{make_string} kind), Pretty.str ":", Pretty.brk 1]
+                    @ map pretty_term ops)
   in
-    Pretty.writeln (Pretty.big_list "order structures:" (map pretty_struct structs))
-  end;
+    Pretty.writeln (Pretty.big_list "order structures:" (map pretty_order orders))
+  end
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_orders\<close>
     "print order structures available to transitivity reasoner"
-    (Scan.succeed (Toplevel.keep (print_structures o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_orders o Toplevel.context_of)))
 
-
-(* tactics *)
-
-fun struct_tac ((s, ops), thms) ctxt facts =
-  let
-    val [eq, le, less] = ops;
-    fun decomp thy (\<^const>\<open>Trueprop\<close> $ t) =
-          let
-            fun excluded t =
-              (* exclude numeric types: linear arithmetic subsumes transitivity *)
-              let val T = type_of t
-              in
-                T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
-              end;
-            fun rel (bin_op $ t1 $ t2) =
-                  if excluded t1 then NONE
-                  else if Pattern.matches thy (eq, bin_op) then SOME (t1, "=", t2)
-                  else if Pattern.matches thy (le, bin_op) then SOME (t1, "<=", t2)
-                  else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
-                  else NONE
-              | rel _ = NONE;
-            fun dec (Const (\<^const_name>\<open>Not\<close>, _) $ t) =
-                  (case rel t of NONE =>
-                    NONE
-                  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-              | dec x = rel x;
-          in dec t end
-      | decomp _ _ = NONE;
-  in
-    (case s of
-      "order" => Order_Tac.partial_tac decomp thms ctxt facts
-    | "linorder" => Order_Tac.linear_tac decomp thms ctxt facts
-    | _ => error ("Unknown order kind " ^ quote s ^ " encountered in transitivity reasoner"))
-  end
-
-fun order_tac ctxt facts =
-  FIRST' (map (fn s => CHANGED o struct_tac s ctxt facts) (Data.get (Context.Proof ctxt)));
-
-
-(* attributes *)
-
-fun add_struct s tag =
-  Thm.declaration_attribute
-    (fn thm => Data.map (AList.map_default struct_eq (s, Order_Tac.empty TrueI) (Order_Tac.update tag thm)));
-fun del_struct s =
-  Thm.declaration_attribute
-    (fn _ => Data.map (AList.delete struct_eq s));
-
-end;
 \<close>
 
-attribute_setup order = \<open>
-  Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
-    Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
-    Scan.repeat Args.term
-    >> (fn ((SOME tag, n), ts) => Orders.add_struct (n, ts) tag
-         | ((NONE, n), ts) => Orders.del_struct (n, ts))
-\<close> "theorems controlling transitivity reasoner"
-
 method_setup order = \<open>
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Orders.order_tac ctxt []))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (HOL_Order_Tac.tac [] ctxt))
 \<close> "transitivity reasoner"
 
 
@@ -636,93 +582,43 @@ text \<open>Declarations to set up transitivity reasoner of partial and linear o
 context order
 begin
 
-(* The type constraint on @{term (=}) below is necessary since the operation
-   is not a parameter of the locale. *)
+lemma nless_le: "(\<not> a < b) \<longleftrightarrow> (\<not> a \<le> b) \<or> a = b"
+  using local.dual_order.order_iff_strict by blast
 
-declare less_irrefl [THEN notE, order add less_reflE: order "(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool" "(<=)" "(<)"]
-
-declare order_refl  [order add le_refl: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_imp_le [order add less_imp_le: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare order.antisym [order add eqI: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare eq_refl [order add eqD1: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare sym [THEN eq_refl, order add eqD2: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_trans [order add less_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_le_trans [order add less_le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare le_less_trans [order add le_less_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare order_trans [order add le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare le_neq_trans [order add le_neq_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare neq_le_trans [order add neq_le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_imp_neq [order add less_imp_neq: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_sym [order add not_sym: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
+local_setup \<open>
+  HOL_Order_Tac.declare_order {
+    ops = {eq = @{term \<open>(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>}, le = @{term \<open>(\<le>)\<close>}, lt = @{term \<open>(<)\<close>}},
+    thms = {trans = @{thm order_trans}, refl = @{thm order_refl}, eqD1 = @{thm eq_refl},
+            eqD2 = @{thm eq_refl[OF sym]}, antisym = @{thm order_antisym}, contr = @{thm notE}},
+    conv_thms = {less_le = @{thm eq_reflection[OF less_le]},
+                 nless_le = @{thm eq_reflection[OF nless_le]}}
+  }
+\<close>
 
 end
 
 context linorder
 begin
 
-declare [[order del: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]]
+lemma nle_le: "(\<not> a \<le> b) \<longleftrightarrow> b \<le> a \<and> b \<noteq> a"
+  using not_le less_le by simp
 
-declare less_irrefl [THEN notE, order add less_reflE: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare order_refl [order add le_refl: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_imp_le [order add less_imp_le: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_less [THEN iffD2, order add not_lessI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_le [THEN iffD2, order add not_leI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_less [THEN iffD1, order add not_lessD: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_le [THEN iffD1, order add not_leD: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare order.antisym [order add eqI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare eq_refl [order add eqD1: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare sym [THEN eq_refl, order add eqD2: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_trans [order add less_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_le_trans [order add less_le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare le_less_trans [order add le_less_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare order_trans [order add le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare le_neq_trans [order add le_neq_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare neq_le_trans [order add neq_le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare less_imp_neq [order add less_imp_neq: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
-
-declare not_sym [order add not_sym: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
+local_setup \<open>
+  HOL_Order_Tac.declare_linorder {
+    ops = {eq = @{term \<open>(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>}, le = @{term \<open>(\<le>)\<close>}, lt = @{term \<open>(<)\<close>}},
+    thms = {trans = @{thm order_trans}, refl = @{thm order_refl}, eqD1 = @{thm eq_refl},
+            eqD2 = @{thm eq_refl[OF sym]}, antisym = @{thm order_antisym}, contr = @{thm notE}},
+    conv_thms = {less_le = @{thm eq_reflection[OF less_le]},
+                 nless_le = @{thm eq_reflection[OF not_less]},
+                 nle_le = @{thm eq_reflection[OF nle_le]}}
+  }
+\<close>
 
 end
 
 setup \<open>
   map_theory_simpset (fn ctxt0 => ctxt0 addSolver
-    mk_solver "Transitivity" (fn ctxt => Orders.order_tac ctxt (Simplifier.prems_of ctxt)))
-  (*Adding the transitivity reasoners also as safe solvers showed a slight
-    speed up, but the reasoning strength appears to be not higher (at least
-    no breaking of additional proofs in the entire HOL distribution, as
-    of 5 March 2004, was observed).*)
+    mk_solver "Transitivity" (fn ctxt => HOL_Order_Tac.tac (Simplifier.prems_of ctxt) ctxt))
 \<close>
 
 ML \<open>
@@ -765,7 +661,7 @@ fun antisym_less_simproc ctxt ct =
               | SOME thm => SOME (mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3})))
             end
         | SOME thm => SOME (mk_meta_eq (thm RS @{thm antisym_conv2})))
-      end handle THM _ => NONE)
+      end handle THM _ => NONE)                           
   | _ => NONE);
 
 end;
@@ -1226,6 +1122,7 @@ proof (rule monoI)
     case False with \<open>x \<le> y\<close> have "x < y" by simp
     with assms strict_monoD have "f x < f y" by auto
     then show ?thesis by simp
+
   qed
 qed
 

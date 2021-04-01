@@ -343,7 +343,8 @@ proof -
   have mset_eq: "mset xs = mset ls + mset es + mset gs"
     unfolding ls_def es_def gs_def by (induction xs) auto
   have length_eq: "length xs = length ls + length es + length gs"
-    unfolding ls_def es_def gs_def by (induction xs) auto
+    unfolding ls_def es_def gs_def 
+    using [[simp_depth_limit = 1]] by (induction xs) auto
   have [simp]: "select i es = x" if "i < length es" for i
   proof -
     have "select i es \<in> set (sort es)" unfolding select_def
@@ -555,7 +556,8 @@ proof (induction rule: mom_select.pinduct)
     have tw: "(ls, es, gs) = partition3 x xs"
       unfolding partition3_def defs One_nat_def ..
     have length_eq: "length xs = nl + ne + length gs"
-      unfolding nl_def ne_def ls_def es_def gs_def by (induction xs) auto
+      unfolding nl_def ne_def ls_def es_def gs_def
+      using [[simp_depth_limit = 1]] by (induction xs) auto
     note IH = "1.IH"(2,3)[OF False x_def tw refl refl]
 
     have "mom_select k xs = (if k < nl then mom_select k ls else if k < nl + ne then x

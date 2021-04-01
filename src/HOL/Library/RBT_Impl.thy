@@ -1052,11 +1052,7 @@ unfolding is_rbt_def by (simp add: map_inv1 map_inv2 map_rbt_sorted map_color_of
 end
 
 theorem (in linorder) rbt_lookup_map: "rbt_lookup (map f t) x = map_option (f x) (rbt_lookup t x)"
-  apply(induct t)
-  apply auto
-  apply(rename_tac a b c, subgoal_tac "x = a")
-  apply auto
-  done
+  by (induct t) (auto simp: antisym_conv3)
  (* FIXME: simproc "antisym less" does not work for linorder context, only for linorder type class
     by (induct t) auto *)
 
@@ -2508,9 +2504,10 @@ lemma rbt_split_min_rbt_sorted: "rbt_split_min t = (a,b,t') \<Longrightarrow> rb
 
 lemma rbt_split_min_rbt_lookup: "rbt_split_min t = (a,b,t') \<Longrightarrow> rbt_sorted t \<Longrightarrow> t \<noteq> RBT_Impl.Empty \<Longrightarrow>
   rbt_lookup t k = (if k < a then None else if k = a then Some b else rbt_lookup t' k)"
-  by (induction t arbitrary: a b t')
-     (auto simp: rbt_less_trans antisym_conv3 rbt_less_prop rbt_split_min_set rbt_lookup_rbt_join
-      rbt_split_min_rbt_sorted split!: if_splits prod.splits)
+  apply (induction t arbitrary: a b t')
+   apply(simp_all split: if_splits prod.splits)
+     apply(auto simp: rbt_less_prop rbt_split_min_set rbt_lookup_rbt_join rbt_split_min_rbt_sorted)
+  done
 
 lemma rbt_sorted_rbt_join2: "rbt_sorted l \<Longrightarrow> rbt_sorted r \<Longrightarrow>
   \<forall>x \<in> set (RBT_Impl.keys l). \<forall>y \<in> set (RBT_Impl.keys r). x < y \<Longrightarrow> rbt_sorted (rbt_join2 l r)"
@@ -2528,9 +2525,11 @@ lemma rbt_split_props: "rbt_split t x = (l,\<beta>,r) \<Longrightarrow> rbt_sort
   set (RBT_Impl.keys l) = {a \<in> set (RBT_Impl.keys t). a < x} \<and>
   set (RBT_Impl.keys r) = {a \<in> set (RBT_Impl.keys t). x < a} \<and>
   rbt_sorted l \<and> rbt_sorted r"
-  by (induction t arbitrary: l r)
-     (force simp: Let_def set_rbt_join rbt_greater_prop rbt_less_prop
-      split: if_splits prod.splits intro!: rbt_sorted_rbt_join)+
+  apply (induction t arbitrary: l r)
+   apply(simp_all split!: prod.splits if_splits)
+    apply(force simp: set_rbt_join rbt_greater_prop rbt_less_prop
+      intro: rbt_sorted_rbt_join)+
+  done
 
 lemma rbt_split_lookup: "rbt_split t x = (l,\<beta>,r) \<Longrightarrow> rbt_sorted t \<Longrightarrow>
   rbt_lookup t k = (if k < x then rbt_lookup l k else if k = x then \<beta> else rbt_lookup r k)"
@@ -2884,6 +2883,7 @@ proof(induction t1 t2 arbitrary: k rule: rbt_minus_rec.induct)
         | Some v \<Rightarrow> (case rbt_lookup t2 k of None \<Rightarrow> Some v | _ \<Rightarrow> None))"
         using not_small rbt_lookup_iff_keys(2)[of l1] rbt_lookup_iff_keys(3)[of l1]
           rbt_lookup_iff_keys(3)[of r1] rbt_split_t1_props
+        using [[simp_depth_limit = 2]]
         by (auto simp: rbt_minus_rec.simps[of t1] Branch rbt_split_t1 rbt_lookup_join2
             minus_l1_l2(2) minus_r1_r2(2) rbt_split_lookup[OF rbt_split_t1 1(4)] lookup_l1_r1_a
             split: option.splits)

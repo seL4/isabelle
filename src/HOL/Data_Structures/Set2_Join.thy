@@ -94,7 +94,27 @@ lemma split: "split t x = (l,b,r) \<Longrightarrow> bst t \<Longrightarrow>
 proof(induction t arbitrary: l b r rule: tree2_induct)
   case Leaf thus ?case by simp
 next
-  case Node thus ?case by(force split!: prod.splits if_splits intro!: bst_join)
+  case (Node y a b z l c r)
+  consider (LT) l1 xin l2 where "(l1,xin,l2) = split y x" 
+    and "split \<langle>y, (a, b), z\<rangle> x = (l1, xin, join l2 a z)" and "cmp x a = LT"
+  | (GT) r1 xin r2 where "(r1,xin,r2) = split z x" 
+    and "split \<langle>y, (a, b), z\<rangle> x = (join y a r1, xin, r2)" and "cmp x a = GT"
+  | (EQ) "split \<langle>y, (a, b), z\<rangle> x = (y, True, z)" and "cmp x a = EQ"
+    by (force split: cmp_val.splits prod.splits if_splits)
+
+  thus ?case 
+  proof cases
+    case (LT l1 xin l2)
+    with Node.IH(1)[OF \<open>(l1,xin,l2) = split y x\<close>[symmetric]] Node.prems
+    show ?thesis by (force intro!: bst_join)
+  next
+    case (GT r1 xin r2)
+    with Node.IH(2)[OF \<open>(r1,xin,r2) = split z x\<close>[symmetric]] Node.prems
+    show ?thesis by (force intro!: bst_join)
+  next
+    case EQ
+    with Node.prems show ?thesis by auto
+  qed
 qed
 
 lemma split_inv: "split t x = (l,b,r) \<Longrightarrow> inv t \<Longrightarrow> inv l \<and> inv r"
