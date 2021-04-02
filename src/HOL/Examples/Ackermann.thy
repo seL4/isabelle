@@ -44,26 +44,16 @@ declare ackloop.domintros [simp]
 
 text \<open>Termination is trivial if the length of the list is less then two.
 The following lemma is the key to proving termination for longer lists.\<close>
-lemma "\<And>n l. ackloop_dom (ack m n # l) \<Longrightarrow> ackloop_dom (n # m # l)"
-proof (induction m)
+lemma "ackloop_dom (ack m n # l) \<Longrightarrow> ackloop_dom (n # m # l)"
+proof (induction m arbitrary: n l)
   case 0
   then show ?case
     by auto
 next
   case (Suc m)
-  note IH = Suc
-  have "\<And>l. ackloop_dom (ack (Suc m) n # l) \<Longrightarrow> ackloop_dom (n # Suc m # l)"
-  proof (induction n)
-    case 0
-    then show ?case
-      by (simp add: IH)
-  next
-    case (Suc n)
-    then show ?case
-      by (auto simp: IH)
-  qed
-  then show ?case
-    using Suc.prems by blast
+  show ?case
+    using Suc.prems
+    by (induction n arbitrary: l) (simp_all add: Suc)
 qed
 
 text \<open>The proof above (which actually is unused) can be expressed concisely as follows.\<close>
