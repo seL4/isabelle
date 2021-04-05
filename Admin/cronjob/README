@@ -21,7 +21,7 @@ Administrative Isabelle cronjob
 Build Log Database Server
 =========================
 
-- Ubuntu 18.04 LTS Linux Server standard installation
+- Ubuntu 20.04 LTS Linux Server standard installation
   https://help.ubuntu.com/lts/serverguide
 
 - apt install unattended-upgrades

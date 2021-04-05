@@ -77,7 +77,7 @@ text \<open>
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
 
   Option \<^verbatim>\<open>-P\<close> refers to high-level package collections: \<^verbatim>\<open>X11\<close> or \<^verbatim>\<open>latex\<close> as
-  provided by \<^verbatim>\<open>isabelle build_docker\<close> (assuming Ubuntu 18.04 LTS). This
+  provided by \<^verbatim>\<open>isabelle build_docker\<close> (assuming Ubuntu 20.04 LTS). This
   imposes extra weight on the resulting Docker images. Note that \<^verbatim>\<open>X11\<close> will
   only provide remote X11 support according to the modest GUI quality
   standards of the late 1990-ies.

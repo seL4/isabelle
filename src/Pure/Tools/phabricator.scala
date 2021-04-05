@@ -21,31 +21,22 @@ object Phabricator
 
   /* required packages */
 
-  val packages_ubuntu_18_04: List[String] =
+  val packages_ubuntu_20_04: List[String] =
     Build_Docker.packages :::
     List(
       // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
       "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
       "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
       // more packages
-      "php-xml", "php-zip", "python-pygments", "ssh", "subversion", "python-pygments",
+      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion", "python-pygments",
       // mercurial build packages
-      "make", "gcc", "python", "python-dev", "python-docutils", "python-openssl")
-
-  val packages_ubuntu_20_04: List[String] =
-    packages_ubuntu_18_04.map(
-      {
-        case "python-pygments" => "python3-pygments"
-        case "python-dev" => "python2-dev"
-        case name => name
-      })
+      "make", "gcc", "python", "python2-dev", "python-docutils", "python-openssl")
 
   def packages: List[String] =
   {
     val release = Linux.Release()
-    if (release.is_ubuntu_18_04) packages_ubuntu_18_04
-    else if (release.is_ubuntu_20_04) packages_ubuntu_20_04
-    else error("Bad Linux version: expected Ubuntu 18.04 or 20.04 LTS")
+    if (release.is_ubuntu_20_04) packages_ubuntu_20_04
+    else error("Bad Linux version: expected Ubuntu 20.04 LTS")
   }
 
 
