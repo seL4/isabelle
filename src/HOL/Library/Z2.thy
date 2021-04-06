@@ -224,7 +224,7 @@ definition not_bit :: \<open>bit \<Rightarrow> bit\<close>
   where [simp]: \<open>NOT b = of_bool (even b)\<close> for b :: bit
 
 instance
-  by standard simp_all
+  by standard auto
 
 end
 

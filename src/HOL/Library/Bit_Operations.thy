@@ -640,7 +640,7 @@ lemma or_int_rec:
   for k l :: int
   using and_int_rec [of \<open>NOT k\<close> \<open>NOT l\<close>]
   by (simp add: or_int_def even_not_iff_int not_int_div_2)
-    (simp add: not_int_def)
+    (simp_all add: not_int_def)
 
 lemma bit_or_int_iff:
   \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close> for k l :: int
@@ -856,8 +856,13 @@ lemma AND_upper1 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<c
   fixes x y :: int
   assumes "0 \<le> x"
   shows "x AND y \<le> x"
-  using assms by (induction x arbitrary: y rule: int_bit_induct)
-    (simp_all add: and_int_rec [of \<open>_ * 2\<close>] and_int_rec [of \<open>1 + _ * 2\<close>] add_increasing)
+using assms proof (induction x arbitrary: y rule: int_bit_induct)
+  case (odd k)
+  then have \<open>k AND y div 2 \<le> k\<close>
+    by simp
+  then show ?case 
+    by (simp add: and_int_rec [of \<open>1 + _ * 2\<close>])
+qed (simp_all add: and_int_rec [of \<open>_ * 2\<close>])
 
 lemmas AND_upper1' [simp] = order_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
 lemmas AND_upper1'' [simp] = order_le_less_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>

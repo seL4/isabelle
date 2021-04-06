@@ -1625,8 +1625,8 @@ proof -
   obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
     by (blast intro: int_sgnE elim: that)
   with that show ?thesis
-    by (simp add: modulo_int_unfold sgn_0_0 sgn_1_pos sgn_1_neg
-      sgn_mult mod_eq_0_iff_dvd)
+    by (simp add: modulo_int_unfold sgn_0_0 sgn_1_pos sgn_1_neg sgn_mult)
+      (simp add: dvd_eq_mod_eq_0)
 qed
 
 instance proof

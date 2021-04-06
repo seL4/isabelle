@@ -1117,6 +1117,25 @@ lemma sum_constant [simp]:
   "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
   by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
+context
+  fixes A
+  assumes \<open>finite A\<close>
+begin
+
+lemma sum_of_bool_eq [simp]:
+  \<open>(\<Sum>x \<in> A. of_bool (P x)) = of_nat (card (A \<inter> {x. P x}))\<close> if \<open>finite A\<close>
+  using \<open>finite A\<close> by induction simp_all
+
+lemma sum_mult_of_bool_eq [simp]:
+  \<open>(\<Sum>x \<in> A. f x * of_bool (P x)) = (\<Sum>x \<in> (A \<inter> {x. P x}). f x)\<close>
+  by (rule sum.mono_neutral_cong) (use \<open>finite A\<close> in auto)
+
+lemma sum_of_bool_mult_eq [simp]:
+  \<open>(\<Sum>x \<in> A. of_bool (P x) * f x) = (\<Sum>x \<in> (A \<inter> {x. P x}). f x)\<close>
+  by (rule sum.mono_neutral_cong) (use \<open>finite A\<close> in auto)
+
+end
+
 end
 
 lemma sum_Suc: "sum (\<lambda>x. Suc(f x)) A = sum f A + card A"

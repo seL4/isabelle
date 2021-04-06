@@ -122,7 +122,7 @@ end
 
 lemma exp_eq_zero_iff [simp]:
   \<open>2 ^ n = (0 :: 'a::len word) \<longleftrightarrow> n \<ge> LENGTH('a)\<close>
-  by transfer simp
+  by transfer auto
 
 lemma word_exp_length_eq_0 [simp]:
   \<open>(2 :: 'a::len word) ^ LENGTH('a) = 0\<close>
@@ -854,7 +854,7 @@ instance proof
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
     using that by transfer
-      (auto dest: le_Suc_ex simp add: mod_2_eq_odd take_bit_Suc elim!: evenE)
+      (auto dest: le_Suc_ex simp add: take_bit_Suc elim!: evenE)
   show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
     for m n :: nat
     by transfer (simp, simp add: exp_div_exp_eq)

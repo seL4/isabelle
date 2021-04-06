@@ -1018,7 +1018,7 @@ next
     also have \<open>\<dots> = of_bool (odd a \<or> odd b) + 2 * (a div 2 + b div 2)\<close>
       using even by (auto simp add: algebra_simps mod2_eq_if)
     finally have \<open>bit ((a + b) div 2) n \<longleftrightarrow> bit (a div 2 + b div 2) n\<close>
-      using \<open>2 * 2 ^ n \<noteq> 0\<close> by simp (simp flip: bit_Suc add: bit_double_iff)
+      using \<open>2 * 2 ^ n \<noteq> 0\<close> by simp (simp_all flip: bit_Suc add: bit_double_iff)
     also have \<open>\<dots> \<longleftrightarrow> bit (a div 2) n \<or> bit (b div 2) n\<close>
       using bit \<open>2 ^ n \<noteq> 0\<close> by (rule Suc.IH)
     finally show ?case
@@ -1883,7 +1883,7 @@ next
   then show ?thesis
     apply (auto simp add: divide_int_def not_le elim!: evenE)
     apply (simp only: minus_mult_right)
-    apply (subst nat_mult_distrib)
+    apply (subst (asm) nat_mult_distrib)
      apply simp_all
     done
 qed

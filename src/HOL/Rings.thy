@@ -114,8 +114,16 @@ lemma of_bool_eq_iff: "of_bool p = of_bool q \<longleftrightarrow> p = q"
 lemma split_of_bool [split]: "P (of_bool p) \<longleftrightarrow> (p \<longrightarrow> P 1) \<and> (\<not> p \<longrightarrow> P 0)"
   by (cases p) simp_all
 
-lemma split_of_bool_asm: "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
+lemma split_of_bool_asm [split]: "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
   by (cases p) simp_all
+
+lemma of_bool_eq_0_iff [simp]:
+  \<open>of_bool P = 0 \<longleftrightarrow> \<not> P\<close>
+  by simp
+
+lemma of_bool_eq_1_iff [simp]:
+  \<open>of_bool P = 1 \<longleftrightarrow> P\<close>
+  by simp
 
 end
 
@@ -373,6 +381,10 @@ class ring_1 = ring + zero_neq_one + monoid_mult
 begin
 
 subclass semiring_1_cancel ..
+
+lemma of_bool_not_iff [simp]:
+  \<open>of_bool (\<not> P) = 1 - of_bool P\<close>
+  by simp
 
 lemma square_diff_one_factored: "x * x - 1 = (x + 1) * (x - 1)"
   by (simp add: algebra_simps)
@@ -2353,6 +2365,14 @@ lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
 lemma not_one_less_zero [simp]: "\<not> 1 < 0"
   by (simp add: not_less)
 
+lemma of_bool_less_eq_iff [simp]:
+  \<open>of_bool P \<le> of_bool Q \<longleftrightarrow> (P \<longrightarrow> Q)\<close>
+  by auto
+
+lemma of_bool_less_iff [simp]:
+  \<open>of_bool P < of_bool Q \<longleftrightarrow> \<not> P \<and> Q\<close>
+  by auto
+
 lemma mult_left_le: "c \<le> 1 \<Longrightarrow> 0 \<le> a \<Longrightarrow> a * c \<le> a"
   using mult_left_mono[of c 1 a] by simp
 
@@ -2377,6 +2397,26 @@ proof
       by (simp add: )
   qed
 qed
+
+lemma zero_less_eq_of_bool [simp]:
+  \<open>0 \<le> of_bool P\<close>
+  by simp
+
+lemma zero_less_of_bool_iff [simp]:
+  \<open>0 < of_bool P \<longleftrightarrow> P\<close>
+  by simp
+
+lemma of_bool_less_eq_one [simp]:
+  \<open>of_bool P \<le> 1\<close>
+  by simp
+
+lemma of_bool_less_one_iff [simp]:
+  \<open>of_bool P < 1 \<longleftrightarrow> \<not> P\<close>
+  by simp
+
+lemma of_bool_or_iff [simp]:
+  \<open>of_bool (P \<or> Q) = max (of_bool P) (of_bool Q)\<close>
+  by (simp add: max_def)
 
 text \<open>Addition is the inverse of subtraction.\<close>
 
@@ -2440,6 +2480,10 @@ subclass linordered_semidom
 subclass idom_abs_sgn
   by standard
     (auto simp add: sgn_if abs_if zero_less_mult_iff)
+
+lemma abs_bool_eq [simp]:
+  \<open>\<bar>of_bool P\<bar> = of_bool P\<close>
+  by simp
 
 lemma linorder_neqE_linordered_idom:
   assumes "x \<noteq> y"

@@ -147,7 +147,7 @@ next
   proof (cases "sgn l = sgn k")
     case True
     then show ?thesis
-      by (simp add: div_eq_sgn_abs)
+      by (auto simp add: div_eq_sgn_abs)
   next
     case False
     with \<open>k \<noteq> 0\<close> \<open>l \<noteq> 0\<close>
