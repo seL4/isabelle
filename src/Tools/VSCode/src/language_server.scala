@@ -127,6 +127,9 @@ class Language_Server(
 
   /* input from client or file-system */
 
+  private val file_watcher: File_Watcher =
+    File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
+
   private val delay_input: Delay =
     Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { resources.flush_input(session, channel) }
@@ -138,9 +141,6 @@ class Language_Server(
       if (invoke_input) delay_input.invoke()
       if (invoke_load) delay_load.invoke()
     }
-
-  private val file_watcher =
-    File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private def close_document(file: JFile): Unit =
   {
