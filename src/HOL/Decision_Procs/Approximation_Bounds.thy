@@ -235,6 +235,54 @@ qed
 
 section \<open>Approximation utility functions\<close>
 
+lift_definition plus_float_interval::"nat \<Rightarrow> float interval \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(a1, a2). \<lambda>(b1, b2). (float_plus_down prec a1 b1, float_plus_up prec a2 b2)"
+  by (auto intro!: add_mono simp: float_plus_down_le float_plus_up_le)
+
+lemma lower_plus_float_interval:
+  "lower (plus_float_interval prec ivl ivl') = float_plus_down prec (lower ivl) (lower ivl')"
+  by transfer auto
+lemma upper_plus_float_interval:
+  "upper (plus_float_interval prec ivl ivl') = float_plus_up prec (upper ivl) (upper ivl')"
+  by transfer auto
+
+lemma mult_float_interval_ge:
+  "real_interval A + real_interval B \<le> real_interval (plus_float_interval prec A B)"
+  unfolding less_eq_interval_def
+  by transfer
+     (auto simp: lower_plus_float_interval upper_plus_float_interval
+           intro!: order.trans[OF float_plus_down] order.trans[OF _ float_plus_up])
+
+lemma plus_float_interval:
+  "set_of (real_interval A) + set_of (real_interval B) \<subseteq>
+    set_of (real_interval (plus_float_interval prec A B))"
+proof -
+  have "set_of (real_interval A) + set_of (real_interval B) \<subseteq>
+          set_of (real_interval A + real_interval B)"
+    by (simp add: set_of_plus)
+  also have "\<dots> \<subseteq> set_of (real_interval (plus_float_interval prec A B))"
+    using mult_float_interval_ge[of A B prec] by (simp add: set_of_subset_iff')
+  finally show ?thesis .
+qed
+
+lemma plus_float_intervalI:
+  "x + y \<in>\<^sub>r plus_float_interval prec A B"
+  if "x \<in>\<^sub>i real_interval A" "y \<in>\<^sub>i real_interval B"
+  using plus_float_interval[of A B] that by auto
+
+lemma plus_float_interval_mono:
+  "plus_float_interval prec A B \<le> plus_float_interval prec X Y"
+  if "A \<le> X" "B \<le> Y"
+  using that
+  by (auto simp: less_eq_interval_def lower_plus_float_interval upper_plus_float_interval
+                 float_plus_down.rep_eq float_plus_up.rep_eq plus_down_mono plus_up_mono)
+
+lemma plus_float_interval_monotonic:
+  "set_of (ivl + ivl') \<subseteq> set_of (plus_float_interval prec ivl ivl')"
+  using float_plus_down_le float_plus_up_le lower_plus_float_interval upper_plus_float_interval
+  by (simp add: set_of_subset_iff)
+
+
 definition bnds_mult :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<times> float" where
   "bnds_mult prec a1 a2 b1 b2 =
       (float_plus_down prec (nprt a1 * pprt b2)
@@ -287,13 +335,19 @@ lemma mult_float_intervalI:
   using mult_float_interval[of A B] that
   by (auto simp: )
 
-lemma mult_float_interval_mono:
+lemma mult_float_interval_mono':
   "set_of (mult_float_interval prec A B) \<subseteq> set_of (mult_float_interval prec X Y)"
   if "set_of A \<subseteq> set_of X" "set_of B \<subseteq> set_of Y"
   using that
   apply transfer
   unfolding bnds_mult_def atLeastatMost_subset_iff float_plus_down.rep_eq float_plus_up.rep_eq
   by (auto simp: float_plus_down.rep_eq float_plus_up.rep_eq mult_float_mono1 mult_float_mono2)
+
+lemma mult_float_interval_mono:
+  "mult_float_interval prec A B \<le> mult_float_interval prec X Y"
+  if "A \<le> X" "B \<le> Y"
+  using mult_float_interval_mono'[of A X B Y prec] that
+  by (simp add: set_of_subset_iff')
 
 
 definition map_bnds :: "(nat \<Rightarrow> float \<Rightarrow> float) \<Rightarrow> (nat \<Rightarrow> float \<Rightarrow> float) \<Rightarrow>

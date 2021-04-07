@@ -115,7 +115,7 @@ lemma bounded_by_None: "bounded_by xs (replicate (length xs) None)"
 fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float interval) option list \<Rightarrow> (float interval) option"
   where
     "approx' prec a bs          = (case (approx prec a bs) of Some ivl \<Rightarrow> Some (round_interval prec ivl) | None \<Rightarrow> None)" |
-    "approx prec (Add a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (+)" |
+    "approx prec (Add a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (plus_float_interval prec)" |
     "approx prec (Minus a) bs   = lift_un' (approx' prec a bs) uminus" |
     "approx prec (Mult a b) bs  = lift_bin' (approx' prec a bs) (approx' prec b bs) (mult_float_interval prec)" |
     "approx prec (Inverse a) bs = lift_un (approx' prec a bs) (inverse_float_interval prec)" |
@@ -153,7 +153,7 @@ lemma approx:
   using  \<open>bounded_by xs vs\<close>[THEN bounded_byE]
   by (induct arith arbitrary: ivl)
     (force split: option.splits if_splits
-      intro!: plus_in_float_intervalI mult_float_intervalI uminus_in_float_intervalI
+      intro!: plus_float_intervalI mult_float_intervalI uminus_in_float_intervalI
       inverse_float_interval_eqI abs_in_float_intervalI
       min_intervalI max_intervalI
       cos_float_intervalI

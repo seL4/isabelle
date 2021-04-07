@@ -184,6 +184,10 @@ lemma set_of_subset_iff: "set_of X \<subseteq> set_of Y \<longleftrightarrow> lo
   for X Y::"'a::linorder interval"
   by (auto simp: set_of_eq subset_iff)
 
+lemma set_of_subset_iff':
+  "set_of a \<subseteq> set_of (b :: 'a :: linorder interval) \<longleftrightarrow> a \<le> b"
+  unfolding less_eq_interval_def set_of_subset_iff ..
+
 lemma bounds_of_interval_eq_lower_upper:
   "bounds_of_interval ivl = (lower ivl, upper ivl)" if "lower ivl \<le> upper ivl"
   using that
