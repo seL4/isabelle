@@ -545,7 +545,7 @@
         "@types/mocha": "^2.2.48",
         "@types/node": "^7.10.14",
         "mocha": "^3.5.3",
-        "typescript": "^3.7.9",
+        "typescript": "^3.9.9",
         "vscode": "^1.1.36"
     },
     "dependencies": {
