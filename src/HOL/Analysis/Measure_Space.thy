@@ -49,9 +49,8 @@ proof -
   have "P \<inter> {i. x \<in> A i} = {j}"
     using d \<open>x \<in> A j\<close> \<open>j \<in> P\<close> unfolding disjoint_family_on_def
     by auto
-  thus ?thesis
-    unfolding indicator_def
-    by (simp add: if_distrib sum.If_cases[OF \<open>finite P\<close>])
+  with \<open>finite P\<close> show ?thesis
+    by (simp add: indicator_def)
 qed
 
 text \<open>

@@ -227,7 +227,7 @@ proof -
                    (\<Sum>y\<in>F. y * indicat_real {x \<in> space M. U' i x = y} z))"
         using insert(1-3)
         by (intro add * sum_nonneg mult_nonneg_nonneg)
-           (auto simp: nonneg indicator_def sum_nonneg_eq_0_iff)
+           (auto simp: nonneg indicator_def of_bool_def sum_nonneg_eq_0_iff)
       thus ?case 
         using insert.hyps by (subst sum.insert) auto
     qed

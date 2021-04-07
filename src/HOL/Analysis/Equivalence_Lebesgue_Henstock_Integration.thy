@@ -433,7 +433,7 @@ proof -
       moreover have "(\<lambda>k. indicator (A \<inter> ?B k) x :: real) \<longlonglongrightarrow> indicator (\<Union>k::nat. A \<inter> ?B k) x"
         by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def box_def)
       ultimately show "(\<lambda>k. if x \<in> A \<inter> ?B k then 1 else 0::real) \<longlonglongrightarrow> 1"
-        by (simp add: indicator_def UN_box_eq_UNIV) }
+        by (simp add: indicator_def of_bool_def UN_box_eq_UNIV) }
 
     have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) \<longlonglongrightarrow> emeasure lborel (\<Union>n::nat. A \<inter> ?B n)"
       by (intro Lim_emeasure_incseq) (auto simp: incseq_def box_def)
@@ -459,7 +459,7 @@ using f proof (induct f arbitrary: r rule: borel_measurable_induct_real)
   then have "((\<lambda>x. 1) has_integral measure lborel A) A"
     by (intro has_integral_measure_lborel) (auto simp: ennreal_indicator)
   with set show ?case
-    by (simp add: ennreal_indicator measure_def) (simp add: indicator_def)
+    by (simp add: ennreal_indicator measure_def) (simp add: indicator_def of_bool_def)
 next
   case (mult g c)
   then have "ennreal c * (\<integral>\<^sup>+ x. g x \<partial>lborel) = ennreal r"
@@ -626,7 +626,7 @@ proof (cases "emeasure lborel A = \<infinity>")
   proof
     assume int: "(\<lambda>x. 1::real) integrable_on A"
     then have "(indicator A::'a \<Rightarrow> real) integrable_on UNIV"
-      unfolding indicator_def[abs_def] integrable_restrict_UNIV .
+      unfolding indicator_def of_bool_def integrable_restrict_UNIV .
     then obtain r where "((indicator A::'a\<Rightarrow>real) has_integral r) UNIV"
       by auto
     from nn_integral_has_integral_lborel[OF _ _ this] emeasure_A show False
@@ -706,7 +706,7 @@ proof -
     by (auto dest: completion_ex_borel_measurable_real)
 
   from I have "((\<lambda>x. abs (indicator \<Omega> x * f x)) has_integral I) UNIV"
-    using nonneg by (simp add: indicator_def if_distrib[of "\<lambda>x. x * f y" for y] cong: if_cong)
+    using nonneg by (simp add: indicator_def of_bool_def if_distrib[of "\<lambda>x. x * f y" for y] cong: if_cong)
   also have "((\<lambda>x. abs (indicator \<Omega> x * f x)) has_integral I) UNIV \<longleftrightarrow> ((\<lambda>x. abs (f' x)) has_integral I) UNIV"
     using eq by (intro has_integral_AE) auto
   finally have "integral\<^sup>N lborel (\<lambda>x. abs (f' x)) = I"
@@ -915,7 +915,8 @@ lemma has_integral_set_lebesgue:
   assumes f: "set_integrable lebesgue S f"
   shows "(f has_integral (LINT x:S|lebesgue. f x)) S"
   using has_integral_integral_lebesgue f
-  by (fastforce simp add: set_integrable_def set_lebesgue_integral_def indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] cong: if_cong)
+  by (fastforce simp add: set_integrable_def set_lebesgue_integral_def indicator_def
+    of_bool_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] cong: if_cong)
 
 lemma set_lebesgue_integral_eq_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -1145,7 +1146,7 @@ lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure leb
   by (simp add: lmeasurable_iff_has_integral integral_unique)
 
 lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral S (\<lambda>x. 1::real)"
-  by (fastforce simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
+  by (fastforce simp add: lmeasure_integral_UNIV indicator_def [abs_def] of_bool_def lmeasurable_iff_integrable_on)
 
 lemma integrable_on_const: "S \<in> lmeasurable \<Longrightarrow> (\<lambda>x. c) integrable_on S"
   unfolding lmeasurable_iff_integrable
@@ -1156,7 +1157,7 @@ lemma integral_indicator:
   shows "integral T (indicator S) = measure lebesgue (S \<inter> T)"
 proof -
   have "integral UNIV (indicator (S \<inter> T)) = integral UNIV (\<lambda>a. if a \<in> S \<inter> T then 1::real else 0)"
-    by (meson indicator_def)
+    by (simp add: indicator_def [abs_def] of_bool_def)
   moreover have "(indicator (S \<inter> T) has_integral measure lebesgue (S \<inter> T)) UNIV"
     using assms by (simp add: lmeasurable_iff_has_integral)
   ultimately have "integral UNIV (\<lambda>x. if x \<in> S \<inter> T then 1 else 0) = measure lebesgue (S \<inter> T)"
@@ -1164,7 +1165,7 @@ proof -
   moreover have "integral T (\<lambda>a. if a \<in> S then 1::real else 0) = integral (S \<inter> T \<inter> UNIV) (\<lambda>a. 1)"
     by (simp add: Henstock_Kurzweil_Integration.integral_restrict_Int)
   moreover have "integral T (indicat_real S) = integral T (\<lambda>a. if a \<in> S then 1 else 0)"
-    by (meson indicator_def)
+    by (simp add: indicator_def [abs_def] of_bool_def)
   ultimately show ?thesis
     by (simp add: assms lmeasure_integral)
 qed
@@ -1563,7 +1564,7 @@ proof -
     and 1: "(indicat_real (\<Union>m\<le>k. S m)) integrable_on UNIV" for k
     by (auto simp: negligible has_integral_iff)
   have 2: "\<And>k x. indicat_real (\<Union>m\<le>k. S m) x \<le> (indicat_real (\<Union>m\<le>Suc k. S m) x)"
-    by (simp add: indicator_def)
+    by (auto simp add: indicator_def)
   have 3: "\<And>x. (\<lambda>k. indicat_real (\<Union>m\<le>k. S m) x) \<longlonglongrightarrow> (indicat_real (\<Union>n. S n) x)"
     by (force simp: indicator_def eventually_sequentially intro: tendsto_eventually)
   have 4: "bounded (range (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))))"
@@ -3832,7 +3833,7 @@ proof -
        (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
              intro: has_field_derivative_subset[OF f(1)] \<open>a \<le> b\<close>)
   then have i: "((\<lambda>x. f x * indicator {a .. b} x) has_integral F b - F a) UNIV"
-    unfolding indicator_def if_distrib[where f="\<lambda>x. a * x" for a]
+    unfolding indicator_def of_bool_def if_distrib[where f="\<lambda>x. a * x" for a]
     by (simp cong del: if_weak_cong del: atLeastAtMost_iff)
   then have nn: "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
     by (rule nn_integral_has_integral_lborel[OF *])
@@ -3862,7 +3863,7 @@ proof -
   moreover
   have "(f has_integral integral\<^sup>L lborel ?f) {a..b}"
     using has_integral_integral_lborel[OF int]
-    unfolding indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a]
+    unfolding indicator_def of_bool_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a]
     by (simp cong del: if_weak_cong del: atLeastAtMost_iff)
   ultimately show ?eq
     by (auto dest: has_integral_unique)

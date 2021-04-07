@@ -59,7 +59,7 @@ lemma set_integrable_cong:
   shows   "set_integrable M A f = set_integrable M' A' f'"
 proof -
   have "(\<lambda>x. indicator A x *\<^sub>R f x) = (\<lambda>x. indicator A' x *\<^sub>R f' x)"
-    using assms by (auto simp: indicator_def)
+    using assms by (auto simp: indicator_def of_bool_def)
   thus ?thesis by (simp add: set_integrable_def assms)
 qed
 
@@ -652,13 +652,11 @@ lemma nn_integral_null_delta:
   assumes "A \<in> sets M" "B \<in> sets M"
           "(A - B) \<union> (B - A) \<in> null_sets M"
   shows "(\<integral>\<^sup>+x \<in> A. f x \<partial>M) = (\<integral>\<^sup>+x \<in> B. f x \<partial>M)"
-proof (rule nn_integral_cong_AE, auto simp add: indicator_def)
+proof (rule nn_integral_cong_AE)
   have *: "AE a in M. a \<notin> (A - B) \<union> (B - A)"
     using assms(3) AE_not_in by blast
-  then show "AE a in M. a \<notin> A \<longrightarrow> a \<in> B \<longrightarrow> f a = 0"
+  then show \<open>AE x in M. f x * indicator A x = f x * indicator B x\<close>
     by auto
-  show "AE x\<in>A in M. x \<notin> B \<longrightarrow> f x = 0"
-    using * by auto
 qed
 
 proposition nn_integral_disjoint_family:

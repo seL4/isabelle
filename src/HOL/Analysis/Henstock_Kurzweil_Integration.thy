@@ -2336,7 +2336,7 @@ proof -
       and  "(indicat_real T has_integral 0) (cbox a b)" for a b
   proof (subst has_integral_spike_eq[OF T])
     show "indicat_real S x = indicat_real (S \<union> T) x" if "x \<in> cbox a b - T" for x
-      by (metis Diff_iff Un_iff indicator_def that)
+      using that by (simp add: indicator_def)
     show "(indicat_real S has_integral 0) (cbox a b)"
       by (simp add: S0)
   qed

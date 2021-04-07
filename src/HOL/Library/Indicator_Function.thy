@@ -8,7 +8,7 @@ theory Indicator_Function
 imports Complex_Main Disjoint_Sets
 begin
 
-definition "indicator S x = (if x \<in> S then 1 else 0)"
+definition "indicator S x = of_bool (x \<in> S)"
 
 text\<open>Type constrained version\<close>
 abbreviation indicat_real :: "'a set \<Rightarrow> 'a \<Rightarrow> real" where "indicat_real S \<equiv> indicator S"
@@ -98,7 +98,7 @@ lemma sum_indicator_scaleR[simp]:
 
 lemma LIMSEQ_indicator_incseq:
   assumes "incseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
+  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,zero_neq_one}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
 proof (cases "\<exists>i. x \<in> A i")
   case True
   then obtain i where "x \<in> A i"
@@ -115,7 +115,7 @@ next
 qed
 
 lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
+  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a::{topological_space,zero_neq_one}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
 proof -
   have "(\<lambda>k. indicator (\<Union>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Union>k. \<Union>i<k. A i) x"
     by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def intro: less_le_trans)
@@ -126,7 +126,7 @@ qed
 
 lemma LIMSEQ_indicator_decseq:
   assumes "decseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
+  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,zero_neq_one}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
 proof (cases "\<exists>i. x \<notin> A i")
   case True
   then obtain i where "x \<notin> A i"
@@ -143,7 +143,7 @@ next
 qed
 
 lemma LIMSEQ_indicator_INT:
-  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
+  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a::{topological_space,zero_neq_one}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
 proof -
   have "(\<lambda>k. indicator (\<Inter>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Inter>k. \<Inter>i<k. A i) x"
     by (intro LIMSEQ_indicator_decseq) (auto simp: decseq_def intro: less_le_trans)

@@ -1809,7 +1809,7 @@ proof -
   have *: "(\<integral>\<^sup>+x. max 0 (f x) \<partial>count_space A) =
     (\<integral>\<^sup>+ x. (\<Sum>a|a\<in>A \<and> 0 < f a. f a * indicator {a} x) \<partial>count_space A)"
     by (auto intro!: nn_integral_cong
-             simp add: indicator_def if_distrib sum.If_cases[OF A] max_def le_less)
+             simp add: indicator_def of_bool_def if_distrib sum.If_cases[OF A] max_def le_less)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. \<integral>\<^sup>+ x. f a * indicator {a} x \<partial>count_space A)"
     by (subst nn_integral_sum) (simp_all add: AE_count_space  less_imp_le)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
@@ -2451,7 +2451,7 @@ proof -
   have "{a. (a \<in> X \<longrightarrow> a \<in> A \<and> 0 < f a) \<and> a \<in> X} = {a\<in>X. 0 < f a}"
     using \<open>X \<subseteq> A\<close> by auto
   with A show ?thesis
-    by (simp add: emeasure_density nn_integral_count_space point_measure_def indicator_def)
+    by (simp add: emeasure_density nn_integral_count_space point_measure_def indicator_def of_bool_def)
 qed
 
 lemma emeasure_point_measure_finite:

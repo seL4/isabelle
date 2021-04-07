@@ -341,7 +341,7 @@ qed
 lemma Pi_pmf_return_pmf [simp]:
   assumes "finite A"
   shows   "Pi_pmf A dflt (\<lambda>x. return_pmf (f x)) = return_pmf (\<lambda>x. if x \<in> A then f x else dflt)"
-  using assms by (intro pmf_eqI) (auto simp: pmf_Pi simp: indicator_def)
+  using assms by (intro pmf_eqI) (auto simp: pmf_Pi simp: indicator_def split: if_splits)
 
 text \<open>
   Analogously any componentwise mapping can be pulled outside the product:

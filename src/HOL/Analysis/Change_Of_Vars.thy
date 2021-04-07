@@ -2385,7 +2385,7 @@ proof -
       ultimately show ?thesis
         using \<open>y > 0\<close> integral_restrict_Int [of S "{t. h n (g t) = y}" "\<lambda>t. \<bar>det (matrix (g' t))\<bar> * y"]
         apply (simp add: integrable_on_indicator integral_indicator)
-        apply (simp add: indicator_def if_distrib cong: if_cong)
+        apply (simp add: indicator_def of_bool_def if_distrib cong: if_cong)
         done
     qed
     have hn_int: "h n integrable_on g ` S"
@@ -2415,7 +2415,7 @@ proof -
           fix x
           assume "x \<in> S"
           have "y * indicat_real {x. h n x = y} (g x) \<le> f (g x)"
-            by (metis (full_types) \<open>x \<in> S\<close> h_le_f indicator_def mem_Collect_eq mult.right_neutral mult_zero_right nonneg_fg)
+            by (metis \<open>x \<in> S\<close> h_le_f indicator_simps(1) indicator_simps(2) mem_Collect_eq mult.commute mult.left_neutral mult_zero_left nonneg_fg)
           with \<open>y \<ge> 0\<close> show "norm (?D x * y * indicat_real {x. h n x = y} (g x)) \<le> ?D x * f(g x)"
             by (simp add: abs_mult mult.assoc mult_left_mono)
         qed (use S det_int_fg in auto)
@@ -2867,7 +2867,7 @@ proof -
               = (if x \<in> T then 1 else 0) * f x" for x
         by auto
       show "f absolutely_integrable_on T"
-        using fa by (simp add: indicator_def set_integrable_def eq)
+        using fa by (simp add: indicator_def of_bool_def set_integrable_def eq)
       have [simp]: "{y \<in> T. f y < 0} \<inter> {y \<in> T. 0 < f y} = {}" for T and f :: "(real^'n::_) \<Rightarrow> real"
         by auto
       have "integral T f = integral ({y \<in> T. f y < 0} \<union> {y \<in> T. f y > 0}) f"
@@ -2929,7 +2929,7 @@ proof -
       have "?DP absolutely_integrable_on ({x \<in> S. f (g x) < 0} \<union> {x \<in> S. f (g x) > 0})"
         by (rule absolutely_integrable_Un [OF aDN aDP])
       then show I: "?DP absolutely_integrable_on S"
-        by (simp add: indicator_def eq set_integrable_def)
+        by (simp add: indicator_def of_bool_def eq set_integrable_def)
       have [simp]: "{y \<in> S. f y < 0} \<inter> {y \<in> S. 0 < f y} = {}" for S and f :: "(real^'n::_) \<Rightarrow> real"
         by auto
       have "integral S ?DP = integral ({x \<in> S. f (g x) < 0} \<union> {x \<in> S. f (g x) > 0}) ?DP"

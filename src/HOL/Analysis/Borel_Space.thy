@@ -313,7 +313,7 @@ lemma borel_measurable_restrict_space_iff_ereal:
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. f x * indicator \<Omega> x) \<in> borel_measurable M"
   by (subst measurable_restrict_space_iff)
-     (auto simp: indicator_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_weak_cong)
+     (auto simp: indicator_def of_bool_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_weak_cong)
 
 lemma borel_measurable_restrict_space_iff_ennreal:
   fixes f :: "'a \<Rightarrow> ennreal"
@@ -321,7 +321,7 @@ lemma borel_measurable_restrict_space_iff_ennreal:
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. f x * indicator \<Omega> x) \<in> borel_measurable M"
   by (subst measurable_restrict_space_iff)
-     (auto simp: indicator_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_weak_cong)
+     (auto simp: indicator_def of_bool_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_weak_cong)
 
 lemma borel_measurable_restrict_space_iff:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
@@ -329,7 +329,7 @@ lemma borel_measurable_restrict_space_iff:
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> borel_measurable M"
   by (subst measurable_restrict_space_iff)
-     (auto simp: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] ac_simps
+     (auto simp: indicator_def of_bool_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] ac_simps
        cong del: if_weak_cong)
 
 lemma cbox_borel[measurable]: "cbox a b \<in> sets borel"

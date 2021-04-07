@@ -881,7 +881,7 @@ proof -
     finally have le: "emeasure lebesgue (-T \<inter> U) < ennreal (1 / 2^n)"
       by (simp add: eq)
     have 1: "continuous_on (T \<union> -U) (indicat_real S)"
-      unfolding indicator_def
+      unfolding indicator_def of_bool_def
     proof (rule continuous_on_cases [OF \<open>closed T\<close>])
       show "closed (- U)"
         using \<open>open U\<close> by blast
@@ -976,7 +976,7 @@ proof -
     using nn
     by (auto simp: inj_on_def intro: sum.cong)
   finally show ?thesis
-    by (subst *) (simp add: enn2real_sum indicator_def if_distrib cong: if_cong)
+    by (subst *) (simp add: enn2real_sum indicator_def of_bool_def if_distrib cong: if_cong)
 qed
 
 lemma\<^marker>\<open>tag important\<close> simple_function_induct_real
