@@ -9,7 +9,7 @@
 
 * View / Debug / Launch Extension
 
-* File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
+* File / Open Folder: e.g. `src/HOL/Examples/` then open .thy files
 
 
 ## Build ##
