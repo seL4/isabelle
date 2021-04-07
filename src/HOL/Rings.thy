@@ -1933,6 +1933,15 @@ end
 
 class zero_less_one = order + zero + one +
   assumes zero_less_one [simp]: "0 < 1"
+begin
+
+subclass zero_neq_one
+  by standard (simp add: less_imp_neq)
+
+lemma zero_le_one [simp]:
+  \<open>0 \<le> 1\<close> by (rule less_imp_le) simp
+
+end
 
 class linordered_semiring_1 = linordered_semiring + semiring_1 + zero_less_one
 begin
