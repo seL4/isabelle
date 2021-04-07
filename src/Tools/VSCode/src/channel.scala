@@ -79,7 +79,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
 
   /* display message */
 
-  def display_message(message_type: Int, msg: String, show: Boolean = true): Unit =
+  def display_message(message_type: Int, msg: String, show: Boolean): Unit =
     write(LSP.DisplayMessage(message_type, Output.clean_yxml(msg), show))
 
   def error_message(msg: String): Unit = display_message(LSP.MessageType.Error, msg, true)

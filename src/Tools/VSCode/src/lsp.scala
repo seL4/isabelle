@@ -259,7 +259,7 @@ object LSP
 
   object DisplayMessage
   {
-    def apply(message_type: Int, message: String, show: Boolean = true): JSON.T =
+    def apply(message_type: Int, message: String, show: Boolean): JSON.T =
       Notification(if (show) "window/showMessage" else "window/logMessage",
         JSON.Object("type" -> message_type, "message" -> message))
   }
