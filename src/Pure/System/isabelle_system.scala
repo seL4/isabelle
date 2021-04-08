@@ -220,6 +220,8 @@ object Isabelle_System
 
   def isabelle_name(): String = getenv_strict("ISABELLE_NAME")
 
+  def identification(): String = "Isabelle/" + isabelle_id() + isabelle_heading()
+
 
   /** file-system operations **/
 

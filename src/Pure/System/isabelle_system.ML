@@ -25,6 +25,7 @@ sig
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
   val isabelle_name: unit -> string
+  val identification: unit -> string
 end;
 
 structure Isabelle_System: ISABELLE_SYSTEM =
@@ -132,5 +133,7 @@ fun isabelle_heading () =
   | SOME version => " (" ^ version ^ ")");
 
 fun isabelle_name () = getenv_strict "ISABELLE_NAME";
+
+fun identification () = "Isabelle/" ^ isabelle_id () ^ isabelle_heading ();
 
 end;
