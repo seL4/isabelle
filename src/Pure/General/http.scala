@@ -279,8 +279,7 @@ object HTTP
   def welcome(root: String = "/"): Handler =
     Handler.get(root, arg =>
       if (arg.uri.toString == root) {
-        val id = Isabelle_System.isabelle_id()
-        Some(Response.text("Welcome to Isabelle/" + id + Isabelle_System.isabelle_heading()))
+        Some(Response.text("Welcome to " + Isabelle_System.identification()))
       }
       else None)
 

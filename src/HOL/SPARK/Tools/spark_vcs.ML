@@ -975,8 +975,7 @@ fun close incomplete thy =
             Export.export thy (Path.binding (prv_path, Position.none))
               (proved'' |> map (fn (s, _) =>
                 XML.Text (snd (strip_number s) ^
-                  " -- proved by Isabelle/" ^ Isabelle_System.isabelle_id () ^
-                  Isabelle_System.isabelle_heading () ^ "\n")));
+                  " -- proved by " ^ Isabelle_System.identification () ^ "\n")));
         in {pfuns = pfuns, type_map = type_map, env = NONE} end))
   |> Sign.parent_path;
 
