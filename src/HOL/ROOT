@@ -73,6 +73,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     Code_Prolog
     Code_Real_Approx_By_Float
     Code_Target_Numeral
+    Code_Target_Numeral_Float
     DAList
     DAList_Multiset
     RBT_Mapping

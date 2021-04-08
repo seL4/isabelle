@@ -1,11 +1,11 @@
- (* Author:     Johannes Hoelzl, TU Muenchen
+(* Author:     Johannes Hoelzl, TU Muenchen
    Coercions removed by Dmitriy Traytel *)
 
 theory Approximation
 imports
   Complex_Main
-  "HOL-Library.Code_Target_Numeral"
   Approximation_Bounds
+  "HOL-Library.Code_Target_Numeral_Float"
 keywords "approximate" :: diag
 begin
 
