@@ -6,11 +6,13 @@ ML antiquotations.
 
 signature ML_ANTIQUOTATION =
 sig
+  val value_decl: string -> string -> Proof.context ->
+    (Proof.context -> string * string) * Proof.context
   val declaration: binding -> 'a context_parser ->
-    (Token.src -> 'a -> Proof.context -> ML_Context.decl * Proof.context) ->
+    (Token.src -> 'a -> Proof.context -> (Proof.context -> string * string) * Proof.context) ->
     theory -> theory
   val declaration_embedded: binding -> 'a context_parser ->
-    (Token.src -> 'a -> Proof.context -> ML_Context.decl * Proof.context) ->
+    (Token.src -> 'a -> Proof.context -> (Proof.context -> string * string) * Proof.context) ->
     theory -> theory
   val inline: binding -> string context_parser -> theory -> theory
   val inline_embedded: binding -> string context_parser -> theory -> theory
@@ -23,19 +25,29 @@ struct
 
 (* define antiquotations *)
 
+fun value_decl a s ctxt =
+  let
+    val (b, ctxt') = ML_Context.variant a ctxt;
+    val env = "val " ^ b ^ " = " ^ s ^ ";\n";
+    val body = ML_Context.struct_name ctxt ^ "." ^ b;
+    fun decl (_: Proof.context) = (env, body);
+  in (decl, ctxt') end;
+
 local
 
 fun gen_declaration name embedded scan body =
   ML_Context.add_antiquotation name embedded
-    (fn src => fn orig_ctxt =>
-      let val (x, _) = Token.syntax scan src orig_ctxt
-      in body src x orig_ctxt end);
+    (fn range => fn src => fn orig_ctxt =>
+      let
+        val (x, _) = Token.syntax scan src orig_ctxt;
+        val (decl, ctxt') = body src x orig_ctxt;
+      in (decl #> apply2 (ML_Lex.tokenize_range range), ctxt') end);
 
 fun gen_inline name embedded scan =
   gen_declaration name embedded scan (fn _ => fn s => fn ctxt => (K ("", s), ctxt));
 
 fun gen_value name embedded scan =
-  gen_declaration name embedded scan (fn _ => ML_Context.value_decl (Binding.name_of name));
+  gen_declaration name embedded scan (fn _ => value_decl (Binding.name_of name));
 
 in
 
@@ -56,7 +68,7 @@ end;
 val _ = Theory.setup
  (declaration (Binding.make ("here", \<^here>)) (Scan.succeed ())
     (fn src => fn () =>
-      ML_Context.value_decl "position" (ML_Syntax.print_position (#2 (Token.name_of_src src)))) #>
+      value_decl "position" (ML_Syntax.print_position (#2 (Token.name_of_src src)))) #>
 
   inline (Binding.make ("make_string", \<^here>)) (Args.context >> K ML_Pretty.make_string_fn) #>
 

@@ -115,7 +115,7 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 fun oracle (name, range) source =
   ML_Context.expression (Input.pos_of source)
     (ML_Lex.read "val " @
-     ML_Lex.read_set_range range name @
+     ML_Lex.read_range range name @
      ML_Lex.read
       (" = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (" ^
         ML_Syntax.make_binding (name, #1 range) ^ ", ") @

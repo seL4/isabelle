@@ -45,7 +45,7 @@ val _ = Theory.setup
       let val i = serial () in
         ctxt
         |> put_attributes (i, srcs)
-        |> ML_Context.value_decl "attributes"
+        |> ML_Antiquotation.value_decl "attributes"
             ("ML_Thms.the_attributes ML_context " ^ string_of_int i)
       end));
 

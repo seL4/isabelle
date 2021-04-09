@@ -27,9 +27,10 @@ sig
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
+  val tokenize_range: Position.range -> string -> token list
   val read_text: Symbol_Pos.text * Position.T -> token Antiquote.antiquote list
   val read: Symbol_Pos.text -> token Antiquote.antiquote list
-  val read_set_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
   val read_source': {language: bool -> Markup.T, opaque_warning: bool, symbols: bool} ->
     token Antiquote.antiquote Symbol_Pos.scanner -> Input.source -> token Antiquote.antiquote list
   val read_source: Input.source -> token Antiquote.antiquote list
@@ -357,11 +358,12 @@ fun source src =
   |> Source.source Symbol_Pos.stopper (Scan.recover (Scan.bulk (!!! "bad input" scan_sml)) recover);
 
 val tokenize = Symbol.explode #> Source.of_list #> source #> Source.exhaust;
+fun tokenize_range range = tokenize #> map (set_range range);
 
 val read_text = reader {opaque_warning = true} scan_ml_antiq o Symbol_Pos.explode;
 fun read text = read_text (text, Position.none);
 
-fun read_set_range range =
+fun read_range range =
   read #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
 
 fun read_source' {language, symbols, opaque_warning} scan source =
