@@ -88,6 +88,10 @@ hypotheses and named premises.  INCOMPATIBILITY.
 
 *** ML ***
 
+* ML antiquotations \<^try>\<open>expr\<close> and \<^can>\<open>expr\<close> operate directly on
+the given ML expression, in contrast to functions "try" and "can" that
+modify application of a function.
+
 * External bash processes are always managed by Isabelle/Scala, in
 contrast to Isabelle2021 where this was only done for macOS on Apple
 Silicon.

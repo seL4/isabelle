@@ -204,7 +204,7 @@ ML_file \<open>../Tools/BNF/bnf_lfp_countable.ML\<close>
 
 ML \<open>
 fun countable_datatype_tac ctxt st =
-  (case try (fn () => HEADGOAL (old_countable_datatype_tac ctxt) st) () of
+  (case \<^try>\<open>HEADGOAL (old_countable_datatype_tac ctxt) st\<close> of
     SOME res => res
   | NONE => BNF_LFP_Countable.countable_datatype_tac ctxt st);
 

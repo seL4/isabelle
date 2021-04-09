@@ -442,6 +442,7 @@
 \<^action>              code: 0x00261b  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
 \<^assert>
 \<^binding>             argument: cartouche
+\<^can>                 argument: cartouche
 \<^class>               argument: cartouche
 \<^class_syntax>        argument: cartouche
 \<^command_keyword>     argument: cartouche
@@ -480,6 +481,7 @@
 \<^theory>              argument: cartouche
 \<^theory_context>      argument: cartouche
 \<^tool>                argument: cartouche
+\<^try>                 argument: cartouche
 \<^typ>                 argument: cartouche
 \<^type_abbrev>         argument: cartouche
 \<^type_name>           argument: cartouche

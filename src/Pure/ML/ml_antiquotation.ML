@@ -18,6 +18,7 @@ sig
   val inline_embedded: binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
   val value_embedded: binding -> string context_parser -> theory -> theory
+  val special_form: binding -> string -> theory -> theory
 end;
 
 structure ML_Antiquotation: ML_ANTIQUOTATION =
@@ -61,6 +62,26 @@ fun value name = gen_value name false;
 fun value_embedded name = gen_value name true;
 
 end;
+
+
+(* ML special form *)
+
+fun special_form binding operator =
+  ML_Context.add_antiquotation binding true
+    (fn _ => fn src => fn ctxt =>
+      let
+        val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt;
+        val tokenize = ML_Lex.tokenize_range Position.no_range;
+        val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
+        fun decl (_: Proof.context) =
+          let
+            val expr = ML_Lex.read_source s |> map Antiquote.the_text;
+            val ml =
+              tokenize "let val expr = (fn () => " @ expr @ tokenize ");" @
+              tokenize " val " @ tokenize_range "result" @
+              tokenize (" = " ^ operator ^ " expr; in result end")
+          in ([], ml) end;
+      in (decl, ctxt) end);
 
 
 (* basic antiquotations *)

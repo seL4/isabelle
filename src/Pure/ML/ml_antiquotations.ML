@@ -180,6 +180,13 @@ val _ = Theory.setup
         in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
 
 
+(* special forms *)
+
+val _ = Theory.setup
+ (ML_Antiquotation.special_form \<^binding>\<open>try\<close> "() |> Basics.try" #>
+  ML_Antiquotation.special_form \<^binding>\<open>can\<close> "() |> Basics.can");
+
+
 (* basic combinators *)
 
 local

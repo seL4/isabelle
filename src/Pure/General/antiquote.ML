@@ -9,6 +9,7 @@ sig
   type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list}
   type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list}
   datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq
+  val the_text: 'a antiquote -> 'a
   type text_antiquote = Symbol_Pos.T list antiquote
   val text_antiquote_range: text_antiquote -> Position.range
   val text_range: text_antiquote list -> Position.range
@@ -31,6 +32,11 @@ struct
 type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list};
 type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list};
 datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq;
+
+fun bad_text pos = error ("Unexpected antiquotation" ^ Position.here pos);
+fun the_text (Text x) = x
+  | the_text (Control {range, ...}) = bad_text (#1 range)
+  | the_text (Antiq {range, ...}) = bad_text (#1 range);
 
 type text_antiquote = Symbol_Pos.T list antiquote;
 
