@@ -248,7 +248,7 @@ subsection \<open>Uses Tests\<close>
 
 ML \<open>
   fun test_internal_fact ctxt factnm =
-    (case try (Proof_Context.get_thms ctxt) factnm of
+    (case \<^try>\<open>Proof_Context.get_thms ctxt factnm\<close> of
       NONE => ()
     | SOME _ => error "Found internal fact");
 \<close>

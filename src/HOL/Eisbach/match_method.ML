@@ -270,7 +270,7 @@ fun do_inst fact_insts' env text ctxt =
         (fn ((((SOME ((_, head), att), _), _), _), thms) => SOME (head, (thms, att))
           | _ => NONE) fact_insts';
 
-    fun try_dest_term thm = try (dest_internal_fact #> snd) thm;
+    fun try_dest_term thm = \<^try>\<open>#2 (dest_internal_fact thm)\<close>;
 
     fun expand_fact fact_insts thm =
       the_default [thm]

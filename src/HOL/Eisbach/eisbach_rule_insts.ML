@@ -17,12 +17,12 @@ fun restore_tags thm = Thm.map_tags (K (Thm.get_tags thm));
 val mk_term_type_internal = Logic.protect o Logic.mk_term o Logic.mk_type;
 
 fun term_type_cases f g t = 
-  (case (try (Logic.dest_type o Logic.dest_term o Logic.unprotect) t) of
+  (case \<^try>\<open>Logic.dest_type (Logic.dest_term (Logic.unprotect t))\<close> of
     SOME T => f T
-  | NONE => 
-    (case (try Logic.dest_term t) of
-      SOME t => g t
-    | NONE => raise Fail "Lost encoded instantiation"))
+  | NONE =>
+      (case \<^try>\<open>Logic.dest_term t\<close> of
+        SOME t => g t
+      | NONE => raise Fail "Lost encoded instantiation"))
 
 fun add_thm_insts ctxt thm =
   let
