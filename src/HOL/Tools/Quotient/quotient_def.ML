@@ -166,9 +166,9 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
           SOME (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => SOME (@{thm refl} RS thm)
           | SOME _ => (case body_type (fastype_of lhs) of
             Type (typ_name, _) =>
-              try (fn () =>
+              \<^try>\<open>
                 #equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name))
-                  RS @{thm Equiv_Relations.equivp_reflp} RS thm) ()
+                  RS @{thm Equiv_Relations.equivp_reflp} RS thm\<close>
             | _ => NONE
             )
           | _ => NONE

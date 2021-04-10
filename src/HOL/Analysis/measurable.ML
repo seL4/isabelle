@@ -274,7 +274,7 @@ fun simproc ctxt redex =
     val t = HOLogic.mk_Trueprop (Thm.term_of redex);
     fun tac {context = ctxt, prems = _ } =
       SOLVE (measurable_tac ctxt (Simplifier.prems_of ctxt));
-  in try (fn () => Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}) () end;
+  in \<^try>\<open>Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}\<close> end;
 
 end
 

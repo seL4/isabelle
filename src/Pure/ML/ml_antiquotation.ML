@@ -73,15 +73,17 @@ fun special_form binding operator =
         val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt;
         val tokenize = ML_Lex.tokenize_range Position.no_range;
         val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
-        fun decl (_: Proof.context) =
+
+        val (decl, ctxt') = ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt;
+        fun decl' ctxt'' =
           let
-            val expr = ML_Lex.read_source s |> map Antiquote.the_text;
-            val ml =
-              tokenize "let val expr = (fn () => " @ expr @ tokenize ");" @
+            val (ml_env, ml_body) = decl ctxt'';
+            val ml_body' =
+              tokenize "let val expr = (fn () => " @ ml_body @ tokenize ");" @
               tokenize " val " @ tokenize_range "result" @
-              tokenize (" = " ^ operator ^ " expr; in result end")
-          in ([], ml) end;
-      in (decl, ctxt) end);
+              tokenize (" = " ^ operator ^ " expr; in result end");
+          in (ml_env, ml_body') end;
+      in (decl', ctxt') end);
 
 
 (* basic antiquotations *)

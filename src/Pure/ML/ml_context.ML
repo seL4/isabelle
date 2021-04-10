@@ -13,6 +13,8 @@ sig
   type antiquotation = Position.range -> Token.src -> Proof.context -> decl * Proof.context
   val add_antiquotation: binding -> bool -> antiquotation -> theory -> theory
   val print_antiquotations: bool -> Proof.context -> unit
+  val expand_antiquotes: ML_Lex.token Antiquote.antiquote list ->
+    Proof.context -> decl * Proof.context
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
   val eval_file: ML_Compiler.flags -> Path.T -> unit
   val eval_source: ML_Compiler.flags -> Input.source -> unit
@@ -90,12 +92,37 @@ fun apply_antiquotation range src ctxt =
   in antiquotation range src' ctxt end;
 
 
-(* parsing and evaluation *)
+(* parsing *)
 
 local
 
 val antiq =
   Parse.!!! ((Parse.token Parse.liberal_name ::: Parse.args) --| Scan.ahead Parse.eof);
+
+fun expand_antiquote ant ctxt =
+  (case ant of
+    Antiquote.Text tok => (K ([], [tok]), ctxt)
+  | Antiquote.Control {name, range, body} =>
+      ctxt |> apply_antiquotation range
+        (Token.make_src name (if null body then [] else [Token.read_cartouche body]))
+  | Antiquote.Antiq {range, body, ...} =>
+      ctxt |> apply_antiquotation range
+        (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)));
+
+in
+
+fun expand_antiquotes ants ctxt =
+  let
+    val (decls, ctxt') = fold_map expand_antiquote ants ctxt;
+    fun decl ctxt'' = decls |> map (fn d => d ctxt'') |> split_list |> apply2 flat;
+  in (decl, ctxt') end;
+
+end;
+
+
+(* evaluation *)
+
+local
 
 fun make_env name visible =
   (ML_Lex.tokenize
@@ -106,38 +133,22 @@ fun make_env name visible =
 
 fun reset_env name = ML_Lex.tokenize ("structure " ^ name ^ " = struct end");
 
-fun eval_antiquotes (ants, pos) opt_context =
-  let
-    val visible =
-      (case opt_context of
-        SOME (Context.Proof ctxt) => Context_Position.is_visible ctxt
-      | _ => true);
-    val opt_ctxt = Option.map Context.proof_of opt_context;
-
-    val ((ml_env, ml_body), opt_ctxt') =
-      if forall (fn Antiquote.Text _ => true | _ => false) ants
-      then (([], map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
-      else
-        let
-          fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
-            | expand (Antiquote.Control {name, range, body}) ctxt =
-                apply_antiquotation range
-                  (Token.make_src name (if null body then [] else [Token.read_cartouche body])) ctxt
-            | expand (Antiquote.Antiq {range, body, ...}) ctxt =
-                apply_antiquotation range
-                  (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)) ctxt;
-
-          val ctxt =
-            (case opt_ctxt of
-              NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.here pos)
-            | SOME ctxt => struct_begin ctxt);
-
-          val (begin_env, end_env) = make_env (struct_name ctxt) visible;
-          val (decls, ctxt') = fold_map expand ants ctxt;
-          val (ml_env, ml_body) =
-            decls |> map (fn decl => decl ctxt') |> split_list |> apply2 flat;
-        in ((begin_env @ ml_env @ end_env, ml_body), SOME ctxt') end;
-  in ((ml_env, ml_body), opt_ctxt') end;
+fun eval_antiquotes ants opt_context =
+  if forall Antiquote.is_text ants orelse is_none opt_context then
+    (([], map (Antiquote.the_text "No context -- cannot expand ML antiquotations") ants),
+      Option.map Context.proof_of opt_context)
+  else
+    let
+      val context = the opt_context;
+      val visible =
+        (case context of
+          Context.Proof ctxt => Context_Position.is_visible ctxt
+        | _ => true);
+      val ctxt = struct_begin (Context.proof_of context);
+      val (begin_env, end_env) = make_env (struct_name ctxt) visible;
+      val (decl, ctxt') = expand_antiquotes ants ctxt;
+      val (ml_env, ml_body) = decl ctxt';
+    in ((begin_env @ ml_env @ end_env, ml_body), SOME ctxt') end;
 
 in
 
@@ -146,7 +157,7 @@ fun eval flags pos ants =
     val non_verbose = ML_Compiler.verbose false flags;
 
     (*prepare source text*)
-    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.get_generic_context ());
+    val ((env, body), env_ctxt) = eval_antiquotes ants (Context.get_generic_context ());
     val _ =
       (case env_ctxt of
         SOME ctxt =>

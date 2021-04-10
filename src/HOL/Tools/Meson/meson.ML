@@ -97,7 +97,7 @@ val disj_FalseD2 = @{thm disj_FalseD2};
 (*FIXME: currently does not "rename variables apart"*)
 fun first_order_resolve ctxt thA thB =
   (case
-    try (fn () =>
+    \<^try>\<open>
       let val thy = Proof_Context.theory_of ctxt
           val tmA = Thm.concl_of thA
           val Const(\<^const_name>\<open>Pure.imp\<close>,_) $ tmB $ _ = Thm.prop_of thB
@@ -105,7 +105,7 @@ fun first_order_resolve ctxt thA thB =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
           val insts = Vartab.fold (fn (xi, (_, t)) => cons (xi, Thm.cterm_of ctxt t)) tenv [];
-      in  thA RS (infer_instantiate ctxt insts thB) end) () of
+      in  thA RS (infer_instantiate ctxt insts thB) end\<close> of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
