@@ -68,10 +68,12 @@ fun detect s = Char.contains s X_char orelse Char.contains s Y_char;
 fun traverse string =
   let
     fun attrib (a, x) = string Y #> string a #> string "=" #> string x;
-    fun tree (XML.Elem ((name, atts), ts)) =
-          string XY #> string name #> fold attrib atts #> string X #>
-          fold tree ts #>
-          string XYX
+    fun tree (XML.Elem (markup as (name, atts), ts)) =
+          if Markup.is_empty markup then fold tree ts
+          else
+            string XY #> string name #> fold attrib atts #> string X #>
+            fold tree ts #>
+            string XYX
       | tree (XML.Text s) = string s;
   in tree end;
 
