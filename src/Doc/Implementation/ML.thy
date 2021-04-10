@@ -1149,6 +1149,10 @@ text %mlref \<open>
   @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
+  \<^rail>\<open>
+    (@@{ML_antiquotation try} | @@{ML_antiquotation can}) embedded
+  \<close>
+
   \<^descr> \<^ML>\<open>try\<close>~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via the
   option datatype. Interrupts are \<^emph>\<open>not\<close> handled here, i.e.\ this form serves
   as safe replacement for the \<^emph>\<open>unsafe\<close> version \<^ML_text>\<open>(SOME\<close>~\<open>f
@@ -1180,18 +1184,38 @@ text %mlref \<open>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
+  @{ML_antiquotation_def "try"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "can"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "assert"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "undefined"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  \<^descr> \<open>@{assert}\<close> inlines a function \<^ML_type>\<open>bool -> unit\<close> that raises \<^ML>\<open>Fail\<close> if the argument is \<^ML>\<open>false\<close>. Due to inlining the source position of
-  failed assertions is included in the error output.
+  \<^descr> \<open>@{try}\<close> and \<open>{can}\<close> are similar to the corresponding functions, but the
+  argument is taken directly as ML expression: functional abstraction and
+  application is done implicitly.
+
+  \<^descr> \<open>@{assert}\<close> inlines a function \<^ML_type>\<open>bool -> unit\<close> that raises
+  \<^ML>\<open>Fail\<close> if the argument is \<^ML>\<open>false\<close>. Due to inlining the source
+  position of failed assertions is included in the error output.
 
   \<^descr> \<open>@{undefined}\<close> inlines \<^verbatim>\<open>raise\<close>~\<^ML>\<open>Match\<close>, i.e.\ the ML program
   behaves as in some function application of an undefined case.
 \<close>
 
 text %mlex \<open>
+  We define a total version of division: any failures are swept under the
+  carpet and mapped to a default value. Thus division-by-zero becomes 0, but
+  there could be other exceptions like overflow that produce the same result
+  (for unbounded integers this does not happen).
+\<close>
+
+ML \<open>
+  fun div_total x y = \<^try>\<open>x div y\<close> |> the_default 0;
+
+  \<^assert> (div_total 1 0 = 0);
+\<close>
+
+text \<open>
   The ML function \<^ML>\<open>undefined\<close> is defined in \<^file>\<open>~~/src/Pure/library.ML\<close>
   as follows:
 \<close>
@@ -1215,7 +1239,7 @@ text \<open>
 ML \<open>fun undefined _ = \<^undefined>\<close>
 
 text \<open>
-  \medskip Semantically, all forms are equivalent to a function definition
+  \<^medskip> Semantically, all forms are equivalent to a function definition
   without any clauses, but that is syntactically not allowed in ML.
 \<close>
 
