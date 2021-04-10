@@ -59,7 +59,7 @@ object Bytes
       var m = 0
 
       do {
-        m = stream.read(buf, 0, buf.size min (limit - out.size))
+        m = stream.read(buf, 0, buf.length min (limit - out.size))
         if (m != -1) out.write(buf, 0, m)
       } while (m != -1 && limit > out.size)
 
