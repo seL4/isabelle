@@ -88,8 +88,8 @@ ML_file "General/time.ML";
 ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 
-ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/yxml.ML";
+ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
 

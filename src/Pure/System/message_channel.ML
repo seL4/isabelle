@@ -48,7 +48,7 @@ fun message_output mbox stream =
     and received _ (NONE :: _) = Byte_Message.flush stream
       | received _ (SOME (Message {body, flush}) :: rest) =
           let
-            val _ = fold (YXML.traverse (fn s => fn () => File.output stream s)) body ();
+            val _ = List.app (Byte_Message.write_yxml stream) body;
             val timeout = if flush then (Byte_Message.flush stream; NONE) else flush_timeout;
           in received timeout rest end
       | received timeout [] = continue timeout;

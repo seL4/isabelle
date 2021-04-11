@@ -7,6 +7,7 @@ Byte-oriented messages.
 signature BYTE_MESSAGE =
 sig
   val write: BinIO.outstream -> string list -> unit
+  val write_yxml: BinIO.outstream -> XML.tree -> unit
   val flush: BinIO.outstream -> unit
   val write_line: BinIO.outstream -> string -> unit
   val read: BinIO.instream -> int -> string
@@ -24,6 +25,8 @@ struct
 (* output operations *)
 
 fun write stream = List.app (File.output stream);
+
+fun write_yxml stream tree = YXML.traverse (fn s => fn () => File.output stream s) tree ();
 
 fun flush stream = ignore (try BinIO.flushOut stream);
 
