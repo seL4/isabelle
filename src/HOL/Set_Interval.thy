@@ -1435,6 +1435,26 @@ proof -
   with 1 show ?thesis using card_inj_on_le[of ?f A B] assms(1) by simp
 qed
 
+lemma inj_on_funpow_least: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  \<open>inj_on (\<lambda>k. (f ^^ k) s) {0..<n}\<close>
+  if \<open>(f ^^ n) s = s\<close> \<open>\<And>m. 0 < m \<Longrightarrow> m < n \<Longrightarrow> (f ^^ m) s \<noteq> s\<close>
+proof -
+  { fix k l assume A: "k < n" "l < n" "k \<noteq> l" "(f ^^ k) s = (f ^^ l) s"
+    define k' l' where "k' = min k l" and "l' = max k l"
+    with A have A': "k' < l'" "(f ^^ k') s = (f ^^ l') s" "l' < n"
+      by (auto simp: min_def max_def)
+
+    have "s = (f ^^ ((n - l') + l')) s" using that \<open>l' < n\<close> by simp
+    also have "\<dots> = (f ^^ (n - l')) ((f ^^ l') s)" by (simp add: funpow_add)
+    also have "(f ^^ l') s = (f ^^ k') s" by (simp add: A')
+    also have "(f ^^ (n - l')) \<dots> = (f ^^ (n - l' + k')) s" by (simp add: funpow_add)
+    finally have "(f ^^ (n - l' + k')) s = s" by simp
+    moreover have "n - l' + k' < n" "0 < n - l' + k'"using A' by linarith+
+    ultimately have False using that(2) by auto
+  }
+  then show ?thesis by (intro inj_onI) auto
+qed
+
 
 subsection \<open>Intervals of integers\<close>
 

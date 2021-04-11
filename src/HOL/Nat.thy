@@ -1483,7 +1483,10 @@ lemmas funpow_simps_right = funpow.simps(1) funpow_Suc_right
 
 text \<open>For code generation.\<close>
 
-definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+context
+begin
+
+qualified definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
   where funpow_code_def [code_abbrev]: "funpow = compow"
 
 lemma [code]:
@@ -1491,7 +1494,7 @@ lemma [code]:
   "funpow 0 f = id"
   by (simp_all add: funpow_code_def)
 
-hide_const (open) funpow
+end
 
 lemma funpow_add: "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
   by (induct m) simp_all
@@ -1569,6 +1572,15 @@ lemma bij_fn[simp]:
   assumes "bij f"
   shows "bij (f^^n)"
 by (rule bijI[OF inj_fn[OF bij_is_inj[OF assms]] surj_fn[OF bij_is_surj[OF assms]]])
+
+lemma bij_betw_funpow: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  assumes "bij_betw f S S" shows "bij_betw (f ^^ n) S S"
+proof (induct n)
+  case 0 then show ?case by (auto simp: id_def[symmetric])
+next
+  case (Suc n)
+  then show ?case unfolding funpow.simps using assms by (rule bij_betw_trans)
+qed
 
 
 subsection \<open>Kleene iteration\<close>

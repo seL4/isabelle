@@ -2312,6 +2312,7 @@ proposition finite_image_absD: "finite (abs ` S) \<Longrightarrow> finite S"
   for S :: "'a::linordered_ring set"
   by (rule ccontr) (auto simp: abs_eq_iff vimage_def dest: inf_img_fin_dom)
 
+
 subsection \<open>The finite powerset operator\<close>
 
 definition Fpow :: "'a set \<Rightarrow> 'a set set"

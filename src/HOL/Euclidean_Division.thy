@@ -1459,6 +1459,19 @@ next
   qed
 qed
 
+lemma funpow_mod_eq: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  \<open>(f ^^ (m mod n)) x = (f ^^ m) x\<close> if \<open>(f ^^ n) x = x\<close>
+proof -
+  have \<open>(f ^^ m) x = (f ^^ (m mod n + m div n * n)) x\<close>
+    by simp
+  also have \<open>\<dots> = (f ^^ (m mod n)) (((f ^^ n) ^^ (m div n)) x)\<close>
+    by (simp only: funpow_add funpow_mult ac_simps) simp
+  also have \<open>((f ^^ n) ^^ q) x = x\<close> for q
+    by (induction q) (use \<open>(f ^^ n) x = x\<close> in simp_all)
+  finally show ?thesis
+    by simp
+qed
+
 
 subsection \<open>Euclidean division on \<^typ>\<open>int\<close>\<close>
 

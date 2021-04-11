@@ -355,6 +355,52 @@ proof -
   then show ?thesis by auto
 qed
 
+lemma funpow_inj_finite: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  assumes \<open>inj p\<close> \<open>finite {y. \<exists>n. y = (p ^^ n) x}\<close>
+  obtains n where \<open>n > 0\<close> \<open>(p ^^ n) x = x\<close> 
+proof -
+  have \<open>infinite (UNIV :: nat set)\<close>
+    by simp
+  moreover have \<open>{y. \<exists>n. y = (p ^^ n) x} = (\<lambda>n. (p ^^ n) x) ` UNIV\<close>
+    by auto
+  with assms have \<open>finite \<dots>\<close>
+    by simp
+  ultimately have "\<exists>n \<in> UNIV. \<not> finite {m \<in> UNIV. (p ^^ m) x = (p ^^ n) x}"
+    by (rule pigeonhole_infinite)
+  then obtain n where "infinite {m. (p ^^ m) x = (p ^^ n) x}" by auto
+  then have "infinite ({m. (p ^^ m) x = (p ^^ n) x} - {n})" by auto
+  then have "({m. (p ^^ m) x = (p ^^ n) x} - {n}) \<noteq> {}"
+    by (auto simp add: subset_singleton_iff)
+  then obtain m where m: "(p ^^ m) x = (p ^^ n) x" "m \<noteq> n" by auto
+
+  { fix m n assume "(p ^^ n) x = (p ^^ m) x" "m < n"
+    have "(p ^^ (n - m)) x = inv (p ^^ m) ((p ^^ m) ((p ^^ (n - m)) x))"
+      using \<open>inj p\<close> by (simp add: inv_f_f)
+    also have "((p ^^ m) ((p ^^ (n - m)) x)) = (p ^^ n) x"
+      using \<open>m < n\<close> funpow_add [of m \<open>n - m\<close> p] by simp
+    also have "inv (p ^^ m) \<dots> = x"
+      using \<open>inj p\<close>  by (simp add: \<open>(p ^^ n) x = _\<close>)
+    finally have "(p ^^ (n - m)) x = x" "0 < n - m"
+      using \<open>m < n\<close> by auto }
+  note general = this
+
+  show thesis
+  proof (cases m n rule: linorder_cases)
+    case less
+    then have \<open>n - m > 0\<close> \<open>(p ^^ (n - m)) x = x\<close>
+      using general [of n m] m by simp_all
+    then show thesis by (blast intro: that)
+  next
+    case equal
+    then show thesis using m by simp
+  next
+    case greater
+    then have \<open>m - n > 0\<close> \<open>(p ^^ (m - n)) x = x\<close>
+      using general [of m n] m by simp_all
+    then show thesis by (blast intro: that)
+  qed
+qed
+
 
 lemma mono_inv:
   fixes f::"'a::linorder \<Rightarrow> 'b::linorder"
@@ -1225,7 +1271,5 @@ proof (standard, rule ccontr)
   qed
 qed
 end
-
-
 
 end

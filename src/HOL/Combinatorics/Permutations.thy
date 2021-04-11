@@ -1150,6 +1150,48 @@ qed
 
 subsection \<open>More lemmas about permutations\<close>
 
+lemma permutes_in_funpow_image: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  assumes "f permutes S" "x \<in> S"
+  shows "(f ^^ n) x \<in> S"
+  using assms by (induction n) (auto simp: permutes_in_image)
+
+lemma permutation_self: \<^marker>\<open>contributor \<open>Lars Noschinski\<close>\<close>
+  assumes \<open>permutation p\<close>
+  obtains n where \<open>n > 0\<close> \<open>(p ^^ n) x = x\<close>
+proof (cases \<open>p x = x\<close>)
+  case True
+  with that [of 1] show thesis by simp
+next
+  case False
+  from \<open>permutation p\<close> have \<open>inj p\<close>
+    by (intro permutation_bijective bij_is_inj)
+  moreover from \<open>p x \<noteq> x\<close> have \<open>(p ^^ Suc n) x \<noteq> (p ^^ n) x\<close> for n
+  proof (induction n arbitrary: x)
+    case 0 then show ?case by simp
+  next
+    case (Suc n)
+    have "p (p x) \<noteq> p x"
+    proof (rule notI)
+      assume "p (p x) = p x"
+      then show False using \<open>p x \<noteq> x\<close> \<open>inj p\<close> by (simp add: inj_eq)
+    qed
+    have "(p ^^ Suc (Suc n)) x = (p ^^ Suc n) (p x)"
+      by (simp add: funpow_swap1)
+    also have "\<dots> \<noteq> (p ^^ n) (p x)"
+      by (rule Suc) fact
+    also have "(p ^^ n) (p x) = (p ^^ Suc n) x"
+      by (simp add: funpow_swap1)
+    finally show ?case by simp
+  qed
+  then have "{y. \<exists>n. y = (p ^^ n) x} \<subseteq> {x. p x \<noteq> x}"
+    by auto
+  then have "finite {y. \<exists>n. y = (p ^^ n) x}"
+    using permutation_finite_support[OF assms] by (rule finite_subset)
+  ultimately obtain n where \<open>n > 0\<close> \<open>(p ^^ n) x = x\<close>
+    by (rule funpow_inj_finite)
+  with that [of n] show thesis by blast
+qed
+
 text \<open>The following few lemmas were contributed by Lukas Bulwahn.\<close>
 
 lemma count_image_mset_eq_card_vimage:
