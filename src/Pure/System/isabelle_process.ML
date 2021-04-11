@@ -107,8 +107,8 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     val msg_channel = Message_Channel.make out_stream;
 
-    fun message name props body =
-      Message_Channel.send msg_channel (Message_Channel.message name props body);
+    fun message name props chunks =
+      Message_Channel.send msg_channel (Message_Channel.message name props chunks);
 
     fun standard_message props name ss =
       if forall (fn s => s = "") ss then ()
@@ -117,7 +117,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
           val pos_props =
             if exists Markup.position_property props then props
             else props @ Position.properties_of (Position.thread_data ());
-        in message name pos_props (XML.blob ss) end;
+        in message name pos_props [XML.blob ss] end;
 
     fun report_message ss =
       if Context_Position.pide_reports ()
@@ -145,9 +145,9 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       Unsynchronized.setmp Private_Output.error_message_fn
         (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s) #>
       Unsynchronized.setmp Private_Output.system_message_fn
-        (fn ss => message Markup.systemN [] (XML.blob ss)) #>
+        (fn ss => message Markup.systemN [] [XML.blob ss]) #>
       Unsynchronized.setmp Private_Output.protocol_message_fn
-        (fn props => fn body => message Markup.protocolN props body) #>
+        (fn props => fn chunks => message Markup.protocolN props chunks) #>
       Unsynchronized.setmp print_mode
         ((! print_mode @ #1 modes) |> fold (update op =) (#2 modes));
 
@@ -167,7 +167,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       in protocol_loop () end;
 
     fun protocol () =
-     (message Markup.initN [] [XML.Text (Session.welcome ())];
+     (message Markup.initN [] [[XML.Text (Session.welcome ())]];
       ml_statistics ();
       protocol_loop ());
 

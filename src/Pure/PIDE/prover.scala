@@ -47,17 +47,28 @@ object Prover
         if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body, metric = Symbol.Metric)
       if (properties.isEmpty)
-        kind.toString + " [[" + res + "]]"
+        kind + " [[" + res + "]]"
       else
-        kind.toString + " " +
+        kind + " " +
           (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
     }
   }
 
-  class Protocol_Output(props: Properties.T, val bytes: Bytes)
+  class Protocol_Error(msg: String) extends Exception(msg)
+  def bad_header(print: String): Nothing = throw new Protocol_Error("bad message header: " + print)
+  def bad_chunks(): Nothing = throw new Protocol_Error("bad message chunks")
+
+  def the_chunk(chunks: List[Bytes], print: => String): Bytes =
+    chunks match {
+      case List(chunk) => chunk
+      case _ => throw new Protocol_Error("single chunk expected: " + print)
+    }
+
+  class Protocol_Output(props: Properties.T, val chunks: List[Bytes])
     extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil))
   {
-    lazy val text: String = bytes.text
+    def chunk: Bytes = the_chunk(chunks, toString)
+    lazy val text: String = chunk.text
   }
 }
 
@@ -75,9 +86,9 @@ class Prover(
     receiver(new Prover.Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
-  private def protocol_output(props: Properties.T, bytes: Bytes): Unit =
+  private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit =
   {
-    receiver(new Prover.Protocol_Output(cache.props(props), bytes))
+    receiver(new Prover.Protocol_Output(cache.props(props), chunks))
   }
 
   private def output(kind: String, props: Properties.T, body: XML.Body): Unit =
@@ -252,90 +263,37 @@ class Prover(
 
   private def message_output(stream: InputStream): Thread =
   {
-    class EOF extends Exception
-    class Protocol_Error(msg: String) extends Exception(msg)
+    def decode_chunk(chunk: Bytes): XML.Body = YXML.parse_body_failsafe(chunk.symbols)
 
-    val name = "message_output"
-    Isabelle_Thread.fork(name = name) {
-      val default_buffer = new Array[Byte](65536)
-      var c = -1
-
-      def read_int(): Int =
-      //{{{
-      {
-        var n = 0
-        c = stream.read
-        if (c == -1) throw new EOF
-        while (48 <= c && c <= 57) {
-          n = 10 * n + (c - 48)
-          c = stream.read
-        }
-        if (c != 10)
-          throw new Protocol_Error("malformed header: expected integer followed by newline")
-        else n
-      }
-      //}}}
-
-      def read_chunk_bytes(): (Array[Byte], Int) =
-      //{{{
-      {
-        val n = read_int()
-        val buf =
-          if (n <= default_buffer.length) default_buffer
-          else new Array[Byte](n)
-
-        var i = 0
-        var m = 0
-        do {
-          m = stream.read(buf, i, n - i)
-          if (m != -1) i += m
-        }
-        while (m != -1 && n > i)
-
-        if (i != n)
-          throw new Protocol_Error("bad chunk (unexpected EOF after " + i + " of " + n + " bytes)")
-
-        (buf, n)
-      }
-      //}}}
-
-      def read_chunk(): XML.Body =
-      {
-        val (buf, n) = read_chunk_bytes()
-        YXML.parse_body_failsafe(UTF8.decode_chars(Symbol.decode, buf, 0, n))
-      }
-
+    val thread_name = "message_output"
+    Isabelle_Thread.fork(name = thread_name) {
       try {
-        do {
-          try {
-            val header = read_chunk()
-            header match {
-              case List(XML.Elem(Markup(name, props), Nil)) =>
-                val kind = name.intern
-                if (kind == Markup.PROTOCOL) {
-                  val (buf, n) = read_chunk_bytes()
-                  protocol_output(props, Bytes(buf, 0, n))
-                }
-                else {
-                  val body = read_chunk()
-                  output(kind, props, body)
-                }
-              case _ =>
-                read_chunk()
-                throw new Protocol_Error("bad header: " + header.toString)
-            }
+        var finished = false
+        while (!finished) {
+          Byte_Message.read_message(stream) match {
+            case None => finished = true
+            case Some(header :: chunks) =>
+              decode_chunk(header) match {
+                case List(XML.Elem(Markup(name, props), Nil)) =>
+                  val kind = name.intern
+                  if (kind == Markup.PROTOCOL) protocol_output(props, chunks)
+                  else {
+                    val body = decode_chunk(Prover.the_chunk(chunks, name))
+                    output(kind, props, body)
+                  }
+                case _ => Prover.bad_header(header.toString)
+              }
+            case Some(_) => Prover.bad_chunks()
           }
-          catch { case _: EOF => }
         }
-        while (c != -1)
       }
       catch {
         case e: IOException => system_output("Cannot read message:\n" + e.getMessage)
-        case e: Protocol_Error => system_output("Malformed message:\n" + e.getMessage)
+        case e: Prover.Protocol_Error => system_output("Malformed message:\n" + e.getMessage)
       }
       stream.close()
 
-      system_output(name + " terminated")
+      system_output(thread_name + " terminated")
     }
   }
 

@@ -29,7 +29,7 @@ sig
   val status_fn: output list -> unit
   val report_fn: output list -> unit
   val result_fn: properties -> output list -> unit
-  type protocol_message_fn = properties -> XML.body -> unit
+  type protocol_message_fn = properties -> XML.body list -> unit
   val protocol_message_fn: protocol_message_fn
   val markup_fn: string * properties -> output * output
 end;
@@ -73,7 +73,7 @@ val status_fn = ignore_outputs;
 val report_fn = ignore_outputs;
 fun result_fn (_: properties) = ignore_outputs;
 
-type protocol_message_fn = properties -> XML.body -> unit;
+type protocol_message_fn = properties -> XML.body list -> unit;
 val protocol_message_fn: protocol_message_fn = fn _ => fn _ => ();
 
 fun markup_fn (_: string * properties) = ("", "");

@@ -7,7 +7,7 @@ Preferably asynchronous channel for Isabelle messages.
 signature MESSAGE_CHANNEL =
 sig
   type message
-  val message: string -> Properties.T -> XML.body -> message
+  val message: string -> Properties.T -> XML.body list -> message
   type T
   val send: T -> message -> unit
   val shutdown: T -> unit
@@ -19,15 +19,13 @@ struct
 
 (* message *)
 
-datatype message = Message of {body: XML.body, flush: bool};
+datatype message = Message of {chunks: XML.body list, flush: bool};
 
-fun chunk body = XML.Text (string_of_int (YXML.body_size body) ^ "\n") :: body;
-
-fun message name raw_props body =
+fun message name raw_props chunks =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
-    val header = XML.Elem ((name, robust_props), []);
-  in Message {body = chunk [header] @ chunk body, flush = name = Markup.protocolN} end;
+    val header = [XML.Elem ((name, robust_props), [])];
+  in Message {chunks = header :: chunks, flush = name = Markup.protocolN} end;
 
 
 (* channel *)
@@ -46,9 +44,9 @@ fun message_output mbox stream =
         [] => (Byte_Message.flush stream; continue NONE)
       | msgs => received timeout msgs)
     and received _ (NONE :: _) = Byte_Message.flush stream
-      | received _ (SOME (Message {body, flush}) :: rest) =
+      | received _ (SOME (Message {chunks, flush}) :: rest) =
           let
-            val _ = List.app (Byte_Message.write_yxml stream) body;
+            val _ = Byte_Message.write_message_yxml stream chunks;
             val timeout = if flush then (Byte_Message.flush stream; NONE) else flush_timeout;
           in received timeout rest end
       | received timeout [] = continue timeout;

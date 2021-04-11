@@ -44,7 +44,7 @@ fun function name arg =
       val id = new_id ();
       fun invoke () =
        (Synchronized.change results (Symtab.update (id, Exn.Exn Match));
-        Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg]);
+        Output.protocol_message (Markup.invoke_scala name id) [[XML.Text arg]]);
       fun cancel () =
        (Synchronized.change results (Symtab.delete_safe id);
         Output.protocol_message (Markup.cancel_scala id) []);

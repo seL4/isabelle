@@ -344,7 +344,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
 
     val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) (XML.blob [text]);
+    val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) [XML.blob [text]];
 
     val _ =
       Position.setmp_thread_data (Position.id_only id) (fn () =>
@@ -360,7 +360,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
 
     val timing_result = Timing.result timing_start;
     val timing_props = [Markup.theory_timing, (Markup.nameN, name)];
-    val _  = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
+    val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit () = update_thy deps theory;
   in

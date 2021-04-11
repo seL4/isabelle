@@ -91,6 +91,7 @@ val _ =
             (Future.interruptible_task (fn () => (build (); (0, []))) () handle exn =>
               ((1, Runtime.exn_message_list exn) handle _ (*sic!*) => (2, ["CRASHED"])))
           |> let open XML.Encode in pair int (list string) end
+          |> single
           |> Output.protocol_message Markup.build_session_finished)
         end
       | _ => raise Match);
