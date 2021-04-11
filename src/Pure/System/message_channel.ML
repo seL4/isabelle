@@ -21,9 +21,7 @@ struct
 
 datatype message = Message of {body: XML.body, flush: bool};
 
-fun body_size body = fold (YXML.traverse (Integer.add o size)) body 0;
-
-fun chunk body = XML.Text (string_of_int (body_size body) ^ "\n") :: body;
+fun chunk body = XML.Text (string_of_int (YXML.body_size body) ^ "\n") :: body;
 
 fun message name raw_props body =
   let

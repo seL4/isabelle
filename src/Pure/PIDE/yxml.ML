@@ -21,6 +21,8 @@ sig
   val embed_controls: string -> string
   val detect: string -> bool
   val traverse: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
+  val tree_size: XML.tree -> int
+  val body_size: XML.body -> int
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val write_body: Path.T -> XML.body -> unit
@@ -63,7 +65,7 @@ val XYX = XY ^ X;
 fun detect s = Char.contains s X_char orelse Char.contains s Y_char;
 
 
-(* output *)
+(* traverse *)
 
 fun traverse string =
   let
@@ -76,6 +78,12 @@ fun traverse string =
             string XYX
       | tree (XML.Text s) = string s;
   in tree end;
+
+fun tree_size tree = traverse (Integer.add o size) tree 0;
+fun body_size body = fold (Integer.add o tree_size) body 0;
+
+
+(* output *)
 
 fun string_of_body body = Buffer.empty |> fold (traverse Buffer.add) body |> Buffer.content;
 val string_of = string_of_body o single;
