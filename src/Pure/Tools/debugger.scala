@@ -112,7 +112,7 @@ object Debugger
     {
       msg.properties match {
         case Markup.Debugger_State(thread_name) =>
-          val msg_body = Symbol.decode_yxml_failsafe(UTF8.decode_permissive(msg.chunk))
+          val msg_body = Symbol.decode_yxml_failsafe(msg.text)
           val debug_states =
           {
             import XML.Decode._
@@ -130,7 +130,7 @@ object Debugger
     {
       msg.properties match {
         case Markup.Debugger_Output(thread_name) =>
-          Symbol.decode_yxml_failsafe(UTF8.decode_permissive(msg.chunk)) match {
+          Symbol.decode_yxml_failsafe(msg.text) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = XML.Elem(Markup(Markup.message(name), props), body)
               debugger.add_output(thread_name, i -> session.cache.elem(message))
