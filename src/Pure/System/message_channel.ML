@@ -19,13 +19,13 @@ struct
 
 (* message *)
 
-datatype message = Message of {chunks: XML.body list, flush: bool};
+datatype message = Message of XML.body list;
 
 fun message name raw_props chunks =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
     val header = [XML.Elem ((name, robust_props), [])];
-  in Message {chunks = header :: chunks, flush = name = Markup.protocolN} end;
+  in Message (header :: chunks) end;
 
 
 (* channel *)
@@ -35,22 +35,14 @@ datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
-val flush_timeout = SOME (seconds 0.02);
-
 fun message_output mbox stream =
   let
-    fun continue timeout =
-      (case Mailbox.receive timeout mbox of
-        [] => (Byte_Message.flush stream; continue NONE)
-      | msgs => received timeout msgs)
-    and received _ (NONE :: _) = Byte_Message.flush stream
-      | received _ (SOME (Message {chunks, flush}) :: rest) =
-          let
-            val _ = Byte_Message.write_message_yxml stream chunks;
-            val timeout = if flush then (Byte_Message.flush stream; NONE) else flush_timeout;
-          in received timeout rest end
-      | received timeout [] = continue timeout;
-  in fn () => continue NONE end;
+    fun continue () = Mailbox.receive NONE mbox |> received
+    and received [] = continue ()
+      | received (NONE :: _) = ()
+      | received (SOME (Message chunks) :: rest) =
+          (Byte_Message.write_message_yxml stream chunks; received rest);
+  in continue end;
 
 fun make stream =
   let
