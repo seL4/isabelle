@@ -244,33 +244,33 @@ object File
     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8.charset))
 
   def write_file(
-    file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream): Unit =
+    file: JFile, text: String, make_stream: OutputStream => OutputStream): Unit =
   {
     val stream = make_stream(new FileOutputStream(file))
     using(new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset)))(_.append(text))
   }
 
-  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, s => s)
-  def write(path: Path, text: CharSequence): Unit = write(path.file, text)
+  def write(file: JFile, text: String): Unit = write_file(file, text, s => s)
+  def write(path: Path, text: String): Unit = write(path.file, text)
 
-  def write_gzip(file: JFile, text: CharSequence): Unit =
+  def write_gzip(file: JFile, text: String): Unit =
     write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
-  def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
+  def write_gzip(path: Path, text: String): Unit = write_gzip(path.file, text)
 
-  def write_xz(file: JFile, text: CharSequence, options: XZ.Options): Unit =
+  def write_xz(file: JFile, text: String, options: XZ.Options): Unit =
     File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options))
-  def write_xz(file: JFile, text: CharSequence): Unit = write_xz(file, text, XZ.options())
-  def write_xz(path: Path, text: CharSequence, options: XZ.Options): Unit =
+  def write_xz(file: JFile, text: String): Unit = write_xz(file, text, XZ.options())
+  def write_xz(path: Path, text: String, options: XZ.Options): Unit =
     write_xz(path.file, text, options)
-  def write_xz(path: Path, text: CharSequence): Unit = write_xz(path, text, XZ.options())
+  def write_xz(path: Path, text: String): Unit = write_xz(path, text, XZ.options())
 
-  def write_backup(path: Path, text: CharSequence): Unit =
+  def write_backup(path: Path, text: String): Unit =
   {
     if (path.is_file) Isabelle_System.move_file(path, path.backup)
     write(path, text)
   }
 
-  def write_backup2(path: Path, text: CharSequence): Unit =
+  def write_backup2(path: Path, text: String): Unit =
   {
     if (path.is_file) Isabelle_System.move_file(path, path.backup2)
     write(path, text)
@@ -285,11 +285,11 @@ object File
 
   /* append */
 
-  def append(file: JFile, text: CharSequence): Unit =
+  def append(file: JFile, text: String): Unit =
     Files.write(file.toPath, UTF8.bytes(text.toString),
       StandardOpenOption.APPEND, StandardOpenOption.CREATE)
 
-  def append(path: Path, text: CharSequence): Unit = append(path.file, text)
+  def append(path: Path, text: String): Unit = append(path.file, text)
 
 
   /* eq */
