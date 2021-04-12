@@ -322,7 +322,7 @@ class Build_Job(progress: Progress,
           private def export(msg: Prover.Protocol_Output): Boolean =
             msg.properties match {
               case Protocol.Export(args) =>
-                export_consumer(session_name, args, msg.bytes)
+                export_consumer(session_name, args, msg.chunk)
                 true
               case _ => false
             }

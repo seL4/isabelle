@@ -36,13 +36,16 @@ object YXML
   {
     def tree(t: XML.Tree): Unit =
       t match {
-        case XML.Elem(Markup(name, atts), ts) =>
-          string(XY_string)
-          string(name)
-          for ((a, x) <- atts) { string(Y_string); string(a); string("="); string(x) }
-          string(X_string)
-          ts.foreach(tree)
-          string(XYX_string)
+        case XML.Elem(markup @ Markup(name, atts), ts) =>
+          if (markup.is_empty) ts.foreach(tree)
+          else {
+            string(XY_string)
+            string(name)
+            for ((a, x) <- atts) { string(Y_string); string(a); string("="); string(x) }
+            string(X_string)
+            ts.foreach(tree)
+            string(XYX_string)
+          }
         case XML.Text(text) => string(text)
       }
     body.foreach(tree)

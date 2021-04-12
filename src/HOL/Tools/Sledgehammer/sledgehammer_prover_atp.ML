@@ -264,7 +264,7 @@ fun run_atp mode name
             val ord = effective_term_order ctxt name
             val args =
               arguments ctxt full_proofs extra slice_timeout prob_path (ord, ord_info, sel_weights)
-            val command = File.bash_path executable ^ " " ^ args
+            val command = space_implode " " (File.bash_path executable :: args)
 
             fun run_command () =
               if exec = isabelle_scala_function then

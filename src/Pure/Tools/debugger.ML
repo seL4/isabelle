@@ -23,7 +23,7 @@ fun output_message kind msg =
   else
     Output.protocol_message
       (Markup.debugger_output (Isabelle_Thread.get_name ()))
-      [XML.Text (Markup.markup (kind, Markup.serial_properties (serial ())) msg)];
+      [[XML.Text (Markup.markup (kind, Markup.serial_properties (serial ())) msg)]];
 
 val writeln_message = output_message Markup.writelnN;
 val warning_message = output_message Markup.warningN;
@@ -201,12 +201,12 @@ local
 
 fun debugger_state thread_name =
   Output.protocol_message (Markup.debugger_state thread_name)
-   (get_debugging ()
+   [get_debugging ()
     |> map (fn st =>
       (Position.properties_of
         (Exn_Properties.position_of_polyml_location (PolyML.DebuggerInterface.debugLocation st)),
        PolyML.DebuggerInterface.debugFunction st))
-    |> let open XML.Encode in list (pair properties string) end);
+    |> let open XML.Encode in list (pair properties string) end];
 
 fun debugger_command thread_name =
   (case get_input thread_name of

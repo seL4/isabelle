@@ -195,7 +195,7 @@ object Isabelle_System
       else error("Failed to identify Isabelle distribution " + root)
     }
 
-  object Isabelle_Id extends Scala.Fun("isabelle_id")
+  object Isabelle_Id extends Scala.Fun_String("isabelle_id")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = isabelle_id()
@@ -227,17 +227,17 @@ object Isabelle_System
 
   /* scala functions */
 
-  private def apply_paths(arg: String, fun: List[Path] => Unit): String =
-    { fun(Library.split_strings0(arg).map(Path.explode)); "" }
+  private def apply_paths(args: List[String], fun: List[Path] => Unit): List[String] =
+    { fun(args.map(Path.explode)); Nil }
 
-  private def apply_paths1(arg: String, fun: Path => Unit): String =
-    apply_paths(arg, { case List(path) => fun(path) })
+  private def apply_paths1(args: List[String], fun: Path => Unit): List[String] =
+    apply_paths(args, { case List(path) => fun(path) })
 
-  private def apply_paths2(arg: String, fun: (Path, Path) => Unit): String =
-    apply_paths(arg, { case List(path1, path2) => fun(path1, path2) })
+  private def apply_paths2(args: List[String], fun: (Path, Path) => Unit): List[String] =
+    apply_paths(args, { case List(path1, path2) => fun(path1, path2) })
 
-  private def apply_paths3(arg: String, fun: (Path, Path, Path) => Unit): String =
-    apply_paths(arg, { case List(path1, path2, path3) => fun(path1, path2, path3) })
+  private def apply_paths3(args: List[String], fun: (Path, Path, Path) => Unit): List[String] =
+    apply_paths(args, { case List(path1, path2, path3) => fun(path1, path2, path3) })
 
 
   /* permissions */
@@ -273,16 +273,16 @@ object Isabelle_System
   }
 
 
-  object Make_Directory extends Scala.Fun("make_directory")
+  object Make_Directory extends Scala.Fun_Strings("make_directory")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = apply_paths1(arg, make_directory)
+    def apply(args: List[String]): List[String] = apply_paths1(args, make_directory)
   }
 
-  object Copy_Dir extends Scala.Fun("copy_dir")
+  object Copy_Dir extends Scala.Fun_Strings("copy_dir")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = apply_paths2(arg, copy_dir)
+    def apply(args: List[String]): List[String] = apply_paths2(args, copy_dir)
   }
 
 
@@ -316,16 +316,16 @@ object Isabelle_System
   }
 
 
-  object Copy_File extends Scala.Fun("copy_file")
+  object Copy_File extends Scala.Fun_Strings("copy_file")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = apply_paths2(arg, copy_file)
+    def apply(args: List[String]): List[String] = apply_paths2(args, copy_file)
   }
 
-  object Copy_File_Base extends Scala.Fun("copy_file_base")
+  object Copy_File_Base extends Scala.Fun_Strings("copy_file_base")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = apply_paths3(arg, copy_file_base)
+    def apply(args: List[String]): List[String] = apply_paths3(args, copy_file_base)
   }
 
 
@@ -416,10 +416,10 @@ object Isabelle_System
 
   def rm_tree(root: Path): Unit = rm_tree(root.file)
 
-  object Rm_Tree extends Scala.Fun("rm_tree")
+  object Rm_Tree extends Scala.Fun_Strings("rm_tree")
   {
     val here = Scala_Project.here
-    def apply(arg: String): String = apply_paths1(arg, rm_tree)
+    def apply(args: List[String]): List[String] = apply_paths1(args, rm_tree)
   }
 
   def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile =
@@ -594,22 +594,21 @@ object Isabelle_System
 
   /* download file */
 
-  def download(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+  def download(url_name: String, progress: Progress = new Progress): HTTP.Content =
   {
     val url = Url(url_name)
     progress.echo("Getting " + quote(url_name))
-    val content =
-      try { HTTP.Client.get(url) }
-      catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
-    Bytes.write(file, content.bytes)
+    try { HTTP.Client.get(url) }
+    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
   }
+
+  def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+    Bytes.write(file, download(url_name, progress = progress).bytes)
 
   object Download extends Scala.Fun("download", thread = true)
   {
     val here = Scala_Project.here
-    def apply(arg: String): String =
-      Library.split_strings0(arg) match {
-        case List(url, file) => download(url, Path.explode(file)); ""
-      }
+    override def invoke(args: List[Bytes]): List[Bytes] =
+      args match { case List(url) => List(download(url.text).bytes) }
   }
 }

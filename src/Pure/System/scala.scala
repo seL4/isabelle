@@ -18,11 +18,28 @@ object Scala
   /** registered functions **/
 
   abstract class Fun(val name: String, val thread: Boolean = false)
-    extends Function[String, String]
   {
     override def toString: String = name
+    def multi: Boolean = true
     def position: Properties.T = here.position
     def here: Scala_Project.Here
+    def invoke(args: List[Bytes]): List[Bytes]
+  }
+
+  abstract class Fun_Strings(name: String, thread: Boolean = false)
+    extends Fun(name, thread = thread)
+  {
+    override def invoke(args: List[Bytes]): List[Bytes] =
+      apply(args.map(_.text)).map(Bytes.apply)
+    def apply(args: List[String]): List[String]
+  }
+
+  abstract class Fun_String(name: String, thread: Boolean = false)
+    extends Fun_Strings(name, thread = thread)
+  {
+    override def multi: Boolean = false
+    override def apply(args: List[String]): List[String] =
+      List(apply(Library.the_single(args)))
     def apply(arg: String): String
   }
 
@@ -35,13 +52,13 @@ object Scala
 
   /** demo functions **/
 
-  object Echo extends Fun("echo")
+  object Echo extends Fun_String("echo")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = arg
   }
 
-  object Sleep extends Fun("sleep")
+  object Sleep extends Fun_String("sleep")
   {
     val here = Scala_Project.here
     def apply(seconds: String): String =
@@ -127,7 +144,7 @@ object Scala
     }
   }
 
-  object Toplevel extends Fun("scala_toplevel")
+  object Toplevel extends Fun_String("scala_toplevel")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =
@@ -162,16 +179,16 @@ object Scala
       case None => false
     }
 
-  def function_body(name: String, arg: String): (Tag.Value, String) =
+  def function_body(name: String, args: List[Bytes]): (Tag.Value, List[Bytes]) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
-        Exn.capture { fun(arg) } match {
-          case Exn.Res(null) => (Tag.NULL, "")
+        Exn.capture { fun.invoke(args) } match {
+          case Exn.Res(null) => (Tag.NULL, Nil)
           case Exn.Res(res) => (Tag.OK, res)
-          case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, "")
-          case Exn.Exn(e) => (Tag.ERROR, Exn.message(e))
+          case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, Nil)
+          case Exn.Exn(e) => (Tag.ERROR, List(Bytes(Exn.message(e))))
         }
-      case None => (Tag.FAIL, "Unknown Isabelle/Scala function: " + quote(name))
+      case None => (Tag.FAIL, List(Bytes("Unknown Isabelle/Scala function: " + quote(name))))
     }
 
 
@@ -191,11 +208,11 @@ object Scala
       futures = Map.empty
     }
 
-    private def result(id: String, tag: Scala.Tag.Value, res: String): Unit =
+    private def result(id: String, tag: Scala.Tag.Value, res: List[Bytes]): Unit =
       synchronized
       {
         if (futures.isDefinedAt(id)) {
-          session.protocol_command("Scala.result", id, tag.id.toString, res)
+          session.protocol_command_raw("Scala.result", Bytes(id) :: Bytes(tag.id.toString) :: res)
           futures -= id
         }
       }
@@ -203,7 +220,7 @@ object Scala
     private def cancel(id: String, future: Future[Unit]): Unit =
     {
       future.cancel()
-      result(id, Scala.Tag.INTERRUPT, "")
+      result(id, Scala.Tag.INTERRUPT, Nil)
     }
 
     private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
@@ -212,7 +229,7 @@ object Scala
         case Markup.Invoke_Scala(name, id) =>
           def body: Unit =
           {
-            val (tag, res) = Scala.function_body(name, msg.text)
+            val (tag, res) = Scala.function_body(name, msg.chunks)
             result(id, tag, res)
           }
           val future =

@@ -20,7 +20,8 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val download: string -> Path.T -> unit
+  val download: string -> string
+  val download_file: string -> Path.T -> unit
   val isabelle_id: unit -> string
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
@@ -35,8 +36,7 @@ struct
 
 fun bash_process script =
   Scala.function "bash_process"
-    ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
-  |> split_strings0
+    ["export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP"), script]
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
       | a :: b :: c :: d :: lines =>
@@ -78,8 +78,7 @@ fun check_bash_function ctxt arg =
 (* directory and file operations *)
 
 val absolute_path = Path.implode o File.absolute_path;
-fun scala_function0 name = ignore o Scala.function name o cat_strings0;
-fun scala_function name = scala_function0 name o map absolute_path;
+fun scala_function name = ignore o Scala.function name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);
 
@@ -88,8 +87,8 @@ fun copy_dir src dst = scala_function "copy_dir" [src, dst];
 fun copy_file src dst = scala_function "copy_file" [src, dst];
 
 fun copy_file_base (base_dir, src) target_dir =
-  scala_function0 "copy_file_base"
-    [absolute_path base_dir, Path.implode src, absolute_path target_dir];
+  ignore (Scala.function "copy_file_base"
+    [absolute_path base_dir, Path.implode src, absolute_path target_dir]);
 
 
 (* tmp files *)
@@ -117,13 +116,14 @@ fun with_tmp_dir name f =
 
 (* download file *)
 
-fun download url file =
-  ignore (Scala.function "download" (cat_strings0 [url, absolute_path file]));
+val download = Scala.function1 "download";
+
+fun download_file url path = File.write path (download url);
 
 
 (* Isabelle distribution identification *)
 
-fun isabelle_id () = Scala.function "isabelle_id" "";
+fun isabelle_id () = Scala.function1 "isabelle_id" "";
 
 fun isabelle_identifier () = try getenv_strict "ISABELLE_IDENTIFIER";
 

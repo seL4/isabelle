@@ -23,9 +23,9 @@ val print_operations =
 
 fun report () =
   Output.try_protocol_message Markup.print_operations
-    (Synchronized.value print_operations
+    [Synchronized.value print_operations
       |> map (fn (x, (y, _)) => (x, y)) |> rev
-      |> let open XML.Encode in list (pair string string) end);
+      |> let open XML.Encode in list (pair string string) end];
 
 val _ = Protocol_Command.define "print_operations" (fn [] => report ());
 

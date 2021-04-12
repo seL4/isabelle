@@ -57,7 +57,7 @@ object Build_JCEF
       Isabelle_System.with_tmp_file("archive", ext = "zip")(archive_file =>
       {
         val url = base_url + "/" + Url.encode(version) + "/" + platform.archive
-        Isabelle_System.download(url, archive_file, progress = progress)
+        Isabelle_System.download_file(url, archive_file, progress = progress)
         Isabelle_System.bash("unzip -x " + File.bash_path(archive_file),
             cwd = component_dir.file).check
 

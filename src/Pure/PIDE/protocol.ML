@@ -60,7 +60,7 @@ fun decode_command id name parents_xml blobs_xml toks_xml sources : Document.com
   end;
 
 fun commands_accepted ids =
-  Output.protocol_message Markup.commands_accepted [XML.Text (space_implode "," ids)];
+  Output.protocol_message Markup.commands_accepted [[XML.Text (space_implode "," ids)]];
 
 val _ =
   Protocol_Command.define "Document.define_command"
@@ -141,12 +141,12 @@ val _ =
 
             val _ =
               Output.protocol_message Markup.assign_update
-                ((new_id, edited, assign_update) |>
+                [(new_id, edited, assign_update) |>
                   let
                     open XML.Encode;
                     fun encode_upd (a, bs) =
                       string (space_implode "," (map Value.print_int (a :: bs)));
-                  in triple int (list string) (list encode_upd) end);
+                  in triple int (list string) (list encode_upd) end];
           in Document.start_execution state' end)));
 
 val _ =
@@ -157,7 +157,7 @@ val _ =
           YXML.parse_body versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.protocol_message Markup.removed_versions [XML.Text (versions_yxml)];
+        val _ = Output.protocol_message Markup.removed_versions [[XML.Text (versions_yxml)]];
       in state1 end));
 
 val _ =

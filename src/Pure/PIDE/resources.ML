@@ -13,7 +13,7 @@ sig
      session_chapters: (string * string) list,
      bibtex_entries: (string * string list) list,
      command_timings: Properties.T list,
-     scala_functions: (string * Position.T) list,
+     scala_functions: (string * (bool * Position.T)) list,
      global_theories: (string * string) list,
      loaded_theories: string list} -> unit
   val init_session_yxml: string -> unit
@@ -25,7 +25,7 @@ sig
   val session_chapter: string -> string
   val last_timing: Toplevel.transition -> Time.time
   val scala_functions: unit -> string list
-  val check_scala_function: Proof.context -> string * Position.T -> string
+  val check_scala_function: Proof.context -> string * Position.T -> string * bool
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -104,7 +104,7 @@ val empty_session_base =
     session_chapters = Symtab.empty: string Symtab.table,
     bibtex_entries = Symtab.empty: string list Symtab.table,
     timings = empty_timings,
-    scala_functions = Symtab.empty: Position.T Symtab.table},
+    scala_functions = Symtab.empty: (bool * Position.T) Symtab.table},
    {global_theories = Symtab.empty: string Symtab.table,
     loaded_theories = Symtab.empty: unit Symtab.table});
 
@@ -136,7 +136,7 @@ fun init_session_yxml yxml =
           (pair (list (pair string properties))
             (pair (list (pair string string)) (pair (list (pair string string))
               (pair (list (pair string (list string))) (pair (list properties)
-                (pair (list (pair string properties))
+                (pair (list (pair string (pair bool properties)))
                   (pair (list (pair string string)) (list string))))))))
         end;
   in
@@ -146,7 +146,7 @@ fun init_session_yxml yxml =
        session_chapters = session_chapters,
        bibtex_entries = bibtex_entries,
        command_timings = command_timings,
-       scala_functions = map (apsnd Position.of_properties) scala_functions,
+       scala_functions = (map o apsnd o apsnd) Position.of_properties scala_functions,
        global_theories = global_theories,
        loaded_theories = loaded_theories}
   end;
@@ -184,23 +184,31 @@ fun last_timing tr = get_timings (get_session_base1 #timings) tr;
 fun scala_functions () = space_explode "," (getenv "ISABELLE_SCALA_FUNCTIONS");
 
 (*regular resources*)
-fun scala_function_pos name =
-  (name, the_default Position.none (Symtab.lookup (get_session_base1 #scala_functions) name));
+fun scala_function a =
+  (a, the_default (false, Position.none) (Symtab.lookup (get_session_base1 #scala_functions) a));
 
 fun check_scala_function ctxt arg =
-  Completion.check_entity Markup.scala_functionN
-    (scala_functions () |> sort_strings |> map scala_function_pos) ctxt arg;
+  let
+    val funs = scala_functions () |> sort_strings |> map scala_function;
+    val name = Completion.check_entity Markup.scala_functionN (map (apsnd #2) funs) ctxt arg;
+    val multi =
+      (case AList.lookup (op =) funs name of
+        SOME (multi, _) => multi
+      | NONE => false);
+  in (name, multi) end;
 
 val _ = Theory.setup
  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
-    (Scan.lift Parse.embedded_position) check_scala_function #>
+    (Scan.lift Parse.embedded_position) (#1 oo check_scala_function) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
     (Args.context -- Scan.lift Parse.embedded_position
-      >> (uncurry check_scala_function #> ML_Syntax.print_string)) #>
+      >> (uncurry check_scala_function #> #1 #> ML_Syntax.print_string)) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>scala\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
-      let val name = check_scala_function ctxt arg
-      in ML_Syntax.atomic ("Scala.function " ^ ML_Syntax.print_string name) end)));
+      let
+        val (name, multi) = check_scala_function ctxt arg;
+        val func = if multi then "Scala.function" else "Scala.function1";
+      in ML_Syntax.atomic (func ^ " " ^ ML_Syntax.print_string name) end)));
 
 
 (* manage source files *)

@@ -7,12 +7,14 @@ Byte-oriented messages.
 signature BYTE_MESSAGE =
 sig
   val write: BinIO.outstream -> string list -> unit
+  val write_yxml: BinIO.outstream -> XML.tree -> unit
   val flush: BinIO.outstream -> unit
   val write_line: BinIO.outstream -> string -> unit
   val read: BinIO.instream -> int -> string
   val read_block: BinIO.instream -> int -> string option * int
   val read_line: BinIO.instream -> string option
   val write_message: BinIO.outstream -> string list -> unit
+  val write_message_yxml: BinIO.outstream -> XML.body list -> unit
   val read_message: BinIO.instream -> string list option
   val write_line_message: BinIO.outstream -> string -> unit
   val read_line_message: BinIO.instream -> string option
@@ -24,6 +26,8 @@ struct
 (* output operations *)
 
 fun write stream = List.app (File.output stream);
+
+fun write_yxml stream tree = YXML.traverse (fn s => fn () => File.output stream s) tree ();
 
 fun flush stream = ignore (try BinIO.flushOut stream);
 
@@ -60,6 +64,11 @@ fun make_header ns =
 
 fun write_message stream chunks =
   (write stream (make_header (map size chunks) @ chunks); flush stream);
+
+fun write_message_yxml stream chunks =
+  (write stream (make_header (map YXML.body_size chunks));
+   (List.app o List.app) (write_yxml stream) chunks;
+   flush stream);
 
 fun parse_header line =
   map Value.parse_nat (space_explode "," line)

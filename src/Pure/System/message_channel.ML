@@ -7,7 +7,7 @@ Preferably asynchronous channel for Isabelle messages.
 signature MESSAGE_CHANNEL =
 sig
   type message
-  val message: string -> Properties.T -> XML.body -> message
+  val message: string -> Properties.T -> XML.body list -> message
   type T
   val send: T -> message -> unit
   val shutdown: T -> unit
@@ -19,17 +19,13 @@ struct
 
 (* message *)
 
-datatype message = Message of {body: XML.body, flush: bool};
+datatype message = Message of XML.body list;
 
-fun body_size body = fold (YXML.traverse (Integer.add o size)) body 0;
-
-fun chunk body = XML.Text (string_of_int (body_size body) ^ "\n") :: body;
-
-fun message name raw_props body =
+fun message name raw_props chunks =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
-    val header = XML.Elem ((name, robust_props), []);
-  in Message {body = chunk [header] @ chunk body, flush = name = Markup.protocolN} end;
+    val header = [XML.Elem ((name, robust_props), [])];
+  in Message (header :: chunks) end;
 
 
 (* channel *)
@@ -39,22 +35,14 @@ datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
-val flush_timeout = SOME (seconds 0.02);
-
 fun message_output mbox stream =
   let
-    fun continue timeout =
-      (case Mailbox.receive timeout mbox of
-        [] => (Byte_Message.flush stream; continue NONE)
-      | msgs => received timeout msgs)
-    and received _ (NONE :: _) = Byte_Message.flush stream
-      | received _ (SOME (Message {body, flush}) :: rest) =
-          let
-            val _ = fold (YXML.traverse (fn s => fn () => File.output stream s)) body ();
-            val timeout = if flush then (Byte_Message.flush stream; NONE) else flush_timeout;
-          in received timeout rest end
-      | received timeout [] = continue timeout;
-  in fn () => continue NONE end;
+    fun continue () = Mailbox.receive NONE mbox |> received
+    and received [] = continue ()
+      | received (NONE :: _) = ()
+      | received (SOME (Message chunks) :: rest) =
+          (Byte_Message.write_message_yxml stream chunks; received rest);
+  in continue end;
 
 fun make stream =
   let

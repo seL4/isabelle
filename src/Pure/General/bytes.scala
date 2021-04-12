@@ -134,8 +134,7 @@ final class Bytes private(
     a
   }
 
-  def text: String =
-    UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
+  def text: String = UTF8.decode_permissive(this)
 
   def base64: String =
   {

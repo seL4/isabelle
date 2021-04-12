@@ -42,7 +42,7 @@ fun export_params ({theory = thy, binding, executable, compress, strict}: params
     name = Path.implode_binding (tap Path.proper_binding binding),
     executable = executable,
     compress = compress,
-    strict = strict} body);
+    strict = strict} [body]);
 
 fun export thy binding body =
   export_params
