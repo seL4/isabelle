@@ -54,14 +54,14 @@ object Prover
     }
   }
 
-  class Protocol_Error(msg: String) extends Exception(msg)
-  def bad_header(print: String): Nothing = throw new Protocol_Error("bad message header: " + print)
-  def bad_chunks(): Nothing = throw new Protocol_Error("bad message chunks")
+  class Malformed(msg: String) extends Exn.User_Error("Malformed prover message: " + msg)
+  def bad_header(print: String): Nothing = throw new Malformed("bad message header\n" + print)
+  def bad_chunks(): Nothing = throw new Malformed("bad message chunks")
 
   def the_chunk(chunks: List[Bytes], print: => String): Bytes =
     chunks match {
       case List(chunk) => chunk
-      case _ => throw new Protocol_Error("single chunk expected: " + print)
+      case _ => throw new Malformed("single chunk expected: " + print)
     }
 
   class Protocol_Output(props: Properties.T, val chunks: List[Bytes])
@@ -289,7 +289,7 @@ class Prover(
       }
       catch {
         case e: IOException => system_output("Cannot read message:\n" + e.getMessage)
-        case e: Prover.Protocol_Error => system_output("Malformed message:\n" + e.getMessage)
+        case e: Prover.Malformed => system_output(e.getMessage)
       }
       stream.close()
 
