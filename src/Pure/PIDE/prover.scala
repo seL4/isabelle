@@ -263,7 +263,8 @@ class Prover(
 
   private def message_output(stream: InputStream): Thread =
   {
-    def decode_chunk(chunk: Bytes): XML.Body = YXML.parse_body_failsafe(chunk.symbols)
+    def decode_chunk(chunk: Bytes): XML.Body =
+      Symbol.decode_yxml_failsafe(chunk.text)
 
     val thread_name = "message_output"
     Isabelle_Thread.fork(name = thread_name) {

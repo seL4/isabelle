@@ -29,7 +29,8 @@ object UTF8
 
   def decode_permissive(text: CharSequence): String =
   {
-    val buf = new java.lang.StringBuilder(text.length)
+    val len = text.length
+    val buf = new java.lang.StringBuilder(len)
     var code = -1
     var rest = 0
     def flush(): Unit =
@@ -57,7 +58,7 @@ object UTF8
         rest -= 1
       }
     }
-    for (i <- 0 until text.length) {
+    for (i <- 0 until len) {
       val c = text.charAt(i)
       if (c < 128) { flush(); buf.append(c) }
       else if ((c & 0xC0) == 0x80) push(c & 0x3F)
@@ -67,24 +68,5 @@ object UTF8
     }
     flush()
     buf.toString
-  }
-
-  private class Decode_Chars(decode: String => String,
-    buffer: Array[Byte], start: Int, end: Int) extends CharSequence
-  {
-    def length: Int = end - start
-    def charAt(i: Int): Char = (buffer(start + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
-    def subSequence(i: Int, j: Int): CharSequence =
-      new Decode_Chars(decode, buffer, start + i, start + j)
-
-    // toString with adhoc decoding: abuse of CharSequence interface
-    override def toString: String = decode(decode_permissive(this))
-  }
-
-  def decode_chars(decode: String => String,
-    buffer: Array[Byte], start: Int, end: Int): CharSequence =
-  {
-    require(0 <= start && start <= end && end <= buffer.length, "bad decode range")
-    new Decode_Chars(decode, buffer, start, end)
   }
 }
