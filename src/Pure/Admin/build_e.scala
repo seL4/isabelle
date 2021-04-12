@@ -40,7 +40,7 @@ object Build_E
 
       val archive_url = download_url + "/V_" + version + "/E.tgz"
       val archive_path = tmp_dir + Path.explode("E.tgz")
-      Isabelle_System.download(archive_url, archive_path, progress = progress)
+      Isabelle_System.download_file(archive_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + archive_path, cwd = tmp_dir.file).check
       Isabelle_System.bash("tar xzf " + archive_path + " && mv E src", cwd = component_dir.file).check

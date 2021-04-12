@@ -97,7 +97,7 @@ object Build_CSDP
       /* download source */
 
       val archive_path = tmp_dir + Path.basic(archive_name)
-      Isabelle_System.download(download_url, archive_path, progress = progress)
+      Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
       Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
       val source_name = File.get_dir(tmp_dir)

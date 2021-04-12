@@ -594,22 +594,21 @@ object Isabelle_System
 
   /* download file */
 
-  def download(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+  def download(url_name: String, progress: Progress = new Progress): HTTP.Content =
   {
     val url = Url(url_name)
     progress.echo("Getting " + quote(url_name))
-    val content =
-      try { HTTP.Client.get(url) }
-      catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
-    Bytes.write(file, content.bytes)
+    try { HTTP.Client.get(url) }
+    catch { case ERROR(msg) => cat_error("Failed to download " + quote(url_name), msg) }
   }
 
-  object Download extends Scala.Fun_Strings("download", thread = true)
+  def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
+    Bytes.write(file, download(url_name, progress = progress).bytes)
+
+  object Download extends Scala.Fun("download", thread = true)
   {
     val here = Scala_Project.here
-    override def apply(args: List[String]): List[String] =
-      args match {
-        case List(url, file) => download(url, Path.explode(file)); Nil
-      }
+    override def invoke(args: List[Bytes]): List[Bytes] =
+      args match { case List(url) => List(download(url.text).bytes) }
   }
 }

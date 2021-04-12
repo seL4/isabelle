@@ -20,7 +20,8 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val rm_tree: Path.T -> unit
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val download: string -> Path.T -> unit
+  val download: string -> string
+  val download_file: string -> Path.T -> unit
   val isabelle_id: unit -> string
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
@@ -116,8 +117,9 @@ fun with_tmp_dir name f =
 
 (* download file *)
 
-fun download url file =
-  ignore (Scala.function "download" [url, absolute_path file]);
+val download = Scala.function1 "download";
+
+fun download_file url path = File.write path (download url);
 
 
 (* Isabelle distribution identification *)
