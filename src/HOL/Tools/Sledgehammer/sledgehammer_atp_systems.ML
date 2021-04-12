@@ -16,7 +16,7 @@ sig
   type atp_config =
     {exec : string list * string list,
      arguments : Proof.context -> bool -> string -> Time.time -> Path.T ->
-       term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
+       term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string list,
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
@@ -76,7 +76,7 @@ type slice_spec = (int * string) * atp_format * string * string * bool
 type atp_config =
   {exec : string list * string list,
    arguments : Proof.context -> bool -> string -> Time.time -> Path.T ->
-     term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
+     term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string list,
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
@@ -163,7 +163,7 @@ val term_order =
 val agsyhol_config : atp_config =
   {exec = (["AGSYHOL_HOME"], ["agsyHOL"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem,
+     ["--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
@@ -181,8 +181,8 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 val alt_ergo_config : atp_config =
   {exec = (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     "--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^ string_of_int (to_secs 1 timeout) ^
-     " " ^ File.bash_path problem,
+     ["--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^ string_of_int (to_secs 1 timeout) ^
+      " " ^ File.bash_path problem],
    proof_delims = [],
    known_failures =
      [(ProofMissing, ": Valid"),
@@ -271,13 +271,13 @@ val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover"]),
    arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn problem =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-       "--auto-schedule --tstp-in --tstp-out --silent " ^
-       e_selection_weight_arguments ctxt heuristic sel_weights ^
-       e_term_order_info_arguments gen_weights gen_prec ord_info ^
-       "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
-       "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-       " --proof-object=1 " ^
-       File.bash_path problem,
+       ["--auto-schedule --tstp-in --tstp-out --silent " ^
+        e_selection_weight_arguments ctxt heuristic sel_weights ^
+        e_term_order_info_arguments gen_weights gen_prec ord_info ^
+        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
+        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
+        " --proof-object=1 " ^
+        File.bash_path problem],
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -318,9 +318,9 @@ val e = (eN, fn () => e_config)
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     "--clausifier \"$E_HOME\"/eprover " ^
-     "--clausifier_options \"--tstp-format --silent --cnf\" " ^
-     "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem,
+     ["--clausifier \"$E_HOME\"/eprover " ^
+      "--clausifier_options \"--tstp-format --silent --cnf\" " ^
+      "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
    known_failures =
      [(ProofIncomplete, "% SZS output start CNFRefutation")] @
@@ -340,11 +340,11 @@ val iprover = (iproverN, fn () => iprover_config)
 val leo2_config : atp_config =
   {exec = (["LEO2_HOME"], ["leo.opt", "leo"]),
    arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem => fn _ =>
-     "--foatp e --atp e=\"$E_HOME\"/eprover \
-     \--atp epclextract=\"$E_HOME\"/epclextract \
-     \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
-     (if full_proofs then "--notReplLeibnizEQ --notReplAndrewsEQ --notUseExtCnfCmbd " else "") ^
-     File.bash_path problem,
+     ["--foatp e --atp e=\"$E_HOME\"/eprover \
+      \--atp epclextract=\"$E_HOME\"/epclextract \
+      \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+      (if full_proofs then "--notReplLeibnizEQ --notReplAndrewsEQ --notUseExtCnfCmbd " else "") ^
+      File.bash_path problem],
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "CPU time limit exceeded, terminating"),
@@ -366,9 +366,9 @@ val leo2 = (leo2N, fn () => leo2_config)
 val leo3_config : atp_config =
   {exec = (["LEO3_HOME"], ["leo3"]),
    arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn problem => fn _ =>
-     File.bash_path problem ^ " " ^ "--atp cvc=\"$CVC4_SOLVER\" --atp e=\"$E_HOME\"/eprover \
-     \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
-     (if full_proofs then "--nleq --naeq " else ""),
+     [File.bash_path problem ^ " " ^ "--atp cvc=\"$CVC4_SOLVER\" --atp e=\"$E_HOME\"/eprover \
+      \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+      (if full_proofs then "--nleq --naeq " else "")],
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
@@ -387,10 +387,10 @@ val leo3 = (leo3N, fn () => leo3_config)
 val satallax_config : atp_config =
   {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     (case getenv "E_HOME" of
-       "" => ""
-     | home => "-E " ^ home ^ "/eprover ") ^
-     "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem,
+     [(case getenv "E_HOME" of
+        "" => ""
+      | home => "-E " ^ home ^ "/eprover ") ^
+      "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem],
    proof_delims =
      [("% SZS output start Proof", "% SZS output end Proof")],
    known_failures = known_szs_status_failures,
@@ -419,9 +419,9 @@ val spass_config : atp_config =
   in
     {exec = (["SPASS_HOME"], ["SPASS"]),
      arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem => fn _ =>
-       "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
-       "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
-       |> extra_options <> "" ? prefix (extra_options ^ " "),
+       ["-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
+        "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
+        |> extra_options <> "" ? prefix (extra_options ^ " ")],
      proof_delims = [("Here is a proof", "Formulae used in the proof")],
      known_failures =
        [(GaveUp, "SPASS beiseite: Completion found"),
@@ -491,9 +491,9 @@ val vampire_config : atp_config =
     {exec = (["VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
        (check_vampire_noncommercial ();
-        vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
-        " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
-        |> sos = sosN ? prefix "--sos on "),
+        [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
+         " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
+         |> sos = sosN ? prefix "--sos on "]),
      proof_delims =
        [("=========== Refutation ==========",
          "======= End of refutation =======")] @
@@ -527,7 +527,7 @@ val z3_tptp_config : atp_config =
   in
     {exec = (["Z3_TPTP_HOME"], ["z3_tptp"]),
      arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-       "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ File.bash_path problem,
+       ["-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ File.bash_path problem],
      proof_delims = [("SZS status Theorem", "")],
      known_failures = known_szs_status_failures,
      prem_role = Hypothesis,
@@ -556,8 +556,8 @@ val zipperposition_config : atp_config =
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
      arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
-       "--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
-       |> extra_options <> "" ? prefix (extra_options ^ " "),
+       ["--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
+        |> extra_options <> "" ? prefix (extra_options ^ " ")],
      proof_delims = tstp_proof_delims,
      known_failures = known_szs_status_failures,
      prem_role = Hypothesis,
@@ -615,10 +615,9 @@ val isabelle_scala_function = (["SCALA_HOME"], ["bin/scala"])
 fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
   {exec = isabelle_scala_function,
    arguments = fn _ => fn _ => fn command => fn timeout => fn problem => fn _ =>
-    (cat_strings0
      [the_remote_system system_name system_versions,
       Isabelle_System.absolute_path problem,
-      command, string_of_int (Int.min (max_remote_secs, to_secs 1 timeout) * 1000)]),
+      command, string_of_int (Int.min (max_remote_secs, to_secs 1 timeout) * 1000)],
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_says_failures,
    prem_role = prem_role,
@@ -676,7 +675,7 @@ val remote_zipperposition =
 
 fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
   {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
-   arguments = K (K (K (K (K (K ""))))),
+   arguments = K (K (K (K (K (K []))))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
    prem_role = prem_role,

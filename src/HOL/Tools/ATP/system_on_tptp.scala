@@ -69,12 +69,12 @@ object SystemOnTPTP
     post_request(url, paramaters, timeout = timeout + Time.seconds(15))
   }
 
-  object Run_System extends Scala.Fun_String("SystemOnTPTP.run_system", thread = true)
+  object Run_System extends Scala.Fun_Strings("SystemOnTPTP.run_system", thread = true)
   {
     val here = Scala_Project.here
-    def apply(arg: String): String =
+    def apply(args: List[String]): List[String] =
     {
-      val List(url, system, problem_path, extra, Value.Int(timeout)) = Library.split_strings0(arg)
+      val List(url, system, problem_path, extra, Value.Int(timeout)) = args
       val problem = File.read(Path.explode(problem_path))
 
       val res = run_system(Url(url), system, problem, extra = extra, timeout = Time.ms(timeout))
@@ -85,7 +85,7 @@ object SystemOnTPTP
       if (split_lines(text).exists(_.startsWith(bad_prover))) {
         error("The ATP " + quote(system) + " is not available at SystemOnTPTP")
       }
-      else Library.cat_strings0(List(text, timing.toString))
+      else List(text, timing.toString)
     }
   }
 }
