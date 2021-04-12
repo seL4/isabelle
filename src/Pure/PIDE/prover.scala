@@ -88,7 +88,7 @@ class Prover(
 
   private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit =
   {
-    receiver(new Prover.Protocol_Output(cache.props(props), chunks))
+    receiver(new Prover.Protocol_Output(props, chunks))
   }
 
   private def output(kind: String, props: Properties.T, body: XML.Body): Unit =
@@ -264,7 +264,7 @@ class Prover(
   private def message_output(stream: InputStream): Thread =
   {
     def decode_chunk(chunk: Bytes): XML.Body =
-      Symbol.decode_yxml_failsafe(chunk.text)
+      Symbol.decode_yxml_failsafe(chunk.text, cache = cache)
 
     val thread_name = "message_output"
     Isabelle_Thread.fork(name = thread_name) {
@@ -275,13 +275,9 @@ class Prover(
             case None => finished = true
             case Some(header :: chunks) =>
               decode_chunk(header) match {
-                case List(XML.Elem(Markup(name, props), Nil)) =>
-                  val kind = name.intern
+                case List(XML.Elem(Markup(kind, props), Nil)) =>
                   if (kind == Markup.PROTOCOL) protocol_output(props, chunks)
-                  else {
-                    val body = decode_chunk(Prover.the_chunk(chunks, name))
-                    output(kind, props, body)
-                  }
+                  else output(kind, props, decode_chunk(Prover.the_chunk(chunks, kind)))
                 case _ => Prover.bad_header(header.toString)
               }
             case Some(_) => Prover.bad_chunks()
