@@ -73,7 +73,7 @@ object Doc
     examples() ::: release_notes() ::: main_contents
   }
 
-  object Doc_Names extends Scala.Fun("doc_names")
+  object Doc_Names extends Scala.Fun_String("doc_names")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =

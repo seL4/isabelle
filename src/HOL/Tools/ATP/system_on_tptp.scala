@@ -40,7 +40,7 @@ object SystemOnTPTP
         "ListStatus" -> "READY",
         "QuietFlag" -> "-q0"))
 
-  object List_Systems extends Scala.Fun("SystemOnTPTP.list_systems", thread = true)
+  object List_Systems extends Scala.Fun_String("SystemOnTPTP.list_systems", thread = true)
   {
     val here = Scala_Project.here
     def apply(url: String): String = list_systems(Url(url)).text
@@ -69,7 +69,7 @@ object SystemOnTPTP
     post_request(url, paramaters, timeout = timeout + Time.seconds(15))
   }
 
-  object Run_System extends Scala.Fun("SystemOnTPTP.run_system", thread = true)
+  object Run_System extends Scala.Fun_String("SystemOnTPTP.run_system", thread = true)
   {
     val here = Scala_Project.here
     def apply(arg: String): String =

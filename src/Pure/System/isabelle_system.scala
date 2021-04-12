@@ -195,7 +195,7 @@ object Isabelle_System
       else error("Failed to identify Isabelle distribution " + root)
     }
 
-  object Isabelle_Id extends Scala.Fun("isabelle_id")
+  object Isabelle_Id extends Scala.Fun_String("isabelle_id")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = isabelle_id()
@@ -273,13 +273,13 @@ object Isabelle_System
   }
 
 
-  object Make_Directory extends Scala.Fun("make_directory")
+  object Make_Directory extends Scala.Fun_String("make_directory")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = apply_paths1(arg, make_directory)
   }
 
-  object Copy_Dir extends Scala.Fun("copy_dir")
+  object Copy_Dir extends Scala.Fun_String("copy_dir")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = apply_paths2(arg, copy_dir)
@@ -316,13 +316,13 @@ object Isabelle_System
   }
 
 
-  object Copy_File extends Scala.Fun("copy_file")
+  object Copy_File extends Scala.Fun_String("copy_file")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = apply_paths2(arg, copy_file)
   }
 
-  object Copy_File_Base extends Scala.Fun("copy_file_base")
+  object Copy_File_Base extends Scala.Fun_String("copy_file_base")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = apply_paths3(arg, copy_file_base)
@@ -416,7 +416,7 @@ object Isabelle_System
 
   def rm_tree(root: Path): Unit = rm_tree(root.file)
 
-  object Rm_Tree extends Scala.Fun("rm_tree")
+  object Rm_Tree extends Scala.Fun_String("rm_tree")
   {
     val here = Scala_Project.here
     def apply(arg: String): String = apply_paths1(arg, rm_tree)
@@ -604,12 +604,12 @@ object Isabelle_System
     Bytes.write(file, content.bytes)
   }
 
-  object Download extends Scala.Fun("download", thread = true)
+  object Download extends Scala.Fun_Strings("download", thread = true)
   {
     val here = Scala_Project.here
-    def apply(arg: String): String =
-      Library.split_strings0(arg) match {
-        case List(url, file) => download(url, Path.explode(file)); ""
+    override def apply(args: List[String]): List[String] =
+      args match {
+        case List(url, file) => download(url, Path.explode(file)); Nil
       }
   }
 }

@@ -134,7 +134,7 @@ object Isabelle_Tool
   def isabelle_tools(): List[Entry] =
     (external_tools() ::: internal_tools).sortBy(_.name)
 
-  object Isabelle_Tools extends Scala.Fun("isabelle_tools")
+  object Isabelle_Tools extends Scala.Fun_String("isabelle_tools")
   {
     val here = Scala_Project.here
     def apply(arg: String): String =

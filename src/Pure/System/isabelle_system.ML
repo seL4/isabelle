@@ -35,8 +35,7 @@ struct
 
 fun bash_process script =
   Scala.function "bash_process"
-    ("export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script)
-  |> split_strings0
+    ["export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP"), script]
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
       | a :: b :: c :: d :: lines =>
@@ -78,7 +77,7 @@ fun check_bash_function ctxt arg =
 (* directory and file operations *)
 
 val absolute_path = Path.implode o File.absolute_path;
-fun scala_function0 name = ignore o Scala.function name o cat_strings0;
+fun scala_function0 name = ignore o Scala.function1 name o cat_strings0;
 fun scala_function name = scala_function0 name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);
@@ -118,12 +117,12 @@ fun with_tmp_dir name f =
 (* download file *)
 
 fun download url file =
-  ignore (Scala.function "download" (cat_strings0 [url, absolute_path file]));
+  ignore (Scala.function "download" [url, absolute_path file]);
 
 
 (* Isabelle distribution identification *)
 
-fun isabelle_id () = Scala.function "isabelle_id" "";
+fun isabelle_id () = Scala.function1 "isabelle_id" "";
 
 fun isabelle_identifier () = try getenv_strict "ISABELLE_IDENTIFIER";
 

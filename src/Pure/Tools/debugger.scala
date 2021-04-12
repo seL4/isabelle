@@ -259,7 +259,7 @@ class Debugger private(session: Session)
   }
 
   def input(thread_name: String, msg: String*): Unit =
-    session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
+    session.protocol_command_args("Debugger.input", thread_name :: msg.toList)
 
   def continue(thread_name: String): Unit = input(thread_name, "continue")
   def step(thread_name: String): Unit = input(thread_name, "step")

@@ -206,12 +206,12 @@ object Bash
 
   /* Scala function */
 
-  object Process extends Scala.Fun("bash_process", thread = true)
+  object Process extends Scala.Fun_Strings("bash_process", thread = true)
   {
     val here = Scala_Project.here
-    def apply(script: String): String =
+    def apply(args: List[String]): List[String] =
     {
-      val result = Exn.capture { Isabelle_System.bash(script) }
+      val result = Exn.capture { Isabelle_System.bash(cat_lines(args)) }
 
       val is_interrupt =
         result match {
@@ -220,15 +220,14 @@ object Bash
         }
 
       result match {
-        case _ if is_interrupt => ""
-        case Exn.Exn(exn) => Exn.message(exn)
+        case _ if is_interrupt => Nil
+        case Exn.Exn(exn) => List(Exn.message(exn))
         case Exn.Res(res) =>
-          Library.cat_strings0(
-            res.rc.toString ::
-            res.timing.elapsed.ms.toString ::
-            res.timing.cpu.ms.toString ::
-            res.out_lines.length.toString ::
-            res.out_lines ::: res.err_lines)
+          res.rc.toString ::
+          res.timing.elapsed.ms.toString ::
+          res.timing.cpu.ms.toString ::
+          res.out_lines.length.toString ::
+          res.out_lines ::: res.err_lines
       }
     }
   }

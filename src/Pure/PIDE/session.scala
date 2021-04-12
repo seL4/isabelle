@@ -209,7 +209,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private case object Stop
   private case class Get_State(promise: Promise[Document.State])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
-  private case class Protocol_Command(name: String, args: List[String])
+  private case class Protocol_Command_Raw(name: String, args: List[Bytes])
+  private case class Protocol_Command_Args(name: String, args: List[String])
   private case class Update_Options(options: Options)
   private case object Consolidate_Execution
   private case object Prune_History
@@ -668,7 +669,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             prover.get.dialog_result(serial, result)
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
-          case Protocol_Command(name, args) if prover.defined =>
+          case Protocol_Command_Raw(name, args) if prover.defined =>
+            prover.get.protocol_command_raw(name, args)
+
+          case Protocol_Command_Args(name, args) if prover.defined =>
             prover.get.protocol_command_args(name, args)
 
           case change: Session.Change if prover.defined =>
@@ -757,8 +761,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     }
   }
 
+  def protocol_command_raw(name: String, args: List[Bytes]): Unit =
+    manager.send(Protocol_Command_Raw(name, args))
+
+  def protocol_command_args(name: String, args: List[String]): Unit =
+    manager.send(Protocol_Command_Args(name, args))
+
   def protocol_command(name: String, args: String*): Unit =
-    manager.send(Protocol_Command(name, args.toList))
+    protocol_command_args(name, args.toList)
 
   def cancel_exec(exec_id: Document_ID.Exec): Unit =
     manager.send(Cancel_Exec(exec_id))
