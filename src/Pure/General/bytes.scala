@@ -41,10 +41,27 @@ object Bytes
 
   val newline: Bytes = apply("\n")
 
+
+  /* base64 */
+
   def base64(s: String): Bytes =
   {
     val a = Base64.getDecoder.decode(s)
     new Bytes(a, 0, a.length)
+  }
+
+  object Decode_Base64 extends Scala.Fun("decode_base64")
+  {
+    val here = Scala_Project.here
+    def invoke(args: List[Bytes]): List[Bytes] =
+      List(base64(Library.the_single(args).text))
+  }
+
+  object Encode_Base64 extends Scala.Fun("encode_base64")
+  {
+    val here = Scala_Project.here
+    def invoke(args: List[Bytes]): List[Bytes] =
+      List(Bytes(Library.the_single(args).base64))
   }
 
 

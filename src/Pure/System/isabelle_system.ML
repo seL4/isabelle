@@ -121,6 +121,12 @@ val download = Scala.function1 "download";
 fun download_file url path = File.write path (download url);
 
 
+(* base64 *)
+
+val decode_base64 = Scala.function1 "decode_base64";
+val encode_base64 = Scala.function1 "encode_base64";
+
+
 (* Isabelle distribution identification *)
 
 fun isabelle_id () = Scala.function1 "isabelle_id" "";

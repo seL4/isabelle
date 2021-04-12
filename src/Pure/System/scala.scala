@@ -267,6 +267,8 @@ class Scala_Functions extends Scala.Functions(
   Scala.Echo,
   Scala.Sleep,
   Scala.Toplevel,
+  Bytes.Decode_Base64,
+  Bytes.Encode_Base64,
   Doc.Doc_Names,
   Bash.Process,
   Bibtex.Check_Database,
