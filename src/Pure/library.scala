@@ -275,6 +275,12 @@ object Library
       res.toList
     }
 
+  def the_single[A](xs: List[A]): A =
+    xs match {
+      case List(x) => x
+      case _ => error("Single argument expected")
+    }
+
 
   /* proper values */
 

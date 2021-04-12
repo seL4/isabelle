@@ -39,10 +39,7 @@ object Scala
   {
     override def multi: Boolean = false
     override def apply(args: List[String]): List[String] =
-      args match {
-        case List(arg) => List(apply(arg))
-        case _ => error("Expected single argument for Scala function " + quote(name))
-      }
+      List(apply(Library.the_single(args)))
     def apply(arg: String): String
   }
 
