@@ -78,8 +78,7 @@ fun check_bash_function ctxt arg =
 (* directory and file operations *)
 
 val absolute_path = Path.implode o File.absolute_path;
-fun scala_function0 name = ignore o Scala.function1 name o cat_strings0;
-fun scala_function name = scala_function0 name o map absolute_path;
+fun scala_function name = ignore o Scala.function name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);
 
@@ -88,8 +87,8 @@ fun copy_dir src dst = scala_function "copy_dir" [src, dst];
 fun copy_file src dst = scala_function "copy_file" [src, dst];
 
 fun copy_file_base (base_dir, src) target_dir =
-  scala_function0 "copy_file_base"
-    [absolute_path base_dir, Path.implode src, absolute_path target_dir];
+  ignore (Scala.function "copy_file_base"
+    [absolute_path base_dir, Path.implode src, absolute_path target_dir]);
 
 
 (* tmp files *)
