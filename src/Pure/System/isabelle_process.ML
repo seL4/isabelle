@@ -106,7 +106,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     (* messages *)
 
     val message_channel = Message_Channel.make out_stream;
-    val message = Message_Channel.send_message message_channel;
+    val message = Message_Channel.message message_channel;
 
     fun standard_message props name ss =
       if forall (fn s => s = "") ss then ()

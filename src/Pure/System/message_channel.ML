@@ -7,43 +7,39 @@ Preferably asynchronous channel for Isabelle messages.
 signature MESSAGE_CHANNEL =
 sig
   type T
-  val send_message: T -> string -> Properties.T -> XML.body list -> unit
   val shutdown: T -> unit
+  val message: T -> string -> Properties.T -> XML.body list -> unit
   val make: BinIO.outstream -> T
 end;
 
 structure Message_Channel: MESSAGE_CHANNEL =
 struct
 
-datatype message = Message of XML.body list;
-datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
+datatype message = Shutdown | Message of XML.body list;
 
-fun send_message (Message_Channel {send, ...}) name raw_props chunks =
+datatype T = Message_Channel of {mbox: message Mailbox.T, thread: Thread.thread};
+
+fun shutdown (Message_Channel {mbox, thread}) =
+ (Mailbox.send mbox Shutdown;
+  Mailbox.await_empty mbox;
+  Isabelle_Thread.join thread);
+
+fun message (Message_Channel {mbox, ...}) name raw_props chunks =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
     val header = [XML.Elem ((name, robust_props), [])];
-  in send (Message (header :: chunks)) end;
-
-fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
-
-fun message_output mbox stream =
-  let
-    fun continue () = Mailbox.receive NONE mbox |> received
-    and received [] = continue ()
-      | received (NONE :: _) = ()
-      | received (SOME (Message chunks) :: rest) =
-          (Byte_Message.write_message_yxml stream chunks; received rest);
-  in continue end;
+  in Mailbox.send mbox (Message (header :: chunks)) end;
 
 fun make stream =
   let
     val mbox = Mailbox.create ();
+    fun loop () = Mailbox.receive NONE mbox |> dispatch
+    and dispatch [] = loop ()
+      | dispatch (Shutdown :: _) = ()
+      | dispatch (Message chunks :: rest) =
+          (Byte_Message.write_message_yxml stream chunks; dispatch rest);
     val thread =
-      Isabelle_Thread.fork {name = "channel", stack_limit = NONE, interrupts = false}
-        (message_output mbox stream);
-    fun send msg = Mailbox.send mbox (SOME msg);
-    fun shutdown () =
-      (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Isabelle_Thread.join thread);
-  in Message_Channel {send = send, shutdown = shutdown} end;
+      Isabelle_Thread.fork {name = "message_channel", stack_limit = NONE, interrupts = false} loop;
+  in Message_Channel {mbox = mbox, thread = thread} end;
 
 end;
