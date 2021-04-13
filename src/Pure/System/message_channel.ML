@@ -6,10 +6,8 @@ Preferably asynchronous channel for Isabelle messages.
 
 signature MESSAGE_CHANNEL =
 sig
-  type message
-  val message: string -> Properties.T -> XML.body list -> message
   type T
-  val send: T -> message -> unit
+  val send_message: T -> string -> Properties.T -> XML.body list -> unit
   val shutdown: T -> unit
   val make: BinIO.outstream -> T
 end;
@@ -17,22 +15,15 @@ end;
 structure Message_Channel: MESSAGE_CHANNEL =
 struct
 
-(* message *)
-
 datatype message = Message of XML.body list;
+datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 
-fun message name raw_props chunks =
+fun send_message (Message_Channel {send, ...}) name raw_props chunks =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
     val header = [XML.Elem ((name, robust_props), [])];
-  in Message (header :: chunks) end;
+  in send (Message (header :: chunks)) end;
 
-
-(* channel *)
-
-datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
-
-fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
 fun message_output mbox stream =

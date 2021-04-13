@@ -105,10 +105,8 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     (* messages *)
 
-    val msg_channel = Message_Channel.make out_stream;
-
-    fun message name props chunks =
-      Message_Channel.send msg_channel (Message_Channel.message name props chunks);
+    val message_channel = Message_Channel.make out_stream;
+    val message = Message_Channel.send_message message_channel;
 
     fun standard_message props name ss =
       if forall (fn s => s = "") ss then ()
@@ -178,7 +176,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     val _ = Future.shutdown ();
     val _ = Execution.reset ();
-    val _ = Message_Channel.shutdown msg_channel;
+    val _ = Message_Channel.shutdown message_channel;
     val _ = BinIO.closeIn in_stream;
     val _ = BinIO.closeOut out_stream;
 
