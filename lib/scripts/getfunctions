@@ -21,15 +21,8 @@ fi
 export -f platform_path standard_path
 
 #GNU tar (notably on macOS)
-if type -p gnutar >/dev/null
-then
-  function tar() { gnutar "$@"; }
-  export -f tar
-elif type -p gtar >/dev/null
-then
-  function tar() { gtar "$@"; }
-  export -f tar
-fi
+function tar() { "${ISABELLE_TAR:-false}" "$@"; }
+export -f tar
 
 #OCaml management via OPAM
 function isabelle_opam ()
