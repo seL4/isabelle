@@ -386,9 +386,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
-            val getsettings = release.isabelle + Path.explode("lib/scripts/getsettings")
+            val isabelle_id = release.isabelle + Path.explode("etc/ISABELLE_ID")
             execute_tar(tmp_dir, "-xzf " +
-              File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
+              File.bash_path(release.isabelle_archive) + " " + File.bash_path(isabelle_id))
             Isabelle_System.isabelle_id(root = tmp_dir + release.isabelle)
           })
 
