@@ -17,8 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           display complete environment"
   echo "    -b           print values only (doesn't work for -a)"
-  echo "    -d FILE      dump complete environment to FILE"
-  echo "                 (null terminated entries)"
+  echo "    -d FILE      dump complete environment to file (NUL terminated entries)"
   echo
   echo "  Get value of VARNAMES from the Isabelle settings."
   echo
@@ -78,6 +77,5 @@ fi
 
 if [ -n "$DUMP" ]; then
   export PATH_JVM="$(platform_path "$PATH")"
-  exec perl -w -e 'for $key (keys %ENV) { print $key, "=", $ENV{$key}, "\x00"; }' > "$DUMP"
+  "$ISABELLE_PRINTENV" -0 > "$DUMP"
 fi
-

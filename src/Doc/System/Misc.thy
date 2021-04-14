@@ -220,8 +220,7 @@ text \<open>The Isabelle settings environment --- as provided by the
   Options are:
     -a           display complete environment
     -b           print values only (doesn't work for -a)
-    -d FILE      dump complete environment to FILE
-                 (null terminated entries)
+    -d FILE      dump complete environment to file (NUL terminated entries)
 
   Get value of VARNAMES from the Isabelle settings.\<close>}
 
@@ -232,8 +231,11 @@ text \<open>The Isabelle settings environment --- as provided by the
   to be printed.
 
   Option \<^verbatim>\<open>-d\<close> produces a dump of the complete environment to the specified
-  file. Entries are terminated by the ASCII null character, i.e.\ the C string
-  terminator.
+  file. Entries are terminated by the ASCII NUL character, i.e.\ the string
+  terminator in C. Thus the Isabelle/Scala operation
+  \<^scala_method>\<open>isabelle.Isabelle_System.init\<close> can import the settings
+  environment robustly, and provide its own
+  \<^scala_method>\<open>isabelle.Isabelle_System.getenv\<close> function.
 \<close>
 
 
