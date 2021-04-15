@@ -342,24 +342,22 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
-
-    fun strip (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t)) = strip t
-      | strip t = t;
-    val {goal = st, ...} = Proof.raw_goal state;
-    val (gi, frees) = Logic.goal_params (Thm.prop_of st) i;
     val opt_locale = Named_Target.bottom_locale_of ctxt;
+    fun axioms_of locale =
+      (case fst (Locale.specification_of thy locale) of
+        NONE => []
+      | SOME t => the_default [] (all_axioms_of ctxt t));
+    val config = locale_config_of (Config.get ctxt locale);
     val assms =
       if Config.get ctxt no_assms then []
       else
         (case opt_locale of
           NONE => Assumption.all_assms_of ctxt
         | SOME locale => Assumption.local_assms_of ctxt (Locale.init locale thy));
-    val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
-    fun axioms_of locale =
-      (case fst (Locale.specification_of thy locale) of
-        NONE => []
-      | SOME t => the_default [] (all_axioms_of ctxt t));
-    val config = locale_config_of (Config.get ctxt locale);
+    val {goal = st, ...} = Proof.raw_goal state;
+    val (gi, _) = Logic.goal_params (Thm.prop_of st) i;
+    val ((_, raw_goal), ctxt') = Variable.focus NONE gi ctxt;
+    val proto_goal = Logic.list_implies (map Thm.term_of assms, raw_goal);
     val goals =
       (case opt_locale of
         NONE => [(proto_goal, eval_terms)]
@@ -373,11 +371,11 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
                 (Locale.registrations_of (Context.Theory thy) (* FIXME !? *) locale))
             else I) config []);
     val _ =
-      verbose_message ctxt
+      verbose_message ctxt'
         (Pretty.string_of
-          (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term ctxt o fst) goals)));
+          (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term ctxt' o fst) goals)));
   in
-    test_terms ctxt (time_limit, is_interactive) insts goals
+    test_terms ctxt' (time_limit, is_interactive) insts goals
   end;
 
 
