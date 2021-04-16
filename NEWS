@@ -92,6 +92,13 @@ hypotheses and named premises.  INCOMPATIBILITY.
 the given ML expression, in contrast to functions "try" and "can" that
 modify application of a function.
 
+* ML antiquotations for conditional ML text:
+
+    \<^if_linux>\<open>...\<close>
+    \<^if_macos>\<open>...\<close>
+    \<^if_windows>\<open>...\<close>
+    \<^if_unix>\<open>...\<close>
+
 * External bash processes are always managed by Isabelle/Scala, in
 contrast to Isabelle2021 where this was only done for macOS on Apple
 Silicon.

@@ -34,7 +34,12 @@ val _ = Theory.setup
   ML_Antiquotation.value \<^binding>\<open>rat\<close>
     (Scan.lift (Scan.optional (Args.$$$ "~" >> K ~1) 1 -- Parse.nat --
       Scan.optional (Args.$$$ "/" |-- Parse.nat) 1) >> (fn ((sign, a), b) =>
-        "Rat.make " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int (sign * a, b))))
+        "Rat.make " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int (sign * a, b))) #>
+
+  ML_Antiquotation.conditional \<^binding>\<open>if_linux\<close> (fn _ => ML_System.platform_is_linux) #>
+  ML_Antiquotation.conditional \<^binding>\<open>if_macos\<close> (fn _ => ML_System.platform_is_macos) #>
+  ML_Antiquotation.conditional \<^binding>\<open>if_windows\<close> (fn _ => ML_System.platform_is_windows) #>
+  ML_Antiquotation.conditional \<^binding>\<open>if_unix\<close> (fn _ => ML_System.platform_is_unix));
 
 
 (* formal entities *)

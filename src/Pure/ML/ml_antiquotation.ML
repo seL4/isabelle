@@ -19,6 +19,7 @@ sig
   val value: binding -> string context_parser -> theory -> theory
   val value_embedded: binding -> string context_parser -> theory -> theory
   val special_form: binding -> string -> theory -> theory
+  val conditional: binding -> (Proof.context -> bool) -> theory -> theory
 end;
 
 structure ML_Antiquotation: ML_ANTIQUOTATION =
@@ -64,7 +65,7 @@ fun value_embedded name = gen_value name true;
 end;
 
 
-(* ML special form *)
+(* ML macros *)
 
 fun special_form binding operator =
   ML_Context.add_antiquotation binding true
@@ -84,6 +85,15 @@ fun special_form binding operator =
               tokenize (" = " ^ operator ^ " expr; in result end");
           in (ml_env, ml_body') end;
       in (decl', ctxt') end);
+
+fun conditional binding check =
+  ML_Context.add_antiquotation binding true
+    (fn _ => fn src => fn ctxt =>
+      let val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt in
+        if check ctxt then
+          ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt
+        else (K ([], []), ctxt)
+      end);
 
 
 (* basic antiquotations *)

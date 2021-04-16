@@ -491,3 +491,8 @@
 \<^computation>         argument: cartouche
 \<^computation_conv>    argument: cartouche
 \<^computation_check>   argument: cartouche
+\<^if_linux>            argument: cartouche
+\<^if_macos>            argument: cartouche
+\<^if_windows>          argument: cartouche
+\<^if_unix>             argument: cartouche
+

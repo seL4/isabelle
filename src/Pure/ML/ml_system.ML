@@ -8,7 +8,10 @@ signature ML_SYSTEM =
 sig
   val name: string
   val platform: string
+  val platform_is_linux: bool
+  val platform_is_macos: bool
   val platform_is_windows: bool
+  val platform_is_unix: bool
   val platform_is_64: bool
   val platform_is_arm: bool
   val platform_path: string -> string
@@ -20,7 +23,11 @@ struct
 
 val SOME name = OS.Process.getEnv "ML_SYSTEM";
 val SOME platform = OS.Process.getEnv "ML_PLATFORM";
+
+val platform_is_linux = String.isSuffix "linux" platform;
+val platform_is_macos = String.isSuffix "darwin" platform;
 val platform_is_windows = String.isSuffix "windows" platform;
+val platform_is_unix = platform_is_linux orelse platform_is_macos;
 val platform_is_64 = String.isPrefix "x86_64-" platform;
 val platform_is_arm = String.isPrefix "arm64-" platform;
 
