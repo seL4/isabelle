@@ -21,16 +21,17 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -C           force clean working directory (no backup!)"
+  echo "    -L           local history only: no pull from repository server"
   echo "    -R           version is current official release"
   echo "    -U URL       Isabelle repository server"
   echo "                 (default: \"$ISABELLE_REPOS\")"
-  echo "    -V PATH      version from explicit file, or directory that contains"
-  echo "                 the file \"ISABELLE_VERSION\""
+  echo "    -V PATH      version is taken from file, or directory"
+  echo "                 with file \"ISABELLE_VERSION\""
   echo "    -c           check clean working directory"
   echo "    -f           fresh build of Isabelle/Scala/jEdit"
   echo "    -n           no build of Isabelle/Scala/jEdit"
-  echo "    -r REV       version in Mercurial notation (changeset id or tag)"
-  echo "    -u           version is latest tip from repository server or local clone"
+  echo "    -r REV       version given in Mercurial notation (changeset id or tag)"
+  echo "    -t           version is latest tip"
   echo
   echo "  Initialize the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
@@ -51,6 +52,7 @@ function fail()
 #options
 
 BUILD_OPTIONS="-b"
+PULL="true"
 
 CLEAN_FORCE=""
 CLEAN_CHECK=""
@@ -60,11 +62,14 @@ VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CRU:V:cfnr:u" OPT
+while getopts "CLRU:V:cfnr:t" OPT
 do
   case "$OPT" in
     C)
       CLEAN_FORCE="--clean"
+      ;;
+    L)
+      PULL=""
       ;;
     R)
       VERSION="true"
@@ -96,7 +101,7 @@ do
       VERSION_PATH=""
       VERSION_REV="$OPTARG"
       ;;
-    u)
+    t)
       VERSION="true"
       VERSION_RELEASE=""
       VERSION_PATH=""
@@ -151,10 +156,12 @@ else
   export HGPLAIN=
 
   #Atomic exec: avoid inplace update of running script!
-  export CLEAN_FORCE CLEAN_CHECK REV ISABELLE_REPOS BUILD_OPTIONS
+  export PULL CLEAN_FORCE CLEAN_CHECK REV ISABELLE_REPOS BUILD_OPTIONS
   exec bash -c '
     set -e
-    "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
+    if [ -n "$PULL" ]; then
+      "${HG:-hg}" -R "$ISABELLE_HOME" pull -r "$REV" "$ISABELLE_REPOS"
+    fi
     "${HG:-hg}" -R "$ISABELLE_HOME" update -r "$REV" $CLEAN_FORCE $CLEAN_CHECK
     "$ISABELLE_HOME/bin/isabelle" components -a
     if [ -n "$BUILD_OPTIONS" ]; then
