@@ -32,7 +32,7 @@ function usage()
   echo "    -f           fresh build of Isabelle/Scala/jEdit"
   echo "    -n           no build of Isabelle/Scala/jEdit"
   echo "    -r REV       version given in Mercurial notation (changeset id or tag)"
-  echo "    -t           version is latest tip"
+  echo "    -u           update to latest tip"
   echo
   echo "  Initialize the current ISABELLE_HOME directory, which needs to be a"
   echo "  repository clone (all versions) or repository archive (fixed version)."
@@ -65,7 +65,7 @@ VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CI:LRU:V:cfnr:t" OPT
+while getopts "CI:LRU:V:cfnr:u" OPT
 do
   case "$OPT" in
     C)
@@ -112,7 +112,7 @@ do
       VERSION_PATH=""
       VERSION_REV="$OPTARG"
       ;;
-    t)
+    u)
       VERSION="true"
       VERSION_RELEASE=""
       VERSION_PATH=""
