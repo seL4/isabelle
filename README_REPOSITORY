@@ -29,7 +29,7 @@ Quick start in 30min
     isabelle/Admin/init -u -L
 
     #explicit changeset id or tag (e.g. "Isabelle2021")
-    isabelle/Admin/init -r 1d4c9fa00821
+    isabelle/Admin/init -r 479e9b17090e
 
 4. Run application:
 
