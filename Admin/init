@@ -21,6 +21,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -C           force clean working directory (no backup!)"
+  echo "    -I NAME      set \$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER (or reset via -I:)"
   echo "    -L           local history only: no pull from repository server"
   echo "    -R           version is current official release"
   echo "    -U URL       Isabelle repository server"
@@ -52,6 +53,8 @@ function fail()
 #options
 
 BUILD_OPTIONS="-b"
+UPDATE_IDENTIFIER=""
+IDENTIFIER=""
 PULL="true"
 
 CLEAN_FORCE=""
@@ -62,11 +65,19 @@ VERSION_RELEASE=""
 VERSION_PATH=""
 VERSION_REV=""
 
-while getopts "CLRU:V:cfnr:t" OPT
+while getopts "CI:LRU:V:cfnr:t" OPT
 do
   case "$OPT" in
     C)
       CLEAN_FORCE="--clean"
+      ;;
+    I)
+      UPDATE_IDENTIFIER="true"
+      if [ "$OPTARG" = ":" ]; then
+        IDENTIFIER=""
+      else
+        IDENTIFIER="$OPTARG"
+      fi
       ;;
     L)
       PULL=""
@@ -122,6 +133,24 @@ shift $(($OPTIND - 1))
 
 
 ## main
+
+if [ -f "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER" ]; then
+  OLD_IDENTIFIER="$(cat "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER")"
+else
+  OLD_IDENTIFIER=""
+fi
+
+if [ -n "$UPDATE_IDENTIFIER" -a "$IDENTIFIER" != "$OLD_IDENTIFIER" ]; then
+  OLD_ISABELLE_HOME_USER="$("$ISABELLE_HOME/bin/isabelle" getenv -b ISABELLE_HOME_USER)"
+  if [ -n "$IDENTIFIER" ]; then
+    echo -n "$IDENTIFIER" > "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER"
+  else
+    rm -f "$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER"
+  fi
+  ISABELLE_HOME_USER="$("$ISABELLE_HOME/bin/isabelle" getenv -b ISABELLE_HOME_USER)"
+  echo "Changed \$ISABELLE_HOME/etc/ISABELLE_IDENTIFIER: \"$OLD_IDENTIFIER\" ~> \"$IDENTIFIER\""
+  echo "Changed \$ISABELLE_HOME_USER: \"$OLD_ISABELLE_HOME_USER\" ~> \"$ISABELLE_HOME_USER\""
+fi
 
 if [ -z "$VERSION" ]; then
   "$ISABELLE_HOME/bin/isabelle" components -I || exit "?$"
