@@ -74,10 +74,27 @@ text %mlref \<open>
 section \<open>Conversions \label{sec:conv}\<close>
 
 text \<open>
-  %FIXME
+  The classic article @{cite "paulson:1983"} introduces the concept of
+  conversion for Cambridge LCF. This was historically important to implement
+  all kinds of ``simplifiers'', but the Isabelle Simplifier is done quite
+  differently, see @{cite \<open>\S9.3\<close> "isabelle-isar-ref"}.
+\<close>
 
-  The classic article that introduces the concept of conversion (for Cambridge
-  LCF) is @{cite "paulson:1983"}.
+text %mlref \<open>
+  \begin{mldecls}
+  @{index_ML_structure Conv} \\
+  @{index_ML_type conv} \\
+  @{index_ML Simplifier.asm_full_rewrite : "Proof.context -> conv"} \\
+  \end{mldecls}
+
+  \<^descr> \<^ML_structure>\<open>Conv\<close> is a library of combinators to build conversions,
+  over type \<^ML_type>\<open>conv\<close> (see also \<^file>\<open>~~/src/Pure/conv.ML\<close>). This is one
+  of the few Isabelle/ML modules that are usually used with \<^verbatim>\<open>open\<close>: finding
+  examples works by searching for ``\<^verbatim>\<open>open Conv\<close>'' instead of ``\<^verbatim>\<open>Conv.\<close>''.
+
+  \<^descr> \<^ML>\<open>Simplifier.asm_full_rewrite\<close> invokes the Simplifier as a
+  conversion. There are a few related operations, corresponding to the various
+  modes of simplification.
 \<close>
 
 
