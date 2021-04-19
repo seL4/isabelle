@@ -94,13 +94,19 @@ next
   proof cases
     assume "x < a"
     show ?thesis
-    proof cases (* For readability; could be automated more: *)
-      assume *: "l \<noteq> Leaf \<and> color l = Black"
-      hence "bheight l > 0" using neq_LeafD[of l] by auto
-      thus ?thesis using \<open>x < a\<close> "2.IH"(1) "2.prems" inv_baldL[of "del x l"] * by(auto)
+    proof cases (* For readability; is automated more (below) *)
+      assume "l = Leaf" thus ?thesis using \<open>x < a\<close> "2.prems" by(auto)
     next
-      assume "\<not>(l \<noteq> Leaf \<and> color l = Black)"
-      thus ?thesis using \<open>x < a\<close> "2.prems" "2.IH"(1) by(auto)
+      assume l: "l \<noteq> Leaf"
+      show ?thesis
+      proof (cases "color l")
+        assume *: "color l = Black"
+        hence "bheight l > 0" using l neq_LeafD[of l] by auto
+        thus ?thesis using \<open>x < a\<close> "2.IH"(1) "2.prems" inv_baldL[of "del x l"] * l by(auto)
+      next
+        assume "color l = Red"
+        thus ?thesis using \<open>x < a\<close> "2.prems" "2.IH"(1) by(auto)
+      qed
     qed
   next (* more automation: *)
     assume "\<not> x < a"
