@@ -146,7 +146,7 @@ text \<open>
   is no way to escape ``\<^verbatim>\<open>*}\<close>''. Cartouches do not have this limitation.
 
   A @{syntax_ref cartouche} consists of arbitrary text, with properly balanced
-  blocks of ``\<^verbatim>\<open>\<open>\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>\<close>\<close>''. Note that the rendering
+  blocks of ``@{verbatim "\<open>"}~\<open>\<dots>\<close>~@{verbatim "\<close>"}''. Note that the rendering
   of cartouche delimiters is usually like this: ``\<open>\<open> \<dots> \<close>\<close>''.
 
   Source comments take the form \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> and may be nested: the text is
