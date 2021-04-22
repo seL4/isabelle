@@ -466,7 +466,11 @@ object Isabelle_System
     redirect: Boolean = false): Process =
   {
     val proc = new ProcessBuilder
-    proc.command(command_line.asJava)  // fragile on Windows
+
+    // fragile on Windows:
+    // see https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args?view=msvc-160
+    proc.command(command_line.asJava)
+
     if (cwd != null) proc.directory(cwd)
     if (env != null) {
       proc.environment.clear()
