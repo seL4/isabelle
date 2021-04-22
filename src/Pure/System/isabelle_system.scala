@@ -13,6 +13,7 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
 
+import scala.jdk.CollectionConverters._
 
 
 object Isabelle_System
@@ -465,7 +466,7 @@ object Isabelle_System
     redirect: Boolean = false): Process =
   {
     val proc = new ProcessBuilder
-    proc.command(command_line:_*)  // fragile on Windows
+    proc.command(command_line.asJava)  // fragile on Windows
     if (cwd != null) proc.directory(cwd)
     if (env != null) {
       proc.environment.clear()
