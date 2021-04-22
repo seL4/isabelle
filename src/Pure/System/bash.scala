@@ -89,17 +89,17 @@ object Bash
 
     // signals
 
-    private val pid = stdout.readLine
+    private val group_pid = stdout.readLine
 
-    @tailrec private def kill(signal: String, count: Int = 1): Boolean =
+    @tailrec private def signal(s: String, count: Int = 1): Boolean =
     {
       count <= 0 ||
       {
-        Isabelle_System.kill(signal, pid)
-        val running = Isabelle_System.kill("0", pid)._2 == 0
+        Isabelle_System.process_signal(group_pid, signal = s)
+        val running = Isabelle_System.process_signal(group_pid)
         if (running) {
           Time.seconds(0.1).sleep
-          kill(signal, count - 1)
+          signal(s, count - 1)
         }
         else false
       }
@@ -107,14 +107,14 @@ object Bash
 
     def terminate(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
+      signal("INT", count = 7) && signal("TERM", count = 3) && signal("KILL")
       proc.destroy()
       do_cleanup()
     }
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      Isabelle_System.kill("INT", pid)
+      Isabelle_System.process_signal(group_pid, "INT")
     }
 
 
