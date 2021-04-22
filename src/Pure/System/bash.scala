@@ -11,6 +11,7 @@ import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
 
 import scala.annotation.tailrec
+import scala.jdk.OptionConverters._
 
 
 object Bash
@@ -91,12 +92,18 @@ object Bash
 
     private val group_pid = stdout.readLine
 
+    private val initial_process: Option[ProcessHandle] =
+      if (Platform.is_unix) ProcessHandle.of(Value.Long.parse(group_pid)).toScala
+      else None
+
     @tailrec private def signal(s: String, count: Int = 1): Boolean =
     {
       count <= 0 ||
       {
         Isabelle_System.process_signal(group_pid, signal = s)
-        val running = Isabelle_System.process_signal(group_pid)
+        val running =
+          (initial_process.isDefined && initial_process.get.isAlive) ||
+          Isabelle_System.process_signal(group_pid)
         if (running) {
           Time.seconds(0.1).sleep
           signal(s, count - 1)
