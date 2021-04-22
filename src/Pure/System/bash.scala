@@ -70,7 +70,7 @@ object Bash
 
     private val proc =
       Isabelle_System.process(
-        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
+        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
         cwd = cwd, env = env, redirect = redirect)
 

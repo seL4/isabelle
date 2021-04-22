@@ -36,16 +36,16 @@ TARGET="$1"; shift
 mkdir -p "$TARGET"
 
 case "$TARGET" in
+  arm64-linux)
+    cc -Wall bash_process.c -o "$TARGET/bash_process"
+    ;;
   x86_64-linux | x86_64-darwin)
     cc -Wall -m64 bash_process.c -o "$TARGET/bash_process"
     ;;
-  x86-linux | x86-darwin)
-    cc -Wall -m32 bash_process.c -o "$TARGET/bash_process"
-    ;;
-  x86_64-cygwin | x86-cygwin)
+  x86_64-cygwin)
     cc -Wall bash_process.c -o "$TARGET/bash_process.exe"
     ;;
   *)
-    cc -Wall bash_process.c -o "$TARGET/bash_process"
+    fail "Bad target platform: \"$TARGET\""
     ;;
 esac

@@ -37,13 +37,12 @@ int main(int argc, char *argv[])
 {
   /* args */
 
-  if (argc < 3) {
-    fprintf(stderr, "Bad arguments: PID_FILE and TIMING_FILE required\n");
+  if (argc < 2) {
+    fprintf(stderr, "Bad arguments: missing TIMING_FILE\n");
     fflush(stderr);
     exit(1);
   }
-  char *pid_name = argv[1];
-  char *timing_name = argv[2];
+  char *timing_name = argv[1];
 
 
   /* potential fork */
@@ -101,26 +100,16 @@ int main(int argc, char *argv[])
 
   /* report pid */
 
-  if (strcmp(pid_name, "-") == 0) {
-    fprintf(stdout, "%d\n", getpid());
-    fflush(stdout);
-  }
-  else if (strlen(pid_name) > 0) {
-    FILE *pid_file;
-    pid_file = fopen(pid_name, "w");
-    if (pid_file == NULL) fail("Cannot open pid file");
-    fprintf(pid_file, "%d", getpid());
-    fclose(pid_file);
-  }
+  fprintf(stdout, "%d\n", getpid());
+  fflush(stdout);
 
 
   /* shift command line */
 
   int i;
-  for (i = 3; i < argc; i++) {
-    argv[i - 3] = argv[i];
+  for (i = 2; i < argc; i++) {
+    argv[i - 2] = argv[i];
   }
-  argv[argc - 3] = NULL;
   argv[argc - 2] = NULL;
   argv[argc - 1] = NULL;
 
