@@ -1713,7 +1713,8 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma count_image_mset: "count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)"
+lemma count_image_mset:
+  \<open>count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)\<close>
 proof (induction A)
   case empty
   then show ?case by simp
@@ -1724,6 +1725,10 @@ next
   ultimately show ?case
     by (auto simp: sum.distrib intro!: sum.mono_neutral_left)
 qed
+
+lemma count_image_mset':
+  \<open>count (image_mset f X) y = (\<Sum>x | x \<in># X \<and> y = f x. count X x)\<close>
+  by (auto simp add: count_image_mset simp flip: singleton_conv2 simp add: Collect_conj_eq ac_simps)
 
 lemma image_mset_subseteq_mono: "A \<subseteq># B \<Longrightarrow> image_mset f A \<subseteq># image_mset f B"
   by (metis image_mset_union subset_mset.le_iff_add)
@@ -3788,6 +3793,10 @@ lemma rel_mset'_imp_rel_mset: "rel_mset' R M N \<Longrightarrow> rel_mset R M N"
 
 lemma rel_mset_size: "rel_mset R M N \<Longrightarrow> size M = size N"
   unfolding multiset.rel_compp_Grp Grp_def by auto
+
+lemma rel_mset_Zero_iff [simp]:
+  shows "rel_mset rel {#} Y \<longleftrightarrow> Y = {#}" and "rel_mset rel X {#} \<longleftrightarrow> X = {#}"
+  by (auto simp add: rel_mset_Zero dest: rel_mset_size)
 
 lemma multiset_induct2[case_names empty addL addR]:
   assumes empty: "P {#} {#}"

@@ -675,6 +675,23 @@ lemma bij_betw_disjoint_Un:
   shows "bij_betw (\<lambda>x. if x \<in> A then f x else g x) (A \<union> B) (C \<union> D)"
   using assms by (auto simp: inj_on_disjoint_Un bij_betw_def)
 
+lemma involuntory_imp_bij:
+  \<open>bij f\<close> if \<open>\<And>x. f (f x) = x\<close>
+proof (rule bijI)
+  from that show \<open>surj f\<close>
+    by (rule surjI)
+  show \<open>inj f\<close>
+  proof (rule injI)
+    fix x y
+    assume \<open>f x = f y\<close>
+    then have \<open>f (f x) = f (f y)\<close>
+      by simp
+    then show \<open>x = y\<close>
+      by (simp add: that)
+  qed
+qed
+
+
 subsubsection \<open>Important examples\<close>
 
 context cancel_semigroup_add
