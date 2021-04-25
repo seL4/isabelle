@@ -33,7 +33,7 @@ exotic ones are unsupported: BSD, Solaris, NixOS.
 
 Official (full support):
 
-  x86_64-linux      Ubuntu 14.04 LTS
+  x86_64-linux      Ubuntu 16.04 LTS
 
   x86_64-darwin     macOS 10.13 High Sierra (lapbroy68 MacBookPro11,2)
                     macOS 10.14 Mojave (mini2 Macmini8,1)

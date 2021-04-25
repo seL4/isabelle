@@ -11,6 +11,7 @@ import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
 
 import scala.annotation.tailrec
+import scala.jdk.OptionConverters._
 
 
 object Bash
@@ -65,12 +66,22 @@ object Bash
     private val timing = Synchronized[Option[Timing]](None)
     def get_timing: Timing = timing.value getOrElse Timing.zero
 
-    private val script_file = Isabelle_System.tmp_file("bash_script")
-    File.write(script_file, script)
+    private val winpid_file: Option[JFile] =
+      if (Platform.is_windows) Some(Isabelle_System.tmp_file("bash_winpid")) else None
+    private val winpid_script =
+      winpid_file match {
+        case None => script
+        case Some(file) =>
+          "read < /proc/self/winpid > /dev/null 2> /dev/null\n" +
+          """echo -n "$REPLY" > """ + File.bash_path(file) + "\n\n" + script
+      }
+
+    private val script_file: JFile = Isabelle_System.tmp_file("bash_script")
+    File.write(script_file, winpid_script)
 
     private val proc =
       Isabelle_System.process(
-        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
+        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
         cwd = cwd, env = env, redirect = redirect)
 
@@ -89,17 +100,30 @@ object Bash
 
     // signals
 
-    private val pid = stdout.readLine
+    private val group_pid = stdout.readLine
 
-    @tailrec private def kill(signal: String, count: Int = 1): Boolean =
+    private def process_alive(pid: String): Boolean =
+      (for {
+        p <- Value.Long.unapply(pid)
+        handle <- ProcessHandle.of(p).toScala
+      } yield handle.isAlive) getOrElse false
+
+    private def root_process_alive(): Boolean =
+      winpid_file match {
+        case None => process_alive(group_pid)
+        case Some(file) =>
+          file.exists() && process_alive(Library.trim_line(File.read(file)))
+      }
+
+    @tailrec private def signal(s: String, count: Int = 1): Boolean =
     {
       count <= 0 ||
       {
-        Isabelle_System.kill(signal, pid)
-        val running = Isabelle_System.kill("0", pid)._2 == 0
+        Isabelle_System.process_signal(group_pid, signal = s)
+        val running = root_process_alive() || Isabelle_System.process_signal(group_pid)
         if (running) {
           Time.seconds(0.1).sleep
-          kill(signal, count - 1)
+          signal(s, count - 1)
         }
         else false
       }
@@ -107,14 +131,14 @@ object Bash
 
     def terminate(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      kill("INT", count = 7) && kill("TERM", count = 3) && kill("KILL")
+      signal("INT", count = 7) && signal("TERM", count = 3) && signal("KILL")
       proc.destroy()
       do_cleanup()
     }
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      Isabelle_System.kill("INT", pid)
+      Isabelle_System.process_signal(group_pid, "INT")
     }
 
 
@@ -133,7 +157,8 @@ object Bash
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }
 
-      script_file.delete
+      script_file.delete()
+      winpid_file.foreach(_.delete())
 
       timing.change {
         case None =>
@@ -211,7 +236,12 @@ object Bash
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] =
     {
-      val result = Exn.capture { Isabelle_System.bash(cat_lines(args)) }
+      val result =
+        Exn.capture {
+          val redirect = args.head == "true"
+          val script = cat_lines(args.tail)
+          Isabelle_System.bash(script, redirect = redirect)
+        }
 
       val is_interrupt =
         result match {

@@ -33,6 +33,10 @@ Isabelle/jEdit.
 \guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}
 (which is now also the default in "isabelle mkroot").
 
+* Simplified typesetting of \<guillemotleft>...\<guillemotright> using \guillemotleft ...
+\guillemotright from \usepackage[T1]{fontenc} --- \usepackage{babel} is
+no longer required.
+
 
 *** HOL ***
 

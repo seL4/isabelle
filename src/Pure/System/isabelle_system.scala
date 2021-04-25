@@ -13,6 +13,7 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
 
+import scala.jdk.CollectionConverters._
 
 
 object Isabelle_System
@@ -465,7 +466,11 @@ object Isabelle_System
     redirect: Boolean = false): Process =
   {
     val proc = new ProcessBuilder
-    proc.command(command_line:_*)  // fragile on Windows
+
+    // fragile on Windows:
+    // see https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args?view=msvc-160
+    proc.command(command_line.asJava)
+
     if (cwd != null) proc.directory(cwd)
     if (env != null) {
       proc.environment.clear()
@@ -491,12 +496,13 @@ object Isabelle_System
     (output, rc)
   }
 
-  def kill(signal: String, group_pid: String): (String, Int) =
+  def process_signal(group_pid: String, signal: String = "0"): Boolean =
   {
     val bash =
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\bash.exe")
       else List("/usr/bin/env", "bash")
-    process_output(process(bash ::: List("-c", "kill -" + signal + " -" + group_pid)))
+    val (_, rc) = process_output(process(bash ::: List("-c", "kill -" + signal + " -" + group_pid)))
+    rc == 0
   }
 
 
