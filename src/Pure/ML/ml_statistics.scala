@@ -70,7 +70,7 @@ object ML_Statistics
     val env_prefix =
       if (stats_dir.isEmpty) "" else "export POLYSTATSDIR=" + Bash.string(stats_dir) + "\n"
 
-    Bash.process(env_prefix + "exec \"$POLYML_EXE\" -q --use src/Pure/ML/ml_statistics.ML --eval " +
+    Bash.process(env_prefix + "\"$POLYML_EXE\" -q --use src/Pure/ML/ml_statistics.ML --eval " +
         Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
           ML_Syntax.print_double(delay.seconds)),
         cwd = Path.ISABELLE_HOME.file)

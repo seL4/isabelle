@@ -236,7 +236,12 @@ object Bash
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] =
     {
-      val result = Exn.capture { Isabelle_System.bash(cat_lines(args)) }
+      val result =
+        Exn.capture {
+          val redirect = args.head == "true"
+          val script = cat_lines(args.tail)
+          Isabelle_System.bash(script, redirect = redirect)
+        }
 
       val is_interrupt =
         result match {

@@ -7,6 +7,7 @@ Isabelle system support.
 signature ISABELLE_SYSTEM =
 sig
   val bash_process: string -> Process_Result.T
+  val bash_process_redirect: string -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
   val bash_functions: unit -> string list
@@ -34,9 +35,9 @@ struct
 
 (* bash *)
 
-fun bash_process script =
+fun invoke_bash_process redirect script =
   Scala.function "bash_process"
-    ["export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP"), script]
+    [Value.print_bool redirect, "export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP"), script]
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
       | a :: b :: c :: d :: lines =>
@@ -52,6 +53,9 @@ fun bash_process script =
               timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
          end
       | _ => raise Fail "Malformed Isabelle/Scala result");
+
+val bash_process = invoke_bash_process false;
+val bash_process_redirect = invoke_bash_process true;
 
 val bash = bash_process #> Process_Result.print #> Process_Result.rc;
 

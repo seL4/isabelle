@@ -25,4 +25,4 @@ function usage()
 
 [ "$1" = "-?" ] && usage
 
-exec /usr/bin/env "$@"
+/usr/bin/env "$@"

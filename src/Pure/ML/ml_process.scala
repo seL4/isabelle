@@ -124,7 +124,7 @@ object ML_Process
       use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
     Bash.process(
-      "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
+      options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
         Bash.strings(bash_args),
       cwd = cwd,
       env = env ++ env_options ++ env_tmp ++ env_functions,
