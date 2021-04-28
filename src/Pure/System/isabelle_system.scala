@@ -621,7 +621,9 @@ object Isabelle_System
 
   /* repositories */
 
-  val isabelle_repository: String = "https://isabelle.sketis.net/repos/isabelle"
+  val isabelle_repository: Mercurial.Address =
+    Mercurial.Address("https://isabelle.sketis.net/repos/isabelle")
 
-  val afp_repository: String = "https://isabelle.sketis.net/repos/afp-devel"
+  val afp_repository: Mercurial.Address =
+    Mercurial.Address("https://isabelle.sketis.net/repos/afp-devel")
 }

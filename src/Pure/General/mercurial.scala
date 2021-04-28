@@ -8,8 +8,6 @@ and working directory (via ssh connection).
 package isabelle
 
 
-import java.io.{File => JFile}
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 
@@ -17,6 +15,21 @@ import scala.collection.mutable
 object Mercurial
 {
   type Graph = isabelle.Graph[String, Unit]
+
+
+  /* HTTP server addresses */
+
+  object Address
+  {
+    def apply(root: String): Address = new Address(root)
+  }
+
+  final class Address private(val root: String)
+  {
+    override def toString: String = root
+
+    def rev(r: String): String = root + "/rev/" + r
+  }
 
 
   /* command-line syntax */
@@ -93,8 +106,9 @@ object Mercurial
     make_repository(root, "clone",
       options + " " + Bash.string(source) + " " + ssh.bash_path(root) + opt_rev(rev), ssh = ssh)
 
-  def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
+  def setup_repository(address: Address, root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
+    val source = address.root
     if (ssh.is_dir(root)) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
