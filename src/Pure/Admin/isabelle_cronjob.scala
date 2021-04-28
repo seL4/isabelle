@@ -22,7 +22,6 @@ object Isabelle_Cronjob
   val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
-  val isabelle_repos_source = "https://isabelle.sketis.net/repos/isabelle"
   val isabelle_repos: Path = main_dir + Path.explode("isabelle")
   val afp_repos: Path = main_dir + Path.explode("AFP")
 
@@ -48,8 +47,8 @@ object Isabelle_Cronjob
       {
         Isabelle_Devel.make_index()
 
-        Mercurial.setup_repository(isabelle_repos_source, isabelle_repos)
-        Mercurial.setup_repository(AFP.repos_source, afp_repos)
+        Mercurial.setup_repository(Isabelle_System.isabelle_repository, isabelle_repos)
+        Mercurial.setup_repository(Isabelle_System.afp_repository, afp_repos)
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))

@@ -759,10 +759,10 @@ rm -rf "${DIST_NAME}-old"
         } yield (bundle_info.name, bundle_info)
 
       val isabelle_link =
-        HTML.link(Isabelle_Cronjob.isabelle_repos_source + "/rev/" + release.ident,
+        HTML.link(Isabelle_System.isabelle_repository + "/rev/" + release.ident,
           HTML.text("Isabelle/" + release.ident))
       val afp_link =
-        HTML.link(AFP.repos_source + "/rev/" + afp_rev, HTML.text("AFP/" + afp_rev))
+        HTML.link(Isabelle_System.afp_repository + "/rev/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),

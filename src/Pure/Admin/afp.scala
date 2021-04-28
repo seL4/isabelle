@@ -13,8 +13,6 @@ import scala.collection.immutable.SortedMap
 
 object AFP
 {
-  val repos_source = "https://isabelle.sketis.net/repos/afp-devel"
-
   val groups: Map[String, String] =
     Map("large" -> "full 64-bit memory model or word arithmetic required",
       "slow" -> "CPU time much higher than 60min (on mid-range hardware)",

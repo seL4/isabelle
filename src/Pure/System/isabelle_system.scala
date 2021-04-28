@@ -617,4 +617,11 @@ object Isabelle_System
     override def invoke(args: List[Bytes]): List[Bytes] =
       args match { case List(url) => List(download(url.text).bytes) }
   }
+
+
+  /* repositories */
+
+  val isabelle_repository: String = "https://isabelle.sketis.net/repos/isabelle"
+
+  val afp_repository: String = "https://isabelle.sketis.net/repos/afp-devel"
 }
