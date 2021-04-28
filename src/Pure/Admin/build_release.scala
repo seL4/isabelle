@@ -340,8 +340,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
 
-  def build_release(base_dir: Path,
-    options: Options,
+  def build_release(options: Options,
+    target_dir: Path = Path.current,
     components_base: Path = Components.default_components_base,
     progress: Progress = new Progress,
     rev: String = "",
@@ -360,7 +360,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     {
       val date = Date.now()
       val dist_name = proper_release_name getOrElse ("Isabelle_" + Date.Format.date(date))
-      val dist_dir = (base_dir + Path.explode("dist-" + dist_name)).absolute
+      val dist_dir = (target_dir + Path.explode("dist-" + dist_name)).absolute
 
       val version = proper_string(rev) orElse proper_release_name getOrElse "tip"
       val ident =
@@ -824,6 +824,7 @@ rm -rf "${DIST_NAME}-old"
     Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base
+      var target_dir = Path.current
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
       var build_sessions: List[String] = Nil
@@ -841,6 +842,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -A REV       corresponding AFP changeset id
     -C DIR       base directory for Isabelle components (default: """ +
         Components.default_components_base + """)
+    -D DIR       target directory (default ".")
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
     -b SESSIONS  build platform-specific session images (separated by commas)
@@ -855,6 +857,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 """,
         "A:" -> (arg => afp_rev = arg),
         "C:" -> (arg => components_base = Path.explode(arg)),
+        "D:" -> (arg => target_dir = Path.explode(arg)),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),
         "b:" -> (arg => build_sessions = space_explode(',', arg)),
@@ -871,14 +874,14 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "r:" -> (arg => rev = arg))
 
       val more_args = getopts(args)
-      val base_dir = more_args match { case List(base_dir) => base_dir case _ => getopts.usage() }
+      if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress()
 
       if (platform_families.contains(Platform.Family.windows) && !Isabelle_System.bash("7z i").ok)
         error("Building for windows requires 7z")
 
-      build_release(Path.explode(base_dir), options, components_base = components_base,
+      build_release(options, target_dir = target_dir, components_base = components_base,
         progress = progress, rev = rev, afp_rev = afp_rev,
         proper_release_name = proper_release_name, website = website,
         platform_families =

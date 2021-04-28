@@ -40,11 +40,13 @@ object Isabelle_Devel
     afp_rev: String = "",
     parallel_jobs: Int = 1): Unit =
   {
-    Isabelle_System.with_tmp_dir("isadist")(base_dir =>
+    Isabelle_System.with_tmp_dir("isadist")(target_dir =>
       {
         Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
           website_dir =>
-            Build_Release.build_release(base_dir, options, rev = rev, afp_rev = afp_rev,
+            Build_Release.build_release(options, target_dir = target_dir,
+              rev = rev,
+              afp_rev = afp_rev,
               parallel_jobs = parallel_jobs,
               build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
               website = Some(website_dir)))
