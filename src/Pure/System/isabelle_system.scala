@@ -626,4 +626,8 @@ object Isabelle_System
 
   val afp_repository: Mercurial.Address =
     Mercurial.Address("https://isabelle.sketis.net/repos/afp-devel")
+
+  def official_releases(): List[String] =
+    Library.trim_split_lines(
+      isabelle_repository.read_file(Path.explode("Admin/Release/official")))
 }

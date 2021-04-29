@@ -28,7 +28,36 @@ object Mercurial
   {
     override def toString: String = root
 
-    def rev(r: String): String = root + "/rev/" + r
+    def changeset(rev: String = "tip", raw: Boolean = false): String =
+      root + (if (raw) "/raw-rev/" else "/rev/") + rev
+
+    def file(path: Path, rev: String = "tip", raw: Boolean = false): String =
+      root + (if (raw) "/raw-file/" else "/file/") + rev + "/" + path.expand.implode
+
+    def archive(rev: String = "tip"): String =
+      root + "/archive/" + rev + ".tar.gz"
+
+    def read_changeset(rev: String = "tip"): String =
+      Url.read(changeset(rev = rev, raw = true))
+
+    def read_file(path: Path, rev: String = "tip"): String =
+      Url.read(file(path, rev = rev, raw = true))
+
+    def download_archive(rev: String = "tip", progress: Progress = new Progress): HTTP.Content =
+      Isabelle_System.download(archive(rev = rev), progress = progress)
+
+    def download_dir(dir: Path, rev: String = "tip", progress: Progress = new Progress): Unit =
+    {
+      Isabelle_System.new_directory(dir)
+      Isabelle_System.with_tmp_file("rev", ext = ".tar.gz")(archive_path =>
+      {
+        val content = download_archive(rev = rev, progress = progress)
+        Bytes.write(archive_path, content.bytes)
+        progress.echo("Unpacking " + rev + ".tar.gz")
+        Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path) + " --strip-components=1",
+          dir = dir, original_owner = true).check
+      })
+    }
   }
 
 
