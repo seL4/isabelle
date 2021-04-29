@@ -17,16 +17,40 @@ object Mercurial
   type Graph = isabelle.Graph[String, Unit]
 
 
-  /* HTTP server addresses */
+  /* HTTP server */
 
-  object Address
+  object Server
   {
-    def apply(root: String): Address = new Address(root)
+    def apply(root: String): Server = new Server(root)
+
+    def start(root: Path): Server =
+    {
+      val hg = repository(root)
+
+      val server_process = Future.promise[Bash.Process]
+      val server_root = Future.promise[String]
+      Isabelle_Thread.fork("hg") {
+        val process =
+          Exn.capture { Bash.process(hg.command_line("serve", options = "--port 0 --print-url")) }
+        server_process.fulfill_result(process)
+        Exn.release(process).result(progress_stdout =
+          line => if (!server_root.is_finished) {
+            server_root.fulfill(Library.try_unsuffix("/", line).getOrElse(line))
+          })
+      }
+      server_process.join
+
+      new Server(server_root.join) {
+        override def close(): Unit = server_process.join.terminate()
+      }
+    }
   }
 
-  final class Address private(val root: String)
+  class Server private(val root: String) extends AutoCloseable
   {
     override def toString: String = root
+
+    def close(): Unit = ()
 
     def changeset(rev: String = "tip", raw: Boolean = false): String =
       root + (if (raw) "/raw-rev/" else "/rev/") + rev
@@ -135,9 +159,8 @@ object Mercurial
     make_repository(root, "clone",
       options + " " + Bash.string(source) + " " + ssh.bash_path(root) + opt_rev(rev), ssh = ssh)
 
-  def setup_repository(address: Address, root: Path, ssh: SSH.System = SSH.Local): Repository =
+  def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
-    val source = address.root
     if (ssh.is_dir(root)) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
@@ -151,14 +174,19 @@ object Mercurial
 
     override def toString: String = ssh.hg_url + root.implode
 
-    def command(name: String, args: String = "", options: String = "",
-      repository: Boolean = true): Process_Result =
+    def command_line(name: String, args: String = "", options: String = "",
+      repository: Boolean = true): String =
     {
-      val cmdline =
-        "export LANG=C HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
-          (if (repository) " --repository " + ssh.bash_path(root) else "") +
-          " --noninteractive " + name + " " + options + " " + args
-      ssh.execute(cmdline)
+      "export LANG=C HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
+        (if (repository) " --repository " + ssh.bash_path(root) else "") +
+        " --noninteractive " + name + " " + options + " " + args
+    }
+
+    def command(
+      name: String, args: String = "", options: String = "",
+      repository: Boolean = true):  Process_Result =
+    {
+      ssh.execute(command_line(name, args = args, options = options, repository = repository))
     }
 
     def add(files: List[Path]): Unit =

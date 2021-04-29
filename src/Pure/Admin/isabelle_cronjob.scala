@@ -47,8 +47,8 @@ object Isabelle_Cronjob
       {
         Isabelle_Devel.make_index()
 
-        Mercurial.setup_repository(Isabelle_System.isabelle_repository, isabelle_repos)
-        Mercurial.setup_repository(Isabelle_System.afp_repository, afp_repos)
+        Mercurial.setup_repository(Isabelle_System.isabelle_repository.root, isabelle_repos)
+        Mercurial.setup_repository(Isabelle_System.afp_repository.root, afp_repos)
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))

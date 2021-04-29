@@ -532,8 +532,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     ssh: SSH.Session,
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
-    isabelle_repository: Mercurial.Address = Isabelle_System.isabelle_repository,
-    afp_repository: Mercurial.Address = Isabelle_System.afp_repository,
+    isabelle_repository: Mercurial.Server = Isabelle_System.isabelle_repository,
+    afp_repository: Mercurial.Server = Isabelle_System.afp_repository,
     isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,
     progress: Progress = new Progress,
@@ -545,7 +545,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     /* Isabelle self repository */
 
     val self_hg =
-      Mercurial.setup_repository(isabelle_repository, isabelle_repos_self, ssh = ssh)
+      Mercurial.setup_repository(isabelle_repository.root, isabelle_repos_self, ssh = ssh)
 
     def execute(cmd: String, args: String, echo: Boolean = false, strict: Boolean = true): Unit =
       ssh.execute(
@@ -581,7 +581,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
       if (afp_rev.isEmpty) ""
       else {
         val afp_repos = isabelle_repos_other + Path.explode("AFP")
-        Mercurial.setup_repository(afp_repository, afp_repos, ssh = ssh)
+        Mercurial.setup_repository(afp_repository.root, afp_repos, ssh = ssh)
         " -A " + Bash.string(afp_rev.get)
       }
 
