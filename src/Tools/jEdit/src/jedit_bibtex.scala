@@ -20,7 +20,7 @@ import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler}
 
 import sidekick.{SideKickParser, SideKickParsedData}
 
@@ -82,10 +82,10 @@ object JEdit_Bibtex
 
   /* line context */
 
-  private val context_rules = new ParserRuleSet("bibtex", "MAIN")
+  private val mode_rule_set = Token_Markup.mode_rule_set("bibtex")
 
   private class Line_Context(val context: Option[Bibtex.Line_Context])
-    extends TokenMarker.LineContext(context_rules, null)
+    extends TokenMarker.LineContext(mode_rule_set, null)
   {
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
@@ -100,6 +100,8 @@ object JEdit_Bibtex
 
   class Token_Marker extends TokenMarker
   {
+    addRuleSet(mode_rule_set)
+
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {

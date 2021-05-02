@@ -22,6 +22,9 @@ object Token_Markup
 {
   /* line context */
 
+  def mode_rule_set(mode: String): ParserRuleSet =
+    new ParserRuleSet(mode, "MAIN")
+
   object Line_Context
   {
     def init(mode: String): Line_Context =
@@ -50,7 +53,7 @@ object Token_Markup
       val mode: String,
       val context: Option[Scan.Line_Context],
       val structure: Line_Structure)
-    extends TokenMarker.LineContext(new ParserRuleSet(mode, "MAIN"), null)
+    extends TokenMarker.LineContext(mode_rule_set(mode), null)
   {
     def get_context: Scan.Line_Context = context.getOrElse(Scan.Finished)
 
@@ -216,6 +219,8 @@ object Token_Markup
     protected val mode: String,
     protected val opt_buffer: Option[Buffer]) extends TokenMarker
   {
+    addRuleSet(mode_rule_set(mode))
+
     override def hashCode: Int = (mode, opt_buffer).hashCode
     override def equals(that: Any): Boolean =
       that match {
