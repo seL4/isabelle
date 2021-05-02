@@ -30,6 +30,9 @@ object Token_Markup
     def init(mode: String): Line_Context =
       new Line_Context(mode, Some(Scan.Finished), Line_Structure.init)
 
+    def refresh(buffer: JEditBuffer, line: Int): Unit =
+      buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+
     def before(buffer: JEditBuffer, line: Int): Line_Context =
       if (line == 0) init(JEdit_Lib.buffer_mode(buffer))
       else after(buffer, line - 1)
@@ -42,8 +45,9 @@ object Token_Markup
           case c: Line_Context => Some(c)
           case _ => None
         }
+
       context getOrElse {
-        buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+        refresh(buffer, line)
         context getOrElse init(JEdit_Lib.buffer_mode(buffer))
       }
     }

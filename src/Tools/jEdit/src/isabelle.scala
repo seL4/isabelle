@@ -362,7 +362,10 @@ object Isabelle
                     val start_line = text_area.getCaretLine + 1
                     text_area.setSelectedText("\n" + text)
                     val end_line = text_area.getCaretLine
-                    buffer.indentLines(start_line, end_line)
+                    for (line <- start_line to end_line) {
+                      Token_Markup.Line_Context.refresh(buffer, line)
+                      buffer.indentLine(line, true)
+                    }
                   }
                   else {
                     buffer.remove(start, range.length)
