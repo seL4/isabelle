@@ -1545,22 +1545,34 @@ fun print_cases_proof ctxt0 ctxt =
     fun is_case x t =
       x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);
 
-    fun print_proof (name, Rule_Cases.Case {fixes, binds, ...}) =
-      let
-        val concl =
-          if exists (fn ((x, _), SOME t) => is_case x t | _ => false) binds
-          then Rule_Cases.case_conclN else Auto_Bind.thesisN;
-      in
-        cat_lines
-          ["  case " ^ print_case name (map (Binding.name_of o #1) fixes),
-           "  then show ?" ^ concl ^ " sorry"]
-      end;
+    fun indentation depth = prefix (Symbol.spaces (2 * depth));
+
+    fun print_proof depth (name, Rule_Cases.Case {fixes, binds, cases, ...}) =
+          let
+            val indent = indentation depth;
+            val head = indent ("case " ^ print_case name (map (Binding.name_of o #1) fixes));
+            val tail =
+              if null cases then
+                let val concl =
+                  if exists (fn ((x, _), SOME t) => is_case x t | _ => false) binds
+                  then Rule_Cases.case_conclN else Auto_Bind.thesisN
+                in indent ("then show ?" ^ concl ^ " sorry") end
+              else print_proofs depth cases;
+          in head ^ "\n" ^ tail end
+    and print_proofs 0 [] = ""
+      | print_proofs depth cases =
+          let
+            val indent = indentation depth;
+            val body = map (print_proof (depth + 1)) cases |> separate (indent "next")
+          in
+            if depth = 0 then body @ [indent "qed"]
+            else if length cases = 1 then body
+            else indent "{" :: body @ [indent "}"]
+          end |> cat_lines;
   in
-    (case map print_proof (dest_cases (SOME ctxt0) ctxt) of
-      [] => ""
-    | proofs =>
-        "Proof outline with cases:\n" ^
-        Active.sendback_markup_command (space_implode "\nnext\n" proofs ^ "\nqed"))
+    (case print_proofs 0 (dest_cases (SOME ctxt0) ctxt) of
+      "" => ""
+    | s => "Proof outline with cases:\n" ^ Active.sendback_markup_command s)
   end;
 
 

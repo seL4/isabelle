@@ -27,6 +27,11 @@ See also the group "Z Notation" in the Symbols dockable of
 Isabelle/jEdit.
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* More robust 'proof' outline for method "induct": support nested cases.
+
+
 *** Document preparation ***
 
 * Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
