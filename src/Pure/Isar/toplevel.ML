@@ -634,7 +634,7 @@ fun transition int tr st =
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
         | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
-    val _ = get_hooks () |> List.app (fn f => (try (fn () => f tr st st') (); ()));
+    val _ = get_hooks () |> List.app (fn f => ignore \<^try>\<open>f tr st st'\<close>);
   in (st', opt_err') end;
 
 end;
