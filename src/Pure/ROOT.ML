@@ -238,6 +238,7 @@ ML_file "Thy/latex.ML";
 ML_file "ML/ml_context.ML";
 ML_file "ML/ml_antiquotation.ML";
 ML_file "ML/ml_compiler2.ML";
+ML_file "ML/ml_antiquotations1.ML";
 
 
 section "Bootstrap phase 3: towards theory Pure and final ML toplevel setup";
@@ -300,7 +301,7 @@ ML_file "System/isabelle_system.ML";
 (*theory documents*)
 ML_file "Thy/term_style.ML";
 ML_file "Isar/outer_syntax.ML";
-ML_file "ML/ml_antiquotations.ML";
+ML_file "ML/ml_antiquotations2.ML";
 ML_file "ML/ml_pid.ML";
 ML_file "Thy/document_antiquotation.ML";
 ML_file "Thy/thy_output.ML";

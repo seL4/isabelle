@@ -1,10 +1,10 @@
-(*  Title:      Pure/ML/ml_antiquotations.ML
+(*  Title:      Pure/ML/ml_antiquotations1.ML
     Author:     Makarius
 
-Miscellaneous ML antiquotations.
+Miscellaneous ML antiquotations: part 1.
 *)
 
-structure ML_Antiquotations: sig end =
+structure ML_Antiquotations1: sig end =
 struct
 
 (* ML support *)
@@ -85,20 +85,7 @@ val _ = Theory.setup
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>oracle_name\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
-      ML_Syntax.print_string (Thm.check_oracle ctxt (name, pos)))) #>
-
-  ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
-      ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
-
-
-(* locales *)
-
-val _ = Theory.setup
- (ML_Antiquotation.inline_embedded \<^binding>\<open>locale\<close>
-   (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
-      Locale.check (Proof_Context.theory_of ctxt) (name, pos)
-      |> ML_Syntax.print_string)));
+      ML_Syntax.print_string (Thm.check_oracle ctxt (name, pos)))));
 
 
 (* type classes *)
