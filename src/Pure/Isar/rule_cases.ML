@@ -98,15 +98,15 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
 
 fun bindings args = map (apfst Binding.name) args;
 
-fun extract_case ctxt (case_outline, raw_prop) hyp_names concls =
+fun extract_case ctxt outline raw_prop hyp_names concls =
   let
     val props = Logic.dest_conjunctions (Drule.norm_hhf (Proof_Context.theory_of ctxt) raw_prop);
     val len = length props;
-    val nested = is_some case_outline andalso len > 1;
+    val nested = is_some outline andalso len > 1;
 
     fun extract prop =
       let
-        val (fixes1, fixes2) = extract_fixes case_outline prop;
+        val (fixes1, fixes2) = extract_fixes outline prop;
         val abs_fixes = fold_rev Term.abs (fixes1 @ fixes2);
         fun abs_fixes1 t =
           if not nested then abs_fixes t
@@ -114,7 +114,7 @@ fun extract_case ctxt (case_outline, raw_prop) hyp_names concls =
             fold_rev Term.abs fixes1
               (app (map (Term.dummy_pattern o #2) fixes2) (fold_rev Term.abs fixes2 t));
         val (assumes1, assumes2) =
-          extract_assumes hyp_names case_outline prop
+          extract_assumes hyp_names outline prop
           |> apply2 (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = Object_Logic.drop_judgment ctxt (Logic.strip_assums_concl prop);
@@ -139,20 +139,23 @@ fun extract_case ctxt (case_outline, raw_prop) hyp_names concls =
   in
     if len = 0 then NONE
     else if len = 1 then SOME (common_case (hd cases))
-    else if is_none case_outline orelse length (distinct (op =) (map fst cases)) > 1 then NONE
+    else if is_none outline orelse length (distinct (op =) (map fst cases)) > 1 then NONE
     else SOME (nested_case (hd cases))
   end;
 
-fun make ctxt rule_struct prop cases =
+fun make ctxt rule_struct prop info =
   let
-    val n = length cases;
+    val n = length info;
     val nprems = Logic.count_prems prop;
+    fun rule_outline i = (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop));
     fun add_case ((name, hyp_names), concls) (cs, i) =
-      ((case try (fn () =>
-          (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
-        NONE => (name, NONE)
-      | SOME p => (name, extract_case ctxt p hyp_names concls)) :: cs, i - 1);
-  in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
+      let
+        val c =
+          (case try rule_outline i of
+            NONE => NONE
+          | SOME (outline, raw_prop) => extract_case ctxt outline raw_prop hyp_names concls);
+      in ((name, c) :: cs, i - 1) end;
+  in fold_rev add_case (drop (Int.max (n - nprems, 0)) info) ([], n) |> #1 end;
 
 in
 
