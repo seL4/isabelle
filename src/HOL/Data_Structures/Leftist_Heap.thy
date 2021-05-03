@@ -37,8 +37,8 @@ definition empty :: "'a lheap" where
 
 definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "node l a r =
- (let rl = mht l; rr = mht r
-  in if rl \<ge> rr then Node l (a,rr+1) r else Node r (a,rl+1) l)"
+ (let mhl = mht l; mhr = mht r
+  in if mhl \<ge> mhr then Node l (a,mhr+1) r else Node r (a,mhl+1) l)"
 
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
 "get_min(Node l (a, n) r) = a"
