@@ -1811,6 +1811,10 @@ lemma card_Suc_eq:
     (\<exists>b B. A = insert b B \<and> b \<notin> B \<and> card B = k \<and> (k = 0 \<longrightarrow> B = {}))"
   by (auto simp: card_insert_if card_gt_0_iff elim!: card_eq_SucD)
 
+lemma card_Suc_eq_finite:
+  "card A = Suc k \<longleftrightarrow> (\<exists>b B. A = insert b B \<and> b \<notin> B \<and> card B = k \<and> finite B)"
+  unfolding card_Suc_eq using card_gt_0_iff by fastforce
+
 lemma card_1_singletonE:
   assumes "card A = 1"
   obtains x where "A = {x}"
