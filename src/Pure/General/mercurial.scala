@@ -78,8 +78,8 @@ object Mercurial
         val content = download_archive(rev = rev, progress = progress)
         Bytes.write(archive_path, content.bytes)
         progress.echo("Unpacking " + rev + ".tar.gz")
-        Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path) + " --strip-components=1",
-          dir = dir, original_owner = true).check
+        Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
+          dir = dir, original_owner = true, strip = 1).check
       })
     }
   }
