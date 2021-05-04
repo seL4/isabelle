@@ -757,16 +757,20 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         List(HTML.title(context.dist_name)),
         List(
           HTML.section(context.dist_name),
-          HTML.subsection("Platforms"),
+          HTML.subsection("Downloads"),
           HTML.itemize(
+            List(HTML.link(context.dist_name + ".tar.gz", HTML.text("Source archive"))) ::
             website_platform_bundles.map({ case (bundle, bundle_info) =>
-              List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) })),
+              List(HTML.link(bundle, HTML.text(bundle_info.platform_description + " bundle"))) })),
           HTML.subsection("Repositories"),
           HTML.itemize(
             List(List(isabelle_link)) ::: (if (afp_rev == "") Nil else List(List(afp_link))))))
 
-      for ((bundle, _) <- website_platform_bundles)
+      Isabelle_System.copy_file(context.isabelle_archive, dir)
+
+      for ((bundle, _) <- website_platform_bundles) {
         Isabelle_System.copy_file(context.dist_dir + Path.explode(bundle), dir)
+      }
     }
 
 
