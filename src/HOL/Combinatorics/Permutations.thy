@@ -860,6 +860,10 @@ subsection \<open>And it has the expected composition properties\<close>
 lemma evenperm_id[simp]: "evenperm id = True"
   by (rule evenperm_unique[where n = 0]) simp_all
 
+lemma evenperm_identity [simp]:
+  \<open>evenperm (\<lambda>x. x)\<close>
+  using evenperm_id by (simp add: id_def [abs_def])
+
 lemma evenperm_swap: "evenperm (Fun.swap a b id) = (a = b)"
   by (rule evenperm_unique[where n="if a = b then 0 else 1"]) (simp_all add: swapidseq_swap)
 
@@ -1034,12 +1038,20 @@ lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. fi
 subsection \<open>Sign of a permutation as a real number\<close>
 
 definition sign :: \<open>('a \<Rightarrow> 'a) \<Rightarrow> int\<close> \<comment> \<open>TODO: prefer less generic name\<close>
-  where \<open>sign p = (if evenperm p then (1::int) else -1)\<close>
+  where \<open>sign p = (if evenperm p then 1 else - 1)\<close>
 
-lemma sign_nz: "sign p \<noteq> 0"
+lemma sign_cases [case_names even odd]:
+  obtains \<open>sign p = 1\<close> | \<open>sign p = - 1\<close>
+  by (cases \<open>evenperm p\<close>) (simp_all add: sign_def)
+
+lemma sign_nz [simp]: "sign p \<noteq> 0"
+  by (cases p rule: sign_cases) simp_all
+
+lemma sign_id [simp]: "sign id = 1"
   by (simp add: sign_def)
 
-lemma sign_id: "sign id = 1"
+lemma sign_identity [simp]:
+  \<open>sign (\<lambda>x. x) = 1\<close>
   by (simp add: sign_def)
 
 lemma sign_inverse: "permutation p \<Longrightarrow> sign (inv p) = sign p"
@@ -1048,11 +1060,17 @@ lemma sign_inverse: "permutation p \<Longrightarrow> sign (inv p) = sign p"
 lemma sign_compose: "permutation p \<Longrightarrow> permutation q \<Longrightarrow> sign (p \<circ> q) = sign p * sign q"
   by (simp add: sign_def evenperm_comp)
 
-lemma sign_swap_id: "sign (Fun.swap a b id) = (if a = b then 1 else -1)"
+lemma sign_swap_id: "sign (Fun.swap a b id) = (if a = b then 1 else - 1)"
   by (simp add: sign_def evenperm_swap)
 
-lemma sign_idempotent: "sign p * sign p = 1"
+lemma sign_idempotent [simp]: "sign p * sign p = 1"
   by (simp add: sign_def)
+
+lemma sign_left_idempotent [simp]:
+  \<open>sign p * (sign p * sign q) = sign q\<close>
+  by (simp add: sign_def)
+
+term "(bij, bij_betw, permutation)"
 
 
 subsection \<open>Permuting a list\<close>
@@ -1471,6 +1489,97 @@ proof -
   with * sum.reindex[OF **, of f] show ?thesis
     by (simp only:)
 qed
+
+lemma inv_inj_on_permutes:
+  \<open>inj_on inv {p. p permutes S}\<close>
+proof (intro inj_onI, unfold mem_Collect_eq)
+  fix p q
+  assume p: "p permutes S" and q: "q permutes S" and eq: "inv p = inv q"
+  have "inv (inv p) = inv (inv q)" using eq by simp
+  thus "p = q"
+    using inv_inv_eq[OF permutes_bij] p q by metis
+qed
+
+lemma permutes_pair_eq:
+  \<open>{(p s, s) |s. s \<in> S} = {(s, inv p s) |s. s \<in> S}\<close> (is \<open>?L = ?R\<close>) if \<open>p permutes S\<close>
+proof
+  show "?L \<subseteq> ?R"
+  proof
+    fix x assume "x \<in> ?L"
+    then obtain s where x: "x = (p s, s)" and s: "s \<in> S" by auto
+    note x
+    also have "(p s, s) = (p s, Hilbert_Choice.inv p (p s))"
+      using permutes_inj [OF that] inv_f_f by auto
+    also have "... \<in> ?R" using s permutes_in_image[OF that] by auto
+    finally show "x \<in> ?R".
+  qed
+  show "?R \<subseteq> ?L"
+  proof
+    fix x assume "x \<in> ?R"
+    then obtain s
+      where x: "x = (s, Hilbert_Choice.inv p s)" (is "_ = (s, ?ips)")
+        and s: "s \<in> S" by auto
+    note x
+    also have "(s, ?ips) = (p ?ips, ?ips)"
+      using inv_f_f[OF permutes_inj[OF permutes_inv[OF that]]]
+      using inv_inv_eq[OF permutes_bij[OF that]] by auto
+    also have "... \<in> ?L"
+      using s permutes_in_image[OF permutes_inv[OF that]] by auto
+    finally show "x \<in> ?L".
+  qed
+qed
+
+context
+  fixes p and n i :: nat
+  assumes p: \<open>p permutes {0..<n}\<close> and i: \<open>i < n\<close>
+begin
+
+lemma permutes_nat_less:
+  \<open>p i < n\<close>
+proof -
+  have \<open>?thesis \<longleftrightarrow> p i \<in> {0..<n}\<close>
+    by simp
+  also from p have \<open>p i \<in> {0..<n} \<longleftrightarrow> i \<in> {0..<n}\<close>
+    by (rule permutes_in_image)
+  finally show ?thesis
+    using i by simp
+qed
+
+lemma permutes_nat_inv_less:
+  \<open>inv p i < n\<close>
+proof -
+  from p have \<open>inv p permutes {0..<n}\<close>
+    by (rule permutes_inv)
+  then show ?thesis
+    using i by (rule Permutations.permutes_nat_less)
+qed
+
+end
+
+context comm_monoid_set
+begin
+
+lemma permutes_inv:
+  \<open>F (\<lambda>s. g (p s) s) S = F (\<lambda>s. g s (inv p s)) S\<close> (is \<open>?l = ?r\<close>)
+  if \<open>p permutes S\<close>
+proof -
+  let ?g = "\<lambda>(x, y). g x y"
+  let ?ps = "\<lambda>s. (p s, s)"
+  let ?ips = "\<lambda>s. (s, inv p s)"
+  have inj1: "inj_on ?ps S" by (rule inj_onI) auto
+  have inj2: "inj_on ?ips S" by (rule inj_onI) auto
+  have "?l = F ?g (?ps ` S)"
+    using reindex [OF inj1, of ?g] by simp
+  also have "?ps ` S = {(p s, s) |s. s \<in> S}" by auto
+  also have "... = {(s, inv p s) |s. s \<in> S}"
+    unfolding permutes_pair_eq [OF that] by simp
+  also have "... = ?ips ` S" by auto
+  also have "F ?g ... = ?r"
+    using reindex [OF inj2, of ?g] by simp
+  finally show ?thesis.
+qed
+
+end
 
 
 subsection \<open>Sum over a set of permutations (could generalize to iteration)\<close>
