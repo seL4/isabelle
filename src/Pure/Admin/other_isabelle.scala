@@ -63,9 +63,23 @@ class Other_Isabelle(
   val etc_settings: Path = etc + Path.explode("settings")
   val etc_preferences: Path = etc + Path.explode("preferences")
 
-  def copy_fonts(target_dir: Path): Unit =
+
+  /* NEWS */
+
+  def make_news(): Unit =
+  {
+    val doc_dir = isabelle_home + Path.explode("doc")
+    val fonts_dir = Isabelle_System.make_directory(doc_dir + Path.explode("fonts"))
+
     Isabelle_Fonts.make_entries(getenv = getenv, hidden = true).
-      foreach(entry => Isabelle_System.copy_file(entry.path, target_dir))
+      foreach(entry => Isabelle_System.copy_file(entry.path, fonts_dir))
+
+    HTML.write_document(doc_dir, "NEWS.html",
+      List(HTML.title("NEWS")),
+      List(
+        HTML.chapter("NEWS"),
+        HTML.source(Symbol.decode(File.read(isabelle_home + Path.explode("NEWS"))))))
+  }
 
 
   /* components */
