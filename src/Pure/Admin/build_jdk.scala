@@ -205,8 +205,7 @@ esac
 
         progress.echo("Archiving ...")
         Isabelle_System.gnutar(
-          "-czf " + File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name,
-          dir = dir).check
+          "-czf " + File.bash_path(target_dir + jdk_path.tar.gz) + " " + jdk_name, dir = dir).check
       })
   }
 
