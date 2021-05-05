@@ -11,6 +11,12 @@ object Build_Release
 {
   /** release context **/
 
+  private def execute(dir: Path, script: String): Unit =
+    Isabelle_System.bash(script, cwd = dir.file).check
+
+  private def execute_tar(dir: Path, args: String, strip: Int = 0): Unit =
+    Isabelle_System.gnutar(args, dir = dir, strip = strip).check
+
   object Release_Context
   {
     def apply(
@@ -37,7 +43,7 @@ object Build_Release
 
     val isabelle: Path = Path.explode(dist_name)
     val isabelle_dir: Path = dist_dir + isabelle
-    val isabelle_archive: Path = dist_dir + Path.explode(dist_name + ".tar.gz")
+    val isabelle_archive: Path = dist_dir + isabelle.tar.gz
     val isabelle_library_archive: Path = dist_dir + Path.explode(dist_name + "_library.tar.gz")
 
     def other_isabelle(dir: Path): Other_Isabelle =
@@ -88,30 +94,50 @@ directory individually.
 
   /** release archive **/
 
+  val ISABELLE: Path = Path.basic("Isabelle")
   val ISABELLE_ID: Path = Path.explode("etc/ISABELLE_ID")
   val ISABELLE_TAGS: Path = Path.explode("etc/ISABELLE_TAGS")
   val ISABELLE_IDENTIFIER: Path = Path.explode("etc/ISABELLE_IDENTIFIER")
 
   object Release_Archive
   {
-    def make(bytes: Bytes): Release_Archive =
+    def make(bytes: Bytes, rename: String = ""): Release_Archive =
     {
       Isabelle_System.with_tmp_dir("tmp")(dir =>
         Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path =>
         {
-          Bytes.write(archive_path, bytes)
-          Isabelle_System.gnutar("-xzf " + File.bash_path(archive_path),
-            dir = dir, original_owner = true, strip = 1).check
+          val isabelle_dir = Isabelle_System.make_directory(dir + ISABELLE)
 
-          val id = File.read(dir + ISABELLE_ID)
-          val tags = File.read(dir + ISABELLE_TAGS)
-          val identifier = File.read(dir + ISABELLE_IDENTIFIER)
-          new Release_Archive(bytes, id, tags, identifier)
+          Bytes.write(archive_path, bytes)
+          execute_tar(isabelle_dir, "-xzf " + File.bash_path(archive_path), strip = 1)
+
+          val id = File.read(isabelle_dir + ISABELLE_ID)
+          val tags = File.read(isabelle_dir + ISABELLE_TAGS)
+          val identifier = File.read(isabelle_dir + ISABELLE_IDENTIFIER)
+
+          val (bytes1, identifier1) =
+            if (rename.isEmpty || rename == identifier) (bytes, identifier)
+            else {
+              File.write(isabelle_dir + ISABELLE_IDENTIFIER, rename)
+              Isabelle_System.move_file(isabelle_dir, dir + Path.basic(rename))
+              execute_tar(dir, "-czf " + File.bash_path(archive_path) + " " + Bash.string(rename))
+              (Bytes.read(archive_path), rename)
+            }
+          new Release_Archive(bytes1, id, tags, identifier1)
         })
       )
     }
 
-    def read(path: Path): Release_Archive = make(Bytes.read(path))
+    def read(path: Path, rename: String = ""): Release_Archive =
+      make(Bytes.read(path), rename = rename)
+
+    def get(url: String, rename: String = "", progress: Progress = new Progress): Release_Archive =
+    {
+      val bytes =
+        if (Path.is_wellformed(url)) Bytes.read(Path.explode(url))
+        else Isabelle_System.download(url, progress = progress).bytes
+      make(bytes, rename = rename)
+    }
   }
 
   case class Release_Archive private[Build_Release](
@@ -196,13 +222,6 @@ directory individually.
 
 
   /** build release **/
-
-  private def execute(dir: Path, script: String): Unit =
-    Isabelle_System.bash(script, cwd = dir.file).check
-
-  private def execute_tar(dir: Path, args: String): Unit =
-    Isabelle_System.gnutar(args, dir = dir).check
-
 
   /* build heaps on remote server */
 
@@ -367,10 +386,24 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
 
+  def use_release_archive(
+    context: Release_Context,
+    archive: Release_Archive,
+    id: String = ""): Unit =
+  {
+    if (id.nonEmpty && id != archive.id) {
+      error("Mismatch of release identification " + id + " vs. archive " + archive.id)
+    }
+
+    if (!context.isabelle_archive.is_file || Bytes.read(context.isabelle_archive) != archive.bytes) {
+      Bytes.write(context.isabelle_archive, archive.bytes)
+    }
+  }
+
   def build_release_archive(
     context: Release_Context,
     version: String,
-    parallel_jobs: Int = 1): Release_Archive =
+    parallel_jobs: Int = 1): Unit =
   {
     val progress = context.progress
 
@@ -381,10 +414,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
     if (context.isabelle_archive.is_file) {
       progress.echo_warning("Found existing release archive: " + context.isabelle_archive)
-
-      val archive = Release_Archive.read(context.isabelle_archive)
-      if (id == archive.id) archive
-      else error("Mismatch of release identification " + id + " vs. archive " + archive.id)
+      use_release_archive(context, Release_Archive.read(context.isabelle_archive), id = id)
     }
     else {
       progress.echo_warning("Preparing release " + context.dist_name + " ...")
@@ -449,15 +479,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         """find . -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w""")
       execute_tar(context.dist_dir, "-czf " +
         File.bash_path(context.isabelle_archive) + " " + Bash.string(context.dist_name))
-
-      Release_Archive.read(context.isabelle_archive)
     }
   }
 
   def build_release(
     options: Options,
     context: Release_Context,
-    release_archive: Release_Archive,
     afp_rev: String = "",
     platform_families: List[Platform.Family.Value] = default_platform_families,
     more_components: List[Path] = Nil,
@@ -471,22 +498,23 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
     /* release directory */
 
-    for (name <- List(context.dist_name, "Isabelle")) {
-      Isabelle_System.rm_tree(context.dist_dir + Path.explode(name))
+    val archive = Release_Archive.read(context.isabelle_archive)
+
+    for (path <- List(context.isabelle, ISABELLE)) {
+      Isabelle_System.rm_tree(context.dist_dir + path)
     }
 
     Isabelle_System.with_tmp_file("archive", ext = "tar.gz")(archive_path =>
     {
-      Bytes.write(archive_path, release_archive.bytes)
+      Bytes.write(archive_path, archive.bytes)
       val extract =
         List("README", "NEWS", "ANNOUNCE", "COPYRIGHT", "CONTRIBUTORS", "doc").
-          map(name => context.dist_name + "/" + name)
+          map(name => context.release_name + "/" + name)
       execute_tar(context.dist_dir,
         "-xzf " + File.bash_path(archive_path) + " " + Bash.strings(extract))
     })
 
-    Isabelle_System.symlink(
-      Path.explode(context.dist_name), context.dist_dir + Path.explode("Isabelle"))
+    Isabelle_System.symlink(Path.explode(context.dist_name), context.dist_dir + ISABELLE)
 
 
     /* make application bundles */
@@ -614,7 +642,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             }
 
             make_isabelle_plist(
-              app_contents + Path.explode("Info.plist"), isabelle_name, release_archive.id)
+              app_contents + Path.explode("Info.plist"), isabelle_name, archive.id)
 
             make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component,
               classpath, dock_icon = true)
@@ -747,8 +775,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         } yield (bundle_info.name, bundle_info)
 
       val isabelle_link =
-        HTML.link(Isabelle_System.isabelle_repository.changeset(release_archive.id),
-          HTML.text("Isabelle/" + release_archive.id))
+        HTML.link(Isabelle_System.isabelle_repository.changeset(archive.id),
+          HTML.text("Isabelle/" + archive.id))
       val afp_link =
         HTML.link(Isabelle_System.afp_repository.changeset(afp_rev),
           HTML.text("AFP/" + afp_rev))
@@ -817,6 +845,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var components_base: Path = Components.default_components_base
       var target_dir = Path.current
       var release_name = ""
+      var source_archive = ""
       var website: Option[Path] = None
       var build_sessions: List[String] = Nil
       var more_components: List[Path] = Nil
@@ -835,6 +864,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         Components.default_components_base + """)
     -D DIR       target directory (default ".")
     -R RELEASE   explicit release name
+    -S ARCHIVE   use existing source archive (file or URL)
     -W WEBSITE   produce minimal website in given directory
     -b SESSIONS  build platform-specific session images (separated by commas)
     -c ARCHIVE   clean bundling with additional component .tar.gz archive
@@ -842,7 +872,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -l           build library
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NAMES     platform families (default: """ + default_platform_families.mkString(",") + """)
-    -r REV       Mercurial changeset id (default: RELEASE or tip)
+    -r REV       Mercurial changeset id (default: ARCHIVE or RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
 """,
@@ -850,6 +880,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "C:" -> (arg => components_base = Path.explode(arg)),
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "R:" -> (arg => release_name = arg),
+        "S:" -> (arg => source_archive = arg),
         "W:" -> (arg => website = Some(Path.explode(arg))),
         "b:" -> (arg => build_sessions = space_explode(',', arg)),
         "c:" -> (arg =>
@@ -867,19 +898,31 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val context =
-        Release_Context(target_dir,
-          release_name = release_name,
-          components_base = components_base,
-          progress = new Console_Progress())
-
       if (platform_families.contains(Platform.Family.windows) && !Isabelle_System.bash("7z i").ok)
         error("Building for windows requires 7z")
 
-      val version = proper_string(rev) orElse proper_string(release_name) getOrElse "tip"
-      val release_archive = build_release_archive(context, version, parallel_jobs = parallel_jobs)
+      def make_context(name: String): Release_Context =
+        Release_Context(target_dir,
+          release_name = name,
+          components_base = components_base,
+          progress = new Console_Progress())
 
-      build_release(options, context, release_archive, afp_rev = afp_rev,
+      val context =
+        if (source_archive.isEmpty) {
+          val context = make_context(release_name)
+          val version = proper_string(rev) orElse proper_string(release_name) getOrElse "tip"
+          build_release_archive(context, version, parallel_jobs = parallel_jobs)
+          context
+        }
+        else {
+          val archive = Release_Archive.get(source_archive, rename = release_name)
+          val context = make_context(proper_string(release_name) getOrElse archive.identifier)
+          Isabelle_System.new_directory(context.dist_dir)
+          use_release_archive(context, archive, id = rev)
+          context
+        }
+
+      build_release(options, context, afp_rev = afp_rev,
         platform_families =
           if (platform_families.isEmpty) default_platform_families
           else platform_families,

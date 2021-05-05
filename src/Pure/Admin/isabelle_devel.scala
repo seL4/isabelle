@@ -42,8 +42,8 @@ object Isabelle_Devel
           website_dir =>
         {
           val context = Build_Release.Release_Context(target_dir)
-          val release_archive = Build_Release.build_release_archive(context, rev)
-          Build_Release.build_release(options, context, release_archive, afp_rev = afp_rev,
+          Build_Release.build_release_archive(context, rev)
+          Build_Release.build_release(options, context, afp_rev = afp_rev,
             build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
             website = Some(website_dir))
         })
