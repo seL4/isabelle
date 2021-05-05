@@ -279,14 +279,20 @@ object File
 
   /* change */
 
-  def change(file: JFile, f: String => String): Unit = write(file, f(read(file)))
-  def change(path: Path, f: String => String): Unit = write(path, f(read(path)))
+  def change(file: JFile, f: String => String): Unit =
+  {
+    val x = read(file)
+    val y = f(x)
+    if (x != y) write(file, y)
+  }
+
+  def change(path: Path, f: String => String): Unit = change(path.file, f)
 
 
   /* append */
 
   def append(file: JFile, text: String): Unit =
-    Files.write(file.toPath, UTF8.bytes(text.toString),
+    Files.write(file.toPath, UTF8.bytes(text),
       StandardOpenOption.APPEND, StandardOpenOption.CREATE)
 
   def append(path: Path, text: String): Unit = append(path.file, text)
