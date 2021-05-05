@@ -916,7 +916,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         }
         else {
           val archive = Release_Archive.get(source_archive, rename = release_name)
-          val context = make_context(proper_string(release_name) getOrElse archive.identifier)
+          val context = make_context(archive.identifier)
           Isabelle_System.new_directory(context.dist_dir)
           use_release_archive(context, archive, id = rev)
           context
