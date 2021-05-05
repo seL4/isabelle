@@ -531,11 +531,13 @@ object Isabelle_System
     args: String,
     dir: Path = Path.current,
     original_owner: Boolean = false,
+    strip: Int = 0,
     redirect: Boolean = false): Process_Result =
   {
     val options =
       (if (dir.is_current) "" else "-C " + File.bash_path(dir) + " ") +
-      (if (original_owner) "" else "--owner=root --group=staff ")
+      (if (original_owner) "" else "--owner=root --group=staff ") +
+      (if (strip <= 0) "" else "--strip-components=" + strip + " ")
 
     if (gnutar_check) bash("tar " + options + args, redirect = redirect)
     else error("Expected to find GNU tar executable")

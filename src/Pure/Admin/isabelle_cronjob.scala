@@ -85,7 +85,7 @@ object Isabelle_Cronjob
   val build_release: Logger_Task =
     Logger_Task("build_release", logger =>
       {
-        Isabelle_Devel.release_snapshot(logger.options, rev = get_rev(), afp_rev = get_afp_rev())
+        Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev())
       })
 
 
