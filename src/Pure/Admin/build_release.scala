@@ -509,7 +509,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       Bytes.write(archive_path, archive.bytes)
       val extract =
         List("README", "NEWS", "ANNOUNCE", "COPYRIGHT", "CONTRIBUTORS", "doc").
-          map(name => context.release_name + "/" + name)
+          map(name => context.dist_name + "/" + name)
       execute_tar(context.dist_dir,
         "-xzf " + File.bash_path(archive_path) + " " + Bash.strings(extract))
     })
