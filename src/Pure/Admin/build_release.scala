@@ -922,10 +922,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
           context
         }
 
-      build_release(options, context, afp_rev = afp_rev,
-        platform_families =
-          if (platform_families.isEmpty) default_platform_families
-          else platform_families,
+      build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
         more_components = more_components, build_sessions = build_sessions,
         build_library = build_library, parallel_jobs = parallel_jobs, website = website)
     }
