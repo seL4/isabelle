@@ -8,6 +8,7 @@ imports
   List_Permutation
   Multiset_Permutations
   Cycles
+  Perm
 begin
 
 end

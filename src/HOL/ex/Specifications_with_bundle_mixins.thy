@@ -1,5 +1,5 @@
 theory Specifications_with_bundle_mixins
-  imports "HOL-Library.Perm"
+  imports "HOL-Combinatorics.Perm"
 begin
 
 locale involutory = opening permutation_syntax +

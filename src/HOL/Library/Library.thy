@@ -65,7 +65,6 @@ imports
   Parallel
   Pattern_Aliases
   Periodic_Fun
-  Perm
   Poly_Mapping
   Power_By_Squaring
   Preorder

@@ -83,9 +83,9 @@ exists.
 
 * Dedicated session HOL-Combinatorics.  INCOMPATIBILITY: theories
 "Permutations", "List_Permutation" (formerly "Permutation"), "Stirling",
-"Multiset_Permutations"  have been
-moved there from session HOL-Library.  See theory "Guide" for an
-overview about existing material on basic combinatorics.
+"Multiset_Permutations", "Perm" have been moved there from session
+HOL-Library.  See theory "Guide" for an overview about existing material
+on basic combinatorics.
 
 * Theory "Permutation" in HOL-Library has been renamed to the more
 specific "List_Permutation".  Note that most notions from that

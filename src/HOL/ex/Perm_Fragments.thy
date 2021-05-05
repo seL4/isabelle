@@ -3,7 +3,7 @@
 section \<open>Fragments on permuations\<close>
 
 theory Perm_Fragments
-imports "HOL-Library.Perm" "HOL-Library.Dlist"
+imports "HOL-Library.Dlist" "HOL-Combinatorics.Perm"
 begin
 
 text \<open>On cycles\<close>
