@@ -3,6 +3,7 @@ section \<open>Basic combinatorics in Isabelle/HOL (and the Archive of Formal Pr
 
 theory Combinatorics
 imports
+  Transposition
   Stirling
   Permutations
   List_Permutation

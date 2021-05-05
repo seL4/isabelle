@@ -10,7 +10,7 @@ section "Linear Algebra on Finite Cartesian Products"
 
 theory Cartesian_Space
   imports
-    Finite_Cartesian_Product Linear_Algebra
+    Finite_Cartesian_Product Linear_Algebra "HOL-Combinatorics.Transposition"
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Type @{typ \<open>'a ^ 'n\<close>} and fields as vector spaces\<close> (*much of the following

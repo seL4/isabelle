@@ -3,7 +3,8 @@
 section \<open>Permutations as abstract type\<close>
 
 theory Perm
-imports Main
+  imports
+    Transposition
 begin
 
 text \<open>

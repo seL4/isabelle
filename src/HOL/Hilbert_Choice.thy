@@ -636,15 +636,6 @@ lemma inv_unique_comp:
   shows "inv f = g"
   using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
 
-lemma inv_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
-  by (rule inv_unique_comp) simp_all
-
-lemma bij_swap_comp:
-  assumes "bij p"
-  shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"
-  using surj_f_inv_f[OF bij_is_surj[OF \<open>bij p\<close>]]
-  by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF \<open>bij p\<close>])
-
 lemma subset_image_inj:
   "S \<subseteq> f ` T \<longleftrightarrow> (\<exists>U. U \<subseteq> T \<and> inj_on f U \<and> S = f ` U)"
 proof safe

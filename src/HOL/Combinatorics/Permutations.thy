@@ -7,6 +7,7 @@ theory Permutations
   imports
     "HOL-Library.Multiset"
     "HOL-Library.Disjoint_Sets"
+    Transposition
 begin
 
 subsection \<open>Auxiliary\<close>
