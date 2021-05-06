@@ -42,7 +42,7 @@ object Platform
       else if (platform == linux) "x86_64-linux"
       else if (platform == macos) "x86_64-darwin"
       else if (platform == windows) "x86_64-cygwin"
-      else error("Unknown platform family " + quote(platform.toString))
+      else error("Bad platform family: " + quote(platform.toString))
   }
 
 
