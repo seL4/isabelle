@@ -64,6 +64,7 @@ object Platform
 
   def os_name: String =
     family match {
+      case Family.linux_arm => "linux"
       case Family.macos => "darwin"
       case _ => family.toString
     }
