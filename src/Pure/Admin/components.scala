@@ -79,15 +79,16 @@ object Components
 
   def purge(dir: Path, platform: Platform.Family.Value): Unit =
   {
-    def purge_platforms(platforms: String*): Set[String] =
-      platforms.flatMap(name =>
-        List("arm64-" + name, "x86-" + name, "x86_64_32-" + name, "x86_64-" + name)).toSet +
-      "ppc-darwin" + "arm64-linux"
+    val purge_default = Set("x86-linux", "x86-cygwin", "arm64-linux")
+    val purge_linux = Set("x86_64-linux", "x86_64_32-linux")
+    val purge_macos = Set("arm64-darwin", "x86_64-darwin", "x86_64_32-darwin")
+    val purge_windows = Set("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows")
+
     val purge_set =
       platform match {
-        case Platform.Family.linux => purge_platforms("darwin", "cygwin", "windows")
-        case Platform.Family.macos => purge_platforms("linux", "cygwin", "windows")
-        case Platform.Family.windows => purge_platforms("linux", "darwin")
+        case Platform.Family.linux => purge_default ++ purge_macos ++ purge_windows
+        case Platform.Family.macos => purge_default ++ purge_linux ++ purge_windows
+        case Platform.Family.windows => purge_default ++ purge_linux ++ purge_macos
       }
 
     File.find_files(dir.file,
