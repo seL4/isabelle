@@ -318,7 +318,7 @@ object SSH
     val session: JSch_Session,
     on_close: () => Unit,
     val nominal_host: String,
-    val nominal_user: String) extends System with AutoCloseable
+    val nominal_user: String) extends System
   {
     def update_options(new_options: Options): Session =
       new Session(new_options, session, on_close, nominal_host, nominal_user)
@@ -347,7 +347,7 @@ object SSH
     val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
     sftp.connect(connect_timeout(options))
 
-    def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
+    override def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
 
     val settings: Map[String, String] =
     {
@@ -438,12 +438,12 @@ object SSH
     def open_input(path: Path): InputStream = sftp.get(remote_path(path))
     def open_output(path: Path): OutputStream = sftp.put(remote_path(path))
 
-    def read_file(path: Path, local_path: Path): Unit =
+    override def read_file(path: Path, local_path: Path): Unit =
       sftp.get(remote_path(path), File.platform_path(local_path))
     def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
     def read(path: Path): String = using(open_input(path))(File.read_stream)
 
-    def write_file(path: Path, local_path: Path): Unit =
+    override def write_file(path: Path, local_path: Path): Unit =
       sftp.put(File.platform_path(local_path), remote_path(path))
     def write_bytes(path: Path, bytes: Bytes): Unit =
       using(open_output(path))(bytes.write_stream)
@@ -463,6 +463,7 @@ object SSH
     override def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
+        settings: Boolean = true,
         strict: Boolean = true): Process_Result =
       exec(command).result(progress_stdout, progress_stderr, strict)
 
@@ -479,7 +480,7 @@ object SSH
     def tmp_dir(): String =
       execute("mktemp -d -t tmp.XXXXXXXXXX").check.out
 
-    def with_tmp_dir[A](body: Path => A): A =
+    override def with_tmp_dir[A](body: Path => A): A =
     {
       val remote_dir = tmp_dir()
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
@@ -489,8 +490,10 @@ object SSH
 
   /* system operations */
 
-  trait System
+  trait System extends AutoCloseable
   {
+    def close(): Unit = ()
+
     def hg_url: String = ""
 
     def expand_path(path: Path): Path = path.expand
@@ -498,13 +501,20 @@ object SSH
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
+    def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
+    def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
+        settings: Boolean = true,
         strict: Boolean = true): Process_Result =
-      Isabelle_System.bash(command, progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr, strict = strict)
+      Isabelle_System.bash(command,
+        progress_stdout = progress_stdout,
+        progress_stderr = progress_stderr,
+        env = if (settings) Isabelle_System.settings() else null,
+        strict = strict)
 
     def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
   }

@@ -223,39 +223,45 @@ directory individually.
 
   /** build release **/
 
-  /* build heaps on remote server */
+  /* build heaps */
 
-  private def remote_build_heaps(
+  private def build_heaps(
     options: Options,
     platform: Platform.Family.Value,
     build_sessions: List[String],
     local_dir: Path): Unit =
   {
     val server_option = "build_host_" + platform.toString
-    options.string(server_option) match {
-      case SSH.Target(user, host) =>
-        using(SSH.open_session(options, host = host, user = user))(ssh =>
-          Isabelle_System.with_tmp_file("tmp", ext = "tar")(local_tmp_tar =>
-          {
-            execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
-            ssh.with_tmp_dir(remote_dir =>
-            {
-              val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
-              ssh.write_file(remote_tmp_tar, local_tmp_tar)
-              val remote_commands =
-                List(
-                  "cd " + File.bash_path(remote_dir),
-                  "tar -xf tmp.tar",
-                  "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions),
-                  "tar -cf tmp.tar heaps")
-              ssh.execute(remote_commands.mkString(" && ")).check
-              ssh.read_file(remote_tmp_tar, local_tmp_tar)
-            })
-            execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
-          })
-        )
-      case s => error("Bad " + server_option + ": " + quote(s))
+    val ssh =
+      options.string(server_option) match {
+        case "" =>
+          if (Platform.family == platform) SSH.Local
+          else error("Undefined option " + server_option + ": cannot build heaps")
+        case SSH.Target(user, host) =>
+          SSH.open_session(options, host = host, user = user)
+        case s => error("Malformed option " + server_option + ": " + quote(s))
+      }
+    try {
+      Isabelle_System.with_tmp_file("tmp", ext = "tar")(local_tmp_tar =>
+      {
+        execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
+        ssh.with_tmp_dir(remote_dir =>
+        {
+          val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
+          ssh.write_file(remote_tmp_tar, local_tmp_tar)
+          val remote_commands =
+            List(
+              "cd " + File.bash_path(remote_dir),
+              "tar -xf tmp.tar",
+              "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions),
+              "tar -cf tmp.tar heaps")
+          ssh.execute(remote_commands.mkString(" && "), settings = false).check
+          ssh.read_file(remote_tmp_tar, local_tmp_tar)
+        })
+        execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
+      })
     }
+    finally { ssh.close() }
   }
 
 
@@ -594,8 +600,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         // build heaps
 
         if (build_sessions.nonEmpty) {
-          progress.echo("Building heaps ...")
-          remote_build_heaps(options, platform, build_sessions, isabelle_target)
+          progress.echo("Building heaps " + commas_quote(build_sessions) + " ...")
+          build_heaps(options, platform, build_sessions, isabelle_target)
         }
 
 
@@ -901,11 +907,12 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
       if (platform_families.contains(Platform.Family.windows) && !Isabelle_System.bash("7z i").ok)
         error("Building for windows requires 7z")
 
+      val progress = new Console_Progress()
       def make_context(name: String): Release_Context =
         Release_Context(target_dir,
           release_name = name,
           components_base = components_base,
-          progress = new Console_Progress())
+          progress = progress)
 
       val context =
         if (source_archive.isEmpty) {
@@ -915,9 +922,10 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
           context
         }
         else {
-          val archive = Release_Archive.get(source_archive, rename = release_name)
+          val archive =
+            Release_Archive.get(source_archive, rename = release_name, progress = progress)
           val context = make_context(archive.identifier)
-          Isabelle_System.new_directory(context.dist_dir)
+          Isabelle_System.make_directory(context.dist_dir)
           use_release_archive(context, archive, id = rev)
           context
         }
