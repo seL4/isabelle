@@ -16,15 +16,19 @@ object Platform
   val is_windows: Boolean = System.getProperty("os.name", "").startsWith("Windows")
   val is_unix: Boolean = is_linux || is_macos
 
+  def is_arm: Boolean = cpu_arch.startsWith("arm")
+
   def family: Family.Value =
-    if (is_linux) Family.linux
+    if (is_linux && is_arm) Family.linux_arm
+    else if (is_linux) Family.linux
     else if (is_macos) Family.macos
     else if (is_windows) Family.windows
     else error("Failed to determine current platform family")
 
   object Family extends Enumeration
   {
-    val linux, macos, windows = Value
+    val linux_arm, linux, macos, windows = Value
+    val list: List[Value] = List(linux_arm, linux, windows, macos)
 
     def unapply(name: String): Option[Value] =
       try { Some(withName(name)) }
@@ -32,14 +36,14 @@ object Platform
 
     def parse(name: String): Value =
       unapply(name) getOrElse error("Bad platform family: " + quote(name))
-  }
 
-  def standard_platform(platform: Family.Value): String =
-    platform match {
-      case Platform.Family.linux => "x86_64-linux"
-      case Platform.Family.macos => "x86_64-darwin"
-      case Platform.Family.windows => "x86_64-cygwin"
-    }
+    def standard(platform: Value): String =
+      if (platform == linux_arm) "arm64-linux"
+      else if (platform == linux) "x86_64-linux"
+      else if (platform == macos) "x86_64-darwin"
+      else if (platform == windows) "x86_64-cygwin"
+      else error("Unknown platform family " + quote(platform.toString))
+  }
 
 
   /* platform identifiers */

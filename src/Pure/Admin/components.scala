@@ -77,19 +77,21 @@ object Components
     }
   }
 
+  private val platforms_family: Map[Platform.Family.Value, Set[String]] =
+    Map(
+      Platform.Family.linux_arm -> Set("arm64-linux", "arm64_32-linux"),
+      Platform.Family.linux -> Set("x86_64-linux", "x86_64_32-linux"),
+      Platform.Family.macos ->
+        Set("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+      Platform.Family.windows ->
+        Set("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"))
+
+  private val platforms_all: Set[String] =
+    Set("x86-linux", "x86-cygwin") ++ platforms_family.iterator.flatMap(_._2)
+
   def purge(dir: Path, platform: Platform.Family.Value): Unit =
   {
-    val purge_default = Set("x86-linux", "x86-cygwin", "arm64-linux")
-    val purge_linux = Set("x86_64-linux", "x86_64_32-linux")
-    val purge_macos = Set("arm64-darwin", "x86_64-darwin", "x86_64_32-darwin")
-    val purge_windows = Set("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows")
-
-    val purge_set =
-      platform match {
-        case Platform.Family.linux => purge_default ++ purge_macos ++ purge_windows
-        case Platform.Family.macos => purge_default ++ purge_linux ++ purge_windows
-        case Platform.Family.windows => purge_default ++ purge_linux ++ purge_macos
-      }
+    val purge_set = platforms_all -- platforms_family(platform)
 
     File.find_files(dir.file,
       (file: JFile) => file.isDirectory && purge_set(file.getName),

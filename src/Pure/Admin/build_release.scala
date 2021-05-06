@@ -76,6 +76,8 @@ directory individually.
 
     def bundle_info(platform: Platform.Family.Value): Bundle_Info =
       platform match {
+        case Platform.Family.linux_arm =>
+          Bundle_Info(platform, "Linux (ARM)", dist_name + "_linux_arm.tar.gz")
         case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz")
         case Platform.Family.macos => Bundle_Info(platform, "macOS", dist_name + "_macos.tar.gz")
         case Platform.Family.windows => Bundle_Info(platform, "Windows", dist_name + ".exe")
@@ -175,7 +177,7 @@ directory individually.
   {
     val catalogs =
       List("main", "bundled").map((_, new Bundled())) :::
-      default_platform_families.flatMap(platform =>
+      Platform.Family.list.flatMap(platform =>
         List(platform.toString, "bundled-" + platform.toString).
           map((_, new Bundled(platform = Some(platform)))))
 
@@ -322,7 +324,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
     val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
     Isabelle_System.move_file(
-      component_dir + Path.explode(Platform.standard_platform(platform)) + Path.explode("Isabelle"),
+      component_dir + Path.explode(Platform.Family.standard(platform)) + Path.explode("Isabelle"),
       isabelle_target + Path.explode(isabelle_name))
     Isabelle_System.rm_tree(component_dir)
   }
@@ -388,9 +390,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
   /* main */
-
-  private val default_platform_families: List[Platform.Family.Value] =
-    List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
 
   def use_release_archive(
     context: Release_Context,
@@ -492,7 +491,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     options: Options,
     context: Release_Context,
     afp_rev: String = "",
-    platform_families: List[Platform.Family.Value] = default_platform_families,
+    platform_families: List[Platform.Family.Value] = Platform.Family.list,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
@@ -608,7 +607,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         // application bundling
 
         platform match {
-          case Platform.Family.linux =>
+          case Platform.Family.linux_arm | Platform.Family.linux =>
             File.change(isabelle_target + jedit_options,
               _.replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24"))
 
@@ -625,10 +624,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component, classpath)
 
-            val archive_name = isabelle_name + "_linux.tar.gz"
-            progress.echo("Packaging " + archive_name + " ...")
+            progress.echo("Packaging " + bundle_info.name + " ...")
             execute_tar(tmp_dir,
-              "-czf " + File.bash_path(context.dist_dir + Path.explode(archive_name)) + " " +
+              "-czf " + File.bash_path(context.dist_dir + bundle_info.path) + " " +
               Bash.string(isabelle_name))
 
 
@@ -661,15 +659,14 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             // application archive
 
-            val archive_name = isabelle_name + "_macos.tar.gz"
-            progress.echo("Packaging " + archive_name + " ...")
+            progress.echo("Packaging " + bundle_info.name + " ...")
 
             val isabelle_app = Path.explode(isabelle_name + ".app")
             Isabelle_System.move_file(tmp_dir + Path.explode(isabelle_name),
               tmp_dir + isabelle_app)
 
             execute_tar(tmp_dir,
-              "-czf " + File.bash_path(context.dist_dir + Path.explode(archive_name)) + " " +
+              "-czf " + File.bash_path(context.dist_dir + bundle_info.path) + " " +
               File.bash_path(isabelle_app))
 
 
@@ -689,7 +686,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               java_options, line_ending = "\r\n")
 
             val isabelle_xml = Path.explode("isabelle.xml")
-            val isabelle_exe = Path.explode(isabelle_name + ".exe")
+            val isabelle_exe = bundle_info.path
 
             File.write(tmp_dir + isabelle_xml,
               File.read(app_template + isabelle_xml)
@@ -858,7 +855,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var parallel_jobs = 1
       var build_library = false
       var options = Options.init()
-      var platform_families = default_platform_families
+      var platform_families = Platform.Family.list
       var rev = ""
 
       val getopts = Getopts("""
@@ -877,7 +874,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p NAMES     platform families (default: """ + default_platform_families.mkString(",") + """)
+    -p NAMES     platform families (default: """ + Platform.Family.list.mkString(",") + """)
     -r REV       Mercurial changeset id (default: ARCHIVE or RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
