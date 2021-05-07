@@ -13,14 +13,14 @@ this work, e.g. see the ML and Scala modules File and Path, or
 functions like Isabelle_System.bash.  The settings environment also
 provides some means for portability, e.g. the bash function
 "platform_path" to keep the impression that Windows/Cygwin adheres to
-Isabelle/POSIX standards, although Poly/ML and the JVM are native on
-Windows.
+Isabelle/POSIX standards, although many executables are native on
+Windows (notably Poly/ML and Java).
 
 When producing add-on tools, it is important to stay within this clean
 room of Isabelle, and refrain from non-portable access to operating
-system functions. The Isabelle environment uses peculiar scripts for
-GNU bash and perl as system glue: this style should be observed as far
-as possible.
+system functions. The Isabelle environment uses GNU bash and
+Isabelle/Scala as portable system infrastructure, using somewhat
+peculiar implementation techniques.
 
 
 Supported platforms
@@ -28,10 +28,10 @@ Supported platforms
 
 A broad range of hardware and operating system platforms are supported
 by building executables on base-line versions that are neither too old
-nor too new. Common OS families work: Linux, Windows, macOS, but
-exotic ones are unsupported: BSD, Solaris, NixOS.
+nor too new. Common OS families should work: Linux, macOS,
+Windows. More exotic platforms are unsupported: NixOS, BSD, Solaris.
 
-Official (full support):
+Official platforms:
 
   x86_64-linux      Ubuntu 16.04 LTS
 
@@ -40,14 +40,14 @@ Official (full support):
                     macOS 10.15 Catalina (laramac01 Macmini8,1)
                     macOS 11.1 Big Sur (mini1 Macmini8,1)
 
+  arm64-darwin      macOS 11.1 Big Sur
+
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.1.x https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
 
-New (experimental):
+Experimental platforms:
 
   arm64-linux       Raspberry Pi OS 64bit beta (Debian 10 / Buster)
-
-  arm64-darwin      macOS 11.1 Big Sur
 
 
 64 bit vs. 32 bit platform personality
@@ -76,40 +76,35 @@ Unix:
 
   "${ISABELLE_WINDOWS_PLATFORM32:-$ISABELLE_PLATFORM64}"
 
+For Apple Silicon the native platform is "$ISABELLE_APPLE_PLATFORM64"
+(arm64-darwin), but thanks to Rosetta 2 "$ISABELLE_PLATFORM64"
+(x64_64-darwin) works routinely with fairly good performance.
+
 
 Dependable system tools
 -----------------------
 
 The following portable system tools can be taken for granted:
 
-* Scala on top of Java.  Isabelle/Scala irons out many oddities and
-  portability issues of the Java platform.
+* Scala on top of Java.  Isabelle/Scala irons out many fine points of
+  the Java platform to make it fully portable as described above.
 
 * GNU bash as uniform shell on all platforms. The POSIX "standard"
   shell /bin/sh does *not* work portably -- there are too many
   non-standard implementations of it. On Debian and Ubuntu /bin/sh is
   actually /bin/dash and introduces many oddities.
 
-* Perl as largely portable system programming language, with its
-  fairly robust support for processes, signals, sockets etc.
-
 
 Known problems
 --------------
 
-* macOS: If MacPorts is installed there is some danger that
-  accidental references to its shared libraries are created
+* macOS: If Homebrew or MacPorts is installed, there is some danger
+  that accidental references to its shared libraries are created
   (e.g. libgmp).  Use otool -L to check if compiled binaries also work
   without MacPorts.
-
-* macOS: If MacPorts is installed and its version of Perl takes
-  precedence over /usr/bin/perl in the PATH, then the end-user needs
-  to take care of installing extra modules, e.g. for HTTP support.
-  Such add-ons are usually included in Apple's /usr/bin/perl by
-  default.
 
 * Common Unix tools like /bin/sh, /bin/kill, sed, ulimit are
   notoriously non-portable an should be avoided.
 
-* The traditional "uname" Unix tool only tells about its own executable
-  format, not the underlying platform!
+* The traditional "uname" Unix tool only tells about its own
+  executable format, not the underlying platform!
