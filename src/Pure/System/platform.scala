@@ -28,6 +28,7 @@ object Platform
   object Family extends Enumeration
   {
     val linux_arm, linux, macos, windows = Value
+    val list0: List[Value] = List(linux, windows, macos)
     val list: List[Value] = List(linux_arm, linux, windows, macos)
 
     def unapply(name: String): Option[Value] =
