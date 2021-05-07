@@ -153,8 +153,8 @@ if [ -n "$UPDATE_IDENTIFIER" -a "$IDENTIFIER" != "$OLD_IDENTIFIER" ]; then
 fi
 
 if [ -z "$VERSION" ]; then
-  "$ISABELLE_HOME/bin/isabelle" components -I || exit "?$"
-  "$ISABELLE_HOME/bin/isabelle" components -a || exit "?$"
+  "$ISABELLE_HOME/bin/isabelle" components -I || exit "$?"
+  "$ISABELLE_HOME/bin/isabelle" components -a || exit "$?"
   if [ -n "$BUILD_OPTIONS" ]; then
     "$ISABELLE_HOME/bin/isabelle" jedit $BUILD_OPTIONS
   fi
