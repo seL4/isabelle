@@ -358,7 +358,7 @@ Usage: isabelle build_fonts [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val target_version = Date.Format("uuuuMMdd")(Date.now())
+      val target_version = Date.Format.alt_date(Date.now())
       val target_dir = Path.explode("isabelle_fonts-" + target_version)
 
       val progress = new Console_Progress
