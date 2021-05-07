@@ -22,7 +22,8 @@ object Build_SPASS
   {
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
-      Isabelle_System.require_command("bison", "flex")
+      Isabelle_System.require_command("bison")
+      Isabelle_System.require_command("flex")
 
 
       /* component */
