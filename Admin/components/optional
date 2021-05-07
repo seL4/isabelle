@@ -1,2 +1,2 @@
-#optional components that could impact build time significantly
+#optional components: somewhat experimental tools
 hol-light-bundle-0.5-126

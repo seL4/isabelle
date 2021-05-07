@@ -1,4 +1,4 @@
-#main components for everyday use, without big impact on overall build time
+#main components for repository clones or release bundles
 gnu-utils-20210414
 bash_process-1.2.4-2
 bib2xhtml-20190409
