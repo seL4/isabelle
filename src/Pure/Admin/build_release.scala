@@ -487,11 +487,13 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     }
   }
 
+  def default_platform_families: List[Platform.Family.Value] = Platform.Family.list0
+
   def build_release(
     options: Options,
     context: Release_Context,
     afp_rev: String = "",
-    platform_families: List[Platform.Family.Value] = Platform.Family.list,
+    platform_families: List[Platform.Family.Value] = default_platform_families,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
@@ -855,7 +857,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var parallel_jobs = 1
       var build_library = false
       var options = Options.init()
-      var platform_families = Platform.Family.list
+      var platform_families = default_platform_families
       var rev = ""
 
       val getopts = Getopts("""
@@ -874,7 +876,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p NAMES     platform families (default: """ + Platform.Family.list.mkString(",") + """)
+    -p NAMES     platform families (default: """ + default_platform_families.mkString(",") + """)
     -r REV       Mercurial changeset id (default: ARCHIVE or RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
