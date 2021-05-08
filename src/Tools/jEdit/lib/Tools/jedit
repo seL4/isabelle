@@ -264,7 +264,6 @@ declare -a JEDIT_BUILD_JARS=(
   "kappalayout.jar"
   "Navigator.jar"
   "SideKick.jar"
-  "idea-icons.jar"
   "jsr305-2.0.0.jar"
 )
 
