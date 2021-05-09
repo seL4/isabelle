@@ -272,10 +272,10 @@ proof -
   next
     fix m :: "'n" and n :: "'n" and S :: "(real, 'n) vec set"
     assume "m \<noteq> n" and "S \<in> lmeasurable"
-    let ?h = "\<lambda>v::(real, 'n) vec. \<chi> i. v $ Fun.swap m n id i"
+    let ?h = "\<lambda>v::(real, 'n) vec. \<chi> i. v $ Transposition.transpose m n i"
     have lin: "linear ?h"
       by (rule linearI) (simp_all add: plus_vec_def scaleR_vec_def)
-    have meq: "measure lebesgue ((\<lambda>v::(real, 'n) vec. \<chi> i. v $ Fun.swap m n id i) ` cbox a b)
+    have meq: "measure lebesgue ((\<lambda>v::(real, 'n) vec. \<chi> i. v $ Transposition.transpose m n i) ` cbox a b)
              = measure lebesgue (cbox a b)" for a b
     proof (cases "cbox a b = {}")
       case True then show ?thesis
@@ -285,14 +285,14 @@ proof -
       then have him: "?h ` (cbox a b) \<noteq> {}"
         by blast
       have eq: "?h ` (cbox a b) = cbox (?h a) (?h b)"
-        by (auto simp: image_iff lambda_swap_Galois mem_box_cart) (metis swap_id_eq)+
+        by (auto simp: image_iff lambda_swap_Galois mem_box_cart) (metis transpose_involutory)+
       show ?thesis
         using him prod.permute [OF permutes_swap_id, where S=UNIV and g="\<lambda>i. (b - a)$i", symmetric]
         by (simp add: eq content_cbox_cart False)
     qed
-    have "(\<chi> i j. if Fun.swap m n id i = j then 1 else 0) = (\<chi> i j. if j = Fun.swap m n id i then 1 else (0::real))"
+    have "(\<chi> i j. if Transposition.transpose m n i = j then 1 else 0) = (\<chi> i j. if j = Transposition.transpose m n i then 1 else (0::real))"
       by (auto intro!: Cart_lambda_cong)
-    then have "matrix ?h = transpose(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
+    then have "matrix ?h = transpose(\<chi> i j. mat 1 $ i $ Transposition.transpose m n j)"
       by (auto simp: matrix_eq transpose_def axis_def mat_def matrix_def)
     then have 1: "\<bar>det (matrix ?h)\<bar> = 1"
       by (simp add: det_permute_columns permutes_swap_id sign_swap_id abs_mult)

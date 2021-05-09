@@ -732,12 +732,12 @@ qed
 subsection \<open>Swaps\<close>
 
 lift_definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a perm"  ("\<langle>_ \<leftrightarrow> _\<rangle>")
-  is "\<lambda>a b. Fun.swap a b id"
+  is "\<lambda>a b. transpose a b"
 proof
   fix a b :: 'a
-  have "{c. Fun.swap a b id c \<noteq> c} \<subseteq> {a, b}"
-    by (auto simp add: Fun.swap_def)
-  then show "finite {c. Fun.swap a b id c \<noteq> c}"
+  have "{c. transpose a b c \<noteq> c} \<subseteq> {a, b}"
+    by (auto simp add: transpose_def)
+  then show "finite {c. transpose a b c \<noteq> c}"
     by (rule finite_subset) simp
 qed simp
 
@@ -753,7 +753,7 @@ lemma apply_swap_same [simp]:
 lemma apply_swap_eq_iff [simp]:
   "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c = a \<longleftrightarrow> c = b"
   "\<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c = b \<longleftrightarrow> c = a"
-  by (transfer; auto simp add: Fun.swap_def)+
+  by (transfer; auto simp add: transpose_def)+
 
 lemma swap_1 [simp]:
   "\<langle>a \<leftrightarrow> a\<rangle> = 1"
@@ -761,19 +761,19 @@ lemma swap_1 [simp]:
 
 lemma swap_sym:
   "\<langle>b \<leftrightarrow> a\<rangle> = \<langle>a \<leftrightarrow> b\<rangle>"
-  by (transfer; auto simp add: Fun.swap_def)+
+  by (transfer; auto simp add: transpose_def)+
 
 lemma swap_self [simp]:
   "\<langle>a \<leftrightarrow> b\<rangle> * \<langle>a \<leftrightarrow> b\<rangle> = 1"
-  by transfer (simp add: Fun.swap_def fun_eq_iff)
+  by transfer simp
 
 lemma affected_swap:
   "a \<noteq> b \<Longrightarrow> affected \<langle>a \<leftrightarrow> b\<rangle> = {a, b}"
-  by transfer (auto simp add: Fun.swap_def)
+  by transfer (auto simp add: transpose_def)
 
 lemma inverse_swap [simp]:
   "inverse \<langle>a \<leftrightarrow> b\<rangle> = \<langle>a \<leftrightarrow> b\<rangle>"
-  by transfer (auto intro: inv_equality simp: Fun.swap_def)
+  by transfer (auto intro: inv_equality)
 
 
 subsection \<open>Permutations specified by cycles\<close>

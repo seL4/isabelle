@@ -372,7 +372,8 @@ qed
 
 lemma preal_mult_assoc: "((x::preal) * y) * z = x * (y * z)"
   apply (simp add: preal_mult_def mem_mult_set Rep_preal)
-  apply (force simp: mult_set_def ac_simps)
+  apply (simp add: mult_set_def)
+  apply (metis (no_types, hide_lams) ab_semigroup_mult_class.mult_ac(1))
   done
 
 instance preal :: ab_semigroup_mult

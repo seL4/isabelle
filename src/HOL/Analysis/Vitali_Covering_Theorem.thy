@@ -16,7 +16,7 @@ lemma stretch_Galois:
   by auto
 
 lemma lambda_swap_Galois:
-   "(x = (\<chi> i. y $ Fun.swap m n id i) \<longleftrightarrow> (\<chi> i. x $ Fun.swap m n id i) = y)"
+   "(x = (\<chi> i. y $ Transposition.transpose m n i) \<longleftrightarrow> (\<chi> i. x $ Transposition.transpose m n i) = y)"
   by (auto; simp add: pointfree_idE vec_eq_iff)
 
 lemma lambda_add_Galois:

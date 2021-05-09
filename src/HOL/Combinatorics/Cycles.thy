@@ -2,7 +2,9 @@
 *)
 
 theory Cycles
-  imports "HOL-Library.FuncSet" Permutations
+  imports
+    "HOL-Library.FuncSet"
+Permutations
 begin
 
 section \<open>Cycles\<close>
@@ -14,7 +16,7 @@ abbreviation cycle :: "'a list \<Rightarrow> bool"
 
 fun cycle_of_list :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a"
   where
-    "cycle_of_list (i # j # cs) = (Fun.swap i j id) \<circ> (cycle_of_list (j # cs))"
+    "cycle_of_list (i # j # cs) = transpose i j \<circ> cycle_of_list (j # cs)"
   | "cycle_of_list cs = id"
 
 
@@ -118,12 +120,12 @@ proof (induction cs rule: cycle_of_list.induct)
   have "p \<circ> cycle_of_list (i # j # cs) \<circ> inv p =
        (p \<circ> (Fun.swap i j id) \<circ> inv p) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
     by (simp add: assms(2) bij_is_inj fun.map_comp)
-  also have " ... = (Fun.swap (p i) (p j) id) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
-    by (simp add: "1.prems"(2) bij_is_inj bij_swap_comp comp_swap o_assoc)
+  also have " ... = (transpose (p i) (p j)) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
+    using "1.prems"(2) by (simp add: bij_inv_eq_iff transpose_apply_commute fun_eq_iff bij_betw_inv_into_left)
   finally have "p \<circ> cycle_of_list (i # j # cs) \<circ> inv p =
-               (Fun.swap (p i) (p j) id) \<circ> (cycle_of_list (map p (j # cs)))"
+               (transpose (p i) (p j)) \<circ> (cycle_of_list (map p (j # cs)))"
     using "1.IH" "1.prems"(1) assms(2) by fastforce
-  thus ?case by (metis cycle_of_list.simps(1) list.simps(9))
+  thus ?case by (simp add: fun_eq_iff)
 next
   case "2_1" thus ?case
     by (metis bij_is_surj comp_id cycle_of_list.simps(2) list.simps(8) surj_iff) 

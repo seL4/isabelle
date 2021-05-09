@@ -10,7 +10,9 @@ section "Linear Algebra on Finite Cartesian Products"
 
 theory Cartesian_Space
   imports
-    Finite_Cartesian_Product Linear_Algebra "HOL-Combinatorics.Transposition"
+    "HOL-Combinatorics.Transposition"
+    Finite_Cartesian_Product
+    Linear_Algebra
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Type @{typ \<open>'a ^ 'n\<close>} and fields as vector spaces\<close> (*much of the following
@@ -1061,7 +1063,7 @@ proof -
   then obtain f0 where "bij_betw f0 (UNIV::'n set) S"
     by (metis finite_class.finite_UNIV finite_same_card_bij finiteI_independent)
   then obtain f where f: "bij_betw f (UNIV::'n set) S" and a: "a = f k"
-    using bij_swap_iff [of k "inv f0 a" f0]
+    using bij_swap_iff [of f0 k "inv f0 a"]
     by (metis UNIV_I \<open>a \<in> S\<close> bij_betw_inv_into_right bij_betw_swap_iff swap_apply(1))
   show thesis
   proof
@@ -1206,7 +1208,7 @@ lemma induct_matrix_row_operations:
   fixes P :: "real^'n^'n \<Rightarrow> bool"
   assumes zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap_cols: "\<And>A m n. \<lbrakk>P A; m \<noteq> n\<rbrakk> \<Longrightarrow> P(\<chi> i j. A $ i $ Fun.swap m n id j)"
+    and swap_cols: "\<And>A m n. \<lbrakk>P A; m \<noteq> n\<rbrakk> \<Longrightarrow> P(\<chi> i j. A $ i $ Transposition.transpose m n j)"
     and row_op: "\<And>A m n c. \<lbrakk>P A; m \<noteq> n\<rbrakk>
                    \<Longrightarrow> P(\<chi> i. if i = m then row m A + c *\<^sub>R row n A else row i A)"
   shows "P A"
@@ -1293,14 +1295,14 @@ proof -
             by blast
         next
           case False
-          have *: "A $ i $ Fun.swap k l id j = 0" if "j \<noteq> k" "j \<notin> K" "i \<noteq> j" for i j
+          have *: "A $ i $ Transposition.transpose k l j = 0" if "j \<noteq> k" "j \<notin> K" "i \<noteq> j" for i j
             using False l insert.prems that
-            by (auto simp: swap_id_eq insert split: if_split_asm)
-          have "P (\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j)"
+            by (auto simp add: Transposition.transpose_def)
+          have "P (\<chi> i j. (\<chi> i j. A $ i $ Transposition.transpose k l j) $ i $ Transposition.transpose k l j)"
             by (rule swap_cols [OF nonzero_hyp False]) (auto simp: l *)
           moreover
-          have "(\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j) = A"
-            by (vector Fun.swap_def)
+          have "(\<chi> i j. (\<chi> i j. A $ i $ Transposition.transpose k l j) $ i $ Transposition.transpose k l j) = A"
+            by simp
           ultimately show ?thesis
             by simp
         qed
@@ -1316,14 +1318,14 @@ lemma induct_matrix_elementary:
   assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
     and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
+    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Transposition.transpose m n j)"
     and idplus: "\<And>m n c. m \<noteq> n \<Longrightarrow> P(\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j))"
   shows "P A"
 proof -
-  have swap: "P (\<chi> i j. A $ i $ Fun.swap m n id j)"  (is "P ?C")
+  have swap: "P (\<chi> i j. A $ i $ Transposition.transpose m n j)"  (is "P ?C")
     if "P A" "m \<noteq> n" for A m n
   proof -
-    have "A ** (\<chi> i j. mat 1 $ i $ Fun.swap m n id j) = ?C"
+    have "A ** (\<chi> i j. mat 1 $ i $ Transposition.transpose m n j) = ?C"
       by (simp add: matrix_matrix_mult_def mat_def vec_eq_iff if_distrib sum.delta_remove)
     then show ?thesis
       using mult swap1 that by metis
@@ -1347,7 +1349,7 @@ lemma induct_matrix_elementary_alt:
   assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
     and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
+    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Transposition.transpose m n j)"
     and idplus: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j))"
   shows "P A"
 proof -
@@ -1386,7 +1388,7 @@ lemma induct_linear_elementary:
     and comp: "\<And>f g. \<lbrakk>linear f; linear g; P f; P g\<rbrakk> \<Longrightarrow> P(f \<circ> g)"
     and zeroes: "\<And>f i. \<lbrakk>linear f; \<And>x. (f x) $ i = 0\<rbrakk> \<Longrightarrow> P f"
     and const: "\<And>c. P(\<lambda>x. \<chi> i. c i * x$i)"
-    and swap: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. x $ Fun.swap m n id i)"
+    and swap: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. x $ Transposition.transpose m n i)"
     and idplus: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i)"
   shows "P f"
 proof -
@@ -1415,13 +1417,13 @@ proof -
   next
     fix m n :: "'n"
     assume "m \<noteq> n"
-    have eq: "(\<Sum>j\<in>UNIV. if i = Fun.swap m n id j then x $ j else 0) =
-              (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
+    have eq: "(\<Sum>j\<in>UNIV. if i = Transposition.transpose m n j then x $ j else 0) =
+              (\<Sum>j\<in>UNIV. if j = Transposition.transpose m n i then x $ j else 0)"
       for i and x :: "real^'n"
       by (rule sum.cong) (auto simp add: swap_id_eq)
-    have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = ((*v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
+    have "(\<lambda>x::real^'n. \<chi> i. x $ Transposition.transpose m n i) = ((*v) (\<chi> i j. if i = Transposition.transpose m n j then 1 else 0))"
       by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"
+    with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Transposition.transpose m n j))"
       by (simp add: mat_def matrix_vector_mult_def)
   next
     fix m n :: "'n"

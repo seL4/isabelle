@@ -227,7 +227,7 @@ lemma  det_identical_columns:
   shows "det A = 0"
 proof -
   let ?U="UNIV::'n set"
-  let ?t_jk="Fun.swap j k id"
+  let ?t_jk="Transposition.transpose j k"
   let ?PU="{p. p permutes ?U}"
   let ?S1="{p. p\<in>?PU \<and> evenperm p}"
   let ?S2="{(?t_jk \<circ> p) |p. p \<in>?S1}"
@@ -240,10 +240,11 @@ proof -
       and y: "y permutes ?U" and even_y: "evenperm y" and eq: "?t_jk \<circ> x = ?t_jk \<circ> y"
     show "x = y" by (metis (hide_lams, no_types) comp_assoc eq id_comp swap_id_idempotent)
   qed
-  have tjk_permutes: "?t_jk permutes ?U" unfolding permutes_def swap_id_eq by (auto,metis)
+  have tjk_permutes: "?t_jk permutes ?U"
+    by (auto simp add: permutes_def dest: transpose_eq_imp_eq) (meson transpose_involutory)
   have tjk_eq: "\<forall>i l. A $ i $ ?t_jk l  =  A $ i $ l"
     using r jk
-    unfolding column_def vec_eq_iff swap_id_eq by fastforce
+    unfolding column_def vec_eq_iff by (simp add: Transposition.transpose_def) 
   have sign_tjk: "sign ?t_jk = -1" using sign_swap_id[of j k] jk by auto
   {fix x
     assume x: "x\<in> ?S1"
@@ -260,8 +261,8 @@ proof -
   have PU_decomposition: "?PU = ?S1 \<union> ?S2"
   proof (auto)
     fix x
-    assume x: "x permutes ?U" and "\<forall>p. p permutes ?U \<longrightarrow> x = Fun.swap j k id \<circ> p \<longrightarrow> \<not> evenperm p"
-    then obtain p where p: "p permutes UNIV" and x_eq: "x = Fun.swap j k id \<circ> p"
+    assume x: "x permutes ?U" and "\<forall>p. p permutes ?U \<longrightarrow> x = Transposition.transpose j k \<circ> p \<longrightarrow> \<not> evenperm p"
+    then obtain p where p: "p permutes UNIV" and x_eq: "x = Transposition.transpose j k \<circ> p"
       and odd_p: "\<not> evenperm p"
       by (metis (mono_tags) id_o o_assoc permutes_compose swap_id_idempotent tjk_permutes)
     thus "evenperm x"
@@ -269,10 +270,10 @@ proof -
           jk permutation_permutes permutation_swap_id)
   next
     fix p assume p: "p permutes ?U"
-    show "Fun.swap j k id \<circ> p permutes UNIV" by (metis p permutes_compose tjk_permutes)
+    show "Transposition.transpose j k \<circ> p permutes UNIV" by (metis p permutes_compose tjk_permutes)
   qed
   have "sum ?f ?S2 = sum ((\<lambda>p. of_int (sign p) * (\<Prod>i\<in>UNIV. A $ i $ p i))
-  \<circ> (\<circ>) (Fun.swap j k id)) {p \<in> {p. p permutes UNIV}. evenperm p}"
+  \<circ> (\<circ>) (Transposition.transpose j k)) {p \<in> {p. p permutes UNIV}. evenperm p}"
     unfolding g_S1 by (rule sum.reindex[OF inj_g])
   also have "\<dots> = sum (\<lambda>p. of_int (sign (?t_jk \<circ> p)) * (\<Prod>i\<in>UNIV. A $ i $ p i)) ?S1"
     unfolding o_def by (rule sum.cong, auto simp: tjk_eq)

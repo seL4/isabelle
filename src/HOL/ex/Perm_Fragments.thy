@@ -77,7 +77,7 @@ using assms proof (induct as rule: cycle.induct)
     with distinct have "distinct (a # b # cs @ [c])"
       by simp
     then have **: "\<langle>a \<leftrightarrow> b\<rangle> * \<langle>c \<leftrightarrow> a\<rangle> = \<langle>c \<leftrightarrow> a\<rangle> * \<langle>c \<leftrightarrow> b\<rangle>"
-      by transfer (auto simp add: comp_def Fun.swap_def)
+      by transfer (auto simp add: fun_eq_iff transpose_def)
     with snoc * show ?thesis
       by (simp add: mult.assoc [symmetric])
   qed

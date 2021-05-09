@@ -94,8 +94,12 @@ theory are already present in theory "Permutations".  INCOMPATIBILITY.
 * Lemma "permutes_induct" has been given stronger
 hypotheses and named premises.  INCOMPATIBILITY.
 
-* Combinator "Fun.swap" moved into separate theory "Transposition" in
-HOL-Combinatorics.  INCOMPATIBILITY.
+* Theory "Transposition" in HOL-Combinatorics provides elementary
+swap operation "transpose".
+
+* Combinator "Fun.swap" resolved into a mere input abbreviation
+in separate theory "Transposition" in HOL-Combinatorics.
+INCOMPATIBILITY.
 
 
 *** ML ***

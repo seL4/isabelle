@@ -10,6 +10,7 @@ imports
   Multiset_Permutations
   Cycles
   Perm
+  Orbits
 begin
 
 end

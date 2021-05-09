@@ -1875,5 +1875,4 @@ lemma bilinear_continuous_on_compose:
   shows "continuous_on S (\<lambda>x. h (f x) (g x))"
   using assms by (simp add: continuous_on_eq_continuous_within bilinear_continuous_compose)
 
-
 end

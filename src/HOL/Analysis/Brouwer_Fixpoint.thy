@@ -1114,9 +1114,14 @@ proof cases
       moreover have "j < i \<or> i = j \<or> i < j" by arith
       moreover note i
       ultimately have "enum j = b.enum j \<longleftrightarrow> j \<noteq> i"
-        unfolding enum_def[abs_def] b.enum_def[abs_def]
-        by (auto simp: fun_eq_iff swap_image i'_def
-                           in_upd_image inj_on_image_set_diff[OF inj_upd]) }
+        apply (simp only: fun_eq_iff enum_def b.enum_def flip: image_comp)
+        apply (cases \<open>i = j\<close>)
+         apply simp
+         apply (metis Suc_i' \<open>i \<le> n\<close> imageI in_upd_image lessI lessThan_iff lessThan_subset_iff less_irrefl_nat transpose_apply_second transpose_commute)
+        apply (subst transpose_image_eq)
+         apply (auto simp add: i'_def)
+        done
+      }
     note enum_eq_benum = this
     then have "enum ` ({.. n} - {i}) = b.enum ` ({.. n} - {i})"
       by (intro image_cong) auto

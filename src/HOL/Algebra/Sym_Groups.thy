@@ -158,7 +158,7 @@ inductive swapidseq_ext :: "'a set \<Rightarrow> nat \<Rightarrow> ('a \<Rightar
     empty:  "swapidseq_ext {} 0 id"
   | single: "\<lbrakk> swapidseq_ext S n p; a \<notin> S \<rbrakk> \<Longrightarrow> swapidseq_ext (insert a S) n p"
   | comp:   "\<lbrakk> swapidseq_ext S n p; a \<noteq> b \<rbrakk> \<Longrightarrow>
-               swapidseq_ext (insert a (insert b S)) (Suc n) ((Fun.swap a b id) \<circ> p)"
+               swapidseq_ext (insert a (insert b S)) (Suc n) ((transpose a b) \<circ> p)"
 
 
 lemma swapidseq_ext_finite:
@@ -180,7 +180,7 @@ next
   then show ?case by simp
 next
   case (comp S n p a b)
-  then have \<open>swapidseq (Suc n) (Fun.swap a b id \<circ> p)\<close>
+  then have \<open>swapidseq (Suc n) (transpose a b \<circ> p)\<close>
     by (simp add: comp_Suc)
   then show ?case by (simp add: comp_def)
 qed
@@ -205,12 +205,12 @@ qed
 lemma swapidseq_ext_backwards:
   assumes "swapidseq_ext A (Suc n) p"
   shows "\<exists>a b A' p'. a \<noteq> b \<and> A = (insert a (insert b A')) \<and>
-                     swapidseq_ext A' n p' \<and> p = (Fun.swap a b id) \<circ> p'"
+                     swapidseq_ext A' n p' \<and> p = (transpose a b) \<circ> p'"
 proof -
   { fix A n k and p :: "'a \<Rightarrow> 'a"
     assume "swapidseq_ext A n p" "n = Suc k"
     hence "\<exists>a b A' p'. a \<noteq> b \<and> A = (insert a (insert b A')) \<and>
-                       swapidseq_ext A' k p' \<and> p = (Fun.swap a b id) \<circ> p'"
+                       swapidseq_ext A' k p' \<and> p = (transpose a b) \<circ> p'"
     proof (induction, simp)
       case single thus ?case
         by (metis Un_insert_right insert_iff insert_is_Un swapidseq_ext.single)
@@ -224,13 +224,13 @@ qed
 
 lemma swapidseq_ext_backwards':
   assumes "swapidseq_ext A (Suc n) p"
-  shows "\<exists>a b A' p'. a \<in> A \<and> b \<in> A \<and> a \<noteq> b \<and> swapidseq_ext A n p' \<and> p = (Fun.swap a b id) \<circ> p'"
+  shows "\<exists>a b A' p'. a \<in> A \<and> b \<in> A \<and> a \<noteq> b \<and> swapidseq_ext A n p' \<and> p = (transpose a b) \<circ> p'"
   using swapidseq_ext_backwards[OF assms] swapidseq_ext_finite_expansion
   by (metis Un_insert_left assms insertI1 sup.idem sup_commute swapidseq_ext_finite)
 
 lemma swapidseq_ext_endswap:
   assumes "swapidseq_ext S n p" "a \<noteq> b"
-  shows "swapidseq_ext (insert a (insert b S)) (Suc n) (p \<circ> (Fun.swap a b id))"
+  shows "swapidseq_ext (insert a (insert b S)) (Suc n) (p \<circ> (transpose a b))"
   using assms
 proof (induction n arbitrary: S p a b)
   case 0 hence "p = id"
@@ -241,12 +241,12 @@ next
   case (Suc n)
   then obtain c d S' and p' :: "'a \<Rightarrow> 'a"
     where cd: "c \<noteq> d" and S: "S = (insert c (insert d S'))" "swapidseq_ext S' n p'"
-      and p: "p = (Fun.swap c d id) \<circ> p'"
+      and p: "p = transpose c d \<circ> p'"
     using swapidseq_ext_backwards[OF Suc(2)] by blast
-  hence "swapidseq_ext (insert a (insert b S')) (Suc n) (p' \<circ> (Fun.swap a b id))"
+  hence "swapidseq_ext (insert a (insert b S')) (Suc n) (p' \<circ> (transpose a b))"
     by (simp add: Suc.IH Suc.prems(2))
   hence "swapidseq_ext (insert c (insert d (insert a (insert b S')))) (Suc (Suc n))
-                 ((Fun.swap c d id) \<circ> p' \<circ> (Fun.swap a b id))"
+                 (transpose c d \<circ> p' \<circ> (transpose a b))"
     by (metis cd fun.map_comp swapidseq_ext.comp)
   thus ?case
     by (metis S(1) p insert_commute) 
@@ -315,11 +315,11 @@ proof -
         and p: "p = q \<circ> r" and S: "U \<union> V = S"
       by blast
     obtain a b r' V' 
-      where "a \<noteq> b" and r': "V = (insert a (insert b V'))" "swapidseq_ext V' m r'" "r = (Fun.swap a b id) \<circ> r'"
+      where "a \<noteq> b" and r': "V = (insert a (insert b V'))" "swapidseq_ext V' m r'" "r = (transpose a b) \<circ> r'"
       using swapidseq_ext_backwards[OF r] by blast
-    have "swapidseq_ext (insert a (insert b U)) (n - m) (q \<circ> (Fun.swap a b id))"
+    have "swapidseq_ext (insert a (insert b U)) (n - m) (q \<circ> (transpose a b))"
       using swapidseq_ext_endswap[OF q \<open>a \<noteq> b\<close>] step(2) by (metis Suc_diff_Suc)
-    hence "?split m (q \<circ> (Fun.swap a b id)) r' (insert a (insert b U)) V'"
+    hence "?split m (q \<circ> (transpose a b)) r' (insert a (insert b U)) V'"
       using r' S unfolding p by fastforce 
     thus ?case by blast
   qed
@@ -350,7 +350,7 @@ proof
     by auto
   obtain a b c where cs_def: "cs = [ a, b, c ]"
     using stupid_lemma[OF cs(3)] by auto
-  have "swapidseq (Suc (Suc 0)) ((Fun.swap a b id) \<circ> (Fun.swap b c id))"
+  have "swapidseq (Suc (Suc 0)) ((transpose a b) \<circ> (Fun.swap b c id))"
     using comp_Suc[OF comp_Suc[OF id], of b c a b] cs(2) unfolding cs_def by simp
   hence "evenperm p"
     using cs(1) unfolding cs_def by (simp add: evenperm_unique)
@@ -395,10 +395,10 @@ proof -
         have "q \<in> generate (alt_group n) (three_cycles n)"
         proof -
           obtain a b q' where ab: "a \<noteq> b" "a \<in> S" "b \<in> S"
-            and q': "swapidseq_ext S (Suc 0) q'" "q = (Fun.swap a b id) \<circ> q'"
+            and q': "swapidseq_ext S (Suc 0) q'" "q = (transpose a b) \<circ> q'"
             using swapidseq_ext_backwards'[OF seq] by auto 
           obtain c d where cd: "c \<noteq> d" "c \<in> S" "d \<in> S"
-            and q: "q = (Fun.swap a b id) \<circ> (Fun.swap c d id)"
+            and q: "q = (transpose a b) \<circ> (Fun.swap c d id)"
             using swapidseq_ext_backwards'[OF q'(1)]
                   swapidseq_ext_zero_imp_id
             unfolding q'(2)
@@ -416,7 +416,7 @@ proof -
           next
             case ineq
             hence "q = cycle_of_list [ a, b, c ] \<circ> cycle_of_list [ b, c, d ]"
-              unfolding q by (simp add: comp_swap)
+              unfolding q by (simp add: swap_nilpotent o_assoc)
             moreover have "{ a, b, c } \<subseteq> {1..n}" and "{ b, c, d } \<subseteq> {1..n}"
               using ab cd S by blast+
             ultimately show ?thesis
@@ -499,7 +499,7 @@ next
         unfolding sym[OF cs(1)] unfolding cs_def by simp
       also have " ... = p \<circ> p"
         using cs(2) unfolding cs(1) cs_def
-        by (auto, metis comp_id comp_swap swap_commute swap_triple)
+        by (simp add: comp_swap swap_commute transpose_comp_triple) 
       finally have "q \<circ> p \<circ> (inv' q) = p \<circ> p" .
       moreover have "bij p"
         unfolding cs(1) cs_def by (simp add: bij_comp)
