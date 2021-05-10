@@ -213,6 +213,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
     }
 
   def xz: Path = ext("xz")
+  def xml: Path = ext("xml")
   def html: Path = ext("html")
   def tex: Path = ext("tex")
   def pdf: Path = ext("pdf")

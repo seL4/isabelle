@@ -286,7 +286,11 @@ object File
     if (x != y) write(file, y)
   }
 
+  def change_lines(file: JFile, f: List[String] => List[String]): Unit =
+    change(file, text => cat_lines(f(split_lines(text))))
+
   def change(path: Path, f: String => String): Unit = change(path.file, f)
+  def change_lines(path: Path, f: List[String] => List[String]): Unit = change_lines(path.file, f)
 
 
   /* append */
