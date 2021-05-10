@@ -100,6 +100,10 @@ lemma transpose_comp_eq:
   if \<open>bij f\<close>
   using that by (simp add: fun_eq_iff transpose_apply_commute)
 
+lemma in_transpose_image_iff:
+  \<open>x \<in> transpose a b ` S \<longleftrightarrow> transpose a b x \<in> S\<close>
+  by (auto intro!: image_eqI)
+
 
 text \<open>Legacy input alias\<close>
 
