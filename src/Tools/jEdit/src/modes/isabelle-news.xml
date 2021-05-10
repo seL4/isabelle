@@ -5,8 +5,8 @@
 <MODE>
   <PROPS>
     <PROPERTY NAME="noWordSep" VALUE="_'?⇩\^&lt;&gt;"/>
-    <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹⟨⌈⌊⦇⟦⦃" />
-    <PROPERTY NAME="unalignedCloseBrackets" VALUE="⦄⟧⦈⌋⌉⟩›»)]}" />
+    <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹⟨⌈⌊⦇⟦⦃⦉" />
+    <PROPERTY NAME="unalignedCloseBrackets" VALUE="⦊⦄⟧⦈⌋⌉⟩›»)]}" />
     <PROPERTY NAME="tabSize" VALUE="2" />
     <PROPERTY NAME="indentSize" VALUE="2" />
   </PROPS>
