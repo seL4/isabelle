@@ -298,7 +298,7 @@ proof(induction I arbitrary: x)
     using Cons(1)[OF \<open>xs all_in Is\<close>]
       split_correct[OF \<open>x' \<in>\<^sub>r I\<close>]
     apply (auto simp add: list_ex_iff set_of_eq)
-    by (smt length_Cons less_Suc_eq_0_disj nth_Cons_0 nth_Cons_Suc x_decomp)
+    by (smt (verit, ccfv_SIG) One_nat_def Suc_pred \<open>x \<noteq> []\<close> le_simps(3) length_greater_0_conv length_tl linorder_not_less list.sel(3) neq0_conv nth_Cons' x_decomp)
 qed simp
 
 

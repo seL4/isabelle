@@ -2122,7 +2122,7 @@ proof (induction n arbitrary: a b rule: less_induct)
     proof cases
       assume [simp]: "even j"
       have "a * power_down prec a j \<le> b * power_down prec b j"
-        by (smt IH(1) IH(2) \<open>even j\<close> lessI mult_mono' mult_mono_nonpos_nonneg power_down_even_nonneg)
+        by (metis IH(1) IH(2) \<open>even j\<close> lessI linear mult_mono mult_mono' mult_mono_nonpos_nonneg power_down_even_nonneg)
       then have "truncate_down (Suc prec) (a * power_down prec a j) \<le> truncate_down (Suc prec) (b * power_down prec b j)"
         by (auto intro!: truncate_down_mono simp: abs_le_square_iff[symmetric] abs_real_def)
       then show ?thesis
@@ -2193,7 +2193,7 @@ proof (induction n arbitrary: a b rule: less_induct)
     proof cases
       assume [simp]: "even j"
       have "a * power_up prec a j \<le> b * power_up prec b j"
-        by (smt IH(1) IH(2) \<open>even j\<close> lessI mult_mono' mult_mono_nonpos_nonneg power_up_even_nonneg)
+        by (metis IH(1) IH(2) \<open>even j\<close> lessI linear mult_mono mult_mono' mult_mono_nonpos_nonneg power_up_even_nonneg)
       then have "truncate_up prec (a * power_up prec a j) \<le> truncate_up prec (b * power_up prec b j)"
         by (auto intro!: truncate_up_mono simp: abs_le_square_iff[symmetric] abs_real_def)
       then show ?thesis

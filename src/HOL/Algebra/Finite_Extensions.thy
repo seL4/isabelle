@@ -616,15 +616,33 @@ lemma (in domain) finite_extension_is_subring:
   using assms simple_extension_is_subring by (induct xs) (auto)
 
 corollary (in domain) finite_extension_mem:
-  assumes "subring K R" "set xs \<subseteq> carrier R" shows "set xs \<subseteq> finite_extension K xs"
-proof -
-  { fix x xs assume "x \<in> carrier R" "set xs \<subseteq> carrier R"
-    hence "x \<in> finite_extension K (x # xs)"
-      using simple_extension_mem[OF finite_extension_is_subring[OF assms(1), of xs]] by simp }
-  note aux_lemma = this
-  show ?thesis
-    using aux_lemma finite_extension_incl_aux[OF subringE(1)[OF assms(1)]] assms(2)
-    by (induct xs) (simp, smt insert_subset list.simps(15) subset_trans) 
+  assumes subring: "subring K R"
+  shows "set xs \<subseteq> carrier R \<Longrightarrow> set xs \<subseteq> finite_extension K xs"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  from Cons(2) have a: "a \<in> carrier R" and xs: "set xs \<subseteq> carrier R" by auto
+  show ?case
+  proof
+    fix x assume "x \<in> set (a # xs)"
+    then consider "x = a" | "x \<in> set xs" by auto
+    then show "x \<in> finite_extension K (a # xs)"
+    proof cases
+      case 1
+      with a have "x \<in> carrier R" by simp
+      with xs have "x \<in> finite_extension K (x # xs)"
+        using simple_extension_mem[OF finite_extension_is_subring[OF subring]] by simp
+      with 1 show ?thesis by simp
+    next
+      case 2
+      with Cons have *: "x \<in> finite_extension K xs" by auto
+      from a xs have "finite_extension K xs \<subseteq> finite_extension K (a # xs)"
+        by (rule finite_extension_incl_aux[OF subringE(1)[OF subring]])
+      with * show ?thesis by auto
+    qed
+  qed
 qed
 
 corollary (in domain) finite_extension_minimal:
