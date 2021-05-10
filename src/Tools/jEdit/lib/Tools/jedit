@@ -256,10 +256,13 @@ TARGET_JAR="$TARGET_DIR/jars/Isabelle-jEdit.jar"
 TARGET_SHASUM="$TARGET_DIR/Isabelle-jEdit.shasum"
 
 declare -a TARGET_DEPS=("lib/classes/Pure.jar" "$TARGET_DIR/jedit.jar")
-for DEP in "$TARGET_DIR"/jars/*.jar
-do
-  TARGET_DEPS["${#TARGET_DEPS[@]}"]="$DEP"
-done
+
+if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+  for DEP in "$ISABELLE_JEDIT_BUILD_HOME/$ISABELLE_JEDIT_BUILD_VERSION"/jars/*.jar
+  do
+    TARGET_DEPS["${#TARGET_DEPS[@]}"]="$TARGET_DIR/jars/$(basename "$DEP")"
+  done
+fi
 
 function target_shasum()
 (
