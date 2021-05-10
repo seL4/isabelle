@@ -21,6 +21,7 @@ declare -a SOURCES=(
   src/Pure/Admin/build_history.scala
   src/Pure/Admin/build_jcef.scala
   src/Pure/Admin/build_jdk.scala
+  src/Pure/Admin/build_jedit.scala
   src/Pure/Admin/build_log.scala
   src/Pure/Admin/build_polyml.scala
   src/Pure/Admin/build_release.scala

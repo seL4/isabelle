@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java	2020-09-03 05:31:01.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2020-09-08 20:13:23.565140195 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2020-09-03 05:31:01.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2021-05-10 11:02:05.816257745 +0200
 @@ -332,9 +332,9 @@
  	//{{{ Package private members
  
@@ -24,9 +24,9 @@ diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.6.0/jEdit-patched
  	private GlyphData glyphData;
  	//}}}
  
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-03 05:31:01.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-08 20:13:23.569140077 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-03 05:31:01.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2021-05-10 11:02:05.820257742 +0200
 @@ -914,6 +914,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
@@ -39,9 +39,9 @@ diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java 5.6.0/jEdit-pa
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java 5.6.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
---- 5.6.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java	2020-09-03 05:31:09.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2020-09-08 20:13:23.569140077 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java
+--- jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2020-09-03 05:31:09.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2021-05-10 11:02:05.820257742 +0200
 @@ -344,8 +344,28 @@
  			}
  		}

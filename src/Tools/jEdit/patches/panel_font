@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/gui/PanelWindowContainer.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2020-09-03 05:31:02.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2020-12-23 13:16:31.059779643 +0100
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2020-09-03 05:31:02.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2021-05-10 11:23:04.107511056 +0200
 @@ -52,6 +52,7 @@
  import javax.swing.JComponent;
  import javax.swing.JPanel;
