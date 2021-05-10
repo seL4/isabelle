@@ -131,7 +131,6 @@ session "HOL-Combinatorics" (main timing) in "Combinatorics" = "HOL" +
     "HOL-Library"
   theories
     Combinatorics
-    Guide
   document_files
     "root.tex"
 
