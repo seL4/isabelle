@@ -26,7 +26,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/
  
 diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
 --- jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2021-05-10 11:02:05.820257742 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2021-05-10 18:19:56.275495525 +0200
 @@ -914,6 +914,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
@@ -39,6 +39,29 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-pat
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
+@@ -1622,8 +1627,8 @@
+ 		}
+ 
+ 		// Scan backwards, trying to find a bracket
+-		String openBrackets = "([{«‹⟨⌈⌊⦇⟦⦃⟪";
+-		String closeBrackets = ")]}»›⟩⌉⌋⦈⟧⦄⟫";
++		String openBrackets = "([{«‹⟨⌈⌊⦇⟦⦃⟪⦉";
++		String closeBrackets = ")]}»›⟩⌉⌋⦈⟧⦄⟫⦊";
+ 		int count = 1;
+ 		char openBracket = '\0';
+ 		char closeBracket = '\0';
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2020-09-03 05:31:03.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java	2021-05-10 18:20:57.418571547 +0200
+@@ -115,6 +115,8 @@
+ 		case '⦄': if (direction != null) direction[0] = false; return '⦃';
+ 		case '⟪': if (direction != null) direction[0] = true;  return '⟫';
+ 		case '⟫': if (direction != null) direction[0] = false; return '⟪';
++		case '⦉': if (direction != null) direction[0] = true;  return '⦊';
++		case '⦊': if (direction != null) direction[0] = false; return '⦉';
+ 		default:  return '\0';
+ 		}
+ 	} //}}}
 diff -ru jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java
 --- jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2020-09-03 05:31:09.000000000 +0200
 +++ jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2021-05-10 11:02:05.820257742 +0200
