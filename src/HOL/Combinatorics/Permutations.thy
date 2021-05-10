@@ -382,7 +382,7 @@ lemma permutes_insert_lemma:
   apply (rule permutes_swap_id, simp)
   using permutes_in_image[OF assms, of a]
   apply simp
-  apply (auto simp add: Ball_def Fun.swap_def)
+  apply (auto simp add: Ball_def)
   done
 
 lemma permutes_insert: "{p. p permutes (insert a S)} =
@@ -459,17 +459,17 @@ next
         from bp cq have pF: "p permutes F" and qF: "q permutes F"
           by auto
         from pF \<open>x \<notin> F\<close> eq have "b = ?g (b, p) x"
-          by (auto simp: permutes_def Fun.swap_def fun_upd_def fun_eq_iff)
+          by (auto simp: permutes_def fun_upd_def fun_eq_iff)
         also from qF \<open>x \<notin> F\<close> eq have "\<dots> = ?g (c, q) x"
           by (auto simp: fun_upd_def fun_eq_iff)
         also from qF \<open>x \<notin> F\<close> have "\<dots> = c"
-          by (auto simp: permutes_def Fun.swap_def fun_upd_def fun_eq_iff)
+          by (auto simp: permutes_def fun_upd_def fun_eq_iff)
         finally have "b = c" .
-        then have "Fun.swap x b id = Fun.swap x c id"
+        then have "transpose x b = transpose x c"
           by simp
-        with eq have "Fun.swap x b id \<circ> p = Fun.swap x b id \<circ> q"
+        with eq have "transpose x b \<circ> p = transpose x b \<circ> q"
           by simp
-        then have "Fun.swap x b id \<circ> (Fun.swap x b id \<circ> p) = Fun.swap x b id \<circ> (Fun.swap x b id \<circ> q)"
+        then have "transpose x b \<circ> (transpose x b \<circ> p) = transpose x b \<circ> (transpose x b \<circ> q)"
           by simp
         then have "p = q"
           by (simp add: o_assoc)
@@ -545,10 +545,10 @@ using \<open>p permutes S\<close> \<open>finite S\<close> proof (induction rule:
 next
   case (swap a b p)
   then have \<open>bij p\<close>
-    using permutes_bij by blast 
-  have \<open>P (Fun.swap (inv p a) (inv p b) p)\<close>
+    using permutes_bij by blast
+  have \<open>P (p \<circ> transpose (inv p a) (inv p b))\<close>
     by (rule swap') (auto simp add: swap permutes_in_image permutes_inv)
-  also have \<open>Fun.swap (inv p a) (inv p b) p = transpose a b \<circ> p\<close>
+  also have \<open>p \<circ> transpose (inv p a) (inv p b) = transpose a b \<circ> p\<close>
     using \<open>bij p\<close> by (rule transpose_comp_eq [symmetric])
   finally show ?case .
 qed
@@ -674,16 +674,16 @@ lemma permutation_inverse: "permutation p \<Longrightarrow> permutation (inv p)"
 subsection \<open>Various combinations of transpositions with 2, 1 and 0 common elements\<close>
 
 lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>
-  transpose a b \<circ> transpose a c = Fun.swap b c id \<circ> transpose a b"
-  by (simp add: fun_eq_iff Fun.swap_def)
+  transpose a b \<circ> transpose a c = transpose b c \<circ> transpose a b"
+  by (simp add: fun_eq_iff transpose_def)
 
 lemma swap_id_common': "a \<noteq> b \<Longrightarrow> a \<noteq> c \<Longrightarrow>
-  transpose a c \<circ> Fun.swap b c id = Fun.swap b c id \<circ> transpose a b"
-  by (simp add: fun_eq_iff Fun.swap_def)
+  transpose a c \<circ> transpose b c = transpose b c \<circ> transpose a b"
+  by (simp add: fun_eq_iff transpose_def)
 
 lemma swap_id_independent: "a \<noteq> c \<Longrightarrow> a \<noteq> d \<Longrightarrow> b \<noteq> c \<Longrightarrow> b \<noteq> d \<Longrightarrow>
   transpose a b \<circ> transpose c d = transpose c d \<circ> transpose a b"
-  by (simp add: fun_eq_iff Fun.swap_def)
+  by (simp add: fun_eq_iff transpose_def)
 
 
 subsection \<open>The identity map only has even transposition sequences\<close>
@@ -740,7 +740,7 @@ lemma fixing_swapidseq_decrease:
 proof (induct n arbitrary: p a b)
   case 0
   then show ?case
-    by (auto simp add: Fun.swap_def fun_upd_def)
+    by (auto simp add: fun_upd_def)
 next
   case (Suc n p a b)
   from Suc.prems(1) swapidseq_cases[of "Suc n" p]
@@ -909,7 +909,7 @@ proof -
     from comp_Suc.hyps(2) have *: "finite ?S"
       by simp
     from \<open>a \<noteq> b\<close> have **: "{x. (transpose a b \<circ> p) x \<noteq> x} \<subseteq> ?S"
-      by (auto simp: Fun.swap_def)
+      by auto
     show ?case
       by (rule finite_subset[OF ** *])
   qed
@@ -927,14 +927,14 @@ proof (induct S arbitrary: p rule: finite_induct)
     by simp
 next
   case (insert a F p)
-  let ?r = "Fun.swap a (p a) id \<circ> p"
-  let ?q = "Fun.swap a (p a) id \<circ> ?r"
+  let ?r = "transpose a (p a) \<circ> p"
+  let ?q = "transpose a (p a) \<circ> ?r"
   have *: "?r a = a"
-    by (simp add: Fun.swap_def)
+    by simp
   from insert * have **: "\<forall>x. x \<notin> F \<longrightarrow> ?r x = x"
     by (metis bij_pointE comp_apply id_apply insert_iff swap_apply(3))
   have "bij ?r"
-    by (rule bij_swap_compose_bij[OF insert(4)])
+    using insert by (simp add: bij_comp)
   have "permutation ?r"
     by (rule insert(3)[OF \<open>bij ?r\<close> **])
   then have "permutation ?q"
@@ -1596,7 +1596,7 @@ proof -
       from eq have "(transpose a b \<circ> p) a  = (transpose a c \<circ> q) a"
         by simp
       then have bc: "b = c"
-        by (simp add: permutes_def pa qa o_def fun_upd_def Fun.swap_def id_def
+        by (simp add: permutes_def pa qa o_def fun_upd_def id_def
             cong del: if_weak_cong split: if_split_asm)
       from eq[unfolded bc] have "(\<lambda>p. transpose a c \<circ> p) (transpose a c \<circ> p) =
         (\<lambda>p. transpose a c \<circ> p) (transpose a c \<circ> q)" by simp

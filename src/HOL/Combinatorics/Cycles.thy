@@ -43,20 +43,25 @@ theorem cyclic_rotation:
 proof -
   { have "map (cycle_of_list cs) cs = rotate1 cs" using assms(1)
     proof (induction cs rule: cycle_of_list.induct)
-      case (1 i j cs) thus ?case
+      case (1 i j cs)
+      then have \<open>i \<notin> set cs\<close> \<open>j \<notin> set cs\<close>
+        by auto
+      then have \<open>map (Transposition.transpose i j) cs = cs\<close>
+        by (auto intro: map_idI simp add: transpose_eq_iff)
+      show ?case
       proof (cases)
         assume "cs = Nil" thus ?thesis by simp
       next
         assume "cs \<noteq> Nil" hence ge_two: "length (j # cs) \<ge> 2"
           using not_less by auto
         have "map (cycle_of_list (i # j # cs)) (i # j # cs) =
-              map (Fun.swap i j id) (map (cycle_of_list (j # cs)) (i # j # cs))" by simp
-        also have " ... = map (Fun.swap i j id) (i # (rotate1 (j # cs)))"
+              map (transpose i j) (map (cycle_of_list (j # cs)) (i # j # cs))" by simp
+        also have " ... = map (transpose i j) (i # (rotate1 (j # cs)))"
           by (metis "1.IH" "1.prems" distinct.simps(2) id_outside_supp list.simps(9))
-        also have " ... = map (Fun.swap i j id) (i # (cs @ [j]))" by simp
-        also have " ... = j # (map (Fun.swap i j id) cs) @ [i]" by simp
+        also have " ... = map (transpose i j) (i # (cs @ [j]))" by simp
+        also have " ... = j # (map (transpose i j) cs) @ [i]" by simp
         also have " ... = j # cs @ [i]"
-          by (metis "1.prems" distinct.simps(2) list.set_intros(2) map_idI swap_id_eq)
+          using \<open>map (Transposition.transpose i j) cs = cs\<close> by simp
         also have " ... = rotate1 (i # j # cs)" by simp
         finally show ?thesis .
       qed
@@ -118,7 +123,7 @@ lemma conjugation_of_cycle:
 proof (induction cs rule: cycle_of_list.induct)
   case (1 i j cs)
   have "p \<circ> cycle_of_list (i # j # cs) \<circ> inv p =
-       (p \<circ> (Fun.swap i j id) \<circ> inv p) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
+       (p \<circ> (transpose i j) \<circ> inv p) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
     by (simp add: assms(2) bij_is_inj fun.map_comp)
   also have " ... = (transpose (p i) (p j)) \<circ> (p \<circ> cycle_of_list (j # cs) \<circ> inv p)"
     using "1.prems"(2) by (simp add: bij_inv_eq_iff transpose_apply_commute fun_eq_iff bij_betw_inv_into_left)
