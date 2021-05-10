@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/View.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/View.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/View.java	2020-09-03 05:31:01.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/View.java	2020-09-08 20:13:35.652786577 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/View.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/View.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/View.java	2020-09-03 05:31:01.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/View.java	2021-05-10 11:02:05.792257750 +0200
 @@ -1262,15 +1262,10 @@
  
  		StringBuilder title = new StringBuilder();

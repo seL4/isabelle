@@ -1796,7 +1796,7 @@ lemma frag_extend_eq_0:
 
 lemma keys_frag_extend: "Poly_Mapping.keys(frag_extend f c) \<subseteq> (\<Union>x \<in> Poly_Mapping.keys c. Poly_Mapping.keys(f x))"
   unfolding frag_extend_def
-  by (smt SUP_mono' keys_cmul keys_sum order_trans)
+  using keys_sum by fastforce
 
 lemma frag_expansion: "a = frag_extend frag_of a"
 proof -

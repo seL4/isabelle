@@ -114,7 +114,10 @@ lift_definition set_fae_seq_alt :: "'a fae_seq \<Rightarrow> 'a set" is "\<lambd
 
 lemma fseq_at_infinite_Inr:
   "\<lbrakk>infinite (fseq_at f x); fseq_eq (map_fseq Inr f) g\<rbrakk> \<Longrightarrow> \<exists>x'\<in>set_fseq g. x \<in> Basic_BNFs.setr x'"
-  by transfer(auto simp add: seq_at_def vimage_def; smt (z3) finite_nat_set_iff_bounded_le mem_Collect_eq setr.intros)
+  apply transfer
+  apply (auto simp add: seq_at_def vimage_def)
+  apply (smt (verit, ccfv_SIG) finite_subset mem_Collect_eq setr.simps subsetI)
+  done
 
 lemma fseq_at_Inr_infinite:
   assumes "\<And>g. fseq_eq (map_fseq Inr f) g \<longrightarrow> (\<exists>x'\<in>set_fseq g. x \<in> Basic_BNFs.setr x')"

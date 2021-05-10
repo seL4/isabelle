@@ -204,7 +204,7 @@ proof (induct r s rule: ACIDZ.induct)
 next
   case (d r t)
   then show ?case
-    by (smt (z3) ACIDZ.d R distribute.simps(3) elim_zeros.simps(2) elim_zeros.simps(3) elim_zeros_distribute_idem z)
+    by (smt (verit, ccfv_SIG) ACIDZ.d R elim_zeros.simps(2) elim_zeros_distribute_Zero elim_zeros_distribute_idem z)
 next
   case (A r r' s s')
   then show ?case
@@ -212,7 +212,7 @@ next
 next
   case (C r r' s)
   then show ?case
-    by (smt (z3) ACIDZ.C elim_zeros.simps(2,3) z elim_zeros_ACIDZ_Zero)
+    by (smt (verit, best) ACIDZ.C R elim_zeros.simps(2) elim_zeros_ACIDZ_Zero z)
 qed (auto simp: Let_def)
 
 lemma AA': "r ~ r' \<Longrightarrow> s ~ s' \<Longrightarrow> t = elim_zeros (Alt r' s') \<Longrightarrow> Alt r s ~ t"
@@ -437,7 +437,7 @@ next
 qed
 
 private lemma CZ: "Conc Zero r ~~ Zero"
-  by (smt (z3) R elim_zeros.simps(2) elim_zeros.simps(3) r_into_equivclp z)
+  by (metis R distribute.simps(3) elim_zeros.simps(3) elim_zeros_distribute_Zero r_into_equivclp z)
 
 private lemma AZ: "Alt Zero r ~~ r"
   by (smt (verit, ccfv_threshold) converse_r_into_equivclp converse_rtranclp_into_rtranclp

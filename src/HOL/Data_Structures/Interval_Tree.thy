@@ -50,7 +50,7 @@ instance proof
   show b: "x \<le> x"
     by (simp add: ivl_less_eq)
   show c: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-    by (smt ivl_less_eq dual_order.trans less_trans)
+    using ivl_less_eq by fastforce
   show d: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     using ivl_less_eq a ivl_inj ivl_less by fastforce
   show e: "x \<le> y \<or> y \<le> x"

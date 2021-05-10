@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/browser/VFSBrowser.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/browser/VFSBrowser.java	2020-09-03 05:31:04.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java	2020-09-08 20:13:45.348505646 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2020-09-03 05:31:04.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2021-05-10 11:02:05.824257741 +0200
 @@ -1194,6 +1194,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
@@ -53,9 +53,9 @@ diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/browser/VFSBrowser.java 5.6.0/jEdit-p
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/io/VFSFile.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/io/VFSFile.java	2020-09-03 05:31:03.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java	2020-09-08 20:13:45.348505646 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2020-09-03 05:31:03.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2021-05-10 11:02:05.824257741 +0200
 @@ -302,6 +302,12 @@
  		}
  	} //}}}
@@ -69,9 +69,9 @@ diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/io/VFSFile.java 5.6.0/jEdit-patched/o
  	//{{{ getPath() method
  	public String getPath()
  	{
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/jEdit.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/jEdit.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/jEdit.java	2020-09-03 05:31:01.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/jEdit.java	2020-09-08 20:13:45.348505646 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/jEdit.java	2020-09-03 05:31:01.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2021-05-10 11:02:05.824257741 +0200
 @@ -4242,7 +4242,7 @@
  	} //}}}
  

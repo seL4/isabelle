@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/jedit/localization/jedit_en.props 5.6.0/jEdit-patched/org/jedit/localization/jedit_en.props
---- 5.6.0/jEdit-orig/org/jedit/localization/jedit_en.props	2020-09-03 05:31:10.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/jedit/localization/jedit_en.props	2020-09-08 20:13:35.644786809 +0200
+diff -ru jedit5.6.0/jEdit/org/jedit/localization/jedit_en.props jedit5.6.0-patched/jEdit/org/jedit/localization/jedit_en.props
+--- jedit5.6.0/jEdit/org/jedit/localization/jedit_en.props	2020-09-03 05:31:10.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/jedit/localization/jedit_en.props	2021-05-10 11:02:05.788257753 +0200
 @@ -1277,8 +1277,7 @@
  	The most likely reason is that the JAR file is corrupt; try\n\
  	reinstalling it. See Utilities->Troubleshooting->Activity Log\n\
@@ -11,3 +11,4 @@ diff -ru 5.6.0/jEdit-orig/org/jedit/localization/jedit_en.props 5.6.0/jEdit-patc
  plugin-error.already-loaded=Two copies installed. Please remove one of the \
  	two copies.
  plugin-error.dep-jdk=Requires Java {0} or later, but you only have version {1}.
+Binary files jedit5.6.0/jedit.jar and jedit5.6.0-patched/jedit.jar differ

@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/MiscUtilities.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/MiscUtilities.java	2020-09-03 05:31:01.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2020-09-08 20:13:35.648786692 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2020-09-03 05:31:01.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2021-05-10 11:23:04.139510558 +0200
 @@ -131,6 +131,21 @@
  	static final Pattern winPattern = Pattern.compile(winPatternString);
  

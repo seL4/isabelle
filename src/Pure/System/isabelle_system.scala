@@ -300,7 +300,7 @@ object Isabelle_System
       }
       catch {
         case ERROR(msg) =>
-          cat_error("Failed top copy file " +
+          cat_error("Failed to copy file " +
             File.path(src).absolute + " to " + File.path(dst).absolute, msg)
       }
     }
@@ -543,11 +543,9 @@ object Isabelle_System
     else error("Expected to find GNU tar executable")
   }
 
-  def require_command(cmds: String*): Unit =
+  def require_command(cmd: String, test: String = "--version"): Unit =
   {
-    for (cmd <- cmds) {
-      if (!bash(Bash.string(cmd) + " --version").ok) error("Missing system command: " + quote(cmd))
-    }
+    if (!bash(Bash.string(cmd) + " " + test).ok) error("Missing system command: " + quote(cmd))
   }
 
   def hostname(): String = bash("hostname -s").check.out

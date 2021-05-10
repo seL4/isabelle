@@ -1,6 +1,6 @@
-diff -ru 5.6.0/jEdit-orig/org/gjt/sp/jedit/io/VFSManager.java 5.6.0/jEdit-patched/org/gjt/sp/jedit/io/VFSManager.java
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/io/VFSManager.java	2020-09-03 05:31:03.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/io/VFSManager.java	2020-09-08 20:13:35.656786460 +0200
+diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSManager.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSManager.java
+--- jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSManager.java	2020-09-03 05:31:03.000000000 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSManager.java	2021-05-10 11:02:05.808257746 +0200
 @@ -380,6 +380,18 @@
  
  				if(vfsUpdates.size() == 1)

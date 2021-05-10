@@ -595,7 +595,7 @@ next
           then obtain u where u: "bij_betw u {..<q} U"
             using ex_bij_betw_nat_finite lessThan_atLeast0 by (fastforce simp add: nsets_def)
           then have Usub: "U \<subseteq> {..<p}"
-            by (smt \<open>U \<in> nsets {..<p} q\<close> mem_Collect_eq nsets_def)
+            by (smt (verit) U mem_Collect_eq nsets_def)
           have u_nsets: "u ` X \<in> nsets {..<p} n" if "X \<in> nsets {..<q} n" for X n
           proof -
             have "inj_on u X"

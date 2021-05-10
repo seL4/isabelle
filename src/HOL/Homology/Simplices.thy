@@ -2347,7 +2347,8 @@ next
     show "chain_boundary (Suc p) (?h p c) + ?h (p - Suc 0) (chain_boundary p c) = (singular_subdivision p ^^ Suc n) c - c"
       using chain_boundary_singular_subdivision [of "Suc p" X]
       apply (simp add: chain_boundary_add f5 h k algebra_simps)
-      by (smt add.assoc add.commute diff_add_cancel h(4) k(4) sc singular_subdivision_add)
+      apply (smt (verit, ccfv_threshold) add.commute add_diff_eq diff_add_cancel diff_diff_eq2 h(4) k(4) sc singular_subdivision_add)
+      done
   qed (auto simp: k h singular_subdivision_diff)
 qed
 

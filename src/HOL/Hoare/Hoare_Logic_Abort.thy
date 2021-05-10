@@ -62,7 +62,7 @@ definition ValidTC :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Righ
 
 lemma tc_implies_pc:
   "ValidTC p c q \<Longrightarrow> Valid p c q"
-  by (smt Sem_deterministic ValidTC_def Valid_def image_iff)
+  by (smt (verit) Sem_deterministic ValidTC_def Valid_def image_iff)
 
 lemma tc_extract_function:
   "ValidTC p c q \<Longrightarrow> \<exists>f . \<forall>s . s \<in> p \<longrightarrow> f s \<in> q"
