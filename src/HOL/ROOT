@@ -955,7 +955,7 @@ session "HOL-SMT_Examples" (timing) in SMT_Examples = HOL +
     SMT_Word_Examples
     SMT_Examples_Verit
     SMT_Tests_Verit
-  theories [condition = Z3_SOLVER]
+  theories [condition = Z3_INSTALLED]
     SMT_Tests
 
 session "HOL-SPARK" in "SPARK" = HOL +
