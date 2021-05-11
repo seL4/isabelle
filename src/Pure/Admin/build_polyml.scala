@@ -63,9 +63,16 @@ object Build_PolyML
     /* bash */
 
     def bash(
-      cwd: Path, script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
+      cwd: Path, script: String,
+      redirect: Boolean = false,
+      echo: Boolean = false): Process_Result =
     {
-      progress.bash(mingw.bash_script(script), cwd = cwd.file, redirect = redirect, echo = echo)
+      val script1 =
+        if (platform.is_arm && platform.is_macos) {
+          "arch -arch arm64 bash -c " + Bash.string(script)
+        }
+        else mingw.bash_script(script)
+      progress.bash(script1, cwd = cwd.file, redirect = redirect, echo = echo)
     }
 
 
