@@ -26,10 +26,7 @@ object Build_PolyML
         libs = Set("libgmp")),
     "darwin" ->
       Platform_Info(
-        options =
-          List("--build=x86_64-darwin", "CFLAGS=-arch x86_64 -O3 -I../libffi/include",
-            "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
-            "LDFLAGS=-segprot POLY rwx rwx"),
+        options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
         libs = Set("libpolyml", "libgmp")),
     "windows" ->
