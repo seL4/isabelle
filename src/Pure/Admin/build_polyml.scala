@@ -26,10 +26,7 @@ object Build_PolyML
         libs = Set("libgmp")),
     "darwin" ->
       Platform_Info(
-        options =
-          List("--build=x86_64-darwin", "CFLAGS=-arch x86_64 -O3 -I../libffi/include",
-            "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
-            "LDFLAGS=-segprot POLY rwx rwx"),
+        options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
         libs = Set("libpolyml", "libgmp")),
     "windows" ->
@@ -51,12 +48,9 @@ object Build_PolyML
       error("Bad Poly/ML root directory: " + root)
 
     val platform = Isabelle_Platform.self
-    val platform_arch =
-      if (arch_64) platform.arch_64
-      else if (platform.is_intel) "x86_64_32"
-      else platform.arch_32
 
-    val polyml_platform = platform_arch + "-" + platform.os_name
+    val polyml_platform =
+      (if (arch_64) platform.arch_64 else platform.arch_64_32) + "-" + platform.os_name
     val sha1_platform = platform.arch_64 + "-" + platform.os_name
 
     val info =
@@ -207,7 +201,7 @@ not affect the running ML session. *)
     Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here, args =>
     {
       var mingw = MinGW.none
-      var arch_64 = Isabelle_Platform.self.is_arm
+      var arch_64 = false
       var sha1_root: Option[Path] = None
 
       val getopts = Getopts("""

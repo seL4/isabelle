@@ -206,7 +206,7 @@ text \<open>
   is no longer affected by change of default properties.
 
   Users may modify their keymap later, but this can lead to conflicts with
-  \<^verbatim>\<open>shortcut\<close> properties in \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>.
+  \<^verbatim>\<open>shortcut\<close> properties in \<^file>\<open>$JEDIT_HOME/dist/properties/jEdit.props\<close>.
 
   The action @{action_def "isabelle.keymap-merge"} helps to resolve pending
   Isabelle keymap changes wrt. the current jEdit keymap; non-conflicting
