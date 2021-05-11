@@ -15,7 +15,8 @@ object Isabelle_Platform
       "ISABELLE_PLATFORM32",
       "ISABELLE_PLATFORM64",
       "ISABELLE_WINDOWS_PLATFORM32",
-      "ISABELLE_WINDOWS_PLATFORM64")
+      "ISABELLE_WINDOWS_PLATFORM64",
+      "ISABELLE_APPLE_PLATFORM64")
 
   def apply(ssh: Option[SSH.Session] = None): Isabelle_Platform =
   {
@@ -46,25 +47,21 @@ class Isabelle_Platform private(val settings: List[(String, String)])
       getOrElse(error("Bad platform settings variable: " + quote(name)))
 
   val ISABELLE_PLATFORM_FAMILY: String = get("ISABELLE_PLATFORM_FAMILY")
-  val ISABELLE_PLATFORM32: String = get("ISABELLE_PLATFORM32")
   val ISABELLE_PLATFORM64: String = get("ISABELLE_PLATFORM64")
-  val ISABELLE_WINDOWS_PLATFORM32: String = get("ISABELLE_WINDOWS_PLATFORM32")
   val ISABELLE_WINDOWS_PLATFORM64: String = get("ISABELLE_WINDOWS_PLATFORM64")
-
-  def is_intel: Boolean =
-    ISABELLE_PLATFORM32.startsWith("x86-") ||
-    ISABELLE_PLATFORM64.startsWith("x86_64-")
+  val ISABELLE_APPLE_PLATFORM64: String = get("ISABELLE_APPLE_PLATFORM64")
 
   def is_arm: Boolean =
-    ISABELLE_PLATFORM32.startsWith("arm32-") ||
-    ISABELLE_PLATFORM64.startsWith("arm64-")
+    ISABELLE_PLATFORM64.startsWith("arm64-") ||
+    ISABELLE_APPLE_PLATFORM64.startsWith("arm64-")
 
   def is_linux: Boolean = ISABELLE_PLATFORM_FAMILY == "linux"
   def is_macos: Boolean = ISABELLE_PLATFORM_FAMILY == "macos"
   def is_windows: Boolean = ISABELLE_PLATFORM_FAMILY == "windows"
 
-  def arch_32: String = if (is_arm) "arm32" else "x86"
   def arch_64: String = if (is_arm) "arm64" else "x86_64"
+  def arch_64_32: String = if (is_arm) "arm64_32" else "x86_64_32"
+
   def os_name: String = if (is_macos) "darwin" else ISABELLE_PLATFORM_FAMILY
 
   override def toString: String = ISABELLE_PLATFORM_FAMILY
