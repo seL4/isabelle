@@ -27,6 +27,7 @@ object Build_History
   {
     val (ml_platform, ml_settings) =
     {
+      val cygwin_32 = "x86-cygwin"
       val windows_32 = "x86-windows"
       val windows_64 = "x86_64-windows"
       val windows_64_32 = "x86_64_32-windows"
@@ -52,8 +53,9 @@ object Build_History
         }
         else if (Platform.is_windows && !arch_64) {
           if (check_dir(windows_64_32)) windows_64_32
+          else if (check_dir(cygwin_32)) cygwin_32
           else if (check_dir(windows_32)) windows_32
-          else platform_32  // x86-cygwin
+          else err(windows_32)
         }
         else if (arch_64) {
           if (check_dir(platform_64)) platform_64 else err(platform_64)

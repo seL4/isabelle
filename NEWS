@@ -173,6 +173,12 @@ context of Isabelle/Scala:
 * Command-line tool "isabelle version" supports repository archives
 (without full .hg directory). More options.
 
+* Obsolete settings variable ISABELLE_PLATFORM32 has been discontinued.
+Note that only Windows supports old 32 bit executables, via settings
+variable ISABELLE_WINDOWS_PLATFORM32. Everything else should be
+ISABELLE_PLATFORM64 (generic Posix) or ISABELLE_WINDOWS_PLATFORM64
+(native Windows) or ISABELLE_APPLE_PLATFORM64 (Apple Silicon).
+
 
 
 New in Isabelle2021 (February 2021)

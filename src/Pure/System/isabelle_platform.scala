@@ -12,7 +12,6 @@ object Isabelle_Platform
   val settings: List[String] =
     List(
       "ISABELLE_PLATFORM_FAMILY",
-      "ISABELLE_PLATFORM32",
       "ISABELLE_PLATFORM64",
       "ISABELLE_WINDOWS_PLATFORM32",
       "ISABELLE_WINDOWS_PLATFORM64",

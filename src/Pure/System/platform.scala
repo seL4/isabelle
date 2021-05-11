@@ -49,17 +49,13 @@ object Platform
 
   /* platform identifiers */
 
-  private val X86 = """i.86|x86""".r
   private val X86_64 = """amd64|x86_64""".r
   private val Arm64 = """arm64|aarch64""".r
-  private val Arm32 = """arm""".r
 
   def cpu_arch: String =
     System.getProperty("os.arch", "") match {
-      case X86() => "x86"
       case X86_64() => "x86_64"
       case Arm64() => "arm64"
-      case Arm32() => "arm32"
       case _ => error("Failed to determine CPU architecture")
     }
 
