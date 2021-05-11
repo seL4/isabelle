@@ -72,7 +72,7 @@ object Build_JEdit
 
 <!-- """ + XML.text(description) + """ mode -->
 <MODE>
-  <PROPS>""" + properties.mkString("\n", "\n", "\n") + """
+  <PROPS>""" + properties.mkString("\n", "\n", "") + """
   </PROPS>
 </MODE>
 """)
