@@ -66,16 +66,14 @@ object Scala_Project
         else map
     }
 
-  val isabelle_dirs: List[(String, Path)] =
-    List(
-      "src/Pure/" -> Path.explode("isabelle"),
-      "src/Tools/Graphview/" -> Path.explode("isabelle.graphview"),
-      "src/Tools/VSCode/" -> Path.explode("isabelle.vscode"),
-      "src/Tools/jEdit/src-base/" -> Path.explode("isabelle.jedit_base"),
-      "src/Tools/jEdit/src/" -> Path.explode("isabelle.jedit"),
-      "src/HOL/SPARK/Tools" -> Path.explode("isabelle.spark"),
-      "src/HOL/Tools/ATP" -> Path.explode("isabelle.atp"),
-      "src/HOL/Tools/Nitpick" -> Path.explode("isabelle.nitpick"))
+  private def guess_package(path: Path): String =
+  {
+    val lines = split_lines(File.read(path))
+    val Package = """\bpackage\b +(?:object +)?\b((?:\w|\.)+)\b""".r
+
+    lines.collectFirst({ case Package(name) => name }) getOrElse
+      error("Failed to guess package from " + path)
+  }
 
 
   /* compile-time position */
@@ -123,12 +121,8 @@ object Scala_Project
     isabelle_scala_files
 
     for (file <- files if file.endsWith(".scala")) {
-      val (path, target) =
-        isabelle_dirs.collectFirst({
-          case (prfx, p) if file.startsWith(prfx) =>
-            (Path.ISABELLE_HOME + Path.explode(file), scala_src_dir + p)
-        }).getOrElse(error("Unknown directory prefix for " + quote(file)))
-
+      val path = Path.ISABELLE_HOME + Path.explode(file)
+      val target = scala_src_dir + Path.basic(guess_package(path))
       Isabelle_System.make_directory(target)
       if (symlinks) Isabelle_System.symlink(path, target)
       else Isabelle_System.copy_file(path, target)
