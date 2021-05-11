@@ -37,16 +37,22 @@ will be placed in /usr/local).
 
 * Download:
 
-  $ curl https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz | xz -dc | tar xf -
-  $ cd gmp-6.1.2
+  $ curl https://gmplib.org/download/gmp/gmp-6.2.1.tar.bz2 | tar xjf -
+  $ cd gmp-6.2.1
 
 * build:
 
   $ make distclean
+
+  #Intel
   $ ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
+
+  #ARM
+  $ ./configure --enable-cxx --build=aarch64-apple-darwin"$(uname -r)"
+
   $ make && make check
   $ sudo make install
 
 
         Makarius
-        07-May-2021
+        11-May-2021
