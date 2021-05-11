@@ -1741,6 +1741,9 @@ lemma image_vimage_eq [simp]: "f ` (f -` A) = A \<inter> range f"
 lemma image_subset_iff_subset_vimage: "f ` A \<subseteq> B \<longleftrightarrow> A \<subseteq> f -` B"
   by blast
 
+lemma subset_vimage_iff: "A \<subseteq> f -` B \<longleftrightarrow> (\<forall>x\<in>A. f x \<in> B)"
+  by auto
+
 lemma vimage_const [simp]: "((\<lambda>x. c) -` A) = (if c \<in> A then UNIV else {})"
   by auto
 
