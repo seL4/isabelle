@@ -11,7 +11,6 @@ begin
 ML_file \<open>Tools/mirabelle_arith.ML\<close>
 ML_file \<open>Tools/mirabelle_metis.ML\<close>
 ML_file \<open>Tools/mirabelle_quickcheck.ML\<close>
-ML_file \<open>Tools/mirabelle_refute.ML\<close>
 ML_file \<open>Tools/mirabelle_sledgehammer.ML\<close>
 ML_file \<open>Tools/mirabelle_sledgehammer_filter.ML\<close>
 ML_file \<open>Tools/mirabelle_try0.ML\<close>
