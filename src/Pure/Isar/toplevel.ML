@@ -88,7 +88,7 @@ sig
   val reset_notepad: state -> state option
   val fork_presentation: transition -> transition * transition
   type result
-  val join_results: result -> (transition * state) list
+  val join_results: result -> (state * transition * state) list
   val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
 end;
 
@@ -693,9 +693,16 @@ datatype result =
   Result_List of result list |
   Result_Future of result future;
 
-fun join_results (Result x) = [x]
-  | join_results (Result_List xs) = maps join_results xs
-  | join_results (Result_Future x) = join_results (Future.join x);
+fun join_results result =
+  let
+    fun add (tr, st') res =
+      (case res of
+        [] => [(init_toplevel (), tr, st')]
+      | (_, _, st) :: _ => (st, tr, st') :: res);
+    fun acc (Result r) = add r
+      | acc (Result_List rs) = fold acc rs
+      | acc (Result_Future x) = acc (Future.join x);
+  in rev (acc result []) end;
 
 local
 

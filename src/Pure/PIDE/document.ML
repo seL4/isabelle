@@ -738,12 +738,17 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
               if Options.bool options "editor_presentation" then
                 let
                   val (_, offsets, rev_segments) =
-                    iterate_entries (fn (_, opt_exec) => fn (offset, offsets, segments) =>
+                    iterate_entries (fn ((prev, _), opt_exec) => fn (offset, offsets, segments) =>
                       (case opt_exec of
                         SOME (eval, _) =>
                           let
                             val command_id = Command.eval_command_id eval;
                             val span = the_command_span command_id;
+
+                            val st =
+                              (case try (#1 o the o the_entry node o the) prev of
+                                NONE => Toplevel.init_toplevel ()
+                              | SOME prev_eval => Command.eval_result_state prev_eval);
 
                             val exec_id = Command.eval_exec_id eval;
                             val tr = Command.eval_result_command eval;
@@ -753,14 +758,15 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                             val offsets' = offsets
                               |> Inttab.update (command_id, offset)
                               |> Inttab.update (exec_id, offset);
-                            val segments' = (span, tr, st') :: segments;
+                            val segments' = (span, (st, tr, st')) :: segments;
                           in SOME (offset', offsets', segments') end
                       | NONE => NONE)) node (0, Inttab.empty, []);
 
                   val adjust = Inttab.lookup offsets;
                   val segments =
-                    rev rev_segments |> map (fn (span, tr, st') =>
-                      {span = Command_Span.adjust_offsets adjust span, command = tr, state = st'});
+                    rev rev_segments |> map (fn (span, (st, tr, st')) =>
+                      {span = Command_Span.adjust_offsets adjust span,
+                       prev_state = st, command = tr, state = st'});
 
                   val presentation_context: Thy_Info.presentation_context =
                    {options = options,

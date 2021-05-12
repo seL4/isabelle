@@ -311,8 +311,9 @@ fun eval_thy options master_dir header text_pos text parents =
 
     fun present () =
       let
-        val segments = (spans ~~ maps Toplevel.join_results results)
-          |> map (fn (span, (tr, st')) => {span = span, command = tr, state = st'});
+        val segments =
+          (spans ~~ maps Toplevel.join_results results) |> map (fn (span, (st, tr, st')) =>
+            {span = span, prev_state = st, command = tr, state = st'});
         val context: presentation_context =
           {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
       in apply_presentation context thy end;
