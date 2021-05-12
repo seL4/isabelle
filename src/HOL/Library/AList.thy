@@ -483,6 +483,15 @@ lemma map_ran_simps [simp]:
   "map_ran f ((k, v) # ps) = (k, f k v) # map_ran f ps"
   by (simp_all add: map_ran_def)
 
+lemma map_ran_Cons_sel: "map_ran f (p # ps) = (fst p, f (fst p) (snd p)) # map_ran f ps"
+  by (simp add: map_ran_def case_prod_beta)
+
+lemma length_map_ran[simp]: "length (map_ran f al) = length al"
+  by (simp add: map_ran_def)
+
+lemma map_fst_map_ran[simp]: "map fst (map_ran f al) = map fst al"
+  by (simp add: map_ran_def case_prod_beta)
+
 lemma dom_map_ran: "fst ` set (map_ran f al) = fst ` set al"
   by (simp add: map_ran_def image_image split_def)
 
@@ -490,7 +499,7 @@ lemma map_ran_conv: "map_of (map_ran f al) k = map_option (f k) (map_of al k)"
   by (induct al) auto
 
 lemma distinct_map_ran: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
-  by (simp add: map_ran_def split_def comp_def)
+  by simp
 
 lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<leftarrow>map_ran f ps. fst p \<noteq> a]"
   by (simp add: map_ran_def filter_map split_def comp_def)
