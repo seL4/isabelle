@@ -16,7 +16,7 @@ Notes:
 
 signature PAR_LIST =
 sig
-  val map_name: string -> ('a -> 'b) -> 'a list -> 'b list
+  val map': {name: string, sequential: bool} -> ('a -> 'b) -> 'a list -> 'b list
   val map_independent: ('a -> 'b) -> 'a list -> 'b list
   val map: ('a -> 'b) -> 'a list -> 'b list
   val get_some: ('a -> 'b option) -> 'a list -> 'b option
@@ -28,20 +28,22 @@ end;
 structure Par_List: PAR_LIST =
 struct
 
-fun forked_results name f xs =
-  if Future.relevant xs
-  then Future.forked_results {name = name, deps = []} (map (fn x => fn () => f x) xs)
-  else map (Exn.capture f) xs;
+fun managed_results {name, sequential} f xs =
+  if sequential orelse not (Future.relevant xs) then map (Exn.capture f) xs
+  else
+    Future.forked_results
+     {name = if name = "" then "Par_List.map" else name, deps = []}
+     (map (fn x => fn () => f x) xs);
 
-fun map_name name f xs = Par_Exn.release_first (forked_results name f xs);
-fun map f = map_name "Par_List.map" f;
+fun map' params f xs = Par_Exn.release_first (managed_results params f xs);
+fun map f = map' {name = "", sequential = false} f;
 fun map_independent f = map (Exn.interruptible_capture f) #> Par_Exn.release_all;
 
 fun get_some f xs =
   let
     exception FOUND of 'b;
     val results =
-      forked_results "Par_List.get_some"
+      managed_results {name = "Par_List.get_some", sequential = false}
         (fn x => (case f x of NONE => () | SOME y => raise FOUND y)) xs;
   in
     (case get_first (fn Exn.Exn (FOUND res) => SOME res | _ => NONE) results of
