@@ -8,8 +8,6 @@ theory ATP_Problem_Import
   imports Complex_Main TPTP_Interpret "HOL-Library.Refute"
 begin
 
-ML_file \<open>sledgehammer_tactics.ML\<close>
-
 ML \<open>Proofterm.proofs := 0\<close>
 
 declare [[show_consts]] (* for Refute *)
