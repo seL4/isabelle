@@ -996,9 +996,21 @@ lift_definition mask_word :: \<open>nat \<Rightarrow> 'a word\<close>
   is mask
   .
 
+lift_definition set_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is set_bit
+  by (simp add: set_bit_def)
+
+lift_definition unset_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is unset_bit
+  by (simp add: unset_bit_def)
+
+lift_definition flip_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is flip_bit
+  by (simp add: flip_bit_def)
+
 instance by (standard; transfer)
   (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
-    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff)
+    bit_simps set_bit_def flip_bit_def)
 
 end
 
@@ -1026,6 +1038,18 @@ lemma [code]:
 lemma [code]:
   \<open>Word.the_int (mask n :: 'a::len word) = mask (min LENGTH('a) n)\<close>
   by transfer simp
+
+lemma [code]:
+  \<open>set_bit n w = w OR push_bit n 1\<close> for w :: \<open>'a::len word\<close>
+  by (fact set_bit_eq_or)
+
+lemma [code]:
+  \<open>unset_bit n w = w AND NOT (push_bit n 1)\<close> for w :: \<open>'a::len word\<close>
+  by (fact unset_bit_eq_and_not)
+
+lemma [code]:
+  \<open>flip_bit n w = w XOR push_bit n 1\<close> for w :: \<open>'a::len word\<close>
+  by (fact flip_bit_eq_xor)
 
 context
   includes lifting_syntax

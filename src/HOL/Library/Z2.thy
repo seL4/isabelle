@@ -188,7 +188,16 @@ definition xor_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
   where [simp]: \<open>b XOR c = of_bool (odd b \<noteq> odd c)\<close> for b c :: bit
 
 definition mask_bit :: \<open>nat \<Rightarrow> bit\<close>
-  where [simp]: \<open>mask_bit n = of_bool (n > 0)\<close>
+  where [simp]: \<open>mask n = (of_bool (n > 0) :: bit)\<close>
+
+definition set_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>set_bit n b = of_bool (n = 0 \<or> odd b)\<close> for b :: bit
+
+definition unset_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>unset_bit n b = of_bool (n > 0 \<and> odd b)\<close> for b :: bit
+
+definition flip_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>flip_bit n b = of_bool ((n = 0) \<noteq> odd b)\<close> for b :: bit
 
 instance
   by standard auto
