@@ -475,7 +475,7 @@ lemma clearjunk_map:
 
 subsection \<open>\<open>map_ran\<close>\<close>
 
-definition map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+definition map_ran :: "('key \<Rightarrow> 'val1 \<Rightarrow> 'val2) \<Rightarrow> ('key \<times> 'val1) list \<Rightarrow> ('key \<times> 'val2) list"
   where "map_ran f = map (\<lambda>(k, v). (k, f k v))"
 
 lemma map_ran_simps [simp]:
