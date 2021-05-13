@@ -61,7 +61,6 @@ sig
   val and_list1': 'a context_parser -> 'a list context_parser
   val list: 'a parser -> 'a list parser
   val list1: 'a parser -> 'a list parser
-  val properties: Properties.T parser
   val name: string parser
   val name_range: (string * Position.range) parser
   val name_position: (string * Position.T) parser
@@ -258,8 +257,6 @@ fun and_list' scan = enum' "and" scan;
 
 fun list1 scan = enum1 "," scan;
 fun list scan = enum "," scan;
-
-val properties = $$$ "(" |-- !!! (list (string -- ($$$ "=" |-- string)) --| $$$ ")");
 
 
 (* names and embedded content *)
