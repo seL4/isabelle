@@ -1532,15 +1532,13 @@ end;
 
 fun print_cases_proof ctxt0 ctxt =
   let
-    val print_name = Token.print_name (Thy_Header.get_keywords' ctxt);
-
     fun trim_name x = if Name.is_internal x then Name.clean x else "_";
     val trim_names = map trim_name #> drop_suffix (equal "_");
 
     fun print_case name xs =
       (case trim_names xs of
-        [] => print_name name
-      | xs' => enclose "(" ")" (space_implode " " (map print_name (name :: xs'))));
+        [] => print_name ctxt name
+      | xs' => enclose "(" ")" (space_implode " " (map (print_name ctxt) (name :: xs'))));
 
     fun is_case x t =
       x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);
