@@ -937,12 +937,13 @@ session "HOL-Nonstandard_Analysis-Examples" (timing) in "Nonstandard_Analysis/Ex
   theories
     NSPrimes
 
-session "HOL-Mirabelle" in Mirabelle = HOL +
-  theories Mirabelle_Test
-
-session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
-  options [timeout = 60]
-  theories Ex
+session "HOL-Mirabelle-ex" in "Tools/Mirabelle" = HOL +
+  description "Some arbitrary small test case for Mirabelle."
+  options [timeout = 60, mirabelle_actions = "arith"]
+  sessions
+    "HOL-Analysis"
+  theories
+    "HOL-Analysis.Inner_Product"
 
 session "HOL-SMT_Examples" (timing) in SMT_Examples = HOL +
   options [quick_and_dirty]

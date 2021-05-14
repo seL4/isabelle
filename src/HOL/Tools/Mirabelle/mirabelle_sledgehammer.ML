@@ -1,5 +1,7 @@
 (*  Title:      HOL/Mirabelle/Tools/mirabelle_sledgehammer.ML
     Author:     Jasmin Blanchette and Sascha Boehme and Tobias Nipkow, TU Munich
+
+Mirabelle action: "sledgehammer".
 *)
 
 structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =

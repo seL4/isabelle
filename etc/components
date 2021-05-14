@@ -2,7 +2,6 @@
 src/Tools/jEdit
 src/Tools/Graphview
 src/Tools/VSCode
-src/HOL/Mirabelle
 src/HOL/Mutabelle
 src/HOL/Library/Sum_of_Squares
 src/HOL/SPARK

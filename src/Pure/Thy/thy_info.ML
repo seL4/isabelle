@@ -55,8 +55,14 @@ structure Presentation = Theory_Data
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
+fun sequential_presentation options =
+  not (Options.bool options \<^system_option>\<open>parallel_presentation\<close>);
+
 fun apply_presentation (context: presentation_context) thy =
-  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+  Par_List.map'
+    {name = "apply_presentation", sequential = sequential_presentation (#options context)}
+    (fn (f, _) => f context thy) (Presentation.get thy)
+  |> ignore;
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
@@ -257,7 +263,9 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
     val results2 = futures
       |> map_filter (Exn.get_res o Future.join_result)
       |> sort result_ord
-      |> Par_List.map (fn result => Exn.capture (result_present result) ());
+      |> Par_List.map'
+          {name = "present", sequential = sequential_presentation (Options.default ())}
+          (fn result => Exn.capture (result_present result) ());
 
     (* FIXME more precise commit order (!?) *)
     val results3 = futures

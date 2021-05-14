@@ -1,5 +1,7 @@
 (*  Title:      HOL/Mirabelle/Tools/mirabelle_sledgehammer_filter.ML
     Author:     Jasmin Blanchette, TU Munich
+
+Mirabelle action: "sledgehammer_filter".
 *)
 
 structure Mirabelle_Sledgehammer_Filter : MIRABELLE_ACTION =

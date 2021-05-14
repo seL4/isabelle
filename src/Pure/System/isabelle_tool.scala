@@ -209,6 +209,7 @@ class Tools extends Isabelle_Scala_Tools(
   Update_Header.isabelle_tool,
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
+  isabelle.mirabelle.Mirabelle.isabelle_tool,
   isabelle.vscode.TextMate_Grammar.isabelle_tool,
   isabelle.vscode.Language_Server.isabelle_tool)
 
