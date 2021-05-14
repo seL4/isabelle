@@ -374,20 +374,13 @@ fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] = True" |
 "sorted (x # ys) = ((\<forall>y \<in> set ys. x \<le> y) \<and> sorted ys)"
 
-fun strict_sorted :: "'a list \<Rightarrow> bool" where
-"strict_sorted [] = True" |
-"strict_sorted (x # ys) = ((\<forall>y \<in> List.set ys. x < y) \<and> strict_sorted ys)"
+abbreviation strict_sorted :: "'a list \<Rightarrow> bool" where
+  "strict_sorted \<equiv> sorted_wrt (<)" 
 
 lemma sorted_sorted_wrt: "sorted = sorted_wrt (\<le>)"
 proof (rule ext)
   fix xs show "sorted xs = sorted_wrt (\<le>) xs"
     by(induction xs rule: sorted.induct) auto
-qed
-
-lemma strict_sorted_sorted_wrt: "strict_sorted = sorted_wrt (<)"
-proof (rule ext)
-  fix xs show "strict_sorted xs = sorted_wrt (<) xs"
-    by(induction xs rule: strict_sorted.induct) auto
 qed
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
@@ -6227,12 +6220,7 @@ by (rule sorted_distinct_set_unique) simp_all
 
 lemma sorted_list_of_set_lessThan_Suc [simp]: 
   "sorted_list_of_set {..<Suc k} = sorted_list_of_set {..<k} @ [k]"
-proof -
-  have "sorted_wrt (<) (sorted_list_of_set {..<k} @ [k])"
-    unfolding sorted_wrt_append  by (auto simp flip: strict_sorted_sorted_wrt)
-  then show ?thesis
-    by (simp add: lessThan_atLeast0)
-qed
+  using le0 lessThan_atLeast0 sorted_list_of_set_range upt_Suc_append by presburger
 
 lemma sorted_list_of_set_atMost_Suc [simp]:
   "sorted_list_of_set {..Suc k} = sorted_list_of_set {..k} @ [Suc k]"
