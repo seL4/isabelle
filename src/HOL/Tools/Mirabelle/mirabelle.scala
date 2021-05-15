@@ -33,48 +33,45 @@ object Mirabelle
   }
 
 
-  /* exported content */
+  /* exported log content */
 
-  val separator = "------------------\n"
+  def mirabelle_export(index: Int): String = "mirabelle/" + index
 
-  def mirabelle_path(index: Int): String = "mirabelle/" + index
+  object Log
+  {
+    val separator = "\n------------------\n"
 
-  object Action
-  {
-    def get(export_name: String, xml: XML.Tree): Action =
-      xml match {
-        case XML.Elem(Markup("action", (Markup.NAME, name) :: arguments), body) =>
-          Action(name, arguments, body)
-        case _ =>
-          error("Expected action in export " + quote(export_name) + "\nmalformed XML: " + xml)
-      }
-  }
-  case class Action(name: String, arguments: Properties.T, body: XML.Body)
-  {
-    def print: String = XML.content(body)
-  }
+    sealed abstract class Entry { def print: String }
 
-  object Command
-  {
-    def get(export_name: String, xml: XML.Tree): Command =
-      xml match {
-        case XML.Elem(Markup("command", (Markup.NAME, name) :: props), result) =>
-          Command(name, props.filter(Markup.position_property), result)
-        case _ =>
-          error("Expected command in export " + quote(export_name) + "\nmalformed XML: " + xml)
-      }
-  }
-  sealed case class Command(name: String, pos: Properties.T, result: XML.Body)
-  {
-    def print_head: String =
+    case class Action(name: String, arguments: Properties.T, body: XML.Body) extends Entry
     {
-      val line = Position.Line.get(pos)
-      val offset = Position.Offset.get(pos)
-      val loc = line.toString + ":" + offset.toString
-      "at " + loc + " (" + name + "):\n"
+      def print: String = "action: " + XML.content(body) + separator
     }
-    def print_body: String = Pretty.string_of(result)
-    def print: String = "\n\n" + print_head + separator + print_body
+    case class Command(name: String, position: Properties.T, body: XML.Body) extends Entry
+    {
+      def print: String = "\n" + print_head + separator + Pretty.string_of(body)
+      def print_head: String =
+      {
+        val line = Position.Line.get(position)
+        val offset = Position.Offset.get(position)
+        val loc = line.toString + ":" + offset.toString
+        "at " + loc + " (" + name + "):"
+      }
+    }
+    case class Report(result: Properties.T, body: XML.Body) extends Entry
+    {
+      override def print: String = "\n" + separator + Pretty.string_of(body)
+    }
+
+    def entry(export_name: String, xml: XML.Tree): Entry =
+      xml match {
+        case XML.Elem(Markup("action", (Markup.NAME, name) :: props), body) =>
+          Action(name, props, body)
+        case XML.Elem(Markup("command", (Markup.NAME, name) :: props), body) =>
+          Command(name, props.filter(Markup.position_property), body)
+        case XML.Elem(Markup("report", props), body) => Report(props, body)
+        case _ => error("Malformed export " + quote(export_name) + "\nbad XML: " + xml)
+      }
   }
 
 
@@ -117,18 +114,17 @@ object Mirabelle
           theory <- theories
           if !seen_theories(theory)
           index <- 1 to actions.length
-          export <- db_context.read_export(session_hierarchy, theory, mirabelle_path(index))
+          export <- db_context.read_export(session_hierarchy, theory, mirabelle_export(index))
           body = export.uncompressed_yxml
           if body.nonEmpty
         } {
           seen_theories += theory
-          val export_name = Export.compound_name(theory, mirabelle_path(index))
-          val (action, commands) =
-            (Action.get(export_name, body.head), body.tail.map(Command.get(export_name, _)))
-          val dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
-          val log_file = dir + Path.basic("mirabelle" + index).log
+          val export_name = Export.compound_name(theory, mirabelle_export(index))
+          val log = body.map(Log.entry(export_name, _))
+          val log_dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
+          val log_file = log_dir + Path.basic("mirabelle" + index).log
           progress.echo("Writing " + log_file)
-          File.write(log_file, terminate_lines(action.print :: commands.map(_.print)))
+          File.write(log_file, terminate_lines(log.map(_.print)))
         }
       })
     }
