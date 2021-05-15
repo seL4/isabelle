@@ -11,9 +11,7 @@ ML_file \<open>Tools/Mirabelle/mirabelle.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_arith.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_metis.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_quickcheck.ML\<close>
-(*
 ML_file \<open>Tools/Mirabelle/mirabelle_sledgehammer.ML\<close>
-*)
 ML_file \<open>Tools/Mirabelle/mirabelle_sledgehammer_filter.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_try0.ML\<close>
 

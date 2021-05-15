@@ -8,7 +8,8 @@ sig
   (*core*)
   val print_name: string -> string
   val print_properties: Properties.T -> string
-  type context = {tag: string, arguments: Properties.T, timeout: Time.time, theory: theory}
+  type context =
+    {index: int, tag: string, arguments: Properties.T, timeout: Time.time, theory: theory}
   type command = {name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
   val theory_action: binding -> (context -> command list -> XML.body) -> theory -> theory
   val log_command: command -> XML.body -> XML.tree
@@ -48,7 +49,8 @@ fun read_actions str =
 (* actions *)
 
 type command = {name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state};
-type context = {tag: string, arguments: Properties.T, timeout: Time.time, theory: theory};
+type context =
+  {index: int, tag: string, arguments: Properties.T, timeout: Time.time, theory: theory};
 
 structure Data = Theory_Data
 (
@@ -82,7 +84,7 @@ fun apply_action index name arguments timeout commands thy =
   let
     val action = #2 (Name_Space.check (Context.Theory thy) (Data.get thy) (name, Position.none));
     val tag = "#" ^ Value.print_int index ^ " " ^ name ^ ": ";
-    val context = {tag = tag, arguments = arguments, timeout = timeout, theory = thy};
+    val context = {index = index, tag = tag, arguments = arguments, timeout = timeout, theory = thy};
     val export_body = action context commands;
     val export_head = log_action name arguments;
     val export_name = Path.binding0 (Path.basic "mirabelle" + Path.basic (Value.print_int index));
