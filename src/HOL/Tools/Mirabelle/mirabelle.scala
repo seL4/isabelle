@@ -91,46 +91,59 @@ object Mirabelle
     max_jobs: Int = 1,
     verbose: Boolean = false): Build.Results =
   {
-    val build_options =
-      options + "parallel_presentation=false" +
-        ("mirabelle_actions=" + actions.mkString(";")) +
-        ("mirabelle_theories=" + theories.mkString(","))
+    require(!selection.requirements)
 
-    val build_results =
-      Build.build(build_options, clean_build = true,
-        selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = verbose)
+    progress.echo("Building required heaps ...")
+    val build_results0 =
+      Build.build(options, build_heap = true,
+        selection = selection.copy(requirements = true), progress = progress, dirs = dirs,
+        select_dirs = select_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        verbose = verbose)
 
-    if (build_results.ok) {
-      val structure = Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs)
-      val store = Sessions.store(build_options)
+    if (build_results0.ok) {
+      val build_options =
+        options + "parallel_presentation=false" +
+          ("mirabelle_actions=" + actions.mkString(";")) +
+          ("mirabelle_theories=" + theories.mkString(","))
 
-      using(store.open_database_context())(db_context =>
-      {
-        var seen_theories = Set.empty[String]
-        for {
-          session <- structure.imports_selection(selection).iterator
-          session_hierarchy = structure.hierarchy(session)
-          theories <- db_context.input_database(session)((db, a) => Some(store.read_theories(db, a)))
-          theory <- theories
-          if !seen_theories(theory)
-          index <- 1 to actions.length
-          export <- db_context.read_export(session_hierarchy, theory, Log.export_name(index))
-          body = export.uncompressed_yxml
-          if body.nonEmpty
-        } {
-          seen_theories += theory
-          val export_name = Log.export_name(index, theory = theory)
-          val log = body.map(Log.entry(export_name, _))
-          val log_dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
-          val log_file = log_dir + Path.basic("mirabelle" + index).log
-          progress.echo("Writing " + log_file)
-          File.write(log_file, terminate_lines(log.map(_.print)))
-        }
-      })
+      progress.echo("Running Mirabelle ...")
+      val build_results =
+        Build.build(build_options, clean_build = true,
+          selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
+          numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = verbose)
+
+      if (build_results.ok) {
+        val structure = Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs)
+        val store = Sessions.store(build_options)
+
+        using(store.open_database_context())(db_context =>
+        {
+          var seen_theories = Set.empty[String]
+          for {
+            session <- structure.imports_selection(selection).iterator
+            session_hierarchy = structure.hierarchy(session)
+            theories <- db_context.input_database(session)((db, a) => Some(store.read_theories(db, a)))
+            theory <- theories
+            if !seen_theories(theory)
+            index <- 1 to actions.length
+            export <- db_context.read_export(session_hierarchy, theory, Log.export_name(index))
+            body = export.uncompressed_yxml
+            if body.nonEmpty
+          } {
+            seen_theories += theory
+            val export_name = Log.export_name(index, theory = theory)
+            val log = body.map(Log.entry(export_name, _))
+            val log_dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
+            val log_file = log_dir + Path.basic("mirabelle" + index).log
+            progress.echo("Writing " + log_file)
+            File.write(log_file, terminate_lines(log.map(_.print)))
+          }
+        })
+      }
+
+      build_results
     }
-
-    build_results
+    else build_results0
   }
 
 
