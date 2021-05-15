@@ -10,9 +10,10 @@ sig
   val print_properties: Properties.T -> string
   type context = {tag: string, arguments: Properties.T, timeout: Time.time, theory: theory}
   type command = {name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
-  val command_result: command -> XML.body -> XML.tree
-  val print_exn: exn -> string
   val theory_action: binding -> (context -> command list -> XML.body) -> theory -> theory
+  val log_command: command -> XML.body -> XML.tree
+  val log_report: Properties.T -> XML.body -> XML.tree
+  val print_exn: exn -> string
   val command_action: binding -> (context -> command -> string) -> theory -> theory
 
   (*utility functions*)
@@ -38,9 +39,6 @@ val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords \<^theory>);
 val print_name = Token.print_name keywords;
 val print_properties = Token.print_properties keywords;
 
-fun print_action name [] = name
-  | print_action name arguments = name ^ " " ^ print_properties arguments;
-
 fun read_actions str =
   Token.read_body keywords
     (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))
@@ -64,23 +62,34 @@ fun theory_action binding action thy =
   let val context = Context.Theory thy |> Name_Space.map_naming (K Name_Space.global_naming);
   in thy |> Data.map (#2 o Name_Space.define context true (binding, action)) end;
 
+
+(* log content *)
+
+fun log_action name arguments =
+  XML.Elem (("action", (Markup.nameN, name) :: arguments),
+    [XML.Text (print_name name ^ (if null arguments then "" else " " ^ print_properties arguments))]);
+
+fun log_command ({name, pos, ...}: command) body =
+  XML.Elem (("command", (Markup.nameN, name) :: Position.properties_of pos), body);
+
+fun log_report props body =
+  XML.Elem (("report", props), body);
+
+
+(* apply actions *)
+
 fun apply_action index name arguments timeout commands thy =
   let
     val action = #2 (Name_Space.check (Context.Theory thy) (Data.get thy) (name, Position.none));
     val tag = "#" ^ Value.print_int index ^ " " ^ name ^ ": ";
     val context = {tag = tag, arguments = arguments, timeout = timeout, theory = thy};
     val export_body = action context commands;
-    val export_head =
-      XML.Elem (("action", (Markup.nameN, name) :: arguments),
-        [XML.Text (print_action name arguments)]);
-    val export_path = Path.binding0 (Path.basic "mirabelle" + Path.basic (Value.print_int index));
-  in Export.export thy export_path (export_head :: export_body) end;
-
-
-(* command action *)
-
-fun command_result ({name, pos, ...}: command) body =
-  XML.Elem (("command", (Markup.nameN, name) :: Position.properties_of pos), body);
+    val export_head = log_action name arguments;
+    val export_name = Path.binding0 (Path.basic "mirabelle" + Path.basic (Value.print_int index));
+  in
+    if null export_body then ()
+    else Export.export thy export_name (export_head :: export_body)
+  end;
 
 fun print_exn exn =
   (case exn of
@@ -97,7 +106,7 @@ fun command_action binding action =
           else #tag context ^ print_exn exn;
       in
         if s = "" then NONE
-        else SOME (command_result command [XML.Text s]) end;
+        else SOME (log_command command [XML.Text s]) end;
   in theory_action binding (map_filter o apply) end;
 
 
