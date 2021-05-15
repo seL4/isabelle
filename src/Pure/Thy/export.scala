@@ -82,7 +82,8 @@ object Export
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
 
-  def compound_name(a: String, b: String): String = a + ":" + b
+  def compound_name(a: String, b: String): String =
+    if (a.isEmpty) b else a + ":" + b
 
   def empty_entry(theory_name: String, name: String): Entry =
     Entry("", theory_name, name, false, Future.value(false, Bytes.empty), XML.Cache.none)

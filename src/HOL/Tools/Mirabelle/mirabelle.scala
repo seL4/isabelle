@@ -35,10 +35,11 @@ object Mirabelle
 
   /* exported log content */
 
-  def mirabelle_export(index: Int): String = "mirabelle/" + index
-
   object Log
   {
+    def export_name(index: Int, theory: String = ""): String =
+      Export.compound_name(theory, "mirabelle/" + index)
+
     val separator = "\n------------------\n"
 
     sealed abstract class Entry { def print: String }
@@ -114,12 +115,12 @@ object Mirabelle
           theory <- theories
           if !seen_theories(theory)
           index <- 1 to actions.length
-          export <- db_context.read_export(session_hierarchy, theory, mirabelle_export(index))
+          export <- db_context.read_export(session_hierarchy, theory, Log.export_name(index))
           body = export.uncompressed_yxml
           if body.nonEmpty
         } {
           seen_theories += theory
-          val export_name = Export.compound_name(theory, mirabelle_export(index))
+          val export_name = Log.export_name(index, theory = theory)
           val log = body.map(Log.entry(export_name, _))
           val log_dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
           val log_file = log_dir + Path.basic("mirabelle" + index).log
