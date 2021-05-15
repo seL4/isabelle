@@ -213,8 +213,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
     val sessions = getopts(args)
-
-    if (actions.isEmpty) error("Missing actions (option -A)")
+    if (actions.isEmpty) getopts.usage()
 
     val progress = new Console_Progress(verbose = verbose)
 
