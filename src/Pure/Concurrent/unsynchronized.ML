@@ -13,6 +13,7 @@ sig
   val change_result: 'a ref -> ('a -> 'b * 'a) -> 'b
   val inc: int ref -> int
   val dec: int ref -> int
+  val add: int ref -> int -> int
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
 end;
 
@@ -29,6 +30,7 @@ fun change_result r f = let val (x, y) = f (! r) in r := y; x end;
 
 fun inc i = (i := ! i + (1: int); ! i);
 fun dec i = (i := ! i - (1: int); ! i);
+fun add i n = (i := ! i + (n: int); ! i);
 
 fun setmp flag value f x =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
