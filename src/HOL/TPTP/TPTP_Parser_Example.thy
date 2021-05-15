@@ -8,8 +8,6 @@ theory TPTP_Parser_Example
 imports TPTP_Parser TPTP_Interpret
 begin
 
-ML_file "sledgehammer_tactics.ML"
-
 import_tptp "$TPTP/Problems/LCL/LCL414+1.p"
 
 ML \<open>

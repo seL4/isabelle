@@ -46,3 +46,15 @@ public option kodkod_scala : bool = true
 
 public option kodkod_max_threads : int = 0
   -- "default max_threads for Nitpick/Kodkod (0: maximum of Java/Scala platform)"
+
+
+section "Mirabelle"
+
+option mirabelle_timeout : real = 30
+  -- "default timeout for Mirabelle actions"
+
+option mirabelle_actions : string = ""
+  -- "Mirabelle actions (outer syntax, separated by semicolons)"
+
+option mirabelle_theories : string = ""
+  -- "Mirabelle theories (names with optional line range, separated by commas)"

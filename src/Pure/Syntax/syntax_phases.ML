@@ -421,10 +421,9 @@ fun parse_term is_prop ctxt =
             (Syntax.check_term (Proof_Context.allow_dummies ctxt) (constrain t); Exn.Res t)
               handle exn as ERROR _ => Exn.Exn exn;
 
+          fun par_map xs = Par_List.map' {name = "Syntax_Phases.parse_term", sequential = false} xs;
           val results' =
-            if parsed_len > 1 then
-              (grouped 10 (Par_List.map_name "Syntax_Phases.parse_term") o apsnd o Exn.maps_res)
-                check results
+            if parsed_len > 1 then (grouped 10 par_map o apsnd o Exn.maps_res) check results
             else results;
           val reports' = fst (hd results');
 

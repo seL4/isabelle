@@ -9,6 +9,7 @@ theory Main
   imports
     Predicate_Compile
     Quickcheck_Narrowing
+    Mirabelle
     Extraction
     Nunchaku
     BNF_Greatest_Fixpoint

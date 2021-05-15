@@ -10,6 +10,7 @@ sig
 
   val provers : string Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
+  val parse_params: (string * string) list parser
 end;
 
 structure Sledgehammer_Commands : SLEDGEHAMMER_COMMANDS =
@@ -353,7 +354,8 @@ val parse_query_bang = \<^keyword>\<open>?\<close> || \<^keyword>\<open>!\<close
 val parse_key = Scan.repeat1 (Parse.embedded || parse_query_bang) >> implode_param
 val parse_value = Scan.repeat1 (Parse.name || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (\<^keyword>\<open>=\<close> |-- parse_value) []
-val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
+val parse_raw_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
+val parse_params = parse_raw_params >> map (apsnd implode_param)
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 val parse_fact_override_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
@@ -366,7 +368,7 @@ val parse_fact_override =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sledgehammer\<close>
     "search for first-order proof using automatic theorem provers"
-    (Scan.optional Parse.name runN -- parse_params
+    (Scan.optional Parse.name runN -- parse_raw_params
       -- parse_fact_override -- Scan.option Parse.nat >>
       (fn (((subcommand, params), fact_override), opt_i) =>
         Toplevel.keep_proof
@@ -374,7 +376,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sledgehammer_params\<close>
     "set and display the default parameters for Sledgehammer"
-    (parse_params >> (fn params =>
+    (parse_raw_params >> (fn params =>
       Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
         writeln ("Default parameters for Sledgehammer:\n" ^
           (case rev (default_raw_params Normal thy) of

@@ -93,6 +93,7 @@ sig
   val explode: Keyword.keywords -> Position.T -> string -> T list
   val explode0: Keyword.keywords -> string -> T list
   val print_name: Keyword.keywords -> string -> string
+  val print_properties: Keyword.keywords -> Properties.T -> string
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
   val make_int: int -> T list
@@ -698,12 +699,15 @@ fun explode keywords pos text =
 fun explode0 keywords = explode keywords Position.none;
 
 
-(* print name in parsable form *)
+(* print names in parsable form *)
 
 fun print_name keywords name =
   ((case explode keywords Position.none name of
     [tok] => not (member (op =) [Ident, Long_Ident, Sym_Ident, Nat] (kind_of tok))
   | _ => true) ? Symbol_Pos.quote_string_qq) name;
+
+fun print_properties keywords =
+  map (apply2 (print_name keywords) #> (fn (a, b) => a ^ " = " ^ b)) #> commas #> enclose "[" "]";
 
 
 (* make *)

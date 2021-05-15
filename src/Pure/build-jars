@@ -11,6 +11,7 @@
 declare -a SOURCES=(
   src/HOL/SPARK/Tools/spark.scala
   src/HOL/Tools/ATP/system_on_tptp.scala
+  src/HOL/Tools/Mirabelle/mirabelle.scala
   src/HOL/Tools/Nitpick/kodkod.scala
   src/Pure/Admin/afp.scala
   src/Pure/Admin/build_csdp.scala

@@ -79,7 +79,6 @@ sig
   val skip_proof_close: transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
-  val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> state * (exn * string) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
@@ -88,7 +87,7 @@ sig
   val reset_notepad: state -> state option
   val fork_presentation: transition -> transition * transition
   type result
-  val join_results: result -> (transition * state) list
+  val join_results: result -> (state * transition * state) list
   val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
 end;
 
@@ -602,19 +601,6 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
 
 
-(* post-transition hooks *)
-
-local
-  val hooks =
-    Synchronized.var "Toplevel.hooks" ([]: (transition -> state -> state -> unit) list);
-in
-
-fun add_hook hook = Synchronized.change hooks (cons hook);
-fun get_hooks () = Synchronized.value hooks;
-
-end;
-
-
 (* apply transitions *)
 
 local
@@ -634,7 +620,6 @@ fun transition int tr st =
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
         | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
-    val _ = get_hooks () |> List.app (fn f => ignore \<^try>\<open>f tr st st'\<close>);
   in (st', opt_err') end;
 
 end;
@@ -693,9 +678,16 @@ datatype result =
   Result_List of result list |
   Result_Future of result future;
 
-fun join_results (Result x) = [x]
-  | join_results (Result_List xs) = maps join_results xs
-  | join_results (Result_Future x) = join_results (Future.join x);
+fun join_results result =
+  let
+    fun add (tr, st') res =
+      (case res of
+        [] => [(init_toplevel (), tr, st')]
+      | (_, _, st) :: _ => (st, tr, st') :: res);
+    fun acc (Result r) = add r
+      | acc (Result_List rs) = fold acc rs
+      | acc (Result_Future x) = acc (Future.join x);
+  in rev (acc result []) end;
 
 local
 

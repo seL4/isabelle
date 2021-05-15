@@ -10,7 +10,9 @@ sig
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
-  type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state}
+  type segment =
+    {span: Command_Span.span, command: Toplevel.transition,
+     prev_state: Toplevel.state, state: Toplevel.state}
   val present_thy: Options.T -> theory -> segment list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -357,7 +359,9 @@ val locale =
 
 in
 
-type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state};
+type segment =
+  {span: Command_Span.span, command: Toplevel.transition,
+   prev_state: Toplevel.state, state: Toplevel.state};
 
 fun present_thy options thy (segments: segment list) =
   let
