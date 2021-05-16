@@ -102,7 +102,7 @@ object Mirabelle
 
     if (build_results0.ok) {
       val build_options =
-        options + "parallel_presentation=false" +
+        options + "timeout_build=false" + "parallel_presentation=false" +
           ("mirabelle_actions=" + actions.mkString(";")) +
           ("mirabelle_theories=" + theories.mkString(","))
 

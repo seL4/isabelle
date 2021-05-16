@@ -113,6 +113,9 @@ option condition : string = ""
 option timeout : real = 0
   -- "timeout for session build job (seconds > 0)"
 
+option timeout_build : bool = true
+  -- "observe timeout for session build"
+
 option process_output_limit : int = 100
   -- "build process output limit (in million characters, 0 = unlimited)"
 
