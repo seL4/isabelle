@@ -307,7 +307,7 @@ source "$COMPONENT/etc/settings"
 
 # main
 
-declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
+declare -a JAVA_OPTIONS=($(grep -v '^#' "$ISABELLE_HOME/Isabelle.options"))
 
 "$ISABELLE_HOME/bin/isabelle" env "$ISABELLE_HOME/lib/scripts/java-gui-setup"
 
