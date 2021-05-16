@@ -303,6 +303,16 @@ object Isabelle_Cronjob
   val remote_builds1: List[List[Remote_Build]] =
   {
     List(
+      List(Remote_Build("Linux A", "i21of4", user = "i21isatest",
+        proxy_host = "lxbroy10", proxy_user = "i21isatest",
+        self_update = true,
+        options = "-m32 -M1x4,2,4" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+          " -e ISABELLE_GHC_SETUP=true" +
+          " -e ISABELLE_MLTON=mlton" +
+          " -e ISABELLE_SMLNJ=sml" +
+          " -e ISABELLE_SWIPL=swipl",
+        args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
