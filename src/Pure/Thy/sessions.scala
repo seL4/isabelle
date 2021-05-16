@@ -502,6 +502,7 @@ object Sessions
 
     def dirs: List[Path] = dir :: directories
 
+    def timeout_ignored: Boolean = Time.seconds(options.real("timeout")) < Time.ms(1)
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
     def document_enabled: Boolean =

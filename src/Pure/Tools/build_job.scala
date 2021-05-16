@@ -507,9 +507,8 @@ class Build_Job(progress: Progress,
 
   private val timeout_request: Option[Event_Timer.Request] =
   {
-    if (info.timeout > Time.zero)
-      Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
-    else None
+    if (info.timeout_ignored) None
+    else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
   def join: (Process_Result, Option[String]) =
