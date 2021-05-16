@@ -445,7 +445,7 @@ object Server
         find(db, name) match {
           case Some(server_info) =>
             using(server_info.connection())(_.write_message("shutdown"))
-            while(server_info.active) { Time.seconds(0.05).sleep }
+            while(server_info.active) { Time.seconds(0.05).sleep() }
             true
           case None => false
         }

@@ -290,7 +290,7 @@ object Build
     }
 
     def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { Time.seconds(0.5).sleep }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { Time.seconds(0.5).sleep() }
 
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
 

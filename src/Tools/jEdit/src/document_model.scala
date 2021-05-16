@@ -370,7 +370,7 @@ sealed abstract class Document_Model extends Document.Model
   {
     val snapshot = this.snapshot()
     if (snapshot.is_outdated) {
-      PIDE.options.seconds("editor_output_delay").sleep
+      PIDE.options.seconds("editor_output_delay").sleep()
       await_stable_snapshot()
     }
     else snapshot

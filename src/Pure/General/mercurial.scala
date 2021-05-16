@@ -376,7 +376,7 @@ object Mercurial
 
           while (repos.importing) {
             progress.echo("Awaiting remote repository ...")
-            Time.seconds(0.5).sleep
+            Time.seconds(0.5).sleep()
             repos = phabricator.the_repository(repos.phid)
           }
 

@@ -36,7 +36,7 @@ class Scala_Console extends Shell("Scala")
         if (global_out == null) System.out.print(str)
         else global_out.writeAttrs(null, str)
       }
-      Time.seconds(0.01).sleep  // FIXME adhoc delay to avoid loosing output
+      Time.seconds(0.01).sleep()  // FIXME adhoc delay to avoid loosing output
     }
 
     override def close(): Unit = flush()

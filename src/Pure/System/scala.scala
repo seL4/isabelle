@@ -69,7 +69,7 @@ object Scala
           case _ => error("Malformed argument: " + quote(seconds))
         }
       val t0 = Time.now()
-      t.sleep
+      t.sleep()
       val t1 = Time.now()
       (t1 - t0).toString
     }

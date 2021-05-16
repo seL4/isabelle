@@ -243,7 +243,7 @@ object SSH
 
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
-        while (!channel.isClosed) exec_wait_delay.sleep
+        while (!channel.isClosed) exec_wait_delay.sleep()
         channel.getExitStatus
       }
 
@@ -282,7 +282,7 @@ object SSH
             if (line_buffer.size > 0) line_flush()
             finished = true
           }
-          else exec_wait_delay.sleep
+          else exec_wait_delay.sleep()
         }
 
         result.toList

@@ -122,7 +122,7 @@ object Bash
         Isabelle_System.process_signal(group_pid, signal = s)
         val running = root_process_alive() || Isabelle_System.process_signal(group_pid)
         if (running) {
-          Time.seconds(0.1).sleep
+          Time.seconds(0.1).sleep()
           signal(s, count - 1)
         }
         else false
@@ -210,7 +210,7 @@ object Bash
         yield {
           Future.thread("bash_watchdog") {
             while (proc.isAlive) {
-              time.sleep
+              time.sleep()
               if (check(this)) interrupt()
             }
           }
