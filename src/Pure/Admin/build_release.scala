@@ -270,6 +270,7 @@ directory individually.
 
 # minimal Isabelle environment
 
+unset CDPATH
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)/../.."; pwd)"
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 

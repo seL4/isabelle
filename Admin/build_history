@@ -2,6 +2,7 @@
 #
 # DESCRIPTION: build history versions from another repository clone
 
+unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
 "$THIS/build" jars > /dev/null || exit $?

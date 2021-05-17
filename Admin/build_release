@@ -2,6 +2,7 @@
 #
 # DESCRIPTION: build full Isabelle distribution from repository
 
+unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
 "$THIS/build" jars || exit $?
