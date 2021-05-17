@@ -122,8 +122,7 @@ session Functions (doc) in "Functions" = HOL +
     "style.sty"
 
 session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
-  options [document_build = "build", document_variants = "how_to_prove_it",
-    show_question_marks = false]
+  options [document_variants = "how_to_prove_it", show_question_marks = false]
   theories
     How_to_Prove_it
   document_files
