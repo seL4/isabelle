@@ -154,6 +154,7 @@ declare -a SOURCES=(
   src/Pure/System/system_channel.scala
   src/Pure/System/tty_loop.scala
   src/Pure/Thy/bibtex.scala
+  src/Pure/Thy/document_build.scala
   src/Pure/Thy/export.scala
   src/Pure/Thy/export_theory.scala
   src/Pure/Thy/file_format.scala
