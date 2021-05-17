@@ -230,10 +230,7 @@ object Document_Build
         old_doc <- db_context.input_database(session)(read_document(_, _, directory.doc.name))
         if old_doc.sources == directory.sources
       }
-      yield {
-        old_doc.write(directory.doc_dir)
-        old_doc
-      }
+      yield old_doc
   }
 
   sealed case class Content(path: Path, bytes: Bytes)
