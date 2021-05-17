@@ -5,6 +5,7 @@
 ## directory layout
 
 if [ -z "$ISABELLE_HOME" ]; then
+  unset CDPATH
   ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
   ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 fi

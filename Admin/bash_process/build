@@ -2,6 +2,7 @@
 #
 # Multi-platform build script
 
+unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"
 PRG="$(basename "$0")"
 

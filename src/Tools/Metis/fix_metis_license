@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+unset CDPATH
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
 (cd $THIS;
  perl -p -i~ -w -e 's/MIT license/BSD License/g' Makefile src/*.s* scripts/mlpp)

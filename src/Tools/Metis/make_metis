@@ -6,6 +6,7 @@
 # A few other ad hoc transformations are performed to ensure that the sources
 # compile within Isabelle on Poly/ML and SML/NJ.
 
+unset CDPATH
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
 make -f Makefile.FILES refresh_FILES
 FILES=$(cat "$THIS/FILES")
