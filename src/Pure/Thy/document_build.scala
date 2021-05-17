@@ -59,6 +59,14 @@ object Document_Build
 
     def write(db: SQL.Database, session_name: String): Unit =
       write_document(db, session_name, this)
+
+    def write(dir: Path): Path =
+    {
+      val path = dir + Path.basic(name).pdf
+      Isabelle_System.make_directory(path.expand.dir)
+      Bytes.write(path, pdf)
+      path
+    }
   }
 
 
@@ -122,10 +130,150 @@ object Document_Build
   }
 
 
+  /* context */
+
+  def context(
+    session: String,
+    deps: Sessions.Deps,
+    db_context: Sessions.Database_Context,
+    progress: Progress = new Progress): Context =
+  {
+    val info = deps.sessions_structure(session)
+    val base = deps(session)
+    val hierarchy = deps.sessions_structure.hierarchy(session)
+    new Context(info, base, hierarchy, db_context, progress)
+  }
+
+  final class Context private[Document_Build](
+    info: Sessions.Info,
+    base: Sessions.Base,
+    hierarchy: List[String],
+    db_context: Sessions.Database_Context,
+    val progress: Progress = new Progress)
+  {
+    /* session info */
+
+    def session: String = info.name
+    def options: Options = info.options
+
+    def get_export(theory: String, name: String): Export.Entry =
+      db_context.get_export(hierarchy, theory, name)
+
+
+    /* document content */
+
+    def documents: List[Document_Variant] = info.documents
+
+    def session_theories: List[Document.Node.Name] = base.session_theories
+    def document_theories: List[Document.Node.Name] = session_theories ::: base.document_theories
+
+    lazy val tex_files: List[Content] =
+      for (name <- document_theories)
+      yield {
+        val path = Path.basic(tex_name(name))
+        val bytes = get_export(name.theory, document_tex_name(name)).uncompressed
+        Content(path, bytes)
+      }
+
+    lazy val session_graph: Content =
+    {
+      val path = Presentation.session_graph_path
+      val bytes = graphview.Graph_File.make_pdf(options, base.session_graph_display)
+      Content(path, bytes)
+    }
+
+    lazy val session_tex: Content =
+    {
+      val path = Path.basic("session.tex")
+      val text =
+        Library.terminate_lines(
+          base.session_theories.map(name => "\\input{" + tex_name(name) + "}"))
+      Content(path, Bytes(text))
+    }
+
+
+    /* document directory */
+
+    def prepare_directory(dir: Path, doc: Document_Variant): Directory =
+    {
+      val doc_dir = dir + Path.basic(doc.name)
+      Isabelle_System.make_directory(doc_dir)
+
+
+      /* sources */
+
+      Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
+      File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
+      for ((base_dir, src) <- info.document_files) {
+        Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
+      }
+
+      session_tex.write(doc_dir)
+      tex_files.foreach(_.write(doc_dir))
+
+      val root_name1 = "root_" + doc.name
+      val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
+
+      val sources =
+        SHA1.digest_set(File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest))
+
+
+      /* derived material */
+
+      session_graph.write(doc_dir)
+
+      Directory(doc_dir, doc, root_name, sources)
+    }
+
+    def old_document(directory: Directory): Option[Document_Output] =
+      for {
+        old_doc <- db_context.input_database(session)(read_document(_, _, directory.doc.name))
+        if old_doc.sources == directory.sources
+      }
+      yield {
+        old_doc.write(directory.doc_dir)
+        old_doc
+      }
+  }
+
+  sealed case class Content(path: Path, bytes: Bytes)
+  {
+    def write(dir: Path): Unit = Bytes.write(dir + path, bytes)
+  }
+
+  sealed case class Directory(
+    doc_dir: Path,
+    doc: Document_Variant,
+    root_name: String,
+    sources: SHA1.Digest)
+  {
+    def log_errors(): List[String] =
+      Latex.latex_errors(doc_dir, root_name) :::
+      Bibtex.bibtex_errors(doc_dir, root_name)
+
+    def make_document(log: List[String], errors: List[String]): Document_Output =
+    {
+      val root_pdf = Path.basic(root_name).pdf
+      val result_pdf = doc_dir + root_pdf
+
+      if (errors.nonEmpty) {
+        val errors1 = errors ::: List("Failed to build document " + quote(doc.name))
+        throw new Build_Error(log, Exn.cat_message(errors1: _*))
+      }
+      else if (!result_pdf.is_file) {
+        val message = "Bad document result: expected to find " + root_pdf
+        throw new Build_Error(log, message)
+      }
+      else {
+        val log_xz = Bytes(cat_lines(log)).compress()
+        val pdf = Bytes.read(result_pdf)
+        Document_Output(doc.name, sources, log_xz, pdf)
+      }
+    }
+  }
+
 
   /* build documents */
-
-  val session_tex_path = Path.explode("session.tex")
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
   def document_tex_name(name: Document.Node.Name): String = "document/" + tex_name(name)
@@ -134,102 +282,34 @@ object Document_Build
     extends Exn.User_Error(message)
 
   def build_documents(
-    session: String,
-    deps: Sessions.Deps,
-    db_context: Sessions.Database_Context,
-    progress: Progress = new Progress,
+    context: Context,
     output_sources: Option[Path] = None,
     output_pdf: Option[Path] = None,
     verbose: Boolean = false,
     verbose_latex: Boolean = false): List[Document_Output] =
   {
-    /* session info */
-
-    val info = deps.sessions_structure(session)
-    val hierarchy = deps.sessions_structure.hierarchy(session)
-    val options = info.options
-    val base = deps(session)
-    val graph_pdf = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-
-
-    /* prepare document directory */
-
-    lazy val tex_files =
-      for (name <- base.session_theories ::: base.document_theories)
-      yield {
-        val entry = db_context.get_export(hierarchy, name.theory, document_tex_name(name))
-        Path.basic(tex_name(name)) -> entry.uncompressed
-      }
-
-    def prepare_dir1(dir: Path, doc: Document_Variant): (Path, String) =
-    {
-      val doc_dir = dir + Path.basic(doc.name)
-      Isabelle_System.make_directory(doc_dir)
-
-      Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
-      File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
-      for ((base_dir, src) <- info.document_files) {
-        Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
-      }
-
-      File.write(doc_dir + session_tex_path,
-        Library.terminate_lines(
-          base.session_theories.map(name => "\\input{" + tex_name(name) + "}")))
-
-      for ((path, tex) <- tex_files) Bytes.write(doc_dir + path, tex)
-
-      val root1 = "root_" + doc.name
-      val root = if ((doc_dir + Path.explode(root1).tex).is_file) root1 else "root"
-
-      (doc_dir, root)
-    }
-
-    def prepare_dir2(dir: Path, doc: Document_Variant): Unit =
-    {
-      val doc_dir = dir + Path.basic(doc.name)
-
-      // non-deterministic, but irrelevant
-      Bytes.write(doc_dir + Presentation.session_graph_path, graph_pdf)
-    }
-
-
-    /* produce documents */
+    val progress = context.progress
 
     val documents =
-      for (doc <- info.documents)
+      for (doc <- context.documents)
       yield {
         Isabelle_System.with_tmp_dir("document")(tmp_dir =>
         {
-          progress.echo("Preparing " + session + "/" + doc.name + " ...")
+          progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
 
-          // prepare sources
+          // prepare directory
 
-          val (doc_dir, root) = prepare_dir1(tmp_dir, doc)
-          val digests = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
-          val sources = SHA1.digest_set(digests)
-          prepare_dir2(tmp_dir, doc)
-
-          for (dir <- output_sources) {
-            prepare_dir1(dir, doc)
-            prepare_dir2(dir, doc)
-          }
+          output_sources.foreach(context.prepare_directory(_, doc))
+          val directory = context.prepare_directory(tmp_dir, doc)
+          val doc_dir = directory.doc_dir
+          val root = directory.root_name
 
 
-          // old document from database
+          // prepare document
 
-          val old_document =
-            for {
-              old_doc <- db_context.input_database(session)(read_document(_, _, doc.name))
-              if old_doc.sources == sources
-            }
-            yield {
-              Bytes.write(doc_dir + doc.path.pdf, old_doc.pdf)
-              old_doc
-            }
-
-          old_document getOrElse {
+          context.old_document(directory) getOrElse {
             // bash scripts
 
             def root_bash(ext: String): String = Bash.string(root + "." + ext)
@@ -257,47 +337,26 @@ object Document_Build
                   latex_bash())
               }
 
+            val stop = Time.now()
+            val timing = stop - start
+
 
             // result
 
-            val root_pdf = Path.basic(root).pdf
-            val result_path = doc_dir + root_pdf
+            val log = result.out_lines ::: result.err_lines
+            val errors = (if (result.ok) Nil else List(result.err)) ::: directory.log_errors()
+            val document = directory.make_document(log, errors)
 
-            val log_lines = result.out_lines ::: result.err_lines
+            progress.echo("Finished " + context.session + "/" + doc.name +
+              " (" + timing.message_hms + " elapsed time)")
 
-            val errors =
-              (if (result.ok) Nil else List(result.err)) :::
-              Latex.latex_errors(doc_dir, root) :::
-              Bibtex.bibtex_errors(doc_dir, root)
-
-            if (errors.nonEmpty) {
-              val message =
-                Exn.cat_message(
-                  (errors ::: List("Failed to build document " + quote(doc.name))):_*)
-              throw new Build_Error(log_lines, message)
-            }
-            else if (!result_path.is_file) {
-              val message = "Bad document result: expected to find " + root_pdf
-              throw new Build_Error(log_lines, message)
-            }
-            else {
-              val stop = Time.now()
-              val timing = stop - start
-              progress.echo("Finished " + session + "/" + doc.name +
-                " (" + timing.message_hms + " elapsed time)")
-
-              val log_xz = Bytes(cat_lines(log_lines)).compress()
-              val pdf = Bytes.read(result_path)
-              Document_Output(doc.name, sources, log_xz, pdf)
-            }
+            document
           }
         })
       }
 
     for (dir <- output_pdf; doc <- documents) {
-      Isabelle_System.make_directory(dir)
-      val path = dir + doc.path.pdf
-      Bytes.write(path, doc.pdf)
+      val path = doc.write(dir)
       progress.echo("Document at " + path.absolute)
     }
 
@@ -370,9 +429,11 @@ Usage: isabelle document [OPTIONS] SESSION
         }
 
         using(store.open_database_context())(db_context =>
-          build_documents(session, deps, db_context, progress = progress,
+        {
+          build_documents(context(session, deps, db_context, progress = progress),
             output_sources = output_sources, output_pdf = output_pdf,
-            verbose = true, verbose_latex = verbose_latex))
+            verbose = true, verbose_latex = verbose_latex)
+        })
       }
     })
 }
