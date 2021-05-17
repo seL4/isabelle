@@ -62,8 +62,8 @@ object Build_Log
       def unapply(s: String): Option[Entry] =
         for { (a, b) <- Properties.Eq.unapply(s) }
         yield (a, Library.perhaps_unquote(b))
-      def apply(a: String, b: String): String = Properties.Eq(a -> quote(b))
-      def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
+      def getenv(a: String): String =
+        Properties.Eq(a -> quote(Isabelle_System.getenv(a)))
     }
 
     def show(): String =
@@ -227,10 +227,7 @@ object Build_Log
     /* settings */
 
     def get_setting(a: String): Option[Settings.Entry] =
-      lines.find(_.startsWith(a + "=")) match {
-        case Some(line) => Settings.Entry.unapply(line)
-        case None => None
-      }
+      lines.collectFirst({ case Settings.Entry(entry) if entry._1 == a => entry })
 
     def get_all_settings: Settings.T =
       for { c <- Settings.all_settings; entry <- get_setting(c.name) }
