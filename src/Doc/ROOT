@@ -1,7 +1,7 @@
 chapter Doc
 
 session Classes (doc) in "Classes" = HOL +
-  options [document_variants = "classes", quick_and_dirty]
+  options [document_build = "build", document_variants = "classes", quick_and_dirty]
   theories [document = false] Setup
   theories Classes
   document_files (in "..")
@@ -17,7 +17,7 @@ session Classes (doc) in "Classes" = HOL +
     "style.sty"
 
 session Codegen (doc) in "Codegen" = HOL +
-  options [document_variants = "codegen", print_mode = "no_brackets,iff"]
+  options [document_build = "build", document_variants = "codegen", print_mode = "no_brackets,iff"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -44,7 +44,7 @@ session Codegen (doc) in "Codegen" = HOL +
     "style.sty"
 
 session Corec (doc) in "Corec" = Datatypes +
-  options [document_variants = "corec"]
+  options [document_build = "build", document_variants = "corec"]
   theories
     Corec
   document_files (in "..")
@@ -60,7 +60,7 @@ session Corec (doc) in "Corec" = Datatypes +
     "style.sty"
 
 session Datatypes (doc) in "Datatypes" = HOL +
-  options [document_variants = "datatypes"]
+  options [document_build = "build", document_variants = "datatypes"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -80,7 +80,7 @@ session Datatypes (doc) in "Datatypes" = HOL +
     "style.sty"
 
 session Eisbach (doc) in "Eisbach" = HOL +
-  options [document_variants = "eisbach", quick_and_dirty,
+  options [document_build = "build", document_variants = "eisbach", quick_and_dirty,
     print_mode = "no_brackets,iff", show_question_marks = false]
   sessions
     "HOL-Eisbach"
@@ -104,7 +104,8 @@ session Eisbach (doc) in "Eisbach" = HOL +
     "style.sty"
 
 session Functions (doc) in "Functions" = HOL +
-  options [document_variants = "functions", skip_proofs = false, quick_and_dirty]
+  options [document_build = "build", document_variants = "functions",
+    skip_proofs = false, quick_and_dirty]
   theories Functions
   document_files (in "..")
     "prepare_document"
@@ -121,7 +122,8 @@ session Functions (doc) in "Functions" = HOL +
     "style.sty"
 
 session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
-  options [document_variants = "how_to_prove_it", show_question_marks = false]
+  options [document_build = "build", document_variants = "how_to_prove_it",
+    show_question_marks = false]
   theories
     How_to_Prove_it
   document_files
@@ -130,7 +132,7 @@ session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
     "prelude.tex"
 
 session Intro (doc) in "Intro" = Pure +
-  options [document_variants = "intro"]
+  options [document_build = "build", document_variants = "intro"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -146,7 +148,7 @@ session Intro (doc) in "Intro" = Pure +
     "root.tex"
 
 session Implementation (doc) in "Implementation" = HOL +
-  options [document_variants = "implementation", quick_and_dirty]
+  options [document_build = "build", document_variants = "implementation", quick_and_dirty]
   theories
     Eq
     Integration
@@ -174,7 +176,8 @@ session Implementation (doc) in "Implementation" = HOL +
     "style.sty"
 
 session Isar_Ref (doc) in "Isar_Ref" = HOL +
-  options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
+  options [document_build = "build", document_variants = "isar-ref",
+    quick_and_dirty, thy_output_source]
   sessions
     "HOL-Library"
   theories
@@ -210,7 +213,7 @@ session Isar_Ref (doc) in "Isar_Ref" = HOL +
     "style.sty"
 
 session JEdit (doc) in "JEdit" = HOL +
-  options [document_variants = "jedit", thy_output_source]
+  options [document_build = "build", document_variants = "jedit", thy_output_source]
   theories
     JEdit
   document_files (in "..")
@@ -247,7 +250,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "theories.png"
 
 session Sugar (doc) in "Sugar" = HOL +
-  options [document_variants = "sugar"]
+  options [document_build = "build", document_variants = "sugar"]
   sessions
     "HOL-Library"
   theories Sugar
@@ -260,7 +263,8 @@ session Sugar (doc) in "Sugar" = HOL +
     "root.tex"
 
 session Locales (doc) in "Locales" = HOL +
-  options [document_variants = "locales", thy_output_margin = 65, skip_proofs = false]
+  options [document_build = "build", document_variants = "locales",
+    thy_output_margin = 65, skip_proofs = false]
   theories
     Examples1
     Examples2
@@ -274,7 +278,7 @@ session Locales (doc) in "Locales" = HOL +
     "root.tex"
 
 session Logics (doc) in "Logics" = Pure +
-  options [document_variants = "logics"]
+  options [document_build = "build", document_variants = "logics"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -293,7 +297,7 @@ session Logics (doc) in "Logics" = Pure +
     "syntax.tex"
 
 session Logics_ZF (doc) in "Logics_ZF" = ZF +
-  options [document_variants = "logics-ZF", print_mode = "brackets",
+  options [document_build = "build", document_variants = "logics-ZF", print_mode = "brackets",
     thy_output_source]
   sessions
     FOL
@@ -319,7 +323,7 @@ session Logics_ZF (doc) in "Logics_ZF" = ZF +
     "root.tex"
 
 session Main (doc) in "Main" = HOL +
-  options [document_variants = "main"]
+  options [document_build = "build", document_variants = "main"]
   theories Main_Doc
   document_files (in "..")
     "prepare_document"
@@ -329,7 +333,7 @@ session Main (doc) in "Main" = HOL +
     "root.tex"
 
 session Nitpick (doc) in "Nitpick" = Pure +
-  options [document_variants = "nitpick"]
+  options [document_build = "build", document_variants = "nitpick"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -340,7 +344,7 @@ session Nitpick (doc) in "Nitpick" = Pure +
     "root.tex"
 
 session Prog_Prove (doc) in "Prog_Prove" = HOL +
-  options [document_variants = "prog-prove", show_question_marks = false]
+  options [document_build = "build", document_variants = "prog-prove", show_question_marks = false]
   theories
     Basics
     Bool_nat_list
@@ -363,7 +367,7 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
     "svmono.cls"
 
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
-  options [document_variants = "sledgehammer"]
+  options [document_build = "build", document_variants = "sledgehammer"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -374,7 +378,7 @@ session Sledgehammer (doc) in "Sledgehammer" = Pure +
     "root.tex"
 
 session System (doc) in "System" = Pure +
-  options [document_variants = "system", thy_output_source]
+  options [document_build = "build", document_variants = "system", thy_output_source]
   sessions
     "HOL-Library"
   theories
@@ -401,7 +405,8 @@ session System (doc) in "System" = Pure +
     "root.tex"
 
 session Tutorial (doc) in "Tutorial" = HOL +
-  options [document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
+  options [document_build = "build", document_variants = "tutorial",
+    print_mode = "brackets", skip_proofs = false]
   directories "Advanced" "CTL" "CodeGen" "Datatype" "Documents" "Fun" "Ifexpr"
     "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
   theories [document = false]
@@ -494,7 +499,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "types0.tex"
 
 session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
-  options [document_variants = "typeclass_hierarchy"]
+  options [document_build = "build", document_variants = "typeclass_hierarchy"]
   sessions
     "HOL-Library"
   theories [document = false]

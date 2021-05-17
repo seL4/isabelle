@@ -34,6 +34,23 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* Option "document_build" determines the document build engine, as
+defined in Isabelle/Scala (as system service). The subsequent engines
+are provided by the Isabelle distribution:
+
+  . "lualatex" (default): use ISABELLE_LUALATEX for a standard LaTeX
+    build with optional ISABELLE_BIBTEX and ISABELLE_MAKEINDEX
+
+  . "pdflatex": as above, but use ISABELLE_PDFLATEX (legacy mode for
+    special LaTeX styles)
+
+  . "build": delegate to the executable "./build pdf", using
+    ISABELLE_LUALATEX by default
+
+The presence of a "build" command within the document output directory
+explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
+adjust session ROOT options.
+
 * Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
 \guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}
 (which is now also the default in "isabelle mkroot").

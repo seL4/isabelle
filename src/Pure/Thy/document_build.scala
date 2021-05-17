@@ -156,6 +156,14 @@ object Document_Build
     def session: String = info.name
     def options: Options = info.options
 
+    def document_build: String = options.string("document_build")
+
+    def get_engine(): Engine =
+    {
+      val name = document_build
+      engines.find(_.name == name).getOrElse(error("Bad document_build engine " + quote(name)))
+    }
+
     def get_export(theory: String, name: String): Export.Entry =
       db_context.get_export(hierarchy, theory, name)
 
@@ -214,8 +222,9 @@ object Document_Build
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
 
-      val sources =
-        SHA1.digest_set(File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest))
+      val option_digests = List(doc.print, get_engine().name).map(SHA1.digest)
+      val file_digests = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
+      val sources = SHA1.digest_set(option_digests ::: file_digests)
 
 
       /* derived material */
@@ -270,6 +279,74 @@ object Document_Build
   }
 
 
+  /* build engines */
+
+  lazy val engines: List[Engine] = Isabelle_System.make_services(classOf[Engine])
+
+  abstract class Engine(val name: String) extends Isabelle_System.Service
+  {
+    override def toString: String = name
+
+    def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory
+    def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output
+  }
+
+  abstract class Bash_Engine(name: String) extends Engine(name)
+  {
+    def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
+      context.prepare_directory(dir, doc)
+
+    def bash_script(context: Context, directory: Directory): String =
+    {
+      val build_required = name == "build"
+      val build_provided = (directory.doc_dir + Path.explode("build")).is_file
+
+      if (!build_required && build_provided) {
+        error("Unexpected document build script for option document_build=" +
+          quote(context.document_build))
+      }
+      else if (build_required && !build_provided) error("Missing document build script")
+      else if (build_required) "./build pdf " + Bash.string(directory.doc.name)
+      else {
+        def root_bash(ext: String): String = Bash.string(directory.root_name + "." + ext)
+
+        def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
+          "isabelle latex -o " + Bash.string(fmt) + " " + root_bash(ext)
+
+        List(
+          latex_bash(),
+          "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
+          "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
+          latex_bash(),
+          latex_bash()).mkString(" && ")
+      }
+    }
+
+    def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output =
+    {
+      val settings =
+        if (name == "pdflatex") Nil
+        else List("ISABELLE_PDFLATEX" -> Isabelle_System.getenv("ISABELLE_LUALATEX"))
+
+      val result =
+        context.progress.bash(
+          bash_script(context, directory),
+          cwd = directory.doc_dir.file,
+          env = Isabelle_System.settings() ++ settings,
+          echo = verbose,
+          watchdog = Time.seconds(0.5))
+
+      val log = result.out_lines ::: result.err_lines
+      val errors = (if (result.ok) Nil else List(result.err)) ::: directory.log_errors()
+      directory.make_document(log, errors)
+    }
+  }
+
+  class LuaLaTeX_Engine extends Bash_Engine("lualatex")
+  class PDFLaTeX_Engine extends Bash_Engine("pdflatex")
+  class Build_Engine extends Bash_Engine("build")
+
+
   /* build documents */
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
@@ -282,10 +359,10 @@ object Document_Build
     context: Context,
     output_sources: Option[Path] = None,
     output_pdf: Option[Path] = None,
-    verbose: Boolean = false,
-    verbose_latex: Boolean = false): List[Document_Output] =
+    verbose: Boolean = false): List[Document_Output] =
   {
     val progress = context.progress
+    val engine = context.get_engine()
 
     val documents =
       for (doc <- context.documents)
@@ -295,60 +372,20 @@ object Document_Build
           progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
+          output_sources.foreach(engine.prepare_directory(context, _, doc))
+          val directory = engine.prepare_directory(context, tmp_dir, doc)
 
-          // prepare directory
+          val document =
+            context.old_document(directory) getOrElse
+              engine.build_document(context, directory, verbose)
 
-          output_sources.foreach(context.prepare_directory(_, doc))
-          val directory = context.prepare_directory(tmp_dir, doc)
-          val doc_dir = directory.doc_dir
-          val root = directory.root_name
+          val stop = Time.now()
+          val timing = stop - start
 
+          progress.echo("Finished " + context.session + "/" + doc.name +
+            " (" + timing.message_hms + " elapsed time)")
 
-          // prepare document
-
-          context.old_document(directory) getOrElse {
-            // bash scripts
-
-            def root_bash(ext: String): String = Bash.string(root + "." + ext)
-
-            def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
-              "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root + "." + ext)
-
-            def bash(items: String*): Process_Result =
-              progress.bash(items.mkString(" && "), cwd = doc_dir.file,
-                echo = verbose_latex, watchdog = Time.seconds(0.5))
-
-
-            // prepare document
-
-            val result =
-              if ((doc_dir + Path.explode("build")).is_file) {
-                bash("./build pdf " + Bash.string(doc.name))
-              }
-              else {
-                bash(
-                  latex_bash(),
-                  "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
-                  "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
-                  latex_bash(),
-                  latex_bash())
-              }
-
-            val stop = Time.now()
-            val timing = stop - start
-
-
-            // result
-
-            val log = result.out_lines ::: result.err_lines
-            val errors = (if (result.ok) Nil else List(result.err)) ::: directory.log_errors()
-            val document = directory.make_document(log, errors)
-
-            progress.echo("Finished " + context.session + "/" + doc.name +
-              " (" + timing.message_hms + " elapsed time)")
-
-            document
-          }
+          document
         })
       }
 
@@ -429,7 +466,7 @@ Usage: isabelle document [OPTIONS] SESSION
         {
           build_documents(context(session, deps, db_context, progress = progress),
             output_sources = output_sources, output_pdf = output_pdf,
-            verbose = true, verbose_latex = verbose_latex)
+            verbose = verbose_latex)
         })
       }
     })

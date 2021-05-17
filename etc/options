@@ -13,6 +13,8 @@ option document_variants : string = "document"
   -- "alternative document variants (separated by colons)"
 option document_tags : string = ""
   -- "default command tags (separated by commas)"
+option document_build : string = "lualatex"
+  -- "document build engine (e.g. lualatex, pdflatex, build)"
 
 option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"

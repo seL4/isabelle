@@ -34,6 +34,10 @@ isabelle_scala_service 'isabelle.Print_Operation$Handler'
 isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
 isabelle_scala_service 'isabelle.Server_Commands'
 
+isabelle_scala_service 'isabelle.Document_Build$LuaLaTeX_Engine'
+isabelle_scala_service 'isabelle.Document_Build$PDFLaTeX_Engine'
+isabelle_scala_service 'isabelle.Document_Build$Build_Engine'
+
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"
 unset "JAVA_TOOL_OPTIONS"
@@ -57,10 +61,16 @@ ISABELLE_BUILD_OPTIONS=""
 
 
 ###
-### Document preparation (cf. isabelle latex/document)
+### Document preparation (cf. isabelle latex)
 ###
 
-ISABELLE_PDFLATEX="lualatex --file-line-error"
+if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
+  ISABELLE_PDFLATEX="pdflatex -c-style-errors"
+else
+  ISABELLE_PDFLATEX="pdflatex -file-line-error"
+fi
+
+ISABELLE_LUALATEX="lualatex --file-line-error"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_MAKEINDEX="makeindex"
 ISABELLE_EPSTOPDF="epstopdf"
