@@ -2,6 +2,7 @@
 #
 # DESCRIPTION: start the main Isabelle cronjob
 
+unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
 source "$HOME/.bashrc"

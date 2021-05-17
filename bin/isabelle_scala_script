@@ -4,6 +4,8 @@
 #
 # Isabelle/Scala script wrapper.
 
+unset CDPATH
+
 if [ -L "$0" ]; then
   TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
   exec "$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
