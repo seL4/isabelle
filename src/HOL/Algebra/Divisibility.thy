@@ -878,7 +878,7 @@ text \<open>Permutations\<close>
 lemma perm_map [intro]:
   assumes p: "a <~~> b"
   shows "map f a <~~> map f b"
-  using p by (simp add: perm_iff_eq_mset)
+  using p by simp
 
 lemma perm_map_switch:
   assumes m: "map f a = map f b" and p: "b <~~> c"
@@ -887,7 +887,7 @@ proof -
   from m have \<open>length a = length b\<close>
     by (rule map_eq_imp_length_eq)
   from p have \<open>mset c = mset b\<close>
-    by (simp add: perm_iff_eq_mset)
+    by simp
   then obtain p where \<open>p permutes {..<length b}\<close> \<open>permute_list p b = c\<close>
     by (rule mset_eq_permutation)
   with \<open>length a = length b\<close> have \<open>p permutes {..<length a}\<close>
@@ -897,48 +897,27 @@ proof -
     using m \<open>p permutes {..<length b}\<close> \<open>permute_list p b = c\<close>
     by (auto simp flip: permute_list_map)
   then show ?thesis
-    by (auto simp add: perm_iff_eq_mset)
+    by auto
 qed
 
 lemma (in monoid) perm_assoc_switch:
   assumes a:"as [\<sim>] bs" and p: "bs <~~> cs"
   shows "\<exists>bs'. as <~~> bs' \<and> bs' [\<sim>] cs"
-  using p a
-proof (induction bs cs arbitrary: as)
-  case (swap y x l)
-  then show ?case
-    by (metis (no_types, hide_lams) list_all2_Cons2 perm.swap)
-next
-case (Cons xs ys z)
-  then show ?case
-    by (metis list_all2_Cons2 perm.Cons)
-next
-  case (trans xs ys zs)
-  then show ?case
-    by (meson perm.trans)
-qed auto
+proof -
+  from p have \<open>mset cs = mset bs\<close>
+    by simp
+  then obtain p where \<open>p permutes {..<length bs}\<close> \<open>permute_list p bs = cs\<close>
+    by (rule mset_eq_permutation)
+  moreover define bs' where \<open>bs' = permute_list p as\<close>
+  ultimately have \<open>as <~~> bs'\<close> and \<open>bs' [\<sim>] cs\<close>
+    using a by (auto simp add: list_all2_permute_list_iff list_all2_lengthD)
+  then show ?thesis by blast
+qed
 
 lemma (in monoid) perm_assoc_switch_r:
   assumes p: "as <~~> bs" and a:"bs [\<sim>] cs"
   shows "\<exists>bs'. as [\<sim>] bs' \<and> bs' <~~> cs"
-  using p a
-proof (induction as bs arbitrary: cs)
-  case Nil
-  then show ?case
-    by auto
-next
-  case (swap y x l)
-  then show ?case
-    by (metis (no_types, hide_lams) list_all2_Cons1 perm.swap)
-next
-  case (Cons xs ys z)
-  then show ?case
-    by (metis list_all2_Cons1 perm.Cons)
-next
-  case (trans xs ys zs)
-  then show ?case
-    by (blast intro:  elim: )
-qed
+  using a p by (rule list_all2_reorder_left_invariance)
 
 declare perm_sym [sym]
 
@@ -946,14 +925,7 @@ lemma perm_setP:
   assumes perm: "as <~~> bs"
     and as: "P (set as)"
   shows "P (set bs)"
-proof -
-  from perm have "mset as = mset bs"
-    by (simp add: mset_eq_perm)
-  then have "set as = set bs"
-    by (rule mset_eq_setD)
-  with as show "P (set bs)"
-    by simp
-qed
+  using assms by (metis set_mset_mset)
 
 lemmas (in monoid) perm_closed = perm_setP[of _ _ "\<lambda>as. as \<subseteq> carrier G"]
 
@@ -1006,7 +978,7 @@ proof (elim essentially_equalE)
   from perm_assoc_switch [OF this] obtain bs' where p: "abs <~~> bs'" and a: "bs' [\<sim>] bcs"
     by blast
   assume "as <~~> abs"
-  with p have pp: "as <~~> bs'" by fast
+  with p have pp: "as <~~> bs'" by simp
   from pp ascarr have c1: "set bs' \<subseteq> carrier G" by (rule perm_closed)
   from pb bscarr have c2: "set bcs \<subseteq> carrier G" by (rule perm_closed)
   assume "bcs [\<sim>] cs"
@@ -1063,14 +1035,15 @@ lemma (in comm_monoid) multlist_perm_cong:
   assumes prm: "as <~~> bs"
     and ascarr: "set as \<subseteq> carrier G"
   shows "foldr (\<otimes>) as \<one> = foldr (\<otimes>) bs \<one>"
-  using prm ascarr
-proof induction
-  case (swap y x l) then show ?case
-    by (simp add: m_lcomm)
-next
-  case (trans xs ys zs) then show ?case
-    using perm_closed by auto
-qed auto
+proof -
+  from prm have \<open>mset (rev as) = mset (rev bs)\<close>
+    by simp
+  moreover note one_closed
+  ultimately have \<open>fold (\<otimes>) (rev as) \<one> = fold (\<otimes>) (rev bs) \<one>\<close>
+    by (rule fold_permuted_eq) (use ascarr in \<open>auto intro: m_lcomm\<close>)
+  then show ?thesis
+    by (simp add: foldr_conv_fold)
+qed
 
 lemma (in comm_monoid_cancel) multlist_ee_cong:
   assumes "essentially_equal G fs fs'"
@@ -1197,12 +1170,13 @@ lemma (in comm_monoid_cancel) wfactors_ee_cong_l [trans]:
 proof (elim essentially_equalE)
   fix fs
   assume prm: "as <~~> fs"
-  with carr have fscarr: "set fs \<subseteq> carrier G" by (simp add: perm_closed)
+  with carr have fscarr: "set fs \<subseteq> carrier G"
+    using perm_closed by blast
 
   note bfs
   also assume [symmetric]: "fs [\<sim>] bs"
   also (wfactors_listassoc_cong_l)
-  note prm[symmetric]
+  have \<open>mset fs = mset as\<close> using prm by simp
   finally (wfactors_perm_cong_l)
   show "wfactors G as b" by (simp add: carr fscarr)
 qed
@@ -1621,7 +1595,7 @@ subsubsection \<open>Comparing multisets\<close>
 lemma (in monoid) fmset_perm_cong:
   assumes prm: "as <~~> bs"
   shows "fmset G as = fmset G bs"
-  using perm_map[OF prm] unfolding mset_eq_perm fmset_def by blast
+  using perm_map[OF prm] unfolding fmset_def by blast
 
 lemma (in comm_monoid_cancel) eqc_listassoc_cong:
   assumes "as [\<sim>] bs" and "set as \<subseteq> carrier G" and "set bs \<subseteq> carrier G"
@@ -1683,7 +1657,7 @@ proof -
     by (simp_all add: permute_list_map) 
   moreover define as' where \<open>as' = permute_list p as\<close>
   ultimately have tp: "as <~~> as'" and tm: "map (assocs G) as' = map (assocs G) bs"
-    by (simp_all add: perm_iff_eq_mset)
+    by simp_all
   from tp show ?thesis
   proof (rule essentially_equalI)
     from tm tp ascarr have as'carr: "set as' \<subseteq> carrier G"
@@ -1941,7 +1915,7 @@ proof (elim irreducibleE, intro primeI)
   then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
     by (fast elim: essentially_equalE)
   then have "p \<in> set ds"
-    by (simp add: perm_set_eq[symmetric])
+    by (metis \<open>mset (p # cs) = mset ds\<close> insert_iff list.set(2) perm_set_eq) 
   with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
     unfolding list_all2_conv_all_nth set_conv_nth by force
   then consider "p' \<in> set as" | "p' \<in> set bs" by auto
@@ -2003,7 +1977,7 @@ proof (rule primeI)
         then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
           by (fast elim: essentially_equalE)
         then have "p \<in> set ds"
-          by (simp add: perm_set_eq[symmetric])
+          by (metis list.set_intros(1) set_mset_mset)
         with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
           unfolding list_all2_conv_all_nth set_conv_nth by force
         then consider "p' \<in> set as" | "p' \<in> set bs" by auto
@@ -2641,7 +2615,7 @@ proposition (in primeness_condition_monoid) wfactors_unique:
 proof (induct as arbitrary: a as')
   case Nil
   then have "a \<sim> \<one>"
-    by (meson Units_one_closed one_closed perm.Nil perm_wfactorsD unit_wfactors)
+    by (simp add: perm_wfactorsD) 
   then have "as' = []"
     using Nil.prems assoc_unit_l unit_wfactors_empty by blast
   then show ?case
@@ -2728,8 +2702,12 @@ next
       by (simp add: a'carr set_drop set_take)
     from a'fs this have "essentially_equal G as (take i as' @ drop (Suc i) as')"
       using Cons.hyps a'carr carr_ah(2) set_drop set_take by auto
-    with carr_ah have ee1: "essentially_equal G (ah # as) (ah # take i as' @ drop (Suc i) as')"
-      by (auto simp: essentially_equal_def)
+    then obtain bs where \<open>mset as = mset bs\<close> \<open>bs [\<sim>] take i as' @ drop (Suc i) as'\<close>
+      by (auto simp add: essentially_equal_def)
+    with carr_ah have \<open>mset (ah # as) = mset (ah # bs)\<close> \<open>ah # bs [\<sim>] ah # take i as' @ drop (Suc i) as'\<close>
+      by simp_all
+    then have ee1: "essentially_equal G (ah # as) (ah # take i as' @ drop (Suc i) as')"
+      unfolding essentially_equal_def by blast
     have ee2: "essentially_equal G (ah # take i as' @ drop (Suc i) as')
       (as' ! i # take i as' @ drop (Suc i) as')"
     proof (intro essentially_equalI)

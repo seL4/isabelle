@@ -1150,6 +1150,11 @@ proof
     by (induct xs) (auto simp: inv_f_f surj_f_inv_f)
 qed
 
+lemma list_all2_permute_list_iff:
+  \<open>list_all2 P (permute_list p xs) (permute_list p ys) \<longleftrightarrow> list_all2 P xs ys\<close>
+  if \<open>p permutes {..<length xs}\<close>
+  using that by (auto simp add: list_all2_iff simp flip: permute_list_zip)
+
 
 subsection \<open>More lemmas about permutations\<close>
 

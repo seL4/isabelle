@@ -1923,26 +1923,55 @@ lemma mset_eq_length_filter:
   using assms by (metis count_mset)
 
 lemma fold_multiset_equiv:
-  assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
-    and equiv: "mset xs = mset ys"
-  shows "List.fold f xs = List.fold f ys"
-  using f equiv [symmetric]
-proof (induct xs arbitrary: ys)
+  \<open>List.fold f xs = List.fold f ys\<close>
+    if f: \<open>\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x\<close>
+    and \<open>mset xs = mset ys\<close>
+using f \<open>mset xs = mset ys\<close> [symmetric] proof (induction xs arbitrary: ys)
   case Nil
   then show ?case by simp
 next
   case (Cons x xs)
-  then have *: "set ys = set (x # xs)"
+  then have *: \<open>set ys = set (x # xs)\<close>
     by (blast dest: mset_eq_setD)
-  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+  have \<open>\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x\<close>
     by (rule Cons.prems(1)) (simp_all add: *)
-  moreover from * have "x \<in> set ys"
+  moreover from * have \<open>x \<in> set ys\<close>
     by simp
-  ultimately have "List.fold f ys = List.fold f (remove1 x ys) \<circ> f x"
+  ultimately have \<open>List.fold f ys = List.fold f (remove1 x ys) \<circ> f x\<close>
     by (fact fold_remove1_split)
-  moreover from Cons.prems have "List.fold f xs = List.fold f (remove1 x ys)"
-    by (auto intro: Cons.hyps)
-  ultimately show ?case by simp
+  moreover from Cons.prems have \<open>List.fold f xs = List.fold f (remove1 x ys)\<close>
+    by (auto intro: Cons.IH)
+  ultimately show ?case
+    by simp
+qed
+
+lemma fold_permuted_eq:
+  \<open>List.fold (\<odot>) xs z = List.fold (\<odot>) ys z\<close>
+    if \<open>mset xs = mset ys\<close>
+    and \<open>P z\<close> and P: \<open>\<And>x z. x \<in> set xs \<Longrightarrow> P z \<Longrightarrow> P (x \<odot> z)\<close>
+    and f: \<open>\<And>x y z. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> P z \<Longrightarrow> x \<odot> (y \<odot> z) = y \<odot> (x \<odot> z)\<close>
+  for f (infixl \<open>\<odot>\<close> 70)
+using \<open>P z\<close> P f \<open>mset xs = mset ys\<close> [symmetric] proof (induction xs arbitrary: ys z)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  then have *: \<open>set ys = set (x # xs)\<close>
+    by (blast dest: mset_eq_setD)
+  have \<open>P z\<close>
+    by (fact Cons.prems(1))
+  moreover have \<open>\<And>x z. x \<in> set ys \<Longrightarrow> P z \<Longrightarrow> P (x \<odot> z)\<close>
+    by (rule Cons.prems(2)) (simp_all add: *)
+  moreover have \<open>\<And>x y z. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> P z \<Longrightarrow> x \<odot> (y \<odot> z) = y \<odot> (x \<odot> z)\<close>
+    by (rule Cons.prems(3)) (simp_all add: *)
+  moreover from * have \<open>x \<in> set ys\<close>
+    by simp
+  ultimately have \<open>fold (\<odot>) ys z = fold (\<odot>) (remove1 x ys) (x \<odot> z)\<close>
+    by (induction ys arbitrary: z) auto
+  moreover from Cons.prems have \<open>fold (\<odot>) xs (x \<odot> z) = fold (\<odot>) (remove1 x ys) (x \<odot> z)\<close>
+    by (auto intro: Cons.IH)
+  ultimately show ?case
+    by simp
 qed
 
 lemma mset_shuffles: "zs \<in> shuffles xs ys \<Longrightarrow> mset zs = mset xs + mset ys"
