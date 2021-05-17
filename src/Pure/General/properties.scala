@@ -16,7 +16,8 @@ object Properties
 
   object Eq
   {
-    def apply(entry: Entry): java.lang.String = entry._1 + "=" + entry._2
+    def apply(a: java.lang.String, b: java.lang.String): java.lang.String = a + "=" + b
+    def apply(entry: Entry): java.lang.String = apply(entry._1, entry._2)
 
     def unapply(str: java.lang.String): Option[Entry] =
     {

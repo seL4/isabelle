@@ -263,7 +263,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
         case Path.Variable(s) =>
           val path = Path.explode(Isabelle_System.getenv_strict(s, env))
           if (path.elems.exists(_.isInstanceOf[Path.Variable]))
-            error("Illegal path variable nesting: " + Properties.Eq(s -> path.toString))
+            error("Illegal path variable nesting: " + Properties.Eq(s, path.toString))
           else path.elems
         case x => List(x)
       }

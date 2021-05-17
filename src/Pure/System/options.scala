@@ -356,7 +356,7 @@ final class Options private(
 
   def + (str: String): Options =
     str match {
-      case Properties.Eq((a, b)) => this + (a, b)
+      case Properties.Eq(a, b) => this + (a, b)
       case _ => this + (str, None)
     }
 
