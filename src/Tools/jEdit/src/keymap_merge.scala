@@ -30,7 +30,7 @@ object Keymap_Merge
 
   class Shortcut(val property: String, val binding: String)
   {
-    override def toString: String = property + "=" + binding
+    override def toString: String = Properties.Eq(property -> binding)
 
     def primary: Boolean = property.endsWith(".shortcut")
 

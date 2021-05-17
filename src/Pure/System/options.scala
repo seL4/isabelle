@@ -355,12 +355,10 @@ final class Options private(
   }
 
   def + (str: String): Options =
-  {
-    str.indexOf('=') match {
-      case -1 => this + (str, None)
-      case i => this + (str.substring(0, i), str.substring(i + 1))
+    str match {
+      case Properties.Eq((a, b)) => this + (a, b)
+      case _ => this + (str, None)
     }
-  }
 
   def ++ (specs: List[Options.Spec]): Options =
     specs.foldLeft(this) { case (x, (y, z)) => x + (y, z) }

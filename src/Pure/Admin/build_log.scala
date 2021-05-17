@@ -60,14 +60,9 @@ object Build_Log
     object Entry
     {
       def unapply(s: String): Option[Entry] =
-        s.indexOf('=') match {
-          case -1 => None
-          case i =>
-            val a = s.substring(0, i)
-            val b = Library.perhaps_unquote(s.substring(i + 1))
-            Some((a, b))
-        }
-      def apply(a: String, b: String): String = a + "=" + quote(b)
+        for { (a, b) <- Properties.Eq.unapply(s) }
+        yield (a, Library.perhaps_unquote(b))
+      def apply(a: String, b: String): String = Properties.Eq(a -> quote(b))
       def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
     }
 

@@ -14,6 +14,17 @@ object Properties
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
 
+  object Eq
+  {
+    def apply(entry: Entry): java.lang.String = entry._1 + "=" + entry._2
+
+    def unapply(str: java.lang.String): Option[Entry] =
+    {
+      val i = str.indexOf('=')
+      if (i <= 0) None else Some((str.substring(0, i), str.substring(i + 1)))
+    }
+  }
+
   def defined(props: T, name: java.lang.String): java.lang.Boolean =
     props.exists({ case (x, _) => x == name })
 
