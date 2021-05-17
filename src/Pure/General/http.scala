@@ -200,10 +200,10 @@ object HTTP
   sealed case class Arg(method: String, uri: URI, request: Bytes)
   {
     def decode_properties: Properties.T =
-      space_explode('&', request.text).map(s =>
-        space_explode('=', s) match {
-          case List(a, b) => Url.decode(a) -> Url.decode(b)
-          case _ => error("Malformed key-value pair in HTTP/POST: " + quote(s))
+      space_explode('&', request.text).map(
+        {
+          case Properties.Eq(a, b) => Url.decode(a) -> Url.decode(b)
+          case s => error("Malformed key-value pair in HTTP/POST: " + quote(s))
         })
   }
 

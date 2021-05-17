@@ -58,12 +58,7 @@ object ML_Statistics
   {
     def progress_stdout(line: String): Unit =
     {
-      val props =
-        Library.space_explode(',', line).flatMap((entry: String) =>
-          Library.space_explode('=', entry) match {
-            case List(a, b) => Some((a, b))
-            case _ => None
-          })
+      val props = Library.space_explode(',', line).flatMap(Properties.Eq.unapply)
       if (props.nonEmpty) consume(props)
     }
 
