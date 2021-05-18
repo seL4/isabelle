@@ -70,31 +70,23 @@ function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 
 # operations
 
-function run_pdflatex () { $ISABELLE_PDFLATEX "$FILEBASE.tex"; }
-function run_bibtex () {
-  $ISABELLE_BIBTEX </dev/null "$FILEBASE"
-  RC="$?"
-  if [ "$RC" -gt 0 -a -f "${FILEBASE}.blg" ]; then
-    perl -n -e 'if (m/^I (found no.*$)/) { print "bibtex $1\n"; }' "${FILEBASE}.blg" >&2
-  fi
-  return "$RC"
-}
-function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
-
 case "$OUTFORMAT" in
   pdf)
-    check_root && \
-    run_pdflatex
+    check_root
+    $ISABELLE_PDFLATEX "$FILEBASE.tex"
     RC="$?"
     ;;
   bbl)
-    check_root && \
-    run_bibtex
+    check_root
+    $ISABELLE_BIBTEX </dev/null "$FILEBASE"
     RC="$?"
+    if [ "$RC" -gt 0 -a -f "${FILEBASE}.blg" ]; then
+      perl -n -e 'if (m/^I (found no.*$)/) { print "bibtex $1\n"; }' "${FILEBASE}.blg" >&2
+    fi
     ;;
   idx)
-    check_root && \
-    run_makeindex
+    check_root
+    $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"
     RC="$?"
     ;;
   *)
