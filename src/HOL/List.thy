@@ -370,18 +370,17 @@ text \<open>A class-based sorted predicate:\<close>
 context linorder
 begin
 
-fun sorted :: "'a list \<Rightarrow> bool" where
-"sorted [] = True" |
-"sorted (x # ys) = ((\<forall>y \<in> set ys. x \<le> y) \<and> sorted ys)"
+abbreviation sorted :: "'a list \<Rightarrow> bool" where
+  "sorted \<equiv> sorted_wrt (\<le>)" 
 
 abbreviation strict_sorted :: "'a list \<Rightarrow> bool" where
   "strict_sorted \<equiv> sorted_wrt (<)" 
 
-lemma sorted_sorted_wrt: "sorted = sorted_wrt (\<le>)"
-proof (rule ext)
-  fix xs show "sorted xs = sorted_wrt (\<le>) xs"
-    by(induction xs rule: sorted.induct) auto
-qed
+lemma sorted_simps: "sorted [] = True" "sorted (x # ys) = ((\<forall>y \<in> set ys. x\<le>y) \<and> sorted ys)"
+  by auto
+
+lemma strict_sorted_simps: "strict_sorted [] = True" "strict_sorted (x # ys) = ((\<forall>y \<in> set ys. x<y) \<and> strict_sorted ys)"
+  by auto
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
   "insort_key f x [] = [x]" |
@@ -5506,52 +5505,55 @@ because it relates each list element to \emph{all} its successors. Then this equ
 should be removed and \<open>sorted2_simps\<close> should be added instead.
 Executable code is one such use case.\<close>
 
+lemma sorted0: "sorted [] = True"
+  by simp
+
 lemma sorted1: "sorted [x] = True"
-by simp
+  by simp
 
 lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
-by(induction zs) auto
+  by(induction zs) auto
 
 lemmas sorted2_simps = sorted1 sorted2
 
-lemmas [code] = sorted.simps(1) sorted2_simps
+lemmas [code] = sorted0 sorted2_simps
 
 lemma sorted_append:
   "sorted (xs@ys) = (sorted xs \<and> sorted ys \<and> (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
-by (simp add: sorted_sorted_wrt sorted_wrt_append)
+by (simp add: sorted_wrt_append)
 
 lemma sorted_map:
   "sorted (map f xs) = sorted_wrt (\<lambda>x y. f x \<le> f y) xs"
-by (simp add: sorted_sorted_wrt sorted_wrt_map)
+  by (simp add: sorted_wrt_map)
 
 lemma sorted01: "length xs \<le> 1 \<Longrightarrow> sorted xs"
-by (simp add: sorted_sorted_wrt sorted_wrt01)
+  by (simp add: sorted_wrt01)
 
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
-by (cases xs) (simp_all)
+  by (cases xs) (simp_all)
 
 lemma sorted_iff_nth_mono_less:
   "sorted xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> xs ! i \<le> xs ! j)"
-by (simp add: sorted_sorted_wrt sorted_wrt_iff_nth_less)
+  by (simp add: sorted_wrt_iff_nth_less)
 
 lemma sorted_iff_nth_mono:
   "sorted xs = (\<forall>i j. i \<le> j \<longrightarrow> j < length xs \<longrightarrow> xs ! i \<le> xs ! j)"
-by (auto simp: sorted_iff_nth_mono_less nat_less_le)
+  by (auto simp: sorted_iff_nth_mono_less nat_less_le)
 
 lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
-by (auto simp: sorted_iff_nth_mono)
+  by (auto simp: sorted_iff_nth_mono)
 
 lemma sorted_iff_nth_Suc: 
   "sorted xs \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> xs!i \<le> xs!(Suc i))"
-by(simp add: sorted_sorted_wrt sorted_wrt_iff_nth_Suc_transp)
+  by(simp add: sorted_wrt_iff_nth_Suc_transp)
 
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
-using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
-      rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
-by auto
+  using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
+    rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
+  by auto
 
 lemma sorted_rev_iff_nth_mono:
   "sorted (rev xs) \<longleftrightarrow> (\<forall> i j. i \<le> j \<longrightarrow> j < length xs \<longrightarrow> xs!j \<le> xs!i)" (is "?L = ?R")
@@ -5713,10 +5715,10 @@ using sorted_map_same [of "\<lambda>x. x"] by simp
 end
 
 lemma sorted_upt[simp]: "sorted [m..<n]"
-by(simp add: sorted_sorted_wrt sorted_wrt_mono_rel[OF _ sorted_wrt_upt])
+  by(simp add: sorted_wrt_mono_rel[OF _ sorted_wrt_upt])
 
 lemma sorted_upto[simp]: "sorted [m..n]"
-by(simp add: sorted_sorted_wrt sorted_wrt_mono_rel[OF _ sorted_wrt_upto])
+  by(simp add: sorted_wrt_mono_rel[OF _ sorted_wrt_upto])
 
 
 subsubsection \<open>Sorting functions\<close>
@@ -7590,7 +7592,7 @@ next
       fix y assume "y \<in> set xs \<and> P y"
       hence "y \<in> set (filter P xs)" by auto
       thus "x \<le> y"
-        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted.simps(2) sorted_sort)
+        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted_wrt.simps(2) sorted_sort)
   qed
   thus ?thesis using Cons by (simp add: Bleast_def)
 qed

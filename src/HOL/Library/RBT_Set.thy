@@ -790,7 +790,7 @@ next
       then show "x \<le> y"
         using Cons[symmetric]
         by(auto simp add: set_keys Cons_eq_filter_iff)
-          (metis sorted.simps(2) sorted_append sorted_keys)
+          (metis sorted_wrt.simps(2) sorted_append sorted_keys)
   qed
   thus ?thesis using Cons by (simp add: Bleast_def)
 qed
