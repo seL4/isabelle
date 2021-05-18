@@ -212,7 +212,6 @@ session Isar_Ref (doc) in "Isar_Ref" = HOL +
     "isar-vm.pdf"
     "isar-vm.svg"
     "root.tex"
-    "showsymbols"
     "style.sty"
 
 session JEdit (doc) in "JEdit" = HOL +

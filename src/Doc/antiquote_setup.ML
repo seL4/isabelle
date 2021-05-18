@@ -207,4 +207,36 @@ val _ =
 
 end;
 
+
+(* show symbols *)
+
+val _ =
+  Theory.setup (Thy_Output.antiquotation_raw \<^binding>\<open>show_symbols\<close> (Scan.succeed ())
+    (fn _ => fn _ =>
+      let
+        val symbol_name =
+          unprefix "\\newcommand{\\isasym"
+          #> raw_explode
+          #> take_prefix Symbol.is_ascii_letter
+          #> implode;
+
+        val symbols =
+          File.read \<^file>\<open>~~/lib/texinputs/isabellesym.sty\<close>
+          |> split_lines
+          |> map_filter (fn line =>
+            (case try symbol_name line of
+              NONE => NONE
+            | SOME "" => NONE
+            | SOME name => SOME ("\\verb,\\" ^ "<" ^ name ^ ">, & {\\isasym" ^ name ^ "}")));
+
+        val eol = "\\\\\n";
+        fun table (a :: b :: rest) = a ^ " & " ^ b ^ eol :: table rest
+          | table [a] = [a ^ eol]
+          | table [] = [];
+      in
+        Latex.string
+          ("\\begin{supertabular}{ll@{\\qquad}ll}\n" ^ implode (table symbols) ^
+           "\\end{supertabular}\n")
+      end))
+
 end;
