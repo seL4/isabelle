@@ -344,12 +344,18 @@ object Document_Build
         def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
           "isabelle latex -o " + Bash.string(fmt) + " " + root_bash(ext)
 
-        List(
-          latex_bash(),
-          "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
-          "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
-          latex_bash(),
-          latex_bash()).mkString(" && ")
+        cat_lines(
+          List(
+            "set -e",
+            latex_bash(),
+            "if [ -f " + root_bash("bib") + " ]; then",
+            "  " + latex_bash("bbl"),
+            "fi",
+            "if [ -f " + root_bash("idx") + " ]; then",
+            "  " + latex_bash("idx"),
+            "fi",
+            latex_bash(),
+            latex_bash()))
       }
     }
 
