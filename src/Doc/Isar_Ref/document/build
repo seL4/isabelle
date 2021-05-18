@@ -5,7 +5,6 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-isabelle logo Isar
 ./showsymbols "$ISABELLE_HOME/lib/texinputs/isabellesym.sty" > syms.tex
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 

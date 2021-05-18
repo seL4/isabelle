@@ -156,6 +156,13 @@ object Document_Build
     def session: String = info.name
     def options: Options = info.options
 
+    def document_logo: Option[String] =
+      options.string("document_logo") match {
+        case "" => None
+        case "_" => Some("")
+        case name => Some(name)
+      }
+
     def document_build: String = options.string("document_build")
 
     def get_engine(): Engine =
@@ -199,6 +206,18 @@ object Document_Build
       Content(path, Bytes(text))
     }
 
+    lazy val isabelle_logo: Option[Content] =
+    {
+      document_logo.map(logo_name =>
+        Isabelle_System.with_tmp_file("logo", ext = "pdf")(tmp_path =>
+        {
+          Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
+          val path = Path.basic("isabelle_logo.pdf")
+          val bytes = Bytes.read(tmp_path)
+          Content(path, bytes)
+        }))
+    }
+
 
     /* document directory */
 
@@ -222,12 +241,14 @@ object Document_Build
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
 
-      val option_digests = List(doc.print, get_engine().name).map(SHA1.digest)
-      val file_digests = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
-      val sources = SHA1.digest_set(option_digests ::: file_digests)
+      val digests1 = List(doc.print, document_logo.toString, document_build).map(SHA1.digest)
+      val digests2 = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
+      val sources = SHA1.digest_set(digests1 ::: digests2)
 
 
-      /* derived material */
+      /* derived material (without SHA1 digest) */
+
+      isabelle_logo.foreach(_.write(doc_dir))
 
       session_graph.write(doc_dir)
 

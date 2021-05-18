@@ -5,6 +5,5 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-isabelle logo jEdit
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 

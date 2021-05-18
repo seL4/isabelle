@@ -1,7 +1,8 @@
 chapter Doc
 
 session Classes (doc) in "Classes" = HOL +
-  options [document_build = "build", document_variants = "classes", quick_and_dirty]
+  options [document_logo = "Isar", document_build = "build",
+    document_variants = "classes", quick_and_dirty]
   theories [document = false] Setup
   theories Classes
   document_files (in "..")
@@ -17,7 +18,8 @@ session Classes (doc) in "Classes" = HOL +
     "style.sty"
 
 session Codegen (doc) in "Codegen" = HOL +
-  options [document_build = "build", document_variants = "codegen", print_mode = "no_brackets,iff"]
+  options [document_logo = "Isar", document_build = "build",
+    document_variants = "codegen", print_mode = "no_brackets,iff"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -80,7 +82,8 @@ session Datatypes (doc) in "Datatypes" = HOL +
     "style.sty"
 
 session Eisbach (doc) in "Eisbach" = HOL +
-  options [document_build = "build", document_variants = "eisbach", quick_and_dirty,
+  options [document_logo = "Eisbach", document_build = "build",
+    document_variants = "eisbach", quick_and_dirty,
     print_mode = "no_brackets,iff", show_question_marks = false]
   sessions
     "HOL-Eisbach"
@@ -131,7 +134,7 @@ session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
     "prelude.tex"
 
 session Intro (doc) in "Intro" = Pure +
-  options [document_build = "build", document_variants = "intro"]
+  options [document_logo = "_", document_build = "build", document_variants = "intro"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -147,7 +150,8 @@ session Intro (doc) in "Intro" = Pure +
     "root.tex"
 
 session Implementation (doc) in "Implementation" = HOL +
-  options [document_build = "build", document_variants = "implementation", quick_and_dirty]
+  options [document_logo = "Isar", document_build = "build",
+    document_variants = "implementation", quick_and_dirty]
   theories
     Eq
     Integration
@@ -175,7 +179,7 @@ session Implementation (doc) in "Implementation" = HOL +
     "style.sty"
 
 session Isar_Ref (doc) in "Isar_Ref" = HOL +
-  options [document_build = "build", document_variants = "isar-ref",
+  options [document_logo = "Isar", document_build = "build", document_variants = "isar-ref",
     quick_and_dirty, thy_output_source]
   sessions
     "HOL-Library"
@@ -212,7 +216,8 @@ session Isar_Ref (doc) in "Isar_Ref" = HOL +
     "style.sty"
 
 session JEdit (doc) in "JEdit" = HOL +
-  options [document_build = "build", document_variants = "jedit", thy_output_source]
+  options [document_logo = "jEdit", document_build = "build",
+    document_variants = "jedit", thy_output_source]
   theories
     JEdit
   document_files (in "..")
@@ -277,7 +282,7 @@ session Locales (doc) in "Locales" = HOL +
     "root.tex"
 
 session Logics (doc) in "Logics" = Pure +
-  options [document_build = "build", document_variants = "logics"]
+  options [document_logo = "_", document_build = "build", document_variants = "logics"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -296,8 +301,8 @@ session Logics (doc) in "Logics" = Pure +
     "syntax.tex"
 
 session Logics_ZF (doc) in "Logics_ZF" = ZF +
-  options [document_build = "build", document_variants = "logics-ZF", print_mode = "brackets",
-    thy_output_source]
+  options [document_logo = "ZF", document_build = "build",
+    document_variants = "logics-ZF", print_mode = "brackets", thy_output_source]
   sessions
     FOL
   theories
@@ -332,7 +337,7 @@ session Main (doc) in "Main" = HOL +
     "root.tex"
 
 session Nitpick (doc) in "Nitpick" = Pure +
-  options [document_build = "build", document_variants = "nitpick"]
+  options [document_logo = "Nitpick", document_build = "build", document_variants = "nitpick"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -343,7 +348,8 @@ session Nitpick (doc) in "Nitpick" = Pure +
     "root.tex"
 
 session Prog_Prove (doc) in "Prog_Prove" = HOL +
-  options [document_build = "build", document_variants = "prog-prove", show_question_marks = false]
+  options [document_logo = "HOL", document_build = "build",
+    document_variants = "prog-prove", show_question_marks = false]
   theories
     Basics
     Bool_nat_list
@@ -366,7 +372,7 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
     "svmono.cls"
 
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
-  options [document_build = "build", document_variants = "sledgehammer"]
+  options [document_logo = "S/H", document_build = "build", document_variants = "sledgehammer"]
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -377,7 +383,8 @@ session Sledgehammer (doc) in "Sledgehammer" = Pure +
     "root.tex"
 
 session System (doc) in "System" = Pure +
-  options [document_build = "build", document_variants = "system", thy_output_source]
+  options [document_logo = "_", document_build = "build",
+    document_variants = "system", thy_output_source]
   sessions
     "HOL-Library"
   theories
@@ -404,8 +411,8 @@ session System (doc) in "System" = Pure +
     "root.tex"
 
 session Tutorial (doc) in "Tutorial" = HOL +
-  options [document_build = "build", document_variants = "tutorial",
-    print_mode = "brackets", skip_proofs = false]
+  options [document_logo = "HOL", document_build = "build",
+    document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
   directories "Advanced" "CTL" "CodeGen" "Datatype" "Documents" "Fun" "Ifexpr"
     "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
   theories [document = false]
@@ -498,7 +505,8 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "types0.tex"
 
 session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
-  options [document_build = "build", document_variants = "typeclass_hierarchy"]
+  options [document_logo = "Isar", document_build = "build",
+    document_variants = "typeclass_hierarchy"]
   sessions
     "HOL-Library"
   theories [document = false]

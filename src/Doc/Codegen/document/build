@@ -8,7 +8,6 @@ VARIANT="$2"
 # ad-hoc patching of temporary path from sources
 perl -i -pe 's/\{\\isachardollar\}ISABELLE\{\\isacharunderscore\}TMP\{\\isacharslash\}examples/examples/g' *.tex
 
-isabelle logo Isar
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 
 # clean up afterwards

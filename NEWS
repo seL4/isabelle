@@ -34,6 +34,11 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* Option "document_logo" determines if an instance of the Isabelle logo
+should be created in the document output directory. The given string
+specifies the name of the logo variant, while "_" (underscore) refers to
+the unnamed variant. The output file name is always "isabelle_logo.pdf".
+
 * Option "document_build" determines the document build engine, as
 defined in Isabelle/Scala (as system service). The subsequent engines
 are provided by the Isabelle distribution:

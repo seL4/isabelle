@@ -5,7 +5,6 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-isabelle logo HOL
 isabelle latex -o "$FORMAT"
 isabelle latex -o bbl
 ./isa-index root
