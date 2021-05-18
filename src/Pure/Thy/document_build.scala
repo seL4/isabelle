@@ -348,14 +348,17 @@ object Document_Build
           List(
             "set -e",
             latex_bash(),
-            "if [ -f " + root_bash("bib") + " ]; then",
+            "if [ -f " + root_bash("bib") + " ]",
+            "then",
             "  " + latex_bash("bbl"),
-            "fi",
-            "if [ -f " + root_bash("idx") + " ]; then",
-            "  " + latex_bash("idx"),
+            "  " + latex_bash(),
             "fi",
             latex_bash(),
-            latex_bash()))
+            "if [ -f " + root_bash("idx") + " ]",
+            "then",
+            "  " + latex_bash("idx"),
+            "  " + latex_bash(),
+            "fi"))
       }
     }
 
