@@ -80,9 +80,6 @@ case "$OUTFORMAT" in
     check_root
     $ISABELLE_BIBTEX </dev/null "$FILEBASE"
     RC="$?"
-    if [ "$RC" -gt 0 -a -f "${FILEBASE}.blg" ]; then
-      perl -n -e 'if (m/^I (found no.*$)/) { print "bibtex $1\n"; }' "${FILEBASE}.blg" >&2
-    fi
     ;;
   idx)
     check_root
