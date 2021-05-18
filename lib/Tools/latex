@@ -13,7 +13,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILE]"
   echo
   echo "  Options are:"
-  echo "    -o FORMAT    specify output format: pdf (default), bbl, idx, sty"
+  echo "    -o FORMAT    specify output format: pdf (default), bbl, idx"
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
   echo "  producing the specified output format."
@@ -80,14 +80,6 @@ function run_bibtex () {
   return "$RC"
 }
 function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
-function copy_styles ()
-{
-  for STYLEFILE in "$ISABELLE_HOME/lib/texinputs"/*.sty
-  do
-    TARGET="$DIR"/$(basename "$STYLEFILE")
-    perl -p -e 's/\$[I]d:?(?:\s)*([^\$]*)\$//g' "$STYLEFILE" > "$TARGET"
-  done
-}
 
 case "$OUTFORMAT" in
   pdf)
@@ -103,10 +95,6 @@ case "$OUTFORMAT" in
   idx)
     check_root && \
     run_makeindex
-    RC="$?"
-    ;;
-  sty)
-    copy_styles
     RC="$?"
     ;;
   *)
