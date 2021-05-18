@@ -188,7 +188,7 @@ text \<open>
 \<open>Usage: isabelle latex [OPTIONS] [FILE]
 
   Options are:
-    -o FORMAT    specify output format: pdf (default), bbl, idx, sty
+    -o FORMAT    specify output format: pdf (default), bbl, idx
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.\<close>}
@@ -198,10 +198,6 @@ text \<open>
   (for \<^verbatim>\<open>bbl\<close>), and @{executable makeindex} (for \<^verbatim>\<open>idx\<close>). The actual commands
   are determined from the settings environment (@{setting ISABELLE_PDFLATEX}
   etc.).
-
-  The \<^verbatim>\<open>sty\<close> output format causes the Isabelle style files to be updated from
-  the distribution. This is useful in special situations where the document
-  sources are to be processed another time by separate tools.
 \<close>
 
 

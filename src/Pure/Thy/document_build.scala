@@ -11,6 +11,11 @@ object Document_Build
 {
   /* document variants */
 
+  sealed case class Content(path: Path, bytes: Bytes)
+  {
+    def write(dir: Path): Unit = Bytes.write(dir + path, bytes)
+  }
+
   abstract class Document_Name
   {
     def name: String
@@ -37,15 +42,20 @@ object Document_Build
     def print_tags: String = tags.mkString(",")
     def print: String = if (tags.isEmpty) name else name + "=" + print_tags
 
-    def latex_sty: String =
-      Library.terminate_lines(
-        tags.map(tag =>
-          tag.toList match {
-            case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
-            case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
-            case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
-            case cs => "\\isakeeptag{" + cs.mkString + "}"
-          }))
+    def isabelletags: Content =
+    {
+      val path = Path.explode("isabelletags.sty")
+      val text =
+        Library.terminate_lines(
+          tags.map(tag =>
+            tag.toList match {
+              case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
+              case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
+              case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
+              case cs => "\\isakeeptag{" + cs.mkString + "}"
+            }))
+      Content(path, Bytes(text))
+    }
   }
 
   sealed case class Document_Input(name: String, sources: SHA1.Digest)
@@ -131,6 +141,10 @@ object Document_Build
 
 
   /* context */
+
+  val isabelle_styles: List[Path] =
+    List("comment.sty", "isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
+      map(name => Path.explode("~~/lib/texinputs") + Path.basic(name))
 
   def context(
     session: String,
@@ -229,8 +243,9 @@ object Document_Build
 
       /* sources */
 
-      Isabelle_System.bash("isabelle latex -o sty", cwd = doc_dir.file).check
-      File.write(doc_dir + Path.explode("isabelletags.sty"), doc.latex_sty)
+      isabelle_styles.foreach(Isabelle_System.copy_file(_, doc_dir))
+      doc.isabelletags.write(doc_dir)
+
       for ((base_dir, src) <- info.document_files) {
         Isabelle_System.copy_file_base(info.dir + base_dir, src, doc_dir)
       }
@@ -261,11 +276,6 @@ object Document_Build
         if old_doc.sources == directory.sources
       }
       yield old_doc
-  }
-
-  sealed case class Content(path: Path, bytes: Bytes)
-  {
-    def write(dir: Path): Unit = Bytes.write(dir + path, bytes)
   }
 
   sealed case class Directory(

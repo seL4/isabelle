@@ -56,6 +56,10 @@ The presence of a "build" command within the document output directory
 explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
 adjust session ROOT options.
 
+* Isabelle .sty files are automatically generated within the document
+output directory; former "isabelle latex -o sty" has been discontinued.
+Minor INCOMPATIBILITY in document build scripts.
+
 * Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
 \guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}
 (which is now also the default in "isabelle mkroot").
