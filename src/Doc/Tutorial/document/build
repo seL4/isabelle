@@ -9,5 +9,4 @@ isabelle latex -o "$FORMAT"
 isabelle latex -o bbl
 ./isa-index root
 isabelle latex -o "$FORMAT"
-[ -f root.out ] && "$ISABELLE_HOME/src/Doc/fixbookmarks" root.out
 isabelle latex -o "$FORMAT"

@@ -8,5 +8,4 @@ isabelle latex -o "$FORMAT"
 isabelle latex -o bbl
 [ -f root.idx ] && "$ISABELLE_HOME/src/Doc/sedindex" root
 isabelle latex -o "$FORMAT"
-[ -f root.out ] && "$ISABELLE_HOME/src/Doc/fixbookmarks" root.out
 isabelle latex -o "$FORMAT"
