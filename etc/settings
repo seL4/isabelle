@@ -65,12 +65,12 @@ ISABELLE_BUILD_OPTIONS=""
 ###
 
 if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
-  ISABELLE_PDFLATEX="pdflatex -c-style-errors"
+  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -c-style-errors"
 else
-  ISABELLE_PDFLATEX="pdflatex -file-line-error"
+  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -file-line-error"
 fi
 
-ISABELLE_LUALATEX="lualatex --file-line-error"
+ISABELLE_LUALATEX="lualatex --interaction=nonstopmode --file-line-error"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_MAKEINDEX="makeindex"
 ISABELLE_EPSTOPDF="epstopdf"
