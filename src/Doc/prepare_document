@@ -4,7 +4,7 @@ set -e
 
 $ISABELLE_LUALATEX root
 
-if [ -f root.bib ]
+if [ -f manual.bib -o -f root.bib ]
 then
   $ISABELLE_BIBTEX root
   $ISABELLE_LUALATEX root
