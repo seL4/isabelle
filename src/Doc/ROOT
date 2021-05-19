@@ -16,8 +16,8 @@ session Classes (doc) in "Classes" = HOL +
     "style.sty"
 
 session Codegen (doc) in "Codegen" = HOL +
-  options [document_logo = "Isar", document_bibliography, document_build = "build",
-    document_variants = "codegen", print_mode = "no_brackets,iff"]
+  options [document_logo = "Isar", document_bibliography, document_variants = "codegen",
+    print_mode = "no_brackets,iff"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -32,14 +32,12 @@ session Codegen (doc) in "Codegen" = HOL +
     Adaptation
     Further
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
