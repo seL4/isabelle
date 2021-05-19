@@ -39,30 +39,43 @@ should be created in the document output directory. The given string
 specifies the name of the logo variant, while "_" (underscore) refers to
 the unnamed variant. The output file name is always "isabelle_logo.pdf".
 
-* Option "document_build" determines the document build engine, as
-defined in Isabelle/Scala (as system service). The subsequent engines
-are provided by the Isabelle distribution:
-
-  . "lualatex" (default): use ISABELLE_LUALATEX for a standard LaTeX
-    build with optional ISABELLE_BIBTEX and ISABELLE_MAKEINDEX
-
-  . "pdflatex": as above, but use ISABELLE_PDFLATEX (legacy mode for
-    special LaTeX styles)
-
-  . "build": delegate to the executable "./build pdf"
-
-The presence of a "build" command within the document output directory
-explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
-adjust session ROOT options.
-
 * Option "document_preprocessor" specifies the name of an executable
 that is run within the document output directory, after preparing the
 document sources and before the actual build process. This allows to
 apply adhoc patches, without requiring a separate "build" script.
 
-* Isabelle .sty files are automatically generated within the document
-output directory; former "isabelle latex -o sty" has been discontinued.
-Minor INCOMPATIBILITY in document build scripts.
+* Option "document_build" determines the document build engine, as
+defined in Isabelle/Scala (as system service). The subsequent engines
+are provided by the Isabelle distribution:
+
+  - "lualatex" (default): use ISABELLE_LUALATEX for a standard LaTeX
+    build with optional ISABELLE_BIBTEX and ISABELLE_MAKEINDEX
+
+  - "pdflatex": as above, but use ISABELLE_PDFLATEX (legacy mode for
+    special LaTeX styles)
+
+  - "build": delegate to the executable "./build pdf"
+
+The presence of a "build" command within the document output directory
+explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
+adjust session ROOT options.
+
+* The command-line tool "isabelle latex" has been discontinued,
+INCOMPATIBILITY for old document build scripts.
+
+  - Former "isabelle latex -o sty" has become obsolete: Isabelle .sty
+    files are automatically generated within the document output
+    directory.
+
+  - Former "isabelle latex -o pdf" should be replaced by
+    "$ISABELLE_LUALATEX root" or "$ISABELLE_PDFLATEX root" (without
+    quotes), according to the intended LaTeX engine.
+
+  - Former "isabelle latex -o bbl" should be replaced by
+    "$ISABELLE_BIBTEX root" (without quotes).
+
+  - Former "isabelle latex -o idx" should be replaced by
+    "$ISABELLE_MAKEINDEX root" (without quotes).
 
 * Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
 \guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}

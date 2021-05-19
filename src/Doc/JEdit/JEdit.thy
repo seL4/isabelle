@@ -1911,7 +1911,7 @@ section \<open>Citations and Bib{\TeX} entries \label{sec:bibtex}\<close>
 
 text \<open>
   Citations are managed by {\LaTeX} and Bib{\TeX} in \<^verbatim>\<open>.bib\<close> files. The
-  Isabelle session build process and the @{tool latex} tool @{cite
+  Isabelle session build process and the @{tool document} tool @{cite
   "isabelle-system"} are smart enough to assemble the result, based on the
   session directory layout.
 
