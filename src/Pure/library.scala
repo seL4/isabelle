@@ -107,6 +107,9 @@ object Library
   def prefix_lines(prfx: String, str: String): String =
     if (str == "") str else cat_lines(split_lines(str).map(prfx + _))
 
+  def indent_lines(n: Int, str: String): String =
+    prefix_lines(Symbol.spaces(n), str)
+
   def first_line(source: CharSequence): String =
   {
     val lines = separated_chunks(_ == '\n', source)

@@ -339,7 +339,7 @@ Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...
   Build and publish Isabelle components as .tar.gz archives on SSH server,
   depending on system options:
 
-""" + Library.prefix_lines("  ", show_options) + "\n",
+""" + Library.indent_lines(2, show_options) + "\n",
         "P" -> (_ => publish = true),
         "f" -> (_ => force = true),
         "o:" -> (arg => options = options + arg),
