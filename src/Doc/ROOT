@@ -124,7 +124,6 @@ session Intro (doc) in "Intro" = Pure +
   options [document_logo = "_", document_bibliography, document_build = "build",
     document_variants = "intro"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -262,18 +261,18 @@ session Logics (doc) in "Logics" = Pure +
   options [document_logo = "_", document_bibliography, document_build = "build",
     document_variants = "logics"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "ttbox.sty"
     "manual.bib"
+  document_files (in "../Intro/document")
+    "build"
   document_files
     "CTT.tex"
     "HOL.tex"
     "LK.tex"
     "Sequents.tex"
-    "build"
     "preface.tex"
     "root.tex"
     "syntax.tex"
@@ -290,17 +289,17 @@ session Logics_ZF (doc) in "Logics_ZF" = ZF +
     If
     ZF_Isar
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "isar.sty"
     "ttbox.sty"
     "manual.bib"
+  document_files (in "../Intro/document")
+    "build"
   document_files (in "../Logics/document")
     "syntax.tex"
   document_files
     "FOL.tex"
     "ZF.tex"
-    "build"
     "logics.sty"
     "root.tex"
 

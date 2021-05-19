@@ -2,8 +2,18 @@
 
 set -e
 
-FORMAT="$1"
-VARIANT="$2"
+$ISABELLE_LUALATEX root
 
-"$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
+if [ -f manual.bib -o -f root.bib ]
+then
+  $ISABELLE_BIBTEX root
+  $ISABELLE_LUALATEX root
+fi
 
+$ISABELLE_LUALATEX root
+
+if [ -f root.idx ]
+then
+  "$ISABELLE_HOME/src/Doc/sedindex" root
+  $ISABELLE_LUALATEX root
+fi
