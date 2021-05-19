@@ -77,6 +77,10 @@ INCOMPATIBILITY for old document build scripts.
   - Former "isabelle latex -o idx" should be replaced by
     "$ISABELLE_MAKEINDEX root" (without quotes).
 
+* Option "document_bibliography" explicitly enables the use of bibtex;
+the default is to check the presence of root.bib, but it could have a
+different name.
+
 * Improved LaTeX typesetting of \<open>...\<close> using \guilsinglleft ...
 \guilsinglright. INCOMPATIBILITY, need to use \usepackage[T1]{fontenc}
 (which is now also the default in "isabelle mkroot").

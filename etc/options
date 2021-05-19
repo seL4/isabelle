@@ -13,6 +13,8 @@ option document_variants : string = "document"
   -- "alternative document variants (separated by colons)"
 option document_tags : string = ""
   -- "default command tags (separated by commas)"
+option document_bibliography : bool = false
+  -- "explicitly enable use of bibtex (default: according to presence of root.bib)"
 option document_preprocessor : string = ""
   -- "document preprocessor: executable relative to document output directory"
 option document_build : string = "lualatex"

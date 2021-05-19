@@ -238,6 +238,10 @@ text \<open>
     is occasionally useful to control the global visibility of commands via
     session options (e.g.\ in \<^verbatim>\<open>ROOT\<close>).
 
+    \<^item> @{system_option_def "document_bibliography"} explicitly enables the use
+    of \<^verbatim>\<open>bibtex\<close>; the default is to check the presence of \<^verbatim>\<open>root.bib\<close>, but it
+    could have a different name.
+
     \<^item> @{system_option_def "document_preprocessor"} specifies the name of an
     executable that is run within the document output directory, after
     preparing the document sources and before the actual build process. This

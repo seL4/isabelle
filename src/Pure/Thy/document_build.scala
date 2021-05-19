@@ -170,6 +170,8 @@ object Document_Build
     def session: String = info.name
     def options: Options = info.options
 
+    def document_bibliography: Boolean = options.bool("document_bibliography")
+
     def document_preprocessor: Option[String] =
       proper_string(options.string("document_preprocessor"))
 
@@ -355,8 +357,11 @@ object Document_Build
         " " + directory.root_name_script() + "\n"
 
     def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String =
-      directory.conditional_script("bib", "$ISABELLE_BIBTEX",
+    {
+      val ext = if (context.document_bibliography) "aux" else "bib"
+      directory.conditional_script(ext, "$ISABELLE_BIBTEX",
         after = if (latex) latex_script(context, directory) else "")
+    }
 
     def makeindex_script(context: Context, directory: Directory, latex: Boolean = false): String =
       directory.conditional_script("idx", "$ISABELLE_MAKEINDEX",
