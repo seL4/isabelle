@@ -297,6 +297,16 @@ object Document_Build
     root_name: String,
     sources: SHA1.Digest)
   {
+    def root_name_script(ext: String = ""): String =
+      Bash.string(if (ext.isEmpty) root_name else root_name + "." + ext)
+
+    def conditional_script(ext: String, exe: String, after: String = ""): String =
+      "if [ -f " + root_name_script(ext) + " ]\n" +
+      "then\n" +
+      "  " + exe + " " + root_name_script() + "\n" +
+      (if (after.isEmpty) "" else "  " + after) +
+      "fi\n"
+
     def log_errors(): List[String] =
       Latex.latex_errors(doc_dir, root_name) :::
       Bibtex.bibtex_errors(doc_dir, root_name)
@@ -340,7 +350,19 @@ object Document_Build
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
       context.prepare_directory(dir, doc)
 
-    def bash_script(context: Context, directory: Directory): String =
+    def latex_script(context: Context, directory: Directory): String =
+      (if (name == "pdflatex") "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
+        " " + directory.root_name_script() + "\n"
+
+    def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String =
+      directory.conditional_script("bib", "$ISABELLE_BIBTEX",
+        after = if (latex) latex_script(context, directory) else "")
+
+    def makeindex_script(context: Context, directory: Directory, latex: Boolean = false): String =
+      directory.conditional_script("idx", "$ISABELLE_MAKEINDEX",
+        after = if (latex) latex_script(context, directory) else "")
+
+    def build_script(context: Context, directory: Directory): String =
     {
       val build_required = name == "build"
       val build_provided = (directory.doc_dir + Path.explode("build")).is_file
@@ -352,40 +374,20 @@ object Document_Build
       else if (build_required && !build_provided) error("Missing document build script")
       else if (build_required) "./build pdf " + Bash.string(directory.doc.name)
       else {
-        def root_bash(ext: String): String = Bash.string(directory.root_name + "." + ext)
-
-        def latex_bash(fmt: String = "pdf", ext: String = "tex"): String =
-          "isabelle latex -o " + Bash.string(fmt) + " " + root_bash(ext)
-
-        cat_lines(
-          List(
-            "set -e",
-            latex_bash(),
-            "if [ -f " + root_bash("bib") + " ]",
-            "then",
-            "  " + latex_bash("bbl"),
-            "  " + latex_bash(),
-            "fi",
-            latex_bash(),
-            "if [ -f " + root_bash("idx") + " ]",
-            "then",
-            "  " + latex_bash("idx"),
-            "  " + latex_bash(),
-            "fi"))
+        "set -e\n" +
+        latex_script(context, directory) +
+        bibtex_script(context, directory, latex = true) +
+        latex_script(context, directory) +
+        makeindex_script(context, directory, latex = true)
       }
     }
 
     def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output =
     {
-      val settings =
-        if (name == "pdflatex") Nil
-        else List("ISABELLE_PDFLATEX" -> Isabelle_System.getenv("ISABELLE_LUALATEX"))
-
       val result =
         context.progress.bash(
-          bash_script(context, directory),
+          build_script(context, directory),
           cwd = directory.doc_dir.file,
-          env = Isabelle_System.settings() ++ settings,
           echo = verbose,
           watchdog = Time.seconds(0.5))
 

@@ -49,8 +49,7 @@ are provided by the Isabelle distribution:
   . "pdflatex": as above, but use ISABELLE_PDFLATEX (legacy mode for
     special LaTeX styles)
 
-  . "build": delegate to the executable "./build pdf", using
-    ISABELLE_LUALATEX by default
+  . "build": delegate to the executable "./build pdf"
 
 The presence of a "build" command within the document output directory
 explicitly requires document_build=build. Minor INCOMPATIBILITY, need to
