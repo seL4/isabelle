@@ -326,13 +326,11 @@ session Logics_ZF (doc) in "Logics_ZF" = ZF +
     "root.tex"
 
 session Main (doc) in "Main" = HOL +
-  options [document_build = "build", document_variants = "main"]
+  options [document_variants = "main"]
   theories Main_Doc
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
   document_files
-    "build"
     "root.tex"
 
 session Nitpick (doc) in "Nitpick" = Pure +
