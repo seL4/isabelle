@@ -72,7 +72,7 @@ fi
 
 ISABELLE_LUALATEX="lualatex --interaction=nonstopmode --file-line-error"
 ISABELLE_BIBTEX="bibtex"
-ISABELLE_MAKEINDEX="makeindex"
+ISABELLE_MAKEINDEX="makeindex -c -q"
 ISABELLE_EPSTOPDF="epstopdf"
 
 
