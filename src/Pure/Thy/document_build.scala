@@ -377,6 +377,7 @@ object Document_Build
         "set -e\n" +
         latex_script(context, directory) +
         bibtex_script(context, directory, latex = true) +
+        makeindex_script(context, directory) +
         latex_script(context, directory) +
         makeindex_script(context, directory, latex = true)
       }
