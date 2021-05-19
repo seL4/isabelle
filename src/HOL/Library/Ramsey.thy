@@ -10,6 +10,9 @@ begin
 
 subsection \<open>Preliminary definitions\<close>
 
+abbreviation strict_sorted :: "'a::linorder list \<Rightarrow> bool" where
+  "strict_sorted \<equiv> sorted_wrt (<)" 
+
 subsubsection \<open>The $n$-element subsets of a set $A$\<close>
 
 definition nsets :: "['a set, nat] \<Rightarrow> 'a set set" ("([_]\<^bsup>_\<^esup>)" [0,999] 999)
@@ -992,7 +995,7 @@ proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
     then show "(s ?j, s ?i) \<in> T k" by (simp add: k transition_idx_in ij)
   qed
   then have "\<not> wf (T k)"
-    by (meson wf_iff_no_infinite_down_chain)
+    unfolding wf_iff_no_infinite_down_chain by iprover
   with wfT \<open>k < n\<close> show False by blast
 qed
 

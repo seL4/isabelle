@@ -373,13 +373,10 @@ begin
 abbreviation sorted :: "'a list \<Rightarrow> bool" where
   "sorted \<equiv> sorted_wrt (\<le>)" 
 
-abbreviation strict_sorted :: "'a list \<Rightarrow> bool" where
-  "strict_sorted \<equiv> sorted_wrt (<)" 
-
 lemma sorted_simps: "sorted [] = True" "sorted (x # ys) = ((\<forall>y \<in> set ys. x\<le>y) \<and> sorted ys)"
   by auto
 
-lemma strict_sorted_simps: "strict_sorted [] = True" "strict_sorted (x # ys) = ((\<forall>y \<in> set ys. x<y) \<and> strict_sorted ys)"
+lemma strict_sorted_simps: "sorted_wrt (<) [] = True" "sorted_wrt (<) (x # ys) = ((\<forall>y \<in> set ys. x<y) \<and> sorted_wrt (<) ys)"
   by auto
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
@@ -402,10 +399,10 @@ definition stable_sort_key :: "(('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Ri
   "stable_sort_key sk =
    (\<forall>f xs k. filter (\<lambda>y. f y = k) (sk f xs) = filter (\<lambda>y. f y = k) xs)"
 
-lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
+lemma strict_sorted_iff: "sorted_wrt (<) l \<longleftrightarrow> sorted l \<and> distinct l"
   by (induction l) (auto iff: antisym_conv1)
 
-lemma strict_sorted_imp_sorted: "strict_sorted xs \<Longrightarrow> sorted xs"
+lemma strict_sorted_imp_sorted: "sorted_wrt (<) xs \<Longrightarrow> sorted xs"
   by (auto simp: strict_sorted_iff)
 
 end
@@ -6169,17 +6166,17 @@ next
   with assms show ?thesis by simp
 qed
 
-lemma strict_sorted_list_of_set [simp]: "strict_sorted (sorted_list_of_set A)"
+lemma strict_sorted_list_of_set [simp]: "sorted_wrt (<) (sorted_list_of_set A)"
   by (simp add: strict_sorted_iff)
 
 lemma finite_set_strict_sorted:
   assumes "finite A"
-  obtains l where "strict_sorted l" "set l = A" "length l = card A"
+  obtains l where "sorted_wrt (<) l" "set l = A" "length l = card A"
   by (metis assms distinct_card distinct_sorted_list_of_set set_sorted_list_of_set strict_sorted_list_of_set)
 
 lemma strict_sorted_equal:
-  assumes "strict_sorted xs"
-      and "strict_sorted ys"
+  assumes "sorted_wrt (<) xs"
+      and "sorted_wrt (<) ys"
       and "set ys = set xs"
     shows "ys = xs"
   using assms
@@ -6201,7 +6198,7 @@ proof (induction xs arbitrary: ys)
   qed
 qed auto
 
-lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. strict_sorted xs \<and> set xs = A"
+lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. sorted_wrt (<) xs \<and> set xs = A"
   by (simp add: Uniq_def strict_sorted_equal)
 
 lemma sorted_list_of_set_inject:
@@ -6211,7 +6208,7 @@ lemma sorted_list_of_set_inject:
 
 lemma sorted_list_of_set_unique:
   assumes "finite A"
-  shows "strict_sorted l \<and> set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
+  shows "sorted_wrt (<) l \<and> set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
   using assms strict_sorted_equal by force
 
 end
