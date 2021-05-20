@@ -146,18 +146,61 @@ in end;
 
 local
 
+val strip_symbols = [Symbol.open_, Symbol.close, "\"", "`"];
+
+fun strip_symbol sym =
+  if member (op =) strip_symbols sym then ""
+  else
+    (case Symbol.decode sym of
+      Symbol.Char s => s
+    | Symbol.UTF8 s => s
+    | Symbol.Sym s => s
+    | Symbol.Control s => s
+    | _ => "");
+
+fun strip_antiq _ (Antiquote.Text body) = map Symbol_Pos.symbol body
+  | strip_antiq _ (Antiquote.Control {body, ...}) = map Symbol_Pos.symbol body
+  | strip_antiq ctxt (Antiquote.Antiq antiq) =
+      Document_Antiquotation.read_antiq ctxt antiq |> #2 |> tl
+      |> maps (Symbol.explode o Token.content_of);
+
+in
+
+fun clean_text ctxt txt =
+  let
+    val pos = Input.pos_of txt;
+    val syms = Input.source_explode txt;
+    val ants = Antiquote.parse_comments pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
+  in ants |> maps (strip_antiq ctxt) |> map strip_symbol |> implode end;
+
+end;
+
+local
+
 val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
-val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.optional index_like "");
+val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.option index_like);
 
 fun output_text ctxt = Latex.block o Thy_Output.output_document ctxt {markdown = false};
 
 fun index binding def =
   Thy_Output.antiquotation_raw binding (Scan.lift index_args)
     (fn ctxt => fn args =>
-     (Context_Position.reports ctxt (maps (Thy_Output.document_reports o #1) args);
-      Latex.index_entry
-        {items = map (fn (txt, like) => {text = output_text ctxt txt, like = like}) args,
-         def = def}));
+      let
+        val _ = Context_Position.reports ctxt (maps (Thy_Output.document_reports o #1) args);
+        fun make_item (txt, opt_like) =
+          let
+            val text = output_text ctxt txt;
+            val like =
+              (case opt_like of
+                SOME s => s
+              | NONE => clean_text ctxt txt);
+            val _ =
+              if is_none opt_like andalso Context_Position.is_visible ctxt then
+                writeln ("(" ^ Markup.markup Markup.keyword2 "is" ^ " " ^ quote like ^ ")" ^
+                  Position.here (Input.pos_of txt))
+              else ();
+          in {text = text, like = like} end;
+      in Latex.index_entry {items = map make_item args, def = def} end);
 
 val _ = Theory.setup (index \<^binding>\<open>index_ref\<close> false #> index \<^binding>\<open>index_def\<close> true);
 

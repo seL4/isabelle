@@ -33,6 +33,8 @@ sig
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
+  val read_antiq: Proof.context -> Antiquote.antiq ->
+    ((string * Position.T) * string) list * Token.src
   val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
     Antiquote.text_antiquote -> Latex.text list
 end;
@@ -187,15 +189,17 @@ fun eval ctxt pos (opts, src) =
 
 in
 
+fun read_antiq ctxt ({range = (pos, _), body, ...}: Antiquote.antiq) =
+  let val keywords = Thy_Header.get_keywords' ctxt;
+  in Token.read_antiq keywords parse_antiq (body, pos) end;
+
 fun evaluate eval_text ctxt antiq =
   (case antiq of
     Antiquote.Text ss => eval_text ss
   | Antiquote.Control {name, body, ...} =>
       eval ctxt Position.none
         ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
-  | Antiquote.Antiq {range = (pos, _), body, ...} =>
-      let val keywords = Thy_Header.get_keywords' ctxt;
-      in eval ctxt pos (Token.read_antiq keywords parse_antiq (body, pos)) end);
+  | Antiquote.Antiq antiq => eval ctxt (#1 (#range antiq)) (read_antiq ctxt antiq));
 
 end;
 
