@@ -69,8 +69,6 @@ fun basic_entities name scan pretty =
     (fn {context = ctxt, source = src, argument = xs} =>
       Thy_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
 
-in
-
 val _ = Theory.setup
  (basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
   basic_entity \<^binding>\<open>term\<close> (Term_Style.parse -- Args.term) pretty_term_style #>
@@ -89,7 +87,7 @@ val _ = Theory.setup
     (fn {context = ctxt, source = src, argument = arg} =>
       Thy_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
 
-end;
+in end;
 
 
 (* Markdown errors *)
@@ -102,15 +100,13 @@ fun markdown_error binding =
       error ("Bad Markdown structure: illegal " ^ quote (Binding.name_of binding) ^
         Position.here (Position.no_range_position (#1 (Token.range_of src)))))
 
-in
-
 val _ =
   Theory.setup
    (markdown_error \<^binding>\<open>item\<close> #>
     markdown_error \<^binding>\<open>enum\<close> #>
     markdown_error \<^binding>\<open>descr\<close>);
 
-end;
+in end;
 
 
 (* control spacing *)
@@ -137,15 +133,13 @@ fun nested_antiquotation name s1 s2 =
       (Context_Position.reports ctxt (Thy_Output.document_reports txt);
         Latex.enclose_block s1 s2 (Thy_Output.output_document ctxt {markdown = false} txt)));
 
-in
-
 val _ =
   Theory.setup
    (nested_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
     nested_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
     nested_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
 
-end;
+in end;
 
 
 (* index entries *)
@@ -165,11 +159,9 @@ fun index binding def =
         {items = map (fn (txt, like) => {text = output_text ctxt txt, like = like}) args,
          def = def}));
 
-in
-
 val _ = Theory.setup (index \<^binding>\<open>index_ref\<close> false #> index \<^binding>\<open>index_def\<close> true);
 
-end;
+in end;
 
 
 (* quasi-formal text (unchecked) *)
@@ -216,15 +208,13 @@ val theory_text_antiquotation =
         |> Thy_Output.isabelle ctxt
       end);
 
-in
-
 val _ =
   Theory.setup
    (text_antiquotation \<^binding>\<open>text\<close> #>
     text_antiquotation \<^binding>\<open>cartouche\<close> #>
     theory_text_antiquotation);
 
-end;
+in end;
 
 
 (* goal state *)
@@ -238,13 +228,11 @@ fun goal_state name main =
         (Config.put Goal_Display.show_main_goal main ctxt)
         (#goal (Proof.goal (Toplevel.proof_of (Toplevel.presentation_state ctxt)))));
 
-in
-
 val _ = Theory.setup
  (goal_state \<^binding>\<open>goals\<close> true #>
   goal_state \<^binding>\<open>subgoals\<close> false);
 
-end;
+in end;
 
 
 (* embedded lemma *)
@@ -314,8 +302,6 @@ fun ml_text name ml =
 fun ml_enclose bg en source =
   ML_Lex.read bg @ ML_Lex.read_source source @ ML_Lex.read en;
 
-in
-
 val _ = Theory.setup
  (ml_text \<^binding>\<open>ML\<close> (ml_enclose "fn _ => (" ");") #>
   ml_text \<^binding>\<open>ML_op\<close> (ml_enclose "fn _ => (op " ");") #>
@@ -330,7 +316,7 @@ val _ = Theory.setup
 
   ml_text \<^binding>\<open>ML_text\<close> (K []));
 
-end;
+in end;
 
 
 (* URLs *)
@@ -361,14 +347,12 @@ fun entity_antiquotation name check bg en =
       let val _ = check ctxt (name, pos)
       in Latex.enclose_block bg en [Latex.string (Output.output name)] end);
 
-in
-
 val _ =
   Theory.setup
    (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "\\isacommand{" "}" #>
     entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "\\isa{" "}" #>
     entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "\\isa{" "}");
 
-end;
+in end;
 
 end;
