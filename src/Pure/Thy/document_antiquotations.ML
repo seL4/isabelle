@@ -127,11 +127,11 @@ val _ =
       (fn _ => fn () => Latex.string "\\bigskip"));
 
 
-(* control style *)
+(* nested document text *)
 
 local
 
-fun control_antiquotation name s1 s2 =
+fun nested_antiquotation name s1 s2 =
   Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
       (Context_Position.reports ctxt (Thy_Output.document_reports txt);
@@ -141,9 +141,9 @@ in
 
 val _ =
   Theory.setup
-   (control_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
-    control_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
-    control_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
+   (nested_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
+    nested_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
+    nested_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
 
 end;
 
@@ -201,8 +201,6 @@ val _ =
     theory_text_antiquotation);
 
 end;
-
-
 
 
 (* goal state *)
