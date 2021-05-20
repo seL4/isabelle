@@ -146,7 +146,7 @@ in end;
 
 local
 
-val strip_symbols = [Symbol.open_, Symbol.close, "\"", "`"];
+val strip_symbols = [Symbol.open_, Symbol.close, "'", "\"", "`"];
 
 fun strip_symbol sym =
   if member (op =) strip_symbols sym then ""
