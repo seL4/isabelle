@@ -148,6 +148,30 @@ val _ =
 end;
 
 
+(* index entries *)
+
+local
+
+val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
+val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.optional index_like "");
+
+fun output_text ctxt = Latex.block o Thy_Output.output_document ctxt {markdown = false};
+
+fun index binding def =
+  Thy_Output.antiquotation_raw binding (Scan.lift index_args)
+    (fn ctxt => fn args =>
+     (Context_Position.reports ctxt (maps (Thy_Output.document_reports o #1) args);
+      Latex.index_entry
+        {items = map (fn (txt, like) => {text = output_text ctxt txt, like = like}) args,
+         def = def}));
+
+in
+
+val _ = Theory.setup (index \<^binding>\<open>index_ref\<close> false #> index \<^binding>\<open>index_def\<close> true);
+
+end;
+
+
 (* quasi-formal text (unchecked) *)
 
 local
