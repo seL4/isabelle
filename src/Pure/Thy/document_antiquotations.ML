@@ -133,7 +133,9 @@ local
 
 fun control_antiquotation name s1 s2 =
   Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
-    (fn ctxt => Latex.enclose_block s1 s2 o Thy_Output.output_document ctxt {markdown = false});
+    (fn ctxt => fn txt =>
+      (Context_Position.reports ctxt (Thy_Output.document_reports txt);
+        Latex.enclose_block s1 s2 (Thy_Output.output_document ctxt {markdown = false} txt)));
 
 in
 

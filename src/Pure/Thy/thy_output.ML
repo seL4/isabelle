@@ -6,8 +6,8 @@ Theory document output.
 
 signature THY_OUTPUT =
 sig
+  val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
-  val output_document_report: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
@@ -51,6 +51,12 @@ structure Thy_Output: THY_OUTPUT =
 struct
 
 (* output document source *)
+
+fun document_reports txt =
+  let val pos = Input.pos_of txt in
+    [(pos, Markup.language_document (Input.is_delimited txt)),
+     (pos, Markup.plain_text)]
+  end;
 
 val output_symbols = single o Latex.symbols_output;
 
@@ -107,16 +113,6 @@ and output_document ctxt {markdown} source =
         val _ = Context_Position.reports ctxt (reports @ Markdown.text_reports ants);
       in output_antiquotes ants end
   end;
-
-fun output_document_report ctxt markdown txt =
-  let
-    val pos = Input.pos_of txt;
-    val _ =
-      Context_Position.reports ctxt
-        [(pos, Markup.language_document (Input.is_delimited txt)),
-         (pos, Markup.plain_text)];
-  in output_document ctxt markdown txt end;
-
 
 
 (* output tokens with formal comments *)

@@ -17,8 +17,11 @@ struct
 
 val semi = Scan.option (Parse.$$$ ";");
 
-val output_document =
-  Thy_Output.output_document_report o Toplevel.presentation_context;
+fun output_document state markdown txt =
+  let
+    val ctxt = Toplevel.presentation_context state;
+    val _ = Context_Position.reports ctxt (Thy_Output.document_reports txt);
+  in Thy_Output.output_document ctxt markdown txt end;
 
 fun document_command markdown (loc, txt) =
   Toplevel.keep (fn state =>
