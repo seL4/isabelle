@@ -33,10 +33,9 @@ sig
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val read_antiq: Proof.context -> Antiquote.antiq ->
-    ((string * Position.T) * string) list * Token.src
   val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
     Antiquote.text_antiquote -> Latex.text list
+  val approx_content: Proof.context -> Input.source -> string
 end;
 
 structure Document_Antiquotation: DOCUMENT_ANTIQUOTATION =
@@ -200,6 +199,40 @@ fun evaluate eval_text ctxt antiq =
       eval ctxt Position.none
         ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | Antiquote.Antiq antiq => eval ctxt (#1 (#range antiq)) (read_antiq ctxt antiq));
+
+end;
+
+
+(* approximative content, e.g. for index entries *)
+
+local
+
+val strip_symbols = [Symbol.open_, Symbol.close, "'", "\"", "`"];
+
+fun strip_symbol sym =
+  if member (op =) strip_symbols sym then ""
+  else
+    (case Symbol.decode sym of
+      Symbol.Char s => s
+    | Symbol.UTF8 s => s
+    | Symbol.Sym s => s
+    | Symbol.Control s => s
+    | _ => "");
+
+fun strip_antiq _ (Antiquote.Text body) = map Symbol_Pos.symbol body
+  | strip_antiq _ (Antiquote.Control {body, ...}) = map Symbol_Pos.symbol body
+  | strip_antiq ctxt (Antiquote.Antiq antiq) =
+      read_antiq ctxt antiq |> #2 |> tl
+      |> maps (Symbol.explode o Token.content_of);
+
+in
+
+fun approx_content ctxt txt =
+  let
+    val pos = Input.pos_of txt;
+    val syms = Input.source_explode txt;
+    val ants = Antiquote.parse_comments pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
+  in ants |> maps (strip_antiq ctxt) |> map strip_symbol |> implode end;
 
 end;
 
