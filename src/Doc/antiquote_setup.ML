@@ -77,8 +77,8 @@ fun index_ml name kind ml = Thy_Output.antiquotation_raw name
   (Scan.lift (Args.text_input -- Scan.option (Args.colon |-- Args.text_input)))
   (fn ctxt => fn (source1, opt_source2) =>
     let
-      val (txt1, toks1) = prep_ml source1;
-      val (txt2, toks2) =
+      val (txt1, ants1) = prep_ml source1;
+      val (txt2, ants2) =
         (case opt_source2 of
           SOME source => prep_ml source
         | NONE => ("", []));
@@ -94,7 +94,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation_raw name
 
       val pos = Input.pos_of source1;
       val _ =
-        ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (ml (toks1, toks2))
+        ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (ml (ants1, ants2))
           handle ERROR msg => error (msg ^ Position.here pos);
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
