@@ -4,14 +4,14 @@ imports Main
 begin
 
 setup \<open>
-  Thy_Output.antiquotation_pretty_source \<^binding>\<open>term_type_only\<close> (Args.term -- Args.typ_abbrev)
+  Document_Output.antiquotation_pretty_source \<^binding>\<open>term_type_only\<close> (Args.term -- Args.typ_abbrev)
     (fn ctxt => fn (t, T) =>
       (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
        else error "term_type_only: type mismatch";
        Syntax.pretty_typ ctxt T))
 \<close>
 setup \<open>
-  Thy_Output.antiquotation_pretty_source \<^binding>\<open>expanded_typ\<close> Args.typ
+  Document_Output.antiquotation_pretty_source \<^binding>\<open>expanded_typ\<close> Args.typ
     Syntax.pretty_typ
 \<close>
 (*>*)

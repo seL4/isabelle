@@ -1200,7 +1200,7 @@ val _ =
 local
 
 fun antiquote_setup binding co =
-  Thy_Output.antiquotation_pretty_source_embedded binding
+  Document_Output.antiquotation_pretty_source_embedded binding
     ((Scan.ahead (Scan.lift Parse.not_eof) >> Token.pos_of) --
       Args.type_name {proper = true, strict = true})
     (fn ctxt => fn (pos, type_name) =>

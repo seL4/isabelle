@@ -41,7 +41,7 @@ val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close>
 val _ =
   Theory.setup
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>cite\<close>
+    Document_Output.antiquotation_raw \<^binding>\<open>cite\<close>
       (Scan.lift
         (Scan.option (Parse.verbatim || Parse.cartouche) -- Parse.and_list1 Args.name_position))
       (fn ctxt => fn (opt, citations) =>

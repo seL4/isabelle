@@ -198,7 +198,7 @@ fun check_scala_function ctxt arg =
   in (name, multi) end;
 
 val _ = Theory.setup
- (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
+ (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala_function\<close>
     (Scan.lift Parse.embedded_position) (#1 oo check_scala_function) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>scala_function\<close>
     (Args.context -- Scan.lift Parse.embedded_position
@@ -424,11 +424,11 @@ fun ML_antiq check =
 in
 
 val _ = Theory.setup
- (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>session\<close>
+ (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>session\<close>
     (Scan.lift Parse.embedded_position) check_session #>
-  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>path\<close> (document_antiq check_path) (K I) #>
-  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>file\<close> (document_antiq check_file) (K I) #>
-  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>dir\<close> (document_antiq check_dir) (K I) #>
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>path\<close> (document_antiq check_path) (K I) #>
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>file\<close> (document_antiq check_file) (K I) #>
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>dir\<close> (document_antiq check_dir) (K I) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>path\<close> (ML_antiq check_path) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>file\<close> (ML_antiq check_file) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>dir\<close> (ML_antiq check_dir) #>

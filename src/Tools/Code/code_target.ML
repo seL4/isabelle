@@ -782,7 +782,7 @@ val parse_instances = parse_symbols class_instanceK (Scan.lift (Args.name --| Ar
 in
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw \<^binding>\<open>code_stmts\<close>
+  (Document_Output.antiquotation_raw \<^binding>\<open>code_stmts\<close>
     (parse_const_terms --
       Scan.repeats (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
@@ -790,7 +790,7 @@ val _ = Theory.setup
        present_code ctxt consts symbols
          target_name "Example" some_width []
        |> trim_line
-       |> Thy_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
+       |> Document_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
 
 end;
 

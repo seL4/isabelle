@@ -14,14 +14,14 @@ local
 type style = term -> term;
 
 fun pretty_term_style ctxt (style: style, t) =
-  Thy_Output.pretty_term ctxt (style t);
+  Document_Output.pretty_term ctxt (style t);
 
 fun pretty_thms_style ctxt (style: style, ths) =
-  map (fn th => Thy_Output.pretty_term ctxt (style (Thm.full_prop_of th))) ths;
+  map (fn th => Document_Output.pretty_term ctxt (style (Thm.full_prop_of th))) ths;
 
 fun pretty_term_typ ctxt (style: style, t) =
   let val t' = style t
-  in Thy_Output.pretty_term ctxt (Type.constraint (Term.fastype_of t') t') end;
+  in Document_Output.pretty_term ctxt (Type.constraint (Term.fastype_of t') t') end;
 
 fun pretty_term_typeof ctxt (style: style, t) =
   Syntax.pretty_typ ctxt (Term.fastype_of (style t));
@@ -31,7 +31,7 @@ fun pretty_const ctxt c =
     val t = Const (c, Consts.type_scheme (Proof_Context.consts_of ctxt) c)
       handle TYPE (msg, _, _) => error msg;
     val (t', _) = yield_singleton (Variable.import_terms true) t ctxt;
-  in Thy_Output.pretty_term ctxt t' end;
+  in Document_Output.pretty_term ctxt t' end;
 
 fun pretty_abbrev ctxt s =
   let
@@ -62,12 +62,12 @@ fun pretty_prf full ctxt = Proof_Syntax.pretty_standard_proof_of ctxt full;
 fun pretty_theory ctxt (name, pos) =
   (Theory.check {long = true} ctxt (name, pos); Pretty.str name);
 
-val basic_entity = Thy_Output.antiquotation_pretty_source_embedded;
+val basic_entity = Document_Output.antiquotation_pretty_source_embedded;
 
 fun basic_entities name scan pretty =
   Document_Antiquotation.setup name scan
     (fn {context = ctxt, source = src, argument = xs} =>
-      Thy_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
+      Document_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
 
 val _ = Theory.setup
  (basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
@@ -85,7 +85,7 @@ val _ = Theory.setup
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
     (fn {context = ctxt, source = src, argument = arg} =>
-      Thy_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
+      Document_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
 
 in end;
 
@@ -113,13 +113,13 @@ in end;
 
 val _ =
   Theory.setup
-   (Thy_Output.antiquotation_raw \<^binding>\<open>noindent\<close> (Scan.succeed ())
+   (Document_Output.antiquotation_raw \<^binding>\<open>noindent\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\noindent") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>smallskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>smallskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\smallskip") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>medskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>medskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\medskip") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>bigskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>bigskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\bigskip"));
 
 
@@ -128,10 +128,10 @@ val _ =
 local
 
 fun nested_antiquotation name s1 s2 =
-  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
-      (Context_Position.reports ctxt (Thy_Output.document_reports txt);
-        Latex.enclose_block s1 s2 (Thy_Output.output_document ctxt {markdown = false} txt)));
+      (Context_Position.reports ctxt (Document_Output.document_reports txt);
+        Latex.enclose_block s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
@@ -180,13 +180,13 @@ local
 val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
 val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.option index_like);
 
-fun output_text ctxt = Latex.block o Thy_Output.output_document ctxt {markdown = false};
+fun output_text ctxt = Latex.block o Document_Output.output_document ctxt {markdown = false};
 
 fun index binding def =
-  Thy_Output.antiquotation_raw binding (Scan.lift index_args)
+  Document_Output.antiquotation_raw binding (Scan.lift index_args)
     (fn ctxt => fn args =>
       let
-        val _ = Context_Position.reports ctxt (maps (Thy_Output.document_reports o #1) args);
+        val _ = Context_Position.reports ctxt (maps (Document_Output.document_reports o #1) args);
         fun make_item (txt, opt_like) =
           let
             val text = output_text ctxt txt;
@@ -222,18 +222,18 @@ fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
-  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val _ = report_text ctxt text;
       in
         prepare_text ctxt text
-        |> Thy_Output.output_source ctxt
-        |> Thy_Output.isabelle ctxt
+        |> Document_Output.output_source ctxt
+        |> Document_Output.isabelle ctxt
       end);
 
 val theory_text_antiquotation =
-  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val keywords = Thy_Header.get_keywords' ctxt;
@@ -247,8 +247,8 @@ val theory_text_antiquotation =
       in
         prepare_text ctxt text
         |> Token.explode0 keywords
-        |> maps (Thy_Output.output_token ctxt)
-        |> Thy_Output.isabelle ctxt
+        |> maps (Document_Output.output_token ctxt)
+        |> Document_Output.isabelle ctxt
       end);
 
 val _ =
@@ -265,7 +265,7 @@ in end;
 local
 
 fun goal_state name main =
-  Thy_Output.antiquotation_pretty name (Scan.succeed ())
+  Document_Output.antiquotation_pretty name (Scan.succeed ())
     (fn ctxt => fn () =>
       Goal_Display.pretty_goal
         (Config.put Goal_Display.show_main_goal main ctxt)
@@ -296,15 +296,15 @@ val _ = Theory.setup
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof (m1, m2);
       in
-        Thy_Output.pretty_source ctxt {embedded = false}
-          [hd src, prop_tok] (Thy_Output.pretty_term ctxt prop)
+        Document_Output.pretty_source ctxt {embedded = false}
+          [hd src, prop_tok] (Document_Output.pretty_term ctxt prop)
       end));
 
 
 (* verbatim text *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val pos = Input.pos_of text;
@@ -318,14 +318,14 @@ val _ = Theory.setup
 (* bash functions *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
     (Scan.lift Args.embedded_position) Isabelle_System.check_bash_function);
 
 
 (* system options *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
     (Scan.lift Args.embedded_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = Completion.check_option (Options.default ()) ctxt (name, pos);
@@ -337,7 +337,7 @@ val _ = Theory.setup
 local
 
 fun ml_text name ml =
-  Thy_Output.antiquotation_verbatim_embedded name (Scan.lift Args.text_input)
+  Document_Output.antiquotation_verbatim_embedded name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let val _ = ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of text) (ml text)
       in #1 (Input.source_content text) end);
@@ -368,7 +368,7 @@ val escape_url =
   translate_string (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
+  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
     (fn ctxt => fn source =>
       let
         val url = Input.string_of source;
@@ -385,7 +385,7 @@ val _ = Theory.setup
 local
 
 fun entity_antiquotation name check bg en =
-  Thy_Output.antiquotation_raw name (Scan.lift Args.name_position)
+  Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
       in Latex.enclose_block bg en [Latex.string (Output.output name)] end);

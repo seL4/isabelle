@@ -226,7 +226,7 @@ fun run keywords int tr st =
   else Toplevel.command_errors int tr st;
 
 fun check_token_comments ctxt tok =
-  (Thy_Output.check_comments ctxt (Input.source_explode (Token.input_of tok)); [])
+  (Document_Output.check_comments ctxt (Input.source_explode (Token.input_of tok)); [])
     handle exn =>
       if Exn.is_interrupt exn then Exn.reraise exn
       else Runtime.exn_messages exn;

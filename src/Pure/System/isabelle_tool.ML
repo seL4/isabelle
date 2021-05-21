@@ -38,7 +38,7 @@ fun check ctxt arg =
 
 val _ =
   Theory.setup
-   (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>tool\<close>
+   (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>tool\<close>
       (Scan.lift Parse.embedded_position) check);
 
 end;

@@ -1,10 +1,10 @@
-(*  Title:      Pure/Thy/thy_output.ML
+(*  Title:      Pure/Thy/document_output.ML
     Author:     Makarius
 
 Theory document output.
 *)
 
-signature THY_OUTPUT =
+signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
@@ -47,7 +47,7 @@ sig
     binding -> 'a context_parser -> (Proof.context -> 'a -> string) -> theory -> theory
 end;
 
-structure Thy_Output: THY_OUTPUT =
+structure Document_Output: DOCUMENT_OUTPUT =
 struct
 
 (* output document source *)

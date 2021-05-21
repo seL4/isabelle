@@ -73,7 +73,7 @@ fun ml_name txt =
 fun prep_ml source =
   (#1 (Input.source_content source), ML_Lex.read_source source);
 
-fun index_ml name kind ml = Thy_Output.antiquotation_raw name
+fun index_ml name kind ml = Document_Output.antiquotation_raw name
   (Scan.lift (Args.text_input -- Scan.option (Args.colon |-- Args.text_input)))
   (fn ctxt => fn (source1, opt_source2) =>
     let
@@ -100,7 +100,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation_raw name
     in
       Latex.block
        [Latex.string ("\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}"),
-        Thy_Output.verbatim ctxt txt']
+        Document_Output.verbatim ctxt txt']
     end);
 
 in
@@ -120,17 +120,17 @@ end;
 (* named theorems *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_raw \<^binding>\<open>named_thms\<close>
+  Theory.setup (Document_Output.antiquotation_raw \<^binding>\<open>named_thms\<close>
     (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
     (fn ctxt =>
       map (fn (thm, name) =>
         Output.output
           (Document_Antiquotation.format ctxt
-            (Document_Antiquotation.delimit ctxt (Thy_Output.pretty_thm ctxt thm))) ^
+            (Document_Antiquotation.delimit ctxt (Document_Output.pretty_thm ctxt thm))) ^
         enclose "\\rulename{" "}" (Output.output name))
       #> space_implode "\\par\\smallskip%\n"
       #> Latex.string #> single
-      #> Thy_Output.isabelle ctxt));
+      #> Document_Output.isabelle ctxt));
 
 
 (* Isabelle/Isar entities (with index) *)
@@ -150,7 +150,7 @@ fun check_system_option ctxt arg =
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup binding index =
-  Thy_Output.antiquotation_raw
+  Document_Output.antiquotation_raw
     (binding |> Binding.map_name (fn name => name ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name_position))
@@ -211,7 +211,7 @@ end;
 (* show symbols *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_raw \<^binding>\<open>show_symbols\<close> (Scan.succeed ())
+  Theory.setup (Document_Output.antiquotation_raw \<^binding>\<open>show_symbols\<close> (Scan.succeed ())
     (fn _ => fn _ =>
       let
         val symbol_name =
