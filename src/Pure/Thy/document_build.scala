@@ -352,8 +352,9 @@ object Document_Build
     def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
       context.prepare_directory(dir, doc)
 
+    def use_pdflatex: Boolean = false
     def latex_script(context: Context, directory: Directory): String =
-      (if (name == "pdflatex") "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
+      (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
         " " + directory.root_name_script() + "\n"
 
     def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String =
@@ -367,17 +368,17 @@ object Document_Build
       directory.conditional_script("idx", "$ISABELLE_MAKEINDEX",
         after = if (latex) latex_script(context, directory) else "")
 
+    def use_build_script: Boolean = false
     def build_script(context: Context, directory: Directory): String =
     {
-      val build_required = name == "build"
-      val build_provided = (directory.doc_dir + Path.explode("build")).is_file
+      val has_build_script = (directory.doc_dir + Path.explode("build")).is_file
 
-      if (!build_required && build_provided) {
+      if (!use_build_script && has_build_script) {
         error("Unexpected document build script for option document_build=" +
           quote(context.document_build))
       }
-      else if (build_required && !build_provided) error("Missing document build script")
-      else if (build_required) "./build pdf " + Bash.string(directory.doc.name)
+      else if (use_build_script && !has_build_script) error("Missing document build script")
+      else if (has_build_script) "./build pdf " + Bash.string(directory.doc.name)
       else {
         "set -e\n" +
         latex_script(context, directory) +
@@ -404,8 +405,8 @@ object Document_Build
   }
 
   class LuaLaTeX_Engine extends Bash_Engine("lualatex")
-  class PDFLaTeX_Engine extends Bash_Engine("pdflatex")
-  class Build_Engine extends Bash_Engine("build")
+  class PDFLaTeX_Engine extends Bash_Engine("pdflatex") { override def use_pdflatex: Boolean = true }
+  class Build_Engine extends Bash_Engine("build") { override def use_build_script: Boolean = true }
 
 
   /* build documents */
