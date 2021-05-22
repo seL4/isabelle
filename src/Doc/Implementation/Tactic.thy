@@ -156,7 +156,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
+  @{index_ML_type tactic = "thm -> thm Seq.seq"} \\
   @{index_ML no_tac: tactic} \\
   @{index_ML all_tac: tactic} \\
   @{index_ML print_tac: "Proof.context -> string -> tactic"} \\[1ex]
@@ -452,7 +452,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML compose_tac: "Proof.context -> (bool * thm * int) -> int -> tactic"} \\
   @{index_ML Drule.compose: "thm * int * thm -> thm"} \\
-  @{index_ML_op COMP: "thm * thm -> thm"} \\
+  @{index_ML_infix COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>compose_tac\<close>~\<open>ctxt (flag, rule, m) i\<close> refines subgoal \<open>i\<close> using
@@ -502,15 +502,15 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "THEN": "tactic * tactic -> tactic"} \\
-  @{index_ML_op "ORELSE": "tactic * tactic -> tactic"} \\
-  @{index_ML_op "APPEND": "tactic * tactic -> tactic"} \\
+  @{index_ML_infix "THEN": "tactic * tactic -> tactic"} \\
+  @{index_ML_infix "ORELSE": "tactic * tactic -> tactic"} \\
+  @{index_ML_infix "APPEND": "tactic * tactic -> tactic"} \\
   @{index_ML "EVERY": "tactic list -> tactic"} \\
   @{index_ML "FIRST": "tactic list -> tactic"} \\[0.5ex]
 
-  @{index_ML_op "THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML_op "ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML_op "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_infix "THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_infix "ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{index_ML_infix "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
   @{index_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
   @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
   \end{mldecls}

@@ -720,7 +720,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type indexname: "string * int"} \\
+  @{index_ML_type indexname = "string * int"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>indexname\<close> represents indexed names. This is an

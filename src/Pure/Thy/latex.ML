@@ -34,6 +34,7 @@ sig
   val index_item: index_item -> text
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
+  val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
   val latex_output: string -> string * int
   val latex_markup: string * Properties.T -> Markup.output
@@ -258,7 +259,8 @@ type index_entry = {items: index_item list, def: bool};
 
 val index_escape =
   translate_string (fn s =>
-    s |> exists_string (fn s' => s = s') "\"\\{}!@|" ? prefix "\"");
+    if member_string "!\"@|" s then "\\char" ^ string_of_int (ord s)
+    else if member_string "\\{}#" s then "\"" ^ s else s);
 
 fun index_item (item: index_item) =
   let
@@ -271,6 +273,13 @@ fun index_entry (entry: index_entry) =
   (separate (string "!") (map index_item (#items entry)) @
     [string ("|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))])
   |> enclose_block "\\index{" "}";
+
+
+fun index_binding NONE = I
+  | index_binding (SOME def) = Binding.map_name (suffix (if def then "_def" else "_ref"));
+
+fun index_variants setup binding =
+  fold (fn index => setup (index_binding index binding) index) [NONE, SOME true, SOME false];
 
 
 (* print mode *)

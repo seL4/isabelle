@@ -909,10 +909,10 @@ text \<open>
   @{index_ML_type solver} \\
   @{index_ML Simplifier.mk_solver: "string ->
   (Proof.context -> int -> tactic) -> solver"} \\
-  @{index_ML_op setSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op addSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op setSSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op addSSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_infix setSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_infix addSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_infix setSSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_infix addSSolver: "Proof.context * solver -> Proof.context"} \\
   \end{mldecls}
 
   A solver is a tactic that attempts to solve a subgoal after simplification.
@@ -992,12 +992,12 @@ subsubsection \<open>The looper\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML_op setloop: "Proof.context *
+  @{index_ML_infix setloop: "Proof.context *
   (Proof.context -> int -> tactic) -> Proof.context"} \\
-  @{index_ML_op addloop: "Proof.context *
+  @{index_ML_infix addloop: "Proof.context *
   (string * (Proof.context -> int -> tactic))
   -> Proof.context"} \\
-  @{index_ML_op delloop: "Proof.context * string -> Proof.context"} \\
+  @{index_ML_infix delloop: "Proof.context * string -> Proof.context"} \\
   @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
   @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
   @{index_ML Splitter.add_split_bang: "
@@ -1624,21 +1624,21 @@ subsection \<open>Modifying the search step\<close>
 
 text \<open>
   \begin{mldecls}
-    @{index_ML_type wrapper: "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
-    @{index_ML_op addSWrapper: "Proof.context *
+    @{index_ML_type wrapper = "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
+    @{index_ML_infix addSWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
-    @{index_ML_op addSbefore: "Proof.context *
+    @{index_ML_infix addSbefore: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op addSafter: "Proof.context *
+    @{index_ML_infix addSafter: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
-    @{index_ML_op addWrapper: "Proof.context *
+    @{index_ML_infix delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
+    @{index_ML_infix addWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
-    @{index_ML_op addbefore: "Proof.context *
+    @{index_ML_infix addbefore: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op addafter: "Proof.context *
+    @{index_ML_infix addafter: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
+    @{index_ML_infix delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
     @{index_ML addSss: "Proof.context -> Proof.context"} \\
     @{index_ML addss: "Proof.context -> Proof.context"} \\
   \end{mldecls}

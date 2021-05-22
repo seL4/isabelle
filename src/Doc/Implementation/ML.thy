@@ -818,10 +818,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "|> ": "'a * ('a -> 'b) -> 'b"} \\
-  @{index_ML_op "|-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
-  @{index_ML_op "#> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
-  @{index_ML_op "#-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  @{index_ML_infix "|>" : "'a * ('a -> 'b) -> 'b"} \\
+  @{index_ML_infix "|->" : "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{index_ML_infix "#>" : "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{index_ML_infix "#->" : "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
   \end{mldecls}
 \<close>
 
@@ -1142,8 +1142,8 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
   @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  @{index_ML_exception ERROR: string} \\
-  @{index_ML_exception Fail: string} \\
+  @{index_ML_exception ERROR of string} \\
+  @{index_ML_exception Fail of string} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
   @{index_ML Exn.reraise: "exn -> 'a"} \\
   @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
@@ -1284,7 +1284,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "Symbol.symbol": string} \\
+  @{index_ML_type Symbol.symbol = string} \\
   @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
   @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
   @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
@@ -1596,7 +1596,7 @@ text %mlref \<open>
   @{index_ML_type "'a Unsynchronized.ref"} \\
   @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
   @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
-  @{index_ML_op ":=": "'a Unsynchronized.ref * 'a -> unit"} \\
+  @{index_ML_infix ":=" : "'a Unsynchronized.ref * 'a -> unit"} \\
   \end{mldecls}
 \<close>
 

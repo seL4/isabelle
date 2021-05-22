@@ -102,9 +102,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type class: string} \\
-  @{index_ML_type sort: "class list"} \\
-  @{index_ML_type arity: "string * sort list * sort"} \\
+  @{index_ML_type class = string} \\
+  @{index_ML_type sort = "class list"} \\
+  @{index_ML_type arity = "string * sort list * sort"} \\
   @{index_ML_type typ} \\
   @{index_ML Term.map_atyps: "(typ -> typ) -> typ -> typ"} \\
   @{index_ML Term.fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
@@ -314,7 +314,7 @@ text \<open>
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type term} \\
-  @{index_ML_op "aconv": "term * term -> bool"} \\
+  @{index_ML_infix "aconv": "term * term -> bool"} \\
   @{index_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
   @{index_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   @{index_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
@@ -336,7 +336,7 @@ text %mlref \<open>
   \<^descr> Type \<^ML_type>\<open>term\<close> represents de-Bruijn terms, with comments in
   abstractions, and explicitly named free variables and constants; this is a
   datatype with constructors @{index_ML Bound}, @{index_ML Free}, @{index_ML
-  Var}, @{index_ML Const}, @{index_ML Abs}, @{index_ML_op "$"}.
+  Var}, @{index_ML Const}, @{index_ML Abs}, @{index_ML_infix "$"}.
 
   \<^descr> \<open>t\<close>~\<^ML_text>\<open>aconv\<close>~\<open>u\<close> checks \<open>\<alpha>\<close>-equivalence of two terms. This is the
   basic equality relation on type \<^ML_type>\<open>term\<close>; raw datatype equality
@@ -1022,14 +1022,14 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "RSN": "thm * (int * thm) -> thm"} \\
-  @{index_ML_op "RS": "thm * thm -> thm"} \\
+  @{index_ML_infix "RSN": "thm * (int * thm) -> thm"} \\
+  @{index_ML_infix "RS": "thm * thm -> thm"} \\
 
-  @{index_ML_op "RLN": "thm list * (int * thm list) -> thm list"} \\
-  @{index_ML_op "RL": "thm list * thm list -> thm list"} \\
+  @{index_ML_infix "RLN": "thm list * (int * thm list) -> thm list"} \\
+  @{index_ML_infix "RL": "thm list * thm list -> thm list"} \\
 
-  @{index_ML_op "MRS": "thm list * thm -> thm"} \\
-  @{index_ML_op "OF": "thm * thm list -> thm"} \\
+  @{index_ML_infix "MRS": "thm list * thm -> thm"} \\
+  @{index_ML_infix "OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<open>rule\<^sub>1 RSN (i, rule\<^sub>2)\<close> resolves the conclusion of \<open>rule\<^sub>1\<close> with the
@@ -1197,8 +1197,8 @@ text %mlref \<open>
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>proof\<close> represents proof terms; this is a datatype with
-  constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_op "%"},
-  @{index_ML_op "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
+  constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_infix "%"},
+  @{index_ML_infix "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
   Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML PThm} as explained
   above. %FIXME PClass (!?)
 
