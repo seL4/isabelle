@@ -305,30 +305,97 @@ val _ = Theory.setup
 
 local
 
-fun ml_text name ml =
-  Document_Output.antiquotation_verbatim_embedded name (Scan.lift Args.text_input)
-    (fn ctxt => fn text =>
-      let val _ = ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of text) (ml text)
-      in #1 (Input.source_content text) end);
+fun test_val (ml1, []) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read ");"
+  | test_val (ml1, ml2) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : " @ ml2 @ ML_Lex.read ");";
 
-fun ml_enclose bg en source =
-  ML_Lex.read bg @ ML_Lex.read_source source @ ML_Lex.read en;
+fun test_op (ml1, ml2) = test_val (ML_Lex.read "op " @ ml1, ml2);
 
-val _ = Theory.setup
- (ml_text \<^binding>\<open>ML\<close> (ml_enclose "fn _ => (" ");") #>
-  ml_text \<^binding>\<open>ML_op\<close> (ml_enclose "fn _ => (op " ");") #>
-  ml_text \<^binding>\<open>ML_type\<close> (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text \<^binding>\<open>ML_structure\<close>
-    (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
+fun test_type (ml1, []) = ML_Lex.read "val _ = NONE : (" @ ml1 @ ML_Lex.read ") option;"
+  | test_type (ml1, ml2) =
+      ML_Lex.read "val _ = [NONE : (" @ ml1 @ ML_Lex.read ") option, NONE : (" @
+      ml2 @ ML_Lex.read ") option];";
 
-  ml_text \<^binding>\<open>ML_functor\<close>   (* FIXME formal treatment of functor name (!?) *)
-    (fn source =>
-      ML_Lex.read ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (#1 (Input.source_content source)))) #>
+fun test_exn (ml1, []) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : exn);"
+  | test_exn (ml1, ml2) =
+      ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : " @ ml2 @ ML_Lex.read " -> exn);";
 
-  ml_text \<^binding>\<open>ML_text\<close> (K []));
+fun test_struct (ml, _) =
+  ML_Lex.read "functor XXX() = struct structure XX = " @ ml @ ML_Lex.read " end;";
 
-in end;
+fun test_functor (Antiquote.Text tok :: _, _) =
+      ML_Lex.read "ML_Env.check_functor " @
+      ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
+  | test_functor _ = raise Fail "Bad ML functor specification";
+
+val is_name =
+  ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.Long_Ident);
+
+fun is_ml_identifier ants =
+  forall Antiquote.is_text ants andalso
+    (case filter is_name (map (Antiquote.the_text "") ants) of
+      toks as [_] => Symbol_Pos.is_identifier (Long_Name.base_name (ML_Lex.flatten toks))
+    | _ => false);
+
+val parse_ml0 = Args.text_input >> rpair Input.empty;
+val parse_ml = Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty;
+val parse_type = Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty;
+val parse_exn = Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty;
+
+fun antiquotation_ml parse test kind show_kind binding index =
+  Document_Output.antiquotation_raw binding (Scan.lift parse)
+    (fn ctxt => fn (source1, source2) =>
+      let
+        val (ml1, ml2) = apply2 ML_Lex.read_source (source1, source2);
+        val pos = Input.pos_of source1;
+        val _ =
+          ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (test (ml1, ml2))
+            handle ERROR msg => error (msg ^ Position.here pos);
+
+        val (txt1, txt2) = apply2 (#1 o Input.source_content) (source1, source2);
+        val sep = if kind = "type" then "=" else if kind = "exception" then "of" else ":";
+        val txt =
+          if txt2 = "" then txt1
+          else if sep = ":" andalso is_ml_identifier ml1 then txt1 ^ ": " ^ txt2
+          else txt1 ^ " " ^ sep ^ " " ^ txt2;
+
+        val main_text =
+          Document_Output.verbatim ctxt
+            (if kind = "" orelse not show_kind then txt else kind ^ " " ^ txt);
+
+        val index_text =
+          index |> Option.map (fn def =>
+            let
+              val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
+              val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
+              val txt' = Latex.block [Document_Output.verbatim ctxt' txt1, Latex.string kind'];
+              val like = Document_Antiquotation.approx_content ctxt source1;
+            in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
+      in Latex.block (the_list index_text @ [main_text]) end);
+
+fun antiquotation_ml0 test kind =
+  antiquotation_ml parse_ml0 test kind false;
+
+fun antiquotation_ml1 parse test kind binding =
+  antiquotation_ml parse test kind true binding (SOME true);
+
+in
+
+val _ =
+  Theory.setup
+   (Latex.index_variants (antiquotation_ml0 test_val "") \<^binding>\<open>ML\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_op "infix") \<^binding>\<open>ML_infix\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_type "type") \<^binding>\<open>ML_type\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_struct "structure") \<^binding>\<open>ML_structure\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_functor "functor") \<^binding>\<open>ML_functor\<close> #>
+    antiquotation_ml0 (K []) "text" \<^binding>\<open>ML_text\<close> NONE #>
+    antiquotation_ml1 parse_ml test_val "" \<^binding>\<open>define_ML\<close> #>
+    antiquotation_ml1 parse_ml test_op "infix" \<^binding>\<open>define_ML_infix\<close> #>
+    antiquotation_ml1 parse_type test_type "type" \<^binding>\<open>define_ML_type\<close> #>
+    antiquotation_ml1 parse_exn test_exn "exception" \<^binding>\<open>define_ML_exception\<close> #>
+    antiquotation_ml1 parse_ml0 test_struct "structure" \<^binding>\<open>define_ML_structure\<close> #>
+    antiquotation_ml1 parse_ml0 test_functor "functor" \<^binding>\<open>define_ML_functor\<close>);
+
+end;
 
 
 (* URLs *)

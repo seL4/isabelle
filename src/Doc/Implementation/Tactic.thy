@@ -494,9 +494,9 @@ subsection \<open>Combining tactics\<close>
 text \<open>
   Sequential composition and alternative choices are the most basic ways to
   combine tactics, similarly to ``\<^verbatim>\<open>,\<close>'' and ``\<^verbatim>\<open>|\<close>'' in Isar method notation.
-  This corresponds to \<^ML_op>\<open>THEN\<close> and \<^ML_op>\<open>ORELSE\<close> in ML, but there
+  This corresponds to \<^ML_infix>\<open>THEN\<close> and \<^ML_infix>\<open>ORELSE\<close> in ML, but there
   are further possibilities for fine-tuning alternation of tactics such as
-  \<^ML_op>\<open>APPEND\<close>. Further details become visible in ML due to explicit
+  \<^ML_infix>\<open>APPEND\<close>. Further details become visible in ML due to explicit
   subgoal addressing.
 \<close>
 
@@ -515,32 +515,32 @@ text %mlref \<open>
   @{define_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
   \end{mldecls}
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>2\<close> is the sequential composition of \<open>tac\<^sub>1\<close> and
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>2\<close> is the sequential composition of \<open>tac\<^sub>1\<close> and
   \<open>tac\<^sub>2\<close>. Applied to a goal state, it returns all states reachable in two
   steps by applying \<open>tac\<^sub>1\<close> followed by \<open>tac\<^sub>2\<close>. First, it applies \<open>tac\<^sub>1\<close> to
   the goal state, getting a sequence of possible next states; then, it applies
   \<open>tac\<^sub>2\<close> to each of these and concatenates the results to produce again one
   flat sequence of states.
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac\<^sub>2\<close> makes a choice between \<open>tac\<^sub>1\<close> and
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac\<^sub>2\<close> makes a choice between \<open>tac\<^sub>1\<close> and
   \<open>tac\<^sub>2\<close>. Applied to a state, it tries \<open>tac\<^sub>1\<close> and returns the result if
   non-empty; if \<open>tac\<^sub>1\<close> fails then it uses \<open>tac\<^sub>2\<close>. This is a deterministic
   choice: if \<open>tac\<^sub>1\<close> succeeds then \<open>tac\<^sub>2\<close> is excluded from the result.
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>APPEND\<close>~\<open>tac\<^sub>2\<close> concatenates the possible results of
-  \<open>tac\<^sub>1\<close> and \<open>tac\<^sub>2\<close>. Unlike \<^ML_op>\<open>ORELSE\<close> there is \<^emph>\<open>no commitment\<close> to
-  either tactic, so \<^ML_op>\<open>APPEND\<close> helps to avoid incompleteness during
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>APPEND\<close>~\<open>tac\<^sub>2\<close> concatenates the possible results of
+  \<open>tac\<^sub>1\<close> and \<open>tac\<^sub>2\<close>. Unlike \<^ML_infix>\<open>ORELSE\<close> there is \<^emph>\<open>no commitment\<close> to
+  either tactic, so \<^ML_infix>\<open>APPEND\<close> helps to avoid incompleteness during
   search, at the cost of potential inefficiencies.
 
-  \<^descr> \<^ML>\<open>EVERY\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>EVERY []\<close> is the same as
+  \<^descr> \<^ML>\<open>EVERY\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>EVERY []\<close> is the same as
   \<^ML>\<open>all_tac\<close>: it always succeeds.
 
-  \<^descr> \<^ML>\<open>FIRST\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>FIRST []\<close> is the
+  \<^descr> \<^ML>\<open>FIRST\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>FIRST []\<close> is the
   same as \<^ML>\<open>no_tac\<close>: it always fails.
 
-  \<^descr> \<^ML_op>\<open>THEN'\<close> is the lifted version of \<^ML_op>\<open>THEN\<close>, for tactics
-  with explicit subgoal addressing. So \<open>(tac\<^sub>1\<close>~\<^ML_op>\<open>THEN'\<close>~\<open>tac\<^sub>2) i\<close> is
-  the same as \<open>(tac\<^sub>1 i\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>2 i)\<close>.
+  \<^descr> \<^ML_infix>\<open>THEN'\<close> is the lifted version of \<^ML_infix>\<open>THEN\<close>, for tactics
+  with explicit subgoal addressing. So \<open>(tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN'\<close>~\<open>tac\<^sub>2) i\<close> is
+  the same as \<open>(tac\<^sub>1 i\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>2 i)\<close>.
 
   The other primed tacticals work analogously.
 \<close>
@@ -567,7 +567,7 @@ text %mlref \<open>
   applies \<open>tac\<close> at most once.
 
   Note that for tactics with subgoal addressing, the combinator can be applied
-  via functional composition: \<^ML>\<open>TRY\<close>~\<^ML_op>\<open>o\<close>~\<open>tac\<close>. There is no need
+  via functional composition: \<^ML>\<open>TRY\<close>~\<^ML_infix>\<open>o\<close>~\<open>tac\<close>. There is no need
   for \<^verbatim>\<open>TRY'\<close>.
 
   \<^descr> \<^ML>\<open>REPEAT\<close>~\<open>tac\<close> applies \<open>tac\<close> to the goal state and, recursively, to
@@ -592,10 +592,10 @@ text %mlref \<open>
 text %mlex \<open>
   The basic tactics and tacticals considered above follow some algebraic laws:
 
-  \<^item> \<^ML>\<open>all_tac\<close> is the identity element of the tactical \<^ML_op>\<open>THEN\<close>.
+  \<^item> \<^ML>\<open>all_tac\<close> is the identity element of the tactical \<^ML_infix>\<open>THEN\<close>.
 
-  \<^item> \<^ML>\<open>no_tac\<close> is the identity element of \<^ML_op>\<open>ORELSE\<close> and \<^ML_op>\<open>APPEND\<close>. Also, it is a zero element for \<^ML_op>\<open>THEN\<close>, which means that
-  \<open>tac\<close>~\<^ML_op>\<open>THEN\<close>~\<^ML>\<open>no_tac\<close> is equivalent to \<^ML>\<open>no_tac\<close>.
+  \<^item> \<^ML>\<open>no_tac\<close> is the identity element of \<^ML_infix>\<open>ORELSE\<close> and \<^ML_infix>\<open>APPEND\<close>. Also, it is a zero element for \<^ML_infix>\<open>THEN\<close>, which means that
+  \<open>tac\<close>~\<^ML_infix>\<open>THEN\<close>~\<^ML>\<open>no_tac\<close> is equivalent to \<^ML>\<open>no_tac\<close>.
 
   \<^item> \<^ML>\<open>TRY\<close> and \<^ML>\<open>REPEAT\<close> can be expressed as (recursive) functions over
   more basic combinators (ignoring some internal implementation tricks):
@@ -607,7 +607,7 @@ ML \<open>
 \<close>
 
 text \<open>
-  If \<open>tac\<close> can return multiple outcomes then so can \<^ML>\<open>REPEAT\<close>~\<open>tac\<close>. \<^ML>\<open>REPEAT\<close> uses \<^ML_op>\<open>ORELSE\<close> and not \<^ML_op>\<open>APPEND\<close>, it applies \<open>tac\<close>
+  If \<open>tac\<close> can return multiple outcomes then so can \<^ML>\<open>REPEAT\<close>~\<open>tac\<close>. \<^ML>\<open>REPEAT\<close> uses \<^ML_infix>\<open>ORELSE\<close> and not \<^ML_infix>\<open>APPEND\<close>, it applies \<open>tac\<close>
   as many times as possible in each outcome.
 
   \begin{warn}
@@ -650,11 +650,11 @@ text %mlref \<open>
   @{define_ML RANGE: "(int -> tactic) list -> int -> tactic"} \\
   \end{mldecls}
 
-  \<^descr> \<^ML>\<open>ALLGOALS\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac 1\<close>. It applies the \<open>tac\<close> to all the subgoals, counting downwards.
+  \<^descr> \<^ML>\<open>ALLGOALS\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac 1\<close>. It applies the \<open>tac\<close> to all the subgoals, counting downwards.
 
-  \<^descr> \<^ML>\<open>SOMEGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac 1\<close>. It applies \<open>tac\<close> to one subgoal, counting downwards.
+  \<^descr> \<^ML>\<open>SOMEGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac 1\<close>. It applies \<open>tac\<close> to one subgoal, counting downwards.
 
-  \<^descr> \<^ML>\<open>FIRSTGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac n\<close>. It applies \<open>tac\<close> to one subgoal, counting upwards.
+  \<^descr> \<^ML>\<open>FIRSTGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac n\<close>. It applies \<open>tac\<close> to one subgoal, counting upwards.
 
   \<^descr> \<^ML>\<open>HEADGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>. It applies \<open>tac\<close>
   unconditionally to the first subgoal.
@@ -666,7 +666,7 @@ text %mlref \<open>
   upwards.
 
   \<^descr> \<^ML>\<open>RANGE\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>k] i\<close> is equivalent to \<open>tac\<^sub>k (i + k -
-  1)\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>1 i\<close>. It applies the given list of
+  1)\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>1 i\<close>. It applies the given list of
   tactics to the corresponding range of subgoals, counting downwards.
 \<close>
 
@@ -714,7 +714,7 @@ text \<open>
   \<^descr> \<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> returns the goal state if \<open>sat\<close> returns true.
   Otherwise it applies \<open>tac\<close>, then recursively searches from each element of
   the resulting sequence. The code uses a stack for efficiency, in effect
-  applying \<open>tac\<close>~\<^ML_op>\<open>THEN\<close>~\<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> to the state.
+  applying \<open>tac\<close>~\<^ML_infix>\<open>THEN\<close>~\<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> to the state.
 
   \<^descr> \<^ML>\<open>DEPTH_SOLVE\<close>\<open>tac\<close> uses \<^ML>\<open>DEPTH_FIRST\<close> to search for states having
   no subgoals.

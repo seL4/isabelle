@@ -1608,7 +1608,7 @@ text \<open>
 
   The unwieldy name of \<^ML>\<open>Unsynchronized.ref\<close> for the constructor for
   references in Isabelle/ML emphasizes the inconveniences caused by
-  mutability. Existing operations \<^ML>\<open>!\<close> and \<^ML_op>\<open>:=\<close> are unchanged,
+  mutability. Existing operations \<^ML>\<open>!\<close> and \<^ML_infix>\<open>:=\<close> are unchanged,
   but should be used with special precautions, say in a strictly local
   situation that is guaranteed to be restricted to sequential evaluation ---
   now and in the future.

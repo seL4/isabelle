@@ -626,7 +626,7 @@ text \<open>
   Structural composition ``\<open>m\<^sub>1\<close>\<^verbatim>\<open>;\<close>~\<open>m\<^sub>2\<close>'' means that method \<open>m\<^sub>1\<close> is
   applied with restriction to the first subgoal, then \<open>m\<^sub>2\<close> is applied
   consecutively with restriction to each subgoal that has newly emerged due to
-  \<open>m\<^sub>1\<close>. This is analogous to the tactic combinator \<^ML_op>\<open>THEN_ALL_NEW\<close> in
+  \<open>m\<^sub>1\<close>. This is analogous to the tactic combinator \<^ML_infix>\<open>THEN_ALL_NEW\<close> in
   Isabelle/ML, see also @{cite "isabelle-implementation"}. For example, \<open>(rule
   r; blast)\<close> applies rule \<open>r\<close> and then solves all new subgoals by \<open>blast\<close>.
 

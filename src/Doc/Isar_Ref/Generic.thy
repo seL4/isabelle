@@ -153,7 +153,7 @@ text \<open>
 
   \<^descr> @{attribute THEN}~\<open>a\<close> composes rules by resolution; it resolves with the
   first premise of \<open>a\<close> (an alternative position may be also specified). See
-  also \<^ML_op>\<open>RS\<close> in @{cite "isabelle-implementation"}.
+  also \<^ML_infix>\<open>RS\<close> in @{cite "isabelle-implementation"}.
   
   \<^descr> @{attribute unfolded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{attribute folded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>
   expand and fold back again the given definitions throughout a rule.

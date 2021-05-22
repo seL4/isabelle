@@ -100,11 +100,22 @@ text \<open>
     @{antiquotation_def subgoals} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def prf} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def full_prf} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_text} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML} & : & \<open>antiquotation\<close> \\
-    @{antiquotation_def ML_op} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_def} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_ref} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_infix} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_infix_def} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_infix_ref} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML_type} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_type_def} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_type_ref} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML_structure} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_structure_def} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_structure_ref} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def ML_functor} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_functor_def} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def ML_functor_ref} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def emph} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def bold} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def verbatim} & : & \<open>antiquotation\<close> \\
@@ -192,8 +203,9 @@ text \<open>
       @@{antiquotation subgoals} options |
       @@{antiquotation prf} options @{syntax thms} |
       @@{antiquotation full_prf} options @{syntax thms} |
+      @@{antiquotation ML_text} options @{syntax text} |
       @@{antiquotation ML} options @{syntax text} |
-      @@{antiquotation ML_op} options @{syntax text} |
+      @@{antiquotation ML_infix} options @{syntax text} |
       @@{antiquotation ML_type} options @{syntax text} |
       @@{antiquotation ML_structure} options @{syntax text} |
       @@{antiquotation ML_functor} options @{syntax text} |
@@ -280,10 +292,16 @@ text \<open>
   \<^descr> \<open>@{full_prf a\<^sub>1 \<dots> a\<^sub>n}\<close> is like \<open>@{prf a\<^sub>1 \<dots> a\<^sub>n}\<close>, but prints the full
   proof terms, i.e.\ also displays information omitted in the compact proof
   term, which is denoted by ``\<open>_\<close>'' placeholders there.
-  
-  \<^descr> \<open>@{ML s}\<close>, \<open>@{ML_op s}\<close>, \<open>@{ML_type s}\<close>, \<open>@{ML_structure s}\<close>, and
+
+  \<^descr> \<open>@{ML_text s}\<close> prints ML text verbatim: only the token language is
+  checked.
+
+  \<^descr> \<open>@{ML s}\<close>, \<open>@{ML_infix s}\<close>, \<open>@{ML_type s}\<close>, \<open>@{ML_structure s}\<close>, and
   \<open>@{ML_functor s}\<close> check text \<open>s\<close> as ML value, infix operator, type,
-  structure, and functor respectively. The source is printed verbatim.
+  exception, structure, and functor respectively. The source is printed
+  verbatim. The variants \<open>@{ML_def s}\<close> and \<open>@{ML_ref s}\<close> etc. maintain the
+  document index: ``def'' means to make a bold entry, ``ref'' means to make a
+  regular entry.
 
   \<^descr> \<open>@{emph s}\<close> prints document source recursively, with {\LaTeX} markup
   \<^verbatim>\<open>\emph{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>.

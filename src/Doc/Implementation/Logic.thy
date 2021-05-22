@@ -624,7 +624,7 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Thm.apply\<close>, \<^ML>\<open>Thm.lambda\<close>, \<^ML>\<open>Thm.all\<close>, \<^ML>\<open>Drule.mk_implies\<close>
   etc.\ compose certified terms (or propositions) incrementally. This is
-  equivalent to \<^ML>\<open>Thm.cterm_of\<close> after unchecked \<^ML_op>\<open>$\<close>, \<^ML>\<open>lambda\<close>,
+  equivalent to \<^ML>\<open>Thm.cterm_of\<close> after unchecked \<^ML_infix>\<open>$\<close>, \<^ML>\<open>lambda\<close>,
   \<^ML>\<open>Logic.all\<close>, \<^ML>\<open>Logic.mk_implies\<close> etc., but there can be a big
   difference in performance when large existing entities are composed by a few
   extra constructions on top. There are separate operations to decompose
