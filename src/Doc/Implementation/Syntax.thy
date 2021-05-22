@@ -69,16 +69,16 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Syntax.read_typs: "Proof.context -> string list -> typ list"} \\
-  @{index_ML Syntax.read_terms: "Proof.context -> string list -> term list"} \\
-  @{index_ML Syntax.read_props: "Proof.context -> string list -> term list"} \\[0.5ex]
-  @{index_ML Syntax.read_typ: "Proof.context -> string -> typ"} \\
-  @{index_ML Syntax.read_term: "Proof.context -> string -> term"} \\
-  @{index_ML Syntax.read_prop: "Proof.context -> string -> term"} \\[0.5ex]
-  @{index_ML Syntax.pretty_typ: "Proof.context -> typ -> Pretty.T"} \\
-  @{index_ML Syntax.pretty_term: "Proof.context -> term -> Pretty.T"} \\
-  @{index_ML Syntax.string_of_typ: "Proof.context -> typ -> string"} \\
-  @{index_ML Syntax.string_of_term: "Proof.context -> term -> string"} \\
+  @{define_ML Syntax.read_typs: "Proof.context -> string list -> typ list"} \\
+  @{define_ML Syntax.read_terms: "Proof.context -> string list -> term list"} \\
+  @{define_ML Syntax.read_props: "Proof.context -> string list -> term list"} \\[0.5ex]
+  @{define_ML Syntax.read_typ: "Proof.context -> string -> typ"} \\
+  @{define_ML Syntax.read_term: "Proof.context -> string -> term"} \\
+  @{define_ML Syntax.read_prop: "Proof.context -> string -> term"} \\[0.5ex]
+  @{define_ML Syntax.pretty_typ: "Proof.context -> typ -> Pretty.T"} \\
+  @{define_ML Syntax.pretty_term: "Proof.context -> term -> Pretty.T"} \\
+  @{define_ML Syntax.string_of_typ: "Proof.context -> typ -> string"} \\
+  @{define_ML Syntax.string_of_term: "Proof.context -> term -> string"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Syntax.read_typs\<close>~\<open>ctxt strs\<close> parses and checks a simultaneous list
@@ -158,11 +158,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Syntax.parse_typ: "Proof.context -> string -> typ"} \\
-  @{index_ML Syntax.parse_term: "Proof.context -> string -> term"} \\
-  @{index_ML Syntax.parse_prop: "Proof.context -> string -> term"} \\[0.5ex]
-  @{index_ML Syntax.unparse_typ: "Proof.context -> typ -> Pretty.T"} \\
-  @{index_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
+  @{define_ML Syntax.parse_typ: "Proof.context -> string -> typ"} \\
+  @{define_ML Syntax.parse_term: "Proof.context -> string -> term"} \\
+  @{define_ML Syntax.parse_prop: "Proof.context -> string -> term"} \\[0.5ex]
+  @{define_ML Syntax.unparse_typ: "Proof.context -> typ -> Pretty.T"} \\
+  @{define_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Syntax.parse_typ\<close>~\<open>ctxt str\<close> parses a source string as pre-type that
@@ -219,11 +219,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Syntax.check_typs: "Proof.context -> typ list -> typ list"} \\
-  @{index_ML Syntax.check_terms: "Proof.context -> term list -> term list"} \\
-  @{index_ML Syntax.check_props: "Proof.context -> term list -> term list"} \\[0.5ex]
-  @{index_ML Syntax.uncheck_typs: "Proof.context -> typ list -> typ list"} \\
-  @{index_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
+  @{define_ML Syntax.check_typs: "Proof.context -> typ list -> typ list"} \\
+  @{define_ML Syntax.check_terms: "Proof.context -> term list -> term list"} \\
+  @{define_ML Syntax.check_props: "Proof.context -> term list -> term list"} \\[0.5ex]
+  @{define_ML Syntax.uncheck_typs: "Proof.context -> typ list -> typ list"} \\
+  @{define_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Syntax.check_typs\<close>~\<open>ctxt Ts\<close> checks a simultaneous list of pre-types

@@ -108,12 +108,12 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type theory} \\
-  @{index_ML Context.eq_thy: "theory * theory -> bool"} \\
-  @{index_ML Context.subthy: "theory * theory -> bool"} \\
-  @{index_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
-  @{index_ML Theory.parents_of: "theory -> theory list"} \\
-  @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
+  @{define_ML_type theory} \\
+  @{define_ML Context.eq_thy: "theory * theory -> bool"} \\
+  @{define_ML Context.subthy: "theory * theory -> bool"} \\
+  @{define_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
+  @{define_ML Theory.parents_of: "theory -> theory list"} \\
+  @{define_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>theory\<close> represents theory contexts.
@@ -187,10 +187,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Proof.context} \\
-  @{index_ML Proof_Context.init_global: "theory -> Proof.context"} \\
-  @{index_ML Proof_Context.theory_of: "Proof.context -> theory"} \\
-  @{index_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
+  @{define_ML_type Proof.context} \\
+  @{define_ML Proof_Context.init_global: "theory -> Proof.context"} \\
+  @{define_ML Proof_Context.theory_of: "Proof.context -> theory"} \\
+  @{define_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Proof.context\<close> represents proof contexts.
@@ -236,9 +236,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Context.generic} \\
-  @{index_ML Context.theory_of: "Context.generic -> theory"} \\
-  @{index_ML Context.proof_of: "Context.generic -> Proof.context"} \\
+  @{define_ML_type Context.generic} \\
+  @{define_ML Context.theory_of: "Context.generic -> theory"} \\
+  @{define_ML Context.proof_of: "Context.generic -> Proof.context"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Context.generic\<close> is the direct sum of \<^ML_type>\<open>theory\<close>
@@ -339,9 +339,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_functor Theory_Data} \\
-  @{index_ML_functor Proof_Data} \\
-  @{index_ML_functor Generic_Data} \\
+  @{define_ML_functor Theory_Data} \\
+  @{define_ML_functor Proof_Data} \\
+  @{define_ML_functor Generic_Data} \\
   \end{mldecls}
 
   \<^descr> \<^ML_functor>\<open>Theory_Data\<close>\<open>(spec)\<close> declares data for type \<^ML_type>\<open>theory\<close>
@@ -482,15 +482,15 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Config.get: "Proof.context -> 'a Config.T -> 'a"} \\
-  @{index_ML Config.map: "'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context"} \\
-  @{index_ML Attrib.setup_config_bool: "binding -> (Context.generic -> bool) ->
+  @{define_ML Config.get: "Proof.context -> 'a Config.T -> 'a"} \\
+  @{define_ML Config.map: "'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context"} \\
+  @{define_ML Attrib.setup_config_bool: "binding -> (Context.generic -> bool) ->
   bool Config.T"} \\
-  @{index_ML Attrib.setup_config_int: "binding -> (Context.generic -> int) ->
+  @{define_ML Attrib.setup_config_int: "binding -> (Context.generic -> int) ->
   int Config.T"} \\
-  @{index_ML Attrib.setup_config_real: "binding -> (Context.generic -> real) ->
+  @{define_ML Attrib.setup_config_real: "binding -> (Context.generic -> real) ->
   real Config.T"} \\
-  @{index_ML Attrib.setup_config_string: "binding -> (Context.generic -> string) ->
+  @{define_ML Attrib.setup_config_string: "binding -> (Context.generic -> string) ->
   string Config.T"} \\
   \end{mldecls}
 
@@ -613,18 +613,18 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Name.internal: "string -> string"} \\
-  @{index_ML Name.skolem: "string -> string"} \\
+  @{define_ML Name.internal: "string -> string"} \\
+  @{define_ML Name.skolem: "string -> string"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type Name.context} \\
-  @{index_ML Name.context: Name.context} \\
-  @{index_ML Name.declare: "string -> Name.context -> Name.context"} \\
-  @{index_ML Name.invent: "Name.context -> string -> int -> string list"} \\
-  @{index_ML Name.variant: "string -> Name.context -> string * Name.context"} \\
+  @{define_ML_type Name.context} \\
+  @{define_ML Name.context: Name.context} \\
+  @{define_ML Name.declare: "string -> Name.context -> Name.context"} \\
+  @{define_ML Name.invent: "Name.context -> string -> int -> string list"} \\
+  @{define_ML Name.variant: "string -> Name.context -> string * Name.context"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
+  @{define_ML Variable.names_of: "Proof.context -> Name.context"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Name.internal\<close>~\<open>name\<close> produces an internal name by adding one
@@ -720,7 +720,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type indexname = "string * int"} \\
+  @{define_ML_type indexname = "string * int"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>indexname\<close> represents indexed names. This is an
@@ -755,11 +755,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Long_Name.base_name: "string -> string"} \\
-  @{index_ML Long_Name.qualifier: "string -> string"} \\
-  @{index_ML Long_Name.append: "string -> string -> string"} \\
-  @{index_ML Long_Name.implode: "string list -> string"} \\
-  @{index_ML Long_Name.explode: "string -> string list"} \\
+  @{define_ML Long_Name.base_name: "string -> string"} \\
+  @{define_ML Long_Name.qualifier: "string -> string"} \\
+  @{define_ML Long_Name.append: "string -> string -> string"} \\
+  @{define_ML Long_Name.implode: "string list -> string"} \\
+  @{define_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Long_Name.base_name\<close>~\<open>name\<close> returns the base name of a long name.
@@ -832,29 +832,29 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type binding} \\
-  @{index_ML Binding.empty: binding} \\
-  @{index_ML Binding.name: "string -> binding"} \\
-  @{index_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
-  @{index_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
-  @{index_ML Binding.concealed: "binding -> binding"} \\
-  @{index_ML Binding.print: "binding -> string"} \\
+  @{define_ML_type binding} \\
+  @{define_ML Binding.empty: binding} \\
+  @{define_ML Binding.name: "string -> binding"} \\
+  @{define_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
+  @{define_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
+  @{define_ML Binding.concealed: "binding -> binding"} \\
+  @{define_ML Binding.print: "binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type Name_Space.naming} \\
-  @{index_ML Name_Space.global_naming: Name_Space.naming} \\
-  @{index_ML Name_Space.add_path: "string -> Name_Space.naming -> Name_Space.naming"} \\
-  @{index_ML Name_Space.full_name: "Name_Space.naming -> binding -> string"} \\
+  @{define_ML_type Name_Space.naming} \\
+  @{define_ML Name_Space.global_naming: Name_Space.naming} \\
+  @{define_ML Name_Space.add_path: "string -> Name_Space.naming -> Name_Space.naming"} \\
+  @{define_ML Name_Space.full_name: "Name_Space.naming -> binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type Name_Space.T} \\
-  @{index_ML Name_Space.empty: "string -> Name_Space.T"} \\
-  @{index_ML Name_Space.merge: "Name_Space.T * Name_Space.T -> Name_Space.T"} \\
-  @{index_ML Name_Space.declare: "Context.generic -> bool ->
+  @{define_ML_type Name_Space.T} \\
+  @{define_ML Name_Space.empty: "string -> Name_Space.T"} \\
+  @{define_ML Name_Space.merge: "Name_Space.T * Name_Space.T -> Name_Space.T"} \\
+  @{define_ML Name_Space.declare: "Context.generic -> bool ->
   binding -> Name_Space.T -> string * Name_Space.T"} \\
-  @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
-  @{index_ML Name_Space.extern: "Proof.context -> Name_Space.T -> string -> string"} \\
-  @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
+  @{define_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
+  @{define_ML Name_Space.extern: "Proof.context -> Name_Space.T -> string -> string"} \\
+  @{define_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>binding\<close> represents the abstract concept of name bindings.

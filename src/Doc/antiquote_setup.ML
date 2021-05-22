@@ -111,12 +111,12 @@ in
 
 val _ =
   Theory.setup
-   (antiquotation_ml' parse_ml test_val "" \<^binding>\<open>index_ML\<close> #>
-    antiquotation_ml' parse_ml test_op "infix" \<^binding>\<open>index_ML_infix\<close> #>
-    antiquotation_ml' parse_type test_type "type" \<^binding>\<open>index_ML_type\<close> #>
-    antiquotation_ml' parse_exn text_exn "exception" \<^binding>\<open>index_ML_exception\<close> #>
-    antiquotation_ml' parse_struct test_struct "structure" \<^binding>\<open>index_ML_structure\<close> #>
-    antiquotation_ml' parse_struct test_functor "functor" \<^binding>\<open>index_ML_functor\<close>);
+   (antiquotation_ml' parse_ml test_val "" \<^binding>\<open>define_ML\<close> #>
+    antiquotation_ml' parse_ml test_op "infix" \<^binding>\<open>define_ML_infix\<close> #>
+    antiquotation_ml' parse_type test_type "type" \<^binding>\<open>define_ML_type\<close> #>
+    antiquotation_ml' parse_exn text_exn "exception" \<^binding>\<open>define_ML_exception\<close> #>
+    antiquotation_ml' parse_struct test_struct "structure" \<^binding>\<open>define_ML_structure\<close> #>
+    antiquotation_ml' parse_struct test_functor "functor" \<^binding>\<open>define_ML_functor\<close>);
 
 end;
 

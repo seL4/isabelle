@@ -60,16 +60,16 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Proof.state} \\
-  @{index_ML Proof.assert_forward: "Proof.state -> Proof.state"} \\
-  @{index_ML Proof.assert_chain: "Proof.state -> Proof.state"} \\
-  @{index_ML Proof.assert_backward: "Proof.state -> Proof.state"} \\
-  @{index_ML Proof.simple_goal: "Proof.state -> {context: Proof.context, goal: thm}"} \\
-  @{index_ML Proof.goal: "Proof.state ->
+  @{define_ML_type Proof.state} \\
+  @{define_ML Proof.assert_forward: "Proof.state -> Proof.state"} \\
+  @{define_ML Proof.assert_chain: "Proof.state -> Proof.state"} \\
+  @{define_ML Proof.assert_backward: "Proof.state -> Proof.state"} \\
+  @{define_ML Proof.simple_goal: "Proof.state -> {context: Proof.context, goal: thm}"} \\
+  @{define_ML Proof.goal: "Proof.state ->
   {context: Proof.context, facts: thm list, goal: thm}"} \\
-  @{index_ML Proof.raw_goal: "Proof.state ->
+  @{define_ML Proof.raw_goal: "Proof.state ->
   {context: Proof.context, facts: thm list, goal: thm}"} \\
-  @{index_ML Proof.theorem: "Method.text option ->
+  @{define_ML Proof.theorem: "Method.text option ->
   (thm list list -> Proof.context -> Proof.context) ->
   (term * term list) list list -> Proof.context -> Proof.state"} \\
   \end{mldecls}
@@ -272,13 +272,13 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Proof.method} \\
-  @{index_ML CONTEXT_METHOD: "(thm list -> context_tactic) -> Proof.method"} \\
-  @{index_ML METHOD: "(thm list -> tactic) -> Proof.method"} \\
-  @{index_ML SIMPLE_METHOD: "tactic -> Proof.method"} \\
-  @{index_ML SIMPLE_METHOD': "(int -> tactic) -> Proof.method"} \\
-  @{index_ML Method.insert_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML Method.setup: "binding -> (Proof.context -> Proof.method) context_parser ->
+  @{define_ML_type Proof.method} \\
+  @{define_ML CONTEXT_METHOD: "(thm list -> context_tactic) -> Proof.method"} \\
+  @{define_ML METHOD: "(thm list -> tactic) -> Proof.method"} \\
+  @{define_ML SIMPLE_METHOD: "tactic -> Proof.method"} \\
+  @{define_ML SIMPLE_METHOD': "(int -> tactic) -> Proof.method"} \\
+  @{define_ML Method.insert_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML Method.setup: "binding -> (Proof.context -> Proof.method) context_parser ->
   string -> theory -> theory"} \\
   \end{mldecls}
 
@@ -286,7 +286,7 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>CONTEXT_METHOD\<close>~\<open>(fn facts => context_tactic)\<close> wraps \<open>context_tactic\<close>
   depending on goal facts as a general proof method that may change the proof
-  context dynamically. A typical operation is \<^ML>\<open>Proof_Context.update_cases\<close>, which is wrapped up as combinator @{index_ML
+  context dynamically. A typical operation is \<^ML>\<open>Proof_Context.update_cases\<close>, which is wrapped up as combinator @{define_ML
   CONTEXT_CASES} for convenience.
 
   \<^descr> \<^ML>\<open>METHOD\<close>~\<open>(fn facts => tactic)\<close> wraps \<open>tactic\<close> depending on goal facts
@@ -495,12 +495,12 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type attribute} \\
-  @{index_ML Thm.rule_attribute: "thm list ->
+  @{define_ML_type attribute} \\
+  @{define_ML Thm.rule_attribute: "thm list ->
   (Context.generic -> thm -> thm) -> attribute"} \\
-  @{index_ML Thm.declaration_attribute: "
+  @{define_ML Thm.declaration_attribute: "
   (thm -> Context.generic -> Context.generic) -> attribute"} \\
-  @{index_ML Attrib.setup: "binding -> attribute context_parser ->
+  @{define_ML Attrib.setup: "binding -> attribute context_parser ->
   string -> theory -> theory"} \\
   \end{mldecls}
 

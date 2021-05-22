@@ -92,18 +92,18 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Variable.add_fixes: "
+  @{define_ML Variable.add_fixes: "
   string list -> Proof.context -> string list * Proof.context"} \\
-  @{index_ML Variable.variant_fixes: "
+  @{define_ML Variable.variant_fixes: "
   string list -> Proof.context -> string list * Proof.context"} \\
-  @{index_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
-  @{index_ML Variable.declare_constraints: "term -> Proof.context -> Proof.context"} \\
-  @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
-  @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
-  @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
+  @{define_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
+  @{define_ML Variable.declare_constraints: "term -> Proof.context -> Proof.context"} \\
+  @{define_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
+  @{define_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
+  @{define_ML Variable.import: "bool -> thm list -> Proof.context ->
   ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list)
     * Proof.context"} \\
-  @{index_ML Variable.focus: "binding list option -> term -> Proof.context ->
+  @{define_ML Variable.focus: "binding list option -> term -> Proof.context ->
   ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
@@ -263,14 +263,14 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Assumption.export} \\
-  @{index_ML Assumption.assume: "Proof.context -> cterm -> thm"} \\
-  @{index_ML Assumption.add_assms:
+  @{define_ML_type Assumption.export} \\
+  @{define_ML Assumption.assume: "Proof.context -> cterm -> thm"} \\
+  @{define_ML Assumption.add_assms:
     "Assumption.export ->
   cterm list -> Proof.context -> thm list * Proof.context"} \\
-  @{index_ML Assumption.add_assumes: "
+  @{define_ML Assumption.add_assumes: "
   cterm list -> Proof.context -> thm list * Proof.context"} \\
-  @{index_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
+  @{define_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Assumption.export\<close> represents arbitrary export rules, which
@@ -359,31 +359,31 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
+  @{define_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) ->
+  @{define_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) ->
+  @{define_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
+  @{define_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.focus: "Proof.context -> int -> binding list option ->
+  @{define_ML Subgoal.focus: "Proof.context -> int -> binding list option ->
   thm -> Subgoal.focus * thm"} \\
-  @{index_ML Subgoal.focus_prems: "Proof.context -> int -> binding list option ->
+  @{define_ML Subgoal.focus_prems: "Proof.context -> int -> binding list option ->
   thm -> Subgoal.focus * thm"} \\
-  @{index_ML Subgoal.focus_params: "Proof.context -> int -> binding list option ->
+  @{define_ML Subgoal.focus_params: "Proof.context -> int -> binding list option ->
   thm -> Subgoal.focus * thm"} \\
   \end{mldecls}
 
   \begin{mldecls}
-  @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
+  @{define_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
-  @{index_ML Goal.prove_common: "Proof.context -> int option ->
+  @{define_ML Goal.prove_common: "Proof.context -> int option ->
   string list -> term list -> term list ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Obtain.result: "(Proof.context -> tactic) -> thm list ->
+  @{define_ML Obtain.result: "(Proof.context -> tactic) -> thm list ->
   Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
