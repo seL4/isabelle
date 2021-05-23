@@ -326,6 +326,7 @@ text \<open>
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
+    -L FILE      append syslog messages to given FILE
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -458,6 +459,11 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists
   the source files that contribute to a session.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-L\<close>~\<open>FILE\<close> appends syslog messages to the given file. Such messages
+  can be produced in Isabelle/ML via formal \<^ML>\<open>Output.system_message\<close> or
+  informal \<^ML>\<open>Output.physical_stderr\<close>.
 
   \<^medskip>
   Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for outer syntax (multiple

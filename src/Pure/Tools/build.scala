@@ -169,6 +169,7 @@ object Build
     selection: Sessions.Selection = Sessions.Selection.empty,
     presentation: Presentation.Context = Presentation.Context.none,
     progress: Progress = new Progress,
+    log: Logger = No_Logger,
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
@@ -418,7 +419,7 @@ object Build
                   val numa_node = numa_nodes.next(used_node)
                   val job =
                     new Build_Job(progress, session_name, info, deps, store, do_store,
-                      verbose, numa_node, queue.command_timings(session_name))
+                      verbose, numa_node, log, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -528,6 +529,7 @@ object Build
 
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
+    var log: Logger = No_Logger
     var numa_shuffling = false
     var presentation = Presentation.Context.none
     var requirements = false
@@ -554,6 +556,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
+    -L FILE      append syslog messages to given FILE
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -579,6 +582,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 """ + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "L:" -> (arg => log = Logger.make(Some(Path.explode(arg)))),
       "N" -> (_ => numa_shuffling = true),
       "P:" -> (arg => presentation = Presentation.Context.make(arg)),
       "R" -> (_ => requirements = true),
@@ -625,6 +629,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             sessions = sessions),
           presentation = presentation,
           progress = progress,
+          log = log,
           check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
           build_heap = build_heap,
           clean_build = clean_build,

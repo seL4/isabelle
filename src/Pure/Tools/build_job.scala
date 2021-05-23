@@ -204,6 +204,7 @@ class Build_Job(progress: Progress,
   do_store: Boolean,
   verbose: Boolean,
   val numa_node: Option[Int],
+  log: Logger,
   command_timings0: List[Properties.T])
 {
   val options: Options = NUMA.policy_options(info.options, numa_node)
@@ -232,7 +233,8 @@ class Build_Job(progress: Progress,
         }
         else Nil
 
-      val resources = new Resources(sessions_structure, base, command_timings = command_timings0)
+      val resources =
+        new Resources(sessions_structure, base, log = log, command_timings = command_timings0)
       val session =
         new Session(options, resources) {
           override val cache: XML.Cache = store.cache
@@ -389,6 +391,8 @@ class Build_Job(progress: Progress,
         {
           case msg: Prover.Output =>
             val message = msg.message
+            if (msg.is_syslog) resources.log(msg.toString)
+
             if (msg.is_stdout) {
               stdout ++= Symbol.encode(XML.content(message))
             }
