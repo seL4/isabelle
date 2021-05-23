@@ -327,36 +327,36 @@ fun test_functor (Antiquote.Text tok :: _, _) =
       ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | test_functor _ = raise Fail "Bad ML functor specification";
 
-val is_name =
-  ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.Long_Ident);
-
-fun is_ml_identifier ants =
-  forall Antiquote.is_text ants andalso
-    (case filter is_name (map (Antiquote.the_text "") ants) of
-      toks as [_] => Symbol_Pos.is_identifier (Long_Name.base_name (ML_Lex.flatten toks))
-    | _ => false);
-
 val parse_ml0 = Args.text_input >> rpair Input.empty;
 val parse_ml = Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty;
 val parse_type = Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty;
 val parse_exn = Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty;
 
+fun eval ctxt pos ml =
+  ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos ml
+    handle ERROR msg => error (msg ^ Position.here pos);
+
+fun make_text sep sources =
+  let
+    val (txt1, txt2) = apply2 (#1 o Input.source_content) sources;
+    val is_ident =
+      (case try List.last (Symbol.explode txt1) of
+        NONE => false
+      | SOME s => Symbol.is_ascii_letdig s);
+    val txt =
+      if txt2 = "" then txt1
+      else if sep = ":" andalso is_ident then txt1 ^ ": " ^ txt2
+      else txt1 ^ " " ^ sep ^ " " ^ txt2
+  in (txt, txt1) end;
+
 fun antiquotation_ml parse test kind show_kind binding index =
   Document_Output.antiquotation_raw binding (Scan.lift parse)
-    (fn ctxt => fn (source1, source2) =>
+    (fn ctxt => fn sources =>
       let
-        val (ml1, ml2) = apply2 ML_Lex.read_source (source1, source2);
-        val pos = Input.pos_of source1;
-        val _ =
-          ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (test (ml1, ml2))
-            handle ERROR msg => error (msg ^ Position.here pos);
+        val _ = apply2 ML_Lex.read_source sources |> test |> eval ctxt (Input.pos_of (#1 sources));
 
-        val (txt1, txt2) = apply2 (#1 o Input.source_content) (source1, source2);
         val sep = if kind = "type" then "=" else if kind = "exception" then "of" else ":";
-        val txt =
-          if txt2 = "" then txt1
-          else if sep = ":" andalso is_ml_identifier ml1 then txt1 ^ ": " ^ txt2
-          else txt1 ^ " " ^ sep ^ " " ^ txt2;
+        val (txt, idx) = make_text sep sources;
 
         val main_text =
           Document_Output.verbatim ctxt
@@ -367,8 +367,8 @@ fun antiquotation_ml parse test kind show_kind binding index =
             let
               val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
               val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
-              val txt' = Latex.block [Document_Output.verbatim ctxt' txt1, Latex.string kind'];
-              val like = Document_Antiquotation.approx_content ctxt' txt1;
+              val txt' = Latex.block [Document_Output.verbatim ctxt' idx, Latex.string kind'];
+              val like = Document_Antiquotation.approx_content ctxt' idx;
             in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
       in Latex.block (the_list index_text @ [main_text]) end);
 
