@@ -206,7 +206,7 @@ text \<open>
       @@{antiquotation ML_text} options @{syntax text} |
       @@{antiquotation ML} options @{syntax text} |
       @@{antiquotation ML_infix} options @{syntax text} |
-      @@{antiquotation ML_type} options @{syntax text} |
+      @@{antiquotation ML_type} options @{syntax typeargs} @{syntax text} |
       @@{antiquotation ML_structure} options @{syntax text} |
       @@{antiquotation ML_functor} options @{syntax text} |
       @@{antiquotation emph} options @{syntax text} |
@@ -302,6 +302,12 @@ text \<open>
   verbatim. The variants \<open>@{ML_def s}\<close> and \<open>@{ML_ref s}\<close> etc. maintain the
   document index: ``def'' means to make a bold entry, ``ref'' means to make a
   regular entry.
+
+  There are two forms for type constructors, with or without separate type
+  arguments: this impacts only the index entry. For example, \<open>@{ML_type_ref
+  \<open>'a list\<close>}\<close> makes an entry literally for ``\<open>'a list\<close>'' (sorted under the
+  letter ``a''), but \<open>@{ML_type_ref 'a \<open>list\<close>}\<close> makes an entry for the
+  constructor name ``\<open>list\<close>''.
 
   \<^descr> \<open>@{emph s}\<close> prints document source recursively, with {\LaTeX} markup
   \<^verbatim>\<open>\emph{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>.

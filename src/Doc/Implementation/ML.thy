@@ -1593,7 +1593,7 @@ subsection \<open>Unsynchronized references\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML_type "'a Unsynchronized.ref"} \\
+  @{define_ML_type 'a "Unsynchronized.ref"} \\
   @{define_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
   @{define_ML "!": "'a Unsynchronized.ref -> 'a"} \\
   @{define_ML_infix ":=" : "'a Unsynchronized.ref * 'a -> unit"} \\
@@ -1790,7 +1790,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML_type "'a Synchronized.var"} \\
+  @{define_ML_type 'a "Synchronized.var"} \\
   @{define_ML Synchronized.var: "string -> 'a -> 'a Synchronized.var"} \\
   @{define_ML Synchronized.guarded_access: "'a Synchronized.var ->
   ('a -> ('b * 'a) option) -> 'b"} \\
@@ -1890,7 +1890,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML_type "'a Exn.result"} \\
+  @{define_ML_type 'a "Exn.result"} \\
   @{define_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
   @{define_ML Exn.interruptible_capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
   @{define_ML Exn.release: "'a Exn.result -> 'a"} \\
@@ -2009,7 +2009,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML_type "'a lazy"} \\
+  @{define_ML_type 'a "lazy"} \\
   @{define_ML Lazy.lazy: "(unit -> 'a) -> 'a lazy"} \\
   @{define_ML Lazy.value: "'a -> 'a lazy"} \\
   @{define_ML Lazy.force: "'a lazy -> 'a"} \\
@@ -2090,7 +2090,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML_type "'a future"} \\
+  @{define_ML_type 'a "future"} \\
   @{define_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
   @{define_ML Future.forks: "Future.params -> (unit -> 'a) list -> 'a future list"} \\
   @{define_ML Future.join: "'a future -> 'a"} \\

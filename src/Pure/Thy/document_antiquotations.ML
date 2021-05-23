@@ -327,10 +327,17 @@ fun test_functor (Antiquote.Text tok :: _, _) =
       ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | test_functor _ = raise Fail "Bad ML functor specification";
 
-val parse_ml0 = Args.text_input >> rpair Input.empty;
-val parse_ml = Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty;
-val parse_type = Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty;
-val parse_exn = Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty;
+val parse_ml0 = Args.text_input >> (fn source => ("", (source, Input.empty)));
+
+val parse_ml =
+  Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty >> pair "";
+
+val parse_exn =
+  Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty >> pair "";
+
+val parse_type =
+  (Parse.type_args >> (fn [] => "" | [a] => a ^ " " | bs => enclose "(" ") " (commas bs))) --
+    (Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty);
 
 fun eval ctxt pos ml =
   ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos ml
@@ -351,16 +358,18 @@ fun make_text sep sources =
 
 fun antiquotation_ml parse test kind show_kind binding index =
   Document_Output.antiquotation_raw binding (Scan.lift parse)
-    (fn ctxt => fn sources =>
+    (fn ctxt => fn (txt0, sources) =>
       let
-        val _ = apply2 ML_Lex.read_source sources |> test |> eval ctxt (Input.pos_of (#1 sources));
+        val (ml1, ml2) = apply2 ML_Lex.read_source sources;
+        val ml0 = ML_Lex.read_source (Input.string txt0);
+        val _ = test (ml0 @ ml1, ml2) |> eval ctxt (Input.pos_of (#1 sources));
 
         val sep = if kind = "type" then "=" else if kind = "exception" then "of" else ":";
         val (txt, idx) = make_text sep sources;
 
         val main_text =
           Document_Output.verbatim ctxt
-            (if kind = "" orelse not show_kind then txt else kind ^ " " ^ txt);
+            ((if kind = "" orelse not show_kind then "" else kind ^ " ") ^ txt0 ^ txt);
 
         val index_text =
           index |> Option.map (fn def =>
