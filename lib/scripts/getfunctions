@@ -6,6 +6,8 @@
 # non-interactive bash processess. NB: bash shell functions are not portable
 # and may be dropped by aggressively POSIX-conformant versions of /bin/sh.
 
+unset CDPATH
+
 if type splitarray >/dev/null 2>/dev/null
 then
   :
