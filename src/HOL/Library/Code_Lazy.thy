@@ -182,7 +182,7 @@ code_printing
 \<open>object Lazy {
   final class Lazy[A] (f: Unit => A) {
     var evaluated = false;
-    lazy val x: A = f ()
+    lazy val x: A = f(())
 
     def get() : A = {
       evaluated = true;
@@ -210,7 +210,7 @@ code_printing
     x: Lazy[A],
     dummy: Term) : Term = {
     if (x.evaluated)
-      app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(abs("_")(unitT)(term_of(x.get)))
+      app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(abs("_")(unitT)(term_of(x.get())))
     else
       app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(const("Pure.dummy_pattern")(funT(unitT)(ty)))
   }

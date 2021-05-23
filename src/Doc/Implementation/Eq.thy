@@ -55,13 +55,13 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Thm.reflexive: "cterm -> thm"} \\
-  @{index_ML Thm.symmetric: "thm -> thm"} \\
-  @{index_ML Thm.transitive: "thm -> thm -> thm"} \\
-  @{index_ML Thm.abstract_rule: "string -> cterm -> thm -> thm"} \\
-  @{index_ML Thm.combination: "thm -> thm -> thm"} \\[0.5ex]
-  @{index_ML Thm.equal_intr: "thm -> thm -> thm"} \\
-  @{index_ML Thm.equal_elim: "thm -> thm -> thm"} \\
+  @{define_ML Thm.reflexive: "cterm -> thm"} \\
+  @{define_ML Thm.symmetric: "thm -> thm"} \\
+  @{define_ML Thm.transitive: "thm -> thm -> thm"} \\
+  @{define_ML Thm.abstract_rule: "string -> cterm -> thm -> thm"} \\
+  @{define_ML Thm.combination: "thm -> thm -> thm"} \\[0.5ex]
+  @{define_ML Thm.equal_intr: "thm -> thm -> thm"} \\
+  @{define_ML Thm.equal_elim: "thm -> thm -> thm"} \\
   \end{mldecls}
 
   See also \<^file>\<open>~~/src/Pure/thm.ML\<close> for further description of these inference
@@ -82,9 +82,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_structure Conv} \\
-  @{index_ML_type conv} \\
-  @{index_ML Simplifier.asm_full_rewrite : "Proof.context -> conv"} \\
+  @{define_ML_structure Conv} \\
+  @{define_ML_type conv} \\
+  @{define_ML Simplifier.asm_full_rewrite : "Proof.context -> conv"} \\
   \end{mldecls}
 
   \<^descr> \<^ML_structure>\<open>Conv\<close> is a library of combinators to build conversions,
@@ -109,11 +109,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML rewrite_rule: "Proof.context -> thm list -> thm -> thm"} \\
-  @{index_ML rewrite_goals_rule: "Proof.context -> thm list -> thm -> thm"} \\
-  @{index_ML rewrite_goal_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML rewrite_goals_tac: "Proof.context -> thm list -> tactic"} \\
-  @{index_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
+  @{define_ML rewrite_rule: "Proof.context -> thm list -> thm -> thm"} \\
+  @{define_ML rewrite_goals_rule: "Proof.context -> thm list -> thm -> thm"} \\
+  @{define_ML rewrite_goal_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML rewrite_goals_tac: "Proof.context -> thm list -> tactic"} \\
+  @{define_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>rewrite_rule\<close>~\<open>ctxt rules thm\<close> rewrites the whole theorem by the

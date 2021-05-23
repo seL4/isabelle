@@ -35,6 +35,7 @@ sig
   val integer: string -> int
   val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
     Antiquote.text_antiquote -> Latex.text list
+  val approx_content: Proof.context -> string -> string
 end;
 
 structure Document_Antiquotation: DOCUMENT_ANTIQUOTATION =
@@ -187,15 +188,52 @@ fun eval ctxt pos (opts, src) =
 
 in
 
+fun read_antiq ctxt ({range = (pos, _), body, ...}: Antiquote.antiq) =
+  let val keywords = Thy_Header.get_keywords' ctxt;
+  in Token.read_antiq keywords parse_antiq (body, pos) end;
+
 fun evaluate eval_text ctxt antiq =
   (case antiq of
     Antiquote.Text ss => eval_text ss
   | Antiquote.Control {name, body, ...} =>
       eval ctxt Position.none
         ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
-  | Antiquote.Antiq {range = (pos, _), body, ...} =>
-      let val keywords = Thy_Header.get_keywords' ctxt;
-      in eval ctxt pos (Token.read_antiq keywords parse_antiq (body, pos)) end);
+  | Antiquote.Antiq antiq => eval ctxt (#1 (#range antiq)) (read_antiq ctxt antiq));
+
+end;
+
+
+(* approximative content, e.g. for index entries *)
+
+local
+
+val strip_symbols = [Symbol.open_, Symbol.close, "'", "\"", "`"];
+
+fun strip_symbol sym =
+  if member (op =) strip_symbols sym then ""
+  else
+    (case Symbol.decode sym of
+      Symbol.Char s => s
+    | Symbol.UTF8 s => s
+    | Symbol.Sym s => s
+    | Symbol.Control s => s
+    | _ => "");
+
+fun strip_antiq _ (Antiquote.Text body) = map Symbol_Pos.symbol body
+  | strip_antiq _ (Antiquote.Control {body, ...}) = map Symbol_Pos.symbol body
+  | strip_antiq ctxt (Antiquote.Antiq antiq) =
+      read_antiq ctxt antiq |> #2 |> tl
+      |> maps (Symbol.explode o Token.content_of);
+
+in
+
+fun approx_content ctxt =
+  Symbol_Pos.explode0
+  #> trim (Symbol.is_blank o Symbol_Pos.symbol)
+  #> Antiquote.parse_comments Position.none
+  #> maps (strip_antiq ctxt)
+  #> map strip_symbol
+  #> implode;
 
 end;
 

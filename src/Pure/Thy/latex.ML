@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/latex.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-LaTeX presentation elements -- based on outer lexical syntax.
+LaTeX output of theory sources.
 *)
 
 signature LATEX =
@@ -29,6 +29,12 @@ sig
   val environment: string -> string -> string
   val isabelle_body: string -> text list -> text list
   val theory_entry: string -> string
+  val index_escape: string -> string
+  type index_item = {text: text, like: string}
+  val index_item: index_item -> text
+  type index_entry = {items: index_item list, def: bool}
+  val index_entry: index_entry -> text
+  val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
   val latex_output: string -> string * int
   val latex_markup: string * Properties.T -> Markup.output
@@ -46,6 +52,9 @@ with
 fun string s = Text (s, Position.none);
 val text = Text;
 val block = Block;
+
+fun map_text f (Text (s, pos)) = Text (f s, pos)
+  | map_text f (Block texts) = Block ((map o map_text) f texts);
 
 fun output_text texts =
   let
@@ -241,6 +250,36 @@ fun isabelle_body name =
    "%\n\\end{isabellebody}%\n";
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
+
+
+(* index entries *)
+
+type index_item = {text: text, like: string};
+type index_entry = {items: index_item list, def: bool};
+
+val index_escape =
+  translate_string (fn s =>
+    if member_string "!\"@|" s then "\\char" ^ string_of_int (ord s)
+    else if member_string "\\{}#" s then "\"" ^ s else s);
+
+fun index_item (item: index_item) =
+  let
+    val like_text =
+      if #like item = "" then []
+      else [string (index_escape (#like item) ^ "@")];
+  in block (like_text @ [map_text index_escape (#text item)]) end;
+
+fun index_entry (entry: index_entry) =
+  (separate (string "!") (map index_item (#items entry)) @
+    [string ("|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))])
+  |> enclose_block "\\index{" "}";
+
+
+fun index_binding NONE = I
+  | index_binding (SOME def) = Binding.map_name (suffix (if def then "_def" else "_ref"));
+
+fun index_variants setup binding =
+  fold (fn index => setup (index_binding index binding) index) [NONE, SOME true, SOME false];
 
 
 (* print mode *)

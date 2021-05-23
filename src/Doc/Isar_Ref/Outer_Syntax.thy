@@ -343,12 +343,16 @@ text \<open>
   no infixes.
 
   \<^rail>\<open>
-    @{syntax_def typespec}:
-      (() | @{syntax type_ident} | '(' ( @{syntax type_ident} + ',' ) ')') @{syntax name}
+    @{syntax_def typeargs}:
+      (() | @{syntax type_ident} | '(' ( @{syntax type_ident} + ',' ) ')')
     ;
-    @{syntax_def typespec_sorts}:
+    @{syntax_def typeargs_sorts}:
       (() | (@{syntax type_ident} ('::' @{syntax sort})?) |
-        '(' ( (@{syntax type_ident} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
+        '(' ( (@{syntax type_ident} ('::' @{syntax sort})?) + ',' ) ')')
+    ;
+    @{syntax_def typespec}: @{syntax typeargs} @{syntax name}
+    ;
+    @{syntax_def typespec_sorts}: @{syntax typeargs_sorts} @{syntax name}
   \<close>
 \<close>
 

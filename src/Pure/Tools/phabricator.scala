@@ -91,7 +91,7 @@ object Phabricator
     NAME="$(echo "$REPLY" | cut -d: -f1)"
     ROOT="$(echo "$REPLY" | cut -d: -f2)"
     {
-""" + Library.prefix_lines("      ", body) + """
+""" + Library.indent_lines(6, body) + """
     } < /dev/null
   done
 } < """ + File.bash_path(global_config) + "\n" +

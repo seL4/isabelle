@@ -29,10 +29,7 @@ object Isabelle_Platform
         val result = ssh.execute("bash -c " + Bash.string(script)).check
         new Isabelle_Platform(
           result.out_lines.map(line =>
-            space_explode('=', line) match {
-              case List(a, b) => (a, b)
-              case _ => error("Bad output: " + quote(result.out))
-            }))
+            Properties.Eq.unapply(line) getOrElse error("Bad output: " + quote(result.out))))
     }
   }
 

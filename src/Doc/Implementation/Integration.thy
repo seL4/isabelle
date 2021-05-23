@@ -37,11 +37,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Toplevel.state} \\
-  @{index_ML_exception Toplevel.UNDEF} \\
-  @{index_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
-  @{index_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
-  @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
+  @{define_ML_type Toplevel.state} \\
+  @{define_ML_exception Toplevel.UNDEF} \\
+  @{define_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
+  @{define_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
+  @{define_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Toplevel.state\<close> represents Isar toplevel states, which are
@@ -95,17 +95,17 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Toplevel.keep: "(Toplevel.state -> unit) ->
+  @{define_ML Toplevel.keep: "(Toplevel.state -> unit) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.theory: "(theory -> theory) ->
+  @{define_ML Toplevel.theory: "(theory -> theory) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.theory_to_proof: "(theory -> Proof.state) ->
+  @{define_ML Toplevel.theory_to_proof: "(theory -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.proof: "(Proof.state -> Proof.state) ->
+  @{define_ML Toplevel.proof: "(Proof.state -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.result Seq.seq) ->
+  @{define_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.result Seq.seq) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.end_proof: "(bool -> Proof.state -> Proof.context) ->
+  @{define_ML Toplevel.end_proof: "(bool -> Proof.state -> Proof.context) ->
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 
@@ -150,10 +150,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML use_thy: "string -> unit"} \\
-  @{index_ML Thy_Info.get_theory: "string -> theory"} \\
-  @{index_ML Thy_Info.remove_thy: "string -> unit"} \\
-  @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
+  @{define_ML use_thy: "string -> unit"} \\
+  @{define_ML Thy_Info.get_theory: "string -> theory"} \\
+  @{define_ML Thy_Info.remove_thy: "string -> unit"} \\
+  @{define_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>use_thy\<close>~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the

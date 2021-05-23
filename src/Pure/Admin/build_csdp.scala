@@ -23,13 +23,13 @@ object Build_CSDP
     def print: Option[String] =
       if (changed.isEmpty) None
       else
-        Some("  * " + platform + ":\n" + changed.map(p => "    " + p._1 + "=" + p._2)
+        Some("  * " + platform + ":\n" + changed.map(p => "    " + Properties.Eq(p))
           .mkString("\n"))
 
     def change(path: Path): Unit =
     {
-      def change_line(line: String, entry: (String, String)): String =
-        line.replaceAll(entry._1 + "=.*", entry._1 + "=" + entry._2)
+      def change_line(line: String, p: (String, String)): String =
+        line.replaceAll(p._1 + "=.*", Properties.Eq(p))
       File.change(path, s =>
         split_lines(s).map(line => changed.foldLeft(line)(change_line)).mkString("\n"))
     }

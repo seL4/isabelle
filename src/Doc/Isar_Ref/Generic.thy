@@ -153,7 +153,7 @@ text \<open>
 
   \<^descr> @{attribute THEN}~\<open>a\<close> composes rules by resolution; it resolves with the
   first premise of \<open>a\<close> (an alternative position may be also specified). See
-  also \<^ML_op>\<open>RS\<close> in @{cite "isabelle-implementation"}.
+  also \<^ML_infix>\<open>RS\<close> in @{cite "isabelle-implementation"}.
   
   \<^descr> @{attribute unfolded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{attribute folded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>
   expand and fold back again the given definitions throughout a rule.
@@ -638,7 +638,7 @@ text \<open>
   of the term ordering.
 
   The default is lexicographic ordering of term structure, but this could be
-  also changed locally for special applications via @{index_ML
+  also changed locally for special applications via @{define_ML
   Simplifier.set_term_ord} in Isabelle/ML.
 
   \<^medskip>
@@ -866,9 +866,9 @@ subsubsection \<open>The subgoaler\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML Simplifier.set_subgoaler: "(Proof.context -> int -> tactic) ->
+  @{define_ML Simplifier.set_subgoaler: "(Proof.context -> int -> tactic) ->
   Proof.context -> Proof.context"} \\
-  @{index_ML Simplifier.prems_of: "Proof.context -> thm list"} \\
+  @{define_ML Simplifier.prems_of: "Proof.context -> thm list"} \\
   \end{mldecls}
 
   The subgoaler is the tactic used to solve subgoals arising out of
@@ -906,13 +906,13 @@ subsubsection \<open>The solver\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML_type solver} \\
-  @{index_ML Simplifier.mk_solver: "string ->
+  @{define_ML_type solver} \\
+  @{define_ML Simplifier.mk_solver: "string ->
   (Proof.context -> int -> tactic) -> solver"} \\
-  @{index_ML_op setSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op addSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op setSSolver: "Proof.context * solver -> Proof.context"} \\
-  @{index_ML_op addSSolver: "Proof.context * solver -> Proof.context"} \\
+  @{define_ML_infix setSolver: "Proof.context * solver -> Proof.context"} \\
+  @{define_ML_infix addSolver: "Proof.context * solver -> Proof.context"} \\
+  @{define_ML_infix setSSolver: "Proof.context * solver -> Proof.context"} \\
+  @{define_ML_infix addSSolver: "Proof.context * solver -> Proof.context"} \\
   \end{mldecls}
 
   A solver is a tactic that attempts to solve a subgoal after simplification.
@@ -992,17 +992,17 @@ subsubsection \<open>The looper\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML_op setloop: "Proof.context *
+  @{define_ML_infix setloop: "Proof.context *
   (Proof.context -> int -> tactic) -> Proof.context"} \\
-  @{index_ML_op addloop: "Proof.context *
+  @{define_ML_infix addloop: "Proof.context *
   (string * (Proof.context -> int -> tactic))
   -> Proof.context"} \\
-  @{index_ML_op delloop: "Proof.context * string -> Proof.context"} \\
-  @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
-  @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
-  @{index_ML Splitter.add_split_bang: "
+  @{define_ML_infix delloop: "Proof.context * string -> Proof.context"} \\
+  @{define_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
+  @{define_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
+  @{define_ML Splitter.add_split_bang: "
   thm -> Proof.context -> Proof.context"} \\
-  @{index_ML Splitter.del_split: "thm -> Proof.context -> Proof.context"} \\
+  @{define_ML Splitter.del_split: "thm -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
   The looper is a list of tactics that are applied after simplification, in
@@ -1624,23 +1624,23 @@ subsection \<open>Modifying the search step\<close>
 
 text \<open>
   \begin{mldecls}
-    @{index_ML_type wrapper: "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
-    @{index_ML_op addSWrapper: "Proof.context *
+    @{define_ML_type wrapper = "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
+    @{define_ML_infix addSWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
-    @{index_ML_op addSbefore: "Proof.context *
+    @{define_ML_infix addSbefore: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op addSafter: "Proof.context *
+    @{define_ML_infix addSafter: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
-    @{index_ML_op addWrapper: "Proof.context *
+    @{define_ML_infix delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
+    @{define_ML_infix addWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
-    @{index_ML_op addbefore: "Proof.context *
+    @{define_ML_infix addbefore: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op addafter: "Proof.context *
+    @{define_ML_infix addafter: "Proof.context *
   (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
-    @{index_ML_op delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
-    @{index_ML addSss: "Proof.context -> Proof.context"} \\
-    @{index_ML addss: "Proof.context -> Proof.context"} \\
+    @{define_ML_infix delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
+    @{define_ML addSss: "Proof.context -> Proof.context"} \\
+    @{define_ML addss: "Proof.context -> Proof.context"} \\
   \end{mldecls}
 
   The proof strategy of the Classical Reasoner is simple.  Perform as

@@ -50,7 +50,7 @@ object Prover
         kind + " [[" + res + "]]"
       else
         kind + " " +
-          (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
+          (properties.map(Properties.Eq.apply)).mkString("{", ",", "}") + " [[" + res + "]]"
     }
   }
 

@@ -65,21 +65,21 @@ in
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala\<close>
+    (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>scala\<close>
       (Scan.lift Args.embedded_position)
       (fn _ => fn (s, pos) => (static_check (s, pos); s)) #>
 
-    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_type\<close>
+    Document_Output.antiquotation_raw_embedded \<^binding>\<open>scala_type\<close>
       (Scan.lift (Args.embedded_position -- (types >> print_types)))
       (fn _ => fn ((t, pos), type_args) =>
         (static_check ("type _Test_" ^ type_args ^ " = " ^ t ^ type_args, pos);
           scala_name (t ^ type_args))) #>
 
-    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_object\<close>
+    Document_Output.antiquotation_raw_embedded \<^binding>\<open>scala_object\<close>
       (Scan.lift Args.embedded_position)
       (fn _ => fn (x, pos) => (static_check ("val _test_ = " ^ x, pos); scala_name x)) #>
 
-    Thy_Output.antiquotation_raw_embedded \<^binding>\<open>scala_method\<close>
+    Document_Output.antiquotation_raw_embedded \<^binding>\<open>scala_method\<close>
       (Scan.lift (class -- Args.embedded_position -- types -- args))
       (fn _ => fn (((class_context, (method, pos)), method_types), method_args) =>
         let

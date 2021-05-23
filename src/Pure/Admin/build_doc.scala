@@ -55,7 +55,7 @@ object Build_Doc
             progress.echo("Documentation " + quote(doc) + " ...")
 
             using(store.open_database_context())(db_context =>
-              Presentation.build_documents(session, deps, db_context,
+              Document_Build.build_documents(Document_Build.context(session, deps, db_context),
                 output_pdf = Some(Path.explode("~~/doc"))))
             None
           }

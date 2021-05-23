@@ -456,7 +456,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
   Dump cumulative PIDE session database, with the following aspects:
 
-""" + Library.prefix_lines("    ", show_aspects) + "\n",
+""" + Library.indent_lines(4, show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect)),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),

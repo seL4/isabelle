@@ -71,12 +71,7 @@ object YXML
     else err("unbalanced element " + quote(name))
 
   private def parse_attrib(source: CharSequence): (String, String) =
-  {
-    val s = source.toString
-    val i = s.indexOf('=')
-    if (i <= 0) err_attribute()
-    (s.substring(0, i), s.substring(i + 1))
-  }
+    Properties.Eq.unapply(source.toString) getOrElse err_attribute()
 
 
   def parse_body(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body =

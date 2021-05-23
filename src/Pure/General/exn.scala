@@ -119,8 +119,7 @@ object Exn
   /* message */
 
   def user_message(exn: Throwable): Option[String] =
-    if (exn.getClass == classOf[RuntimeException] ||
-        exn.getClass == classOf[User_Error])
+    if (exn.isInstanceOf[User_Error] || exn.getClass == classOf[RuntimeException])
     {
       Some(proper_string(exn.getMessage) getOrElse "Error")
     }

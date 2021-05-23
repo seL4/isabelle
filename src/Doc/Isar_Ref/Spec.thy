@@ -520,8 +520,11 @@ text \<open>
     @{command_def "locale_deps"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{tabular}
 
-  \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
-  \indexisarelem{defines}\indexisarelem{notes}
+  @{index_ref \<open>\<^theory_text>\<open>fixes\<close> (element)\<close>}
+  @{index_ref \<open>\<^theory_text>\<open>constrains\<close> (element)\<close>}
+  @{index_ref \<open>\<^theory_text>\<open>assumes\<close> (element)\<close>}
+  @{index_ref \<open>\<^theory_text>\<open>defines\<close> (element)\<close>}
+  @{index_ref \<open>\<^theory_text>\<open>notes\<close> (element)\<close>}
   \<^rail>\<open>
     @@{command locale} @{syntax name} ('=' @{syntax locale})? @'begin'?
     ;

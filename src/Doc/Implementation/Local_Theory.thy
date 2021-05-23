@@ -90,11 +90,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type local_theory: Proof.context} \\
-  @{index_ML Named_Target.init: "string list -> string -> theory -> local_theory"} \\[1ex]
-  @{index_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
+  @{define_ML_type local_theory = Proof.context} \\
+  @{define_ML Named_Target.init: "string list -> string -> theory -> local_theory"} \\[1ex]
+  @{define_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory"} \\
-  @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
+  @{define_ML Local_Theory.note: "Attrib.binding * thm list ->
     local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
 

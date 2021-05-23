@@ -514,11 +514,11 @@ object Sessions
         case doc => error("Bad document specification " + quote(doc))
       }
 
-    def document_variants: List[Presentation.Document_Variant] =
+    def document_variants: List[Document_Build.Document_Variant] =
     {
       val variants =
         Library.space_explode(':', options.string("document_variants")).
-          map(Presentation.Document_Variant.parse)
+          map(Document_Build.Document_Variant.parse)
 
       val dups = Library.duplicates(variants.map(_.name))
       if (dups.nonEmpty) error("Duplicate document variants: " + commas_quote(dups))
@@ -526,7 +526,7 @@ object Sessions
       variants
     }
 
-    def documents: List[Presentation.Document_Variant] =
+    def documents: List[Document_Build.Document_Variant] =
     {
       val variants = document_variants
       if (!document_enabled || document_files.isEmpty) Nil else variants
@@ -1429,10 +1429,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.using_statement(
           Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute())
 
-        db.create_table(Presentation.Data.table)
+        db.create_table(Document_Build.Data.table)
         db.using_statement(
-          Presentation.Data.table.delete(
-            Presentation.Data.session_name.where_equal(name)))(_.execute())
+          Document_Build.Data.table.delete(
+            Document_Build.Data.session_name.where_equal(name)))(_.execute())
       }
     }
 

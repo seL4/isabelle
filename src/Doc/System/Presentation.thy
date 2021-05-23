@@ -22,8 +22,7 @@ text \<open>
   with the PDF into the given directory (relative to the session directory).
 
   Alternatively, @{tool_ref document} may be used to turn the generated
-  {\LaTeX} sources of a session (exports from its build database) into PDF,
-  using suitable invocations of @{tool_ref latex}.
+  {\LaTeX} sources of a session (exports from its build database) into PDF.
 \<close>
 
 
@@ -161,12 +160,20 @@ text \<open>
 
   \<^medskip> Isabelle is usually smart enough to create the PDF from the given
   \<^verbatim>\<open>root.tex\<close> and optional \<^verbatim>\<open>root.bib\<close> (bibliography) and \<^verbatim>\<open>root.idx\<close> (index)
-  using standard {\LaTeX} tools. Alternatively, \isakeyword{document\_files}
-  in the session \<^verbatim>\<open>ROOT\<close> may include an executable \<^verbatim>\<open>build\<close> script to take
-  care of that. It is invoked with command-line arguments for the document
-  format (\<^verbatim>\<open>pdf\<close>) and the document variant name. The script needs to produce
-  corresponding output files, e.g.\ \<^verbatim>\<open>root.pdf\<close> for default document variants
-  (the main work can be delegated to @{tool latex}). \<close>
+  using standard {\LaTeX} tools. Actual command-lines are given by settings
+  @{setting_ref ISABELLE_PDFLATEX}, @{setting_ref ISABELLE_LUALATEX},
+  @{setting_ref ISABELLE_BIBTEX}, @{setting_ref ISABELLE_MAKEINDEX}: these
+  variables are used without quoting in shell scripts, and thus may contain
+  additional options.
+
+  Alternatively, the session \<^verbatim>\<open>ROOT\<close> may include an option
+  \<^verbatim>\<open>document_build=build\<close> together with an executable \<^verbatim>\<open>build\<close> script in
+  \isakeyword{document\_files}: it is invoked with command-line arguments for
+  the document format (\<^verbatim>\<open>pdf\<close>) and the document variant name. The script needs
+  to produce corresponding output files, e.g.\ \<^verbatim>\<open>root.pdf\<close> for default
+  document variants.
+\<close>
+
 
 subsubsection \<open>Examples\<close>
 
@@ -175,49 +182,6 @@ text \<open>
   the current directory (subdirectory \<^verbatim>\<open>document\<close> and file \<^verbatim>\<open>document.pdf)\<close>:
 
   @{verbatim [display] \<open>isabelle document -v -V -O. FOL\<close>}
-\<close>
-
-
-section \<open>Running {\LaTeX} within the Isabelle environment
-  \label{sec:tool-latex}\<close>
-
-text \<open>
-  The @{tool_def latex} tool provides the basic interface for Isabelle
-  document preparation. Its usage is:
-  @{verbatim [display]
-\<open>Usage: isabelle latex [OPTIONS] [FILE]
-
-  Options are:
-    -o FORMAT    specify output format: pdf (default), bbl, idx, sty
-
-  Run LaTeX (and related tools) on FILE (default root.tex),
-  producing the specified output format.\<close>}
-
-  Appropriate {\LaTeX}-related programs are run on the input file, according
-  to the given output format: @{executable pdflatex}, @{executable bibtex}
-  (for \<^verbatim>\<open>bbl\<close>), and @{executable makeindex} (for \<^verbatim>\<open>idx\<close>). The actual commands
-  are determined from the settings environment (@{setting ISABELLE_PDFLATEX}
-  etc.).
-
-  The \<^verbatim>\<open>sty\<close> output format causes the Isabelle style files to be updated from
-  the distribution. This is useful in special situations where the document
-  sources are to be processed another time by separate tools.
-\<close>
-
-
-subsubsection \<open>Examples\<close>
-
-text \<open>
-  Invoking @{tool latex} by hand may be occasionally useful when debugging
-  failed attempts of the automatic document preparation stage of batch-mode
-  Isabelle. The abortive process leaves the sources at a certain place within
-  @{setting ISABELLE_BROWSER_INFO}, see the runtime error message for details.
-  This enables users to inspect {\LaTeX} runs in further detail, e.g.\ like
-  this:
-
-  @{verbatim [display]
-\<open>cd "$(isabelle getenv -b ISABELLE_BROWSER_INFO)/Unsorted/Test/document"
-isabelle latex -o pdf\<close>}
 \<close>
 
 end

@@ -102,22 +102,22 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type class: string} \\
-  @{index_ML_type sort: "class list"} \\
-  @{index_ML_type arity: "string * sort list * sort"} \\
-  @{index_ML_type typ} \\
-  @{index_ML Term.map_atyps: "(typ -> typ) -> typ -> typ"} \\
-  @{index_ML Term.fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
+  @{define_ML_type class = string} \\
+  @{define_ML_type sort = "class list"} \\
+  @{define_ML_type arity = "string * sort list * sort"} \\
+  @{define_ML_type typ} \\
+  @{define_ML Term.map_atyps: "(typ -> typ) -> typ -> typ"} \\
+  @{define_ML Term.fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
-  @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
-  @{index_ML Sign.add_type: "Proof.context -> binding * int * mixfix -> theory -> theory"} \\
-  @{index_ML Sign.add_type_abbrev: "Proof.context ->
+  @{define_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
+  @{define_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
+  @{define_ML Sign.add_type: "Proof.context -> binding * int * mixfix -> theory -> theory"} \\
+  @{define_ML Sign.add_type_abbrev: "Proof.context ->
   binding * string list * typ -> theory -> theory"} \\
-  @{index_ML Sign.primitive_class: "binding * class list -> theory -> theory"} \\
-  @{index_ML Sign.primitive_classrel: "class * class -> theory -> theory"} \\
-  @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
+  @{define_ML Sign.primitive_class: "binding * class list -> theory -> theory"} \\
+  @{define_ML Sign.primitive_classrel: "class * class -> theory -> theory"} \\
+  @{define_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>class\<close> represents type classes.
@@ -313,30 +313,30 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type term} \\
-  @{index_ML_op "aconv": "term * term -> bool"} \\
-  @{index_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
-  @{index_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
-  @{index_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
-  @{index_ML Term.fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{define_ML_type term} \\
+  @{define_ML_infix "aconv": "term * term -> bool"} \\
+  @{define_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
+  @{define_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{define_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
+  @{define_ML Term.fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML fastype_of: "term -> typ"} \\
-  @{index_ML lambda: "term -> term -> term"} \\
-  @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML incr_boundvars: "int -> term -> term"} \\
-  @{index_ML Sign.declare_const: "Proof.context ->
+  @{define_ML fastype_of: "term -> typ"} \\
+  @{define_ML lambda: "term -> term -> term"} \\
+  @{define_ML betapply: "term * term -> term"} \\
+  @{define_ML incr_boundvars: "int -> term -> term"} \\
+  @{define_ML Sign.declare_const: "Proof.context ->
   (binding * typ) * mixfix -> theory -> term * theory"} \\
-  @{index_ML Sign.add_abbrev: "string -> binding * term ->
+  @{define_ML Sign.add_abbrev: "string -> binding * term ->
   theory -> (term * term) * theory"} \\
-  @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
-  @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
+  @{define_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
+  @{define_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>term\<close> represents de-Bruijn terms, with comments in
   abstractions, and explicitly named free variables and constants; this is a
-  datatype with constructors @{index_ML Bound}, @{index_ML Free}, @{index_ML
-  Var}, @{index_ML Const}, @{index_ML Abs}, @{index_ML_op "$"}.
+  datatype with constructors @{define_ML Bound}, @{define_ML Free}, @{define_ML
+  Var}, @{define_ML Const}, @{define_ML Abs}, @{define_ML_infix "$"}.
 
   \<^descr> \<open>t\<close>~\<^ML_text>\<open>aconv\<close>~\<open>u\<close> checks \<open>\<alpha>\<close>-equivalence of two terms. This is the
   basic equality relation on type \<^ML_type>\<open>term\<close>; raw datatype equality
@@ -564,41 +564,41 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Logic.all: "term -> term -> term"} \\
-  @{index_ML Logic.mk_implies: "term * term -> term"} \\
+  @{define_ML Logic.all: "term -> term -> term"} \\
+  @{define_ML Logic.mk_implies: "term * term -> term"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type ctyp} \\
-  @{index_ML_type cterm} \\
-  @{index_ML Thm.ctyp_of: "Proof.context -> typ -> ctyp"} \\
-  @{index_ML Thm.cterm_of: "Proof.context -> term -> cterm"} \\
-  @{index_ML Thm.apply: "cterm -> cterm -> cterm"} \\
-  @{index_ML Thm.lambda: "cterm -> cterm -> cterm"} \\
-  @{index_ML Thm.all: "Proof.context -> cterm -> cterm -> cterm"} \\
-  @{index_ML Drule.mk_implies: "cterm * cterm -> cterm"} \\
+  @{define_ML_type ctyp} \\
+  @{define_ML_type cterm} \\
+  @{define_ML Thm.ctyp_of: "Proof.context -> typ -> ctyp"} \\
+  @{define_ML Thm.cterm_of: "Proof.context -> term -> cterm"} \\
+  @{define_ML Thm.apply: "cterm -> cterm -> cterm"} \\
+  @{define_ML Thm.lambda: "cterm -> cterm -> cterm"} \\
+  @{define_ML Thm.all: "Proof.context -> cterm -> cterm -> cterm"} \\
+  @{define_ML Drule.mk_implies: "cterm * cterm -> cterm"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type thm} \\
-  @{index_ML Thm.transfer: "theory -> thm -> thm"} \\
-  @{index_ML Thm.assume: "cterm -> thm"} \\
-  @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
-  @{index_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
-  @{index_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
-  @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
-  @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
-  @{index_ML Thm.instantiate: "((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+  @{define_ML_type thm} \\
+  @{define_ML Thm.transfer: "theory -> thm -> thm"} \\
+  @{define_ML Thm.assume: "cterm -> thm"} \\
+  @{define_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
+  @{define_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
+  @{define_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
+  @{define_ML Thm.implies_elim: "thm -> thm -> thm"} \\
+  @{define_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
+  @{define_ML Thm.instantiate: "((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   -> thm -> thm"} \\
-  @{index_ML Thm.add_axiom: "Proof.context ->
+  @{define_ML Thm.add_axiom: "Proof.context ->
   binding * term -> theory -> (string * thm) * theory"} \\
-  @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
+  @{define_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
   (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "Defs.context -> bool -> bool ->
+  @{define_ML Thm.add_def: "Defs.context -> bool -> bool ->
   binding * term -> theory -> (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_deps: "Defs.context -> string ->
+  @{define_ML Theory.add_deps: "Defs.context -> string ->
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
-  @{index_ML Thm_Deps.all_oracles: "thm list -> Proofterm.oracle list"} \\
+  @{define_ML Thm_Deps.all_oracles: "thm list -> Proofterm.oracle list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Logic.all\<close>~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
@@ -624,7 +624,7 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Thm.apply\<close>, \<^ML>\<open>Thm.lambda\<close>, \<^ML>\<open>Thm.all\<close>, \<^ML>\<open>Drule.mk_implies\<close>
   etc.\ compose certified terms (or propositions) incrementally. This is
-  equivalent to \<^ML>\<open>Thm.cterm_of\<close> after unchecked \<^ML_op>\<open>$\<close>, \<^ML>\<open>lambda\<close>,
+  equivalent to \<^ML>\<open>Thm.cterm_of\<close> after unchecked \<^ML_infix>\<open>$\<close>, \<^ML>\<open>lambda\<close>,
   \<^ML>\<open>Logic.all\<close>, \<^ML>\<open>Logic.mk_implies\<close> etc., but there can be a big
   difference in performance when large existing entities are composed by a few
   extra constructions on top. There are separate operations to decompose
@@ -796,12 +796,12 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Conjunction.intr: "thm -> thm -> thm"} \\
-  @{index_ML Conjunction.elim: "thm -> thm * thm"} \\
-  @{index_ML Drule.mk_term: "cterm -> thm"} \\
-  @{index_ML Drule.dest_term: "thm -> cterm"} \\
-  @{index_ML Logic.mk_type: "typ -> term"} \\
-  @{index_ML Logic.dest_type: "term -> typ"} \\
+  @{define_ML Conjunction.intr: "thm -> thm -> thm"} \\
+  @{define_ML Conjunction.elim: "thm -> thm * thm"} \\
+  @{define_ML Drule.mk_term: "cterm -> thm"} \\
+  @{define_ML Drule.dest_term: "thm -> cterm"} \\
+  @{define_ML Logic.mk_type: "typ -> term"} \\
+  @{define_ML Logic.dest_type: "term -> typ"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Conjunction.intr\<close> derives \<open>A &&& B\<close> from \<open>A\<close> and \<open>B\<close>.
@@ -846,8 +846,8 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Thm.extra_shyps: "thm -> sort list"} \\
-  @{index_ML Thm.strip_shyps: "thm -> thm"} \\
+  @{define_ML Thm.extra_shyps: "thm -> sort list"} \\
+  @{define_ML Thm.strip_shyps: "thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Thm.extra_shyps\<close>~\<open>thm\<close> determines the extraneous sort hypotheses of
@@ -951,7 +951,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
+  @{define_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Simplifier.norm_hhf\<close>~\<open>ctxt thm\<close> normalizes the given theorem
@@ -1022,14 +1022,14 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "RSN": "thm * (int * thm) -> thm"} \\
-  @{index_ML_op "RS": "thm * thm -> thm"} \\
+  @{define_ML_infix "RSN": "thm * (int * thm) -> thm"} \\
+  @{define_ML_infix "RS": "thm * thm -> thm"} \\
 
-  @{index_ML_op "RLN": "thm list * (int * thm list) -> thm list"} \\
-  @{index_ML_op "RL": "thm list * thm list -> thm list"} \\
+  @{define_ML_infix "RLN": "thm list * (int * thm list) -> thm list"} \\
+  @{define_ML_infix "RL": "thm list * thm list -> thm list"} \\
 
-  @{index_ML_op "MRS": "thm list * thm -> thm"} \\
-  @{index_ML_op "OF": "thm * thm list -> thm"} \\
+  @{define_ML_infix "MRS": "thm list * thm -> thm"} \\
+  @{define_ML_infix "OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<open>rule\<^sub>1 RSN (i, rule\<^sub>2)\<close> resolves the conclusion of \<open>rule\<^sub>1\<close> with the
@@ -1184,22 +1184,22 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type proof} \\
-  @{index_ML_type proof_body} \\
-  @{index_ML Proofterm.proofs: "int Unsynchronized.ref"} \\
-  @{index_ML Proofterm.reconstruct_proof:
+  @{define_ML_type proof} \\
+  @{define_ML_type proof_body} \\
+  @{define_ML Proofterm.proofs: "int Unsynchronized.ref"} \\
+  @{define_ML Proofterm.reconstruct_proof:
   "theory -> term -> proof -> proof"} \\
-  @{index_ML Proofterm.expand_proof: "theory ->
+  @{define_ML Proofterm.expand_proof: "theory ->
   (Proofterm.thm_header -> string option) -> proof -> proof"} \\
-  @{index_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
-  @{index_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
-  @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
+  @{define_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
+  @{define_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
+  @{define_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>proof\<close> represents proof terms; this is a datatype with
-  constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_op "%"},
-  @{index_ML_op "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
-  Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML PThm} as explained
+  constructors @{define_ML Abst}, @{define_ML AbsP}, @{define_ML_infix "%"},
+  @{define_ML_infix "%%"}, @{define_ML PBound}, @{define_ML MinProof}, @{define_ML
+  Hyp}, @{define_ML PAxm}, @{define_ML Oracle}, @{define_ML PThm} as explained
   above. %FIXME PClass (!?)
 
   \<^descr> Type \<^ML_type>\<open>proof_body\<close> represents the nested proof information of a

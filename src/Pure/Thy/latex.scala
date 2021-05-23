@@ -22,7 +22,7 @@ object Latex
     val root_log_path = dir + Path.explode(root_name).ext("log")
     if (root_log_path.is_file) {
       for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
-      yield "Latex error" + Position.here(pos) + ":\n" + Library.prefix_lines("  ", msg)
+      yield "Latex error" + Position.here(pos) + ":\n" + Library.indent_lines(2, msg)
     }
     else Nil
   }

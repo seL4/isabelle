@@ -576,7 +576,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Build and manage Isabelle sessions, depending on implicit settings:
 
-""" + Library.prefix_lines("  ",  Build_Log.Settings.show()) + "\n",
+""" + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),

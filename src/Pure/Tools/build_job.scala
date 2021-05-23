@@ -447,10 +447,10 @@ class Build_Job(progress: Progress,
             using(store.open_database_context())(db_context =>
               {
                 val documents =
-                  Presentation.build_documents(session_name, deps, db_context,
+                  Document_Build.build_documents(
+                    Document_Build.context(session_name, deps, db_context, progress = progress),
                     output_sources = info.document_output,
                     output_pdf = info.document_output,
-                    progress = progress,
                     verbose = verbose)
                 db_context.output_database(session_name)(db =>
                   documents.foreach(_.write(db, session_name)))
@@ -460,7 +460,7 @@ class Build_Job(progress: Progress,
           else (Nil, Nil)
         }
         catch {
-          case exn: Presentation.Build_Error => (exn.log_lines, List(exn.message))
+          case exn: Document_Build.Build_Error => (exn.log_lines, List(exn.message))
           case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
         }
 

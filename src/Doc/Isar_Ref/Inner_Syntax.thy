@@ -220,8 +220,8 @@ subsection \<open>Alternative print modes \label{sec:print-modes}\<close>
 
 text \<open>
   \begin{mldecls}
-    @{index_ML print_mode_value: "unit -> string list"} \\
-    @{index_ML Print_Mode.with_modes: "string list -> ('a -> 'b) -> 'a -> 'b"} \\
+    @{define_ML print_mode_value: "unit -> string list"} \\
+    @{define_ML Print_Mode.with_modes: "string list -> ('a -> 'b) -> 'a -> 'b"} \\
   \end{mldecls}
 
   The \<^emph>\<open>print mode\<close> facility allows to modify various operations for printing.

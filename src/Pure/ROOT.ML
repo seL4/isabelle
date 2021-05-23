@@ -304,7 +304,7 @@ ML_file "Isar/outer_syntax.ML";
 ML_file "ML/ml_antiquotations2.ML";
 ML_file "ML/ml_pid.ML";
 ML_file "Thy/document_antiquotation.ML";
-ML_file "Thy/thy_output.ML";
+ML_file "Thy/document_output.ML";
 ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";

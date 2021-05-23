@@ -16,7 +16,7 @@ ISABELLE_JAVA_SYSTEM_OPTIONS="-server -Dfile.encoding=UTF-8 -Disabelle.threads=0
 
 ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
 
-ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -Wconf:cat=other-match-analysis:silent -feature -deprecation -target:11 -J-Xms512m -J-Xmx4g -J-Xss16m"
+ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -Wconf:cat=other-match-analysis:silent -feature -deprecation -target:11 -Xsource:3 -J-Xms512m -J-Xmx4g -J-Xss16m"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
@@ -33,6 +33,10 @@ isabelle_scala_service 'isabelle.Scala$Handler'
 isabelle_scala_service 'isabelle.Print_Operation$Handler'
 isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
 isabelle_scala_service 'isabelle.Server_Commands'
+
+isabelle_scala_service 'isabelle.Document_Build$LuaLaTeX_Engine'
+isabelle_scala_service 'isabelle.Document_Build$PDFLaTeX_Engine'
+isabelle_scala_service 'isabelle.Document_Build$Build_Engine'
 
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"
@@ -57,12 +61,18 @@ ISABELLE_BUILD_OPTIONS=""
 
 
 ###
-### Document preparation (cf. isabelle latex/document)
+### Document preparation (cf. isabelle latex)
 ###
 
-ISABELLE_PDFLATEX="lualatex --file-line-error"
+if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
+  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -c-style-errors"
+else
+  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -file-line-error"
+fi
+
+ISABELLE_LUALATEX="lualatex --interaction=nonstopmode --file-line-error"
 ISABELLE_BIBTEX="bibtex"
-ISABELLE_MAKEINDEX="makeindex"
+ISABELLE_MAKEINDEX="makeindex -c -q"
 ISABELLE_EPSTOPDF="epstopdf"
 
 

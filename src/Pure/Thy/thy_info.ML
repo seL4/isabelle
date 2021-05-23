@@ -9,7 +9,7 @@ signature THY_INFO =
 sig
   type presentation_context =
     {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
-      segments: Thy_Output.segment list}
+      segments: Document_Output.segment list}
   val adjust_pos_properties: presentation_context -> Position.T -> Properties.T
   val apply_presentation: presentation_context -> theory -> unit
   val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
@@ -42,7 +42,7 @@ val document_tex_name = document_name "tex";
 
 type presentation_context =
   {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
-    segments: Thy_Output.segment list};
+    segments: Document_Output.segment list};
 
 fun adjust_pos_properties (context: presentation_context) pos =
   Position.offset_properties_of (#adjust_pos context pos) @ Position.id_properties_of pos;
@@ -71,7 +71,7 @@ val _ =
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
-        val body = Thy_Output.present_thy options thy segments;
+        val body = Document_Output.present_thy options thy segments;
       in
         if Options.string options "document" = "false" then ()
         else

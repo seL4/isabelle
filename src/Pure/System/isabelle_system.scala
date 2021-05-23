@@ -128,11 +128,11 @@ object Isabelle_System
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- space_explode('\u0000', File.read(dump)) if entry != "") yield {
-              val i = entry.indexOf('=')
-              if (i <= 0) entry -> ""
-              else entry.substring(0, i) -> entry.substring(i + 1)
-            }).toMap
+            space_explode('\u0000', File.read(dump)).flatMap(
+              {
+                case Properties.Eq(a, b) => Some(a -> b)
+                case s => if (s.isEmpty || s.startsWith("=")) None else Some(s -> "")
+              }).toMap
           entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
         }
         finally { dump.delete }

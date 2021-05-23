@@ -10,7 +10,7 @@ struct
 (* class specifications *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_pretty \<^binding>\<open>class_spec\<close> (Scan.lift Args.name)
+  Theory.setup (Document_Output.antiquotation_pretty \<^binding>\<open>class_spec\<close> (Scan.lift Args.name)
     (fn ctxt => fn s =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -21,7 +21,7 @@ val _ =
 (* code theorem antiquotation *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_pretty \<^binding>\<open>code_thms\<close> Args.term
+  Theory.setup (Document_Output.antiquotation_pretty \<^binding>\<open>code_thms\<close> Args.term
     (fn ctxt => fn raw_const =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -33,6 +33,6 @@ val _ =
           |> these
           |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
           |> map (HOLogic.mk_obj_eq o Variable.import_vars ctxt o Axclass.overload ctxt);
-      in Pretty.chunks (map (Thy_Output.pretty_thm ctxt) thms) end));
+      in Pretty.chunks (map (Document_Output.pretty_thm ctxt) thms) end));
 
 end;

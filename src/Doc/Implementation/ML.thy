@@ -611,10 +611,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Context.the_generic_context: "unit -> Context.generic"} \\
-  @{index_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
-  @{index_ML ML_Thms.bind_thms: "string * thm list -> unit"} \\
-  @{index_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
+  @{define_ML Context.the_generic_context: "unit -> Context.generic"} \\
+  @{define_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
+  @{define_ML ML_Thms.bind_thms: "string * thm list -> unit"} \\
+  @{define_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
 
     \<^descr> \<^ML>\<open>Context.the_generic_context ()\<close> refers to the theory context of
@@ -818,10 +818,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "|> ": "'a * ('a -> 'b) -> 'b"} \\
-  @{index_ML_op "|-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
-  @{index_ML_op "#> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
-  @{index_ML_op "#-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  @{define_ML_infix "|>" : "'a * ('a -> 'b) -> 'b"} \\
+  @{define_ML_infix "|->" : "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{define_ML_infix "#>" : "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{define_ML_infix "#->" : "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
   \end{mldecls}
 \<close>
 
@@ -853,9 +853,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
-  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
-  @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
+  @{define_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{define_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{define_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>fold\<close>~\<open>f\<close> lifts the parametrized update function \<open>f\<close> to a list of
@@ -969,10 +969,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML writeln: "string -> unit"} \\
-  @{index_ML tracing: "string -> unit"} \\
-  @{index_ML warning: "string -> unit"} \\
-  @{index_ML error: "string -> 'a"} % FIXME Output.error_message (!?) \\
+  @{define_ML writeln: "string -> unit"} \\
+  @{define_ML tracing: "string -> unit"} \\
+  @{define_ML warning: "string -> unit"} \\
+  @{define_ML error: "string -> 'a"} % FIXME Output.error_message (!?) \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>writeln\<close>~\<open>text\<close> outputs \<open>text\<close> as regular message. This is the
@@ -1140,13 +1140,13 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
-  @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  @{index_ML_exception ERROR: string} \\
-  @{index_ML_exception Fail: string} \\
-  @{index_ML Exn.is_interrupt: "exn -> bool"} \\
-  @{index_ML Exn.reraise: "exn -> 'a"} \\
-  @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
+  @{define_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
+  @{define_ML can: "('a -> 'b) -> 'a -> bool"} \\
+  @{define_ML_exception ERROR of string} \\
+  @{define_ML_exception Fail of string} \\
+  @{define_ML Exn.is_interrupt: "exn -> bool"} \\
+  @{define_ML Exn.reraise: "exn -> 'a"} \\
+  @{define_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
   \<^rail>\<open>
@@ -1284,16 +1284,16 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "Symbol.symbol": string} \\
-  @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
-  @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
+  @{define_ML_type Symbol.symbol = string} \\
+  @{define_ML Symbol.explode: "string -> Symbol.symbol list"} \\
+  @{define_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
+  @{define_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
+  @{define_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
+  @{define_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type "Symbol.sym"} \\
-  @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
+  @{define_ML_type "Symbol.sym"} \\
+  @{define_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Symbol.symbol\<close> represents individual Isabelle symbols.
@@ -1347,7 +1347,7 @@ subsection \<open>Characters\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type char} \\
+  @{define_ML_type char} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>char\<close> is \<^emph>\<open>not\<close> used. The smallest textual unit in Isabelle
@@ -1359,7 +1359,7 @@ subsection \<open>Strings\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type string} \\
+  @{define_ML_type string} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>string\<close> represents immutable vectors of 8-bit characters.
@@ -1407,7 +1407,7 @@ subsection \<open>Integers\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type int} \\
+  @{define_ML_type int} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>int\<close> represents regular mathematical integers, which are
@@ -1425,7 +1425,7 @@ subsection \<open>Rational numbers\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Rat.rat} \\
+  @{define_ML_type Rat.rat} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Rat.rat\<close> represents rational numbers, based on the
@@ -1444,8 +1444,8 @@ subsection \<open>Time\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type Time.time} \\
-  @{index_ML seconds: "real -> Time.time"} \\
+  @{define_ML_type Time.time} \\
+  @{define_ML seconds: "real -> Time.time"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>Time.time\<close> represents time abstractly according to the
@@ -1463,13 +1463,13 @@ subsection \<open>Options\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Option.map: "('a -> 'b) -> 'a option -> 'b option"} \\
-  @{index_ML is_some: "'a option -> bool"} \\
-  @{index_ML is_none: "'a option -> bool"} \\
-  @{index_ML the: "'a option -> 'a"} \\
-  @{index_ML these: "'a list option -> 'a list"} \\
-  @{index_ML the_list: "'a option -> 'a list"} \\
-  @{index_ML the_default: "'a -> 'a option -> 'a"} \\
+  @{define_ML Option.map: "('a -> 'b) -> 'a option -> 'b option"} \\
+  @{define_ML is_some: "'a option -> bool"} \\
+  @{define_ML is_none: "'a option -> bool"} \\
+  @{define_ML the: "'a option -> 'a"} \\
+  @{define_ML these: "'a list option -> 'a list"} \\
+  @{define_ML the_list: "'a option -> 'a list"} \\
+  @{define_ML the_default: "'a -> 'a option -> 'a"} \\
   \end{mldecls}
 \<close>
 
@@ -1490,11 +1490,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML cons: "'a -> 'a list -> 'a list"} \\
-  @{index_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
-  @{index_ML insert: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
-  @{index_ML remove: "('b * 'a -> bool) -> 'b -> 'a list -> 'a list"} \\
-  @{index_ML update: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
+  @{define_ML cons: "'a -> 'a list -> 'a list"} \\
+  @{define_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
+  @{define_ML insert: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
+  @{define_ML remove: "('b * 'a -> bool) -> 'b -> 'a list -> 'a list"} \\
+  @{define_ML update: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>cons\<close>~\<open>x xs\<close> evaluates to \<open>x :: xs\<close>.
@@ -1563,9 +1563,9 @@ text \<open>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
-  @{index_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
-  @{index_ML AList.update: "('a * 'a -> bool) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list"} \\
+  @{define_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
+  @{define_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
+  @{define_ML AList.update: "('a * 'a -> bool) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>AList.lookup\<close>, \<^ML>\<open>AList.defined\<close>, \<^ML>\<open>AList.update\<close> implement the
@@ -1593,10 +1593,10 @@ subsection \<open>Unsynchronized references\<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "'a Unsynchronized.ref"} \\
-  @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
-  @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
-  @{index_ML_op ":=": "'a Unsynchronized.ref * 'a -> unit"} \\
+  @{define_ML_type 'a "Unsynchronized.ref"} \\
+  @{define_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
+  @{define_ML "!": "'a Unsynchronized.ref -> 'a"} \\
+  @{define_ML_infix ":=" : "'a Unsynchronized.ref * 'a -> unit"} \\
   \end{mldecls}
 \<close>
 
@@ -1608,7 +1608,7 @@ text \<open>
 
   The unwieldy name of \<^ML>\<open>Unsynchronized.ref\<close> for the constructor for
   references in Isabelle/ML emphasizes the inconveniences caused by
-  mutability. Existing operations \<^ML>\<open>!\<close> and \<^ML_op>\<open>:=\<close> are unchanged,
+  mutability. Existing operations \<^ML>\<open>!\<close> and \<^ML_infix>\<open>:=\<close> are unchanged,
   but should be used with special precautions, say in a strictly local
   situation that is guaranteed to be restricted to sequential evaluation ---
   now and in the future.
@@ -1748,8 +1748,8 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML File.tmp_path: "Path.T -> Path.T"} \\
-  @{index_ML serial_string: "unit -> string"} \\
+  @{define_ML File.tmp_path: "Path.T -> Path.T"} \\
+  @{define_ML serial_string: "unit -> string"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>File.tmp_path\<close>~\<open>path\<close> relocates the base component of \<open>path\<close> into the
@@ -1790,9 +1790,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "'a Synchronized.var"} \\
-  @{index_ML Synchronized.var: "string -> 'a -> 'a Synchronized.var"} \\
-  @{index_ML Synchronized.guarded_access: "'a Synchronized.var ->
+  @{define_ML_type 'a "Synchronized.var"} \\
+  @{define_ML Synchronized.var: "string -> 'a -> 'a Synchronized.var"} \\
+  @{define_ML Synchronized.guarded_access: "'a Synchronized.var ->
   ('a -> ('b * 'a) option) -> 'b"} \\
   \end{mldecls}
 
@@ -1890,12 +1890,12 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "'a Exn.result"} \\
-  @{index_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
-  @{index_ML Exn.interruptible_capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
-  @{index_ML Exn.release: "'a Exn.result -> 'a"} \\
-  @{index_ML Par_Exn.release_all: "'a Exn.result list -> 'a list"} \\
-  @{index_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
+  @{define_ML_type 'a "Exn.result"} \\
+  @{define_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
+  @{define_ML Exn.interruptible_capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
+  @{define_ML Exn.release: "'a Exn.result -> 'a"} \\
+  @{define_ML Par_Exn.release_all: "'a Exn.result list -> 'a list"} \\
+  @{define_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>'a Exn.result\<close> represents the disjoint sum of ML results
@@ -1945,8 +1945,8 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Par_List.map: "('a -> 'b) -> 'a list -> 'b list"} \\
-  @{index_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
+  @{define_ML Par_List.map: "('a -> 'b) -> 'a list -> 'b list"} \\
+  @{define_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Par_List.map\<close>~\<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> is like \<^ML>\<open>map\<close>~\<open>f [x\<^sub>1, \<dots>,
@@ -2009,10 +2009,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "'a lazy"} \\
-  @{index_ML Lazy.lazy: "(unit -> 'a) -> 'a lazy"} \\
-  @{index_ML Lazy.value: "'a -> 'a lazy"} \\
-  @{index_ML Lazy.force: "'a lazy -> 'a"} \\
+  @{define_ML_type 'a "lazy"} \\
+  @{define_ML Lazy.lazy: "(unit -> 'a) -> 'a lazy"} \\
+  @{define_ML Lazy.value: "'a -> 'a lazy"} \\
+  @{define_ML Lazy.force: "'a lazy -> 'a"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>'a lazy\<close> represents lazy values over type \<^verbatim>\<open>'a\<close>.
@@ -2090,17 +2090,17 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type "'a future"} \\
-  @{index_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
-  @{index_ML Future.forks: "Future.params -> (unit -> 'a) list -> 'a future list"} \\
-  @{index_ML Future.join: "'a future -> 'a"} \\
-  @{index_ML Future.joins: "'a future list -> 'a list"} \\
-  @{index_ML Future.value: "'a -> 'a future"} \\
-  @{index_ML Future.map: "('a -> 'b) -> 'a future -> 'b future"} \\
-  @{index_ML Future.cancel: "'a future -> unit"} \\
-  @{index_ML Future.cancel_group: "Future.group -> unit"} \\[0.5ex]
-  @{index_ML Future.promise: "(unit -> unit) -> 'a future"} \\
-  @{index_ML Future.fulfill: "'a future -> 'a -> unit"} \\
+  @{define_ML_type 'a "future"} \\
+  @{define_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
+  @{define_ML Future.forks: "Future.params -> (unit -> 'a) list -> 'a future list"} \\
+  @{define_ML Future.join: "'a future -> 'a"} \\
+  @{define_ML Future.joins: "'a future list -> 'a list"} \\
+  @{define_ML Future.value: "'a -> 'a future"} \\
+  @{define_ML Future.map: "('a -> 'b) -> 'a future -> 'b future"} \\
+  @{define_ML Future.cancel: "'a future -> unit"} \\
+  @{define_ML Future.cancel_group: "Future.group -> unit"} \\[0.5ex]
+  @{define_ML Future.promise: "(unit -> unit) -> 'a future"} \\
+  @{define_ML Future.fulfill: "'a future -> 'a -> unit"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>'a future\<close> represents future values over type \<^verbatim>\<open>'a\<close>.

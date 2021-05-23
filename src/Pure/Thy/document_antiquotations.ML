@@ -14,14 +14,14 @@ local
 type style = term -> term;
 
 fun pretty_term_style ctxt (style: style, t) =
-  Thy_Output.pretty_term ctxt (style t);
+  Document_Output.pretty_term ctxt (style t);
 
 fun pretty_thms_style ctxt (style: style, ths) =
-  map (fn th => Thy_Output.pretty_term ctxt (style (Thm.full_prop_of th))) ths;
+  map (fn th => Document_Output.pretty_term ctxt (style (Thm.full_prop_of th))) ths;
 
 fun pretty_term_typ ctxt (style: style, t) =
   let val t' = style t
-  in Thy_Output.pretty_term ctxt (Type.constraint (Term.fastype_of t') t') end;
+  in Document_Output.pretty_term ctxt (Type.constraint (Term.fastype_of t') t') end;
 
 fun pretty_term_typeof ctxt (style: style, t) =
   Syntax.pretty_typ ctxt (Term.fastype_of (style t));
@@ -31,7 +31,7 @@ fun pretty_const ctxt c =
     val t = Const (c, Consts.type_scheme (Proof_Context.consts_of ctxt) c)
       handle TYPE (msg, _, _) => error msg;
     val (t', _) = yield_singleton (Variable.import_terms true) t ctxt;
-  in Thy_Output.pretty_term ctxt t' end;
+  in Document_Output.pretty_term ctxt t' end;
 
 fun pretty_abbrev ctxt s =
   let
@@ -62,14 +62,12 @@ fun pretty_prf full ctxt = Proof_Syntax.pretty_standard_proof_of ctxt full;
 fun pretty_theory ctxt (name, pos) =
   (Theory.check {long = true} ctxt (name, pos); Pretty.str name);
 
-val basic_entity = Thy_Output.antiquotation_pretty_source_embedded;
+val basic_entity = Document_Output.antiquotation_pretty_source_embedded;
 
 fun basic_entities name scan pretty =
   Document_Antiquotation.setup name scan
     (fn {context = ctxt, source = src, argument = xs} =>
-      Thy_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
-
-in
+      Document_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
 
 val _ = Theory.setup
  (basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
@@ -87,9 +85,9 @@ val _ = Theory.setup
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
     (fn {context = ctxt, source = src, argument = arg} =>
-      Thy_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
+      Document_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
 
-end;
+in end;
 
 
 (* Markdown errors *)
@@ -102,48 +100,80 @@ fun markdown_error binding =
       error ("Bad Markdown structure: illegal " ^ quote (Binding.name_of binding) ^
         Position.here (Position.no_range_position (#1 (Token.range_of src)))))
 
-in
-
 val _ =
   Theory.setup
    (markdown_error \<^binding>\<open>item\<close> #>
     markdown_error \<^binding>\<open>enum\<close> #>
     markdown_error \<^binding>\<open>descr\<close>);
 
-end;
+in end;
 
 
 (* control spacing *)
 
 val _ =
   Theory.setup
-   (Thy_Output.antiquotation_raw \<^binding>\<open>noindent\<close> (Scan.succeed ())
+   (Document_Output.antiquotation_raw \<^binding>\<open>noindent\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\noindent") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>smallskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>smallskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\smallskip") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>medskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>medskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\medskip") #>
-    Thy_Output.antiquotation_raw \<^binding>\<open>bigskip\<close> (Scan.succeed ())
+    Document_Output.antiquotation_raw \<^binding>\<open>bigskip\<close> (Scan.succeed ())
       (fn _ => fn () => Latex.string "\\bigskip"));
 
 
-(* control style *)
+(* nested document text *)
 
 local
 
-fun control_antiquotation name s1 s2 =
-  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
-    (fn ctxt => Latex.enclose_block s1 s2 o Thy_Output.output_document ctxt {markdown = false});
-
-in
+fun nested_antiquotation name s1 s2 =
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
+    (fn ctxt => fn txt =>
+      (Context_Position.reports ctxt (Document_Output.document_reports txt);
+        Latex.enclose_block s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
-   (control_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
-    control_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
-    control_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
+   (nested_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
+    nested_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
+    nested_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
 
-end;
+in end;
+
+
+(* index entries *)
+
+local
+
+val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
+val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.option index_like);
+
+fun output_text ctxt = Latex.block o Document_Output.output_document ctxt {markdown = false};
+
+fun index binding def =
+  Document_Output.antiquotation_raw binding (Scan.lift index_args)
+    (fn ctxt => fn args =>
+      let
+        val _ = Context_Position.reports ctxt (maps (Document_Output.document_reports o #1) args);
+        fun make_item (txt, opt_like) =
+          let
+            val text = output_text ctxt txt;
+            val like =
+              (case opt_like of
+                SOME s => s
+              | NONE => Document_Antiquotation.approx_content ctxt (Input.string_of txt));
+            val _ =
+              if is_none opt_like andalso Context_Position.is_visible ctxt then
+                writeln ("(" ^ Markup.markup Markup.keyword2 "is" ^ " " ^ quote like ^ ")" ^
+                  Position.here (Input.pos_of txt))
+              else ();
+          in {text = text, like = like} end;
+      in Latex.index_entry {items = map make_item args, def = def} end);
+
+val _ = Theory.setup (index \<^binding>\<open>index_ref\<close> false #> index \<^binding>\<open>index_def\<close> true);
+
+in end;
 
 
 (* quasi-formal text (unchecked) *)
@@ -161,18 +191,18 @@ fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
-  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val _ = report_text ctxt text;
       in
         prepare_text ctxt text
-        |> Thy_Output.output_source ctxt
-        |> Thy_Output.isabelle ctxt
+        |> Document_Output.output_source ctxt
+        |> Document_Output.isabelle ctxt
       end);
 
 val theory_text_antiquotation =
-  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+  Document_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val keywords = Thy_Header.get_keywords' ctxt;
@@ -186,11 +216,9 @@ val theory_text_antiquotation =
       in
         prepare_text ctxt text
         |> Token.explode0 keywords
-        |> maps (Thy_Output.output_token ctxt)
-        |> Thy_Output.isabelle ctxt
+        |> maps (Document_Output.output_token ctxt)
+        |> Document_Output.isabelle ctxt
       end);
-
-in
 
 val _ =
   Theory.setup
@@ -198,9 +226,7 @@ val _ =
     text_antiquotation \<^binding>\<open>cartouche\<close> #>
     theory_text_antiquotation);
 
-end;
-
-
+in end;
 
 
 (* goal state *)
@@ -208,19 +234,17 @@ end;
 local
 
 fun goal_state name main =
-  Thy_Output.antiquotation_pretty name (Scan.succeed ())
+  Document_Output.antiquotation_pretty name (Scan.succeed ())
     (fn ctxt => fn () =>
       Goal_Display.pretty_goal
         (Config.put Goal_Display.show_main_goal main ctxt)
         (#goal (Proof.goal (Toplevel.proof_of (Toplevel.presentation_state ctxt)))));
 
-in
-
 val _ = Theory.setup
  (goal_state \<^binding>\<open>goals\<close> true #>
   goal_state \<^binding>\<open>subgoals\<close> false);
 
-end;
+in end;
 
 
 (* embedded lemma *)
@@ -241,15 +265,15 @@ val _ = Theory.setup
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof (m1, m2);
       in
-        Thy_Output.pretty_source ctxt {embedded = false}
-          [hd src, prop_tok] (Thy_Output.pretty_term ctxt prop)
+        Document_Output.pretty_source ctxt {embedded = false}
+          [hd src, prop_tok] (Document_Output.pretty_term ctxt prop)
       end));
 
 
 (* verbatim text *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val pos = Input.pos_of text;
@@ -263,14 +287,14 @@ val _ = Theory.setup
 (* bash functions *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>bash_function\<close>
     (Scan.lift Args.embedded_position) Isabelle_System.check_bash_function);
 
 
 (* system options *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
+  (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
     (Scan.lift Args.embedded_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = Completion.check_option (Options.default ()) ctxt (name, pos);
@@ -281,30 +305,104 @@ val _ = Theory.setup
 
 local
 
-fun ml_text name ml =
-  Thy_Output.antiquotation_verbatim_embedded name (Scan.lift Args.text_input)
-    (fn ctxt => fn text =>
-      let val _ = ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of text) (ml text)
-      in #1 (Input.source_content text) end);
+fun test_val (ml1, []) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read ");"
+  | test_val (ml1, ml2) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : " @ ml2 @ ML_Lex.read ");";
 
-fun ml_enclose bg en source =
-  ML_Lex.read bg @ ML_Lex.read_source source @ ML_Lex.read en;
+fun test_op (ml1, ml2) = test_val (ML_Lex.read "op " @ ml1, ml2);
+
+fun test_type (ml1, []) = ML_Lex.read "val _ = NONE : (" @ ml1 @ ML_Lex.read ") option;"
+  | test_type (ml1, ml2) =
+      ML_Lex.read "val _ = [NONE : (" @ ml1 @ ML_Lex.read ") option, NONE : (" @
+      ml2 @ ML_Lex.read ") option];";
+
+fun test_exn (ml1, []) = ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : exn);"
+  | test_exn (ml1, ml2) =
+      ML_Lex.read "fn _ => (" @ ml1 @ ML_Lex.read " : " @ ml2 @ ML_Lex.read " -> exn);";
+
+fun test_struct (ml, _) =
+  ML_Lex.read "functor XXX() = struct structure XX = " @ ml @ ML_Lex.read " end;";
+
+fun test_functor (Antiquote.Text tok :: _, _) =
+      ML_Lex.read "ML_Env.check_functor " @
+      ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
+  | test_functor _ = raise Fail "Bad ML functor specification";
+
+val parse_ml0 = Args.text_input >> (fn source => ("", (source, Input.empty)));
+
+val parse_ml =
+  Args.text_input -- Scan.optional (Args.colon |-- Args.text_input) Input.empty >> pair "";
+
+val parse_exn =
+  Args.text_input -- Scan.optional (Args.$$$ "of" |-- Args.text_input) Input.empty >> pair "";
+
+val parse_type =
+  (Parse.type_args >> (fn [] => "" | [a] => a ^ " " | bs => enclose "(" ") " (commas bs))) --
+    (Args.text_input -- Scan.optional (Args.$$$ "=" |-- Args.text_input) Input.empty);
+
+fun eval ctxt pos ml =
+  ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos ml
+    handle ERROR msg => error (msg ^ Position.here pos);
+
+fun make_text sep sources =
+  let
+    val (txt1, txt2) = apply2 (#1 o Input.source_content) sources;
+    val is_ident =
+      (case try List.last (Symbol.explode txt1) of
+        NONE => false
+      | SOME s => Symbol.is_ascii_letdig s);
+    val txt =
+      if txt2 = "" then txt1
+      else if sep = ":" andalso is_ident then txt1 ^ ": " ^ txt2
+      else txt1 ^ " " ^ sep ^ " " ^ txt2
+  in (txt, txt1) end;
+
+fun antiquotation_ml parse test kind show_kind binding index =
+  Document_Output.antiquotation_raw binding (Scan.lift parse)
+    (fn ctxt => fn (txt0, sources) =>
+      let
+        val (ml1, ml2) = apply2 ML_Lex.read_source sources;
+        val ml0 = ML_Lex.read_source (Input.string txt0);
+        val _ = test (ml0 @ ml1, ml2) |> eval ctxt (Input.pos_of (#1 sources));
+
+        val sep = if kind = "type" then "=" else if kind = "exception" then "of" else ":";
+        val (txt, idx) = make_text sep sources;
+
+        val main_text =
+          Document_Output.verbatim ctxt
+            ((if kind = "" orelse not show_kind then "" else kind ^ " ") ^ txt0 ^ txt);
+
+        val index_text =
+          index |> Option.map (fn def =>
+            let
+              val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
+              val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
+              val txt' = Latex.block [Document_Output.verbatim ctxt' idx, Latex.string kind'];
+              val like = Document_Antiquotation.approx_content ctxt' idx;
+            in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
+      in Latex.block (the_list index_text @ [main_text]) end);
+
+fun antiquotation_ml0 test kind =
+  antiquotation_ml parse_ml0 test kind false;
+
+fun antiquotation_ml1 parse test kind binding =
+  antiquotation_ml parse test kind true binding (SOME true);
 
 in
 
-val _ = Theory.setup
- (ml_text \<^binding>\<open>ML\<close> (ml_enclose "fn _ => (" ");") #>
-  ml_text \<^binding>\<open>ML_op\<close> (ml_enclose "fn _ => (op " ");") #>
-  ml_text \<^binding>\<open>ML_type\<close> (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text \<^binding>\<open>ML_structure\<close>
-    (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
-
-  ml_text \<^binding>\<open>ML_functor\<close>   (* FIXME formal treatment of functor name (!?) *)
-    (fn source =>
-      ML_Lex.read ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (#1 (Input.source_content source)))) #>
-
-  ml_text \<^binding>\<open>ML_text\<close> (K []));
+val _ =
+  Theory.setup
+   (Latex.index_variants (antiquotation_ml0 test_val "") \<^binding>\<open>ML\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_op "infix") \<^binding>\<open>ML_infix\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_type "type") \<^binding>\<open>ML_type\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_struct "structure") \<^binding>\<open>ML_structure\<close> #>
+    Latex.index_variants (antiquotation_ml0 test_functor "functor") \<^binding>\<open>ML_functor\<close> #>
+    antiquotation_ml0 (K []) "text" \<^binding>\<open>ML_text\<close> NONE #>
+    antiquotation_ml1 parse_ml test_val "" \<^binding>\<open>define_ML\<close> #>
+    antiquotation_ml1 parse_ml test_op "infix" \<^binding>\<open>define_ML_infix\<close> #>
+    antiquotation_ml1 parse_type test_type "type" \<^binding>\<open>define_ML_type\<close> #>
+    antiquotation_ml1 parse_exn test_exn "exception" \<^binding>\<open>define_ML_exception\<close> #>
+    antiquotation_ml1 parse_ml0 test_struct "structure" \<^binding>\<open>define_ML_structure\<close> #>
+    antiquotation_ml1 parse_ml0 test_functor "functor" \<^binding>\<open>define_ML_functor\<close>);
 
 end;
 
@@ -315,7 +413,7 @@ val escape_url =
   translate_string (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
+  (Document_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_input)
     (fn ctxt => fn source =>
       let
         val url = Input.string_of source;
@@ -332,12 +430,10 @@ val _ = Theory.setup
 local
 
 fun entity_antiquotation name check bg en =
-  Thy_Output.antiquotation_raw name (Scan.lift Args.name_position)
+  Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
       in Latex.enclose_block bg en [Latex.string (Output.output name)] end);
-
-in
 
 val _ =
   Theory.setup
@@ -345,6 +441,6 @@ val _ =
     entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "\\isa{" "}" #>
     entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "\\isa{" "}");
 
-end;
+in end;
 
 end;

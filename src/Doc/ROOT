@@ -1,23 +1,23 @@
 chapter Doc
 
 session Classes (doc) in "Classes" = HOL +
-  options [document_variants = "classes", quick_and_dirty]
+  options [document_logo = "Isar", document_bibliography,
+    document_variants = "classes", quick_and_dirty]
   theories [document = false] Setup
   theories Classes
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Codegen (doc) in "Codegen" = HOL +
-  options [document_variants = "codegen", print_mode = "no_brackets,iff"]
+  options [document_logo = "Isar", document_bibliography, document_variants = "codegen",
+    print_mode = "no_brackets,iff"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -32,35 +32,31 @@ session Codegen (doc) in "Codegen" = HOL +
     Adaptation
     Further
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Corec (doc) in "Corec" = Datatypes +
-  options [document_variants = "corec"]
+  options [document_bibliography, document_variants = "corec"]
   theories
     Corec
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Datatypes (doc) in "Datatypes" = HOL +
-  options [document_variants = "datatypes"]
+  options [document_bibliography, document_variants = "datatypes"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -68,20 +64,18 @@ session Datatypes (doc) in "Datatypes" = HOL +
   theories
     Datatypes
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Eisbach (doc) in "Eisbach" = HOL +
-  options [document_variants = "eisbach", quick_and_dirty,
-    print_mode = "no_brackets,iff", show_question_marks = false]
+  options [document_logo = "Eisbach", document_bibliography, document_variants = "eisbach",
+    quick_and_dirty, print_mode = "no_brackets,iff", show_question_marks = false]
   sessions
     "HOL-Eisbach"
   theories [document = false]
@@ -90,7 +84,6 @@ session Eisbach (doc) in "Eisbach" = HOL +
     Preface
     Manual
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -99,22 +92,20 @@ session Eisbach (doc) in "Eisbach" = HOL +
     "underscore.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Functions (doc) in "Functions" = HOL +
-  options [document_variants = "functions", skip_proofs = false, quick_and_dirty]
+  options [document_bibliography, document_variants = "functions",
+    skip_proofs = false, quick_and_dirty]
   theories Functions
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "conclusion.tex"
     "intro.tex"
     "root.tex"
@@ -130,9 +121,9 @@ session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
     "prelude.tex"
 
 session Intro (doc) in "Intro" = Pure +
-  options [document_variants = "intro"]
+  options [document_logo = "_", document_bibliography, document_build = "build",
+    document_variants = "intro"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -146,7 +137,8 @@ session Intro (doc) in "Intro" = Pure +
     "root.tex"
 
 session Implementation (doc) in "Implementation" = HOL +
-  options [document_variants = "implementation", quick_and_dirty]
+  options [document_logo = "Isar", document_bibliography,
+    document_variants = "implementation", quick_and_dirty]
   theories
     Eq
     Integration
@@ -160,7 +152,6 @@ session Implementation (doc) in "Implementation" = HOL +
   theories [parallel_proofs = 0]
     Logic
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -169,12 +160,12 @@ session Implementation (doc) in "Implementation" = HOL +
     "underscore.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"
 
 session Isar_Ref (doc) in "Isar_Ref" = HOL +
-  options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
+  options [document_logo = "Isar", document_bibliography, document_variants = "isar-ref",
+    quick_and_dirty, thy_output_source]
   sessions
     "HOL-Library"
   theories
@@ -193,7 +184,6 @@ session Isar_Ref (doc) in "Isar_Ref" = HOL +
     Quick_Reference
     Symbols
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -202,15 +192,14 @@ session Isar_Ref (doc) in "Isar_Ref" = HOL +
     "underscore.sty"
     "manual.bib"
   document_files
-    "build"
     "isar-vm.pdf"
     "isar-vm.svg"
     "root.tex"
-    "showsymbols"
     "style.sty"
 
 session JEdit (doc) in "JEdit" = HOL +
-  options [document_variants = "jedit", thy_output_source]
+  options [document_logo = "jEdit", document_bibliography, document_variants = "jedit",
+    thy_output_source]
   theories
     JEdit
   document_files (in "..")
@@ -219,7 +208,6 @@ session JEdit (doc) in "JEdit" = HOL +
     "isar.sty"
     "manual.bib"
     "pdfsetup.sty"
-    "prepare_document"
     "ttbox.sty"
     "underscore.sty"
   document_files (in "../Isar_Ref/document")
@@ -227,7 +215,6 @@ session JEdit (doc) in "JEdit" = HOL +
   document_files
     "auto-tools.png"
     "bibtex-mode.png"
-    "build"
     "cite-completion.png"
     "isabelle-jedit.png"
     "markdown-document.png"
@@ -247,54 +234,52 @@ session JEdit (doc) in "JEdit" = HOL +
     "theories.png"
 
 session Sugar (doc) in "Sugar" = HOL +
-  options [document_variants = "sugar"]
+  options [document_bibliography, document_variants = "sugar"]
   sessions
     "HOL-Library"
   theories Sugar
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
   document_files
-    "build"
     "root.bib"
     "root.tex"
 
 session Locales (doc) in "Locales" = HOL +
-  options [document_variants = "locales", thy_output_margin = 65, skip_proofs = false]
+  options [document_bibliography, document_variants = "locales",
+    thy_output_margin = 65, skip_proofs = false]
   theories
     Examples1
     Examples2
     Examples3
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
   document_files
-    "build"
     "root.bib"
     "root.tex"
 
 session Logics (doc) in "Logics" = Pure +
-  options [document_variants = "logics"]
+  options [document_logo = "_", document_bibliography, document_build = "build",
+    document_variants = "logics"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "ttbox.sty"
     "manual.bib"
+  document_files (in "../Intro/document")
+    "build"
   document_files
     "CTT.tex"
     "HOL.tex"
     "LK.tex"
     "Sequents.tex"
-    "build"
     "preface.tex"
     "root.tex"
     "syntax.tex"
 
 session Logics_ZF (doc) in "Logics_ZF" = ZF +
-  options [document_variants = "logics-ZF", print_mode = "brackets",
-    thy_output_source]
+  options [document_logo = "ZF", document_bibliography, document_build = "build",
+    document_variants = "logics-ZF", print_mode = "brackets", thy_output_source]
   sessions
     FOL
   theories
@@ -304,17 +289,17 @@ session Logics_ZF (doc) in "Logics_ZF" = ZF +
     If
     ZF_Isar
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "isar.sty"
     "ttbox.sty"
     "manual.bib"
+  document_files (in "../Intro/document")
+    "build"
   document_files (in "../Logics/document")
     "syntax.tex"
   document_files
     "FOL.tex"
     "ZF.tex"
-    "build"
     "logics.sty"
     "root.tex"
 
@@ -322,25 +307,22 @@ session Main (doc) in "Main" = HOL +
   options [document_variants = "main"]
   theories Main_Doc
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
   document_files
-    "build"
     "root.tex"
 
 session Nitpick (doc) in "Nitpick" = Pure +
-  options [document_variants = "nitpick"]
+  options [document_logo = "Nitpick", document_bibliography, document_variants = "nitpick"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
 
 session Prog_Prove (doc) in "Prog_Prove" = HOL +
-  options [document_variants = "prog-prove", show_question_marks = false]
+  options [document_logo = "HOL", document_bibliography, document_variants = "prog-prove",
+    show_question_marks = false]
   theories
     Basics
     Bool_nat_list
@@ -351,11 +333,9 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
   document_files (in ".")
     "MyList.thy"
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
   document_files
     "bang.pdf"
-    "build"
     "intro-isabelle.tex"
     "prelude.tex"
     "root.bib"
@@ -363,18 +343,17 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
     "svmono.cls"
 
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
-  options [document_variants = "sledgehammer"]
+  options [document_logo = "S/H", document_bibliography, document_variants = "sledgehammer"]
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
 
 session System (doc) in "System" = Pure +
-  options [document_variants = "system", thy_output_source]
+  options [document_logo = "_", document_bibliography, document_variants = "system",
+    thy_output_source]
   sessions
     "HOL-Library"
   theories
@@ -386,7 +365,6 @@ session System (doc) in "System" = Pure +
     Phabricator
     Misc
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
@@ -397,11 +375,11 @@ session System (doc) in "System" = Pure +
   document_files (in "../Isar_Ref/document")
     "style.sty"
   document_files
-    "build"
     "root.tex"
 
 session Tutorial (doc) in "Tutorial" = HOL +
-  options [document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
+  options [document_logo = "HOL", document_bibliography, document_build = "build",
+    document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
   directories "Advanced" "CTL" "CodeGen" "Datatype" "Documents" "Fun" "Ifexpr"
     "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
   theories [document = false]
@@ -494,7 +472,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "types0.tex"
 
 session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
-  options [document_variants = "typeclass_hierarchy"]
+  options [document_logo = "Isar", document_bibliography, document_variants = "typeclass_hierarchy"]
   sessions
     "HOL-Library"
   theories [document = false]
@@ -502,13 +480,11 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
   theories
     Typeclass_Hierarchy
   document_files (in "..")
-    "prepare_document"
     "pdfsetup.sty"
     "iman.sty"
     "extra.sty"
     "isar.sty"
     "manual.bib"
   document_files
-    "build"
     "root.tex"
     "style.sty"

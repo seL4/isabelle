@@ -1,11 +1,12 @@
-(*  Title:      Pure/Thy/thy_output.ML
+(*  Title:      Pure/Thy/document_output.ML
     Author:     Makarius
 
 Theory document output.
 *)
 
-signature THY_OUTPUT =
+signature DOCUMENT_OUTPUT =
 sig
+  val document_reports: Input.source -> Position.report list
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
@@ -46,10 +47,16 @@ sig
     binding -> 'a context_parser -> (Proof.context -> 'a -> string) -> theory -> theory
 end;
 
-structure Thy_Output: THY_OUTPUT =
+structure Document_Output: DOCUMENT_OUTPUT =
 struct
 
 (* output document source *)
+
+fun document_reports txt =
+  let val pos = Input.pos_of txt in
+    [(pos, Markup.language_document (Input.is_delimited txt)),
+     (pos, Markup.plain_text)]
+  end;
 
 val output_symbols = single o Latex.symbols_output;
 

@@ -32,7 +32,7 @@ text \<open>
 
   \begin{center}
   \begin{isabellebody}
-  \input{syms}  
+  @{show_symbols}
   \end{isabellebody}
   \end{center}
 \<close>

@@ -61,10 +61,10 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Goal.init: "cterm -> thm"} \\
-  @{index_ML Goal.finish: "Proof.context -> thm -> thm"} \\
-  @{index_ML Goal.protect: "int -> thm -> thm"} \\
-  @{index_ML Goal.conclude: "thm -> thm"} \\
+  @{define_ML Goal.init: "cterm -> thm"} \\
+  @{define_ML Goal.finish: "Proof.context -> thm -> thm"} \\
+  @{define_ML Goal.protect: "int -> thm -> thm"} \\
+  @{define_ML Goal.conclude: "thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Goal.init\<close>~\<open>C\<close> initializes a tactical goal from the well-formed
@@ -156,15 +156,15 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
-  @{index_ML no_tac: tactic} \\
-  @{index_ML all_tac: tactic} \\
-  @{index_ML print_tac: "Proof.context -> string -> tactic"} \\[1ex]
-  @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
-  @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
-  @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
-  @{index_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
-  @{index_ML PREFER_GOAL: "tactic -> int -> tactic"} \\
+  @{define_ML_type tactic = "thm -> thm Seq.seq"} \\
+  @{define_ML no_tac: tactic} \\
+  @{define_ML all_tac: tactic} \\
+  @{define_ML print_tac: "Proof.context -> string -> tactic"} \\[1ex]
+  @{define_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
+  @{define_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
+  @{define_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
+  @{define_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
+  @{define_ML PREFER_GOAL: "tactic -> int -> tactic"} \\
   \end{mldecls}
 
   \<^descr> Type \<^ML_type>\<open>tactic\<close> represents tactics. The well-formedness conditions
@@ -243,17 +243,17 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML resolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML eresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML dresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML forward_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML biresolve_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\[1ex]
-  @{index_ML assume_tac: "Proof.context -> int -> tactic"} \\
-  @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
-  @{index_ML match_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML ematch_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML dmatch_tac: "Proof.context -> thm list -> int -> tactic"} \\
-  @{index_ML bimatch_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\
+  @{define_ML resolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML eresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML dresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML forward_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML biresolve_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\[1ex]
+  @{define_ML assume_tac: "Proof.context -> int -> tactic"} \\
+  @{define_ML eq_assume_tac: "int -> tactic"} \\[1ex]
+  @{define_ML match_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML ematch_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML dmatch_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{define_ML bimatch_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>resolve_tac\<close>~\<open>ctxt thms i\<close> refines the goal state using the given
@@ -351,23 +351,23 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML Rule_Insts.res_inst_tac: "Proof.context ->
+  @{define_ML Rule_Insts.res_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
     thm -> int -> tactic"} \\
-  @{index_ML Rule_Insts.eres_inst_tac: "Proof.context ->
+  @{define_ML Rule_Insts.eres_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
     thm -> int -> tactic"} \\
-  @{index_ML Rule_Insts.dres_inst_tac: "Proof.context ->
+  @{define_ML Rule_Insts.dres_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
     thm -> int -> tactic"} \\
-  @{index_ML Rule_Insts.forw_inst_tac: "Proof.context ->
+  @{define_ML Rule_Insts.forw_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
     thm -> int -> tactic"} \\
-  @{index_ML Rule_Insts.subgoal_tac: "Proof.context -> string ->
+  @{define_ML Rule_Insts.subgoal_tac: "Proof.context -> string ->
     (binding * string option * mixfix) list -> int -> tactic"} \\
-  @{index_ML Rule_Insts.thin_tac: "Proof.context -> string ->
+  @{define_ML Rule_Insts.thin_tac: "Proof.context -> string ->
     (binding * string option * mixfix) list -> int -> tactic"} \\
-  @{index_ML rename_tac: "string list -> int -> tactic"} \\
+  @{define_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Rule_Insts.res_inst_tac\<close>~\<open>ctxt insts thm i\<close> instantiates the rule
@@ -415,9 +415,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML rotate_tac: "int -> int -> tactic"} \\
-  @{index_ML distinct_subgoals_tac: tactic} \\
-  @{index_ML flexflex_tac: "Proof.context -> tactic"} \\
+  @{define_ML rotate_tac: "int -> int -> tactic"} \\
+  @{define_ML distinct_subgoals_tac: tactic} \\
+  @{define_ML flexflex_tac: "Proof.context -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>rotate_tac\<close>~\<open>n i\<close> rotates the premises of subgoal \<open>i\<close> by \<open>n\<close>
@@ -450,9 +450,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML compose_tac: "Proof.context -> (bool * thm * int) -> int -> tactic"} \\
-  @{index_ML Drule.compose: "thm * int * thm -> thm"} \\
-  @{index_ML_op COMP: "thm * thm -> thm"} \\
+  @{define_ML compose_tac: "Proof.context -> (bool * thm * int) -> int -> tactic"} \\
+  @{define_ML Drule.compose: "thm * int * thm -> thm"} \\
+  @{define_ML_infix COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>compose_tac\<close>~\<open>ctxt (flag, rule, m) i\<close> refines subgoal \<open>i\<close> using
@@ -494,53 +494,53 @@ subsection \<open>Combining tactics\<close>
 text \<open>
   Sequential composition and alternative choices are the most basic ways to
   combine tactics, similarly to ``\<^verbatim>\<open>,\<close>'' and ``\<^verbatim>\<open>|\<close>'' in Isar method notation.
-  This corresponds to \<^ML_op>\<open>THEN\<close> and \<^ML_op>\<open>ORELSE\<close> in ML, but there
+  This corresponds to \<^ML_infix>\<open>THEN\<close> and \<^ML_infix>\<open>ORELSE\<close> in ML, but there
   are further possibilities for fine-tuning alternation of tactics such as
-  \<^ML_op>\<open>APPEND\<close>. Further details become visible in ML due to explicit
+  \<^ML_infix>\<open>APPEND\<close>. Further details become visible in ML due to explicit
   subgoal addressing.
 \<close>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML_op "THEN": "tactic * tactic -> tactic"} \\
-  @{index_ML_op "ORELSE": "tactic * tactic -> tactic"} \\
-  @{index_ML_op "APPEND": "tactic * tactic -> tactic"} \\
-  @{index_ML "EVERY": "tactic list -> tactic"} \\
-  @{index_ML "FIRST": "tactic list -> tactic"} \\[0.5ex]
+  @{define_ML_infix "THEN": "tactic * tactic -> tactic"} \\
+  @{define_ML_infix "ORELSE": "tactic * tactic -> tactic"} \\
+  @{define_ML_infix "APPEND": "tactic * tactic -> tactic"} \\
+  @{define_ML "EVERY": "tactic list -> tactic"} \\
+  @{define_ML "FIRST": "tactic list -> tactic"} \\[0.5ex]
 
-  @{index_ML_op "THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML_op "ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML_op "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
-  @{index_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
-  @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
+  @{define_ML_infix "THEN'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{define_ML_infix "ORELSE'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{define_ML_infix "APPEND'": "('a -> tactic) * ('a -> tactic) -> 'a -> tactic"} \\
+  @{define_ML "EVERY'": "('a -> tactic) list -> 'a -> tactic"} \\
+  @{define_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
   \end{mldecls}
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>2\<close> is the sequential composition of \<open>tac\<^sub>1\<close> and
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>2\<close> is the sequential composition of \<open>tac\<^sub>1\<close> and
   \<open>tac\<^sub>2\<close>. Applied to a goal state, it returns all states reachable in two
   steps by applying \<open>tac\<^sub>1\<close> followed by \<open>tac\<^sub>2\<close>. First, it applies \<open>tac\<^sub>1\<close> to
   the goal state, getting a sequence of possible next states; then, it applies
   \<open>tac\<^sub>2\<close> to each of these and concatenates the results to produce again one
   flat sequence of states.
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac\<^sub>2\<close> makes a choice between \<open>tac\<^sub>1\<close> and
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac\<^sub>2\<close> makes a choice between \<open>tac\<^sub>1\<close> and
   \<open>tac\<^sub>2\<close>. Applied to a state, it tries \<open>tac\<^sub>1\<close> and returns the result if
   non-empty; if \<open>tac\<^sub>1\<close> fails then it uses \<open>tac\<^sub>2\<close>. This is a deterministic
   choice: if \<open>tac\<^sub>1\<close> succeeds then \<open>tac\<^sub>2\<close> is excluded from the result.
 
-  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>APPEND\<close>~\<open>tac\<^sub>2\<close> concatenates the possible results of
-  \<open>tac\<^sub>1\<close> and \<open>tac\<^sub>2\<close>. Unlike \<^ML_op>\<open>ORELSE\<close> there is \<^emph>\<open>no commitment\<close> to
-  either tactic, so \<^ML_op>\<open>APPEND\<close> helps to avoid incompleteness during
+  \<^descr> \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>APPEND\<close>~\<open>tac\<^sub>2\<close> concatenates the possible results of
+  \<open>tac\<^sub>1\<close> and \<open>tac\<^sub>2\<close>. Unlike \<^ML_infix>\<open>ORELSE\<close> there is \<^emph>\<open>no commitment\<close> to
+  either tactic, so \<^ML_infix>\<open>APPEND\<close> helps to avoid incompleteness during
   search, at the cost of potential inefficiencies.
 
-  \<^descr> \<^ML>\<open>EVERY\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>EVERY []\<close> is the same as
+  \<^descr> \<^ML>\<open>EVERY\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>EVERY []\<close> is the same as
   \<^ML>\<open>all_tac\<close>: it always succeeds.
 
-  \<^descr> \<^ML>\<open>FIRST\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>FIRST []\<close> is the
+  \<^descr> \<^ML>\<open>FIRST\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>n]\<close> abbreviates \<open>tac\<^sub>1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac\<^sub>n\<close>. Note that \<^ML>\<open>FIRST []\<close> is the
   same as \<^ML>\<open>no_tac\<close>: it always fails.
 
-  \<^descr> \<^ML_op>\<open>THEN'\<close> is the lifted version of \<^ML_op>\<open>THEN\<close>, for tactics
-  with explicit subgoal addressing. So \<open>(tac\<^sub>1\<close>~\<^ML_op>\<open>THEN'\<close>~\<open>tac\<^sub>2) i\<close> is
-  the same as \<open>(tac\<^sub>1 i\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>2 i)\<close>.
+  \<^descr> \<^ML_infix>\<open>THEN'\<close> is the lifted version of \<^ML_infix>\<open>THEN\<close>, for tactics
+  with explicit subgoal addressing. So \<open>(tac\<^sub>1\<close>~\<^ML_infix>\<open>THEN'\<close>~\<open>tac\<^sub>2) i\<close> is
+  the same as \<open>(tac\<^sub>1 i\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>2 i)\<close>.
 
   The other primed tacticals work analogously.
 \<close>
@@ -555,11 +555,11 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML "TRY": "tactic -> tactic"} \\
-  @{index_ML "REPEAT": "tactic -> tactic"} \\
-  @{index_ML "REPEAT1": "tactic -> tactic"} \\
-  @{index_ML "REPEAT_DETERM": "tactic -> tactic"} \\
-  @{index_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
+  @{define_ML "TRY": "tactic -> tactic"} \\
+  @{define_ML "REPEAT": "tactic -> tactic"} \\
+  @{define_ML "REPEAT1": "tactic -> tactic"} \\
+  @{define_ML "REPEAT_DETERM": "tactic -> tactic"} \\
+  @{define_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>TRY\<close>~\<open>tac\<close> applies \<open>tac\<close> to the goal state and returns the resulting
@@ -567,7 +567,7 @@ text %mlref \<open>
   applies \<open>tac\<close> at most once.
 
   Note that for tactics with subgoal addressing, the combinator can be applied
-  via functional composition: \<^ML>\<open>TRY\<close>~\<^ML_op>\<open>o\<close>~\<open>tac\<close>. There is no need
+  via functional composition: \<^ML>\<open>TRY\<close>~\<^ML_infix>\<open>o\<close>~\<open>tac\<close>. There is no need
   for \<^verbatim>\<open>TRY'\<close>.
 
   \<^descr> \<^ML>\<open>REPEAT\<close>~\<open>tac\<close> applies \<open>tac\<close> to the goal state and, recursively, to
@@ -592,10 +592,10 @@ text %mlref \<open>
 text %mlex \<open>
   The basic tactics and tacticals considered above follow some algebraic laws:
 
-  \<^item> \<^ML>\<open>all_tac\<close> is the identity element of the tactical \<^ML_op>\<open>THEN\<close>.
+  \<^item> \<^ML>\<open>all_tac\<close> is the identity element of the tactical \<^ML_infix>\<open>THEN\<close>.
 
-  \<^item> \<^ML>\<open>no_tac\<close> is the identity element of \<^ML_op>\<open>ORELSE\<close> and \<^ML_op>\<open>APPEND\<close>. Also, it is a zero element for \<^ML_op>\<open>THEN\<close>, which means that
-  \<open>tac\<close>~\<^ML_op>\<open>THEN\<close>~\<^ML>\<open>no_tac\<close> is equivalent to \<^ML>\<open>no_tac\<close>.
+  \<^item> \<^ML>\<open>no_tac\<close> is the identity element of \<^ML_infix>\<open>ORELSE\<close> and \<^ML_infix>\<open>APPEND\<close>. Also, it is a zero element for \<^ML_infix>\<open>THEN\<close>, which means that
+  \<open>tac\<close>~\<^ML_infix>\<open>THEN\<close>~\<^ML>\<open>no_tac\<close> is equivalent to \<^ML>\<open>no_tac\<close>.
 
   \<^item> \<^ML>\<open>TRY\<close> and \<^ML>\<open>REPEAT\<close> can be expressed as (recursive) functions over
   more basic combinators (ignoring some internal implementation tricks):
@@ -607,7 +607,7 @@ ML \<open>
 \<close>
 
 text \<open>
-  If \<open>tac\<close> can return multiple outcomes then so can \<^ML>\<open>REPEAT\<close>~\<open>tac\<close>. \<^ML>\<open>REPEAT\<close> uses \<^ML_op>\<open>ORELSE\<close> and not \<^ML_op>\<open>APPEND\<close>, it applies \<open>tac\<close>
+  If \<open>tac\<close> can return multiple outcomes then so can \<^ML>\<open>REPEAT\<close>~\<open>tac\<close>. \<^ML>\<open>REPEAT\<close> uses \<^ML_infix>\<open>ORELSE\<close> and not \<^ML_infix>\<open>APPEND\<close>, it applies \<open>tac\<close>
   as many times as possible in each outcome.
 
   \begin{warn}
@@ -641,20 +641,20 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
-  @{index_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
-  @{index_ML FIRSTGOAL: "(int -> tactic) -> tactic"} \\
-  @{index_ML HEADGOAL: "(int -> tactic) -> tactic"} \\
-  @{index_ML REPEAT_SOME: "(int -> tactic) -> tactic"} \\
-  @{index_ML REPEAT_FIRST: "(int -> tactic) -> tactic"} \\
-  @{index_ML RANGE: "(int -> tactic) list -> int -> tactic"} \\
+  @{define_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
+  @{define_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
+  @{define_ML FIRSTGOAL: "(int -> tactic) -> tactic"} \\
+  @{define_ML HEADGOAL: "(int -> tactic) -> tactic"} \\
+  @{define_ML REPEAT_SOME: "(int -> tactic) -> tactic"} \\
+  @{define_ML REPEAT_FIRST: "(int -> tactic) -> tactic"} \\
+  @{define_ML RANGE: "(int -> tactic) list -> int -> tactic"} \\
   \end{mldecls}
 
-  \<^descr> \<^ML>\<open>ALLGOALS\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac 1\<close>. It applies the \<open>tac\<close> to all the subgoals, counting downwards.
+  \<^descr> \<^ML>\<open>ALLGOALS\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac 1\<close>. It applies the \<open>tac\<close> to all the subgoals, counting downwards.
 
-  \<^descr> \<^ML>\<open>SOMEGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac 1\<close>. It applies \<open>tac\<close> to one subgoal, counting downwards.
+  \<^descr> \<^ML>\<open>SOMEGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac n\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac 1\<close>. It applies \<open>tac\<close> to one subgoal, counting downwards.
 
-  \<^descr> \<^ML>\<open>FIRSTGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>ORELSE\<close>~\<open>tac n\<close>. It applies \<open>tac\<close> to one subgoal, counting upwards.
+  \<^descr> \<^ML>\<open>FIRSTGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>ORELSE\<close>~\<open>tac n\<close>. It applies \<open>tac\<close> to one subgoal, counting upwards.
 
   \<^descr> \<^ML>\<open>HEADGOAL\<close>~\<open>tac\<close> is equivalent to \<open>tac 1\<close>. It applies \<open>tac\<close>
   unconditionally to the first subgoal.
@@ -666,7 +666,7 @@ text %mlref \<open>
   upwards.
 
   \<^descr> \<^ML>\<open>RANGE\<close>~\<open>[tac\<^sub>1, \<dots>, tac\<^sub>k] i\<close> is equivalent to \<open>tac\<^sub>k (i + k -
-  1)\<close>~\<^ML_op>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_op>\<open>THEN\<close>~\<open>tac\<^sub>1 i\<close>. It applies the given list of
+  1)\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>\<dots>\<close>~\<^ML_infix>\<open>THEN\<close>~\<open>tac\<^sub>1 i\<close>. It applies the given list of
   tactics to the corresponding range of subgoals, counting downwards.
 \<close>
 
@@ -689,8 +689,8 @@ subsubsection \<open>Filtering a tactic's results\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML FILTER: "(thm -> bool) -> tactic -> tactic"} \\
-  @{index_ML CHANGED: "tactic -> tactic"} \\
+  @{define_ML FILTER: "(thm -> bool) -> tactic -> tactic"} \\
+  @{define_ML CHANGED: "tactic -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>FILTER\<close>~\<open>sat tac\<close> applies \<open>tac\<close> to the goal state and returns a
@@ -706,15 +706,15 @@ subsubsection \<open>Depth-first search\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML DEPTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
-  @{index_ML DEPTH_SOLVE: "tactic -> tactic"} \\
-  @{index_ML DEPTH_SOLVE_1: "tactic -> tactic"} \\
+  @{define_ML DEPTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
+  @{define_ML DEPTH_SOLVE: "tactic -> tactic"} \\
+  @{define_ML DEPTH_SOLVE_1: "tactic -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> returns the goal state if \<open>sat\<close> returns true.
   Otherwise it applies \<open>tac\<close>, then recursively searches from each element of
   the resulting sequence. The code uses a stack for efficiency, in effect
-  applying \<open>tac\<close>~\<^ML_op>\<open>THEN\<close>~\<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> to the state.
+  applying \<open>tac\<close>~\<^ML_infix>\<open>THEN\<close>~\<^ML>\<open>DEPTH_FIRST\<close>~\<open>sat tac\<close> to the state.
 
   \<^descr> \<^ML>\<open>DEPTH_SOLVE\<close>\<open>tac\<close> uses \<^ML>\<open>DEPTH_FIRST\<close> to search for states having
   no subgoals.
@@ -729,9 +729,9 @@ subsubsection \<open>Other search strategies\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML BREADTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
-  @{index_ML BEST_FIRST: "(thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
-  @{index_ML THEN_BEST_FIRST: "tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
+  @{define_ML BREADTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
+  @{define_ML BEST_FIRST: "(thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
+  @{define_ML THEN_BEST_FIRST: "tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
   \end{mldecls}
 
   These search strategies will find a solution if one exists. However, they do
@@ -763,10 +763,10 @@ subsubsection \<open>Auxiliary tacticals for searching\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML COND: "(thm -> bool) -> tactic -> tactic -> tactic"} \\
-  @{index_ML IF_UNSOLVED: "tactic -> tactic"} \\
-  @{index_ML SOLVE: "tactic -> tactic"} \\
-  @{index_ML DETERM: "tactic -> tactic"} \\
+  @{define_ML COND: "(thm -> bool) -> tactic -> tactic -> tactic"} \\
+  @{define_ML IF_UNSOLVED: "tactic -> tactic"} \\
+  @{define_ML SOLVE: "tactic -> tactic"} \\
+  @{define_ML DETERM: "tactic -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>COND\<close>~\<open>sat tac\<^sub>1 tac\<^sub>2\<close> applies \<open>tac\<^sub>1\<close> to the goal state if it
@@ -792,10 +792,10 @@ subsubsection \<open>Predicates and functions useful for searching\<close>
 
 text \<open>
   \begin{mldecls}
-  @{index_ML has_fewer_prems: "int -> thm -> bool"} \\
-  @{index_ML Thm.eq_thm: "thm * thm -> bool"} \\
-  @{index_ML Thm.eq_thm_prop: "thm * thm -> bool"} \\
-  @{index_ML size_of_thm: "thm -> int"} \\
+  @{define_ML has_fewer_prems: "int -> thm -> bool"} \\
+  @{define_ML Thm.eq_thm: "thm * thm -> bool"} \\
+  @{define_ML Thm.eq_thm_prop: "thm * thm -> bool"} \\
+  @{define_ML size_of_thm: "thm -> int"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>has_fewer_prems\<close>~\<open>n thm\<close> reports whether \<open>thm\<close> has fewer than \<open>n\<close>
