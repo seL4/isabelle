@@ -162,7 +162,7 @@ fun index binding def =
             val like =
               (case opt_like of
                 SOME s => s
-              | NONE => Document_Antiquotation.approx_content ctxt txt);
+              | NONE => Document_Antiquotation.approx_content ctxt (Input.string_of txt));
             val _ =
               if is_none opt_like andalso Context_Position.is_visible ctxt then
                 writeln ("(" ^ Markup.markup Markup.keyword2 "is" ^ " " ^ quote like ^ ")" ^
@@ -368,7 +368,7 @@ fun antiquotation_ml parse test kind show_kind binding index =
               val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
               val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
               val txt' = Latex.block [Document_Output.verbatim ctxt' txt1, Latex.string kind'];
-              val like = Document_Antiquotation.approx_content ctxt' source1;
+              val like = Document_Antiquotation.approx_content ctxt' txt1;
             in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
       in Latex.block (the_list index_text @ [main_text]) end);
 

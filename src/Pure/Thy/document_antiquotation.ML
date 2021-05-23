@@ -35,7 +35,7 @@ sig
   val integer: string -> int
   val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
     Antiquote.text_antiquote -> Latex.text list
-  val approx_content: Proof.context -> Input.source -> string
+  val approx_content: Proof.context -> string -> string
 end;
 
 structure Document_Antiquotation: DOCUMENT_ANTIQUOTATION =
@@ -227,12 +227,13 @@ fun strip_antiq _ (Antiquote.Text body) = map Symbol_Pos.symbol body
 
 in
 
-fun approx_content ctxt txt =
-  let
-    val pos = Input.pos_of txt;
-    val syms = Input.source_explode txt;
-    val ants = Antiquote.parse_comments pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
-  in ants |> maps (strip_antiq ctxt) |> map strip_symbol |> implode end;
+fun approx_content ctxt =
+  Symbol_Pos.explode0
+  #> trim (Symbol.is_blank o Symbol_Pos.symbol)
+  #> Antiquote.parse_comments Position.none
+  #> maps (strip_antiq ctxt)
+  #> map strip_symbol
+  #> implode;
 
 end;
 
