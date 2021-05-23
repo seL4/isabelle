@@ -25,7 +25,7 @@ fun init name = Synchronized.change session (K name);
 
 fun get_name () = Synchronized.value session;
 
-fun description () = "Isabelle/" ^ get_name ();
+fun description () = (case get_name () of "" => "Isabelle" | name => "Isabelle/" ^ name);
 
 fun welcome () = "Welcome to " ^ description () ^ Isabelle_System.isabelle_heading ();
 
