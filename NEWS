@@ -34,6 +34,13 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* Document antiquotations for ML text have been refined: "def" and "ref"
+variants support index entries, e.g. @{ML} (no entry) vs. @{ML_def}
+(bold entry) vs. @{ML_ref} (regular entry); @{ML_type} supports explicit
+type arguments for constructors (only relevant for index), e.g.
+@{ML_type \<open>'a list\<close>} vs. @{ML_type 'a \<open>list\<close>}; @{ML_op} has been renamed
+to @{ML_infix}. Minor INCOMPATIBILITY concerning name and syntax.
+
 * Option "document_logo" determines if an instance of the Isabelle logo
 should be created in the document output directory. The given string
 specifies the name of the logo variant, while "_" (underscore) refers to
