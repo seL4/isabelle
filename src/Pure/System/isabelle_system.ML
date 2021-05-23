@@ -23,6 +23,8 @@ sig
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val download: string -> string
   val download_file: string -> Path.T -> unit
+  val decode_base64: string -> string
+  val encode_base64: string -> string
   val isabelle_id: unit -> string
   val isabelle_identifier: unit -> string option
   val isabelle_heading: unit -> string
