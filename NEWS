@@ -226,9 +226,10 @@ context of Isabelle/Scala:
 
 *** System ***
 
-* Command-line tool "isabelle build" supports option -L FILE for syslog
-messages. Such messages can be produced in Isabelle/ML via formal
-Output.system_message or informal Output.physical_stderr.
+* System option "system_log" specifies an optional log file for internal
+messages produced by Output.system_message in Isabelle/ML; "-" refers to
+console progress of the build job. This works for "isabelle build" or
+any derivative of it.
 
 * Command-line tool "isabelle version" supports repository archives
 (without full .hg directory). More options.

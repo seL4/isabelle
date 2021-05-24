@@ -276,6 +276,10 @@ text \<open>
     \<^ML>\<open>profile_time\<close> and \<^verbatim>\<open>allocations\<close> for \<^ML>\<open>profile_allocations\<close>.
     Results appear near the bottom of the session log file.
 
+    \<^item> @{system_option_def system_log} specifies an optional log file for
+    low-level messages produced by \<^ML>\<open>Output.system_message\<close> in
+    Isabelle/ML; ``\<^verbatim>\<open>-\<close>'' refers to console progress of the build job.
+
     \<^item> @{system_option_def "system_heaps"} determines the directories for
     session heap images: \<^path>\<open>$ISABELLE_HEAPS\<close> is the user directory and
     \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> the system directory (usually within the
@@ -326,7 +330,6 @@ text \<open>
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -L FILE      append syslog messages to given FILE
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -459,11 +462,6 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists
   the source files that contribute to a session.
-
-  \<^medskip>
-  Option \<^verbatim>\<open>-L\<close>~\<open>FILE\<close> appends syslog messages to the given file. Such messages
-  can be produced in Isabelle/ML via formal \<^ML>\<open>Output.system_message\<close> or
-  informal \<^ML>\<open>Output.physical_stderr\<close>.
 
   \<^medskip>
   Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for outer syntax (multiple

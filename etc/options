@@ -133,6 +133,9 @@ option process_output_tail : int = 40
 option profiling : string = ""
   -- "ML profiling (possible values: time, allocations)"
 
+option system_log : string = ""
+  -- "output for system messages (log file or \"-\" for console progress)"
+
 option system_heaps : bool = false
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
 

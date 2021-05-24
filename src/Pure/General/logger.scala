@@ -11,6 +11,9 @@ object Logger
 {
   def make(log_file: Option[Path]): Logger =
     log_file match { case Some(file) => new File_Logger(file) case None => No_Logger }
+
+  def make(progress: Progress): Logger =
+    new Logger { def apply(msg: => String): Unit = progress.echo(msg) }
 }
 
 trait Logger
