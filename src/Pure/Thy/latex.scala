@@ -30,7 +30,7 @@ object Latex
     var line = 1
     var result = List.empty[String]
 
-    def output(body: XML.Body): Unit =
+    def traverse(body: XML.Body): Unit =
     {
       body.foreach {
         case XML.Wrapped_Elem(_, _, _) =>
@@ -40,14 +40,14 @@ object Latex
               val s = position(Value.Int(line), Value.Int(l))
               if (positions.head != s) positions ::= s
             }
-            output(body)
+            traverse(body)
           }
         case XML.Text(s) =>
           line += s.count(_ == '\n')
           result ::= s
       }
     }
-    output(latex_text)
+    traverse(latex_text)
 
     result.reverse.mkString + cat_lines(positions.reverse)
   }
