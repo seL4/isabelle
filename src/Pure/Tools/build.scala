@@ -535,7 +535,6 @@ object Build
 
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
-    var log: Logger = No_Logger
     var numa_shuffling = false
     var presentation = Presentation.Context.none
     var requirements = false
