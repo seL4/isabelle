@@ -11,9 +11,22 @@ object Document_Build
 {
   /* document variants */
 
-  sealed case class Content(path: Path, bytes: Bytes)
+  object Content
   {
-    def write(dir: Path): Unit = Bytes.write(dir + path, bytes)
+    def apply(path: Path, content: Bytes): Content = new Content_Bytes(path, content)
+    def apply(path: Path, content: String): Content = new Content_String(path, content)
+  }
+  trait Content
+  {
+    def write(dir: Path): Unit
+  }
+  final class Content_Bytes private[Document_Build](path: Path, content: Bytes) extends Content
+  {
+    def write(dir: Path): Unit = Bytes.write(dir + path, content)
+  }
+  final class Content_String private[Document_Build](path: Path, content: String) extends Content
+  {
+    def write(dir: Path): Unit = File.write(dir + path, content)
   }
 
   abstract class Document_Name
@@ -45,7 +58,7 @@ object Document_Build
     def isabelletags: Content =
     {
       val path = Path.explode("isabelletags.sty")
-      val text =
+      val content =
         Library.terminate_lines(
           tags.map(tag =>
             tag.toList match {
@@ -54,7 +67,7 @@ object Document_Build
               case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
               case cs => "\\isakeeptag{" + cs.mkString + "}"
             }))
-      Content(path, Bytes(text))
+      Content(path, content)
     }
   }
 
@@ -205,24 +218,24 @@ object Document_Build
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val bytes = get_export(name.theory, document_tex_name(name)).uncompressed
-        Content(path, bytes)
+        val content = get_export(name.theory, document_tex_name(name)).uncompressed
+        Content(path, content)
       }
 
     lazy val session_graph: Content =
     {
       val path = Presentation.session_graph_path
-      val bytes = graphview.Graph_File.make_pdf(options, base.session_graph_display)
-      Content(path, bytes)
+      val content = graphview.Graph_File.make_pdf(options, base.session_graph_display)
+      Content(path, content)
     }
 
     lazy val session_tex: Content =
     {
       val path = Path.basic("session.tex")
-      val text =
+      val content =
         Library.terminate_lines(
           base.session_theories.map(name => "\\input{" + tex_name(name) + "}"))
-      Content(path, Bytes(text))
+      Content(path, content)
     }
 
     lazy val isabelle_logo: Option[Content] =
@@ -232,8 +245,8 @@ object Document_Build
         {
           Logo.create_logo(logo_name, output_file = tmp_path, quiet = true)
           val path = Path.basic("isabelle_logo.pdf")
-          val bytes = Bytes.read(tmp_path)
-          Content(path, bytes)
+          val content = Bytes.read(tmp_path)
+          Content(path, content)
         }))
     }
 
