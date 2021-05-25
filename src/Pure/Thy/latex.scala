@@ -15,19 +15,6 @@ import scala.util.matching.Regex
 
 object Latex
 {
-  /** latex errors **/
-
-  def latex_errors(dir: Path, root_name: String): List[String] =
-  {
-    val root_log_path = dir + Path.explode(root_name).ext("log")
-    if (root_log_path.is_file) {
-      for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
-      yield "Latex error" + Position.here(pos) + ":\n" + Library.indent_lines(2, msg)
-    }
-    else Nil
-  }
-
-
   /* output text and positions */
 
   type Text = XML.Body
@@ -116,6 +103,16 @@ object Latex
 
 
   /* latex log */
+
+  def latex_errors(dir: Path, root_name: String): List[String] =
+  {
+    val root_log_path = dir + Path.explode(root_name).ext("log")
+    if (root_log_path.is_file) {
+      for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
+        yield "Latex error" + Position.here(pos) + ":\n" + Library.indent_lines(2, msg)
+    }
+    else Nil
+  }
 
   def filter_errors(dir: Path, root_log: String): List[(String, Position.T)] =
   {
