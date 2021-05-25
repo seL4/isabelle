@@ -138,6 +138,7 @@ sig
   val text_foldN: string val text_fold: T
   val document_markerN: string val document_marker: T
   val document_tagN: string val document_tag: string -> T
+  val document_latexN: string val document_latex: T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
   val markdown_bulletN: string val markdown_bullet: int -> T
@@ -529,6 +530,8 @@ val (text_foldN, text_fold) = markup_elem "text_fold";
 
 val (document_markerN, document_marker) = markup_elem "document_marker";
 val (document_tagN, document_tag) = markup_string "document_tag" nameN;
+
+val (document_latexN, document_latex) = markup_elem "document_latex";
 
 
 (* Markdown document structure *)

@@ -218,7 +218,8 @@ object Document_Build
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val content = get_export(name.theory, document_tex_name(name)).uncompressed
+        val xml = YXML.parse_body(get_export(name.theory, document_tex_name(name)).text)
+        val content = Latex.output(xml, file_pos = name.path.implode_symbolic)
         Content(path, content)
       }
 

@@ -356,6 +356,8 @@ object Markup
       }
   }
 
+  val DOCUMENT_LATEX = "document_latex"
+
 
   /* Markdown document structure */
 

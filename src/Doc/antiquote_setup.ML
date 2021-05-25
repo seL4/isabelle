@@ -45,7 +45,7 @@ val _ =
             (Document_Antiquotation.delimit ctxt (Document_Output.pretty_thm ctxt thm))) ^
         enclose "\\rulename{" "}" (Output.output name))
       #> space_implode "\\par\\smallskip%\n"
-      #> Latex.string #> single
+      #> Latex.string
       #> Document_Output.isabelle ctxt));
 
 

@@ -33,8 +33,8 @@ sig
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
-    Antiquote.text_antiquote -> Latex.text list
+  val evaluate: (Symbol_Pos.T list -> Latex.text) -> Proof.context ->
+    Antiquote.text_antiquote -> Latex.text
   val approx_content: Proof.context -> string -> string
 end;
 
@@ -184,7 +184,7 @@ fun eval ctxt pos (opts, src) =
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val print_modes =
       space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN, Pretty.regularN];
-  in [Print_Mode.with_modes print_modes (fn () => command pos (opts, src) print_ctxt) ()] end;
+  in Print_Mode.with_modes print_modes (fn () => command pos (opts, src) print_ctxt) () end;
 
 in
 

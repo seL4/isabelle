@@ -131,7 +131,7 @@ fun nested_antiquotation name s1 s2 =
   Document_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => fn txt =>
       (Context_Position.reports ctxt (Document_Output.document_reports txt);
-        Latex.enclose_block s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
+        Latex.enclose_text s1 s2 (Document_Output.output_document ctxt {markdown = false} txt)));
 
 val _ =
   Theory.setup
@@ -149,7 +149,7 @@ local
 val index_like = Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "is" |-- Args.name --| Parse.$$$ ")");
 val index_args = Parse.enum1 "!" (Args.embedded_input -- Scan.option index_like);
 
-fun output_text ctxt = Latex.block o Document_Output.output_document ctxt {markdown = false};
+fun output_text ctxt = Document_Output.output_document ctxt {markdown = false};
 
 fun index binding def =
   Document_Output.antiquotation_raw binding (Scan.lift index_args)
@@ -370,16 +370,17 @@ fun antiquotation_ml parse test kind show_kind binding index =
         val main_text =
           Document_Output.verbatim ctxt
             ((if kind = "" orelse not show_kind then "" else kind ^ " ") ^ txt0 ^ txt);
-
         val index_text =
-          index |> Option.map (fn def =>
-            let
-              val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
-              val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
-              val txt' = Latex.block [Document_Output.verbatim ctxt' idx, Latex.string kind'];
-              val like = Document_Antiquotation.approx_content ctxt' idx;
-            in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
-      in Latex.block (the_list index_text @ [main_text]) end);
+          (case index of
+            NONE => []
+          | SOME def =>
+              let
+                val ctxt' = Config.put Document_Antiquotation.thy_output_display false ctxt;
+                val kind' = if kind = "" then " (ML)" else " (ML " ^ kind ^ ")";
+                val txt' = Document_Output.verbatim ctxt' idx @ Latex.string kind';
+                val like = Document_Antiquotation.approx_content ctxt' idx;
+              in Latex.index_entry {items = [{text = txt', like = like}], def = def} end);
+      in index_text @ main_text end);
 
 fun antiquotation_ml0 test kind =
   antiquotation_ml parse_ml0 test kind false;
@@ -422,7 +423,7 @@ val _ = Theory.setup
         val _ =
           Context_Position.reports ctxt
             [(pos, Markup.language_url delimited), (pos, Markup.url url)];
-      in Latex.enclose_block "\\url{" "}" [Latex.string (escape_url url)] end));
+      in Latex.enclose_text "\\url{" "}" (Latex.string (escape_url url)) end));
 
 
 (* formal entities *)
@@ -433,7 +434,7 @@ fun entity_antiquotation name check bg en =
   Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
-      in Latex.enclose_block bg en [Latex.string (Output.output name)] end);
+      in Latex.enclose_text bg en (Latex.string (Output.output name)) end);
 
 val _ =
   Theory.setup

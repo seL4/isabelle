@@ -412,10 +412,9 @@ local
 
 fun document_antiq (check: Proof.context -> Path.T option -> Input.source -> Path.T) =
   Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>
-    let
-      val _ = check ctxt NONE source;
-      val latex = Latex.string (Latex.output_ascii_breakable "/" (Input.string_of source));
-    in Latex.enclose_block "\\isatt{" "}" [latex] end);
+   (check ctxt NONE source;
+    Latex.string (Latex.output_ascii_breakable "/" (Input.string_of source))
+    |> Latex.enclose_text "\\isatt{" "}"));
 
 fun ML_antiq check =
   Args.context -- Scan.lift Parse.path_input >> (fn (ctxt, source) =>

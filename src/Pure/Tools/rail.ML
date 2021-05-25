@@ -341,7 +341,7 @@ fun output_rules ctxt rules =
   let
     val output_antiq =
       Antiquote.Antiq #>
-      Document_Antiquotation.evaluate (single o Latex.symbols) ctxt #>
+      Document_Antiquotation.evaluate Latex.symbols ctxt #>
       Latex.output_text;
     fun output_text b s =
       Output.output s

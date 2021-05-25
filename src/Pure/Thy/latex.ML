@@ -6,14 +6,13 @@ LaTeX output of theory sources.
 
 signature LATEX =
 sig
-  type text
-  val string: string -> text
+  type text = XML.body
   val text: string * Position.T -> text
-  val block: text list -> text
-  val enclose_body: string -> string -> text list -> text list
-  val enclose_block: string -> string -> text list -> text
-  val output_text: text list -> string
-  val output_positions: Position.T -> text list -> string
+  val string: string -> text
+  val block: text -> XML.tree
+  val enclose_text: string -> string -> text -> text
+  val latex_text: text -> text
+  val output_text: text -> string
   val output_name: string -> string
   val output_ascii: string -> string
   val output_ascii_breakable: string -> string -> string
@@ -25,9 +24,9 @@ sig
   val end_delim: string -> string
   val begin_tag: string -> string
   val end_tag: string -> string
-  val environment_block: string -> text list -> text
+  val environment_text: string -> text -> text
   val environment: string -> string -> string
-  val isabelle_body: string -> text list -> text list
+  val isabelle_body: string -> text -> text
   val theory_entry: string -> string
   val index_escape: string -> string
   type index_item = {text: text, like: string}
@@ -45,53 +44,24 @@ struct
 
 (* text with positions *)
 
-abstype text = Text of string * Position.T | Block of text list
-with
+type text = XML.body;
 
-fun string s = Text (s, Position.none);
-val text = Text;
-val block = Block;
+fun text ("", _) = []
+  | text (s, pos) = [XML.Elem (Position.markup pos Markup.document_latex, [XML.Text s])];
 
-fun map_text f (Text (s, pos)) = Text (f s, pos)
-  | map_text f (Block texts) = Block ((map o map_text) f texts);
+fun string s = text (s, Position.none);
 
-fun output_text texts =
-  let
-    fun output (Text (s, _)) = Buffer.add s
-      | output (Block body) = fold output body;
-  in Buffer.empty |> fold output texts |> Buffer.content end;
+fun block body = XML.Elem (Markup.document_latex, body);
 
-fun output_positions file_pos texts =
-  let
-    fun position (a, b) = enclose "%:%" "%:%" (a ^ "=" ^ b);
-    fun add_position p positions =
-      let val s = position (apply2 Value.print_int p)
-      in positions |> s <> hd positions ? cons s end;
+fun latex_text text =
+  text |> maps
+    (fn XML.Elem ((name, _), body) =>
+          if name = Markup.document_latexN then latex_text body else []
+      | t => [t]);
 
-    fun output (Text (s, pos)) (positions, line) =
-          let
-            val positions' =
-              (case Position.line_of pos of
-                NONE => positions
-              | SOME l => add_position (line, l) positions);
-            val line' = fold_string (fn c => fn n => if c = "\n" then n + 1 else n) s line;
-          in (positions', line') end
-      | output (Block body) res = fold output body res;
-  in
-    (case Position.file_of file_pos of
-      NONE => ""
-    | SOME file =>
-        ([position (Markup.fileN, file), "\\endinput"], 1)
-        |> fold output texts |> #1 |> rev |> cat_lines)
-  end;
+val output_text = XML.content_of o latex_text;
 
-end;
-
-fun enclose_body bg en body =
-  (if bg = "" then [] else [string bg]) @ body @
-  (if en = "" then [] else [string en]);
-
-fun enclose_block bg en = block o enclose_body bg en;
+fun enclose_text bg en body = string bg @ body @ string en;
 
 
 (* output name for LaTeX macros *)
@@ -240,11 +210,11 @@ fun environment_delim name =
  ("%\n\\begin{" ^ output_name name ^ "}%\n",
   "%\n\\end{" ^ output_name name ^ "}");
 
-fun environment_block name = environment_delim name |-> enclose_body #> block;
+fun environment_text name = environment_delim name |-> enclose_text;
 fun environment name = environment_delim name |-> enclose;
 
 fun isabelle_body name =
-  enclose_body
+  enclose_text
    ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n")
    "%\n\\end{isabellebody}%\n";
 
@@ -266,7 +236,7 @@ fun index_item (item: index_item) =
     val like_text =
       if #like item = "" then ""
       else index_escape (#like item) ^ "@";
-    val item_text = index_escape (output_text [#text item]);
+    val item_text = index_escape (output_text (#text item));
   in like_text ^ item_text end;
 
 fun index_entry (entry: index_entry) =

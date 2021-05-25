@@ -28,6 +28,44 @@ object Latex
   }
 
 
+  /* output text and positions */
+
+  type Text = XML.Body
+
+  def output(latex_text: Text, file_pos: String = ""): String =
+  {
+    def position(a: String, b: String): String = "%:%" + a + "=" + b + "%:%"
+
+    var positions: List[String] =
+      if (file_pos.isEmpty) Nil
+      else List(position(Markup.FILE, file_pos), "\\endinput")
+
+    var line = 1
+    var result = List.empty[String]
+
+    def output(body: XML.Body): Unit =
+    {
+      body.foreach {
+        case XML.Wrapped_Elem(_, _, _) =>
+        case XML.Elem(markup, body) =>
+          if (markup.name == Markup.DOCUMENT_LATEX) {
+            for { l <- Position.Line.unapply(markup.properties) if positions.nonEmpty } {
+              val s = position(Value.Int(line), Value.Int(l))
+              if (positions.head != s) positions ::= s
+            }
+            output(body)
+          }
+        case XML.Text(s) =>
+          line += s.count(_ == '\n')
+          result ::= s
+      }
+    }
+    output(latex_text)
+
+    result.reverse.mkString + cat_lines(positions.reverse)
+  }
+
+
   /* generated .tex file */
 
   private val File_Pattern = """^%:%file=(.+)%:%$""".r

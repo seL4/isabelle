@@ -7,20 +7,18 @@ Theory document output.
 signature DOCUMENT_OUTPUT =
 sig
   val document_reports: Input.source -> Position.report list
-  val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
+  val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
-  val output_token: Proof.context -> Token.T -> Latex.text list
-  val output_source: Proof.context -> string -> Latex.text list
+  val output_token: Proof.context -> Token.T -> Latex.text
+  val output_source: Proof.context -> string -> Latex.text
   type segment =
     {span: Command_Span.span, command: Toplevel.transition,
      prev_state: Toplevel.state, state: Toplevel.state}
-  val present_thy: Options.T -> theory -> segment list -> Latex.text list
+  val present_thy: Options.T -> theory -> segment list -> Latex.text
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
-  val lines: Latex.text list -> Latex.text list
-  val items: Latex.text list -> Latex.text list
-  val isabelle: Proof.context -> Latex.text list -> Latex.text
-  val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
+  val isabelle: Proof.context -> Latex.text -> Latex.text
+  val isabelle_typewriter: Proof.context -> Latex.text -> Latex.text
   val typewriter: Proof.context -> string -> Latex.text
   val verbatim: Proof.context -> string -> Latex.text
   val source: Proof.context -> {embedded: bool} -> Token.src -> Latex.text
@@ -58,25 +56,23 @@ fun document_reports txt =
      (pos, Markup.plain_text)]
   end;
 
-val output_symbols = single o Latex.symbols_output;
-
 fun output_comment ctxt (kind, syms) =
   (case kind of
     Comment.Comment =>
       Input.cartouche_content syms
       |> output_document (ctxt |> Config.put Document_Antiquotation.thy_output_display false)
           {markdown = false}
-      |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
+      |> Latex.enclose_text "%\n\\isamarkupcmt{" "%\n}"
   | Comment.Cancel =>
       Symbol_Pos.cartouche_content syms
-      |> output_symbols
-      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
-  | Comment.Latex => [Latex.symbols (Symbol_Pos.cartouche_content syms)]
+      |> Latex.symbols_output
+      |> Latex.enclose_text "%\n\\isamarkupcancel{" "}"
+  | Comment.Latex => Latex.symbols (Symbol_Pos.cartouche_content syms)
   | Comment.Marker => [])
 and output_comment_document ctxt (comment, syms) =
   (case comment of
     SOME kind => output_comment ctxt (kind, syms)
-  | NONE => [Latex.symbols syms])
+  | NONE => Latex.symbols syms)
 and output_document_text ctxt syms =
   Comment.read_body syms |> maps (output_comment_document ctxt)
 and output_document ctxt {markdown} source =
@@ -88,14 +84,15 @@ and output_document ctxt {markdown} source =
       maps (Document_Antiquotation.evaluate (output_document_text ctxt) ctxt);
 
     fun output_line line =
-      (if Markdown.line_is_item line then [Latex.string "\\item "] else []) @
+      (if Markdown.line_is_item line then Latex.string "\\item " else []) @
         output_antiquotes (Markdown.line_content line);
 
     fun output_block (Markdown.Par lines) =
-          Latex.block (separate (Latex.string "\n") (map (Latex.block o output_line) lines))
+          separate (XML.Text "\n") (map (Latex.block o output_line) lines)
       | output_block (Markdown.List {kind, body, ...}) =
-          Latex.environment_block (Markdown.print_kind kind) (output_blocks body)
-    and output_blocks blocks = separate (Latex.string "\n\n") (map output_block blocks);
+          Latex.environment_text (Markdown.print_kind kind) (output_blocks body)
+    and output_blocks blocks =
+      separate (XML.Text "\n\n") (map (Latex.block o output_block) blocks);
   in
     if Toplevel.is_skipped_proof (Toplevel.presentation_state ctxt) then []
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
@@ -120,16 +117,16 @@ and output_document ctxt {markdown} source =
 local
 
 val output_symbols_antiq =
-  (fn Antiquote.Text syms => output_symbols syms
+  (fn Antiquote.Text syms => Latex.symbols_output syms
     | Antiquote.Control {name = (name, _), body, ...} =>
-        Latex.string (Latex.output_symbols [Symbol.encode (Symbol.Control name)]) ::
-          output_symbols body
+        Latex.string (Latex.output_symbols [Symbol.encode (Symbol.Control name)]) @
+          Latex.symbols_output body
     | Antiquote.Antiq {body, ...} =>
-        Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
+        Latex.enclose_text "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.symbols_output body));
 
 fun output_comment_symbols ctxt {antiq} (comment, syms) =
   (case (comment, antiq) of
-    (NONE, false) => output_symbols syms
+    (NONE, false) => Latex.symbols_output syms
   | (NONE, true) =>
       Antiquote.parse_comments (#1 (Symbol_Pos.range syms)) syms
       |> maps output_symbols_antiq
@@ -138,7 +135,7 @@ fun output_comment_symbols ctxt {antiq} (comment, syms) =
 fun output_body ctxt antiq bg en syms =
   Comment.read_body syms
   |> maps (output_comment_symbols ctxt {antiq = antiq})
-  |> Latex.enclose_body bg en;
+  |> Latex.enclose_text bg en;
 
 in
 
@@ -203,12 +200,12 @@ fun present_token ctxt tok =
     Ignore => []
   | Token tok => output_token ctxt tok
   | Heading (cmd, source) =>
-      Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
+      Latex.enclose_text ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
         (output_document ctxt {markdown = false} source)
   | Body (cmd, source) =>
-      [Latex.environment_block ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)]
+      Latex.environment_text ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)
   | Raw source =>
-      Latex.string "%\n" :: output_document ctxt {markdown = true} source @ [Latex.string "\n"]);
+      Latex.string "%\n" @ output_document ctxt {markdown = true} source @ Latex.string "\n");
 
 
 (* command spans *)
@@ -242,7 +239,7 @@ fun err_bad_nesting here =
 
 fun edge which f (x: string option, y) =
   if x = y then I
-  else (case which (x, y) of NONE => I | SOME txt => cons (Latex.string (f txt)));
+  else (case which (x, y) of NONE => I | SOME txt => fold cons (Latex.string (f txt)));
 
 val begin_tag = edge #2 Latex.begin_tag;
 val end_tag = edge #1 Latex.end_tag;
@@ -305,7 +302,7 @@ fun present_span command_tag span state state'
     val ctxt' = Toplevel.presentation_context state';
     val present = fold (fn (tok, (flag, 0)) =>
         fold cons (present_token ctxt' tok)
-        #> cons (Latex.string flag)
+        #> fold cons (Latex.string flag)
       | _ => I);
 
     val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
@@ -484,26 +481,23 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 (* default output *)
 
-val lines = separate (Latex.string "\\isanewline%\n");
-val items = separate (Latex.string "\\isasep\\isanewline%\n");
-
 fun isabelle ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_block "isabelle" body
-  else Latex.block (Latex.enclose_body "\\isa{" "}" body);
+  then Latex.environment_text "isabelle" body
+  else Latex.enclose_text "\\isa{" "}" body;
 
 fun isabelle_typewriter ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
-  then Latex.environment_block "isabellett" body
-  else Latex.block (Latex.enclose_body "\\isatt{" "}" body);
+  then Latex.environment_text "isabellett" body
+  else Latex.enclose_text "\\isatt{" "}" body;
 
 fun typewriter ctxt s =
-  isabelle_typewriter ctxt [Latex.string (Latex.output_ascii s)];
+  isabelle_typewriter ctxt (Latex.string (Latex.output_ascii s));
 
 fun verbatim ctxt =
   if Config.get ctxt Document_Antiquotation.thy_output_display
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
-  else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
+  else split_lines #> map (typewriter ctxt #> Latex.block) #> separate (XML.Text "\\isanewline%\n");
 
 fun token_source ctxt {embedded} tok =
   if Token.is_kind Token.Cartouche tok andalso embedded andalso
@@ -523,13 +517,14 @@ fun source ctxt embedded =
   #> isabelle ctxt;
 
 fun pretty ctxt =
-  Document_Antiquotation.output ctxt #> Latex.string #> single #> isabelle ctxt;
+  Document_Antiquotation.output ctxt #> Latex.string #> isabelle ctxt;
 
 fun pretty_source ctxt embedded src prt =
   if is_source ctxt then source ctxt embedded src else pretty ctxt prt;
 
 fun pretty_items ctxt =
-  map (Document_Antiquotation.output ctxt #> Latex.string) #> items #> isabelle ctxt;
+  map (Document_Antiquotation.output ctxt #> XML.Text) #>
+  separate (XML.Text "\\isasep\\isanewline%\n") #> isabelle ctxt;
 
 fun pretty_items_source ctxt embedded src prts =
   if is_source ctxt then source ctxt embedded src else pretty_items ctxt prts;

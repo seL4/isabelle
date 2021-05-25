@@ -78,10 +78,8 @@ val _ =
           let
             val thy_name = Context.theory_name thy;
             val document_tex_name = document_tex_name thy;
-
             val latex = Latex.isabelle_body thy_name body;
-            val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
-          in Export.export thy document_tex_name (XML.blob output) end
+          in Export.export thy document_tex_name latex end
       end));
 
 
