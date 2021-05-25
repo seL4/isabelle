@@ -31,7 +31,6 @@ sig
   val theory_entry: string -> string
   val index_escape: string -> string
   type index_item = {text: text, like: string}
-  val index_item: index_item -> text
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
@@ -265,15 +264,16 @@ val index_escape =
 fun index_item (item: index_item) =
   let
     val like_text =
-      if #like item = "" then []
-      else [string (index_escape (#like item) ^ "@")];
-  in block (like_text @ [map_text index_escape (#text item)]) end;
+      if #like item = "" then ""
+      else index_escape (#like item) ^ "@";
+    val item_text = index_escape (output_text [#text item]);
+  in like_text ^ item_text end;
 
 fun index_entry (entry: index_entry) =
-  (separate (string "!") (map index_item (#items entry)) @
-    [string ("|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))])
-  |> enclose_block "\\index{" "}";
-
+  (space_implode "!" (map index_item (#items entry)) ^
+    "|" ^ index_escape (if #def entry then "isaindexdef" else "isaindexref"))
+  |> enclose "\\index{" "}"
+  |> string;
 
 fun index_binding NONE = I
   | index_binding (SOME def) = Binding.map_name (suffix (if def then "_def" else "_ref"));
