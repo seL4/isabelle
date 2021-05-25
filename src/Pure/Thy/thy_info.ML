@@ -30,14 +30,6 @@ struct
 
 (** theory presentation **)
 
-(* artefact names *)
-
-fun document_name ext thy =
-  Path.explode_binding0 ("document/" ^ Context.theory_name thy ^ "." ^ ext);
-
-val document_tex_name = document_name "tex";
-
-
 (* hook for consolidated theory *)
 
 type presentation_context =
@@ -77,9 +69,8 @@ val _ =
         else
           let
             val thy_name = Context.theory_name thy;
-            val document_tex_name = document_tex_name thy;
             val latex = Latex.isabelle_body thy_name body;
-          in Export.export thy document_tex_name latex end
+          in Export.export thy \<^path_binding>\<open>document/latex\<close> latex end
       end));
 
 

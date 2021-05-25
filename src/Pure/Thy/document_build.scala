@@ -218,7 +218,7 @@ object Document_Build
       for (name <- document_theories)
       yield {
         val path = Path.basic(tex_name(name))
-        val xml = YXML.parse_body(get_export(name.theory, document_tex_name(name)).text)
+        val xml = YXML.parse_body(get_export(name.theory, Export.DOCUMENT_LATEX).text)
         val content = Latex.output(xml, file_pos = name.path.implode_symbolic)
         Content(path, content)
       }
@@ -426,7 +426,6 @@ object Document_Build
   /* build documents */
 
   def tex_name(name: Document.Node.Name): String = name.theory_base_name + ".tex"
-  def document_tex_name(name: Document.Node.Name): String = Export.DOCUMENT_PREFIX + tex_name(name)
 
   class Build_Error(val log_lines: List[String], val message: String)
     extends Exn.User_Error(message)

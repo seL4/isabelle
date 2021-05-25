@@ -20,7 +20,8 @@ object Export
   val MARKUP = "PIDE/markup"
   val MESSAGES = "PIDE/messages"
   val DOCUMENT_PREFIX = "document/"
-  val CITATIONS = DOCUMENT_PREFIX + "citations"
+  val DOCUMENT_LATEX = DOCUMENT_PREFIX + "latex"
+  val DOCUMENT_CITATIONS = DOCUMENT_PREFIX + "citations"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
 

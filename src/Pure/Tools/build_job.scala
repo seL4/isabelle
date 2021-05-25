@@ -384,7 +384,7 @@ class Build_Job(progress: Progress,
             export(Export.MESSAGES, snapshot.messages.map(_._1))
 
             val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
-            export_text(Export.CITATIONS, cat_lines(citations))
+            export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
