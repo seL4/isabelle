@@ -296,7 +296,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>oracle\<close> "declare oracle"
-    (Parse.range Parse.name -- (\<^keyword>\<open>=\<close> |-- Parse.ML_source) >>
+    (Parse.range Parse.name -- Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source) >>
       (fn (x, y) => Toplevel.theory (Isar_Cmd.oracle x y)));
 
 val _ =
