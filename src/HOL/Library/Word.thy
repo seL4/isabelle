@@ -920,6 +920,16 @@ proof -
     by (rule finite_subset)
 qed
 
+lemma bit_numeral_word_iff [simp]:
+  \<open>bit (numeral w :: 'a::len word) n
+    \<longleftrightarrow> n < LENGTH('a) \<and> bit (numeral w :: int) n\<close>
+  by transfer simp
+
+lemma bit_neg_numeral_word_iff [simp]:
+  \<open>bit (- numeral w :: 'a::len word) n
+    \<longleftrightarrow> n < LENGTH('a) \<and> bit (- numeral w :: int) n\<close>
+  by transfer simp
+
 instantiation word :: (len) semiring_bit_shifts
 begin
 

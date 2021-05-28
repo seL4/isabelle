@@ -202,6 +202,24 @@ lemma even_unset_bit_iff:
   \<open>even (unset_bit m a) \<longleftrightarrow> even a \<or> m = 0\<close>
   using bit_unset_bit_iff [of m a 0] by auto
 
+lemma and_exp_eq_0_iff_not_bit:
+  \<open>a AND 2 ^ n = 0 \<longleftrightarrow> \<not> bit a n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?Q
+  then show ?P
+    by (auto intro: bit_eqI simp add: bit_simps)
+next
+  assume ?P
+  show ?Q
+  proof (rule notI)
+    assume \<open>bit a n\<close>
+    then have \<open>a AND 2 ^ n = 2 ^ n\<close>
+      by (auto intro: bit_eqI simp add: bit_simps)
+    with \<open>?P\<close> show False
+      using \<open>bit a n\<close> exp_eq_0_imp_not_bit by auto
+  qed
+qed
+
 lemmas flip_bit_def = flip_bit_eq_xor
 
 lemma bit_flip_bit_iff [bit_simps]:
