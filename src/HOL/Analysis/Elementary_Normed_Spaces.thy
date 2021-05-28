@@ -763,6 +763,18 @@ lemma bounded_minus:
   using bounded_minus_comp [of fst "S \<times> T" snd] assms
   by (auto simp: split_def split: if_split_asm)
 
+lemma bounded_sums:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "bounded S" and "bounded T"
+  shows "bounded (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+  using assms by (simp add: bounded_iff) (meson norm_triangle_mono)
+
+lemma bounded_differences:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "bounded S" and "bounded T"
+  shows "bounded (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+  using assms by (simp add: bounded_iff) (meson add_mono norm_triangle_le_diff)
+
 lemma not_bounded_UNIV[simp]:
   "\<not> bounded (UNIV :: 'a::{real_normed_vector, perfect_space} set)"
 proof (auto simp: bounded_pos not_le)
@@ -1290,6 +1302,28 @@ proof-
     using diff_conv_add_uminus by force
   then show ?thesis
     using compact_sums[OF assms(1) compact_negations[OF assms(2)]] by auto
+qed
+
+lemma compact_sums':
+  fixes S :: "'a::real_normed_vector set"
+  assumes "compact S" and "compact T"
+  shows "compact (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+proof -
+  have "(\<Union>x\<in>S. \<Union>y\<in>T. {x + y}) = {x + y |x y. x \<in> S \<and> y \<in> T}"
+    by blast
+  then show ?thesis
+    using compact_sums [OF assms] by simp
+qed
+
+lemma compact_differences':
+  fixes S :: "'a::real_normed_vector set"
+  assumes "compact S" and "compact T"
+  shows "compact (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+proof -
+  have "(\<Union>x\<in>S. \<Union>y\<in>T. {x - y}) = {x - y |x y. x \<in> S \<and> y \<in> T}"
+    by blast
+  then show ?thesis
+    using compact_differences [OF assms] by simp
 qed
 
 lemma compact_translation:
