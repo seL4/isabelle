@@ -2168,10 +2168,6 @@ definition word_split :: \<open>'a::len word \<Rightarrow> 'b::len word \<times>
 definition word_rcat :: \<open>'a::len word list \<Rightarrow> 'b::len word\<close>
   where \<open>word_rcat = word_of_int \<circ> horner_sum uint (2 ^ LENGTH('a)) \<circ> rev\<close>
 
-abbreviation (input) max_word :: \<open>'a::len word\<close>
-  \<comment> \<open>Largest representable machine integer.\<close>
-  where "max_word \<equiv> - 1"
-
 
 subsection \<open>More on conversions\<close>
 
@@ -4122,7 +4118,8 @@ lemma word_nat_cases [cases type: word]:
   obtains n where "x = of_nat n" and "n < 2^LENGTH('a)"
   by (rule that [of \<open>unat x\<close>]) simp_all
 
-lemma max_word_max [intro!]: "n \<le> max_word"
+lemma max_word_max [intro!]:
+  \<open>n \<le> - 1\<close> for n :: \<open>'a::len word\<close>
   by (fact word_order.extremum)
 
 lemma word_of_int_2p_len: "word_of_int (2 ^ LENGTH('a)) = (0::'a::len word)"
@@ -4131,13 +4128,16 @@ lemma word_of_int_2p_len: "word_of_int (2 ^ LENGTH('a)) = (0::'a::len word)"
 lemma word_pow_0: "(2::'a::len word) ^ LENGTH('a) = 0"
   by (fact word_exp_length_eq_0)
 
-lemma max_word_wrap: "x + 1 = 0 \<Longrightarrow> x = max_word"
+lemma max_word_wrap: 
+  \<open>x + 1 = 0 \<Longrightarrow> x = - 1\<close> for x :: \<open>'a::len word\<close>
   by (simp add: eq_neg_iff_add_eq_0)
 
-lemma word_and_max: "x AND max_word = x"
+lemma word_and_max:
+  \<open>x AND - 1 = x\<close> for x :: \<open>'a::len word\<close>
   by (fact word_log_esimps)
 
-lemma word_or_max: "x OR max_word = max_word"
+lemma word_or_max:
+  \<open>x OR - 1 = - 1\<close> for x :: \<open>'a::len word\<close>
   by (fact word_log_esimps)
 
 lemma word_ao_dist2: "x AND (y OR z) = x AND y OR x AND z"
@@ -4152,7 +4152,8 @@ lemma word_and_not [simp]: "x AND NOT x = 0"
   for x :: "'a::len word"
   by (fact bit.conj_cancel_right)
 
-lemma word_or_not [simp]: "x OR NOT x = max_word"
+lemma word_or_not [simp]:
+  \<open>x OR NOT x = - 1\<close> for x :: \<open>'a::len word\<close>
   by (fact bit.disj_cancel_right)
 
 lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
