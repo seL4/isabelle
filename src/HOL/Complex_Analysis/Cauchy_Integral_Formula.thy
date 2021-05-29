@@ -2482,12 +2482,13 @@ text\<open>Every bounded entire function is a constant function.\<close>
 theorem Liouville_theorem:
     assumes holf: "f holomorphic_on UNIV"
         and bf: "bounded (range f)"
-    obtains c where "\<And>z. f z = c"
+      shows "f constant_on UNIV"
 proof -
   obtain B where "\<And>z. cmod (f z) \<le> B"
     by (meson bf bounded_pos rangeI)
   then show ?thesis
-    using Liouville_polynomial [OF holf, of 0 B 0, simplified] that by blast
+    using Liouville_polynomial [OF holf, of 0 B 0, simplified]
+    by (meson constant_on_def)
 qed
 
 text\<open>A holomorphic function f has only isolated zeros unless f is 0.\<close>
