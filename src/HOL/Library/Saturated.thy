@@ -123,9 +123,7 @@ proof
     qed
   qed
   show "1 * a = a"
-    apply (simp add: sat_eq_iff)
-    apply (metis One_nat_def len_gt_0 less_Suc0 less_zeroE linorder_not_less min.absorb_iff1 min_nat_of_len_of nat_mult_1_right mult.commute)
-    done
+    by (simp add: sat_eq_iff min_def not_le not_less)
   show "(a + b) * c = a * c + b * c"
   proof(cases "c = 0")
     case True thus ?thesis by (simp add: sat_eq_iff)
@@ -207,30 +205,17 @@ end
 instantiation sat :: (len) "{Inf, Sup}"
 begin
 
-definition "Inf = (semilattice_neutr_set.F min top :: 'a sat set \<Rightarrow> 'a sat)"
-definition "Sup = (semilattice_neutr_set.F max bot :: 'a sat set \<Rightarrow> 'a sat)"
+global_interpretation Inf_sat: semilattice_neutr_set min \<open>top :: 'a sat\<close>
+  defines Inf_sat = Inf_sat.F
+  by standard (simp add: min_def)
+
+global_interpretation Sup_sat: semilattice_neutr_set max \<open>bot :: 'a sat\<close>
+  defines Sup_sat = Sup_sat.F
+  by standard (simp add: max_def bot.extremum_unique)
 
 instance ..
 
 end
-
-interpretation Inf_sat: semilattice_neutr_set min "top :: 'a::len sat"
-  rewrites "semilattice_neutr_set.F min (top :: 'a sat) = Inf"
-proof -
-  show "semilattice_neutr_set min (top :: 'a sat)"
-    by standard (simp add: min_def)
-  show "semilattice_neutr_set.F min (top :: 'a sat) = Inf"
-    by (simp add: Inf_sat_def)
-qed
-
-interpretation Sup_sat: semilattice_neutr_set max "bot :: 'a::len sat"
-  rewrites "semilattice_neutr_set.F max (bot :: 'a sat) = Sup"
-proof -
-  show "semilattice_neutr_set max (bot :: 'a sat)"
-    by standard (simp add: max_def bot.extremum_unique)
-  show "semilattice_neutr_set.F max (bot :: 'a sat) = Sup"
-    by (simp add: Sup_sat_def)
-qed
 
 instance sat :: (len) complete_lattice
 proof 

@@ -272,7 +272,7 @@ fun register_def class def_thm thy =
 
 fun make_rewrite t c_ty =
   let
-    val (vs, t') = strip_abs t;
+    val vs = strip_abs_vars t;
     val vts = map snd vs
       |> Name.invent_names Name.context Name.uu
       |> map (fn (v, T) => Var ((v, 0), T));
@@ -444,7 +444,7 @@ fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val preprocess = perhaps (try (Pattern.rewrite_term_top thy (these_unchecks thy [class]) []));
-    val (global_rhs, (extra_tfrees, (type_params, term_params))) =
+    val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
   in
@@ -665,6 +665,14 @@ fun conclude lthy =
       else error ("Missing instance proof for type " ^ quote (Proof_Context.markup_type lthy tyco)));
   in lthy end;
 
+fun registration thy_ctxt {inst, mixin, export} lthy =
+  lthy
+  |> Locale.add_registration_theory
+      {inst = inst,
+       mixin = mixin,
+       export = export $> Proof_Context.export_morphism lthy thy_ctxt}
+         (*handle fixed types variables on target context properly*);
+
 fun instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
@@ -710,7 +718,7 @@ fun instantiation (tycos, vs, sort) thy =
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
-        theory_registration = Locale.add_registration_theory,
+        theory_registration = registration (Proof_Context.init_global thy),
         locale_dependency = fn _ => error "Not possible in instantiation target",
         pretty = pretty}
   end;
