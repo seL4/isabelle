@@ -726,7 +726,8 @@ lemma ffold_cong:
   "\<And>x. x |\<in>| A \<Longrightarrow> f x = g x"
     and "s = t" and "A = B"
   shows "ffold f s A = ffold g t B"
-using assms by transfer (metis Finite_Set.fold_cong)
+  using assms[unfolded comp_fun_commute_def']
+  by transfer (meson Finite_Set.fold_cong subset_UNIV)
 
 context comp_fun_idem
 begin

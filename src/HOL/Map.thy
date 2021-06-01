@@ -42,6 +42,10 @@ definition
   "ran m = {b. \<exists>a. m a = Some b}"
 
 definition
+  graph :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
+  "graph m = {(a, b) | a b. m a = Some b}"
+
+definition
   map_le :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^sub>1 \<subseteq>\<^sub>m m\<^sub>2) \<longleftrightarrow> (\<forall>a \<in> dom m\<^sub>1. m\<^sub>1 a = m\<^sub>2 a)"
 
@@ -660,6 +664,9 @@ lemma ran_map_upd [simp]:  "m a = None \<Longrightarrow> ran(m(a\<mapsto>b)) = i
   unfolding ran_def
   by force
 
+lemma fun_upd_None_if_notin_dom[simp]: "k \<notin> dom m \<Longrightarrow> m(k := None) = m"
+  by auto
+
 lemma ran_map_add:
   assumes "dom m1 \<inter> dom m2 = {}"
   shows "ran (m1 ++ m2) = ran m1 \<union> ran m2"
@@ -710,6 +717,62 @@ using assms by (simp add: ran_distinct set_map[symmetric])
 lemma ran_map_option: "ran (\<lambda>x. map_option f (m x)) = f ` ran m"
   by (auto simp add: ran_def)
 
+subsection \<open>@{term [source] graph}\<close>
+
+lemma graph_empty[simp]: "graph empty = {}"
+  unfolding graph_def by simp
+
+lemma in_graphI: "m k = Some v \<Longrightarrow> (k, v) \<in> graph m"
+  unfolding graph_def by blast
+
+lemma in_graphD: "(k, v) \<in> graph m \<Longrightarrow> m k = Some v"
+  unfolding graph_def by blast
+
+lemma graph_map_upd[simp]: "graph (m(k \<mapsto> v)) = insert (k, v) (graph (m(k := None)))"
+  unfolding graph_def by (auto split: if_splits)
+
+lemma graph_fun_upd_None: "graph (m(k := None)) = {e \<in> graph m. fst e \<noteq> k}"
+  unfolding graph_def by (auto split: if_splits)
+
+lemma graph_restrictD:
+  assumes "(k, v) \<in> graph (m |` A)"
+  shows "k \<in> A" and "m k = Some v"
+  using assms unfolding graph_def
+  by (auto simp: restrict_map_def split: if_splits)
+
+lemma graph_map_comp[simp]: "graph (m1 \<circ>\<^sub>m m2) = graph m2 O graph m1"
+  unfolding graph_def by (auto simp: map_comp_Some_iff relcomp_unfold)
+
+lemma graph_map_add: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> graph (m1 ++ m2) = graph m1 \<union> graph m2"
+  unfolding graph_def using map_add_comm by force
+
+lemma graph_eq_to_snd_dom: "graph m = (\<lambda>x. (x, the (m x))) ` dom m"
+  unfolding graph_def dom_def by force
+
+lemma fst_graph_eq_dom: "fst ` graph m = dom m"
+  unfolding graph_eq_to_snd_dom by force
+
+lemma graph_domD: "x \<in> graph m \<Longrightarrow> fst x \<in> dom m"
+  using fst_graph_eq_dom by (metis imageI)
+
+lemma snd_graph_ran: "snd ` graph m = ran m"
+  unfolding graph_def ran_def by force
+
+lemma graph_ranD: "x \<in> graph m \<Longrightarrow> snd x \<in> ran m"
+  using snd_graph_ran by (metis imageI)
+
+lemma finite_graph_map_of: "finite (graph (map_of al))"
+  unfolding graph_eq_to_snd_dom finite_dom_map_of
+  using finite_dom_map_of by blast
+
+lemma graph_map_of_if_distinct_ran: "distinct (map fst al) \<Longrightarrow> graph (map_of al) = set al"
+  unfolding graph_def by auto
+
+lemma finite_graph_iff_finite_dom[simp]: "finite (graph m) = finite (dom m)"
+  by (metis graph_eq_to_snd_dom finite_imageI fst_graph_eq_dom)
+
+lemma inj_on_fst_graph: "inj_on fst (graph m)"
+  unfolding graph_def inj_on_def by force
 
 subsection \<open>\<open>map_le\<close>\<close>
 
@@ -857,6 +920,23 @@ next
   qed
 qed
 
-hide_const (open) Map.empty
+lemma finite_Map_induct[consumes 1, case_names empty update]:
+  assumes "finite (dom m)"
+  assumes "P Map.empty"
+  assumes "\<And>k v m. finite (dom m) \<Longrightarrow> k \<notin> dom m \<Longrightarrow> P m \<Longrightarrow> P (m(k \<mapsto> v))"
+  shows "P m"
+  using assms(1)
+proof(induction "dom m" arbitrary: m rule: finite_induct)
+  case empty
+  then show ?case using assms(2) unfolding dom_def by simp
+next
+  case (insert x F) 
+  then have "finite (dom (m(x:=None)))" "x \<notin> dom (m(x:=None))" "P (m(x:=None))"
+    by (metis Diff_insert_absorb dom_fun_upd)+
+  with assms(3)[OF this] show ?case
+    by (metis fun_upd_triv fun_upd_upd option.exhaust)
+qed
+
+hide_const (open) Map.empty Map.graph
 
 end

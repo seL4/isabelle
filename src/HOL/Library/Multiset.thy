@@ -1610,7 +1610,7 @@ proof -
       by (simp add: not_in_iff)
     from False have "Finite_Set.fold (\<lambda>y. f y ^^ count (add_mset x M) y) s (set_mset M) =
       Finite_Set.fold (\<lambda>y. f y ^^ count M y) s (set_mset M)"
-      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
+      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_on_funpow)
     with False * show ?thesis
       by (simp add: fold_mset_def del: count_add_mset)
   next
@@ -1619,7 +1619,7 @@ proof -
     from N_def True have *: "set_mset M = insert x N" "x \<notin> N" "finite N" by auto
     then have "Finite_Set.fold (\<lambda>y. f y ^^ count (add_mset x M) y) s N =
       Finite_Set.fold (\<lambda>y. f y ^^ count M y) s N"
-      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
+      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_on_funpow)
     with * show ?thesis by (simp add: fold_mset_def del: count_add_mset) simp
   qed
 qed
@@ -1984,7 +1984,7 @@ lemma mset_map[simp]: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
 global_interpretation mset_set: folding add_mset "{#}"
-  defines mset_set = "folding.F add_mset {#}"
+  defines mset_set = "folding_on.F add_mset {#}"
   by standard (simp add: fun_eq_iff)
 
 lemma sum_multiset_singleton [simp]: "sum (\<lambda>n. {#n#}) A = mset_set A"

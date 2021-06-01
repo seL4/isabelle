@@ -196,6 +196,9 @@ lemma fold_def_alt:
 lemma distinct_entries: "distinct (List.map fst (entries t))"
   by transfer (simp add: distinct_entries)
 
+lemma sorted_entries: "sorted (List.map fst (entries t))"
+  by (transfer) (simp add: rbt_sorted_entries)
+
 lemma non_empty_keys: "t \<noteq> empty \<Longrightarrow> keys t \<noteq> []"
   by transfer (simp add: non_empty_rbt_keys)
 

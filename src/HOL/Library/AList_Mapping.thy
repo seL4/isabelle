@@ -34,6 +34,25 @@ lemma ordered_keys_Mapping [code]:
   "Mapping.ordered_keys (Mapping xs) = sort (remdups (map fst xs))"
   by (simp only: ordered_keys_def keys_Mapping sorted_list_of_set_sort_remdups) simp
 
+lemma entries_Mapping [code]:
+  "Mapping.entries (Mapping xs) = set (AList.clearjunk xs)"
+  by transfer (fact graph_map_of)
+
+lemma ordered_entries_Mapping [code]:
+  "Mapping.ordered_entries (Mapping xs) = sort_key fst (AList.clearjunk xs)"
+proof -
+  have distinct: "distinct (sort_key fst (AList.clearjunk xs))"
+    using distinct_clearjunk distinct_map distinct_sort by blast
+  note folding_Map_graph.idem_if_sorted_distinct[where ?m="map_of xs", OF _ sorted_sort_key distinct]
+  then show ?thesis
+    unfolding ordered_entries_def
+    by (transfer fixing: xs) (auto simp: graph_map_of)
+qed
+
+lemma fold_Mapping [code]:
+  "Mapping.fold f (Mapping xs) a = List.fold (case_prod f) (sort_key fst (AList.clearjunk xs)) a"
+  by (simp add: Mapping.fold_def ordered_entries_Mapping)
+
 lemma size_Mapping [code]: "Mapping.size (Mapping xs) = length (remdups (map fst xs))"
   by (simp add: size_def length_remdups_card_conv dom_map_of_conv_image_fst)
 

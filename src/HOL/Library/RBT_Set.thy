@@ -58,6 +58,8 @@ lemma finite_fold_rbt_fold_eq:
   assumes "comp_fun_commute f" 
   shows "Finite_Set.fold f A (set (RBT.entries t)) = RBT.fold (curry f) t A"
 proof -
+  interpret comp_fun_commute: comp_fun_commute f
+    by (fact assms)
   have *: "remdups (RBT.entries t) = RBT.entries t"
     using distinct_entries distinct_map by (auto intro: distinct_remdups_id)
   show ?thesis using assms by (auto simp: fold_def_alt comp_fun_commute.fold_set_fold_remdups *)

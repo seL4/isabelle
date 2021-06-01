@@ -57,6 +57,24 @@ lemma ordered_keys_Mapping [code]:
 unfolding ordered_keys_def 
 by (transfer fixing: t) (auto simp add: lookup_keys intro: sorted_distinct_set_unique)
 
+lemma Map_graph_lookup: "Map.graph (RBT.lookup t) = set (RBT.entries t)"
+  by (metis RBT.distinct_entries RBT.map_of_entries graph_map_of_if_distinct_ran)
+
+lemma entries_Mapping [code]: "Mapping.entries (Mapping t) = set (RBT.entries t)"
+  by (transfer fixing: t) (fact Map_graph_lookup)
+
+lemma ordered_entries_Mapping [code]: "Mapping.ordered_entries (Mapping t) = RBT.entries t"
+proof -
+  note folding_Map_graph.idem_if_sorted_distinct[
+      where ?m="RBT.lookup t", OF _ _ folding_Map_graph.distinct_if_distinct_map]
+  then show ?thesis
+    unfolding ordered_entries_def
+    by (transfer fixing: t) (auto simp: Map_graph_lookup distinct_entries sorted_entries)
+qed
+
+lemma fold_Mapping [code]: "Mapping.fold f (Mapping t) a = RBT.fold f t a"
+  by (simp add: Mapping.fold_def fold_fold ordered_entries_Mapping)
+
 lemma Mapping_size_card_keys: (*FIXME*)
   "Mapping.size m = card (Mapping.keys m)"
 unfolding size_def by transfer simp
@@ -100,7 +118,7 @@ lemma combine_Mapping [code]:
 
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> RBT.entries t1 = RBT.entries t2"
-  by (transfer fixing: t1 t2) (simp add: entries_lookup)
+  by (transfer fixing: t1 t2) (simp add: RBT.entries_lookup)
 
 lemma [code nbe]:
   "HOL.equal (x :: (_, _) mapping) x \<longleftrightarrow> True"

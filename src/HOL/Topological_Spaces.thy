@@ -35,7 +35,7 @@ lemma open_UN [continuous_intros, intro]: "\<forall>x\<in>A. open (B x) \<Longri
   using open_Union [of "B ` A"] by simp
 
 lemma open_Inter [continuous_intros, intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
-  by (induct set: finite) auto
+  by (induction set: finite) auto
 
 lemma open_INT [continuous_intros, intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
   using open_Inter [of "B ` A"] by simp

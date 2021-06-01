@@ -1242,9 +1242,12 @@ lemma relcomp_fold:
   assumes "finite R" "finite S"
   shows "R O S = Finite_Set.fold
     (\<lambda>(x,y) A. Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S) {} R"
-  using assms
-  by (induct R)
-    (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold
-      cong: if_cong)
+proof -
+  interpret commute_relcomp_fold: comp_fun_commute
+    "(\<lambda>(x, y) A. Finite_Set.fold (\<lambda>(w, z) A'. if y = w then insert (x, z) A' else A') A S)"
+    by (fact comp_fun_commute_relcomp_fold[OF \<open>finite S\<close>])
+  from assms show ?thesis
+    by (induct R) (auto simp: comp_fun_commute_relcomp_fold insert_relcomp_fold cong: if_cong)
+qed
 
 end
