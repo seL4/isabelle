@@ -279,6 +279,16 @@ lemma dual_preorder:
 
 end
 
+lemma preordering_preorderI:
+  \<open>class.preorder (\<^bold>\<le>) (\<^bold><)\<close> if \<open>preordering (\<^bold>\<le>) (\<^bold><)\<close>
+    for less_eq (infix \<open>\<^bold>\<le>\<close> 50) and less (infix \<open>\<^bold><\<close> 50)
+proof -
+  from that interpret preordering \<open>(\<^bold>\<le>)\<close> \<open>(\<^bold><)\<close> .
+  show ?thesis
+    by standard (auto simp add: strict_iff_not refl intro: trans)
+qed
+
+
 
 subsection \<open>Partial orders\<close>
 
@@ -409,12 +419,12 @@ proof -
 qed
 
 lemma order_strictI:
-  fixes less (infix "\<sqsubset>" 50)
-    and less_eq (infix "\<sqsubseteq>" 50)
-  assumes "\<And>a b. a \<sqsubseteq> b \<longleftrightarrow> a \<sqsubset> b \<or> a = b"
-    assumes "\<And>a b. a \<sqsubset> b \<Longrightarrow> \<not> b \<sqsubset> a"
-  assumes "\<And>a. \<not> a \<sqsubset> a"
-  assumes "\<And>a b c. a \<sqsubset> b \<Longrightarrow> b \<sqsubset> c \<Longrightarrow> a \<sqsubset> c"
+  fixes less (infix "\<^bold><" 50)
+    and less_eq (infix "\<^bold>\<le>" 50)
+  assumes "\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
+    assumes "\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a"
+  assumes "\<And>a. \<not> a \<^bold>< a"
+  assumes "\<And>a b c. a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
   shows "class.order less_eq less"
   by (rule ordering_orderI) (rule ordering_strictI, (fact assms)+)
 
