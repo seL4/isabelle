@@ -68,8 +68,8 @@ lemma has_contour_integral_integrable: "(f has_contour_integral i) g \<Longright
 text\<open>Show that we can forget about the localized derivative.\<close>
 
 lemma has_integral_localized_vector_derivative:
-    "((\<lambda>x. f (g x) * vector_derivative g (at x within {a..b})) has_integral i) {a..b} \<longleftrightarrow>
-     ((\<lambda>x. f (g x) * vector_derivative g (at x)) has_integral i) {a..b}"
+    "((\<lambda>x. f (g x) * vector_derivative p (at x within {a..b})) has_integral i) {a..b} \<longleftrightarrow>
+     ((\<lambda>x. f (g x) * vector_derivative p (at x)) has_integral i) {a..b}"
 proof -
   have *: "{a..b} - {a,b} = interior {a..b}"
     by (simp add: atLeastAtMost_diff_ends)
@@ -78,8 +78,8 @@ proof -
 qed
 
 lemma integrable_on_localized_vector_derivative:
-    "(\<lambda>x. f (g x) * vector_derivative g (at x within {a..b})) integrable_on {a..b} \<longleftrightarrow>
-     (\<lambda>x. f (g x) * vector_derivative g (at x)) integrable_on {a..b}"
+    "(\<lambda>x. f (g x) * vector_derivative p (at x within {a..b})) integrable_on {a..b} \<longleftrightarrow>
+     (\<lambda>x. f (g x) * vector_derivative p (at x)) integrable_on {a..b}"
   by (simp add: integrable_on_def has_integral_localized_vector_derivative)
 
 lemma has_contour_integral:

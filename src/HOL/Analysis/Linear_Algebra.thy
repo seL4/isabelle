@@ -688,6 +688,9 @@ lemma linear_imp_differentiable:
   shows "linear f \<Longrightarrow> f differentiable net"
   by (metis linear_imp_has_derivative differentiable_def)
 
+lemma of_real_differentiable [simp,derivative_intros]: "of_real differentiable F"
+  by (simp add: bounded_linear_imp_differentiable bounded_linear_of_real)
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>We continue\<close>
 
@@ -1056,7 +1059,7 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
   shows "norm x \<le> sqrt DIM('a) * infnorm x"
-  unfolding norm_eq_sqrt_inner id_def 
+  unfolding norm_eq_sqrt_inner id_def
 proof (rule real_le_lsqrt[OF inner_ge_zero])
   show "sqrt DIM('a) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff infnorm_pos_le)
@@ -1085,7 +1088,7 @@ lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightar
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof (cases "x=0")
   case True
-  then show ?thesis 
+  then show ?thesis
     by auto
 next
   case False
@@ -1095,9 +1098,9 @@ next
         norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
     using False unfolding inner_simps
     by (auto simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
-  also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" 
+  also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)"
     using False  by (simp add: field_simps inner_commute)
-  also have "\<dots> \<longleftrightarrow> ?lhs" 
+  also have "\<dots> \<longleftrightarrow> ?lhs"
     using False by auto
   finally show ?thesis by metis
 qed
@@ -1125,7 +1128,7 @@ lemma norm_triangle_eq:
   shows "norm (x + y) = norm x + norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
 proof (cases "x = 0 \<or> y = 0")
   case True
-  then show ?thesis 
+  then show ?thesis
     by force
 next
   case False
@@ -1206,7 +1209,7 @@ proof (cases "x = 0 \<or> y = 0")
     by (auto simp: insert_commute)
 next
   case False
-  show ?thesis 
+  show ?thesis
   proof
     assume h: "?lhs"
     then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *\<^sub>R u"
@@ -1250,7 +1253,7 @@ next
   proof
     assume "\<bar>x \<bullet> y\<bar> = norm x * norm y"
     then show "collinear {0, x, y}"
-      unfolding norm_cauchy_schwarz_abs_eq collinear_lemma 
+      unfolding norm_cauchy_schwarz_abs_eq collinear_lemma
       by (meson eq_vector_fraction_iff nnz)
   next
     assume "collinear {0, x, y}"

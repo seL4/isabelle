@@ -3281,6 +3281,10 @@ lemma C1_differentiable_on_scaleR [simp, derivative_intros]:
   unfolding C1_differentiable_on_eq
   by (rule continuous_intros | simp add: continuous_at_imp_continuous_on differentiable_imp_continuous_within)+
 
+lemma C1_differentiable_on_of_real [derivative_intros]: "of_real C1_differentiable_on S"
+  unfolding C1_differentiable_on_def
+  by (smt (verit, del_insts) DERIV_ident UNIV_I continuous_on_const has_vector_derivative_of_real has_vector_derivative_transform)
+
 
 definition\<^marker>\<open>tag important\<close> piecewise_C1_differentiable_on
            (infixr "piecewise'_C1'_differentiable'_on" 50)
@@ -3298,7 +3302,7 @@ lemma piecewise_C1_imp_differentiable:
            C1_differentiable_on_def differentiable_def has_vector_derivative_def
            intro: has_derivative_at_withinI)
 
-lemma piecewise_C1_differentiable_compose:
+lemma piecewise_C1_differentiable_compose [derivative_intros]:
   assumes fg: "f piecewise_C1_differentiable_on S" "g piecewise_C1_differentiable_on (f ` S)" and fin: "\<And>x. finite (S \<inter> f-`{x})"
   shows "(g \<circ> f) piecewise_C1_differentiable_on S"
 proof -
@@ -3334,7 +3338,7 @@ lemma C1_differentiable_imp_continuous_on:
   unfolding C1_differentiable_on_eq continuous_on_eq_continuous_within
   using differentiable_at_withinI differentiable_imp_continuous_within by blast
 
-lemma C1_differentiable_on_empty [iff]: "f C1_differentiable_on {}"
+lemma C1_differentiable_on_empty [iff,derivative_intros]: "f C1_differentiable_on {}"
   unfolding C1_differentiable_on_def
   by auto
 
@@ -3356,7 +3360,7 @@ next
     done
 qed
 
-lemma piecewise_C1_differentiable_cases:
+lemma piecewise_C1_differentiable_cases [derivative_intros]:
   fixes c::real
   assumes "f piecewise_C1_differentiable_on {a..c}"
           "g piecewise_C1_differentiable_on {c..b}"
@@ -3444,12 +3448,21 @@ proof -
     by (simp add: piecewise_C1_differentiable_on_def)
 qed
 
-lemma piecewise_C1_differentiable_neg:
+lemma piecewise_C1_differentiable_const [derivative_intros]:
+  "(\<lambda>x. c) piecewise_C1_differentiable_on S"
+  by (simp add: C1_differentiable_imp_piecewise)
+
+lemma piecewise_C1_differentiable_scaleR [derivative_intros]:
+    "\<lbrakk>f piecewise_C1_differentiable_on S\<rbrakk>
+     \<Longrightarrow> (\<lambda>x. c *\<^sub>R f x) piecewise_C1_differentiable_on S"
+  by (force simp add: piecewise_C1_differentiable_on_def continuous_on_scaleR)
+
+lemma piecewise_C1_differentiable_neg [derivative_intros]:
     "f piecewise_C1_differentiable_on S \<Longrightarrow> (\<lambda>x. -(f x)) piecewise_C1_differentiable_on S"
   unfolding piecewise_C1_differentiable_on_def
   by (auto intro!: continuous_on_minus C1_differentiable_on_minus)
 
-lemma piecewise_C1_differentiable_add:
+lemma piecewise_C1_differentiable_add [derivative_intros]:
   assumes "f piecewise_C1_differentiable_on i"
           "g piecewise_C1_differentiable_on i"
     shows "(\<lambda>x. f x + g x) piecewise_C1_differentiable_on i"
@@ -3466,10 +3479,26 @@ proof -
     by (auto simp: piecewise_C1_differentiable_on_def continuous_on_add)
 qed
 
-lemma piecewise_C1_differentiable_diff:
+lemma piecewise_C1_differentiable_diff [derivative_intros]:
     "\<lbrakk>f piecewise_C1_differentiable_on S;  g piecewise_C1_differentiable_on S\<rbrakk>
      \<Longrightarrow> (\<lambda>x. f x - g x) piecewise_C1_differentiable_on S"
   unfolding diff_conv_add_uminus
   by (metis piecewise_C1_differentiable_add piecewise_C1_differentiable_neg)
+
+lemma piecewise_C1_differentiable_cmult_right [derivative_intros]:
+  fixes c::complex
+  shows "f piecewise_C1_differentiable_on S
+     \<Longrightarrow> (\<lambda>x. f x * c) piecewise_C1_differentiable_on S"
+  by (force simp: piecewise_C1_differentiable_on_def continuous_on_mult_right)
+
+lemma piecewise_C1_differentiable_cmult_left [derivative_intros]:
+  fixes c::complex
+  shows "f piecewise_C1_differentiable_on S
+     \<Longrightarrow> (\<lambda>x. c * f x) piecewise_C1_differentiable_on S"
+  using piecewise_C1_differentiable_cmult_right [of f S c] by (simp add: mult.commute)
+
+lemma piecewise_C1_differentiable_on_of_real [derivative_intros]: 
+  "of_real piecewise_C1_differentiable_on S"
+  by (simp add: C1_differentiable_imp_piecewise C1_differentiable_on_of_real)
 
 end

@@ -207,6 +207,9 @@ lemma pathfinish_reversepath[simp]: "pathfinish (reversepath g) = pathstart g"
   unfolding pathstart_def reversepath_def pathfinish_def
   by auto
 
+lemma reversepath_o: "reversepath g = g \<circ> (-)1"
+  by (auto simp: reversepath_def)
+
 lemma pathstart_join[simp]: "pathstart (g1 +++ g2) = pathstart g1"
   unfolding pathstart_def joinpaths_def pathfinish_def
   by auto

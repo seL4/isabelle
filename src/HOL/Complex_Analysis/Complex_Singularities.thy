@@ -18,6 +18,11 @@ lemma is_pole_transform:
   shows "is_pole g b"
   using is_pole_cong assms by auto
 
+lemma is_pole_shift_iff:
+  fixes f :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector)"
+  shows "is_pole (f \<circ> (+) d) a = is_pole f (a + d)"
+  by (metis add_diff_cancel_right' filterlim_shift_iff is_pole_def)
+
 lemma is_pole_tendsto:
   fixes f::"('a::topological_space \<Rightarrow> 'b::real_normed_div_algebra)"
   shows "is_pole f x \<Longrightarrow> ((inverse o f) \<longlongrightarrow> 0) (at x)"
