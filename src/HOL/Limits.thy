@@ -11,6 +11,20 @@ theory Limits
   imports Real_Vector_Spaces
 begin
 
+text \<open>Lemmas related to shifting/scaling\<close>
+lemma range_add [simp]:
+  fixes a::"'a::group_add" shows "range ((+) a) = UNIV"
+  by (metis add_minus_cancel surjI)
+
+lemma range_diff [simp]:
+  fixes a::"'a::group_add" shows "range ((-) a) = UNIV"
+  by (metis (full_types) add_minus_cancel diff_minus_eq_add surj_def)
+
+lemma range_mult [simp]:
+  fixes a::"real" shows "range ((*) a) = (if a=0 then {0} else UNIV)"
+  by (simp add: surj_def) (meson dvdE dvd_field_iff)
+
+
 subsection \<open>Filter going to infinity norm\<close>
 
 definition at_infinity :: "'a::real_normed_vector filter"
@@ -1460,6 +1474,28 @@ lemma filtermap_at_shift: "filtermap (\<lambda>x. x - d) (at a) = at (a - d)"
 lemma filtermap_at_right_shift: "filtermap (\<lambda>x. x - d) (at_right a) = at_right (a - d)"
   for a d :: "real"
   by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_shift[symmetric])
+
+lemma filterlim_shift:
+  fixes d :: "'a::real_normed_vector"
+  assumes "filterlim f F (at a)"
+  shows "filterlim (f \<circ> (+) d) F (at (a - d))"
+  unfolding filterlim_iff
+proof (intro strip)
+  fix P
+  assume "eventually P F"
+  then have "\<forall>\<^sub>F x in filtermap (\<lambda>y. y - d) (at a). P (f (d + x))"
+    using assms by (force simp add: filterlim_iff eventually_filtermap)
+  then show "(\<forall>\<^sub>F x in at (a - d). P ((f \<circ> (+) d) x))"
+    by (force simp add: filtermap_at_shift)
+qed
+
+lemma filterlim_shift_iff:
+  fixes d :: "'a::real_normed_vector"
+  shows "filterlim (f \<circ> (+) d) F (at (a - d)) = filterlim f F (at a)"   (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs show ?rhs
+    using filterlim_shift [OF L, of "-d"] by (simp add: filterlim_iff)
+qed (metis filterlim_shift)
 
 lemma at_right_to_0: "at_right a = filtermap (\<lambda>x. x + a) (at_right 0)"
   for a :: real

@@ -1658,6 +1658,31 @@ proof -
     unfolding islimpt_def by blast
 qed
 
+lemma islimpt_Ioc [simp]:
+  fixes a :: real
+  assumes "a<b" 
+  shows "x islimpt {a<..b} \<longleftrightarrow> x \<in> {a..b}"  (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis assms closed_atLeastAtMost closed_limpt closure_greaterThanAtMost closure_subset islimpt_subset)
+next
+  assume ?rhs
+  then have "x \<in> closure {a<..<b}"
+    using assms closure_greaterThanLessThan by blast
+  then show ?lhs
+    by (metis (no_types) Diff_empty Diff_insert0 interior_lessThanAtMost interior_limit_point interior_subset islimpt_in_closure islimpt_subset)
+qed
+
+lemma islimpt_Ico [simp]:
+  fixes a :: real
+  assumes "a<b" shows "x islimpt {a..<b} \<longleftrightarrow> x \<in> {a..b}"
+  by (metis assms closure_atLeastLessThan closure_greaterThanAtMost islimpt_Ioc limpt_of_closure) 
+
+lemma islimpt_Icc [simp]:
+  fixes a :: real
+  assumes "a<b" shows "x islimpt {a..b} \<longleftrightarrow> x \<in> {a..b}"
+  by (metis assms closure_atLeastLessThan islimpt_Ico limpt_of_closure)
+
 lemma connected_imp_perfect_aff_dim:
      "\<lbrakk>connected S; aff_dim S \<noteq> 0; a \<in> S\<rbrakk> \<Longrightarrow> a islimpt S"
   using aff_dim_sing connected_imp_perfect by blast
