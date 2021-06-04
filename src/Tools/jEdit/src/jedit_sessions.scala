@@ -143,7 +143,7 @@ object JEdit_Sessions
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process(session, options, sessions_structure, store,
+    Isabelle_Process.start(session, options, sessions_structure, store,
       logic = PIDE.resources.session_name,
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::

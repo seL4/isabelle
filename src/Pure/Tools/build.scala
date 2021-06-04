@@ -183,7 +183,8 @@ object Build
     no_build: Boolean = false,
     soft_build: Boolean = false,
     verbose: Boolean = false,
-    export_files: Boolean = false): Results =
+    export_files: Boolean = false,
+    session_setup: (String, Session) => Unit = (_, _) => ()): Results =
   {
     val build_options =
       options +
@@ -425,7 +426,7 @@ object Build
                   val numa_node = numa_nodes.next(used_node)
                   val job =
                     new Build_Job(progress, session_name, info, deps, store, do_store,
-                      verbose, log, numa_node, queue.command_timings(session_name))
+                      log, session_setup, numa_node, queue.command_timings(session_name))
                   loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
                 else {

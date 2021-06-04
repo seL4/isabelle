@@ -161,7 +161,6 @@ object Mirabelle
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
     var output_dir = default_output_dir
-    var requirements = false
     var theories: List[String] = Nil
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
@@ -183,8 +182,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O DIR       output directory for log files (default: """ + default_output_dir + """)
-    -R           refer to requirements of selected sessions
+    -O DIR       output directory for log files (default: """ + default_output_dir + """,
     -T THEORY    theory restriction: NAME or NAME[LINE:END_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -215,7 +213,6 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
       "O:" -> (arg => output_dir = Path.explode(arg)),
-      "R" -> (_ => requirements = true),
       "T:" -> (arg => theories = theories ::: List(arg)),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -244,7 +241,6 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         mirabelle(options, actions, output_dir,
           theories = theories,
           selection = Sessions.Selection(
-            requirements = requirements,
             all_sessions = all_sessions,
             base_sessions = base_sessions,
             exclude_session_groups = exclude_session_groups,
