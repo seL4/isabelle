@@ -414,7 +414,7 @@ class Build_Job(progress: Progress,
       val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
       val process =
-        Isabelle_Process(session, options, sessions_structure, store,
+        Isabelle_Process.start(session, options, sessions_structure, store,
           logic = parent, raw_ml_system = is_pure,
           use_prelude = use_prelude, eval_main = eval_main,
           cwd = info.dir.file, env = env)

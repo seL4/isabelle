@@ -12,7 +12,7 @@ import java.io.{File => JFile}
 
 object Isabelle_Process
 {
-  def apply(
+  def start(
     session: Session,
     options: Options,
     sessions_structure: Sessions.Structure,
@@ -39,11 +39,14 @@ object Isabelle_Process
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
     process.stdin.close()
 
-    new Isabelle_Process(session, channel, process)
+    val isabelle_process = new Isabelle_Process(session, process)
+    session.start(receiver => new Prover(receiver, session.cache, channel, process))
+
+    isabelle_process
   }
 }
 
-class Isabelle_Process private(session: Session, channel: System_Channel, process: Bash.Process)
+class Isabelle_Process private(session: Session, process: Bash.Process)
 {
   private val startup = Future.promise[String]
   private val terminated = Future.promise[Process_Result]
@@ -61,8 +64,6 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
         terminated.fulfill(result)
       case _ =>
     }
-
-  session.start(receiver => new Prover(receiver, session.cache, channel, process))
 
   def await_startup(): Isabelle_Process =
     startup.join match {
