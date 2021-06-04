@@ -254,7 +254,6 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
           {name = "present", sequential = sequential_presentation (Options.default ())}
           (fn result => Exn.capture (result_present result) ());
 
-    (* FIXME more precise commit order (!?) *)
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
