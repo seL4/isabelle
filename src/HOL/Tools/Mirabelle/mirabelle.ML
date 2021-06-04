@@ -152,15 +152,6 @@ fun check_theories strs =
 
 val whitelist = ["apply", "by", "proof"];
 
-fun filter_index f =
-  let
-    fun filter_aux _ [] = []
-      | filter_aux n (x :: xs) =
-        if f (n, x) then x :: filter_aux (n + 1) xs else filter_aux (n + 1) xs
-  in
-    filter_aux 0
-  end
-
 val _ =
   Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
     let
@@ -177,18 +168,20 @@ val _ =
       val check = check_theories (space_explode "," mirabelle_theories);
       val commands =
         segments
-        |> map_filter (fn {command = tr, prev_state = st, state = st', ...} =>
-          let
-            val name = Toplevel.name_of tr;
-            val pos = adjust_pos (Toplevel.pos_of tr);
-          in
-            if can (Proof.assert_backward o Toplevel.proof_of) st andalso
-              member (op =) whitelist name andalso
-              check (Context.theory_long_name thy) pos
-            then SOME {name = name, pos = pos, pre = Toplevel.proof_of st, post = st'}
-            else NONE
-          end)
-        |> filter_index (fn (n, _) => n mod mirabelle_stride = 0);
+        |> map_index (fn (n, {command = tr, prev_state = st, state = st', ...}) =>
+          if n mod mirabelle_stride = 0 then
+            let
+              val name = Toplevel.name_of tr;
+              val pos = adjust_pos (Toplevel.pos_of tr);
+            in
+              if can (Proof.assert_backward o Toplevel.proof_of) st andalso
+                member (op =) whitelist name andalso
+                check (Context.theory_long_name thy) pos
+              then SOME {name = name, pos = pos, pre = Toplevel.proof_of st, post = st'}
+              else NONE
+            end
+          else NONE)
+        |> map_filter I;
 
       fun apply (i, (name, arguments)) () =
         apply_action (i + 1) name arguments mirabelle_timeout commands thy;
