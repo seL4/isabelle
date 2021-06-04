@@ -37,9 +37,9 @@ object Isabelle_Process
           modes = modes, cwd = cwd, env = env)
       }
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
-    process.stdin.close()
 
     val isabelle_process = new Isabelle_Process(session, process)
+    process.stdin.close()
     session.start(receiver => new Prover(receiver, session.cache, channel, process))
 
     isabelle_process
