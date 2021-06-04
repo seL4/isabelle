@@ -202,7 +202,6 @@ class Build_Job(progress: Progress,
   deps: Sessions.Deps,
   store: Sessions.Store,
   do_store: Boolean,
-  verbose: Boolean,
   log: Logger,
   val numa_node: Option[Int],
   command_timings0: List[Properties.T])
