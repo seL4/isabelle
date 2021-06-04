@@ -187,10 +187,10 @@ fun update_thy deps theory = change_thys (update deps theory);
 
 datatype result =
   Result of {theory: theory, exec_id: Document_ID.exec,
-    present: unit -> unit, commit: unit -> unit};
+    present: (unit -> unit) option, commit: unit -> unit};
 
 fun theory_result theory =
-  Result {theory = theory, exec_id = Document_ID.none, present = I, commit = I};
+  Result {theory = theory, exec_id = Document_ID.none, present = NONE, commit = I};
 
 fun result_theory (Result {theory, ...}) = theory;
 fun result_present (Result {present, ...}) = present;
@@ -219,7 +219,7 @@ val schedule_seq =
         let
           val result = body (task_parents deps parents);
           val _ = Par_Exn.release_all (join_theory result);
-          val _ = result_present result ();
+          val _ = (case result_present result of NONE => () | SOME present => present ());
           val _ = result_commit result ();
         in result_theory result end
     | Finished thy => thy)) #> ignore;
@@ -249,10 +249,10 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
           | Exn.Exn exn => [Exn.Exn exn]));
 
     val results2 = futures
-      |> map_filter (Exn.get_res o Future.join_result)
+      |> map_filter (Option.mapPartial result_present o Exn.get_res o Future.join_result)
       |> Par_List.map'
           {name = "present", sequential = sequential_presentation (Options.default ())}
-          (fn result => Exn.capture (result_present result) ());
+          (fn present => Exn.capture present ());
 
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
@@ -358,7 +358,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit () = update_thy deps theory;
-  in Result {theory = theory, exec_id = exec_id, present = present, commit = commit} end;
+  in Result {theory = theory, exec_id = exec_id, present = SOME present, commit = commit} end;
 
 fun check_thy_deps dir name =
   (case lookup_deps name of
