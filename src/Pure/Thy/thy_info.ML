@@ -187,15 +187,14 @@ fun update_thy deps theory = change_thys (update deps theory);
 
 datatype result =
   Result of {theory: theory, exec_id: Document_ID.exec,
-    present: unit -> unit, commit: unit -> unit, weight: int};
+    present: unit -> unit, commit: unit -> unit};
 
 fun theory_result theory =
-  Result {theory = theory, exec_id = Document_ID.none, present = I, commit = I, weight = 0};
+  Result {theory = theory, exec_id = Document_ID.none, present = I, commit = I};
 
 fun result_theory (Result {theory, ...}) = theory;
 fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
-fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
 
 fun join_theory (Result {theory, exec_id, ...}) =
   let
@@ -251,7 +250,6 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
     val results2 = futures
       |> map_filter (Exn.get_res o Future.join_result)
-      |> sort result_ord
       |> Par_List.map'
           {name = "present", sequential = sequential_presentation (Options.default ())}
           (fn result => Exn.capture (result_present result) ());
@@ -315,7 +313,7 @@ fun eval_thy options master_dir header text_pos text parents =
           {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
       in apply_presentation context thy end;
 
-  in (thy, present, size text) end;
+  in (thy, present) end;
 
 
 (* require_thy -- checking database entries wrt. the file-system *)
@@ -352,7 +350,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val timing_start = Timing.start ();
 
     val header = Thy_Header.make (name, put_id header_pos) imports keywords;
-    val (theory, present, weight) =
+    val (theory, present) =
       eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
@@ -361,9 +359,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit () = update_thy deps theory;
-  in
-    Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}
-  end;
+  in Result {theory = theory, exec_id = exec_id, present = present, commit = commit} end;
 
 fun check_thy_deps dir name =
   (case lookup_deps name of
