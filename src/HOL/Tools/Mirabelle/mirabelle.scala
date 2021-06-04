@@ -182,7 +182,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O DIR       output directory for log files (default: """ + default_output_dir + """,
+    -O DIR       output directory for log files (default: """ + default_output_dir + """)
     -T THEORY    theory restriction: NAME or NAME[LINE:END_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
