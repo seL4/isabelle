@@ -152,11 +152,21 @@ fun check_theories strs =
 
 val whitelist = ["apply", "by", "proof"];
 
+fun filter_index f =
+  let
+    fun filter_aux _ [] = []
+      | filter_aux n (x :: xs) =
+        if f (n, x) then x :: filter_aux (n + 1) xs else filter_aux (n + 1) xs
+  in
+    filter_aux 0
+  end
+
 val _ =
   Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
     let
       val {options, adjust_pos, segments, ...} = context;
       val mirabelle_timeout = Options.seconds options \<^system_option>\<open>mirabelle_timeout\<close>;
+      val mirabelle_stride = Options.int options \<^system_option>\<open>mirabelle_stride\<close>;
       val mirabelle_actions = Options.string options \<^system_option>\<open>mirabelle_actions\<close>;
       val mirabelle_theories = Options.string options \<^system_option>\<open>mirabelle_theories\<close>;
 
@@ -166,7 +176,8 @@ val _ =
         | NONE => error ("Failed to parse mirabelle_actions: " ^ quote mirabelle_actions));
       val check = check_theories (space_explode "," mirabelle_theories);
       val commands =
-        segments |> map_filter (fn {command = tr, prev_state = st, state = st', ...} =>
+        segments
+        |> map_filter (fn {command = tr, prev_state = st, state = st', ...} =>
           let
             val name = Toplevel.name_of tr;
             val pos = adjust_pos (Toplevel.pos_of tr);
@@ -176,7 +187,8 @@ val _ =
               check (Context.theory_long_name thy) pos
             then SOME {name = name, pos = pos, pre = Toplevel.proof_of st, post = st'}
             else NONE
-          end);
+          end)
+        |> filter_index (fn (n, _) => n mod mirabelle_stride = 0);
 
       fun apply (i, (name, arguments)) () =
         apply_action (i + 1) name arguments mirabelle_timeout commands thy;
