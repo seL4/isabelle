@@ -20,7 +20,7 @@ session "HOL-Examples" in Examples = HOL +
     Notable Examples in Isabelle/HOL.
   "
   sessions
-    "HOL-Library"
+    "HOL-Computational_Algebra"
   theories
     Adhoc_Overloading_Examples
     Ackermann
@@ -36,6 +36,7 @@ session "HOL-Examples" in Examples = HOL +
     Peirce
     Records
     Seq
+    Sqrt
   document_files
     "root.bib"
     "root.tex"
@@ -706,7 +707,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Sketch_and_Explore
     Sorting_Algorithms_Examples
     Specifications_with_bundle_mixins
-    Sqrt
     Sqrt_Script
     Sudoku
     Sum_of_Powers

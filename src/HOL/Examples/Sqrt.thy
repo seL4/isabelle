@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Sqrt.thy
+(*  Title:      HOL/Examples/Sqrt.thy
     Author:     Makarius
     Author:     Tobias Nipkow, TU Muenchen
 *)

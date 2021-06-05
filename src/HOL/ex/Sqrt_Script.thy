@@ -5,14 +5,14 @@
 
 section \<open>Square roots of primes are irrational (script version)\<close>
 
-theory Sqrt_Script
-imports Complex_Main "HOL-Computational_Algebra.Primes"
-begin
-
 text \<open>
-  \medskip Contrast this linear Isabelle/Isar script with Markus
-  Wenzel's more mathematical version.
+  Contrast this linear Isabelle/Isar script with the more mathematical version
+  in \<^file>\<open>~~/src/HOL/Examples/Sqrt.thy\<close> by Makarius Wenzel.
 \<close>
+
+theory Sqrt_Script
+  imports Complex_Main "HOL-Computational_Algebra.Primes"
+begin
 
 subsection \<open>Preliminaries\<close>
 
