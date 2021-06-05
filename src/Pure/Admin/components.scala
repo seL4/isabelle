@@ -152,8 +152,7 @@ object Components
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit =
   {
     val path = path0.expand.absolute
-    if (!(path + Path.explode("etc/settings")).is_file &&
-        !(path + Path.explode("etc/components")).is_file) error("Bad component directory: " + path)
+    if (!check_dir(path)) error("Bad component directory: " + path)
 
     val lines1 = read_components()
     val lines2 =
