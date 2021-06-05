@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/components.scala
+/*  Title:      Pure/System/components.scala
     Author:     Makarius
 
 Isabelle system components.
@@ -97,6 +97,12 @@ object Components
       (file: JFile) => file.isDirectory && purge_set(file.getName),
       include_dirs = true).foreach(Isabelle_System.rm_tree)
   }
+
+
+  /* component directories */
+
+  def directories(): List[Path] =
+    Path.split(Isabelle_System.getenv_strict("ISABELLE_COMPONENTS"))
 
 
   /* component directory content */

@@ -1023,7 +1023,7 @@ object Sessions
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
-    val default_dirs = Isabelle_System.components().filter(is_session_dir)
+    val default_dirs = Components.directories().filter(is_session_dir)
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }

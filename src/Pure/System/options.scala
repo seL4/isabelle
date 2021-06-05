@@ -134,7 +134,7 @@ object Options
   {
     var options = empty
     for {
-      dir <- Isabelle_System.components()
+      dir <- Components.directories()
       file = dir + OPTIONS if file.is_file
     } { options = Parser.parse_file(options, file.implode, File.read(file)) }
     opts.foldLeft(Options.Parser.parse_prefs(options, prefs))(_ + _)

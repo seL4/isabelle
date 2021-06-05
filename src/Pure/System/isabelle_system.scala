@@ -581,12 +581,6 @@ object Isabelle_System
   def admin(): Boolean = Path.explode("~~/Admin").is_dir
 
 
-  /* components */
-
-  def components(): List[Path] =
-    Path.split(getenv_strict("ISABELLE_COMPONENTS"))
-
-
   /* default logic */
 
   def default_logic(args: String*): String =
