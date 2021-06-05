@@ -1014,7 +1014,7 @@ object Sessions
 
   /* load sessions from certain directories */
 
-  private def is_session_dir(dir: Path): Boolean =
+  def is_session_dir(dir: Path): Boolean =
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
   private def check_session_dir(dir: Path): Path =

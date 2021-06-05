@@ -152,7 +152,7 @@ object Components
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit =
   {
     val path = path0.expand.absolute
-    if (!check_dir(path)) error("Bad component directory: " + path)
+    if (!check_dir(path) && !Sessions.is_session_dir(path)) error("Bad component directory: " + path)
 
     val lines1 = read_components()
     val lines2 =
