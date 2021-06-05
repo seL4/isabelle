@@ -83,21 +83,16 @@ proof
 qed
 
 
-text \<open>Another old chestnut, which is a consequence of the irrationality of 2.\<close>
+text \<open>Another old chestnut, which is a consequence of the irrationality of \<^term>\<open>sqrt 2\<close>.\<close>
 
 lemma "\<exists>a b::real. a \<notin> \<rat> \<and> b \<notin> \<rat> \<and> a powr b \<in> \<rat>" (is "\<exists>a b. ?P a b")
-proof cases
-  assume "sqrt 2 powr sqrt 2 \<in> \<rat>"
-  then have "?P (sqrt 2) (sqrt 2)"
-    by (metis sqrt_2_not_rat)
+proof (cases "sqrt 2 powr sqrt 2 \<in> \<rat>")
+  case True
+  with sqrt_2_not_rat have "?P (sqrt 2) (sqrt 2)" by simp
   then show ?thesis by blast
 next
-  assume 1: "sqrt 2 powr sqrt 2 \<notin> \<rat>"
-  have "(sqrt 2 powr sqrt 2) powr sqrt 2 = 2"
-    using powr_realpow [of _ 2]
-    by (simp add: powr_powr power2_eq_square [symmetric])
-  then have "?P (sqrt 2 powr sqrt 2) (sqrt 2)"
-    by (metis 1 Rats_number_of sqrt_2_not_rat)
+  case False
+  with sqrt_2_not_rat powr_powr have "?P (sqrt 2 powr sqrt 2) (sqrt 2)" by simp
   then show ?thesis by blast
 qed
 
