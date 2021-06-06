@@ -91,8 +91,6 @@ public option parallel_proofs : int = 1
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
-option parallel_presentation : bool = true
-  -- "parallel theory presentation"
 
 option command_timing_threshold : real = 0.1
   -- "default threshold for persistent command timing (seconds)"
