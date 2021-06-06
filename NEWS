@@ -157,8 +157,10 @@ INCOMPATIBILITY.
 * Bit operations set_bit, unset_bit and flip_bit are now class
 operations.  INCOMPATIBILITY.
 
-* Abbreviation "max_word" has been moved to session Word_Lib in the AFP.
-See there further the changelog in theory Guide.  INCOMPATIBILITY.
+* Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
+as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
+"setBit", "clearBit".  See there further the changelog in theory Guide.
+INCOMPATIBILITY.
 
 
 *** ML ***
