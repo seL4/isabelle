@@ -208,36 +208,25 @@ datatype task =
   Task of string list * (theory list -> result) |
   Finished of theory;
 
-fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) deps) parents;
-
-val schedule_seq =
-  String_Graph.schedule (fn deps => fn (_, task) =>
-    (case task of
-      Task (parents, body) =>
-        let
-          val result = body (task_parents deps parents);
-          val _ = Par_Exn.release_all (consolidate_theory (Exn.Res result));
-          val _ = (case result_present result of NONE => () | SOME present => present ());
-          val _ = result_commit result ();
-        in result_theory result end
-    | Finished thy => thy)) #> ignore;
-
-val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
+val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
   let
+    fun join_parents deps name parents =
+      (case map #1 (filter (not o can Future.join o #2) deps) of
+        [] => map (result_theory o Future.join o the o AList.lookup (op =) deps) parents
+      | bad =>
+          error ("Failed to load theory " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")"));
+
     val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>
         (case task of
           Task (parents, body) =>
-            (singleton o Future.forks)
-              {name = "theory:" ^ name, group = NONE,
-                deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
-              (fn () =>
-                (case filter (not o can Future.join o #2) deps of
-                  [] => body (map (result_theory o Future.join) (task_parents deps parents))
-                | bad =>
-                    error
-                      ("Failed to load theory " ^ quote name ^
-                        " (unresolved " ^ commas_quote (map #1 bad) ^ ")")))
+            if Multithreading.max_threads () > 1 then
+              (singleton o Future.forks)
+                {name = "theory:" ^ name, group = NONE,
+                  deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
+                (fn () => body (join_parents deps name parents))
+            else
+              Future.value_result (Exn.capture (fn () => body (join_parents deps name parents)) ())
         | Finished theory => Future.value (theory_result theory)));
 
     val results1 = futures |> maps (consolidate_theory o Future.join_result);
@@ -420,8 +409,7 @@ end;
 (* use theories *)
 
 fun use_theories options qualifier imports =
-  let val (_, tasks) = require_thys options [] qualifier Path.current imports String_Graph.empty
-  in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
+  schedule_theories (#2 (require_thys options [] qualifier Path.current imports String_Graph.empty));
 
 fun use_thy name =
   use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)];
