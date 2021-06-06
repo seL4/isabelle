@@ -18,7 +18,8 @@ sig
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  val use_theories: Options.T -> string -> (string * Position.T) list -> unit
+  val use_theories: Options.T -> string -> (string * Position.T) list ->
+    (theory * Document_Output.segment list) list
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -47,14 +48,8 @@ structure Presentation = Theory_Data
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
-fun sequential_presentation options =
-  not (Options.bool options \<^system_option>\<open>parallel_presentation\<close>);
-
 fun apply_presentation (context: presentation_context) thy =
-  Par_List.map'
-    {name = "apply_presentation", sequential = sequential_presentation (#options context)}
-    (fn (f, _) => f context thy) (Presentation.get thy)
-  |> ignore;
+  ignore (Par_List.map (fn (f, _) => f context thy) (Presentation.get thy));
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
@@ -186,14 +181,20 @@ fun update_thy deps theory = change_thys (update deps theory);
 (* scheduling loader tasks *)
 
 datatype result =
-  Result of {theory: theory, exec_id: Document_ID.exec,
-    present: (unit -> unit) option, commit: unit -> unit};
+  Result of
+   {theory: theory,
+    exec_id: Document_ID.exec,
+    present: unit -> presentation_context option,
+    commit: unit -> unit};
 
 fun theory_result theory =
-  Result {theory = theory, exec_id = Document_ID.none, present = NONE, commit = I};
+  Result
+   {theory = theory,
+    exec_id = Document_ID.none,
+    present = K NONE,
+    commit = I};
 
 fun result_theory (Result {theory, ...}) = theory;
-fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
 
 fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
@@ -203,6 +204,14 @@ fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
         val res = Exn.capture Thm.consolidate_theory theory;
         val exns = maps Task_Queue.group_status (Execution.peek exec_id);
       in res :: map Exn.Exn exns end;
+
+fun present_theory (Exn.Exn exn) = [Exn.Exn exn]
+  | present_theory (Exn.Res (Result {theory, present, ...})) =
+      (case present () of
+        NONE => []
+      | SOME (context as {segments, ...}) =>
+          [Exn.capture (fn () => (apply_presentation context theory; (theory, segments))) ()]);
+
 
 datatype task =
   Task of string list * (theory list -> result) |
@@ -231,18 +240,16 @@ val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
     val results1 = futures |> maps (consolidate_theory o Future.join_result);
 
-    val results2 = futures
-      |> map_filter (Option.mapPartial result_present o Exn.get_res o Future.join_result)
-      |> Par_List.map'
-          {name = "present", sequential = sequential_presentation (Options.default ())}
-          (fn present => Exn.capture present ());
+    val present_results = futures |> maps (present_theory o Future.join_result);
+    val results2 = (map o Exn.map_res) (K ()) present_results;
 
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
     val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
-  in ignore (Par_Exn.release_all (results1 @ results2 @ results3 @ results4)) end);
+    val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
+  in Par_Exn.release_all present_results end);
 
 
 (* eval theory *)
@@ -284,14 +291,12 @@ fun eval_thy options master_dir header text_pos text parents =
 
     val (results, thy) = cond_timeit true ("theory " ^ quote name) excursion;
 
-    fun present () =
+    fun present () : presentation_context =
       let
         val segments =
           (spans ~~ maps Toplevel.join_results results) |> map (fn (span, (st, tr, st')) =>
             {span = span, prev_state = st, command = tr, state = st'});
-        val context: presentation_context =
-          {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
-      in apply_presentation context thy end;
+      in {options = options, file_pos = text_pos, adjust_pos = I, segments = segments} end;
 
   in (thy, present) end;
 
@@ -339,7 +344,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit () = update_thy deps theory;
-  in Result {theory = theory, exec_id = exec_id, present = SOME present, commit = commit} end;
+  in Result {theory = theory, exec_id = exec_id, present = SOME o present, commit = commit} end;
 
 fun check_thy_deps dir name =
   (case lookup_deps name of
@@ -412,7 +417,7 @@ fun use_theories options qualifier imports =
   schedule_theories (#2 (require_thys options [] qualifier Path.current imports String_Graph.empty));
 
 fun use_thy name =
-  use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)];
+  ignore (use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)]);
 
 
 (* toplevel scripting -- without maintaining database *)

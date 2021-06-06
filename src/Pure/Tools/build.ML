@@ -4,7 +4,12 @@
 Build Isabelle sessions.
 *)
 
-structure Build: sig end =
+signature BUILD =
+sig
+  val add_hook: ((theory * Document_Output.segment list) list -> unit) -> unit
+end;
+
+structure Build: BUILD =
 struct
 
 (* session timing *)
@@ -23,28 +28,43 @@ fun session_timing f x =
 
 (* build theories *)
 
+local
+  val hooks =
+    Synchronized.var "Build.hooks"
+      ([]: ((theory * Document_Output.segment list) list -> unit) list);
+in
+
+fun add_hook hook = Synchronized.change hooks (cons hook);
+
+fun apply_hooks loaded_theories =
+  Synchronized.value hooks
+  |> List.app (fn hook => hook loaded_theories);
+
+end;
+
+
 fun build_theories qualifier (options, thys) =
   let
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
-  in
-    if null conds then
-      (Options.set_default options;
-        Isabelle_Process.init_options ();
-        Future.fork I;
-        (Thy_Info.use_theories options qualifier
-        |>
-          (case Options.string options "profiling" of
-            "" => I
-          | "time" => profile_time
-          | "allocations" => profile_allocations
-          | bad => error ("Bad profiling option: " ^ quote bad))
-        |> Unsynchronized.setmp print_mode
-            (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
-    else
-      Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
-        " (undefined " ^ commas conds ^ ")\n")
-  end;
+    val loaded_theories =
+      if null conds then
+        (Options.set_default options;
+          Isabelle_Process.init_options ();
+          Future.fork I;
+          (Thy_Info.use_theories options qualifier
+          |>
+            (case Options.string options "profiling" of
+              "" => I
+            | "time" => profile_time
+            | "allocations" => profile_allocations
+            | bad => error ("Bad profiling option: " ^ quote bad))
+          |> Unsynchronized.setmp print_mode
+              (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
+      else
+       (Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
+          " (undefined " ^ commas conds ^ ")\n"); [])
+  in apply_hooks loaded_theories end;
 
 
 (* build session *)
