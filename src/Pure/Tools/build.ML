@@ -6,7 +6,8 @@ Build Isabelle sessions.
 
 signature BUILD =
 sig
-  val add_hook: ((theory * Document_Output.segment list) list -> unit) -> unit
+  type hook = string -> (theory * Document_Output.segment list) list -> unit
+  val add_hook: hook -> unit
 end;
 
 structure Build: BUILD =
@@ -28,17 +29,17 @@ fun session_timing f x =
 
 (* build theories *)
 
+type hook = string -> (theory * Document_Output.segment list) list -> unit;
+
 local
-  val hooks =
-    Synchronized.var "Build.hooks"
-      ([]: ((theory * Document_Output.segment list) list -> unit) list);
+  val hooks = Synchronized.var "Build.hooks" ([]: hook list);
 in
 
 fun add_hook hook = Synchronized.change hooks (cons hook);
 
-fun apply_hooks loaded_theories =
+fun apply_hooks qualifier loaded_theories =
   Synchronized.value hooks
-  |> List.app (fn hook => hook loaded_theories);
+  |> List.app (fn hook => hook qualifier loaded_theories);
 
 end;
 
@@ -64,7 +65,7 @@ fun build_theories qualifier (options, thys) =
       else
        (Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
           " (undefined " ^ commas conds ^ ")\n"); [])
-  in apply_hooks loaded_theories end;
+  in apply_hooks qualifier loaded_theories end;
 
 
 (* build session *)

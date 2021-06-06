@@ -147,13 +147,16 @@ fun check_theories strs =
     fun check_pos range = check_line range o Position.line_of;
   in check_pos o get_theory end;
 
+fun check_session qualifier thy_name (_: Position.T) =
+  Resources.theory_qualifier thy_name = qualifier;
+
 
 (* presentation hook *)
 
 val whitelist = ["apply", "by", "proof"];
 
 val _ =
-  Build.add_hook (fn loaded_theories =>
+  Build.add_hook (fn qualifier => fn loaded_theories =>
     let
       val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
       val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
@@ -164,7 +167,9 @@ val _ =
         (case read_actions mirabelle_actions of
           SOME actions => actions
         | NONE => error ("Failed to parse mirabelle_actions: " ^ quote mirabelle_actions));
-      val check = check_theories (space_explode "," mirabelle_theories);
+      val check =
+        if mirabelle_theories = "" then check_session qualifier
+        else check_theories (space_explode "," mirabelle_theories);
 
       fun theory_commands (thy, segments) =
         let

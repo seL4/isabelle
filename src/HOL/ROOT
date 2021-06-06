@@ -939,7 +939,8 @@ session "HOL-Nonstandard_Analysis-Examples" (timing) in "Nonstandard_Analysis/Ex
 
 session "HOL-Mirabelle-ex" in "Tools/Mirabelle" = HOL +
   description "Some arbitrary small test case for Mirabelle."
-  options [timeout = 60, mirabelle_actions = "arith"]
+  options [timeout = 60,
+    mirabelle_theories = "HOL-Analysis.Inner_Product", mirabelle_actions = "arith"]
   sessions
     "HOL-Analysis"
   theories
