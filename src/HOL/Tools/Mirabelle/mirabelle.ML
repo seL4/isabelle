@@ -153,13 +153,12 @@ fun check_theories strs =
 val whitelist = ["apply", "by", "proof"];
 
 val _ =
-  Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
+  Theory.setup (Thy_Info.add_presentation (fn {segments, ...} => fn thy =>
     let
-      val {options, adjust_pos, segments, ...} = context;
-      val mirabelle_timeout = Options.seconds options \<^system_option>\<open>mirabelle_timeout\<close>;
-      val mirabelle_stride = Options.int options \<^system_option>\<open>mirabelle_stride\<close>;
-      val mirabelle_actions = Options.string options \<^system_option>\<open>mirabelle_actions\<close>;
-      val mirabelle_theories = Options.string options \<^system_option>\<open>mirabelle_theories\<close>;
+      val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
+      val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
+      val mirabelle_actions = Options.default_string \<^system_option>\<open>mirabelle_actions\<close>;
+      val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
 
       val actions =
         (case read_actions mirabelle_actions of
@@ -172,7 +171,7 @@ val _ =
           if n mod mirabelle_stride = 0 then
             let
               val name = Toplevel.name_of tr;
-              val pos = adjust_pos (Toplevel.pos_of tr);
+              val pos = Toplevel.pos_of tr;
             in
               if can (Proof.assert_backward o Toplevel.proof_of) st andalso
                 member (op =) whitelist name andalso
