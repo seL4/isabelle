@@ -59,7 +59,7 @@ fun apply_presentation (context: presentation_context) thy =
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
-  Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
+  Theory.setup (add_presentation (fn {options, segments, ...} => fn thy =>
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
