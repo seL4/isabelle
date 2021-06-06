@@ -196,19 +196,17 @@ fun result_theory (Result {theory, ...}) = theory;
 fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
 
-fun join_theory (Result {theory, exec_id, ...}) =
-  let
-    val _ = Execution.join [exec_id];
-    val res = Exn.capture Thm.consolidate_theory theory;
-    val exns = maps Task_Queue.group_status (Execution.peek exec_id);
-  in res :: map Exn.Exn exns end;
+fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
+  | consolidate_theory (Exn.Res (Result {theory, exec_id, ...})) =
+      let
+        val _ = Execution.join [exec_id];
+        val res = Exn.capture Thm.consolidate_theory theory;
+        val exns = maps Task_Queue.group_status (Execution.peek exec_id);
+      in res :: map Exn.Exn exns end;
 
 datatype task =
   Task of string list * (theory list -> result) |
   Finished of theory;
-
-fun task_finished (Task _) = false
-  | task_finished (Finished _) = true;
 
 fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) deps) parents;
 
@@ -218,7 +216,7 @@ val schedule_seq =
       Task (parents, body) =>
         let
           val result = body (task_parents deps parents);
-          val _ = Par_Exn.release_all (join_theory result);
+          val _ = Par_Exn.release_all (consolidate_theory (Exn.Res result));
           val _ = (case result_present result of NONE => () | SOME present => present ());
           val _ = result_commit result ();
         in result_theory result end
@@ -242,11 +240,7 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
                         " (unresolved " ^ commas_quote (map #1 bad) ^ ")")))
         | Finished theory => Future.value (theory_result theory)));
 
-    val results1 = futures
-      |> maps (fn future =>
-          (case Future.join_result future of
-            Exn.Res result => join_theory result
-          | Exn.Exn exn => [Exn.Exn exn]));
+    val results1 = futures |> maps (consolidate_theory o Future.join_result);
 
     val results2 = futures
       |> map_filter (Option.mapPartial result_present o Exn.get_res o Future.join_result)
@@ -257,11 +251,9 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
-    (* FIXME avoid global Execution.reset (!??) *)
     val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
-    val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
-  in () end);
+  in ignore (Par_Exn.release_all (results1 @ results2 @ results3 @ results4)) end);
 
 
 (* eval theory *)
@@ -377,6 +369,9 @@ fun check_thy_deps dir name =
               NONE => false
             | SOME theory => Resources.loaded_files_current theory);
       in (current, deps', theory_pos', imports', keywords') end);
+
+fun task_finished (Task _) = false
+  | task_finished (Finished _) = true;
 
 in
 
