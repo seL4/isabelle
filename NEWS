@@ -232,9 +232,15 @@ context of Isabelle/Scala:
 *** System ***
 
 * System option "system_log" specifies an optional log file for internal
-messages produced by Output.system_message in Isabelle/ML; "-" refers to
-console progress of the build job. This works for "isabelle build" or
-any derivative of it.
+messages produced by Output.system_message in Isabelle/ML; the value
+"true" refers to console progress of the build job. This works for
+"isabelle build" or any derivative of it.
+
+* System options of type string may be set to "true" using the short
+notation of type bool. E.g. "isabelle build -o system_log".
+
+* System option "document=true" is an alias for "document=pdf" and thus
+can be used in the short form. E.g. "isabelle build -o document".
 
 * Command-line tool "isabelle version" supports repository archives
 (without full .hg directory). More options.
