@@ -34,6 +34,12 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (package
+"pifont").
+
+* High-quality blackboard-bold symbols from font "txmia" (package
+"pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
+
 * Document antiquotations for ML text have been refined: "def" and "ref"
 variants support index entries, e.g. @{ML} (no entry) vs. @{ML_def}
 (bold entry) vs. @{ML_ref} (regular entry); @{ML_type} supports explicit
@@ -996,12 +1002,6 @@ configuration, "-Djdk.gtk.version=3" might work better or worse.
 
 
 *** Document preparation ***
-
-* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (package
-"pifont").
-
-* High-quality blackboard-bold symbols from font "txmia" (package
-"pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
 
 * Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
 are stripped from document output: the effect is to modify the semantic
