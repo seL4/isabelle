@@ -10,9 +10,6 @@ sig
   val tracing: string -> unit
   val warning: string -> unit
   val legacy_feature: string -> unit
-  val profile_time: ('a -> 'b) -> 'a -> 'b
-  val profile_time_thread: ('a -> 'b) -> 'a -> 'b
-  val profile_allocations: ('a -> 'b) -> 'a -> 'b
 end;
 
 signature OUTPUT =
@@ -157,40 +154,6 @@ fun report ss = ! report_fn (map output ss);
 fun result props ss = ! result_fn props (map output ss);
 fun protocol_message props body = ! protocol_message_fn props body;
 fun try_protocol_message props body = protocol_message props body handle Protocol_Message _ => ();
-
-
-(* profiling *)
-
-local
-
-fun output_profile title entries =
-  let
-    val body = entries
-      |> sort (int_ord o apply2 fst)
-      |> map (fn (count, name) =>
-          let
-            val c = string_of_int count;
-            val prefix = replicate_string (Int.max (0, 10 - size c)) " ";
-          in prefix ^ c ^ " " ^ name end);
-    val total = fold (curry (op +) o fst) entries 0;
-  in
-    if total = 0 then ()
-    else warning (cat_lines (title :: (body @ ["total: " ^ string_of_int total])))
-  end;
-
-in
-
-fun profile_time f x =
-  ML_Profiling.profile_time (output_profile "time profile:") f x;
-
-fun profile_time_thread f x =
-  ML_Profiling.profile_time_thread (output_profile "time profile (this thread):") f x;
-
-fun profile_allocations f x =
-  ML_Profiling.profile_allocations (output_profile "allocations profile:") f x;
-
-end;
-
 
 end;
 
