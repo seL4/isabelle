@@ -6,7 +6,7 @@ option browser_info : bool = false
   -- "generate theory browser information"
 
 option document : string = ""
-  -- "build document in given format: pdf, dvi, false"
+  -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
 option document_output : string = ""
   -- "document output directory"
 option document_variants : string = "document"
@@ -132,7 +132,7 @@ option profiling : string = ""
   -- "ML profiling (possible values: time, allocations)"
 
 option system_log : string = ""
-  -- "output for system messages (log file or \"-\" for console progress)"
+  -- "output for system messages (log file or \"true\" for console progress)"
 
 option system_heaps : bool = false
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
