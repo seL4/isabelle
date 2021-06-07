@@ -34,10 +34,10 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
-* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (package
+* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (LaTeX package
 "pifont").
 
-* High-quality blackboard-bold symbols from font "txmia" (package
+* High-quality blackboard-bold symbols from font "txmia" (LaTeX package
 "pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
 
 * Document antiquotations for ML text have been refined: "def" and "ref"
