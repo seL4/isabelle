@@ -32,7 +32,7 @@ object ML_Profiling
     def print: String =
     {
       (if (kind == "time_thread") "time profile (single thread)" else kind + " profile") +
-        (entries ::: List(total)).map(_.print).mkString(":\n", "\n", "\n")
+        (entries ::: List(total)).map(_.print).mkString(":\n", "\n", "")
     }
   }
 
