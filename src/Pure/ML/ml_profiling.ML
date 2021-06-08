@@ -34,7 +34,7 @@ fun profile mode kind title f x =
           val xml =
             XML.Elem (Markup.ML_profiling kind,
               XML.Text (title ^ "\n") :: body @ [XML.Text (print_entry total "TOTAL")]);
-        in warning (YXML.string_of xml) end)) mode f x;
+        in tracing (YXML.string_of xml) end)) mode f x;
 
 fun profile_time f =
   profile PolyML.Profiling.ProfileTime "time" "time profile:" f;

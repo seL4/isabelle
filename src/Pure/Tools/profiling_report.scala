@@ -37,9 +37,7 @@ object Profiling_Report
               if theories.isEmpty || theories.contains(thy)
               command <- Build_Job.read_theory(db_context, resources, session_name, thy).iterator
               snapshot = Document.State.init.snippet(command)
-              rendering = new Rendering(snapshot, options, session)
-              Text.Info(_, Protocol.ML_Profiling(report)) <-
-                rendering.text_messages(Text.Range.full).iterator
+              (Protocol.ML_Profiling(report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList
 
           for (report <- ML_Profiling.account(reports)) progress.echo(report.print)
