@@ -134,7 +134,7 @@ object Options
   {
     var options = empty
     for {
-      dir <- Isabelle_System.components()
+      dir <- Components.directories()
       file = dir + OPTIONS if file.is_file
     } { options = Parser.parse_file(options, file.implode, File.read(file)) }
     opts.foldLeft(Options.Parser.parse_prefs(options, prefs))(_ + _)
@@ -349,7 +349,7 @@ final class Options private(
     val opt = check_name(name)
     opt_value match {
       case Some(value) => this + (name, value)
-      case None if opt.typ == Options.Bool => this + (name, "true")
+      case None if opt.typ == Options.Bool | opt.typ == Options.String => this + (name, "true")
       case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
     }
   }

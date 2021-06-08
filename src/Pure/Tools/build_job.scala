@@ -202,8 +202,8 @@ class Build_Job(progress: Progress,
   deps: Sessions.Deps,
   store: Sessions.Store,
   do_store: Boolean,
-  verbose: Boolean,
   log: Logger,
+  session_setup: (String, Session) => Unit,
   val numa_node: Option[Int],
   command_timings0: List[Properties.T])
 {
@@ -411,10 +411,12 @@ class Build_Job(progress: Progress,
           case _ =>
         }
 
+      session_setup(session_name, session)
+
       val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
       val process =
-        Isabelle_Process(session, options, sessions_structure, store,
+        Isabelle_Process.start(session, options, sessions_structure, store,
           logic = parent, raw_ml_system = is_pure,
           use_prelude = use_prelude, eval_main = eval_main,
           cwd = info.dir.file, env = env)

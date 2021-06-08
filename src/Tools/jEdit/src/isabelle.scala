@@ -199,6 +199,7 @@ object Isabelle
       if (continuous_checking != b) {
         PIDE.options.bool(CONTINUOUS_CHECKING) = b
         PIDE.session.update_options(PIDE.options.value)
+        PIDE.plugin.deps_changed()
       }
     }
 

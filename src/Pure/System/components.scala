@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/components.scala
+/*  Title:      Pure/System/components.scala
     Author:     Makarius
 
 Isabelle system components.
@@ -99,6 +99,12 @@ object Components
   }
 
 
+  /* component directories */
+
+  def directories(): List[Path] =
+    Path.split(Isabelle_System.getenv_strict("ISABELLE_COMPONENTS"))
+
+
   /* component directory content */
 
   def settings(dir: Path = Path.current): Path = dir + Path.explode("etc/settings")
@@ -152,8 +158,7 @@ object Components
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit =
   {
     val path = path0.expand.absolute
-    if (!(path + Path.explode("etc/settings")).is_file &&
-        !(path + Path.explode("etc/components")).is_file) error("Bad component directory: " + path)
+    if (!check_dir(path) && !Sessions.is_session_dir(path)) error("Bad component directory: " + path)
 
     val lines1 = read_components()
     val lines2 =

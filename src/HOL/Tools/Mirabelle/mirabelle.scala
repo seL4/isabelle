@@ -102,7 +102,7 @@ object Mirabelle
 
     if (build_results0.ok) {
       val build_options =
-        options + "timeout_build=false" + "parallel_presentation=false" +
+        options + "timeout_build=false" +
           ("mirabelle_actions=" + actions.mkString(";")) +
           ("mirabelle_theories=" + theories.mkString(","))
 
@@ -161,7 +161,6 @@ object Mirabelle
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
     var output_dir = default_output_dir
-    var requirements = false
     var theories: List[String] = Nil
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
@@ -172,6 +171,7 @@ object Mirabelle
     var verbose = false
     var exclude_sessions: List[String] = Nil
 
+    val default_stride = options.int("mirabelle_stride")
     val default_timeout = options.seconds("mirabelle_timeout")
 
     val getopts = Getopts("""
@@ -182,8 +182,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O DIR       output directory for log files (default: """ + default_output_dir + """,
-    -R           refer to requirements of selected sessions
+    -O DIR       output directory for log files (default: """ + default_output_dir + """)
     -T THEORY    theory restriction: NAME or NAME[LINE:END_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -191,6 +190,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s INT       run actions on every nth goal (default """ + default_stride + """)
     -t SECONDS   timeout for each action (default """ + default_timeout + """)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -213,7 +213,6 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
       "O:" -> (arg => output_dir = Path.explode(arg)),
-      "R" -> (_ => requirements = true),
       "T:" -> (arg => theories = theories ::: List(arg)),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -221,6 +220,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
       "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
       "o:" -> (arg => options = options + arg),
+      "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
       "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
@@ -241,7 +241,6 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         mirabelle(options, actions, output_dir,
           theories = theories,
           selection = Sessions.Selection(
-            requirements = requirements,
             all_sessions = all_sessions,
             base_sessions = base_sessions,
             exclude_session_groups = exclude_session_groups,

@@ -47,9 +47,9 @@ text \<open>
   reported by the above verbose invocation of the build process.
 
   Many Isabelle sessions (such as \<^session>\<open>HOL-Library\<close> in
-  \<^dir>\<open>~~/src/HOL/Library\<close>) also provide printable documents in PDF. These are
+  \<^dir>\<open>~~/src/HOL/Library\<close>) also provide theory documents in PDF. These are
   prepared automatically as well if enabled like this:
-  @{verbatim [display] \<open>isabelle build -o browser_info -o document=pdf -v -c HOL-Library\<close>}
+  @{verbatim [display] \<open>isabelle build -o browser_info -o document -v -c HOL-Library\<close>}
 
   Enabling both browser info and document preparation simultaneously causes an
   appropriate ``document'' link to be included in the HTML index. Documents

@@ -6,7 +6,7 @@ option browser_info : bool = false
   -- "generate theory browser information"
 
 option document : string = ""
-  -- "build document in given format: pdf, dvi, false"
+  -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
 option document_output : string = ""
   -- "document output directory"
 option document_variants : string = "document"
@@ -91,8 +91,6 @@ public option parallel_proofs : int = 1
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
-option parallel_presentation : bool = true
-  -- "parallel theory presentation"
 
 option command_timing_threshold : real = 0.1
   -- "default threshold for persistent command timing (seconds)"
@@ -134,7 +132,7 @@ option profiling : string = ""
   -- "ML profiling (possible values: time, allocations)"
 
 option system_log : string = ""
-  -- "output for system messages (log file or \"-\" for console progress)"
+  -- "output for system messages (log file or \"true\" for console progress)"
 
 option system_heaps : bool = false
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
@@ -307,10 +305,10 @@ option ssh_alive_count_max : int = 3
 
 section "Phabricator"
 
-option phabricator_version_arcanist : string = "7af9846f994a8d0a1fc89af996e3ddd81f01765e"
+option phabricator_version_arcanist : string = "cdae0ac68f1fed138323fa3dbb299ef3b287723c"
   -- "repository version for arcanist"
 
-option phabricator_version_phabricator : string = "2afedad61c5181bb4f832cea27b9b59df19f3fd5"
+option phabricator_version_phabricator : string = "4f70fcffa8a5393e210d64f237ffdaa256256d6a"
   -- "repository version for phabricator"
 
 

@@ -34,6 +34,12 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (LaTeX package
+"pifont").
+
+* High-quality blackboard-bold symbols from font "txmia" (LaTeX package
+"pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
+
 * Document antiquotations for ML text have been refined: "def" and "ref"
 variants support index entries, e.g. @{ML} (no entry) vs. @{ML_def}
 (bold entry) vs. @{ML_ref} (regular entry); @{ML_type} supports explicit
@@ -99,14 +105,14 @@ no longer required.
 
 *** HOL ***
 
-* Theory Multiset: dedicated predicate "multiset" is gone, use
-explict expression instead.  Minor INCOMPATIBILITY.
+* Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
+use explict expression instead. Minor INCOMPATIBILITY.
 
-* Theory Multiset: consolidated abbreviations Mempty, Melem, not_Melem
-to empty_mset, member_mset, not_member_mset respectively.  Minor
-INCOMPATIBILITY.
+* Theory "HOL-Library.Multiset": consolidated abbreviations Mempty,
+Melem, not_Melem to empty_mset, member_mset, not_member_mset
+respectively. Minor INCOMPATIBILITY.
 
-* Theory Multiset: consolidated operation and fact names:
+* Theory "HOL-Library.Multiset": consolidated operation and fact names:
     inf_subset_mset ~> inter_mset
     sup_subset_mset ~> union_mset
     multiset_inter_def ~> inter_mset_def
@@ -114,51 +120,53 @@ INCOMPATIBILITY.
     multiset_inter_count ~> count_inter_mset
     sup_subset_mset_count ~> count_union_mset
 
-* Theory Multiset: syntax precendence for membership operations has been
-adjusted to match the corresponding precendences on sets.  Rare
-INCOMPATIBILITY.
+* Theory "HOL-Library.Multiset": syntax precendence for membership
+operations has been adjusted to match the corresponding precendences on
+sets. Rare INCOMPATIBILITY.
 
-* HOL-Analysis/HOL-Probability: indexed products of discrete
-distributions, negative binomial distribution, Hoeffding's inequality,
-Chernoff bounds, Cauchy–Schwarz inequality for nn_integral, and some
-more small lemmas. Some theorems that were stated awkwardly before were
-corrected. Minor INCOMPATIBILITY.
+* Session "HOL-Analysis" and "HOL-Probability": indexed products of
+discrete distributions, negative binomial distribution, Hoeffding's
+inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
+and some more small lemmas. Some theorems that were stated awkwardly
+before were corrected. Minor INCOMPATIBILITY.
 
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
-and "eq_iff" from locale "ordering".  INCOMPATIBILITY: significant
+and "eq_iff" from locale "ordering". INCOMPATIBILITY: significant
 potential for change can be avoided if interpretations of type class
 "order" are replaced or augmented by interpretations of locale
 "ordering".
 
-* Theorem "swap_def" now is always qualified as "Fun.swap_def".  Minor
+* Theorem "swap_def" now is always qualified as "Fun.swap_def". Minor
 INCOMPATIBILITY; note that for most applications less elementary lemmas
 exists.
 
-* Dedicated session HOL-Combinatorics.  INCOMPATIBILITY: theories
+* Theory "HOL-Library.Permutation" has been renamed to the more specific
+"HOL-Library.List_Permutation". Note that most notions from that theory
+are already present in theory "HOL-Combinatorics.Permutations".
+INCOMPATIBILITY.
+
+* Dedicated session "HOL-Combinatorics". INCOMPATIBILITY: theories
 "Permutations", "List_Permutation" (formerly "Permutation"), "Stirling",
 "Multiset_Permutations", "Perm" have been moved there from session
 HOL-Library.
 
-* Theory "Permutation" in HOL-Library has been renamed to the more
-specific "List_Permutation".  Note that most notions from that
-theory are already present in theory "Permutations".  INCOMPATIBILITY.
+* Theory "HOL-Combinatorics.Transposition" provides elementary swap
+operation "transpose".
 
-* Lemma "permutes_induct" has been given stronger
-hypotheses and named premises.  INCOMPATIBILITY.
+* Lemma "permutes_induct" has been given stronger hypotheses and named
+premises. INCOMPATIBILITY.
 
-* Theory "Transposition" in HOL-Combinatorics provides elementary
-swap operation "transpose".
-
-* Combinator "Fun.swap" resolved into a mere input abbreviation
-in separate theory "Transposition" in HOL-Combinatorics.
-INCOMPATIBILITY.
+* Combinator "Fun.swap" resolved into a mere input abbreviation in
+separate theory "Transposition" in HOL-Combinatorics. INCOMPATIBILITY.
 
 * Bit operations set_bit, unset_bit and flip_bit are now class
-operations.  INCOMPATIBILITY.
+operations. INCOMPATIBILITY.
 
-* Abbreviation "max_word" has been moved to session Word_Lib in the AFP.
-See there further the changelog in theory Guide.  INCOMPATIBILITY.
+* Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
+as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
+"setBit", "clearBit". See there further the changelog in theory Guide.
+INCOMPATIBILITY.
 
 
 *** ML ***
@@ -230,9 +238,15 @@ context of Isabelle/Scala:
 *** System ***
 
 * System option "system_log" specifies an optional log file for internal
-messages produced by Output.system_message in Isabelle/ML; "-" refers to
-console progress of the build job. This works for "isabelle build" or
-any derivative of it.
+messages produced by Output.system_message in Isabelle/ML; the value
+"true" refers to console progress of the build job. This works for
+"isabelle build" or any derivative of it.
+
+* System options of type string may be set to "true" using the short
+notation of type bool. E.g. "isabelle build -o system_log".
+
+* System option "document=true" is an alias for "document=pdf" and thus
+can be used in the short form. E.g. "isabelle build -o document".
 
 * Command-line tool "isabelle version" supports repository archives
 (without full .hg directory). More options.
@@ -988,12 +1002,6 @@ configuration, "-Djdk.gtk.version=3" might work better or worse.
 
 
 *** Document preparation ***
-
-* More predefined symbols: \<interleave> \<sslash> (package "stmaryrd"), \<checkmark> \<crossmark> (package
-"pifont").
-
-* High-quality blackboard-bold symbols from font "txmia" (package
-"pxfonts"): \<bbbA>\<bool>\<complex>\<bbbD>\<bbbE>\<bbbF>\<bbbG>\<bbbH>\<bbbI>\<bbbJ>\<bbbK>\<bbbL>\<bbbM>\<nat>\<bbbO>\<bbbP>\<rat>\<real>\<bbbS>\<bbbT>\<bbbU>\<bbbV>\<bbbW>\<bbbX>\<bbbY>\<int>.
 
 * Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
 are stripped from document output: the effect is to modify the semantic

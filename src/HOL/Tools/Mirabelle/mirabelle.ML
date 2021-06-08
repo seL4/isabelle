@@ -147,40 +147,57 @@ fun check_theories strs =
     fun check_pos range = check_line range o Position.line_of;
   in check_pos o get_theory end;
 
+fun check_session qualifier thy_name (_: Position.T) =
+  Resources.theory_qualifier thy_name = qualifier;
+
 
 (* presentation hook *)
 
 val whitelist = ["apply", "by", "proof"];
 
 val _ =
-  Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
+  Build.add_hook (fn qualifier => fn loaded_theories =>
     let
-      val {options, adjust_pos, segments, ...} = context;
-      val mirabelle_timeout = Options.seconds options \<^system_option>\<open>mirabelle_timeout\<close>;
-      val mirabelle_actions = Options.string options \<^system_option>\<open>mirabelle_actions\<close>;
-      val mirabelle_theories = Options.string options \<^system_option>\<open>mirabelle_theories\<close>;
+      val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
+      val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
+      val mirabelle_actions = Options.default_string \<^system_option>\<open>mirabelle_actions\<close>;
+      val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
 
       val actions =
         (case read_actions mirabelle_actions of
           SOME actions => actions
         | NONE => error ("Failed to parse mirabelle_actions: " ^ quote mirabelle_actions));
-      val check = check_theories (space_explode "," mirabelle_theories);
-      val commands =
-        segments |> map_filter (fn {command = tr, prev_state = st, state = st', ...} =>
-          let
-            val name = Toplevel.name_of tr;
-            val pos = adjust_pos (Toplevel.pos_of tr);
-          in
-            if can (Proof.assert_backward o Toplevel.proof_of) st andalso
-              member (op =) whitelist name andalso
-              check (Context.theory_long_name thy) pos
-            then SOME {name = name, pos = pos, pre = Toplevel.proof_of st, post = st'}
-            else NONE
-          end);
+      val check =
+        if mirabelle_theories = "" then check_session qualifier
+        else check_theories (space_explode "," mirabelle_theories);
 
-      fun apply (i, (name, arguments)) () =
-        apply_action (i + 1) name arguments mirabelle_timeout commands thy;
-    in if null commands then () else fold_index apply actions () end));
+      fun theory_commands (thy, segments) =
+        let
+          val commands = segments
+            |> map_index (fn (n, {command = tr, prev_state = st, state = st', ...}) =>
+              if n mod mirabelle_stride = 0 then
+                let
+                  val name = Toplevel.name_of tr;
+                  val pos = Toplevel.pos_of tr;
+                in
+                  if Context.proper_subthy (\<^theory>, thy) andalso
+                    can (Proof.assert_backward o Toplevel.proof_of) st andalso
+                    member (op =) whitelist name andalso
+                    check (Context.theory_long_name thy) pos
+                  then SOME {name = name, pos = pos, pre = Toplevel.proof_of st, post = st'}
+                  else NONE
+                end
+              else NONE)
+            |> map_filter I;
+        in if null commands then NONE else SOME (thy, commands) end;
+
+      fun app_actions (thy, commands) =
+        (actions, ()) |-> fold_index (fn (index, (name, arguments)) => fn () =>
+          apply_action (index + 1) name arguments mirabelle_timeout commands thy);
+    in
+      if null actions then ()
+      else List.app app_actions (map_filter theory_commands loaded_theories)
+    end);
 
 
 (* Mirabelle utility functions *)

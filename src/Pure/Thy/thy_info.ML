@@ -18,7 +18,8 @@ sig
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  val use_theories: Options.T -> string -> (string * Position.T) list -> unit
+  val use_theories: Options.T -> string -> (string * Position.T) list ->
+    (theory * Document_Output.segment list) list
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -47,19 +48,13 @@ structure Presentation = Theory_Data
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
-fun sequential_presentation options =
-  not (Options.bool options \<^system_option>\<open>parallel_presentation\<close>);
-
 fun apply_presentation (context: presentation_context) thy =
-  Par_List.map'
-    {name = "apply_presentation", sequential = sequential_presentation (#options context)}
-    (fn (f, _) => f context thy) (Presentation.get thy)
-  |> ignore;
+  ignore (Par_List.map (fn (f, _) => f context thy) (Presentation.get thy));
 
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
-  Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
+  Theory.setup (add_presentation (fn {options, segments, ...} => fn thy =>
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -186,85 +181,80 @@ fun update_thy deps theory = change_thys (update deps theory);
 (* scheduling loader tasks *)
 
 datatype result =
-  Result of {theory: theory, exec_id: Document_ID.exec,
-    present: unit -> unit, commit: unit -> unit, weight: int};
+  Result of
+   {theory: theory,
+    exec_id: Document_ID.exec,
+    present: unit -> presentation_context option,
+    commit: unit -> unit};
 
 fun theory_result theory =
-  Result {theory = theory, exec_id = Document_ID.none, present = I, commit = I, weight = 0};
+  Result
+   {theory = theory,
+    exec_id = Document_ID.none,
+    present = K NONE,
+    commit = I};
 
 fun result_theory (Result {theory, ...}) = theory;
-fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
-fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
-
-fun join_theory (Result {theory, exec_id, ...}) =
-  let
-    val _ = Execution.join [exec_id];
-    val res = Exn.capture Thm.consolidate_theory theory;
-    val exns = maps Task_Queue.group_status (Execution.peek exec_id);
-  in res :: map Exn.Exn exns end;
 
 datatype task =
   Task of string list * (theory list -> result) |
   Finished of theory;
 
-fun task_finished (Task _) = false
-  | task_finished (Finished _) = true;
+local
 
-fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) deps) parents;
+fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
+  | consolidate_theory (Exn.Res (Result {theory, exec_id, ...})) =
+      let
+        val _ = Execution.join [exec_id];
+        val res = Exn.capture Thm.consolidate_theory theory;
+        val exns = maps Task_Queue.group_status (Execution.peek exec_id);
+      in res :: map Exn.Exn exns end;
 
-val schedule_seq =
-  String_Graph.schedule (fn deps => fn (_, task) =>
-    (case task of
-      Task (parents, body) =>
-        let
-          val result = body (task_parents deps parents);
-          val _ = Par_Exn.release_all (join_theory result);
-          val _ = result_present result ();
-          val _ = result_commit result ();
-        in result_theory result end
-    | Finished thy => thy)) #> ignore;
+fun present_theory (Exn.Exn exn) = [Exn.Exn exn]
+  | present_theory (Exn.Res (Result {theory, present, ...})) =
+      (case present () of
+        NONE => []
+      | SOME (context as {segments, ...}) =>
+          [Exn.capture (fn () => (apply_presentation context theory; (theory, segments))) ()]);
 
-val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
+in
+
+val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
   let
+    fun join_parents deps name parents =
+      (case map #1 (filter (not o can Future.join o #2) deps) of
+        [] => map (result_theory o Future.join o the o AList.lookup (op =) deps) parents
+      | bad =>
+          error ("Failed to load theory " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")"));
+
     val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>
         (case task of
           Task (parents, body) =>
-            (singleton o Future.forks)
-              {name = "theory:" ^ name, group = NONE,
-                deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
-              (fn () =>
-                (case filter (not o can Future.join o #2) deps of
-                  [] => body (map (result_theory o Future.join) (task_parents deps parents))
-                | bad =>
-                    error
-                      ("Failed to load theory " ^ quote name ^
-                        " (unresolved " ^ commas_quote (map #1 bad) ^ ")")))
+            if Multithreading.max_threads () > 1 then
+              (singleton o Future.forks)
+                {name = "theory:" ^ name, group = NONE,
+                  deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
+                (fn () => body (join_parents deps name parents))
+            else
+              Future.value_result (Exn.capture (fn () => body (join_parents deps name parents)) ())
         | Finished theory => Future.value (theory_result theory)));
 
-    val results1 = futures
-      |> maps (fn future =>
-          (case Future.join_result future of
-            Exn.Res result => join_theory result
-          | Exn.Exn exn => [Exn.Exn exn]));
+    val results1 = futures |> maps (consolidate_theory o Future.join_result);
 
-    val results2 = futures
-      |> map_filter (Exn.get_res o Future.join_result)
-      |> sort result_ord
-      |> Par_List.map'
-          {name = "present", sequential = sequential_presentation (Options.default ())}
-          (fn result => Exn.capture (result_present result) ());
+    val present_results = futures |> maps (present_theory o Future.join_result);
+    val results2 = (map o Exn.map_res) (K ()) present_results;
 
-    (* FIXME more precise commit order (!?) *)
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
-    (* FIXME avoid global Execution.reset (!??) *)
     val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
-  in () end);
+  in Par_Exn.release_all present_results end);
+
+end;
 
 
 (* eval theory *)
@@ -306,16 +296,14 @@ fun eval_thy options master_dir header text_pos text parents =
 
     val (results, thy) = cond_timeit true ("theory " ^ quote name) excursion;
 
-    fun present () =
+    fun present () : presentation_context =
       let
         val segments =
           (spans ~~ maps Toplevel.join_results results) |> map (fn (span, (st, tr, st')) =>
             {span = span, prev_state = st, command = tr, state = st'});
-        val context: presentation_context =
-          {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
-      in apply_presentation context thy end;
+      in {options = options, file_pos = text_pos, adjust_pos = I, segments = segments} end;
 
-  in (thy, present, size text) end;
+  in (thy, present) end;
 
 
 (* require_thy -- checking database entries wrt. the file-system *)
@@ -352,7 +340,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val timing_start = Timing.start ();
 
     val header = Thy_Header.make (name, put_id header_pos) imports keywords;
-    val (theory, present, weight) =
+    val (theory, present) =
       eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
@@ -361,9 +349,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit () = update_thy deps theory;
-  in
-    Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}
-  end;
+  in Result {theory = theory, exec_id = exec_id, present = SOME o present, commit = commit} end;
 
 fun check_thy_deps dir name =
   (case lookup_deps name of
@@ -382,6 +368,9 @@ fun check_thy_deps dir name =
               NONE => false
             | SOME theory => Resources.loaded_files_current theory);
       in (current, deps', theory_pos', imports', keywords') end);
+
+fun task_finished (Task _) = false
+  | task_finished (Finished _) = true;
 
 in
 
@@ -430,11 +419,10 @@ end;
 (* use theories *)
 
 fun use_theories options qualifier imports =
-  let val (_, tasks) = require_thys options [] qualifier Path.current imports String_Graph.empty
-  in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
+  schedule_theories (#2 (require_thys options [] qualifier Path.current imports String_Graph.empty));
 
 fun use_thy name =
-  use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)];
+  ignore (use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)]);
 
 
 (* toplevel scripting -- without maintaining database *)

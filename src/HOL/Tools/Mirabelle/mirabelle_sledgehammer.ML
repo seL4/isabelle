@@ -36,7 +36,6 @@ val prover_timeoutK = "prover_timeout" (*=TIME: timeout for invoked ATP (seconds
 val sliceK = "slice" (*=BOOL: allow sledgehammer-level strategy-scheduling*)
 val smt_proofsK = "smt_proofs" (*=BOOL: enable SMT proof generation*)
 val strictK = "strict" (*=BOOL: run in strict mode*)
-val strideK = "stride" (*=NUM: run every nth goal*)
 val term_orderK = "term_order" (*=STRING: term order (in E)*)
 val type_encK = "type_enc" (*=STRING: type encoding scheme*)
 val uncurried_aliasesK = "uncurried_aliases" (*=SMART_BOOL: use fresh function names to alias curried applications*)
@@ -51,7 +50,6 @@ val uncurried_aliases_default = "smart"
 val fact_filter_default = "smart"
 val type_enc_default = "smart"
 val strict_default = "false"
-val stride_default = 1
 val max_facts_default = "smart"
 val slice_default = "true"
 val max_calls_default = 10000000
@@ -615,7 +613,6 @@ fun catch e =
 
 (* crude hack *)
 val num_sledgehammer_calls = Unsynchronized.ref 0
-val remaining_stride = Unsynchronized.ref stride_default
 
 val _ =
   Theory.setup (Mirabelle.theory_action \<^binding>\<open>sledgehammer\<close>
@@ -627,7 +624,6 @@ val _ =
         val data = Unsynchronized.ref empty_data
         val change_data = Unsynchronized.change data
 
-        val stride = Mirabelle.get_int_argument args (strideK, stride_default)
         val max_calls = Mirabelle.get_int_argument args (max_callsK, max_calls_default)
         val check_trivial = Mirabelle.get_bool_argument args (check_trivialK, check_trivial_default)
 
@@ -638,13 +634,8 @@ val _ =
               val goal = Thm.major_prem_of (#goal (Proof.goal st))
               val log =
                 if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal then []
-                else if !remaining_stride > 1 then
-                  (* We still have some steps to do *)
-                  (Unsynchronized.dec remaining_stride; ["Skipping because of stride"])
                 else
-                  (* This was the last step, now run the action *)
                   let
-                    val _ = remaining_stride := stride
                     val _ = Unsynchronized.inc num_sledgehammer_calls
                   in
                     if !num_sledgehammer_calls > max_calls then

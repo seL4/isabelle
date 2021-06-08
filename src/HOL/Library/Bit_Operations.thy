@@ -9,6 +9,11 @@ theory Bit_Operations
     "HOL-Library.Boolean_Algebra"
 begin
 
+lemma bit_numeral_int_iff [bit_simps]: \<comment> \<open>TODO: move\<close>
+  \<open>bit (numeral m :: int) n \<longleftrightarrow> bit (numeral m :: nat) n\<close>
+  using bit_of_nat_iff_bit [of \<open>numeral m\<close> n] by simp
+
+
 subsection \<open>Bit operations\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +

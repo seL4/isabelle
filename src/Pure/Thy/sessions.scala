@@ -510,7 +510,7 @@ object Sessions
     def document_enabled: Boolean =
       options.string("document") match {
         case "" | "false" => false
-        case "pdf" => true
+        case "pdf" | "true" => true
         case doc => error("Bad document specification " + quote(doc))
       }
 
@@ -1014,7 +1014,7 @@ object Sessions
 
   /* load sessions from certain directories */
 
-  private def is_session_dir(dir: Path): Boolean =
+  def is_session_dir(dir: Path): Boolean =
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
   private def check_session_dir(dir: Path): Path =
@@ -1023,7 +1023,7 @@ object Sessions
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
-    val default_dirs = Isabelle_System.components().filter(is_session_dir)
+    val default_dirs = Components.directories().filter(is_session_dir)
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }

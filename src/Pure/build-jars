@@ -34,7 +34,6 @@ declare -a SOURCES=(
   src/Pure/Admin/build_zipperposition.scala
   src/Pure/Admin/check_sources.scala
   src/Pure/Admin/ci_profile.scala
-  src/Pure/Admin/components.scala
   src/Pure/Admin/isabelle_cronjob.scala
   src/Pure/Admin/isabelle_devel.scala
   src/Pure/Admin/jenkins.scala
@@ -132,6 +131,7 @@ declare -a SOURCES=(
   src/Pure/ROOT.scala
   src/Pure/System/bash.scala
   src/Pure/System/command_line.scala
+  src/Pure/System/components.scala
   src/Pure/System/cygwin.scala
   src/Pure/System/executable.scala
   src/Pure/System/getopts.scala

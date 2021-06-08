@@ -708,6 +708,23 @@ lemma differentiable_mult [simp, derivative_intros]:
     (\<lambda>x. f x * g x) differentiable (at x within s)"
   unfolding differentiable_def by (blast intro: has_derivative_mult)
 
+lemma differentiable_cmult_left_iff [simp]:
+  fixes c::"'a::real_normed_field" 
+  shows "(\<lambda>t. c * q t) differentiable at t \<longleftrightarrow> c = 0 \<or> (\<lambda>t. q t) differentiable at t" (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  {assume "c \<noteq> 0"
+    then have "q differentiable at t"
+      using differentiable_mult [OF differentiable_const L, of concl: "1/c"] by auto
+  } then show ?rhs
+    by auto
+qed auto
+
+lemma differentiable_cmult_right_iff [simp]:
+  fixes c::"'a::real_normed_field" 
+  shows "(\<lambda>t. q t * c) differentiable at t \<longleftrightarrow> c = 0 \<or> (\<lambda>t. q t) differentiable at t" (is "?lhs = ?rhs")
+  by (simp add: mult.commute flip: differentiable_cmult_left_iff)
+
 lemma differentiable_inverse [simp, derivative_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
   shows "f differentiable (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
