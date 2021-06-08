@@ -170,7 +170,7 @@ Usage: isabelle log [OPTIONS] SESSION
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -v           print all messages, including information, tracing etc.
+    -v           print all messages, including information etc.
 
   Print messages from the build database of the given session, without any
   checks against current sources: results from a failed build can be
