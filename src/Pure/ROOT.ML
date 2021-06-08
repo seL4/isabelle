@@ -46,7 +46,6 @@ ML_file "General/value.ML";
 ML_file "General/properties.ML";
 ML_file "General/output.ML";
 ML_file "PIDE/markup.ML";
-ML_file "ML/ml_profiling.ML";
 ML_file "General/utf8.ML";
 ML_file "General/scan.ML";
 ML_file "General/source.ML";
@@ -89,6 +88,7 @@ ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 
 ML_file "PIDE/yxml.ML";
+ML_file "ML/ml_profiling.ML";
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";

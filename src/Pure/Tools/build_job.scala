@@ -93,7 +93,6 @@ object Build_Job
     unicode_symbols: Boolean = false): Unit =
   {
     val store = Sessions.store(options)
-
     val resources = Resources.empty
     val session = new Session(options, resources)
 
@@ -109,9 +108,10 @@ object Build_Job
       result match {
         case None => error("Missing build database for session " + quote(session_name))
         case Some((used_theories, errors, rc)) =>
-          val bad_theories = theories.filterNot(used_theories.toSet)
-          if (bad_theories.nonEmpty) error("Unknown theories " + commas_quote(bad_theories))
-
+          theories.filterNot(used_theories.toSet) match {
+            case Nil =>
+            case bad => error("Unknown theories " + commas_quote(bad))
+          }
           val print_theories =
             if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
           for (thy <- print_theories) {

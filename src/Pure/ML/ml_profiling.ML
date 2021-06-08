@@ -14,30 +14,36 @@ end;
 structure ML_Profiling: ML_PROFILING =
 struct
 
-fun profile mode title =
-  mode |> PolyML.Profiling.profileStream (fn entries =>
-    let
-      val body = entries
-        |> sort (int_ord o apply2 fst)
-        |> map (fn (count, name) =>
-            let
-              val c = string_of_int count;
-              val prefix = replicate_string (Int.max (0, 10 - size c)) " ";
-            in prefix ^ c ^ " " ^ name end);
-      val total = fold (curry (op +) o fst) entries 0;
-    in
-      if total = 0 then ()
-      else warning (cat_lines (title :: (body @ ["total: " ^ string_of_int total])))
-    end);
+fun print_entry count name =
+  let
+    val c = string_of_int count;
+    val prefix = Symbol.spaces (Int.max (0, 10 - size c));
+  in prefix ^ c ^ " " ^ name end;
+
+fun profile mode kind title f x =
+  PolyML.Profiling.profileStream (fn entries =>
+    (case fold (curry (op +) o fst) entries 0 of
+      0 => ()
+    | total =>
+        let
+          val body = entries
+            |> sort (int_ord o apply2 fst)
+            |> map (fn (count, name) =>
+                let val markup = Markup.ML_profiling_entry {name = name, count = count}
+                in XML.Elem (markup, [XML.Text (print_entry count name ^ "\n")]) end);
+          val xml =
+            XML.Elem (Markup.ML_profiling kind,
+              XML.Text (title ^ "\n") :: body @ [XML.Text (print_entry total "TOTAL")]);
+        in warning (YXML.string_of xml) end)) mode f x;
 
 fun profile_time f =
-  profile PolyML.Profiling.ProfileTime "time profile:" f;
+  profile PolyML.Profiling.ProfileTime "time" "time profile:" f;
 
 fun profile_time_thread f =
-  profile PolyML.Profiling.ProfileTimeThisThread "time profile (this thread):" f;
+  profile PolyML.Profiling.ProfileTimeThisThread "time_thread" "time profile (single thread):" f;
 
 fun profile_allocations f =
-  profile PolyML.Profiling.ProfileAllocations "allocations profile:" f;
+  profile PolyML.Profiling.ProfileAllocations "allocations" "allocations profile:" f;
 
 end;
 

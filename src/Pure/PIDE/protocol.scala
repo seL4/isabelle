@@ -210,6 +210,19 @@ object Protocol
   }
 
 
+  /* ML profiling */
+
+  object ML_Profiling
+  {
+    def unapply(msg: XML.Tree): Option[isabelle.ML_Profiling.Report] =
+      msg match {
+        case XML.Elem(_, List(tree)) if is_warning(msg) =>
+          Markup.ML_Profiling.unapply_report(tree)
+        case _ => None
+      }
+  }
+
+
   /* export */
 
   object Export
