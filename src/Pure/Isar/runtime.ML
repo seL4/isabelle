@@ -194,7 +194,8 @@ fun debugging opt_context f =
   f |> debugging1 opt_context |> debugging2 opt_context;
 
 fun controlled_execution opt_context f x =
-  (f |> debugging opt_context |> Future.interruptible_task) x;
+  (f |> debugging opt_context |> Future.interruptible_task
+    |> ML_Profiling.profile (Options.default_string "profiling")) x;
 
 fun toplevel_error output_exn f x = f x
   handle exn =>

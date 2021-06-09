@@ -237,6 +237,17 @@ context of Isabelle/Scala:
 
 *** System ***
 
+* ML profiling has been updated and reactivated, after some degration in
+Isabelle2021:
+
+  - "isabelle build -o threads=1 -o profiling=..." works properly
+    within the PIDE session context;
+
+  - "isabelle profiling_report" now uses the session build database
+    (like "isabelle log");
+
+  - output uses non-intrusive tracing messages, instead of warnings.
+
 * System option "system_log" specifies an optional log file for internal
 messages produced by Output.system_message in Isabelle/ML; the value
 "true" refers to console progress of the build job. This works for

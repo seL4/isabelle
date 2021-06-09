@@ -202,6 +202,11 @@ sig
   val no_reportN: string val no_report: T
   val badN: string val bad: unit -> T
   val intensifyN: string val intensify: T
+  val countN: string
+  val ML_profiling_entryN: string
+  val ML_profiling_entry: {name: string, count: int} -> T
+  val ML_profilingN: string
+  val ML_profiling: string -> T
   val browserN: string
   val graphviewN: string
   val theory_exportsN: string
@@ -655,6 +660,17 @@ val badN = "bad";
 fun bad () = (badN, serial_properties (serial ()));
 
 val (intensifyN, intensify) = markup_elem "intensify";
+
+
+(* ML profiling *)
+
+val countN = "count";
+
+val ML_profiling_entryN = "ML_profiling_entry";
+fun ML_profiling_entry {name, count} =
+  (ML_profiling_entryN, [(nameN, name), (countN, Value.print_int count)]);
+
+val (ML_profilingN, ML_profiling) = markup_string "ML_profiling" kindN;
 
 
 (* active areas *)

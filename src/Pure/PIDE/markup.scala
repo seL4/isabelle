@@ -564,6 +564,30 @@ object Markup
   val INTENSIFY = "intensify"
 
 
+  /* ML profiling */
+
+  val COUNT = "count"
+  val ML_PROFILING_ENTRY = "ML_profiling_entry"
+  val ML_PROFILING = "ML_profiling"
+
+  object ML_Profiling
+  {
+    def unapply_entry(tree: XML.Tree): Option[isabelle.ML_Profiling.Entry] =
+      tree match {
+        case XML.Elem(Markup(ML_PROFILING_ENTRY, List((NAME, name), (COUNT, Value.Long(count)))), _) =>
+          Some(isabelle.ML_Profiling.Entry(name, count))
+        case _ => None
+      }
+
+    def unapply_report(tree: XML.Tree): Option[isabelle.ML_Profiling.Report] =
+      tree match {
+        case XML.Elem(Markup(ML_PROFILING, List((KIND, kind))), body) =>
+          Some(isabelle.ML_Profiling.Report(kind, body.flatMap(unapply_entry)))
+        case _ => None
+      }
+  }
+
+
   /* active areas */
 
   val BROWSER = "browser"

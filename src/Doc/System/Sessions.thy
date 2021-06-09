@@ -542,6 +542,7 @@ text \<open>
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: 76.0)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           print all messages, including information etc.
 
   Print messages from the build database of the given session, without any
   checks against current sources: results from a failed build can be
@@ -566,8 +567,8 @@ text \<open>
   symbols. The default is for an old-fashioned ASCII terminal at 80 characters
   per line (76 + 4 characters to prefix warnings or errors).
 
-  \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database, including
-  extra information and tracing messages etc.
+  \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database that are
+  normally inlined into the source text, including information messages etc.
 \<close>
 
 subsubsection \<open>Examples\<close>

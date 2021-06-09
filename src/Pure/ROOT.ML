@@ -27,7 +27,6 @@ ML_file "Concurrent/synchronized.ML";
 ML_file "Concurrent/counter.ML";
 
 ML_file "ML/ml_heap.ML";
-ML_file "ML/ml_profiling.ML";
 ML_file "ML/ml_print_depth0.ML";
 ML_file "ML/ml_pretty.ML";
 ML_file "ML/ml_compiler0.ML";
@@ -89,6 +88,7 @@ ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 
 ML_file "PIDE/yxml.ML";
+ML_file "ML/ml_profiling.ML";
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
