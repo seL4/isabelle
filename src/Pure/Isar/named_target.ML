@@ -94,7 +94,7 @@ fun operations Theory =
        notes = Generic_Target.notes Generic_Target.theory_target_notes,
        abbrev = Generic_Target.theory_abbrev,
        declaration = fn _ => Generic_Target.theory_declaration,
-       theory_registration = Locale.add_registration_theory,
+       theory_registration = Generic_Target.theory_registration,
        locale_dependency = fn _ => error "Not possible in theory target",
        pretty = fn ctxt => [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
         Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]}
@@ -104,7 +104,7 @@ fun operations Theory =
        abbrev = Generic_Target.locale_abbrev locale,
        declaration = Generic_Target.locale_declaration locale,
        theory_registration = fn _ => error "Not possible in locale target",
-       locale_dependency = Locale.add_dependency locale,
+       locale_dependency = Generic_Target.locale_dependency locale,
        pretty = fn ctxt => [Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale]}
   | operations (Class class) =
       {define = Generic_Target.define (class_foundation class),
@@ -112,7 +112,7 @@ fun operations Theory =
        abbrev = Class.abbrev class,
        declaration = Generic_Target.locale_declaration class,
        theory_registration = fn _ => error "Not possible in class target",
-       locale_dependency = Locale.add_dependency class,
+       locale_dependency = Generic_Target.locale_dependency class,
        pretty = fn ctxt => Class.pretty_specification (Proof_Context.theory_of ctxt) class};
 
 fun setup_context Theory = Proof_Context.init_global

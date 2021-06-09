@@ -493,7 +493,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
     val add_dependency =
       (case some_dep_morph of
         SOME dep_morph =>
-          Locale.add_dependency sub
+          Generic_Target.locale_dependency sub
             {inst = (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)),
               mixin = NONE, export = export}
       | NONE => I);
@@ -667,7 +667,7 @@ fun conclude lthy =
 
 fun registration thy_ctxt {inst, mixin, export} lthy =
   lthy
-  |> Locale.add_registration_theory
+  |> Generic_Target.theory_registration
       {inst = inst,
        mixin = mixin,
        export = export $> Proof_Context.export_morphism lthy thy_ctxt}

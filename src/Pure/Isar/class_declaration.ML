@@ -331,10 +331,10 @@ fun gen_class prep_class_spec b raw_includes raw_supclasses raw_elems thy =
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) =>
-       Locale.add_registration_theory'
+       Context.theory_map (Locale.add_registration
          {inst = (class, base_morph),
            mixin = Option.map (rpair true) eq_morph,
-           export = export_morph}
+           export = export_morph})
     #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class
     #> Global_Theory.store_thm (prefix (Binding.qualified_name (class ^ ".of_class.intro")), of_class)))
     |> snd

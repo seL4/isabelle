@@ -79,13 +79,8 @@ sig
   type registration = {inst: string * morphism, mixin: (morphism * bool) option, export: morphism}
   val amend_registration: registration -> Context.generic -> Context.generic
   val add_registration: registration -> Context.generic -> Context.generic
-  val add_registration_theory': registration -> theory -> theory
-  val add_registration_theory: registration -> local_theory -> local_theory
-  val add_registration_local_theory: registration -> local_theory -> local_theory
-  val add_registration_proof: registration -> Proof.context -> Proof.context
   val registrations_of: Context.generic -> string -> (string * morphism) list
-  val add_dependency': string -> registration -> theory -> theory
-  val add_dependency: string -> registration -> local_theory -> local_theory
+  val add_dependency: string -> registration -> theory -> theory
 
   (* Diagnostic *)
   val get_locales: theory -> string list
@@ -611,21 +606,6 @@ fun add_registration {inst = (name, base_morph), mixin, export} context =
       |> activate_facts (SOME export) (name, mix_morph $> pos_morph)
   end;
 
-val add_registration_theory' = Context.theory_map o add_registration;
-
-val add_registration_theory = Local_Theory.raw_theory o add_registration_theory';
-
-fun add_registration_local_theory registration lthy =
-  let val n = Local_Theory.level lthy in
-    lthy
-    |> Local_Theory.map_contexts (fn level =>
-      level = n - 1 ? Context.proof_map (add_registration registration))
-  end;
-
-fun add_registration_proof registration ctxt = ctxt
-  |> Proof_Context.set_stmt false
-  |> Context.proof_map (add_registration registration)
-  |> Proof_Context.restore_stmt ctxt;
 
 
 (*** Dependencies ***)
@@ -637,7 +617,7 @@ fun registrations_of context loc =
   |> map (fn (name, (base, export)) =>
       (name, base $> (collect_mixins context (name, base $> export)) $> export));
 
-fun add_dependency' loc {inst = (name, morph), mixin, export} thy =
+fun add_dependency loc {inst = (name, morph), mixin, export} thy =
   let
     val dep = make_dep (name, (morph, export));
     val add_dep =
@@ -649,13 +629,10 @@ fun add_dependency' loc {inst = (name, morph), mixin, export} thy =
       fold_rev (roundup thy' cons export)
         (registrations_of context' loc) (Idents.get context', []);
   in
-    fold_rev (fn inst => add_registration_theory' {inst = inst, mixin = NONE, export = export})
+    fold_rev (fn inst => Context.theory_map (add_registration {inst = inst, mixin = NONE, export = export}))
       regs thy'
   end;
 
-fun add_dependency loc registration =
-  Local_Theory.raw_theory (add_dependency' loc registration)
-  #> add_registration_local_theory registration;
 
 
 (*** Storing results ***)
