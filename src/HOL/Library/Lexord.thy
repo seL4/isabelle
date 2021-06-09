@@ -194,8 +194,6 @@ global_interpretation dvd: lex_preordering \<open>(dvd) :: 'a::comm_monoid_mult 
     apply (auto simp add: dvd_strict_def)
   done
 
-print_theorems
-
 global_interpretation lex_dvd: preordering lex_dvd lex_dvd_strict
   by (fact dvd.preordering)
 

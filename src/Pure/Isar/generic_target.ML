@@ -235,12 +235,13 @@ fun standard_declaration pred decl lthy =
 fun standard_const pred prmode ((b, mx), rhs) =
   standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
 
-fun local_interpretation registration lthy =
-  let val n = Local_Theory.level lthy in
-    lthy
-    |> Local_Theory.map_contexts (fn level =>
-      level = n - 1 ? Context.proof_map (Locale.add_registration registration))
-  end;
+fun standard_registration pred registration lthy =
+  Local_Theory.map_contexts (fn level =>
+    if pred (Local_Theory.level lthy, level)
+    then Context.proof_map (Locale.add_registration registration)
+    else I) lthy;
+
+val local_interpretation = standard_registration (fn (n, level) => level = n - 1);
 
 
 
@@ -406,7 +407,15 @@ val theory_abbrev = abbrev theory_target_abbrev;
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
 
-val theory_registration = Local_Theory.raw_theory o Context.theory_map o Locale.add_registration;
+fun target_registration lthy {inst, mixin, export} =
+  {inst = inst, mixin = mixin,
+    export = export $> Proof_Context.export_morphism lthy (Local_Theory.target_of lthy)};
+
+fun theory_registration registration lthy =
+  lthy
+  |> (Local_Theory.raw_theory o Context.theory_map)
+    (Locale.add_registration (target_registration lthy registration))
+  |> standard_registration (K true) registration;
 
 
 (** locale target primitives **)
@@ -439,9 +448,10 @@ fun locale_const locale prmode ((b, mx), rhs) =
   locale_target_const locale (K true) prmode ((b, mx), rhs)
   #> standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
-fun locale_dependency loc registration =
-  Local_Theory.raw_theory (Locale.add_dependency loc registration)
-  #> local_interpretation registration;
+fun locale_dependency loc registration lthy =
+  lthy
+  |> Local_Theory.raw_theory (Locale.add_dependency loc registration)
+  |> standard_registration (K true) registration;
 
 
 (** locale abbreviations **)

@@ -738,6 +738,9 @@ text \<open>
   free variable whose name is already bound in the context --- for example,
   because a constant of that name exists --- add it to the \<^theory_text>\<open>for\<close> clause.
 
+  When used in a nested target, resulting declarations are propagated
+  through the whole target stack.
+
   \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> expr defines defs\<close> interprets \<open>expr\<close>
   into the locale \<open>name\<close>. A proof that the specification of \<open>name\<close> implies the
   specification of \<open>expr\<close> is required. As in the localized version of the

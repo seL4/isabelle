@@ -253,6 +253,7 @@ fun propagate_ml_env (context as Context.Proof lthy) =
 val operations_of = #operations o top_of;
 
 fun operation f lthy = f (operations_of lthy) lthy;
+fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y = operation (fn ops => f ops x y);
 
 
@@ -264,10 +265,9 @@ val define = operation2 #define false;
 val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
-fun theory_registration registration =
-  assert_bottom #> operation (fn ops => #theory_registration ops registration);
+val theory_registration = operation1 #theory_registration;
 fun locale_dependency registration =
-  assert_bottom #> operation (fn ops => #locale_dependency ops registration);
+  assert_bottom #> operation1 #locale_dependency registration;
 
 
 (* theorems *)

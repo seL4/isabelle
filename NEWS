@@ -103,6 +103,13 @@ different name.
 no longer required.
 
 
+*** Pure ***
+
+* "global_interpretation" is applicable in instantiation and overloading
+targets and in any nested target built on top of a target supporting
+"global_interpretation".
+
+
 *** HOL ***
 
 * Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
