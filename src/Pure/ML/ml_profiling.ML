@@ -43,7 +43,7 @@ fun check_mode "" = ()
 fun print_entry count name =
   let
     val c = string_of_int count;
-    val prefix = Symbol.spaces (Int.max (0, 10 - size c));
+    val prefix = Symbol.spaces (Int.max (0, 12 - size c));
   in prefix ^ c ^ " " ^ name end;
 
 fun profile "" f x = f x

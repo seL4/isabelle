@@ -19,7 +19,7 @@ object ML_Profiling
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
     def print: String =
-      String.format(Locale.ROOT, "%10d %s",
+      String.format(Locale.ROOT, "%12d %s",
         count.asInstanceOf[AnyRef], name.asInstanceOf[AnyRef])
   }
 
