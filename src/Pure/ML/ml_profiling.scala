@@ -1,7 +1,7 @@
 /*  Title:      Pure/ML/ml_profiling.scala
     Author:     Makarius
 
-ML profiling.
+ML profiling (via Poly/ML run-time system).
 */
 
 package isabelle
@@ -30,10 +30,7 @@ object ML_Profiling
     def total: Entry = Entry("TOTAL", entries.iterator.map(_.count).sum)
 
     def print: String =
-    {
-      (if (kind == "time_thread") "time profile (single thread)" else kind + " profile") +
-        (entries ::: List(total)).map(_.print).mkString(":\n", "\n", "")
-    }
+      ("profile_" + kind + ":\n") + cat_lines((entries ::: List(total)).map(_.print))
   }
 
   def account(reports: List[Report]): List[Report] =
