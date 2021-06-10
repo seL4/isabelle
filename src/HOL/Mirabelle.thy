@@ -1,6 +1,8 @@
 (*  Title:      HOL/Mirabelle.thy
-    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
+    Author:     Jasmin Blanchette, TU Munich
+    Author:     Sascha Boehme, TU Munich
     Author:     Makarius
+    Author:     Martin Desharnais, UniBw Munich
 *)
 
 theory Mirabelle
@@ -8,6 +10,13 @@ theory Mirabelle
 begin
 
 ML_file \<open>Tools/Mirabelle/mirabelle.ML\<close>
+
+ML \<open>
+signature MIRABELLE_ACTION = sig
+  val make_action : Mirabelle.action_context -> Mirabelle.action
+end
+\<close>
+
 ML_file \<open>Tools/Mirabelle/mirabelle_arith.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_metis.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_quickcheck.ML\<close>

@@ -33,49 +33,6 @@ object Mirabelle
   }
 
 
-  /* exported log content */
-
-  object Log
-  {
-    def export_name(index: Int, theory: String = ""): String =
-      Export.compound_name(theory, "mirabelle/" + index)
-
-    val separator = "\n------------------\n"
-
-    sealed abstract class Entry { def print: String }
-
-    case class Action(name: String, arguments: Properties.T, body: XML.Body) extends Entry
-    {
-      def print: String = "action: " + XML.content(body) + separator
-    }
-    case class Command(name: String, position: Properties.T, body: XML.Body) extends Entry
-    {
-      def print: String = "\n" + print_head + separator + Pretty.string_of(body)
-      def print_head: String =
-      {
-        val line = Position.Line.get(position)
-        val offset = Position.Offset.get(position)
-        val loc = line.toString + ":" + offset.toString
-        "at " + loc + " (" + name + "):"
-      }
-    }
-    case class Report(result: Properties.T, body: XML.Body) extends Entry
-    {
-      override def print: String = "\n" + separator + Pretty.string_of(body)
-    }
-
-    def entry(export_name: String, xml: XML.Tree): Entry =
-      xml match {
-        case XML.Elem(Markup("action", (Markup.NAME, name) :: props), body) =>
-          Action(name, props, body)
-        case XML.Elem(Markup("command", (Markup.NAME, name) :: props), body) =>
-          Command(name, props.filter(Markup.position_property), body)
-        case XML.Elem(Markup("report", props), body) => Report(props, body)
-        case _ => error("Malformed export " + quote(export_name) + "\nbad XML: " + xml)
-      }
-  }
-
-
   /* main mirabelle */
 
   def mirabelle(
@@ -92,6 +49,7 @@ object Mirabelle
     verbose: Boolean = false): Build.Results =
   {
     require(!selection.requirements)
+    Isabelle_System.make_directory(output_dir)
 
     progress.echo("Building required heaps ...")
     val build_results0 =
@@ -107,41 +65,48 @@ object Mirabelle
           ("mirabelle_theories=" + theories.mkString(","))
 
       progress.echo("Running Mirabelle ...")
-      val build_results =
-        Build.build(build_options, clean_build = true,
-          selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
-          numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = verbose)
 
-      if (build_results.ok) {
-        val structure = Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs)
-        val store = Sessions.store(build_options)
+      val structure = Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs)
+      val store = Sessions.store(build_options)
 
-        using(store.open_database_context())(db_context =>
-        {
-          var seen_theories = Set.empty[String]
-          for {
-            session <- structure.imports_selection(selection).iterator
-            session_hierarchy = structure.hierarchy(session)
-            theories <- db_context.input_database(session)((db, a) => Some(store.read_theories(db, a)))
-            theory <- theories
-            if !seen_theories(theory)
-            index <- 1 to actions.length
-            export <- db_context.read_export(session_hierarchy, theory, Log.export_name(index))
-            body = export.uncompressed_yxml
-            if body.nonEmpty
-          } {
-            seen_theories += theory
-            val export_name = Log.export_name(index, theory = theory)
-            val log = body.map(Log.entry(export_name, _))
-            val log_dir = Isabelle_System.make_directory(output_dir + Path.basic(theory))
-            val log_file = log_dir + Path.basic("mirabelle" + index).log
-            progress.echo("Writing " + log_file)
-            File.write(log_file, terminate_lines(log.map(_.print)))
+      def session_setup(session_name: String, session: Session): Unit =
+      {
+        val session_hierarchy = structure.hierarchy(session_name)
+        session.all_messages +=
+          Session.Consumer[Prover.Message]("mirabelle_export") {
+            case msg: Prover.Protocol_Output =>
+              msg.properties match {
+                case Protocol.Export(args) if args.name.startsWith("mirabelle/") =>
+                  if (verbose) {
+                    progress.echo(
+                      "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")")
+                  }
+                  using(store.open_database_context())(db_context =>
+                  {
+                    for (export <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
+                      val prefix = args.name.split('/') match {
+                        case Array("mirabelle", action, "finalize") =>
+                          s"${action} finalize "
+                        case Array("mirabelle", action, "goal", goal_name, line, offset) =>
+                          s"${action} goal.${goal_name} ${args.theory_name} ${line}:${offset} "
+                        case _ => ""
+                      }
+                      val lines = Pretty.string_of(export.uncompressed_yxml).trim()
+                      val body = Library.prefix_lines(prefix, lines) + "\n"
+                      val log_file = output_dir + Path.basic("mirabelle.log")
+                      File.append(log_file, body)
+                    }
+                  })
+                case _ =>
+              }
+            case _ =>
           }
-        })
       }
 
-      build_results
+      Build.build(build_options, clean_build = true,
+        selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = verbose,
+        session_setup = session_setup)
     }
     else build_results0
   }
@@ -171,6 +136,7 @@ object Mirabelle
     var verbose = false
     var exclude_sessions: List[String] = Nil
 
+    val default_max_calls = options.int("mirabelle_max_calls")
     val default_stride = options.int("mirabelle_stride")
     val default_timeout = options.seconds("mirabelle_timeout")
 
@@ -183,12 +149,13 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -O DIR       output directory for log files (default: """ + default_output_dir + """)
-    -T THEORY    theory restriction: NAME or NAME[LINE:END_LINE]
+    -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -m INT       max. no. of calls to each Mirabelle action (default """ + default_max_calls + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s INT       run actions on every nth goal (default """ + default_stride + """)
     -t SECONDS   timeout for each action (default """ + default_timeout + """)
@@ -219,6 +186,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
       "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+      "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
       "o:" -> (arg => options = options + arg),
       "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
       "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),

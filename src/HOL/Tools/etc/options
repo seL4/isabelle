@@ -56,6 +56,9 @@ option mirabelle_timeout : real = 30
 option mirabelle_stride : int = 1
   -- "default stride for running Mirabelle actions on every nth goal"
 
+option mirabelle_max_calls : int = 10000000
+  -- "default max. no. of calls to each Mirabelle action"
+
 option mirabelle_actions : string = ""
   -- "Mirabelle actions (outer syntax, separated by semicolons)"
 
