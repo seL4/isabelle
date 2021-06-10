@@ -296,7 +296,7 @@ object Build
     val log =
       build_options.string("system_log") match {
         case "" => No_Logger
-        case "-" => Logger.make(progress)
+        case "true" => Logger.make(progress)
         case log_file => Logger.make(Some(Path.explode(log_file)))
       }
 

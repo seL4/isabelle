@@ -177,7 +177,8 @@ val _ =
                   val name = Toplevel.name_of tr;
                   val pos = Toplevel.pos_of tr;
                 in
-                  if can (Proof.assert_backward o Toplevel.proof_of) st andalso
+                  if Context.proper_subthy (\<^theory>, thy) andalso
+                    can (Proof.assert_backward o Toplevel.proof_of) st andalso
                     member (op =) whitelist name andalso check_thy pos
                   then SOME {theory_index = thy_index, name = name, pos = pos,
                     pre = Toplevel.proof_of st, post = st'}

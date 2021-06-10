@@ -510,7 +510,7 @@ object Sessions
     def document_enabled: Boolean =
       options.string("document") match {
         case "" | "false" => false
-        case "pdf" => true
+        case "pdf" | "true" => true
         case doc => error("Bad document specification " + quote(doc))
       }
 

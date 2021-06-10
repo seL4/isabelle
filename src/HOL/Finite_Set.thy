@@ -710,21 +710,23 @@ instance sum :: (finite, finite) finite
 
 subsection \<open>A basic fold functional for finite sets\<close>
 
-text \<open>The intended behaviour is
-  \<open>fold f z {x\<^sub>1, \<dots>, x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)\<close>
-  if \<open>f\<close> is ``left-commutative'':
+text \<open>
+  The intended behaviour is \<open>fold f z {x\<^sub>1, \<dots>, x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)\<close>
+  if \<open>f\<close> is ``left-commutative''.
+  The commutativity requirement is relativised to the carrier set \<open>S\<close>:
 \<close>
 
-locale comp_fun_commute =
+locale comp_fun_commute_on =
+  fixes S :: "'a set"
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
-  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
+  assumes comp_fun_commute_on: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
 begin
 
-lemma fun_left_comm: "f y (f x z) = f x (f y z)"
-  using comp_fun_commute by (simp add: fun_eq_iff)
+lemma fun_left_comm: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f y (f x z) = f x (f y z)"
+  using comp_fun_commute_on by (simp add: fun_eq_iff)
 
-lemma commute_left_comp: "f y \<circ> (f x \<circ> g) = f x \<circ> (f y \<circ> g)"
-  by (simp add: o_assoc comp_fun_commute)
+lemma commute_left_comp: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f y \<circ> (f x \<circ> g) = f x \<circ> (f y \<circ> g)"
+  by (simp add: o_assoc comp_fun_commute_on)
 
 end
 
@@ -776,7 +778,7 @@ lemma fold_closed_eq: "fold f z A = fold g z A"
   by (subst fold_graph_closed_eq[where B=B and g=g]) (auto simp: that)
 
 text \<open>
-  A tempting alternative for the definiens is
+  A tempting alternative for the definition is
   \<^term>\<open>if finite A then THE y. fold_graph f z A y else e\<close>.
   It allows the removal of finiteness assumptions from the theorems
   \<open>fold_comm\<close>, \<open>fold_reindex\<close> and \<open>fold_distrib\<close>.
@@ -789,7 +791,7 @@ lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph 
 
 subsubsection \<open>From \<^const>\<open>fold_graph\<close> to \<^term>\<open>fold\<close>\<close>
 
-context comp_fun_commute
+context comp_fun_commute_on
 begin
 
 lemma fold_graph_finite:
@@ -798,7 +800,10 @@ lemma fold_graph_finite:
   using assms by induct simp_all
 
 lemma fold_graph_insertE_aux:
-  "fold_graph f z A y \<Longrightarrow> a \<in> A \<Longrightarrow> \<exists>y'. y = f a y' \<and> fold_graph f z (A - {a}) y'"
+  assumes "A \<subseteq> S"
+  assumes "fold_graph f z A y" "a \<in> A"
+  shows "\<exists>y'. y = f a y' \<and> fold_graph f z (A - {a}) y'"
+  using assms(2-,1)
 proof (induct set: fold_graph)
   case emptyI
   then show ?case by simp
@@ -812,8 +817,9 @@ next
     case False
     then obtain y' where y: "y = f a y'" and y': "fold_graph f z (A - {a}) y'"
       using insertI by auto
-    have "f x y = f a (f x y')"
-      unfolding y by (rule fun_left_comm)
+    from insertI have "x \<in> S" "a \<in> S" by auto
+    then have "f x y = f a (f x y')"
+      unfolding y by (intro fun_left_comm; simp)
     moreover have "fold_graph f z (insert x A - {a}) (f x y')"
       using y' and \<open>x \<noteq> a\<close> and \<open>x \<notin> A\<close>
       by (simp add: insert_Diff_if fold_graph.insertI)
@@ -823,35 +829,41 @@ next
 qed
 
 lemma fold_graph_insertE:
+  assumes "insert x A \<subseteq> S"
   assumes "fold_graph f z (insert x A) v" and "x \<notin> A"
   obtains y where "v = f x y" and "fold_graph f z A y"
-  using assms by (auto dest: fold_graph_insertE_aux [OF _ insertI1])
+  using assms by (auto dest: fold_graph_insertE_aux[OF \<open>insert x A \<subseteq> S\<close> _ insertI1])
 
-lemma fold_graph_determ: "fold_graph f z A x \<Longrightarrow> fold_graph f z A y \<Longrightarrow> y = x"
+lemma fold_graph_determ:
+  assumes "A \<subseteq> S"
+  assumes "fold_graph f z A x" "fold_graph f z A y"
+  shows "y = x"
+  using assms(2-,1)
 proof (induct arbitrary: y set: fold_graph)
   case emptyI
   then show ?case by fast
 next
   case (insertI x A y v)
-  from \<open>fold_graph f z (insert x A) v\<close> and \<open>x \<notin> A\<close>
+  from \<open>insert x A \<subseteq> S\<close> and \<open>fold_graph f z (insert x A) v\<close> and \<open>x \<notin> A\<close>
   obtain y' where "v = f x y'" and "fold_graph f z A y'"
     by (rule fold_graph_insertE)
-  from \<open>fold_graph f z A y'\<close> have "y' = y"
-    by (rule insertI)
+  from \<open>fold_graph f z A y'\<close> insertI have "y' = y"
+    by simp
   with \<open>v = f x y'\<close> show "v = f x y"
     by simp
 qed
 
-lemma fold_equality: "fold_graph f z A y \<Longrightarrow> fold f z A = y"
+lemma fold_equality: "A \<subseteq> S \<Longrightarrow> fold_graph f z A y \<Longrightarrow> fold f z A = y"
   by (cases "finite A") (auto simp add: fold_def intro: fold_graph_determ dest: fold_graph_finite)
 
 lemma fold_graph_fold:
+  assumes "A \<subseteq> S"
   assumes "finite A"
   shows "fold_graph f z A (fold f z A)"
 proof -
-  from assms have "\<exists>x. fold_graph f z A x"
+  from \<open>finite A\<close> have "\<exists>x. fold_graph f z A x"
     by (rule finite_imp_fold_graph)
-  moreover note fold_graph_determ
+  moreover note fold_graph_determ[OF \<open>A \<subseteq> S\<close>]
   ultimately have "\<exists>!x. fold_graph f z A x"
     by (rule ex_ex1I)
   then have "fold_graph f z A (The (fold_graph f z A))"
@@ -871,12 +883,13 @@ lemma (in -) fold_empty [simp]: "fold f z {} = z"
 text \<open>The various recursion equations for \<^const>\<open>fold\<close>:\<close>
 
 lemma fold_insert [simp]:
+  assumes "insert x A \<subseteq> S"
   assumes "finite A" and "x \<notin> A"
   shows "fold f z (insert x A) = f x (fold f z A)"
-proof (rule fold_equality)
+proof (rule fold_equality[OF \<open>insert x A \<subseteq> S\<close>])
   fix z
-  from \<open>finite A\<close> have "fold_graph f z A (fold f z A)"
-    by (rule fold_graph_fold)
+  from \<open>insert x A \<subseteq> S\<close> \<open>finite A\<close> have "fold_graph f z A (fold f z A)"
+    by (blast intro: fold_graph_fold)
   with \<open>x \<notin> A\<close> have "fold_graph f z (insert x A) (f x (fold f z A))"
     by (rule fold_graph.insertI)
   then show "fold_graph f z (insert x A) (f x (fold f z A))"
@@ -886,20 +899,33 @@ qed
 declare (in -) empty_fold_graphE [rule del] fold_graph.intros [rule del]
   \<comment> \<open>No more proofs involve these.\<close>
 
-lemma fold_fun_left_comm: "finite A \<Longrightarrow> f x (fold f z A) = fold f (f x z) A"
+lemma fold_fun_left_comm:
+  assumes "insert x A \<subseteq> S" "finite A" 
+  shows "f x (fold f z A) = fold f (f x z) A"
+  using assms(2,1)
 proof (induct rule: finite_induct)
   case empty
   then show ?case by simp
 next
-  case insert
-  then show ?case
-    by (simp add: fun_left_comm [of x])
+  case (insert y F)
+  then have "fold f (f x z) (insert y F) = f y (fold f (f x z) F)"
+    by simp
+  also have "\<dots> = f x (f y (fold f z F))"
+    using insert by (simp add: fun_left_comm[where ?y=x])
+  also have "\<dots> = f x (fold f z (insert y F))"
+  proof -
+    from insert have "insert y F \<subseteq> S" by simp
+    from fold_insert[OF this] insert show ?thesis by simp
+  qed
+  finally show ?case ..
 qed
 
-lemma fold_insert2: "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> fold f z (insert x A)  = fold f (f x z) A"
+lemma fold_insert2:
+  "insert x A \<subseteq> S \<Longrightarrow> finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> fold f z (insert x A)  = fold f (f x z) A"
   by (simp add: fold_fun_left_comm)
 
 lemma fold_rec:
+  assumes "A \<subseteq> S"
   assumes "finite A" and "x \<in> A"
   shows "fold f z A = f x (fold f z (A - {x}))"
 proof -
@@ -908,11 +934,12 @@ proof -
   then have "fold f z A = fold f z (insert x (A - {x}))"
     by simp
   also have "\<dots> = f x (fold f z (A - {x}))"
-    by (rule fold_insert) (simp add: \<open>finite A\<close>)+
+    by (rule fold_insert) (use assms in \<open>auto\<close>)
   finally show ?thesis .
 qed
 
 lemma fold_insert_remove:
+  assumes "insert x A \<subseteq> S"
   assumes "finite A"
   shows "fold f z (insert x A) = f x (fold f z (A - {x}))"
 proof -
@@ -921,19 +948,76 @@ proof -
   moreover have "x \<in> insert x A"
     by auto
   ultimately have "fold f z (insert x A) = f x (fold f z (insert x A - {x}))"
-    by (rule fold_rec)
+    using \<open>insert x A \<subseteq> S\<close> by (blast intro: fold_rec)
   then show ?thesis
     by simp
 qed
 
 lemma fold_set_union_disj:
+  assumes "A \<subseteq> S" "B \<subseteq> S"
   assumes "finite A" "finite B" "A \<inter> B = {}"
   shows "Finite_Set.fold f z (A \<union> B) = Finite_Set.fold f (Finite_Set.fold f z A) B"
-  using assms(2,1,3) by induct simp_all
+  using \<open>finite B\<close> assms(1,2,3,5)
+proof induct
+  case (insert x F)
+  have "fold f z (A \<union> insert x F) = f x (fold f (fold f z A) F)"
+    using insert by auto
+  also have "\<dots> = fold f (fold f z A) (insert x F)"
+    using insert by (blast intro: fold_insert[symmetric])
+  finally show ?case .
+qed simp
+
 
 end
 
 text \<open>Other properties of \<^const>\<open>fold\<close>:\<close>
+
+lemma fold_graph_image:
+  assumes "inj_on g A"
+  shows "fold_graph f z (g ` A) = fold_graph (f \<circ> g) z A"
+proof
+  fix w
+  show "fold_graph f z (g ` A) w = fold_graph (f o g) z A w"
+  proof
+    assume "fold_graph f z (g ` A) w"
+    then show "fold_graph (f \<circ> g) z A w"
+      using assms
+    proof (induct "g ` A" w arbitrary: A)
+      case emptyI
+      then show ?case by (auto intro: fold_graph.emptyI)
+    next
+      case (insertI x A r B)
+      from \<open>inj_on g B\<close> \<open>x \<notin> A\<close> \<open>insert x A = image g B\<close> obtain x' A'
+        where "x' \<notin> A'" and [simp]: "B = insert x' A'" "x = g x'" "A = g ` A'"
+        by (rule inj_img_insertE)
+      from insertI.prems have "fold_graph (f \<circ> g) z A' r"
+        by (auto intro: insertI.hyps)
+      with \<open>x' \<notin> A'\<close> have "fold_graph (f \<circ> g) z (insert x' A') ((f \<circ> g) x' r)"
+        by (rule fold_graph.insertI)
+      then show ?case
+        by simp
+    qed
+  next
+    assume "fold_graph (f \<circ> g) z A w"
+    then show "fold_graph f z (g ` A) w"
+      using assms
+    proof induct
+      case emptyI
+      then show ?case
+        by (auto intro: fold_graph.emptyI)
+    next
+      case (insertI x A r)
+      from \<open>x \<notin> A\<close> insertI.prems have "g x \<notin> g ` A"
+        by auto
+      moreover from insertI have "fold_graph f z (g ` A) r"
+        by simp
+      ultimately have "fold_graph f z (insert (g x) (g ` A)) (f (g x) r)"
+        by (rule fold_graph.insertI)
+      then show ?case
+        by simp
+    qed
+  qed
+qed
 
 lemma fold_image:
   assumes "inj_on g A"
@@ -944,70 +1028,26 @@ proof (cases "finite A")
     by (auto dest: finite_imageD simp add: fold_def)
 next
   case True
-  have "fold_graph f z (g ` A) = fold_graph (f \<circ> g) z A"
-  proof
-    fix w
-    show "fold_graph f z (g ` A) w \<longleftrightarrow> fold_graph (f \<circ> g) z A w" (is "?P \<longleftrightarrow> ?Q")
-    proof
-      assume ?P
-      then show ?Q
-        using assms
-      proof (induct "g ` A" w arbitrary: A)
-        case emptyI
-        then show ?case by (auto intro: fold_graph.emptyI)
-      next
-        case (insertI x A r B)
-        from \<open>inj_on g B\<close> \<open>x \<notin> A\<close> \<open>insert x A = image g B\<close> obtain x' A'
-          where "x' \<notin> A'" and [simp]: "B = insert x' A'" "x = g x'" "A = g ` A'"
-          by (rule inj_img_insertE)
-        from insertI.prems have "fold_graph (f \<circ> g) z A' r"
-          by (auto intro: insertI.hyps)
-        with \<open>x' \<notin> A'\<close> have "fold_graph (f \<circ> g) z (insert x' A') ((f \<circ> g) x' r)"
-          by (rule fold_graph.insertI)
-        then show ?case
-          by simp
-      qed
-    next
-      assume ?Q
-      then show ?P
-        using assms
-      proof induct
-        case emptyI
-        then show ?case
-          by (auto intro: fold_graph.emptyI)
-      next
-        case (insertI x A r)
-        from \<open>x \<notin> A\<close> insertI.prems have "g x \<notin> g ` A"
-          by auto
-        moreover from insertI have "fold_graph f z (g ` A) r"
-          by simp
-        ultimately have "fold_graph f z (insert (g x) (g ` A)) (f (g x) r)"
-          by (rule fold_graph.insertI)
-        then show ?case
-          by simp
-      qed
-    qed
-  qed
-  with True assms show ?thesis
-    by (auto simp add: fold_def)
+  then show ?thesis
+    by (auto simp add: fold_def fold_graph_image[OF assms])
 qed
 
 lemma fold_cong:
-  assumes "comp_fun_commute f" "comp_fun_commute g"
-    and "finite A"
+  assumes "comp_fun_commute_on S f" "comp_fun_commute_on S g"
+    and "A \<subseteq> S" "finite A"
     and cong: "\<And>x. x \<in> A \<Longrightarrow> f x = g x"
     and "s = t" and "A = B"
   shows "fold f s A = fold g t B"
 proof -
   have "fold f s A = fold g s A"
-    using \<open>finite A\<close> cong
+    using \<open>finite A\<close> \<open>A \<subseteq> S\<close> cong
   proof (induct A)
     case empty
     then show ?case by simp
   next
     case insert
-    interpret f: comp_fun_commute f by (fact \<open>comp_fun_commute f\<close>)
-    interpret g: comp_fun_commute g by (fact \<open>comp_fun_commute g\<close>)
+    interpret f: comp_fun_commute_on S f by (fact \<open>comp_fun_commute_on S f\<close>)
+    interpret g: comp_fun_commute_on S g by (fact \<open>comp_fun_commute_on S g\<close>)
     from insert show ?case by simp
   qed
   with assms show ?thesis by simp
@@ -1016,14 +1056,15 @@ qed
 
 text \<open>A simplified version for idempotent functions:\<close>
 
-locale comp_fun_idem = comp_fun_commute +
-  assumes comp_fun_idem: "f x \<circ> f x = f x"
+locale comp_fun_idem_on = comp_fun_commute_on +
+  assumes comp_fun_idem_on: "x \<in> S \<Longrightarrow> f x \<circ> f x = f x"
 begin
 
-lemma fun_left_idem: "f x (f x z) = f x z"
-  using comp_fun_idem by (simp add: fun_eq_iff)
+lemma fun_left_idem: "x \<in> S \<Longrightarrow> f x (f x z) = f x z"
+  using comp_fun_idem_on by (simp add: fun_eq_iff)
 
 lemma fold_insert_idem:
+  assumes "insert x A \<subseteq> S"
   assumes fin: "finite A"
   shows "fold f z (insert x A)  = f x (fold f z A)"
 proof cases
@@ -1031,33 +1072,42 @@ proof cases
   then obtain B where "A = insert x B" and "x \<notin> B"
     by (rule set_insert)
   then show ?thesis
-    using assms by (simp add: comp_fun_idem fun_left_idem)
+    using assms by (simp add: comp_fun_idem_on fun_left_idem)
 next
   assume "x \<notin> A"
   then show ?thesis
-    using assms by simp
+    using assms by auto
 qed
 
 declare fold_insert [simp del] fold_insert_idem [simp]
 
-lemma fold_insert_idem2: "finite A \<Longrightarrow> fold f z (insert x A) = fold f (f x z) A"
+lemma fold_insert_idem2: "insert x A \<subseteq> S \<Longrightarrow> finite A \<Longrightarrow> fold f z (insert x A) = fold f (f x z) A"
   by (simp add: fold_fun_left_comm)
 
 end
 
 
-subsubsection \<open>Liftings to \<open>comp_fun_commute\<close> etc.\<close>
+subsubsection \<open>Liftings to \<open>comp_fun_commute_on\<close> etc.\<close>
+                   
+lemma (in comp_fun_commute_on) comp_comp_fun_commute_on:
+  "range g \<subseteq> S \<Longrightarrow> comp_fun_commute_on R (f \<circ> g)"
+  by standard (force intro: comp_fun_commute_on)
 
-lemma (in comp_fun_commute) comp_comp_fun_commute: "comp_fun_commute (f \<circ> g)"
-  by standard (simp_all add: comp_fun_commute)
-
-lemma (in comp_fun_idem) comp_comp_fun_idem: "comp_fun_idem (f \<circ> g)"
-  by (rule comp_fun_idem.intro, rule comp_comp_fun_commute, unfold_locales)
-    (simp_all add: comp_fun_idem)
-
-lemma (in comp_fun_commute) comp_fun_commute_funpow: "comp_fun_commute (\<lambda>x. f x ^^ g x)"
+lemma (in comp_fun_idem_on) comp_comp_fun_idem_on:
+  assumes "range g \<subseteq> S"
+  shows "comp_fun_idem_on R (f \<circ> g)"
 proof
-  show "f y ^^ g y \<circ> f x ^^ g x = f x ^^ g x \<circ> f y ^^ g y" for x y
+  interpret f_g: comp_fun_commute_on R "f o g"
+    by (fact comp_comp_fun_commute_on[OF \<open>range g \<subseteq> S\<close>])
+  show "x \<in> R \<Longrightarrow> y \<in> R \<Longrightarrow> (f \<circ> g) y \<circ> (f \<circ> g) x = (f \<circ> g) x \<circ> (f \<circ> g) y" for x y
+    by (fact f_g.comp_fun_commute_on)
+qed (use \<open>range g \<subseteq> S\<close> in \<open>force intro: comp_fun_idem_on\<close>)
+
+lemma (in comp_fun_commute_on) comp_fun_commute_on_funpow:
+  "comp_fun_commute_on S (\<lambda>x. f x ^^ g x)"
+proof
+  fix x y assume "x \<in> S" "y \<in> S"
+  show "f y ^^ g y \<circ> f x ^^ g x = f x ^^ g x \<circ> f y ^^ g y"
   proof (cases "x = y")
     case True
     then show ?thesis by simp
@@ -1082,8 +1132,8 @@ proof
           by auto
         from Suc h_def have "g y = Suc (h y)"
           by simp
-        then show ?case
-          by (simp add: comp_assoc hyp) (simp add: o_assoc comp_fun_commute)
+        with \<open>x \<in> S\<close> \<open>y \<in> S\<close> show ?case
+          by (simp add: comp_assoc hyp) (simp add: o_assoc comp_fun_commute_on)
       qed
       define h where "h z = (if z = x then g x - 1 else g z)" for z
       with Suc have "n = h x"
@@ -1099,6 +1149,67 @@ proof
     qed
   qed
 qed
+
+
+subsubsection \<open>\<^term>\<open>UNIV\<close> as carrier set\<close>
+
+locale comp_fun_commute =
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
+begin
+
+lemma (in -) comp_fun_commute_def': "comp_fun_commute f = comp_fun_commute_on UNIV f"
+  unfolding comp_fun_commute_def comp_fun_commute_on_def by blast
+
+text \<open>
+  We abuse the \<open>rewrites\<close> functionality of locales to remove trivial assumptions that
+  result from instantiating the carrier set to \<^term>\<open>UNIV\<close>.
+\<close>
+sublocale comp_fun_commute_on UNIV f
+  rewrites "\<And>X. (X \<subseteq> UNIV) \<equiv> True"
+       and "\<And>x. x \<in> UNIV \<equiv> True"
+       and "\<And>P. (True \<Longrightarrow> P) \<equiv> Trueprop P"
+       and "\<And>P Q. (True \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> True \<Longrightarrow> PROP Q)"
+proof -
+  show "comp_fun_commute_on UNIV f"
+    by standard  (simp add: comp_fun_commute)
+qed simp_all
+
+end
+
+lemma (in comp_fun_commute) comp_comp_fun_commute: "comp_fun_commute (f o g)"
+  unfolding comp_fun_commute_def' by (fact comp_comp_fun_commute_on)
+
+lemma (in comp_fun_commute) comp_fun_commute_funpow: "comp_fun_commute (\<lambda>x. f x ^^ g x)"
+  unfolding comp_fun_commute_def' by (fact comp_fun_commute_on_funpow)
+
+locale comp_fun_idem = comp_fun_commute +
+  assumes comp_fun_idem: "f x o f x = f x"
+begin
+
+lemma (in -) comp_fun_idem_def': "comp_fun_idem f = comp_fun_idem_on UNIV f"
+  unfolding comp_fun_idem_on_def comp_fun_idem_def comp_fun_commute_def'
+  unfolding comp_fun_idem_axioms_def comp_fun_idem_on_axioms_def
+  by blast
+
+text \<open>
+  Again, we abuse the \<open>rewrites\<close> functionality of locales to remove trivial assumptions that
+  result from instantiating the carrier set to \<^term>\<open>UNIV\<close>.
+\<close>
+sublocale comp_fun_idem_on UNIV f
+  rewrites "\<And>X. (X \<subseteq> UNIV) \<equiv> True"
+       and "\<And>x. x \<in> UNIV \<equiv> True"
+       and "\<And>P. (True \<Longrightarrow> P) \<equiv> Trueprop P"
+       and "\<And>P Q. (True \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> True \<Longrightarrow> PROP Q)"
+proof -
+  show "comp_fun_idem_on UNIV f"
+    by standard (simp_all add: comp_fun_idem comp_fun_commute)
+qed simp_all
+
+end
+
+lemma (in comp_fun_idem) comp_comp_fun_idem: "comp_fun_idem (f o g)"
+  unfolding comp_fun_idem_def' by (fact comp_comp_fun_idem_on)
 
 
 subsubsection \<open>Expressing set operations via \<^const>\<open>fold\<close>\<close>
@@ -1150,8 +1261,12 @@ lemma Set_filter_fold:
   assumes "finite A"
   shows "Set.filter P A = fold (\<lambda>x A'. if P x then Set.insert x A' else A') {} A"
   using assms
-  by induct
-    (auto simp add: Set.filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+proof -
+  interpret commute_insert: comp_fun_commute "(\<lambda>x A'. if P x then Set.insert x A' else A')"
+    by (fact comp_fun_commute_filter_fold)
+  from \<open>finite A\<close> show ?thesis
+    by induct (auto simp add: Set.filter_def)
+qed
 
 lemma inter_Set_filter:
   assumes "finite B"
@@ -1190,7 +1305,7 @@ proof -
 qed
 
 lemma comp_fun_commute_Pow_fold: "comp_fun_commute (\<lambda>x A. A \<union> Set.insert x ` A)"
-  by (clarsimp simp: fun_eq_iff comp_fun_commute_def) blast  (* somewhat slow *)
+  by (clarsimp simp: fun_eq_iff comp_fun_commute_def) blast
 
 lemma Pow_fold:
   assumes "finite A"
@@ -1219,9 +1334,12 @@ lemma comp_fun_commute_product_fold:
 lemma product_fold:
   assumes "finite A" "finite B"
   shows "A \<times> B = fold (\<lambda>x z. fold (\<lambda>y. Set.insert (x, y)) z B) {} A"
-  using assms unfolding Sigma_def
-  by (induct A)
-    (simp_all add: comp_fun_commute.fold_insert[OF comp_fun_commute_product_fold] fold_union_pair)
+proof -
+  interpret commute_product: comp_fun_commute "(\<lambda>x z. fold (\<lambda>y. Set.insert (x, y)) z B)"
+    by (fact comp_fun_commute_product_fold[OF \<open>finite B\<close>])
+  from assms show ?thesis unfolding Sigma_def
+    by (induct A) (simp_all add: fold_union_pair)
+qed
 
 context complete_lattice
 begin
@@ -1309,67 +1427,124 @@ subsection \<open>Locales as mini-packages for fold operations\<close>
 
 subsubsection \<open>The natural case\<close>
 
-locale folding =
+locale folding_on =
+  fixes S :: "'a set"
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: "'b"
-  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
+  assumes comp_fun_commute_on: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f y o f x = f x o f y"
 begin
 
-interpretation fold?: comp_fun_commute f
-  by standard (use comp_fun_commute in \<open>simp add: fun_eq_iff\<close>)
+interpretation fold?: comp_fun_commute_on S f
+  by standard (simp add: comp_fun_commute_on)
 
 definition F :: "'a set \<Rightarrow> 'b"
-  where eq_fold: "F A = fold f z A"
+  where eq_fold: "F A = Finite_Set.fold f z A"
 
-lemma empty [simp]:"F {} = z"
+lemma empty [simp]: "F {} = z"
   by (simp add: eq_fold)
 
 lemma infinite [simp]: "\<not> finite A \<Longrightarrow> F A = z"
   by (simp add: eq_fold)
 
 lemma insert [simp]:
-  assumes "finite A" and "x \<notin> A"
+  assumes "insert x A \<subseteq> S" and "finite A" and "x \<notin> A"
   shows "F (insert x A) = f x (F A)"
 proof -
   from fold_insert assms
-  have "fold f z (insert x A) = f x (fold f z A)" by simp
+  have "Finite_Set.fold f z (insert x A) 
+      = f x (Finite_Set.fold f z A)"
+    by simp
   with \<open>finite A\<close> show ?thesis by (simp add: eq_fold fun_eq_iff)
 qed
 
 lemma remove:
-  assumes "finite A" and "x \<in> A"
+  assumes "A \<subseteq> S" and "finite A" and "x \<in> A"
   shows "F A = f x (F (A - {x}))"
 proof -
   from \<open>x \<in> A\<close> obtain B where A: "A = insert x B" and "x \<notin> B"
     by (auto dest: mk_disjoint_insert)
   moreover from \<open>finite A\<close> A have "finite B" by simp
-  ultimately show ?thesis by simp
+  ultimately show ?thesis
+    using \<open>A \<subseteq> S\<close> by auto
 qed
 
-lemma insert_remove: "finite A \<Longrightarrow> F (insert x A) = f x (F (A - {x}))"
-  by (cases "x \<in> A") (simp_all add: remove insert_absorb)
+lemma insert_remove:
+  assumes "insert x A \<subseteq> S" and "finite A"
+  shows "F (insert x A) = f x (F (A - {x}))"
+  using assms by (cases "x \<in> A") (simp_all add: remove insert_absorb)
 
 end
 
 
 subsubsection \<open>With idempotency\<close>
 
-locale folding_idem = folding +
-  assumes comp_fun_idem: "f x \<circ> f x = f x"
+locale folding_idem_on = folding_on +
+  assumes comp_fun_idem_on: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f x \<circ> f x = f x"
 begin
 
 declare insert [simp del]
 
-interpretation fold?: comp_fun_idem f
-  by standard (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
+interpretation fold?: comp_fun_idem_on S f
+  by standard (simp_all add: comp_fun_commute_on comp_fun_idem_on)
 
 lemma insert_idem [simp]:
-  assumes "finite A"
+  assumes "insert x A \<subseteq> S" and "finite A"
   shows "F (insert x A) = f x (F A)"
 proof -
   from fold_insert_idem assms
   have "fold f z (insert x A) = f x (fold f z A)" by simp
   with \<open>finite A\<close> show ?thesis by (simp add: eq_fold fun_eq_iff)
 qed
+
+end
+
+subsubsection \<open>\<^term>\<open>UNIV\<close> as the carrier set\<close>
+
+locale folding =
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: "'b"
+  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
+begin
+
+lemma (in -) folding_def': "folding f = folding_on UNIV f"
+  unfolding folding_def folding_on_def by blast
+
+text \<open>
+  Again, we abuse the \<open>rewrites\<close> functionality of locales to remove trivial assumptions that
+  result from instantiating the carrier set to \<^term>\<open>UNIV\<close>.
+\<close>
+sublocale folding_on UNIV f
+  rewrites "\<And>X. (X \<subseteq> UNIV) \<equiv> True"
+       and "\<And>x. x \<in> UNIV \<equiv> True"
+       and "\<And>P. (True \<Longrightarrow> P) \<equiv> Trueprop P"
+       and "\<And>P Q. (True \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> True \<Longrightarrow> PROP Q)"
+proof -
+  show "folding_on UNIV f"
+    by standard (simp add: comp_fun_commute)
+qed simp_all
+
+end
+
+locale folding_idem = folding +
+  assumes comp_fun_idem: "f x \<circ> f x = f x"
+begin
+
+lemma (in -) folding_idem_def': "folding_idem f = folding_idem_on UNIV f"
+  unfolding folding_idem_def folding_def' folding_idem_on_def
+  unfolding folding_idem_axioms_def folding_idem_on_axioms_def
+  by blast
+
+text \<open>
+  Again, we abuse the \<open>rewrites\<close> functionality of locales to remove trivial assumptions that
+  result from instantiating the carrier set to \<^term>\<open>UNIV\<close>.
+\<close>
+sublocale folding_idem_on UNIV f
+  rewrites "\<And>X. (X \<subseteq> UNIV) \<equiv> True"
+       and "\<And>x. x \<in> UNIV \<equiv> True"
+       and "\<And>P. (True \<Longrightarrow> P) \<equiv> Trueprop P"
+       and "\<And>P Q. (True \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> True \<Longrightarrow> PROP Q)"
+proof -
+  show "folding_idem_on UNIV f"
+    by standard (simp add: comp_fun_idem)
+qed simp_all
 
 end
 
@@ -1384,7 +1559,7 @@ text \<open>
 \<close>
 
 global_interpretation card: folding "\<lambda>_. Suc" 0
-  defines card = "folding.F (\<lambda>_. Suc) 0"
+  defines card = "folding_on.F (\<lambda>_. Suc) 0"
   by standard rule
 
 lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> card (insert x A) = Suc (card A)"

@@ -423,6 +423,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma graph_map_of: "Map.graph (map_of al) = set (clearjunk al)"
+  by (metis distinct_clearjunk graph_map_of_if_distinct_ran map_of_clearjunk)
+
 lemma clearjunk_update: "clearjunk (update k v al) = update k v (clearjunk al)"
   by (induct al rule: clearjunk.induct) (simp_all add: delete_update)
 

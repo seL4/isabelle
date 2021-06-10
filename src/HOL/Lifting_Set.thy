@@ -329,4 +329,44 @@ lemma rel_set_UNION:
   shows "rel_set R (\<Union>(f ` A)) (\<Union>(g ` B))"
   by transfer_prover
 
+context
+  includes lifting_syntax
+begin
+
+lemma fold_graph_transfer[transfer_rule]:
+  assumes "bi_unique R" "right_total R"
+  shows "((R ===> (=) ===> (=)) ===> (=) ===> rel_set R ===> (=) ===> (=)) fold_graph fold_graph"
+proof(intro rel_funI)
+  fix f1 :: "'a \<Rightarrow> 'c \<Rightarrow> 'c" and f2 :: "'b \<Rightarrow> 'c \<Rightarrow> 'c"
+  assume rel_f: "(R ===> (=) ===> (=)) f1 f2"
+  fix z1 z2 :: 'c assume [simp]: "z1 = z2"
+  fix A1 A2 assume rel_A: "rel_set R A1 A2"
+  fix y1 y2 :: 'c assume [simp]: "y1 = y2"
+
+  from \<open>bi_unique R\<close> \<open>right_total R\<close> have The_y: "\<forall>y. \<exists>!x. R x y"
+    unfolding bi_unique_def right_total_def by auto
+  define r where "r \<equiv> \<lambda>y. THE x. R x y"
+  
+  from The_y have r_y: "R (r y) y" for y
+    unfolding r_def using the_equality by fastforce
+  with assms rel_A have "inj_on r A2" "A1 = r ` A2"
+    unfolding r_def rel_set_def inj_on_def bi_unique_def
+      apply(auto simp: image_iff) by metis+
+  with \<open>bi_unique R\<close> rel_f r_y have "(f1 o r) y = f2 y" for y
+    unfolding bi_unique_def rel_fun_def by auto
+  then have "(f1 o r) = f2"
+    by blast
+  then show "fold_graph f1 z1 A1 y1 = fold_graph f2 z2 A2 y2"
+    by (fastforce simp: fold_graph_image[OF \<open>inj_on r A2\<close>] \<open>A1 = r ` A2\<close>)
+qed
+
+lemma fold_transfer[transfer_rule]:
+  assumes [transfer_rule]: "bi_unique R" "right_total R"
+  shows "((R ===> (=) ===> (=)) ===> (=) ===> rel_set R ===> (=)) Finite_Set.fold Finite_Set.fold"
+  unfolding Finite_Set.fold_def
+  by transfer_prover
+
+end
+
+
 end

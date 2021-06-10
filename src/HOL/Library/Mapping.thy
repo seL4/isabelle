@@ -5,7 +5,7 @@
 section \<open>An abstract view on maps for code generation.\<close>
 
 theory Mapping
-imports Main
+imports Main AList
 begin
 
 subsection \<open>Parametricity transfer rules\<close>
@@ -42,6 +42,16 @@ lemma dom_parametric:
   assumes [transfer_rule]: "bi_total A"
   shows "((A ===> rel_option B) ===> rel_set A) dom dom"
   unfolding dom_def [abs_def] Option.is_none_def [symmetric] by transfer_prover
+
+lemma graph_parametric:
+  assumes "bi_total A"
+  shows "((A ===> rel_option B) ===> rel_set (rel_prod A B)) Map.graph Map.graph"
+proof
+  fix f g assume "(A ===> rel_option B) f g"
+  with assms[unfolded bi_total_def] show "rel_set (rel_prod A B) (Map.graph f) (Map.graph g)"
+    unfolding graph_def rel_set_def rel_fun_def
+    by auto (metis option_rel_Some1 option_rel_Some2)+
+qed
 
 lemma map_of_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique R1"
@@ -129,6 +139,9 @@ lift_definition filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow
 lift_definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set"
   is dom parametric dom_parametric .
 
+lift_definition entries :: "('a, 'b) mapping \<Rightarrow> ('a \<times> 'b) set"
+  is Map.graph parametric graph_parametric .
+
 lift_definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping"
   is "\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))" parametric tabulate_parametric .
 
@@ -165,6 +178,13 @@ subsection \<open>Derived operations\<close>
 
 definition ordered_keys :: "('a::linorder, 'b) mapping \<Rightarrow> 'a list"
   where "ordered_keys m = (if finite (keys m) then sorted_list_of_set (keys m) else [])"
+
+definition ordered_entries :: "('a::linorder, 'b) mapping \<Rightarrow> ('a \<times> 'b) list"
+  where "ordered_entries m = (if finite (entries m) then sorted_key_list_of_set fst (entries m)
+                                                    else [])"
+
+definition fold :: "('a::linorder \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> 'c \<Rightarrow> 'c"
+  where "fold f m a = List.fold (case_prod f) (ordered_entries m) a"
 
 definition is_empty :: "('a, 'b) mapping \<Rightarrow> bool"
   where "is_empty m \<longleftrightarrow> keys m = {}"
@@ -462,7 +482,13 @@ lemma keys_dom_lookup: "keys m = dom (Mapping.lookup m)"
   by transfer rule
 
 lemma keys_empty [simp]: "keys empty = {}"
-  by transfer simp
+  by transfer (fact dom_empty)
+
+lemma in_keysD: "k \<in> keys m \<Longrightarrow> \<exists>v. lookup m k = Some v"
+  by transfer (fact domD)
+
+lemma in_entriesI: "lookup m k = Some v \<Longrightarrow> (k, v) \<in> entries m"
+  by transfer (fact in_graphI)
 
 lemma keys_update [simp]: "keys (update k v m) = insert k (keys m)"
   by transfer simp
@@ -515,7 +541,7 @@ lemma ordered_keys_update [simp]:
   "finite (keys m) \<Longrightarrow> k \<notin> keys m \<Longrightarrow>
     ordered_keys (update k v m) = insort k (ordered_keys m)"
   by (simp_all add: ordered_keys_def)
-    (auto simp only: sorted_list_of_set_insert [symmetric] insert_absorb)
+     (auto simp only: sorted_list_of_set_insert_remove[symmetric] insert_absorb)
 
 lemma ordered_keys_delete [simp]: "ordered_keys (delete k m) = remove1 k (ordered_keys m)"
 proof (cases "finite (keys m)")
@@ -559,14 +585,14 @@ lemma ordered_keys_tabulate [simp]: "ordered_keys (tabulate ks f) = sort (remdup
 lemma ordered_keys_bulkload [simp]: "ordered_keys (bulkload ks) = [0..<length ks]"
   by (simp add: ordered_keys_def)
 
-lemma tabulate_fold: "tabulate xs f = fold (\<lambda>k m. update k (f k) m) xs empty"
+lemma tabulate_fold: "tabulate xs f = List.fold (\<lambda>k m. update k (f k) m) xs empty"
 proof transfer
   fix f :: "'a \<Rightarrow> 'b" and xs
   have "map_of (List.map (\<lambda>k. (k, f k)) xs) = foldr (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
     by (simp add: foldr_map comp_def map_of_foldr)
-  also have "foldr (\<lambda>k m. m(k \<mapsto> f k)) xs = fold (\<lambda>k m. m(k \<mapsto> f k)) xs"
+  also have "foldr (\<lambda>k m. m(k \<mapsto> f k)) xs = List.fold (\<lambda>k m. m(k \<mapsto> f k)) xs"
     by (rule foldr_fold) (simp add: fun_eq_iff)
-  ultimately show "map_of (List.map (\<lambda>k. (k, f k)) xs) = fold (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
+  ultimately show "map_of (List.map (\<lambda>k. (k, f k)) xs) = List.fold (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
     by simp
 qed
 
@@ -647,10 +673,262 @@ lemma keys_fold_combine: "finite A \<Longrightarrow> Mapping.keys (combine.F g A
 
 end
 
+subsubsection \<open>@{term [source] entries}, @{term [source] ordered_entries},
+               and @{term [source] fold}\<close>
+
+context linorder
+begin
+
+sublocale folding_Map_graph: folding_insort_key "(\<le>)" "(<)" "Map.graph m" fst for m
+  by unfold_locales (fact inj_on_fst_graph)
+
+end
+
+lemma sorted_fst_list_of_set_insort_Map_graph[simp]:
+  assumes "finite (dom m)" "fst x \<notin> dom m"
+  shows "sorted_key_list_of_set fst (insert x (Map.graph m))
+       = insort_key fst x (sorted_key_list_of_set fst (Map.graph m))"
+proof(cases x)
+  case (Pair k v)
+  with \<open>fst x \<notin> dom m\<close> have "Map.graph m \<subseteq> Map.graph (m(k \<mapsto> v))"
+    by(auto simp: graph_def)
+  moreover from Pair \<open>fst x \<notin> dom m\<close> have "(k, v) \<notin> Map.graph m"
+    using graph_domD by fastforce
+  ultimately show ?thesis
+    using Pair assms folding_Map_graph.sorted_key_list_of_set_insert[where ?m="m(k \<mapsto> v)"]
+    by auto
+qed
+
+lemma sorted_fst_list_of_set_insort_insert_Map_graph[simp]:
+  assumes "finite (dom m)" "fst x \<notin> dom m"
+  shows "sorted_key_list_of_set fst (insert x (Map.graph m))
+       = insort_insert_key fst x (sorted_key_list_of_set fst (Map.graph m))"
+proof(cases x)
+  case (Pair k v)
+  with \<open>fst x \<notin> dom m\<close> have "Map.graph m \<subseteq> Map.graph (m(k \<mapsto> v))"
+    by(auto simp: graph_def)    
+  with assms Pair show ?thesis
+    unfolding sorted_fst_list_of_set_insort_Map_graph[OF assms] insort_insert_key_def
+    using folding_Map_graph.set_sorted_key_list_of_set in_graphD by (fastforce split: if_splits)
+qed
+
+lemma linorder_finite_Map_induct[consumes 1, case_names empty update]:
+  fixes m :: "'a::linorder \<rightharpoonup> 'b"
+  assumes "finite (dom m)"
+  assumes "P Map.empty"
+  assumes "\<And>k v m. \<lbrakk> finite (dom m); k \<notin> dom m; (\<And>k'. k' \<in> dom m \<Longrightarrow> k' \<le> k); P m \<rbrakk>
+                    \<Longrightarrow> P (m(k \<mapsto> v))"
+  shows "P m"
+proof -
+  let ?key_list = "\<lambda>m. sorted_list_of_set (dom m)"
+  from assms(1,2) show ?thesis
+  proof(induction "length (?key_list m)" arbitrary: m)
+    case 0
+    then have "sorted_list_of_set (dom m) = []"
+      by auto
+    with \<open>finite (dom m)\<close> have "m = Map.empty"
+       by auto
+     with \<open>P Map.empty\<close> show ?case by simp
+  next
+    case (Suc n)
+    then obtain x xs where x_xs: "sorted_list_of_set (dom m) = xs @ [x]"
+      by (metis append_butlast_last_id length_greater_0_conv zero_less_Suc)
+    have "sorted_list_of_set (dom (m(x := None))) = xs"
+    proof -
+      have "distinct (xs @ [x])"
+        by (metis sorted_list_of_set.distinct_sorted_key_list_of_set x_xs)
+      then have "remove1 x (xs @ [x]) = xs"
+        by (simp add: remove1_append)
+      with \<open>finite (dom m)\<close> x_xs show ?thesis
+        by (simp add: sorted_list_of_set_remove)
+    qed
+    moreover have "k \<le> x" if "k \<in> dom (m(x := None))" for k
+    proof -
+      from x_xs have "sorted (xs @ [x])"
+        by (metis sorted_list_of_set.sorted_sorted_key_list_of_set)
+      moreover from \<open>k \<in> dom (m(x := None))\<close> have "k \<in> set xs"
+        using \<open>finite (dom m)\<close> \<open>sorted_list_of_set (dom (m(x := None))) = xs\<close>
+        by auto
+      ultimately show "k \<le> x"
+        by (simp add: sorted_append)
+    qed     
+    moreover from \<open>finite (dom m)\<close> have "finite (dom (m(x := None)))" "x \<notin> dom (m(x := None))"
+      by simp_all
+    moreover have "P (m(x := None))"
+      using Suc \<open>sorted_list_of_set (dom (m(x := None))) = xs\<close> x_xs by auto
+    ultimately show ?case
+      using assms(3)[where ?m="m(x := None)"] by (metis fun_upd_triv fun_upd_upd not_Some_eq)
+  qed
+qed
+
+lemma delete_insort_fst[simp]: "AList.delete k (insort_key fst (k, v) xs) = AList.delete k xs"
+  by (induction xs) simp_all
+
+lemma insort_fst_delete: "\<lbrakk> fst x \<noteq> k2; sorted (List.map fst xs) \<rbrakk>
+  \<Longrightarrow> insort_key fst x (AList.delete k2 xs) = AList.delete k2 (insort_key fst x xs)"
+  by (induction xs) (fastforce simp add: insort_is_Cons order_trans)+
+
+lemma sorted_fst_list_of_set_Map_graph_fun_upd_None[simp]:
+  "sorted_key_list_of_set fst (Map.graph (m(k := None)))
+   = AList.delete k (sorted_key_list_of_set fst (Map.graph m))"
+proof(cases "finite (Map.graph m)")
+  assume "finite (Map.graph m)"
+  from this[unfolded finite_graph_iff_finite_dom] show ?thesis
+  proof(induction rule: finite_Map_induct)
+    let ?list_of="sorted_key_list_of_set fst"
+    case (update k2 v2 m)
+    note [simp] = \<open>k2 \<notin> dom m\<close> \<open>finite (dom m)\<close>
+
+    have right_eq: "AList.delete k (?list_of (Map.graph (m(k2 \<mapsto> v2))))
+      = AList.delete k (insort_key fst (k2, v2) (?list_of (Map.graph m)))"
+      by simp
+
+    show ?case
+    proof(cases "k = k2")
+      case True
+      then have "?list_of (Map.graph ((m(k2 \<mapsto> v2))(k := None)))
+        = AList.delete k (insort_key fst (k2, v2) (?list_of (Map.graph m)))"
+        using fst_graph_eq_dom update.IH by auto
+      then show ?thesis
+        using right_eq by metis
+    next
+      case False
+      then have "AList.delete k (insort_key fst (k2, v2) (?list_of (Map.graph m)))
+        = insort_key fst (k2, v2) (?list_of (Map.graph (m(k := None))))"
+        by (auto simp add: insort_fst_delete update.IH
+                      folding_Map_graph.sorted_sorted_key_list_of_set[OF subset_refl])
+      also have "\<dots> = ?list_of (insert (k2, v2) (Map.graph (m(k := None))))"
+        by auto
+      also from False \<open>k2 \<notin> dom m\<close> have "\<dots> = ?list_of (Map.graph ((m(k2 \<mapsto> v2))(k := None)))"
+        by (metis graph_map_upd domIff fun_upd_triv fun_upd_twist)
+      finally show ?thesis using right_eq by metis
+    qed
+  qed simp
+qed simp
+
+lemma entries_lookup: "entries m = Map.graph (lookup m)"
+  by transfer rule
+
+lemma entries_empty[simp]: "entries empty = {}"
+  by transfer (fact graph_empty)
+
+lemma finite_entries_iff_finite_keys[simp]:
+  "finite (entries m) = finite (keys m)"
+  by transfer (fact finite_graph_iff_finite_dom)
+
+lemma entries_update[simp]:
+  "entries (update k v m) = insert (k, v) (entries (delete k m))"
+  by transfer (fact graph_map_upd)
+
+lemma Mapping_delete_if_notin_keys[simp]:
+  "k \<notin> Mapping.keys m \<Longrightarrow> delete k m = m"
+  by transfer simp
+
+lemma entries_delete:
+  "entries (delete k m) = {e \<in> entries m. fst e \<noteq> k}"
+  by transfer (fact graph_fun_upd_None)
+
+lemma entries_of_alist[simp]:
+  "distinct (List.map fst xs) \<Longrightarrow> entries (of_alist xs) = set xs"
+  by transfer (fact graph_map_of_if_distinct_ran)
+
+lemma entries_keysD:
+  "x \<in> entries m \<Longrightarrow> fst x \<in> keys m"
+  by transfer (fact graph_domD)
+
+lemma finite_keys_entries[simp]:
+  "finite (keys (update k v m)) = finite (keys m)"
+  by transfer simp
+
+lemma set_ordered_entries[simp]:
+  "finite (Mapping.keys m) \<Longrightarrow> set (ordered_entries m) = entries m"
+  unfolding ordered_entries_def
+  by transfer (auto simp: folding_Map_graph.set_sorted_key_list_of_set[OF subset_refl])
+
+lemma distinct_ordered_entries[simp]: "distinct (List.map fst (ordered_entries m))"
+  unfolding ordered_entries_def
+  by transfer (simp add: folding_Map_graph.distinct_sorted_key_list_of_set[OF subset_refl])
+
+lemma sorted_ordered_entries[simp]: "sorted (List.map fst (ordered_entries m))"
+  unfolding ordered_entries_def
+  by transfer (auto intro: folding_Map_graph.sorted_sorted_key_list_of_set)
+
+lemma ordered_entries_infinite[simp]:
+  "\<not> finite (Mapping.keys m) \<Longrightarrow> ordered_entries m = []"
+  by (simp add: ordered_entries_def)
+
+lemma ordered_entries_empty[simp]: "ordered_entries empty = []"
+  by (simp add: ordered_entries_def)
+
+lemma ordered_entries_update[simp]:
+  assumes "finite (keys m)"
+  shows "ordered_entries (update k v m)
+   = insort_insert_key fst (k, v) (AList.delete k (ordered_entries m))"
+proof -
+  let ?list_of="sorted_key_list_of_set fst" and ?insort="insort_insert_key fst"
+
+  have *: "?list_of (insert (k, v) (Map.graph (m(k := None))))
+    = ?insort (k, v) (AList.delete k (?list_of (Map.graph m)))" if "finite (dom m)" for m
+  proof -
+    from \<open>finite (dom m)\<close> have "?list_of (insert (k, v) (Map.graph (m(k := None))))
+      = ?insort (k, v) (?list_of (Map.graph (m(k := None))))"
+      by (intro sorted_fst_list_of_set_insort_insert_Map_graph) (simp_all add: subset_insertI) 
+    then show ?thesis by simp
+  qed
+  from assms show ?thesis
+    unfolding ordered_entries_def
+    apply (transfer fixing: k v) using "*" by auto
+qed
+
+lemma ordered_entries_delete[simp]:
+  "ordered_entries (delete k m) = AList.delete k (ordered_entries m)"
+  unfolding ordered_entries_def by transfer auto
+
+lemma fold_empty[simp]: "fold f empty a = a"
+  unfolding fold_def by simp
+
+lemma insort_key_is_snoc_if_sorted_and_distinct:
+  assumes "sorted (List.map f xs)" "f y \<notin> f ` set xs" "\<forall>x \<in> set xs. f x \<le> f y"
+  shows "insort_key f y xs = xs @ [y]"
+  using assms by (induction xs) (auto dest!: insort_is_Cons)
+
+lemma fold_update:
+  assumes "finite (keys m)"
+  assumes "k \<notin> keys m" "\<And>k'. k' \<in> keys m \<Longrightarrow> k' \<le> k"
+  shows "fold f (update k v m) a = f k v (fold f m a)"
+proof -
+  from assms have k_notin_entries: "k \<notin> fst ` set (ordered_entries m)"
+    using entries_keysD by fastforce
+  with assms have "ordered_entries (update k v m)
+    = insort_insert_key fst (k, v) (ordered_entries m)"
+    by simp
+  also from k_notin_entries have "\<dots> = ordered_entries m @ [(k, v)]"
+  proof -
+    from assms have "\<forall>x \<in> set (ordered_entries m). fst x \<le> fst (k, v)"
+      unfolding ordered_entries_def
+      by transfer (fastforce simp: folding_Map_graph.set_sorted_key_list_of_set[OF order_refl]
+                             dest: graph_domD)
+    from insort_key_is_snoc_if_sorted_and_distinct[OF _ _ this] k_notin_entries show ?thesis
+      unfolding insort_insert_key_def by auto
+  qed
+  finally show ?thesis unfolding fold_def by simp
+qed
+
+lemma linorder_finite_Mapping_induct[consumes 1, case_names empty update]:
+  fixes m :: "('a::linorder, 'b) mapping"
+  assumes "finite (keys m)"
+  assumes "P empty"
+  assumes "\<And>k v m.
+    \<lbrakk> finite (keys m); k \<notin> keys m; (\<And>k'. k' \<in> keys m \<Longrightarrow> k' \<le> k); P m \<rbrakk>
+    \<Longrightarrow> P (update k v m)"
+  shows "P m"
+  using assms by transfer (simp add: linorder_finite_Map_induct)
+
 
 subsection \<open>Code generator setup\<close>
 
 hide_const (open) empty is_empty rep lookup lookup_default filter update delete ordered_keys
   keys size replace default map_entry map_default tabulate bulkload map map_values combine of_alist
+  entries ordered_entries fold
 
 end

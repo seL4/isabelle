@@ -46,6 +46,7 @@ end;
 
 fun build_theories qualifier (options, thys) =
   let
+    val _ = ML_Profiling.check_mode (Options.string options "profiling");
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
     val loaded_theories =
@@ -54,12 +55,6 @@ fun build_theories qualifier (options, thys) =
           Isabelle_Process.init_options ();
           Future.fork I;
           (Thy_Info.use_theories options qualifier
-          |>
-            (case Options.string options "profiling" of
-              "" => I
-            | "time" => profile_time
-            | "allocations" => profile_allocations
-            | bad => error ("Bad profiling option: " ^ quote bad))
           |> Unsynchronized.setmp print_mode
               (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
       else

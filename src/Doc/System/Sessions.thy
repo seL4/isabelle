@@ -201,8 +201,9 @@ text \<open>
     info, see also \secref{sec:info}.
 
     \<^item> @{system_option_def "document"} controls document output for a
-    particular session or theory; \<^verbatim>\<open>document=pdf\<close> means enabled,
-    \<^verbatim>\<open>document=false\<close> means disabled (especially for particular theories).
+    particular session or theory; \<^verbatim>\<open>document=pdf\<close> or \<^verbatim>\<open>document=true\<close> means
+    enabled, \<^verbatim>\<open>document=""\<close> or \<^verbatim>\<open>document=false\<close> means disabled (especially
+    for particular theories).
 
     \<^item> @{system_option_def "document_output"} specifies an alternative
     directory for generated output of the document preparation system; the
@@ -278,7 +279,8 @@ text \<open>
 
     \<^item> @{system_option_def system_log} specifies an optional log file for
     low-level messages produced by \<^ML>\<open>Output.system_message\<close> in
-    Isabelle/ML; ``\<^verbatim>\<open>-\<close>'' refers to console progress of the build job.
+    Isabelle/ML; the value ``\<^verbatim>\<open>true\<close>'' refers to console progress of the build
+    job.
 
     \<^item> @{system_option_def "system_heaps"} determines the directories for
     session heap images: \<^path>\<open>$ISABELLE_HEAPS\<close> is the user directory and
@@ -410,11 +412,12 @@ text \<open>
   The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover eventually. The
   settings variable @{setting_ref ISABELLE_BUILD_OPTIONS} allows to provide
-  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>.
-  Moreover, the environment of system build options may be augmented on the
-  command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>, which abbreviates
-  \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean options. Multiple occurrences of \<^verbatim>\<open>-o\<close> on
-  the command-line are applied in the given order.
+  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf
+  threads=4"\<close>. Moreover, the environment of system build options may be
+  augmented on the command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>,
+  which abbreviates \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean or string options.
+  Multiple occurrences of \<^verbatim>\<open>-o\<close> on the command-line are applied in the given
+  order.
 
   \<^medskip>
   Option \<^verbatim>\<open>-P\<close> enables PDF/HTML presentation in the given directory, where
@@ -496,7 +499,7 @@ text \<open>
 
   \<^smallskip>
   Build all sessions with HTML browser info and PDF document preparation:
-  @{verbatim [display] \<open>isabelle build -a -o browser_info -o document=pdf\<close>}
+  @{verbatim [display] \<open>isabelle build -a -o browser_info -o document\<close>}
 
   \<^smallskip>
   Build all sessions with a maximum of 8 parallel prover processes and 4
@@ -539,6 +542,7 @@ text \<open>
     -U           output Unicode symbols
     -m MARGIN    margin for pretty printing (default: 76.0)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           print all messages, including information etc.
 
   Print messages from the build database of the given session, without any
   checks against current sources: results from a failed build can be
@@ -563,8 +567,8 @@ text \<open>
   symbols. The default is for an old-fashioned ASCII terminal at 80 characters
   per line (76 + 4 characters to prefix warnings or errors).
 
-  \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database, including
-  extra information and tracing messages etc.
+  \<^medskip> Option \<^verbatim>\<open>-v\<close> prints all messages from the session database that are
+  normally inlined into the source text, including information messages etc.
 \<close>
 
 subsubsection \<open>Examples\<close>

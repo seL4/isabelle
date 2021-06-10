@@ -197,6 +197,12 @@ fun theory_result theory =
 fun result_theory (Result {theory, ...}) = theory;
 fun result_commit (Result {commit, ...}) = commit;
 
+datatype task =
+  Task of string list * (theory list -> result) |
+  Finished of theory;
+
+local
+
 fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
   | consolidate_theory (Exn.Res (Result {theory, exec_id, ...})) =
       let
@@ -212,10 +218,7 @@ fun present_theory (Exn.Exn exn) = [Exn.Exn exn]
       | SOME (context as {segments, ...}) =>
           [Exn.capture (fn () => (apply_presentation context theory; (theory, segments))) ()]);
 
-
-datatype task =
-  Task of string list * (theory list -> result) |
-  Finished of theory;
+in
 
 val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
   let
@@ -250,6 +253,8 @@ val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
   in Par_Exn.release_all present_results end);
+
+end;
 
 
 (* eval theory *)

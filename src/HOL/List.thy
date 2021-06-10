@@ -3124,13 +3124,16 @@ lemma fold_append_concat_rev: "fold append xss = append (concat (rev xss))"
 
 text \<open>\<^const>\<open>Finite_Set.fold\<close> and \<^const>\<open>fold\<close>\<close>
 
-lemma (in comp_fun_commute) fold_set_fold_remdups:
-  "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
-  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm insert_absorb)
+lemma (in comp_fun_commute_on) fold_set_fold_remdups:
+  assumes "set xs \<subseteq> S"
+  shows "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
+  by (rule sym, use assms in \<open>induct xs arbitrary: y\<close>)
+     (simp_all add: insert_absorb fold_fun_left_comm) 
 
-lemma (in comp_fun_idem) fold_set_fold:
-  "Finite_Set.fold f y (set xs) = fold f xs y"
-  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm)
+lemma (in comp_fun_idem_on) fold_set_fold:
+  assumes "set xs \<subseteq> S"
+  shows "Finite_Set.fold f y (set xs) = fold f xs y"
+  by (rule sym, use assms in \<open>induct xs arbitrary: y\<close>) (simp_all add: fold_fun_left_comm)
 
 lemma union_set_fold [code]: "set xs \<union> A = fold Set.insert xs A"
 proof -
@@ -5785,6 +5788,10 @@ by (induct xs) (simp_all add: set_insort_key)
 lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and> distinct xs)"
 by(induct xs)(auto simp: set_insort_key)
 
+lemma distinct_insort_key:
+  "distinct (map f (insort_key f x xs)) = (f x \<notin> f ` set xs \<and> (distinct (map f xs)))"
+by (induct xs) (auto simp: set_insort_key)
+
 lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
 by (induct xs) (simp_all add: distinct_insort)
 
@@ -5897,8 +5904,8 @@ lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"
   by (induct xs) (simp_all add: filter_insort_triv filter_insort)
 
-lemma remove1_insort [simp]:
-  "remove1 x (insort x xs) = xs"
+lemma remove1_insort_key [simp]:
+  "remove1 x (insort_key f x xs) = xs"
   by (induct xs) simp_all
 
 end
@@ -6087,98 +6094,149 @@ proof (rule nth_equalityI)
 qed
 
 
-subsubsection \<open>\<open>sorted_list_of_set\<close>\<close>
+subsubsection \<open>\<open>sorted_key_list_of_set\<close>\<close>
 
-text\<open>This function maps (finite) linearly ordered sets to sorted
-lists. Warning: in most cases it is not a good idea to convert from
-sets to lists but one should convert in the other direction (via
-\<^const>\<open>set\<close>).\<close>
+text\<open>
+  This function maps (finite) linearly ordered sets to sorted lists.
+  The linear order is obtained by a key function that maps the elements of the set to a type
+  that is linearly ordered.
+  Warning: in most cases it is not a good idea to convert from
+  sets to lists but one should convert in the other direction (via \<^const>\<open>set\<close>).
 
-context linorder
+  Note: this is a generalisation of the older \<open>sorted_list_of_set\<close> that is obtained by setting
+  the key function to the identity. Consequently, new theorems should be added to the locale
+  below. They should also be aliased to more convenient names for use with \<open>sorted_list_of_set\<close>
+  as seen further below.
+\<close>
+
+definition (in linorder) sorted_key_list_of_set :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'b list"
+  where "sorted_key_list_of_set f \<equiv> folding_on.F (insort_key f) []"
+
+locale folding_insort_key = lo?: linorder "less_eq :: 'a \<Rightarrow> 'a \<Rightarrow> bool" less
+  for less_eq (infix "\<preceq>" 50) and less (infix "\<prec>" 50) +
+  fixes S
+  fixes f :: "'b \<Rightarrow> 'a"
+  assumes inj_on: "inj_on f S"
 begin
 
-definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
-  "sorted_list_of_set = folding.F insort []"
+lemma insort_key_commute:
+  "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> insort_key f y o insort_key f x = insort_key f x o insort_key f y"
+proof(rule ext, goal_cases)
+  case (1 xs)
+  with inj_on show ?case by (induction xs) (auto simp: inj_onD)
+qed
 
-sublocale sorted_list_of_set: folding insort Nil
-rewrites
-  "folding.F insort [] = sorted_list_of_set"
+sublocale fold_insort_key: folding_on S "insort_key f" "[]"
+  rewrites "folding_on.F (insort_key f) [] = sorted_key_list_of_set f"
 proof -
-  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  show "folding insort" by standard (fact comp_fun_commute)
-  show "folding.F insort [] = sorted_list_of_set" by (simp only: sorted_list_of_set_def)
+  show "folding_on S (insort_key f)"
+    by standard (simp add: insort_key_commute)
+qed (simp add: sorted_key_list_of_set_def)
+
+lemma idem_if_sorted_distinct:
+  assumes "set xs \<subseteq> S" and "sorted (map f xs)" "distinct xs"
+  shows "sorted_key_list_of_set f (set xs) = xs"
+proof(cases "S = {}")
+  case True
+  then show ?thesis using \<open>set xs \<subseteq> S\<close> by auto
+next
+  case False
+  with assms show ?thesis
+  proof(induction xs)
+    case (Cons a xs)
+    with Cons show ?case by (cases xs) auto
+  qed simp
 qed
 
-lemma sorted_list_of_set_empty:
-  "sorted_list_of_set {} = []"
-  by (fact sorted_list_of_set.empty)
+lemma sorted_key_list_of_set_empty:
+  "sorted_key_list_of_set f {} = []"
+  by (fact fold_insort_key.empty)
 
-lemma sorted_list_of_set_insert [simp]:
-  "finite A \<Longrightarrow> sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
-  by (fact sorted_list_of_set.insert_remove)
+lemma sorted_key_list_of_set_insert:
+  assumes "insert x A \<subseteq> S" and "finite A" "x \<notin> A"
+  shows "sorted_key_list_of_set f (insert x A)
+        = insort_key f x (sorted_key_list_of_set f A)"
+  using assms by (fact fold_insort_key.insert)
 
-lemma sorted_list_of_set_eq_Nil_iff [simp]:
-  "finite A \<Longrightarrow> sorted_list_of_set A = [] \<longleftrightarrow> A = {}"
-  by (auto simp: sorted_list_of_set.remove)
+lemma sorted_key_list_of_set_insert_remove [simp]:
+  assumes "insert x A \<subseteq> S" and "finite A"
+  shows "sorted_key_list_of_set f (insert x A)
+        = insort_key f x (sorted_key_list_of_set f (A - {x}))"
+  using assms by (fact fold_insort_key.insert_remove)
 
-lemma set_sorted_list_of_set [simp]:
-  "finite A \<Longrightarrow> set (sorted_list_of_set A) = A"
-  by(induct A rule: finite_induct) (simp_all add: set_insort_key)
+lemma sorted_key_list_of_set_eq_Nil_iff [simp]:
+  assumes "A \<subseteq> S" and "finite A"
+  shows "sorted_key_list_of_set f A = [] \<longleftrightarrow> A = {}"
+  using assms by (auto simp: fold_insort_key.remove)
 
-lemma sorted_sorted_list_of_set [simp]: "sorted (sorted_list_of_set A)"
+lemma set_sorted_key_list_of_set [simp]:
+  assumes "A \<subseteq> S" and "finite A"
+  shows "set (sorted_key_list_of_set f A) = A"
+  using assms(2,1)
+  by (induct A rule: finite_induct) (simp_all add: set_insort_key)
+
+lemma sorted_sorted_key_list_of_set [simp]:
+  assumes "A \<subseteq> S"
+  shows "sorted (map f (sorted_key_list_of_set f A))"
 proof (cases "finite A")
-  case True thus ?thesis by(induction A) (simp_all add: sorted_insort)
+  case True thus ?thesis using \<open>A \<subseteq> S\<close>
+    by (induction A) (simp_all add: sorted_insort_key)
 next
   case False thus ?thesis by simp
 qed
 
-lemma distinct_sorted_list_of_set [simp]: "distinct (sorted_list_of_set A)"
+lemma distinct_if_distinct_map: "distinct (map f xs) \<Longrightarrow> distinct xs"
+  using inj_on by (simp add: distinct_map)
+
+lemma distinct_sorted_key_list_of_set [simp]:
+  assumes "A \<subseteq> S"
+  shows "distinct (map f (sorted_key_list_of_set f A))"
 proof (cases "finite A")
-  case True thus ?thesis by(induction A) (simp_all add: distinct_insort)
-next
+  case True thus ?thesis using \<open>A \<subseteq> S\<close> inj_on
+    by (induction A) (force simp: distinct_insort_key dest: inj_onD)+
+  next
   case False thus ?thesis by simp
 qed
 
-lemma length_sorted_list_of_set [simp]: "length (sorted_list_of_set A) = card A"
+lemma length_sorted_key_list_of_set [simp]:
+  assumes "A \<subseteq> S"
+  shows "length (sorted_key_list_of_set f A) = card A"
 proof (cases "finite A")
   case True
-  then show ?thesis 
-    by(metis distinct_card distinct_sorted_list_of_set set_sorted_list_of_set)
+  with assms inj_on show ?thesis
+    using distinct_card[symmetric, OF distinct_sorted_key_list_of_set]
+    by (auto simp: subset_inj_on intro!: card_image)
 qed auto
 
-lemmas sorted_list_of_set = set_sorted_list_of_set sorted_sorted_list_of_set distinct_sorted_list_of_set
+lemmas sorted_key_list_of_set =
+  set_sorted_key_list_of_set sorted_sorted_key_list_of_set distinct_sorted_key_list_of_set
 
-lemma sorted_list_of_set_sort_remdups [code]:
-  "sorted_list_of_set (set xs) = sort (remdups xs)"
-proof -
-  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  show ?thesis by (simp add: sorted_list_of_set.eq_fold sort_conv_fold fold_set_fold_remdups)
-qed
-
-lemma sorted_list_of_set_remove:
-  assumes "finite A"
-  shows "sorted_list_of_set (A - {x}) = remove1 x (sorted_list_of_set A)"
+lemma sorted_key_list_of_set_remove:
+  assumes "insert x A \<subseteq> S" and "finite A"
+  shows "sorted_key_list_of_set f (A - {x}) = remove1 x (sorted_key_list_of_set f A)"
 proof (cases "x \<in> A")
-  case False with assms have "x \<notin> set (sorted_list_of_set A)" by simp
+  case False with assms have "x \<notin> set (sorted_key_list_of_set f A)" by simp
   with False show ?thesis by (simp add: remove1_idem)
 next
   case True then obtain B where A: "A = insert x B" by (rule Set.set_insert)
   with assms show ?thesis by simp
 qed
 
-lemma strict_sorted_list_of_set [simp]: "sorted_wrt (<) (sorted_list_of_set A)"
-  by (simp add: strict_sorted_iff)
+lemma strict_sorted_key_list_of_set [simp]:
+  "A \<subseteq> S \<Longrightarrow> sorted_wrt (\<prec>) (map f (sorted_key_list_of_set f A))"
+  by (cases "finite A") (auto simp: strict_sorted_iff subset_inj_on[OF inj_on])
 
 lemma finite_set_strict_sorted:
-  assumes "finite A"
-  obtains l where "sorted_wrt (<) l" "set l = A" "length l = card A"
-  by (metis assms distinct_card distinct_sorted_list_of_set set_sorted_list_of_set strict_sorted_list_of_set)
+  assumes "A \<subseteq> S" and "finite A"
+  obtains l where "sorted_wrt (\<prec>) (map f l)" "set l = A" "length l = card A"
+  using assms
+  by (meson length_sorted_key_list_of_set set_sorted_key_list_of_set strict_sorted_key_list_of_set)
 
-lemma strict_sorted_equal:
+lemma (in linorder) strict_sorted_equal:
   assumes "sorted_wrt (<) xs"
-      and "sorted_wrt (<) ys"
-      and "set ys = set xs"
-    shows "ys = xs"
+    and "sorted_wrt (<) ys"
+    and "set ys = set xs"
+  shows "ys = xs"
   using assms
 proof (induction xs arbitrary: ys)
   case (Cons x xs)
@@ -6197,21 +6255,72 @@ proof (induction xs arbitrary: ys)
       using local.Cons by blast
   qed
 qed auto
-
-lemma strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. sorted_wrt (<) xs \<and> set xs = A"
+	
+lemma (in linorder) strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. sorted_wrt (<) xs \<and> set xs = A"
   by (simp add: Uniq_def strict_sorted_equal)
 
-lemma sorted_list_of_set_inject:
-  assumes "sorted_list_of_set A = sorted_list_of_set B" "finite A" "finite B" 
+lemma sorted_key_list_of_set_inject:
+  assumes "A \<subseteq> S" "B \<subseteq> S"
+  assumes "sorted_key_list_of_set f A = sorted_key_list_of_set f B" "finite A" "finite B" 
   shows "A = B"
-  using assms set_sorted_list_of_set by fastforce
+  using assms set_sorted_key_list_of_set by metis
 
-lemma sorted_list_of_set_unique:
-  assumes "finite A"
-  shows "sorted_wrt (<) l \<and> set l = A \<and> length l = card A \<longleftrightarrow> sorted_list_of_set A = l"
-  using assms strict_sorted_equal by force
+lemma sorted_key_list_of_set_unique:
+  assumes "A \<subseteq> S" and "finite A"
+  shows "sorted_wrt (\<prec>) (map f l) \<and> set l = A \<and> length l = card A
+        \<longleftrightarrow> sorted_key_list_of_set f A = l"
+  using assms
+  by (auto simp: strict_sorted_iff card_distinct idem_if_sorted_distinct)
 
 end
+
+context linorder
+begin
+
+definition "sorted_list_of_set \<equiv> sorted_key_list_of_set (\<lambda>x::'a. x)"
+
+text \<open>
+  We abuse the \<open>rewrites\<close> functionality of locales to remove trivial assumptions that result
+  from instantiating the key function to the identity.
+\<close>
+sublocale sorted_list_of_set: folding_insort_key "(\<le>)" "(<)" UNIV "(\<lambda>x. x)"
+  rewrites "sorted_key_list_of_set (\<lambda>x. x) = sorted_list_of_set"
+       and "\<And>xs. map (\<lambda>x. x) xs \<equiv> xs"
+       and "\<And>X. (X \<subseteq> UNIV) \<equiv> True"
+       and "\<And>x. x \<in> UNIV \<equiv> True"
+       and "\<And>P. (True \<Longrightarrow> P) \<equiv> Trueprop P"
+       and "\<And>P Q. (True \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> True \<Longrightarrow> PROP Q)"
+proof -
+  show "folding_insort_key (\<le>) (<) UNIV (\<lambda>x. x)"
+    by standard simp
+qed (simp_all add: sorted_list_of_set_def)
+
+text \<open>Alias theorems for backwards compatibility and ease of use.\<close>
+lemmas sorted_list_of_set = sorted_list_of_set.sorted_key_list_of_set and
+       sorted_list_of_set_empty = sorted_list_of_set.sorted_key_list_of_set_empty and
+       sorted_list_of_set_insert = sorted_list_of_set.sorted_key_list_of_set_insert and
+       sorted_list_of_set_insert_remove = sorted_list_of_set.sorted_key_list_of_set_insert_remove and
+       sorted_list_of_set_eq_Nil_iff = sorted_list_of_set.sorted_key_list_of_set_eq_Nil_iff and
+       set_sorted_list_of_set = sorted_list_of_set.set_sorted_key_list_of_set and
+       sorted_sorted_list_of_set = sorted_list_of_set.sorted_sorted_key_list_of_set and
+       distinct_sorted_list_of_set = sorted_list_of_set.distinct_sorted_key_list_of_set and
+       length_sorted_list_of_set = sorted_list_of_set.length_sorted_key_list_of_set and
+       sorted_list_of_set_remove = sorted_list_of_set.sorted_key_list_of_set_remove and
+       strict_sorted_list_of_set = sorted_list_of_set.strict_sorted_key_list_of_set and
+       sorted_list_of_set_inject = sorted_list_of_set.sorted_key_list_of_set_inject and
+       sorted_list_of_set_unique = sorted_list_of_set.sorted_key_list_of_set_unique and
+       finite_set_strict_sorted = sorted_list_of_set.finite_set_strict_sorted
+
+lemma sorted_list_of_set_sort_remdups [code]:
+  "sorted_list_of_set (set xs) = sort (remdups xs)"
+proof -
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
+  show ?thesis
+    by (simp add: sorted_list_of_set.fold_insort_key.eq_fold sort_conv_fold fold_set_fold_remdups)
+qed
+
+end
+
 
 lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
@@ -6228,7 +6337,8 @@ lemma sorted_list_of_set_atMost_Suc [simp]:
 lemma sorted_list_of_set_nonempty:
   assumes "finite A" "A \<noteq> {}"
   shows "sorted_list_of_set A = Min A # sorted_list_of_set (A - {Min A})"
-  using assms by (auto simp: less_le simp flip: sorted_list_of_set_unique intro: Min_in)
+  using assms
+  by (auto simp: less_le simp flip: sorted_list_of_set.sorted_key_list_of_set_unique intro: Min_in)
 
 lemma sorted_list_of_set_greaterThanLessThan:
   assumes "Suc i < j" 

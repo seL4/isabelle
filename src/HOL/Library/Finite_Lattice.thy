@@ -170,15 +170,36 @@ lemma finite_distrib_lattice_complete_inf_Sup:
 context finite_distrib_lattice_complete
 begin
 subclass finite_distrib_lattice
-  apply standard
-  apply (simp_all add: Inf_def Sup_def bot_def top_def)
-       apply (metis (mono_tags) insert_UNIV local.Sup_fin.eq_fold local.bot_def local.finite_UNIV local.top_def) 
-      apply (simp add: comp_fun_idem.fold_insert_idem local.comp_fun_idem_inf) 
-     apply (metis (mono_tags) insert_UNIV local.Inf_fin.eq_fold local.finite_UNIV) 
-    apply (simp add: comp_fun_idem.fold_insert_idem local.comp_fun_idem_sup)
-  apply (metis (mono_tags) insert_UNIV local.Inf_fin.eq_fold local.finite_UNIV) 
-  apply (metis (mono_tags) insert_UNIV local.Sup_fin.eq_fold local.finite_UNIV)
-  done
+proof -
+  show "class.finite_distrib_lattice Inf Sup inf (\<le>) (<) sup bot top"
+  proof
+    show "bot = Inf UNIV"
+      unfolding bot_def top_def Inf_def
+      using Inf_fin.eq_fold Inf_fin.insert inf.absorb2 by force
+  next
+    show "top = Sup UNIV"
+      unfolding bot_def top_def Sup_def
+      using Sup_fin.eq_fold Sup_fin.insert by force
+  next
+    show "Inf {} = Sup UNIV"
+      unfolding Inf_def Sup_def bot_def top_def
+      using Sup_fin.eq_fold Sup_fin.insert by force
+  next
+    show "Sup {} = Inf UNIV"
+      unfolding Inf_def Sup_def bot_def top_def
+      using Inf_fin.eq_fold Inf_fin.insert inf.absorb2 by force
+  next
+    interpret comp_fun_idem_inf: comp_fun_idem inf
+      by (fact comp_fun_idem_inf)
+    show "Inf (insert a A) = inf a (Inf A)" for a A
+      using comp_fun_idem_inf.fold_insert_idem Inf_def finite by simp
+  next
+    interpret comp_fun_idem_sup: comp_fun_idem sup
+      by (fact comp_fun_idem_sup)
+    show "Sup (insert a A) = sup a (Sup A)" for a A
+      using comp_fun_idem_sup.fold_insert_idem Sup_def finite by simp
+  qed
+qed
 end
 
 instance finite_distrib_lattice_complete \<subseteq> complete_distrib_lattice ..

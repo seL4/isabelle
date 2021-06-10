@@ -29,6 +29,8 @@ sig
     (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
+  val local_interpretation: Locale.registration ->
+    local_theory -> local_theory
 
   (*lifting target primitives to local theory operations*)
   val define: (((binding * typ) * mixfix) * (binding * term) ->
@@ -54,6 +56,7 @@ sig
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
+  val theory_registration: Locale.registration -> local_theory -> local_theory
 
   (*locale target primitives*)
   val locale_target_notes: string -> string -> Attrib.fact list -> Attrib.fact list ->
@@ -70,6 +73,8 @@ sig
   val locale_declaration: string -> {syntax: bool, pervasive: bool} -> declaration ->
     local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
+    local_theory -> local_theory
+  val locale_dependency: string -> Locale.registration ->
     local_theory -> local_theory
 end
 
@@ -229,6 +234,15 @@ fun standard_declaration pred decl lthy =
 
 fun standard_const pred prmode ((b, mx), rhs) =
   standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
+
+fun standard_registration pred registration lthy =
+  Local_Theory.map_contexts (fn level =>
+    if pred (Local_Theory.level lthy, level)
+    then Context.proof_map (Locale.add_registration registration)
+    else I) lthy;
+
+val local_interpretation = standard_registration (fn (n, level) => level = n - 1);
+
 
 
 (** lifting target primitives to local theory operations **)
@@ -393,6 +407,16 @@ val theory_abbrev = abbrev theory_target_abbrev;
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
 
+fun target_registration lthy {inst, mixin, export} =
+  {inst = inst, mixin = mixin,
+    export = export $> Proof_Context.export_morphism lthy (Local_Theory.target_of lthy)};
+
+fun theory_registration registration lthy =
+  lthy
+  |> (Local_Theory.raw_theory o Context.theory_map)
+    (Locale.add_registration (target_registration lthy registration))
+  |> standard_registration (K true) registration;
+
 
 (** locale target primitives **)
 
@@ -423,6 +447,11 @@ fun locale_declaration locale {syntax, pervasive} decl =
 fun locale_const locale prmode ((b, mx), rhs) =
   locale_target_const locale (K true) prmode ((b, mx), rhs)
   #> standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
+
+fun locale_dependency loc registration lthy =
+  lthy
+  |> Local_Theory.raw_theory (Locale.add_dependency loc registration)
+  |> standard_registration (K true) registration;
 
 
 (** locale abbreviations **)
