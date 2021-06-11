@@ -32,7 +32,7 @@ val max_new_mono_instancesK = "max_new_mono_instances" (*=NUM: max. new monomorp
 val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val minimizeK = "minimize" (*=BOOL: instruct sledgehammer to run its minimizer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
-val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (ie. using metis/smt)*)
+val proof_methodK = "proof_method" (*=STRING: how to reconstruct proofs (e.g. using metis)*)
 val proverK = "prover" (*=STRING: name of the external prover to call*)
 val prover_timeoutK = "prover_timeout" (*=TIME: timeout for invoked ATP (seconds of process time)*)
 val sliceK = "slice" (*=BOOL: allow sledgehammer-level strategy-scheduling*)

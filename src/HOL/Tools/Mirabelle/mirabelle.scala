@@ -86,9 +86,9 @@ object Mirabelle
                     for (export <- db_context.read_export(session_hierarchy, args.theory_name, args.name)) {
                       val prefix = args.name.split('/') match {
                         case Array("mirabelle", action, "finalize") =>
-                          s"${action} finalize "
+                          s"${action} finalize  "
                         case Array("mirabelle", action, "goal", goal_name, line, offset) =>
-                          s"${action} goal.${goal_name} ${args.theory_name} ${line}:${offset} "
+                          s"${action} goal.${goal_name} ${args.theory_name} ${line}:${offset}  "
                         case _ => ""
                       }
                       val lines = Pretty.string_of(export.uncompressed_yxml).trim()
@@ -162,7 +162,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Apply the given actions at all theories and proof steps of the
+  Apply the given ACTIONs at all theories and proof steps of the
   specified sessions.
 
   The absence of theory restrictions (option -T) means to check all

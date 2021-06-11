@@ -151,12 +151,7 @@ val whitelist = ["apply", "by", "proof"];
 val _ =
   Build.add_hook (fn qualifier => fn loaded_theories =>
     let
-      val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
-      val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
-      val mirabelle_max_calls = Options.default_int \<^system_option>\<open>mirabelle_max_calls\<close>;
       val mirabelle_actions = Options.default_string \<^system_option>\<open>mirabelle_actions\<close>;
-      val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
-
       val actions =
         (case read_actions mirabelle_actions of
           SOME actions => actions
@@ -166,6 +161,10 @@ val _ =
         ()
       else
         let
+          val mirabelle_timeout = Options.default_seconds \<^system_option>\<open>mirabelle_timeout\<close>;
+          val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
+          val mirabelle_max_calls = Options.default_int \<^system_option>\<open>mirabelle_max_calls\<close>;
+          val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
           val check_theory = check_theories (space_explode "," mirabelle_theories);
 
           fun make_commands (thy_index, (thy, segments)) =
@@ -212,8 +211,7 @@ val _ =
               else
                 []
             end)
-          |> Par_List.map (fn ((action, context), command) => apply_action action context command)
-          |> ignore;
+          |> Par_List.map (fn ((action, context), command) => apply_action action context command);
 
           (* finalize actions *)
           List.app (uncurry finalize_action) contexts
