@@ -53,7 +53,10 @@ local
     (Symtab.empty : (action_context -> action) Symtab.table);
 in
 
-val register_action = Synchronized.change actions oo curry Symtab.update;
+fun register_action name make_action =
+  (if name = "" then error "Registering unnamed Mirabelle action" else ();
+   Synchronized.change actions (Symtab.map_default (name, make_action)
+     (fn f => (warning ("Redefining Mirabelle action: " ^ quote name); f))));
 
 fun get_action name = Symtab.lookup (Synchronized.value actions) name;
 
