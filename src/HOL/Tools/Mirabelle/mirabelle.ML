@@ -215,7 +215,7 @@ val _ =
 
           (* finalize actions *)
           List.app (uncurry finalize_action) contexts
-          end
+        end
     end);
 
 
