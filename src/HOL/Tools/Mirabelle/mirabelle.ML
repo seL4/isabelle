@@ -209,7 +209,7 @@ val _ =
           |> map_index I
           |> maps (fn (n, command) =>
             let val (m, k) = Integer.div_mod (n + 1) mirabelle_stride in
-              if k = 0 andalso m <= mirabelle_max_calls then
+              if k = 0 andalso (mirabelle_max_calls <= 0 orelse m <= mirabelle_max_calls) then
                 map (fn context => (context, command)) contexts
               else
                 []
