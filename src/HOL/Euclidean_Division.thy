@@ -1280,6 +1280,26 @@ proof -
     by simp
 qed
 
+lemma div_less_iff_less_mult:
+  \<open>m div q < n \<longleftrightarrow> m < n * q\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  if \<open>q > 0\<close> for m n q :: nat
+proof
+  assume ?Q then show ?P
+    by (rule less_mult_imp_div_less)
+next
+  assume ?P
+  then obtain h where \<open>n = Suc (m div q + h)\<close>
+    using less_natE by blast
+  moreover have \<open>m < m + (Suc h * q - m mod q)\<close>
+    using that by (simp add: trans_less_add1)
+  ultimately show ?Q
+    by (simp add: algebra_simps flip: minus_mod_eq_mult_div)
+qed
+
+lemma less_eq_div_iff_mult_less_eq:
+  \<open>m \<le> n div q \<longleftrightarrow> m * q \<le> n\<close> if \<open>q > 0\<close> for m n q :: nat
+  using div_less_iff_less_mult [of q n m] that by auto
+
 text \<open>A fact for the mutilated chess board\<close>
 
 lemma mod_Suc:

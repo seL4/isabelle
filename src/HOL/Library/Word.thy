@@ -1150,6 +1150,11 @@ lemma unsigned_drop_bit_eq:
 
 end
 
+lemma ucast_drop_bit_eq:
+  \<open>ucast (drop_bit n w) = drop_bit n (ucast w :: 'b::len word)\<close>
+  if \<open>LENGTH('a) \<le> LENGTH('b)\<close> for w :: \<open>'a::len word\<close>
+  by (rule bit_word_eqI) (use that in \<open>auto simp add: bit_unsigned_iff bit_drop_bit_eq dest: bit_imp_le_length\<close>)
+
 context semiring_bit_operations
 begin
 
@@ -3546,6 +3551,11 @@ lemma drop_bit_word_numeral [simp]:
     (word_of_int (drop_bit (numeral n) (take_bit LENGTH('a) (numeral k))) :: 'a::len word)\<close>
   by transfer simp
 
+lemma signed_drop_bit_word_numeral [simp]:
+  \<open>signed_drop_bit (numeral n) (numeral k) =
+    (word_of_int (drop_bit (numeral n) (signed_take_bit (LENGTH('a) - 1) (numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
 lemma False_map2_or: "\<lbrakk>set xs \<subseteq> {False}; length ys = length xs\<rbrakk> \<Longrightarrow> map2 (\<or>) xs ys = ys"
   by (induction xs arbitrary: ys) (auto simp: length_Suc_conv)
 
@@ -4166,8 +4176,6 @@ lemma word_rec_in: "f (word_rec z (\<lambda>_. f) n) = word_rec (f z) (\<lambda>
 
 lemma word_rec_in2: "f n (word_rec z f n) = word_rec (f 0 z) (f \<circ> (+) 1) n"
   by (induct n) (simp_all add: word_rec_Suc)
-
-
 
 lemma word_rec_twice:
   "m \<le> n \<Longrightarrow> word_rec z f n = word_rec (word_rec z f (n - m)) (f \<circ> (+) (n - m)) m"

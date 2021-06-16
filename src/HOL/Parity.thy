@@ -1556,6 +1556,34 @@ proof -
     by (simp add: min_def)
 qed
 
+lemma take_bit_eq_self_iff_drop_bit_eq_0:
+  \<open>take_bit n a = a \<longleftrightarrow> drop_bit n a = 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  show ?Q
+  proof (rule bit_eqI)
+    fix m
+    from \<open>?P\<close> have \<open>a = take_bit n a\<close> ..
+    also have \<open>\<not> bit (take_bit n a) (n + m)\<close>
+      unfolding bit_simps
+      by (simp add: bit_simps) 
+    finally show \<open>bit (drop_bit n a) m \<longleftrightarrow> bit 0 m\<close>
+      by (simp add: bit_simps)
+  qed
+next
+  assume ?Q
+  show ?P
+  proof (rule bit_eqI)
+    fix m
+    from \<open>?Q\<close> have \<open>\<not> bit (drop_bit n a) (m - n)\<close>
+      by simp
+    then have \<open> \<not> bit a (n + (m - n))\<close>
+      by (simp add: bit_simps)
+    then show \<open>bit (take_bit n a) m \<longleftrightarrow> bit a m\<close>
+      by (cases \<open>m < n\<close>) (auto simp add: bit_simps)
+  qed
+qed
+
 end
 
 instantiation nat :: semiring_bit_shifts
