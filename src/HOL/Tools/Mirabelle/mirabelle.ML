@@ -173,7 +173,8 @@ val _ =
           fun make_commands (thy_index, (thy, segments)) =
             let
               val thy_long_name = Context.theory_long_name thy;
-              val check_thy = check_theory thy_long_name;
+              val thy_name = Context.theory_name thy;
+              val check_thy = check_theory thy_name;
               fun make_command {command = tr, prev_state = st, state = st', ...} =
                 let
                   val name = Toplevel.name_of tr;
