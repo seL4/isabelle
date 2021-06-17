@@ -88,6 +88,7 @@ sig
   val tptp_if : string
   val tptp_iff : string
   val tptp_not_iff : string
+  val tptp_ite : string
   val tptp_app : string
   val tptp_not_infix : string
   val tptp_equal : string
@@ -247,6 +248,7 @@ val tptp_implies = "=>"
 val tptp_if = "<="
 val tptp_iff = "<=>"
 val tptp_not_iff = "<~>"
+val tptp_ite = "$ite"
 val tptp_app = "@"
 val tptp_hilbert_choice = "@+"
 val tptp_hilbert_the = "@-"

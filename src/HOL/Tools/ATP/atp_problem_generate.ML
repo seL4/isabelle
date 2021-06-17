@@ -1147,8 +1147,9 @@ fun eta_expand_quantifier_body (tm as IAbs _) = tm
       IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
     end
 
-fun introduce_proxies_in_iterm type_enc =
+fun introduce_builtins_and_proxies_in_iterm type_enc =
   let
+    val is_fool = is_type_enc_fool type_enc
     fun tweak_ho_quant ho_quant (T as Type (_, [p_T as Type (_, [x_T, _]), _])) [] =
         (* Eta-expand "!!" and "??", to work around LEO-II, Leo-III, and Satallax parser
            limitations. This works in conjunction with special code in "ATP_Problem" that uses the
@@ -1188,57 +1189,61 @@ fun introduce_proxies_in_iterm type_enc =
           IApp (tm1', tm2'')
         end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
-        (case proxify_const s of
-          SOME proxy_base =>
-          let
-            val argc = length args
-            fun plain_const () = IConst (name, T, [])
-            fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
-            fun handle_fool card x = if card = argc then x else proxy_const ()
-          in
-            if top_level then
-              (case s of
-                "c_False" => IConst (`I tptp_false, T, [])
-              | "c_True" => IConst (`I tptp_true, T, [])
-              | _ => plain_const ())
-            else if is_type_enc_full_higher_order type_enc then
-              (case s of
-                "c_False" => IConst (`I tptp_false, T, [])
-              | "c_True" => IConst (`I tptp_true, T, [])
-              | "c_Not" => IConst (`I tptp_not, T, [])
-              | "c_conj" => IConst (`I tptp_and, T, [])
-              | "c_disj" => IConst (`I tptp_or, T, [])
-              | "c_implies" => IConst (`I tptp_implies, T, [])
-              | "c_All" => tweak_ho_quant tptp_ho_forall T args
-              | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
-              | s =>
-                if is_tptp_equal s then
-                  tweak_ho_equal T argc
-                else
-                  plain_const ())
-            else if is_type_enc_fool type_enc then
-              (case s of
-                "c_False" => IConst (`I tptp_false, T, [])
-              | "c_True" => IConst (`I tptp_true, T, [])
-              | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
-              | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
-              | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
-              | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
-              | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
-              | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
-              | s =>
-                if is_tptp_equal s then
-                  handle_fool 2 (IConst (`I tptp_equal, T, []))
-                else
-                  plain_const ())
-            else
-              proxy_const ()
-          end
-         | NONE =>
-           if s = tptp_choice then
-             tweak_ho_quant tptp_choice T args
-           else
-             IConst (name, T, T_args))
+        if is_fool andalso s = "c_If" andalso
+            (length args = 3 orelse is_type_enc_higher_order type_enc) then
+          IConst (`I tptp_ite, T, [])
+        else
+          (case proxify_const s of
+            SOME proxy_base =>
+            let
+              val argc = length args
+              fun plain_const () = IConst (name, T, [])
+              fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
+              fun handle_fool card x = if card = argc then x else proxy_const ()
+            in
+              if top_level then
+                (case s of
+                  "c_False" => IConst (`I tptp_false, T, [])
+                | "c_True" => IConst (`I tptp_true, T, [])
+                | _ => plain_const ())
+              else if is_type_enc_full_higher_order type_enc then
+                (case s of
+                  "c_False" => IConst (`I tptp_false, T, [])
+                | "c_True" => IConst (`I tptp_true, T, [])
+                | "c_Not" => IConst (`I tptp_not, T, [])
+                | "c_conj" => IConst (`I tptp_and, T, [])
+                | "c_disj" => IConst (`I tptp_or, T, [])
+                | "c_implies" => IConst (`I tptp_implies, T, [])
+                | "c_All" => tweak_ho_quant tptp_ho_forall T args
+                | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+                | s =>
+                  if is_tptp_equal s then
+                    tweak_ho_equal T argc
+                  else
+                    plain_const ())
+              else if is_fool then
+                (case s of
+                  "c_False" => IConst (`I tptp_false, T, [])
+                | "c_True" => IConst (`I tptp_true, T, [])
+                | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
+                | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
+                | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
+                | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
+                | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
+                | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+                | s =>
+                  if is_tptp_equal s then
+                    handle_fool 2 (IConst (`I tptp_equal, T, []))
+                  else
+                    plain_const ())
+              else
+                proxy_const ()
+            end
+           | NONE =>
+             if s = tptp_choice then
+               tweak_ho_quant tptp_choice T args
+             else
+               IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1283,7 +1288,7 @@ fun iformula_of_prop ctxt type_enc iff_for_eq =
     val thy = Proof_Context.theory_of ctxt
     fun do_term bs t atomic_Ts =
       iterm_of_term thy type_enc bs (Envir.eta_contract t)
-      |>> (introduce_proxies_in_iterm type_enc
+      |>> (introduce_builtins_and_proxies_in_iterm type_enc
            #> mangle_type_args_in_iterm type_enc #> AAtom)
       ||> union (op =) atomic_Ts
     fun do_quant bs q pos s T t' =
