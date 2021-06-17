@@ -1240,80 +1240,103 @@ on some benchmark. Its command-line usage is as follows:
 
 {\small
 \begin{verbatim}
-isabelle mirabelle [OPTIONS] ACTIONS FILES
+Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
   Options are:
-    -L LOGIC     parent logic to use (default HOL)
-    -O DIR       output directory for test data (default None)
-    -S FILE      user-provided setup file (no actions required)
-    -T THEORY    parent theory to use (default Main)
-    -d DIR       include session directory
-    -q           be quiet (suppress output of Isabelle process)
-    -t TIMEOUT   timeout for each action in seconds (default 30)
+    -A ACTION    add to list of actions
+    -O DIR       output directory for log files (default: "mirabelle")
+    -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
+    -m INT       max. no. of calls to each Mirabelle action (default 0)
+    -s INT       run actions on every nth goal (default 1)
+    -t SECONDS   timeout for each action (default 30.000)
+    ...
 
-  Apply the given actions at all proof steps in the given theory
-  files.
+  Apply the given ACTIONs at all theories and proof steps of the
+  specified sessions.
+
+  The absence of theory restrictions (option -T) means to check all
+  theories fully. Otherwise only the named theories are checked.
 \end{verbatim}
 }
 
-Option \texttt{-L LOGIC} specifies the parent session to use. This is often a
-logic (e.g., \texttt{Pure}, \texttt{HOL}) but may be any session (e.g., from
-the AFP). Using multiple sessions is not supported. If a theory A needs to
-import theories from multiple sessions, this limitation can be overcome as
-follows:
+Option \texttt{-A ACTION} specifies an action to run on all subgoals. When
+specified multiple times, all actions are performed in parallel on all
+selected subgoals. Available actions are \texttt{arith}, \texttt{metis},
+\texttt{quickcheck}, \texttt{sledgehammer}, \texttt{sledgehammer\_filter}, and
+\texttt{try0}.
 
-\begin{enumerate}
-  \item Define a custom session \texttt{S} with a single theory \texttt{B}.
-  \item Move all imports from \texttt{A} to \texttt{B}.
-  \item Build the heap image of \texttt{S}.
-  \item Import \texttt{S.B} from theory \texttt{A}.
-  \item Execute Mirabelle with \texttt{C} as parent logic (i.e., with
-    \texttt{-L S}).
-\end{enumerate}
+Option \texttt{-O DIR} specifies the output directory, which is created
+if needed. In this directory, a log file named "mirabelle.log" records the
+position of each tested subgoal and the result of executing the actions.
 
-Option \texttt{-O DIR} specifies the output directory, which is created if
-needed. In this directory, one log file per theory records the position of each
-tested subgoal and the result of executing the action.
+Option \texttt{-T THEORY} restricts the subgoals to those emerging from this
+theory. When not provided, all subgoals from are theories are selected. When
+provided multiple times, the union of all specified theories's subgoals is
+selected.
 
-Option \texttt{-t TIMEOUT} specifies a generic timeout that the actions may
+Option \texttt{-m INT} specifies a maximum number of goals on which the action
+are run.
+
+Option \texttt{-s INT} specifies a stride, effectively running the actions on
+every n$^{th}$ goal.
+
+Option \texttt{-t SECONDS} specifies a generic timeout that the actions may
 interpret differently.
 
-More specific documentation about the \texttt{ACTIONS} and \texttt{FILES}
-parameters and their corresponding options can be found in the Isabelle tool
+More specific documentation about low-level options, the \texttt{ACTION}
+parameter, and its corresponding options can be found in the Isabelle tool
 usage by entering \texttt{isabelle mirabelle -?} on the command line.
+
+The following subsections assume that the environment variable \texttt{AFP} is
+defined and points to a release of the Archive of Formal Proofs.
 
 \subsection{Example of Benchmarking Sledgehammer}
 
 \begin{verbatim}
-isabelle mirabelle -O output/ \
-  sledgehammer[prover=e,prover_timeout=10] Huffman.thy
+isabelle mirabelle -d $AFP -O output \
+  -A "sledgehammer[prover=e, prover_timeout=30]" \
+  VeriComp
 \end{verbatim}
 
-This command specifies Sledgehammer as the action, using the E prover with a
-timeout of 10 seconds. The results are written to \texttt{output/Huffman.log}.
-
-\subsection{Example of Benchmarking Another Tool}
+This command specifies to run the Sledgehammer action, using the E prover with
+a timeout of 10 seconds, on all subgoals emerging from all theory in the AFP
+session VeriComp. The results are written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
-isabelle mirabelle -O output/ -t 10 try0 Huffman.thy
+isabelle mirabelle -d $AFP -O output \
+  -T Semantics -T Compiler \
+  -A "sledgehammer[prover=e, prover_timeout=30]" \
+  VeriComp
 \end{verbatim}
 
-This command specifies the \textbf{try0} command as the action, with a timeout
-of 10 seconds. The results are written to \texttt{output/Huffman.log}.
+This command also specifies to run the Sledgehammer action, but this time only
+on subgoals emerging from theories Semantics or Compiler.
+
+
+\subsection{Example of Benchmarking Multiple Tools}
+
+\begin{verbatim}
+isabelle mirabelle -d $AFP -O output -t 10 -A "try0" -A "metis" VeriComp
+\end{verbatim}
+
+This command specifies two actions running the \textbf{try0} and \textbf{metis}
+command respectively, both with a timeout of 10 seconds. The results are
+written to \texttt{output/mirabelle.log}.
 
 \subsection{Example of Generating TPTP Files}
 
 \begin{verbatim}
-isabelle mirabelle -O output/ \
-  sledgehammer[prover=e,prover_timeout=1,keep=/tptp/files/] \
-  Huffman.thy
+isabelle mirabelle -d $AFP -O output \
+  -A "sledgehammer[prover=e, prover_timeout=30], keep=/tptp/files/" \
+  VeriComp
 \end{verbatim}
 
-This command generates TPTP files using Sledgehammer. Since the file is
-generated at the very beginning of every Sledgehammer invocation, a timeout of
-one second making the prover fail faster speeds up processing the theory. The
-results are written in the specified directory (\texttt{/tptp/files/}),
-which must exist beforehand. A TPTP file is generated for each subgoal.
+This command generates TPTP files using Sledgehammer. Since the file
+is generated at the very beginning of every Sledgehammer invocation,
+a timeout of five seconds making the prover fail faster speeds up
+processing the subgoals. The results are written in the specified directory
+(\texttt{/tptp/files/}), which must exist beforehand. A TPTP file is generated
+for each subgoal.
 
 \let\em=\sl
 \bibliography{manual}{}
