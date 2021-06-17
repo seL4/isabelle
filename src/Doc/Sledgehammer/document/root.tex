@@ -1316,7 +1316,9 @@ on subgoals emerging from theories Semantics or Compiler.
 \subsection{Example of Benchmarking Multiple Tools}
 
 \begin{verbatim}
-isabelle mirabelle -d $AFP -O output -t 10 -A "try0" -A "metis" VeriComp
+isabelle mirabelle -d $AFP -O output -t 10 \
+  -A "try0" -A "metis" \
+  VeriComp
 \end{verbatim}
 
 This command specifies two actions running the \textbf{try0} and \textbf{metis}
@@ -1327,7 +1329,7 @@ written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
 isabelle mirabelle -d $AFP -O output \
-  -A "sledgehammer[prover=e, prover_timeout=30], keep=/tptp/files/" \
+  -A "sledgehammer[prover=e, prover_timeout=5, keep=/tptp]" \
   VeriComp
 \end{verbatim}
 
@@ -1335,7 +1337,7 @@ This command generates TPTP files using Sledgehammer. Since the file
 is generated at the very beginning of every Sledgehammer invocation,
 a timeout of five seconds making the prover fail faster speeds up
 processing the subgoals. The results are written in the specified directory
-(\texttt{/tptp/files/}), which must exist beforehand. A TPTP file is generated
+(\texttt{/tptp}), which must exist beforehand. A TPTP file is generated
 for each subgoal.
 
 \let\em=\sl
