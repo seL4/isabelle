@@ -194,6 +194,7 @@ sig
   val is_greater_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a ord
+  val pointer_eq_ord: ('a * 'a -> order) -> 'a * 'a -> order
   val bool_ord: bool ord
   val int_ord: int ord
   val string_ord: string ord
@@ -921,6 +922,9 @@ fun make_ord rel (x, y) =
   else if rel (y, x) then GREATER
   else EQUAL;
 
+fun pointer_eq_ord ord (x, y) =
+  if pointer_eq (x, y) then EQUAL else ord (x, y);
+
 fun bool_ord (false, true) = LESS
   | bool_ord (true, false) = GREATER
   | bool_ord _ = EQUAL;
@@ -928,9 +932,7 @@ fun bool_ord (false, true) = LESS
 val int_ord = Int.compare;
 val string_ord = String.compare;
 
-fun fast_string_ord (s1, s2) =
-  if pointer_eq (s1, s2) then EQUAL
-  else (case int_ord (size s1, size s2) of EQUAL => string_ord (s1, s2) | ord => ord);
+val fast_string_ord = pointer_eq_ord (int_ord o apply2 size ||| string_ord);
 
 fun option_ord ord (SOME x, SOME y) = ord (x, y)
   | option_ord _ (NONE, NONE) = EQUAL
