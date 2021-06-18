@@ -198,11 +198,13 @@ sig
   val bool_ord: bool ord
   val int_ord: int ord
   val string_ord: string ord
+  val size_ord: string ord
   val fast_string_ord: string ord
   val option_ord: ('a * 'b -> order) -> 'a option * 'b option -> order
   val ||| : ('a -> order) * ('a -> order) -> 'a -> order
   val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
+  val length_ord: 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val sort: 'a ord -> 'a list -> 'a list
   val sort_distinct: 'a ord -> 'a list -> 'a list
@@ -932,7 +934,8 @@ fun bool_ord (false, true) = LESS
 val int_ord = Int.compare;
 val string_ord = String.compare;
 
-val fast_string_ord = pointer_eq_ord (int_ord o apply2 size ||| string_ord);
+val size_ord = int_ord o apply2 size;
+val fast_string_ord = pointer_eq_ord (size_ord ||| string_ord);
 
 fun option_ord ord (SOME x, SOME y) = ord (x, y)
   | option_ord _ (NONE, NONE) = EQUAL
