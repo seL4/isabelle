@@ -75,18 +75,14 @@ struct
 
 datatype T = Pos of (int * int * int) * Properties.T;
 
-fun ord (pos1 as Pos ((i, j, k), props), pos2 as Pos ((i', j', k'), props')) =
-  if pointer_eq (pos1, pos2) then EQUAL
-  else
-    (case int_ord (i, i') of
-      EQUAL =>
-        (case int_ord (j, j') of
-          EQUAL =>
-            (case int_ord (k, k') of
-              EQUAL => Properties.ord (props, props')
-            | ord => ord)
-        | ord => ord)
-    | ord => ord);
+fun dest2 f = apply2 (fn Pos p => f p);
+
+val ord =
+  pointer_eq_ord
+   (int_ord o dest2 (#1 o #1) |||
+    int_ord o dest2 (#2 o #1) |||
+    int_ord o dest2 (#3 o #1) |||
+    Properties.ord o dest2 #2);
 
 fun norm_props (props: Properties.T) =
   maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
