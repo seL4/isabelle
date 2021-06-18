@@ -94,7 +94,7 @@ object Export_Theory
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
-        parents.map(cache.string(_)),
+        parents.map(cache.string),
         types.map(_.cache(cache)),
         consts.map(_.cache(cache)),
         axioms.map(_.cache(cache)),
@@ -236,8 +236,8 @@ object Export_Theory
     def cache(cache: Term.Cache): Type =
       Type(entity.cache(cache),
         syntax,
-        args.map(cache.string(_)),
-        abbrev.map(cache.typ(_)))
+        args.map(cache.string),
+        abbrev.map(cache.typ))
   }
 
   def read_types(provider: Export.Provider): List[Type] =
@@ -266,9 +266,9 @@ object Export_Theory
     def cache(cache: Term.Cache): Const =
       Const(entity.cache(cache),
         syntax,
-        typargs.map(cache.string(_)),
+        typargs.map(cache.string),
         cache.typ(typ),
-        abbrev.map(cache.term(_)),
+        abbrev.map(cache.term),
         propositional)
   }
 
@@ -345,7 +345,7 @@ object Export_Theory
       Thm(
         entity.cache(cache),
         prop.cache(cache),
-        deps.map(cache.string _),
+        deps.map(cache.string),
         cache.proof(proof))
   }
 
@@ -558,7 +558,7 @@ object Export_Theory
   sealed case class Arity(type_name: String, domain: List[Term.Sort], codomain: String, prop: Prop)
   {
     def cache(cache: Term.Cache): Arity =
-      Arity(cache.string(type_name), domain.map(cache.sort(_)), cache.string(codomain),
+      Arity(cache.string(type_name), domain.map(cache.sort), cache.string(codomain),
         prop.cache(cache))
   }
 
@@ -738,7 +738,7 @@ object Export_Theory
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
         terms.map({ case (term, typ) => (cache.term(term), cache.typ(typ)) }),
-        rules.map(cache.term(_)))
+        rules.map(cache.term))
   }
 
   def read_spec_rules(provider: Export.Provider): List[Spec_Rule] =
