@@ -207,9 +207,9 @@ val term_ord = Term_Ord.term_ord o apply2 Thm.term_of;
 
 val thm_ord =
   Term_Ord.fast_term_ord o apply2 Thm.prop_of
-  <<< list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 Thm.tpairs_of
-  <<< list_ord Term_Ord.fast_term_ord o apply2 Thm.hyps_of
-  <<< list_ord Term_Ord.sort_ord o apply2 Thm.shyps_of;
+  ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 Thm.tpairs_of
+  ||| list_ord Term_Ord.fast_term_ord o apply2 Thm.hyps_of
+  ||| list_ord Term_Ord.sort_ord o apply2 Thm.shyps_of;
 
 
 (* tables and caches *)

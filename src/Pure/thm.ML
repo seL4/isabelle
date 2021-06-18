@@ -378,8 +378,8 @@ local
 
 val constraint_ord : constraint ord =
   Context.theory_id_ord o apply2 (Context.theory_id o #theory)
-  <<< Term_Ord.typ_ord o apply2 #typ
-  <<< Term_Ord.sort_ord o apply2 #sort;
+  ||| Term_Ord.typ_ord o apply2 #typ
+  ||| Term_Ord.sort_ord o apply2 #sort;
 
 val smash_atyps =
   map_atyps (fn TVar (_, S) => Term.aT S | TFree (_, S) => Term.aT S | T => T);
@@ -867,8 +867,8 @@ structure Aritytab =
     type key = string * sort list * class;
     val ord =
       fast_string_ord o apply2 #1
-      <<< fast_string_ord o apply2 #3
-      <<< list_ord Term_Ord.sort_ord o apply2 #2;
+      ||| fast_string_ord o apply2 #3
+      ||| list_ord Term_Ord.sort_ord o apply2 #2;
   );
 
 datatype classes = Classes of
