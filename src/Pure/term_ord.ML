@@ -103,15 +103,9 @@ fun comments_ord (Abs (x, _, t), Abs (y, _, u)) =
 
 in
 
-fun fast_term_ord tu =
-  if pointer_eq tu then EQUAL
-  else
-    (case struct_ord tu of
-      EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
-    | ord => ord);
+val fast_term_ord = pointer_eq_ord (struct_ord ||| atoms_ord ||| types_ord);
 
-fun syntax_term_ord tu =
-  (case fast_term_ord tu of EQUAL => comments_ord tu | ord => ord);
+val syntax_term_ord = fast_term_ord ||| comments_ord;
 
 end;
 
@@ -124,9 +118,7 @@ end;
             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
                (s1..sn) < (t1..tn) (lexicographically)*)
 
-fun indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
-
+val indexname_ord = int_ord o apply2 #2 ||| string_ord o apply2 #1;
 val tvar_ord = prod_ord indexname_ord sort_ord;
 val var_ord = prod_ord indexname_ord typ_ord;
 
