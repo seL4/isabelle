@@ -949,8 +949,8 @@ fun dict_ord elem_ord (x :: xs, y :: ys) =
   | dict_ord _ (_ :: _, []) = GREATER;
 
 (*lexicographic product of lists*)
-fun list_ord elem_ord (xs, ys) =
-  (case int_ord (length xs, length ys) of EQUAL => dict_ord elem_ord (xs, ys) | ord => ord);
+fun length_ord (xs, ys) = int_ord (length xs, length ys);
+fun list_ord elem_ord = length_ord ||| dict_ord elem_ord;
 
 
 (* sorting *)
