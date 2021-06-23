@@ -533,7 +533,10 @@ proof -
   proof (cases \<open>k \<ge> 0\<close>)
     case True
     moreover from power_gt_expt [of 2 \<open>nat k\<close>]
-    have \<open>k < 2 ^ nat k\<close> by simp
+    have \<open>nat k < 2 ^ nat k\<close>
+      by simp
+    then have \<open>int (nat k) < int (2 ^ nat k)\<close>
+      by (simp only: of_nat_less_iff)
     ultimately have *: \<open>k div 2 ^ nat k = 0\<close>
       by simp
     show thesis
@@ -546,8 +549,10 @@ proof -
   next
     case False
     moreover from power_gt_expt [of 2 \<open>nat (- k)\<close>]
-    have \<open>- k \<le> 2 ^ nat (- k)\<close>
+    have \<open>nat (- k) < 2 ^ nat (- k)\<close>
       by simp
+    then have \<open>int (nat (- k)) < int (2 ^ nat (- k))\<close>
+      by (simp only: of_nat_less_iff)
     ultimately have \<open>- k div - (2 ^ nat (- k)) = - 1\<close>
       by (subst div_pos_neg_trivial) simp_all
     then have *: \<open>k div 2 ^ nat (- k) = - 1\<close>

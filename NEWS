@@ -175,6 +175,10 @@ as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
 "setBit", "clearBit". See there further the changelog in theory Guide.
 INCOMPATIBILITY.
 
+* New simp rules: less_exp, min.absorb1, min.absorb2, min.absorb3,
+min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4.  Minor
+INCOMPATIBILITY.
+
 
 *** ML ***
 

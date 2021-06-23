@@ -908,7 +908,7 @@ qed
 lemma power_gt_expt: "n > Suc 0 \<Longrightarrow> n^k > k"
   by (induction k) (auto simp: less_trans_Suc n_less_m_mult_n)
 
-lemma less_exp:
+lemma less_exp [simp]:
   \<open>n < 2 ^ n\<close>
   by (simp add: power_gt_expt)
 

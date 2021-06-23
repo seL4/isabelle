@@ -123,6 +123,12 @@ lemma absorb1: "a \<^bold>\<le> b \<Longrightarrow> a \<^bold>* b = a"
 lemma absorb2: "b \<^bold>\<le> a \<Longrightarrow> a \<^bold>* b = b"
   by (rule antisym) (auto simp: refl)
 
+lemma absorb3: "a \<^bold>< b \<Longrightarrow> a \<^bold>* b = a"
+  by (rule absorb1) (rule strict_implies_order)
+
+lemma absorb4: "b \<^bold>< a \<Longrightarrow> a \<^bold>* b = b"
+  by (rule absorb2) (rule strict_implies_order)
+
 lemma absorb_iff1: "a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>* b = a"
   using order_iff by auto
 
@@ -650,7 +656,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma compl_less_compl_iff: "- x < - y \<longleftrightarrow> y < x"  (* TODO: declare [simp] ? *)
+lemma compl_less_compl_iff [simp]: "- x < - y \<longleftrightarrow> y < x"
   by (auto simp add: less_le)
 
 lemma compl_less_swap1:
@@ -671,16 +677,16 @@ proof -
 qed
 
 lemma sup_cancel_left1: "sup (sup x a) (sup (- x) b) = top"
-  by (simp add: inf_sup_aci sup_compl_top)
+  by (simp add: ac_simps sup_compl_top)
 
 lemma sup_cancel_left2: "sup (sup (- x) a) (sup x b) = top"
-  by (simp add: inf_sup_aci sup_compl_top)
+  by (simp add: ac_simps sup_compl_top)
 
 lemma inf_cancel_left1: "inf (inf x a) (inf (- x) b) = bot"
-  by (simp add: inf_sup_aci inf_compl_bot)
+  by (simp add: ac_simps inf_compl_bot)
 
 lemma inf_cancel_left2: "inf (inf (- x) a) (inf x b) = bot"
-  by (simp add: inf_sup_aci inf_compl_bot)
+  by (simp add: ac_simps inf_compl_bot)
 
 declare inf_compl_bot [simp]
   and sup_compl_top [simp]
@@ -743,6 +749,11 @@ sublocale min: semilattice_order min less_eq less
   + max: semilattice_order max greater_eq greater
   by standard (auto simp add: min_def max_def)
 
+declare min.absorb1 [simp] min.absorb2 [simp]
+  min.absorb3 [simp] min.absorb4 [simp]
+  max.absorb1 [simp] max.absorb2 [simp]
+  max.absorb3 [simp] max.absorb4 [simp]
+
 lemma min_le_iff_disj: "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
   unfolding min_def using linear by (auto intro: order_trans)
 
@@ -783,11 +794,11 @@ lemma split_max [no_atp]: "P (max i j) \<longleftrightarrow> (i \<le> j \<longri
 
 lemma split_min_lin [no_atp]:
   \<open>P (min a b) \<longleftrightarrow> (b = a \<longrightarrow> P a) \<and> (a < b \<longrightarrow> P a) \<and> (b < a \<longrightarrow> P b)\<close>
-  by (cases a b rule: linorder_cases) (auto simp add: min.absorb1 min.absorb2)
+  by (cases a b rule: linorder_cases) auto
 
 lemma split_max_lin [no_atp]:
   \<open>P (max a b) \<longleftrightarrow> (b = a \<longrightarrow> P a) \<and> (a < b \<longrightarrow> P b) \<and> (b < a \<longrightarrow> P a)\<close>
-  by (cases a b rule: linorder_cases) (auto simp add: max.absorb1 max.absorb2)
+  by (cases a b rule: linorder_cases) auto
 
 lemma min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)" for f :: "'a \<Rightarrow> 'b::linorder"
   by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)

@@ -1305,11 +1305,24 @@ proof -
     using assms(1) continuous_at_enn2ereal isCont_tendsto_compose x by fastforce
 qed
 
-lemma tendsto_ennreal_iff[simp]:
-  "\<forall>\<^sub>F x in F. 0 \<le> f x \<Longrightarrow> 0 \<le> x \<Longrightarrow> ((\<lambda>x. ennreal (f x)) \<longlongrightarrow> ennreal x) F \<longleftrightarrow> (f \<longlongrightarrow> x) F"
-  by (auto dest: tendsto_ennrealD)
-     (auto simp: ennreal_def
-           intro!: continuous_on_tendsto_compose[OF continuous_on_e2ennreal[of UNIV]] tendsto_max)
+lemma tendsto_ennreal_iff [simp]:
+  \<open>((\<lambda>x. ennreal (f x)) \<longlongrightarrow> ennreal x) F \<longleftrightarrow> (f \<longlongrightarrow> x) F\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  if \<open>\<forall>\<^sub>F x in F. 0 \<le> f x\<close> \<open>0 \<le> x\<close>
+proof
+  assume \<open>?P\<close>
+  then show \<open>?Q\<close>
+    using that by (rule tendsto_ennrealD)
+next
+  assume \<open>?Q\<close>
+  have \<open>continuous_on UNIV ereal\<close>
+    using continuous_on_ereal [of _ id] by simp
+  then have \<open>continuous_on UNIV (e2ennreal \<circ> ereal)\<close>
+    by (rule continuous_on_compose) (simp_all add: continuous_on_e2ennreal)
+  then have \<open>((\<lambda>x. (e2ennreal \<circ> ereal) (f x)) \<longlongrightarrow> (e2ennreal \<circ> ereal) x) F\<close>
+    using \<open>?Q\<close> by (rule continuous_on_tendsto_compose) simp_all
+  then show \<open>?P\<close>
+    by (simp flip: e2ennreal_ereal)
+qed
 
 lemma tendsto_enn2ereal_iff[simp]: "((\<lambda>i. enn2ereal (f i)) \<longlongrightarrow> enn2ereal x) F \<longleftrightarrow> (f \<longlongrightarrow> x) F"
   using continuous_on_enn2ereal[THEN continuous_on_tendsto_compose, of f x F]

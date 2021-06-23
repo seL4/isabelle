@@ -765,13 +765,7 @@ proof -
             using LIMSEQ_ignore_initial_segment [where k=2, OF b] by simp
         qed
         also have "(\<Sum>i\<in>Basis. max (a \<bullet> i) (min (f x \<bullet> i) (b \<bullet> i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (f x \<bullet> i) *\<^sub>R i)"
-          apply (rule sum.cong)
-          using fab
-           apply auto
-          apply (intro order_antisym)
-           apply (auto simp: mem_box)
-          using less_imp_le apply blast
-          by (metis (full_types) linear max_less_iff_conj min.bounded_iff not_le)
+          using fab by (auto simp add: mem_box intro: sum.cong)
         also have "\<dots> = f x"
           using euclidean_representation by blast
         finally show "(\<lambda>n. \<theta> n x) \<longlonglongrightarrow> f x" .
