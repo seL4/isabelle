@@ -67,5 +67,5 @@ object Mailman
     archive(Url("https://lists.cam.ac.uk/pipermail/cl-isabelle-users"), name = "isabelle-users")
 
   def isabelle_dev: Archive =
-    archive(Url("https://mailmanbroy.informatik.tu-muenchen.de/pipermail/isabelle-dev"))
+    archive(Url("https://mailmanbroy.in.tum.de/pipermail/isabelle-dev"))
 }
