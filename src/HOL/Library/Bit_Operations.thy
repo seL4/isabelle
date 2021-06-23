@@ -1520,6 +1520,17 @@ lemma signed_take_bit_negative_iff [simp]:
   for k :: int
   by (simp add: signed_take_bit_def not_less concat_bit_def)
 
+lemma signed_take_bit_int_greater_eq_minus_exp [simp]:
+  \<open>- (2 ^ n) \<le> signed_take_bit n k\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift)
+
+lemma signed_take_bit_int_less_exp [simp]:
+  \<open>signed_take_bit n k < 2 ^ n\<close>
+  for k :: int
+  using take_bit_int_less_exp [of \<open>Suc n\<close>]
+  by (simp add: signed_take_bit_eq_take_bit_shift)
+
 lemma signed_take_bit_int_eq_self_iff:
   \<open>signed_take_bit n k = k \<longleftrightarrow> - (2 ^ n) \<le> k \<and> k < 2 ^ n\<close>
   for k :: int
