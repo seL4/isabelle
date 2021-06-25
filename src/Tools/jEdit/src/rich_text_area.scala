@@ -439,6 +439,16 @@ class Rich_Text_Area(
         // font
         chunk_text.addAttribute(TextAttribute.FONT, chunk_font)
         chunk_text.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR)
+        if (chunk.usedFontSubstitution) {
+          for {
+            (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
+            subst_font = Chunk.getSubstFont(c) if subst_font != null
+          } {
+            val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
+            val font = Chunk.deriveSubstFont(chunk_font, subst_font)
+            chunk_attrib(TextAttribute.FONT, font, r)
+          }
+        }
 
         // color
         chunk_text.addAttribute(TextAttribute.FOREGROUND, chunk_color)

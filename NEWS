@@ -31,6 +31,8 @@ Isabelle/jEdit.
 
 * More robust 'proof' outline for method "induct": support nested cases.
 
+* Support for built-in font substitution of jEdit text area.
+
 
 *** Document preparation ***
 
