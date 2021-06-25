@@ -20,7 +20,7 @@ object GUI
 {
   /* Swing look-and-feel */
 
-  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.install()
+  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
 
   def current_laf: String = UIManager.getLookAndFeel.getClass.getName()
 
