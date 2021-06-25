@@ -435,10 +435,9 @@ class Rich_Text_Area(
         def chunk_attrib(attrib: TextAttribute, value: AnyRef, r: Text.Range): Unit =
           chunk_text.addAttribute(attrib, value, r.start - chunk_offset, r.stop - chunk_offset)
 
-
         // font
-        chunk_text.addAttribute(TextAttribute.FONT, chunk_font)
         chunk_text.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR)
+        chunk_text.addAttribute(TextAttribute.FONT, chunk_font)
         if (chunk.usedFontSubstitution) {
           for {
             (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
