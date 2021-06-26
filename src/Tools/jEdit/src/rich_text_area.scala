@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Color, Point, Cursor, MouseInfo}
+import java.awt.{Graphics2D, Shape, Color, Point, Cursor, MouseInfo, Font}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter, KeyEvent}
 import java.awt.font.TextAttribute
@@ -404,14 +404,23 @@ class Rich_Text_Area(
     }
   }
 
-  private def reset_subst_font(): Unit =
+  private class Font_Subst
   {
-    val field = classOf[Chunk].getDeclaredField("lastSubstFont")
-    field.setAccessible(true)
-    field.set(null, null)
+    private var cache = Map.empty[Int, Option[Font]]
+
+    def get(codepoint: Int): Option[Font] =
+      cache.getOrElse(codepoint,
+        {
+          val field = classOf[Chunk].getDeclaredField("lastSubstFont")
+          field.setAccessible(true)
+          field.set(null, null)
+          val res = Option(Chunk.getSubstFont(codepoint))
+          cache += (codepoint -> res)
+          res
+        })
   }
 
-  private def paint_chunk_list(rendering: JEdit_Rendering,
+  private def paint_chunk_list(rendering: JEdit_Rendering, font_subst: Font_Subst,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
@@ -419,8 +428,6 @@ class Rich_Text_Area(
     val caret_range =
       if (caret_enabled) JEdit_Lib.caret_range(text_area)
       else Text.Range.offside
-
-    reset_subst_font()
 
     var w = 0.0f
     var chunk = head
@@ -450,8 +457,7 @@ class Rich_Text_Area(
         if (chunk.usedFontSubstitution) {
           for {
             (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
-            _ = reset_subst_font()
-            subst_font = Chunk.getSubstFont(c) if subst_font != null
+            subst_font <- font_subst.get(c)
           } {
             val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
             val font = Chunk.deriveSubstFont(chunk_font, subst_font)
@@ -503,6 +509,8 @@ class Rich_Text_Area(
           ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
         }
 
+        val font_subst = new Font_Subst
+
         for (i <- physical_lines.indices) {
           val line = physical_lines(i)
           if (line != -1) {
@@ -515,7 +523,9 @@ class Rich_Text_Area(
               try {
                 val line_start = buffer.getLineStartOffset(line)
                 gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-                val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0.toFloat, y0.toFloat)
+                val w =
+                  paint_chunk_list(rendering, font_subst, gfx,
+                    line_start, chunks, x0.toFloat, y0.toFloat)
                 gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
