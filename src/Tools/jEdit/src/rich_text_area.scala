@@ -404,6 +404,13 @@ class Rich_Text_Area(
     }
   }
 
+  private def reset_subst_font(): Unit =
+  {
+    val field = classOf[Chunk].getDeclaredField("lastSubstFont")
+    field.setAccessible(true)
+    field.set(null, null)
+  }
+
   private def paint_chunk_list(rendering: JEdit_Rendering,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
@@ -412,6 +419,8 @@ class Rich_Text_Area(
     val caret_range =
       if (caret_enabled) JEdit_Lib.caret_range(text_area)
       else Text.Range.offside
+
+    reset_subst_font()
 
     var w = 0.0f
     var chunk = head
@@ -441,6 +450,7 @@ class Rich_Text_Area(
         if (chunk.usedFontSubstitution) {
           for {
             (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
+            _ = reset_subst_font()
             subst_font = Chunk.getSubstFont(c) if subst_font != null
           } {
             val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
