@@ -176,7 +176,7 @@ class Rich_Text_Area(
     def update_rendering(r: JEdit_Rendering, range: Text.Range): Unit =
       update(rendering(r)(range))
 
-    def reset: Unit = update(None)
+    def reset(): Unit = update(None)
   }
 
   // owned by GUI thread
@@ -195,7 +195,7 @@ class Rich_Text_Area(
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
-  def active_reset(): Unit = active_areas.foreach(_._1.reset)
+  def active_reset(): Unit = active_areas.foreach(_._1.reset())
 
   private def area_active(): Boolean =
     active_areas.exists({ case (area, _) => area.is_active })
@@ -273,7 +273,7 @@ class Rich_Text_Area(
                 {
                   if (control == require_control && !rendering.snapshot.is_outdated)
                     area.update_rendering(rendering, range)
-                  else area.reset
+                  else area.reset()
                 }
             }
           }
