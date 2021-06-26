@@ -489,7 +489,7 @@ class Rich_Text_Area(
         {
           val w = fm.charWidth(' ')
           val b = (w / 2) max 1
-          val c = (lm.getAscent + lm.getStrikethroughOffset).round.toInt
+          val c = (lm.getAscent + lm.getStrikethroughOffset).round
           ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
         }
 
@@ -505,8 +505,7 @@ class Rich_Text_Area(
               try {
                 val line_start = buffer.getLineStartOffset(line)
                 gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-                val w =
-                  paint_chunk_list(rendering, gfx, line_start, chunks, x0.toFloat, y0.toFloat).toInt
+                val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0.toFloat, y0.toFloat)
                 gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
