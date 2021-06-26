@@ -312,7 +312,7 @@ object Token_Markup
     override def loadMode(mode: Mode, xmh: XModeHandler): Unit =
     {
       super.loadMode(mode, xmh)
-      Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)
+      Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker)
       Isabelle.indent_rule(mode.getName).foreach(indent_rule =>
         Untyped.set[java.util.List[IndentRule]](
           mode, "indentRules", java.util.List.of(indent_rule)))
