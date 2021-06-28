@@ -108,7 +108,7 @@ object Isabelle_System
             default(sys.env + ("ISABELLE_JDK_HOME" -> File.standard_path(jdk_home())),
               "TEMP_WINDOWS" -> temp_windows),
             "HOME" -> user_home),
-          "ISABELLE_APP" -> "true")
+          "ISABELLE_APP" -> isabelle_app)
       }
 
       val settings =
