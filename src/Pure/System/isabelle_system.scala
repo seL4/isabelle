@@ -15,17 +15,6 @@ import java.nio.file.attribute.BasicFileAttributes
 
 object Isabelle_System
 {
-  /* services */
-
-  type Service = Isabelle_Env.Service
-
-  def services(): List[Class[Service]] = Isabelle_Env.services()
-
-  def make_services[C](c: Class[C]): List[C] =
-    for { c1 <- services() if Library.is_subclass(c1, c) }
-      yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
-
-
   /* settings */
 
   def settings(): Map[String, String] = Isabelle_Env.settings()
@@ -38,6 +27,48 @@ object Isabelle_System
       error("Undefined Isabelle environment variable: " + quote(name))
 
   def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
+
+
+  /* services */
+
+  abstract class Service
+
+  @volatile private var _services: Option[List[Class[Service]]] = None
+
+  def services(): List[Class[Service]] =
+  {
+    if (_services.isEmpty) init()  // unsynchronized check
+    _services.get
+  }
+
+  def make_services[C](c: Class[C]): List[C] =
+    for { c1 <- services() if Library.is_subclass(c1, c) }
+      yield c1.getDeclaredConstructor().newInstance().asInstanceOf[C]
+
+
+  /* init settings + services */
+
+  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit =
+  {
+    Isabelle_Env.init(isabelle_root, cygwin_root)
+    synchronized {
+      if (_services.isEmpty) {
+        val variable = "ISABELLE_SCALA_SERVICES"
+        val services =
+          for (name <- space_explode(':', getenv_strict(variable)))
+            yield {
+              def err(msg: String): Nothing =
+                error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
+              try { Class.forName(name).asInstanceOf[Class[Service]] }
+              catch {
+                case _: ClassNotFoundException => err("Class not found")
+                case exn: Throwable => err(Exn.message(exn))
+              }
+            }
+        _services = Some(services)
+      }
+    }
+  }
 
 
   /* getetc -- static distribution parameters */

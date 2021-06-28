@@ -87,29 +87,17 @@ object Isabelle_Env
 
   /** implicit settings environment **/
 
-  abstract class Service
-
   @volatile private var _settings: Option[Map[String, String]] = None
-  @volatile private var _services: Option[List[Class[Service]]] = None
 
   def settings(): Map[String, String] =
   {
-    if (_settings.isEmpty) init()  // unsynchronized check
+    if (_settings.isEmpty) init("", "")  // unsynchronized check
     _settings.get
   }
 
-  def services(): List[Class[Service]] =
+  def init(isabelle_root: String, cygwin_root: String): Unit = synchronized
   {
-    if (_services.isEmpty) init()  // unsynchronized check
-    _services.get
-  }
-
-  def getenv_error(name: String): Nothing =
-    error("Undefined Isabelle environment variable: " + quote(name))
-
-  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized
-  {
-    if (_settings.isEmpty || _services.isEmpty) {
+    if (_settings.isEmpty) {
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
@@ -178,20 +166,6 @@ object Isabelle_Env
       }
       _settings = Some(settings)
       set_cygwin_root()
-
-      val variable = "ISABELLE_SCALA_SERVICES"
-      val services =
-        for (name <- space_explode(':', settings.getOrElse(variable, getenv_error(variable))))
-        yield {
-          def err(msg: String): Nothing =
-            error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
-          try { Class.forName(name).asInstanceOf[Class[Service]] }
-          catch {
-            case _: ClassNotFoundException => err("Class not found")
-            case exn: Throwable => err(Exn.message(exn))
-          }
-        }
-      _services = Some(services)
     }
   }
 }
