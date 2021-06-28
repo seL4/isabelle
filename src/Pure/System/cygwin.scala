@@ -59,10 +59,7 @@ object Cygwin
   def link(content: String, target: JFile): Unit =
   {
     val target_path = target.toPath
-
-    using(Files.newBufferedWriter(target_path, UTF8.charset))(
-      _.write("!<symlink>" + content + "\u0000"))
-
+    Files.writeString(target_path, "!<symlink>" + content + "\u0000")
     Files.setAttribute(target_path, "dos:system", true)
   }
 }
