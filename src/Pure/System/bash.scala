@@ -48,6 +48,16 @@ object Bash
 
   type Watchdog = (Time, Process => Boolean)
 
+  def process_signal(group_pid: String, signal: String = "0"): Boolean =
+  {
+    val bash =
+      if (Platform.is_windows) List(Isabelle_System.cygwin_root() + "\\bin\\bash.exe")
+      else List("/usr/bin/env", "bash")
+    val (_, rc) =
+      Isabelle_Env.process_output(Isabelle_Env.process(bash ::: List("-c", "kill -" + signal + " -" + group_pid)))
+    rc == 0
+  }
+
   def process(script: String,
       cwd: JFile = null,
       env: Map[String, String] = Isabelle_System.settings(),
@@ -80,7 +90,7 @@ object Bash
     File.write(script_file, winpid_script)
 
     private val proc =
-      Isabelle_System.process(
+      Isabelle_Env.process(
         List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
         cwd = cwd, env = env, redirect = redirect)
@@ -119,8 +129,8 @@ object Bash
     {
       count <= 0 ||
       {
-        Isabelle_System.process_signal(group_pid, signal = s)
-        val running = root_process_alive() || Isabelle_System.process_signal(group_pid)
+        process_signal(group_pid, signal = s)
+        val running = root_process_alive() || process_signal(group_pid)
         if (running) {
           Time.seconds(0.1).sleep()
           signal(s, count - 1)
@@ -138,7 +148,7 @@ object Bash
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      Isabelle_System.process_signal(group_pid, "INT")
+      process_signal(group_pid, "INT")
     }
 
 

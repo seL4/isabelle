@@ -17,13 +17,13 @@ object Main
   def main(args: Array[String]): Unit =
   {
     if (args.nonEmpty && args(0) == "-init") {
-      Isabelle_System.init()
+      Isabelle_Env.init()
     }
     else {
       val start =
       {
         try {
-          Isabelle_System.init()
+          Isabelle_Env.init()
           Isabelle_Fonts.init()
 
           GUI.init_lafs()

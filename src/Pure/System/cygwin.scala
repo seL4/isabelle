@@ -25,8 +25,8 @@ object Cygwin
     {
       val cwd = new JFile(isabelle_root)
       val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
-      val proc = Isabelle_System.process(cmdline.toList, cwd = cwd, env = env, redirect = true)
-      val (output, rc) = Isabelle_System.process_output(proc)
+      val proc = Isabelle_Env.process(cmdline.toList, cwd = cwd, env = env, redirect = true)
+      val (output, rc) = Isabelle_Env.process_output(proc)
       if (rc != 0) error(output)
     }
 

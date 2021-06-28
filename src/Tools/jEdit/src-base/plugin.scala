@@ -17,7 +17,7 @@ class Plugin extends EBPlugin
 {
   override def start(): Unit =
   {
-    Isabelle_System.init()
+    Isabelle_Env.init()
 
     GUI.use_isabelle_fonts()
 
