@@ -861,7 +861,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var rev = ""
 
       val getopts = Getopts("""
-Usage: Admin/build_release [OPTIONS] BASE_DIR
+Usage: Admin/build_release [OPTIONS]
 
   Options are:
     -A REV       corresponding AFP changeset id
