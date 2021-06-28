@@ -8,10 +8,9 @@ optional init operation.
 package isabelle
 
 
+import java.util.{LinkedList, List => JList}
 import java.io.{File => JFile}
 import java.nio.file.Files
-
-import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
 
 
@@ -62,12 +61,12 @@ object Isabelle_Env
   {
     require(Platform.is_windows, "Windows platform expected")
 
-    def exec(cmdline: String*): Unit =
+    def exec(cmdline: JList[String]): Unit =
     {
       val cwd = new JFile(isabelle_root)
       val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
-      val proc = Isabelle_Env.process(cmdline.toList, cwd = cwd, env = env, redirect = true)
-      val (output, rc) = Isabelle_Env.process_output(proc)
+      val (output, rc) =
+        Isabelle_Env.process_output(Isabelle_Env.process(cmdline, cwd = cwd, env = env, redirect = true))
       if (rc != 0) error(output)
     }
 
@@ -92,8 +91,8 @@ object Isabelle_Env
       }
       recover_symlinks(symlinks)
 
-      exec(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
-      exec(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
+      exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
+      exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
     }
   }
 
@@ -103,7 +102,7 @@ object Isabelle_Env
 
   /* raw process */
 
-  def process(command_line: List[String],
+  def process(command_line: JList[String],
     cwd: JFile = null,
     env: Map[String, String] = settings(),
     redirect: Boolean = false): Process =
@@ -112,7 +111,7 @@ object Isabelle_Env
 
     // fragile on Windows:
     // see https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args?view=msvc-160
-    proc.command(command_line.asJava)
+    proc.command(command_line)
 
     if (cwd != null) proc.directory(cwd)
     if (env != null) {
@@ -199,13 +198,17 @@ object Isabelle_Env
         val dump = JFile.createTempFile("settings", null)
         dump.deleteOnExit
         try {
-          val cmd1 =
-            if (Platform.is_windows)
-              List(cygwin_root1 + "\\bin\\bash", "-l",
-                File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
-            else
-              List(isabelle_root1 + "/bin/isabelle")
-          val cmd = cmd1 ::: List("getenv", "-d", dump.toString)
+          val cmd = new LinkedList[String]
+          if (Platform.is_windows) {
+            cmd.add(cygwin_root1 + "\\bin\\bash")
+            cmd.add("-l")
+            cmd.add(File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
+          } else {
+            cmd.add(isabelle_root1 + "/bin/isabelle")
+          }
+          cmd.add("getenv")
+          cmd.add("-d")
+          cmd.add(dump.toString)
 
           val (output, rc) = process_output(process(cmd, env = env, redirect = true))
           if (rc != 0) error(output)

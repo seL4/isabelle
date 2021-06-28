@@ -7,9 +7,8 @@ GNU bash processes, with propagation of interrupts.
 package isabelle
 
 
-import java.io.{File => JFile, BufferedReader, InputStreamReader,
-  BufferedWriter, OutputStreamWriter}
-
+import java.util.{LinkedList, List => JList}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, File => JFile}
 import scala.annotation.tailrec
 import scala.jdk.OptionConverters._
 
@@ -50,11 +49,17 @@ object Bash
 
   def process_signal(group_pid: String, signal: String = "0"): Boolean =
   {
-    val bash =
-      if (Platform.is_windows) List(Isabelle_System.cygwin_root() + "\\bin\\bash.exe")
-      else List("/usr/bin/env", "bash")
-    val (_, rc) =
-      Isabelle_Env.process_output(Isabelle_Env.process(bash ::: List("-c", "kill -" + signal + " -" + group_pid)))
+    val cmd = new LinkedList[String]
+    if (Platform.is_windows) {
+      cmd.add(Isabelle_System.cygwin_root() + "\\bin\\bash.exe")
+    }
+    else {
+      cmd.add("/usr/bin/env")
+      cmd.add("bash")
+    }
+    cmd.add("-c")
+    cmd.add("kill -" + signal + " -" + group_pid)
+    val (_, rc) = Isabelle_Env.process_output(Isabelle_Env.process(cmd))
     rc == 0
   }
 
@@ -91,7 +96,7 @@ object Bash
 
     private val proc =
       Isabelle_Env.process(
-        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
+        JList.of(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
         cwd = cwd, env = env, redirect = redirect)
 
