@@ -251,12 +251,13 @@ object Isabelle_System
 
     if (force) target.delete
 
+    def cygwin_link(): Unit =
+      Isabelle_Env.cygwin_link(File.standard_path(src), target)
+
     try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
     catch {
-      case _: UnsupportedOperationException if Platform.is_windows =>
-        Cygwin.link(File.standard_path(src), target)
-      case _: FileSystemException if Platform.is_windows =>
-        Cygwin.link(File.standard_path(src), target)
+      case _: UnsupportedOperationException if Platform.is_windows => cygwin_link()
+      case _: FileSystemException if Platform.is_windows => cygwin_link()
     }
   }
 

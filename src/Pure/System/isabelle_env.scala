@@ -9,9 +9,10 @@ package isabelle
 
 
 import java.io.{File => JFile}
+import java.nio.file.Files
 
 import scala.jdk.CollectionConverters._
-
+import scala.annotation.tailrec
 
 
 object Isabelle_Env
@@ -39,6 +40,61 @@ object Isabelle_Env
 
     if ((new JFile(value)).isDirectory) value
     else error("Bad " + description + " directory " + quote(value))
+  }
+
+
+
+  /** Support for Cygwin as POSIX emulation on Windows **/
+
+  /* symlink emulation */
+
+  def cygwin_link(content: String, target: JFile): Unit =
+  {
+    val target_path = target.toPath
+    Files.writeString(target_path, "!<symlink>" + content + "\u0000")
+    Files.setAttribute(target_path, "dos:system", true)
+  }
+
+
+  /* init (e.g. after extraction via 7zip) */
+
+  def cygwin_init(isabelle_root: String, cygwin_root: String): Unit =
+  {
+    require(Platform.is_windows, "Windows platform expected")
+
+    def exec(cmdline: String*): Unit =
+    {
+      val cwd = new JFile(isabelle_root)
+      val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
+      val proc = Isabelle_Env.process(cmdline.toList, cwd = cwd, env = env, redirect = true)
+      val (output, rc) = Isabelle_Env.process_output(proc)
+      if (rc != 0) error(output)
+    }
+
+    val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
+    val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
+
+    if (uninitialized) {
+      val symlinks =
+      {
+        val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
+        Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
+      }
+      @tailrec def recover_symlinks(list: List[String]): Unit =
+      {
+        list match {
+          case Nil | List("") =>
+          case target :: content :: rest =>
+            cygwin_link(content, new JFile(isabelle_root, target))
+            recover_symlinks(rest)
+          case _ => error("Unbalanced symlinks list")
+        }
+      }
+      recover_symlinks(symlinks)
+
+      exec(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
+      exec(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
+    }
   }
 
 
@@ -106,7 +162,7 @@ object Isabelle_Env
           bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
         else ""
 
-      if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
+      if (Platform.is_windows) cygwin_init(isabelle_root1, cygwin_root1)
 
       def set_cygwin_root(): Unit =
       {
