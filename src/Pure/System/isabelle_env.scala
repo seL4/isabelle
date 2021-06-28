@@ -61,13 +61,12 @@ object Isabelle_Env
   {
     require(Platform.is_windows, "Windows platform expected")
 
-    def exec(cmdline: JList[String]): Unit =
+    def cygwin_exec(cmd: JList[String]): Unit =
     {
       val cwd = new JFile(isabelle_root)
       val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
-      val (output, rc) =
-        Isabelle_Env.process_output(Isabelle_Env.process(cmdline, cwd = cwd, env = env, redirect = true))
-      if (rc != 0) error(output)
+      val res = exec_process(cmd, cwd = cwd, env = env, redirect = true)
+      if (!res.ok) error(res.out)
     }
 
     val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
@@ -91,8 +90,8 @@ object Isabelle_Env
       }
       recover_symlinks(symlinks)
 
-      exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
-      exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
+      cygwin_exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
+      cygwin_exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
     }
   }
 
@@ -102,40 +101,63 @@ object Isabelle_Env
 
   /* raw process */
 
-  def process(command_line: JList[String],
+  def process_builder(cmd: JList[String],
     cwd: JFile = null,
     env: Map[String, String] = settings(),
-    redirect: Boolean = false): Process =
+    redirect: Boolean = false): ProcessBuilder =
   {
-    val proc = new ProcessBuilder
+    val builder = new ProcessBuilder
 
     // fragile on Windows:
     // see https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args?view=msvc-160
-    proc.command(command_line)
+    builder.command(cmd)
 
-    if (cwd != null) proc.directory(cwd)
+    if (cwd != null) builder.directory(cwd)
     if (env != null) {
-      proc.environment.clear()
-      for ((x, y) <- env) proc.environment.put(x, y)
+      builder.environment.clear()
+      for ((x, y) <- env) builder.environment.put(x, y)
     }
-    proc.redirectErrorStream(redirect)
-    proc.start
+    builder.redirectErrorStream(redirect)
   }
 
-  def process_output(proc: Process): (String, Int) =
+  class Exec_Result(val rc: Int, val out: String, val err: String)
   {
-    proc.getOutputStream.close()
+    def ok: Boolean = rc == 0
+  }
 
-    val output = File.read_stream(proc.getInputStream)
-    val rc =
-      try { proc.waitFor }
+  def exec_process(command_line: JList[String],
+    cwd: JFile = null,
+    env: Map[String, String] = settings(),
+    redirect: Boolean = false): Exec_Result =
+  {
+    val out_file = Files.createTempFile(null, null)
+    val err_file = Files.createTempFile(null, null)
+    try {
+      val proc =
+      {
+        val builder = process_builder(command_line, cwd = cwd, env = env, redirect = redirect)
+        builder.redirectOutput(out_file.toFile)
+        builder.redirectError(err_file.toFile)
+        builder.start()
+      }
+      proc.getOutputStream.close()
+      try { proc.waitFor() }
       finally {
         proc.getInputStream.close()
         proc.getErrorStream.close()
         proc.destroy()
-        Exn.Interrupt.dispose()
+        Thread.interrupted()
       }
-    (output, rc)
+
+      val rc = proc.exitValue()
+      val out = Files.readString(out_file)
+      val err = Files.readString(err_file)
+      new Exec_Result(rc, out, err)
+    }
+    finally {
+      Files.deleteIfExists(out_file)
+      Files.deleteIfExists(err_file)
+    }
   }
 
 
@@ -210,8 +232,8 @@ object Isabelle_Env
           cmd.add("-d")
           cmd.add(dump.toString)
 
-          val (output, rc) = process_output(process(cmd, env = env, redirect = true))
-          if (rc != 0) error(output)
+          val res = exec_process(cmd, env = env, redirect = true)
+          if (!res.ok) error(res.out)
 
           val entries =
             space_explode('\u0000', File.read(dump)).flatMap(
