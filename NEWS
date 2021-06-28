@@ -133,6 +133,13 @@ respectively. Minor INCOMPATIBILITY.
 operations has been adjusted to match the corresponding precendences on
 sets. Rare INCOMPATIBILITY.
 
+* Theory "HOL-Library.Cardinality": code generator setup based on the
+type classes finite_UNIV and card_UNIV has been moved to
+"HOL-Library.Code_Cardinality", to avoid incompatibilities with
+other code setups for sets in AFP/Containers. Applications relying on
+this code setup should import "HOL-Library.Code_Cardinality". Minor
+INCOMPATIBILITY.
+
 * Session "HOL-Analysis" and "HOL-Probability": indexed products of
 discrete distributions, negative binomial distribution, Hoeffding's
 inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
