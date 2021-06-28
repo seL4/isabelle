@@ -1870,7 +1870,7 @@ lemma vector_derivative_add_at [simp]:
    \<Longrightarrow> vector_derivative (\<lambda>x. f x + g x) (at a) = vector_derivative f (at a) + vector_derivative g (at a)"
   by (simp add: vector_derivative_at has_vector_derivative_add vector_derivative_works [symmetric])
 
-lemma vector_derivative_diff_at [simp]:
+lemma vector_derivative_diff_at [simp,derivative_intros]:
   "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
    \<Longrightarrow> vector_derivative (\<lambda>x. f x - g x) (at a) = vector_derivative f (at a) - vector_derivative g (at a)"
   by (simp add: vector_derivative_at has_vector_derivative_diff vector_derivative_works [symmetric])

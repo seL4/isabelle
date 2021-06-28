@@ -1777,7 +1777,15 @@ proof -
 qed
 
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
- by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
+  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
+
+lemma filterlim_inverse_at_top_iff:
+  "eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> (LIM x F. inverse (f x) :> at_top) \<longleftrightarrow> (f \<longlongrightarrow> (0 :: real)) F"
+  by (auto dest: tendsto_inverse_0_at_top filterlim_inverse_at_top)
+
+lemma filterlim_at_top_iff_inverse_0:
+  "eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> (LIM x F. f x :> at_top) \<longleftrightarrow> ((inverse \<circ> f) \<longlongrightarrow> (0 :: real)) F"
+  using filterlim_inverse_at_top_iff [of "inverse \<circ> f"] by auto
 
 lemma real_tendsto_divide_at_top:
   fixes c::"real"

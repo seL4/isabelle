@@ -1240,6 +1240,22 @@ next
   qed
 qed
 
+lemma collinear_iff_Reals: "collinear {0::complex,w,z} \<longleftrightarrow> z/w \<in> \<real>"
+proof
+  show "z/w \<in> \<real> \<Longrightarrow> collinear {0,w,z}"
+    by (metis Reals_cases collinear_lemma nonzero_divide_eq_eq scaleR_conv_of_real)
+qed (auto simp: collinear_lemma scaleR_conv_of_real)
+
+lemma collinear_scaleR_iff: "collinear {0, \<alpha> *\<^sub>R w, \<beta> *\<^sub>R z} \<longleftrightarrow> collinear {0,w,z} \<or> \<alpha>=0 \<or> \<beta>=0"
+  (is "?lhs = ?rhs")
+proof (cases "\<alpha>=0 \<or> \<beta>=0")
+  case False
+  then have "(\<exists>c. \<beta> *\<^sub>R z = (c * \<alpha>) *\<^sub>R w) = (\<exists>c. z = c *\<^sub>R w)"
+    by (metis mult.commute scaleR_scaleR vector_fraction_eq_iff)
+  then show ?thesis
+    by (auto simp add: collinear_lemma)
+qed (auto simp: collinear_lemma)
+
 lemma norm_cauchy_schwarz_equal: "\<bar>x \<bullet> y\<bar> = norm x * norm y \<longleftrightarrow> collinear {0, x, y}"
 proof (cases "x=0")
   case True
@@ -1261,6 +1277,16 @@ next
       unfolding norm_cauchy_schwarz_abs_eq collinear_lemma  by (auto simp: abs_if)
   qed
 qed
+
+lemma norm_triangle_eq_imp_collinear:
+  fixes x y :: "'a::real_inner"
+  assumes "norm (x + y) = norm x + norm y"
+  shows "collinear{0,x,y}"
+proof (cases "x = 0 \<or> y = 0")
+  case False
+  with assms show ?thesis
+    by (meson norm_cauchy_schwarz_abs_eq norm_cauchy_schwarz_equal norm_triangle_eq)
+qed (use collinear_lemma in blast)
 
 
 subsection\<open>Properties of special hyperplanes\<close>
