@@ -7,7 +7,7 @@ GNU bash processes, with propagation of interrupts.
 package isabelle
 
 
-import java.util.{LinkedList, List => JList}
+import java.util.{LinkedList, List => JList, Map => JMap}
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, File => JFile}
 import scala.annotation.tailrec
 import scala.jdk.OptionConverters._
@@ -64,7 +64,7 @@ object Bash
 
   def process(script: String,
       cwd: JFile = null,
-      env: Map[String, String] = Isabelle_System.settings(),
+      env: JMap[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
     new Process(script, cwd, env, redirect, cleanup)
@@ -72,7 +72,7 @@ object Bash
   class Process private[Bash](
       script: String,
       cwd: JFile,
-      env: Map[String, String],
+      env: JMap[String, String],
       redirect: Boolean,
       cleanup: () => Unit)
   {

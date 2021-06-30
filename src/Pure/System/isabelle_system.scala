@@ -7,6 +7,7 @@ Miscellaneous Isabelle system operations.
 package isabelle
 
 
+import java.util.{Map => JMap}
 import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
@@ -17,12 +18,12 @@ object Isabelle_System
 {
   /* settings */
 
-  def settings(): Map[String, String] = Isabelle_Env.settings()
+  def settings(): JMap[String, String] = Isabelle_Env.settings()
 
-  def getenv(name: String, env: Map[String, String] = settings()): String =
-    env.getOrElse(name, "")
+  def getenv(name: String, env: JMap[String, String] = settings()): String =
+    Option(env.get(name)).getOrElse("")
 
-  def getenv_strict(name: String, env: Map[String, String] = settings()): String =
+  def getenv_strict(name: String, env: JMap[String, String] = settings()): String =
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
@@ -362,7 +363,7 @@ object Isabelle_System
 
   def bash(script: String,
     cwd: JFile = null,
-    env: Map[String, String] = settings(),
+    env: JMap[String, String] = settings(),
     redirect: Boolean = false,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),

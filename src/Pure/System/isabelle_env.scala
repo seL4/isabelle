@@ -8,7 +8,7 @@ optional init operation.
 package isabelle
 
 
-import java.util.{LinkedList, List => JList}
+import java.util.{HashMap, LinkedList, List => JList, Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.Files
 import scala.annotation.tailrec
@@ -59,39 +59,40 @@ object Isabelle_Env
 
   def cygwin_init(isabelle_root: String, cygwin_root: String): Unit =
   {
-    require(Platform.is_windows, "Windows platform expected")
-
-    def cygwin_exec(cmd: JList[String]): Unit =
-    {
-      val cwd = new JFile(isabelle_root)
-      val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
-      val res = exec_process(cmd, cwd = cwd, env = env, redirect = true)
-      if (!res.ok) error(res.out)
-    }
-
-    val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
-    val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
-
-    if (uninitialized) {
-      val symlinks =
+    if (Platform.is_windows) {
+      def cygwin_exec(cmd: JList[String]): Unit =
       {
-        val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
-        Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
+        val cwd = new JFile(isabelle_root)
+        val env = new HashMap(System.getenv())
+        env.put("CYGWIN", "nodosfilewarning")
+        val res = exec_process(cmd, cwd = cwd, env = env, redirect = true)
+        if (!res.ok) error(res.out)
       }
-      @tailrec def recover_symlinks(list: List[String]): Unit =
-      {
-        list match {
-          case Nil | List("") =>
-          case target :: content :: rest =>
-            cygwin_link(content, new JFile(isabelle_root, target))
-            recover_symlinks(rest)
-          case _ => error("Unbalanced symlinks list")
+
+      val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
+      val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
+
+      if (uninitialized) {
+        val symlinks =
+        {
+          val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
+          Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
         }
+        @tailrec def recover_symlinks(list: List[String]): Unit =
+        {
+          list match {
+            case Nil | List("") =>
+            case target :: content :: rest =>
+              cygwin_link(content, new JFile(isabelle_root, target))
+              recover_symlinks(rest)
+            case _ => error("Unbalanced symlinks list")
+          }
+        }
+        recover_symlinks(symlinks)
+  
+        cygwin_exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
+        cygwin_exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
       }
-      recover_symlinks(symlinks)
-
-      cygwin_exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
-      cygwin_exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
     }
   }
 
@@ -103,7 +104,7 @@ object Isabelle_Env
 
   def process_builder(cmd: JList[String],
     cwd: JFile = null,
-    env: Map[String, String] = settings(),
+    env: JMap[String, String] = settings(),
     redirect: Boolean = false): ProcessBuilder =
   {
     val builder = new ProcessBuilder
@@ -115,7 +116,7 @@ object Isabelle_Env
     if (cwd != null) builder.directory(cwd)
     if (env != null) {
       builder.environment.clear()
-      for ((x, y) <- env) builder.environment.put(x, y)
+      builder.environment().putAll(env)
     }
     builder.redirectErrorStream(redirect)
   }
@@ -127,7 +128,7 @@ object Isabelle_Env
 
   def exec_process(command_line: JList[String],
     cwd: JFile = null,
-    env: Map[String, String] = settings(),
+    env: JMap[String, String] = settings(),
     redirect: Boolean = false): Exec_Result =
   {
     val out_file = Files.createTempFile(null, null)
@@ -164,89 +165,75 @@ object Isabelle_Env
 
   /** implicit settings environment **/
 
-  @volatile private var _settings: Option[Map[String, String]] = None
+  @volatile private var _settings: JMap[String, String] = null
 
-  def settings(): Map[String, String] =
+  def settings(): JMap[String, String] =
   {
-    if (_settings.isEmpty) init("", "")  // unsynchronized check
-    _settings.get
+    if (_settings == null) init("", "")  // unsynchronized check
+    _settings
   }
 
   def init(isabelle_root: String, cygwin_root: String): Unit = synchronized
   {
-    if (_settings.isEmpty) {
+    if (_settings == null) {
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
       val cygwin_root1 =
-        if (Platform.is_windows)
-          bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
+        if (Platform.is_windows) {
+          val root = bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
+          cygwin_init(isabelle_root1, root)
+          _settings = JMap.of("CYGWIN_ROOT", root)
+          root
+        }
         else ""
 
-      if (Platform.is_windows) cygwin_init(isabelle_root1, cygwin_root1)
+      val env = new HashMap(System.getenv())
+      def env_default(a: String, b: String): Unit = if (b != "") env.putIfAbsent(a, b)
 
-      def set_cygwin_root(): Unit =
-      {
-        if (Platform.is_windows)
-          _settings = Some(_settings.getOrElse(Map.empty) + ("CYGWIN_ROOT" -> cygwin_root1))
-      }
-
-      set_cygwin_root()
-
-      def default(env: Map[String, String], entry: (String, String)): Map[String, String] =
-        if (env.isDefinedAt(entry._1) || entry._2 == "") env
-        else env + entry
-
-      val env =
-      {
-        val temp_windows =
+      env_default("CYGWIN_ROOT", cygwin_root1)
+      env_default("TEMP_WINDOWS",
         {
           val temp = if (Platform.is_windows) System.getenv("TEMP") else null
           if (temp != null && temp.contains('\\')) temp else ""
+        })
+      env_default("ISABELLE_JDK_HOME", File.standard_path(jdk_home()))
+      env_default("HOME", System.getProperty("user.home", ""))
+      env_default("ISABELLE_APP", System.getProperty("isabelle.app", ""))
+
+      val settings = new HashMap[String, String]
+      val settings_file = Files.createTempFile(null, null)
+      try {
+        val cmd = new LinkedList[String]
+        if (Platform.is_windows) {
+          cmd.add(cygwin_root1 + "\\bin\\bash")
+          cmd.add("-l")
+          cmd.add(File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
+        } else {
+          cmd.add(isabelle_root1 + "/bin/isabelle")
         }
-        val user_home = System.getProperty("user.home", "")
-        val isabelle_app = System.getProperty("isabelle.app", "")
+        cmd.add("getenv")
+        cmd.add("-d")
+        cmd.add(settings_file.toString)
 
-        default(
-          default(
-            default(sys.env + ("ISABELLE_JDK_HOME" -> File.standard_path(jdk_home())),
-              "TEMP_WINDOWS" -> temp_windows),
-            "HOME" -> user_home),
-          "ISABELLE_APP" -> isabelle_app)
-      }
+        val res = exec_process(cmd, env = env, redirect = true)
+        if (!res.ok) error(res.out)
 
-      val settings =
-      {
-        val dump = JFile.createTempFile("settings", null)
-        dump.deleteOnExit
-        try {
-          val cmd = new LinkedList[String]
-          if (Platform.is_windows) {
-            cmd.add(cygwin_root1 + "\\bin\\bash")
-            cmd.add("-l")
-            cmd.add(File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
-          } else {
-            cmd.add(isabelle_root1 + "/bin/isabelle")
+        for (s <- space_explode('\u0000', Files.readString(settings_file))) {
+          s match {
+            case Properties.Eq(a, b) => settings.put(a, b)
+            case s => if (s.nonEmpty && !s.startsWith("=")) settings.put(s, "")
           }
-          cmd.add("getenv")
-          cmd.add("-d")
-          cmd.add(dump.toString)
-
-          val res = exec_process(cmd, env = env, redirect = true)
-          if (!res.ok) error(res.out)
-
-          val entries =
-            space_explode('\u0000', File.read(dump)).flatMap(
-              {
-                case Properties.Eq(a, b) => Some(a -> b)
-                case s => if (s.isEmpty || s.startsWith("=")) None else Some(s -> "")
-              }).toMap
-          entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
         }
-        finally { dump.delete }
       }
-      _settings = Some(settings)
-      set_cygwin_root()
+      finally { Files.delete(settings_file) }
+
+      if (Platform.is_windows) settings.put("CYGWIN_ROOT", cygwin_root1)
+
+      settings.put("PATH", settings.get("PATH_JVM"))
+      settings.remove("PATH_JVM")
+
+      _settings = JMap.copyOf(settings)
     }
   }
 }
