@@ -20,16 +20,6 @@ object Isabelle_Env
 {
   /** bootstrap information **/
 
-  def jdk_home(): String =
-  {
-    val java_home = System.getProperty("java.home", "")
-    val home = new JFile(java_home)
-    val parent = home.getParent
-    if (home.getName == "jre" && parent != null &&
-        (new JFile(new JFile(parent, "bin"), "javac")).exists) parent
-    else java_home
-  }
-
   def bootstrap_directory(
     preference: String, envar: String, property: String, description: String): String =
   {
@@ -247,7 +237,8 @@ object Isabelle_Env
           val temp = if (Platform.is_windows) System.getenv("TEMP") else null
           if (temp != null && temp.contains('\\')) temp else ""
         })
-      env_default("ISABELLE_JDK_HOME", standard_path(cygwin_root, jdk_home()))
+      env_default("ISABELLE_JDK_HOME",
+        standard_path(cygwin_root, System.getProperty("java.home", "")))
       env_default("HOME", System.getProperty("user.home", ""))
       env_default("ISABELLE_APP", System.getProperty("isabelle.app", ""))
 
