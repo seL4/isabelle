@@ -18,7 +18,7 @@ object Isabelle_System
 {
   /* settings */
 
-  def settings(): JMap[String, String] = isabelle.setup.Isabelle_Env.settings()
+  def settings(): JMap[String, String] = isabelle.setup.Environment.settings()
 
   def getenv(name: String, env: JMap[String, String] = settings()): String =
     Option(env.get(name)).getOrElse("")
@@ -51,7 +51,7 @@ object Isabelle_System
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit =
   {
-    isabelle.setup.Isabelle_Env.init(isabelle_root, cygwin_root)
+    isabelle.setup.Environment.init(isabelle_root, cygwin_root)
     synchronized {
       if (_services.isEmpty) {
         val variable = "ISABELLE_SCALA_SERVICES"
@@ -253,7 +253,7 @@ object Isabelle_System
     if (force) target.delete
 
     def cygwin_link(): Unit =
-      isabelle.setup.Isabelle_Env.cygwin_link(File.standard_path(src), target)
+      isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
 
     try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
     catch {

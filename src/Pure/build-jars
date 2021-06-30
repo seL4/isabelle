@@ -136,7 +136,6 @@ declare -a SOURCES=(
   src/Pure/System/executable.scala
   src/Pure/System/getopts.scala
   src/Pure/System/isabelle_charset.scala
-  src/Pure/System/isabelle_env.scala
   src/Pure/System/isabelle_fonts.scala
   src/Pure/System/isabelle_platform.scala
   src/Pure/System/isabelle_process.scala
