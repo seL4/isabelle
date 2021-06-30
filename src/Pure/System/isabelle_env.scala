@@ -8,9 +8,12 @@ optional init operation.
 package isabelle
 
 
+import java.util.regex.Pattern
 import java.util.{HashMap, LinkedList, List => JList, Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.Files
+
+import scala.util.matching.Regex
 
 
 object Isabelle_Env
@@ -43,6 +46,55 @@ object Isabelle_Env
 
 
   /** Support for Cygwin as POSIX emulation on Windows **/
+
+  /* system path representations */
+
+  def standard_path(cygwin_root: String, platform_path: String): String =
+    if (Platform.is_windows) {
+      val Platform_Root = new Regex("(?i)" + Pattern.quote(cygwin_root) + """(?:\\+|\z)(.*)""")
+      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+
+      platform_path.replace('/', '\\') match {
+        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
+        case Drive(letter, rest) =>
+          "/cygdrive/" + Word.lowercase(letter) +
+            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
+        case path => path.replace('\\', '/')
+      }
+    }
+    else platform_path
+
+  def platform_path(cygwin_root: String, standard_path: String): String =
+    if (Platform.is_windows) {
+      val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
+      val Named_Root = new Regex("//+([^/]*)(.*)")
+
+      val result_path = new StringBuilder
+      val rest =
+        standard_path match {
+          case Cygdrive(drive, rest) =>
+            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
+            rest
+          case Named_Root(root, rest) =>
+            result_path ++= JFile.separator
+            result_path ++= JFile.separator
+            result_path ++= root
+            rest
+          case path if path.startsWith("/") =>
+            result_path ++= cygwin_root
+            path
+          case path => path
+        }
+      for (p <- space_explode('/', rest) if p != "") {
+        val len = result_path.length
+        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
+          result_path += JFile.separatorChar
+        result_path ++= p
+      }
+      result_path.toString
+    }
+    else standard_path
+
 
   /* symlink emulation */
 
@@ -182,7 +234,6 @@ object Isabelle_Env
         if (Platform.is_windows) {
           val root = bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
           cygwin_init(isabelle_root1, root)
-          _settings = JMap.of("CYGWIN_ROOT", root)
           root
         }
         else ""
@@ -196,7 +247,7 @@ object Isabelle_Env
           val temp = if (Platform.is_windows) System.getenv("TEMP") else null
           if (temp != null && temp.contains('\\')) temp else ""
         })
-      env_default("ISABELLE_JDK_HOME", File.standard_path(jdk_home()))
+      env_default("ISABELLE_JDK_HOME", standard_path(cygwin_root1, jdk_home()))
       env_default("HOME", System.getProperty("user.home", ""))
       env_default("ISABELLE_APP", System.getProperty("isabelle.app", ""))
 
@@ -207,7 +258,7 @@ object Isabelle_Env
         if (Platform.is_windows) {
           cmd.add(cygwin_root1 + "\\bin\\bash")
           cmd.add("-l")
-          cmd.add(File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
+          cmd.add(standard_path(cygwin_root1, isabelle_root1 + "\\bin\\isabelle"))
         } else {
           cmd.add(isabelle_root1 + "/bin/isabelle")
         }

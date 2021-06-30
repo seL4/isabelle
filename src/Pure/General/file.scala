@@ -15,13 +15,11 @@ import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisito
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
-import java.util.regex.Pattern
 import java.util.EnumSet
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
 import scala.collection.mutable
-import scala.util.matching.Regex
 
 
 object File
@@ -31,20 +29,7 @@ object File
   def standard_path(path: Path): String = path.expand.implode
 
   def standard_path(platform_path: String): String =
-    if (Platform.is_windows) {
-      val Platform_Root = new Regex("(?i)" +
-        Pattern.quote(Isabelle_System.cygwin_root()) + """(?:\\+|\z)(.*)""")
-      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
-
-      platform_path.replace('/', '\\') match {
-        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
-        case Drive(letter, rest) =>
-          "/cygdrive/" + Word.lowercase(letter) +
-            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
-        case path => path.replace('\\', '/')
-      }
-    }
-    else platform_path
+    Isabelle_Env.standard_path(Isabelle_System.cygwin_root(), platform_path)
 
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
@@ -60,36 +45,8 @@ object File
 
   /* platform path (Windows or Posix) */
 
-  private val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
-  private val Named_Root = new Regex("//+([^/]*)(.*)")
-
   def platform_path(standard_path: String): String =
-    if (Platform.is_windows) {
-      val result_path = new StringBuilder
-      val rest =
-        standard_path match {
-          case Cygdrive(drive, rest) =>
-            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
-            rest
-          case Named_Root(root, rest) =>
-            result_path ++= JFile.separator
-            result_path ++= JFile.separator
-            result_path ++= root
-            rest
-          case path if path.startsWith("/") =>
-            result_path ++= Isabelle_System.cygwin_root()
-            path
-          case path => path
-        }
-      for (p <- space_explode('/', rest) if p != "") {
-        val len = result_path.length
-        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
-          result_path += JFile.separatorChar
-        result_path ++= p
-      }
-      result_path.toString
-    }
-    else standard_path
+    Isabelle_Env.platform_path(Isabelle_System.cygwin_root(), standard_path)
 
   def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))

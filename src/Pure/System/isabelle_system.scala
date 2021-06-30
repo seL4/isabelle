@@ -27,7 +27,7 @@ object Isabelle_System
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
-  def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
+  def cygwin_root(): String = getenv("CYGWIN_ROOT")
 
 
   /* services */
