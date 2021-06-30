@@ -14,8 +14,6 @@ import java.util.{HashMap, LinkedList, List => JList, Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.Files
 
-import scala.util.matching.Regex
-
 
 object Isabelle_Env
 {
@@ -53,39 +51,58 @@ object Isabelle_Env
 
   def standard_path(cygwin_root: String, platform_path: String): String =
     if (is_windows) {
-      val Platform_Root = new Regex("(?i)" + Pattern.quote(cygwin_root) + """(?:\\+|\z)(.*)""")
-      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+      val backslashes = platform_path.replace('/', '\\')
+      def slashes(s: String): String = s.replace('\\', '/')
 
-      platform_path.replace('/', '\\') match {
-        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
-        case Drive(letter, rest) =>
-          "/cygdrive/" + letter.toLowerCase(Locale.ROOT) +
-            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
-        case path => path.replace('\\', '/')
+      val root_pattern = Pattern.compile("(?i)" + Pattern.quote(cygwin_root) + """(?:\\+|\z)(.*)""")
+      val root_matcher = root_pattern.matcher(backslashes)
+
+      val drive_pattern = Pattern.compile("""([a-zA-Z]):\\*(.*)""")
+      val drive_matcher = drive_pattern.matcher(backslashes)
+
+      if (root_matcher.matches) {
+        val rest = root_matcher.group(1)
+        "/" + slashes(rest)
       }
+      else if (drive_matcher.matches) {
+        val letter = drive_matcher.group(1).toLowerCase(Locale.ROOT)
+        val rest = drive_matcher.group(2)
+        "/cygdrive/" + letter + (if (rest == "") "" else "/" + slashes(rest))
+      }
+      else slashes(backslashes)
     }
     else platform_path
 
   def platform_path(cygwin_root: String, standard_path: String): String =
     if (is_windows) {
-      val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
-      val Named_Root = new Regex("//+([^/]*)(.*)")
-
       val result_path = new StringBuilder
+
+      val cygdrive_pattern = Pattern.compile("/cygdrive/([a-zA-Z])($|/.*)")
+      val cygdrive_matcher = cygdrive_pattern.matcher(standard_path)
+
+      val named_root_pattern = Pattern.compile("//+([^/]*)(.*)")
+      val named_root_matcher = named_root_pattern.matcher(standard_path)
+
       val rest =
-        standard_path match {
-          case Cygdrive(drive, rest) =>
-            result_path ++= (drive.toUpperCase(Locale.ROOT) + ":" + JFile.separator)
-            rest
-          case Named_Root(root, rest) =>
-            result_path ++= JFile.separator
-            result_path ++= JFile.separator
-            result_path ++= root
-            rest
-          case path if path.startsWith("/") =>
-            result_path ++= cygwin_root
-            path
-          case path => path
+        if (cygdrive_matcher.matches) {
+          val drive = cygdrive_matcher.group(1).toUpperCase(Locale.ROOT)
+          val rest = cygdrive_matcher.group(2)
+          result_path ++= drive
+          result_path ++= ":"
+          result_path ++= JFile.separator
+          rest
+        }
+        else if (named_root_matcher.matches) {
+          val root = named_root_matcher.group(1)
+          val rest = named_root_matcher.group(2)
+          result_path ++= JFile.separator
+          result_path ++= JFile.separator
+          result_path ++= root
+          rest
+        }
+        else {
+          if (standard_path.startsWith("/")) result_path ++= cygwin_root
+          standard_path
         }
       for (p <- rest.split("/", -1) if p != "") {
         val len = result_path.length
