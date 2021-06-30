@@ -5,9 +5,10 @@ Fundamental Isabelle system environment: quasi-static module with
 optional init operation.
 */
 
-package isabelle
+package isabelle.setup
 
 
+import java.util.Locale
 import java.util.regex.Pattern
 import java.util.{HashMap, LinkedList, List => JList, Map => JMap}
 import java.io.{File => JFile}
@@ -18,6 +19,14 @@ import scala.util.matching.Regex
 
 object Isabelle_Env
 {
+  val is_windows: Boolean = System.getProperty("os.name", "").startsWith("Windows")
+
+  def runtime_exception(message: String): Nothing = throw new RuntimeException(message)
+
+  def quote(s: String): String = "\"" + s + "\""
+
+
+
   /** bootstrap information **/
 
   def bootstrap_directory(
@@ -30,10 +39,10 @@ object Isabelle_Env
       if (a != null && a.nonEmpty) a
       else if (b != null && b.nonEmpty) b
       else if (c != null && c.nonEmpty) c
-      else error("Unknown " + description + " directory")
+      else runtime_exception("Unknown " + description + " directory")
 
     if ((new JFile(dir)).isDirectory) dir
-    else error("Bad " + description + " directory " + quote(dir))
+    else runtime_exception("Bad " + description + " directory " + quote(dir))
   }
 
 
@@ -43,14 +52,14 @@ object Isabelle_Env
   /* system path representations */
 
   def standard_path(cygwin_root: String, platform_path: String): String =
-    if (Platform.is_windows) {
+    if (is_windows) {
       val Platform_Root = new Regex("(?i)" + Pattern.quote(cygwin_root) + """(?:\\+|\z)(.*)""")
       val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
 
       platform_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
         case Drive(letter, rest) =>
-          "/cygdrive/" + Word.lowercase(letter) +
+          "/cygdrive/" + letter.toLowerCase(Locale.ROOT) +
             (if (rest == "") "" else "/" + rest.replace('\\', '/'))
         case path => path.replace('\\', '/')
       }
@@ -58,7 +67,7 @@ object Isabelle_Env
     else platform_path
 
   def platform_path(cygwin_root: String, standard_path: String): String =
-    if (Platform.is_windows) {
+    if (is_windows) {
       val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
       val Named_Root = new Regex("//+([^/]*)(.*)")
 
@@ -66,7 +75,7 @@ object Isabelle_Env
       val rest =
         standard_path match {
           case Cygdrive(drive, rest) =>
-            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
+            result_path ++= (drive.toUpperCase(Locale.ROOT) + ":" + JFile.separator)
             rest
           case Named_Root(root, rest) =>
             result_path ++= JFile.separator
@@ -78,7 +87,7 @@ object Isabelle_Env
             path
           case path => path
         }
-      for (p <- space_explode('/', rest) if p != "") {
+      for (p <- rest.split("/", -1) if p != "") {
         val len = result_path.length
         if (len > 0 && result_path(len - 1) != JFile.separatorChar)
           result_path += JFile.separatorChar
@@ -103,14 +112,14 @@ object Isabelle_Env
 
   def cygwin_init(isabelle_root: String, cygwin_root: String): Unit =
   {
-    if (Platform.is_windows) {
+    if (is_windows) {
       def cygwin_exec(cmd: JList[String]): Unit =
       {
         val cwd = new JFile(isabelle_root)
         val env = new HashMap(System.getenv())
         env.put("CYGWIN", "nodosfilewarning")
         val res = exec_process(cmd, cwd = cwd, env = env, redirect = true)
-        if (!res.ok) error(res.out)
+        if (!res.ok) runtime_exception(res.out)
       }
 
       val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
@@ -118,7 +127,7 @@ object Isabelle_Env
 
       if (uninitialized) {
         val symlinks_path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
-        val symlinks = Files.readAllLines(symlinks_path, UTF8.charset).toArray(new Array[String](0))
+        val symlinks = Files.readAllLines(symlinks_path).toArray(new Array[String](0))
 
         // recover symlinks
         var i = 0
@@ -131,7 +140,7 @@ object Isabelle_Env
             cygwin_link(content, new JFile(isabelle_root, target))
             i += 2
           }
-          else error("Unbalanced symlinks list")
+          else runtime_exception("Unbalanced symlinks list")
         }
 
         cygwin_exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
@@ -224,7 +233,7 @@ object Isabelle_Env
         bootstrap_directory(_isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
       val cygwin_root =
-        if (Platform.is_windows) {
+        if (is_windows) {
           val root = bootstrap_directory(_cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
           cygwin_init(isabelle_root, root)
           root
@@ -237,7 +246,7 @@ object Isabelle_Env
       env_default("CYGWIN_ROOT", cygwin_root)
       env_default("TEMP_WINDOWS",
         {
-          val temp = if (Platform.is_windows) System.getenv("TEMP") else null
+          val temp = if (is_windows) System.getenv("TEMP") else null
           if (temp != null && temp.contains('\\')) temp else ""
         })
       env_default("ISABELLE_JDK_HOME",
@@ -249,7 +258,7 @@ object Isabelle_Env
       val settings_file = Files.createTempFile(null, null)
       try {
         val cmd = new LinkedList[String]
-        if (Platform.is_windows) {
+        if (is_windows) {
           cmd.add(cygwin_root + "\\bin\\bash")
           cmd.add("-l")
           cmd.add(standard_path(cygwin_root, isabelle_root + "\\bin\\isabelle"))
@@ -261,9 +270,9 @@ object Isabelle_Env
         cmd.add(settings_file.toString)
 
         val res = exec_process(cmd, env = env, redirect = true)
-        if (!res.ok) error(res.out)
+        if (!res.ok) runtime_exception(res.out)
 
-        for (s <- space_explode('\u0000', Files.readString(settings_file))) {
+        for (s <- Files.readString(settings_file).split("\u0000", -1)) {
           val i = s.indexOf('=')
           if (i > 0) settings.put(s.substring(0, i), s.substring(i + 1))
           else if (i < 0 && s.nonEmpty) settings.put(s, "")
@@ -271,7 +280,7 @@ object Isabelle_Env
       }
       finally { Files.delete(settings_file) }
 
-      if (Platform.is_windows) settings.put("CYGWIN_ROOT", cygwin_root)
+      if (is_windows) settings.put("CYGWIN_ROOT", cygwin_root)
 
       settings.put("PATH", settings.get("PATH_JVM"))
       settings.remove("PATH_JVM")

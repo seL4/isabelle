@@ -59,7 +59,7 @@ object Bash
     }
     cmd.add("-c")
     cmd.add("kill -" + signal + " -" + group_pid)
-    Isabelle_Env.exec_process(cmd).ok
+    isabelle.setup.Isabelle_Env.exec_process(cmd).ok
   }
 
   def process(script: String,
@@ -94,7 +94,7 @@ object Bash
     File.write(script_file, winpid_script)
 
     private val proc =
-      Isabelle_Env.process_builder(
+      isabelle.setup.Isabelle_Env.process_builder(
         JList.of(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
         cwd = cwd, env = env, redirect = redirect).start()

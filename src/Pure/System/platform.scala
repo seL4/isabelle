@@ -11,9 +11,9 @@ object Platform
 {
   /* platform family */
 
+  def is_windows: Boolean = isabelle.setup.Isabelle_Env.is_windows
   val is_linux: Boolean = System.getProperty("os.name", "") == "Linux"
   val is_macos: Boolean = System.getProperty("os.name", "") == "Mac OS X"
-  val is_windows: Boolean = System.getProperty("os.name", "").startsWith("Windows")
   val is_unix: Boolean = is_linux || is_macos
 
   def is_arm: Boolean = cpu_arch.startsWith("arm")
