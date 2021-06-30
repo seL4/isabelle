@@ -7,6 +7,7 @@ Isabelle process wrapper.
 package isabelle
 
 
+import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
 
@@ -23,7 +24,7 @@ object Isabelle_Process
     eval_main: String = "",
     modes: List[String] = Nil,
     cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings()): Isabelle_Process =
+    env: JMap[String, String] = Isabelle_System.settings()): Isabelle_Process =
   {
     val channel = System_Channel()
     val process =

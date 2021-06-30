@@ -7,6 +7,7 @@ The raw ML process.
 package isabelle
 
 
+import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile}
 
 
@@ -22,7 +23,7 @@ object ML_Process
     args: List[String] = Nil,
     modes: List[String] = Nil,
     cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings(),
+    env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     session_base: Option[Sessions.Base] = None): Bash.Process =
@@ -70,11 +71,11 @@ object ML_Process
       if (modes.isEmpty) Nil
       else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string_bytes)(modes))
 
+
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     Isabelle_System.chmod("600", File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
-    val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     // session base
@@ -99,11 +100,6 @@ object ML_Process
 
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
-    val env_tmp =
-      Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp),
-        "POLYSTATSDIR" -> isabelle_tmp.getAbsolutePath)
-
-    val env_functions = Map("ISABELLE_SCALA_FUNCTIONS" -> Scala.functions.mkString(","))
 
     val ml_runtime_options =
     {
@@ -123,11 +119,17 @@ object ML_Process
       (eval_init ::: eval_modes ::: eval_options ::: eval_init_session).flatMap(List("--eval", _)) :::
       use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
+    val bash_env = new HashMap(env)
+    bash_env.put("ISABELLE_PROCESS_OPTIONS", File.standard_path(isabelle_process_options))
+    bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
+    bash_env.put("POLYSTATSDIR", isabelle_tmp.getAbsolutePath)
+    bash_env.put("ISABELLE_SCALA_FUNCTIONS", Scala.functions.mkString(","))
+
     Bash.process(
       options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
         Bash.strings(bash_args),
       cwd = cwd,
-      env = env ++ env_options ++ env_tmp ++ env_functions,
+      env = bash_env,
       redirect = redirect,
       cleanup = () =>
         {

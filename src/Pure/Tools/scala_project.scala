@@ -111,11 +111,17 @@ object Scala_Project
     if (project_dir.is_file || project_dir.is_dir)
       error("Project directory already exists: " + project_dir)
 
-    val src_dir = project_dir + Path.explode("src/main/scala")
     val java_src_dir = project_dir + Path.explode("src/main/java")
     val scala_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/scala"))
 
     Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
+
+    if (symlinks) {
+      Isabelle_System.symlink(Path.explode("~~/src/Tools/Setup/src/isabelle"), java_src_dir)
+    }
+    else {
+      Isabelle_System.copy_dir(Path.explode("~~/src/Tools/Setup/src"), java_src_dir)
+    }
 
     val files = isabelle_files
     isabelle_scala_files

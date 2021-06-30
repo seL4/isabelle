@@ -7,9 +7,8 @@ GNU bash processes, with propagation of interrupts.
 package isabelle
 
 
-import java.io.{File => JFile, BufferedReader, InputStreamReader,
-  BufferedWriter, OutputStreamWriter}
-
+import java.util.{LinkedList, List => JList, Map => JMap}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, File => JFile}
 import scala.annotation.tailrec
 import scala.jdk.OptionConverters._
 
@@ -48,9 +47,24 @@ object Bash
 
   type Watchdog = (Time, Process => Boolean)
 
+  def process_signal(group_pid: String, signal: String = "0"): Boolean =
+  {
+    val cmd = new LinkedList[String]
+    if (Platform.is_windows) {
+      cmd.add(Isabelle_System.cygwin_root() + "\\bin\\bash.exe")
+    }
+    else {
+      cmd.add("/usr/bin/env")
+      cmd.add("bash")
+    }
+    cmd.add("-c")
+    cmd.add("kill -" + signal + " -" + group_pid)
+    isabelle.setup.Environment.exec_process(cmd, null, null, false).ok
+  }
+
   def process(script: String,
       cwd: JFile = null,
-      env: Map[String, String] = Isabelle_System.settings(),
+      env: JMap[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
     new Process(script, cwd, env, redirect, cleanup)
@@ -58,7 +72,7 @@ object Bash
   class Process private[Bash](
       script: String,
       cwd: JFile,
-      env: Map[String, String],
+      env: JMap[String, String],
       redirect: Boolean,
       cleanup: () => Unit)
   {
@@ -80,10 +94,10 @@ object Bash
     File.write(script_file, winpid_script)
 
     private val proc =
-      Isabelle_System.process(
-        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
+      isabelle.setup.Environment.process_builder(
+        JList.of(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
           File.standard_path(timing_file), "bash", File.standard_path(script_file)),
-        cwd = cwd, env = env, redirect = redirect)
+        cwd, env, redirect).start()
 
 
     // channels
@@ -119,8 +133,8 @@ object Bash
     {
       count <= 0 ||
       {
-        Isabelle_System.process_signal(group_pid, signal = s)
-        val running = root_process_alive() || Isabelle_System.process_signal(group_pid)
+        process_signal(group_pid, signal = s)
+        val running = root_process_alive() || process_signal(group_pid)
         if (running) {
           Time.seconds(0.1).sleep()
           signal(s, count - 1)
@@ -138,7 +152,7 @@ object Bash
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      Isabelle_System.process_signal(group_pid, "INT")
+      process_signal(group_pid, "INT")
     }
 
 

@@ -7,6 +7,7 @@ SSH client based on JSch (see also http://www.jcraft.com/jsch/examples).
 package isabelle
 
 
+import java.util.{Map => JMap, HashMap}
 import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
 import scala.collection.mutable
@@ -349,10 +350,10 @@ object SSH
 
     override def close(): Unit = { sftp.disconnect; session.disconnect; on_close() }
 
-    val settings: Map[String, String] =
+    val settings: JMap[String, String] =
     {
       val home = sftp.getHome
-      Map("HOME" -> home, "USER_HOME" -> home)
+      JMap.of("HOME", home, "USER_HOME", home)
     }
     override def expand_path(path: Path): Path = path.expand_env(settings)
     def remote_path(path: Path): String = expand_path(path).implode

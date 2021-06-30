@@ -8,6 +8,7 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 package isabelle
 
 
+import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
 import scala.util.matching.Regex
@@ -256,7 +257,7 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
 
   /* expand */
 
-  def expand_env(env: Map[String, String]): Path =
+  def expand_env(env: JMap[String, String]): Path =
   {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {

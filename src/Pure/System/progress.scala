@@ -7,6 +7,7 @@ Progress context for system processes.
 package isabelle
 
 
+import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
 
@@ -50,7 +51,7 @@ class Progress
 
   def bash(script: String,
     cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings(),
+    env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     echo: Boolean = false,
     watchdog: Time = Time.zero,

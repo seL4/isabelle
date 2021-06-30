@@ -8,6 +8,7 @@ e-2.5-1
 flatlaf-1.2
 idea-icons-20210508
 isabelle_fonts-20210322
+isabelle_setup-20210630
 jdk-15.0.2+7
 jedit_build-20210510-1
 jfreechart-1.5.1
@@ -17,7 +18,7 @@ nunchaku-0.5
 opam-2.0.7
 polyml-5.8.2
 postgresql-42.2.18
-scala-2.13.5
+scala-2.13.6
 smbc-0.4.1
 spass-3.8ds-2
 sqlite-jdbc-3.34.0
