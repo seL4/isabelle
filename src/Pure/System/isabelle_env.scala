@@ -224,16 +224,16 @@ object Isabelle_Env
     _settings
   }
 
-  def init(isabelle_root: String, cygwin_root: String): Unit = synchronized
+  def init(_isabelle_root: String, _cygwin_root: String): Unit = synchronized
   {
     if (_settings == null) {
-      val isabelle_root1 =
-        bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
+      val isabelle_root =
+        bootstrap_directory(_isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
-      val cygwin_root1 =
+      val cygwin_root =
         if (Platform.is_windows) {
-          val root = bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
-          cygwin_init(isabelle_root1, root)
+          val root = bootstrap_directory(_cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
+          cygwin_init(isabelle_root, root)
           root
         }
         else ""
@@ -241,13 +241,13 @@ object Isabelle_Env
       val env = new HashMap(System.getenv())
       def env_default(a: String, b: String): Unit = if (b != "") env.putIfAbsent(a, b)
 
-      env_default("CYGWIN_ROOT", cygwin_root1)
+      env_default("CYGWIN_ROOT", cygwin_root)
       env_default("TEMP_WINDOWS",
         {
           val temp = if (Platform.is_windows) System.getenv("TEMP") else null
           if (temp != null && temp.contains('\\')) temp else ""
         })
-      env_default("ISABELLE_JDK_HOME", standard_path(cygwin_root1, jdk_home()))
+      env_default("ISABELLE_JDK_HOME", standard_path(cygwin_root, jdk_home()))
       env_default("HOME", System.getProperty("user.home", ""))
       env_default("ISABELLE_APP", System.getProperty("isabelle.app", ""))
 
@@ -256,11 +256,11 @@ object Isabelle_Env
       try {
         val cmd = new LinkedList[String]
         if (Platform.is_windows) {
-          cmd.add(cygwin_root1 + "\\bin\\bash")
+          cmd.add(cygwin_root + "\\bin\\bash")
           cmd.add("-l")
-          cmd.add(standard_path(cygwin_root1, isabelle_root1 + "\\bin\\isabelle"))
+          cmd.add(standard_path(cygwin_root, isabelle_root + "\\bin\\isabelle"))
         } else {
-          cmd.add(isabelle_root1 + "/bin/isabelle")
+          cmd.add(isabelle_root + "/bin/isabelle")
         }
         cmd.add("getenv")
         cmd.add("-d")
@@ -277,7 +277,7 @@ object Isabelle_Env
       }
       finally { Files.delete(settings_file) }
 
-      if (Platform.is_windows) settings.put("CYGWIN_ROOT", cygwin_root1)
+      if (Platform.is_windows) settings.put("CYGWIN_ROOT", cygwin_root)
 
       settings.put("PATH", settings.get("PATH_JVM"))
       settings.remove("PATH_JVM")
