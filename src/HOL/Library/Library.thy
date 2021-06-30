@@ -10,6 +10,7 @@ imports
   Boolean_Algebra
   Bourbaki_Witt_Fixpoint
   Char_ord
+  Code_Cardinality
   Code_Lazy
   Code_Test
   Combine_PER

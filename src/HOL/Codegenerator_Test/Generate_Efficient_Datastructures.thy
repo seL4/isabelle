@@ -21,10 +21,10 @@ declare [[code drop:
   "Sup :: _ Predicate.pred set \<Rightarrow> _"
   pred_of_set
   Wellfounded.acc
-  Cardinality.card'
-  Cardinality.finite'
-  Cardinality.subset'
-  Cardinality.eq_set
+  Code_Cardinality.card'
+  Code_Cardinality.finite'
+  Code_Cardinality.subset'
+  Code_Cardinality.eq_set
   Euclidean_Algorithm.Gcd
   Euclidean_Algorithm.Lcm
   "Gcd :: _ poly set \<Rightarrow> _"
