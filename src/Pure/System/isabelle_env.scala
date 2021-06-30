@@ -21,16 +21,19 @@ object Isabelle_Env
   /** bootstrap information **/
 
   def bootstrap_directory(
-    preference: String, envar: String, property: String, description: String): String =
+    preference: String, variable: String, property: String, description: String): String =
   {
-    val value =
-      proper_string(preference) orElse  // explicit argument
-      proper_string(System.getenv(envar)) orElse  // e.g. inherited from running isabelle tool
-      proper_string(System.getProperty(property)) getOrElse  // e.g. via JVM application boot process
-      error("Unknown " + description + " directory")
+    val a = preference  // explicit argument
+    val b = System.getenv(variable)  // e.g. inherited from running isabelle tool
+    val c = System.getProperty(property)  // e.g. via JVM application boot process
+    val dir =
+      if (a != null && a.nonEmpty) a
+      else if (b != null && b.nonEmpty) b
+      else if (c != null && c.nonEmpty) c
+      else error("Unknown " + description + " directory")
 
-    if ((new JFile(value)).isDirectory) value
-    else error("Bad " + description + " directory " + quote(value))
+    if ((new JFile(dir)).isDirectory) dir
+    else error("Bad " + description + " directory " + quote(dir))
   }
 
 
