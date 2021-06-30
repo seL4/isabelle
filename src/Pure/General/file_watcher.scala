@@ -7,6 +7,7 @@ Watcher for file-system events.
 package isabelle
 
 
+import java.util.{List => JList}
 import java.io.{File => JFile}
 import java.nio.file.FileSystems
 import java.nio.file.{WatchKey, WatchEvent, Path => JPath}
@@ -102,7 +103,7 @@ object File_Watcher
                   st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
                     case Some(dir) =>
                       val events: Iterable[WatchEvent[JPath]] =
-                        key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]].asScala
+                        key.pollEvents.asInstanceOf[JList[WatchEvent[JPath]]].asScala
                       val remove = if (key.reset) None else Some(dir)
                       val changed =
                         events.iterator.foldLeft(Set.empty[JFile]) {

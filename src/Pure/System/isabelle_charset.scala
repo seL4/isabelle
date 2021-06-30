@@ -7,6 +7,7 @@ Charset for Isabelle symbols.
 package isabelle
 
 
+import java.util.{List => JList}
 import java.nio.Buffer
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder, CoderResult}
@@ -45,6 +46,6 @@ class Isabelle_Charset_Provider extends CharsetProvider
   {
     // FIXME inactive
     // Iterator(Isabelle_Charset.charset)
-    java.util.List.of[Charset]().listIterator()
+    JList.of[Charset]().listIterator()
   }
 }

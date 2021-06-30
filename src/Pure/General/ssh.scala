@@ -7,7 +7,7 @@ SSH client based on JSch (see also http://www.jcraft.com/jsch/examples).
 package isabelle
 
 
-import java.util.{Map => JMap, HashMap}
+import java.util.{Map => JMap}
 import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
 import scala.collection.mutable
