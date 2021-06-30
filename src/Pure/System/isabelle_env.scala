@@ -220,10 +220,9 @@ object Isabelle_Env
         if (!res.ok) error(res.out)
 
         for (s <- space_explode('\u0000', Files.readString(settings_file))) {
-          s match {
-            case Properties.Eq(a, b) => settings.put(a, b)
-            case s => if (s.nonEmpty && !s.startsWith("=")) settings.put(s, "")
-          }
+          val i = s.indexOf('=')
+          if (i > 0) settings.put(s.substring(0, i), s.substring(i + 1))
+          else if (i < 0 && s.nonEmpty) settings.put(s, "")
         }
       }
       finally { Files.delete(settings_file) }
