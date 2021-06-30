@@ -11,7 +11,6 @@ package isabelle
 import java.util.{HashMap, LinkedList, List => JList, Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.Files
-import scala.annotation.tailrec
 
 
 object Isabelle_Env
@@ -73,23 +72,23 @@ object Isabelle_Env
       val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
 
       if (uninitialized) {
-        val symlinks =
-        {
-          val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
-          Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
-        }
-        @tailrec def recover_symlinks(list: List[String]): Unit =
-        {
-          list match {
-            case Nil | List("") =>
-            case target :: content :: rest =>
-              cygwin_link(content, new JFile(isabelle_root, target))
-              recover_symlinks(rest)
-            case _ => error("Unbalanced symlinks list")
+        val symlinks_path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
+        val symlinks = Files.readAllLines(symlinks_path, UTF8.charset).toArray(new Array[String](0))
+
+        // recover symlinks
+        var i = 0
+        val m = symlinks.length
+        val n = if (m > 0 && symlinks(m - 1).isEmpty) m - 1 else m
+        while (i < n) {
+          if (i + 1 < n) {
+            val target = symlinks(i)
+            val content = symlinks(i + 1)
+            cygwin_link(content, new JFile(isabelle_root, target))
+            i += 2
           }
+          else error("Unbalanced symlinks list")
         }
-        recover_symlinks(symlinks)
-  
+
         cygwin_exec(JList.of(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall"))
         cygwin_exec(JList.of(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall"))
       }
