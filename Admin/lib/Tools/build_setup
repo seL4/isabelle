@@ -7,6 +7,7 @@
 ## sources
 
 declare -a SOURCES=(
+  "Build_Scala.java"
   "Environment.java"
   "Setup.java"
 )
