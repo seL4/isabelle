@@ -271,6 +271,12 @@ public class Environment
         return _settings;
     }
 
+    public static String getenv(String name)
+        throws IOException, InterruptedException
+    {
+        return settings().getOrDefault(name, "");
+    }
+
     public static synchronized void init(String _isabelle_root, String _cygwin_root)
         throws IOException, InterruptedException
     {
@@ -340,7 +346,7 @@ public class Environment
     public static String cygwin_root()
         throws IOException, InterruptedException
     {
-        return settings().getOrDefault("CYGWIN_ROOT", "");
+        return getenv("CYGWIN_ROOT");
     }
 
     public static String standard_path(String platform_path)
