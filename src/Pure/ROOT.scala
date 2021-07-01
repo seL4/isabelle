@@ -21,4 +21,3 @@ package object isabelle
   val proper_string = Library.proper_string _
   def proper_list[A](list: List[A]): Option[List[A]] = Library.proper_list(list)
 }
-
