@@ -116,12 +116,9 @@ object Scala_Project
 
     Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
 
-    if (symlinks) {
-      Isabelle_System.symlink(Path.explode("~~/src/Tools/Setup/src/isabelle"), java_src_dir)
-    }
-    else {
-      Isabelle_System.copy_dir(Path.explode("~~/src/Tools/Setup/src"), java_src_dir)
-    }
+    val isabelle_setup_dir = Path.explode("~~/src/Tools/Setup/isabelle")
+    if (symlinks) Isabelle_System.symlink(isabelle_setup_dir, java_src_dir)
+    else Isabelle_System.copy_dir(isabelle_setup_dir, java_src_dir)
 
     val files = isabelle_files
     isabelle_scala_files

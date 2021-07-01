@@ -53,7 +53,7 @@ mkdir -p "$TARGET_DIR/isabelle/setup"
 declare -a ARGS=("-Xlint:unchecked")
 for SRC in "${SOURCES[@]}"
 do
-  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/src/isabelle/setup/$SRC")"
+  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
 done
 
 isabelle_jdk javac -d "$TARGET_DIR" "${ARGS[@]}" || \
