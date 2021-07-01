@@ -29,7 +29,7 @@ object File
   def standard_path(path: Path): String = path.expand.implode
 
   def standard_path(platform_path: String): String =
-    isabelle.setup.Environment.standard_path(Isabelle_System.cygwin_root(), platform_path)
+    isabelle.setup.Environment.standard_path(platform_path)
 
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
@@ -46,7 +46,7 @@ object File
   /* platform path (Windows or Posix) */
 
   def platform_path(standard_path: String): String =
-    isabelle.setup.Environment.platform_path(Isabelle_System.cygwin_root(), standard_path)
+    isabelle.setup.Environment.platform_path(standard_path)
 
   def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))

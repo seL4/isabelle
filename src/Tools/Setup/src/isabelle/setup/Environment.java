@@ -333,4 +333,44 @@ public class Environment
             _settings = Map.copyOf(settings);
         }
     }
+
+
+    /* Cygwin root (after init) */
+
+    public static String cygwin_root()
+        throws IOException, InterruptedException
+    {
+        return settings().getOrDefault("CYGWIN_ROOT", "");
+    }
+
+    public static String standard_path(String platform_path)
+        throws IOException, InterruptedException
+    {
+        return standard_path(cygwin_root(), platform_path);
+    }
+
+    public static String platform_path(String standard_path)
+        throws IOException, InterruptedException
+    {
+        return platform_path(cygwin_root(), standard_path);
+    }
+
+
+    /* kill process (via bash) */
+
+    static public boolean kill_process(String group_pid, String signal)
+        throws IOException, InterruptedException
+    {
+        List<String> cmd = new LinkedList<String>();
+        if (is_windows()) {
+            cmd.add(cygwin_root() + "\\bin\\bash.exe");
+        }
+        else {
+            cmd.add("/usr/bin/env");
+            cmd.add("bash");
+        }
+        cmd.add("-c");
+        cmd.add("kill -" + signal + " -" + group_pid);
+        return exec_process(cmd, null, null, false).ok();
+    }
 }

@@ -47,21 +47,6 @@ object Bash
 
   type Watchdog = (Time, Process => Boolean)
 
-  def process_signal(group_pid: String, signal: String = "0"): Boolean =
-  {
-    val cmd = new LinkedList[String]
-    if (Platform.is_windows) {
-      cmd.add(Isabelle_System.cygwin_root() + "\\bin\\bash.exe")
-    }
-    else {
-      cmd.add("/usr/bin/env")
-      cmd.add("bash")
-    }
-    cmd.add("-c")
-    cmd.add("kill -" + signal + " -" + group_pid)
-    isabelle.setup.Environment.exec_process(cmd, null, null, false).ok
-  }
-
   def process(script: String,
       cwd: JFile = null,
       env: JMap[String, String] = Isabelle_System.settings(),
@@ -133,8 +118,10 @@ object Bash
     {
       count <= 0 ||
       {
-        process_signal(group_pid, signal = s)
-        val running = root_process_alive() || process_signal(group_pid)
+        isabelle.setup.Environment.kill_process(group_pid, s)
+        val running =
+          root_process_alive() ||
+          isabelle.setup.Environment.kill_process(group_pid, "0")
         if (running) {
           Time.seconds(0.1).sleep()
           signal(s, count - 1)
@@ -152,7 +139,7 @@ object Bash
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible
     {
-      process_signal(group_pid, "INT")
+      isabelle.setup.Environment.kill_process(group_pid, "INT")
     }
 
 
