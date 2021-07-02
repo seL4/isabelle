@@ -1781,7 +1781,7 @@ subsection\<open>The Argument of a Complex Number\<close>
 text\<open>Unlike in HOL Light, it's defined for the same interval as the complex logarithm: \<open>(-\<pi>,\<pi>]\<close>.\<close>
 
 lemma Arg_eq_Im_Ln:
-  assumes "z \<noteq> 0" shows "arg z = Im (Ln z)"
+  assumes "z \<noteq> 0" shows "Arg z = Im (Ln z)"
 proof (rule arg_unique)
   show "sgn z = cis (Im (Ln z))"
     by (metis assms exp_Ln exp_eq_polar nonzero_mult_div_cancel_left norm_eq_zero 
@@ -1793,11 +1793,9 @@ proof (rule arg_unique)
 qed
 
 text \<open>The 1990s definition of argument coincides with the more recent one\<close>
-lemma Arg_definition_equivalence:
-  shows "arg z = (if z = 0 then 0 else Im (Ln z))"
-  by (simp add: Arg_eq_Im_Ln arg_zero)
-
-definition\<^marker>\<open>tag important\<close> Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
+lemma\<^marker>\<open>tag important\<close> Arg_def:
+  shows "Arg z = (if z = 0 then 0 else Im (Ln z))"
+  by (simp add: Arg_eq_Im_Ln Arg_zero)
 
 lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
   by (simp add: Im_Ln_eq_pi Arg_def)

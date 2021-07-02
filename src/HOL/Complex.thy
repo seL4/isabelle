@@ -888,7 +888,6 @@ lemma rcis_inverse: "inverse(rcis r a) = rcis (1 / r) (- a)"
 lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1 / r2) (a - b)"
   by (simp add: rcis_def cis_divide [symmetric])
 
-
 subsubsection \<open>Complex exponential\<close>
 
 lemma exp_Reals_eq:
@@ -957,15 +956,15 @@ lemma continuous_on_cis [continuous_intros]:
 
 subsubsection \<open>Complex argument\<close>
 
-definition arg :: "complex \<Rightarrow> real"
-  where "arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> - pi < a \<and> a \<le> pi))"
+definition Arg :: "complex \<Rightarrow> real"
+  where "Arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> - pi < a \<and> a \<le> pi))"
 
-lemma arg_zero: "arg 0 = 0"
-  by (simp add: arg_def)
+lemma Arg_zero: "Arg 0 = 0"
+  by (simp add: Arg_def)
 
 lemma arg_unique:
   assumes "sgn z = cis x" and "-pi < x" and "x \<le> pi"
-  shows "arg z = x"
+  shows "Arg z = x"
 proof -
   from assms have "z \<noteq> 0" by auto
   have "(SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi) = x"
@@ -987,14 +986,14 @@ proof -
     then show "a = x"
       by (simp add: d_def)
   qed (simp add: assms del: Re_sgn Im_sgn)
-  with \<open>z \<noteq> 0\<close> show "arg z = x"
-    by (simp add: arg_def)
+  with \<open>z \<noteq> 0\<close> show "Arg z = x"
+    by (simp add: Arg_def)
 qed
 
 lemma arg_correct:
   assumes "z \<noteq> 0"
-  shows "sgn z = cis (arg z) \<and> -pi < arg z \<and> arg z \<le> pi"
-proof (simp add: arg_def assms, rule someI_ex)
+  shows "sgn z = cis (Arg z) \<and> -pi < Arg z \<and> Arg z \<le> pi"
+proof (simp add: Arg_def assms, rule someI_ex)
   obtain r a where z: "z = rcis r a"
     using rcis_Ex by fast
   with assms have "r \<noteq> 0" by auto
@@ -1016,22 +1015,26 @@ proof (simp add: arg_def assms, rule someI_ex)
     by fast
 qed
 
-lemma arg_bounded: "- pi < arg z \<and> arg z \<le> pi"
-  by (cases "z = 0") (simp_all add: arg_zero arg_correct)
+lemma Arg_bounded: "- pi < Arg z \<and> Arg z \<le> pi"
+  by (cases "z = 0") (simp_all add: Arg_zero arg_correct)
 
-lemma cis_arg: "z \<noteq> 0 \<Longrightarrow> cis (arg z) = sgn z"
+lemma cis_Arg: "z \<noteq> 0 \<Longrightarrow> cis (Arg z) = sgn z"
   by (simp add: arg_correct)
 
-lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
-  by (cases "z = 0") (simp_all add: rcis_def cis_arg sgn_div_norm of_real_def)
+lemma rcis_cmod_Arg: "rcis (cmod z) (Arg z) = z"
+  by (cases "z = 0") (simp_all add: rcis_def cis_Arg sgn_div_norm of_real_def)
 
-lemma cos_arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (arg y) = 0"
-  using cis_arg [of y] by (simp add: complex_eq_iff)
+lemma rcis_cnj:
+  shows "cnj a = rcis (cmod a) (- Arg a)"
+  by (metis cis_cnj complex_cnj_complex_of_real complex_cnj_mult rcis_cmod_Arg rcis_def)
 
-lemma arg_ii [simp]: "arg \<i> = pi/2"
+lemma cos_Arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (Arg y) = 0"
+  using cis_Arg [of y] by (simp add: complex_eq_iff)
+
+lemma Arg_ii [simp]: "Arg \<i> = pi/2"
   by (rule arg_unique; simp add: sgn_eq)
 
-lemma arg_minus_ii [simp]: "arg (-\<i>) = -pi/2"
+lemma Arg_minus_ii [simp]: "Arg (-\<i>) = -pi/2"
 proof (rule arg_unique)
   show "sgn (- \<i>) = cis (- pi / 2)"
     by (simp add: sgn_eq)
@@ -1097,23 +1100,23 @@ lemma card_roots_unity_eq:
 lemma bij_betw_nth_root_unity:
   fixes c :: complex and n :: nat
   assumes c: "c \<noteq> 0" and n: "n > 0"
-  defines "c' \<equiv> root n (norm c) * cis (arg c / n)"
+  defines "c' \<equiv> root n (norm c) * cis (Arg c / n)"
   shows "bij_betw (\<lambda>z. c' * z) {z. z ^ n = 1} {z. z ^ n = c}"
 proof -
-  have "c' ^ n = of_real (root n (norm c) ^ n) * cis (arg c)"
+  have "c' ^ n = of_real (root n (norm c) ^ n) * cis (Arg c)"
     unfolding of_real_power using n by (simp add: c'_def power_mult_distrib DeMoivre)
   also from n have "root n (norm c) ^ n = norm c" by simp
-  also from c have "of_real \<dots> * cis (arg c) = c" by (simp add: cis_arg Complex.sgn_eq)
+  also from c have "of_real \<dots> * cis (Arg c) = c" by (simp add: cis_Arg Complex.sgn_eq)
   finally have [simp]: "c' ^ n = c" .
 
   show ?thesis unfolding bij_betw_def inj_on_def
   proof safe
     fix z :: complex assume "z ^ n = 1"
     hence "(c' * z) ^ n = c' ^ n" by (simp add: power_mult_distrib)
-    also have "c' ^ n = of_real (root n (norm c) ^ n) * cis (arg c)"
+    also have "c' ^ n = of_real (root n (norm c) ^ n) * cis (Arg c)"
       unfolding of_real_power using n by (simp add: c'_def power_mult_distrib DeMoivre)
     also from n have "root n (norm c) ^ n = norm c" by simp
-    also from c have "\<dots> * cis (arg c) = c" by (simp add: cis_arg Complex.sgn_eq)
+    also from c have "\<dots> * cis (Arg c) = c" by (simp add: cis_Arg Complex.sgn_eq)
     finally show "(c' * z) ^ n = c" .
   next
     fix z assume z: "c = z ^ n"
@@ -1188,7 +1191,7 @@ proof (cases "c = 0")
   finally show ?thesis .
 next
   case False
-  define c' where "c' = root n (norm c) * cis (arg c / n)"
+  define c' where "c' = root n (norm c) * cis (Arg c / n)"
   from False and assms have "(\<Sum>{z. z ^ n = c}) = (\<Sum>z | z ^ n = 1. c' * z)"
     by (subst sum.reindex_bij_betw [OF bij_betw_nth_root_unity, symmetric])
        (auto simp: sum_distrib_left finite_roots_unity c'_def)
