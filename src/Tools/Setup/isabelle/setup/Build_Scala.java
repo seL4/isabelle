@@ -12,9 +12,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -52,10 +52,23 @@ public class Build_Scala
         public String main() { return props.getProperty("main", ""); }
 
         public String[] sources() { return props.getProperty("sources", "").split("\\s+"); }
+        public String[] resources() { return props.getProperty("resources", "").split("\\s+"); }
         public String[] services() { return props.getProperty("services", "").split("\\s+"); }
 
         public Path path(String file) { return component_dir.resolve(file); }
         public boolean exists(String file) { return Files.exists(path(file)); }
+
+        public String resource_name(String s)
+        {
+            int i = s.indexOf(':');
+            return i > 0 ? s.substring(0, i) : s;
+        }
+
+        public String resource_target(String s)
+        {
+            int i = s.indexOf(':');
+            return i > 0 ? s.substring(i + 1) : s;
+        }
 
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException
@@ -77,6 +90,7 @@ public class Build_Scala
         String shasum_name = context.shasum_name();
 
         String[] sources = context.sources();
+        String[] resources = context.resources();
 
         if (sources.length == 0) {
             Files.deleteIfExists(context.path(jar_name));
@@ -89,6 +103,9 @@ public class Build_Scala
             {
                 StringBuilder _shasum = new StringBuilder();
                 for (String s : sources) { _shasum.append(context.shasum(s)); }
+                for (String s : resources) {
+                    _shasum.append(context.shasum(context.resource_name(s)));
+                }
                 shasum_sources = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(context.shasum(jar_name) + shasum_sources)) {
@@ -119,7 +136,7 @@ public class Build_Scala
                     env.put("CLASSPATH", String.join(File.pathSeparator, classpath));
 
 
-                    /* scalac */
+                    /* compile sources */
 
                     List<String> cmd = new LinkedList<String>();
                     Environment.Exec_Result res;
@@ -132,6 +149,32 @@ public class Build_Scala
 
                     res = Environment.exec_process(cmd, build_dir.toFile(), env, false);
                     if (!res.ok()) throw new RuntimeException(res.err());
+
+
+                    /* copy resources */
+
+                    for (String s : context.resources()) {
+                        String name = context.resource_name(s);
+                        String target = context.resource_target(s);
+                        Path file_name = Path.of(name).normalize().getFileName();
+                        Path target_path = Path.of(target).normalize();
+
+                        Path target_dir;
+                        Path target_file;
+                        {
+                            if (target.endsWith("/") || target.endsWith("/.")) {
+                                target_dir = build_dir.resolve(target_path);
+                                target_file = target_dir.resolve(file_name);
+                            }
+                            else {
+                                target_file = build_dir.resolve(target_path);
+                                target_dir = target_file.getParent();
+                            }
+                        }
+                        Files.createDirectories(target_dir);
+                        Files.copy(context.path(name), target_file,
+                            StandardCopyOption.COPY_ATTRIBUTES);
+                    }
 
 
                     /* jar */
