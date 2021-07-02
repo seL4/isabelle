@@ -11,11 +11,6 @@ definition\<^marker>\<open>tag important\<close> residue :: "(complex \<Rightarr
   "residue f z = (SOME int. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon><e
     \<longrightarrow> (f has_contour_integral 2*pi* \<i> *int) (circlepath z \<epsilon>))"
 
-lemma Eps_cong:
-  assumes "\<And>x. P x = Q x"
-  shows   "Eps P = Eps Q"
-  using ext[of P Q, OF assms] by simp
-
 lemma residue_cong:
   assumes eq: "eventually (\<lambda>z. f z = g z) (at z)" and "z = z'"
   shows   "residue f z = residue g z'"
