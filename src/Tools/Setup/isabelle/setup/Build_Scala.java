@@ -7,8 +7,10 @@ Build Isabelle/Scala modules.
 package isabelle.setup;
 
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,11 +24,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.stream.Stream;
 
 
 public class Build_Scala
 {
+    /** component directory context **/
+
     public static class Context
     {
         private final Path component_dir;
@@ -83,6 +91,44 @@ public class Build_Scala
             else { return ""; }
         }
     }
+
+
+
+    /** create jar **/
+
+    public static void create_jar(Path dir, String main, Path jar)
+        throws IOException
+    {
+        Files.deleteIfExists(jar);
+
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        attributes.put(new Attributes.Name("Created-By"),
+            System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")");
+        if (!main.isEmpty()) { attributes.put(Attributes.Name.MAIN_CLASS, main); }
+
+        try (JarOutputStream out =
+            new JarOutputStream(new BufferedOutputStream(Files.newOutputStream(jar)), manifest))
+        {
+            for (Path path : Files.walk(dir).sorted().toArray(Path[]::new)) {
+                boolean is_dir = Files.isDirectory(path);
+                boolean is_file = Files.isRegularFile(path);
+                if (is_dir || is_file) {
+                    String name = Environment.slashes(dir.relativize(path).toString());
+                    JarEntry entry = new JarEntry(is_dir ? name + "/" : name);
+                    entry.setTime(path.toFile().lastModified());
+                    out.putNextEntry(entry);
+                    if (is_file) { out.write(Files.readAllBytes(path)); }
+                    out.closeEntry();
+                }
+            }
+        }
+    }
+
+
+
+    /** build scala **/
 
     public static void build_scala(Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
@@ -178,24 +224,9 @@ public class Build_Scala
                     }
 
 
-                    /* jar */
+                    /* packaging */
 
-                    cmd.clear();
-                    cmd.add(Environment.platform_path(java_home + "/bin/jar"));
-                    cmd.add("-c");
-                    cmd.add("-f");
-                    cmd.add(context.path(jar_name).toString());
-                    if (!context.main().isEmpty()) {
-                        cmd.add("-e");
-                        cmd.add(context.main());
-                    }
-                    cmd.add(".");
-
-                    res = Environment.exec_process(cmd, build_dir.toFile(), env, false);
-                    if (!res.ok()) throw new RuntimeException(res.err());
-
-
-                    /* shasum */
+                    create_jar(build_dir, context.main(), context.path(jar_name));
 
                     String shasum = context.shasum(jar_name) + shasum_sources;
                     Files.writeString(context.path(shasum_name), shasum);

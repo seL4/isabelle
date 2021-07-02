@@ -39,7 +39,7 @@ public class Environment
 
     /* system path representations */
 
-    private static String slashes(String s) { return s.replace('\\', '/'); }
+    public static String slashes(String s) { return s.replace('\\', '/'); }
 
     public static String standard_path(String cygwin_root, String platform_path)
     {
