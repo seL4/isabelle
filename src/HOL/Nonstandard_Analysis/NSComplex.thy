@@ -45,7 +45,7 @@ definition hsgn :: "hcomplex \<Rightarrow> hcomplex"
   where "hsgn = *f* sgn"
 
 definition harg :: "hcomplex \<Rightarrow> hypreal"
-  where "harg = *f* arg"
+  where "harg = *f* Arg"
 
 definition  \<comment> \<open>abbreviation for \<open>cos a + i sin a\<close>\<close>
   hcis :: "hypreal \<Rightarrow> hcomplex"
