@@ -59,13 +59,13 @@ public class Build_Scala
         public Path path(String file) { return component_dir.resolve(file); }
         public boolean exists(String file) { return Files.exists(path(file)); }
 
-        public String resource_name(String s)
+        public String item_name(String s)
         {
             int i = s.indexOf(':');
             return i > 0 ? s.substring(0, i) : s;
         }
 
-        public String resource_target(String s)
+        public String item_target(String s)
         {
             int i = s.indexOf(':');
             return i > 0 ? s.substring(i + 1) : s;
@@ -104,7 +104,7 @@ public class Build_Scala
             {
                 StringBuilder _shasum = new StringBuilder();
                 for (String s : resources) {
-                    _shasum.append(context.shasum(context.resource_name(s)));
+                    _shasum.append(context.shasum(context.item_name(s)));
                 }
                 for (String s : sources) { _shasum.append(context.shasum(s)); }
                 shasum_sources = _shasum.toString();
@@ -155,8 +155,8 @@ public class Build_Scala
                     /* copy resources */
 
                     for (String s : context.resources()) {
-                        String name = context.resource_name(s);
-                        String target = context.resource_target(s);
+                        String name = context.item_name(s);
+                        String target = context.item_target(s);
                         Path file_name = Path.of(name).normalize().getFileName();
                         Path target_path = Path.of(target).normalize();
 
