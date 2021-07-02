@@ -79,14 +79,14 @@ public class Build_Scala
             return props.getProperty("main", "");
         }
 
-        public List<String> sources()
+        public String[] sources()
         {
-            return Arrays.asList(props.getProperty("sources", "").split("\\s+"));
+            return props.getProperty("sources", "").split("\\s+");
         }
 
-        public List<String> services()
+        public String[] services()
         {
-            return Arrays.asList(props.getProperty("services", "").split("\\s+"));
+            return props.getProperty("services", "").split("\\s+");
         }
 
         public Path path(String file)
@@ -118,9 +118,9 @@ public class Build_Scala
         String jar_name = context.jar_name();
         String shasum_name = context.shasum_name();
 
-        List<String> sources = context.sources();
+        String[] sources = context.sources();
 
-        if (sources.isEmpty()) {
+        if (sources.length == 0) {
             Files.deleteIfExists(context.path(jar_name));
             Files.deleteIfExists(context.path(shasum_name));
         }
