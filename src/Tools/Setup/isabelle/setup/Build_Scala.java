@@ -39,65 +39,23 @@ public class Build_Scala
             if (Files.exists(path)) { props.load(Files.newBufferedReader(path)); }
         }
 
-        @Override public String toString()
-        {
-            return component_dir.toString();
-        }
+        @Override public String toString() { return component_dir.toString(); }
 
-        public String component_name()
-        {
-            return component_dir.toFile().getName();
-        }
+        public String component_name() { return component_dir.toFile().getName(); }
+        public String name() { return props.getProperty("name", component_name()); }
+        public String description() { return props.getProperty("description", name()); }
 
-        public String name()
-        {
-            return props.getProperty("name", component_name());
-        }
+        public String lib_name() { return props.getProperty("lib", "lib") + "/" + name(); }
+        public String jar_name() { return lib_name() + ".jar"; }
+        public String shasum_name() { return lib_name() + ".shasum"; }
 
-        public String description()
-        {
-            return props.getProperty("description", name());
-        }
+        public String main() { return props.getProperty("main", ""); }
 
-        public String lib_name()
-        {
-            return props.getProperty("lib", "lib") + "/" + name();
-        }
+        public String[] sources() { return props.getProperty("sources", "").split("\\s+"); }
+        public String[] services() { return props.getProperty("services", "").split("\\s+"); }
 
-        public String jar_name()
-        {
-            return lib_name() + ".jar";
-        }
-
-        public String shasum_name()
-        {
-            return lib_name() + ".shasum";
-        }
-
-        public String main()
-        {
-            return props.getProperty("main", "");
-        }
-
-        public String[] sources()
-        {
-            return props.getProperty("sources", "").split("\\s+");
-        }
-
-        public String[] services()
-        {
-            return props.getProperty("services", "").split("\\s+");
-        }
-
-        public Path path(String file)
-        {
-            return component_dir.resolve(file);
-        }
-
-        public boolean exists(String file)
-        {
-            return Files.exists(path(file));
-        }
+        public Path path(String file) { return component_dir.resolve(file); }
+        public boolean exists(String file) { return Files.exists(path(file)); }
 
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException
@@ -130,9 +88,7 @@ public class Build_Scala
             String shasum_sources;
             {
                 StringBuilder _shasum = new StringBuilder();
-                for (String s : sources) {
-                    _shasum.append(context.shasum(s));
-                }
+                for (String s : sources) { _shasum.append(context.shasum(s)); }
                 shasum_sources = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(context.shasum(jar_name) + shasum_sources)) {
