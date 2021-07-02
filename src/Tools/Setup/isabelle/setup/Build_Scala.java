@@ -103,10 +103,10 @@ public class Build_Scala
             String shasum_sources;
             {
                 StringBuilder _shasum = new StringBuilder();
-                for (String s : sources) { _shasum.append(context.shasum(s)); }
                 for (String s : resources) {
                     _shasum.append(context.shasum(context.resource_name(s)));
                 }
+                for (String s : sources) { _shasum.append(context.shasum(s)); }
                 shasum_sources = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(context.shasum(jar_name) + shasum_sources)) {
