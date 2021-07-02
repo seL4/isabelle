@@ -64,6 +64,16 @@ public class Build_Scala
             return props.getProperty("lib", "lib") + "/" + name();
         }
 
+        public String jar_name()
+        {
+            return lib_name() + ".jar";
+        }
+
+        public String shasum_name()
+        {
+            return lib_name() + ".shasum";
+        }
+
         public String main()
         {
             return props.getProperty("main", "");
@@ -105,8 +115,8 @@ public class Build_Scala
     public static void build_scala(Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
-        String jar_name = context.lib_name() + ".jar";
-        String shasum_name = context.lib_name() + ".shasum";
+        String jar_name = context.jar_name();
+        String shasum_name = context.shasum_name();
 
         List<String> sources = context.sources();
 
