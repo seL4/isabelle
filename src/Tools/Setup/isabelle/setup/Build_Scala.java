@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
@@ -76,7 +77,7 @@ public class Build_Scala
             if (exists(file)) {
                 MessageDigest sha = MessageDigest.getInstance("SHA");
                 sha.update(Files.readAllBytes(path(file)));
-                String digest = new BigInteger(1, sha.digest()).toString(16);
+                String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
                 return digest + " *" + file + "\n";
             }
             else { return ""; }
