@@ -1367,8 +1367,8 @@ lemma continuous_on_Ln' [continuous_intros]:
   "continuous_on S f \<Longrightarrow> (\<And>z. z \<in> S \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on S (\<lambda>x. Ln (f x))"
   by (rule continuous_on_compose2[OF continuous_on_Ln, of "UNIV - nonpos_Reals" S f]) auto
 
-lemma holomorphic_on_Ln [holomorphic_intros]: "(\<And>z. z \<in> S \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on S"
-  by (simp add: field_differentiable_within_Ln holomorphic_on_def)
+lemma holomorphic_on_Ln [holomorphic_intros]: "S \<inter> \<real>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Ln holomorphic_on S"
+  by (simp add: disjoint_iff field_differentiable_within_Ln holomorphic_on_def)
 
 lemma holomorphic_on_Ln' [holomorphic_intros]:
   "(\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> f holomorphic_on A \<Longrightarrow> (\<lambda>z. Ln (f z)) holomorphic_on A"
@@ -1695,6 +1695,10 @@ corollary\<^marker>\<open>tag unimportant\<close> Ln_times_of_real:
   using mpi_less_Im_Ln Im_Ln_le_pi
   by (force simp: Ln_times)
 
+corollary\<^marker>\<open>tag unimportant\<close> Ln_times_of_nat:
+    "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(of_nat r * z :: complex) = ln (of_nat r) + Ln(z)"
+  using Ln_times_of_real[of "of_nat r" z] by simp
+
 corollary\<^marker>\<open>tag unimportant\<close> Ln_times_Reals:
     "\<lbrakk>r \<in> Reals; Re r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(r * z) = ln (Re r) + Ln(z)"
   using Ln_Reals_eq Ln_times_of_real by fastforce
@@ -1782,7 +1786,7 @@ text\<open>Unlike in HOL Light, it's defined for the same interval as the comple
 
 lemma Arg_eq_Im_Ln:
   assumes "z \<noteq> 0" shows "Arg z = Im (Ln z)"
-proof (rule arg_unique)
+proof (rule cis_Arg_unique)
   show "sgn z = cis (Im (Ln z))"
     by (metis assms exp_Ln exp_eq_polar nonzero_mult_div_cancel_left norm_eq_zero 
               norm_exp_eq_Re of_real_eq_0_iff sgn_eq)
@@ -1797,7 +1801,7 @@ lemma\<^marker>\<open>tag important\<close> Arg_def:
   shows "Arg z = (if z = 0 then 0 else Im (Ln z))"
   by (simp add: Arg_eq_Im_Ln Arg_zero)
 
-lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
+lemma Arg_of_real [simp]: "Arg (of_real r) = (if r<0 then pi else 0)"
   by (simp add: Im_Ln_eq_pi Arg_def)
 
 lemma mpi_less_Arg: "-pi < Arg z"
@@ -2046,6 +2050,41 @@ lemma Ln_times_unwinding:
     "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * \<i> * unwinding(Ln w + Ln z)"
   using unwinding_2pi by (simp add: exp_add)
 
+
+lemma arg_conv_arctan:
+  assumes "Re z > 0"
+  shows   "Arg z = arctan (Im z / Re z)"
+proof (rule cis_Arg_unique)
+  show "sgn z = cis (arctan (Im z / Re z))"
+  proof (rule complex_eqI)
+    have "Re (cis (arctan (Im z / Re z))) = 1 / sqrt (1 + (Im z)\<^sup>2 / (Re z)\<^sup>2)"
+      by (simp add: cos_arctan power_divide)
+    also have "1 + Im z ^ 2 / Re z ^ 2 = norm z ^ 2 / Re z ^ 2"
+      using assms by (simp add: cmod_def field_simps)
+    also have "1 / sqrt \<dots> = Re z / norm z"
+      using assms by (simp add: real_sqrt_divide)
+    finally show "Re (sgn z) = Re (cis (arctan (Im z / Re z)))"
+      by simp
+  next
+    have "Im (cis (arctan (Im z / Re z))) = Im z / (Re z * sqrt (1 + (Im z)\<^sup>2 / (Re z)\<^sup>2))"
+      by (simp add: sin_arctan field_simps)
+    also have "1 + Im z ^ 2 / Re z ^ 2 = norm z ^ 2 / Re z ^ 2"
+      using assms by (simp add: cmod_def field_simps)
+    also have "Im z / (Re z * sqrt \<dots>) = Im z / norm z"
+      using assms by (simp add: real_sqrt_divide)
+    finally show "Im (sgn z) = Im (cis (arctan (Im z / Re z)))"
+      by simp
+  qed
+next
+  show "arctan (Im z / Re z) > -pi"
+    by (rule le_less_trans[OF _ arctan_lbound]) auto
+next
+  have "arctan (Im z / Re z) < pi / 2"
+    by (rule arctan_ubound)
+  also have "\<dots> \<le> pi" by simp
+  finally show "arctan (Im z / Re z) \<le> pi"
+    by simp
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
 

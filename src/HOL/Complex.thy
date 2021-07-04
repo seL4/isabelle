@@ -962,7 +962,7 @@ definition Arg :: "complex \<Rightarrow> real"
 lemma Arg_zero: "Arg 0 = 0"
   by (simp add: Arg_def)
 
-lemma arg_unique:
+lemma cis_Arg_unique:
   assumes "sgn z = cis x" and "-pi < x" and "x \<le> pi"
   shows "Arg z = x"
 proof -
@@ -990,7 +990,7 @@ proof -
     by (simp add: Arg_def)
 qed
 
-lemma arg_correct:
+lemma Arg_correct:
   assumes "z \<noteq> 0"
   shows "sgn z = cis (Arg z) \<and> -pi < Arg z \<and> Arg z \<le> pi"
 proof (simp add: Arg_def assms, rule someI_ex)
@@ -1016,10 +1016,10 @@ proof (simp add: Arg_def assms, rule someI_ex)
 qed
 
 lemma Arg_bounded: "- pi < Arg z \<and> Arg z \<le> pi"
-  by (cases "z = 0") (simp_all add: Arg_zero arg_correct)
+  by (cases "z = 0") (simp_all add: Arg_zero Arg_correct)
 
 lemma cis_Arg: "z \<noteq> 0 \<Longrightarrow> cis (Arg z) = sgn z"
-  by (simp add: arg_correct)
+  by (simp add: Arg_correct)
 
 lemma rcis_cmod_Arg: "rcis (cmod z) (Arg z) = z"
   by (cases "z = 0") (simp_all add: rcis_def cis_Arg sgn_div_norm of_real_def)
@@ -1032,10 +1032,10 @@ lemma cos_Arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Lon
   using cis_Arg [of y] by (simp add: complex_eq_iff)
 
 lemma Arg_ii [simp]: "Arg \<i> = pi/2"
-  by (rule arg_unique; simp add: sgn_eq)
+  by (rule cis_Arg_unique; simp add: sgn_eq)
 
 lemma Arg_minus_ii [simp]: "Arg (-\<i>) = -pi/2"
-proof (rule arg_unique)
+proof (rule cis_Arg_unique)
   show "sgn (- \<i>) = cis (- pi / 2)"
     by (simp add: sgn_eq)
   show "- pi / 2 \<le> pi"

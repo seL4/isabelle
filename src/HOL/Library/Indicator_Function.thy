@@ -77,7 +77,12 @@ lemma indicator_image: "inj f \<Longrightarrow> indicator (f ` X) (f x) = (indic
 lemma indicator_vimage: "indicator (f -` A) x = indicator A (f x)"
   by (auto split: split_indicator)
 
-lemma  (* FIXME unnamed!? *)
+lemma mult_indicator_cong:
+  fixes f g :: "_ \<Rightarrow> 'a :: semiring_1"
+  shows "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> indicator A x * f x = indicator A x * g x"
+  by (auto simp: indicator_def)
+  
+lemma  
   fixes f :: "'a \<Rightarrow> 'b::semiring_1"
   assumes "finite A"
   shows sum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator B x) = (\<Sum>x \<in> A \<inter> B. f x)"

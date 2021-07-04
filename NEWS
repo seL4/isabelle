@@ -146,6 +146,10 @@ inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
 and some more small lemmas. Some theorems that were stated awkwardly
 before were corrected. Minor INCOMPATIBILITY.
 
+* Session "HOL-Analysis": the complex Arg function has been identified
+with the function "arg" of Complex_Main, renaming arg->Arg also in the
+names of arg_bounded. Minor INCOMPATIBILITY.
+
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
 and "eq_iff" from locale "ordering". INCOMPATIBILITY: significant

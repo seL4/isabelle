@@ -4922,6 +4922,9 @@ lemma negligible_translation_rev:
     shows "negligible S"
 by (metis negligible_translation [OF assms, of "-c"] translation_galois)
 
+lemma negligible_atLeastAtMostI: "b \<le> a \<Longrightarrow> negligible {a..(b::real)}"
+  using negligible_insert by fastforce
+
 lemma has_integral_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
