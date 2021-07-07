@@ -60,9 +60,17 @@ public class Build_Scala
 
         public String main() { return props.getProperty("main", ""); }
 
-        public String[] sources() { return props.getProperty("sources", "").split("\\s+"); }
-        public String[] resources() { return props.getProperty("resources", "").split("\\s+"); }
-        public String[] services() { return props.getProperty("services", "").split("\\s+"); }
+        private List<String> get_list(String name)
+        {
+            List<String> list = new LinkedList<String>();
+            for (String s : props.getProperty(name, "").split("\\s+")) {
+                if (!s.isEmpty()) { list.add(s); }
+            }
+            return List.copyOf(list);
+        }
+        public List<String> sources() { return get_list("sources"); }
+        public List<String> resources() { return get_list("resources"); }
+        public List<String> services() { return get_list("services"); }
 
         public Path path(String file) { return component_dir.resolve(file); }
         public boolean exists(String file) { return Files.exists(path(file)); }
@@ -103,7 +111,9 @@ public class Build_Scala
         args.add(target_dir.toString());
         args.add("-bootclasspath");
         args.add(Environment.join_paths(deps));
-        for (String s : options.split("\\s+")) { args.add(s); }
+        for (String s : options.split("\\s+")) {
+          if (!s.isEmpty()) { args.add(s); }
+        }
         args.add("--");
         for (Path p : sources) { args.add(p.toString()); }
 
@@ -156,10 +166,10 @@ public class Build_Scala
         Path jar_path = context.path(jar_name);
         String shasum_name = context.shasum_name();
 
-        String[] sources = context.sources();
-        String[] resources = context.resources();
+        List<String> sources = context.sources();
+        List<String> resources = context.resources();
 
-        if (sources.length == 0) {
+        if (sources.isEmpty()) {
             Files.deleteIfExists(jar_path);
             Files.deleteIfExists(context.path(shasum_name));
         }
@@ -188,7 +198,9 @@ public class Build_Scala
 
                     List<Path> compiler_deps = new LinkedList<Path>();
                     for (String s : isabelle_class_path.split(":", -1)) {
-                        compiler_deps.add(Path.of(Environment.platform_path(s)));
+                        if (!s.isEmpty()) {
+                          compiler_deps.add(Path.of(Environment.platform_path(s)));
+                        }
                     }
 
                     List<Path> compiler_sources = new LinkedList<Path>();
