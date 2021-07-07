@@ -10,25 +10,25 @@ package isabelle.setup;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
+
+import scala.tools.nsc.MainClass;
 
 
 public class Build_Scala
@@ -93,6 +93,25 @@ public class Build_Scala
     }
 
 
+    /** compile sources **/
+
+    public static void compile_sources(
+        Path target_dir, List<Path> deps, String options, List<Path> sources)
+    {
+        ArrayList<String> args = new ArrayList<String>();
+        args.add("-d");
+        args.add(target_dir.toString());
+        args.add("-bootclasspath");
+        args.add(Environment.join_paths(deps));
+        for (String s : options.split("\\s+")) { args.add(s); }
+        args.add("--");
+        for (Path p : sources) { args.add(p.toString()); }
+
+        MainClass main = new MainClass();
+        boolean ok = main.process(args.toArray(String[]::new));
+        if (!ok) throw new RuntimeException("Failed to compile sources");
+    }
+
 
     /** create jar **/
 
@@ -134,13 +153,14 @@ public class Build_Scala
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
         String jar_name = context.jar_name();
+        Path jar_path = context.path(jar_name);
         String shasum_name = context.shasum_name();
 
         String[] sources = context.sources();
         String[] resources = context.resources();
 
         if (sources.length == 0) {
-            Files.deleteIfExists(context.path(jar_name));
+            Files.deleteIfExists(jar_path);
             Files.deleteIfExists(context.path(shasum_name));
         }
         else {
@@ -156,46 +176,25 @@ public class Build_Scala
                 shasum_sources = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(context.shasum(jar_name) + shasum_sources)) {
-                System.out.println("### Building " + context.description() + " ...");
+                System.out.println(
+                    "### Building " + context.description() + " (" + jar_path + ") ...");
 
-                String java_home = Environment.getenv("JAVA_HOME");
-                String scala_home = Environment.getenv("SCALA_HOME");
                 String scalac_options = Environment.getenv("ISABELLE_SCALAC_OPTIONS");
                 String isabelle_class_path = Environment.getenv("ISABELLE_CLASSPATH");
 
-                if (java_home.isEmpty()) {
-                    throw new RuntimeException("Unknown JAVA_HOME -- Java unavailable");
-                }
-                if (scala_home.isEmpty()) {
-                    throw new RuntimeException("Unknown SCALA_HOME -- Scala unavailable");
-                }
-
                 Path build_dir = Files.createTempDirectory("isabelle");
                 try {
-                    /* classpath */
-
-                    List<String> classpath = new LinkedList<String>();
-                    for (String s : isabelle_class_path.split(":", -1)) {
-                        classpath.add(Environment.platform_path(s));
-                    }
-
-                    Map<String,String> env = new HashMap<String,String>(Environment.settings());
-                    env.put("CLASSPATH", String.join(File.pathSeparator, classpath));
-
-
                     /* compile sources */
 
-                    List<String> cmd = new LinkedList<String>();
-                    Environment.Exec_Result res;
+                    List<Path> compiler_deps = new LinkedList<Path>();
+                    for (String s : isabelle_class_path.split(":", -1)) {
+                        compiler_deps.add(Path.of(Environment.platform_path(s)));
+                    }
 
-                    cmd.add(Environment.platform_path(scala_home + "/bin/scalac"));
-                    for (String s : scalac_options.split("\\s+")) { cmd.add(s); }
-                    cmd.add("-d");
-                    cmd.add(build_dir.toString());
-                    for (String s : sources) { cmd.add(context.path(s).toString()); }
+                    List<Path> compiler_sources = new LinkedList<Path>();
+                    for (String s : sources) { compiler_sources.add(context.path(s)); }
 
-                    res = Environment.exec_process(cmd, build_dir.toFile(), env, false);
-                    if (!res.ok()) throw new RuntimeException(res.err());
+                    compile_sources(build_dir, compiler_deps, scalac_options, compiler_sources);
 
 
                     /* copy resources */
@@ -226,7 +225,7 @@ public class Build_Scala
 
                     /* packaging */
 
-                    create_jar(build_dir, context.main(), context.path(jar_name));
+                    create_jar(build_dir, context.main(), jar_path);
 
                     String shasum = context.shasum(jar_name) + shasum_sources;
                     Files.writeString(context.path(shasum_name), shasum);

@@ -113,6 +113,13 @@ public class Environment
         else { return standard_path; }
     }
 
+    public static String join_paths(List<Path> paths)
+    {
+        List<String> strs = new LinkedList<String>();
+        for (Path p : paths) { strs.add(p.toString()); }
+        return String.join(File.pathSeparator, strs);
+    }
+
 
     /* raw process */
 
