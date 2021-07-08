@@ -11,6 +11,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -24,6 +25,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
@@ -56,7 +58,6 @@ public class Build
 
         public String lib_name() { return props.getProperty("lib", "lib") + "/" + name(); }
         public String jar_name() { return lib_name() + ".jar"; }
-        public String shasum_name() { return lib_name() + ".shasum"; }
 
         public String main() { return props.getProperty("main", ""); }
 
@@ -74,6 +75,9 @@ public class Build
 
         public Path path(String file) { return component_dir.resolve(file); }
         public boolean exists(String file) { return Files.exists(path(file)); }
+
+        // historic
+        public Path shasum_path() { return path(lib_name() + ".shasum"); }
 
         public String item_name(String s)
         {
@@ -94,7 +98,7 @@ public class Build
                 MessageDigest sha = MessageDigest.getInstance("SHA");
                 sha.update(Files.readAllBytes(path(file)));
                 String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
-                return digest + " *" + file + "\n";
+                return digest + " " + file + "\n";
             }
             else { return ""; }
         }
@@ -120,6 +124,36 @@ public class Build
         MainClass main = new MainClass();
         boolean ok = main.process(args.toArray(String[]::new));
         if (!ok) throw new RuntimeException("Failed to compile sources");
+    }
+
+
+    /** shasum for jar content **/
+
+    private static String SHASUM = "META-INF/shasum";
+
+    public static String get_shasum(Path jar_path)
+        throws IOException
+    {
+        if (Files.exists(jar_path)) {
+            try (JarFile jar_file = new JarFile(jar_path.toFile()))
+            {
+                JarEntry entry = jar_file.getJarEntry(SHASUM);
+                if (entry != null) {
+                    byte[] bytes = jar_file.getInputStream(entry).readAllBytes();
+                    return new String(bytes, StandardCharsets.UTF_8);
+                }
+                else { return ""; }
+            }
+        }
+        else { return ""; }
+    }
+
+    public static void create_shasum(Path dir, String shasum)
+        throws IOException
+    {
+        Path path = dir.resolve(SHASUM);
+        Files.createDirectories(dir.getParent());
+        Files.writeString(path, shasum);
     }
 
 
@@ -164,28 +198,27 @@ public class Build
     {
         String jar_name = context.jar_name();
         Path jar_path = context.path(jar_name);
-        String shasum_name = context.shasum_name();
 
         List<String> sources = context.sources();
         List<String> resources = context.resources();
 
-        if (sources.isEmpty()) {
+        Files.deleteIfExists(context.shasum_path());
+
+        if (sources.isEmpty() && resources.isEmpty()) {
             Files.deleteIfExists(jar_path);
-            Files.deleteIfExists(context.path(shasum_name));
         }
         else {
-            String shasum_old =
-                context.exists(shasum_name) ? Files.readString(context.path(shasum_name)) : "";
-            String shasum_sources;
+            String shasum_old = get_shasum(jar_path);
+            String shasum;
             {
                 StringBuilder _shasum = new StringBuilder();
                 for (String s : resources) {
                     _shasum.append(context.shasum(context.item_name(s)));
                 }
                 for (String s : sources) { _shasum.append(context.shasum(s)); }
-                shasum_sources = _shasum.toString();
+                shasum = _shasum.toString();
             }
-            if (fresh || !shasum_old.equals(context.shasum(jar_name) + shasum_sources)) {
+            if (fresh || !shasum_old.equals(shasum)) {
                 System.out.println(
                     "### Building " + context.description() + " (" + jar_path + ") ...");
 
@@ -237,10 +270,8 @@ public class Build
 
                     /* packaging */
 
+                    create_shasum(build_dir, shasum);
                     create_jar(build_dir, context.main(), jar_path);
-
-                    String shasum = context.shasum(jar_name) + shasum_sources;
-                    Files.writeString(context.path(shasum_name), shasum);
                 }
                 finally {
                     try (Stream<Path> walk = Files.walk(build_dir)) {
