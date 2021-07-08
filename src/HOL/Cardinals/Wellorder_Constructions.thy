@@ -699,7 +699,7 @@ assumes "aboveS i \<noteq> {}"
 shows "(j, succ i) \<in> r \<longleftrightarrow> (j,i) \<in> r \<or> j = succ i"
 apply safe
   apply (metis WELL assms in_notinI well_order_on_domain suc_singl_pred succ_def succ_in_diff)
-  apply (metis (hide_lams, full_types) REFL TRANS assms max2_def max2_equals1 refl_on_domain succ_in_Field succ_not_in transD)
+  apply (metis (opaque_lifting, full_types) REFL TRANS assms max2_def max2_equals1 refl_on_domain succ_in_Field succ_not_in transD)
   apply (metis assms in_notinI succ_in_Field)
 done
 

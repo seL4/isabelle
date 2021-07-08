@@ -468,7 +468,7 @@ proof -
             using G H group.subgroup_self hom_one homf injf inv_into_f_eq subgroup.one_closed by fastforce
           with x show "?g \<in> {x \<in> \<Pi>\<^sub>E i\<in>I. carrier (G i). finite {i \<in> I. x i \<noteq> \<one>\<^bsub>G i\<^esub>}}"
             apply (auto simp: PiE_iff inv_into_into conj_commute cong: conj_cong)
-            by (metis (no_types, hide_lams) iso_iff f inv_into_into)
+            by (metis (no_types, opaque_lifting) iso_iff f inv_into_into)
         qed
       qed
     qed

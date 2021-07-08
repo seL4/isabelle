@@ -799,7 +799,7 @@ lemma integral_cong:
   assumes "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
   shows "integral s f = integral s g"
   unfolding integral_def
-by (metis (full_types, hide_lams) assms has_integral_cong integrable_eq)
+by (metis (full_types, opaque_lifting) assms has_integral_cong integrable_eq)
 
 lemma integrable_on_cmult_left_iff [simp]:
   assumes "c \<noteq> 0"
@@ -5695,7 +5695,7 @@ proof (rule field_le_epsilon)
   have "norm (?SUM ?p - integral (cbox a b) f) < e"
   proof (rule less_e)
     show "d fine ?p"
-      by (metis (mono_tags, hide_lams) qq fine_Un fine_Union imageE p(2))
+      by (metis (mono_tags, opaque_lifting) qq fine_Un fine_Union imageE p(2))
     note ptag = tagged_partial_division_of_Union_self[OF p(1)]
     have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
     proof (rule tagged_division_Un[OF ptag tagged_division_Union [OF \<open>finite r\<close>]])

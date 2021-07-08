@@ -279,7 +279,7 @@ qualified lemma dlist_eq_into_doubles: "Dlist.dlist_eq \<le> equivclp double"
 
 qualified lemma factor_double_map: "double (map f xs) ys \<Longrightarrow> \<exists>zs. Dlist.dlist_eq xs zs \<and> ys = map f zs \<and> set zs \<subseteq> set xs"
   by(auto simp add: double.simps Dlist.dlist_eq_def vimage2p_def map_eq_append_conv)
-    (metis (no_types, hide_lams) list.simps(9) map_append remdups.simps(2) remdups_append2 set_append set_eq_subset set_remdups)
+    (metis (no_types, opaque_lifting) list.simps(9) map_append remdups.simps(2) remdups_append2 set_append set_eq_subset set_remdups)
 
 qualified lemma dlist_eq_set_eq: "Dlist.dlist_eq xs ys \<Longrightarrow> set xs = set ys"
   by(simp add: Dlist.dlist_eq_def vimage2p_def)(metis set_remdups)

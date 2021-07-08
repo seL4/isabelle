@@ -410,7 +410,7 @@ abbreviation singular_relboundary_set :: "nat \<Rightarrow> 'a topology \<Righta
 lemma singular_relboundary_restrict [simp]:
    "singular_relboundary p X (topspace X \<inter> S) = singular_relboundary p X S"
   unfolding singular_relboundary_def
-  by (metis (no_types, hide_lams) subtopology_subtopology subtopology_topspace)
+  by (metis (no_types, opaque_lifting) subtopology_subtopology subtopology_topspace)
 
 lemma singular_relboundary_alt:
    "singular_relboundary p X S c \<longleftrightarrow>
@@ -1564,7 +1564,7 @@ proof (induction p arbitrary: d c f x y)
       have 3: "simplex_cone p (Sigp f) g \<in> ?rhs"
       proof -
         have "simplicial_simplex p (f ` standard_simplex(Suc p)) g"
-          by (metis (mono_tags, hide_lams) sc_sub mem_Collect_eq simplicial_chain_def simplicial_chain_simplicial_subdivision subsetD that)
+          by (metis (mono_tags, opaque_lifting) sc_sub mem_Collect_eq simplicial_chain_def simplicial_chain_simplicial_subdivision subsetD that)
         then obtain m where m: "g ` standard_simplex p \<subseteq> f ` standard_simplex (Suc p)"
           and geq: "g = oriented_simplex p m"
           using ssf by (auto simp: simplicial_simplex)
@@ -3090,7 +3090,7 @@ proof -
             have "i + j > 0"
               using that by blast
             then show ?thesis
-              by (metis (no_types, hide_lams) One_nat_def Suc_diff_1 add.inverse_inverse mult.left_neutral mult_minus_left power_Suc)
+              by (metis (no_types, opaque_lifting) One_nat_def Suc_diff_1 add.inverse_inverse mult.left_neutral mult_minus_left power_Suc)
           qed
           show ?thesis
             apply (rule sum.eq_general_inverses [where h = "\<lambda>(a,b). (a-1,b)" and k = "\<lambda>(a,b). (Suc a,b)"])

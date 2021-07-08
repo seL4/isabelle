@@ -1158,7 +1158,7 @@ proposition  orthogonal_transformation_isometry:
   "orthogonal_transformation f \<longleftrightarrow> f(0::'a::real_inner) = (0::'a) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
   unfolding orthogonal_transformation
   apply (auto simp: linear_0 isometry_linear)
-   apply (metis (no_types, hide_lams) dist_norm linear_diff)
+   apply (metis (no_types, opaque_lifting) dist_norm linear_diff)
   by (metis dist_0_norm)
 
 

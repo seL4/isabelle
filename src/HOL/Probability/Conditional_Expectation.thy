@@ -673,7 +673,7 @@ proof -
   also have "... = (\<integral> x. f x * max (g x) 0 - f x * max (-g x) 0 \<partial>M)"
     by (rule Bochner_Integration.integral_diff[symmetric]) (simp_all add: int1 int2)
   also have "... = (\<integral>x. f x * g x \<partial>M)"
-    by (metis (mono_tags, hide_lams) diff_0 diff_zero eq_iff max.cobounded2 max_def minus_minus neg_le_0_iff_le right_diff_distrib)
+    by (metis (mono_tags, opaque_lifting) diff_0 diff_zero eq_iff max.cobounded2 max_def minus_minus neg_le_0_iff_le right_diff_distrib)
   finally show "(\<integral> x. f x * real_cond_exp M F g x \<partial>M) = (\<integral>x. f x * g x \<partial>M)"
     by simp
 qed
@@ -728,7 +728,7 @@ proof -
   also have "... = (\<integral> x. fp x * g x - fm x * g x \<partial>M)"
     using intm intp by simp
   also have "... = (\<integral> x. f x * g x \<partial>M)"
-    unfolding fp_def fm_def by (metis (no_types, hide_lams) diff_0 diff_zero max.commute
+    unfolding fp_def fm_def by (metis (no_types, opaque_lifting) diff_0 diff_zero max.commute
     max_def minus_minus mult.commute neg_le_iff_le right_diff_distrib)
   finally show "(\<integral> x. f x * real_cond_exp M F g x \<partial>M) = (\<integral> x. f x * g x \<partial>M)" by simp
 qed

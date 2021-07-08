@@ -493,7 +493,7 @@ proof (cases "n = 0")
     finally have 2: "(un [^]\<^bsub>?rhgn (equator n)\<^esub> a) \<otimes>\<^bsub>?rhgn (equator n)\<^esub> (up [^]\<^bsub>?rhgn (equator n)\<^esub> b)
              = ?hi_ee neg (?hi_ee f up) [^]\<^bsub>?rhgn (equator n)\<^esub> Brouwer_degree2 (n - Suc 0) neg" .
     have "un = ?hi_ee neg up [^]\<^bsub>?rhgn (equator n)\<^esub> Brouwer_degree2 (n - Suc 0) neg"
-      by (metis (no_types, hide_lams) Brouwer_degree2_21 GE.int_pow_1 GE.int_pow_pow hi_up_eq_un power2_eq_1_iff uncarr zmult_eq_1_iff)
+      by (metis (no_types, opaque_lifting) Brouwer_degree2_21 GE.int_pow_1 GE.int_pow_pow hi_up_eq_un power2_eq_1_iff uncarr zmult_eq_1_iff)
     moreover have "?hi_ee f ((?hi_ee neg up) [^]\<^bsub>?rhgn (equator n)\<^esub> (Brouwer_degree2 (n - Suc 0) neg))
                  = un [^]\<^bsub>?rhgn (equator n)\<^esub> a \<otimes>\<^bsub>?rhgn (equator n)\<^esub> up [^]\<^bsub>?rhgn (equator n)\<^esub> b"
       using 1 2 by (simp add: hom_induced_carrier gh_eef.hom_int_pow fun_eq_iff)
@@ -1518,7 +1518,7 @@ next
               have "path_component_of ?ES x (?neg x)"
               proof -
                 have "path_component_of ?ES x a"
-                  by (metis (no_types, hide_lams) ** a b \<open>a \<noteq> b\<close> negab path_component_of_trans path_component_of_sym x)
+                  by (metis (no_types, opaque_lifting) ** a b \<open>a \<noteq> b\<close> negab path_component_of_trans path_component_of_sym x)
                 moreover
                 have pa_ab: "path_component_of ?ES a b" using "**" a b negab neg_neg by blast
                 then have "path_component_of ?ES a (?neg x)"

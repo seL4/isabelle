@@ -1552,11 +1552,11 @@ qed
 
 lemma bounded_fst: "bounded s \<Longrightarrow> bounded (fst ` s)"
   unfolding bounded_def
-  by (metis (erased, hide_lams) dist_fst_le image_iff order_trans)
+  by (metis (erased, opaque_lifting) dist_fst_le image_iff order_trans)
 
 lemma bounded_snd: "bounded s \<Longrightarrow> bounded (snd ` s)"
   unfolding bounded_def
-  by (metis (no_types, hide_lams) dist_snd_le image_iff order.trans)
+  by (metis (no_types, opaque_lifting) dist_snd_le image_iff order.trans)
 
 instance\<^marker>\<open>tag important\<close> prod :: (heine_borel, heine_borel) heine_borel
 proof

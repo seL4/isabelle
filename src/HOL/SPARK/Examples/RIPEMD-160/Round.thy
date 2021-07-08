@@ -200,7 +200,7 @@ proof -
         \<open>?X mod ?MM = ?X\<close>
       unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
       apply (simp only: flip: take_bit_eq_mod add: uint_word_of_int_eq)
-      apply (metis (mono_tags, hide_lams) of_int_of_nat_eq ucast_id uint_word_of_int_eq unsigned_of_int)
+      apply (metis (mono_tags, opaque_lifting) of_int_of_nat_eq ucast_id uint_word_of_int_eq unsigned_of_int)
       done
   qed
 
@@ -244,7 +244,7 @@ proof -
         \<open>?X mod ?MM = ?X\<close>
       unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
       apply (simp only: flip: take_bit_eq_mod add: uint_word_of_int_eq)
-      apply (metis (mono_tags, hide_lams) of_nat_nat_take_bit_eq ucast_id unsigned_of_int)
+      apply (metis (mono_tags, opaque_lifting) of_nat_nat_take_bit_eq ucast_id unsigned_of_int)
       done
   qed
 

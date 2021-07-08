@@ -1887,7 +1887,7 @@ lemma
   subgoal
     by (metis dual_order.strict_trans greaterThanLessThan_iff greaterThan_iff gt_ex not_le order_refl)
   subgoal
-    by (metis (no_types, hide_lams) greaterThanLessThan_empty_iff greaterThanLessThan_iff gt_ex
+    by (metis (no_types, opaque_lifting) greaterThanLessThan_empty_iff greaterThanLessThan_iff gt_ex
         lessThan_iff minus_minus neg_less_iff_less not_less order_less_irrefl)
   subgoal by force
   subgoal

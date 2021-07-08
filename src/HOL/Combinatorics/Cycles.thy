@@ -436,7 +436,7 @@ proof -
       hence "(tl (support p a) @ [ a ]) ! i = a"
         by (metis (no_types, lifting) diff_zero length_map length_tl length_upt nth_append_length)
       also have " ... = p ((p ^^ i) a)"
-        by (metis (mono_tags, hide_lams) least_power_props i Suc_diff_1 funpow_simps_right(2) funpow_swap1 o_apply)
+        by (metis (mono_tags, opaque_lifting) least_power_props i Suc_diff_1 funpow_simps_right(2) funpow_swap1 o_apply)
       finally show ?thesis .
     next
       assume "i \<noteq> least_power p a - 1"

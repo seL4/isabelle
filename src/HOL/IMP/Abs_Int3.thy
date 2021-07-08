@@ -438,7 +438,7 @@ definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^sub>c") where
 
 lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
   (\<exists>i<length (annos C1). annos C1 ! i < annos C2 ! i))"
-by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
+by(metis (opaque_lifting, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
 
 lemma n_c_narrow: "strip C1 = strip C2
   \<Longrightarrow> top_on_acom C1 (- vars C1) \<Longrightarrow> top_on_acom C2 (- vars C2)

@@ -65,7 +65,7 @@ begin
 
 lemma in_gamma_sup_UpI:
   "s \<in> \<gamma>\<^sub>o S1 \<or> s \<in> \<gamma>\<^sub>o S2 \<Longrightarrow> s \<in> \<gamma>\<^sub>o(S1 \<squnion> S2)"
-by (metis (hide_lams, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
+by (metis (opaque_lifting, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |

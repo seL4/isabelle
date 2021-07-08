@@ -713,7 +713,7 @@ proof
     proof (cases m n rule: linorder_class.le_cases)
       assume "m \<le> n"
       then show ?thesis
-        by (metis (mono_tags, hide_lams) M atLeast0LessThan order_trans sum_diff_nat_ivl that zero_le)
+        by (metis (mono_tags, opaque_lifting) M atLeast0LessThan order_trans sum_diff_nat_ivl that zero_le)
     next
       assume "n \<le> m"
       then show ?thesis

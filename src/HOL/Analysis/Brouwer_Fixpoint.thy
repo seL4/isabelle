@@ -2054,7 +2054,7 @@ proof (rule ccontr)
     show "\<And>x. x \<in> frontier (cball a B) \<Longrightarrow> h x = x"
       apply (auto simp: h_def algebra_simps)
       apply (simp add: vector_add_divide_simps  notga)
-      by (metis (no_types, hide_lams) B add.commute dist_commute  dist_norm g_def mem_ball not_less_iff_gr_or_eq  subset_eq)
+      by (metis (no_types, opaque_lifting) B add.commute dist_commute  dist_norm g_def mem_ball not_less_iff_gr_or_eq  subset_eq)
   qed
   ultimately show False by simp
 qed

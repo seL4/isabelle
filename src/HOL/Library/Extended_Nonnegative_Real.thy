@@ -1888,7 +1888,7 @@ lemma ennreal_plus_if: "ennreal a + ennreal b = ennreal (if 0 \<le> a then (if 0
   by (auto simp: ennreal_neg)
 
 lemma power_le_one_iff: "0 \<le> (a::real) \<Longrightarrow> a ^ n \<le> 1 \<longleftrightarrow> (n = 0 \<or> a \<le> 1)"
-  by (metis (mono_tags, hide_lams) le_less neq0_conv not_le one_le_power power_0 power_eq_imp_eq_base power_le_one zero_le_one)
+  by (metis (mono_tags, opaque_lifting) le_less neq0_conv not_le one_le_power power_0 power_eq_imp_eq_base power_le_one zero_le_one)
 
 lemma ennreal_diff_le_mono_left: "a \<le> b \<Longrightarrow> a - c \<le> (b::ennreal)"
   using ennreal_mono_minus[of 0 c a, THEN order_trans, of b] by simp

@@ -141,7 +141,7 @@ proof -
     using norm_cross [of x y] by (auto simp: power_mult_distrib)
   also have "... \<longleftrightarrow> \<bar>x \<bullet> y\<bar> = norm x * norm y"
     using power2_eq_iff
-    by (metis (mono_tags, hide_lams) abs_minus abs_norm_cancel abs_power2 norm_mult power_abs real_norm_def) 
+    by (metis (mono_tags, opaque_lifting) abs_minus abs_norm_cancel abs_power2 norm_mult power_abs real_norm_def) 
   also have "... \<longleftrightarrow> collinear {0, x, y}"
     by (rule norm_cauchy_schwarz_equal)
   finally show ?thesis .

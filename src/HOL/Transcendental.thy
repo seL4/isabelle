@@ -2367,7 +2367,7 @@ next
   have "-x \<le> (exp(-x) - inverse(exp(-x))) / 2"
     by (meson False linear neg_le_0_iff_le real_le_x_sinh)
   also have "\<dots> \<le> \<bar>(exp x - inverse (exp x)) / 2\<bar>"
-    by (metis (no_types, hide_lams) abs_divide abs_le_iff abs_minus_cancel
+    by (metis (no_types, opaque_lifting) abs_divide abs_le_iff abs_minus_cancel
        add.inverse_inverse exp_minus minus_diff_eq order_refl)
   finally show ?thesis
     using False by linarith
@@ -3942,7 +3942,7 @@ lemma sin_2pi_minus [simp]: "sin (2 * pi - x) = - (sin x)"
   by (metis sin_periodic_pi2 add_diff_eq mult_2 sin_pi_minus)
 
 lemma cos_2pi_minus [simp]: "cos (2 * pi - x) = cos x"
-  by (metis (no_types, hide_lams) cos_add cos_minus cos_two_pi sin_minus sin_two_pi
+  by (metis (no_types, opaque_lifting) cos_add cos_minus cos_two_pi sin_minus sin_two_pi
       diff_0_right minus_diff_eq mult_1 mult_zero_left uminus_add_conv_diff)
 
 lemma sin_gt_zero2: "0 < x \<Longrightarrow> x < pi/2 \<Longrightarrow> 0 < sin x"
@@ -4987,7 +4987,7 @@ lemma arcsin_minus_1 [simp]: "arcsin (- 1) = - (pi/2)"
   using arcsin_sin [of "- pi/2"] by simp
 
 lemma arcsin_minus: "- 1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin (- x) = - arcsin x"
-  by (metis (no_types, hide_lams) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
+  by (metis (no_types, opaque_lifting) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
 
 lemma arcsin_eq_iff: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arcsin x = arcsin y \<longleftrightarrow> x = y"
   by (metis abs_le_iff arcsin minus_le_iff)

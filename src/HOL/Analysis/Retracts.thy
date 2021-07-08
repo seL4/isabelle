@@ -150,7 +150,7 @@ lemma AR_eq_absolute_extensor:
         \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
                closedin (top_of_set U) T \<longrightarrow>
                 (\<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
-  by (metis (mono_tags, hide_lams) AR_imp_absolute_extensor absolute_extensor_imp_AR)
+  by (metis (mono_tags, opaque_lifting) AR_imp_absolute_extensor absolute_extensor_imp_AR)
 
 lemma AR_imp_retract:
   fixes S :: "'a::euclidean_space set"
@@ -1445,7 +1445,7 @@ proof -
           show "finite ((\<inter>) C ` \<U>)"
             by (simp add: insert.hyps(1))
           show "\<And>Ca. Ca \<in> (\<inter>) C ` \<U> \<Longrightarrow> closed Ca"
-            by (metis (no_types, hide_lams) Suc.prems(2) closed_Int subsetD imageE insert.prems insertI1 insertI2)
+            by (metis (no_types, opaque_lifting) Suc.prems(2) closed_Int subsetD imageE insert.prems insertI1 insertI2)
           show "\<And>Ca. Ca \<in> (\<inter>) C ` \<U> \<Longrightarrow> convex Ca"
             by (metis (mono_tags, lifting) Suc.prems(3) convex_Int imageE insert.prems insert_subset subsetCE)
           show "card ((\<inter>) C ` \<U>) < n"

@@ -198,7 +198,7 @@ proof -
               by simp
             have "\<bar>z *\<^sub>R \<bar>prod m UNIV\<bar> - \<bar>prod m UNIV\<bar> * measure lebesgue S\<bar>
                  = \<bar>prod m UNIV\<bar> * \<bar>z - measure lebesgue S\<bar>"
-              by (metis (no_types, hide_lams) abs_abs abs_scaleR mult.commute real_scaleR_def right_diff_distrib')
+              by (metis (no_types, opaque_lifting) abs_abs abs_scaleR mult.commute real_scaleR_def right_diff_distrib')
             also have "\<dots> < e"
               using zless True by (simp add: field_simps)
             finally show "\<bar>z *\<^sub>R \<bar>prod m UNIV\<bar> - \<bar>prod m UNIV\<bar> * measure lebesgue S\<bar> < e" .
@@ -563,7 +563,7 @@ proof -
                 by (simp add: bounded_plus [OF bo])
               moreover have "?rfs \<subseteq> ?B"
                 apply (auto simp: dist_norm image_iff dest!: ex_lessK)
-                by (metis (no_types, hide_lams) add.commute diff_add_cancel dist_0_norm dist_commute dist_norm mem_ball)
+                by (metis (no_types, opaque_lifting) add.commute diff_add_cancel dist_0_norm dist_commute dist_norm mem_ball)
               ultimately show "bounded (?rfs)"
                 by (rule bounded_subset)
             qed
@@ -764,7 +764,7 @@ proof -
             fix x
             assume "e > 0"  "m < n"  "n * e \<le> \<bar>det (matrix (f' x))\<bar>"  "\<bar>det (matrix (f' x))\<bar> < (1 + real m) * e"
             then have "n < 1 + real m"
-              by (metis (no_types, hide_lams) less_le_trans mult.commute not_le mult_le_cancel_iff2)
+              by (metis (no_types, opaque_lifting) less_le_trans mult.commute not_le mult_le_cancel_iff2)
             then show "False"
               using less.hyps by linarith
           qed
@@ -1402,7 +1402,7 @@ proof -
               have *: "\<bar>T (b *\<^sub>R axis k 1) \<bullet> (y - x)\<bar> = b * \<bar>inv T y $ k - ?x' $ k\<bar>" for y
               proof -
                 have "\<bar>T (b *\<^sub>R axis k 1) \<bullet> (y - x)\<bar> = \<bar>(b *\<^sub>R axis k 1) \<bullet> inv T (y - x)\<bar>"
-                  by (metis (no_types, hide_lams) b_def eqb invT orthogonal_transformation_def v)
+                  by (metis (no_types, opaque_lifting) b_def eqb invT orthogonal_transformation_def v)
                 also have "\<dots> = b * \<bar>(axis k 1) \<bullet> inv T (y - x)\<bar>"
                   using \<open>b > 0\<close> by (simp add: abs_mult)
                 also have "\<dots> = b * \<bar>inv T y $ k - ?x' $ k\<bar>"
@@ -1480,7 +1480,7 @@ proof -
                                     (\<forall>y\<in>S. norm (y - x) < d \<longrightarrow> norm (f y - f x - A *v (y - x)) \<le> e * norm (y - x))"
                      (is "\<forall>e>0. \<exists>d>0. \<exists>A. ?\<Phi> e d A")
           then have "\<forall>k. \<exists>d>0. \<exists>A. ?\<Phi> (1 / Suc k) d A"
-            by (metis (no_types, hide_lams) less_Suc_eq_0_disj of_nat_0_less_iff zero_less_divide_1_iff)
+            by (metis (no_types, opaque_lifting) less_Suc_eq_0_disj of_nat_0_less_iff zero_less_divide_1_iff)
           then obtain \<delta> A where \<delta>: "\<And>k. \<delta> k > 0"
                            and Ab: "\<And>k. A k $ m $ n < b"
                            and A: "\<And>k y. \<lbrakk>y \<in> S; norm (y - x) < \<delta> k\<rbrakk> \<Longrightarrow>
@@ -1997,7 +1997,7 @@ proof -
       proof
         have "T (inv T x - inv T t) = x - t"
           using T linear_diff orthogonal_transformation_def
-          by (metis (no_types, hide_lams) Tinv)
+          by (metis (no_types, opaque_lifting) Tinv)
         then have "norm (inv T x - inv T t) = norm (x - t)"
           by (metis T orthogonal_transformation_norm)
         then show "norm (inv T x - inv T t) \<le> e"
@@ -2180,7 +2180,7 @@ proof -
               using r12 by auto
             ultimately have "norm (v - u) \<le> 1"
               using norm_triangle_half_r [of x u 1 v]
-              by (metis (no_types, hide_lams) dist_commute dist_norm less_eq_real_def less_le_trans mem_ball)
+              by (metis (no_types, opaque_lifting) dist_commute dist_norm less_eq_real_def less_le_trans mem_ball)
             then have "norm (v - u) ^ ?n \<le> norm (v - u) ^ ?m"
               by (simp add: power_decreasing [OF mlen])
             also have "\<dots> \<le> ?\<mu> K * real (?m ^ ?m)"

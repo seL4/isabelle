@@ -631,7 +631,7 @@ proof
   then show ?rhs
     apply (rule_tac x="f \<circ> inv_into (Collect P) g" in exI)
     unfolding o_def
-    by (metis (mono_tags, hide_lams) f_inv_into_f imageI inv_into_into mem_Collect_eq)
+    by (metis (mono_tags, opaque_lifting) f_inv_into_f imageI inv_into_into mem_Collect_eq)
 qed auto
 
 lemma function_factors_left:

@@ -1298,7 +1298,7 @@ proof -
     using assms by (metis euclidean_all_zero_iff inner_zero_right)
   moreover have "c = 1" if "a \<bullet> (x + c *\<^sub>R w) = b" "a \<bullet> (x + w) = b" for c w
     using that
-    by (metis (no_types, hide_lams) add_diff_eq diff_0 diff_minus_eq_add inner_diff_right inner_scaleR_right mult_cancel_right2 right_minus_eq x)
+    by (metis (no_types, opaque_lifting) add_diff_eq diff_0 diff_minus_eq_add inner_diff_right inner_scaleR_right mult_cancel_right2 right_minus_eq x)
   ultimately
   show ?thesis
     using starlike_negligible [OF closed_hyperplane, of x] by simp
@@ -3597,7 +3597,7 @@ proof -
       fix t
       assume "\<bar>t\<bar> < B" then show "a $ 1 \<le> t \<and> t \<le> b $ 1"
         using subsetD [OF B]
-        by (metis (mono_tags, hide_lams) mem_ball_0 mem_box_cart(2) norm_real vec_component)
+        by (metis (mono_tags, opaque_lifting) mem_ball_0 mem_box_cart(2) norm_real vec_component)
     qed
     have eq: "(\<lambda>x. if vec x \<in> S then f (vec x) else 0) = (\<lambda>x. if x \<in> S then f x else 0) \<circ> vec"
       by force
@@ -4217,7 +4217,7 @@ proof
           finally show ?thesis .
         qed
         ultimately show ?thesis
-          by (metis (no_types, hide_lams) m_def order_trans power2_eq_square power_even_eq)
+          by (metis (no_types, opaque_lifting) m_def order_trans power2_eq_square power_even_eq)
       next
         case False
         with n N1 have "f x \<le> 2^n"

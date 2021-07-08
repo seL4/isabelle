@@ -55,7 +55,7 @@ proof -
   have g: "g = (\<lambda>x. -a + x) \<circ> ((\<lambda>x. a + x) \<circ> g)"
     by (rule ext) simp
   show ?thesis
-    by (metis (no_types, hide_lams) g continuous_on_compose homeomorphism_def homeomorphism_translation)
+    by (metis (no_types, opaque_lifting) g continuous_on_compose homeomorphism_def homeomorphism_translation)
 qed
 
 lemma path_translation_eq:
@@ -2720,7 +2720,7 @@ proof -
       with b have "\<bar>x \<bullet> b\<bar> = norm x"
         using norm_Basis by (simp add: b)
       with xb show ?thesis
-        by (metis (mono_tags, hide_lams) abs_eq_iff abs_norm_cancel)
+        by (metis (mono_tags, opaque_lifting) abs_eq_iff abs_norm_cancel)
     qed
     with \<open>r > 0\<close> b show "sphere 0 r = {r *\<^sub>R b, - r *\<^sub>R b}"
       by (force simp: sphere_def dist_norm)
@@ -3602,7 +3602,7 @@ lemma inside_inside_subset: "inside(inside S) \<subseteq> S"
 lemma inside_outside_intersect_connected:
       "\<lbrakk>connected T; inside S \<inter> T \<noteq> {}; outside S \<inter> T \<noteq> {}\<rbrakk> \<Longrightarrow> S \<inter> T \<noteq> {}"
   apply (simp add: inside_def outside_def ex_in_conv [symmetric] disjoint_eq_subset_Compl, clarify)
-  by (metis (no_types, hide_lams) Compl_anti_mono connected_component_eq connected_component_maximal contra_subsetD double_compl)
+  by (metis (no_types, opaque_lifting) Compl_anti_mono connected_component_eq connected_component_maximal contra_subsetD double_compl)
 
 lemma outside_bounded_nonempty:
   fixes S :: "'a :: {real_normed_vector, perfect_space} set"

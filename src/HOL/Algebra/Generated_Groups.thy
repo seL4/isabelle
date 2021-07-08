@@ -572,11 +572,11 @@ qed
 lemma (in group) subgroup_generated2 [simp]: "subgroup_generated (subgroup_generated G S) S = subgroup_generated G S"
 proof -
   have *: "\<And>A. carrier G \<inter> A \<subseteq> carrier (subgroup_generated (subgroup_generated G A) A)"
-    by (metis (no_types, hide_lams) Int_assoc carrier_subgroup_generated generate.incl inf.order_iff subset_iff)
+    by (metis (no_types, opaque_lifting) Int_assoc carrier_subgroup_generated generate.incl inf.order_iff subset_iff)
   show ?thesis
   apply (auto intro!: monoid.equality)
     using group.carrier_subgroup_generated_subset group_subgroup_generated apply blast
-     apply (metis (no_types, hide_lams) "*" group.subgroup_subgroup_generated group_subgroup_generated subgroup_generated_minimal
+     apply (metis (no_types, opaque_lifting) "*" group.subgroup_subgroup_generated group_subgroup_generated subgroup_generated_minimal
         subgroup_generated_restrict subgroup_subgroup_generated_iff subset_eq)
     apply (simp add: subgroup_generated_def)
     done

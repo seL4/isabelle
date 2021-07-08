@@ -2040,7 +2040,7 @@ proof -
     unfolding image_comp [symmetric] using \<open>U \<subseteq> S\<close> fim
     by (metis homeomorphism_image2 homeomorphism_of_subsets homkh subset_image_iff)
   ultimately show ?thesis
-    by (metis (no_types, hide_lams) homeomorphism_imp_open_map homhk image_comp open_openin subtopology_UNIV)
+    by (metis (no_types, opaque_lifting) homeomorphism_imp_open_map homhk image_comp open_openin subtopology_UNIV)
 qed
 
 lemma inv_of_domain_ss1:
@@ -5483,7 +5483,7 @@ next
     by (meson contg continuous_on_compose continuous_on_subset homeomorphism_cont1 top_greatest)
   then obtain j where contj: "continuous_on (ball 0 1) j"
                   and j: "\<And>z. z \<in> ball 0 1 \<Longrightarrow> exp(j z) = (g \<circ> h) z"
-    by (metis (mono_tags, hide_lams) continuous_logarithm_on_ball comp_apply non0)
+    by (metis (mono_tags, opaque_lifting) continuous_logarithm_on_ball comp_apply non0)
   have [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (k x) = x"
     using hk homeomorphism_apply2 by blast
   have "\<exists>\<zeta>. continuous_on S \<zeta>\<and> (\<forall>x\<in>S. f x = exp (\<zeta> x))"

@@ -1193,7 +1193,7 @@ corollary dim_eq_span:
 
 lemma dim_psubset:
   "span S \<subset> span T \<Longrightarrow> dim S < dim T"
-  by (metis (no_types, hide_lams) dim_span less_le not_le subspace_dim_equal subspace_span)
+  by (metis (no_types, opaque_lifting) dim_span less_le not_le subspace_dim_equal subspace_span)
 
 lemma dim_eq_full:
   shows "dim S = dimension \<longleftrightarrow> span S = UNIV"

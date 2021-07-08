@@ -933,7 +933,7 @@ proof -
   have "?lhs = (\<Sum>k\<le>m. (- a gchoose k) * (- x) ^ k * (x + y) ^ (m - k))"
     by (simp add: gbinomial_partial_sum_poly)
   also have "... = (\<Sum>k\<le>m. (-1) ^ k * (of_nat k - - a - 1 gchoose k) * (- x) ^ k * (x + y) ^ (m - k))"
-    by (metis (no_types, hide_lams) gbinomial_negated_upper)
+    by (metis (no_types, opaque_lifting) gbinomial_negated_upper)
   also have "... = ?rhs"
     by (intro sum.cong) (auto simp flip: power_mult_distrib)
   finally show ?thesis .

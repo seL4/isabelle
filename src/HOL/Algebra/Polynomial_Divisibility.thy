@@ -1176,7 +1176,7 @@ proof -
   from \<open>degree p = 1\<close> have "length p = Suc (Suc 0)"
     by simp
   then obtain a b where p: "p = [ a, b ]"
-    by (metis (no_types, hide_lams) Suc_length_conv length_0_conv)
+    by (metis (no_types, opaque_lifting) Suc_length_conv length_0_conv)
   hence "a \<in> K - { \<zero> }" "b \<in> K"  and in_carrier: "a \<in> carrier R" "b \<in> carrier R"
     using assms(2) subfieldE(3)[OF assms(1)] unfolding sym[OF univ_poly_carrier] polynomial_def by auto
   hence inv_a: "inv a \<in> carrier R" "a \<otimes> inv a = \<one>" and "inv a \<in> K"

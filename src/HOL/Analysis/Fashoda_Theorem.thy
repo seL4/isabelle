@@ -118,7 +118,7 @@ proof (rule ccontr)
     show "(\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 \<subseteq> {-1..1}" for i
       by (auto simp: mem_box_cart)
     show "{-1..1} \<subseteq> (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1" for i
-      by (clarsimp simp: image_iff mem_box_cart Bex_def) (metis (no_types, hide_lams) vec_component)
+      by (clarsimp simp: image_iff mem_box_cart Bex_def) (metis (no_types, opaque_lifting) vec_component)
   qed
   {
     fix x

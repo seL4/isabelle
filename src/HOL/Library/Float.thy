@@ -838,7 +838,7 @@ proof (cases "p + e < 0")
     using \<open>p + e < 0\<close>
     apply transfer
     apply (simp add: round_down_def field_simps flip: floor_divide_of_int_eq)
-    apply (metis (no_types, hide_lams) Float.rep_eq
+    apply (metis (no_types, opaque_lifting) Float.rep_eq
       add.inverse_inverse compute_real_of_float diff_minus_eq_add
       floor_divide_of_int_eq int_of_reals(1) linorder_not_le
       minus_add_distrib of_int_eq_numeral_power_cancel_iff powr_add)
@@ -2394,7 +2394,7 @@ qualified lemma compute_int_floor_fl[code]:
   "int_floor_fl (Float m e) = (if 0 \<le> e then m * 2 ^ nat e else m div (2 ^ (nat (-e))))"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  apply (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power floor_of_int of_int_mult)
+  apply (metis (no_types, opaque_lifting)floor_divide_of_int_eq of_int_numeral of_int_power floor_of_int of_int_mult)
   done
 
 lift_definition floor_fl :: "float \<Rightarrow> float" is "\<lambda>x. real_of_int \<lfloor>x\<rfloor>"
@@ -2404,7 +2404,7 @@ qualified lemma compute_floor_fl[code]:
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e else Float (m div (2 ^ (nat (-e)))) 0)"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  apply (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power of_int_mult)
+  apply (metis (no_types, opaque_lifting)floor_divide_of_int_eq of_int_numeral of_int_power of_int_mult)
   done
 
 end

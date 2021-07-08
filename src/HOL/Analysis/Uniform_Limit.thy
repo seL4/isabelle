@@ -603,7 +603,7 @@ proof (rule uniform_limitI)
   then have "\<forall>\<^sub>F x in F. \<forall>y\<in>S. b/2 \<le> norm (f x y)"
     apply (rule eventually_mono)
     using b apply (simp only: dist_norm)
-    by (metis (no_types, hide_lams) diff_zero dist_commute dist_norm norm_triangle_half_l not_less)
+    by (metis (no_types, opaque_lifting) diff_zero dist_commute dist_norm norm_triangle_half_l not_less)
   then have "\<forall>\<^sub>F x in F. \<forall>y\<in>S. b/2 \<le> norm (f x y) \<and> norm (f x y - l y) < e * b\<^sup>2 / 2"
     apply (simp only: ball_conj_distrib dist_norm [symmetric])
     apply (rule eventually_conj, assumption)

@@ -214,7 +214,7 @@ lemma parts_UN [simp]:
 lemma parts_image [simp]:
   "parts (f ` A) = (\<Union>x\<in>A. parts {f x})"
   apply auto
-  apply (metis (mono_tags, hide_lams) image_iff parts_singleton)
+  apply (metis (mono_tags, opaque_lifting) image_iff parts_singleton)
   apply (metis empty_subsetI image_eqI insert_absorb insert_subset parts_mono)
   done
 

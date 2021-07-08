@@ -1559,7 +1559,7 @@ proof -
     "a < \<xi>" "\<xi> < b" "(\<lambda>y. f' \<xi> y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)" 
     by metis
   then show ?thesis
-    by (metis (no_types, hide_lams) that add.right_neutral add_diff_cancel_left' add_diff_eq \<open>a < b\<close>
+    by (metis (no_types, opaque_lifting) that add.right_neutral add_diff_cancel_left' add_diff_eq \<open>a < b\<close>
                  less_irrefl nonzero_eq_divide_eq)
 qed
 

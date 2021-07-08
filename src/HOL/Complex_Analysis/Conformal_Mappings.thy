@@ -852,7 +852,7 @@ proof
     show "\<exists>B. \<forall>x. B \<le> cmod x \<longrightarrow> dist ((inverse \<circ> f) x) 0 \<le> e"
       apply simp
       apply (clarsimp simp add: compact_eq_bounded_closed bounded_pos norm_inverse)
-      by (metis (no_types, hide_lams) inverse_inverse_eq le_less_trans less_eq_real_def less_imp_inverse_less linordered_field_no_ub not_less)
+      by (metis (no_types, opaque_lifting) inverse_inverse_eq le_less_trans less_eq_real_def less_imp_inverse_less linordered_field_no_ub not_less)
   qed
   then obtain a n where "\<And>z. f z = (\<Sum>i\<le>n. a i * z^i)"
     using assms pole_at_infinity by blast

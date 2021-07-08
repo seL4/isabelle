@@ -120,7 +120,7 @@ proof -
         using * [of "n-2"]  \<open>2 \<le> n\<close>
         by (metis le_add_diff_inverse2)
       then have **: "4 + real n * 2 \<le> real n * (real n * 3)"
-        by (metis (mono_tags, hide_lams) of_nat_le_iff of_nat_add of_nat_mult of_nat_numeral)
+        by (metis (mono_tags, opaque_lifting) of_nat_le_iff of_nat_add of_nat_mult of_nat_numeral)
       have "sqrt ((1 + real n)\<^sup>2 - 1) \<le> 2 * sqrt ((real n)\<^sup>2 - 1)"
         by (auto simp: real_le_lsqrt power2_eq_square algebra_simps 1 **)
       then
@@ -540,7 +540,7 @@ proof -
         by (intro holomorphic_intros holf holomorphic_on_compose [unfolded o_def, OF holf]) auto
     qed auto
     then obtain "c \<noteq> 0" "c \<noteq> 1"
-      by (metis (no_types, hide_lams) non_ff diff_zero divide_eq_0_iff right_inverse_eq)
+      by (metis (no_types, opaque_lifting) non_ff diff_zero divide_eq_0_iff right_inverse_eq)
     have eq: "f(f x) - c * f x = x*(1 - c)" for x
       using fun_cong [OF c, of x] by (simp add: field_simps)
     have df_times_dff: "deriv f z * (deriv f (f z) - c) = 1 * (1 - c)" for z
@@ -684,7 +684,7 @@ next
       if "\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k1)) n (\<sigma> i)) \<longlonglongrightarrow> l" "\<And>j. N \<le> j \<Longrightarrow> \<exists>j'\<ge>j. k2 j = k1 j'"
       for i N and r k1 k2 :: "nat\<Rightarrow>nat"
       using that
-      by (simp add: lim_sequentially) (metis (no_types, hide_lams) le_cases order_trans)
+      by (simp add: lim_sequentially) (metis (no_types, opaque_lifting) le_cases order_trans)
   qed auto
   with \<sigma> that show ?thesis
     by force
@@ -713,7 +713,7 @@ proof -
     then show "\<forall>\<^sub>F n in sequentially. continuous_on S ((\<F> \<circ> r) n)"
       by (simp add: eventually_sequentially)
     show "uniform_limit S (\<F> \<circ> r) g sequentially"
-      using that by (metis (mono_tags, hide_lams) comp_apply dist_norm uniform_limit_sequentially_iff)
+      using that by (metis (mono_tags, opaque_lifting) comp_apply dist_norm uniform_limit_sequentially_iff)
   qed auto
   moreover
   obtain R where "countable R" "R \<subseteq> S" and SR: "S \<subseteq> closure R"
@@ -933,7 +933,7 @@ proof -
         using ex by blast
       then have "\<Phi> g i id (r \<circ> k2)"
         using that
-        by (simp add: \<Phi>_def) (metis (no_types, hide_lams) le_trans linear)
+        by (simp add: \<Phi>_def) (metis (no_types, opaque_lifting) le_trans linear)
       then show ?thesis
         by metis
     qed
@@ -1207,7 +1207,7 @@ proof -
           by simp
         show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e" 
           apply (rule eventually_mono [OF  eventually_conj [OF K z1]])
-          by (metis (no_types, hide_lams) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half)
+          by (metis (no_types, opaque_lifting) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half)
       qed
       show "\<not> (\<lambda>z. g z - g z1) constant_on S - {z1}"
         unfolding constant_on_def

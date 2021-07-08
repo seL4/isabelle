@@ -837,7 +837,7 @@ proof -
     using winding_number_constant [OF \<gamma> loop, of "outside(path_image \<gamma>)"] connected_outside
     by (metis DIM_complex bounded_path_image dual_order.refl \<gamma> outside_no_overlap)
   ultimately have "winding_number \<gamma> z = winding_number \<gamma> w"
-    by (metis (no_types, hide_lams) constant_on_def z)
+    by (metis (no_types, opaque_lifting) constant_on_def z)
   also have "\<dots> = 0"
   proof -
     have wnot: "w \<notin> path_image \<gamma>"  using wout by (simp add: outside_def)
@@ -1577,7 +1577,7 @@ proof -
       show 4: "path_image (linepath (a + e) c +++ linepath c (a - e)) \<inter>
                inside (path_image (linepath (a + e) (a - e)) \<union> path_image p) \<noteq> {}"
         apply (clarsimp simp: path_image_join segment_convex_hull disjoint_iff_not_equal)
-        by (metis (no_types, hide_lams) UnI1 Un_commute c closed_segment_commute ends_in_segment(1) path_image_join
+        by (metis (no_types, opaque_lifting) UnI1 Un_commute c closed_segment_commute ends_in_segment(1) path_image_join
                   path_image_linepath pathstart_linepath pfp segment_convex_hull)
       show zin_inside: "z \<in> inside (path_image (linepath (a + e) (a - e)) \<union>
                                     path_image (linepath (a + e) c +++ linepath c (a - e)))"
@@ -1625,7 +1625,7 @@ obtains z where "z \<in> inside (path_image (p +++ linepath (a - d) (a + e)))"
 proof -
   have [simp]: "a + of_real x \<in> closed_segment (a - \<alpha>) (a - \<beta>) \<longleftrightarrow> x \<in> closed_segment (-\<alpha>) (-\<beta>)" for x \<alpha> \<beta>::real
     using closed_segment_translation_eq [of a]
-    by (metis (no_types, hide_lams) add_uminus_conv_diff of_real_minus of_real_closed_segment)
+    by (metis (no_types, opaque_lifting) add_uminus_conv_diff of_real_minus of_real_closed_segment)
   have [simp]: "a - of_real x \<in> closed_segment (a + \<alpha>) (a + \<beta>) \<longleftrightarrow> -x \<in> closed_segment \<alpha> \<beta>" for x \<alpha> \<beta>::real
     by (metis closed_segment_translation_eq diff_conv_add_uminus of_real_closed_segment of_real_minus)
   have "arc p" and arc_lp: "arc (linepath (a - d) (a + e))" and "path p"
@@ -1803,7 +1803,7 @@ proof -
       by (metis IntI UnCI emptyE inside_no_overlap path_image_join path_image_linepath pathstart_linepath pfp zzin)
     have znotin_kde_e: "z \<notin> closed_segment (a + kde) (a + e)" and znotin_d_kde': "z \<notin> closed_segment (a - d) (a - kde)"
       using clsub1 clsub2 zzin 
-      by (metis (no_types, hide_lams) IntI Un_iff emptyE inside_no_overlap path_image_join path_image_linepath pathstart_linepath pfp subsetD)+
+      by (metis (no_types, opaque_lifting) IntI Un_iff emptyE inside_no_overlap path_image_join path_image_linepath pathstart_linepath pfp subsetD)+
     have "winding_number (linepath (a - d) (a + e)) z =
           winding_number (linepath (a - d) (a + kde)) z + winding_number (linepath (a + kde) (a + e)) z"
     proof (rule winding_number_split_linepath)
@@ -1952,7 +1952,7 @@ proof -
   have z_notin_ed: "z \<notin> closed_segment (a + e) (a - d)"
     using zin q01 by (simp add: path_image_join closed_segment_commute inside_def)
   have z_notin_0t: "z \<notin> path_image (subpath 0 t q)"
-    by (metis (no_types, hide_lams) IntI Un_upper1 subsetD empty_iff inside_no_overlap path_image_join
+    by (metis (no_types, opaque_lifting) IntI Un_upper1 subsetD empty_iff inside_no_overlap path_image_join
         path_image_subpath_commute pathfinish_subpath pathstart_def pathstart_linepath q_ends(1) qt subpath_trivial zin)
   have [simp]: "- winding_number (subpath t 0 q) z = winding_number (subpath 0 t q) z"
     by (metis \<open>0 \<le> t\<close> \<open>simple_path q\<close> \<open>t \<le> 1\<close> atLeastAtMost_iff zero_le_one

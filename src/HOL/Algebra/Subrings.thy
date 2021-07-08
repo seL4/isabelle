@@ -357,7 +357,7 @@ proof -
     using k' A(3) subring_props(6) by auto
   thus "a \<in> K"
     using m_assoc[of "inv k" k a] A(2) inv_k subring_props(1)
-    by (metis (no_types, hide_lams) A(1) Diff_iff l_one subsetCE)
+    by (metis (no_types, opaque_lifting) A(1) Diff_iff l_one subsetCE)
 qed
 
 lemma (in ring) subfield_iff:

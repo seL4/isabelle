@@ -78,7 +78,7 @@ assumes a: "Quotient3 R Abs Rep"
 shows "Quotient3 (rel_endofun R) (map_endofun Abs Rep) (map_endofun Rep Abs)"
 proof (intro Quotient3I)
   show "\<And>a. map_endofun Abs Rep (map_endofun Rep Abs a) = a"
-    by (metis (hide_lams, no_types) a abs_o_rep id_apply map_endofun.comp map_endofun.id o_eq_dest_lhs)
+    by (metis (opaque_lifting, no_types) a abs_o_rep id_apply map_endofun.comp map_endofun.id o_eq_dest_lhs)
 next
   show "\<And>a. rel_endofun R (map_endofun Rep Abs a) (map_endofun Rep Abs a)"
   using fun_quotient3[OF a a, THEN Quotient3_rep_reflp]

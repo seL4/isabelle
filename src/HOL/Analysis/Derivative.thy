@@ -3243,7 +3243,7 @@ proof -
       apply (rule Limits.continuous_on_scaleR, assumption)
       by (metis (mono_tags, lifting) continuous_at_imp_continuous_on continuous_on_compose continuous_on_cong differentiable_imp_continuous_within o_def)
     show "\<And>x. x \<in> S \<Longrightarrow> vector_derivative f (at x) *\<^sub>R vector_derivative g (at (f x)) = vector_derivative (g \<circ> f) (at x)"
-      by (metis (mono_tags, hide_lams) C1_differentiable_on_eq fg imageI vector_derivative_chain_at)
+      by (metis (mono_tags, opaque_lifting) C1_differentiable_on_eq fg imageI vector_derivative_chain_at)
   qed
   ultimately show ?thesis
     by (simp add: C1_differentiable_on_eq)

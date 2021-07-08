@@ -849,7 +849,7 @@ instance proof
     for a b :: \<open>'a word\<close>
     apply transfer
     apply (simp add: take_bit_eq_mod mod_eq_0_iff_dvd dvd_def)
-    by (metis (no_types, hide_lams) "\<section>" Euclidean_Division.pos_mod_bound Euclidean_Division.pos_mod_sign le_less_trans mult_eq_0_iff take_bit_eq_mod take_bit_nonnegative zdiv_eq_0_iff zmod_le_nonneg_dividend)
+    by (metis (no_types, opaque_lifting) "\<section>" Euclidean_Division.pos_mod_bound Euclidean_Division.pos_mod_sign le_less_trans mult_eq_0_iff take_bit_eq_mod take_bit_nonnegative zdiv_eq_0_iff zmod_le_nonneg_dividend)
   show \<open>(1 + a) div 2 = a div 2\<close>
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
@@ -2995,7 +2995,7 @@ lemma udvd_incr2_K:
     0 < K \<Longrightarrow> p \<le> p + K \<and> p + K \<le> a + s"
   unfolding udvd_unfold_int
   apply (simp add: uint_arith_simps split: if_split_asm)
-  apply (metis (no_types, hide_lams) le_add_diff_inverse le_less_trans udvd_incr_lem)
+  apply (metis (no_types, opaque_lifting) le_add_diff_inverse le_less_trans udvd_incr_lem)
   using uint_lt2p [of s] by simp
 
 
@@ -3915,8 +3915,8 @@ proof (rule bit_word_eqI)
     using zmod_zminus1_eq_if [of \<open>1 + (int m + int n mod int LENGTH('a))\<close> \<open>int LENGTH('a)\<close>]
     apply simp_all
      apply (auto simp add: algebra_simps)
-    apply (metis (mono_tags, hide_lams) Abs_fnat_hom_add mod_Suc mod_mult_self2_is_0 of_nat_Suc of_nat_mod semiring_char_0_class.of_nat_neq_0)
-    apply (metis (no_types, hide_lams) Abs_fnat_hom_add less_not_refl mod_Suc of_nat_Suc of_nat_gt_0 of_nat_mod)
+    apply (metis (mono_tags, opaque_lifting) Abs_fnat_hom_add mod_Suc mod_mult_self2_is_0 of_nat_Suc of_nat_mod semiring_char_0_class.of_nat_neq_0)
+    apply (metis (no_types, opaque_lifting) Abs_fnat_hom_add less_not_refl mod_Suc of_nat_Suc of_nat_gt_0 of_nat_mod)
     done
   then have \<open>int ((m + n) mod LENGTH('a)) =
     int (LENGTH('a) - Suc ((LENGTH('a) - Suc m + LENGTH('a) - n mod LENGTH('a)) mod LENGTH('a)))\<close>

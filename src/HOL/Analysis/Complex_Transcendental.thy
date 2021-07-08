@@ -1146,7 +1146,7 @@ lemma Re_Im_le_cmod: "Im w * sin \<phi> + Re w * cos \<phi> \<le> cmod w"
 proof (cases w rule: complex_split_polar)
   case (1 r a) with sin_cos_le1 [of a \<phi>] show ?thesis
     apply (simp add: norm_mult cmod_unit_one)
-    by (metis (no_types, hide_lams) abs_le_D1 distrib_left mult.commute mult.left_commute mult_left_le)
+    by (metis (no_types, opaque_lifting) abs_le_D1 distrib_left mult.commute mult.left_commute mult_left_le)
 qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Analytic properties of tangent function\<close>
@@ -1333,7 +1333,7 @@ proof -
     then have "\<And>y. y \<in> V \<Longrightarrow> g' y = inv ((*) y)"
       by (metis exp_Ln g' g_eq_Ln)
     then have g': "g' z = (\<lambda>x. x/z)"
-      by (metis (no_types, hide_lams) bij \<open>z \<in> V\<close> bij_inv_eq_iff exp_Ln g_eq_Ln nonzero_mult_div_cancel_left znz)
+      by (metis (no_types, opaque_lifting) bij \<open>z \<in> V\<close> bij_inv_eq_iff exp_Ln g_eq_Ln nonzero_mult_div_cancel_left znz)
     show "(g has_derivative (*) (inverse z)) (at z)"
       using g [OF \<open>z \<in> V\<close>] g'
       by (simp add: \<open>z \<in> V\<close> field_class.field_divide_inverse has_derivative_imp_has_field_derivative has_field_derivative_imp_has_derivative)
@@ -3986,7 +3986,7 @@ proof -
     also have "... \<longleftrightarrow> (\<exists>z::int. of_nat j = of_nat k + of_nat n * (of_int z :: complex))"
       by simp
     also have "... \<longleftrightarrow> (\<exists>z::int. of_nat j = of_nat k + of_nat n * z)"
-      by (metis (mono_tags, hide_lams) of_int_add of_int_eq_iff of_int_mult of_int_of_nat_eq)
+      by (metis (mono_tags, opaque_lifting) of_int_add of_int_eq_iff of_int_mult of_int_of_nat_eq)
     also have "... \<longleftrightarrow> int j mod int n = int k mod int n"
       by (auto simp: mod_eq_dvd_iff dvd_def algebra_simps)
     also have "... \<longleftrightarrow> j mod n = k mod n"

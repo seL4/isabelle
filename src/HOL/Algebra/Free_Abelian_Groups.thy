@@ -242,7 +242,7 @@ qed
 lemma sum_closed_free_Abelian_group:
     "(\<And>i. i \<in> I \<Longrightarrow> x i \<in> carrier (free_Abelian_group S)) \<Longrightarrow> sum x I \<in> carrier (free_Abelian_group S)"
   apply (induction I rule: infinite_finite_induct, auto)
-  by (metis (no_types, hide_lams) UnE subsetCE keys_add)
+  by (metis (no_types, opaque_lifting) UnE subsetCE keys_add)
 
 
 lemma (in comm_group) free_Abelian_group_universal:

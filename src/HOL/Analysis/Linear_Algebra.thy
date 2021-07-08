@@ -347,7 +347,7 @@ lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_bij:
 lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_inv:
   "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
-  by (metis (no_types, hide_lams) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
+  by (metis (no_types, opaque_lifting) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
 
 lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_norm:
   "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"

@@ -542,7 +542,7 @@ proof -
         using that by (auto intro!:tendsto_eq_intros)
       then have "fg \<midarrow>z\<rightarrow> 0"
         apply (elim Lim_transform_within[OF _ \<open>r1>0\<close>])
-        by (metis (no_types, hide_lams) Diff_iff cball_trivial dist_commute dist_self
+        by (metis (no_types, opaque_lifting) Diff_iff cball_trivial dist_commute dist_self
               eq_iff_diff_eq_0 fg_times less_le linorder_not_le mem_ball mem_cball powr_of_int
               that)
       then show ?thesis unfolding not_essential_def fg_def by auto

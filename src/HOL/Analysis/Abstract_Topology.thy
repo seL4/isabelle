@@ -2117,7 +2117,7 @@ lemma continuous_compose_quotient_map:
 proof (intro conjI ballI allI impI)
   show "\<And>x'. x' \<in> topspace X' \<Longrightarrow> g x' \<in> topspace X''"
     using assms unfolding quotient_map_def
-    by (metis (no_types, hide_lams) continuous_map_image_subset_topspace image_comp image_subset_iff)
+    by (metis (no_types, opaque_lifting) continuous_map_image_subset_topspace image_comp image_subset_iff)
 next
   fix U'' :: "'c set"
   assume U'': "openin X'' U''"
@@ -3802,7 +3802,7 @@ lemma retraction_imp_surjective_map:
 
 lemma section_imp_injective_map:
    "\<lbrakk>section_map X Y f; x \<in> topspace X; y \<in> topspace X\<rbrakk> \<Longrightarrow> f x = f y \<longleftrightarrow> x = y"
-  by (metis (mono_tags, hide_lams) retraction_maps_def section_map_def)
+  by (metis (mono_tags, opaque_lifting) retraction_maps_def section_map_def)
 
 lemma retraction_maps_to_retract_maps:
    "retraction_maps X Y r s

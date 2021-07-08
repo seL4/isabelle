@@ -1387,7 +1387,7 @@ proof
     moreover
     have "y = f x \<otimes>\<^bsub>H\<^esub> (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y)"
       using x y
-      by (metis (no_types, hide_lams) assms(5) f group.inv_solve_left group.subgroup_self hom_carrier image_subset_iff subgroup_def that)
+      by (metis (no_types, opaque_lifting) assms(5) f group.inv_solve_left group.subgroup_self hom_carrier image_subset_iff subgroup_def that)
     ultimately
     show ?thesis
       using x y by force

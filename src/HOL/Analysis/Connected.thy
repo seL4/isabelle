@@ -240,7 +240,7 @@ lemma joinable_connected_component_eq:
     \<Longrightarrow> connected_component_set S x = connected_component_set S y"
 apply (simp add: ex_in_conv [symmetric])
 apply (rule connected_component_eq)
-by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
+by (metis (no_types, opaque_lifting) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
 
 
 lemma Union_connected_component: "\<Union>(connected_component_set S ` S) = S"
@@ -335,7 +335,7 @@ lemma components_empty [simp]: "components {} = {}"
   by simp
 
 lemma connected_eq_connected_components_eq: "connected s \<longleftrightarrow> (\<forall>c \<in> components s. \<forall>c' \<in> components s. c = c')"
-  by (metis (no_types, hide_lams) components_iff connected_component_eq_eq connected_iff_connected_component)
+  by (metis (no_types, opaque_lifting) components_iff connected_component_eq_eq connected_iff_connected_component)
 
 lemma components_eq_sing_iff: "components s = {s} \<longleftrightarrow> connected s \<and> s \<noteq> {}"
   apply (rule iffI)

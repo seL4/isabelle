@@ -1334,7 +1334,7 @@ lemma path_connected_space_discrete_topology:
 lemma homeomorphic_path_connected_space_imp:
      "\<lbrakk>path_connected_space X; X homeomorphic_space Y\<rbrakk> \<Longrightarrow> path_connected_space Y"
   unfolding homeomorphic_space_def homeomorphic_maps_def
-  by (metis (no_types, hide_lams) continuous_map_closedin continuous_map_image_subset_topspace imageI order_class.order.antisym path_connectedin_continuous_map_image path_connectedin_topspace subsetI)
+  by (metis (no_types, opaque_lifting) continuous_map_closedin continuous_map_image_subset_topspace imageI order_class.order.antisym path_connectedin_continuous_map_image path_connectedin_topspace subsetI)
 
 lemma homeomorphic_path_connected_space:
    "X homeomorphic_space Y \<Longrightarrow> path_connected_space X \<longleftrightarrow> path_connected_space Y"
@@ -1351,7 +1351,7 @@ next
   assume "U \<subseteq> topspace X"
   show "subtopology Y (f ` U) homeomorphic_space subtopology X U"
     using assms unfolding homeomorphic_eq_everything_map
-    by (metis (no_types, hide_lams) assms homeomorphic_map_subtopologies homeomorphic_space homeomorphic_space_sym image_mono inf.absorb_iff2)
+    by (metis (no_types, opaque_lifting) assms homeomorphic_map_subtopologies homeomorphic_space homeomorphic_space_sym image_mono inf.absorb_iff2)
 qed
 
 lemma homeomorphic_map_path_connectedness_eq:
@@ -1525,7 +1525,7 @@ proof (cases "topspace X = {}")
 next
   case False
   then show ?thesis
-    by (metis (no_types, hide_lams) Union_connected_components_of ccpo_Sup_singleton
+    by (metis (no_types, opaque_lifting) Union_connected_components_of ccpo_Sup_singleton
         connected_components_of_eq_empty connected_space_iff_components_eq insertI1 singletonD
         subsetI subset_singleton_iff)
 qed

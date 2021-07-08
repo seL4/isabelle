@@ -1120,7 +1120,7 @@ proof -
     have "(\<phi> \<one>) \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = (\<phi> \<one>) \<otimes>\<^bsub>H\<^esub> (\<phi> \<one>)"
       by (metis assms(2) image_eqI monoid.r_one one_closed phi_hom r_one surj(1))
     thus ?thesis
-      by (metis (no_types, hide_lams) Units_eq Units_one_closed assms(2) f_inv_into_f imageI
+      by (metis (no_types, opaque_lifting) Units_eq Units_one_closed assms(2) f_inv_into_f imageI
           monoid.l_one monoid.one_closed phi_hom psi_def r_one surj)
   qed
 

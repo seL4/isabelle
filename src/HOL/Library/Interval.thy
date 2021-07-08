@@ -649,7 +649,7 @@ lemma mult_bounds_enclose_zero1:
   "0 \<le> max (la * lb) (max (la * ub) (max (lb * ua) (ua * ub)))"
   if "la \<le> 0" "0 \<le> ua"
   for la lb ua ub:: "'a::linordered_idom"
-  subgoal by (metis (no_types, hide_lams) that eq_iff min_le_iff_disj mult_zero_left mult_zero_right
+  subgoal by (metis (no_types, opaque_lifting) that eq_iff min_le_iff_disj mult_zero_left mult_zero_right
         zero_le_mult_iff)
   subgoal by (metis that le_max_iff_disj mult_zero_right order_refl zero_le_mult_iff)
   done

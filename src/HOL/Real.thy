@@ -1466,7 +1466,7 @@ by (metis floor_divide_of_int_eq of_int_1 of_int_numeral)
 
 lemma floor_minus_one_divide_eq_div_numeral [simp]:
   "\<lfloor>- (1 / numeral b)::real\<rfloor> = - 1 div numeral b"
-by (metis (mono_tags, hide_lams) div_minus_right minus_divide_right
+by (metis (mono_tags, opaque_lifting) div_minus_right minus_divide_right
     floor_divide_of_int_eq of_int_neg_numeral of_int_1)
 
 lemma floor_divide_eq_div_numeral [simp]:

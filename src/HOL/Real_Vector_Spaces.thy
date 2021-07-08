@@ -423,7 +423,7 @@ lemma Reals_0 [simp]: "0 \<in> \<real>" and Reals_1 [simp]: "1 \<in> \<real>"
   by (simp_all add: Reals_def)
 
 lemma Reals_add [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a + b \<in> \<real>"
-  by (metis (no_types, hide_lams) Reals_def Reals_of_real imageE of_real_add)
+  by (metis (no_types, opaque_lifting) Reals_def Reals_of_real imageE of_real_add)
 
 lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
   by (auto simp: Reals_def)

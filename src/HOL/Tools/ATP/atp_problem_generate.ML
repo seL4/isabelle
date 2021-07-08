@@ -35,12 +35,12 @@ sig
   type type_enc
 
   val no_lamsN : string
-  val hide_lamsN : string
+  val opaque_liftingN : string
   val liftingN : string
+  val opaque_combsN : string
   val combsN : string
   val combs_and_liftingN : string
   val combs_or_liftingN : string
-  val lam_liftingN : string
   val keep_lamsN : string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
@@ -108,7 +108,7 @@ sig
   val unmangled_type : string -> (string, 'a) ATP_Problem.atp_term
   val unmangled_const : string -> string * (string, 'b) atp_term list
   val unmangled_const_name : string -> string list
-  val helper_table : ((string * bool) * (status * thm) list) list
+  val helper_table : bool -> ((string * bool) * (status * thm) list) list
   val trans_lams_of_string :
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val string_of_status : status -> string
@@ -201,13 +201,13 @@ fun is_type_level_monotonicity_based (Nonmono_Types _) = true
   | is_type_level_monotonicity_based _ = false
 
 val no_lamsN = "no_lams" (* used internally; undocumented *)
-val hide_lamsN = "hide_lams"
+val opaque_liftingN = "opaque_lifting"
 val liftingN = "lifting"
+val opaque_combsN = "opaque_combs"
 val combsN = "combs"
 val combs_and_liftingN = "combs_and_lifting"
 val combs_or_liftingN = "combs_or_lifting"
 val keep_lamsN = "keep_lams"
-val lam_liftingN = "lam_lifting" (* legacy FIXME: remove *)
 
 val bound_var_prefix = "B_"
 val all_bound_var_prefix = "A_"
@@ -1727,24 +1727,24 @@ val not_ffalse = @{lemma "\<not> fFalse" by (unfold fFalse_def) fast}
 val ftrue = @{lemma "fTrue" by (unfold fTrue_def) fast}
 
 (* The Boolean indicates that a fairly sound type encoding is needed. *)
-val base_helper_table =
-  [(("COMBI", false), [(Non_Rec_Def, @{thm Meson.COMBI_def})]),
-   (("COMBK", false), [(Non_Rec_Def, @{thm Meson.COMBK_def})]),
-   (("COMBB", false), [(Non_Rec_Def, @{thm Meson.COMBB_def})]),
-   (("COMBC", false), [(Non_Rec_Def, @{thm Meson.COMBC_def})]),
-   (("COMBS", false), [(Non_Rec_Def, @{thm Meson.COMBS_def})]),
-   ((predicator_name, false), [(General, not_ffalse), (General, ftrue)]),
+fun helper_table with_combs =
+  (if with_combs then
+    [(("COMBI", false), [(Non_Rec_Def, @{thm Meson.COMBI_def})]),
+     (("COMBK", false), [(Non_Rec_Def, @{thm Meson.COMBK_def})]),
+     (("COMBB", false), [(Non_Rec_Def, @{thm Meson.COMBB_def})]),
+     (("COMBC", false), [(Non_Rec_Def, @{thm Meson.COMBC_def})]),
+     (("COMBS", false), [(Non_Rec_Def, @{thm Meson.COMBS_def})])]
+   else
+     []) @
+  [((predicator_name, false), [(General, not_ffalse), (General, ftrue)]),
    (("fFalse", false), [(General, not_ffalse)]),
    (("fFalse", true), [(General, @{thm True_or_False})]),
    (("fTrue", false), [(General, ftrue)]),
    (("fTrue", true), [(General, @{thm True_or_False})]),
    (("If", true),
     [(Non_Rec_Def, @{thm if_True}), (Non_Rec_Def, @{thm if_False}),
-     (General, @{thm True_or_False})])]
-
-val helper_table =
-  base_helper_table @
-  [(("fNot", false),
+     (General, @{thm True_or_False})]),
+   (("fNot", false),
     @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
            fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
     |> map (pair Non_Rec_Def)),
@@ -1771,8 +1771,8 @@ val helper_table =
    (("fEx", false), [(General, @{lemma "\<not> P x \<or> fEx P" by (auto simp: fEx_def)})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
-val completish_helper_table =
-  helper_table @
+fun completish_helper_table with_combs =
+  helper_table with_combs @
   [((predicator_name, true),
     @{thms True_or_False fTrue_ne_fFalse} |> map (pair General)),
    ((app_op_name, true),
@@ -1827,7 +1827,7 @@ fun could_specialize_helpers type_enc =
 fun should_specialize_helper type_enc t =
   could_specialize_helpers type_enc andalso not (null (Term.hidden_polymorphism t))
 
-fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : sym_info) =
+fun add_helper_facts_of_sym ctxt format type_enc lam_trans completish (s, {types, ...} : sym_info) =
   (case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -1854,6 +1854,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
       val make_facts = map_filter (make_fact ctxt format type_enc false)
       val sound = is_type_enc_sound type_enc
       val could_specialize = could_specialize_helpers type_enc
+      val with_combs = lam_trans <> opaque_combsN
     in
       fold (fn ((helper_s, needs_sound), ths) =>
                if (needs_sound andalso not sound) orelse
@@ -1865,11 +1866,11 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
                  |> maps (dub_and_inst needs_sound o apfst (apsnd Thm.prop_of))
                  |> make_facts
                  |> union (op = o apply2 #iformula))
-           (if completish >= 3 then completish_helper_table else helper_table)
+           ((if completish >= 3 then completish_helper_table else helper_table) with_combs)
     end
   | NONE => I)
-fun helper_facts_of_sym_table ctxt format type_enc completish sym_tab =
-  Symtab.fold_rev (add_helper_facts_of_sym ctxt format type_enc completish) sym_tab []
+fun helper_facts_of_sym_table ctxt format type_enc lam_trans completish sym_tab =
+  Symtab.fold_rev (add_helper_facts_of_sym ctxt format type_enc lam_trans completish) sym_tab []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -1908,11 +1909,11 @@ fun type_ctrs_of_terms thy ts =
 fun trans_lams_of_string ctxt type_enc lam_trans =
   if lam_trans = no_lamsN then
     rpair []
-  else if lam_trans = hide_lamsN then
+  else if lam_trans = opaque_liftingN then
     lift_lams ctxt type_enc ##> K []
-  else if lam_trans = liftingN orelse lam_trans = lam_liftingN then
+  else if lam_trans = liftingN then
     lift_lams ctxt type_enc
-  else if lam_trans = combsN then
+  else if lam_trans = opaque_combsN orelse lam_trans = combsN then
     map (introduce_combinators ctxt type_enc) #> rpair []
   else if lam_trans = combs_and_liftingN then
     lift_lams_part_1 ctxt type_enc
@@ -2736,7 +2737,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
               uncurried_alias_eq_tms
     val helpers =
-      sym_tab |> helper_facts_of_sym_table ctxt format type_enc completish
+      sym_tab |> helper_facts_of_sym_table ctxt format type_enc lam_trans completish
               |> map (firstorderize true)
     val all_facts = helpers @ conjs @ facts
     val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts

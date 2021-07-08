@@ -349,7 +349,7 @@ proof -
             proof (rule pairwise_mono)
               show "negligible (BOX (\<eta> x) x \<inter> BOX (\<eta> y) y)"
                 if "negligible (BOX2 (\<eta> x) x \<inter> BOX2 (\<eta> y) y)" for x y
-                by (metis (no_types, hide_lams) that Int_mono negligible_subset BOX_sub)
+                by (metis (no_types, opaque_lifting) that Int_mono negligible_subset BOX_sub)
             qed auto
 
             have eq: "\<And>box. (\<lambda>D. box (\<eta> (tag D)) (tag D)) ` \<G> = (\<lambda>t. box (\<eta> t) t) ` tag ` \<G>"

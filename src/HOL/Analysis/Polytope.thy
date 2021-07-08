@@ -2729,7 +2729,7 @@ proof (cases "affine_dependent S")
         using \<open>T \<subseteq> S\<close> by blast
       then have "\<exists>y\<in>S. x \<in> convex hull (S - {y})"
         using True affine_independent_iff_card [of S]
-        by (metis (no_types, hide_lams) Diff_eq_empty_iff Diff_insert0 \<open>a \<notin> T\<close> \<open>T \<subseteq> S\<close> \<open>x \<in> convex hull T\<close> hull_mono insert_Diff_single subsetCE)
+        by (metis (no_types, opaque_lifting) Diff_eq_empty_iff Diff_insert0 \<open>a \<notin> T\<close> \<open>T \<subseteq> S\<close> \<open>x \<in> convex hull T\<close> hull_mono insert_Diff_single subsetCE)
     } note * = this
     have 1: "convex hull S \<subseteq> (\<Union> a\<in>S. convex hull (S - {a}))"
       by (subst caratheodory_aff_dim) (blast dest: *)
@@ -3044,7 +3044,7 @@ lemma simplex_imp_polyhedron:
   by (simp add: polytope_imp_polyhedron simplex_imp_polytope)
 
 lemma simplex_dim_ge: "n simplex S \<Longrightarrow> -1 \<le> n"
-  by (metis (no_types, hide_lams) aff_dim_geq affine_independent_iff_card diff_add_cancel diff_diff_eq2 simplex_def)
+  by (metis (no_types, opaque_lifting) aff_dim_geq affine_independent_iff_card diff_add_cancel diff_diff_eq2 simplex_def)
 
 lemma simplex_empty [simp]: "n simplex {} \<longleftrightarrow> n = -1"
 proof

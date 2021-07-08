@@ -149,8 +149,7 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
     val thy = Proof_Context.theory_of ctxt
 
     val new_skolem = Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
-    val do_lams =
-      (lam_trans = liftingN orelse lam_trans = lam_liftingN) ? introduce_lam_wrappers ctxt
+    val do_lams = lam_trans = liftingN ? introduce_lam_wrappers ctxt
     val th_cls_pairs =
       map2 (fn j => fn th =>
         (Thm.get_name_hint th,
@@ -280,14 +279,19 @@ fun metis_method ((override_type_encs, lam_trans), ths) ctxt facts =
         (the_default default_metis_lam_trans lam_trans) ctxt (schem_facts @ ths))
   end
 
-val metis_lam_transs = [hide_lamsN, liftingN, combsN]
+val metis_lam_transs = [opaque_liftingN, liftingN, combsN]
 
 fun set_opt _ x NONE = SOME x
   | set_opt get x (SOME x0) =
     error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x))
 
 fun consider_opt s =
-  if member (op =) metis_lam_transs s then apsnd (set_opt I s) else apfst (set_opt hd [s])
+  if s = "hide_lams" then
+    error "\"hide_lams\" has been renamed \"opaque_lifting\""
+  else if member (op =) metis_lam_transs s then
+    apsnd (set_opt I s)
+  else
+    apfst (set_opt hd [s])
 
 val parse_metis_options =
   Scan.optional

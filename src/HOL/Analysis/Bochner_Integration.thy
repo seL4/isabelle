@@ -513,7 +513,7 @@ proof -
     by (auto intro!: simple_bochner_integral_eq_nn_integral)
   also have "\<dots> \<le> (\<integral>\<^sup>+x. ennreal (norm (f x - s x)) + ennreal (norm (f x - t x)) \<partial>M)"
     by (auto intro!: nn_integral_mono simp flip: ennreal_plus)
-       (metis (erased, hide_lams) add_diff_cancel_left add_diff_eq diff_add_eq order_trans
+       (metis (erased, opaque_lifting) add_diff_cancel_left add_diff_eq diff_add_eq order_trans
               norm_minus_commute norm_triangle_ineq4 order_refl)
   also have "\<dots> = ?S + ?T"
    by (rule nn_integral_add) auto

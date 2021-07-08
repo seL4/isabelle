@@ -356,7 +356,7 @@ fun run_atp mode name
           val preferred_methss =
             (Metis_Method (NONE, NONE),
              bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types
-              (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN))
+              (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN))
         in
           (used_facts, preferred_methss,
            fn preplay =>

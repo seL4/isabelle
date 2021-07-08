@@ -1792,7 +1792,7 @@ proof -
           by (metis dist_norm dist_triangle_half_r order_less_irrefl)
       qed (auto simp: open_segment_commute)
       show ?thesis
-        unfolding \<phi>_def by (metis (no_types, hide_lams) INT_I Inf_lower2 rangeI that(3) F01 subsetCE pqF)
+        unfolding \<phi>_def by (metis (no_types, opaque_lifting) INT_I Inf_lower2 rangeI that(3) F01 subsetCE pqF)
     qed
     show "closed {0..1::real}" by auto
   qed (meson \<phi>_def)
@@ -1950,7 +1950,7 @@ proof -
   then have "arc g"
     by (metis arc_def path_def inj_on_def)
   obtain u v where "u \<in> {0..1}" "a = g u" "v \<in> {0..1}" "b = g v"
-    by (metis (mono_tags, hide_lams) \<open>\<phi> T\<close> \<phi>_def a b fhim gfeq h_eq_p imageI path_image_def pathfinish_def pathfinish_in_path_image pathstart_def pathstart_in_path_image)
+    by (metis (mono_tags, opaque_lifting) \<open>\<phi> T\<close> \<phi>_def a b fhim gfeq h_eq_p imageI path_image_def pathfinish_def pathfinish_in_path_image pathstart_def pathstart_in_path_image)
   then have "a \<in> path_image g" "b \<in> path_image g"
     using path_image_def by blast+
   have ph: "path_image h \<subseteq> path_image p"
@@ -2003,7 +2003,7 @@ corollary arc_connected_trans:
   assumes "arc g" "arc h" "pathfinish g = pathstart h" "pathstart g \<noteq> pathfinish h"
   obtains i where "arc i" "path_image i \<subseteq> path_image g \<union> path_image h"
                   "pathstart i = pathstart g" "pathfinish i = pathfinish h"
-  by (metis (no_types, hide_lams) arc_imp_path assms path_contains_arc path_image_join path_join pathfinish_join pathstart_join)
+  by (metis (no_types, opaque_lifting) arc_imp_path assms path_contains_arc path_image_join path_join pathfinish_join pathstart_join)
 
 
 

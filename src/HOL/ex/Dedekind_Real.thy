@@ -215,7 +215,7 @@ subsection\<open>Properties of Addition\<close>
 
 lemma preal_add_commute: "(x::preal) + y = y + x"
   unfolding preal_add_def add_set_def
-  by (metis (no_types, hide_lams) add.commute)
+  by (metis (no_types, opaque_lifting) add.commute)
 
 text\<open>Lemmas for proving that addition of two positive reals gives
  a positive real\<close>
@@ -301,7 +301,7 @@ text\<open>Proofs essentially same as for addition\<close>
 
 lemma preal_mult_commute: "(x::preal) * y = y * x"
   unfolding preal_mult_def mult_set_def
-  by (metis (no_types, hide_lams) mult.commute)
+  by (metis (no_types, opaque_lifting) mult.commute)
 
 text\<open>Multiplication of two positive reals gives a positive real.\<close>
 
@@ -373,7 +373,7 @@ qed
 lemma preal_mult_assoc: "((x::preal) * y) * z = x * (y * z)"
   apply (simp add: preal_mult_def mem_mult_set Rep_preal)
   apply (simp add: mult_set_def)
-  apply (metis (no_types, hide_lams) ab_semigroup_mult_class.mult_ac(1))
+  apply (metis (no_types, opaque_lifting) ab_semigroup_mult_class.mult_ac(1))
   done
 
 instance preal :: ab_semigroup_mult
@@ -1087,7 +1087,7 @@ lemma real_mult_congruent2_lemma:
      "!!(x1::preal). \<lbrakk>x1 + y2 = x2 + y1\<rbrakk> \<Longrightarrow>
           x * x1 + y * y1 + (x * y2 + y * x2) =
           x * x2 + y * y2 + (x * y1 + y * x1)"
-  by (metis (no_types, hide_lams) add.left_commute preal_add_commute preal_add_mult_distrib2)
+  by (metis (no_types, opaque_lifting) add.left_commute preal_add_commute preal_add_mult_distrib2)
 
 lemma real_mult_congruent2:
   "(\<lambda>p1 p2.

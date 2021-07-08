@@ -1128,7 +1128,7 @@ lemma HInfinite_HFinite_add_cancel: "x + y \<in> HInfinite \<Longrightarrow> y \
   using HFinite_add HInfinite_HFinite_iff by blast
 
 lemma HInfinite_HFinite_add: "x \<in> HInfinite \<Longrightarrow> y \<in> HFinite \<Longrightarrow> x + y \<in> HInfinite"
-  by (metis (no_types, hide_lams) HFinite_HInfinite_iff HFinite_add HFinite_minus_iff add.commute add_minus_cancel)
+  by (metis (no_types, opaque_lifting) HFinite_HInfinite_iff HFinite_add HFinite_minus_iff add.commute add_minus_cancel)
 
 lemma HInfinite_ge_HInfinite: "x \<in> HInfinite \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<le> x \<Longrightarrow> y \<in> HInfinite"
   for x y :: hypreal
@@ -1141,7 +1141,7 @@ lemma Infinitesimal_inverse_HInfinite: "x \<in> Infinitesimal \<Longrightarrow> 
 lemma HInfinite_HFinite_not_Infinitesimal_mult:
   "x \<in> HInfinite \<Longrightarrow> y \<in> HFinite - Infinitesimal \<Longrightarrow> x * y \<in> HInfinite"
   for x y :: "'a::real_normed_div_algebra star"
-  by (metis (no_types, hide_lams) HFinite_HInfinite_iff HFinite_Infinitesimal_not_zero HFinite_inverse2 HFinite_mult mult.assoc mult.right_neutral right_inverse)
+  by (metis (no_types, opaque_lifting) HFinite_HInfinite_iff HFinite_Infinitesimal_not_zero HFinite_inverse2 HFinite_mult mult.assoc mult.right_neutral right_inverse)
 
 lemma HInfinite_HFinite_not_Infinitesimal_mult2:
   "x \<in> HInfinite \<Longrightarrow> y \<in> HFinite - Infinitesimal \<Longrightarrow> y * x \<in> HInfinite"

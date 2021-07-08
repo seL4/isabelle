@@ -457,8 +457,8 @@ for a successful \textit{metis} proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
 
-\point{And what are the \textit{lifting} and \textit{hide\_lams} \\ arguments
-to Metis?}
+\point{And what are the \textit{lifting} and \textit{opaque\_lifting} \\
+arguments to Metis?}
 
 Orthogonally to the encoding of types, it is important to choose an appropriate
 translation of $\lambda$-abstractions. Metis supports three translation
@@ -614,7 +614,7 @@ option (\S\ref{problem-encoding}) and at most one type encoding specification
 with the same semantics as Sledgehammer's \textit{type\_enc} option
 (\S\ref{problem-encoding}).
 %
-The supported $\lambda$ translation schemes are \textit{hide\_lams},
+The supported $\lambda$ translation schemes are \textit{opaque\_lifting},
 \textit{lifting}, and \textit{combs} (the default).
 %
 All the untyped type encodings listed in \S\ref{problem-encoding} are supported.
@@ -975,9 +975,9 @@ Specifies the $\lambda$ translation scheme to use in ATP problems. The supported
 translation schemes are listed below:
 
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{hide\_lams}:} Hide the $\lambda$-abstractions
-by replacing them by unspecified fresh constants, effectively disabling all
-reasoning under $\lambda$-abstractions.
+\item[\labelitemi] \textbf{\textit{opaque\_lifting}:} Hide the
+$\lambda$-abstractions by replacing them by unspecified fresh constants,
+effectively disabling all reasoning under $\lambda$-abstractions.
 
 \item[\labelitemi] \textbf{\textit{lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,

@@ -171,7 +171,7 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
       else if String.isPrefix helper_prefix ident then
         (case (String.isSuffix typed_helper_suffix ident, space_explode "_" ident) of
           (needs_fairly_sound, _ :: const :: j :: _) =>
-          nth (AList.lookup (op =) helper_table (const, needs_fairly_sound) |> the)
+          nth (AList.lookup (op =) (helper_table true) (const, needs_fairly_sound) |> the)
             (the (Int.fromString j) - 1)
           |> snd |> prepare_helper ctxt
           |> Isa_Raw |> some
@@ -217,7 +217,7 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
            th |> Thm.prop_of |> Logic.strip_imp_concl
               |> conceal_old_skolem_terms (length clauses) old_skolems
-              ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN) ? eliminate_lam_wrappers
+              ||> lam_trans = liftingN ? eliminate_lam_wrappers
               ||> (fn prop => (name, prop) :: props))
          clauses ([], [])
     (*

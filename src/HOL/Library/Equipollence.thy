@@ -125,7 +125,7 @@ proof safe
   show "S \<lesssim> {()}" if "S \<subseteq> {x}" for x
     using subset_imp_lepoll [OF that] by (simp add: singleton_eqpoll lepoll_trans2)
   show "\<exists>x. S \<subseteq> {x}" if "S \<lesssim> {()}"
-  by (metis (no_types, hide_lams) image_empty image_insert lepoll_iff that)
+  by (metis (no_types, opaque_lifting) image_empty image_insert lepoll_iff that)
 qed
 
 lemma infinite_insert_lepoll:

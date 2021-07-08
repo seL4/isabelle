@@ -664,7 +664,7 @@ lemma convex_intermediate_ball:
   fixes a :: "'a :: euclidean_space"
   shows "\<lbrakk>ball a r \<subseteq> T; T \<subseteq> cball a r\<rbrakk> \<Longrightarrow> convex T"
 apply (simp add: convex_contains_open_segment, clarify)
-by (metis (no_types, hide_lams) less_le_trans mem_ball mem_cball subsetCE dist_decreases_open_segment)
+by (metis (no_types, opaque_lifting) less_le_trans mem_ball mem_cball subsetCE dist_decreases_open_segment)
 
 lemma csegment_midpoint_subset: "closed_segment (midpoint a b) b \<subseteq> closed_segment a b"
   apply (clarsimp simp: midpoint_def in_segment)
@@ -707,7 +707,7 @@ lemma add_scaleR_degen:
   fixes a b ::"'a::real_vector"
   assumes  "(u *\<^sub>R b + v *\<^sub>R a) = (u *\<^sub>R a + v *\<^sub>R b)"  "u \<noteq> v"
   shows "a=b"
-  by (metis (no_types, hide_lams) add.commute add_diff_eq diff_add_cancel real_vector.scale_cancel_left real_vector.scale_left_diff_distrib assms)
+  by (metis (no_types, opaque_lifting) add.commute add_diff_eq diff_add_cancel real_vector.scale_cancel_left real_vector.scale_left_diff_distrib assms)
   
 lemma closed_segment_image_interval:
      "closed_segment a b = (\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0..1}"

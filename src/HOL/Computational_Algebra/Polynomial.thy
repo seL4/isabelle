@@ -1838,7 +1838,7 @@ proof (induct n) (*might be proved more concisely using nat_less_induct*)
 next
   case (Suc n)
   have "order a ([:- a, 1:] ^ Suc n) = order a ([:- a, 1:] ^ n) + order a [:-a,1:]"
-    by (metis (no_types, hide_lams) One_nat_def add_Suc_right monoid_add_class.add.right_neutral
+    by (metis (no_types, opaque_lifting) One_nat_def add_Suc_right monoid_add_class.add.right_neutral
       one_neq_zero order_mult pCons_eq_0_iff power_add power_eq_0_iff power_one_right)
   moreover have "order a [:-a,1:] = 1"
     unfolding order_def

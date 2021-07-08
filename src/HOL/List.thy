@@ -990,7 +990,7 @@ lemma longest_common_prefix:
        \<and> (xs' = [] \<or> ys' = [] \<or> hd xs' \<noteq> hd ys')"
 by (induct xs ys rule: list_induct2')
    (blast, blast, blast,
-    metis (no_types, hide_lams) append_Cons append_Nil list.sel(1))
+    metis (no_types, opaque_lifting) append_Cons append_Nil list.sel(1))
 
 text \<open>Trivial rules for solving \<open>@\<close>-equations automatically.\<close>
 
@@ -1146,7 +1146,7 @@ lemma inj_mapI: "inj f \<Longrightarrow> inj (map f)"
 by (iprover dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) \<Longrightarrow> inj f"
-  by (metis (no_types, hide_lams) injI list.inject list.simps(9) the_inv_f_f)
+  by (metis (no_types, opaque_lifting) injI list.inject list.simps(9) the_inv_f_f)
 
 lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)

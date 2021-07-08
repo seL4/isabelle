@@ -398,7 +398,7 @@ lemma analytic_higher_deriv [analytic_intros]: "f analytic_on S \<Longrightarrow
 lemma has_field_derivative_higher_deriv:
      "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
-by (metis (no_types, hide_lams) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
+by (metis (no_types, opaque_lifting) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
          funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
 
 lemma valid_path_compose_holomorphic:

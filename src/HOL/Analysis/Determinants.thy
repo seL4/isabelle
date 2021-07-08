@@ -238,7 +238,7 @@ proof -
   proof (unfold inj_on_def, auto)
     fix x y assume x: "x permutes ?U" and even_x: "evenperm x"
       and y: "y permutes ?U" and even_y: "evenperm y" and eq: "?t_jk \<circ> x = ?t_jk \<circ> y"
-    show "x = y" by (metis (hide_lams, no_types) comp_assoc eq id_comp swap_id_idempotent)
+    show "x = y" by (metis (opaque_lifting, no_types) comp_assoc eq id_comp swap_id_idempotent)
   qed
   have tjk_permutes: "?t_jk permutes ?U"
     by (auto simp add: permutes_def dest: transpose_eq_imp_eq) (meson transpose_involutory)
@@ -820,7 +820,7 @@ proof safe
       by simp
     show "f \<circ> (*v) B = id"
       using 1 assms comp_apply eq_id_iff vec.linear_id matrix_id_mat_1 matrix_vector_mul_assoc matrix_works
-      by (metis (no_types, hide_lams))
+      by (metis (no_types, opaque_lifting))
   qed
 next
   fix g

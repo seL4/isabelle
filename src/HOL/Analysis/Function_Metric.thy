@@ -274,7 +274,7 @@ next
   also have "... \<le> (\<Sum>n. (1/2)^n * min (dist (x (from_nat n)) (z (from_nat n))) 1
                         + (1/2)^n * min (dist (y (from_nat n)) (z (from_nat n))) 1)"
     apply (rule suminf_le)
-    using ineq apply (metis (no_types, hide_lams) add.right_neutral distrib_left
+    using ineq apply (metis (no_types, opaque_lifting) add.right_neutral distrib_left
       le_divide_eq_numeral1(1) mult_2_right mult_left_mono zero_le_one zero_le_power)
     by (auto simp add: summable_add)
   also have "... = (\<Sum>n. (1/2)^n * min (dist (x (from_nat n)) (z (from_nat n))) 1)

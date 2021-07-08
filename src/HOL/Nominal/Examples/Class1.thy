@@ -1707,7 +1707,7 @@ next
   case (AndR c1 M c2 M' c3)
   then show ?case
     apply(auto simp add: fresh_prod calc_atm fresh_atm abs_fresh fresh_left)
-    apply (metis (erased, hide_lams))
+    apply (metis (erased, opaque_lifting))
     by metis
 next
   case AndL1

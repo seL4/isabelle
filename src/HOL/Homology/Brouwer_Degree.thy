@@ -524,7 +524,7 @@ proof -
   then show ?thesis
     using homology_exactness_axiom_3 [of p X S] homology_exactness_axiom_1 [of p X S]
     apply (simp add: mon_def epi_def hom_boundary_hom)
-    by (metis (no_types, hide_lams) group_hom.trivial_hom_iff group_hom.trivial_ker_imp_inj group_hom_axioms_def group_hom_def group_relative_homology_group hom_boundary_hom)
+    by (metis (no_types, opaque_lifting) group_hom.trivial_hom_iff group_hom.trivial_ker_imp_inj group_hom_axioms_def group_hom_def group_relative_homology_group hom_boundary_hom)
 qed
 
 lemma short_exact_sequence_hom_induced_relativization:
@@ -625,7 +625,7 @@ qed
 lemma iso_homology_contractible_space_subtopology2:
   "\<lbrakk>contractible_space X; S \<subseteq> topspace X; p \<noteq> 0; S \<noteq> {}\<rbrakk>
     \<Longrightarrow> homology_group p (subtopology X S) \<cong> relative_homology_group (p + 1) X S"
-  by (metis (no_types, hide_lams) add.commute isomorphic_group_reduced_homology_of_contractible topspace_subtopology topspace_subtopology_subset un_reduced_homology_group)
+  by (metis (no_types, opaque_lifting) add.commute isomorphic_group_reduced_homology_of_contractible topspace_subtopology topspace_subtopology_subset un_reduced_homology_group)
 
 lemma trivial_relative_homology_group_contractible_spaces:
    "\<lbrakk>contractible_space X; contractible_space(subtopology X S); topspace X \<inter> S \<noteq> {}\<rbrakk>
@@ -1230,7 +1230,7 @@ next
     by fastforce
   then show ?case
     using eq iso_trans iso isomorphic_group_triviality neq
-    by (metis (no_types, hide_lams) add.commute add_left_cancel diff_add_cancel group_reduced_homology_group of_nat_Suc)
+    by (metis (no_types, opaque_lifting) add.commute add_left_cancel diff_add_cancel group_reduced_homology_group of_nat_Suc)
 qed
 
 

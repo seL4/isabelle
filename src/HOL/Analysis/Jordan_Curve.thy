@@ -582,7 +582,7 @@ proof -
     obtain z where zim: "z \<in> ?\<Theta>2" and zout: "z \<in> outside(?\<Theta>1 \<union> ?\<Theta>)"
       apply (auto simp: outside_inside)
       using nonempty_simple_path_endless [OF \<open>simple_path c2\<close>]
-      by (metis (no_types, hide_lams) Diff_Diff_Int Diff_iff c1c2 c2 c2c ex_in_conv pa2_disj_in1)
+      by (metis (no_types, opaque_lifting) Diff_Diff_Int Diff_iff c1c2 c2 c2c ex_in_conv pa2_disj_in1)
     obtain e where "e > 0" and e: "ball z e \<subseteq> outside(?\<Theta>1 \<union> ?\<Theta>)"
       using zout op_out1c open_contains_ball_eq by blast
     have "z \<in> frontier (inside (?\<Theta>2 \<union> ?\<Theta>))"

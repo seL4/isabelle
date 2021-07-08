@@ -3325,7 +3325,7 @@ next
   assume ?rhs
   then show ?lhs
     unfolding between_mem_convex_hull
-    by (metis (no_types, hide_lams) collinear_closed_segment collinear_subset hull_redundant hull_subset insert_commute segment_convex_hull)
+    by (metis (no_types, opaque_lifting) collinear_closed_segment collinear_subset hull_redundant hull_subset insert_commute segment_convex_hull)
 qed
 
 
@@ -3404,7 +3404,7 @@ lemma continuous_injective_image_open_segment_1:
     shows "f ` (open_segment a b) = open_segment (f a) (f b)"
 proof -
   have "f ` (open_segment a b) = f ` (closed_segment a b) - {f a, f b}"
-    by (metis (no_types, hide_lams) empty_subsetI ends_in_segment image_insert image_is_empty inj_on_image_set_diff injf insert_subset open_segment_def segment_open_subset_closed)
+    by (metis (no_types, opaque_lifting) empty_subsetI ends_in_segment image_insert image_is_empty inj_on_image_set_diff injf insert_subset open_segment_def segment_open_subset_closed)
   also have "... = open_segment (f a) (f b)"
     using continuous_injective_image_segment_1 [OF assms]
     by (simp add: open_segment_def inj_on_image_set_diff [OF injf])
@@ -3947,7 +3947,7 @@ next
     have "K \<subseteq> \<Union>(insert (U \<union> V) (\<D> - {U \<union> V}))"
       using \<open>K \<subseteq> \<Union>\<D>\<close> by auto
     also have "... \<subseteq> (U \<union> V) \<union> (N - J)"
-      by (metis (no_types, hide_lams) Deq Un_subset_iff Un_upper2 J Union_insert order_trans sup_ge1)
+      by (metis (no_types, opaque_lifting) Deq Un_subset_iff Un_upper2 J Union_insert order_trans sup_ge1)
     finally have "J \<inter> K \<subseteq> U \<union> V"
       by blast
     moreover have "connected(J \<inter> K)"
@@ -6366,7 +6366,7 @@ proof
   have "(adjoint f) -` {0} = {0}"
     by (metis \<open>inj (adjoint f)\<close> adjoint_linear assms surj_adjoint_iff_inj ker_orthogonal_comp_adjoint orthogonal_comp_UNIV)
   then have "(range(f))\<^sup>\<bottom> = {0}"
-    by (metis (no_types, hide_lams) adjoint_adjoint adjoint_linear assms ker_orthogonal_comp_adjoint set_zero)
+    by (metis (no_types, opaque_lifting) adjoint_adjoint adjoint_linear assms ker_orthogonal_comp_adjoint set_zero)
   then show "surj f"
     by (metis \<open>inj (adjoint f)\<close> adjoint_adjoint adjoint_linear assms surj_adjoint_iff_inj)
 next
@@ -6387,7 +6387,7 @@ proof
   assume "\<not>inj f"
   then show ?rhs
     using all_zero_iff
-    by (metis (no_types, hide_lams) adjoint_clauses(2) adjoint_linear assms
+    by (metis (no_types, opaque_lifting) adjoint_clauses(2) adjoint_linear assms
         linear_injective_0 linear_injective_imp_surjective linear_surj_adj_imp_inj)
 next
   assume ?rhs

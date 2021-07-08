@@ -2359,8 +2359,8 @@ proof -
         using \<open>m\<le>n\<close> realff [of _ _ "1+_"] realff [of "1+_"_ "1+_"]
         apply (auto simp: divide_simps add.commute not_le nat_le_iff_add realff)
          apply (simp_all add: power_add)
-        apply (metis (no_types, hide_lams) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
-        apply (metis (no_types, hide_lams) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
+        apply (metis (no_types, opaque_lifting) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
+        apply (metis (no_types, opaque_lifting) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
         done
       then show "?K0(m,v) \<subseteq> ?K0(n,w) \<or> ?K0(n,w) \<subseteq> ?K0(m,v) \<or> interior(?K0(m,v)) \<inter> interior(?K0(n,w)) = {}"
         by meson

@@ -2222,7 +2222,7 @@ proof safe
   then obtain T where "open T" and "x \<in> T" and "T \<subseteq> f ` S"
     by (metis interiorE)
   then show "x \<in> ?rhs"
-    by (metis (no_types, hide_lams) assms subsetD interior_maximal open_bijective_linear_image_eq subset_image_iff)
+    by (metis (no_types, opaque_lifting) assms subsetD interior_maximal open_bijective_linear_image_eq subset_image_iff)
 next
   fix x
   assume x: "x \<in> interior S"

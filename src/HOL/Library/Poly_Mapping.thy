@@ -1693,7 +1693,7 @@ lemma keys_cmul_iff [iff]: "i \<in> Poly_Mapping.keys (frag_cmul c x) \<longleft
   by (metis in_keys_iff lookup_frag_cmul mult_eq_0_iff)
 
 lemma keys_minus [simp]: "Poly_Mapping.keys(-a) = Poly_Mapping.keys a"
-  by (metis (no_types, hide_lams) in_keys_iff lookup_uminus neg_equal_0_iff_equal subsetI subset_antisym)
+  by (metis (no_types, opaque_lifting) in_keys_iff lookup_uminus neg_equal_0_iff_equal subsetI subset_antisym)
 
 lemma keys_diff: 
   "Poly_Mapping.keys(a - b) \<subseteq> Poly_Mapping.keys a \<union> Poly_Mapping.keys b"
@@ -1780,7 +1780,7 @@ qed
 
 lemma frag_extend_diff:
    "frag_extend f (a-b) = (frag_extend f a) - (frag_extend f b)"
-  by (metis (no_types, hide_lams) add_uminus_conv_diff frag_extend_add frag_extend_minus)
+  by (metis (no_types, opaque_lifting) add_uminus_conv_diff frag_extend_add frag_extend_minus)
 
 lemma frag_extend_sum:
    "finite I \<Longrightarrow> frag_extend f (\<Sum>i\<in>I. g i) = sum (frag_extend f o g) I"
@@ -1818,7 +1818,7 @@ proof -
      apply (simp_all add: assms frag_cmul_distrib)
     by (metis add.left_neutral add_diff_cancel_right' add_uminus_conv_diff P)
   then show ?thesis
-    by (metis (no_types, hide_lams) add_diff_eq assms(2) diff_add_cancel frag_cmul_distrib int_diff_cases)
+    by (metis (no_types, opaque_lifting) add_diff_eq assms(2) diff_add_cancel frag_cmul_distrib int_diff_cases)
 qed
 
 lemma frag_induction [consumes 1, case_names zero one diff]:

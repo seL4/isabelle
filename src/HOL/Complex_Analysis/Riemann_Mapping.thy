@@ -1726,7 +1726,7 @@ proof
   have "homotopic_loops (- {\<zeta>}) p (r +++ q +++ reversepath r)"
   proof (rule homotopic_paths_imp_homotopic_loops)
     show "homotopic_paths (- {\<zeta>}) p (r +++ q +++ reversepath r)"
-      by (metis (mono_tags, hide_lams) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
+      by (metis (mono_tags, opaque_lifting) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
   qed (use loops pas in auto)
   moreover have "homotopic_loops (- {\<zeta>}) (r +++ q +++ reversepath r) q"
     using rim \<zeta>q by (auto simp: homotopic_loops_conjugate paf \<open>path q\<close> \<open>path r\<close> loops)

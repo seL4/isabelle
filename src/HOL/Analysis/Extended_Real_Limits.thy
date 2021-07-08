@@ -363,7 +363,7 @@ lemma sum_constant_ereal:
   fixes a::ereal
   shows "(\<Sum>i\<in>I. a) = a * card I"
 apply (cases "finite I", induct set: finite, simp_all)
-apply (cases a, auto, metis (no_types, hide_lams) add.commute mult.commute semiring_normalization_rules(3))
+apply (cases a, auto, metis (no_types, opaque_lifting) add.commute mult.commute semiring_normalization_rules(3))
 done
 
 lemma real_lim_then_eventually_real:
@@ -677,7 +677,7 @@ proof -
       then have "1/z \<ge> 0" by auto
       moreover have "1/z < e" using \<open>e>0\<close> \<open>z>1/e\<close>
         apply (cases z) apply auto
-        by (metis (mono_tags, hide_lams) less_ereal.simps(2) less_ereal.simps(4) divide_less_eq ereal_divide_less_pos ereal_less(4)
+        by (metis (mono_tags, opaque_lifting) less_ereal.simps(2) less_ereal.simps(4) divide_less_eq ereal_divide_less_pos ereal_less(4)
             ereal_less_eq(4) less_le_trans mult_eq_0_iff not_le not_one_less_zero times_ereal.simps(1))
       ultimately have "1/z \<ge> 0" "1/z < e" by auto
     }

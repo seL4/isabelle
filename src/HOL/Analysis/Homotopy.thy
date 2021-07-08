@@ -551,7 +551,7 @@ proof -
   then have "path q"
     by (simp add: path_def) (metis q continuous_on_cong)
   have piqs: "path_image q \<subseteq> s"
-    by (metis (no_types, hide_lams) pips f01 image_subset_iff path_image_def q)
+    by (metis (no_types, opaque_lifting) pips f01 image_subset_iff path_image_def q)
   have fb0: "\<And>a b. \<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> (1 - a) * f b + a * b"
     using f01 by force
   have fb1: "\<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> (1 - a) * f b + a * b \<le> 1" for a b
@@ -1846,7 +1846,7 @@ proof -
   have 2: "openin (top_of_set S) ?B"
     by (subst openin_subopen, blast)
   have \<section>: "?A \<inter> ?B = {}"
-    by (clarsimp simp: set_eq_iff) (metis (no_types, hide_lams) Int_iff opD openin_Int)
+    by (clarsimp simp: set_eq_iff) (metis (no_types, opaque_lifting) Int_iff opD openin_Int)
   have *: "S \<subseteq> ?A \<union> ?B"
     by clarsimp (meson opI)
   have "?A = {} \<or> ?B = {}"
@@ -1916,7 +1916,7 @@ proof
   assume ?lhs
   then have "\<And>a. a \<in> S \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and> (\<forall>x\<in>T. f x = f a)"
     unfolding locally_def
-    by (metis (mono_tags, hide_lams) constant_on_def constant_on_subset openin_subtopology_self)
+    by (metis (mono_tags, opaque_lifting) constant_on_def constant_on_subset openin_subtopology_self)
   then show ?rhs
     using assms
     by (simp add: locally_constant_imp_constant)
@@ -4519,7 +4519,7 @@ proof (clarsimp simp add: path_connected_component)
       have "\<not> aff_dim (affine hull S) \<le> 1"
         using \<open>\<not> collinear S\<close> collinear_aff_dim by auto
       then have "\<not> aff_dim (ball x r \<inter> affine hull S) \<le> 1"
-        by (metis (no_types, hide_lams) aff_dim_convex_Int_open IntI open_ball \<open>0 < r\<close> aff_dim_affine_hull affine_affine_hull affine_imp_convex centre_in_ball empty_iff hull_subset inf_commute subsetCE that)
+        by (metis (no_types, opaque_lifting) aff_dim_convex_Int_open IntI open_ball \<open>0 < r\<close> aff_dim_affine_hull affine_affine_hull affine_imp_convex centre_in_ball empty_iff hull_subset inf_commute subsetCE that)
       then have "\<not> collinear (ball x r \<inter> affine hull S)"
         by (simp add: collinear_aff_dim)
       then have *: "path_connected ((ball x r \<inter> affine hull S) - T)"
@@ -5254,7 +5254,7 @@ next
     and hj:  "\<And>x. j(h x) = x" "\<And>y. h(j y) = y"
     and ranh: "surj h"
     using isomorphisms_UNIV_UNIV
-    by (metis (mono_tags, hide_lams) DIM_real UNIV_eq_I range_eqI)
+    by (metis (mono_tags, opaque_lifting) DIM_real UNIV_eq_I range_eqI)
   obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"
                and f: "\<And>x. x \<in> h ` K \<Longrightarrow> f x \<in> h ` U"
                and sub: "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> h ` S"
@@ -5275,7 +5275,7 @@ next
         using hom homeomorphism_def
         by (blast intro: continuous_on_compose cont_hj)+
       show "(j \<circ> f \<circ> h) ` T \<subseteq> T" "(j \<circ> g \<circ> h) ` T \<subseteq> T"
-        by auto (metis (mono_tags, hide_lams) hj(1) hom homeomorphism_def imageE imageI)+
+        by auto (metis (mono_tags, opaque_lifting) hj(1) hom homeomorphism_def imageE imageI)+
       show "\<And>x. x \<in> T \<Longrightarrow> (j \<circ> g \<circ> h) ((j \<circ> f \<circ> h) x) = x"
         using hj hom homeomorphism_apply1 by fastforce
       show "\<And>y. y \<in> T \<Longrightarrow> (j \<circ> f \<circ> h) ((j \<circ> g \<circ> h) y) = y"
