@@ -1,7 +1,7 @@
-/*  Title:      Tools/Setup/isabelle/setup/Build_Scala.java
+/*  Title:      Tools/Setup/isabelle/setup/Build.java
     Author:     Makarius
 
-Build Isabelle/Scala modules.
+Build Isabelle/Scala/JVM modules.
 */
 
 package isabelle.setup;
@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 import scala.tools.nsc.MainClass;
 
 
-public class Build_Scala
+public class Build
 {
     /** component directory context **/
 
