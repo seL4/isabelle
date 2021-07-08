@@ -14,6 +14,13 @@ import java.util.{Properties => JProperties, Map => JMap}
 
 abstract class CI_Profile extends Isabelle_Tool.Body
 {
+  case class Result(rc: Int)
+  case object Result
+  {
+    def ok: Result = Result(0)
+    def error: Result = Result(1)
+  }
+
   private def build(options: Options): (Build.Results, Time) =
   {
     val progress = new Console_Progress(verbose = true)
@@ -100,7 +107,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     print_section("BUILD")
     println(s"Build started at $start_time")
     println(s"Isabelle id $isabelle_id")
-    pre_hook(args)
+    val pre_result = pre_hook(args)
 
     print_section("LOG")
     val (results, elapsed_time) = build(options)
@@ -129,9 +136,9 @@ abstract class CI_Profile extends Isabelle_Tool.Body
       }
     }
 
-    post_hook(results)
+    val post_result = post_hook(results)
 
-    System.exit(results.rc)
+    System.exit(List(pre_result.rc, results.rc, post_result.rc).max)
   }
 
   /* profile */
@@ -156,8 +163,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   def include: List[Path]
   def select: List[Path]
 
-  def pre_hook(args: List[String]): Unit
-  def post_hook(results: Build.Results): Unit
+  def pre_hook(args: List[String]): Result
+  def post_hook(results: Build.Results): Result
 
   def selection: Sessions.Selection
 }
