@@ -153,7 +153,7 @@ object Isabelle_System
   def make_directory(path: Path): Path =
   {
     if (!path.is_dir) {
-      try { Files.createDirectories(path.file.toPath) }
+      try { Files.createDirectories(path.java_path) }
       catch { case ERROR(_) => error("Failed to create directory: " + path.absolute) }
     }
     path

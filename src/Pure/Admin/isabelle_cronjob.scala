@@ -58,7 +58,7 @@ object Isabelle_Cronjob
             Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
         if (!Isabelle_Devel.cronjob_log.is_file)
-          Files.createSymbolicLink(Isabelle_Devel.cronjob_log.file.toPath, current_log.file.toPath)
+          Files.createSymbolicLink(Isabelle_Devel.cronjob_log.java_path, current_log.java_path)
       })
 
   val exit: Logger_Task =
