@@ -175,6 +175,7 @@ public class Build
     public static void create_jar(Path dir, String main, Path jar)
         throws IOException
     {
+        Files.createDirectories(dir.resolve(jar).getParent());
         Files.deleteIfExists(jar);
 
         Manifest manifest = new Manifest();
