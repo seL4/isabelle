@@ -257,12 +257,11 @@ TARGET_SHASUM="$TARGET_DIR/Isabelle-jEdit.shasum"
 
 declare -a TARGET_DEPS=("lib/classes/Pure.jar" "$TARGET_DIR/jedit.jar")
 
-if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-  for DEP in "$ISABELLE_JEDIT_BUILD_HOME/$ISABELLE_JEDIT_BUILD_VERSION"/jars/*.jar
-  do
-    TARGET_DEPS["${#TARGET_DEPS[@]}"]="$TARGET_DIR/jars/$(basename "$DEP")"
-  done
-fi
+splitarray ":" "$ISABELLE_JEDIT_JARS"
+for DEP in "${SPLITARRAY[@]}"
+do
+  TARGET_DEPS["${#TARGET_DEPS[@]}"]="$TARGET_DIR/jars/$(basename "$DEP")"
+done
 
 function target_shasum()
 (
@@ -315,13 +314,10 @@ target_shasum | cmp "$TARGET_SHASUM" >/dev/null 2>/dev/null
 if [ -e "$ISABELLE_HOME/Admin/build" -a "$?" -ne 0 ]; then
   echo "### Building Isabelle/jEdit ..."
 
-  [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
-    fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
-
   target_clean || failed
   mkdir -p "$TARGET_DIR" || failed
 
-  cp -p -R "$ISABELLE_JEDIT_BUILD_HOME/$ISABELLE_JEDIT_BUILD_VERSION/." "$TARGET_DIR/."
+  cp -p -R "$ISABELLE_JEDIT_HOME/." "$TARGET_DIR/."
 
   init_resources "${RESOURCES0[@]}"
   compile_sources "${SOURCES0[@]}"

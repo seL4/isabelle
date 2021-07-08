@@ -496,3 +496,4 @@ class Plugin extends EBPlugin
     PIDE.editor.shutdown()
   }
 }
+
