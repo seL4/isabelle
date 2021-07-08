@@ -961,6 +961,25 @@ For most provers, this value is 3.
 
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
+
+\opdefault{induction\_rules}{string}{smart}
+Specifies whether induction rules should be considered as relevant facts.
+The following behaviors are available:
+\begin{enum}
+\item[\labelitemi] \textbf{\textit{include}:}
+Induction rules are considered by the relevance filter.
+
+\item[\labelitemi] \textbf{\textit{exclude}:}
+Induction rules are ignored by the relevance filter.
+
+\item[\labelitemi] \textbf{\textit{instantiated}:}
+Induction rules are instantiated based on the conjecture and then
+considered by the relevance filter.
+
+\item[\labelitemi] \textbf{\textit{smart}:}
+Same as \textit{include} if the prover supports higher-order logic;
+same as \textit{exclude} otherwise.
+\end{enum}
 \end{enum}
 
 
@@ -980,9 +999,9 @@ supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,
 defined using an equation $\const{c}~x_1~\ldots~x_n = t$ ($\lambda$-lifting).
 
 \item[\labelitemi] \textbf{\textit{opaque\_lifting}:} Same as
-\textbf{\textit{lifting}}, except that the supercombinators are kept opaque,
-i.e. they are unspecified fresh constants. This effectively disables all
-reasoning under $\lambda$-abstractions.
+\textit{lifting}, except that the supercombinators are kept opaque,
+i.e. they are unspecified fresh constants. This effectively disables
+all reasoning under $\lambda$-abstractions.
 
 \item[\labelitemi] \textbf{\textit{combs}:} Rewrite lambdas to the Curry
 combinators (\comb{I}, \comb{K}, \comb{S}, \comb{B}, \comb{C}). Combinators
@@ -992,8 +1011,8 @@ equational definitions of the combinators are very prolific in the context of
 resolution.
 
 \item[\labelitemi] \textbf{\textit{opaque\_combs}:} Same as
-\textbf{\textit{combs}}, except that the combinators are kept opaque,
-i.e. without equational definitions.
+\textit{combs}, except that the combinators are kept opaque, i.e. without
+equational definitions.
 
 \item[\labelitemi] \textbf{\textit{combs\_and\_lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $\lambda$-abstractions and characterize it both using a
