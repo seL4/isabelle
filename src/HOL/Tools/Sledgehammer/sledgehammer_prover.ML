@@ -12,11 +12,13 @@ sig
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
   type fact = Sledgehammer_Fact.fact
-  type induction_rules = Sledgehammer_Fact.induction_rules
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
 
   datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
+
+  datatype induction_rules = Include | Exclude | Instantiate
+  val induction_rules_of_string : string -> induction_rules option
 
   type params =
     {debug : bool,
@@ -102,6 +104,13 @@ fun str_of_mode Auto_Try = "Auto Try"
   | str_of_mode Normal = "Normal"
   | str_of_mode Minimize = "Minimize"
   | str_of_mode MaSh = "MaSh"
+
+datatype induction_rules = Include | Exclude | Instantiate
+
+fun induction_rules_of_string "include" = SOME Include
+  | induction_rules_of_string "exclude" = SOME Exclude
+  | induction_rules_of_string "instantiate" = SOME Instantiate
+  | induction_rules_of_string _ = NONE
 
 val is_atp = member (op =) o supported_atps
 

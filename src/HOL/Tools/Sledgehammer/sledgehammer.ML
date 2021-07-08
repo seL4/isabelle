@@ -118,7 +118,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
          (meth, play)))
 
 fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout, preplay_timeout,
-      expect, ...}) mode writeln_result only learn
+      expect, induction_rules, ...}) mode writeln_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _, found_proof} name =
   let
     val ctxt = Proof.context_of state
@@ -127,12 +127,14 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
+    val induction_rules =
+      the_default (if is_ho_atp ctxt name then Include else Exclude) induction_rules
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
        factss = factss
-       |> map (apsnd ((not (is_ho_atp ctxt name)
+       |> map (apsnd ((induction_rules = Exclude
            ? filter_out (fn ((_, (_, Induction)), _) => true | _ => false))
          #> take num_facts)),
        found_proof = found_proof}
@@ -271,12 +273,10 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val keywords = Thy_Header.get_keywords' ctxt
         val {facts = chained, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
-        val ho_atp = exists (is_ho_atp ctxt) provers
-        val induction_rules = the_default (if ho_atp then Instantiate else Exclude) induction_rules
+        val inst_inducts = induction_rules = SOME Instantiate
         val css = clasimpset_rule_table_of ctxt
         val all_facts =
-          nearly_all_facts ctxt induction_rules fact_override keywords css chained hyp_ts
-            concl_t
+          nearly_all_facts ctxt inst_inducts fact_override keywords css chained hyp_ts concl_t
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
             SOME name => error ("No such prover: " ^ name)

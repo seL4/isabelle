@@ -18,28 +18,25 @@ sig
      del : (Facts.ref * Token.src list) list,
      only : bool}
 
-  datatype induction_rules = Include | Exclude | Instantiate
-  val induction_rules_of_string : string -> induction_rules option
-
   val no_fact_override : fact_override
 
   val fact_of_ref : Proof.context -> Keyword.keywords -> thm list -> status Termtab.table ->
     Facts.ref * Token.src list -> ((string * stature) * thm) list
   val cartouche_thm : Proof.context -> thm -> string
-  val is_blacklisted_or_something : induction_rules -> string -> bool
+  val is_blacklisted_or_something : string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val build_name_tables : (thm -> string) -> ('a * thm) list ->
     string Symtab.table * string Symtab.table
   val fact_distinct : (term * term -> bool) -> ('a * thm) list -> ('a * thm) list
-  val maybe_instantiate_inducts : Proof.context -> induction_rules -> term list -> term ->
+  val instantiate_inducts : Proof.context -> term list -> term ->
     (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
   val fact_of_raw_fact : raw_fact -> fact
   val is_useful_unnamed_local_fact : Proof.context -> thm -> bool
 
-  val all_facts : Proof.context -> bool -> induction_rules -> Keyword.keywords ->
-    thm list -> thm list -> status Termtab.table -> raw_fact list
-  val nearly_all_facts : Proof.context -> induction_rules -> fact_override ->
-    Keyword.keywords -> status Termtab.table -> thm list -> term list -> term -> raw_fact list
+  val all_facts : Proof.context -> bool -> Keyword.keywords -> thm list -> thm list ->
+    status Termtab.table -> raw_fact list
+  val nearly_all_facts : Proof.context -> bool -> fact_override -> Keyword.keywords ->
+    status Termtab.table -> thm list -> term list -> term -> raw_fact list
   val drop_duplicate_facts : raw_fact list -> raw_fact list
 
 end;
@@ -65,13 +62,6 @@ val local_thisN = Long_Name.localN ^ Long_Name.separator ^ Auto_Bind.thisN
 val max_facts_for_duplicates = 50000
 val max_facts_for_complex_check = 25000
 val max_simps_for_clasimpset = 10000
-
-datatype induction_rules = Include | Exclude | Instantiate
-
-fun induction_rules_of_string "include" = SOME Include
-  | induction_rules_of_string "exclude" = SOME Exclude
-  | induction_rules_of_string "instantiate" = SOME Instantiate
-  | induction_rules_of_string _ = NONE
 
 val no_fact_override = {add = [], del = [], only = false}
 
@@ -194,11 +184,10 @@ fun is_package_def s =
   end
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
-fun multi_base_blacklist induction_rules =
+val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm", "ext_cases", "eq.simps",
    "eq.refl", "nchotomy", "case_cong", "case_cong_weak", "nat_of_char_simps", "nibble.simps",
    "nibble.distinct"]
-  |> induction_rules = Exclude ? append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
 
 (* The maximum apply depth of any "metis" call in "Metis_Examples" (back in 2007) was 11. *)
@@ -277,8 +266,8 @@ fun is_likely_tautology_too_meta_or_too_technical th =
     is_that_fact th
   end
 
-fun is_blacklisted_or_something induction_rules =
-  let val blist = multi_base_blacklist induction_rules in
+val is_blacklisted_or_something =
+  let val blist = multi_base_blacklist in
     fn name => is_package_def name orelse exists (fn s => String.isSuffix s name) blist
   end
 
@@ -432,18 +421,15 @@ fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (Name.is_internal o fst)
 
-fun maybe_instantiate_inducts ctxt induction_rules hyp_ts concl_t =
-  if induction_rules = Instantiate then
-    let
-      val ind_stmt =
-        (hyp_ts |> filter_out (null o external_frees), concl_t)
-        |> Logic.list_implies |> Object_Logic.atomize_term ctxt
-      val ind_stmt_xs = external_frees ind_stmt
-    in
-      maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-    end
-  else
-    I
+fun instantiate_inducts ctxt hyp_ts concl_t =
+  let
+    val ind_stmt =
+      (hyp_ts |> filter_out (null o external_frees), concl_t)
+      |> Logic.list_implies |> Object_Logic.atomize_term ctxt
+    val ind_stmt_xs = external_frees ind_stmt
+  in
+    maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
+  end
 
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
@@ -462,7 +448,7 @@ fun is_useful_unnamed_local_fact ctxt =
       not (member (op aconv) named_locals (normalize_eq (Thm.prop_of th)))
   end
 
-fun all_facts ctxt generous induction_rules keywords add_ths chained css =
+fun all_facts ctxt generous keywords add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val transfer = Global_Theory.transfer_theories thy
@@ -480,7 +466,6 @@ fun all_facts ctxt generous induction_rules keywords add_ths chained css =
       |> map (pair "" o single)
 
     val full_space = Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
-    val is_blacklisted_or_something = is_blacklisted_or_something induction_rules
 
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) => fn accum =>
@@ -541,7 +526,7 @@ fun all_facts ctxt generous induction_rules keywords add_ths chained css =
     |> op @
   end
 
-fun nearly_all_facts ctxt induction_rules {add, del, only} keywords css chained hyp_ts
+fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts
     concl_t =
   if only andalso null add then
     []
@@ -556,14 +541,14 @@ fun nearly_all_facts ctxt induction_rules {add, del, only} keywords css chained 
          let
            val (add, del) = apply2 (Attrib.eval_thms ctxt) (add, del)
            val facts =
-             all_facts ctxt false induction_rules keywords add chained css
+             all_facts ctxt false keywords add chained css
              |> filter_out ((member Thm.eq_thm_prop del orf
                (Named_Theorems.member ctxt \<^named_theorems>\<open>no_atp\<close> andf
                  not o member Thm.eq_thm_prop add)) o snd)
          in
            facts
          end)
-      |> maybe_instantiate_inducts ctxt induction_rules hyp_ts concl_t
+      |> inst_inducts ? instantiate_inducts ctxt hyp_ts concl_t
     end
 
 fun drop_duplicate_facts facts =

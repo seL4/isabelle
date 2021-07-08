@@ -62,6 +62,7 @@ val default_default_params =
    ("uncurried_aliases", "smart"),
    ("learn", "true"),
    ("fact_filter", "smart"),
+   ("induction_rules", "smart"),
    ("max_facts", "smart"),
    ("fact_thresholds", "0.45 0.85"),
    ("max_mono_iters", "smart"),
@@ -260,7 +261,8 @@ fun extract_params mode default_params override_params =
     val fact_filter =
       lookup_option lookup_string "fact_filter"
       |> mode = Auto_Try ? (fn NONE => SOME mepoN | sf => sf)
-    val induction_rules = lookup_option (the o induction_rules_of_string) "induction_rules"
+    val induction_rules =
+      lookup_option (the o induction_rules_of_string o lookup_string) "induction_rules"
     val max_facts = lookup_option lookup_int "max_facts"
     val fact_thresholds = lookup_real_pair "fact_thresholds"
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
