@@ -192,6 +192,17 @@ INCOMPATIBILITY.
 min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4.  Minor
 INCOMPATIBILITY.
 
+* Sledgehammer:
+ - Removed legacy "lam_lifting" (synonym for "liftinng") from option
+   "lam_trans". Minor INCOMPATIBILITY.
+ - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans".
+   Minor INCOMPATIBILITY.
+ - Added "opaque_combs" to option "lam_trans": lambda expressions are rewritten
+   using combinators, but the combinators are kept opaque, i.e. without
+   definitions.
+
+* Metis:
+ - Renamed option "hide_lams" to "opaque_lifting". Minor INCOMPATIBILITY.
 
 *** ML ***
 

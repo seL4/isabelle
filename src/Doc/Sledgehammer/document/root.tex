@@ -975,13 +975,14 @@ Specifies the $\lambda$ translation scheme to use in ATP problems. The supported
 translation schemes are listed below:
 
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{opaque\_lifting}:} Hide the
-$\lambda$-abstractions by replacing them by unspecified fresh constants,
-effectively disabling all reasoning under $\lambda$-abstractions.
-
 \item[\labelitemi] \textbf{\textit{lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $n$~$\lambda$-abstractions,
 defined using an equation $\const{c}~x_1~\ldots~x_n = t$ ($\lambda$-lifting).
+
+\item[\labelitemi] \textbf{\textit{opaque\_lifting}:} Same as
+\textbf{\textit{lifting}}, except that the supercombinators are kept opaque,
+i.e. they are unspecified fresh constants. This effectively disables all
+reasoning under $\lambda$-abstractions.
 
 \item[\labelitemi] \textbf{\textit{combs}:} Rewrite lambdas to the Curry
 combinators (\comb{I}, \comb{K}, \comb{S}, \comb{B}, \comb{C}). Combinators
@@ -989,6 +990,10 @@ enable the ATPs to synthesize $\lambda$-terms but tend to yield bulkier formulas
 than $\lambda$-lifting: The translation is quadratic in the worst case, and the
 equational definitions of the combinators are very prolific in the context of
 resolution.
+
+\item[\labelitemi] \textbf{\textit{opaque\_combs}:} Same as
+\textbf{\textit{combs}}, except that the combinators are kept opaque,
+i.e. without equational definitions.
 
 \item[\labelitemi] \textbf{\textit{combs\_and\_lifting}:} Introduce a new
 supercombinator \const{c} for each cluster of $\lambda$-abstractions and characterize it both using a
