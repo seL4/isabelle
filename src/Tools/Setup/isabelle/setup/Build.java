@@ -69,6 +69,7 @@ public class Build
             }
             return List.copyOf(list);
         }
+        public List<String> requirements() { return get_list("requirements"); }
         public List<String> sources() { return get_list("sources"); }
         public List<String> resources() { return get_list("resources"); }
         public List<String> services() { return get_list("services"); }
@@ -91,16 +92,28 @@ public class Build
             return i > 0 ? s.substring(i + 1) : s;
         }
 
+        public String shasum(String name, List<Path> paths)
+            throws IOException, NoSuchAlgorithmException
+        {
+            boolean exists = false;
+            MessageDigest sha = MessageDigest.getInstance("SHA");
+            for (Path file : paths) {
+                if (Files.exists(file)) {
+                    exists = true;
+                    sha.update(Files.readAllBytes(file));
+                }
+            }
+            if (exists) {
+                String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
+                return digest + " " + name + "\n";
+            }
+            else { return ""; }
+        }
+
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException
         {
-            if (exists(file)) {
-                MessageDigest sha = MessageDigest.getInstance("SHA");
-                sha.update(Files.readAllBytes(path(file)));
-                String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
-                return digest + " " + file + "\n";
-            }
-            else { return ""; }
+            return shasum(file, List.of(path(file)));
         }
     }
 
@@ -152,7 +165,7 @@ public class Build
         throws IOException
     {
         Path path = dir.resolve(SHASUM);
-        Files.createDirectories(dir.getParent());
+        Files.createDirectories(path.getParent());
         Files.writeString(path, shasum);
     }
 
@@ -199,8 +212,9 @@ public class Build
         String jar_name = context.jar_name();
         Path jar_path = context.path(jar_name);
 
-        List<String> sources = context.sources();
+        List<String> requirements = context.requirements();
         List<String> resources = context.resources();
+        List<String> sources = context.sources();
 
         Files.deleteIfExists(context.shasum_path());
 
@@ -210,8 +224,26 @@ public class Build
         else {
             String shasum_old = get_shasum(jar_path);
             String shasum;
+            List<Path> compiler_deps = new LinkedList<Path>();
             {
                 StringBuilder _shasum = new StringBuilder();
+                for (String s : requirements) {
+                    if (s.startsWith("@$")) {
+                        List<Path> paths = new LinkedList<Path>();
+                        for (String p : Environment.getenv(s.substring(2)).split(":", -1)) {
+                            if (!p.isEmpty()) {
+                                Path path = Path.of(Environment.platform_path(p));
+                                compiler_deps.add(path);
+                                paths.add(path);
+                            }
+                        }
+                        _shasum.append(context.shasum(s, paths));
+                    }
+                    else {
+                        compiler_deps.add(context.path(s));
+                        _shasum.append(context.shasum(s));
+                    }
+                }
                 for (String s : resources) {
                     _shasum.append(context.shasum(context.item_name(s)));
                 }
@@ -229,7 +261,6 @@ public class Build
                 try {
                     /* compile sources */
 
-                    List<Path> compiler_deps = new LinkedList<Path>();
                     for (String s : isabelle_class_path.split(":", -1)) {
                         if (!s.isEmpty()) {
                           compiler_deps.add(Path.of(Environment.platform_path(s)));
