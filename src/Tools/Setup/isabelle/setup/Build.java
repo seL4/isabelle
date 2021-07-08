@@ -193,11 +193,13 @@ public class Build
                 boolean is_file = Files.isRegularFile(path);
                 if (is_dir || is_file) {
                     String name = Environment.slashes(dir.relativize(path).toString());
-                    JarEntry entry = new JarEntry(is_dir ? name + "/" : name);
-                    entry.setTime(path.toFile().lastModified());
-                    out.putNextEntry(entry);
-                    if (is_file) { out.write(Files.readAllBytes(path)); }
-                    out.closeEntry();
+                    if (!name.isEmpty()) {
+                        JarEntry entry = new JarEntry(is_dir ? name + "/" : name);
+                        entry.setTime(path.toFile().lastModified());
+                        out.putNextEntry(entry);
+                        if (is_file) { out.write(Files.readAllBytes(path)); }
+                        out.closeEntry();
+                    }
                 }
             }
         }
