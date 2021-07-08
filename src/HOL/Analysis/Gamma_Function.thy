@@ -1015,6 +1015,21 @@ lemma deriv_ln_Gamma_complex:
   by (intro DERIV_imp_deriv has_field_derivative_ln_Gamma_complex assms)
 
 
+lemma higher_deriv_ln_Gamma_complex:
+  assumes "(x::complex) \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "(deriv ^^ j) ln_Gamma x = (if j = 0 then ln_Gamma x else Polygamma (j - 1) x)"
+proof (cases j)
+  case (Suc j')
+  have "(deriv ^^ j') (deriv ln_Gamma) x = (deriv ^^ j') Digamma x"
+    using eventually_nhds_in_open[of "UNIV - \<real>\<^sub>\<le>\<^sub>0" x] assms
+    by (intro higher_deriv_cong_ev refl)
+       (auto elim!: eventually_mono simp: open_Diff deriv_ln_Gamma_complex)
+  also have "\<dots> = Polygamma j' x" using assms
+    by (subst higher_deriv_Polygamma)
+       (auto elim!: nonpos_Ints_cases simp: complex_nonpos_Reals_iff)
+  finally show ?thesis using Suc by (simp del: funpow.simps add: funpow_Suc_right)
+qed simp_all
+
 
 text \<open>
   We define a type class that captures all the fundamental properties of the inverse of the Gamma function
@@ -1695,6 +1710,27 @@ lemma deriv_ln_Gamma_real:
   shows   "deriv ln_Gamma z = Digamma (z :: real)"
   by (intro DERIV_imp_deriv has_field_derivative_ln_Gamma_real assms)
 
+lemma higher_deriv_ln_Gamma_real:
+  assumes "(x::real) > 0"
+  shows   "(deriv ^^ j) ln_Gamma x = (if j = 0 then ln_Gamma x else Polygamma (j - 1) x)"
+proof (cases j)
+  case (Suc j')
+  have "(deriv ^^ j') (deriv ln_Gamma) x = (deriv ^^ j') Digamma x"
+    using eventually_nhds_in_open[of "{0<..}" x] assms
+    by (intro higher_deriv_cong_ev refl)
+       (auto elim!: eventually_mono simp: open_Diff deriv_ln_Gamma_real)
+  also have "\<dots> = Polygamma j' x" using assms
+    by (subst higher_deriv_Polygamma)
+       (auto elim!: nonpos_Ints_cases simp: complex_nonpos_Reals_iff)
+  finally show ?thesis using Suc by (simp del: funpow.simps add: funpow_Suc_right)
+qed simp_all
+  
+lemma higher_deriv_ln_Gamma_complex_of_real:
+  assumes "(x :: real) > 0"
+  shows   "(deriv ^^ j) ln_Gamma (complex_of_real x) = of_real ((deriv ^^ j) ln_Gamma x)"
+    using assms
+    by (auto simp: higher_deriv_ln_Gamma_real higher_deriv_ln_Gamma_complex
+                   ln_Gamma_complex_of_real Polygamma_of_real)
 
 lemma has_field_derivative_rGamma_real' [derivative_intros]:
   "(rGamma has_field_derivative (if x \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>-x\<rfloor>) * fact (nat \<lfloor>-x\<rfloor>) else

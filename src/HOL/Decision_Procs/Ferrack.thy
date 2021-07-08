@@ -751,17 +751,7 @@ lemma simpnum_nz: "nozerocoeff (simpnum t)"
   by (induct t) (simp_all add: numadd_nz numneg_nz numsub_nz nummul_nz)
 
 lemma maxcoeff_nz: "nozerocoeff t \<Longrightarrow> maxcoeff t = 0 \<Longrightarrow> t = C 0"
-proof (induct t rule: maxcoeff.induct)
-  case (2 n c t)
-  then have cnz: "c \<noteq> 0" and mx: "max \<bar>c\<bar> (maxcoeff t) = 0"
-    by simp_all
-  have "max \<bar>c\<bar> (maxcoeff t) \<ge> \<bar>c\<bar>"
-    by simp
-  with cnz have "max \<bar>c\<bar> (maxcoeff t) > 0"
-    by arith
-  with 2 show ?case
-    by simp
-qed auto
+  by (induction t rule: maxcoeff.induct) auto
 
 lemma numgcd_nz:
   assumes nz: "nozerocoeff t"

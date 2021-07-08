@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Color, Point, Cursor, MouseInfo}
+import java.awt.{Graphics2D, Shape, Color, Point, Cursor, MouseInfo, Font}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter, KeyEvent}
 import java.awt.font.TextAttribute
@@ -176,7 +176,7 @@ class Rich_Text_Area(
     def update_rendering(r: JEdit_Rendering, range: Text.Range): Unit =
       update(rendering(r)(range))
 
-    def reset: Unit = update(None)
+    def reset(): Unit = update(None)
   }
 
   // owned by GUI thread
@@ -195,7 +195,7 @@ class Rich_Text_Area(
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
-  def active_reset(): Unit = active_areas.foreach(_._1.reset)
+  def active_reset(): Unit = active_areas.foreach(_._1.reset())
 
   private def area_active(): Boolean =
     active_areas.exists({ case (area, _) => area.is_active })
@@ -273,7 +273,7 @@ class Rich_Text_Area(
                 {
                   if (control == require_control && !rendering.snapshot.is_outdated)
                     area.update_rendering(rendering, range)
-                  else area.reset
+                  else area.reset()
                 }
             }
           }
@@ -404,12 +404,26 @@ class Rich_Text_Area(
     }
   }
 
-  private def paint_chunk_list(rendering: JEdit_Rendering,
+  private class Font_Subst
+  {
+    private var cache = Map.empty[Int, Option[Font]]
+
+    def get(codepoint: Int): Option[Font] =
+      cache.getOrElse(codepoint,
+        {
+          val field = classOf[Chunk].getDeclaredField("lastSubstFont")
+          field.setAccessible(true)
+          field.set(null, null)
+          val res = Option(Chunk.getSubstFont(codepoint))
+          cache += (codepoint -> res)
+          res
+        })
+  }
+
+  private def paint_chunk_list(rendering: JEdit_Rendering, font_subst: Font_Subst,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
-    val painter = text_area.getPainter
-    val font_context = painter.getFontRenderContext
 
     val caret_range =
       if (caret_enabled) JEdit_Lib.caret_range(text_area)
@@ -432,55 +446,39 @@ class Rich_Text_Area(
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
-        def string_width(s: String): Float =
-          if (s.isEmpty) 0.0f
-          else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
+        val chunk_text = new AttributedString(chunk_str)
 
-        val markup =
+        def chunk_attrib(attrib: TextAttribute, value: AnyRef, r: Text.Range): Unit =
+          chunk_text.addAttribute(attrib, value, r.start - chunk_offset, r.stop - chunk_offset)
+
+        // font
+        chunk_text.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR)
+        chunk_text.addAttribute(TextAttribute.FONT, chunk_font)
+        if (chunk.usedFontSubstitution) {
           for {
-            r1 <- rendering.text_color(chunk_range, chunk_color)
-            r2 <- r1.try_restrict(chunk_range)
-          } yield r2
-
-        val padded_markup_iterator =
-          if (markup.isEmpty)
-            Iterator(Text.Info(chunk_range, chunk_color))
-          else
-            Iterator(
-              Text.Info(Text.Range(chunk_range.start, markup.head.range.start), chunk_color)) ++
-            markup.iterator ++
-            Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), chunk_color))
-
-        var x1 = x + w
-        gfx.setFont(chunk_font)
-        for (Text.Info(range, color) <- padded_markup_iterator if !range.is_singularity) {
-          val str = chunk_str.substring(range.start - chunk_offset, range.stop - chunk_offset)
-          gfx.setColor(color)
-
-          range.try_restrict(caret_range) match {
-            case Some(r) if !r.is_singularity =>
-              val i = r.start - range.start
-              val j = r.stop - range.start
-              val s1 = str.substring(0, i)
-              val s2 = str.substring(i, j)
-              val s3 = str.substring(j)
-
-              if (s1.nonEmpty) gfx.drawString(Word.bidi_override(s1), x1, y)
-
-              val astr = new AttributedString(Word.bidi_override(s2))
-              astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering, r.start))
-              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
-              gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
-
-              if (s3.nonEmpty)
-                gfx.drawString(Word.bidi_override(s3), x1 + string_width(str.substring(0, j)), y)
-
-            case _ =>
-              gfx.drawString(Word.bidi_override(str), x1, y)
+            (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
+            subst_font <- font_subst.get(c)
+          } {
+            val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
+            val font = Chunk.deriveSubstFont(chunk_font, subst_font)
+            chunk_attrib(TextAttribute.FONT, font, r)
           }
-          x1 += string_width(str)
         }
+
+        // color
+        chunk_text.addAttribute(TextAttribute.FOREGROUND, chunk_color)
+        for {
+          Text.Info(r1, color) <- rendering.text_color(chunk_range, chunk_color).iterator
+          r2 <- r1.try_restrict(chunk_range) if !r2.is_singularity
+        } chunk_attrib(TextAttribute.FOREGROUND, color, r2)
+
+        // caret
+        for { r <- caret_range.try_restrict(chunk_range) if !r.is_singularity } {
+          chunk_attrib(TextAttribute.FOREGROUND, caret_color(rendering, r.start), r)
+          chunk_attrib(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, r)
+        }
+
+        gfx.drawString(chunk_text.getIterator, x + w, y)
       }
       w += chunk.width
       chunk = chunk.next.asInstanceOf[Chunk]
@@ -507,9 +505,11 @@ class Rich_Text_Area(
         {
           val w = fm.charWidth(' ')
           val b = (w / 2) max 1
-          val c = (lm.getAscent + lm.getStrikethroughOffset).round.toInt
+          val c = (lm.getAscent + lm.getStrikethroughOffset).round
           ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
         }
+
+        val font_subst = new Font_Subst
 
         for (i <- physical_lines.indices) {
           val line = physical_lines(i)
@@ -524,7 +524,8 @@ class Rich_Text_Area(
                 val line_start = buffer.getLineStartOffset(line)
                 gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
                 val w =
-                  paint_chunk_list(rendering, gfx, line_start, chunks, x0.toFloat, y0.toFloat).toInt
+                  paint_chunk_list(rendering, font_subst, gfx,
+                    line_start, chunks, x0.toFloat, y0.toFloat)
                 gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)

@@ -9,6 +9,8 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.{List => JList}
+
 import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -45,7 +47,7 @@ object Text_Structure
     private val keyword_close = Keyword.proof_close
 
     def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
-      actions: java.util.List[IndentAction]): Unit =
+      actions: JList[IndentAction]): Unit =
     {
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>

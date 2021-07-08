@@ -175,11 +175,11 @@ lemma DEF_GT[import_const ">" : greater]:
 
 lemma DEF_MAX[import_const "MAX"]:
   "max = (\<lambda>x y :: nat. if x \<le> y then y else x)"
-  by (auto simp add: max.absorb_iff2 fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
-  by (auto simp add: min.absorb_iff1 fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
 definition even
 where

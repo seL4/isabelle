@@ -1465,6 +1465,12 @@ lemma compact_eq_bounded_closed:
   using bounded_closed_imp_seq_compact compact_eq_seq_compact_metric compact_imp_bounded compact_imp_closed 
   by auto
 
+lemma bounded_infinite_imp_islimpt:
+  fixes S :: "'a::heine_borel set"
+  assumes "T \<subseteq> S" "bounded S" "infinite T"
+  obtains x where "x islimpt S" 
+  by (meson assms closed_limpt compact_eq_Bolzano_Weierstrass compact_eq_bounded_closed islimpt_subset) 
+
 lemma compact_Inter:
   fixes \<F> :: "'a :: heine_borel set set"
   assumes com: "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" and "\<F> \<noteq> {}"

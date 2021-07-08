@@ -3241,9 +3241,12 @@ proof -
         apply (subst pr_def)
         apply (simp add: chain_boundary_sum chain_boundary_cmul)
         apply (subst chain_boundary_def)
+        apply simp
         apply (simp add: frag_cmul_sum sum.cartesian_product eq sum.union_disjoint disjoint_iff_not_equal
-                     sum.atLeast_Suc_atMost_Suc_shift del: sum.cl_ivl_Suc flip: comm_monoid_add_class.sum.Sigma)
-        apply (simp add: comm_monoid_add_class.sum.Sigma eq2 [of _ "\<lambda>i. {_ i.._ i}"])
+          sum.atLeast_Suc_atMost_Suc_shift del: sum.cl_ivl_Suc min.absorb2 min.absorb4
+          flip: comm_monoid_add_class.sum.Sigma)
+        apply (simp add: sum.Sigma eq2 [of _ "\<lambda>i. {_ i.._ i}"]
+          del: min.absorb2 min.absorb4)
         apply (simp add: sum.union_disjoint disjoint_iff_not_equal * [OF 1 2])
         done
     next

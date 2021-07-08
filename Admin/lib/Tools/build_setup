@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: build component for Isabelle/Java setup tool
+
+## sources
+
+declare -a SOURCES=(
+  "Build_Scala.java"
+  "Environment.java"
+  "Setup.java"
+)
+
+
+## usage
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] COMPONENT_DIR"
+  echo
+  echo "  Build component for Isabelle/Java setup tool."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -ge 1 ] && { COMPONENT_DIR="$1"; shift; }
+[ "$#" -ne 0 -o -z "$COMPONENT_DIR" ] && usage
+
+
+
+## main
+
+[ -d "$COMPONENT_DIR" ] && fail "Directory already exists: \"$COMPONENT_DIR\""
+
+
+# build jar
+
+TARGET_DIR="$COMPONENT_DIR/lib"
+mkdir -p "$TARGET_DIR/isabelle/setup"
+
+declare -a ARGS=("-Xlint:unchecked")
+for SRC in "${SOURCES[@]}"
+do
+  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
+done
+
+isabelle_jdk javac -d "$TARGET_DIR" -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \
+  fail "Failed to compile sources"
+
+isabelle_jdk jar -c -f "$(platform_path "$TARGET_DIR/isabelle_setup.jar")" \
+  -e "isabelle.setup.Setup" -C "$TARGET_DIR" isabelle || fail "Failed to produce jar"
+
+rm -rf "$TARGET_DIR/isabelle"
+
+
+# etc/settings
+
+mkdir -p "$COMPONENT_DIR/etc"
+cat > "$COMPONENT_DIR/etc/settings" <<EOF
+# -*- shell-script -*- :mode=shellscript:
+
+ISABELLE_SETUP_JAR="\$COMPONENT/lib/isabelle_setup.jar"
+classpath "\$ISABELLE_SETUP_JAR"
+EOF
+
+
+# README
+
+cat > "$COMPONENT_DIR/README" <<EOF
+Isabelle setup in pure Java, see also \$ISABELLE_HOME/src/Tools/Setup/.
+EOF

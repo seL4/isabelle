@@ -3374,6 +3374,26 @@ corollary absolutely_integrable_change_of_variables_1:
              (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S)"
   using has_absolute_integral_change_of_variables_1 [OF assms] by auto
 
+text \<open>when @{term "n=1"}\<close>
+lemma has_absolute_integral_change_of_variables_1':
+  fixes f :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real"
+  assumes S: "S \<in> sets lebesgue"
+    and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)"
+    and inj: "inj_on g S"
+  shows "(\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S \<and>
+           integral S (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) = b
+     \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
+proof -
+  have "(\<lambda>x. \<bar>g' x\<bar> *\<^sub>R vec (f(g x)) :: real ^ 1) absolutely_integrable_on S \<and>
+           integral S (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R vec (f(g x))) = (vec b :: real ^ 1)
+         \<longleftrightarrow> (\<lambda>x. vec (f x) :: real ^ 1) absolutely_integrable_on (g ` S) \<and>
+           integral (g ` S) (\<lambda>x. vec (f x)) = (vec b :: real ^ 1)"
+    using assms unfolding has_field_derivative_iff_has_vector_derivative
+    by (intro has_absolute_integral_change_of_variables_1 assms) auto
+  thus ?thesis
+    by (simp add: absolutely_integrable_on_1_iff integral_on_1_eq)
+qed
+
 
 subsection\<open>Change of variables for integrals: special case of linear function\<close>
 

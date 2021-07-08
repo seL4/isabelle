@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.{Properties => JProperties}
 import java.awt.{Color, Dimension, BorderLayout}
 import javax.swing.{JPanel, JTable, JScrollPane, JOptionPane}
 import javax.swing.table.AbstractTableModel
@@ -64,7 +65,7 @@ object Keymap_Merge
 
   /* content wrt. keymap */
 
-  def convert_properties(props: java.util.Properties): List[Shortcut] =
+  def convert_properties(props: JProperties): List[Shortcut] =
     if (props == null) Nil
     else {
       var result = List.empty[Shortcut]
@@ -82,7 +83,7 @@ object Keymap_Merge
   {
     val keymap_shortcuts =
       if (keymap == null) Nil
-      else convert_properties(Untyped.get[java.util.Properties](keymap, "props"))
+      else convert_properties(Untyped.get[JProperties](keymap, "props"))
 
     for (s <- convert_properties(jEdit.getProperties) if !s.is_ignored(keymap_name)) yield {
       val conflicts =

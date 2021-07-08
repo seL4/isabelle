@@ -813,6 +813,38 @@ qed
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
 
+lemma field_derivative_lim_unique:
+  assumes f: "(f has_field_derivative df) (at z)"
+      and s: "s \<longlonglongrightarrow> 0"  "\<And>n. s n \<noteq> 0" 
+      and a: "(\<lambda>n. (f (z + s n) - f z) / s n) \<longlonglongrightarrow> a"
+    shows "df = a"
+proof (rule ccontr)
+  assume "df \<noteq> a"
+  obtain q where qpos: "\<And>\<epsilon>. \<epsilon> > 0 \<Longrightarrow> q \<epsilon> > 0" 
+             and q: "\<And>\<epsilon> y. \<lbrakk>\<epsilon> > 0; y \<noteq> z; dist y z < q \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f y - f z) / (y - z)) df < \<epsilon>"
+    using f unfolding LIM_def has_field_derivative_iff by metis
+  obtain NA where NA: "\<And>\<epsilon> n. \<lbrakk>\<epsilon> > 0; n \<ge> NA \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f (z + s n) - f z) / s n) a < \<epsilon>" 
+    using a unfolding LIMSEQ_def by metis
+  obtain NB where NB: "\<And>\<epsilon> n. \<lbrakk>\<epsilon> > 0; n \<ge> NB \<epsilon>\<rbrakk> \<Longrightarrow> norm (s n) < \<epsilon>" 
+    using s unfolding LIMSEQ_def by (metis norm_conv_dist)
+  have df: "\<And>\<epsilon> n. \<epsilon> > 0 \<Longrightarrow> \<lbrakk>0 < \<epsilon>; norm (s n) < q \<epsilon>\<rbrakk> \<Longrightarrow> dist ((f (z + s n) - f z) / s n) df < \<epsilon>"
+    using add_cancel_left_right add_diff_cancel_left' q s
+    by (metis add_diff_cancel_right' dist_diff(1))
+  define \<delta> where "\<delta> \<equiv> dist df a / 2"
+  with \<open>df \<noteq> a\<close> have "\<delta> > 0" and \<delta>: "\<delta>+\<delta> \<le> dist df a"
+    by auto
+  define N where "N \<equiv> max (NA \<delta>) (NB (q \<delta>))"
+  then have "norm (s N) < q \<delta>"
+    by (simp add: NB \<open>\<delta> > 0\<close> qpos)
+  then have "dist ((f (z + s N) - f z) / s N) df < \<delta>"
+    by (simp add: \<open>0 < \<delta>\<close> df)
+  moreover have "dist ((f (z + s N) - f z) / s N) a < \<delta>"
+    using NA N_def \<open>0 < \<delta>\<close> by force
+  ultimately have "dist df a < dist df a"
+    by (smt (verit, ccfv_SIG) \<delta> dist_commute dist_triangle)
+  then show False ..
+qed
+
 lemma mult_commute_abs: "(\<lambda>x. x * c) = (*) c"
   for c :: "'a::ab_semigroup_mult"
   by (simp add: fun_eq_iff mult.commute)
@@ -1194,14 +1226,40 @@ lemma DERIV_cong_ev:
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
   by (rule has_field_derivative_cong_ev) simp_all
 
-lemma DERIV_shift:
-  "(f has_field_derivative y) (at (x + z)) = ((\<lambda>x. f (x + z)) has_field_derivative y) (at x)"
-  by (simp add: DERIV_def field_simps)
-
 lemma DERIV_mirror: "(DERIV f (- x) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (- x)) x :> - y)"
   for f :: "real \<Rightarrow> real" and x y :: real
   by (simp add: DERIV_def filterlim_at_split filterlim_at_left_to_right
       tendsto_minus_cancel_left field_simps conj_commute)
+
+lemma DERIV_shift:
+  "(f has_field_derivative y) (at (x + z)) = ((\<lambda>x. f (x + z)) has_field_derivative y) (at x)"
+  by (simp add: DERIV_def field_simps)
+
+lemma DERIV_at_within_shift_lemma:
+  assumes "(f has_field_derivative y) (at (z+x) within (+) z ` S)"
+  shows "(f \<circ> (+)z has_field_derivative y) (at x within S)"
+proof -
+  have "((+)z has_field_derivative 1) (at x within S)"
+    by (rule derivative_eq_intros | simp)+
+  with assms DERIV_image_chain show ?thesis
+    by (metis mult.right_neutral)
+qed
+
+lemma DERIV_at_within_shift:
+  "(f has_field_derivative y) (at (z+x) within (+) z ` S) \<longleftrightarrow> 
+   ((\<lambda>x. f (z+x)) has_field_derivative y) (at x within S)"   (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using DERIV_at_within_shift_lemma unfolding o_def by blast
+next
+  have [simp]: "(\<lambda>x. x - z) ` (+) z ` S = S"
+    by force
+  assume R: ?rhs
+  have "(f \<circ> (+) z \<circ> (+) (- z) has_field_derivative y) (at (z + x) within (+) z ` S)"
+    by (rule DERIV_at_within_shift_lemma) (use R in \<open>simp add: o_def\<close>)
+  then show ?lhs
+    by (simp add: o_def)
+qed
 
 lemma floor_has_real_derivative:
   fixes f :: "real \<Rightarrow> 'a::{floor_ceiling,order_topology}"

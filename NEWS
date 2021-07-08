@@ -31,6 +31,8 @@ Isabelle/jEdit.
 
 * More robust 'proof' outline for method "induct": support nested cases.
 
+* Support for built-in font substitution of jEdit text area.
+
 
 *** Document preparation ***
 
@@ -131,11 +133,22 @@ respectively. Minor INCOMPATIBILITY.
 operations has been adjusted to match the corresponding precendences on
 sets. Rare INCOMPATIBILITY.
 
+* Theory "HOL-Library.Cardinality": code generator setup based on the
+type classes finite_UNIV and card_UNIV has been moved to
+"HOL-Library.Code_Cardinality", to avoid incompatibilities with
+other code setups for sets in AFP/Containers. Applications relying on
+this code setup should import "HOL-Library.Code_Cardinality". Minor
+INCOMPATIBILITY.
+
 * Session "HOL-Analysis" and "HOL-Probability": indexed products of
 discrete distributions, negative binomial distribution, Hoeffding's
 inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
 and some more small lemmas. Some theorems that were stated awkwardly
 before were corrected. Minor INCOMPATIBILITY.
+
+* Session "HOL-Analysis": the complex Arg function has been identified
+with the function "arg" of Complex_Main, renaming arg->Arg also in the
+names of arg_bounded. Minor INCOMPATIBILITY.
 
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
@@ -173,6 +186,10 @@ operations. INCOMPATIBILITY.
 * Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
 as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
 "setBit", "clearBit". See there further the changelog in theory Guide.
+INCOMPATIBILITY.
+
+* New simp rules: less_exp, min.absorb1, min.absorb2, min.absorb3,
+min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4.  Minor
 INCOMPATIBILITY.
 
 

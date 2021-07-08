@@ -1,9 +1,0 @@
-<component name="ProjectCodeStyleConfiguration">
-  <code_scheme name="Project" version="173">
-    <option name="LINE_SEPARATOR" value="&#10;" />
-    <option name="SOFT_MARGINS" value="100" />
-    <codeStyleSettings language="Scala">
-      <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
-    </codeStyleSettings>
-  </code_scheme>
-</component>

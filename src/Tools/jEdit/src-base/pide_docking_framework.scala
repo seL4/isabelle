@@ -9,6 +9,7 @@ package isabelle.jedit_base
 
 import isabelle._
 
+import java.util.{List => JList}
 import java.awt.event.{ActionListener, ActionEvent}
 import javax.swing.{JPopupMenu, JMenuItem}
 
@@ -42,7 +43,7 @@ class PIDE_Docking_Framework extends DockableWindowManagerProvider
             }
 
           case panel: PanelWindowContainer =>
-            val entries = Untyped.get[java.util.List[AnyRef]](panel, "dockables").toArray
+            val entries = Untyped.get[JList[AnyRef]](panel, "dockables").toArray
             val wins =
               (for {
                 entry <- entries.iterator

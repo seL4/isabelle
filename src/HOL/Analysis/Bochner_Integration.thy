@@ -1657,7 +1657,8 @@ proof cases
       have U_le: "x \<in> space M \<Longrightarrow> U i x \<le> max 0 (f x)" for x i
         using seq by (intro incseq_le) (auto simp: incseq_def le_fun_def)
       with seq nonneg show "(\<lambda>i. integral\<^sup>L M (U i)) \<longlonglongrightarrow> LINT x|M. max 0 (f x)"
-        by (intro integral_dominated_convergence) auto
+        by (intro integral_dominated_convergence)
+          (simp_all, fastforce)
       have "integrable M (U i)" for i
         using seq.prems by (rule integrable_bound) (insert U_le seq, auto)
       with seq show "\<exists>N. \<forall>n\<ge>N. 0 \<le> integral\<^sup>L M (U n)"

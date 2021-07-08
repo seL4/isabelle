@@ -1792,6 +1792,10 @@ lemma vector_derivative_within:
   by (intro vector_derivative_unique_within[OF not_bot vector_derivative_works[THEN iffD1] y])
      (auto simp: differentiable_def has_vector_derivative_def)
 
+lemma deriv_of_real [simp]: 
+  "at x within A \<noteq> bot \<Longrightarrow> vector_derivative of_real (at x within A) = 1"
+  by (auto intro!: vector_derivative_within derivative_eq_intros)
+
 lemma frechet_derivative_eq_vector_derivative:
   assumes "f differentiable (at x)"
     shows  "(frechet_derivative f (at x)) = (\<lambda>r. r *\<^sub>R vector_derivative f (at x))"
@@ -1825,6 +1829,18 @@ lemma has_vector_derivative_cong_ev:
   apply (auto simp: Lim_ident_at eventually_at_filter elim: eventually_mono)
   done
 
+lemma vector_derivative_cong_eq:
+  assumes "eventually (\<lambda>x. x \<in> A \<longrightarrow> f x = g x) (nhds x)" "x = y" "A = B" "x \<in> A"
+  shows   "vector_derivative f (at x within A) = vector_derivative g (at y within B)"
+proof -
+  have "f x = g x"
+    using assms eventually_nhds_x_imp_x by blast
+  hence "(\<lambda>D. (f has_vector_derivative D) (at x within A)) = 
+           (\<lambda>D. (g has_vector_derivative D) (at x within A))" using assms
+    by (intro ext has_vector_derivative_cong_ev refl assms) simp_all
+  thus ?thesis by (simp add: vector_derivative_def assms)
+qed
+  
 lemma islimpt_closure_open:
   fixes s :: "'a::perfect_space set"
   assumes "open s" and t: "t = closure s" "x \<in> t"
@@ -1870,7 +1886,7 @@ lemma vector_derivative_add_at [simp]:
    \<Longrightarrow> vector_derivative (\<lambda>x. f x + g x) (at a) = vector_derivative f (at a) + vector_derivative g (at a)"
   by (simp add: vector_derivative_at has_vector_derivative_add vector_derivative_works [symmetric])
 
-lemma vector_derivative_diff_at [simp]:
+lemma vector_derivative_diff_at [simp,derivative_intros]:
   "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
    \<Longrightarrow> vector_derivative (\<lambda>x. f x - g x) (at a) = vector_derivative f (at a) - vector_derivative g (at a)"
   by (simp add: vector_derivative_at has_vector_derivative_diff vector_derivative_works [symmetric])
@@ -2254,6 +2270,20 @@ lemma DERIV_deriv_iff_real_differentiable:
   shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
   unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
 
+lemma DERIV_deriv_iff_field_differentiable:
+  "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
+  unfolding field_differentiable_def by (metis DERIV_imp_deriv)
+
+lemma vector_derivative_of_real_left:
+  assumes "f differentiable at x"
+  shows   "vector_derivative (\<lambda>x. of_real (f x)) (at x) = of_real (deriv f x)"
+  by (metis DERIV_deriv_iff_real_differentiable assms has_vector_derivative_of_real vector_derivative_at)
+  
+lemma vector_derivative_of_real_right:
+  assumes "f field_differentiable at (of_real x)"
+  shows   "vector_derivative (\<lambda>x. f (of_real x)) (at x) = deriv f (of_real x)"
+  by (metis DERIV_deriv_iff_field_differentiable assms has_vector_derivative_real_field vector_derivative_at)
+  
 lemma deriv_cong_ev:
   assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
   shows   "deriv f x = deriv g y"
@@ -2276,7 +2306,7 @@ proof -
       by eventually_elim (rule deriv_cong_ev, simp_all)
     thus ?case by (auto intro!: deriv_cong_ev Suc simp: funpow_Suc_right simp del: funpow.simps)
   qed auto
-  from eventually_nhds_x_imp_x[OF this] assms(2) show ?thesis by simp
+  with \<open>x = y\<close> eventually_nhds_x_imp_x show ?thesis by blast 
 qed
 
 lemma real_derivative_chain:
@@ -2297,10 +2327,6 @@ lemma vector_derivative_chain_at_general:
   shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
   apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
   using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
-
-lemma DERIV_deriv_iff_field_differentiable:
-  "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
-  unfolding field_differentiable_def by (metis DERIV_imp_deriv)
 
 lemma deriv_chain:
   "f field_differentiable at x \<Longrightarrow> g field_differentiable at (f x)

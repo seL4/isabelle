@@ -5,10 +5,10 @@ section "Admin tools"
 option isabelle_components_server : string = "lxbroy10.informatik.tu-muenchen.de"
   -- "user@host for SSH connection"
 
-option isabelle_components_dir : string = "/home/isabelle/components"
+option isabelle_components_dir : string = "/p/home/isabelle/components"
   -- "webspace for ISABELLE_COMPONENT_REPOSITORY"
 
-option isabelle_components_contrib_dir : string = "/home/isabelle/contrib"
+option isabelle_components_contrib_dir : string = "/p/home/isabelle/contrib"
   -- "unpacked components for remote build services"
 
 

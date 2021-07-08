@@ -148,6 +148,16 @@ lemma holomorphic_on_imp_continuous_on:
     "f holomorphic_on s \<Longrightarrow> continuous_on s f"
   by (metis field_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def)
 
+lemma holomorphic_closedin_preimage_constant:
+  assumes "f holomorphic_on D" 
+  shows "closedin (top_of_set D) {z\<in>D. f z = a}"
+  by (simp add: assms continuous_closedin_preimage_constant holomorphic_on_imp_continuous_on)
+
+lemma holomorphic_closed_preimage_constant:
+  assumes "f holomorphic_on UNIV" 
+  shows "closed {z. f z = a}"
+  using holomorphic_closedin_preimage_constant [OF assms] by simp
+
 lemma holomorphic_on_subset [elim]:
     "f holomorphic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f holomorphic_on t"
   unfolding holomorphic_on_def

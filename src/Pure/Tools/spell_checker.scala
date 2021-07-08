@@ -9,6 +9,7 @@ package isabelle
 
 
 import java.lang.Class
+import java.util.{List => JList}
 
 import scala.collection.mutable
 import scala.annotation.tailrec
@@ -223,7 +224,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   {
     val res =
       Untyped.method(dict.getClass.getSuperclass, "searchSuggestions", classOf[String]).
-        invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+        invoke(dict, word).asInstanceOf[JList[AnyRef]].toArray.toList.map(_.toString)
     if (res.isEmpty) None else Some(res)
   }
 

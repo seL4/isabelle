@@ -9,6 +9,8 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.{List => JList}
+
 import javax.swing.text.Segment
 
 import scala.jdk.CollectionConverters._
@@ -32,7 +34,7 @@ object Fold_Handling
       Token_Markup.Line_Context.after(buffer, line).structure.depth max 0
 
     override def getPrecedingFoldLevels(
-      buffer: JEditBuffer, line: Int, seg: Segment, level: Int): java.util.List[Integer] =
+      buffer: JEditBuffer, line: Int, seg: Segment, level: Int): JList[Integer] =
     {
       val structure = Token_Markup.Line_Context.after(buffer, line).structure
       val result =

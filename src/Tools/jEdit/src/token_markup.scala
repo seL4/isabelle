@@ -9,6 +9,8 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.{List => JList}
+
 import javax.swing.text.Segment
 
 import org.gjt.sp.jedit.{Mode, Buffer}
@@ -312,10 +314,9 @@ object Token_Markup
     override def loadMode(mode: Mode, xmh: XModeHandler): Unit =
     {
       super.loadMode(mode, xmh)
-      Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)
+      Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker)
       Isabelle.indent_rule(mode.getName).foreach(indent_rule =>
-        Untyped.set[java.util.List[IndentRule]](
-          mode, "indentRules", java.util.List.of(indent_rule)))
+        Untyped.set[JList[IndentRule]](mode, "indentRules", JList.of(indent_rule)))
     }
   }
 }

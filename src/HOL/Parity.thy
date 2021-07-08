@@ -1818,6 +1818,10 @@ instance nat :: unique_euclidean_semiring_with_bit_shifts ..
 
 instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
+lemma bit_numeral_int_iff [bit_simps]:
+  \<open>bit (numeral m :: int) n \<longleftrightarrow> bit (numeral m :: nat) n\<close>
+  using bit_of_nat_iff_bit [of \<open>numeral m\<close> n] by simp
+
 lemma bit_not_int_iff':
   \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close>
   for k :: int

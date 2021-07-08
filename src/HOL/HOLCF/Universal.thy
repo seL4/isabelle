@@ -41,7 +41,7 @@ unfolding node_def less_Suc_eq_le
 by (rule order_trans [OF le_prod_encode_1 le_prod_encode_2])
 
 lemma nat_less_power2: "n < 2^n"
-by (induct n) simp_all
+  by (fact less_exp)
 
 lemma node_gt2: "\<lbrakk>finite S; b \<in> S\<rbrakk> \<Longrightarrow> b < node i a S"
 unfolding node_def less_Suc_eq_le set_encode_def

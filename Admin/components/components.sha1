@@ -90,6 +90,7 @@ d37b38b9a27a6541c644e22eeebe9a339282173d  flatlaf-1.0-rc1.tar.gz
 dac46ce81cee10fb36a9d39b414dec7b7b671545  flatlaf-1.0-rc2.tar.gz
 d94e6da7299004890c04a7b395a3f2d381a3281e  flatlaf-1.0-rc3.tar.gz
 7ca3e6a8c9bd837990e64d89e7fa07a7e7cf78ff  flatlaf-1.0.tar.gz
+9908e5ab721f1c0035c0ab04dc7ad0bd00a8db27  flatlaf-1.2.tar.gz
 f339234ec18369679be0095264e0c0af7762f351  gnu-utils-20210414.tar.gz
 683acd94761ef460cca1a628f650355370de5afb  hol-light-bundle-0.5-126.tar.gz
 989234b3799fe8750f3c24825d1f717c24fb0214  idea-icons-20210508.tar.gz
@@ -120,6 +121,8 @@ abc8aea3ae471f9313917008ac90e5c1c99e17da  isabelle_fonts-20210317.tar.gz
 b166b4bd583b6442a5d75eab06f7adbb66919d6d  isabelle_fonts-20210319.tar.gz
 9467ad54a9ac10a6e7e8db5458d8d2a5516eba96  isabelle_fonts-20210321.tar.gz
 1f7a0b9829ecac6552b21e995ad0f0ac168634f3  isabelle_fonts-20210322.tar.gz
+916adccd2f40c55116b68b92ce1eccb24d4dd9a2  isabelle_setup-20210630.tar.gz
+c611e363287fcc9bdd93c33bef85fa4e66cd3f37  isabelle_setup-20210701.tar.gz
 0b2206f914336dec4923dd0479d8cee4b904f544  jdk-11+28.tar.gz
 e12574d838ed55ef2845acf1152329572ab0cc56  jdk-11.0.10+9.tar.gz
 3e05213cad47dbef52804fe329395db9b4e57f39  jdk-11.0.2+9.tar.gz
@@ -345,6 +348,7 @@ d66796a68ec3254b46b17b1f8ee5bcc56a93aacf  scala-2.12.3.tar.gz
 a0622fe75c3482ba7dc3ce74d58583b648a1ff0d  scala-2.13.4-1.tar.gz
 ec53cce3c5edda1145ec5d13924a5f9418995c15  scala-2.13.4.tar.gz
 f51981baf34c020ad103b262f81796c37abcaa4a  scala-2.13.5.tar.gz
+0a7cab09dec357dab7819273f2542ff1c3ea0968  scala-2.13.6.tar.gz
 b447017e81600cc5e30dd61b5d4962f6da01aa80  scala-2.8.1.final.tar.gz
 5659440f6b86db29f0c9c0de7249b7e24a647126  scala-2.9.2.tar.gz
 abe7a3b50da529d557a478e9f631a22429418a67  smbc-0.4.1.tar.gz

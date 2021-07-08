@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.{Map => JMap}
 import java.awt.{Font, Color}
 import java.awt.font.TextAttribute
 import java.awt.geom.AffineTransform
@@ -40,8 +41,7 @@ object Syntax_Style
   {
     font_style(style, font0 =>
       {
-        val font1 =
-          font0.deriveFont(java.util.Map.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
+        val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
 
         def shift(y: Float): Font =
           GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))

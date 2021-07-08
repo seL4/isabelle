@@ -6,6 +6,7 @@ Basic GUI tools (for AWT/Swing).
 
 package isabelle
 
+import java.util.{Map => JMap}
 import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
   Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
@@ -20,7 +21,7 @@ object GUI
 {
   /* Swing look-and-feel */
 
-  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.install()
+  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
 
   def current_laf: String = UIManager.getLookAndFeel.getClass.getName()
 
@@ -299,7 +300,7 @@ object GUI
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
   def transform_font(font: Font, transform: AffineTransform): Font =
-    font.deriveFont(java.util.Map.of(TextAttribute.TRANSFORM, new TransformAttribute(transform)))
+    font.deriveFont(JMap.of(TextAttribute.TRANSFORM, new TransformAttribute(transform)))
 
   def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
     new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)

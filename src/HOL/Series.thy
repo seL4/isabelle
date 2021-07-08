@@ -58,7 +58,7 @@ lemma sums_subst[trans]: "f = g \<Longrightarrow> g sums z \<Longrightarrow> f s
   by simp
 
 lemma sums_cong: "(\<And>n. f n = g n) \<Longrightarrow> f sums c \<longleftrightarrow> g sums c"
-  by (drule ext) simp
+  by presburger
 
 lemma sums_summable: "f sums l \<Longrightarrow> summable f"
   by (simp add: sums_def summable_def, blast)
@@ -67,8 +67,7 @@ lemma summable_iff_convergent: "summable f \<longleftrightarrow> convergent (\<l
   by (simp add: summable_def sums_def convergent_def)
 
 lemma summable_iff_convergent': "summable f \<longleftrightarrow> convergent (\<lambda>n. sum f {..n})"
-  by (simp_all only: summable_iff_convergent convergent_def
-        lessThan_Suc_atMost [symmetric] filterlim_sequentially_Suc[of "\<lambda>n. sum f {..<n}"])
+  by (simp add: convergent_def summable_def sums_def_le)
 
 lemma suminf_eq_lim: "suminf f = lim (\<lambda>n. \<Sum>i<n. f i)"
   by (simp add: suminf_def sums_def lim_def)
@@ -82,11 +81,10 @@ lemma summable_zero[simp, intro]: "summable (\<lambda>n. 0)"
 lemma sums_group: "f sums s \<Longrightarrow> 0 < k \<Longrightarrow> (\<lambda>n. sum f {n * k ..< n * k + k}) sums s"
   apply (simp only: sums_def sum.nat_group tendsto_def eventually_sequentially)
   apply (erule all_forward imp_forward exE| assumption)+
-  apply (rule_tac x="N" in exI)
   by (metis le_square mult.commute mult.left_neutral mult_le_cancel2 mult_le_mono)
 
 lemma suminf_cong: "(\<And>n. f n = g n) \<Longrightarrow> suminf f = suminf g"
-  by (rule arg_cong[of f g], rule ext) simp
+  by presburger
 
 lemma summable_cong:
   fixes f g :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -225,16 +223,13 @@ lemma suminf_eq_zero_iff:
   assumes "summable f" and pos: "\<And>n. 0 \<le> f n"
   shows "suminf f = 0 \<longleftrightarrow> (\<forall>n. f n = 0)"
 proof
-  assume "suminf f = 0" 
+  assume L: "suminf f = 0" 
   then have f: "(\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> 0"
     using summable_LIMSEQ[of f] assms by simp
   then have "\<And>i. (\<Sum>n\<in>{i}. f n) \<le> 0"
-  proof (rule LIMSEQ_le_const)
-    show "\<exists>N. \<forall>n\<ge>N. (\<Sum>n\<in>{i}. f n) \<le> sum f {..<n}" for i
-      using pos by (intro exI[of _ "Suc i"] allI impI sum_mono2) auto
-  qed
+    by (metis L \<open>summable f\<close> order_refl pos sum.infinite sum_le_suminf)
   with pos show "\<forall>n. f n = 0"
-    by (auto intro!: antisym)
+    by (simp add: order.antisym)
 qed (metis suminf_zero fun_eq_iff)
 
 lemma suminf_pos_iff: "summable f \<Longrightarrow> (\<And>n. 0 \<le> f n) \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
@@ -735,11 +730,11 @@ next
     proof (cases m n rule: linorder_class.le_cases)
       assume "m \<le> n"
       then show ?thesis
-        by (metis Groups_Big.sum_diff N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff norm_minus_commute \<open>m\<ge>N\<close>)
+        by (metis N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff norm_minus_commute sum_diff \<open>m\<ge>N\<close>)
     next
       assume "n \<le> m"
       then show ?thesis
-        by (metis Groups_Big.sum_diff N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff \<open>n\<ge>N\<close>)
+        by (metis N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff sum_diff \<open>n\<ge>N\<close>)
     qed
     then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (sum f {..<m} - sum f {..<n}) < e"
       by blast
@@ -748,13 +743,14 @@ qed
 
 lemma summable_Cauchy':
   fixes f :: "nat \<Rightarrow> 'a :: banach"
-  assumes "eventually (\<lambda>m. \<forall>n\<ge>m. norm (sum f {m..<n}) \<le> g m) sequentially"
-  assumes "filterlim g (nhds 0) sequentially"
+  assumes ev: "eventually (\<lambda>m. \<forall>n\<ge>m. norm (sum f {m..<n}) \<le> g m) sequentially"
+  assumes g0: "g \<longlonglongrightarrow> 0"
   shows "summable f"
 proof (subst summable_Cauchy, intro allI impI, goal_cases)
   case (1 e)
-  from order_tendstoD(2)[OF assms(2) this] and assms(1)
-  have "eventually (\<lambda>m. \<forall>n. norm (sum f {m..<n}) < e) at_top"
+  then have "\<forall>\<^sub>F x in sequentially. g x < e"
+    using g0 order_tendstoD(2) by blast
+  with ev have "eventually (\<lambda>m. \<forall>n. norm (sum f {m..<n}) < e) at_top"
   proof eventually_elim
     case (elim m)
     show ?case

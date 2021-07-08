@@ -9,6 +9,7 @@ package isabelle.graphview
 
 import isabelle._
 
+import java.util.HashMap
 import java.awt.{Font, RenderingHints}
 import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
@@ -18,7 +19,7 @@ object Metrics
 {
   val rendering_hints: RenderingHints =
   {
-    val hints = new java.util.HashMap[RenderingHints.Key, AnyRef]
+    val hints = new HashMap[RenderingHints.Key, AnyRef]
     hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     hints.put(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
     new RenderingHints(hints)

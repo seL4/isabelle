@@ -400,6 +400,20 @@ lemma has_field_derivative_higher_deriv:
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
 by (metis (no_types, opaque_lifting) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
          funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
+  
+lemma higher_deriv_cmult:
+  assumes "f holomorphic_on A" "x \<in> A" "open A"
+  shows   "(deriv ^^ j) (\<lambda>x. c * f x) x = c * (deriv ^^ j) f x"
+  using assms
+proof (induction j arbitrary: f x)
+  case (Suc j f x)
+  have "deriv ((deriv ^^ j) (\<lambda>x. c * f x)) x = deriv (\<lambda>x. c * (deriv ^^ j) f x) x"
+    using eventually_nhds_in_open[of A x] assms(2,3) Suc.prems
+    by (intro deriv_cong_ev refl) (auto elim!: eventually_mono simp: Suc.IH)
+  also have "\<dots> = c * deriv ((deriv ^^ j) f) x" using Suc.prems assms(2,3)
+    by (intro deriv_cmult holomorphic_on_imp_differentiable_at holomorphic_higher_deriv) auto
+  finally show ?case by simp
+qed simp_all
 
 lemma valid_path_compose_holomorphic:
   assumes "valid_path g" and holo:"f holomorphic_on S" and "open S" "path_image g \<subseteq> S"

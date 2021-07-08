@@ -9,11 +9,6 @@ theory Bit_Operations
     "HOL-Library.Boolean_Algebra"
 begin
 
-lemma bit_numeral_int_iff [bit_simps]: \<comment> \<open>TODO: move\<close>
-  \<open>bit (numeral m :: int) n \<longleftrightarrow> bit (numeral m :: nat) n\<close>
-  using bit_of_nat_iff_bit [of \<open>numeral m\<close> n] by simp
-
-
 subsection \<open>Bit operations\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +
@@ -533,7 +528,10 @@ proof -
   proof (cases \<open>k \<ge> 0\<close>)
     case True
     moreover from power_gt_expt [of 2 \<open>nat k\<close>]
-    have \<open>k < 2 ^ nat k\<close> by simp
+    have \<open>nat k < 2 ^ nat k\<close>
+      by simp
+    then have \<open>int (nat k) < int (2 ^ nat k)\<close>
+      by (simp only: of_nat_less_iff)
     ultimately have *: \<open>k div 2 ^ nat k = 0\<close>
       by simp
     show thesis
@@ -546,8 +544,10 @@ proof -
   next
     case False
     moreover from power_gt_expt [of 2 \<open>nat (- k)\<close>]
-    have \<open>- k \<le> 2 ^ nat (- k)\<close>
+    have \<open>nat (- k) < 2 ^ nat (- k)\<close>
       by simp
+    then have \<open>int (nat (- k)) < int (2 ^ nat (- k))\<close>
+      by (simp only: of_nat_less_iff)
     ultimately have \<open>- k div - (2 ^ nat (- k)) = - 1\<close>
       by (subst div_pos_neg_trivial) simp_all
     then have *: \<open>k div 2 ^ nat (- k) = - 1\<close>
@@ -1519,6 +1519,17 @@ lemma signed_take_bit_negative_iff [simp]:
   \<open>signed_take_bit n k < 0 \<longleftrightarrow> bit k n\<close>
   for k :: int
   by (simp add: signed_take_bit_def not_less concat_bit_def)
+
+lemma signed_take_bit_int_greater_eq_minus_exp [simp]:
+  \<open>- (2 ^ n) \<le> signed_take_bit n k\<close>
+  for k :: int
+  by (simp add: signed_take_bit_eq_take_bit_shift)
+
+lemma signed_take_bit_int_less_exp [simp]:
+  \<open>signed_take_bit n k < 2 ^ n\<close>
+  for k :: int
+  using take_bit_int_less_exp [of \<open>Suc n\<close>]
+  by (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma signed_take_bit_int_eq_self_iff:
   \<open>signed_take_bit n k = k \<longleftrightarrow> - (2 ^ n) \<le> k \<and> k < 2 ^ n\<close>
