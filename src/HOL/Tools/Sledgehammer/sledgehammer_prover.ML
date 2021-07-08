@@ -12,6 +12,7 @@ sig
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
   type fact = Sledgehammer_Fact.fact
+  type induction_rules = Sledgehammer_Fact.induction_rules
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
 
@@ -29,6 +30,7 @@ sig
      uncurried_aliases : bool option,
      learn : bool,
      fact_filter : string option,
+     induction_rules : induction_rules option,
      max_facts : int option,
      fact_thresholds : real * real,
      max_mono_iters : int option,
@@ -115,6 +117,7 @@ type params =
    uncurried_aliases : bool option,
    learn : bool,
    fact_filter : string option,
+   induction_rules : induction_rules option,
    max_facts : int option,
    fact_thresholds : real * real,
    max_mono_iters : int option,

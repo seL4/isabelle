@@ -80,7 +80,7 @@ fun print silent f = if silent then () else writeln (f ())
 
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
-      minimize, preplay_timeout, ...} : params)
+      minimize, preplay_timeout, induction_rules, ...} : params)
     silent (prover : prover) timeout i n state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
@@ -91,11 +91,11 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
        type_enc = type_enc, strict = strict, lam_trans = lam_trans,
        uncurried_aliases = uncurried_aliases, learn = false, fact_filter = NONE,
-       max_facts = SOME (length facts), fact_thresholds = (1.01, 1.01),
-       max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
-       isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
-       slice = false, minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-       expect = ""}
+       induction_rules = induction_rules, max_facts = SOME (length facts),
+       fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
+       max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
+       compress = compress, try0 = try0, smt_proofs = smt_proofs, slice = false,
+       minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)], found_proof = I}

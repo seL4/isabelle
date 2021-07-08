@@ -245,8 +245,8 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) =>
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
-fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode writeln_result i
-    (fact_override as {only, ...}) state =
+fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, ...}) mode
+    writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
   else
@@ -272,9 +272,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
         val {facts = chained, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
         val ho_atp = exists (is_ho_atp ctxt) provers
+        val induction_rules = the_default (if ho_atp then Instantiate else Exclude) induction_rules
         val css = clasimpset_rule_table_of ctxt
         val all_facts =
-          nearly_all_facts ctxt ho_atp fact_override keywords css chained hyp_ts concl_t
+          nearly_all_facts ctxt induction_rules fact_override keywords css chained hyp_ts
+            concl_t
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
             SOME name => error ("No such prover: " ^ name)

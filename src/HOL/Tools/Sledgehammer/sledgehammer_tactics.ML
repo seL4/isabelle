@@ -30,7 +30,7 @@ fun run_prover override_params fact_override chained i n ctxt goal =
   let
     val thy = Proof_Context.theory_of ctxt
     val mode = Normal
-    val params as {provers, max_facts, ...} = default_params thy override_params
+    val params as {provers, induction_rules, max_facts, ...} = default_params thy override_params
     val name = hd provers
     val prover = get_prover ctxt mode name
     val default_max_facts = default_max_facts_of_prover ctxt name
@@ -38,8 +38,9 @@ fun run_prover override_params fact_override chained i n ctxt goal =
     val ho_atp = exists (is_ho_atp ctxt) provers
     val keywords = Thy_Header.get_keywords' ctxt
     val css_table = clasimpset_rule_table_of ctxt
+    val induction_rules = the_default (if ho_atp then Instantiate else Exclude) induction_rules
     val facts =
-      nearly_all_facts ctxt ho_atp fact_override keywords css_table chained hyp_ts concl_t
+      nearly_all_facts ctxt induction_rules fact_override keywords css_table chained hyp_ts concl_t
       |> relevant_facts ctxt params name (the_default default_max_facts max_facts) fact_override
         hyp_ts concl_t
       |> hd |> snd

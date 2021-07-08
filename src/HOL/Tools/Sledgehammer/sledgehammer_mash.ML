@@ -1481,12 +1481,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
       end)
   end
 
-fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained run_prover =
+fun mash_learn ctxt (params as {provers, timeout, induction_rules, ...}) fact_override chained run_prover =
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val ctxt = ctxt |> Config.put instantiate_inducts false
+    val induction_rules = the_default Exclude induction_rules
     val facts =
-      nearly_all_facts ctxt false fact_override Keyword.empty_keywords css chained [] \<^prop>\<open>True\<close>
+      nearly_all_facts ctxt induction_rules fact_override Keyword.empty_keywords css chained []
+        \<^prop>\<open>True\<close>
       |> sort (crude_thm_ord ctxt o apply2 snd o swap)
     val num_facts = length facts
     val prover = hd provers

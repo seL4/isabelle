@@ -260,6 +260,7 @@ fun extract_params mode default_params override_params =
     val fact_filter =
       lookup_option lookup_string "fact_filter"
       |> mode = Auto_Try ? (fn NONE => SOME mepoN | sf => sf)
+    val induction_rules = lookup_option (the o induction_rules_of_string) "induction_rules"
     val max_facts = lookup_option lookup_int "max_facts"
     val fact_thresholds = lookup_real_pair "fact_thresholds"
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
@@ -278,10 +279,11 @@ fun extract_params mode default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
      type_enc = type_enc, strict = strict, lam_trans = lam_trans,
      uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
-     max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     compress = compress, try0 = try0, smt_proofs = smt_proofs, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     induction_rules = induction_rules, max_facts = max_facts, fact_thresholds = fact_thresholds,
+     max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
+     isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
+     slice = slice, minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params mode
