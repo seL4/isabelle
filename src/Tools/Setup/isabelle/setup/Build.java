@@ -35,36 +35,52 @@ import scala.tools.nsc.MainClass;
 
 public class Build
 {
-    /** component directory context **/
+    /** context **/
+
+    public static String BUILD_PROPS = "build.props";
+
+    public static Context directory_context(Path dir)
+        throws IOException
+    {
+        Properties props = new Properties();
+        props.load(Files.newBufferedReader(dir.resolve(BUILD_PROPS)));
+        return new Context(dir, props);
+    }
+
+    public static Context component_context(Path dir)
+        throws IOException
+    {
+        Properties props = new Properties();
+        Path build_props = dir.resolve("etc").resolve(BUILD_PROPS);
+        if (Files.exists(build_props)) { props.load(Files.newBufferedReader(build_props)); }
+        return new Context(dir, props);
+    }
 
     public static class Context
     {
-        private final Path component_dir;
-        private Properties props;
+        private final Path _dir;
+        private final Properties _props;
 
-        public Context(Path dir) throws IOException
+        public Context(Path dir, Properties props)
         {
-            component_dir = dir;
-            props = new Properties();
-            Path path = component_dir.resolve("etc/scala.props");
-            if (Files.exists(path)) { props.load(Files.newBufferedReader(path)); }
+            _dir = dir;
+            _props = props;
         }
 
-        @Override public String toString() { return component_dir.toString(); }
+        @Override public String toString() { return _dir.toString(); }
 
-        public String component_name() { return component_dir.toFile().getName(); }
-        public String name() { return props.getProperty("name", component_name()); }
-        public String description() { return props.getProperty("description", name()); }
+        public String name() { return _props.getProperty("name", _dir.toFile().getName()); }
+        public String description() { return _props.getProperty("description", name()); }
 
-        public String lib_name() { return props.getProperty("lib", "lib") + "/" + name(); }
+        public String lib_name() { return _props.getProperty("lib", "lib") + "/" + name(); }
         public String jar_name() { return lib_name() + ".jar"; }
 
-        public String main() { return props.getProperty("main", ""); }
+        public String main() { return _props.getProperty("main", ""); }
 
         private List<String> get_list(String name)
         {
             List<String> list = new LinkedList<String>();
-            for (String s : props.getProperty(name, "").split("\\s+")) {
+            for (String s : _props.getProperty(name, "").split("\\s+")) {
                 if (!s.isEmpty()) { list.add(s); }
             }
             return List.copyOf(list);
@@ -74,7 +90,7 @@ public class Build
         public List<String> resources() { return get_list("resources"); }
         public List<String> services() { return get_list("services"); }
 
-        public Path path(String file) { return component_dir.resolve(file); }
+        public Path path(String file) { return _dir.resolve(file); }
         public boolean exists(String file) { return Files.exists(path(file)); }
 
         // historic
