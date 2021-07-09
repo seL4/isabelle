@@ -15,7 +15,6 @@ sledgehammer_params
    lam_trans = lifting, timeout = 2, dont_preplay, minimize]
 
 declare [[sledgehammer_fact_duplicates = true]]
-declare [[sledgehammer_instantiate_inducts = false]]
 
 hide_fact (open) HOL.ext
 

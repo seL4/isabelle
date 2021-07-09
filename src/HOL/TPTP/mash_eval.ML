@@ -36,9 +36,11 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
 
     fun print s = File.append report_path (s ^ "\n")
 
-    val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} = default_params thy []
+    val {provers, max_facts, slice, type_enc, lam_trans, timeout, induction_rules, ...} =
+      default_params thy []
     val prover = hd provers
     val max_suggs = generous_max_suggestions (the max_facts)
+    val inst_inducts = induction_rules = SOME Instantiate
 
     val method_of_file_name =
       perhaps (try (unsuffix "_suggestions")) o List.last o space_explode "/"
@@ -53,7 +55,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
     val liness' = Ctr_Sugar_Util.transpose (map pad liness0)
 
     val css = clasimpset_rule_table_of ctxt
-    val facts = all_facts ctxt true false Keyword.empty_keywords [] [] css
+    val facts = all_facts ctxt true Keyword.empty_keywords [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
 
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
@@ -122,7 +124,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
                   suggs
                   |> find_suggested_facts ctxt facts
                   |> map (fact_of_raw_fact #> nickify)
-                  |> maybe_instantiate_inducts ctxt hyp_ts concl_t
+                  |> inst_inducts ? instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
                   |> map fact_of_raw_fact
                 val ctxt = ctxt |> set_file_name method prob_dir_name
@@ -141,7 +143,6 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
       else
         zeros
 
-    val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       ["prover = " ^ prover,
        "max_facts = " ^ string_of_int (the max_facts),

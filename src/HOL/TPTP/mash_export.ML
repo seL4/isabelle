@@ -64,7 +64,7 @@ fun has_thys thys th = exists (has_thm_thy th) thys
 
 fun all_facts ctxt =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
-    Sledgehammer_Fact.all_facts ctxt true false Keyword.empty_keywords [] [] css
+    Sledgehammer_Fact.all_facts ctxt true Keyword.empty_keywords [] [] css
     |> sort (crude_thm_ord ctxt o apply2 snd)
   end
 
@@ -172,7 +172,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
   j mod step <> 0 orelse
   Thm.legacy_get_kind th = "" orelse
   null (the_list isar_deps) orelse
-  is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
+  is_blacklisted_or_something (Thm.get_name_hint th)
 
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
   let
