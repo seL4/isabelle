@@ -57,7 +57,8 @@ do
   ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
 done
 
-isabelle_jdk javac -d "$TARGET_DIR" -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \
+isabelle_jdk javac $ISABELLE_JAVAC_OPTIONS -d "$TARGET_DIR" \
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \
   fail "Failed to compile sources"
 
 isabelle_jdk jar -c -f "$(platform_path "$TARGET_DIR/isabelle_setup.jar")" \
