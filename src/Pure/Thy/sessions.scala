@@ -1144,7 +1144,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
   def read_heap_digest(heap: Path): Option[String] =
   {
     if (heap.is_file) {
-      using(FileChannel.open(heap.file.toPath, StandardOpenOption.READ))(file =>
+      using(FileChannel.open(heap.java_path, StandardOpenOption.READ))(file =>
       {
         val len = file.size
         val n = sha1_prefix.length + SHA1.digest_length

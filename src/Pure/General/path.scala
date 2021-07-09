@@ -10,6 +10,7 @@ package isabelle
 
 import java.util.{Map => JMap}
 import java.io.{File => JFile}
+import java.nio.file.{Path => JPath}
 
 import scala.util.matching.Regex
 
@@ -305,6 +306,8 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def file: JFile = File.platform_file(this)
   def is_file: Boolean = file.isFile
   def is_dir: Boolean = file.isDirectory
+
+  def java_path: JPath = file.toPath
 
   def absolute_file: JFile = File.absolute(file)
   def canonical_file: JFile = File.canonical(file)

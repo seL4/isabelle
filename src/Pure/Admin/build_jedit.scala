@@ -614,9 +614,10 @@ xml-insert-closing-tag.shortcut=
     File.write(etc_dir + Path.explode("settings"),
       """# -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_JEDIT_BUILD_HOME="$COMPONENT"
-ISABELLE_JEDIT_BUILD_VERSION=""" + quote(jedit_patched) + """
-""")
+ISABELLE_JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
+ISABELLE_JEDIT_JARS=""" +
+        File.read_dir(jars_dir).map("$ISABELLE_JEDIT_HOME/jars/" + _).mkString("\"", ":", "\"\n")
+)
 
 
     /* README */

@@ -67,50 +67,103 @@ public class Environment
         else { return platform_path; }
     }
 
-    public static String platform_path(String cygwin_root, String standard_path)
+    private static class Expand_Platform_Path
     {
-        if (is_windows()) {
-            StringBuilder result_path = new StringBuilder();
+        private String _cygwin_root;
+        private StringBuilder _result = new StringBuilder();
 
-            Pattern cygdrive_pattern = Pattern.compile("/cygdrive/([a-zA-Z])($|/.*)");
-            Matcher cygdrive_matcher = cygdrive_pattern.matcher(standard_path);
+        public Expand_Platform_Path(String cygwin_root)
+        {
+            _cygwin_root = cygwin_root;
+        }
 
-            Pattern named_root_pattern = Pattern.compile("//+([^/]*)(.*)");
-            Matcher named_root_matcher = named_root_pattern.matcher(standard_path);
+        public String result() { return _result.toString(); }
 
-            String rest;
-            if (cygdrive_matcher.matches()) {
-                String drive = cygdrive_matcher.group(1).toUpperCase(Locale.ROOT);
-                rest = cygdrive_matcher.group(2);
-                result_path.append(drive);
-                result_path.append(':');
-                result_path.append(File.separatorChar);
+        void clear() { _result.setLength(0); }
+        void add(char c) { _result.append(c); }
+        void add(String s) { _result.append(s); }
+        void separator()
+        {
+            int n = _result.length();
+            if (n > 0 && _result.charAt(n - 1) != File.separatorChar) {
+                add(File.separatorChar);
             }
-            else if (named_root_matcher.matches()) {
-                String root = named_root_matcher.group(1);
-                rest = named_root_matcher.group(2);
-                result_path.append(File.separatorChar);
-                result_path.append(File.separatorChar);
-                result_path.append(root);
-            }
-            else {
-                if (standard_path.startsWith("/")) { result_path.append(cygwin_root); }
-                rest = standard_path;
-            }
+        }
 
-            for (String p : rest.split("/", -1)) {
-                if (!p.isEmpty()) {
-                    int len = result_path.length();
-                    if (len > 0 && result_path.charAt(len - 1) != File.separatorChar) {
-                        result_path.append(File.separatorChar);
-                    }
-                    result_path.append(p);
+        public String check_root(String standard_path)
+        {
+            String rest = standard_path;
+            boolean is_root = standard_path.startsWith("/");
+
+            if (is_windows()) {
+                Pattern cygdrive_pattern = Pattern.compile("/cygdrive/([a-zA-Z])($|/.*)");
+                Matcher cygdrive_matcher = cygdrive_pattern.matcher(standard_path);
+
+                Pattern named_root_pattern = Pattern.compile("//+([^/]*)(.*)");
+                Matcher named_root_matcher = named_root_pattern.matcher(standard_path);
+
+                if (cygdrive_matcher.matches()) {
+                    String drive = cygdrive_matcher.group(1).toUpperCase(Locale.ROOT);
+                    rest = cygdrive_matcher.group(2);
+                    clear();
+                    add(drive);
+                    add(':');
+                    add(File.separatorChar);
+                }
+                else if (named_root_matcher.matches()) {
+                    String root = named_root_matcher.group(1);
+                    rest = named_root_matcher.group(2);
+                    clear();
+                    add(File.separatorChar);
+                    add(File.separatorChar);
+                    add(root);
+                }
+                else if (is_root) {
+                    clear();
+                    add(_cygwin_root);
                 }
             }
-
-            return result_path.toString();
+            else if (is_root) {
+                clear();
+                add(File.separatorChar);
+            }
+            return rest;
         }
-        else { return standard_path; }
+
+        public void check_rest(Map<String,String> env, String main)
+            throws IOException, InterruptedException
+        {
+            for (String p : main.split("/", -1)) {
+                if (env != null && p.startsWith("$")) {
+                    String var = p.substring(1);
+                    String res = env.getOrDefault(var, "");
+                    if (res.isEmpty()) {
+                        throw new RuntimeException(
+                            "Bad Isabelle environment variable: " + quote(var));
+                    }
+                    else check(null, res);
+                }
+                else if (!p.isEmpty()) {
+                    separator();
+                    add(p);
+                }
+            }
+        }
+
+        public void check(Map<String,String> env, String path)
+            throws IOException, InterruptedException
+        {
+            check_rest(env, check_root(path));
+        }
+    }
+
+    public static String expand_platform_path(
+        Map<String,String> env, String cygwin_root, String standard_path)
+        throws IOException, InterruptedException
+    {
+        Expand_Platform_Path expand = new Expand_Platform_Path(cygwin_root);
+        expand.check(env, standard_path);
+        return expand.result();
     }
 
     public static String join_paths(List<Path> paths)
@@ -362,10 +415,16 @@ public class Environment
         return standard_path(cygwin_root(), platform_path);
     }
 
+    public static String expand_platform_path(String standard_path)
+            throws IOException, InterruptedException
+    {
+        return expand_platform_path(settings(), cygwin_root(), standard_path);
+    }
+
     public static String platform_path(String standard_path)
         throws IOException, InterruptedException
     {
-        return platform_path(cygwin_root(), standard_path);
+        return expand_platform_path(null, cygwin_root(), standard_path);
     }
 
 

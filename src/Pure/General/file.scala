@@ -68,8 +68,8 @@ object File
 
   def relative_path(base: Path, other: Path): Option[Path] =
   {
-    val base_path = base.file.toPath
-    val other_path = other.file.toPath
+    val base_path = base.java_path
+    val other_path = other.java_path
     if (other_path.startsWith(base_path))
       Some(path(base_path.relativize(other_path).toFile))
     else None
