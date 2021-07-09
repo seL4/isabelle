@@ -247,9 +247,9 @@ public class Build
             {
                 StringBuilder _shasum = new StringBuilder();
                 for (String s : requirements) {
-                    if (s.startsWith("@$")) {
+                    if (s.startsWith("env:")) {
                         List<Path> paths = new LinkedList<Path>();
-                        for (String p : Environment.getenv(s.substring(2)).split(":", -1)) {
+                        for (String p : Environment.getenv(s.substring(4)).split(":", -1)) {
                             if (!p.isEmpty()) {
                                 Path path = Path.of(Environment.platform_path(p));
                                 compiler_deps.add(path);
