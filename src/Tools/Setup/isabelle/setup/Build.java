@@ -1,7 +1,7 @@
 /*  Title:      Tools/Setup/isabelle/setup/Build.java
     Author:     Makarius
 
-Build Isabelle/Scala/JVM modules.
+Build Isabelle/Scala/Java modules.
 */
 
 package isabelle.setup;
@@ -29,6 +29,11 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
+
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 
 import scala.tools.nsc.MainClass;
 
@@ -74,6 +79,9 @@ public class Build
 
         public String lib_name() { return _props.getProperty("lib", "lib") + "/" + name(); }
         public String jar_name() { return lib_name() + ".jar"; }
+
+        public String scalac_options() { return _props.getProperty("scalac_options", ""); }
+        public String javac_options() { return _props.getProperty("javac_options", ""); }
 
         public String main() { return _props.getProperty("main", ""); }
 
@@ -136,23 +144,62 @@ public class Build
 
     /** compile sources **/
 
-    public static void compile_sources(
-        Path target_dir, List<Path> deps, String options, List<Path> sources)
+    private static void add_options(List<String> options_list, String options)
+    {
+        if (options != null) {
+            for (String s : options.split("\\s+")) {
+                if (!s.isEmpty()) { options_list.add(s); }
+            }
+        }
+    }
+
+    public static void compile_scala_sources(
+        Path target_dir, String more_options, List<Path> deps, List<Path> sources)
+        throws IOException, InterruptedException
     {
         ArrayList<String> args = new ArrayList<String>();
+        add_options(args, Environment.getenv("ISABELLE_SCALAC_OPTIONS"));
+        add_options(args, more_options);
         args.add("-d");
         args.add(target_dir.toString());
         args.add("-bootclasspath");
         args.add(Environment.join_paths(deps));
-        for (String s : options.split("\\s+")) {
-          if (!s.isEmpty()) { args.add(s); }
-        }
         args.add("--");
         for (Path p : sources) { args.add(p.toString()); }
 
         MainClass main = new MainClass();
         boolean ok = main.process(args.toArray(String[]::new));
-        if (!ok) throw new RuntimeException("Failed to compile sources");
+        if (!ok) throw new RuntimeException("Failed to compile Scala sources");
+    }
+
+    public static void compile_java_sources(
+        Path target_dir, String more_options, List<Path> deps, List<Path> sources)
+        throws IOException, InterruptedException
+    {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        StandardJavaFileManager file_manager =
+            compiler.getStandardFileManager(null, Locale.ROOT, StandardCharsets.UTF_8);
+
+        List<String> options = new LinkedList<String>();
+        add_options(options, Environment.getenv("ISABELLE_JAVAC_OPTIONS"));
+        add_options(options, more_options);
+        options.add("-d");
+        options.add(target_dir.toString());
+        options.add("-classpath");
+        options.add(Environment.join_paths(deps));
+
+        List<JavaFileObject> java_sources = new LinkedList<JavaFileObject>();
+        for (Path p : sources) {
+            if (p.toString().endsWith(".java")) {
+                for (JavaFileObject o : file_manager.getJavaFileObjectsFromPaths(List.of(p))) {
+                    java_sources.add(o);
+                }
+            }
+        }
+        if (!java_sources.isEmpty()) {
+            boolean ok = compiler.getTask(null, file_manager, null, options, null, java_sources).call();
+            if (!ok) throw new RuntimeException("Failed to compile Java sources");
+        }
     }
 
 
@@ -222,10 +269,9 @@ public class Build
     }
 
 
+    /** build **/
 
-    /** build scala **/
-
-    public static void build_scala(Context context, boolean fresh)
+    public static void build(Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
         String jar_name = context.jar_name();
@@ -273,7 +319,6 @@ public class Build
                 System.out.println(
                     "### Building " + context.description() + " (" + jar_path + ") ...");
 
-                String scalac_options = Environment.getenv("ISABELLE_SCALAC_OPTIONS");
                 String isabelle_class_path = Environment.getenv("ISABELLE_CLASSPATH");
 
                 Path build_dir = Files.createTempDirectory("isabelle");
@@ -289,7 +334,12 @@ public class Build
                     List<Path> compiler_sources = new LinkedList<Path>();
                     for (String s : sources) { compiler_sources.add(context.path(s)); }
 
-                    compile_sources(build_dir, compiler_deps, scalac_options, compiler_sources);
+                    compile_scala_sources(
+                        build_dir, context.scalac_options(), compiler_deps, compiler_sources);
+
+                    compiler_deps.add(build_dir);
+                    compile_java_sources(
+                        build_dir, context.javac_options(), compiler_deps, compiler_sources);
 
 
                     /* copy resources */
