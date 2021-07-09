@@ -165,11 +165,17 @@ public class Build
         args.add("-bootclasspath");
         args.add(Environment.join_paths(deps));
         args.add("--");
-        for (Path p : sources) { args.add(p.toString()); }
 
-        MainClass main = new MainClass();
-        boolean ok = main.process(args.toArray(String[]::new));
-        if (!ok) throw new RuntimeException("Failed to compile Scala sources");
+        boolean scala_sources = false;
+        for (Path p : sources) {
+            args.add(p.toString());
+            if (p.toString().endsWith(".scala")) { scala_sources = true; }
+        }
+        if (scala_sources) {
+            MainClass main = new MainClass();
+            boolean ok = main.process(args.toArray(String[]::new));
+            if (!ok) throw new RuntimeException("Failed to compile Scala sources");
+        }
     }
 
     public static void compile_java_sources(
