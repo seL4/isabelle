@@ -98,11 +98,23 @@ public class Build
         public List<String> resources() { return get_list("resources"); }
         public List<String> services() { return get_list("services"); }
 
-        public Path path(String file) { return _dir.resolve(file); }
-        public boolean exists(String file) { return Files.exists(path(file)); }
+        public Path path(String file)
+            throws IOException, InterruptedException
+        {
+            return _dir.resolve(Environment.expand_platform_path(file));
+        }
+        public boolean exists(String file)
+            throws IOException, InterruptedException
+        {
+            return Files.exists(path(file));
+        }
 
         // historic
-        public Path shasum_path() { return path(lib_name() + ".shasum"); }
+        public Path shasum_path()
+            throws IOException, InterruptedException
+        {
+            return path(lib_name() + ".shasum");
+        }
 
         public String item_name(String s)
         {
@@ -135,7 +147,7 @@ public class Build
         }
 
         public String shasum(String file)
-            throws IOException, NoSuchAlgorithmException
+            throws IOException, NoSuchAlgorithmException, InterruptedException
         {
             return shasum(file, List.of(path(file)));
         }
