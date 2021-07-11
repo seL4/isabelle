@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -75,6 +76,12 @@ public class Build
             }
         }
         return List.copyOf(result);
+    }
+
+    private static String sha_digest(MessageDigest sha, String name)
+    {
+        String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
+        return digest + " " + name + "\n";
     }
 
     public static class Context
@@ -162,14 +169,25 @@ public class Build
                         "Missing input file " + Environment.quote(file.toString()));
                 }
             }
-            String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
-            return digest + " " + name + "\n";
+            return sha_digest(sha, name);
         }
 
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException, InterruptedException
         {
             return shasum(file, List.of(path(file)));
+        }
+
+        public String shasum_props()
+            throws NoSuchAlgorithmException
+        {
+            TreeMap<String,Object> sorted = new TreeMap<String,Object>();
+            for (Object x : _props.entrySet()) {
+                sorted.put(x.toString(), _props.get(x));
+            }
+            MessageDigest sha = MessageDigest.getInstance("SHA");
+            sha.update(sorted.toString().getBytes(StandardCharsets.UTF_8));
+            return sha_digest(sha, "<props>");
         }
     }
 
@@ -385,6 +403,7 @@ public class Build
             List<Path> compiler_deps = new LinkedList<Path>();
             {
                 StringBuilder _shasum = new StringBuilder();
+                _shasum.append(context.shasum_props());
                 for (String s : requirements) {
                     if (s.startsWith("env:")) {
                         List<Path> paths = new LinkedList<Path>();
