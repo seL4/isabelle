@@ -152,29 +152,24 @@ public class Build
         public String shasum(String name, List<Path> paths)
             throws IOException, NoSuchAlgorithmException
         {
-            boolean exists = false;
             MessageDigest sha = MessageDigest.getInstance("SHA");
             for (Path file : paths) {
                 if (Files.exists(file)) {
-                    exists = true;
                     sha.update(Files.readAllBytes(file));
                 }
+                else {
+                    throw new RuntimeException(
+                        "Missing input file " + Environment.quote(file.toString()));
+                }
             }
-            if (exists) {
-                String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
-                return digest + " " + name + "\n";
-            }
-            else { return ""; }
+            String digest = String.format(Locale.ROOT, "%040x", new BigInteger(1, sha.digest()));
+            return digest + " " + name + "\n";
         }
 
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException, InterruptedException
         {
-            Path path = path(file);
-            if (Files.exists(path)) { return shasum(file, List.of(path)); }
-            else {
-                throw new RuntimeException("Missing input file " + Environment.quote(path.toString()));
-            }
+            return shasum(file, List.of(path(file)));
         }
     }
 
