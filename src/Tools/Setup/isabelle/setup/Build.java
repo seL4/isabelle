@@ -43,6 +43,7 @@ public class Build
     /** context **/
 
     public static String BUILD_PROPS = "build.props";
+    public static String COMPONENT_BUILD_PROPS = "etc/build.props";
 
     public static Context directory_context(Path dir)
         throws IOException
@@ -56,9 +57,24 @@ public class Build
         throws IOException
     {
         Properties props = new Properties();
-        Path build_props = dir.resolve("etc").resolve(BUILD_PROPS);
+        Path build_props = dir.resolve(COMPONENT_BUILD_PROPS);
         if (Files.exists(build_props)) { props.load(Files.newBufferedReader(build_props)); }
         return new Context(dir, props);
+    }
+
+    public static List<Context> component_contexts()
+        throws IOException, InterruptedException
+    {
+        List<Context> result = new LinkedList<Context>();
+        for (String p : Environment.getenv("ISABELLE_COMPONENTS").split(":", -1)) {
+            if (!p.isEmpty()) {
+                Path dir = Path.of(Environment.platform_path(p));
+                if (Files.exists(dir.resolve(COMPONENT_BUILD_PROPS))) {
+                    result.add(component_context(dir));
+                }
+            }
+        }
+        return List.copyOf(result);
     }
 
     public static class Context
@@ -287,6 +303,31 @@ public class Build
     }
 
 
+    /** classpath **/
+
+    public static List<Path> classpath()
+        throws IOException, InterruptedException
+    {
+        List<Path> result = new LinkedList<Path>();
+        for (Context context : component_contexts()) {
+            result.add(context.path(context.jar_name()));
+        }
+        return List.copyOf(result);
+    }
+
+    public static List<String> services()
+        throws IOException, InterruptedException
+    {
+        List<String> result = new LinkedList<String>();
+        for (Context context : component_contexts()) {
+            for (String s : context.services()) {
+                result.add(s);
+            }
+        }
+        return List.copyOf(result);
+    }
+
+
     /** build **/
 
     public static void build(Context context, boolean fresh)
@@ -399,6 +440,14 @@ public class Build
                     }
                 }
             }
+        }
+    }
+
+    public static void build_components(boolean fresh)
+        throws IOException, InterruptedException, NoSuchAlgorithmException
+    {
+        for (Context context : component_contexts()) {
+            build(context, fresh);
         }
     }
 }
