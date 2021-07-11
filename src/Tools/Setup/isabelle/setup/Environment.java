@@ -166,11 +166,19 @@ public class Environment
         return expand.result();
     }
 
-    public static String join_paths(List<Path> paths)
+    public static String join_platform_paths(List<Path> paths)
     {
         List<String> strs = new LinkedList<String>();
         for (Path p : paths) { strs.add(p.toString()); }
         return String.join(File.pathSeparator, strs);
+    }
+
+    public static String join_standard_paths(List<Path> paths)
+        throws IOException, InterruptedException
+    {
+        List<String> strs = new LinkedList<String>();
+        for (Path p : paths) { strs.add(standard_path(p.toString())); }
+        return String.join(":", strs);
     }
 
 

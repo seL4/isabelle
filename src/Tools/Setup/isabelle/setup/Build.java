@@ -175,7 +175,7 @@ public class Build
         args.add("-d");
         args.add(target_dir.toString());
         args.add("-bootclasspath");
-        args.add(Environment.join_paths(deps));
+        args.add(Environment.join_platform_paths(deps));
         args.add("--");
 
         boolean scala_sources = false;
@@ -204,7 +204,7 @@ public class Build
         options.add("-d");
         options.add(target_dir.toString());
         options.add("-classpath");
-        options.add(Environment.join_paths(deps));
+        options.add(Environment.join_platform_paths(deps));
 
         List<JavaFileObject> java_sources = new LinkedList<JavaFileObject>();
         for (Path p : sources) {
