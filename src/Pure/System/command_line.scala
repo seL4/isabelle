@@ -21,8 +21,6 @@ object Command_Line
     def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
   }
 
-  var debug = false
-
   def tool(body: => Unit): Unit =
   {
     val thread =
@@ -31,7 +29,7 @@ object Command_Line
           try { body; 0 }
           catch {
             case exn: Throwable =>
-              Output.error_message(Exn.message(exn) + (if (debug) "\n" + Exn.trace(exn) else ""))
+              Output.error_message(Exn.print(exn))
               Exn.return_code(exn, 2)
           }
         sys.exit(rc)

@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/isabelle_env.scala
+/*  Title:      Tools/Setup/isabelle/setup/Environment.scala
     Author:     Makarius
 
 Fundamental Isabelle system environment: quasi-static module with
@@ -212,8 +212,8 @@ public class Environment
         Exec_Result(int rc, String out, String err)
         {
             _rc = rc;
-            _out = out;
-            _err = err;
+            _out = Library.trim_line(out);
+            _err = Library.trim_line(err);
         }
 
         public int rc() { return _rc; }

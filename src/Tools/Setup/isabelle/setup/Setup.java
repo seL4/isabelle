@@ -7,20 +7,19 @@ Isabelle setup tool: bootstrap from generic Java environment.
 package isabelle.setup;
 
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-
-
 class Setup
 {
     private static void echo(String msg)
     {
         System.out.println(msg);
-
+    }
+    private static void echo_err(String msg)
+    {
+        System.err.println(msg);
     }
     private static void fail(String msg)
     {
-        echo(msg);
+        echo_err(msg);
         System.exit(2);
     }
 
@@ -58,13 +57,9 @@ class Setup
                     break;
             }
         }
-        catch (InterruptedException e) {
-            echo("Interrupt");
-            System.exit(139);
-        }
-        catch (IOException | RuntimeException | NoSuchAlgorithmException e) {
-            echo(e.getMessage());
-            System.exit(1);
+        catch (Throwable exn) {
+            echo_err(Exn.print_error(exn));
+            System.exit(Exn.return_code(exn, 2));
         }
     }
 }

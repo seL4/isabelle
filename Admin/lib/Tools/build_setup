@@ -9,6 +9,8 @@
 declare -a SOURCES=(
   "Build.java"
   "Environment.java"
+  "Exn.java"
+  "Library.java"
   "Setup.java"
 )
 

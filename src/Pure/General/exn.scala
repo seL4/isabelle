@@ -77,15 +77,7 @@ object Exn
   /* interrupts */
 
   def is_interrupt(exn: Throwable): Boolean =
-  {
-    var found_interrupt = false
-    var e = exn
-    while (!found_interrupt && e != null) {
-      found_interrupt |= e.isInstanceOf[InterruptedException]
-      e = e.getCause
-    }
-    found_interrupt
-  }
+    isabelle.setup.Exn.is_interrupt(exn)
 
   def interruptible_capture[A](e: => A): Result[A] =
     try { Res(e) }
@@ -106,7 +98,7 @@ object Exn
     def expose(): Unit = if (Thread.interrupted()) throw apply()
     def impose(): Unit = Thread.currentThread.interrupt()
 
-    val return_code = 130
+    val return_code: Int = isabelle.setup.Exn.INTERRUPT_RETURN_CODE
   }
 
 
@@ -139,8 +131,12 @@ object Exn
     user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
 
 
-  /* trace */
+  /* print */
 
-  def trace(exn: Throwable): String =
-    exn.getStackTrace.mkString("\n")
+  def debug(): Boolean = isabelle.setup.Exn.debug()
+
+  def trace(exn: Throwable): String = isabelle.setup.Exn.trace(exn)
+
+  def print(exn: Throwable): String =
+    if (debug()) message(exn) + "\n" + trace(exn) else message(exn)
 }

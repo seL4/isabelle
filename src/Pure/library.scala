@@ -105,7 +105,7 @@ object Library
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
   def prefix_lines(prfx: String, str: String): String =
-    if (str == "") str else cat_lines(split_lines(str).map(prfx + _))
+    isabelle.setup.Library.prefix_lines(prfx, str)
 
   def indent_lines(n: Int, str: String): String =
     prefix_lines(Symbol.spaces(n), str)
@@ -118,9 +118,7 @@ object Library
   }
 
   def trim_line(s: String): String =
-    if (s.endsWith("\r\n")) s.substring(0, s.length - 2)
-    else if (s.endsWith("\r") || s.endsWith("\n")) s.substring(0, s.length - 1)
-    else s
+    isabelle.setup.Library.trim_line(s)
 
   def trim_split_lines(s: String): List[String] =
     split_lines(trim_line(s)).map(trim_line)
