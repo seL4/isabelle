@@ -165,7 +165,11 @@ public class Build
         public String shasum(String file)
             throws IOException, NoSuchAlgorithmException, InterruptedException
         {
-            return shasum(file, List.of(path(file)));
+            Path path = path(file);
+            if (Files.exists(path)) { return shasum(file, List.of(path)); }
+            else {
+                throw new RuntimeException("Missing input file " + Environment.quote(path.toString()));
+            }
         }
     }
 
