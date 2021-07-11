@@ -114,6 +114,11 @@ public class Build
         public List<String> resources() { return get_list("resources"); }
         public List<String> services() { return get_list("services"); }
 
+        public boolean is_vacuous()
+        {
+            return sources().isEmpty() && resources().isEmpty() && services().isEmpty();
+        }
+
         public Path path(String file)
             throws IOException, InterruptedException
         {
@@ -243,7 +248,7 @@ public class Build
 
     /** shasum for jar content **/
 
-    private static String SHASUM = "META-INF/shasum";
+    private static String SHASUM = "META-INF/isabelle/shasum";
 
     public static String get_shasum(Path jar_path)
         throws IOException
@@ -268,6 +273,38 @@ public class Build
         Path path = dir.resolve(SHASUM);
         Files.createDirectories(path.getParent());
         Files.writeString(path, shasum);
+    }
+
+
+    /** services **/
+
+    private static String SERVICES = "META-INF/isabelle/services";
+
+    public static List<String> get_services(Path jar_path)
+        throws IOException
+    {
+        if (Files.exists(jar_path)) {
+            try (JarFile jar_file = new JarFile(jar_path.toFile()))
+            {
+                JarEntry entry = jar_file.getJarEntry(SERVICES);
+                if (entry != null) {
+                    byte[] bytes = jar_file.getInputStream(entry).readAllBytes();
+                    return Library.split_lines(new String(bytes, StandardCharsets.UTF_8));
+                }
+                else { return List.of(); }
+            }
+        }
+        else { return List.of(); }
+    }
+
+    public static void create_services(Path dir, List<String> services)
+        throws IOException
+    {
+        if (!services.isEmpty()) {
+            Path path = dir.resolve(SERVICES);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, Library.cat_lines(services));
+        }
     }
 
 
@@ -346,9 +383,7 @@ public class Build
 
         Files.deleteIfExists(context.shasum_path());
 
-        if (sources.isEmpty() && resources.isEmpty()) {
-            Files.deleteIfExists(jar_path);
-        }
+        if (context.is_vacuous()) { Files.deleteIfExists(jar_path); }
         else {
             String shasum_old = get_shasum(jar_path);
             String shasum;
@@ -434,6 +469,7 @@ public class Build
                     /* packaging */
 
                     create_shasum(build_dir, shasum);
+                    create_services(build_dir, context.services());
                     create_jar(build_dir, context.main(), jar_path);
                 }
                 finally {
