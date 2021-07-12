@@ -476,8 +476,8 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string _ = Unknown
 
 val tptp_binary_ops =
-  [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
-   tptp_equal, tptp_not_equal, tptp_app]
+  [tptp_and, tptp_or, tptp_implies, tptp_iff, tptp_if, tptp_equal, tptp_not_equal, tptp_not_and,
+   tptp_not_or, tptp_not_iff, tptp_app]
 
 fun parse_one_in_list xs =
   foldl1 (op ||) (map Scan.this_string xs)
