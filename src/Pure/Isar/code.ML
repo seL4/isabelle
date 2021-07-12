@@ -1528,11 +1528,11 @@ fun code_attribute f = Thm.declaration_attribute
   (fn thm => Context.mapping (f thm) I);
 
 fun code_thm_attribute g f =
-  g |-- Scan.succeed (code_attribute f);
+  Scan.lift (g |-- Scan.succeed (code_attribute f));
 
 fun code_const_attribute g f =
-  g -- Args.colon |-- Scan.repeat1 Parse.term
-    >> (fn ts => code_attribute (K (fold (fn t => fn thy => f (read_const thy t) thy) ts)));
+  Scan.lift (g -- Args.colon) |-- Scan.repeat1 Args.term
+    >> (fn ts => code_attribute (K (fold (fn t => fn thy => f ((check_const thy o Logic.unvarify_types_global) t) thy) ts)));
 
 val _ = Theory.setup
   (let
@@ -1554,7 +1554,7 @@ val _ = Theory.setup
       || Scan.succeed (code_attribute
           add_maybe_abs_eqn_liberal);
   in
-    Attrib.setup \<^binding>\<open>code\<close> (Scan.lift code_attribute_parser)
+    Attrib.setup \<^binding>\<open>code\<close> code_attribute_parser
         "declare theorems for code generation"
   end);
 

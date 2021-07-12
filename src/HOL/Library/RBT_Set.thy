@@ -709,6 +709,48 @@ qed
 context
 begin
 
+declare [[code drop: Gcd_fin Lcm_fin \<open>Gcd :: _ \<Rightarrow> nat\<close> \<open>Gcd :: _ \<Rightarrow> int\<close> \<open>Lcm :: _ \<Rightarrow> nat\<close> \<open>Lcm :: _ \<Rightarrow> int\<close>]]
+
+lemma [code]:
+  "Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys gcd t (0::'a::{semiring_gcd, linorder})"
+proof -
+  have "comp_fun_commute (gcd :: 'a \<Rightarrow> _)"
+    by standard (simp add: fun_eq_iff ac_simps)
+  with finite_fold_fold_keys [of _ 0 t]
+  have "Finite_Set.fold gcd 0 (Set t) = fold_keys gcd t 0"
+    by blast
+  then show ?thesis
+    by (simp add: Gcd_fin.eq_fold)
+qed
+    
+lemma [code]:
+  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
+  by simp
+
+lemma [code]:
+  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
+  by simp
+
+lemma [code]:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys lcm t (1::'a::{semiring_gcd, linorder})"
+proof -
+  have "comp_fun_commute (lcm :: 'a \<Rightarrow> _)"
+    by standard (simp add: fun_eq_iff ac_simps)
+  with finite_fold_fold_keys [of _ 1 t]
+  have "Finite_Set.fold lcm 1 (Set t) = fold_keys lcm t 1"
+    by blast
+  then show ?thesis
+    by (simp add: Lcm_fin.eq_fold)
+qed
+
+lemma [code drop: "Lcm :: _ \<Rightarrow> nat", code]:
+  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
+  by simp
+
+lemma [code drop: "Lcm :: _ \<Rightarrow> int", code]:
+  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
+  by simp
+
 qualified definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
   where [code_abbrev]: "Inf' = Inf"
 
@@ -722,49 +764,6 @@ qualified definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarro
 lemma Sup'_Set_fold [code]:
   "Sup' (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
   by (simp add: Sup'_def Sup_Set_fold)
-
-lemma [code drop: Gcd_fin, code]:
-  "Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys gcd t (0::'a::{semiring_gcd, linorder})"
-proof -
-  have "comp_fun_commute (gcd :: 'a \<Rightarrow> _)"
-    by standard (simp add: fun_eq_iff ac_simps)
-  with finite_fold_fold_keys [of _ 0 t]
-  have "Finite_Set.fold gcd 0 (Set t) = fold_keys gcd t 0"
-    by blast
-  then show ?thesis
-    by (simp add: Gcd_fin.eq_fold)
-qed
-    
-lemma [code drop: "Gcd :: _ \<Rightarrow> nat", code]:
-  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
-  by simp
-
-lemma [code drop: "Gcd :: _ \<Rightarrow> int", code]:
-  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
-  by simp
-
-lemma [code drop: Lcm_fin,code]:
-  "Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys lcm t (1::'a::{semiring_gcd, linorder})"
-proof -
-  have "comp_fun_commute (lcm :: 'a \<Rightarrow> _)"
-    by standard (simp add: fun_eq_iff ac_simps)
-  with finite_fold_fold_keys [of _ 1 t]
-  have "Finite_Set.fold lcm 1 (Set t) = fold_keys lcm t 1"
-    by blast
-  then show ?thesis
-    by (simp add: Lcm_fin.eq_fold)
-qed
-
-qualified definition Lcm' :: "'a :: semiring_Gcd set \<Rightarrow> 'a"
-  where [code_abbrev]: "Lcm' = Lcm"
-
-lemma [code drop: "Lcm :: _ \<Rightarrow> nat", code]:
-  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
-  by simp
-
-lemma [code drop: "Lcm :: _ \<Rightarrow> int", code]:
-  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
-  by simp
 
 end
 
