@@ -289,12 +289,11 @@ val e_config : atp_config =
    best_slices = fn ctxt =>
      let
        val heuristic = Config.get ctxt e_selection_heuristic
-       val modern = string_ord (getenv "E_VERSION", "2.3") <> LESS
        val (format, enc) =
-         if modern then
-           (THF (With_FOOL, Monomorphic, THF_Lambda_Free), "mono_native_higher_fool")
+         if string_ord (getenv "E_VERSION", "2.6") <> LESS then
+           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher_fool")
          else
-           (TFF (Without_FOOL, Monomorphic), "mono_native")
+           (THF (With_FOOL, Monomorphic, THF_Lambda_Free), "mono_native_higher")
      in
        (* FUDGE *)
        if heuristic = e_smartN then

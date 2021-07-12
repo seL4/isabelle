@@ -189,22 +189,15 @@ to the directory that contains the \texttt{agsyHOL},
 \texttt{eprover} (and/or \texttt{eproof} or \texttt{eproof\_ram}),
 \texttt{leo}, \texttt{leo3}, or \texttt{satallax} executable;
 for Alt-Ergo, set the environment variable \texttt{WHY3\_HOME} to the
-directory that contains the \texttt{why3} executable. Sledgehammer has been
-tested with agsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 2.0, LEO-II 1.3.4, Leo-III
-1.1, and Satallax 2.7. Since the ATPs' output formats are neither documented
-nor stable, other versions might not work well with Sledgehammer. Ideally, you
+directory that contains the \texttt{why3} executable. Ideally, you
 should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{LEO3\_VERSION}, or \texttt{SATALLAX\_VERSION} to the prover's version
-number (e.g., ``2.7''); this might help Sledgehammer invoke the prover
-optimally.
+number (e.g., ``3.6'').
 
 Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
 variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
 \texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
-of the executable, \emph{including the file name}. Sledgehammer has been tested
-with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT 2020.10-rmx, and Z3 4.3.2.
-Since Z3's output format is somewhat unstable, other versions of the solver
-might not work well with Sledgehammer. Ideally, also set
+of the executable, \emph{including the file name}. Ideally, also set
 \texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
 \texttt{Z3\_VERSION} to the solver's version number (e.g., ``4.4.0'').
 \end{enum}
