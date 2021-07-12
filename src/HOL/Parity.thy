@@ -1584,6 +1584,10 @@ next
   qed
 qed
 
+lemma drop_bit_exp_eq:
+  \<open>drop_bit m (2 ^ n) = of_bool (m \<le> n \<and> 2 ^ n \<noteq> 0) * 2 ^ (n - m)\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
 end
 
 instantiation nat :: semiring_bit_shifts
