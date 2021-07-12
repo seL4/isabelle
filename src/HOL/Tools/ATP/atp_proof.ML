@@ -169,10 +169,10 @@ fun string_of_atp_failure MaybeUnprovable = "The generated problem is maybe unpr
   | string_of_atp_failure ProofUnparsable =
     "The prover claims the conjecture is a theorem but provided an unparsable proof"
   | string_of_atp_failure (UnsoundProof (false, ss)) =
-    "The prover derived \"False\"" ^ from_lemmas ss ^
+    "The prover derived the lemma \"False\"" ^ from_lemmas ss ^
     "; specify a sound type encoding or omit the \"type_enc\" option"
   | string_of_atp_failure (UnsoundProof (true, ss)) =
-    "The prover derived \"False\"" ^ from_lemmas ss ^
+    "The prover derived the lemma \"False\"" ^ from_lemmas ss ^
     ", which could be due to a bug in Sledgehammer or to inconsistent axioms (including \"sorry\"s)"
   | string_of_atp_failure TimedOut = "Timed out"
   | string_of_atp_failure Inappropriate =
