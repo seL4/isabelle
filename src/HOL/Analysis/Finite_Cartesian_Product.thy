@@ -334,13 +334,7 @@ next
   fix K :: "('a ^ 'b) set set"
   assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
     unfolding open_vec_def
-    apply clarify
-    apply (drule (1) bspec)
-    apply (drule (1) bspec)
-    apply clarify
-    apply (rule_tac x=A in exI)
-    apply fast
-    done
+    by (metis Union_iff)
 qed
 
 end
@@ -612,9 +606,7 @@ lemma norm_le_componentwise_cart:
   by (rule L2_set_mono) (auto simp: assms)
 
 lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
-  apply (simp add: norm_vec_def)
-  apply (rule member_le_L2_set, simp_all)
-  done
+  by (metis norm_nth_le real_norm_def)
 
 lemma norm_bound_component_le_cart: "norm x \<le> e ==> \<bar>x$i\<bar> \<le> e"
   by (metis component_le_norm_cart order_trans)
@@ -626,11 +618,10 @@ lemma norm_le_l1_cart: "norm x \<le> sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def L2_set_le_sum)
 
 lemma bounded_linear_vec_nth[intro]: "bounded_linear (\<lambda>x. x $ i)"
-apply standard
-apply (rule vector_add_component)
-apply (rule vector_scaleR_component)
-apply (rule_tac x="1" in exI, simp add: norm_nth_le)
-done
+proof
+  show "\<exists>K. \<forall>x. norm (x $ i) \<le> norm x * K"
+    by (metis mult.commute mult.left_neutral norm_nth_le)
+qed auto
 
 instance vec :: (banach, finite) banach ..
 
@@ -681,13 +672,7 @@ lemma axis_eq_axis: "axis i x = axis j y \<longleftrightarrow> x = y \<and> i = 
 
 lemma inner_axis_axis:
   "inner (axis i x) (axis j y) = (if i = j then inner x y else 0)"
-  unfolding inner_vec_def
-  apply (cases "i = j")
-  apply clarsimp
-  apply (subst sum.remove [of _ j], simp_all)
-  apply (rule sum.neutral, simp add: axis_def)
-  apply (rule sum.neutral, simp add: axis_def)
-  done
+  by (simp add: inner_vec_def axis_def sum.neutral sum.remove [of _ j])
 
 lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
   by (simp add: inner_vec_def axis_def sum.remove [where x=i])
@@ -987,7 +972,6 @@ lemma sum_cmul:
 
 lemma linear_vec [simp]: "linear vec"
   using Vector_Spaces_linear_vec
-  apply (auto )
   by unfold_locales (vector algebra_simps)+
 
 subsection \<open>Matrix operations\<close>
@@ -1033,20 +1017,14 @@ lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
 lemma matrix_mul_lid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "mat 1 ** A = A"
-  apply (simp add: matrix_matrix_mult_def mat_def)
-  apply vector
-  apply (auto simp only: if_distrib if_distribR sum.delta'[OF finite]
-    mult_1_left mult_zero_left if_True UNIV_I)
-  done
+  unfolding matrix_matrix_mult_def mat_def
+  by (auto simp: if_distrib if_distribR sum.delta'[OF finite] cong: if_cong)
 
 lemma matrix_mul_rid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "A ** mat 1 = A"
-  apply (simp add: matrix_matrix_mult_def mat_def)
-  apply vector
-  apply (auto simp only: if_distrib if_distribR sum.delta[OF finite]
-    mult_1_right mult_zero_right if_True UNIV_I cong: if_cong)
-  done
+  unfolding matrix_matrix_mult_def mat_def
+  by (auto simp: if_distrib if_distribR sum.delta'[OF finite] cong: if_cong)
 
 proposition matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
   apply (vector matrix_matrix_mult_def sum_distrib_left sum_distrib_right mult.assoc)
@@ -1090,16 +1068,18 @@ lemma matrix_mult_transpose_dot_row:
 
 lemma matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
-  shows "A = B \<longleftrightarrow>  (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
-  apply auto
-  apply (subst vec_eq_iff)
-  apply clarify
-  apply (clarsimp simp add: matrix_vector_mult_def if_distrib if_distribR vec_eq_iff cong del: if_weak_cong)
-  apply (erule_tac x="axis ia 1" in allE)
-  apply (erule_tac x="i" in allE)
-  apply (auto simp add: if_distrib if_distribR axis_def
-    sum.delta[OF finite] cong del: if_weak_cong)
-  done
+  shows "A = B \<longleftrightarrow> (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?rhs
+  then show ?lhs
+    apply (subst vec_eq_iff)
+    apply (clarsimp simp add: matrix_vector_mult_def if_distrib if_distribR vec_eq_iff cong: if_cong)
+    apply (erule_tac x="axis ia 1" in allE)
+    apply (erule_tac x="i" in allE)
+    apply (auto simp add: if_distrib if_distribR axis_def
+        sum.delta[OF finite] cong del: if_weak_cong)
+    done
+qed auto
 
 lemma matrix_vector_mul_component: "(A *v x)$k = inner (A$k) x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
