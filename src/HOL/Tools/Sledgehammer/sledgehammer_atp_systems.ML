@@ -268,7 +268,7 @@ fun e_term_order_info_arguments false false _ = ""
     end
 
 val e_config : atp_config =
-  {exec = (["E_HOME"], ["eprover"]),
+  {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
    arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn problem =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
        ["--auto-schedule --tstp-in --tstp-out --silent " ^
