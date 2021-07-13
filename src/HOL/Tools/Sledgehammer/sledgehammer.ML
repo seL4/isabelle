@@ -70,7 +70,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
      let
        val ctxt = Proof.context_of state
 
-       val fact_names = map fst used_facts
+       val fact_names = used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained) |> map fst
        val {facts = chained, goal, ...} = Proof.goal state
        val goal_t = Logic.get_goal (Thm.prop_of goal) i
 
@@ -93,7 +93,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
                  proof_methods = meths,
                  comment = ""}
            in
-             (case preplay_isar_step ctxt [] timeout [] (mk_step fact_names meths) of
+             (case preplay_isar_step ctxt chained timeout [] (mk_step fact_names meths) of
                (res as (meth, Played time)) :: _ =>
                (* if a fact is needed by an ATP, it will be needed by "metis" *)
                if not minimize orelse is_metis_method meth then
@@ -113,9 +113,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
        try_methss [] methss
      end)
   |> (fn (used_facts, (meth, play)) =>
-        (used_facts |> not (proof_method_distinguishes_chained_and_direct meth)
-           ? filter_out (fn (_, (sc, _)) => sc = Chained),
-         (meth, play)))
+        (used_facts |> filter_out (fn (_, (sc, _)) => sc = Chained), (meth, play)))
 
 fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout, preplay_timeout,
       expect, induction_rules, ...}) mode writeln_result only learn
@@ -124,7 +122,7 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
     val ctxt = Proof.context_of state
 
     val hard_timeout = Time.scale 5.0 timeout
-    val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
+    val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
     val induction_rules =
