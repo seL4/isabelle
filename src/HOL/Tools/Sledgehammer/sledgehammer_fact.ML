@@ -10,7 +10,7 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
-  type raw_fact = ((unit -> string) * stature) * thm (* TODO: rename to lazy_fact *)
+  type lazy_fact = ((unit -> string) * stature) * thm
   type fact = (string * stature) * thm
 
   type fact_override =
@@ -30,15 +30,14 @@ sig
   val fact_distinct : (term * term -> bool) -> ('a * thm) list -> ('a * thm) list
   val instantiate_inducts : Proof.context -> term list -> term ->
     (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
-  val fact_of_raw_fact : raw_fact -> fact
+  val fact_of_lazy_fact : lazy_fact -> fact
   val is_useful_unnamed_local_fact : Proof.context -> thm -> bool
 
   val all_facts : Proof.context -> bool -> Keyword.keywords -> thm list -> thm list ->
-    status Termtab.table -> raw_fact list
+    status Termtab.table -> lazy_fact list
   val nearly_all_facts : Proof.context -> bool -> fact_override -> Keyword.keywords ->
-    status Termtab.table -> thm list -> term list -> term -> raw_fact list
-  val drop_duplicate_facts : raw_fact list -> raw_fact list
-
+    status Termtab.table -> thm list -> term list -> term -> lazy_fact list
+  val drop_duplicate_facts : lazy_fact list -> lazy_fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -48,7 +47,7 @@ open ATP_Util
 open ATP_Problem_Generate
 open Sledgehammer_Util
 
-type raw_fact = ((unit -> string) * stature) * thm
+type lazy_fact = ((unit -> string) * stature) * thm
 type fact = (string * stature) * thm
 
 type fact_override =
@@ -431,7 +430,7 @@ fun instantiate_inducts ctxt hyp_ts concl_t =
     maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
   end
 
-fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
+fun fact_of_lazy_fact ((name, stature), th) = ((name (), stature), th)
 
 fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
 

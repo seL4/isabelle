@@ -123,10 +123,10 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
                 val facts =
                   suggs
                   |> find_suggested_facts ctxt facts
-                  |> map (fact_of_raw_fact #> nickify)
+                  |> map (fact_of_lazy_fact #> nickify)
                   |> inst_inducts ? instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
-                  |> map fact_of_raw_fact
+                  |> map fact_of_lazy_fact
                 val ctxt = ctxt |> set_file_name method prob_dir_name
                 val res as {outcome, ...} = run_prover_for_mash ctxt params prover name facts goal
                 val ok = if is_none outcome then 1 else 0

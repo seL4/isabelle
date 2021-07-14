@@ -8,7 +8,7 @@ Sledgehammer's machine-learning-based relevance filter (MaSh).
 signature SLEDGEHAMMER_MASH =
 sig
   type stature = ATP_Problem_Generate.stature
-  type raw_fact = Sledgehammer_Fact.raw_fact
+  type lazy_fact = Sledgehammer_Fact.lazy_fact
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type params = Sledgehammer_Prover.params
@@ -56,7 +56,7 @@ sig
   val features_of : Proof.context -> string -> stature -> term list -> string list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
-  val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
+  val prover_dependencies_of : Proof.context -> params -> string -> int -> lazy_fact list ->
     string Symtab.table * string Symtab.table -> thm -> bool * string list
   val attach_parents_to_facts : ('a * thm) list -> ('a * thm) list ->
     (string list * ('a * thm)) list
@@ -67,12 +67,12 @@ sig
   val find_mash_suggestions : Proof.context -> int -> string list -> ('a * thm) list ->
     ('a * thm) list -> ('a * thm) list -> ('a * thm) list * ('a * thm) list
   val mash_suggested_facts : Proof.context -> string -> params -> int -> term list -> term ->
-    raw_fact list -> fact list * fact list
+    lazy_fact list -> fact list * fact list
 
   val mash_unlearn : Proof.context -> unit
   val mash_learn_proof : Proof.context -> params -> term -> thm list -> unit
   val mash_learn_facts : Proof.context -> params -> string -> int -> bool -> Time.time ->
-    raw_fact list -> string
+    lazy_fact list -> string
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val mash_can_suggest_facts : Proof.context -> bool
   val mash_can_suggest_facts_fast : Proof.context -> bool
@@ -81,7 +81,7 @@ sig
   val mepo_weight : real
   val mash_weight : real
   val relevant_facts : Proof.context -> params -> string -> int -> fact_override -> term list ->
-    term -> raw_fact list -> (string * fact list) list
+    term -> lazy_fact list -> (string * fact list) list
 end;
 
 structure Sledgehammer_MaSh : SLEDGEHAMMER_MASH =
@@ -1221,7 +1221,7 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
         val unknown = filter_out (is_fact_in_graph access_G o snd) facts
       in
         find_mash_suggestions ctxt max_suggs suggs facts chained unknown
-        |> apply2 (map fact_of_raw_fact)
+        |> apply2 (map fact_of_lazy_fact)
       end)
   end
 
@@ -1537,7 +1537,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter))
   else if only then
-    [("", map fact_of_raw_fact facts)]
+    [("", map fact_of_lazy_fact facts)]
   else if max_facts <= 0 orelse null facts then
     [("", [])]
   else
@@ -1604,7 +1604,8 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
         (case add_ths of
            [] => accepts
          | _ =>
-           (unique_facts |> filter in_add |> map fact_of_raw_fact) @ (accepts |> filter_out in_add))
+           (unique_facts |> filter in_add |> map fact_of_lazy_fact)
+           @ (accepts |> filter_out in_add))
         |> take max_facts
 
       fun mepo () =
