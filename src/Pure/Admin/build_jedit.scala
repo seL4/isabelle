@@ -7,6 +7,11 @@ Build auxiliary jEdit component.
 package isabelle
 
 
+import java.nio.charset.Charset
+
+import scala.jdk.CollectionConverters._
+
+
 object Build_JEdit
 {
   /* modes */
@@ -197,6 +202,10 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
     /* resources */
 
+    val keep_encodings = List("ISO-8859-1", "ISO-8859-15", "US-ASCII", "UTF-8", "windows-1252")
+    val drop_encodings =
+      Charset.availableCharsets().keySet().asScala.toList.sorted.filterNot(keep_encodings.contains)
+
     File.write(jedit_patched_dir + Path.explode("properties/jEdit.props"),
 """#jEdit properties
 autoReloadDialog=false
@@ -217,164 +226,7 @@ console.font=Isabelle DejaVu Sans Mono
 console.fontsize=14
 delete-line.shortcut=A+d
 delete.shortcut2=C+d
-encoding.opt-out.Big5-HKSCS=true
-encoding.opt-out.Big5=true
-encoding.opt-out.COMPOUND_TEXT=true
-encoding.opt-out.EUC-JP=true
-encoding.opt-out.EUC-KR=true
-encoding.opt-out.GB2312=true
-encoding.opt-out.GB18030=true
-encoding.opt-out.GBK=true
-encoding.opt-out.IBM-Thai=true
-encoding.opt-out.IBM00858=true
-encoding.opt-out.IBM037=true
-encoding.opt-out.IBM01140=true
-encoding.opt-out.IBM01141=true
-encoding.opt-out.IBM01142=true
-encoding.opt-out.IBM01143=true
-encoding.opt-out.IBM01144=true
-encoding.opt-out.IBM01145=true
-encoding.opt-out.IBM01146=true
-encoding.opt-out.IBM01147=true
-encoding.opt-out.IBM01148=true
-encoding.opt-out.IBM01149=true
-encoding.opt-out.IBM273=true
-encoding.opt-out.IBM277=true
-encoding.opt-out.IBM278=true
-encoding.opt-out.IBM280=true
-encoding.opt-out.IBM284=true
-encoding.opt-out.IBM285=true
-encoding.opt-out.IBM297=true
-encoding.opt-out.IBM420=true
-encoding.opt-out.IBM424=true
-encoding.opt-out.IBM437=true
-encoding.opt-out.IBM500=true
-encoding.opt-out.IBM775=true
-encoding.opt-out.IBM850=true
-encoding.opt-out.IBM852=true
-encoding.opt-out.IBM855=true
-encoding.opt-out.IBM857=true
-encoding.opt-out.IBM860=true
-encoding.opt-out.IBM861=true
-encoding.opt-out.IBM862=true
-encoding.opt-out.IBM863=true
-encoding.opt-out.IBM864=true
-encoding.opt-out.IBM865=true
-encoding.opt-out.IBM866=true
-encoding.opt-out.IBM868=true
-encoding.opt-out.IBM869=true
-encoding.opt-out.IBM870=true
-encoding.opt-out.IBM871=true
-encoding.opt-out.IBM918=true
-encoding.opt-out.IBM1026=true
-encoding.opt-out.IBM1047=true
-encoding.opt-out.ISO-2022-CN=true
-encoding.opt-out.ISO-2022-JP-2=true
-encoding.opt-out.ISO-2022-JP=true
-encoding.opt-out.ISO-2022-KR=true
-encoding.opt-out.ISO-8859-2=true
-encoding.opt-out.ISO-8859-3=true
-encoding.opt-out.ISO-8859-4=true
-encoding.opt-out.ISO-8859-5=true
-encoding.opt-out.ISO-8859-6=true
-encoding.opt-out.ISO-8859-7=true
-encoding.opt-out.ISO-8859-8=true
-encoding.opt-out.ISO-8859-9=true
-encoding.opt-out.ISO-8859-13=true
-encoding.opt-out.JIS_X0201=true
-encoding.opt-out.JIS_X0212-1990=true
-encoding.opt-out.KOI8-R=true
-encoding.opt-out.KOI8-U=true
-encoding.opt-out.Shift_JIS=true
-encoding.opt-out.TIS-620=true
-encoding.opt-out.UTF-16=true
-encoding.opt-out.UTF-16BE=true
-encoding.opt-out.UTF-16LE=true
-encoding.opt-out.UTF-32=true
-encoding.opt-out.UTF-32BE=true
-encoding.opt-out.UTF-32LE=true
-encoding.opt-out.X-UTF-32BE-BOM=true
-encoding.opt-out.X-UTF-32LE-BOM=true
-encoding.opt-out.windows-31j=true
-encoding.opt-out.windows-1250=true
-encoding.opt-out.windows-1251=true
-encoding.opt-out.windows-1253=true
-encoding.opt-out.windows-1254=true
-encoding.opt-out.windows-1255=true
-encoding.opt-out.windows-1256=true
-encoding.opt-out.windows-1257=true
-encoding.opt-out.windows-1258=true
-encoding.opt-out.x-Big5-Solaris=true
-encoding.opt-out.x-EUC-TW=true
-encoding.opt-out.x-IBM737=true
-encoding.opt-out.x-IBM834=true
-encoding.opt-out.x-IBM856=true
-encoding.opt-out.x-IBM874=true
-encoding.opt-out.x-IBM875=true
-encoding.opt-out.x-IBM921=true
-encoding.opt-out.x-IBM922=true
-encoding.opt-out.x-IBM930=true
-encoding.opt-out.x-IBM933=true
-encoding.opt-out.x-IBM935=true
-encoding.opt-out.x-IBM937=true
-encoding.opt-out.x-IBM939=true
-encoding.opt-out.x-IBM942=true
-encoding.opt-out.x-IBM942C=true
-encoding.opt-out.x-IBM943=true
-encoding.opt-out.x-IBM943C=true
-encoding.opt-out.x-IBM948=true
-encoding.opt-out.x-IBM949=true
-encoding.opt-out.x-IBM949C=true
-encoding.opt-out.x-IBM950=true
-encoding.opt-out.x-IBM964=true
-encoding.opt-out.x-IBM970=true
-encoding.opt-out.x-IBM1006=true
-encoding.opt-out.x-IBM1025=true
-encoding.opt-out.x-IBM1046=true
-encoding.opt-out.x-IBM1097=true
-encoding.opt-out.x-IBM1098=true
-encoding.opt-out.x-IBM1112=true
-encoding.opt-out.x-IBM1122=true
-encoding.opt-out.x-IBM1123=true
-encoding.opt-out.x-IBM1124=true
-encoding.opt-out.x-IBM1381=true
-encoding.opt-out.x-IBM1383=true
-encoding.opt-out.x-IBM33722=true
-encoding.opt-out.x-ISCII91=true
-encoding.opt-out.x-ISO-2022-CN-CNS=true
-encoding.opt-out.x-ISO-2022-CN-GB=true
-encoding.opt-out.x-JIS0208=true
-encoding.opt-out.x-JISAutoDetect=true
-encoding.opt-out.x-Johab=true
-encoding.opt-out.x-MS932_0213=true
-encoding.opt-out.x-MS950-HKSCS=true
-encoding.opt-out.x-MacArabic=true
-encoding.opt-out.x-MacCentralEurope=true
-encoding.opt-out.x-MacCroatian=true
-encoding.opt-out.x-MacCyrillic=true
-encoding.opt-out.x-MacDingbat=true
-encoding.opt-out.x-MacGreek=true
-encoding.opt-out.x-MacHebrew=true
-encoding.opt-out.x-MacIceland=true
-encoding.opt-out.x-MacRoman=true
-encoding.opt-out.x-MacRomania=true
-encoding.opt-out.x-MacSymbol=true
-encoding.opt-out.x-MacThai=true
-encoding.opt-out.x-MacTurkish=true
-encoding.opt-out.x-MacUkraine=true
-encoding.opt-out.x-PCK=true
-encoding.opt-out.x-SJIS_0213=true
-encoding.opt-out.x-UTF-16LE-BOM=true
-encoding.opt-out.x-euc-jp-linux=true
-encoding.opt-out.x-eucJP-Open=true
-encoding.opt-out.x-iso-8859-11=true
-encoding.opt-out.x-mswin-936=true
-encoding.opt-out.x-windows-874=true
-encoding.opt-out.x-windows-949=true
-encoding.opt-out.x-windows-950=true
-encoding.opt-out.x-windows-50220=true
-encoding.opt-out.x-windows-50221=true
-encoding.opt-out.x-windows-iso2022jp=true
+""" + drop_encodings.map(a => "encoding.opt-out." + a + "=true").mkString("\n") + """
 encodingDetectors=BOM XML-PI buffer-local-property
 end.shortcut=
 expand-abbrev.shortcut2=CA+SPACE
