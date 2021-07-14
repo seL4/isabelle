@@ -176,10 +176,11 @@ fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
 (* Reject theorems with names like "List.filter.filter_list_def" or "Accessible_Part.acc.defs", as
    these are definitions arising from packages. *)
 fun is_package_def s =
+  exists (fn suf => String.isSuffix suf s)
+    ["_case_def", "_rec_def", "_size_def", "_size_overloaded_def"]
+  andalso
   let val ss = Long_Name.explode s in
-    length ss > 2 andalso not (hd ss = "local") andalso
-    exists (fn suf => String.isSuffix suf s)
-      ["_case_def", "_rec_def", "_size_def", "_size_overloaded_def"]
+    length ss > 2 andalso not (hd ss = "local")
   end
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
@@ -477,7 +478,8 @@ fun all_facts ctxt generous keywords add_ths chained css =
         else
           let
             val n = length ths
-            val multi = n > 1
+            val collection = n > 1
+            val dotted_name = length (Long_Name.explode name0) > 2 (* ignore theory name *)
 
             fun check_thms a =
               (case try (Proof_Context.get_thms ctxt) a of
@@ -508,21 +510,23 @@ fun all_facts ctxt generous keywords add_ths chained css =
                                  name0
                              end
                          end
-                         |> make_name keywords multi j
+                         |> make_name keywords collection j
                      val stature = stature_of_thm global assms chained css name0 th
                      val new = ((get_name, stature), th)
                    in
-                     (if multi then apsnd else apfst) (cons new) accum
+                     (if collection then apsnd o apsnd
+                      else if dotted_name then apsnd o apfst
+                      else apfst) (cons new) accum
                    end)
               end) ths (n, accum))
           end)
   in
-    (* The single-theorem names go before the multiple-theorem ones (e.g., "xxx" vs. "xxx(3)"), so
-       that single names are preferred when both are available. *)
-    ([], [])
+    (* Names like "xxx" are preferred to "xxx.yyy", which are preferred to "xxx(666)" and the like.
+       "Preferred" means put to the front of  the list. *)
+    ([], ([], []))
     |> add_facts false fold local_facts (unnamed_locals @ named_locals)
     |> add_facts true Facts.fold_static global_facts global_facts
-    |> op @
+    ||> op @ |> op @
   end
 
 fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts
