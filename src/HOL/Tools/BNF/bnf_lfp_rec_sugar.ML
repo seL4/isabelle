@@ -366,7 +366,7 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
               end)
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
-      | subst _ t = t
+      | subst bound_Ts t = try_nested_rec bound_Ts (head_of t) t |> the_default t;
 
     fun subst' t =
       if has_call t then rec_call_not_apply_to_ctr_arg ctxt [] t
