@@ -661,7 +661,7 @@ Usage: isabelle build_jedit [OPTIONS]
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "J:" -> (arg => java_home = Path.explode(arg)),
-        "O" -> (arg => original = true),
+        "O" -> (_ => original = true),
         "V:" -> (arg => version = arg))
 
       val more_args = getopts(args)
