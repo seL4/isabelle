@@ -2058,8 +2058,9 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
        (HOLogic.mk_disj (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T,
             s_betapply [] (optimized_case_def hol_ctxt [] T bool_T (map case_func xs), x_var)),
         bisim_const T $ n_var $ x_var $ y_var),
-     HOLogic.eq_const pred_T $ (bisim_const T $ bisim_max $ x_var)
-     $ Abs (Name.uu, T, HOLogic.mk_eq (x_var, Bound 0))]
+     HOLogic.mk_imp
+       (bisim_const T $ bisim_max $ x_var $ y_var,
+        HOLogic.mk_eq (x_var, y_var))]
     |> map HOLogic.mk_Trueprop
   end
 
