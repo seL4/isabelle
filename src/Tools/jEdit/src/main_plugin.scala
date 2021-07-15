@@ -454,7 +454,7 @@ class Main_Plugin extends EBPlugin
 
       JEdit_Lib.jedit_views().foreach(init_title)
 
-      Syntax_Style.set_extender(Syntax_Style.Extender)
+      Syntax_Style.set_extender(Syntax_Style.Main_Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.init)
 

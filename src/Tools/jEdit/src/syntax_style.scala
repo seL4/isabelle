@@ -81,7 +81,7 @@ object Syntax_Style
     }
   }
 
-  object Extender extends SyntaxUtilities.StyleExtender
+  object Main_Extender extends SyntaxUtilities.StyleExtender
   {
     val max_user_fonts = 2
     if (Symbol.font_names.length > max_user_fonts)
