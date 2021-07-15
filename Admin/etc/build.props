@@ -1,0 +1,4 @@
+description = Isabelle/Scala/Admin
+lib = $ISABELLE_HOME/lib/classes
+name = isabelle_admin
+services = isabelle.Admin_Tools

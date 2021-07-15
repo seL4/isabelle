@@ -211,15 +211,22 @@ function isabelle_directory ()
 }
 export -f isabelle_directory
 
+#setup classpath
+function isabelle_setup_classpath
+{
+  classpath "$(isabelle_java java -classpath "$(platform_path "$ISABELLE_SETUP_JAR")" isabelle.setup.Setup classpath)"
+}
+export -f isabelle_setup_classpath
+
 #administrative build
-if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-  function isabelle_admin_build ()
+function isabelle_admin_build ()
+{
   {
-    "$ISABELLE_HOME/Admin/build" "$@"
-  }
-else
-  function isabelle_admin_build () { return 0; }
-fi
+    if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+      "$ISABELLE_HOME/Admin/build" "$@"
+    fi
+  } && isabelle_setup_classpath
+}
 export -f isabelle_admin_build
 
 #arrays

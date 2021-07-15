@@ -79,6 +79,14 @@ object Scala
 
   /** compiler **/
 
+  def class_path(): List[String] =
+    Library.distinct(
+      for {
+        prop <- List("isabelle.scala.classpath", "java.class.path")
+        elems = System.getProperty(prop, "") if elems.nonEmpty
+        elem <- space_explode(JFile.pathSeparatorChar, elems) if elem.nonEmpty
+      } yield elem)
+
   object Compiler
   {
     def context(
@@ -89,16 +97,9 @@ object Scala
         File.find_files(dir, file => file.getName.endsWith(".jar")).
           map(File.absolute_name)
 
-      val class_path =
-        for {
-          prop <- List("isabelle.scala.classpath", "java.class.path")
-          path = System.getProperty(prop, "") if path != "\"\""
-          elem <- space_explode(JFile.pathSeparatorChar, path)
-        } yield elem
-
       val settings = new GenericRunnerSettings(error)
       settings.classpath.value =
-        (class_path ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
+        (class_path() ::: jar_dirs.flatMap(find_jars)).mkString(JFile.pathSeparator)
 
       new Context(settings)
     }

@@ -52,7 +52,7 @@ MODULES="$@"; shift "$#"
 function build_all ()
 {
   build_browser
-  build_jars
+  build_setup build
 }
 
 
@@ -64,28 +64,25 @@ function build_browser ()
 }
 
 
-function build_jars ()
+function build_setup ()
 {
-  pushd "$ISABELLE_HOME" >/dev/null
-  "$ISABELLE_TOOL" env src/Pure/build-jars "$@" || exit $?
-  popd >/dev/null
+  rm -rf \
+    "$ISABELLE_HOME/lib/classes/Pure.jar" \
+    "$ISABELLE_HOME/lib/classes/Pure.shasum" \
+    "$ISABELLE_HOME/src/Tools/jEdit/dist"
+  "$ISABELLE_TOOL" java isabelle.setup.Setup "$@"
 }
 
 
 ## main
-
-#FIXME workarounds for scalac 2.11.0
-export CYGWIN="nodosfilewarning"
-function stty() { :; }
-export -f stty
 
 for MODULE in $MODULES
 do
   case $MODULE in
     all) build_all;;
     browser) build_browser;;
-    jars) build_jars;;
-    jars_fresh) build_jars -f;;
+    jars) build_setup build;;
+    jars_fresh) build_setup build_fresh;;
     *) fail "Bad module $MODULE"
   esac
 done

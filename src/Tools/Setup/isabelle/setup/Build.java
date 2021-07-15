@@ -137,13 +137,6 @@ public class Build
             return Files.exists(path(file));
         }
 
-        // historic
-        public Path shasum_path()
-            throws IOException, InterruptedException
-        {
-            return path(lib_name() + ".shasum");
-        }
-
         public String item_name(String s)
         {
             int i = s.indexOf(':');
@@ -393,8 +386,6 @@ public class Build
         List<String> requirements = context.requirements();
         List<String> resources = context.resources();
         List<String> sources = context.sources();
-
-        Files.deleteIfExists(context.shasum_path());
 
         if (context.is_vacuous()) { Files.deleteIfExists(jar_path); }
         else {

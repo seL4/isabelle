@@ -43,7 +43,7 @@ Checklist for official releases
 
 - update https://isabelle.sketis.net/repos/isabelle-website
 
-- check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
+- check doc/Contents, $JEDIT_HOME/doc/Contents;
 
 - test old HD display: Linux, Windows, macOS;
 

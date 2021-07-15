@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_jedit.scala
     Author:     Makarius
 
-Build auxiliary jEdit component.
+Build component for jEdit text-editor.
 */
 
 package isabelle
@@ -466,10 +466,18 @@ xml-insert-closing-tag.shortcut=
     File.write(etc_dir + Path.explode("settings"),
       """# -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
-ISABELLE_JEDIT_JARS=""" +
-        File.read_dir(jars_dir).map("$ISABELLE_JEDIT_HOME/jars/" + _).mkString("\"", ":", "\"\n")
-)
+JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
+JEDIT_JARS=""" + quote(File.read_dir(jars_dir).map("$JEDIT_HOME/jars/" + _).mkString(":")) + """
+JEDIT_JAR="$JEDIT_HOME/jedit.jar"
+classpath "$JEDIT_JAR"
+
+JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
+JEDIT_OPTIONS="-reuseview -nobackground -nosplash -log=9"
+JEDIT_JAVA_OPTIONS="-Xms512m -Xmx4g -Xss16m"
+JEDIT_JAVA_SYSTEM_OPTIONS="-Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"
+
+ISABELLE_DOCS="$ISABELLE_DOCS:$JEDIT_HOME/doc"
+""")
 
 
     /* README */
@@ -493,7 +501,8 @@ https://sourceforge.net/projects/jedit-plugins/files
   def default_java_home: Path = Path.explode("$JAVA_HOME").expand
 
   val isabelle_tool =
-    Isabelle_Tool("build_jedit", "build auxiliary jEdit component", Scala_Project.here, args =>
+    Isabelle_Tool("build_jedit", "build Isabelle component from the jEdit text-editor",
+      Scala_Project.here, args =>
     {
       var target_dir = Path.current
       var java_home = default_java_home
@@ -519,9 +528,7 @@ Usage: isabelle build_jedit [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val component_dir =
-        target_dir + Path.basic("jedit_build-" + Date.Format.alt_date(Date.now()))
-
+      val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
       val progress = new Console_Progress()
 
       build_jedit(component_dir, version, original = original,

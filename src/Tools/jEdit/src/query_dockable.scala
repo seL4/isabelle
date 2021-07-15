@@ -8,7 +8,6 @@ package isabelle.jedit
 
 
 import isabelle._
-import isabelle.jedit_base.Dockable
 
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 import javax.swing.{JComponent, JTextField}

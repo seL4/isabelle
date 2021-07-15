@@ -36,8 +36,7 @@ val xml_file = XML.parse o File.read;
 
 fun xml_resource name =
   let
-    val res =
-      Isabelle_System.bash_process ("unzip -p \"$JEDIT_HOME/dist/jedit.jar\" " ^ Bash.string name);
+    val res = Isabelle_System.bash_process ("unzip -p \"$JEDIT_JAR\" " ^ Bash.string name);
     val rc = Process_Result.rc res;
   in
     res |> Process_Result.check |> Process_Result.out |> XML.parse
@@ -49,8 +48,8 @@ fun xml_resource name =
 
 val lazy_actions =
   Lazy.lazy (fn () =>
-    (parse_actions (xml_file \<^file>\<open>~~/src/Tools/jEdit/src/actions.xml\<close>) @
-      parse_dockables (xml_file \<^file>\<open>~~/src/Tools/jEdit/src/dockables.xml\<close>) @
+    (parse_actions (xml_file \<^file>\<open>~~/src/Tools/jEdit/jedit_main/actions.xml\<close>) @
+      parse_dockables (xml_file \<^file>\<open>~~/src/Tools/jEdit/jedit_main/dockables.xml\<close>) @
       parse_actions (xml_resource "org/gjt/sp/jedit/actions.xml") @
       parse_dockables (xml_resource "org/gjt/sp/jedit/dockables.xml"))
     |> sort_strings);

@@ -18,9 +18,7 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
   eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $ISABELLE_TOOL_JAVA_OPTIONS)"
 
-  if [ -f "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar" ]; then
-    classpath "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar"
-  fi
+  isabelle_setup_classpath
 
   [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
 

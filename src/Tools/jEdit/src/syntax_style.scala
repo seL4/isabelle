@@ -15,6 +15,7 @@ import java.awt.font.TextAttribute
 import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
+import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.TextArea
 
@@ -24,6 +25,7 @@ object Syntax_Style
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
+  private val full_range = 6 * plain_range + 1
   private def check_range(i: Int): Unit =
     require(0 <= i && i < plain_range, "bad syntax style range")
 
@@ -60,6 +62,24 @@ object Syntax_Style
     font_style(style, font => font.deriveFont(if (font.isBold) Font.PLAIN else Font.BOLD))
 
   val hidden_color: Color = new Color(255, 255, 255, 0)
+
+  def set_extender(extender: SyntaxUtilities.StyleExtender): Unit =
+  {
+    SyntaxUtilities.setStyleExtender(extender)
+    GUI_Thread.later { jEdit.propertiesChanged }
+  }
+
+  object Base_Extender extends SyntaxUtilities.StyleExtender
+  {
+    override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
+    {
+      val new_styles = new Array[SyntaxStyle](full_range)
+      for (i <- 0 until full_range) {
+        new_styles(i) = styles(i % plain_range)
+      }
+      new_styles
+    }
+  }
 
   object Extender extends SyntaxUtilities.StyleExtender
   {

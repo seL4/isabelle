@@ -15,7 +15,7 @@
   <manifest></manifest>
   <icon>{ICON}</icon>
   <classPath>
-    <mainClass>isabelle.Main</mainClass>
+    <mainClass>isabelle.jedit.Main</mainClass>
 {CLASSPATH}
   </classPath>
   <singleInstance>

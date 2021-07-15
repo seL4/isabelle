@@ -99,8 +99,7 @@ isabelle jedit -b || exit $?
 
 if [ -f "$JEDIT_SETTINGS/$SERVER_NAME" ]
 then
-  exec isabelle java "${JAVA_ARGS[@]}" \
-    -jar $(platform_path "$JEDIT_HOME/dist/jedit.jar") \
+  exec isabelle java "${JAVA_ARGS[@]}" org.gjt.sp.jedit.jEdit \
     "-settings=$(platform_path "$JEDIT_SETTINGS")" \
     -server="$SERVER_NAME" -reuseview "${ARGS[@]}"
 else

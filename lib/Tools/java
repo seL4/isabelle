@@ -6,6 +6,8 @@
 
 eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 
+isabelle_setup_classpath
+
 [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
 unset CLASSPATH
 

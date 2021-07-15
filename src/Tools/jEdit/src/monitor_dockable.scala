@@ -8,7 +8,6 @@ package isabelle.jedit
 
 
 import isabelle._
-import isabelle.jedit_base.Dockable
 
 import java.awt.BorderLayout
 

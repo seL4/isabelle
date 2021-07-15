@@ -8,7 +8,6 @@ package isabelle.jedit
 
 
 import isabelle._
-import isabelle.jedit_base.Dockable
 
 import scala.swing.{Button, TextArea, Label, ListView, Alignment,
   ScrollPane, Component, CheckBox, BorderPanel}

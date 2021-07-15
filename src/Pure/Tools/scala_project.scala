@@ -32,22 +32,17 @@ object Scala_Project
         map(path => File.relative_path(isabelle_home, path).getOrElse(path).implode)
     }
 
+    val isabelle_jar = Path.explode("$ISABELLE_SCALA_JAR").java_path
+    val isabelle_shasum = isabelle.setup.Build.get_shasum(isabelle_jar)
+
     val files2 =
-      (for {
-        path <-
-          List(
-            Path.explode("~~/lib/classes/Pure.shasum"),
-            Path.explode("~~/src/Tools/jEdit/dist/Isabelle-jEdit.shasum"))
-        if path.is_file
-        line <- Library.trim_split_lines(File.read(path))
+      for {
+        line <- Library.trim_split_lines(isabelle_shasum)
         name =
-          if (line.length > 42 && line(41) == '*') line.substring(42)
+          if (line.length > 41 && line(40) == ' ') line.substring(41)
           else error("Bad shasum entry: " + quote(line))
-        if name != "lib/classes/Pure.jar" &&
-          name != "src/Tools/jEdit/dist/jedit.jar" &&
-          name != "src/Tools/jEdit/dist/jars/Isabelle-jEdit-base.jar" &&
-          name != "src/Tools/jEdit/dist/jars/Isabelle-jEdit.jar"
-      } yield name)
+        if Path.is_wellformed(name) && name != "<props>"
+      } yield name
 
     files1 ::: files2
   }
@@ -114,7 +109,7 @@ object Scala_Project
     val java_src_dir = project_dir + Path.explode("src/main/java")
     val scala_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/scala"))
 
-    Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
+    Isabelle_System.copy_dir(Path.explode("$JEDIT_HOME/jEdit"), java_src_dir)
 
     val isabelle_setup_dir = Path.explode("~~/src/Tools/Setup/isabelle")
     if (symlinks) Isabelle_System.symlink(isabelle_setup_dir, java_src_dir)
