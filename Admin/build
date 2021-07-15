@@ -70,7 +70,7 @@ function build_setup ()
     "$ISABELLE_HOME/lib/classes/Pure.jar" \
     "$ISABELLE_HOME/lib/classes/Pure.shasum" \
     "$ISABELLE_HOME/src/Tools/jEdit/dist"
-  "$ISABELLE_TOOL" java isabelle.setup.Setup "$@"
+  env ISABELLE_SETUP_CLASSPATH_SKIP=true "$ISABELLE_TOOL" java isabelle.setup.Setup "$@"
 }
 
 
