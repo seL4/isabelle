@@ -428,8 +428,8 @@ public class Build
                 shasum = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(shasum)) {
-                System.out.println(
-                    "### Building " + context.description() + " (" + jar_path + ") ...");
+                System.out.print(
+                    "### Building " + context.description() + " (" + jar_path + ") ...\n");
 
                 String isabelle_class_path = Environment.getenv("ISABELLE_CLASSPATH");
 
