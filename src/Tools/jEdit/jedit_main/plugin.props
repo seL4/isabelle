@@ -9,7 +9,7 @@ plugin.isabelle.jedit_main.Plugin.version=11.2
 plugin.isabelle.jedit_main.Plugin.description=Isabelle Prover IDE
 
 #system parameters
-plugin.isabelle.jedit_main.Plugin.activate=startup   # FIXME
+plugin.isabelle.jedit_main.Plugin.activate=defer
 plugin.isabelle.jedit_main.Plugin.usePluginHome=false
 
 #dependencies

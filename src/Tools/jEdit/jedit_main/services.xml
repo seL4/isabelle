@@ -3,16 +3,16 @@
 
 <SERVICES>
   <SERVICE CLASS="org.gjt.sp.jedit.buffer.FoldHandler" NAME="isabelle">
-    new isabelle.jedit.Fold_Handling.Fold_Handler();
+    new isabelle.jedit_main.Fold_Handler();
   </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
-    new isabelle.jedit.Context_Menu();
+    new isabelle.jedit_main.Context_Menu();
   </SERVICE>
   <SERVICE NAME="isabelle-export" CLASS="org.gjt.sp.jedit.io.VFS">
-    new isabelle.jedit.Isabelle_Export.VFS();
+    new isabelle.jedit_main.Isabelle_Export_VFS();
   </SERVICE>
   <SERVICE NAME="isabelle-session" CLASS="org.gjt.sp.jedit.io.VFS">
-    new isabelle.jedit.Isabelle_Session.VFS();
+    new isabelle.jedit_main.Isabelle_Session_VFS();
   </SERVICE>
   <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
     new isabelle.jedit_main.Isabelle_Sidekick_Default();
@@ -45,15 +45,15 @@
     new isabelle.jedit_main.Scala_Console();
   </SERVICE>
   <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="misc">
-    new isabelle.jedit.Active$Misc_Handler();
+    new isabelle.jedit_main.Active_Misc_Handler();
   </SERVICE>
   <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="graphview">
-    new isabelle.jedit.Graphview_Dockable$Handler()
+    new isabelle.jedit_main.Graphview_Dockable_Handler()
   </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="java-status">
-    new isabelle.jedit.Status_Widget$Java_Factory();
+    new isabelle.jedit_main.Status_Widget_Java_Factory();
   </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="ml-status">
-    new isabelle.jedit.Status_Widget$ML_Factory();
+    new isabelle.jedit_main.Status_Widget_ML_Factory();
   </SERVICE>
 </SERVICES>

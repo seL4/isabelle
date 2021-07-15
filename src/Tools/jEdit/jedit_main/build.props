@@ -11,5 +11,7 @@ resources = \
   services.xml
 sources = \
   isabelle_sidekick.scala \
+  dockables.scala \
   plugin.scala \
-  scala_console.scala
+  scala_console.scala \
+  services.scala
