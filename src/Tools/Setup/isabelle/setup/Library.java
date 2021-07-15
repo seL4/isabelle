@@ -37,6 +37,7 @@ public class Library
             for (String s : split_lines(str)) {
                 result.append(prfx);
                 result.append(s);
+                result.append('\n');
             }
             return result.toString();
         }
