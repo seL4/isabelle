@@ -495,5 +495,7 @@ class Main_Plugin extends EBPlugin
     session.stop()
     file_watcher.shutdown()
     PIDE.editor.shutdown()
+
+    Document_Model.reset()
   }
 }

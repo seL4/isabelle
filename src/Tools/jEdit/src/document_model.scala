@@ -80,6 +80,8 @@ object Document_Model
 
   private val state = Synchronized(State())  // owned by GUI thread
 
+  def reset(): Unit = state.change(_ => State())
+
   def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
   def get(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
