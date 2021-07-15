@@ -22,6 +22,12 @@ class Info_Dockable(view: View, position: String)
 class Graphview_Dockable(view: View, position: String)
   extends isabelle.jedit.Graphview_Dockable(view, position)
 
+class Monitor_Dockable(view: View, position: String)
+  extends isabelle.jedit.Monitor_Dockable(view, position)
+
+class Output_Dockable(view: View, position: String)
+  extends isabelle.jedit.Output_Dockable(view, position)
+
 class Protocol_Dockable(view: View, position: String)
   extends isabelle.jedit.Protocol_Dockable(view, position)
 
@@ -39,6 +45,9 @@ class Sledgehammer_Dockable(view: View, position: String)
 
 class State_Dockable(view: View, position: String)
   extends isabelle.jedit.State_Dockable(view, position)
+
+class Symbols_Dockable(view: View, position: String)
+  extends isabelle.jedit.Symbols_Dockable(view, position)
 
 class Syslog_Dockable(view: View, position: String)
   extends isabelle.jedit.Syslog_Dockable(view, position)
