@@ -33,6 +33,9 @@ Isabelle/jEdit.
 
 * Support for built-in font substitution of jEdit text area.
 
+* The main plugin for Isabelle/jEdit can be deactivated and reactivated
+as documented --- was broken at least since Isabelle2018.
+
 
 *** Document preparation ***
 
