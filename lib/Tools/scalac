@@ -6,5 +6,11 @@
 
 isabelle_admin_build jars || exit $?
 
+classpath "$ISABELLE_SETUP_CLASSPATH"
+unset ISABELLE_SETUP_CLASSPATH
+
+[ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
+unset CLASSPATH
+
 isabelle_scala scalac -Dfile.encoding=UTF-8 \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

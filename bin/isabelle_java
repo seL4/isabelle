@@ -18,7 +18,7 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
   eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $ISABELLE_TOOL_JAVA_OPTIONS)"
 
-  isabelle_setup_classpath
+  classpath "$ISABELLE_SETUP_CLASSPATH"
 
   [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
 

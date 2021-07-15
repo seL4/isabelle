@@ -129,6 +129,8 @@ else
   export JAVA_HOME="$ISABELLE_JDK_HOME"
 fi
 
+ISABELLE_SETUP_CLASSPATH="$(isabelle_java java -classpath "$(platform_path "$ISABELLE_SETUP_JAR")" isabelle.setup.Setup classpath)"
+
 set +o allexport
 
 fi

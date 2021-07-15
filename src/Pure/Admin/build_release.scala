@@ -581,12 +581,14 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         val classpath: List[Path] =
         {
           val base = isabelle_target.absolute
-          Path.split(other_isabelle.setup_classpath()).map(path =>
+          val classpath1 = Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH"))
+          val classpath2 = Path.split(other_isabelle.getenv("ISABELLE_SETUP_CLASSPATH"))
+          (classpath1 ::: classpath2).map(path =>
           {
             val abs_path = path.absolute
             File.relative_path(base, abs_path) match {
               case Some(rel_path) => rel_path
-              case None => error("Bad ISABELLE_CLASSPATH element: " + abs_path)
+              case None => error("Bad classpath element: " + abs_path)
             }
           })
         }

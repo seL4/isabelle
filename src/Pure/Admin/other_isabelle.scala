@@ -57,10 +57,6 @@ class Other_Isabelle(
   def getenv(name: String): String =
     other_isabelle("getenv -b " + Bash.string(name)).check.out
 
-  def setup_classpath(): String =
-    other_isabelle("env bash -c " +
-      Bash.string("isabelle_setup_classpath && isabelle getenv -b ISABELLE_CLASSPATH")).check.out
-
   val isabelle_home_user: Path = Path.explode(getenv("ISABELLE_HOME_USER"))
 
   val etc: Path = isabelle_home_user + Path.explode("etc")

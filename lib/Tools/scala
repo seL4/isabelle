@@ -13,6 +13,9 @@ do
   SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
 done
 
+classpath "$ISABELLE_SETUP_CLASSPATH"
+unset ISABELLE_SETUP_CLASSPATH
+
 [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
 unset CLASSPATH
 

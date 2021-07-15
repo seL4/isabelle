@@ -80,12 +80,11 @@ object Scala
   /** compiler **/
 
   def class_path(): List[String] =
-    Library.distinct(
-      for {
-        prop <- List("isabelle.scala.classpath", "java.class.path")
-        elems = System.getProperty(prop, "") if elems.nonEmpty
-        elem <- space_explode(JFile.pathSeparatorChar, elems) if elem.nonEmpty
-      } yield elem)
+    for {
+      prop <- List("isabelle.scala.classpath", "java.class.path")
+      elems = System.getProperty(prop, "") if elems.nonEmpty
+      elem <- space_explode(JFile.pathSeparatorChar, elems) if elem.nonEmpty
+    } yield elem
 
   object Compiler
   {
