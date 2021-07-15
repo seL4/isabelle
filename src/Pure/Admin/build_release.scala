@@ -557,8 +557,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         val more_components_names =
           more_components.map(Components.unpack(contrib_dir, _, progress = progress))
 
-        Components.purge(contrib_dir, platform)
-
         activate_components(isabelle_target, platform, more_components_names)
 
 
@@ -607,6 +605,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
         // application bundling
+
+        Components.purge(contrib_dir, platform)
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>
