@@ -25,7 +25,7 @@ object Syntax_Style
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
-  private val full_range = 6 * plain_range + 1
+  private val full_range: Int = 6 * plain_range
   private def check_range(i: Int): Unit =
     require(0 <= i && i < plain_range, "bad syntax style range")
 
@@ -33,7 +33,7 @@ object Syntax_Style
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
   def bold(i: Byte): Byte = { check_range(i); (i + 3 * plain_range).toByte }
   def user_font(idx: Int, i: Byte): Byte = { check_range(i); (i + (4 + idx) * plain_range).toByte }
-  val hidden: Byte = (6 * plain_range).toByte
+  val hidden: Byte = full_range.toByte
   val control: Byte = (hidden + JEditToken.DIGIT).toByte
 
   private def font_style(style: SyntaxStyle, f: Font => Font): SyntaxStyle =
@@ -73,7 +73,7 @@ object Syntax_Style
   {
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
-      val new_styles = new Array[SyntaxStyle](full_range)
+      val new_styles = Array.fill[SyntaxStyle](java.lang.Byte.MAX_VALUE)(styles(0))
       for (i <- 0 until full_range) {
         new_styles(i) = styles(i % plain_range)
       }
