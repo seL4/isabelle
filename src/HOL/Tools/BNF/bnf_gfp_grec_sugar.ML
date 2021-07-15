@@ -983,10 +983,11 @@ fun extract_rho_from_equation
     fun contains_res_T (Type (s, Ts)) = s = fst (dest_Type res_T) orelse exists contains_res_T Ts
       | contains_res_T _ = false;
 
-    val is_lhs_arg = member (op =) lhs_args;
+    val res_T_lhs_args = filter (exists_type contains_res_T) lhs_args;
+    val is_res_T_lhs_arg = member (op =) res_T_lhs_args;
 
     fun is_constant t =
-      not (Term.exists_subterm is_lhs_arg t orelse has_self_call t orelse loose_bvar (t, 0));
+      not (Term.exists_subterm is_res_T_lhs_arg t orelse has_self_call t orelse loose_bvar (t, 0));
     fun is_nested_type T = T <> res_T andalso T <> YpreT andalso T <> ssig_T;
 
     val is_valid_case_argumentT = not o member (op =) [Y, ssig_T];
