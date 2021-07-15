@@ -15,6 +15,8 @@ Checklist for official releases
 
 - test Isabelle/jEdit: print buffer
 
+- test Isabelle/jEdit: deactivate main plugin;
+
 - test "#!/usr/bin/env isabelle_scala_script";
 
 - test Windows 10 subsystem for Linux:
@@ -43,7 +45,7 @@ Checklist for official releases
 
 - update https://isabelle.sketis.net/repos/isabelle-website
 
-- check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
+- check doc/Contents, $JEDIT_HOME/doc/Contents;
 
 - test old HD display: Linux, Windows, macOS;
 

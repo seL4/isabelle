@@ -3,9 +3,9 @@
 
 <SERVICES>
   <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
-    new isabelle.jedit_base.Isabelle_Encoding();
+    new isabelle.jedit.Isabelle_Encoding();
   </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DockingFrameworkProvider" NAME="PIDE">
-    new isabelle.jedit_base.PIDE_Docking_Framework();
+    new isabelle.jedit.PIDE_Docking_Framework();
   </SERVICE>
 </SERVICES>

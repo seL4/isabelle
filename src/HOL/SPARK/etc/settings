@@ -1,4 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-isabelle_scala_service 'isabelle.spark.SPARK$Load_Command1'
-isabelle_scala_service 'isabelle.spark.SPARK$Load_Command2'

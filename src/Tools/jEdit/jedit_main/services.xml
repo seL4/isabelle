@@ -3,57 +3,57 @@
 
 <SERVICES>
   <SERVICE CLASS="org.gjt.sp.jedit.buffer.FoldHandler" NAME="isabelle">
-    new isabelle.jedit.Fold_Handling.Fold_Handler();
+    new isabelle.jedit_main.Fold_Handler();
   </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
-    new isabelle.jedit.Context_Menu();
+    new isabelle.jedit_main.Context_Menu();
   </SERVICE>
   <SERVICE NAME="isabelle-export" CLASS="org.gjt.sp.jedit.io.VFS">
-    new isabelle.jedit.Isabelle_Export.VFS();
+    new isabelle.jedit_main.Isabelle_Export_VFS();
   </SERVICE>
   <SERVICE NAME="isabelle-session" CLASS="org.gjt.sp.jedit.io.VFS">
-    new isabelle.jedit.Isabelle_Session.VFS();
+    new isabelle.jedit_main.Isabelle_Session_VFS();
   </SERVICE>
   <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_Default();
+    new isabelle.jedit_main.Isabelle_Sidekick_Default();
   </SERVICE>
   <SERVICE NAME="isabelle-context" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_Context();
+    new isabelle.jedit_main.Isabelle_Sidekick_Context();
   </SERVICE>
   <SERVICE NAME="isabelle-markup" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_Markup();
+    new isabelle.jedit_main.Isabelle_Sidekick_Markup();
   </SERVICE>
   <SERVICE NAME="isabelle-ml" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_ML();
+    new isabelle.jedit_main.Isabelle_Sidekick_ML();
   </SERVICE>
   <SERVICE NAME="isabelle-sml" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_SML();
+    new isabelle.jedit_main.Isabelle_Sidekick_SML();
   </SERVICE>
   <SERVICE NAME="isabelle-news" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_News();
+    new isabelle.jedit_main.Isabelle_Sidekick_News();
   </SERVICE>
   <SERVICE NAME="isabelle-options" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_Options();
+    new isabelle.jedit_main.Isabelle_Sidekick_Options();
   </SERVICE>
   <SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Isabelle_Sidekick_Root();
+    new isabelle.jedit_main.Isabelle_Sidekick_Root();
   </SERVICE>
   <SERVICE NAME="bibtex" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.JEdit_Bibtex.Sidekick_Parser();
+    new isabelle.jedit_main.Isabelle_Sidekick_Bibtex();
   </SERVICE>
   <SERVICE CLASS="console.Shell" NAME="Scala">
-    new isabelle.jedit.Scala_Console();
+    new isabelle.jedit_main.Scala_Console();
   </SERVICE>
   <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="misc">
-    new isabelle.jedit.Active$Misc_Handler();
+    new isabelle.jedit_main.Active_Misc_Handler();
   </SERVICE>
   <SERVICE CLASS="isabelle.jedit.Active$Handler" NAME="graphview">
-    new isabelle.jedit.Graphview_Dockable$Handler()
+    new isabelle.jedit_main.Graphview_Dockable_Handler()
   </SERVICE>
-	<SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="java-status">
-		new isabelle.jedit.Status_Widget$Java_Factory();
-	</SERVICE>
-	<SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="ml-status">
-		new isabelle.jedit.Status_Widget$ML_Factory();
-	</SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="java-status">
+    new isabelle.jedit_main.Status_Widget_Java_Factory();
+  </SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="ml-status">
+    new isabelle.jedit_main.Status_Widget_ML_Factory();
+  </SERVICE>
 </SERVICES>

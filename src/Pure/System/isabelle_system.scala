@@ -13,6 +13,8 @@ import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
 
+import scala.jdk.CollectionConverters._
+
 
 object Isabelle_System
 {
@@ -47,26 +49,35 @@ object Isabelle_System
 
   /* init settings + services */
 
+  def make_services(): List[Class[Service]] =
+  {
+    def make(where: String, names: List[String]): List[Class[Service]] =
+    {
+      for (name <- names) yield {
+        def err(msg: String): Nothing =
+          error("Bad Isabelle/Scala service " + quote(name) + " in " + where + "\n" + msg)
+        try { Class.forName(name).asInstanceOf[Class[Service]] }
+        catch {
+          case _: ClassNotFoundException => err("Class not found")
+          case exn: Throwable => err(Exn.message(exn))
+        }
+      }
+    }
+
+    def from_env(variable: String): List[Class[Service]] =
+      make(quote(variable), space_explode(':', getenv_strict(variable)))
+
+    def from_jar(platform_jar: String): List[Class[Service]] =
+      make(quote(platform_jar),
+        isabelle.setup.Build.get_services(JPath.of(platform_jar)).asScala.toList)
+
+    from_env("ISABELLE_SCALA_SERVICES") ::: Scala.class_path().flatMap(from_jar)
+  }
+
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit =
   {
     isabelle.setup.Environment.init(isabelle_root, cygwin_root)
-    synchronized {
-      if (_services.isEmpty) {
-        val variable = "ISABELLE_SCALA_SERVICES"
-        val services =
-          for (name <- space_explode(':', getenv_strict(variable)))
-            yield {
-              def err(msg: String): Nothing =
-                error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
-              try { Class.forName(name).asInstanceOf[Class[Service]] }
-              catch {
-                case _: ClassNotFoundException => err("Class not found")
-                case exn: Throwable => err(Exn.message(exn))
-              }
-            }
-        _services = Some(services)
-      }
-    }
+    synchronized { if (_services.isEmpty) { _services = Some(make_services()) } }
   }
 
 

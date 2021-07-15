@@ -459,7 +459,7 @@ subsubsection \<open>Example\<close>
 text \<open>
   The subsequent example creates a raw Java process on the command-line and
   invokes the main Isabelle application entry point:
-  @{verbatim [display] \<open>isabelle_java isabelle.Main\<close>}
+  @{verbatim [display] \<open>isabelle_java -Djava.awt.headless=false isabelle.jedit.Main\<close>}
 \<close>
 
 

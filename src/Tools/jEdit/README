@@ -1,12 +1,3 @@
-These are the main sources of Isabelle/jEdit, which is a plugin for
-the jEdit text-editor, with some minor modifications according to
-patches/.
-
-Original jEdit is available from http://www.jedit.org -- it is
-licensed according to GPL, and the derivative version produced in
-directory "dist" inherits that.
-
-Note that Isabelle repository versions refer to a contributed
-component called jedit_build-JJJJMMDD, which also includes the full
-sources after applying the patches, together with further add-on
-modules.
+These are the sources of Isabelle/jEdit. The main jEdit text-editor is
+provided as a separate component: it includes the full sources after
+applying some minor patches, together with further add-on modules.

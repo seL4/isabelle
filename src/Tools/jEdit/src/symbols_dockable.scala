@@ -8,7 +8,6 @@ package isabelle.jedit
 
 
 import isabelle._
-import isabelle.jedit_base.Dockable
 
 import scala.swing.event.{SelectionChanged, ValueChanged}
 import scala.swing.{Component, Action, Button, TabbedPane, TextField, BorderPanel,

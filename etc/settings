@@ -19,25 +19,7 @@ ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
 ISABELLE_JAVAC_OPTIONS="-encoding UTF-8 -Xlint:-options -deprecation -source 11 -target 11"
 ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -Wconf:cat=other-match-analysis:silent -feature -deprecation -target:11 -Xsource:3 -J-Xms512m -J-Xmx4g -J-Xss16m"
 
-classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
-
-isabelle_scala_service 'isabelle.Tools'
-[ -d "$ISABELLE_HOME/Admin" ] && isabelle_scala_service 'isabelle.Admin_Tools'
-
-isabelle_scala_service 'isabelle.Scala_Functions'
-
-isabelle_scala_service 'isabelle.Sessions$File_Format'
-isabelle_scala_service 'isabelle.Bibtex$File_Format'
-
-isabelle_scala_service 'isabelle.ML_Statistics$Handler'
-isabelle_scala_service 'isabelle.Scala$Handler'
-isabelle_scala_service 'isabelle.Print_Operation$Handler'
-isabelle_scala_service 'isabelle.Simplifier_Trace$Handler'
-isabelle_scala_service 'isabelle.Server_Commands'
-
-isabelle_scala_service 'isabelle.Document_Build$LuaLaTeX_Engine'
-isabelle_scala_service 'isabelle.Document_Build$PDFLaTeX_Engine'
-isabelle_scala_service 'isabelle.Document_Build$Build_Engine'
+ISABELLE_SCALA_JAR="$ISABELLE_HOME/lib/classes/isabelle.jar"
 
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"

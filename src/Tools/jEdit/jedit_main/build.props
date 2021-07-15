@@ -1,0 +1,17 @@
+description = Isabelle/jEdit main plugin
+lib = $JEDIT_SETTINGS/jars
+name = isabelle_jedit_main
+requirements = \
+  env:ISABELLE_SCALA_JAR \
+  env:JEDIT_JARS
+resources = \
+  actions.xml \
+  dockables.xml \
+  plugin.props \
+  services.xml
+sources = \
+  isabelle_sidekick.scala \
+  dockables.scala \
+  plugin.scala \
+  scala_console.scala \
+  services.scala

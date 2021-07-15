@@ -1,10 +1,10 @@
-/*  Title:      Tools/jEdit/src-base/pide_docking_framework.scala
+/*  Title:      Tools/jEdit/src/pide_docking_framework.scala
     Author:     Makarius
 
 PIDE docking framework: "Original" with some add-ons.
 */
 
-package isabelle.jedit_base
+package isabelle.jedit
 
 
 import isabelle._

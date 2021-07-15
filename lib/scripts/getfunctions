@@ -106,7 +106,7 @@ function classpath ()
   do
     if [ -z "$ISABELLE_CLASSPATH" ]; then
       ISABELLE_CLASSPATH="$X"
-    else
+    elif [ -n "$X" ]; then
       ISABELLE_CLASSPATH="$ISABELLE_CLASSPATH:$X"
     fi
   done
@@ -212,14 +212,12 @@ function isabelle_directory ()
 export -f isabelle_directory
 
 #administrative build
-if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-  function isabelle_admin_build ()
-  {
+function isabelle_admin_build ()
+{
+  if [ -e "$ISABELLE_HOME/Admin/build" ]; then
     "$ISABELLE_HOME/Admin/build" "$@"
-  }
-else
-  function isabelle_admin_build () { return 0; }
-fi
+  fi
+}
 export -f isabelle_admin_build
 
 #arrays

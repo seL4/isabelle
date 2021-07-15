@@ -1,13 +1,14 @@
-/*  Title:      Tools/jEdit/src/scala_console.scala
+/*  Title:      Tools/jEdit/jedit_main/scala_console.scala
     Author:     Makarius
 
 Scala instance of Console plugin.
 */
 
-package isabelle.jedit
+package isabelle.jedit_main
 
 
 import isabelle._
+import isabelle.jedit._
 
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader

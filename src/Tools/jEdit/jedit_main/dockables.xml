@@ -3,51 +3,51 @@
 
 <DOCKABLES>
 	<DOCKABLE NAME="isabelle-debugger" MOVABLE="TRUE">
-		new isabelle.jedit.Debugger_Dockable(view, position);
+		new isabelle.jedit_main.Debugger_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-documentation" MOVABLE="TRUE">
-		new isabelle.jedit.Documentation_Dockable(view, position);
+		new isabelle.jedit_main.Documentation_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-info" MOVABLE="TRUE">
-		new isabelle.jedit.Info_Dockable(view, position);
+		new isabelle.jedit_main.Info_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-graphview" MOVABLE="TRUE">
-		new isabelle.jedit.Graphview_Dockable(view, position);
+		new isabelle.jedit_main.Graphview_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-monitor" MOVABLE="TRUE">
-		new isabelle.jedit.Monitor_Dockable(view, position);
+		new isabelle.jedit_main.Monitor_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-output" MOVABLE="TRUE">
-		new isabelle.jedit.Output_Dockable(view, position);
+		new isabelle.jedit_main.Output_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-protocol" MOVABLE="TRUE">
-		new isabelle.jedit.Protocol_Dockable(view, position);
+		new isabelle.jedit_main.Protocol_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-query" MOVABLE="TRUE">
-		new isabelle.jedit.Query_Dockable(view, position);
+		new isabelle.jedit_main.Query_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-raw-output" MOVABLE="TRUE">
-		new isabelle.jedit.Raw_Output_Dockable(view, position);
+		new isabelle.jedit_main.Raw_Output_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-simplifier-trace" MOVABLE="TRUE">
-		new isabelle.jedit.Simplifier_Trace_Dockable(view, position);
+		new isabelle.jedit_main.Simplifier_Trace_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-sledgehammer" MOVABLE="TRUE">
-		new isabelle.jedit.Sledgehammer_Dockable(view, position);
+		new isabelle.jedit_main.Sledgehammer_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-state" MOVABLE="TRUE">
-		new isabelle.jedit.State_Dockable(view, position);
+		new isabelle.jedit_main.State_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-symbols" MOVABLE="TRUE">
-		new isabelle.jedit.Symbols_Dockable(view, position);
+		new isabelle.jedit_main.Symbols_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-syslog" MOVABLE="TRUE">
-		new isabelle.jedit.Syslog_Dockable(view, position);
+		new isabelle.jedit_main.Syslog_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-theories" MOVABLE="TRUE">
-		new isabelle.jedit.Theories_Dockable(view, position);
+		new isabelle.jedit_main.Theories_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-timing" MOVABLE="TRUE">
-		new isabelle.jedit.Timing_Dockable(view, position);
+		new isabelle.jedit_main.Timing_Dockable(view, position);
 	</DOCKABLE>
 </DOCKABLES>

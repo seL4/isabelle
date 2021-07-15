@@ -1,10 +1,10 @@
-/*  Title:      Tools/jEdit/src-base/plugin.scala
+/*  Title:      Tools/jEdit/src/base_plugin.scala
     Author:     Makarius
 
 Isabelle base environment for jEdit.
 */
 
-package isabelle.jedit_base
+package isabelle.jedit
 
 
 import isabelle._
@@ -13,7 +13,7 @@ import org.gjt.sp.jedit.{EBMessage, Debug, EBPlugin}
 import org.gjt.sp.util.SyntaxUtilities
 
 
-class Plugin extends EBPlugin
+class Base_Plugin extends EBPlugin
 {
   override def start(): Unit =
   {
@@ -23,12 +23,12 @@ class Plugin extends EBPlugin
 
     Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
-    Syntax_Style.dummy_style_extender()
+    Syntax_Style.set_extender(Syntax_Style.Base_Extender)
   }
 
   override def stop(): Unit =
   {
-    Syntax_Style.set_style_extender(new SyntaxUtilities.StyleExtender)
+    Syntax_Style.set_extender(new SyntaxUtilities.StyleExtender)
   }
 
   override def handleMessage(message: EBMessage): Unit = {}

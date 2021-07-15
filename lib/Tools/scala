@@ -13,8 +13,8 @@ do
   SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
 done
 
-[ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
-unset CLASSPATH
+classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
+classpath "$CLASSPATH"; unset CLASSPATH
 
 isabelle_scala scala "${SCALA_ARGS[@]}" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" \

@@ -1,6 +1,6 @@
-## Isabelle_Base plugin properties
+## Isabelle/jEdit plugin properties
 ##
-##:encoding=ISO-8859-1:wrap=soft:maxLineLen=100:
+##:wrap=soft:maxLineLen=100:
 
 #identification
 plugin.isabelle.jedit_base.Plugin.name=Isabelle Base

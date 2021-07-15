@@ -4,85 +4,6 @@
 #
 # DESCRIPTION: Isabelle/jEdit interface wrapper
 
-## sources
-
-declare -a SOURCES0=(
-  "src/Tools/jEdit/src-base/dockable.scala"
-  "src/Tools/jEdit/src-base/isabelle_encoding.scala"
-  "src/Tools/jEdit/src-base/jedit_lib.scala"
-  "src/Tools/jEdit/src-base/pide_docking_framework.scala"
-  "src/Tools/jEdit/src-base/plugin.scala"
-  "src/Tools/jEdit/src-base/syntax_style.scala"
-)
-
-declare -a RESOURCES0=(
-  "src/Tools/jEdit/src-base/Isabelle_Base.props"
-  "src/Tools/jEdit/src-base/services.xml"
-)
-
-declare -a SOURCES=(
-  "src/Tools/jEdit/src/active.scala"
-  "src/Tools/jEdit/src/completion_popup.scala"
-  "src/Tools/jEdit/src/context_menu.scala"
-  "src/Tools/jEdit/src/debugger_dockable.scala"
-  "src/Tools/jEdit/src/document_model.scala"
-  "src/Tools/jEdit/src/document_view.scala"
-  "src/Tools/jEdit/src/documentation_dockable.scala"
-  "src/Tools/jEdit/src/fold_handling.scala"
-  "src/Tools/jEdit/src/font_info.scala"
-  "src/Tools/jEdit/src/graphview_dockable.scala"
-  "src/Tools/jEdit/src/info_dockable.scala"
-  "src/Tools/jEdit/src/isabelle.scala"
-  "src/Tools/jEdit/src/isabelle_encoding.scala"
-  "src/Tools/jEdit/src/isabelle_export.scala"
-  "src/Tools/jEdit/src/isabelle_options.scala"
-  "src/Tools/jEdit/src/isabelle_session.scala"
-  "src/Tools/jEdit/src/isabelle_sidekick.scala"
-  "src/Tools/jEdit/src/isabelle_vfs.scala"
-  "src/Tools/jEdit/src/jedit_bibtex.scala"
-  "src/Tools/jEdit/src/jedit_editor.scala"
-  "src/Tools/jEdit/src/jedit_lib.scala"
-  "src/Tools/jEdit/src/jedit_options.scala"
-  "src/Tools/jEdit/src/jedit_rendering.scala"
-  "src/Tools/jEdit/src/jedit_resources.scala"
-  "src/Tools/jEdit/src/jedit_sessions.scala"
-  "src/Tools/jEdit/src/jedit_spell_checker.scala"
-  "src/Tools/jEdit/src/keymap_merge.scala"
-  "src/Tools/jEdit/src/monitor_dockable.scala"
-  "src/Tools/jEdit/src/output_dockable.scala"
-  "src/Tools/jEdit/src/plugin.scala"
-  "src/Tools/jEdit/src/pretty_text_area.scala"
-  "src/Tools/jEdit/src/pretty_tooltip.scala"
-  "src/Tools/jEdit/src/process_indicator.scala"
-  "src/Tools/jEdit/src/protocol_dockable.scala"
-  "src/Tools/jEdit/src/query_dockable.scala"
-  "src/Tools/jEdit/src/raw_output_dockable.scala"
-  "src/Tools/jEdit/src/rich_text_area.scala"
-  "src/Tools/jEdit/src/scala_console.scala"
-  "src/Tools/jEdit/src/session_build.scala"
-  "src/Tools/jEdit/src/simplifier_trace_dockable.scala"
-  "src/Tools/jEdit/src/simplifier_trace_window.scala"
-  "src/Tools/jEdit/src/sledgehammer_dockable.scala"
-  "src/Tools/jEdit/src/state_dockable.scala"
-  "src/Tools/jEdit/src/status_widget.scala"
-  "src/Tools/jEdit/src/symbols_dockable.scala"
-  "src/Tools/jEdit/src/syntax_style.scala"
-  "src/Tools/jEdit/src/syslog_dockable.scala"
-  "src/Tools/jEdit/src/text_overview.scala"
-  "src/Tools/jEdit/src/text_structure.scala"
-  "src/Tools/jEdit/src/theories_dockable.scala"
-  "src/Tools/jEdit/src/timing_dockable.scala"
-  "src/Tools/jEdit/src/token_markup.scala"
-)
-
-declare -a RESOURCES=(
-  "src/Tools/jEdit/src/actions.xml"
-  "src/Tools/jEdit/src/dockables.xml"
-  "src/Tools/jEdit/src/Isabelle.props"
-  "src/Tools/jEdit/src/services.xml"
-)
-
-
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -231,110 +152,15 @@ while [ "$#" -gt 0 ]; do
 done
 
 
-## dependencies
-
-if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-  isabelle browser -b || exit $?
-  if [ -n "$FRESH_BUILD" ]; then
-    "$ISABELLE_HOME/Admin/build" jars_fresh || exit $?
-  else
-    "$ISABELLE_HOME/Admin/build" jars || exit $?
-  fi
-elif [ -n "$FRESH_BUILD" ]; then
-  echo >&2 "### Ignoring fresh build option: not a repository clone"
-  FRESH_BUILD=""
-fi
-
-
-# target
-
-pushd "$ISABELLE_HOME" >/dev/null || failed
-
-TARGET_DIR="src/Tools/jEdit/dist"
-TARGET_JAR0="$TARGET_DIR/jars/Isabelle-jEdit-base.jar"
-TARGET_JAR="$TARGET_DIR/jars/Isabelle-jEdit.jar"
-TARGET_SHASUM="$TARGET_DIR/Isabelle-jEdit.shasum"
-
-declare -a TARGET_DEPS=("lib/classes/Pure.jar" "$TARGET_DIR/jedit.jar")
-
-splitarray ":" "$ISABELLE_JEDIT_JARS"
-for DEP in "${SPLITARRAY[@]}"
-do
-  TARGET_DEPS["${#TARGET_DEPS[@]}"]="$TARGET_DIR/jars/$(basename "$DEP")"
-done
-
-function target_shasum()
-(
-  shasum -a1 -b "$TARGET_JAR0" "$TARGET_JAR" "${TARGET_DEPS[@]}" \
-    "${SOURCES0[@]}" "${RESOURCES0[@]}" "${SOURCES[@]}" "${RESOURCES[@]}" 2>/dev/null
-)
-
-function target_clean()
-{
-  rm -rf "$ISABELLE_HOME/$TARGET_DIR"
-}
-
-[ -n "$FRESH_BUILD" ] && target_clean
-
-
-## build
-
-BUILD_DIR="$TARGET_DIR/build"
-
-function init_resources ()
-{
-  mkdir -p "$BUILD_DIR" || failed
-  cp -p -R "$@" "$BUILD_DIR/."
-}
-
-function compile_sources()
-{
-  (
-    #FIXME workarounds for scalac 2.11.0
-    export CYGWIN="nodosfilewarning"
-    function stty() { :; }
-    export -f stty
-
-    for DEP in "${TARGET_DEPS[@]}"
-    do
-      classpath "$DEP"
-    done
-    export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
-    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d "$BUILD_DIR" "$@"
-  ) || fail "Failed to compile sources"
-}
-
-function make_jar()
-{
-  isabelle_jdk jar -c -f "$1" -C "$BUILD_DIR" . || failed
-  rm -rf "$ISABELLE_HOME/$BUILD_DIR"
-}
-
-target_shasum | cmp "$TARGET_SHASUM" >/dev/null 2>/dev/null
-if [ -e "$ISABELLE_HOME/Admin/build" -a "$?" -ne 0 ]; then
-  echo "### Building Isabelle/jEdit ..."
-
-  target_clean || failed
-  mkdir -p "$TARGET_DIR" || failed
-
-  cp -p -R "$ISABELLE_JEDIT_HOME/." "$TARGET_DIR/."
-
-  init_resources "${RESOURCES0[@]}"
-  compile_sources "${SOURCES0[@]}"
-  make_jar "$TARGET_JAR0"
-  classpath "$TARGET_JAR0"
-
-  init_resources "${RESOURCES[@]}"
-  compile_sources "${SOURCES[@]}"
-  make_jar "$TARGET_JAR"
-
-  target_shasum > "$TARGET_SHASUM"
-fi
-
-
 ## main
 
-popd >/dev/null
+isabelle_admin_build browser || exit "$?"
+
+if [ -n "$FRESH_BUILD" ]; then
+  isabelle_admin_build jars_fresh || exit "$?"
+else
+  isabelle_admin_build jars || exit "$?"
+fi
 
 if [ "$BUILD_ONLY" = false ]
 then
@@ -343,7 +169,6 @@ then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
     JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
-  classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \
-    "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
+    "${JAVA_ARGS[@]}" isabelle.jedit.Main "${ARGS[@]}"
 fi

@@ -188,7 +188,7 @@ directory individually.
           path = Components.admin(dir) + Path.basic(catalog)
           if path.is_file
           line <- split_lines(File.read(path))
-          if line.nonEmpty && !line.startsWith("#") && !line.startsWith("jedit_build")
+          if line.nonEmpty && !line.startsWith("#")
         } yield bundled(line)).toList))
   }
 
@@ -196,10 +196,7 @@ directory individually.
   {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
-      for {
-        Bundled(name) <- Components.read_components(dir)
-        if !name.startsWith("jedit_build")
-      } yield name
+      for { Bundled(name) <- Components.read_components(dir) } yield name
     val jdk_component =
       components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
     (components, jdk_component)
@@ -316,7 +313,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
-""" else "") + """isabelle.Main "$@"
+""" else "") + """isabelle.jedit.Main "$@"
 """
     val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
     File.write(script_path, script)
@@ -560,8 +557,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         val more_components_names =
           more_components.map(Components.unpack(contrib_dir, _, progress = progress))
 
-        Components.purge(contrib_dir, platform)
-
         activate_components(isabelle_target, platform, more_components_names)
 
 
@@ -584,18 +579,21 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         val classpath: List[Path] =
         {
           val base = isabelle_target.absolute
-          Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH")).map(path =>
+          val classpath1 = Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH"))
+          val classpath2 = Path.split(other_isabelle.getenv("ISABELLE_SETUP_CLASSPATH"))
+          (classpath1 ::: classpath2).map(path =>
           {
             val abs_path = path.absolute
             File.relative_path(base, abs_path) match {
               case Some(rel_path) => rel_path
-              case None => error("Bad ISABELLE_CLASSPATH element: " + abs_path)
+              case None => error("Bad classpath element: " + abs_path)
             }
-          }) ::: List(Path.explode("src/Tools/jEdit/dist/jedit.jar"))
+          })
         }
 
         val jedit_options = Path.explode("src/Tools/jEdit/etc/options")
-        val jedit_props = Path.explode("src/Tools/jEdit/dist/properties/jEdit.props")
+        val jedit_props =
+          Path.explode(other_isabelle.getenv("JEDIT_HOME") + "/properties/jEdit.props")
 
 
         // build heaps
@@ -607,6 +605,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
 
         // application bundling
+
+        Components.purge(contrib_dir, platform)
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>

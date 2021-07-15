@@ -22,8 +22,6 @@ import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler}
 
-import sidekick.{SideKickParser, SideKickParsedData}
-
 
 object JEdit_Bibtex
 {
@@ -153,47 +151,6 @@ object JEdit_Bibtex
       val context2 = context1.intern
       handler.setLineContext(context2)
       context2
-    }
-  }
-
-
-
-  /** Sidekick parser **/
-
-  class Sidekick_Parser extends SideKickParser("bibtex")
-  {
-    override def supportsCompletion = false
-
-    private class Asset(label: String, label_html: String, range: Text.Range, source: String)
-      extends Isabelle_Sidekick.Asset(label, range) {
-        override def getShortString: String = label_html
-        override def getLongString: String = source
-      }
-
-    def parse(buffer: Buffer, error_source: errorlist.DefaultErrorSource): SideKickParsedData =
-    {
-      val data = Isabelle_Sidekick.root_data(buffer)
-
-      try {
-        var offset = 0
-        for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
-          val kind = chunk.kind
-          val name = chunk.name
-          val source = chunk.source
-          if (kind != "") {
-            val label = kind + (if (name == "") "" else " " + name)
-            val label_html =
-              "<html><b>" + HTML.output(kind) + "</b>" +
-              (if (name == "") "" else " " + HTML.output(name)) + "</html>"
-            val range = Text.Range(offset, offset + source.length)
-            val asset = new Asset(label, label_html, range, source)
-            data.root.add(new DefaultMutableTreeNode(asset))
-          }
-          offset += source.length
-        }
-        data
-      }
-      catch { case ERROR(msg) => Output.warning(msg); null }
     }
   }
 }

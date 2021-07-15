@@ -1,35 +1,35 @@
-## Isabelle plugin properties
+## Isabelle/jEdit plugin properties
 ##
-##:encoding=ISO-8859-1:wrap=soft:maxLineLen=100:
+##:wrap=soft:maxLineLen=100:
 
 #identification
-plugin.isabelle.jedit.Plugin.name=Isabelle
-plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
-plugin.isabelle.jedit.Plugin.version=11.2
-plugin.isabelle.jedit.Plugin.description=Isabelle Prover IDE
+plugin.isabelle.jedit_main.Plugin.name=Isabelle
+plugin.isabelle.jedit_main.Plugin.author=Johannes H\u00F6lzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
+plugin.isabelle.jedit_main.Plugin.version=11.2
+plugin.isabelle.jedit_main.Plugin.description=Isabelle Prover IDE
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=defer
-plugin.isabelle.jedit.Plugin.usePluginHome=false
+plugin.isabelle.jedit_main.Plugin.activate=defer
+plugin.isabelle.jedit_main.Plugin.usePluginHome=false
 
 #dependencies
-plugin.isabelle.jedit.Plugin.depend.0=jdk 11
-plugin.isabelle.jedit.Plugin.depend.1=jedit 05.05.00.00
-plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
-plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
-plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
-plugin.isabelle.jedit.Plugin.depend.5=plugin isabelle.jedit_base.Plugin 1.0
+plugin.isabelle.jedit_main.Plugin.depend.0=jdk 11
+plugin.isabelle.jedit_main.Plugin.depend.1=jedit 05.05.00.00
+plugin.isabelle.jedit_main.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
+plugin.isabelle.jedit_main.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
+plugin.isabelle.jedit_main.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
+plugin.isabelle.jedit_main.Plugin.depend.5=plugin isabelle.jedit_base.Plugin 1.0
 
 #options
-plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering
+plugin.isabelle.jedit_main.Plugin.option-group=isabelle-general isabelle-rendering
 options.isabelle-general.label=General
 options.isabelle-general.code=new isabelle.jedit.Isabelle_Options1();
 options.isabelle-rendering.label=Rendering
 options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 
 #menu actions and dockables
-plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu= \
+plugin.isabelle.jedit_main.Plugin.menu.label=Isabelle
+plugin.isabelle.jedit_main.Plugin.menu= \
   isabelle-export-browser \
   isabelle-session-browser \
   isabelle.preview \

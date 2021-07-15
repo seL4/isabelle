@@ -11,11 +11,11 @@ class Setup
 {
     private static void echo(String msg)
     {
-        System.out.println(msg);
+        System.out.print(msg + "\n");
     }
     private static void echo_err(String msg)
     {
-        System.err.println(msg);
+        System.err.print(msg + "\n");
     }
     private static void fail(String msg)
     {

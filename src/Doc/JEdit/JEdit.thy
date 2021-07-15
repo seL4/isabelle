@@ -206,7 +206,7 @@ text \<open>
   is no longer affected by change of default properties.
 
   Users may modify their keymap later, but this can lead to conflicts with
-  \<^verbatim>\<open>shortcut\<close> properties in \<^file>\<open>$JEDIT_HOME/dist/properties/jEdit.props\<close>.
+  \<^verbatim>\<open>shortcut\<close> properties in \<^file>\<open>$JEDIT_HOME/properties/jEdit.props\<close>.
 
   The action @{action_def "isabelle.keymap-merge"} helps to resolve pending
   Isabelle keymap changes wrt. the current jEdit keymap; non-conflicting
@@ -282,10 +282,9 @@ text \<open>
   directly to the underlying \<^verbatim>\<open>java\<close> process.
 
   The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build mechanism of
-  Isabelle/jEdit. This is only relevant for building from sources, which also
-  requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from
-  \<^url>\<open>https://isabelle.in.tum.de/components\<close>. The official Isabelle release
-  already includes a pre-built version of Isabelle/jEdit.
+  Isabelle/Scala/PIDE/jEdit. This is only relevant for building from sources,
+  the official Isabelle release already includes a pre-built version of
+  Isabelle/jEdit.
 
   \<^bigskip>
   It is also possible to connect to an already running Isabelle/jEdit process

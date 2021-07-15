@@ -1,13 +1,15 @@
-/*  Title:      Pure/Tools/main.scala
+/*  Title:      src/Tools/jEdit/src/main.scala
     Author:     Makarius
 
 Main Isabelle application entry point.
 */
 
-package isabelle
+package isabelle.jedit
 
 
-import java.lang.{Class, ClassLoader}
+import isabelle._
+
+import org.gjt.sp.jedit.{MiscUtilities, jEdit}
 
 
 object Main
@@ -61,7 +63,7 @@ object Main
           val properties = settings_dir + Path.explode("properties")
           if (properties.is_file) {
             val props1 = split_lines(File.read(properties))
-            val props2 = props1.filterNot(_.startsWith("plugin-blacklist.Isabelle-jEdit"))
+            val props2 = props1.filterNot(_.startsWith("plugin-blacklist.isabelle_jedit"))
             if (props1 != props2) File.write(properties, cat_lines(props2))
           }
 
@@ -78,6 +80,12 @@ object Main
 <GEOMETRY X="0" Y="35" WIDTH="1200" HEIGHT="850" EXT_STATE="0" />
 </VIEW>
 </PERSPECTIVE>""")
+          }
+
+          for (plugin <- List("jedit_base", "jedit_main")) {
+            val dir = Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin)
+            val context = isabelle.setup.Build.directory_context(dir.java_path)
+            isabelle.setup.Build.build(context, false)
           }
 
 
@@ -108,35 +116,22 @@ object Main
 
           /* environment */
 
-          def putenv(name: String, value: String): Unit =
-          {
-            val misc =
-              Class.forName("org.gjt.sp.jedit.MiscUtilities", true, ClassLoader.getSystemClassLoader)
-            val putenv = misc.getMethod("putenv", classOf[String], classOf[String])
-            putenv.invoke(null, name, value)
-          }
-
           for (name <- List("ISABELLE_HOME", "ISABELLE_HOME_USER", "JEDIT_HOME", "JEDIT_SETTINGS")) {
-            putenv(name, File.platform_path(Isabelle_System.getenv(name)))
+            MiscUtilities.putenv(name, File.platform_path(Isabelle_System.getenv(name)))
           }
-          putenv("ISABELLE_ROOT", null)
+          MiscUtilities.putenv("ISABELLE_ROOT", null)
 
 
           /* properties */
 
-          System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
+          System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME")))
           System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
           System.setProperty("scala.color", "false")
 
 
           /* main startup */
 
-          val jedit =
-            Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
-          val jedit_main = jedit.getMethod("main", classOf[Array[String]])
-
-          () => jedit_main.invoke(
-            null, Array(jedit_settings, jedit_server) ++ jedit_options ++ more_args)
+          () => jEdit.main(Array(jedit_settings, jedit_server) ++ jedit_options ++ more_args)
         }
         catch {
           case exn: Throwable =>

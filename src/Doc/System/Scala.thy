@@ -31,7 +31,7 @@ text \<open>
     operates on the running Java application, using the Scala
     read-eval-print-loop (REPL).
 
-  The main Isabelle/Scala functionality is provided by \<^verbatim>\<open>Pure.jar\<close>, but
+  The main Isabelle/Scala functionality is provided by \<^verbatim>\<open>isabelle.jar\<close>, but
   further add-ons are bundled with Isabelle, e.g.\ to access SQLite or
   PostgreSQL using JDBC (Java Database Connectivity).
 
@@ -189,7 +189,7 @@ text \<open>
   can then register that class via \<^bash_function>\<open>isabelle_scala_service\<close>
   in \<^path>\<open>etc/settings\<close> (\secref{sec:components}). An example is the
   predefined collection of \<^scala_type>\<open>isabelle.Scala.Functions\<close> in
-  Isabelle/\<^verbatim>\<open>Pure.jar\<close> with the following line in
+  \<^verbatim>\<open>isabelle.jar\<close> with the following line in
   \<^file>\<open>$ISABELLE_HOME/etc/settings\<close>:
   @{verbatim [display, indent = 2] \<open>isabelle_scala_service 'isabelle.Functions'\<close>}
 

@@ -1,0 +1,11 @@
+description = Isabelle/jEdit base plugin
+lib = $JEDIT_SETTINGS/jars
+name = isabelle_jedit_base
+requirements = \
+  env:ISABELLE_SCALA_JAR \
+  env:JEDIT_JARS
+resources = \
+  plugin.props \
+  services.xml
+sources = \
+  plugin.scala

@@ -6,8 +6,12 @@
 
 eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 
-[ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
-unset CLASSPATH
+if [ -z "$ISABELLE_SETUP_CLASSPATH_SKIP" -o "$ISABELLE_SETUP_CLASSPATH_SKIP" = "false" ]
+then
+  classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
+fi
+
+classpath "$CLASSPATH"; unset CLASSPATH
 
 isabelle_java java "${JAVA_ARGS[@]}" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

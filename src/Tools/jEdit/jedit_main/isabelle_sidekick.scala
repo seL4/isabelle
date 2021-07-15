@@ -5,10 +5,11 @@
 SideKick parsers for Isabelle proof documents.
 */
 
-package isabelle.jedit
+package isabelle.jedit_main
 
 
 import isabelle._
+import isabelle.jedit._
 
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
@@ -266,3 +267,39 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
   }
 }
 
+class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
+{
+  override def supportsCompletion = false
+
+  private class Asset(label: String, label_html: String, range: Text.Range, source: String)
+    extends Isabelle_Sidekick.Asset(label, range) {
+      override def getShortString: String = label_html
+      override def getLongString: String = source
+    }
+
+  def parse(buffer: Buffer, error_source: errorlist.DefaultErrorSource): SideKickParsedData =
+  {
+    val data = Isabelle_Sidekick.root_data(buffer)
+
+    try {
+      var offset = 0
+      for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
+        val kind = chunk.kind
+        val name = chunk.name
+        val source = chunk.source
+        if (kind != "") {
+          val label = kind + (if (name == "") "" else " " + name)
+          val label_html =
+            "<html><b>" + HTML.output(kind) + "</b>" +
+            (if (name == "") "" else " " + HTML.output(name)) + "</html>"
+          val range = Text.Range(offset, offset + source.length)
+          val asset = new Asset(label, label_html, range, source)
+          data.root.add(new DefaultMutableTreeNode(asset))
+        }
+        offset += source.length
+      }
+      data
+    }
+    catch { case ERROR(msg) => Output.warning(msg); null }
+  }
+}

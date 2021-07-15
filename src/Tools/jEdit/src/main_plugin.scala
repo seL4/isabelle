@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/plugin.scala
+/*  Title:      Tools/jEdit/src/main_plugin.scala
     Author:     Makarius
 
 Main plumbing for PIDE infrastructure as jEdit plugin.
@@ -47,9 +47,9 @@ object PIDE
 
   /* plugin instance */
 
-  @volatile var _plugin: Plugin = null
+  @volatile var _plugin: Main_Plugin = null
 
-  def plugin: Plugin =
+  def plugin: Main_Plugin =
     if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
     else _plugin
 
@@ -60,7 +60,7 @@ object PIDE
   object editor extends JEdit_Editor
 }
 
-class Plugin extends EBPlugin
+class Main_Plugin extends EBPlugin
 {
   /* options */
 
@@ -454,7 +454,7 @@ class Plugin extends EBPlugin
 
       JEdit_Lib.jedit_views().foreach(init_title)
 
-      isabelle.jedit_base.Syntax_Style.set_style_extender(Syntax_Style.Extender)
+      Syntax_Style.set_extender(Syntax_Style.Main_Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.init)
 
@@ -479,7 +479,8 @@ class Plugin extends EBPlugin
   {
     http_server.stop()
 
-    isabelle.jedit_base.Syntax_Style.dummy_style_extender()
+    Syntax_Style.set_extender(Syntax_Style.Base_Extender)
+
     exit_mode_provider()
     JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.exit)
 
@@ -494,6 +495,7 @@ class Plugin extends EBPlugin
     session.stop()
     file_watcher.shutdown()
     PIDE.editor.shutdown()
+
+    Document_Model.reset()
   }
 }
-

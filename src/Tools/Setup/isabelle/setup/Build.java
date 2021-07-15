@@ -137,13 +137,6 @@ public class Build
             return Files.exists(path(file));
         }
 
-        // historic
-        public Path shasum_path()
-            throws IOException, InterruptedException
-        {
-            return path(lib_name() + ".shasum");
-        }
-
         public String item_name(String s)
         {
             int i = s.indexOf(':');
@@ -394,8 +387,6 @@ public class Build
         List<String> resources = context.resources();
         List<String> sources = context.sources();
 
-        Files.deleteIfExists(context.shasum_path());
-
         if (context.is_vacuous()) { Files.deleteIfExists(jar_path); }
         else {
             String shasum_old = get_shasum(jar_path);
@@ -428,8 +419,8 @@ public class Build
                 shasum = _shasum.toString();
             }
             if (fresh || !shasum_old.equals(shasum)) {
-                System.out.println(
-                    "### Building " + context.description() + " (" + jar_path + ") ...");
+                System.out.print(
+                    "### Building " + context.description() + " (" + jar_path + ") ...\n");
 
                 String isabelle_class_path = Environment.getenv("ISABELLE_CLASSPATH");
 
