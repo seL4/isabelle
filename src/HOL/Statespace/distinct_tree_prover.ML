@@ -9,6 +9,8 @@ sig
   val dest_tree : term -> term list
   val find_tree : term -> term -> direction list option
 
+  val in_set: Proof.context -> direction list -> cterm -> thm
+  val find_in_set: Proof.context -> term -> cterm -> thm
   val neq_to_eq_False : thm
   val distinctTreeProver : Proof.context -> thm -> direction list -> direction list -> thm
   val neq_x_y : Proof.context -> term -> term -> string -> thm option
@@ -188,6 +190,41 @@ val (x_in_set_right, l_in_set_right) =
   in (x, l) end;
 
 in
+
+fun in_set ctxt ps tree =
+  let
+    val in_set = in_set ctxt
+    val (_, [l, x, _, r]) = Drule.strip_comb tree;
+    val xT = Thm.ctyp_of_cterm x;
+  in
+    (case ps of
+      [] =>
+        instantiate ctxt
+          [(Thm.ctyp_of_cterm x_in_set_root, xT)]
+          [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] @{thm in_set_root}
+    | Left :: ps' =>
+        let
+          val in_set_l = in_set ps' l;
+          val in_set_left' =
+            instantiate ctxt
+              [(Thm.ctyp_of_cterm x_in_set_left, xT)]
+              [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
+        in discharge ctxt [in_set_l] in_set_left' end
+    | Right :: ps' =>
+        let
+          val in_set_r = in_set ps' r;
+          val in_set_right' =
+            instantiate ctxt
+              [(Thm.ctyp_of_cterm x_in_set_right, xT)]
+              [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
+        in discharge ctxt [in_set_r] in_set_right' end)
+  end;
+
+fun find_in_set ctxt t ct =
+  case find_tree t (Thm.term_of ct) of
+    SOME ps => in_set ctxt ps ct
+  | NONE => raise TERM ("find_in_set", [t, Thm.term_of ct])
+ 
 (*
 1. First get paths x_path y_path of x and y in the tree.
 2. For the common prefix descend into the tree according to the path
@@ -210,34 +247,7 @@ fun distinctTreeProver ctxt dist_thm x_path y_path =
     val subtree = Thm.cprop_of dist_subtree_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
     val (_, [l, _, _, r]) = Drule.strip_comb subtree;
 
-    fun in_set ps tree =
-      let
-        val (_, [l, x, _, r]) = Drule.strip_comb tree;
-        val xT = Thm.ctyp_of_cterm x;
-      in
-        (case ps of
-          [] =>
-            instantiate ctxt
-              [(Thm.ctyp_of_cterm x_in_set_root, xT)]
-              [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] @{thm in_set_root}
-        | Left :: ps' =>
-            let
-              val in_set_l = in_set ps' l;
-              val in_set_left' =
-                instantiate ctxt
-                  [(Thm.ctyp_of_cterm x_in_set_left, xT)]
-                  [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
-            in discharge ctxt [in_set_l] in_set_left' end
-        | Right :: ps' =>
-            let
-              val in_set_r = in_set ps' r;
-              val in_set_right' =
-                instantiate ctxt
-                  [(Thm.ctyp_of_cterm x_in_set_right, xT)]
-                  [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
-            in discharge ctxt [in_set_r] in_set_right' end)
-      end;
-
+  val in_set = in_set ctxt
   fun in_set' [] = raise TERM ("distinctTreeProver", [])
     | in_set' (Left :: ps) = in_set ps l
     | in_set' (Right :: ps) = in_set ps r;
