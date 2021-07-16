@@ -283,6 +283,7 @@ public class Build
         if (!java_sources.isEmpty()) {
             CharArrayWriter out = new CharArrayWriter();
             boolean ok = compiler.getTask(out, file_manager, null, options, null, java_sources).call();
+            out.flush();
             compiler_result(ok, out.toString(), "Java sources");
         }
     }
