@@ -33,13 +33,9 @@ public class Library
     {
         if (str.isEmpty()) { return str; }
         else {
-            StringBuilder result = new StringBuilder();
-            for (String s : split_lines(str)) {
-                result.append(prfx);
-                result.append(s);
-                result.append('\n');
-            }
-            return result.toString();
+            List<String> lines = new LinkedList<String>();
+            for (String line : split_lines(str)) { lines.add(prfx + line); }
+            return cat_lines(lines);
         }
     }
 
