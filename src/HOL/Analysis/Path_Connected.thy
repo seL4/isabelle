@@ -137,6 +137,24 @@ lemma arc_linear_image_eq:
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about paths\<close>
 
+lemma path_of_real: "path complex_of_real" 
+  unfolding path_def by (intro continuous_intros)
+
+lemma path_const: "path (\<lambda>t. a)" for a::"'a::real_normed_vector"
+  unfolding path_def by (intro continuous_intros)
+
+lemma path_minus: "path g \<Longrightarrow> path (\<lambda>t. - g t)" for g::"real\<Rightarrow>'a::real_normed_vector"
+  unfolding path_def by (intro continuous_intros)
+
+lemma path_add: "\<lbrakk>path f; path g\<rbrakk> \<Longrightarrow> path (\<lambda>t. f t + g t)" for f::"real\<Rightarrow>'a::real_normed_vector"
+  unfolding path_def by (intro continuous_intros)
+
+lemma path_diff: "\<lbrakk>path f; path g\<rbrakk> \<Longrightarrow> path (\<lambda>t. f t - g t)" for f::"real\<Rightarrow>'a::real_normed_vector"
+  unfolding path_def by (intro continuous_intros)
+
+lemma path_mult: "\<lbrakk>path f; path g\<rbrakk> \<Longrightarrow> path (\<lambda>t. f t * g t)" for f::"real\<Rightarrow>'a::real_normed_field"
+  unfolding path_def by (intro continuous_intros)
+
 lemma pathin_iff_path_real [simp]: "pathin euclideanreal g \<longleftrightarrow> path g"
   by (simp add: pathin_def path_def)
 

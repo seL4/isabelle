@@ -639,6 +639,11 @@ lemma add_mono: "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \
 
 end
 
+lemma mono_add:
+  fixes a :: "'a::ordered_ab_semigroup_add" 
+  shows "mono ((+) a)"
+  by (simp add: add_left_mono monoI)
+
 text \<open>Strict monotonicity in both arguments\<close>
 class strict_ordered_ab_semigroup_add = ordered_ab_semigroup_add +
   assumes add_strict_mono: "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"

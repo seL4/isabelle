@@ -764,6 +764,9 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma bdd_below_norm_image: "bdd_below (norm ` A)"
+  by (meson bdd_belowI2 norm_ge_zero)
+
 end
 
 class real_normed_algebra = real_algebra + real_normed_vector +

@@ -82,6 +82,38 @@ proof -
   thus ?thesis by simp
 qed
 
+corollary analytic_continuation':
+  assumes "f holomorphic_on S" "open S" "connected S"
+      and "U \<subseteq> S" "\<xi> \<in> S" "\<xi> islimpt U"
+      and "f constant_on U"
+    shows "f constant_on S"
+proof -
+  obtain c where c: "\<And>x. x \<in> U \<Longrightarrow> f x - c = 0"
+    by (metis \<open>f constant_on U\<close> constant_on_def diff_self)
+  have "(\<lambda>z. f z - c) holomorphic_on S"
+    using assms by (intro holomorphic_intros)
+  with c analytic_continuation assms have "\<And>x. x \<in> S \<Longrightarrow> f x - c = 0"
+    by blast
+  then show ?thesis
+    unfolding constant_on_def by force
+qed
+
+lemma holomorphic_compact_finite_zeros:
+  assumes S: "f holomorphic_on S" "open S" "connected S"
+      and "compact K" "K \<subseteq> S"
+      and "\<not> f constant_on S"
+    shows "finite {z\<in>K. f z = 0}"
+proof (rule ccontr)
+  assume "infinite {z\<in>K. f z = 0}"
+  then obtain z where "z \<in> K" and z: "z islimpt {z\<in>K. f z = 0}"
+    using \<open>compact K\<close> by (auto simp: compact_eq_Bolzano_Weierstrass)
+  moreover have "{z\<in>K. f z = 0} \<subseteq> S"
+    using \<open>K \<subseteq> S\<close> by blast
+    ultimately show False
+    using assms analytic_continuation [OF S] unfolding constant_on_def
+    by blast
+qed
+
 subsection\<open>Open mapping theorem\<close>
 
 lemma holomorphic_contract_to_zero:
