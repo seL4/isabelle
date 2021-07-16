@@ -427,6 +427,25 @@ lemma cInf_le_cSup:
   "A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> bdd_below A \<Longrightarrow> Inf A \<le> Sup A"
   by (auto intro!: cSup_upper2[of "SOME a. a \<in> A"] intro: someI cInf_lower)
 
+  context
+    fixes f :: "'a \<Rightarrow> 'b::conditionally_complete_lattice"
+    assumes "mono f"
+  begin
+  
+  lemma mono_cInf: "\<lbrakk>bdd_below A; A\<noteq>{}\<rbrakk> \<Longrightarrow> f (Inf A) \<le> (INF x\<in>A. f x)"
+    by (simp add: \<open>mono f\<close> conditionally_complete_lattice_class.cINF_greatest cInf_lower monoD)
+  
+  lemma mono_cSup: "\<lbrakk>bdd_above A; A\<noteq>{}\<rbrakk> \<Longrightarrow> (SUP x\<in>A. f x) \<le> f (Sup A)"
+    by (simp add: \<open>mono f\<close> conditionally_complete_lattice_class.cSUP_least cSup_upper monoD)
+  
+  lemma mono_cINF: "\<lbrakk>bdd_below (A`I); I\<noteq>{}\<rbrakk> \<Longrightarrow> f (INF i\<in>I. A i) \<le> (INF x\<in>I. f (A x))"
+    by (simp add: \<open>mono f\<close> conditionally_complete_lattice_class.cINF_greatest cINF_lower monoD)
+  
+  lemma mono_cSUP: "\<lbrakk>bdd_above (A`I); I\<noteq>{}\<rbrakk> \<Longrightarrow> (SUP x\<in>I. f (A x)) \<le> f (SUP i\<in>I. A i)"
+    by (simp add: \<open>mono f\<close> conditionally_complete_lattice_class.cSUP_least cSUP_upper monoD)
+  
+  end
+
 end
 
 instance complete_lattice \<subseteq> conditionally_complete_lattice

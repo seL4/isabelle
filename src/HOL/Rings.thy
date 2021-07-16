@@ -1884,6 +1884,11 @@ lemma mult_mono': "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<l
 
 end
 
+lemma mono_mult:
+  fixes a :: "'a::ordered_semiring" 
+  shows "a \<ge> 0 \<Longrightarrow> mono ((*) a)"
+  by (simp add: mono_def mult_left_mono)
+
 class ordered_semiring_0 = semiring_0 + ordered_semiring
 begin
 

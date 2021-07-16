@@ -959,6 +959,12 @@ lemma has_vector_derivative_mult_left[derivative_intros]:
   shows "(f has_vector_derivative x) F \<Longrightarrow> ((\<lambda>x. f x * a) has_vector_derivative (x * a)) F"
   by (rule bounded_linear.has_vector_derivative[OF bounded_linear_mult_left])
 
+lemma has_vector_derivative_divide[derivative_intros]:
+  fixes a :: "'a::real_normed_field"
+  shows "(f has_vector_derivative x) F \<Longrightarrow> ((\<lambda>x. f x / a) has_vector_derivative (x / a)) F"
+  using has_vector_derivative_mult_left [of f x F "inverse a"]
+  by (simp add: field_class.field_divide_inverse)
+
 
 subsection \<open>Derivatives\<close>
 

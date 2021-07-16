@@ -1493,16 +1493,7 @@ lemma convex_affine_closure_Int:
     and "affine T"
     and "rel_interior S \<inter> T \<noteq> {}"
   shows "closure (S \<inter> T) = closure S \<inter> T"
-proof -
-  have "affine hull T = T"
-    using assms by auto
-  then have "rel_interior T = T"
-    using rel_interior_affine_hull[of T] by metis
-  moreover have "closure T = T"
-    using assms affine_closed[of T] by auto
-  ultimately show ?thesis
-    using convex_closure_inter_two[of S T] assms affine_imp_convex by auto
-qed
+  by (metis affine_imp_convex assms convex_closure_inter_two rel_interior_affine rel_interior_eq_closure)
 
 lemma connected_component_1_gen:
   fixes S :: "'a :: euclidean_space set"
@@ -1523,16 +1514,7 @@ lemma convex_affine_rel_interior_Int:
     and "affine T"
     and "rel_interior S \<inter> T \<noteq> {}"
   shows "rel_interior (S \<inter> T) = rel_interior S \<inter> T"
-proof -
-  have "affine hull T = T"
-    using assms by auto
-  then have "rel_interior T = T"
-    using rel_interior_affine_hull[of T] by metis
-  moreover have "closure T = T"
-    using assms affine_closed[of T] by auto
-  ultimately show ?thesis
-    using convex_rel_interior_inter_two[of S T] assms affine_imp_convex by auto
-qed
+  by (simp add: affine_imp_convex assms convex_rel_interior_inter_two rel_interior_affine)
 
 lemma convex_affine_rel_frontier_Int:
    fixes S T :: "'n::euclidean_space set"
@@ -1547,49 +1529,8 @@ using assms
 lemma rel_interior_convex_Int_affine:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "affine T" "interior S \<inter> T \<noteq> {}"
-    shows "rel_interior(S \<inter> T) = interior S \<inter> T"
-proof -
-  obtain a where aS: "a \<in> interior S" and aT:"a \<in> T"
-    using assms by force
-  have "rel_interior S = interior S"
-    by (metis (no_types) aS affine_hull_nonempty_interior equals0D rel_interior_interior)
-  then show ?thesis
-    by (metis (no_types) affine_imp_convex assms convex_rel_interior_inter_two hull_same rel_interior_affine_hull)
-qed
-
-lemma closure_convex_Int_affine:
-  fixes S :: "'a::euclidean_space set"
-  assumes "convex S" "affine T" "rel_interior S \<inter> T \<noteq> {}"
-  shows "closure(S \<inter> T) = closure S \<inter> T"
-proof
-  have "closure (S \<inter> T) \<subseteq> closure T"
-    by (simp add: closure_mono)
-  also have "... \<subseteq> T"
-    by (simp add: affine_closed assms)
-  finally show "closure(S \<inter> T) \<subseteq> closure S \<inter> T"
-    by (simp add: closure_mono)
-next
-  obtain a where "a \<in> rel_interior S" "a \<in> T"
-    using assms by auto
-  then have ssT: "subspace ((\<lambda>x. (-a)+x) ` T)" and "a \<in> S"
-    using affine_diffs_subspace rel_interior_subset assms by blast+
-  show "closure S \<inter> T \<subseteq> closure (S \<inter> T)"
-  proof
-    fix x  assume "x \<in> closure S \<inter> T"
-    show "x \<in> closure (S \<inter> T)"
-    proof (cases "x = a")
-      case True
-      then show ?thesis
-        using \<open>a \<in> S\<close> \<open>a \<in> T\<close> closure_subset by fastforce
-    next
-      case False
-      then have "x \<in> closure(open_segment a x)"
-        by auto
-      then show ?thesis
-        using \<open>x \<in> closure S \<inter> T\<close> assms convex_affine_closure_Int by blast
-    qed
-  qed
-qed
+  shows "rel_interior(S \<inter> T) = interior S \<inter> T"
+  by (metis Int_emptyI assms convex_affine_rel_interior_Int empty_iff interior_rel_interior_gen)
 
 lemma subset_rel_interior_convex:
   fixes S T :: "'n::euclidean_space set"
