@@ -8,8 +8,11 @@ package isabelle.setup;
 
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,6 +40,8 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import scala.tools.nsc.MainClass;
+import scala.tools.nsc.reporters.ConsoleReporter;
+import scala.util.control.Exception;
 
 
 public class Build
@@ -196,6 +201,15 @@ public class Build
         }
     }
 
+    private static void compiler_result(boolean ok, String out, String what)
+    {
+        if (ok) { if (!out.isEmpty()) { System.err.println(out); } }
+        else {
+            String msg = "Failed to compile " + what + (out.isEmpty() ? "" : ":\n" + out);
+            throw new RuntimeException(msg);
+        }
+    }
+
     public static void compile_scala_sources(
         Path target_dir, String more_options, List<Path> deps, List<Path> sources)
         throws IOException, InterruptedException
@@ -215,9 +229,24 @@ public class Build
             if (p.toString().endsWith(".scala")) { scala_sources = true; }
         }
         if (scala_sources) {
-            MainClass main = new MainClass();
-            boolean ok = main.process(args.toArray(String[]::new));
-            if (!ok) throw new RuntimeException("Failed to compile Scala sources");
+            boolean ok = false;
+
+            PrintStream out_orig = System.out;
+            PrintStream err_orig = System.err;
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            PrintStream out_stream = new PrintStream(out);
+
+            // Single-threaded context!
+            try {
+                System.setOut(out_stream);
+                System.setErr(out_stream);
+                ok = new MainClass().process(args.toArray(String[]::new));
+            }
+            finally {
+                System.setOut(out_orig);
+                System.setErr(err_orig);
+            }
+            compiler_result(ok, out.toString(), "Scala sources");
         }
     }
 
@@ -245,9 +274,11 @@ public class Build
                 }
             }
         }
+
         if (!java_sources.isEmpty()) {
-            boolean ok = compiler.getTask(null, file_manager, null, options, null, java_sources).call();
-            if (!ok) throw new RuntimeException("Failed to compile Java sources");
+            CharArrayWriter out = new CharArrayWriter();
+            boolean ok = compiler.getTask(out, file_manager, null, options, null, java_sources).call();
+            compiler_result(ok, out.toString(), "Java sources");
         }
     }
 
