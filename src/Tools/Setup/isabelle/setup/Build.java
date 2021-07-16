@@ -246,7 +246,7 @@ public class Build
                 System.setOut(out_orig);
                 System.setErr(err_orig);
             }
-            compiler_result(ok, out.toString(), "Scala sources");
+            compiler_result(ok, out.toString(StandardCharsets.UTF_8), "Scala sources");
         }
     }
 
