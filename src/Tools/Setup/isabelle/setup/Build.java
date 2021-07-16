@@ -236,14 +236,15 @@ public class Build
             PrintStream err_orig = System.err;
             ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            PrintStream out_stream = new PrintStream(out);
 
             // Single-threaded context!
             try {
+                PrintStream out_stream = new PrintStream(out);
                 System.setIn(in);
                 System.setOut(out_stream);
                 System.setErr(out_stream);
                 ok = new MainClass().process(args.toArray(String[]::new));
+                out_stream.flush();
             }
             finally {
                 System.setIn(in_orig);
