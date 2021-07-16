@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/TreeBrowser.java
+  Title:      graphbrowser/TreeBrowser.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   trees. It contains methods for handling events.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.awt.event.*;

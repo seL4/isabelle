@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/GraphBrowserFrame.java
+  Title:      graphbrowser/GraphBrowserFrame.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=2:
 
@@ -7,12 +7,12 @@
   methods for handling menubar events.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import awtUtilities.*;
+import isabelle.awt.*;
 
 public class GraphBrowserFrame extends Frame implements ActionListener {
 	GraphBrowser gb;

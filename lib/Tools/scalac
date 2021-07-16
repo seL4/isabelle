@@ -4,7 +4,7 @@
 #
 # DESCRIPTION: invoke Scala compiler within the Isabelle environment
 
-isabelle_admin_build jars || exit $?
+isabelle_scala_build || exit $?
 
 classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
 classpath "$CLASSPATH"; unset CLASSPATH

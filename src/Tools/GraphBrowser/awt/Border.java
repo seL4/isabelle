@@ -1,11 +1,11 @@
 /***************************************************************************
-  Title:      awtUtilities/Border.java
+  Title:      awt/Border.java
   Author:     Stefan Berghofer, TU Muenchen
 
   This class defines a nice 3D border.
 ***************************************************************************/
 
-package awtUtilities;
+package isabelle.awt;
 
 import java.awt.*;
 

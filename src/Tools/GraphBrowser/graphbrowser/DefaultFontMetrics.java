@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/DefaultFontMetrics.java
+  Title:      graphbrowser/DefaultFontMetrics.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=2:
 
@@ -7,7 +7,7 @@
   is available (batch mode).
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 public class DefaultFontMetrics implements AbstractFontMetrics {
 

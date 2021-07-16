@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/AWTFontMetrics.java
+  Title:      graphbrowser/AWTFontMetrics.java
   Author:     Gerwin Klein, TU Muenchen
 
   AbstractFontMetrics avoids dependency on java.awt.FontMetrics in 
@@ -7,7 +7,7 @@
   
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 public interface AbstractFontMetrics {
   public int stringWidth(String str);

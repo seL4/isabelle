@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/TreeNode.java
+  Title:      graphbrowser/TreeNode.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   trees (e.g. collapsing / uncollapsing directory branches).
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.util.*;
@@ -91,14 +91,14 @@ public class TreeNode
 	public void collapse()
 	{
 		unfold=false;
-		/*
+		/*Integer.valueOf
 		for(int i=0;i<leaves.size();i++)
 			((Tree)leaves.elementAt(i)).collapse();
 		*/
 	}
 
 	void collapsedNodes(Vector v) {
-		if (number>=0) v.addElement(new Integer(number));
+		if (number>=0) v.addElement(Integer.valueOf(number));
 		Enumeration e1=leaves.elements();
 		while (e1.hasMoreElements())
 			((TreeNode)(e1.nextElement())).collapsedNodes(v);

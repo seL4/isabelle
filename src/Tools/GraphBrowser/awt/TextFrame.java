@@ -1,11 +1,11 @@
 /***************************************************************************
-  Title:      Graph/TextFrame.java
+  Title:      awt/TextFrame.java
   Author:     Stefan Berghofer, TU Muenchen
 
   This class defines a simple text viewer.
 ***************************************************************************/
 
-package awtUtilities;
+package isabelle.awt;
 
 import java.awt.*;
 import java.awt.event.*;

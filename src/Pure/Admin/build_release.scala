@@ -452,10 +452,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       other_isabelle.resolve_components(echo = true)
 
       try {
-        val export_classpath =
-          "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n"
-        other_isabelle.bash(export_classpath + "Admin/build all", echo = true).check
-        other_isabelle.bash(export_classpath + "bin/isabelle jedit -b", echo = true).check
+        other_isabelle.bash(
+          "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n" +
+          "bin/isabelle jedit -b", echo = true).check
       }
       catch { case ERROR(msg) => cat_error("Failed to build tools:", msg) }
 

@@ -1,11 +1,11 @@
 /***************************************************************************
-  Title:      awtUtilities/MessageDialog.java
+  Title:      awt/MessageDialog.java
   Author:     Stefan Berghofer, TU Muenchen
 
   This class defines a dialog window for displaying messages and buttons.
 ***************************************************************************/
 
-package awtUtilities;
+package isabelle.awt;
 
 import java.awt.*;
 import java.awt.event.*;

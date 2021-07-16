@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/NormalVertex.java
+  Title:      graphbrowser/NormalVertex.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   drawing and PostScript output.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.util.*;
 import java.awt.*;

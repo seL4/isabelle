@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Region.java
+  Title:      graphbrowser/Region.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -8,7 +8,7 @@
   group of nodes which "stick together".
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.util.*;
 

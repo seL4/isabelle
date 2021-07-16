@@ -154,12 +154,10 @@ done
 
 ## main
 
-isabelle_admin_build browser || exit "$?"
-
 if [ -n "$FRESH_BUILD" ]; then
-  isabelle_admin_build jars_fresh || exit "$?"
+  isabelle_scala_build fresh || exit "$?"
 else
-  isabelle_admin_build jars || exit "$?"
+  isabelle_scala_build || exit "$?"
 fi
 
 if [ "$BUILD_ONLY" = false ]

@@ -65,9 +65,7 @@ GRAPHFILE=""
 
 ## main
 
-isabelle_admin_build browser || exit $?
-
-classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
+isabelle_scala_build || exit $?
 
 if [ -n "$GRAPHFILE" ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-${TMPDIR:-/tmp}}/$$"$(basename "$GRAPHFILE")
@@ -86,9 +84,9 @@ if [ -n "$GRAPHFILE" ]; then
   esac
 
   if [ -z "$OUTFILE" ]; then
-    isabelle java GraphBrowser.GraphBrowser "$(platform_path "$PRIVATE_FILE")"
+    isabelle java isabelle.graphbrowser.GraphBrowser "$(platform_path "$PRIVATE_FILE")"
   else
-    isabelle java GraphBrowser.Console "$(platform_path "$PRIVATE_FILE")" "$(platform_path "$OUTFILE")"
+    isabelle java isabelle.graphbrowser.Console "$(platform_path "$PRIVATE_FILE")" "$(platform_path "$OUTFILE")"
   fi
   RC="$?"
 
@@ -102,7 +100,7 @@ if [ -n "$GRAPHFILE" ]; then
   rm -f "$PRIVATE_FILE"
 elif [ -z "$ADMIN_BUILD" ]; then
   [ -d "$ISABELLE_BROWSER_INFO" ] && cd "$ISABELLE_BROWSER_INFO"
-  exec isabelle java GraphBrowser.GraphBrowser
+  exec isabelle java isabelle.graphbrowser.GraphBrowser
 else
   RC=0
 fi

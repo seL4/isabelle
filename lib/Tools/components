@@ -127,7 +127,7 @@ elif [ -n "$LIST_ONLY" ]; then
   echo "Missing components:"
   for NAME in "${MISSING_COMPONENTS[@]}"; do echo "  $NAME"; done
 elif [ "${#UPDATE_COMPONENTS[@]}" -ne 0 ]; then
-  isabelle_admin_build jars || exit $?
+  isabelle_scala_build || exit $?
   exec isabelle java isabelle.Components "${UPDATE_COMPONENTS[@]}"
 else
   for NAME in "${SELECTED_COMPONENTS[@]}"

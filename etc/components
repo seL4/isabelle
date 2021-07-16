@@ -1,5 +1,6 @@
 #built-in components
 src/Tools/jEdit
+src/Tools/GraphBrowser
 src/Tools/Graphview
 src/Tools/VSCode
 src/HOL/Mutabelle

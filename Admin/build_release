@@ -5,5 +5,5 @@
 unset CDPATH
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
-"$THIS/build" jars || exit $?
+env ISABELLE_SETUP_CLASSPATH_SKIP=true "$THIS/../bin/isabelle" java isabelle.setup.Setup build > /dev/null || exit $?
 exec "$THIS/../bin/isabelle_java" isabelle.Build_Release "$@"

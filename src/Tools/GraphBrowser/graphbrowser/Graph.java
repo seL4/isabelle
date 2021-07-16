@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Graph.java
+  Title:      graphbrowser/Graph.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   drawing and PostScript output.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.util.*;
 import java.awt.*;
@@ -323,7 +323,7 @@ public class Graph {
 				}
 			}
 			v=next;
-			numEdges.addElement(new Integer(n_edges));
+			numEdges.addElement(Integer.valueOf(n_edges));
 		} while (!v.isEmpty());
 		return layers2;
 	}
@@ -749,21 +749,21 @@ public class Graph {
 							xh=x2+box_height*(x3-x2)/(y3-y2);
 							if (!(x2<=x3 && xh>=rightx || x2>x3 && xh<=leftx)) {
 								/* top control point */
-								pos.addElement(new Integer(1));
+								pos.addElement(Integer.valueOf(1));
 								y1=y2;
 							} else {
 								xh=x1+(y2-y1)*(x2-x1)/(y2+box_height-y1);
 								if (!(x2<=x1 && xh>=rightx || x2>x1 && xh<=leftx))
 									/* bottom control point */
-									pos.addElement(new Integer(2));
+									pos.addElement(Integer.valueOf(2));
 								else
 									/* two control points needed */
-									pos.addElement(new Integer(3));
+									pos.addElement(Integer.valueOf(3));
 								y1=y2+box_height;
 							}
 							x1=x2;
 						} while (vx2.isDummy());
-						pos.addElement(new Integer(1));
+						pos.addElement(Integer.valueOf(1));
 
 						/**** calculate triangles ****/
 						vx2=vx3;
@@ -903,7 +903,7 @@ public class Graph {
 		while (e1.hasMoreElements()) {
 			Vertex vx=(Vertex)(e1.nextElement());
 			if (vx.getNumber()>=0)
-				code.addElement(new Integer(vx.getNumber()));
+				code.addElement(Integer.valueOf(vx.getNumber()));
 		}
 		return code;
 	}

@@ -1,12 +1,12 @@
 /***************************************************************************
-  Title:      GraphBrowser/AWTFontMetrics.java
+  Title:      graphbrowser/AWTFontMetrics.java
   Author:     Gerwin Klein, TU Muenchen
 
   AbstractFontMetrics from the AWT for graphics mode.
   
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.FontMetrics;
 

@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/GraphBrowser.java
+  Title:      graphbrowser/GraphBrowser.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -10,14 +10,14 @@
   Note: GraphBrowser is designed for the 1.1.x version of the JDK.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.applet.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import awtUtilities.*;
+import isabelle.awt.*;
 
 public class GraphBrowser extends Applet {
 	GraphView gv;
@@ -109,7 +109,7 @@ public class GraphBrowser extends Applet {
 							
 				Frame f=new TextFrame(fname.substring(fname.lastIndexOf('/')+1),text);
 				f.setSize(500,600);
-				f.show();
+				f.setVisible(true);
 			}
 		} catch (Exception exn) {
 			System.err.println("Can't read file "+fname);
@@ -205,7 +205,7 @@ public class GraphBrowser extends Applet {
                         } else {
 			    f=new GraphBrowserFrame(gb);
 			    f.setSize(700,500);
-			    f.show();
+			    f.setVisible(true);
                         }
 		} catch (IOException exn) {
 			System.err.println("Can't open graph file "+args[0]);

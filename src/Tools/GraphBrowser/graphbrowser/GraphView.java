@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/GraphView.java
+  Title:      graphbrowser/GraphView.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -8,7 +8,7 @@
   nodes of the graph.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.awt.event.*;
