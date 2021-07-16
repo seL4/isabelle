@@ -1,0 +1,26 @@
+description = graph browser
+lib = .
+name = GraphBrowser
+javac_options = -source 7 -target 7
+sources = \
+  GraphBrowser/AWTFontMetrics.java \
+  GraphBrowser/AbstractFontMetrics.java \
+  GraphBrowser/Box.java \
+  GraphBrowser/Console.java \
+  GraphBrowser/DefaultFontMetrics.java \
+  GraphBrowser/Directory.java \
+  GraphBrowser/DummyVertex.java \
+  GraphBrowser/Graph.java \
+  GraphBrowser/GraphBrowser.java \
+  GraphBrowser/GraphBrowserFrame.java \
+  GraphBrowser/GraphView.java \
+  GraphBrowser/NormalVertex.java \
+  GraphBrowser/ParseError.java \
+  GraphBrowser/Region.java \
+  GraphBrowser/Spline.java \
+  GraphBrowser/TreeBrowser.java \
+  GraphBrowser/TreeNode.java \
+  GraphBrowser/Vertex.java \
+  awtUtilities/Border.java \
+  awtUtilities/MessageDialog.java \
+  awtUtilities/TextFrame.java

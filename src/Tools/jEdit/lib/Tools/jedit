@@ -154,8 +154,6 @@ done
 
 ## main
 
-isabelle_admin_build browser || exit "$?"
-
 if [ -n "$FRESH_BUILD" ]; then
   isabelle_admin_build jars_fresh || exit "$?"
 else

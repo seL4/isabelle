@@ -24,8 +24,6 @@ Usage: $PRG [MODULES]
   Produce Isabelle distribution modules from current repository sources.
   The MODULES list may contain any of the following:
 
-    all             all modules below
-    browser         graph browser
     jars            Isabelle/Scala
     jars_fresh      fresh build of jars
 
@@ -49,21 +47,6 @@ MODULES="$@"; shift "$#"
 
 ## modules
 
-function build_all ()
-{
-  build_browser
-  build_setup build
-}
-
-
-function build_browser ()
-{
-  pushd "$ISABELLE_HOME/lib/browser" >/dev/null
-  "$ISABELLE_TOOL" env ./build || exit $?
-  popd >/dev/null
-}
-
-
 function build_setup ()
 {
   rm -rf \
@@ -79,8 +62,6 @@ function build_setup ()
 for MODULE in $MODULES
 do
   case $MODULE in
-    all) build_all;;
-    browser) build_browser;;
     jars) build_setup build;;
     jars_fresh) build_setup build_fresh;;
     *) fail "Bad module $MODULE"

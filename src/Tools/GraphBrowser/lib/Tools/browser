@@ -65,9 +65,7 @@ GRAPHFILE=""
 
 ## main
 
-isabelle_admin_build browser || exit $?
-
-classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
+isabelle_admin_build jars || exit $?
 
 if [ -n "$GRAPHFILE" ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-${TMPDIR:-/tmp}}/$$"$(basename "$GRAPHFILE")
