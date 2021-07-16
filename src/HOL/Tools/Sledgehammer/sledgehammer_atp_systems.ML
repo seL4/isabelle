@@ -482,9 +482,6 @@ val vampire_basic_options = "--proof tptp --output_axiom_names on $VAMPIRE_EXTRA
 val vampire_full_proof_options =
   " --proof_extra free --forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
 
-val remote_vampire_command =
-  "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
-
 val vampire_config : atp_config =
   let
     val format = TFF (Without_FOOL, Monomorphic)
@@ -663,9 +660,6 @@ val remote_leo2 =
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
     (K (((150, ""), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
-val remote_vampire =
-  remotify_atp vampire "Vampire" ["THF-4.4"]
-    (K (((400, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), remote_vampire_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
   remotify_atp zipperposition "Zipperpin" ["2.0"]
@@ -728,7 +722,7 @@ fun effective_term_order ctxt atp =
 val atps =
   [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition,
    remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
-   remote_vampire, remote_waldmeister, remote_zipperposition, dummy_tfx]
+   remote_waldmeister, remote_zipperposition, dummy_tfx]
 
 val _ = Theory.setup (fold add_atp atps)
 
