@@ -8,10 +8,12 @@ package isabelle.setup;
 
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +42,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import scala.tools.nsc.MainClass;
-import scala.tools.nsc.reporters.ConsoleReporter;
-import scala.util.control.Exception;
 
 
 public class Build
@@ -231,18 +231,22 @@ public class Build
         if (scala_sources) {
             boolean ok = false;
 
+            InputStream in_orig = System.in;
             PrintStream out_orig = System.out;
             PrintStream err_orig = System.err;
+            ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             PrintStream out_stream = new PrintStream(out);
 
             // Single-threaded context!
             try {
+                System.setIn(in);
                 System.setOut(out_stream);
                 System.setErr(out_stream);
                 ok = new MainClass().process(args.toArray(String[]::new));
             }
             finally {
+                System.setIn(in_orig);
                 System.setOut(out_orig);
                 System.setErr(err_orig);
             }
