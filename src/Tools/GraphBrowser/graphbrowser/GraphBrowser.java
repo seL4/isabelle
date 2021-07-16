@@ -109,7 +109,7 @@ public class GraphBrowser extends Applet {
 							
 				Frame f=new TextFrame(fname.substring(fname.lastIndexOf('/')+1),text);
 				f.setSize(500,600);
-				f.show();
+				f.setVisible(true);
 			}
 		} catch (Exception exn) {
 			System.err.println("Can't read file "+fname);
@@ -205,7 +205,7 @@ public class GraphBrowser extends Applet {
                         } else {
 			    f=new GraphBrowserFrame(gb);
 			    f.setSize(700,500);
-			    f.show();
+			    f.setVisible(true);
                         }
 		} catch (IOException exn) {
 			System.err.println("Can't open graph file "+args[0]);
