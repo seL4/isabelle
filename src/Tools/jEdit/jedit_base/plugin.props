@@ -6,7 +6,7 @@
 plugin.isabelle.jedit_base.Plugin.name=Isabelle Base
 plugin.isabelle.jedit_base.Plugin.author=Makarius Wenzel
 plugin.isabelle.jedit_base.Plugin.version=1.0
-plugin.isabelle.jedit_base.Plugin.description=Isabelle Base: DO NOT UNLOAD!
+plugin.isabelle.jedit_base.Plugin.description=Isabelle/jEdit base plugin: DO NOT UNLOAD!
 
 #system parameters
 plugin.isabelle.jedit_base.Plugin.activate=startup
