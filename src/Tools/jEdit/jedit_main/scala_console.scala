@@ -34,7 +34,7 @@ class Scala_Console extends Shell("Scala")
       val s = buf.synchronized { val s = buf.toString; buf.clear(); s }
       val str = UTF8.decode_permissive(s)
       GUI_Thread.later {
-        if (global_out == null) System.out.print(str)
+        if (global_out == null) java.lang.System.out.print(str)
         else global_out.writeAttrs(null, str)
       }
       Time.seconds(0.01).sleep()  // FIXME adhoc delay to avoid loosing output
