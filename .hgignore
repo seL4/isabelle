@@ -16,7 +16,6 @@ syntax: regexp
 ^heaps/
 ^browser_info/
 ^doc/.*\.pdf
-^lib/classes/
 ^src/Tools/VSCode/out/
 ^src/Tools/VSCode/extension/node_modules/
 ^Admin/jenkins/ci-extras/target/
