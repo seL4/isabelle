@@ -47,7 +47,6 @@ sig
   val iproverN : string
   val leo2N : string
   val leo3N : string
-  val pirateN : string
   val satallaxN : string
   val spassN : string
   val vampireN : string
@@ -110,7 +109,6 @@ val eN = "e"
 val iproverN = "iprover"
 val leo2N = "leo2"
 val leo3N = "leo3"
-val pirateN = "pirate"
 val satallaxN = "satallax"
 val spassN = "spass"
 val vampireN = "vampire"
@@ -638,32 +636,6 @@ fun parse_spass_line x =
    >> (fn ((((num, rule), deps), u), names) =>
           [((num, these names), Unknown, u, rule, map (rpair []) deps)])) x
 
-fun parse_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
-fun parse_pirate_dependencies x =
-  Scan.repeat (parse_pirate_dependency --| Scan.option ($$ "," || $$ " ")) x
-fun parse_pirate_file_source x =
-  ((Scan.this_string "Input" || Scan.this_string "Conj") |-- $$ "(" |-- scan_general_id
-     --| $$ ")") x
-fun parse_pirate_inference_source x =
-  (scan_general_id -- ($$ "(" |-- parse_pirate_dependencies --| $$ ")")) x
-fun parse_pirate_source x =
-  (parse_pirate_file_source >> (fn s => File_Source ("", SOME s))
-   || parse_pirate_inference_source >> Inference_Source) x
-
-(* Syntax: <num> <stuff> || <atoms> -> <atoms> . origin\(<origin>\) *)
-fun parse_pirate_line x =
-  (scan_general_id --| Scan.repeat (~$$ "|") -- parse_horn_clause --| $$ "."
-     --| Scan.this_string "origin" --| $$ "(" -- parse_pirate_source --| $$ ")"
-   >> (fn ((((num, u), source))) =>
-     let
-       val (names, rule, deps) =
-         (case source of
-           File_Source (_, SOME s) => ([s], spass_input_rule, [])
-         | Inference_Source (rule, deps) => ([], rule, deps))
-     in
-       [((num, names), Unknown, u, rule, map (rpair []) deps)]
-     end)) x
-
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
 (* Syntax: SZS core <name> ... <name> *)
@@ -674,7 +646,6 @@ fun parse_z3_tptp_core_line x =
 fun parse_line local_name problem =
   (* Satallax is handled separately, in "atp_satallax.ML". *)
   if local_name = spassN then parse_spass_line
-  else if local_name = pirateN then parse_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
 
