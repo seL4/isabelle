@@ -65,7 +65,7 @@ GRAPHFILE=""
 
 ## main
 
-isabelle_admin_build jars || exit $?
+isabelle_scala_build || exit $?
 
 if [ -n "$GRAPHFILE" ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-${TMPDIR:-/tmp}}/$$"$(basename "$GRAPHFILE")

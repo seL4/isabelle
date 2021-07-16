@@ -211,14 +211,21 @@ function isabelle_directory ()
 }
 export -f isabelle_directory
 
-#administrative build
-function isabelle_admin_build ()
+#Isabelle/Scala/Java build
+function isabelle_scala_build ()
 {
-  if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-    "$ISABELLE_HOME/Admin/build" "$@"
+  rm -rf \
+    "$ISABELLE_HOME/lib/classes/Pure.jar" \
+    "$ISABELLE_HOME/lib/classes/Pure.shasum" \
+    "$ISABELLE_HOME/src/Tools/jEdit/dist"
+  if [ "$1" = "fresh" ]; then
+    CMD="build_fresh"
+  else
+    CMD="build"
   fi
+  env ISABELLE_SETUP_CLASSPATH_SKIP=true isabelle java isabelle.setup.Setup "$CMD"
 }
-export -f isabelle_admin_build
+export -f isabelle_scala_build
 
 #arrays
 function splitarray ()
