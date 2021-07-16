@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Spline.java
+  Title:      graphbrowser/Spline.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   supported by the Java AWT).
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.util.*;

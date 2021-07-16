@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Vertex.java
+  Title:      graphbrowser/Vertex.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   vertices (e.g. coordinates, successors, predecessors).
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.util.*;
 import java.awt.*;

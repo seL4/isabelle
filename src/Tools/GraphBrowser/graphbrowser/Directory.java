@@ -1,4 +1,4 @@
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.util.Vector;
 

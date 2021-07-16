@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Box.java
+  Title:      graphbrowser/Box.java
   Author:     Gerwin Klein, TU Muenchen
 
   A box with width and height. Used instead of java.awt.Dimension for 
@@ -7,7 +7,7 @@
 
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 public class Box {
   public int width;

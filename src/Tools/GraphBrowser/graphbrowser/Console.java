@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/Console.java
+  Title:      graphbrowser/Console.java
   Author:     Gerwin Klein, TU Muenchen
   Options:    :tabSize=2:
 
@@ -9,7 +9,7 @@
 
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.io.*;
 import java.util.*;

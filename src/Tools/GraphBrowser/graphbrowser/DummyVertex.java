@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/DummyVertex.java
+  Title:      graphbrowser/DummyVertex.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   layout algorithm.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 

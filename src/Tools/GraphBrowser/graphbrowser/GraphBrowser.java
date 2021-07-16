@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/GraphBrowser.java
+  Title:      graphbrowser/GraphBrowser.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -10,14 +10,14 @@
   Note: GraphBrowser is designed for the 1.1.x version of the JDK.
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.applet.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import awtUtilities.*;
+import isabelle.awt.*;
 
 public class GraphBrowser extends Applet {
 	GraphView gv;

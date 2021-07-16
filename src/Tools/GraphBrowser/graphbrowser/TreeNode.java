@@ -1,5 +1,5 @@
 /***************************************************************************
-  Title:      GraphBrowser/TreeNode.java
+  Title:      graphbrowser/TreeNode.java
   Author:     Stefan Berghofer, TU Muenchen
   Options:    :tabSize=4:
 
@@ -7,7 +7,7 @@
   trees (e.g. collapsing / uncollapsing directory branches).
 ***************************************************************************/
 
-package GraphBrowser;
+package isabelle.graphbrowser;
 
 import java.awt.*;
 import java.util.*;
