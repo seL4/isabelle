@@ -48,27 +48,6 @@ function fail()
 [ -d "$COMPONENT_DIR" ] && fail "Directory already exists: \"$COMPONENT_DIR\""
 
 
-# build jar
-
-TARGET_DIR="$COMPONENT_DIR/lib"
-mkdir -p "$TARGET_DIR/isabelle/setup"
-
-declare -a ARGS=("-Xlint:unchecked")
-for SRC in "${SOURCES[@]}"
-do
-  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
-done
-
-isabelle_jdk javac $ISABELLE_JAVAC_OPTIONS -d "$TARGET_DIR" \
-  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \
-  fail "Failed to compile sources"
-
-isabelle_jdk jar -c -f "$(platform_path "$TARGET_DIR/isabelle_setup.jar")" \
-  -e "isabelle.setup.Setup" -C "$TARGET_DIR" isabelle || fail "Failed to produce jar"
-
-rm -rf "$TARGET_DIR/isabelle"
-
-
 # etc/settings
 
 mkdir -p "$COMPONENT_DIR/etc"
@@ -78,6 +57,38 @@ cat > "$COMPONENT_DIR/etc/settings" <<EOF
 ISABELLE_SETUP_JAR="\$COMPONENT/lib/isabelle_setup.jar"
 classpath "\$ISABELLE_SETUP_JAR"
 EOF
+
+BUILD_PROPS="$COMPONENT_DIR/etc/build.props"
+echo >> "$BUILD_PROPS" "no_module = lib/isabelle_setup.jar"
+
+
+# build jar
+
+SOURCE_DIR="$COMPONENT_DIR/src"
+TARGET_DIR="$COMPONENT_DIR/lib"
+mkdir -p "$SOURCE_DIR" "$TARGET_DIR/isabelle/setup"
+
+declare -a ARGS=("-Xlint:unchecked")
+echo -n >> "$BUILD_PROPS" "sources ="
+
+for SRC in "${SOURCES[@]}"
+do
+  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
+  cp "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC" "$SOURCE_DIR"
+  echo >> "$BUILD_PROPS" " \\"
+  echo -n >> "$BUILD_PROPS" "  src/$SRC"
+done
+
+echo >> "$BUILD_PROPS"
+
+isabelle_jdk javac $ISABELLE_JAVAC_OPTIONS -d "$TARGET_DIR" \
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \
+  fail "Failed to compile sources"
+
+isabelle_jdk jar -c -f "$(platform_path "$TARGET_DIR/isabelle_setup.jar")" \
+  -e "isabelle.setup.Setup" -C "$TARGET_DIR" isabelle || fail "Failed to produce jar"
+
+rm -rf "$TARGET_DIR/isabelle"
 
 
 # README

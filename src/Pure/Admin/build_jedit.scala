@@ -115,6 +115,8 @@ object Build_JEdit
 
     Isabelle_System.new_directory(component_dir)
 
+    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
+
 
     /* jEdit directory */
 
@@ -177,6 +179,21 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       progress.bash("env JAVA_HOME=" + File.bash_platform_path(java_home) + " ant",
         cwd = tmp_source_dir.file, echo = true).check
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
+
+      val java_sources =
+        File.find_files(source_dir.file, file => file.getName.endsWith(".java")).
+          flatMap(file =>
+            {
+              if (Scala_Project.package_dir(File.path(file)).isDefined) {
+                Some(File.path(component_dir.java_path.relativize(file.toPath).toFile))
+              }
+              else None
+            })
+
+      File.write(etc_dir + Path.explode("build.props"),
+        "no_module = " + jedit_patched + "/jedit.jar\n" +
+        "requirements = env:JEDIT_JARS\n" +
+        ("sources =" :: java_sources.map(p => "  " + p.implode)).mkString("", " \\\n", "\n"))
     })
 
 
@@ -459,9 +476,7 @@ xml-insert-closing-tag.shortcut=
     if (!original) Isabelle_System.rm_tree(jedit_dir)
 
 
-    /* etc */
-
-    val etc_dir = Isabelle_System.make_directory(component_dir + Path.explode("etc"))
+    /* settings */
 
     File.write(etc_dir + Path.explode("settings"),
       """# -*- shell-script -*- :mode=shellscript:

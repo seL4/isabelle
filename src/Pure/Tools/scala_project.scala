@@ -6,6 +6,8 @@ Setup Gradle project for Isabelle/Scala/jEdit.
 
 package isabelle
 
+import scala.jdk.CollectionConverters._
+
 
 object Scala_Project
 {
@@ -23,51 +25,52 @@ object Scala_Project
 
   /* file and directories */
 
-  lazy val isabelle_files: List[String] =
+  lazy val isabelle_files: (List[Path], List[Path]) =
   {
-    val files1 =
-    {
-      val isabelle_home = Path.ISABELLE_HOME.canonical
-      Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH")).
-        map(path => File.relative_path(isabelle_home, path).getOrElse(path).implode)
-    }
+    val component_contexts =
+      isabelle.setup.Build.component_contexts().asScala.toList
 
-    val isabelle_jar = Path.explode("$ISABELLE_SCALA_JAR").java_path
-    val isabelle_shasum = isabelle.setup.Build.get_shasum(isabelle_jar)
+    val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
+    val jars2 =
+      (for {
+        context <- component_contexts.iterator
+        s <- context.requirements().asScala.iterator
+        path <- context.requirement_paths(s).asScala.iterator
+      } yield File.path(path.toFile)).toList
 
-    val files2 =
-      for {
-        line <- Library.trim_split_lines(isabelle_shasum)
-        name =
-          if (line.length > 41 && line(40) == ' ') line.substring(41)
-          else error("Bad shasum entry: " + quote(line))
-        if Path.is_wellformed(name) && name != "<props>"
-      } yield name
+    val jar_files =
+      (jars1 ::: jars2).filterNot(path =>
+        component_contexts.exists(context =>
+        {
+          val name: String = context.module_name()
+          name.nonEmpty && File.eq(context.path(name).toFile, path.file)
+        }))
 
-    files1 ::: files2
+    val source_files =
+      (for {
+        context <- component_contexts.iterator
+        file <- context.sources.asScala.iterator
+        if file.endsWith(".scala") || file.endsWith(".java")
+      } yield File.path(context.path(file).toFile)).toList
+
+    (jar_files, source_files)
   }
 
   lazy val isabelle_scala_files: Map[String, Path] =
-    isabelle_files.foldLeft(Map.empty[String, Path]) {
+  {
+    val context = isabelle.setup.Build.component_context(Path.ISABELLE_HOME.java_path)
+    context.sources().asScala.iterator.foldLeft(Map.empty[String, Path]) {
       case (map, name) =>
-        if (!name.startsWith("src/Tools/jEdit/") && name.endsWith(".scala")) {
-          val path = Path.explode("~~/" + name)
-          val base = path.base.implode
+        if (name.endsWith(".scala")) {
+        val path = File.path(context.path(name).toFile)
+        val base = path.base.implode
           map.get(base) match {
             case None => map + (base -> path)
-            case Some(path1) => error("Conflicting base names: " + path + " vs. " + path1)
+            case Some(path2) => error("Conflicting base names: " + path + " vs. " + path2)
           }
         }
         else map
     }
-
-  private def guess_package(path: Path): String =
-  {
-    val lines = split_lines(File.read(path))
-    val Package = """\bpackage\b +(?:object +)?\b((?:\w|\.)+)\b""".r
-
-    lines.collectFirst({ case Package(name) => name }) getOrElse
-      error("Failed to guess package from " + path)
   }
 
 
@@ -98,6 +101,22 @@ object Scala_Project
 
   /* scala project */
 
+  def package_dir(source_file: Path): Option[Path] =
+  {
+    val is_java = source_file.file_name.endsWith(".java")
+    val lines = split_lines(File.read(source_file))
+    val Package = """\s*\bpackage\b\s*(?:object\b\s*)?((?:\w|\.)+)\b.*""".r
+    lines.collectFirst(
+      {
+        case Package(name) =>
+          if (is_java) Path.explode(space_explode('.', name).mkString("/"))
+          else Path.basic(name)
+      })
+  }
+
+  def the_package_dir(source_file: Path): Path =
+    package_dir(source_file) getOrElse error("Failed to guess package from " + source_file)
+
   def scala_project(project_dir: Path, symlinks: Boolean = false): Unit =
   {
     if (symlinks && Platform.is_windows)
@@ -106,32 +125,19 @@ object Scala_Project
     if (project_dir.is_file || project_dir.is_dir)
       error("Project directory already exists: " + project_dir)
 
-    val java_src_dir = project_dir + Path.explode("src/main/java")
+    val java_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/java"))
     val scala_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/scala"))
 
-    Isabelle_System.copy_dir(Path.explode("$JEDIT_HOME/jEdit"), java_src_dir)
-
-    val isabelle_setup_dir = Path.explode("~~/src/Tools/Setup/isabelle")
-    if (symlinks) Isabelle_System.symlink(isabelle_setup_dir, java_src_dir)
-    else Isabelle_System.copy_dir(isabelle_setup_dir, java_src_dir)
-
-    val files = isabelle_files
+    val (jar_files, source_files) = isabelle_files
     isabelle_scala_files
 
-    for (file <- files if file.endsWith(".scala")) {
-      val path = Path.ISABELLE_HOME + Path.explode(file)
-      val target = scala_src_dir + Path.basic(guess_package(path))
+    for (source <- source_files) {
+      val dir = if (source.file_name.endsWith(".java")) java_src_dir else scala_src_dir
+      val target = dir + the_package_dir(source)
       Isabelle_System.make_directory(target)
-      if (symlinks) Isabelle_System.symlink(path, target)
-      else Isabelle_System.copy_file(path, target)
+      if (symlinks) Isabelle_System.symlink(source, target)
+      else Isabelle_System.copy_file(source, target)
     }
-
-    val jars =
-      for (file <- files if file.endsWith(".jar"))
-      yield {
-        if (file.startsWith("/")) file
-        else Isabelle_System.getenv("ISABELLE_HOME") + "/" + file
-      }
 
     File.write(project_dir + Path.explode("settings.gradle"), "rootProject.name = 'Isabelle'\n")
     File.write(project_dir + Path.explode("build.gradle"),
@@ -146,7 +152,7 @@ repositories {
 dependencies {
   implementation 'org.scala-lang:scala-library:""" + scala.util.Properties.versionNumberString + """'
   compile files(
-    """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
+    """ + jar_files.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
 }
 """)

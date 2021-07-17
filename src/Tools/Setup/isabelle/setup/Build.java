@@ -121,7 +121,15 @@ public class Build
             else return title;
         }
 
+        public String no_module() { return _props.getProperty("no_module", ""); }
         public String module() { return _props.getProperty("module", ""); }
+        public String module_name() {
+            if (!module().isEmpty() && !no_module().isEmpty()) {
+              throw new RuntimeException(error_message("Conflict of module and no_module"));
+            }
+            if (!module().isEmpty()) { return module(); }
+            else { return no_module(); }
+        }
         public String scalac_options() { return _props.getProperty("scalac_options", ""); }
         public String javac_options() { return _props.getProperty("javac_options", ""); }
         public String main() { return _props.getProperty("main", ""); }
@@ -153,6 +161,22 @@ public class Build
             throws IOException, InterruptedException
         {
             return Files.exists(path(file));
+        }
+
+        public List<Path> requirement_paths(String s)
+            throws IOException, InterruptedException
+        {
+            if (s.startsWith("env:")) {
+                List<Path> paths = new LinkedList<Path>();
+                for (String p : Environment.getenv(s.substring(4)).split(":", -1)) {
+                    if (!p.isEmpty()) {
+                        Path path = Path.of(Environment.platform_path(p));
+                        paths.add(path);
+                    }
+                }
+                return List.copyOf(paths);
+            }
+            else { return List.of(path(s)); }
         }
 
         public String item_name(String s)
@@ -454,21 +478,9 @@ public class Build
                     StringBuilder _shasum = new StringBuilder();
                     _shasum.append(context.shasum_props());
                     for (String s : requirements) {
-                        if (s.startsWith("env:")) {
-                            List<Path> paths = new LinkedList<Path>();
-                            for (String p : Environment.getenv(s.substring(4)).split(":", -1)) {
-                                if (!p.isEmpty()) {
-                                    Path path = Path.of(Environment.platform_path(p));
-                                    compiler_deps.add(path);
-                                    paths.add(path);
-                                }
-                            }
-                            _shasum.append(context.shasum(s, paths));
-                        }
-                        else {
-                            compiler_deps.add(context.path(s));
-                            _shasum.append(context.shasum(s));
-                        }
+                        List<Path> paths = context.requirement_paths(s);
+                        compiler_deps.addAll(paths);
+                        _shasum.append(context.shasum(s, paths));
                     }
                     for (String s : resources) {
                         _shasum.append(context.shasum(context.item_name(s)));
