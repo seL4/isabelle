@@ -6,8 +6,14 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* July 2021: Florian Haftmann
+  Further consolidation of bit operations and word types.
+
 * July 2021: Jasmin Blanchette and Martin Desharnais
   Various improvements to Sledgehammer.
+
+* June 2021: Florian Haftmann
+  More context situations susceptible to global_interpretation.
 
 * March 2021: Lukas Stevens
   New order prover
