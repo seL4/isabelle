@@ -229,8 +229,6 @@ public class Build
             if (p.toString().endsWith(".scala")) { scala_sources = true; }
         }
         if (scala_sources) {
-            boolean ok = false;
-
             InputStream in_orig = System.in;
             PrintStream out_orig = System.out;
             PrintStream err_orig = System.err;
@@ -238,6 +236,7 @@ public class Build
             ByteArrayOutputStream out = new ByteArrayOutputStream();
 
             // Single-threaded context!
+            boolean ok = false;
             try {
                 PrintStream out_stream = new PrintStream(out);
                 System.setIn(in);
