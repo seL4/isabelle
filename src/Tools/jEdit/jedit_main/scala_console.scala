@@ -74,7 +74,7 @@ class Scala_Console extends Shell("Scala")
       }
     }
     finally {
-      console_stream.flush
+      console_stream.flush()
       global_console = null
       global_out = null
       global_err = null

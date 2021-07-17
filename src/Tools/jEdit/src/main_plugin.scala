@@ -106,7 +106,7 @@ class Main_Plugin extends EBPlugin
 
   /* theory files */
 
-  lazy val delay_init =
+  lazy val delay_init: Delay =
     Delay.last(options.seconds("editor_load_delay"), gui = true)
     {
       init_models()

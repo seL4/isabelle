@@ -13,7 +13,7 @@ import isabelle.jedit._
 
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
-import javax.swing.{JLabel, Icon}
+import javax.swing.Icon
 
 import org.gjt.sp.jedit.Buffer
 import sidekick.{SideKickParser, SideKickParsedData, IAsset}
@@ -22,7 +22,10 @@ import sidekick.{SideKickParser, SideKickParsedData, IAsset}
 object Isabelle_Sidekick
 {
   def int_to_pos(offset: Text.Offset): Position =
-    new Position { def getOffset = offset; override def toString: String = offset.toString }
+    new Position {
+      def getOffset: Text.Offset = offset
+      override def toString: String = offset.toString
+    }
 
   def root_data(buffer: Buffer): SideKickParsedData =
   {
@@ -35,9 +38,9 @@ object Isabelle_Sidekick
   {
     private val css = GUI.imitate_font_css(GUI.label_font())
 
-    protected var _name = text
-    protected var _start = int_to_pos(range.start)
-    protected var _end = int_to_pos(range.stop)
+    protected var _name: String = text
+    protected var _start: Position = int_to_pos(range.start)
+    protected var _end: Position = int_to_pos(range.stop)
     override def getIcon: Icon = null
     override def getShortString: String =
     {
@@ -84,7 +87,7 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name)
   /* parsing */
 
   @volatile protected var stopped = false
-  override def stop() = { stopped = true }
+  override def stop(): Unit = { stopped = true }
 
   def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean = false
 
@@ -229,7 +232,7 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
     var start1: Option[(Int, String, Vector[DefaultMutableTreeNode])] = None
     var start2: Option[(Int, String)] = None
 
-    def close1: Unit =
+    def close1(): Unit =
       start1 match {
         case Some((start_offset, s, body)) =>
           val node = make_node(s, start_offset, end_offset)
@@ -239,7 +242,7 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
         case None =>
       }
 
-    def close2: Unit =
+    def close2(): Unit =
       start2 match {
         case Some((start_offset, s)) =>
           start1 match {
@@ -254,14 +257,14 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
 
     for (line <- split_lines(JEdit_Lib.buffer_text(buffer)) if !stopped) {
       line match {
-        case Heading1(s) => close2; close1; start1 = Some((offset, s, Vector()))
-        case Heading2(s) => close2; start2 = Some((offset, s))
+        case Heading1(s) => close2(); close1(); start1 = Some((offset, s, Vector()))
+        case Heading2(s) => close2(); start2 = Some((offset, s))
         case _ =>
       }
       offset += line.length + 1
       if (!line.forall(Character.isSpaceChar)) end_offset = offset
     }
-    if (!stopped) { close2; close1 }
+    if (!stopped) { close2(); close1() }
 
     true
   }

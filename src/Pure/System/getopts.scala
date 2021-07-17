@@ -18,8 +18,8 @@ object Getopts
       option_specs.foldLeft(Map.empty[Char, (Boolean, String => Unit)]) {
         case (m, (s, f)) =>
           val (a, entry) =
-            if (s.size == 1) (s(0), (false, f))
-            else if (s.size == 2 && s.endsWith(":")) (s(0), (true, f))
+            if (s.length == 1) (s(0), (false, f))
+            else if (s.length == 2 && s.endsWith(":")) (s(0), (true, f))
             else error("Bad option specification: " + quote(s))
           if (m.isDefinedAt(a)) error("Duplicate option specification: " + quote(a.toString))
           else m + (a -> entry)
