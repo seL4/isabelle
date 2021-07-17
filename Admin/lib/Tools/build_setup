@@ -73,8 +73,8 @@ echo -n >> "$BUILD_PROPS" "sources ="
 
 for SRC in "${SOURCES[@]}"
 do
-  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC")"
-  cp "$ISABELLE_HOME/src/Tools/Setup/isabelle/setup/$SRC" "$SOURCE_DIR"
+  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/src/$SRC")"
+  cp "$ISABELLE_HOME/src/Tools/Setup/src/$SRC" "$SOURCE_DIR"
   echo >> "$BUILD_PROPS" " \\"
   echo -n >> "$BUILD_PROPS" "  src/$SRC"
 done

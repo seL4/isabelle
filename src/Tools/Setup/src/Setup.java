@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/isabelle/setup/Setup.java
+/*  Title:      Tools/Setup/src/Setup.java
     Author:     Makarius
 
 Isabelle setup tool: bootstrap from generic Java environment.

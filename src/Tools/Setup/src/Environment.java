@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/isabelle/setup/Environment.scala
+/*  Title:      Tools/Setup/src/Environment.scala
     Author:     Makarius
 
 Fundamental Isabelle system environment: quasi-static module with

@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/isabelle/setup/Build.java
+/*  Title:      Tools/Setup/src/Build.java
     Author:     Makarius
 
 Build Isabelle/Scala/Java modules.

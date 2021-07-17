@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/isabelle/setup/Exn.java
+/*  Title:      Tools/Setup/src/Exn.java
     Author:     Makarius
 
 Support for exceptions (arbitrary throwables).

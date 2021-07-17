@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/isabelle/setup/Library.java
+/*  Title:      Tools/Setup/src/Library.java
     Author:     Makarius
 
 Basic library.
