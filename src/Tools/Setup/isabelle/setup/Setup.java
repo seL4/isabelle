@@ -53,7 +53,7 @@ class Setup
                     for (String s : Build.services()) { echo(s); }
                     break;
                 default:
-                    fail("Bad setup operation " + Environment.quote(op));
+                    fail("Bad setup operation " + Library.quote(op));
                     break;
             }
         }

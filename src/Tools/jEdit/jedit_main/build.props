@@ -1,6 +1,5 @@
-description = Isabelle/jEdit main plugin
-lib = $JEDIT_SETTINGS/jars
-name = isabelle_jedit_main
+title = Isabelle/jEdit main plugin
+module = $JEDIT_SETTINGS/jars/isabelle_jedit_main.jar
 requirements = \
   env:ISABELLE_SCALA_JAR \
   env:JEDIT_JARS

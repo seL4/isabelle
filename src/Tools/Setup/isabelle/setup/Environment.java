@@ -30,11 +30,6 @@ public class Environment
         return System.getProperty("os.name", "").startsWith("Windows");
     }
 
-    public static String quote(String s)
-    {
-        return "\"" + s + "\"";
-    }
-
 
 
     /* system path representations */
@@ -139,7 +134,7 @@ public class Environment
                     String res = env.getOrDefault(var, "");
                     if (res.isEmpty()) {
                         throw new RuntimeException(
-                            "Bad Isabelle environment variable: " + quote(var));
+                            "Bad Isabelle environment variable: " + Library.quote(var));
                     }
                     else check(null, res);
                 }
@@ -275,7 +270,9 @@ public class Environment
         else { throw new RuntimeException("Unknown " + description + " directory"); }
 
         if ((new File(dir)).isDirectory()) { return dir; }
-        else { throw new RuntimeException("Bad " + description + " directory " + quote(dir)); }
+        else {
+            throw new RuntimeException("Bad " + description + " directory " + Library.quote(dir));
+        }
     }
 
     private static void cygwin_exec(String isabelle_root, List<String> cmd)

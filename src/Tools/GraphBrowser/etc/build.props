@@ -1,6 +1,5 @@
-description = graph browser
-lib = $ISABELLE_HOME/lib/classes
-name = isabelle_graphbrowser
+title = graph browser
+module = $ISABELLE_HOME/lib/classes/isabelle_graphbrowser.jar
 javac_options = -source 7 -target 7
 sources = \
   awt/Border.java \

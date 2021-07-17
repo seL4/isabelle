@@ -14,6 +14,11 @@ import java.util.List;
 
 public class Library
 {
+    public static String quote(String s)
+    {
+        return "\"" + s + "\"";
+    }
+
     public static String cat_lines(Iterable<? extends CharSequence> lines)
     {
         return String.join("\n", lines);

@@ -1,6 +1,5 @@
-description = Isabelle/Scala
-lib = lib/classes
-name = isabelle
+title = Isabelle/Scala
+module = $ISABELLE_HOME/lib/classes/isabelle.jar
 main = isabelle.jedit.Main
 resources = \
   lib/services/java.nio.charset.spi.CharsetProvider:META-INF/services/ \

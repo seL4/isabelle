@@ -55,17 +55,18 @@ public class Build
         throws IOException
     {
         Properties props = new Properties();
-        props.load(Files.newBufferedReader(dir.resolve(BUILD_PROPS)));
-        return new Context(dir, props);
+        Path props_path = dir.resolve(BUILD_PROPS);
+        props.load(Files.newBufferedReader(props_path));
+        return new Context(dir, props, props_path.toString());
     }
 
     public static Context component_context(Path dir)
         throws IOException
     {
         Properties props = new Properties();
-        Path build_props = dir.resolve(COMPONENT_BUILD_PROPS);
-        if (Files.exists(build_props)) { props.load(Files.newBufferedReader(build_props)); }
-        return new Context(dir, props);
+        Path props_path = dir.resolve(COMPONENT_BUILD_PROPS);
+        if (Files.exists(props_path)) { props.load(Files.newBufferedReader(props_path)); }
+        return new Context(dir, props, props_path.toString());
     }
 
     public static List<Context> component_contexts()
@@ -93,24 +94,36 @@ public class Build
     {
         private final Path _dir;
         private final Properties _props;
+        private final String _location;
 
-        public Context(Path dir, Properties props)
+        public Context(Path dir, Properties props, String location)
         {
             _dir = dir;
             _props = props;
+            _location = location;
         }
 
         @Override public String toString() { return _dir.toString(); }
 
-        public String name() { return _props.getProperty("name", _dir.toFile().getName()); }
-        public String description() { return _props.getProperty("description", name()); }
+        public String error_message(String msg)
+        {
+            if (_location == null || _location.isEmpty()) {
+                return msg;
+            }
+            else {
+                return msg +" (in " + Library.quote(_location) + ")";
+            }
+        }
 
-        public String lib_name() { return _props.getProperty("lib", "lib") + "/" + name(); }
-        public String jar_name() { return lib_name() + ".jar"; }
+        public String title() {
+            String title = _props.getProperty("title", "");
+            if (title.isEmpty()) { throw new RuntimeException(error_message("Missing title")); }
+            else return title;
+        }
 
+        public String module() { return _props.getProperty("module", ""); }
         public String scalac_options() { return _props.getProperty("scalac_options", ""); }
         public String javac_options() { return _props.getProperty("javac_options", ""); }
-
         public String main() { return _props.getProperty("main", ""); }
 
         private List<String> get_list(String name)
@@ -164,7 +177,7 @@ public class Build
                 }
                 else {
                     throw new RuntimeException(
-                        "Missing input file " + Environment.quote(file.toString()));
+                        error_message("Missing input file " + Library.quote(file.toString())));
                 }
             }
             return sha_digest(sha, name);
@@ -393,7 +406,8 @@ public class Build
     {
         List<Path> result = new LinkedList<Path>();
         for (Context context : component_contexts()) {
-            result.add(context.path(context.jar_name()));
+            String module = context.module();
+            if (!module.isEmpty()) { result.add(context.path(module)); }
         }
         return List.copyOf(result);
     }
@@ -416,108 +430,116 @@ public class Build
     public static void build(Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
-        String jar_name = context.jar_name();
-        Path jar_path = context.path(jar_name);
+        String module = context.module();
+        if (!module.isEmpty()) {
+            String title = context.title();
 
-        List<String> requirements = context.requirements();
-        List<String> resources = context.resources();
-        List<String> sources = context.sources();
-
-        if (context.is_vacuous()) { Files.deleteIfExists(jar_path); }
-        else {
-            String shasum_old = get_shasum(jar_path);
-            String shasum;
-            List<Path> compiler_deps = new LinkedList<Path>();
-            {
-                StringBuilder _shasum = new StringBuilder();
-                _shasum.append(context.shasum_props());
-                for (String s : requirements) {
-                    if (s.startsWith("env:")) {
-                        List<Path> paths = new LinkedList<Path>();
-                        for (String p : Environment.getenv(s.substring(4)).split(":", -1)) {
-                            if (!p.isEmpty()) {
-                                Path path = Path.of(Environment.platform_path(p));
-                                compiler_deps.add(path);
-                                paths.add(path);
-                            }
-                        }
-                        _shasum.append(context.shasum(s, paths));
-                    }
-                    else {
-                        compiler_deps.add(context.path(s));
-                        _shasum.append(context.shasum(s));
-                    }
-                }
-                for (String s : resources) {
-                    _shasum.append(context.shasum(context.item_name(s)));
-                }
-                for (String s : sources) { _shasum.append(context.shasum(s)); }
-                shasum = _shasum.toString();
+            Path jar_path = context.path(module);
+            String jar_name = jar_path.toString();
+            if (!jar_name.endsWith(".jar")) {
+                throw new RuntimeException(
+                    context.error_message("Bad jar module " + Library.quote(jar_name)));
             }
-            if (fresh || !shasum_old.equals(shasum)) {
-                System.out.print(
-                    "### Building " + context.description() + " (" + jar_path + ") ...\n");
 
-                String isabelle_class_path = Environment.getenv("ISABELLE_CLASSPATH");
+            if (context.is_vacuous()) { Files.deleteIfExists(jar_path); }
+            else {
+                List<String> requirements = context.requirements();
+                List<String> resources = context.resources();
+                List<String> sources = context.sources();
 
-                Path build_dir = Files.createTempDirectory("isabelle");
-                try {
-                    /* compile sources */
-
-                    for (String s : isabelle_class_path.split(":", -1)) {
-                        if (!s.isEmpty()) {
-                          compiler_deps.add(Path.of(Environment.platform_path(s)));
+                String shasum_old = get_shasum(jar_path);
+                String shasum;
+                List<Path> compiler_deps = new LinkedList<Path>();
+                {
+                    StringBuilder _shasum = new StringBuilder();
+                    _shasum.append(context.shasum_props());
+                    for (String s : requirements) {
+                        if (s.startsWith("env:")) {
+                            List<Path> paths = new LinkedList<Path>();
+                            for (String p : Environment.getenv(s.substring(4)).split(":", -1)) {
+                                if (!p.isEmpty()) {
+                                    Path path = Path.of(Environment.platform_path(p));
+                                    compiler_deps.add(path);
+                                    paths.add(path);
+                                }
+                            }
+                            _shasum.append(context.shasum(s, paths));
+                        }
+                        else {
+                            compiler_deps.add(context.path(s));
+                            _shasum.append(context.shasum(s));
                         }
                     }
-
-                    List<Path> compiler_sources = new LinkedList<Path>();
-                    for (String s : sources) { compiler_sources.add(context.path(s)); }
-
-                    compile_scala_sources(
-                        build_dir, context.scalac_options(), compiler_deps, compiler_sources);
-
-                    compiler_deps.add(build_dir);
-                    compile_java_sources(
-                        build_dir, context.javac_options(), compiler_deps, compiler_sources);
-
-
-                    /* copy resources */
-
-                    for (String s : context.resources()) {
-                        String name = context.item_name(s);
-                        String target = context.item_target(s);
-                        Path file_name = Path.of(name).normalize().getFileName();
-                        Path target_path = Path.of(target).normalize();
-
-                        Path target_dir;
-                        Path target_file;
-                        {
-                            if (target.endsWith("/") || target.endsWith("/.")) {
-                                target_dir = build_dir.resolve(target_path);
-                                target_file = target_dir.resolve(file_name);
-                            }
-                            else {
-                                target_file = build_dir.resolve(target_path);
-                                target_dir = target_file.getParent();
-                            }
-                        }
-                        Files.createDirectories(target_dir);
-                        Files.copy(context.path(name), target_file,
-                            StandardCopyOption.COPY_ATTRIBUTES);
+                    for (String s : resources) {
+                        _shasum.append(context.shasum(context.item_name(s)));
                     }
-
-
-                    /* packaging */
-
-                    create_shasum(build_dir, shasum);
-                    create_services(build_dir, context.services());
-                    create_jar(build_dir, context.main(), jar_path);
+                    for (String s : sources) { _shasum.append(context.shasum(s)); }
+                    shasum = _shasum.toString();
                 }
-                finally {
-                    try (Stream<Path> walk = Files.walk(build_dir)) {
-                        walk.sorted(Comparator.reverseOrder())
-                            .map(Path::toFile)
-                            .forEach(File::delete);
+                if (fresh || !shasum_old.equals(shasum)) {
+                    System.out.print("### Building " + title + " (" + jar_path + ") ...\n");
+
+                    String isabelle_classpath = Environment.getenv("ISABELLE_CLASSPATH");
+
+                    Path build_dir = Files.createTempDirectory("isabelle");
+                    try {
+                        /* compile sources */
+
+                        for (String s : isabelle_classpath.split(":", -1)) {
+                            if (!s.isEmpty()) {
+                              compiler_deps.add(Path.of(Environment.platform_path(s)));
+                            }
+                        }
+
+                        List<Path> compiler_sources = new LinkedList<Path>();
+                        for (String s : sources) { compiler_sources.add(context.path(s)); }
+
+                        compile_scala_sources(
+                            build_dir, context.scalac_options(), compiler_deps, compiler_sources);
+
+                        compiler_deps.add(build_dir);
+                        compile_java_sources(
+                            build_dir, context.javac_options(), compiler_deps, compiler_sources);
+
+
+                        /* copy resources */
+
+                        for (String s : context.resources()) {
+                            String name = context.item_name(s);
+                            String target = context.item_target(s);
+                            Path file_name = Path.of(name).normalize().getFileName();
+                            Path target_path = Path.of(target).normalize();
+
+                            Path target_dir;
+                            Path target_file;
+                            {
+                                if (target.endsWith("/") || target.endsWith("/.")) {
+                                    target_dir = build_dir.resolve(target_path);
+                                    target_file = target_dir.resolve(file_name);
+                                }
+                                else {
+                                    target_file = build_dir.resolve(target_path);
+                                    target_dir = target_file.getParent();
+                                }
+                            }
+                            Files.createDirectories(target_dir);
+                            Files.copy(context.path(name), target_file,
+                                StandardCopyOption.COPY_ATTRIBUTES);
+                        }
+
+
+                        /* packaging */
+
+                        create_shasum(build_dir, shasum);
+                        create_services(build_dir, context.services());
+                        create_jar(build_dir, context.main(), jar_path);
+                    }
+                    finally {
+                        try (Stream<Path> walk = Files.walk(build_dir)) {
+                            walk.sorted(Comparator.reverseOrder())
+                                .map(Path::toFile)
+                                .forEach(File::delete);
+                        }
                     }
                 }
             }
