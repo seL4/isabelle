@@ -82,11 +82,7 @@ object Main
 </PERSPECTIVE>""")
           }
 
-          for (plugin <- List("jedit_base", "jedit_main")) {
-            val dir = Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin)
-            val context = isabelle.setup.Build.directory_context(dir.java_path)
-            isabelle.setup.Build.build(context, false)
-          }
+          Scala_Project.plugin_contexts().foreach(isabelle.setup.Build.build(_, false))
 
 
           /* args */

@@ -25,22 +25,30 @@ object Scala_Project
 
   /* file and directories */
 
+  def plugin_contexts(): List[isabelle.setup.Build.Context] =
+    for (plugin <- List("jedit_base", "jedit_main"))
+    yield {
+      val dir = Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin)
+      isabelle.setup.Build.directory_context(dir.java_path)
+    }
+
   lazy val isabelle_files: (List[Path], List[Path]) =
   {
-    val component_contexts =
-      isabelle.setup.Build.component_contexts().asScala.toList
+    val contexts =
+      isabelle.setup.Build.component_contexts().asScala.toList :::
+        plugin_contexts()
 
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
     val jars2 =
       (for {
-        context <- component_contexts.iterator
+        context <- contexts.iterator
         s <- context.requirements().asScala.iterator
         path <- context.requirement_paths(s).asScala.iterator
       } yield File.path(path.toFile)).toList
 
     val jar_files =
-      (jars1 ::: jars2).filterNot(path =>
-        component_contexts.exists(context =>
+      Library.distinct(jars1 ::: jars2).filterNot(path =>
+        contexts.exists(context =>
         {
           val name: String = context.module_name()
           name.nonEmpty && File.eq(context.path(name).toFile, path.file)
@@ -48,7 +56,7 @@ object Scala_Project
 
     val source_files =
       (for {
-        context <- component_contexts.iterator
+        context <- contexts.iterator
         file <- context.sources.asScala.iterator
         if file.endsWith(".scala") || file.endsWith(".java")
       } yield File.path(context.path(file).toFile)).toList
