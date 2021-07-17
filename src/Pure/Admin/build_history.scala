@@ -164,11 +164,15 @@ object Build_History
     val (afp_build_args, afp_sessions) =
       if (afp_rev.isEmpty) (Nil, Nil)
       else {
-        val (opt, sessions) =
-          try {
-            val afp = AFP.init(options, afp_repos)
-            ("-d", afp.partition(afp_partition))
-          } catch { case ERROR(_) => ("-D", Nil) }
+        val (opt, sessions) = {
+          if (afp_partition == 0) ("-d", Nil)
+          else {
+            try {
+              val afp = AFP.init(options, afp_repos)
+              ("-d", afp.partition(afp_partition))
+            } catch { case ERROR(_) => ("-D", Nil) }
+          }
+        }
         (List(opt, "~~/AFP/thys"), sessions)
       }
 
