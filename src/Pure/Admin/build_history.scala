@@ -564,7 +564,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       execute("bin/isabelle", "components -I")
       execute("bin/isabelle", "components -a", echo = true)
-      execute("Admin/build", "jars_fresh")
+      execute("bin/isabelle", "jedit -bf")
     }
 
     val rev_id = self_hg.id(rev)
