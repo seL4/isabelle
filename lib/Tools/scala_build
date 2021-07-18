@@ -17,6 +17,9 @@ function usage()
   echo "    -f           force fresh build"
   echo "    -q           quiet mode: suppress stdout/stderr"
   echo
+  echo "  Build Isabelle/Scala/Java modules of all registered components"
+  echo "  (if required)."
+  echo
   exit 1
 }
 
