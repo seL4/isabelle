@@ -45,7 +45,7 @@ fi
 
 ## internal tool or usage (Scala)
 
-isabelle_scala_build || exit $?
+"$ISABELLE_HOME/lib/Tools/scala_build" || exit $?
 
 eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
 exec isabelle java "${JAVA_ARGS[@]}" isabelle.Isabelle_Tool "$@"

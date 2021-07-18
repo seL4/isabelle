@@ -55,7 +55,7 @@ function failed()
 # options
 
 BUILD_ONLY=false
-FRESH_BUILD=""
+BUILD_OPTIONS=""
 ML_PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
@@ -99,7 +99,7 @@ function getoptions()
         fi
         ;;
       f)
-        FRESH_BUILD="true"
+        BUILD_OPTIONS="-f"
         ;;
       j)
         ARGS["${#ARGS[@]}"]="$OPTARG"
@@ -154,11 +154,7 @@ done
 
 ## main
 
-if [ -n "$FRESH_BUILD" ]; then
-  isabelle_scala_build fresh || exit "$?"
-else
-  isabelle_scala_build || exit "$?"
-fi
+isabelle scala_build $BUILD_OPTIONS || exit $?
 
 if [ "$BUILD_ONLY" = false ]
 then

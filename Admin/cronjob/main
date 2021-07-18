@@ -8,5 +8,5 @@ THIS="$(cd "$(dirname "$0")"; pwd)"
 source "$HOME/.bashrc"
 
 export ISABELLE_IDENTIFIER="cronjob"
-env ISABELLE_SETUP_CLASSPATH_SKIP=true "$THIS/../../bin/isabelle" java isabelle.setup.Setup build > /dev/null || exit $?
-exec "$THIS/../../bin/isabelle_java" isabelle.Isabelle_Cronjob "$@"
+"$THIS/../../bin/isabelle" scala_build -q || exit $?
+"$THIS/../../bin/isabelle_java" isabelle.Isabelle_Cronjob "$@"

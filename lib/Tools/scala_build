@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: build Isabelle/Scala/Java components
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -f           force fresh build"
+  echo "    -q           quiet mode: suppress stdout/stderr"
+  echo
+  exit 1
+}
+
+
+## process command line
+
+COMMAND="build"
+QUIET=""
+
+while getopts "fq" OPT
+do
+  case "$OPT" in
+    f)
+      COMMAND="build_fresh"
+      ;;
+    q)
+      QUIET="true"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+#remove historic material
+rm -rf \
+  "$ISABELLE_HOME/lib/classes/Pure.jar" \
+  "$ISABELLE_HOME/lib/classes/Pure.shasum" \
+  "$ISABELLE_HOME/src/Tools/jEdit/dist"
+
+classpath "$CLASSPATH"; unset CLASSPATH
+
+eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
+
+JAVA_ARGS["${#JAVA_ARGS[@]}"]="-classpath"
+JAVA_ARGS["${#JAVA_ARGS[@]}"]="$(platform_path "$ISABELLE_CLASSPATH")"
+JAVA_ARGS["${#JAVA_ARGS[@]}"]="isabelle.setup.Setup"
+JAVA_ARGS["${#JAVA_ARGS[@]}"]="$COMMAND"
+
+if [ -z "$QUIET" ]; then
+  isabelle_java java "${JAVA_ARGS[@]}"
+else
+  isabelle_java java "${JAVA_ARGS[@]}" > /dev/null 2> /dev/null
+fi
