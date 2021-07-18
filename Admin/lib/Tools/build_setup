@@ -4,17 +4,6 @@
 #
 # DESCRIPTION: build component for Isabelle/Java setup tool
 
-## sources
-
-declare -a SOURCES=(
-  "Build.java"
-  "Environment.java"
-  "Exn.java"
-  "Library.java"
-  "Setup.java"
-)
-
-
 ## usage
 
 PRG=$(basename "$0")
@@ -58,28 +47,19 @@ ISABELLE_SETUP_JAR="\$COMPONENT/lib/isabelle_setup.jar"
 classpath "\$ISABELLE_SETUP_JAR"
 EOF
 
-BUILD_PROPS="$COMPONENT_DIR/etc/build.props"
-echo >> "$BUILD_PROPS" "no_module = lib/isabelle_setup.jar"
-
 
 # build jar
 
-SOURCE_DIR="$COMPONENT_DIR/src"
 TARGET_DIR="$COMPONENT_DIR/lib"
-mkdir -p "$SOURCE_DIR" "$TARGET_DIR/isabelle/setup"
+mkdir -p "$TARGET_DIR/isabelle/setup"
 
 declare -a ARGS=("-Xlint:unchecked")
-echo -n >> "$BUILD_PROPS" "sources ="
 
-for SRC in "${SOURCES[@]}"
+SOURCES="$(perl -e 'while (<>) { if (m/(\S+\.java)/)  { print "$1 "; } }' "$ISABELLE_HOME/src/Tools/Setup/etc/build.props")"
+for SRC in $SOURCES
 do
-  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/src/$SRC")"
-  cp "$ISABELLE_HOME/src/Tools/Setup/src/$SRC" "$SOURCE_DIR"
-  echo >> "$BUILD_PROPS" " \\"
-  echo -n >> "$BUILD_PROPS" "  src/$SRC"
+  ARGS["${#ARGS[@]}"]="$(platform_path "$ISABELLE_HOME/src/Tools/Setup/$SRC")"
 done
-
-echo >> "$BUILD_PROPS"
 
 isabelle_jdk javac $ISABELLE_JAVAC_OPTIONS -d "$TARGET_DIR" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "${ARGS[@]}" || \

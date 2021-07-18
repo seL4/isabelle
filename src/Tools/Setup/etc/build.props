@@ -1,0 +1,7 @@
+no_module = $ISABELLE_SETUP_JAR
+sources = \
+  src/Build.java \
+  src/Environment.java \
+  src/Exn.java \
+  src/Library.java \
+  src/Setup.java
