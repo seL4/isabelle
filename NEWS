@@ -276,7 +276,7 @@ context of Isabelle/Scala:
 *** System ***
 
 * Each Isabelle component may specify a Scala/Java jar module
-declaratively via etc/build.props (all file names are relative to the
+declaratively via etc/build.props (file names are relative to the
 component directory). E.g. see $ISABELLE_HOME/etc/build.props with
 further explanations in the "system" manual.
 
@@ -290,9 +290,10 @@ including user add-ons. This includes jEdit sources and Isabelle/jEdit
 plugins (jedit_base and jedit_main).
 
 * Isabelle/jEdit is now composed more conventionally from the original
-jEdit in $JEDIT_HOME (with minor patches), plus two plugins that are
-produced in $JEDIT_SETTINGS/jar on demand. The main isabelle.jedit
-module is now part of Isabelle/Scala (as one big $ISABELLE_SCALA_JAR).
+jEdit text editor in $JEDIT_HOME (with minor patches), plus two Isabelle
+plugins that are produced in $JEDIT_SETTINGS/jars on demand. The main
+isabelle.jedit module is now part of Isabelle/Scala (as one big
+$ISABELLE_SCALA_JAR).
 
 * ML profiling has been updated and reactivated, after some degration in
 Isabelle2021:
