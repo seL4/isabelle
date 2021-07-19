@@ -269,9 +269,9 @@ fun term_of_atp_ho ctxt sym_tab =
           val tm = do_term NONE term
         in quantify_over_var true lambda' var_name typ tm end
       | ATerm ((s, tys), us) =>
-        if s = ""
-        then error "Isar proof reconstruction failed because the ATP proof \
-                     \contains unparsable material"
+        if s = "" (* special marker generated on parse error *) then
+          error "Isar proof reconstruction failed because the ATP proof contains unparsable \
+            \material"
         else if s = tptp_equal then
           list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term NONE) us)
@@ -347,7 +347,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
     fun do_term extra_ts opt_T u =
       (case u of
         ATerm ((s, tys), us) =>
-        if s = "" then
+        if s = "" (* special marker generated on parse error *) then
           error "Isar proof reconstruction failed because the ATP proof contains unparsable \
             \material"
         else if String.isPrefix native_type_prefix s then
