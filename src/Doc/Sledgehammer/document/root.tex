@@ -109,8 +109,8 @@ The supported ATPs include agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 Vampire \cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
 Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or remotely
 via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
-solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, veriT \cite{bouton-et-al-2009},
-and Z3 \cite{de-moura-2008}. These are always run locally.
+solvers are CVC4 \cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3
+\cite{de-moura-2008}. These are always run locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
@@ -147,12 +147,11 @@ concerning Sledgehammer or this manual should be directed to the author at
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
-Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS,
-Vampire, and Zipperposition can be run locally; in addition, agsyHOL,
-Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, Vampire, Waldmeister,
-and Zipperposition are available remotely via System\-On\-TPTP
-\cite{sutcliffe-2000}. The SMT solvers CVC3, CVC4, veriT, and Z3 can be run
-locally.
+Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS, Vampire,
+and Zipperposition can be run locally; in addition, agsyHOL, Alt-Ergo, E,
+iProver, LEO-II, Leo-III, Satallax, Vampire, Waldmeister, and Zipperposition are
+available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
+CVC4, veriT, and Z3 can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -164,9 +163,9 @@ and Z3, ready to use. To use Vampire, you must confirm that you are a
 noncommercial user, as indicated by the message that is displayed when
 Sledgehammer is invoked the first time.
 
-\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
-CVC4, E, SPASS, Vampire, veriT, and Z3 binary packages from \download. Extract
-the archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC4, E,
+SPASS, Vampire, veriT, and Z3 binary packages from \download. Extract the
+archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash
 etc\slash components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
@@ -194,12 +193,12 @@ should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{LEO3\_VERSION}, or \texttt{SATALLAX\_VERSION} to the prover's version
 number (e.g., ``3.6'').
 
-Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
-variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
-\texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
-of the executable, \emph{including the file name}. Ideally, also set
-\texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
-\texttt{Z3\_VERSION} to the solver's version number (e.g., ``4.4.0'').
+Similarly, if you want to install CVC4, veriT, or Z3, set the environment
+variable \texttt{CVC4\_\allowbreak SOLVER}, \texttt{VERIT\_\allowbreak SOLVER},
+or \texttt{Z3\_SOLVER} to the complete path of the executable, \emph{including
+the file name}. Ideally, also set \texttt{CVC4\_VERSION},
+\texttt{VERIT\_VERSION}, or \texttt{Z3\_VERSION} to the solver's version number
+(e.g., ``4.4.0'').
 \end{enum}
 \end{sloppy}
 
@@ -691,16 +690,11 @@ It supports the TPTP polymorphic typed first-order format (TF1) via Why3
 to the directory that contains the \texttt{why3} executable. Sledgehammer
 requires Alt-Ergo 0.95.2 and Why3 0.83.
 
-\item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
-Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
-set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
-executable, including the file name, or install the prebuilt CVC3 package from
+\item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 is an SMT solver developed by
+Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc4}. To use CVC4,
+set the environment variable \texttt{CVC4\_SOLVER} to the complete path of the
+executable, including the file name, or install the prebuilt CVC4 package from
 \download.
-
-\item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 \cite{cvc4} is the successor to
-CVC3. To use CVC4, set the environment variable \texttt{CVC4\_SOLVER} to the
-complete path of the executable, including the file name, or install the
-prebuilt CVC4 package from \download.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2019}. To use E, set the environment

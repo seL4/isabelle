@@ -687,7 +687,6 @@ behaviour. They can be passed to the solver by setting the following
 options.
 \<close>
 
-declare [[cvc3_options = ""]]
 declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call --inst-no-entail --term-db-mode=relevant --multi-trigger-linear"]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]

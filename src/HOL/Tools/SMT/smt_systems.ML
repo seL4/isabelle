@@ -54,31 +54,6 @@ fun on_first_line test_outcome solver_name lines =
 fun on_first_non_unsupported_line test_outcome solver_name lines =
   on_first_line test_outcome solver_name (filter (curry (op <>) "unsupported") lines)
 
-(* CVC3 *)
-
-local
-  fun cvc3_options ctxt =
-    ["-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
-     "-lang", "smt2"] @
-    (case SMT_Config.get_timeout ctxt of
-      NONE => []
-    | SOME t => ["-timeout", string_of_int (Real.ceil (Time.toReal t))])
-in
-
-val cvc3: SMT_Solver.solver_config = {
-  name = "cvc3",
-  class = K SMTLIB_Interface.smtlibC,
-  avail = make_avail "CVC3",
-  command = make_command "CVC3",
-  options = cvc3_options,
-  smt_options = [],
-  default_max_relevant = 400 (* FUDGE *),
-  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
-  parse_proof = NONE,
-  replay = NONE }
-
-end
-
 
 (* CVC4 *)
 
@@ -219,7 +194,6 @@ val _ =
 (* overall setup *)
 
 val _ = Theory.setup (
-  SMT_Solver.add_solver cvc3 #>
   SMT_Solver.add_solver cvc4 #>
   SMT_Solver.add_solver veriT #>
   SMT_Solver.add_solver z3)
