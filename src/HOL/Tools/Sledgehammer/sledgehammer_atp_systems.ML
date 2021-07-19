@@ -289,20 +289,20 @@ val e_config : atp_config =
    best_slices = fn ctxt =>
      let
        val heuristic = Config.get ctxt e_selection_heuristic
-       val (format, enc) =
+       val (format, enc, main_lam_trans) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher_fool")
+           (THF (With_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher_fool", keep_lamsN)
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
-           (THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher")
+           (THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
          else
-           (THF (Without_FOOL, Monomorphic, THF_Lambda_Free), "mono_native_higher")
+           (THF (Without_FOOL, Monomorphic, THF_Lambda_Free), "mono_native_higher", combsN)
      in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.15, (((128, meshN), format, enc, combsN, false), e_fun_weightN)),
-          (0.15, (((128, mashN), format, enc, combsN, false), e_sym_offset_weightN)),
-          (0.15, (((91, mepoN), format, enc, combsN, false), e_autoN)),
-          (0.15, (((1000, meshN), format, "poly_guards??", combsN, false), e_sym_offset_weightN)),
+         [(0.15, (((128, meshN), format, enc, main_lam_trans, false), e_fun_weightN)),
+          (0.15, (((128, mashN), format, enc, main_lam_trans, false), e_sym_offset_weightN)),
+          (0.15, (((91, mepoN), format, enc, main_lam_trans, false), e_autoN)),
+          (0.15, (((1000, meshN), format, "poly_guards??", main_lam_trans, false), e_sym_offset_weightN)),
           (0.15, (((256, mepoN), format, enc, liftingN, false), e_fun_weightN)),
           (0.25, (((64, mashN), format, enc, combsN, false), e_fun_weightN))]
        else
