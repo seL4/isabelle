@@ -682,8 +682,7 @@ The following local provers are supported:
 \item[\labelitemi] \textbf{\textit{agsyhol}:} agsyHOL is an automatic
 higher-order prover developed by Fredrik Lindblad \cite{agsyHOL}. To use
 agsyHOL, set the environment variable \texttt{AGSYHOL\_HOME} to the directory
-that contains the \texttt{agsyHOL} executable. Sledgehammer has been tested
-with version 1.0.
+that contains the \texttt{agsyHOL} executable.
 
 \item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
 ATP developed by Bobot et al.\ \cite{alt-ergo}.
@@ -696,79 +695,74 @@ requires Alt-Ergo 0.95.2 and Why3 0.83.
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name, or install the prebuilt CVC3 package from
-\download. Sledgehammer has been tested with versions 2.2 and 2.4.1.
+\download.
 
 \item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 \cite{cvc4} is the successor to
 CVC3. To use CVC4, set the environment variable \texttt{CVC4\_SOLVER} to the
 complete path of the executable, including the file name, or install the
-prebuilt CVC4 package from \download. Sledgehammer has been tested with version
-1.5-prerelease.
+prebuilt CVC4 package from \download.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2019}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
 executable and \texttt{E\_VERSION} to the version number (e.g., ``1.8''), or
-install the prebuilt E package from \download. Sledgehammer has been tested with
-versions 1.6 to 1.8.
+install the prebuilt E package from \download.
 
 \item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
-instantiation-based prover developed by Konstantin Korovin
-\cite{korovin-2009}. To use iProver, set the environment variable
-\texttt{IPROVER\_HOME} to the directory that contains the \texttt{iproveropt}
-executable. Sledgehammer has been tested with version 2.8. iProver depends on
-E to clausify problems, so make sure that E is installed as well.
+instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}.
+To use iProver, set the environment variable \texttt{IPROVER\_HOME} to the
+directory that contains the \texttt{iproveropt} executable. iProver depends on
+Vampire to clausify problems, so make sure that Vampire is installed as well.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
 with support for the TPTP typed higher-order syntax (TH0). To use LEO-II, set
 the environment variable \texttt{LEO2\_HOME} to the directory that contains the
-\texttt{leo} executable. Sledgehammer has been tested with version 1.3.4.
+\texttt{leo} executable.
 
 \item[\labelitemi] \textbf{\textit{leo3}:} Leo-III is an automatic
 higher-order prover developed by Alexander Steen, Max Wisniewski, Christoph
 Benzm\"uller et al.\ \cite{leo3},
 with support for the TPTP typed higher-order syntax (TH0). To use Leo-III, set
 the environment variable \texttt{LEO3\_HOME} to the directory that contains the
-\texttt{leo3} executable. Sledgehammer has been tested with version 1.1.
+\texttt{leo3} executable.
 
 \item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
 support for the TPTP typed higher-order syntax (TH0). To use Satallax, set the
 environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
-\texttt{satallax} executable. Sledgehammer has been tested with version 2.2.
+\texttt{satallax} executable.
 
 \item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
 version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
-\download. Sledgehammer has been tested with version 3.8ds.
+\download.
 
 \item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order
 resolution prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
-``4.2.2''). Sledgehammer has been tested with versions 1.8 to 4.2.2 (in the
-post-2010 numbering scheme).
+``4.2.2'').
 
 \item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is an
 SMT solver developed by David D\'eharbe, Pascal Fontaine, and their colleagues.
 It is designed to produce detailed proofs for reconstruction in proof
 assistants. To use veriT, set the environment variable \texttt{VERIT\_SOLVER}
-to the complete path of the executable, including the file name. Sledgehammer
-has been tested with version 2020.10-rmx.
+to the complete path of the executable, including the file name.
 
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{de-moura-2008}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the
-file name. Sledgehammer has been tested with a pre-release version of 4.4.0.
+file name.
 
 \item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to
 be an ATP, exploiting Z3's support for the TPTP typed first-order format (TF0).
-It is included for experimental purposes. Sledgehammer has been tested with
-version 4.3.1. To use it, set the environment variable \texttt{Z3\_TPTP\_HOME}
-to the directory that contains the \texttt{z3\_tptp} executable.
+It is included for experimental purposes. To use it, set the environment
+variable \texttt{Z3\_TPTP\_HOME} to the directory that contains the
+\texttt{z3\_tptp} executable.
 
 \item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
 \cite{cruanes-2014} is a higher-order superposition prover developed by Simon
@@ -776,7 +770,6 @@ Cruanes, Petar Vukmirovi\'c, and colleagues. To use Zipperposition, set the
 environment variable \texttt{ZIPPERPOSITION\_HOME} to the directory that
 contains the \texttt{zipperposition} executable and
 \texttt{ZIPPERPOSITION\_VERSION} to the version number (e.g., ``2.0.1'').
-Sledgehammer has been tested with version 2.0.1.
 \end{enum}
 
 \end{sloppy}
