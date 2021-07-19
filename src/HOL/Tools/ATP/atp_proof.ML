@@ -150,10 +150,6 @@ fun short_output verbose output =
   else
     ""
 
-val missing_message_tail =
-  " appears to be missing; you will need to install it if you want to invoke \
-  \remote provers"
-
 fun from_lemmas [] = ""
   | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
@@ -497,15 +493,15 @@ fun mk_ho_of_fo_quant q =
   else if q = tptp_hilbert_the then tptp_hilbert_the
   else raise Fail ("unrecognized quantification: " ^ q)
 
-fun remove_hol_app (ATerm ((x, ty), arg)) =
-    if x = tptp_app then
+fun remove_hol_app (ATerm ((s, ty), arg)) =
+    if s = tptp_app then
       (case arg of
-        ATerm ((x, ty), arg) :: t => remove_hol_app (ATerm ((x, ty), map remove_hol_app arg @ t))
+        ATerm ((s, ty), arg) :: t => remove_hol_app (ATerm ((s, ty), map remove_hol_app arg @ t))
       | [AAbs ((var, tvar), phi), t] =>
         remove_hol_app (AAbs ((var, tvar), map remove_hol_app phi @ [t])))
     else
-      ATerm ((x, ty), map remove_hol_app arg)
-  | remove_hol_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_hol_app arg), t)
+      ATerm ((s, ty), map remove_hol_app arg)
+  | remove_hol_app (AAbs (((s, ty), arg), t)) = AAbs (((s, ty), remove_hol_app arg), t)
 
 fun parse_hol_typed_var x =
   (Scan.repeat (scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
@@ -530,10 +526,11 @@ fun parse_simple_hol_term x =
   || $$ "(" |-- parse_hol_term --| $$ ")"
   || parse_binary_op >> mk_simple_aterm) x
 and parse_hol_term x =
-  (parse_simple_hol_term -- Scan.option (parse_binary_op -- parse_hol_term)
-    >> (fn (t1, SOME (c, t2)) =>
-           if c = tptp_app then mk_app t1 t2 else mk_apps (mk_simple_aterm c) [t1, t2]
-         | (t, NONE) => t)) x
+  (parse_simple_hol_term -- Scan.repeat (parse_binary_op -- parse_simple_hol_term)
+    >> (fn (t1, c_ti_s) =>
+        fold (fn (c, ti) => fn left =>
+            if c = tptp_app then mk_app left ti else mk_apps (mk_simple_aterm c) [left, ti])
+          c_ti_s t1)) x
 
 fun parse_hol_formula x = (parse_hol_term #>> remove_hol_app #>> AAtom) x
 
