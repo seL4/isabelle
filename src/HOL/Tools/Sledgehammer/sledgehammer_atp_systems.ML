@@ -319,8 +319,8 @@ val e = (eN, fn () => e_config)
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     ["--clausifier \"$E_HOME\"/eprover " ^
-      "--clausifier_options \"--tstp-format --silent --cnf\" " ^
+     ["--clausifier \"$VAMPIRE_HOME\"/vampire " ^
+      "--clausifier_options \"--mode clausify\" " ^
       "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
    known_failures =
