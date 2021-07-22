@@ -26,8 +26,8 @@ lemma problem_25:
   ML_prf \<open>
     val ctxt = \<^context>;
     val prem25 = Thm.assume \<^cprop>\<open>\<not> ?thesis\<close>;
-    val nnf25 = Meson.make_nnf ctxt prem25;
-    val xsko25 = Meson.skolemize ctxt nnf25;
+    val nnf25 = Meson.make_nnf {if_simps = true} ctxt prem25;
+    val xsko25 = Meson.skolemize {if_simps = true} ctxt nnf25;
 \<close>
   apply (tactic \<open>cut_tac xsko25 1 THEN REPEAT (eresolve_tac \<^context> [exE] 1)\<close>)
   ML_val \<open>
@@ -50,8 +50,8 @@ lemma problem_26:
   ML_prf \<open>
     val ctxt = \<^context>;
     val prem26 = Thm.assume \<^cprop>\<open>\<not> ?thesis\<close>
-    val nnf26 = Meson.make_nnf ctxt prem26;
-    val xsko26 = Meson.skolemize ctxt nnf26;
+    val nnf26 = Meson.make_nnf {if_simps = true} ctxt prem26;
+    val xsko26 = Meson.skolemize {if_simps = true} ctxt nnf26;
 \<close>
   apply (tactic \<open>cut_tac xsko26 1 THEN REPEAT (eresolve_tac \<^context> [exE] 1)\<close>)
   ML_val \<open>
@@ -77,8 +77,8 @@ lemma problem_43:  \<comment> \<open>NOW PROVED AUTOMATICALLY!!\<close>  (*16 Ho
   ML_prf \<open>
     val ctxt = \<^context>;
     val prem43 = Thm.assume \<^cprop>\<open>\<not> ?thesis\<close>;
-    val nnf43 = Meson.make_nnf ctxt prem43;
-    val xsko43 = Meson.skolemize ctxt nnf43;
+    val nnf43 = Meson.make_nnf {if_simps = true} ctxt prem43;
+    val xsko43 = Meson.skolemize {if_simps = true} ctxt nnf43;
 \<close>
   apply (tactic \<open>cut_tac xsko43 1 THEN REPEAT (eresolve_tac \<^context> [exE] 1)\<close>)
   ML_val \<open>

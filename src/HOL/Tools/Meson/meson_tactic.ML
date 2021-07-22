@@ -15,7 +15,7 @@ struct
 
 fun meson_general_tac ctxt ths =
   let val ctxt' = put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt' (maps (snd o Meson_Clausify.cnf_axiom ctxt' false true 0) ths) end
+  in Meson.meson_tac ctxt' (maps (snd o Meson_Clausify.cnf_axiom {if_simps = true} ctxt' false true 0) ths) end
 
 val _ =
   Theory.setup

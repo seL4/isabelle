@@ -1325,10 +1325,10 @@ fun iformula_of_prop ctxt type_enc iff_for_eq =
       | _ => do_term bs t)
   in do_formula [] end
 
-fun presimplify_term ctxt t =
+fun presimplify_term simp_options ctxt t =
   if exists_Const (member (op =) Meson.presimplified_consts o fst) t then
     t |> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-      |> Meson.presimplify ctxt
+      |> Meson.presimplify simp_options ctxt
       |> Thm.prop_of
   else
     t
@@ -1362,7 +1362,7 @@ fun freeze_term t =
          ? map_types (map_type_tvar freeze_tvar)
   end
 
-fun presimp_prop ctxt type_enc t =
+fun presimp_prop simp_options ctxt type_enc t =
   let
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_prop
@@ -1373,7 +1373,7 @@ fun presimp_prop ctxt type_enc t =
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> (if is_ho then unextensionalize_def
           else cong_extensionalize_term ctxt #> abs_extensionalize_term ctxt)
-      |> presimplify_term ctxt
+      |> presimplify_term simp_options ctxt
       |> HOLogic.dest_Trueprop
   end
   handle TERM _ => \<^const>\<open>True\<close>
@@ -1958,7 +1958,7 @@ fun s_not_prop (\<^const>\<open>Trueprop\<close> $ t) = \<^const>\<open>Trueprop
   | s_not_prop (\<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>) = t
   | s_not_prop t = \<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>
 
-fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
+fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val trans_lams = trans_lams_of_string ctxt type_enc lam_trans
@@ -1976,7 +1976,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts c
       |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp ? apply2 (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
+      |> presimp ? apply2 (map (apsnd (apsnd (presimp_prop simp_options ctxt type_enc))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
@@ -2718,8 +2718,9 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val lam_trans =
       if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
       else lam_trans
+    val simp_options = {if_simps = not (is_type_enc_fool type_enc)}
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
-      translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
+      translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes ctxt

@@ -15,8 +15,7 @@ sig
   val introduce_combinators_in_theorem : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val ss_only : thm list -> Proof.context -> Proof.context
-  val cnf_axiom :
-    Proof.context -> bool -> bool -> int -> thm
+  val cnf_axiom : Meson.simp_options -> Proof.context -> bool -> bool -> int -> thm
     -> (thm * term) option * thm list
 end;
 
@@ -295,7 +294,7 @@ val cheat_choice =
   |> Skip_Proof.make_thm \<^theory>
 
 (* Converts an Isabelle theorem into NNF. *)
-fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
+fun nnf_axiom simp_options choice_ths new_skolem ax_no th ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val th =
@@ -306,12 +305,12 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
     val th = th |> Conv.fconv_rule (Object_Logic.atomize ctxt)
                 |> Meson.cong_extensionalize_thm ctxt
                 |> Meson.abs_extensionalize_thm ctxt
-                |> Meson.make_nnf ctxt
+                |> Meson.make_nnf simp_options ctxt
   in
     if new_skolem then
       let
         fun skolemize choice_ths =
-          Meson.skolemize_with_choice_theorems ctxt choice_ths
+          Meson.skolemize_with_choice_theorems simp_options ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]} ctxt)
         val no_choice = null choice_ths
         val pull_out =
@@ -359,11 +358,11 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
+fun cnf_axiom simp_options ctxt0 new_skolem combinators ax_no th =
   let
     val choice_ths = Meson.choice_theorems (Proof_Context.theory_of ctxt0)
     val (opt, (nnf_th, ctxt1)) =
-      nnf_axiom choice_ths new_skolem ax_no th ctxt0
+      nnf_axiom simp_options choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
       Meson.make_cnf
        (if new_skolem orelse null choice_ths then []

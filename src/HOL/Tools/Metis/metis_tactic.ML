@@ -155,7 +155,7 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
         (Thm.get_name_hint th,
           th
           |> Drule.eta_contraction_rule
-          |> Meson_Clausify.cnf_axiom ctxt new_skolem (lam_trans = combsN) j
+          |> Meson_Clausify.cnf_axiom {if_simps = true} ctxt new_skolem (lam_trans = combsN) j
           ||> map do_lams))
         (0 upto length ths0 - 1) ths0
     val ths = maps (snd o snd) th_cls_pairs

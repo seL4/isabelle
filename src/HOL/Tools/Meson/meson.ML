@@ -8,6 +8,7 @@ When making clauses, avoids using the rewriter -- instead uses RS recursively.
 
 signature MESON =
 sig
+  type simp_options = {if_simps : bool}
   val trace : bool Config.T
   val max_clauses : int Config.T
   val first_order_resolve : Proof.context -> thm -> thm -> thm
@@ -16,11 +17,11 @@ sig
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val presimplified_consts : string list
-  val presimplify: Proof.context -> thm -> thm
-  val make_nnf: Proof.context -> thm -> thm
+  val presimplify: simp_options -> Proof.context -> thm -> thm
+  val make_nnf: simp_options -> Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
-  val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
-  val skolemize : Proof.context -> thm -> thm
+  val skolemize_with_choice_theorems : simp_options -> Proof.context -> thm list -> thm -> thm
+  val skolemize : simp_options -> Proof.context -> thm -> thm
   val cong_extensionalize_thm : Proof.context -> thm -> thm
   val abs_extensionalize_conv : Proof.context -> conv
   val abs_extensionalize_thm : Proof.context -> thm -> thm
@@ -30,7 +31,7 @@ sig
   val best_prolog_tac: Proof.context -> (thm -> int) -> thm list -> tactic
   val depth_prolog_tac: Proof.context -> thm list -> tactic
   val gocls: thm list -> thm list
-  val skolemize_prems_tac : Proof.context -> thm list -> int -> tactic
+  val skolemize_prems_tac : simp_options -> Proof.context -> thm list -> int -> tactic
   val MESON:
     tactic -> (thm list -> thm list) -> (thm list -> tactic) -> Proof.context
     -> int -> tactic
@@ -47,6 +48,8 @@ end
 
 structure Meson : MESON =
 struct
+
+type simp_options = {if_simps : bool}
 
 val trace = Attrib.setup_config_bool \<^binding>\<open>meson_trace\<close> (K false)
 
@@ -530,13 +533,14 @@ fun make_nnf1 ctxt th =
 val nnf_simps =
   @{thms simp_implies_def Ex1_def Ball_def Bex_def if_True if_False if_cancel
          if_eq_cancel cases_simp}
-val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
+fun nnf_extra_simps ({if_simps} : simp_options) =
+  (if if_simps then @{thms split_ifs} else []) @ @{thms ex_simps all_simps simp_thms}
 
 (* FIXME: "let_simp" is probably redundant now that we also rewrite with
   "Let_def [abs_def]". *)
-val nnf_ss =
+fun nnf_ss simp_options =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps nnf_extra_simps
+    addsimps (nnf_extra_simps simp_options)
     addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
 
 val presimplified_consts =
@@ -544,14 +548,14 @@ val presimplified_consts =
    \<^const_name>\<open>Ex1\<close>, \<^const_name>\<open>Ball\<close>, \<^const_name>\<open>Bex\<close>, \<^const_name>\<open>If\<close>,
    \<^const_name>\<open>Let\<close>]
 
-fun presimplify ctxt =
+fun presimplify simp_options ctxt =
   rewrite_rule ctxt (map safe_mk_meta_eq nnf_simps)
-  #> simplify (put_simpset nnf_ss ctxt)
+  #> simplify (put_simpset (nnf_ss simp_options) ctxt)
   #> rewrite_rule ctxt @{thms Let_def [abs_def]}
 
-fun make_nnf ctxt th =
+fun make_nnf simp_options ctxt th =
   (case Thm.prems_of th of
-    [] => th |> presimplify ctxt |> make_nnf1 ctxt
+    [] => th |> presimplify simp_options ctxt |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]));
 
 fun choice_theorems thy =
@@ -559,7 +563,7 @@ fun choice_theorems thy =
 
 (* Pull existential quantifiers to front. This accomplishes Skolemization for
    clauses that arise from a subgoal. *)
-fun skolemize_with_choice_theorems ctxt choice_ths =
+fun skolemize_with_choice_theorems simp_options ctxt choice_ths =
   let
     fun aux th =
       if not (has_conns [\<^const_name>\<open>Ex\<close>] (Thm.prop_of th)) then
@@ -575,11 +579,11 @@ fun skolemize_with_choice_theorems ctxt choice_ths =
                handle THM ("tryres", _, _) =>
                       rename_bound_vars_RS th ex_forward
                       |> forward_res ctxt aux
-  in aux o make_nnf ctxt end
+  in aux o make_nnf simp_options ctxt end
 
-fun skolemize ctxt =
+fun skolemize simp_options ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    skolemize_with_choice_theorems ctxt (choice_theorems thy)
+    skolemize_with_choice_theorems simp_options ctxt (choice_theorems thy)
   end
 
 exception NO_F_PATTERN of unit
@@ -638,7 +642,7 @@ fun abs_extensionalize_conv ctxt ct =
 
 val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
 
-fun try_skolemize_etc ctxt th =
+fun try_skolemize_etc simp_options ctxt th =
   let
     val th = th |> cong_extensionalize_thm ctxt
   in
@@ -647,7 +651,7 @@ fun try_skolemize_etc ctxt th =
        Sledgehammer does, but also keep an unextensionalized version of "th" for
        backward compatibility. *)
     |> insert Thm.eq_thm_prop (abs_extensionalize_thm ctxt th)
-    |> map_filter (fn th => th |> try (skolemize ctxt)
+    |> map_filter (fn th => th |> try (skolemize simp_options ctxt)
                                |> tap (fn NONE =>
                                           trace_msg ctxt (fn () =>
                                               "Failed to skolemize " ^
@@ -687,8 +691,9 @@ fun depth_prolog_tac ctxt horns =
 (*Return all negative clauses, as possible goal clauses*)
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
-fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o eresolve_tac ctxt [exE]
+fun skolemize_prems_tac simp_options ctxt prems =
+  cut_facts_tac (maps (try_skolemize_etc simp_options ctxt) prems) THEN'
+    REPEAT o eresolve_tac ctxt [exE]
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
@@ -698,7 +703,7 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
             resolve_tac ctxt @{thms ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [skolemize_prems_tac ctxt' negs,
+                      EVERY1 [skolemize_prems_tac {if_simps = true} ctxt' negs,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
