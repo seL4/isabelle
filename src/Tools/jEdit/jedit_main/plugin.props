@@ -3,7 +3,7 @@
 ##:wrap=soft:maxLineLen=100:
 
 #identification
-plugin.isabelle.jedit_main.Plugin.name=Isabelle Main
+plugin.isabelle.jedit_main.Plugin.name=Isabelle
 plugin.isabelle.jedit_main.Plugin.author=Johannes H\u00F6lzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
 plugin.isabelle.jedit_main.Plugin.version=11.2
 plugin.isabelle.jedit_main.Plugin.description=Isabelle/jEdit main plugin
