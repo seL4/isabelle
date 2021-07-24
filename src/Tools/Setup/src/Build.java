@@ -50,6 +50,8 @@ public class Build
 
     public static String BUILD_PROPS = "build.props";
     public static String COMPONENT_BUILD_PROPS = "etc/build.props";
+
+    public static String TITLE = "title";
     public static String MODULE = "module";
     public static String NO_BUILD = "no_build";
 
@@ -119,12 +121,7 @@ public class Build
             }
         }
 
-        public String title() {
-            String title = _props.getProperty("title", "");
-            if (title.isEmpty()) { throw new RuntimeException(error_message("Missing title")); }
-            else return title;
-        }
-
+        public String title() { return _props.getProperty(TITLE, ""); }
 
         public String module_name() { return _props.getProperty(MODULE, ""); }
         public String module_result() { return get_bool(NO_BUILD) ? "" : module_name(); }
@@ -487,7 +484,9 @@ public class Build
                     shasum = _shasum.toString();
                 }
                 if (fresh || !shasum_old.equals(shasum)) {
-                    System.out.print("### Building " + title + " (" + jar_path + ") ...\n");
+                    if (!title.isEmpty()) {
+                        System.out.print("### Building " + title + " (" + jar_path + ") ...\n");
+                    }
 
                     String isabelle_classpath = Environment.getenv("ISABELLE_CLASSPATH");
 
