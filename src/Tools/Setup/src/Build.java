@@ -329,9 +329,8 @@ public class Build
     private static String SHASUM = "META-INF/isabelle/shasum";
 
     public static String get_shasum(Path jar_path)
-        throws IOException
     {
-        if (Files.exists(jar_path)) {
+        try {
             try (JarFile jar_file = new JarFile(jar_path.toFile()))
             {
                 JarEntry entry = jar_file.getJarEntry(SHASUM);
@@ -342,7 +341,7 @@ public class Build
                 else { return ""; }
             }
         }
-        else { return ""; }
+        catch (IOException exn) { return ""; }
     }
 
     public static void create_shasum(Path dir, String shasum)
