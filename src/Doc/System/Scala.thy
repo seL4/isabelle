@@ -187,12 +187,12 @@ text \<open>
     compilation process, but not provided by the regular classpath (notably
     @{setting ISABELLE_CLASSPATH}).
 
-    A \emph{normal entry} refers to a single \<^verbatim>\<open>jar\<close> file name, possibly with
+    A \<^emph>\<open>normal entry\<close> refers to a single \<^verbatim>\<open>jar\<close> file name, possibly with
     settings variables as usual. E.g. \<^file>\<open>$ISABELLE_SCALA_JAR\<close> for the main
     \<^file>\<open>$ISABELLE_HOME/lib/classes/isabelle.jar\<close> (especially relevant for
     add-on modules).
 
-    A \emph{special entry} is of of the form \<^verbatim>\<open>env:\<close>\<open>variable\<close> and refers to a
+    A \<^emph>\<open>special entry\<close> is of of the form \<^verbatim>\<open>env:\<close>\<open>variable\<close> and refers to a
     settings variable from the Isabelle environment: its value may consist of
     multiple \<^verbatim>\<open>jar\<close> entries (separated by colons). Environment variables are
     not expanded recursively.
