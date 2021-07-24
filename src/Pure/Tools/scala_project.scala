@@ -7,8 +7,6 @@ IntelliJ IDEA.
 
 package isabelle
 
-import scala.jdk.CollectionConverters._
-
 
 object Scala_Project
 {
@@ -35,27 +33,17 @@ object Scala_Project
     val contexts = Scala_Build.component_contexts() ::: plugin_contexts()
 
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
-    val jars2 =
-      (for {
-        context <- contexts.iterator
-        s <- context.requirements().asScala.iterator
-        path <- context.requirement_paths(s).asScala.iterator
-      } yield File.path(path.toFile)).toList
+    val jars2 = contexts.flatMap(_.requirements)
 
     val jar_files =
-      Library.distinct(jars1 ::: jars2).filterNot(path =>
-        contexts.exists(context =>
-        {
-          val name: String = context.module_name()
-          name.nonEmpty && File.eq(context.path(name).toFile, path.file)
-        }))
+      Library.distinct(jars1 ::: jars2).filterNot(path => contexts.exists(_.is_module(path)))
 
     val source_files =
       (for {
         context <- contexts.iterator
-        file <- context.sources.asScala.iterator
-        if file.endsWith(".scala") || file.endsWith(".java")
-      } yield File.path(context.path(file).toFile)).toList
+        path <- context.sources.iterator
+        if path.is_scala || path.is_java
+      } yield path).toList
 
     (jar_files, source_files)
   }
@@ -63,10 +51,9 @@ object Scala_Project
   lazy val isabelle_scala_files: Map[String, Path] =
   {
     val context = Scala_Build.context(Path.ISABELLE_HOME, component = true)
-    context.sources().asScala.iterator.foldLeft(Map.empty[String, Path]) {
-      case (map, name) =>
-        if (name.endsWith(".scala")) {
-        val path = File.path(context.path(name).toFile)
+    context.sources.iterator.foldLeft(Map.empty[String, Path]) {
+      case (map, path) =>
+        if (path.is_scala) {
         val base = path.base.implode
           map.get(base) match {
             case None => map + (base -> path)
@@ -107,13 +94,12 @@ object Scala_Project
 
   def package_dir(source_file: Path): Option[Path] =
   {
-    val is_java = source_file.file_name.endsWith(".java")
     val lines = split_lines(File.read(source_file))
     val Package = """\s*\bpackage\b\s*(?:object\b\s*)?((?:\w|\.)+)\b.*""".r
     lines.collectFirst(
       {
         case Package(name) =>
-          if (is_java) Path.explode(space_explode('.', name).mkString("/"))
+          if (source_file.is_java) Path.explode(space_explode('.', name).mkString("/"))
           else Path.basic(name)
       })
   }
@@ -136,7 +122,7 @@ object Scala_Project
     isabelle_scala_files
 
     for (source <- source_files) {
-      val dir = if (source.file_name.endsWith(".java")) java_src_dir else scala_src_dir
+      val dir = if (source.is_java) java_src_dir else scala_src_dir
       val target = dir + the_package_dir(source)
       Isabelle_System.make_directory(target)
       if (symlinks) Isabelle_System.symlink(source, target)

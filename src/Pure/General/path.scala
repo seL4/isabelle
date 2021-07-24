@@ -207,6 +207,14 @@ final class Path private(protected val elems: List[Path.Elem]) // reversed eleme
   def dir: Path = split_path._1
   def base: Path = new Path(List(Path.Basic(split_path._2)))
 
+  def ends_with(a: String): Boolean =
+    elems match {
+      case Path.Basic(b) :: _ => b.endsWith(a)
+      case _ => false
+    }
+  def is_java: Boolean = ends_with(".java")
+  def is_scala: Boolean = ends_with(".scala")
+
   def ext(e: String): Path =
     if (e == "") this
     else {

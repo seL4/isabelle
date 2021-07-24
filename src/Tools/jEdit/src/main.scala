@@ -82,7 +82,7 @@ object Main
 </PERSPECTIVE>""")
           }
 
-          Scala_Project.plugin_contexts().foreach(isabelle.setup.Build.build(_, false))
+          Scala_Project.plugin_contexts().foreach(_.build())
 
 
           /* args */
