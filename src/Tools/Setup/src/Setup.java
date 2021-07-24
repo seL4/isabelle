@@ -38,11 +38,11 @@ class Setup
             switch (op) {
                 case "build":
                     check_args(n == 1);
-                    Build.build_components(false);
+                    Build.build_components(System.err, false);
                     break;
                 case "build_fresh":
                     check_args(n == 1);
-                    Build.build_components(true);
+                    Build.build_components(System.err, true);
                     break;
                 case "classpath":
                     check_args(n == 1);

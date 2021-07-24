@@ -8,12 +8,10 @@ package isabelle.setup;
 
 
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -234,18 +232,12 @@ public class Build
         }
     }
 
-    private static void compiler_result(boolean ok, String out, String what)
-    {
-        if (ok) { if (!out.isEmpty()) { System.err.println(out); } }
-        else {
-            String msg = "Failed to compile " + what + (out.isEmpty() ? "" : ":\n" + out);
-            throw new RuntimeException(msg);
-        }
-    }
-
     public static void compile_scala_sources(
-        Path target_dir, String more_options, List<Path> deps, List<Path> sources)
-        throws IOException, InterruptedException
+        PrintStream output,  // ignored, but see scala.Console.withOut/withErr
+        Path target_dir,
+        String more_options,
+        List<Path> deps,
+        List<Path> sources) throws IOException, InterruptedException
     {
         ArrayList<String> args = new ArrayList<String>();
         add_options(args, Environment.getenv("ISABELLE_SCALAC_OPTIONS"));
@@ -262,34 +254,17 @@ public class Build
             if (p.toString().endsWith(".scala")) { scala_sources = true; }
         }
         if (scala_sources) {
-            InputStream in_orig = System.in;
-            PrintStream out_orig = System.out;
-            PrintStream err_orig = System.err;
-            ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-            // Single-threaded context!
-            boolean ok = false;
-            try {
-                PrintStream out_stream = new PrintStream(out);
-                System.setIn(in);
-                System.setOut(out_stream);
-                System.setErr(out_stream);
-                ok = new MainClass().process(args.toArray(String[]::new));
-                out_stream.flush();
-            }
-            finally {
-                System.setIn(in_orig);
-                System.setOut(out_orig);
-                System.setErr(err_orig);
-            }
-            compiler_result(ok, out.toString(StandardCharsets.UTF_8), "Scala sources");
+            boolean ok = new MainClass().process(args.toArray(String[]::new));
+            if (!ok) { throw new RuntimeException("Failed to compiler Scala sources"); }
         }
     }
 
     public static void compile_java_sources(
-        Path target_dir, String more_options, List<Path> deps, List<Path> sources)
-        throws IOException, InterruptedException
+        PrintStream output,
+        Path target_dir,
+        String more_options,
+        List<Path> deps,
+        List<Path> sources) throws IOException, InterruptedException
     {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager file_manager =
@@ -316,7 +291,13 @@ public class Build
             CharArrayWriter out = new CharArrayWriter();
             boolean ok = compiler.getTask(out, file_manager, null, options, null, java_sources).call();
             out.flush();
-            compiler_result(ok, out.toString(), "Java sources");
+
+            String msg = Library.trim_line(out.toString());
+            if (ok) { if (!msg.isEmpty()) { output.print(msg + "\n"); } }
+            else {
+                throw new RuntimeException(
+                    (msg.isEmpty() ? "" : msg + "\n") + "Failed to compile Java sources");
+            }
         }
     }
 
@@ -446,7 +427,7 @@ public class Build
 
     /** build **/
 
-    public static void build(Context context, boolean fresh)
+    public static void build(PrintStream output, Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
         String module = context.module_result();
@@ -485,7 +466,7 @@ public class Build
                 }
                 if (fresh || !shasum_old.equals(shasum)) {
                     if (!title.isEmpty()) {
-                        System.out.print("### Building " + title + " (" + jar_path + ") ...\n");
+                        output.print("### Building " + title + " (" + jar_path + ") ...\n");
                     }
 
                     String isabelle_classpath = Environment.getenv("ISABELLE_CLASSPATH");
@@ -503,12 +484,12 @@ public class Build
                         List<Path> compiler_sources = new LinkedList<Path>();
                         for (String s : sources) { compiler_sources.add(context.path(s)); }
 
-                        compile_scala_sources(
-                            build_dir, context.scalac_options(), compiler_deps, compiler_sources);
+                        compile_scala_sources(output, build_dir,
+                            context.scalac_options(), compiler_deps, compiler_sources);
 
                         compiler_deps.add(build_dir);
-                        compile_java_sources(
-                            build_dir, context.javac_options(), compiler_deps, compiler_sources);
+                        compile_java_sources(output, build_dir,
+                            context.javac_options(), compiler_deps, compiler_sources);
 
 
                         /* copy resources */
@@ -555,11 +536,11 @@ public class Build
         }
     }
 
-    public static void build_components(boolean fresh)
+    public static void build_components(PrintStream output, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
         for (Context context : component_contexts()) {
-            build(context, fresh);
+            build(output, context, fresh);
         }
     }
 }

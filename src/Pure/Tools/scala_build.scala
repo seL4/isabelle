@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.util.{Properties => JProperties}
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.Files
 
 import scala.jdk.CollectionConverters._
@@ -34,8 +35,25 @@ object Scala_Build
         p <- java_context.requirement_paths(s).asScala.iterator
       } yield (File.path(p.toFile))).toList
 
-    def build(fresh: Boolean = false): Unit =
-      isabelle.setup.Build.build(java_context, fresh)
+    def build(fresh: Boolean = false): String =
+    {
+      val output0 = new ByteArrayOutputStream
+      val output = new PrintStream(output0)
+      def get_output(): String =
+      {
+        output.flush()
+        Library.trim_line(output0.toString(UTF8.charset))
+      }
+      try {
+        Console.withOut(output) {
+          Console.withErr(output) {
+            isabelle.setup.Build.build(output, java_context, fresh)
+          }
+        }
+        get_output()
+      }
+      catch { case ERROR(msg) => cat_error(get_output(), msg) }
+    }
   }
 
   def context(dir: Path,
@@ -63,18 +81,22 @@ object Scala_Build
     component: Boolean = false,
     no_title: Boolean = false,
     do_build: Boolean = false,
-    module: Option[Path] = None): Unit =
+    module: Option[Path] = None): String =
   {
     context(dir, component = component, no_title = no_title, do_build = do_build, module = module)
       .build(fresh = fresh)
   }
 
-  def build_result(dir: Path, component: Boolean = false): Bytes =
+  sealed case class Result(output: String, jar: Bytes)
+
+  def build_result(dir: Path, component: Boolean = false): Result =
   {
     Isabelle_System.with_tmp_file("result", "jar")(tmp_file =>
     {
-      build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
-      Bytes.read(tmp_file)
+      val output =
+        build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
+      val jar = Bytes.read(tmp_file)
+      Result(output, jar)
     })
   }
 
