@@ -40,6 +40,7 @@ object Scala_Build
 
   def context(dir: Path,
     component: Boolean = false,
+    no_title: Boolean = false,
     do_build: Boolean = false,
     module: Option[Path] = None): Context =
   {
@@ -50,6 +51,7 @@ object Scala_Build
 
     val props = new JProperties
     props.load(Files.newBufferedReader(props_path.java_path))
+    if (no_title) props.remove(isabelle.setup.Build.TITLE)
     if (do_build) props.remove(isabelle.setup.Build.NO_BUILD)
     if (module.isDefined) props.put(isabelle.setup.Build.MODULE, File.standard_path(module.get))
 
@@ -59,10 +61,21 @@ object Scala_Build
   def build(dir: Path,
     fresh: Boolean = false,
     component: Boolean = false,
+    no_title: Boolean = false,
     do_build: Boolean = false,
     module: Option[Path] = None): Unit =
   {
-    context(dir, component = component, do_build = do_build, module = module).build(fresh = fresh)
+    context(dir, component = component, no_title = no_title, do_build = do_build, module = module)
+      .build(fresh = fresh)
+  }
+
+  def build_result(dir: Path, component: Boolean = false): Bytes =
+  {
+    Isabelle_System.with_tmp_file("result", "jar")(tmp_file =>
+    {
+      build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
+      Bytes.read(tmp_file)
+    })
   }
 
   def component_contexts(): List[Context] =
