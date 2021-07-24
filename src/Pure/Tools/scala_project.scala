@@ -1,7 +1,8 @@
 /*  Title:      Pure/Tools/scala_project.scala
     Author:     Makarius
 
-Setup Gradle project for Isabelle/Scala/jEdit.
+Manage Isabelle/Scala/Java project sources, with output to Gradle for
+IntelliJ IDEA.
 */
 
 package isabelle
