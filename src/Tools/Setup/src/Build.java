@@ -51,21 +51,12 @@ public class Build
     public static String BUILD_PROPS = "build.props";
     public static String COMPONENT_BUILD_PROPS = "etc/build.props";
 
-    public static Context directory_context(Path dir)
-        throws IOException
-    {
-        Properties props = new Properties();
-        Path props_path = dir.resolve(BUILD_PROPS);
-        props.load(Files.newBufferedReader(props_path));
-        return new Context(dir, props, props_path.toString());
-    }
-
     public static Context component_context(Path dir)
         throws IOException
     {
         Properties props = new Properties();
         Path props_path = dir.resolve(COMPONENT_BUILD_PROPS);
-        if (Files.exists(props_path)) { props.load(Files.newBufferedReader(props_path)); }
+        props.load(Files.newBufferedReader(props_path));
         return new Context(dir, props, props_path.toString());
     }
 

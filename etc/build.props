@@ -176,6 +176,7 @@ sources = \
   src/Pure/Tools/phabricator.scala \
   src/Pure/Tools/print_operation.scala \
   src/Pure/Tools/profiling_report.scala \
+  src/Pure/Tools/scala_build.scala \
   src/Pure/Tools/scala_project.scala \
   src/Pure/Tools/server.scala \
   src/Pure/Tools/server_commands.scala \

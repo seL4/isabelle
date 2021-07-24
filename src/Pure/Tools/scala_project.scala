@@ -26,18 +26,13 @@ object Scala_Project
 
   /* file and directories */
 
-  def plugin_contexts(): List[isabelle.setup.Build.Context] =
+  def plugin_contexts(): List[Scala_Build.Context] =
     for (plugin <- List("jedit_base", "jedit_main"))
-    yield {
-      val dir = Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin)
-      isabelle.setup.Build.directory_context(dir.java_path)
-    }
+    yield Scala_Build.context(Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin))
 
   lazy val isabelle_files: (List[Path], List[Path]) =
   {
-    val contexts =
-      isabelle.setup.Build.component_contexts().asScala.toList :::
-        plugin_contexts()
+    val contexts = Scala_Build.component_contexts() ::: plugin_contexts()
 
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
     val jars2 =
@@ -67,7 +62,7 @@ object Scala_Project
 
   lazy val isabelle_scala_files: Map[String, Path] =
   {
-    val context = isabelle.setup.Build.component_context(Path.ISABELLE_HOME.java_path)
+    val context = Scala_Build.context(Path.ISABELLE_HOME, component = true)
     context.sources().asScala.iterator.foldLeft(Map.empty[String, Path]) {
       case (map, name) =>
         if (name.endsWith(".scala")) {
