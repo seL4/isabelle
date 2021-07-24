@@ -26,6 +26,14 @@ object Scala_Build
       module_name.nonEmpty && File.eq(java_context.path(module_name).toFile, path.file)
     }
 
+    def module_result: Option[Path] =
+    {
+      java_context.module_result() match {
+        case "" => None
+        case module => Some(File.path(java_context.path(module).toFile))
+      }
+    }
+
     def sources: List[Path] =
       java_context.sources().asScala.toList.map(s => File.path(java_context.path(s).toFile))
 
@@ -87,7 +95,16 @@ object Scala_Build
       .build(fresh = fresh)
   }
 
-  sealed case class Result(output: String, jar: Bytes)
+  sealed case class Result(output: String, jar_bytes: Bytes, jar_path: Option[Path])
+  {
+    def write(): Unit =
+    {
+      if (jar_path.isDefined) {
+        Isabelle_System.make_directory(jar_path.get.dir)
+        Bytes.write(jar_path.get, jar_bytes)
+      }
+    }
+  }
 
   def build_result(dir: Path, component: Boolean = false): Result =
   {
@@ -95,8 +112,9 @@ object Scala_Build
     {
       val output =
         build(dir, component = component, no_title = true, do_build = true, module = Some(tmp_file))
-      val jar = Bytes.read(tmp_file)
-      Result(output, jar)
+      val jar_bytes = Bytes.read(tmp_file)
+      val jar_path = context(dir, component = component).module_result
+      Result(output, jar_bytes, jar_path)
     })
   }
 
