@@ -191,7 +191,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
             })
 
       File.write(etc_dir + Path.explode("build.props"),
-        "no_module = " + jedit_patched + "/jedit.jar\n" +
+        "module = " + jedit_patched + "/jedit.jar\n" +
+        "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
         ("sources =" :: java_sources.map(p => "  " + p.implode)).mkString("", " \\\n", "\n"))
     })

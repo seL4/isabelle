@@ -1,4 +1,5 @@
-no_module = $ISABELLE_SETUP_JAR
+module = $ISABELLE_SETUP_JAR
+no_build = true
 sources = \
   src/Build.java \
   src/Environment.java \

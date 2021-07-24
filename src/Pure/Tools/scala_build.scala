@@ -17,9 +17,11 @@ object Scala_Build
 {
   class Context private[Scala_Build](java_context: isabelle.setup.Build.Context)
   {
+    override def toString: String = java_context.toString
+
     def is_module(path: Path): Boolean =
     {
-      val module_name: String = java_context.module_name()
+      val module_name = java_context.module_name()
       module_name.nonEmpty && File.eq(java_context.path(module_name).toFile, path.file)
     }
 
@@ -38,7 +40,8 @@ object Scala_Build
 
   def context(dir: Path,
     component: Boolean = false,
-    more_props: Properties.T = Nil): Context =
+    do_build: Boolean = false,
+    module: Option[Path] = None): Context =
   {
     val props_name =
       if (component) isabelle.setup.Build.COMPONENT_BUILD_PROPS
@@ -47,7 +50,8 @@ object Scala_Build
 
     val props = new JProperties
     props.load(Files.newBufferedReader(props_path.java_path))
-    for ((a, b) <- more_props) props.put(a, b)
+    if (do_build) props.remove(isabelle.setup.Build.NO_BUILD)
+    if (module.isDefined) props.put(isabelle.setup.Build.MODULE, File.standard_path(module.get))
 
     new Context(new isabelle.setup.Build.Context(dir.java_path, props, props_path.implode))
   }
@@ -55,9 +59,10 @@ object Scala_Build
   def build(dir: Path,
     fresh: Boolean = false,
     component: Boolean = false,
-    more_props: Properties.T = Nil): Unit =
+    do_build: Boolean = false,
+    module: Option[Path] = None): Unit =
   {
-    context(dir, component = component, more_props = more_props).build(fresh = fresh)
+    context(dir, component = component, do_build = do_build, module = module).build(fresh = fresh)
   }
 
   def component_contexts(): List[Context] =

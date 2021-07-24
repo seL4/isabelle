@@ -50,6 +50,8 @@ public class Build
 
     public static String BUILD_PROPS = "build.props";
     public static String COMPONENT_BUILD_PROPS = "etc/build.props";
+    public static String MODULE = "module";
+    public static String NO_BUILD = "no_build";
 
     public static Context component_context(Path dir)
         throws IOException
@@ -106,21 +108,27 @@ public class Build
             }
         }
 
+        public boolean get_bool(String name) {
+            String prop = _props.getProperty(name, "false");
+            switch(prop) {
+                case "true": return true;
+                case "false": return false;
+                default:
+                    throw new RuntimeException(
+                        error_message("Bad boolean property " + Library.quote(name) + ": " + Library.quote(prop)));
+            }
+        }
+
         public String title() {
             String title = _props.getProperty("title", "");
             if (title.isEmpty()) { throw new RuntimeException(error_message("Missing title")); }
             else return title;
         }
 
-        public String no_module() { return _props.getProperty("no_module", ""); }
-        public String module() { return _props.getProperty("module", ""); }
-        public String module_name() {
-            if (!module().isEmpty() && !no_module().isEmpty()) {
-              throw new RuntimeException(error_message("Conflict of module and no_module"));
-            }
-            if (!module().isEmpty()) { return module(); }
-            else { return no_module(); }
-        }
+
+        public String module_name() { return _props.getProperty(MODULE, ""); }
+        public String module_result() { return get_bool(NO_BUILD) ? "" : module_name(); }
+
         public String scalac_options() { return _props.getProperty("scalac_options", ""); }
         public String javac_options() { return _props.getProperty("javac_options", ""); }
         public String main() { return _props.getProperty("main", ""); }
@@ -421,7 +429,7 @@ public class Build
     {
         List<Path> result = new LinkedList<Path>();
         for (Context context : component_contexts()) {
-            String module = context.module();
+            String module = context.module_result();
             if (!module.isEmpty()) { result.add(context.path(module)); }
         }
         return List.copyOf(result);
@@ -445,7 +453,7 @@ public class Build
     public static void build(Context context, boolean fresh)
         throws IOException, InterruptedException, NoSuchAlgorithmException
     {
-        String module = context.module();
+        String module = context.module_result();
         if (!module.isEmpty()) {
             String title = context.title();
 

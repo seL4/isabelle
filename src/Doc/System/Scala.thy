@@ -165,15 +165,16 @@ text \<open>
     in printed messages.
 
     \<^item> \<^verbatim>\<open>module\<close> specifies a \<^verbatim>\<open>jar\<close> file name for the output module, as result
-    of compiling the specified sources (and resources). If this is absent,
-    there is no build process, but contributing sources may still be given,
-    possibly together with \<^verbatim>\<open>no_module\<close> as described below.
+    of the specified sources (and resources). If this is absent (or
+    \<^verbatim>\<open>no_build\<close> is set, as described below), there is no implicit build
+    process. The contributing sources might be given nonetheless, notably for
+    @{tool scala_project} (\secref{sec:tool-scala-project}), which includes
+    Scala/Java sources of components, while suppressing \<^verbatim>\<open>jar\<close> modules (to
+    avoid duplication of program content).
 
-    \<^item> \<^verbatim>\<open>no_module\<close> means that there is no build process, but the specified
-    \<^verbatim>\<open>jar\<close> is provided by other means. This is relevant for @{tool
-    scala_project} (\secref{sec:tool-scala-project}), which includes all
-    Scala/Java sources of components, but suppresses \<^verbatim>\<open>jar\<close> modules to avoid
-    duplication of content.
+    \<^item> \<^verbatim>\<open>no_build\<close> is a Boolean property, with default \<^verbatim>\<open>false\<close>. If set to
+    \<^verbatim>\<open>true\<close>, the implicit build process for the given \<^verbatim>\<open>module\<close> is \<^emph>\<open>omitted\<close>
+    --- it is assumed to be provided by other means.
 
     \<^item> \<^verbatim>\<open>scalac_options\<close> and \<^verbatim>\<open>javac_options\<close> augment the default settings
     @{setting_ref ISABELLE_SCALAC_OPTIONS} and @{setting_ref
