@@ -1,12 +1,12 @@
-This is stack 1.9.3 -- the Haskell Tool Stack.
+This is stack 2.5.1 -- the Haskell Tool Stack.
 
 See also https://www.haskellstack.org and executables from
-https://github.com/commercialhaskell/stack/releases as follows:
+https://github.com/commercialhaskell/stack/releases/tag/v2.7.3 as follows:
 
-  * x86_64-linux: stack-1.9.3-linux-x86_64-static.tar.gz
-  * x86_64-darwin: stack-1.9.3-osx-x86_64.tar.gz
-  * x86_64-windows: stack-1.9.3-windows-x86_64.tar.gz
+  * x86_64-linux: stack-2.7.3-linux-x86_64.tar.gz
+  * x86_64-darwin: stack-2.7.3-osx-x86_64.tar.gz
+  * x86_64-windows: stack-2.7.3-windows-x86_64.tar.gz
 
 
     Makarius
-    07-Dec-2018
+    25-Jul-2021
