@@ -30,7 +30,7 @@ object Command_Line
           catch {
             case exn: Throwable =>
               Output.error_message(Exn.print(exn))
-              Exn.return_code(exn, 2)
+              Exn.failure_rc(exn)
           }
         sys.exit(rc)
       }

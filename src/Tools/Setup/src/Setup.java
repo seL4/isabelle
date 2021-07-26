@@ -59,7 +59,7 @@ class Setup
         }
         catch (Throwable exn) {
             echo_err(Exn.print_error(exn));
-            System.exit(Exn.return_code(exn, 2));
+            System.exit(Exn.failure_rc(exn));
         }
     }
 }

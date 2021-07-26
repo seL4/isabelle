@@ -79,6 +79,9 @@ object Exn
   def is_interrupt(exn: Throwable): Boolean =
     isabelle.setup.Exn.is_interrupt(exn)
 
+  def failure_rc(exn: Throwable): Int =
+    isabelle.setup.Exn.failure_rc(exn)
+
   def interruptible_capture[A](e: => A): Result[A] =
     try { Res(e) }
     catch { case exn: Throwable if !is_interrupt(exn) => Exn[A](exn) }
@@ -98,12 +101,6 @@ object Exn
     def expose(): Unit = if (Thread.interrupted()) throw apply()
     def impose(): Unit = Thread.currentThread.interrupt()
   }
-
-
-  /* POSIX return code */
-
-  def return_code(exn: Throwable, rc: Int): Int =
-    if (is_interrupt(exn)) Process_Result.interrupt_rc else rc
 
 
   /* message */

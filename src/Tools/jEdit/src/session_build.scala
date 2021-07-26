@@ -169,7 +169,7 @@ object Session_Build
         try { ("", JEdit_Sessions.session_build(options, progress = progress)) }
         catch {
           case exn: Throwable =>
-            (Output.error_message_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
+            (Output.error_message_text(Exn.message(exn)) + "\n", Exn.failure_rc(exn))
         }
 
       progress.echo(out + (if (rc == 0) "OK" else Process_Result.print_return_code(rc)) + "\n")

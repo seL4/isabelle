@@ -27,9 +27,9 @@ public class Exn
         return found_interrupt;
     }
 
-    public static int return_code(Throwable exn, int rc)
+    public static int failure_rc(Throwable exn)
     {
-        return is_interrupt(exn) ? 130 : rc;
+        return is_interrupt(exn) ? 130 : 2;
     }
 
 
