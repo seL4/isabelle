@@ -302,10 +302,10 @@ object SSH
 
       val rc =
         try { exit_status.join }
-        catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
+        catch { case Exn.Interrupt() => terminate(); Process_Result.interrupt_rc }
 
       close()
-      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
+      if (strict && rc == Process_Result.interrupt_rc) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join)
     }

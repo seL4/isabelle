@@ -503,7 +503,7 @@ class Build_Job(progress: Progress,
                 errs.map(Protocol.Error_Message_Marker.apply))
           }
         case Exn.Exn(Exn.Interrupt()) =>
-          if (result.ok) result.copy(rc = Exn.Interrupt.return_code) else result
+          if (result.ok) result.copy(rc = Process_Result.interrupt_rc) else result
         case Exn.Exn(exn) => throw exn
       }
     }

@@ -16,20 +16,22 @@ object Process_Result
       case None => ""
       case Some(text) => " (" + text + ")"
     }
+
+  val interrupt_rc = 130
+  val timeout_rc = 142
+
   private val return_code_text =
     Map(0 -> "OK",
       1 -> "ERROR",
       2 -> "FAILURE",
       127 -> "COMMAND NOT FOUND",
-      130 -> "INTERRUPT",
+      interrupt_rc -> "INTERRUPT",
       131 -> "QUIT SIGNAL",
       137 -> "KILL SIGNAL",
       138 -> "BUS ERROR",
       139 -> "SEGMENTATION VIOLATION",
-      142 -> "TIMEOUT",
+      timeout_rc -> "TIMEOUT",
       143 -> "TERMINATION SIGNAL")
-
-  val timeout_rc = 142
 }
 
 final case class Process_Result(
@@ -49,7 +51,7 @@ final case class Process_Result(
     if (err.isEmpty) this else errors(List(err))
 
   def ok: Boolean = rc == 0
-  def interrupted: Boolean = rc == Exn.Interrupt.return_code
+  def interrupted: Boolean = rc == Process_Result.interrupt_rc
 
   def timeout_rc: Process_Result = copy(rc = Process_Result.timeout_rc)
   def timeout: Boolean = rc == Process_Result.timeout_rc

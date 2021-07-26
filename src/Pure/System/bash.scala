@@ -219,11 +219,11 @@ object Bash
 
       val rc =
         try { join }
-        catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
+        catch { case Exn.Interrupt() => terminate(); Process_Result.interrupt_rc }
 
       watchdog_thread.foreach(_.cancel())
 
-      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
+      if (strict && rc == Process_Result.interrupt_rc) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join, get_timing)
     }
@@ -246,7 +246,7 @@ object Bash
 
       val is_interrupt =
         result match {
-          case Exn.Res(res) => res.rc == Exn.Interrupt.return_code
+          case Exn.Res(res) => res.rc == Process_Result.interrupt_rc
           case Exn.Exn(exn) => Exn.is_interrupt(exn)
         }
 

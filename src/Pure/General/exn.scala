@@ -97,15 +97,13 @@ object Exn
     def dispose(): Unit = Thread.interrupted()
     def expose(): Unit = if (Thread.interrupted()) throw apply()
     def impose(): Unit = Thread.currentThread.interrupt()
-
-    val return_code: Int = isabelle.setup.Exn.INTERRUPT_RETURN_CODE
   }
 
 
   /* POSIX return code */
 
   def return_code(exn: Throwable, rc: Int): Int =
-    if (is_interrupt(exn)) Interrupt.return_code else rc
+    if (is_interrupt(exn)) Process_Result.interrupt_rc else rc
 
 
   /* message */
