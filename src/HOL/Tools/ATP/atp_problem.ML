@@ -89,6 +89,7 @@ sig
   val tptp_iff : string
   val tptp_not_iff : string
   val tptp_ite : string
+  val tptp_let : string
   val tptp_app : string
   val tptp_not_infix : string
   val tptp_equal : string
@@ -249,6 +250,7 @@ val tptp_if = "<="
 val tptp_iff = "<=>"
 val tptp_not_iff = "<~>"
 val tptp_ite = "$ite"
+val tptp_let = "$let"
 val tptp_app = "@"
 val tptp_hilbert_choice = "@+"
 val tptp_hilbert_the = "@-"
@@ -487,6 +489,17 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
           tptp_string_of_formula format
               (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
+        | _ => app ())
+      else if s = tptp_let then
+        (case ts of
+          [t1, AAbs (((s', ty), tm), [])] =>
+            let
+              val declaration = s' ^ " : " ^ of_type ty
+              val definition = s' ^ " := " ^ of_term t1
+              val usage = of_term tm
+            in
+            s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")"
+            end
         | _ => app ())
       else if s = tptp_choice then
         (case ts of

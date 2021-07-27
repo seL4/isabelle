@@ -342,6 +342,7 @@ val const_trans_table =
    (\<^const_name>\<open>Ex\<close>, "Ex"),
    (\<^const_name>\<open>If\<close>, "If"),
    (\<^const_name>\<open>Set.member\<close>, "member"),
+   (\<^const_name>\<open>HOL.Let\<close>, "Let"),
    (\<^const_name>\<open>Meson.COMBI\<close>, combinator_prefix ^ "I"),
    (\<^const_name>\<open>Meson.COMBK\<close>, combinator_prefix ^ "K"),
    (\<^const_name>\<open>Meson.COMBB\<close>, combinator_prefix ^ "B"),
@@ -774,12 +775,18 @@ fun simple_translate_lambdas do_lambdas ctxt type_enc t =
 
       fun trans_fool Ts t =
         (case t of
-          (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
-          t0 $ Abs (s, T, trans_fool (T :: Ts) t')
-        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans_fool Ts (t0 $ eta_expand Ts t1 1)
+          (t1 as Const (\<^const_name>\<open>Let\<close>, _)) $ t2 $ t3 =>
+          (case t3 of
+            Abs (s3, T, t') => t1 $ trans_fool Ts t2 $ Abs (s3, T, trans_fool (T :: Ts) t')
+          | _ => trans_fool Ts (t1 $ trans_fool Ts t2 $ eta_expand Ts t3 1))
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
+            (case t1 of
+              Abs (s, T, t') => t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+            | _ => trans_fool Ts (t0 $ eta_expand Ts t1 1))
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
+            (case t1 of
+              Abs (s, T, t') => t0 $ Abs (s, T, trans_fool (T :: Ts) t')
+            | _ => trans_fool Ts (t0 $ eta_expand Ts t1 1))
         | t1 $ t2 => trans_fool Ts t1 $ trans_fool Ts t2
         | Abs _ => t |> Envir.eta_contract |> do_lambdas ctxt Ts
         | _ => t)
@@ -1179,7 +1186,12 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
           val tm2' = intro false [] tm2
           val tm2'' =
             (case tm1' of
-              IConst ((s, _), _, _) =>
+              IApp (IConst ((s, _), _, _), _) =>
+              if s = tptp_let then
+                eta_expand_quantifier_body tm2'
+              else
+                tm2'
+            | IConst ((s, _), _, _) =>
               if s = tptp_ho_forall orelse s = tptp_ho_exists then
                 eta_expand_quantifier_body tm2'
               else
@@ -1189,61 +1201,64 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
           IApp (tm1', tm2'')
         end
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
-        if is_fool andalso s = "c_If" andalso
-            (length args = 3 orelse is_type_enc_higher_order type_enc) then
-          IConst (`I tptp_ite, T, [])
-        else
-          (case proxify_const s of
-            SOME proxy_base =>
-            let
-              val argc = length args
-              fun plain_const () = IConst (name, T, [])
-              fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
-              fun handle_fool card x = if card = argc then x else proxy_const ()
-            in
-              if top_level then
-                (case s of
-                  "c_False" => IConst (`I tptp_false, T, [])
-                | "c_True" => IConst (`I tptp_true, T, [])
-                | _ => plain_const ())
-              else if is_type_enc_full_higher_order type_enc then
-                (case s of
-                  "c_False" => IConst (`I tptp_false, T, [])
-                | "c_True" => IConst (`I tptp_true, T, [])
-                | "c_Not" => IConst (`I tptp_not, T, [])
-                | "c_conj" => IConst (`I tptp_and, T, [])
-                | "c_disj" => IConst (`I tptp_or, T, [])
-                | "c_implies" => IConst (`I tptp_implies, T, [])
-                | "c_All" => tweak_ho_quant tptp_ho_forall T args
-                | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
-                | s =>
-                  if is_tptp_equal s then
-                    tweak_ho_equal T argc
-                  else
-                    plain_const ())
-              else if is_fool then
-                (case s of
-                  "c_False" => IConst (`I tptp_false, T, [])
-                | "c_True" => IConst (`I tptp_true, T, [])
-                | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
-                | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
-                | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
-                | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
-                | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
-                | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
-                | s =>
-                  if is_tptp_equal s then
-                    handle_fool 2 (IConst (`I tptp_equal, T, []))
-                  else
-                    plain_const ())
-              else
-                proxy_const ()
-            end
-           | NONE =>
-             if s = tptp_choice then
-               tweak_ho_quant tptp_choice T args
-             else
-               IConst (name, T, T_args))
+        let val argc = length args in
+          if is_fool andalso s = "c_If" andalso
+              (argc = 3 orelse is_type_enc_higher_order type_enc) then
+            IConst (`I tptp_ite, T, [])
+          else if is_fool andalso s = "c_Let" andalso argc = 2 then
+            IConst (`I tptp_let, T, [])
+          else
+            (case proxify_const s of
+              SOME proxy_base =>
+              let
+                fun plain_const () = IConst (name, T, [])
+                fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
+                fun handle_fool card x = if card = argc then x else proxy_const ()
+              in
+                if top_level then
+                  (case s of
+                    "c_False" => IConst (`I tptp_false, T, [])
+                  | "c_True" => IConst (`I tptp_true, T, [])
+                  | _ => plain_const ())
+                else if is_type_enc_full_higher_order type_enc then
+                  (case s of
+                    "c_False" => IConst (`I tptp_false, T, [])
+                  | "c_True" => IConst (`I tptp_true, T, [])
+                  | "c_Not" => IConst (`I tptp_not, T, [])
+                  | "c_conj" => IConst (`I tptp_and, T, [])
+                  | "c_disj" => IConst (`I tptp_or, T, [])
+                  | "c_implies" => IConst (`I tptp_implies, T, [])
+                  | "c_All" => tweak_ho_quant tptp_ho_forall T args
+                  | "c_Ex" => tweak_ho_quant tptp_ho_exists T args
+                  | s =>
+                    if is_tptp_equal s then
+                      tweak_ho_equal T argc
+                    else
+                      plain_const ())
+                else if is_fool then
+                  (case s of
+                    "c_False" => IConst (`I tptp_false, T, [])
+                  | "c_True" => IConst (`I tptp_true, T, [])
+                  | "c_Not" => handle_fool 1 (IConst (`I tptp_not, T, []))
+                  | "c_conj" => handle_fool 2 (IConst (`I tptp_and, T, []))
+                  | "c_disj" => handle_fool 2 (IConst (`I tptp_or, T, []))
+                  | "c_implies" => handle_fool 2 (IConst (`I tptp_implies, T, []))
+                  | "c_All" => handle_fool 1 (tweak_ho_quant tptp_ho_forall T args)
+                  | "c_Ex" => handle_fool 1 (tweak_ho_quant tptp_ho_exists T args)
+                  | s =>
+                    if is_tptp_equal s then
+                      handle_fool 2 (IConst (`I tptp_equal, T, []))
+                    else
+                      plain_const ())
+                else
+                  proxy_const ()
+              end
+             | NONE =>
+               if s = tptp_choice then
+                 tweak_ho_quant tptp_choice T args
+               else
+                 IConst (name, T, T_args))
+        end
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1958,7 +1973,8 @@ fun s_not_prop (\<^const>\<open>Trueprop\<close> $ t) = \<^const>\<open>Trueprop
   | s_not_prop (\<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>) = t
   | s_not_prop t = \<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>
 
-fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
+fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t
+      facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val trans_lams = trans_lams_of_string ctxt type_enc lam_trans
@@ -2718,9 +2734,13 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
     val lam_trans =
       if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
       else lam_trans
-    val simp_options = {if_simps = not (is_type_enc_fool type_enc)}
+    val simp_options =
+      let val simp = not (is_type_enc_fool type_enc) in
+        {if_simps = simp, let_simps = simp}
+      end
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
-      translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
+      translate_formulas simp_options ctxt prem_role format type_enc lam_trans presimp hyp_ts
+        concl_t facts
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes ctxt

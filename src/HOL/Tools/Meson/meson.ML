@@ -8,7 +8,8 @@ When making clauses, avoids using the rewriter -- instead uses RS recursively.
 
 signature MESON =
 sig
-  type simp_options = {if_simps : bool}
+  type simp_options = {if_simps : bool, let_simps : bool}
+  val simp_options_all_true : simp_options
   val trace : bool Config.T
   val max_clauses : int Config.T
   val first_order_resolve : Proof.context -> thm -> thm -> thm
@@ -49,7 +50,8 @@ end
 structure Meson : MESON =
 struct
 
-type simp_options = {if_simps : bool}
+type simp_options = {if_simps : bool, let_simps : bool}
+val simp_options_all_true = {if_simps = true, let_simps = true}
 
 val trace = Attrib.setup_config_bool \<^binding>\<open>meson_trace\<close> (K false)
 
@@ -533,7 +535,7 @@ fun make_nnf1 ctxt th =
 val nnf_simps =
   @{thms simp_implies_def Ex1_def Ball_def Bex_def if_True if_False if_cancel
          if_eq_cancel cases_simp}
-fun nnf_extra_simps ({if_simps} : simp_options) =
+fun nnf_extra_simps ({if_simps, ...} : simp_options) =
   (if if_simps then @{thms split_ifs} else []) @ @{thms ex_simps all_simps simp_thms}
 
 (* FIXME: "let_simp" is probably redundant now that we also rewrite with
@@ -548,10 +550,10 @@ val presimplified_consts =
    \<^const_name>\<open>Ex1\<close>, \<^const_name>\<open>Ball\<close>, \<^const_name>\<open>Bex\<close>, \<^const_name>\<open>If\<close>,
    \<^const_name>\<open>Let\<close>]
 
-fun presimplify simp_options ctxt =
+fun presimplify (simp_options as {let_simps, ...} : simp_options) ctxt =
   rewrite_rule ctxt (map safe_mk_meta_eq nnf_simps)
   #> simplify (put_simpset (nnf_ss simp_options) ctxt)
-  #> rewrite_rule ctxt @{thms Let_def [abs_def]}
+  #> let_simps ? rewrite_rule ctxt @{thms Let_def [abs_def]}
 
 fun make_nnf simp_options ctxt th =
   (case Thm.prems_of th of
@@ -703,7 +705,7 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
             resolve_tac ctxt @{thms ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [skolemize_prems_tac {if_simps = true} ctxt' negs,
+                      EVERY1 [skolemize_prems_tac simp_options_all_true ctxt' negs,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
