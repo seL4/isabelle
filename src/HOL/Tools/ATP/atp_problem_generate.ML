@@ -2084,7 +2084,7 @@ and atp_term_of_iterm ctxt mono type_enc pos =
           | IVar (name, _) =>
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
-            if is_type_enc_higher_order type_enc then
+            if is_type_enc_higher_order type_enc orelse is_type_enc_fool type_enc then
               AAbs (((name, native_atp_type_of_typ type_enc false 0 T), term Elsewhere tm),
                 map (term Elsewhere) args)
             else
