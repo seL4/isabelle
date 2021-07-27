@@ -35,17 +35,17 @@ object Scala_Project
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
     val jars2 = contexts.flatMap(_.requirements)
 
-    val jar_files =
+    val jars =
       Library.distinct(jars1 ::: jars2).filterNot(path => contexts.exists(_.is_module(path)))
 
-    val source_files =
+    val sources =
       (for {
         context <- contexts.iterator
         path <- context.sources.iterator
         if path.is_scala || path.is_java
       } yield path).toList
 
-    (jar_files, source_files)
+    (jars, sources)
   }
 
   lazy val isabelle_scala_files: Map[String, Path] =
@@ -92,6 +92,8 @@ object Scala_Project
 
   /* scala project */
 
+  val default_project_dir = Path.explode("$ISABELLE_HOME_USER/scala_project")
+
   def package_dir(source_file: Path): Option[Path] =
   {
     val lines = split_lines(File.read(source_file))
@@ -107,23 +109,44 @@ object Scala_Project
   def the_package_dir(source_file: Path): Path =
     package_dir(source_file) getOrElse error("Failed to guess package from " + source_file)
 
-  def scala_project(project_dir: Path, symlinks: Boolean = false): Unit =
+  def scala_project(
+    project_dir: Path = default_project_dir,
+    more_sources: List[Path] = Nil,
+    symlinks: Boolean = false,
+    force: Boolean = false,
+    progress: Progress = new Progress): Unit =
   {
-    if (project_dir.is_file || project_dir.is_dir)
-      error("Project directory already exists: " + project_dir)
+    if (project_dir.file.exists) {
+      val detect =
+        project_dir.is_dir &&
+        (project_dir + Path.explode("build.gradle")).is_file &&
+        (project_dir + Path.explode("src/main/scala")).is_dir
 
-    val java_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/java"))
-    val scala_src_dir = Isabelle_System.make_directory(project_dir + Path.explode("src/main/scala"))
+      if (force && detect) {
+        progress.echo("Purging existing project directory: " + project_dir.absolute)
+        Isabelle_System.rm_tree(project_dir)
+      }
+      else error("Project directory already exists: " + project_dir.absolute)
+    }
 
-    val (jar_files, source_files) = isabelle_files
+    progress.echo("Creating project directory: " + project_dir.absolute)
+    Isabelle_System.make_directory(project_dir)
+
+    val java_src_dir = Isabelle_System.make_directory(Path.explode("src/main/java"))
+    val scala_src_dir = Isabelle_System.make_directory(Path.explode("src/main/scala"))
+
+    val (jars, sources) = isabelle_files
     isabelle_scala_files
 
-    for (source <- source_files) {
-      val dir = if (source.is_java) java_src_dir else scala_src_dir
-      val target = dir + the_package_dir(source)
-      Isabelle_System.make_directory(target)
-      if (symlinks) Isabelle_System.symlink(source, target, native = true)
-      else Isabelle_System.copy_file(source, target)
+    for (source <- sources ::: more_sources) {
+      val dir = (if (source.is_java) java_src_dir else scala_src_dir) + the_package_dir(source)
+      val target_dir = project_dir + dir
+      if (!target_dir.is_dir) {
+        progress.echo("  Creating package directory: " + dir)
+        Isabelle_System.make_directory(target_dir)
+      }
+      if (symlinks) Isabelle_System.symlink(source.absolute, target_dir, native = true)
+      else Isabelle_System.copy_file(source, target_dir)
     }
 
     File.write(project_dir + Path.explode("settings.gradle"), "rootProject.name = 'Isabelle'\n")
@@ -139,7 +162,7 @@ repositories {
 dependencies {
   implementation 'org.scala-lang:scala-library:""" + scala.util.Properties.versionNumberString + """'
   compile files(
-    """ + jar_files.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
+    """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
 }
 """)
@@ -152,27 +175,31 @@ dependencies {
     Isabelle_Tool("scala_project", "setup Gradle project for Isabelle/Scala/jEdit",
       Scala_Project.here, args =>
     {
+      var project_dir = default_project_dir
       var symlinks = false
+      var force = false
 
       val getopts = Getopts("""
-Usage: isabelle scala_project [OPTIONS] PROJECT_DIR
+Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
 
   Options are:
-    -L           make symlinks to original scala files
+    -D DIR       project directory (default: """ + default_project_dir + """)
+    -L           make symlinks to original source files
+    -f           force update of existing directory
 
   Setup Gradle project for Isabelle/Scala/jEdit --- to support Scala IDEs
   such as IntelliJ IDEA.
 """,
-        "L" -> (_ => symlinks = true))
+        "D:" -> (arg => project_dir = Path.explode(arg)),
+        "L" -> (_ => symlinks = true),
+        "f" -> (_ => force = true))
 
       val more_args = getopts(args)
 
-      val project_dir =
-        more_args match {
-          case List(dir) => Path.explode(dir)
-          case _ => getopts.usage()
-        }
+      val more_sources = more_args.map(Path.explode)
+      val progress = new Console_Progress
 
-      scala_project(project_dir, symlinks = symlinks)
+      scala_project(project_dir = project_dir, more_sources = more_sources,
+        symlinks = symlinks, force = force, progress = progress)
     })
 }
