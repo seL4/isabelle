@@ -109,9 +109,6 @@ object Scala_Project
 
   def scala_project(project_dir: Path, symlinks: Boolean = false): Unit =
   {
-    if (symlinks && Platform.is_windows)
-      error("Cannot create symlinks on Windows")
-
     if (project_dir.is_file || project_dir.is_dir)
       error("Project directory already exists: " + project_dir)
 
@@ -125,7 +122,7 @@ object Scala_Project
       val dir = if (source.is_java) java_src_dir else scala_src_dir
       val target = dir + the_package_dir(source)
       Isabelle_System.make_directory(target)
-      if (symlinks) Isabelle_System.symlink(source, target)
+      if (symlinks) Isabelle_System.symlink(source, target, native = true)
       else Isabelle_System.copy_file(source, target)
     }
 

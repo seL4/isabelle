@@ -253,7 +253,7 @@ object Isabelle_System
 
   /* symbolic link */
 
-  def symlink(src: Path, dst: Path, force: Boolean = false): Unit =
+  def symlink(src: Path, dst: Path, force: Boolean = false, native: Boolean = false): Unit =
   {
     val src_file = src.file
     val dst_file = dst.file
@@ -262,7 +262,14 @@ object Isabelle_System
     if (force) target.delete
 
     def cygwin_link(): Unit =
-      isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
+    {
+      if (native) {
+        error("Failed to create native symlink on Windows: " + quote(src_file.toString) +
+          "\n(but it could work as Administrator)")
+      }
+      else isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
+    }
+
 
     try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
     catch {
