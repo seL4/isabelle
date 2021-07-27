@@ -284,10 +284,13 @@ further explanations in the "system" manual.
 process of all Scala/Java modules explicitly. Normally this is done
 implicitly on demand, e.g. for "isabelle scala" or "isabelle jedit".
 
-* Command-line tool "isabelle scala_project" is now more thorough in
-providing Scala/Java sources of all components with etc/build.props,
-including user add-ons. This includes jEdit sources and Isabelle/jEdit
-plugins (jedit_base and jedit_main).
+* Command-line tool "isabelle scala_project" is has been improved in
+various ways:
+  - sources from all components with etc/build.props are included,
+  - sources of for the jEdit text editor and the Isabelle/jEdit
+    plugins (jedit_base and jedit_main) are included by default,
+  - more sources may be given on the command-line,
+  - options -f and -D make the tool more convenient.
 
 * Isabelle/jEdit is now composed more conventionally from the original
 jEdit text editor in $JEDIT_HOME (with minor patches), plus two Isabelle
