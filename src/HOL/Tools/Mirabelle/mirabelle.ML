@@ -134,7 +134,10 @@ end;
 
 fun check_theories strs =
   let
-    val theories = map read_theory_range strs;
+    fun theory_import_name s =
+      #theory_name (Resources.import_name (Session.get_name ()) Path.current s);
+    val theories = map read_theory_range strs
+      |> map (apfst theory_import_name);
     fun get_theory name =
       if null theories then SOME NONE
       else get_first (fn (a, b) => if a = name then SOME b else NONE) theories;
@@ -173,8 +176,7 @@ val _ =
           fun make_commands (thy_index, (thy, segments)) =
             let
               val thy_long_name = Context.theory_long_name thy;
-              val thy_name = Context.theory_name thy;
-              val check_thy = check_theory thy_name;
+              val check_thy = check_theory thy_long_name;
               fun make_command {command = tr, prev_state = st, state = st', ...} =
                 let
                   val name = Toplevel.name_of tr;
