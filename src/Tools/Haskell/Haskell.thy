@@ -1749,6 +1749,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Isabelle.Byte_Message (
@@ -1780,11 +1781,8 @@ import qualified Isabelle.Value as Value
 write :: Socket -> [ByteString] -> IO ()
 write = Socket.sendMany
 
-newline :: ByteString
-newline = ByteString.singleton 10
-
 write_line :: Socket -> ByteString -> IO ()
-write_line socket s = write socket [s, newline]
+write_line socket s = write socket [s, "\n"]
 
 
 {- input operations -}
@@ -1834,7 +1832,7 @@ read_line socket = read_body []
 {- messages with multiple chunks (arbitrary content) -}
 
 make_header :: [Int] -> [ByteString]
-make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), newline]
+make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), "\n"]
 
 make_message :: [ByteString] -> [ByteString]
 make_message chunks = make_header (map ByteString.length chunks) <> chunks
@@ -1885,7 +1883,7 @@ make_line_message msg =
       error ("Bad content for line message:\n" <> take 100 (UTF8.decode msg))
     else
       (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) <>
-      [msg, newline]
+      [msg, "\n"]
 
 write_line_message :: Socket -> ByteString -> IO ()
 write_line_message socket = write socket . make_line_message
