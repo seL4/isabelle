@@ -192,7 +192,7 @@ proper_string :: String -> Maybe String
 proper_string s = if null s then Nothing else Just s
 
 quote :: String -> String
-quote s = "\"" ++ s ++ "\""
+quote s = "\"" <> s <> "\""
 
 space_implode :: String -> [String] -> String
 space_implode = List.intercalate
@@ -473,7 +473,7 @@ entityN = \<open>Markup.entityN\<close>
 entity :: String -> String -> T
 entity kind name =
   (entityN,
-    (if null name then [] else [(nameN, name)]) ++ (if null kind then [] else [(kindN, kind)]))
+    (if null name then [] else [(nameN, name)]) <> (if null kind then [] else [(kindN, kind)]))
 
 defN :: String
 defN = \<open>Markup.defN\<close>
@@ -566,7 +566,7 @@ blockN = \<open>Markup.blockN\<close>
 block :: Bool -> Int -> T
 block c i =
   (blockN,
-    (if c then [(consistentN, Value.print_bool c)] else []) ++
+    (if c then [(consistentN, Value.print_bool c)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
 breakN :: String
@@ -574,7 +574,7 @@ breakN = \<open>Markup.breakN\<close>
 break :: Int -> Int -> T
 break w i =
   (breakN,
-    (if w /= 0 then [(widthN, Value.print_int w)] else []) ++
+    (if w /= 0 then [(widthN, Value.print_int w)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
 fbreakN :: String
@@ -1039,7 +1039,7 @@ instance Show Tree where
       show_tree (Text s) = Buffer.add (show_text s)
 
       show_elem name atts =
-        unwords (name : map (\(a, x) -> a ++ "=\"" ++ show_text x ++ "\"") atts)
+        unwords (name : map (\(a, x) -> a <> "=\"" <> show_text x <> "\"") atts)
 
       show_text = concatMap encode
 \<close>
@@ -1284,8 +1284,8 @@ charY = Char.chr 6
 strX, strY, strXY, strXYX :: String
 strX = [charX]
 strY = [charY]
-strXY = strX ++ strY
-strXYX = strXY ++ strX
+strXY = strX <> strY
+strXYX = strXY <> strX
 
 detect :: String -> Bool
 detect = any (\c -> c == charX || c == charY)
@@ -1296,7 +1296,7 @@ detect = any (\c -> c == charX || c == charY)
 output_markup :: Markup.T -> Markup.Output
 output_markup markup@(name, atts) =
   if Markup.is_empty markup then Markup.no_output
-  else (strXY ++ name ++ concatMap (\(a, x) -> strY ++ a ++ "=" ++ x) atts ++ strX, strXYX)
+  else (strXY <> name <> concatMap (\(a, x) -> strY <> a <> "=" <> x) atts <> strX, strXYX)
 
 buffer_attrib (a, x) =
   Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
@@ -1335,11 +1335,11 @@ split fields sep str = splitting str
 
 -- structural errors
 
-err msg = error ("Malformed YXML: " ++ msg)
+err msg = error ("Malformed YXML: " <> msg)
 err_attribute = err "bad attribute"
 err_element = err "bad element"
 err_unbalanced "" = err "unbalanced element"
-err_unbalanced name = err ("unbalanced element " ++ quote name)
+err_unbalanced name = err ("unbalanced element " <> quote name)
 
 
 -- stack operations
@@ -1520,7 +1520,7 @@ commas :: [T] -> [T]
 commas = separate ","
 
 enclose :: String -> String -> [T] -> T
-enclose lpar rpar prts = block (str lpar : prts ++ [str rpar])
+enclose lpar rpar prts = block (str lpar : prts <> [str rpar])
 
 enum :: String -> String -> String -> [T] -> T
 enum sep lpar rpar = enclose lpar rpar . separate sep
@@ -1837,7 +1837,7 @@ make_header :: [Int] -> [ByteString]
 make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), newline]
 
 make_message :: [ByteString] -> [ByteString]
-make_message chunks = make_header (map ByteString.length chunks) ++ chunks
+make_message chunks = make_header (map ByteString.length chunks) <> chunks
 
 write_message :: Socket -> [ByteString] -> IO ()
 write_message socket = write socket . make_message
@@ -1848,7 +1848,7 @@ parse_header line =
     res = map Value.parse_nat (space_explode ',' (UTF8.decode line))
   in
     if all isJust res then map fromJust res
-    else error ("Malformed message header: " ++ quote (UTF8.decode line))
+    else error ("Malformed message header: " <> quote (UTF8.decode line))
 
 read_chunk :: Socket -> Int -> IO ByteString
 read_chunk socket n = do
@@ -1857,8 +1857,8 @@ read_chunk socket n = do
     case res of
       (Just chunk, _) -> chunk
       (Nothing, len) ->
-        error ("Malformed message chunk: unexpected EOF after " ++
-          show len ++ " of " ++ show n ++ " bytes")
+        error ("Malformed message chunk: unexpected EOF after " <>
+          show len <> " of " <> show n <> " bytes")
 
 read_message :: Socket -> IO (Maybe [ByteString])
 read_message socket = do
@@ -1882,9 +1882,9 @@ make_line_message :: ByteString -> [ByteString]
 make_line_message msg =
   let n = ByteString.length msg in
     if is_length msg || is_terminated msg then
-      error ("Bad content for line message:\n" ++ take 100 (UTF8.decode msg))
+      error ("Bad content for line message:\n" <> take 100 (UTF8.decode msg))
     else
-      (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
+      (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) <>
       [msg, newline]
 
 write_line_message :: Socket -> ByteString -> IO ()
@@ -2120,7 +2120,7 @@ localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 
 publish_text :: String -> String -> UUID.T -> String
 publish_text name address password =
-  "server " ++ quote name ++ " = " ++ address ++ " (password " ++ quote (show password) ++ ")"
+  "server " <> quote name <> " = " <> address <> " (password " <> quote (show password) <> ")"
 
 publish_stdout :: String -> String -> UUID.T -> IO ()
 publish_stdout name address password = putStrLn (publish_text name address password)
@@ -2139,7 +2139,7 @@ server publish handle =
       Socket.listen server_socket 50
 
       port <- Socket.socketPort server_socket
-      let address = localhost_name ++ ":" ++ show port
+      let address = localhost_name <> ":" <> show port
       password <- UUID.random
       publish address password
 
