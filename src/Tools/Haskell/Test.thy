@@ -18,7 +18,7 @@ compile_generated_files _ (in Haskell)
         GHC.new_project dir
           {name = "isabelle",
            depends =
-            ["bytestring", "containers", "network", "split", "threads", "utf8-string", "uuid"],
+            ["bytestring", "containers", "network", "split", "text", "threads", "uuid"],
            modules = modules};
     in
       writeln (Generated_Files.execute dir \<open>Build\<close> "mv Isabelle src && isabelle ghc_stack build")

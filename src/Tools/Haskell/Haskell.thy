@@ -8,6 +8,65 @@ theory Haskell
   imports Pure
 begin
 
+generate_file "Isabelle/UTF8.hs" = \<open>
+{-  Title:      Isabelle/UTF8.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Variations on UTF-8.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/utf8.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/utf8.scala\<close>.
+-}
+
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+
+module Isabelle.UTF8 (
+  Recode (..)
+)
+where
+
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
+import qualified Data.Text.Encoding.Error as Error
+
+import Data.ByteString (ByteString)
+import Data.ByteString.Short (ShortByteString, toShort, fromShort)
+
+
+class Recode a b where
+  encode :: a -> b
+  decode :: b -> a
+
+instance Recode Text ByteString where
+  encode :: Text -> ByteString
+  encode = Encoding.encodeUtf8
+  decode :: ByteString -> Text
+  decode = Encoding.decodeUtf8With Error.lenientDecode
+
+instance Recode Text ShortByteString where
+  encode :: Text -> ShortByteString
+  encode = toShort . encode
+  decode :: ShortByteString -> Text
+  decode = decode . fromShort
+
+instance Recode String ByteString where
+  encode :: String -> ByteString
+  encode = encode . Text.pack
+  decode :: ByteString -> String
+  decode = Text.unpack . decode
+
+instance Recode String ShortByteString where
+  encode :: String -> ShortByteString
+  encode = encode . Text.pack
+  decode :: ShortByteString -> String
+  decode = Text.unpack . decode
+\<close>
+
 generate_file "Isabelle/Symbol.hs" = \<open>
 {-  Title:      Isabelle/Symbols.hs
     Author:     Makarius
@@ -1705,7 +1764,7 @@ import Prelude hiding (read)
 import Data.Maybe
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Isabelle.UTF8 as UTF8
 import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
 
@@ -1775,8 +1834,7 @@ read_line socket = read_body []
 {- messages with multiple chunks (arbitrary content) -}
 
 make_header :: [Int] -> [ByteString]
-make_header ns =
-  [UTF8.fromString (space_implode "," (map Value.print_int ns)), newline]
+make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), newline]
 
 make_message :: [ByteString] -> [ByteString]
 make_message chunks = make_header (map ByteString.length chunks) ++ chunks
@@ -1787,10 +1845,10 @@ write_message socket = write socket . make_message
 parse_header :: ByteString -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (space_explode ',' (UTF8.toString line))
+    res = map Value.parse_nat (space_explode ',' (UTF8.decode line))
   in
     if all isJust res then map fromJust res
-    else error ("Malformed message header: " ++ quote (UTF8.toString line))
+    else error ("Malformed message header: " ++ quote (UTF8.decode line))
 
 read_chunk :: Socket -> Int -> IO ByteString
 read_chunk socket n = do
@@ -1824,7 +1882,7 @@ make_line_message :: ByteString -> [ByteString]
 make_line_message msg =
   let n = ByteString.length msg in
     if is_length msg || is_terminated msg then
-      error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
+      error ("Bad content for line message:\n" ++ take 100 (UTF8.decode msg))
     else
       (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
       [msg, newline]
@@ -1838,7 +1896,7 @@ read_line_message socket = do
   case opt_line of
     Nothing -> return Nothing
     Just line ->
-      case Value.parse_nat (UTF8.toString line) of
+      case Value.parse_nat (UTF8.decode line) of
         Nothing -> return $ Just line
         Just n -> fmap trim_line . fst <$> read_block socket n
 
@@ -1846,11 +1904,11 @@ read_line_message socket = do
 read_yxml :: Socket -> IO (Maybe XML.Body)
 read_yxml socket = do
   res <- read_line_message socket
-  return (YXML.parse_body . UTF8.toString <$> res)
+  return (YXML.parse_body . UTF8.decode <$> res)
 
 write_yxml :: Socket -> XML.Body -> IO ()
 write_yxml socket body =
-  write_line_message socket (UTF8.fromString (YXML.string_of_body body))
+  write_line_message socket (UTF8.encode (YXML.string_of_body body))
 \<close>
 
 generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
@@ -2049,7 +2107,7 @@ import Isabelle.Library
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Isabelle.UTF8 as UTF8
 
 
 {- server address -}
@@ -2124,7 +2182,7 @@ connection port password client =
       return socket
 
     body socket = do
-      Byte_Message.write_line socket (UTF8.fromString password)
+      Byte_Message.write_line socket (UTF8.encode password)
       client socket
 \<close>
 
