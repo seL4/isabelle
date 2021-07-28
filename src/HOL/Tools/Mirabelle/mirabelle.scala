@@ -136,9 +136,9 @@ object Mirabelle
     var verbose = false
     var exclude_sessions: List[String] = Nil
 
-    val default_max_calls = options.int("mirabelle_max_calls")
-    val default_stride = options.int("mirabelle_stride")
-    val default_timeout = options.seconds("mirabelle_timeout")
+    val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
+    val mirabelle_stride = options.check_name("mirabelle_stride")
+    val mirabelle_timeout = options.check_name("mirabelle_timeout")
 
     val getopts = Getopts("""
 Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
@@ -155,10 +155,10 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
-    -m INT       max. no. of calls to each Mirabelle action (default """ + default_max_calls + """)
+    -m INT       """ + mirabelle_max_calls.description + " (default " + mirabelle_max_calls.default_value + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s INT       run actions on every nth goal (default """ + default_stride + """)
-    -t SECONDS   timeout for each action (default """ + default_timeout + """)
+    -s INT       """ + mirabelle_stride.description + " (default " + mirabelle_stride.default_value + """)
+    -t SECONDS   """ + mirabelle_timeout.description + " (default " + mirabelle_timeout.default_value + """)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 

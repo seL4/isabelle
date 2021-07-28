@@ -1247,9 +1247,9 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -A ACTION    add to list of actions
     -O DIR       output directory for log files (default: "mirabelle")
     -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
-    -m INT       max. no. of calls to each Mirabelle action (default 0)
-    -s INT       run actions on every nth goal (default 1)
-    -t SECONDS   timeout for each action (default 30.000)
+    -m INT       max. no. of calls to each action (0: unbounded) (default 0)
+    -s INT       run actions on every nth goal (0: uniform distribution) (default 1)
+    -t SECONDS   timeout in seconds for each action (default 30)
     ...
 
   Apply the given ACTIONs at all theories and proof steps of the

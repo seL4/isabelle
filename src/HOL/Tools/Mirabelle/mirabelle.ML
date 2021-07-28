@@ -209,13 +209,22 @@ val _ =
           loaded_theories
           |> map_index I
           |> maps make_commands
-          |> map_index I
-          |> maps (fn (n, command) =>
-            let val (m, k) = Integer.div_mod (n + 1) mirabelle_stride in
-              if k = 0 andalso (mirabelle_max_calls <= 0 orelse m <= mirabelle_max_calls) then
-                map (fn context => (context, command)) contexts
-              else
-                []
+          |> (fn xs => fold_map (fn x => fn i => ((i, x), i + 1)) xs 0)
+          |> (fn (indexed_commands, commands_length) =>
+            let
+              val stride =
+                if mirabelle_stride <= 0 then
+                  Integer.max 1 (commands_length div mirabelle_max_calls)
+                else
+                  mirabelle_stride
+            in
+              maps (fn (n, command) =>
+              let val (m, k) = Integer.div_mod (n + 1) stride in
+                if k = 0 andalso (mirabelle_max_calls <= 0 orelse m <= mirabelle_max_calls) then
+                  map (fn context => (context, command)) contexts
+                else
+                  []
+              end) indexed_commands
             end)
           |> Par_List.map (fn ((action, context), command) => apply_action action context command);
 
