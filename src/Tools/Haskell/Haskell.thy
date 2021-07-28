@@ -1769,7 +1769,7 @@ import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
 
 import Network.Socket (Socket)
-import qualified Network.Socket.ByteString as ByteString
+import qualified Network.Socket.ByteString as Socket
 
 import Isabelle.Library hiding (trim_line)
 import qualified Isabelle.Value as Value
@@ -1778,7 +1778,7 @@ import qualified Isabelle.Value as Value
 {- output operations -}
 
 write :: Socket -> [ByteString] -> IO ()
-write = ByteString.sendMany
+write = Socket.sendMany
 
 newline :: ByteString
 newline = ByteString.singleton 10
@@ -1797,7 +1797,7 @@ read socket n = read_body 0 []
       if len >= n then return (result ss)
       else
         (do
-          s <- ByteString.recv socket (min (n - len) 8192)
+          s <- Socket.recv socket (min (n - len) 8192)
           case ByteString.length s of
             0 -> return (result ss)
             m -> read_body (len + m) (s : ss))
@@ -1822,7 +1822,7 @@ read_line socket = read_body []
   where
     result = trim_line . ByteString.pack . reverse
     read_body bs = do
-      s <- ByteString.recv socket 1
+      s <- Socket.recv socket 1
       case ByteString.length s of
         0 -> return (if null bs then Nothing else Just (result bs))
         1 ->
