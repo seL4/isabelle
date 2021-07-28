@@ -114,31 +114,30 @@ object Mirabelle
 
   /* Isabelle tool wrapper */
 
-  val default_output_dir: Path = Path.explode("mirabelle")
-
   val isabelle_tool = Isabelle_Tool("mirabelle", "testing tool for automated proof tools",
     Scala_Project.here, args =>
   {
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
+    var options = Options.init(opts = build_options)
+    val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
+    val mirabelle_stride = options.check_name("mirabelle_stride")
+    val mirabelle_timeout = options.check_name("mirabelle_timeout")
+    val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
+
     var actions: List[String] = Nil
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
-    var output_dir = default_output_dir
+    var output_dir = Path.explode(mirabelle_output_dir.default_value)
     var theories: List[String] = Nil
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
     var dirs: List[Path] = Nil
     var session_groups: List[String] = Nil
     var max_jobs = 1
-    var options = Options.init(opts = build_options)
     var verbose = false
     var exclude_sessions: List[String] = Nil
-
-    val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
-    val mirabelle_stride = options.check_name("mirabelle_stride")
-    val mirabelle_timeout = options.check_name("mirabelle_timeout")
 
     val getopts = Getopts("""
 Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
@@ -148,7 +147,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O DIR       output directory for log files (default: """ + default_output_dir + """)
+    -O DIR       """ + mirabelle_output_dir.description + " (default: " + mirabelle_output_dir.default_value + """)
     -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -192,6 +191,8 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+
+    options = options + ("mirabelle_output_dir=" + output_dir.implode)
 
     val sessions = getopts(args)
     if (actions.isEmpty) getopts.usage()

@@ -59,6 +59,9 @@ option mirabelle_stride : int = 1
 option mirabelle_max_calls : int = 0
   -- "max. no. of calls to each action (0: unbounded)"
 
+option mirabelle_output_dir : string = "mirabelle"
+  -- "output directory for log files and generated artefacts"
+
 option mirabelle_actions : string = ""
   -- "Mirabelle actions (outer syntax, separated by semicolons)"
 

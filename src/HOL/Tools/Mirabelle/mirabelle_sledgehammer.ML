@@ -24,7 +24,7 @@ val e_selection_heuristicK = "e_selection_heuristic" (*=STRING: E clause selecti
 val fact_filterK = "fact_filter" (*=STRING: fact filter*)
 val force_sosK = "force_sos" (*=BOOL: use set-of-support (in Vampire)*)
 val isar_proofsK = "isar_proofs" (*=SMART_BOOL: enable Isar proof generation*)
-val keepK = "keep" (*=PATH: path where to keep temporary files created by sledgehammer*)
+val keepK = "keep" (*=BOOL: keep temporary files created by sledgehammer*)
 val lam_transK = "lam_trans" (*=STRING: lambda translation scheme*)
 val max_factsK = "max_facts" (*=NUM: max. relevant clauses to use*)
 val max_mono_itersK = "max_mono_iters" (*=NUM: max. iterations of monomorphiser*)
@@ -53,6 +53,7 @@ val strict_default = "false"
 val max_facts_default = "smart"
 val slice_default = "true"
 val check_trivial_default = false
+val keep_default = false
 
 (*If a key is present in args then augment a list with its pair*)
 (*This is used to avoid fixing default values at the Mirabelle level, and
@@ -428,7 +429,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
 
 in
 
-fun run_sledgehammer change_data thy_index trivial args proof_method named_thms pos st =
+fun run_sledgehammer change_data thy_index trivial output_dir args proof_method named_thms pos st =
   let
     val thy = Proof.theory_of st
     val thy_name = Context.theory_name thy
@@ -453,13 +454,16 @@ fun run_sledgehammer change_data thy_index trivial args proof_method named_thms 
     val term_order = AList.lookup (op =) args term_orderK
     val force_sos = AList.lookup (op =) args force_sosK
       |> Option.map (curry (op <>) "false")
-    val dir = AList.lookup (op =) args keepK
-      |> Option.map (fn dir =>
+    val keep_dir =
+      if Mirabelle.get_bool_argument args (keepK, keep_default) then
         let val subdir = StringCvt.padLeft #"0" 4 (string_of_int thy_index) ^ "_" ^ thy_name in
-          Path.append (Path.explode dir) (Path.basic subdir)
+          Path.append output_dir (Path.basic subdir)
           |> Isabelle_System.make_directory
           |> Path.implode
-        end)
+          |> SOME
+        end
+      else
+        NONE
     val timeout = Mirabelle.get_int_argument args (prover_timeoutK, 30)
     (* always use a hard timeout, but give some slack so that the automatic
        minimizer has a chance to do its magic *)
@@ -476,7 +480,7 @@ fun run_sledgehammer change_data thy_index trivial args proof_method named_thms 
       run_sh prover_name fact_filter type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
         hard_timeout timeout preplay_timeout isar_proofsLST smt_proofsLST
-        minimizeLST max_new_mono_instancesLST max_mono_itersLST dir pos st
+        minimizeLST max_new_mono_instancesLST max_mono_itersLST keep_dir pos st
   in
     (case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -584,7 +588,7 @@ fun run_proof_method change_data trivial full name meth named_thms timeout pos s
 
 val try_timeout = seconds 5.0
 
-fun make_action ({arguments, timeout, ...} : Mirabelle.action_context) =
+fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_context) =
   let
     val check_trivial =
       Mirabelle.get_bool_argument arguments (check_trivialK, check_trivial_default)
@@ -605,7 +609,8 @@ fun make_action ({arguments, timeout, ...} : Mirabelle.action_context) =
               check_trivial andalso Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle Timeout.TIMEOUT _ => false
             val log1 =
-              run_sledgehammer change_data theory_index trivial arguments meth named_thms pos pre
+              run_sledgehammer change_data theory_index trivial output_dir arguments meth named_thms
+                pos pre
             val log2 =
               (case !named_thms of
                 SOME thms =>

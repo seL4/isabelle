@@ -8,7 +8,8 @@
 signature MIRABELLE =
 sig
   (*core*)
-  type action_context = {index: int, name: string, arguments: Properties.T, timeout: Time.time}
+  type action_context =
+    {index: int, name: string, arguments: Properties.T, timeout: Time.time, output_dir: Path.T}
   type command =
     {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
   type action = {run_action: command -> string, finalize: unit -> string}
@@ -45,7 +46,8 @@ fun read_actions str =
 
 type command =
   {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state};
-type action_context = {index: int, name: string, arguments: Properties.T, timeout: Time.time};
+type action_context =
+  {index: int, name: string, arguments: Properties.T, timeout: Time.time, output_dir: Path.T};
 type action = {run_action: command -> string, finalize: unit -> string};
 
 local
@@ -171,6 +173,7 @@ val _ =
           val mirabelle_stride = Options.default_int \<^system_option>\<open>mirabelle_stride\<close>;
           val mirabelle_max_calls = Options.default_int \<^system_option>\<open>mirabelle_max_calls\<close>;
           val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
+          val mirabelle_output_dir = Options.default_string \<^system_option>\<open>mirabelle_output_dir\<close>;
           val check_theory = check_theories (space_explode "," mirabelle_theories);
 
           fun make_commands (thy_index, (thy, segments)) =
@@ -200,7 +203,12 @@ val _ =
           val contexts = actions |> map_index (fn (n, (name, args)) =>
             let
               val make_action = the (get_action name);
-              val context = {index = n, name = name, arguments = args, timeout = mirabelle_timeout};
+              val action_subdir = string_of_int n ^ "." ^ name
+              val output_dir =
+                Path.append (Path.explode mirabelle_output_dir) (Path.basic action_subdir)
+              val context =
+                {index = n, name = name, arguments = args, timeout = mirabelle_timeout,
+                 output_dir = output_dir};
             in
               (make_action context, context)
             end);
