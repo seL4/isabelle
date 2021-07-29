@@ -1330,16 +1330,16 @@ written to \texttt{output/mirabelle.log}.
 
 \begin{verbatim}
 isabelle mirabelle -d $AFP -O output \
-  -A "sledgehammer[prover=e, prover_timeout=5, keep=/tptp]" \
+  -A "sledgehammer[prover=e, prover_timeout=5, keep=true]" \
   VeriComp
 \end{verbatim}
 
 This command generates TPTP files using Sledgehammer. Since the file
 is generated at the very beginning of every Sledgehammer invocation,
 a timeout of five seconds making the prover fail faster speeds up
-processing the subgoals. The results are written in the specified directory
-(\texttt{/tptp}), which must exist beforehand. A TPTP file is generated
-for each subgoal.
+processing the subgoals. The results are written in an action-specific
+subdirectory of the specified output directory (\texttt{output}). A TPTP
+file is generated for each subgoal.
 
 \let\em=\sl
 \bibliography{manual}{}
