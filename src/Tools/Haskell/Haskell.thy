@@ -8,6 +8,143 @@ theory Haskell
   imports Pure
 begin
 
+generate_file "Isabelle/Bytes.hs" = \<open>
+{-  Title:      Isabelle/Bytes.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Compact byte strings.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.scala\<close>.
+-}
+
+module Isabelle.Bytes (
+  Bytes,
+  make, unmake, pack, unpack,
+  empty, null, length, index, all, any,
+  head, last, take, drop, concat,
+)
+where
+
+import Prelude hiding (null, length, all, any, head, last, take, drop, concat)
+
+import qualified Data.ByteString.Short as ShortByteString
+import Data.ByteString.Short (ShortByteString)
+import Data.ByteString (ByteString)
+import qualified Data.List as List
+import Data.Word (Word8)
+
+
+type Bytes = ShortByteString
+
+make :: ByteString -> Bytes
+make = ShortByteString.toShort
+
+unmake :: Bytes -> ByteString
+unmake = ShortByteString.fromShort
+
+pack :: [Word8] -> Bytes
+pack = ShortByteString.pack
+
+unpack :: Bytes -> [Word8]
+unpack = ShortByteString.unpack
+
+empty :: Bytes
+empty = ShortByteString.empty
+
+null :: Bytes -> Bool
+null = ShortByteString.null
+
+length :: Bytes -> Int
+length = ShortByteString.length
+
+index :: Bytes -> Int -> Word8
+index = ShortByteString.index
+
+all :: (Word8 -> Bool) -> Bytes -> Bool
+all p = List.all p . unpack
+
+any :: (Word8 -> Bool) -> Bytes -> Bool
+any p = List.any p . unpack
+
+head :: Bytes -> Word8
+head bytes = index bytes 0
+
+last :: Bytes -> Word8
+last bytes = index bytes (length bytes - 1)
+
+take :: Int -> Bytes -> Bytes
+take n = pack . List.take n . unpack
+
+drop :: Int -> Bytes -> Bytes
+drop n = pack . List.drop n . unpack
+
+concat :: [Bytes] -> Bytes
+concat = mconcat
+\<close>
+
+generate_file "Isabelle/UTF8.hs" = \<open>
+{-  Title:      Isabelle/UTF8.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Variations on UTF-8.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/utf8.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/utf8.scala\<close>.
+-}
+
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+
+module Isabelle.UTF8 (
+  Recode (..)
+)
+where
+
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
+import qualified Data.Text.Encoding.Error as Error
+
+import Data.ByteString (ByteString)
+
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+
+
+class Recode a b where
+  encode :: a -> b
+  decode :: b -> a
+
+instance Recode Text ByteString where
+  encode :: Text -> ByteString
+  encode = Encoding.encodeUtf8
+  decode :: ByteString -> Text
+  decode = Encoding.decodeUtf8With Error.lenientDecode
+
+instance Recode Text Bytes where
+  encode :: Text -> Bytes
+  encode = Bytes.make . encode
+  decode :: Bytes -> Text
+  decode = decode . Bytes.unmake
+
+instance Recode String ByteString where
+  encode :: String -> ByteString
+  encode = encode . Text.pack
+  decode :: ByteString -> String
+  decode = Text.unpack . decode
+
+instance Recode String Bytes where
+  encode :: String -> Bytes
+  encode = encode . Text.pack
+  decode :: Bytes -> String
+  decode = Text.unpack . decode
+\<close>
+
 generate_file "Isabelle/Symbol.hs" = \<open>
 {-  Title:      Isabelle/Symbols.hs
     Author:     Makarius
@@ -133,7 +270,7 @@ proper_string :: String -> Maybe String
 proper_string s = if null s then Nothing else Just s
 
 quote :: String -> String
-quote s = "\"" ++ s ++ "\""
+quote s = "\"" <> s <> "\""
 
 space_implode :: String -> [String] -> String
 space_implode = List.intercalate
@@ -414,7 +551,7 @@ entityN = \<open>Markup.entityN\<close>
 entity :: String -> String -> T
 entity kind name =
   (entityN,
-    (if null name then [] else [(nameN, name)]) ++ (if null kind then [] else [(kindN, kind)]))
+    (if null name then [] else [(nameN, name)]) <> (if null kind then [] else [(kindN, kind)]))
 
 defN :: String
 defN = \<open>Markup.defN\<close>
@@ -507,7 +644,7 @@ blockN = \<open>Markup.blockN\<close>
 block :: Bool -> Int -> T
 block c i =
   (blockN,
-    (if c then [(consistentN, Value.print_bool c)] else []) ++
+    (if c then [(consistentN, Value.print_bool c)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
 breakN :: String
@@ -515,7 +652,7 @@ breakN = \<open>Markup.breakN\<close>
 break :: Int -> Int -> T
 break w i =
   (breakN,
-    (if w /= 0 then [(widthN, Value.print_int w)] else []) ++
+    (if w /= 0 then [(widthN, Value.print_int w)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
 fbreakN :: String
@@ -980,7 +1117,7 @@ instance Show Tree where
       show_tree (Text s) = Buffer.add (show_text s)
 
       show_elem name atts =
-        unwords (name : map (\(a, x) -> a ++ "=\"" ++ show_text x ++ "\"") atts)
+        unwords (name : map (\(a, x) -> a <> "=\"" <> show_text x <> "\"") atts)
 
       show_text = concatMap encode
 \<close>
@@ -1225,8 +1362,8 @@ charY = Char.chr 6
 strX, strY, strXY, strXYX :: String
 strX = [charX]
 strY = [charY]
-strXY = strX ++ strY
-strXYX = strXY ++ strX
+strXY = strX <> strY
+strXYX = strXY <> strX
 
 detect :: String -> Bool
 detect = any (\c -> c == charX || c == charY)
@@ -1237,7 +1374,7 @@ detect = any (\c -> c == charX || c == charY)
 output_markup :: Markup.T -> Markup.Output
 output_markup markup@(name, atts) =
   if Markup.is_empty markup then Markup.no_output
-  else (strXY ++ name ++ concatMap (\(a, x) -> strY ++ a ++ "=" ++ x) atts ++ strX, strXYX)
+  else (strXY <> name <> concatMap (\(a, x) -> strY <> a <> "=" <> x) atts <> strX, strXYX)
 
 buffer_attrib (a, x) =
   Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
@@ -1276,11 +1413,11 @@ split fields sep str = splitting str
 
 -- structural errors
 
-err msg = error ("Malformed YXML: " ++ msg)
+err msg = error ("Malformed YXML: " <> msg)
 err_attribute = err "bad attribute"
 err_element = err "bad element"
 err_unbalanced "" = err "unbalanced element"
-err_unbalanced name = err ("unbalanced element " ++ quote name)
+err_unbalanced name = err ("unbalanced element " <> quote name)
 
 
 -- stack operations
@@ -1461,7 +1598,7 @@ commas :: [T] -> [T]
 commas = separate ","
 
 enclose :: String -> String -> [T] -> T
-enclose lpar rpar prts = block (str lpar : prts ++ [str rpar])
+enclose lpar rpar prts = block (str lpar : prts <> [str rpar])
 
 enum :: String -> String -> String -> [T] -> T
 enum sep lpar rpar = enclose lpar rpar . separate sep
@@ -1640,10 +1777,12 @@ module Isabelle.UUID (
   )
 where
 
-import Data.ByteString (ByteString)
 import Data.UUID (UUID)
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
+
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 
 
 type T = UUID
@@ -1654,8 +1793,8 @@ type T = UUID
 parse_string :: String -> Maybe T
 parse_string = UUID.fromString
 
-parse_bytes :: ByteString -> Maybe T
-parse_bytes = UUID.fromASCIIBytes
+parse_bytes :: Bytes -> Maybe T
+parse_bytes = UUID.fromASCIIBytes . Bytes.unmake
 
 
 {- print -}
@@ -1663,8 +1802,8 @@ parse_bytes = UUID.fromASCIIBytes
 string :: T -> String
 string = UUID.toString
 
-bytes :: T -> ByteString
-bytes = UUID.toASCIIBytes
+bytes :: T -> Bytes
+bytes = Bytes.make . UUID.toASCIIBytes
 
 
 {- random id -}
@@ -1675,7 +1814,7 @@ random = nextRandom
 random_string :: IO String
 random_string = string <$> random
 
-random_bytes :: IO ByteString
+random_bytes :: IO Bytes
 random_bytes = bytes <$> random
 \<close>
 
@@ -1690,6 +1829,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Isabelle.Byte_Message (
@@ -1703,14 +1843,15 @@ where
 
 import Prelude hiding (read)
 import Data.Maybe
-import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.UTF8 as UTF8
 import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
 
 import Network.Socket (Socket)
-import qualified Network.Socket.ByteString as ByteString
+import qualified Network.Socket.ByteString as Socket
 
 import Isabelle.Library hiding (trim_line)
 import qualified Isabelle.Value as Value
@@ -1718,52 +1859,49 @@ import qualified Isabelle.Value as Value
 
 {- output operations -}
 
-write :: Socket -> [ByteString] -> IO ()
-write = ByteString.sendMany
+write :: Socket -> [Bytes] -> IO ()
+write socket = Socket.sendMany socket . map Bytes.unmake
 
-newline :: ByteString
-newline = ByteString.singleton 10
-
-write_line :: Socket -> ByteString -> IO ()
-write_line socket s = write socket [s, newline]
+write_line :: Socket -> Bytes -> IO ()
+write_line socket s = write socket [s, "\n"]
 
 
 {- input operations -}
 
-read :: Socket -> Int -> IO ByteString
+read :: Socket -> Int -> IO Bytes
 read socket n = read_body 0 []
   where
-    result = ByteString.concat . reverse
+    result = Bytes.concat . reverse
     read_body len ss =
       if len >= n then return (result ss)
       else
         (do
-          s <- ByteString.recv socket (min (n - len) 8192)
+          s <- Socket.recv socket (min (n - len) 8192)
           case ByteString.length s of
             0 -> return (result ss)
-            m -> read_body (len + m) (s : ss))
+            m -> read_body (len + m) (Bytes.make s : ss))
 
-read_block :: Socket -> Int -> IO (Maybe ByteString, Int)
+read_block :: Socket -> Int -> IO (Maybe Bytes, Int)
 read_block socket n = do
   msg <- read socket n
-  let len = ByteString.length msg
+  let len = Bytes.length msg
   return (if len == n then Just msg else Nothing, len)
 
-trim_line :: ByteString -> ByteString
+trim_line :: Bytes -> Bytes
 trim_line s =
-  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then ByteString.take (n - 2) s
-  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then ByteString.take (n - 1) s
+  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then Bytes.take (n - 2) s
+  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then Bytes.take (n - 1) s
   else s
   where
-    n = ByteString.length s
-    at = ByteString.index s
+    n = Bytes.length s
+    at = Bytes.index s
 
-read_line :: Socket -> IO (Maybe ByteString)
+read_line :: Socket -> IO (Maybe Bytes)
 read_line socket = read_body []
   where
-    result = trim_line . ByteString.pack . reverse
+    result = trim_line . Bytes.pack . reverse
     read_body bs = do
-      s <- ByteString.recv socket 1
+      s <- Socket.recv socket 1
       case ByteString.length s of
         0 -> return (if null bs then Nothing else Just (result bs))
         1 ->
@@ -1774,35 +1912,34 @@ read_line socket = read_body []
 
 {- messages with multiple chunks (arbitrary content) -}
 
-make_header :: [Int] -> [ByteString]
-make_header ns =
-  [UTF8.fromString (space_implode "," (map Value.print_int ns)), newline]
+make_header :: [Int] -> [Bytes]
+make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), "\n"]
 
-make_message :: [ByteString] -> [ByteString]
-make_message chunks = make_header (map ByteString.length chunks) ++ chunks
+make_message :: [Bytes] -> [Bytes]
+make_message chunks = make_header (map Bytes.length chunks) <> chunks
 
-write_message :: Socket -> [ByteString] -> IO ()
+write_message :: Socket -> [Bytes] -> IO ()
 write_message socket = write socket . make_message
 
-parse_header :: ByteString -> [Int]
+parse_header :: Bytes -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (space_explode ',' (UTF8.toString line))
+    res = map Value.parse_nat (space_explode ',' (UTF8.decode line))
   in
     if all isJust res then map fromJust res
-    else error ("Malformed message header: " ++ quote (UTF8.toString line))
+    else error ("Malformed message header: " <> quote (UTF8.decode line))
 
-read_chunk :: Socket -> Int -> IO ByteString
+read_chunk :: Socket -> Int -> IO Bytes
 read_chunk socket n = do
   res <- read_block socket n
   return $
     case res of
       (Just chunk, _) -> chunk
       (Nothing, len) ->
-        error ("Malformed message chunk: unexpected EOF after " ++
-          show len ++ " of " ++ show n ++ " bytes")
+        error ("Malformed message chunk: unexpected EOF after " <>
+          show len <> " of " <> show n <> " bytes")
 
-read_message :: Socket -> IO (Maybe [ByteString])
+read_message :: Socket -> IO (Maybe [Bytes])
 read_message socket = do
   res <- read_line socket
   case res of
@@ -1812,33 +1949,32 @@ read_message socket = do
 
 -- hybrid messages: line or length+block (with content restriction)
 
-is_length :: ByteString -> Bool
+is_length :: Bytes -> Bool
 is_length msg =
-  not (ByteString.null msg) && ByteString.all (\b -> 48 <= b && b <= 57) msg
+  not (Bytes.null msg) && Bytes.all (\b -> 48 <= b && b <= 57) msg
 
-is_terminated :: ByteString -> Bool
+is_terminated :: Bytes -> Bool
 is_terminated msg =
-  not (ByteString.null msg) && (ByteString.last msg == 13 || ByteString.last msg == 10)
+  not (Bytes.null msg) && (Bytes.last msg == 13 || Bytes.last msg == 10)
 
-make_line_message :: ByteString -> [ByteString]
+make_line_message :: Bytes -> [Bytes]
 make_line_message msg =
-  let n = ByteString.length msg in
+  let n = Bytes.length msg in
     if is_length msg || is_terminated msg then
-      error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
+      error ("Bad content for line message:\n" <> take 100 (UTF8.decode msg))
     else
-      (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
-      [msg, newline]
+      (if n > 100 || Bytes.any (== 10) msg then make_header [n + 1] else []) <> [msg, "\n"]
 
-write_line_message :: Socket -> ByteString -> IO ()
+write_line_message :: Socket -> Bytes -> IO ()
 write_line_message socket = write socket . make_line_message
 
-read_line_message :: Socket -> IO (Maybe ByteString)
+read_line_message :: Socket -> IO (Maybe Bytes)
 read_line_message socket = do
   opt_line <- read_line socket
   case opt_line of
     Nothing -> return Nothing
     Just line ->
-      case Value.parse_nat (UTF8.toString line) of
+      case Value.parse_nat (UTF8.decode line) of
         Nothing -> return $ Just line
         Just n -> fmap trim_line . fst <$> read_block socket n
 
@@ -1846,11 +1982,11 @@ read_line_message socket = do
 read_yxml :: Socket -> IO (Maybe XML.Body)
 read_yxml socket = do
   res <- read_line_message socket
-  return (YXML.parse_body . UTF8.toString <$> res)
+  return (YXML.parse_body . UTF8.decode <$> res)
 
 write_yxml :: Socket -> XML.Body -> IO ()
 write_yxml socket body =
-  write_line_message socket (UTF8.fromString (YXML.string_of_body body))
+  write_line_message socket (UTF8.encode (YXML.string_of_body body))
 \<close>
 
 generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
@@ -2038,7 +2174,6 @@ module Isabelle.Server (
 )
 where
 
-import Data.ByteString (ByteString)
 import Control.Monad (forever, when)
 import qualified Control.Exception as Exception
 import Network.Socket (Socket)
@@ -2046,10 +2181,11 @@ import qualified Network.Socket as Socket
 import qualified System.IO as IO
 
 import Isabelle.Library
+import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Isabelle.UTF8 as UTF8
 
 
 {- server address -}
@@ -2062,7 +2198,7 @@ localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 
 publish_text :: String -> String -> UUID.T -> String
 publish_text name address password =
-  "server " ++ quote name ++ " = " ++ address ++ " (password " ++ quote (show password) ++ ")"
+  "server " <> quote name <> " = " <> address <> " (password " <> quote (show password) <> ")"
 
 publish_stdout :: String -> String -> UUID.T -> IO ()
 publish_stdout name address password = putStrLn (publish_text name address password)
@@ -2074,20 +2210,20 @@ server :: (String -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
 server publish handle =
   Socket.withSocketsDo $ Exception.bracket open (Socket.close . fst) (uncurry loop)
   where
-    open :: IO (Socket, ByteString)
+    open :: IO (Socket, Bytes)
     open = do
       server_socket <- Socket.socket Socket.AF_INET Socket.Stream Socket.defaultProtocol
       Socket.bind server_socket (Socket.SockAddrInet 0 localhost)
       Socket.listen server_socket 50
 
       port <- Socket.socketPort server_socket
-      let address = localhost_name ++ ":" ++ show port
+      let address = localhost_name <> ":" <> show port
       password <- UUID.random
       publish address password
 
       return (server_socket, UUID.bytes password)
 
-    loop :: Socket -> ByteString -> IO ()
+    loop :: Socket -> Bytes -> IO ()
     loop server_socket password = forever $ do
       (connection, _) <- Socket.accept server_socket
       Isabelle_Thread.fork_finally
@@ -2124,7 +2260,7 @@ connection port password client =
       return socket
 
     body socket = do
-      Byte_Message.write_line socket (UTF8.fromString password)
+      Byte_Message.write_line socket (UTF8.encode password)
       client socket
 \<close>
 
