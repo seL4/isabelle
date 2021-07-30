@@ -23,7 +23,7 @@ module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
-  head, last, take, drop, concat,
+  head, last, take, drop, concat, trim_line
 )
 where
 
@@ -82,6 +82,15 @@ drop n = pack . List.drop n . unpack
 
 concat :: [Bytes] -> Bytes
 concat = mconcat
+
+trim_line :: Bytes -> Bytes
+trim_line s =
+  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then take (n - 2) s
+  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then take (n - 1) s
+  else s
+  where
+    n = length s
+    at = index s
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
@@ -1840,7 +1849,7 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 
 module Isabelle.Byte_Message (
     write, write_line,
-    read, read_block, trim_line, read_line,
+    read, read_block, read_line,
     make_message, write_message, read_message,
     make_line_message, write_line_message, read_line_message,
     read_yxml, write_yxml
@@ -1859,7 +1868,7 @@ import qualified Isabelle.YXML as YXML
 import Network.Socket (Socket)
 import qualified Network.Socket.ByteString as Socket
 
-import Isabelle.Library hiding (trim_line)
+import Isabelle.Library
 import qualified Isabelle.Value as Value
 
 
@@ -1893,19 +1902,10 @@ read_block socket n = do
   let len = Bytes.length msg
   return (if len == n then Just msg else Nothing, len)
 
-trim_line :: Bytes -> Bytes
-trim_line s =
-  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then Bytes.take (n - 2) s
-  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then Bytes.take (n - 1) s
-  else s
-  where
-    n = Bytes.length s
-    at = Bytes.index s
-
 read_line :: Socket -> IO (Maybe Bytes)
 read_line socket = read_body []
   where
-    result = trim_line . Bytes.pack . reverse
+    result = Bytes.trim_line . Bytes.pack . reverse
     read_body bs = do
       s <- Socket.recv socket 1
       case ByteString.length s of
@@ -1982,7 +1982,7 @@ read_line_message socket = do
     Just line ->
       case Value.parse_nat (UTF8.decode line) of
         Nothing -> return $ Just line
-        Just n -> fmap trim_line . fst <$> read_block socket n
+        Just n -> fmap Bytes.trim_line . fst <$> read_block socket n
 
 
 read_yxml :: Socket -> IO (Maybe XML.Body)
