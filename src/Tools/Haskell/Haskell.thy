@@ -193,6 +193,8 @@ Basic library of Isabelle idioms.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>, \<^file>\<open>$ISABELLE_HOME/src/Pure/library.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Library (
   (|>), (|->), (#>), (#->),
 
@@ -204,7 +206,7 @@ module Isabelle.Library (
   space_explode, split_lines, trim_line, clean_name)
 where
 
-import qualified Data.List as List
+import Data.String (IsString)
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
 
@@ -263,23 +265,27 @@ get_index f = get_aux 0
         Nothing -> get_aux (i + 1) xs
         Just y -> Just (i, y)
 
+separate :: a -> [a] -> [a]
+separate s (x : (xs @ (_ : _))) = x : s : separate s xs
+separate _ xs = xs;
+
 
 {- strings -}
 
-proper_string :: String -> Maybe String
-proper_string s = if null s then Nothing else Just s
+proper_string :: (IsString a, Eq a) => a -> Maybe a
+proper_string s = if s == "" then Nothing else Just s
 
-quote :: String -> String
+quote :: (IsString a, Semigroup a) => a -> a
 quote s = "\"" <> s <> "\""
 
-space_implode :: String -> [String] -> String
-space_implode = List.intercalate
+space_implode :: (IsString a, Monoid a) => a -> [a] -> a
+space_implode s = mconcat . separate s
 
-commas, commas_quote :: [String] -> String
+commas, commas_quote :: (IsString a, Monoid a) => [a] -> a
 commas = space_implode ", "
 commas_quote = commas . map quote
 
-cat_lines :: [String] -> String
+cat_lines :: (IsString a, Monoid a) => [a] -> a
 cat_lines = space_implode "\n"
 
 
