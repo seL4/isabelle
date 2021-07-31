@@ -19,6 +19,8 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.scala\<close>.
 -}
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
@@ -85,12 +87,12 @@ concat = mconcat
 
 trim_line :: Bytes -> Bytes
 trim_line s =
-  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then take (n - 2) s
-  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then take (n - 1) s
+  if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then take (n - 2) s
+  else if n >= 1 && (at (n - 1) == '\r' || at (n - 1) == '\n') then take (n - 1) s
   else s
   where
     n = length s
-    at = index s
+    at :: Int -> Char = toEnum . fromEnum . index s
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
