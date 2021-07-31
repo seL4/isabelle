@@ -226,6 +226,7 @@ where
 
 import qualified Data.Text as Text
 import Data.Text (Text)
+import qualified Data.Text.Lazy as Lazy
 import Data.String (IsString)
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
@@ -297,21 +298,25 @@ separate _ xs = xs;
 class (IsString a, Monoid a, Eq a, Ord a) => StringLike a
 instance StringLike String
 instance StringLike Text
+instance StringLike Lazy.Text
 instance StringLike Bytes
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
 instance STRING Text where make_string = Text.unpack
+instance STRING Lazy.Text where make_string = Lazy.unpack
 instance STRING Bytes where make_string = UTF8.decode
 
 class StringLike a => TEXT a where make_text :: a -> Text
 instance TEXT String where make_text = Text.pack
 instance TEXT Text where make_text = id
+instance TEXT Lazy.Text where make_text = Lazy.toStrict
 instance TEXT Bytes where make_text = UTF8.decode
 
 class StringLike a => BYTES a where make_bytes :: a -> Bytes
 instance BYTES String where make_bytes = UTF8.encode
 instance BYTES Text where make_bytes = UTF8.encode
+instance BYTES Lazy.Text where make_bytes = UTF8.encode . Lazy.toStrict
 instance BYTES Bytes where make_bytes = id
 
 
