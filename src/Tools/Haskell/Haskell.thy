@@ -250,7 +250,7 @@ get_index f = get_aux 0
         Just y -> Just (i, y)
 
 separate :: a -> [a] -> [a]
-separate s (x : (xs @ (_ : _))) = x : s : separate s xs
+separate s (x : xs @ (_ : _)) = x : s : separate s xs
 separate _ xs = xs;
 
 
