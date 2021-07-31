@@ -167,44 +167,6 @@ instance Recode String Bytes where
   decode = Text.unpack . decode
 \<close>
 
-generate_file "Isabelle/Symbol.hs" = \<open>
-{-  Title:      Isabelle/Symbols.hs
-    Author:     Makarius
-    LICENSE:    BSD 3-clause (Isabelle)
-
-Isabelle text symbols.
--}
-
-module Isabelle.Symbol where
-
-{- ASCII characters -}
-
-is_ascii_letter :: Char -> Bool
-is_ascii_letter c = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
-
-is_ascii_digit :: Char -> Bool
-is_ascii_digit c = '0' <= c && c <= '9'
-
-is_ascii_hex :: Char -> Bool
-is_ascii_hex c = '0' <= c && c <= '9' || 'A' <= c && c <= 'F' || 'a' <= c && c <= 'f'
-
-is_ascii_quasi :: Char -> Bool
-is_ascii_quasi c = c == '_' || c == '\''
-
-is_ascii_blank :: Char -> Bool
-is_ascii_blank c = c `elem` " \t\n\11\f\r"
-
-is_ascii_line_terminator :: Char -> Bool
-is_ascii_line_terminator c = c == '\r' || c == '\n'
-
-is_ascii_letdig :: Char -> Bool
-is_ascii_letdig c = is_ascii_letter c || is_ascii_digit c || is_ascii_quasi c
-
-is_ascii_identifier :: String -> Bool
-is_ascii_identifier s =
-  not (null s) && is_ascii_letter (head s) && all is_ascii_letdig s
-\<close>
-
 generate_file "Isabelle/Library.hs" = \<open>
 {-  Title:      Isabelle/Library.hs
     Author:     Makarius
@@ -329,6 +291,45 @@ trim_line line =
 
 clean_name :: String -> String
 clean_name = reverse #> dropWhile (== '_') #> reverse
+\<close>
+
+
+generate_file "Isabelle/Symbol.hs" = \<open>
+{-  Title:      Isabelle/Symbols.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Isabelle text symbols.
+-}
+
+module Isabelle.Symbol where
+
+{- ASCII characters -}
+
+is_ascii_letter :: Char -> Bool
+is_ascii_letter c = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
+
+is_ascii_digit :: Char -> Bool
+is_ascii_digit c = '0' <= c && c <= '9'
+
+is_ascii_hex :: Char -> Bool
+is_ascii_hex c = '0' <= c && c <= '9' || 'A' <= c && c <= 'F' || 'a' <= c && c <= 'f'
+
+is_ascii_quasi :: Char -> Bool
+is_ascii_quasi c = c == '_' || c == '\''
+
+is_ascii_blank :: Char -> Bool
+is_ascii_blank c = c `elem` " \t\n\11\f\r"
+
+is_ascii_line_terminator :: Char -> Bool
+is_ascii_line_terminator c = c == '\r' || c == '\n'
+
+is_ascii_letdig :: Char -> Bool
+is_ascii_letdig c = is_ascii_letter c || is_ascii_digit c || is_ascii_quasi c
+
+is_ascii_identifier :: String -> Bool
+is_ascii_identifier s =
+  not (null s) && is_ascii_letter (head s) && all is_ascii_letdig s
 \<close>
 
 generate_file "Isabelle/Value.hs" = \<open>
@@ -972,101 +973,6 @@ no_output :: Output
 no_output = ("", "")
 \<close>
 
-generate_file "Isabelle/Completion.hs" = \<open>
-{-  Title:      Isabelle/Completion.hs
-    Author:     Makarius
-    LICENSE:    BSD 3-clause (Isabelle)
-
-Completion of names.
-
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
--}
-
-module Isabelle.Completion (
-    Name, T, names, none, make, markup_element, markup_report, make_report
-  ) where
-
-import qualified Data.List as List
-
-import Isabelle.Library
-import qualified Isabelle.Properties as Properties
-import qualified Isabelle.Markup as Markup
-import qualified Isabelle.XML.Encode as Encode
-import qualified Isabelle.XML as XML
-import qualified Isabelle.YXML as YXML
-
-
-type Name = (String, (String, String))  -- external name, kind, internal name
-data T = Completion Properties.T Int [Name]  -- position, total length, names
-
-names :: Int -> Properties.T -> [Name] -> T
-names limit props names = Completion props (length names) (take limit names)
-
-none :: T
-none = names 0 [] []
-
-make :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> T
-make limit (name, props) make_names =
-  if name /= "" && name /= "_"
-  then names limit props (make_names $ List.isPrefixOf $ clean_name name)
-  else none
-
-markup_element :: T -> (Markup.T, XML.Body)
-markup_element (Completion props total names) =
-  if not (null names) then
-    let
-      markup = Markup.properties props Markup.completion
-      body =
-        Encode.pair Encode.int
-          (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
-          (total, names)
-    in (markup, body)
-  else (Markup.empty, [])
-
-markup_report :: [T] -> String
-markup_report [] = ""
-markup_report elems =
-  YXML.string_of $ XML.Elem (Markup.report, map (XML.Elem . markup_element) elems)
-
-make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
-make_report limit name_props make_names =
-  markup_report [make limit name_props make_names]
-\<close>
-
-generate_file "Isabelle/File.hs" = \<open>
-{-  Title:      Isabelle/File.hs
-    Author:     Makarius
-    LICENSE:    BSD 3-clause (Isabelle)
-
-File-system operations.
-
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
--}
-
-module Isabelle.File (setup, read, write, append) where
-
-import Prelude hiding (read)
-import qualified System.IO as IO
-
-setup :: IO.Handle -> IO ()
-setup h = do
-  IO.hSetEncoding h IO.utf8
-  IO.hSetNewlineMode h IO.noNewlineTranslation
-
-read :: IO.FilePath -> IO String
-read path =
-  IO.withFile path IO.ReadMode (\h ->
-    do setup h; IO.hGetContents h >>= \s -> length s `seq` return s)
-
-write :: IO.FilePath -> String -> IO ()
-write path s =
-  IO.withFile path IO.WriteMode (\h -> do setup h; IO.hPutStr h s)
-
-append :: IO.FilePath -> String -> IO ()
-append path s =
-  IO.withFile path IO.AppendMode (\h -> do setup h; IO.hPutStr h s)
-\<close>
-
 generate_file "Isabelle/XML.hs" = \<open>
 {-  Title:      Isabelle/XML.hs
     Author:     Makarius
@@ -1483,6 +1389,101 @@ parse source =
     [result] -> result
     [] -> XML.Text ""
     _ -> err "multiple results"
+\<close>
+
+generate_file "Isabelle/Completion.hs" = \<open>
+{-  Title:      Isabelle/Completion.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Completion of names.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
+-}
+
+module Isabelle.Completion (
+    Name, T, names, none, make, markup_element, markup_report, make_report
+  ) where
+
+import qualified Data.List as List
+
+import Isabelle.Library
+import qualified Isabelle.Properties as Properties
+import qualified Isabelle.Markup as Markup
+import qualified Isabelle.XML.Encode as Encode
+import qualified Isabelle.XML as XML
+import qualified Isabelle.YXML as YXML
+
+
+type Name = (String, (String, String))  -- external name, kind, internal name
+data T = Completion Properties.T Int [Name]  -- position, total length, names
+
+names :: Int -> Properties.T -> [Name] -> T
+names limit props names = Completion props (length names) (take limit names)
+
+none :: T
+none = names 0 [] []
+
+make :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> T
+make limit (name, props) make_names =
+  if name /= "" && name /= "_"
+  then names limit props (make_names $ List.isPrefixOf $ clean_name name)
+  else none
+
+markup_element :: T -> (Markup.T, XML.Body)
+markup_element (Completion props total names) =
+  if not (null names) then
+    let
+      markup = Markup.properties props Markup.completion
+      body =
+        Encode.pair Encode.int
+          (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
+          (total, names)
+    in (markup, body)
+  else (Markup.empty, [])
+
+markup_report :: [T] -> String
+markup_report [] = ""
+markup_report elems =
+  YXML.string_of $ XML.Elem (Markup.report, map (XML.Elem . markup_element) elems)
+
+make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
+make_report limit name_props make_names =
+  markup_report [make limit name_props make_names]
+\<close>
+
+generate_file "Isabelle/File.hs" = \<open>
+{-  Title:      Isabelle/File.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+File-system operations.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
+-}
+
+module Isabelle.File (setup, read, write, append) where
+
+import Prelude hiding (read)
+import qualified System.IO as IO
+
+setup :: IO.Handle -> IO ()
+setup h = do
+  IO.hSetEncoding h IO.utf8
+  IO.hSetNewlineMode h IO.noNewlineTranslation
+
+read :: IO.FilePath -> IO String
+read path =
+  IO.withFile path IO.ReadMode (\h ->
+    do setup h; IO.hGetContents h >>= \s -> length s `seq` return s)
+
+write :: IO.FilePath -> String -> IO ()
+write path s =
+  IO.withFile path IO.WriteMode (\h -> do setup h; IO.hPutStr h s)
+
+append :: IO.FilePath -> String -> IO ()
+append path s =
+  IO.withFile path IO.AppendMode (\h -> do setup h; IO.hPutStr h s)
 \<close>
 
 generate_file "Isabelle/Pretty.hs" = \<open>
