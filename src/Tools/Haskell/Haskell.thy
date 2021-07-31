@@ -19,14 +19,13 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.scala\<close>.
 -}
 
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
-  head, last, take, drop, concat, trim_line,
-  singleton
+  head, last, take, drop, concat,
+  space, spaces, singleton, char, byte,
+  trim_line, space_explode, split_lines
 )
 where
 
@@ -88,13 +87,30 @@ drop n = pack . List.drop n . unpack
 concat :: [Bytes] -> Bytes
 concat = mconcat
 
+space :: Word8
+space = 32
+
+small_spaces :: Array Int Bytes
+small_spaces = array (0, 64) [(i, pack (replicate i space)) | i <- [0 .. 64]]
+
+spaces :: Int -> Bytes
+spaces n =
+  if n < 64 then small_spaces ! n
+  else concat ((small_spaces ! (n `mod` 64)) : replicate (n `div` 64) (small_spaces ! 64))
+
 singletons :: Array Word8 Bytes
 singletons =
-  array (minBound, maxBound) $!
-  [(i, make (ByteString.singleton i)) | i <- [minBound .. maxBound]]
+  array (minBound, maxBound)
+    [(i, make (ByteString.singleton i)) | i <- [minBound .. maxBound]]
 
 singleton :: Word8 -> Bytes
 singleton b = singletons ! b
+
+char :: Word8 -> Char
+char = toEnum . fromEnum
+
+byte :: Char -> Word8
+byte = toEnum . fromEnum
 
 trim_line :: Bytes -> Bytes
 trim_line s =
@@ -103,7 +119,21 @@ trim_line s =
   else s
   where
     n = length s
-    at :: Int -> Char = toEnum . fromEnum . index s
+    at = char . index s
+
+space_explode :: Word8 -> Bytes -> [Bytes]
+space_explode sep str =
+  if null str then []
+  else if all (/= sep) str then [str]
+  else explode (unpack str)
+  where
+    explode rest =
+      case span (/= sep) rest of
+        (_, []) -> [pack rest]
+        (prfx, _ : rest') -> pack prfx : explode rest'
+
+split_lines :: Bytes -> [Bytes]
+split_lines = space_explode (byte '\n')
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
@@ -363,6 +393,35 @@ is_ascii_identifier s =
   not (null s) && is_ascii_letter (head s) && all is_ascii_letdig s
 \<close>
 
+generate_file "Isabelle/Buffer.hs" = \<open>
+{-  Title:      Isabelle/Buffer.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Efficient buffer of byte strings.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
+-}
+
+module Isabelle.Buffer (T, empty, add, content)
+where
+
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+
+
+newtype T = Buffer [Bytes]
+
+empty :: T
+empty = Buffer []
+
+add :: Bytes -> T -> T
+add b (Buffer bs) = Buffer (if Bytes.null b then bs else b : bs)
+
+content :: T -> Bytes
+content (Buffer bs) = Bytes.concat (reverse bs)
+\<close>
+
 generate_file "Isabelle/Value.hs" = \<open>
 {-  Title:      Isabelle/Value.hs
     Author:     Makarius
@@ -373,21 +432,25 @@ Plain values, represented as string.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/value.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Value
   (print_bool, parse_bool, parse_nat, print_int, parse_int, print_real, parse_real)
 where
 
 import qualified Data.List as List
 import qualified Text.Read as Read
+import Isabelle.Bytes (Bytes)
+import Isabelle.Library
 
 
 {- bool -}
 
-print_bool :: Bool -> String
+print_bool :: Bool -> Bytes
 print_bool True = "true"
 print_bool False = "false"
 
-parse_bool :: String -> Maybe Bool
+parse_bool :: Bytes -> Maybe Bool
 parse_bool "true" = Just True
 parse_bool "false" = Just False
 parse_bool _ = Nothing
@@ -395,61 +458,33 @@ parse_bool _ = Nothing
 
 {- nat -}
 
-parse_nat :: String -> Maybe Int
+parse_nat :: Bytes -> Maybe Int
 parse_nat s =
-  case Read.readMaybe s of
+  case Read.readMaybe (make_string s) of
     Just n | n >= 0 -> Just n
     _ -> Nothing
 
 
 {- int -}
 
-print_int :: Int -> String
-print_int = show
+print_int :: Int -> Bytes
+print_int = make_bytes . show
 
-parse_int :: String -> Maybe Int
-parse_int = Read.readMaybe
+parse_int :: Bytes -> Maybe Int
+parse_int = Read.readMaybe . make_string
 
 
 {- real -}
 
-print_real :: Double -> String
+print_real :: Double -> Bytes
 print_real x =
   let s = show x in
     case span (/= '.') s of
-      (a, '.' : b) | List.all (== '0') b -> a
-      _ -> s
+      (a, '.' : b) | List.all (== '0') b -> make_bytes a
+      _ -> make_bytes s
 
-parse_real :: String -> Maybe Double
-parse_real = Read.readMaybe
-\<close>
-
-generate_file "Isabelle/Buffer.hs" = \<open>
-{-  Title:      Isabelle/Buffer.hs
-    Author:     Makarius
-    LICENSE:    BSD 3-clause (Isabelle)
-
-Efficient text buffers.
-
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
--}
-
-module Isabelle.Buffer (T, empty, add, content)
-where
-
-import Isabelle.Library
-
-
-newtype T = Buffer [Char]
-
-empty :: T
-empty = Buffer []
-
-add :: String -> T -> T
-add s (Buffer cs) = Buffer (fold (:) s cs)
-
-content :: T -> String
-content (Buffer cs) = reverse cs
+parse_real :: Bytes -> Maybe Double
+parse_real = Read.readMaybe . make_string
 \<close>
 
 generate_file "Isabelle/Properties.hs" = \<open>
@@ -466,18 +501,19 @@ module Isabelle.Properties (Entry, T, defined, get, get_value, put, remove)
 where
 
 import qualified Data.List as List
+import Isabelle.Bytes (Bytes)
 
 
-type Entry = (String, String)
+type Entry = (Bytes, Bytes)
 type T = [Entry]
 
-defined :: T -> String -> Bool
+defined :: T -> Bytes -> Bool
 defined props name = any (\(a, _) -> a == name) props
 
-get :: T -> String -> Maybe String
+get :: T -> Bytes -> Maybe Bytes
 get props name = List.lookup name props
 
-get_value :: (String -> Maybe a) -> T -> String -> Maybe a
+get_value :: (Bytes -> Maybe a) -> T -> Bytes -> Maybe a
 get_value parse props name =
   case get props name of
     Nothing -> Nothing
@@ -486,7 +522,7 @@ get_value parse props name =
 put :: Entry -> T -> T
 put entry props = entry : remove (fst entry) props
 
-remove :: String -> T -> T
+remove :: Bytes -> T -> T
 remove name props =
   if defined props name then filter (\(a, _) -> a /= name) props
   else props
@@ -502,6 +538,7 @@ Quasi-abstract markup elements.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/markup.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.Markup (
@@ -557,11 +594,13 @@ import Prelude hiding (words, error, break)
 import Isabelle.Library
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.Value as Value
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 
 
 {- basic markup -}
 
-type T = (String, Properties.T)
+type T = (Bytes, Properties.T)
 
 empty :: T
 empty = ("", [])
@@ -574,60 +613,61 @@ properties :: Properties.T -> T -> T
 properties more_props (elem, props) =
   (elem, fold_rev Properties.put more_props props)
 
-markup_elem :: String -> T
+markup_elem :: Bytes -> T
 markup_elem name = (name, [])
 
-markup_string :: String -> String -> String -> T
+markup_string :: Bytes -> Bytes -> Bytes -> T
 markup_string name prop = \s -> (name, [(prop, s)])
 
 
 {- misc properties -}
 
-nameN :: String
+nameN :: Bytes
 nameN = \<open>Markup.nameN\<close>
 
-name :: String -> T -> T
+name :: Bytes -> T -> T
 name a = properties [(nameN, a)]
 
-xnameN :: String
+xnameN :: Bytes
 xnameN = \<open>Markup.xnameN\<close>
 
-xname :: String -> T -> T
+xname :: Bytes -> T -> T
 xname a = properties [(xnameN, a)]
 
-kindN :: String
+kindN :: Bytes
 kindN = \<open>Markup.kindN\<close>
 
 
 {- formal entities -}
 
-bindingN :: String
+bindingN :: Bytes
 bindingN = \<open>Markup.bindingN\<close>
 binding :: T
 binding = markup_elem bindingN
 
-entityN :: String
+entityN :: Bytes
 entityN = \<open>Markup.entityN\<close>
-entity :: String -> String -> T
+entity :: Bytes -> Bytes -> T
 entity kind name =
   (entityN,
-    (if null name then [] else [(nameN, name)]) <> (if null kind then [] else [(kindN, kind)]))
+    (if Bytes.null name then [] else [(nameN, name)]) <>
+    (if Bytes.null kind then [] else [(kindN, kind)]))
 
-defN :: String
+defN :: Bytes
 defN = \<open>Markup.defN\<close>
 
-refN :: String
+refN :: Bytes
 refN = \<open>Markup.refN\<close>
 
 
 {- completion -}
 
-completionN :: String
+completionN :: Bytes
 completionN = \<open>Markup.completionN\<close>
 completion :: T
 completion = markup_elem completionN
 
-no_completionN :: String
+no_completionN :: Bytes
 no_completionN = \<open>Markup.no_completionN\<close>
 no_completion :: T
 no_completion = markup_elem no_completionN
@@ -635,19 +675,19 @@ no_completion = markup_elem no_completionN
 
 {- position -}
 
-lineN, end_lineN :: String
+lineN, end_lineN :: Bytes
 lineN = \<open>Markup.lineN\<close>
 end_lineN = \<open>Markup.end_lineN\<close>
 
-offsetN, end_offsetN :: String
+offsetN, end_offsetN :: Bytes
 offsetN = \<open>Markup.offsetN\<close>
 end_offsetN = \<open>Markup.end_offsetN\<close>
 
-fileN, idN :: String
+fileN, idN :: Bytes
 fileN = \<open>Markup.fileN\<close>
 idN = \<open>Markup.idN\<close>
 
-positionN :: String
+positionN :: Bytes
 positionN = \<open>Markup.positionN\<close>
 position :: T
 position = markup_elem positionN
@@ -655,51 +695,51 @@ position = markup_elem positionN
 
 {- expression -}
 
-expressionN :: String
+expressionN :: Bytes
 expressionN = \<open>Markup.expressionN\<close>
 
-expression :: String -> T
+expression :: Bytes -> T
 expression kind = (expressionN, if kind == "" then [] else [(kindN, kind)])
 
 
 {- citation -}
 
-citationN :: String
+citationN :: Bytes
 citationN = \<open>Markup.citationN\<close>
-citation :: String -> T
+citation :: Bytes -> T
 citation = markup_string nameN citationN
 
 
 {- external resources -}
 
-pathN :: String
+pathN :: Bytes
 pathN = \<open>Markup.pathN\<close>
-path :: String -> T
+path :: Bytes -> T
 path = markup_string pathN nameN
 
-urlN :: String
+urlN :: Bytes
 urlN = \<open>Markup.urlN\<close>
-url :: String -> T
+url :: Bytes -> T
 url = markup_string urlN nameN
 
-docN :: String
+docN :: Bytes
 docN = \<open>Markup.docN\<close>
-doc :: String -> T
+doc :: Bytes -> T
 doc = markup_string docN nameN
 
 
 {- pretty printing -}
 
-markupN, consistentN, unbreakableN, indentN :: String
+markupN, consistentN, unbreakableN, indentN :: Bytes
 markupN = \<open>Markup.markupN\<close>
 consistentN = \<open>Markup.consistentN\<close>
 unbreakableN = \<open>Markup.unbreakableN\<close>
 indentN = \<open>Markup.indentN\<close>
 
-widthN :: String
+widthN :: Bytes
 widthN = \<open>Markup.widthN\<close>
 
-blockN :: String
+blockN :: Bytes
 blockN = \<open>Markup.blockN\<close>
 block :: Bool -> Int -> T
 block c i =
@@ -707,7 +747,7 @@ block c i =
     (if c then [(consistentN, Value.print_bool c)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
-breakN :: String
+breakN :: Bytes
 breakN = \<open>Markup.breakN\<close>
 break :: Int -> Int -> T
 break w i =
@@ -715,12 +755,12 @@ break w i =
     (if w /= 0 then [(widthN, Value.print_int w)] else []) <>
     (if i /= 0 then [(indentN, Value.print_int i)] else []))
 
-fbreakN :: String
+fbreakN :: Bytes
 fbreakN = \<open>Markup.fbreakN\<close>
 fbreak :: T
 fbreak = markup_elem fbreakN
 
-itemN :: String
+itemN :: Bytes
 itemN = \<open>Markup.itemN\<close>
 item :: T
 item = markup_elem itemN
@@ -728,7 +768,7 @@ item = markup_elem itemN
 
 {- text properties -}
 
-wordsN :: String
+wordsN :: Bytes
 wordsN = \<open>Markup.wordsN\<close>
 words :: T
 words = markup_elem wordsN
@@ -736,79 +776,79 @@ words = markup_elem wordsN
 
 {- inner syntax -}
 
-tfreeN :: String
+tfreeN :: Bytes
 tfreeN = \<open>Markup.tfreeN\<close>
 tfree :: T
 tfree = markup_elem tfreeN
 
-tvarN :: String
+tvarN :: Bytes
 tvarN = \<open>Markup.tvarN\<close>
 tvar :: T
 tvar = markup_elem tvarN
 
-freeN :: String
+freeN :: Bytes
 freeN = \<open>Markup.freeN\<close>
 free :: T
 free = markup_elem freeN
 
-skolemN :: String
+skolemN :: Bytes
 skolemN = \<open>Markup.skolemN\<close>
 skolem :: T
 skolem = markup_elem skolemN
 
-boundN :: String
+boundN :: Bytes
 boundN = \<open>Markup.boundN\<close>
 bound :: T
 bound = markup_elem boundN
 
-varN :: String
+varN :: Bytes
 varN = \<open>Markup.varN\<close>
 var :: T
 var = markup_elem varN
 
-numeralN :: String
+numeralN :: Bytes
 numeralN = \<open>Markup.numeralN\<close>
 numeral :: T
 numeral = markup_elem numeralN
 
-literalN :: String
+literalN :: Bytes
 literalN = \<open>Markup.literalN\<close>
 literal :: T
 literal = markup_elem literalN
 
-delimiterN :: String
+delimiterN :: Bytes
 delimiterN = \<open>Markup.delimiterN\<close>
 delimiter :: T
 delimiter = markup_elem delimiterN
 
-inner_stringN :: String
+inner_stringN :: Bytes
 inner_stringN = \<open>Markup.inner_stringN\<close>
 inner_string :: T
 inner_string = markup_elem inner_stringN
 
-inner_cartoucheN :: String
+inner_cartoucheN :: Bytes
 inner_cartoucheN = \<open>Markup.inner_cartoucheN\<close>
 inner_cartouche :: T
 inner_cartouche = markup_elem inner_cartoucheN
 
 
-token_rangeN :: String
+token_rangeN :: Bytes
 token_rangeN = \<open>Markup.token_rangeN\<close>
 token_range :: T
 token_range = markup_elem token_rangeN
 
 
-sortingN :: String
+sortingN :: Bytes
 sortingN = \<open>Markup.sortingN\<close>
 sorting :: T
 sorting = markup_elem sortingN
 
-typingN :: String
+typingN :: Bytes
 typingN = \<open>Markup.typingN\<close>
 typing :: T
 typing = markup_elem typingN
 
-class_parameterN :: String
+class_parameterN :: Bytes
 class_parameterN = \<open>Markup.class_parameterN\<close>
 class_parameter :: T
 class_parameter = markup_elem class_parameterN
@@ -816,12 +856,12 @@ class_parameter = markup_elem class_parameterN
 
 {- antiquotations -}
 
-antiquotedN :: String
+antiquotedN :: Bytes
 antiquotedN = \<open>Markup.antiquotedN\<close>
 antiquoted :: T
 antiquoted = markup_elem antiquotedN
 
-antiquoteN :: String
+antiquoteN :: Bytes
 antiquoteN = \<open>Markup.antiquoteN\<close>
 antiquote :: T
 antiquote = markup_elem antiquoteN
@@ -829,12 +869,12 @@ antiquote = markup_elem antiquoteN
 
 {- text structure -}
 
-paragraphN :: String
+paragraphN :: Bytes
 paragraphN = \<open>Markup.paragraphN\<close>
 paragraph :: T
 paragraph = markup_elem paragraphN
 
-text_foldN :: String
+text_foldN :: Bytes
 text_foldN = \<open>Markup.text_foldN\<close>
 text_fold :: T
 text_fold = markup_elem text_foldN
@@ -842,57 +882,57 @@ text_fold = markup_elem text_foldN
 
 {- outer syntax -}
 
-keyword1N :: String
+keyword1N :: Bytes
 keyword1N = \<open>Markup.keyword1N\<close>
 keyword1 :: T
 keyword1 = markup_elem keyword1N
 
-keyword2N :: String
+keyword2N :: Bytes
 keyword2N = \<open>Markup.keyword2N\<close>
 keyword2 :: T
 keyword2 = markup_elem keyword2N
 
-keyword3N :: String
+keyword3N :: Bytes
 keyword3N = \<open>Markup.keyword3N\<close>
 keyword3 :: T
 keyword3 = markup_elem keyword3N
 
-quasi_keywordN :: String
+quasi_keywordN :: Bytes
 quasi_keywordN = \<open>Markup.quasi_keywordN\<close>
 quasi_keyword :: T
 quasi_keyword = markup_elem quasi_keywordN
 
-improperN :: String
+improperN :: Bytes
 improperN = \<open>Markup.improperN\<close>
 improper :: T
 improper = markup_elem improperN
 
-operatorN :: String
+operatorN :: Bytes
 operatorN = \<open>Markup.operatorN\<close>
 operator :: T
 operator = markup_elem operatorN
 
-stringN :: String
+stringN :: Bytes
 stringN = \<open>Markup.stringN\<close>
 string :: T
 string = markup_elem stringN
 
-alt_stringN :: String
+alt_stringN :: Bytes
 alt_stringN = \<open>Markup.alt_stringN\<close>
 alt_string :: T
 alt_string = markup_elem alt_stringN
 
-verbatimN :: String
+verbatimN :: Bytes
 verbatimN = \<open>Markup.verbatimN\<close>
 verbatim :: T
 verbatim = markup_elem verbatimN
 
-cartoucheN :: String
+cartoucheN :: Bytes
 cartoucheN = \<open>Markup.cartoucheN\<close>
 cartouche :: T
 cartouche = markup_elem cartoucheN
 
-commentN :: String
+commentN :: Bytes
 commentN = \<open>Markup.commentN\<close>
 comment :: T
 comment = markup_elem commentN
@@ -900,17 +940,17 @@ comment = markup_elem commentN
 
 {- comments -}
 
-comment1N :: String
+comment1N :: Bytes
 comment1N = \<open>Markup.comment1N\<close>
 comment1 :: T
 comment1 = markup_elem comment1N
 
-comment2N :: String
+comment2N :: Bytes
 comment2N = \<open>Markup.comment2N\<close>
 comment2 :: T
 comment2 = markup_elem comment2N
 
-comment3N :: String
+comment3N :: Bytes
 comment3N = \<open>Markup.comment3N\<close>
 comment3 :: T
 comment3 = markup_elem comment3N
@@ -919,7 +959,7 @@ comment3 = markup_elem comment3N
 {- command status -}
 
 forkedN, joinedN, runningN, finishedN, failedN, canceledN,
-  initializedN, finalizedN, consolidatedN :: String
+  initializedN, finalizedN, consolidatedN :: Bytes
 forkedN = \<open>Markup.forkedN\<close>
 joinedN = \<open>Markup.joinedN\<close>
 runningN = \<open>Markup.runningN\<close>
@@ -945,52 +985,52 @@ consolidated = markup_elem consolidatedN
 
 {- messages -}
 
-writelnN :: String
+writelnN :: Bytes
 writelnN = \<open>Markup.writelnN\<close>
 writeln :: T
 writeln = markup_elem writelnN
 
-stateN :: String
+stateN :: Bytes
 stateN = \<open>Markup.stateN\<close>
 state :: T
 state = markup_elem stateN
 
-informationN :: String
+informationN :: Bytes
 informationN = \<open>Markup.informationN\<close>
 information :: T
 information = markup_elem informationN
 
-tracingN :: String
+tracingN :: Bytes
 tracingN = \<open>Markup.tracingN\<close>
 tracing :: T
 tracing = markup_elem tracingN
 
-warningN :: String
+warningN :: Bytes
 warningN = \<open>Markup.warningN\<close>
 warning :: T
 warning = markup_elem warningN
 
-legacyN :: String
+legacyN :: Bytes
 legacyN = \<open>Markup.legacyN\<close>
 legacy :: T
 legacy = markup_elem legacyN
 
-errorN :: String
+errorN :: Bytes
 errorN = \<open>Markup.errorN\<close>
 error :: T
 error = markup_elem errorN
 
-reportN :: String
+reportN :: Bytes
 reportN = \<open>Markup.reportN\<close>
 report :: T
 report = markup_elem reportN
 
-no_reportN :: String
+no_reportN :: Bytes
 no_reportN = \<open>Markup.no_reportN\<close>
 no_report :: T
 no_report = markup_elem no_reportN
 
-intensifyN :: String
+intensifyN :: Bytes
 intensifyN = \<open>Markup.intensifyN\<close>
 intensify :: T
 intensify = markup_elem intensifyN
@@ -998,7 +1038,7 @@ intensify = markup_elem intensifyN
 
 {- output -}
 
-type Output = (String, String)
+type Output = (Bytes, Bytes)
 
 no_output :: Output
 no_output = ("", "")
@@ -1014,6 +1054,7 @@ Untyped XML trees and representation of ML values.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.XML (Attributes, Body, Tree(..), wrap_elem, unwrap_elem, content_of)
@@ -1023,13 +1064,15 @@ import Isabelle.Library
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.Markup as Markup
 import qualified Isabelle.Buffer as Buffer
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 
 
 {- types -}
 
 type Attributes = Properties.T
 type Body = [Tree]
-data Tree = Elem (Markup.T, Body) | Text String
+data Tree = Elem (Markup.T, Body) | Text Bytes
 
 
 {- wrapped elements -}
@@ -1056,22 +1099,26 @@ add_content tree =
         Elem (_, ts) -> fold add_content ts
         Text s -> Buffer.add s
 
-content_of :: Body -> String
+content_of :: Body -> Bytes
 content_of body = Buffer.empty |> fold add_content body |> Buffer.content
 
 
 {- string representation -}
 
-encode '<' = "&lt;"
-encode '>' = "&gt;"
-encode '&' = "&amp;"
-encode '\'' = "&apos;"
-encode '\"' = "&quot;"
-encode c = [c]
+encode_char :: Char -> String
+encode_char '<' = "&lt;"
+encode_char '>' = "&gt;"
+encode_char '&' = "&amp;"
+encode_char '\'' = "&apos;"
+encode_char '\"' = "&quot;"
+encode_char c = [c]
+
+encode_text :: Bytes -> Bytes
+encode_text = make_bytes . concatMap (encode_char . Bytes.char) . Bytes.unpack
 
 instance Show Tree where
   show tree =
-    Buffer.empty |> show_tree tree |> Buffer.content
+    Buffer.empty |> show_tree tree |> Buffer.content |> make_string
     where
       show_tree (Elem ((name, atts), [])) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add "/>"
@@ -1079,12 +1126,10 @@ instance Show Tree where
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add ">" #>
         fold show_tree ts #>
         Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
-      show_tree (Text s) = Buffer.add (show_text s)
+      show_tree (Text s) = Buffer.add (encode_text s)
 
       show_elem name atts =
-        unwords (name : map (\(a, x) -> a <> "=\"" <> show_text x <> "\"") atts)
-
-      show_text = concatMap encode
+        space_implode " " (name : map (\(a, x) -> a <> "=\"" <> encode_text x <> "\"") atts)
 \<close>
 
 generate_file "Isabelle/XML/Encode.hs" = \<open>
@@ -1097,6 +1142,7 @@ XML as data representation language.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.XML.Encode (
@@ -1109,15 +1155,16 @@ module Isabelle.XML.Encode (
 where
 
 import Isabelle.Library
+import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Value as Value
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.XML as XML
 
 
-type A a = a -> String
+type A a = a -> Bytes
 type T a = a -> XML.Body
-type V a = a -> Maybe ([String], XML.Body)
-type P a = a -> [String]
+type V a = a -> Maybe ([Bytes], XML.Body)
+type P a = a -> [Bytes]
 
 
 -- atomic values
@@ -1150,7 +1197,7 @@ tree t = [t]
 properties :: T Properties.T
 properties props = [XML.Elem ((":", props), [])]
 
-string :: T String
+string :: T Bytes
 string "" = []
 string s = [XML.Text s]
 
@@ -1190,6 +1237,7 @@ XML as data representation language.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.XML.Decode (
@@ -1202,15 +1250,16 @@ module Isabelle.XML.Decode (
 where
 
 import Isabelle.Library
+import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Value as Value
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.XML as XML
 
 
-type A a = String -> a
+type A a = Bytes -> a
 type T a = XML.Body -> a
-type V a = ([String], XML.Body) -> a
-type P a = [String] -> a
+type V a = ([Bytes], XML.Body) -> a
+type P a = [Bytes] -> a
 
 err_atom = error "Malformed XML atom"
 err_body = error "Malformed XML body"
@@ -1256,7 +1305,7 @@ properties :: T Properties.T
 properties [XML.Elem ((":", props), [])] = props
 properties _ = err_body
 
-string :: T String
+string :: T Bytes
 string [] = ""
 string [XML.Text s] = s
 string _ = err_body
@@ -1303,16 +1352,19 @@ inlining into plain text.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-incomplete-patterns #-}
 
 module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
   buffer_body, buffer, string_of_body, string_of, parse_body, parse)
 where
 
-import qualified Data.Char as Char
 import qualified Data.List as List
+import Data.Word (Word8)
 
 import Isabelle.Library
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Markup as Markup
 import qualified Isabelle.XML as XML
 import qualified Isabelle.Buffer as Buffer
@@ -1320,18 +1372,18 @@ import qualified Isabelle.Buffer as Buffer
 
 {- markers -}
 
-charX, charY :: Char
-charX = Char.chr 5
-charY = Char.chr 6
+charX, charY :: Word8
+charX = 5
+charY = 6
 
-strX, strY, strXY, strXYX :: String
-strX = [charX]
-strY = [charY]
+strX, strY, strXY, strXYX :: Bytes
+strX = Bytes.singleton charX
+strY = Bytes.singleton charY
 strXY = strX <> strY
 strXYX = strXY <> strX
 
-detect :: String -> Bool
-detect = any (\c -> c == charX || c == charY)
+detect :: Bytes -> Bool
+detect = Bytes.any (\c -> c == charX || c == charY)
 
 
 {- output -}
@@ -1339,7 +1391,7 @@ detect = any (\c -> c == charX || c == charY)
 output_markup :: Markup.T -> Markup.Output
 output_markup markup@(name, atts) =
   if Markup.is_empty markup then Markup.no_output
-  else (strXY <> name <> concatMap (\(a, x) -> strY <> a <> "=" <> x) atts <> strX, strXYX)
+  else (strXY <> name <> Bytes.concat (map (\(a, x) -> strY <> a <> "=" <> x) atts) <> strX, strXYX)
 
 buffer_attrib (a, x) =
   Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
@@ -1354,10 +1406,10 @@ buffer (XML.Elem ((name, atts), ts)) =
   Buffer.add strXYX
 buffer (XML.Text s) = Buffer.add s
 
-string_of_body :: XML.Body -> String
+string_of_body :: XML.Body -> Bytes
 string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content
 
-string_of :: XML.Tree -> String
+string_of :: XML.Tree -> Bytes
 string_of = string_of_body . single
 
 
@@ -1365,7 +1417,7 @@ string_of = string_of_body . single
 
 -- split: fields or non-empty tokens
 
-split :: Bool -> Char -> String -> [String]
+split :: Bool -> Word8 -> [Word8] -> [[Word8]]
 split _ _ [] = []
 split fields sep str = splitting str
   where
@@ -1378,43 +1430,50 @@ split fields sep str = splitting str
 
 -- structural errors
 
-err msg = error ("Malformed YXML: " <> msg)
+err :: Bytes -> a
+err msg = error (make_string ("Malformed YXML: " <> msg))
+
 err_attribute = err "bad attribute"
 err_element = err "bad element"
-err_unbalanced "" = err "unbalanced element"
-err_unbalanced name = err ("unbalanced element " <> quote name)
+
+err_unbalanced :: Bytes -> a
+err_unbalanced name =
+  if Bytes.null name then err "unbalanced element"
+  else err ("unbalanced element " <> quote name)
 
 
 -- stack operations
 
 add x ((elem, body) : pending) = (elem, x : body) : pending
 
-push "" _ _ = err_element
-push name atts pending = ((name, atts), []) : pending
+push name atts pending =
+  if Bytes.null name then err_element
+  else ((name, atts), []) : pending
 
-pop ((("", _), _) : _) = err_unbalanced ""
-pop ((markup, body) : pending) = add (XML.Elem (markup, reverse body)) pending
+pop (((name, atts), body) : pending) =
+  if Bytes.null name then err_unbalanced name
+  else add (XML.Elem ((name, atts), reverse body)) pending
 
 
 -- parsing
 
 parse_attrib s =
-  case List.elemIndex '=' s of
-    Just i | i > 0 -> (take i s, drop (i + 1) s)
+  case List.elemIndex (Bytes.byte '=') s of
+    Just i | i > 0 -> (Bytes.pack $ take i s, Bytes.pack $ drop (i + 1) s)
     _ -> err_attribute
 
-parse_chunk ["", ""] = pop
-parse_chunk ("" : name : atts) = push name (map parse_attrib atts)
-parse_chunk txts = fold (add . XML.Text) txts
+parse_chunk [[], []] = pop
+parse_chunk ([] : name : atts) = push (Bytes.pack name) (map parse_attrib atts)
+parse_chunk txts = fold (add . XML.Text . Bytes.pack) txts
 
-parse_body :: String -> XML.Body
+parse_body :: Bytes -> XML.Body
 parse_body source =
-  case fold parse_chunk chunks [(("", []), [])] of
-    [(("", _), result)] -> reverse result
+  case fold parse_chunk chunks [((Bytes.empty, []), [])] of
+    [((name, _), result)] | Bytes.null name -> reverse result
     ((name, _), _) : _ -> err_unbalanced name
-  where chunks = split False charX source |> map (split True charY)
+  where chunks = source |> Bytes.unpack |> split False charX |> map (split True charY)
 
-parse :: String -> XML.Tree
+parse :: Bytes -> XML.Tree
 parse source =
   case parse_body source of
     [result] -> result
@@ -1432,6 +1491,8 @@ Completion of names.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Completion (
     Name, T, names, none, make, markup_element, markup_report, make_report
   ) where
@@ -1439,6 +1500,8 @@ module Isabelle.Completion (
 import qualified Data.List as List
 
 import Isabelle.Library
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.Markup as Markup
 import qualified Isabelle.XML.Encode as Encode
@@ -1446,7 +1509,7 @@ import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
 
 
-type Name = (String, (String, String))  -- external name, kind, internal name
+type Name = (Bytes, (Bytes, Bytes))  -- external name, kind, internal name
 data T = Completion Properties.T Int [Name]  -- position, total length, names
 
 names :: Int -> Properties.T -> [Name] -> T
@@ -1455,10 +1518,10 @@ names limit props names = Completion props (length names) (take limit names)
 none :: T
 none = names 0 [] []
 
-make :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> T
+make :: Int -> (Bytes, Properties.T) -> ((Bytes -> Bool) -> [Name]) -> T
 make limit (name, props) make_names =
-  if name /= "" && name /= "_"
-  then names limit props (make_names $ List.isPrefixOf $ clean_name name)
+  if name /= "" && name /= "_" then
+    names limit props (make_names (List.isPrefixOf (clean_name (make_string name)) . make_string))
   else none
 
 markup_element :: T -> (Markup.T, XML.Body)
@@ -1473,12 +1536,12 @@ markup_element (Completion props total names) =
     in (markup, body)
   else (Markup.empty, [])
 
-markup_report :: [T] -> String
-markup_report [] = ""
+markup_report :: [T] -> Bytes
+markup_report [] = Bytes.empty
 markup_report elems =
   YXML.string_of $ XML.Elem (Markup.report, map (XML.Elem . markup_element) elems)
 
-make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
+make_report :: Int -> (Bytes, Properties.T) -> ((Bytes -> Bool) -> [Name]) -> Bytes
 make_report limit name_props make_names =
   markup_report [make limit name_props make_names]
 \<close>
@@ -1527,6 +1590,7 @@ Generic pretty printing module.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/pretty.ML\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Isabelle.Pretty (
@@ -1537,8 +1601,11 @@ module Isabelle.Pretty (
   commas, enclose, enum, list, str_list, big_list)
 where
 
-import Isabelle.Library hiding (quote, separate, commas)
 import qualified Data.List as List
+
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+import Isabelle.Library hiding (quote, separate, commas)
 import qualified Isabelle.Buffer as Buffer
 import qualified Isabelle.Markup as Markup
 import qualified Isabelle.XML as XML
@@ -1548,15 +1615,12 @@ import qualified Isabelle.YXML as YXML
 data T =
     Block Markup.T Bool Int [T]
   | Break Int Int
-  | Str String
+  | Str Bytes
 
 
 {- output -}
 
-output_spaces n = replicate n ' '
-
-symbolic_text "" = []
-symbolic_text s = [XML.Text s]
+symbolic_text s = if Bytes.null s then [] else [XML.Text s]
 
 symbolic_markup markup body =
   if Markup.is_empty markup then body
@@ -1568,19 +1632,19 @@ symbolic (Block markup consistent indent prts) =
   |> symbolic_markup block_markup
   |> symbolic_markup markup
   where block_markup = if null prts then Markup.empty else Markup.block consistent indent
-symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind, symbolic_text (output_spaces wd))]
+symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind, symbolic_text (Bytes.spaces wd))]
 symbolic (Str s) = symbolic_text s
 
-formatted :: T -> String
+formatted :: T -> Bytes
 formatted = YXML.string_of_body . symbolic
 
-unformatted :: T -> String
+unformatted :: T -> Bytes
 unformatted prt = Buffer.empty |> out prt |> Buffer.content
   where
     out (Block markup _ _ prts) =
       let (bg, en) = YXML.output_markup markup
       in Buffer.add bg #> fold out prts #> Buffer.add en
-    out (Break _ wd) = Buffer.add (output_spaces wd)
+    out (Break _ wd) = Buffer.add (Bytes.spaces wd)
     out (Str s) = Buffer.add s
 
 
@@ -1589,8 +1653,8 @@ unformatted prt = Buffer.empty |> out prt |> Buffer.content
 force_nat n | n < 0 = 0
 force_nat n = n
 
-str :: String -> T
-str = Str
+str :: BYTES a => a -> T
+str = Str . make_bytes
 
 brk_indent :: Int -> Int -> T
 brk_indent wd ind = Break (force_nat wd) ind
@@ -1599,7 +1663,7 @@ brk :: Int -> T
 brk wd = brk_indent wd 0
 
 fbrk :: T
-fbrk = str "\n"
+fbrk = Str "\n"
 
 breaks, fbreaks :: [T] -> [T]
 breaks = List.intersperse (brk 1)
@@ -1611,7 +1675,7 @@ blk (indent, es) = Block Markup.empty False (force_nat indent) es
 block :: [T] -> T
 block prts = blk (2, prts)
 
-strs :: [String] -> T
+strs :: BYTES a => [a] -> T
 strs = block . breaks . map str
 
 markup :: Markup.T -> [T] -> T
@@ -1620,10 +1684,10 @@ markup m = Block m False 0
 mark :: Markup.T -> T -> T
 mark m prt = if m == Markup.empty then prt else markup m [prt]
 
-mark_str :: (Markup.T, String) -> T
+mark_str :: BYTES a => (Markup.T, a) -> T
 mark_str (m, s) = mark m (str s)
 
-marks_str :: ([Markup.T], String) -> T
+marks_str :: BYTES a => ([Markup.T], a) -> T
 marks_str (ms, s) = fold_rev mark ms (str s)
 
 item :: [T] -> T
@@ -1632,44 +1696,44 @@ item = markup Markup.item
 text_fold :: [T] -> T
 text_fold = markup Markup.text_fold
 
-keyword1, keyword2 :: String -> T
+keyword1, keyword2 :: BYTES a => a -> T
 keyword1 name = mark_str (Markup.keyword1, name)
 keyword2 name = mark_str (Markup.keyword2, name)
 
-text :: String -> [T]
-text = breaks . map str . words
+text :: BYTES a => a -> [T]
+text = breaks . map str . filter (not . Bytes.null) . Bytes.space_explode Bytes.space . make_bytes
 
 paragraph :: [T] -> T
 paragraph = markup Markup.paragraph
 
-para :: String -> T
+para :: BYTES a => a -> T
 para = paragraph . text
 
 quote :: T -> T
-quote prt = blk (1, [str "\"", prt, str "\""])
+quote prt = blk (1, [Str "\"", prt, Str "\""])
 
 cartouche :: T -> T
-cartouche prt = blk (1, [str "\92<open>", prt, str "\92<close>"])
+cartouche prt = blk (1, [Str "\92<open>", prt, Str "\92<close>"])
 
-separate :: String -> [T] -> [T]
+separate :: BYTES a => a -> [T] -> [T]
 separate sep = List.intercalate [str sep, brk 1] . map single
 
 commas :: [T] -> [T]
-commas = separate ","
+commas = separate ("," :: Bytes)
 
-enclose :: String -> String -> [T] -> T
+enclose :: BYTES a => a -> a -> [T] -> T
 enclose lpar rpar prts = block (str lpar : prts <> [str rpar])
 
-enum :: String -> String -> String -> [T] -> T
+enum :: BYTES a => a -> a -> a -> [T] -> T
 enum sep lpar rpar = enclose lpar rpar . separate sep
 
-list :: String -> String -> [T] -> T
+list :: BYTES a => a -> a -> [T] -> T
 list = enum ","
 
-str_list :: String -> String -> [String] -> T
+str_list :: BYTES a => a -> a -> [a] -> T
 str_list lpar rpar = list lpar rpar . map str
 
-big_list :: String -> [T] -> T
+big_list :: BYTES a => a -> [T] -> T
 big_list name prts = block (fbreaks (str name : prts))
 \<close>
 
@@ -1683,6 +1747,8 @@ Lambda terms, types, sorts.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Term (
   Indexname,
 
@@ -1691,18 +1757,21 @@ module Isabelle.Term (
   Typ(..), dummyT, is_dummyT, Term(..))
 where
 
-type Indexname = (String, Int)
+import Isabelle.Bytes (Bytes)
 
 
-type Sort = [String]
+type Indexname = (Bytes, Int)
+
+
+type Sort = [Bytes]
 
 dummyS :: Sort
 dummyS = [""]
 
 
 data Typ =
-    Type (String, [Typ])
-  | TFree (String, Sort)
+    Type (Bytes, [Typ])
+  | TFree (Bytes, Sort)
   | TVar (Indexname, Sort)
   deriving Show
 
@@ -1715,11 +1784,11 @@ is_dummyT _ = False
 
 
 data Term =
-    Const (String, [Typ])
-  | Free (String, Typ)
+    Const (Bytes, [Typ])
+  | Free (Bytes, Typ)
   | Var (Indexname, Typ)
   | Bound Int
-  | Abs (String, Typ, Term)
+  | Abs (Bytes, Typ, Term)
   | App (Term, Term)
   deriving Show
 \<close>
@@ -1829,13 +1898,10 @@ Universally unique identifiers.
 See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/uuid.scala\<close>.
 -}
 
-module Isabelle.UUID (
-    T,
-    parse_string, parse_bytes,
-    string, bytes,
-    random, random_string, random_bytes
-  )
+module Isabelle.UUID (T, random, print, parse)
 where
+
+import Prelude hiding (print)
 
 import Data.UUID (UUID)
 import qualified Data.UUID as UUID
@@ -1847,35 +1913,14 @@ import Isabelle.Bytes (Bytes)
 
 type T = UUID
 
-
-{- parse -}
-
-parse_string :: String -> Maybe T
-parse_string = UUID.fromString
-
-parse_bytes :: Bytes -> Maybe T
-parse_bytes = UUID.fromASCIIBytes . Bytes.unmake
-
-
-{- print -}
-
-string :: T -> String
-string = UUID.toString
-
-bytes :: T -> Bytes
-bytes = Bytes.make . UUID.toASCIIBytes
-
-
-{- random id -}
-
 random :: IO T
 random = nextRandom
 
-random_string :: IO String
-random_string = string <$> random
+print :: T -> Bytes
+print = Bytes.make . UUID.toASCIIBytes
 
-random_bytes :: IO Bytes
-random_bytes = bytes <$> random
+parse :: Bytes -> Maybe T
+parse = UUID.fromASCIIBytes . Bytes.unmake
 \<close>
 
 generate_file "Isabelle/Byte_Message.hs" = \<open>
@@ -1964,7 +2009,7 @@ read_line socket = read_body []
 {- messages with multiple chunks (arbitrary content) -}
 
 make_header :: [Int] -> [Bytes]
-make_header ns = [UTF8.encode (space_implode "," (map Value.print_int ns)), "\n"]
+make_header ns = [space_implode "," (map Value.print_int ns), "\n"]
 
 make_message :: [Bytes] -> [Bytes]
 make_message chunks = make_header (map Bytes.length chunks) <> chunks
@@ -1975,7 +2020,7 @@ write_message socket = write socket . make_message
 parse_header :: Bytes -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (space_explode ',' (UTF8.decode line))
+    res = map Value.parse_nat (Bytes.space_explode (Bytes.byte ',') line)
   in
     if all isJust res then map fromJust res
     else error ("Malformed message header: " <> quote (UTF8.decode line))
@@ -2025,7 +2070,7 @@ read_line_message socket = do
   case opt_line of
     Nothing -> return Nothing
     Just line ->
-      case Value.parse_nat (UTF8.decode line) of
+      case Value.parse_nat line of
         Nothing -> return $ Just line
         Just n -> fmap Bytes.trim_line . fst <$> read_block socket n
 
@@ -2033,11 +2078,11 @@ read_line_message socket = do
 read_yxml :: Socket -> IO (Maybe XML.Body)
 read_yxml socket = do
   res <- read_line_message socket
-  return (YXML.parse_body . UTF8.decode <$> res)
+  return (YXML.parse_body <$> res)
 
 write_yxml :: Socket -> XML.Body -> IO ()
 write_yxml socket body =
-  write_line_message socket (UTF8.encode (YXML.string_of_body body))
+  write_line_message socket (YXML.string_of_body body)
 \<close>
 
 generate_file "Isabelle/Isabelle_Thread.hs" = \<open>
@@ -2236,7 +2281,6 @@ import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
-import qualified Isabelle.UTF8 as UTF8
 
 
 {- server address -}
@@ -2252,7 +2296,8 @@ publish_text name address password =
   "server " <> quote name <> " = " <> address <> " (password " <> quote (show password) <> ")"
 
 publish_stdout :: String -> String -> UUID.T -> IO ()
-publish_stdout name address password = putStrLn (publish_text name address password)
+publish_stdout name address password =
+  putStrLn (publish_text name address password)
 
 
 {- server -}
@@ -2272,7 +2317,7 @@ server publish handle =
       password <- UUID.random
       publish address password
 
-      return (server_socket, UUID.bytes password)
+      return (server_socket, UUID.print password)
 
     loop :: Socket -> Bytes -> IO ()
     loop server_socket password = forever $ do
@@ -2291,7 +2336,7 @@ server publish handle =
 
 {- client connection -}
 
-connection :: String -> String -> (Socket -> IO a) -> IO a
+connection :: String -> Bytes -> (Socket -> IO a) -> IO a
 connection port password client =
   Socket.withSocketsDo $ do
     addr <- resolve
@@ -2311,7 +2356,7 @@ connection port password client =
       return socket
 
     body socket = do
-      Byte_Message.write_line socket (UTF8.encode password)
+      Byte_Message.write_line socket password
       client socket
 \<close>
 
