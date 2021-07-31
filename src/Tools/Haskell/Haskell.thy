@@ -25,7 +25,8 @@ module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
-  head, last, take, drop, concat, trim_line
+  head, last, take, drop, concat, trim_line,
+  singleton
 )
 where
 
@@ -33,9 +34,11 @@ import Prelude hiding (null, length, all, any, head, last, take, drop, concat)
 
 import qualified Data.ByteString.Short as ShortByteString
 import Data.ByteString.Short (ShortByteString)
+import qualified Data.ByteString as ByteString
 import Data.ByteString (ByteString)
 import qualified Data.List as List
 import Data.Word (Word8)
+import Data.Array (Array, array, (!))
 
 
 type Bytes = ShortByteString
@@ -84,6 +87,14 @@ drop n = pack . List.drop n . unpack
 
 concat :: [Bytes] -> Bytes
 concat = mconcat
+
+singletons :: Array Word8 Bytes
+singletons =
+  array (minBound, maxBound) $!
+  [(i, make (ByteString.singleton i)) | i <- [minBound .. maxBound]]
+
+singleton :: Word8 -> Bytes
+singleton b = singletons ! b
 
 trim_line :: Bytes -> Bytes
 trim_line s =
