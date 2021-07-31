@@ -105,7 +105,7 @@ object HTTP
       connection.setRequestMethod("POST")
       connection.setDoOutput(true)
 
-      val boundary = UUID.random_string()
+      val boundary = UUID.random().toString
       connection.setRequestProperty(
         "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
 

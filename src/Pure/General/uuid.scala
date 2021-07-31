@@ -12,7 +12,6 @@ object UUID
   type T = java.util.UUID
 
   def random(): T = java.util.UUID.randomUUID()
-  def random_string(): String = random().toString
 
   def unapply(s: String): Option[T] =
     try { Some(java.util.UUID.fromString(s)) }

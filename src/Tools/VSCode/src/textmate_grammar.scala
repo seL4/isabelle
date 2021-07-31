@@ -45,7 +45,7 @@ object TextMate_Grammar
   "name": "Isabelle",
   "scopeName": "source.isabelle",
   "fileTypes": ["thy"],
-  "uuid": """ + JSON.Format(UUID.random_string()) + """,
+  "uuid": """ + JSON.Format(UUID.random().toString) + """,
   "repository": {
     "comment": {
       "patterns": [
