@@ -178,6 +178,8 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>, \<^fi
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Isabelle.Library (
   (|>), (|->), (#>), (#->),
@@ -186,13 +188,19 @@ module Isabelle.Library (
 
   fold, fold_rev, single, map_index, get_index, separate,
 
+  StringLike, STRING (..), TEXT (..), BYTES (..),
+
   proper_string, quote, space_implode, commas, commas_quote, cat_lines,
   space_explode, split_lines, trim_line, clean_name)
 where
 
+import qualified Data.Text as Text
+import Data.Text (Text)
 import Data.String (IsString)
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.UTF8 as UTF8
 
 
 {- functions -}
@@ -250,26 +258,49 @@ get_index f = get_aux 0
         Just y -> Just (i, y)
 
 separate :: a -> [a] -> [a]
-separate s (x : xs @ (_ : _)) = x : s : separate s xs
+separate s (x : (xs @ (_ : _))) = x : s : separate s xs
 separate _ xs = xs;
+
+
+{- string-like interfaces -}
+
+class (IsString a, Monoid a, Eq a, Ord a) => StringLike a
+instance StringLike String
+instance StringLike Text
+instance StringLike Bytes
+
+class StringLike a => STRING a where make_string :: a -> String
+instance STRING String where make_string = id
+instance STRING Text where make_string = Text.unpack
+instance STRING Bytes where make_string = UTF8.decode
+
+class StringLike a => TEXT a where make_text :: a -> Text
+instance TEXT String where make_text = Text.pack
+instance TEXT Text where make_text = id
+instance TEXT Bytes where make_text = UTF8.decode
+
+class StringLike a => BYTES a where make_bytes :: a -> Bytes
+instance BYTES String where make_bytes = UTF8.encode
+instance BYTES Text where make_bytes = UTF8.encode
+instance BYTES Bytes where make_bytes = id
 
 
 {- strings -}
 
-proper_string :: (IsString a, Eq a) => a -> Maybe a
+proper_string :: StringLike a => a -> Maybe a
 proper_string s = if s == "" then Nothing else Just s
 
-quote :: (IsString a, Semigroup a) => a -> a
+quote :: StringLike a => a -> a
 quote s = "\"" <> s <> "\""
 
-space_implode :: (IsString a, Monoid a) => a -> [a] -> a
+space_implode :: StringLike a => a -> [a] -> a
 space_implode s = mconcat . separate s
 
-commas, commas_quote :: (IsString a, Monoid a) => [a] -> a
+commas, commas_quote :: StringLike a => [a] -> a
 commas = space_implode ", "
 commas_quote = commas . map quote
 
-cat_lines :: (IsString a, Monoid a) => [a] -> a
+cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
 
 
