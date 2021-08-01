@@ -153,10 +153,12 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/utf8.scala\<close>.
 {-# LANGUAGE InstanceSigs #-}
 
 module Isabelle.UTF8 (
+  setup, setup3,
   Recode (..)
 )
 where
 
+import qualified System.IO as IO
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
@@ -167,6 +169,16 @@ import Data.ByteString (ByteString)
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 
+setup :: IO.Handle -> IO ()
+setup h = do
+  IO.hSetEncoding h IO.utf8
+  IO.hSetNewlineMode h IO.noNewlineTranslation
+
+setup3 :: IO.Handle -> IO.Handle -> IO.Handle -> IO ()
+setup3 h1 h2 h3 = do
+  setup h1
+  setup h2
+  setup h3
 
 class Recode a b where
   encode :: a -> b
@@ -1561,28 +1573,22 @@ File-system operations.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
 -}
 
-module Isabelle.File (setup, read, write, append) where
+module Isabelle.File (read, write, append) where
 
 import Prelude hiding (read)
 import qualified System.IO as IO
+import qualified Data.ByteString as ByteString
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
 
-setup :: IO.Handle -> IO ()
-setup h = do
-  IO.hSetEncoding h IO.utf8
-  IO.hSetNewlineMode h IO.noNewlineTranslation
+read :: IO.FilePath -> IO Bytes
+read path = Bytes.make <$> IO.withFile path IO.ReadMode ByteString.hGetContents
 
-read :: IO.FilePath -> IO String
-read path =
-  IO.withFile path IO.ReadMode (\h ->
-    do setup h; IO.hGetContents h >>= \s -> length s `seq` return s)
+write :: IO.FilePath -> Bytes -> IO ()
+write path bs = IO.withFile path IO.WriteMode (\h -> ByteString.hPut h (Bytes.unmake bs))
 
-write :: IO.FilePath -> String -> IO ()
-write path s =
-  IO.withFile path IO.WriteMode (\h -> do setup h; IO.hPutStr h s)
-
-append :: IO.FilePath -> String -> IO ()
-append path s =
-  IO.withFile path IO.AppendMode (\h -> do setup h; IO.hPutStr h s)
+append :: IO.FilePath -> Bytes -> IO ()
+append path bs = IO.withFile path IO.AppendMode (\h -> ByteString.hPut h (Bytes.unmake bs))
 \<close>
 
 generate_file "Isabelle/Pretty.hs" = \<open>
