@@ -8,6 +8,7 @@ theory RMD
 imports "HOL-Library.Word"
 begin
 
+unbundle bit_operations_syntax
 
 \<comment> \<open>all operations are defined on 32-bit words\<close>
 

@@ -130,10 +130,10 @@ val setup_builtins =
     (\<^term>\<open>plus :: 'a::len word \<Rightarrow> _\<close>, "bvadd"),
     (\<^term>\<open>minus :: 'a::len word \<Rightarrow> _\<close>, "bvsub"),
     (\<^term>\<open>times :: 'a::len word \<Rightarrow> _\<close>, "bvmul"),
-    (\<^term>\<open>NOT :: 'a::len word \<Rightarrow> _\<close>, "bvnot"),
-    (\<^term>\<open>(AND) :: 'a::len word \<Rightarrow> _\<close>, "bvand"),
-    (\<^term>\<open>(OR) :: 'a::len word \<Rightarrow> _\<close>, "bvor"),
-    (\<^term>\<open>(XOR) :: 'a::len word \<Rightarrow> _\<close>, "bvxor"),
+    (\<^term>\<open>not :: 'a::len word \<Rightarrow> _\<close>, "bvnot"),
+    (\<^term>\<open>and :: 'a::len word \<Rightarrow> _\<close>, "bvand"),
+    (\<^term>\<open>or :: 'a::len word \<Rightarrow> _\<close>, "bvor"),
+    (\<^term>\<open>xor :: 'a::len word \<Rightarrow> _\<close>, "bvxor"),
     (\<^term>\<open>word_cat :: 'a::len word \<Rightarrow> _\<close>, "concat") ] #>
   fold (add_word_fun shift) [
     (\<^term>\<open>push_bit :: nat \<Rightarrow> 'a::len word \<Rightarrow> _ \<close>, "bvshl"),

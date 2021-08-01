@@ -106,8 +106,6 @@ class bit_representation =
     and of_bits :: "bool list \<Rightarrow> 'a"
   assumes of_bits_of [simp]: "of_bits (bits_of a) = a"
 
-text \<open>Unclear whether a \<^typ>\<open>bool\<close> instantiation is needed or not\<close>
-
 instantiation nat :: bit_representation
 begin
 
@@ -307,7 +305,8 @@ lifting_forget word.lifting
 
 subsection \<open>Bit representations with bit operations\<close>
 
-class semiring_bit_representation = semiring_bit_operations + bit_representation +
+class semiring_bit_representation = semiring_bit_operations + bit_representation
+  opening bit_operations_syntax +
   assumes and_eq: "length bs = length cs \<Longrightarrow>
       of_bits bs AND of_bits cs = of_bits (map2 (\<and>) bs cs)"
     and or_eq: "length bs = length cs \<Longrightarrow>
@@ -325,7 +324,7 @@ instance nat :: semiring_bit_representation
     bit_and_iff bit_or_iff bit_xor_iff)
 
 instance int :: ring_bit_representation
-proof
+including bit_operations_syntax proof
   {
     fix bs cs :: \<open>bool list\<close>
     assume \<open>length bs = length cs\<close>

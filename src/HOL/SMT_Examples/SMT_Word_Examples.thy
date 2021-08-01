@@ -35,6 +35,10 @@ lemma "x = (5 :: 4 word) \<Longrightarrow> 4 * x = 4" by smt
 
 section \<open>Bit-level logic\<close>
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma "0b110 AND 0b101 = (0b100 :: 32 word)" by smt
 lemma "0b110 OR 0b011 = (0b111 :: 8 word)" by smt
 lemma "0xF0 XOR 0xFF = (0x0F :: 8 word)" by smt
@@ -51,6 +55,8 @@ lemma "word_rotr 2 0b0110 = (0b1001::4 word)" by smt
 lemma "word_rotl 1 0b1110 = (0b1101::4 word)" by smt
 lemma "(x AND 0xff00) OR (x AND 0x00ff) = (x::16 word)" by smt
 lemma "w < 256 \<Longrightarrow> (w :: 16 word) AND 0x00FF = w" by smt
+
+end
 
 
 section \<open>Combined integer-bitvector properties\<close>

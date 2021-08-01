@@ -3,6 +3,8 @@ theory Reference
 imports "HOL-SPARK.SPARK"
 begin
 
+unbundle bit_operations_syntax
+
 lemma AND_mod: "x AND (2 ^ n - 1) = x mod 2 ^ n" for x :: int
   by (simp flip: mask_eq_exp_minus_1 take_bit_eq_mask take_bit_eq_mod)
 

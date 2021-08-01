@@ -1033,6 +1033,10 @@ lemma [code]:
   for w :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_not_take_bit) 
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma [code]:
   \<open>Word.the_int (v AND w) = Word.the_int v AND Word.the_int w\<close>
   by transfer simp
@@ -1092,6 +1096,8 @@ proof -
     by (simp add: fun_eq_iff signed_take_bit_def)
   finally show ?thesis .
 qed
+
+end
 
 end
 
@@ -1158,6 +1164,10 @@ lemma ucast_drop_bit_eq:
 context semiring_bit_operations
 begin
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma unsigned_and_eq:
   \<open>unsigned (v AND w) = unsigned v AND unsigned w\<close>
   for v w :: \<open>'b::len word\<close>
@@ -1175,7 +1185,13 @@ lemma unsigned_xor_eq:
 
 end
 
+end
+
 context ring_bit_operations
+begin
+
+context
+  includes bit_operations_syntax
 begin
 
 lemma unsigned_not_eq:
@@ -1183,6 +1199,8 @@ lemma unsigned_not_eq:
   for w :: \<open>'b::len word\<close>
   by (rule bit_eqI)
     (simp add: bit_unsigned_iff bit_take_bit_iff bit_not_iff Bit_Operations.bit_not_iff exp_eq_zero_iff not_le)
+
+end
 
 end
 
@@ -1294,6 +1312,10 @@ proof (rule bit_eqI)
   qed
 qed
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma signed_and_eq:
   \<open>signed (v AND w) = signed v AND signed w\<close>
   for v w :: \<open>'b::len word\<close>
@@ -1308,6 +1330,8 @@ lemma signed_xor_eq:
   \<open>signed (v XOR w) = signed v XOR signed w\<close>
   for v w :: \<open>'b::len word\<close>
   by (rule bit_eqI) (simp add: bit_signed_iff bit_xor_iff Bit_Operations.bit_xor_iff)
+
+end
 
 end
 
@@ -1769,6 +1793,10 @@ lemma wi_le:
 
 
 subsection \<open>Bit-wise operations\<close>
+
+context
+  includes bit_operations_syntax
+begin
 
 lemma uint_take_bit_eq:
   \<open>uint (take_bit n w) = take_bit n (uint w)\<close>
@@ -3332,11 +3360,17 @@ lemma card_word_size: "CARD('a word) = 2 ^ size x"
   for x :: "'a::len word"
   unfolding word_size by (rule card_word)
 
+end
+
 instance word :: (len) finite
   by standard (simp add: UNIV_eq)
 
 
 subsection \<open>Bitwise Operations on Words\<close>
+
+context
+  includes bit_operations_syntax
+begin
 
 lemma word_wi_log_defs:
   "NOT (word_of_int a) = word_of_int (NOT a)"
@@ -3943,11 +3977,17 @@ lemma word_roti_conv_mod':
 
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 
+end
+
 
 subsubsection \<open>"Word rotation commutes with bit-wise operations\<close>
 
 \<comment> \<open>using locale to not pollute lemma namespace\<close>
 locale word_rotate
+begin
+
+context
+  includes bit_operations_syntax
 begin
 
 lemma word_rot_logs:
@@ -3963,6 +4003,8 @@ lemma word_rot_logs:
 
 end
 
+end
+
 lemmas word_rot_logs = word_rotate.word_rot_logs
 
 lemma word_rotx_0 [simp] : "word_rotr i 0 = 0 \<and> word_rotl i 0 = 0"
@@ -3975,6 +4017,10 @@ declare word_roti_eq_word_rotr_word_rotl [simp]
 
 
 subsection \<open>Maximum machine word\<close>
+
+context
+  includes bit_operations_syntax
+begin
 
 lemma word_int_cases:
   fixes x :: "'a::len word"
@@ -4247,6 +4293,8 @@ lemma signed_drop_bit_beyond:
   \<open>signed_drop_bit n w = (if bit w (LENGTH('a) - Suc 0) then - 1 else 0)\<close>
   if \<open>LENGTH('a) \<le> n\<close> for w :: \<open>'a::len word\<close>
   by (rule bit_word_eqI) (simp add: bit_signed_drop_bit_iff that)
+
+end
 
 
 subsection \<open>SMT support\<close>

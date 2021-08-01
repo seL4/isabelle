@@ -2087,4 +2087,19 @@ code_identifier
 | class_instance int :: semiring_bit_shifts \<rightharpoonup>
   (SML) Bit_Operations.semiring_bit_shifts and (OCaml) Bit_Operations.semiring_bit_shifts and (Haskell) Bit_Operations.semiring_bit_shifts and (Scala) Bit_Operations.semiring_bit_shifts
 
+no_notation
+  "and"  (infixr \<open>AND\<close> 64)
+    and or  (infixr \<open>OR\<close>  59)
+    and xor  (infixr \<open>XOR\<close> 59)
+
+bundle bit_operations_syntax
+begin      
+
+notation
+  "and"  (infixr \<open>AND\<close> 64)
+    and or  (infixr \<open>OR\<close>  59)
+    and xor  (infixr \<open>XOR\<close> 59)
+
+end
+
 end
