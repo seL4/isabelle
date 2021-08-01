@@ -1777,7 +1777,8 @@ module Isabelle.Term (
 
   Sort, dummyS,
 
-  Typ(..), dummyT, is_dummyT, Term(..))
+  Typ(..), dummyT, is_dummyT, Term(..),
+  aconv, list_comb, strip_comb, head_of, lambda)
 where
 
 import Isabelle.Bytes (Bytes)
@@ -1796,7 +1797,7 @@ data Typ =
     Type (Bytes, [Typ])
   | TFree (Bytes, Sort)
   | TVar (Indexname, Sort)
-  deriving Show
+  deriving (Show, Eq, Ord)
 
 dummyT :: Typ
 dummyT = Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])
@@ -1813,7 +1814,34 @@ data Term =
   | Bound Int
   | Abs (Bytes, Typ, Term)
   | App (Term, Term)
-  deriving Show
+  deriving (Show, Eq, Ord)
+
+aconv :: Term -> Term -> Bool
+aconv (App (t1, u1)) (App (t2, u2)) = aconv t1 t2 && aconv u1 u2
+aconv (Abs (_, ty1, t1)) (Abs (_, ty2, t2)) = aconv t1 t2 && ty1 == ty2
+aconv a1 a2 = a1 == a2
+
+list_comb :: Term -> [Term] -> Term
+list_comb f [] = f
+list_comb f (t : ts) = list_comb (App (f, t)) ts
+
+strip_comb :: Term -> (Term, [Term])
+strip_comb tm = strip (tm, [])
+  where
+    strip (App (f, t), ts) = strip (f, t : ts)
+    strip x = x
+
+head_of :: Term -> Term
+head_of (App (f, _)) = head_of f
+head_of u = u
+
+lambda :: (Bytes, Typ) -> Term -> Term
+lambda (name, typ) body = Abs (name, typ, abstract 0 body)
+  where
+    abstract lev (Free (x, ty)) | name == x && typ == ty = Bound lev
+    abstract lev (Abs (a, ty, t)) = Abs (a, ty, abstract (lev + 1) t)
+    abstract lev (App (t, u)) = App (abstract lev t, abstract lev u)
+    abstract _ t = t
 \<close>
 
 generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
