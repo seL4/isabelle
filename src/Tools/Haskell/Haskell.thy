@@ -23,8 +23,8 @@ module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
-  head, last, take, drop, concat,
-  space, spaces, singleton, char, byte,
+  head, last, take, drop, isPrefixOf, isSuffixOf,
+  concat, space, spaces, singleton, char, byte,
   trim_line, space_explode, split_lines
 )
 where
@@ -83,6 +83,16 @@ take n = pack . List.take n . unpack
 
 drop :: Int -> Bytes -> Bytes
 drop n = pack . List.drop n . unpack
+
+isPrefixOf :: Bytes -> Bytes -> Bool
+isPrefixOf bs1 bs2 =
+  n1 <= n2 && List.all (\i -> index bs1 i == index bs2 i) [0 .. n1 - 1]
+  where n1 = length bs1; n2 = length bs2
+
+isSuffixOf :: Bytes -> Bytes -> Bool
+isSuffixOf bs1 bs2 =
+  n1 <= n2 && List.all (\i -> index bs1 i == index bs2 (i + k)) [0 .. n1 - 1]
+  where n1 = length bs1; n2 = length bs2; k = n2 - n1
 
 concat :: [Bytes] -> Bytes
 concat = mconcat
@@ -233,7 +243,7 @@ module Isabelle.Library (
   StringLike, STRING (..), TEXT (..), BYTES (..),
 
   proper_string, quote, space_implode, commas, commas_quote, cat_lines,
-  space_explode, split_lines, trim_line, clean_name)
+  space_explode, split_lines, trim_line)
 where
 
 import qualified Data.Text as Text
@@ -366,9 +376,6 @@ trim_line line =
       '\n' : rest -> reverse rest
       _ -> line
   else line
-
-clean_name :: String -> String
-clean_name = reverse #> dropWhile (== '_') #> reverse
 \<close>
 
 
@@ -1514,8 +1521,6 @@ module Isabelle.Completion (
     Name, T, names, none, make, markup_element, markup_report, make_report
   ) where
 
-import qualified Data.List as List
-
 import Isabelle.Library
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
@@ -1535,10 +1540,17 @@ names limit props names = Completion props (length names) (take limit names)
 none :: T
 none = names 0 [] []
 
+clean_name :: Bytes -> Bytes
+clean_name bs =
+  if not (Bytes.null bs) && Bytes.last bs == u then
+    Bytes.unpack bs |> reverse |> dropWhile (== u) |> reverse |> Bytes.pack
+  else bs
+  where u = Bytes.byte '_'
+
 make :: Int -> (Bytes, Properties.T) -> ((Bytes -> Bool) -> [Name]) -> T
 make limit (name, props) make_names =
   if name /= "" && name /= "_" then
-    names limit props (make_names (List.isPrefixOf (clean_name (make_string name)) . make_string))
+    names limit props (make_names (Bytes.isPrefixOf (clean_name name)))
   else none
 
 markup_element :: T -> (Markup.T, XML.Body)
