@@ -94,20 +94,22 @@ object Scala_Project
 
   val default_project_dir = Path.explode("$ISABELLE_HOME_USER/scala_project")
 
-  def package_dir(source_file: Path): Option[Path] =
+  def package_name(source_file: Path): Option[String] =
   {
     val lines = split_lines(File.read(source_file))
     val Package = """\s*\bpackage\b\s*(?:object\b\s*)?((?:\w|\.)+)\b.*""".r
-    lines.collectFirst(
-      {
-        case Package(name) =>
-          if (source_file.is_java) Path.explode(space_explode('.', name).mkString("/"))
-          else Path.basic(name)
-      })
+    lines.collectFirst({ case Package(name) => name })
   }
 
   def the_package_dir(source_file: Path): Path =
-    package_dir(source_file) getOrElse error("Failed to guess package from " + source_file)
+  {
+    package_name(source_file) match {
+      case Some(name) =>
+        if (source_file.is_java) Path.explode(space_explode('.', name).mkString("/"))
+        else Path.basic(name)
+      case None => error("Failed to guess package from " + source_file)
+    }
+  }
 
   def scala_project(
     project_dir: Path = default_project_dir,

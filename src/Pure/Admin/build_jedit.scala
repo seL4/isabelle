@@ -102,6 +102,11 @@ object Build_JEdit
       "Navigator" -> "2.7",
       "SideKick" -> "1.8")
 
+  private def exclude_package(name: String): Boolean =
+    name.startsWith("de.masters_of_disaster.ant") ||
+    name == "doclet" ||
+    name == "installer"
+
   def build_jedit(
     component_dir: Path,
     version: String,
@@ -181,14 +186,11 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
 
       val java_sources =
-        File.find_files(source_dir.file, file => file.getName.endsWith(".java")).
-          flatMap(file =>
-            {
-              if (Scala_Project.package_dir(File.path(file)).isDefined) {
-                Some(File.path(component_dir.java_path.relativize(file.toPath).toFile))
-              }
-              else None
-            })
+        for {
+          file <- File.find_files(source_dir.file, file => file.getName.endsWith(".java"))
+          package_name <- Scala_Project.package_name(File.path(file))
+          if !exclude_package(package_name)
+        } yield File.path(component_dir.java_path.relativize(file.toPath).toFile)
 
       File.write(etc_dir + Path.explode("build.props"),
         "module = " + jedit_patched + "/jedit.jar\n" +
