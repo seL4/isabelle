@@ -161,7 +161,7 @@ repositories {
 
 dependencies {
   implementation 'org.scala-lang:scala-library:""" + scala.util.Properties.versionNumberString + """'
-  compile files(
+  compileOnly files(
     """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
 }
