@@ -5,7 +5,7 @@ Support for Isabelle tools in Haskell.
 *)
 
 theory Haskell
-  imports Pure
+  imports Main
 begin
 
 generate_file "Isabelle/Bytes.hs" = \<open>
@@ -1773,48 +1773,120 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Term (
-  Indexname,
-
-  Sort, dummyS,
-
-  Typ(..), dummyT, is_dummyT, Term(..),
-  aconv, list_comb, strip_comb, head_of, lambda)
+  Name, Indexname, Sort, Typ(..), Term(..), Free,
+  type_op0, type_op1, op0, op1, op2, typed_op2, binder,
+  dummyS, dummyT, is_dummyT, propT, is_propT, (-->), dest_funT, (--->),
+  aconv, list_comb, strip_comb, head_of, lambda
+)
 where
 
 import Isabelle.Bytes (Bytes)
 
+infixr 5 -->
+infixr --->
 
-type Indexname = (Bytes, Int)
+
+{- types and terms -}
+
+type Name = Bytes
+
+type Indexname = (Name, Int)
+
+type Sort = [Name]
+
+data Typ =
+    Type (Name, [Typ])
+  | TFree (Name, Sort)
+  | TVar (Indexname, Sort)
+  deriving (Show, Eq, Ord)
+
+data Term =
+    Const (Name, [Typ])
+  | Free (Name, Typ)
+  | Var (Indexname, Typ)
+  | Bound Int
+  | Abs (Name, Typ, Term)
+  | App (Term, Term)
+  deriving (Show, Eq, Ord)
+
+type Free = (Name, Typ)
 
 
-type Sort = [Bytes]
+{- type and term operators -}
+
+type_op0 :: Name -> (Typ, Typ -> Bool)
+type_op0 name = (mk, is)
+  where
+    mk = Type (name, [])
+    is (Type (name, _)) = True
+    is _ = False
+
+type_op1 :: Name -> (Typ -> Typ, Typ -> Maybe Typ)
+type_op1 name = (mk, dest)
+  where
+    mk ty = Type (name, [ty])
+    dest (Type (name, [ty])) = Just ty
+    dest _ = Nothing
+
+type_op2 :: Name -> (Typ -> Typ -> Typ, Typ -> Maybe (Typ, Typ))
+type_op2 name = (mk, dest)
+  where
+    mk ty1 ty2 = Type (name, [ty1, ty2])
+    dest (Type (name, [ty1, ty2])) = Just (ty1, ty2)
+    dest _ = Nothing
+
+op0 :: Name -> (Term, Term -> Bool)
+op0 name = (mk, is)
+  where
+    mk = Const (name, [])
+    is (Const (c, _)) = c == name
+    is _ = False
+
+op1 :: Name -> (Term -> Term, Term -> Maybe Term)
+op1 name = (mk, dest)
+  where
+    mk t = App (Const (name, []), t)
+    dest (App (Const (c, _), t)) | c == name = Just t
+    dest _ = Nothing
+
+op2 :: Name -> (Term -> Term -> Term, Term -> Maybe (Term, Term))
+op2 name = (mk, dest)
+  where
+    mk t u = App (App (Const (name, []), t), u)
+    dest (App (App (Const (c, _), t), u)) | c == name = Just (t, u)
+    dest _ = Nothing
+
+typed_op2 :: Name -> (Typ -> Term -> Term -> Term, Term -> Maybe (Typ, Term, Term))
+typed_op2 name = (mk, dest)
+  where
+    mk ty t u = App (App (Const (name, [ty]), t), u)
+    dest (App (App (Const (c, [ty]), t), u)) | c == name = Just (ty, t, u)
+    dest _ = Nothing
+
+binder :: Name -> Free -> Term -> Term
+binder c (a, ty) b = App (Const (c, [ty]), lambda (a, ty) b)
+
+
+{- type operations -}
 
 dummyS :: Sort
 dummyS = [""]
 
+dummyT :: Typ; is_dummyT :: Typ -> Bool
+(dummyT, is_dummyT) = type_op0 \<open>\<^type_name>\<open>dummy\<close>\<close>
 
-data Typ =
-    Type (Bytes, [Typ])
-  | TFree (Bytes, Sort)
-  | TVar (Indexname, Sort)
-  deriving (Show, Eq, Ord)
+propT :: Typ; is_propT :: Typ -> Bool
+(propT, is_propT) = type_op0 \<open>\<^type_name>\<open>prop\<close>\<close>
 
-dummyT :: Typ
-dummyT = Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])
+(-->) :: Typ -> Typ -> Typ; dest_funT :: Typ -> Maybe (Typ, Typ)
+((-->), dest_funT) = type_op2 \<open>\<^type_name>\<open>fun\<close>\<close>
 
-is_dummyT :: Typ -> Bool
-is_dummyT (Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])) = True
-is_dummyT _ = False
+(--->) :: [Typ] -> Typ -> Typ
+[] ---> b = b
+(a : as) ---> b = a --> (as ---> b)
 
 
-data Term =
-    Const (Bytes, [Typ])
-  | Free (Bytes, Typ)
-  | Var (Indexname, Typ)
-  | Bound Int
-  | Abs (Bytes, Typ, Term)
-  | App (Term, Term)
-  deriving (Show, Eq, Ord)
+{- term operations -}
 
 aconv :: Term -> Term -> Bool
 aconv (App (t1, u1)) (App (t2, u2)) = aconv t1 t2 && aconv u1 u2
@@ -1835,13 +1907,116 @@ head_of :: Term -> Term
 head_of (App (f, _)) = head_of f
 head_of u = u
 
-lambda :: (Bytes, Typ) -> Term -> Term
+lambda :: Free -> Term -> Term
 lambda (name, typ) body = Abs (name, typ, abstract 0 body)
   where
     abstract lev (Free (x, ty)) | name == x && typ == ty = Bound lev
     abstract lev (Abs (a, ty, t)) = Abs (a, ty, abstract (lev + 1) t)
     abstract lev (App (t, u)) = App (abstract lev t, abstract lev u)
     abstract _ t = t
+\<close>
+
+generate_file "Isabelle/Pure.hs" = \<open>
+{-  Title:      Isabelle/Term.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Support for Isabelle/Pure logic.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/logic.ML\<close>.
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Pure (
+  mk_forall, mk_equals, dest_equals, mk_implies, dest_implies
+)
+where
+
+import Isabelle.Term
+
+mk_forall :: Free -> Term -> Term
+mk_forall = binder \<open>\<^const_name>\<open>Pure.all\<close>\<close>
+
+mk_equals :: Typ -> Term -> Term -> Term; dest_equals :: Term -> Maybe (Typ, Term, Term)
+(mk_equals, dest_equals) = typed_op2 \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
+
+mk_implies :: Term -> Term -> Term; dest_implies :: Term -> Maybe (Term, Term)
+(mk_implies, dest_implies) = op2 \<open>\<^const_name>\<open>Pure.imp\<close>\<close>
+\<close>
+
+generate_file "Isabelle/HOL.hs" = \<open>
+{-  Title:      Isabelle/Term.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Support for Isabelle/HOL logic.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/HOL/Tools/hologic.ML\<close>.
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.HOL (
+  boolT, is_boolT, mk_trueprop, dest_trueprop,
+  mk_setT, dest_setT, mk_mem, dest_mem,
+  mk_eq, dest_eq, true, is_true, false, is_false,
+  mk_not, dest_not, mk_conj, dest_conj, mk_disj, dest_disj,
+  mk_imp, dest_imp, mk_iff, dest_iff,
+  mk_all, mk_ex
+)
+where
+
+import Isabelle.Term
+
+
+boolT :: Typ; is_boolT :: Typ -> Bool
+(boolT, is_boolT) = type_op0 \<open>\<^type_name>\<open>bool\<close>\<close>
+
+mk_trueprop :: Term -> Term; dest_trueprop :: Term -> Maybe Term
+(mk_trueprop, dest_trueprop) = op1 \<open>\<^const_name>\<open>Trueprop\<close>\<close>
+
+mk_setT :: Typ -> Typ; dest_setT :: Typ -> Maybe Typ
+(mk_setT, dest_setT) = type_op1 \<open>\<^type_name>\<open>set\<close>\<close>
+
+mk_mem :: Typ -> Term -> Term -> Term; dest_mem :: Term -> Maybe (Typ, Term, Term)
+(mk_mem, dest_mem) = typed_op2 \<open>\<^const_name>\<open>Set.member\<close>\<close>
+
+mk_eq :: Typ -> Term -> Term -> Term; dest_eq :: Term -> Maybe (Typ, Term, Term)
+(mk_eq, dest_eq) = typed_op2 \<open>\<^const_name>\<open>HOL.eq\<close>\<close>
+
+true :: Term; is_true :: Term -> Bool
+(true, is_true) = op0 \<open>\<^const_name>\<open>True\<close>\<close>
+
+false :: Term; is_false :: Term -> Bool
+(false, is_false) = op0 \<open>\<^const_name>\<open>False\<close>\<close>
+
+mk_not :: Term -> Term; dest_not :: Term -> Maybe Term
+(mk_not, dest_not) = op1 \<open>\<^const_name>\<open>Not\<close>\<close>
+
+mk_conj :: Term -> Term -> Term; dest_conj :: Term -> Maybe (Term, Term)
+(mk_conj, dest_conj) = op2 \<open>\<^const_name>\<open>conj\<close>\<close>
+
+mk_disj :: Term -> Term -> Term; dest_disj :: Term -> Maybe (Term, Term)
+(mk_disj, dest_disj) = op2 \<open>\<^const_name>\<open>disj\<close>\<close>
+
+mk_imp :: Term -> Term -> Term; dest_imp :: Term -> Maybe (Term, Term)
+(mk_imp, dest_imp) = op2 \<open>\<^const_name>\<open>implies\<close>\<close>
+
+mk_iff :: Term -> Term -> Term
+mk_iff = mk_eq boolT
+
+dest_iff :: Term -> Maybe (Term, Term)
+dest_iff tm =
+  case dest_eq tm of
+    Just (ty, t, u) | ty == boolT -> Just (t, u)
+    _ -> Nothing
+
+mk_all :: Free -> Term -> Term
+mk_all = binder \<open>\<^const_name>\<open>All\<close>\<close>
+
+mk_ex :: Free -> Term -> Term
+mk_ex = binder \<open>\<^const_name>\<open>Ex\<close>\<close>
 \<close>
 
 generate_file "Isabelle/Term_XML/Encode.hs" = \<open>

@@ -8,7 +8,7 @@ session SML in SML = Pure +
   theories
     Examples
 
-session Haskell in Haskell = Pure +
+session Haskell in Haskell = HOL +
   theories
     Haskell
   theories [condition = ISABELLE_GHC_STACK]
