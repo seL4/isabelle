@@ -2140,31 +2140,6 @@ lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n
   by (subst sum_subtractf_nat) auto
 
 
-context unique_euclidean_semiring_with_bit_shifts
-begin
-
-lemma take_bit_sum:
-  "take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (bit a k)))"
-  for n :: nat
-proof (induction n arbitrary: a)
-  case 0
-  then show ?case
-    by simp
-next
-  case (Suc n)
-  have "(\<Sum>k = 0..<Suc n. push_bit k (of_bool (bit a k))) = 
-    of_bool (odd a) + (\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (bit a k)))"
-    by (simp add: sum.atLeast_Suc_lessThan ac_simps)
-  also have "(\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (bit a k)))
-    = (\<Sum>k = 0..<n. push_bit k (of_bool (bit (a div 2) k))) * 2"
-    by (simp only: sum.atLeast_Suc_lessThan_Suc_shift) (simp add: sum_distrib_right push_bit_double drop_bit_Suc bit_Suc)
-  finally show ?case
-    using Suc [of "a div 2"] by (simp add: ac_simps take_bit_Suc mod_2_eq_odd)
-qed
-
-end
-
-
 subsubsection \<open>Shifting bounds\<close>
 
 context comm_monoid_add

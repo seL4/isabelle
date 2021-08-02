@@ -8,6 +8,8 @@ theory Tree23
 imports Main
 begin
 
+hide_const (open) or
+
 text\<open>This is a very direct translation of some of the functions in table.ML
 in the Isabelle source code. That source is due to Makarius Wenzel and Stefan
 Berghofer.

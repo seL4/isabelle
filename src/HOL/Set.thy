@@ -7,7 +7,7 @@
 section \<open>Set theory for higher-order logic\<close>
 
 theory Set
-  imports Lattices
+  imports Lattices Boolean_Algebra
 begin
 
 subsection \<open>Sets as predicates\<close>

@@ -5,7 +5,7 @@
 section \<open>Numeric types for code generation onto target language numerals only\<close>
 
 theory Code_Numeral
-imports Divides Lifting
+imports Divides Lifting Bit_Operations
 begin
 
 subsection \<open>Type of target language integers\<close>
@@ -1203,12 +1203,6 @@ lemma [code]: "m < n \<longleftrightarrow> integer_of_natural m < integer_of_nat
 
 hide_const (open) Nat
 
-lifting_update integer.lifting
-lifting_forget integer.lifting
-
-lifting_update natural.lifting
-lifting_forget natural.lifting
-
 code_reflect Code_Numeral
   datatypes natural
   functions "Code_Numeral.Suc" "0 :: natural" "1 :: natural"
@@ -1216,5 +1210,88 @@ code_reflect Code_Numeral
     "times :: natural \<Rightarrow> _" "divide :: natural \<Rightarrow> _"
     "modulo :: natural \<Rightarrow> _"
     integer_of_natural natural_of_integer
+
+
+subsection \<open>Bit operations\<close>
+
+instantiation integer :: ring_bit_operations
+begin
+
+lift_definition not_integer :: \<open>integer \<Rightarrow> integer\<close>
+  is not .
+
+lift_definition and_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is \<open>and\<close> .
+
+lift_definition or_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is or .
+
+lift_definition xor_integer ::  \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is xor .
+
+lift_definition mask_integer :: \<open>nat \<Rightarrow> integer\<close>
+  is mask .
+
+lift_definition set_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is set_bit .
+
+lift_definition unset_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is unset_bit .
+
+lift_definition flip_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is flip_bit .
+
+instance by (standard; transfer)
+  (simp_all add: minus_eq_not_minus_1 mask_eq_exp_minus_1
+    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff
+    set_bit_def bit_unset_bit_iff flip_bit_def)
+
+end
+
+lemma [code]:
+  \<open>mask n = 2 ^ n - (1::integer)\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+instantiation natural :: semiring_bit_operations
+begin
+
+lift_definition and_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is \<open>and\<close> .
+
+lift_definition or_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is or .
+
+lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is xor .
+
+lift_definition mask_natural :: \<open>nat \<Rightarrow> natural\<close>
+  is mask .
+
+lift_definition set_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is set_bit .
+
+lift_definition unset_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is unset_bit .
+
+lift_definition flip_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is flip_bit .
+
+instance by (standard; transfer)
+  (simp_all add: mask_eq_exp_minus_1
+    bit_and_iff bit_or_iff bit_xor_iff
+    set_bit_def bit_unset_bit_iff flip_bit_def)
+
+end
+
+lemma [code]:
+  \<open>integer_of_natural (mask n) = mask n\<close>
+  by transfer (simp add: mask_eq_exp_minus_1 of_nat_diff)
+
+
+lifting_update integer.lifting
+lifting_forget integer.lifting
+
+lifting_update natural.lifting
+lifting_forget natural.lifting
 
 end

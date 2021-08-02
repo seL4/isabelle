@@ -55,7 +55,7 @@ Mcall:
    ve = (\<lambda>x. null)(''this'' := or, ''param'' := pr);
    me \<turnstile> (me m,ve,sn\<^sub>3) \<Rightarrow> (r,ve',sn\<^sub>4) \<rbrakk>
   \<Longrightarrow>
- me \<turnstile> (oe\<bullet>m<pe>,c\<^sub>1) \<Rightarrow> (r,ve\<^sub>3,sn\<^sub>4)" |
+ me \<turnstile> (oe\<bullet>m<pe>,c\<^sub>1) \<Rightarrow> (r,ve\<^sub>3,sn\<^sub>4)" for or |
 Seq:
 "\<lbrakk> me \<turnstile> (e\<^sub>1,c\<^sub>1) \<Rightarrow> (r,c\<^sub>2);  me \<turnstile> (e\<^sub>2,c\<^sub>2) \<Rightarrow> c\<^sub>3 \<rbrakk> \<Longrightarrow>
  me \<turnstile> (e\<^sub>1; e\<^sub>2,c\<^sub>1) \<Rightarrow> c\<^sub>3" |

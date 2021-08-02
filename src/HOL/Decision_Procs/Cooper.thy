@@ -46,7 +46,7 @@ primrec Inum :: "int list \<Rightarrow> num \<Rightarrow> int"
 datatype (plugins del: size) fm = T | F
   | Lt num | Le num | Gt num | Ge num | Eq num | NEq num
   | Dvd int num | NDvd int num
-  | NOT fm | And fm fm | Or fm fm | Imp fm fm | Iff fm fm
+  | Not fm | And fm fm | Or fm fm | Imp fm fm | Iff fm fm
   | E fm | A fm | Closed nat | NClosed nat
 
 instantiation fm :: size
@@ -54,7 +54,7 @@ begin
 
 primrec size_fm :: "fm \<Rightarrow> nat"
   where
-    "size_fm (NOT p) = 1 + size_fm p"
+    "size_fm (Not p) = 1 + size_fm p"
   | "size_fm (And p q) = 1 + size_fm p + size_fm q"
   | "size_fm (Or p q) = 1 + size_fm p + size_fm q"
   | "size_fm (Imp p q) = 3 + size_fm p + size_fm q"
@@ -94,7 +94,7 @@ primrec Ifm :: "bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> 
   | "Ifm bbs bs (NEq a) \<longleftrightarrow> Inum bs a \<noteq> 0"
   | "Ifm bbs bs (Dvd i b) \<longleftrightarrow> i dvd Inum bs b"
   | "Ifm bbs bs (NDvd i b) \<longleftrightarrow> \<not> i dvd Inum bs b"
-  | "Ifm bbs bs (NOT p) \<longleftrightarrow> \<not> Ifm bbs bs p"
+  | "Ifm bbs bs (Not p) \<longleftrightarrow> \<not> Ifm bbs bs p"
   | "Ifm bbs bs (And p q) \<longleftrightarrow> Ifm bbs bs p \<and> Ifm bbs bs q"
   | "Ifm bbs bs (Or p q) \<longleftrightarrow> Ifm bbs bs p \<or> Ifm bbs bs q"
   | "Ifm bbs bs (Imp p q) \<longleftrightarrow> (Ifm bbs bs p \<longrightarrow> Ifm bbs bs q)"
@@ -109,25 +109,25 @@ fun prep :: "fm \<Rightarrow> fm"
     "prep (E T) = T"
   | "prep (E F) = F"
   | "prep (E (Or p q)) = Or (prep (E p)) (prep (E q))"
-  | "prep (E (Imp p q)) = Or (prep (E (NOT p))) (prep (E q))"
-  | "prep (E (Iff p q)) = Or (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
-  | "prep (E (NOT (And p q))) = Or (prep (E (NOT p))) (prep (E(NOT q)))"
-  | "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
-  | "prep (E (NOT (Iff p q))) = Or (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
+  | "prep (E (Imp p q)) = Or (prep (E (Not p))) (prep (E q))"
+  | "prep (E (Iff p q)) = Or (prep (E (And p q))) (prep (E (And (Not p) (Not q))))"
+  | "prep (E (Not (And p q))) = Or (prep (E (Not p))) (prep (E(Not q)))"
+  | "prep (E (Not (Imp p q))) = prep (E (And p (Not q)))"
+  | "prep (E (Not (Iff p q))) = Or (prep (E (And p (Not q)))) (prep (E(And (Not p) q)))"
   | "prep (E p) = E (prep p)"
   | "prep (A (And p q)) = And (prep (A p)) (prep (A q))"
-  | "prep (A p) = prep (NOT (E (NOT p)))"
-  | "prep (NOT (NOT p)) = prep p"
-  | "prep (NOT (And p q)) = Or (prep (NOT p)) (prep (NOT q))"
-  | "prep (NOT (A p)) = prep (E (NOT p))"
-  | "prep (NOT (Or p q)) = And (prep (NOT p)) (prep (NOT q))"
-  | "prep (NOT (Imp p q)) = And (prep p) (prep (NOT q))"
-  | "prep (NOT (Iff p q)) = Or (prep (And p (NOT q))) (prep (And (NOT p) q))"
-  | "prep (NOT p) = NOT (prep p)"
+  | "prep (A p) = prep (Not (E (Not p)))"
+  | "prep (Not (Not p)) = prep p"
+  | "prep (Not (And p q)) = Or (prep (Not p)) (prep (Not q))"
+  | "prep (Not (A p)) = prep (E (Not p))"
+  | "prep (Not (Or p q)) = And (prep (Not p)) (prep (Not q))"
+  | "prep (Not (Imp p q)) = And (prep p) (prep (Not q))"
+  | "prep (Not (Iff p q)) = Or (prep (And p (Not q))) (prep (And (Not p) q))"
+  | "prep (Not p) = Not (prep p)"
   | "prep (Or p q) = Or (prep p) (prep q)"
   | "prep (And p q) = And (prep p) (prep q)"
-  | "prep (Imp p q) = prep (Or (NOT p) q)"
-  | "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
+  | "prep (Imp p q) = prep (Or (Not p) q)"
+  | "prep (Iff p q) = Or (prep (And p q)) (prep (And (Not p) (Not q)))"
   | "prep p = p"
 
 lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
@@ -138,7 +138,7 @@ fun qfree :: "fm \<Rightarrow> bool"  \<comment> \<open>Quantifier freeness\<clo
   where
     "qfree (E p) \<longleftrightarrow> False"
   | "qfree (A p) \<longleftrightarrow> False"
-  | "qfree (NOT p) \<longleftrightarrow> qfree p"
+  | "qfree (Not p) \<longleftrightarrow> qfree p"
   | "qfree (And p q) \<longleftrightarrow> qfree p \<and> qfree q"
   | "qfree (Or  p q) \<longleftrightarrow> qfree p \<and> qfree q"
   | "qfree (Imp p q) \<longleftrightarrow> qfree p \<and> qfree q"
@@ -175,7 +175,7 @@ primrec bound0 :: "fm \<Rightarrow> bool" \<comment> \<open>a formula is indepen
   | "bound0 (NEq a) \<longleftrightarrow> numbound0 a"
   | "bound0 (Dvd i a) \<longleftrightarrow> numbound0 a"
   | "bound0 (NDvd i a) \<longleftrightarrow> numbound0 a"
-  | "bound0 (NOT p) \<longleftrightarrow> bound0 p"
+  | "bound0 (Not p) \<longleftrightarrow> bound0 p"
   | "bound0 (And p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
   | "bound0 (Or p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
   | "bound0 (Imp p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
@@ -220,7 +220,7 @@ primrec subst0:: "num \<Rightarrow> fm \<Rightarrow> fm"  \<comment> \<open>subs
   | "subst0 t (NEq a) = NEq (numsubst0 t a)"
   | "subst0 t (Dvd i a) = Dvd i (numsubst0 t a)"
   | "subst0 t (NDvd i a) = NDvd i (numsubst0 t a)"
-  | "subst0 t (NOT p) = NOT (subst0 t p)"
+  | "subst0 t (Not p) = Not (subst0 t p)"
   | "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
   | "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
   | "subst0 t (Imp p q) = Imp (subst0 t p) (subst0 t q)"
@@ -254,7 +254,7 @@ fun decr :: "fm \<Rightarrow> fm"
   | "decr (NEq a) = NEq (decrnum a)"
   | "decr (Dvd i a) = Dvd i (decrnum a)"
   | "decr (NDvd i a) = NDvd i (decrnum a)"
-  | "decr (NOT p) = NOT (decr p)"
+  | "decr (Not p) = Not (decr p)"
   | "decr (And p q) = And (decr p) (decr q)"
   | "decr (Or p q) = Or (decr p) (decr q)"
   | "decr (Imp p q) = Imp (decr p) (decr q)"
@@ -508,12 +508,12 @@ lemma simpnum_numbound0: "numbound0 t \<Longrightarrow> numbound0 (simpnum t)"
 
 fun not :: "fm \<Rightarrow> fm"
   where
-    "not (NOT p) = p"
+    "not (Not p) = p"
   | "not T = F"
   | "not F = T"
-  | "not p = NOT p"
+  | "not p = Not p"
 
-lemma not: "Ifm bbs bs (not p) = Ifm bbs bs (NOT p)"
+lemma not: "Ifm bbs bs (not p) = Ifm bbs bs (Not p)"
   by (cases p) auto
 
 lemma not_qf: "qfree p \<Longrightarrow> qfree (not p)"
@@ -596,7 +596,7 @@ fun simpfm :: "fm \<Rightarrow> fm"
   | "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
   | "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
   | "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
-  | "simpfm (NOT p) = not (simpfm p)"
+  | "simpfm (Not p) = not (simpfm p)"
   | "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v < 0 then T else F | _ \<Rightarrow> Lt a')"
   | "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v \<le> 0 then T else F | _ \<Rightarrow> Le a')"
   | "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v > 0 then T else F | _ \<Rightarrow> Gt a')"
@@ -825,8 +825,8 @@ subsection \<open>Generic quantifier elimination\<close>
 fun qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
   where
     "qelim (E p) = (\<lambda>qe. DJ qe (qelim p qe))"
-  | "qelim (A p) = (\<lambda>qe. not (qe ((qelim (NOT p) qe))))"
-  | "qelim (NOT p) = (\<lambda>qe. not (qelim p qe))"
+  | "qelim (A p) = (\<lambda>qe. not (qe ((qelim (Not p) qe))))"
+  | "qelim (Not p) = (\<lambda>qe. not (qelim p qe))"
   | "qelim (And p q) = (\<lambda>qe. conj (qelim p qe) (qelim q qe))"
   | "qelim (Or  p q) = (\<lambda>qe. disj (qelim p qe) (qelim q qe))"
   | "qelim (Imp p q) = (\<lambda>qe. imp (qelim p qe) (qelim q qe))"
@@ -995,8 +995,8 @@ fun zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>linearity transformation fo
   where
     "zlfm (And p q) = And (zlfm p) (zlfm q)"
   | "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
-  | "zlfm (Imp p q) = Or (zlfm (NOT p)) (zlfm q)"
-  | "zlfm (Iff p q) = Or (And (zlfm p) (zlfm q)) (And (zlfm (NOT p)) (zlfm (NOT q)))"
+  | "zlfm (Imp p q) = Or (zlfm (Not p)) (zlfm q)"
+  | "zlfm (Iff p q) = Or (And (zlfm p) (zlfm q)) (And (zlfm (Not p)) (zlfm (Not q)))"
   | "zlfm (Lt a) =
       (let (c, r) = zsplit0 a in
         if c = 0 then Lt r else
@@ -1041,23 +1041,23 @@ fun zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>linearity transformation fo
           if c = 0 then NDvd \<bar>i\<bar> r
           else if c > 0 then NDvd \<bar>i\<bar> (CN 0 c r)
           else NDvd \<bar>i\<bar> (CN 0 (- c) (Neg r)))"
-  | "zlfm (NOT (And p q)) = Or (zlfm (NOT p)) (zlfm (NOT q))"
-  | "zlfm (NOT (Or p q)) = And (zlfm (NOT p)) (zlfm (NOT q))"
-  | "zlfm (NOT (Imp p q)) = And (zlfm p) (zlfm (NOT q))"
-  | "zlfm (NOT (Iff p q)) = Or (And(zlfm p) (zlfm(NOT q))) (And (zlfm(NOT p)) (zlfm q))"
-  | "zlfm (NOT (NOT p)) = zlfm p"
-  | "zlfm (NOT T) = F"
-  | "zlfm (NOT F) = T"
-  | "zlfm (NOT (Lt a)) = zlfm (Ge a)"
-  | "zlfm (NOT (Le a)) = zlfm (Gt a)"
-  | "zlfm (NOT (Gt a)) = zlfm (Le a)"
-  | "zlfm (NOT (Ge a)) = zlfm (Lt a)"
-  | "zlfm (NOT (Eq a)) = zlfm (NEq a)"
-  | "zlfm (NOT (NEq a)) = zlfm (Eq a)"
-  | "zlfm (NOT (Dvd i a)) = zlfm (NDvd i a)"
-  | "zlfm (NOT (NDvd i a)) = zlfm (Dvd i a)"
-  | "zlfm (NOT (Closed P)) = NClosed P"
-  | "zlfm (NOT (NClosed P)) = Closed P"
+  | "zlfm (Not (And p q)) = Or (zlfm (Not p)) (zlfm (Not q))"
+  | "zlfm (Not (Or p q)) = And (zlfm (Not p)) (zlfm (Not q))"
+  | "zlfm (Not (Imp p q)) = And (zlfm p) (zlfm (Not q))"
+  | "zlfm (Not (Iff p q)) = Or (And(zlfm p) (zlfm(Not q))) (And (zlfm(Not p)) (zlfm q))"
+  | "zlfm (Not (Not p)) = zlfm p"
+  | "zlfm (Not T) = F"
+  | "zlfm (Not F) = T"
+  | "zlfm (Not (Lt a)) = zlfm (Ge a)"
+  | "zlfm (Not (Le a)) = zlfm (Gt a)"
+  | "zlfm (Not (Gt a)) = zlfm (Le a)"
+  | "zlfm (Not (Ge a)) = zlfm (Lt a)"
+  | "zlfm (Not (Eq a)) = zlfm (NEq a)"
+  | "zlfm (Not (NEq a)) = zlfm (Eq a)"
+  | "zlfm (Not (Dvd i a)) = zlfm (NDvd i a)"
+  | "zlfm (Not (NDvd i a)) = zlfm (Dvd i a)"
+  | "zlfm (Not (Closed P)) = NClosed P"
+  | "zlfm (Not (NClosed P)) = Closed P"
   | "zlfm p = p"
 
 lemma zlfm_I:
@@ -2425,8 +2425,8 @@ fun fm_of_term ps vs \<^term>\<open>True\<close> = @{code T}
       @{code Or} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (\<^term>\<open>HOL.implies\<close> $ t1 $ t2) =
       @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (\<^term>\<open>Not\<close> $ t') =
-      @{code NOT} (fm_of_term ps vs t')
+  | fm_of_term ps vs (\<^term>\<open>HOL.Not\<close> $ t') =
+      @{code Not} (fm_of_term ps vs t')
   | fm_of_term ps vs (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (xn, xT, p)) =
       let
         val (xn', p') = Syntax_Trans.variant_abs (xn, xT, p);  (* FIXME !? *)
@@ -2467,12 +2467,12 @@ fun term_of_fm ps vs @{code T} = \<^term>\<open>True\<close>
   | term_of_fm ps vs (@{code Eq} t) =
       \<^term>\<open>(=) :: int \<Rightarrow> int \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::int\<close>
   | term_of_fm ps vs (@{code NEq} t) =
-      term_of_fm ps vs (@{code NOT} (@{code Eq} t))
+      term_of_fm ps vs (@{code Not} (@{code Eq} t))
   | term_of_fm ps vs (@{code Dvd} (i, t)) =
       \<^term>\<open>(dvd) :: int \<Rightarrow> int \<Rightarrow> bool\<close> $ term_of_num vs (@{code C} i) $ term_of_num vs t
   | term_of_fm ps vs (@{code NDvd} (i, t)) =
-      term_of_fm ps vs (@{code NOT} (@{code Dvd} (i, t)))
-  | term_of_fm ps vs (@{code NOT} t') =
+      term_of_fm ps vs (@{code Not} (@{code Dvd} (i, t)))
+  | term_of_fm ps vs (@{code Not} t') =
       HOLogic.Not $ term_of_fm ps vs t'
   | term_of_fm ps vs (@{code And} (t1, t2)) =
       HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
@@ -2486,7 +2486,7 @@ fun term_of_fm ps vs @{code T} = \<^term>\<open>True\<close>
       let
         val q = @{code integer_of_nat} n
       in (fst o the) (find_first (fn (_, m) => m = q) ps) end
-  | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code NOT} (@{code Closed} n));
+  | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code Not} (@{code Closed} n));
 
 fun term_bools acc t =
   let
@@ -2494,7 +2494,7 @@ fun term_bools acc t =
       member (=) [\<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>, \<^term>\<open>HOL.implies\<close>,
       \<^term>\<open>(=) :: bool \<Rightarrow> _\<close>,
       \<^term>\<open>(=) :: int \<Rightarrow> _\<close>, \<^term>\<open>(<) :: int \<Rightarrow> _\<close>,
-      \<^term>\<open>(\<le>) :: int \<Rightarrow> _\<close>, \<^term>\<open>Not\<close>, \<^term>\<open>All :: (int \<Rightarrow> _) \<Rightarrow> _\<close>,
+      \<^term>\<open>(\<le>) :: int \<Rightarrow> _\<close>, \<^term>\<open>HOL.Not\<close>, \<^term>\<open>All :: (int \<Rightarrow> _) \<Rightarrow> _\<close>,
       \<^term>\<open>Ex :: (int \<Rightarrow> _) \<Rightarrow> _\<close>, \<^term>\<open>True\<close>, \<^term>\<open>False\<close>]
     fun is_ty t = not (fastype_of t = HOLogic.boolT)
   in

@@ -31,7 +31,7 @@ Tobias Nipkow cleaned up a lot.
 section \<open>Greatest common divisor and least common multiple\<close>
 
 theory GCD
-  imports Groups_List 
+  imports Groups_List Code_Numeral
 begin
 
 subsection \<open>Abstract bounded quasi semilattices as common foundation\<close>

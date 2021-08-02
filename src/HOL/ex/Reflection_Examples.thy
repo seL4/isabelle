@@ -66,7 +66,7 @@ lemma "\<exists>x. x < y \<and> x < z"
   apply reify
   oops
 
-datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
+datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | Not fm | At nat
 
 primrec Ifm :: "fm \<Rightarrow> bool list \<Rightarrow> bool"
 where
@@ -75,7 +75,7 @@ where
 | "Ifm (Or p q) vs \<longleftrightarrow> Ifm p vs \<or> Ifm q vs"
 | "Ifm (Imp p q) vs \<longleftrightarrow> Ifm p vs \<longrightarrow> Ifm q vs"
 | "Ifm (Iff p q) vs \<longleftrightarrow> Ifm p vs = Ifm q vs"
-| "Ifm (NOT p) vs \<longleftrightarrow> \<not> Ifm p vs"
+| "Ifm (Not p) vs \<longleftrightarrow> \<not> Ifm p vs"
 
 lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
   apply (reify Ifm.simps)
@@ -93,7 +93,7 @@ text \<open>Let's perform NNF. This is a version that tends to generate disjunct
 primrec fmsize :: "fm \<Rightarrow> nat"
 where
   "fmsize (At n) = 1"
-| "fmsize (NOT p) = 1 + fmsize p"
+| "fmsize (Not p) = 1 + fmsize p"
 | "fmsize (And p q) = 1 + fmsize p + fmsize q"
 | "fmsize (Or p q) = 1 + fmsize p + fmsize q"
 | "fmsize (Imp p q) = 2 + fmsize p + fmsize q"
@@ -106,14 +106,14 @@ where
   "nnf (At n) = At n"
 | "nnf (And p q) = And (nnf p) (nnf q)"
 | "nnf (Or p q) = Or (nnf p) (nnf q)"
-| "nnf (Imp p q) = Or (nnf (NOT p)) (nnf q)"
-| "nnf (Iff p q) = Or (And (nnf p) (nnf q)) (And (nnf (NOT p)) (nnf (NOT q)))"
-| "nnf (NOT (And p q)) = Or (nnf (NOT p)) (nnf (NOT q))"
-| "nnf (NOT (Or p q)) = And (nnf (NOT p)) (nnf (NOT q))"
-| "nnf (NOT (Imp p q)) = And (nnf p) (nnf (NOT q))"
-| "nnf (NOT (Iff p q)) = Or (And (nnf p) (nnf (NOT q))) (And (nnf (NOT p)) (nnf q))"
-| "nnf (NOT (NOT p)) = nnf p"
-| "nnf (NOT p) = NOT p"
+| "nnf (Imp p q) = Or (nnf (Not p)) (nnf q)"
+| "nnf (Iff p q) = Or (And (nnf p) (nnf q)) (And (nnf (Not p)) (nnf (Not q)))"
+| "nnf (Not (And p q)) = Or (nnf (Not p)) (nnf (Not q))"
+| "nnf (Not (Or p q)) = And (nnf (Not p)) (nnf (Not q))"
+| "nnf (Not (Imp p q)) = And (nnf p) (nnf (Not q))"
+| "nnf (Not (Iff p q)) = Or (And (nnf p) (nnf (Not q))) (And (nnf (Not p)) (nnf q))"
+| "nnf (Not (Not p)) = nnf p"
+| "nnf (Not p) = Not p"
 
 text \<open>The correctness theorem of \<^const>\<open>nnf\<close>: it preserves the semantics of \<^typ>\<open>fm\<close>\<close>
 lemma nnf [reflection]:

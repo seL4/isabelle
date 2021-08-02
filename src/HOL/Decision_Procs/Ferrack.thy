@@ -46,14 +46,14 @@ where
     (* FORMULAE *)
 datatype (plugins del: size) fm  =
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num|
-  NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
+  Not fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
 
 instantiation fm :: size
 begin
 
 primrec size_fm :: "fm \<Rightarrow> nat"
 where
-  "size_fm (NOT p) = 1 + size_fm p"
+  "size_fm (Not p) = 1 + size_fm p"
 | "size_fm (And p q) = 1 + size_fm p + size_fm q"
 | "size_fm (Or p q) = 1 + size_fm p + size_fm q"
 | "size_fm (Imp p q) = 3 + size_fm p + size_fm q"
@@ -87,7 +87,7 @@ where
 | "Ifm bs (Ge a) = (Inum bs a \<ge> 0)"
 | "Ifm bs (Eq a) = (Inum bs a = 0)"
 | "Ifm bs (NEq a) = (Inum bs a \<noteq> 0)"
-| "Ifm bs (NOT p) = (\<not> (Ifm bs p))"
+| "Ifm bs (Not p) = (\<not> (Ifm bs p))"
 | "Ifm bs (And p q) = (Ifm bs p \<and> Ifm bs q)"
 | "Ifm bs (Or p q) = (Ifm bs p \<or> Ifm bs q)"
 | "Ifm bs (Imp p q) = ((Ifm bs p) \<longrightarrow> (Ifm bs q))"
@@ -104,7 +104,7 @@ lemma IfmLtSub: "\<lbrakk> Inum bs s = s' ; Inum bs t = t' \<rbrakk> \<Longright
 lemma IfmEqSub: "\<lbrakk> Inum bs s = s' ; Inum bs t = t' \<rbrakk> \<Longrightarrow> Ifm bs (Eq (Sub s t)) = (s' = t')"
   by simp
 
-lemma IfmNOT: " (Ifm bs p = P) \<Longrightarrow> (Ifm bs (NOT p) = (\<not>P))"
+lemma IfmNot: " (Ifm bs p = P) \<Longrightarrow> (Ifm bs (Not p) = (\<not>P))"
   by simp
 
 lemma IfmAnd: " \<lbrakk> Ifm bs p = P ; Ifm bs q = Q\<rbrakk> \<Longrightarrow> (Ifm bs (And p q) = (P \<and> Q))"
@@ -127,12 +127,12 @@ lemma IfmA: " (!! x. Ifm (x#bs) p = P x) \<Longrightarrow> (Ifm bs (A p) = (\<fo
 
 fun not:: "fm \<Rightarrow> fm"
 where
-  "not (NOT p) = p"
+  "not (Not p) = p"
 | "not T = F"
 | "not F = T"
-| "not p = NOT p"
+| "not p = Not p"
 
-lemma not[simp]: "Ifm bs (not p) = Ifm bs (NOT p)"
+lemma not[simp]: "Ifm bs (not p) = Ifm bs (Not p)"
   by (cases p) auto
 
 definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
@@ -172,7 +172,7 @@ definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
 where
   "iff p q =
    (if p = q then T
-    else if p = NOT q \<or> NOT p = q then F
+    else if p = Not q \<or> Not p = q then F
     else if p = F then not q
     else if q = F then not p
     else if p = T then q
@@ -180,7 +180,7 @@ where
     else Iff p q)"
 
 lemma iff[simp]: "Ifm bs (iff p q) = Ifm bs (Iff p q)"
-  by (unfold iff_def, cases "p = q", simp, cases "p = NOT q", simp) (cases "NOT p = q", auto)
+  by (unfold iff_def, cases "p = q", simp, cases "p = Not q", simp) (cases "Not p = q", auto)
 
 lemma conj_simps:
   "conj F Q = F"
@@ -209,19 +209,19 @@ lemma imp_simps:
   "P \<noteq> T \<Longrightarrow> P \<noteq> F \<Longrightarrow> P \<noteq> Q \<Longrightarrow> Q \<noteq> T \<Longrightarrow> Q \<noteq> F \<Longrightarrow> imp P Q = Imp P Q"
   by (simp_all add: imp_def)
 
-lemma trivNOT: "p \<noteq> NOT p" "NOT p \<noteq> p"
+lemma trivNot: "p \<noteq> Not p" "Not p \<noteq> p"
   by (induct p) auto
 
 lemma iff_simps:
   "iff p p = T"
-  "iff p (NOT p) = F"
-  "iff (NOT p) p = F"
+  "iff p (Not p) = F"
+  "iff (Not p) p = F"
   "iff p F = not p"
   "iff F p = not p"
-  "p \<noteq> NOT T \<Longrightarrow> iff T p = p"
-  "p\<noteq> NOT T \<Longrightarrow> iff p T = p"
-  "p\<noteq>q \<Longrightarrow> p\<noteq> NOT q \<Longrightarrow> q\<noteq> NOT p \<Longrightarrow> p\<noteq> F \<Longrightarrow> q\<noteq> F \<Longrightarrow> p \<noteq> T \<Longrightarrow> q \<noteq> T \<Longrightarrow> iff p q = Iff p q"
-  using trivNOT
+  "p \<noteq> Not T \<Longrightarrow> iff T p = p"
+  "p\<noteq> Not T \<Longrightarrow> iff p T = p"
+  "p\<noteq>q \<Longrightarrow> p\<noteq> Not q \<Longrightarrow> q\<noteq> Not p \<Longrightarrow> p\<noteq> F \<Longrightarrow> q\<noteq> F \<Longrightarrow> p \<noteq> T \<Longrightarrow> q \<noteq> T \<Longrightarrow> iff p q = Iff p q"
+  using trivNot
   by (simp_all add: iff_def, cases p, auto)
 
   (* Quantifier freeness *)
@@ -229,7 +229,7 @@ fun qfree:: "fm \<Rightarrow> bool"
 where
   "qfree (E p) = False"
 | "qfree (A p) = False"
-| "qfree (NOT p) = qfree p"
+| "qfree (Not p) = qfree p"
 | "qfree (And p q) = (qfree p \<and> qfree q)"
 | "qfree (Or  p q) = (qfree p \<and> qfree q)"
 | "qfree (Imp p q) = (qfree p \<and> qfree q)"
@@ -262,7 +262,7 @@ where
 | "bound0 (Ge a) = numbound0 a"
 | "bound0 (Eq a) = numbound0 a"
 | "bound0 (NEq a) = numbound0 a"
-| "bound0 (NOT p) = bound0 p"
+| "bound0 (Not p) = bound0 p"
 | "bound0 (And p q) = (bound0 p \<and> bound0 q)"
 | "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
 | "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
@@ -321,7 +321,7 @@ where
 | "decr (Ge a) = Ge (decrnum a)"
 | "decr (Eq a) = Eq (decrnum a)"
 | "decr (NEq a) = NEq (decrnum a)"
-| "decr (NOT p) = NOT (decr p)"
+| "decr (Not p) = Not (decr p)"
 | "decr (And p q) = conj (decr p) (decr q)"
 | "decr (Or p q) = disj (decr p) (decr q)"
 | "decr (Imp p q) = imp (decr p) (decr q)"
@@ -890,7 +890,7 @@ where
 | "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
 | "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
 | "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
-| "simpfm (NOT p) = not (simpfm p)"
+| "simpfm (Not p) = not (simpfm p)"
 | "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F | _ \<Rightarrow> Lt a')"
 | "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
 | "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
@@ -1031,25 +1031,25 @@ where
   "prep (E T) = T"
 | "prep (E F) = F"
 | "prep (E (Or p q)) = disj (prep (E p)) (prep (E q))"
-| "prep (E (Imp p q)) = disj (prep (E (NOT p))) (prep (E q))"
-| "prep (E (Iff p q)) = disj (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
-| "prep (E (NOT (And p q))) = disj (prep (E (NOT p))) (prep (E(NOT q)))"
-| "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
-| "prep (E (NOT (Iff p q))) = disj (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
+| "prep (E (Imp p q)) = disj (prep (E (Not p))) (prep (E q))"
+| "prep (E (Iff p q)) = disj (prep (E (And p q))) (prep (E (And (Not p) (Not q))))"
+| "prep (E (Not (And p q))) = disj (prep (E (Not p))) (prep (E(Not q)))"
+| "prep (E (Not (Imp p q))) = prep (E (And p (Not q)))"
+| "prep (E (Not (Iff p q))) = disj (prep (E (And p (Not q)))) (prep (E(And (Not p) q)))"
 | "prep (E p) = E (prep p)"
 | "prep (A (And p q)) = conj (prep (A p)) (prep (A q))"
-| "prep (A p) = prep (NOT (E (NOT p)))"
-| "prep (NOT (NOT p)) = prep p"
-| "prep (NOT (And p q)) = disj (prep (NOT p)) (prep (NOT q))"
-| "prep (NOT (A p)) = prep (E (NOT p))"
-| "prep (NOT (Or p q)) = conj (prep (NOT p)) (prep (NOT q))"
-| "prep (NOT (Imp p q)) = conj (prep p) (prep (NOT q))"
-| "prep (NOT (Iff p q)) = disj (prep (And p (NOT q))) (prep (And (NOT p) q))"
-| "prep (NOT p) = not (prep p)"
+| "prep (A p) = prep (Not (E (Not p)))"
+| "prep (Not (Not p)) = prep p"
+| "prep (Not (And p q)) = disj (prep (Not p)) (prep (Not q))"
+| "prep (Not (A p)) = prep (E (Not p))"
+| "prep (Not (Or p q)) = conj (prep (Not p)) (prep (Not q))"
+| "prep (Not (Imp p q)) = conj (prep p) (prep (Not q))"
+| "prep (Not (Iff p q)) = disj (prep (And p (Not q))) (prep (And (Not p) q))"
+| "prep (Not p) = not (prep p)"
 | "prep (Or p q) = disj (prep p) (prep q)"
 | "prep (And p q) = conj (prep p) (prep q)"
-| "prep (Imp p q) = prep (Or (NOT p) q)"
-| "prep (Iff p q) = disj (prep (And p q)) (prep (And (NOT p) (NOT q)))"
+| "prep (Imp p q) = prep (Or (Not p) q)"
+| "prep (Iff p q) = disj (prep (And p q)) (prep (And (Not p) (Not q)))"
 | "prep p = p"
 
 lemma prep: "\<And>bs. Ifm bs (prep p) = Ifm bs p"
@@ -1059,8 +1059,8 @@ lemma prep: "\<And>bs. Ifm bs (prep p) = Ifm bs p"
 fun qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
 where
   "qelim (E p) = (\<lambda>qe. DJ qe (qelim p qe))"
-| "qelim (A p) = (\<lambda>qe. not (qe ((qelim (NOT p) qe))))"
-| "qelim (NOT p) = (\<lambda>qe. not (qelim p qe))"
+| "qelim (A p) = (\<lambda>qe. not (qe ((qelim (Not p) qe))))"
+| "qelim (Not p) = (\<lambda>qe. not (qelim p qe))"
 | "qelim (And p q) = (\<lambda>qe. conj (qelim p qe) (qelim q qe))"
 | "qelim (Or  p q) = (\<lambda>qe. disj (qelim p qe) (qelim q qe))"
 | "qelim (Imp p q) = (\<lambda>qe. imp (qelim p qe) (qelim q qe))"
@@ -1219,27 +1219,27 @@ fun rlfm :: "fm \<Rightarrow> fm"
 where
   "rlfm (And p q) = conj (rlfm p) (rlfm q)"
 | "rlfm (Or p q) = disj (rlfm p) (rlfm q)"
-| "rlfm (Imp p q) = disj (rlfm (NOT p)) (rlfm q)"
-| "rlfm (Iff p q) = disj (conj (rlfm p) (rlfm q)) (conj (rlfm (NOT p)) (rlfm (NOT q)))"
+| "rlfm (Imp p q) = disj (rlfm (Not p)) (rlfm q)"
+| "rlfm (Iff p q) = disj (conj (rlfm p) (rlfm q)) (conj (rlfm (Not p)) (rlfm (Not q)))"
 | "rlfm (Lt a) = case_prod lt (rsplit0 a)"
 | "rlfm (Le a) = case_prod le (rsplit0 a)"
 | "rlfm (Gt a) = case_prod gt (rsplit0 a)"
 | "rlfm (Ge a) = case_prod ge (rsplit0 a)"
 | "rlfm (Eq a) = case_prod eq (rsplit0 a)"
 | "rlfm (NEq a) = case_prod neq (rsplit0 a)"
-| "rlfm (NOT (And p q)) = disj (rlfm (NOT p)) (rlfm (NOT q))"
-| "rlfm (NOT (Or p q)) = conj (rlfm (NOT p)) (rlfm (NOT q))"
-| "rlfm (NOT (Imp p q)) = conj (rlfm p) (rlfm (NOT q))"
-| "rlfm (NOT (Iff p q)) = disj (conj(rlfm p) (rlfm(NOT q))) (conj(rlfm(NOT p)) (rlfm q))"
-| "rlfm (NOT (NOT p)) = rlfm p"
-| "rlfm (NOT T) = F"
-| "rlfm (NOT F) = T"
-| "rlfm (NOT (Lt a)) = rlfm (Ge a)"
-| "rlfm (NOT (Le a)) = rlfm (Gt a)"
-| "rlfm (NOT (Gt a)) = rlfm (Le a)"
-| "rlfm (NOT (Ge a)) = rlfm (Lt a)"
-| "rlfm (NOT (Eq a)) = rlfm (NEq a)"
-| "rlfm (NOT (NEq a)) = rlfm (Eq a)"
+| "rlfm (Not (And p q)) = disj (rlfm (Not p)) (rlfm (Not q))"
+| "rlfm (Not (Or p q)) = conj (rlfm (Not p)) (rlfm (Not q))"
+| "rlfm (Not (Imp p q)) = conj (rlfm p) (rlfm (Not q))"
+| "rlfm (Not (Iff p q)) = disj (conj(rlfm p) (rlfm(Not q))) (conj(rlfm(Not p)) (rlfm q))"
+| "rlfm (Not (Not p)) = rlfm p"
+| "rlfm (Not T) = F"
+| "rlfm (Not F) = T"
+| "rlfm (Not (Lt a)) = rlfm (Ge a)"
+| "rlfm (Not (Le a)) = rlfm (Gt a)"
+| "rlfm (Not (Gt a)) = rlfm (Le a)"
+| "rlfm (Not (Ge a)) = rlfm (Lt a)"
+| "rlfm (Not (Eq a)) = rlfm (NEq a)"
+| "rlfm (Not (NEq a)) = rlfm (Eq a)"
 | "rlfm p = p"
 
 lemma rlfm_I:
@@ -2489,7 +2489,7 @@ fun fm_of_term vs \<^term>\<open>True\<close> = @{code T}
   | fm_of_term vs (\<^term>\<open>HOL.conj\<close> $ t1 $ t2) = @{code And} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (\<^term>\<open>HOL.disj\<close> $ t1 $ t2) = @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (\<^term>\<open>HOL.implies\<close> $ t1 $ t2) = @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>Not\<close> $ t') = @{code NOT} (fm_of_term vs t')
+  | fm_of_term vs (\<^term>\<open>HOL.Not\<close> $ t') = @{code Not} (fm_of_term vs t')
   | fm_of_term vs (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (xn, xT, p)) =
       @{code E} (fm_of_term (("", dummyT) :: vs) p)
   | fm_of_term vs (Const (\<^const_name>\<open>All\<close>, _) $ Abs (xn, xT, p)) =
@@ -2520,8 +2520,8 @@ fun term_of_fm vs @{code T} = \<^term>\<open>True\<close>
       \<^term>\<open>0::real\<close> $ term_of_num vs t
   | term_of_fm vs (@{code Eq} t) = \<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $
       term_of_num vs t $ \<^term>\<open>0::real\<close>
-  | term_of_fm vs (@{code NEq} t) = term_of_fm vs (@{code NOT} (@{code Eq} t))
-  | term_of_fm vs (@{code NOT} t') = HOLogic.Not $ term_of_fm vs t'
+  | term_of_fm vs (@{code NEq} t) = term_of_fm vs (@{code Not} (@{code Eq} t))
+  | term_of_fm vs (@{code Not} t') = HOLogic.Not $ term_of_fm vs t'
   | term_of_fm vs (@{code And} (t1, t2)) = HOLogic.conj $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Or} (t1, t2)) = HOLogic.disj $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Imp}  (t1, t2)) = HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2

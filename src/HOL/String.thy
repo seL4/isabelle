@@ -3,7 +3,7 @@
 section \<open>Character and string types\<close>
 
 theory String
-imports Enum
+imports Enum Bit_Operations Code_Numeral
 begin
 
 subsection \<open>Strings as list of bytes\<close>

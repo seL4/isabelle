@@ -7,8 +7,6 @@ section \<open>A type of finite bit strings\<close>
 theory Word
 imports
   "HOL-Library.Type_Length"
-  "HOL-Library.Boolean_Algebra"
-  "HOL-Library.Bit_Operations"
 begin
 
 subsection \<open>Preliminaries\<close>
@@ -1131,18 +1129,18 @@ proof (rule bit_eqI)
     with \<open>2 ^ m \<noteq> 0\<close> have \<open>2 ^ (m - n) \<noteq> 0\<close>
       by (metis (full_types) diff_add exp_add_not_zero_imp)
     with True show ?thesis
-      by (simp add: bit_unsigned_iff bit_push_bit_iff Parity.bit_push_bit_iff bit_take_bit_iff not_le exp_eq_zero_iff ac_simps)
+      by (simp add: bit_unsigned_iff bit_push_bit_iff Bit_Operations.bit_push_bit_iff bit_take_bit_iff not_le ac_simps)
   next
     case False
     then show ?thesis
-      by (simp add: not_le bit_unsigned_iff bit_push_bit_iff Parity.bit_push_bit_iff bit_take_bit_iff)
+      by (simp add: not_le bit_unsigned_iff bit_push_bit_iff Bit_Operations.bit_push_bit_iff bit_take_bit_iff)
   qed
 qed
 
 lemma unsigned_take_bit_eq:
   \<open>unsigned (take_bit n w) = take_bit n (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
-  by (rule bit_eqI) (simp add: bit_unsigned_iff bit_take_bit_iff Parity.bit_take_bit_iff)
+  by (rule bit_eqI) (simp add: bit_unsigned_iff bit_take_bit_iff Bit_Operations.bit_take_bit_iff)
 
 end
 
@@ -1152,7 +1150,7 @@ begin
 lemma unsigned_drop_bit_eq:
   \<open>unsigned (drop_bit n w) = drop_bit n (take_bit LENGTH('b) (unsigned w))\<close>
   for w :: \<open>'b::len word\<close>
-  by (rule bit_eqI) (auto simp add: bit_unsigned_iff bit_take_bit_iff bit_drop_bit_eq Parity.bit_drop_bit_eq dest: bit_imp_le_length)
+  by (rule bit_eqI) (auto simp add: bit_unsigned_iff bit_take_bit_iff bit_drop_bit_eq Bit_Operations.bit_drop_bit_eq dest: bit_imp_le_length)
 
 end
 
@@ -1198,7 +1196,7 @@ lemma unsigned_not_eq:
   \<open>unsigned (NOT w) = take_bit LENGTH('b) (NOT (unsigned w))\<close>
   for w :: \<open>'b::len word\<close>
   by (rule bit_eqI)
-    (simp add: bit_unsigned_iff bit_take_bit_iff bit_not_iff Bit_Operations.bit_not_iff exp_eq_zero_iff not_le)
+    (simp add: bit_unsigned_iff bit_take_bit_iff bit_not_iff Bit_Operations.bit_not_iff not_le)
 
 end
 
@@ -1264,15 +1262,14 @@ proof (rule bit_eqI)
     moreover from \<open>2 ^ q \<noteq> 0\<close> have \<open>2 ^ (q - n) \<noteq> 0\<close>
       by (rule exp_not_zero_imp_exp_diff_not_zero)
     ultimately show ?thesis
-      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Parity.bit_push_bit_iff
-      min_def * exp_eq_zero_iff le_diff_conv2)
+      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Bit_Operations.bit_push_bit_iff
+        min_def * le_diff_conv2)
   next
     case False
     then show ?thesis
       using exp_not_zero_imp_exp_diff_not_zero [of m n]
-      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Parity.bit_push_bit_iff
-      min_def not_le not_less * le_diff_conv2 less_diff_conv2 Parity.exp_eq_0_imp_not_bit exp_eq_0_imp_not_bit
-      exp_eq_zero_iff)
+      by (auto simp add: bit_signed_iff bit_signed_take_bit_iff bit_push_bit_iff Bit_Operations.bit_push_bit_iff
+        min_def not_le not_less * le_diff_conv2 less_diff_conv2 Bit_Operations.exp_eq_0_imp_not_bit exp_eq_0_imp_not_bit)
   qed
 qed
 
@@ -1302,13 +1299,11 @@ proof (rule bit_eqI)
       have \<open>2 ^ Suc q \<noteq> 0\<close>
       using exp_add_not_zero_imp_right by blast 
     ultimately show ?thesis
-      by (simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def
-        exp_eq_zero_iff)
+      by (simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def)
   next
     case False
     then show ?thesis
-      by (auto simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def
-        exp_eq_zero_iff)
+      by (auto simp add: * bit_signed_iff bit_not_iff bit_signed_take_bit_iff Bit_Operations.bit_not_iff min_def)
   qed
 qed
 
@@ -1411,7 +1406,7 @@ begin
 lemma unsigned_ucast_eq:
   \<open>unsigned (ucast w :: 'c::len word) = take_bit LENGTH('c) (unsigned w)\<close>
   for w :: \<open>'b::len word\<close>
-  by (rule bit_eqI) (simp add: bit_unsigned_iff Word.bit_unsigned_iff bit_take_bit_iff exp_eq_zero_iff not_le)
+  by (rule bit_eqI) (simp add: bit_unsigned_iff Word.bit_unsigned_iff bit_take_bit_iff not_le)
 
 end
 
@@ -1428,7 +1423,7 @@ proof (rule bit_eqI)
     by (simp add: min_def)
       (metis (mono_tags) diff_diff_cancel exp_not_zero_imp_exp_diff_not_zero)
   then show \<open>bit (signed (ucast w :: 'c::len word)) n \<longleftrightarrow> bit (signed_take_bit (LENGTH('c) - Suc 0) (unsigned w)) n\<close>
-    by (simp add: bit_signed_iff bit_unsigned_iff Word.bit_unsigned_iff bit_signed_take_bit_iff exp_eq_zero_iff not_le)
+    by (simp add: bit_signed_iff bit_unsigned_iff Word.bit_unsigned_iff bit_signed_take_bit_iff not_le)
 qed
 
 lemma signed_scast_eq:
@@ -1441,7 +1436,7 @@ proof (rule bit_eqI)
     by (simp add: min_def)
       (metis (mono_tags) diff_diff_cancel exp_not_zero_imp_exp_diff_not_zero)
   then show \<open>bit (signed (scast w :: 'c::len word)) n \<longleftrightarrow> bit (signed_take_bit (LENGTH('c) - Suc 0) (signed w)) n\<close>
-    by (simp add: bit_signed_iff bit_unsigned_iff Word.bit_signed_iff bit_signed_take_bit_iff exp_eq_zero_iff not_le)
+    by (simp add: bit_signed_iff bit_unsigned_iff Word.bit_signed_iff bit_signed_take_bit_iff not_le)
 qed
 
 end
@@ -2104,8 +2099,7 @@ lemma uint_word_rotr_eq:
     (drop_bit (n mod LENGTH('a)) (uint w))
     (uint (take_bit (n mod LENGTH('a)) w))\<close>
   for w :: \<open>'a::len word\<close>
-  apply transfer
-  by (simp add: min.absorb2 take_bit_concat_bit_eq)
+  by transfer (simp add: take_bit_concat_bit_eq)
 
 lemma [code]:
   \<open>Word.the_int (word_rotr n w) = concat_bit (LENGTH('a) - n mod LENGTH('a))
@@ -2347,7 +2341,7 @@ text \<open>
 \<close>
 
 lemma bit_ucast_iff:
-  \<open>bit (ucast a :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a::len) \<and> Parity.bit a n\<close>
+  \<open>bit (ucast a :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a::len) \<and> bit a n\<close>
   by transfer (simp add: bit_take_bit_iff)
 
 lemma ucast_id [simp]: "ucast w = w"
@@ -2358,7 +2352,7 @@ lemma scast_id [simp]: "scast w = w"
 
 lemma ucast_mask_eq:
   \<open>ucast (mask n :: 'b word) = mask (min LENGTH('b::len) n)\<close>
-  by (simp add: bit_eq_iff) (auto simp add: bit_mask_iff bit_ucast_iff exp_eq_zero_iff)
+  by (simp add: bit_eq_iff) (auto simp add: bit_mask_iff bit_ucast_iff)
 
 \<comment> \<open>literal u(s)cast\<close>
 lemma ucast_bintr [simp]:
@@ -2491,7 +2485,7 @@ proof (cases \<open>LENGTH('a)\<close>)
   then show ?thesis
     apply transfer
     apply (simp add: take_bit_drop_bit)
-    by (simp add: bit_iff_odd_drop_bit drop_bit_take_bit min.absorb2 odd_iff_mod_2_eq_one)
+    by (simp add: bit_iff_odd_drop_bit drop_bit_take_bit odd_iff_mod_2_eq_one)
 qed auto
 
 
@@ -3623,7 +3617,7 @@ subsubsection \<open>Mask\<close>
 
 lemma minus_1_eq_mask:
   \<open>- 1 = (mask LENGTH('a) :: 'a::len word)\<close>
-  by (rule bit_eqI) (simp add: bit_exp_iff bit_mask_iff exp_eq_zero_iff)
+  by (rule bit_eqI) (simp add: bit_exp_iff bit_mask_iff)
 
 lemma mask_eq_decr_exp:
   \<open>mask n = 2 ^ n - (1 :: 'a::len word)\<close>
@@ -3638,7 +3632,7 @@ begin
 
 qualified lemma bit_mask_iff [bit_simps]:
   \<open>bit (mask m :: 'a::len word) n \<longleftrightarrow> n < min LENGTH('a) m\<close>
-  by (simp add: bit_mask_iff exp_eq_zero_iff not_le)
+  by (simp add: bit_mask_iff not_le)
 
 end
 
@@ -4218,10 +4212,10 @@ lemma word_rec_Pred: "n \<noteq> 0 \<Longrightarrow> word_rec z s n = s (n - 1) 
   by (metis add.commute diff_add_cancel word_rec_Suc)
 
 lemma word_rec_in: "f (word_rec z (\<lambda>_. f) n) = word_rec (f z) (\<lambda>_. f) n"
-  by (induct n) (simp_all add: word_rec_Suc)
+  by (induct n) simp_all
 
 lemma word_rec_in2: "f n (word_rec z f n) = word_rec (f 0 z) (f \<circ> (+) 1) n"
-  by (induct n) (simp_all add: word_rec_Suc)
+  by (induct n) simp_all
 
 lemma word_rec_twice:
   "m \<le> n \<Longrightarrow> word_rec z f n = word_rec (word_rec z f (n - m)) (f \<circ> (+) (n - m)) m"

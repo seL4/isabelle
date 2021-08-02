@@ -1106,14 +1106,6 @@ lemma divmod_BitM_2_eq [simp]:
   \<open>divmod (Num.BitM m) (Num.Bit0 Num.One) = (numeral m - 1, (1 :: int))\<close>
   by (cases m) simp_all
 
-lemma bit_numeral_Bit0_Suc_iff [simp]:
-  \<open>bit (numeral (Num.Bit0 m) :: int) (Suc n) \<longleftrightarrow> bit (numeral m :: int) n\<close>
-  by (simp add: bit_Suc)
-
-lemma bit_numeral_Bit1_Suc_iff [simp]:
-  \<open>bit (numeral (Num.Bit1 m) :: int) (Suc n) \<longleftrightarrow> bit (numeral m :: int) n\<close>
-  by (simp add: bit_Suc)
-
 lemma div_positive_int:
   "k div l > 0" if "k \<ge> l" and "l > 0" for k l :: int
   using that div_positive [of l k] by blast
@@ -1223,113 +1215,6 @@ lemma [code]:
 
 code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
-
-
-subsection \<open>More on bit operations\<close>
-
-lemma take_bit_incr_eq:
-  \<open>take_bit n (k + 1) = 1 + take_bit n k\<close> if \<open>take_bit n k \<noteq> 2 ^ n - 1\<close>
-  for k :: int
-proof -
-  from that have \<open>2 ^ n \<noteq> k mod 2 ^ n + 1\<close>
-    by (simp add: take_bit_eq_mod)
-  moreover have \<open>k mod 2 ^ n < 2 ^ n\<close>
-    by simp
-  ultimately have *: \<open>k mod 2 ^ n + 1 < 2 ^ n\<close>
-    by linarith
-  have \<open>(k + 1) mod 2 ^ n = (k mod 2 ^ n + 1) mod 2 ^ n\<close>
-    by (simp add: mod_simps)
-  also have \<open>\<dots> = k mod 2 ^ n + 1\<close>
-    using * by (simp add: zmod_trivial_iff)
-  finally have \<open>(k + 1) mod 2 ^ n = k mod 2 ^ n + 1\<close> .
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_decr_eq:
-  \<open>take_bit n (k - 1) = take_bit n k - 1\<close> if \<open>take_bit n k \<noteq> 0\<close>
-  for k :: int
-proof -
-  from that have \<open>k mod 2 ^ n \<noteq> 0\<close>
-    by (simp add: take_bit_eq_mod)
-  moreover have \<open>k mod 2 ^ n \<ge> 0\<close> \<open>k mod 2 ^ n < 2 ^ n\<close>
-    by simp_all
-  ultimately have *: \<open>k mod 2 ^ n > 0\<close>
-    by linarith
-  have \<open>(k - 1) mod 2 ^ n = (k mod 2 ^ n - 1) mod 2 ^ n\<close>
-    by (simp add: mod_simps)
-  also have \<open>\<dots> = k mod 2 ^ n - 1\<close>
-    by (simp add: zmod_trivial_iff)
-      (use \<open>k mod 2 ^ n < 2 ^ n\<close> * in linarith)
-  finally have \<open>(k - 1) mod 2 ^ n = k mod 2 ^ n - 1\<close> .
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_int_greater_eq:
-  \<open>k + 2 ^ n \<le> take_bit n k\<close> if \<open>k < 0\<close> for k :: int
-proof -
-  have \<open>k + 2 ^ n \<le> take_bit n (k + 2 ^ n)\<close>
-  proof (cases \<open>k > - (2 ^ n)\<close>)
-    case False
-    then have \<open>k + 2 ^ n \<le> 0\<close>
-      by simp
-    also note take_bit_nonnegative
-    finally show ?thesis .
-  next
-    case True
-    with that have \<open>0 \<le> k + 2 ^ n\<close> and \<open>k + 2 ^ n < 2 ^ n\<close>
-      by simp_all
-    then show ?thesis
-      by (simp only: take_bit_eq_mod mod_pos_pos_trivial)
-  qed
-  then show ?thesis
-    by (simp add: take_bit_eq_mod)
-qed
-
-lemma take_bit_int_less_eq:
-  \<open>take_bit n k \<le> k - 2 ^ n\<close> if \<open>2 ^ n \<le> k\<close> and \<open>n > 0\<close> for k :: int
-  using that zmod_le_nonneg_dividend [of \<open>k - 2 ^ n\<close> \<open>2 ^ n\<close>]
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_int_less_eq_self_iff:
-  \<open>take_bit n k \<le> k \<longleftrightarrow> 0 \<le> k\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-  for k :: int
-proof
-  assume ?P
-  show ?Q
-  proof (rule ccontr)
-    assume \<open>\<not> 0 \<le> k\<close>
-    then have \<open>k < 0\<close>
-      by simp
-    with \<open>?P\<close>
-    have \<open>take_bit n k < 0\<close>
-      by (rule le_less_trans)
-    then show False
-      by simp
-  qed
-next
-  assume ?Q
-  then show ?P
-    by (simp add: take_bit_eq_mod zmod_le_nonneg_dividend)
-qed
-
-lemma take_bit_int_less_self_iff:
-  \<open>take_bit n k < k \<longleftrightarrow> 2 ^ n \<le> k\<close>
-  for k :: int
-  by (auto simp add: less_le take_bit_int_less_eq_self_iff take_bit_int_eq_self_iff
-    intro: order_trans [of 0 \<open>2 ^ n\<close> k])
-
-lemma take_bit_int_greater_self_iff:
-  \<open>k < take_bit n k \<longleftrightarrow> k < 0\<close>
-  for k :: int
-  using take_bit_int_less_eq_self_iff [of n k] by auto
-
-lemma take_bit_int_greater_eq_self_iff:
-  \<open>k \<le> take_bit n k \<longleftrightarrow> k < 2 ^ n\<close>
-  for k :: int
-  by (auto simp add: le_less take_bit_int_greater_self_iff take_bit_int_eq_self_iff
-    dest: sym not_sym intro: less_trans [of k 0 \<open>2 ^ n\<close>])
 
 
 subsection \<open>Lemmas of doubtful value\<close>

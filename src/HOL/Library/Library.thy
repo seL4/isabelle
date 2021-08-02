@@ -4,10 +4,8 @@ imports
   AList
   Adhoc_Overloading
   BigO
-  Bit_Operations
   BNF_Axiomatization
   BNF_Corec
-  Boolean_Algebra
   Bourbaki_Witt_Fixpoint
   Char_ord
   Code_Cardinality

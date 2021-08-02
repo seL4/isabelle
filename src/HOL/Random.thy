@@ -3,7 +3,7 @@
 section \<open>A HOL random engine\<close>
 
 theory Random
-imports List Groups_List
+imports List Groups_List Code_Numeral
 begin
 
 subsection \<open>Auxiliary functions\<close>

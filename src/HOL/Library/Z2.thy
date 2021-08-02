@@ -5,11 +5,11 @@
 section \<open>The Field of Integers mod 2\<close>
 
 theory Z2
-imports Main "HOL-Library.Bit_Operations"
+imports Main
 begin
 
 text \<open>
-  Note that in most cases \<^typ>\<open>bool\<close> is appropriate hen a binary type is needed; the
+  Note that in most cases \<^typ>\<open>bool\<close> is appropriate when a binary type is needed; the
   type provided here, for historical reasons named \<^text>\<open>bit\<close>, is only needed if proper
   field operations are required.
 \<close>

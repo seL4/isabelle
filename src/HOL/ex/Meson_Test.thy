@@ -10,7 +10,7 @@ text \<open>
   below and constants declared in HOL!
 \<close>
 
-hide_const (open) implies union inter subset quotient sum
+hide_const (open) implies union inter subset quotient sum or
 
 text \<open>
   Test data for the MESON proof procedure
@@ -1286,7 +1286,7 @@ lemma MSC005_1:
   (\<forall>X Y. value(X::'a,truth) & value(Y::'a,falsity) --> value(xor(X::'a,Y),truth)) &
   (\<forall>X Y. value(X::'a,falsity) & value(Y::'a,truth) --> value(xor(X::'a,Y),truth)) &
   (\<forall>X Y. value(X::'a,falsity) & value(Y::'a,falsity) --> value(xor(X::'a,Y),falsity)) &
-  (\<forall>Value. ~value(xor(xor(xor(xor(truth::'a,falsity),falsity),truth),falsity),Value)) --> False"
+  (\<forall>Value. ~value(xor(xor(xor(xor(truth::'a,falsity),falsity),truth),falsity),Value)) --> False" for xor
   by meson
 
 (*19116 inferences so far.  Searching to depth 16.  15.9 secs*)

@@ -39,7 +39,7 @@ where "\<phi> or \<psi> \<equiv> \<lambda> xs. \<phi> xs \<or> \<psi> xs"
 abbreviation (input) AND (infix "aand" 60)
 where "\<phi> aand \<psi> \<equiv> \<lambda> xs. \<phi> xs \<and> \<psi> xs"
 
-abbreviation (input) "not \<phi> \<equiv> \<lambda> xs. \<not> \<phi> xs"
+abbreviation (input) not where "not \<phi> \<equiv> \<lambda> xs. \<not> \<phi> xs"
 
 abbreviation (input) "true \<equiv> \<lambda> xs. True"
 
