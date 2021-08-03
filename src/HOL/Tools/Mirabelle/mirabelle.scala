@@ -62,7 +62,9 @@ object Mirabelle
       val build_options =
         options + "timeout_build=false" +
           ("mirabelle_actions=" + actions.mkString(";")) +
-          ("mirabelle_theories=" + theories.mkString(","))
+          ("mirabelle_theories=" + theories.mkString(",")) +
+          ("mirabelle_output_dir=" + output_dir.implode)
+
 
       progress.echo("Running Mirabelle ...")
 
@@ -192,8 +194,6 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
-    options = options + ("mirabelle_output_dir=" + output_dir.implode)
-
     val sessions = getopts(args)
     if (actions.isEmpty) getopts.usage()
 
@@ -207,7 +207,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
     val results =
       progress.interrupt_handler {
-        mirabelle(options, actions, output_dir,
+        mirabelle(options, actions, output_dir.absolute,
           theories = theories,
           selection = Sessions.Selection(
             all_sessions = all_sessions,
