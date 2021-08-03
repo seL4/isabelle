@@ -928,59 +928,6 @@ lemma bit_neg_numeral_word_iff [simp]:
     \<longleftrightarrow> n < LENGTH('a) \<and> bit (- numeral w :: int) n\<close>
   by transfer simp
 
-instantiation word :: (len) semiring_bit_shifts
-begin
-
-lift_definition push_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
-  is push_bit
-proof -
-  show \<open>take_bit LENGTH('a) (push_bit n k) = take_bit LENGTH('a) (push_bit n l)\<close>
-    if \<open>take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close> for k l :: int and n :: nat
-  proof -
-    from that
-    have \<open>take_bit (LENGTH('a) - n) (take_bit LENGTH('a) k)
-      = take_bit (LENGTH('a) - n) (take_bit LENGTH('a) l)\<close>
-      by simp
-    moreover have \<open>min (LENGTH('a) - n) LENGTH('a) = LENGTH('a) - n\<close>
-      by simp
-    ultimately show ?thesis
-      by (simp add: take_bit_push_bit)
-  qed
-qed
-
-lift_definition drop_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
-  is \<open>\<lambda>n. drop_bit n \<circ> take_bit LENGTH('a)\<close>
-  by (simp add: take_bit_eq_mod)
-
-lift_definition take_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
-  is \<open>\<lambda>n. take_bit (min LENGTH('a) n)\<close>
-  by (simp add: ac_simps) (simp only: flip: take_bit_take_bit)
-
-instance proof
-  show \<open>push_bit n a = a * 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
-    by transfer (simp add: push_bit_eq_mult)
-  show \<open>drop_bit n a = a div 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
-    by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit)
-  show \<open>take_bit n a = a mod 2 ^ n\<close> for n :: nat and a :: \<open>'a word\<close>
-    by transfer (auto simp flip: take_bit_eq_mod)
-qed
-
-end
-
-lemma [code]:
-  \<open>push_bit n w = w * 2 ^ n\<close> for w :: \<open>'a::len word\<close>
-  by (fact push_bit_eq_mult)
-
-lemma [code]:
-  \<open>Word.the_int (drop_bit n w) = drop_bit n (Word.the_int w)\<close>
-  by transfer (simp add: drop_bit_take_bit min_def le_less less_diff_conv)
-
-lemma [code]:
-  \<open>Word.the_int (take_bit n w) = (if n < LENGTH('a::len) then take_bit n (Word.the_int w) else Word.the_int w)\<close>
-  for w :: \<open>'a::len word\<close>
-  by transfer (simp add: not_le not_less ac_simps min_absorb2)
-
-
 instantiation word :: (len) ring_bit_operations
 begin
 
@@ -1016,11 +963,52 @@ lift_definition flip_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 
   is flip_bit
   by (simp add: flip_bit_def)
 
-instance by (standard; transfer)
-  (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
-    bit_simps set_bit_def flip_bit_def)
+lift_definition push_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is push_bit
+proof -
+  show \<open>take_bit LENGTH('a) (push_bit n k) = take_bit LENGTH('a) (push_bit n l)\<close>
+    if \<open>take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close> for k l :: int and n :: nat
+  proof -
+    from that
+    have \<open>take_bit (LENGTH('a) - n) (take_bit LENGTH('a) k)
+      = take_bit (LENGTH('a) - n) (take_bit LENGTH('a) l)\<close>
+      by simp
+    moreover have \<open>min (LENGTH('a) - n) LENGTH('a) = LENGTH('a) - n\<close>
+      by simp
+    ultimately show ?thesis
+      by (simp add: take_bit_push_bit)
+  qed
+qed
+
+lift_definition drop_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>\<lambda>n. drop_bit n \<circ> take_bit LENGTH('a)\<close>
+  by (simp add: take_bit_eq_mod)
+
+lift_definition take_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>\<lambda>n. take_bit (min LENGTH('a) n)\<close>
+  by (simp add: ac_simps) (simp only: flip: take_bit_take_bit)
+
+instance apply (standard; transfer)
+  apply (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
+    bit_simps set_bit_def flip_bit_def take_bit_drop_bit
+    simp flip: drop_bit_eq_div take_bit_eq_mod)
+   apply (simp_all add: drop_bit_take_bit flip: push_bit_eq_mult)
+  done
 
 end
+
+lemma [code]:
+  \<open>push_bit n w = w * 2 ^ n\<close> for w :: \<open>'a::len word\<close>
+  by (fact push_bit_eq_mult)
+
+lemma [code]:
+  \<open>Word.the_int (drop_bit n w) = drop_bit n (Word.the_int w)\<close>
+  by transfer (simp add: drop_bit_take_bit min_def le_less less_diff_conv)
+
+lemma [code]:
+  \<open>Word.the_int (take_bit n w) = (if n < LENGTH('a::len) then take_bit n (Word.the_int w) else Word.the_int w)\<close>
+  for w :: \<open>'a::len word\<close>
+  by transfer (simp add: not_le not_less ac_simps min_absorb2)
 
 lemma [code_abbrev]:
   \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>
@@ -1114,7 +1102,7 @@ lemma bit_unsigned_iff [bit_simps]:
 
 end
 
-context semiring_bit_shifts
+context semiring_bit_operations
 begin
 
 lemma unsigned_push_bit_eq:
@@ -1144,7 +1132,7 @@ lemma unsigned_take_bit_eq:
 
 end
 
-context unique_euclidean_semiring_with_bit_shifts
+context unique_euclidean_semiring_with_bit_operations
 begin
 
 lemma unsigned_drop_bit_eq:
@@ -1400,7 +1388,7 @@ proof -
     by (simp add: of_nat_mod)
 qed
 
-context semiring_bit_shifts
+context semiring_bit_operations
 begin
 
 lemma unsigned_ucast_eq:
