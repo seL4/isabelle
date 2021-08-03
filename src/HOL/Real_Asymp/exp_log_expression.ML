@@ -128,7 +128,7 @@ structure Custom_Funs = Generic_Data
   fun eq_entry ({name = name1, ...}, {name = name2, ...}) = (name1 = name2)
   val empty = 
     {
-      name_table = Name_Space.empty_table "Exp-Log Custom Function",
+      name_table = Name_Space.empty_table "exp_log_custom_function",
       net = Item_Net.init eq_entry (fn {net_pat, ...} => [net_pat])
     }
   
