@@ -292,7 +292,7 @@ structure Data = Generic_Data
     ml_tactic: (morphism -> thm list -> tactic) option,
     facts: thm list option};
   val empty : T =
-    {methods = Name_Space.empty_table "method", ml_tactic = NONE, facts = NONE};
+    {methods = Name_Space.empty_table Markup.methodN, ml_tactic = NONE, facts = NONE};
   val extend = I;
   fun merge
     ({methods = methods1, ml_tactic = ml_tactic1, facts = facts1},
