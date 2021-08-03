@@ -201,7 +201,7 @@ min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
 * Sledgehammer:
- - Removed legacy "lam_lifting" (synonym for "liftinng") from option
+ - Removed legacy "lam_lifting" (synonym for "lifting") from option
    "lam_trans". Minor INCOMPATIBILITY.
  - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans".
    Minor INCOMPATIBILITY.
