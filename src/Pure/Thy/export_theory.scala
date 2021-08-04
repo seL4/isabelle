@@ -92,6 +92,9 @@ object Export_Theory
       locales.iterator.map(_.no_content) ++
       locale_dependencies.iterator.map(_.no_content)
 
+    lazy val entity_serials: Set[Long] =
+      entity_iterator.map(_.serial).toSet
+
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
         parents.map(cache.string),
