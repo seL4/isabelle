@@ -146,7 +146,7 @@ datatype T = Facts of
 
 fun make_facts facts props = Facts {facts = facts, props = props};
 
-val empty = make_facts (Name_Space.empty_table "fact") Net.empty;
+val empty = make_facts (Name_Space.empty_table Markup.factN) Net.empty;
 
 
 (* named facts *)

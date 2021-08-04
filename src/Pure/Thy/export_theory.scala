@@ -67,13 +67,13 @@ object Export_Theory
   /** theory content **/
 
   sealed case class Theory(name: String, parents: List[String],
-    types: List[Type],
-    consts: List[Const],
-    axioms: List[Axiom],
-    thms: List[Thm],
-    classes: List[Class],
-    locales: List[Locale],
-    locale_dependencies: List[Locale_Dependency],
+    types: List[Entity[Type]],
+    consts: List[Entity[Const]],
+    axioms: List[Entity[Axiom]],
+    thms: List[Entity[Thm]],
+    classes: List[Entity[Class]],
+    locales: List[Entity[Locale]],
+    locale_dependencies: List[Entity[Locale_Dependency]],
     classrel: List[Classrel],
     arities: List[Arity],
     constdefs: List[Constdef],
@@ -83,14 +83,14 @@ object Export_Theory
   {
     override def toString: String = name
 
-    def entity_iterator: Iterator[Entity] =
-      types.iterator.map(_.entity) ++
-      consts.iterator.map(_.entity) ++
-      axioms.iterator.map(_.entity) ++
-      thms.iterator.map(_.entity) ++
-      classes.iterator.map(_.entity) ++
-      locales.iterator.map(_.entity) ++
-      locale_dependencies.iterator.map(_.entity)
+    def entity_iterator: Iterator[Entity[No_Content]] =
+      types.iterator.map(_.no_content) ++
+      consts.iterator.map(_.no_content) ++
+      axioms.iterator.map(_.no_content) ++
+      thms.iterator.map(_.no_content) ++
+      classes.iterator.map(_.no_content) ++
+      locales.iterator.map(_.no_content) ++
+      locale_dependencies.iterator.map(_.no_content)
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
@@ -180,29 +180,64 @@ object Export_Theory
     val PROOF_TEXT = Value("proof_text")
   }
 
-  sealed case class Entity(
-    kind: Kind.Value, name: String, xname: String, pos: Position.T, id: Option[Long], serial: Long)
+  abstract class Content[T]
+  {
+    def cache(cache: Term.Cache): T
+  }
+  sealed case class No_Content() extends Content[No_Content]
+  {
+    def cache(cache: Term.Cache): No_Content = this
+  }
+  sealed case class Entity[A <: Content[A]](
+    kind: Kind.Value,
+    name: String,
+    xname: String,
+    pos: Position.T,
+    id: Option[Long],
+    serial: Long,
+    content: Option[A])
   {
     override def toString: String = kind.toString + " " + quote(name)
 
-    def cache(cache: Term.Cache): Entity =
-      Entity(kind, cache.string(name), cache.string(xname), cache.position(pos), id, serial)
+    def the_content: A =
+      if (content.isDefined) content.get else error("No content for " + toString)
+
+    def no_content: Entity[No_Content] = copy(content = None)
+
+    def cache(cache: Term.Cache): Entity[A] =
+      Entity(
+        kind,
+        cache.string(name),
+        cache.string(xname),
+        cache.position(pos),
+        id,
+        serial,
+        content.map(_.cache(cache)))
   }
 
-  def decode_entity(kind: Kind.Value, tree: XML.Tree): (Entity, XML.Body) =
+  def read_entities[A <: Content[A]](
+    provider: Export.Provider,
+    export_name: String,
+    kind: Kind.Value,
+    decode: XML.Decode.T[A]): List[Entity[A]] =
   {
-    def err(): Nothing = throw new XML.XML_Body(List(tree))
+    def decode_entity(tree: XML.Tree): Entity[A] =
+    {
+      def err(): Nothing = throw new XML.XML_Body(List(tree))
 
-    tree match {
-      case XML.Elem(Markup(Markup.ENTITY, props), body) =>
-        val name = Markup.Name.unapply(props) getOrElse err()
-        val xname = Markup.XName.unapply(props) getOrElse err()
-        val pos = props.filter(p => Markup.position_property(p) && p._1 != Markup.ID)
-        val id = Position.Id.unapply(props)
-        val serial = Markup.Serial.unapply(props) getOrElse err()
-        (Entity(kind, name, xname, pos, id, serial), body)
-      case _ => err()
+      tree match {
+        case XML.Elem(Markup(Markup.ENTITY, props), body) =>
+          val name = Markup.Name.unapply(props) getOrElse err()
+          val xname = Markup.XName.unapply(props) getOrElse err()
+          val pos = props.filter(p => Markup.position_property(p) && p._1 != Markup.ID)
+          val id = Position.Id.unapply(props)
+          val serial = Markup.Serial.unapply(props) getOrElse err()
+          val content = if (body.isEmpty) None else Some(decode(body))
+          Entity(kind, name, xname, pos, id, serial, content)
+        case _ => err()
+      }
     }
+    provider.uncompressed_yxml(export_name).map(decode_entity)
   }
 
 
@@ -230,41 +265,37 @@ object Export_Theory
 
   /* types */
 
-  sealed case class Type(
-    entity: Entity, syntax: Syntax, args: List[String], abbrev: Option[Term.Typ])
+  sealed case class Type(syntax: Syntax, args: List[String], abbrev: Option[Term.Typ])
+    extends Content[Type]
   {
-    def cache(cache: Term.Cache): Type =
-      Type(entity.cache(cache),
+    override def cache(cache: Term.Cache): Type =
+      Type(
         syntax,
         args.map(cache.string),
         abbrev.map(cache.typ))
   }
 
-  def read_types(provider: Export.Provider): List[Type] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "types").map((tree: XML.Tree) =>
+  def read_types(provider: Export.Provider): List[Entity[Type]] =
+    read_entities(provider, Export.THEORY_PREFIX + "types", Kind.TYPE, body =>
       {
-        val (entity, body) = decode_entity(Kind.TYPE, tree)
+        import XML.Decode._
         val (syntax, args, abbrev) =
-        {
-          import XML.Decode._
           triple(decode_syntax, list(string), option(Term_XML.Decode.typ))(body)
-        }
-        Type(entity, syntax, args, abbrev)
+        Type(syntax, args, abbrev)
       })
 
 
   /* consts */
 
   sealed case class Const(
-    entity: Entity,
     syntax: Syntax,
     typargs: List[String],
     typ: Term.Typ,
     abbrev: Option[Term.Term],
-    propositional: Boolean)
+    propositional: Boolean) extends Content[Const]
   {
-    def cache(cache: Term.Cache): Const =
-      Const(entity.cache(cache),
+    override def cache(cache: Term.Cache): Const =
+      Const(
         syntax,
         typargs.map(cache.string),
         cache.typ(typ),
@@ -272,19 +303,16 @@ object Export_Theory
         propositional)
   }
 
-  def read_consts(provider: Export.Provider): List[Const] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "consts").map((tree: XML.Tree) =>
+  def read_consts(provider: Export.Provider): List[Entity[Const]] =
+    read_entities(provider, Export.THEORY_PREFIX + "consts", Kind.CONST, body =>
       {
-        val (entity, body) = decode_entity(Kind.CONST, tree)
+        import XML.Decode._
         val (syntax, (typargs, (typ, (abbrev, propositional)))) =
-        {
-          import XML.Decode._
           pair(decode_syntax,
             pair(list(string),
               pair(Term_XML.Decode.typ,
                 pair(option(Term_XML.Decode.term), bool))))(body)
-        }
-        Const(entity, syntax, typargs, typ, abbrev, propositional)
+        Const(syntax, typargs, typ, abbrev, propositional)
       })
 
 
@@ -293,9 +321,9 @@ object Export_Theory
   sealed case class Prop(
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
-    term: Term.Term)
+    term: Term.Term) extends Content[Prop]
   {
-    def cache(cache: Term.Cache): Prop =
+    override def cache(cache: Term.Cache): Prop =
       Prop(
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
@@ -313,19 +341,14 @@ object Export_Theory
     Prop(typargs, args, t)
   }
 
-  sealed case class Axiom(entity: Entity, prop: Prop)
+  sealed case class Axiom(prop: Prop) extends Content[Axiom]
   {
-    def cache(cache: Term.Cache): Axiom =
-      Axiom(entity.cache(cache), prop.cache(cache))
+    override def cache(cache: Term.Cache): Axiom = Axiom(prop.cache(cache))
   }
 
-  def read_axioms(provider: Export.Provider): List[Axiom] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "axioms").map((tree: XML.Tree) =>
-      {
-        val (entity, body) = decode_entity(Kind.AXIOM, tree)
-        val prop = decode_prop(body)
-        Axiom(entity, prop)
-      })
+  def read_axioms(provider: Export.Provider): List[Entity[Axiom]] =
+    read_entities(provider, Export.THEORY_PREFIX + "axioms", Kind.AXIOM,
+      body => Axiom(decode_prop(body)))
 
 
   /* theorems */
@@ -336,30 +359,24 @@ object Export_Theory
   }
 
   sealed case class Thm(
-    entity: Entity,
     prop: Prop,
     deps: List[String],
-    proof: Term.Proof)
+    proof: Term.Proof) extends Content[Thm]
   {
-    def cache(cache: Term.Cache): Thm =
+    override def cache(cache: Term.Cache): Thm =
       Thm(
-        entity.cache(cache),
         prop.cache(cache),
         deps.map(cache.string),
         cache.proof(proof))
   }
 
-  def read_thms(provider: Export.Provider): List[Thm] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "thms").map((tree: XML.Tree) =>
+  def read_thms(provider: Export.Provider): List[Entity[Thm]] =
+    read_entities(provider, Export.THEORY_PREFIX + "thms", Kind.THM, body =>
       {
-        val (entity, body) = decode_entity(Kind.THM, tree)
-        val (prop, deps, prf) =
-        {
-          import XML.Decode._
-          import Term_XML.Decode._
-          triple(decode_prop, list(string), proof)(body)
-        }
-        Thm(entity, prop, deps, prf)
+        import XML.Decode._
+        import Term_XML.Decode._
+        val (prop, deps, prf) = triple(decode_prop, list(string), proof)(body)
+        Thm(prop, deps, prf)
       })
 
   sealed case class Proof(
@@ -446,71 +463,62 @@ object Export_Theory
 
   /* type classes */
 
-  sealed case class Class(
-    entity: Entity, params: List[(String, Term.Typ)], axioms: List[Prop])
+  sealed case class Class(params: List[(String, Term.Typ)], axioms: List[Prop])
+    extends Content[Class]
   {
-    def cache(cache: Term.Cache): Class =
-      Class(entity.cache(cache),
+    override def cache(cache: Term.Cache): Class =
+      Class(
         params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
         axioms.map(_.cache(cache)))
   }
 
-  def read_classes(provider: Export.Provider): List[Class] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "classes").map((tree: XML.Tree) =>
+  def read_classes(provider: Export.Provider): List[Entity[Class]] =
+    read_entities(provider, Export.THEORY_PREFIX + "classes", Kind.CLASS, body =>
       {
-        val (entity, body) = decode_entity(Kind.CLASS, tree)
-        val (params, axioms) =
-        {
-          import XML.Decode._
-          import Term_XML.Decode._
-          pair(list(pair(string, typ)), list(decode_prop))(body)
-        }
-        Class(entity, params, axioms)
+        import XML.Decode._
+        import Term_XML.Decode._
+        val (params, axioms) = pair(list(pair(string, typ)), list(decode_prop))(body)
+        Class(params, axioms)
       })
 
 
   /* locales */
 
   sealed case class Locale(
-    entity: Entity,
     typargs: List[(String, Term.Sort)],
     args: List[((String, Term.Typ), Syntax)],
-    axioms: List[Prop])
+    axioms: List[Prop]) extends Content[Locale]
   {
-    def cache(cache: Term.Cache): Locale =
-      Locale(entity.cache(cache),
+    override def cache(cache: Term.Cache): Locale =
+      Locale(
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case ((name, typ), syntax) => ((cache.string(name), cache.typ(typ)), syntax) }),
         axioms.map(_.cache(cache)))
   }
 
-  def read_locales(provider: Export.Provider): List[Locale] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "locales").map((tree: XML.Tree) =>
+  def read_locales(provider: Export.Provider): List[Entity[Locale]] =
+    read_entities(provider, Export.THEORY_PREFIX + "locales", Kind.LOCALE, body =>
       {
-        val (entity, body) = decode_entity(Kind.LOCALE, tree)
+        import XML.Decode._
+        import Term_XML.Decode._
         val (typargs, args, axioms) =
-        {
-          import XML.Decode._
-          import Term_XML.Decode._
           triple(list(pair(string, sort)), list(pair(pair(string, typ), decode_syntax)),
             list(decode_prop))(body)
-        }
-        Locale(entity, typargs, args, axioms)
+        Locale(typargs, args, axioms)
       })
 
 
   /* locale dependencies */
 
   sealed case class Locale_Dependency(
-    entity: Entity,
     source: String,
     target: String,
     prefix: List[(String, Boolean)],
     subst_types: List[((String, Term.Sort), Term.Typ)],
-    subst_terms: List[((String, Term.Typ), Term.Term)])
+    subst_terms: List[((String, Term.Typ), Term.Term)]) extends Content[Locale_Dependency]
   {
-    def cache(cache: Term.Cache): Locale_Dependency =
-      Locale_Dependency(entity.cache(cache),
+    override def cache(cache: Term.Cache): Locale_Dependency =
+      Locale_Dependency(
         cache.string(source),
         cache.string(target),
         prefix.map({ case (name, mandatory) => (cache.string(name), mandatory) }),
@@ -521,19 +529,17 @@ object Export_Theory
       subst_types.isEmpty && subst_terms.isEmpty
   }
 
-  def read_locale_dependencies(provider: Export.Provider): List[Locale_Dependency] =
-    provider.uncompressed_yxml(Export.THEORY_PREFIX + "locale_dependencies").map((tree: XML.Tree) =>
-      {
-        val (entity, body) = decode_entity(Kind.LOCALE_DEPENDENCY, tree)
-        val (source, (target, (prefix, (subst_types, subst_terms)))) =
+  def read_locale_dependencies(provider: Export.Provider): List[Entity[Locale_Dependency]] =
+    read_entities(provider, Export.THEORY_PREFIX + "locale_dependencies", Kind.LOCALE_DEPENDENCY,
+      body =>
         {
           import XML.Decode._
           import Term_XML.Decode._
-          pair(string, pair(string, pair(list(pair(string, bool)),
-            pair(list(pair(pair(string, sort), typ)), list(pair(pair(string, typ), term))))))(body)
-        }
-        Locale_Dependency(entity, source, target, prefix, subst_types, subst_terms)
-      })
+          val (source, (target, (prefix, (subst_types, subst_terms)))) =
+            pair(string, pair(string, pair(list(pair(string, bool)),
+              pair(list(pair(pair(string, sort), typ)), list(pair(pair(string, typ), term))))))(body)
+          Locale_Dependency(source, target, prefix, subst_types, subst_terms)
+        })
 
 
   /* sort algebra */

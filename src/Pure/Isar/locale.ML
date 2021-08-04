@@ -177,7 +177,7 @@ fun merge_locale
 structure Locales = Theory_Data
 (
   type T = locale Name_Space.table;
-  val empty : T = Name_Space.empty_table "locale";
+  val empty : T = Name_Space.empty_table Markup.localeN;
   val extend = I;
   val merge = Name_Space.join_tables (K merge_locale);
 );

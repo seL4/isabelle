@@ -292,13 +292,25 @@ object Markup
 
   /* misc entities */
 
+  val SESSION = "session"
+
   val THEORY = "theory"
   val CLASS = "class"
+  val LOCALE = "locale"
   val TYPE_NAME = "type_name"
+  val CONSTANT = "constant"
+  val AXIOM = "axiom"
+  val FACT = "fact"
+  val ORACLE = "oracle"
+
   val FIXED = "fixed"
   val CASE = "case"
-  val CONSTANT = "constant"
   val DYNAMIC_FACT = "dynamic_fact"
+  val LITERAL_FACT = "literal_fact"
+
+  val ATTRIBUTE = "attribute"
+  val METHOD = "method"
+  val METHOD_MODIFIER = "method_modifier"
 
 
   /* inner syntax */
@@ -320,9 +332,6 @@ object Markup
   val SORTING = "sorting"
   val TYPING = "typing"
   val CLASS_PARAMETER = "class_parameter"
-
-  val ATTRIBUTE = "attribute"
-  val METHOD = "method"
 
 
   /* antiquotations */

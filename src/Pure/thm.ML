@@ -897,7 +897,7 @@ structure Data = Theory_Data
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 
-  val empty : T = (Name_Space.empty_table "oracle", empty_classes);
+  val empty : T = (Name_Space.empty_table Markup.oracleN, empty_classes);
   val extend = I;
   fun merge ((oracles1, sorts1), (oracles2, sorts2)) : T =
     (Name_Space.merge_tables (oracles1, oracles2), merge_classes (sorts1, sorts2));
