@@ -681,6 +681,11 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
+
+val dummy_fof_format = FOF
+val dummy_fof_config = dummy_config Hypothesis dummy_fof_format "mono_guards??" false
+val dummy_fof = (dummy_fofN, fn () => dummy_fof_config)
+
 val dummy_tfx_format = TFF (With_FOOL, Polymorphic)
 val dummy_tfx_config = dummy_config Hypothesis dummy_tfx_format "mono_native_fool" false
 val dummy_tfx = (dummy_tfxN, fn () => dummy_tfx_config)
@@ -725,7 +730,7 @@ fun effective_term_order ctxt atp =
 val atps =
   [agsyhol, alt_ergo, e, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp, zipperposition,
    remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2, remote_leo3,
-   remote_waldmeister, remote_zipperposition, dummy_tfx, dummy_thf]
+   remote_waldmeister, remote_zipperposition, dummy_fof, dummy_tfx, dummy_thf]
 
 val _ = Theory.setup (fold add_atp atps)
 

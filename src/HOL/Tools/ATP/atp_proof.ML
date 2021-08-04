@@ -54,6 +54,7 @@ sig
   val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
+  val dummy_fofN : string
   val dummy_tfxN : string
   val dummy_thfN : string
 
@@ -117,6 +118,7 @@ val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
+val dummy_fofN = "dummy_fof"
 val dummy_tfxN = "dummy_tfx"
 val dummy_thfN = "dummy_thf"
 
