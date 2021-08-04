@@ -43,7 +43,7 @@ lemma bit_not_zero_iff [simp]:
   \<open>a \<noteq> 0 \<longleftrightarrow> a = 1\<close> for a :: bit
   by (cases a) simp_all
 
-lemma bit_not_one_imp [simp]:
+lemma bit_not_one_iff [simp]:
   \<open>a \<noteq> 1 \<longleftrightarrow> a = 0\<close> for a :: bit
   by (cases a) simp_all
 
@@ -144,6 +144,24 @@ lemma power_bit_unfold [simp, code]:
   \<open>a ^ n = of_bool (odd a \<or> n = 0)\<close> for a :: bit
   by (cases a) simp_all
 
+instantiation bit :: field
+begin
+
+definition uminus_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>uminus_bit = id\<close>
+
+definition inverse_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>inverse_bit = id\<close>
+
+instance
+  apply standard
+  apply simp_all
+  apply (simp only: Z2.bit_eq_iff even_add)
+  apply simp
+  done
+
+end
+
 instantiation bit :: semiring_bits
 begin
 
@@ -158,29 +176,15 @@ instance
 
 end
 
-instantiation bit :: semiring_bit_shifts
-begin
-
-definition push_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>push_bit n b = of_bool (odd b \<and> n = 0)\<close> for b :: bit
-
-definition drop_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>drop_bit_bit = push_bit\<close>
-
-definition take_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>take_bit n b = of_bool (odd b \<and> n > 0)\<close> for b :: bit
-
-instance
-  by standard simp_all
-
-end
-
-instantiation bit :: semiring_bit_operations
+instantiation bit :: ring_bit_operations
 begin
 
 context
   includes bit_operations_syntax
 begin
+
+definition not_bit :: \<open>bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>NOT b = of_bool (even b)\<close> for b :: bit
 
 definition and_bit :: \<open>bit \<Rightarrow> bit \<Rightarrow> bit\<close>
   where [simp]: \<open>b AND c = of_bool (odd b \<and> odd c)\<close> for b c :: bit
@@ -203,10 +207,22 @@ definition unset_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<clos
 definition flip_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
   where [simp]: \<open>flip_bit n b = of_bool ((n = 0) \<noteq> odd b)\<close> for b :: bit
 
+definition push_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>push_bit n b = of_bool (odd b \<and> n = 0)\<close> for b :: bit
+
+definition drop_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>drop_bit n b = of_bool (odd b \<and> n = 0)\<close> for b :: bit
+
+definition take_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close>
+  where [simp]: \<open>take_bit n b = of_bool (odd b \<and> n > 0)\<close> for b :: bit
+
 end
 
 instance
-  by standard auto
+  apply standard
+             apply auto
+  apply (simp only: Z2.bit_eq_iff even_add even_zero)
+  done
 
 end
 
@@ -218,30 +234,6 @@ lemma mult_bit_eq_and [simp, code]:
   \<open>(*) = (Bit_Operations.and :: bit \<Rightarrow> _)\<close>
   by (simp add: fun_eq_iff)
 
-instantiation bit :: field
-begin
-
-definition uminus_bit :: \<open>bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>uminus_bit = id\<close>
-
-definition inverse_bit :: \<open>bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>inverse_bit = id\<close>
-
-instance
-  by standard simp_all
-
-end
-
-instantiation bit :: ring_bit_operations
-begin
-
-definition not_bit :: \<open>bit \<Rightarrow> bit\<close>
-  where [simp]: \<open>NOT b = of_bool (even b)\<close> for b :: bit
-
-instance
-  by standard auto
-
-end
 
 lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
   by (simp only: Z2.bit_eq_iff even_numeral) simp

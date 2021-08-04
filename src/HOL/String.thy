@@ -38,7 +38,7 @@ lemma of_char_Char [simp]:
 
 end
 
-context unique_euclidean_semiring_with_bit_shifts
+context unique_euclidean_semiring_with_bit_operations
 begin
 
 definition char_of :: \<open>'a \<Rightarrow> char\<close>

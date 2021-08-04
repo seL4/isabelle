@@ -293,11 +293,35 @@ lemma [code]:
 instance integer :: unique_euclidean_ring_with_nat
   by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
-instantiation integer :: semiring_bit_shifts
+instantiation integer :: ring_bit_operations
 begin
 
 lift_definition bit_integer :: \<open>integer \<Rightarrow> nat \<Rightarrow> bool\<close>
   is bit .
+
+lift_definition not_integer :: \<open>integer \<Rightarrow> integer\<close>
+  is not .
+
+lift_definition and_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is \<open>and\<close> .
+
+lift_definition or_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is or .
+
+lift_definition xor_integer ::  \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is xor .
+
+lift_definition mask_integer :: \<open>nat \<Rightarrow> integer\<close>
+  is mask .
+
+lift_definition set_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is set_bit .
+
+lift_definition unset_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is unset_bit .
+
+lift_definition flip_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is flip_bit .
 
 lift_definition push_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
   is push_bit .
@@ -312,18 +336,47 @@ instance by (standard; transfer)
   (fact bit_eq_rec bits_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
-    even_mask_div_iff even_mult_exp_div_exp_iff)+
+    even_mask_div_iff even_mult_exp_div_exp_iff
+    bit_and_iff bit_or_iff bit_xor_iff mask_eq_exp_minus_1
+    set_bit_def bit_unset_bit_iff flip_bit_def bit_not_iff minus_eq_not_minus_1)+
 
 end
 
-instance integer :: unique_euclidean_semiring_with_bit_shifts ..
+instance integer :: unique_euclidean_semiring_with_bit_operations ..
+
+context
+  includes bit_operations_syntax
+begin
 
 lemma [code]:
   \<open>bit k n \<longleftrightarrow> odd (drop_bit n k)\<close>
+  \<open>NOT k = - k - 1\<close>
+  \<open>mask n = 2 ^ n - (1 :: integer)\<close>
+  \<open>set_bit n k = k OR push_bit n 1\<close>
+  \<open>unset_bit n k = k AND NOT (push_bit n 1)\<close>
+  \<open>flip_bit n k = k XOR push_bit n 1\<close>
   \<open>push_bit n k = k * 2 ^ n\<close>
   \<open>drop_bit n k = k div 2 ^ n\<close>
   \<open>take_bit n k = k mod 2 ^ n\<close> for k :: integer
-  by (fact bit_iff_odd_drop_bit push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
+  by (fact bit_iff_odd_drop_bit not_eq_complement mask_eq_exp_minus_1
+    set_bit_eq_or unset_bit_eq_and_not flip_bit_eq_xor push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
+
+lemma [code]:
+  \<open>k AND l = (if k = 0 \<or> l = 0 then 0 else if k = - 1 then l else if l = - 1 then k
+    else (k mod 2) * (l mod 2) + 2 * ((k div 2) AND (l div 2)))\<close> for k l :: integer
+  by transfer (fact and_int_unfold) 
+
+lemma [code]:
+  \<open>k OR l = (if k = - 1 \<or> l = - 1 then - 1 else if k = 0 then l else if l = 0 then k
+    else max (k mod 2) (l mod 2) + 2 * ((k div 2) OR (l div 2)))\<close> for k l :: integer
+  by transfer (fact or_int_unfold)
+
+lemma [code]:
+  \<open>k XOR l = (if k = - 1 then NOT l else if l = - 1 then NOT k else if k = 0 then l else if l = 0 then k
+    else \<bar>k mod 2 - l mod 2\<bar> + 2 * ((k div 2) XOR (l div 2)))\<close> for k l :: integer
+  by transfer (fact xor_int_unfold)
+
+end
 
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
@@ -1018,11 +1071,32 @@ instance natural :: linordered_semidom
 instance natural :: unique_euclidean_semiring_with_nat
   by (standard; transfer) simp_all
 
-instantiation natural :: semiring_bit_shifts
+instantiation natural :: semiring_bit_operations
 begin
 
 lift_definition bit_natural :: \<open>natural \<Rightarrow> nat \<Rightarrow> bool\<close>
   is bit .
+
+lift_definition and_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is \<open>and\<close> .
+
+lift_definition or_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is or .
+
+lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is xor .
+
+lift_definition mask_natural :: \<open>nat \<Rightarrow> natural\<close>
+  is mask .
+
+lift_definition set_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is set_bit .
+
+lift_definition unset_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is unset_bit .
+
+lift_definition flip_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is flip_bit .
 
 lift_definition push_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
   is push_bit .
@@ -1037,18 +1111,49 @@ instance by (standard; transfer)
   (fact bit_eq_rec bits_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
-    even_mask_div_iff even_mult_exp_div_exp_iff)+
+    even_mask_div_iff even_mult_exp_div_exp_iff bit_and_iff bit_or_iff bit_xor_iff
+    mask_eq_exp_minus_1 set_bit_def bit_unset_bit_iff flip_bit_def)+
 
 end
 
-instance natural :: unique_euclidean_semiring_with_bit_shifts ..
+instance natural :: unique_euclidean_semiring_with_bit_operations ..
+
+context
+  includes bit_operations_syntax
+begin
 
 lemma [code]:
   \<open>bit m n \<longleftrightarrow> odd (drop_bit n m)\<close>
+  \<open>mask n = 2 ^ n - (1 :: integer)\<close>
+  \<open>set_bit n m = m OR push_bit n 1\<close>
+  \<open>flip_bit n m = m XOR push_bit n 1\<close>
   \<open>push_bit n m = m * 2 ^ n\<close>
   \<open>drop_bit n m = m div 2 ^ n\<close>
   \<open>take_bit n m = m mod 2 ^ n\<close> for m :: natural
-  by (fact bit_iff_odd_drop_bit push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
+  by (fact bit_iff_odd_drop_bit mask_eq_exp_minus_1
+    set_bit_eq_or flip_bit_eq_xor push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
+
+lemma [code]:
+  \<open>m AND n = (if m = 0 \<or> n = 0 then 0
+    else (m mod 2) * (n mod 2) + 2 * ((m div 2) AND (n div 2)))\<close> for m n :: natural
+  by transfer (fact and_nat_unfold)
+
+lemma [code]:
+  \<open>m OR n = (if m = 0 then n else if n = 0 then m
+    else max (m mod 2) (n mod 2) + 2 * ((m div 2) OR (n div 2)))\<close> for m n :: natural
+  by transfer (fact or_nat_unfold)
+
+lemma [code]:
+  \<open>m XOR n = (if m = 0 then n else if n = 0 then m
+    else (m mod 2 + n mod 2) mod 2 + 2 * ((m div 2) XOR (n div 2)))\<close> for m n :: natural
+  by transfer (fact xor_nat_unfold)
+
+lemma [code]:
+  \<open>unset_bit 0 m = 2 * (m div 2)\<close>
+  \<open>unset_bit (Suc n) m = m mod 2 + 2 * unset_bit n (m div 2)\<close> for m :: natural
+  by (transfer; simp add: unset_bit_Suc)+
+
+end
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"
@@ -1142,6 +1247,10 @@ lemma [code abstract]:
   "integer_of_natural (natural_of_integer k) = max 0 k"
   by simp
 
+lemma [code]:
+  \<open>integer_of_natural (mask n) = mask n\<close>
+  by transfer (simp add: mask_eq_exp_minus_1 of_nat_diff)
+
 lemma [code_abbrev]:
   "natural_of_integer (Code_Numeral.Pos k) = numeral k"
   by transfer simp
@@ -1210,83 +1319,6 @@ code_reflect Code_Numeral
     "times :: natural \<Rightarrow> _" "divide :: natural \<Rightarrow> _"
     "modulo :: natural \<Rightarrow> _"
     integer_of_natural natural_of_integer
-
-
-subsection \<open>Bit operations\<close>
-
-instantiation integer :: ring_bit_operations
-begin
-
-lift_definition not_integer :: \<open>integer \<Rightarrow> integer\<close>
-  is not .
-
-lift_definition and_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is \<open>and\<close> .
-
-lift_definition or_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is or .
-
-lift_definition xor_integer ::  \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is xor .
-
-lift_definition mask_integer :: \<open>nat \<Rightarrow> integer\<close>
-  is mask .
-
-lift_definition set_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is set_bit .
-
-lift_definition unset_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is unset_bit .
-
-lift_definition flip_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
-  is flip_bit .
-
-instance by (standard; transfer)
-  (simp_all add: minus_eq_not_minus_1 mask_eq_exp_minus_1
-    bit_not_iff bit_and_iff bit_or_iff bit_xor_iff
-    set_bit_def bit_unset_bit_iff flip_bit_def)
-
-end
-
-lemma [code]:
-  \<open>mask n = 2 ^ n - (1::integer)\<close>
-  by (simp add: mask_eq_exp_minus_1)
-
-instantiation natural :: semiring_bit_operations
-begin
-
-lift_definition and_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is \<open>and\<close> .
-
-lift_definition or_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is or .
-
-lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is xor .
-
-lift_definition mask_natural :: \<open>nat \<Rightarrow> natural\<close>
-  is mask .
-
-lift_definition set_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is set_bit .
-
-lift_definition unset_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is unset_bit .
-
-lift_definition flip_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
-  is flip_bit .
-
-instance by (standard; transfer)
-  (simp_all add: mask_eq_exp_minus_1
-    bit_and_iff bit_or_iff bit_xor_iff
-    set_bit_def bit_unset_bit_iff flip_bit_def)
-
-end
-
-lemma [code]:
-  \<open>integer_of_natural (mask n) = mask n\<close>
-  by transfer (simp add: mask_eq_exp_minus_1 of_nat_diff)
-
 
 lifting_update integer.lifting
 lifting_forget integer.lifting
