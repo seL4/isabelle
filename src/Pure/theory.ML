@@ -88,7 +88,7 @@ structure Thy = Theory_Data'
 (
   type T = thy;
   val extend = I;
-  val empty = make_thy (Position.none, 0, Name_Space.empty_table "axiom", Defs.empty, ([], []));
+  val empty = make_thy (Position.none, 0, Name_Space.empty_table Markup.axiomN, Defs.empty, ([], []));
   fun merge old_thys (thy1, thy2) =
     let
       val Thy {pos, id, axioms = axioms1, defs = defs1, wrappers = (bgs1, ens1)} = thy1;

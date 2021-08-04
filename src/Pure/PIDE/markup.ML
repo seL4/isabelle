@@ -89,12 +89,18 @@ sig
   val sessionN: string
   val theoryN: string
   val classN: string
+  val localeN: string
   val type_nameN: string
   val constantN: string
+  val axiomN: string
+  val factN: string
+  val oracleN: string
   val fixedN: string val fixed: string -> T
   val caseN: string val case_: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
   val literal_factN: string val literal_fact: string -> T
+  val attributeN: string
+  val methodN: string
   val method_modifierN: string
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
@@ -461,14 +467,20 @@ val sessionN = "session";
 
 val theoryN = "theory";
 val classN = "class";
+val localeN = "locale";
 val type_nameN = "type_name";
 val constantN = "constant";
+val axiomN = "axiom";
+val factN = "fact";
+val oracleN = "oracle";
 
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (caseN, case_) = markup_string "case" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
 val (literal_factN, literal_fact) = markup_string "literal_fact" nameN;
 
+val attributeN = "attribute";
+val methodN = "method";
 val method_modifierN = "method_modifier";
 
 
