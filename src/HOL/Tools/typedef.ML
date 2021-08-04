@@ -349,23 +349,26 @@ val overloaded = typedef_overloaded;
 
 (** theory export **)
 
-val _ = Export_Theory.setup_presentation (fn _ => fn thy =>
-  let
-    val parent_spaces = map Sign.type_space (Theory.parents_of thy);
-    val typedefs =
-      Name_Space.dest_table (#types (Type.rep_tsig (Sign.tsig_of thy)))
-      |> maps (fn (name, _) =>
-          if exists (fn space => Name_Space.declared space name) parent_spaces then []
-          else
-            get_info_global thy name
-            |> map (fn ({rep_type, abs_type, Rep_name, Abs_name, axiom_name}, _) =>
-              (name, (rep_type, (abs_type, (Rep_name, (Abs_name, axiom_name)))))));
-  in
-    if null typedefs then ()
-    else
-      Export_Theory.export_body thy "typedefs"
-        let open XML.Encode Term_XML.Encode
-        in list (pair string (pair typ (pair typ (pair string (pair string string))))) typedefs end
-  end);
+val _ =
+  (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
+    if Export_Theory.export_enabled context then
+      let
+        val parent_spaces = map Sign.type_space (Theory.parents_of thy);
+        val typedefs =
+          Name_Space.dest_table (#types (Type.rep_tsig (Sign.tsig_of thy)))
+          |> maps (fn (name, _) =>
+              if exists (fn space => Name_Space.declared space name) parent_spaces then []
+              else
+                get_info_global thy name
+                |> map (fn ({rep_type, abs_type, Rep_name, Abs_name, axiom_name}, _) =>
+                  (name, (rep_type, (abs_type, (Rep_name, (Abs_name, axiom_name)))))));
+        val encode =
+          let open XML.Encode Term_XML.Encode
+          in list (pair string (pair typ (pair typ (pair string (pair string string))))) end;
+      in
+        if null typedefs then ()
+        else Export_Theory.export_body thy "typedefs" (encode typedefs)
+      end
+    else ());
 
 end;

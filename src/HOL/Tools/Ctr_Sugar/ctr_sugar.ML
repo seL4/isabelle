@@ -1240,31 +1240,34 @@ end;
 
 (* theory export *)
 
-val _ = Export_Theory.setup_presentation (fn context => fn thy =>
-  let
-    val parents = map (Data.get o Context.Theory) (Theory.parents_of thy);
-    val datatypes =
-      (Data.get (Context.Theory thy), []) |-> Symtab.fold
-        (fn (name, (pos, {kind, T, ctrs, ...})) =>
-          if kind = Record orelse exists (fn tab => Symtab.defined tab name) parents then I
-          else
-            let
-              val pos_properties = Thy_Info.adjust_pos_properties context pos;
-              val typ = Logic.unvarifyT_global T;
-              val constrs = map Logic.unvarify_global ctrs;
-              val typargs = rev (fold Term.add_tfrees (Logic.mk_type typ :: constrs) []);
-              val constructors = map (fn t => (t, Term.type_of t)) constrs;
-            in
-              cons (pos_properties, (name, (kind = Codatatype, (typargs, (typ, constructors)))))
-            end);
-  in
-    if null datatypes then ()
-    else
-      Export_Theory.export_body thy "datatypes"
-        let open XML.Encode Term_XML.Encode in
-          list (pair properties (pair string (pair bool (pair (list (pair string sort))
-            (pair typ (list (pair (term (Sign.consts_of thy)) typ))))))) datatypes
-        end
-  end);
+val _ =
+  (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
+    if Export_Theory.export_enabled context then
+      let
+        val parents = map (Data.get o Context.Theory) (Theory.parents_of thy);
+        val datatypes =
+          (Data.get (Context.Theory thy), []) |-> Symtab.fold
+            (fn (name, (pos, {kind, T, ctrs, ...})) =>
+              if kind = Record orelse exists (fn tab => Symtab.defined tab name) parents then I
+              else
+                let
+                  val pos_properties = Thy_Info.adjust_pos_properties context pos;
+                  val typ = Logic.unvarifyT_global T;
+                  val constrs = map Logic.unvarify_global ctrs;
+                  val typargs = rev (fold Term.add_tfrees (Logic.mk_type typ :: constrs) []);
+                  val constructors = map (fn t => (t, Term.type_of t)) constrs;
+                in
+                  cons (pos_properties, (name, (kind = Codatatype, (typargs, (typ, constructors)))))
+                end);
+      in
+        if null datatypes then ()
+        else
+          Export_Theory.export_body thy "datatypes"
+            let open XML.Encode Term_XML.Encode in
+              list (pair properties (pair string (pair bool (pair (list (pair string sort))
+                (pair typ (list (pair (term (Sign.consts_of thy)) typ))))))) datatypes
+            end
+      end
+    else ());
 
 end;

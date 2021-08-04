@@ -6,7 +6,7 @@ Export foundational theory content and locale/class structure.
 
 signature EXPORT_THEORY =
 sig
-  val setup_presentation: (Thy_Info.presentation_context -> theory -> unit) -> unit
+  val export_enabled: Thy_Info.presentation_context -> bool
   val export_body: theory -> string -> XML.body -> unit
 end;
 
@@ -108,27 +108,32 @@ fun get_dependencies prev_thys thy =
       in SOME (dep, (substT, subst)) end);
 
 
-(* general setup *)
+(* presentation *)
 
-fun setup_presentation f =
-  Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
-    if Options.bool (#options context) "export_theory" then f context thy else ()));
+fun export_enabled (context: Thy_Info.presentation_context) =
+  Options.bool (#options context) "export_theory";
 
 fun export_body thy name body =
   if XML.is_empty_body body then ()
   else Export.export thy (Path.binding0 (Path.make ["theory", name])) body;
 
-
-(* presentation *)
-
-val _ = setup_presentation (fn context => fn thy =>
+val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
   let
-    val parents = Theory.parents_of thy;
     val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
-
+    val consts = Sign.consts_of thy;
     val thy_ctxt = Proof_Context.init_global thy;
 
     val pos_properties = Thy_Info.adjust_pos_properties context;
+
+    val enabled = export_enabled context;
+
+
+    (* strict parents *)
+
+    val parents = Theory.parents_of thy;
+    val _ =
+      Export.export thy \<^path_binding>\<open>theory/parents\<close>
+        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
 
 
     (* spec rules *)
@@ -162,7 +167,7 @@ val _ = setup_presentation (fn context => fn thy =>
         val {serial, pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup name xname pos serial end;
 
-    fun export_entities export_name export get_space decls =
+    fun export_entities export_name get_space decls export =
       let
         val parent_spaces = map get_space parents;
         val space = get_space thy;
@@ -172,9 +177,11 @@ val _ = setup_presentation (fn context => fn thy =>
           else
             (case export name decl of
               NONE => I
-            | SOME body =>
-                cons (#serial (Name_Space.the_entry space name),
-                  XML.Elem (entity_markup space name, body))))
+            | SOME make_body =>
+                let
+                  val i = #serial (Name_Space.the_entry space name);
+                  val body = if enabled then make_body () else [];
+                in cons (i, XML.Elem (entity_markup space name, body)) end))
         |> sort (int_ord o apply2 #1) |> map #2
         |> export_body thy export_name
       end;
@@ -186,40 +193,40 @@ val _ = setup_presentation (fn context => fn thy =>
       let open XML.Encode Term_XML.Encode
       in triple encode_syntax (list string) (option typ) end;
 
-    fun export_type c (Type.LogicalType n) =
-          SOME (encode_type (get_syntax_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
-      | export_type c (Type.Abbreviation (args, U, false)) =
-          SOME (encode_type (get_syntax_type thy_ctxt c, args, SOME U))
-      | export_type _ _ = NONE;
-
     val _ =
-      export_entities "types" export_type Sign.type_space
-        (Name_Space.dest_table (#types rep_tsig));
+      export_entities "types" Sign.type_space (Name_Space.dest_table (#types rep_tsig))
+        (fn c =>
+          (fn Type.LogicalType n =>
+                SOME (fn () =>
+                  encode_type (get_syntax_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
+            | Type.Abbreviation (args, U, false) =>
+                SOME (fn () =>
+                  encode_type (get_syntax_type thy_ctxt c, args, SOME U))
+            | _ => NONE));
 
 
     (* consts *)
 
-    val consts = Sign.consts_of thy;
     val encode_term = Term_XML.Encode.term consts;
 
     val encode_const =
       let open XML.Encode Term_XML.Encode
       in pair encode_syntax (pair (list string) (pair typ (pair (option encode_term) bool))) end;
 
-    fun export_const c (T, abbrev) =
-      let
-        val syntax = get_syntax_const thy_ctxt c;
-        val U = Logic.unvarifyT_global T;
-        val U0 = Type.strip_sorts U;
-        val abbrev' = abbrev
-          |> Option.map (Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts);
-        val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
-        val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
-      in encode_const (syntax, (args, (U0, (abbrev', propositional)))) end;
-
     val _ =
-      export_entities "consts" (SOME oo export_const) Sign.const_space
-        (#constants (Consts.dest consts));
+      export_entities "consts" Sign.const_space (#constants (Consts.dest consts))
+        (fn c => fn (T, abbrev) =>
+          SOME (fn () =>
+            let
+              val syntax = get_syntax_const thy_ctxt c;
+              val U = Logic.unvarifyT_global T;
+              val U0 = Type.strip_sorts U;
+              val trim_abbrev =
+                Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts;
+              val abbrev' = Option.map trim_abbrev abbrev;
+              val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
+              val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
+            in encode_const (syntax, (args, (U0, (abbrev', propositional)))) end));
 
 
     (* axioms *)
@@ -244,8 +251,8 @@ val _ = setup_presentation (fn context => fn thy =>
       encode_prop (#1 (standard_prop used [] prop NONE));
 
     val _ =
-      export_entities "axioms" (K (SOME o encode_axiom Name.context))
-        Theory.axiom_space (Theory.all_axioms_of thy);
+      export_entities "axioms" Theory.axiom_space (Theory.all_axioms_of thy)
+        (fn _ => fn prop => SOME (fn () => encode_axiom Name.context prop));
 
 
     (* theorems and proof terms *)
@@ -293,8 +300,12 @@ val _ = setup_presentation (fn context => fn thy =>
     fun export_thm (thm_id, thm_name) =
       let
         val markup = entity_markup_thm (#serial thm_id, thm_name);
-        val thm = Global_Theory.get_thm_name thy (thm_name, Position.none);
-      in XML.Elem (markup, encode_thm thm_id thm) end;
+        val body =
+          if enabled then
+            Global_Theory.get_thm_name thy (thm_name, Position.none)
+            |> encode_thm thm_id
+          else [];
+      in XML.Elem (markup, body) end;
 
     val _ = export_body thy "thms" (map export_thm (Global_Theory.dest_thm_names thy));
 
@@ -305,42 +316,44 @@ val _ = setup_presentation (fn context => fn thy =>
       let open XML.Encode Term_XML.Encode
       in pair (list (pair string typ)) (list (encode_axiom Name.context)) end;
 
-    fun export_class name =
-      (case try (Axclass.get_info thy) name of
-        NONE => ([], [])
-      | SOME {params, axioms, ...} => (params, map (Thm.plain_prop_of o clean_thm) axioms))
-      |> encode_class |> SOME;
-
     val _ =
-      export_entities "classes" (fn name => fn () => export_class name)
-        Sign.class_space (map (rpair ()) (Graph.keys (Sorts.classes_of (#2 (#classes rep_tsig)))));
+      export_entities "classes" Sign.class_space
+        (map (rpair ()) (Graph.keys (Sorts.classes_of (#2 (#classes rep_tsig)))))
+        (fn name => fn () => SOME (fn () =>
+          (case try (Axclass.get_info thy) name of
+            NONE => ([], [])
+          | SOME {params, axioms, ...} => (params, map (Thm.plain_prop_of o clean_thm) axioms))
+          |> encode_class));
 
 
     (* sort algebra *)
 
-    local
-      val prop = encode_axiom Name.context o Logic.varify_global;
+    val _ =
+      if enabled then
+        let
+          val prop = encode_axiom Name.context o Logic.varify_global;
 
-      val encode_classrel =
-        let open XML.Encode
-        in list (pair prop (pair string string)) end;
+          val encode_classrel =
+            let open XML.Encode
+            in list (pair prop (pair string string)) end;
 
-      val encode_arities =
-        let open XML.Encode Term_XML.Encode
-        in list (pair prop (triple string (list sort) string)) end;
-    in
-      val export_classrel =
-        maps (fn (c, cs) => map (pair c) cs) #> map (`Logic.mk_classrel) #> encode_classrel;
+          val encode_arities =
+            let open XML.Encode Term_XML.Encode
+            in list (pair prop (triple string (list sort) string)) end;
 
-      val export_arities = map (`Logic.mk_arity) #> encode_arities;
+          val export_classrel =
+            maps (fn (c, cs) => map (pair c) cs) #> map (`Logic.mk_classrel) #> encode_classrel;
 
-      val {classrel, arities} =
-        Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
-          (#2 (#classes rep_tsig));
-    end;
+          val export_arities = map (`Logic.mk_arity) #> encode_arities;
 
-    val _ = if null classrel then () else export_body thy "classrel" (export_classrel classrel);
-    val _ = if null arities then () else export_body thy "arities" (export_arities arities);
+          val {classrel, arities} =
+            Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
+              (#2 (#classes rep_tsig));
+        in
+          if null classrel then () else export_body thy "classrel" (export_classrel classrel);
+          if null arities then () else export_body thy "arities" (export_arities arities)
+        end
+      else ();
 
 
     (* locales *)
@@ -351,18 +364,16 @@ val _ = setup_presentation (fn context => fn thy =>
           (list (encode_axiom used))
       end;
 
-    fun export_locale loc =
-      let
-        val {typargs, args, axioms} = locale_content thy loc;
-        val used = fold Name.declare (map #1 typargs @ map (#1 o #1) args) Name.context;
-      in encode_locale used (typargs, args, axioms) end
-      handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred in locale " ^
-          quote (Locale.markup_name thy_ctxt loc));
-
     val _ =
-      export_entities "locales" (fn loc => fn () => SOME (export_locale loc))
-        Locale.locale_space (get_locales thy);
+      export_entities "locales" Locale.locale_space (get_locales thy)
+        (fn loc => fn () => SOME (fn () =>
+          let
+            val {typargs, args, axioms} = locale_content thy loc;
+            val used = fold Name.declare (map #1 typargs @ map (#1 o #1) args) Name.context;
+          in encode_locale used (typargs, args, axioms) end
+          handle ERROR msg =>
+            cat_error msg ("The error(s) above occurred in locale " ^
+              quote (Locale.markup_name thy_ctxt loc))));
 
 
     (* locale dependencies *)
@@ -376,29 +387,31 @@ val _ = setup_presentation (fn context => fn thy =>
         in pair string (pair string (pair (list (pair string bool)) encode_subst)) end;
 
     val _ =
-      get_dependencies parents thy
-      |> map_index (fn (i, dep) =>
-        let
-          val xname = string_of_int (i + 1);
-          val name = Long_Name.implode [Context.theory_name thy, xname];
-          val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
-          val body = encode_locale_dependency dep;
-        in XML.Elem (markup, body) end)
-      |> export_body thy "locale_dependencies";
+      if enabled then
+        get_dependencies parents thy |> map_index (fn (i, dep) =>
+          let
+            val xname = string_of_int (i + 1);
+            val name = Long_Name.implode [Context.theory_name thy, xname];
+            val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
+            val body = encode_locale_dependency dep;
+          in XML.Elem (markup, body) end)
+        |> export_body thy "locale_dependencies"
+      else ();
 
 
     (* constdefs *)
 
-    val constdefs =
-      Defs.dest_constdefs (map Theory.defs_of (Theory.parents_of thy)) (Theory.defs_of thy)
-      |> sort_by #1;
-
-    val encode_constdefs =
-      let open XML.Encode
-      in list (pair string string) end;
-
     val _ =
-      if null constdefs then () else export_body thy "constdefs" (encode_constdefs constdefs);
+      if enabled then
+        let
+          val constdefs =
+            Defs.dest_constdefs (map Theory.defs_of (Theory.parents_of thy)) (Theory.defs_of thy)
+            |> sort_by #1;
+          val encode =
+            let open XML.Encode
+            in list (pair string string) end;
+        in if null constdefs then () else export_body thy "constdefs" (encode constdefs) end
+      else ();
 
 
     (* spec rules *)
@@ -413,16 +426,12 @@ val _ = setup_presentation (fn context => fn thy =>
       end;
 
     val _ =
-      (case Spec_Rules.dest_theory thy of
-        [] => ()
-      | spec_rules => export_body thy "spec_rules" (encode_specs (map spec_rule_content spec_rules)));
-
-
-    (* parents *)
-
-    val _ =
-      Export.export thy \<^path_binding>\<open>theory/parents\<close>
-        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
+      if enabled then
+        (case Spec_Rules.dest_theory thy of
+          [] => ()
+        | spec_rules =>
+            export_body thy "spec_rules" (encode_specs (map spec_rule_content spec_rules)))
+      else ();
 
   in () end);
 
