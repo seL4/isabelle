@@ -15,6 +15,9 @@ object Term
 
   sealed case class Indexname(name: String, index: Int = 0)
   {
+    private lazy val hash: Int = (name, index).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       if (index == -1) name
       else {
@@ -36,17 +39,26 @@ object Term
   sealed abstract class Typ
   case class Type(name: String, args: List[Typ] = Nil) extends Typ
   {
+    private lazy val hash: Int = ("Type", name, args).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       if (this == dummyT) "_"
       else "Type(" + name + (if (args.isEmpty) "" else "," + args) + ")"
   }
   case class TFree(name: String, sort: Sort = Nil) extends Typ
   {
+    private lazy val hash: Int = ("TFree", name, sort).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       "TFree(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
   case class TVar(name: Indexname, sort: Sort = Nil) extends Typ
   {
+    private lazy val hash: Int = ("TVar", name, sort).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       "TVar(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
@@ -62,24 +74,40 @@ object Term
   }
   case class Const(name: String, typargs: List[Typ] = Nil) extends Term
   {
+    private lazy val hash: Int = ("Const", name, typargs).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       if (this == dummy) "_"
       else "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
   }
   case class Free(name: String, typ: Typ = dummyT) extends Term
   {
+    private lazy val hash: Int = ("Free", name, typ).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       "Free(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
   }
   case class Var(name: Indexname, typ: Typ = dummyT) extends Term
   {
+    private lazy val hash: Int = ("Var", name, typ).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       "Var(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
   }
   case class Bound(index: Int) extends Term
   case class Abs(name: String, typ: Typ, body: Term) extends Term
+  {
+    private lazy val hash: Int = ("Abs", name, typ, body).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class App(fun: Term, arg: Term) extends Term
   {
+    private lazy val hash: Int = ("App", fun, arg).hashCode()
+    override def hashCode(): Int = hash
+
     override def toString: String =
       this match {
         case OFCLASS(ty, c) => "OFCLASS(" + ty + "," + c + ")"
@@ -94,14 +122,50 @@ object Term
   case object MinProof extends Proof
   case class PBound(index: Int) extends Proof
   case class Abst(name: String, typ: Typ, body: Proof) extends Proof
+  {
+    private lazy val hash: Int = ("Abst", name, typ, body).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class AbsP(name: String, hyp: Term, body: Proof) extends Proof
+  {
+    private lazy val hash: Int = ("AbsP", name, hyp, body).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class Appt(fun: Proof, arg: Term) extends Proof
+  {
+    private lazy val hash: Int = ("Appt", fun, arg).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class AppP(fun: Proof, arg: Proof) extends Proof
+  {
+    private lazy val hash: Int = ("AppP", fun, arg).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class Hyp(hyp: Term) extends Proof
+  {
+    private lazy val hash: Int = ("Hyp", hyp).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class PAxm(name: String, types: List[Typ]) extends Proof
+  {
+    private lazy val hash: Int = ("PAxm", name, types).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class PClass(typ: Typ, cls: Class) extends Proof
+  {
+    private lazy val hash: Int = ("PClass", typ, cls).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
+  {
+    private lazy val hash: Int = ("Oracle", name, prop, types).hashCode()
+    override def hashCode(): Int = hash
+  }
   case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof
+  {
+    private lazy val hash: Int = ("PThm", serial, theory_name, name, types).hashCode()
+    override def hashCode(): Int = hash
+  }
 
 
   /* type classes within the logic */
