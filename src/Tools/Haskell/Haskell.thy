@@ -25,7 +25,7 @@ module Isabelle.Bytes (
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
   concat, space, spaces, singleton, char, byte,
-  trim_line, space_explode, split_lines
+  trim_line
 )
 where
 
@@ -130,20 +130,6 @@ trim_line s =
   where
     n = length s
     at = char . index s
-
-space_explode :: Word8 -> Bytes -> [Bytes]
-space_explode sep str =
-  if null str then []
-  else if all (/= sep) str then [str]
-  else explode (unpack str)
-  where
-    explode rest =
-      case span (/= sep) rest of
-        (_, []) -> [pack rest]
-        (prfx, _ : rest') -> pack prfx : explode rest'
-
-split_lines :: Bytes -> [Bytes]
-split_lines = space_explode (byte '\n')
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
@@ -250,9 +236,11 @@ where
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Data.Text.Lazy as Lazy
+import GHC.Exts (IsList, Item)
 import Data.String (IsString)
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
+import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UTF8 as UTF8
 
@@ -318,11 +306,40 @@ separate _ xs = xs;
 
 {- string-like interfaces -}
 
-class (IsString a, Monoid a, Eq a, Ord a) => StringLike a
-instance StringLike String
-instance StringLike Text
-instance StringLike Lazy.Text
-instance StringLike Bytes
+class (IsList a, IsString a, Monoid a, Eq a, Ord a) => StringLike a
+  where
+    space_explode :: Item a -> a -> [a]
+    split_lines :: a -> [a]
+
+instance StringLike String where
+  space_explode sep = Split.split (Split.dropDelims (Split.whenElt (== sep)))
+  split_lines = space_explode '\n'
+
+instance StringLike Text where
+  space_explode sep str =
+    if Text.null str then []
+    else if Text.all (/= sep) str then [str]
+    else map Text.pack $ space_explode sep $ Text.unpack str
+  split_lines = space_explode '\n'
+
+instance StringLike Lazy.Text where
+  space_explode sep str =
+    if Lazy.null str then []
+    else if Lazy.all (/= sep) str then [str]
+    else map Lazy.pack $ space_explode sep $ Lazy.unpack str
+  split_lines = space_explode '\n'
+
+instance StringLike Bytes where
+  space_explode sep str =
+    if Bytes.null str then []
+    else if Bytes.all (/= sep) str then [str]
+    else explode (Bytes.unpack str)
+    where
+      explode rest =
+        case span (/= sep) rest of
+          (_, []) -> [Bytes.pack rest]
+          (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
+  split_lines = space_explode (Bytes.byte '\n')
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
@@ -366,13 +383,6 @@ commas_quote = commas . map quote
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
-
-
-space_explode :: Char -> String -> [String]
-space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
-
-split_lines :: String -> [String]
-split_lines = space_explode '\n'
 
 trim_line :: String -> String
 trim_line line =
@@ -1718,7 +1728,7 @@ keyword1 name = mark_str (Markup.keyword1, name)
 keyword2 name = mark_str (Markup.keyword2, name)
 
 text :: BYTES a => a -> [T]
-text = breaks . map str . filter (not . Bytes.null) . Bytes.space_explode Bytes.space . make_bytes
+text = breaks . map str . filter (not . Bytes.null) . space_explode Bytes.space . make_bytes
 
 paragraph :: [T] -> T
 paragraph = markup Markup.paragraph
@@ -2469,7 +2479,7 @@ write_message socket = write socket . make_message
 parse_header :: Bytes -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (Bytes.space_explode (Bytes.byte ',') line)
+    res = map Value.parse_nat (space_explode (Bytes.byte ',') line)
   in
     if all isJust res then map fromJust res
     else error ("Malformed message header: " <> quote (UTF8.decode line))
