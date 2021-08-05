@@ -9,7 +9,8 @@ signature MIRABELLE =
 sig
   (*core*)
   type action_context =
-    {index: int, name: string, arguments: Properties.T, timeout: Time.time, output_dir: Path.T}
+    {index: int, label: string, name: string, arguments: Properties.T, timeout: Time.time,
+     output_dir: Path.T}
   type command =
     {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
   type action = {run_action: command -> string, finalize: unit -> string}
@@ -37,9 +38,23 @@ struct
 val keywords = Keyword.no_command_keywords (Thy_Header.get_keywords \<^theory>);
 
 fun read_actions str =
-  Token.read_body keywords
-    (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))
-    (Symbol_Pos.explode0 str);
+  let
+    val actions = Token.read_body keywords
+      (Parse.enum ";" (Parse.name -- Sledgehammer_Commands.parse_params))
+      (Symbol_Pos.explode0 str)
+    fun split_name_label (name, args) labels =
+        (case String.tokens (fn c => c = #".") name of
+          [name] => (("", name, args), labels)
+        | [label, name] =>
+          (if Symtab.defined labels label then
+             error ("Action label '" ^ label ^ "' already defined.")
+           else
+             ();
+           ((label, name, args), Symtab.insert_set label labels))
+        | _ => error "Cannot parse action")
+  in
+    Option.map (fn xs => fst (fold_map split_name_label xs Symtab.empty)) actions
+  end
 
 
 (* actions *)
@@ -47,7 +62,8 @@ fun read_actions str =
 type command =
   {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state};
 type action_context =
-  {index: int, name: string, arguments: Properties.T, timeout: Time.time, output_dir: Path.T};
+  {index: int, label: string, name: string, arguments: Properties.T, timeout: Time.time,
+   output_dir: Path.T};
 type action = {run_action: command -> string, finalize: unit -> string};
 
 local
@@ -78,8 +94,8 @@ fun run_action_function f =
     if Exn.is_interrupt exn then Exn.reraise exn
     else print_exn exn;
 
-fun make_action_path (context as {index, name, ...} : action_context) =
-  Path.basic (string_of_int index ^ "." ^ name);
+fun make_action_path ({index, label, name, ...} : action_context) =
+  Path.basic (if label = "" then string_of_int index ^ "." ^ name else label);
 
 fun finalize_action ({finalize, ...} : action) context =
   let
@@ -200,15 +216,15 @@ val _ =
             end;
 
           (* initialize actions *)
-          val contexts = actions |> map_index (fn (n, (name, args)) =>
+          val contexts = actions |> map_index (fn (n, (label, name, args)) =>
             let
               val make_action = the (get_action name);
-              val action_subdir = string_of_int n ^ "." ^ name
+              val action_subdir = if label = "" then string_of_int n ^ "." ^ name else label
               val output_dir =
                 Path.append (Path.explode mirabelle_output_dir) (Path.basic action_subdir)
               val context =
-                {index = n, name = name, arguments = args, timeout = mirabelle_timeout,
-                 output_dir = output_dir};
+                {index = n, label = label, name = name, arguments = args,
+                 timeout = mirabelle_timeout, output_dir = output_dir};
             in
               (make_action context, context)
             end);
