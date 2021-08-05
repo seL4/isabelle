@@ -95,6 +95,7 @@ text \<open>
     @{antiquotation_def type} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def class} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def locale} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def bundle} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "text"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def goals} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def subgoals} & : & \<open>antiquotation\<close> \\
@@ -195,6 +196,7 @@ text \<open>
       @@{antiquotation type} options @{syntax embedded} |
       @@{antiquotation class} options @{syntax embedded} |
       @@{antiquotation locale} options @{syntax embedded} |
+      @@{antiquotation bundle} options @{syntax embedded} |
       (@@{antiquotation command} | @@{antiquotation method} | @@{antiquotation attribute})
         options @{syntax name}
     ;
@@ -271,6 +273,8 @@ text \<open>
   \<^descr> \<open>@{class c}\<close> prints a class \<open>c\<close>.
 
   \<^descr> \<open>@{locale c}\<close> prints a locale \<open>c\<close>.
+
+  \<^descr> \<open>@{bundle c}\<close> prints a bundle \<open>c\<close>.
 
   \<^descr> \<open>@{command name}\<close>, \<open>@{method name}\<close>, \<open>@{attribute name}\<close> print checked
   entities of the Isar language.

@@ -50,6 +50,9 @@ fun pretty_locale ctxt (name, pos) =
   let val thy = Proof_Context.theory_of ctxt
   in Pretty.str (Locale.extern thy (Locale.check thy (name, pos))) end;
 
+fun pretty_bundle ctxt (name, pos) =
+  Pretty.str (Bundle.extern ctxt (Bundle.check ctxt (name, pos)));
+
 fun pretty_class ctxt s =
   Pretty.str (Proof_Context.extern_class ctxt (Proof_Context.read_class ctxt s));
 
@@ -78,6 +81,7 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
   basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity \<^binding>\<open>locale\<close> (Scan.lift Args.embedded_position) pretty_locale #>
+  basic_entity \<^binding>\<open>bundle\<close> (Scan.lift Args.embedded_position) pretty_bundle #>
   basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
   basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded_inner_syntax) pretty_type #>
   basic_entity \<^binding>\<open>theory\<close> (Scan.lift Args.embedded_position) pretty_theory #>

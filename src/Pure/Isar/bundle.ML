@@ -10,6 +10,7 @@ sig
   val check: Proof.context -> xstring * Position.T -> string
   val get: Proof.context -> name -> Attrib.thms
   val read: Proof.context -> xstring * Position.T -> Attrib.thms
+  val extern: Proof.context -> string -> xstring
   val print_bundles: bool -> Proof.context -> unit
   val bundle: binding * Attrib.thms ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
@@ -53,6 +54,8 @@ fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 val get = Name_Space.get o get_all_generic o Context.Proof;
 
 fun read ctxt = get ctxt o check ctxt;
+
+fun extern ctxt = Name_Space.extern ctxt (Name_Space.space_of_table (get_all ctxt));
 
 fun define_bundle (b, bundle) context =
   let
