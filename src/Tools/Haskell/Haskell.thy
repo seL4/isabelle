@@ -1861,7 +1861,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 
 module Isabelle.Term (
   Indexname, Sort, Typ(..), Term(..),
-  Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_abs,
+  Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_abs, strip_abs,
   type_op0, type_op1, op0, op1, op2, typed_op2, binder,
   dummyS, dummyT, is_dummyT, propT, is_propT, (-->), dest_funT, (--->),
   aconv, list_comb, strip_comb, head_of
@@ -1943,6 +1943,14 @@ dest_abs names (Abs (x, ty, b)) =
   in Just (v, subst_bound (Free v) b)
 dest_abs _ _ = Nothing
 
+strip_abs :: Name.Context -> Term -> ([Free], Term)
+strip_abs names tm =
+  case dest_abs names tm of
+    Just (v, t) ->
+      let (vs, t') = strip_abs names t'
+      in (v : vs, t')
+    Nothing -> ([], tm)
+
 
 {- type and term operators -}
 
@@ -1995,8 +2003,12 @@ typed_op2 name = (mk, dest)
     dest (App (App (Const (c, [ty]), t), u)) | c == name = Just (ty, t, u)
     dest _ = Nothing
 
-binder :: Name -> Free -> Term -> Term
-binder c (a, ty) b = App (Const (c, [ty]), lambda (a, ty) b)
+binder :: Name -> (Free -> Term -> Term, Name.Context -> Term -> Maybe (Free, Term))
+binder name = (mk, dest)
+  where
+    mk (a, ty) b = App (Const (name, [ty]), lambda (a, ty) b)
+    dest names (App (Const (c, _), t)) | c == name = dest_abs names t
+    dest _ _ = Nothing
 
 
 {- type operations -}
@@ -2053,14 +2065,15 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/logic.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Pure (
-  mk_forall, mk_equals, dest_equals, mk_implies, dest_implies
+  mk_forall, dest_forall, mk_equals, dest_equals, mk_implies, dest_implies
 )
 where
 
+import qualified Isabelle.Name as Name
 import Isabelle.Term
 
-mk_forall :: Free -> Term -> Term
-mk_forall = binder \<open>\<^const_name>\<open>Pure.all\<close>\<close>
+mk_forall :: Free -> Term -> Term; dest_forall :: Name.Context -> Term -> Maybe (Free, Term)
+(mk_forall, dest_forall) = binder \<open>\<^const_name>\<open>Pure.all\<close>\<close>
 
 mk_equals :: Typ -> Term -> Term -> Term; dest_equals :: Term -> Maybe (Typ, Term, Term)
 (mk_equals, dest_equals) = typed_op2 \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
@@ -2087,10 +2100,11 @@ module Isabelle.HOL (
   mk_eq, dest_eq, true, is_true, false, is_false,
   mk_not, dest_not, mk_conj, dest_conj, mk_disj, dest_disj,
   mk_imp, dest_imp, mk_iff, dest_iff,
-  mk_all, mk_ex
+  mk_all, dest_all, mk_ex, dest_ex
 )
 where
 
+import qualified Isabelle.Name as Name
 import Isabelle.Term
 
 
@@ -2136,11 +2150,11 @@ dest_iff tm =
     Just (ty, t, u) | ty == boolT -> Just (t, u)
     _ -> Nothing
 
-mk_all :: Free -> Term -> Term
-mk_all = binder \<open>\<^const_name>\<open>All\<close>\<close>
+mk_all :: Free -> Term -> Term; dest_all :: Name.Context -> Term -> Maybe (Free, Term)
+(mk_all, dest_all) = binder \<open>\<^const_name>\<open>All\<close>\<close>
 
-mk_ex :: Free -> Term -> Term
-mk_ex = binder \<open>\<^const_name>\<open>Ex\<close>\<close>
+mk_ex :: Free -> Term -> Term; dest_ex :: Name.Context -> Term -> Maybe (Free, Term)
+(mk_ex, dest_ex) = binder \<open>\<^const_name>\<open>Ex\<close>\<close>
 \<close>
 
 generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
