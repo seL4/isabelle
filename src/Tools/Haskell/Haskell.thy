@@ -25,7 +25,7 @@ module Isabelle.Bytes (
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
   concat, space, spaces, singleton, char, byte,
-  trim_line, space_explode, split_lines
+  trim_line
 )
 where
 
@@ -130,20 +130,6 @@ trim_line s =
   where
     n = length s
     at = char . index s
-
-space_explode :: Word8 -> Bytes -> [Bytes]
-space_explode sep str =
-  if null str then []
-  else if all (/= sep) str then [str]
-  else explode (unpack str)
-  where
-    explode rest =
-      case span (/= sep) rest of
-        (_, []) -> [pack rest]
-        (prfx, _ : rest') -> pack prfx : explode rest'
-
-split_lines :: Bytes -> [Bytes]
-split_lines = space_explode (byte '\n')
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
@@ -241,6 +227,7 @@ module Isabelle.Library (
   fold, fold_rev, single, map_index, get_index, separate,
 
   StringLike, STRING (..), TEXT (..), BYTES (..),
+  show_bytes, show_text,
 
   proper_string, quote, space_implode, commas, commas_quote, cat_lines,
   space_explode, split_lines, trim_line)
@@ -249,9 +236,11 @@ where
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Data.Text.Lazy as Lazy
+import GHC.Exts (IsList, Item)
 import Data.String (IsString)
 import qualified Data.List.Split as Split
 import qualified Isabelle.Symbol as Symbol
+import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UTF8 as UTF8
 
@@ -317,11 +306,40 @@ separate _ xs = xs;
 
 {- string-like interfaces -}
 
-class (IsString a, Monoid a, Eq a, Ord a) => StringLike a
-instance StringLike String
-instance StringLike Text
-instance StringLike Lazy.Text
-instance StringLike Bytes
+class (IsList a, IsString a, Monoid a, Eq a, Ord a) => StringLike a
+  where
+    space_explode :: Item a -> a -> [a]
+    split_lines :: a -> [a]
+
+instance StringLike String where
+  space_explode sep = Split.split (Split.dropDelims (Split.whenElt (== sep)))
+  split_lines = space_explode '\n'
+
+instance StringLike Text where
+  space_explode sep str =
+    if Text.null str then []
+    else if Text.all (/= sep) str then [str]
+    else map Text.pack $ space_explode sep $ Text.unpack str
+  split_lines = space_explode '\n'
+
+instance StringLike Lazy.Text where
+  space_explode sep str =
+    if Lazy.null str then []
+    else if Lazy.all (/= sep) str then [str]
+    else map Lazy.pack $ space_explode sep $ Lazy.unpack str
+  split_lines = space_explode '\n'
+
+instance StringLike Bytes where
+  space_explode sep str =
+    if Bytes.null str then []
+    else if Bytes.all (/= sep) str then [str]
+    else explode (Bytes.unpack str)
+    where
+      explode rest =
+        case span (/= sep) rest of
+          (_, []) -> [Bytes.pack rest]
+          (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
+  split_lines = space_explode (Bytes.byte '\n')
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
@@ -341,6 +359,12 @@ instance BYTES Text where make_bytes = UTF8.encode
 instance BYTES Lazy.Text where make_bytes = UTF8.encode . Lazy.toStrict
 instance BYTES Bytes where make_bytes = id
 
+show_bytes :: Show a => a -> Bytes
+show_bytes = make_bytes . show
+
+show_text :: Show a => a -> Text
+show_text = make_text . show
+
 
 {- strings -}
 
@@ -359,13 +383,6 @@ commas_quote = commas . map quote
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
-
-
-space_explode :: Char -> String -> [String]
-space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
-
-split_lines :: String -> [String]
-split_lines = space_explode '\n'
 
 trim_line :: String -> String
 trim_line line =
@@ -492,7 +509,7 @@ parse_nat s =
 {- int -}
 
 print_int :: Int -> Bytes
-print_int = make_bytes . show
+print_int = show_bytes
 
 parse_int :: Bytes -> Maybe Int
 parse_int = Read.readMaybe . make_string
@@ -1526,7 +1543,7 @@ import qualified Isabelle.Name as Name
 import Isabelle.Name (Name)
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.Markup as Markup
-import qualified Isabelle.XML.Encode as Encode
+import Isabelle.XML.Classes
 import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
 
@@ -1549,13 +1566,7 @@ make limit (name, props) make_names =
 markup_element :: T -> (Markup.T, XML.Body)
 markup_element (Completion props total names) =
   if not (null names) then
-    let
-      markup = Markup.properties props Markup.completion
-      body =
-        Encode.pair Encode.int
-          (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
-          (total, names)
-    in (markup, body)
+    (Markup.properties props Markup.completion, encode (total, names))
   else (Markup.empty, [])
 
 markup_report :: [T] -> Name
@@ -1717,7 +1728,7 @@ keyword1 name = mark_str (Markup.keyword1, name)
 keyword2 name = mark_str (Markup.keyword2, name)
 
 text :: BYTES a => a -> [T]
-text = breaks . map str . filter (not . Bytes.null) . Bytes.space_explode Bytes.space . make_bytes
+text = breaks . map str . filter (not . Bytes.null) . space_explode Bytes.space . make_bytes
 
 paragraph :: [T] -> T
 paragraph = markup Markup.paragraph
@@ -2252,6 +2263,90 @@ term t =
     \([], a) -> App (pair term term a)]
 \<close>
 
+generate_file "Isabelle/XML/Classes.hs" = \<open>
+{- generated by Isabelle -}
+
+{-  Title:      Isabelle/XML/Classes.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Type classes for XML data representation.
+-}
+
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+
+module Isabelle.XML.Classes
+  (Encode_Atom(..), Decode_Atom(..), Encode (..), Decode (..))
+where
+
+import qualified Isabelle.XML as XML
+import qualified Isabelle.XML.Encode as Encode
+import qualified Isabelle.XML.Decode as Decode
+import qualified Isabelle.Term_XML.Encode as Encode
+import qualified Isabelle.Term_XML.Decode as Decode
+import qualified Isabelle.Properties as Properties
+import Isabelle.Bytes (Bytes)
+import Isabelle.Term (Typ, Term)
+
+
+class Encode_Atom a where encode_atom :: Encode.A a
+class Decode_Atom a where decode_atom :: Decode.A a
+
+instance Encode_Atom Int where encode_atom = Encode.int_atom
+instance Decode_Atom Int where decode_atom = Decode.int_atom
+
+instance Encode_Atom Bool where encode_atom = Encode.bool_atom
+instance Decode_Atom Bool where decode_atom = Decode.bool_atom
+
+instance Encode_Atom () where encode_atom = Encode.unit_atom
+instance Decode_Atom () where decode_atom = Decode.unit_atom
+
+
+class Encode a where encode :: Encode.T a
+class Decode a where decode :: Decode.T a
+
+instance Encode Bytes where encode = Encode.string
+instance Decode Bytes where decode = Decode.string
+
+instance Encode Int where encode = Encode.int
+instance Decode Int where decode = Decode.int
+
+instance Encode Bool where encode = Encode.bool
+instance Decode Bool where decode = Decode.bool
+
+instance Encode () where encode = Encode.unit
+instance Decode () where decode = Decode.unit
+
+instance (Encode a, Encode b) => Encode (a, b)
+  where encode = Encode.pair encode encode
+instance (Decode a, Decode b) => Decode (a, b)
+  where decode = Decode.pair decode decode
+
+instance (Encode a, Encode b, Encode c) => Encode (a, b, c)
+  where encode = Encode.triple encode encode encode
+instance (Decode a, Decode b, Decode c) => Decode (a, b, c)
+  where decode = Decode.triple decode decode decode
+
+instance Encode a => Encode [a] where encode = Encode.list encode
+instance Decode a => Decode [a] where decode = Decode.list decode
+
+instance Encode a => Encode (Maybe a) where encode = Encode.option encode
+instance Decode a => Decode (Maybe a) where decode = Decode.option decode
+
+instance Encode XML.Tree where encode = Encode.tree
+instance Decode XML.Tree where decode = Decode.tree
+
+instance Encode Properties.T where encode = Encode.properties
+instance Decode Properties.T where decode = Decode.properties
+
+instance Encode Typ where encode = Encode.typ
+instance Decode Typ where decode = Decode.typ
+
+instance Encode Term where encode = Encode.term
+instance Decode Term where decode = Decode.term
+\<close>
+
 generate_file "Isabelle/UUID.hs" = \<open>
 {-  Title:      Isabelle/UUID.hs
     Author:     Makarius
@@ -2384,7 +2479,7 @@ write_message socket = write socket . make_message
 parse_header :: Bytes -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (Bytes.space_explode (Bytes.byte ',') line)
+    res = map Value.parse_nat (space_explode (Bytes.byte ',') line)
   in
     if all isJust res then map fromJust res
     else error ("Malformed message header: " <> quote (UTF8.decode line))
@@ -2628,6 +2723,8 @@ generate_file "Isabelle/Server.hs" = \<open>
 TCP server on localhost.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Server (
   localhost_name, localhost, publish_text, publish_stdout,
   server, connection
@@ -2639,8 +2736,10 @@ import qualified Control.Exception as Exception
 import Network.Socket (Socket)
 import qualified Network.Socket as Socket
 import qualified System.IO as IO
+import qualified Data.ByteString.Char8 as Char8
 
 import Isabelle.Library
+import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
@@ -2649,24 +2748,25 @@ import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
 
 {- server address -}
 
-localhost_name :: String
+localhost_name :: Bytes
 localhost_name = "127.0.0.1"
 
 localhost :: Socket.HostAddress
 localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 
-publish_text :: String -> String -> UUID.T -> String
+publish_text :: Bytes -> Bytes -> UUID.T -> Bytes
 publish_text name address password =
-  "server " <> quote name <> " = " <> address <> " (password " <> quote (show password) <> ")"
+  "server " <> quote name <> " = " <> address <>
+    " (password " <> quote (show_bytes password) <> ")"
 
-publish_stdout :: String -> String -> UUID.T -> IO ()
+publish_stdout :: Bytes -> Bytes -> UUID.T -> IO ()
 publish_stdout name address password =
-  putStrLn (publish_text name address password)
+  Char8.putStrLn (Bytes.unmake $ publish_text name address password)
 
 
 {- server -}
 
-server :: (String -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
+server :: (Bytes -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
 server publish handle =
   Socket.withSocketsDo $ Exception.bracket open (Socket.close . fst) (uncurry loop)
   where
@@ -2677,7 +2777,7 @@ server publish handle =
       Socket.listen server_socket 50
 
       port <- Socket.socketPort server_socket
-      let address = localhost_name <> ":" <> show port
+      let address = localhost_name <> ":" <> show_bytes port
       password <- UUID.random
       publish address password
 
