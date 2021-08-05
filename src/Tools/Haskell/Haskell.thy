@@ -2628,6 +2628,8 @@ generate_file "Isabelle/Server.hs" = \<open>
 TCP server on localhost.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Isabelle.Server (
   localhost_name, localhost, publish_text, publish_stdout,
   server, connection
@@ -2639,8 +2641,10 @@ import qualified Control.Exception as Exception
 import Network.Socket (Socket)
 import qualified Network.Socket as Socket
 import qualified System.IO as IO
+import qualified Data.ByteString.Char8 as Char8
 
 import Isabelle.Library
+import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
@@ -2649,24 +2653,25 @@ import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
 
 {- server address -}
 
-localhost_name :: String
+localhost_name :: Bytes
 localhost_name = "127.0.0.1"
 
 localhost :: Socket.HostAddress
 localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 
-publish_text :: String -> String -> UUID.T -> String
+publish_text :: Bytes -> Bytes -> UUID.T -> Bytes
 publish_text name address password =
-  "server " <> quote name <> " = " <> address <> " (password " <> quote (show password) <> ")"
+  "server " <> quote name <> " = " <> address <>
+    " (password " <> quote (make_bytes $ show password) <> ")"
 
-publish_stdout :: String -> String -> UUID.T -> IO ()
+publish_stdout :: Bytes -> Bytes -> UUID.T -> IO ()
 publish_stdout name address password =
-  putStrLn (publish_text name address password)
+  Char8.putStrLn (Bytes.unmake $ publish_text name address password)
 
 
 {- server -}
 
-server :: (String -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
+server :: (Bytes -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
 server publish handle =
   Socket.withSocketsDo $ Exception.bracket open (Socket.close . fst) (uncurry loop)
   where
@@ -2677,7 +2682,7 @@ server publish handle =
       Socket.listen server_socket 50
 
       port <- Socket.socketPort server_socket
-      let address = localhost_name <> ":" <> show port
+      let address = localhost_name <> ":" <> make_bytes (show port)
       password <- UUID.random
       publish address password
 
