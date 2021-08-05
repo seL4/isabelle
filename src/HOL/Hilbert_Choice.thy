@@ -1170,18 +1170,6 @@ lemma SUP_inf_distrib2: "(\<Squnion>a\<in>A. f a) \<sqinter> (\<Squnion>b\<in>B.
 
 end
 
-context complete_boolean_algebra
-begin
-
-lemma dual_complete_boolean_algebra:
-  "class.complete_boolean_algebra Sup Inf sup (\<ge>) (>) inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
-  by (rule class.complete_boolean_algebra.intro,
-      rule dual_complete_distrib_lattice,
-      rule dual_boolean_algebra)
-end
-
-
-
 instantiation set :: (type) complete_distrib_lattice
 begin
 instance proof (standard, clarsimp)

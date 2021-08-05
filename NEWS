@@ -191,9 +191,16 @@ operations. INCOMPATIBILITY.
 
 * Theory Bit_Operations is now part of HOL-Main. Minor INCOMPATIBILITY.
 
+* Simplified class hierarchy for bit operations: bit operations reside
+in classes (semi)ring_bit_operations, class semiring_bit_shifts is
+gone.
+
 * Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
 as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
 "setBit", "clearBit". See there further the changelog in theory Guide.
+INCOMPATIBILITY.
+
+* Reorganized classes and locales for boolean algebras.
 INCOMPATIBILITY.
 
 * New simp rules: less_exp, min.absorb1, min.absorb2, min.absorb3,

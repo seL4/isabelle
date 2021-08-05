@@ -1326,17 +1326,14 @@ lemma not_one [simp]:
 sublocale "and": semilattice_neutr \<open>(AND)\<close> \<open>- 1\<close>
   by standard (rule bit_eqI, simp add: bit_and_iff)
 
-sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-  rewrites \<open>bit.xor = (XOR)\<close>
-proof -
-  interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-    by standard (auto simp add: bit_and_iff bit_or_iff bit_not_iff intro: bit_eqI)
-  show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
-    by standard
-  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>
-    by (rule ext, rule ext, rule bit_eqI)
-      (auto simp add: bit.xor_def bit_and_iff bit_or_iff bit_xor_iff bit_not_iff)
-qed
+sublocale bit: abstract_boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
+  by standard (auto simp add: bit_and_iff bit_or_iff bit_not_iff intro: bit_eqI)
+
+sublocale bit: abstract_boolean_algebra_sym_diff \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close> \<open>(XOR)\<close>
+  apply standard
+  apply (rule bit_eqI)
+  apply (auto simp add: bit_simps)
+  done
 
 lemma and_eq_not_not_or:
   \<open>a AND b = NOT (NOT a OR NOT b)\<close>
@@ -3564,8 +3561,6 @@ text \<open>
 
       \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>
-
-find_theorems \<open>(_ AND _) * _ = _\<close>
 
 no_notation
   "and"  (infixr \<open>AND\<close> 64)

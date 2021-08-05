@@ -3483,7 +3483,7 @@ lemma outside_frontier_misses_closure:
     fixes S :: "'a::real_normed_vector set"
     assumes "bounded S"
     shows  "outside(frontier S) \<subseteq> - closure S"
-  unfolding outside_inside Lattices.boolean_algebra_class.compl_le_compl_iff
+  unfolding outside_inside boolean_algebra_class.compl_le_compl_iff
 proof -
   { assume "interior S \<subseteq> inside (frontier S)"
     hence "interior S \<union> inside (frontier S) = inside (frontier S)"

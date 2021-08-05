@@ -93,7 +93,7 @@ lemma bind_image: "Set.bind (f ` A) g = Set.bind A (g \<circ> f)"
 lemma (in group_add) minus_comp_minus [simp]: "uminus \<circ> uminus = id"
   by (simp add: fun_eq_iff)
 
-lemma (in Lattices.boolean_algebra) minus_comp_minus [simp]: "uminus \<circ> uminus = id"
+lemma (in boolean_algebra) minus_comp_minus [simp]: "uminus \<circ> uminus = id"
   by (simp add: fun_eq_iff)
 
 code_printing
