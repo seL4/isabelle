@@ -241,6 +241,7 @@ module Isabelle.Library (
   fold, fold_rev, single, map_index, get_index, separate,
 
   StringLike, STRING (..), TEXT (..), BYTES (..),
+  show_bytes, show_text,
 
   proper_string, quote, space_implode, commas, commas_quote, cat_lines,
   space_explode, split_lines, trim_line)
@@ -340,6 +341,12 @@ instance BYTES String where make_bytes = UTF8.encode
 instance BYTES Text where make_bytes = UTF8.encode
 instance BYTES Lazy.Text where make_bytes = UTF8.encode . Lazy.toStrict
 instance BYTES Bytes where make_bytes = id
+
+show_bytes :: Show a => a -> Bytes
+show_bytes = make_bytes . show
+
+show_text :: Show a => a -> Text
+show_text = make_text . show
 
 
 {- strings -}
@@ -492,7 +499,7 @@ parse_nat s =
 {- int -}
 
 print_int :: Int -> Bytes
-print_int = make_bytes . show
+print_int = show_bytes
 
 parse_int :: Bytes -> Maybe Int
 parse_int = Read.readMaybe . make_string
@@ -2662,7 +2669,7 @@ localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 publish_text :: Bytes -> Bytes -> UUID.T -> Bytes
 publish_text name address password =
   "server " <> quote name <> " = " <> address <>
-    " (password " <> quote (make_bytes $ show password) <> ")"
+    " (password " <> quote (show_bytes password) <> ")"
 
 publish_stdout :: Bytes -> Bytes -> UUID.T -> IO ()
 publish_stdout name address password =
@@ -2682,7 +2689,7 @@ server publish handle =
       Socket.listen server_socket 50
 
       port <- Socket.socketPort server_socket
-      let address = localhost_name <> ":" <> make_bytes (show port)
+      let address = localhost_name <> ":" <> show_bytes port
       password <- UUID.random
       publish address password
 
