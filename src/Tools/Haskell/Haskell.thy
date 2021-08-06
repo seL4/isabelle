@@ -26,7 +26,7 @@ module Isabelle.Bytes (
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
-  concat, space, spaces, char, byte, max_byte, max_char, singleton
+  concat, space, spaces, char, all_char, any_char, byte, max_byte, max_char, singleton
 )
 where
 
@@ -111,6 +111,12 @@ spaces n =
 
 char :: Word8 -> Char
 char = toEnum . fromEnum
+
+all_char :: (Char -> Bool) -> Bytes -> Bool
+all_char pred = all (pred . char)
+
+any_char :: (Char -> Bool) -> Bytes -> Bool
+any_char pred = any (pred . char)
 
 byte :: Char -> Word8
 byte = toEnum . fromEnum
@@ -349,7 +355,7 @@ instance StringLike Bytes where
   space_explode :: Char -> Bytes -> [Bytes]
   space_explode c str =
     if Bytes.null str then []
-    else if c > Bytes.max_char || Bytes.all (/= (Bytes.byte c)) str then [str]
+    else if Bytes.all_char (/= c) str then [str]
     else
       explode (Bytes.unpack str)
       where
@@ -2428,6 +2434,7 @@ import Data.Maybe
 import qualified Data.ByteString as ByteString
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
+import qualified Isabelle.Symbol as Symbol
 import qualified Isabelle.UTF8 as UTF8
 import qualified Isabelle.XML as XML
 import qualified Isabelle.YXML as YXML
@@ -2524,11 +2531,11 @@ read_message socket = do
 
 is_length :: Bytes -> Bool
 is_length msg =
-  not (Bytes.null msg) && Bytes.all (\b -> 48 <= b && b <= 57) msg
+  not (Bytes.null msg) && Bytes.all_char (\c -> '0' <= c && c <= '9') msg
 
 is_terminated :: Bytes -> Bool
 is_terminated msg =
-  not (Bytes.null msg) && (Bytes.last msg == 13 || Bytes.last msg == 10)
+  not (Bytes.null msg) && Symbol.is_ascii_line_terminator (Bytes.char $ Bytes.last msg)
 
 make_line_message :: Bytes -> [Bytes]
 make_line_message msg =
@@ -2536,7 +2543,7 @@ make_line_message msg =
     if is_length msg || is_terminated msg then
       error ("Bad content for line message:\n" <> take 100 (UTF8.decode msg))
     else
-      (if n > 100 || Bytes.any (== 10) msg then make_header [n + 1] else []) <> [msg, "\n"]
+      (if n > 100 || Bytes.any_char (== '\n') msg then make_header [n + 1] else []) <> [msg, "\n"]
 
 write_line_message :: Socket -> Bytes -> IO ()
 write_line_message socket = write socket . make_line_message
