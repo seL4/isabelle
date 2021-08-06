@@ -314,18 +314,17 @@ class (IsString a, Monoid a, Eq a, Ord a) => StringLike a where
   space_explode :: Char -> a -> [a]
   trim_line :: a -> a
 
+gen_trim_line :: Int -> (Int -> Char) -> (Int -> a -> a) -> a -> a
+gen_trim_line n at trim s =
+  if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then trim (n - 2) s
+  else if n >= 1 && Symbol.is_ascii_line_terminator (at (n - 1)) then trim (n - 1) s
+  else s
+
 instance StringLike String where
   space_explode :: Char -> String -> [String]
   space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
   trim_line :: String -> String
-  trim_line s =
-    if not (null s) && Symbol.is_ascii_line_terminator (last s) then
-      case reverse s of
-        '\n' : '\r' : rest -> reverse rest
-        '\r' : rest -> reverse rest
-        '\n' : rest -> reverse rest
-        _ -> s
-    else s
+  trim_line s = gen_trim_line (length s) ((!!) s) take s
 
 instance StringLike Text where
   space_explode :: Char -> Text -> [Text]
@@ -334,13 +333,7 @@ instance StringLike Text where
     else if Text.all (/= c) str then [str]
     else map Text.pack $ space_explode c $ Text.unpack str
   trim_line :: Text -> Text
-  trim_line s =
-    if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then Text.take (n - 2) s
-    else if n >= 1 && Symbol.is_ascii_line_terminator (at (n - 1)) then Text.take (n - 1) s
-    else s
-    where
-      n = Text.length s
-      at = Text.index s
+  trim_line s = gen_trim_line (Text.length s) (Text.index s) Text.take s
 
 instance StringLike Lazy.Text where
   space_explode :: Char -> Lazy.Text -> [Lazy.Text]
@@ -364,13 +357,7 @@ instance StringLike Bytes where
             (_, []) -> [Bytes.pack rest]
             (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
   trim_line :: Bytes -> Bytes
-  trim_line s =
-    if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then Bytes.take (n - 2) s
-    else if n >= 1 && Symbol.is_ascii_line_terminator (at (n - 1)) then Bytes.take (n - 1) s
-    else s
-    where
-      n = Bytes.length s
-      at = Bytes.char . Bytes.index s
+  trim_line s = gen_trim_line (Bytes.length s) (Bytes.char . Bytes.index s) Bytes.take s
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
