@@ -26,8 +26,7 @@ module Isabelle.Bytes (
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
-  concat, space, spaces, char, byte, max_byte, max_char, singleton,
-  trim_line
+  concat, space, spaces, char, byte, max_byte, max_char, singleton
 )
 where
 
@@ -129,15 +128,6 @@ singletons =
 
 singleton :: Word8 -> Bytes
 singleton b = singletons ! b
-
-trim_line :: Bytes -> Bytes
-trim_line s =
-  if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then take (n - 2) s
-  else if n >= 1 && (at (n - 1) == '\r' || at (n - 1) == '\n') then take (n - 1) s
-  else s
-  where
-    n = length s
-    at = char . index s
 \<close>
 
 generate_file "Isabelle/UTF8.hs" = \<open>
@@ -226,6 +216,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>, \<^fi
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Isabelle.Library (
   (|>), (|->), (#>), (#->),
@@ -315,23 +306,47 @@ separate _ xs = xs;
 
 class (IsString a, Monoid a, Eq a, Ord a) => StringLike a where
   space_explode :: Char -> a -> [a]
+  trim_line :: a -> a
 
 instance StringLike String where
+  space_explode :: Char -> String -> [String]
   space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
+  trim_line :: String -> String
+  trim_line s =
+    if not (null s) && Symbol.is_ascii_line_terminator (last s) then
+      case reverse s of
+        '\n' : '\r' : rest -> reverse rest
+        '\r' : rest -> reverse rest
+        '\n' : rest -> reverse rest
+        _ -> s
+    else s
 
 instance StringLike Text where
+  space_explode :: Char -> Text -> [Text]
   space_explode c str =
     if Text.null str then []
     else if Text.all (/= c) str then [str]
     else map Text.pack $ space_explode c $ Text.unpack str
+  trim_line :: Text -> Text
+  trim_line s =
+    if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then Text.take (n - 2) s
+    else if n >= 1 && Symbol.is_ascii_line_terminator (at (n - 1)) then Text.take (n - 1) s
+    else s
+    where
+      n = Text.length s
+      at = Text.index s
 
 instance StringLike Lazy.Text where
+  space_explode :: Char -> Lazy.Text -> [Lazy.Text]
   space_explode c str =
     if Lazy.null str then []
     else if Lazy.all (/= c) str then [str]
     else map Lazy.pack $ space_explode c $ Lazy.unpack str
+  trim_line :: Lazy.Text -> Lazy.Text
+  trim_line = Lazy.fromStrict . trim_line . Lazy.toStrict
 
 instance StringLike Bytes where
+  space_explode :: Char -> Bytes -> [Bytes]
   space_explode c str =
     if Bytes.null str then []
     else if c > Bytes.max_char || Bytes.all (/= (Bytes.byte c)) str then [str]
@@ -342,6 +357,14 @@ instance StringLike Bytes where
           case span (/= (Bytes.byte c)) rest of
             (_, []) -> [Bytes.pack rest]
             (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
+  trim_line :: Bytes -> Bytes
+  trim_line s =
+    if n >= 2 && at (n - 2) == '\r' && at (n - 1) == '\n' then Bytes.take (n - 2) s
+    else if n >= 1 && Symbol.is_ascii_line_terminator (at (n - 1)) then Bytes.take (n - 1) s
+    else s
+    where
+      n = Bytes.length s
+      at = Bytes.char . Bytes.index s
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
@@ -388,16 +411,6 @@ split_lines = space_explode '\n'
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
-
-trim_line :: String -> String
-trim_line line =
-  if not (null line) && Symbol.is_ascii_line_terminator (last line) then
-    case reverse line of
-      '\n' : '\r' : rest -> reverse rest
-      '\r' : rest -> reverse rest
-      '\n' : rest -> reverse rest
-      _ -> line
-  else line
 \<close>
 
 
@@ -2459,7 +2472,7 @@ read_block socket n = do
 read_line :: Socket -> IO (Maybe Bytes)
 read_line socket = read_body []
   where
-    result = Bytes.trim_line . Bytes.pack . reverse
+    result = trim_line . Bytes.pack . reverse
     read_body bs = do
       s <- Socket.recv socket 1
       case ByteString.length s of
@@ -2536,7 +2549,7 @@ read_line_message socket = do
     Just line ->
       case Value.parse_nat line of
         Nothing -> return $ Just line
-        Just n -> fmap Bytes.trim_line . fst <$> read_block socket n
+        Just n -> fmap trim_line . fst <$> read_block socket n
 
 
 read_yxml :: Socket -> IO (Maybe XML.Body)
