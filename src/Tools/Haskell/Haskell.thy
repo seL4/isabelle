@@ -26,7 +26,7 @@ module Isabelle.Bytes (
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
-  concat, space, spaces, char, all_char, any_char, byte, max_byte, max_char, singleton
+  concat, space, spaces, char, all_char, any_char, byte, singleton
 )
 where
 
@@ -121,16 +121,10 @@ any_char pred = any (pred . char)
 byte :: Char -> Word8
 byte = toEnum . fromEnum
 
-max_byte :: Word8
-max_byte = maxBound
-
-max_char :: Char
-max_char = char max_byte
-
 singletons :: Array Word8 Bytes
 singletons =
-  array (0, max_byte)
-    [(i, make (ByteString.singleton i)) | i <- [0 .. max_byte]]
+  array (minBound, maxBound)
+    [(i, make (ByteString.singleton i)) | i <- [minBound .. maxBound]]
 
 singleton :: Word8 -> Bytes
 singleton b = singletons ! b
