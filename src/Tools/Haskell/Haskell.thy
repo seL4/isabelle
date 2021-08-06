@@ -19,12 +19,14 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.scala\<close>.
 -}
 
+{-# LANGUAGE TypeApplications #-}
+
 module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
   head, last, take, drop, isPrefixOf, isSuffixOf,
-  concat, space, spaces, singleton, char, byte,
+  concat, space, spaces, char, byte, max_byte, max_char, singleton,
   trim_line
 )
 where
@@ -108,19 +110,25 @@ spaces n =
   if n < 64 then small_spaces ! n
   else concat ((small_spaces ! (n `mod` 64)) : replicate (n `div` 64) (small_spaces ! 64))
 
-singletons :: Array Word8 Bytes
-singletons =
-  array (minBound, maxBound)
-    [(i, make (ByteString.singleton i)) | i <- [minBound .. maxBound]]
-
-singleton :: Word8 -> Bytes
-singleton b = singletons ! b
-
 char :: Word8 -> Char
 char = toEnum . fromEnum
 
 byte :: Char -> Word8
 byte = toEnum . fromEnum
+
+max_byte :: Word8
+max_byte = maxBound
+
+max_char :: Char
+max_char = char max_byte
+
+singletons :: Array Word8 Bytes
+singletons =
+  array (0, max_byte)
+    [(i, make (ByteString.singleton i)) | i <- [0 .. max_byte]]
+
+singleton :: Word8 -> Bytes
+singleton b = singletons ! b
 
 trim_line :: Bytes -> Bytes
 trim_line s =
@@ -306,40 +314,35 @@ separate _ xs = xs;
 
 {- string-like interfaces -}
 
-class (IsList a, IsString a, Monoid a, Eq a, Ord a) => StringLike a
-  where
-    space_explode :: Item a -> a -> [a]
-    split_lines :: a -> [a]
+class (IsString a, Monoid a, Eq a, Ord a) => StringLike a where
+  space_explode :: Char -> a -> [a]
 
 instance StringLike String where
-  space_explode sep = Split.split (Split.dropDelims (Split.whenElt (== sep)))
-  split_lines = space_explode '\n'
+  space_explode c = Split.split (Split.dropDelims (Split.whenElt (== c)))
 
 instance StringLike Text where
-  space_explode sep str =
+  space_explode c str =
     if Text.null str then []
-    else if Text.all (/= sep) str then [str]
-    else map Text.pack $ space_explode sep $ Text.unpack str
-  split_lines = space_explode '\n'
+    else if Text.all (/= c) str then [str]
+    else map Text.pack $ space_explode c $ Text.unpack str
 
 instance StringLike Lazy.Text where
-  space_explode sep str =
+  space_explode c str =
     if Lazy.null str then []
-    else if Lazy.all (/= sep) str then [str]
-    else map Lazy.pack $ space_explode sep $ Lazy.unpack str
-  split_lines = space_explode '\n'
+    else if Lazy.all (/= c) str then [str]
+    else map Lazy.pack $ space_explode c $ Lazy.unpack str
 
 instance StringLike Bytes where
-  space_explode sep str =
+  space_explode c str =
     if Bytes.null str then []
-    else if Bytes.all (/= sep) str then [str]
-    else explode (Bytes.unpack str)
-    where
-      explode rest =
-        case span (/= sep) rest of
-          (_, []) -> [Bytes.pack rest]
-          (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
-  split_lines = space_explode (Bytes.byte '\n')
+    else if c > Bytes.max_char || Bytes.all (/= (Bytes.byte c)) str then [str]
+    else
+      explode (Bytes.unpack str)
+      where
+        explode rest =
+          case span (/= (Bytes.byte c)) rest of
+            (_, []) -> [Bytes.pack rest]
+            (prfx, _ : rest') -> Bytes.pack prfx : explode rest'
 
 class StringLike a => STRING a where make_string :: a -> String
 instance STRING String where make_string = id
@@ -380,6 +383,9 @@ space_implode s = mconcat . separate s
 commas, commas_quote :: StringLike a => [a] -> a
 commas = space_implode ", "
 commas_quote = commas . map quote
+
+split_lines :: StringLike a => a -> [a]
+split_lines = space_explode '\n'
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
@@ -1728,7 +1734,7 @@ keyword1 name = mark_str (Markup.keyword1, name)
 keyword2 name = mark_str (Markup.keyword2, name)
 
 text :: BYTES a => a -> [T]
-text = breaks . map str . filter (not . Bytes.null) . space_explode Bytes.space . make_bytes
+text = breaks . map str . filter (not . Bytes.null) . space_explode ' ' . make_bytes
 
 paragraph :: [T] -> T
 paragraph = markup Markup.paragraph
@@ -2479,7 +2485,7 @@ write_message socket = write socket . make_message
 parse_header :: Bytes -> [Int]
 parse_header line =
   let
-    res = map Value.parse_nat (space_explode (Bytes.byte ',') line)
+    res = map Value.parse_nat (space_explode ',' line)
   in
     if all isJust res then map fromJust res
     else error ("Malformed message header: " <> quote (UTF8.decode line))
