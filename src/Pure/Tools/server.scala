@@ -508,7 +508,7 @@ Usage: isabelle server [OPTIONS]
           init(name, port = port, existing_server = existing_server, log = log)
         Output.writeln(server_info.toString, stdout = true)
         if (console) {
-          using(server_info.connection())(connection => connection.tty_loop().join)
+          using(server_info.connection())(connection => connection.tty_loop().join())
         }
         server.foreach(_.join())
       }

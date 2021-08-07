@@ -183,9 +183,9 @@ object Bash
 
     // join
 
-    def join: Int =
+    def join(): Int =
     {
-      val rc = proc.waitFor
+      val rc = proc.waitFor()
       do_cleanup()
       rc
     }
@@ -218,7 +218,7 @@ object Bash
         }
 
       val rc =
-        try { join }
+        try { join() }
         catch { case Exn.Interrupt() => terminate(); Process_Result.interrupt_rc }
 
       watchdog_thread.foreach(_.cancel())

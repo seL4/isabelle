@@ -110,7 +110,7 @@ class Prover(
 
   private val process_result: Future[Process_Result] =
     Future.thread("process_result") {
-      val rc = process.join
+      val rc = process.join()
       val timing = process.get_timing
       Process_Result(rc, timing = timing)
     }
