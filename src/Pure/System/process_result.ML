@@ -6,6 +6,8 @@ Result of system process.
 
 signature PROCESS_RESULT =
 sig
+  val interrupt_rc: int
+  val timeout_rc: int
   type T
   val make:
    {rc: int,
@@ -26,6 +28,9 @@ end;
 
 structure Process_Result: PROCESS_RESULT =
 struct
+
+val interrupt_rc = 130
+val timeout_rc = 142
 
 abstype T =
   Process_Result of

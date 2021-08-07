@@ -194,13 +194,15 @@ object Bash
     // result
 
     def result(
+      input: String = "",
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       watchdog: Option[Watchdog] = None,
       strict: Boolean = true): Process_Result =
     {
-      stdin.close()
-
+      val in =
+        if (input.isEmpty) Future.value(stdin.close())
+        else Future.thread("bash_stdin") { stdin.write(input); stdin.flush(); stdin.close(); }
       val out_lines =
         Future.thread("bash_stdout") { File.read_lines(stdout, progress_stdout) }
       val err_lines =
@@ -223,6 +225,10 @@ object Bash
 
       watchdog_thread.foreach(_.cancel())
 
+      in.join
+      out_lines.join
+      err_lines.join
+
       if (strict && rc == Process_Result.interrupt_rc) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join, get_timing)
@@ -237,16 +243,23 @@ object Bash
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] =
     {
+      @volatile var is_timeout = false
       val result =
         Exn.capture {
-          val redirect = args.head == "true"
-          val script = cat_lines(args.tail)
-          Isabelle_System.bash(script, redirect = redirect)
+          args match {
+            case List(script, input, Value.Boolean(redirect), Value.Int(timeout)) =>
+              Isabelle_System.bash(script, input = input, redirect = redirect,
+                watchdog =
+                  if (timeout == 0) None
+                  else Some((Time.ms(timeout), _ => { is_timeout = true; true })),
+                strict = false)
+            case _ => error("Bad number of args: " + args.length)
+          }
         }
 
       val is_interrupt =
         result match {
-          case Exn.Res(res) => res.rc == Process_Result.interrupt_rc
+          case Exn.Res(res) => res.rc == Process_Result.interrupt_rc && !is_timeout
           case Exn.Exn(exn) => Exn.is_interrupt(exn)
         }
 
@@ -254,7 +267,8 @@ object Bash
         case _ if is_interrupt => Nil
         case Exn.Exn(exn) => List(Exn.message(exn))
         case Exn.Res(res) =>
-          res.rc.toString ::
+          val rc = if (!res.ok && is_timeout) Process_Result.timeout_rc else res.rc
+          rc.toString ::
           res.timing.elapsed.ms.toString ::
           res.timing.cpu.ms.toString ::
           res.out_lines.length.toString ::

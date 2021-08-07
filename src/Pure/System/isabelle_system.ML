@@ -6,8 +6,9 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  val bash_process: string -> Process_Result.T
-  val bash_process_redirect: string -> Process_Result.T
+  val bash_process:
+    {script: string, input: string, redirect: bool, timeout: Time.time} -> Process_Result.T
+  val bash_process_script: string -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
   val bash_functions: unit -> string list
@@ -37,9 +38,10 @@ struct
 
 (* bash *)
 
-fun invoke_bash_process redirect script =
+fun bash_process {script, input, redirect, timeout} =
   Scala.function "bash_process"
-    [Value.print_bool redirect, "export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP"), script]
+   ["export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script,
+    input, Value.print_bool redirect, Value.print_int (Time.toMilliseconds timeout)]
   |> (fn [] => raise Exn.Interrupt
       | [err] => error err
       | a :: b :: c :: d :: lines =>
@@ -48,6 +50,7 @@ fun invoke_bash_process redirect script =
             val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
             val (out_lines, err_lines) = chop (Value.parse_int d) lines;
           in
+            if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed else ();
             Process_Result.make
              {rc = rc,
               out_lines = out_lines,
@@ -56,14 +59,17 @@ fun invoke_bash_process redirect script =
          end
       | _ => raise Fail "Malformed Isabelle/Scala result");
 
-val bash_process = invoke_bash_process false;
-val bash_process_redirect = invoke_bash_process true;
+fun bash_process_script script =
+  bash_process {script = script, input = "", redirect = false, timeout = Time.zeroTime};
 
-val bash = bash_process #> Process_Result.print #> Process_Result.rc;
+fun bash script =
+  bash_process_script script
+  |> Process_Result.print
+  |> Process_Result.rc;
 
 fun bash_output s =
   let
-    val res = bash_process s;
+    val res = bash_process_script s;
     val _ = warning (Process_Result.err res);
   in (Process_Result.out res, Process_Result.rc res) end;
 
@@ -71,7 +77,7 @@ fun bash_output s =
 (* bash functions *)
 
 fun bash_functions () =
-  bash_process "declare -Fx"
+  bash_process_script "declare -Fx"
   |> Process_Result.check
   |> Process_Result.out_lines
   |> map_filter (space_explode " " #> try List.last);

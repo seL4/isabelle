@@ -818,7 +818,7 @@ fun invoke system file =
     if getenv env_var = "" then
       (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
     else
-      let val res = Isabelle_System.bash_process (cmd ^ File.bash_path file) in
+      let val res = Isabelle_System.bash_process_script (cmd ^ File.bash_path file) in
         res |> Process_Result.check |> Process_Result.out
           handle ERROR msg =>
             cat_error ("Error caused by prolog system " ^ env_var ^

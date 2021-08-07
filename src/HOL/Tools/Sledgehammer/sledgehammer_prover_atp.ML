@@ -271,7 +271,10 @@ fun run_atp mode name
                 let val {output, timing} = SystemOnTPTP.run_system_encoded args
                 in (output, timing) end
               else
-                let val res = Isabelle_System.bash_process_redirect command
+                let
+                  val res =
+                    Isabelle_System.bash_process
+                      {script = command, input = "", redirect = true, timeout = Time.zeroTime}
                 in (Process_Result.out res, Process_Result.timing_elapsed res) end
 
             val _ =

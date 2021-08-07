@@ -262,7 +262,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
                 (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ File.bash_platform_path executable ^ ";"
         val compilation_time =
-          Isabelle_System.bash_process cmd
+          Isabelle_System.bash_process_script cmd
           |> Process_Result.check
           |> Process_Result.timing_elapsed |> Time.toMilliseconds
           handle ERROR msg => cat_error "Compilation with GHC failed" msg
@@ -275,7 +275,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
               val _ = verbose_message ("[Quickcheck-narrowing] Test data size: " ^ string_of_int k)
               val _ = current_size := k
               val res =
-                Isabelle_System.bash_process
+                Isabelle_System.bash_process_script
                   (File.bash_path executable ^ " " ^ haskell_string_of_bool genuine_only ^ " " ^
                     string_of_int k)
                 |> Process_Result.check

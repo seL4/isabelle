@@ -381,6 +381,7 @@ object Isabelle_System
     cwd: JFile = null,
     env: JMap[String, String] = settings(),
     redirect: Boolean = false,
+    input: String = "",
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     watchdog: Option[Bash.Watchdog] = None,
@@ -388,7 +389,7 @@ object Isabelle_System
     cleanup: () => Unit = () => ()): Process_Result =
   {
     Bash.process(script, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
-      result(progress_stdout = progress_stdout, progress_stderr = progress_stderr,
+      result(input = input, progress_stdout = progress_stdout, progress_stderr = progress_stderr,
         watchdog = watchdog, strict = strict)
   }
 
