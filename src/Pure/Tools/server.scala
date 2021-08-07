@@ -185,7 +185,7 @@ object Server
       try { Byte_Message.read_line(in).map(_.text) == Some(password) }
       catch { case _: IOException => false }
 
-    def read_message(): Option[String] =
+    def read_line_message(): Option[String] =
       try { Byte_Message.read_line_message(in).map(_.text) }
       catch { case _: IOException => None }
 
@@ -193,13 +193,13 @@ object Server
       try { Byte_Message.read(in, 1); socket.close() }
       catch { case _: IOException => }
 
-    def write_message(msg: String): Unit =
+    def write_line_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
 
     def reply(r: Reply.Value, arg: Any): Unit =
     {
       val argument = Argument.print(arg)
-      write_message(if (argument == "") r.toString else r.toString + " " + argument)
+      write_line_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
 
     def reply_ok(arg: Any): Unit = reply(Reply.OK, arg)
@@ -347,7 +347,7 @@ object Server
     def connection(): Connection =
     {
       val connection = Connection(new Socket(localhost, port))
-      connection.write_message(password)
+      connection.write_line_message(password)
       connection
     }
 
@@ -356,7 +356,7 @@ object Server
         using(connection())(connection =>
           {
             connection.set_timeout(Time.seconds(2.0))
-            connection.read_message() match {
+            connection.read_line_message() match {
               case Some(Reply(Reply.OK, _)) => true
               case _ => false
             }
@@ -444,7 +444,7 @@ object Server
       db.transaction {
         find(db, name) match {
           case Some(server_info) =>
-            using(server_info.connection())(_.write_message("shutdown"))
+            using(server_info.connection())(_.write_line_message("shutdown"))
             while(server_info.active) { Time.seconds(0.05).sleep() }
             true
           case None => false
@@ -559,7 +559,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
 
       var finished = false
       while (!finished) {
-        connection.read_message() match {
+        connection.read_line_message() match {
           case None => finished = true
           case Some("") => context.notify("Command 'help' provides list of commands")
           case Some(msg) =>
