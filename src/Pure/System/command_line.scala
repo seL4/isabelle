@@ -34,7 +34,7 @@ object Command_Line
           }
         sys.exit(rc)
       }
-    thread.join
+    thread.join()
   }
 
   def ML_tool(body: List[String]): String =

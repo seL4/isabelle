@@ -129,7 +129,7 @@ object File_Watcher
     override def shutdown(): Unit =
     {
       watcher_thread.interrupt()
-      watcher_thread.join
+      watcher_thread.join()
       delay_changed.revoke()
     }
   }

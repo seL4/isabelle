@@ -119,6 +119,6 @@ final class Consumer_Thread[A] private(
   def shutdown(): Unit =
   {
     synchronized { if (is_active) { active = false; mailbox.send(None) } }
-    thread.join
+    thread.join()
   }
 }

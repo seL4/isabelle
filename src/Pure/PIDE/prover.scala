@@ -162,7 +162,7 @@ class Prover(
       val result = process_result.join
       system_output("process terminated")
       command_input_close()
-      for (thread <- List(stdout, stderr, message)) thread.join
+      for (thread <- List(stdout, stderr, message)) thread.join()
       system_output("process_manager terminated")
       exit_message(result)
     }

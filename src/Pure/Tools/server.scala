@@ -150,8 +150,8 @@ object Server
       }
 
     def start(): Unit = thread
-    def join: Unit = thread.join
-    def stop(): Unit = { socket.close(); join }
+    def join(): Unit = thread.join()
+    def stop(): Unit = { socket.close(); join() }
   }
 
 
@@ -255,7 +255,7 @@ object Server
     def close(): Unit =
     {
       while(_tasks.change_result(tasks => { tasks.foreach(_.cancel()); (tasks.nonEmpty, tasks) }))
-      { _tasks.value.foreach(_.join) }
+      { _tasks.value.foreach(_.join()) }
     }
   }
 
@@ -307,8 +307,8 @@ object Server
       progress.stop()
       context.remove_task(task)
     }
-    def start: Unit = thread
-    def join: Unit = thread.join
+    def start(): Unit = thread
+    def join(): Unit = thread.join()
   }
 
 
@@ -510,7 +510,7 @@ Usage: isabelle server [OPTIONS]
         if (console) {
           using(server_info.connection())(connection => connection.tty_loop().join)
         }
-        server.foreach(_.join)
+        server.foreach(_.join())
       }
     })
 }
@@ -546,7 +546,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
     }
   }
 
-  override def join: Unit = { super.join; shutdown() }
+  override def join(): Unit = { super.join(); shutdown() }
 
   override def handle(connection: Server.Connection): Unit =
   {
@@ -572,7 +572,7 @@ class Server private(port0: Int, val log: Logger) extends Server.Handler(port0)
                       Exn.capture { cmd.command_body((context, arg)) } match {
                         case Exn.Res(task: Server.Task) =>
                           connection.reply_ok(JSON.Object(task.ident))
-                          task.start
+                          task.start()
                         case Exn.Res(res) => connection.reply_ok(res)
                         case Exn.Exn(exn) =>
                           val err = Server.json_error(exn)
