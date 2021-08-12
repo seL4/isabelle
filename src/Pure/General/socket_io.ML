@@ -11,6 +11,7 @@ sig
   val make_streams: Socket.active INetSock.stream_sock -> BinIO.instream * BinIO.outstream
   val open_streams: string -> BinIO.instream * BinIO.outstream
   val with_streams: (BinIO.instream * BinIO.outstream -> 'a) -> string -> 'a
+  val with_streams': (BinIO.instream * BinIO.outstream -> 'a) -> string -> string -> 'a
 end;
 
 structure Socket_IO: SOCKET_IO =
@@ -83,7 +84,8 @@ fun open_streams socket_name =
       | _ => err ());
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
-  in make_streams socket end;
+  in make_streams socket end
+  handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ socket_name);
 
 fun with_streams f =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn socket_name =>
@@ -91,5 +93,9 @@ fun with_streams f =
       val streams = open_streams socket_name;
       val result = Exn.capture (restore_attributes f) streams;
     in BinIO.closeIn (#1 streams); BinIO.closeOut (#2 streams); Exn.release result end);
+
+fun with_streams' f socket_name password =
+  with_streams (fn streams =>
+    (Byte_Message.write_line (#2 streams) password; f streams)) socket_name;
 
 end;

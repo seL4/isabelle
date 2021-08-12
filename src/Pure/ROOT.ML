@@ -81,7 +81,6 @@ ML_file "System/bash.ML";
 ML_file "General/file.ML";
 ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
-ML_file "General/socket_io.ML";
 ML_file "General/seq.ML";
 ML_file "General/time.ML";
 ML_file "General/timing.ML";
@@ -92,6 +91,7 @@ ML_file "ML/ml_profiling.ML";
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
+ML_file "General/socket_io.ML";
 
 ML_file "General/change_table.ML";
 ML_file "General/graph.ML";
