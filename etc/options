@@ -373,3 +373,10 @@ section "Isabelle/Scala/ML system channel"
 
 option system_channel_address : string = ""
 option system_channel_password : string = ""
+
+
+section "Bash process execution server"
+
+option bash_process_debugging : bool = false
+option bash_process_address : string = ""
+option bash_process_password : string = ""

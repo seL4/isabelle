@@ -270,7 +270,6 @@ class Scala_Functions extends Scala.Functions(
   Bytes.Decode_Base64,
   Bytes.Encode_Base64,
   Doc.Doc_Names,
-  Bash.Process,
   Bibtex.Check_Database,
   Isabelle_System.Make_Directory,
   Isabelle_System.Copy_Dir,

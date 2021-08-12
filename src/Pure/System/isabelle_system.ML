@@ -6,9 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  val bash_process:
-    {script: string, input: string, redirect: bool, timeout: Time.time} -> Process_Result.T
-  val bash_process_script: string -> Process_Result.T
+  val bash_process: Bash.params -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
   val bash_functions: unit -> string list
@@ -38,38 +36,61 @@ struct
 
 (* bash *)
 
-fun bash_process {script, input, redirect, timeout} =
-  Scala.function "bash_process"
-   ["export ISABELLE_TMP=" ^ Bash.string (getenv "ISABELLE_TMP") ^ "\n" ^ script,
-    input, Value.print_bool redirect, Value.print_int (Time.toMilliseconds timeout)]
-  |> (fn [] => raise Exn.Interrupt
-      | [err] => error err
-      | a :: b :: c :: d :: lines =>
-          let
-            val rc = Value.parse_int a;
-            val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
-            val (out_lines, err_lines) = chop (Value.parse_int d) lines;
-          in
-            if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed else ();
-            Process_Result.make
-             {rc = rc,
-              out_lines = out_lines,
-              err_lines = err_lines,
-              timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
-         end
-      | _ => raise Fail "Malformed Isabelle/Scala result");
+val absolute_path = Path.implode o File.absolute_path;
 
-fun bash_process_script script =
-  bash_process {script = script, input = "", redirect = false, timeout = Time.zeroTime};
+fun bash_process params =
+  let
+    val {script, input, cwd, putenv, redirect, timeout, description: string} =
+      Bash.dest_params params;
+    val run =
+      ["run", script, input,
+        let open XML.Encode in YXML.string_of_body (option (string o absolute_path) cwd) end,
+        let open XML.Encode in YXML.string_of_body o list (pair string string) end
+          (("ISABELLE_TMP", getenv "ISABELLE_TMP") :: putenv),
+        Value.print_bool redirect,
+        Value.print_real (Time.toReal timeout),
+        description];
 
-fun bash script =
-  bash_process_script script
-  |> Process_Result.print
-  |> Process_Result.rc;
+    val address = Options.default_string \<^system_option>\<open>bash_process_address\<close>;
+    val password = Options.default_string \<^system_option>\<open>bash_process_password\<close>;
+
+    val _ = address = "" andalso raise Fail "Bad bash_process server address";
+    fun with_streams f = Socket_IO.with_streams' f address password;
+
+    fun kill (SOME uuid) = with_streams (fn s => Byte_Message.write_message (#2 s) ["kill", uuid])
+      | kill NONE = ();
+  in
+    Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+      let
+        fun loop maybe_uuid streams =
+          (case restore_attributes Byte_Message.read_message (#1 streams) of
+            SOME ["uuid", uuid] => loop (SOME uuid) streams
+          | SOME ["interrupt"] => raise Exn.Interrupt
+          | SOME ["failure", msg] => raise Fail msg
+          | SOME ("result" :: a :: b :: c :: d :: lines) =>
+              let
+                val rc = Value.parse_int a;
+                val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
+                val (out_lines, err_lines) = chop (Value.parse_int d) lines;
+              in
+                if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed
+                else
+                  Process_Result.make
+                   {rc = rc,
+                    out_lines = out_lines,
+                    err_lines = err_lines,
+                    timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
+             end
+          | _ => raise Fail "Malformed bash_process server result")
+          handle exn => (kill maybe_uuid; Exn.reraise exn);
+      in with_streams (fn s => (Byte_Message.write_message (#2 s) run; loop NONE s)) end) ()
+  end;
+
+val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;
 
 fun bash_output s =
   let
-    val res = bash_process_script s;
+    val res = bash_process (Bash.script s);
     val _ = warning (Process_Result.err res);
   in (Process_Result.out res, Process_Result.rc res) end;
 
@@ -77,7 +98,7 @@ fun bash_output s =
 (* bash functions *)
 
 fun bash_functions () =
-  bash_process_script "declare -Fx"
+  bash_process (Bash.script "declare -Fx")
   |> Process_Result.check
   |> Process_Result.out_lines
   |> map_filter (space_explode " " #> try List.last);
@@ -89,7 +110,6 @@ fun check_bash_function ctxt arg =
 
 (* directory and file operations *)
 
-val absolute_path = Path.implode o File.absolute_path;
 fun scala_function name = ignore o Scala.function name o map absolute_path;
 
 fun make_directory path = (scala_function "make_directory" [path]; path);

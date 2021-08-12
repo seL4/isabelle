@@ -36,7 +36,8 @@ val xml_file = XML.parse o File.read;
 
 fun xml_resource name =
   let
-    val res = Isabelle_System.bash_process_script ("unzip -p \"$JEDIT_JAR\" " ^ Bash.string name);
+    val res =
+      Isabelle_System.bash_process (Bash.script ("unzip -p \"$JEDIT_JAR\" " ^ Bash.string name));
     val rc = Process_Result.rc res;
   in
     res |> Process_Result.check |> Process_Result.out |> XML.parse

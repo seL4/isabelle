@@ -274,6 +274,7 @@ sources = \
   src/Tools/jEdit/src/timing_dockable.scala \
   src/Tools/jEdit/src/token_markup.scala
 services = \
+  isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LuaLaTeX_Engine \

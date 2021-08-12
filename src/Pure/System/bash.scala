@@ -236,44 +236,150 @@ object Bash
   }
 
 
-  /* Scala function */
+  /* server */
 
-  object Process extends Scala.Fun_Strings("bash_process", thread = true)
+  object Server
   {
-    val here = Scala_Project.here
-    def apply(args: List[String]): List[String] =
+    // input messages
+    private val RUN = "run"
+    private val KILL = "kill"
+
+    // output messages
+    private val UUID = "uuid"
+    private val INTERRUPT = "interrupt"
+    private val FAILURE = "failure"
+    private val RESULT = "result"
+
+    def start(port: Int = 0, debugging: => Boolean = false): Server =
     {
-      @volatile var is_timeout = false
-      val result =
-        Exn.capture {
-          args match {
-            case List(script, input, Value.Boolean(redirect), Value.Int(timeout)) =>
-              Isabelle_System.bash(script, input = input, redirect = redirect,
-                watchdog =
-                  if (timeout == 0) None
-                  else Some((Time.ms(timeout), _ => { is_timeout = true; true })),
-                strict = false)
-            case _ => error("Bad number of args: " + args.length)
+      val server = new Server(port, debugging)
+      server.start()
+      server
+    }
+  }
+
+  class Server private(port: Int, debugging: => Boolean)
+    extends isabelle.Server.Handler(port)
+  {
+    server =>
+
+    private val _processes = Synchronized(Map.empty[UUID.T, Bash.Process])
+
+    override def stop(): Unit =
+    {
+      for ((_, process) <- _processes.value) process.terminate()
+      super.stop()
+    }
+
+    override def handle(connection: isabelle.Server.Connection): Unit =
+    {
+      def reply(chunks: List[String]): Unit =
+        connection.write_byte_message(chunks.map(Bytes.apply))
+
+      def reply_failure(exn: Throwable): Unit =
+        reply(
+          if (Exn.is_interrupt(exn)) List(Server.INTERRUPT)
+          else List(Server.FAILURE, Exn.message(exn)))
+
+      def reply_result(result: Process_Result): Unit =
+        reply(
+          Server.RESULT ::
+          result.rc.toString ::
+          result.timing.elapsed.ms.toString ::
+          result.timing.cpu.ms.toString ::
+          result.out_lines.length.toString ::
+          result.out_lines :::
+          result.err_lines)
+
+      connection.read_byte_message().map(_.map(_.text)) match {
+        case None =>
+
+        case Some(List(Server.KILL, UUID(uuid))) =>
+          if (debugging) Output.writeln("kill " + uuid)
+          _processes.value.get(uuid).foreach(_.terminate())
+
+        case Some(List(Server.RUN, script, input, cwd, putenv,
+            Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
+          val uuid = UUID.random()
+
+          val descr = proper_string(description) getOrElse "bash_process"
+          if (debugging) {
+            Output.writeln(
+              "start " + quote(descr) + " (uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
           }
-        }
 
-      val is_interrupt =
-        result match {
-          case Exn.Res(res) => res.rc == Process_Result.interrupt_rc && !is_timeout
-          case Exn.Exn(exn) => Exn.is_interrupt(exn)
-        }
+          Exn.capture {
+            Bash.process(script,
+              cwd =
+                XML.Decode.option(XML.Decode.string)(YXML.parse_body(cwd)) match {
+                  case None => null
+                  case Some(s) => Path.explode(s).file
+                },
+              env =
+                Isabelle_System.settings(
+                  XML.Decode.list(XML.Decode.pair(XML.Decode.string, XML.Decode.string))(
+                    YXML.parse_body(putenv))),
+              redirect= redirect)
+          }
+          match {
+            case Exn.Exn(exn) => reply_failure(exn)
+            case Exn.Res(process) =>
+              _processes.change(processes => processes + (uuid -> process))
+              reply(List(Server.UUID, uuid.toString))
 
-      result match {
-        case _ if is_interrupt => Nil
-        case Exn.Exn(exn) => List(Exn.message(exn))
-        case Exn.Res(res) =>
-          val rc = if (!res.ok && is_timeout) Process_Result.timeout_rc else res.rc
-          rc.toString ::
-          res.timing.elapsed.ms.toString ::
-          res.timing.cpu.ms.toString ::
-          res.out_lines.length.toString ::
-          res.out_lines ::: res.err_lines
+              Isabelle_Thread.fork(name = "bash_process") {
+                @volatile var is_timeout = false
+                val watchdog: Option[Watchdog] =
+                  if (timeout.is_zero) None else Some((timeout, _ => { is_timeout = true; true }))
+
+                Exn.capture { process.result(input = input, watchdog = watchdog, strict = false) }
+                match {
+                  case Exn.Exn(exn) => reply_failure(exn)
+                  case Exn.Res(res0) =>
+                    val res = if (!res0.ok && is_timeout) res0.timeout_rc else res0
+                    if (debugging) {
+                      Output.writeln(
+                        "stop " + quote(descr) + " (uuid=" + uuid + ", return_code=" + res.rc + ")")
+                    }
+                    reply_result(res)
+                }
+
+                _processes.change(provers => provers - uuid)
+              }
+
+              connection.await_close()
+          }
+
+        case Some(_) => reply_failure(ERROR("Bad protocol message"))
       }
+    }
+  }
+
+  class Handler extends Session.Protocol_Handler
+  {
+    private var server: Server = null
+
+    override def init(session: Session): Unit =
+    {
+      exit()
+      server = Server.start(debugging = session.session_options.bool("bash_process_debugging"))
+    }
+
+    override def exit(): Unit =
+    {
+      if (server != null) {
+        server.stop()
+        server = null
+      }
+    }
+
+    override def prover_options(options: Options): Options =
+    {
+      val address = if (server == null) "" else server.address
+      val password = if (server == null) "" else server.password
+      options +
+        ("bash_process_address=" + address) +
+        ("bash_process_password=" + password)
     }
   }
 }
