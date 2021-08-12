@@ -7,7 +7,7 @@ Miscellaneous Isabelle system operations.
 package isabelle
 
 
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, HashMap}
 import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult,
   StandardCopyOption, FileSystemException}
@@ -20,7 +20,16 @@ object Isabelle_System
 {
   /* settings */
 
-  def settings(): JMap[String, String] = isabelle.setup.Environment.settings()
+  def settings(putenv: List[(String, String)] = Nil): JMap[String, String] =
+  {
+    val env0 = isabelle.setup.Environment.settings()
+    if (putenv.isEmpty) env0
+    else {
+      val env = new HashMap(env0)
+      for ((a, b) <- putenv) env.put(a, b)
+      env
+    }
+  }
 
   def getenv(name: String, env: JMap[String, String] = settings()): String =
     Option(env.get(name)).getOrElse("")
