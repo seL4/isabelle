@@ -141,11 +141,6 @@ object Options
   }
 
 
-  /* encode */
-
-  val encode: XML.Encode.T[Options] = (options => options.encode)
-
-
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("options", "print Isabelle system options",

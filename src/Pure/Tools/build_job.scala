@@ -427,11 +427,13 @@ class Build_Job(progress: Progress,
           Exn.capture { process.await_startup() } match {
             case Exn.Res(_) =>
               val resources_yxml = resources.init_session_yxml
+              val encode_options: XML.Encode.T[Options] =
+                options => session.prover_options(options).encode
               val args_yxml =
                 YXML.string_of_body(
                   {
                     import XML.Encode._
-                    pair(string, list(pair(Options.encode, list(pair(string, properties)))))(
+                    pair(string, list(pair(encode_options, list(pair(string, properties)))))(
                       (session_name, info.theories))
                   })
               session.protocol_command("build_session", resources_yxml, args_yxml)
