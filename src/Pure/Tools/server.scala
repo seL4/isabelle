@@ -128,6 +128,7 @@ object Server
   {
     val socket: ServerSocket = new ServerSocket(port0, 50, Server.localhost)
     def port: Int = socket.getLocalPort
+    def address: String = print_address(port)
     val password: String = UUID.random().toString
 
     override def toString: String = print(port, password)
@@ -189,12 +190,19 @@ object Server
       try { Byte_Message.read_line_message(in).map(_.text) }
       catch { case _: IOException => None }
 
+    def read_byte_message(): Option[List[Bytes]] =
+      try { Byte_Message.read_message(in) }
+      catch { case _: IOException => None }
+
     def await_close(): Unit =
       try { Byte_Message.read(in, 1); socket.close() }
       catch { case _: IOException => }
 
     def write_line_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
+
+    def write_byte_message(chunks: List[Bytes]): Unit =
+      out_lock.synchronized { Byte_Message.write_message(out, chunks) }
 
     def reply(r: Reply.Value, arg: Any): Unit =
     {
