@@ -227,7 +227,7 @@ fun register class sups params base_sort base_morph export_morph
         make_class_data (((map o apply2) fst params, base_sort,
           base_morph, export_morph, Option.map Thm.trim_context some_assm_intro,
           Thm.trim_context of_class, Option.map Thm.trim_context some_axiom),
-          (Thm.full_rules, operations)))
+          (Thm.item_net, operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;
 

@@ -669,7 +669,7 @@ fun add_declaration loc syntax decl =
 structure Thms = Generic_Data
 (
   type T = thm Item_Net.T * thm Item_Net.T * thm Item_Net.T;
-  val empty = (Thm.full_rules, Thm.full_rules, Thm.full_rules);
+  val empty = (Thm.item_net, Thm.item_net, Thm.item_net);
   val extend = I;
   fun merge ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
    (Item_Net.merge (witnesses1, witnesses2),

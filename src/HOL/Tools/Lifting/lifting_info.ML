@@ -87,7 +87,7 @@ structure Data = Generic_Data
   val empty =
     { quot_maps = Symtab.empty,
       quotients = Symtab.empty,
-      reflexivity_rules = Thm.full_rules,
+      reflexivity_rules = Thm.item_net,
       relator_distr_data = Symtab.empty,
       restore_data = Symtab.empty,
       no_code_types = Symtab.empty
@@ -277,7 +277,7 @@ fun update_restore_data bundle_name restore_data context =
   Data.map (map_restore_data (Symtab.update (bundle_name, restore_data))) context
 
 fun init_restore_data bundle_name qinfo context =
-  update_restore_data bundle_name { quotient = qinfo, transfer_rules = Thm.full_rules } context
+  update_restore_data bundle_name { quotient = qinfo, transfer_rules = Thm.item_net } context
 
 fun add_transfer_rules_in_restore_data bundle_name transfer_rules context =
   (case Symtab.lookup (get_restore_data' context) bundle_name of

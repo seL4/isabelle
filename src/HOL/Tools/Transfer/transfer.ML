@@ -94,13 +94,13 @@ structure Data = Generic_Data
       relator_domain : thm Item_Net.T,
       pred_data : pred_data Symtab.table }
   val empty =
-    { transfer_raw = Thm.intro_rules,
+    { transfer_raw = Thm.item_net_intro,
       known_frees = [],
       compound_lhs = compound_xhs_empty_net,
       compound_rhs = compound_xhs_empty_net,
       relator_eq = rewr_rules,
-      relator_eq_raw = Thm.full_rules,
-      relator_domain = Thm.full_rules,
+      relator_eq_raw = Thm.item_net,
+      relator_domain = Thm.item_net,
       pred_data = Symtab.empty }
   val extend = I
   fun merge

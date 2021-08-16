@@ -33,7 +33,7 @@ type calculation = {result: thm list, level: int, serial: serial, pos: Position.
 structure Data = Generic_Data
 (
   type T = (thm Item_Net.T * thm Item_Net.T) * calculation option;
-  val empty = ((Thm.elim_rules, Thm.full_rules), NONE);
+  val empty = ((Thm.item_net_elim, Thm.item_net), NONE);
   val extend = I;
   fun merge (((trans1, sym1), _), ((trans2, sym2), _)) =
     ((Item_Net.merge (trans1, trans2), Item_Net.merge (sym1, sym2)), NONE);
