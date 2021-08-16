@@ -76,7 +76,7 @@ datatype class_data = Class_Data of {
   axiom: thm option,
 
   (* dynamic part *)
-  defs: thm list,
+  defs: thm Item_Net.T,
   operations: (string * (class * ((typ * term) * bool))) list
 
   (* n.b.
@@ -102,7 +102,7 @@ fun merge_class_data _ (Class_Data {consts = consts,
   Class_Data {consts = _, base_sort = _, base_morph = _, export_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2}) =
   make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
-    (Thm.merge_thms (defs1, defs2),
+    (Item_Net.merge (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
 structure Class_Data = Theory_Data
@@ -153,7 +153,7 @@ fun all_assm_intros thy =
   Graph.fold (fn (_, (Class_Data {assm_intro, ...}, _)) => fold (insert Thm.eq_thm)
     (the_list assm_intro)) (Class_Data.get thy) [];
 
-fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
+fun these_defs thy = maps (Item_Net.content o #defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
 val base_morphism = #base_morph oo the_class_data;
@@ -226,7 +226,8 @@ fun register class sups params base_sort base_morph export_morph
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
           base_morph, export_morph, Option.map Thm.trim_context some_assm_intro,
-          Thm.trim_context of_class, Option.map Thm.trim_context some_axiom), ([], operations)))
+          Thm.trim_context of_class, Option.map Thm.trim_context some_axiom),
+          (Thm.full_rules, operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;
 
@@ -261,7 +262,7 @@ fun register_def class def_thm thy =
   in
     thy
     |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apfst)
-        (cons sym_thm)
+        (Item_Net.update sym_thm)
     |> activate_defs class [sym_thm]
   end;
 
