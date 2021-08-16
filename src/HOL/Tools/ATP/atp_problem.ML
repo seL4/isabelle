@@ -501,6 +501,10 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) =
             s ^ "(" ^ declaration ^ ", " ^ definition ^ ", " ^ usage ^ ")"
             end
         | _ => app ())
+      else if s = tptp_ite then
+        (case ts of
+          [t1, t2, t3] => s ^ "(" ^ of_term t1 ^ ", " ^ of_term t2 ^ ", " ^ of_term t3 ^ ")"
+        | _ => app ())
       else if s = tptp_choice then
         (case ts of
           [AAbs (((s', ty), tm), args)] =>
