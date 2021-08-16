@@ -668,33 +668,33 @@ fun add_declaration loc syntax decl =
 
 structure Thms = Generic_Data
 (
-  type T = thm list * thm list * thm list;
-  val empty = ([], [], []);
+  type T = thm Item_Net.T * thm Item_Net.T * thm Item_Net.T;
+  val empty = (Thm.full_rules, Thm.full_rules, Thm.full_rules);
   val extend = I;
   fun merge ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
-   (Thm.merge_thms (witnesses1, witnesses2),
-    Thm.merge_thms (intros1, intros2),
-    Thm.merge_thms (unfolds1, unfolds2));
+   (Item_Net.merge (witnesses1, witnesses2),
+    Item_Net.merge (intros1, intros2),
+    Item_Net.merge (unfolds1, unfolds2));
 );
 
 fun get_thms which ctxt =
   map (Thm.transfer' ctxt) (which (Thms.get (Context.Proof ctxt)));
 
-val get_witnesses = get_thms #1;
-val get_intros = get_thms #2;
-val get_unfolds = get_thms #3;
+val get_witnesses = get_thms (Item_Net.content o #1);
+val get_intros = get_thms (Item_Net.content o #2);
+val get_unfolds = get_thms (Item_Net.content o #3);
 
 val witness_add =
   Thm.declaration_attribute (fn th =>
-    Thms.map (fn (x, y, z) => (Thm.add_thm (Thm.trim_context th) x, y, z)));
+    Thms.map (fn (x, y, z) => (Item_Net.update (Thm.trim_context th) x, y, z)));
 
 val intro_add =
   Thm.declaration_attribute (fn th =>
-    Thms.map (fn (x, y, z) => (x, Thm.add_thm (Thm.trim_context th) y, z)));
+    Thms.map (fn (x, y, z) => (x, Item_Net.update (Thm.trim_context th) y, z)));
 
 val unfold_add =
   Thm.declaration_attribute (fn th =>
-    Thms.map (fn (x, y, z) => (x, y, Thm.add_thm (Thm.trim_context th) z)));
+    Thms.map (fn (x, y, z) => (x, y, Item_Net.update (Thm.trim_context th) z)));
 
 
 (* Tactics *)
