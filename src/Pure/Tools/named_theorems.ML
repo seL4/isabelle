@@ -34,7 +34,7 @@ fun new_entry name =
   Data.map (fn data =>
     if Symtab.defined data name
     then error ("Duplicate declaration of named theorems: " ^ quote name)
-    else Symtab.update (name, Thm.full_rules) data);
+    else Symtab.update (name, Thm.item_net) data);
 
 fun undeclared name = "Undeclared named theorems " ^ quote name;
 
@@ -58,7 +58,7 @@ fun content context =
 
 val get = content o Context.Proof;
 
-fun clear name = map_entry name (K Thm.full_rules);
+fun clear name = map_entry name (K Thm.item_net);
 
 fun add_thm name th = map_entry name (Item_Net.update (Thm.trim_context th));
 fun del_thm name = map_entry name o Item_Net.remove;

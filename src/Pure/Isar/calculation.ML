@@ -32,23 +32,22 @@ type calculation = {result: thm list, level: int, serial: serial, pos: Position.
 
 structure Data = Generic_Data
 (
-  type T = (thm Item_Net.T * thm list) * calculation option;
-  val empty = ((Thm.elim_rules, []), NONE);
+  type T = (thm Item_Net.T * thm Item_Net.T) * calculation option;
+  val empty = ((Thm.item_net_elim, Thm.item_net), NONE);
   val extend = I;
   fun merge (((trans1, sym1), _), ((trans2, sym2), _)) =
-    ((Item_Net.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
+    ((Item_Net.merge (trans1, trans2), Item_Net.merge (sym1, sym2)), NONE);
 );
 
 val get_rules = #1 o Data.get o Context.Proof;
+val get_trans_rules = Item_Net.content o #1 o get_rules;
+val get_sym_rules = Item_Net.content o #2 o get_rules;
 val get_calculation = #2 o Data.get o Context.Proof;
 
 fun print_rules ctxt =
-  let
-    val pretty_thm = Thm.pretty_thm_item ctxt;
-    val (trans, sym) = get_rules ctxt;
-  in
-   [Pretty.big_list "transitivity rules:" (map pretty_thm (Item_Net.content trans)),
-    Pretty.big_list "symmetry rules:" (map pretty_thm sym)]
+  let val pretty_thm = Thm.pretty_thm_item ctxt in
+   [Pretty.big_list "transitivity rules:" (map pretty_thm (get_trans_rules ctxt)),
+    Pretty.big_list "symmetry rules:" (map pretty_thm (get_sym_rules ctxt))]
   end |> Pretty.writeln_chunks;
 
 
@@ -106,12 +105,12 @@ val trans_del =
 
 val sym_add =
   Thm.declaration_attribute (fn th =>
-    (Data.map o apfst o apsnd) (Thm.add_thm (Thm.trim_context th)) #>
+    (Data.map o apfst o apsnd) (Item_Net.update (Thm.trim_context th)) #>
     Thm.attribute_declaration (Context_Rules.elim_query NONE) th);
 
 val sym_del =
   Thm.declaration_attribute (fn th =>
-    (Data.map o apfst o apsnd) (Thm.del_thm th) #>
+    (Data.map o apfst o apsnd) (Item_Net.remove th) #>
     Thm.attribute_declaration Context_Rules.rule_del th);
 
 
@@ -119,11 +118,12 @@ val sym_del =
 
 val symmetric =
   Thm.rule_attribute [] (fn context => fn th =>
-    (case Seq.chop 2
-        (Drule.multi_resolves (SOME (Context.proof_of context)) [th] (#2 (#1 (Data.get context)))) of
-      ([th'], _) => Drule.zero_var_indexes th'
-    | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
-    | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
+    let val ctxt = Context.proof_of context in
+      (case Seq.chop 2 (Drule.multi_resolves (SOME ctxt) [th] (get_sym_rules ctxt)) of
+        ([th'], _) => Drule.zero_var_indexes th'
+      | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
+      | _ => raise THM ("symmetric: multiple unifiers", 1, [th]))
+    end);
 
 
 (* concrete syntax *)

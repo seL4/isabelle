@@ -48,7 +48,7 @@ val parse_match_kind =
   Scan.lift (\<^keyword>\<open>premises\<close> |-- Args.mode "local") >> Match_Prems ||
   Scan.lift (\<^keyword>\<open>(\<close>) |-- Args.term --| Scan.lift (\<^keyword>\<open>)\<close>) >>
     (fn t => Match_Term (Item_Net.update t aconv_net)) ||
-  Attrib.thms >> (fn thms => Match_Fact (fold Item_Net.update thms Thm.full_rules));
+  Attrib.thms >> (fn thms => Match_Fact (fold Item_Net.update thms Thm.item_net));
 
 
 fun nameable_match m = (case m of Match_Fact _ => true | Match_Prems _ => true | _ => false);

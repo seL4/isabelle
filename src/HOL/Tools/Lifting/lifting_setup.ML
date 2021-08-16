@@ -1026,7 +1026,7 @@ fun update_transfer_rules pointer lthy =
         val transfer_rules = filter_transfer_rules_by_rel transfer_rel (Transfer.get_transfer_raw lthy)
       in
         fn phi => fold_rev 
-          (Item_Net.update o Morphism.thm phi) transfer_rules Thm.full_rules
+          (Item_Net.update o Morphism.thm phi) transfer_rules Thm.item_net
       end
   in
     case Lifting_Info.lookup_restore_data lthy pointer of

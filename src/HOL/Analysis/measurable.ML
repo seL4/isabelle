@@ -53,8 +53,8 @@ structure Data = Generic_Data
     preprocessors : (string * preprocessor) list }
   val empty: T = {
     measurable_thms = Item_Net.init eq_measurable_thms (single o Thm.prop_of o fst),
-    dest_thms = Thm.full_rules,
-    cong_thms = Thm.full_rules,
+    dest_thms = Thm.item_net,
+    cong_thms = Thm.item_net,
     preprocessors = [] };
   val extend = I;
   fun merge ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1 },
