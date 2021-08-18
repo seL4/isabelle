@@ -266,6 +266,8 @@ val consolidate_bodies =
   maps (fn PBody {thms, ...} => map (thm_node_consolidate o #2) thms)
   #> Lazy.consolidate #> map Lazy.force #> ignore;
 
+val consolidate_body = consolidate_bodies o single;
+
 fun make_thm_node theory_name name prop body export =
   let
     val consolidate =
@@ -1981,7 +1983,7 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
     fun fulfill () =
       postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body));
   in
-    if null promises then Future.map postproc body
+    if null promises then Future.map (postproc #> tap consolidate_body) body
     else if Future.is_finished body andalso length promises = 1 then
       Future.map (fn _ => fulfill ()) (snd (hd promises))
     else
