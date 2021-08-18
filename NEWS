@@ -9,6 +9,17 @@ New in this Isabelle version
 
 *** General ***
 
+* Configuration option "show_results" controls output of final results
+in commands like 'definition' or 'theorem'. Output is normally enabled
+in interactive mode, but it could occasionally cause unnecessary
+slowdown. It can be disabled like this:
+
+  context notes [[show_results = true]]
+  begin
+    definition "test = True"
+    theorem test by (simp add: test_def)
+  end
+
 * Timeouts for Isabelle/ML tools are subject to system option
 "timeout_scale" --- this already used for the overall session build
 process before, and allows to adapt to slow machines. The underlying

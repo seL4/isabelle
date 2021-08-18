@@ -22,6 +22,7 @@ sig
   val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
+  val show_results: bool Config.T
   val print_results: bool -> Position.T -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Position.T -> Proof.context ->
@@ -263,6 +264,14 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 fun position_markup pos = Pretty.mark (Position.markup pos Markup.position);
 
+val interactive =
+  Config.declare_bool ("interactive", \<^here>) (K false);
+
+val show_results =
+  Config.declare_bool ("show_results", \<^here>) (fn context => Config.get_generic context interactive);
+
+fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_results);
+
 local
 
 fun pretty_fact_name pos (kind, "") = position_markup pos (Pretty.keyword1 kind)
@@ -276,8 +285,8 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results do_print pos ctxt ((kind, name), facts) =
-  if not do_print orelse kind = "" then ()
+fun print_results int pos ctxt ((kind, name), facts) =
+  if kind = "" orelse no_print int ctxt then ()
   else if name = "" then
     (Output.state o Pretty.string_of)
       (Pretty.block (position_markup pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
@@ -315,8 +324,8 @@ fun pretty_consts pos ctxt pred cs =
 
 in
 
-fun print_consts do_print pos ctxt pred cs =
-  if not do_print orelse null cs then ()
+fun print_consts int pos ctxt pred cs =
+  if null cs orelse no_print int ctxt then ()
   else Output.state (Pretty.string_of (pretty_consts pos ctxt pred cs));
 
 end;
