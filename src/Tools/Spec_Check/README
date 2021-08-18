@@ -1,0 +1,47 @@
+This is a Quickcheck tool for Isabelle/ML.
+
+Authors
+
+  Lukas Bulwahn
+  Nicolai Schaffroth
+
+Quick Usage
+
+  - Import Spec_Check.thy in your development
+  - Look at examples in Examples.thy
+  - write specifications with the ML invocation
+      check_property "ALL x. P x"
+
+Notes
+
+Our specification-based testing tool originated from Christopher League's
+QCheck tool for SML (cf. https://github.com/league/qcheck). As Isabelle
+provides a rich and uniform ML platform (called Isabelle/ML), this
+testing tools is very different than the one for a typical ML developer.
+
+1. Isabelle/ML provides common data structures, which we can use in the
+tool's implementation for storing data and printing output.
+
+2. The implementation in Isabelle that will be checked with this tool
+commonly use Isabelle/ML's int type (which corresponds ML's IntInf.int),
+but they do not use other integer types in ML, such as ML's Int.int,
+Word.word and others.
+
+3. As Isabelle can run heavily in parallel, we avoid reference types.
+
+4. Isabelle has special naming conventions and documentation of source
+code is only minimal to avoid parroting.
+
+Next steps:
+  - Remove all references and store the neccessary random seed in the
+    Isabelle's context.
+  - Simplify some existing random generators.
+    The original ones from Christopher League are so complicated to
+    support many integer types uniformly.
+
+License
+
+  The source code originated from Christopher League's QCheck, which is
+  licensed under the 2-clause BSD license. The current source code is
+  licensed under the compatible 3-clause BSD license of Isabelle.
+
