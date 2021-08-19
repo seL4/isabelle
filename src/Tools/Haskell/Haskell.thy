@@ -2830,6 +2830,408 @@ connection port password client =
       client socket
 \<close>
 
+generate_file "Isabelle/Time.hs" = \<open>
+{-  Title:      Isabelle/Time.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Time based on milliseconds.
+
+See \<^file>\<open>~~/src/Pure/General/time.scala\<close>
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Time (
+  Time, seconds, minutes, ms, zero, is_zero, is_relevant,
+  get_seconds, get_minutes, get_ms, message
+)
+where
+
+import Text.Printf (printf)
+import Isabelle.Bytes (Bytes)
+import Isabelle.Library
+
+
+data Time = Time Int
+
+instance Eq Time where Time ms1 == Time ms2 = ms1 == ms2
+instance Ord Time where compare (Time ms1) (Time ms2) = compare ms1 ms2
+
+seconds :: Double -> Time
+seconds s = Time (round (s * 1000.0))
+
+minutes :: Double -> Time
+minutes m = Time (round (m * 60000.0))
+
+ms :: Int -> Time
+ms = Time
+
+zero :: Time
+zero = ms 0
+
+is_zero :: Time -> Bool
+is_zero (Time ms) = ms == 0
+
+is_relevant :: Time -> Bool
+is_relevant (Time ms) = ms >= 1
+
+get_seconds :: Time -> Double
+get_seconds (Time ms) = fromIntegral ms / 1000.0
+
+get_minutes :: Time -> Double
+get_minutes (Time ms) = fromIntegral ms / 60000.0
+
+get_ms :: Time -> Int
+get_ms (Time ms) = ms
+
+instance Show Time where
+  show t = printf "%.3f" (get_seconds t)
+
+message :: Time -> Bytes
+message t = make_bytes (show t) <> "s"
+\<close>
+
+generate_file "Isabelle/Timing.hs" = \<open>
+{-  Title:      Isabelle/Timing.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Support for time measurement.
+
+See \<^file>\<open>~~/src/Pure/General/timing.ML\<close>
+and \<^file>\<open>~~/src/Pure/General/timing.scala\<close>
+-}
+
+module Isabelle.Timing (
+  Timing (..), zero, is_zero, is_relevant
+)
+where
+
+import qualified Isabelle.Time as Time
+import Isabelle.Time (Time)
+
+data Timing = Timing {elapsed :: Time, cpu :: Time, gc :: Time}
+  deriving (Show, Eq)
+
+zero :: Timing
+zero = Timing Time.zero Time.zero Time.zero
+
+is_zero :: Timing -> Bool
+is_zero t = Time.is_zero (elapsed t) && Time.is_zero (cpu t) && Time.is_zero (gc t)
+
+is_relevant :: Timing -> Bool
+is_relevant t = Time.is_relevant (elapsed t) || Time.is_relevant (cpu t) || Time.is_relevant (gc t)
+\<close>
+
+generate_file "Isabelle/Bash.hs" = \<open>
+{-  Title:      Isabelle/Bash.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Support for GNU bash.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/System/bash.ML\<close>
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Bash (
+  string, strings,
+
+  Params,
+  get_script, get_input, get_cwd, get_putenv, get_redirect,
+  get_timeout, get_description,
+  script, input, cwd, putenv, redirect, timeout, description,
+)
+where
+
+import Text.Printf (printf)
+import qualified Isabelle.Symbol as Symbol
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.Time as Time
+import Isabelle.Time (Time)
+import Isabelle.Library
+
+
+{- concrete syntax -}
+
+string :: Bytes -> Bytes
+string str =
+  if Bytes.null str then "\"\""
+  else str |> Bytes.unpack |> map trans |> Bytes.concat
+    where
+      trans b =
+        case Bytes.char b of
+          '\t' -> "$'\\t'"
+          '\n' -> "$'\\n'"
+          '\f' -> "$'\\f'"
+          '\r' -> "$'\\r'"
+          c ->
+            if Symbol.is_ascii_letter c || Symbol.is_ascii_digit c || c == '+' || c == ',' ||
+              c == '-' || c == '.' || c == '/' || c == ':' || c == '_'
+            then Bytes.singleton b
+            else if b < 32 || b >= 127 then make_bytes (printf "$'\\x%02x'" b :: String)
+            else "\\" <> Bytes.singleton b
+
+strings :: [Bytes] -> Bytes
+strings = space_implode " " . map string
+
+
+{- server parameters -}
+
+data Params = Params {
+    _script :: Bytes,
+    _input :: Bytes,
+    _cwd :: Maybe Bytes,
+    _putenv :: [(Bytes, Bytes)],
+    _redirect :: Bool,
+    _timeout :: Time,
+    _description :: Bytes}
+  deriving (Show, Eq)
+
+get_script :: Params -> Bytes
+get_script = _script
+
+get_input :: Params -> Bytes
+get_input = _input
+
+get_cwd :: Params -> Maybe Bytes
+get_cwd = _cwd
+
+get_putenv :: Params -> [(Bytes, Bytes)]
+get_putenv = _putenv
+
+get_redirect :: Params -> Bool
+get_redirect = _redirect
+
+get_timeout :: Params -> Time
+get_timeout = _timeout
+
+get_description :: Params -> Bytes
+get_description = _description
+
+script :: Bytes -> Params
+script script = Params script "" Nothing [] False Time.zero ""
+
+input :: Bytes -> Params -> Params
+input input params = params { _input = input }
+
+cwd :: Bytes -> Params -> Params
+cwd cwd params = params { _cwd = Just cwd }
+
+putenv :: [(Bytes, Bytes)] -> Params -> Params
+putenv putenv params = params { _putenv = putenv }
+
+redirect :: Params -> Params
+redirect params = params { _redirect = True }
+
+timeout :: Time -> Params -> Params
+timeout timeout params = params { _timeout = timeout }
+
+description :: Bytes -> Params -> Params
+description description params = params { _description = description }
+\<close>
+
+generate_file "Isabelle/Process_Result.hs" = \<open>
+{-  Title:      Isabelle/Process_Result.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Result of system process.
+
+See \<^file>\<open>~~/src/Pure/System/process_result.ML\<close>
+and \<^file>\<open>~~/src/Pure/System/process_result.scala\<close>
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Process_Result (
+  interrupt_rc, timeout_rc,
+
+  T, make, rc, out_lines, err_lines, timing, timing_elapsed, out, err, ok, check
+)
+where
+
+import Isabelle.Time (Time)
+import qualified Isabelle.Timing as Timing
+import Isabelle.Timing (Timing)
+import Isabelle.Bytes (Bytes)
+import Isabelle.Library
+
+
+interrupt_rc :: Int
+interrupt_rc = 130
+
+timeout_rc :: Int
+timeout_rc = 142
+
+data T =
+  Process_Result {
+    _rc :: Int,
+    _out_lines :: [Bytes],
+    _err_lines :: [Bytes],
+    _timing :: Timing}
+  deriving (Show, Eq)
+
+make :: Int -> [Bytes] -> [Bytes] -> Timing -> T
+make = Process_Result
+
+rc :: T -> Int
+rc = _rc
+
+out_lines :: T -> [Bytes]
+out_lines = _out_lines
+
+err_lines :: T -> [Bytes]
+err_lines = _err_lines
+
+timing :: T -> Timing
+timing = _timing
+
+timing_elapsed :: T -> Time
+timing_elapsed = Timing.elapsed . timing
+
+out :: T -> Bytes
+out = trim_line . cat_lines . out_lines
+
+err :: T -> Bytes
+err = trim_line . cat_lines . err_lines
+
+ok :: T -> Bool
+ok result = rc result == 0
+
+check :: T -> T
+check result = if ok result then result else error (make_string $ err result)
+\<close>
+
+generate_file "Isabelle/Options.hs" = \<open>
+{-  Title:      Isabelle/Options.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+System options with external string representation.
+
+See \<^file>\<open>~~/src/Pure/System/options.ML\<close>
+and \<^file>\<open>~~/src/Pure/System/options.scala\<close>
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE InstanceSigs #-}
+
+module Isabelle.Options (
+  boolT, intT, realT, stringT, unknownT,
+
+  T, typ, bool, int, real, seconds, string,
+  decode
+)
+where
+
+import qualified Data.Map.Strict as Map
+import Data.Map.Strict (Map)
+import qualified Isabelle.Properties as Properties
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.Value as Value
+import qualified Isabelle.Time as Time
+import Isabelle.Time (Time)
+import Isabelle.Library
+import qualified Isabelle.XML.Decode as Decode
+import Isabelle.XML.Classes (Decode (..))
+
+
+{- representation -}
+
+boolT :: Bytes
+boolT = "bool"
+
+intT :: Bytes
+intT = "int"
+
+realT :: Bytes
+realT = "real"
+
+stringT :: Bytes
+stringT = "string"
+
+unknownT :: Bytes
+unknownT = "unknown"
+
+data Opt = Opt {
+  _pos :: Properties.T,
+  _name :: Bytes,
+  _typ :: Bytes,
+  _value :: Bytes }
+
+data T = Options (Map Bytes Opt)
+
+
+{- check -}
+
+check_name :: T -> Bytes -> Opt
+check_name (Options map) name =
+  case Map.lookup name map of
+    Just opt | _typ opt /= unknownT -> opt
+    _ -> error (make_string ("Unknown system option " <> quote name))
+
+check_type :: T -> Bytes -> Bytes -> Opt
+check_type options name typ =
+  let
+    opt = check_name options name
+    t = _typ opt
+  in
+    if t == typ then opt
+    else error (make_string ("Ill-typed system option " <> quote name <> " : " <> t <> " vs. " <> typ))
+
+
+{- get typ -}
+
+typ :: T -> Bytes -> Bytes
+typ options name = _typ (check_name options name)
+
+
+{- get value -}
+
+get :: Bytes -> (Bytes -> Maybe a) -> T -> Bytes -> a
+get typ parse options name =
+  let opt = check_type options name typ in
+    case parse (_value opt) of
+      Just x -> x
+      Nothing ->
+        error (make_string ("Malformed value for system option " <> quote name <>
+          " : " <> typ <> " =\n" <> quote (_value opt)))
+
+bool :: T -> Bytes -> Bool
+bool = get boolT Value.parse_bool
+
+int :: T -> Bytes -> Int
+int = get intT Value.parse_int
+
+real :: T -> Bytes -> Double
+real = get realT Value.parse_real
+
+seconds :: T -> Bytes -> Time
+seconds options = Time.seconds . real options
+
+string :: T -> Bytes -> Bytes
+string = get stringT Just
+
+
+{- decode -}
+
+instance Decode T where
+  decode :: Decode.T T
+  decode =
+    let
+      decode_entry :: Decode.T (Bytes, Opt)
+      decode_entry body =
+        let
+          (pos, (name, (typ, value))) =
+            Decode.pair Decode.properties (Decode.pair Decode.string (Decode.pair Decode.string Decode.string)) body
+        in (name, Opt { _pos = pos, _name = name, _typ = typ, _value = value })
+    in Options . Map.fromList . Decode.list decode_entry
+\<close>
+
 export_generated_files _
 
 end

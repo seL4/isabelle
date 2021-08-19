@@ -26,7 +26,8 @@ sig
   val put_string: string -> string -> T -> T
   val declare: {pos: Position.T, name: string, typ: string, value: string} -> T -> T
   val update: string -> string -> T -> T
-  val decode: XML.body -> T
+  val encode: T XML.Encode.T
+  val decode: T XML.Decode.T
   val default: unit -> T
   val default_typ: string -> string
   val default_bool: string -> bool
@@ -150,15 +151,24 @@ fun update name value (options as Options tab) =
   in options' end;
 
 
-(* decode *)
+(* XML data *)
 
-fun decode_opt body =
-  let open XML.Decode
-  in list (pair properties (pair string (pair string string))) end body
-  |> map (fn (props, (name, (typ, value))) =>
-      {pos = Position.of_properties props, name = name, typ = typ, value = value});
+fun encode (Options tab) =
+  let
+    val opts =
+      (tab, []) |-> Symtab.fold (fn (name, {pos, typ, value}) =>
+        cons (Position.properties_of pos, (name, (typ, value))));
+    open XML.Encode;
+  in list (pair properties (pair string (pair string string))) opts end;
 
-fun decode body = fold declare (decode_opt body) empty;
+fun decode body =
+  let
+    open XML.Decode;
+    val decode_options =
+      list (pair properties (pair string (pair string string)))
+      #> map (fn (props, (name, (typ, value))) =>
+          {pos = Position.of_properties props, name = name, typ = typ, value = value});
+  in fold declare (decode_options body) empty end;
 
 
 
