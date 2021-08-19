@@ -1,7 +1,8 @@
 /*  Title:      Pure/System/bash.scala
     Author:     Makarius
 
-GNU bash processes, with propagation of interrupts.
+Support for GNU bash: portable external processes with propagation of
+interrupts.
 */
 
 package isabelle

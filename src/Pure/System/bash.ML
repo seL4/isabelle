@@ -1,7 +1,7 @@
 (*  Title:      Pure/System/bash.ML
     Author:     Makarius
 
-Syntax for GNU bash.
+Support for GNU bash.
 *)
 
 signature BASH =
