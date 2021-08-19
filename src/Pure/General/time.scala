@@ -14,8 +14,8 @@ import java.time.Instant
 object Time
 {
   def seconds(s: Double): Time = new Time((s * 1000.0).round)
-  def minutes(s: Double): Time = new Time((s * 60000.0).round)
-  def ms(m: Long): Time = new Time(m)
+  def minutes(m: Double): Time = new Time((m * 60000.0).round)
+  def ms(ms: Long): Time = new Time(ms)
   def hms(h: Int, m: Int, s: Double): Time = seconds(s + 60 * m + 3600 * h)
 
   def now(): Time = ms(System.currentTimeMillis())

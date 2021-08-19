@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/timing.ML
     Author:     Makarius
 
-Basic support for time measurement.
+Support for time measurement.
 *)
 
 signature BASIC_TIMING =
