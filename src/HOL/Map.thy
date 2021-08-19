@@ -765,7 +765,7 @@ lemma finite_graph_map_of: "finite (graph (map_of al))"
   unfolding graph_eq_to_snd_dom finite_dom_map_of
   using finite_dom_map_of by blast
 
-lemma graph_map_of_if_distinct_ran: "distinct (map fst al) \<Longrightarrow> graph (map_of al) = set al"
+lemma graph_map_of_if_distinct_dom: "distinct (map fst al) \<Longrightarrow> graph (map_of al) = set al"
   unfolding graph_def by auto
 
 lemma finite_graph_iff_finite_dom[simp]: "finite (graph m) = finite (dom m)"

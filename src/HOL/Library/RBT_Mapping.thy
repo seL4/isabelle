@@ -58,7 +58,7 @@ unfolding ordered_keys_def
 by (transfer fixing: t) (auto simp add: lookup_keys intro: sorted_distinct_set_unique)
 
 lemma Map_graph_lookup: "Map.graph (RBT.lookup t) = set (RBT.entries t)"
-  by (metis RBT.distinct_entries RBT.map_of_entries graph_map_of_if_distinct_ran)
+  by (metis RBT.distinct_entries RBT.map_of_entries graph_map_of_if_distinct_dom)
 
 lemma entries_Mapping [code]: "Mapping.entries (Mapping t) = set (RBT.entries t)"
   by (transfer fixing: t) (fact Map_graph_lookup)

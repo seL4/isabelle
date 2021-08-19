@@ -284,16 +284,22 @@ proof (intro mapping_eqI)
   qed
 qed
 
-lemma lookup_update: "lookup (update k v m) k = Some v"
+lemma lookup_update[simp]: "lookup (update k v m) k = Some v"
   by transfer simp
 
-lemma lookup_update_neq: "k \<noteq> k' \<Longrightarrow> lookup (update k v m) k' = lookup m k'"
+lemma lookup_update_neq[simp]: "k \<noteq> k' \<Longrightarrow> lookup (update k v m) k' = lookup m k'"
   by transfer simp
 
-lemma lookup_update': "Mapping.lookup (update k v m) k' = (if k = k' then Some v else lookup m k')"
-  by (auto simp: lookup_update lookup_update_neq)
+lemma lookup_update': "lookup (update k v m) k' = (if k = k' then Some v else lookup m k')"
+  by transfer simp
 
-lemma lookup_empty: "lookup empty k = None"
+lemma lookup_empty[simp]: "lookup empty k = None"
+  by transfer simp
+
+lemma lookup_delete[simp]: "lookup (delete k m) k = None"
+  by transfer simp
+
+lemma lookup_delete_neq[simp]: "k \<noteq> k' \<Longrightarrow> lookup (delete k m) k' = lookup m k'"
   by transfer simp
 
 lemma lookup_filter:
@@ -310,11 +316,11 @@ lemma lookup_default_empty: "lookup_default d empty k = d"
   by (simp add: lookup_default_def lookup_empty)
 
 lemma lookup_default_update: "lookup_default d (update k v m) k = v"
-  by (simp add: lookup_default_def lookup_update)
+  by (simp add: lookup_default_def)
 
 lemma lookup_default_update_neq:
   "k \<noteq> k' \<Longrightarrow> lookup_default d (update k v m) k' = lookup_default d m k'"
-  by (simp add: lookup_default_def lookup_update_neq)
+  by (simp add: lookup_default_def)
 
 lemma lookup_default_update':
   "lookup_default d (update k v m) k' = (if k = k' then v else lookup_default d m k')"
@@ -398,7 +404,7 @@ lemma lookup_tabulate:
   shows "Mapping.lookup (Mapping.tabulate xs f) x = (if x \<in> set xs then Some (f x) else None)"
   using assms by transfer (auto simp: map_of_eq_None_iff o_def dest!: map_of_SomeD)
 
-lemma lookup_of_alist: "Mapping.lookup (Mapping.of_alist xs) k = map_of xs k"
+lemma lookup_of_alist: "lookup (of_alist xs) k = map_of xs k"
   by transfer simp_all
 
 lemma keys_is_none_rep [code_unfold]: "k \<in> keys m \<longleftrightarrow> \<not> (Option.is_none (lookup m k))"
@@ -418,6 +424,10 @@ lemma delete_update:
   by (transfer; simp add: fun_upd_twist)+
 
 lemma delete_empty [simp]: "delete k empty = empty"
+  by transfer simp
+
+lemma Mapping_delete_if_notin_keys[simp]:
+  "k \<notin> keys m \<Longrightarrow> delete k m = m"
   by transfer simp
 
 lemma replace_update:
@@ -487,9 +497,6 @@ lemma keys_empty [simp]: "keys empty = {}"
 lemma in_keysD: "k \<in> keys m \<Longrightarrow> \<exists>v. lookup m k = Some v"
   by transfer (fact domD)
 
-lemma in_entriesI: "lookup m k = Some v \<Longrightarrow> (k, v) \<in> entries m"
-  by transfer (fact in_graphI)
-
 lemma keys_update [simp]: "keys (update k v m) = insert k (keys m)"
   by transfer simp
 
@@ -527,6 +534,14 @@ lemma keys_of_alist [simp]: "keys (of_alist xs) = set (List.map fst xs)"
 lemma keys_bulkload [simp]: "keys (bulkload xs) = {0..<length xs}"
   by (simp add: bulkload_tabulate)
 
+lemma finite_keys_update[simp]:
+  "finite (keys (update k v m)) = finite (keys m)"
+  by transfer simp
+
+lemma set_ordered_keys[simp]:
+  "finite (Mapping.keys m) \<Longrightarrow> set (Mapping.ordered_keys m) = Mapping.keys m"
+  unfolding ordered_keys_def by transfer auto
+
 lemma distinct_ordered_keys [simp]: "distinct (ordered_keys m)"
   by (simp add: ordered_keys_def)
 
@@ -535,6 +550,9 @@ lemma ordered_keys_infinite [simp]: "\<not> finite (keys m) \<Longrightarrow> or
 
 lemma ordered_keys_empty [simp]: "ordered_keys empty = []"
   by (simp add: ordered_keys_def)
+
+lemma sorted_ordered_keys[simp]: "sorted (ordered_keys m)"
+  unfolding ordered_keys_def by simp
 
 lemma ordered_keys_update [simp]:
   "k \<in> keys m \<Longrightarrow> ordered_keys (update k v m) = ordered_keys m"
@@ -806,23 +824,28 @@ proof(cases "finite (Map.graph m)")
   qed simp
 qed simp
 
+lemma entries_empty[simp]: "entries empty = {}"
+  by transfer (fact graph_empty)
+
 lemma entries_lookup: "entries m = Map.graph (lookup m)"
   by transfer rule
 
-lemma entries_empty[simp]: "entries empty = {}"
-  by transfer (fact graph_empty)
+lemma in_entriesI: "lookup m k = Some v \<Longrightarrow> (k, v) \<in> entries m"
+  by transfer (fact in_graphI)
+
+lemma in_entriesD: "(k, v) \<in> entries m \<Longrightarrow> lookup m k = Some v"
+  by transfer (fact in_graphD)
+
+lemma fst_image_entries_eq_keys[simp]: "fst ` Mapping.entries m = Mapping.keys m"
+  by transfer (fact fst_graph_eq_dom)
 
 lemma finite_entries_iff_finite_keys[simp]:
   "finite (entries m) = finite (keys m)"
   by transfer (fact finite_graph_iff_finite_dom)
 
-lemma entries_update[simp]:
+lemma entries_update:
   "entries (update k v m) = insert (k, v) (entries (delete k m))"
   by transfer (fact graph_map_upd)
-
-lemma Mapping_delete_if_notin_keys[simp]:
-  "k \<notin> Mapping.keys m \<Longrightarrow> delete k m = m"
-  by transfer simp
 
 lemma entries_delete:
   "entries (delete k m) = {e \<in> entries m. fst e \<noteq> k}"
@@ -830,18 +853,14 @@ lemma entries_delete:
 
 lemma entries_of_alist[simp]:
   "distinct (List.map fst xs) \<Longrightarrow> entries (of_alist xs) = set xs"
-  by transfer (fact graph_map_of_if_distinct_ran)
+  by transfer (fact graph_map_of_if_distinct_dom)
 
 lemma entries_keysD:
   "x \<in> entries m \<Longrightarrow> fst x \<in> keys m"
   by transfer (fact graph_domD)
 
-lemma finite_keys_entries[simp]:
-  "finite (keys (update k v m)) = finite (keys m)"
-  by transfer simp
-
 lemma set_ordered_entries[simp]:
-  "finite (Mapping.keys m) \<Longrightarrow> set (ordered_entries m) = entries m"
+  "finite (keys m) \<Longrightarrow> set (ordered_entries m) = entries m"
   unfolding ordered_entries_def
   by transfer (auto simp: folding_Map_graph.set_sorted_key_list_of_set[OF subset_refl])
 
@@ -884,6 +903,22 @@ lemma ordered_entries_delete[simp]:
   "ordered_entries (delete k m) = AList.delete k (ordered_entries m)"
   unfolding ordered_entries_def by transfer auto
 
+lemma map_fst_ordered_entries[simp]:
+  "List.map fst (ordered_entries m) = ordered_keys m"
+proof(cases "finite (Mapping.keys m)")
+  case True
+  then have "set (List.map fst (Mapping.ordered_entries m)) = set (Mapping.ordered_keys m)"
+    unfolding ordered_entries_def ordered_keys_def
+    by (transfer) (simp add: folding_Map_graph.set_sorted_key_list_of_set[OF subset_refl] fst_graph_eq_dom)
+  with True show "List.map fst (Mapping.ordered_entries m) = Mapping.ordered_keys m"
+    by (metis distinct_ordered_entries ordered_keys_def sorted_list_of_set.idem_if_sorted_distinct          
+              sorted_list_of_set.set_sorted_key_list_of_set sorted_ordered_entries)
+next
+  case False
+  then show ?thesis
+    unfolding ordered_entries_def ordered_keys_def by simp
+qed
+
 lemma fold_empty[simp]: "fold f empty a = a"
   unfolding fold_def by simp
 
@@ -908,7 +943,9 @@ proof -
       unfolding ordered_entries_def
       by transfer (fastforce simp: folding_Map_graph.set_sorted_key_list_of_set[OF order_refl]
                              dest: graph_domD)
-    from insort_key_is_snoc_if_sorted_and_distinct[OF _ _ this] k_notin_entries show ?thesis
+    from insort_key_is_snoc_if_sorted_and_distinct[OF _ _ this] k_notin_entries \<open>finite (keys m)\<close>
+    show ?thesis
+      using sorted_ordered_keys
       unfolding insort_insert_key_def by auto
   qed
   finally show ?thesis unfolding fold_def by simp
