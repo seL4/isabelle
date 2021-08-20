@@ -101,6 +101,7 @@ sig
   val tptp_empty_list : string
   val tptp_unary_builtins : string list
   val tptp_binary_builtins : string list
+  val tptp_ternary_builtins : string list
   val dfg_individual_type : string
   val isabelle_info_prefix : string
   val isabelle_info : bool -> string -> int -> (string, 'a) atp_term list
@@ -266,6 +267,7 @@ val tptp_empty_list = "[]"
 val tptp_unary_builtins = [tptp_not]
 val tptp_binary_builtins =
   [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff, tptp_equal]
+val tptp_ternary_builtins = [tptp_ite]
 
 val dfg_individual_type = "iii" (* cannot clash *)
 

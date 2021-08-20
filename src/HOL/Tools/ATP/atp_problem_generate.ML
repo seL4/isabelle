@@ -1528,7 +1528,8 @@ fun default_sym_tab_entries type_enc =
     (make_fixed_const NONE \<^const_name>\<open>undefined\<close>, mk_sym_info false 0) ::
     (map (rpair (mk_sym_info true 0)) [tptp_false, tptp_true]) @
     (map (rpair (mk_sym_info true 1)) tptp_unary_builtins) @
-    (map (rpair (mk_sym_info true 2)) (tptp_old_equal :: tptp_binary_builtins))
+    (map (rpair (mk_sym_info true 2)) (tptp_old_equal :: tptp_binary_builtins)) @
+    (map (rpair (mk_sym_info true 3)) tptp_ternary_builtins)
     |> not (is_type_enc_fool type_enc orelse is_type_enc_full_higher_order type_enc)
       ? cons (prefixed_predicator_name, mk_sym_info true 1)
   end
