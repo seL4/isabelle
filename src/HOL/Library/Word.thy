@@ -3394,7 +3394,11 @@ lemma word_bitwise_1_simps [simp]:
   "1 XOR - numeral b = word_of_int (1 XOR - numeral b)"
   "numeral a XOR 1 = word_of_int (numeral a XOR 1)"
   "- numeral a XOR 1 = word_of_int (- numeral a XOR 1)"
-  by (transfer, simp)+
+              apply (simp_all add: word_uint_eq_iff unsigned_not_eq unsigned_and_eq unsigned_or_eq unsigned_xor_eq not_one_eq of_nat_take_bit ac_simps)
+       apply (simp_all add: minus_numeral_eq_not_sub_one)
+   apply (simp_all only: sub_one_eq_not_neg bit.xor_compl_right take_bit_xor bit.double_compl)
+   apply simp_all
+  done
 
 text \<open>Special cases for when one of the arguments equals -1.\<close>
 
@@ -3407,6 +3411,10 @@ lemma word_bitwise_m1_simps [simp]:
   " (-1::'a::len word) XOR x = NOT x"
   "x XOR (-1::'a::len word) = NOT x"
   by (transfer, simp)+
+
+lemma word_of_int_not_numeral_eq [simp]:
+  \<open>(word_of_int (NOT (numeral bin)) :: 'a::len word) = - numeral bin - 1\<close>
+  by transfer (simp add: not_eq_complement)
 
 lemma uint_and:
   \<open>uint (x AND y) = uint x AND uint y\<close>
