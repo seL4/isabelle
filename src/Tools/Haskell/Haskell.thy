@@ -1090,6 +1090,218 @@ no_output :: Output
 no_output = ("", "")
 \<close>
 
+generate_file "Isabelle/Position.hs" = \<open>
+{-  Title:      Isabelle/Position.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Source positions starting from 1; values <= 0 mean "absent". Count Unicode
+points symbols, not UTF8 bytes nor UTF16 characters. Position range specifies
+a right-open interval offset .. end_offset (exclusive).
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Position (
+  T, line_of, column_of, offset_of, end_offset_of, file_of, id_of,
+  start, none, put_file, file, file_only, put_id, advance, advance_string, shift_offsets,
+  of_properties, properties_of, def_properties_of, entity_markup, entity_properties_of,
+  is_reported, is_reported_range, here,
+
+  Range, no_range, no_range_position, range_position, range
+) where
+
+import Data.Maybe (isJust)
+import qualified Isabelle.Properties as Properties
+import qualified Isabelle.Bytes as Bytes
+import qualified Isabelle.Value as Value
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.Markup as Markup
+import qualified Isabelle.YXML as YXML
+import Isabelle.Library
+
+
+{- position -}
+
+data T =
+  Position {
+    _line :: Int,
+    _column :: Int,
+    _offset :: Int,
+    _end_offset :: Int,
+    _file :: Bytes,
+    _id :: Bytes }
+  deriving (Eq, Ord)
+
+invalid :: Int -> Bool
+invalid i = i <= 0
+
+maybe_valid :: Int -> Maybe Int
+maybe_valid i = if invalid i then Nothing else Just i
+
+
+{- fields -}
+
+line_of, column_of, offset_of, end_offset_of :: T -> Maybe Int
+line_of = maybe_valid . _line
+column_of = maybe_valid . _column
+offset_of = maybe_valid . _offset
+end_offset_of = maybe_valid . _end_offset
+
+file_of :: T -> Maybe Bytes
+file_of = proper_string . _file
+
+id_of :: T -> Maybe Bytes
+id_of = proper_string . _id
+
+
+{- make position -}
+
+start :: T
+start = Position 1 1 1 0 Bytes.empty Bytes.empty
+
+none :: T
+none = Position 0 0 0 0 Bytes.empty Bytes.empty
+
+put_file :: Bytes -> T -> T
+put_file file pos = pos { _file = file }
+
+file :: Bytes -> T
+file file = put_file file start
+
+file_only :: Bytes -> T
+file_only file = put_file file none
+
+put_id :: Bytes -> T -> T
+put_id id pos = pos { _id = id }
+
+
+{- advance position -}
+
+advance_line :: Char -> Int -> Int
+advance_line c line = if invalid line || c /= '\n' then line else line + 1
+
+advance_column :: Char -> Int -> Int
+advance_column c column =
+  if invalid column || c == '\r' then column
+  else if c == '\n' then 1
+  else column + 1
+
+advance_offset :: Char -> Int -> Int
+advance_offset c offset = if invalid offset || c == '\r' then offset else offset + 1
+
+advance_char :: Char -> T -> T
+advance_char c pos =
+  pos {
+    _line = advance_line c (_line pos),
+    _column = advance_column c (_column pos),
+    _offset = advance_offset c (_offset pos) }
+
+advance_string :: String -> T -> T
+advance_string = fold advance_char
+
+advance :: STRING a => a -> T -> T
+advance = advance_string . make_string
+
+
+{- shift offsets -}
+
+shift_offsets :: Int -> T -> T
+shift_offsets shift pos = pos { _offset = offset', _end_offset = end_offset' }
+  where
+    offset = _offset pos
+    end_offset = _end_offset pos
+    offset' = if invalid offset || invalid shift then offset else offset + shift
+    end_offset' = if invalid end_offset || invalid shift then end_offset else end_offset + shift
+
+
+{- markup properties -}
+
+get_string :: Properties.T -> Bytes -> Bytes
+get_string props name = the_default "" (Properties.get_value Just props name)
+
+get_int :: Properties.T -> Bytes -> Int
+get_int props name = the_default 0 (Properties.get_value Value.parse_int props name)
+
+of_properties :: Properties.T -> T
+of_properties props =
+  none {
+    _line = get_int props Markup.lineN,
+    _offset = get_int props Markup.offsetN,
+    _end_offset = get_int props Markup.end_offsetN,
+    _file = get_string props Markup.fileN,
+    _id = get_string props Markup.idN }
+
+string_entry :: Bytes -> Bytes -> Properties.T
+string_entry k s = if Bytes.null s then [] else [(k, s)]
+
+int_entry :: Bytes -> Int -> Properties.T
+int_entry k i = if invalid i then [] else [(k, Value.print_int i)]
+
+properties_of :: T -> Properties.T
+properties_of pos =
+  int_entry Markup.lineN (_line pos) ++
+  int_entry Markup.offsetN (_offset pos) ++
+  int_entry Markup.end_offsetN (_end_offset pos) ++
+  string_entry Markup.fileN (_file pos) ++
+  string_entry Markup.idN (_id pos)
+
+def_properties_of :: T -> Properties.T
+def_properties_of = properties_of #> map (\(a, b) -> ("def_" <> a, b))
+
+entity_markup :: Bytes -> (Bytes, T) -> Markup.T
+entity_markup kind (name, pos) =
+  Markup.entity kind name |> Markup.properties (def_properties_of pos)
+
+entity_properties_of :: Bool -> Int -> T -> Properties.T
+entity_properties_of def serial pos =
+  if def then (Markup.defN, Value.print_int serial) : properties_of pos
+  else (Markup.refN, Value.print_int serial) : def_properties_of pos
+
+
+{- reports -}
+
+is_reported :: T -> Bool
+is_reported pos = isJust (offset_of pos) && isJust (id_of pos)
+
+is_reported_range :: T -> Bool
+is_reported_range pos = is_reported pos && isJust (end_offset_of pos)
+
+
+{- here: user output -}
+
+here :: T -> Bytes
+here pos = if Bytes.null s2 then "" else s1 <> m1 <> s2 <> m2
+  where
+    props = properties_of pos
+    (m1, m2) = YXML.output_markup (Markup.properties props Markup.position)
+    (s1, s2) =
+      case (line_of pos, file_of pos) of
+        (Just i, Nothing) -> (" ", "(line " <> Value.print_int i <> ")")
+        (Just i, Just name) -> (" ", "(line " <> Value.print_int i <> " of " <> quote name <> ")")
+        (Nothing, Just name) -> (" ", "(file " <> quote name <> ")")
+        _ -> if is_reported pos then ("", "\092<^here>") else ("", "")
+
+
+{- range -}
+
+type Range = (T, T)
+
+no_range :: Range
+no_range = (none, none)
+
+no_range_position :: T -> T
+no_range_position pos = pos { _end_offset = 0 }
+
+range_position :: Range -> T
+range_position (pos, pos') = pos { _end_offset = _offset pos' }
+
+range :: Range -> Range
+range (pos, pos') = (range_position (pos, pos'), no_range_position pos')
+\<close>
+
 generate_file "Isabelle/XML.hs" = \<open>
 {-  Title:      Isabelle/XML.hs
     Author:     Makarius
