@@ -95,7 +95,7 @@ fun blob_file src_path lines digest file_node =
   let
     val file_pos =
       Position.file file_node |>
-      (case Position.get_id (Position.thread_data ()) of
+      (case Position.id_of (Position.thread_data ()) of
         NONE => I
       | SOME exec_id => Position.put_id exec_id);
   in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end

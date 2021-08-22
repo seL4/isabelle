@@ -407,7 +407,7 @@ fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
 fun error_message pos ((serial, msg), exec_id) =
   Position.setmp_thread_data pos (fn () =>
-    let val id = Position.get_id pos in
+    let val id = Position.id_of pos in
       if is_none id orelse is_none exec_id orelse id = exec_id
       then Output.error_message' (serial, msg) else ()
     end) ();
@@ -415,7 +415,7 @@ fun error_message pos ((serial, msg), exec_id) =
 fun identify_result pos res =
   res |> Exn.map_exn (fn exn =>
     let val exec_id =
-      (case Position.get_id pos of
+      (case Position.id_of pos of
         NONE => []
       | SOME id => [(Markup.exec_idN, id)])
     in Par_Exn.identify exec_id exn end);

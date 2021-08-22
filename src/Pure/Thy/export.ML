@@ -36,7 +36,7 @@ type params =
 fun export_params ({theory = thy, binding, executable, compress, strict}: params) body =
  (report_export thy binding;
   (Output.try_protocol_message o Markup.export)
-   {id = Position.get_id (Position.thread_data ()),
+   {id = Position.id_of (Position.thread_data ()),
     serial = serial (),
     theory_name = Context.theory_long_name thy,
     name = Path.implode_binding (tap Path.proper_binding binding),

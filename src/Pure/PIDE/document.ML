@@ -132,7 +132,7 @@ fun read_header node span =
       if null errors then ()
       else
         cat_lines errors |>
-        (case Position.get_id (Position.thread_data ()) of
+        (case Position.id_of (Position.thread_data ()) of
           NONE => I
         | SOME id => Protocol_Message.command_positions_yxml id)
         |> error;

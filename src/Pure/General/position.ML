@@ -16,6 +16,7 @@ sig
   val offset_of: T -> int option
   val end_offset_of: T -> int option
   val file_of: T -> string option
+  val id_of: T -> string option
   val advance: Symbol.symbol -> T -> T
   val advance_offsets: int -> T -> T
   val distance_of: T * T -> int option
@@ -30,7 +31,6 @@ sig
   val get_props: T -> Properties.T
   val id: string -> T
   val id_only: string -> T
-  val get_id: T -> string option
   val put_id: string -> T -> T
   val copy_id: T -> T -> T
   val id_properties_of: T -> Properties.T
@@ -94,16 +94,18 @@ fun make {line = i, offset = j, end_offset = k, props} = Pos ((i, j, k), norm_pr
 fun dest (Pos ((i, j, k), props)) = {line = i, offset = j, end_offset = k, props = props};
 
 fun valid (i: int) = i > 0;
+fun maybe_valid i = if valid i then SOME i else NONE;
 fun if_valid i i' = if valid i then i' else i;
 
 
 (* fields *)
 
-fun line_of (Pos ((i, _, _), _)) = if valid i then SOME i else NONE;
-fun offset_of (Pos ((_, j, _), _)) = if valid j then SOME j else NONE;
-fun end_offset_of (Pos ((_, _, k), _)) = if valid k then SOME k else NONE;
+fun line_of (Pos ((i, _, _), _)) = maybe_valid i;
+fun offset_of (Pos ((_, j, _), _)) = maybe_valid j;
+fun end_offset_of (Pos ((_, _, k), _)) = maybe_valid k;
 
 fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
+fun id_of (Pos (_, props)) = Properties.get props Markup.idN;
 
 
 (* advance *)
@@ -154,14 +156,13 @@ fun get_props (Pos (_, props)) = props;
 fun id id = Pos ((0, 1, 0), [(Markup.idN, id)]);
 fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 
-fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
-fun copy_id pos = (case get_id pos of NONE => I | SOME id => put_id id);
+fun copy_id pos = (case id_of pos of NONE => I | SOME id => put_id id);
 
-fun parse_id pos = Option.map Value.parse_int (get_id pos);
+fun parse_id pos = Option.map Value.parse_int (id_of pos);
 
 fun id_properties_of pos =
-  (case get_id pos of
+  (case id_of pos of
     SOME id => [(Markup.idN, id)]
   | NONE => []);
 
@@ -213,7 +214,7 @@ val markup = Markup.properties o properties_of;
 
 (* reports *)
 
-fun is_reported pos = is_some (offset_of pos) andalso is_some (get_id pos);
+fun is_reported pos = is_some (offset_of pos) andalso is_some (id_of pos);
 fun is_reported_range pos = is_reported pos andalso is_some (end_offset_of pos);
 
 fun reported_text pos m txt = if is_reported pos then Markup.markup (markup pos m) txt else "";
