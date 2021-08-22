@@ -9,12 +9,11 @@ struct
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
-      ML_Syntax.print_string (Method.check_name ctxt (name, pos)))) #>
+    (Args.context -- Scan.lift Args.embedded_position >>
+      (ML_Syntax.print_string o uncurry Method.check_name)) #>
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>locale\<close>
-   (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
-      Locale.check (Proof_Context.theory_of ctxt) (name, pos)
-      |> ML_Syntax.print_string)));
+   (Args.theory -- Scan.lift Args.embedded_position >>
+      (ML_Syntax.print_string o uncurry Locale.check)));
 
 end;
