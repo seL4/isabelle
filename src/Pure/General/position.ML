@@ -109,21 +109,23 @@ fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
 fun id_of (Pos (_, props)) = Properties.get props Markup.idN;
 
 
-(* advance *)
+(* count position *)
 
-fun advance_count "\n" (i: int, j: int, k: int) =
+fun count_symbol "\n" (i: int, j: int, k: int) =
       (if_valid i (i + 1), if_valid j (j + 1), k)
-  | advance_count s (i, j, k) =
-      if Symbol.not_eof s then (i, if_valid j (j + 1), k)
-      else (i, j, k);
+  | count_symbol s (i, j, k) =
+      if Symbol.not_eof s then (i, if_valid j (j + 1), k) else (i, j, k);
 
 fun invalid_count (i, j, _: int) =
   not (valid i orelse valid j);
 
 fun symbol sym (pos as (Pos (count, props))) =
-  if invalid_count count then pos else Pos (advance_count sym count, props);
+  if invalid_count count then pos else Pos (count_symbol sym count, props);
 
 val symbol_explode = fold symbol o Symbol.explode;
+
+
+(* advance offsets *)
 
 fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
   if offset = 0 orelse invalid_count count then pos

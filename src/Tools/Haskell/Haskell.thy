@@ -1248,25 +1248,25 @@ put_id :: Bytes -> T -> T
 put_id id pos = pos { _id = id }
 
 
-{- advance position -}
+{- count position -}
 
-advance_line :: Symbol -> Int -> Int
-advance_line "\n" line = if_valid line (line + 1)
-advance_line _ line = line
+count_line :: Symbol -> Int -> Int
+count_line "\n" line = if_valid line (line + 1)
+count_line _ line = line
 
-advance_column :: Symbol -> Int -> Int
-advance_column "\n" column = if_valid column 1
-advance_column _ column = if_valid column (column + 1)
+count_column :: Symbol -> Int -> Int
+count_column "\n" column = if_valid column 1
+count_column _ column = if_valid column (column + 1)
 
-advance_offset :: Symbol -> Int -> Int
-advance_offset c offset = if_valid offset (offset + 1)
+count_offset :: Symbol -> Int -> Int
+count_offset _ offset = if_valid offset (offset + 1)
 
 symbol :: Symbol -> T -> T
 symbol s pos =
   pos {
-    _line = advance_line s (_line pos),
-    _column = advance_column s (_column pos),
-    _offset = advance_offset s (_offset pos) }
+    _line = count_line s (_line pos),
+    _column = count_column s (_column pos),
+    _offset = count_offset s (_offset pos) }
 
 symbol_explode :: BYTES a => a -> T -> T
 symbol_explode = fold symbol . Symbol.explode . make_bytes
