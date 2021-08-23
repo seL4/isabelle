@@ -18,13 +18,12 @@ fun is_utf8_control c = #"\128" <= c andalso c < #"\160";
 fun explode string =
   let
     fun char i = String.sub (string, i);
-    fun string_range i j = String.substring (string, i, j - i);
+    fun substring i j = String.substring (string, i, j - i);
 
     val n = size string;
     fun test pred i = i < n andalso pred (char i);
     fun many pred i = if test pred i then many pred (i + 1) else i;
-    fun maybe pred i = if test pred i then i + 1 else i;
-    fun maybe_char c = maybe (fn c' => c = c');
+    fun maybe_char c i = if test (fn c' => c = c') i then i + 1 else i;
     fun maybe_ascii_id i = if test is_ascii_letter i then many is_ascii_letdig (i + 1) else i;
 
     fun scan i =
@@ -39,11 +38,11 @@ fun explode string =
           (*utf8*)
           else if is_utf8 ch then
             let val j = many is_utf8_trailer (i + 1)
-            in string_range i j :: scan j end
+            in substring i j :: scan j end
           (*named symbol*)
           else if ch = #"\\" andalso test (fn c => c = #"<") (i + 1) then
             let val j = (i + 2) |> maybe_char #"^" |> maybe_ascii_id |> maybe_char #">"
-            in string_range i j :: scan j end
+            in substring i j :: scan j end
           (*single character*)
           else String.str ch :: scan (i + 1)
         end
