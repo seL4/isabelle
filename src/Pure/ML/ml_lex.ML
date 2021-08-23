@@ -333,8 +333,8 @@ fun reader {opaque_warning} scan syms =
       if null syms then []
       else
         let
-          val pos1 = List.last syms |-> Position.advance_symbol;
-          val pos2 = Position.advance_symbol Symbol.space pos1;
+          val pos1 = List.last syms |-> Position.symbol;
+          val pos2 = Position.symbol Symbol.space pos1;
         in [Antiquote.Text (Token (Position.range (pos1, pos2), (Space, Symbol.space)))] end;
 
     fun check (Antiquote.Text tok) =

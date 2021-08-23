@@ -17,8 +17,8 @@ sig
   val end_offset_of: T -> int option
   val file_of: T -> string option
   val id_of: T -> string option
-  val advance_symbol: Symbol.symbol -> T -> T
-  val advance_symbol_explode: string -> T -> T
+  val symbol: Symbol.symbol -> T -> T
+  val symbol_explode: string -> T -> T
   val advance_offsets: int -> T -> T
   val distance_of: T * T -> int option
   val none: T
@@ -120,10 +120,10 @@ fun advance_count "\n" (i: int, j: int, k: int) =
 fun invalid_count (i, j, _: int) =
   not (valid i orelse valid j);
 
-fun advance_symbol sym (pos as (Pos (count, props))) =
+fun symbol sym (pos as (Pos (count, props))) =
   if invalid_count count then pos else Pos (advance_count sym count, props);
 
-val advance_symbol_explode = fold advance_symbol o Symbol.explode;
+val symbol_explode = fold symbol o Symbol.explode;
 
 fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
   if offset = 0 orelse invalid_count count then pos

@@ -1170,7 +1170,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
 module Isabelle.Position (
   T, line_of, column_of, offset_of, end_offset_of, file_of, id_of,
   start, none, put_file, file, file_only, put_id,
-  advance_symbol, advance_symbol_explode, advance_symbol_explode_string, shift_offsets,
+  symbol, symbol_explode, symbol_explode_string, shift_offsets,
   of_properties, properties_of, def_properties_of, entity_markup, entity_properties_of,
   is_reported, is_reported_range, here,
 
@@ -1261,18 +1261,18 @@ advance_column _ column = if_valid column (column + 1)
 advance_offset :: Symbol -> Int -> Int
 advance_offset c offset = if_valid offset (offset + 1)
 
-advance_symbol :: Symbol -> T -> T
-advance_symbol s pos =
+symbol :: Symbol -> T -> T
+symbol s pos =
   pos {
     _line = advance_line s (_line pos),
     _column = advance_column s (_column pos),
     _offset = advance_offset s (_offset pos) }
 
-advance_symbol_explode :: BYTES a => a -> T -> T
-advance_symbol_explode = fold advance_symbol . Symbol.explode . make_bytes
+symbol_explode :: BYTES a => a -> T -> T
+symbol_explode = fold symbol . Symbol.explode . make_bytes
 
-advance_symbol_explode_string :: String -> T -> T
-advance_symbol_explode_string = advance_symbol_explode
+symbol_explode_string :: String -> T -> T
+symbol_explode_string = symbol_explode
 
 
 {- shift offsets -}

@@ -134,7 +134,7 @@ local
             val _ =
               (lines, pos0) |-> fold (fn line => fn pos1 =>
                 let
-                  val pos2 = Position.advance_symbol_explode line pos1;
+                  val pos2 = Position.symbol_explode line pos1;
                   val range = Position.range (pos1, pos2);
                   val source = Input.source true line range;
                   val _ =
@@ -144,7 +144,7 @@ local
                     else
                       (ignore (Resources.check_session_dir ctxt (SOME dir) source)
                         handle ERROR msg => Output.error_message msg);
-                in pos2 |> Position.advance_symbol "\n" end);
+                in pos2 |> Position.symbol "\n" end);
           in thy' end)));
 
   val _ =

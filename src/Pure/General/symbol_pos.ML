@@ -62,7 +62,7 @@ fun symbol ((s, _): T) = s;
 val content = implode o map symbol;
 
 fun range (syms as (_, pos) :: _) =
-      let val pos' = List.last syms |-> Position.advance_symbol
+      let val pos' = List.last syms |-> Position.symbol
       in Position.range (pos, pos') end
   | range [] = Position.no_range;
 
@@ -75,7 +75,7 @@ val eof = mk_eof Position.none;
 val is_eof = Symbol.is_eof o symbol;
 
 val stopper =
-  Scan.stopper (fn [] => eof | inp => mk_eof (List.last inp |-> Position.advance_symbol)) is_eof;
+  Scan.stopper (fn [] => eof | inp => mk_eof (List.last inp |-> Position.symbol)) is_eof;
 
 
 (* basic scanners *)
@@ -233,7 +233,7 @@ end;
 
 fun source pos =
   Source.source' pos Symbol.stopper (Scan.bulk (Scan.depend (fn pos =>
-    Scan.one Symbol.not_eof >> (fn s => (Position.advance_symbol s pos, (s, pos))))));
+    Scan.one Symbol.not_eof >> (fn s => (Position.symbol s pos, (s, pos))))));
 
 
 (* compact representation -- with Symbol.DEL padding *)
@@ -244,7 +244,7 @@ fun pad [] = []
   | pad [(s, _)] = [s]
   | pad ((s1, pos1) :: (rest as (_, pos2) :: _)) =
       let
-        val end_pos1 = Position.advance_symbol s1 pos1;
+        val end_pos1 = Position.symbol s1 pos1;
         val d = Int.max (0, the_default 0 (Position.distance_of (end_pos1, pos2)));
       in s1 :: replicate d Symbol.DEL @ pad rest end;
 
@@ -257,7 +257,7 @@ fun implode_range (pos1, pos2) syms =
 fun explode_delete (str, pos) =
   let
     val (res, _) =
-      fold (fn s => fn (res, p) => ((s, p) :: res, Position.advance_symbol s p))
+      fold (fn s => fn (res, p) => ((s, p) :: res, Position.symbol s p))
         (Symbol.explode str) ([], Position.no_range_position pos);
   in
     fold (fn (s, p) => if s = Symbol.DEL then apsnd (cons p) else apfst (cons (s, p)))
