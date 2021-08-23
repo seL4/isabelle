@@ -338,8 +338,8 @@ fun reports keywords tok =
     let
       val pos = pos_of tok;
       val (m, text) = token_kind_markup (kind_of tok);
-      val delete = #2 (Symbol_Pos.explode_delete (source_of tok, pos));
-    in ((pos, m), text) :: map (fn p => ((p, Markup.delete), "")) delete end;
+      val deleted = Symbol_Pos.explode_deleted (source_of tok, pos);
+    in ((pos, m), text) :: map (fn p => ((p, Markup.delete), "")) deleted end;
 
 fun markups keywords = map (#2 o #1) o reports keywords;
 

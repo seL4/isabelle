@@ -40,7 +40,7 @@ sig
   type text = string
   val implode: T list -> text
   val implode_range: Position.range -> T list -> text * Position.range
-  val explode_delete: text * Position.T -> T list * Position.T list
+  val explode_deleted: string * Position.T -> Position.T list
   val explode: text * Position.T -> T list
   val explode0: string -> T list
   val scan_ident: T list scanner
@@ -254,18 +254,24 @@ fun implode_range (pos1, pos2) syms =
   let val syms' = (("", pos1) :: syms @ [("", pos2)])
   in (implode syms', range syms') end;
 
-fun explode_delete (str, pos) =
-  let
-    val (res, _) =
-      fold (fn s => fn (res, p) => ((s, p) :: res, Position.symbol s p))
-        (Symbol.explode str) ([], Position.no_range_position pos);
-  in
-    fold (fn (s, p) => if s = Symbol.DEL then apsnd (cons p) else apfst (cons (s, p)))
-      res ([], [])
-  end;
+local
 
-val explode = explode_delete #> #1;
+fun rev_explode (str, pos) =
+  fold (fn s => fn (res, p) => ((s, p) :: res, Position.symbol s p))
+    (Symbol.explode str) ([], Position.no_range_position pos)
+  |> #1;
+
+in
+
+fun explode_deleted arg =
+  fold (fn (s, p) => s = Symbol.DEL ? cons p) (rev_explode arg) [];
+
+fun explode arg =
+  fold (fn (s, p) => s <> Symbol.DEL ? cons (s, p)) (rev_explode arg) [];
+
 fun explode0 str = explode (str, Position.none);
+
+end;
 
 
 (* identifiers *)
