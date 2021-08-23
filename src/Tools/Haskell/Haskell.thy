@@ -394,9 +394,26 @@ generate_file "Isabelle/Symbol.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Isabelle text symbols.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol_explode.ML\<close>.
 -}
 
-module Isabelle.Symbol where
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Symbol (
+  is_ascii_letter, is_ascii_digit, is_ascii_hex, is_ascii_quasi,
+  is_ascii_blank, is_ascii_line_terminator, is_ascii_letdig,
+  is_ascii_identifier,
+
+  Symbol, explode
+)
+where
+
+import Data.Word (Word8)
+import qualified Isabelle.Bytes as Bytes
+import Isabelle.Bytes (Bytes)
+
 
 {- ASCII characters -}
 
@@ -413,7 +430,7 @@ is_ascii_quasi :: Char -> Bool
 is_ascii_quasi c = c == '_' || c == '\''
 
 is_ascii_blank :: Char -> Bool
-is_ascii_blank c = c `elem` " \t\n\11\f\r"
+is_ascii_blank c = c `elem` (" \t\n\11\f\r" :: String)
 
 is_ascii_line_terminator :: Char -> Bool
 is_ascii_line_terminator c = c == '\r' || c == '\n'
@@ -424,6 +441,64 @@ is_ascii_letdig c = is_ascii_letter c || is_ascii_digit c || is_ascii_quasi c
 is_ascii_identifier :: String -> Bool
 is_ascii_identifier s =
   not (null s) && is_ascii_letter (head s) && all is_ascii_letdig s
+
+
+{- explode symbols: ASCII, UTF8, named -}
+
+type Symbol = Bytes
+
+is_utf8 :: Word8 -> Bool
+is_utf8 b = b >= 128
+
+is_utf8_trailer :: Word8 -> Bool
+is_utf8_trailer b = 128 <= b && b < 192
+
+is_utf8_control :: Word8 -> Bool
+is_utf8_control b = 128 <= b && b < 160
+
+(|>) :: a -> (a -> b) -> b
+x |> f = f x
+
+explode :: Bytes -> [Symbol]
+explode string = scan 0
+  where
+    byte = Bytes.index string
+    substring i j =
+      if i == j - 1 then Bytes.singleton (byte i)
+      else Bytes.pack (map byte [i .. j - 1])
+
+    n = Bytes.length string
+    test pred i = i < n && pred (byte i)
+    test_char pred i = i < n && pred (Bytes.char (byte i))
+    many pred i = if test pred i then many pred (i + 1) else i
+    maybe_char c i = if test_char (== c) i then i + 1 else i
+    maybe_ascii_id i =
+      if test_char is_ascii_letter i
+      then many (is_ascii_letdig . Bytes.char) (i + 1)
+      else i
+
+    scan i =
+      if i < n then
+        let
+          b = byte i
+          c = Bytes.char b
+        in
+          {-encoded newline-}
+          if c == '\r' then "\n" : scan (maybe_char '\n' (i + 1))
+          {-pseudo utf8: encoded ascii control-}
+          else if b == 192 && test is_utf8_control (i + 1) && not (test is_utf8 (i + 2))
+          then Bytes.singleton (byte (i + 1) - 128) : scan (i + 2)
+          {-utf8-}
+          else if is_utf8 b then
+            let j = many is_utf8_trailer (i + 1)
+            in substring i j : scan j
+          {-named symbol-}
+          else if c == '\\' && test_char (== '<') (i + 1) then
+            let j = (i + 2) |> maybe_char '^' |> maybe_ascii_id |> maybe_char '>'
+            in substring i j : scan j
+          {-single character-}
+          else Bytes.singleton b : scan (i + 1)
+      else []
 \<close>
 
 generate_file "Isabelle/Buffer.hs" = \<open>
