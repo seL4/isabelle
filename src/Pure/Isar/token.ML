@@ -381,7 +381,7 @@ fun text_of tok =
 fun file_source (file: file) =
   let
     val text = cat_lines (#lines file);
-    val end_pos = fold Position.advance (Symbol.explode text) (#pos file);
+    val end_pos = Position.advance_symbol_explode text (#pos file);
   in Input.source true text (Position.range (#pos file, end_pos)) end;
 
 fun get_files (Token (_, _, Value (SOME (Files files)))) = files

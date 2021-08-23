@@ -82,7 +82,7 @@ val char_stopper = Scan.stopper (K ("", Position.none)) is_char_eof;
 fun symbol (x : string, _ : Position.T) = x;
 
 fun explode_pos s pos = fst (fold_map (fn x => fn pos =>
-  ((x, pos), Position.advance x pos)) (raw_explode s) pos);
+  ((x, pos), Position.advance_symbol x pos)) (raw_explode s) pos);
 
 
 (** scanners **)
