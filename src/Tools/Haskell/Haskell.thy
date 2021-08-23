@@ -3170,8 +3170,7 @@ string str =
           '\f' -> "$'\\f'"
           '\r' -> "$'\\r'"
           c ->
-            if Symbol.is_ascii_letter c || Symbol.is_ascii_digit c || c == '+' || c == ',' ||
-              c == '-' || c == '.' || c == '/' || c == ':' || c == '_'
+            if Symbol.is_ascii_letter c || Symbol.is_ascii_digit c || c `elem` ("+,-./:_" :: String)
             then Bytes.singleton b
             else if b < 32 || b >= 127 then make_bytes (printf "$'\\x%02x'" b :: String)
             else "\\" <> Bytes.singleton b
