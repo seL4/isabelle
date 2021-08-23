@@ -1157,18 +1157,20 @@ generate_file "Isabelle/Position.hs" = \<open>
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
-Source positions starting from 1; values <= 0 mean "absent". Count Unicode
-points symbols, not UTF8 bytes nor UTF16 characters. Position range specifies
-a right-open interval offset .. end_offset (exclusive).
+Source positions starting from 1; values <= 0 mean "absent". Count Isabelle
+symbols, not UTF8 bytes nor UTF16 characters. Position range specifies a
+right-open interval offset .. end_offset (exclusive).
 
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
 -}
+
 
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Position (
   T, line_of, column_of, offset_of, end_offset_of, file_of, id_of,
-  start, none, put_file, file, file_only, put_id, advance, advance_string, shift_offsets,
+  start, none, put_file, file, file_only, put_id,
+  advance_symbol, advance_symbol_explode, advance_symbol_explode_string, shift_offsets,
   of_properties, properties_of, def_properties_of, entity_markup, entity_properties_of,
   is_reported, is_reported_range, here,
 
@@ -1183,6 +1185,8 @@ import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Markup as Markup
 import qualified Isabelle.YXML as YXML
 import Isabelle.Library
+import qualified Isabelle.Symbol as Symbol
+import Isabelle.Symbol (Symbol)
 
 
 {- position -}
@@ -1197,11 +1201,15 @@ data T =
     _id :: Bytes }
   deriving (Eq, Ord)
 
-invalid :: Int -> Bool
-invalid i = i <= 0
+valid, invalid :: Int -> Bool
+valid i = i > 0
+invalid = not . valid
 
 maybe_valid :: Int -> Maybe Int
-maybe_valid i = if invalid i then Nothing else Just i
+maybe_valid i = if valid i then Just i else Nothing
+
+if_valid :: Int -> Int -> Int
+if_valid i i' = if valid i then i' else i
 
 
 {- fields -}
@@ -1242,30 +1250,29 @@ put_id id pos = pos { _id = id }
 
 {- advance position -}
 
-advance_line :: Char -> Int -> Int
-advance_line c line = if invalid line || c /= '\n' then line else line + 1
+advance_line :: Symbol -> Int -> Int
+advance_line "\n" line = if_valid line (line + 1)
+advance_line _ line = line
 
-advance_column :: Char -> Int -> Int
-advance_column c column =
-  if invalid column || c == '\r' then column
-  else if c == '\n' then 1
-  else column + 1
+advance_column :: Symbol -> Int -> Int
+advance_column "\n" column = if_valid column 1
+advance_column _ column = if_valid column (column + 1)
 
-advance_offset :: Char -> Int -> Int
-advance_offset c offset = if invalid offset || c == '\r' then offset else offset + 1
+advance_offset :: Symbol -> Int -> Int
+advance_offset c offset = if_valid offset (offset + 1)
 
-advance_char :: Char -> T -> T
-advance_char c pos =
+advance_symbol :: Symbol -> T -> T
+advance_symbol s pos =
   pos {
-    _line = advance_line c (_line pos),
-    _column = advance_column c (_column pos),
-    _offset = advance_offset c (_offset pos) }
+    _line = advance_line s (_line pos),
+    _column = advance_column s (_column pos),
+    _offset = advance_offset s (_offset pos) }
 
-advance_string :: String -> T -> T
-advance_string = fold advance_char
+advance_symbol_explode :: BYTES a => a -> T -> T
+advance_symbol_explode = fold advance_symbol . Symbol.explode . make_bytes
 
-advance :: STRING a => a -> T -> T
-advance = advance_string . make_string
+advance_symbol_explode_string :: String -> T -> T
+advance_symbol_explode_string = advance_symbol_explode
 
 
 {- shift offsets -}
