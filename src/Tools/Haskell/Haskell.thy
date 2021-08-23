@@ -402,17 +402,31 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol_explode.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Symbol (
+  Symbol, eof, is_eof, not_eof,
+
   is_ascii_letter, is_ascii_digit, is_ascii_hex, is_ascii_quasi,
   is_ascii_blank, is_ascii_line_terminator, is_ascii_letdig,
   is_ascii_identifier,
 
-  Symbol, explode
+  explode
 )
 where
 
 import Data.Word (Word8)
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
+
+
+{- type -}
+
+type Symbol = Bytes
+
+eof :: Symbol
+eof = ""
+
+is_eof, not_eof :: Symbol -> Bool
+is_eof = Bytes.null
+not_eof = not . is_eof
 
 
 {- ASCII characters -}
@@ -444,8 +458,6 @@ is_ascii_identifier s =
 
 
 {- explode symbols: ASCII, UTF8, named -}
-
-type Symbol = Bytes
 
 is_utf8 :: Word8 -> Bool
 is_utf8 b = b >= 128
@@ -1256,10 +1268,10 @@ count_line _ line = line
 
 count_column :: Symbol -> Int -> Int
 count_column "\n" column = if_valid column 1
-count_column _ column = if_valid column (column + 1)
+count_column s column = if Symbol.not_eof s then if_valid column (column + 1) else column
 
 count_offset :: Symbol -> Int -> Int
-count_offset _ offset = if_valid offset (offset + 1)
+count_offset s offset = if Symbol.not_eof s then if_valid offset (offset + 1) else offset
 
 symbol :: Symbol -> T -> T
 symbol s pos =
