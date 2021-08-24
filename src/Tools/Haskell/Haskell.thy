@@ -1198,18 +1198,18 @@ right-open interval offset .. end_offset (exclusive).
 See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
 -}
 
-
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Position (
   T, line_of, column_of, offset_of, end_offset_of, file_of, id_of,
   start, none, put_file, file, file_only, put_id,
   symbol, symbol_explode, symbol_explode_string, shift_offsets,
-  of_properties, properties_of, def_properties_of, entity_markup, entity_properties_of,
+  of_properties, properties_of, def_properties_of, entity_markup, make_entity_markup,
   is_reported, is_reported_range, here,
 
   Range, no_range, no_range_position, range_position, range
-) where
+)
+where
 
 import Data.Maybe (isJust, fromMaybe)
 import Data.Bifunctor (first)
@@ -1359,10 +1359,13 @@ entity_markup :: Bytes -> (Bytes, T) -> Markup.T
 entity_markup kind (name, pos) =
   Markup.entity kind name |> Markup.properties (def_properties_of pos)
 
-entity_properties_of :: Bool -> Int -> T -> Properties.T
-entity_properties_of def serial pos =
-  if def then (Markup.defN, Value.print_int serial) : properties_of pos
-  else (Markup.refN, Value.print_int serial) : def_properties_of pos
+make_entity_markup :: Bool -> Int -> Bytes -> (Bytes, T) -> Markup.T
+make_entity_markup def serial kind (name, pos) =
+  let
+    props =
+      if def then (Markup.defN, Value.print_int serial) : properties_of pos
+      else (Markup.refN, Value.print_int serial) : def_properties_of pos
+  in Markup.entity kind name |> Markup.properties props
 
 
 {- reports -}
