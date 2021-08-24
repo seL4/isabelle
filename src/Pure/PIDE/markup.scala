@@ -159,10 +159,19 @@ object Markup
   val DEF_FILE = "def_file"
   val DEF_ID = "def_id"
 
+  val POSITION = "position"
+
   val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, FILE, ID)
   def position_property(entry: Properties.Entry): Boolean = POSITION_PROPERTIES(entry._1)
 
-  val POSITION = "position"
+
+  /* position "def" name */
+
+  private val def_names: Map[String, String] =
+    Map(LINE -> DEF_LINE, OFFSET -> DEF_OFFSET, END_OFFSET -> DEF_END_OFFSET,
+      FILE -> DEF_FILE, ID -> DEF_ID)
+
+  def def_name(a: String): String = def_names.getOrElse(a, a + "def_")
 
 
   /* expression */

@@ -60,9 +60,10 @@ sig
   val end_offsetN: string
   val fileN: string
   val idN: string
+  val positionN: string val position: T
   val position_properties: string list
   val position_property: Properties.entry -> bool
-  val positionN: string val position: T
+  val def_name: string -> string
   val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
@@ -394,10 +395,22 @@ val end_offsetN = "end_offset";
 val fileN = "file";
 val idN = "id";
 
+val (positionN, position) = markup_elem "position";
+
 val position_properties = [lineN, offsetN, end_offsetN, fileN, idN];
 fun position_property (entry: Properties.entry) = member (op =) position_properties (#1 entry);
 
-val (positionN, position) = markup_elem "position";
+
+(* position "def" names *)
+
+fun make_def a = "def_" ^ a;
+
+val def_names = Symtab.make (map (fn a => (a, make_def a)) position_properties);
+
+fun def_name a =
+  (case Symtab.lookup def_names a of
+    SOME b => b
+  | NONE => make_def a);
 
 
 (* expression *)

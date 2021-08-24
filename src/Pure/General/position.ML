@@ -210,7 +210,7 @@ fun offset_properties_of (Pos ((_, j, k), _)) =
   int_entry Markup.offsetN j @
   int_entry Markup.end_offsetN k;
 
-val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
+val def_properties_of = properties_of #> map (apfst Markup.def_name);
 
 fun entity_markup kind (name, pos) =
   Markup.entity kind name |> Markup.properties (def_properties_of pos);

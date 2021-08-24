@@ -672,6 +672,7 @@ module Isabelle.Markup (
   completionN, completion, no_completionN, no_completion,
 
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
+  position_properties, def_name,
 
   expressionN, expression,
 
@@ -711,6 +712,8 @@ module Isabelle.Markup (
 where
 
 import Prelude hiding (words, error, break)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
 import Isabelle.Library
 import qualified Isabelle.Properties as Properties
@@ -812,6 +815,24 @@ positionN :: Bytes
 positionN = \<open>Markup.positionN\<close>
 position :: T
 position = markup_elem positionN
+
+position_properties :: [Bytes]
+position_properties = [lineN, offsetN, end_offsetN, fileN, idN]
+
+
+{- position "def" names -}
+
+make_def :: Bytes -> Bytes
+make_def a = "def_" <> a
+
+def_names :: Map Bytes Bytes
+def_names = Map.fromList $ map (\a -> (a, make_def a)) position_properties
+
+def_name :: Bytes -> Bytes
+def_name a =
+  case Map.lookup a def_names of
+    Just b -> b
+    Nothing -> make_def a
 
 
 {- expression -}
@@ -1191,6 +1212,7 @@ module Isabelle.Position (
 ) where
 
 import Data.Maybe (isJust, fromMaybe)
+import Data.Bifunctor (first)
 import qualified Isabelle.Properties as Properties
 import qualified Isabelle.Bytes as Bytes
 import qualified Isabelle.Value as Value
@@ -1331,7 +1353,7 @@ properties_of pos =
   string_entry Markup.idN (_id pos)
 
 def_properties_of :: T -> Properties.T
-def_properties_of = properties_of #> map (\(a, b) -> ("def_" <> a, b))
+def_properties_of = properties_of #> map (first Markup.def_name)
 
 entity_markup :: Bytes -> (Bytes, T) -> Markup.T
 entity_markup kind (name, pos) =
