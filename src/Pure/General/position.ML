@@ -187,24 +187,28 @@ fun adjust_offsets adjust (pos as Pos (_, props)) =
 
 (* markup properties *)
 
-fun get props name =
+fun get_int props name =
   (case Properties.get props name of
     NONE => 0
   | SOME s => Value.parse_int s);
 
 fun of_properties props =
-  make {line = get props Markup.lineN,
-    offset = get props Markup.offsetN,
-    end_offset = get props Markup.end_offsetN,
+  make {
+    line = get_int props Markup.lineN,
+    offset = get_int props Markup.offsetN,
+    end_offset = get_int props Markup.end_offsetN,
     props = props};
 
-fun value k i = if valid i then [(k, Value.print_int i)] else [];
+fun int_entry k i = if invalid i then [] else [(k, Value.print_int i)];
 
 fun properties_of (Pos ((i, j, k), props)) =
-  value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
+  int_entry Markup.lineN i @
+  int_entry Markup.offsetN j @
+  int_entry Markup.end_offsetN k @ props;
 
 fun offset_properties_of (Pos ((_, j, k), _)) =
-  value Markup.offsetN j @ value Markup.end_offsetN k;
+  int_entry Markup.offsetN j @
+  int_entry Markup.end_offsetN k;
 
 val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
 
@@ -280,14 +284,14 @@ fun range_of_properties props =
   let
     val pos = of_properties props;
     val pos' =
-      make {line = get props Markup.end_lineN,
-        offset = get props Markup.end_offsetN,
+      make {line = get_int props Markup.end_lineN,
+        offset = get_int props Markup.end_offsetN,
         end_offset = 0,
         props = props};
   in (pos, pos') end;
 
 fun properties_of_range (pos, pos') =
-  properties_of pos @ value Markup.end_lineN (the_default 0 (line_of pos'));
+  properties_of pos @ int_entry Markup.end_lineN (the_default 0 (line_of pos'));
 
 
 (* thread data *)
