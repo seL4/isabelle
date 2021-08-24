@@ -76,7 +76,8 @@ struct
 
 (* datatype position *)
 
-datatype T = Pos of (int * int * int) * Properties.T;
+type count = int * int * int;
+datatype T = Pos of count * Properties.T;
 
 fun dest2 f = apply2 (fn Pos p => f p);
 
@@ -95,6 +96,7 @@ fun make {line = i, offset = j, end_offset = k, props} = Pos ((i, j, k), norm_pr
 fun dest (Pos ((i, j, k), props)) = {line = i, offset = j, end_offset = k, props = props};
 
 fun valid (i: int) = i > 0;
+val invalid = not o valid;
 fun maybe_valid i = if valid i then SOME i else NONE;
 fun if_valid i i' = if valid i then i' else i;
 
@@ -111,16 +113,15 @@ fun id_of (Pos (_, props)) = Properties.get props Markup.idN;
 
 (* count position *)
 
-fun count_symbol "\n" (i: int, j: int, k: int) =
+fun count_symbol "\n" ((i, j, k): count) =
       (if_valid i (i + 1), if_valid j (j + 1), k)
   | count_symbol s (i, j, k) =
       if Symbol.not_eof s then (i, if_valid j (j + 1), k) else (i, j, k);
 
-fun invalid_count (i, j, _: int) =
-  not (valid i orelse valid j);
+fun count_invalid ((i, j, _): count) = invalid i andalso invalid j;
 
 fun symbol sym (pos as (Pos (count, props))) =
-  if invalid_count count then pos else Pos (count_symbol sym count, props);
+  if count_invalid count then pos else Pos (count_symbol sym count, props);
 
 val symbol_explode = fold symbol o Symbol.explode;
 
@@ -128,7 +129,7 @@ val symbol_explode = fold symbol o Symbol.explode;
 (* advance offsets *)
 
 fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
-  if offset = 0 orelse invalid_count count then pos
+  if offset = 0 orelse count_invalid count then pos
   else if offset < 0 then raise Fail "Illegal offset"
   else if valid i then raise Fail "Illegal line position"
   else Pos ((i, if_valid j (j + offset), if_valid k (k + offset)), props);
