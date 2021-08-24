@@ -210,7 +210,8 @@ generate_file "Isabelle/Library.hs" = \<open>
 
 Basic library of Isabelle idioms.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>, \<^file>\<open>$ISABELLE_HOME/src/Pure/library.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/library.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -520,7 +521,7 @@ generate_file "Isabelle/Buffer.hs" = \<open>
 
 Efficient buffer of byte strings.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
 -}
 
 module Isabelle.Buffer (T, empty, add, content)
@@ -549,7 +550,7 @@ generate_file "Isabelle/Value.hs" = \<open>
 
 Plain values, represented as string.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/value.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/value.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -614,7 +615,7 @@ generate_file "Isabelle/Properties.hs" = \<open>
 
 Property lists.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/properties.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/properties.ML\<close>.
 -}
 
 module Isabelle.Properties (Entry, T, defined, get, get_value, put, remove)
@@ -655,7 +656,7 @@ generate_file "Isabelle/Markup.hs" = \<open>
 
 Quasi-abstract markup elements.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/markup.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/markup.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1173,7 +1174,7 @@ Source positions starting from 1; values <= 0 mean "absent". Count Isabelle
 symbols, not UTF8 bytes nor UTF16 characters. Position range specifies a
 right-open interval offset .. end_offset (exclusive).
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
 -}
 
 
@@ -1390,7 +1391,7 @@ generate_file "Isabelle/XML.hs" = \<open>
 
 Untyped XML trees and representation of ML values.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1478,7 +1479,7 @@ generate_file "Isabelle/XML/Encode.hs" = \<open>
 
 XML as data representation language.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1575,7 +1576,7 @@ generate_file "Isabelle/XML/Decode.hs" = \<open>
 
 XML as data representation language.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1690,7 +1691,7 @@ generate_file "Isabelle/YXML.hs" = \<open>
 Efficient text representation of XML trees.  Suitable for direct
 inlining into plain text.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1829,7 +1830,7 @@ generate_file "Isabelle/Completion.hs" = \<open>
 
 Completion of names.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -1886,7 +1887,7 @@ generate_file "Isabelle/File.hs" = \<open>
 
 File-system operations.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
 -}
 
 module Isabelle.File (read, write, append) where
@@ -1914,7 +1915,7 @@ generate_file "Isabelle/Pretty.hs" = \<open>
 
 Generic pretty printing module.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/pretty.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/pretty.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -2070,7 +2071,7 @@ generate_file "Isabelle/Name.hs" = \<open>
 
 Names of basic logical entities (variables etc.).
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -2165,7 +2166,7 @@ generate_file "Isabelle/Term.hs" = \<open>
 
 Lambda terms, types, sorts.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -2370,7 +2371,7 @@ generate_file "Isabelle/Pure.hs" = \<open>
 
 Support for Isabelle/Pure logic.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/logic.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/logic.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -2400,7 +2401,7 @@ generate_file "Isabelle/HOL.hs" = \<open>
 
 Support for Isabelle/HOL logic.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/HOL/Tools/hologic.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/HOL/Tools/hologic.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -2475,7 +2476,7 @@ generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
 
 XML data representation of lambda terms.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
 {-# LANGUAGE LambdaCase #-}
@@ -2521,7 +2522,7 @@ generate_file "Isabelle/Term_XML/Decode.hs" = \<open>
 
 XML data representation of lambda terms.
 
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
