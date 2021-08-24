@@ -1208,8 +1208,7 @@ module Isabelle.Position (
   start, none, put_file, file, file_only, put_id, id, id_only,
   symbol, symbol_explode, symbol_explode_string, shift_offsets,
   of_properties, properties_of, def_properties_of, entity_markup, make_entity_markup,
-  is_reported, is_reported_range, here,
-
+  Report, Report_Text, is_reported, is_reported_range, here,
   Range, no_range, no_range_position, range_position, range
 )
 where
@@ -1379,6 +1378,9 @@ make_entity_markup def serial kind (name, pos) =
 
 
 {- reports -}
+
+type Report = (T, Markup.T)
+type Report_Text = (Report, Bytes)
 
 is_reported :: T -> Bool
 is_reported pos = isJust (offset_of pos) && isJust (id_of pos)
@@ -2735,7 +2737,8 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 module Isabelle.Byte_Message (
     write, write_line,
     read, read_block, read_line,
-    make_message, write_message, read_message, exchange_message,
+    make_message, write_message, read_message,
+    exchange_message, exchange_message0,
     make_line_message, write_line_message, read_line_message,
     read_yxml, write_yxml
   )
@@ -2842,6 +2845,11 @@ exchange_message :: Socket -> [Bytes] -> IO (Maybe [Bytes])
 exchange_message socket msg = do
   write_message socket msg
   read_message socket
+
+exchange_message0 :: Socket -> [Bytes] -> IO ()
+exchange_message0 socket msg = do
+  _ <- exchange_message socket msg
+  return ()
 
 
 -- hybrid messages: line or length+block (with content restriction)
