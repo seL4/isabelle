@@ -19,7 +19,6 @@ sig
   val id_of: T -> string option
   val symbol: Symbol.symbol -> T -> T
   val symbol_explode: string -> T -> T
-  val advance_offsets: int -> T -> T
   val distance_of: T * T -> int option
   val none: T
   val start: T
@@ -36,6 +35,7 @@ sig
   val copy_id: T -> T -> T
   val id_properties_of: T -> Properties.T
   val parse_id: T -> int option
+  val advance_offsets: int -> T -> T
   val adjust_offsets: (int -> int option) -> T -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
@@ -126,15 +126,6 @@ fun symbol sym (pos as (Pos (count, props))) =
 val symbol_explode = fold symbol o Symbol.explode;
 
 
-(* advance offsets *)
-
-fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
-  if offset = 0 orelse count_invalid count then pos
-  else if offset < 0 then raise Fail "Illegal offset"
-  else if valid i then raise Fail "Illegal line position"
-  else Pos ((i, if_valid j (j + offset), if_valid k (k + offset)), props);
-
-
 (* distance of adjacent positions *)
 
 fun distance_of (Pos ((_, j, _), _), Pos ((_, j', _), _)) =
@@ -171,6 +162,15 @@ fun id_properties_of pos =
   (case id_of pos of
     SOME id => [(Markup.idN, id)]
   | NONE => []);
+
+
+(* adjust offsets *)
+
+fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
+  if offset = 0 orelse count_invalid count then pos
+  else if offset < 0 then raise Fail "Illegal offset"
+  else if valid i then raise Fail "Illegal line position"
+  else Pos ((i, if_valid j (j + offset), if_valid k (k + offset)), props);
 
 fun adjust_offsets adjust (pos as Pos (_, props)) =
   if is_none (file_of pos) then
