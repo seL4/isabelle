@@ -112,7 +112,7 @@ type entry =
   serial: serial};
 
 fun entry_markup def kind (name, {pos, serial, ...}: entry) =
-  Markup.properties (Position.entity_properties_of def serial pos) (Markup.entity kind name);
+  Position.make_entity_markup def serial kind (name, pos);
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup false kind (name, entry)) name);

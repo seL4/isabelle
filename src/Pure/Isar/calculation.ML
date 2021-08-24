@@ -68,8 +68,7 @@ fun update_calculation calc state =
     fun report def serial pos =
       Context_Position.report (Proof.context_of state)
         (Position.thread_data ())
-          (Markup.entity calculationN ""
-            |> Markup.properties (Position.entity_properties_of def serial pos));
+        (Position.make_entity_markup def serial calculationN ("", pos));
     val calculation =
       (case calc of
         NONE => NONE

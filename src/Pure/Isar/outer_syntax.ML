@@ -65,8 +65,7 @@ fun new_command comment command_parser pos =
 fun command_pos (Command {pos, ...}) = pos;
 
 fun command_markup def (name, Command {pos, id, ...}) =
-  Markup.properties (Position.entity_properties_of def id pos)
-    (Markup.entity Markup.commandN name);
+  Position.make_entity_markup def id Markup.commandN (name, pos);
 
 fun pretty_command (cmd as (name, Command {comment, ...})) =
   Pretty.block

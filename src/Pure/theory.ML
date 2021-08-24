@@ -120,9 +120,7 @@ fun map_wrappers f =
 
 fun theory_markup def name id pos =
   if id = 0 then Markup.empty
-  else
-    Markup.properties (Position.entity_properties_of def id pos)
-      (Markup.entity Markup.theoryN name);
+  else Position.make_entity_markup def id Markup.theoryN (name, pos);
 
 fun init_markup (name, pos) thy =
   let

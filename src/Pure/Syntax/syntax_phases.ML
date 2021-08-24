@@ -60,10 +60,7 @@ fun markup_free ctxt x =
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
 fun markup_bound def ps (name, id) =
-  let val entity = Markup.entity Markup.boundN name in
-    Markup.bound ::
-      map (fn pos => Markup.properties (Position.entity_properties_of def id pos) entity) ps
-  end;
+  Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
   (case Syntax.lookup_const (Proof_Context.syn_of ctxt) c of
@@ -84,7 +81,7 @@ fun reports_of_scope [] = []
   | reports_of_scope (def_pos :: ps) =
       let
         val id = serial ();
-        fun entity def = (Markup.entityN, Position.entity_properties_of def id def_pos);
+        fun entity def = Position.make_entity_markup def id "" ("", def_pos);
       in
         map (rpair Markup.bound) (def_pos :: ps) @
         ((def_pos, entity true) :: map (rpair (entity false)) ps)
