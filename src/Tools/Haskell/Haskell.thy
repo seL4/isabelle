@@ -2114,7 +2114,9 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Name (
-  Name, clean_index, clean,
+  Name,
+  uu, uu_, aT,
+  clean_index, clean, internal, skolem, is_internal, is_skolem,
   Context, declare, is_declared, context, make_context, variant
 )
 where
@@ -2131,10 +2133,26 @@ import Isabelle.Library
 type Name = Bytes
 
 
-{- suffix for internal names -}
+{- common defaults -}
+
+uu, uu_, aT :: Name
+uu = "uu"
+uu_ = "uu_"
+aT = "'a"
+
+
+{- internal names -- NB: internal subsumes skolem -}
 
 underscore :: Word8
 underscore = Bytes.byte '_'
+
+internal, skolem :: Name -> Name
+internal x = x <> "_"
+skolem x = x <> "__"
+
+is_internal, is_skolem :: Name -> Bool
+is_internal = Bytes.isSuffixOf "_"
+is_skolem = Bytes.isSuffixOf "__"
 
 clean_index :: Name -> (Name, Int)
 clean_index x =
@@ -2152,7 +2170,7 @@ clean = fst . clean_index
 
 {- context for used names -}
 
-data Context = Context (Set Name)
+newtype Context = Context (Set Name)
 
 declare :: Name -> Context -> Context
 declare x (Context names) = Context (Set.insert x names)
@@ -2211,7 +2229,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 module Isabelle.Term (
   Indexname, Sort, Typ(..), Term(..),
   Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_abs, strip_abs,
-  type_op0, type_op1, op0, op1, op2, typed_op1, typed_op2, binder,
+  type_op0, type_op1, op0, op1, op2, typed_op0, typed_op1, typed_op2, binder,
   dummyS, dummyT, is_dummyT, propT, is_propT, (-->), dest_funT, (--->),
   aconv, list_comb, strip_comb, head_of
 )
@@ -2345,6 +2363,13 @@ op2 name = (mk, dest)
     dest (App (App (Const (c, _), t), u)) | c == name = Just (t, u)
     dest _ = Nothing
 
+typed_op0 :: Name -> (Typ -> Term, Term -> Maybe Typ)
+typed_op0 name = (mk, dest)
+  where
+    mk ty = Const (name, [ty])
+    dest (Const (c, [ty])) | c == name = Just ty
+    dest _ = Nothing
+
 typed_op1 :: Name -> (Typ -> Term -> Term, Term -> Maybe (Typ, Term))
 typed_op1 name = (mk, dest)
   where
@@ -2461,7 +2486,8 @@ module Isabelle.HOL (
   mk_not, dest_not, mk_conj, dest_conj, mk_disj, dest_disj,
   mk_imp, dest_imp, mk_iff, dest_iff,
   mk_all_op, dest_all_op, mk_ex_op, dest_ex_op,
-  mk_all, dest_all, mk_ex, dest_ex
+  mk_all, dest_all, mk_ex, dest_ex,
+  mk_undefined, dest_undefined
 )
 where
 
@@ -2522,6 +2548,9 @@ mk_all :: Free -> Term -> Term; dest_all :: Name.Context -> Term -> Maybe (Free,
 
 mk_ex :: Free -> Term -> Term; dest_ex :: Name.Context -> Term -> Maybe (Free, Term)
 (mk_ex, dest_ex) = binder \<open>\<^const_name>\<open>Ex\<close>\<close>
+
+mk_undefined :: Typ -> Term; dest_undefined :: Term -> Maybe Typ
+(mk_undefined, dest_undefined) = typed_op0 \<open>\<^const_name>\<open>undefined\<close>\<close>
 \<close>
 
 generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
