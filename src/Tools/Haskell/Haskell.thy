@@ -2114,7 +2114,9 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Name (
-  Name, clean_index, clean,
+  Name,
+  uu, uu_, aT,
+  clean_index, clean,
   Context, declare, is_declared, context, make_context, variant
 )
 where
@@ -2129,6 +2131,14 @@ import Isabelle.Library
 
 
 type Name = Bytes
+
+
+{- common defaults -}
+
+uu, uu_, aT :: Name
+uu = "uu"
+uu_ = "uu_"
+aT = "'a"
 
 
 {- suffix for internal names -}
