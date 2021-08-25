@@ -2162,7 +2162,7 @@ clean = fst . clean_index
 
 {- context for used names -}
 
-data Context = Context (Set Name)
+newtype Context = Context (Set Name)
 
 declare :: Name -> Context -> Context
 declare x (Context names) = Context (Set.insert x names)
