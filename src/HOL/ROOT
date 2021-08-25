@@ -28,6 +28,7 @@ session "HOL-Examples" in Examples = HOL +
     Coherent
     Commands
     Drinker
+    Functions
     Groebner_Examples
     Iff_Oracle
     Induction_Schema
@@ -665,7 +666,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Eval_Examples
     Executable_Relation
     Execute_Choice
-    Functions
     Function_Growth
     Gauge_Integration
     Guess
