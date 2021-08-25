@@ -2116,7 +2116,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
 module Isabelle.Name (
   Name,
   uu, uu_, aT,
-  clean_index, clean,
+  clean_index, clean, internal, skolem, is_internal, is_skolem,
   Context, declare, is_declared, context, make_context, variant
 )
 where
@@ -2141,10 +2141,18 @@ uu_ = "uu_"
 aT = "'a"
 
 
-{- suffix for internal names -}
+{- internal names -- NB: internal subsumes skolem -}
 
 underscore :: Word8
 underscore = Bytes.byte '_'
+
+internal, skolem :: Name -> Name
+internal x = x <> "_"
+skolem x = x <> "__"
+
+is_internal, is_skolem :: Name -> Bool
+is_internal = Bytes.isSuffixOf "_"
+is_skolem = Bytes.isSuffixOf "__"
 
 clean_index :: Name -> (Name, Int)
 clean_index x =
