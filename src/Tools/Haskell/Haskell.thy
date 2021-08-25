@@ -2211,7 +2211,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 module Isabelle.Term (
   Indexname, Sort, Typ(..), Term(..),
   Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_abs, strip_abs,
-  type_op0, type_op1, op0, op1, op2, typed_op2, binder,
+  type_op0, type_op1, op0, op1, op2, typed_op1, typed_op2, binder,
   dummyS, dummyT, is_dummyT, propT, is_propT, (-->), dest_funT, (--->),
   aconv, list_comb, strip_comb, head_of
 )
@@ -2345,6 +2345,13 @@ op2 name = (mk, dest)
     dest (App (App (Const (c, _), t), u)) | c == name = Just (t, u)
     dest _ = Nothing
 
+typed_op1 :: Name -> (Typ -> Term -> Term, Term -> Maybe (Typ, Term))
+typed_op1 name = (mk, dest)
+  where
+    mk ty t = App (Const (name, [ty]), t)
+    dest (App (Const (c, [ty]), t)) | c == name = Just (ty, t)
+    dest _ = Nothing
+
 typed_op2 :: Name -> (Typ -> Term -> Term -> Term, Term -> Maybe (Typ, Term, Term))
 typed_op2 name = (mk, dest)
   where
@@ -2414,12 +2421,16 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/logic.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Pure (
-  mk_forall, dest_forall, mk_equals, dest_equals, mk_implies, dest_implies
+  mk_forall_op, dest_forall_op, mk_forall, dest_forall,
+  mk_equals, dest_equals, mk_implies, dest_implies
 )
 where
 
 import qualified Isabelle.Name as Name
 import Isabelle.Term
+
+mk_forall_op :: Typ -> Term -> Term; dest_forall_op :: Term -> Maybe (Typ, Term)
+(mk_forall_op, dest_forall_op) = typed_op1 \<open>\<^const_name>\<open>Pure.all\<close>\<close>
 
 mk_forall :: Free -> Term -> Term; dest_forall :: Name.Context -> Term -> Maybe (Free, Term)
 (mk_forall, dest_forall) = binder \<open>\<^const_name>\<open>Pure.all\<close>\<close>
@@ -2449,6 +2460,7 @@ module Isabelle.HOL (
   mk_eq, dest_eq, true, is_true, false, is_false,
   mk_not, dest_not, mk_conj, dest_conj, mk_disj, dest_disj,
   mk_imp, dest_imp, mk_iff, dest_iff,
+  mk_all_op, dest_all_op, mk_ex_op, dest_ex_op,
   mk_all, dest_all, mk_ex, dest_ex
 )
 where
@@ -2498,6 +2510,12 @@ dest_iff tm =
   case dest_eq tm of
     Just (ty, t, u) | ty == boolT -> Just (t, u)
     _ -> Nothing
+
+mk_all_op :: Typ -> Term -> Term; dest_all_op :: Term -> Maybe (Typ, Term)
+(mk_all_op, dest_all_op) = typed_op1 \<open>\<^const_name>\<open>All\<close>\<close>
+
+mk_ex_op :: Typ -> Term -> Term; dest_ex_op :: Term -> Maybe (Typ, Term)
+(mk_ex_op, dest_ex_op) = typed_op1 \<open>\<^const_name>\<open>Ex\<close>\<close>
 
 mk_all :: Free -> Term -> Term; dest_all :: Name.Context -> Term -> Maybe (Free, Term)
 (mk_all, dest_all) = binder \<open>\<^const_name>\<open>All\<close>\<close>
