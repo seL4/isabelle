@@ -113,7 +113,7 @@ sig
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
-  val generalize_proof: string list * string list -> int -> term -> proof -> proof
+  val generalize_proof: Symtab.set * Symtab.set -> int -> term -> proof -> proof
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
   val lift_proof: term -> int -> term -> proof -> proof
@@ -949,14 +949,14 @@ fun permute_prems_proof prems' j k prf =
 fun generalize_proof (tfrees, frees) idx prop prf =
   let
     val gen =
-      if null frees then []
+      if Symtab.is_empty frees then []
       else
-        fold_aterms (fn Free (x, T) => member (op =) frees x ? insert (op =) (x, T) | _ => I)
-          (Term_Subst.generalize (tfrees, []) idx prop) [];
+        fold_aterms (fn Free (x, T) => Symtab.defined frees x ? insert (op =) (x, T) | _ => I)
+          (Term_Subst.generalize (tfrees, Symtab.empty) idx prop) [];
   in
     prf
     |> Same.commit (map_proof_terms_same
-        (Term_Subst.generalize_same (tfrees, []) idx)
+        (Term_Subst.generalize_same (tfrees, Symtab.empty) idx)
         (Term_Subst.generalizeT_same tfrees idx))
     |> fold (fn (x, T) => forall_intr_proof (x, Free (x, T)) NONE) gen
     |> fold_rev (fn (x, T) => fn prf' => prf' %> Var (Name.clean_index (x, idx), T)) gen

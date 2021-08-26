@@ -9,10 +9,10 @@ sig
   val map_atypsT_same: typ Same.operation -> typ Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
-  val generalizeT_same: string list -> int -> typ Same.operation
-  val generalize_same: string list * string list -> int -> term Same.operation
-  val generalizeT: string list -> int -> typ -> typ
-  val generalize: string list * string list -> int -> term -> term
+  val generalizeT_same: Symtab.set -> int -> typ Same.operation
+  val generalize_same: Symtab.set * Symtab.set -> int -> term Same.operation
+  val generalizeT: Symtab.set -> int -> typ -> typ
+  val generalize: Symtab.set * Symtab.set -> int -> term -> term
   val instantiateT_maxidx: ((indexname * sort) * (typ * int)) list -> typ -> int -> typ * int
   val instantiate_maxidx:
     ((indexname * sort) * (typ * int)) list * ((indexname * typ) * (term * int)) list ->
@@ -68,32 +68,34 @@ fun map_aterms_same f =
 
 (* generalization of fixed variables *)
 
-fun generalizeT_same [] _ _ = raise Same.SAME
-  | generalizeT_same tfrees idx ty =
-      let
-        fun gen (Type (a, Ts)) = Type (a, Same.map gen Ts)
-          | gen (TFree (a, S)) =
-              if member (op =) tfrees a then TVar ((a, idx), S)
-              else raise Same.SAME
-          | gen _ = raise Same.SAME;
-      in gen ty end;
+fun generalizeT_same tfrees idx ty =
+  if Symtab.is_empty tfrees then raise Same.SAME
+  else
+    let
+      fun gen (Type (a, Ts)) = Type (a, Same.map gen Ts)
+        | gen (TFree (a, S)) =
+            if Symtab.defined tfrees a then TVar ((a, idx), S)
+            else raise Same.SAME
+        | gen _ = raise Same.SAME;
+    in gen ty end;
 
-fun generalize_same ([], []) _ _ = raise Same.SAME
-  | generalize_same (tfrees, frees) idx tm =
-      let
-        val genT = generalizeT_same tfrees idx;
-        fun gen (Free (x, T)) =
-              if member (op =) frees x then
-                Var (Name.clean_index (x, idx), Same.commit genT T)
-              else Free (x, genT T)
-          | gen (Var (xi, T)) = Var (xi, genT T)
-          | gen (Const (c, T)) = Const (c, genT T)
-          | gen (Bound _) = raise Same.SAME
-          | gen (Abs (x, T, t)) =
-              (Abs (x, genT T, Same.commit gen t)
-                handle Same.SAME => Abs (x, T, gen t))
-          | gen (t $ u) = (gen t $ Same.commit gen u handle Same.SAME => t $ gen u);
-      in gen tm end;
+fun generalize_same (tfrees, frees) idx tm =
+  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then raise Same.SAME
+  else
+    let
+      val genT = generalizeT_same tfrees idx;
+      fun gen (Free (x, T)) =
+            if Symtab.defined frees x then
+              Var (Name.clean_index (x, idx), Same.commit genT T)
+            else Free (x, genT T)
+        | gen (Var (xi, T)) = Var (xi, genT T)
+        | gen (Const (c, T)) = Const (c, genT T)
+        | gen (Bound _) = raise Same.SAME
+        | gen (Abs (x, T, t)) =
+            (Abs (x, genT T, Same.commit gen t)
+              handle Same.SAME => Abs (x, T, gen t))
+        | gen (t $ u) = (gen t $ Same.commit gen u handle Same.SAME => t $ gen u);
+    in gen tm end;
 
 fun generalizeT names i ty = Same.commit (generalizeT_same names i) ty;
 fun generalize names i tm = Same.commit (generalize_same names i) tm;

@@ -534,7 +534,7 @@ fun exportT_terms inner outer =
     val maxidx = maxidx_of outer;
   in
     fn ts => ts |> map
-      (Term_Subst.generalize (mk_tfrees ts, [])
+      (Term_Subst.generalize (Symtab.make_set (mk_tfrees ts), Symtab.empty)
         (fold (Term.fold_types Term.maxidx_typ) ts maxidx + 1))
   end;
 
@@ -544,17 +544,17 @@ fun export_terms inner outer =
     val maxidx = maxidx_of outer;
   in
     fn ts => ts |> map
-      (Term_Subst.generalize (mk_tfrees ts, tfrees)
+      (Term_Subst.generalize (Symtab.make_set (mk_tfrees ts), Symtab.make_set tfrees)
         (fold Term.maxidx_term ts maxidx + 1))
   end;
 
 fun export_prf inner outer prf =
   let
     val (mk_tfrees, frees) = export_inst (declare_prf prf inner) outer;
-    val tfrees = mk_tfrees [];
+    val tfrees = Symtab.make_set (mk_tfrees []);
     val maxidx = maxidx_of outer;
     val idx = Proofterm.maxidx_proof prf maxidx + 1;
-    val gen_term = Term_Subst.generalize_same (tfrees, frees) idx;
+    val gen_term = Term_Subst.generalize_same (tfrees, Symtab.make_set frees) idx;
     val gen_typ = Term_Subst.generalizeT_same tfrees idx;
   in Same.commit (Proofterm.map_proof_terms_same gen_term gen_typ) prf end;
 
@@ -563,7 +563,7 @@ fun gen_export (mk_tfrees, frees) maxidx ths =
   let
     val tfrees = mk_tfrees (map Thm.full_prop_of ths);
     val idx = fold Thm.maxidx_thm ths maxidx + 1;
-  in map (Thm.generalize (tfrees, frees) idx) ths end;
+  in map (Thm.generalize (Symtab.make_set tfrees, Symtab.make_set frees) idx) ths end;
 
 fun exportT inner outer = gen_export (exportT_inst inner outer, []) (maxidx_of outer);
 fun export inner outer = gen_export (export_inst inner outer) (maxidx_of outer);
@@ -728,13 +728,15 @@ fun polymorphic_types ctxt ts =
     val ctxt' = fold declare_term ts ctxt;
     val occs = type_occs_of ctxt;
     val occs' = type_occs_of ctxt';
-    val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
+    val types =
+      Symtab.fold (fn (a, _) =>
+        if Symtab.defined occs a then I else Symtab.insert_set a) occs' Symtab.empty;
     val idx = maxidx_of ctxt' + 1;
     val Ts' = (fold o fold_types o fold_atyps)
       (fn T as TFree _ =>
           (case Term_Subst.generalizeT types idx T of TVar v => insert (op =) v | _ => I)
         | _ => I) ts [];
-    val ts' = map (Term_Subst.generalize (types, []) idx) ts;
+    val ts' = map (Term_Subst.generalize (types, Symtab.empty) idx) ts;
   in (rev Ts', ts') end;
 
 fun polymorphic ctxt ts = snd (polymorphic_types ctxt ts);

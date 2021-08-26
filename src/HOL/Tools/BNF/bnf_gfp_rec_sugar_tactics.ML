@@ -160,7 +160,7 @@ fun inst_split_eq ctxt split =
       val eq = Abs (Name.uu, T, HOLogic.mk_eq (Free (s, T), Bound 0));
     in
       Thm.instantiate' [] [SOME (Thm.cterm_of ctxt eq)] split
-      |> Drule.generalize ([], [s])
+      |> Drule.generalize (Symtab.empty, Symtab.make_set [s])
     end
   | _ => split);
 

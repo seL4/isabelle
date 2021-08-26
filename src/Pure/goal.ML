@@ -120,6 +120,7 @@ fun future_result ctxt result prop =
     val fixes = map (Thm.cterm_of ctxt) xs;
 
     val tfrees = fold Term.add_tfrees (prop :: As) [];
+    val tfrees_set = fold (Symtab.insert_set o #1) tfrees Symtab.empty;
     val instT = map (fn (a, S) => (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))) tfrees;
 
     val global_prop =
@@ -131,7 +132,7 @@ fun future_result ctxt result prop =
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
         Thm.adjust_maxidx_thm ~1 #>
-        Thm.generalize (map #1 tfrees, []) 0 #>
+        Thm.generalize (tfrees_set, Symtab.empty) 0 #>
         Thm.strip_shyps #>
         Thm.solve_constraints);
     val local_result =
