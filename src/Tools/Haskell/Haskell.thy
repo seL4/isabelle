@@ -2332,21 +2332,21 @@ type_op0 :: Name -> (Typ, Typ -> Bool)
 type_op0 name = (mk, is)
   where
     mk = Type (name, [])
-    is (Type (name, _)) = True
+    is (Type (c, _)) = c == name
     is _ = False
 
 type_op1 :: Name -> (Typ -> Typ, Typ -> Maybe Typ)
 type_op1 name = (mk, dest)
   where
     mk ty = Type (name, [ty])
-    dest (Type (name, [ty])) = Just ty
+    dest (Type (c, [ty])) | c == name = Just ty
     dest _ = Nothing
 
 type_op2 :: Name -> (Typ -> Typ -> Typ, Typ -> Maybe (Typ, Typ))
 type_op2 name = (mk, dest)
   where
     mk ty1 ty2 = Type (name, [ty1, ty2])
-    dest (Type (name, [ty1, ty2])) = Just (ty1, ty2)
+    dest (Type (c, [ty1, ty2])) | c == name = Just (ty1, ty2)
     dest _ = Nothing
 
 op0 :: Name -> (Term, Term -> Bool)
