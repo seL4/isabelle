@@ -151,9 +151,9 @@ sig
   val equal_elim: thm -> thm -> thm
   val solve_constraints: thm -> thm
   val flexflex_rule: Proof.context option -> thm -> thm Seq.seq
-  val generalize: string list * string list -> int -> thm -> thm
-  val generalize_cterm: string list * string list -> int -> cterm -> cterm
-  val generalize_ctyp: string list -> int -> ctyp -> ctyp
+  val generalize: Symtab.set * Symtab.set -> int -> thm -> thm
+  val generalize_cterm: Symtab.set * Symtab.set -> int -> cterm -> cterm
+  val generalize_ctyp: Symtab.set -> int -> ctyp -> ctyp
   val instantiate: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
   val instantiate_cterm: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
@@ -1542,56 +1542,57 @@ fun flexflex_rule opt_ctxt =
   A[?'a/'a, ?x/x, ...]
 *)
 
-fun generalize ([], []) _ th = th
-  | generalize (tfrees, frees) idx th =
-      let
-        val Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...}) = th;
-        val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
+fun generalize (tfrees, frees) idx th =
+  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then th
+  else
+    let
+      val Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...}) = th;
+      val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
 
-        val bad_type =
-          if null tfrees then K false
-          else Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
-        fun bad_term (Free (x, T)) = bad_type T orelse member (op =) frees x
-          | bad_term (Var (_, T)) = bad_type T
-          | bad_term (Const (_, T)) = bad_type T
-          | bad_term (Abs (_, T, t)) = bad_type T orelse bad_term t
-          | bad_term (t $ u) = bad_term t orelse bad_term u
-          | bad_term (Bound _) = false;
-        val _ = exists bad_term hyps andalso
-          raise THM ("generalize: variable free in assumptions", 0, [th]);
+      val bad_type =
+        if Symtab.is_empty tfrees then K false
+        else Term.exists_subtype (fn TFree (a, _) => Symtab.defined tfrees a | _ => false);
+      fun bad_term (Free (x, T)) = bad_type T orelse Symtab.defined frees x
+        | bad_term (Var (_, T)) = bad_type T
+        | bad_term (Const (_, T)) = bad_type T
+        | bad_term (Abs (_, T, t)) = bad_type T orelse bad_term t
+        | bad_term (t $ u) = bad_term t orelse bad_term u
+        | bad_term (Bound _) = false;
+      val _ = exists bad_term hyps andalso
+        raise THM ("generalize: variable free in assumptions", 0, [th]);
 
-        val generalize = Term_Subst.generalize (tfrees, frees) idx;
-        val prop' = generalize prop;
-        val tpairs' = map (apply2 generalize) tpairs;
-        val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
-      in
-        Thm (deriv_rule1 (Proofterm.generalize_proof (tfrees, frees) idx prop) der,
-         {cert = cert,
-          tags = [],
-          maxidx = maxidx',
-          constraints = constraints,
-          shyps = shyps,
-          hyps = hyps,
-          tpairs = tpairs',
-          prop = prop'})
-      end;
+      val generalize = Term_Subst.generalize (tfrees, frees) idx;
+      val prop' = generalize prop;
+      val tpairs' = map (apply2 generalize) tpairs;
+      val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
+    in
+      Thm (deriv_rule1 (Proofterm.generalize_proof (tfrees, frees) idx prop) der,
+       {cert = cert,
+        tags = [],
+        maxidx = maxidx',
+        constraints = constraints,
+        shyps = shyps,
+        hyps = hyps,
+        tpairs = tpairs',
+        prop = prop'})
+    end;
 
-fun generalize_cterm ([], []) _ ct = ct
-  | generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts}) =
-      if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
-      else
-        Cterm {cert = cert, sorts = sorts,
-          T = Term_Subst.generalizeT tfrees idx T,
-          t = Term_Subst.generalize (tfrees, frees) idx t,
-          maxidx = Int.max (maxidx, idx)};
+fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts}) =
+  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then ct
+  else if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
+  else
+    Cterm {cert = cert, sorts = sorts,
+      T = Term_Subst.generalizeT tfrees idx T,
+      t = Term_Subst.generalize (tfrees, frees) idx t,
+      maxidx = Int.max (maxidx, idx)};
 
-fun generalize_ctyp [] _ cT = cT
-  | generalize_ctyp tfrees idx (Ctyp {cert, T, maxidx, sorts}) =
-      if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
-      else
-        Ctyp {cert = cert, sorts = sorts,
-          T = Term_Subst.generalizeT tfrees idx T,
-          maxidx = Int.max (maxidx, idx)};
+fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
+  if Symtab.is_empty tfrees then cT
+  else if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
+  else
+    Ctyp {cert = cert, sorts = sorts,
+      T = Term_Subst.generalizeT tfrees idx T,
+      maxidx = Int.max (maxidx, idx)};
 
 
 (*Instantiation of schematic variables

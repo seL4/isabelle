@@ -52,7 +52,7 @@ signature DRULE =
 sig
   include BASIC_DRULE
   val outer_params: term -> (string * typ) list
-  val generalize: string list * string list -> thm -> thm
+  val generalize: Symtab.set * Symtab.set -> thm -> thm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val beta_conv: cterm -> cterm -> cterm

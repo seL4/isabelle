@@ -42,7 +42,7 @@ fun mk_case_certificate ctxt raw_thms =
     |> Conjunction.intr_balanced
     |> rewrite_rule ctxt [Thm.symmetric (Thm.assume assum)]
     |> Thm.implies_intr assum
-    |> Thm.generalize ([], params) 0
+    |> Thm.generalize (Symtab.empty, Symtab.make_set params) 0
     |> Axclass.unoverload ctxt
     |> Thm.varifyT_global
   end;

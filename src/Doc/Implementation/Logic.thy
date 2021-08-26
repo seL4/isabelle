@@ -585,7 +585,7 @@ text %mlref \<open>
   @{define_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
   @{define_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
   @{define_ML Thm.implies_elim: "thm -> thm -> thm"} \\
-  @{define_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
+  @{define_ML Thm.generalize: "Symtab.set * Symtab.set -> int -> thm -> thm"} \\
   @{define_ML Thm.instantiate: "((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   -> thm -> thm"} \\
   @{define_ML Thm.add_axiom: "Proof.context ->
@@ -646,8 +646,8 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Thm.generalize\<close>~\<open>(\<^vec>\<alpha>, \<^vec>x)\<close> corresponds to the
   \<open>generalize\<close> rules of \figref{fig:subst-rules}. Here collections of type and
-  term variables are generalized simultaneously, specified by the given basic
-  names.
+  term variables are generalized simultaneously, specified by the given sets of
+  basic names.
 
   \<^descr> \<^ML>\<open>Thm.instantiate\<close>~\<open>(\<^vec>\<alpha>\<^sub>s, \<^vec>x\<^sub>\<tau>)\<close> corresponds to the
   \<open>instantiate\<close> rules of \figref{fig:subst-rules}. Type variables are

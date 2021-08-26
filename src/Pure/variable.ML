@@ -516,14 +516,14 @@ fun export_inst inner outer =
     val still_fixed = not o is_newly_fixed inner outer;
 
     val gen_fixes =
-      Name_Space.fold_table (fn (y, _) => not (is_fixed outer y) ? cons y)
-        (fixes_of inner) [];
+      Name_Space.fold_table (fn (y, _) => not (is_fixed outer y) ? Symtab.insert_set y)
+        (fixes_of inner) Symtab.empty;
 
     val type_occs_inner = type_occs_of inner;
     fun gen_fixesT ts =
       Symtab.fold (fn (a, xs) =>
         if declared_outer a orelse exists still_fixed xs
-        then I else cons a) (fold decl_type_occs ts type_occs_inner) [];
+        then I else Symtab.insert_set a) (fold decl_type_occs ts type_occs_inner) Symtab.empty;
   in (gen_fixesT, gen_fixes) end;
 
 fun exportT_inst inner outer = #1 (export_inst inner outer);
@@ -534,7 +534,7 @@ fun exportT_terms inner outer =
     val maxidx = maxidx_of outer;
   in
     fn ts => ts |> map
-      (Term_Subst.generalize (mk_tfrees ts, [])
+      (Term_Subst.generalize (mk_tfrees ts, Symtab.empty)
         (fold (Term.fold_types Term.maxidx_typ) ts maxidx + 1))
   end;
 
@@ -565,7 +565,7 @@ fun gen_export (mk_tfrees, frees) maxidx ths =
     val idx = fold Thm.maxidx_thm ths maxidx + 1;
   in map (Thm.generalize (tfrees, frees) idx) ths end;
 
-fun exportT inner outer = gen_export (exportT_inst inner outer, []) (maxidx_of outer);
+fun exportT inner outer = gen_export (exportT_inst inner outer, Symtab.empty) (maxidx_of outer);
 fun export inner outer = gen_export (export_inst inner outer) (maxidx_of outer);
 
 fun export_morphism inner outer =
@@ -728,13 +728,15 @@ fun polymorphic_types ctxt ts =
     val ctxt' = fold declare_term ts ctxt;
     val occs = type_occs_of ctxt;
     val occs' = type_occs_of ctxt';
-    val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
+    val types =
+      Symtab.fold (fn (a, _) =>
+        if Symtab.defined occs a then I else Symtab.insert_set a) occs' Symtab.empty;
     val idx = maxidx_of ctxt' + 1;
     val Ts' = (fold o fold_types o fold_atyps)
       (fn T as TFree _ =>
           (case Term_Subst.generalizeT types idx T of TVar v => insert (op =) v | _ => I)
         | _ => I) ts [];
-    val ts' = map (Term_Subst.generalize (types, []) idx) ts;
+    val ts' = map (Term_Subst.generalize (types, Symtab.empty) idx) ts;
   in (rev Ts', ts') end;
 
 fun polymorphic ctxt ts = snd (polymorphic_types ctxt ts);

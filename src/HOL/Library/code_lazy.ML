@@ -122,7 +122,7 @@ fun add_ctr_code raw_ctrs case_thms thy =
         |> Conjunction.intr_balanced
         |> rewrite_rule ctxt [Thm.symmetric (Thm.assume assum)]
         |> Thm.implies_intr assum
-        |> Thm.generalize ([], params) 0
+        |> Thm.generalize (Symtab.empty, Symtab.make_set params) 0
         |> Axclass.unoverload ctxt
         |> Thm.varifyT_global
       end
@@ -494,7 +494,9 @@ fun code_lazy_type eager_type_string thy =
     val delay_dummy_thm = (pat_def_thm RS @{thm symmetric})
       |> Drule.infer_instantiate' lthy10
          [SOME (Thm.cterm_of lthy10 (Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, HOLogic.unitT --> lazy_type)))]
-      |> Thm.generalize (map (fst o dest_TFree) type_args, []) (Variable.maxidx_of lthy10 + 1);
+      |> Thm.generalize
+         (Symtab.make_set (map (fst o dest_TFree) type_args), Symtab.empty)
+         (Variable.maxidx_of lthy10 + 1);
 
     val ctr_post = delay_dummy_thm :: map (fn thm => thm RS @{thm sym}) ctrs_lazy_thms
     val ctr_thms_abs = map (fn thm => Drule.abs_def (thm RS @{thm eq_reflection})) ctrs_lazy_thms

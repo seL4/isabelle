@@ -173,7 +173,7 @@ fun parse_named_pats match_kind =
 
                   val param_thm = map (Drule.mk_term o Thm.cterm_of ctxt' o Free) abs_nms
                     |> Conjunction.intr_balanced
-                    |> Drule.generalize ([], map fst abs_nms)
+                    |> Drule.generalize (Symtab.empty, Symtab.make_set (map fst abs_nms))
                     |> Thm.tag_free_dummy;
 
                   val atts = map (Attrib.attribute ctxt') att;

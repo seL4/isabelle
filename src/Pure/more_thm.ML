@@ -408,16 +408,17 @@ fun instantiate_frees ([], []) th = th
         val idx = Thm.maxidx_of th + 1;
         fun index ((a, A), b) = (((a, idx), A), b);
         val insts = (map index instT, map index inst);
-        val frees = (map (#1 o #1) instT, map (#1 o #1) inst);
+        val tfrees = fold (Symtab.insert_set o #1 o #1) instT Symtab.empty;
+        val frees = fold (Symtab.insert_set o #1 o #1) inst Symtab.empty;
 
         val hyps = Thm.chyps_of th;
         val inst_cterm =
-          Thm.generalize_cterm frees idx #>
+          Thm.generalize_cterm (tfrees, frees) idx #>
           Thm.instantiate_cterm insts;
       in
         th
         |> fold_rev Thm.implies_intr hyps
-        |> Thm.generalize frees idx
+        |> Thm.generalize (tfrees, frees) idx
         |> Thm.instantiate insts
         |> fold (elim_implies o Thm.assume o inst_cterm) hyps
       end;

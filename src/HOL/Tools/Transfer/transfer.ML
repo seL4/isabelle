@@ -575,7 +575,7 @@ fun transfer_rule_of_term ctxt equiv t =
       ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
-    |> Thm.generalize (tfrees, rnames @ frees) idx
+    |> Thm.generalize (Symtab.make_set tfrees, Symtab.make_set (rnames @ frees)) idx
     |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
@@ -596,7 +596,7 @@ fun transfer_rule_of_lhs ctxt t =
       ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
-    |> Thm.generalize (tfrees, rnames @ frees) idx
+    |> Thm.generalize (Symtab.make_set tfrees, Symtab.make_set (rnames @ frees)) idx
     |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
@@ -718,7 +718,8 @@ fun transferred ctxt extra_rules thm =
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
     |> Raw_Simplifier.rewrite_rule ctxt' post_simps
     |> Simplifier.norm_hhf ctxt'
-    |> Drule.generalize (map (fst o dest_TFree o Thm.typ_of o snd) instT, [])
+    |> Drule.generalize
+        (Symtab.make_set (map (fst o dest_TFree o Thm.typ_of o snd) instT), Symtab.empty)
     |> Drule.zero_var_indexes
   end
 (*
@@ -753,7 +754,8 @@ fun untransferred ctxt extra_rules thm =
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
     |> Raw_Simplifier.rewrite_rule ctxt' post_simps
     |> Simplifier.norm_hhf ctxt'
-    |> Drule.generalize (map (fst o dest_TFree o Thm.typ_of o snd) instT, [])
+    |> Drule.generalize
+        (Symtab.make_set (map (fst o dest_TFree o Thm.typ_of o snd) instT), Symtab.empty)
     |> Drule.zero_var_indexes
   end
 
