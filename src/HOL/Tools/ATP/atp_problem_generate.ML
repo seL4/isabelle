@@ -567,34 +567,48 @@ fun robust_const_type_args thy (s, T) =
 
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term. Also accumulates sort
    infomation. *)
-fun iterm_of_term thy type_enc bs (P $ Q) =
-    let
-      val (P', P_atomics_Ts) = iterm_of_term thy type_enc bs P
-      val (Q', Q_atomics_Ts) = iterm_of_term thy type_enc bs Q
-    in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
-  | iterm_of_term thy type_enc _ (Const (c, T)) =
-    (IConst (`(make_fixed_const (SOME type_enc)) c, T, robust_const_type_args thy (c, T)),
-     atomic_types_of T)
-  | iterm_of_term _ _ _ (Free (s, T)) = (IConst (`make_fixed_var s, T, []), atomic_types_of T)
-  | iterm_of_term _ type_enc _ (Var (v as (s, _), T)) =
-    (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
-       let
-         val Ts = T |> strip_type |> swap |> op ::
-         val s' = new_skolem_const_name s (length Ts)
-       in IConst (`(make_fixed_const (SOME type_enc)) s', T, Ts) end
-     else
-       IVar ((make_schematic_var v, s), T), atomic_types_of T)
-  | iterm_of_term _ _ bs (Bound j) =
-    nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atomic_types_of T))
-  | iterm_of_term thy type_enc bs (Abs (s, T, t)) =
-    let
-      fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
-      val s = vary s
-      val name = `make_bound_var s
-      val (tm, atomic_Ts) = iterm_of_term thy type_enc ((s, (name, T)) :: bs) t
-    in
-      (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T))
-    end
+fun iterm_of_term thy type_enc =
+  let
+    fun iot true bs ((t0 as Const (\<^const_name>\<open>Let\<close>, _)) $ t1 $ (t2 as Abs (s, T, t'))) =
+        let
+          val (t0', t0_atomics_Ts) = iot true bs t0
+          val (t1', t1_atomics_Ts) = iot true bs t1
+          val (t2', t2_atomics_Ts) = iot true bs t2
+        in
+          (IApp (IApp (t0', t1'), t2'),
+           fold (union (op =)) [t0_atomics_Ts, t1_atomics_Ts, t2_atomics_Ts] [])
+        end
+      | iot true bs ((t0 as Const (\<^const_name>\<open>Let\<close>, _)) $ t1 $ t2) =
+        iot true bs (t0 $ t1 $ eta_expand (map (snd o snd) bs) t2 1)
+      | iot fool bs (P $ Q) =
+        let
+          val (P', P_atomics_Ts) = iot fool bs P
+          val (Q', Q_atomics_Ts) = iot fool bs Q
+        in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
+      | iot _ _ (Const (c, T)) =
+        (IConst (`(make_fixed_const (SOME type_enc)) c, T, robust_const_type_args thy (c, T)),
+         atomic_types_of T)
+      | iot _ _ (Free (s, T)) = (IConst (`make_fixed_var s, T, []), atomic_types_of T)
+      | iot _ _ (Var (v as (s, _), T)) =
+        (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
+           let
+             val Ts = T |> strip_type |> swap |> op ::
+             val s' = new_skolem_const_name s (length Ts)
+           in IConst (`(make_fixed_const (SOME type_enc)) s', T, Ts) end
+         else
+           IVar ((make_schematic_var v, s), T), atomic_types_of T)
+      | iot _ bs (Bound j) =
+        nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atomic_types_of T))
+      | iot fool bs (Abs (s, T, t)) =
+        let
+          fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
+          val s = vary s
+          val name = `make_bound_var s
+          val (tm, atomic_Ts) = iot fool ((s, (name, T)) :: bs) t
+        in
+          (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T))
+        end
+  in iot (is_type_enc_fool type_enc)  end
 
 (* "_query" and "_at" are for the ASCII-challenged Metis and Mirabelle. *)
 val queries = ["?", "_query"]
@@ -745,8 +759,8 @@ fun is_first_order_lambda_free t =
     is_first_order_lambda_free t1 andalso is_first_order_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
 
-fun simple_translate_lambdas do_lambdas ctxt type_enc t =
-  if is_first_order_lambda_free t then
+fun simple_translate_lambdas eta_matters do_lambdas ctxt type_enc t =
+  if not eta_matters andalso is_first_order_lambda_free t then
     t
   else
     let
@@ -791,9 +805,11 @@ fun simple_translate_lambdas do_lambdas ctxt type_enc t =
         | Abs _ => t |> Envir.eta_contract |> do_lambdas ctxt Ts
         | _ => t)
 
-      val trans = if is_type_enc_fool type_enc then trans_fool else trans_first_order
-      val (t, ctxt') = yield_singleton (Variable.import_terms true) t ctxt
-    in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
+      val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
+    in
+      t' |> (if is_type_enc_fool type_enc then trans_fool else trans_first_order) []
+         |> singleton (Variable.export_terms ctxt' ctxt)
+    end
 
 fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
     do_cheaply_conceal_lambdas Ts t1
@@ -819,7 +835,8 @@ fun do_introduce_combinators ctxt Ts t =
      |> reveal_bounds Ts)
   (* A type variable of sort "{}" will make abstraction fail. *)
   handle THM _ => t |> do_cheaply_conceal_lambdas Ts
-val introduce_combinators = simple_translate_lambdas do_introduce_combinators
+
+val introduce_combinators = simple_translate_lambdas false do_introduce_combinators
 
 fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
   | constify_lifted (Abs (s, T, t)) = Abs (s, T, constify_lifted t)
@@ -827,28 +844,32 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
     (if String.isPrefix lam_lifted_prefix s then Const else Free) x
   | constify_lifted t = t
 
+fun is_binder true (Const (\<^const_name>\<open>Let\<close>, _) $ _) = true
+  | is_binder _ t = Lambda_Lifting.is_quantifier t
+
 fun lift_lams_part_1 ctxt type_enc =
   map hol_close_form #> rpair ctxt
-  #-> Lambda_Lifting.lift_lambdas
-          (SOME ((if is_type_enc_polymorphic type_enc then
-                    lam_lifted_poly_prefix
-                  else
-                    lam_lifted_mono_prefix) ^ "_a"))
-          Lambda_Lifting.is_quantifier
+  #-> Lambda_Lifting.lift_lambdas (SOME
+    ((if is_type_enc_polymorphic type_enc then lam_lifted_poly_prefix
+      else lam_lifted_mono_prefix) ^ "_a"))
+    (is_binder (is_type_enc_fool type_enc))
   #> fst
 
 fun lift_lams_part_2 ctxt type_enc (facts, lifted) =
   (facts, lifted)
-  (* Lambda-lifting sometimes leaves some lambdas around; we need some way to
-     get rid of them *)
+  (* Lambda-lifting sometimes leaves some lambdas around; we need some way to get rid of them *)
   |> apply2 (map (introduce_combinators ctxt type_enc))
   |> apply2 (map constify_lifted)
-  (* Requires bound variables not to clash with any schematic variables (as
-     should be the case right after lambda-lifting). *)
+  (* Requires bound variables not to clash with any schematic variables (as should be the case right
+     after lambda-lifting). *)
   |>> map (hol_open_form (unprefix hol_close_form_prefix))
   ||> map (hol_open_form I)
 
-fun lift_lams ctxt type_enc = lift_lams_part_2 ctxt type_enc o lift_lams_part_1 ctxt type_enc
+fun lift_lams ctxt type_enc =
+  (is_type_enc_fool type_enc ?
+   map (simple_translate_lambdas true (fn _ => fn _ => fn t => t) ctxt type_enc))
+  #> lift_lams_part_1 ctxt type_enc
+  #> lift_lams_part_2 ctxt type_enc
 
 fun intentionalize_def (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) =
     intentionalize_def t
@@ -1186,12 +1207,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
           val tm2' = intro false [] tm2
           val tm2'' =
             (case tm1' of
-              IApp (IConst ((s, _), _, _), _) =>
-              if s = tptp_let then
-                eta_expand_quantifier_body tm2'
-              else
-                tm2'
-            | IConst ((s, _), _, _) =>
+              IConst ((s, _), _, _) =>
               if s = tptp_ho_forall orelse s = tptp_ho_exists then
                 eta_expand_quantifier_body tm2'
               else
@@ -1379,9 +1395,10 @@ fun freeze_term t =
 
 fun presimp_prop simp_options ctxt type_enc t =
   let
-    val t = t |> Envir.beta_eta_contract
-              |> transform_elim_prop
-              |> Object_Logic.atomize_term ctxt
+    val t =
+      t |> Envir.beta_eta_contract
+        |> transform_elim_prop
+        |> Object_Logic.atomize_term ctxt
     val need_trueprop = (fastype_of t = \<^typ>\<open>bool\<close>)
     val is_ho = is_type_enc_full_higher_order type_enc
   in
