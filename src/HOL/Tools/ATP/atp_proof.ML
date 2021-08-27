@@ -157,32 +157,31 @@ fun short_output verbose output =
 fun from_lemmas [] = ""
   | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
-fun string_of_atp_failure MaybeUnprovable = "The generated problem is maybe unprovable"
-  | string_of_atp_failure Unprovable = "The generated problem is unprovable"
-  | string_of_atp_failure GaveUp = "The prover gave up"
+fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
+  | string_of_atp_failure Unprovable = "Unprovable problem"
+  | string_of_atp_failure GaveUp = "Gave up"
   | string_of_atp_failure ProofMissing =
-    "The prover claims the conjecture is a theorem but did not provide a proof"
+    "Claims the conjecture is a theorem but did not provide a proof"
   | string_of_atp_failure ProofIncomplete =
-    "The prover claims the conjecture is a theorem but provided an incomplete proof"
+    "Claims the conjecture is a theorem but provided an incomplete proof"
   | string_of_atp_failure ProofUnparsable =
-    "The prover claims the conjecture is a theorem but provided an unparsable proof"
+    "Claims the conjecture is a theorem but provided an unparsable proof"
   | string_of_atp_failure (UnsoundProof (false, ss)) =
-    "The prover derived the lemma \"False\"" ^ from_lemmas ss ^
-    "; specify a sound type encoding or omit the \"type_enc\" option"
+    "Derived the lemma \"False\"" ^ from_lemmas ss ^
+    ", probably due to the use of an unsound type encoding"
   | string_of_atp_failure (UnsoundProof (true, ss)) =
-    "The prover derived the lemma \"False\"" ^ from_lemmas ss ^
+    "Derived the lemma \"False\"" ^ from_lemmas ss ^
     ", which could be due to a bug in Sledgehammer or to inconsistent axioms (including \"sorry\"s)"
   | string_of_atp_failure TimedOut = "Timed out"
-  | string_of_atp_failure Inappropriate =
-    "The generated problem lies outside the prover's scope"
-  | string_of_atp_failure OutOfResources = "The prover ran out of resources"
-  | string_of_atp_failure MalformedInput = "The generated problem is malformed"
-  | string_of_atp_failure MalformedOutput = "The prover output is malformed"
-  | string_of_atp_failure Interrupted = "The prover was interrupted"
-  | string_of_atp_failure Crashed = "The prover crashed"
-  | string_of_atp_failure InternalError = "An internal prover error occurred"
+  | string_of_atp_failure Inappropriate = "Problem outside the prover's scope"
+  | string_of_atp_failure OutOfResources = "Ran out of resources"
+  | string_of_atp_failure MalformedInput = "Malformed problem"
+  | string_of_atp_failure MalformedOutput = "Malformed output"
+  | string_of_atp_failure Interrupted = "Interrupted"
+  | string_of_atp_failure Crashed = "Crashed"
+  | string_of_atp_failure InternalError = "Internal prover error"
   | string_of_atp_failure (UnknownError s) =
-    "A prover error occurred" ^
+    "Prover error" ^
     (if s = "" then " (pass the \"verbose\" option for details)" else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =

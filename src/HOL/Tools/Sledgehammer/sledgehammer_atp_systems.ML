@@ -557,7 +557,9 @@ val zipperposition_config : atp_config =
        ["--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
         |> extra_options <> "" ? prefix (extra_options ^ " ")],
      proof_delims = tstp_proof_delims,
-     known_failures = known_szs_status_failures,
+     known_failures =
+       [(TimedOut, "SZS status ResourceOut")] @   (* odd way of timing out *)
+       known_szs_status_failures,
      prem_role = Hypothesis,
      best_slices = fn _ =>
        (* FUDGE *)
