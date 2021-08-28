@@ -43,7 +43,7 @@ fun bash_process params =
     val {script, input, cwd, putenv, redirect, timeout, description: string} =
       Bash.dest_params params;
     val run =
-      ["run", script, input,
+      [Bash.server_run, script, input,
         let open XML.Encode in YXML.string_of_body (option (string o absolute_path) cwd) end,
         let open XML.Encode in YXML.string_of_body o list (pair string string) end
           (("ISABELLE_TMP", getenv "ISABELLE_TMP") :: putenv),
@@ -57,31 +57,39 @@ fun bash_process params =
     val _ = address = "" andalso raise Fail "Bad bash_process server address";
     fun with_streams f = Socket_IO.with_streams' f address password;
 
-    fun kill (SOME uuid) = with_streams (fn s => Byte_Message.write_message (#2 s) ["kill", uuid])
+    fun kill (SOME uuid) =
+          with_streams (fn s => Byte_Message.write_message (#2 s) [Bash.server_kill, uuid])
       | kill NONE = ();
   in
     Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
       let
-        fun loop maybe_uuid streams =
-          (case restore_attributes Byte_Message.read_message (#1 streams) of
-            SOME ["uuid", uuid] => loop (SOME uuid) streams
-          | SOME ["interrupt"] => raise Exn.Interrupt
-          | SOME ["failure", msg] => raise Fail msg
-          | SOME ("result" :: a :: b :: c :: d :: lines) =>
-              let
-                val rc = Value.parse_int a;
-                val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
-                val (out_lines, err_lines) = chop (Value.parse_int d) lines;
-              in
-                if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed
-                else
-                  Process_Result.make
-                   {rc = rc,
-                    out_lines = out_lines,
-                    err_lines = err_lines,
-                    timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
-             end
-          | _ => raise Fail "Malformed bash_process server result")
+        fun err () = raise Fail "Malformed result from bash_process server";
+        fun loop maybe_uuid s =
+          (case restore_attributes Byte_Message.read_message (#1 s) of
+            SOME (head :: args) =>
+              if head = Bash.server_uuid andalso length args = 1 then
+                loop (SOME (hd args)) s
+              else if head = Bash.server_interrupt andalso null args then
+                raise Exn.Interrupt
+              else if head = Bash.server_failure andalso length args = 1 then
+                raise Fail (hd args)
+              else if head = Bash.server_result andalso length args >= 4 then
+                let
+                  val a :: b :: c :: d :: lines = args;
+                  val rc = Value.parse_int a;
+                  val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
+                  val (out_lines, err_lines) = chop (Value.parse_int d) lines;
+                in
+                  if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed
+                  else
+                    Process_Result.make
+                     {rc = rc,
+                      out_lines = out_lines,
+                      err_lines = err_lines,
+                      timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
+                 end
+               else err ()
+          | _ => err ())
           handle exn => (kill maybe_uuid; Exn.reraise exn);
       in with_streams (fn s => (Byte_Message.write_message (#2 s) run; loop NONE s)) end) ()
   end;

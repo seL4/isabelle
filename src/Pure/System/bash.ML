@@ -19,6 +19,12 @@ sig
   val redirect: params -> params
   val timeout: Time.time -> params -> params
   val description: string -> params -> params
+  val server_run: string
+  val server_kill: string
+  val server_uuid: string
+  val server_interrupt: string
+  val server_failure: string
+  val server_result: string
 end;
 
 structure Bash: BASH =
@@ -90,5 +96,16 @@ fun description description =
     (script, input, cwd, putenv, redirect, timeout, description));
 
 end;
+
+
+(* server messages *)
+
+val server_run = "run";
+val server_kill = "kill";
+
+val server_uuid = "uuid";
+val server_interrupt = "interrupt";
+val server_failure = "failure";
+val server_result = "result";
 
 end;
