@@ -228,9 +228,13 @@ module Isabelle.Library (
   show_bytes, show_text,
 
   proper_string, enclose, quote, space_implode, commas, commas_quote, cat_lines,
-  space_explode, split_lines, trim_line)
+  space_explode, split_lines, trim_line,
+
+  getenv, getenv_strict)
 where
 
+import System.Environment (lookupEnv)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Data.Text.Lazy as Lazy
@@ -396,6 +400,21 @@ split_lines = space_explode '\n'
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
+
+
+{- getenv -}
+
+getenv :: Bytes -> IO Bytes
+getenv x = do
+  y <- lookupEnv (make_string x)
+  return $ make_bytes $ fromMaybe "" y
+
+getenv_strict :: Bytes -> IO Bytes
+getenv_strict x = do
+  y <- getenv x
+  if Bytes.null y then
+    errorWithoutStackTrace $ make_string ("Undefined Isabelle environment variable: " <> quote x)
+  else return y
 \<close>
 
 
@@ -3130,7 +3149,7 @@ TCP server on localhost.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Server (
-  localhost_name, localhost, publish_text, publish_stdout,
+  localhost_name, localhost_unprefix, localhost, publish_text, publish_stdout,
   server, connection
 )
 where
@@ -3154,6 +3173,15 @@ import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
 
 localhost_name :: Bytes
 localhost_name = "127.0.0.1"
+
+localhost_prefix :: Bytes
+localhost_prefix = localhost_name <> ":"
+
+localhost_unprefix :: Bytes -> Maybe Bytes
+localhost_unprefix address =
+  if Bytes.isPrefixOf localhost_prefix address
+  then Just $ Bytes.drop (Bytes.length localhost_prefix) address
+  else Nothing
 
 localhost :: Socket.HostAddress
 localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
@@ -3215,7 +3243,7 @@ connection port password client =
             Socket.defaultHints {
               Socket.addrFlags = [Socket.AI_NUMERICHOST, Socket.AI_NUMERICSERV],
               Socket.addrSocketType = Socket.Stream }
-      head <$> Socket.getAddrInfo (Just hints) (Just "127.0.0.1") (Just port)
+      head <$> Socket.getAddrInfo (Just hints) (Just $ make_string localhost_name) (Just port)
 
     open addr = do
       socket <- Socket.socket (Socket.addrFamily addr) (Socket.addrSocketType addr)
@@ -3347,6 +3375,8 @@ module Isabelle.Bash (
   get_script, get_input, get_cwd, get_putenv, get_redirect,
   get_timeout, get_description,
   script, input, cwd, putenv, redirect, timeout, description,
+  server_run, server_kill,
+  server_uuid, server_interrupt, server_failure, server_result
 )
 where
 
@@ -3435,6 +3465,19 @@ timeout timeout params = params { _timeout = timeout }
 
 description :: Bytes -> Params -> Params
 description description params = params { _description = description }
+
+
+{- server messages -}
+
+server_run, server_kill :: Bytes
+server_run = \<open>Bash.server_run\<close>;
+server_kill = \<open>Bash.server_kill\<close>;
+
+server_uuid, server_interrupt, server_failure, server_result :: Bytes
+server_uuid = \<open>Bash.server_uuid\<close>;
+server_interrupt = \<open>Bash.server_interrupt\<close>;
+server_failure = \<open>Bash.server_failure\<close>;
+server_result = \<open>Bash.server_result\<close>;
 \<close>
 
 generate_file "Isabelle/Process_Result.hs" = \<open>
@@ -3633,6 +3676,116 @@ instance Decode T where
             Decode.pair Decode.properties (Decode.pair Decode.string (Decode.pair Decode.string Decode.string)) body
         in (name, Opt { _pos = pos, _name = name, _typ = typ, _value = value })
     in Options . Map.fromList . Decode.list decode_entry
+\<close>
+
+generate_file "Isabelle/Isabelle_System.hs" = \<open>
+{-  Title:      Isabelle/Isabelle_System.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Isabelle system support.
+
+See \<^file>\<open>~~/src/Pure/System/isabelle_system.ML\<close>
+and \<^file>\<open>~~/src/Pure/System/isabelle_system.scala\<close>
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module Isabelle.Isabelle_System (
+  bash_process, bash_process0
+)
+where
+
+import Data.Maybe (fromMaybe)
+import Control.Exception (throw, AsyncException (UserInterrupt))
+import Network.Socket (Socket)
+import Isabelle.Bytes (Bytes)
+import qualified Isabelle.Byte_Message as Byte_Message
+import qualified Isabelle.Time as Time
+import Isabelle.Timing (Timing (..))
+import qualified Isabelle.Options as Options
+import qualified Isabelle.Bash as Bash
+import qualified Isabelle.Process_Result as Process_Result
+import qualified Isabelle.XML.Encode as Encode
+import qualified Isabelle.YXML as YXML
+import qualified Isabelle.Value as Value
+import qualified Isabelle.Server as Server
+import qualified Isabelle.Isabelle_Thread as Isabelle_Thread
+import Isabelle.Library
+
+
+{- bash_process -}
+
+absolute_path :: Bytes -> Bytes  -- FIXME dummy
+absolute_path = id
+
+bash_process :: Options.T -> Bash.Params -> IO Process_Result.T
+bash_process options = bash_process0 address password
+  where
+    address = Options.string options "bash_process_address"
+    password = Options.string options "bash_process_password"
+
+bash_process0 :: Bytes -> Bytes -> Bash.Params -> IO Process_Result.T
+bash_process0 address password params = do
+  Server.connection port password
+    (\socket -> do
+        isabelle_tmp <- getenv "ISABELLE_TMP"
+        Byte_Message.write_message socket (run isabelle_tmp)
+        loop Nothing socket)
+  where
+    port =
+      case Server.localhost_unprefix address of
+        Just port -> make_string port
+        Nothing -> errorWithoutStackTrace "Bad bash_process server address"
+
+    script = Bash.get_script params
+    input = Bash.get_input params
+    cwd = Bash.get_cwd params
+    putenv = Bash.get_putenv params
+    redirect = Bash.get_redirect params
+    timeout = Bash.get_timeout params
+    description = Bash.get_description params
+
+    run :: Bytes -> [Bytes]
+    run isabelle_tmp =
+     [Bash.server_run, script, input,
+      YXML.string_of_body (Encode.option (Encode.string . absolute_path) cwd),
+      YXML.string_of_body
+      (Encode.list (Encode.pair Encode.string Encode.string)
+        (("ISABELLE_TMP", isabelle_tmp) : putenv)),
+      Value.print_bool redirect,
+      Value.print_real (Time.get_seconds timeout),
+      description]
+
+    kill :: Maybe Bytes -> IO ()
+    kill maybe_uuid = do
+      case maybe_uuid of
+        Just uuid ->
+          Server.connection port password (\socket ->
+            Byte_Message.write_message socket [Bash.server_kill, uuid])
+        Nothing -> return ()
+
+    err = errorWithoutStackTrace "Malformed result from bash_process server"
+    the = fromMaybe err
+
+    loop :: Maybe Bytes -> Socket -> IO Process_Result.T
+    loop maybe_uuid socket = do
+      result <- Isabelle_Thread.bracket_resource (kill maybe_uuid) (Byte_Message.read_message socket)
+      case result of
+        Just [head, uuid] | head == Bash.server_uuid -> loop (Just uuid) socket
+        Just [head] | head == Bash.server_interrupt -> throw UserInterrupt
+        Just [head, msg] | head == Bash.server_failure -> errorWithoutStackTrace $ make_string msg
+        Just (head : a : b : c : d : lines) | head == Bash.server_result ->
+          let
+            rc = the $ Value.parse_int a
+            elapsed = Time.ms $ the $ Value.parse_int b
+            cpu = Time.ms $ the $ Value.parse_int c
+            timing = Timing elapsed cpu Time.zero
+            n = the $ Value.parse_int d
+            out_lines = take n lines
+            err_lines = drop n lines
+          in return $ Process_Result.make rc out_lines err_lines timing
+        _ -> err
 \<close>
 
 export_generated_files _
