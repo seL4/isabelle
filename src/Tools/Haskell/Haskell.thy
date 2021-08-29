@@ -228,7 +228,7 @@ module Isabelle.Library (
   show_bytes, show_text,
 
   proper_string, enclose, quote, space_implode, commas, commas_quote, cat_lines,
-  space_explode, split_lines, trim_line,
+  space_explode, split_lines, trim_line, trim_split_lines,
 
   getenv, getenv_strict)
 where
@@ -400,6 +400,9 @@ split_lines = space_explode '\n'
 
 cat_lines :: StringLike a => [a] -> a
 cat_lines = space_implode "\n"
+
+trim_split_lines :: StringLike a => a -> [a]
+trim_split_lines = trim_line #> split_lines #> map trim_line
 
 
 {- getenv -}
