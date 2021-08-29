@@ -46,22 +46,29 @@ object Bash
 
   /* process and result */
 
+  private def make_description(description: String): String =
+    proper_string(description) getOrElse "bash_process"
+
   type Watchdog = (Time, Process => Boolean)
 
   def process(script: String,
+      description: String = "",
       cwd: JFile = null,
       env: JMap[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
-    new Process(script, cwd, env, redirect, cleanup)
+    new Process(script, description, cwd, env, redirect, cleanup)
 
   class Process private[Bash](
       script: String,
+      description: String,
       cwd: JFile,
       env: JMap[String, String],
       redirect: Boolean,
       cleanup: () => Unit)
   {
+    override def toString: String = make_description(description)
+
     private val timing_file = Isabelle_System.tmp_file("bash_timing")
     private val timing = Synchronized[Option[Timing]](None)
     def get_timing: Timing = timing.value getOrElse Timing.zero
@@ -303,7 +310,7 @@ object Bash
             Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
           val uuid = UUID.random()
 
-          val descr = proper_string(description) getOrElse "bash_process"
+          val descr = make_description(description)
           if (debugging) {
             Output.writeln(
               "start " + quote(descr) + " (uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
@@ -311,6 +318,7 @@ object Bash
 
           Exn.capture {
             Bash.process(script,
+              description = description,
               cwd =
                 XML.Decode.option(XML.Decode.string)(YXML.parse_body(cwd)) match {
                   case None => null

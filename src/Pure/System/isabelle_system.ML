@@ -40,7 +40,7 @@ val absolute_path = Path.implode o File.absolute_path;
 
 fun bash_process params =
   let
-    val {script, input, cwd, putenv, redirect, timeout, description: string} =
+    val {script, input, cwd, putenv, redirect, timeout, description} =
       Bash.dest_params params;
     val run =
       [Bash.server_run, script, input,
