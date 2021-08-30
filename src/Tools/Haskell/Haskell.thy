@@ -2161,7 +2161,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/name.ML\<close>.
 module Isabelle.Name (
   Name,
   uu, uu_, aT,
-  clean_index, clean, internal, skolem, is_internal, is_skolem,
+  clean_index, clean, internal, skolem, is_internal, is_skolem, dest_internal, dest_skolem,
   Context, declare, is_declared, context, make_context, variant
 )
 where
@@ -2198,6 +2198,10 @@ skolem x = x <> "__"
 is_internal, is_skolem :: Name -> Bool
 is_internal = Bytes.isSuffixOf "_"
 is_skolem = Bytes.isSuffixOf "__"
+
+dest_internal, dest_skolem :: Name -> Maybe Name
+dest_internal = Bytes.try_unsuffix "_"
+dest_skolem = Bytes.try_unsuffix "__"
 
 clean_index :: Name -> (Name, Int)
 clean_index x =
