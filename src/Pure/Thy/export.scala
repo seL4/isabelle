@@ -376,7 +376,8 @@ object Export
 
             progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
             Isabelle_System.make_directory(path.dir)
-            Bytes.write(path, entry.uncompressed)
+            val bytes = entry.uncompressed
+            if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
             File.set_executable(path, entry.executable)
           }
         }
