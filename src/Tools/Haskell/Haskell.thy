@@ -25,7 +25,7 @@ module Isabelle.Bytes (
   Bytes,
   make, unmake, pack, unpack,
   empty, null, length, index, all, any,
-  head, last, take, drop, isPrefixOf, isSuffixOf,
+  head, last, take, drop, isPrefixOf, isSuffixOf, try_unprefix, try_unsuffix,
   concat, space, spaces, char, all_char, any_char, byte, singleton
 )
 where
@@ -80,10 +80,16 @@ last :: Bytes -> Word8
 last bytes = index bytes (length bytes - 1)
 
 take :: Int -> Bytes -> Bytes
-take n = pack . List.take n . unpack
+take n bs
+  | n == 0 = empty
+  | n >= length bs = bs
+  | otherwise = pack (List.take n (unpack bs))
 
 drop :: Int -> Bytes -> Bytes
-drop n = pack . List.drop n . unpack
+drop n bs
+  | n == 0 = bs
+  | n >= length bs = empty
+  | otherwise = pack (List.drop n (unpack bs))
 
 isPrefixOf :: Bytes -> Bytes -> Bool
 isPrefixOf bs1 bs2 =
@@ -94,6 +100,16 @@ isSuffixOf :: Bytes -> Bytes -> Bool
 isSuffixOf bs1 bs2 =
   n1 <= n2 && List.all (\i -> index bs1 i == index bs2 (i + k)) [0 .. n1 - 1]
   where n1 = length bs1; n2 = length bs2; k = n2 - n1
+
+try_unprefix :: Bytes -> Bytes -> Maybe Bytes
+try_unprefix bs1 bs2 =
+  if isPrefixOf bs1 bs2 then Just (drop (length bs1) bs2)
+  else Nothing
+
+try_unsuffix :: Bytes -> Bytes -> Maybe Bytes
+try_unsuffix bs1 bs2 =
+  if isSuffixOf bs1 bs2 then Just (take (length bs2 - length bs1) bs2)
+  else Nothing
 
 concat :: [Bytes] -> Bytes
 concat = mconcat
@@ -3152,7 +3168,7 @@ TCP server on localhost.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Server (
-  localhost_name, localhost_unprefix, localhost, publish_text, publish_stdout,
+  localhost_name, localhost_prefix, localhost, publish_text, publish_stdout,
   server, connection
 )
 where
@@ -3179,12 +3195,6 @@ localhost_name = "127.0.0.1"
 
 localhost_prefix :: Bytes
 localhost_prefix = localhost_name <> ":"
-
-localhost_unprefix :: Bytes -> Maybe Bytes
-localhost_unprefix address =
-  if Bytes.isPrefixOf localhost_prefix address
-  then Just $ Bytes.drop (Bytes.length localhost_prefix) address
-  else Nothing
 
 localhost :: Socket.HostAddress
 localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
@@ -3702,6 +3712,7 @@ where
 import Data.Maybe (fromMaybe)
 import Control.Exception (throw, AsyncException (UserInterrupt))
 import Network.Socket (Socket)
+import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Byte_Message as Byte_Message
 import qualified Isabelle.Time as Time
@@ -3737,7 +3748,7 @@ bash_process0 address password params = do
         loop Nothing socket)
   where
     port =
-      case Server.localhost_unprefix address of
+      case Bytes.try_unprefix Server.localhost_prefix address of
         Just port -> make_string port
         Nothing -> errorWithoutStackTrace "Bad bash_process server address"
 
