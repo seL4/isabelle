@@ -2257,7 +2257,7 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 
 module Isabelle.Term (
   Indexname, Sort, Typ(..), Term(..),
-  Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_abs, strip_abs,
+  Free, lambda, declare_frees, incr_boundvars, subst_bound, dest_lambda, strip_lambda,
   type_op0, type_op1, op0, op1, op2, typed_op0, typed_op1, typed_op2, binder,
   dummyS, dummyT, is_dummyT, propT, is_propT, (-->), dest_funT, (--->),
   aconv, list_comb, strip_comb, head_of
@@ -2331,19 +2331,19 @@ subst_bound arg = subst 0
     subst lev (App (t, u)) = App (subst lev t, subst lev u)
     subst _ t = t
 
-dest_abs :: Name.Context -> Term -> Maybe (Free, Term)
-dest_abs names (Abs (x, ty, b)) =
+dest_lambda :: Name.Context -> Term -> Maybe (Free, Term)
+dest_lambda names (Abs (x, ty, b)) =
   let
     (x', _) = Name.variant x (declare_frees b names)
     v = (x', ty)
   in Just (v, subst_bound (Free v) b)
-dest_abs _ _ = Nothing
+dest_lambda _ _ = Nothing
 
-strip_abs :: Name.Context -> Term -> ([Free], Term)
-strip_abs names tm =
-  case dest_abs names tm of
+strip_lambda :: Name.Context -> Term -> ([Free], Term)
+strip_lambda names tm =
+  case dest_lambda names tm of
     Just (v, t) ->
-      let (vs, t') = strip_abs names t'
+      let (vs, t') = strip_lambda names t'
       in (v : vs, t')
     Nothing -> ([], tm)
 
@@ -2417,7 +2417,7 @@ binder :: Name -> (Free -> Term -> Term, Name.Context -> Term -> Maybe (Free, Te
 binder name = (mk, dest)
   where
     mk (a, ty) b = App (Const (name, [ty]), lambda (a, ty) b)
-    dest names (App (Const (c, _), t)) | c == name = dest_abs names t
+    dest names (App (Const (c, _), t)) | c == name = dest_lambda names t
     dest _ _ = Nothing
 
 
