@@ -3297,7 +3297,7 @@ import Isabelle.Bytes (Bytes)
 import Isabelle.Library
 
 
-data Time = Time Int
+newtype Time = Time Int
 
 instance Eq Time where Time ms1 == Time ms2 = ms1 == ms2
 instance Ord Time where compare (Time ms1) (Time ms2) = compare ms1 ms2
