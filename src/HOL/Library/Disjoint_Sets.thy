@@ -332,6 +332,12 @@ proof (rule partition_on_transform[OF P])
     using f[THEN inj_onD] P[THEN partition_onD1] by (auto simp: disjnt_def)
 qed auto
 
+lemma partition_on_insert:
+  assumes "disjnt p (\<Union>P)"
+  shows "partition_on A (insert p P) \<longleftrightarrow> partition_on (A-p) P \<and> p \<subseteq> A \<and> p \<noteq> {}"
+  using assms
+  by (auto simp: partition_on_def disjnt_iff pairwise_insert)
+
 subsection \<open>Finiteness of partitions\<close>
 
 lemma finitely_many_partition_on:
