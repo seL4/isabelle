@@ -59,22 +59,22 @@ struct
 
 structure TFrees = Inst_Table(
   type key = string * sort
-  val ord = prod_ord fast_string_ord Term_Ord.sort_ord
+  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.sort_ord)
 );
 
 structure TVars = Inst_Table(
   type key = indexname * sort
-  val ord = prod_ord Term_Ord.fast_indexname_ord Term_Ord.sort_ord
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.sort_ord)
 );
 
 structure Frees = Inst_Table(
   type key = string * typ
-  val ord = prod_ord fast_string_ord Term_Ord.typ_ord
+  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.typ_ord)
 );
 
 structure Vars = Inst_Table(
   type key = indexname * typ
-  val ord = prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord)
 );
 
 
