@@ -1603,40 +1603,47 @@ fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
 
 local
 
-fun pretty_typing thy t T = Pretty.block
-  [Syntax.pretty_term_global thy t, Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ_global thy T];
+fun add_cert cert_of (_, c) cert = Context.join_certificate (cert, cert_of c);
+val add_instT_cert = add_cert (fn Ctyp {cert, ...} => cert);
+val add_inst_cert = add_cert (fn Cterm {cert, ...} => cert);
 
-fun add_inst (v as (_, T), cu) (cert, sorts) =
-  let
-    val Cterm {t = u, T = U, cert = cert2, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
-    val cert' = Context.join_certificate (cert, cert2);
-    val sorts' = Sorts.union sorts_u sorts;
-  in
-    if T = U then ((v, (u, maxidx_u)), (cert', sorts'))
-    else
-      let
-        val msg =
-          (case cert' of
-            Context.Certificate thy' =>
-              Pretty.string_of (Pretty.block
-               [Pretty.str "instantiate: type conflict",
-                Pretty.fbrk, pretty_typing thy' (Var v) T,
-                Pretty.fbrk, pretty_typing thy' u U])
-          | Context.Certificate_Id _ => "instantiate: type conflict");
-      in raise TYPE (msg, [T, U], [Var v, u]) end
-  end;
+fun add_sorts sorts_of (_, c) sorts = Sorts.union (sorts_of c) sorts;
+val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
+val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
-fun add_instT (v as (_, S), cU) (cert, sorts) =
+fun make_instT thy (v as (_, S), Ctyp {T = U, maxidx, ...}) =
+  if Sign.of_sort thy (U, S) then (v, (U, maxidx))
+  else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy S, [U], []);
+
+fun make_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
+  if T = U then (v, (u, maxidx))
+  else
+    let
+      fun pretty_typing t ty =
+        Pretty.block [Syntax.pretty_term_global thy t, Pretty.str " ::",
+          Pretty.brk 1, Syntax.pretty_typ_global thy ty];
+      val msg =
+        Pretty.string_of (Pretty.block
+         [Pretty.str "instantiate: type conflict",
+          Pretty.fbrk, pretty_typing (Var v) T,
+          Pretty.fbrk, pretty_typing u U])
+    in raise TYPE (msg, [T, U], [Var v, u]) end;
+
+fun prep_insts (instT, inst) (cert, sorts) =
   let
-    val Ctyp {T = U, cert = cert2, sorts = sorts_U, maxidx = maxidx_U, ...} = cU;
-    val cert' = Context.join_certificate (cert, cert2);
+    val cert' = cert
+      |> fold add_instT_cert instT
+      |> fold add_inst_cert inst;
     val thy' = Context.certificate_theory cert'
-      handle ERROR msg => raise CONTEXT (msg, [cU], [], [], NONE);
-    val sorts' = Sorts.union sorts_U sorts;
-  in
-    if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (cert', sorts'))
-    else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy' S, [U], [])
-  end;
+      handle ERROR msg => raise CONTEXT (msg, map #2 instT, map #2 inst, [], NONE);
+
+    val sorts' = sorts
+      |> fold add_instT_sorts instT
+      |> fold add_inst_sorts inst;
+
+    val instT' = map (make_instT thy') instT;
+    val inst' = map (make_inst thy') inst;
+  in ((instT', inst'), (cert', sorts')) end;
 
 in
 
@@ -1647,10 +1654,10 @@ fun instantiate ([], []) th = th
   | instantiate (instT, inst) th =
       let
         val Thm (der, {cert, hyps, constraints, shyps, tpairs, prop, ...}) = th;
-        val (inst', (instT', (cert', shyps'))) =
-          (cert, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT
-            handle CONTEXT (msg, cTs, cts, ths, context) =>
-              raise CONTEXT (msg, cTs, cts, th :: ths, context);
+        val ((instT', inst'), (cert', shyps')) = prep_insts (instT, inst) (cert, shyps)
+          handle CONTEXT (msg, cTs, cts, ths, context) =>
+            raise CONTEXT (msg, cTs, cts, th :: ths, context);
+
         val subst = Term_Subst.instantiate_maxidx (instT', inst');
         val (prop', maxidx1) = subst prop ~1;
         val (tpairs', maxidx') =
@@ -1678,8 +1685,7 @@ fun instantiate_cterm ([], []) ct = ct
   | instantiate_cterm (instT, inst) ct =
       let
         val Cterm {cert, t, T, sorts, ...} = ct;
-        val (inst', (instT', (cert', sorts'))) =
-          (cert, sorts) |> fold_map add_inst inst ||> fold_map add_instT instT;
+        val ((instT', inst'), (cert', sorts')) = prep_insts (instT, inst) (cert, sorts);
         val subst = Term_Subst.instantiate_maxidx (instT', inst');
         val substT = Term_Subst.instantiateT_maxidx instT';
         val (t', maxidx1) = subst t ~1;
