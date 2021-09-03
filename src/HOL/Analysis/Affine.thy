@@ -798,7 +798,7 @@ proof -
   have "card {x - a |x. x \<in> s - {a}} = card (s - {a})"
     unfolding * by (simp add: card_image inj_on_def)
   also have "\<dots> > DIM('a)" using assms(2)
-    unfolding card_Diff_singleton[OF assms(1) \<open>a\<in>s\<close>] by auto
+    unfolding card_Diff_singleton[OF \<open>a\<in>s\<close>] by auto
   finally show ?thesis
     apply (subst insert_Diff[OF \<open>a\<in>s\<close>, symmetric])
     apply (rule dependent_imp_affine_dependent)
@@ -821,9 +821,7 @@ proof -
     using \<open>a\<in>S\<close> by (auto simp: span_base span_diff intro: subset_le_dim)
   also have "\<dots> < dim S + 1" by auto
   also have "\<dots> \<le> card (S - {a})"
-    using assms
-    using card_Diff_singleton[OF assms(1) \<open>a\<in>S\<close>]
-    by auto
+    using assms card_Diff_singleton[OF \<open>a\<in>S\<close>] by auto
   finally show ?thesis
     apply (subst insert_Diff[OF \<open>a\<in>S\<close>, symmetric])
     apply (rule dependent_imp_affine_dependent)
