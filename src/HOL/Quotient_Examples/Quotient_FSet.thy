@@ -819,8 +819,7 @@ lemma card_remove_fset_less2:
 
 lemma card_remove_fset_le1: 
   shows "card_fset (remove_fset x xs) \<le> card_fset xs"
-  unfolding remove_fset card_fset
-  by (rule card_Diff1_le[OF finite_fset])
+  by simp
 
 lemma card_psubset_fset: 
   shows "ys |\<subseteq>| xs \<Longrightarrow> card_fset ys < card_fset xs \<Longrightarrow> ys |\<subset>| xs"
@@ -835,21 +834,17 @@ lemma card_map_fset_le:
 lemma card_minus_insert_fset[simp]:
   assumes "a |\<in>| A" and "a |\<notin>| B"
   shows "card_fset (A - insert_fset a B) = card_fset (A - B) - 1"
-  using assms 
-  unfolding in_fset card_fset minus_fset
-  by (simp add: card_Diff_insert[OF finite_fset])
+  using assms  by (simp add: in_fset card_fset)
 
 lemma card_minus_subset_fset:
   assumes "B |\<subseteq>| A"
   shows "card_fset (A - B) = card_fset A - card_fset B"
   using assms 
-  unfolding subset_fset card_fset minus_fset
-  by (rule card_Diff_subset[OF finite_fset])
+  by (simp add: subset_fset card_fset card_Diff_subset)
 
 lemma card_minus_fset:
   shows "card_fset (A - B) = card_fset A - card_fset (A |\<inter>| B)"
-  unfolding inter_fset card_fset minus_fset
-  by (rule card_Diff_subset_Int) (simp)
+  by (simp add: card_fset card_Diff_subset_Int)
 
 
 subsection \<open>concat_fset\<close>
