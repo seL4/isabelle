@@ -69,9 +69,9 @@ sig
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
-  val importT_inst: term list -> Proof.context -> ((indexname * sort) * typ) list * Proof.context
+  val importT_inst: term list -> Proof.context -> typ Term_Subst.TVars.table * Proof.context
   val import_inst: bool -> term list -> Proof.context ->
-    (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
+    (typ Term_Subst.TVars.table * term Term_Subst.Vars.table) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
   val importT: thm list -> Proof.context ->
@@ -593,20 +593,25 @@ fun importT_inst ts ctxt =
   let
     val tvars = rev (fold Term.add_tvars ts []);
     val (tfrees, ctxt') = invent_types (map #2 tvars) ctxt;
-  in (tvars ~~ map TFree tfrees, ctxt') end;
+    val instT =
+      fold2 (fn a => fn b => Term_Subst.TVars.add (a, TFree b))
+        tvars tfrees Term_Subst.TVars.empty;
+  in (instT, ctxt') end;
 
 fun import_inst is_open ts ctxt =
   let
     val ren = Name.clean #> (if is_open then I else Name.internal);
     val (instT, ctxt') = importT_inst ts ctxt;
     val vars = map (apsnd (Term_Subst.instantiateT instT)) (rev (fold Term.add_vars ts []));
-    val (xs, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
-    val inst = vars ~~ map Free (xs ~~ map #2 vars);
+    val (ys, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
+    val inst =
+      fold2 (fn (x, T) => fn y => Term_Subst.Vars.add ((x, T), Free (y, T)))
+        vars ys Term_Subst.Vars.empty;
   in ((instT, inst), ctxt'') end;
 
 fun importT_terms ts ctxt =
   let val (instT, ctxt') = importT_inst ts ctxt
-  in (map (Term_Subst.instantiate (instT, [])) ts, ctxt') end;
+  in (map (Term_Subst.instantiate (instT, Term_Subst.Vars.empty)) ts, ctxt') end;
 
 fun import_terms is_open ts ctxt =
   let val (inst, ctxt') = import_inst is_open ts ctxt
@@ -615,7 +620,7 @@ fun import_terms is_open ts ctxt =
 fun importT ths ctxt =
   let
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
-    val instT' = map (apsnd (Thm.ctyp_of ctxt')) instT;
+    val instT' = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt' T)) instT [];
     val ths' = map (Thm.instantiate (instT', [])) ths;
   in ((instT', ths'), ctxt') end;
 
@@ -628,11 +633,10 @@ fun import_prf is_open prf ctxt =
 fun import is_open ths ctxt =
   let
     val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
-    val insts' =
-     (map (apsnd (Thm.ctyp_of ctxt')) instT,
-      map (apsnd (Thm.cterm_of ctxt')) inst);
-    val ths' = map (Thm.instantiate insts') ths;
-  in ((insts', ths'), ctxt') end;
+    val instT' = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt' T)) instT [];
+    val inst' = Term_Subst.Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt' t)) inst [];
+    val ths' = map (Thm.instantiate (instT', inst')) ths;
+  in (((instT', inst'), ths'), ctxt') end;
 
 fun import_vars ctxt th =
   let val ((_, [th']), _) = ctxt |> set_body false |> import true [th];

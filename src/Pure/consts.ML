@@ -225,9 +225,11 @@ end;
 fun instance consts (c, Ts) =
   let
     val declT = type_scheme consts c;
-    val vars = map Term.dest_TVar (typargs consts (c, declT));
-    val inst = vars ~~ Ts handle ListPair.UnequalLengths =>
-      raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
+    val args = typargs consts (c, declT);
+    val inst =
+      fold2 (fn a => fn T => Term_Subst.TVars.add (Term.dest_TVar a, T))
+        args Ts Term_Subst.TVars.empty
+      handle ListPair.UnequalLengths => raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
   in declT |> Term_Subst.instantiateT inst end;
 
 fun dummy_types consts =

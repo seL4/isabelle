@@ -190,7 +190,8 @@ fun inst_morphism params ((prfx, mandatory), insts') ctxt =
       (type_parms ~~ map Logic.dest_type type_parms'')
       |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
     val cert_inst =
-      ((map #1 params ~~ map (Term_Subst.instantiateT_frees instT) parm_types) ~~ insts'')
+      ((map #1 params ~~
+        map (Term_Subst.instantiateT_frees (Term_Subst.TFrees.table instT)) parm_types) ~~ insts'')
       |> map_filter (fn (v, t) => if Free v = t then NONE else SOME (v, cert t));
   in
     (Element.instantiate_normalize_morphism (map (apsnd certT) instT, cert_inst) $>

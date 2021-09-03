@@ -1611,12 +1611,12 @@ fun add_sorts sorts_of (_, c) sorts = Sorts.union (sorts_of c) sorts;
 val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
 val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
-fun make_instT thy (v as (_, S), Ctyp {T = U, maxidx, ...}) =
-  if Sign.of_sort thy (U, S) then (v, (U, maxidx))
+fun add_instT thy (v as (_, S), Ctyp {T = U, maxidx, ...}) =
+  if Sign.of_sort thy (U, S) then Term_Subst.TVars.add (v, (U, maxidx))
   else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy S, [U], []);
 
-fun make_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
-  if T = U then (v, (u, maxidx))
+fun add_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
+  if T = U then Term_Subst.Vars.add (v, (u, maxidx))
   else
     let
       fun pretty_typing t ty =
@@ -1641,8 +1641,8 @@ fun prep_insts (instT, inst) (cert, sorts) =
       |> fold add_instT_sorts instT
       |> fold add_inst_sorts inst;
 
-    val instT' = map (make_instT thy') instT;
-    val inst' = map (make_inst thy') inst;
+    val instT' = fold (add_instT thy') instT Term_Subst.TVars.empty;
+    val inst' = fold (add_inst thy') inst Term_Subst.Vars.empty;
   in ((instT', inst'), (cert', sorts')) end;
 
 in
@@ -1665,10 +1665,13 @@ fun instantiate ([], []) th = th
 
         val thy' = Context.certificate_theory cert';
         val constraints' =
-          fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S)) instT' constraints;
+          Term_Subst.TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
+            instT' constraints;
       in
         Thm (deriv_rule1
-          (fn d => Proofterm.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
+          (fn d =>
+            Proofterm.instantiate
+              (Term_Subst.TVars.map (K #1) instT', Term_Subst.Vars.map (K #1) inst') d) der,
          {cert = cert',
           tags = [],
           maxidx = maxidx',

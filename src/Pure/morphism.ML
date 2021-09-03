@@ -137,12 +137,18 @@ val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 fun instantiate_frees_morphism ([], []) = identity
   | instantiate_frees_morphism (cinstT, cinst) =
       let
-        val instT = map (apsnd Thm.typ_of) cinstT;
-        val inst = map (apsnd Thm.term_of) cinst;
+        val instT =
+          fold (fn (v, cT) => Term_Subst.TFrees.add (v, Thm.typ_of cT))
+            cinstT Term_Subst.TFrees.empty;
+        val inst =
+          fold (fn (v, ct) => Term_Subst.Frees.add (v, Thm.term_of ct))
+            cinst Term_Subst.Frees.empty;
       in
         morphism "instantiate_frees"
           {binding = [],
-           typ = if null instT then [] else [Term_Subst.instantiateT_frees instT],
+           typ =
+            if Term_Subst.TFrees.is_empty instT then []
+            else [Term_Subst.instantiateT_frees instT],
            term = [Term_Subst.instantiate_frees (instT, inst)],
            fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
       end;
@@ -150,12 +156,18 @@ fun instantiate_frees_morphism ([], []) = identity
 fun instantiate_morphism ([], []) = identity
   | instantiate_morphism (cinstT, cinst) =
       let
-        val instT = map (apsnd Thm.typ_of) cinstT;
-        val inst = map (apsnd Thm.term_of) cinst;
+        val instT =
+          fold (fn (v, cT) => Term_Subst.TVars.add (v, Thm.typ_of cT))
+            cinstT Term_Subst.TVars.empty;
+        val inst =
+          fold (fn (v, ct) => Term_Subst.Vars.add (v, Thm.term_of ct))
+            cinst Term_Subst.Vars.empty;
       in
         morphism "instantiate"
           {binding = [],
-           typ = if null instT then [] else [Term_Subst.instantiateT instT],
+           typ =
+            if Term_Subst.TVars.is_empty instT then []
+            else [Term_Subst.instantiateT instT],
            term = [Term_Subst.instantiate (instT, inst)],
            fact = [map (Thm.instantiate (cinstT, cinst))]}
       end;

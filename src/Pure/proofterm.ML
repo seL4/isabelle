@@ -114,8 +114,7 @@ sig
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
   val generalize_proof: Symtab.set * Symtab.set -> int -> term -> proof -> proof
-  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
-    -> proof -> proof
+  val instantiate: typ Term_Subst.TVars.table * term Term_Subst.Vars.table -> proof -> proof
   val lift_proof: term -> int -> term -> proof -> proof
   val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
@@ -672,18 +671,25 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
 
 (* substitutions *)
 
-fun del_conflicting_tvars envT T = Term_Subst.instantiateT
-  (map_filter (fn ixnS as (_, S) =>
-     (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])) T;
+fun del_conflicting_tvars envT T =
+  let
+    val instT =
+      map_filter (fn ixnS as (_, S) =>
+        (Type.lookup envT ixnS; NONE) handle TYPE _ =>
+          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])
+  in Term_Subst.instantiateT (Term_Subst.TVars.table instT) T end;
 
-fun del_conflicting_vars env t = Term_Subst.instantiate
-  (map_filter (fn ixnS as (_, S) =>
-     (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []),
-   map_filter (fn (ixnT as (_, T)) =>
-     (Envir.lookup env ixnT; NONE) handle TYPE _ =>
-        SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
+fun del_conflicting_vars env t =
+  let
+    val instT =
+      map_filter (fn ixnS as (_, S) =>
+        (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
+          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []);
+    val inst =
+      map_filter (fn (ixnT as (_, T)) =>
+        (Envir.lookup env ixnT; NONE) handle TYPE _ =>
+          SOME (ixnT, Free ("dummy", T))) (Term.add_vars t []);
+  in Term_Subst.instantiate (Term_Subst.TVars.make instT, Term_Subst.Vars.table inst) t end;
 
 fun norm_proof env =
   let
@@ -967,7 +973,7 @@ fun generalize_proof (tfrees, frees) idx prop prf =
 
 fun instantiate (instT, inst) =
   Same.commit (map_proof_terms_same
-    (Term_Subst.instantiate_same (instT, map (apsnd remove_types) inst))
+    (Term_Subst.instantiate_same (instT, Term_Subst.Vars.map (K remove_types) inst))
     (Term_Subst.instantiateT_same instT));
 
 

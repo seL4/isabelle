@@ -78,8 +78,8 @@ fun define_pcrel (config: config) crel lthy0 =
     val (instT, lthy2) = lthy1
       |> Variable.declare_names fixed_crel
       |> Variable.importT_inst (param_rel_subst :: args_subst)
-    val args_fixed = (map (Term_Subst.instantiate (instT, []))) args_subst
-    val param_rel_fixed = Term_Subst.instantiate (instT, []) param_rel_subst
+    val args_fixed = (map (Term_Subst.instantiate (instT, Term_Subst.Vars.empty))) args_subst
+    val param_rel_fixed = Term_Subst.instantiate (instT, Term_Subst.Vars.empty) param_rel_subst
     val rty = (domain_type o fastype_of) param_rel_fixed
     val relcomp_op = Const (\<^const_name>\<open>relcompp\<close>, 
           (rty --> rty' --> HOLogic.boolT) --> 
@@ -295,7 +295,7 @@ local
     let
       val tvars = rev (subtract op= exclude (fold Term.add_tvars ts []))
       val (tfrees, ctxt') = Variable.invent_types (map #2 tvars) ctxt
-    in (tvars ~~ map TFree tfrees, ctxt') end
+    in (Term_Subst.TVars.table (tvars ~~ map TFree tfrees), ctxt') end
   
   fun import_inst_exclude exclude ts ctxt =
     let
@@ -304,7 +304,7 @@ local
       val vars = map (apsnd (Term_Subst.instantiateT instT)) 
         (rev (subtract op= exclude (fold Term.add_vars ts [])))
       val (xs, ctxt'') = Variable.variant_fixes (map (#1 o #1) vars) ctxt'
-      val inst = vars ~~ map Free (xs ~~ map #2 vars)
+      val inst = Term_Subst.Vars.table (vars ~~ map Free (xs ~~ map #2 vars))
     in ((instT, inst), ctxt'') end
   
   fun import_terms_exclude exclude ts ctxt =

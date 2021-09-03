@@ -45,7 +45,7 @@ sig
      ('a -> thm -> 'b Seq.seq) -> 'a -> thm -> 'b Seq.seq
   val try_dest_Trueprop : term -> term
 
-  val type_devar : ((indexname * sort) * typ) list -> term -> term
+  val type_devar : typ Term_Subst.TVars.table -> term -> term
   val diff_and_instantiate : Proof.context -> thm -> term -> term -> thm
 
   val batter_tac : Proof.context -> int -> tactic
@@ -545,7 +545,7 @@ fun abstract ts t =
        end)
 
 (*Instantiate type variables in a term, based on a type environment*)
-fun type_devar (tyenv : ((indexname * sort) * typ) list) (t : term) : term =
+fun type_devar tyenv (t : term) : term =
   case t of
       Const (s, ty) => Const (s, Term_Subst.instantiateT tyenv ty)
     | Free (s, ty) => Free (s, Term_Subst.instantiateT tyenv ty)
@@ -573,7 +573,7 @@ fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
     val typeval = map (fn (v, T) => (dest_TVar v, Thm.ctyp_of ctxt T)) type_pairing
 
     val typeval_env =
-      map (apfst dest_TVar) type_pairing
+      Term_Subst.TVars.table (map (apfst dest_TVar) type_pairing)
     (*valuation of term variables*)
     val termval =
       map (apfst (dest_Var o type_devar typeval_env)) term_pairing

@@ -119,7 +119,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
       |> Proof_Context.add_fixes_cmd raw_fixes;
 
     (*explicit type instantiations*)
-    val instT1 = Term_Subst.instantiateT (map (read_type ctxt1 tvars) type_insts);
+    val instT1 =
+      Term_Subst.instantiateT (Term_Subst.TVars.table (map (read_type ctxt1 tvars) type_insts));
     val vars1 = map (apsnd instT1) vars;
 
     (*term instantiations*)
@@ -128,10 +129,12 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val ((ts, inferred), ctxt2) = read_terms ss Ts ctxt1;
 
     (*implicit type instantiations*)
-    val instT2 = Term_Subst.instantiateT inferred;
+    val instT2 = Term_Subst.instantiateT (Term_Subst.TVars.table inferred);
     val vars2 = map (apsnd instT2) vars1;
     val inst2 =
-      Term_Subst.instantiate ([], map2 (fn (xi, _) => fn t => ((xi, Term.fastype_of t), t)) xs ts)
+      Term_Subst.instantiate (Term_Subst.TVars.empty,
+        fold2 (fn (xi, _) => fn t => Term_Subst.Vars.add ((xi, Term.fastype_of t), t))
+          xs ts Term_Subst.Vars.empty)
       #> Envir.beta_norm;
 
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;

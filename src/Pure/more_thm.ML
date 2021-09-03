@@ -467,8 +467,9 @@ fun unvarify_global thy th =
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
 
     val instT = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
+    val instantiateT = Term_Subst.instantiateT (Term_Subst.TVars.table instT);
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
-      let val T' = Term_Subst.instantiateT instT T
+      let val T' = instantiateT T
       in (((a, i), T'), Thm.global_cterm_of thy (Free ((a, T')))) end);
   in Thm.instantiate (map (apsnd (Thm.global_ctyp_of thy)) instT, inst) th end;
 

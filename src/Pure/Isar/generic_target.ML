@@ -317,14 +317,17 @@ fun import_export_proof ctxt (name, raw_th) =
       chop (length tfrees) (map (Thm.term_of o Drule.dest_term) vs)
       |>> map Logic.dest_type;
 
-    val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
-    val inst =
+    val instT =
+      fold2 (fn a => fn b => (case a of TVar v => Term_Subst.TVars.add (v, b) | _ => I))
+        tvars tfrees Term_Subst.TVars.empty;
+    val cinstT = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt T)) instT [];
+    val cinst =
       map_filter
         (fn (Var (xi, T), t) =>
           SOME ((xi, Term_Subst.instantiateT instT T),
             Thm.cterm_of ctxt (Term.map_types (Term_Subst.instantiateT instT) t))
         | _ => NONE) (vars ~~ frees);
-    val result' = Thm.instantiate (map (apsnd (Thm.ctyp_of ctxt)) instT, inst) result;
+    val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)
     val result'' =
