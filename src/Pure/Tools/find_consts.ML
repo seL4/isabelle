@@ -90,7 +90,7 @@ fun pretty_consts ctxt raw_criteria =
           let val qty = make_pattern arg; in
             fn (_, (ty, _)) =>
               let
-                val tye = Sign.typ_match thy (qty, ty) Vartab.empty;
+                val tye = Vartab.build (Sign.typ_match thy (qty, ty));
                 val sub_size =
                   Vartab.fold (fn (_, (_, t)) => fn n => Term.size_of_typ t + n) tye 0;
               in SOME sub_size end handle Type.TYPE_MATCH => NONE

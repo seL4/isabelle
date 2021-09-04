@@ -446,7 +446,7 @@ fun typ_match tsig =
   in match end;
 
 fun typ_instance tsig (T, U) =
-  (typ_match tsig (U, T) Vartab.empty; true) handle TYPE_MATCH => false;
+  (Vartab.build (typ_match tsig (U, T)); true) handle TYPE_MATCH => false;
 
 (*purely structural matching*)
 fun raw_match (TVar (v, S), T) subs =
@@ -474,7 +474,7 @@ and could_matches (T :: Ts, U :: Us) = could_match (T, U) andalso could_matches 
 
 fun raw_instance (T, U) =
   if could_match (U, T) then
-    (raw_match (U, T) Vartab.empty; true) handle TYPE_MATCH => false
+    (Vartab.build (raw_match (U, T)); true) handle TYPE_MATCH => false
   else false;
 
 

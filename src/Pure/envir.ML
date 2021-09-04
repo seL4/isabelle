@@ -395,7 +395,7 @@ end;
 (** expand defined atoms -- with local beta reduction **)
 
 fun expand_atom T (U, u) =
-  subst_term_types (Type.raw_match (U, T) Vartab.empty) u
+  subst_term_types (Vartab.build (Type.raw_match (U, T))) u
     handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
 
 fun expand_term get =

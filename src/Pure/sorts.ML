@@ -257,9 +257,8 @@ end;
 
 (* classrel *)
 
-fun rebuild_arities context algebra = algebra |> map_arities (fn arities =>
-  Symtab.empty
-  |> add_arities_table context algebra arities);
+fun rebuild_arities context algebra = algebra
+  |> map_arities (Symtab.build o add_arities_table context algebra);
 
 fun add_classrel context rel = rebuild_arities context o map_classes (fn classes =>
   classes |> Graph.add_edge_trans_acyclic rel
@@ -286,12 +285,11 @@ fun merge_algebra context
             if pointer_eq (ars1, ars2) then raise Symtab.SAME
             else insert_ars context algebra0 t ars2 ars1)
       | (false, true) =>  (*unary completion*)
-          Symtab.empty
-          |> add_arities_table context algebra0 arities1
+          Symtab.build (add_arities_table context algebra0 arities1)
       | (false, false) => (*binary completion*)
-          Symtab.empty
-          |> add_arities_table context algebra0 arities1
-          |> add_arities_table context algebra0 arities2);
+          Symtab.build
+           (add_arities_table context algebra0 arities1 #>
+            add_arities_table context algebra0 arities2));
   in make_algebra (classes', arities') end;
 
 
@@ -390,7 +388,7 @@ fun meet_sort algebra =
   in uncurry meet end;
 
 fun meet_sort_typ algebra (T, S) =
-  let val tab = meet_sort algebra (T, S) Vartab.empty;
+  let val tab = Vartab.build (meet_sort algebra (T, S));
   in Term.map_type_tvar (fn (v, _) => TVar (v, (the o Vartab.lookup tab) v)) end;
 
 

@@ -516,14 +516,14 @@ fun export_inst inner outer =
     val still_fixed = not o is_newly_fixed inner outer;
 
     val gen_fixes =
-      Name_Space.fold_table (fn (y, _) => not (is_fixed outer y) ? Symtab.insert_set y)
-        (fixes_of inner) Symtab.empty;
+      Symtab.build (fixes_of inner |> Name_Space.fold_table (fn (y, _) =>
+        not (is_fixed outer y) ? Symtab.insert_set y));
 
     val type_occs_inner = type_occs_of inner;
     fun gen_fixesT ts =
-      Symtab.fold (fn (a, xs) =>
+      Symtab.build (fold decl_type_occs ts type_occs_inner |> Symtab.fold (fn (a, xs) =>
         if declared_outer a orelse exists still_fixed xs
-        then I else Symtab.insert_set a) (fold decl_type_occs ts type_occs_inner) Symtab.empty;
+        then I else Symtab.insert_set a));
   in (gen_fixesT, gen_fixes) end;
 
 fun exportT_inst inner outer = #1 (export_inst inner outer);
@@ -594,8 +594,8 @@ fun importT_inst ts ctxt =
     val tvars = rev (fold Term.add_tvars ts []);
     val (tfrees, ctxt') = invent_types (map #2 tvars) ctxt;
     val instT =
-      fold2 (fn a => fn b => Term_Subst.TVars.add (a, TFree b))
-        tvars tfrees Term_Subst.TVars.empty;
+      Term_Subst.TVars.build (fold2 (fn a => fn b =>
+        Term_Subst.TVars.add (a, TFree b)) tvars tfrees);
   in (instT, ctxt') end;
 
 fun import_inst is_open ts ctxt =
@@ -605,8 +605,8 @@ fun import_inst is_open ts ctxt =
     val vars = map (apsnd (Term_Subst.instantiateT instT)) (rev (fold Term.add_vars ts []));
     val (ys, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst =
-      fold2 (fn (x, T) => fn y => Term_Subst.Vars.add ((x, T), Free (y, T)))
-        vars ys Term_Subst.Vars.empty;
+      Term_Subst.Vars.build (fold2 (fn (x, T) => fn y =>
+        Term_Subst.Vars.add ((x, T), Free (y, T))) vars ys);
   in ((instT, inst), ctxt'') end;
 
 fun importT_terms ts ctxt =
@@ -690,9 +690,7 @@ fun focus_cterm bindings goal ctxt =
   in ((xs ~~ ps', goal'), ctxt') end;
 
 fun focus_subgoal bindings i st =
-  let
-    val all_vars = Thm.fold_terms Term_Subst.add_vars st Term_Subst.Vars.empty;
-  in
+  let val all_vars = Term_Subst.Vars.build (Thm.fold_terms Term_Subst.add_vars st) in
     Term_Subst.Vars.fold (unbind_term o #1 o #1) all_vars #>
     Term_Subst.Vars.fold (declare_constraints o Var o #1) all_vars #>
     focus_cterm bindings (Thm.cprem_of st i)
@@ -733,8 +731,8 @@ fun polymorphic_types ctxt ts =
     val occs = type_occs_of ctxt;
     val occs' = type_occs_of ctxt';
     val types =
-      Symtab.fold (fn (a, _) =>
-        if Symtab.defined occs a then I else Symtab.insert_set a) occs' Symtab.empty;
+      Symtab.build (occs' |> Symtab.fold (fn (a, _) =>
+        if Symtab.defined occs a then I else Symtab.insert_set a));
     val idx = maxidx_of ctxt' + 1;
     val Ts' = (fold o fold_types o fold_atyps)
       (fn T as TFree _ =>

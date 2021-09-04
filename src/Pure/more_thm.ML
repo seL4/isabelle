@@ -408,8 +408,8 @@ fun instantiate_frees ([], []) th = th
         val idx = Thm.maxidx_of th + 1;
         fun index ((a, A), b) = (((a, idx), A), b);
         val insts = (map index instT, map index inst);
-        val tfrees = fold (Symtab.insert_set o #1 o #1) instT Symtab.empty;
-        val frees = fold (Symtab.insert_set o #1 o #1) inst Symtab.empty;
+        val tfrees = Symtab.build (fold (Symtab.insert_set o #1 o #1) instT);
+        val frees = Symtab.build (fold (Symtab.insert_set o #1 o #1) inst);
 
         val hyps = Thm.chyps_of th;
         val inst_cterm =
@@ -449,9 +449,9 @@ fun instantiate' cTs cts thm =
 fun forall_intr_frees th =
   let
     val fixed =
-      Term_Subst.Frees.empty
-      |> fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th))
-      |> fold Term_Subst.add_frees (Thm.hyps_of th);
+      Term_Subst.Frees.build
+       (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
+        fold Term_Subst.add_frees (Thm.hyps_of th));
     val frees =
       Thm.fold_atomic_cterms (fn a =>
         (case Thm.term_of a of
@@ -472,22 +472,22 @@ fun unvarify_global thy th =
     val certT = Thm.global_ctyp_of thy;
 
     val instT =
-      (prop, Term_Subst.TVars.empty) |-> (Term.fold_types o Term.fold_atyps)
+      Term_Subst.TVars.build (prop |> (Term.fold_types o Term.fold_atyps)
         (fn T => fn instT =>
           (case T of
             TVar (v as ((a, _), S)) =>
               if Term_Subst.TVars.defined instT v then instT
               else Term_Subst.TVars.update (v, TFree (a, S)) instT
-          | _ => instT));
+          | _ => instT)));
     val cinstT = Term_Subst.TVars.map (K certT) instT;
     val cinst =
-      (prop, Term_Subst.Vars.empty) |-> Term.fold_aterms
+      Term_Subst.Vars.build (prop |> Term.fold_aterms
         (fn t => fn inst =>
           (case t of
             Var ((x, i), T) =>
               let val T' = Term_Subst.instantiateT instT T
               in Term_Subst.Vars.update (((x, i), T'), cert (Free ((x, T')))) inst end
-          | _ => inst));
+          | _ => inst)));
   in Thm.instantiate (Term_Subst.TVars.dest cinstT, Term_Subst.Vars.dest cinst) th end;
 
 fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;

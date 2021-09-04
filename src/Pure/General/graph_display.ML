@@ -65,8 +65,9 @@ structure Graph =
 fun build_graph entries =
   let
     val ident_names =
-      fold (fn ((ident, Node {name, ...}), _) => Symtab.update_new (ident, (name, ident)))
-        entries Symtab.empty;
+      Symtab.build
+        (entries |> fold (fn ((ident, Node {name, ...}), _) =>
+          Symtab.update_new (ident, (name, ident))));
     val the_key = the o Symtab.lookup ident_names;
   in
     Graph.empty

@@ -161,8 +161,8 @@ all its Vars? Better: a dynamic check each time a rule is applied.
 fun rewrite_rule_extra_vars prems elhs erhs =
   let
     val elhss = elhs :: prems;
-    val tvars = fold Term_Subst.add_tvars elhss Term_Subst.TVars.empty;
-    val vars = fold Term_Subst.add_vars elhss Term_Subst.Vars.empty;
+    val tvars = Term_Subst.TVars.build (fold Term_Subst.add_tvars elhss);
+    val vars = Term_Subst.Vars.build (fold Term_Subst.add_vars elhss);
   in
     erhs |> Term.exists_type (Term.exists_subtype
       (fn TVar v => not (Term_Subst.TVars.defined tvars v) | _ => false)) orelse
@@ -474,7 +474,7 @@ fun insert_rrule (rrule as {thm, name, ...}) ctxt =
     (cond_warning ctxt (fn () => print_thm ctxt "Ignoring duplicate rewrite rule:" ("", thm));
       ctxt));
 
-fun vars_set t = Term_Subst.add_vars t Term_Subst.Vars.empty;
+val vars_set = Term_Subst.Vars.build o Term_Subst.add_vars;
 
 local
 

@@ -118,8 +118,8 @@ fun init_session
     (fn _ =>
       ({session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
         session_directories =
-          fold_rev (fn (dir, name) => Symtab.cons_list (name, Path.explode dir))
-            session_directories Symtab.empty,
+          Symtab.build (session_directories |> fold_rev (fn (dir, name) =>
+            Symtab.cons_list (name, Path.explode dir))),
         session_chapters = Symtab.make session_chapters,
         bibtex_entries = Symtab.make bibtex_entries,
         timings = make_timings command_timings,

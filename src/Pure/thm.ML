@@ -1641,8 +1641,8 @@ fun prep_insts (instT, inst) (cert, sorts) =
       |> fold add_instT_sorts instT
       |> fold add_inst_sorts inst;
 
-    val instT' = fold (add_instT thy') instT Term_Subst.TVars.empty;
-    val inst' = fold (add_inst thy') inst Term_Subst.Vars.empty;
+    val instT' = Term_Subst.TVars.build (fold (add_instT thy') instT);
+    val inst' = Term_Subst.Vars.build (fold (add_inst thy') inst);
   in ((instT', inst'), (cert', sorts')) end;
 
 in
@@ -2093,7 +2093,7 @@ fun unify_var_types context (th1, th2) env =
     val add_vars =
       full_prop_of #>
       fold_aterms (fn Var v => Vartab.insert_list (op =) v | _ => I);
-    val vars = Vartab.empty |> add_vars th1 |> add_vars th2;
+    val vars = Vartab.build (add_vars th1 #> add_vars th2);
   in SOME (Vartab.fold (unify_vars o #2) vars env) end
   handle Pattern.Unif => NONE;
 

@@ -16,7 +16,7 @@ struct
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = fold_rev Symtab.update (Global_Theory.all_thms_of thy true) Symtab.empty in
+  let val tab = Symtab.build (Global_Theory.all_thms_of thy true |> fold_rev Symtab.update) in
     fn s =>
       (case Symtab.lookup tab s of
         NONE => error ("Unknown theorem " ^ quote s)

@@ -104,8 +104,8 @@ val mk_all_external = Logic.all_constraint o Variable.default_type;
 fun mk_all_internal ctxt (y, z) t =
   let
     val frees =
-      (t, Term_Subst.Frees.empty)
-      |-> Term.fold_aterms (fn Free v => Term_Subst.Frees.add (v, ()) | _ => I);
+      Term_Subst.Frees.build (t |> Term.fold_aterms
+        (fn Free v => Term_Subst.Frees.add (v, ()) | _ => I));
     val T =
       (case Term_Subst.Frees.get_first (fn ((x, T), ()) => if x = z then SOME T else NONE) frees of
         SOME T => T
@@ -328,12 +328,13 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val terms = map (Drule.mk_term o Thm.cterm_of ctxt o Free) (xs @ ys');
 
     val instT =
-      (params, Term_Subst.TVars.empty) |-> fold (#2 #> Term.fold_atyps (fn T => fn instT =>
-        (case T of
-          TVar v =>
-            if Term_Subst.TVars.defined instT v then instT
-            else Term_Subst.TVars.update (v, Thm.ctyp_of ctxt (norm_type T)) instT
-        | _ => instT)));
+      Term_Subst.TVars.build
+        (params |> fold (#2 #> Term.fold_atyps (fn T => fn instT =>
+          (case T of
+            TVar v =>
+              if Term_Subst.TVars.defined instT v then instT
+              else Term_Subst.TVars.update (v, Thm.ctyp_of ctxt (norm_type T)) instT
+          | _ => instT))));
     val closed_rule = rule
       |> Thm.forall_intr (Thm.cterm_of ctxt (Free thesis_var))
       |> Thm.instantiate (Term_Subst.TVars.dest instT, []);

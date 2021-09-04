@@ -692,12 +692,13 @@ fun conflicting_tvars env =
       | _ => inst));
 
 fun del_conflicting_tvars envT ty =
-  Term_Subst.instantiateT (conflicting_tvarsT envT ty Term_Subst.TVars.empty) ty;
+  Term_Subst.instantiateT (Term_Subst.TVars.build (conflicting_tvarsT envT ty)) ty;
 
 fun del_conflicting_vars env tm =
   let
-    val instT = Term.fold_types (conflicting_tvarsT (Envir.type_env env)) tm Term_Subst.TVars.empty;
-    val inst = conflicting_tvars env tm Term_Subst.Vars.empty;
+    val instT =
+      Term_Subst.TVars.build (tm |> Term.fold_types (conflicting_tvarsT (Envir.type_env env)));
+    val inst = Term_Subst.Vars.build (tm |> conflicting_tvars env);
   in Term_Subst.instantiate (instT, inst) tm end;
 
 in
@@ -2144,7 +2145,7 @@ fun export_proof_boxes bodies =
 
     fun export_body (PBody {thms, ...}) = fold export_thm thms;
 
-    val exports = (bodies, Inttab.empty) |-> fold export_body |> Inttab.dest;
+    val exports = Inttab.build (fold export_body bodies) |> Inttab.dest;
   in List.app (Lazy.force o #2) exports end;
 
 local
@@ -2325,7 +2326,7 @@ fun proof_boxes {included, excluded} proofs =
             end)
       | boxes_of MinProof = raise MIN_PROOF ()
       | boxes_of _ = I;
-  in Inttab.fold_rev (cons o #2) (fold boxes_of proofs Inttab.empty) [] end;
+  in Inttab.fold_rev (cons o #2) (Inttab.build (fold boxes_of proofs)) [] end;
 
 end;
 

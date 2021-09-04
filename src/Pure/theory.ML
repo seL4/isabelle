@@ -244,7 +244,7 @@ fun dependencies (context as (ctxt, _)) unchecked def description lhs rhs =
         [] => (item, map Logic.varifyT_global args)
       | vs => raise TYPE ("Illegal schematic type variable(s)", map TVar vs, []));
 
-    val lhs_vars = fold Term_Subst.add_tfreesT (snd lhs) Term_Subst.TFrees.empty;
+    val lhs_vars = Term_Subst.TFrees.build (snd lhs |> fold Term_Subst.add_tfreesT);
     val rhs_extras =
       fold (fn (_, args) => args |> (fold o Term.fold_atyps) (fn TFree v =>
         if Term_Subst.TFrees.defined lhs_vars v then I else insert (op =) v)) rhs [];

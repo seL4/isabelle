@@ -85,13 +85,13 @@ fun plain_args args =
 
 fun disjoint_args (Ts, Us) =
   not (Type.could_unifys (Ts, Us)) orelse
-    ((Type.raw_unifys (Ts, map (Logic.incr_tvar (maxidx_of_typs Ts + 1)) Us) Vartab.empty; false)
+    ((Vartab.build (Type.raw_unifys (Ts, map (Logic.incr_tvar (maxidx_of_typs Ts + 1)) Us)); false)
       handle Type.TUNIFY => true);
 
 fun match_args (Ts, Us) =
   if Type.could_matches (Ts, Us) then
     Option.map Envir.subst_type
-      (SOME (Type.raw_matches (Ts, Us) Vartab.empty) handle Type.TYPE_MATCH => NONE)
+      (SOME (Vartab.build (Type.raw_matches (Ts, Us))) handle Type.TYPE_MATCH => NONE)
   else NONE;
 
 

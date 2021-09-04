@@ -490,15 +490,15 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
 
     val versions' = fold delete_version version_ids versions;
     val commands' =
-      (versions', Inttab.empty) |->
+      Inttab.build (versions' |>
         Inttab.fold (fn (_, version) => nodes_of version |>
           String_Graph.fold (fn (_, (node, _)) => node |>
             iterate_entries (fn ((_, command_id), _) =>
-              SOME o Inttab.insert (K true) (command_id, the_command state command_id))));
+              SOME o Inttab.insert (K true) (command_id, the_command state command_id)))));
     val blobs' =
-      (commands', Symtab.empty) |->
+      Symtab.build (commands' |>
         Inttab.fold (fn (_, (_, blobs, _, _)) => blobs |>
-          fold (fn Exn.Res {digest = SOME b, ...} => Symtab.update (b, the_blob state b) | _ => I));
+          fold (fn Exn.Res {digest = SOME b, ...} => Symtab.update (b, the_blob state b) | _ => I)));
 
   in (versions', blobs', commands', execution) end);
 
@@ -815,7 +815,7 @@ fun update old_version_id new_version_id edits consolidate state =
     val nodes = nodes_of new_version;
     val required = make_required nodes;
     val required0 = make_required (nodes_of old_version);
-    val edited = fold (fn (name, _) => Symtab.update (name, ())) edits Symtab.empty;
+    val edited = Symtab.build (edits |> fold (fn (name, _) => Symtab.update (name, ())));
 
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule

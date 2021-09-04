@@ -291,8 +291,8 @@ fun elim_defs thy r defs prf =
 fun elim_vars mk_default prf =
   let
     val prop = Proofterm.prop_of prf;
-    val tv = Term_Subst.add_vars prop Term_Subst.Vars.empty;
-    val tf = Term_Subst.add_frees prop Term_Subst.Frees.empty;
+    val tv = Term_Subst.Vars.build (Term_Subst.add_vars prop);
+    val tf = Term_Subst.Frees.build (Term_Subst.add_frees prop);
 
     fun hidden_variable (Var v) = not (Term_Subst.Vars.defined tv v)
       | hidden_variable (Free f) = not (Term_Subst.Frees.defined tf f)

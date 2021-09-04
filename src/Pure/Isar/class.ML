@@ -179,10 +179,8 @@ fun print_classes ctxt =
     val type_space = Proof_Context.type_space ctxt;
 
     val arities =
-      Symtab.empty
-      |> Symtab.fold (fn (tyco, arities) => fold (fn (class, _) =>
-           Symtab.map_default (class, []) (insert (op =) tyco)) arities)
-             (Sorts.arities_of algebra);
+      Symtab.build (Sorts.arities_of algebra |> Symtab.fold (fn (tyco, arities) =>
+        fold (fn (class, _) => Symtab.map_default (class, []) (insert (op =) tyco)) arities));
 
     fun prt_supersort class =
       Syntax.pretty_sort ctxt (Sign.minimize_sort thy (Sign.super_classes thy class));
@@ -610,7 +608,7 @@ fun resort_terms ctxt algebra consts constraints ts =
           | SOME sorts =>
               fold2 (curry (Sorts.meet_sort algebra)) (Consts.typargs consts c_ty) sorts)
       | matchings _ = I;
-    val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
+    val tvartab = Vartab.build ((fold o fold_aterms) matchings ts)
       handle Sorts.CLASS_ERROR e => error (Sorts.class_error (Context.Proof ctxt) e);
     val inst = map_type_tvar
       (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));

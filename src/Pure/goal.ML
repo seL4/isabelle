@@ -120,7 +120,7 @@ fun future_result ctxt result prop =
     val fixes = map (Thm.cterm_of ctxt) xs;
 
     val tfrees = fold Term.add_tfrees (prop :: As) [];
-    val tfrees_set = fold (Symtab.insert_set o #1) tfrees Symtab.empty;
+    val tfrees_set = Symtab.build (fold (Symtab.insert_set o #1) tfrees);
     val instT = map (fn (a, S) => (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))) tfrees;
 
     val global_prop =

@@ -98,7 +98,7 @@ fun read_terms ss Ts ctxt =
       |> Syntax.check_terms ctxt'
       |> Variable.polymorphic ctxt';
     val Ts' = map Term.fastype_of ts';
-    val tyenv = fold (Sign.typ_match (Proof_Context.theory_of ctxt)) (Ts ~~ Ts') Vartab.empty;
+    val tyenv = Vartab.build (fold (Sign.typ_match (Proof_Context.theory_of ctxt)) (Ts ~~ Ts'));
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in ((ts', tyenv'), ctxt') end;
 
@@ -115,8 +115,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val (type_insts, term_insts) =
       List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) raw_insts;
 
-    val tvars = Thm.fold_terms Term_Subst.add_tvars thm Term_Subst.TVars.empty;
-    val vars = Thm.fold_terms Term_Subst.add_vars thm Term_Subst.Vars.empty;
+    val tvars = Term_Subst.TVars.build (Thm.fold_terms Term_Subst.add_tvars thm);
+    val vars = Term_Subst.Vars.build (Thm.fold_terms Term_Subst.add_vars thm);
 
     (*eigen-context*)
     val (_, ctxt1) = ctxt
@@ -128,8 +128,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val instT1 =
       Term_Subst.instantiateT (Term_Subst.TVars.table (map (read_type ctxt1 tvars) type_insts));
     val vars1 =
-      Term_Subst.Vars.fold (fn ((v, T), ()) => Vartab.insert (K true) (v, instT1 T))
-        vars Vartab.empty;
+      Vartab.build (vars |> Term_Subst.Vars.fold (fn ((v, T), ()) =>
+        Vartab.insert (K true) (v, instT1 T)));
 
     (*term instantiations*)
     val (xs, ss) = split_list term_insts;
@@ -141,8 +141,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val vars2 = Vartab.fold (fn (v, T) => cons (v, instT2 T)) vars1 [];
     val inst2 =
       Term_Subst.instantiate (Term_Subst.TVars.empty,
-        fold2 (fn (xi, _) => fn t => Term_Subst.Vars.add ((xi, Term.fastype_of t), t))
-          xs ts Term_Subst.Vars.empty)
+        Term_Subst.Vars.build
+          (fold2 (fn (xi, _) => fn t => Term_Subst.Vars.add ((xi, Term.fastype_of t), t)) xs ts))
       #> Envir.beta_norm;
 
     val inst_tvars = make_instT (instT2 o instT1) tvars;

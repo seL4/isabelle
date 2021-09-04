@@ -17,7 +17,7 @@ struct
 structure Tab = Table(Key);
 
 fun add entry = Tab.insert (K true) entry;
-fun table entries = fold add entries Tab.empty;
+fun table entries = Tab.build (fold add entries);
 
 open Tab;
 
@@ -275,12 +275,12 @@ fun zero_var_indexes_inst used ts =
   let
     val (instT, _) =
       (TVars.empty, used) |> TVars.fold (zero_var_inst TVars.add TVar o #1)
-        ((fold o fold_types o fold_atyps) (fn TVar v =>
-          TVars.add (v, ()) | _ => I) ts TVars.empty);
+        (TVars.build (ts |> (fold o fold_types o fold_atyps)
+          (fn TVar v => TVars.add (v, ()) | _ => I)));
     val (inst, _) =
       (Vars.empty, used) |> Vars.fold (zero_var_inst Vars.add Var o #1)
-        ((fold o fold_aterms) (fn Var (xi, T) =>
-          Vars.add ((xi, instantiateT instT T), ()) | _ => I) ts Vars.empty);
+        (Vars.build (ts |> (fold o fold_aterms)
+          (fn Var (xi, T) => Vars.add ((xi, instantiateT instT T), ()) | _ => I)));
   in (instT, inst) end;
 
 fun zero_var_indexes_list ts = map (instantiate (zero_var_indexes_inst Name.context ts)) ts;
