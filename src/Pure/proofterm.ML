@@ -902,8 +902,8 @@ fun forall_intr_proof' v prf =
 fun varify_proof t fixed prf =
   let
     val fs =
-      (t, []) |-> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => if Term_Subst.TFrees.defined fixed v then I else insert (op =) v | _ => I);
+      build (t |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => if Term_Subst.TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);

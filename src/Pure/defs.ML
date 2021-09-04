@@ -148,10 +148,10 @@ fun dest_constdefs prevs (Defs defs) =
         NONE => false
       | SOME {specs, ...} => Inttab.defined specs i));
   in
-    (defs, []) |-> Itemtab.fold (fn (c, {specs, ...}) =>
+    build (defs |> Itemtab.fold (fn (c, {specs, ...}) =>
       specs |> Inttab.fold (fn (i, spec) =>
         if #1 c = Const andalso is_some (#def spec) andalso not (prev_spec c i)
-        then cons (#2 c, the (#def spec)) else I))
+        then cons (#2 c, the (#def spec)) else I)))
   end;
 
 val empty = Defs Itemtab.empty;

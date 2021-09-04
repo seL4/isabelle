@@ -299,16 +299,16 @@ fun dest_algebra parents (Algebra {classes, arities}) =
   let
     fun new_classrel rel = not (exists (fn algebra => class_less algebra rel) parents);
     val classrel =
-      (classes, []) |-> Graph.fold (fn (c, (_, (_, ds))) =>
+      build (classes |> Graph.fold (fn (c, (_, (_, ds))) =>
         (case filter (fn d => new_classrel (c, d)) (Graph.Keys.dest ds) of
           [] => I
-        | ds' => cons (c, sort_strings ds')))
+        | ds' => cons (c, sort_strings ds'))))
       |> sort_by #1;
 
     fun is_arity t ar algebra = member (op =) (Symtab.lookup_list (arities_of algebra) t) ar;
     fun add_arity t (c, Ss) = not (exists (is_arity t (c, Ss)) parents) ? cons (t, Ss, c);
     val arities =
-      (arities, []) |-> Symtab.fold (fn (t, ars) => fold_rev (add_arity t) (sort_by #1 ars))
+      build (arities |> Symtab.fold (fn (t, ars) => fold_rev (add_arity t) (sort_by #1 ars)))
       |> sort_by #1;
   in {classrel = classrel, arities = arities} end;
 

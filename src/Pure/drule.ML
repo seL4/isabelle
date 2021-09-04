@@ -222,14 +222,14 @@ fun zero_var_indexes_list [] = []
         val tvars = fold Thm.add_tvars ths [];
         fun the_tvar v = the (find_first (fn cT => v = dest_TVar (Thm.typ_of cT)) tvars);
         val instT' =
-          (instT, []) |-> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
-            cons (v, Thm.rename_tvar b (the_tvar v)));
+          build (instT |> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
+            cons (v, Thm.rename_tvar b (the_tvar v))));
 
         val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths [];
         fun the_var v = the (find_first (fn ct => v = dest_Var (Thm.term_of ct)) vars);
         val inst' =
-          (inst, []) |-> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
-            cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v))));
+          build (inst |> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
+            cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))));
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (instT', inst')) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;

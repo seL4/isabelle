@@ -2300,8 +2300,8 @@ fun complete_classrels thy =
 (* type arities *)
 
 fun thynames_of_arity thy (a, c) =
-  (get_arities thy, []) |-> Aritytab.fold
-    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser))
+  build (get_arities thy |> Aritytab.fold
+    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser)))
   |> sort (int_ord o apply2 #2) |> map #1;
 
 fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, arities) =

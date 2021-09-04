@@ -156,8 +156,8 @@ fun update name value (options as Options tab) =
 fun encode (Options tab) =
   let
     val opts =
-      (tab, []) |-> Symtab.fold (fn (name, {pos, typ, value}) =>
-        cons (Position.properties_of pos, (name, (typ, value))));
+      build (tab |> Symtab.fold (fn (name, {pos, typ, value}) =>
+        cons (Position.properties_of pos, (name, (typ, value)))));
     open XML.Encode;
   in list (pair properties (pair string (pair string string))) opts end;
 

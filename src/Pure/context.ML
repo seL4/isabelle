@@ -466,10 +466,10 @@ fun obj_size k thy =
 end;
 
 fun theory_data_size thy =
-  (data_of thy, []) |-> Datatab.fold_rev (fn (k, _) =>
+  build (data_of thy |> Datatab.fold_rev (fn (k, _) =>
     (case Theory_Data.obj_size k thy of
       NONE => I
-    | SOME n => (cons (invoke_pos k, n))));
+    | SOME n => (cons (invoke_pos k, n)))));
 
 
 

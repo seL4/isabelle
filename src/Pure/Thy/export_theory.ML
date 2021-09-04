@@ -172,7 +172,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         val parent_spaces = map get_space parents;
         val space = get_space thy;
       in
-        (decls, []) |-> fold (fn (name, decl) =>
+        build (decls |> fold (fn (name, decl) =>
           if exists (fn space => Name_Space.declared space name) parent_spaces then I
           else
             (case export name decl of
@@ -181,7 +181,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
                 let
                   val i = #serial (Name_Space.the_entry space name);
                   val body = if enabled then make_body () else [];
-                in cons (i, XML.Elem (entity_markup space name, body)) end))
+                in cons (i, XML.Elem (entity_markup space name, body)) end)))
         |> sort (int_ord o apply2 #1) |> map #2
         |> export_body thy export_name
       end;

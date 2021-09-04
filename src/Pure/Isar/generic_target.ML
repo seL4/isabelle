@@ -97,9 +97,8 @@ fun export_abbrev lthy preprocess rhs =
 
     val type_tfrees = Term_Subst.TFrees.build (Term_Subst.add_tfreesT (Term.fastype_of u));
     val extra_tfrees =
-      (u, []) |-> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I)
-      |> rev;
+      build_rev (u |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -265,9 +264,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val type_tfrees =
       Term_Subst.TFrees.build (Term_Subst.add_tfreesT T #> fold (Term_Subst.add_tfreesT o #2) xs);
     val extra_tfrees =
-      (rhs, []) |-> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I)
-      |> rev;
+      build_rev (rhs |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
