@@ -185,11 +185,18 @@ fun lift_all ctxt raw_goal raw_th =
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
     val inst =
-      Thm.fold_terms Term.add_vars th []
-      |> map (fn (xi, T) => ((xi, T), Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))));
+      (th, Term_Subst.Vars.empty) |-> (Thm.fold_terms o Term.fold_aterms)
+        (fn t => fn inst =>
+          (case t of
+            Var (xi, T) =>
+              if Term_Subst.Vars.defined inst (xi, T) then inst
+              else
+                let val ct = Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))
+                in Term_Subst.Vars.update ((xi, T), ct) inst end
+          | _ => inst));
   in
     th
-    |> Thm.instantiate ([], inst)
+    |> Thm.instantiate ([], Term_Subst.Vars.dest inst)
     |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 

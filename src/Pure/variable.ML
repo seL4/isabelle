@@ -691,10 +691,10 @@ fun focus_cterm bindings goal ctxt =
 
 fun focus_subgoal bindings i st =
   let
-    val all_vars = Thm.fold_terms Term.add_vars st [];
+    val all_vars = Thm.fold_terms Term_Subst.add_vars st Term_Subst.Vars.empty;
   in
-    fold (unbind_term o #1) all_vars #>
-    fold (declare_constraints o Var) all_vars #>
+    Term_Subst.Vars.fold (unbind_term o #1 o #1) all_vars #>
+    Term_Subst.Vars.fold (declare_constraints o Var o #1) all_vars #>
     focus_cterm bindings (Thm.cprem_of st i)
   end;
 

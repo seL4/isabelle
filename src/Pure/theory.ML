@@ -244,10 +244,10 @@ fun dependencies (context as (ctxt, _)) unchecked def description lhs rhs =
         [] => (item, map Logic.varifyT_global args)
       | vs => raise TYPE ("Illegal schematic type variable(s)", map TVar vs, []));
 
-    val lhs_vars = fold Term.add_tfreesT (snd lhs) [];
+    val lhs_vars = fold Term_Subst.add_tfreesT (snd lhs) Term_Subst.TFrees.empty;
     val rhs_extras =
       fold (fn (_, args) => args |> (fold o Term.fold_atyps) (fn TFree v =>
-        if member (op =) lhs_vars v then I else insert (op =) v)) rhs [];
+        if Term_Subst.TFrees.defined lhs_vars v then I else insert (op =) v)) rhs [];
     val _ =
       if null rhs_extras then ()
       else error ("Specification depends on extra type variables: " ^

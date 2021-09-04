@@ -88,7 +88,7 @@ fun lift_import idx params th ctxt =
     val ts = map Thm.term_of params;
 
     val prop = Thm.full_prop_of th';
-    val concl_vars = Term.add_vars (Logic.strip_imp_concl prop) [];
+    val concl_vars = Term_Subst.add_vars (Logic.strip_imp_concl prop) Term_Subst.Vars.empty;
     val vars = rev (Term.add_vars prop []);
     val (ys, ctxt'') = Variable.variant_fixes (map (Name.clean o #1 o #1) vars) ctxt';
 
@@ -96,7 +96,7 @@ fun lift_import idx params th ctxt =
       let
         val ((x, i), T) = v;
         val (U, args) =
-          if member (op =) concl_vars v then (T, [])
+          if Term_Subst.Vars.defined concl_vars v then (T, [])
           else (Ts ---> T, ts);
         val u = Free (y, U);
         in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;

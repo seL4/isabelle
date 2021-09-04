@@ -95,8 +95,11 @@ fun export_abbrev lthy preprocess rhs =
     val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
+    val type_tfrees = Term_Subst.add_tfreesT (Term.fastype_of u) Term_Subst.TFrees.empty;
     val extra_tfrees =
-      subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+      (u, []) |-> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I)
+      |> rev;
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -259,8 +262,14 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
     val xs = Variable.add_fixed lthy rhs' [];
     val T = Term.fastype_of rhs;
-    val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
-    val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
+    val type_tfrees =
+      Term_Subst.TFrees.empty
+      |> Term_Subst.add_tfreesT T
+      |> fold (Term_Subst.add_tfreesT o #2) xs;
+    val extra_tfrees =
+      (rhs, []) |-> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I)
+      |> rev;
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;

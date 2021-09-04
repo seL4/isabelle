@@ -37,7 +37,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     val (raw_lhs, rhs) = Logic.dest_equals eq_body handle TERM _ => err "Not a meta-equality (\<equiv>)";
     val lhs = Envir.beta_eta_contract raw_lhs;
     val (head, args) = Term.strip_comb lhs;
-    val head_tfrees = Term.add_tfrees head [];
+    val head_tfrees = Term_Subst.add_tfrees head Term_Subst.TFrees.empty;
 
     fun check_arg (Bound _) = true
       | check_arg (Free (x, _)) = check_free_lhs x
@@ -52,7 +52,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
       if check_free_rhs x orelse member (op aconv) args v then I
       else insert (op aconv) v | _ => I) rhs [];
     val rhs_extrasT = Term.fold_aterms (Term.fold_types (fn v as TFree (a, S) =>
-      if check_tfree a orelse member (op =) head_tfrees (a, S) then I
+      if check_tfree a orelse Term_Subst.TFrees.defined head_tfrees (a, S) then I
       else insert (op =) v | _ => I)) rhs [];
   in
     if not (check_head head) then
