@@ -671,25 +671,36 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
 
 (* substitutions *)
 
-fun del_conflicting_tvars envT T =
-  let
-    val instT =
-      map_filter (fn ixnS as (_, S) =>
-        (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])
-  in Term_Subst.instantiateT (Term_Subst.TVars.table instT) T end;
+local
 
-fun del_conflicting_vars env t =
+fun conflicting_tvarsT envT =
+  Term.fold_atyps
+    (fn T => fn instT =>
+      (case T of
+        TVar (v as (_, S)) =>
+          if Term_Subst.TVars.defined instT v orelse can (Type.lookup envT) v then instT
+          else Term_Subst.TVars.update (v, Logic.dummy_tfree S) instT
+      | _ => instT));
+
+fun conflicting_tvars env =
+  Term.fold_aterms
+    (fn t => fn inst =>
+      (case t of
+        Var (v as (_, T)) =>
+          if Term_Subst.Vars.defined inst v orelse can (Envir.lookup env) v then inst
+          else Term_Subst.Vars.update (v, Free ("dummy", T)) inst
+      | _ => inst));
+
+fun del_conflicting_tvars envT ty =
+  Term_Subst.instantiateT (conflicting_tvarsT envT ty Term_Subst.TVars.empty) ty;
+
+fun del_conflicting_vars env tm =
   let
-    val instT =
-      map_filter (fn ixnS as (_, S) =>
-        (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []);
-    val inst =
-      map_filter (fn (ixnT as (_, T)) =>
-        (Envir.lookup env ixnT; NONE) handle TYPE _ =>
-          SOME (ixnT, Free ("dummy", T))) (Term.add_vars t []);
-  in Term_Subst.instantiate (Term_Subst.TVars.make instT, Term_Subst.Vars.table inst) t end;
+    val instT = Term.fold_types (conflicting_tvarsT (Envir.type_env env)) tm Term_Subst.TVars.empty;
+    val inst = conflicting_tvars env tm Term_Subst.Vars.empty;
+  in Term_Subst.instantiate (instT, inst) tm end;
+
+in
 
 fun norm_proof env =
   let
@@ -725,6 +736,8 @@ fun norm_proof env =
             (Same.map_option (htypeTs Envir.norm_types_same) Ts), thm_body)
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
+
+end;
 
 
 (* remove some types in proof term (to save space) *)

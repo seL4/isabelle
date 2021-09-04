@@ -249,7 +249,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
           if member (op =) defs s then
             let
               val vs = vars_of prop;
-              val tvars = Term.add_tvars prop [] |> rev;
+              val tvars = rev (Term.add_tvars prop []);
               val (_, rhs) = Logic.dest_equals (Logic.strip_imp_concl prop);
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
@@ -291,11 +291,11 @@ fun elim_defs thy r defs prf =
 fun elim_vars mk_default prf =
   let
     val prop = Proofterm.prop_of prf;
-    val tv = Term.add_vars prop [];
-    val tf = Term.add_frees prop [];
+    val tv = Term_Subst.add_vars prop Term_Subst.Vars.empty;
+    val tf = Term_Subst.add_frees prop Term_Subst.Frees.empty;
 
-    fun hidden_variable (Var v) = not (member (op =) tv v)
-      | hidden_variable (Free f) = not (member (op =) tf f)
+    fun hidden_variable (Var v) = not (Term_Subst.Vars.defined tv v)
+      | hidden_variable (Free f) = not (Term_Subst.Frees.defined tf f)
       | hidden_variable _ = false;
 
     fun mk_default' T =
@@ -303,8 +303,8 @@ fun elim_vars mk_default prf =
 
     fun elim_varst (t $ u) = elim_varst t $ elim_varst u
       | elim_varst (Abs (s, T, t)) = Abs (s, T, elim_varst t)
-      | elim_varst (t as Free (x, T)) = if member (op =) tf (x, T) then t else mk_default' T
-      | elim_varst (t as Var (xi, T)) = if member (op =) tv (xi, T) then t else mk_default' T
+      | elim_varst (t as Free (x, T)) = if Term_Subst.Frees.defined tf (x, T) then t else mk_default' T
+      | elim_varst (t as Var (xi, T)) = if Term_Subst.Vars.defined tv (xi, T) then t else mk_default' T
       | elim_varst t = t;
   in
     Proofterm.map_proof_terms (fn t =>
