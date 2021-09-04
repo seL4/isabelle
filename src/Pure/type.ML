@@ -61,7 +61,7 @@ sig
   val strip_sorts: typ -> typ
   val strip_sorts_dummy: typ -> typ
   val no_tvars: typ -> typ
-  val varify_global: (string * sort) list -> term -> ((string * sort) * indexname) list * term
+  val varify_global: Term_Subst.TFrees.set -> term -> ((string * sort) * indexname) list * term
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
   val legacy_freeze_type: typ -> typ
   val legacy_freeze_thaw: term -> term * (term -> term)
@@ -355,8 +355,9 @@ fun no_tvars T =
 
 fun varify_global fixed t =
   let
-    val fs = Term.fold_types (Term.fold_atyps
-      (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
+    val fs =
+      (t, []) |-> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => if Term_Subst.TFrees.defined fixed v then I else insert (op =) v | _ => I);
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ map (rpair 0) (#1 (fold_map Name.variant (map fst fs) used));

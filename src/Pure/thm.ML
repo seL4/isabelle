@@ -161,7 +161,7 @@ sig
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
-  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global': Term_Subst.TFrees.set -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
@@ -1776,7 +1776,7 @@ val unconstrainT =
 (*Replace all TFrees not fixed or in the hyps by new TVars*)
 fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
-    val tfrees = fold Term.add_tfrees hyps fixed;
+    val tfrees = fold Term_Subst.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
@@ -1792,7 +1792,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
       prop = prop3}))
   end;
 
-val varifyT_global = #2 o varifyT_global' [];
+val varifyT_global = #2 o varifyT_global' Term_Subst.TFrees.empty;
 
 (*Replace all TVars by TFrees that are often new*)
 fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...})) =
