@@ -24,13 +24,14 @@ sig
   val map: (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
+  val size: 'a table -> int
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
   val min: 'a table -> (key * 'a) option
   val max: 'a table -> (key * 'a) option
-  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
+  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val lookup_key: 'a table -> key -> (key * 'a) option
   val lookup: 'a table -> key -> 'a option
   val defined: 'a table -> key -> bool
@@ -60,6 +61,8 @@ sig
   val insert_set: key -> set -> set
   val remove_set: key -> set -> set
   val make_set: key list -> set
+  val subset: set * set -> bool
+  val eq_set: set * set -> bool
 end;
 
 functor Table(Key: KEY): TABLE =
@@ -118,6 +121,7 @@ fun fold_rev_table f =
           fold left (f p1 (fold mid (f p2 (fold right x))));
   in fold end;
 
+fun size tab = fold_table (fn _ => fn n => n + 1) tab 0;
 fun dest tab = fold_rev_table cons tab [];
 fun keys tab = fold_rev_table (cons o #1) tab [];
 
@@ -135,6 +139,20 @@ fun max Empty = NONE
   | max (Branch3 (_, _, _, p, Empty)) = SOME p
   | max (Branch2 (_, _, right)) = max right
   | max (Branch3 (_, _, _, _, right)) = max right;
+
+
+(* exists and forall *)
+
+fun exists pred =
+  let
+    fun ex Empty = false
+      | ex (Branch2 (left, (k, x), right)) =
+          ex left orelse pred (k, x) orelse ex right
+      | ex (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          ex left orelse pred (k1, x1) orelse ex mid orelse pred (k2, x2) orelse ex right;
+  in ex end;
+
+fun forall pred = not o exists (not o pred);
 
 
 (* get_first *)
@@ -163,9 +181,6 @@ fun get_first f =
               | some => some)
           | some => some);
   in get end;
-
-fun exists pred = is_some o get_first (fn entry => if pred entry then SOME () else NONE);
-fun forall pred = not o exists (not o pred);
 
 
 (* lookup *)
@@ -424,13 +439,16 @@ fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq = join (fn _ => Library.merge eq);
 
 
-(* unit tables *)
+(* set operations *)
 
 type set = unit table;
 
 fun insert_set x = default (x, ());
 fun remove_set x : set -> set = delete_safe x;
 fun make_set entries = fold insert_set entries empty;
+
+fun subset (A: set, B: set) = forall (defined B o #1) A;
+fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);
 
 
 (* ML pretty-printing *)
