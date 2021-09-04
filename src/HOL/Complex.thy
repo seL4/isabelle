@@ -26,8 +26,6 @@ lemma complex_eqI [intro?]: "Re x = Re y \<Longrightarrow> Im x = Im y \<Longrig
 lemma complex_eq_iff: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
   by (auto intro: complex.expand)
 
-
-
 subsection \<open>Addition and Subtraction\<close>
 
 instantiation complex :: ab_group_add
