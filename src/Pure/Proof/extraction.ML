@@ -123,8 +123,8 @@ fun corr_name s vs = extr_name s vs ^ "_correctness";
 
 fun msg d s = writeln (Symbol.spaces d ^ s);
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
-fun frees_of t = map Free (rev (Term.add_frees t []));
+fun vars_of t = map Var (build_rev (Term.add_vars t));
+fun frees_of t = map Free (build_rev (Term.add_frees t));
 fun vfs_of t = vars_of t @ frees_of t;
 
 val mkabs = fold_rev (fn v => fn t => Abs ("x", fastype_of v, abstract_over (v, t)));
@@ -385,7 +385,7 @@ fun abs_corr_shyps thy thm vs xs prf =
     val atyps = fold_types (fold_atyps (insert (op =))) (Thm.prop_of thm) [];
     val Ts = map_filter (fn ((v, i), _) => if member (op =) vs v then
         SOME (TVar (("'" ^ v, i), [])) else NONE)
-      (rev (Term.add_vars prop' []));
+      (build_rev (Term.add_vars prop'));
     val cs = maps (fn T => map (pair T) S) Ts;
     val constraints' = map Logic.mk_of_class cs;
     fun typ_map T = Type.strip_sorts

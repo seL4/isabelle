@@ -78,7 +78,7 @@ fun locale_content thy loc =
           SOME goal => Thm.prems_of goal
         | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
       end;
-    val typargs = rev (fold Term.add_tfrees (map (Free o #1) args @ axioms) []);
+    val typargs = build_rev (fold Term.add_tfrees (map (Free o #1) args @ axioms));
   in {typargs = typargs, args = args, axioms = axioms} end;
 
 fun get_locales thy =
@@ -148,8 +148,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
        {props = pos_properties pos,
         name = name,
         rough_classification = rough_classification,
-        typargs = rev (fold Term.add_tfrees spec []),
-        args = rev (fold Term.add_frees spec []),
+        typargs = build_rev (fold Term.add_tfrees spec),
+        args = build_rev (fold Term.add_frees spec),
         terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
         rules = drop (length terms) spec}
       end;

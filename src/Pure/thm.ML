@@ -1752,7 +1752,7 @@ val unconstrainT =
       fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
       val _ = null hyps orelse err "bad hyps";
       val _ = null tpairs orelse err "bad flex-flex constraints";
-      val tfrees = rev (Term.add_tfree_names prop []);
+      val tfrees = build_rev (Term.add_tfree_names prop);
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
@@ -2257,7 +2257,7 @@ fun tha RS thb = tha RSN (1,thb);
 fun standard_tvars thm =
   let
     val thy = theory_of_thm thm;
-    val tvars = rev (Term.add_tvars (prop_of thm) []);
+    val tvars = build_rev (Term.add_tvars (prop_of thm));
     val names = Name.invent Name.context Name.aT (length tvars);
     val tinst =
       map2 (fn (ai, S) => fn b => ((ai, S), global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;

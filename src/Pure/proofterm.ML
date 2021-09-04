@@ -1125,7 +1125,7 @@ fun is_fun (Type ("fun", _)) = true
   | is_fun (TVar _) = true
   | is_fun _ = false;
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
+fun vars_of t = map Var (build_rev (Term.add_vars t));
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then

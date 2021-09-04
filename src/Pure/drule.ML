@@ -795,7 +795,7 @@ fun infer_instantiate _ [] th = th
 
 fun infer_instantiate' ctxt args th =
   let
-    val vars = rev (Term.add_vars (Thm.full_prop_of th) []);
+    val vars = build_rev (Term.add_vars (Thm.full_prop_of th));
     val args' = zip_options vars args
       handle ListPair.UnequalLengths =>
         raise THM ("infer_instantiate': more instantiations than variables in thm", 0, [th]);

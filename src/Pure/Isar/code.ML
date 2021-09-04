@@ -960,7 +960,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val _ = map (fn thm => if c = const_eqn thy thm then ()
           else error ("Wrong head of code equation,\nexpected constant "
             ^ string_of_const thy c ^ "\n" ^ Thm.string_of_thm_global thy thm)) thms;
-        fun tvars_of T = rev (Term.add_tvarsT T []);
+        val tvars_of = build_rev o Term.add_tvarsT;
         val vss = map (tvars_of o snd o head_eqn) thms;
         fun inter_sorts vs =
           fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];

@@ -591,7 +591,7 @@ fun invent_types Ss ctxt =
 
 fun importT_inst ts ctxt =
   let
-    val tvars = rev (fold Term.add_tvars ts []);
+    val tvars = build_rev (fold Term.add_tvars ts);
     val (tfrees, ctxt') = invent_types (map #2 tvars) ctxt;
     val instT =
       Term_Subst.TVars.build (fold2 (fn a => fn b =>
@@ -602,7 +602,7 @@ fun import_inst is_open ts ctxt =
   let
     val ren = Name.clean #> (if is_open then I else Name.internal);
     val (instT, ctxt') = importT_inst ts ctxt;
-    val vars = map (apsnd (Term_Subst.instantiateT instT)) (rev (fold Term.add_vars ts []));
+    val vars = map (apsnd (Term_Subst.instantiateT instT)) (build_rev (fold Term.add_vars ts));
     val (ys, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst =
       Term_Subst.Vars.build (fold2 (fn (x, T) => fn y =>

@@ -76,7 +76,7 @@ fun thm_of_proof thy =
 
         fun thm_of_atom thm Ts =
           let
-            val tvars = rev (Term.add_tvars (Thm.full_prop_of thm) []);
+            val tvars = build_rev (Term.add_tvars (Thm.full_prop_of thm));
             val (fmap, thm') = Thm.varifyT_global' Term_Subst.TFrees.empty thm;
             val ctye =
               (tvars @ map (fn ((_, S), ixn) => (ixn, S)) fmap ~~ map (Thm.global_ctyp_of thy) Ts);

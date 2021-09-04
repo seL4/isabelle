@@ -249,7 +249,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
           if member (op =) defs s then
             let
               val vs = vars_of prop;
-              val tvars = rev (Term.add_tvars prop []);
+              val tvars = build_rev (Term.add_tvars prop);
               val (_, rhs) = Logic.dest_equals (Logic.strip_imp_concl prop);
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
