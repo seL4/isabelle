@@ -142,10 +142,9 @@ fun with_presentation_marker f = Print_Mode.setmp [code_presentationN] f;
 fun markup_stmt sym = with_presentation_marker
   (Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]));
 
-fun filter_presentation [] tree =
-      Buffer.empty
-      |> fold XML.add_content tree
-  | filter_presentation presentation_syms tree =
+fun filter_presentation [] xml =
+      Buffer.build (fold XML.add_content xml)
+  | filter_presentation presentation_syms xml =
       let
         val presentation_idents = map Code_Symbol.marker presentation_syms
         fun is_selected (name, attrs) =
@@ -159,7 +158,7 @@ fun filter_presentation [] tree =
         fun filter (XML.Elem (name_attrs, xs)) =
               fold (if is_selected name_attrs then add_content_with_space else filter) xs
           | filter (XML.Text _) = I;
-      in snd (fold filter tree (true, Buffer.empty)) end;
+      in snd (fold filter xml (true, Buffer.empty)) end;
 
 fun format presentation_names width =
   with_presentation_marker (Pretty.string_of_margin width)

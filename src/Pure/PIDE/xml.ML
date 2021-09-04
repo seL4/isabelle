@@ -110,7 +110,7 @@ fun add_content tree =
         Elem (_, ts) => fold add_content ts
       | Text s => Buffer.add s));
 
-fun content_of body = Buffer.empty |> fold add_content body |> Buffer.content;
+val content_of = Buffer.build_content o fold add_content;
 
 
 (* trim blanks *)
@@ -164,9 +164,9 @@ fun output_markup (markup as (name, atts)) =
   else (enclose "<" ">" (elem name atts), enclose "</" ">" name);
 
 
-(* output *)
+(* output content *)
 
-fun buffer_of depth tree =
+fun content_depth depth =
   let
     fun traverse _ (Elem ((name, atts), [])) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
@@ -177,12 +177,11 @@ fun buffer_of depth tree =
       | traverse _ (Text s) = Buffer.add (text s)
     and traverse_body 0 _ = Buffer.add "..."
       | traverse_body d ts = fold (traverse (d - 1)) ts;
-  in Buffer.empty |> traverse depth tree end;
+  in Buffer.build_content o traverse depth end;
 
-val string_of = Buffer.content o buffer_of ~1;
+val string_of = content_depth ~1;
 
-fun pretty depth tree =
-  Pretty.str (Buffer.content (buffer_of (Int.max (0, depth)) tree));
+fun pretty depth tree = Pretty.str (content_depth (Int.max (0, depth)) tree);
 
 val _ = ML_system_pp (fn depth => fn _ => Pretty.to_polyml o pretty (FixedInt.toInt depth));
 

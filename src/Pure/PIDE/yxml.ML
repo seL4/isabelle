@@ -85,7 +85,7 @@ fun body_size body = fold (Integer.add o tree_size) body 0;
 
 (* output *)
 
-fun string_of_body body = Buffer.empty |> fold (traverse Buffer.add) body |> Buffer.content;
+val string_of_body = Buffer.build_content o fold (traverse Buffer.add);
 val string_of = string_of_body o single;
 
 fun write_body path body =
