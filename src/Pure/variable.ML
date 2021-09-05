@@ -74,11 +74,10 @@ sig
     (typ Term_Subst.TVars.table * term Term_Subst.Vars.table) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
-  val importT: thm list -> Proof.context ->
-    (((indexname * sort) * ctyp) list * thm list) * Proof.context
+  val importT: thm list -> Proof.context -> (ctyp Term_Subst.TVars.table * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import: bool -> thm list -> Proof.context ->
-    ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context
+    ((ctyp Term_Subst.TVars.table * cterm Term_Subst.Vars.table) * thm list) * Proof.context
   val import_vars: Proof.context -> thm -> thm
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
@@ -620,8 +619,8 @@ fun import_terms is_open ts ctxt =
 fun importT ths ctxt =
   let
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
-    val instT' = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt' T)) instT [];
-    val ths' = map (Thm.instantiate (instT', [])) ths;
+    val instT' = Term_Subst.TVars.map (K (Thm.ctyp_of ctxt')) instT;
+    val ths' = map (Thm.instantiate (Term_Subst.TVars.dest instT', [])) ths;
   in ((instT', ths'), ctxt') end;
 
 fun import_prf is_open prf ctxt =
@@ -633,9 +632,9 @@ fun import_prf is_open prf ctxt =
 fun import is_open ths ctxt =
   let
     val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
-    val instT' = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt' T)) instT [];
-    val inst' = Term_Subst.Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt' t)) inst [];
-    val ths' = map (Thm.instantiate (instT', inst')) ths;
+    val instT' = Term_Subst.TVars.map (K (Thm.ctyp_of ctxt')) instT;
+    val inst' = Term_Subst.Vars.map (K (Thm.cterm_of ctxt')) inst;
+    val ths' = map (Thm.instantiate (Term_Subst.TVars.dest instT', Term_Subst.Vars.dest inst')) ths;
   in (((instT', inst'), ths'), ctxt') end;
 
 fun import_vars ctxt th =

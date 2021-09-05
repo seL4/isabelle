@@ -870,8 +870,8 @@ fun expand_tuples thy intro =
     val (pats', _, ctxt3) = fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
     fun rewrite_pat (ct1, ct2) =
       (ct1, Thm.cterm_of ctxt3 (Pattern.rewrite_term thy pats' [] (Thm.term_of ct2)))
-    val t_insts' = map rewrite_pat t_insts
-    val intro'' = Thm.instantiate (T_insts, t_insts') intro
+    val t_insts' = map rewrite_pat (Term_Subst.Vars.dest t_insts)
+    val intro'' = Thm.instantiate (Term_Subst.TVars.dest T_insts, t_insts') intro
     val [intro'''] = Variable.export ctxt3 ctxt [intro'']
     val intro'''' =
       Simplifier.full_simplify
