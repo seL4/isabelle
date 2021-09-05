@@ -448,15 +448,18 @@ fun instantiate' cTs cts thm =
 
 fun forall_intr_frees th =
   let
-    val fixed =
+    val fixed0 =
       Term_Subst.Frees.build
        (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Term_Subst.add_frees (Thm.hyps_of th));
-    val frees =
-      Thm.fold_atomic_cterms (fn a =>
+    val (_, frees) =
+      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms (fn a => fn (fixed, frees) =>
         (case Thm.term_of a of
-          Free v => not (Term_Subst.Frees.defined fixed v) ? insert (op aconvc) a
-        | _ => I)) th [];
+          Free v =>
+            if not (Term_Subst.Frees.defined fixed v)
+            then (Term_Subst.Frees.add (v, ()) fixed, a :: frees)
+            else (fixed, frees)
+        | _ => (fixed, frees)));
   in fold Thm.forall_intr frees th end;
 
 
