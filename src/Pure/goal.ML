@@ -116,30 +116,34 @@ fun future_result ctxt result prop =
     val assms = Assumption.all_assms_of ctxt;
     val As = map Thm.term_of assms;
 
-    val xs = map Free (fold Term.add_frees (prop :: As) []);
-    val fixes = map (Thm.cterm_of ctxt) xs;
+    val frees = Term_Subst.Frees.build (fold Term_Subst.add_frees (prop :: As));
+    val xs = Term_Subst.Frees.fold_rev (cons o Thm.cterm_of ctxt o Free o #1) frees [];
 
-    val tfrees = fold Term.add_tfrees (prop :: As) [];
-    val tfrees_set = Symtab.build (fold (Symtab.insert_set o #1) tfrees);
-    val instT = map (fn (a, S) => (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))) tfrees;
+    val tfrees = Term_Subst.TFrees.build (fold Term_Subst.add_tfrees (prop :: As));
+    val Ts = Symtab.build (Term_Subst.TFrees.fold (Symtab.insert_set o #1 o #1) tfrees);
+    val instT =
+      build (tfrees |> Term_Subst.TFrees.fold (fn ((a, S), ()) =>
+        cons (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))));
 
     val global_prop =
-      Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop)))
+      Logic.list_implies (As, prop)
+      |> Term_Subst.Frees.fold_rev (Logic.all o Free o #1) frees
+      |> Logic.varify_types_global
       |> Thm.cterm_of ctxt
       |> Thm.weaken_sorts' ctxt;
     val global_result = result |> Future.map
       (Drule.flexflex_unique (SOME ctxt) #>
         Drule.implies_intr_list assms #>
-        Drule.forall_intr_list fixes #>
+        Drule.forall_intr_list xs #>
         Thm.adjust_maxidx_thm ~1 #>
-        Thm.generalize (tfrees_set, Symtab.empty) 0 #>
+        Thm.generalize (Ts, Symtab.empty) 0 #>
         Thm.strip_shyps #>
         Thm.solve_constraints);
     val local_result =
       Thm.future global_result global_prop
       |> Thm.close_derivation \<^here>
       |> Thm.instantiate (instT, [])
-      |> Drule.forall_elim_list fixes
+      |> Drule.forall_elim_list xs
       |> fold (Thm.elim_implies o Thm.assume) assms
       |> Thm.solve_constraints;
   in local_result end;
