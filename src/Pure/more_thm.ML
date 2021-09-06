@@ -26,7 +26,6 @@ sig
   val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
   val add_tvars: thm -> ctyp list -> ctyp list
-  val add_frees: thm -> cterm list -> cterm list
   val add_vars: thm -> cterm list -> cterm list
   val frees_of: thm -> cterm list
   val dest_funT: ctyp -> ctyp * ctyp
@@ -142,8 +141,6 @@ val add_tvars =
   Thm.fold_atomic_ctyps {hyps = false} (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
 val add_vars =
   Thm.fold_atomic_cterms {hyps = false} (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
-val add_frees =
-  Thm.fold_atomic_cterms {hyps = true} (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
 
 fun frees_of th =
   (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true}
