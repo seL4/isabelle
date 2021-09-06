@@ -27,7 +27,6 @@ sig
   val aconvc: cterm * cterm -> bool
   val add_tvars: thm -> ctyp Term_Subst.TVars.table -> ctyp Term_Subst.TVars.table
   val add_vars: thm -> cterm Term_Subst.Vars.table -> cterm Term_Subst.Vars.table
-  val frees_of: thm -> cterm list
   val dest_funT: ctyp -> ctyp * ctyp
   val strip_type: ctyp -> ctyp list * ctyp
   val all_name: Proof.context -> string * cterm -> cterm -> cterm
@@ -147,16 +146,6 @@ val add_vars =
   Thm.fold_atomic_cterms {hyps = false} Term.is_Var (fn ct => fn tab =>
     let val v = Term.dest_Var (Thm.term_of ct)
     in tab |> not (Term_Subst.Vars.defined tab v) ? Term_Subst.Vars.update (v, ct) end);
-
-fun frees_of th =
-  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true} Term.is_Free
-    (fn ct => fn (set, list) =>
-      let val v = Term.dest_Free (Thm.term_of ct) in
-        if not (Term_Subst.Frees.defined set v)
-        then (Term_Subst.Frees.add (v, ()) set, ct :: list)
-        else (set, list)
-      end)
-  |> #2;
 
 
 (* ctyp operations *)
