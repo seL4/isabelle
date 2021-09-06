@@ -468,17 +468,17 @@ fun forall_intr_vars th =
 
 fun forall_intr_frees th =
   let
-    val fixed0 =
+    val fixed =
       Term_Subst.Frees.build
        (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Term_Subst.add_frees (Thm.hyps_of th));
     val (_, frees) =
-      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
-        (fn ct => fn (fixed, frees) =>
+      (th, (fixed, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
+        (fn ct => fn (seen, frees) =>
           let val v = Term.dest_Free (Thm.term_of ct) in
-            if not (Term_Subst.Frees.defined fixed v)
-            then (Term_Subst.Frees.add (v, ()) fixed, ct :: frees)
-            else (fixed, frees)
+            if not (Term_Subst.Frees.defined seen v)
+            then (Term_Subst.Frees.add (v, ()) seen, ct :: frees)
+            else (seen, frees)
           end);
   in fold Thm.forall_intr frees th end;
 
