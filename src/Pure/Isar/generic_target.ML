@@ -307,8 +307,8 @@ fun import_export_proof ctxt (name, raw_th) =
     val asms' = map (rewrite_rule ctxt (Drule.norm_hhf_eqs @ defs)) asms;
 
     (*export fixes*)
-    val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
-    val frees = map Free (Thm.fold_terms Term.add_frees th' []);
+    val tfrees = map TFree (Thm.fold_terms {hyps = true} Term.add_tfrees th' []);
+    val frees = map Free (Thm.fold_terms {hyps = true} Term.add_frees th' []);
     val (th'' :: vs) =
       (th' :: map (Drule.mk_term o Thm.cterm_of ctxt) (map Logic.mk_type tfrees @ frees))
       |> Variable.export ctxt thy_ctxt

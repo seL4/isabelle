@@ -26,10 +26,10 @@ fun term_type_cases f g t =
 
 fun add_thm_insts ctxt thm =
   let
-    val tyvars = Thm.fold_terms Term.add_tvars thm [];
+    val tyvars = Thm.fold_terms {hyps = false} Term.add_tvars thm [];
     val tyvars' = tyvars |> map (mk_term_type_internal o TVar);
 
-    val tvars = Thm.fold_terms Term.add_vars thm [];
+    val tvars = Thm.fold_terms {hyps = false} Term.add_vars thm [];
     val tvars' = tvars  |> map (Logic.mk_term o Var);
 
     val conj =
@@ -56,8 +56,8 @@ fun get_thm_insts thm =
 
 fun instantiate_xis ctxt insts thm =
   let
-    val tyvars = Thm.fold_terms Term.add_tvars thm [];
-    val tvars = Thm.fold_terms Term.add_vars thm [];
+    val tyvars = Thm.fold_terms {hyps = false} Term.add_tvars thm [];
+    val tvars = Thm.fold_terms {hyps = false} Term.add_vars thm [];
 
     fun add_inst (xi, t) (Ts, ts) =
       (case AList.lookup (op =) tyvars xi of

@@ -267,7 +267,7 @@ val declare_typ = declare_term o Logic.mk_type;
 val declare_prf =
   Proofterm.fold_proof_terms_types declare_internal (declare_internal o Logic.mk_type);
 
-val declare_thm = Thm.fold_terms declare_internal;
+val declare_thm = Thm.fold_terms {hyps = true} declare_internal;
 
 
 (* renaming term/type frees *)
@@ -689,7 +689,9 @@ fun focus_cterm bindings goal ctxt =
   in ((xs ~~ ps', goal'), ctxt') end;
 
 fun focus_subgoal bindings i st =
-  let val all_vars = Term_Subst.Vars.build (Thm.fold_terms Term_Subst.add_vars st) in
+  let
+    val all_vars = Term_Subst.Vars.build (Thm.fold_terms {hyps = false} Term_Subst.add_vars st);
+  in
     Term_Subst.Vars.fold (unbind_term o #1 o #1) all_vars #>
     Term_Subst.Vars.fold (declare_constraints o Var o #1) all_vars #>
     focus_cterm bindings (Thm.cprem_of st i)

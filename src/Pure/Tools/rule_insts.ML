@@ -115,8 +115,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val (type_insts, term_insts) =
       List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) raw_insts;
 
-    val tvars = Term_Subst.TVars.build (Thm.fold_terms Term_Subst.add_tvars thm);
-    val vars = Term_Subst.Vars.build (Thm.fold_terms Term_Subst.add_vars thm);
+    val tvars = Term_Subst.TVars.build (Thm.fold_terms {hyps = false} Term_Subst.add_tvars thm);
+    val vars = Term_Subst.Vars.build (Thm.fold_terms {hyps = false} Term_Subst.add_vars thm);
 
     (*eigen-context*)
     val (_, ctxt1) = ctxt

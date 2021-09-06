@@ -235,7 +235,7 @@ end;
 fun freeze_thaw_robust ctxt th =
  let val fth = Thm.legacy_freezeT th
  in
-   case Thm.fold_terms Term.add_vars fth [] of
+   case Thm.fold_terms {hyps = false} Term.add_vars fth [] of
        [] => (fth, fn _ => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))

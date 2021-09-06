@@ -138,12 +138,15 @@ struct
 val eq_ctyp = op = o apply2 Thm.typ_of;
 val op aconvc = op aconv o apply2 Thm.term_of;
 
-val add_tvars = Thm.fold_atomic_ctyps (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
-val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
-val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
+val add_tvars =
+  Thm.fold_atomic_ctyps {hyps = false} (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
+val add_vars =
+  Thm.fold_atomic_cterms {hyps = false} (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
+val add_frees =
+  Thm.fold_atomic_cterms {hyps = true} (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
 
 fun frees_of th =
-  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms
+  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true}
     (fn a => fn (set, list) =>
       (case Thm.term_of a of
         Free v =>
@@ -390,7 +393,7 @@ fun dest_all_list ct =
 fun forall_elim_vars_list vars i th =
   let
     val used =
-      (Thm.fold_terms o Term.fold_aterms)
+      (Thm.fold_terms {hyps = false} o Term.fold_aterms)
         (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I) th [];
     val vars' = (Name.variant_list used (map #1 vars), vars)
       |> ListPair.map (fn (x, (_, T)) => Thm.var ((x, i), T));
@@ -449,11 +452,10 @@ fun instantiate' cTs cts thm =
       zip_options xs ys handle ListPair.UnequalLengths =>
         err "more instantiations than variables in thm";
 
-    val thm' =
-      Thm.instantiate ((zip_vars (build_rev (Thm.fold_terms Term.add_tvars thm)) cTs), []) thm;
-    val thm'' =
-      Thm.instantiate ([], zip_vars (build_rev (Thm.fold_terms Term.add_vars thm')) cts) thm';
-  in thm'' end;
+    val instT = zip_vars (build_rev (Thm.fold_terms {hyps = false} Term.add_tvars thm)) cTs;
+    val thm' = Thm.instantiate (instT, []) thm;
+    val inst = zip_vars (build_rev (Thm.fold_terms {hyps = false} Term.add_vars thm')) cts;
+  in Thm.instantiate ([], inst) thm' end;
 
 
 (* forall_intr_frees: generalization over all suitable Free variables *)
@@ -465,7 +467,7 @@ fun forall_intr_frees th =
        (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Term_Subst.add_frees (Thm.hyps_of th));
     val (_, frees) =
-      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms (fn a => fn (fixed, frees) =>
+      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms {hyps = false} (fn a => fn (fixed, frees) =>
         (case Thm.term_of a of
           Free v =>
             if not (Term_Subst.Frees.defined fixed v)

@@ -59,9 +59,9 @@ sig
   val first_order_match: cterm * cterm ->
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   (*theorems*)
-  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_ctyps: (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_terms: {hyps: bool} -> (term -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_ctyps: {hyps: bool} -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_cterms: {hyps: bool} -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_id: thm -> Context.theory_id
@@ -434,16 +434,16 @@ exception THM of string * int * thm list;
 
 fun rep_thm (Thm (_, args)) = args;
 
-fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
-  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
+fun fold_terms h f (Thm (_, {tpairs, prop, hyps, ...})) =
+  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? fold f hyps;
 
-fun fold_atomic_ctyps f (th as Thm (_, {cert, maxidx, shyps, ...})) =
+fun fold_atomic_ctyps h f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps}
-  in (fold_terms o fold_types o fold_atyps) (f o ctyp) th end;
+  in (fold_terms h o fold_types o fold_atyps) (f o ctyp) th end;
 
-fun fold_atomic_cterms f (th as Thm (_, {cert, maxidx, shyps, ...})) =
+fun fold_atomic_cterms h f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let fun cterm t T = Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = shyps} in
-    (fold_terms o fold_aterms)
+    (fold_terms h o fold_aterms)
       (fn t as Const (_, T) => f (cterm t T)
         | t as Free (_, T) => f (cterm t T)
         | t as Var (_, T) => f (cterm t T)
@@ -985,7 +985,7 @@ end;
 
 (*Dangling sort constraints of a thm*)
 fun extra_shyps (th as Thm (_, {shyps, ...})) =
-  Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
+  Sorts.subtract (fold_terms {hyps = true} Sorts.insert_term th []) shyps;
 
 (*Remove extra sorts that are witnessed by type signature information*)
 fun strip_shyps thm =
@@ -1001,7 +1001,8 @@ fun strip_shyps thm =
         fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
         fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
 
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
+        val present =
+          (fold_terms {hyps = true} o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
