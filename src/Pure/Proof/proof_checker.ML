@@ -81,7 +81,7 @@ fun thm_of_proof thy =
             val ctye =
               (tvars @ map (fn ((_, S), ixn) => (ixn, S)) fmap ~~ map (Thm.global_ctyp_of thy) Ts);
           in
-            Thm.instantiate (ctye, []) (forall_intr_vars (Thm.forall_intr_frees thm'))
+            Thm.instantiate (ctye, []) (Thm.forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
 
         fun thm_of _ _ (PThm ({name, prop = prop', types = SOME Ts, ...}, _)) =

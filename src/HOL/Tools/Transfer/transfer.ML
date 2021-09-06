@@ -696,7 +696,7 @@ fun transferred ctxt extra_rules thm =
     val rules = extra_rules @ get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
-    val thm1 = Drule.forall_intr_vars thm
+    val thm1 = Thm.forall_intr_vars thm
     val instT =
       rev (Term.add_tvars (Thm.full_prop_of thm1) [])
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
@@ -731,7 +731,7 @@ fun untransferred ctxt extra_rules thm =
     val rules = extra_rules @ get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
-    val thm1 = Drule.forall_intr_vars thm
+    val thm1 = Thm.forall_intr_vars thm
     val instT =
       rev (Term.add_tvars (Thm.full_prop_of thm1) [])
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))

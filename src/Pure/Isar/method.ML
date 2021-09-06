@@ -118,7 +118,7 @@ val succeed = METHOD (K all_tac);
 
 fun insert_tac _ [] _ = all_tac
   | insert_tac ctxt facts i =
-      EVERY (map (fn r => resolve_tac ctxt [Drule.forall_intr_vars r COMP_INCR revcut_rl] i) facts);
+      EVERY (map (fn r => resolve_tac ctxt [Thm.forall_intr_vars r COMP_INCR revcut_rl] i) facts);
 
 fun insert thms =
   CONTEXT_METHOD (fn _ => fn (ctxt, st) =>

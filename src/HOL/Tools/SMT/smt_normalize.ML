@@ -255,7 +255,7 @@ fun gen_normalize1 ctxt =
   instantiate_elim #>
   norm_def #>
   Conv.fconv_rule (Thm.beta_conversion true then_conv Thm.eta_conversion) #>
-  Drule.forall_intr_vars #>
+  Thm.forall_intr_vars #>
   Conv.fconv_rule (gen_normalize1_conv ctxt) #>
   (* Z3 4.3.1 silently normalizes "P --> Q --> R" to "P & Q --> R" *)
   Raw_Simplifier.rewrite_rule ctxt @{thms HOL.imp_conjL[symmetric, THEN eq_reflection]}

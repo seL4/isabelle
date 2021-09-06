@@ -14,7 +14,6 @@ sig
   val strip_imp_concl: cterm -> cterm
   val cprems_of: thm -> cterm list
   val forall_intr_list: cterm list -> thm -> thm
-  val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
@@ -163,11 +162,6 @@ fun beta_conv x y =
 
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev Thm.forall_intr;
-
-(*Generalization over Vars -- canonical order*)
-fun forall_intr_vars th =
-  let val vs = build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Var (insert (op aconvc)))
-  in fold Thm.forall_intr vs th end;
 
 fun outer_params t =
   let val vs = Term.strip_all_vars t

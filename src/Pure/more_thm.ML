@@ -76,6 +76,7 @@ sig
   val instantiate_frees: ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val forall_intr_frees: thm -> thm
+  val forall_intr_vars: thm -> thm
   val unvarify_global: theory -> thm -> thm
   val unvarify_axiom: theory -> string -> thm
   val rename_params_rule: string list * int -> thm -> thm
@@ -459,7 +460,11 @@ fun instantiate' cTs cts thm =
   in Thm.instantiate ([], inst) thm' end;
 
 
-(* forall_intr_frees: generalization over all suitable Free variables *)
+(* implicit generalization over variables -- canonical order *)
+
+fun forall_intr_vars th =
+  let val vs = build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Var (insert (op aconvc)))
+  in fold Thm.forall_intr vs th end;
 
 fun forall_intr_frees th =
   let
