@@ -463,8 +463,16 @@ fun instantiate' cTs cts thm =
 (* implicit generalization over variables -- canonical order *)
 
 fun forall_intr_vars th =
-  let val vs = build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Var (insert (op aconvc)))
-  in fold Thm.forall_intr vs th end;
+  let
+    val (_, vars) =
+      (th, (Term_Subst.Vars.empty, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Var
+        (fn ct => fn (seen, vars) =>
+          let val v = Term.dest_Var (Thm.term_of ct) in
+            if not (Term_Subst.Vars.defined seen v)
+            then (Term_Subst.Vars.add (v, ()) seen, ct :: vars)
+            else (seen, vars)
+          end);
+  in fold Thm.forall_intr vars th end;
 
 fun forall_intr_frees th =
   let
