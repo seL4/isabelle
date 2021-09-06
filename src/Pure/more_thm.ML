@@ -138,32 +138,23 @@ val eq_ctyp = op = o apply2 Thm.typ_of;
 val op aconvc = op aconv o apply2 Thm.term_of;
 
 val add_tvars =
-  Thm.fold_atomic_ctyps {hyps = false} (fn cT => fn tab =>
-    (case Thm.typ_of cT of
-      TVar v =>
-        if not (Term_Subst.TVars.defined tab v)
-        then Term_Subst.TVars.update (v, cT) tab
-        else tab
-    | _ => tab));
+  Thm.fold_atomic_ctyps {hyps = false} Term.is_TVar (fn cT => fn tab =>
+    let val v = Term.dest_TVar (Thm.typ_of cT)
+    in tab |> not (Term_Subst.TVars.defined tab v) ? Term_Subst.TVars.update (v, cT) end);
 
 val add_vars =
-  Thm.fold_atomic_cterms {hyps = false} (fn ct => fn tab =>
-    (case Thm.term_of ct of
-      Var v =>
-        if not (Term_Subst.Vars.defined tab v)
-        then Term_Subst.Vars.update (v, ct) tab
-        else tab
-    | _ => tab));
+  Thm.fold_atomic_cterms {hyps = false} Term.is_Var (fn ct => fn tab =>
+    let val v = Term.dest_Var (Thm.term_of ct)
+    in tab |> not (Term_Subst.Vars.defined tab v) ? Term_Subst.Vars.update (v, ct) end);
 
 fun frees_of th =
-  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true}
-    (fn a => fn (set, list) =>
-      (case Thm.term_of a of
-        Free v =>
-          if not (Term_Subst.Frees.defined set v)
-          then (Term_Subst.Frees.add (v, ()) set, a :: list)
-          else (set, list)
-      | _ => (set, list)))
+  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true} Term.is_Free
+    (fn ct => fn (set, list) =>
+      let val v = Term.dest_Free (Thm.term_of ct) in
+        if not (Term_Subst.Frees.defined set v)
+        then (Term_Subst.Frees.add (v, ()) set, ct :: list)
+        else (set, list)
+      end)
   |> #2;
 
 
@@ -477,13 +468,13 @@ fun forall_intr_frees th =
        (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Term_Subst.add_frees (Thm.hyps_of th));
     val (_, frees) =
-      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms {hyps = false} (fn a => fn (fixed, frees) =>
-        (case Thm.term_of a of
-          Free v =>
+      (th, (fixed0, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
+        (fn ct => fn (fixed, frees) =>
+          let val v = Term.dest_Free (Thm.term_of ct) in
             if not (Term_Subst.Frees.defined fixed v)
-            then (Term_Subst.Frees.add (v, ()) fixed, a :: frees)
+            then (Term_Subst.Frees.add (v, ()) fixed, ct :: frees)
             else (fixed, frees)
-        | _ => (fixed, frees)));
+          end);
   in fold Thm.forall_intr frees th end;
 
 
