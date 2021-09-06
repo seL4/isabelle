@@ -25,8 +25,8 @@ sig
   structure Thmtab: TABLE
   val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
-  val add_tvars: thm -> ctyp list -> ctyp list
-  val add_vars: thm -> cterm list -> cterm list
+  val add_tvars: thm -> ctyp Term_Subst.TVars.table -> ctyp Term_Subst.TVars.table
+  val add_vars: thm -> cterm Term_Subst.Vars.table -> cterm Term_Subst.Vars.table
   val frees_of: thm -> cterm list
   val dest_funT: ctyp -> ctyp * ctyp
   val strip_type: ctyp -> ctyp list * ctyp
@@ -138,9 +138,22 @@ val eq_ctyp = op = o apply2 Thm.typ_of;
 val op aconvc = op aconv o apply2 Thm.term_of;
 
 val add_tvars =
-  Thm.fold_atomic_ctyps {hyps = false} (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
+  Thm.fold_atomic_ctyps {hyps = false} (fn cT => fn tab =>
+    (case Thm.typ_of cT of
+      TVar v =>
+        if not (Term_Subst.TVars.defined tab v)
+        then Term_Subst.TVars.update (v, cT) tab
+        else tab
+    | _ => tab));
+
 val add_vars =
-  Thm.fold_atomic_cterms {hyps = false} (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
+  Thm.fold_atomic_cterms {hyps = false} (fn ct => fn tab =>
+    (case Thm.term_of ct of
+      Var v =>
+        if not (Term_Subst.Vars.defined tab v)
+        then Term_Subst.Vars.update (v, ct) tab
+        else tab
+    | _ => tab));
 
 fun frees_of th =
   (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true}

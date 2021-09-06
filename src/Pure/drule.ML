@@ -165,7 +165,12 @@ fun beta_conv x y =
 val forall_intr_list = fold_rev Thm.forall_intr;
 
 (*Generalization over Vars -- canonical order*)
-fun forall_intr_vars th = fold Thm.forall_intr (Thm.add_vars th []) th;
+fun forall_intr_vars th =
+  let
+    val vs =
+      build (th |> Thm.fold_atomic_cterms {hyps = false} (fn a =>
+        is_Var (Thm.term_of a) ? insert (op aconvc) a));
+  in fold Thm.forall_intr vs th end;
 
 fun outer_params t =
   let val vs = Term.strip_all_vars t
@@ -218,14 +223,14 @@ fun zero_var_indexes_list [] = []
         val (instT, inst) =
           Term_Subst.zero_var_indexes_inst Name.context (map Thm.full_prop_of ths);
 
-        val tvars = fold Thm.add_tvars ths [];
-        fun the_tvar v = the (find_first (fn cT => v = dest_TVar (Thm.typ_of cT)) tvars);
+        val tvars = fold Thm.add_tvars ths Term_Subst.TVars.empty;
+        val the_tvar = the o Term_Subst.TVars.lookup tvars;
         val instT' =
           build (instT |> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
             cons (v, Thm.rename_tvar b (the_tvar v))));
 
-        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths [];
-        fun the_var v = the (find_first (fn ct => v = dest_Var (Thm.term_of ct)) vars);
+        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths Term_Subst.Vars.empty;
+        val the_var = the o Term_Subst.Vars.lookup vars;
         val inst' =
           build (inst |> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
             cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))));
