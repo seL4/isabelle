@@ -503,14 +503,16 @@ class Build_Job(progress: Progress,
       build_errors match {
         case Exn.Res(build_errs) =>
           val errs = build_errs ::: document_errors
-          if (errs.isEmpty) result
-          else {
+          if (errs.nonEmpty) {
             result.error_rc.output(
               errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
                 errs.map(Protocol.Error_Message_Marker.apply))
           }
+          else if (progress.stopped && result.ok) result.copy(rc = Process_Result.interrupt_rc)
+          else result
         case Exn.Exn(Exn.Interrupt()) =>
-          if (result.ok) result.copy(rc = Process_Result.interrupt_rc) else result
+          if (result.ok) result.copy(rc = Process_Result.interrupt_rc)
+          else result
         case Exn.Exn(exn) => throw exn
       }
     }
