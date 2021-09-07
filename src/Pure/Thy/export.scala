@@ -219,9 +219,10 @@ object Export
           {
             val results =
               db.transaction {
-                for ((entry, strict) <- args if !progress.stopped)
+                for ((entry, strict) <- args)
                 yield {
-                  if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
+                  if (progress.stopped) Exn.Res(())
+                  else if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
                     if (strict) {
                       val msg = message("Duplicate export", entry.theory_name, entry.name)
                       errors.change(msg :: _)
