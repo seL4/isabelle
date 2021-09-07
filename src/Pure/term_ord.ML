@@ -34,12 +34,11 @@ struct
 
 (* fast syntactic ordering -- tuned for inequalities *)
 
-fun fast_indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => fast_string_ord (x, y) | ord => ord);
+val fast_indexname_ord =
+  pointer_eq_ord (int_ord o apply2 snd ||| fast_string_ord o apply2 fst);
 
-fun sort_ord SS =
-  if pointer_eq SS then EQUAL
-  else dict_ord fast_string_ord SS;
+val sort_ord =
+  pointer_eq_ord (dict_ord fast_string_ord);
 
 local
 
