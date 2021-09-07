@@ -125,12 +125,12 @@ fun theory_markup def name id pos =
 fun init_markup (name, pos) thy =
   let
     val id = serial ();
-    val _ = Context_Position.reports_global thy [(pos, theory_markup true name id pos)];
+    val _ = Context_Position.reports_global thy [(pos, theory_markup {def = true} name id pos)];
   in map_thy (fn (_, _, axioms, defs, wrappers) => (pos, id, axioms, defs, wrappers)) thy end;
 
 fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
-  in theory_markup false (Context.theory_long_name thy) id pos end;
+  in theory_markup {def = false} (Context.theory_long_name thy) id pos end;
 
 fun check long ctxt (name, pos) =
   let

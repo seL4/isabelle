@@ -168,7 +168,7 @@ fun loaded_theory a = Symtab.defined (get_session_base2 #loaded_theories) a;
 fun check_session ctxt arg =
   Completion.check_item "session"
     (fn (name, {pos, serial}) =>
-      Position.make_entity_markup false serial Markup.sessionN (name, pos))
+      Position.make_entity_markup {def = false} serial Markup.sessionN (name, pos))
     (get_session_base1 #session_positions) ctxt arg;
 
 fun session_chapter name =

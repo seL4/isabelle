@@ -42,7 +42,7 @@ sig
   val offset_properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
   val entity_markup: string -> string * T -> Markup.T
-  val make_entity_markup: bool -> serial -> string -> string * T -> Markup.T
+  val make_entity_markup: {def: bool} -> serial -> string -> string * T -> Markup.T
   val markup: T -> Markup.T -> Markup.T
   val is_reported: T -> bool
   val is_reported_range: T -> bool
@@ -215,7 +215,7 @@ val def_properties_of = properties_of #> map (apfst Markup.def_name);
 fun entity_markup kind (name, pos) =
   Markup.entity kind name |> Markup.properties (def_properties_of pos);
 
-fun make_entity_markup def serial kind (name, pos) =
+fun make_entity_markup {def} serial kind (name, pos) =
   let
     val props =
       if def then (Markup.defN, Value.print_int serial) :: properties_of pos

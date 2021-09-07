@@ -71,7 +71,8 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
   Pretty.block
     (Pretty.marks_str
       ([Active.make_markup Markup.sendbackN {implicit = true, properties = [Markup.padding_line]},
-        command_markup false cmd], name) :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
+        command_markup {def = false} cmd], name) :: Pretty.str ":" ::
+        Pretty.brk 2 :: Pretty.text comment);
 
 
 (* theory data *)
@@ -124,7 +125,7 @@ fun add_command name cmd thy =
         | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
       val _ =
         Context_Position.report_generic (Context.the_generic_context ())
-          (command_pos cmd) (command_markup true (name, cmd));
+          (command_pos cmd) (command_markup {def = true} (name, cmd));
     in Data.map (Symtab.update (name, cmd)) thy end;
 
 val _ = Theory.setup (Theory.at_end (fn thy =>
@@ -288,7 +289,7 @@ fun command_reports thy tok =
     let val name = Token.content_of tok in
       (case lookup_commands thy name of
         NONE => []
-      | SOME cmd => [((Token.pos_of tok, command_markup false (name, cmd)), "")])
+      | SOME cmd => [((Token.pos_of tok, command_markup {def = false} (name, cmd)), "")])
     end
   else [];
 

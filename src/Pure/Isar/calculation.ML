@@ -79,10 +79,10 @@ fun update_calculation calc state =
                 val level = Proof.level state;
                 val serial = serial ();
                 val pos = Position.thread_data ();
-                val _ = report true serial pos;
+                val _ = report {def = true} serial pos;
               in SOME {result = result, level = level, serial = serial, pos = pos} end
           | SOME {level, serial, pos, ...} =>
-              (report false serial pos;
+              (report {def = false} serial pos;
                 SOME {result = result, level = level, serial = serial, pos = pos})));
   in
     state

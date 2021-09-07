@@ -84,7 +84,7 @@ fun reports_of_scope [] = []
         fun entity def = Position.make_entity_markup def id "" ("", def_pos);
       in
         map (rpair Markup.bound) (def_pos :: ps) @
-        ((def_pos, entity true) :: map (rpair (entity false)) ps)
+        ((def_pos, entity {def = true}) :: map (rpair (entity {def = false})) ps)
       end;
 
 
@@ -279,7 +279,7 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
           | decode _ qs bs (Abs (x, T, t)) =
               let
                 val id = serial ();
-                val _ = report qs (markup_bound true qs) (x, id);
+                val _ = report qs (markup_bound {def = true} qs) (x, id);
               in Abs (x, T, decode [] [] ((qs, (x, id)) :: bs) t) end
           | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
           | decode ps _ _ (Const (a, T)) =
@@ -306,7 +306,7 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
-                SOME (qs, (x, id)) => (report ps (markup_bound false qs) (x, id); t)
+                SOME (qs, (x, id)) => (report ps (markup_bound {def = false} qs) (x, id); t)
               | NONE => t);
 
         val tm' = Exn.interruptible_capture (fn () => decode [] [] [] tm) ();
