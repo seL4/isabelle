@@ -359,34 +359,38 @@ class Build_Job(progress: Progress,
       session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories")
         {
           case snapshot =>
-            val rendering = new Rendering(snapshot, options, session)
+            if (!progress.stopped) {
+              val rendering = new Rendering(snapshot, options, session)
 
-            def export(name: String, xml: XML.Body, compress: Boolean = true): Unit =
-            {
-              val theory_name = snapshot.node_name.theory
-              val args =
-                Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
-              val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
-              if (!bytes.is_empty) export_consumer(session_name, args, bytes)
+              def export(name: String, xml: XML.Body, compress: Boolean = true): Unit =
+              {
+                if (!progress.stopped) {
+                  val theory_name = snapshot.node_name.theory
+                  val args =
+                    Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
+                  val bytes = Bytes(Symbol.encode(YXML.string_of_body(xml)))
+                  if (!bytes.is_empty) export_consumer(session_name, args, bytes)
+                }
+              }
+              def export_text(name: String, text: String, compress: Boolean = true): Unit =
+                export(name, List(XML.Text(text)), compress = compress)
+
+              for (command <- snapshot.snippet_command) {
+                export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
+              }
+
+              export_text(Export.FILES,
+                cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
+
+              for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
+                export(Export.MARKUP + (i + 1), xml)
+              }
+              export(Export.MARKUP, snapshot.xml_markup())
+              export(Export.MESSAGES, snapshot.messages.map(_._1))
+
+              val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
+              export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
             }
-            def export_text(name: String, text: String, compress: Boolean = true): Unit =
-              export(name, List(XML.Text(text)), compress = compress)
-
-            for (command <- snapshot.snippet_command) {
-              export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
-            }
-
-            export_text(Export.FILES,
-              cat_lines(snapshot.node_files.map(_.symbolic.node)), compress = false)
-
-            for (((_, xml), i) <- snapshot.xml_markup_blobs().zipWithIndex) {
-              export(Export.MARKUP + (i + 1), xml)
-            }
-            export(Export.MARKUP, snapshot.xml_markup())
-            export(Export.MESSAGES, snapshot.messages.map(_._1))
-
-            val citations = Library.distinct(rendering.citations(Text.Range.full).map(_.info))
-            export_text(Export.DOCUMENT_CITATIONS, cat_lines(citations))
         }
 
       session.all_messages += Session.Consumer[Any]("build_session_output")
