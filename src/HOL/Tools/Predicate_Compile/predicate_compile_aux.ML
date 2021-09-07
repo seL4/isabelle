@@ -870,8 +870,8 @@ fun expand_tuples thy intro =
     val (pats', _, ctxt3) = fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
     fun rewrite_pat (ct1, ct2) =
       (ct1, Thm.cterm_of ctxt3 (Pattern.rewrite_term thy pats' [] (Thm.term_of ct2)))
-    val t_insts' = map rewrite_pat t_insts
-    val intro'' = Thm.instantiate (T_insts, t_insts') intro
+    val t_insts' = map rewrite_pat (Term_Subst.Vars.dest t_insts)
+    val intro'' = Thm.instantiate (Term_Subst.TVars.dest T_insts, t_insts') intro
     val [intro'''] = Variable.export ctxt3 ctxt [intro'']
     val intro'''' =
       Simplifier.full_simplify
@@ -1162,7 +1162,9 @@ fun unify_consts thy cs intr_ts =
   let
      val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
      fun varify (t, (i, ts)) =
-       let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify_global [] t))
+       let
+         val t' = map_types (Logic.incr_tvar (i + 1))
+           (#2 (Type.varify_global Term_Subst.TFrees.empty t))
        in (maxidx_of_term t', t' :: ts) end
      val (i, cs') = List.foldr varify (~1, []) cs
      val (i', intr_ts') = List.foldr varify (i, []) intr_ts

@@ -51,6 +51,8 @@ sig
   val forall: ('a -> bool) -> 'a list -> bool
 
   (*lists*)
+  val build: ('a list -> 'a list) -> 'a list
+  val build_rev: ('a list -> 'a list) -> 'a list
   val single: 'a -> 'a list
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
@@ -300,6 +302,9 @@ val forall = List.all;
 
 
 (** lists **)
+
+fun build (f: 'a list -> 'a list) = f [];
+fun build_rev f = build f |> rev;
 
 fun single x = [x];
 

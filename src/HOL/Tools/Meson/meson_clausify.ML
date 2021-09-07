@@ -300,7 +300,7 @@ fun nnf_axiom simp_options choice_ths new_skolem ax_no th ctxt =
     val th =
       th |> transform_elim_theorem
          |> zero_var_indexes
-         |> new_skolem ? forall_intr_vars
+         |> new_skolem ? Thm.forall_intr_vars
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule (Object_Logic.atomize ctxt)
                 |> Meson.cong_extensionalize_thm ctxt

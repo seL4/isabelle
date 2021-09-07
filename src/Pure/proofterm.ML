@@ -109,7 +109,7 @@ sig
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
-  val varify_proof: term -> (string * sort) list -> proof -> proof
+  val varify_proof: term -> Term_Subst.TFrees.set -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
@@ -671,25 +671,37 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
 
 (* substitutions *)
 
-fun del_conflicting_tvars envT T =
-  let
-    val instT =
-      map_filter (fn ixnS as (_, S) =>
-        (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])
-  in Term_Subst.instantiateT (Term_Subst.TVars.table instT) T end;
+local
 
-fun del_conflicting_vars env t =
+fun conflicting_tvarsT envT =
+  Term.fold_atyps
+    (fn T => fn instT =>
+      (case T of
+        TVar (v as (_, S)) =>
+          if Term_Subst.TVars.defined instT v orelse can (Type.lookup envT) v then instT
+          else Term_Subst.TVars.update (v, Logic.dummy_tfree S) instT
+      | _ => instT));
+
+fun conflicting_tvars env =
+  Term.fold_aterms
+    (fn t => fn inst =>
+      (case t of
+        Var (v as (_, T)) =>
+          if Term_Subst.Vars.defined inst v orelse can (Envir.lookup env) v then inst
+          else Term_Subst.Vars.update (v, Free ("dummy", T)) inst
+      | _ => inst));
+
+fun del_conflicting_tvars envT ty =
+  Term_Subst.instantiateT (Term_Subst.TVars.build (conflicting_tvarsT envT ty)) ty;
+
+fun del_conflicting_vars env tm =
   let
     val instT =
-      map_filter (fn ixnS as (_, S) =>
-        (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-          SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []);
-    val inst =
-      map_filter (fn (ixnT as (_, T)) =>
-        (Envir.lookup env ixnT; NONE) handle TYPE _ =>
-          SOME (ixnT, Free ("dummy", T))) (Term.add_vars t []);
-  in Term_Subst.instantiate (Term_Subst.TVars.make instT, Term_Subst.Vars.table inst) t end;
+      Term_Subst.TVars.build (tm |> Term.fold_types (conflicting_tvarsT (Envir.type_env env)));
+    val inst = Term_Subst.Vars.build (tm |> conflicting_tvars env);
+  in Term_Subst.instantiate (instT, inst) tm end;
+
+in
 
 fun norm_proof env =
   let
@@ -725,6 +737,8 @@ fun norm_proof env =
             (Same.map_option (htypeTs Envir.norm_types_same) Ts), thm_body)
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
+
+end;
 
 
 (* remove some types in proof term (to save space) *)
@@ -887,8 +901,9 @@ fun forall_intr_proof' v prf =
 
 fun varify_proof t fixed prf =
   let
-    val fs = Term.fold_types (Term.fold_atyps
-      (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
+    val fs =
+      build (t |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => if Term_Subst.TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
@@ -1110,7 +1125,7 @@ fun is_fun (Type ("fun", _)) = true
   | is_fun (TVar _) = true
   | is_fun _ = false;
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
+fun vars_of t = map Var (build_rev (Term.add_vars t));
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
@@ -2131,7 +2146,7 @@ fun export_proof_boxes bodies =
 
     fun export_body (PBody {thms, ...}) = fold export_thm thms;
 
-    val exports = (bodies, Inttab.empty) |-> fold export_body |> Inttab.dest;
+    val exports = Inttab.build (fold export_body bodies) |> Inttab.dest;
   in List.app (Lazy.force o #2) exports end;
 
 local
@@ -2312,7 +2327,7 @@ fun proof_boxes {included, excluded} proofs =
             end)
       | boxes_of MinProof = raise MIN_PROOF ()
       | boxes_of _ = I;
-  in Inttab.fold_rev (cons o #2) (fold boxes_of proofs Inttab.empty) [] end;
+  in Inttab.fold_rev (cons o #2) (Inttab.build (fold boxes_of proofs)) [] end;
 
 end;
 

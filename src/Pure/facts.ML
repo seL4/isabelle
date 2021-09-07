@@ -217,7 +217,8 @@ fun fold_static_lazy f =
 fun consolidate facts =
   let
     val unfinished =
-      (facts, []) |-> fold_static_lazy (fn (_, ths) => if Lazy.is_finished ths then I else cons ths);
+      build (facts |> fold_static_lazy (fn (_, ths) =>
+        if Lazy.is_finished ths then I else cons ths));
     val _ = Lazy.consolidate unfinished;
   in facts end;
 

@@ -42,7 +42,7 @@ fun OF1 thm1 thm2 = thm2 RS thm1
 
 fun atomize_thm ctxt thm =
   let
-    val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
+    val thm' = Thm.legacy_freezeT (Thm.forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
     val thm'' = Object_Logic.atomize ctxt (Thm.cprop_of thm')
   in
     @{thm equal_elim_rule1} OF [thm'', thm']

@@ -281,7 +281,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
 
     val _ =
       Proof_Display.print_consts int (Position.thread_data ()) lthy5
-        (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+        (Term_Subst.Frees.defined (Term_Subst.Frees.build (Term_Subst.add_frees lhs'))) [(x, T)];
   in ((lhs, (def_name, th')), lthy5) end;
 
 val definition' = gen_def check_spec_open (K I);

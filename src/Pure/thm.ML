@@ -59,9 +59,9 @@ sig
   val first_order_match: cterm * cterm ->
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   (*theorems*)
-  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_ctyps: (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_terms: {hyps: bool} -> (term -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_ctyps: {hyps: bool} -> (typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_cterms: {hyps: bool} -> (term -> bool) -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_id: thm -> Context.theory_id
@@ -161,7 +161,7 @@ sig
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
-  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global': Term_Subst.TFrees.set -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
@@ -434,19 +434,22 @@ exception THM of string * int * thm list;
 
 fun rep_thm (Thm (_, args)) = args;
 
-fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
-  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
+fun fold_terms h f (Thm (_, {tpairs, prop, hyps, ...})) =
+  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? fold f hyps;
 
-fun fold_atomic_ctyps f (th as Thm (_, {cert, maxidx, shyps, ...})) =
+fun fold_atomic_ctyps h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps}
-  in (fold_terms o fold_types o fold_atyps) (f o ctyp) th end;
+  in (fold_terms h o fold_types o fold_atyps) (fn T => if g T then f (ctyp T) else I) th end;
 
-fun fold_atomic_cterms f (th as Thm (_, {cert, maxidx, shyps, ...})) =
-  let fun cterm t T = Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = shyps} in
-    (fold_terms o fold_aterms)
-      (fn t as Const (_, T) => f (cterm t T)
-        | t as Free (_, T) => f (cterm t T)
-        | t as Var (_, T) => f (cterm t T)
+fun fold_atomic_cterms h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
+  let
+    fun cterm t T = Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = shyps};
+    fun apply t T = if g t then f (cterm t T) else I;
+  in
+    (fold_terms h o fold_aterms)
+      (fn t as Const (_, T) => apply t T
+        | t as Free (_, T) => apply t T
+        | t as Var (_, T) => apply t T
         | _ => I) th
   end;
 
@@ -985,7 +988,7 @@ end;
 
 (*Dangling sort constraints of a thm*)
 fun extra_shyps (th as Thm (_, {shyps, ...})) =
-  Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
+  Sorts.subtract (fold_terms {hyps = true} Sorts.insert_term th []) shyps;
 
 (*Remove extra sorts that are witnessed by type signature information*)
 fun strip_shyps thm =
@@ -1001,7 +1004,8 @@ fun strip_shyps thm =
         fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
         fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
 
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
+        val present =
+          (fold_terms {hyps = true} o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
@@ -1641,8 +1645,8 @@ fun prep_insts (instT, inst) (cert, sorts) =
       |> fold add_instT_sorts instT
       |> fold add_inst_sorts inst;
 
-    val instT' = fold (add_instT thy') instT Term_Subst.TVars.empty;
-    val inst' = fold (add_inst thy') inst Term_Subst.Vars.empty;
+    val instT' = Term_Subst.TVars.build (fold (add_instT thy') instT);
+    val inst' = Term_Subst.Vars.build (fold (add_inst thy') inst);
   in ((instT', inst'), (cert', sorts')) end;
 
 in
@@ -1752,7 +1756,7 @@ val unconstrainT =
       fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
       val _ = null hyps orelse err "bad hyps";
       val _ = null tpairs orelse err "bad flex-flex constraints";
-      val tfrees = rev (Term.add_tfree_names prop []);
+      val tfrees = build_rev (Term.add_tfree_names prop);
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
@@ -1776,7 +1780,7 @@ val unconstrainT =
 (*Replace all TFrees not fixed or in the hyps by new TVars*)
 fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
-    val tfrees = fold Term.add_tfrees hyps fixed;
+    val tfrees = fold Term_Subst.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
@@ -1792,7 +1796,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
       prop = prop3}))
   end;
 
-val varifyT_global = #2 o varifyT_global' [];
+val varifyT_global = #2 o varifyT_global' Term_Subst.TFrees.empty;
 
 (*Replace all TVars by TFrees that are often new*)
 fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...})) =
@@ -2093,7 +2097,7 @@ fun unify_var_types context (th1, th2) env =
     val add_vars =
       full_prop_of #>
       fold_aterms (fn Var v => Vartab.insert_list (op =) v | _ => I);
-    val vars = Vartab.empty |> add_vars th1 |> add_vars th2;
+    val vars = Vartab.build (add_vars th1 #> add_vars th2);
   in SOME (Vartab.fold (unify_vars o #2) vars env) end
   handle Pattern.Unif => NONE;
 
@@ -2257,7 +2261,7 @@ fun tha RS thb = tha RSN (1,thb);
 fun standard_tvars thm =
   let
     val thy = theory_of_thm thm;
-    val tvars = rev (Term.add_tvars (prop_of thm) []);
+    val tvars = build_rev (Term.add_tvars (prop_of thm));
     val names = Name.invent Name.context Name.aT (length tvars);
     val tinst =
       map2 (fn (ai, S) => fn b => ((ai, S), global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
@@ -2300,8 +2304,8 @@ fun complete_classrels thy =
 (* type arities *)
 
 fun thynames_of_arity thy (a, c) =
-  (get_arities thy, []) |-> Aritytab.fold
-    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser))
+  build (get_arities thy |> Aritytab.fold
+    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser)))
   |> sort (int_ord o apply2 #2) |> map #1;
 
 fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, arities) =

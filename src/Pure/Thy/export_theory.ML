@@ -78,7 +78,7 @@ fun locale_content thy loc =
           SOME goal => Thm.prems_of goal
         | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
       end;
-    val typargs = rev (fold Term.add_tfrees (map (Free o #1) args @ axioms) []);
+    val typargs = build_rev (fold Term.add_tfrees (map (Free o #1) args @ axioms));
   in {typargs = typargs, args = args, axioms = axioms} end;
 
 fun get_locales thy =
@@ -148,8 +148,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
        {props = pos_properties pos,
         name = name,
         rough_classification = rough_classification,
-        typargs = rev (fold Term.add_tfrees spec []),
-        args = rev (fold Term.add_frees spec []),
+        typargs = build_rev (fold Term.add_tfrees spec),
+        args = build_rev (fold Term.add_frees spec),
         terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
         rules = drop (length terms) spec}
       end;
@@ -172,7 +172,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         val parent_spaces = map get_space parents;
         val space = get_space thy;
       in
-        (decls, []) |-> fold (fn (name, decl) =>
+        build (decls |> fold (fn (name, decl) =>
           if exists (fn space => Name_Space.declared space name) parent_spaces then I
           else
             (case export name decl of
@@ -181,7 +181,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
                 let
                   val i = #serial (Name_Space.the_entry space name);
                   val body = if enabled then make_body () else [];
-                in cons (i, XML.Elem (entity_markup space name, body)) end))
+                in cons (i, XML.Elem (entity_markup space name, body)) end)))
         |> sort (int_ord o apply2 #1) |> map #2
         |> export_body thy export_name
       end;

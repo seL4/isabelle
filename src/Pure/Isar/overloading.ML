@@ -76,7 +76,7 @@ fun improve_term_check ts ctxt =
               then SOME (ty', apply_subst t') else NONE
           | NONE => NONE)
         | _ => NONE) t;
-    val improvements = (fold o fold_aterms) accumulate_improvements ts Vartab.empty;
+    val improvements = Vartab.build ((fold o fold_aterms) accumulate_improvements ts);
     val ts' =
       ts
       |> (map o map_types) (Envir.subst_type improvements)

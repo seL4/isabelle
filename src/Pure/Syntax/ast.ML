@@ -158,7 +158,7 @@ fun match ast pat =
           end
       | _ => (ast, []));
   in
-    SOME (mtch head pat Symtab.empty, args) handle NO_MATCH => NONE
+    SOME (Symtab.build (mtch head pat), args) handle NO_MATCH => NONE
   end;
 
 

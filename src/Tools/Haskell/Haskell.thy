@@ -572,11 +572,12 @@ Efficient buffer of byte strings.
 See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
 -}
 
-module Isabelle.Buffer (T, empty, add, content)
+module Isabelle.Buffer (T, empty, add, content, build, build_content)
 where
 
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
+import Isabelle.Library
 
 
 newtype T = Buffer [Bytes]
@@ -589,6 +590,12 @@ add b (Buffer bs) = Buffer (if Bytes.null b then bs else b : bs)
 
 content :: T -> Bytes
 content (Buffer bs) = Bytes.concat (reverse bs)
+
+build :: (T -> T) -> T
+build f = f empty
+
+build_content :: (T -> T) -> Bytes
+build_content f = build f |> content
 \<close>
 
 generate_file "Isabelle/Value.hs" = \<open>
@@ -1522,7 +1529,7 @@ add_content tree =
         Text s -> Buffer.add s
 
 content_of :: Body -> Bytes
-content_of body = Buffer.empty |> fold add_content body |> Buffer.content
+content_of = Buffer.build_content . fold add_content
 
 
 {- string representation -}
@@ -1540,7 +1547,7 @@ encode_text = make_bytes . concatMap (encode_char . Bytes.char) . Bytes.unpack
 
 instance Show Tree where
   show tree =
-    Buffer.empty |> show_tree tree |> Buffer.content |> make_string
+    make_string $ Buffer.build_content (show_tree tree)
     where
       show_tree (Elem ((name, atts), [])) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add "/>"
@@ -1831,7 +1838,7 @@ buffer (XML.Elem ((name, atts), ts)) =
 buffer (XML.Text s) = Buffer.add s
 
 string_of_body :: XML.Body -> Bytes
-string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content
+string_of_body = Buffer.build_content . buffer_body
 
 string_of :: XML.Tree -> Bytes
 string_of = string_of_body . single
@@ -2049,7 +2056,7 @@ formatted :: T -> Bytes
 formatted = YXML.string_of_body . symbolic
 
 unformatted :: T -> Bytes
-unformatted prt = Buffer.empty |> out prt |> Buffer.content
+unformatted = Buffer.build_content . out
   where
     out (Block markup _ _ prts) =
       let (bg, en) = YXML.output_markup markup

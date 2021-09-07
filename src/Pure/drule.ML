@@ -14,7 +14,6 @@ sig
   val strip_imp_concl: cterm -> cterm
   val cprems_of: thm -> cterm list
   val forall_intr_list: cterm list -> thm -> thm
-  val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
@@ -89,8 +88,6 @@ sig
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
-  val cterm_add_frees: cterm -> cterm list -> cterm list
-  val cterm_add_vars: cterm -> cterm list -> cterm list
   val dummy_thm: thm
   val free_dummy_thm: thm
   val is_sort_constraint: term -> bool
@@ -165,9 +162,6 @@ fun beta_conv x y =
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev Thm.forall_intr;
 
-(*Generalization over Vars -- canonical order*)
-fun forall_intr_vars th = fold Thm.forall_intr (Thm.add_vars th []) th;
-
 fun outer_params t =
   let val vs = Term.strip_all_vars t
   in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
@@ -185,11 +179,18 @@ fun lift_all ctxt raw_goal raw_th =
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
     val inst =
-      Thm.fold_terms Term.add_vars th []
-      |> map (fn (xi, T) => ((xi, T), Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))));
+      Term_Subst.Vars.build (th |> (Thm.fold_terms {hyps = false} o Term.fold_aterms)
+        (fn t => fn inst =>
+          (case t of
+            Var (xi, T) =>
+              if Term_Subst.Vars.defined inst (xi, T) then inst
+              else
+                let val ct = Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))
+                in Term_Subst.Vars.update ((xi, T), ct) inst end
+          | _ => inst)));
   in
     th
-    |> Thm.instantiate ([], inst)
+    |> Thm.instantiate ([], Term_Subst.Vars.dest inst)
     |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 
@@ -212,17 +213,17 @@ fun zero_var_indexes_list [] = []
         val (instT, inst) =
           Term_Subst.zero_var_indexes_inst Name.context (map Thm.full_prop_of ths);
 
-        val tvars = fold Thm.add_tvars ths [];
-        fun the_tvar v = the (find_first (fn cT => v = dest_TVar (Thm.typ_of cT)) tvars);
+        val tvars = fold Thm.add_tvars ths Term_Subst.TVars.empty;
+        val the_tvar = the o Term_Subst.TVars.lookup tvars;
         val instT' =
-          (instT, []) |-> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
-            cons (v, Thm.rename_tvar b (the_tvar v)));
+          build (instT |> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
+            cons (v, Thm.rename_tvar b (the_tvar v))));
 
-        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths [];
-        fun the_var v = the (find_first (fn ct => v = dest_Var (Thm.term_of ct)) vars);
+        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths Term_Subst.Vars.empty;
+        val the_var = the o Term_Subst.Vars.lookup vars;
         val inst' =
-          (inst, []) |-> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
-            cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v))));
+          build (inst |> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
+            cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))));
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (instT', inst')) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
@@ -610,9 +611,6 @@ fun dest_term th =
 
 fun cterm_rule f = dest_term o f o mk_term;
 
-val cterm_add_frees = Thm.add_frees o mk_term;
-val cterm_add_vars = Thm.add_vars o mk_term;
-
 val dummy_thm = mk_term (certify Term.dummy_prop);
 val free_dummy_thm = Thm.tag_free_dummy dummy_thm;
 
@@ -788,7 +786,7 @@ fun infer_instantiate _ [] th = th
 
 fun infer_instantiate' ctxt args th =
   let
-    val vars = rev (Term.add_vars (Thm.full_prop_of th) []);
+    val vars = build_rev (Term.add_vars (Thm.full_prop_of th));
     val args' = zip_options vars args
       handle ListPair.UnequalLengths =>
         raise THM ("infer_instantiate': more instantiations than variables in thm", 0, [th]);

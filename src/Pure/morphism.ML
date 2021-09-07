@@ -138,11 +138,11 @@ fun instantiate_frees_morphism ([], []) = identity
   | instantiate_frees_morphism (cinstT, cinst) =
       let
         val instT =
-          fold (fn (v, cT) => Term_Subst.TFrees.add (v, Thm.typ_of cT))
-            cinstT Term_Subst.TFrees.empty;
+          Term_Subst.TFrees.build
+            (cinstT |> fold (fn (v, cT) => Term_Subst.TFrees.add (v, Thm.typ_of cT)));
         val inst =
-          fold (fn (v, ct) => Term_Subst.Frees.add (v, Thm.term_of ct))
-            cinst Term_Subst.Frees.empty;
+          Term_Subst.Frees.build
+            (cinst |> fold (fn (v, ct) => Term_Subst.Frees.add (v, Thm.term_of ct)));
       in
         morphism "instantiate_frees"
           {binding = [],
@@ -157,11 +157,11 @@ fun instantiate_morphism ([], []) = identity
   | instantiate_morphism (cinstT, cinst) =
       let
         val instT =
-          fold (fn (v, cT) => Term_Subst.TVars.add (v, Thm.typ_of cT))
-            cinstT Term_Subst.TVars.empty;
+          Term_Subst.TVars.build (cinstT |> fold (fn (v, cT) =>
+            Term_Subst.TVars.add (v, Thm.typ_of cT)));
         val inst =
-          fold (fn (v, ct) => Term_Subst.Vars.add (v, Thm.term_of ct))
-            cinst Term_Subst.Vars.empty;
+          Term_Subst.Vars.build (cinst |> fold (fn (v, ct) =>
+            Term_Subst.Vars.add (v, Thm.term_of ct)));
       in
         morphism "instantiate"
           {binding = [],

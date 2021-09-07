@@ -692,7 +692,7 @@ fun normalize ctxt thm =
   thm
   |> instantiate_elim_rule
   |> Conv.fconv_rule (Thm.beta_conversion true then_conv Thm.eta_conversion)
-  |> Drule.forall_intr_vars
+  |> Thm.forall_intr_vars
   |> Conv.fconv_rule (atomize_conv ctxt)
 
 

@@ -124,8 +124,8 @@ fun dest_thm_names thy =
 fun lookup_thm_id thy =
   let
     val theories =
-      fold (fn thy' => Symtab.update (Context.theory_long_name thy', lazy_thm_names thy'))
-        (Theory.nodes_of thy) Symtab.empty;
+      Symtab.build (Theory.nodes_of thy |> fold (fn thy' =>
+        Symtab.update (Context.theory_long_name thy', lazy_thm_names thy')));
     fun lookup (thm_id: Proofterm.thm_id) =
       (case Symtab.lookup theories (#theory_name thm_id) of
         NONE => NONE
@@ -170,8 +170,8 @@ fun get_thm thy xname =
 fun transfer_theories thy =
   let
     val theories =
-      fold (fn thy' => Symtab.update (Context.theory_name thy', thy'))
-        (Theory.nodes_of thy) Symtab.empty;
+      Symtab.build (Theory.nodes_of thy |> fold (fn thy' =>
+        Symtab.update (Context.theory_name thy', thy')));
     fun transfer th =
       Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_name th))) th;
   in transfer end;

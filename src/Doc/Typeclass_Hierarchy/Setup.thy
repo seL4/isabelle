@@ -6,7 +6,7 @@ ML_file \<open>../antiquote_setup.ML\<close>
 ML_file \<open>../more_antiquote.ML\<close>
 
 attribute_setup all =
-  \<open>Scan.succeed (Thm.rule_attribute [] (K Drule.forall_intr_vars))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (K Thm.forall_intr_vars))\<close>
   "quantified schematic vars"
 
 setup \<open>Config.put_global Printer.show_type_emphasis false\<close>

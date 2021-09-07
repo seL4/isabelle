@@ -16,7 +16,7 @@ struct
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = fold_rev Symtab.update (Global_Theory.all_thms_of thy true) Symtab.empty in
+  let val tab = Symtab.build (Global_Theory.all_thms_of thy true |> fold_rev Symtab.update) in
     fn s =>
       (case Symtab.lookup tab s of
         NONE => error ("Unknown theorem " ^ quote s)
@@ -76,12 +76,12 @@ fun thm_of_proof thy =
 
         fun thm_of_atom thm Ts =
           let
-            val tvars = Term.add_tvars (Thm.full_prop_of thm) [] |> rev;
-            val (fmap, thm') = Thm.varifyT_global' [] thm;
+            val tvars = build_rev (Term.add_tvars (Thm.full_prop_of thm));
+            val (fmap, thm') = Thm.varifyT_global' Term_Subst.TFrees.empty thm;
             val ctye =
               (tvars @ map (fn ((_, S), ixn) => (ixn, S)) fmap ~~ map (Thm.global_ctyp_of thy) Ts);
           in
-            Thm.instantiate (ctye, []) (forall_intr_vars (Thm.forall_intr_frees thm'))
+            Thm.instantiate (ctye, []) (Thm.forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
 
         fun thm_of _ _ (PThm ({name, prop = prop', types = SOME Ts, ...}, _)) =

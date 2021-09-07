@@ -257,9 +257,8 @@ end;
 
 (* classrel *)
 
-fun rebuild_arities context algebra = algebra |> map_arities (fn arities =>
-  Symtab.empty
-  |> add_arities_table context algebra arities);
+fun rebuild_arities context algebra = algebra
+  |> map_arities (Symtab.build o add_arities_table context algebra);
 
 fun add_classrel context rel = rebuild_arities context o map_classes (fn classes =>
   classes |> Graph.add_edge_trans_acyclic rel
@@ -286,12 +285,11 @@ fun merge_algebra context
             if pointer_eq (ars1, ars2) then raise Symtab.SAME
             else insert_ars context algebra0 t ars2 ars1)
       | (false, true) =>  (*unary completion*)
-          Symtab.empty
-          |> add_arities_table context algebra0 arities1
+          Symtab.build (add_arities_table context algebra0 arities1)
       | (false, false) => (*binary completion*)
-          Symtab.empty
-          |> add_arities_table context algebra0 arities1
-          |> add_arities_table context algebra0 arities2);
+          Symtab.build
+           (add_arities_table context algebra0 arities1 #>
+            add_arities_table context algebra0 arities2));
   in make_algebra (classes', arities') end;
 
 
@@ -301,16 +299,16 @@ fun dest_algebra parents (Algebra {classes, arities}) =
   let
     fun new_classrel rel = not (exists (fn algebra => class_less algebra rel) parents);
     val classrel =
-      (classes, []) |-> Graph.fold (fn (c, (_, (_, ds))) =>
+      build (classes |> Graph.fold (fn (c, (_, (_, ds))) =>
         (case filter (fn d => new_classrel (c, d)) (Graph.Keys.dest ds) of
           [] => I
-        | ds' => cons (c, sort_strings ds')))
+        | ds' => cons (c, sort_strings ds'))))
       |> sort_by #1;
 
     fun is_arity t ar algebra = member (op =) (Symtab.lookup_list (arities_of algebra) t) ar;
     fun add_arity t (c, Ss) = not (exists (is_arity t (c, Ss)) parents) ? cons (t, Ss, c);
     val arities =
-      (arities, []) |-> Symtab.fold (fn (t, ars) => fold_rev (add_arity t) (sort_by #1 ars))
+      build (arities |> Symtab.fold (fn (t, ars) => fold_rev (add_arity t) (sort_by #1 ars)))
       |> sort_by #1;
   in {classrel = classrel, arities = arities} end;
 
@@ -390,7 +388,7 @@ fun meet_sort algebra =
   in uncurry meet end;
 
 fun meet_sort_typ algebra (T, S) =
-  let val tab = meet_sort algebra (T, S) Vartab.empty;
+  let val tab = Vartab.build (meet_sort algebra (T, S));
   in Term.map_type_tvar (fn (v, _) => TVar (v, (the o Vartab.lookup tab) v)) end;
 
 

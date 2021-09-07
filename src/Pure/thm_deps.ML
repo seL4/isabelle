@@ -67,7 +67,7 @@ fun thm_deps thy =
         end;
   in
     fn thms =>
-      (fold (fold deps o Thm.thm_deps o Thm.transfer thy) thms Inttab.empty, [])
+      (Inttab.build (fold (fold deps o Thm.thm_deps o Thm.transfer thy) thms), [])
       |-> Inttab.fold_rev (fn (_, SOME entry) => cons entry | _ => I)
   end;
 
@@ -119,12 +119,13 @@ fun unused_thms_cmd (base_thys, thys) =
     fun is_unused a = not (Symtab.defined used a);
 
     (*groups containing at least one used theorem*)
-    val used_groups = fold (fn (a, (_, _, group)) =>
-      if is_unused a then I
-      else
-        (case group of
-          NONE => I
-        | SOME grp => Inttab.update (grp, ()))) new_thms Inttab.empty;
+    val used_groups =
+      Inttab.build (new_thms |> fold (fn (a, (_, _, group)) =>
+        if is_unused a then I
+        else
+          (case group of
+            NONE => I
+          | SOME grp => Inttab.update (grp, ()))));
 
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
       if not concealed andalso

@@ -161,13 +161,13 @@ all its Vars? Better: a dynamic check each time a rule is applied.
 fun rewrite_rule_extra_vars prems elhs erhs =
   let
     val elhss = elhs :: prems;
-    val tvars = fold Term.add_tvars elhss [];
-    val vars = fold Term.add_vars elhss [];
+    val tvars = Term_Subst.TVars.build (fold Term_Subst.add_tvars elhss);
+    val vars = Term_Subst.Vars.build (fold Term_Subst.add_vars elhss);
   in
     erhs |> Term.exists_type (Term.exists_subtype
-      (fn TVar v => not (member (op =) tvars v) | _ => false)) orelse
+      (fn TVar v => not (Term_Subst.TVars.defined tvars v) | _ => false)) orelse
     erhs |> Term.exists_subterm
-      (fn Var v => not (member (op =) vars v) | _ => false)
+      (fn Var v => not (Term_Subst.Vars.defined vars v) | _ => false)
   end;
 
 fun rrule_extra_vars elhs thm =
@@ -474,6 +474,8 @@ fun insert_rrule (rrule as {thm, name, ...}) ctxt =
     (cond_warning ctxt (fn () => print_thm ctxt "Ignoring duplicate rewrite rule:" ("", thm));
       ctxt));
 
+val vars_set = Term_Subst.Vars.build o Term_Subst.add_vars;
+
 local
 
 fun vperm (Var _, Var _) = true
@@ -481,8 +483,7 @@ fun vperm (Var _, Var _) = true
   | vperm (t1 $ t2, u1 $ u2) = vperm (t1, u1) andalso vperm (t2, u2)
   | vperm (t, u) = (t = u);
 
-fun var_perm (t, u) =
-  vperm (t, u) andalso eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
+fun var_perm (t, u) = vperm (t, u) andalso Term_Subst.Vars.eq_set (apply2 vars_set (t, u));
 
 in
 
@@ -945,7 +946,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   while the premises are solved.*)
 
 fun cond_skel (args as (_, (lhs, rhs))) =
-  if subset (op =) (Term.add_vars rhs [], Term.add_vars lhs []) then uncond_skel args
+  if Term_Subst.Vars.subset (vars_set rhs, vars_set lhs) then uncond_skel args
   else skel0;
 
 (*

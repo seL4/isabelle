@@ -131,7 +131,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
       ||> Sign.restore_naming thy;
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Old_Datatype_Prop.make_ind [descr])) []);
-    val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
+    val rvs = rev (Thm.fold_terms {hyps = false} Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) => \<^type_name>\<open>bool\<close> = tname_of (body_type T)) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 

@@ -724,10 +724,10 @@ fun prepare_sorts_env ctxt tys =
       end;
 
     val env =
-      (fold o fold_atyps)
+      Vartab.build (tys |> (fold o fold_atyps)
         (fn TFree (x, S) => constraint ((x, ~1), S)
           | TVar v => constraint v
-          | _ => I) tys Vartab.empty;
+          | _ => I));
 
     fun get_sort xi raw_S =
       if xi = dummy_var then
@@ -1269,8 +1269,8 @@ fun dest_cases prev_ctxt ctxt =
         NONE => Inttab.empty
       | SOME ctxt0 =>
           let val cases0 = cases_of ctxt0 in
-            Name_Space.fold_table (fn (a, _) => Inttab.insert_set (serial_of cases0 a))
-              cases0 Inttab.empty
+            Inttab.build (cases0 |> Name_Space.fold_table (fn (a, _) =>
+              Inttab.insert_set (serial_of cases0 a)))
           end);
      val cases = cases_of ctxt;
   in

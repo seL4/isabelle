@@ -17,7 +17,7 @@ struct
 structure Tab = Table(Key);
 
 fun add entry = Tab.insert (K true) entry;
-fun table entries = fold add entries Tab.empty;
+fun table entries = Tab.build (fold add entries);
 
 open Tab;
 
@@ -29,6 +29,15 @@ sig
   structure TVars: INST_TABLE
   structure Frees: INST_TABLE
   structure Vars: INST_TABLE
+  val add_tfreesT: typ -> TFrees.set -> TFrees.set
+  val add_tfrees: term -> TFrees.set -> TFrees.set
+  val add_tvarsT: typ -> TVars.set -> TVars.set
+  val add_tvars: term -> TVars.set -> TVars.set
+  val add_frees: term -> Frees.set -> Frees.set
+  val add_vars: term -> Vars.set -> Vars.set
+  val add_tfree_namesT: typ -> Symtab.set -> Symtab.set
+  val add_tfree_names: term -> Symtab.set -> Symtab.set
+  val add_free_names: term -> Symtab.set -> Symtab.set
   val map_atypsT_same: typ Same.operation -> typ Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
@@ -76,6 +85,16 @@ structure Vars = Inst_Table(
   type key = indexname * typ
   val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord)
 );
+
+val add_tfreesT = fold_atyps (fn TFree v => TFrees.add (v, ()) | _ => I);
+val add_tfrees = fold_types add_tfreesT;
+val add_tvarsT = fold_atyps (fn TVar v => TVars.add (v, ()) | _ => I);
+val add_tvars = fold_types add_tvarsT;
+val add_frees = fold_aterms (fn Free v => Frees.add (v, ()) | _ => I);
+val add_vars = fold_aterms (fn Var v => Vars.add (v, ()) | _ => I);
+val add_tfree_namesT = fold_atyps (fn TFree (a, _) => Symtab.insert_set a | _ => I);
+val add_tfree_names = fold_types add_tfree_namesT;
+val add_free_names = fold_aterms (fn Free (x, _) => Symtab.insert_set x | _ => I);
 
 
 (* generic mapping *)
@@ -256,12 +275,12 @@ fun zero_var_indexes_inst used ts =
   let
     val (instT, _) =
       (TVars.empty, used) |> TVars.fold (zero_var_inst TVars.add TVar o #1)
-        ((fold o fold_types o fold_atyps) (fn TVar v =>
-          TVars.add (v, ()) | _ => I) ts TVars.empty);
+        (TVars.build (ts |> (fold o fold_types o fold_atyps)
+          (fn TVar v => TVars.add (v, ()) | _ => I)));
     val (inst, _) =
       (Vars.empty, used) |> Vars.fold (zero_var_inst Vars.add Var o #1)
-        ((fold o fold_aterms) (fn Var (xi, T) =>
-          Vars.add ((xi, instantiateT instT T), ()) | _ => I) ts Vars.empty);
+        (Vars.build (ts |> (fold o fold_aterms)
+          (fn Var (xi, T) => Vars.add ((xi, instantiateT instT T), ()) | _ => I)));
   in (instT, inst) end;
 
 fun zero_var_indexes_list ts = map (instantiate (zero_var_indexes_inst Name.context ts)) ts;

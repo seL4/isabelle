@@ -95,8 +95,10 @@ fun export_abbrev lthy preprocess rhs =
     val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
+    val type_tfrees = Term_Subst.TFrees.build (Term_Subst.add_tfreesT (Term.fastype_of u));
     val extra_tfrees =
-      subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+      build_rev (u |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -259,8 +261,11 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
     val xs = Variable.add_fixed lthy rhs' [];
     val T = Term.fastype_of rhs;
-    val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
-    val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
+    val type_tfrees =
+      Term_Subst.TFrees.build (Term_Subst.add_tfreesT T #> fold (Term_Subst.add_tfreesT o #2) xs);
+    val extra_tfrees =
+      build_rev (rhs |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
@@ -302,8 +307,8 @@ fun import_export_proof ctxt (name, raw_th) =
     val asms' = map (rewrite_rule ctxt (Drule.norm_hhf_eqs @ defs)) asms;
 
     (*export fixes*)
-    val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
-    val frees = map Free (Thm.fold_terms Term.add_frees th' []);
+    val tfrees = map TFree (Thm.fold_terms {hyps = true} Term.add_tfrees th' []);
+    val frees = map Free (Thm.fold_terms {hyps = true} Term.add_frees th' []);
     val (th'' :: vs) =
       (th' :: map (Drule.mk_term o Thm.cterm_of ctxt) (map Logic.mk_type tfrees @ frees))
       |> Variable.export ctxt thy_ctxt
@@ -318,8 +323,8 @@ fun import_export_proof ctxt (name, raw_th) =
       |>> map Logic.dest_type;
 
     val instT =
-      fold2 (fn a => fn b => (case a of TVar v => Term_Subst.TVars.add (v, b) | _ => I))
-        tvars tfrees Term_Subst.TVars.empty;
+      Term_Subst.TVars.build (fold2 (fn a => fn b =>
+        (case a of TVar v => Term_Subst.TVars.add (v, b) | _ => I)) tvars tfrees);
     val cinstT = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt T)) instT [];
     val cinst =
       map_filter

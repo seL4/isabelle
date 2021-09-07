@@ -830,7 +830,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   (Variable.gen_all lthy
                     (Drule.rename_bvars'
                       (map (SOME o fst) xs')
-                      (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
+                      (Thm.forall_intr_vars (case_thm RS (sel_def RS trans)))));
 
               val sel_thmss = @{map 3} (map oo make_sel_thm) xss' case_thms sel_defss;
 

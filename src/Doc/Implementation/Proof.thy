@@ -101,7 +101,7 @@ text %mlref \<open>
   @{define_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
   @{define_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   @{define_ML Variable.import: "bool -> thm list -> Proof.context ->
-  ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list)
+  ((ctyp Term_Subst.TVars.table * cterm Term_Subst.Vars.table) * thm list)
     * Proof.context"} \\
   @{define_ML Variable.focus: "binding list option -> term -> Proof.context ->
   ((string * (string * typ)) list * term) * Proof.context"} \\
