@@ -221,7 +221,10 @@ object Export
               db.transaction {
                 for ((entry, strict) <- args)
                 yield {
-                  if (progress.stopped) Exn.Res(())
+                  if (progress.stopped) {
+                    entry.body.cancel()
+                    Exn.Res(())
+                  }
                   else if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
                     if (strict) {
                       val msg = message("Duplicate export", entry.theory_name, entry.name)
@@ -236,7 +239,11 @@ object Export
           })
 
     def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit =
-      consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
+    {
+      if (!progress.stopped) {
+        consumer.send(make_entry(session_name, args, body, cache) -> args.strict)
+      }
+    }
 
     def shutdown(close: Boolean = false): List[String] =
     {
