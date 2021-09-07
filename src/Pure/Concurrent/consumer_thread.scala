@@ -98,9 +98,9 @@ final class Consumer_Thread[A] private(
         for { (Some(req), Some(res)) <- reqs.map(Some(_)).zipAll(results.map(Some(_)), None, None) }
         {
           (req.ack, res) match {
-            case ((Some(a), _)) => a.change(_ => Some(res))
-            case ((None, Exn.Res(_))) =>
-            case ((None, Exn.Exn(exn))) => failure(exn)
+            case (Some(a), _) => a.change(_ => Some(res))
+            case (None, Exn.Res(_)) =>
+            case (None, Exn.Exn(exn)) => failure(exn)
           }
         }
 
