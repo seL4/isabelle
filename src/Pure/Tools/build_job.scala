@@ -265,7 +265,8 @@ class Build_Job(progress: Progress,
       }
 
       val export_consumer =
-        Export.consumer(store.open_database(session_name, output = true), store.cache)
+        Export.consumer(store.open_database(session_name, output = true), store.cache,
+          progress = progress)
 
       val stdout = new StringBuilder(1000)
       val stderr = new StringBuilder(1000)

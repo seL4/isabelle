@@ -204,9 +204,10 @@ object Export
 
   /* database consumer thread */
 
-  def consumer(db: SQL.Database, cache: XML.Cache): Consumer = new Consumer(db, cache)
+  def consumer(db: SQL.Database, cache: XML.Cache, progress: Progress = new Progress): Consumer =
+    new Consumer(db, cache, progress)
 
-  class Consumer private[Export](db: SQL.Database, cache: XML.Cache)
+  class Consumer private[Export](db: SQL.Database, cache: XML.Cache, progress: Progress)
   {
     private val errors = Synchronized[List[String]](Nil)
 
@@ -218,7 +219,7 @@ object Export
           {
             val results =
               db.transaction {
-                for ((entry, strict) <- args)
+                for ((entry, strict) <- args if !progress.stopped)
                 yield {
                   if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
                     if (strict) {
@@ -240,7 +241,7 @@ object Export
     {
       consumer.shutdown()
       if (close) db.close()
-      errors.value.reverse
+      errors.value.reverse ::: (if (progress.stopped) List("Export stopped") else Nil)
     }
   }
 
