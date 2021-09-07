@@ -302,7 +302,7 @@ class Prover(
 
   def protocol_command_raw(name: String, args: List[Bytes]): Unit =
     command_input match {
-      case Some(thread) if thread.is_active =>
+      case Some(thread) if thread.is_active() =>
         if (trace) {
           val payload = args.foldLeft(0) { case (n, b) => n + b.length }
           Output.writeln(

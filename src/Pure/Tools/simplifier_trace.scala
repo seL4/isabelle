@@ -287,7 +287,7 @@ object Simplifier_Trace
 
   def the_manager(session: Session): Consumer_Thread[Any] =
     managers.value.get(session) match {
-      case Some(thread) if thread.is_active => thread
+      case Some(thread) if thread.is_active() => thread
       case _ => error("Bad Simplifier_Trace.manager thread")
     }
 

@@ -699,7 +699,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def get_state(): Document.State =
   {
-    if (manager.is_active) {
+    if (manager.is_active()) {
       val promise = Future.promise[Document.State]
       manager.send_wait(Get_State(promise))
       promise.join
