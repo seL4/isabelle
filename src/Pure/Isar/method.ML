@@ -38,6 +38,7 @@ sig
   val erule: Proof.context -> int -> thm list -> method
   val drule: Proof.context -> int -> thm list -> method
   val frule: Proof.context -> int -> thm list -> method
+  val method_space: Context.generic -> Name_Space.T
   val set_tactic: (morphism -> thm list -> tactic) -> Context.generic -> Context.generic
   val clean_facts: thm list -> thm list
   val set_facts: thm list -> Proof.context -> Proof.context
@@ -311,6 +312,8 @@ val get_methods = #methods o Data.get;
 val ops_methods =
  {get_data = get_methods,
   put_data = fn methods => map_data (fn (_, ml_tactic, facts) => (methods, ml_tactic, facts))};
+
+val method_space = Name_Space.space_of_table o get_methods;
 
 
 (* ML tactic *)

@@ -306,6 +306,7 @@ object Markup
   val THEORY = "theory"
   val CLASS = "class"
   val LOCALE = "locale"
+  val BUNDLE = "bundle"
   val TYPE_NAME = "type_name"
   val CONSTANT = "constant"
   val AXIOM = "axiom"

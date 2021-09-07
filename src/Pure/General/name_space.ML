@@ -9,17 +9,19 @@ type xstring = string;    (*external names*)
 
 signature NAME_SPACE =
 sig
-  type T
-  val empty: string -> T
-  val kind_of: T -> string
-  val markup: T -> string -> Markup.T
-  val markup_def: T -> string -> Markup.T
-  val the_entry: T -> string ->
+  type entry =
    {concealed: bool,
     group: serial option,
     theory_long_name: string,
     pos: Position.T,
     serial: serial}
+  type T
+  val empty: string -> T
+  val kind_of: T -> string
+  val markup: T -> string -> Markup.T
+  val markup_def: T -> string -> Markup.T
+  val get_names: T -> string list
+  val the_entry: T -> string -> entry
   val the_entry_theory_name: T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
@@ -181,6 +183,9 @@ fun undefined (space as Name_Space {kind, entries, ...}) bad =
           else ("Undefined", quote name)
       | NONE => ("Undefined", quote bad));
   in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
+
+fun get_names (Name_Space {entries, ...}) =
+  Change_Table.fold (cons o #1) entries [];
 
 fun the_entry (space as Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of

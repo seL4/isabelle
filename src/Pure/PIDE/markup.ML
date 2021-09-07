@@ -91,6 +91,7 @@ sig
   val theoryN: string
   val classN: string
   val localeN: string
+  val bundleN: string
   val type_nameN: string
   val constantN: string
   val axiomN: string
@@ -481,6 +482,7 @@ val sessionN = "session";
 val theoryN = "theory";
 val classN = "class";
 val localeN = "locale";
+val bundleN = "bundle";
 val type_nameN = "type_name";
 val constantN = "constant";
 val axiomN = "axiom";

@@ -6,12 +6,46 @@ Export foundational theory content and locale/class structure.
 
 signature EXPORT_THEORY =
 sig
+  val other_name_space: (theory -> Name_Space.T) -> theory -> theory
   val export_enabled: Thy_Info.presentation_context -> bool
   val export_body: theory -> string -> XML.body -> unit
 end;
 
 structure Export_Theory: EXPORT_THEORY =
 struct
+
+(* other name spaces *)
+
+fun err_dup_kind kind = error ("Duplicate name space kind " ^ quote kind);
+
+structure Data = Theory_Data
+(
+  type T = ((theory -> Name_Space.T) * serial) Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data =
+    Symtab.merge (eq_snd op =) data
+      handle Symtab.DUP dup => err_dup_kind dup;
+);
+
+val other_name_spaces = map (#1 o #2) o Symtab.dest o Data.get;
+
+fun other_name_space get_space thy =
+  let
+    val kind = Name_Space.kind_of (get_space thy);
+    val entry = (get_space, serial ());
+  in
+    Data.map (Symtab.update_new (kind, entry)) thy
+      handle Symtab.DUP dup => err_dup_kind dup
+  end;
+
+val _ = Theory.setup
+ (other_name_space Thm.oracle_space #>
+  other_name_space Global_Theory.fact_space #>
+  other_name_space (Bundle.bundle_space o Context.Theory) #>
+  other_name_space (Attrib.attribute_space o Context.Theory) #>
+  other_name_space (Method.method_space o Context.Theory));
+
 
 (* approximative syntax *)
 
@@ -115,7 +149,7 @@ fun export_enabled (context: Thy_Info.presentation_context) =
 
 fun export_body thy name body =
   if XML.is_empty_body body then ()
-  else Export.export thy (Path.binding0 (Path.make ["theory", name])) body;
+  else Export.export thy (Path.binding0 (Path.make ("theory" :: space_explode "/" name))) body;
 
 val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
   let
@@ -271,7 +305,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     fun entity_markup_thm (serial, (name, i)) =
       let
-        val space = Facts.space_of (Global_Theory.facts_of thy);
+        val space = Global_Theory.fact_space thy;
         val xname = Name_Space.extern_shortest thy_ctxt space name;
         val {pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
@@ -432,6 +466,25 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         | spec_rules =>
             export_body thy "spec_rules" (encode_specs (map spec_rule_content spec_rules)))
       else ();
+
+
+    (* other entities *)
+
+    fun export_other get_space =
+      let
+        val space = get_space thy;
+        val export_name = "other/" ^ Name_Space.kind_of space;
+        val decls = Name_Space.get_names space |> map (rpair ());
+      in export_entities export_name get_space decls (fn _ => fn () => SOME (K [])) end;
+
+    val other_spaces = other_name_spaces thy;
+    val other_kinds = map (fn get_space => Name_Space.kind_of (get_space thy)) other_spaces;
+    val _ =
+      if null other_kinds then ()
+      else
+        Export.export thy \<^path_binding>\<open>theory/other_kinds\<close>
+          (XML.Encode.string (cat_lines other_kinds));
+    val _ = List.app export_other other_spaces;
 
   in () end);
 

@@ -9,6 +9,7 @@ sig
   type thms = Attrib.thms
   type fact = Attrib.fact
   val print_attributes: bool -> Proof.context -> unit
+  val attribute_space: Context.generic -> Name_Space.T
   val define_global: binding -> (Token.src -> attribute) -> string -> theory -> string * theory
   val define: binding -> (Token.src -> attribute) -> string -> local_theory -> string * local_theory
   val check_name_generic: Context.generic -> xstring * Position.T -> string
@@ -114,7 +115,7 @@ fun print_attributes verbose ctxt =
     |> Pretty.writeln_chunks
   end;
 
-val attribute_space = Name_Space.space_of_table o get_attributes;
+val attribute_space = Name_Space.space_of_table o Attributes.get;
 
 
 (* define *)
@@ -393,7 +394,7 @@ fun print_options verbose ctxt =
         Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
-    val space = attribute_space ctxt;
+    val space = attribute_space (Context.Proof ctxt);
     val configs =
       Name_Space.markup_entries verbose ctxt space
         (Symtab.dest (Configs.get (Proof_Context.theory_of ctxt)));

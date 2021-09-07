@@ -7,6 +7,7 @@ Bundled declarations (notes etc.).
 signature BUNDLE =
 sig
   type name = string
+  val bundle_space: Context.generic -> Name_Space.T
   val check: Proof.context -> xstring * Position.T -> string
   val get: Proof.context -> name -> Attrib.thms
   val read: Proof.context -> xstring * Position.T -> Attrib.thms
@@ -35,7 +36,7 @@ struct
 structure Data = Generic_Data
 (
   type T = Attrib.thms Name_Space.table * Attrib.thms option;
-  val empty : T = (Name_Space.empty_table "bundle", NONE);
+  val empty : T = (Name_Space.empty_table Markup.bundleN, NONE);
   val extend = I;
   fun merge ((tab1, target1), (tab2, target2)) =
     (Name_Space.merge_tables (tab1, tab2), merge_options (target1, target2));
@@ -48,6 +49,8 @@ type name = string
 
 val get_all_generic = #1 o Data.get;
 val get_all = get_all_generic o Context.Proof;
+
+val bundle_space = Name_Space.space_of_table o #1 o Data.get;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 

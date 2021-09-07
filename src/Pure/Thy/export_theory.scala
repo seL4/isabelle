@@ -79,7 +79,8 @@ object Export_Theory
     constdefs: List[Constdef],
     typedefs: List[Typedef],
     datatypes: List[Datatype],
-    spec_rules: List[Spec_Rule])
+    spec_rules: List[Spec_Rule],
+    others: Map[String, List[Entity[Other]]])
   {
     override def toString: String = name
 
@@ -90,10 +91,11 @@ object Export_Theory
       thms.iterator.map(_.no_content) ++
       classes.iterator.map(_.no_content) ++
       locales.iterator.map(_.no_content) ++
-      locale_dependencies.iterator.map(_.no_content)
+      locale_dependencies.iterator.map(_.no_content) ++
+      (for { (_, xs) <- others; x <- xs.iterator } yield x.no_content)
 
-    lazy val entity_serials: Set[Long] =
-      entity_iterator.map(_.serial).toSet
+    lazy val entity_kinds: Set[String] =
+      entity_iterator.map(_.kind).toSet
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
@@ -110,7 +112,8 @@ object Export_Theory
         constdefs.map(_.cache(cache)),
         typedefs.map(_.cache(cache)),
         datatypes.map(_.cache(cache)),
-        spec_rules.map(_.cache(cache)))
+        spec_rules.map(_.cache(cache)),
+        (for ((k, xs) <- others.iterator) yield cache.string(k) -> xs.map(_.cache(cache))).toMap)
   }
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
@@ -140,7 +143,8 @@ object Export_Theory
         read_constdefs(provider),
         read_typedefs(provider),
         read_datatypes(provider),
-        read_spec_rules(provider))
+        read_spec_rules(provider),
+        read_others(provider))
     if (cache.no_cache) theory else theory.cache(cache)
   }
 
@@ -168,20 +172,29 @@ object Export_Theory
 
   /* entities */
 
-  object Kind extends Enumeration
+  object Kind
   {
-    val TYPE = Value("type")
-    val CONST = Value("const")
-    val AXIOM = Value("axiom")
-    val THM = Value("thm")
-    val PROOF = Value("proof")
-    val CLASS = Value("class")
-    val LOCALE = Value("locale")
-    val LOCALE_DEPENDENCY = Value("locale_dependency")
-    val DOCUMENT_HEADING = Value("document_heading")
-    val DOCUMENT_TEXT = Value("document_text")
-    val PROOF_TEXT = Value("proof_text")
+    val TYPE = "type"
+    val CONST = "const"
+    val THM = "thm"
+    val PROOF = "proof"
+    val LOCALE_DEPENDENCY = "locale_dependency"
+    val DOCUMENT_HEADING = "document_heading"
+    val DOCUMENT_TEXT = "document_text"
+    val PROOF_TEXT = "proof_text"
+
+    def export(kind: String): String =
+      kind match {
+        case Markup.TYPE_NAME => TYPE
+        case Markup.CONSTANT => CONST
+        case _ => kind
+      }
   }
+
+  def export_kind(kind: String): String =
+    if (kind == Markup.TYPE_NAME) "type"
+    else if (kind == Markup.CONSTANT) "const"
+    else kind
 
   abstract class Content[T]
   {
@@ -192,7 +205,7 @@ object Export_Theory
     def cache(cache: Term.Cache): No_Content = this
   }
   sealed case class Entity[A <: Content[A]](
-    kind: Kind.Value,
+    kind: String,
     name: String,
     xname: String,
     pos: Position.T,
@@ -200,7 +213,8 @@ object Export_Theory
     serial: Long,
     content: Option[A])
   {
-    override def toString: String = kind.toString + " " + quote(name)
+    def export_kind: String = Kind.export(kind)
+    override def toString: String = export_kind + " " + quote(name)
 
     def the_content: A =
       if (content.isDefined) content.get else error("No content for " + toString)
@@ -209,7 +223,7 @@ object Export_Theory
 
     def cache(cache: Term.Cache): Entity[A] =
       Entity(
-        kind,
+        cache.string(kind),
         cache.string(name),
         cache.string(xname),
         cache.position(pos),
@@ -221,7 +235,7 @@ object Export_Theory
   def read_entities[A <: Content[A]](
     provider: Export.Provider,
     export_name: String,
-    kind: Kind.Value,
+    kind: String,
     decode: XML.Decode.T[A]): List[Entity[A]] =
   {
     def decode_entity(tree: XML.Tree): Entity[A] =
@@ -279,7 +293,7 @@ object Export_Theory
   }
 
   def read_types(provider: Export.Provider): List[Entity[Type]] =
-    read_entities(provider, Export.THEORY_PREFIX + "types", Kind.TYPE, body =>
+    read_entities(provider, Export.THEORY_PREFIX + "types", Markup.TYPE_NAME, body =>
       {
         import XML.Decode._
         val (syntax, args, abbrev) =
@@ -307,7 +321,7 @@ object Export_Theory
   }
 
   def read_consts(provider: Export.Provider): List[Entity[Const]] =
-    read_entities(provider, Export.THEORY_PREFIX + "consts", Kind.CONST, body =>
+    read_entities(provider, Export.THEORY_PREFIX + "consts", Markup.CONSTANT, body =>
       {
         import XML.Decode._
         val (syntax, (typargs, (typ, (abbrev, propositional)))) =
@@ -350,7 +364,7 @@ object Export_Theory
   }
 
   def read_axioms(provider: Export.Provider): List[Entity[Axiom]] =
-    read_entities(provider, Export.THEORY_PREFIX + "axioms", Kind.AXIOM,
+    read_entities(provider, Export.THEORY_PREFIX + "axioms", Markup.AXIOM,
       body => Axiom(decode_prop(body)))
 
 
@@ -476,7 +490,7 @@ object Export_Theory
   }
 
   def read_classes(provider: Export.Provider): List[Entity[Class]] =
-    read_entities(provider, Export.THEORY_PREFIX + "classes", Kind.CLASS, body =>
+    read_entities(provider, Export.THEORY_PREFIX + "classes", Markup.CLASS, body =>
       {
         import XML.Decode._
         import Term_XML.Decode._
@@ -500,7 +514,7 @@ object Export_Theory
   }
 
   def read_locales(provider: Export.Provider): List[Entity[Locale]] =
-    read_entities(provider, Export.THEORY_PREFIX + "locales", Kind.LOCALE, body =>
+    read_entities(provider, Export.THEORY_PREFIX + "locales", Markup.LOCALE, body =>
       {
         import XML.Decode._
         import Term_XML.Decode._
@@ -764,5 +778,27 @@ object Export_Theory
     }
     for ((pos, (name, (rough_classification, (typargs, (args, (terms, rules)))))) <- spec_rules)
       yield Spec_Rule(pos, name, rough_classification, typargs, args, terms, rules)
+  }
+
+
+  /* other entities */
+
+  sealed case class Other() extends Content[Other]
+  {
+    override def cache(cache: Term.Cache): Other = this
+  }
+
+  def read_others(provider: Export.Provider): Map[String, List[Entity[Other]]] =
+  {
+    val kinds =
+      provider(Export.THEORY_PREFIX + "other_kinds") match {
+        case Some(entry) => split_lines(entry.uncompressed.text)
+        case None => Nil
+      }
+    val other = Other()
+    def read_other(kind: String): List[Entity[Other]] =
+      read_entities(provider, Export.THEORY_PREFIX + "other/" + kind, kind, _ => other)
+
+    kinds.map(kind => kind -> read_other(kind)).toMap
   }
 }
