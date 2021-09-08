@@ -20,24 +20,14 @@ fun err_dup_kind kind = error ("Duplicate name space kind " ^ quote kind);
 
 structure Data = Theory_Data
 (
-  type T = ((theory -> Name_Space.T) * serial) Symtab.table;
-  val empty = Symtab.empty;
+  type T = (theory -> Name_Space.T) Inttab.table;
+  val empty = Inttab.empty;
   val extend = I;
-  fun merge data =
-    Symtab.merge (eq_snd op =) data
-      handle Symtab.DUP dup => err_dup_kind dup;
+  val merge = Inttab.merge (K true);
 );
 
-val other_name_spaces = map (#1 o #2) o Symtab.dest o Data.get;
-
-fun other_name_space get_space thy =
-  let
-    val kind = Name_Space.kind_of (get_space thy);
-    val entry = (get_space, serial ());
-  in
-    Data.map (Symtab.update_new (kind, entry)) thy
-      handle Symtab.DUP dup => err_dup_kind dup
-  end;
+val other_name_spaces = map #2 o Inttab.dest o Data.get;
+fun other_name_space get_space thy = Data.map (Inttab.update (serial (), get_space)) thy;
 
 val _ = Theory.setup
  (other_name_space Thm.oracle_space #>
