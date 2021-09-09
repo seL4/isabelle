@@ -8,8 +8,9 @@ interrupts.
 package isabelle
 
 
-import java.util.{LinkedList, List => JList, Map => JMap}
-import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, File => JFile}
+import java.util.{List => JList, Map => JMap}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
+  File => JFile, IOException}
 import scala.annotation.tailrec
 import scala.jdk.OptionConverters._
 
@@ -282,7 +283,8 @@ object Bash
     override def handle(connection: isabelle.Server.Connection): Unit =
     {
       def reply(chunks: List[String]): Unit =
-        connection.write_byte_message(chunks.map(Bytes.apply))
+        try { connection.write_byte_message(chunks.map(Bytes.apply)) }
+        catch { case _: IOException => }
 
       def reply_failure(exn: Throwable): Unit =
         reply(
