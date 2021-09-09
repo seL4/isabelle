@@ -31,8 +31,8 @@ fun matchers _ [] = Seq.single Envir.init
         val pairs' = map (apfst (Logic.incr_indexes ([], [], offset))) pairs;
         val maxidx' = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u) pairs' ~1;
 
-        val pat_tvars = fold (Term.add_tvars o #1) pairs' [];
-        val pat_vars = fold (Term.add_vars o #1) pairs' [];
+        val pat_tvars = TVars.build (fold (TVars.add_tvars o #1) pairs');
+        val pat_vars = Vars.build (fold (Vars.add_vars o #1) pairs');
 
         val decr_indexesT =
           Term.map_atyps (fn T as TVar ((x, i), S) =>
@@ -47,8 +47,8 @@ fun matchers _ [] = Seq.single Envir.init
             val tyenv = Envir.type_env env;
             val T' = Envir.norm_type tyenv (TVar ((x, i), S));
           in
-            if (case T' of TVar (v, _) => v = (x, i) | _ => false) then NONE
-            else SOME ((x, i - offset), (S, decr_indexesT T'))
+            if (case T' of TVar (v, _) => v = (x, i) | _ => false) then I
+            else Vartab.update ((x, i - offset), (S, decr_indexesT T'))
           end;
 
         fun norm_var env ((x, i), T) =
@@ -57,15 +57,15 @@ fun matchers _ [] = Seq.single Envir.init
             val T' = Envir.norm_type tyenv T;
             val t' = Envir.norm_term env (Var ((x, i), T'));
           in
-            if (case t' of Var (v, _) => v = (x, i) | _ => false) then NONE
-            else SOME ((x, i - offset), (decr_indexesT T', decr_indexes t'))
+            if (case t' of Var (v, _) => v = (x, i) | _ => false) then I
+            else Vartab.update ((x, i - offset), (decr_indexesT T', decr_indexes t'))
           end;
 
         fun result env =
           if Envir.above env maxidx then   (* FIXME proper handling of generated vars!? *)
             SOME (Envir.Envir {maxidx = maxidx,
-              tyenv = Vartab.make (map_filter (norm_tvar env) pat_tvars),
-              tenv = Vartab.make (map_filter (norm_var env) pat_vars)})
+              tyenv = Vartab.build (TVars.fold (norm_tvar env o #1) pat_tvars),
+              tenv = Vartab.build (Vars.fold (norm_var env o #1) pat_vars)})
           else NONE;
 
         val empty = Envir.empty maxidx';
