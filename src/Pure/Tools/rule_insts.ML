@@ -173,8 +173,8 @@ fun of_rule ctxt (args, concl_args) fixes thm =
       | zip_vars ((x, _) :: xs) (SOME t :: rest) = ((x, Position.none), t) :: zip_vars xs rest
       | zip_vars [] _ = error "More instantiations than variables in theorem";
     val insts =
-      zip_vars (build_rev (Term.add_vars (Thm.full_prop_of thm))) args @
-      zip_vars (build_rev (Term.add_vars (Thm.concl_of thm))) concl_args;
+      zip_vars (Vars.build (Vars.add_vars (Thm.full_prop_of thm)) |> Vars.list_set) args @
+      zip_vars (Vars.build (Vars.add_vars (Thm.concl_of thm)) |> Vars.list_set) concl_args;
   in where_rule ctxt insts fixes thm end;
 
 fun read_instantiate ctxt insts xs =
