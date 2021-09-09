@@ -572,7 +572,7 @@ end;
 
 val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
-fun bind_def ctxt eq (xs, env, eqs) =
+fun bind_def ctxt eq (env, eqs) =
   let
     val _ = Local_Defs.cert_def ctxt (K []) eq;
     val ((y, T), b) = Local_Defs.abs_def eq;
@@ -580,9 +580,9 @@ fun bind_def ctxt eq (xs, env, eqs) =
     fun err msg = error (msg ^ ": " ^ quote y);
   in
     (case filter (fn (Free (y', _), _) => y = y' | _ => false) env of
-      [] => (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
+      [] => ((Free (y, T), b') :: env, eq :: eqs)
     | dups =>
-        if forall (fn (_, b'') => b' aconv b'') dups then (xs, env, eqs)
+        if forall (fn (_, b'') => b' aconv b'') dups then (env, eqs)
         else err "Attempt to redefine variable")
   end;
 
@@ -604,14 +604,14 @@ fun bind_def ctxt eq (xs, env, eqs) =
 fun eval_text _ _ (Fixes _) text = text
   | eval_text _ _ (Constrains _) text = text
   | eval_text _ is_ext (Assumes asms)
-        (((exts, exts'), (ints, ints')), (xs, env, defs)) =
+        (((exts, exts'), (ints, ints')), (env, defs)) =
       let
         val ts = maps (map #1 o #2) asms;
         val ts' = map (norm_term env) ts;
         val spec' =
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
           else ((exts, exts'), (ints @ ts, ints' @ ts'));
-      in (spec', (fold Term.add_frees ts' xs, env, defs)) end
+      in (spec', (env, defs)) end
   | eval_text ctxt _ (Defines defs) (spec, binds) =
       (spec, fold (bind_def ctxt o #1 o #2) defs binds)
   | eval_text _ _ (Notes _) text = text
@@ -639,8 +639,8 @@ fun eval_elem ctxt elem text =
 
 fun eval ctxt deps elems =
   let
-    val text' = fold (eval_inst ctxt) deps ((([], []), ([], [])), ([], [], []));
-    val ((spec, (_, _, defs))) = fold (eval_elem ctxt) elems text';
+    val text' = fold (eval_inst ctxt) deps ((([], []), ([], [])), ([], []));
+    val ((spec, (_, defs))) = fold (eval_elem ctxt) elems text';
   in (spec, defs) end;
 
 (* axiomsN: name of theorem set with destruct rules for locale predicates,
