@@ -185,10 +185,11 @@ fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langfor
       Simplifier.rewrite
         (put_simpset dlo_ss ctxt
           addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
+    val mk_env = Cterms.list_set_rev o Misc_Legacy.cterm_frees
   in
     fn p =>
       Qelim.gen_qelim_conv ctxt pcv pcv dnfex_conv cons
-        (Misc_Legacy.cterm_frees p) (K Thm.reflexive) (K Thm.reflexive)
+        (mk_env p) (K Thm.reflexive) (K Thm.reflexive)
         (K (basic_dloqe ctxt gst qe_bnds qe_nolb qe_noub gs)) p
   end;
 

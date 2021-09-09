@@ -25,7 +25,6 @@ sig
   val map: (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
-  val size: 'a table -> int
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
   val min: 'a table -> (key * 'a) option
@@ -62,8 +61,6 @@ sig
   val insert_set: key -> set -> set
   val remove_set: key -> set -> set
   val make_set: key list -> set
-  val subset: set * set -> bool
-  val eq_set: set * set -> bool
 end;
 
 functor Table(Key: KEY): TABLE =
@@ -124,7 +121,6 @@ fun fold_rev_table f =
           fold left (f p1 (fold mid (f p2 (fold right x))));
   in fold end;
 
-fun size tab = fold_table (fn _ => fn n => n + 1) tab 0;
 fun dest tab = fold_rev_table cons tab [];
 fun keys tab = fold_rev_table (cons o #1) tab [];
 
@@ -449,9 +445,6 @@ type set = unit table;
 fun insert_set x = default (x, ());
 fun remove_set x : set -> set = delete_safe x;
 fun make_set xs = build (fold insert_set xs);
-
-fun subset (A: set, B: set) = forall (defined B o #1) A;
-fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);
 
 
 (* ML pretty-printing *)

@@ -105,7 +105,7 @@ fun mk_all_internal ctxt (y, z) t =
   let
     val frees = Frees.build (t |> Term.fold_aterms (fn Free v => Frees.add_set v | _ => I));
     val T =
-      (case Frees.get_first (fn ((x, T), ()) => if x = z then SOME T else NONE) frees of
+      (case Frees.get_first (fn ((x, T), _) => if x = z then SOME T else NONE) frees of
         SOME T => T
       | NONE => the_default dummyT (Variable.default_type ctxt z));
   in Logic.all_const T $ Term.lambda_name (y, Free (z, T)) t end;

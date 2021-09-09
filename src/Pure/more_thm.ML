@@ -12,6 +12,7 @@ sig
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
+  structure Cterms: ITEMS
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
@@ -23,6 +24,7 @@ sig
   include THM
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
+  structure Cterms: ITEMS
   val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
   val add_tvars: thm -> ctyp TVars.table -> ctyp TVars.table
@@ -220,6 +222,7 @@ val thm_ord =
 
 (* scalable collections *)
 
+structure Cterms = Items(type key = cterm val ord = fast_term_ord);
 structure Ctermtab = Table(type key = cterm val ord = fast_term_ord);
 structure Thmtab = Table(type key = thm val ord = thm_ord);
 
@@ -452,16 +455,8 @@ fun instantiate' cTs cts thm =
 (* implicit generalization over variables -- canonical order *)
 
 fun forall_intr_vars th =
-  let
-    val (_, vars) =
-      (th, (Vars.empty, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Var
-        (fn ct => fn (seen, vars) =>
-          let val v = Term.dest_Var (Thm.term_of ct) in
-            if not (Vars.defined seen v)
-            then (Vars.add_set v seen, ct :: vars)
-            else (seen, vars)
-          end);
-  in fold Thm.forall_intr vars th end;
+  let val vars = Cterms.build (Thm.fold_atomic_cterms {hyps = false} Term.is_Var Cterms.add_set th)
+  in fold_rev Thm.forall_intr (Cterms.list_set vars) th end;
 
 fun forall_intr_frees th =
   let
@@ -469,15 +464,11 @@ fun forall_intr_frees th =
       Frees.build
        (fold Frees.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Frees.add_frees (Thm.hyps_of th));
-    val (_, frees) =
-      (th, (fixed, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
-        (fn ct => fn (seen, frees) =>
-          let val v = Term.dest_Free (Thm.term_of ct) in
-            if not (Frees.defined seen v)
-            then (Frees.add_set v seen, ct :: frees)
-            else (seen, frees)
-          end);
-  in fold Thm.forall_intr frees th end;
+    val is_fixed = Frees.defined fixed o Term.dest_Free o Thm.term_of;
+    val frees =
+      Cterms.build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
+        (fn ct => not (is_fixed ct) ? Cterms.add_set ct));
+  in fold_rev Thm.forall_intr (Cterms.list_set frees) th end;
 
 
 (* unvarify_global: global schematic variables *)

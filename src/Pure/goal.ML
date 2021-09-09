@@ -122,7 +122,7 @@ fun future_result ctxt result prop =
     val tfrees = TFrees.build (fold TFrees.add_tfrees (prop :: As));
     val Ts = Names.build (TFrees.fold (Names.add_set o #1 o #1) tfrees);
     val instT =
-      build (tfrees |> TFrees.fold (fn ((a, S), ()) =>
+      build (tfrees |> TFrees.fold (fn ((a, S), _) =>
         cons (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))));
 
     val global_prop =

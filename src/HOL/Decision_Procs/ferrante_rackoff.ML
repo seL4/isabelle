@@ -206,7 +206,8 @@ fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset = ss}) tm =
    val pcv = Simplifier.rewrite (put_simpset ss' ctxt);
    val postcv = Simplifier.rewrite (put_simpset ss ctxt);
    val nnf = K (nnf_conv ctxt then_conv postcv)
-   val qe_conv = Qelim.gen_qelim_conv ctxt pcv postcv pcv cons (Misc_Legacy.cterm_frees tm)
+   val env = Cterms.list_set_rev (Misc_Legacy.cterm_frees tm)
+   val qe_conv = Qelim.gen_qelim_conv ctxt pcv postcv pcv cons env
                   (isolate_conv ctxt) nnf
                   (fn vs => ferrack_conv ctxt (thy,{isolate_conv = isolate_conv ctxt,
                                                whatis = whatis, simpset = ss}) vs

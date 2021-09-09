@@ -53,7 +53,7 @@ fun error_var msg (xi, pos) =
   error (msg ^ quote (Term.string_of_vname xi) ^ Position.here pos);
 
 fun the_sort tvars (ai, pos) : sort =
-  (case TVars.get_first (fn ((bi, S), ()) => if ai = bi then SOME S else NONE) tvars of
+  (case TVars.get_first (fn ((bi, S), _) => if ai = bi then SOME S else NONE) tvars of
     SOME S => S
   | NONE => error_var "No such type variable in theorem: " (ai, pos));
 
@@ -128,7 +128,7 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val instT1 =
       Term_Subst.instantiateT (TVars.make (map (read_type ctxt1 tvars) type_insts));
     val vars1 =
-      Vartab.build (vars |> Vars.fold (fn ((v, T), ()) =>
+      Vartab.build (vars |> Vars.fold (fn ((v, T), _) =>
         Vartab.insert (K true) (v, instT1 T)));
 
     (*term instantiations*)

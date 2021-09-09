@@ -528,7 +528,7 @@ fun simple_choose ctxt v th =
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
 
-fun free_in v t = member op aconvc (Misc_Legacy.cterm_frees t) v;
+fun free_in v t = Cterms.defined (Misc_Legacy.cterm_frees t) v;
 
 val vsubst = let
  fun vsubst (t,v) tm =
@@ -737,7 +737,7 @@ fun ring ctxt tm =
       val all = Thm.cterm_of ctxt (Const (\<^const_name>\<open>All\<close>, (T --> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>))
     in Thm.apply all (Thm.lambda x p) end
   val avs = Misc_Legacy.cterm_frees tm
-  val P' = fold mk_forall avs tm
+  val P' = fold mk_forall (Cterms.list_set_rev avs) tm
   val th1 = initial_conv ctxt (mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
    if is_forall bod then raise CTERM("ring: non-universal formula",[tm])
@@ -752,7 +752,7 @@ fun ring ctxt tm =
       Thm.equal_elim
         (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [not_ex RS sym])
           (th2 |> Thm.cprop_of)) th2
-    in specl avs
+    in specl (Cterms.list_set_rev avs)
              ([[[HOLogic.mk_obj_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS notnotD)
    end
  end
@@ -795,7 +795,7 @@ val poly_eq_ss =
    val mons = striplist(dest_binary ring_add_tm) t
   in member (op aconvc) mons v andalso
     forall (fn m => v aconvc m
-          orelse not(member (op aconvc) (Misc_Legacy.cterm_frees m) v)) mons
+          orelse not(Cterms.defined (Misc_Legacy.cterm_frees m) v)) mons
   end
 
   fun isolate_variable vars tm =
@@ -850,7 +850,7 @@ local
  fun isolate_monomials vars tm =
  let
   val (cmons,vmons) =
-    List.partition (fn m => null (inter (op aconvc) vars (Misc_Legacy.cterm_frees m)))
+    List.partition (fn m => null (inter (op aconvc) vars (Cterms.list_set_rev (Misc_Legacy.cterm_frees m))))
                    (striplist ring_dest_add tm)
   val cofactors = map (fn v => find_multipliers v vmons) vars
   val cnc = if null cmons then zero_tm

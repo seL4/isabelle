@@ -5,8 +5,8 @@ Misc legacy stuff -- to be phased out eventually.
 
 signature MISC_LEGACY =
 sig
-  val thm_frees: thm -> cterm list
-  val cterm_frees: cterm -> cterm list
+  val thm_frees: thm -> Cterms.set
+  val cterm_frees: cterm -> Cterms.set
   val add_term_names: term * string list -> string list
   val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
@@ -26,16 +26,7 @@ end;
 structure Misc_Legacy: MISC_LEGACY =
 struct
 
-fun thm_frees th =
-  (th, (Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true} Term.is_Free
-    (fn ct => fn (set, list) =>
-      let val v = Term.dest_Free (Thm.term_of ct) in
-        if not (Frees.defined set v)
-        then (Frees.add_set v set, ct :: list)
-        else (set, list)
-      end)
-  |> #2;
-
+val thm_frees = Cterms.build o Thm.fold_atomic_cterms {hyps = true} Term.is_Free Cterms.add_set;
 val cterm_frees = thm_frees o Drule.mk_term;
 
 (*iterate a function over all types in a term*)
