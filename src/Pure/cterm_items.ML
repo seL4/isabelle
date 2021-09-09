@@ -35,4 +35,22 @@ fun thm_cache f = Cache.create empty lookup update f;
 end;
 
 
-structure Cterms: TERM_ITEMS = Term_Items(type key = cterm val ord = Thm.fast_term_ord);
+structure Cterms:
+sig
+  include TERM_ITEMS
+  val add_vars: thm -> set -> set
+  val add_frees: thm -> set -> set
+end =
+struct
+
+structure Term_Items = Term_Items
+(
+  type key = cterm;
+  val ord = Thm.fast_term_ord
+);
+open Term_Items;
+
+val add_vars = Thm.fold_atomic_cterms {hyps = false} Term.is_Var add_set;
+val add_frees = Thm.fold_atomic_cterms {hyps = true} Term.is_Free add_set;
+
+end;

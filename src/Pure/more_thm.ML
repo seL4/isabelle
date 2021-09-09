@@ -419,7 +419,7 @@ fun instantiate' cTs cts thm =
 (* implicit generalization over variables -- canonical order *)
 
 fun forall_intr_vars th =
-  let val vars = Cterms.build (Thm.fold_atomic_cterms {hyps = false} Term.is_Var Cterms.add_set th)
+  let val vars = Cterms.build (Cterms.add_vars th)
   in fold_rev Thm.forall_intr (Cterms.list_set vars) th end;
 
 fun forall_intr_frees th =
