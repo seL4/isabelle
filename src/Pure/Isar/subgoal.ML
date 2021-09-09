@@ -95,9 +95,7 @@ fun lift_import idx params th ctxt =
     fun var_inst v y =
       let
         val ((x, i), T) = v;
-        val (U, args) =
-          if Vars.defined concl_vars v then (T, [])
-          else (Ts ---> T, ts);
+        val (U, args) = if Vars.defined concl_vars v then (T, []) else (Ts ---> T, ts);
         val u = Free (y, U);
         in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;
     val (inst1, inst2) =
