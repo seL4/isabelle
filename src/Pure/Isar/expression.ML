@@ -698,8 +698,7 @@ fun def_pred binding parms defs ts norm_ts thy =
     val Ts = map #2 xs;
     val type_tfrees = TFrees.build (fold TFrees.add_tfreesT Ts);
     val extra_tfrees =
-      TFrees.build (body |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (TFrees.defined type_tfrees v) ? TFrees.add_set v | _ => I))
+      TFrees.build (TFrees.add_tfrees_unless (TFrees.defined type_tfrees) body)
       |> TFrees.list_set |> sort_by #1 |> map TFree;
     val predT = map Term.itselfT extra_tfrees ---> Ts ---> bodyT;
 
@@ -817,8 +816,7 @@ fun gen_add_locale prep_include prep_decl
 
     val type_tfrees = TFrees.build (fold (TFrees.add_tfreesT o #2) parms);
     val extra_tfrees =
-      TFrees.build (exts' |> (fold o Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (TFrees.defined type_tfrees v) ? TFrees.add_set v | _ => I));
+      TFrees.build (fold (TFrees.add_tfrees_unless (TFrees.defined type_tfrees)) exts')
     val extraTs = TFrees.list_set_rev extra_tfrees;
     val _ =
       if null extraTs then ()

@@ -51,9 +51,10 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     val rhs_extras = Term.fold_aterms (fn v as Free (x, _) =>
       if check_free_rhs x orelse member (op aconv) args v then I
       else insert (op aconv) v | _ => I) rhs [];
-    val rhs_extrasT = Term.fold_aterms (Term.fold_types (fn v as TFree (a, S) =>
-      if check_tfree a orelse TFrees.defined head_tfrees (a, S) then I
-      else insert (op =) v | _ => I)) rhs [];
+    val rhs_extrasT =
+      TFrees.build (rhs |> TFrees.add_tfrees_unless
+        (fn (a, S) => check_tfree a orelse TFrees.defined head_tfrees (a, S)))
+      |> TFrees.list_set_rev |> map TFree;
   in
     if not (check_head head) then
       err ("Bad head of lhs: " ^ term_kind head ^ display_terms [head])

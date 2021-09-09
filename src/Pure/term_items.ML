@@ -96,6 +96,8 @@ sig
   include TERM_ITEMS
   val add_tfreesT: typ -> set -> set
   val add_tfrees: term -> set -> set
+  val add_tfreesT_unless: (string * sort -> bool) -> typ -> set -> set
+  val add_tfrees_unless: (string * sort -> bool) -> term -> set -> set
 end =
 struct
 
@@ -108,6 +110,9 @@ open Items;
 
 val add_tfreesT = fold_atyps (fn TFree v => add_set v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
+
+fun add_tfreesT_unless pred = Term.fold_atyps (fn TFree v => not (pred v) ? add_set v | _ => I);
+fun add_tfrees_unless pred = fold_types (add_tfreesT_unless pred);
 
 end;
 

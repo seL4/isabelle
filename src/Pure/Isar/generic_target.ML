@@ -97,8 +97,8 @@ fun export_abbrev lthy preprocess rhs =
 
     val type_tfrees = TFrees.build (TFrees.add_tfreesT (Term.fastype_of u));
     val extra_tfrees =
-      build_rev (u |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
+      TFrees.build (TFrees.add_tfrees_unless (TFrees.defined type_tfrees) u)
+      |> TFrees.list_set;
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -263,8 +263,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val T = Term.fastype_of rhs;
     val type_tfrees = TFrees.build (TFrees.add_tfreesT T #> fold (TFrees.add_tfreesT o #2) xs);
     val extra_tfrees =
-      build_rev (rhs |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
+      TFrees.build (rhs |> TFrees.add_tfrees_unless (TFrees.defined type_tfrees))
+      |> TFrees.list_set;
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
