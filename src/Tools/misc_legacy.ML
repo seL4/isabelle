@@ -5,7 +5,6 @@ Misc legacy stuff -- to be phased out eventually.
 
 signature MISC_LEGACY =
 sig
-  val cterm_frees: cterm -> Cterms.set
   val add_term_names: term * string list -> string list
   val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
@@ -24,8 +23,6 @@ end;
 
 structure Misc_Legacy: MISC_LEGACY =
 struct
-
-val cterm_frees = Cterms.build o Cterms.add_frees o Drule.mk_term;
 
 (*iterate a function over all types in a term*)
 fun it_term_types f =

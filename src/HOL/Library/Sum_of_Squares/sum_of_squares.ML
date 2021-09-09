@@ -868,10 +868,10 @@ local
         then (RealArith.dest_ratconst (Thm.dest_arg1 tm), Thm.dest_arg tm)
         else raise Failure "substitutable_monomial"
     | \<^term>\<open>(+) :: real \<Rightarrow> _\<close>$_$_ =>
-         (substitutable_monomial (fvs |> Cterms.fold Cterms.add (Misc_Legacy.cterm_frees (Thm.dest_arg tm)))
+         (substitutable_monomial (Drule.add_frees_cterm (Thm.dest_arg tm) fvs)
            (Thm.dest_arg1 tm)
            handle Failure _ =>
-            substitutable_monomial (fvs |> Cterms.fold Cterms.add (Misc_Legacy.cterm_frees (Thm.dest_arg1 tm)))
+            substitutable_monomial (Drule.add_frees_cterm (Thm.dest_arg1 tm) fvs)
               (Thm.dest_arg tm))
     | _ => raise Failure "substitutable_monomial")
 

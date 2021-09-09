@@ -24,7 +24,7 @@ fun argo_trace_ctxt ctxt =
 fun IF_UNSOLVED' tac i = IF_UNSOLVED (tac i)
 fun REPEAT' tac i = REPEAT (tac i)
 
-fun free_in v ct = Cterms.defined (Misc_Legacy.cterm_frees ct) v
+fun free_in v ct = Cterms.defined (Cterms.build (Drule.add_frees_cterm ct)) v
 
 (* build a cterm set with elements cts of type ty *)
 fun mk_ct_set ctxt ty =

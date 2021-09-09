@@ -528,7 +528,7 @@ fun simple_choose ctxt v th =
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
 
-fun free_in v t = Cterms.defined (Misc_Legacy.cterm_frees t) v;
+fun free_in v t = Cterms.defined (Cterms.build (Drule.add_frees_cterm t)) v;
 
 val vsubst = let
  fun vsubst (t,v) tm =
@@ -736,7 +736,7 @@ fun ring ctxt tm =
       val T = Thm.typ_of_cterm x;
       val all = Thm.cterm_of ctxt (Const (\<^const_name>\<open>All\<close>, (T --> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>))
     in Thm.apply all (Thm.lambda x p) end
-  val avs = Misc_Legacy.cterm_frees tm
+  val avs = Cterms.build (Drule.add_frees_cterm tm)
   val P' = fold mk_forall (Cterms.list_set_rev avs) tm
   val th1 = initial_conv ctxt (mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
@@ -795,7 +795,7 @@ val poly_eq_ss =
    val mons = striplist(dest_binary ring_add_tm) t
   in member (op aconvc) mons v andalso
     forall (fn m => v aconvc m
-          orelse not(Cterms.defined (Misc_Legacy.cterm_frees m) v)) mons
+          orelse not(Cterms.defined (Cterms.build (Drule.add_frees_cterm m)) v)) mons
   end
 
   fun isolate_variable vars tm =
@@ -849,9 +849,10 @@ local
 
  fun isolate_monomials vars tm =
  let
-  val (cmons,vmons) =
-    List.partition (fn m => null (inter (op aconvc) vars (Cterms.list_set_rev (Misc_Legacy.cterm_frees m))))
-                   (striplist ring_dest_add tm)
+  val (vmons, cmons) =
+    List.partition (fn m =>
+      let val frees = Cterms.build (Drule.add_frees_cterm m)
+      in exists (Cterms.defined frees) vars end) (striplist ring_dest_add tm)
   val cofactors = map (fn v => find_multipliers v vmons) vars
   val cnc = if null cmons then zero_tm
              else Thm.apply ring_neg_tm

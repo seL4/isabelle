@@ -88,6 +88,8 @@ sig
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
+  val add_frees_cterm: cterm -> Cterms.set -> Cterms.set
+  val add_vars_cterm: cterm -> Cterms.set -> Cterms.set
   val dummy_thm: thm
   val free_dummy_thm: thm
   val is_sort_constraint: term -> bool
@@ -610,6 +612,9 @@ fun dest_term th =
   end;
 
 fun cterm_rule f = dest_term o f o mk_term;
+
+val add_frees_cterm = Cterms.add_frees o mk_term;
+val add_vars_cterm = Cterms.add_vars o mk_term;
 
 val dummy_thm = mk_term (certify Term.dummy_prop);
 val free_dummy_thm = Thm.tag_free_dummy dummy_thm;
