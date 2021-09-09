@@ -815,7 +815,7 @@ fun gen_add_locale prep_include prep_decl
       |> prep_decl raw_import I raw_body;
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
-    val type_tfrees = TFrees.build (fold TFrees.add_tfreesT (map snd parms));
+    val type_tfrees = TFrees.build (fold (TFrees.add_tfreesT o #2) parms);
     val extra_tfrees =
       TFrees.build (exts' |> (fold o Term.fold_types o Term.fold_atyps)
         (fn TFree v => not (TFrees.defined type_tfrees v) ? TFrees.add_set v | _ => I));
