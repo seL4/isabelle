@@ -12,9 +12,6 @@ sig
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
-  structure Cterms: ITEMS
-  structure Ctermtab: TABLE
-  structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
   type attribute = Context.generic * thm -> Context.generic option * thm option
 end;
@@ -22,9 +19,6 @@ end;
 signature THM =
 sig
   include THM
-  structure Ctermtab: TABLE
-  structure Thmtab: TABLE
-  structure Cterms: ITEMS
   val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
   val add_tvars: thm -> ctyp TVars.table -> ctyp TVars.table
@@ -41,11 +35,6 @@ sig
   val dest_equals_rhs: cterm -> cterm
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
-  val fast_term_ord: cterm ord
-  val term_ord: cterm ord
-  val thm_ord: thm ord
-  val cterm_cache: (cterm -> 'a) -> cterm -> 'a
-  val thm_cache: (thm -> 'a) -> thm -> 'a
   val is_reflexive: thm -> bool
   val eq_thm: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
@@ -205,37 +194,12 @@ val lhs_of = dest_equals_lhs o Thm.cprop_of;
 val rhs_of = dest_equals_rhs o Thm.cprop_of;
 
 
-(* certified term order *)
-
-val fast_term_ord = Term_Ord.fast_term_ord o apply2 Thm.term_of;
-val term_ord = Term_Ord.term_ord o apply2 Thm.term_of;
-
-
-(* thm order: ignores theory context! *)
-
-val thm_ord =
-  Term_Ord.fast_term_ord o apply2 Thm.prop_of
-  ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 Thm.tpairs_of
-  ||| list_ord Term_Ord.fast_term_ord o apply2 Thm.hyps_of
-  ||| list_ord Term_Ord.sort_ord o apply2 Thm.shyps_of;
-
-
-(* scalable collections *)
-
-structure Cterms = Items(type key = cterm val ord = fast_term_ord);
-structure Ctermtab = Table(type key = cterm val ord = fast_term_ord);
-structure Thmtab = Table(type key = thm val ord = thm_ord);
-
-fun cterm_cache f = Cache.create Ctermtab.empty Ctermtab.lookup Ctermtab.update f;
-fun thm_cache f = Cache.create Thmtab.empty Thmtab.lookup Thmtab.update f;
-
-
 (* equality *)
 
 fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
   handle TERM _ => false;
 
-val eq_thm = is_equal o thm_ord;
+val eq_thm = is_equal o Thm.thm_ord;
 
 val eq_thm_prop = op aconv o apply2 Thm.full_prop_of;
 

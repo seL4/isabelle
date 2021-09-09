@@ -41,6 +41,8 @@ sig
   val global_cterm_of: theory -> term -> cterm
   val cterm_of: Proof.context -> term -> cterm
   val renamed_term: term -> cterm -> cterm
+  val fast_term_ord: cterm ord
+  val term_ord: cterm ord
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
   val dest_arg: cterm -> cterm
@@ -82,6 +84,7 @@ sig
   val cconcl_of: thm -> cterm
   val cprems_of: thm -> cterm list
   val chyps_of: thm -> cterm list
+  val thm_ord: thm ord
   exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
   val theory_of_cterm: cterm -> theory
   val theory_of_thm: thm -> theory
@@ -268,6 +271,9 @@ fun join_certificate0 (Cterm {cert = cert1, ...}, Cterm {cert = cert2, ...}) =
 fun renamed_term t' (Cterm {cert, t, T, maxidx, sorts}) =
   if t aconv t' then Cterm {cert = cert, t = t', T = T, maxidx = maxidx, sorts = sorts}
   else raise TERM ("renamed_term: terms disagree", [t, t']);
+
+val fast_term_ord = Term_Ord.fast_term_ord o apply2 term_of;
+val term_ord = Term_Ord.term_ord o apply2 term_of;
 
 
 (* destructors *)
@@ -516,6 +522,15 @@ fun cprems_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
 
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
+
+
+(* thm order: ignores theory context! *)
+
+val thm_ord =
+  Term_Ord.fast_term_ord o apply2 prop_of
+  ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 tpairs_of
+  ||| list_ord Term_Ord.fast_term_ord o apply2 hyps_of
+  ||| list_ord Term_Ord.sort_ord o apply2 shyps_of;
 
 
 (* implicit theory context *)

@@ -150,6 +150,7 @@ ML_file "Syntax/syntax.ML";
 subsection "Core of tactical proof system";
 
 ML_file "term_ord.ML";
+ML_file "term_items.ML";
 ML_file "term_subst.ML";
 ML_file "General/completion.ML";
 ML_file "General/name_space.ML";
@@ -171,6 +172,7 @@ ML_file "unify.ML";
 ML_file "theory.ML";
 ML_file "proofterm.ML";
 ML_file "thm.ML";
+ML_file "cterm_items.ML";
 ML_file "more_pattern.ML";
 ML_file "more_unify.ML";
 ML_file "more_thm.ML";

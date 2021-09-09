@@ -81,7 +81,7 @@ fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
 fun try_conv cv = cv else_conv all_conv;
 fun repeat_conv cv ct = try_conv (cv then_conv repeat_conv cv) ct;
 
-fun cache_conv (cv: conv) = Thm.cterm_cache cv;
+fun cache_conv (cv: conv) = Ctermtab.cterm_cache cv;
 
 
 
