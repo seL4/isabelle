@@ -218,7 +218,7 @@ val thm_ord =
   ||| list_ord Term_Ord.sort_ord o apply2 Thm.shyps_of;
 
 
-(* tables and caches *)
+(* scalable collections *)
 
 structure Ctermtab = Table(type key = cterm val ord = fast_term_ord);
 structure Thmtab = Table(type key = thm val ord = thm_ord);
