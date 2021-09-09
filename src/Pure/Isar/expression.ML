@@ -693,15 +693,17 @@ fun def_pred binding parms defs ts norm_ts thy =
     val thy_ctxt = Proof_Context.init_global thy;
 
     val (body, bodyT, body_eq) = atomize_spec thy_ctxt norm_ts;
-    val env = Term.add_free_names body [];
-    val xs = filter (member (op =) env o #1) parms;
+    val env = Names.build (Names.add_free_names body);
+    val xs = filter (Names.defined env o #1) parms;
     val Ts = map #2 xs;
-    val extraTs =
-      (subtract (op =) (fold Term.add_tfreesT Ts []) (Term.add_tfrees body []))
-      |> sort_by #1 |> map TFree;
-    val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
+    val type_tfrees = TFrees.build (fold TFrees.add_tfreesT Ts);
+    val extra_tfrees =
+      TFrees.build (body |> (Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (TFrees.defined type_tfrees v) ? TFrees.add_set v | _ => I))
+      |> TFrees.list_set |> sort_by #1 |> map TFree;
+    val predT = map Term.itselfT extra_tfrees ---> Ts ---> bodyT;
 
-    val args = map Logic.mk_type extraTs @ map Free xs;
+    val args = map Logic.mk_type extra_tfrees @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
     val statement = Object_Logic.ensure_propT thy_ctxt head;
 
@@ -813,10 +815,11 @@ fun gen_add_locale prep_include prep_decl
       |> prep_decl raw_import I raw_body;
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
-    val extraTs =
-      subtract (op =)
-        (fold Term.add_tfreesT (map snd parms) [])
-        (fold Term.add_tfrees exts' []);
+    val type_tfrees = TFrees.build (fold TFrees.add_tfreesT (map snd parms));
+    val extra_tfrees =
+      TFrees.build (exts' |> (fold o Term.fold_types o Term.fold_atyps)
+        (fn TFree v => not (TFrees.defined type_tfrees v) ? TFrees.add_set v | _ => I));
+    val extraTs = TFrees.list_set_rev extra_tfrees;
     val _ =
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^
