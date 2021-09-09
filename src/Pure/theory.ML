@@ -247,7 +247,7 @@ fun dependencies (context as (ctxt, _)) unchecked def description lhs rhs =
     val lhs_vars = TFrees.build (fold TFrees.add_tfreesT (snd lhs));
     val rhs_extras =
       TFrees.build (rhs |> fold (fold (TFrees.add_tfreesT_unless (TFrees.defined lhs_vars)) o snd))
-      |> TFrees.list_set_rev;
+      |> TFrees.keys;
     val _ =
       if null rhs_extras then ()
       else error ("Specification depends on extra type variables: " ^

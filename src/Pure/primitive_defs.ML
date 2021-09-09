@@ -54,7 +54,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     val rhs_extrasT =
       TFrees.build (rhs |> TFrees.add_tfrees_unless
         (fn (a, S) => check_tfree a orelse TFrees.defined head_tfrees (a, S)))
-      |> TFrees.list_set_rev |> map TFree;
+      |> TFrees.keys |> map TFree;
   in
     if not (check_head head) then
       err ("Bad head of lhs: " ^ term_kind head ^ display_terms [head])

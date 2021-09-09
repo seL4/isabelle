@@ -699,7 +699,7 @@ fun def_pred binding parms defs ts norm_ts thy =
     val type_tfrees = TFrees.build (fold TFrees.add_tfreesT Ts);
     val extra_tfrees =
       TFrees.build (TFrees.add_tfrees_unless (TFrees.defined type_tfrees) body)
-      |> TFrees.list_set |> sort_by #1 |> map TFree;
+      |> TFrees.keys |> map TFree;
     val predT = map Term.itselfT extra_tfrees ---> Ts ---> bodyT;
 
     val args = map Logic.mk_type extra_tfrees @ map Free xs;
@@ -817,12 +817,12 @@ fun gen_add_locale prep_include prep_decl
     val type_tfrees = TFrees.build (fold (TFrees.add_tfreesT o #2) parms);
     val extra_tfrees =
       TFrees.build (fold (TFrees.add_tfrees_unless (TFrees.defined type_tfrees)) exts')
-    val extraTs = TFrees.list_set_rev extra_tfrees;
+      |> TFrees.keys;
     val _ =
-      if null extraTs then ()
+      if null extra_tfrees then ()
       else warning ("Additional type variable(s) in locale specification " ^
           Binding.print binding ^ ": " ^
-          commas (map (Syntax.string_of_typ ctxt' o TFree) (sort_by #1 extraTs)));
+          commas (map (Syntax.string_of_typ ctxt' o TFree) extra_tfrees));
 
     val predicate_binding =
       if Binding.is_empty raw_predicate_binding then binding
@@ -862,7 +862,7 @@ fun gen_add_locale prep_include prep_decl
     val axioms = map (Element.conclude_witness pred_ctxt) b_axioms;
 
     val loc_ctxt = thy'
-      |> Locale.register_locale binding (extraTs, params)
+      |> Locale.register_locale binding (extra_tfrees, params)
           (asm, rev defs) (a_intro, b_intro) axioms hyp_spec [] (rev notes) (rev deps')
       |> Named_Target.init includes name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
