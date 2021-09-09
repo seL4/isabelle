@@ -56,9 +56,9 @@ fun gen_focus (do_prems, do_concl) ctxt i bindings raw_st =
     val text = asms @ (if do_concl then [concl] else []);
 
     val ((_, inst), ctxt3) = Variable.import_inst true (map Thm.term_of text) ctxt2;
-    val schematic_terms = Term_Subst.Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt3 t)) inst [];
+    val schematic_terms = Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt3 t)) inst [];
 
-    val schematics = (Term_Subst.TVars.dest schematic_types, schematic_terms);
+    val schematics = (TVars.dest schematic_types, schematic_terms);
     val asms' = map (Thm.instantiate_cterm schematics) asms;
     val concl' = Thm.instantiate_cterm schematics concl;
     val (prems, context) = Assumption.add_assumes asms' ctxt3;
@@ -88,7 +88,7 @@ fun lift_import idx params th ctxt =
     val ts = map Thm.term_of params;
 
     val prop = Thm.full_prop_of th';
-    val concl_vars = Term_Subst.Vars.build (Term_Subst.add_vars (Logic.strip_imp_concl prop));
+    val concl_vars = Vars.build (Vars.add_vars (Logic.strip_imp_concl prop));
     val vars = build_rev (Term.add_vars prop);
     val (ys, ctxt'') = Variable.variant_fixes (map (Name.clean o #1 o #1) vars) ctxt';
 
@@ -96,7 +96,7 @@ fun lift_import idx params th ctxt =
       let
         val ((x, i), T) = v;
         val (U, args) =
-          if Term_Subst.Vars.defined concl_vars v then (T, [])
+          if Vars.defined concl_vars v then (T, [])
           else (Ts ---> T, ts);
         val u = Free (y, U);
         in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;

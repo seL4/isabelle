@@ -27,11 +27,11 @@ structure Misc_Legacy: MISC_LEGACY =
 struct
 
 fun thm_frees th =
-  (th, (Term_Subst.Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true} Term.is_Free
+  (th, (Frees.empty, [])) |-> Thm.fold_atomic_cterms {hyps = true} Term.is_Free
     (fn ct => fn (set, list) =>
       let val v = Term.dest_Free (Thm.term_of ct) in
-        if not (Term_Subst.Frees.defined set v)
-        then (Term_Subst.Frees.add (v, ()) set, ct :: list)
+        if not (Frees.defined set v)
+        then (Frees.add_set v set, ct :: list)
         else (set, list)
       end)
   |> #2;

@@ -381,7 +381,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
 
     val res = Conjunction.intr_balanced (map_index project branches)
       |> fold_rev Thm.implies_intr (map Thm.cprop_of newgoals @ steps)
-      |> Drule.generalize (Symtab.empty, Symtab.make_set [Rn])
+      |> Drule.generalize (Names.empty, Names.make_set [Rn])
 
     val nbranches = length branches
     val npres = length pres

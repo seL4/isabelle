@@ -4,47 +4,15 @@
 Efficient type/term substitution.
 *)
 
-signature INST_TABLE =
-sig
-  include TABLE
-  val add: key * 'a -> 'a table -> 'a table
-  val table: (key * 'a) list -> 'a table
-end;
-
-functor Inst_Table(Key: KEY): INST_TABLE =
-struct
-
-structure Tab = Table(Key);
-
-fun add entry = Tab.insert (K true) entry;
-fun table entries = Tab.build (fold add entries);
-
-open Tab;
-
-end;
-
 signature TERM_SUBST =
 sig
-  structure TFrees: INST_TABLE
-  structure TVars: INST_TABLE
-  structure Frees: INST_TABLE
-  structure Vars: INST_TABLE
-  val add_tfreesT: typ -> TFrees.set -> TFrees.set
-  val add_tfrees: term -> TFrees.set -> TFrees.set
-  val add_tvarsT: typ -> TVars.set -> TVars.set
-  val add_tvars: term -> TVars.set -> TVars.set
-  val add_frees: term -> Frees.set -> Frees.set
-  val add_vars: term -> Vars.set -> Vars.set
-  val add_tfree_namesT: typ -> Symtab.set -> Symtab.set
-  val add_tfree_names: term -> Symtab.set -> Symtab.set
-  val add_free_names: term -> Symtab.set -> Symtab.set
   val map_atypsT_same: typ Same.operation -> typ Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
-  val generalizeT_same: Symtab.set -> int -> typ Same.operation
-  val generalize_same: Symtab.set * Symtab.set -> int -> term Same.operation
-  val generalizeT: Symtab.set -> int -> typ -> typ
-  val generalize: Symtab.set * Symtab.set -> int -> term -> term
+  val generalizeT_same: Names.set -> int -> typ Same.operation
+  val generalize_same: Names.set * Names.set -> int -> term Same.operation
+  val generalizeT: Names.set -> int -> typ -> typ
+  val generalize: Names.set * Names.set -> int -> term -> term
   val instantiateT_maxidx: (typ * int) TVars.table -> typ -> int -> typ * int
   val instantiate_maxidx: (typ * int) TVars.table * (term * int) Vars.table ->
     term -> int -> term * int
@@ -63,39 +31,6 @@ end;
 
 structure Term_Subst: TERM_SUBST =
 struct
-
-(* instantiation as table *)
-
-structure TFrees = Inst_Table(
-  type key = string * sort
-  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.sort_ord)
-);
-
-structure TVars = Inst_Table(
-  type key = indexname * sort
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.sort_ord)
-);
-
-structure Frees = Inst_Table(
-  type key = string * typ
-  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.typ_ord)
-);
-
-structure Vars = Inst_Table(
-  type key = indexname * typ
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord)
-);
-
-val add_tfreesT = fold_atyps (fn TFree v => TFrees.add (v, ()) | _ => I);
-val add_tfrees = fold_types add_tfreesT;
-val add_tvarsT = fold_atyps (fn TVar v => TVars.add (v, ()) | _ => I);
-val add_tvars = fold_types add_tvarsT;
-val add_frees = fold_aterms (fn Free v => Frees.add (v, ()) | _ => I);
-val add_vars = fold_aterms (fn Var v => Vars.add (v, ()) | _ => I);
-val add_tfree_namesT = fold_atyps (fn TFree (a, _) => Symtab.insert_set a | _ => I);
-val add_tfree_names = fold_types add_tfree_namesT;
-val add_free_names = fold_aterms (fn Free (x, _) => Symtab.insert_set x | _ => I);
-
 
 (* generic mapping *)
 
@@ -128,23 +63,23 @@ fun map_aterms_same f =
 (* generalization of fixed variables *)
 
 fun generalizeT_same tfrees idx ty =
-  if Symtab.is_empty tfrees then raise Same.SAME
+  if Names.is_empty tfrees then raise Same.SAME
   else
     let
       fun gen (Type (a, Ts)) = Type (a, Same.map gen Ts)
         | gen (TFree (a, S)) =
-            if Symtab.defined tfrees a then TVar ((a, idx), S)
+            if Names.defined tfrees a then TVar ((a, idx), S)
             else raise Same.SAME
         | gen _ = raise Same.SAME;
     in gen ty end;
 
 fun generalize_same (tfrees, frees) idx tm =
-  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then raise Same.SAME
+  if Names.is_empty tfrees andalso Names.is_empty frees then raise Same.SAME
   else
     let
       val genT = generalizeT_same tfrees idx;
       fun gen (Free (x, T)) =
-            if Symtab.defined frees x then
+            if Names.defined frees x then
               Var (Name.clean_index (x, idx), Same.commit genT T)
             else Free (x, genT T)
         | gen (Var (xi, T)) = Var (xi, genT T)

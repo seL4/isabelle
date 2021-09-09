@@ -99,7 +99,7 @@ fun process_spec cos alt_props thy =
     val frees = map snd props''
     val prop = myfoldr HOLogic.mk_conj (map fst props'')
 
-    val (vmap, prop_thawed) = Type.varify_global Term_Subst.TFrees.empty prop
+    val (vmap, prop_thawed) = Type.varify_global TFrees.empty prop
     val thawed_prop_consts = collect_consts (prop_thawed, [])
     val (altcos, overloaded) = split_list cos
     val (names, sconsts) = split_list altcos
@@ -109,7 +109,7 @@ fun process_spec cos alt_props thy =
 
     fun proc_const c =
       let
-        val (_, c') = Type.varify_global Term_Subst.TFrees.empty c
+        val (_, c') = Type.varify_global TFrees.empty c
         val (cname,ctyp) = dest_Const c'
       in
         (case filter (fn t =>

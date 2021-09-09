@@ -53,7 +53,7 @@ fun error_var msg (xi, pos) =
   error (msg ^ quote (Term.string_of_vname xi) ^ Position.here pos);
 
 fun the_sort tvars (ai, pos) : sort =
-  (case Term_Subst.TVars.get_first (fn ((bi, S), ()) => if ai = bi then SOME S else NONE) tvars of
+  (case TVars.get_first (fn ((bi, S), ()) => if ai = bi then SOME S else NONE) tvars of
     SOME S => S
   | NONE => error_var "No such type variable in theorem: " (ai, pos));
 
@@ -71,14 +71,14 @@ fun read_type ctxt tvars ((xi, pos), s) =
     else error_var "Bad sort for instantiation of type variable: " (xi, pos)
   end;
 
-fun make_instT f (tvars: Term_Subst.TVars.set) =
+fun make_instT f (tvars: TVars.set) =
   let
     fun add v =
       let
         val T = TVar v;
         val T' = f T;
       in if T = T' then I else cons (v, T') end;
-  in Term_Subst.TVars.fold (add o #1) tvars [] end;
+  in TVars.fold (add o #1) tvars [] end;
 
 fun make_inst f vars =
   let
@@ -115,20 +115,20 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val (type_insts, term_insts) =
       List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) raw_insts;
 
-    val tvars = Term_Subst.TVars.build (Thm.fold_terms {hyps = false} Term_Subst.add_tvars thm);
-    val vars = Term_Subst.Vars.build (Thm.fold_terms {hyps = false} Term_Subst.add_vars thm);
+    val tvars = TVars.build (Thm.fold_terms {hyps = false} TVars.add_tvars thm);
+    val vars = Vars.build (Thm.fold_terms {hyps = false} Vars.add_vars thm);
 
     (*eigen-context*)
     val (_, ctxt1) = ctxt
-      |> Term_Subst.TVars.fold (Variable.declare_internal o Logic.mk_type o TVar o #1) tvars
-      |> Term_Subst.Vars.fold (Variable.declare_internal o Var o #1) vars
+      |> TVars.fold (Variable.declare_internal o Logic.mk_type o TVar o #1) tvars
+      |> Vars.fold (Variable.declare_internal o Var o #1) vars
       |> Proof_Context.add_fixes_cmd raw_fixes;
 
     (*explicit type instantiations*)
     val instT1 =
-      Term_Subst.instantiateT (Term_Subst.TVars.table (map (read_type ctxt1 tvars) type_insts));
+      Term_Subst.instantiateT (TVars.make (map (read_type ctxt1 tvars) type_insts));
     val vars1 =
-      Vartab.build (vars |> Term_Subst.Vars.fold (fn ((v, T), ()) =>
+      Vartab.build (vars |> Vars.fold (fn ((v, T), ()) =>
         Vartab.insert (K true) (v, instT1 T)));
 
     (*term instantiations*)
@@ -137,12 +137,11 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     val ((ts, inferred), ctxt2) = read_terms ss Ts ctxt1;
 
     (*implicit type instantiations*)
-    val instT2 = Term_Subst.instantiateT (Term_Subst.TVars.table inferred);
+    val instT2 = Term_Subst.instantiateT (TVars.make inferred);
     val vars2 = Vartab.fold (fn (v, T) => cons (v, instT2 T)) vars1 [];
     val inst2 =
-      Term_Subst.instantiate (Term_Subst.TVars.empty,
-        Term_Subst.Vars.build
-          (fold2 (fn (xi, _) => fn t => Term_Subst.Vars.add ((xi, Term.fastype_of t), t)) xs ts))
+      Term_Subst.instantiate (TVars.empty,
+        Vars.build (fold2 (fn (xi, _) => fn t => Vars.add ((xi, Term.fastype_of t), t)) xs ts))
       #> Envir.beta_norm;
 
     val inst_tvars = make_instT (instT2 o instT1) tvars;

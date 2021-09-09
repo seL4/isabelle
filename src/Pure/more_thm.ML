@@ -25,8 +25,8 @@ sig
   structure Thmtab: TABLE
   val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
-  val add_tvars: thm -> ctyp Term_Subst.TVars.table -> ctyp Term_Subst.TVars.table
-  val add_vars: thm -> cterm Term_Subst.Vars.table -> cterm Term_Subst.Vars.table
+  val add_tvars: thm -> ctyp TVars.table -> ctyp TVars.table
+  val add_vars: thm -> cterm Vars.table -> cterm Vars.table
   val dest_funT: ctyp -> ctyp * ctyp
   val strip_type: ctyp -> ctyp list * ctyp
   val all_name: Proof.context -> string * cterm -> cterm -> cterm
@@ -140,12 +140,12 @@ val op aconvc = op aconv o apply2 Thm.term_of;
 val add_tvars =
   Thm.fold_atomic_ctyps {hyps = false} Term.is_TVar (fn cT => fn tab =>
     let val v = Term.dest_TVar (Thm.typ_of cT)
-    in tab |> not (Term_Subst.TVars.defined tab v) ? Term_Subst.TVars.update (v, cT) end);
+    in tab |> not (TVars.defined tab v) ? TVars.add (v, cT) end);
 
 val add_vars =
   Thm.fold_atomic_cterms {hyps = false} Term.is_Var (fn ct => fn tab =>
     let val v = Term.dest_Var (Thm.term_of ct)
-    in tab |> not (Term_Subst.Vars.defined tab v) ? Term_Subst.Vars.update (v, ct) end);
+    in tab |> not (Vars.defined tab v) ? Vars.add (v, ct) end);
 
 
 (* ctyp operations *)
@@ -414,8 +414,8 @@ fun instantiate_frees ([], []) th = th
         val idx = Thm.maxidx_of th + 1;
         fun index ((a, A), b) = (((a, idx), A), b);
         val insts = (map index instT, map index inst);
-        val tfrees = Symtab.build (fold (Symtab.insert_set o #1 o #1) instT);
-        val frees = Symtab.build (fold (Symtab.insert_set o #1 o #1) inst);
+        val tfrees = Names.build (fold (Names.add_set o #1 o #1) instT);
+        val frees = Names.build (fold (Names.add_set o #1 o #1) inst);
 
         val hyps = Thm.chyps_of th;
         val inst_cterm =
@@ -454,11 +454,11 @@ fun instantiate' cTs cts thm =
 fun forall_intr_vars th =
   let
     val (_, vars) =
-      (th, (Term_Subst.Vars.empty, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Var
+      (th, (Vars.empty, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Var
         (fn ct => fn (seen, vars) =>
           let val v = Term.dest_Var (Thm.term_of ct) in
-            if not (Term_Subst.Vars.defined seen v)
-            then (Term_Subst.Vars.add (v, ()) seen, ct :: vars)
+            if not (Vars.defined seen v)
+            then (Vars.add_set v seen, ct :: vars)
             else (seen, vars)
           end);
   in fold Thm.forall_intr vars th end;
@@ -466,15 +466,15 @@ fun forall_intr_vars th =
 fun forall_intr_frees th =
   let
     val fixed =
-      Term_Subst.Frees.build
-       (fold Term_Subst.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
-        fold Term_Subst.add_frees (Thm.hyps_of th));
+      Frees.build
+       (fold Frees.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
+        fold Frees.add_frees (Thm.hyps_of th));
     val (_, frees) =
       (th, (fixed, [])) |-> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
         (fn ct => fn (seen, frees) =>
           let val v = Term.dest_Free (Thm.term_of ct) in
-            if not (Term_Subst.Frees.defined seen v)
-            then (Term_Subst.Frees.add (v, ()) seen, ct :: frees)
+            if not (Frees.defined seen v)
+            then (Frees.add_set v seen, ct :: frees)
             else (seen, frees)
           end);
   in fold Thm.forall_intr frees th end;
@@ -492,23 +492,23 @@ fun unvarify_global thy th =
     val certT = Thm.global_ctyp_of thy;
 
     val instT =
-      Term_Subst.TVars.build (prop |> (Term.fold_types o Term.fold_atyps)
+      TVars.build (prop |> (Term.fold_types o Term.fold_atyps)
         (fn T => fn instT =>
           (case T of
             TVar (v as ((a, _), S)) =>
-              if Term_Subst.TVars.defined instT v then instT
-              else Term_Subst.TVars.update (v, TFree (a, S)) instT
+              if TVars.defined instT v then instT
+              else TVars.add (v, TFree (a, S)) instT
           | _ => instT)));
-    val cinstT = Term_Subst.TVars.map (K certT) instT;
+    val cinstT = TVars.map (K certT) instT;
     val cinst =
-      Term_Subst.Vars.build (prop |> Term.fold_aterms
+      Vars.build (prop |> Term.fold_aterms
         (fn t => fn inst =>
           (case t of
             Var ((x, i), T) =>
               let val T' = Term_Subst.instantiateT instT T
-              in Term_Subst.Vars.update (((x, i), T'), cert (Free ((x, T')))) inst end
+              in Vars.add (((x, i), T'), cert (Free ((x, T')))) inst end
           | _ => inst)));
-  in Thm.instantiate (Term_Subst.TVars.dest cinstT, Term_Subst.Vars.dest cinst) th end;
+  in Thm.instantiate (TVars.dest cinstT, Vars.dest cinst) th end;
 
 fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 

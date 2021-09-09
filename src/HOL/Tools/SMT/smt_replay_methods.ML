@@ -171,7 +171,7 @@ fun discharge _ [] thm = thm
 fun by_tac ctxt thms ns ts t tac =
   Goal.prove ctxt [] (map as_prop ts) (as_prop t)
     (fn {context, prems} => HEADGOAL (tac context prems))
-  |> Drule.generalize (Symtab.empty, Symtab.make_set ns)
+  |> Drule.generalize (Names.empty, Names.make_set ns)
   |> discharge 1 thms
 
 fun prove ctxt t tac = by_tac ctxt [] [] [] t (K o tac)

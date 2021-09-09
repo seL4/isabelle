@@ -109,12 +109,12 @@ sig
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
-  val varify_proof: term -> Term_Subst.TFrees.set -> proof -> proof
+  val varify_proof: term -> TFrees.set -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
-  val generalize_proof: Symtab.set * Symtab.set -> int -> term -> proof -> proof
-  val instantiate: typ Term_Subst.TVars.table * term Term_Subst.Vars.table -> proof -> proof
+  val generalize_proof: Names.set * Names.set -> int -> term -> proof -> proof
+  val instantiate: typ TVars.table * term Vars.table -> proof -> proof
   val lift_proof: term -> int -> term -> proof -> proof
   val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
@@ -678,8 +678,8 @@ fun conflicting_tvarsT envT =
     (fn T => fn instT =>
       (case T of
         TVar (v as (_, S)) =>
-          if Term_Subst.TVars.defined instT v orelse can (Type.lookup envT) v then instT
-          else Term_Subst.TVars.update (v, Logic.dummy_tfree S) instT
+          if TVars.defined instT v orelse can (Type.lookup envT) v then instT
+          else TVars.add (v, Logic.dummy_tfree S) instT
       | _ => instT));
 
 fun conflicting_tvars env =
@@ -687,18 +687,18 @@ fun conflicting_tvars env =
     (fn t => fn inst =>
       (case t of
         Var (v as (_, T)) =>
-          if Term_Subst.Vars.defined inst v orelse can (Envir.lookup env) v then inst
-          else Term_Subst.Vars.update (v, Free ("dummy", T)) inst
+          if Vars.defined inst v orelse can (Envir.lookup env) v then inst
+          else Vars.add (v, Free ("dummy", T)) inst
       | _ => inst));
 
 fun del_conflicting_tvars envT ty =
-  Term_Subst.instantiateT (Term_Subst.TVars.build (conflicting_tvarsT envT ty)) ty;
+  Term_Subst.instantiateT (TVars.build (conflicting_tvarsT envT ty)) ty;
 
 fun del_conflicting_vars env tm =
   let
     val instT =
-      Term_Subst.TVars.build (tm |> Term.fold_types (conflicting_tvarsT (Envir.type_env env)));
-    val inst = Term_Subst.Vars.build (tm |> conflicting_tvars env);
+      TVars.build (tm |> Term.fold_types (conflicting_tvarsT (Envir.type_env env)));
+    val inst = Vars.build (tm |> conflicting_tvars env);
   in Term_Subst.instantiate (instT, inst) tm end;
 
 in
@@ -903,7 +903,7 @@ fun varify_proof t fixed prf =
   let
     val fs =
       build (t |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => if Term_Subst.TFrees.defined fixed v then I else insert (op =) v | _ => I));
+        (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
@@ -970,14 +970,14 @@ fun permute_prems_proof prems' j k prf =
 fun generalize_proof (tfrees, frees) idx prop prf =
   let
     val gen =
-      if Symtab.is_empty frees then []
+      if Names.is_empty frees then []
       else
-        fold_aterms (fn Free (x, T) => Symtab.defined frees x ? insert (op =) (x, T) | _ => I)
-          (Term_Subst.generalize (tfrees, Symtab.empty) idx prop) [];
+        fold_aterms (fn Free (x, T) => Names.defined frees x ? insert (op =) (x, T) | _ => I)
+          (Term_Subst.generalize (tfrees, Names.empty) idx prop) [];
   in
     prf
     |> Same.commit (map_proof_terms_same
-        (Term_Subst.generalize_same (tfrees, Symtab.empty) idx)
+        (Term_Subst.generalize_same (tfrees, Names.empty) idx)
         (Term_Subst.generalizeT_same tfrees idx))
     |> fold (fn (x, T) => forall_intr_proof (x, Free (x, T)) NONE) gen
     |> fold_rev (fn (x, T) => fn prf' => prf' %> Var (Name.clean_index (x, idx), T)) gen
@@ -988,7 +988,7 @@ fun generalize_proof (tfrees, frees) idx prop prf =
 
 fun instantiate (instT, inst) =
   Same.commit (map_proof_terms_same
-    (Term_Subst.instantiate_same (instT, Term_Subst.Vars.map (K remove_types) inst))
+    (Term_Subst.instantiate_same (instT, Vars.map (K remove_types) inst))
     (Term_Subst.instantiateT_same instT));
 
 

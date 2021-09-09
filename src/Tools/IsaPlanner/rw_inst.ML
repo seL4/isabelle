@@ -236,7 +236,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     |> Drule.implies_intr_list cprems
     |> Drule.forall_intr_list frees_of_fixed_vars
     |> Drule.forall_elim_list vars
-    |> Thm.varifyT_global' (Term_Subst.TFrees.make_set othertfrees)
+    |> Thm.varifyT_global' (TFrees.make_set othertfrees)
     |-> K Drule.zero_var_indexes
   end;
 

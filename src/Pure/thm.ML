@@ -151,9 +151,9 @@ sig
   val equal_elim: thm -> thm -> thm
   val solve_constraints: thm -> thm
   val flexflex_rule: Proof.context option -> thm -> thm Seq.seq
-  val generalize: Symtab.set * Symtab.set -> int -> thm -> thm
-  val generalize_cterm: Symtab.set * Symtab.set -> int -> cterm -> cterm
-  val generalize_ctyp: Symtab.set -> int -> ctyp -> ctyp
+  val generalize: Names.set * Names.set -> int -> thm -> thm
+  val generalize_cterm: Names.set * Names.set -> int -> cterm -> cterm
+  val generalize_ctyp: Names.set -> int -> ctyp -> ctyp
   val instantiate: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
   val instantiate_cterm: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
@@ -161,7 +161,7 @@ sig
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
-  val varifyT_global': Term_Subst.TFrees.set -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global': TFrees.set -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
@@ -1547,16 +1547,16 @@ fun flexflex_rule opt_ctxt =
 *)
 
 fun generalize (tfrees, frees) idx th =
-  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then th
+  if Names.is_empty tfrees andalso Names.is_empty frees then th
   else
     let
       val Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...}) = th;
       val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
 
       val bad_type =
-        if Symtab.is_empty tfrees then K false
-        else Term.exists_subtype (fn TFree (a, _) => Symtab.defined tfrees a | _ => false);
-      fun bad_term (Free (x, T)) = bad_type T orelse Symtab.defined frees x
+        if Names.is_empty tfrees then K false
+        else Term.exists_subtype (fn TFree (a, _) => Names.defined tfrees a | _ => false);
+      fun bad_term (Free (x, T)) = bad_type T orelse Names.defined frees x
         | bad_term (Var (_, T)) = bad_type T
         | bad_term (Const (_, T)) = bad_type T
         | bad_term (Abs (_, T, t)) = bad_type T orelse bad_term t
@@ -1582,7 +1582,7 @@ fun generalize (tfrees, frees) idx th =
     end;
 
 fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts}) =
-  if Symtab.is_empty tfrees andalso Symtab.is_empty frees then ct
+  if Names.is_empty tfrees andalso Names.is_empty frees then ct
   else if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
   else
     Cterm {cert = cert, sorts = sorts,
@@ -1591,7 +1591,7 @@ fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts
       maxidx = Int.max (maxidx, idx)};
 
 fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
-  if Symtab.is_empty tfrees then cT
+  if Names.is_empty tfrees then cT
   else if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
   else
     Ctyp {cert = cert, sorts = sorts,
@@ -1616,11 +1616,11 @@ val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
 val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
 fun add_instT thy (v as (_, S), Ctyp {T = U, maxidx, ...}) =
-  if Sign.of_sort thy (U, S) then Term_Subst.TVars.add (v, (U, maxidx))
+  if Sign.of_sort thy (U, S) then TVars.add (v, (U, maxidx))
   else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy S, [U], []);
 
 fun add_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
-  if T = U then Term_Subst.Vars.add (v, (u, maxidx))
+  if T = U then Vars.add (v, (u, maxidx))
   else
     let
       fun pretty_typing t ty =
@@ -1645,8 +1645,8 @@ fun prep_insts (instT, inst) (cert, sorts) =
       |> fold add_instT_sorts instT
       |> fold add_inst_sorts inst;
 
-    val instT' = Term_Subst.TVars.build (fold (add_instT thy') instT);
-    val inst' = Term_Subst.Vars.build (fold (add_inst thy') inst);
+    val instT' = TVars.build (fold (add_instT thy') instT);
+    val inst' = Vars.build (fold (add_inst thy') inst);
   in ((instT', inst'), (cert', sorts')) end;
 
 in
@@ -1669,13 +1669,11 @@ fun instantiate ([], []) th = th
 
         val thy' = Context.certificate_theory cert';
         val constraints' =
-          Term_Subst.TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
+          TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
             instT' constraints;
       in
         Thm (deriv_rule1
-          (fn d =>
-            Proofterm.instantiate
-              (Term_Subst.TVars.map (K #1) instT', Term_Subst.Vars.map (K #1) inst') d) der,
+          (fn d => Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') d) der,
          {cert = cert',
           tags = [],
           maxidx = maxidx',
@@ -1780,7 +1778,7 @@ val unconstrainT =
 (*Replace all TFrees not fixed or in the hyps by new TVars*)
 fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
-    val tfrees = fold Term_Subst.add_tfrees hyps fixed;
+    val tfrees = fold TFrees.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
@@ -1796,7 +1794,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
       prop = prop3}))
   end;
 
-val varifyT_global = #2 o varifyT_global' Term_Subst.TFrees.empty;
+val varifyT_global = #2 o varifyT_global' TFrees.empty;
 
 (*Replace all TVars by TFrees that are often new*)
 fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...})) =

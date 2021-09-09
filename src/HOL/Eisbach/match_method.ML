@@ -173,7 +173,7 @@ fun parse_named_pats match_kind =
 
                   val param_thm = map (Drule.mk_term o Thm.cterm_of ctxt' o Free) abs_nms
                     |> Conjunction.intr_balanced
-                    |> Drule.generalize (Symtab.empty, Symtab.make_set (map fst abs_nms))
+                    |> Drule.generalize (Names.empty, Names.make_set (map fst abs_nms))
                     |> Thm.tag_free_dummy;
 
                   val atts = map (Attrib.attribute ctxt') att;
@@ -453,7 +453,7 @@ fun focus_concl ctxt i bindings goal =
 
     val ((_, inst), ctxt'') = Variable.import_inst true [Thm.term_of concl] ctxt';
     val schematic_terms =
-      Term_Subst.Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt'' t)) inst [];
+      Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt'' t)) inst [];
 
     val goal'' = Thm.instantiate ([], schematic_terms) goal';
     val concl' = Thm.instantiate_cterm ([], schematic_terms) concl;

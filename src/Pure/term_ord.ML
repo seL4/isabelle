@@ -5,6 +5,70 @@
 Term orderings and scalable collections.
 *)
 
+signature ITEMS =
+sig
+  type key
+  type 'a table
+  val empty: 'a table
+  val build: ('a table -> 'a table) -> 'a table
+  val is_empty: 'a table -> bool
+  val map: (key -> 'a -> 'b) -> 'a table -> 'b table
+  val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
+  val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
+  val size: 'a table -> int
+  val dest: 'a table -> (key * 'a) list
+  val keys: 'a table -> key list
+  val exists: (key * 'a -> bool) -> 'a table -> bool
+  val forall: (key * 'a -> bool) -> 'a table -> bool
+  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
+  val lookup: 'a table -> key -> 'a option
+  val defined: 'a table -> key -> bool
+  val add: key * 'a -> 'a table -> 'a table
+  val make: (key * 'a) list -> 'a table
+  type set = unit table
+  val add_set: key -> set -> set
+  val make_set: key list -> set
+  val subset: set * set -> bool
+  val eq_set: set * set -> bool
+end;
+
+functor Items(Key: KEY): ITEMS =
+struct
+
+structure Table = Table(Key);
+
+type key = Table.key;
+type 'a table = 'a Table.table;
+
+val empty = Table.empty;
+val build = Table.build;
+val is_empty = Table.is_empty;
+val size = Table.size;
+val dest = Table.dest;
+val keys = Table.keys;
+val exists = Table.exists;
+val forall = Table.forall;
+val get_first = Table.get_first;
+val lookup = Table.lookup;
+val defined = Table.defined;
+
+fun add entry = Table.insert (K true) entry;
+fun make entries = Table.build (fold add entries);
+
+type set = unit table;
+
+fun add_set x = add (x, ());
+fun make_set xs = build (fold add_set xs);
+
+fun subset (A: set, B: set) = forall (defined B o #1) A;
+fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);
+
+val map = Table.map;
+val fold = Table.fold;
+val fold_rev = Table.fold_rev;
+
+end;
+
 signature BASIC_TERM_ORD =
 sig
   structure Vartab: TABLE
@@ -15,6 +79,35 @@ sig
   structure Sort_Graph: GRAPH
   structure Typ_Graph: GRAPH
   structure Term_Graph: GRAPH
+  structure TFrees:
+  sig
+    include ITEMS
+    val add_tfreesT: typ -> set -> set
+    val add_tfrees: term -> set -> set
+  end
+  structure TVars:
+  sig
+    include ITEMS
+    val add_tvarsT: typ -> set -> set
+    val add_tvars: term -> set -> set
+  end
+  structure Frees:
+  sig
+    include ITEMS
+    val add_frees: term -> set -> set
+  end
+  structure Vars:
+  sig
+    include ITEMS
+    val add_vars: term -> set -> set
+  end
+  structure Names:
+  sig
+    include ITEMS
+    val add_tfree_namesT: typ -> set -> set
+    val add_tfree_names: term -> set -> set
+    val add_free_names: term -> set -> set
+  end
 end;
 
 signature TERM_ORD =
@@ -221,12 +314,55 @@ structure Sorttab = Table(type key = sort val ord = sort_ord);
 structure Typtab = Table(type key = typ val ord = typ_ord);
 structure Termtab = Table(type key = term val ord = fast_term_ord);
 
+fun term_cache f = Cache.create Termtab.empty Termtab.lookup Termtab.update f;
+
 structure Var_Graph = Graph(type key = indexname val ord = fast_indexname_ord);
 structure Sort_Graph = Graph(type key = sort val ord = sort_ord);
 structure Typ_Graph = Graph(type key = typ val ord = typ_ord);
 structure Term_Graph = Graph(type key = term val ord = fast_term_ord);
 
-fun term_cache f = Cache.create Termtab.empty Termtab.lookup Termtab.update f;
+structure TFrees =
+struct
+  structure Items =
+    Items(type key = string * sort val ord = pointer_eq_ord (prod_ord fast_string_ord sort_ord));
+  open Items;
+  val add_tfreesT = fold_atyps (fn TFree v => add_set v | _ => I);
+  val add_tfrees = fold_types add_tfreesT;
+end;
+
+structure TVars =
+struct
+  structure Items =
+    Items(type key = indexname * sort val ord = pointer_eq_ord (prod_ord fast_indexname_ord sort_ord));
+  open Items;
+  val add_tvarsT = fold_atyps (fn TVar v => add_set v | _ => I);
+  val add_tvars = fold_types add_tvarsT;
+end;
+
+structure Frees =
+struct
+  structure Items =
+    Items(type key = string * typ val ord = pointer_eq_ord (prod_ord fast_string_ord typ_ord));
+  open Items;
+  val add_frees = fold_aterms (fn Free v => add_set v | _ => I);
+end;
+
+structure Vars =
+struct
+  structure Items =
+    Items(type key = indexname * typ val ord = pointer_eq_ord (prod_ord fast_indexname_ord typ_ord));
+  open Items;
+  val add_vars = fold_aterms (fn Var v => add_set v | _ => I);
+end;
+
+structure Names =
+struct
+  structure Items = Items(type key = string val ord = fast_string_ord);
+  open Items;
+  val add_tfree_namesT = fold_atyps (fn TFree (a, _) => add_set a | _ => I);
+  val add_tfree_names = fold_types add_tfree_namesT;
+  val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
+end;
 
 end;
 

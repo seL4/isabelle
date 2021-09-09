@@ -95,10 +95,10 @@ fun export_abbrev lthy preprocess rhs =
     val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
-    val type_tfrees = Term_Subst.TFrees.build (Term_Subst.add_tfreesT (Term.fastype_of u));
+    val type_tfrees = TFrees.build (TFrees.add_tfreesT (Term.fastype_of u));
     val extra_tfrees =
       build_rev (u |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
+        (fn TFree v => not (TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -261,11 +261,10 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
     val xs = Variable.add_fixed lthy rhs' [];
     val T = Term.fastype_of rhs;
-    val type_tfrees =
-      Term_Subst.TFrees.build (Term_Subst.add_tfreesT T #> fold (Term_Subst.add_tfreesT o #2) xs);
+    val type_tfrees = TFrees.build (TFrees.add_tfreesT T #> fold (TFrees.add_tfreesT o #2) xs);
     val extra_tfrees =
       build_rev (rhs |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => not (Term_Subst.TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
+        (fn TFree v => not (TFrees.defined type_tfrees v) ? insert (op =) v | _ => I));
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
@@ -323,9 +322,9 @@ fun import_export_proof ctxt (name, raw_th) =
       |>> map Logic.dest_type;
 
     val instT =
-      Term_Subst.TVars.build (fold2 (fn a => fn b =>
-        (case a of TVar v => Term_Subst.TVars.add (v, b) | _ => I)) tvars tfrees);
-    val cinstT = Term_Subst.TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt T)) instT [];
+      TVars.build (fold2 (fn a => fn b =>
+        (case a of TVar v => TVars.add (v, b) | _ => I)) tvars tfrees);
+    val cinstT = TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt T)) instT [];
     val cinst =
       map_filter
         (fn (Var (xi, T), t) =>

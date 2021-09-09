@@ -90,7 +90,7 @@ val head_of_def =
 fun expand defs =
   Drule.implies_intr_list defs
   #> Drule.generalize
-      (Symtab.empty, fold (Symtab.insert_set o #1 o head_of_def o Thm.term_of) defs Symtab.empty)
+      (Names.empty, Names.build (fold (Names.add_set o #1 o head_of_def o Thm.term_of) defs))
   #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
 val expand_term = Envir.expand_term_frees o map (abs_def o Thm.term_of);

@@ -291,11 +291,11 @@ fun elim_defs thy r defs prf =
 fun elim_vars mk_default prf =
   let
     val prop = Proofterm.prop_of prf;
-    val tv = Term_Subst.Vars.build (Term_Subst.add_vars prop);
-    val tf = Term_Subst.Frees.build (Term_Subst.add_frees prop);
+    val tv = Vars.build (Vars.add_vars prop);
+    val tf = Frees.build (Frees.add_frees prop);
 
-    fun hidden_variable (Var v) = not (Term_Subst.Vars.defined tv v)
-      | hidden_variable (Free f) = not (Term_Subst.Frees.defined tf f)
+    fun hidden_variable (Var v) = not (Vars.defined tv v)
+      | hidden_variable (Free f) = not (Frees.defined tf f)
       | hidden_variable _ = false;
 
     fun mk_default' T =
@@ -303,8 +303,8 @@ fun elim_vars mk_default prf =
 
     fun elim_varst (t $ u) = elim_varst t $ elim_varst u
       | elim_varst (Abs (s, T, t)) = Abs (s, T, elim_varst t)
-      | elim_varst (t as Free (x, T)) = if Term_Subst.Frees.defined tf (x, T) then t else mk_default' T
-      | elim_varst (t as Var (xi, T)) = if Term_Subst.Vars.defined tv (xi, T) then t else mk_default' T
+      | elim_varst (t as Free (x, T)) = if Frees.defined tf (x, T) then t else mk_default' T
+      | elim_varst (t as Var (xi, T)) = if Vars.defined tv (xi, T) then t else mk_default' T
       | elim_varst t = t;
   in
     Proofterm.map_proof_terms (fn t =>

@@ -406,7 +406,7 @@ fun remove eq (key, x) tab =
 
 (* simultaneous modifications *)
 
-fun make entries = fold update_new entries empty;
+fun make entries = build (fold update_new entries);
 
 fun join f (table1, table2) =
   let
@@ -437,7 +437,7 @@ fun update_list eq (key, x) =
   modify key (fn NONE => [x] | SOME [] => [x] | SOME (xs as y :: _) =>
     if eq (x, y) then raise SAME else Library.update eq x xs);
 
-fun make_list args = fold_rev cons_list args empty;
+fun make_list args = build (fold_rev cons_list args);
 fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq = join (fn _ => Library.merge eq);
 
@@ -448,7 +448,7 @@ type set = unit table;
 
 fun insert_set x = default (x, ());
 fun remove_set x : set -> set = delete_safe x;
-fun make_set entries = fold insert_set entries empty;
+fun make_set xs = build (fold insert_set xs);
 
 fun subset (A: set, B: set) = forall (defined B o #1) A;
 fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);

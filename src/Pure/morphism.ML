@@ -137,17 +137,13 @@ val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 fun instantiate_frees_morphism ([], []) = identity
   | instantiate_frees_morphism (cinstT, cinst) =
       let
-        val instT =
-          Term_Subst.TFrees.build
-            (cinstT |> fold (fn (v, cT) => Term_Subst.TFrees.add (v, Thm.typ_of cT)));
-        val inst =
-          Term_Subst.Frees.build
-            (cinst |> fold (fn (v, ct) => Term_Subst.Frees.add (v, Thm.term_of ct)));
+        val instT = TFrees.build (cinstT |> fold (fn (v, cT) => TFrees.add (v, Thm.typ_of cT)));
+        val inst = Frees.build (cinst |> fold (fn (v, ct) => Frees.add (v, Thm.term_of ct)));
       in
         morphism "instantiate_frees"
           {binding = [],
            typ =
-            if Term_Subst.TFrees.is_empty instT then []
+            if TFrees.is_empty instT then []
             else [Term_Subst.instantiateT_frees instT],
            term = [Term_Subst.instantiate_frees (instT, inst)],
            fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
@@ -156,17 +152,13 @@ fun instantiate_frees_morphism ([], []) = identity
 fun instantiate_morphism ([], []) = identity
   | instantiate_morphism (cinstT, cinst) =
       let
-        val instT =
-          Term_Subst.TVars.build (cinstT |> fold (fn (v, cT) =>
-            Term_Subst.TVars.add (v, Thm.typ_of cT)));
-        val inst =
-          Term_Subst.Vars.build (cinst |> fold (fn (v, ct) =>
-            Term_Subst.Vars.add (v, Thm.term_of ct)));
+        val instT = TVars.build (cinstT |> fold (fn (v, cT) => TVars.add (v, Thm.typ_of cT)));
+        val inst = Vars.build (cinst |> fold (fn (v, ct) => Vars.add (v, Thm.term_of ct)));
       in
         morphism "instantiate"
           {binding = [],
            typ =
-            if Term_Subst.TVars.is_empty instT then []
+            if TVars.is_empty instT then []
             else [Term_Subst.instantiateT instT],
            term = [Term_Subst.instantiate (instT, inst)],
            fact = [map (Thm.instantiate (cinstT, cinst))]}

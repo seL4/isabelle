@@ -116,18 +116,18 @@ fun future_result ctxt result prop =
     val assms = Assumption.all_assms_of ctxt;
     val As = map Thm.term_of assms;
 
-    val frees = Term_Subst.Frees.build (fold Term_Subst.add_frees (prop :: As));
-    val xs = Term_Subst.Frees.fold_rev (cons o Thm.cterm_of ctxt o Free o #1) frees [];
+    val frees = Frees.build (fold Frees.add_frees (prop :: As));
+    val xs = Frees.fold_rev (cons o Thm.cterm_of ctxt o Free o #1) frees [];
 
-    val tfrees = Term_Subst.TFrees.build (fold Term_Subst.add_tfrees (prop :: As));
-    val Ts = Symtab.build (Term_Subst.TFrees.fold (Symtab.insert_set o #1 o #1) tfrees);
+    val tfrees = TFrees.build (fold TFrees.add_tfrees (prop :: As));
+    val Ts = Names.build (TFrees.fold (Names.add_set o #1 o #1) tfrees);
     val instT =
-      build (tfrees |> Term_Subst.TFrees.fold (fn ((a, S), ()) =>
+      build (tfrees |> TFrees.fold (fn ((a, S), ()) =>
         cons (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))));
 
     val global_prop =
       Logic.list_implies (As, prop)
-      |> Term_Subst.Frees.fold_rev (Logic.all o Free o #1) frees
+      |> Frees.fold_rev (Logic.all o Free o #1) frees
       |> Logic.varify_types_global
       |> Thm.cterm_of ctxt
       |> Thm.weaken_sorts' ctxt;
@@ -136,7 +136,7 @@ fun future_result ctxt result prop =
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list xs #>
         Thm.adjust_maxidx_thm ~1 #>
-        Thm.generalize (Ts, Symtab.empty) 0 #>
+        Thm.generalize (Ts, Names.empty) 0 #>
         Thm.strip_shyps #>
         Thm.solve_constraints);
     val local_result =

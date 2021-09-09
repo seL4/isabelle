@@ -51,7 +51,7 @@ signature DRULE =
 sig
   include BASIC_DRULE
   val outer_params: term -> (string * typ) list
-  val generalize: Symtab.set * Symtab.set -> thm -> thm
+  val generalize: Names.set * Names.set -> thm -> thm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val beta_conv: cterm -> cterm -> cterm
@@ -179,18 +179,18 @@ fun lift_all ctxt raw_goal raw_th =
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
     val inst =
-      Term_Subst.Vars.build (th |> (Thm.fold_terms {hyps = false} o Term.fold_aterms)
+      Vars.build (th |> (Thm.fold_terms {hyps = false} o Term.fold_aterms)
         (fn t => fn inst =>
           (case t of
             Var (xi, T) =>
-              if Term_Subst.Vars.defined inst (xi, T) then inst
+              if Vars.defined inst (xi, T) then inst
               else
                 let val ct = Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))
-                in Term_Subst.Vars.update ((xi, T), ct) inst end
+                in Vars.add ((xi, T), ct) inst end
           | _ => inst)));
   in
     th
-    |> Thm.instantiate ([], Term_Subst.Vars.dest inst)
+    |> Thm.instantiate ([], Vars.dest inst)
     |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 
@@ -213,16 +213,16 @@ fun zero_var_indexes_list [] = []
         val (instT, inst) =
           Term_Subst.zero_var_indexes_inst Name.context (map Thm.full_prop_of ths);
 
-        val tvars = fold Thm.add_tvars ths Term_Subst.TVars.empty;
-        val the_tvar = the o Term_Subst.TVars.lookup tvars;
+        val tvars = TVars.build (fold Thm.add_tvars ths);
+        val the_tvar = the o TVars.lookup tvars;
         val instT' =
-          build (instT |> Term_Subst.TVars.fold (fn (v, TVar (b, _)) =>
+          build (instT |> TVars.fold (fn (v, TVar (b, _)) =>
             cons (v, Thm.rename_tvar b (the_tvar v))));
 
-        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths Term_Subst.Vars.empty;
-        val the_var = the o Term_Subst.Vars.lookup vars;
+        val vars = Vars.build (fold (Thm.add_vars o Thm.instantiate (instT', [])) ths);
+        val the_var = the o Vars.lookup vars;
         val inst' =
-          build (inst |> Term_Subst.Vars.fold (fn (v, Var (b, _)) =>
+          build (inst |> Vars.fold (fn (v, Var (b, _)) =>
             cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))));
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (instT', inst')) ths end;
 

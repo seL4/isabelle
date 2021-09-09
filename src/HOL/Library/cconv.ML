@@ -147,7 +147,7 @@ fun abs_cconv cv ctxt ct =
              val inst = Thm.match (Drule.cprems_of rule |> hd, mk_concl (Thm.term_of v) eq)
            in
              (Drule.instantiate_normalize inst rule OF
-               [Drule.generalize (Symtab.empty, Symtab.make_set [u]) eq])
+               [Drule.generalize (Names.empty, Names.make_set [u]) eq])
              |> Drule.zero_var_indexes
            end
 
