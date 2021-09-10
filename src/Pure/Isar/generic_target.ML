@@ -98,7 +98,7 @@ fun export_abbrev lthy preprocess rhs =
     val type_tfrees = TFrees.build (TFrees.add_tfreesT (Term.fastype_of u));
     val extra_tfrees =
       TFrees.build (TFrees.add_tfrees_unless (TFrees.defined type_tfrees) u)
-      |> TFrees.list_set;
+      |> TFrees.keys;
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
@@ -108,7 +108,7 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
    (if Context_Position.is_visible ctxt then
       warning
         ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
-          commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
+          commas (map (Syntax.string_of_typ ctxt o TFree) extra_tfrees) ^
           (if Mixfix.is_empty mx then ""
            else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)))
     else (); NoSyn);
@@ -264,7 +264,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val type_tfrees = TFrees.build (TFrees.add_tfreesT T #> fold (TFrees.add_tfreesT o #2) xs);
     val extra_tfrees =
       TFrees.build (rhs |> TFrees.add_tfrees_unless (TFrees.defined type_tfrees))
-      |> TFrees.list_set;
+      |> TFrees.keys;
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
@@ -308,7 +308,7 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export fixes*)
     val tfrees =
       TFrees.build (Thm.fold_terms {hyps = true} TFrees.add_tfrees th')
-      |> TFrees.list_set_rev |> map TFree;
+      |> TFrees.keys |> map TFree;
     val frees =
       Frees.build (Thm.fold_terms {hyps = true} Frees.add_frees th')
       |> Frees.list_set_rev |> map Free;
