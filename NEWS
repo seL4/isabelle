@@ -248,6 +248,19 @@ INCOMPATIBILITY: e.g. use TVars.empty and TVars.make for immediate
 adoption; better use TVars.add, TVars.add_tfrees etc. for scalable
 accumulation of items.
 
+* The "build" combinators of various data structures help to build
+content from bottom-up, by applying an "add" function the "empty" value.
+For example:
+
+  - type 'a Symtab.table etc.: build
+  - Type 'a Names.table etc.: build
+  - type 'a list: build and build_rev
+  - type Buffer.T: build and build_content
+
+For example, see src/Pure/PIDE/xml.ML:
+
+  val content_of = Buffer.build_content o fold add_content;
+
 * ML antiquotations \<^try>\<open>expr\<close> and \<^can>\<open>expr\<close> operate directly on
 the given ML expression, in contrast to functions "try" and "can" that
 modify application of a function.
