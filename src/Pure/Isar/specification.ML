@@ -35,9 +35,6 @@ sig
   val definition: (binding * typ option * mixfix) option ->
     (binding * typ option * mixfix) list -> term list -> Attrib.binding * term ->
     local_theory -> (term * (string * thm)) * local_theory
-  val definition': (binding * typ option * mixfix) option ->
-    (binding * typ option * mixfix) list ->  term list -> Attrib.binding * term ->
-    bool -> local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd: (binding * string option * mixfix) option ->
     (binding * string option * mixfix) list -> string list -> Attrib.binding * string ->
     bool -> local_theory -> (term * (string * thm)) * local_theory
@@ -262,7 +259,6 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
           else
             error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
               Position.here (Binding.pos_of b)));
-    val const_name = Local_Theory.full_name lthy b;
 
     val name = Thm.def_binding_optional b a;
     val ((lhs, (_, raw_th)), lthy2) = lthy
@@ -284,8 +280,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
         (Frees.defined (Frees.build (Frees.add_frees lhs'))) [(x, T)];
   in ((lhs, (def_name, th')), lthy5) end;
 
-val definition' = gen_def check_spec_open (K I);
-fun definition xs ys As B = definition' xs ys As B false;
+fun definition xs ys As B = gen_def check_spec_open (K I) xs ys As B false;
 val definition_cmd = gen_def read_spec_open Attrib.check_src;
 
 
