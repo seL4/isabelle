@@ -21,3 +21,11 @@ session "Pure-Examples" in Examples = Pure +
   document_files
     "root.bib"
     "root.tex"
+
+session "Pure-ex" in ex = Pure +
+  description "
+    Miscellaneous examples and experiments for Isabelle/Pure.
+  "
+  theories
+    Def
+    Def_Examples
