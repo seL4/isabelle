@@ -253,7 +253,7 @@ content from bottom-up, by applying an "add" function the "empty" value.
 For example:
 
   - type 'a Symtab.table etc.: build
-  - Type 'a Names.table etc.: build
+  - type 'a Names.table etc.: build
   - type 'a list: build and build_rev
   - type Buffer.T: build and build_content
 
