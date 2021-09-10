@@ -13,7 +13,7 @@ session Pure =
 
 session "Pure-Examples" in Examples = Pure +
   description "
-    Notable Examples in Isabelle/Pure.
+    Notable Examples for Isabelle/Pure.
   "
   theories
     First_Order_Logic
