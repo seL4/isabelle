@@ -237,6 +237,17 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* ML structures TFrees, TVars, Frees, Vars, Names provide scalable
+operations to accumulate items from types and terms, using a fast
+syntactic order. The original order of occurrences may be recovered as
+well, e.g. via TFrees.list_set.
+
+* Thm.instantiate, Thm.generalize and related operations require
+scalable datastructures from structure TVars, Vars, Names etc.
+INCOMPATIBILITY: e.g. use TVars.empty and TVars.make for immediate
+adoption; better use TVars.add, TVars.add_tfrees etc. for scalable
+accumulation of items.
+
 * ML antiquotations \<^try>\<open>expr\<close> and \<^can>\<open>expr\<close> operate directly on
 the given ML expression, in contrast to functions "try" and "can" that
 modify application of a function.
