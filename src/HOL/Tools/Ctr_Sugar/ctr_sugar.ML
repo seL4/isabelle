@@ -716,7 +716,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
         fun inst_thm t thm =
           Thm.instantiate' [] [SOME (Thm.cterm_of lthy t)]
-            (Thm.instantiate (rho_As, []) (Drule.zero_var_indexes thm));
+            (Thm.instantiate (TVars.make rho_As, Vars.empty) (Drule.zero_var_indexes thm));
 
         val uexhaust_thm = inst_thm u exhaust_thm;
 

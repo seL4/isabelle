@@ -40,7 +40,7 @@ fun unoverload_single_type context tvar thm =
       val tyenv_list = tyenv |> Vartab.dest
         |> map (fn (x, (s, TVar (x', _))) =>
           ((x, s), Thm.ctyp_of (Context.proof_of context) (TVar(x', s))))
-      val thm'' = Drule.instantiate_normalize (tyenv_list, []) thm'
+      val thm'' = Drule.instantiate_normalize (TVars.make tyenv_list, Vars.empty) thm'
       val varify_const =
         apsnd (subst_TFree "'a" (TVar (tvar, @{sort type}))) #> Const #> Thm.global_cterm_of thy
       val consts = params_of_sort thy sort

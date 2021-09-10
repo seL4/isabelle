@@ -305,7 +305,8 @@ fun under_assumption f ct =
   let val cprop = as_prop ct
   in Thm.implies_intr cprop (f (Thm.assume cprop)) end
 
-fun instantiate cv ct = Thm.instantiate ([], [(Term.dest_Var (Thm.term_of cv), ct)])
+fun instantiate cv ct =
+  Thm.instantiate (TVars.empty, Vars.make [(Term.dest_Var (Thm.term_of cv), ct)])
 
 
 (* proof replay for tautologies *)

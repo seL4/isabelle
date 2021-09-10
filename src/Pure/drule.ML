@@ -18,8 +18,7 @@ sig
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
-  val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
-    thm -> thm
+  val instantiate_normalize: ctyp TVars.table * cterm Vars.table -> thm -> thm
   val instantiate'_normalize: ctyp option list -> cterm option list -> thm -> thm
   val infer_instantiate_types: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
@@ -192,7 +191,7 @@ fun lift_all ctxt raw_goal raw_th =
           | _ => inst)));
   in
     th
-    |> Thm.instantiate ([], Vars.dest inst)
+    |> Thm.instantiate (TVars.empty, inst)
     |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 
@@ -217,15 +216,12 @@ fun zero_var_indexes_list [] = []
 
         val tvars = TVars.build (fold Thm.add_tvars ths);
         val the_tvar = the o TVars.lookup tvars;
-        val instT' =
-          build (instT |> TVars.fold (fn (v, TVar (b, _)) =>
-            cons (v, Thm.rename_tvar b (the_tvar v))));
+        val instT' = instT |> TVars.map (fn v => fn TVar (b, _) => Thm.rename_tvar b (the_tvar v));
 
-        val vars = Vars.build (fold (Thm.add_vars o Thm.instantiate (instT', [])) ths);
+        val vars = Vars.build (fold (Thm.add_vars o Thm.instantiate (instT', Vars.empty)) ths);
         val the_var = the o Vars.lookup vars;
         val inst' =
-          build (inst |> Vars.fold (fn (v, Var (b, _)) =>
-            cons (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))));
+          inst |> Vars.map (fn v => fn Var (b, _) => Thm.var (b, Thm.ctyp_of_cterm (the_var v)));
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (instT', inst')) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
@@ -602,7 +598,9 @@ fun mk_term ct =
   let
     val cT = Thm.ctyp_of_cterm ct;
     val T = Thm.typ_of cT;
-  in Thm.instantiate ([((("'a", 0), []), cT)], [((("x", 0), T), ct)]) termI end;
+  in
+    Thm.instantiate (TVars.make [((("'a", 0), []), cT)], Vars.make [((("x", 0), T), ct)]) termI
+  end;
 
 fun dest_term th =
   let val cprop = strip_imp_concl (Thm.cprop_of th) in
@@ -766,11 +764,12 @@ fun infer_instantiate_types _ [] th = th
 
         val (tyenv, _) = fold infer args (Vartab.empty, 0);
         val instT =
-          Vartab.fold (fn (xi, (S, T)) =>
-            cons ((xi, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))) tyenv [];
-        val inst = args |> map (fn ((xi, T), cu) =>
-          ((xi, Envir.norm_type tyenv T),
-            Thm.instantiate_cterm (instT, []) (Thm.transfer_cterm thy cu)));
+          TVars.build (tyenv |> Vartab.fold (fn (xi, (S, T)) =>
+            TVars.add ((xi, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))));
+        val inst =
+          Vars.build (args |> fold (fn ((xi, T), cu) =>
+            Vars.add ((xi, Envir.norm_type tyenv T),
+              Thm.instantiate_cterm (instT, Vars.empty) (Thm.transfer_cterm thy cu))));
       in instantiate_normalize (instT, inst) th end
       handle CTERM (msg, _) => raise THM (msg, 0, [raw_th])
         | TERM (msg, _) => raise THM (msg, 0, [raw_th])

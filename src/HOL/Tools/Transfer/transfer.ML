@@ -576,7 +576,7 @@ fun transfer_rule_of_term ctxt equiv t =
   in
     thm
     |> Thm.generalize (Names.make_set tfrees, Names.make_set (rnames @ frees)) idx
-    |> Thm.instantiate (map tinst binsts, map inst binsts)
+    |> Thm.instantiate (TVars.make (map tinst binsts), Vars.make (map inst binsts))
   end
 
 fun transfer_rule_of_lhs ctxt t =
@@ -597,7 +597,7 @@ fun transfer_rule_of_lhs ctxt t =
   in
     thm
     |> Thm.generalize (Names.make_set tfrees, Names.make_set (rnames @ frees)) idx
-    |> Thm.instantiate (map tinst binsts, map inst binsts)
+    |> Thm.instantiate (TVars.make (map tinst binsts), Vars.make (map inst binsts))
   end
 
 fun eq_rules_tac ctxt eq_rules =
@@ -701,7 +701,7 @@ fun transferred ctxt extra_rules thm =
       rev (Term.add_tvars (Thm.full_prop_of thm1) [])
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
-      |> Thm.instantiate (instT, [])
+      |> Thm.instantiate (TVars.make instT, Vars.empty)
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val rule = transfer_rule_of_lhs ctxt' (HOLogic.dest_Trueprop (Thm.concl_of thm2))
@@ -736,7 +736,7 @@ fun untransferred ctxt extra_rules thm =
       rev (Term.add_tvars (Thm.full_prop_of thm1) [])
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
-      |> Thm.instantiate (instT, [])
+      |> Thm.instantiate (TVars.make instT, Vars.empty)
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)

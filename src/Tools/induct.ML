@@ -593,13 +593,16 @@ fun internalize ctxt k th =
 
 local
 
-fun dest_env ctxt env =
+fun insts_env ctxt env =
   let
     val pairs = Vartab.dest (Envir.term_env env);
     val types = Vartab.dest (Envir.type_env env);
     val ts = map (Thm.cterm_of ctxt o Envir.norm_term env o #2 o #2) pairs;
     val xs = map #1 pairs ~~ map Thm.typ_of_cterm ts;
-  in (map (fn (ai, (S, T)) => ((ai, S), Thm.ctyp_of ctxt T)) types, xs ~~ ts) end;
+    val instT =
+      TVars.build (types |> fold (fn (ai, (S, T)) => TVars.add ((ai, S), Thm.ctyp_of ctxt T)));
+    val inst = Vars.build (fold2 (fn x => fn t => Vars.add (x, t)) xs ts);
+  in (instT, inst) end;
 
 in
 
@@ -620,7 +623,7 @@ fun guess_instance ctxt rule i st =
       in
         Unify.smash_unifiers (Context.Proof ctxt)
           [(Thm.concl_of rule', concl)] (Envir.empty (Thm.maxidx_of rule'))
-        |> Seq.map (fn env => Drule.instantiate_normalize (dest_env ctxt env) rule')
+        |> Seq.map (fn env => Drule.instantiate_normalize (insts_env ctxt env) rule')
       end
   end
   handle General.Subscript => Seq.empty;

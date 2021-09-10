@@ -305,8 +305,8 @@ fun mk_casesplit_goal_thm ctxt (vstr,ty) gt =
     in
       Conv.fconv_rule Drule.beta_eta_conversion
          (case_thm
-            |> Thm.instantiate (type_cinsts, [])
-            |> Thm.instantiate ([], [(Pv, abs_ct), (Dv, free_ct)]))
+            |> Thm.instantiate (TVars.make type_cinsts, Vars.empty)
+            |> Thm.instantiate (TVars.empty, Vars.make [(Pv, abs_ct), (Dv, free_ct)]))
     end;
 
 
@@ -1121,7 +1121,8 @@ local (* this is fragile *)
   val gspec = Thm.forall_intr (Thm.cterm_of \<^context> x) spec
 in
 fun SPEC tm thm =
-   let val gspec' = Drule.instantiate_normalize ([(TV, Thm.ctyp_of_cterm tm)], []) gspec
+   let val gspec' =
+    Drule.instantiate_normalize (TVars.make [(TV, Thm.ctyp_of_cterm tm)], Vars.empty) gspec
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
@@ -1140,8 +1141,8 @@ local
       let val ctm2 = Thm.cterm_of ctxt tm2
       in ((i, Thm.typ_of_cterm ctm2), ctm2) end)
   fun certify ctxt (ty_theta,tm_theta) =
-    (cty_theta ctxt (Vartab.dest ty_theta),
-     ctm_theta ctxt (Vartab.dest tm_theta))
+    (TVars.make (cty_theta ctxt (Vartab.dest ty_theta)),
+     Vars.make (ctm_theta ctxt (Vartab.dest tm_theta)))
 in
 fun GEN ctxt v th =
    let val gth = Thm.forall_intr v th

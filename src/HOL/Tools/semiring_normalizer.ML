@@ -81,7 +81,7 @@ fun match ctxt tm =
        let
         fun h instT =
           let
-            val substT = Thm.instantiate (instT, []);
+            val substT = Thm.instantiate (instT, Vars.empty);
             val substT_cterm = Drule.cterm_rule substT;
 
             val vars' = map substT_cterm vars;
@@ -144,8 +144,9 @@ val field_funs =
       let val (a, b) = Rat.dest x
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
-             (Thm.apply (Thm.instantiate_cterm ([(divide_tvar, cT)], []) divide_const)
-                         (Numeral.mk_cnumber cT a))
+             (Thm.apply
+               (Thm.instantiate_cterm (TVars.make [(divide_tvar, cT)], Vars.empty) divide_const)
+               (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end
   in
@@ -249,7 +250,8 @@ fun dest_binop ct ct' =
   if is_binop ct ct' then Thm.dest_binop ct'
   else raise CTERM ("dest_binop: bad binop", [ct, ct'])
 
-fun inst_thm inst = Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) inst);
+fun inst_thm inst =
+  Thm.instantiate (TVars.empty, Vars.make (map (apfst (dest_Var o Thm.term_of)) inst));
 
 val dest_number = Thm.term_of #> HOLogic.dest_number #> snd;
 val is_number = can dest_number;

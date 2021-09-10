@@ -187,14 +187,15 @@ fun inst_morphism params ((prfx, mandatory), insts') ctxt =
 
     (* instantiation *)
     val instT =
-      (type_parms ~~ map Logic.dest_type type_parms'')
-      |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
+      TFrees.build
+        (fold2 (fn v => fn T => not (TFree v = T) ? TFrees.add (v, T))
+          type_parms (map Logic.dest_type type_parms''));
     val cert_inst =
-      ((map #1 params ~~
-        map (Term_Subst.instantiateT_frees (TFrees.make instT)) parm_types) ~~ insts'')
-      |> map_filter (fn (v, t) => if Free v = t then NONE else SOME (v, cert t));
+      Frees.build
+        (fold2 (fn v => fn t => not (Free v = t) ? Frees.add (v, cert t))
+          (map #1 params ~~ map (Term_Subst.instantiateT_frees instT) parm_types) insts'');
   in
-    (Element.instantiate_normalize_morphism (map (apsnd certT) instT, cert_inst) $>
+    (Element.instantiate_normalize_morphism (TFrees.map (K certT) instT, cert_inst) $>
       Morphism.binding_morphism "Expression.inst" (Binding.prefix mandatory prfx), ctxt')
   end;
 

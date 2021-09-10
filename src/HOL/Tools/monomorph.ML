@@ -165,7 +165,7 @@ fun instantiate ctxt subst =
   let
     fun cert (ix, (S, T)) = ((ix, S), Thm.ctyp_of ctxt T)
     fun cert' subst = Vartab.fold (cons o cert) subst []
-  in Thm.instantiate (cert' subst, []) end
+  in Thm.instantiate (TVars.make (cert' subst), Vars.empty) end
 
 fun add_new_grounds used_grounds new_grounds thm =
   let

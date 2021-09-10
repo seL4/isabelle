@@ -64,7 +64,7 @@ val numeral = cterm_of (Const (\<^const_name>\<open>numeral\<close>, \<^typ>\<op
 val uminus_tvar = tvar \<^sort>\<open>uminus\<close>;
 val uminus = cterm_of (Const (\<^const_name>\<open>uminus\<close>, TVar uminus_tvar --> TVar uminus_tvar));
 
-fun instT T v = Thm.instantiate_cterm ([(v, T)], []);
+fun instT T v = Thm.instantiate_cterm (TVars.make [(v, T)], Vars.empty);
 
 in
 

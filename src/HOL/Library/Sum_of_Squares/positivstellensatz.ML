@@ -476,7 +476,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun real_not_eq_conv ct =
       let
         val (l,r) = dest_eq (Thm.dest_arg ct)
-        val th = Thm.instantiate ([],[((("x", 0), \<^typ>\<open>real\<close>),l),((("y", 0), \<^typ>\<open>real\<close>),r)]) neq_th
+        val th = Thm.instantiate (TVars.empty, Vars.make [((("x", 0), \<^typ>\<open>real\<close>),l),((("y", 0), \<^typ>\<open>real\<close>),r)]) neq_th
         val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
         val th_x = Drule.arg_cong_rule \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close> th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
@@ -740,16 +740,16 @@ local
 
       val elim_abs = eliminate_construct is_abs
         (fn p => fn ax =>
-          Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax)]) pth_abs)
+          Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax)]) pth_abs)
       val elim_max = eliminate_construct is_max
         (fn p => fn ax =>
           let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
+          in Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
                              pth_max end)
       val elim_min = eliminate_construct is_min
         (fn p => fn ax =>
           let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
+          in Thm.instantiate (TVars.empty, Vars.make [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
                              pth_min end)
     in first_conv [elim_abs, elim_max, elim_min, all_conv]
     end;

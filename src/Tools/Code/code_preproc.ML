@@ -213,7 +213,7 @@ fun normalized_tfrees_sandwich ctxt ct =
     if eq_list (eq_fst (op =)) (vs_normalized, vs_original)
     then (K I, ct)
     else
-     (K (Thm.instantiate (normalization, []) o Thm.varifyT_global),
+     (K (Thm.instantiate (TVars.make normalization, Vars.empty) o Thm.varifyT_global),
       Thm.cterm_of ctxt (map_types normalize t))
   end;
 

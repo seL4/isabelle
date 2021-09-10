@@ -60,8 +60,9 @@ fun is_False thm =
 fun is_nat t = (fastype_of1 t = HOLogic.natT);
 
 fun mk_nat_thm thy t =
-  let val ct = Thm.global_cterm_of thy t
-  in Drule.instantiate_normalize ([], [((("n", 0), HOLogic.natT), ct)]) @{thm le0} end;
+  let val ct = Thm.global_cterm_of thy t in
+    Drule.instantiate_normalize (TVars.empty, Vars.make [((("n", 0), HOLogic.natT), ct)]) @{thm le0}
+  end;
 
 end;
 

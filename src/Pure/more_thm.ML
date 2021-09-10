@@ -63,7 +63,7 @@ sig
   val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val instantiate_frees: ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> thm -> thm
+  val instantiate_frees: ctyp TFrees.table * cterm Frees.table -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
@@ -375,26 +375,29 @@ end;
 
 (* instantiate frees *)
 
-fun instantiate_frees ([], []) th = th
-  | instantiate_frees (instT, inst) th =
-      let
-        val idx = Thm.maxidx_of th + 1;
-        fun index ((a, A), b) = (((a, idx), A), b);
-        val insts = (map index instT, map index inst);
-        val tfrees = Names.build (fold (Names.add_set o #1 o #1) instT);
-        val frees = Names.build (fold (Names.add_set o #1 o #1) inst);
+fun instantiate_frees (instT, inst) th =
+  if TFrees.is_empty instT andalso Frees.is_empty inst then th
+  else
+    let
+      val idx = Thm.maxidx_of th + 1;
+      fun index ((a, A), b) = (((a, idx), A), b);
+      val insts =
+        (TVars.build (TFrees.fold (TVars.add o index) instT),
+         Vars.build (Frees.fold (Vars.add o index) inst));
+      val tfrees = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
+      val frees = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
 
-        val hyps = Thm.chyps_of th;
-        val inst_cterm =
-          Thm.generalize_cterm (tfrees, frees) idx #>
-          Thm.instantiate_cterm insts;
-      in
-        th
-        |> fold_rev Thm.implies_intr hyps
-        |> Thm.generalize (tfrees, frees) idx
-        |> Thm.instantiate insts
-        |> fold (elim_implies o Thm.assume o inst_cterm) hyps
-      end;
+      val hyps = Thm.chyps_of th;
+      val inst_cterm =
+        Thm.generalize_cterm (tfrees, frees) idx #>
+        Thm.instantiate_cterm insts;
+    in
+      th
+      |> fold_rev Thm.implies_intr hyps
+      |> Thm.generalize (tfrees, frees) idx
+      |> Thm.instantiate insts
+      |> fold (elim_implies o Thm.assume o inst_cterm) hyps
+    end;
 
 
 (* instantiate by left-to-right occurrence of variables *)
@@ -411,9 +414,9 @@ fun instantiate' cTs cts thm =
         err "more instantiations than variables in thm";
 
     val instT = zip_vars (build_rev (Thm.fold_terms {hyps = false} Term.add_tvars thm)) cTs;
-    val thm' = Thm.instantiate (instT, []) thm;
+    val thm' = Thm.instantiate (TVars.make instT, Vars.empty) thm;
     val inst = zip_vars (build_rev (Thm.fold_terms {hyps = false} Term.add_vars thm')) cts;
-  in Thm.instantiate ([], inst) thm' end;
+  in Thm.instantiate (TVars.empty, Vars.make inst) thm' end;
 
 
 (* implicit generalization over variables -- canonical order *)
@@ -463,7 +466,7 @@ fun unvarify_global thy th =
               let val T' = Term_Subst.instantiateT instT T
               in Vars.add (((x, i), T'), cert (Free ((x, T')))) inst end
           | _ => inst)));
-  in Thm.instantiate (TVars.dest cinstT, Vars.dest cinst) th end;
+  in Thm.instantiate (cinstT, cinst) th end;
 
 fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 
@@ -528,7 +531,7 @@ fun add_axiom ctxt (b, prop) thy =
     val axm_name = Sign.full_name thy' b;
     val axm' = Thm.axiom thy' axm_name;
     val thm =
-      Thm.instantiate (recover, []) axm'
+      Thm.instantiate (TVars.make recover, Vars.empty) axm'
       |> unvarify_global thy'
       |> fold elim_implies of_sorts;
   in ((axm_name, thm), thy') end;
@@ -545,7 +548,7 @@ fun add_def (context as (ctxt, _)) unchecked overloaded (b, prop) thy =
     val axm_name = Sign.full_name thy' b;
     val axm' = Thm.axiom thy' axm_name;
     val thm =
-      Thm.instantiate (recover, []) axm'
+      Thm.instantiate (TVars.make recover, Vars.empty) axm'
       |> unvarify_global thy'
       |> fold_rev Thm.implies_intr prems;
   in ((axm_name, thm), thy') end;

@@ -176,7 +176,7 @@ fun decomp_reify da cgns (ct, ctxt) bds =
               (Vartab.dest tyenv);
         in
           ((map (Thm.cterm_of ctxt) fts ~~ replicate (length fts) ctxt,
-             apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
+             apfst (FWD (Drule.instantiate_normalize (TVars.make ctyenv, Vars.make its) cong))), bds)
         end handle Pattern.MATCH => decomp_reify da congs (ct, ctxt) bds))
   end;
 
@@ -229,10 +229,11 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
               (map (fn n => (n, 0)) xns) tml);
         val substt =
           let
-            val ih = Drule.cterm_rule (Thm.instantiate (subst_ty, []));
+            val ih = Drule.cterm_rule (Thm.instantiate (TVars.make subst_ty, Vars.empty));
           in map (apply2 ih) (subst_ns @ subst_vs @ cts) end;
         val th =
-          (Drule.instantiate_normalize (subst_ty, map (apfst (dest_Var o Thm.term_of)) substt) eq)
+          (Drule.instantiate_normalize
+            (TVars.make subst_ty, Vars.make (map (apfst (dest_Var o Thm.term_of)) substt)) eq)
             RS sym;
       in (hd (Variable.export ctxt'' ctxt [th]), bds) end)
       handle Pattern.MATCH => tryeqs eqs (ct, ctxt) bds);
@@ -270,7 +271,7 @@ fun mk_congs ctxt eqs =
         val (_, _ :: vs) = eq |> Thm.prop_of |> HOLogic.dest_Trueprop
           |> HOLogic.dest_eq |> fst |> strip_comb;
         val subst = map_filter (fn Var v => SOME (v, subst (#2 v)) | _ => NONE) vs;
-      in Thm.instantiate ([], subst) eq end;
+      in Thm.instantiate (TVars.empty, Vars.make subst) eq end;
     val (ps, congs) = map_split (mk_congeq ctxt' fs o prep_eq) eqs;
     val bds = AList.make (K ([], [])) tys;
   in (ps ~~ Variable.export ctxt' ctxt congs, bds) end
@@ -288,7 +289,7 @@ fun conv ctxt eqs ct =
     val vs = map (fn Var (v as (_, T)) =>
       (v, the (AList.lookup Type.could_unify bds' T) |> snd |> HOLogic.mk_list (dest_listT T))) vars;
     val th' =
-      Drule.instantiate_normalize ([], map (apsnd (Thm.cterm_of ctxt)) vs) th;
+      Drule.instantiate_normalize (TVars.empty, Vars.make (map (apsnd (Thm.cterm_of ctxt)) vs)) th;
     val th'' = Thm.symmetric (dereify ctxt [] (Thm.lhs_of th'));
   in Thm.transitive th'' th' end;
 

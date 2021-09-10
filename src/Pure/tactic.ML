@@ -164,14 +164,15 @@ fun distinct_subgoals_tac st =
 
           val template = Drule.list_implies (As, C);
           val inst =
-            (dest_Free (Thm.term_of C), Thm.cconcl_of st) ::
-              Ctermtab.fold (fn (ct, i) => cons ((Name.bound i, propT), ct)) tab [];
+            Frees.build
+             (Frees.add (dest_Free (Thm.term_of C), Thm.cconcl_of st) #>
+              Ctermtab.fold (fn (ct, i) => Frees.add ((Name.bound i, propT), ct)) tab);
         in
           Thm.assume template
           |> fold (Thm.elim_implies o Thm.assume) As
           |> fold_rev Thm.implies_intr As'
           |> Thm.implies_intr template
-          |> Thm.instantiate_frees ([], inst)
+          |> Thm.instantiate_frees (TFrees.empty, inst)
           |> Thm.elim_implies st
         end;
   in Seq.single st' end;

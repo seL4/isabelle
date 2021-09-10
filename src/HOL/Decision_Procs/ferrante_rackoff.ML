@@ -68,8 +68,8 @@ let
    fun fw mi th th' th'' =
      let
       val th0 = if mi then
-           Drule.instantiate_normalize ([],[(p1_v, p1),(p2_v, p2),(mp1_v, mp1), (mp2_v, mp2)]) th
-        else Drule.instantiate_normalize ([],[(p1_v, p1),(p2_v, p2),(mp1_v, pp1), (mp2_v, pp2)]) th
+           Drule.instantiate_normalize (TVars.empty, Vars.make [(p1_v, p1),(p2_v, p2),(mp1_v, mp1), (mp2_v, mp2)]) th
+        else Drule.instantiate_normalize (TVars.empty, Vars.make [(p1_v, p1),(p2_v, p2),(mp1_v, pp1), (mp2_v, pp2)]) th
      in Thm.implies_elim (Thm.implies_elim th0 th') th'' end
   in (fw true th1 th_1 th_1', fw false th2 th_2 th_2',
       fw true th3 th_3 th_3', fw false th4 th_4 th_4', fw true th5 th_5 th_5')
@@ -115,11 +115,11 @@ let
    val [pinf_conj, pinf_disj, pinf_eq, pinf_neq, pinf_lt,
         pinf_le, pinf_gt, pinf_ge, pinf_P] = pinf
    val [nmi_conj, nmi_disj, nmi_eq, nmi_neq, nmi_lt,
-        nmi_le, nmi_gt, nmi_ge, nmi_P] = map (Drule.instantiate_normalize ([],[(U_v,cU)])) nmi
+        nmi_le, nmi_gt, nmi_ge, nmi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) nmi
    val [npi_conj, npi_disj, npi_eq, npi_neq, npi_lt,
-        npi_le, npi_gt, npi_ge, npi_P] = map (Drule.instantiate_normalize ([],[(U_v,cU)])) npi
+        npi_le, npi_gt, npi_ge, npi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) npi
    val [ld_conj, ld_disj, ld_eq, ld_neq, ld_lt,
-        ld_le, ld_gt, ld_ge, ld_P] = map (Drule.instantiate_normalize ([],[(U_v,cU)])) ld
+        ld_le, ld_gt, ld_ge, ld_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) ld
 
    fun decomp_mpinf fm =
      case Thm.term_of fm of

@@ -47,8 +47,7 @@ sig
   val transform_witness: morphism -> witness -> witness
   val conclude_witness: Proof.context -> witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
-  val instantiate_normalize_morphism:
-    ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> morphism
+  val instantiate_normalize_morphism: ctyp TFrees.table * cterm Frees.table -> morphism
   val satisfy_morphism: witness list -> morphism
   val eq_term_morphism: theory -> term list -> morphism option
   val eq_morphism: theory -> thm list -> morphism option
@@ -208,7 +207,8 @@ fun standard_elim ctxt th =
     SOME C =>
       let
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val th' = Thm.instantiate ([], [(Term.dest_Var C, Thm.cterm_of ctxt thesis)]) th;
+        val insts = (TVars.empty, Vars.make [(Term.dest_Var C, Thm.cterm_of ctxt thesis)]);
+        val th' = Thm.instantiate insts th;
       in (th', true) end
   | NONE => (th, false));
 

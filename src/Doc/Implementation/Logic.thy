@@ -586,8 +586,7 @@ text %mlref \<open>
   @{define_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
   @{define_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{define_ML Thm.generalize: "Names.set * Names.set -> int -> thm -> thm"} \\
-  @{define_ML Thm.instantiate: "((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
-  -> thm -> thm"} \\
+  @{define_ML Thm.instantiate: "ctyp TVars.table * cterm Vars.table -> thm -> thm"} \\
   @{define_ML Thm.add_axiom: "Proof.context ->
   binding * term -> theory -> (string * thm) * theory"} \\
   @{define_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->

@@ -328,13 +328,15 @@ fun import_export_proof ctxt (name, raw_th) =
     val instT =
       TVars.build (fold2 (fn a => fn b =>
         (case a of TVar v => TVars.add (v, b) | _ => I)) tvars tfrees);
-    val cinstT = TVars.fold (fn (v, T) => cons (v, Thm.ctyp_of ctxt T)) instT [];
+    val cinstT = TVars.map (K (Thm.ctyp_of ctxt)) instT;
     val cinst =
-      map_filter
-        (fn (Var (xi, T), t) =>
-          SOME ((xi, Term_Subst.instantiateT instT T),
-            Thm.cterm_of ctxt (Term.map_types (Term_Subst.instantiateT instT) t))
-        | _ => NONE) (vars ~~ frees);
+      Vars.build
+        (fold2 (fn v => fn t =>
+          (case v of
+            Var (xi, T) =>
+              Vars.add ((xi, Term_Subst.instantiateT instT T),
+                Thm.cterm_of ctxt (Term.map_types (Term_Subst.instantiateT instT) t))
+          | _ => I)) vars frees);
     val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)

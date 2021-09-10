@@ -219,10 +219,10 @@ fun get_parity ct =
         case tvs of
           [v] =>
             let
-              val thm' = Thm.instantiate ([(v, Thm.ctyp_of_cterm ct)], []) thm
+              val thm' = Thm.instantiate (TVars.make [(v, Thm.ctyp_of_cterm ct)], Vars.empty) thm
               val vs = take (length cts) (rev (Term.add_vars (Thm.concl_of thm') []))
             in
-              Thm.instantiate ([], vs ~~ cts) thm'
+              Thm.instantiate (TVars.empty, Vars.make (vs ~~ cts)) thm'
             end
         | _ => raise THM ("get_parity", 0, [thm])
       end

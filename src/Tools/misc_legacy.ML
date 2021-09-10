@@ -185,7 +185,8 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
               fold Term.add_vars (Logic.strip_imp_prems prop) []
             and concl_vars = Term.add_vars (Logic.strip_imp_concl prop) []
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
-            val st' = Thm.instantiate ([], map mk_inst subgoal_insts) st
+            val st' =
+              Thm.instantiate (TVars.empty, Vars.build (fold (Vars.add o mk_inst) subgoal_insts)) st
             val emBs = map (Thm.cterm_of ctxt o embed) (Thm.prems_of st')
             val Cth  = implies_elim_list st' (map (elim o Thm.assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
@@ -247,7 +248,9 @@ fun freeze_thaw_robust ctxt th =
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
                      |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
-         in  (Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) insts) fth, thaw)  end
+         in
+           (Thm.instantiate (TVars.empty, Vars.build (fold (Vars.add o apfst (dest_Var o Thm.term_of)) insts)) fth, thaw)
+         end
  end;
 
 end;

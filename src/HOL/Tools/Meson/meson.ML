@@ -358,7 +358,8 @@ in
       val ([x], ctxt') =
         Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (Thm.concl_of th))] ctxt;
       val spec' = spec
-        |> Thm.instantiate ([], [(spec_var, Thm.cterm_of ctxt' (Free (x, snd spec_var)))]);
+        |> Thm.instantiate
+          (TVars.empty, Vars.make [(spec_var, Thm.cterm_of ctxt' (Free (x, snd spec_var)))]);
     in (th RS spec', ctxt') end
 end;
 

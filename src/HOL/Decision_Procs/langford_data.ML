@@ -50,7 +50,7 @@ fun match ctxt tm =
       let
         fun h instT =
           let
-            val substT = Thm.instantiate (instT, []);
+            val substT = Thm.instantiate (instT, Vars.empty);
             val substT_cterm = Drule.cterm_rule substT;
 
             val qe_bnds' = substT qe_bnds;

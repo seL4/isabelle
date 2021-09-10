@@ -36,12 +36,15 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val a_tfree = (Name.aT, base_sort);
     val a_type = TFree a_tfree;
     val param_map_const = (map o apsnd) Const param_map;
-    val param_map_inst = param_map |> map (fn (x, (c, T)) =>
-      let val T' = map_atyps (K a_type) T in ((x, T'), cert (Const (c, T'))) end);
+    val param_map_inst =
+      Frees.build (param_map |> fold (fn (x, (c, T)) =>
+        let val T' = map_atyps (K a_type) T
+        in Frees.add ((x, T'), cert (Const (c, T'))) end));
     val const_morph =
-      Element.instantiate_normalize_morphism ([], param_map_inst);
+      Element.instantiate_normalize_morphism (TFrees.empty, param_map_inst);
     val typ_morph =
-      Element.instantiate_normalize_morphism ([(a_tfree, certT (Term.aT [class]))], [])
+      Element.instantiate_normalize_morphism
+        (TFrees.make [(a_tfree, certT (Term.aT [class]))], Frees.empty)
     val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = thy_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            (Expression.Named param_map_const, [])))], []);

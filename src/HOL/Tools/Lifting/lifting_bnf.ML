@@ -24,7 +24,7 @@ fun Quotient_tac bnf ctxt i =
     val vars = get_lhs rel_Grp |> strip_comb |> snd |> map_filter (try (strip_comb #> snd #> hd))
     val UNIVs = map (fn var => HOLogic.mk_UNIV (var |> dest_Var |> snd |> dest_Type |> snd |> hd)) vars
     val inst = map dest_Var vars ~~ map (Thm.cterm_of ctxt) UNIVs
-    val rel_Grp_UNIV_sym = rel_Grp |> Drule.instantiate_normalize ([], inst) 
+    val rel_Grp_UNIV_sym = rel_Grp |> Drule.instantiate_normalize (TVars.empty, Vars.make inst) 
       |> Local_Defs.unfold0 ctxt @{thms subset_UNIV[THEN eqTrueI] UNIV_def[symmetric] simp_thms(21)}
       |> (fn thm => thm RS sym)
     val rel_mono = rel_mono_of_bnf bnf

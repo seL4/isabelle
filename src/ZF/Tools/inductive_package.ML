@@ -508,7 +508,7 @@ let
        The name "x.1" comes from the "RS spec" !*)
      val inst =
          case elem_frees of [_] => I
-            | _ => Drule.instantiate_normalize ([], [(((("x",1), Ind_Syntax.iT)),
+            | _ => Drule.instantiate_normalize (TVars.empty, Vars.make [(((("x",1), Ind_Syntax.iT)),
                                       Thm.global_cterm_of thy4 elem_tuple)]);
 
      (*strip quantifier and the implication*)

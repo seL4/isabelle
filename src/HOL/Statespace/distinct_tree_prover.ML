@@ -97,8 +97,8 @@ fun instantiate ctxt instTs insts =
     val insts' = map (apfst mapT_and_recertify) insts;
   in
     Thm.instantiate
-     (map (apfst (dest_TVar o Thm.typ_of)) instTs,
-      map (apfst (dest_Var o Thm.term_of)) insts')
+     (TVars.make (map (apfst (dest_TVar o Thm.typ_of)) instTs),
+      Vars.make (map (apfst (dest_Var o Thm.term_of)) insts'))
   end;
 
 fun tvar_clash ixn S S' =
@@ -152,7 +152,7 @@ fun discharge ctxt prems rule =
       map (fn (v, (S, U)) => ((v, S), Thm.ctyp_of ctxt U)) tyinsts;
     val insts' =
       map (fn (idxn, ct) => ((idxn, Thm.typ_of_cterm ct), ct)) insts;
-    val rule' = Thm.instantiate (tyinsts', insts') rule;
+    val rule' = Thm.instantiate (TVars.make tyinsts', Vars.make insts') rule;
   in fold Thm.elim_implies prems rule' end;
 
 local
@@ -299,8 +299,8 @@ fun subtractProver ctxt (Const (\<^const_name>\<open>Tip\<close>, T)) ct dist_th
         val [alphaI] = #2 (dest_Type T);
       in
         Thm.instantiate
-          ([(alpha, Thm.ctyp_of ctxt alphaI)],
-           [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
+          (TVars.make [(alpha, Thm.ctyp_of ctxt alphaI)],
+           Vars.make [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
       end
   | subtractProver ctxt (Const (\<^const_name>\<open>Node\<close>, nT) $ l $ x $ d $ r) ct dist_thm =
       let

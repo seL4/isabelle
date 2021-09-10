@@ -103,7 +103,7 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 fun inst_excluded_middle i_atom =
   @{lemma "P \<Longrightarrow> \<not> P \<Longrightarrow> False" by (rule notE)}
-  |> instantiate_normalize ([], [((("P", 0), \<^typ>\<open>bool\<close>), i_atom)])
+  |> instantiate_normalize (TVars.empty, Vars.make [((("P", 0), \<^typ>\<open>bool\<close>), i_atom)])
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
   singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom)
@@ -174,7 +174,7 @@ fun incr_type_indexes ctxt inc th =
     val tvs = Term.add_tvars (Thm.full_prop_of th) []
     fun inc_tvar ((a, i), s) = (((a, i), s), Thm.ctyp_of ctxt (TVar ((a, i + inc), s)))
   in
-    Thm.instantiate (map inc_tvar tvs, []) th
+    Thm.instantiate (TVars.make (map inc_tvar tvs), Vars.empty) th
   end
 
 (*Like RSN, but we rename apart only the type variables. Vars here typically
@@ -217,7 +217,7 @@ fun resolve_inc_tyvars ctxt th1 i th2 =
           again. We could do this the first time around but this error occurs seldom and we don't
           want to break existing proofs in subtle ways or slow them down.*)
         if null ps then raise TERM z
-        else res (apply2 (Drule.instantiate_normalize (ps, [])) (th1', th2))
+        else res (apply2 (Drule.instantiate_normalize (TVars.make ps, Vars.empty)) (th1', th2))
       end
   end
 
@@ -407,7 +407,7 @@ fun flexflex_first_order ctxt th =
         val instsT = Vartab.fold (cons o mkT) tyenv []
         val insts = Vartab.fold (cons o mk) tenv []
       in
-        Thm.instantiate (instsT, insts) th
+        Thm.instantiate (TVars.make instsT, Vars.make insts) th
       end
       handle THM _ => th)
 
@@ -574,7 +574,8 @@ fun instantiate_forall_tac ctxt t i st =
               tyenv []
           val t_inst = [apply2 (Thm.cterm_of ctxt o Envir.norm_term env) (Var var, t')]
         in
-          Drule.instantiate_normalize (ty_inst, map (apfst (dest_Var o Thm.term_of)) t_inst) th
+          Drule.instantiate_normalize
+            (TVars.make ty_inst, Vars.make (map (apfst (dest_Var o Thm.term_of)) t_inst)) th
         end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var")
   in

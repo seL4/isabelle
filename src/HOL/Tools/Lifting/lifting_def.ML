@@ -119,7 +119,7 @@ fun inst_of_lift_def ctxt qty lift_def =
     val instT =
       Vartab.fold (fn (a, (S, T)) => cons ((a, S), Thm.ctyp_of ctxt T))
         (mk_inst_of_lift_def qty lift_def) []
-    val phi = Morphism.instantiate_morphism (instT, [])
+    val phi = Morphism.instantiate_morphism (TVars.make instT, Vars.empty)
   in morph_lift_def phi lift_def end
 
 

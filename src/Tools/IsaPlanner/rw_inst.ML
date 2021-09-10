@@ -174,11 +174,11 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     val typinsts = cross_inst_typs (nonfixed_typinsts @ fixtyinsts);
 
     (* certified instantiations for types *)
-    val ctyp_insts = map (fn (ix, (s, ty)) => ((ix, s), Thm.ctyp_of ctxt ty)) typinsts;
+    val ctyp_insts = TVars.make (map (fn (ix, (s, ty)) => ((ix, s), Thm.ctyp_of ctxt ty)) typinsts);
 
     (* type instantiated versions *)
-    val tgt_th_tyinst = Thm.instantiate (ctyp_insts,[]) target_thm;
-    val rule_tyinst =  Thm.instantiate (ctyp_insts,[]) rule;
+    val tgt_th_tyinst = Thm.instantiate (ctyp_insts,Vars.empty) target_thm;
+    val rule_tyinst =  Thm.instantiate (ctyp_insts,Vars.empty) rule;
 
     val term_typ_inst = map (fn (ix,(_,ty)) => (ix,ty)) typinsts;
     (* type instanitated outer term *)
@@ -198,10 +198,10 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
 
     (* create certms of instantiations *)
     val cinsts_tyinst =
-      map (fn (ix, (ty, t)) => ((ix, ty), Thm.cterm_of ctxt t)) insts_tyinst_inst;
+      Vars.make (map (fn (ix, (ty, t)) => ((ix, ty), Thm.cterm_of ctxt t)) insts_tyinst_inst);
 
     (* The instantiated rule *)
-    val rule_inst = rule_tyinst |> Thm.instantiate ([], cinsts_tyinst);
+    val rule_inst = rule_tyinst |> Thm.instantiate (TVars.empty, cinsts_tyinst);
 
     (* Create a table of vars to be renamed after instantiation - ie
     other uninstantiated vars in the hyps the *instantiated* rule
@@ -217,7 +217,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     val couter_inst = Thm.reflexive (Thm.cterm_of ctxt outerterm_inst);
     val (cprems, abstract_rule_inst) =
       rule_inst
-      |> Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) cterm_renamings)
+      |> Thm.instantiate (TVars.empty, Vars.make (map (apfst (dest_Var o Thm.term_of)) cterm_renamings))
       |> mk_abstractedrule ctxt FakeTs_tyinst Ts_tyinst;
     val specific_tgt_rule =
       Conv.fconv_rule Drule.beta_eta_conversion
@@ -226,8 +226,8 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     (* create an instantiated version of the target thm *)
     val tgt_th_inst =
       tgt_th_tyinst
-      |> Thm.instantiate ([], cinsts_tyinst)
-      |> Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) cterm_renamings);
+      |> Thm.instantiate (TVars.empty, cinsts_tyinst)
+      |> Thm.instantiate (TVars.empty, Vars.make (map (apfst (dest_Var o Thm.term_of)) cterm_renamings));
 
     val (vars,frees_of_fixed_vars) = Library.split_list cterm_renamings;
   in

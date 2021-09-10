@@ -210,7 +210,7 @@ fun mk_curried_induct args ctxt inst_rule =
          THEN Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3
          THEN CONVERSION (split_params_conv ctxt
            then_conv (Conv.forall_conv (K split_paired_all_conv) ctxt)) 3)
-      |> Thm.instantiate ([], [(P_var, P_inst), (x_var, x_inst)])
+      |> Thm.instantiate (TVars.empty, Vars.make [(P_var, P_inst), (x_var, x_inst)])
       |> Simplifier.full_simplify (put_simpset split_conv_ss ctxt)
       |> singleton (Variable.export ctxt' ctxt)
   in

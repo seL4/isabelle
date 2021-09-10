@@ -173,7 +173,8 @@ fun mk_const_pat thy name destT =
   let val cpat = Thm.global_cterm_of thy (Const (name, Sign.the_const_type thy name))
   in (destT (Thm.ctyp_of_cterm cpat), cpat) end
 
-fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (map (dest_TVar o Thm.typ_of) cTs ~~ cUs, []) ct
+fun instTs cUs (cTs, ct) =
+  Thm.instantiate_cterm (TVars.make (map (dest_TVar o Thm.typ_of) cTs ~~ cUs), Vars.empty) ct
 fun instT cU (cT, ct) = instTs [cU] ([cT], ct)
 fun instT' ct = instT (Thm.ctyp_of_cterm ct)
 

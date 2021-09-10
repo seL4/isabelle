@@ -2060,7 +2060,7 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
     val unfolds = map2 mk_unfold rel_eqs rel_monos @ @{thms sup_fun_def sup_bool_def
       imp_disjL all_conj_distrib subst_eq_imp simp_thms(18,21,35)};
   in
-    Thm.instantiate ([], insts) coind
+    Thm.instantiate (TVars.empty, Vars.make insts) coind
     |> unfold_thms ctxt unfolds
   end;
 

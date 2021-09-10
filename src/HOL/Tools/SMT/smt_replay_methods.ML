@@ -157,12 +157,12 @@ fun gen_certify_inst sel cert ctxt thm t =
 
 fun match_instantiateT ctxt t thm =
   if Term.exists_type (Term.exists_subtype Term.is_TVar) (dest_thm thm) then
-    Thm.instantiate (gen_certify_inst fst (Thm.ctyp_of ctxt) ctxt thm t, []) thm
+    Thm.instantiate (TVars.make (gen_certify_inst fst (Thm.ctyp_of ctxt) ctxt thm t), Vars.empty) thm
   else thm
 
 fun match_instantiate ctxt t thm =
   let val thm' = match_instantiateT ctxt t thm in
-    Thm.instantiate ([], gen_certify_inst snd (Thm.cterm_of ctxt) ctxt thm' t) thm'
+    Thm.instantiate (TVars.empty, Vars.make (gen_certify_inst snd (Thm.cterm_of ctxt) ctxt thm' t)) thm'
   end
 
 fun discharge _ [] thm = thm

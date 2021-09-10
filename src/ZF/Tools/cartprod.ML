@@ -108,8 +108,8 @@ fun split_rule_var ctxt (Var(v,_), Type("fun",[T1,T2]), rl) =
           val newt = ap_split T1 T2 (Var(v,T'))
       in
         remove_split ctxt
-          (Drule.instantiate_normalize ([],
-            [((v, Ind_Syntax.iT-->T2), Thm.cterm_of ctxt newt)]) rl)
+          (Drule.instantiate_normalize (TVars.empty,
+            Vars.make [((v, Ind_Syntax.iT-->T2), Thm.cterm_of ctxt newt)]) rl)
       end
   | split_rule_var _ (t,T,rl) = rl;
 

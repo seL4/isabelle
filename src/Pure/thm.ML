@@ -56,10 +56,8 @@ sig
   val lambda: cterm -> cterm -> cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val incr_indexes_cterm: int -> cterm -> cterm
-  val match: cterm * cterm ->
-    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
-  val first_order_match: cterm * cterm ->
-    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+  val match: cterm * cterm -> ctyp TVars.table * cterm Vars.table
+  val first_order_match: cterm * cterm -> ctyp TVars.table * cterm Vars.table
   (*theorems*)
   val fold_terms: {hyps: bool} -> (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val fold_atomic_ctyps: {hyps: bool} -> (typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
@@ -157,10 +155,8 @@ sig
   val generalize: Names.set * Names.set -> int -> thm -> thm
   val generalize_cterm: Names.set * Names.set -> int -> cterm -> cterm
   val generalize_ctyp: Names.set -> int -> ctyp -> ctyp
-  val instantiate: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
-    thm -> thm
-  val instantiate_cterm: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
-    cterm -> cterm
+  val instantiate: ctyp TVars.table * cterm Vars.table -> thm -> thm
+  val instantiate_cterm: ctyp TVars.table * cterm Vars.table -> cterm -> cterm
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
@@ -651,7 +647,10 @@ fun gen_match match
       let val T = Envir.subst_type Tinsts U in
         (((x, i), T), Cterm {t = t, T = T, cert = cert, maxidx = maxidx2, sorts = sorts})
       end;
-  in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
+  in
+    (TVars.build (Vartab.fold (TVars.add o mk_cTinst) Tinsts),
+     Vars.build (Vartab.fold (Vars.add o mk_ctinst) tinsts))
+  end;
 
 in
 
@@ -1630,12 +1629,12 @@ fun add_sorts sorts_of (_, c) sorts = Sorts.union (sorts_of c) sorts;
 val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
 val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
-fun add_instT thy (v as (_, S), Ctyp {T = U, maxidx, ...}) =
-  if Sign.of_sort thy (U, S) then TVars.add (v, (U, maxidx))
+fun make_instT thy (v as (_, S)) (Ctyp {T = U, maxidx, ...}) =
+  if Sign.of_sort thy (U, S) then (U, maxidx)
   else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy S, [U], []);
 
-fun add_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
-  if T = U then Vars.add (v, (u, maxidx))
+fun make_inst thy (v as (_, T)) (Cterm {t = u, T = U, maxidx, ...}) =
+  if T = U then (u, maxidx)
   else
     let
       fun pretty_typing t ty =
@@ -1651,17 +1650,18 @@ fun add_inst thy (v as (_, T), Cterm {t = u, T = U, maxidx, ...}) =
 fun prep_insts (instT, inst) (cert, sorts) =
   let
     val cert' = cert
-      |> fold add_instT_cert instT
-      |> fold add_inst_cert inst;
-    val thy' = Context.certificate_theory cert'
-      handle ERROR msg => raise CONTEXT (msg, map #2 instT, map #2 inst, [], NONE);
+      |> TVars.fold add_instT_cert instT
+      |> Vars.fold add_inst_cert inst;
+    val thy' =
+      Context.certificate_theory cert' handle ERROR msg =>
+        raise CONTEXT (msg, TVars.dest instT |> map #2, Vars.dest inst |> map #2, [], NONE);
 
     val sorts' = sorts
-      |> fold add_instT_sorts instT
-      |> fold add_inst_sorts inst;
+      |> TVars.fold add_instT_sorts instT
+      |> Vars.fold add_inst_sorts inst;
 
-    val instT' = TVars.build (fold (add_instT thy') instT);
-    val inst' = Vars.build (fold (add_inst thy') inst);
+    val instT' = TVars.map (make_instT thy') instT;
+    val inst' = Vars.map (make_inst thy') inst;
   in ((instT', inst'), (cert', sorts')) end;
 
 in
@@ -1669,49 +1669,51 @@ in
 (*Left-to-right replacements: ctpairs = [..., (vi, ti), ...].
   Instantiates distinct Vars by terms of same type.
   Does NOT normalize the resulting theorem!*)
-fun instantiate ([], []) th = th
-  | instantiate (instT, inst) th =
-      let
-        val Thm (der, {cert, hyps, constraints, shyps, tpairs, prop, ...}) = th;
-        val ((instT', inst'), (cert', shyps')) = prep_insts (instT, inst) (cert, shyps)
-          handle CONTEXT (msg, cTs, cts, ths, context) =>
-            raise CONTEXT (msg, cTs, cts, th :: ths, context);
+fun instantiate (instT, inst) th =
+  if TVars.is_empty instT andalso Vars.is_empty inst then th
+  else
+    let
+      val Thm (der, {cert, hyps, constraints, shyps, tpairs, prop, ...}) = th;
+      val ((instT', inst'), (cert', shyps')) = prep_insts (instT, inst) (cert, shyps)
+        handle CONTEXT (msg, cTs, cts, ths, context) =>
+          raise CONTEXT (msg, cTs, cts, th :: ths, context);
 
-        val subst = Term_Subst.instantiate_maxidx (instT', inst');
-        val (prop', maxidx1) = subst prop ~1;
-        val (tpairs', maxidx') =
-          fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
+      val subst = Term_Subst.instantiate_maxidx (instT', inst');
+      val (prop', maxidx1) = subst prop ~1;
+      val (tpairs', maxidx') =
+        fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
 
-        val thy' = Context.certificate_theory cert';
-        val constraints' =
-          TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
-            instT' constraints;
-      in
-        Thm (deriv_rule1
-          (fn d => Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') d) der,
-         {cert = cert',
-          tags = [],
-          maxidx = maxidx',
-          constraints = constraints',
-          shyps = shyps',
-          hyps = hyps,
-          tpairs = tpairs',
-          prop = prop'})
-        |> solve_constraints
-      end
-      handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
+      val thy' = Context.certificate_theory cert';
+      val constraints' =
+        TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
+          instT' constraints;
+    in
+      Thm (deriv_rule1
+        (fn d => Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') d) der,
+       {cert = cert',
+        tags = [],
+        maxidx = maxidx',
+        constraints = constraints',
+        shyps = shyps',
+        hyps = hyps,
+        tpairs = tpairs',
+        prop = prop'})
+      |> solve_constraints
+    end
+    handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
-fun instantiate_cterm ([], []) ct = ct
-  | instantiate_cterm (instT, inst) ct =
-      let
-        val Cterm {cert, t, T, sorts, ...} = ct;
-        val ((instT', inst'), (cert', sorts')) = prep_insts (instT, inst) (cert, sorts);
-        val subst = Term_Subst.instantiate_maxidx (instT', inst');
-        val substT = Term_Subst.instantiateT_maxidx instT';
-        val (t', maxidx1) = subst t ~1;
-        val (T', maxidx') = substT T maxidx1;
-      in Cterm {cert = cert', t = t', T = T', sorts = sorts', maxidx = maxidx'} end
-      handle TYPE (msg, _, _) => raise CTERM (msg, [ct]);
+fun instantiate_cterm (instT, inst) ct =
+  if TVars.is_empty instT andalso Vars.is_empty inst then ct
+  else
+    let
+      val Cterm {cert, t, T, sorts, ...} = ct;
+      val ((instT', inst'), (cert', sorts')) = prep_insts (instT, inst) (cert, sorts);
+      val subst = Term_Subst.instantiate_maxidx (instT', inst');
+      val substT = Term_Subst.instantiateT_maxidx instT';
+      val (t', maxidx1) = subst t ~1;
+      val (T', maxidx') = substT T maxidx1;
+    in Cterm {cert = cert', t = t', T = T', sorts = sorts', maxidx = maxidx'} end
+    handle TYPE (msg, _, _) => raise CTERM (msg, [ct]);
 
 end;
 
@@ -2278,7 +2280,7 @@ fun standard_tvars thm =
     val names = Name.invent Name.context Name.aT (length tvars);
     val tinst =
       map2 (fn (ai, S) => fn b => ((ai, S), global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
-  in instantiate (tinst, []) thm end
+  in instantiate (TVars.make tinst, Vars.empty) thm end
 
 
 (* class relations *)

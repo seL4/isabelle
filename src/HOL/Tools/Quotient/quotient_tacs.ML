@@ -81,7 +81,7 @@ fun get_match_inst thy pat trm =
     fun prep_ty (x, (S, ty)) = ((x, S), Thm.global_ctyp_of thy ty)
     fun prep_trm (x, (T, t)) = ((x, T), Thm.global_cterm_of thy t)
   in
-    (map prep_ty tyenv, map prep_trm tenv)
+    (TVars.make (map prep_ty tyenv), Vars.make (map prep_trm tenv))
   end
 
 (* Calculates the instantiations for the lemmas:
@@ -476,7 +476,8 @@ fun lambda_prs_simple_conv ctxt ctrm =
           then make_inst_id (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
           else make_inst (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
         val thm4 =
-          Drule.instantiate_normalize ([], [(dest_Var insp, Thm.cterm_of ctxt inst)]) thm3
+          Drule.instantiate_normalize
+            (TVars.empty, Vars.make [(dest_Var insp, Thm.cterm_of ctxt inst)]) thm3
       in
         Conv.rewr_conv thm4 ctrm
       end

@@ -221,7 +221,7 @@ fun mk_to_pred_inst ctxt fs =
 fun mk_to_pred_eq ctxt p fs optfs' T thm =
   let
     val insts = mk_to_pred_inst ctxt fs;
-    val thm' = Thm.instantiate ([], insts) thm;
+    val thm' = Thm.instantiate (TVars.empty, Vars.make insts) thm;
     val thm'' =
       (case optfs' of
         NONE => thm' RS sym
@@ -345,7 +345,7 @@ fun to_pred thms context thm =
     val insts = mk_to_pred_inst ctxt fs
   in
     thm |>
-    Thm.instantiate ([], insts) |>
+    Thm.instantiate (TVars.empty, Vars.make insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
       [to_pred_simproc
         (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: map (Thm.transfer thy) to_pred_simps)]) |>
@@ -383,7 +383,7 @@ fun to_set thms context thm =
       end) fs;
   in
     thm |>
-    Thm.instantiate ([], insts) |>
+    Thm.instantiate (TVars.empty, Vars.make insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
         addsimprocs [strong_ind_simproc pred_arities, \<^simproc>\<open>Collect_mem\<close>]) |>
     Rule_Cases.save thm

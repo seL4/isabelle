@@ -240,10 +240,11 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
           map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop)
             (take nargs (Thm.prems_of case_th))
         val case_th' =
-          Thm.instantiate ([], inst_of_matches pats) case_th
+          Thm.instantiate (TVars.empty, Vars.make (inst_of_matches pats)) case_th
             OF replicate nargs @{thm refl}
         val thesis =
-          Thm.instantiate ([], inst_of_matches (Thm.prems_of case_th' ~~ map Thm.prop_of prems2))
+          Thm.instantiate (TVars.empty,
+              Vars.make (inst_of_matches (Thm.prems_of case_th' ~~ map Thm.prop_of prems2)))
             case_th' OF prems2
       in resolve_tac ctxt2 [thesis] 1 end
   in

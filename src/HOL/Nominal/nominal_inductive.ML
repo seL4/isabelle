@@ -343,11 +343,11 @@ fun prove_strong_ind s avoids ctxt =
                  val pis'' = fold (concat_perm #> map) pis' pis;
                  val env = Pattern.first_order_match thy (ihypt, Thm.prop_of ihyp)
                    (Vartab.empty, Vartab.empty);
-                 val ihyp' = Thm.instantiate ([],
-                   map (fn (v, t) => (dest_Var v, Thm.global_cterm_of thy t))
+                 val ihyp' = Thm.instantiate (TVars.empty,
+                   Vars.make (map (fn (v, t) => (dest_Var v, Thm.global_cterm_of thy t))
                    (map (Envir.subst_term env) vs ~~
                     map (fold_rev (NominalDatatype.mk_perm [])
-                      (rev pis' @ pis)) params' @ [z])) ihyp;
+                      (rev pis' @ pis)) params' @ [z]))) ihyp;
                  fun mk_pi th =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])

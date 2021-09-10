@@ -335,7 +335,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
           | _ => instT))));
     val closed_rule = rule
       |> Thm.forall_intr (Thm.cterm_of ctxt (Free thesis_var))
-      |> Thm.instantiate (TVars.dest instT, []);
+      |> Thm.instantiate (instT, Vars.empty);
 
     val ((_, rule' :: terms'), ctxt') = Variable.import false (closed_rule :: terms) ctxt;
     val vars' =

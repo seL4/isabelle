@@ -799,13 +799,13 @@ fun desymbolize_tvars thy thms =
     val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
     val instT =
       mk_desymbolization (unprefix "'") (prefix "'") (Thm.global_ctyp_of thy o TVar) tvs;
-  in map (Thm.instantiate (instT, [])) thms end;
+  in map (Thm.instantiate (TVars.make instT, Vars.empty)) thms end;
 
 fun desymbolize_vars thy thm =
   let
     val vs = Term.add_vars (Thm.prop_of thm) [];
     val inst = mk_desymbolization I I (Thm.global_cterm_of thy o Var) vs;
-  in Thm.instantiate ([], inst) thm end;
+  in Thm.instantiate (TVars.empty, Vars.make inst) thm end;
 
 fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbolize_vars thy);
 
@@ -895,14 +895,16 @@ fun constrain_thm thy vs sorts thm =
   let
     val mapping = map2 (fn (v, sort) => fn sort' =>
       (v, Sorts.inter_sort (Sign.classes_of thy) (sort, sort'))) vs sorts;
-    val inst = map2 (fn (v, sort) => fn (_, sort') =>
-      (((v, 0), sort), Thm.global_ctyp_of thy (TFree (v, sort')))) vs mapping;
+    val instT =
+      TVars.build
+        (fold2 (fn (v, sort) => fn (_, sort') =>
+          TVars.add (((v, 0), sort), Thm.global_ctyp_of thy (TFree (v, sort')))) vs mapping);
     val subst = (Term.map_types o map_type_tfree)
       (fn (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
   in
     thm
     |> Thm.varifyT_global
-    |> Thm.instantiate (inst, [])
+    |> Thm.instantiate (instT, Vars.empty)
     |> pair subst
   end;
 
@@ -966,8 +968,9 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
           fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
         val sorts = map_transpose inter_sorts vss;
         val vts = Name.invent_names Name.context Name.aT sorts;
-        val thms' =
-          map2 (fn vs => Thm.instantiate (vs ~~ map (Thm.ctyp_of ctxt o TFree) vts, [])) vss thms;
+        fun instantiate vs =
+          Thm.instantiate (TVars.make (vs ~~ map (Thm.ctyp_of ctxt o TFree) vts), Vars.empty);
+        val thms' = map2 instantiate vss thms;
         val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms'))));
         fun head_conv ct = if can Thm.dest_comb ct
           then Conv.fun_conv head_conv ct

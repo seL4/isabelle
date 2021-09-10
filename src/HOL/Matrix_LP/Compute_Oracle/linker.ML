@@ -326,7 +326,7 @@ fun add_monos thy monocs pats ths =
             let
                 val (newsubsts, instances) = Linker.add_instances thy instances monocs
                 val _ = if not (null newsubsts) then changed := true else ()
-                val newths = map (fn subst => Thm.instantiate (conv_subst thy subst, []) th) newsubsts
+                val newths = map (fn subst => Thm.instantiate (TVars.make (conv_subst thy subst), Vars.empty) th) newsubsts
 (*              val _ = if not (null newths) then (print ("added new theorems: ", newths); ()) else ()*)
                 val newmonos = fold (fn th => fn monos => (snd (collect_consts_of_thm th))@monos) newths []
             in

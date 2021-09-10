@@ -42,9 +42,9 @@ val ctp_false = Thm.cterm_of \<^theory_context>\<open>HOL\<close> (HOLogic.mk_Tr
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
     \<^const>\<open>Trueprop\<close> $ (Var (v as (_, \<^typ>\<open>bool\<close>))) =>
-      Thm.instantiate ([], [(v, cfalse)]) th
+      Thm.instantiate (TVars.empty, Vars.make [(v, cfalse)]) th
   | Var (v as (_, \<^typ>\<open>prop\<close>)) =>
-      Thm.instantiate ([], [(v, ctp_false)]) th
+      Thm.instantiate (TVars.empty, Vars.make [(v, ctp_false)]) th
   | _ => th)
 
 
@@ -370,7 +370,8 @@ fun cnf_axiom simp_options ctxt0 new_skolem combinators ax_no th =
        th ctxt1
     val (cnf_ths, ctxt2) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], [((("i", 0), \<^typ>\<open>nat\<close>), Thm.cterm_of ctxt2 (HOLogic.mk_nat ax_no))])
+      Thm.instantiate (TVars.empty,
+        Vars.make [((("i", 0), \<^typ>\<open>nat\<close>), Thm.cterm_of ctxt2 (HOLogic.mk_nat ax_no))])
                       (zero_var_indexes @{thm skolem_COMBK_D})
       RS Thm.implies_intr ct th
   in

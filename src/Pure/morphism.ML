@@ -43,10 +43,8 @@ sig
   val transfer_morphism': Proof.context -> morphism
   val transfer_morphism'': Context.generic -> morphism
   val trim_context_morphism: morphism
-  val instantiate_frees_morphism:
-    ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> morphism
-  val instantiate_morphism:
-    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list -> morphism
+  val instantiate_frees_morphism: ctyp TFrees.table * cterm Frees.table -> morphism
+  val instantiate_morphism: ctyp TVars.table * cterm Vars.table -> morphism
 end;
 
 structure Morphism: MORPHISM =
@@ -134,35 +132,37 @@ val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 
 (* instantiate *)
 
-fun instantiate_frees_morphism ([], []) = identity
-  | instantiate_frees_morphism (cinstT, cinst) =
-      let
-        val instT = TFrees.build (cinstT |> fold (fn (v, cT) => TFrees.add (v, Thm.typ_of cT)));
-        val inst = Frees.build (cinst |> fold (fn (v, ct) => Frees.add (v, Thm.term_of ct)));
-      in
-        morphism "instantiate_frees"
-          {binding = [],
-           typ =
-            if TFrees.is_empty instT then []
-            else [Term_Subst.instantiateT_frees instT],
-           term = [Term_Subst.instantiate_frees (instT, inst)],
-           fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
-      end;
+fun instantiate_frees_morphism (cinstT, cinst) =
+  if TFrees.is_empty cinstT andalso Frees.is_empty cinst then identity
+  else
+    let
+      val instT = TFrees.map (K Thm.typ_of) cinstT;
+      val inst = Frees.map (K Thm.term_of) cinst;
+    in
+      morphism "instantiate_frees"
+        {binding = [],
+         typ =
+          if TFrees.is_empty instT then []
+          else [Term_Subst.instantiateT_frees instT],
+         term = [Term_Subst.instantiate_frees (instT, inst)],
+         fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
+    end;
 
-fun instantiate_morphism ([], []) = identity
-  | instantiate_morphism (cinstT, cinst) =
-      let
-        val instT = TVars.build (cinstT |> fold (fn (v, cT) => TVars.add (v, Thm.typ_of cT)));
-        val inst = Vars.build (cinst |> fold (fn (v, ct) => Vars.add (v, Thm.term_of ct)));
-      in
-        morphism "instantiate"
-          {binding = [],
-           typ =
-            if TVars.is_empty instT then []
-            else [Term_Subst.instantiateT instT],
-           term = [Term_Subst.instantiate (instT, inst)],
-           fact = [map (Thm.instantiate (cinstT, cinst))]}
-      end;
+fun instantiate_morphism (cinstT, cinst) =
+  if TVars.is_empty cinstT andalso Vars.is_empty cinst then identity
+  else
+    let
+      val instT = TVars.map (K Thm.typ_of) cinstT;
+      val inst = Vars.map (K Thm.term_of) cinst;
+    in
+      morphism "instantiate"
+        {binding = [],
+         typ =
+          if TVars.is_empty instT then []
+          else [Term_Subst.instantiateT instT],
+         term = [Term_Subst.instantiate (instT, inst)],
+         fact = [map (Thm.instantiate (cinstT, cinst))]}
+    end;
 
 end;
 

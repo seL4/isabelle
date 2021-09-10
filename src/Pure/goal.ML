@@ -58,7 +58,7 @@ struct
   -------- (init)
   C \<Longrightarrow> #C
 *)
-fun init C = Thm.instantiate ([], [((("A", 0), propT), C)]) Drule.protectI;
+fun init C = Thm.instantiate (TVars.empty, Vars.make [((("A", 0), propT), C)]) Drule.protectI;
 
 (*
   A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> C
@@ -122,8 +122,8 @@ fun future_result ctxt result prop =
     val tfrees = TFrees.build (fold TFrees.add_tfrees (prop :: As));
     val Ts = Names.build (TFrees.fold (Names.add_set o #1 o #1) tfrees);
     val instT =
-      build (tfrees |> TFrees.fold (fn ((a, S), _) =>
-        cons (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))));
+      TVars.build (tfrees |> TFrees.fold (fn ((a, S), _) =>
+        TVars.add (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))));
 
     val global_prop =
       Logic.list_implies (As, prop)
@@ -142,7 +142,7 @@ fun future_result ctxt result prop =
     val local_result =
       Thm.future global_result global_prop
       |> Thm.close_derivation \<^here>
-      |> Thm.instantiate (instT, [])
+      |> Thm.instantiate (instT, Vars.empty)
       |> Drule.forall_elim_list xs
       |> fold (Thm.elim_implies o Thm.assume) assms
       |> Thm.solve_constraints;

@@ -160,8 +160,8 @@ fun where_rule ctxt raw_insts raw_fixes thm =
   in
     thm
     |> Drule.instantiate_normalize
-      (map (apsnd (Thm.ctyp_of ctxt')) inst_tvars,
-       map (apsnd (Thm.cterm_of ctxt')) inst_vars)
+      (TVars.make (map (apsnd (Thm.ctyp_of ctxt')) inst_tvars),
+       Vars.make (map (apsnd (Thm.cterm_of ctxt')) inst_vars))
     |> singleton (Variable.export ctxt' ctxt)
     |> Rule_Cases.save thm
   end;
@@ -255,10 +255,12 @@ fun bires_inst_tac bires_flag ctxt raw_insts raw_fixes thm i st = CSUBGOAL (fn (
     fun lift_var ((a, j), T) = ((a, j + inc), paramTs ---> lift_type T);
     fun lift_term t = fold_rev Term.absfree params (Logic.incr_indexes (fixed, paramTs, inc) t);
 
-    val inst_tvars' = inst_tvars
-      |> map (fn (((a, i), S), T) => (((a, i + inc), S), Thm.ctyp_of inst_ctxt (lift_type T)));
-    val inst_vars' = inst_vars
-      |> map (fn (v, t) => (lift_var v, Thm.cterm_of inst_ctxt (lift_term t)));
+    val inst_tvars' =
+      TVars.build (inst_tvars |> fold (fn (((a, i), S), T) =>
+        TVars.add (((a, i + inc), S), Thm.ctyp_of inst_ctxt (lift_type T))));
+    val inst_vars' =
+      Vars.build (inst_vars |> fold (fn (v, t) =>
+        Vars.add (lift_var v, Thm.cterm_of inst_ctxt (lift_term t))));
 
     val thm' = Thm.lift_rule cgoal thm
       |> Drule.instantiate_normalize (inst_tvars', inst_vars')
@@ -277,8 +279,8 @@ fun make_elim_preserve ctxt rl =
     fun var x = ((x, 0), propT);
     fun cvar xi = Thm.cterm_of ctxt (Var (xi, propT));
     val revcut_rl' =
-      Drule.instantiate_normalize ([], [(var "V", cvar ("V", maxidx + 1)),
-        (var "W", cvar ("W", maxidx + 1))]) Drule.revcut_rl;
+      Drule.revcut_rl |> Drule.instantiate_normalize
+        (TVars.empty, Vars.make [(var "V", cvar ("V", maxidx + 1)), (var "W", cvar ("W", maxidx + 1))]);
   in
     (case Seq.list_of
       (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}

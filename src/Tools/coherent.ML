@@ -175,13 +175,14 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
     val _ =
       cond_trace ctxt (fn () =>
         Pretty.string_of (Pretty.big_list "asms:" (map (Thm.pretty_thm ctxt) asms)));
+    val instT = map (fn (ixn, (S, T)) => ((ixn, S), Thm.ctyp_of ctxt T)) (Vartab.dest tye);
+    val inst =
+      map (fn (ixn, (T, t)) =>
+        ((ixn, Envir.subst_type tye T), Thm.cterm_of ctxt t)) (Vartab.dest env) @
+      map (fn (ixnT, t) => (ixnT, Thm.cterm_of ctxt t)) insts;
     val th' =
       Drule.implies_elim_list
-        (Thm.instantiate
-           (map (fn (ixn, (S, T)) => ((ixn, S), Thm.ctyp_of ctxt T)) (Vartab.dest tye),
-            map (fn (ixn, (T, t)) =>
-              ((ixn, Envir.subst_type tye T), Thm.cterm_of ctxt t)) (Vartab.dest env) @
-            map (fn (ixnT, t) => (ixnT, Thm.cterm_of ctxt t)) insts) th)
+        (Thm.instantiate (TVars.make instT, Vars.make inst) th)
         (map (nth asms) is);
     val (_, cases) = dest_elim (Thm.prop_of th');
   in

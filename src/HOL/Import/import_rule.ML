@@ -162,7 +162,7 @@ fun freezeT thy thm =
     val tvars = Term.add_tvars (Thm.prop_of thm) []
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
   in
-    Thm.instantiate ((tvars ~~ map (Thm.global_ctyp_of thy) tfrees), []) thm
+    Thm.instantiate (TVars.make (tvars ~~ map (Thm.global_ctyp_of thy) tfrees), Vars.empty) thm
   end
 
 fun def' constname rhs thy =
@@ -274,7 +274,7 @@ fun inst_type lambda th thy =
         | NONE => (iS, Thm.global_ctyp_of thy (TFree bef))))
       tys_before tys_after
   in
-    Thm.instantiate (tyinst,[]) th1
+    Thm.instantiate (TVars.make tyinst, Vars.empty) th1
   end
 
 fun inst sigma th =
@@ -338,7 +338,7 @@ fun store_thm binding thm thy =
     val tns = map (fn (_, _) => "'") tvs
     val nms = fst (fold_map Name.variant tns (Variable.names_of ctxt))
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val thm' = Thm.instantiate ((tvs ~~ map (Thm.ctyp_of ctxt) vs), []) thm
+    val thm' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) thm
   in
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
   end

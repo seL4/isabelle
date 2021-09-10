@@ -579,7 +579,7 @@ fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
       map (apfst (dest_Var o type_devar typeval_env)) term_pairing
       |> map (apsnd (Thm.cterm_of ctxt))
   in
-    Thm.instantiate (typeval, termval) scheme_thm
+    Thm.instantiate (TVars.make typeval, Vars.make termval) scheme_thm
   end
 
 (*FIXME this is bad form?*)

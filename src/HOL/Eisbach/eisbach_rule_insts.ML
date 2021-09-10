@@ -69,7 +69,7 @@ fun instantiate_xis ctxt insts thm =
 
     val (instT, inst) = fold add_inst insts ([], []);
   in
-    (Thm.instantiate (instT, []) thm
+    (Thm.instantiate (TVars.make instT, Vars.empty) thm
     |> infer_instantiate ctxt inst
     COMP_INCR asm_rl)
     |> Thm.adjust_maxidx_thm ~1

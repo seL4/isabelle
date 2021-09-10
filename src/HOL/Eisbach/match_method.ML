@@ -431,7 +431,7 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
 
     val (prem_ids, ctxt') = context
       |> add_focus_params params
-      |> add_focus_schematics (snd schematics)
+      |> add_focus_schematics (Vars.dest (snd schematics))
       |> fold_map add_focus_prem (rev prems)
 
   in
@@ -455,10 +455,10 @@ fun focus_concl ctxt i bindings goal =
     val schematic_terms =
       Vars.fold (fn (v, t) => cons (v, Thm.cterm_of ctxt'' t)) inst [];
 
-    val goal'' = Thm.instantiate ([], schematic_terms) goal';
-    val concl' = Thm.instantiate_cterm ([], schematic_terms) concl;
+    val goal'' = Thm.instantiate (TVars.empty, Vars.make schematic_terms) goal';
+    val concl' = Thm.instantiate_cterm (TVars.empty, Vars.make schematic_terms) concl;
     val (schematic_types, schematic_terms') = schematics;
-    val schematics' = (schematic_types, schematic_terms @ schematic_terms');
+    val schematics' = (schematic_types, fold Vars.add schematic_terms schematic_terms');
   in
     ({context = ctxt'', concl = concl', params = params, prems = prems,
       schematics = schematics', asms = asms} : Subgoal.focus, goal'')

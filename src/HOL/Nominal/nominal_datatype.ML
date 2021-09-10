@@ -1397,8 +1397,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
            REPEAT (TRY (resolve_tac context [conjI] 1) THEN asm_full_simp_tac ind_ss5 1)]
       end);
 
-    val induct_aux' = Thm.instantiate ([],
-      map (fn (s, Var (v as (_, T))) =>
+    val induct_aux' = Thm.instantiate (TVars.empty,
+      Vars.make (map (fn (s, Var (v as (_, T))) =>
         (v, Thm.global_cterm_of thy9 (Free (s, T))))
           (pnames ~~ map head_of (HOLogic.dest_conj
              (HOLogic.dest_Trueprop (Thm.concl_of induct_aux)))) @
@@ -1406,7 +1406,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
         let val f' = Logic.varify_global f
         in (dest_Var f',
           Thm.global_cterm_of thy9 (Const (\<^const_name>\<open>Nominal.supp\<close>, fastype_of f')))
-        end) fresh_fs) induct_aux;
+        end) fresh_fs)) induct_aux;
 
     val induct = Goal.prove_global_future thy9 []
       (map (augment_sort thy9 fs_cp_sort) ind_prems)
@@ -1571,8 +1571,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
             (augment_sort thy1 pt_cp_sort
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
             (fn {context = ctxt, ...} =>
-              dresolve_tac ctxt [Thm.instantiate ([],
-                 [((("pi", 0), permT),
+              dresolve_tac ctxt [Thm.instantiate (TVars.empty,
+                 Vars.make [((("pi", 0), permT),
                    Thm.global_cterm_of thy11 (Const (\<^const_name>\<open>rev\<close>, permT --> permT) $ pi))]) th] 1 THEN
                NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
@@ -1662,8 +1662,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                     resolve_tac ctxt [unique] 1,
                     SUBPROOF (fn {context = ctxt', prems = prems', params = [(_, a), (_, b)], ...} =>
                       EVERY [cut_facts_tac [rec_prem] 1,
-                       resolve_tac ctxt' [Thm.instantiate ([],
-                         [((("pi", 0), mk_permT aT),
+                       resolve_tac ctxt' [Thm.instantiate (TVars.empty,
+                         Vars.make [((("pi", 0), mk_permT aT),
                            Thm.cterm_of ctxt'
                             (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th] 1,
                        asm_simp_tac (put_simpset HOL_ss ctxt' addsimps
@@ -1882,8 +1882,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                             val U as Type (_, [Type (_, [T, _])]) = fastype_of p;
                             val l = find_index (equal T) dt_atomTs;
                             val th = nth (nth rec_equiv_thms' l) k;
-                            val th' = Thm.instantiate ([],
-                              [((("pi", 0), U), Thm.global_cterm_of thy11 p)]) th;
+                            val th' = Thm.instantiate (TVars.empty,
+                              Vars.make [((("pi", 0), U), Thm.global_cterm_of thy11 p)]) th;
                           in resolve_tac ctxt [th'] 1 end;
                         val th' = Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))

@@ -33,8 +33,8 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
 fun res_inst_tac_term ctxt =
   gen_res_inst_tac_term ctxt (fn instT => fn inst =>
     Thm.instantiate
-     (map (apfst dest_TVar) instT,
-      map (apfst dest_Var) inst));
+     (TVars.make (map (apfst dest_TVar) instT),
+      Vars.make (map (apfst dest_Var) inst)));
 
 fun res_inst_tac_term' ctxt =
   gen_res_inst_tac_term ctxt
@@ -152,8 +152,8 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
    in case subtract (op =) vars vars' of
      [Var v] =>
       Seq.single
-        (Thm.instantiate ([],
-          [(v, Thm.cterm_of ctxt (fold_rev Term.abs params (Bound 0)))]) st)
+        (Thm.instantiate (TVars.empty,
+          Vars.make [(v, Thm.cterm_of ctxt (fold_rev Term.abs params (Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in

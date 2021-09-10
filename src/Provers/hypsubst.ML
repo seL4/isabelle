@@ -179,10 +179,10 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
         val (instT, _) = Thm.match (apply2 (Thm.cterm_of ctxt o Logic.mk_type) (V, U));
       in
         compose_tac ctxt (true, Drule.instantiate_normalize (instT,
-          map (apsnd (Thm.cterm_of ctxt))
+          Vars.make (map (apsnd (Thm.cterm_of ctxt))
             [((ixn, Ts ---> U --> body_type T), u),
              ((fst (dest_Var (head_of v1)), Ts ---> U), fold_rev Term.abs ps t),
-             ((fst (dest_Var (head_of v2)), Ts ---> U), fold_rev Term.abs ps t')]) rl',
+             ((fst (dest_Var (head_of v2)), Ts ---> U), fold_rev Term.abs ps t')])) rl',
           Thm.nprems_of rl) i
       end
   | NONE => no_tac);

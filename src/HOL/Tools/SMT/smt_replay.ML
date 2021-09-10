@@ -96,7 +96,8 @@ fun precompose2 f rule : compose_data = precompose (list2 o f) rule
 
 fun compose (cvs, f, rule) thm =
   discharge thm
-    (Thm.instantiate ([], map (dest_Var o Thm.term_of) cvs ~~ f (Thm.cprop_of thm)) rule)
+    (Thm.instantiate
+      (TVars.empty, Vars.make (map (dest_Var o Thm.term_of) cvs ~~ f (Thm.cprop_of thm))) rule)
 
 
 (* simpset *)

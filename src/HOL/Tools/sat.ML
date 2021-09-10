@@ -171,7 +171,8 @@ fun resolve_raw_clauses _ [] =
                 val cLit =
                   snd (Thm.dest_comb (if hyp1_is_neg then hyp2 else hyp1))  (* strip Trueprop *)
               in
-                Thm.instantiate ([], [((("P", 0), HOLogic.boolT), cLit)]) resolution_thm
+                Thm.instantiate (TVars.empty, Vars.make [((("P", 0), HOLogic.boolT), cLit)])
+                  resolution_thm
               end
 
             val _ =
