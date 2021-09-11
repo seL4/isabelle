@@ -19,6 +19,7 @@ sig
   val the_const: T -> string -> string * typ                   (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
+  val type_arguments: T -> string -> int list list             (*exception TYPE*)
   val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
   val the_constraint: T -> string -> typ                       (*exception TYPE*)
   val space_of: T -> Name_Space.T

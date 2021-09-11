@@ -28,6 +28,7 @@ sig
       Source.source) Source.source
   val tokenize: string -> token list
   val tokenize_range: Position.range -> string -> token list
+  val tokenize_no_range: string -> token list
   val read_text: Symbol_Pos.text * Position.T -> token Antiquote.antiquote list
   val read: Symbol_Pos.text -> token Antiquote.antiquote list
   val read_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
@@ -359,6 +360,7 @@ fun source src =
 
 val tokenize = Symbol.explode #> Source.of_list #> source #> Source.exhaust;
 fun tokenize_range range = tokenize #> map (set_range range);
+val tokenize_no_range = tokenize_range Position.no_range;
 
 val read_text = reader {opaque_warning = true} scan_ml_antiq o Symbol_Pos.explode;
 fun read text = read_text (text, Position.none);

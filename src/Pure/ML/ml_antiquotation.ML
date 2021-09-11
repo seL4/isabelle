@@ -72,7 +72,7 @@ fun special_form binding operator =
     (fn _ => fn src => fn ctxt =>
       let
         val (s, _) = Token.syntax (Scan.lift Args.embedded_input) src ctxt;
-        val tokenize = ML_Lex.tokenize_range Position.no_range;
+        val tokenize = ML_Lex.tokenize_no_range;
         val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
 
         val (decl, ctxt') = ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt;

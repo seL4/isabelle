@@ -251,6 +251,25 @@ accumulation of items.
 * ML antiquotations \<^tvar>\<open>?'a::sort\<close> and \<^var>\<open>?x::type\<close> inline
 corresponding ML values, notably as arguments for Thm.instantiate etc.
 
+* ML antiquotations for type constructors and term constants:
+
+    \<^Type>\<open>c\<close>
+    \<^Type>\<open>c T \<dots>\<close>       \<comment> \<open>same with type arguments\<close>
+    \<^Const>\<open>c\<close>
+    \<^Const>\<open>c T \<dots>\<close>      \<comment> \<open>same with type arguments\<close>
+    \<^Const>\<open>c for t \<dots>\<close>  \<comment> \<open>same with term arguments\<close>
+    \<^Const_>\<open>c \<dots>\<close>       \<comment> \<open>same for patterns: case, let, fn\<close>
+
+Examples in HOL:
+
+  val natT = \<^Type>\<open>nat\<close>;
+  fun mk_funT (A, B) = \<^Type>\<open>fun A B\<close>;
+  val dest_funT = fn \<^Type>\<open>fun A B\<close> => (A, B);
+  fun mk_conj (A, B) = \<^Const>\<open>conj for A B\<close>;
+  val dest_conj = fn \<^Const_>\<open>conj for A B\<close> => (A, B);
+  fun mk_eq T (t, u) = \<^Const>\<open>HOL.eq T for t u\<close>;
+  val dest_eq = fn \<^Const_>\<open>HOL.eq T for t u\<close> => (T, (t, u));
+
 * The "build" combinators of various data structures help to build
 content from bottom-up, by applying an "add" function the "empty" value.
 For example:
