@@ -56,7 +56,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
                    Syntax.string_of_term_global \<^theory>\<open>IFOL\<close> t));
         val rec_names = (*nat doesn't have to be added*)
             \<^const_name>\<open>nat\<close> :: map (#1 o dest_Const) rec_hds
-        val u = if co then \<^const>\<open>QUniv.quniv\<close> else \<^const>\<open>Univ.univ\<close>
+        val u = if co then \<^Const>\<open>QUniv.quniv\<close> else \<^Const>\<open>Univ.univ\<close>
         val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
           (fn t as Const (a, _) => if member (op =) rec_names a then I else insert (op =) t
             | _ => I)) con_ty_lists [];
@@ -88,7 +88,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (** Define the constructors **)
 
   (*The empty tuple is 0*)
-  fun mk_tuple [] = \<^const>\<open>zero\<close>
+  fun mk_tuple [] = \<^Const>\<open>zero\<close>
     | mk_tuple args = foldr1 (fn (t1, t2) => Pr.pair $ t1 $ t2) args;
 
   fun mk_inject n k u = Balanced_Tree.access
@@ -162,7 +162,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*a recursive call for x is the application rec`x  *)
-  val rec_call = \<^const>\<open>apply\<close> $ Free ("rec", \<^typ>\<open>i\<close>);
+  val rec_call = \<^Const>\<open>apply\<close> $ Free ("rec", \<^typ>\<open>i\<close>);
 
   (*look back down the "case args" (which have been reversed) to
     determine the de Bruijn index*)
@@ -231,7 +231,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val recursor_def =
       Misc_Legacy.mk_defpair
         (recursor_tm,
-         \<^const>\<open>Univ.Vrecursor\<close> $
+         \<^Const>\<open>Univ.Vrecursor\<close> $
            absfree ("rec", \<^typ>\<open>i\<close>) (list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)

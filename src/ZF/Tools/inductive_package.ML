@@ -115,7 +115,7 @@ let
 
   (*The Part(A,h) terms -- compose injections to make h*)
   fun mk_Part (Bound 0) = Free(X', Ind_Syntax.iT) (*no mutual rec, no Part needed*)
-    | mk_Part h = \<^const>\<open>Part\<close> $ Free(X', Ind_Syntax.iT) $ Abs (w', Ind_Syntax.iT, h);
+    | mk_Part h = \<^Const>\<open>Part\<close> $ Free(X', Ind_Syntax.iT) $ Abs (w', Ind_Syntax.iT, h);
 
   (*Access to balanced disjoint sums via injections*)
   val parts = map mk_Part
@@ -302,7 +302,7 @@ let
                SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)
                  let fun mk_sb (rec_tm,pred) =
-                             (rec_tm, \<^const>\<open>Collect\<close> $ rec_tm $ pred)
+                             (rec_tm, \<^Const>\<open>Collect\<close> $ rec_tm $ pred)
                  in  subst_free (map mk_sb ind_alist) prem :: iprems  end)
        | add_induct_prem ind_alist (prem,iprems) = prem :: iprems;
 
@@ -390,8 +390,7 @@ let
                             elem_factors ---> FOLogic.oT)
            val qconcl =
              List.foldr FOLogic.mk_all
-               (FOLogic.imp $
-                (\<^const>\<open>mem\<close> $ elem_tuple $ rec_tm)
+               (FOLogic.imp $ \<^Const>\<open>mem for elem_tuple rec_tm\<close>
                       $ (list_comb (pfree, elem_frees))) elem_frees
        in  (CP.ap_split elem_type FOLogic.oT pfree,
             qconcl)
@@ -401,8 +400,7 @@ let
 
      (*Used to form simultaneous induction lemma*)
      fun mk_rec_imp (rec_tm,pred) =
-         FOLogic.imp $ (\<^const>\<open>mem\<close> $ Bound 0 $ rec_tm) $
-                          (pred $ Bound 0);
+         FOLogic.imp $ \<^Const>\<open>mem for \<open>Bound 0\<close> rec_tm\<close> $ (pred $ Bound 0);
 
      (*To instantiate the main induction rule*)
      val induct_concl =

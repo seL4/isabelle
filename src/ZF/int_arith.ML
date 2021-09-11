@@ -42,7 +42,7 @@ fun dest_bin tm =
 
 (*Utilities*)
 
-fun mk_numeral i = \<^const>\<open>integ_of\<close> $ mk_bin i;
+fun mk_numeral i = \<^Const>\<open>integ_of\<close> $ mk_bin i;
 
 fun dest_numeral \<^Const_>\<open>integ_of for w\<close> = dest_bin w
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
@@ -70,7 +70,7 @@ fun dest_summing (pos, \<^Const_>\<open>zadd for t u\<close>, ts) =
   | dest_summing (pos, \<^Const_>\<open>zdiff for t u\<close>, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
-        if pos then t::ts else \<^const>\<open>zminus\<close> $ t :: ts;
+        if pos then t::ts else \<^Const>\<open>zminus for t\<close> :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 

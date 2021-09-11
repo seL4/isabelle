@@ -23,10 +23,9 @@ val iT = \<^Type>\<open>i\<close>;
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =
     FOLogic.all_const iT $
-      Abs("v", iT, FOLogic.imp $ (\<^const>\<open>mem\<close> $ Bound 0 $ A) $
-                   Term.betapply(P, Bound 0));
+      Abs("v", iT, FOLogic.imp $ \<^Const>\<open>mem for \<open>Bound 0\<close> A\<close> $ Term.betapply(P, Bound 0));
 
-fun mk_Collect (a, D, t) = \<^const>\<open>Collect\<close> $ D $ absfree (a, iT) t;
+fun mk_Collect (a, D, t) = \<^Const>\<open>Collect for D\<close> $ absfree (a, iT) t;
 
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd \<^Const_>\<open>conj for _ _\<close> =
@@ -82,20 +81,19 @@ fun mk_intr_tms sg (rec_tm, constructs) =
       Logic.list_implies
         (map FOLogic.mk_Trueprop prems,
          FOLogic.mk_Trueprop
-            (\<^const>\<open>mem\<close> $ list_comb (Const (Sign.full_bname sg name, T), args)
-                       $ rec_tm))
+            (\<^Const>\<open>mem\<close> $ list_comb (Const (Sign.full_bname sg name, T), args) $ rec_tm))
   in  map mk_intr constructs  end;
 
 fun mk_all_intr_tms sg arg = flat (ListPair.map (mk_intr_tms sg) arg);
 
-fun mk_Un (t1, t2) = \<^const>\<open>Un\<close> $ t1 $ t2;
+fun mk_Un (t1, t2) = \<^Const>\<open>Un for t1 t2\<close>;
 
 (*Make a datatype's domain: form the union of its set parameters*)
 fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
       fun is_ind arg = (type_of arg = iT)
   in  case filter is_ind (args @ cs) of
-         [] => \<^const>\<open>zero\<close>
+         [] => \<^Const>\<open>zero\<close>
        | u_args => Balanced_Tree.make mk_Un u_args
   end;
 
