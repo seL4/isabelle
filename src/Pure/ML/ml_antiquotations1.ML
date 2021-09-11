@@ -88,6 +88,26 @@ val _ = Theory.setup
       ML_Syntax.print_string (Thm.check_oracle ctxt (name, pos)))));
 
 
+(* schematic variables *)
+
+val schematic_input =
+  Args.context -- Scan.lift Args.embedded_input >> (fn (ctxt, src) =>
+    (Proof_Context.set_mode Proof_Context.mode_schematic ctxt,
+      (Syntax.implode_input src, Input.pos_of src)));
+
+val _ = Theory.setup
+  (ML_Antiquotation.inline_embedded \<^binding>\<open>tvar\<close>
+    (schematic_input >> (fn (ctxt, (s, pos)) =>
+      (case Syntax.read_typ ctxt s of
+        TVar v => ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_sort v
+      | _ => error ("Schematic type variable expected" ^ Position.here pos)))) #>
+   ML_Antiquotation.inline_embedded \<^binding>\<open>var\<close>
+    (schematic_input >> (fn (ctxt, (s, pos)) =>
+      (case Syntax.read_term ctxt s of
+        Var v => ML_Syntax.print_pair ML_Syntax.print_indexname ML_Syntax.print_typ v
+      | _ => error ("Schematic variable expected" ^ Position.here pos)))));
+
+
 (* type classes *)
 
 fun class syn = Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctxt, s) =>

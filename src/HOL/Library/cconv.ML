@@ -184,7 +184,7 @@ fun prems_cconv 0 cv ct = cv ct
       | _ =>  cv ct)
 
 fun inst_imp_cong ct =
-  Thm.instantiate (TVars.empty, Vars.make [((("A", 0), propT), ct)]) Drule.imp_cong
+  Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?A::prop\<close>, ct)]) Drule.imp_cong
 
 (*rewrite B in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun concl_cconv 0 cv ct = cv ct
@@ -205,11 +205,11 @@ fun with_prems_cconv n cv ct =
           | SOME (A,B) => strip_prems (i - 1) (A::As) B
     val (prem, (prems, concl)) = ct |> Thm.dest_implies ||> strip_prems n [] 
     val rewr_imp_concl =
-      Thm.instantiate (TVars.empty, Vars.make [((("C", 0), propT), concl)]) @{thm rewr_imp}
+      Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?C::prop\<close>, concl)]) @{thm rewr_imp}
     val th1 = cv prem RS rewr_imp_concl
     val nprems = Thm.nprems_of th1
     fun inst_cut_rl ct =
-      Thm.instantiate (TVars.empty, Vars.make [((("psi", 0), propT), ct)]) cut_rl
+      Thm.instantiate (TVars.empty, Vars.make [(\<^var>\<open>?psi::prop\<close>, ct)]) cut_rl
     fun f p th = (th RS inst_cut_rl p)
       |> Conv.fconv_rule (Conv.concl_conv nprems (Conv.rewr_conv @{thm imp_cong_eq}))
   in fold f prems th1 end

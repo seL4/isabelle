@@ -205,14 +205,14 @@ fun conj_intr ctxt thP thQ =
   let
     val (P, Q) = apply2 (Object_Logic.dest_judgment ctxt o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
-    val inst = (TVars.empty, Vars.make [((("P", 0), boolT), P), ((("Q", 0), boolT), Q)]);
+    val inst = (TVars.empty, Vars.make [(\<^var>\<open>?P::bool\<close>, P), (\<^var>\<open>?Q::bool\<close>, Q)]);
   in Drule.implies_elim_list (Thm.instantiate inst @{thm conjI}) [thP, thQ] end;
 
 fun conj_elim ctxt thPQ =
   let
     val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment ctxt (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
-    val inst = (TVars.empty, Vars.make [((("P", 0), boolT), P), ((("Q", 0), boolT), Q)]);
+    val inst = (TVars.empty, Vars.make [(\<^var>\<open>?P::bool\<close>, P), (\<^var>\<open>?Q::bool\<close>, Q)]);
     val thP = Thm.implies_elim (Thm.instantiate inst @{thm conjunct1}) thPQ;
     val thQ = Thm.implies_elim (Thm.instantiate inst @{thm conjunct2}) thPQ;
   in (thP, thQ) end;

@@ -76,9 +76,7 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
                |> Thm.cterm_of ctxt
      in
        (resolve_tac ctxt [Thm.instantiate (TVars.empty,
-           Vars.make [((("n", 0), \<^typ>\<open>nat\<close>), n),
-                      ((("prec", 0), \<^typ>\<open>nat\<close>), p),
-                      ((("ss", 0), \<^typ>\<open>nat list\<close>), s)])
+           Vars.make [(\<^var>\<open>?n::nat\<close>, n), (\<^var>\<open>?prec::nat\<close>, p), (\<^var>\<open>?ss::nat list\<close>, s)])
             @{thm approx_form}] i
         THEN simp_tac (put_simpset (simpset_of \<^context>) ctxt) i) st
      end
@@ -94,9 +92,7 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
             |> Thm.cterm_of ctxt
      in
        resolve_tac ctxt [Thm.instantiate (TVars.empty,
-            Vars.make [((("s", 0), \<^typ>\<open>nat\<close>), s),
-                       ((("t", 0), \<^typ>\<open>nat\<close>), t),
-                       ((("prec", 0), \<^typ>\<open>nat\<close>), p)])
+            Vars.make [(\<^var>\<open>?s::nat\<close>, s), (\<^var>\<open>?t::nat\<close>, t), (\<^var>\<open>?prec::nat\<close>, p)])
             @{thm approx_tse_form}] i st
      end
   end

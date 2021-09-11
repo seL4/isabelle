@@ -508,8 +508,8 @@ let
        The name "x.1" comes from the "RS spec" !*)
      val inst =
          case elem_frees of [_] => I
-            | _ => Drule.instantiate_normalize (TVars.empty, Vars.make [(((("x",1), Ind_Syntax.iT)),
-                                      Thm.global_cterm_of thy4 elem_tuple)]);
+            | _ => Drule.instantiate_normalize (TVars.empty,
+                    Vars.make [(\<^var>\<open>?x1::i\<close>, Thm.global_cterm_of thy4 elem_tuple)]);
 
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));

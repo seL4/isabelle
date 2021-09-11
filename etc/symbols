@@ -482,10 +482,12 @@
 \<^theory_context>      argument: cartouche
 \<^tool>                argument: cartouche
 \<^try>                 argument: cartouche
+\<^tvar>                argument: cartouche
 \<^typ>                 argument: cartouche
 \<^type_abbrev>         argument: cartouche
 \<^type_name>           argument: cartouche
 \<^type_syntax>         argument: cartouche
+\<^var>                 argument: cartouche
 \<^oracle_name>         argument: cartouche
 \<^code>                argument: cartouche
 \<^computation>         argument: cartouche

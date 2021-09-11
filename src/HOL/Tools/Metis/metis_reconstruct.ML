@@ -103,7 +103,7 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 fun inst_excluded_middle i_atom =
   @{lemma "P \<Longrightarrow> \<not> P \<Longrightarrow> False" by (rule notE)}
-  |> instantiate_normalize (TVars.empty, Vars.make [((("P", 0), \<^typ>\<open>bool\<close>), i_atom)])
+  |> instantiate_normalize (TVars.empty, Vars.make [(\<^var>\<open>?P::bool\<close>, i_atom)])
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
   singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom)
