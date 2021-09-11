@@ -37,52 +37,52 @@ end;
 structure FOLogic: FOLOGIC =
 struct
 
-val oT = Type(\<^type_name>\<open>o\<close>,[]);
+val oT = \<^Type>\<open>o\<close>;
 
-val Trueprop = Const(\<^const_name>\<open>Trueprop\<close>, oT-->propT);
+val Trueprop = \<^Const>\<open>Trueprop\<close>;
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ P) = P
+fun dest_Trueprop \<^Const_>\<open>Trueprop for P\<close> = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
 
 (* Logical constants *)
 
-val not = Const (\<^const_name>\<open>Not\<close>, oT --> oT);
-val conj = Const(\<^const_name>\<open>conj\<close>, [oT,oT]--->oT);
-val disj = Const(\<^const_name>\<open>disj\<close>, [oT,oT]--->oT);
-val imp = Const(\<^const_name>\<open>imp\<close>, [oT,oT]--->oT)
-val iff = Const(\<^const_name>\<open>iff\<close>, [oT,oT]--->oT);
+val not = \<^Const>\<open>Not\<close>;
+val conj = \<^Const>\<open>conj\<close>;
+val disj = \<^Const>\<open>disj\<close>;
+val imp = \<^Const>\<open>imp\<close>;
+val iff = \<^Const>\<open>iff\<close>;
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
 and mk_imp (t1, t2) = imp $ t1 $ t2
 and mk_iff (t1, t2) = iff $ t1 $ t2;
 
-fun dest_imp (Const(\<^const_name>\<open>imp\<close>,_) $ A $ B) = (A, B)
+fun dest_imp \<^Const_>\<open>imp for A B\<close> = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
-fun dest_conj (Const (\<^const_name>\<open>conj\<close>, _) $ t $ t') = t :: dest_conj t'
+fun dest_conj \<^Const_>\<open>conj for t t'\<close> = t :: dest_conj t'
   | dest_conj t = [t];
 
-fun dest_iff (Const(\<^const_name>\<open>iff\<close>,_) $ A $ B) = (A, B)
+fun dest_iff \<^Const_>\<open>iff for A B\<close> = (A, B)
   | dest_iff  t = raise TERM ("dest_iff", [t]);
 
-fun eq_const T = Const (\<^const_name>\<open>eq\<close>, [T, T] ---> oT);
+fun eq_const T = \<^Const>\<open>eq T\<close>;
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const (\<^const_name>\<open>eq\<close>, _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq \<^Const_>\<open>eq _ for lhs rhs\<close> = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
-fun all_const T = Const (\<^const_name>\<open>All\<close>, [T --> oT] ---> oT);
+fun all_const T = \<^Const>\<open>All T\<close>;
 fun mk_all (Free (x, T), P) = all_const T $ absfree (x, T) P;
 
-fun exists_const T = Const (\<^const_name>\<open>Ex\<close>, [T --> oT] ---> oT);
+fun exists_const T = \<^Const>\<open>Ex T\<close>;
 fun mk_exists (Free (x, T), P) = exists_const T $ absfree (x, T) P;
 
 
-(* binary oprations and relations *)
+(* binary operations and relations *)
 
 fun mk_binop c (t, u) =
   let val T = fastype_of t in

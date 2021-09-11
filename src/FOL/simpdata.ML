@@ -9,16 +9,16 @@ Simplification data for FOL.
 
 fun mk_meta_eq th =
   (case Thm.concl_of th of
-    _ $ (Const(\<^const_name>\<open>eq\<close>,_)$_$_)   => th RS @{thm eq_reflection}
-  | _ $ (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => th RS @{thm iff_reflection}
+    _ $ \<^Const_>\<open>eq _ for _ _\<close> => th RS @{thm eq_reflection}
+  | _ $ \<^Const_>\<open>iff for _ _\<close> => th RS @{thm iff_reflection}
   | _ => error "conclusion must be a =-equality or <->");
 
 fun mk_eq th =
   (case Thm.concl_of th of
-    Const(\<^const_name>\<open>Pure.eq\<close>,_)$_$_ => th
-  | _ $ (Const(\<^const_name>\<open>eq\<close>,_)$_$_)   => mk_meta_eq th
-  | _ $ (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => mk_meta_eq th
-  | _ $ (Const(\<^const_name>\<open>Not\<close>,_)$_)      => th RS @{thm iff_reflection_F}
+    \<^Const_>\<open>Pure.eq _ for _ _\<close> => th
+  | _ $ \<^Const_>\<open>eq _ for _ _\<close> => mk_meta_eq th
+  | _ $ \<^Const_>\<open>iff for _ _\<close> => mk_meta_eq th
+  | _ $ \<^Const_>\<open>Not for _\<close> => th RS @{thm iff_reflection_F}
   | _  => th RS @{thm iff_reflection_T});
 
 (*Replace premises x=y, X<->Y by X==Y*)
@@ -40,7 +40,7 @@ fun mk_atomize pairs =
   let
     fun atoms th =
       (case Thm.concl_of th of
-         Const(\<^const_name>\<open>Trueprop\<close>,_) $ p =>
+         \<^Const_>\<open>Trueprop for p\<close> =>
            (case head_of p of
               Const(a,_) =>
                 (case AList.lookup (op =) pairs a of
@@ -57,11 +57,11 @@ fun mksimps pairs ctxt = map mk_eq o mk_atomize pairs o Variable.gen_all ctxt;
 structure Quantifier1 = Quantifier1
 (
   (*abstract syntax*)
-  fun dest_eq (Const (\<^const_name>\<open>eq\<close>, _) $ s $ t) = SOME (s, t)
+  fun dest_eq \<^Const_>\<open>eq _ for s t\<close> = SOME (s, t)
     | dest_eq _ = NONE
-  fun dest_conj (Const (\<^const_name>\<open>conj\<close>, _) $ s $ t) = SOME (s, t)
+  fun dest_conj \<^Const_>\<open>conj for s t\<close> = SOME (s, t)
     | dest_conj _ = NONE
-  fun dest_imp (Const (\<^const_name>\<open>imp\<close>, _) $ s $ t) = SOME (s, t)
+  fun dest_imp \<^Const_>\<open>imp for s t\<close> = SOME (s, t)
     | dest_imp _ = NONE
   val conj = FOLogic.conj
   val imp  = FOLogic.imp
