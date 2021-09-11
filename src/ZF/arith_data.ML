@@ -29,7 +29,7 @@ val succ = \<^Const>\<open>succ\<close>;
 fun mk_succ t = succ $ t;
 val one = mk_succ zero;
 
-val mk_plus = FOLogic.mk_binop \<^const_name>\<open>Arith.add\<close>;
+fun mk_plus (t, u) = \<^Const>\<open>Arith.add for t u\<close>;
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -80,7 +80,7 @@ fun prove_conv name tacs ctxt prems (t,u) =
 (*** Use CancelNumerals simproc without binary numerals,
      just for cancellation ***)
 
-val mk_times = FOLogic.mk_binop \<^const_name>\<open>Arith.mult\<close>;
+fun mk_times (t, u) = \<^Const>\<open>Arith.mult for t u\<close>;
 
 fun mk_prod [] = one
   | mk_prod [t] = t
@@ -175,7 +175,7 @@ structure LessCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>Ordinal.lt\<close>
+  fun mk_bal (t, u) = \<^Const>\<open>Ordinal.lt for t u\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Ordinal.lt\<close> iT
   val bal_add1 = @{thm less_add_iff [THEN iff_trans]}
   val bal_add2 = @{thm less_add_iff [THEN iff_trans]}
@@ -188,7 +188,7 @@ structure DiffCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binop \<^const_name>\<open>Arith.diff\<close>
+  fun mk_bal (t, u) = \<^Const>\<open>Arith.diff for t u\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Arith.diff\<close> iT
   val bal_add1 = @{thm diff_add_eq [THEN trans]}
   val bal_add2 = @{thm diff_add_eq [THEN trans]}

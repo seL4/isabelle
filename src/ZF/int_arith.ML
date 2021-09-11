@@ -53,7 +53,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_numeral 0;
-val mk_plus = FOLogic.mk_binop \<^const_name>\<open>zadd\<close>;
+fun mk_plus (t, u) = \<^Const>\<open>zadd for t u\<close>;
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -75,7 +75,7 @@ fun dest_summing (pos, \<^Const_>\<open>zadd for t u\<close>, ts) =
 fun dest_sum t = dest_summing (true, t, []);
 
 val one = mk_numeral 1;
-val mk_times = FOLogic.mk_binop \<^const_name>\<open>zmult\<close>;
+fun mk_times (t, u) = \<^Const>\<open>zmult for t u\<close>;
 
 fun mk_prod [] = one
   | mk_prod [t] = t
@@ -191,7 +191,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>zless\<close>
+  fun mk_bal (t, u) = \<^Const>\<open>zless for t u\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zless\<close> \<^typ>\<open>i\<close>
   val bal_add1 = @{thm less_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff2} RS @{thm iff_trans}
@@ -200,7 +200,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>zle\<close>
+  fun mk_bal (t, u) = \<^Const>\<open>zle for t u\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zle\<close> \<^typ>\<open>i\<close>
   val bal_add1 = @{thm le_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm le_add_iff2} RS @{thm iff_trans}
