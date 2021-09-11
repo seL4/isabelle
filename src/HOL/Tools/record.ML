@@ -1781,8 +1781,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
           val ctxt = Proof_Context.init_global thy;
         in
           thy
-          |> Code.declare_default_eqns_global
-               [(mk_eq (Proof_Context.init_global thy) eq_def, true), (mk_eq_refl (Proof_Context.init_global thy), false)]
+          |> Code.declare_default_eqns_global [(mk_eq ctxt eq_def, true), (mk_eq_refl ctxt, false)]
         end;
     in
       thy
