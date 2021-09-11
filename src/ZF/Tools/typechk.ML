@@ -76,8 +76,7 @@ fun net_res_tac ctxt maxr net =
          if length rls <= maxr then resolve_tac ctxt rls i else no_tac
       end);
 
-fun is_rigid_elem (Const(\<^const_name>\<open>Trueprop\<close>,_) $ (Const(\<^const_name>\<open>mem\<close>,_) $ a $ _)) =
-      not (is_Var (head_of a))
+fun is_rigid_elem \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for a _\<close>\<close>\<close> = not (is_Var (head_of a))
   | is_rigid_elem _ = false;
 
 (*Try solving a:A by assumption provided a is rigid!*)

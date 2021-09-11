@@ -24,8 +24,8 @@ struct
 
 val iT = Ind_Syntax.iT;
 
-val zero = Const(\<^const_name>\<open>zero\<close>, iT);
-val succ = Const(\<^const_name>\<open>succ\<close>, iT --> iT);
+val zero = \<^Const>\<open>zero\<close>;
+val succ = \<^Const>\<open>succ\<close>;
 fun mk_succ t = succ $ t;
 val one = mk_succ zero;
 
@@ -44,9 +44,9 @@ val dest_plus = FOLogic.dest_bin \<^const_name>\<open>Arith.add\<close> iT;
 
 (* dest_sum *)
 
-fun dest_sum (Const(\<^const_name>\<open>zero\<close>,_)) = []
-  | dest_sum (Const(\<^const_name>\<open>succ\<close>,_) $ t) = one :: dest_sum t
-  | dest_sum (Const(\<^const_name>\<open>Arith.add\<close>,_) $ t $ u) = dest_sum t @ dest_sum u
+fun dest_sum \<^Const_>\<open>zero\<close> = []
+  | dest_sum \<^Const_>\<open>succ for t\<close> = one :: dest_sum t
+  | dest_sum \<^Const_>\<open>Arith.add for t u\<close> = dest_sum t @ dest_sum u
   | dest_sum tm = [tm];
 
 (*Apply the given rewrite (if present) just once*)

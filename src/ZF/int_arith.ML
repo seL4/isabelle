@@ -44,7 +44,7 @@ fun dest_bin tm =
 
 fun mk_numeral i = \<^const>\<open>integ_of\<close> $ mk_bin i;
 
-fun dest_numeral (Const(\<^const_name>\<open>integ_of\<close>, _) $ w) = dest_bin w
+fun dest_numeral \<^Const_>\<open>integ_of for w\<close> = dest_bin w
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun find_first_numeral past (t::terms) =
@@ -65,9 +65,9 @@ fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (\<^const_name>\<open>zadd\<close>, _) $ t $ u, ts) =
+fun dest_summing (pos, \<^Const_>\<open>zadd for t u\<close>, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (\<^const_name>\<open>zdiff\<close>, _) $ t $ u, ts) =
+  | dest_summing (pos, \<^Const_>\<open>zdiff for t u\<close>, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else \<^const>\<open>zminus\<close> $ t :: ts;
@@ -93,7 +93,7 @@ fun dest_prod t =
 fun mk_coeff (k, t) = mk_times (mk_numeral k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const (\<^const_name>\<open>zminus\<close>, _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign \<^Const_>\<open>zminus for t\<close> = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort Term_Ord.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts

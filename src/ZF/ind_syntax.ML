@@ -18,7 +18,7 @@ fun traceIt msg thy t =
 
 (** Abstract syntax definitions for ZF **)
 
-val iT = Type(\<^type_name>\<open>i\<close>, []);
+val iT = \<^Type>\<open>i\<close>;
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =
@@ -29,17 +29,16 @@ fun mk_all_imp (A,P) =
 fun mk_Collect (a, D, t) = \<^const>\<open>Collect\<close> $ D $ absfree (a, iT) t;
 
 (*simple error-checking in the premises of an inductive definition*)
-fun chk_prem rec_hd (Const (\<^const_name>\<open>conj\<close>, _) $ _ $ _) =
+fun chk_prem rec_hd \<^Const_>\<open>conj for _ _\<close> =
         error"Premises may not be conjuctive"
-  | chk_prem rec_hd (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X) =
+  | chk_prem rec_hd \<^Const_>\<open>mem for t X\<close> =
         (Logic.occs(rec_hd,t) andalso error "Recursion term on left of member symbol"; ())
   | chk_prem rec_hd t =
         (Logic.occs(rec_hd,t) andalso error "Recursion term in side formula"; ());
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl =
-    let val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X) =
-                Logic.strip_imp_concl rl
+    let val \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for t X\<close>\<close>\<close> = Logic.strip_imp_concl rl
     in  (t,X)  end;
 
 (*As above, but return error message if bad*)
@@ -61,7 +60,7 @@ val equals_CollectD =
 type constructor_spec =
     (string * typ * mixfix) * string * term list * term list;
 
-fun dest_mem (Const (\<^const_name>\<open>mem\<close>, _) $ x $ A) = (x, A)
+fun dest_mem \<^Const_>\<open>mem for x A\<close> = (x, A)
   | dest_mem _ = error "Constructor specifications must have the form x:A";
 
 (*read a constructor specification*)

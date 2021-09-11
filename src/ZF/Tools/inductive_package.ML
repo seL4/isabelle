@@ -99,7 +99,7 @@ let
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
-  fun dest_tprop (Const(\<^const_name>\<open>Trueprop\<close>,_) $ P) = P
+  fun dest_tprop \<^Const_>\<open>Trueprop for P\<close> = P
     | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^
                             Syntax.string_of_term ctxt0 Q);
 
@@ -297,8 +297,7 @@ let
      (*Used to make induction rules;
         ind_alist = [(rec_tm1,pred1),...] associates predicates with rec ops
         prem is a premise of an intr rule*)
-     fun add_induct_prem ind_alist (prem as Const (\<^const_name>\<open>Trueprop\<close>, _) $
-                      (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X), iprems) =
+     fun add_induct_prem ind_alist (prem as \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for t X\<close>\<close>\<close>, iprems) =
           (case AList.lookup (op aconv) ind_alist X of
                SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)
@@ -514,7 +513,7 @@ let
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
 
-     val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (pred_var $ _) = Thm.concl_of induct0
+     val \<^Const_>\<open>Trueprop for \<open>pred_var $ _\<close>\<close> = Thm.concl_of induct0
 
      val induct0 =
        CP.split_rule_var ctxt4

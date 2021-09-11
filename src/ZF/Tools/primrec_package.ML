@@ -115,8 +115,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
             case AList.lookup (op =) eqns cname of
                 NONE => (warning ("no equation for constructor " ^ cname ^
                                   "\nin definition of function " ^ fname);
-                         (Const (\<^const_name>\<open>zero\<close>, Ind_Syntax.iT),
-                          #2 recursor_pair, Const (\<^const_name>\<open>zero\<close>, Ind_Syntax.iT)))
+                         (\<^Const>\<open>zero\<close>, #2 recursor_pair, \<^Const>\<open>zero\<close>))
               | SOME (rhs, cargs', eq) =>
                     (rhs, inst_recursor (recursor_pair, cargs'), eq)
           val allowed_terms = map use_fabs (#2 (strip_comb recursor_rhs))

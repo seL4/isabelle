@@ -19,11 +19,11 @@ fun atomize (conn_pairs, mem_pairs) th =
                    | NONE => [th])
             | _ => [th]
   in case Thm.concl_of th of
-         Const(\<^const_name>\<open>Trueprop\<close>,_) $ P =>
+         \<^Const_>\<open>Trueprop for P\<close> =>
             (case P of
-                 Const(\<^const_name>\<open>mem\<close>,_) $ a $ b => tryrules mem_pairs b
-               | Const(\<^const_name>\<open>True\<close>,_)         => []
-               | Const(\<^const_name>\<open>False\<close>,_)        => []
+                 \<^Const_>\<open>mem for a b\<close> => tryrules mem_pairs b
+               | \<^Const_>\<open>True\<close> => []
+               | \<^Const_>\<open>False\<close> => []
                | A => tryrules conn_pairs A)
        | _                       => [th]
   end;

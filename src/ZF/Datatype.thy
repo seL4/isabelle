@@ -63,7 +63,7 @@ structure DataFree =
 struct
   val trace = Unsynchronized.ref false;
 
-  fun mk_new ([],[]) = Const(\<^const_name>\<open>True\<close>,FOLogic.oT)
+  fun mk_new ([],[]) = \<^Const>\<open>True\<close>
     | mk_new (largs,rargs) =
         Balanced_Tree.make FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
@@ -89,7 +89,7 @@ struct
            if #big_rec_name lcon_info = #big_rec_name rcon_info
                andalso not (null (#free_iffs lcon_info)) then
                if lname = rname then mk_new (largs, rargs)
-               else Const(\<^const_name>\<open>False\<close>,FOLogic.oT)
+               else \<^Const>\<open>False\<close>
            else raise Match
        val _ =
          if !trace then writeln ("NEW = " ^ Syntax.string_of_term ctxt new)

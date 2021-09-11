@@ -70,8 +70,7 @@ fun datatype_info thy name =
 exception Find_tname of string
 
 fun find_tname ctxt var As =
-  let fun mk_pair (Const(\<^const_name>\<open>mem\<close>,_) $ Free (v,_) $ A) =
-             (v, #1 (dest_Const (head_of A)))
+  let fun mk_pair \<^Const_>\<open>mem for \<open>Free (v,_)\<close> A\<close> = (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
       val pairs = map_filter (try (mk_pair o FOLogic.dest_Trueprop)) As
       val x =
@@ -99,7 +98,7 @@ fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
       datatype_info thy tn
       |> (if exh then #exhaustion else #induct)
       |> Thm.transfer thy;
-    val (Const(\<^const_name>\<open>mem\<close>,_) $ Var(ixn,_) $ _) =
+    val \<^Const_>\<open>mem for \<open>Var(ixn,_)\<close> _\<close> =
         (case Thm.prems_of rule of
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
@@ -120,15 +119,14 @@ val induct_tac = exhaust_induct_tac false;
 fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   let
     (*analyze the LHS of a case equation to get a constructor*)
-    fun const_of (Const(\<^const_name>\<open>IFOL.eq\<close>, _) $ (_ $ c) $ _) = c
+    fun const_of \<^Const_>\<open>IFOL.eq _ for \<open>_ $ c\<close> _\<close> = c
       | const_of eqn = error ("Ill-formed case equation: " ^
                               Syntax.string_of_term_global thy eqn);
 
     val constructors =
         map (head_of o const_of o FOLogic.dest_Trueprop o Thm.prop_of) case_eqns;
 
-    val Const (\<^const_name>\<open>mem\<close>, _) $ _ $ data =
-        FOLogic.dest_Trueprop (hd (Thm.prems_of elim));
+    val \<^Const_>\<open>mem for _ data\<close> = FOLogic.dest_Trueprop (hd (Thm.prems_of elim));
 
     val Const(big_rec_name, _) = head_of data;
 
