@@ -665,16 +665,14 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
 
 local
 
-fun goal_prefix k ((c as Const (\<^const_name>\<open>Pure.all\<close>, _)) $ Abs (a, T, B)) =
-      c $ Abs (a, T, goal_prefix k B)
+fun goal_prefix k ((c as \<^Const_>\<open>Pure.all _\<close>) $ Abs (a, T, B)) = c $ Abs (a, T, goal_prefix k B)
   | goal_prefix 0 _ = Term.dummy_prop
-  | goal_prefix k ((c as Const (\<^const_name>\<open>Pure.imp\<close>, _)) $ A $ B) =
-      c $ A $ goal_prefix (k - 1) B
+  | goal_prefix k ((c as \<^Const_>\<open>Pure.imp\<close>) $ A $ B) = c $ A $ goal_prefix (k - 1) B
   | goal_prefix _ _ = Term.dummy_prop;
 
-fun goal_params k (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, B)) = goal_params k B + 1
+fun goal_params k \<^Const_>\<open>Pure.all _ for \<open>Abs (_, _, B)\<close>\<close> = goal_params k B + 1
   | goal_params 0 _ = 0
-  | goal_params k (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ B) = goal_params (k - 1) B
+  | goal_params k \<^Const_>\<open>Pure.imp for _ B\<close> = goal_params (k - 1) B
   | goal_params _ _ = 0;
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
@@ -690,13 +688,11 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
           [(#1 (dest_Var (head_of pred)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, body))),
            (#1 (dest_Var (head_of arg)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, v)))]);
 
-    fun goal_concl k xs (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (a, T, B)) =
-          goal_concl k ((a, T) :: xs) B
+    fun goal_concl k xs \<^Const_>\<open>Pure.all _ for \<open>Abs (a, T, B)\<close>\<close> = goal_concl k ((a, T) :: xs) B
       | goal_concl 0 xs B =
           if not (Term.exists_subterm (fn t => t aconv v) B) then NONE
           else SOME (xs, absfree (x, T) (Term.incr_boundvars 1 B))
-      | goal_concl k xs (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ B) =
-          goal_concl (k - 1) xs B
+      | goal_concl k xs \<^Const_>\<open>Pure.imp for _ B\<close> = goal_concl (k - 1) xs B
       | goal_concl _ _ _ = NONE;
   in
     (case goal_concl n [] goal of

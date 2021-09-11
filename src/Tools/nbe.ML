@@ -589,7 +589,7 @@ fun compile ignore_cache ctxt program =
 fun mk_equals ctxt lhs raw_rhs =
   let
     val ty = Thm.typ_of_cterm lhs;
-    val eq = Thm.cterm_of ctxt (Term.Const (\<^const_name>\<open>Pure.eq\<close>, ty --> ty --> propT));
+    val eq = Thm.cterm_of ctxt \<^Const>\<open>Pure.eq ty\<close>;
     val rhs = Thm.cterm_of ctxt raw_rhs;
   in Thm.mk_binop eq lhs rhs end;
 

@@ -57,7 +57,7 @@ fun split_format_err () = error "Wrong format for split rule";
 
 fun split_thm_info thm =
   (case Thm.concl_of (Data.mk_eq thm) of
-    Const(\<^const_name>\<open>Pure.eq\<close>, _) $ (Var _ $ t) $ c =>
+    \<^Const_>\<open>Pure.eq _ for \<open>Var _ $ t\<close> c\<close> =>
       (case strip_comb t of
         (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
       | _ => split_format_err ())

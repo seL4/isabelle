@@ -112,8 +112,8 @@ fun eq_var bnd novars check_frees t =
             orelse exists (curry Logic.occs (Free f)) ts
         then (orient, true) else raise Match
       | check_free ts (orient, _) = (orient, false)
-    fun eq_var_aux k (Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs(_,_,t)) hs = eq_var_aux k t hs
-      | eq_var_aux k (Const(\<^const_name>\<open>Pure.imp\<close>,_) $ A $ B) hs =
+    fun eq_var_aux k \<^Const_>\<open>Pure.all _ for \<open>Abs(_,_,t)\<close>\<close> hs = eq_var_aux k t hs
+      | eq_var_aux k \<^Const_>\<open>Pure.imp for A B\<close> hs =
               ((k, check_free (B :: hs) (inspect_pair bnd novars
                     (Data.dest_eq (Data.dest_Trueprop A))))
                handle TERM _ => eq_var_aux (k+1) B (A :: hs)
