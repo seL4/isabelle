@@ -24,12 +24,9 @@ val cont_L = @{thm cont2cont_LAM}
 val cont_R = @{thm cont_Rep_cfun2}
 
 (* checks whether a term is written entirely in the LCF sublanguage *)
-fun is_lcf_term (Const (\<^const_name>\<open>Rep_cfun\<close>, _) $ t $ u) =
-      is_lcf_term t andalso is_lcf_term u
-  | is_lcf_term (Const (\<^const_name>\<open>Abs_cfun\<close>, _) $ Abs (_, _, t)) =
-      is_lcf_term t
-  | is_lcf_term (Const (\<^const_name>\<open>Abs_cfun\<close>, _) $ t) =
-      is_lcf_term (Term.incr_boundvars 1 t $ Bound 0)
+fun is_lcf_term \<^Const_>\<open>Rep_cfun _ _ for t u\<close> = is_lcf_term t andalso is_lcf_term u
+  | is_lcf_term \<^Const_>\<open>Abs_cfun _ _ for \<open>Abs (_, _, t)\<close>\<close> = is_lcf_term t
+  | is_lcf_term \<^Const_>\<open>Abs_cfun _ _ for t\<close> = is_lcf_term (Term.incr_boundvars 1 t $ Bound 0)
   | is_lcf_term (Bound _) = true
   | is_lcf_term t = not (Term.is_open t)
 
@@ -64,17 +61,17 @@ local
   (* first list: cont thm for each dangling bound variable *)
   (* second list: cont thm for each LAM in t *)
   (* if b = false, only return cont thm for outermost LAMs *)
-  fun cont_thms1 b (Const (\<^const_name>\<open>Rep_cfun\<close>, _) $ f $ t) =
+  fun cont_thms1 b \<^Const_>\<open>Rep_cfun _ _ for f t\<close> =
     let
       val (cs1,ls1) = cont_thms1 b f
       val (cs2,ls2) = cont_thms1 b t
     in (zip cs1 cs2, if b then ls1 @ ls2 else []) end
-    | cont_thms1 b (Const (\<^const_name>\<open>Abs_cfun\<close>, _) $ Abs (_, _, t)) =
+    | cont_thms1 b \<^Const_>\<open>Abs_cfun _ _ for \<open>Abs (_, _, t)\<close>\<close> =
     let
       val (cs, ls) = cont_thms1 b t
       val (cs', l) = lam cs
     in (cs', l::ls) end
-    | cont_thms1 b (Const (\<^const_name>\<open>Abs_cfun\<close>, _) $ t) =
+    | cont_thms1 b \<^Const_>\<open>Abs_cfun _ _ for t\<close> =
     let
       val t' = Term.incr_boundvars 1 t $ Bound 0
       val (cs, ls) = cont_thms1 b t'
@@ -104,9 +101,9 @@ fun cont_tac ctxt =
         [] => no_tac
       | (c::_) => resolve_tac ctxt [c] i
 
-    fun cont_tac_of_term (Const (\<^const_name>\<open>cont\<close>, _) $ f) =
+    fun cont_tac_of_term \<^Const_>\<open>cont _ _ for f\<close> =
       let
-        val f' = Const (\<^const_name>\<open>Abs_cfun\<close>, dummyT) $ f
+        val f' = \<^Const>\<open>Abs_cfun dummyT dummyT for f\<close>
       in
         if is_lcf_term f'
         then new_cont_tac f'

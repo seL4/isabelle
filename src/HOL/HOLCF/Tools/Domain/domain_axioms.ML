@@ -75,7 +75,7 @@ fun axiomatize_lub_take
     (thy : theory)
     : thm * theory =
   let
-    val i = Free ("i", natT)
+    val i = Free ("i", \<^Type>\<open>nat\<close>)
     val T = (fst o dest_cfunT o range_type o fastype_of) take_const
 
     val lub_take_eqn =

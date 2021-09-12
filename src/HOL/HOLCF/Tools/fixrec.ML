@@ -34,12 +34,12 @@ fun fixrec_err s = error ("fixrec definition error:\n" ^ s)
 
 local
 
-fun binder_cfun (Type(\<^type_name>\<open>cfun\<close>,[T, U])) = T :: binder_cfun U
-  | binder_cfun (Type(\<^type_name>\<open>fun\<close>,[T, U])) = T :: binder_cfun U
+fun binder_cfun \<^Type>\<open>cfun T U\<close> = T :: binder_cfun U
+  | binder_cfun \<^Type>\<open>fun T U\<close> = T :: binder_cfun U
   | binder_cfun _   =  []
 
-fun body_cfun (Type(\<^type_name>\<open>cfun\<close>,[_, U])) = body_cfun U
-  | body_cfun (Type(\<^type_name>\<open>fun\<close>,[_, U])) = body_cfun U
+fun body_cfun \<^Type>\<open>cfun _ U\<close> = body_cfun U
+  | body_cfun \<^Type>\<open>fun _ U\<close> = body_cfun U
   | body_cfun T   =  T
 
 in
@@ -59,24 +59,23 @@ val mk_trp = HOLogic.mk_Trueprop
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
 
 (* similar to Thm.head_of, but for continuous application *)
-fun chead_of (Const(\<^const_name>\<open>Rep_cfun\<close>,_)$f$_) = chead_of f
+fun chead_of \<^Const_>\<open>Rep_cfun _ _ for f _\<close> = chead_of f
   | chead_of u = u
 
 infix 1 === val (op ===) = HOLogic.mk_eq
 
 fun mk_mplus (t, u) =
-  let val mT = Term.fastype_of t
-  in Const(\<^const_name>\<open>Fixrec.mplus\<close>, mT ->> mT ->> mT) ` t ` u end
+  let val T = dest_matchT (Term.fastype_of t)
+  in \<^Const>\<open>Fixrec.mplus T\<close> ` t ` u end
 
 fun mk_run t =
   let
     val mT = Term.fastype_of t
     val T = dest_matchT mT
-    val run = Const(\<^const_name>\<open>Fixrec.run\<close>, mT ->> T)
+    val run = \<^Const>\<open>Fixrec.run T\<close>
   in
     case t of
-      Const(\<^const_name>\<open>Rep_cfun\<close>, _) $
-        Const(\<^const_name>\<open>Fixrec.succeed\<close>, _) $ u => u
+      \<^Const_>\<open>Rep_cfun _ _\<close> $ \<^Const_>\<open>Fixrec.succeed _\<close> $ u => u
     | _ => run ` t
   end
 
@@ -150,7 +149,7 @@ fun add_fixdefs
       |> fold_map Local_Theory.define (map (apfst fst) fixes ~~ fixdefs)
     fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2]
     val tuple_fixdef_thm = foldr1 pair_equalI (map (snd o snd) fixdef_thms)
-    val P = Var (("P", 0), map Term.fastype_of lhss ---> HOLogic.boolT)
+    val P = Var (("P", 0), map Term.fastype_of lhss ---> \<^Type>\<open>bool\<close>)
     val predicate = lambda_tuple lhss (list_comb (P, lhss))
     val tuple_induct_thm = (def_cont_fix_ind OF [tuple_fixdef_thm, cont_thm])
       |> Thm.instantiate' [] [SOME (Thm.global_cterm_of thy predicate)]
@@ -219,7 +218,7 @@ fun compile_pat match_name pat rhs taken =
     (* compiles a monadic term for a constructor pattern *)
     and comp_con T p rhs vs taken =
       case p of
-        Const(\<^const_name>\<open>Rep_cfun\<close>,_) $ f $ x =>
+        \<^Const_>\<open>Rep_cfun _ _ for f x\<close> =>
           let val (rhs', v, taken') = comp_pat x rhs taken
           in comp_con T f rhs' (v::vs) taken' end
       | f $ x =>
@@ -243,7 +242,7 @@ fun compile_pat match_name pat rhs taken =
 (* returns (constant, (vars, matcher)) *)
 fun compile_lhs match_name pat rhs vs taken =
   case pat of
-    Const(\<^const_name>\<open>Rep_cfun\<close>, _) $ f $ x =>
+    \<^Const_>\<open>Rep_cfun _ _ for f x\<close> =>
       let val (rhs', v, taken') = compile_pat match_name x rhs taken
       in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => (pat, (vs, rhs))

@@ -50,19 +50,17 @@ type rep_info =
 
 val udomT = \<^typ>\<open>udom\<close>
 val deflT = \<^typ>\<open>udom defl\<close>
-val udeflT = \<^typ>\<open>udom u defl\<close>
-fun emb_const T = Const (\<^const_name>\<open>emb\<close>, T ->> udomT)
-fun prj_const T = Const (\<^const_name>\<open>prj\<close>, udomT ->> T)
-fun defl_const T = Const (\<^const_name>\<open>defl\<close>, Term.itselfT T --> deflT)
-fun liftemb_const T = Const (\<^const_name>\<open>liftemb\<close>, mk_upT T ->> mk_upT udomT)
-fun liftprj_const T = Const (\<^const_name>\<open>liftprj\<close>, mk_upT udomT ->> mk_upT T)
-fun liftdefl_const T = Const (\<^const_name>\<open>liftdefl\<close>, Term.itselfT T --> udeflT)
+fun emb_const T = \<^Const>\<open>emb T\<close>
+fun prj_const T = \<^Const>\<open>prj T\<close>
+fun defl_const T = \<^Const>\<open>defl T\<close>
+fun liftemb_const T = \<^Const>\<open>liftemb T\<close>
+fun liftprj_const T = \<^Const>\<open>liftprj T\<close>
+fun liftdefl_const T = \<^Const>\<open>liftdefl T\<close>
 
 fun mk_u_map t =
   let
     val (T, U) = dest_cfunT (fastype_of t)
-    val u_map_type = (T ->> U) ->> (mk_upT T ->> mk_upT U)
-    val u_map_const = Const (\<^const_name>\<open>u_map\<close>, u_map_type)
+    val u_map_const = \<^Const>\<open>u_map T U\<close>
   in
     mk_capply (u_map_const, t)
   end
@@ -124,7 +122,7 @@ fun gen_add_domaindef
     val liftdefl_eqn =
       Logic.mk_equals (liftdefl_const newT,
         Abs ("t", Term.itselfT newT,
-          mk_capply (\<^const>\<open>liftdefl_of\<close>, defl_const newT $ Logic.mk_type newT)))
+          mk_capply (\<^Const>\<open>liftdefl_of\<close>, defl_const newT $ Logic.mk_type newT)))
 
     val name_def = Thm.def_binding tname
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])

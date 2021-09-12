@@ -149,7 +149,8 @@ infix -->>
 infix 9 `
 
 fun mk_deflation t =
-  Const (\<^const_name>\<open>deflation\<close>, Term.fastype_of t --> boolT) $ t
+  let val T = #1 (dest_cfunT (Term.fastype_of t))
+  in \<^Const>\<open>deflation T for t\<close> end
 
 fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
 
@@ -235,7 +236,7 @@ fun define_take_functions
           (mk_tuple (map one_copy_rhs (rep_abs_consts ~~ dom_eqns)))
     val take_rhss =
       let
-        val n = Free ("n", HOLogic.natT)
+        val n = Free ("n", \<^Type>\<open>nat\<close>)
         val rhs = mk_iterate (n, take_functional)
       in
         map (lambda n o snd) (mk_projs dbinds rhs)
@@ -244,7 +245,7 @@ fun define_take_functions
     (* define take constants *)
     fun define_take_const ((dbind, take_rhs), (lhsT, _)) thy =
       let
-        val take_type = HOLogic.natT --> lhsT ->> lhsT
+        val take_type = \<^Type>\<open>nat\<close> --> lhsT ->> lhsT
         val take_bind = Binding.suffix_name "_take" dbind
         val (take_const, thy) =
           Sign.declare_const_global ((take_bind, take_type), NoSyn) thy
@@ -284,7 +285,7 @@ fun define_take_functions
       fold_map prove_take_0 (take_consts ~~ dbinds ~~ dom_eqns) thy
 
     (* prove take_Suc lemmas *)
-    val n = Free ("n", natT)
+    val n = Free ("n", \<^Type>\<open>nat\<close>)
     val take_is = map (fn t => t $ n) take_consts
     fun prove_take_Suc
           (((take_const, rep_abs), dbind), (_, rhsT)) thy =
@@ -308,7 +309,7 @@ fun define_take_functions
     val deflation_abs_rep_thms = map deflation_abs_rep iso_infos
     val deflation_take_thm =
       let
-        val n = Free ("n", natT)
+        val n = Free ("n", \<^Type>\<open>nat\<close>)
         fun mk_goal take_const = mk_deflation (take_const $ n)
         val goal = mk_trp (foldr1 mk_conj (map mk_goal take_consts))
         val bottom_rules =
@@ -380,14 +381,14 @@ fun define_take_functions
     (* define finiteness predicates *)
     fun define_finite_const ((dbind, take_const), (lhsT, _)) thy =
       let
-        val finite_type = lhsT --> boolT
+        val finite_type = lhsT --> \<^Type>\<open>bool\<close>
         val finite_bind = Binding.suffix_name "_finite" dbind
         val (finite_const, thy) =
           Sign.declare_const_global ((finite_bind, finite_type), NoSyn) thy
         val x = Free ("x", lhsT)
-        val n = Free ("n", natT)
+        val n = Free ("n", \<^Type>\<open>nat\<close>)
         val finite_rhs =
-          lambda x (HOLogic.exists_const natT $
+          lambda x (HOLogic.exists_const \<^Type>\<open>nat\<close> $
             (lambda n (mk_eq (mk_capply (take_const $ n, x), x))))
         val finite_eqn = Logic.mk_equals (finite_const, finite_rhs)
         val (finite_def_thm, thy) =
@@ -436,7 +437,8 @@ fun prove_finite_take_induct
             map (fn x => @{thm decisive_abs_rep} OF [x]) iso_locale_thms
         val n = Free ("n", \<^typ>\<open>nat\<close>)
         fun mk_decisive t =
-            Const (\<^const_name>\<open>decisive\<close>, fastype_of t --> boolT) $ t
+          let val T = #1 (dest_cfunT (fastype_of t))
+          in \<^Const>\<open>decisive T for t\<close> end
         fun f take_const = mk_decisive (take_const $ n)
         val goal = mk_trp (foldr1 mk_conj (map f take_consts))
         val rules0 = @{thm decisive_bottom} :: take_0_thms

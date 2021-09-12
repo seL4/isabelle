@@ -18,7 +18,7 @@ struct
 (* misc utils *)
 
 fun change_arrow 0 T = T
-  | change_arrow n (Type (_, [S, T])) = Type ("fun", [S, change_arrow (n - 1) T])
+  | change_arrow n (Type (_, [S, T])) = \<^Type>\<open>fun S \<open>change_arrow (n - 1) T\<close>\<close>
   | change_arrow _ T = raise TYPE ("cont_consts: change_arrow", [T], [])
 
 fun trans_rules name2 name1 n mx =

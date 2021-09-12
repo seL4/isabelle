@@ -53,10 +53,10 @@ type pcpo_info =
 
 (* building terms *)
 
-fun adm_const T = Const (\<^const_name>\<open>adm\<close>, (T --> HOLogic.boolT) --> HOLogic.boolT)
+fun adm_const T = \<^Const>\<open>adm T\<close>
 fun mk_adm (x, T, P) = adm_const T $ absfree (x, T) P
 
-fun below_const T = Const (\<^const_name>\<open>below\<close>, T --> T --> HOLogic.boolT)
+fun below_const T = \<^Const>\<open>below T\<close>
 
 (* proving class instances *)
 
@@ -229,7 +229,7 @@ fun prepare_pcpodef
     val (newT, oldT, set) = prepare prep_term name typ raw_set thy
 
     val goal_bottom_mem =
-      HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (\<^const_name>\<open>bottom\<close>, oldT), set))
+      HOLogic.mk_Trueprop (HOLogic.mk_mem (\<^Const>\<open>bottom oldT\<close>, set))
 
     val goal_admissible =
       HOLogic.mk_Trueprop (mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)))

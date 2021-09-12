@@ -53,32 +53,29 @@ val udomT = \<^typ>\<open>udom\<close>
 val deflT = \<^typ>\<open>udom defl\<close>
 val udeflT = \<^typ>\<open>udom u defl\<close>
 
-fun mk_DEFL T =
-  Const (\<^const_name>\<open>defl\<close>, Term.itselfT T --> deflT) $ Logic.mk_type T
+fun mk_DEFL T = \<^Const>\<open>defl T for \<open>Logic.mk_type T\<close>\<close>
 
-fun dest_DEFL (Const (\<^const_name>\<open>defl\<close>, _) $ t) = Logic.dest_type t
+fun dest_DEFL \<^Const_>\<open>defl _ for t\<close> = Logic.dest_type t
   | dest_DEFL t = raise TERM ("dest_DEFL", [t])
 
-fun mk_LIFTDEFL T =
-  Const (\<^const_name>\<open>liftdefl\<close>, Term.itselfT T --> udeflT) $ Logic.mk_type T
+fun mk_LIFTDEFL T = \<^Const>\<open>liftdefl T for \<open>Logic.mk_type T\<close>\<close>
 
-fun dest_LIFTDEFL (Const (\<^const_name>\<open>liftdefl\<close>, _) $ t) = Logic.dest_type t
+fun dest_LIFTDEFL \<^Const_>\<open>liftdefl _ for t\<close> = Logic.dest_type t
   | dest_LIFTDEFL t = raise TERM ("dest_LIFTDEFL", [t])
 
-fun mk_u_defl t = mk_capply (\<^const>\<open>u_defl\<close>, t)
+fun mk_u_defl t = mk_capply (\<^Const>\<open>u_defl\<close>, t)
 
-fun emb_const T = Const (\<^const_name>\<open>emb\<close>, T ->> udomT)
-fun prj_const T = Const (\<^const_name>\<open>prj\<close>, udomT ->> T)
+fun emb_const T = \<^Const>\<open>emb T\<close>
+fun prj_const T = \<^Const>\<open>prj T\<close>
 fun coerce_const (T, U) = mk_cfcomp (prj_const U, emb_const T)
 
-fun isodefl_const T =
-  Const (\<^const_name>\<open>isodefl\<close>, (T ->> T) --> deflT --> HOLogic.boolT)
+fun isodefl_const T = \<^Const>\<open>isodefl T\<close>
 
-fun isodefl'_const T =
-  Const (\<^const_name>\<open>isodefl'\<close>, (T ->> T) --> udeflT --> HOLogic.boolT)
+fun isodefl'_const T = \<^Const>\<open>isodefl' T\<close>
 
 fun mk_deflation t =
-  Const (\<^const_name>\<open>deflation\<close>, Term.fastype_of t --> boolT) $ t
+  let val T = #1 (dest_cfunT (Term.fastype_of t))
+  in \<^Const>\<open>deflation T for t\<close> end
 
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
@@ -121,10 +118,10 @@ fun add_fixdefs
     (* convert parameters to lambda abstractions *)
     fun mk_eqn (lhs, rhs) =
         case lhs of
-          Const (\<^const_name>\<open>Rep_cfun\<close>, _) $ f $ (x as Free _) =>
+          \<^Const_>\<open>Rep_cfun _ _ for f \<open>x as Free _\<close>\<close> =>
             mk_eqn (f, big_lambda x rhs)
-        | f $ Const (\<^const_name>\<open>Pure.type\<close>, T) =>
-            mk_eqn (f, Abs ("t", T, rhs))
+        | f $ \<^Const_>\<open>Pure.type T\<close> =>
+            mk_eqn (f, Abs ("t", \<^Type>\<open>itself T\<close>, rhs))
         | Const _ => Logic.mk_equals (lhs, rhs)
         | _ => raise TERM ("lhs not of correct form", [lhs, rhs])
     val eqns = map mk_eqn projs
@@ -710,7 +707,7 @@ fun gen_domain_isomorphism
     (* prove lub of take equals ID *)
     fun prove_lub_take (((dbind, take_const), map_ID_thm), (lhsT, _)) thy =
       let
-        val n = Free ("n", natT)
+        val n = Free ("n", \<^Type>\<open>nat\<close>)
         val goal = mk_eqs (mk_lub (lambda n (take_const $ n)), mk_ID lhsT)
         fun tac ctxt =
             EVERY

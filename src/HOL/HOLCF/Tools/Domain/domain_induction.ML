@@ -42,13 +42,13 @@ let
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy
 
   val n = Free ("n", \<^typ>\<open>nat\<close>)
-  val n' = \<^const>\<open>Suc\<close> $ n
+  val n' = \<^Const>\<open>Suc for n\<close>
 
   local
     val newTs = map (#absT o #iso_info) constr_infos
     val subs = newTs ~~ map (fn t => t $ n) take_consts
-    fun is_ID (Const (c, _)) = (c = \<^const_name>\<open>ID\<close>)
-      | is_ID _              = false
+    fun is_ID \<^Const_>\<open>ID _\<close> = true
+      | is_ID _ = false
   in
     fun map_of_arg thy v T =
       let val m = Domain_Take_Proofs.map_of_typ thy subs T
@@ -110,10 +110,10 @@ let
   val newTs = map #absT iso_infos
   val P_names = Old_Datatype_Prop.indexify_names (map (K "P") newTs)
   val x_names = Old_Datatype_Prop.indexify_names (map (K "x") newTs)
-  val P_types = map (fn T => T --> HOLogic.boolT) newTs
+  val P_types = map (fn T => T --> \<^Type>\<open>bool\<close>) newTs
   val Ps = map Free (P_names ~~ P_types)
   val xs = map Free (x_names ~~ newTs)
-  val n = Free ("n", HOLogic.natT)
+  val n = Free ("n", \<^Type>\<open>nat\<close>)
 
   fun con_assm defined p (con, args) =
     let
@@ -257,14 +257,14 @@ let
   val {take_consts, take_0_thms, take_lemma_thms, ...} = take_info
 
   val R_names = Old_Datatype_Prop.indexify_names (map (K "R") newTs)
-  val R_types = map (fn T => T --> T --> boolT) newTs
+  val R_types = map (fn T => T --> T --> \<^Type>\<open>bool\<close>) newTs
   val Rs = map Free (R_names ~~ R_types)
-  val n = Free ("n", natT)
+  val n = Free ("n", \<^Type>\<open>nat\<close>)
   val reserved = "x" :: "y" :: R_names
 
   (* declare bisimulation predicate *)
   val bisim_bind = Binding.suffix_name "_bisim" comp_dbind
-  val bisim_type = R_types ---> boolT
+  val bisim_type = R_types ---> \<^Type>\<open>bool\<close>
   val (bisim_const, thy) =
       Sign.declare_const_global ((bisim_bind, bisim_type), NoSyn) thy
 

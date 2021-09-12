@@ -457,11 +457,8 @@ fun add_pattern_combinators
       in
         pat_const $ p1 $ p2
       end;
-    fun mk_tuple_pat [] = succeed_const HOLogic.unitT
+    fun mk_tuple_pat [] = succeed_const \<^Type>\<open>unit\<close>
       | mk_tuple_pat ps = foldr1 mk_pair_pat ps;
-    fun branch_const (T,U,V) = 
-      Const (\<^const_name>\<open>branch\<close>,
-        (T ->> mk_matchT U) --> (U ->> V) ->> T ->> mk_matchT V);
 
     (* define pattern combinators *)
     local
@@ -546,9 +543,9 @@ fun add_pattern_combinators
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);
           val k = Free ("rhs", mk_tupleT Vs ->> R);
-          val branch1 = branch_const (lhsT, mk_tupleT Vs, R);
+          val branch1 = \<^Const>\<open>branch lhsT \<open>mk_tupleT Vs\<close> R\<close>;
           val fun1 = (branch1 $ list_comb (pat, pats)) ` k;
-          val branch2 = branch_const (mk_tupleT Ts, mk_tupleT Vs, R);
+          val branch2 = \<^Const>\<open>branch \<open>mk_tupleT Ts\<close> \<open>mk_tupleT Vs\<close> R\<close>;
           val fun2 = (branch2 $ mk_tuple_pat pats) ` k;
           val taken = "rhs" :: patNs;
         in (fun1, fun2, taken) end;
