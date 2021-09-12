@@ -132,14 +132,14 @@ let
   val Bool = Predicate_Compile_Aux.Bool
   val oi = Fun (Output, Fun (Input, Bool))
   val ii = Fun (Input, Fun (Input, Bool))
-  fun of_set compfuns (Type ("fun", [T, _])) =
+  fun of_set compfuns \<^Type>\<open>fun T _\<close> =
     case body_type (Predicate_Compile_Aux.mk_monadT compfuns T) of
-      Type ("Quickcheck_Exhaustive.three_valued", _) => 
-        Const(\<^const_name>\<open>neg_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
-    | _ => Const(\<^const_name>\<open>pos_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
-  fun member compfuns (U as Type ("fun", [T, _])) =
-    (absdummy T (absdummy (HOLogic.mk_setT T) (Predicate_Compile_Aux.mk_if compfuns
-      (Const (\<^const_name>\<open>Set.member\<close>, T --> HOLogic.mk_setT T --> \<^typ>\<open>bool\<close>) $ Bound 1 $ Bound 0))))
+      \<^Type>\<open>Quickcheck_Exhaustive.three_valued _\<close> => 
+        Const(\<^const_name>\<open>neg_cps_of_set\<close>, \<^Type>\<open>set T\<close> --> Predicate_Compile_Aux.mk_monadT compfuns T)
+    | _ => Const(\<^const_name>\<open>pos_cps_of_set\<close>, \<^Type>\<open>set T\<close> --> Predicate_Compile_Aux.mk_monadT compfuns T)
+  fun member compfuns (U as \<^Type>\<open>fun T _\<close>) =
+    (absdummy T (absdummy \<^Type>\<open>set T\<close> (Predicate_Compile_Aux.mk_if compfuns
+      (\<^Const>\<open>Set.member T for \<open>Bound 1\<close> \<open>Bound 0\<close>\<close>))))
  
 in
   Core_Data.force_modes_and_compilations \<^const_name>\<open>Set.member\<close>
