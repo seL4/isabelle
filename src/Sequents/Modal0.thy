@@ -20,8 +20,8 @@ syntax
   "_Rstar"      :: "two_seqe"   ("(_)|R>(_)" [6,6] 5)
 
 ML \<open>
-  fun star_tr c [s1, s2] = Const(c, dummyT) $ seq_tr s1 $ seq_tr s2;
-  fun star_tr' c [s1, s2] = Const(c, dummyT) $ seq_tr' s1 $ seq_tr' s2;
+  fun star_tr c [s1, s2] = Syntax.const c $ seq_tr s1 $ seq_tr s2;
+  fun star_tr' c [s1, s2] = Syntax.const c $ seq_tr' s1 $ seq_tr' s2;
 \<close>
 
 parse_translation \<open>

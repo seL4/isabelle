@@ -13,30 +13,30 @@ Borrows from the DC simplifier of Soren Heilmann.
 (*Make atomic rewrite rules*)
 fun atomize r =
  case Thm.concl_of r of
-   Const(\<^const_name>\<open>Trueprop\<close>,_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+   \<^Const_>\<open>Trueprop for \<open>Abs(_,_,a)\<close> \<open>Abs(_,_,c)\<close>\<close> =>
      (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
         ([], [p]) =>
           (case p of
-               Const(\<^const_name>\<open>imp\<close>,_)$_$_ => atomize(r RS @{thm mp_R})
-             | Const(\<^const_name>\<open>conj\<close>,_)$_$_   => atomize(r RS @{thm conjunct1}) @
+               \<^Const_>\<open>imp for _ _\<close> => atomize(r RS @{thm mp_R})
+             | \<^Const_>\<open>conj for _ _\<close> => atomize(r RS @{thm conjunct1}) @
                    atomize(r RS @{thm conjunct2})
-             | Const(\<^const_name>\<open>All\<close>,_)$_      => atomize(r RS @{thm spec})
-             | Const(\<^const_name>\<open>True\<close>,_)       => []    (*True is DELETED*)
-             | Const(\<^const_name>\<open>False\<close>,_)      => []    (*should False do something?*)
+             | \<^Const_>\<open>All _ for _\<close> => atomize(r RS @{thm spec})
+             | \<^Const_>\<open>True\<close> => []    (*True is DELETED*)
+             | \<^Const_>\<open>False\<close> => []    (*should False do something?*)
              | _                     => [r])
       | _ => [])  (*ignore theorem unless it has precisely one conclusion*)
  | _ => [r];
 
 (*Make meta-equalities.*)
 fun mk_meta_eq ctxt th = case Thm.concl_of th of
-    Const(\<^const_name>\<open>Pure.eq\<close>,_)$_$_ => th
-  | Const(\<^const_name>\<open>Trueprop\<close>,_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+    \<^Const_>\<open>Pure.eq _ for _ _\<close> => th
+  | \<^Const_>\<open>Trueprop for \<open>Abs(_,_,a)\<close> \<open>Abs(_,_,c)\<close>\<close> =>
         (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
              ([], [p]) =>
                  (case p of
-                      (Const(\<^const_name>\<open>equal\<close>,_)$_$_)   => th RS @{thm eq_reflection}
-                    | (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => th RS @{thm iff_reflection}
-                    | (Const(\<^const_name>\<open>Not\<close>,_)$_)      => th RS @{thm iff_reflection_F}
+                      \<^Const_>\<open>equal _ for _ _\<close> => th RS @{thm eq_reflection}
+                    | \<^Const_>\<open>iff for _ _\<close> => th RS @{thm iff_reflection}
+                    | \<^Const_>\<open>Not for _\<close> => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
            | _ => error ("addsimps: unable to use theorem\n" ^ Thm.string_of_thm ctxt th));
 

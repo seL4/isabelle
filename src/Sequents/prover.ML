@@ -117,7 +117,7 @@ val trace = Attrib.setup_config_bool \<^binding>\<open>cla_trace\<close> (K fals
 
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const(\<^const_name>\<open>SeqO'\<close>,_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq \<^Const_>\<open>SeqO' for P u\<close> = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
