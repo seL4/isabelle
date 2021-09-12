@@ -28,17 +28,17 @@ struct
 local
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
-fun abs2list (Const (\<^const_name>\<open>case_prod\<close>, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
+fun abs2list \<^Const_>\<open>case_prod _ _ _ for \<open>Abs (x, T, t)\<close>\<close> = Free (x, T) :: abs2list t
   | abs2list (Abs (x, T, _)) = [Free (x, T)]
   | abs2list _ = [];
 
 (** maps {(x1,...,xn). t} to [x1,...,xn] **)
-fun mk_vars (Const (\<^const_name>\<open>Collect\<close>,_) $ T) = abs2list T
+fun mk_vars \<^Const_>\<open>Collect _ for T\<close> = abs2list T
   | mk_vars _ = [];
 
 (** abstraction of body over a tuple formed from a list of free variables.
 Types are also built **)
-fun mk_abstupleC [] body = absfree ("x", HOLogic.unitT) body
+fun mk_abstupleC [] body = absfree ("x", \<^Type>\<open>unit\<close>) body
   | mk_abstupleC [v] body = absfree (dest_Free v) body
   | mk_abstupleC (v :: w) body =
       let
@@ -49,13 +49,11 @@ fun mk_abstupleC [] body = absfree ("x", HOLogic.unitT) body
             Abs (_, T, _) => T
           | Const (_, Type (_, [_, Type (_, [T, _])])) $ _ => T);
       in
-        Const (\<^const_name>\<open>case_prod\<close>,
-            (T --> T2 --> HOLogic.boolT) --> HOLogic.mk_prodT (T, T2) --> HOLogic.boolT) $
-          absfree (x, T) z
+        \<^Const>\<open>case_prod T T2 \<open>\<^Type>\<open>bool\<close>\<close> for \<open>absfree (x, T) z\<close>\<close>
       end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
-fun mk_bodyC [] = HOLogic.unit
+fun mk_bodyC [] = \<^Const>\<open>Unity\<close>
   | mk_bodyC [x] = x
   | mk_bodyC (x :: xs) =
       let
@@ -64,8 +62,8 @@ fun mk_bodyC [] = HOLogic.unit
         val T2 =
           (case z of
             Free (_, T) => T
-          | Const (\<^const_name>\<open>Pair\<close>, Type ("fun", [_, Type ("fun", [_, T])])) $ _ $ _ => T);
-     in Const (\<^const_name>\<open>Pair\<close>, [T, T2] ---> HOLogic.mk_prodT (T, T2)) $ x $ z end;
+          | \<^Const_>\<open>Pair A B for _ _\<close> => \<^Type>\<open>prod A B\<close>);
+     in \<^Const>\<open>Pair T T2 for x z\<close> end;
 
 (** maps a subgoal of the form:
     VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]
@@ -77,10 +75,10 @@ fun get_vars c =
   in mk_vars pre end;
 
 fun mk_CollectC tm =
-  let val Type ("fun",[t,_]) = fastype_of tm;
-  in HOLogic.Collect_const t $ tm end;
+  let val \<^Type>\<open>fun t _\<close> = fastype_of tm;
+  in \<^Const>\<open>Collect t for tm\<close> end;
 
-fun inclt ty = Const (\<^const_name>\<open>Orderings.less_eq\<close>, [ty,ty] ---> HOLogic.boolT);
+fun inclt ty = \<^Const>\<open>less_eq ty\<close>;
 
 in
 
@@ -91,9 +89,9 @@ fun Mset ctxt prop =
     val vars = get_vars prop;
     val varsT = fastype_of (mk_bodyC vars);
     val big_Collect =
-      mk_CollectC (mk_abstupleC vars (Free (P, varsT --> HOLogic.boolT) $ mk_bodyC vars));
+      mk_CollectC (mk_abstupleC vars (Free (P, varsT --> \<^Type>\<open>bool\<close>) $ mk_bodyC vars));
     val small_Collect =
-      mk_CollectC (Abs ("x", varsT, Free (P, varsT --> HOLogic.boolT) $ Bound 0));
+      mk_CollectC (Abs ("x", varsT, Free (P, varsT --> \<^Type>\<open>bool\<close>) $ Bound 0));
 
     val MsetT = fastype_of big_Collect;
     fun Mset_incl t = HOLogic.mk_Trueprop (inclt MsetT $ Free (Mset, MsetT) $ t);
