@@ -158,7 +158,7 @@ fun add_hidden_vars ccs =
               Abs(_,_,body) => Misc_Legacy.add_term_vars(body,hvars)
             | _$_ => let val (f,args) = strip_comb tm
                      in case f of
-                            Const(c,T) =>
+                            Const(c,_) =>
                                 if member (op =) ccs c
                                 then fold_rev add_hvars args hvars
                                 else Misc_Legacy.add_term_vars (tm, hvars)
@@ -178,7 +178,7 @@ fun add_new_asm_vars new_asms =
         fun add_vars (tm,vars) = case tm of
                   Abs (_,_,body) => add_vars(body,vars)
                 | r$s => (case head_of tm of
-                          Const(c,T) => (case AList.lookup (op =) new_asms c of
+                          Const(c,_) => (case AList.lookup (op =) new_asms c of
                                   NONE => add_vars(r,add_vars(s,vars))
                                 | SOME(al) => add_list(tm,al,vars))
                         | _ => add_vars(r,add_vars(s,vars)))
@@ -399,10 +399,10 @@ fun pr_rew ctxt (i,n,thm,thm',not_asms) =
     else ();
 
 (* Skip the first n hyps of a goal, and return the rest in generalized form *)
-fun strip_varify(Const(\<^const_name>\<open>Pure.imp\<close>, _) $ H $ B, n, vs) =
+fun strip_varify(\<^Const_>\<open>Pure.imp for H B\<close>, n, vs) =
         if n=0 then subst_bounds(vs,H)::strip_varify(B,0,vs)
         else strip_varify(B,n-1,vs)
-  | strip_varify(Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(_,T,t), n, vs) =
+  | strip_varify(\<^Const_>\<open>Pure.all _ for \<open>Abs(_,T,t)\<close>\<close>, n, vs) =
         strip_varify(t,n,Var(("?",length vs),T)::vs)
   | strip_varify  _  = [];
 
@@ -515,7 +515,7 @@ val subst_thms = map Drule.export_without_context subst_thms;
 fun exp_app(0,t) = t
   | exp_app(i,t) = exp_app(i-1,t $ Bound (i-1));
 
-fun exp_abs(Type("fun",[T1,T2]),t,i) =
+fun exp_abs(\<^Type>\<open>fun T1 T2\<close>,t,i) =
         Abs("x"^string_of_int i,T1,exp_abs(T2,t,i+1))
   | exp_abs(T,t,i) = exp_app(i,t);
 

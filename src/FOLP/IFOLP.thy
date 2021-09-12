@@ -63,7 +63,7 @@ consts
 syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
 parse_translation \<open>
-  let fun proof_tr [p, P] = Const (\<^const_syntax>\<open>Proof\<close>, dummyT) $ P $ p
+  let fun proof_tr [p, P] = Syntax.const \<^const_syntax>\<open>Proof\<close> $ P $ p
   in [(\<^syntax_const>\<open>_Proof\<close>, K proof_tr)] end
 \<close>
 
@@ -73,7 +73,7 @@ ML \<open>val show_proofs = Attrib.setup_config_bool \<^binding>\<open>show_proo
 print_translation \<open>
   let
     fun proof_tr' ctxt [P, p] =
-      if Config.get ctxt show_proofs then Const (\<^syntax_const>\<open>_Proof\<close>, dummyT) $ p $ P
+      if Config.get ctxt show_proofs then Syntax.const \<^syntax_const>\<open>_Proof\<close> $ p $ P
       else P
   in [(\<^const_syntax>\<open>Proof\<close>, proof_tr')] end
 \<close>
@@ -251,7 +251,7 @@ schematic_goal contrapos:
 
 ML \<open>
 local
-  fun discard_proof (Const (\<^const_name>\<open>Proof\<close>, _) $ P $ _) = P;
+  fun discard_proof \<^Const_>\<open>Proof for P _\<close> = P;
 in
 fun uniq_assume_tac ctxt =
   SUBGOAL
@@ -612,8 +612,7 @@ ML \<open>
 structure Hypsubst = Hypsubst
 (
   (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const (\<^const_name>\<open>Proof\<close>, _) $
-    (Const (\<^const_name>\<open>eq\<close>, _)  $ t $ u) $ _) = (t, u);
+  fun dest_eq \<^Const_>\<open>Proof for \<open>\<^Const_>\<open>eq _ for t u\<close>\<close> _\<close> = (t, u);
 
   val imp_intr = @{thm impI}
 

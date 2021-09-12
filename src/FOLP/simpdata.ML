@@ -17,9 +17,9 @@ val norm_thms = [(@{thm norm_eq} RS @{thm sym}, @{thm norm_eq}),
 (* Conversion into rewrite rules *)
 
 fun mk_eq th = case Thm.concl_of th of
-      _ $ (Const (\<^const_name>\<open>iff\<close>, _) $ _ $ _) $ _ => th
-    | _ $ (Const (\<^const_name>\<open>eq\<close>, _) $ _ $ _) $ _ => th
-    | _ $ (Const (\<^const_name>\<open>Not\<close>, _) $ _) $ _ => th RS @{thm not_P_imp_P_iff_F}
+      _ $ \<^Const_>\<open>iff for _ _\<close> $ _ => th
+    | _ $ \<^Const_>\<open>eq _ for _ _\<close> $ _ => th
+    | _ $ \<^Const_>\<open>Not for _\<close> $ _ => th RS @{thm not_P_imp_P_iff_F}
     | _ => make_iff_T th;
 
 
@@ -33,7 +33,7 @@ val mksimps_pairs =
 fun mk_atomize pairs =
   let fun atoms th =
         (case Thm.concl_of th of
-           Const ("Trueprop", _) $ p =>
+           Const ("Trueprop", _) $ p =>  (* FIXME formal const name!? *)
              (case head_of p of
                 Const(a,_) =>
                   (case AList.lookup (op =) pairs a of

@@ -58,8 +58,8 @@ fun inspect_pair bnd (t, u) =
    assumption.  Returns the number of intervening assumptions, paried with
    the rule asm_rl (resp. sym). *)
 fun eq_var bnd =
-  let fun eq_var_aux k (Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs(_,_,t)) = eq_var_aux k t
-        | eq_var_aux k (Const(\<^const_name>\<open>Pure.imp\<close>,_) $ A $ B) =
+  let fun eq_var_aux k \<^Const_>\<open>Pure.all _ for \<open>Abs(_,_,t)\<close>\<close> = eq_var_aux k t
+        | eq_var_aux k \<^Const_>\<open>Pure.imp for A B\<close> =
               ((k, inspect_pair bnd (dest_eq A))
                       (*Exception Match comes from inspect_pair or dest_eq*)
                handle Match => eq_var_aux (k+1) B)
