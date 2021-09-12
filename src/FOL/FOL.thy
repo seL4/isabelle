@@ -203,7 +203,7 @@ ML \<open>
   structure Blast = Blast
   (
     structure Classical = Cla
-    val Trueprop_const = dest_Const \<^const>\<open>Trueprop\<close>
+    val Trueprop_const = dest_Const \<^Const>\<open>Trueprop\<close>
     val equality_name = \<^const_name>\<open>eq\<close>
     val not_name = \<^const_name>\<open>Not\<close>
     val notE = @{thm notE}
