@@ -33,7 +33,7 @@ class Getopts private(usage_text: String, options: Map[Char, (Boolean, String =>
   def usage(): Nothing =
   {
     Output.writeln(usage_text, stdout = true)
-    sys.exit(1)
+    sys.exit(Process_Result.RC.error)
   }
 
   private def is_option(opt: Char): Boolean = options.isDefinedAt(opt)

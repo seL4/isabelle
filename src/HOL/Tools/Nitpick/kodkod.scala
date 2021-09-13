@@ -20,7 +20,7 @@ object Kodkod
 
   sealed case class Result(rc: Int, out: String, err: String)
   {
-    def ok: Boolean = rc == 0
+    def ok: Boolean = rc == Process_Result.RC.ok
     def check: String =
       if (ok) out else error(if (err.isEmpty) "Error" else err)
 
@@ -62,7 +62,7 @@ object Kodkod
 
     class Exec_Context extends Context
     {
-      private var rc = 0
+      private var rc = Process_Result.RC.ok
       private val out = new StringBuilder
       private val err = new StringBuilder
 
@@ -106,7 +106,7 @@ object Kodkod
         else {
           Some(Event_Timer.request(Time.now() + timeout) {
             context.error("Ran out of time")
-            context.return_code(2)
+            context.return_code(Process_Result.RC.failure)
             executor_kill()
           })
         }
@@ -118,10 +118,10 @@ object Kodkod
 
       if (parser.getTokenStream.LA(1) != KodkodiParser.EOF) {
         context.error("Error: trailing tokens")
-        context.exit(1)
+        context.exit(Process_Result.RC.error)
       }
       if (lexer.getNumberOfSyntaxErrors + parser.getNumberOfSyntaxErrors > 0) {
-        context.exit(1)
+        context.exit(Process_Result.RC.error)
       }
     }
     catch {

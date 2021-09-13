@@ -147,8 +147,8 @@ object Build
     def info(name: String): Sessions.Info = results(name)._2
     val rc: Int =
       results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
-        foldLeft(0)(_ max _)
-    def ok: Boolean = rc == 0
+        foldLeft(Process_Result.RC.ok)(_ max _)
+    def ok: Boolean = rc == Process_Result.RC.ok
 
     override def toString: String = rc.toString
   }
@@ -286,7 +286,7 @@ object Build
       def ok: Boolean =
         process match {
           case None => false
-          case Some(res) => res.rc == 0
+          case Some(res) => res.ok
         }
     }
 
@@ -474,7 +474,7 @@ object Build
       }
     }
 
-    if (results.rc != 0 && (verbose || !no_build)) {
+    if (results.rc != Process_Result.RC.ok && (verbose || !no_build)) {
       val unfinished =
         (for {
           name <- results.sessions.iterator
@@ -676,12 +676,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val selection = Sessions.Selection.session(logic)
     val rc =
       if (!fresh && build(options, selection = selection,
-            build_heap = build_heap, no_build = true, dirs = dirs).ok) 0
+            build_heap = build_heap, no_build = true, dirs = dirs).ok) Process_Result.RC.ok
       else {
         progress.echo("Build started for Isabelle/" + logic + " ...")
         Build.build(options, selection = selection, progress = progress,
           build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
       }
-    if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc
+    if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
   }
 }

@@ -106,7 +106,7 @@ object Server_Commands
 
       if (results.ok) (results_json, results, options, base_info)
       else {
-        throw new Server.Error("Session build failed: " + Process_Result.print_rc(results.rc),
+        throw new Server.Error("Session build failed: " + Process_Result.RC.print(results.rc),
           results_json)
       }
     }

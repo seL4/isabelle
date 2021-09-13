@@ -345,7 +345,7 @@ class Language_Server(
   def exit(): Unit =
   {
     log("\n")
-    sys.exit(if (session_.value.isDefined) 2 else 0)
+    sys.exit(if (session_.value.isDefined) Process_Result.RC.failure else Process_Result.RC.ok)
   }
 
 

@@ -525,8 +525,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
           cat_lines(for ((_, log_path) <- results) yield log_path.implode))
       }
 
-      val rc = results.foldLeft(0) { case (rc, (res, _)) => rc max res.rc }
-      if (rc != 0 && exit_code) sys.exit(rc)
+      val rc = results.foldLeft(Process_Result.RC.ok) { case (rc, (res, _)) => rc max res.rc }
+      if (rc != Process_Result.RC.ok && exit_code) sys.exit(rc)
     }
   }
 

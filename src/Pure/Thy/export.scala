@@ -456,7 +456,7 @@ Usage: isabelle export [OPTIONS] SESSION
         progress.interrupt_handler {
           Build.build_logic(options, session_name, progress = progress, dirs = dirs)
         }
-      if (rc != 0) sys.exit(rc)
+      if (rc != Process_Result.RC.ok) sys.exit(rc)
     }
 
 

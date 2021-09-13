@@ -508,7 +508,7 @@ Usage: isabelle server [OPTIONS]
       }
       else if (operation_exit) {
         val ok = Server.exit(name)
-        sys.exit(if (ok) 0 else 2)
+        sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
       }
       else {
         val log = Logger.make(log_file)

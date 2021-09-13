@@ -145,7 +145,9 @@ object Build_Job
             val msg = Symbol.output(unicode_symbols, cat_lines(errors))
             progress.echo("\nBuild errors:\n" + Output.error_message_text(msg))
           }
-          if (rc != 0) progress.echo("\n" + Process_Result.print_return_code(rc))
+          if (rc != Process_Result.RC.ok) {
+            progress.echo("\n" + Process_Result.RC.print_long(rc))
+          }
       }
     })
   }
@@ -308,7 +310,7 @@ class Build_Job(progress: Progress,
                   }
                 (rc, errors)
               }
-              catch { case ERROR(err) => (2, List(err)) }
+              catch { case ERROR(err) => (Process_Result.RC.failure, List(err)) }
 
             session.protocol_command("Prover.stop", rc.toString)
             Build_Session_Errors(errors)
@@ -508,10 +510,10 @@ class Build_Job(progress: Progress,
               errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
                 errs.map(Protocol.Error_Message_Marker.apply))
           }
-          else if (progress.stopped && result.ok) result.copy(rc = Process_Result.interrupt_rc)
+          else if (progress.stopped && result.ok) result.copy(rc = Process_Result.RC.interrupt)
           else result
         case Exn.Exn(Exn.Interrupt()) =>
-          if (result.ok) result.copy(rc = Process_Result.interrupt_rc)
+          if (result.ok) result.copy(rc = Process_Result.RC.interrupt)
           else result
         case Exn.Exn(exn) => throw exn
       }

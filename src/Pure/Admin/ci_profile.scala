@@ -17,8 +17,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   case class Result(rc: Int)
   case object Result
   {
-    def ok: Result = Result(0)
-    def error: Result = Result(1)
+    def ok: Result = Result(Process_Result.RC.ok)
+    def error: Result = Result(Process_Result.RC.error)
   }
 
   private def build(options: Options): (Build.Results, Time) =

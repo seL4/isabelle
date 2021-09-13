@@ -60,7 +60,7 @@ Usage: isabelle console [OPTIONS]
           progress.interrupt_handler {
             Build.build_logic(options, logic, build_heap = true, progress = progress, dirs = dirs)
           }
-        if (rc != 0) sys.exit(rc)
+        if (rc != Process_Result.RC.ok) sys.exit(rc)
       }
 
       // process loop
@@ -77,7 +77,7 @@ Usage: isabelle console [OPTIONS]
       POSIX_Interrupt.handler { process.interrupt() } {
         new TTY_Loop(process.stdin, process.stdout).join()
         val rc = process.join()
-        if (rc != 0) sys.exit(rc)
+        if (rc != Process_Result.RC.ok) sys.exit(rc)
       }
     }
   }

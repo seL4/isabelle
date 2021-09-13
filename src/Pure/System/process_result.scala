@@ -8,30 +8,39 @@ package isabelle
 
 object Process_Result
 {
-  def print_return_code(rc: Int): String = "Return code: " + rc + rc_text(rc)
-  def print_rc(rc: Int): String = "return code " + rc + rc_text(rc)
+  /* return code */
 
-  def rc_text(rc: Int): String =
-    return_code_text.get(rc) match {
-      case None => ""
-      case Some(text) => " (" + text + ")"
+  object RC
+  {
+    val ok = 0
+    val error = 1
+    val failure = 2
+    val interrupt = 130
+    val timeout = 142
+
+    private def text(rc: Int): String =
+    {
+      val txt =
+        rc match {
+          case `ok` => "OK"
+          case `error` => "ERROR"
+          case `failure` => "FAILURE"
+          case 127 => "COMMAND NOT FOUND"
+          case `interrupt` => "INTERRUPT"
+          case 131 => "QUIT SIGNAL"
+          case 137 => "KILL SIGNAL"
+          case 138 => "BUS ERROR"
+          case 139 => "SEGMENTATION VIOLATION"
+          case `timeout` => "TIMEOUT"
+          case 143 => "TERMINATION SIGNAL"
+          case _ => ""
+        }
+      if (txt.isEmpty) txt else " (" + txt + ")"
     }
 
-  val interrupt_rc = 130
-  val timeout_rc = 142
-
-  private val return_code_text =
-    Map(0 -> "OK",
-      1 -> "ERROR",
-      2 -> "FAILURE",
-      127 -> "COMMAND NOT FOUND",
-      interrupt_rc -> "INTERRUPT",
-      131 -> "QUIT SIGNAL",
-      137 -> "KILL SIGNAL",
-      138 -> "BUS ERROR",
-      139 -> "SEGMENTATION VIOLATION",
-      timeout_rc -> "TIMEOUT",
-      143 -> "TERMINATION SIGNAL")
+    def print_long(rc: Int): String = "Return code: " + rc + text(rc)
+    def print(rc: Int): String = "return code " + rc + text(rc)
+  }
 }
 
 final case class Process_Result(
@@ -50,13 +59,14 @@ final case class Process_Result(
   def error(err: String): Process_Result =
     if (err.isEmpty) this else errors(List(err))
 
-  def ok: Boolean = rc == 0
-  def interrupted: Boolean = rc == Process_Result.interrupt_rc
+  def ok: Boolean = rc == Process_Result.RC.ok
+  def interrupted: Boolean = rc == Process_Result.RC.interrupt
 
-  def timeout_rc: Process_Result = copy(rc = Process_Result.timeout_rc)
-  def timeout: Boolean = rc == Process_Result.timeout_rc
+  def timeout_rc: Process_Result = copy(rc = Process_Result.RC.timeout)
+  def timeout: Boolean = rc == Process_Result.RC.timeout
 
-  def error_rc: Process_Result = if (interrupted) this else copy(rc = rc max 1)
+  def error_rc: Process_Result =
+    if (interrupted) this else copy(rc = rc max Process_Result.RC.error)
 
   def errors_rc(errs: List[String]): Process_Result =
     if (errs.isEmpty) this else errors(errs).error_rc
@@ -66,10 +76,10 @@ final case class Process_Result(
     else if (interrupted) throw Exn.Interrupt()
     else Exn.error(err)
 
-  def check: Process_Result = check_rc(_ == 0)
+  def check: Process_Result = check_rc(_ == Process_Result.RC.ok)
 
-  def print_return_code: String = Process_Result.print_return_code(rc)
-  def print_rc: String = Process_Result.print_rc(rc)
+  def print_return_code: String = Process_Result.RC.print_long(rc)
+  def print_rc: String = Process_Result.RC.print(rc)
 
   def print: Process_Result =
   {

@@ -172,9 +172,10 @@ object Session_Build
             (Output.error_message_text(Exn.message(exn)) + "\n", Exn.failure_rc(exn))
         }
 
-      progress.echo(out + (if (rc == 0) "OK" else Process_Result.print_return_code(rc)) + "\n")
+      val ok = rc == Process_Result.RC.ok
+      progress.echo(out + (if (ok) "OK" else Process_Result.RC.print_long(rc)) + "\n")
 
-      if (rc == 0) JEdit_Sessions.session_start(options)
+      if (ok) JEdit_Sessions.session_start(options)
       else progress.echo("Session build failed -- prover process remains inactive!")
 
       return_code(rc)
