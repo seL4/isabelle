@@ -338,7 +338,7 @@ instance by (standard; transfer)
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff
     bit_and_iff bit_or_iff bit_xor_iff mask_eq_exp_minus_1
-    set_bit_def bit_unset_bit_iff flip_bit_def bit_not_iff minus_eq_not_minus_1)+
+    set_bit_def bit_unset_bit_iff flip_bit_def bit_not_iff_eq minus_eq_not_minus_1)+
 
 end
 

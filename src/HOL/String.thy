@@ -121,7 +121,7 @@ lemma char_of_eq_iff:
 
 lemma char_of_nat [simp]:
   \<open>char_of (of_nat n) = char_of n\<close>
-  by (simp add: char_of_def String.char_of_def drop_bit_of_nat bit_simps)
+  by (simp add: char_of_def String.char_of_def drop_bit_of_nat bit_simps possible_bit_def)
 
 end
 
