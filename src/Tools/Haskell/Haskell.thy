@@ -3518,7 +3518,7 @@ and \<^file>\<open>~~/src/Pure/System/process_result.scala\<close>
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Process_Result (
-  interrupt_rc, timeout_rc,
+  ok_rc, error_rc, failure_rc, interrupt_rc , timeout_rc,
 
   T, make, rc, out_lines, err_lines, timing, timing_elapsed, out, err, ok, check
 )
@@ -3531,10 +3531,11 @@ import Isabelle.Bytes (Bytes)
 import Isabelle.Library
 
 
-interrupt_rc :: Int
+ok_rc, error_rc, failure_rc, interrupt_rc , timeout_rc :: Int
+ok_rc = 0
+error_rc = 1
+failure_rc = 2
 interrupt_rc = 130
-
-timeout_rc :: Int
 timeout_rc = 142
 
 data T =
@@ -3570,7 +3571,7 @@ err :: T -> Bytes
 err = trim_line . cat_lines . err_lines
 
 ok :: T -> Bool
-ok result = rc result == 0
+ok result = rc result == ok_rc
 
 check :: T -> T
 check result = if ok result then result else error (make_string $ err result)
