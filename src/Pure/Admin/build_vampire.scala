@@ -14,7 +14,7 @@ object Build_Vampire
   val default_version2 = "df87588848db"
   val default_jobs = 1
 
-  def make_component_name(version: String) = "vampire-" + version
+  def make_component_name(version: String): String = "vampire-" + version
 
 
   /* build Vampire */
