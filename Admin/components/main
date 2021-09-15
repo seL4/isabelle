@@ -15,6 +15,7 @@ jfreechart-1.5.1
 jortho-1.0-2
 kodkodi-1.5.6-1
 nunchaku-0.5
+old_vampire-4.2.2
 opam-2.0.7
 polyml-5.8.2
 postgresql-42.2.18
@@ -24,7 +25,6 @@ spass-3.8ds-2
 sqlite-jdbc-3.34.0
 ssh-java-20190323
 stack-2.7.3
-vampire-4.2.2
 verit-2020.10-rmx-1
 xz-java-1.8
 z3-4.4.0pre-3

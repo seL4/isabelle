@@ -319,7 +319,7 @@ val e = (eN, fn () => e_config)
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     ["--clausifier \"$VAMPIRE_HOME\"/vampire " ^
+     ["--clausifier \"$OLD_VAMPIRE_HOME\"/vampire " ^
       "--clausifier_options \"--mode clausify\" " ^
       "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
@@ -477,7 +477,11 @@ fun check_vampire_noncommercial () =
       \\"vampire_noncommercial\" to \"yes\" (e.g. via the Isabelle/jEdit menu Plugin Options \
       \/ Isabelle / General)")))
 
-val vampire_basic_options = "--proof tptp --output_axiom_names on $VAMPIRE_EXTRA_OPTIONS"
+val vampire_basic_options =
+  "--proof tptp --output_axiom_names on" ^
+  (if ML_System.platform_is_windows
+   then ""  (*time slicing is not support in the Windows version of Vampire*)
+   else " --mode casc")
 
 val vampire_full_proof_options =
   " --proof_extra free --forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
@@ -486,7 +490,7 @@ val vampire_config : atp_config =
   let
     val format = TFF (Without_FOOL, Monomorphic)
   in
-    {exec = (["VAMPIRE_HOME"], ["vampire"]),
+    {exec = (["OLD_VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
        (check_vampire_noncommercial ();
         [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
