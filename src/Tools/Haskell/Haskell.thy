@@ -2169,13 +2169,14 @@ module Isabelle.Name (
   Name,
   uu, uu_, aT,
   clean_index, clean, internal, skolem, is_internal, is_skolem, dest_internal, dest_skolem,
-  Context, declare, is_declared, context, make_context, variant
+  Context, declare, declare_renaming, is_declared, declared, context, make_context, variant
 )
 where
 
+import Data.Maybe (fromMaybe)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Word (Word8)
-import qualified Data.Set as Set
-import Data.Set (Set)
 import qualified Isabelle.Bytes as Bytes
 import Isabelle.Bytes (Bytes)
 import qualified Isabelle.Symbol as Symbol
@@ -2210,32 +2211,38 @@ dest_internal, dest_skolem :: Name -> Maybe Name
 dest_internal = Bytes.try_unsuffix "_"
 dest_skolem = Bytes.try_unsuffix "__"
 
-clean_index :: Name -> (Name, Int)
-clean_index x =
-  if Bytes.null x || Bytes.last x /= underscore then (x, 0)
-  else
-    let
-      rev = reverse (Bytes.unpack x)
-      n = length (takeWhile (== underscore) rev)
-      y = Bytes.pack (reverse (drop n rev))
-    in (y, n)
+clean_index :: (Name, Int) -> (Name, Int)
+clean_index (x, i) =
+  case dest_internal x of
+    Nothing -> (x, i)
+    Just x' -> clean_index (x', i + 1)
 
 clean :: Name -> Name
-clean = fst . clean_index
+clean x = fst (clean_index (x, 0))
 
 
 {- context for used names -}
 
-newtype Context = Context (Set Name)
+newtype Context = Context (Map Name (Maybe Name))  {-declared names with latest renaming-}
 
 declare :: Name -> Context -> Context
-declare x (Context names) = Context (Set.insert x names)
+declare x (Context names) =
+  Context (
+    let a = clean x
+    in if Map.member a names then names else Map.insert a Nothing names)
+
+declare_renaming :: (Name, Name) -> Context -> Context
+declare_renaming (x, x') (Context names) =
+  Context (Map.insert (clean x) (Just (clean x')) names)
 
 is_declared :: Context -> Name -> Bool
-is_declared (Context names) x = Set.member x names
+is_declared (Context names) x = Map.member x names
+
+declared :: Context -> Name -> Maybe (Maybe Name)
+declared (Context names) a = Map.lookup a names
 
 context :: Context
-context = Context (Set.fromList ["", "'"])
+context = Context Map.empty |> fold declare ["", "'"]
 
 make_context :: [Name] -> Context
 make_context used = fold declare used context
@@ -2261,13 +2268,25 @@ bump_string str =
   in Bytes.pack (part1 <> part2)
 
 variant :: Name -> Context -> (Name, Context)
-variant name names =
+variant name ctxt =
   let
-    vary bump x = if is_declared names x then bump x |> vary bump_string else x
-    (x, n) = clean_index name
-    x' = x |> vary bump_init
-    names' = declare x' names;
-  in (x' <> Bytes.pack (replicate n underscore), names')
+    vary x =
+      case declared ctxt x of
+        Nothing -> x
+        Just x' -> vary (bump_string (fromMaybe x x'))
+
+    (x, n) = clean_index (name, 0)
+    (x', ctxt') =
+      if not (is_declared ctxt x) then (x, declare x ctxt)
+      else
+        let
+          x0 = bump_init x
+          x' = vary x0
+          ctxt' = ctxt
+            |> (if x0 /= x' then declare_renaming (x0, x') else id)
+            |> declare x'
+        in (x', ctxt')
+  in (x' <> Bytes.pack (replicate n underscore), ctxt')
 \<close>
 
 generate_file "Isabelle/Term.hs" = \<open>
