@@ -36,12 +36,6 @@ fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-(*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum []        = zero
-  | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
-
-val dest_plus = FOLogic.dest_bin \<^const_name>\<open>Arith.add\<close> iT;
-
 (* dest_sum *)
 
 fun dest_sum \<^Const_>\<open>zero\<close> = []
@@ -62,8 +56,6 @@ fun mk_eq_iff(t,u) =
   because only type-checking assumptions are necessary.*)
 fun is_eq_thm th =
     can FOLogic.dest_eq (FOLogic.dest_Trueprop (Thm.prop_of th));
-
-fun add_chyps chyps ct = Drule.list_implies (map Thm.cprop_of chyps, ct);
 
 fun prove_conv name tacs ctxt prems (t,u) =
   if t aconv u then NONE
