@@ -15,15 +15,11 @@ sig
   val dest_conj: term -> term list
   val mk_iff: term * term -> term
   val dest_iff: term -> term * term
-  val all_const: typ -> term
   val mk_all: term * term -> term
-  val exists_const: typ -> term
   val mk_exists: term * term -> term
-  val eq_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
 end;
-
 
 structure FOLogic: FOLOGIC =
 struct
@@ -44,15 +40,13 @@ fun dest_conj \<^Const_>\<open>conj for t t'\<close> = t :: dest_conj t'
 
 val dest_iff = \<^Const_fn>\<open>iff for A B => \<open>(A, B)\<close>\<close>;
 
-fun eq_const T = \<^Const>\<open>eq T\<close>;
-fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
+fun mk_eq (t, u) =
+  let val T = fastype_of t
+  in \<^Const>\<open>eq T for t u\<close> end;
 
 val dest_eq = \<^Const_fn>\<open>eq _ for lhs rhs => \<open>(lhs, rhs)\<close>\<close>;
 
-fun all_const T = \<^Const>\<open>All T\<close>;
-fun mk_all (Free (x, T), P) = all_const T $ absfree (x, T) P;
-
-fun exists_const T = \<^Const>\<open>Ex T\<close>;
-fun mk_exists (Free (x, T), P) = exists_const T $ absfree (x, T) P;
+fun mk_all (Free (x, T), P) = \<^Const>\<open>All T for \<open>absfree (x, T) P\<close>\<close>;
+fun mk_exists (Free (x, T), P) = \<^Const>\<open>Ex T for \<open>absfree (x, T) P\<close>\<close>;
 
 end;

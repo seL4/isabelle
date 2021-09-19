@@ -20,8 +20,10 @@ fun traceIt msg thy t =
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =
-    FOLogic.all_const \<^Type>\<open>i\<close> $
-      Abs("v", \<^Type>\<open>i\<close>, \<^Const>\<open>imp\<close> $ \<^Const>\<open>mem for \<open>Bound 0\<close> A\<close> $ Term.betapply(P, Bound 0));
+  let val T = \<^Type>\<open>i\<close> in
+    \<^Const>\<open>All T for
+      \<open>Abs ("v", T, \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for \<open>Bound 0\<close> A\<close>\<close> \<open>Term.betapply (P, Bound 0)\<close>\<close>)\<close>\<close>
+  end;
 
 fun mk_Collect (a, D, t) = \<^Const>\<open>Collect for D\<close> $ absfree (a, \<^Type>\<open>i\<close>) t;
 
