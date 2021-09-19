@@ -491,7 +491,9 @@
 \<^oracle_name>         argument: cartouche
 \<^Const>               argument: cartouche
 \<^Const_>              argument: cartouche
+\<^Const_fn>            argument: cartouche
 \<^Type>                argument: cartouche
+\<^Type_fn>             argument: cartouche
 \<^code>                argument: cartouche
 \<^computation>         argument: cartouche
 \<^computation_conv>    argument: cartouche
