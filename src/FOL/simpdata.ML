@@ -63,8 +63,8 @@ structure Quantifier1 = Quantifier1
     | dest_conj _ = NONE
   fun dest_imp \<^Const_>\<open>imp for s t\<close> = SOME (s, t)
     | dest_imp _ = NONE
-  val conj = FOLogic.conj
-  val imp  = FOLogic.imp
+  val conj = \<^Const>\<open>conj\<close>
+  val imp  = \<^Const>\<open>imp\<close>
   (*rules*)
   val iff_reflection = @{thm iff_reflection}
   val iffI = @{thm iffI}

@@ -18,14 +18,12 @@ fun traceIt msg thy t =
 
 (** Abstract syntax definitions for ZF **)
 
-val iT = \<^Type>\<open>i\<close>;
-
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =
-    FOLogic.all_const iT $
-      Abs("v", iT, FOLogic.imp $ \<^Const>\<open>mem for \<open>Bound 0\<close> A\<close> $ Term.betapply(P, Bound 0));
+    FOLogic.all_const \<^Type>\<open>i\<close> $
+      Abs("v", \<^Type>\<open>i\<close>, \<^Const>\<open>imp\<close> $ \<^Const>\<open>mem for \<open>Bound 0\<close> A\<close> $ Term.betapply(P, Bound 0));
 
-fun mk_Collect (a, D, t) = \<^Const>\<open>Collect for D\<close> $ absfree (a, iT) t;
+fun mk_Collect (a, D, t) = \<^Const>\<open>Collect for D\<close> $ absfree (a, \<^Type>\<open>i\<close>) t;
 
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd \<^Const_>\<open>conj for _ _\<close> =
@@ -64,10 +62,10 @@ fun dest_mem \<^Const_>\<open>mem for x A\<close> = (x, A)
 
 (*read a constructor specification*)
 fun read_construct ctxt (id: string, sprems, syn: mixfix) =
-    let val prems = map (Syntax.parse_term ctxt #> Type.constraint FOLogic.oT) sprems
+    let val prems = map (Syntax.parse_term ctxt #> Type.constraint \<^Type>\<open>o\<close>) sprems
           |> Syntax.check_terms ctxt
         val args = map (#1 o dest_mem) prems
-        val T = (map (#2 o dest_Free) args) ---> iT
+        val T = (map (#2 o dest_Free) args) ---> \<^Type>\<open>i\<close>
                 handle TERM _ => error
                     "Bad variable in constructor specification"
     in ((id,T,syn), id, args, prems) end;
@@ -91,7 +89,7 @@ fun mk_Un (t1, t2) = \<^Const>\<open>Un for t1 t2\<close>;
 (*Make a datatype's domain: form the union of its set parameters*)
 fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
-      fun is_ind arg = (type_of arg = iT)
+      fun is_ind arg = (type_of arg = \<^Type>\<open>i\<close>)
   in  case filter is_ind (args @ cs) of
          [] => \<^Const>\<open>zero\<close>
        | u_args => Balanced_Tree.make mk_Un u_args

@@ -106,7 +106,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     and recursor_pairs = map (dest_eqn o Thm.concl_of) rec_rewrites
 
     fun absterm (Free x, body) = absfree x body
-      | absterm (t, body) = Abs("rec", Ind_Syntax.iT, abstract_over (t, body))
+      | absterm (t, body) = Abs("rec", \<^Type>\<open>i\<close>, abstract_over (t, body))
 
     (*Translate rec equations into function arguments suitable for recursor.
       Missing cases are replaced by 0 and all cases are put into order.*)
@@ -140,7 +140,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     (*the recursive argument*)
     val rec_arg =
       Free (singleton (Name.variant_list (map #1 (ls@rs))) (Long_Name.base_name big_rec_name),
-        Ind_Syntax.iT)
+        \<^Type>\<open>i\<close>)
 
     val def_tm = Logic.mk_equals
                     (subst_bound (rec_arg, fabs),

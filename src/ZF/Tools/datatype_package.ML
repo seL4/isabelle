@@ -115,10 +115,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Combine split terms using case; yields the case operator for one part*)
   fun call_case case_list =
-    let fun call_f (free,[]) = Abs("null", \<^typ>\<open>i\<close>, free)
+    let fun call_f (free,[]) = Abs("null", \<^Type>\<open>i\<close>, free)
           | call_f (free,args) =
                 CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
-                            \<^typ>\<open>i\<close>
+                            \<^Type>\<open>i\<close>
                             free
     in  Balanced_Tree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_f case_list)  end;
 
@@ -162,7 +162,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*a recursive call for x is the application rec`x  *)
-  val rec_call = \<^Const>\<open>apply\<close> $ Free ("rec", \<^typ>\<open>i\<close>);
+  val rec_call = \<^Const>\<open>apply\<close> $ Free ("rec", \<^Type>\<open>i\<close>);
 
   (*look back down the "case args" (which have been reversed) to
     determine the de Bruijn index*)
@@ -199,7 +199,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Add an argument position for each occurrence of a recursive set.
     Strictly speaking, the recursive arguments are the LAST of the function
     variable, but they all have type "i" anyway*)
-  fun add_rec_args args' T = (map (fn _ => \<^typ>\<open>i\<close>) args') ---> T
+  fun add_rec_args args' T = (map (fn _ => \<^Type>\<open>i\<close>) args') ---> T
 
   (*Plug in the function variable type needed for the recursor
     as well as the new arguments (recursive calls)*)
@@ -232,7 +232,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Misc_Legacy.mk_defpair
         (recursor_tm,
          \<^Const>\<open>Univ.Vrecursor\<close> $
-           absfree ("rec", \<^typ>\<open>i\<close>) (list_comb (case_const, recursor_cases)));
+           absfree ("rec", \<^Type>\<open>i\<close>) (list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)
 
@@ -412,7 +412,7 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
   let
     val ctxt = Proof_Context.init_global thy;
     fun read_is strs =
-      map (Syntax.parse_term ctxt #> Type.constraint \<^typ>\<open>i\<close>) strs
+      map (Syntax.parse_term ctxt #> Type.constraint \<^Type>\<open>i\<close>) strs
       |> Syntax.check_terms ctxt;
 
     val rec_tms = read_is srec_tms;

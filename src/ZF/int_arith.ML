@@ -82,12 +82,10 @@ fun mk_prod [] = one
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin \<^const_name>\<open>zmult\<close> \<^typ>\<open>i\<close>;
-
-fun dest_prod t =
-      let val (t,u) = dest_times t
-      in  dest_prod t @ dest_prod u  end
-      handle TERM _ => [t];
+fun dest_prod tm =
+  let val (t,u) = \<^Const_fn>\<open>zmult for t u => \<open>(t, u)\<close>\<close> tm
+  in  dest_prod t @ dest_prod u  end
+  handle TERM _ => [tm];
 
 (*DON'T do the obvious simplifications; that would create special cases*)
 fun mk_coeff (k, t) = mk_times (mk_numeral k, t);
@@ -192,7 +190,7 @@ structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
   fun mk_bal (t, u) = \<^Const>\<open>zless for t u\<close>
-  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zless\<close> \<^typ>\<open>i\<close>
+  val dest_bal = \<^Const_fn>\<open>zless for t u => \<open>(t, u)\<close>\<close>
   val bal_add1 = @{thm less_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff2} RS @{thm iff_trans}
 );
@@ -201,7 +199,7 @@ structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
   fun mk_bal (t, u) = \<^Const>\<open>zle for t u\<close>
-  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zle\<close> \<^typ>\<open>i\<close>
+  val dest_bal = \<^Const_fn>\<open>zle for t u => \<open>(t, u)\<close>\<close>
   val bal_add1 = @{thm le_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm le_add_iff2} RS @{thm iff_trans}
 );

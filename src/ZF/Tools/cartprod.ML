@@ -70,24 +70,22 @@ fun mk_prod (T1,T2) = Type("*", [T1,T2]);
 fun pseudo_type (t $ A $ Abs(_,_,B)) = 
       if t = Pr.sigma
       then mk_prod(pseudo_type A, pseudo_type B)
-      else \<^typ>\<open>i\<close>
-  | pseudo_type _ = \<^typ>\<open>i\<close>;
+      else \<^Type>\<open>i\<close>
+  | pseudo_type _ = \<^Type>\<open>i\<close>;
 
 (*Maps the type T1*...*Tn to [T1,...,Tn], however nested*)
 fun factors (Type("*", [T1, T2])) = factors T1 @ factors T2
   | factors T                     = [T];
 
 (*Make a well-typed instance of "split"*)
-fun split_const T = Const(Pr.split_name, 
-                          [[Ind_Syntax.iT, Ind_Syntax.iT]--->T, 
-                           Ind_Syntax.iT] ---> T);
+fun split_const T = Const(Pr.split_name, [[\<^Type>\<open>i\<close>, \<^Type>\<open>i\<close>]--->T, \<^Type>\<open>i\<close>] ---> T);
 
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
 fun ap_split (Type("*", [T1,T2])) T3 u   = 
        split_const T3 $ 
-       Abs("v", Ind_Syntax.iT, (*Not T1, as it involves pseudo-product types*)
+       Abs("v", \<^Type>\<open>i\<close>, (*Not T1, as it involves pseudo-product types*)
            ap_split T2 T3
            ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
             Bound 0))
@@ -109,7 +107,7 @@ fun split_rule_var ctxt (Var(v,_), Type("fun",[T1,T2]), rl) =
       in
         remove_split ctxt
           (Drule.instantiate_normalize (TVars.empty,
-            Vars.make [((v, Ind_Syntax.iT-->T2), Thm.cterm_of ctxt newt)]) rl)
+            Vars.make [((v, \<^Type>\<open>i\<close> --> T2), Thm.cterm_of ctxt newt)]) rl)
       end
   | split_rule_var _ (t,T,rl) = rl;
 

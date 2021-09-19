@@ -22,8 +22,6 @@ end;
 structure ArithData: ARITH_DATA =
 struct
 
-val iT = Ind_Syntax.iT;
-
 val zero = \<^Const>\<open>zero\<close>;
 val succ = \<^Const>\<open>succ\<close>;
 fun mk_succ t = succ $ t;
@@ -49,8 +47,9 @@ fun gen_trans_tac _ _ NONE = all_tac
 
 (*Use <-> or = depending on the type of t*)
 fun mk_eq_iff(t,u) =
-  if fastype_of t = iT then FOLogic.mk_eq(t,u)
-                       else FOLogic.mk_iff(t,u);
+  if fastype_of t = \<^Type>\<open>i\<close>
+  then \<^Const>\<open>IFOL.eq \<open>\<^Type>\<open>i\<close>\<close> for t u\<close>
+  else \<^Const>\<open>IFOL.iff for t u\<close>;
 
 (*We remove equality assumptions because they confuse the simplifier and
   because only type-checking assumptions are necessary.*)
@@ -79,12 +78,10 @@ fun mk_prod [] = one
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin \<^const_name>\<open>Arith.mult\<close> iT;
-
-fun dest_prod t =
-      let val (t,u) = dest_times t
-      in  dest_prod t @ dest_prod u  end
-      handle TERM _ => [t];
+fun dest_prod tm =
+  let val (t,u) = \<^Const_fn>\<open>Arith.mult for t u => \<open>(t, u)\<close>\<close> tm
+  in  dest_prod t @ dest_prod u  end
+  handle TERM _ => [tm];
 
 (*Dummy version: the only arguments are 0 and 1*)
 fun mk_coeff (0, t) = zero
@@ -168,7 +165,7 @@ structure LessCancelNumeralsData =
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
   fun mk_bal (t, u) = \<^Const>\<open>Ordinal.lt for t u\<close>
-  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Ordinal.lt\<close> iT
+  val dest_bal = \<^Const_fn>\<open>Ordinal.lt for t u => \<open>(t, u)\<close>\<close>
   val bal_add1 = @{thm less_add_iff [THEN iff_trans]}
   val bal_add2 = @{thm less_add_iff [THEN iff_trans]}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
@@ -181,7 +178,7 @@ structure DiffCancelNumeralsData =
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
   fun mk_bal (t, u) = \<^Const>\<open>Arith.diff for t u\<close>
-  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Arith.diff\<close> iT
+  val dest_bal = \<^Const_fn>\<open>Arith.diff for t u => \<open>(t, u)\<close>\<close>
   val bal_add1 = @{thm diff_add_eq [THEN trans]}
   val bal_add2 = @{thm diff_add_eq [THEN trans]}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm trans}
