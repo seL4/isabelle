@@ -219,9 +219,14 @@ val parse_for_args =
   Scan.optional ((Parse.position (Parse.$$$ "for") >> #2) -- Parse.!!! parse_args)
     (Position.none, []);
 
+fun parse_body b =
+  if b then Parse.$$$ "=>" |-- Parse.!!! Parse.embedded_input >> single
+  else Scan.succeed [];
+
 fun is_dummy s = Input.string_of s = "_";
 
 val ml = ML_Lex.tokenize_no_range;
+val ml_range = ML_Lex.tokenize_range;
 val ml_dummy = ml "_";
 fun ml_parens x = ml "(" @ x @ ml ")";
 fun ml_bracks x = ml "[" @ x @ ml "]";
@@ -230,11 +235,12 @@ val ml_list = ml_bracks o ml_commas;
 val ml_string = ml o ML_Syntax.print_string;
 fun ml_pair (x, y) = ml_parens (ml_commas [x, y]);
 
-fun type_antiquotation binding =
+fun type_antiquotation binding {function} =
   ML_Context.add_antiquotation binding true
-    (fn _ => fn src => fn ctxt =>
+    (fn range => fn src => fn ctxt =>
       let
-        val (s, type_args) = read_embedded ctxt src (parse_name -- parse_args);
+        val ((s, type_args), fn_body) =
+          read_embedded ctxt src (parse_name -- parse_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -247,19 +253,27 @@ fun type_antiquotation binding =
               " takes " ^ string_of_int n ^ " argument(s)" ^ Position.here pos);
 
         val (decls1, ctxt1) = ml_sources ctxt type_args;
+        val (decls2, ctxt2) = (ml_sources ctxt1) fn_body;
         fun decl' ctxt' =
           let
             val (ml_args_env, ml_args_body) = split_list (decls1 ctxt');
-            val ml_body = ml_parens (ml "Term.Type " @ ml_pair (ml_string c, ml_list ml_args_body));
-          in (flat ml_args_env, ml_body) end;
-      in (decl', ctxt1) end);
+            val (ml_fn_env, ml_fn_body) = split_list (decls2 ctxt');
+            val ml1 = ml_parens (ml "Term.Type " @ ml_pair (ml_string c, ml_list ml_args_body));
+            val ml2 =
+              if function then
+                ml "(" @ ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
+                ml "| T => " @ ml_range range "raise" @
+                ml " Term.TYPE (" @ ml_string ("Type_fn " ^ quote c) @ ml ", [T], []))"
+              else ml1;
+          in (flat (ml_args_env @ ml_fn_env), ml2) end;
+      in (decl', ctxt2) end);
 
-fun const_antiquotation binding pattern =
+fun const_antiquotation binding {pattern, function} =
   ML_Context.add_antiquotation binding true
-    (fn _ => fn src => fn ctxt =>
+    (fn range => fn src => fn ctxt =>
       let
-        val ((s, type_args), (for_pos, term_args)) =
-          read_embedded ctxt src (parse_name -- parse_args -- parse_for_args);
+        val (((s, type_args), (for_pos, term_args)), fn_body) =
+          read_embedded ctxt src (parse_name -- parse_args -- parse_for_args -- parse_body function);
         val _ = Context_Position.report ctxt for_pos (Markup.keyword_properties Markup.keyword1);
 
         val Const (c, T) =
@@ -284,10 +298,12 @@ fun const_antiquotation binding pattern =
 
         val (decls1, ctxt1) = ml_sources ctxt type_args;
         val (decls2, ctxt2) = ml_sources ctxt1 term_args;
+        val (decls3, ctxt3) = ml_sources ctxt2 fn_body;
         fun decl' ctxt' =
           let
             val (ml_args_env1, ml_args_body1) = split_list (decls1 ctxt');
             val (ml_args_env2, ml_args_body2) = split_list (decls2 ctxt');
+            val (ml_fn_env, ml_fn_body) = split_list (decls3 ctxt');
 
             val relevant = map is_dummy type_args ~~ type_paths;
             fun relevant_path is =
@@ -307,15 +323,23 @@ fun const_antiquotation binding pattern =
             fun ml_app [] = ml "Term.Const " @ ml_pair (ml_string c, ml_typ [] T)
               | ml_app (u :: us) = ml "Term.$ " @ ml_pair (ml_app us, u);
 
-            val ml_env = flat (ml_args_env1 @ ml_args_env2);
-            val ml_body = ml_parens (ml_app (rev ml_args_body2));
-          in (ml_env, ml_body) end;
-      in (decl', ctxt2) end);
+            val ml_env = flat (ml_args_env1 @ ml_args_env2 @ ml_fn_env);
+            val ml1 = ml_parens (ml_app (rev ml_args_body2));
+            val ml2 =
+              if function then
+                ml "(" @ ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
+                ml "| t => " @ ml_range range "raise" @
+                ml " Term.TERM (" @ ml_string ("Const_fn " ^ quote c) @ ml ", [t]))"
+              else ml1;
+          in (ml_env, ml2) end;
+      in (decl', ctxt3) end);
 
 val _ = Theory.setup
- (type_antiquotation \<^binding>\<open>Type\<close> #>
-  const_antiquotation \<^binding>\<open>Const\<close> false #>
-  const_antiquotation \<^binding>\<open>Const_\<close> true);
+ (type_antiquotation \<^binding>\<open>Type\<close> {function = false} #>
+  type_antiquotation \<^binding>\<open>Type_fn\<close> {function = true} #>
+  const_antiquotation \<^binding>\<open>Const\<close> {pattern = false, function = false} #>
+  const_antiquotation \<^binding>\<open>Const_\<close> {pattern = true, function = false} #>
+  const_antiquotation \<^binding>\<open>Const_fn\<close> {pattern = true, function = true});
 
 in end;
 
