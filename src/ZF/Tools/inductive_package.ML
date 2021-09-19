@@ -109,8 +109,9 @@ let
         val dummy = List.app (fn rec_hd => List.app (Ind_Syntax.chk_prem rec_hd) prems) rec_hds
         val exfrees = subtract (op =) rec_params (Misc_Legacy.term_frees intr)
         val zeq = FOLogic.mk_eq (Free(z', \<^Type>\<open>i\<close>), #1 (Ind_Syntax.rule_concl intr))
-    in List.foldr FOLogic.mk_exists
-             (Balanced_Tree.make FOLogic.mk_conj (zeq::prems)) exfrees
+    in
+      fold_rev (FOLogic.mk_exists o Term.dest_Free) exfrees
+        (Balanced_Tree.make FOLogic.mk_conj (zeq::prems))
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
@@ -389,9 +390,8 @@ let
            val pfree = Free(pred_name ^ "_" ^ Long_Name.base_name rec_name,
                             elem_factors ---> \<^Type>\<open>o\<close>)
            val qconcl =
-             List.foldr FOLogic.mk_all
-               (\<^Const>\<open>imp\<close> $ \<^Const>\<open>mem for elem_tuple rec_tm\<close>
-                      $ (list_comb (pfree, elem_frees))) elem_frees
+             fold_rev (FOLogic.mk_all o Term.dest_Free) elem_frees
+               \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for elem_tuple rec_tm\<close>\<close> \<open>list_comb (pfree, elem_frees)\<close>\<close>
        in  (CP.ap_split elem_type \<^Type>\<open>o\<close> pfree,
             qconcl)
        end;
@@ -400,7 +400,7 @@ let
 
      (*Used to form simultaneous induction lemma*)
      fun mk_rec_imp (rec_tm,pred) =
-         \<^Const>\<open>imp\<close> $ \<^Const>\<open>mem for \<open>Bound 0\<close> rec_tm\<close> $ (pred $ Bound 0);
+         \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for \<open>Bound 0\<close> rec_tm\<close>\<close> \<open>pred $ Bound 0\<close>\<close>;
 
      (*To instantiate the main induction rule*)
      val induct_concl =

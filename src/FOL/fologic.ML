@@ -15,8 +15,8 @@ sig
   val dest_conj: term -> term list
   val mk_iff: term * term -> term
   val dest_iff: term -> term * term
-  val mk_all: term * term -> term
-  val mk_exists: term * term -> term
+  val mk_all: string * typ -> term -> term
+  val mk_exists: string * typ -> term -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
 end;
@@ -46,7 +46,7 @@ fun mk_eq (t, u) =
 
 val dest_eq = \<^Const_fn>\<open>eq _ for lhs rhs => \<open>(lhs, rhs)\<close>\<close>;
 
-fun mk_all (Free (x, T), P) = \<^Const>\<open>All T for \<open>absfree (x, T) P\<close>\<close>;
-fun mk_exists (Free (x, T), P) = \<^Const>\<open>Ex T for \<open>absfree (x, T) P\<close>\<close>;
+fun mk_all (x, T) P = \<^Const>\<open>All T for \<open>absfree (x, T) P\<close>\<close>;
+fun mk_exists (x, T) P = \<^Const>\<open>Ex T for \<open>absfree (x, T) P\<close>\<close>;
 
 end;
