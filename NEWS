@@ -9,6 +9,12 @@ New in this Isabelle version
 
 *** General ***
 
+* Commands 'syntax' and 'no_syntax' now work in a local theory context,
+but there is no proper way to refer to local entities --- in contrast to
+'notation' and 'no_notation'. Local syntax works well with 'bundle',
+e.g. see "lattice_syntax" vs. "no_lattice_syntax" in theory Main of
+Isabelle/HOL.
+
 * Configuration option "show_results" controls output of final results
 in commands like 'definition' or 'theorem'. Output is normally enabled
 in interactive mode, but it could occasionally cause unnecessary
@@ -127,6 +133,11 @@ targets and in any nested target built on top of a target supporting
 
 
 *** HOL ***
+
+* Theory HOL-Library.Lattice_Syntax has been superseded by bundle
+"lattice_syntax": it can be used in a local context via 'include' or in
+a global theory via 'unbundle'. The opposite declarations are bundled as
+"no_lattice_syntax".
 
 * Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
 use explict expression instead. Minor INCOMPATIBILITY.
