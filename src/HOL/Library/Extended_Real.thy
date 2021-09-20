@@ -2445,7 +2445,7 @@ next
   then obtain l where "incseq l" and l: "l i < Sup A" and l_Sup: "l \<longlonglongrightarrow> Sup A" for i :: nat
     by (auto dest: countable_approach)
 
-  have "\<exists>f. \<forall>n. (f n \<in> A \<and> l n \<le> f n) \<and> (f n \<le> f (Suc n))"
+  have "\<exists>f. \<forall>n. (f n \<in> A \<and> l n \<le> f n) \<and> (f n \<le> f (Suc n))" (is "\<exists>f. ?P f")
   proof (rule dependent_nat_choice)
     show "\<exists>x. x \<in> A \<and> l 0 \<le> x"
       using l[of 0] by (auto simp: less_Sup_iff)
@@ -2456,7 +2456,7 @@ next
     ultimately show "\<exists>y. (y \<in> A \<and> l (Suc n) \<le> y) \<and> x \<le> y"
       by (auto intro!: exI[of _ "max x y"] split: split_max)
   qed
-  then guess f .. note f = this
+  then obtain f where f: "?P f" ..
   then have "range f \<subseteq> A" "incseq f"
     by (auto simp: incseq_Suc_iff)
   moreover
@@ -3632,17 +3632,17 @@ proof -
   have "N \<subseteq> A \<Longrightarrow> (SUP i\<in>I. \<Sum>n\<in>N. f n i) = (\<Sum>n\<in>N. SUP i\<in>I. f n i)" for N
   proof (induction N rule: infinite_finite_induct)
     case (insert n N)
-    moreover have "(SUP i\<in>I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i\<in>I. f n i) + (SUP i\<in>I. \<Sum>l\<in>N. f l i)"
+    have "(SUP i\<in>I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i\<in>I. f n i) + (SUP i\<in>I. \<Sum>l\<in>N. f l i)"
     proof (rule SUP_ereal_add_directed)
       fix i assume "i \<in> I" then show "0 \<le> f n i" "0 \<le> (\<Sum>l\<in>N. f l i)"
         using insert by (auto intro!: sum_nonneg nonneg)
     next
       fix i j assume "i \<in> I" "j \<in> I"
-      from directed[OF \<open>insert n N \<subseteq> A\<close> this] guess k ..
-      then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)"
-        by (intro bexI[of _ k]) (auto intro!: add_mono sum_mono)
+      from directed[OF insert(4) this]
+      show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)"
+        by (auto intro!: add_mono sum_mono)
     qed
-    ultimately show ?case
+    with insert show ?case
       by simp
   qed (simp_all add: SUP_constant \<open>I \<noteq> {}\<close>)
   from this[of A] show ?thesis by simp

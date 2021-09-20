@@ -438,26 +438,27 @@ lemma eventually_Inf: "eventually P (Inf B) \<longleftrightarrow> (\<exists>X\<s
 proof -
   let ?F = "\<lambda>P. \<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X)"
 
-  { fix P have "eventually P (Abs_filter ?F) \<longleftrightarrow> ?F P"
-    proof (rule eventually_Abs_filter is_filter.intro)+
-      show "?F (\<lambda>x. True)"
-        by (rule exI[of _ "{}"]) (simp add: le_fun_def)
-    next
-      fix P Q
-      assume "?F P" then guess X ..
-      moreover
-      assume "?F Q" then guess Y ..
-      ultimately show "?F (\<lambda>x. P x \<and> Q x)"
-        by (intro exI[of _ "X \<union> Y"])
-           (auto simp: Inf_union_distrib eventually_inf)
-    next
-      fix P Q
-      assume "?F P" then guess X ..
-      moreover assume "\<forall>x. P x \<longrightarrow> Q x"
-      ultimately show "?F Q"
-        by (intro exI[of _ X]) (auto elim: eventually_mono)
-    qed }
-  note eventually_F = this
+  have eventually_F: "eventually P (Abs_filter ?F) \<longleftrightarrow> ?F P" for P
+  proof (rule eventually_Abs_filter is_filter.intro)+
+    show "?F (\<lambda>x. True)"
+      by (rule exI[of _ "{}"]) (simp add: le_fun_def)
+  next
+    fix P Q
+    assume "?F P" "?F Q"
+    then obtain X Y where
+      "X \<subseteq> B" "finite X" "eventually P (\<Sqinter> X)"
+      "Y \<subseteq> B" "finite Y" "eventually Q (\<Sqinter> Y)" by blast
+    then show "?F (\<lambda>x. P x \<and> Q x)"
+      by (intro exI[of _ "X \<union> Y"]) (auto simp: Inf_union_distrib eventually_inf)
+  next
+    fix P Q
+    assume "?F P"
+    then obtain X where "X \<subseteq> B" "finite X" "eventually P (\<Sqinter> X)"
+      by blast
+    moreover assume "\<forall>x. P x \<longrightarrow> Q x"
+    ultimately show "?F Q"
+      by (intro exI[of _ X]) (auto elim: eventually_mono)
+  qed
 
   have "Inf B = Abs_filter ?F"
   proof (intro antisym Inf_greatest)
@@ -598,11 +599,12 @@ proof (intro eventually_Abs_filter, unfold_locales, goal_cases)
   show ?case by (auto intro!: exI[of _ "\<lambda>_. True"])
 next
   case (2 P Q)
-  from 2(1) guess P' by (elim exE conjE) note P' = this
-  from 2(2) guess Q' by (elim exE conjE) note Q' = this
+  then obtain P' Q' where P'Q':
+    "eventually P' F" "\<forall>x. P' (f x) \<longrightarrow> P x"
+    "eventually Q' F" "\<forall>x. Q' (f x) \<longrightarrow> Q x"
+    by (elim exE conjE)
   show ?case
-    by (rule exI[of _ "\<lambda>x. P' x \<and> Q' x"])
-       (insert P' Q', auto intro!: eventually_conj)
+    by (rule exI[of _ "\<lambda>x. P' x \<and> Q' x"]) (use P'Q' in \<open>auto intro!: eventually_conj\<close>)
 next
   case (3 P Q)
   thus ?case by blast

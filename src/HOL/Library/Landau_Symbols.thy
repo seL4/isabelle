@@ -2,12 +2,12 @@
   File:   Landau_Symbols_Definition.thy
   Author: Manuel Eberl <eberlm@in.tum.de>
 
-  Landau symbols for reasoning about the asymptotic growth of functions. 
+  Landau symbols for reasoning about the asymptotic growth of functions.
 *)
 section \<open>Definition of Landau symbols\<close>
 
 theory Landau_Symbols
-imports 
+imports
   Complex_Main
 begin
 
@@ -19,34 +19,34 @@ lemma eventually_subst':
 subsection \<open>Definition of Landau symbols\<close>
 
 text \<open>
-  Our Landau symbols are sign-oblivious, i.e. any function always has the same growth 
-  as its absolute. This has the advantage of making some cancelling rules for sums nicer, but 
+  Our Landau symbols are sign-oblivious, i.e. any function always has the same growth
+  as its absolute. This has the advantage of making some cancelling rules for sums nicer, but
   introduces some problems in other places. Nevertheless, we found this definition more convenient
   to work with.
 \<close>
 
-definition bigo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
+definition bigo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
     (\<open>(1O[_]'(_'))\<close>)
-  where "bigo F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F)}"  
+  where "bigo F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F)}"
 
-definition smallo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
+definition smallo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
     (\<open>(1o[_]'(_'))\<close>)
   where "smallo F g = {f. (\<forall>c>0. eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F)}"
 
-definition bigomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
+definition bigomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
     (\<open>(1\<Omega>[_]'(_'))\<close>)
-  where "bigomega F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<ge> c * norm (g x)) F)}"  
+  where "bigomega F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<ge> c * norm (g x)) F)}"
 
-definition smallomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
+definition smallomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
     (\<open>(1\<omega>[_]'(_'))\<close>)
   where "smallomega F g = {f. (\<forall>c>0. eventually (\<lambda>x. norm (f x) \<ge> c * norm (g x)) F)}"
 
-definition bigtheta :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
+definition bigtheta :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
     (\<open>(1\<Theta>[_]'(_'))\<close>)
   where "bigtheta F g = bigo F g \<inter> bigomega F g"
 
 abbreviation bigo_at_top (\<open>(2O'(_'))\<close>) where
-  "O(g) \<equiv> bigo at_top g"    
+  "O(g) \<equiv> bigo at_top g"
 
 abbreviation smallo_at_top (\<open>(2o'(_'))\<close>) where
   "o(g) \<equiv> smallo at_top g"
@@ -59,7 +59,7 @@ abbreviation smallomega_at_top (\<open>(2\<omega>'(_'))\<close>) where
 
 abbreviation bigtheta_at_top (\<open>(2\<Theta>'(_'))\<close>) where
   "\<Theta>(g) \<equiv> bigtheta at_top g"
-    
+
 
 text \<open>The following is a set of properties that all Landau symbols satisfy.\<close>
 
@@ -71,9 +71,9 @@ locale landau_symbol =
   and   Lr  :: "'a filter \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> ('a \<Rightarrow> real) set"
   assumes bot': "L bot f = UNIV"
   assumes filter_mono': "F1 \<le> F2 \<Longrightarrow> L F2 f \<subseteq> L F1 f"
-  assumes in_filtermap_iff: 
+  assumes in_filtermap_iff:
     "f' \<in> L (filtermap h' F') g' \<longleftrightarrow> (\<lambda>x. f' (h' x)) \<in> L' F' (\<lambda>x. g' (h' x))"
-  assumes filtercomap: 
+  assumes filtercomap:
     "f' \<in> L F'' g' \<Longrightarrow> (\<lambda>x. f' (h' x)) \<in> L' (filtercomap h' F'') (\<lambda>x. g' (h' x))"
   assumes sup: "f \<in> L F1 g \<Longrightarrow> f \<in> L F2 g \<Longrightarrow> f \<in> L (sup F1 F2) g"
   assumes in_cong: "eventually (\<lambda>x. f x = g x) F \<Longrightarrow> f \<in> L F (h) \<longleftrightarrow> g \<in> L F (h)"
@@ -83,7 +83,7 @@ locale landau_symbol =
   assumes cmult [simp]: "c \<noteq> 0 \<Longrightarrow> L F (\<lambda>x. c * f x) = L F (f)"
   assumes cmult_in_iff [simp]: "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. c * f x) \<in> L F (g) \<longleftrightarrow> f \<in> L F (g)"
   assumes mult_left [simp]: "f \<in> L F (g) \<Longrightarrow> (\<lambda>x. h x * f x) \<in> L F (\<lambda>x. h x * g x)"
-  assumes inverse: "eventually (\<lambda>x. f x \<noteq> 0) F \<Longrightarrow> eventually (\<lambda>x. g x \<noteq> 0) F \<Longrightarrow> 
+  assumes inverse: "eventually (\<lambda>x. f x \<noteq> 0) F \<Longrightarrow> eventually (\<lambda>x. g x \<noteq> 0) F \<Longrightarrow>
                         f \<in> L F (g) \<Longrightarrow> (\<lambda>x. inverse (g x)) \<in> L F (\<lambda>x. inverse (f x))"
   assumes subsetI: "f \<in> L F (g) \<Longrightarrow> L F (f) \<subseteq> L F (g)"
   assumes plus_subset1: "f \<in> o[F](g) \<Longrightarrow> L F (g) \<subseteq> L F (\<lambda>x. f x + g x)"
@@ -95,27 +95,27 @@ locale landau_symbol =
 begin
 
 lemma bot [simp]: "f \<in> L bot g" by (simp add: bot')
-  
+
 lemma filter_mono: "F1 \<le> F2 \<Longrightarrow> f \<in> L F2 g \<Longrightarrow> f \<in> L F1 g"
   using filter_mono'[of F1 F2] by blast
 
-lemma cong_ex: 
+lemma cong_ex:
   "eventually (\<lambda>x. f1 x = f2 x) F \<Longrightarrow> eventually (\<lambda>x. g1 x = g2 x) F \<Longrightarrow>
-     f1 \<in> L F (g1) \<longleftrightarrow> f2 \<in> L F (g2)" 
+     f1 \<in> L F (g1) \<longleftrightarrow> f2 \<in> L F (g2)"
   by (subst cong, assumption, subst in_cong, assumption, rule refl)
 
-lemma cong_ex_bigtheta: 
-  "f1 \<in> \<Theta>[F](f2) \<Longrightarrow> g1 \<in> \<Theta>[F](g2) \<Longrightarrow> f1 \<in> L F (g1) \<longleftrightarrow> f2 \<in> L F (g2)" 
+lemma cong_ex_bigtheta:
+  "f1 \<in> \<Theta>[F](f2) \<Longrightarrow> g1 \<in> \<Theta>[F](g2) \<Longrightarrow> f1 \<in> L F (g1) \<longleftrightarrow> f2 \<in> L F (g2)"
   by (subst cong_bigtheta, assumption, subst in_cong_bigtheta, assumption, rule refl)
 
-lemma bigtheta_trans1: 
+lemma bigtheta_trans1:
   "f \<in> L F (g) \<Longrightarrow> g \<in> \<Theta>[F](h) \<Longrightarrow> f \<in> L F (h)"
   by (subst cong_bigtheta[symmetric])
 
-lemma bigtheta_trans2: 
+lemma bigtheta_trans2:
   "f \<in> \<Theta>[F](g) \<Longrightarrow> g \<in> L F (h) \<Longrightarrow> f \<in> L F (h)"
   by (subst in_cong_bigtheta)
-   
+
 lemma cmult' [simp]: "c \<noteq> 0 \<Longrightarrow> L F (\<lambda>x. f x * c) = L F (f)"
   by (subst mult.commute) (rule cmult)
 
@@ -127,7 +127,7 @@ lemma cdiv [simp]: "c \<noteq> 0 \<Longrightarrow> L F (\<lambda>x. f x / c) = L
 
 lemma cdiv_in_iff' [simp]: "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / c) \<in> L F (g) \<longleftrightarrow> f \<in> L F (g)"
   using cmult_in_iff'[of "inverse c" f] by (simp add: field_simps)
-  
+
 lemma uminus [simp]: "L F (\<lambda>x. -g x) = L F (g)" using cmult[of "-1"] by simp
 
 lemma uminus_in_iff [simp]: "(\<lambda>x. -f x) \<in> L F (g) \<longleftrightarrow> f \<in> L F (g)"
@@ -207,7 +207,7 @@ lemma divide:
   assumes "f1 \<in> L F (f2)" "g2 \<in> L F (g1)"
   shows   "(\<lambda>x. f1 x / g1 x) \<in> L F (\<lambda>x. f2 x / g2 x)"
   by (subst (1 2) divide_inverse) (intro mult inverse assms)
-  
+
 lemma divide_eq1:
   assumes "eventually (\<lambda>x. h x \<noteq> 0) F"
   shows   "f \<in> L F (\<lambda>x. g x / h x) \<longleftrightarrow> (\<lambda>x. f x * h x) \<in> L F (g)"
@@ -284,19 +284,19 @@ lemma (in landau_symbol) of_real_iff:
   "(\<lambda>x. of_real (f x)) \<in> L F (\<lambda>x. of_real (g x)) \<longleftrightarrow> f \<in> Lr F g"
   by (subst norm_iff [symmetric], subst (1 2) norm_of_real) simp_all
 
-lemmas [landau_divide_simps] = 
+lemmas [landau_divide_simps] =
   inverse_cancel divide_left_iff divide_eq1 divide_eq2 inverse_eq1 inverse_eq2
 
 end
 
 
 text \<open>
-  The symbols $O$ and $o$ and $\Omega$ and $\omega$ are dual, so for many rules, replacing $O$ with 
+  The symbols $O$ and $o$ and $\Omega$ and $\omega$ are dual, so for many rules, replacing $O$ with
   $\Omega$, $o$ with $\omega$, and $\leq$ with $\geq$ in a theorem yields another valid theorem.
   The following locale captures this fact.
 \<close>
 
-locale landau_pair = 
+locale landau_pair =
   fixes L l :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
   fixes L' l' :: "'c filter \<Rightarrow> ('c \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('c \<Rightarrow> 'b) set"
   fixes Lr lr :: "'a filter \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> ('a \<Rightarrow> real) set"
@@ -309,11 +309,11 @@ locale landau_pair =
   and     lr_def: "lr F'' g'' = {f. \<forall>c>0. eventually (\<lambda>x. R (norm (f x)) (c * norm (g'' x))) F''}"
   and     R:     "R = (\<le>) \<or> R = (\<ge>)"
 
-interpretation landau_o: 
+interpretation landau_o:
     landau_pair bigo smallo bigo smallo bigo smallo "(\<le>)"
   by unfold_locales (auto simp: bigo_def smallo_def intro!: ext)
 
-interpretation landau_omega: 
+interpretation landau_omega:
     landau_pair bigomega smallomega bigomega smallomega bigomega smallomega "(\<ge>)"
   by unfold_locales (auto simp: bigomega_def smallomega_def intro!: ext)
 
@@ -339,7 +339,7 @@ lemma smallI:
 lemma smallD:
   "f \<in> l F (g) \<Longrightarrow> c > 0 \<Longrightarrow> eventually (\<lambda>x. R (norm (f x)) (c * (norm (g x)))) F"
   unfolding l_def by blast
-    
+
 lemma bigE_nonneg_real:
   assumes "f \<in> Lr F (g)" "eventually (\<lambda>x. f x \<ge> 0) F"
   obtains c where "c > 0" "eventually (\<lambda>x. R (f x) (c * \<bar>g x\<bar>)) F"
@@ -358,7 +358,7 @@ lemma smallD_nonneg_real:
 
 lemma small_imp_big: "f \<in> l F (g) \<Longrightarrow> f \<in> L F (g)"
   by (rule bigI[OF _ smallD, of 1]) simp_all
-  
+
 lemma small_subset_big: "l F (g) \<subseteq> L F (g)"
   using small_imp_big by blast
 
@@ -380,17 +380,20 @@ lemma big_trans:
   assumes "f \<in> L F (g)" "g \<in> L F (h)"
   shows   "f \<in> L F (h)"
 proof-
-  from assms(1) guess c by (elim bigE) note c = this
-  from assms(2) guess d by (elim bigE) note d = this
-  from c(2) d(2) have "eventually (\<lambda>x. R (norm (f x)) (c * d * (norm (h x)))) F"
+  from assms obtain c d where *: "0 < c" "0 < d"
+    and **: "\<forall>\<^sub>F x in F. R (norm (f x)) (c * norm (g x))"
+            "\<forall>\<^sub>F x in F. R (norm (g x)) (d * norm (h x))"
+    by (elim bigE)
+  from ** have "eventually (\<lambda>x. R (norm (f x)) (c * d * (norm (h x)))) F"
   proof eventually_elim
     fix x assume "R (norm (f x)) (c * (norm (g x)))"
     also assume "R (norm (g x)) (d * (norm (h x)))"
-    with c(1) have "R (c * (norm (g x))) (c * (d * (norm (h x))))"
+    with \<open>0 < c\<close> have "R (c * (norm (g x))) (c * (d * (norm (h x))))"
       by (intro R_mult_left_mono) simp_all
-    finally show "R (norm (f x)) (c * d * (norm (h x)))" by (simp add: algebra_simps)
+    finally show "R (norm (f x)) (c * d * (norm (h x)))"
+      by (simp add: algebra_simps)
   qed
-  with c(1) d(1) show ?thesis by (intro bigI[of "c*d"]) simp_all
+  with * show ?thesis by (intro bigI[of "c*d"]) simp_all
 qed
 
 lemma big_small_trans:
@@ -398,13 +401,16 @@ lemma big_small_trans:
   shows   "f \<in> l F (h)"
 proof (rule smallI)
   fix c :: real assume c: "c > 0"
-  from assms(1) guess d by (elim bigE) note d = this
-  note d(2)
-  moreover from c d assms(2) 
-    have "eventually (\<lambda>x. R (norm (g x)) (c * inverse d * norm (h x))) F" 
+  from assms(1) obtain d where d: "d > 0" and *: "\<forall>\<^sub>F x in F. R (norm (f x)) (d * norm (g x))"
+    by (elim bigE)
+  from assms(2) c d have "eventually (\<lambda>x. R (norm (g x)) (c * inverse d * norm (h x))) F"
     by (intro smallD) simp_all
-  ultimately show "eventually (\<lambda>x. R (norm (f x)) (c * (norm (h x)))) F"
-    by eventually_elim (erule R_trans, insert R d(1), auto simp: field_simps)
+  with * show "eventually (\<lambda>x. R (norm (f x)) (c * (norm (h x)))) F"
+  proof eventually_elim
+    case (elim x)
+    show ?case
+      by (use elim(1) in \<open>rule R_trans\<close>) (use elim(2) R d in \<open>auto simp: field_simps\<close>)
+  qed
 qed
 
 lemma small_big_trans:
@@ -412,13 +418,12 @@ lemma small_big_trans:
   shows   "f \<in> l F (h)"
 proof (rule smallI)
   fix c :: real assume c: "c > 0"
-  from assms(2) guess d by (elim bigE) note d = this
-  note d(2)
-  moreover from c d assms(1) 
-    have "eventually (\<lambda>x. R (norm (f x)) (c * inverse d * norm (g x))) F"
+  from assms(2) obtain d where d: "d > 0" and *: "\<forall>\<^sub>F x in F. R (norm (g x)) (d * norm (h x))"
+    by (elim bigE)
+  from assms(1) c d have "eventually (\<lambda>x. R (norm (f x)) (c * inverse d * norm (g x))) F"
     by (intro smallD) simp_all
-  ultimately show "eventually (\<lambda>x. R (norm (f x)) (c * norm (h x))) F"
-    by eventually_elim (rotate_tac 2, erule R_trans, insert R c d(1), auto simp: field_simps)
+  with * show "eventually (\<lambda>x. R (norm (f x)) (c * norm (h x))) F"
+    by eventually_elim (rotate_tac 2, erule R_trans, insert R c d, auto simp: field_simps)
 qed
 
 lemma small_trans:
@@ -468,32 +473,35 @@ lemma plus_aux:
   assumes "f \<in> o[F](g)"
   shows "g \<in> L F (\<lambda>x. f x + g x)"
 proof (rule R_E)
-  assume [simp]: "R = (\<le>)"
+  assume R: "R = (\<le>)"
   have A: "1/2 > (0::real)" by simp
-  {
-    fix x assume "norm (f x) \<le> 1/2 * norm (g x)"
-    hence "1/2 * (norm (g x)) \<le> (norm (g x)) - (norm (f x))" by simp
+  have B: "1/2 * (norm (g x)) \<le> norm (f x + g x)"
+    if "norm (f x) \<le> 1/2 * norm (g x)" for x
+  proof -
+    from that have "1/2 * (norm (g x)) \<le> (norm (g x)) - (norm (f x))"
+      by simp
     also have "norm (g x) - norm (f x) \<le> norm (f x + g x)"
       by (subst add.commute) (rule norm_diff_ineq)
-    finally have "1/2 * (norm (g x)) \<le> norm (f x + g x)" by simp
-  } note B = this
-  
+    finally show ?thesis by simp
+  qed
   show "g \<in> L F (\<lambda>x. f x + g x)"
-    apply (rule bigI[of "2"], simp)
-    using landau_o.smallD[OF assms A] apply eventually_elim
-    using B apply (simp add: algebra_simps) 
+    apply (rule bigI[of "2"])
+     apply simp
+    apply (use landau_o.smallD[OF assms A] in eventually_elim)
+    apply (use B in \<open>simp add: R algebra_simps\<close>)
     done
 next
-  assume [simp]: "R = (\<lambda>x y. x \<ge> y)"
+  assume R: "R = (\<lambda>x y. x \<ge> y)"
   show "g \<in> L F (\<lambda>x. f x + g x)"
   proof (rule bigI[of "1/2"])
     show "eventually (\<lambda>x. R (norm (g x)) (1/2 * norm (f x + g x))) F"
       using landau_o.smallD[OF assms zero_less_one]
     proof eventually_elim
       case (elim x)
-      have "norm (f x + g x) \<le> norm (f x) + norm (g x)" by (rule norm_triangle_ineq)
+      have "norm (f x + g x) \<le> norm (f x) + norm (g x)"
+        by (rule norm_triangle_ineq)
       also note elim
-      finally show ?case by simp
+      finally show ?case by (simp add: R)
     qed
   qed simp_all
 qed
@@ -501,16 +509,19 @@ qed
 end
 
 
-
 lemma bigomega_iff_bigo: "g \<in> \<Omega>[F](f) \<longleftrightarrow> f \<in> O[F](g)"
 proof
   assume "f \<in> O[F](g)"
-  then guess c by (elim landau_o.bigE)
-  thus "g \<in> \<Omega>[F](f)" by (intro landau_omega.bigI[of "inverse c"]) (simp_all add: field_simps)
+  then obtain c where "0 < c" "\<forall>\<^sub>F x in F. norm (f x) \<le> c * norm (g x)"
+    by (rule landau_o.bigE)
+  then show "g \<in> \<Omega>[F](f)"
+    by (intro landau_omega.bigI[of "inverse c"]) (simp_all add: field_simps)
 next
   assume "g \<in> \<Omega>[F](f)"
-  then guess c by (elim landau_omega.bigE)
-  thus "f \<in> O[F](g)" by (intro landau_o.bigI[of "inverse c"]) (simp_all add: field_simps)
+  then obtain c where "0 < c" "\<forall>\<^sub>F x in F. c * norm (f x) \<le> norm (g x)"
+    by (rule landau_omega.bigE)
+  then show "f \<in> O[F](g)"
+    by (intro landau_o.bigI[of "inverse c"]) (simp_all add: field_simps)
 qed
 
 lemma smallomega_iff_smallo: "g \<in> \<omega>[F](f) \<longleftrightarrow> f \<in> o[F](g)"
@@ -536,24 +547,25 @@ lemma big_mult:
   assumes "f1 \<in> L F (g1)" "f2 \<in> L F (g2)"
   shows   "(\<lambda>x. f1 x * f2 x) \<in> L F (\<lambda>x. g1 x * g2 x)"
 proof-
-  from assms(1) guess c1 by (elim bigE) note c1 = this
-  from assms(2) guess c2 by (elim bigE) note c2 = this
-  
-  from c1(1) and c2(1) have "c1 * c2 > 0" by simp
+  from assms obtain c1 c2 where *: "c1 > 0" "c2 > 0"
+    and **: "\<forall>\<^sub>F x in F. R (norm (f1 x)) (c1 * norm (g1 x))"
+            "\<forall>\<^sub>F x in F. R (norm (f2 x)) (c2 * norm (g2 x))"
+    by (elim bigE)
+  from * have "c1 * c2 > 0" by simp
   moreover have "eventually (\<lambda>x. R (norm (f1 x * f2 x)) (c1 * c2 * norm (g1 x * g2 x))) F"
-    using c1(2) c2(2)
+    using **
   proof eventually_elim
     case (elim x)
     show ?case
     proof (cases rule: R_E)
       case le
       have "norm (f1 x) * norm (f2 x) \<le> (c1 * norm (g1 x)) * (c2 * norm (g2 x))"
-        using elim le c1(1) c2(1) by (intro mult_mono mult_nonneg_nonneg) auto
+        using elim le * by (intro mult_mono mult_nonneg_nonneg) auto
       with le show ?thesis by (simp add: le norm_mult mult_ac)
     next
       case ge
       have "(c1 * norm (g1 x)) * (c2 * norm (g2 x)) \<le> norm (f1 x) * norm (f2 x)"
-        using elim ge c1(1) c2(1) by (intro mult_mono mult_nonneg_nonneg) auto
+        using elim ge * by (intro mult_mono mult_nonneg_nonneg) auto
       with ge show ?thesis by (simp_all add: norm_mult mult_ac)
     qed
   qed
@@ -565,28 +577,29 @@ lemma small_big_mult:
   shows   "(\<lambda>x. f1 x * f2 x) \<in> l F (\<lambda>x. g1 x * g2 x)"
 proof (rule smallI)
   fix c1 :: real assume c1: "c1 > 0"
-  from assms(2) guess c2 by (elim bigE) note c2 = this
-  with c1 assms(1) have "eventually (\<lambda>x. R (norm (f1 x)) (c1 * inverse c2 * norm (g1 x))) F"
+  from assms(2) obtain c2 where c2: "c2 > 0"
+    and *: "\<forall>\<^sub>F x in F. R (norm (f2 x)) (c2 * norm (g2 x))" by (elim bigE)
+  from assms(1) c1 c2 have "eventually (\<lambda>x. R (norm (f1 x)) (c1 * inverse c2 * norm (g1 x))) F"
     by (auto intro!: smallD)
-  thus "eventually (\<lambda>x. R (norm (f1 x * f2 x)) (c1 * norm (g1 x * g2 x))) F" using c2(2)
+  with * show "eventually (\<lambda>x. R (norm (f1 x * f2 x)) (c1 * norm (g1 x * g2 x))) F"
   proof eventually_elim
     case (elim x)
     show ?case
     proof (cases rule: R_E)
       case le
       have "norm (f1 x) * norm (f2 x) \<le> (c1 * inverse c2 * norm (g1 x)) * (c2 * norm (g2 x))"
-        using elim le c1(1) c2(1) by (intro mult_mono mult_nonneg_nonneg) auto
-      with le c2(1) show ?thesis by (simp add: le norm_mult field_simps)
+        using elim le c1 c2 by (intro mult_mono mult_nonneg_nonneg) auto
+      with le c2 show ?thesis by (simp add: le norm_mult field_simps)
     next
       case ge
       have "norm (f1 x) * norm (f2 x) \<ge> (c1 * inverse c2 * norm (g1 x)) * (c2 * norm (g2 x))"
-        using elim ge c1(1) c2(1) by (intro mult_mono mult_nonneg_nonneg) auto
-      with ge c2(1) show ?thesis by (simp add: ge norm_mult field_simps)
+        using elim ge c1 c2 by (intro mult_mono mult_nonneg_nonneg) auto
+      with ge c2 show ?thesis by (simp add: ge norm_mult field_simps)
     qed
   qed
 qed
 
-lemma big_small_mult: 
+lemma big_small_mult:
   "f1 \<in> L F (g1) \<Longrightarrow> f2 \<in> l F (g2) \<Longrightarrow> (\<lambda>x. f1 x * f2 x) \<in> l F (\<lambda>x. g1 x * g2 x)"
   by (subst (1 2) mult.commute) (rule small_big_mult)
 
@@ -600,166 +613,133 @@ sublocale big: landau_symbol L L' Lr
 proof
   have L: "L = bigo \<or> L = bigomega"
     by (rule R_E) (auto simp: bigo_def L_def bigomega_def fun_eq_iff)
-  {
-    fix c :: 'b and F and f :: "'a \<Rightarrow> 'b" assume "c \<noteq> 0"
-    hence "(\<lambda>x. c * f x) \<in> L F f" by (intro bigI[of "norm c"]) (simp_all add: norm_mult)
-  } note A = this
-  {
-    fix c :: 'b and F and f :: "'a \<Rightarrow> 'b" assume "c \<noteq> 0"
-    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
-      show "L F (\<lambda>x. c * f x) = L F f" by (intro equalityI big_subsetI) (simp_all add: field_simps)
-  }
-  {
-    fix c :: 'b and F and f g :: "'a \<Rightarrow> 'b" assume "c \<noteq> 0"
+  have A: "(\<lambda>x. c * f x) \<in> L F f" if "c \<noteq> 0" for c :: 'b and F and f :: "'a \<Rightarrow> 'b"
+    using that by (intro bigI[of "norm c"]) (simp_all add: norm_mult)
+  show "L F (\<lambda>x. c * f x) = L F f" if "c \<noteq> 0" for c :: 'b and F and f :: "'a \<Rightarrow> 'b"
+    using \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
+    by (intro equalityI big_subsetI) (simp_all add: field_simps)
+  show "((\<lambda>x. c * f x) \<in> L F g) = (f \<in> L F g)" if "c \<noteq> 0"
+    for c :: 'b and F and f g :: "'a \<Rightarrow> 'b"
+  proof -
     from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
-      have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)" by (simp_all add: field_simps)
-    thus "((\<lambda>x. c * f x) \<in> L F g) = (f \<in> L F g)" by (intro iffI) (erule (1) big_trans)+
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> L F (g)"
-    assume B: "eventually (\<lambda>x. f x \<noteq> 0) F" "eventually (\<lambda>x. g x \<noteq> 0) F"
-    from A guess c by (elim bigE) note c = this
-    from c(2) B have "eventually (\<lambda>x. R (norm (inverse (g x))) (c * norm (inverse (f x)))) F"
-      by eventually_elim (rule R_E, insert c(1), simp_all add: field_simps norm_inverse norm_divide)
-    with c(1) show "(\<lambda>x. inverse (g x)) \<in> L F (\<lambda>x. inverse (f x))" by (rule bigI)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume "f \<in> o[F](g)"
-    with plus_aux show "L F g \<subseteq> L F (\<lambda>x. f x + g x)" by (blast intro!: big_subsetI) 
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "eventually (\<lambda>x. f x = g x) F"
-    show "L F (f) = L F (g)" unfolding L_def
-      by (subst eventually_subst'[OF A]) (rule refl)
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume A: "eventually (\<lambda>x. f x = g x) F"
-    show "f \<in> L F (h) \<longleftrightarrow> g \<in> L F (h)" unfolding L_def mem_Collect_eq
-      by (subst (1) eventually_subst'[OF A]) (rule refl)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume "f \<in> L F g" thus "L F f \<subseteq> L F g" by (rule big_subsetI)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> \<Theta>[F](g)"
-    with A L show "L F (f) = L F (g)" unfolding bigtheta_def
-      by (intro equalityI big_subsetI) (auto simp: bigomega_iff_bigo)
-    fix h:: "'a \<Rightarrow> 'b"
-    show "f \<in> L F (h) \<longleftrightarrow> g \<in> L F (h)" by (rule disjE[OF L]) 
-      (insert A, auto simp: bigtheta_def bigomega_iff_bigo intro: landau_o.big_trans)
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume "f \<in> L F g"
-    thus "(\<lambda>x. h x * f x) \<in> L F (\<lambda>x. h x * g x)" by (intro big_mult) simp
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume "f \<in> L F g" "g \<in> L F h"
-    thus "f \<in> L F (h)" by (rule big_trans)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G
-    assume "f \<in> L F g" and "filterlim h F G"
-    thus "(\<lambda>x. f (h x)) \<in> L' G (\<lambda>x. g (h x))" by (auto simp: L_def L'_def filterlim_iff)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F G :: "'a filter"
-    assume "f \<in> L F g" "f \<in> L G g"
-    from this [THEN bigE] guess c1 c2 . note c12 = this
+    have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)"
+      by (simp_all add: field_simps)
+    then show ?thesis by (intro iffI) (erule (1) big_trans)+
+  qed
+  show "(\<lambda>x. inverse (g x)) \<in> L F (\<lambda>x. inverse (f x))"
+    if *: "f \<in> L F (g)" and **: "eventually (\<lambda>x. f x \<noteq> 0) F" "eventually (\<lambda>x. g x \<noteq> 0) F"
+    for f g :: "'a \<Rightarrow> 'b" and F
+  proof -
+    from * obtain c where c: "c > 0" and ***: "\<forall>\<^sub>F x in F. R (norm (f x)) (c * norm (g x))"
+      by (elim bigE)
+    from ** *** have "eventually (\<lambda>x. R (norm (inverse (g x))) (c * norm (inverse (f x)))) F"
+      by eventually_elim (rule R_E, simp_all add: field_simps norm_inverse norm_divide c)
+    with c show ?thesis by (rule bigI)
+  qed
+  show "L F g \<subseteq> L F (\<lambda>x. f x + g x)" if "f \<in> o[F](g)" for f g :: "'a \<Rightarrow> 'b" and F
+    using plus_aux that by (blast intro!: big_subsetI)
+  show "L F (f) = L F (g)" if "eventually (\<lambda>x. f x = g x) F" for f g :: "'a \<Rightarrow> 'b" and F
+    unfolding L_def by (subst eventually_subst'[OF that]) (rule refl)
+  show "f \<in> L F (h) \<longleftrightarrow> g \<in> L F (h)" if "eventually (\<lambda>x. f x = g x) F"
+    for f g h :: "'a \<Rightarrow> 'b" and F
+    unfolding L_def mem_Collect_eq
+    by (subst (1) eventually_subst'[OF that]) (rule refl)
+  show "L F f \<subseteq> L F g" if "f \<in> L F g" for f g :: "'a \<Rightarrow> 'b" and F
+    using that by (rule big_subsetI)
+  show "L F (f) = L F (g)" if "f \<in> \<Theta>[F](g)" for f g :: "'a \<Rightarrow> 'b" and F
+    using L that unfolding bigtheta_def
+    by (intro equalityI big_subsetI) (auto simp: bigomega_iff_bigo)
+  show "f \<in> L F (h) \<longleftrightarrow> g \<in> L F (h)" if "f \<in> \<Theta>[F](g)" for f g h :: "'a \<Rightarrow> 'b" and F
+    by (rule disjE[OF L])
+      (use that in \<open>auto simp: bigtheta_def bigomega_iff_bigo intro: landau_o.big_trans\<close>)
+  show "(\<lambda>x. h x * f x) \<in> L F (\<lambda>x. h x * g x)" if "f \<in> L F g" for f g h :: "'a \<Rightarrow> 'b" and F
+    using that by (intro big_mult) simp
+  show "f \<in> L F (h)" if "f \<in> L F g" "g \<in> L F h" for f g h :: "'a \<Rightarrow> 'b" and F
+    using that by (rule big_trans)
+  show "(\<lambda>x. f (h x)) \<in> L' G (\<lambda>x. g (h x))"
+    if "f \<in> L F g" and "filterlim h F G"
+    for f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G
+    using that by (auto simp: L_def L'_def filterlim_iff)
+  show "f \<in> L (sup F G) g" if "f \<in> L F g" "f \<in> L G g"
+    for f g :: "'a \<Rightarrow> 'b" and F G :: "'a filter"
+  proof -
+    from that [THEN bigE] obtain c1 c2
+      where *: "c1 > 0" "c2 > 0"
+        and **: "\<forall>\<^sub>F x in F. R (norm (f x)) (c1 * norm (g x))"
+                "\<forall>\<^sub>F x in G. R (norm (f x)) (c2 * norm (g x))" .
     define c where "c = (if R c1 c2 then c2 else c1)"
-    from c12 have c: "R c1 c" "R c2 c" "c > 0" by (auto simp: c_def dest: R_linear)
-    with c12(2,4) have "eventually (\<lambda>x. R (norm (f x)) (c * norm (g x))) F"
-                     "eventually (\<lambda>x. R (norm (f x)) (c * norm (g x))) G"
+    from * have c: "R c1 c" "R c2 c" "c > 0"
+      by (auto simp: c_def dest: R_linear)
+    with ** have "eventually (\<lambda>x. R (norm (f x)) (c * norm (g x))) F"
+                 "eventually (\<lambda>x. R (norm (f x)) (c * norm (g x))) G"
       by (force elim: eventually_mono intro: R_trans[OF _ R_mult_right_mono])+
-    with c show "f \<in> L (sup F G) g" by (auto simp: L_def eventually_sup)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G :: "'a filter"
-    assume "(f \<in> L F g)"
-    thus "((\<lambda>x. f (h x)) \<in> L' (filtercomap h F) (\<lambda>x. g (h x)))"
-      unfolding L_def L'_def by auto
-  }
+    with c show "f \<in> L (sup F G) g"
+      by (auto simp: L_def eventually_sup)
+  qed
+  show "((\<lambda>x. f (h x)) \<in> L' (filtercomap h F) (\<lambda>x. g (h x)))" if "(f \<in> L F g)"
+    for f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G :: "'a filter"
+    using that unfolding L_def L'_def by auto
 qed (auto simp: L_def Lr_def eventually_filtermap L'_def
           intro: filter_leD exI[of _ "1::real"])
 
 sublocale small: landau_symbol l l' lr
 proof
-  {
-    fix c :: 'b and f :: "'a \<Rightarrow> 'b" and F assume "c \<noteq> 0"
-    hence "(\<lambda>x. c * f x) \<in> L F f" by (intro bigI[of "norm c"]) (simp_all add: norm_mult)
-  } note A = this
-  {
-    fix c :: 'b and f :: "'a \<Rightarrow> 'b" and F assume "c \<noteq> 0"
-    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
-      show "l F (\<lambda>x. c * f x) = l F f" 
-        by (intro equalityI small_subsetI) (simp_all add: field_simps)
-  }
-  {
-    fix c :: 'b and f g :: "'a \<Rightarrow> 'b" and F assume "c \<noteq> 0"
-    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
-      have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)" by (simp_all add: field_simps)
-    thus "((\<lambda>x. c * f x) \<in> l F g) = (f \<in> l F g)" by (intro iffI) (erule (1) big_small_trans)+
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume "f \<in> o[F](g)"
-    with plus_aux show "l F g \<subseteq> l F (\<lambda>x. f x + g x)" by (blast intro!: small_subsetI) 
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> l F (g)"
-    assume B: "eventually (\<lambda>x. f x \<noteq> 0) F" "eventually (\<lambda>x. g x \<noteq> 0) F"
-    show "(\<lambda>x. inverse (g x)) \<in> l F (\<lambda>x. inverse (f x))"
-    proof (rule smallI)
-      fix c :: real assume c: "c > 0"
-      from B smallD[OF A c] 
-        show "eventually (\<lambda>x. R (norm (inverse (g x))) (c * norm (inverse (f x)))) F"
-        by eventually_elim (rule R_E, simp_all add: field_simps norm_inverse norm_divide)
-    qed
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "eventually (\<lambda>x. f x = g x) F"
-    show "l F (f) = l F (g)" unfolding l_def by (subst eventually_subst'[OF A]) (rule refl)
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume A: "eventually (\<lambda>x. f x = g x) F"
-    show "f \<in> l F (h) \<longleftrightarrow> g \<in> l F (h)" unfolding l_def mem_Collect_eq
-      by (subst (1) eventually_subst'[OF A]) (rule refl)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume "f \<in> l F g" 
-    thus "l F f \<subseteq> l F g" by (intro small_subsetI small_imp_big)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> \<Theta>[F](g)"
+  have A: "(\<lambda>x. c * f x) \<in> L F f" if "c \<noteq> 0" for c :: 'b and f :: "'a \<Rightarrow> 'b" and F
+    using that by (intro bigI[of "norm c"]) (simp_all add: norm_mult)
+  show "l F (\<lambda>x. c * f x) = l F f" if "c \<noteq> 0" for c :: 'b and f :: "'a \<Rightarrow> 'b" and F
+    using that and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
+    by (intro equalityI small_subsetI) (simp_all add: field_simps)
+  show "((\<lambda>x. c * f x) \<in> l F g) = (f \<in> l F g)" if "c \<noteq> 0" for c :: 'b and f g :: "'a \<Rightarrow> 'b" and F
+  proof -
+    from that and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
+    have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)"
+      by (simp_all add: field_simps)
+    then show ?thesis
+      by (intro iffI) (erule (1) big_small_trans)+
+  qed
+  show "l F g \<subseteq> l F (\<lambda>x. f x + g x)" if "f \<in> o[F](g)" for f g :: "'a \<Rightarrow> 'b" and F
+    using plus_aux that by (blast intro!: small_subsetI)
+  show "(\<lambda>x. inverse (g x)) \<in> l F (\<lambda>x. inverse (f x))"
+    if A: "f \<in> l F (g)" and B: "eventually (\<lambda>x. f x \<noteq> 0) F" "eventually (\<lambda>x. g x \<noteq> 0) F"
+    for f g :: "'a \<Rightarrow> 'b" and F
+  proof (rule smallI)
+    fix c :: real assume c: "c > 0"
+    from B smallD[OF A c]
+    show "eventually (\<lambda>x. R (norm (inverse (g x))) (c * norm (inverse (f x)))) F"
+      by eventually_elim (rule R_E, simp_all add: field_simps norm_inverse norm_divide)
+  qed
+  show "l F (f) = l F (g)" if "eventually (\<lambda>x. f x = g x) F" for f g :: "'a \<Rightarrow> 'b" and F
+    unfolding l_def by (subst eventually_subst'[OF that]) (rule refl)
+  show "f \<in> l F (h) \<longleftrightarrow> g \<in> l F (h)" if "eventually (\<lambda>x. f x = g x) F" for f g h :: "'a \<Rightarrow> 'b" and F
+    unfolding l_def mem_Collect_eq by (subst (1) eventually_subst'[OF that]) (rule refl)
+  show "l F f \<subseteq> l F g" if "f \<in> l F g" for f g :: "'a \<Rightarrow> 'b" and F
+    using that by (intro small_subsetI small_imp_big)
+  show "l F (f) = l F (g)" if "f \<in> \<Theta>[F](g)" for f g :: "'a \<Rightarrow> 'b" and F
+  proof -
     have L: "L = bigo \<or> L = bigomega"
       by (rule R_E) (auto simp: bigo_def L_def bigomega_def fun_eq_iff)
-    with A show "l F (f) = l F (g)" unfolding bigtheta_def
+    with that show ?thesis unfolding bigtheta_def
       by (intro equalityI small_subsetI) (auto simp: bigomega_iff_bigo)
+  qed
+  show "f \<in> l F (h) \<longleftrightarrow> g \<in> l F (h)" if "f \<in> \<Theta>[F](g)" for f g h :: "'a \<Rightarrow> 'b" and F
+  proof -
     have l: "l = smallo \<or> l = smallomega"
       by (rule R_E) (auto simp: smallo_def l_def smallomega_def fun_eq_iff)
-    fix h:: "'a \<Rightarrow> 'b"
-    show "f \<in> l F (h) \<longleftrightarrow> g \<in> l F (h)" by (rule disjE[OF l]) 
-      (insert A, auto simp: bigtheta_def bigomega_iff_bigo smallomega_iff_smallo 
-       intro: landau_o.big_small_trans landau_o.small_big_trans)
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume "f \<in> l F g"
-    thus "(\<lambda>x. h x * f x) \<in> l F (\<lambda>x. h x * g x)" by (intro big_small_mult) simp
-  }
-  {
-    fix f g h :: "'a \<Rightarrow> 'b" and F assume "f \<in> l F g" "g \<in> l F h"
-    thus "f \<in> l F (h)" by (rule small_trans)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G
-    assume "f \<in> l F g" and "filterlim h F G"
-    thus "(\<lambda>x. f (h x)) \<in> l' G (\<lambda>x. g (h x))"
-      by (auto simp: l_def l'_def filterlim_iff)
-  }
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G :: "'a filter"
-    assume "(f \<in> l F g)"
-    thus "((\<lambda>x. f (h x)) \<in> l' (filtercomap h F) (\<lambda>x. g (h x)))"
-      unfolding l_def l'_def by auto
-  }
+    show ?thesis
+      by (rule disjE[OF l])
+        (use that in \<open>auto simp: bigtheta_def bigomega_iff_bigo smallomega_iff_smallo
+          intro: landau_o.big_small_trans landau_o.small_big_trans\<close>)
+  qed
+  show "(\<lambda>x. h x * f x) \<in> l F (\<lambda>x. h x * g x)" if "f \<in> l F g" for f g h :: "'a \<Rightarrow> 'b" and F
+    using that by (intro big_small_mult) simp
+  show "f \<in> l F (h)" if "f \<in> l F g" "g \<in> l F h" for f g h :: "'a \<Rightarrow> 'b" and F
+    using that by (rule small_trans)
+  show "(\<lambda>x. f (h x)) \<in> l' G (\<lambda>x. g (h x))" if "f \<in> l F g" and "filterlim h F G"
+    for f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G
+    using that by (auto simp: l_def l'_def filterlim_iff)
+  show "((\<lambda>x. f (h x)) \<in> l' (filtercomap h F) (\<lambda>x. g (h x)))" if "f \<in> l F g"
+    for f g :: "'a \<Rightarrow> 'b" and h :: "'c \<Rightarrow> 'a" and F G :: "'a filter"
+    using that unfolding l_def l'_def by auto
 qed (auto simp: l_def lr_def eventually_filtermap l'_def eventually_sup intro: filter_leD)
 
 
@@ -781,7 +761,7 @@ lemma big_1_mult:    "f \<in> L F (g) \<Longrightarrow> h \<in> L F (\<lambda>_.
   and small_1_mult''': "h \<in> l F (\<lambda>_. 1) \<Longrightarrow> f \<in> L F (g) \<Longrightarrow> (\<lambda>x. f x * h x) \<in> l F (g)"
   by (drule (1) big.mult big_small_mult small_big_mult, simp)+
 
-lemmas mult_1_trans = 
+lemmas mult_1_trans =
   big_mult_1 big_mult_1' small_mult_1 small_mult_1' small_mult_1'' small_mult_1'''
   big_1_mult big_1_mult' small_1_mult small_1_mult' small_1_mult'' small_1_mult'''
 
@@ -809,7 +789,7 @@ end
 
 context landau_symbol
 begin
-  
+
 lemma plus_absorb1:
   assumes "f \<in> o[F](g)"
   shows   "L F (\<lambda>x. f x + g x) = L F (g)"
@@ -837,7 +817,7 @@ end
 lemma bigthetaI [intro]: "f \<in> O[F](g) \<Longrightarrow> f \<in> \<Omega>[F](g) \<Longrightarrow> f \<in> \<Theta>[F](g)"
   unfolding bigtheta_def bigomega_def by blast
 
-lemma bigthetaD1 [dest]: "f \<in> \<Theta>[F](g) \<Longrightarrow> f \<in> O[F](g)" 
+lemma bigthetaD1 [dest]: "f \<in> \<Theta>[F](g) \<Longrightarrow> f \<in> O[F](g)"
   and bigthetaD2 [dest]: "f \<in> \<Theta>[F](g) \<Longrightarrow> f \<in> \<Omega>[F](g)"
   unfolding bigtheta_def bigo_def bigomega_def by blast+
 
@@ -860,9 +840,9 @@ proof
     by (rule landau_o.big.plus_subset1 landau_omega.big.plus_subset1)+
   thus "\<Theta>[F](g) \<subseteq> \<Theta>[F](\<lambda>x. f x + g x)" unfolding bigtheta_def by blast
 next
-  fix f g :: "'a \<Rightarrow> 'b" and F 
+  fix f g :: "'a \<Rightarrow> 'b" and F
   assume "f \<in> \<Theta>[F](g)"
-  thus A: "\<Theta>[F](f) = \<Theta>[F](g)" 
+  thus A: "\<Theta>[F](f) = \<Theta>[F](g)"
     apply (subst (1 2) bigtheta_def)
     apply (subst landau_o.big.cong_bigtheta landau_omega.big.cong_bigtheta, assumption)+
     apply (rule refl)
@@ -880,12 +860,12 @@ next
   assume "F1 \<le> F2"
   thus "\<Theta>[F2](f) \<subseteq> \<Theta>[F1](f)"
     by (auto simp: bigtheta_def intro: landau_o.big.filter_mono landau_omega.big.filter_mono)
-qed (auto simp: bigtheta_def landau_o.big.norm_iff 
-                landau_o.big.cmult landau_omega.big.cmult 
-                landau_o.big.cmult_in_iff landau_omega.big.cmult_in_iff 
+qed (auto simp: bigtheta_def landau_o.big.norm_iff
+                landau_o.big.cmult landau_omega.big.cmult
+                landau_o.big.cmult_in_iff landau_omega.big.cmult_in_iff
                 landau_o.big.in_cong landau_omega.big.in_cong
                 landau_o.big.mult landau_omega.big.mult
-                landau_o.big.inverse landau_omega.big.inverse 
+                landau_o.big.inverse landau_omega.big.inverse
                 landau_o.big.compose landau_omega.big.compose
                 landau_o.big.bot' landau_omega.big.bot'
                 landau_o.big.in_filtermap_iff landau_omega.big.in_filtermap_iff
@@ -893,9 +873,9 @@ qed (auto simp: bigtheta_def landau_o.big.norm_iff
                 landau_o.big.filtercomap landau_omega.big.filtercomap
           dest: landau_o.big.cong landau_omega.big.cong)
 
-lemmas landau_symbols = 
+lemmas landau_symbols =
   landau_o.big.landau_symbol_axioms landau_o.small.landau_symbol_axioms
-  landau_omega.big.landau_symbol_axioms landau_omega.small.landau_symbol_axioms 
+  landau_omega.big.landau_symbol_axioms landau_omega.small.landau_symbol_axioms
   landau_theta.landau_symbol_axioms
 
 lemma bigoI [intro]:
@@ -903,9 +883,9 @@ lemma bigoI [intro]:
   shows   "f \<in> O[F](g)"
 proof (rule landau_o.bigI)
   show "max 1 c > 0" by simp
-  note assms
-  moreover have "\<And>x. c * (norm (g x)) \<le> max 1 c * (norm (g x))" by (simp add: mult_right_mono)
-  ultimately show "eventually (\<lambda>x. (norm (f x)) \<le> max 1 c * (norm (g x))) F"
+  have "c * (norm (g x)) \<le> max 1 c * (norm (g x))" for x
+    by (simp add: mult_right_mono)
+  with assms show "eventually (\<lambda>x. (norm (f x)) \<le> max 1 c * (norm (g x))) F"
     by (auto elim!: eventually_mono dest: order.trans)
 qed
 
@@ -914,12 +894,12 @@ lemma smallomegaD [dest]:
   shows   "eventually (\<lambda>x. (norm (f x)) \<ge> c * (norm (g x))) F"
 proof (cases "c > 0")
   case False
-  show ?thesis 
+  show ?thesis
     by (intro always_eventually allI, rule order.trans[of _ 0])
        (insert False, auto intro!: mult_nonpos_nonneg)
 qed (blast dest: landau_omega.smallD[OF assms, of c])
 
-  
+
 lemma bigthetaI':
   assumes "c1 > 0" "c2 > 0"
   assumes "eventually (\<lambda>x. c1 * (norm (g x)) \<le> (norm (f x)) \<and> (norm (f x)) \<le> c2 * (norm (g x))) F"
@@ -932,11 +912,11 @@ done
 lemma bigthetaI_cong: "eventually (\<lambda>x. f x = g x) F \<Longrightarrow> f \<in> \<Theta>[F](g)"
   by (intro bigthetaI'[of 1 1]) (auto elim!: eventually_mono)
 
-lemma (in landau_symbol) ev_eq_trans1: 
+lemma (in landau_symbol) ev_eq_trans1:
   "f \<in> L F (\<lambda>x. g x (h x)) \<Longrightarrow> eventually (\<lambda>x. h x = h' x) F \<Longrightarrow> f \<in> L F (\<lambda>x. g x (h' x))"
   by (rule bigtheta_trans1[OF _ bigthetaI_cong]) (auto elim!: eventually_mono)
 
-lemma (in landau_symbol) ev_eq_trans2: 
+lemma (in landau_symbol) ev_eq_trans2:
   "eventually (\<lambda>x. f x = f' x) F \<Longrightarrow> (\<lambda>x. g x (f' x)) \<in> L F (h) \<Longrightarrow> (\<lambda>x. g x (f x)) \<in> L F (h)"
   by (rule bigtheta_trans2[OF bigthetaI_cong]) (auto elim!: eventually_mono)
 
@@ -944,11 +924,11 @@ declare landau_o.smallI landau_omega.bigI landau_omega.smallI [intro]
 declare landau_o.bigE landau_omega.bigE [elim]
 declare landau_o.smallD
 
-lemma (in landau_symbol) bigtheta_trans1': 
+lemma (in landau_symbol) bigtheta_trans1':
   "f \<in> L F (g) \<Longrightarrow> h \<in> \<Theta>[F](g) \<Longrightarrow> f \<in> L F (h)"
   by (subst cong_bigtheta[symmetric]) (simp add: bigtheta_sym)
 
-lemma (in landau_symbol) bigtheta_trans2': 
+lemma (in landau_symbol) bigtheta_trans2':
   "g \<in> \<Theta>[F](f) \<Longrightarrow> g \<in> L F (h) \<Longrightarrow> f \<in> L F (h)"
   by (rule bigtheta_trans2, subst bigtheta_sym)
 
@@ -961,7 +941,7 @@ lemma bigo_bigomega_trans:      "f \<in> O[F](g) \<Longrightarrow> h \<in> \<Ome
   and smallomega_bigo_trans:    "f \<in> \<omega>[F](g) \<Longrightarrow> h \<in> O[F](g) \<Longrightarrow> f \<in> \<omega>[F](h)"
   and smallomega_smallo_trans:  "f \<in> \<omega>[F](g) \<Longrightarrow> h \<in> o[F](g) \<Longrightarrow> f \<in> \<omega>[F](h)"
   by (unfold bigomega_iff_bigo smallomega_iff_smallo)
-     (erule (1) landau_o.big_trans landau_o.big_small_trans landau_o.small_big_trans 
+     (erule (1) landau_o.big_trans landau_o.big_small_trans landau_o.small_big_trans
                 landau_o.big_trans landau_o.small_trans)+
 
 lemmas landau_trans_lift [trans] =
@@ -973,7 +953,7 @@ lemmas landau_trans_lift [trans] =
 lemmas landau_mult_1_trans [trans] =
   landau_o.mult_1_trans landau_omega.mult_1_trans
 
-lemmas landau_trans [trans] = 
+lemmas landau_trans [trans] =
   landau_symbols[THEN landau_symbol.bigtheta_trans1]
   landau_symbols[THEN landau_symbol.bigtheta_trans2]
   landau_symbols[THEN landau_symbol.bigtheta_trans1']
@@ -982,31 +962,36 @@ lemmas landau_trans [trans] =
   landau_symbols[THEN landau_symbol.ev_eq_trans2]
 
   landau_o.big_trans landau_o.small_trans landau_o.small_big_trans landau_o.big_small_trans
-  landau_omega.big_trans landau_omega.small_trans 
+  landau_omega.big_trans landau_omega.small_trans
     landau_omega.small_big_trans landau_omega.big_small_trans
 
-  bigo_bigomega_trans bigo_smallomega_trans smallo_bigomega_trans smallo_smallomega_trans 
+  bigo_bigomega_trans bigo_smallomega_trans smallo_bigomega_trans smallo_smallomega_trans
   bigomega_bigo_trans bigomega_smallo_trans smallomega_bigo_trans smallomega_smallo_trans
 
-lemma bigtheta_inverse [simp]: 
+lemma bigtheta_inverse [simp]:
   shows "(\<lambda>x. inverse (f x)) \<in> \<Theta>[F](\<lambda>x. inverse (g x)) \<longleftrightarrow> f \<in> \<Theta>[F](g)"
-proof-
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> \<Theta>[F](g)"
-    then guess c1 c2 :: real unfolding bigtheta_def by (elim landau_o.bigE landau_omega.bigE IntE)
-    note c = this
-    from c(3) have "inverse c2 > 0" by simp
-    moreover from c(2,4)
-      have "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse c2 * norm (inverse (g x))) F"
+proof -
+  have "(\<lambda>x. inverse (f x)) \<in> O[F](\<lambda>x. inverse (g x))"
+    if A: "f \<in> \<Theta>[F](g)"
+    for f g :: "'a \<Rightarrow> 'b" and F
+  proof -
+    from A obtain c1 c2 :: real where *: "c1 > 0" "c2 > 0"
+      and **: "\<forall>\<^sub>F x in F. norm (f x) \<le> c1 * norm (g x)"
+              "\<forall>\<^sub>F x in F. c2 * norm (g x) \<le> norm (f x)"
+      unfolding bigtheta_def by (elim landau_o.bigE landau_omega.bigE IntE)
+    from \<open>c2 > 0\<close> have c2: "inverse c2 > 0" by simp
+    from ** have "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse c2 * norm (inverse (g x))) F"
     proof eventually_elim
-      fix x assume A: "(norm (f x)) \<le> c1 * (norm (g x))" "c2 * (norm (g x)) \<le> (norm (f x))"
-      from A c(1,3) have "f x = 0 \<longleftrightarrow> g x = 0" by (auto simp: field_simps mult_le_0_iff)
-      with A c(1,3) show "norm (inverse (f x)) \<le> inverse c2 * norm (inverse (g x))"
+      fix x assume A: "norm (f x) \<le> c1 * norm (g x)" "c2 * norm (g x) \<le> norm (f x)"
+      from A * have "f x = 0 \<longleftrightarrow> g x = 0"
+        by (auto simp: field_simps mult_le_0_iff)
+      with A * show "norm (inverse (f x)) \<le> inverse c2 * norm (inverse (g x))"
         by (force simp: field_simps norm_inverse norm_divide)
     qed
-    ultimately have "(\<lambda>x. inverse (f x)) \<in> O[F](\<lambda>x. inverse (g x))" by (rule landau_o.bigI)
-  }
-  thus ?thesis unfolding bigtheta_def 
+    with c2 show ?thesis by (rule landau_o.bigI)
+  qed
+  then show ?thesis
+    unfolding bigtheta_def
     by (force simp: bigomega_iff_bigo bigtheta_sym)
 qed
 
@@ -1018,12 +1003,17 @@ lemma bigtheta_divide:
 lemma eventually_nonzero_bigtheta:
   assumes "f \<in> \<Theta>[F](g)"
   shows   "eventually (\<lambda>x. f x \<noteq> 0) F \<longleftrightarrow> eventually (\<lambda>x. g x \<noteq> 0) F"
-proof-
-  {
-    fix f g :: "'a \<Rightarrow> 'b" and F assume A: "f \<in> \<Theta>[F](g)" and B: "eventually (\<lambda>x. f x \<noteq> 0) F"
-    from A guess c1 c2 unfolding bigtheta_def by (elim landau_o.bigE landau_omega.bigE IntE)
-    from B this(2,4) have "eventually (\<lambda>x. g x \<noteq> 0) F" by eventually_elim auto
-  }
+proof -
+  have "eventually (\<lambda>x. g x \<noteq> 0) F"
+    if A: "f \<in> \<Theta>[F](g)" and B: "eventually (\<lambda>x. f x \<noteq> 0) F"
+    for f g :: "'a \<Rightarrow> 'b"
+  proof -
+    from A obtain c1 c2 where
+      "\<forall>\<^sub>F x in F. norm (f x) \<le> c1 * norm (g x)"
+      "\<forall>\<^sub>F x in F. c2 * norm (g x) \<le> norm (f x)"
+      unfolding bigtheta_def by (elim landau_o.bigE landau_omega.bigE IntE)
+    with B show ?thesis by eventually_elim auto
+  qed
   with assms show ?thesis by (force simp: bigtheta_sym)
 qed
 
@@ -1036,7 +1026,7 @@ lemma bigoI_tendsto_norm:
   assumes "eventually (\<lambda>x. g x \<noteq> 0) F"
   shows   "f \<in> O[F](g)"
 proof (rule bigoI)
-  from assms have "eventually (\<lambda>x. dist (norm (f x / g x)) c < 1) F" 
+  from assms have "eventually (\<lambda>x. dist (norm (f x / g x)) c < 1) F"
     using tendstoD by force
   thus "eventually (\<lambda>x. (norm (f x)) \<le> (norm c + 1) * (norm (g x))) F"
     unfolding dist_real_def using assms(2)
@@ -1048,7 +1038,7 @@ proof (rule bigoI)
     also from elim have "\<dots> = norm (norm (g x)) * norm (norm (f x / g x) - c)"
       unfolding norm_mult [symmetric] by (simp add: algebra_simps norm_divide)
     also from elim have "norm (norm (f x / g x) - c) \<le> 1" by simp
-    hence "norm (norm (g x)) * norm (norm (f x / g x) - c) \<le> norm (norm (g x)) * 1" 
+    hence "norm (norm (g x)) * norm (norm (f x / g x) - c) \<le> norm (norm (g x)) * 1"
       by (rule mult_left_mono) simp_all
     finally show ?case by (simp add: algebra_simps)
   qed
@@ -1079,7 +1069,7 @@ proof (cases "F = bot")
       from B have g: "g x \<noteq> 0" by auto
       from B have "-c/2 < -norm (norm (f x / g x) - c)" by simp
       also have "... \<le> norm (f x / g x) - c" by simp
-      finally show "(norm (f x)) \<ge> c/2 * (norm (g x))" using g 
+      finally show "(norm (f x)) \<ge> c/2 * (norm (g x))" using g
         by (simp add: field_simps norm_mult norm_divide)
     qed
   qed
@@ -1113,18 +1103,18 @@ proof (rule smallomegaI_filterlim_at_top_norm)
   from lim show "filterlim (\<lambda>x. norm (f x / g x)) at_top F"
     by (rule filterlim_at_infinity_imp_norm_at_top)
 qed
-  
+
 lemma smallomegaD_filterlim_at_top_norm:
   assumes "f \<in> \<omega>[F](g)"
   assumes "eventually (\<lambda>x. g x \<noteq> 0) F"
   shows   "LIM x F. norm (f x / g x) :> at_top"
 proof (subst filterlim_at_top_gt, clarify)
   fix c :: real assume c: "c > 0"
-  from landau_omega.smallD[OF assms(1) this] assms(2) 
-    show "eventually (\<lambda>x. norm (f x / g x) \<ge> c) F" 
+  from landau_omega.smallD[OF assms(1) this] assms(2)
+    show "eventually (\<lambda>x. norm (f x / g x) \<ge> c) F"
     by eventually_elim (simp add: field_simps norm_divide)
 qed
-  
+
 lemma smallomegaD_filterlim_at_infinity:
   assumes "f \<in> \<omega>[F](g)"
   assumes "eventually (\<lambda>x. g x \<noteq> 0) F"
@@ -1188,7 +1178,7 @@ lemma tendsto_add_smallo:
   assumes "f2 \<in> o[F](f1)"
   shows   "((\<lambda>x. f1 x + f2 x) \<longlongrightarrow> a) F"
 proof (subst filterlim_cong[OF refl refl])
-  from landau_o.smallD[OF assms(2) zero_less_one] 
+  from landau_o.smallD[OF assms(2) zero_less_one]
     have "eventually (\<lambda>x. norm (f2 x) \<le> norm (f1 x)) F" by simp
   thus "eventually (\<lambda>x. f1 x + f2 x = f1 x * (1 + f2 x / f1 x)) F"
     by eventually_elim (auto simp: field_simps)
@@ -1224,7 +1214,7 @@ proof (subst tendsto_cong)
   let ?f' = "\<lambda>x. (f1 x / g1 x) * (1 + f2 x / f1 x) / (1 + g2 x / g1 x)"
 
   have "(?f' \<longlongrightarrow> a * (1 + 0) / (1 + 0)) F"
-  by (rule tendsto_mult tendsto_divide tendsto_add assms tendsto_const 
+  by (rule tendsto_mult tendsto_divide tendsto_add assms tendsto_const
         smalloD_tendsto[OF assms(2)] smalloD_tendsto[OF assms(3)])+ simp_all
   thus "(?f' \<longlongrightarrow> a) F" by simp
 
@@ -1234,7 +1224,7 @@ proof (subst tendsto_cong)
          "eventually (\<lambda>x. norm (g2 x) \<le> norm (g1 x)/2) F" by simp_all
   with assms(4) show "eventually (\<lambda>x. ?f x = ?f' x) F"
   proof eventually_elim
-    fix x assume A: "norm (f2 x) \<le> norm (f1 x)/2" and 
+    fix x assume A: "norm (f2 x) \<le> norm (f1 x)/2" and
                  B: "norm (g2 x) \<le> norm (g1 x)/2" and C: "g1 x \<noteq> 0"
     show "?f x = ?f' x"
     proof (cases "f1 x = 0")
@@ -1254,11 +1244,11 @@ lemma bigo_powr:
   assumes "f \<in> O[F](g)" "p \<ge> 0"
   shows   "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> O[F](\<lambda>x. \<bar>g x\<bar> powr p)"
 proof-
-  from assms(1) guess c by (elim landau_o.bigE landau_omega.bigE IntE)
-  note c = this
-  from c(2) assms(2) have "eventually (\<lambda>x. (norm (f x)) powr p \<le> (c * (norm (g x))) powr p) F"
+  from assms(1) obtain c where c: "c > 0" and *: "\<forall>\<^sub>F x in F. norm (f x) \<le> c * norm (g x)"
+    by (elim landau_o.bigE landau_omega.bigE IntE)
+  from assms(2) * have "eventually (\<lambda>x. (norm (f x)) powr p \<le> (c * norm (g x)) powr p) F"
     by (auto elim!: eventually_mono intro!: powr_mono2)
-  thus "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> O[F](\<lambda>x. \<bar>g x\<bar> powr p)" using c(1)
+  with c show "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> O[F](\<lambda>x. \<bar>g x\<bar> powr p)"
     by (intro bigoI[of _ "c powr p"]) (simp_all add: powr_mult)
 qed
 
@@ -1269,7 +1259,7 @@ lemma smallo_powr:
 proof (rule landau_o.smallI)
   fix c :: real assume c: "c > 0"
   hence "c powr (1/p) > 0" by simp
-  from landau_o.smallD[OF assms(1) this] 
+  from landau_o.smallD[OF assms(1) this]
   show "eventually (\<lambda>x. norm (\<bar>f x\<bar> powr p) \<le> c * norm (\<bar>g x\<bar> powr p)) F"
   proof eventually_elim
     fix x assume "(norm (f x)) \<le> c powr (1 / p) * (norm (g x))"
@@ -1286,7 +1276,7 @@ lemma smallo_powr_nonneg:
   assumes "f \<in> o[F](g)" "p > 0" "eventually (\<lambda>x. f x \<ge> 0) F" "eventually (\<lambda>x. g x \<ge> 0) F"
   shows   "(\<lambda>x. f x powr p) \<in> o[F](\<lambda>x. g x powr p)"
 proof -
-  from assms(3) have "(\<lambda>x. f x powr p) \<in> \<Theta>[F](\<lambda>x. \<bar>f x\<bar> powr p)" 
+  from assms(3) have "(\<lambda>x. f x powr p) \<in> \<Theta>[F](\<lambda>x. \<bar>f x\<bar> powr p)"
     by (intro bigthetaI_cong) (auto elim!: eventually_mono)
   also have "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> o[F](\<lambda>x. \<bar>g x\<bar> powr p)" by (intro smallo_powr) fact+
   also from assms(4) have "(\<lambda>x. \<bar>g x\<bar> powr p) \<in> \<Theta>[F](\<lambda>x. g x powr p)"
@@ -1307,7 +1297,7 @@ lemma bigo_powr_nonneg:
   assumes "f \<in> O[F](g)" "p \<ge> 0" "eventually (\<lambda>x. f x \<ge> 0) F" "eventually (\<lambda>x. g x \<ge> 0) F"
   shows   "(\<lambda>x. f x powr p) \<in> O[F](\<lambda>x. g x powr p)"
 proof -
-  from assms(3) have "(\<lambda>x. f x powr p) \<in> \<Theta>[F](\<lambda>x. \<bar>f x\<bar> powr p)" 
+  from assms(3) have "(\<lambda>x. f x powr p) \<in> \<Theta>[F](\<lambda>x. \<bar>f x\<bar> powr p)"
     by (intro bigthetaI_cong) (auto elim!: eventually_mono)
   also have "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> O[F](\<lambda>x. \<bar>g x\<bar> powr p)" by (intro bigo_powr) fact+
   also from assms(4) have "(\<lambda>x. \<bar>g x\<bar> powr p) \<in> \<Theta>[F](\<lambda>x. g x powr p)"
@@ -1375,7 +1365,7 @@ lemma bigo_const_iff [simp]: "(\<lambda>_. c1) \<in> O[F](\<lambda>_. c2) \<long
 
 lemma bigomega_const_iff [simp]: "(\<lambda>_. c1) \<in> \<Omega>[F](\<lambda>_. c2) \<longleftrightarrow> F = bot \<or> c1 \<noteq> 0 \<or> c2 = 0"
   by (cases "c1 = 0"; cases "c2 = 0")
-     (auto simp: bigomega_def eventually_False mult_le_0_iff 
+     (auto simp: bigomega_def eventually_False mult_le_0_iff
            intro: exI[of _ 1] exI[of _ "norm c1 / norm c2"])
 
 lemma smallo_real_nat_transfer:
@@ -1398,8 +1388,8 @@ lemma bigtheta_real_nat_transfer:
   "(f :: real \<Rightarrow> real) \<in> \<Theta>(g) \<Longrightarrow> (\<lambda>x::nat. f (real x)) \<in> \<Theta>(\<lambda>x. g (real x))"
   unfolding bigtheta_def using bigo_real_nat_transfer bigomega_real_nat_transfer by blast
 
-lemmas landau_real_nat_transfer [intro] = 
-  bigo_real_nat_transfer smallo_real_nat_transfer bigomega_real_nat_transfer 
+lemmas landau_real_nat_transfer [intro] =
+  bigo_real_nat_transfer smallo_real_nat_transfer bigomega_real_nat_transfer
   smallomega_real_nat_transfer bigtheta_real_nat_transfer
 
 
@@ -1417,18 +1407,15 @@ lemmas landau_symbols_if_at_top_eq [simp] = landau_symbols[THEN landau_symbol_if
 lemma sum_in_smallo:
   assumes "f \<in> o[F](h)" "g \<in> o[F](h)"
   shows   "(\<lambda>x. f x + g x) \<in> o[F](h)" "(\<lambda>x. f x - g x) \<in> o[F](h)"
-proof-
-  {
-    fix f g assume fg: "f \<in> o[F](h)" "g \<in> o[F](h)"
-    have "(\<lambda>x. f x + g x) \<in> o[F](h)"
-    proof (rule landau_o.smallI)
-      fix c :: real assume "c > 0"
-      hence "c/2 > 0" by simp
-      from fg[THEN landau_o.smallD[OF _ this]]
-      show "eventually (\<lambda>x. norm (f x + g x) \<le> c * (norm (h x))) F"
-        by eventually_elim (auto intro: order.trans[OF norm_triangle_ineq])
-    qed
-  }
+proof -
+  have "(\<lambda>x. f x + g x) \<in> o[F](h)" if "f \<in> o[F](h)" "g \<in> o[F](h)" for f g
+  proof (rule landau_o.smallI)
+    fix c :: real assume "c > 0"
+    hence "c/2 > 0" by simp
+    from that[THEN landau_o.smallD[OF _ this]]
+    show "eventually (\<lambda>x. norm (f x + g x) \<le> c * (norm (h x))) F"
+      by eventually_elim (auto intro: order.trans[OF norm_triangle_ineq])
+  qed
   from this[of f g] this[of f "\<lambda>x. -g x"] assms
     show "(\<lambda>x. f x + g x) \<in> o[F](h)" "(\<lambda>x. f x - g x) \<in> o[F](h)" by simp_all
 qed
@@ -1441,17 +1428,19 @@ lemma big_sum_in_smallo:
 lemma sum_in_bigo:
   assumes "f \<in> O[F](h)" "g \<in> O[F](h)"
   shows   "(\<lambda>x. f x + g x) \<in> O[F](h)" "(\<lambda>x. f x - g x) \<in> O[F](h)"
-proof-
-  {
-    fix f g assume fg: "f \<in> O[F](h)" "g \<in> O[F](h)"
-    from fg(1) guess c1 by (elim landau_o.bigE) note c1 = this
-    from fg(2) guess c2 by (elim landau_o.bigE) note c2 = this
-    from c1(2) c2(2) have "eventually (\<lambda>x. norm (f x + g x) \<le> (c1 + c2) * (norm (h x))) F"
+proof -
+  have "(\<lambda>x. f x + g x) \<in> O[F](h)" if "f \<in> O[F](h)" "g \<in> O[F](h)" for f g
+  proof -
+    from that obtain c1 c2 where *: "c1 > 0" "c2 > 0"
+      and **: "\<forall>\<^sub>F x in F. norm (f x) \<le> c1 * norm (h x)"
+              "\<forall>\<^sub>F x in F. norm (g x) \<le> c2 * norm (h x)"
+      by (elim landau_o.bigE)
+    from ** have "eventually (\<lambda>x. norm (f x + g x) \<le> (c1 + c2) * (norm (h x))) F"
       by eventually_elim (auto simp: algebra_simps intro: order.trans[OF norm_triangle_ineq])
-    hence "(\<lambda>x. f x + g x) \<in> O[F](h)" by (rule bigoI)
-  }
-  from this[of f g] this[of f "\<lambda>x. -g x"] assms
-    show "(\<lambda>x. f x + g x) \<in> O[F](h)" "(\<lambda>x. f x - g x) \<in> O[F](h)" by simp_all
+    then show ?thesis by (rule bigoI)
+  qed
+  from assms this[of f g] this[of f "\<lambda>x. - g x"]
+  show "(\<lambda>x. f x + g x) \<in> O[F](h)" "(\<lambda>x. f x - g x) \<in> O[F](h)" by simp_all
 qed
 
 lemma big_sum_in_bigo:
@@ -1471,7 +1460,7 @@ proof
   from assms have nz: "eventually (\<lambda>x. f1 x \<noteq> 0) F" by (simp add: eventually_nonzero_bigtheta)
   hence "f2 \<in> \<Theta>[F](\<lambda>x. f1 x * f2 x / f1 x)"
     by (intro bigthetaI_cong) (auto elim!: eventually_mono)
-  also from A assms nz have "(\<lambda>x. f1 x * f2 x / f1 x) \<in> L F (\<lambda>x. g1 x * g2 x / f1 x)" 
+  also from A assms nz have "(\<lambda>x. f1 x * f2 x / f1 x) \<in> L F (\<lambda>x. g1 x * g2 x / f1 x)"
     by (intro divide_right) simp_all
   also from assms nz have "(\<lambda>x. g1 x * g2 x / f1 x) \<in> \<Theta>[F](\<lambda>x. g1 x * g2 x / g1 x)"
     by (intro landau_theta.mult landau_theta.divide) (simp_all add: bigtheta_sym)
@@ -1498,7 +1487,7 @@ lemma divide_cancel_right:
 
 lemma divide_cancel_left:
   assumes "f1 \<in> \<Theta>[F](g1)" and "eventually (\<lambda>x. g1 x \<noteq> 0) F"
-  shows   "(\<lambda>x. f1 x / f2 x) \<in> L F (\<lambda>x. g1 x / g2 x) \<longleftrightarrow> 
+  shows   "(\<lambda>x. f1 x / f2 x) \<in> L F (\<lambda>x. g1 x / g2 x) \<longleftrightarrow>
              (\<lambda>x. inverse (f2 x)) \<in> L F (\<lambda>x. inverse (g2 x))"
   by (simp only: divide_inverse mult_cancel_left[OF assms])
 
@@ -1567,7 +1556,7 @@ proof-
   qed
 qed
 
-lemma powr_bigtheta_iff: 
+lemma powr_bigtheta_iff:
   assumes "filterlim g at_top F" "F \<noteq> bot"
   shows   "(\<lambda>x. g x powr p :: real) \<in> \<Theta>[F](\<lambda>x. g x powr q) \<longleftrightarrow> p = q"
   using assms unfolding bigtheta_def by (auto simp: bigomega_iff_bigo powr_bigo_iff)
@@ -1592,17 +1581,17 @@ lemma ln_smallo_imp_flat:
   assumes q: "q > 0"
   shows   "(\<lambda>x. f x powr p) \<in> o(\<lambda>x. g x powr q)"
 proof (rule smalloI_tendsto)
-  from lim_f have "eventually (\<lambda>x. f x > 0) at_top" 
+  from lim_f have "eventually (\<lambda>x. f x > 0) at_top"
     by (simp add: filterlim_at_top_dense)
   hence f_nz: "eventually (\<lambda>x. f x \<noteq> 0) at_top" by eventually_elim simp
-  
+
   from lim_g have g_gt_1: "eventually (\<lambda>x. g x > 1) at_top"
     by (simp add: filterlim_at_top_dense)
   hence g_nz: "eventually (\<lambda>x. g x \<noteq> 0) at_top" by eventually_elim simp
   thus "eventually (\<lambda>x. g x powr q \<noteq> 0) at_top"
     by eventually_elim simp
-  
-  have eq: "eventually (\<lambda>x. q * (p/q * (ln (f x) / ln (g x)) - 1) * ln (g x) = 
+
+  have eq: "eventually (\<lambda>x. q * (p/q * (ln (f x) / ln (g x)) - 1) * ln (g x) =
                           p * ln (f x) - q * ln (g x)) at_top"
     using g_gt_1 by eventually_elim (insert q, simp_all add: field_simps)
   have "filterlim (\<lambda>x. q * (p/q * (ln (f x) / ln (g x)) - 1) * ln (g x)) at_bot at_top"
@@ -1653,7 +1642,7 @@ abbreviation (input) asymp_equiv_at_top where
 
 bundle asymp_equiv_notation
 begin
-notation asymp_equiv_at_top (infix \<open>\<sim>\<close> 50) 
+notation asymp_equiv_at_top (infix \<open>\<sim>\<close> 50)
 end
 
 lemma asymp_equivI: "((\<lambda>x. if f x = 0 \<and> g x = 0 then 1 else f x / g x) \<longlongrightarrow> 1) F \<Longrightarrow> f \<sim>[F] g"
@@ -1675,7 +1664,7 @@ proof (intro asymp_equivI)
     by (simp add: tendsto_eventually)
 qed
 
-lemma asymp_equiv_symI: 
+lemma asymp_equiv_symI:
   assumes "f \<sim>[F] g"
   shows   "g \<sim>[F] f"
   using tendsto_inverse[OF asymp_equivD[OF assms]]
@@ -1684,7 +1673,7 @@ lemma asymp_equiv_symI:
 lemma asymp_equiv_sym: "f \<sim>[F] g \<longleftrightarrow> g \<sim>[F] f"
   by (blast intro: asymp_equiv_symI)
 
-lemma asymp_equivI': 
+lemma asymp_equivI':
   assumes "((\<lambda>x. f x / g x) \<longlongrightarrow> 1) F"
   shows   "f \<sim>[F] g"
 proof (cases "F = bot")
@@ -1698,7 +1687,7 @@ proof (cases "F = bot")
   qed
   hence "eventually (\<lambda>x. f x / g x = (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) F"
     by eventually_elim simp
-  with assms show "f \<sim>[F] g" unfolding asymp_equiv_def 
+  with assms show "f \<sim>[F] g" unfolding asymp_equiv_def
     by (rule Lim_transform_eventually)
 qed (simp_all add: asymp_equiv_def)
 
@@ -1744,7 +1733,7 @@ lemma asymp_equiv_trans [trans]:
   shows   "f \<sim>[F] h"
 proof -
   let ?T = "\<lambda>f g x. if f x = 0 \<and> g x = 0 then 1 else f x / g x"
-  from tendsto_mult[OF assms[THEN asymp_equivD]] 
+  from tendsto_mult[OF assms[THEN asymp_equivD]]
   have "((\<lambda>x. ?T f g x * ?T g h x) \<longlongrightarrow> 1) F" by simp
   moreover from assms[THEN asymp_equiv_eventually_zeros]
   have "eventually (\<lambda>x. ?T f g x * ?T g h x = ?T f h x) F" by eventually_elim simp
@@ -1817,7 +1806,7 @@ proof -
   proof eventually_elim
     case (elim x)
     thus ?case
-      by (cases "f x" "0 :: real" rule: linorder_cases; 
+      by (cases "f x" "0 :: real" rule: linorder_cases;
           cases "g x" "0 :: real" rule: linorder_cases) simp_all
   qed
 qed
@@ -1845,7 +1834,7 @@ proof -
   hence "filterlim (\<lambda>x. if g x = 0 \<and> f x = 0 then 1 else g x / f x) (nhds 1) F"
     by (rule asymp_equivD)
   from tendsto_mult[OF this assms(2)] have "(?h \<longlongrightarrow> c) F" by simp
-  moreover 
+  moreover
   have "eventually (\<lambda>x. ?h x = g x) F"
     using asymp_equiv_eventually_zeros[OF assms(1)] by eventually_elim simp
   ultimately show ?thesis
@@ -1856,17 +1845,14 @@ lemma tendsto_asymp_equiv_cong:
   assumes "f \<sim>[F] g"
   shows   "(f \<longlongrightarrow> c) F \<longleftrightarrow> (g \<longlongrightarrow> c) F"
 proof -
-  {
-    fix f g :: "'a \<Rightarrow> 'b"
-    assume *: "f \<sim>[F] g" "(g \<longlongrightarrow> c) F"
-    have "((\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) \<longlongrightarrow> c * 1) F"
-      by (intro tendsto_intros asymp_equivD *)
-    moreover 
+  have "(f \<longlongrightarrow> c * 1) F" if fg: "f \<sim>[F] g" and "(g \<longlongrightarrow> c) F" for f g :: "'a \<Rightarrow> 'b"
+  proof -
+    from that have *: "((\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) \<longlongrightarrow> c * 1) F"
+      by (intro tendsto_intros asymp_equivD)
     have "eventually (\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x) = f x) F"
-      using asymp_equiv_eventually_zeros[OF *(1)] by eventually_elim simp
-    ultimately have "(f \<longlongrightarrow> c * 1) F"
-      by (rule Lim_transform_eventually)
-  }
+      using asymp_equiv_eventually_zeros[OF fg] by eventually_elim simp
+    with * show ?thesis by (rule Lim_transform_eventually)
+  qed
   from this[of f g] this[of g f] assms show ?thesis by (auto simp: asymp_equiv_sym)
 qed
 
@@ -1877,13 +1863,13 @@ lemma smallo_imp_eventually_sgn:
   shows   "eventually (\<lambda>x. sgn (f x + g x) = sgn (f x)) at_top"
 proof -
   have "0 < (1/2 :: real)" by simp
-  from landau_o.smallD[OF assms, OF this] 
+  from landau_o.smallD[OF assms, OF this]
     have "eventually (\<lambda>x. \<bar>g x\<bar> \<le> 1/2 * \<bar>f x\<bar>) at_top" by simp
   thus ?thesis
   proof eventually_elim
     case (elim x)
     thus ?case
-      by (cases "f x" "0::real" rule: linorder_cases; 
+      by (cases "f x" "0::real" rule: linorder_cases;
           cases "f x + g x" "0::real" rule: linorder_cases) simp_all
   qed
 qed
@@ -1917,7 +1903,7 @@ qed (simp_all add: asymp_equiv_add_rightI assms)
 
 end
 
-lemma asymp_equiv_add_left [asymp_equiv_simps]: 
+lemma asymp_equiv_add_left [asymp_equiv_simps]:
   assumes "h \<in> o[F](g)"
   shows   "(\<lambda>x. h x + f x) \<sim>[F] g \<longleftrightarrow> f \<sim>[F] g"
   using asymp_equiv_add_right[OF assms] by (simp add: add.commute)
@@ -1926,7 +1912,7 @@ lemma asymp_equiv_add_right' [asymp_equiv_simps]:
   assumes "h \<in> o[F](g)"
   shows   "g \<sim>[F] (\<lambda>x. f x + h x) \<longleftrightarrow> g \<sim>[F] f"
   using asymp_equiv_add_right[OF assms] by (simp add: asymp_equiv_sym)
-  
+
 lemma asymp_equiv_add_left' [asymp_equiv_simps]:
   assumes "h \<in> o[F](g)"
   shows   "g \<sim>[F] (\<lambda>x. h x + f x) \<longleftrightarrow> g \<sim>[F] f"
@@ -1958,15 +1944,12 @@ proof -
   let ?S = "\<lambda>x. (if f1 x = 0 \<and> g1 x = 0 then 1 - ?T f2 g2 x
                    else if f2 x = 0 \<and> g2 x = 0 then 1 - ?T f1 g1 x else 0)"
   let ?S' = "\<lambda>x. ?T (\<lambda>x. f1 x * f2 x) (\<lambda>x. g1 x * g2 x) x - ?T f1 g1 x * ?T f2 g2 x"
-  {
-    fix f g :: "'a \<Rightarrow> 'b" assume "f \<sim>[F] g"
-    have "((\<lambda>x. 1 - ?T f g x) \<longlongrightarrow> 0) F"
-      by (rule tendsto_eq_intros refl asymp_equivD[OF \<open>f \<sim>[F] g\<close>])+ simp_all
-  } note A = this    
+  have A: "((\<lambda>x. 1 - ?T f g x) \<longlongrightarrow> 0) F" if "f \<sim>[F] g" for f g :: "'a \<Rightarrow> 'b"
+    by (rule tendsto_eq_intros refl asymp_equivD[OF that])+ simp_all
 
-  from assms have "((\<lambda>x. ?T f1 g1 x * ?T f2 g2 x) \<longlongrightarrow> 1 * 1) F"
+  from assms have *: "((\<lambda>x. ?T f1 g1 x * ?T f2 g2 x) \<longlongrightarrow> 1 * 1) F"
     by (intro tendsto_mult asymp_equivD)
-  moreover {
+  {
     have "(?S \<longlongrightarrow> 0) F"
       by (intro filterlim_If assms[THEN A, THEN tendsto_mono[rotated]])
          (auto intro: le_infI1 le_infI2)
@@ -1974,9 +1957,9 @@ proof -
       using assms[THEN asymp_equiv_eventually_zeros] by eventually_elim auto
     ultimately have "(?S' \<longlongrightarrow> 0) F" by (rule Lim_transform_eventually)
   }
-  ultimately have "(?T (\<lambda>x. f1 x * f2 x) (\<lambda>x. g1 x * g2 x) \<longlongrightarrow> 1 * 1) F"
+  with * have "(?T (\<lambda>x. f1 x * f2 x) (\<lambda>x. g1 x * g2 x) \<longlongrightarrow> 1 * 1) F"
     by (rule Lim_transform)
-  thus ?thesis by (simp add: asymp_equiv_def)
+  then show ?thesis by (simp add: asymp_equiv_def)
 qed
 
 lemma asymp_equiv_power [asymp_equiv_intros]:
@@ -2029,7 +2012,7 @@ lemma asymp_equiv_compose':
   assumes "f \<sim>[G] g" "filterlim h G F"
   shows   "(\<lambda>x. f (h x)) \<sim>[F] (\<lambda>x. g (h x))"
   using asymp_equiv_compose[OF assms] by (simp add: o_def)
-  
+
 lemma asymp_equiv_powr_real [asymp_equiv_intros]:
   fixes f g :: "'a \<Rightarrow> real"
   assumes "f \<sim>[F] g" "eventually (\<lambda>x. f x \<ge> 0) F" "eventually (\<lambda>x. g x \<ge> 0) F"
@@ -2049,14 +2032,14 @@ lemma asymp_equiv_norm [asymp_equiv_intros]:
   fixes f g :: "'a \<Rightarrow> 'b :: real_normed_field"
   assumes "f \<sim>[F] g"
   shows   "(\<lambda>x. norm (f x)) \<sim>[F] (\<lambda>x. norm (g x))"
-  using tendsto_norm[OF asymp_equivD[OF assms]] 
+  using tendsto_norm[OF asymp_equivD[OF assms]]
   by (simp add: if_distrib asymp_equiv_def norm_divide cong: if_cong)
 
 lemma asymp_equiv_abs_real [asymp_equiv_intros]:
   fixes f g :: "'a \<Rightarrow> real"
   assumes "f \<sim>[F] g"
   shows   "(\<lambda>x. \<bar>f x\<bar>) \<sim>[F] (\<lambda>x. \<bar>g x\<bar>)"
-  using tendsto_rabs[OF asymp_equivD[OF assms]] 
+  using tendsto_rabs[OF asymp_equivD[OF assms]]
   by (simp add: if_distrib asymp_equiv_def cong: if_cong)
 
 lemma asymp_equiv_imp_eventually_le:
@@ -2124,7 +2107,7 @@ lemma asymp_equiv_at_bot_transfer:
   shows   "filterlim g at_bot F"
   unfolding filterlim_uminus_at_bot
   by (rule asymp_equiv_at_top_transfer[of "\<lambda>x. -f x" F "\<lambda>x. -g x"])
-     (insert assms, auto simp: filterlim_uminus_at_bot asymp_equiv_uminus)  
+     (insert assms, auto simp: filterlim_uminus_at_bot asymp_equiv_uminus)
 
 lemma asymp_equivI'_const:
   assumes "((\<lambda>x. f x / g x) \<longlongrightarrow> c) F" "c \<noteq> 0"

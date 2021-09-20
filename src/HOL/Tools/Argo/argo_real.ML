@@ -9,63 +9,62 @@ struct
 
 (* translating input terms *)
 
-fun trans_type _ \<^typ>\<open>Real.real\<close> tcx = SOME (Argo_Expr.Real, tcx)
+fun trans_type _ \<^Type>\<open>real\<close> tcx = SOME (Argo_Expr.Real, tcx)
   | trans_type _ _ _ = NONE
 
-fun trans_term f (@{const Groups.uminus_class.uminus (real)} $ t) tcx =
+fun trans_term f \<^Const_>\<open>uminus \<open>\<^Type>\<open>real\<close>\<close> for t\<close> tcx =
       tcx |> f t |>> Argo_Expr.mk_neg |> SOME
-  | trans_term f (@{const Groups.plus_class.plus (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>plus \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_add2 |> SOME
-  | trans_term f (@{const Groups.minus_class.minus (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>minus \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_sub |> SOME
-  | trans_term f (@{const Groups.times_class.times (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>times \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_mul |> SOME
-  | trans_term f (@{const Rings.divide_class.divide (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>divide \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_div |> SOME
-  | trans_term f (@{const Orderings.ord_class.min (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>min \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_min |> SOME
-  | trans_term f (@{const Orderings.ord_class.max (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>max \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_max |> SOME
-  | trans_term f (@{const Groups.abs_class.abs (real)} $ t) tcx =
+  | trans_term f \<^Const_>\<open>abs \<open>\<^Type>\<open>real\<close>\<close> for t\<close> tcx =
       tcx |> f t |>> Argo_Expr.mk_abs |> SOME
-  | trans_term f (@{const Orderings.ord_class.less (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>less \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_lt |> SOME
-  | trans_term f (@{const Orderings.ord_class.less_eq (real)} $ t1 $ t2) tcx =
+  | trans_term f \<^Const_>\<open>less_eq \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close> tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_le |> SOME
   | trans_term _ t tcx =
       (case try HOLogic.dest_number t of
-        SOME (\<^typ>\<open>Real.real\<close>, n) => SOME (Argo_Expr.mk_num (Rat.of_int n), tcx)
+        SOME (\<^Type>\<open>real\<close>, n) => SOME (Argo_Expr.mk_num (Rat.of_int n), tcx)
       | _ => NONE)
 
 
 (* reverse translation *)
 
-fun mk_plus t1 t2 = @{const Groups.plus_class.plus (real)} $ t1 $ t2
+fun mk_plus t1 t2 = \<^Const>\<open>plus \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close>
 fun mk_sum ts = uncurry (fold_rev mk_plus) (split_last ts)
-fun mk_times t1 t2 = @{const Groups.times_class.times (real)} $ t1 $ t2
-fun mk_divide t1 t2 = @{const Rings.divide_class.divide (real)} $ t1 $ t2
-fun mk_le t1 t2 = @{const Orderings.ord_class.less_eq (real)} $ t1 $ t2
-fun mk_lt t1 t2 = @{const Orderings.ord_class.less (real)} $ t1 $ t2
+fun mk_times t1 t2 = \<^Const>\<open>times \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close>
+fun mk_divide t1 t2 = \<^Const>\<open>divide \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close>
+fun mk_le t1 t2 = \<^Const>\<open>less_eq \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close>
+fun mk_lt t1 t2 = \<^Const>\<open>less \<open>\<^Type>\<open>real\<close>\<close> for t1 t2\<close>
 
-fun mk_real_num i = HOLogic.mk_number \<^typ>\<open>Real.real\<close> i
+fun mk_real_num i = HOLogic.mk_number \<^Type>\<open>real\<close> i
 
 fun mk_number n =
   let val (p, q) = Rat.dest n
   in if q = 1 then mk_real_num p else mk_divide (mk_real_num p) (mk_real_num q) end
 
 fun term_of _ (Argo_Expr.E (Argo_Expr.Num n, _)) = SOME (mk_number n)
-  | term_of f (Argo_Expr.E (Argo_Expr.Neg, [e])) =
-      SOME (@{const Groups.uminus_class.uminus (real)} $ f e)
+  | term_of f (Argo_Expr.E (Argo_Expr.Neg, [e])) = SOME \<^Const>\<open>uminus \<open>\<^Type>\<open>real\<close>\<close> for \<open>f e\<close>\<close>
   | term_of f (Argo_Expr.E (Argo_Expr.Add, es)) = SOME (mk_sum (map f es))
   | term_of f (Argo_Expr.E (Argo_Expr.Sub, [e1, e2])) =
-      SOME (@{const Groups.minus_class.minus (real)} $ f e1 $ f e2)
+      SOME \<^Const>\<open>minus \<open>\<^Type>\<open>real\<close>\<close> for \<open>f e1\<close> \<open>f e2\<close>\<close>
   | term_of f (Argo_Expr.E (Argo_Expr.Mul, [e1, e2])) = SOME (mk_times (f e1) (f e2))
   | term_of f (Argo_Expr.E (Argo_Expr.Div, [e1, e2])) = SOME (mk_divide (f e1) (f e2))
   | term_of f (Argo_Expr.E (Argo_Expr.Min, [e1, e2])) =
-      SOME (@{const Orderings.ord_class.min (real)} $ f e1 $ f e2)
+      SOME \<^Const>\<open>min \<open>\<^Type>\<open>real\<close>\<close> for \<open>f e1\<close> \<open>f e2\<close>\<close>
   | term_of f (Argo_Expr.E (Argo_Expr.Max, [e1, e2])) =
-      SOME (@{const Orderings.ord_class.max (real)} $ f e1 $ f e2)
-  | term_of f (Argo_Expr.E (Argo_Expr.Abs, [e])) = SOME (@{const Groups.abs_class.abs (real)} $ f e)
+      SOME \<^Const>\<open>max \<open>\<^Type>\<open>real\<close>\<close> for \<open>f e1\<close> \<open>f e2\<close>\<close>
+  | term_of f (Argo_Expr.E (Argo_Expr.Abs, [e])) = SOME \<^Const>\<open>abs \<open>\<^Type>\<open>real\<close>\<close> for \<open>f e\<close>\<close>
   | term_of f (Argo_Expr.E (Argo_Expr.Le, [e1, e2])) = SOME (mk_le (f e1) (f e2))
   | term_of f (Argo_Expr.E (Argo_Expr.Lt, [e1, e2])) = SOME (mk_lt (f e1) (f e2))
   | term_of _ _ = NONE
@@ -93,15 +92,15 @@ val div_nums_conv = nums_conv mk_divide (op /)
 fun inv_num_conv ctxt = nums_conv mk_divide (fn (_, n) => Rat.inv n) ctxt @1
 
 fun cmp_nums_conv ctxt b ct =
-  let val t = if b then \<^const>\<open>HOL.True\<close> else \<^const>\<open>HOL.False\<close>
+  let val t = if b then \<^Const>\<open>True\<close> else \<^Const>\<open>False\<close>
   in simp_conv ctxt (HOLogic.mk_eq (Thm.term_of ct, t)) ct end
 
 local
 
-fun is_add2 (@{const Groups.plus_class.plus (real)} $ _ $ _) = true
+fun is_add2 \<^Const_>\<open>plus \<open>\<^Type>\<open>real\<close>\<close> for _ _\<close> = true
   | is_add2 _ = false
 
-fun is_add3 (@{const Groups.plus_class.plus (real)} $ _ $ t) = is_add2 t
+fun is_add3 \<^Const_>\<open>plus \<open>\<^Type>\<open>real\<close>\<close> for _ t\<close> = is_add2 t
   | is_add3 _ = false
 
 val flatten_thm = mk_rewr @{lemma "(a::real) + b + c = a + (b + c)" by simp}

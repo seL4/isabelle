@@ -377,7 +377,8 @@ lemma countable_image_eq_inj:
 lemma infinite_countable_subset':
   assumes X: "infinite X" shows "\<exists>C\<subseteq>X. countable C \<and> infinite C"
 proof -
-  from infinite_countable_subset[OF X] guess f ..
+  obtain f :: "nat \<Rightarrow> 'a" where "inj f" "range f \<subseteq> X"
+    using infinite_countable_subset [OF X] by blast
   then show ?thesis
     by (intro exI[of _ "range f"]) (auto simp: range_inj_infinite)
 qed

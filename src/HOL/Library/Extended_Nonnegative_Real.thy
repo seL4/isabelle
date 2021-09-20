@@ -1150,7 +1150,8 @@ proof -
     assume "infinite X" "X \<noteq> {}"
     have "\<exists>y\<in>X. r < ennreal_of_enat y" if r: "r < top" for r
     proof -
-      from ennreal_Ex_less_of_nat[OF r] guess n .. note n = this
+      obtain n where n: "r < of_nat n"
+        using ennreal_Ex_less_of_nat[OF r] ..
       have "\<not> (X \<subseteq> enat ` {.. n})"
         using \<open>infinite X\<close> by (auto dest: finite_subset)
       then obtain x where x: "x \<in> X" "x \<notin> enat ` {..n}"
@@ -1198,9 +1199,11 @@ proof
     using zero_neq_one by (intro exI)
   show "\<And>x y::ennreal. x < y \<Longrightarrow> \<exists>z>x. z < y"
   proof transfer
-    fix x y :: ereal assume "0 \<le> x" and *: "x < y"
-    moreover from dense[OF *] guess z ..
-    ultimately show "\<exists>z\<in>Collect ((\<le>) 0). x < z \<and> z < y"
+    fix x y :: ereal
+    assume *: "0 \<le> x"
+    assume "x < y"
+    from dense[OF this] obtain z where "x < z \<and> z < y" ..
+    with * show "\<exists>z\<in>Collect ((\<le>) 0). x < z \<and> z < y"
       by (intro bexI[of _ z]) auto
   qed
 qed (rule open_ennreal_def)
@@ -1693,8 +1696,9 @@ proof (rule antisym)
   show "x \<le> (SUP i\<in>A. f i)"
   proof (rule ennreal_le_epsilon)
     fix e :: real assume "0 < e"
-    from approx[OF this] guess i ..
-    then have "x \<le> f i + e"
+    from approx[OF this] obtain i where "i \<in> A" and *: "x \<le> f i + ennreal e"
+      by blast
+    from * have "x \<le> f i + e"
       by simp
     also have "\<dots> \<le> (SUP i\<in>A. f i) + e"
       by (intro add_mono \<open>i \<in> A\<close> SUP_upper order_refl)
@@ -1711,7 +1715,8 @@ proof (rule antisym)
   show "(INF i\<in>A. f i) \<le> x"
   proof (rule ennreal_le_epsilon)
     fix e :: real assume "0 < e"
-    from approx[OF this] guess i .. note i = this
+    from approx[OF this] obtain i where "i\<in>A" "f i \<le> x + ennreal e"
+      by blast
     then have "(INF i\<in>A. f i) \<le> f i"
       by (intro INF_lower)
     also have "\<dots> \<le> x + e"
