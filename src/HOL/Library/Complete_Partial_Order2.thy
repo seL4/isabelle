@@ -5,8 +5,10 @@
 section \<open>Formalisation of chain-complete partial orders, continuity and admissibility\<close>
 
 theory Complete_Partial_Order2 imports 
-  Main Lattice_Syntax
+  Main
 begin
+
+unbundle lattice_syntax
 
 lemma chain_transfer [transfer_rule]:
   includes lifting_syntax

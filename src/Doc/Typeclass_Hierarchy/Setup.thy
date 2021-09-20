@@ -1,6 +1,8 @@
 theory Setup
-imports Complex_Main "HOL-Library.Multiset" "HOL-Library.Lattice_Syntax"
+imports Complex_Main "HOL-Library.Multiset"
 begin
+
+unbundle lattice_syntax
 
 ML_file \<open>../antiquote_setup.ML\<close>
 ML_file \<open>../more_antiquote.ML\<close>

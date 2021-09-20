@@ -3,8 +3,10 @@
 section \<open>A combinator to build partial equivalence relations from a predicate and an equivalence relation\<close>
 
 theory Combine_PER
-  imports Main Lattice_Syntax
+  imports Main
 begin
+
+unbundle lattice_syntax
 
 definition combine_per :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
   where "combine_per P R = (\<lambda>x y. P x \<and> P y) \<sqinter> R"

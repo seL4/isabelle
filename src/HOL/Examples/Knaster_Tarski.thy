@@ -7,8 +7,10 @@ Typical textbook proof example.
 section \<open>Textbook-style reasoning: the Knaster-Tarski Theorem\<close>
 
 theory Knaster_Tarski
-  imports Main "HOL-Library.Lattice_Syntax"
+  imports Main
 begin
+
+unbundle lattice_syntax
 
 
 subsection \<open>Prose version\<close>
