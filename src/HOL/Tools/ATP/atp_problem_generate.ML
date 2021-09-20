@@ -1738,6 +1738,8 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
           in
             args |> chop ary |>> list_app head |> list_app_ops
           end
+        | IAbs ((name, T), tm) =>
+          list_app_ops (IAbs ((name, T), introduce_app_ops tm), args)
         | _ => list_app_ops (head, args))
       end
     fun introduce_predicators tm =
