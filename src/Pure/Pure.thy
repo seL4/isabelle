@@ -386,12 +386,12 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>syntax\<close> "add raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.add_syntax_cmd));
+      >> (Toplevel.theory o uncurry (Sign.syntax_cmd true)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.del_syntax_cmd));
+      >> (Toplevel.theory o uncurry (Sign.syntax_cmd false)));
 
 val trans_pat =
   Scan.optional
