@@ -48,6 +48,7 @@ sig
   val strip_subgoal : thm -> int -> Proof.context -> (string * typ) list * term list * term
   val extract_lambda_def : (term -> string * typ) -> term -> string * term
   val short_thm_name : Proof.context -> thm -> string
+  val map_prod : ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
 end;
 
 structure ATP_Util : ATP_UTIL =
@@ -418,5 +419,7 @@ fun short_thm_name ctxt th =
     if Thm.eq_thm_prop (th, singleton (Attrib.eval_thms ctxt) (Facts.named short, [])) then short
     else long
   end
+
+  val map_prod = Ctr_Sugar_Util.map_prod
 
 end;

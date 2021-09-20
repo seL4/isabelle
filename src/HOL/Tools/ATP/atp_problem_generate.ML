@@ -209,7 +209,9 @@ val combs_and_liftingN = "combs_and_lifting"
 val combs_or_liftingN = "combs_or_lifting"
 val keep_lamsN = "keep_lams"
 
+(* The capitalization of the TPTP output respects the capitalzation of the prefix. *)
 val bound_var_prefix = "B_"
+val let_bound_var_prefix = "l_"
 val all_bound_var_prefix = "A_"
 val exist_bound_var_prefix = "E_"
 val schematic_var_prefix = "V_"
@@ -512,11 +514,36 @@ fun make_subclass_pairs thy subs supers =
   in map supers_of subs |> filter_out (null o snd) end
 
 (* intermediate terms *)
+(* TODO: Merge IConst and IVar *)
 datatype iterm =
   IConst of (string * string) * typ * typ list |
   IVar of (string * string) * typ |
   IApp of iterm * iterm |
   IAbs of ((string * string) * typ) * iterm
+
+fun alpha_rename from to =
+  let
+    fun traverse (tm as IConst (name, T, Ts)) =
+        if name = from then IConst (to, T, Ts) else tm
+      | traverse (tm as IVar (name, T)) =
+        if name = from then IVar (to, T) else tm
+      | traverse (tm as IApp (tm1, tm2)) =
+        let
+          val tm1' = traverse tm1
+          val tm2' = traverse tm2
+        in
+          if tm1 = tm1' andalso tm2 = tm2' then tm else IApp (tm1', tm2')
+        end
+      | traverse (tm as IAbs (binding as (name, _), tm1)) =
+        if name = from then
+          tm
+        else
+          let val tm1' = traverse tm1 in
+            if tm1 = tm1' then tm else IAbs (binding, tm1')
+          end
+  in
+    traverse
+  end
 
 fun ityp_of (IConst (_, T, _)) = T
   | ityp_of (IVar (_, T)) = T
@@ -1170,9 +1197,10 @@ fun eta_expand_quantifier_body (tm as IAbs _) = tm
       val x = generate_unique_name
         (fn n => "X" ^ (if n = 0 then "" else string_of_int n))
         (fn name => not (exists (equal name) vars)) 0
+        |> `(prefix bound_var_prefix)
       val T = domain_type (ityp_of tm)
     in
-      IAbs ((`I x, T), IApp (tm, IConst (`I x, T, [])))
+      IAbs ((x, T), IApp (tm, IConst (x, T, [])))
     end
 
 fun introduce_builtins_and_proxies_in_iterm type_enc =
@@ -1207,7 +1235,20 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
           val tm2' = intro false [] tm2
           val tm2'' =
             (case tm1' of
-              IConst ((s, _), _, _) =>
+              IApp (IConst ((s, _), _, _), _) =>
+              if s = tptp_let then
+                (case tm2' of
+                  IAbs ((name, T), tm) =>
+                    let
+                      val name' =
+                        map_prod (prefix let_bound_var_prefix o unprefix bound_var_prefix) I name
+                    in
+                      IAbs ((name', T), alpha_rename name name' tm)
+                    end
+                | _ => error "Function abstraction expected")
+              else
+                tm2'
+            | IConst ((s, _), _, _) =>
               if s = tptp_ho_forall orelse s = tptp_ho_exists then
                 eta_expand_quantifier_body tm2'
               else
