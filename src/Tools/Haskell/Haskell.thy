@@ -238,7 +238,8 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/library.ML\<close>.
 module Isabelle.Library (
   (|>), (|->), (#>), (#->),
 
-  fold, fold_rev, single, the_single, singletonM, map_index, get_index, separate,
+  fold, fold_rev, fold_map, single, the_single, singletonM,
+  map_index, get_index, separate,
 
   StringLike, STRING (..), TEXT (..), BYTES (..),
   show_bytes, show_text,
@@ -286,6 +287,14 @@ fold f (x : xs) y = fold f xs (f x y)
 fold_rev :: (a -> b -> b) -> [a] -> b -> b
 fold_rev _ [] y = y
 fold_rev f (x : xs) y = f x (fold_rev f xs y)
+
+fold_map :: (a -> b -> (c, b)) -> [a] -> b -> ([c], b)
+fold_map _ [] y = ([], y)
+fold_map f (x : xs) y =
+  let
+    (x', y') = f x y
+    (xs', y'') = fold_map f xs y'
+  in (x' : xs', y'')
 
 single :: a -> [a]
 single x = [x]
@@ -2169,7 +2178,8 @@ module Isabelle.Name (
   Name,
   uu, uu_, aT,
   clean_index, clean, internal, skolem, is_internal, is_skolem, dest_internal, dest_skolem,
-  Context, declare, declare_renaming, is_declared, declared, context, make_context, variant
+  Context, declare, declare_renaming, is_declared, declared, context, make_context,
+  variant, variant_list
 )
 where
 
@@ -2287,6 +2297,9 @@ variant name ctxt =
             |> declare x'
         in (x', ctxt')
   in (x' <> Bytes.pack (replicate n underscore), ctxt')
+
+variant_list :: [Name] -> [Name] -> [Name]
+variant_list used names = fst (make_context used |> fold_map variant names)
 \<close>
 
 generate_file "Isabelle/Term.hs" = \<open>
