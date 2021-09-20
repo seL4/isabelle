@@ -1146,9 +1146,9 @@ fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
       | NONE => NONE)
   | const_syntax _ _ = NONE;
 
-fun gen_notation syntax add mode args ctxt =
+fun gen_notation make_syntax add mode args ctxt =
   ctxt |> map_syntax_idents
-    (Local_Syntax.update_modesyntax ctxt add mode (map_filter (syntax ctxt) args));
+    (Local_Syntax.update_modesyntax ctxt add mode (map_filter (make_syntax ctxt) args));
 
 in
 
