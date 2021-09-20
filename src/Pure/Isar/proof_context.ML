@@ -156,6 +156,10 @@ sig
   val check_case: Proof.context -> bool ->
     string * Position.T -> binding option list -> Rule_Cases.T
   val check_syntax_const: Proof.context -> string * Position.T -> string
+  val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
+    Proof.context -> Proof.context
+  val generic_syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
+    Context.generic -> Context.generic
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -1129,6 +1133,13 @@ end;
 fun check_syntax_const ctxt (c, pos) =
   if is_some (Syntax.lookup_const (syn_of ctxt) c) then c
   else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
+
+fun syntax add mode args ctxt =
+  let val args' = map (pair Local_Syntax.Const) args
+  in ctxt |> map_syntax (#2 o Local_Syntax.update_modesyntax ctxt add mode args') end;
+
+fun generic_syntax add mode args =
+  Context.mapping (Sign.syntax add mode args) (syntax add mode args);
 
 
 (* notation *)

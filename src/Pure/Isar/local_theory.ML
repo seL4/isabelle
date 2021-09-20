@@ -60,6 +60,10 @@ sig
   val pretty: local_theory -> Pretty.T list
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> local_theory -> local_theory
   val set_defsort: sort -> local_theory -> local_theory
+  val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
+    local_theory -> local_theory
+  val syntax_cmd: bool -> Syntax.mode -> (string * string * mixfix) list ->
+    local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
@@ -295,6 +299,22 @@ fun add_thms_dynamic (binding, f) lthy =
 fun set_defsort S =
   declaration {syntax = true, pervasive = false}
     (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
+
+
+(* syntax *)
+
+fun gen_syntax prep_type add mode raw_args lthy =
+  let
+    val args = map (fn (c, T, mx) => (c, prep_type lthy T, mx)) raw_args;
+    val args' = map (fn (c, T, mx) => (c, T, Mixfix.reset_pos mx)) args;
+    val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.syntax add mode args;
+  in
+    declaration {syntax = true, pervasive = false}
+      (fn _ => Proof_Context.generic_syntax add mode args') lthy
+  end;
+
+val syntax = gen_syntax (K I);
+val syntax_cmd = gen_syntax Proof_Context.read_typ_syntax;
 
 
 (* notation *)

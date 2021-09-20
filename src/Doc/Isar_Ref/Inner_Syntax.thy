@@ -1077,8 +1077,8 @@ subsection \<open>Raw syntax and translations \label{sec:syn-trans}\<close>
 text \<open>
   \begin{tabular}{rcll}
     @{command_def "nonterminal"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def "syntax"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def "no_syntax"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "syntax"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "no_syntax"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "no_translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{attribute_def syntax_ast_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\

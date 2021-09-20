@@ -384,14 +384,14 @@ val _ =
     (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals_global));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>syntax\<close> "add raw syntax clauses"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>syntax\<close> "add raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry (Sign.syntax_cmd true)));
+      >> uncurry (Local_Theory.syntax_cmd true));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry (Sign.syntax_cmd false)));
+      >> uncurry (Local_Theory.syntax_cmd false));
 
 val trans_pat =
   Scan.optional
