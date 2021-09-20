@@ -155,6 +155,7 @@ sig
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val check_case: Proof.context -> bool ->
     string * Position.T -> binding option list -> Rule_Cases.T
+  val check_syntax_const: Proof.context -> string * Position.T -> string
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -1121,6 +1122,13 @@ val read_var = prep_var Syntax.read_typ false;
 val cert_var = prep_var cert_typ true;
 
 end;
+
+
+(* syntax *)
+
+fun check_syntax_const ctxt (c, pos) =
+  if is_some (Syntax.lookup_const (syn_of ctxt) c) then c
+  else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
 
 
 (* notation *)

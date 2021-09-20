@@ -171,10 +171,8 @@ val _ = Theory.setup
     (const_name (fn (_, c) => Lexicon.mark_const c)) #>
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>syntax_const\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (c, pos)) =>
-      if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
-      then ML_Syntax.print_string c
-      else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      ML_Syntax.print_string (Proof_Context.check_syntax_const ctxt arg))) #>
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>const\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax) -- Scan.optional
