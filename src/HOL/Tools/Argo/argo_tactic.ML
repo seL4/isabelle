@@ -144,8 +144,8 @@ fun add_type T (tcx as (_, types, _)) =
     SOME ty => (ty, tcx)
   | NONE => add_new_type T tcx)
 
-fun trans_type _ \<^typ>\<open>HOL.bool\<close> = pair Argo_Expr.Bool
-  | trans_type ctxt (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
+fun trans_type _ \<^Type>\<open>bool\<close> = pair Argo_Expr.Bool
+  | trans_type ctxt \<^Type>\<open>fun T1 T2\<close> =
       trans_type ctxt T1 ##>> trans_type ctxt T2 #>> Argo_Expr.Func
   | trans_type ctxt T = (fn tcx =>
       (case ext_trans_type ctxt (trans_type ctxt) T tcx of
@@ -164,23 +164,23 @@ fun add_term ctxt t (tcx as (_, _, terms)) =
     SOME c => (Argo_Expr.mk_con c, tcx)
   | NONE => add_new_term ctxt t (Term.fastype_of t) tcx)
 
-fun mk_eq \<^typ>\<open>HOL.bool\<close> = Argo_Expr.mk_iff
+fun mk_eq \<^Type>\<open>bool\<close> = Argo_Expr.mk_iff
   | mk_eq _ = Argo_Expr.mk_eq
 
-fun trans_term _ \<^const>\<open>HOL.True\<close> = pair Argo_Expr.true_expr
-  | trans_term _ \<^const>\<open>HOL.False\<close> = pair Argo_Expr.false_expr
-  | trans_term ctxt (\<^const>\<open>HOL.Not\<close> $ t) = trans_term ctxt t #>> Argo_Expr.mk_not
-  | trans_term ctxt (\<^const>\<open>HOL.conj\<close> $ t1 $ t2) =
+fun trans_term _ \<^Const_>\<open>True\<close> = pair Argo_Expr.true_expr
+  | trans_term _ \<^Const_>\<open>False\<close> = pair Argo_Expr.false_expr
+  | trans_term ctxt \<^Const_>\<open>Not for t\<close> = trans_term ctxt t #>> Argo_Expr.mk_not
+  | trans_term ctxt \<^Const_>\<open>conj for t1 t2\<close> =
       trans_term ctxt t1 ##>> trans_term ctxt t2 #>> uncurry Argo_Expr.mk_and2
-  | trans_term ctxt (\<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
+  | trans_term ctxt \<^Const_>\<open>disj for t1 t2\<close> =
       trans_term ctxt t1 ##>> trans_term ctxt t2 #>> uncurry Argo_Expr.mk_or2
-  | trans_term ctxt (\<^const>\<open>HOL.implies\<close> $ t1 $ t2) =
+  | trans_term ctxt \<^Const_>\<open>implies for t1 t2\<close> =
       trans_term ctxt t1 ##>> trans_term ctxt t2 #>> uncurry Argo_Expr.mk_imp
-  | trans_term ctxt (Const (\<^const_name>\<open>HOL.If\<close>, _) $ t1 $ t2 $ t3) =
+  | trans_term ctxt \<^Const_>\<open>If _ for t1 t2 t3\<close> =
       trans_term ctxt t1 ##>> trans_term ctxt t2 ##>> trans_term ctxt t3 #>>
       (fn ((u1, u2), u3) => Argo_Expr.mk_ite u1 u2 u3)
-  | trans_term ctxt (Const (\<^const_name>\<open>HOL.eq\<close>, T) $ t1 $ t2) =
-      trans_term ctxt t1 ##>> trans_term ctxt t2 #>> uncurry (mk_eq (Term.domain_type T))
+  | trans_term ctxt \<^Const_>\<open>HOL.eq T for t1 t2\<close> =
+      trans_term ctxt t1 ##>> trans_term ctxt t2 #>> uncurry (mk_eq T)
   | trans_term ctxt (t as (t1 $ t2)) = (fn tcx =>
       (case ext_trans_term ctxt (trans_term ctxt) t tcx of
         SOME result => result
@@ -258,18 +258,16 @@ fun mk_nary' d _ [] = d
   | mk_nary' _ f ts = mk_nary f ts
 
 fun mk_ite t1 t2 t3 =
-  let
-    val T = Term.fastype_of t2
-    val ite = Const (\<^const_name>\<open>HOL.If\<close>, [\<^typ>\<open>HOL.bool\<close>, T, T] ---> T)
-  in ite $ t1 $ t2 $ t3 end
+  let val T = Term.fastype_of t2
+  in \<^Const>\<open>If T for t1 t2 t3\<close> end
 
-fun term_of _ (Argo_Expr.E (Argo_Expr.True, _)) = \<^const>\<open>HOL.True\<close>
-  | term_of _ (Argo_Expr.E (Argo_Expr.False, _)) = \<^const>\<open>HOL.False\<close>
+fun term_of _ (Argo_Expr.E (Argo_Expr.True, _)) = \<^Const>\<open>True\<close>
+  | term_of _ (Argo_Expr.E (Argo_Expr.False, _)) = \<^Const>\<open>False\<close>
   | term_of cx (Argo_Expr.E (Argo_Expr.Not, [e])) = HOLogic.mk_not (term_of cx e)
   | term_of cx (Argo_Expr.E (Argo_Expr.And, es)) =
-      mk_nary' \<^const>\<open>HOL.True\<close> HOLogic.mk_conj (map (term_of cx) es)
+      mk_nary' \<^Const>\<open>True\<close> HOLogic.mk_conj (map (term_of cx) es)
   | term_of cx (Argo_Expr.E (Argo_Expr.Or, es)) =
-      mk_nary' \<^const>\<open>HOL.False\<close> HOLogic.mk_disj (map (term_of cx) es)
+      mk_nary' \<^Const>\<open>False\<close> HOLogic.mk_disj (map (term_of cx) es)
   | term_of cx (Argo_Expr.E (Argo_Expr.Imp, [e1, e2])) =
       HOLogic.mk_imp (term_of cx e1, term_of cx e2)
   | term_of cx (Argo_Expr.E (Argo_Expr.Iff, [e1, e2])) =
@@ -289,7 +287,7 @@ fun term_of _ (Argo_Expr.E (Argo_Expr.True, _)) = \<^const>\<open>HOL.True\<clos
         SOME t => t
       | NONE => raise Fail "bad expression")
 
-fun as_prop ct = Thm.apply \<^cterm>\<open>HOL.Trueprop\<close> ct
+fun as_prop ct = Thm.apply \<^cterm>\<open>Trueprop\<close> ct
 
 fun cterm_of ctxt cons e = Thm.cterm_of ctxt (term_of (ctxt, cons) e)
 fun cprop_of ctxt cons e = as_prop (cterm_of ctxt cons e)
@@ -317,7 +315,7 @@ fun prove_taut ctxt ns t = Goal.prove ctxt ns [] (HOLogic.mk_Trueprop t)
 fun with_frees ctxt n mk =
   let
     val ns = map (fn i => "P" ^ string_of_int i) (0 upto (n - 1))
-    val ts = map (Free o rpair \<^typ>\<open>bool\<close>) ns
+    val ts = map (Free o rpair \<^Type>\<open>bool\<close>) ns
     val t = mk_nary HOLogic.mk_disj (mk ts)
   in prove_taut ctxt ns t end
 
@@ -374,12 +372,12 @@ fun flatten_conv cv rule ct = (
 
 fun flat_conj_conv ct =
   (case Thm.term_of ct of
-    \<^const>\<open>HOL.conj\<close> $ _ $ _ => flatten_conv flat_conj_conv flatten_and_thm ct
+    \<^Const_>\<open>conj for _ _\<close> => flatten_conv flat_conj_conv flatten_and_thm ct
   | _ => Conv.all_conv ct)
 
 fun flat_disj_conv ct =
   (case Thm.term_of ct of
-    \<^const>\<open>HOL.disj\<close> $ _ $ _ => flatten_conv flat_disj_conv flatten_or_thm ct
+    \<^Const_>\<open>disj for _ _\<close> => flatten_conv flat_disj_conv flatten_or_thm ct
   | _ => Conv.all_conv ct)
 
 fun explode rule1 rule2 thm =
@@ -415,7 +413,7 @@ fun iff_intro rule lf rf ct =
   in mk_rewr (discharge2 lhs rhs rule) end
 
 fun with_conj f g ct = iff_intro iff_conj_thm (f o explode_conj) g ct
-fun with_ndis f g ct = iff_intro iff_ndis_thm (f o explode_ndis) g (Thm.apply \<^cterm>\<open>HOL.Not\<close> ct)
+fun with_ndis f g ct = iff_intro iff_ndis_thm (f o explode_ndis) g (Thm.apply \<^cterm>\<open>Not\<close> ct)
 
 fun swap_indices n iss = map (fn i => find_index (fn is => member (op =) is i) iss) (0 upto (n - 1))
 fun sort_nary w f g (n, iss) = w (f (map hd iss)) (under_assumption (f (swap_indices n iss) o g))
@@ -485,7 +483,7 @@ and replay_args_conv _ [] ct = Conv.all_conv ct
   | replay_args_conv ctxt [c1, c2] ct = binop_conv (replay_conv ctxt c1) (replay_conv ctxt c2) ct
   | replay_args_conv ctxt (c :: cs) ct =
       (case Term.head_of (Thm.term_of ct) of
-        Const (\<^const_name>\<open>HOL.If\<close>, _) =>
+        \<^Const_>\<open>If _\<close> =>
           let val (cs', c') = split_last cs
           in Conv.combination_conv (replay_args_conv ctxt (c :: cs')) (replay_conv ctxt c') ct end
       | _ => binop_conv (replay_conv ctxt c) (replay_args_conv ctxt cs) ct)
@@ -521,7 +519,7 @@ fun replay_clause is thm = replay_with_lits is thm []
 
 val unit_rule = @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> (\<not>P \<Longrightarrow> False) \<Longrightarrow> False" by fast}
 val unit_rule_var = Thm.dest_arg (Thm.dest_arg1 (Thm.cprem_of unit_rule 1))
-val bogus_ct = \<^cterm>\<open>HOL.True\<close>
+val bogus_ct = \<^cterm>\<open>True\<close>
 
 fun replay_unit_res lit (pthm, plits) (nthm, nlits) =
   let
@@ -544,7 +542,7 @@ val dneg_rule = @{lemma "\<not>\<not>P \<Longrightarrow> P" by auto}
 fun replay_hyp i ct =
   if i < 0 then (Thm.assume ct, [(~i, ct)])
   else
-    let val cu = as_prop (Thm.apply \<^cterm>\<open>HOL.Not\<close> (Thm.apply \<^cterm>\<open>HOL.Not\<close> (Thm.dest_arg ct)))
+    let val cu = as_prop (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply \<^cterm>\<open>Not\<close> (Thm.dest_arg ct)))
     in (discharge (Thm.assume cu) dneg_rule, [(~i, cu)]) end
 
 
@@ -602,7 +600,7 @@ val unclausify_rule2 = @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> \<
 
 fun unclausify (thm, lits) ls =
   (case (Thm.prop_of thm, lits) of
-    (\<^const>\<open>HOL.Trueprop\<close> $ \<^const>\<open>HOL.False\<close>, [(_, ct)]) =>
+    (\<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>False\<close>\<close>\<close>, [(_, ct)]) =>
       let val thm = Thm.implies_intr ct thm
       in (discharge thm unclausify_rule1 handle THM _ => discharge thm unclausify_rule2, ls) end
   | _ => (thm, Ord_List.union lit_ord lits ls))
@@ -669,22 +667,22 @@ fun instantiate_elim_rule thm =
   let val ct = Drule.strip_imp_concl (Thm.cprop_of thm)
   in
     (case Thm.term_of ct of
-      \<^const>\<open>HOL.Trueprop\<close> $ Var (_, \<^typ>\<open>HOL.bool\<close>) =>
-        instantiate (Thm.dest_arg ct) \<^cterm>\<open>HOL.False\<close> thm
-    | Var _ => instantiate ct \<^cprop>\<open>HOL.False\<close> thm
+      \<^Const_>\<open>Trueprop for \<open>Var (_, \<^Type>\<open>bool\<close>)\<close>\<close> =>
+        instantiate (Thm.dest_arg ct) \<^cterm>\<open>False\<close> thm
+    | Var _ => instantiate ct \<^cprop>\<open>False\<close> thm
     | _ => thm)
   end
 
 fun atomize_conv ctxt ct =
   (case Thm.term_of ct of
-    \<^const>\<open>HOL.Trueprop\<close> $ _ => Conv.all_conv
-  | \<^const>\<open>Pure.imp\<close> $ _ $ _ =>
+    \<^Const_>\<open>Trueprop for _\<close> => Conv.all_conv
+  | \<^Const_>\<open>Pure.imp for _ _\<close> =>
       Conv.binop_conv (atomize_conv ctxt) then_conv
       Conv.rewr_conv @{thm atomize_imp}
-  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ =>
+  | \<^Const>\<open>Pure.eq _ for _ _\<close> =>
       Conv.binop_conv (atomize_conv ctxt) then_conv
       Conv.rewr_conv @{thm atomize_eq}
-  | Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs _ =>
+  | \<^Const>\<open>Pure.all _ for \<open>Abs _\<close>\<close> =>
       Conv.binder_conv (atomize_conv o snd) ctxt then_conv
       Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
