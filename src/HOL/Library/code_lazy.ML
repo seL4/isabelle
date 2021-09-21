@@ -91,7 +91,7 @@ fun add_syntax_definition short_type_name eagerT lazyT lazy_ctr lthy =
     val lthy' = (snd o Local_Theory.begin_nested) lthy
     val ((t, (_, thm)), lthy') = Specification.definition NONE [] [] 
       ((Thm.def_binding (Binding.name name), []), def) lthy'
-    val lthy' = Specification.notation true ("", false) [(t, Mixfix.mixfix "_")] lthy'
+    val lthy' = Local_Theory.notation true ("", false) [(t, Mixfix.mixfix "_")] lthy'
     val lthy = Local_Theory.end_nested lthy'
     val def_thm = singleton (Proof_Context.export lthy' lthy) thm
   in

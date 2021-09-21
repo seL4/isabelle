@@ -46,11 +46,6 @@ sig
   val alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
   val type_alias: binding * string -> local_theory -> local_theory
   val type_alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
-  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
-  val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list ->
-    local_theory -> local_theory
-  val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
     (Attrib.binding * Attrib.thms) list ->
     (binding * typ option * mixfix) list ->
@@ -332,28 +327,6 @@ val type_alias =
   gen_alias Local_Theory.type_alias (K (K (fn c => (c, []))));
 val type_alias_cmd =
   gen_alias Local_Theory.type_alias (apfst (#1 o dest_Type) ooo Proof_Context.check_type_name);
-
-
-(* notation *)
-
-local
-
-fun gen_type_notation prep_type add mode args lthy =
-  lthy |> Local_Theory.type_notation add mode (map (apfst (prep_type lthy)) args);
-
-fun gen_notation prep_const add mode args lthy =
-  lthy |> Local_Theory.notation add mode (map (apfst (prep_const lthy)) args);
-
-in
-
-val type_notation = gen_type_notation (K I);
-val type_notation_cmd =
-  gen_type_notation (Proof_Context.read_type_name {proper = true, strict = false});
-
-val notation = gen_notation (K I);
-val notation_cmd = gen_notation (Proof_Context.read_const {proper = false, strict = false});
-
-end;
 
 
 (* fact statements *)

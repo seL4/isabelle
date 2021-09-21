@@ -499,25 +499,25 @@ val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>type_notation\<close>
     "add concrete syntax for type constructors"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
+      >> (fn (mode, args) => Local_Theory.type_notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_type_notation\<close>
     "delete concrete syntax for type constructors"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
+      >> (fn (mode, args) => Local_Theory.type_notation_cmd false mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>notation\<close>
     "add concrete syntax for constants / fixed variables"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.notation_cmd true mode args));
+      >> (fn (mode, args) => Local_Theory.notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_notation\<close>
     "delete concrete syntax for constants / fixed variables"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.notation_cmd false mode args));
+      >> (fn (mode, args) => Local_Theory.notation_cmd false mode args));
 
 in end\<close>
 
