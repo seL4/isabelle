@@ -180,6 +180,7 @@ fun isabelle_heading () =
 
 fun isabelle_name () = getenv_strict "ISABELLE_NAME";
 
-fun identification () = "Isabelle/" ^ isabelle_id () ^ isabelle_heading ();
+fun identification () =
+  "Isabelle" ^ (case try isabelle_id () of SOME id => "/" ^ id | NONE => "") ^ isabelle_heading ();
 
 end;

@@ -384,14 +384,14 @@ val _ =
     (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals_global));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>syntax\<close> "add raw syntax clauses"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>syntax\<close> "add raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.add_syntax_cmd));
+      >> uncurry (Local_Theory.syntax_cmd true));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.del_syntax_cmd));
+      >> uncurry (Local_Theory.syntax_cmd false));
 
 val trans_pat =
   Scan.optional
@@ -499,25 +499,25 @@ val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>type_notation\<close>
     "add concrete syntax for type constructors"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
+      >> (fn (mode, args) => Local_Theory.type_notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_type_notation\<close>
     "delete concrete syntax for type constructors"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
+      >> (fn (mode, args) => Local_Theory.type_notation_cmd false mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>notation\<close>
     "add concrete syntax for constants / fixed variables"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.notation_cmd true mode args));
+      >> (fn (mode, args) => Local_Theory.notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_notation\<close>
     "delete concrete syntax for constants / fixed variables"
     (Parse.syntax_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
-      >> (fn (mode, args) => Specification.notation_cmd false mode args));
+      >> (fn (mode, args) => Local_Theory.notation_cmd false mode args));
 
 in end\<close>
 

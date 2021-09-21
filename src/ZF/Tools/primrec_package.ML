@@ -18,7 +18,7 @@ struct
 exception RecError of string;
 
 (*Remove outer Trueprop and equality sign*)
-val dest_eqn = FOLogic.dest_eq o FOLogic.dest_Trueprop;
+val dest_eqn = FOLogic.dest_eq o \<^dest_judgment>;
 
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 

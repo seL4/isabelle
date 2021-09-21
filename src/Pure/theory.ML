@@ -30,6 +30,8 @@ sig
   val type_dep: string * typ list -> Defs.entry
   val add_deps: Defs.context -> string -> Defs.entry -> Defs.entry list -> theory -> theory
   val add_deps_global: string -> Defs.entry -> Defs.entry list -> theory -> theory
+  val add_deps_const: string -> theory -> theory
+  val add_deps_type: string -> theory -> theory
   val add_def: Defs.context -> bool -> bool -> binding * term -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
   val check_overloading: Proof.context -> bool -> string * typ -> unit
@@ -269,6 +271,16 @@ fun add_deps context a raw_lhs raw_rhs thy =
 
 fun add_deps_global a x y thy =
   add_deps (Defs.global_context thy) a x y thy;
+
+fun add_deps_const c thy =
+  let val T = Logic.unvarifyT_global (Sign.the_const_type thy c);
+  in thy |> add_deps_global "" (const_dep thy (c, T)) [] end;
+
+fun add_deps_type c thy =
+  let
+    val n = Sign.arity_number thy c;
+    val args = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
+  in thy |> add_deps_global "" (type_dep (c, args)) [] end
 
 fun specify_const decl thy =
   let val (t, thy') = Sign.declare_const_global decl thy;

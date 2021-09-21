@@ -60,8 +60,15 @@ sig
   val pretty: local_theory -> Pretty.T list
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> local_theory -> local_theory
   val set_defsort: sort -> local_theory -> local_theory
+  val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
+    local_theory -> local_theory
+  val syntax_cmd: bool -> Syntax.mode -> (string * string * mixfix) list ->
+    local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
+  val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list ->
+    local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: {background_naming: Name_Space.naming, setup: theory -> Proof.context,
@@ -297,11 +304,30 @@ fun set_defsort S =
     (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
 
 
+(* syntax *)
+
+fun gen_syntax prep_type add mode raw_args lthy =
+  let
+    val args = map (fn (c, T, mx) => (c, prep_type lthy T, mx)) raw_args;
+    val args' = map (fn (c, T, mx) => (c, T, Mixfix.reset_pos mx)) args;
+    val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.syntax add mode args;
+  in
+    declaration {syntax = true, pervasive = false}
+      (fn _ => Proof_Context.generic_syntax add mode args') lthy
+  end;
+
+val syntax = gen_syntax (K I);
+val syntax_cmd = gen_syntax Proof_Context.read_typ_syntax;
+
+
 (* notation *)
 
-fun type_notation add mode raw_args lthy =
+local
+
+fun gen_type_notation prep_type add mode raw_args lthy =
   let
-    val args = map (apfst (Logic.type_map (Assumption.export_term lthy (target_of lthy)))) raw_args;
+    val prepare = prep_type lthy #> Logic.type_map (Assumption.export_term lthy (target_of lthy));
+    val args = map (apfst prepare) raw_args;
     val args' = map (apsnd Mixfix.reset_pos) args;
     val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.type_notation add mode args;
   in
@@ -309,15 +335,27 @@ fun type_notation add mode raw_args lthy =
       (Proof_Context.generic_type_notation add mode args') lthy
   end;
 
-fun notation add mode raw_args lthy =
+fun gen_notation prep_const add mode raw_args lthy =
   let
-    val args = map (apfst (Assumption.export_term lthy (target_of lthy))) raw_args
+    val prepare = prep_const lthy #> Assumption.export_term lthy (target_of lthy);
+    val args = map (apfst prepare) raw_args;
     val args' = map (apsnd Mixfix.reset_pos) args;
     val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.notation add mode args;
   in
     declaration {syntax = true, pervasive = false}
       (Proof_Context.generic_notation add mode args') lthy
   end;
+
+in
+
+val type_notation = gen_type_notation (K I);
+val type_notation_cmd =
+  gen_type_notation (Proof_Context.read_type_name {proper = true, strict = false});
+
+val notation = gen_notation (K I);
+val notation_cmd = gen_notation (Proof_Context.read_const {proper = false, strict = false});
+
+end;
 
 
 (* name space aliases *)

@@ -89,7 +89,7 @@ latter in theory \<^theory>\<open>HOL.Set\<close>).
 
 \subsubsection*{Syntax}
 
-Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Library\<close>.
+Available via \<^theory_text>\<open>unbundle lattice_syntax\<close>.
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{text[source]"x \<sqsubseteq> y"} & \<^term>\<open>x \<le> y\<close>\\

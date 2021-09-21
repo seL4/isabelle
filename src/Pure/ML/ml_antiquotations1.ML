@@ -4,7 +4,13 @@
 Miscellaneous ML antiquotations: part 1.
 *)
 
-structure ML_Antiquotations1: sig end =
+signature ML_ANTIQUOTATIONS1 =
+sig
+  val make_judgment: Proof.context -> term -> term
+  val dest_judgment: Proof.context -> term -> term
+end;
+
+structure ML_Antiquotations1: ML_ANTIQUOTATIONS1 =
 struct
 
 (* ML support *)
@@ -171,10 +177,8 @@ val _ = Theory.setup
     (const_name (fn (_, c) => Lexicon.mark_const c)) #>
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>syntax_const\<close>
-    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (c, pos)) =>
-      if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
-      then ML_Syntax.print_string c
-      else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, arg) =>
+      ML_Syntax.print_string (Proof_Context.check_syntax_const ctxt arg))) #>
 
   ML_Antiquotation.inline_embedded \<^binding>\<open>const\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax) -- Scan.optional
@@ -190,6 +194,22 @@ val _ = Theory.setup
               quote c ^ enclose "(" ")" (commas (replicate n "_")) ^ Position.here pos);
           val const = Const (c, Consts.instance consts (c, Ts));
         in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
+
+
+(* object-logic judgment *)
+
+fun make_judgment ctxt t = Const (Object_Logic.judgment_const ctxt) $ t;
+
+fun dest_judgment ctxt t =
+  if Object_Logic.is_judgment ctxt t
+  then Object_Logic.drop_judgment ctxt t
+  else raise TERM ("dest_judgment", [t]);
+
+val _ = Theory.setup
+ (ML_Antiquotation.value \<^binding>\<open>make_judgment\<close>
+   (Scan.succeed "ML_Antiquotations1.make_judgment ML_context") #>
+  ML_Antiquotation.value \<^binding>\<open>dest_judgment\<close>
+   (Scan.succeed "ML_Antiquotations1.dest_judgment ML_context"));
 
 
 (* type/term constructors *)

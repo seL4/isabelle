@@ -6,8 +6,6 @@ Abstract syntax operations for FOL.
 
 signature FOLOGIC =
 sig
-  val mk_Trueprop: term -> term
-  val dest_Trueprop: term -> term
   val mk_conj: term * term -> term
   val mk_disj: term * term -> term
   val mk_imp: term * term -> term
@@ -23,10 +21,6 @@ end;
 
 structure FOLogic: FOLOGIC =
 struct
-
-fun mk_Trueprop P = \<^Const>\<open>Trueprop for P\<close>;
-
-val dest_Trueprop = \<^Const_fn>\<open>Trueprop for P => P\<close>;
 
 fun mk_conj (t1, t2) = \<^Const>\<open>conj for t1 t2\<close>
 and mk_disj (t1, t2) = \<^Const>\<open>disj for t1 t2\<close>

@@ -46,7 +46,7 @@ fun add_proof_syntax thy =
   |> Sign.add_nonterminals_global
     [Binding.make ("param", \<^here>),
      Binding.make ("params", \<^here>)]
-  |> Sign.add_syntax Syntax.mode_default
+  |> Sign.syntax true Syntax.mode_default
     [("_Lam", [paramsT, proofT] ---> proofT, mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
      ("_Lam0", [paramT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),
      ("_Lam0", [idtT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),

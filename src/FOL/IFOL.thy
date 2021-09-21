@@ -527,7 +527,7 @@ ML \<open>
 structure Hypsubst = Hypsubst
 (
   val dest_eq = FOLogic.dest_eq
-  val dest_Trueprop = FOLogic.dest_Trueprop
+  val dest_Trueprop = \<^dest_judgment>
   val dest_imp = FOLogic.dest_imp
   val eq_reflection = @{thm eq_reflection}
   val rev_eq_reflection = @{thm meta_eq_to_obj_eq}
