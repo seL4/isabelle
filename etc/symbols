@@ -456,6 +456,8 @@
 \<^ctyp>                argument: cartouche
 \<^keyword>             argument: cartouche
 \<^locale>              argument: cartouche
+\<^make_judgment>
+\<^dest_judgment>
 \<^make_string>
 \<^method>              argument: cartouche
 \<^named_theorems>      argument: cartouche
