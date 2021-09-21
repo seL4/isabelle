@@ -270,7 +270,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Each equation has the form
     case(f_con1,...,f_conn)(coni(args)) = f_coni(args) *)
   fun mk_case_eqn (((_,T,_), name, args, _), case_free) =
-    FOLogic.mk_Trueprop
+    \<^make_judgment>
       (FOLogic.mk_eq
        (case_tm $
          (list_comb (Const (Sign.intern_const thy1 name,T),
@@ -320,7 +320,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           where REC = recursor(f_con1,...,f_conn) and rec_arg is a recursive
           constructor argument.*)
         fun mk_recursor_eqn (((_,T,_), name, args, _), recursor_case) =
-          FOLogic.mk_Trueprop
+          \<^make_judgment>
            (FOLogic.mk_eq
             (recursor_tm $
              (list_comb (Const (Sign.intern_const thy2 name,T),

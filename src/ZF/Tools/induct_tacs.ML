@@ -72,7 +72,7 @@ exception Find_tname of string
 fun find_tname ctxt var As =
   let fun mk_pair \<^Const_>\<open>mem for \<open>Free (v,_)\<close> A\<close> = (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
-      val pairs = map_filter (try (mk_pair o FOLogic.dest_Trueprop)) As
+      val pairs = map_filter (try (mk_pair o \<^dest_judgment>)) As
       val x =
         (case try (dest_Free o Syntax.read_term ctxt) var of
           SOME (x, _) => x
@@ -101,7 +101,7 @@ fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
     val \<^Const_>\<open>mem for \<open>Var(ixn,_)\<close> _\<close> =
         (case Thm.prems_of rule of
              [] => error "induction is not available for this datatype"
-           | major::_ => FOLogic.dest_Trueprop major)
+           | major::_ => \<^dest_judgment> major)
   in
     Rule_Insts.eres_inst_tac ctxt [((ixn, Position.none), var)] fixes rule i
   end
@@ -124,9 +124,9 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
                               Syntax.string_of_term_global thy eqn);
 
     val constructors =
-        map (head_of o const_of o FOLogic.dest_Trueprop o Thm.prop_of) case_eqns;
+        map (head_of o const_of o \<^dest_judgment> o Thm.prop_of) case_eqns;
 
-    val \<^Const_>\<open>mem for _ data\<close> = FOLogic.dest_Trueprop (hd (Thm.prems_of elim));
+    val \<^Const_>\<open>mem for _ data\<close> = \<^dest_judgment> (hd (Thm.prems_of elim));
 
     val Const(big_rec_name, _) = head_of data;
 

@@ -79,9 +79,8 @@ fun mk_intr_tms sg (rec_tm, constructs) =
   let
     fun mk_intr ((id,T,syn), name, args, prems) =
       Logic.list_implies
-        (map FOLogic.mk_Trueprop prems,
-         FOLogic.mk_Trueprop
-            (\<^Const>\<open>mem\<close> $ list_comb (Const (Sign.full_bname sg name, T), args) $ rec_tm))
+        (map \<^make_judgment> prems,
+         \<^make_judgment> (\<^Const>\<open>mem\<close> $ list_comb (Const (Sign.full_bname sg name, T), args) $ rec_tm))
   in  map mk_intr constructs  end;
 
 fun mk_all_intr_tms sg arg = flat (ListPair.map (mk_intr_tms sg) arg);

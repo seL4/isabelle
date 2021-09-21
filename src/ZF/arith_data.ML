@@ -53,15 +53,13 @@ fun mk_eq_iff(t,u) =
 
 (*We remove equality assumptions because they confuse the simplifier and
   because only type-checking assumptions are necessary.*)
-fun is_eq_thm th =
-    can FOLogic.dest_eq (FOLogic.dest_Trueprop (Thm.prop_of th));
+fun is_eq_thm th = can FOLogic.dest_eq (\<^dest_judgment> (Thm.prop_of th));
 
 fun prove_conv name tacs ctxt prems (t,u) =
   if t aconv u then NONE
   else
   let val prems' = filter_out is_eq_thm prems
-      val goal = Logic.list_implies (map Thm.prop_of prems',
-        FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
+      val goal = Logic.list_implies (map Thm.prop_of prems', \<^make_judgment> (mk_eq_iff (t, u)));
   in SOME (prems' MRS Goal.prove ctxt [] [] goal (K (EVERY tacs)))
       handle ERROR msg =>
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)

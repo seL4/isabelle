@@ -185,7 +185,7 @@ let
   val dummy = writeln "  Proving monotonicity...";
 
   val bnd_mono0 =
-    Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
+    Goal.prove_global thy1 [] [] (\<^make_judgment> (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn {context = ctxt, ...} => EVERY
         [resolve_tac ctxt [@{thm Collect_subset} RS @{thm bnd_monoI}] 1,
          REPEAT (ares_tac ctxt (@{thms basic_monos} @ monos) 1)]);
@@ -300,7 +300,7 @@ let
         prem is a premise of an intr rule*)
      fun add_induct_prem ind_alist (prem as \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for t X\<close>\<close>\<close>, iprems) =
           (case AList.lookup (op aconv) ind_alist X of
-               SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
+               SOME pred => prem :: \<^make_judgment> (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)
                  let fun mk_sb (rec_tm,pred) =
                              (rec_tm, \<^Const>\<open>Collect\<close> $ rec_tm $ pred)
@@ -314,7 +314,7 @@ let
                               (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr
            val (SOME pred) = AList.lookup (op aconv) ind_alist X
-           val concl = FOLogic.mk_Trueprop (pred $ t)
+           val concl = \<^make_judgment> (pred $ t)
        in fold_rev Logic.all xs (Logic.list_implies (iprems,concl)) end
        handle Bind => error"Recursion term not found in conclusion";
 
@@ -349,7 +349,7 @@ let
 
      val quant_induct =
        Goal.prove_global thy4 [] ind_prems
-         (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
+         (\<^make_judgment> (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
          (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt part_rec_defs,
             resolve_tac ctxt [@{thm impI} RS @{thm allI}] 1,
@@ -404,14 +404,14 @@ let
 
      (*To instantiate the main induction rule*)
      val induct_concl =
-         FOLogic.mk_Trueprop
+         \<^make_judgment>
            (Ind_Syntax.mk_all_imp
             (big_rec_tm,
              Abs("z", \<^Type>\<open>i\<close>,
                  Balanced_Tree.make FOLogic.mk_conj
                  (ListPair.map mk_rec_imp (rec_tms, preds)))))
      and mutual_induct_concl =
-      FOLogic.mk_Trueprop (Balanced_Tree.make FOLogic.mk_conj qconcls);
+       \<^make_judgment> (Balanced_Tree.make FOLogic.mk_conj qconcls);
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln ("induct_concl = " ^

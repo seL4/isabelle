@@ -33,7 +33,7 @@ fun smart_cases ctxt s =
 
     fun err msg = cat_error msg ("Malformed set membership statement: " ^ s);
     val A = Syntax.read_prop ctxt s handle ERROR msg => err msg;
-    val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (FOLogic.dest_Trueprop
+    val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (\<^dest_judgment>
       (Logic.strip_imp_concl A)))))) handle TERM _ => err "";
   in
     (case Symtab.lookup (IndCasesData.get thy) c of
