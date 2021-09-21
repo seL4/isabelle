@@ -198,12 +198,19 @@ val _ = Theory.setup
 
 (* object-logic judgment *)
 
-fun make_judgment ctxt t = Const (Object_Logic.judgment_const ctxt) $ t;
+fun make_judgment ctxt =
+  let val const = Object_Logic.judgment_const ctxt
+  in fn t => Const const $ t end;
 
-fun dest_judgment ctxt t =
-  if Object_Logic.is_judgment ctxt t
-  then Object_Logic.drop_judgment ctxt t
-  else raise TERM ("dest_judgment", [t]);
+fun dest_judgment ctxt =
+  let
+    val is_judgment = Object_Logic.is_judgment ctxt;
+    val drop_judgment = Object_Logic.drop_judgment ctxt;
+  in
+    fn t =>
+      if is_judgment t then drop_judgment t
+      else raise TERM ("dest_judgment", [t])
+  end;
 
 val _ = Theory.setup
  (ML_Antiquotation.value \<^binding>\<open>make_judgment\<close>

@@ -122,13 +122,17 @@ fun judgment_const ctxt =
     val T = Sign.the_const_type thy c;
   in (c, T) end;
 
-fun is_judgment ctxt (Const (c, _) $ _) = c = judgment_name ctxt
-  | is_judgment _ _ = false;
+fun is_judgment ctxt =
+  let val name = judgment_name ctxt
+  in fn Const (c, _) $ _ => c = name | _ => false end;
 
-fun drop_judgment ctxt (Abs (x, T, t)) = Abs (x, T, drop_judgment ctxt t)
-  | drop_judgment ctxt (tm as (Const (c, _) $ t)) =
-      if (c = judgment_name ctxt handle TERM _ => false) then t else tm
-  | drop_judgment _ tm = tm;
+fun drop_judgment ctxt =
+  let
+    val name = judgment_name ctxt;
+    fun drop (Abs (x, T, t)) = Abs (x, T, drop t)
+      | drop (t as Const (c, _) $ u) = if c = name then u else t
+      | drop t = t;
+  in drop end handle TERM _ => I;
 
 fun fixed_judgment ctxt x =
   let  (*be robust wrt. low-level errors*)
