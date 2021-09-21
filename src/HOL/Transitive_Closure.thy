@@ -1287,12 +1287,12 @@ structure Trancl_Tac = Trancl_Tac
   val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
   val rtrancl_trans = @{thm rtrancl_trans};
 
-  fun decomp (\<^const>\<open>Trueprop\<close> $ t) =
+  fun decomp \<^Const_>\<open>Trueprop for t\<close> =
         let
-          fun dec (Const (\<^const_name>\<open>Set.member\<close>, _) $ (Const (\<^const_name>\<open>Pair\<close>, _) $ a $ b) $ rel) =
+          fun dec \<^Const_>\<open>Set.member _ for \<open>\<^Const_>\<open>Pair _ _ for a b\<close>\<close> rel\<close> =
               let
-                fun decr (Const (\<^const_name>\<open>rtrancl\<close>, _ ) $ r) = (r,"r*")
-                  | decr (Const (\<^const_name>\<open>trancl\<close>, _ ) $ r)  = (r,"r+")
+                fun decr \<^Const_>\<open>rtrancl _ for r\<close> = (r,"r*")
+                  | decr \<^Const_>\<open>trancl _ for r\<close> = (r,"r+")
                   | decr r = (r,"r");
                 val (rel,r) = decr (Envir.beta_eta_contract rel);
               in SOME (a,b,rel,r) end
@@ -1312,12 +1312,12 @@ structure Tranclp_Tac = Trancl_Tac
   val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
   val rtrancl_trans = @{thm rtranclp_trans};
 
-  fun decomp (\<^const>\<open>Trueprop\<close> $ t) =
+  fun decomp \<^Const_>\<open>Trueprop for t\<close> =
         let
           fun dec (rel $ a $ b) =
             let
-              fun decr (Const (\<^const_name>\<open>rtranclp\<close>, _ ) $ r) = (r,"r*")
-                | decr (Const (\<^const_name>\<open>tranclp\<close>, _ ) $ r)  = (r,"r+")
+              fun decr \<^Const_>\<open>rtranclp _ for r\<close> = (r,"r*")
+                | decr \<^Const_>\<open>tranclp _ for r\<close> = (r,"r+")
                 | decr r = (r,"r");
               val (rel,r) = decr rel;
             in SOME (a, b, rel, r) end

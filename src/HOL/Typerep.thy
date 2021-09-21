@@ -32,8 +32,7 @@ parse_translation \<open>
 
 typed_print_translation \<open>
   let
-    fun typerep_tr' ctxt (*"typerep"*)
-            (Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>itself\<close>, [T]), _]))
+    fun typerep_tr' ctxt (*"typerep"*) \<^Type>\<open>fun \<open>\<^Type>\<open>itself T\<close>\<close> _\<close>
             (Const (\<^const_syntax>\<open>Pure.type\<close>, _) :: ts) =
           Term.list_comb
             (Syntax.const \<^syntax_const>\<open>_TYPEREP\<close> $ Syntax_Phases.term_of_typ ctxt T, ts)
@@ -49,10 +48,9 @@ fun add_typerep tyco thy =
     val sorts = replicate (Sign.arity_number thy tyco) \<^sort>\<open>typerep\<close>;
     val vs = Name.invent_names Name.context "'a" sorts;
     val ty = Type (tyco, map TFree vs);
-    val lhs = Const (\<^const_name>\<open>typerep\<close>, Term.itselfT ty --> \<^typ>\<open>typerep\<close>)
-      $ Free ("T", Term.itselfT ty);
-    val rhs = \<^term>\<open>Typerep\<close> $ HOLogic.mk_literal tyco
-      $ HOLogic.mk_list \<^typ>\<open>typerep\<close> (map (HOLogic.mk_typerep o TFree) vs);
+    val lhs = \<^Const>\<open>typerep ty\<close> $ Free ("T", Term.itselfT ty);
+    val rhs = \<^Const>\<open>Typerep\<close> $ HOLogic.mk_literal tyco
+      $ HOLogic.mk_list \<^Type>\<open>typerep\<close> (map (HOLogic.mk_typerep o TFree) vs);
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in
     thy
