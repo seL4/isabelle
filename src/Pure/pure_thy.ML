@@ -29,18 +29,6 @@ fun infix_ (sy, p) = Infix (Input.string sy, p, Position.no_range);
 fun infixr_ (sy, p) = Infixr (Input.string sy, p, Position.no_range);
 fun binder (sy, p, q) = Binder (Input.string sy, p, q, Position.no_range);
 
-fun add_deps_type c thy =
-  let
-    val n = Sign.arity_number thy c;
-    val typargs = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
-  in thy |> Theory.add_deps_global "" ((Defs.Type, c), typargs) [] end
-
-fun add_deps_const c thy =
-  let
-    val T = Logic.unvarifyT_global (Sign.the_const_type thy c);
-    val typargs = Sign.const_typargs thy (c, T);
-  in thy |> Theory.add_deps_global "" ((Defs.Const, c), typargs) [] end;
-
 
 (* application syntax variants *)
 
@@ -86,11 +74,11 @@ val _ = Theory.setup
     (Binding.make ("itself", \<^here>), 1, NoSyn),
     (Binding.make ("dummy", \<^here>), 0, NoSyn),
     (qualify (Binding.make ("proof", \<^here>)), 0, NoSyn)]
-  #> add_deps_type "fun"
-  #> add_deps_type "prop"
-  #> add_deps_type "itself"
-  #> add_deps_type "dummy"
-  #> add_deps_type "Pure.proof"
+  #> Theory.add_deps_type "fun"
+  #> Theory.add_deps_type "prop"
+  #> Theory.add_deps_type "itself"
+  #> Theory.add_deps_type "dummy"
+  #> Theory.add_deps_type "Pure.proof"
   #> Sign.add_nonterminals_global
     (map (fn name => Binding.make (name, \<^here>))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
@@ -225,11 +213,11 @@ val _ = Theory.setup
     (qualify (Binding.make ("Oracle", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("PClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("MinProof", \<^here>)), typ "Pure.proof", NoSyn)]
-  #> add_deps_const "Pure.eq"
-  #> add_deps_const "Pure.imp"
-  #> add_deps_const "Pure.all"
-  #> add_deps_const "Pure.type"
-  #> add_deps_const "Pure.dummy_pattern"
+  #> Theory.add_deps_const "Pure.eq"
+  #> Theory.add_deps_const "Pure.imp"
+  #> Theory.add_deps_const "Pure.all"
+  #> Theory.add_deps_const "Pure.type"
+  #> Theory.add_deps_const "Pure.dummy_pattern"
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
