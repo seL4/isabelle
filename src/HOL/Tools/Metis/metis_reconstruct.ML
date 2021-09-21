@@ -221,10 +221,10 @@ fun resolve_inc_tyvars ctxt th1 i th2 =
       end
   end
 
-fun s_not (\<^const>\<open>Not\<close> $ t) = t
+fun s_not \<^Const_>\<open>Not for t\<close> = t
   | s_not t = HOLogic.mk_not t
-fun simp_not_not (\<^const>\<open>Trueprop\<close> $ t) = \<^const>\<open>Trueprop\<close> $ simp_not_not t
-  | simp_not_not (\<^const>\<open>Not\<close> $ t) = s_not (simp_not_not t)
+fun simp_not_not \<^Const_>\<open>Trueprop for t\<close> = \<^Const>\<open>Trueprop for \<open>simp_not_not t\<close>\<close>
+  | simp_not_not \<^Const_>\<open>Not for t\<close> = s_not (simp_not_not t)
   | simp_not_not t = t
 
 val normalize_literal = simp_not_not o Envir.eta_contract
@@ -414,7 +414,7 @@ fun flexflex_first_order ctxt th =
 fun is_metis_literal_genuine (_, (s, _)) =
   not (String.isPrefix class_prefix (Metis_Name.toString s))
 fun is_isabelle_literal_genuine t =
-  (case t of _ $ (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) => false | _ => true)
+  (case t of _ $ \<^Const_>\<open>Meson.skolem _ for _\<close> => false | _ => true)
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
@@ -660,11 +660,11 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
 
       fun subst_info_of_prem subgoal_no prem =
         (case prem of
-          _ $ (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ (_ $ t $ num)) =>
-          let val ax_no = HOLogic.dest_nat num in
-            (ax_no, (subgoal_no,
-                     match_term (nth axioms ax_no |> the |> snd, t)))
-          end
+          _ $ \<^Const_>\<open>Meson.skolem _ for \<open>_ $ t $ num\<close>\<close> =>
+            let val ax_no = HOLogic.dest_nat num in
+              (ax_no, (subgoal_no,
+                       match_term (nth axioms ax_no |> the |> snd, t)))
+            end
         | _ => raise TERM ("discharge_skolem_premises: Malformed premise", [prem]))
 
       fun cluster_of_var_name skolem s =

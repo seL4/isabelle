@@ -48,12 +48,12 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t". Type tag idempotence is also handled this way. *)
 fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
   (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
-    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ t =>
+    \<^Const_>\<open>HOL.eq _ for _ t\<close> =>
       let
         val ct = Thm.cterm_of ctxt t
         val cT = Thm.ctyp_of_cterm ct
       in refl |> Thm.instantiate' [SOME cT] [SOME ct] end
-  | Const (\<^const_name>\<open>disj\<close>, _) $ t1 $ t2 =>
+  | \<^Const_>\<open>disj for t1 t2\<close> =>
       (if can HOLogic.dest_not t1 then t2 else t1)
       |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
   | _ => raise Fail "expected reflexive or trivial clause")
@@ -94,7 +94,7 @@ fun introduce_lam_wrappers ctxt th =
                     |> Thm.cterm_of ctxt
                     |> Conv.comb_conv (conv true ctxt))
               else Conv.abs_conv (conv false o snd) ctxt ct
-          | Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _ => Thm.reflexive ct
+          | \<^Const_>\<open>Meson.skolem _ for _\<close> => Thm.reflexive ct
           | _ => Conv.comb_conv (conv true ctxt) ct)
       val eq_th = conv true ctxt (Thm.cprop_of th)
       (* We replace the equation's left-hand side with a beta-equivalent term

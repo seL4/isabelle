@@ -71,8 +71,7 @@ fun old_skolem_const_name i j num_T_args =
 fun conceal_old_skolem_terms i old_skolems t =
   if exists_Const (curry (op =) \<^const_name>\<open>Meson.skolem\<close> o fst) t then
     let
-      fun aux old_skolems
-             (t as (Const (\<^const_name>\<open>Meson.skolem\<close>, Type (_, [_, T])) $ _)) =
+      fun aux old_skolems (t as \<^Const_>\<open>Meson.skolem T for _\<close>) =
           let
             val (old_skolems, s) =
               if i = ~1 then
@@ -114,8 +113,8 @@ fun reveal_lam_lifted lifted =
       if String.isPrefix lam_lifted_prefix s then
         (case AList.lookup (op =) lifted s of
           SOME t =>
-          Const (\<^const_name>\<open>Metis.lambda\<close>, dummyT)
-          $ map_types (map_type_tvar (K dummyT)) (reveal_lam_lifted lifted t)
+            \<^Const>\<open>Metis.lambda dummyT\<close> $
+              map_types (map_type_tvar (K dummyT)) (reveal_lam_lifted lifted t)
         | NONE => t)
       else
         t
@@ -190,7 +189,7 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
     end
   | metis_axiom_of_atp _ _ _ _ = raise Fail "not CNF -- expected formula"
 
-fun eliminate_lam_wrappers (Const (\<^const_name>\<open>Metis.lambda\<close>, _) $ t) = eliminate_lam_wrappers t
+fun eliminate_lam_wrappers \<^Const_>\<open>Metis.lambda _ for t\<close> = eliminate_lam_wrappers t
   | eliminate_lam_wrappers (t $ u) = eliminate_lam_wrappers t $ eliminate_lam_wrappers u
   | eliminate_lam_wrappers (Abs (s, T, t)) = Abs (s, T, eliminate_lam_wrappers t)
   | eliminate_lam_wrappers t = t
