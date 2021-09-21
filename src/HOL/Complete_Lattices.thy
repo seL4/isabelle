@@ -15,10 +15,10 @@ begin
 subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class Inf =
-  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter>")
+  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter> _" [900] 900)
 
 class Sup =
-  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion>")
+  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion> _" [900] 900)
 
 syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)

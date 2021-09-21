@@ -104,6 +104,5 @@ no_syntax
 end
 
 unbundle no_lattice_syntax
-no_notation Inf ("\<Sqinter>") and Sup ("\<Squnion>")
 
 end
