@@ -41,9 +41,9 @@ val ctp_false = Thm.cterm_of \<^theory_context>\<open>HOL\<close> (HOLogic.mk_Tr
    "Sledgehammer_Util".) *)
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
-    \<^const>\<open>Trueprop\<close> $ (Var (v as (_, \<^typ>\<open>bool\<close>))) =>
+    \<^Const_>\<open>Trueprop for \<open>Var (v as (_, \<^Type>\<open>bool\<close>))\<close>\<close> =>
       Thm.instantiate (TVars.empty, Vars.make [(v, cfalse)]) th
-  | Var (v as (_, \<^typ>\<open>prop\<close>)) =>
+  | Var (v as (_, \<^Type>\<open>prop\<close>)) =>
       Thm.instantiate (TVars.empty, Vars.make [(v, ctp_false)]) th
   | _ => th)
 
@@ -51,9 +51,8 @@ fun transform_elim_theorem th =
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
 fun mk_old_skolem_term_wrapper t =
-  let val T = fastype_of t in
-    Const (\<^const_name>\<open>Meson.skolem\<close>, T --> T) $ t
-  end
+  let val T = fastype_of t
+  in \<^Const>\<open>Meson.skolem T for t\<close> end
 
 fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
   | beta_eta_in_abs_body t = Envir.beta_eta_contract t
@@ -61,7 +60,7 @@ fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun old_skolem_defs th =
   let
-    fun dec_sko (Const (\<^const_name>\<open>Ex\<close>, _) $ (body as Abs (_, T, p))) rhss =
+    fun dec_sko \<^Const_>\<open>Ex _ for \<open>body as Abs (_, T, p)\<close>\<close> rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
         let
           val args = Misc_Legacy.term_frees body
@@ -72,20 +71,20 @@ fun old_skolem_defs th =
             |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
-      | dec_sko (Const (\<^const_name>\<open>All\<close>,_) $ Abs (a, T, p)) rhss =
+      | dec_sko \<^Const_>\<open>All _ for \<open>Abs (a, T, p)\<close>\<close> rhss =
         (*Universal quant: insert a free variable into body and continue*)
         let val fname = singleton (Name.variant_list (Misc_Legacy.add_term_names (p, []))) a
         in dec_sko (subst_bound (Free(fname,T), p)) rhss end
-      | dec_sko (\<^const>\<open>conj\<close> $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
-      | dec_sko (\<^const>\<open>disj\<close> $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
-      | dec_sko (\<^const>\<open>Trueprop\<close> $ p) rhss = dec_sko p rhss
+      | dec_sko \<^Const_>\<open>conj for p q\<close> rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko \<^Const_>\<open>disj for p q\<close> rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko \<^Const_>\<open>Trueprop for p\<close> rhss = dec_sko p rhss
       | dec_sko _ rhss = rhss
   in  dec_sko (Thm.prop_of th) []  end;
 
 
 (**** REPLACING ABSTRACTIONS BY COMBINATORS ****)
 
-fun is_quasi_lambda_free (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) = true
+fun is_quasi_lambda_free \<^Const_>\<open>Meson.skolem _ for _\<close> = true
   | is_quasi_lambda_free (t1 $ t2) =
     is_quasi_lambda_free t1 andalso is_quasi_lambda_free t2
   | is_quasi_lambda_free (Abs _) = false
