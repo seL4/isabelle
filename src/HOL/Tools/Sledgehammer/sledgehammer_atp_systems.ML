@@ -488,7 +488,7 @@ val vampire_full_proof_options =
 
 val vampire_config : atp_config =
   let
-    val format = TFF (Without_FOOL, Monomorphic)
+    val format = TFF (With_FOOL, Monomorphic)
   in
     {exec = (["VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
