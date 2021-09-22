@@ -490,6 +490,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     context: Release_Context,
     afp_rev: String = "",
     platform_families: List[Platform.Family.Value] = default_platform_families,
+    java_home: Path = default_java_home,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
@@ -703,7 +704,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
                 .replace("\\jdk\\", "\\" + jdk_component + "\\"))
 
             execute(tmp_dir,
-              "\"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
+              "env JAVA_HOME=" + File.bash_platform_path(java_home) +
+              " \"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
 
             Isabelle_System.copy_file(app_template + Path.explode("manifest.xml"),
               isabelle_target + isabelle_exe.ext("manifest"))
@@ -842,12 +844,15 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
   /** command line entry point **/
 
+  def default_java_home: Path = Path.explode("$JAVA_HOME").expand
+
   def main(args: Array[String]): Unit =
   {
     Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base
       var target_dir = Path.current
+      var java_home = default_java_home
       var release_name = ""
       var source_archive = ""
       var website: Option[Path] = None
@@ -867,6 +872,7 @@ Usage: Admin/build_release [OPTIONS]
     -C DIR       base directory for Isabelle components (default: """ +
         Components.default_components_base + """)
     -D DIR       target directory (default ".")
+    -J JAVA_HOME Java version for running launch4j (e.g. version 11)
     -R RELEASE   explicit release name
     -S ARCHIVE   use existing source archive (file or URL)
     -W WEBSITE   produce minimal website in given directory
@@ -883,6 +889,7 @@ Usage: Admin/build_release [OPTIONS]
         "A:" -> (arg => afp_rev = arg),
         "C:" -> (arg => components_base = Path.explode(arg)),
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "J:" -> (arg => java_home = Path.explode(arg)),
         "R:" -> (arg => release_name = arg),
         "S:" -> (arg => source_archive = arg),
         "W:" -> (arg => website = Some(Path.explode(arg))),
@@ -929,7 +936,7 @@ Usage: Admin/build_release [OPTIONS]
         }
 
       build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
-        more_components = more_components, build_sessions = build_sessions,
+        java_home = java_home, more_components = more_components, build_sessions = build_sessions,
         build_library = build_library, parallel_jobs = parallel_jobs, website = website)
     }
   }

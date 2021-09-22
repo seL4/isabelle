@@ -44,6 +44,7 @@ object Isabelle_Devel
           val context = Build_Release.Release_Context(target_dir)
           Build_Release.build_release_archive(context, rev)
           Build_Release.build_release(options, context, afp_rev = afp_rev,
+            java_home = Path.explode("$BUILD_JAVA_HOME"),
             build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
             website = Some(website_dir))
         })
