@@ -45,7 +45,6 @@ sig
   val spass_H2NuVS0 : string
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
-  val is_vampire_noncommercial_license_accepted : unit -> bool option
   val isabelle_scala_function: string list * string list
   val remote_atp : string -> string -> string list -> (string * string) list ->
     (atp_failure * string) list -> atp_formula_role -> (Proof.context -> slice_spec * string) ->
@@ -452,31 +451,6 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire *)
 
-fun is_vampire_noncommercial_license_accepted () =
-  let
-    val flag = Options.default_string \<^system_option>\<open>vampire_noncommercial\<close>
-      |> String.map Char.toLower
-  in
-    if flag = "yes" then
-      SOME true
-    else if flag = "no" then
-      SOME false
-    else
-      NONE
-  end
-
-fun check_vampire_noncommercial () =
-  (case is_vampire_noncommercial_license_accepted () of
-    SOME true => ()
-  | SOME false =>
-    error (Pretty.string_of (Pretty.para
-      "The Vampire prover may be used only for noncommercial applications"))
-  | NONE =>
-    error (Pretty.string_of (Pretty.para
-      "The Vampire prover is not activated; to activate it, set the Isabelle system option \
-      \\"vampire_noncommercial\" to \"yes\" (e.g. via the Isabelle/jEdit menu Plugin Options \
-      \/ Isabelle / General)")))
-
 val vampire_basic_options =
   "--proof tptp --output_axiom_names on" ^
   (if ML_System.platform_is_windows
@@ -492,10 +466,9 @@ val vampire_config : atp_config =
   in
     {exec = (["VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
-       (check_vampire_noncommercial ();
-        [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
+       [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
          " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ File.bash_path problem
-         |> sos = sosN ? prefix "--sos on "]),
+         |> sos = sosN ? prefix "--sos on "],
      proof_delims =
        [("=========== Refutation ==========",
          "======= End of refutation =======")] @
