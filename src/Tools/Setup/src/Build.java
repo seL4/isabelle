@@ -255,7 +255,7 @@ public class Build
         }
         if (scala_sources) {
             boolean ok = new MainClass().process(args.toArray(String[]::new));
-            if (!ok) { throw new RuntimeException("Failed to compiler Scala sources"); }
+            if (!ok) { throw new RuntimeException("Failed to compile Scala sources"); }
         }
     }
 
