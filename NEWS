@@ -20,7 +20,7 @@ in commands like 'definition' or 'theorem'. Output is normally enabled
 in interactive mode, but it could occasionally cause unnecessary
 slowdown. It can be disabled like this:
 
-  context notes [[show_results = true]]
+  context notes [[show_results = false]]
   begin
     definition "test = True"
     theorem test by (simp add: test_def)
