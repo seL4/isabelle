@@ -319,7 +319,7 @@ val e = (eN, fn () => e_config)
 val iprover_config : atp_config =
   {exec = (["IPROVER_HOME"], ["iproveropt", "iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn problem => fn _ =>
-     ["--clausifier \"$OLD_VAMPIRE_HOME\"/vampire " ^
+     ["--clausifier \"$VAMPIRE_HOME\"/vampire " ^
       "--clausifier_options \"--mode clausify\" " ^
       "--time_out_real " ^ string_of_real (Time.toReal timeout) ^ " " ^ File.bash_path problem],
    proof_delims = tstp_proof_delims,
@@ -490,7 +490,7 @@ val vampire_config : atp_config =
   let
     val format = TFF (Without_FOOL, Monomorphic)
   in
-    {exec = (["OLD_VAMPIRE_HOME"], ["vampire"]),
+    {exec = (["VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
        (check_vampire_noncommercial ();
         [vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
