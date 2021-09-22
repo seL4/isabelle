@@ -137,7 +137,7 @@ targets and in any nested target built on top of a target supporting
 * Theory HOL-Library.Lattice_Syntax has been superseded by bundle
 "lattice_syntax": it can be used in a local context via 'include' or in
 a global theory via 'unbundle'. The opposite declarations are bundled as
-"no_lattice_syntax".
+"no_lattice_syntax". Minor INCOMPATIBILITY.
 
 * Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
 use explict expression instead. Minor INCOMPATIBILITY.
