@@ -45,7 +45,7 @@ object Build_JDK
       if (path.is_file) {
         val file_descr = Isabelle_System.bash("file -b " + File.bash_path(path)).check.out
         if (platform_regex.pattern.matcher(file_descr).matches) {
-          val Version = ("^(" + major_version + """\.[0-9.]+\+\d+)(?:-LTS)?$""").r
+          val Version = ("^(" + major_version + """[0-9.+]+)(?:-LTS)?$""").r
           val version_lines =
             Isabelle_System.bash("strings " + File.bash_path(path)).check
               .out_lines.flatMap({ case Version(s) => Some(s) case _ => None })
