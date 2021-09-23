@@ -364,7 +364,8 @@ fun rewriteIdLiteralsRule' order known redexes id lits th =
             val lits = LiteralSet.add lits lit'
           in
             if Literal.equal lit lit' then (changed,lneq,lits,th)
-            else (true, lneq, lits, Thm.resolve lit th litTh)
+            else (true, lneq, lits,
+                  if Thm.member lit th then Thm.resolve lit th litTh else th)
           end
 
       fun rewr_neq_lits lits th =
@@ -411,7 +412,12 @@ val rewriteIdRule' = fn order => fn known => fn redexes => fn id => fn th =>
     in
       result
     end
-    handle Error err => raise Error ("Rewrite.rewriteIdRule':\n" ^ err);
+    handle Error err =>
+      raise Error ("Rewrite.rewriteIdRule':\n" ^
+                   "th = " ^ Thm.toString th ^ "\n" ^ err)
+         | Bug bug =>
+      raise Bug ("Rewrite.rewriteIdRule':\n" ^
+                 "th = " ^ Thm.toString th ^ "\n" ^ bug);
 *)
 
 fun rewrIdConv (Rewrite {known,redexes,...}) order =

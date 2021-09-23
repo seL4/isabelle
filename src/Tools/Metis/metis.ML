@@ -12742,7 +12742,11 @@ val resolve = fn lit => fn pos => fn neg =>
     handle Error err =>
       raise Error ("Metis_Thm.resolve:\nlit = " ^ Metis_Literal.toString lit ^
                    "\npos = " ^ toString pos ^
-                   "\nneg = " ^ toString neg ^ "\n" ^ err);
+                   "\nneg = " ^ toString neg ^ "\n" ^ err)
+         | Bug bug =>
+      raise Bug ("Metis_Thm.resolve:\nlit = " ^ Metis_Literal.toString lit ^
+                 "\npos = " ^ toString pos ^
+                 "\nneg = " ^ toString neg ^ "\n" ^ bug);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -19452,7 +19456,8 @@ fun rewriteIdLiteralsRule' order known redexes id lits th =
             val lits = Metis_LiteralSet.add lits lit'
           in
             if Metis_Literal.equal lit lit' then (changed,lneq,lits,th)
-            else (true, lneq, lits, Metis_Thm.resolve lit th litTh)
+            else (true, lneq, lits,
+                  if Metis_Thm.member lit th then Metis_Thm.resolve lit th litTh else th)
           end
 
       fun rewr_neq_lits lits th =
@@ -19499,7 +19504,12 @@ val rewriteIdRule' = fn order => fn known => fn redexes => fn id => fn th =>
     in
       result
     end
-    handle Error err => raise Error ("Metis_Rewrite.rewriteIdRule':\n" ^ err);
+    handle Error err =>
+      raise Error ("Metis_Rewrite.rewriteIdRule':\n" ^
+                   "th = " ^ Metis_Thm.toString th ^ "\n" ^ err)
+         | Bug bug =>
+      raise Bug ("Metis_Rewrite.rewriteIdRule':\n" ^
+                 "th = " ^ Metis_Thm.toString th ^ "\n" ^ bug);
 *)
 
 fun rewrIdConv (Metis_Rewrite {known,redexes,...}) order =
@@ -20880,7 +20890,26 @@ fun simplify simp units rewr subs =
           let
             val cl' = Metis_Clause.rewrite rewr cl
           in
-            if Metis_Clause.equalThms cl cl' then SOME cl else Metis_Clause.simplify cl'
+            if Metis_Clause.equalThms cl cl' then SOME cl
+            else
+              case Metis_Clause.simplify cl' of
+                NONE => NONE
+              | SOME cl'' =>
+                (*                                                         *)
+                (* Post-rewrite simplification can enable more rewrites:   *)
+                (*                                                         *)
+                (*  ~(X = f(X)) \/ ~(g(Y) = f(X)) \/ ~(c = f(X))           *)
+                (* ---------------------------------------------- rewrite  *)
+                (*  ~(X = f(X)) \/ ~(g(Y) = X) \/ ~(c = X)                 *)
+                (* ---------------------------------------------- simplify *)
+                (*  ~(g(Y) = f(g(Y))) \/ ~(c = g(Y))                       *)
+                (* ---------------------------------------------- rewrite  *)
+                (*  ~(c = f(c)) \/ ~(c = g(Y))                             *)
+                (*                                                         *)
+                (* This was first observed in a bug discovered by Martin   *)
+                (* Desharnais and Jasmin Blanchett                         *)
+                (*                                                         *)
+                if Metis_Clause.equalThms cl' cl'' then SOME cl' else rewrite cl''
           end
     in
       fn cl =>

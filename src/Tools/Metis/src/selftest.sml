@@ -505,6 +505,16 @@ val ax = pvThm
        `p (even (f (g a b) $y))`]);
 val th = pvThm (try (Rewrite.orderedRewrite kboCmp eqns) ax);
 
+(* Bug discovered by Martin Desharnais and Jasmin Blanchett *)
+
+val eqns = [];
+val ax = pvThm (AX [`~(a = f (g b))`,
+                    `~(f a = f $x)`,
+                    `~(f (g b) = g c)`,
+                    `~(g c = f $x)`,
+                    `~(g c = f a)`]);
+val th = pvThm (try (Rewrite.orderedRewrite kboCmp eqns) ax);
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Unit cache";
 (* ------------------------------------------------------------------------- *)

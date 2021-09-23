@@ -374,7 +374,26 @@ fun simplify simp units rewr subs =
           let
             val cl' = Clause.rewrite rewr cl
           in
-            if Clause.equalThms cl cl' then SOME cl else Clause.simplify cl'
+            if Clause.equalThms cl cl' then SOME cl
+            else
+              case Clause.simplify cl' of
+                NONE => NONE
+              | SOME cl'' =>
+                (*                                                         *)
+                (* Post-rewrite simplification can enable more rewrites:   *)
+                (*                                                         *)
+                (*  ~(X = f(X)) \/ ~(g(Y) = f(X)) \/ ~(c = f(X))           *)
+                (* ---------------------------------------------- rewrite  *)
+                (*  ~(X = f(X)) \/ ~(g(Y) = X) \/ ~(c = X)                 *)
+                (* ---------------------------------------------- simplify *)
+                (*  ~(g(Y) = f(g(Y))) \/ ~(c = g(Y))                       *)
+                (* ---------------------------------------------- rewrite  *)
+                (*  ~(c = f(c)) \/ ~(c = g(Y))                             *)
+                (*                                                         *)
+                (* This was first observed in a bug discovered by Martin   *)
+                (* Desharnais and Jasmin Blanchett                         *)
+                (*                                                         *)
+                if Clause.equalThms cl' cl'' then SOME cl' else rewrite cl''
           end
     in
       fn cl =>

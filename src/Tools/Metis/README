@@ -7,7 +7,8 @@ for Metis with the latest Metis package.
     must reflect the corresponding files in Joe Leslie-Hurd's official
     Metis package. The package that was used when these notes where
     written was Metis 2.3 (release 20110926). The package was later
-    updated to Metis 2.4 (release 20180810).
+    updated to Metis 2.4 (release 20180810) and later again to Metis 2.4
+    (release 20200713).
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. The "fix_metis_license" script can be run to
@@ -55,3 +56,4 @@ Updated by
 
     Martin Desharnais
     9 July 2020
+    23 September 2021

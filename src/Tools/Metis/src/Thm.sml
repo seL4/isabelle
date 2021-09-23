@@ -178,7 +178,11 @@ val resolve = fn lit => fn pos => fn neg =>
     handle Error err =>
       raise Error ("Thm.resolve:\nlit = " ^ Literal.toString lit ^
                    "\npos = " ^ toString pos ^
-                   "\nneg = " ^ toString neg ^ "\n" ^ err);
+                   "\nneg = " ^ toString neg ^ "\n" ^ err)
+         | Bug bug =>
+      raise Bug ("Thm.resolve:\nlit = " ^ Literal.toString lit ^
+                 "\npos = " ^ toString pos ^
+                 "\nneg = " ^ toString neg ^ "\n" ^ bug);
 *)
 
 (* ------------------------------------------------------------------------- *)
