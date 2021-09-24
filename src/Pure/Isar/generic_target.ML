@@ -243,7 +243,7 @@ fun standard_registration pred registration lthy =
     then Context.proof_map (Locale.add_registration registration)
     else I) lthy;
 
-val local_interpretation = standard_registration (fn (n, level) => level = n - 1);
+val local_interpretation = standard_registration (fn (n, level) => level >= n - 1);
 
 
 
@@ -413,6 +413,7 @@ fun theory_target_abbrev prmode (b, mx) global_rhs params =
             Term.list_comb (Logic.unvarify_global lhs, snd params)));
 
 
+
 (** theory operations **)
 
 val theory_abbrev = abbrev theory_target_abbrev;
@@ -429,6 +430,7 @@ fun theory_registration registration lthy =
   |> (Local_Theory.raw_theory o Context.theory_map)
     (Locale.add_registration (target_registration lthy registration))
   |> standard_registration (K true) registration;
+
 
 
 (** locale target primitives **)
