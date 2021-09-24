@@ -220,7 +220,8 @@ proof -
       using \<open>I \<noteq> {}\<close> by auto
   next
     fix k assume "k \<in> (\<lambda>x. q x + ?F x * (expectation X - x)) ` I"
-    then guess x .. note x = this
+    then obtain x
+      where x: "k = q x + (INF t\<in>{x<..} \<inter> I. (q x - q t) / (x - t)) * (expectation X - x)" "x \<in> I" ..
     have "q x + ?F x * (expectation X  - x) = expectation (\<lambda>w. q x + ?F x * (X w - x))"
       using prob_space by (simp add: X)
     also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
@@ -320,7 +321,8 @@ lemma (in prob_space) AE_E_prob:
   assumes ae: "AE x in M. P x"
   obtains S where "S \<subseteq> {x \<in> space M. P x}" "S \<in> events" "prob S = 1"
 proof -
-  from ae[THEN AE_E] guess N .
+  from ae[THEN AE_E] obtain N
+    where "{x \<in> space M. \<not> P x} \<subseteq> N" "emeasure M N = 0" "N \<in> events" by auto
   then show thesis
     by (intro that[of "space M - N"])
        (auto simp: prob_compl prob_space emeasure_eq_measure measure_nonneg)
@@ -365,7 +367,12 @@ lemma (in prob_space) prob_sums:
   assumes ae: "AE x in M. (\<forall>n. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n. P n x))"
   shows "(\<lambda>n. \<P>(x in M. P n x)) sums \<P>(x in M. Q x)"
 proof -
-  from ae[THEN AE_E_prob] guess S . note S = this
+  from ae[THEN AE_E_prob] obtain S
+    where S:
+      "S \<subseteq> {x \<in> space M. (\<forall>n. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n. P n x))}"
+      "S \<in> events"
+      "prob S = 1"
+    by auto
   then have disj: "disjoint_family (\<lambda>n. {x\<in>space M. P n x} \<inter> S)"
     by (auto simp: disjoint_family_on_def)
   from S have ae_S:
@@ -390,7 +397,12 @@ lemma (in prob_space) prob_sum:
   assumes ae: "AE x in M. (\<forall>n\<in>I. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n\<in>I. P n x))"
   shows "\<P>(x in M. Q x) = (\<Sum>n\<in>I. \<P>(x in M. P n x))"
 proof -
-  from ae[THEN AE_E_prob] guess S . note S = this
+  from ae[THEN AE_E_prob] obtain S
+    where S:
+      "S \<subseteq> {x \<in> space M. (\<forall>n\<in>I. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n. n \<in> I \<and> P n x))}"
+      "S \<in> events"
+      "prob S = 1"
+    by auto
   then have disj: "disjoint_family_on (\<lambda>n. {x\<in>space M. P n x} \<inter> S) I"
     by (auto simp: disjoint_family_on_def)
   from S have ae_S:
@@ -692,7 +704,10 @@ proof safe
   interpret T: sigma_finite_measure T by fact
   interpret ST: pair_sigma_finite S T ..
 
-  from ST.sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('b \<times> 'c) set" .. note F = this
+  from ST.sigma_finite_up_in_pair_measure_generator
+  obtain F :: "nat \<Rightarrow> ('b \<times> 'c) set"
+    where F: "range F \<subseteq> {A \<times> B |A B. A \<in> sets S \<and> B \<in> sets T} \<and> incseq F \<and>
+      \<Union> (range F) = space S \<times> space T \<and> (\<forall>i. emeasure (S \<Otimes>\<^sub>M T) (F i) \<noteq> \<infinity>)" ..
   let ?E = "{a \<times> b |a b. a \<in> sets S \<and> b \<in> sets T}"
   let ?P = "S \<Otimes>\<^sub>M T"
   show "distr M ?P (\<lambda>x. (X x, Y x)) = density ?P f" (is "?L = ?R")

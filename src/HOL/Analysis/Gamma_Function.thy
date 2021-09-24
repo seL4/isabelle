@@ -388,7 +388,9 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
 
   have "summable (\<lambda>k. inverse ((real_of_nat k)^2))"
     by (rule inverse_power_summable) simp
-  from summable_partial_sum_bound[OF this e'] guess M . note M = this
+  from summable_partial_sum_bound[OF this e']
+  obtain M where M: "\<And>m n. M \<le> m \<Longrightarrow> norm (\<Sum>k = m..n. inverse ((real k)\<^sup>2)) < e'"
+    by auto
 
   define N where "N = max 2 (max (nat \<lceil>2 * (norm z + d)\<rceil>) M)"
   {
@@ -910,7 +912,8 @@ proof (rule has_field_derivative_at_within, cases "n = 0")
   assume n: "n = 0"
   let ?f = "\<lambda>k z. inverse (of_nat (Suc k)) - inverse (z + of_nat k)"
   let ?F = "\<lambda>z. \<Sum>k. ?f k z" and ?f' = "\<lambda>k z. inverse ((z + of_nat k)\<^sup>2)"
-  from no_nonpos_Int_in_ball'[OF z] guess d . note d = this
+  from no_nonpos_Int_in_ball'[OF z] obtain d where d: "0 < d" "\<And>t. t \<in> ball z d \<Longrightarrow> t \<notin> \<int>\<^sub>\<le>\<^sub>0"
+    by auto
   from z have summable: "summable (\<lambda>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k))"
     by (intro summable_Digamma) force
   from z have conv: "uniformly_convergent_on (ball z d) (\<lambda>k z. \<Sum>i<k. inverse ((z + of_nat i)\<^sup>2))"
@@ -931,7 +934,8 @@ proof (rule has_field_derivative_at_within, cases "n = 0")
 next
   assume n: "n \<noteq> 0"
   from z have z': "z \<noteq> 0" by auto
-  from no_nonpos_Int_in_ball'[OF z] guess d . note d = this
+  from no_nonpos_Int_in_ball'[OF z] obtain d where d: "0 < d" "\<And>t. t \<in> ball z d \<Longrightarrow> t \<notin> \<int>\<^sub>\<le>\<^sub>0"
+    by auto
   define n' where "n' = Suc n"
   from n have n': "n' \<ge> 2" by (simp add: n'_def)
   have "((\<lambda>z. \<Sum>k. inverse ((z + of_nat k) ^ n')) has_field_derivative
@@ -1293,7 +1297,9 @@ proof -
     case False
     have "rGamma_series z \<longlonglongrightarrow> exp (- ln_Gamma z)"
     proof (rule Lim_transform_eventually)
-      from ln_Gamma_series_complex_converges'[OF False] guess d by (elim exE conjE)
+      from ln_Gamma_series_complex_converges'[OF False]
+      obtain d where "0 < d" "uniformly_convergent_on (ball z d) (\<lambda>n z. ln_Gamma_series z n)"
+        by auto
       from this(1) uniformly_convergent_imp_convergent[OF this(2), of z]
         have "ln_Gamma_series z \<longlonglongrightarrow> lim (ln_Gamma_series z)" by (simp add: convergent_LIMSEQ_iff)
       thus "(\<lambda>n. exp (-ln_Gamma_series z n)) \<longlonglongrightarrow> exp (- ln_Gamma z)"
@@ -1762,9 +1768,12 @@ lemma Polygamma_real_strict_mono:
 proof -
   have "\<exists>\<xi>. x < \<xi> \<and> \<xi> < y \<and> Polygamma n y - Polygamma n x = (y - x) * Polygamma (Suc n) \<xi>"
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
-  then guess \<xi> by (elim exE conjE) note \<xi> = this
-  note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> > 0"
+  then obtain \<xi>
+    where \<xi>: "x < \<xi>" "\<xi> < y"
+      and Polygamma: "Polygamma n y - Polygamma n x = (y - x) * Polygamma (Suc n) \<xi>"
+    by auto
+  note Polygamma
+  also from \<xi> assms have "(y - x) * Polygamma (Suc n) \<xi> > 0"
     by (intro mult_pos_pos Polygamma_real_odd_pos) (auto elim!: nonpos_Ints_cases)
   finally show ?thesis by simp
 qed
@@ -1775,9 +1784,12 @@ lemma Polygamma_real_strict_antimono:
 proof -
   have "\<exists>\<xi>. x < \<xi> \<and> \<xi> < y \<and> Polygamma n y - Polygamma n x = (y - x) * Polygamma (Suc n) \<xi>"
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
-  then guess \<xi> by (elim exE conjE) note \<xi> = this
-  note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> < 0"
+  then obtain \<xi>
+    where \<xi>: "x < \<xi>" "\<xi> < y"
+      and Polygamma: "Polygamma n y - Polygamma n x = (y - x) * Polygamma (Suc n) \<xi>"
+    by auto
+  note Polygamma
+  also from \<xi> assms have "(y - x) * Polygamma (Suc n) \<xi> < 0"
     by (intro mult_pos_neg Polygamma_real_even_neg) simp_all
   finally show ?thesis by simp
 qed
@@ -1809,9 +1821,11 @@ lemma ln_Gamma_real_strict_mono:
 proof -
   have "\<exists>\<xi>. x < \<xi> \<and> \<xi> < y \<and> ln_Gamma y - ln_Gamma x = (y - x) * Digamma \<xi>"
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
-  then guess \<xi> by (elim exE conjE) note \<xi> = this
-  note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Digamma \<xi> > 0"
+  then obtain \<xi> where \<xi>: "x < \<xi>" "\<xi> < y"
+    and ln_Gamma: "ln_Gamma y - ln_Gamma x = (y - x) * Digamma \<xi>"
+    by auto
+  note ln_Gamma
+  also from \<xi> assms have "(y - x) * Digamma \<xi> > 0"
     by (intro mult_pos_pos Digamma_real_ge_three_halves_pos) simp_all
   finally show ?thesis by simp
 qed

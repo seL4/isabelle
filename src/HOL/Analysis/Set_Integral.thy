@@ -415,7 +415,7 @@ proof (rule AE_I2)
     show "(\<lambda>i. indicator (A i) x *\<^sub>R f x) \<longlonglongrightarrow> indicator (\<Union>i. A i) x *\<^sub>R f x"
     proof cases
       assume "\<exists>i. x \<in> A i"
-      then guess i ..
+      then obtain i where "x \<in> A i" ..
       then have *: "eventually (\<lambda>i. x \<in> A i) sequentially"
         using \<open>x \<in> A i\<close> \<open>mono A\<close> by (auto simp: eventually_sequentially mono_def)
       show ?thesis

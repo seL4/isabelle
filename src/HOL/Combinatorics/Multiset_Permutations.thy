@@ -131,7 +131,7 @@ qed
 
 lemma permutations_of_multiset_not_empty [simp]: "permutations_of_multiset A \<noteq> {}"
 proof -
-  from ex_mset[of A] guess xs ..
+  from ex_mset[of A] obtain xs where "mset xs = A" ..
   thus ?thesis by (auto simp: permutations_of_multiset_def)
 qed
 
@@ -142,7 +142,8 @@ proof safe
   from ex_mset[of A] obtain ys where ys: "mset ys = A" ..
   with A have "mset xs = mset (map f ys)" 
     by (simp add: permutations_of_multiset_def)
-  from mset_eq_permutation[OF this] guess \<sigma> . note \<sigma> = this
+  then obtain \<sigma> where \<sigma>: "\<sigma> permutes {..<length (map f ys)}" "permute_list \<sigma> (map f ys) = xs"
+    by (rule mset_eq_permutation)
   with ys have "xs = map f (permute_list \<sigma> ys)"
     by (simp add: permute_list_map)
   moreover from \<sigma> ys have "permute_list \<sigma> ys \<in> permutations_of_multiset A"

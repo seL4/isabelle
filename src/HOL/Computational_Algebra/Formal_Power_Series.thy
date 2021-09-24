@@ -4079,7 +4079,7 @@ proof -
     from v have [simp]: "length v = Suc m" by (simp add: A_def natpermute_def)
     from v have "\<exists>j. j \<le> m \<and> v ! j = k" 
       by (auto simp: set_conv_nth A_def natpermute_def less_Suc_eq_le)
-    then guess j by (elim exE conjE) note j = this
+    then obtain j where j: "j \<le> m" "v ! j = k" by auto
     
     from v have "k = sum_list v" by (simp add: A_def natpermute_def)
     also have "\<dots> = (\<Sum>i=0..m. v ! i)"

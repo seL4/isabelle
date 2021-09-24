@@ -50,9 +50,8 @@ proof auto
   proof (cases "x \<in> A")
     assume x: "x \<in> A"
     hence "indicator A x \<in> ({0<..<2} :: real set)" by simp
-    hence "\<exists>U. open U \<and> x \<in> U \<and> (\<forall>y\<in>U. indicator A y \<in> ({0<..<2} :: real set))"
-      using 1 open_greaterThanLessThan by blast
-    then guess U .. note U = this
+    with 1 obtain U where U: "open U" "x \<in> U" "\<forall>y\<in>U. indicator A y \<in> ({0<..<2} :: real set)"
+      using open_greaterThanLessThan by metis
     hence "\<forall>y\<in>U. indicator A y > (0::real)"
       unfolding greaterThanLessThan_def by auto
     hence "U \<subseteq> A" using indicator_eq_0_iff by force
@@ -61,9 +60,8 @@ proof auto
   next
     assume x: "x \<notin> A"
     hence "indicator A x \<in> ({-1<..<1} :: real set)" by simp
-    hence "\<exists>U. open U \<and> x \<in> U \<and> (\<forall>y\<in>U. indicator A y \<in> ({-1<..<1} :: real set))"
-      using 1 open_greaterThanLessThan by blast
-    then guess U .. note U = this
+    with 1 obtain U where U: "open U" "x \<in> U" "\<forall>y\<in>U. indicator A y \<in> ({-1<..<1} :: real set)"
+      using 1 open_greaterThanLessThan by metis
     hence "\<forall>y\<in>U. indicator A y < (1::real)"
       unfolding greaterThanLessThan_def by auto
     hence "U \<subseteq> -A" by auto

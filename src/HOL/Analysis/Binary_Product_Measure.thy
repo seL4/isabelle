@@ -242,7 +242,11 @@ qed (auto simp add: if_distrib Int_def[symmetric] intro!: measurable_If)
 lemma (in sigma_finite_measure) measurable_emeasure_Pair:
   assumes Q: "Q \<in> sets (N \<Otimes>\<^sub>M M)" shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N" (is "?s Q \<in> _")
 proof -
-  from sigma_finite_disjoint guess F . note F = this
+  obtain F :: "nat \<Rightarrow> 'a set" where F:
+    "range F \<subseteq> sets M"
+    "\<Union> (range F) = space M"
+    "\<And>i. emeasure M (F i) \<noteq> \<infinity>"
+    "disjoint_family F" by (blast intro: sigma_finite_disjoint)
   then have F_sets: "\<And>i. F i \<in> sets M" by auto
   let ?C = "\<lambda>x i. F i \<inter> Pair x -` Q"
   { fix i
@@ -361,8 +365,16 @@ proposition (in pair_sigma_finite) sigma_finite_up_in_pair_measure_generator:
   shows "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> E \<and> incseq F \<and> (\<Union>i. F i) = space M1 \<times> space M2 \<and>
     (\<forall>i. emeasure (M1 \<Otimes>\<^sub>M M2) (F i) \<noteq> \<infinity>)"
 proof -
-  from M1.sigma_finite_incseq guess F1 . note F1 = this
-  from M2.sigma_finite_incseq guess F2 . note F2 = this
+  obtain F1 where F1: "range F1 \<subseteq> sets M1"
+    "\<Union> (range F1) = space M1"
+    "\<And>i. emeasure M1 (F1 i) \<noteq> \<infinity>"
+    "incseq F1"
+    by (rule M1.sigma_finite_incseq) blast
+  obtain F2 where F2: "range F2 \<subseteq> sets M2"
+    "\<Union> (range F2) = space M2"
+    "\<And>i. emeasure M2 (F2 i) \<noteq> \<infinity>"
+    "incseq F2"
+    by (rule M2.sigma_finite_incseq) blast
   from F1 F2 have space: "space M1 = (\<Union>i. F1 i)" "space M2 = (\<Union>i. F2 i)" by auto
   let ?F = "\<lambda>i. F1 i \<times> F2 i"
   show ?thesis
@@ -396,9 +408,11 @@ qed
 
 sublocale\<^marker>\<open>tag unimportant\<close> pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
 proof
-  from M1.sigma_finite_countable guess F1 ..
-  moreover from M2.sigma_finite_countable guess F2 ..
-  ultimately show
+  obtain F1 :: "'a set set" and F2 :: "'b set set" where
+      "countable F1 \<and> F1 \<subseteq> sets M1 \<and> \<Union> F1 = space M1 \<and> (\<forall>a\<in>F1. emeasure M1 a \<noteq> \<infinity>)"
+      "countable F2 \<and> F2 \<subseteq> sets M2 \<and> \<Union> F2 = space M2 \<and> (\<forall>a\<in>F2. emeasure M2 a \<noteq> \<infinity>)"
+    using M1.sigma_finite_countable M2.sigma_finite_countable by auto
+  then show
     "\<exists>A. countable A \<and> A \<subseteq> sets (M1 \<Otimes>\<^sub>M M2) \<and> \<Union>A = space (M1 \<Otimes>\<^sub>M M2) \<and> (\<forall>a\<in>A. emeasure (M1 \<Otimes>\<^sub>M M2) a \<noteq> \<infinity>)"
     by (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (F1 \<times> F2)"] conjI)
        (auto simp: M2.emeasure_pair_measure_Times space_pair_measure set_eq_iff subset_eq ennreal_mult_eq_top_iff)
@@ -422,8 +436,10 @@ lemma sets_pair_swap:
 lemma (in pair_sigma_finite) distr_pair_swap:
   "M1 \<Otimes>\<^sub>M M2 = distr (M2 \<Otimes>\<^sub>M M1) (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). (y, x))" (is "?P = ?D")
 proof -
-  from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
+  obtain F :: "nat \<Rightarrow> ('a \<times> 'b) set" where F: "range F \<subseteq> ?E"
+    "incseq F" "\<Union> (range F) = space M1 \<times> space M2" "\<forall>i. emeasure (M1 \<Otimes>\<^sub>M M2) (F i) \<noteq> \<infinity>"
+    using sigma_finite_up_in_pair_measure_generator by auto
   show ?thesis
   proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
     show "?E \<subseteq> Pow (space ?P)"
@@ -432,9 +448,8 @@ proof -
       by (simp add: sets_pair_measure space_pair_measure)
     then show "sets ?D = sigma_sets (space ?P) ?E"
       by simp
-  next
-    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
-      using F by (auto simp: space_pair_measure)
+    from F show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
+      by (auto simp: space_pair_measure)
   next
     fix X assume "X \<in> ?E"
     then obtain A B where X[simp]: "X = A \<times> B" and A: "A \<in> sets M1" and B: "B \<in> sets M2" by auto
@@ -899,7 +914,9 @@ lemma sigma_finite_measure_distr:
   shows "sigma_finite_measure M"
 proof -
   interpret sigma_finite_measure "distr M N f" by fact
-  from sigma_finite_countable guess A .. note A = this
+  obtain A where A: "countable A" "A \<subseteq> sets (distr M N f)"
+      "\<Union> A = space (distr M N f)" "\<forall>a\<in>A. emeasure (distr M N f) a \<noteq> \<infinity>"
+    using sigma_finite_countable by auto
   show ?thesis
   proof
     show "\<exists>A. countable A \<and> A \<subseteq> sets M \<and> \<Union>A = space M \<and> (\<forall>a\<in>A. emeasure M a \<noteq> \<infinity>)"
@@ -933,9 +950,12 @@ proof -
   interpret M1: sigma_finite_measure M1 by fact
   interpret M2: sigma_finite_measure M2 by fact
   interpret pair_sigma_finite M1 M2 ..
-  from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
   let ?P = "M1 \<Otimes>\<^sub>M M2"
+  obtain F :: "nat \<Rightarrow> ('a \<times> 'b) set" where F:
+    "range F \<subseteq> ?E" "incseq F" "\<Union> (range F) = space M1 \<times> space M2" "\<forall>i. emeasure ?P (F i) \<noteq> \<infinity>"
+    using sigma_finite_up_in_pair_measure_generator
+    by blast
   show ?thesis
   proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
     show "?E \<subseteq> Pow (space ?P)"

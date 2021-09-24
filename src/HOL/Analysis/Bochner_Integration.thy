@@ -2952,8 +2952,12 @@ proposition (in sigma_finite_measure) borel_measurable_lebesgue_integral[measura
   assumes f[measurable]: "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. \<integral>y. f x y \<partial>M) \<in> borel_measurable N"
 proof -
-  from borel_measurable_implies_sequence_metric[OF f, of 0] guess s ..
-  then have s: "\<And>i. simple_function (N \<Otimes>\<^sub>M M) (s i)"
+  from borel_measurable_implies_sequence_metric[OF f, of 0]
+  obtain s where s: "\<And>i. simple_function (N \<Otimes>\<^sub>M M) (s i)"
+    and "\<forall>x\<in>space (N \<Otimes>\<^sub>M M). (\<lambda>i. s i x) \<longlonglongrightarrow> (case x of (x, y) \<Rightarrow> f x y)"
+    and "\<forall>i. \<forall>x\<in>space (N \<Otimes>\<^sub>M M). dist (s i x) 0 \<le> 2 * dist (case x of (x, xa) \<Rightarrow> f x xa) 0"
+    by auto
+  then have *:
     "\<And>x y. x \<in> space N \<Longrightarrow> y \<in> space M \<Longrightarrow> (\<lambda>i. s i (x, y)) \<longlonglongrightarrow> f x y"
     "\<And>i x y. x \<in> space N \<Longrightarrow> y \<in> space M \<Longrightarrow> norm (s i (x, y)) \<le> 2 * norm (f x y)"
     by (auto simp: space_pair_measure)
@@ -2970,7 +2974,7 @@ proof -
   { fix i x assume "x \<in> space N"
     then have "simple_bochner_integral M (\<lambda>y. s i (x, y)) =
       (\<Sum>z\<in>s i ` (space N \<times> space M). measure M {y \<in> space M. s i (x, y) = z} *\<^sub>R z)"
-      using s(1)[THEN simple_functionD(1)]
+      using s[THEN simple_functionD(1)]
       unfolding simple_bochner_integral_def
       by (intro sum.mono_neutral_cong_left)
          (auto simp: eq_commute space_pair_measure image_iff cong: conj_cong) }
@@ -2991,9 +2995,9 @@ proof -
         show "\<And>i. (\<lambda>y. s i (x, y)) \<in> borel_measurable M"
           using x by simp
         show "AE xa in M. (\<lambda>i. s i (x, xa)) \<longlonglongrightarrow> f x xa"
-          using x s(2) by auto
+          using x * by auto
         show "\<And>i. AE xa in M. norm (s i (x, xa)) \<le> 2 * norm (f x xa)"
-          using x s(3) by auto
+          using x * by auto
       qed fact
       moreover
       { fix i
@@ -3006,7 +3010,7 @@ proof -
             by (intro simple_function_borel_measurable)
                (auto simp: space_pair_measure dest: finite_subset)
           have "(\<integral>\<^sup>+ y. ennreal (norm (s i (x, y))) \<partial>M) \<le> (\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M)"
-            using x s by (intro nn_integral_mono) auto
+            using x * by (intro nn_integral_mono) auto
           also have "(\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M) < \<infinity>"
             using int_2f unfolding integrable_iff_bounded by simp
           finally show "(\<integral>\<^sup>+ xa. ennreal (norm (s i (x, xa))) \<partial>M) < \<infinity>" .

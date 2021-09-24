@@ -2661,11 +2661,14 @@ lemma poly_MVT':
   shows "\<exists>x\<in>A. poly p b - poly p a = (b - a) * poly (pderiv p) x"
 proof (cases a b rule: linorder_cases)
   case less
-  from poly_MVT[OF less, of p] guess x by (elim exE conjE)
+  from poly_MVT[OF less, of p] obtain x
+    where "a < x" "x < b" "poly p b - poly p a = (b - a) * poly (pderiv p) x"
+    by auto
   then show ?thesis by (intro bexI[of _ x]) (auto intro!: subsetD[OF assms])
 next
   case greater
-  from poly_MVT[OF greater, of p] guess x by (elim exE conjE)
+  from poly_MVT[OF greater, of p] obtain x
+    where "b < x" "x < a" "poly p a - poly p b = (a - b) * poly (pderiv p) x" by auto
   then show ?thesis by (intro bexI[of _ x]) (auto simp: algebra_simps intro!: subsetD[OF assms])
 qed (use assms in auto)
 

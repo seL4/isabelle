@@ -64,8 +64,13 @@ lemma normalize_quotE':
   obtains d where "fst x = fst (normalize_quot x) * d" "snd x = snd (normalize_quot x) * d"
                   "d dvd fst x" "d dvd snd x" "d \<noteq> 0"
 proof -
-  from normalize_quotE[OF assms, of "fst x"] guess d .
-  from this show ?thesis unfolding prod.collapse by (intro that[of d])
+  from normalize_quotE[OF assms, of "fst x"] obtain d where
+    "fst x = fst (normalize_quot (fst x, snd x)) * d"
+    "snd x = snd (normalize_quot (fst x, snd x)) * d"
+    "d dvd fst x"
+    "d dvd snd x"
+    "d \<noteq> 0" .
+  then show ?thesis unfolding prod.collapse by (intro that[of d])
 qed
   
 lemma coprime_normalize_quot:
@@ -130,7 +135,13 @@ proof transfer
   define x' where "x' = normalize_quot x"
   obtain a b where [simp]: "x = (a, b)" by (cases x)
   from rel have "b \<noteq> 0" by simp
-  from normalize_quotE[OF this, of a] guess d .
+  from normalize_quotE[OF this, of a] obtain d
+    where
+      "a = fst (normalize_quot (a, b)) * d"
+      "b = snd (normalize_quot (a, b)) * d"
+      "d dvd a"
+      "d dvd b"
+      "d \<noteq> 0" .
   hence "a = fst x' * d" "b = snd x' * d" "d \<noteq> 0" "snd x' \<noteq> 0" by (simp_all add: x'_def)
   thus "fractrel (case x' of (a, b) \<Rightarrow> if b = 0 then (0, 1) else (a, b)) x"
     by (auto simp add: case_prod_unfold)
@@ -173,8 +184,20 @@ lemma quot_of_fract_add_aux:
              snd x * snd y * (fst (normalize_quot x) * snd (normalize_quot y) +
              snd (normalize_quot x) * fst (normalize_quot y))"
 proof -
-  from normalize_quotE'[OF assms(1)] guess d . note d = this
-  from normalize_quotE'[OF assms(2)] guess e . note e = this
+  from normalize_quotE'[OF assms(1)] obtain d
+    where d:
+      "fst x = fst (normalize_quot x) * d"
+      "snd x = snd (normalize_quot x) * d"
+      "d dvd fst x"
+      "d dvd snd x"
+      "d \<noteq> 0" .
+  from normalize_quotE'[OF assms(2)] obtain e
+    where e:
+      "fst y = fst (normalize_quot y) * e"
+      "snd y = snd (normalize_quot y) * e"
+      "e dvd fst y"
+      "e dvd snd y"
+      "e \<noteq> 0" .
   show ?thesis by (simp_all add: d e algebra_simps)
 qed
 
@@ -218,9 +241,16 @@ proof (rule normalize_quotI)
   from assms have "b \<noteq> 0" "d \<noteq> 0" by auto
   with assms have "normalize b = b" "normalize d = d"
     by (auto intro: normalize_unit_factor_eqI)
-  from normalize_quotE [OF \<open>b \<noteq> 0\<close>, of c] guess k .
+  from normalize_quotE [OF \<open>b \<noteq> 0\<close>, of c] obtain k
+    where
+      "c = fst (normalize_quot (c, b)) * k"
+      "b = snd (normalize_quot (c, b)) * k"
+      "k dvd c" "k dvd b" "k \<noteq> 0" .
   note k = this [folded \<open>gcd a b = 1\<close> \<open>gcd c d = 1\<close> assms(3) assms(4)]
-  from normalize_quotE [OF \<open>d \<noteq> 0\<close>, of a] guess l .
+  from normalize_quotE [OF \<open>d \<noteq> 0\<close>, of a] obtain l
+    where "a = fst (normalize_quot (a, d)) * l"
+      "d = snd (normalize_quot (a, d)) * l"
+      "l dvd a" "l dvd d" "l \<noteq> 0" .
   note l = this [folded \<open>gcd a b = 1\<close> \<open>gcd c d = 1\<close> assms(3) assms(4)]
   from k l show "a * c * (f * h) = b * d * (e * g)"
     by (metis e_def f_def g_def h_def mult.commute mult.left_commute)
@@ -241,8 +271,18 @@ lemma normalize_quot_mult:
              (fst (normalize_quot x) * fst (normalize_quot y),
               snd (normalize_quot x) * snd (normalize_quot y))"
 proof -
-  from normalize_quotE'[OF assms(1)] guess d . note d = this
-  from normalize_quotE'[OF assms(2)] guess e . note e = this
+  from normalize_quotE'[OF assms(1)] obtain d where d:
+    "fst x = fst (normalize_quot x) * d"
+    "snd x = snd (normalize_quot x) * d"
+    "d dvd fst x"
+    "d dvd snd x"
+    "d \<noteq> 0" .
+  from normalize_quotE'[OF assms(2)] obtain e where e:
+    "fst y = fst (normalize_quot y) * e"
+    "snd y = snd (normalize_quot y) * e"
+    "e dvd fst y"
+    "e dvd snd y"
+    "e \<noteq> 0" .
   show ?thesis by (simp_all add: d e algebra_simps normalize_quot_eq_iff)
 qed
 
@@ -269,7 +309,11 @@ lemma normalize_quot_swap:
   defines "a' \<equiv> fst (normalize_quot (a, b))" and "b' \<equiv> snd (normalize_quot (a, b))"
   shows   "normalize_quot (b, a) = (b' div unit_factor a', a' div unit_factor a')"
 proof (rule normalize_quotI)
-  from normalize_quotE[OF assms(2), of a] guess d . note d = this [folded assms(3,4)]
+  from normalize_quotE[OF assms(2), of a] obtain d where
+    "a = fst (normalize_quot (a, b)) * d"
+    "b = snd (normalize_quot (a, b)) * d"
+    "d dvd a" "d dvd b" "d \<noteq> 0" .
+  note d = this [folded assms(3,4)]
   show "b * (a' div unit_factor a') = a * (b' div unit_factor a')"
     using assms(1,2) d 
     by (simp add: div_unit_factor [symmetric] unit_div_mult_swap mult_ac del: div_unit_factor)
@@ -301,7 +345,10 @@ proof (cases "y = 0")
     by simp_all
   from \<open>is_unit v\<close> have "coprime v = top"
     by (simp add: fun_eq_iff is_unit_left_imp_coprime)
-  from normalize_quotE[OF False, of x] guess d .
+  from normalize_quotE[OF False, of x] obtain d where
+    "x = fst (normalize_quot (x, y)) * d"
+    "y = snd (normalize_quot (x, y)) * d"
+    "d dvd x" "d dvd y" "d \<noteq> 0" .
   note d = this[folded assms(2,3)]
   from assms have "coprime x' y'" "unit_factor y' = 1"
     by (simp_all add: coprime_normalize_quot)
@@ -318,7 +365,12 @@ lemma normalize_quot_div_unit_right:
   shows "normalize_quot (x, y div u) = (x' * u, y')"
 proof (cases "y = 0")
   case False
-  from normalize_quotE[OF this, of x] guess d . note d = this[folded assms(2,3)]
+  from normalize_quotE[OF this, of x]
+  obtain d where d:
+    "x = fst (normalize_quot (x, y)) * d"
+    "y = snd (normalize_quot (x, y)) * d"
+    "d dvd x" "d dvd y" "d \<noteq> 0" .
+  note d = this[folded assms(2,3)]
   from assms have "coprime x' y'" "unit_factor y' = 1" by (simp_all add: coprime_normalize_quot)
   with d \<open>is_unit u\<close> show ?thesis
     by (auto simp add: normalized_fracts_def is_unit_left_imp_coprime unit_div_eq_0_iff intro: normalize_quotI)

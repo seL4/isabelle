@@ -49,7 +49,8 @@ lemma compactE':
 proof atomize_elim
   have "strict_mono ((+) m)" by (simp add: strict_mono_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
-  from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this] guess l r .
+  from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this]
+  obtain l r where "l \<in> S" "strict_mono r" "(f \<circ> (+) m \<circ> r) \<longlonglongrightarrow> l" by blast
   hence "l \<in> S" "strict_mono ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) \<longlonglongrightarrow> l"
     using strict_mono_o[OF \<open>strict_mono ((+) m)\<close> \<open>strict_mono r\<close>] by (auto simp: o_def)
   thus "\<exists>l r. l \<in> S \<and> strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l" by blast
@@ -59,7 +60,8 @@ sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>
 proof
   fix n and s :: "nat \<Rightarrow> nat"
   assume "strict_mono s"
-  from proj_in_KE[of n] guess n0 . note n0 = this
+  from proj_in_KE[of n] obtain n0 where n0: "\<And>m. n0 \<le> m \<Longrightarrow> (f m)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0"
+    by blast
   have "\<forall>i \<ge> n0. ((f \<circ> s) i)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0"
   proof safe
     fix i assume "n0 \<le> i"
@@ -68,7 +70,9 @@ proof
     with n0 show "((f \<circ> s) i)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0 "
       by auto
   qed
-  from compactE'[OF compact_projset this] guess ls rs .
+  then obtain ls rs
+    where "ls \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0" "strict_mono rs" "((\<lambda>i. ((f \<circ> s) i)\<^sub>F n) \<circ> rs) \<longlonglongrightarrow> ls"
+    by (rule compactE'[OF compact_projset])
   thus "\<exists>r'. strict_mono r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) \<longlonglongrightarrow> l)" by (auto simp: o_def)
 qed
 

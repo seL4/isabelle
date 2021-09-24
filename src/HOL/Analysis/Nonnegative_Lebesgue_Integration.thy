@@ -862,7 +862,9 @@ lemma nn_integral_mono_AE:
   unfolding nn_integral_def
 proof (safe intro!: SUP_mono)
   fix n assume n: "simple_function M n" "n \<le> u"
-  from ae[THEN AE_E] guess N . note N = this
+  from ae[THEN AE_E] obtain N
+    where N: "{x \<in> space M. \<not> u x \<le> v x} \<subseteq> N" "emeasure M N = 0" "N \<in> sets M"
+    by auto
   then have ae_N: "AE x in M. x \<notin> N" by (auto intro: AE_not_in)
   let ?n = "\<lambda>x. n x * indicator (space M - N) x"
   have "AE x in M. n x \<le> ?n x" "simple_function M ?n"
@@ -1000,7 +1002,9 @@ theorem nn_integral_monotone_convergence_SUP_AE:
 proof -
   from f have "AE x in M. \<forall>i. f i x \<le> f (Suc i) x"
     by (simp add: AE_all_countable)
-  from this[THEN AE_E] guess N . note N = this
+  from this[THEN AE_E] obtain N
+    where N: "{x \<in> space M. \<not> (\<forall>i. f i x \<le> f (Suc i) x)} \<subseteq> N" "emeasure M N = 0" "N \<in> sets M"
+    by auto
   let ?f = "\<lambda>i x. if x \<in> space M - N then f i x else 0"
   have f_eq: "AE x in M. \<forall>i. ?f i x = f i x" using N by (auto intro!: AE_I[of _ _ N])
   then have "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) = (\<integral>\<^sup>+ x. (SUP i. ?f i x) \<partial>M)"
@@ -1045,14 +1049,24 @@ lemma nn_integral_linear:
   shows "(\<integral>\<^sup>+ x. a * f x + g x \<partial>M) = a * integral\<^sup>N M f + integral\<^sup>N M g"
     (is "integral\<^sup>N M ?L = _")
 proof -
-  from borel_measurable_implies_simple_function_sequence'[OF f(1)] guess u .
+  obtain u
+    where "\<And>i. simple_function M (u i)" "incseq u" "\<And>i x. u i x < top" "\<And>x. (SUP i. u i x) = f x"
+    using borel_measurable_implies_simple_function_sequence' f(1)
+    by auto
   note u = nn_integral_monotone_convergence_simple[OF this(2,1)] this
-  from borel_measurable_implies_simple_function_sequence'[OF g(1)] guess v .
+
+  obtain v where
+    "\<And>i. simple_function M (v i)" "incseq v" "\<And>i x. v i x < top" "\<And>x. (SUP i. v i x) = g x"
+    using borel_measurable_implies_simple_function_sequence' g(1)
+    by auto
   note v = nn_integral_monotone_convergence_simple[OF this(2,1)] this
+
   let ?L' = "\<lambda>i x. a * u i x + v i x"
 
   have "?L \<in> borel_measurable M" using assms by auto
-  from borel_measurable_implies_simple_function_sequence'[OF this] guess l .
+  from borel_measurable_implies_simple_function_sequence'[OF this]
+  obtain l where "\<And>i. simple_function M (l i)" "incseq l" "\<And>i x. l i x < top" "\<And>x. (SUP i. l i x) = a * f x + g x"
+    by auto
   note l = nn_integral_monotone_convergence_simple[OF this(2,1)] this
 
   have inc: "incseq (\<lambda>i. a * integral\<^sup>S M (u i))" "incseq (\<lambda>i. integral\<^sup>S M (v i))"

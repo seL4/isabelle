@@ -30,7 +30,9 @@ proof -
     (\<And>e. e > 0 \<Longrightarrow> \<exists>B. A \<subseteq> B \<and> open B \<and> emeasure M B \<le> emeasure M A + ennreal e) \<Longrightarrow> ?outer A"
     by (rule ennreal_approx_INF)
        (force intro!: emeasure_mono simp: emeasure_eq_measure sb)+
-  from countable_dense_setE guess X::"'a set"  . note X = this
+  from countable_dense_setE obtain X :: "'a set"
+    where X: "countable X" "\<And>Y :: 'a set. open Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> \<exists>d\<in>X. d \<in> Y"
+    by auto
   {
     fix r::real assume "r > 0" hence "\<And>y. open (ball y r)" "\<And>y. ball y r \<noteq> {}" by auto
     with X(2)[OF this]
@@ -114,7 +116,7 @@ proof -
     proof safe
       show "complete K" using \<open>closed K\<close> by (simp add: complete_eq_closed)
       fix e'::real assume "0 < e'"
-      from nat_approx_posE[OF this] guess n . note n = this
+      then obtain n where n: "1 / real (Suc n) < e'" by (rule nat_approx_posE)
       let ?k = "from_nat_into X ` {0..k e (Suc n)}"
       have "finite ?k" by simp
       moreover have "K \<subseteq> (\<Union>x\<in>?k. ball x e')" unfolding K_def B_def using n by force
@@ -164,12 +166,11 @@ proof -
       proof (auto simp del: of_nat_Suc, rule ccontr)
         fix x
         assume "infdist x A \<noteq> 0"
-        hence pos: "infdist x A > 0" using infdist_nonneg[of x A] by simp
-        from nat_approx_posE[OF this] guess n .
-        moreover
+        then have pos: "infdist x A > 0" using infdist_nonneg[of x A] by simp
+        then obtain n where n: "1 / real (Suc n) < infdist x A" by (rule nat_approx_posE)
         assume "\<forall>i. infdist x A < 1 / real (Suc i)"
-        hence "infdist x A < 1 / real (Suc n)" by auto
-        ultimately show False by simp
+        then have "infdist x A < 1 / real (Suc n)" by auto
+        with n show False by simp
       qed
       also have "M \<dots> = (INF n. emeasure M (?G (1 / real (Suc n))))"
       proof (rule INF_emeasure_decseq[symmetric], safe)

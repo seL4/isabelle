@@ -669,7 +669,8 @@ next
     case (Union a)
     then have "\<forall>i. \<exists>x. x \<in> sigma_sets sp st \<and> a i = A \<inter> x"
       by (auto simp: image_iff Bex_def)
-    from choice[OF this] guess f ..
+    then obtain f where "\<forall>x. f x \<in> sigma_sets sp st \<and> a x = A \<inter> f x"
+      by metis
     then show ?case
       by (auto intro!: bexI[of _ "(\<Union>x. f x)"] sigma_sets.Union
                simp add: image_iff)
@@ -771,8 +772,9 @@ proof
     next
       case (Union F)
       then have "\<forall>i. \<exists>B. F i = X -` B \<inter> \<Omega> \<and> B \<in> sigma_sets \<Omega>' M'" by auto
-      from choice[OF this] guess A .. note A = this
-      with A show ?case
+      then obtain A where "\<forall>x. F x = X -` A x \<inter> \<Omega> \<and> A x \<in> sigma_sets \<Omega>' M'"
+        by metis
+      then show ?case
         by (auto simp: vimage_UN[symmetric] intro: sigma_sets.Union)
     qed
   qed
@@ -843,13 +845,15 @@ lemma (in semiring_of_sets) generated_ring_disjoint_Un[intro]:
   and "a \<inter> b = {}"
   shows "a \<union> b \<in> generated_ring"
 proof -
-  from a guess Ca .. note Ca = this
-  from b guess Cb .. note Cb = this
+  from a b obtain Ca Cb
+    where Ca: "finite Ca" "disjoint Ca" "Ca \<subseteq> M" "a = \<Union> Ca"
+      and Cb: "finite Cb" "disjoint Cb" "Cb \<subseteq> M" "b = \<Union> Cb"
+    using generated_ringE by metis
   show ?thesis
   proof
-    show "disjoint (Ca \<union> Cb)"
-      using \<open>a \<inter> b = {}\<close> Ca Cb by (auto intro!: disjoint_union)
-  qed (insert Ca Cb, auto)
+    from \<open>a \<inter> b = {}\<close> Ca Cb show "disjoint (Ca \<union> Cb)"
+      by (auto intro!: disjoint_union)
+  qed (use Ca Cb in auto)
 qed
 
 lemma (in semiring_of_sets) generated_ring_empty: "{} \<in> generated_ring"
@@ -867,8 +871,10 @@ lemma (in semiring_of_sets) generated_ring_Int:
   assumes a: "a \<in> generated_ring" and b: "b \<in> generated_ring"
   shows "a \<inter> b \<in> generated_ring"
 proof -
-  from a guess Ca .. note Ca = this
-  from b guess Cb .. note Cb = this
+  from a b obtain Ca Cb
+    where Ca: "finite Ca" "disjoint Ca" "Ca \<subseteq> M" "a = \<Union> Ca"
+      and Cb: "finite Cb" "disjoint Cb" "Cb \<subseteq> M" "b = \<Union> Cb"
+    using generated_ringE by metis
   define C where "C = (\<lambda>(a,b). a \<inter> b)` (Ca\<times>Cb)"
   show ?thesis
   proof
@@ -890,7 +896,7 @@ proof -
         then show ?thesis by auto
       qed
     qed
-  qed (insert Ca Cb, auto simp: C_def)
+  qed (use Ca Cb in \<open>auto simp: C_def\<close>)
 qed
 
 lemma (in semiring_of_sets) generated_ring_Inter:
@@ -909,9 +915,12 @@ proof (rule ring_of_setsI)
     using sets_into_space by (auto simp: generated_ring_def generated_ring_empty)
   show "{} \<in> ?R" by (rule generated_ring_empty)
 
-  { fix a assume a: "a \<in> ?R" then guess Ca .. note Ca = this
-    fix b assume b: "b \<in> ?R" then guess Cb .. note Cb = this
-
+  {
+    fix a b assume "a \<in> ?R" "b \<in> ?R"
+    then obtain Ca Cb
+      where Ca: "finite Ca" "disjoint Ca" "Ca \<subseteq> M" "a = \<Union> Ca"
+        and Cb: "finite Cb" "disjoint Cb" "Cb \<subseteq> M" "b = \<Union> Cb"
+      using generated_ringE by metis
     show "a - b \<in> ?R"
     proof cases
       assume "Cb = {}" with Cb \<open>a \<in> ?R\<close> show ?thesis
@@ -932,7 +941,8 @@ proof (rule ring_of_setsI)
         show "finite Ca" "finite Cb" "Cb \<noteq> {}" by fact+
       qed
       finally show "a - b \<in> ?R" .
-    qed }
+    qed
+  }
   note Diff = this
 
   fix a b assume sets: "a \<in> ?R" "b \<in> ?R"

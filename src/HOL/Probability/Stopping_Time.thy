@@ -143,8 +143,9 @@ qed
 lemma stopping_time_less_const:
   assumes T: "stopping_time F T" shows "Measurable.pred (F t) (\<lambda>\<omega>. T \<omega> < t)"
 proof -
-  guess D :: "'t set" by (rule countable_dense_setE)
-  note D = this
+  obtain D :: "'t set"
+    where D: "countable D" "\<And>X. open X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d\<in>D. d \<in> X"
+  using countable_dense_setE by auto
   show ?thesis
   proof cases
     assume *: "\<forall>t'<t. \<exists>t''. t' < t'' \<and> t'' < t"

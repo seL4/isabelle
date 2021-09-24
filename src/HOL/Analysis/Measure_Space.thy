@@ -1142,7 +1142,9 @@ lemma AE_measure:
   assumes AE: "AE x in M. P x" and sets: "{x\<in>space M. P x} \<in> sets M" (is "?P \<in> sets M")
   shows "emeasure M {x\<in>space M. P x} = emeasure M (space M)"
 proof -
-  from AE_E[OF AE] guess N . note N = this
+  from AE_E[OF AE] obtain N
+    where N: "{x \<in> space M. \<not> P x} \<subseteq> N" "emeasure M N = 0" "N \<in> sets M"
+    by auto
   with sets have "emeasure M (space M) \<le> emeasure M (?P \<union> N)"
     by (intro emeasure_mono) auto
   also have "\<dots> \<le> emeasure M ?P + emeasure M N"
@@ -1513,10 +1515,13 @@ lemma AE_distrD:
     and AE: "AE x in distr M M' f. P x"
   shows "AE x in M. P (f x)"
 proof -
-  from AE[THEN AE_E] guess N .
+  from AE[THEN AE_E] obtain N
+    where "{x \<in> space (distr M M' f). \<not> P x} \<subseteq> N"
+      "emeasure (distr M M' f) N = 0"
+      "N \<in> sets (distr M M' f)"
+    by auto
   with f show ?thesis
-    unfolding eventually_ae_filter
-    by (intro bexI[of _ "f -` N \<inter> space M"])
+    by (simp add: eventually_ae_filter, intro bexI[of _ "f -` N \<inter> space M"])
        (auto simp: emeasure_distr measurable_def)
 qed
 
@@ -2352,9 +2357,9 @@ proof (rule emeasure_measure_of_sigma)
     show "(\<lambda>i. ?M (F i)) \<longlonglongrightarrow> ?M (\<Union>i. F i)"
     proof cases
       assume "\<exists>i. \<forall>j\<ge>i. F i = F j"
-      then guess i .. note i = this
-      { fix j from i \<open>incseq F\<close> have "F j \<subseteq> F i"
-          by (cases "i \<le> j") (auto simp: incseq_def) }
+      then obtain i where i: "\<forall>j\<ge>i. F i = F j" ..
+      with \<open>incseq F\<close> have "F j \<subseteq> F i" for j
+        by (cases "i \<le> j") (auto simp: incseq_def)
       then have eq: "(\<Union>i. F i) = F i"
         by auto
       with i show ?thesis
@@ -2375,7 +2380,7 @@ proof (rule emeasure_measure_of_sigma)
         fix n :: nat show "\<exists>k::nat\<in>UNIV. of_nat n \<le> ?M (F k)"
         proof (induct n)
           case (Suc n)
-          then guess k .. note k = this
+          then obtain k where "of_nat n \<le> ?M (F k)" ..
           moreover have "finite (F k) \<Longrightarrow> finite (F (f k)) \<Longrightarrow> card (F k) < card (F (f k))"
             using \<open>F k \<subset> F (f k)\<close> by (simp add: psubset_card_mono)
           moreover have "finite (F (f k)) \<Longrightarrow> finite (F k)"
@@ -2842,16 +2847,19 @@ proof -
     show "finite_measure (restrict_space M A)" "finite_measure (restrict_space N A)"
       by (auto simp: space_restrict_space emeasure_restrict_space less_top intro!: finite_measureI)
   qed (simp add: sets_restrict_space)
-  then guess Y ..
   then show ?thesis
-    apply (intro bexI[of _ Y] conjI ballI conjI)
-    apply (simp_all add: sets_restrict_space emeasure_restrict_space)
-    apply safe
-    subgoal for X Z
-      by (erule ballE[of _ _ X]) (auto simp add: Int_absorb1)
-    subgoal for X Z
-      by (erule ballE[of _ _ X])  (auto simp add: Int_absorb1 ac_simps)
-    apply auto
+    apply -
+    apply (erule bexE)
+    subgoal for Y
+      apply (intro bexI[of _ Y] conjI ballI conjI)
+         apply (simp_all add: sets_restrict_space emeasure_restrict_space)
+         apply safe
+      subgoal for X Z
+        by (erule ballE[of _ _ X]) (auto simp add: Int_absorb1)
+      subgoal for X Z
+        by (erule ballE[of _ _ X])  (auto simp add: Int_absorb1 ac_simps)
+      apply auto
+      done
     done
 qed
 

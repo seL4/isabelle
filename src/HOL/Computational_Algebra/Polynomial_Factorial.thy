@@ -357,9 +357,15 @@ lemma fract_poly_dvdD:
   shows   "p dvd q"
 proof -
   from assms(1) obtain r where r: "fract_poly q = fract_poly p * r" by (erule dvdE)
-  from content_decompose_fract[of r] guess c r' . note r' = this
+  from content_decompose_fract[of r]
+  obtain c r' where r': "r = smult c (map_poly to_fract r')" "content r' = 1" .
   from r r' have eq: "fract_poly q = smult c (fract_poly (p * r'))" by simp  
-  from fract_poly_smult_eqE[OF this] guess a b . note ab = this
+  from fract_poly_smult_eqE[OF this] obtain a b
+    where ab:
+      "c = to_fract b / to_fract a"
+      "smult a q = smult b (p * r')"
+      "coprime a b"
+      "normalize a = a" .
   have "content (smult a q) = content (smult b (p * r'))" by (simp only: ab(2))
   hence eq': "normalize b = a * content q" by (simp add: assms content_mult r' ab(4))
   have "1 = gcd a (normalize b)" by (simp add: ab)
@@ -444,7 +450,7 @@ lemma nonconst_poly_irreducible_iff:
 proof safe
   assume p: "irreducible p"
 
-  from content_decompose[of p] guess p' . note p' = this
+  from content_decompose[of p] obtain p' where p': "p = smult (content p) p'" "content p' = 1" .
   hence "p = [:content p:] * p'" by simp
   from p this have "[:content p:] dvd 1 \<or> p' dvd 1" by (rule irreducibleD)
   moreover have "\<not>p' dvd 1"
@@ -470,12 +476,16 @@ proof safe
    qed
  next
    fix q r assume qr: "fract_poly p = q * r"
-   from content_decompose_fract[of q] guess cg q' . note q = this
-   from content_decompose_fract[of r] guess cr r' . note r = this
+   from content_decompose_fract[of q]
+   obtain cg q' where q: "q = smult cg (map_poly to_fract q')" "content q' = 1" .
+   from content_decompose_fract[of r]
+   obtain cr r' where r: "r = smult cr (map_poly to_fract r')" "content r' = 1" .
    from qr q r p have nz: "cg \<noteq> 0" "cr \<noteq> 0" by auto
    from qr have eq: "fract_poly p = smult (cr * cg) (fract_poly (q' * r'))"
      by (simp add: q r)
-   from fract_poly_smult_eqE[OF this] guess a b . note ab = this
+   from fract_poly_smult_eqE[OF this] obtain a b
+     where ab: "cr * cg = to_fract b / to_fract a"
+       "smult a p = smult b (q' * r')" "coprime a b" "normalize a = a" .
    hence "content (smult a p) = content (smult b (q' * r'))" by (simp only:)
    with ab(4) have a: "a = normalize b" by (simp add: content_mult q r)
    then have "normalize b = gcd a b"
@@ -641,7 +651,12 @@ proof -
   finally have eq: "fract_poly p = smult c' (fract_poly e)" .
   also obtain b where b: "c' = to_fract b" "is_unit b"
   proof -
-    from fract_poly_smult_eqE[OF eq] guess a b . note ab = this
+    from fract_poly_smult_eqE[OF eq]
+    obtain a b where ab:
+      "c' = to_fract b / to_fract a"
+      "smult a p = smult b e"
+      "coprime a b"
+      "normalize a = a" .
     from ab(2) have "content (smult a p) = content (smult b e)" by (simp only: )
     with assms content_e have "a = normalize b" by (simp add: ab(4))
     with ab have ab': "a = 1" "is_unit b"
@@ -673,7 +688,8 @@ proof -
   define B where "B = image_mset (\<lambda>x. [:x:]) (prime_factorization (content p))"
   have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize (primitive_part p)"
     by (rule poly_prime_factorization_exists_content_1) (insert assms, simp_all)
-  then guess A by (elim exE conjE) note A = this
+  then obtain A where A: "\<forall>p. p \<in># A \<longrightarrow> prime_elem p" "\<Prod>\<^sub># A = normalize (primitive_part p)"
+    by blast
   have "normalize (prod_mset (A + B)) = normalize (prod_mset A * normalize (prod_mset B))"
     by simp
   also from assms have "normalize (prod_mset B) = normalize [:content p:]"
