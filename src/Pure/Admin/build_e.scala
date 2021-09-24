@@ -11,7 +11,7 @@ object Build_E
 {
   /* build E prover */
 
-  val default_version = "2.5"
+  val default_version = "2.6"
   val default_download_url = "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
   def build_e(
