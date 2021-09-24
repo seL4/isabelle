@@ -273,7 +273,13 @@ lemma (in information_space) KL_eq_0_iff_eq_ac:
 proof -
   interpret N: prob_space N by fact
   have "finite_measure N" by unfold_locales
-  from real_RN_deriv[OF this ac] guess D . note D = this
+  from real_RN_deriv[OF this ac] obtain D
+    where D:
+      "random_variable borel D"
+      "AE x in M. RN_deriv M N x = ennreal (D x)"
+      "AE x in N. 0 < D x"
+      "\<And>x. 0 \<le> D x"
+    by this auto
 
   have "N = density M (RN_deriv M N)"
     using ac by (rule density_RN_deriv[symmetric])

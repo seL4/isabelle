@@ -52,16 +52,18 @@ next
   show "{} \<in> ?A" by auto
 next
   let ?C = "space M"
-  fix A assume "A \<in> ?A" from completionE[OF this] guess S N N' .
+  fix A assume "A \<in> ?A"
+  then obtain S N N'
+    where "A = S \<union> N" "N \<subseteq> N'" "N' \<in> null_sets M" "S \<in> sets M"
+    by (rule completionE)
   then show "space M - A \<in> ?A"
     by (intro completionI[of _ "(?C - S) \<inter> (?C - N')" "(?C - S) \<inter> N' \<inter> (?C - N)"]) auto
 next
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> ?A"
   then have "\<forall>n. \<exists>S N N'. A n = S \<union> N \<and> S \<in> sets M \<and> N' \<in> null_sets M \<and> N \<subseteq> N'"
     by (auto simp: image_subset_iff)
-  from choice[OF this] guess S ..
-  from choice[OF this] guess N ..
-  from choice[OF this] guess N' ..
+  then obtain S N N' where "\<forall>x. A x = S x \<union> N x \<and> S x \<in> sets M \<and> N' x \<in> null_sets M \<and> N x \<subseteq> N' x"
+    by metis
   then show "\<Union>(A ` UNIV) \<in> ?A"
     using null_sets_UN[of N']
     by (intro completionI[of _ "\<Union>(S ` UNIV)" "\<Union>(N ` UNIV)" "\<Union>(N' ` UNIV)"]) auto
@@ -104,7 +106,8 @@ next
   show ?thesis
     unfolding main_part_def null_part_def if_not_P[OF nA]
   proof (rule someI2_ex)
-    from assms[THEN sets_completionE] guess S N N' . note A = this
+    from assms obtain S N N' where A: "A = S \<union> N" "N \<subseteq> N'" "N' \<in> null_sets M" "S \<in> sets M"
+      by (blast intro: sets_completionE)
     let ?P = "(S, N - S)"
     show "\<exists>p. split_completion M A p"
       unfolding split_completion_def if_not_P[OF nA] using A
@@ -140,12 +143,11 @@ lemma null_part_sets[intro, simp]:
   assumes "S \<in> sets M" shows "null_part M S \<in> sets M" "emeasure M (null_part M S) = 0"
 proof -
   have S: "S \<in> sets (completion M)" using assms by auto
-  have "S - main_part M S \<in> sets M" using assms by auto
-  moreover
+  have *: "S - main_part M S \<in> sets M" using assms by auto
   from main_part_null_part_Un[OF S] main_part_null_part_Int[OF S]
   have "S - main_part M S = null_part M S" by auto
-  ultimately show sets: "null_part M S \<in> sets M" by auto
-  from null_part[OF S] guess N ..
+  with * show sets: "null_part M S \<in> sets M" by auto
+  from null_part[OF S] obtain N where "N \<in> null_sets M \<and> null_part M S \<subseteq> N" ..
   with emeasure_eq_0[of N _ "null_part M S"] sets
   show "emeasure M (null_part M S) = 0" by auto
 qed
@@ -159,10 +161,10 @@ proof -
   then have UN: "(\<Union>i. S i) \<in> sets (completion M)" by auto
   have "\<forall>i. \<exists>N. N \<in> null_sets M \<and> null_part M (S i) \<subseteq> N"
     using null_part[OF S] by auto
-  from choice[OF this] guess N .. note N = this
+  then obtain N where N: "\<forall>x. N x \<in> null_sets M \<and> null_part M (S x) \<subseteq> N x" by metis
   then have UN_N: "(\<Union>i. N i) \<in> null_sets M" by (intro null_sets_UN) auto
-  have "(\<Union>i. S i) \<in> sets (completion M)" using S by auto
-  from null_part[OF this] guess N' .. note N' = this
+  from S have "(\<Union>i. S i) \<in> sets (completion M)" by auto
+  from null_part[OF this] obtain N' where N': "N' \<in> null_sets M \<and> null_part M (\<Union> (range S)) \<subseteq> N'" ..
   let ?N = "(\<Union>i. N i) \<union> N'"
   have null_set: "?N \<in> null_sets M" using N' UN_N by (intro null_sets.Un) auto
   have "main_part M (\<Union>i. S i) \<union> ?N = (main_part M (\<Union>i. S i) \<union> null_part M (\<Union>i. S i)) \<union> ?N"
@@ -288,21 +290,24 @@ lemma\<^marker>\<open>tag important\<close> completion_ex_borel_measurable:
   assumes g: "g \<in> borel_measurable (completion M)"
   shows "\<exists>g'\<in>borel_measurable M. (AE x in M. g x = g' x)"
 proof -
-  from g[THEN borel_measurable_implies_simple_function_sequence'] guess f . note f = this
-  from this(1)[THEN completion_ex_simple_function]
+  obtain f :: "nat \<Rightarrow> 'a \<Rightarrow> ennreal"
+    where *: "\<And>i. simple_function (completion M) (f i)"
+      and **: "\<And>x. (SUP i. f i x) = g x"
+    using g[THEN borel_measurable_implies_simple_function_sequence'] by metis
+  from *[THEN completion_ex_simple_function]
   have "\<forall>i. \<exists>f'. simple_function M f' \<and> (AE x in M. f i x = f' x)" ..
-  from this[THEN choice] obtain f' where
-    sf: "\<And>i. simple_function M (f' i)" and
-    AE: "\<forall>i. AE x in M. f i x = f' i x" by auto
+  then obtain f'
+    where sf: "\<And>i. simple_function M (f' i)"
+      and AE: "\<forall>i. AE x in M. f i x = f' i x"
+    by metis
   show ?thesis
   proof (intro bexI)
     from AE[unfolded AE_all_countable[symmetric]]
     show "AE x in M. g x = (SUP i. f' i x)" (is "AE x in M. g x = ?f x")
     proof (elim AE_mp, safe intro!: AE_I2)
       fix x assume eq: "\<forall>i. f i x = f' i x"
-      moreover have "g x = (SUP i. f i x)"
-        unfolding f by (auto split: split_max)
-      ultimately show "g x = ?f x" by auto
+      have "g x = (SUP i. f i x)" by (auto simp: ** split: split_max)
+      with eq show "g x = ?f x" by auto
     qed
     show "?f \<in> borel_measurable M"
       using sf[THEN borel_measurable_simple_function] by auto

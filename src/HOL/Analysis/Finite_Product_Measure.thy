@@ -269,11 +269,24 @@ proof -
 qed
 
 lemma Int_stable_prod_algebra: "Int_stable (prod_algebra I M)"
-proof (unfold Int_stable_def, safe)
+  unfolding Int_stable_def
+proof safe
   fix A assume "A \<in> prod_algebra I M"
-  from prod_algebraE[OF this] guess J E . note A = this
+  from prod_algebraE[OF this] obtain J E where A:
+    "A = prod_emb I M J (Pi\<^sub>E J E)"
+    "finite J"
+    "J \<noteq> {} \<or> I = {}"
+    "J \<subseteq> I"
+    "\<And>i. i \<in> J \<Longrightarrow> E i \<in> sets (M i)"
+    by auto
   fix B assume "B \<in> prod_algebra I M"
-  from prod_algebraE[OF this] guess K F . note B = this
+  from prod_algebraE[OF this] obtain K F where B:
+    "B = prod_emb I M K (Pi\<^sub>E K F)"
+    "finite K"
+    "K \<noteq> {} \<or> I = {}"
+    "K \<subseteq> I"
+    "\<And>i. i \<in> K \<Longrightarrow> F i \<in> sets (M i)"
+    by auto
   have "A \<inter> B = prod_emb I M (J \<union> K) (\<Pi>\<^sub>E i\<in>J \<union> K. (if i \<in> J then E i else space (M i)) \<inter>
       (if i \<in> K then F i else space (M i)))"
     unfolding A B using A(2,3,4) A(5)[THEN sets.sets_into_space] B(2,3,4)
@@ -360,7 +373,13 @@ proposition sets_PiM_single: "sets (PiM I M) =
 proof (rule sigma_sets_eqI)
   interpret R: sigma_algebra ?\<Omega> "sigma_sets ?\<Omega> ?R" by (rule sigma_algebra_sigma_sets) auto
   fix A assume "A \<in> prod_algebra I M"
-  from prod_algebraE[OF this] guess J X . note X = this
+  from prod_algebraE[OF this] obtain J X where X:
+    "A = prod_emb I M J (Pi\<^sub>E J X)"
+    "finite J"
+    "J \<noteq> {} \<or> I = {}"
+    "J \<subseteq> I"
+    "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
+    by auto
   show "A \<in> sigma_sets ?\<Omega> ?R"
   proof cases
     assume "I = {}"
@@ -525,7 +544,13 @@ proposition measurable_PiM:
   using sets_PiM prod_algebra_sets_into_space space
 proof (rule measurable_sigma_sets)
   fix A assume "A \<in> prod_algebra I M"
-  from prod_algebraE[OF this] guess J X .
+  from prod_algebraE[OF this] obtain J X where
+    "A = prod_emb I M J (Pi\<^sub>E J X)"
+    "finite J"
+    "J \<noteq> {} \<or> I = {}"
+    "J \<subseteq> I"
+    "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
+    by auto
   with sets[of J X] show "f -` A \<inter> space N \<in> sets N" by auto
 qed
 
@@ -537,7 +562,14 @@ lemma measurable_PiM_Collect:
   using sets_PiM prod_algebra_sets_into_space space
 proof (rule measurable_sigma_sets)
   fix A assume "A \<in> prod_algebra I M"
-  from prod_algebraE[OF this] guess J X . note X = this
+  from prod_algebraE[OF this] obtain J X
+    where X:
+      "A = prod_emb I M J (Pi\<^sub>E J X)"
+      "finite J"
+      "J \<noteq> {} \<or> I = {}"
+      "J \<subseteq> I"
+      "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
+    by auto
   then have "f -` A \<inter> space N = {\<omega> \<in> space N. \<forall>i\<in>J. f \<omega> i \<in> X i}"
     using space by (auto simp: prod_emb_def del: PiE_I)
   also have "\<dots> \<in> sets N" using X(3,2,4,5) by (rule sets)
@@ -844,7 +876,9 @@ proposition (in finite_product_sigma_finite) sigma_finite_pairs:
 proof -
   have "\<forall>i::'i. \<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> sets (M i) \<and> incseq F \<and> (\<Union>i. F i) = space (M i) \<and> (\<forall>k. emeasure (M i) (F k) \<noteq> \<infinity>)"
     using M.sigma_finite_incseq by metis
-  from choice[OF this] guess F :: "'i \<Rightarrow> nat \<Rightarrow> 'a set" ..
+  then obtain F :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"
+    where "\<forall>x. range (F x) \<subseteq> sets (M x) \<and> incseq (F x) \<and> \<Union> (range (F x)) = space (M x) \<and> (\<forall>k. emeasure (M x) (F x k) \<noteq> \<infinity>)"
+    by metis
   then have F: "\<And>i. range (F i) \<subseteq> sets (M i)" "\<And>i. incseq (F i)" "\<And>i. (\<Union>j. F i j) = space (M i)" "\<And>i k. emeasure (M i) (F i k) \<noteq> \<infinity>"
     by auto
   let ?F = "\<lambda>k. \<Pi>\<^sub>E i\<in>I. F i k"
@@ -950,8 +984,11 @@ lemma (in product_sigma_finite) PiM_eqI:
   shows "P = PiM I M"
 proof -
   interpret finite_product_sigma_finite M I
-    proof qed fact
-  from sigma_finite_pairs guess C .. note C = this
+    by standard fact
+  from sigma_finite_pairs obtain C where C:
+    "\<forall>i\<in>I. range (C i) \<subseteq> sets (M i)" "\<forall>k. \<forall>i\<in>I. emeasure (M i) (C i k) \<noteq> \<infinity>"
+    "incseq (\<lambda>k. \<Pi>\<^sub>E i\<in>I. C i k)" "(\<Union>k. \<Pi>\<^sub>E i\<in>I. C i k) = space (Pi\<^sub>M I M)"
+    by auto
   show ?thesis
   proof (rule measure_eqI_PiM_finite[OF I refl P, symmetric])
     show "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> (Pi\<^sub>M I M) (Pi\<^sub>E I A) = P (Pi\<^sub>E I A)" for A

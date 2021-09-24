@@ -72,7 +72,7 @@ next
   ultimately show thesis
     by (intro that[of "\<lambda>i. b' - d / Suc (Suc i)"])
        (auto simp: real incseq_def intro!: divide_left_mono)
-qed (insert \<open>a < b\<close>, auto)
+qed (use \<open>a < b\<close> in auto)
 
 lemma ereal_decseq_approx:
   fixes a b :: ereal
@@ -81,7 +81,12 @@ lemma ereal_decseq_approx:
     "decseq X" "\<And>i. a < X i" "\<And>i. X i < b" "X \<longlonglongrightarrow> a"
 proof -
   have "-b < -a" using \<open>a < b\<close> by simp
-  from ereal_incseq_approx[OF this] guess X .
+  from ereal_incseq_approx[OF this] obtain X where
+    "incseq X"
+    "\<And>i. - b < ereal (X i)"
+    "\<And>i. ereal (X i) < - a"
+    "(\<lambda>x. ereal (X x)) \<longlonglongrightarrow> - a"
+    by auto
   then show thesis
     apply (intro that[of "\<lambda>i. - X i"])
     apply (auto simp: decseq_def incseq_def simp flip: uminus_ereal.simps)
@@ -98,8 +103,18 @@ proposition einterval_Icc_approximation:
     "l \<longlonglongrightarrow> a" "u \<longlonglongrightarrow> b"
 proof -
   from dense[OF \<open>a < b\<close>] obtain c where "a < c" "c < b" by safe
-  from ereal_incseq_approx[OF \<open>c < b\<close>] guess u . note u = this
-  from ereal_decseq_approx[OF \<open>a < c\<close>] guess l . note l = this
+  from ereal_incseq_approx[OF \<open>c < b\<close>] obtain u where u:
+    "incseq u"
+    "\<And>i. c < ereal (u i)"
+    "\<And>i. ereal (u i) < b"
+    "(\<lambda>x. ereal (u x)) \<longlonglongrightarrow> b"
+    by auto
+  from ereal_decseq_approx[OF \<open>a < c\<close>] obtain l where l:
+    "decseq l"
+    "\<And>i. a < ereal (l i)"
+    "\<And>i. ereal (l i) < c"
+    "(\<lambda>x. ereal (l x)) \<longlonglongrightarrow> a"
+    by auto
   { fix i from less_trans[OF \<open>l i < c\<close> \<open>c < u i\<close>] have "l i < u i" by simp }
   have "einterval a b = (\<Union>i. {l i .. u i})"
   proof (auto simp: einterval_iff)
@@ -944,8 +959,15 @@ theorem interval_integral_substitution_nonneg:
     "set_integrable lborel (einterval A B) f"
     "(LBINT x=A..B. f x) = (LBINT x=a..b. (f (g x) * g' x))"
 proof -
-  from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx [simp] = this
-  note less_imp_le [simp]
+  from einterval_Icc_approximation[OF \<open>a < b\<close>] obtain u l where approx [simp]:
+    "einterval a b = (\<Union>i. {l i..u i})"
+    "incseq u"
+    "decseq l"
+    "\<And>i. l i < u i"
+    "\<And>i. a < ereal (l i)"
+    "\<And>i. ereal (u i) < b"
+    "(\<lambda>x. ereal (l x)) \<longlonglongrightarrow> a"
+    "(\<lambda>x. ereal (u x)) \<longlonglongrightarrow> b" by this auto
   have aless[simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
   have lessb[simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
@@ -976,7 +998,7 @@ proof -
     hence B3: "\<And>i. g (u i) \<le> B"
       by (intro incseq_le, auto simp: incseq_def)
     have "ereal (g (l 0)) \<le> ereal (g (u 0))"
-      by auto
+      by (auto simp: less_imp_le)
     then show "A \<le> B"
       by (meson A3 B3 order.trans)
     { fix x :: real
@@ -1002,7 +1024,7 @@ proof -
     have "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)"
       apply (rule interval_integral_substitution_finite [OF _ DERIV_subset [OF deriv_g]])
       unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
-           apply (auto intro!: continuous_at_imp_continuous_on contf contg')
+           apply (auto simp: less_imp_le intro!: continuous_at_imp_continuous_on contf contg')
       done
     then show ?thesis
       by (simp add: ac_simps)
@@ -1031,7 +1053,7 @@ proof -
     hence "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> ?l"
       by (simp add: eq1)
     then show "(\<lambda>i. set_lebesgue_integral lborel {g (l i)<..<g (u i)} f) \<longlonglongrightarrow> ?l"
-      unfolding interval_lebesgue_integral_def by auto
+      unfolding interval_lebesgue_integral_def by (auto simp: less_imp_le)
     have "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> 0 \<le> f x"
       using aless f_nonneg img lessb by blast
     then show "\<And>x i. x \<in> {g (l i)<..<g (u i)} \<Longrightarrow> 0 \<le> f x"

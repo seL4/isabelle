@@ -564,8 +564,9 @@ proof -
   let ?R = generated_ring
   have "\<forall>a\<in>?R. \<exists>m. \<exists>C\<subseteq>M. a = \<Union>C \<and> finite C \<and> disjoint C \<and> m = (\<Sum>c\<in>C. \<mu> c)"
     by (auto simp: generated_ring_def)
-  from bchoice[OF this] guess \<mu>' .. note \<mu>'_spec = this
-
+  from bchoice[OF this] obtain \<mu>'
+    where \<mu>'_spec: "\<forall>x\<in>generated_ring. \<exists>C\<subseteq>M. x = \<Union> C \<and> finite C \<and> disjoint C \<and> \<mu>' x = sum \<mu> C"
+    by blast
   { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
     fix D assume D: "D \<subseteq> M" "finite D" "disjoint D"
     assume "\<Union>C = \<Union>D"
@@ -609,15 +610,19 @@ proof -
     fix a assume "a \<in> M" with \<mu>'[of "{a}"] show "\<mu>' a = \<mu> a"
       by (simp add: disjoint_def)
   next
-    fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
+    fix a assume "a \<in> ?R"
+    then obtain Ca where Ca: "finite Ca" "disjoint Ca" "Ca \<subseteq> M" "a = \<Union> Ca" ..
     with \<mu>'[of Ca] \<open>volume M \<mu>\<close>[THEN volume_positive]
     show "0 \<le> \<mu>' a"
       by (auto intro!: sum_nonneg)
   next
     show "\<mu>' {} = 0" using \<mu>'[of "{}"] by auto
   next
-    fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
-    fix b assume "b \<in> ?R" then guess Cb .. note Cb = this
+    fix a b assume "a \<in> ?R" "b \<in> ?R"
+    then obtain Ca Cb
+      where Ca: "finite Ca" "disjoint Ca" "Ca \<subseteq> M" "a = \<Union> Ca"
+        and Cb: "finite Cb" "disjoint Cb" "Cb \<subseteq> M" "b = \<Union> Cb"
+      by (meson generated_ringE)
     assume "a \<inter> b = {}"
     with Ca Cb have "Ca \<inter> Cb \<subseteq> {{}}" by auto
     then have C_Int_cases: "Ca \<inter> Cb = {{}} \<or> Ca \<inter> Cb = {}" by auto
@@ -650,7 +655,7 @@ proof -
     fix C assume sets_C: "C \<subseteq> M" "\<Union>C \<in> M" and "disjoint C" "finite C"
     have "\<exists>F'. bij_betw F' {..<card C} C"
       by (rule finite_same_card_bij[OF _ \<open>finite C\<close>]) auto
-    then guess F' .. note F' = this
+    then obtain F' where "bij_betw F' {..<card C} C" ..
     then have F': "C = F' ` {..< card C}" "inj_on F' {..< card C}"
       by (auto simp: bij_betw_def)
     { fix i j assume *: "i < card C" "j < card C" "i \<noteq> j"
@@ -698,10 +703,12 @@ proof -
 
   have "countably_additive generated_ring \<mu>_r"
   proof (rule countably_additiveI)
-    fix A' :: "nat \<Rightarrow> 'a set" assume A': "range A' \<subseteq> generated_ring" "disjoint_family A'"
+    fix A' :: "nat \<Rightarrow> 'a set"
+    assume A': "range A' \<subseteq> generated_ring" "disjoint_family A'"
       and Un_A: "(\<Union>i. A' i) \<in> generated_ring"
 
-    from generated_ringE[OF Un_A] guess C' . note C' = this
+    obtain C' where C': "finite C'" "disjoint C'" "C' \<subseteq> M" "\<Union> (range A') = \<Union> C'"
+      using generated_ringE[OF Un_A] by auto
 
     { fix c assume "c \<in> C'"
       moreover define A where [abs_def]: "A i = A' i \<inter> c" for i
@@ -717,11 +724,11 @@ proof -
       proof
         fix i
         from A have Ai: "A i \<in> generated_ring" by auto
-        from generated_ringE[OF this] guess C . note C = this
-
+        from generated_ringE[OF this] obtain C
+          where C: "finite C" "disjoint C" "C \<subseteq> M" "A i = \<Union> C" by auto
         have "\<exists>F'. bij_betw F' {..<card C} C"
           by (rule finite_same_card_bij[OF _ \<open>finite C\<close>]) auto
-        then guess F .. note F = this
+        then obtain F where F: "bij_betw F {..<card C} C" ..
         define f where [abs_def]: "f i = (if i < card C then F i else {})" for i
         then have f: "bij_betw f {..< card C} C"
           by (intro bij_betw_cong[THEN iffD1, OF _ F]) auto
@@ -750,7 +757,9 @@ proof -
         ultimately show "?P i"
           by blast
       qed
-      from choice[OF this] guess f .. note f = this
+      from choice[OF this] obtain f
+        where f: "\<forall>x. \<mu>_r (A x) = (\<Sum>j. \<mu>_r (f x j)) \<and> disjoint_family (f x) \<and> \<Union> (range (f x)) = A x \<and> (\<forall>j. f x j \<in> M)"
+        ..
       then have UN_f_eq: "(\<Union>i. case_prod f (prod_decode i)) = (\<Union>i. A i)"
         unfolding UN_extend_simps surj_prod_decode by (auto simp: set_eq_iff)
 
@@ -808,8 +817,8 @@ proof -
     finally show "(\<Sum>n. \<mu>_r (A' n)) = \<mu>_r (\<Union>i. A' i)"
       using C' by simp
   qed
-  from G.caratheodory'[OF \<open>positive generated_ring \<mu>_r\<close> \<open>countably_additive generated_ring \<mu>_r\<close>]
-  guess \<mu>' ..
+  obtain \<mu>' where "(\<forall>s\<in>generated_ring. \<mu>' s = \<mu>_r s) \<and> measure_space \<Omega> (sigma_sets \<Omega> generated_ring) \<mu>'"
+    using G.caratheodory'[OF pos \<open>countably_additive generated_ring \<mu>_r\<close>] by auto
   with V show ?thesis
     unfolding sigma_sets_generated_ring_eq
     by (intro exI[of _ \<mu>']) (auto intro: generated_ringI_Basic)

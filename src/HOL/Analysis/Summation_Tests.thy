@@ -115,7 +115,7 @@ proof
   define n where "n = nat \<lceil>log c K\<rceil>"
   from unbounded have "\<exists>m>n. c < root m (norm (f m))" unfolding bdd_above_def
     by (auto simp: not_le)
-  then guess m by (elim exE conjE) note m = this
+  then obtain m where m: "n < m" "c < root m (norm (f m))" by auto
   from c K have "K = c powr log c K" by (simp add: powr_def log_def)
   also from c have "c powr log c K \<le> c powr real n" unfolding n_def
     by (intro powr_mono, linarith, simp)
@@ -526,7 +526,7 @@ proof (rule root_test_convergence')
     with assms show ?thesis by simp
   next
     assume "\<exists>l'. l = ereal l' \<and> l' > 0"
-    then guess l' by (elim exE conjE) note l' = this
+    then obtain l' where l': "l = ereal l'" "0 < l'" by auto
     hence "l \<noteq> \<infinity>" by auto
     have "l * ereal (norm z) < l * conv_radius f"
       by (intro ereal_mult_strict_left_mono) (simp_all add: l' assms)

@@ -422,7 +422,9 @@ proof -
       by (subst (asm) dist_complex_def, drule spec, erule mp, auto)
     hence "\<exists>N. \<forall>n \<ge> N. cmod ((CLBINT t:{-d/2..d/2}. 1 - char (M n) t) -
         (CLBINT t:{-d/2..d/2}. 1 - char M' t)) < d * \<epsilon> / 4" by (simp add: eventually_sequentially)
-    then guess N ..
+    then obtain N
+      where "\<forall>n\<ge>N. cmod ((CLBINT t:{- d / 2..d / 2}. 1 - char (M n) t) -
+        (CLBINT t:{- d / 2..d / 2}. 1 - char M' t)) < d * \<epsilon> / 4" ..
     hence N: "\<And>n. n \<ge> N \<Longrightarrow> cmod ((CLBINT t:{-d/2..d/2}. 1 - char (M n) t) -
         (CLBINT t:{-d/2..d/2}. 1 - char M' t)) < d * \<epsilon> / 4" by auto
     { fix n

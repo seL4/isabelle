@@ -101,11 +101,10 @@ proof -
       thus ?thesis by auto
     qed
   qed
-  hence "\<exists>g :: real \<Rightarrow> nat \<times> rat . \<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}.
+  then obtain g :: "real \<Rightarrow> nat \<times> rat" where "\<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}.
       (fst (g a) = 0 \<and> of_rat (snd (g a)) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd (g a)))) |
       (fst (g a) = 1 \<and> of_rat (snd (g a)) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd (g a))))"
-    by (rule bchoice)
-  then guess g ..
+    by (rule bchoice [THEN exE]) blast
   hence g: "\<And>a x. a \<in> A \<Longrightarrow> \<not> continuous (at a within A) f \<Longrightarrow> x \<in> A \<Longrightarrow>
       (fst (g a) = 0 \<and> of_rat (snd (g a)) < f a \<and> (x < a \<longrightarrow> f x < of_rat (snd (g a)))) |
       (fst (g a) = 1 \<and> of_rat (snd (g a)) > f a \<and> (x > a \<longrightarrow> f x > of_rat (snd (g a))))"
@@ -579,7 +578,8 @@ lemma borel_Iio:
   "borel = sigma UNIV (range lessThan :: 'a::{linorder_topology, second_countable_topology} set set)"
   unfolding second_countable_borel_measurable[OF open_generated_order]
 proof (intro sigma_eqI sigma_sets_eqI)
-  from countable_dense_setE guess D :: "'a set" . note D = this
+  obtain D :: "'a set" where D: "countable D" "\<And>X. open X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d\<in>D. d \<in> X"
+    by (rule countable_dense_setE) blast
 
   interpret L: sigma_algebra UNIV "sigma_sets UNIV (range lessThan)"
     by (rule sigma_algebra_sigma_sets) simp
@@ -617,7 +617,8 @@ lemma borel_Ioi:
   "borel = sigma UNIV (range greaterThan :: 'a::{linorder_topology, second_countable_topology} set set)"
   unfolding second_countable_borel_measurable[OF open_generated_order]
 proof (intro sigma_eqI sigma_sets_eqI)
-  from countable_dense_setE guess D :: "'a set" . note D = this
+  obtain D :: "'a set" where D: "countable D" "\<And>X. open X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d\<in>D. d \<in> X"
+    by (rule countable_dense_setE) blast
 
   interpret L: sigma_algebra UNIV "sigma_sets UNIV (range greaterThan)"
     by (rule sigma_algebra_sigma_sets) simp
@@ -1027,7 +1028,8 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
   then have *: "{x::'a. x\<bullet>i \<le> a} = (\<Union>k::nat. {.. (\<Sum>n\<in>Basis. (if n = i then a else real k)*\<^sub>R n)})"
   proof (safe, simp_all add: eucl_le[where 'a='a] split: if_split_asm)
     fix x :: 'a
-    from real_arch_simple[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"] guess k::nat ..
+    obtain k where "Max ((\<bullet>) x ` Basis) \<le> real k"
+      using real_arch_simple by blast
     then have "\<And>i. i \<in> Basis \<Longrightarrow> x\<bullet>i \<le> real k"
       by (subst (asm) Max_le_iff) auto
     then show "\<exists>k::nat. \<forall>ia\<in>Basis. ia \<noteq> i \<longrightarrow> x \<bullet> ia \<le> real k"
@@ -1048,8 +1050,8 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
       (\<Union>k::nat. {x. (\<Sum>n\<in>Basis. (if n = i then a else -real k) *\<^sub>R n) <e x})" using i
   proof (safe, simp_all add: eucl_less_def split: if_split_asm)
     fix x :: 'a
-    from reals_Archimedean2[of "Max ((\<lambda>i. -x\<bullet>i)`Basis)"]
-    guess k::nat .. note k = this
+    obtain k where k: "Max ((\<bullet>) (- x) ` Basis) < real k"
+      using reals_Archimedean2 by blast
     { fix i :: 'a assume "i \<in> Basis"
       then have "-x\<bullet>i < real k"
         using k by (subst (asm) Max_less_iff) auto
@@ -1074,8 +1076,8 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {x. x <e (\<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n)})" using \<open>i\<in> Basis\<close>
   proof (safe, simp_all add: eucl_less_def split: if_split_asm)
     fix x :: 'a
-    from reals_Archimedean2[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"]
-    guess k::nat .. note k = this
+    obtain k where k: "Max ((\<bullet>) x ` Basis) < real k"
+      using reals_Archimedean2 by blast
     { fix i :: 'a assume "i \<in> Basis"
       then have "x\<bullet>i < real k"
         using k by (subst (asm) Max_less_iff) auto
@@ -1098,8 +1100,8 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_atMost])
   have *: "{..a} = (\<Union>n::nat. {- real n *\<^sub>R One .. a})"
   proof (safe, simp_all add: eucl_le[where 'a='a])
     fix x :: 'a
-    from real_arch_simple[of "Max ((\<lambda>i. - x\<bullet>i)`Basis)"]
-    guess k::nat .. note k = this
+    obtain k where k: "Max ((\<bullet>) (- x) ` Basis) \<le> real k"
+      using real_arch_simple by blast
     { fix i :: 'a assume "i \<in> Basis"
       with k have "- x\<bullet>i \<le> real k"
         by (subst (asm) Max_le_iff) (auto simp: field_simps)
@@ -1808,9 +1810,7 @@ lemma real_interval_borel_measurable:
 proof -
   from assms is_real_interval have "\<exists>a b::real. S = {} \<or> S = UNIV \<or> S = {..<b} \<or> S = {..b} \<or>
     S = {a<..} \<or> S = {a..} \<or> S = {a<..<b} \<or> S = {a<..b} \<or> S = {a..<b} \<or> S = {a..b}" by auto
-  then guess a ..
-  then guess b ..
-  thus ?thesis
+  then show ?thesis
     by auto
 qed
 

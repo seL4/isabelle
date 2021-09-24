@@ -261,7 +261,10 @@ proof -
     from this[THEN bspec, OF sets.top] show "integral\<^sup>N M g \<le> N (space M)"
       by (simp cong: nn_integral_cong)
   qed
-  from ennreal_SUP_countable_SUP [OF \<open>G \<noteq> {}\<close>, of "integral\<^sup>N M"] guess ys .. note ys = this
+  from ennreal_SUP_countable_SUP [OF \<open>G \<noteq> {}\<close>, of "integral\<^sup>N M"]
+  obtain ys :: "nat \<Rightarrow> ennreal"
+    where ys: "range ys \<subseteq> integral\<^sup>N M ` G \<and> Sup (integral\<^sup>N M ` G) = Sup (range ys)"
+    by auto
   then have "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^sup>N M g = ys n"
   proof safe
     fix n assume "range ys \<subseteq> integral\<^sup>N M ` G"
@@ -774,8 +777,11 @@ proof
 next
   assume eq: "density M f = density M g"
   interpret f: sigma_finite_measure "density M f" by fact
-  from f.sigma_finite_incseq guess A . note cover = this
-
+  from f.sigma_finite_incseq obtain A where cover: "range A \<subseteq> sets (density M f)"
+    "\<Union> (range A) = space (density M f)"
+    "\<And>i. emeasure (density M f) (A i) \<noteq> \<infinity>"
+    "incseq A"
+    by auto
   have "AE x in M. \<forall>i. x \<in> A i \<longrightarrow> f x = g x"
     unfolding AE_all_countable
   proof
@@ -821,7 +827,9 @@ proof
     using fin by (auto elim!: AE_Ball_mp simp: less_top ennreal_mult_less_top)
 next
   assume AE: "AE x in M. f x \<noteq> \<infinity>"
-  from sigma_finite guess Q . note Q = this
+  from sigma_finite obtain Q :: "nat \<Rightarrow> 'a set"
+    where Q: "range Q \<subseteq> sets M" "\<Union> (range Q) = space M" "\<And>i. emeasure M (Q i) \<noteq> \<infinity>"
+    by auto
   define A where "A i =
     f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ennreal(of_nat (Suc n))}) \<inter> space M" for i
   { fix i j have "A i \<inter> Q j \<in> sets M"
@@ -977,7 +985,8 @@ proof (rule RN_deriv_unique)
   let ?M' = "distr M M' T" and ?N' = "distr N M' T"
   interpret M': sigma_finite_measure ?M'
   proof
-    from sigma_finite_countable guess F .. note F = this
+    from sigma_finite_countable obtain F
+      where F: "countable F \<and> F \<subseteq> sets M \<and> \<Union> F = space M \<and> (\<forall>a\<in>F. emeasure M a \<noteq> \<infinity>)" ..
     show "\<exists>A. countable A \<and> A \<subseteq> sets (distr M M' T) \<and> \<Union>A = space (distr M M' T) \<and> (\<forall>a\<in>A. emeasure (distr M M' T) a \<noteq> \<infinity>)"
     proof (intro exI conjI ballI)
       show *: "(\<lambda>A. T' -` A \<inter> space ?M') ` F \<subseteq> sets ?M'"
@@ -992,7 +1001,7 @@ proof (rule RN_deriv_unique)
       have Fi: "A \<in> sets M" using F \<open>A\<in>F\<close> by auto
       ultimately show "emeasure ?M' X \<noteq> \<infinity>"
         using F T T' \<open>A\<in>F\<close> by (simp add: emeasure_distr)
-    qed (insert F, auto)
+    qed (use F in auto)
   qed
   have "(RN_deriv ?M' ?N') \<circ> T \<in> borel_measurable M"
     using T ac by measurable

@@ -423,7 +423,7 @@ proof -
     have "sigma_sets (space M) (\<Union>i\<in>I j. E i) = sigma_sets (space M) (?E j)"
     proof (rule sigma_sets_eqI)
       fix A assume "A \<in> (\<Union>i\<in>I j. E i)"
-      then guess i ..
+      then obtain i where "i \<in> I j" "A \<in> E i" ..
       then show "A \<in> sigma_sets (space M) (?E j)"
         by (auto intro!: sigma_sets.intros(2-) exI[of _ "{i}"] exI[of _ "\<lambda>i. A"])
     next
@@ -446,13 +446,14 @@ proof -
         and "\<forall>j\<in>K. A j \<in> ?E j"
       then have "\<forall>j\<in>K. \<exists>E' L. A j = (\<Inter>l\<in>L. E' l) \<and> finite L \<and> L \<noteq> {} \<and> L \<subseteq> I j \<and> (\<forall>l\<in>L. E' l \<in> E l)"
         by simp
-      from bchoice[OF this] guess E' ..
+      from bchoice[OF this] obtain E'
+        where "\<forall>x\<in>K. \<exists>L. A x = \<Inter> (E' x ` L) \<and> finite L \<and> L \<noteq> {} \<and> L \<subseteq> I x \<and> (\<forall>l\<in>L. E' x l \<in> E l)"
+        ..
       from bchoice[OF this] obtain L
         where A: "\<And>j. j\<in>K \<Longrightarrow> A j = (\<Inter>l\<in>L j. E' j l)"
         and L: "\<And>j. j\<in>K \<Longrightarrow> finite (L j)" "\<And>j. j\<in>K \<Longrightarrow> L j \<noteq> {}" "\<And>j. j\<in>K \<Longrightarrow> L j \<subseteq> I j"
         and E': "\<And>j l. j\<in>K \<Longrightarrow> l \<in> L j \<Longrightarrow> E' j l \<in> E l"
         by auto
-
       { fix k l j assume "k \<in> K" "j \<in> K" "l \<in> L j" "l \<in> L k"
         have "k = j"
         proof (rule ccontr)
@@ -747,8 +748,9 @@ proof -
     then show "?A \<subseteq> Pow (space M)" by auto
     show "Int_stable ?A"
     proof (rule Int_stableI)
-      fix a assume "a \<in> ?A" then guess n .. note a = this
-      fix b assume "b \<in> ?A" then guess m .. note b = this
+      fix a b assume "a \<in> ?A" "b \<in> ?A" then obtain n m
+        where a: "n \<in> UNIV" "a \<in> sigma_sets (space M) (\<Union> (A ` {..n}))"
+          and b: "m \<in> UNIV" "b \<in> sigma_sets (space M) (\<Union> (A ` {..m}))" by auto
       interpret Amn: sigma_algebra "space M" "sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
         using A sets.sets_into_space[of _ M] by (intro sigma_algebra_sigma_sets) auto
       have "sigma_sets (space M) (\<Union>i\<in>{..n}. A i) \<subseteq> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
@@ -1083,8 +1085,14 @@ proof -
       { fix i show "emeasure ?D (\<Pi>\<^sub>E i\<in>I. space (M' i)) \<noteq> \<infinity>" by auto }
     next
       fix E assume E: "E \<in> prod_algebra I M'"
-      from prod_algebraE[OF E] guess J Y . note J = this
-
+      from prod_algebraE[OF E] obtain J Y
+        where J:
+          "E = prod_emb I M' J (Pi\<^sub>E J Y)"
+          "finite J"
+          "J \<noteq> {} \<or> I = {}"
+          "J \<subseteq> I"
+          "\<And>i. i \<in> J \<Longrightarrow> Y i \<in> sets (M' i)"
+        by auto
       from E have "E \<in> sets ?P" by (auto simp: sets_PiM)
       then have "emeasure ?D E = emeasure M (?X -` E \<inter> space M)"
         by (simp add: emeasure_distr X)

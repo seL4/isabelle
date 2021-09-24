@@ -755,7 +755,15 @@ next
   from assms have "n \<noteq> 0" by auto
   from False have "\<exists>p\<in>prime_factors n. p \<noteq> 2"
     using assms Ex_other_prime_factor[of n 2] by auto
-  from divide_out_primepow_ex[OF \<open>n \<noteq> 0\<close> this] guess p k n' . note p = this
+  from divide_out_primepow_ex[OF \<open>n \<noteq> 0\<close> this]
+  obtain p k n'
+    where p:
+      "p \<noteq> 2"
+      "prime p"
+      "p dvd n"
+      "\<not> p dvd n'"
+      "0 < k"
+      "n = p ^ k * n'" .
   from p have coprime: "coprime (p ^ k) n'"
     using p prime_imp_coprime by auto
   have "odd p"

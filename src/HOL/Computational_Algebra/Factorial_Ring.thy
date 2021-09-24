@@ -755,8 +755,7 @@ proof (induction "card {b. b dvd x \<and> normalize b = b}" arbitrary: x rule: l
       thus ?thesis by (intro exI[of _ "{#normalize a#}"]) auto
     next
       case True
-      then guess b by (elim exE conjE) note b = this
-
+      then obtain b where b: "b dvd a" "\<not> is_unit b" "\<not> a dvd b" by auto
       from b have "?fctrs b \<subseteq> ?fctrs a" by (auto intro: dvd_trans)
       moreover from b have "normalize a \<notin> ?fctrs b" "normalize a \<in> ?fctrs a" by simp_all
       hence "?fctrs b \<noteq> ?fctrs a" by blast
@@ -766,7 +765,8 @@ proof (induction "card {b. b dvd x \<and> normalize b = b}" arbitrary: x rule: l
       moreover from \<open>a \<noteq> 0\<close> b have "b \<noteq> 0" by auto
       ultimately have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> normalize (prod_mset A) = normalize b"
         by (intro less) auto
-      then guess A .. note A = this
+      then obtain A where A: "(\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> normalize (\<Prod>\<^sub># A) = normalize b"
+        by auto
 
       define c where "c = a div b"
       from b have c: "a = b * c" by (simp add: c_def)
@@ -785,7 +785,8 @@ proof (induction "card {b. b dvd x \<and> normalize b = b}" arbitrary: x rule: l
         by (rule psubset_card_mono)
       with \<open>c \<noteq> 0\<close> have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> normalize (prod_mset A) = normalize c"
         by (intro less) auto
-      then guess B .. note B = this
+      then obtain B where B: "(\<forall>x. x \<in># B \<longrightarrow> prime_elem x) \<and> normalize (\<Prod>\<^sub># B) = normalize c"
+        by auto
 
       show ?thesis
       proof (rule exI[of _ "A + B"]; safe)
@@ -840,7 +841,15 @@ proof (rule prime_elemI)
     case False
     hence "a \<noteq> 0" "b \<noteq> 0" by blast+
     note nz = \<open>x \<noteq> 0\<close> this
-    from nz[THEN prime_factorization_exists'] guess A B C . note ABC = this
+    from nz[THEN prime_factorization_exists'] obtain A B C
+      where ABC:
+        "\<And>z. z \<in># A \<Longrightarrow> prime z"
+        "normalize (\<Prod>\<^sub># A) = normalize x"
+        "\<And>z. z \<in># B \<Longrightarrow> prime z"
+        "normalize (\<Prod>\<^sub># B) = normalize a"
+        "\<And>z. z \<in># C \<Longrightarrow> prime z"
+        "normalize (\<Prod>\<^sub># C) = normalize b"
+      by this blast
 
     have "irreducible (prod_mset A)"
       by (subst irreducible_cong[OF ABC(2)]) fact
@@ -855,7 +864,7 @@ proof (rule prime_elemI)
            normalize (prod_mset A) dvd normalize (prod_mset C)" by simp
     thus ?thesis unfolding ABC by simp
   qed auto
-qed (insert assms, simp_all add: irreducible_def)
+qed (use assms in \<open>simp_all add: irreducible_def\<close>)
 
 lemma finite_divisor_powers:
   assumes "y \<noteq> 0" "\<not>is_unit x"
@@ -867,7 +876,14 @@ proof (cases "x = 0")
 next
   case False
   note nz = this \<open>y \<noteq> 0\<close>
-  from nz[THEN prime_factorization_exists'] guess A B . note AB = this
+  from nz[THEN prime_factorization_exists'] obtain A B
+    where AB:
+      "\<And>z. z \<in># A \<Longrightarrow> prime z"
+      "normalize (\<Prod>\<^sub># A) = normalize x"
+      "\<And>z. z \<in># B \<Longrightarrow> prime z"
+      "normalize (\<Prod>\<^sub># B) = normalize y"
+    by this blast
+
   from AB assms have "A \<noteq> {#}" by (auto simp: normalize_1_iff)
   from AB(2,4) prod_mset_primes_finite_divisor_powers [of A B, OF AB(1,3) this]
     have "finite {n. prod_mset A ^ n dvd prod_mset B}" by simp
@@ -883,7 +899,8 @@ lemma finite_prime_divisors:
   assumes "x \<noteq> 0"
   shows   "finite {p. prime p \<and> p dvd x}"
 proof -
-  from prime_factorization_exists'[OF assms] guess A . note A = this
+  from prime_factorization_exists'[OF assms] obtain A
+    where A: "\<And>z. z \<in># A \<Longrightarrow> prime z" "normalize (\<Prod>\<^sub># A) = normalize x" by this blast
   have "{p. prime p \<and> p dvd x} \<subseteq> set_mset A"
   proof safe
     fix p assume p: "prime p" and dvd: "p dvd x"
@@ -925,12 +942,14 @@ lemma prime_divisor_exists:
   assumes "a \<noteq> 0" "\<not>is_unit a"
   shows   "\<exists>b. b dvd a \<and> prime b"
 proof -
-  from prime_factorization_exists'[OF assms(1)] guess A . note A = this
-  moreover from A and assms have "A \<noteq> {#}" by auto
+  from prime_factorization_exists'[OF assms(1)]
+  obtain A where A: "\<And>z. z \<in># A \<Longrightarrow> prime z" "normalize (\<Prod>\<^sub># A) = normalize a"
+    by this blast
+  with assms have "A \<noteq> {#}" by auto
   then obtain x where "x \<in># A" by blast
   with A(1) have *: "x dvd normalize (prod_mset A)" "prime x"
     by (auto simp: dvd_prod_mset)
-  hence "x dvd a" unfolding A by simp
+  hence "x dvd a" by (simp add: A(2))
   with * show ?thesis by blast
 qed
 
@@ -939,7 +958,9 @@ lemma prime_divisors_induct [case_names zero unit factor]:
   shows   "P x"
 proof (cases "x = 0")
   case False
-  from prime_factorization_exists'[OF this] guess A . note A = this
+  from prime_factorization_exists'[OF this]
+  obtain A where A: "\<And>z. z \<in># A \<Longrightarrow> prime z" "normalize (\<Prod>\<^sub># A) = normalize x"
+    by this blast
   from A obtain u where u: "is_unit u" "x = u * prod_mset A"
     by (elim associatedE2)
 
@@ -959,7 +980,7 @@ lemma no_prime_divisors_imp_unit:
   shows "is_unit a"
 proof (rule ccontr)
   assume "\<not>is_unit a"
-  from prime_divisor_exists[OF assms(1) this] guess b by (elim exE conjE)
+  from prime_divisor_exists[OF assms(1) this] obtain b where "b dvd a" "prime b" by auto
   with assms(2)[of b] show False by (simp add: prime_def)
 qed
 
@@ -1138,7 +1159,8 @@ proof (cases "x = 0")
   next
     define n where "n = multiplicity p x"
     from assms have "\<not>is_unit p" by simp
-    from multiplicity_decompose'[OF False this] guess y . note y = this [folded n_def]
+    from multiplicity_decompose'[OF False this]
+    obtain y where y [folded n_def]: "x = p ^ multiplicity p x * y" "\<not> p dvd y" .
     from y have "p ^ Suc n dvd q * x \<longleftrightarrow> p ^ n * p dvd p ^ n * (q * y)" by (simp add: mult_ac)
     also from assms have "\<dots> \<longleftrightarrow> p dvd q * y" by simp
     also have "\<dots> \<longleftrightarrow> p dvd q \<or> p dvd y" by (rule prime_elem_dvd_mult_iff) fact+

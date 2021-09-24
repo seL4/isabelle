@@ -195,10 +195,20 @@ proof
   have "\<forall>i. \<exists>A. countable A \<and> (\<forall>a\<in>A. x i \<in> a) \<and> (\<forall>a\<in>A. open a) \<and>
     (\<forall>S. open S \<and> x i \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)" (is "\<forall>i. ?th i")
   proof
-    fix i from first_countable_basis_Int_stableE[of "x i"] guess A .
+    fix i from first_countable_basis_Int_stableE[of "x i"]
+    obtain A where
+      "countable A"
+      "\<And>C. C \<in> A \<Longrightarrow> (x)\<^sub>F i \<in> C"
+      "\<And>C. C \<in> A \<Longrightarrow> open C"
+      "\<And>S. open S \<Longrightarrow> (x)\<^sub>F i \<in> S \<Longrightarrow> \<exists>A\<in>A. A \<subseteq> S"
+      "\<And>C D. C \<in> A \<Longrightarrow> D \<in> A \<Longrightarrow> C \<inter> D \<in> A"
+      by auto
     thus "?th i" by (intro exI[where x=A]) simp
   qed
-  then guess A unfolding choice_iff .. note A = this
+  then obtain A
+    where A: "\<forall>i. countable (A i) \<and> Ball (A i) ((\<in>) ((x)\<^sub>F i)) \<and> Ball (A i) open \<and>
+      (\<forall>S. open S \<and> (x)\<^sub>F i \<in> S \<longrightarrow> (\<exists>a\<in>A i. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A i \<longrightarrow> b \<in> A i \<longrightarrow> a \<inter> b \<in> A i)"
+    by (auto simp: choice_iff)
   hence open_sub: "\<And>i S. i\<in>domain x \<Longrightarrow> open (S i) \<Longrightarrow> x i\<in>(S i) \<Longrightarrow> (\<exists>a\<in>A i. a\<subseteq>(S i))" by auto
   have A_notempty: "\<And>i. i \<in> domain x \<Longrightarrow> A i \<noteq> {}" using open_sub[of _ "\<lambda>_. UNIV"] by auto
   let ?A = "(\<lambda>f. Pi' (domain x) f) ` (Pi\<^sub>E (domain x) A)"
@@ -492,7 +502,8 @@ proof
       fix i assume "i \<in> d"
       from p[OF \<open>i \<in> d\<close>, THEN metric_LIMSEQ_D, OF \<open>0 < e\<close>]
       show "\<exists>no. \<forall>n\<ge>no. dist (p i n) (q i) < e" .
-    qed then guess ni .. note ni = this
+    qed
+    then obtain ni where ni: "\<forall>i\<in>d. \<forall>n\<ge>ni i. dist (p i n) (q i) < e" ..
     define N where "N = max Nd (Max (ni ` d))"
     show "\<exists>N. \<forall>n\<ge>N. dist (P n) Q < e"
     proof (safe intro!: exI[where x="N"])
@@ -586,10 +597,13 @@ next
   proof (rule bchoice, safe)
     fix i assume "i \<in> domain x"
     hence "open (a i)" "x i \<in> a i" using a by auto
-    from topological_basisE[OF basis_proj this] guess b' .
+    from topological_basisE[OF basis_proj this] obtain b'
+      where "b' \<in> basis_proj" "(x)\<^sub>F i \<in> b'" "b' \<subseteq> a i"
+      by blast
     thus "\<exists>y. x i \<in> y \<and> y \<subseteq> a i \<and> y \<in> basis_proj" by auto
   qed
-  then guess B .. note B = this
+  then obtain B where B: "\<forall>i\<in>domain x. (x)\<^sub>F i \<in> B i \<and> B i \<subseteq> a i \<and> B i \<in> basis_proj"
+    by auto
   define B' where "B' = Pi' (domain x) (\<lambda>i. (B i)::'b set)"
   have "B' \<subseteq> Pi' (domain x) a" using B by (auto intro!: Pi'_mono simp: B'_def)
   also note \<open>\<dots> \<subseteq> O'\<close>
@@ -1016,7 +1030,7 @@ lemma sigma_fprod_algebra_sigma_eq:
   shows "sets (PiF {I} M) = sigma_sets (space (PiF {I} M)) P"
 proof
   let ?P = "sigma (space (Pi\<^sub>F {I} M)) P"
-  from \<open>finite I\<close>[THEN ex_bij_betw_finite_nat] guess T ..
+  from \<open>finite I\<close>[THEN ex_bij_betw_finite_nat] obtain T where "bij_betw T I {0..<card I}" ..
   then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
     by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f simp del: \<open>finite I\<close>)
   have P_closed: "P \<subseteq> Pow (space (Pi\<^sub>F {I} M))"
@@ -1080,7 +1094,9 @@ lemma product_open_generates_sets_PiF_single:
   shows "sets (PiF {I} (\<lambda>_. borel::'b::second_countable_topology measure)) =
     sigma_sets (space (PiF {I} (\<lambda>_. borel))) {Pi' I F |F. (\<forall>i\<in>I. F i \<in> Collect open)}"
 proof -
-  from open_countable_basisE[OF open_UNIV] guess S::"'b set set" . note S = this
+  from open_countable_basisE[OF open_UNIV] obtain S::"'b set set"
+    where S: "S \<subseteq> (SOME B. countable B \<and> topological_basis B)" "UNIV = \<Union> S"
+    by auto
   show ?thesis
   proof (rule sigma_fprod_algebra_sigma_eq)
     show "finite I" by simp

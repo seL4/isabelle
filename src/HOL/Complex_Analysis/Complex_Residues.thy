@@ -363,9 +363,11 @@ theorem residue_fps_expansion_over_power_at_0:
   assumes "f has_fps_expansion F"
   shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = fps_nth F n"
 proof -
-  from has_fps_expansion_imp_holomorphic[OF assms] guess s . note s = this
-  have "residue (\<lambda>z. f z / (z - 0) ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
-    using assms s unfolding has_fps_expansion_def
+  from has_fps_expansion_imp_holomorphic[OF assms] obtain s
+    where "open s" "0 \<in> s" "f holomorphic_on s" "\<And>z. z \<in> s \<Longrightarrow> f z = eval_fps F z"
+    by auto
+  with assms have "residue (\<lambda>z. f z / (z - 0) ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
+    unfolding has_fps_expansion_def
     by (intro residue_holomorphic_over_power[of s]) (auto simp: zero_ereal_def)
   also from assms have "\<dots> = fps_nth F n"
     by (subst fps_nth_fps_expansion) auto
