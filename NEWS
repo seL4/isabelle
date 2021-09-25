@@ -205,7 +205,7 @@ premises. INCOMPATIBILITY.
 * Combinator "Fun.swap" resolved into a mere input abbreviation in
 separate theory "Transposition" in HOL-Combinatorics. INCOMPATIBILITY.
 
-* Infix syntax for bit operations AND, OR, XOR is now organized in
+* Infix syntax for bit operations AND, OR, XOR, NOT is now organized in
 bundle bit_operations_syntax. INCOMPATIBILITY.
 
 * Bit operations set_bit, unset_bit and flip_bit are now class
