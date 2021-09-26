@@ -1321,7 +1321,6 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "consider"} & : & \<open>proof(state) | proof(chain) \<rightarrow> proof(prove)\<close> \\
     @{command_def "obtain"} & : & \<open>proof(state) | proof(chain) \<rightarrow> proof(prove)\<close> \\
-    @{command_def "guess"}\<open>\<^sup>*\<close> & : & \<open>proof(state) | proof(chain) \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
   Generalized elimination means that hypothetical parameters and premises may
@@ -1352,8 +1351,6 @@ text \<open>
     concl: (@{syntax props} + @'and')
     ;
     prems: (@'if' (@{syntax props'} + @'and'))?
-    ;
-    @@{command guess} @{syntax vars}
   \<close>
 
   \<^descr> @{command consider}~\<open>(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x | (b)
@@ -1412,29 +1409,14 @@ text \<open>
     \quad @{command "fix"}~\<open>\<^vec>x\<close>~@{command "assume"}\<open>\<^sup>* a: \<^vec>A \<^vec>x\<close> \\
   \end{matharray}
 
-  \<^descr> @{command guess} is similar to @{command obtain}, but it derives the
-  obtained context elements from the course of tactical reasoning in the
-  proof. Thus it can considerably obscure the proof: it is classified as
-  \<^emph>\<open>improper\<close>.
-
-  A proof with @{command guess} starts with a fixed goal \<open>thesis\<close>. The
-  subsequent refinement steps may turn this to anything of the form
-  \<open>\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis\<close>, but without splitting into new
-  subgoals. The final goal state is then used as reduction rule for the obtain
-  pattern described above. Obtained parameters \<open>\<^vec>x\<close> are marked as
-  internal by default, and thus inaccessible in the proof text. The variable
-  names and type constraints given as arguments for @{command "guess"} specify
-  a prefix of accessible parameters.
-
-
   In the proof of @{command consider} and @{command obtain} the local premises
   are always bound to the fact name @{fact_ref that}, according to structured
   Isar statements involving @{keyword_ref "if"} (\secref{sec:goals}).
 
-  Facts that are established by @{command "obtain"} and @{command "guess"} may
-  not be polymorphic: any type-variables occurring here are fixed in the
-  present context. This is a natural consequence of the role of @{command fix}
-  and @{command assume} in these constructs.
+  Facts that are established by @{command "obtain"} cannot be polymorphic: any
+  type-variables occurring here are fixed in the present context. This is a
+  natural consequence of the role of @{command fix} and @{command assume} in
+  this construct.
 \<close>
 
 end

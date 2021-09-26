@@ -62,7 +62,6 @@ keywords
   and "fix" "assume" "presume" "define" :: prf_asm % "proof"
   and "consider" :: prf_goal % "proof"
   and "obtain" :: prf_asm_goal % "proof"
-  and "guess" :: prf_script_asm_goal % "proof"
   and "let" "write" :: prf_decl % "proof"
   and "case" :: prf_asm % "proof"
   and "{" :: prf_open % "proof"
@@ -904,10 +903,6 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>obtain\<close> "generalized elimination"
     (Parse.parbinding -- Scan.optional (Parse.vars --| Parse.where_) [] -- structured_statement
       >> (fn ((a, b), (c, d, e)) => Toplevel.proof' (Obtain.obtain_cmd a b c d e)));
-
-val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>guess\<close> "wild guessing (unstructured)"
-    (Scan.optional Parse.vars [] >> (Toplevel.proof' o Obtain.guess_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>let\<close> "bind text variables"

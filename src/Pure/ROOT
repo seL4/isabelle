@@ -26,6 +26,11 @@ session "Pure-ex" in ex = Pure +
   description "
     Miscellaneous examples and experiments for Isabelle/Pure.
   "
+  sessions
+    "Pure-Examples"
   theories
     Def
     Def_Examples
+    Guess
+    Guess_Examples
+

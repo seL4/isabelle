@@ -44,6 +44,15 @@ See also the group "Z Notation" in the Symbols dockable of
 Isabelle/jEdit.
 
 
+*** Isar ***
+
+* The improper proof command 'guess' is no longer part of by Pure, but
+provided by the separate theory "Pure-ex.Guess". INCOMPATIBILITY,
+existing applications need to import session "Pure-ex" and theory
+"Pure-ex.Guess". Afterwards it is usually better eliminate the 'guess'
+command, using explicit 'obtain' instead.
+
+
 *** Isabelle/jEdit Prover IDE ***
 
 * More robust 'proof' outline for method "induct": support nested cases.
