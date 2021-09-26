@@ -668,7 +668,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Execute_Choice
     Function_Growth
     Gauge_Integration
-    Guess
     HarmonicSeries
     Hebrew
     Hex_Bin_Examples
