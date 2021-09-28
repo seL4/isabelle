@@ -888,7 +888,7 @@ ML \<open>
   structure Blast = Blast
   (
     structure Classical = Classical
-    val Trueprop_const = dest_Const \<^const>\<open>Trueprop\<close>
+    val Trueprop_const = dest_Const \<^Const>\<open>Trueprop\<close>
     val equality_name = \<^const_name>\<open>HOL.eq\<close>
     val not_name = \<^const_name>\<open>Not\<close>
     val notE = @{thm notE}
@@ -1549,7 +1549,7 @@ declaration \<open>
         {lhss = [\<^term>\<open>induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q\<close>],
          proc = fn _ => fn _ => fn ct =>
           (case Thm.term_of ct of
-            _ $ (P as _ $ \<^const>\<open>induct_false\<close>) $ (_ $ Q $ _) =>
+            _ $ (P as _ $ \<^Const_>\<open>induct_false\<close>) $ (_ $ Q $ _) =>
               if P <> Q then SOME Drule.swap_prems_eq else NONE
           | _ => NONE)},
        Simplifier.make_simproc \<^context> "induct_equal_conj_curry"
@@ -1558,11 +1558,11 @@ declaration \<open>
           (case Thm.term_of ct of
             _ $ (_ $ P) $ _ =>
               let
-                fun is_conj (\<^const>\<open>induct_conj\<close> $ P $ Q) =
+                fun is_conj \<^Const_>\<open>induct_conj for P Q\<close> =
                       is_conj P andalso is_conj Q
-                  | is_conj (Const (\<^const_name>\<open>induct_equal\<close>, _) $ _ $ _) = true
-                  | is_conj \<^const>\<open>induct_true\<close> = true
-                  | is_conj \<^const>\<open>induct_false\<close> = true
+                  | is_conj \<^Const_>\<open>induct_equal _ for _ _\<close> = true
+                  | is_conj \<^Const_>\<open>induct_true\<close> = true
+                  | is_conj \<^Const_>\<open>induct_false\<close> = true
                   | is_conj _ = false
               in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
             | _ => NONE)}]

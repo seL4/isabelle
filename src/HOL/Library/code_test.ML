@@ -179,15 +179,15 @@ fun add_eval (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = add_eval t
       lhs :: rhs :: acc)
   | add_eval _ = I
 
-fun mk_term_of [] = \<^term>\<open>None :: (unit \<Rightarrow> yxml_of_term) option\<close>
+fun mk_term_of [] = \<^Const>\<open>None \<^typ>\<open>unit \<Rightarrow> yxml_of_term\<close>\<close>
   | mk_term_of ts =
       let
         val tuple = mk_tuples ts
         val T = fastype_of tuple
       in
         \<^term>\<open>Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option\<close> $
-          (absdummy \<^typ>\<open>unit\<close> (\<^const>\<open>yxml_string_of_term\<close> $
-            (Const (\<^const_name>\<open>Code_Evaluation.term_of\<close>, T --> \<^typ>\<open>term\<close>) $ tuple)))
+          (absdummy \<^typ>\<open>unit\<close> (\<^Const>\<open>yxml_string_of_term\<close> $
+            (Const (\<^const_name>\<open>Code_Evaluation.term_of\<close>, T --> \<^Type>\<open>term\<close>) $ tuple)))
       end
 
 fun test_terms ctxt ts target =

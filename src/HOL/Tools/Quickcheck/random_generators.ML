@@ -96,7 +96,7 @@ fun random_aux_primrec eq lthy =
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
     val eqs0 = [subst_v \<^term>\<open>0::natural\<close> eq,
-      subst_v (\<^const>\<open>Code_Numeral.Suc\<close> $ t_k) eq];
+      subst_v \<^Const>\<open>Code_Numeral.Suc for t_k\<close> eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, (_, eqs2)), lthy') = lthy
       |> BNF_LFP_Compat.primrec_simple

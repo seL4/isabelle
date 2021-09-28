@@ -378,8 +378,8 @@ fun code_lazy_type eager_type_string thy =
       ||>> fold_map (mk_name ("case_" ^ short_type_name ^ "_lazy_") "") ctr_names
 
     val mk_Lazy_delay_eq =
-      (#const lazy_ctr_def $ mk_delay (Bound 0), Rep_lazy $ (Bound 0 $ \<^const>\<open>Unity\<close>))
-      |> mk_eq |> all_abs [\<^typ>\<open>unit\<close> --> lazy_type]
+      (#const lazy_ctr_def $ mk_delay (Bound 0), Rep_lazy $ (Bound 0 $ \<^Const>\<open>Unity\<close>))
+      |> mk_eq |> all_abs [\<^Type>\<open>unit\<close> --> lazy_type]
     val (Lazy_delay_thm, lthy8a) = mk_thm 
       ((Lazy_delay_eq_name, mk_Lazy_delay_eq), [#thm lazy_ctr_def, @{thm force_delay}])
       lthy8
