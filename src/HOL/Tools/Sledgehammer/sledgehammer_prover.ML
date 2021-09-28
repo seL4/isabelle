@@ -189,9 +189,8 @@ fun bunches_of_proof_methods ctxt try0 smt_proofs needs_full_types desperate_lam
 
     val smt_methodss =
       if smt_proofs then
-        [SMT_Method SMT_Z3 ::
-         map (fn strategy => SMT_Method (SMT_Verit strategy))
-           (Verit_Proof.all_veriT_stgies (Context.Proof ctxt))]
+        [map (SMT_Method o SMT_Verit) (Verit_Proof.all_veriT_stgies (Context.Proof ctxt)),
+         [SMT_Method SMT_Z3]]
       else
         []
   in
