@@ -653,7 +653,7 @@ val ml_computation_conv_antiq = gen_ml_computation_antiq mount_computation_convN
 
 fun ml_computation_check_antiq raw_spec ctxt =
   let
-    val cTs = insert (op =) (dest_Const \<^const>\<open>holds\<close>) (prep_spec ctxt raw_spec);
+    val cTs = insert (op =) (dest_Const \<^Const>\<open>holds\<close>) (prep_spec ctxt raw_spec);
   in (print_computation_check ctxt, register_computation cTs \<^typ>\<open>prop\<close> ctxt) end;
 
 end; (*local*)
