@@ -262,7 +262,7 @@ fun is_dummy [Antiquote.Text tok] = ML_Lex.content_of tok = "_"
 val ml = ML_Lex.tokenize_no_range;
 val ml_range = ML_Lex.tokenize_range;
 val ml_dummy = ml "_";
-fun ml_enclose range x = ml_range range "(" @ x @ ml_range range ")";
+fun ml_enclose range x = ml "(" @ x @ ml_range range ")";
 fun ml_parens x = ml "(" @ x @ ml ")";
 fun ml_bracks x = ml "[" @ x @ ml "]";
 fun ml_commas xs = flat (separate (ml ", ") xs);
