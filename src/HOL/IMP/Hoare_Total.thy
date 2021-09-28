@@ -89,6 +89,32 @@ apply(rule Assign')
 apply simp
 done
 
+text \<open>Nested loops. This poses a problem for VCGs because the proof of the inner loop needs to
+refer to outer loops. This works here because the invariant is not written down statically but
+created in the context of a proof that has already introduced/fixed outer \<open>n\<close>s that can be
+referred to.\<close>
+
+lemma
+ "\<turnstile>\<^sub>t {\<lambda>_. True}
+  WHILE Less (N 0) (V ''x'')
+  DO (''x'' ::= Plus (V ''x'') (N(-1));;
+      ''y'' ::= V ''x'';;
+      WHILE Less (N 0) (V ''y'') DO ''y'' ::= Plus (V ''y'') (N(-1)))
+  {\<lambda>_. True}"
+apply(rule While_fun'[where f = "\<lambda>s. nat(s ''x'')"])
+ prefer 2 apply simp
+apply(rule_tac P\<^sub>2 = "\<lambda>s. nat(s ''x'') < n" in Seq)
+ apply(rule_tac P\<^sub>2 = "\<lambda>s. nat(s ''x'') < n" in Seq)
+  apply(rule Assign')
+  apply simp
+ apply(rule Assign')
+ apply simp
+(* note that the invariant refers to the outer \<open>n\<close>: *)
+apply(rule While_fun'[where f = "\<lambda>s. nat(s ''y'')"])
+ prefer 2 apply simp
+apply(rule Assign')
+apply simp
+done
 
 text\<open>The soundness theorem:\<close>
 
