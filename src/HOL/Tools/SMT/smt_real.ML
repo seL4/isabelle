@@ -25,7 +25,7 @@ local
     | is_linear [t, u] = SMT_Util.is_number t orelse SMT_Util.is_number u
     | is_linear _ = false
 
-  fun mk_times ts = Term.list_comb (@{const times (real)}, ts)
+  fun mk_times ts = Term.list_comb (\<^Const>\<open>times \<^Type>\<open>real\<close>\<close>, ts)
 
   fun times _ _ ts = if is_linear ts then SOME ("*", 2, ts, mk_times) else NONE
 in
@@ -34,17 +34,17 @@ val setup_builtins =
   SMT_Builtin.add_builtin_typ SMTLIB_Interface.smtlibC
     (\<^typ>\<open>real\<close>, K (SOME ("Real", [])), real_num) #>
   fold (SMT_Builtin.add_builtin_fun' SMTLIB_Interface.smtlibC) [
-    (@{const less (real)}, "<"),
-    (@{const less_eq (real)}, "<="),
-    (@{const uminus (real)}, "-"),
-    (@{const plus (real)}, "+"),
-    (@{const minus (real)}, "-") ] #>
+    (\<^Const>\<open>less \<^Type>\<open>real\<close>\<close>, "<"),
+    (\<^Const>\<open>less_eq \<^Type>\<open>real\<close>\<close>, "<="),
+    (\<^Const>\<open>uminus \<^Type>\<open>real\<close>\<close>, "-"),
+    (\<^Const>\<open>plus \<^Type>\<open>real\<close>\<close>, "+"),
+    (\<^Const>\<open>minus \<^Type>\<open>real\<close>\<close>, "-") ] #>
   SMT_Builtin.add_builtin_fun SMTLIB_Interface.smtlibC
-    (Term.dest_Const @{const times (real)}, times) #>
+    (Term.dest_Const \<^Const>\<open>times \<^Type>\<open>real\<close>\<close>, times) #>
   SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
-    (@{const times (real)}, "*") #>
+    (\<^Const>\<open>times \<^Type>\<open>real\<close>\<close>, "*") #>
   SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
-    (@{const divide (real)}, "/")
+    (\<^Const>\<open>divide \<^Type>\<open>real\<close>\<close>, "/")
 
 end
 
@@ -64,14 +64,14 @@ local
   fun mk_nary _ cu [] = cu
     | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-  val mk_uminus = Thm.apply (Thm.cterm_of \<^context> @{const uminus (real)})
-  val add = Thm.cterm_of \<^context> @{const plus (real)}
+  val mk_uminus = Thm.apply \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close>
+  val add = \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close>
   val real0 = Numeral.mk_cnumber \<^ctyp>\<open>real\<close> 0
-  val mk_sub = Thm.mk_binop (Thm.cterm_of \<^context> @{const minus (real)})
-  val mk_mul = Thm.mk_binop (Thm.cterm_of \<^context> @{const times (real)})
-  val mk_div = Thm.mk_binop (Thm.cterm_of \<^context> @{const divide (real)})
-  val mk_lt = Thm.mk_binop (Thm.cterm_of \<^context> @{const less (real)})
-  val mk_le = Thm.mk_binop (Thm.cterm_of \<^context> @{const less_eq (real)})
+  val mk_sub = Thm.mk_binop \<^cterm>\<open>(-) :: real \<Rightarrow> _\<close>
+  val mk_mul = Thm.mk_binop \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close>
+  val mk_div = Thm.mk_binop \<^cterm>\<open>(/) :: real \<Rightarrow> _\<close>
+  val mk_lt = Thm.mk_binop \<^cterm>\<open>(<) :: real \<Rightarrow> _\<close>
+  val mk_le = Thm.mk_binop \<^cterm>\<open>(\<le>) :: real \<Rightarrow> _\<close>
 
   fun z3_mk_builtin_fun (Z3_Interface.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
     | z3_mk_builtin_fun (Z3_Interface.Sym ("+", _)) cts = SOME (mk_nary add real0 cts)
