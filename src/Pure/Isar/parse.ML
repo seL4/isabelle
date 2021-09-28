@@ -32,6 +32,7 @@ sig
   val alt_string: string parser
   val verbatim: string parser
   val cartouche: string parser
+  val control: Antiquote.control parser
   val eof: string parser
   val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
@@ -195,6 +196,7 @@ val string = kind Token.String;
 val alt_string = kind Token.Alt_String;
 val verbatim = kind Token.Verbatim;
 val cartouche = kind Token.Cartouche;
+val control = token (kind Token.control_kind) >> (the o Token.get_control);
 val eof = kind Token.EOF;
 
 fun command_name x =

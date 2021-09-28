@@ -201,7 +201,7 @@ fun antiquotation name scan body thy =
   end;
 
 val scan_antiq =
-  Antiquote.scan_control >> Antiquote.Control ||
+  Antiquote.scan_control Antiquote.err_prefix >> Antiquote.Control ||
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (Antiquote.Text o Symbol_Pos.symbol);
 
 fun read_source ctxt (file_type: file_type) source =

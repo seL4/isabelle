@@ -290,6 +290,13 @@ object Scan
     }
 
 
+    /* control cartouches */
+
+    val control_symbol: Parser[String] = one(Symbol.is_control)
+
+    val control_cartouche: Parser[String] = control_symbol ~ cartouche ^^ { case a ~ b => a + b }
+
+
     /* keyword */
 
     def literal(lexicon: Lexicon): Parser[String] = new Parser[String]

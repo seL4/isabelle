@@ -11,9 +11,12 @@ sig
     Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
     Float | Space |
     (*delimited content*)
-    String | Alt_String | Verbatim | Cartouche | Comment of Comment.kind option |
+    String | Alt_String | Verbatim | Cartouche |
+    Control of Antiquote.control |
+    Comment of Comment.kind option |
     (*special content*)
     Error of string | EOF
+  val control_kind: kind
   val str_of_kind: kind -> string
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
@@ -37,6 +40,7 @@ sig
   val stopper: T Scan.stopper
   val kind_of: T -> kind
   val is_kind: kind -> T -> bool
+  val get_control: T -> Antiquote.control option
   val is_command: T -> bool
   val keyword_with: (string -> bool) -> T -> bool
   val is_command_modifier: T -> bool
@@ -118,9 +122,19 @@ datatype kind =
   Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
   Float | Space |
   (*delimited content*)
-  String | Alt_String | Verbatim | Cartouche | Comment of Comment.kind option |
+  String | Alt_String | Verbatim | Cartouche |
+  Control of Antiquote.control |
+  Comment of Comment.kind option |
   (*special content*)
   Error of string | EOF;
+
+val control_kind = Control Antiquote.no_control;
+
+fun equiv_kind kind kind' =
+  (case (kind, kind') of
+    (Control _, Control _) => true
+  | (Error _, Error _) => true
+  | _ => kind = kind');
 
 val str_of_kind =
  fn Command => "command"
@@ -138,6 +152,7 @@ val str_of_kind =
   | Alt_String => "back-quoted string"
   | Verbatim => "verbatim text"
   | Cartouche => "text cartouche"
+  | Control _ => "control cartouche"
   | Comment NONE => "informal comment"
   | Comment (SOME _) => "formal comment"
   | Error _ => "bad input"
@@ -152,6 +167,7 @@ val delimited_kind =
     | Alt_String => true
     | Verbatim => true
     | Cartouche => true
+    | Control _ => true
     | Comment _ => true
     | _ => false);
 
@@ -214,7 +230,10 @@ val stopper =
 (* kind of token *)
 
 fun kind_of (Token (_, (k, _), _)) = k;
-fun is_kind k (Token (_, (k', _), _)) = k = k';
+fun is_kind k (Token (_, (k', _), _)) = equiv_kind k k';
+
+fun get_control tok =
+  (case kind_of tok of Control control => SOME control | _ => NONE);
 
 val is_command = is_kind Command;
 
@@ -304,6 +323,7 @@ val token_kind_markup =
   | Alt_String => (Markup.alt_string, "")
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
+  | Control _ => (Markup.cartouche, "")
   | Comment _ => (Markup.comment, "")
   | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
@@ -354,6 +374,7 @@ fun unparse (Token (_, (kind, x), _)) =
   | Alt_String => Symbol_Pos.quote_string_bq x
   | Verbatim => enclose "{*" "*}" x
   | Cartouche => cartouche x
+  | Control control => Symbol_Pos.content (Antiquote.control_symbols control)
   | Comment NONE => enclose "(*" "*)" x
   | EOF => ""
   | _ => x);
@@ -646,9 +667,11 @@ fun scan_token keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
     Symbol_Pos.scan_string_bq err_prefix >> token_range Alt_String ||
     scan_verbatim >> token_range Verbatim ||
-    scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range (Comment NONE) ||
     Comment.scan_outer >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
+    scan_cartouche >> token_range Cartouche ||
+    Antiquote.scan_control err_prefix >> (fn control =>
+      token (Control control) (Antiquote.control_symbols control)) ||
     scan_space >> token Space ||
     (Scan.max token_leq
       (Scan.max token_leq
