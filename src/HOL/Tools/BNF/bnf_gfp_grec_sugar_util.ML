@@ -367,7 +367,7 @@ fun generic_spec_of friend ctxt arg_Ts res_T (raw_buffer0 as {VLeaf = VLeaf0, ..
           ctrXs_Tss
           |> map_index (fn (i, Ts) =>
             Abs (Name.uu, mk_tupleT_balanced Ts,
-              if i + 1 = k then \<^const>\<open>HOL.True\<close> else \<^const>\<open>HOL.False\<close>))
+              if i + 1 = k then \<^Const>\<open>True\<close> else \<^Const>\<open>False\<close>))
           |> mk_case_sumN_balanced
           |> map_types substXYT
           |> (fn tm => Library.foldl1 HOLogic.mk_comp [tm, rep, snd_const YpreT])

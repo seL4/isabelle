@@ -154,7 +154,7 @@ fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
 
 fun inst_split_eq ctxt split =
   (case Thm.prop_of split of
-    \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (Var (_, Type (_, [T, _])) $ _) $ _) =>
+    \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for \<open>Var (_, Type (_, [T, _])) $ _\<close> _\<close>\<close> =>
     let
       val s = Name.uu;
       val eq = Abs (Name.uu, T, HOLogic.mk_eq (Free (s, T), Bound 0));
