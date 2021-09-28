@@ -1289,7 +1289,7 @@ structure Trancl_Tac = Trancl_Tac
 
   fun decomp \<^Const_>\<open>Trueprop for t\<close> =
         let
-          fun dec \<^Const_>\<open>Set.member _ for \<open>\<^Const_>\<open>Pair _ _ for a b\<close>\<close> rel\<close> =
+          fun dec \<^Const_>\<open>Set.member _ for \<^Const_>\<open>Pair _ _ for a b\<close> rel\<close> =
               let
                 fun decr \<^Const_>\<open>rtrancl _ for r\<close> = (r,"r*")
                   | decr \<^Const_>\<open>trancl _ for r\<close> = (r,"r+")

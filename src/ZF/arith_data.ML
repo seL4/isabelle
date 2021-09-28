@@ -48,7 +48,7 @@ fun gen_trans_tac _ _ NONE = all_tac
 (*Use <-> or = depending on the type of t*)
 fun mk_eq_iff(t,u) =
   if fastype_of t = \<^Type>\<open>i\<close>
-  then \<^Const>\<open>IFOL.eq \<open>\<^Type>\<open>i\<close>\<close> for t u\<close>
+  then \<^Const>\<open>IFOL.eq \<^Type>\<open>i\<close> for t u\<close>
   else \<^Const>\<open>IFOL.iff for t u\<close>;
 
 (*We remove equality assumptions because they confuse the simplifier and

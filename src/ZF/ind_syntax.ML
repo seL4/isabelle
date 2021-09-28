@@ -22,7 +22,7 @@ fun traceIt msg thy t =
 fun mk_all_imp (A,P) =
   let val T = \<^Type>\<open>i\<close> in
     \<^Const>\<open>All T for
-      \<open>Abs ("v", T, \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for \<open>Bound 0\<close> A\<close>\<close> \<open>Term.betapply (P, Bound 0)\<close>\<close>)\<close>\<close>
+      \<open>Abs ("v", T, \<^Const>\<open>imp for \<^Const>\<open>mem for \<open>Bound 0\<close> A\<close> \<open>Term.betapply (P, Bound 0)\<close>\<close>)\<close>\<close>
   end;
 
 fun mk_Collect (a, D, t) = \<^Const>\<open>Collect for D\<close> $ absfree (a, \<^Type>\<open>i\<close>) t;
@@ -37,7 +37,7 @@ fun chk_prem rec_hd \<^Const_>\<open>conj for _ _\<close> =
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl =
-    let val \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for t X\<close>\<close>\<close> = Logic.strip_imp_concl rl
+    let val \<^Const_>\<open>Trueprop for \<^Const_>\<open>mem for t X\<close>\<close> = Logic.strip_imp_concl rl
     in  (t,X)  end;
 
 (*As above, but return error message if bad*)
