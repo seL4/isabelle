@@ -328,7 +328,7 @@ fun const_antiquotation binding {pattern, function} =
           length type_args <> n andalso err (" takes " ^ string_of_int n ^ " type argument(s)");
         val _ =
           length term_args > m andalso Term.is_Type (Term.body_type T) andalso
-            err (" cannot have more than " ^ string_of_int m ^ " type argument(s)");
+            err (" cannot have more than " ^ string_of_int m ^ " argument(s)");
 
         val (decls1, ctxt1) = ml_args ctxt type_args;
         val (decls2, ctxt2) = ml_args ctxt1 term_args;
