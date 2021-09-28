@@ -315,10 +315,10 @@ fun norm_lemma thm =
   (thm COMP_INCR intro_hyp_rule1)
   handle THM _ => thm COMP_INCR intro_hyp_rule2
 
-fun negated_prop (\<^const>\<open>HOL.Not\<close> $ t) = HOLogic.mk_Trueprop t
+fun negated_prop \<^Const_>\<open>Not for t\<close> = HOLogic.mk_Trueprop t
   | negated_prop t = HOLogic.mk_Trueprop (HOLogic.mk_not t)
 
-fun intro_hyps tab (t as \<^const>\<open>HOL.disj\<close> $ t1 $ t2) cx =
+fun intro_hyps tab (t as \<^Const_>\<open>HOL.disj\<close> $ t1 $ t2) cx =
       lookup_intro_hyps tab t (fold (intro_hyps tab) [t1, t2]) cx
   | intro_hyps tab t cx =
       lookup_intro_hyps tab t (fn _ => raise LEMMA ()) cx
@@ -376,7 +376,7 @@ fun comm ctxt _ t = SMT_Replay_Methods.match_instantiate ctxt t @{thm eq_commute
 
 fun def_axiom_disj ctxt t =
   (case dest_prop t of
-    \<^const>\<open>HOL.disj\<close> $ u1 $ u2 =>
+    \<^Const_>\<open>disj for u1 u2\<close> =>
       SMT_Replay_Methods.prove_abstract' ctxt t prop_tac (
          SMT_Replay_Methods.abstract_prop u2 ##>>  SMT_Replay_Methods.abstract_prop u1 #>>
          HOLogic.mk_disj o swap)

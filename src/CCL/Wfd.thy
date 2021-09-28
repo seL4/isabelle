@@ -441,7 +441,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 
 fun is_rigid_prog t =
   (case (Logic.strip_assums_concl t) of
-    \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem _ for a _\<close>\<close>\<close> => null (Term.add_vars a [])
+    \<^Const_>\<open>Trueprop for \<^Const_>\<open>mem _ for a _\<close>\<close> => null (Term.add_vars a [])
   | _ => false)
 
 in

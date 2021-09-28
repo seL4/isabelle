@@ -26,7 +26,7 @@ public option auto_solve_direct : bool = true
 
 section "Miscellaneous Tools"
 
-public option sledgehammer_provers : string = "cvc4 z3 spass e remote_vampire"
+public option sledgehammer_provers : string = "cvc4 z3 spass e vampire"
   -- "provers for Sledgehammer (separated by blanks)"
 
 public option sledgehammer_timeout : int = 30

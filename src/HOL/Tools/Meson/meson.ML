@@ -261,9 +261,9 @@ fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
        case HOLogic.dest_Trueprop (Thm.concl_of th) of
-          \<^Const_>\<open>disj for \<open>\<^Const_>\<open>disj for _ _\<close>\<close> _\<close> =>
+          \<^Const_>\<open>disj for \<^Const_>\<open>disj for _ _\<close> _\<close> =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
-        | \<^Const_>\<open>disj for \<open>\<^Const_>\<open>Not for \<open>\<^Const_>\<open>HOL.eq _ for t u\<close>\<close>\<close>\<close> _\<close> =>
+        | \<^Const_>\<open>disj for \<^Const_>\<open>Not for \<^Const_>\<open>HOL.eq _ for t u\<close>\<close> _\<close> =>
             if eliminable(t,u)
             then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
             else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
@@ -271,7 +271,7 @@ fun refl_clause_aux 0 th = th
         | _ => (*not a disjunction*) th;
 
 fun notequal_lits_count \<^Const_>\<open>disj for P Q\<close> = notequal_lits_count P + notequal_lits_count Q
-  | notequal_lits_count \<^Const_>\<open>Not for \<open>\<^Const_>\<open>HOL.eq _ for _ _\<close>\<close>\<close> = 1
+  | notequal_lits_count \<^Const_>\<open>Not for \<^Const_>\<open>HOL.eq _ for _ _\<close>\<close> = 1
   | notequal_lits_count _ = 0;
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
@@ -414,7 +414,7 @@ fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
 
 (**** Generation of contrapositives ****)
 
-fun is_left \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>disj for \<open>\<^Const_>\<open>disj for _ _\<close>\<close> _\<close>\<close>\<close> = true
+fun is_left \<^Const_>\<open>Trueprop for \<^Const_>\<open>disj for \<^Const_>\<open>disj for _ _\<close> _\<close>\<close> = true
   | is_left _ = false;
 
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
@@ -435,7 +435,7 @@ fun make_goal th =   (*Must check for negative literal first!*)
 
 fun rigid t = not (is_Var (head_of t));
 
-fun ok4horn \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>disj for t _\<close>\<close>\<close> = rigid t
+fun ok4horn \<^Const_>\<open>Trueprop for \<^Const_>\<open>disj for t _\<close>\<close> = rigid t
   | ok4horn \<^Const_>\<open>Trueprop for t\<close> = rigid t
   | ok4horn _ = false;
 
@@ -470,7 +470,7 @@ val neg_clauses = filter is_negative;
 
 (***** MESON PROOF PROCEDURE *****)
 
-fun rhyps (\<^Const_>\<open>Pure.imp for \<open>\<^Const_>\<open>Trueprop for A\<close>\<close> phi\<close>, As) = rhyps(phi, A::As)
+fun rhyps (\<^Const_>\<open>Pure.imp for \<^Const_>\<open>Trueprop for A\<close> phi\<close>, As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 
 (** Detecting repeated assumptions in a subgoal **)
@@ -514,7 +514,7 @@ fun size_of_subgoals st = fold_rev addconcl (Thm.prems_of st) 0;
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
                not_impD, not_iffD, not_allD, not_exD, not_notD];
 
-fun ok4nnf \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>Not for t\<close>\<close>\<close> = rigid t
+fun ok4nnf \<^Const_>\<open>Trueprop for \<^Const_>\<open>Not for t\<close>\<close> = rigid t
   | ok4nnf \<^Const_>\<open>Trueprop for t\<close> = rigid t
   | ok4nnf _ = false;
 
@@ -620,7 +620,7 @@ val ext_cong_neq = @{thm ext_cong_neq}
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
 fun cong_extensionalize_thm ctxt th =
   (case Thm.concl_of th of
-    \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>Not for \<open>\<^Const_>\<open>HOL.eq T for \<open>t as _ $ _\<close> \<open>u as _ $ _\<close>\<close>\<close>\<close>\<close>\<close> =>
+    \<^Const_>\<open>Trueprop for \<^Const_>\<open>Not for \<^Const_>\<open>HOL.eq T for \<open>t as _ $ _\<close> \<open>u as _ $ _\<close>\<close>\<close>\<close> =>
       (case get_F_pattern T t u of
         SOME p => th RS infer_instantiate ctxt [(("F", 0), Thm.cterm_of ctxt p)] ext_cong_neq
       | NONE => th)

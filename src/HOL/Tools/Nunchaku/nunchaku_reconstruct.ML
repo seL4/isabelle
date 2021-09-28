@@ -166,11 +166,11 @@ fun term_of_nun ctxt atomss =
         else if id = nun_equals then
           Const (\<^const_name>\<open>HOL.eq\<close>, typ_of ty)
         else if id = nun_false then
-          \<^const>\<open>False\<close>
+          \<^Const>\<open>False\<close>
         else if id = nun_if then
           Const (\<^const_name>\<open>If\<close>, typ_of ty)
         else if id = nun_implies then
-          \<^term>\<open>implies\<close>
+          \<^Const>\<open>implies\<close>
         else if id = nun_not then
           HOLogic.Not
         else if id = nun_unique then
@@ -178,7 +178,7 @@ fun term_of_nun ctxt atomss =
         else if id = nun_unique_unsafe then
           Const (\<^const_name>\<open>The_unsafe\<close>, typ_of ty)
         else if id = nun_true then
-          \<^const>\<open>True\<close>
+          \<^Const>\<open>True\<close>
         else if String.isPrefix nun_dollar_anon_fun_prefix id then
           let val j = Int.fromString (unprefix nun_dollar_anon_fun_prefix id) |> the_default ~1 in
             Var ((anonymousN ^ nat_subscript (j + 1), 0), typ_of ty)
@@ -225,12 +225,12 @@ fun term_of_nun ctxt atomss =
         end
       | term_of _ (NMatch _) = raise Fail "unexpected match";
 
-    fun rewrite_numbers (t as \<^const>\<open>Suc\<close> $ _) =
+    fun rewrite_numbers (t as \<^Const>\<open>Suc\<close> $ _) =
         (case try HOLogic.dest_nat t of
-          SOME n => HOLogic.mk_number \<^typ>\<open>nat\<close> n
+          SOME n => HOLogic.mk_number \<^Type>\<open>nat\<close> n
         | NONE => t)
-      | rewrite_numbers (\<^const>\<open>Abs_Integ\<close> $ (@{const Pair (nat, nat)} $ t $ u)) =
-        HOLogic.mk_number \<^typ>\<open>int\<close> (HOLogic.dest_nat t - HOLogic.dest_nat u)
+      | rewrite_numbers \<^Const_>\<open>Abs_Integ for \<^Const>\<open>Pair \<^Type>\<open>nat\<close> \<^Type>\<open>nat\<close> for t u\<close>\<close> =
+        HOLogic.mk_number \<^Type>\<open>int\<close> (HOLogic.dest_nat t - HOLogic.dest_nat u)
       | rewrite_numbers (t $ u) = rewrite_numbers t $ rewrite_numbers u
       | rewrite_numbers (Abs (s, T, t)) = Abs (s, T, rewrite_numbers t)
       | rewrite_numbers t = t;

@@ -1808,8 +1808,8 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
      distinct_discsss = [], exhaust_discs = [], exhaust_sels = [], collapses = [], expands = [],
      split_sels = [], split_sel_asms = [], case_eq_ifs = []};
 
-fun lhs_of_equation (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ _) = t
-  | lhs_of_equation (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _)) = t;
+fun lhs_of_equation \<^Const_>\<open>Pure.eq _ for t _\<close> = t
+  | lhs_of_equation \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for t _\<close>\<close> = t;
 
 fun add_spec_rule rule =
   let val head = head_of (lhs_of_equation (Thm.prop_of rule))

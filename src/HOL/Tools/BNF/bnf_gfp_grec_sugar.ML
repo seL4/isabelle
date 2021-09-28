@@ -385,7 +385,7 @@ fun derive_unique ctxt phi code_goal
     val ssig_map_thms = #map_thms ssig_fp_bnf_sugar;
     val all_algLam_alg_pointfuls = map (mk_pointful ctxt) all_algLam_algs;
 
-    val \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = code_goal;
+    val \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for lhs rhs\<close>\<close> = code_goal;
     val (fun_t, args) = strip_comb lhs;
     val closed_rhs = fold_rev lambda args rhs;
 
@@ -447,7 +447,7 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
 
     val fp_nesting_Ts = map T_of_bnf fp_nesting_bnfs;
 
-    fun is_nullary_disc_def (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _
+    fun is_nullary_disc_def (\<^Const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _
           $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _))) = true
       | is_nullary_disc_def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _
           $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _)) = true
@@ -512,7 +512,7 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
     val goal = mk_Trueprop_eq (fun_t, abs_curried_balanced arg_Ts algrho);
 
     fun const_of_transfer thm =
-      (case Thm.prop_of thm of \<^const>\<open>Trueprop\<close> $ (_ $ cst $ _) => cst);
+      (case Thm.prop_of thm of \<^Const>\<open>Trueprop\<close> $ (_ $ cst $ _) => cst);
 
     val eq_algrho =
       Goal.prove (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>
@@ -590,7 +590,7 @@ fun mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong alg =
 
 fun derive_cong_ctr_intros ctxt cong_ctor_intro =
   let
-    val \<^const>\<open>Pure.imp\<close> $ _ $ (\<^const>\<open>Trueprop\<close> $ ((Rcong as _ $ _) $ _ $ (ctor $ _))) =
+    val \<^Const_>\<open>Pure.imp\<close> $ _ $ (\<^Const_>\<open>Trueprop\<close> $ ((Rcong as _ $ _) $ _ $ (ctor $ _))) =
       Thm.prop_of cong_ctor_intro;
 
     val fpT as Type (fpT_name, fp_argTs) = range_type (fastype_of ctor);
@@ -615,19 +615,19 @@ fun derive_cong_ctr_intros ctxt cong_ctor_intro =
 
 fun derive_cong_friend_intro ctxt cong_algrho_intro =
   let
-    val \<^const>\<open>Pure.imp\<close> $ _ $ (\<^const>\<open>Trueprop\<close> $ ((Rcong as _ $ _) $ _
+    val \<^Const_>\<open>Pure.imp\<close> $ _ $ (\<^Const_>\<open>Trueprop\<close> $ ((Rcong as _ $ _) $ _
         $ ((algrho as Const (algrho_name, _)) $ _))) =
       Thm.prop_of cong_algrho_intro;
 
     val fpT as Type (_, fp_argTs) = range_type (fastype_of algrho);
 
-    fun has_algrho (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ rhs)) =
+    fun has_algrho (\<^Const_>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ rhs)) =
       fst (dest_Const (head_of (strip_abs_body rhs))) = algrho_name;
 
     val eq_algrho :: _ =
       maps (filter (has_algrho o Thm.prop_of) o #eq_algrhos o snd) (all_friend_extras_of ctxt);
 
-    val \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ friend0 $ _) = Thm.prop_of eq_algrho;
+    val \<^Const_>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ friend0 $ _) = Thm.prop_of eq_algrho;
     val friend = mk_ctr fp_argTs friend0;
 
     val goal = mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong friend;
@@ -654,8 +654,8 @@ fun derive_coinduct ctxt (fpT as Type (fpT_name, fpT_args)) dtor_coinduct =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val \<^const>\<open>Pure.imp\<close> $ (\<^const>\<open>Trueprop\<close> $ (_ $ Abs (_, _, _ $
-        Abs (_, _, \<^const>\<open>implies\<close> $ _ $ (_ $ (cong0 $ _) $ _ $ _))))) $ _ =
+    val \<^Const_>\<open>Pure.imp\<close> $ (\<^Const_>\<open>Trueprop\<close> $ (_ $ Abs (_, _, _ $
+        Abs (_, _, \<^Const_>\<open>implies\<close> $ _ $ (_ $ (cong0 $ _) $ _ $ _))))) $ _ =
       Thm.prop_of dtor_coinduct;
 
     val SOME {X as TVar ((X_s, _), _), fp_res = {dtor_ctors, ...}, pre_bnf,
@@ -820,7 +820,7 @@ fun generate_views ctxt eq fun_t (lhs_free_args, rhs) =
             |> curry (op ~~) (map (fn disc => disc $ lhs) discs);
 
           fun mk_disc_iff_props props [] = props
-            | mk_disc_iff_props _ ((lhs, \<^const>\<open>HOL.True\<close>) :: _) = [lhs]
+            | mk_disc_iff_props _ ((lhs, \<^Const_>\<open>True\<close>) :: _) = [lhs]
             | mk_disc_iff_props props ((lhs, rhs) :: views) =
               mk_disc_iff_props ((HOLogic.mk_eq (lhs, rhs)) :: props) views;
         in
@@ -2242,7 +2242,7 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
 
     val fun_T =
       (case code_goal of
-        \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) => fastype_of (head_of t)
+        \<^Const_>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) => fastype_of (head_of t)
       | _ => ill_formed_equation_lhs_rhs lthy [code_goal]);
     val fun_t = Const (fun_name, fun_T);
 

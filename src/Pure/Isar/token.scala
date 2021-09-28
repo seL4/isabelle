@@ -34,6 +34,7 @@ object Token
     val ALT_STRING = Value("back-quoted string")
     val VERBATIM = Value("verbatim text")
     val CARTOUCHE = Value("text cartouche")
+    val CONTROL = Value("control cartouche")
     val INFORMAL_COMMENT = Value("informal comment")
     val FORMAL_COMMENT = Value("formal comment")
     /*special content*/
@@ -53,11 +54,12 @@ object Token
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
       val verb = verbatim ^^ (x => Token(Token.Kind.VERBATIM, x))
-      val cart = cartouche ^^ (x => Token(Token.Kind.CARTOUCHE, x))
       val cmt = comment ^^ (x => Token(Token.Kind.INFORMAL_COMMENT, x))
       val formal_cmt = comment_cartouche ^^ (x => Token(Token.Kind.FORMAL_COMMENT, x))
+      val cart = cartouche ^^ (x => Token(Token.Kind.CARTOUCHE, x))
+      val ctrl = control_cartouche ^^ (x => Token(Token.Kind.CONTROL, x))
 
-      string | (alt_string | (verb | (cart | (cmt | formal_cmt))))
+      string | (alt_string | (verb | (cmt | (formal_cmt | (cart | ctrl)))))
     }
 
     private def other_token(keywords: Keyword.Keywords): Parser[Token] =

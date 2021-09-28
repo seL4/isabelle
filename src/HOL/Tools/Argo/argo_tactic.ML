@@ -600,7 +600,7 @@ val unclausify_rule2 = @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> \<
 
 fun unclausify (thm, lits) ls =
   (case (Thm.prop_of thm, lits) of
-    (\<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>False\<close>\<close>\<close>, [(_, ct)]) =>
+    (\<^Const_>\<open>Trueprop for \<^Const_>\<open>False\<close>\<close>, [(_, ct)]) =>
       let val thm = Thm.implies_intr ct thm
       in (discharge thm unclausify_rule1 handle THM _ => discharge thm unclausify_rule2, ls) end
   | _ => (thm, Ord_List.union lit_ord lits ls))

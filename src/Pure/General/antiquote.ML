@@ -7,6 +7,8 @@ Antiquotations within plain text.
 signature ANTIQUOTE =
 sig
   type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list}
+  val no_control: control
+  val control_symbols: control -> Symbol_Pos.T list
   type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list}
   datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq
   val is_text: 'a antiquote -> bool
@@ -17,7 +19,8 @@ sig
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
   val update_reports: bool -> Position.T -> string list -> Position.report_text list
-  val scan_control: control scanner
+  val err_prefix: string
+  val scan_control: string -> control scanner
   val scan_antiq: antiq scanner
   val scan_antiquote: text_antiquote scanner
   val scan_antiquote_comments: text_antiquote scanner
@@ -31,6 +34,10 @@ struct
 (* datatype antiquote *)
 
 type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list};
+val no_control = {range = Position.no_range, name = ("", Position.none), body = []};
+fun control_symbols ({name = (name, pos), body, ...}: control) =
+  (Symbol.encode (Symbol.Control name), pos) :: body;
+
 type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list};
 datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq;
 
@@ -112,9 +119,9 @@ fun update_reports embedded pos src =
 
 open Basic_Symbol_Pos;
 
-local
-
 val err_prefix = "Antiquotation lexical error: ";
+
+local
 
 val scan_nl = Scan.one (fn (s, _) => s = "\n") >> single;
 val scan_nl_opt = Scan.optional scan_nl [];
@@ -148,9 +155,9 @@ fun control_name sym = (case Symbol.decode sym of Symbol.Control name => name);
 
 in
 
-val scan_control =
+fun scan_control err =
   Scan.option (Scan.one (Symbol.is_control o Symbol_Pos.symbol)) --
-  Symbol_Pos.scan_cartouche err_prefix >>
+  Symbol_Pos.scan_cartouche err >>
     (fn (opt_control, body) =>
       let
         val (name, range) =
@@ -173,10 +180,10 @@ val scan_antiq =
        body = body});
 
 val scan_antiquote =
-  scan_text >> Text || scan_control >> Control || scan_antiq >> Antiq;
+  scan_text >> Text || scan_control err_prefix >> Control || scan_antiq >> Antiq;
 
 val scan_antiquote_comments =
-  scan_text_comments >> Text || scan_control >> Control || scan_antiq >> Antiq;
+  scan_text_comments >> Text || scan_control err_prefix >> Control || scan_antiq >> Antiq;
 
 end;
 

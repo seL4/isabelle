@@ -306,12 +306,12 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
-    and in_trigger Ts ((c as \<^const>\<open>trigger\<close>) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
+    and in_trigger Ts ((c as \<^Const_>\<open>trigger\<close>) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
       | in_trigger Ts t = traverse Ts t
     and in_pats Ts ps =
       in_list \<^typ>\<open>pattern symb_list\<close> (in_list \<^typ>\<open>pattern\<close> (in_pat Ts)) ps
-    and in_pat Ts ((p as Const (\<^const_name>\<open>pat\<close>, _)) $ t) = p $ traverse Ts t
-      | in_pat Ts ((p as Const (\<^const_name>\<open>nopat\<close>, _)) $ t) = p $ traverse Ts t
+    and in_pat Ts ((p as \<^Const_>\<open>pat _\<close>) $ t) = p $ traverse Ts t
+      | in_pat Ts ((p as \<^Const_>\<open>nopat _\<close>) $ t) = p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
@@ -343,9 +343,9 @@ fun folify ctxt =
 
     fun in_term pat t =
       (case Term.strip_comb t of
-        (\<^const>\<open>True\<close>, []) => t
-      | (\<^const>\<open>False\<close>, []) => t
-      | (u as Const (\<^const_name>\<open>If\<close>, _), [t1, t2, t3]) =>
+        (\<^Const_>\<open>True\<close>, []) => t
+      | (\<^Const_>\<open>False\<close>, []) => t
+      | (u as \<^Const_>\<open>If _\<close>, [t1, t2, t3]) =>
           if pat then raise BAD_PATTERN () else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
       | (Const (c as (n, _)), ts) =>
           if is_builtin_conn_or_pred ctxt c ts orelse is_quant n then
@@ -364,7 +364,7 @@ fun folify ctxt =
     and in_pats ps =
       in_list \<^typ>\<open>pattern symb_list\<close> (SOME o in_list \<^typ>\<open>pattern\<close> (try in_pat)) ps
 
-    and in_trigger ((c as \<^const>\<open>trigger\<close>) $ p $ t) = c $ in_pats p $ in_form t
+    and in_trigger ((c as \<^Const_>\<open>trigger\<close>) $ p $ t) = c $ in_pats p $ in_form t
       | in_trigger t = in_form t
 
     and in_form t =
@@ -412,7 +412,7 @@ fun dest_pats [] = I
       | (ps, [false]) => cons (SNoPat ps)
       | _ => raise TERM ("bad multi-pattern", ts))
 
-fun dest_trigger (\<^const>\<open>trigger\<close> $ tl $ t) =
+fun dest_trigger \<^Const_>\<open>trigger for tl t\<close> =
       (rev (fold (dest_pats o SMT_Util.dest_symb_list) (SMT_Util.dest_symb_list tl) []), t)
   | dest_trigger t = ([], t)
 
@@ -511,7 +511,7 @@ fun translate ctxt smt_options comments ithms =
           |> (fn T => Const (\<^const_name>\<open>pat\<close>, T) $ lhs)
           |> SMT_Util.mk_symb_list \<^typ>\<open>pattern\<close> o single
           |> SMT_Util.mk_symb_list \<^typ>\<open>pattern symb_list\<close> o single
-          |> (fn t => \<^const>\<open>trigger\<close> $ t $ eq)
+          |> (fn t => \<^Const>\<open>trigger for t eq\<close>)
       | mk_trigger t = t
 
     val (ctxt2, (ts3, ll_defs)) =

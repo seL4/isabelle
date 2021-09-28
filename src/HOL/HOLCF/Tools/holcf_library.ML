@@ -58,7 +58,7 @@ fun mk_lub t =
   let
     val T = Term.range_type (Term.fastype_of t)
     val UNIV_const = \<^term>\<open>UNIV :: nat set\<close>
-  in \<^Const>\<open>lub T for \<open>\<^Const>\<open>image \<open>\<^Type>\<open>nat\<close>\<close> T for t UNIV_const\<close>\<close>\<close> end
+  in \<^Const>\<open>lub T for \<^Const>\<open>image \<^Type>\<open>nat\<close> T for t UNIV_const\<close>\<close> end
 
 
 (*** Continuous function space ***)

@@ -738,7 +738,7 @@ val linearize_proof =
         fun remove_assumption_id assumption_id prems =
           filter_out (curry (op =) assumption_id) prems
         fun add_assumption assumption concl =
-          \<^const>\<open>Pure.imp\<close> $ mk_prop_of_term assumption $ mk_prop_of_term concl
+          \<^Const>\<open>Pure.imp for \<open>mk_prop_of_term assumption\<close> \<open>mk_prop_of_term concl\<close>\<close>
         fun inline_assumption assumption assumption_id
             (VeriT_Node {id, rule, prems, proof_ctxt, concl}) =
           mk_node id rule (remove_assumption_id assumption_id prems) proof_ctxt

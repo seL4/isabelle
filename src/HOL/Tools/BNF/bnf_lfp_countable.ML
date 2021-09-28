@@ -70,13 +70,13 @@ fun endgame_tac ctxt encode_injectives =
 
 fun encode_sumN n k t =
   Balanced_Tree.access {init = t,
-      left = fn t => \<^const>\<open>sum_encode\<close> $ (@{const Inl (nat, nat)} $ t),
-      right = fn t => \<^const>\<open>sum_encode\<close> $ (@{const Inr (nat, nat)} $ t)}
+      left = fn t => \<^Const>\<open>sum_encode for \<^Const>\<open>Inl \<^Type>\<open>nat\<close> \<^Type>\<open>nat\<close> for t\<close>\<close>,
+      right = fn t => \<^Const>\<open>sum_encode for \<^Const>\<open>Inr \<^Type>\<open>nat\<close> \<^Type>\<open>nat\<close> for t\<close>\<close>}
     n k;
 
-fun encode_tuple [] = \<^term>\<open>0 :: nat\<close>
+fun encode_tuple [] = \<^Const>\<open>zero_class.zero \<^Type>\<open>nat\<close>\<close>
   | encode_tuple ts =
-    Balanced_Tree.make (fn (t, u) => \<^const>\<open>prod_encode\<close> $ (@{const Pair (nat, nat)} $ u $ t)) ts;
+    Balanced_Tree.make (fn (t, u) => \<^Const>\<open>prod_encode for \<^Const>\<open>Pair \<^Type>\<open>nat\<close> \<^Type>\<open>nat\<close> for u t\<close>\<close>) ts;
 
 fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
   let
@@ -181,7 +181,7 @@ fun derive_encode_injectives_thms _ [] = []
       |> map (Thm.close_derivation \<^here>)
     end;
 
-fun get_countable_goal_type_name (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>Ex\<close>, _)
+fun get_countable_goal_type_name (\<^Const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>Ex\<close>, _)
     $ Abs (_, Type (_, [Type (s, _), _]), Const (\<^const_name>\<open>inj_on\<close>, _) $ Bound 0
         $ Const (\<^const_name>\<open>top\<close>, _)))) = s
   | get_countable_goal_type_name _ = error "Wrong goal format for datatype countability tactic";

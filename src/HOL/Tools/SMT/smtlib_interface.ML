@@ -35,7 +35,7 @@ local
     | is_linear _ = false
 
   fun times _ _ ts =
-    let val mk = Term.list_comb o pair @{const times (int)}
+    let val mk = Term.list_comb o pair \<^Const>\<open>times \<^Type>\<open>int\<close>\<close>
     in if is_linear ts then SOME ("*", 2, ts, mk) else NONE end
 in
 
@@ -46,21 +46,21 @@ val setup_builtins =
     (\<^typ>\<open>bool\<close>, K (SOME ("Bool", [])), K (K NONE)),
     (\<^typ>\<open>int\<close>, K (SOME ("Int", [])), int_num)] #>
   fold (SMT_Builtin.add_builtin_fun' smtlibC) [
-    (\<^const>\<open>True\<close>, "true"),
-    (\<^const>\<open>False\<close>, "false"),
-    (\<^const>\<open>Not\<close>, "not"),
-    (\<^const>\<open>HOL.conj\<close>, "and"),
-    (\<^const>\<open>HOL.disj\<close>, "or"),
-    (\<^const>\<open>HOL.implies\<close>, "=>"),
-    (@{const HOL.eq ('a)}, "="),
-    (@{const If ('a)}, "ite"),
-    (@{const less (int)}, "<"),
-    (@{const less_eq (int)}, "<="),
-    (@{const uminus (int)}, "-"),
-    (@{const plus (int)}, "+"),
-    (@{const minus (int)}, "-")] #>
+    (\<^Const>\<open>True\<close>, "true"),
+    (\<^Const>\<open>False\<close>, "false"),
+    (\<^Const>\<open>Not\<close>, "not"),
+    (\<^Const>\<open>conj\<close>, "and"),
+    (\<^Const>\<open>disj\<close>, "or"),
+    (\<^Const>\<open>implies\<close>, "=>"),
+    (\<^Const>\<open>HOL.eq \<^typ>\<open>'a\<close>\<close>, "="),
+    (\<^Const>\<open>If \<^typ>\<open>'a\<close>\<close>, "ite"),
+    (\<^Const>\<open>less \<^Type>\<open>int\<close>\<close>, "<"),
+    (\<^Const>\<open>less_eq \<^Type>\<open>int\<close>\<close>, "<="),
+    (\<^Const>\<open>uminus \<^Type>\<open>int\<close>\<close>, "-"),
+    (\<^Const>\<open>plus \<^Type>\<open>int\<close>\<close>, "+"),
+    (\<^Const>\<open>minus \<^Type>\<open>int\<close>\<close>, "-")] #>
   SMT_Builtin.add_builtin_fun smtlibC
-    (Term.dest_Const @{const times (int)}, times)
+    (Term.dest_Const \<^Const>\<open>times \<^Type>\<open>int\<close>\<close>, times)
 
 end
 

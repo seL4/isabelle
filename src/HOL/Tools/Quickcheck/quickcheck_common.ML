@@ -466,8 +466,8 @@ fun dest_fun_upds t =
 fun make_fun_upds T1 T2 (tps, t) = fold_rev (mk_fun_upd T1 T2) tps t
 
 fun make_set T1 [] = Const (\<^const_abbrev>\<open>Set.empty\<close>, T1 --> \<^typ>\<open>bool\<close>)
-  | make_set T1 ((_, \<^const>\<open>False\<close>) :: tps) = make_set T1 tps
-  | make_set T1 ((t1, \<^const>\<open>True\<close>) :: tps) =
+  | make_set T1 ((_, \<^Const_>\<open>False\<close>) :: tps) = make_set T1 tps
+  | make_set T1 ((t1, \<^Const_>\<open>True\<close>) :: tps) =
       Const (\<^const_name>\<open>insert\<close>, T1 --> (T1 --> \<^typ>\<open>bool\<close>) --> T1 --> \<^typ>\<open>bool\<close>) $
         t1 $ (make_set T1 tps)
   | make_set T1 ((_, t) :: _) = raise TERM ("make_set", [t])
@@ -476,8 +476,8 @@ fun make_coset T [] = Const (\<^const_abbrev>\<open>UNIV\<close>, T --> \<^typ>\
   | make_coset T tps =
     let
       val U = T --> \<^typ>\<open>bool\<close>
-      fun invert \<^const>\<open>False\<close> = \<^const>\<open>True\<close>
-        | invert \<^const>\<open>True\<close> = \<^const>\<open>False\<close>
+      fun invert \<^Const_>\<open>False\<close> = \<^Const>\<open>True\<close>
+        | invert \<^Const_>\<open>True\<close> = \<^Const>\<open>False\<close>
     in
       Const (\<^const_name>\<open>Groups.minus_class.minus\<close>, U --> U --> U) $
         Const (\<^const_abbrev>\<open>UNIV\<close>, U) $ make_set T (map (apsnd invert) tps)
@@ -505,8 +505,8 @@ fun post_process_term t =
               (case T2 of
                 \<^typ>\<open>bool\<close> =>
                   (case t of
-                     Abs(_, _, \<^const>\<open>False\<close>) => fst #> rev #> make_set T1
-                   | Abs(_, _, \<^const>\<open>True\<close>) => fst #> rev #> make_coset T1
+                     Abs(_, _, \<^Const_>\<open>False\<close>) => fst #> rev #> make_set T1
+                   | Abs(_, _, \<^Const_>\<open>True\<close>) => fst #> rev #> make_coset T1
                    | Abs(_, _, Const (\<^const_name>\<open>undefined\<close>, _)) => fst #> rev #> make_set T1
                    | _ => raise TERM ("post_process_term", [t]))
               | Type (\<^type_name>\<open>option\<close>, _) =>

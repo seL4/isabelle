@@ -49,7 +49,7 @@ fun mk_abstupleC [] body = absfree ("x", \<^Type>\<open>unit\<close>) body
             Abs (_, T, _) => T
           | Const (_, Type (_, [_, Type (_, [T, _])])) $ _ => T);
       in
-        \<^Const>\<open>case_prod T T2 \<open>\<^Type>\<open>bool\<close>\<close> for \<open>absfree (x, T) z\<close>\<close>
+        \<^Const>\<open>case_prod T T2 \<^Type>\<open>bool\<close> for \<open>absfree (x, T) z\<close>\<close>
       end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)

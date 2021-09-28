@@ -131,16 +131,16 @@ val dest_funT =
 
 (* terms *)
 
-fun dest_conj (\<^const>\<open>HOL.conj\<close> $ t $ u) = (t, u)
+fun dest_conj \<^Const_>\<open>conj for t u\<close> = (t, u)
   | dest_conj t = raise TERM ("not a conjunction", [t])
 
-fun dest_disj (\<^const>\<open>HOL.disj\<close> $ t $ u) = (t, u)
+fun dest_disj \<^Const_>\<open>disj for t u\<close> = (t, u)
   | dest_disj t = raise TERM ("not a disjunction", [t])
 
 fun under_quant f t =
   (case t of
-    Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, u) => under_quant f u
-  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, u) => under_quant f u
+    \<^Const_>\<open>All _ for \<open>Abs (_, _, u)\<close>\<close> => under_quant f u
+  | \<^Const_>\<open>Ex _ for \<open>Abs (_, _, u)\<close>\<close> => under_quant f u
   | _ => f t)
 
 val is_number =
@@ -197,17 +197,17 @@ fun dest_cbinder ct ctxt =
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
 
-val mk_cprop = Thm.apply (Thm.cterm_of \<^context> \<^const>\<open>Trueprop\<close>)
+val mk_cprop = Thm.apply \<^cterm>\<open>Trueprop\<close>
 
 fun dest_cprop ct =
   (case Thm.term_of ct of
-    \<^const>\<open>Trueprop\<close> $ _ => Thm.dest_arg ct
+    \<^Const_>\<open>Trueprop for _\<close> => Thm.dest_arg ct
   | _ => raise CTERM ("not a property", [ct]))
 
 val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> Thm.dest_ctyp0
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
-val dest_prop = (fn \<^const>\<open>Trueprop\<close> $ t => t | t => t)
+val dest_prop = fn \<^Const_>\<open>Trueprop for t\<close> => t | t => t
 fun term_of ct = dest_prop (Thm.term_of ct)
 fun prop_of thm = dest_prop (Thm.prop_of thm)
 
@@ -237,7 +237,7 @@ fun under_quant_conv cv ctxt =
 
 fun prop_conv cv ct =
   (case Thm.term_of ct of
-    \<^const>\<open>Trueprop\<close> $ _ => Conv.arg_conv cv ct
+    \<^Const_>\<open>Trueprop for _\<close> => Conv.arg_conv cv ct
   | _ => raise CTERM ("not a property", [ct]))
 
 end;

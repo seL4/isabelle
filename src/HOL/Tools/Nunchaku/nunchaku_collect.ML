@@ -240,7 +240,7 @@ fun fp_kind_of_ctr_sugar_kind Ctr_Sugar.Codatatype = BNF_Util.Greatest_FP
 
 fun mutual_co_datatypes_of ctxt (T_name, Ts) =
   (if T_name = \<^type_name>\<open>itself\<close> then
-     (BNF_Util.Least_FP, [\<^typ>\<open>'a itself\<close>], [[@{const Pure.type ('a)}]])
+     (BNF_Util.Least_FP, [\<^typ>\<open>'a itself\<close>], [[\<^Const>\<open>Pure.type \<^typ>\<open>'a\<close>\<close>]])
    else
      let
        val (fp, ctr_sugars) =
@@ -269,7 +269,7 @@ fun typedef_of ctxt T_name =
       val A = Logic.varifyT_global \<^typ>\<open>'a\<close>;
       val absT = Type (\<^type_name>\<open>set\<close>, [A]);
       val repT = A --> HOLogic.boolT;
-      val pred = Abs (Name.uu, repT, \<^const>\<open>True\<close>);
+      val pred = Abs (Name.uu, repT, \<^Const>\<open>True\<close>);
       val abs = Const (\<^const_name>\<open>Collect\<close>, repT --> absT);
       val rep = Const (\<^const_name>\<open>rmember\<close>, absT --> repT);
     in
@@ -518,8 +518,8 @@ fun spec_rules_of ctxt (x as (s, T)) =
     fold process_spec specs NONE
   end;
 
-fun lhs_of_equation (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ _) = t
-  | lhs_of_equation (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _)) = t;
+fun lhs_of_equation \<^Const_>\<open>Pure.eq _ for t _\<close> = t
+  | lhs_of_equation \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for t _\<close>\<close> = t;
 
 fun specialize_definition_type thy x def0 =
   let
@@ -674,10 +674,10 @@ fun group_isa_commands [] = []
         [cmd] :: (group :: groups)
     end;
 
-fun defined_by (Const (\<^const_name>\<open>All\<close>, _) $ t) = defined_by t
+fun defined_by \<^Const_>\<open>All _ for t\<close> = defined_by t
   | defined_by (Abs (_, _, t)) = defined_by t
-  | defined_by (\<^const>\<open>implies\<close> $ _ $ u) = defined_by u
-  | defined_by (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) = head_of t
+  | defined_by \<^Const_>\<open>implies for _ u\<close> = defined_by u
+  | defined_by \<^Const_>\<open>HOL.eq _ for t _\<close> = head_of t
   | defined_by t = head_of t;
 
 fun partition_props [_] props = SOME [props]
@@ -1002,14 +1002,14 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
     val (poly_axioms, mono_axioms0) = orphan_axioms_of ctxt
       |> List.partition has_polymorphism;
 
-    fun implicit_evals_of pol (\<^const>\<open>Not\<close> $ t) = implicit_evals_of (not pol) t
-      | implicit_evals_of pol (\<^const>\<open>implies\<close> $ t $ u) =
+    fun implicit_evals_of pol \<^Const_>\<open>Not for t\<close> = implicit_evals_of (not pol) t
+      | implicit_evals_of pol \<^Const_>\<open>implies for t u\<close> =
         (case implicit_evals_of pol u of
           [] => implicit_evals_of (not pol) t
         | ts => ts)
-      | implicit_evals_of pol (\<^const>\<open>conj\<close> $ t $ u) =
+      | implicit_evals_of pol \<^Const_>\<open>conj for t u\<close> =
         union (op aconv) (implicit_evals_of pol t) (implicit_evals_of pol u)
-      | implicit_evals_of pol (\<^const>\<open>disj\<close> $ t $ u) =
+      | implicit_evals_of pol \<^Const_>\<open>disj for t u\<close> =
         union (op aconv) (implicit_evals_of pol t) (implicit_evals_of pol u)
       | implicit_evals_of false (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
         distinct (op aconv) [t, u]
@@ -1049,7 +1049,7 @@ fun str_of_isa_term_with_type ctxt t =
   Syntax.string_of_term ctxt t ^ " : " ^ Syntax.string_of_typ ctxt (fastype_of t);
 
 fun is_triv_wrt (Abs (_, _, body)) = is_triv_wrt body
-  | is_triv_wrt \<^const>\<open>True\<close> = true
+  | is_triv_wrt \<^Const>\<open>True\<close> = true
   | is_triv_wrt _ = false;
 
 fun str_of_isa_type_spec ctxt {abs_typ, rep_typ, wrt, abs, rep} =

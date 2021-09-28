@@ -32,7 +32,7 @@ parse_translation \<open>
 
 typed_print_translation \<open>
   let
-    fun typerep_tr' ctxt (*"typerep"*) \<^Type>\<open>fun \<open>\<^Type>\<open>itself T\<close>\<close> _\<close>
+    fun typerep_tr' ctxt (*"typerep"*) \<^Type>\<open>fun \<^Type>\<open>itself T\<close> _\<close>
             (Const (\<^const_syntax>\<open>Pure.type\<close>, _) :: ts) =
           Term.list_comb
             (Syntax.const \<^syntax_const>\<open>_TYPEREP\<close> $ Syntax_Phases.term_of_typ ctxt T, ts)

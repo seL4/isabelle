@@ -400,7 +400,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       let val (sel_rhs, wits) = mk_sel_case_args lthy4 ctr_Tss ks arg
       in (arg |> #2, wits, list_comb (mk_sel_casex arg, sel_rhs)) end;
     fun mk_dis_case_args args k  = map (fn (k', arg) => (if k = k'
-      then fold_rev Term.lambda arg \<^const>\<open>True\<close> else fold_rev Term.lambda arg \<^const>\<open>False\<close>)) args;
+      then fold_rev Term.lambda arg \<^Const>\<open>True\<close> else fold_rev Term.lambda arg \<^Const>\<open>False\<close>)) args;
     val sel_rhs = map (map mk_sel_rhs) sel_argss
     val dis_rhs = map (fn k => list_comb (dis_casex, mk_dis_case_args (ks ~~ xss) k)) ks
     val dis_qty = qty_isom --> HOLogic.boolT;

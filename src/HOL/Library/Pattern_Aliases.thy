@@ -97,7 +97,7 @@ in
 
 fun check_pattern_syntax t =
   case strip_all t of
-    (vars, \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
+    (vars, \<^Const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
       let
         fun go (Const (\<^const_name>\<open>as\<close>, _) $ pat $ var, rhs) =
               let
@@ -126,7 +126,7 @@ fun check_pattern_syntax t =
 
 fun uncheck_pattern_syntax ctxt t =
   case strip_all t of
-    (vars, \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
+    (vars, \<^Const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
       let
         (* restricted to going down abstractions; ignores eta-contracted rhs *)
         fun go lhs (rhs as Const (\<^const_name>\<open>Let\<close>, _) $ pat $ Abs (name, typ, t)) ctxt frees =

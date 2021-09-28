@@ -42,7 +42,7 @@ fun mk_gfp_rec_sugar_transfer_tac ctxt f_def corec_def type_definitions dtor_cor
   let
     fun instantiate_with_lambda thm =
       let
-        val prop as \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (Var (_, fT) $ _) $ _) =
+        val prop as \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>HOL.eq _ for \<open>Var (_, fT) $ _\<close> _\<close>\<close>\<close> =
           Thm.prop_of thm;
         val T = range_type fT;
         val j = Term.maxidx_of_term prop + 1;
