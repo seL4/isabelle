@@ -234,23 +234,30 @@ fun read_embedded ctxt src parse =
     | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
   end;
 
-fun ml_sources ctxt srcs =
+fun ml_args ctxt args =
   let
-    val (decls, ctxt') = fold_map (ML_Context.expand_antiquotes o ML_Lex.read_source) srcs ctxt;
+    val (decls, ctxt') = fold_map (ML_Context.expand_antiquotes) args ctxt;
     fun decl' ctxt'' = map (fn decl => decl ctxt'') decls;
   in (decl', ctxt') end
 
 val parse_name = Parse.input Parse.name;
-val parse_args = Scan.repeat (Parse.input Parse.underscore || Parse.embedded_input);
+
+val parse_arg =
+  Parse.underscore >> (Input.string #> ML_Lex.read_source) ||
+  Parse.embedded_input >> ML_Lex.read_source ||
+  Parse.control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
+
+val parse_args = Scan.repeat parse_arg;
 val parse_for_args =
   Scan.optional ((Parse.position (Parse.$$$ "for") >> #2) -- Parse.!!! parse_args)
     (Position.none, []);
 
 fun parse_body b =
-  if b then Parse.$$$ "=>" |-- Parse.!!! Parse.embedded_input >> single
+  if b then Parse.$$$ "=>" |-- Parse.!!! Parse.embedded_input >> (ML_Lex.read_source #> single)
   else Scan.succeed [];
 
-fun is_dummy s = Input.string_of s = "_";
+fun is_dummy [Antiquote.Text tok] = ML_Lex.content_of tok = "_"
+  | is_dummy _ = false;
 
 val ml = ML_Lex.tokenize_no_range;
 val ml_range = ML_Lex.tokenize_range;
@@ -279,8 +286,8 @@ fun type_antiquotation binding {function} =
             error ("Type constructor " ^ quote (Proof_Context.markup_type ctxt c) ^
               " takes " ^ string_of_int n ^ " argument(s)" ^ Position.here pos);
 
-        val (decls1, ctxt1) = ml_sources ctxt type_args;
-        val (decls2, ctxt2) = (ml_sources ctxt1) fn_body;
+        val (decls1, ctxt1) = ml_args ctxt type_args;
+        val (decls2, ctxt2) = ml_args ctxt1 fn_body;
         fun decl' ctxt' =
           let
             val (ml_args_env, ml_args_body) = split_list (decls1 ctxt');
@@ -323,9 +330,9 @@ fun const_antiquotation binding {pattern, function} =
           length term_args > m andalso Term.is_Type (Term.body_type T) andalso
             err (" cannot have more than " ^ string_of_int m ^ " type argument(s)");
 
-        val (decls1, ctxt1) = ml_sources ctxt type_args;
-        val (decls2, ctxt2) = ml_sources ctxt1 term_args;
-        val (decls3, ctxt3) = ml_sources ctxt2 fn_body;
+        val (decls1, ctxt1) = ml_args ctxt type_args;
+        val (decls2, ctxt2) = ml_args ctxt1 term_args;
+        val (decls3, ctxt3) = ml_args ctxt2 fn_body;
         fun decl' ctxt' =
           let
             val (ml_args_env1, ml_args_body1) = split_list (decls1 ctxt');
