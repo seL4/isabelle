@@ -496,15 +496,15 @@ fun mk_ho_of_fo_quant q =
   else if q = tptp_hilbert_the then tptp_hilbert_the
   else raise Fail ("unrecognized quantification: " ^ q)
 
-fun remove_hol_app (ATerm ((s, ty), arg)) =
+fun remove_hol_app (ATerm ((s, ty), args)) =
     if s = tptp_app then
-      (case arg of
-        ATerm ((s, ty), arg) :: t => remove_hol_app (ATerm ((s, ty), map remove_hol_app arg @ t))
-      | [AAbs ((var, tvar), phi), t] =>
-        remove_hol_app (AAbs ((var, tvar), map remove_hol_app phi @ [t])))
+      (case args of
+        ATerm (f, xs) :: ys => remove_hol_app (ATerm (f, xs @ ys))
+      | AAbs ((var, phi), xs) :: ys => remove_hol_app (AAbs ((var, phi), xs @ ys)))
     else
-      ATerm ((s, ty), map remove_hol_app arg)
-  | remove_hol_app (AAbs (((s, ty), arg), t)) = AAbs (((s, ty), remove_hol_app arg), t)
+      ATerm ((s, ty), map remove_hol_app args)
+  | remove_hol_app (AAbs ((var, phi), args)) =
+    AAbs ((var, remove_hol_app phi), map remove_hol_app args)
 
 fun parse_hol_typed_var x =
   (Scan.repeat (scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
