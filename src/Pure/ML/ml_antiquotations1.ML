@@ -243,7 +243,7 @@ fun ml_args ctxt args =
 val parse_name = Parse.input Parse.name;
 
 val parse_arg =
-  Parse.underscore >> (Input.string #> ML_Lex.read_source) ||
+  Parse.input Parse.underscore >> ML_Lex.read_source ||
   Parse.embedded_input >> ML_Lex.read_source ||
   Parse.control >> (ML_Lex.read_symbols o Antiquote.control_symbols);
 
@@ -262,6 +262,7 @@ fun is_dummy [Antiquote.Text tok] = ML_Lex.content_of tok = "_"
 val ml = ML_Lex.tokenize_no_range;
 val ml_range = ML_Lex.tokenize_range;
 val ml_dummy = ml "_";
+fun ml_enclose range x = ml_range range "(" @ x @ ml_range range ")";
 fun ml_parens x = ml "(" @ x @ ml ")";
 fun ml_bracks x = ml "[" @ x @ ml "]";
 fun ml_commas xs = flat (separate (ml ", ") xs);
@@ -292,12 +293,14 @@ fun type_antiquotation binding {function} =
           let
             val (ml_args_env, ml_args_body) = split_list (decls1 ctxt');
             val (ml_fn_env, ml_fn_body) = split_list (decls2 ctxt');
-            val ml1 = ml_parens (ml "Term.Type " @ ml_pair (ml_string c, ml_list ml_args_body));
+            val ml1 =
+              ml_enclose range (ml "Term.Type " @ ml_pair (ml_string c, ml_list ml_args_body));
             val ml2 =
               if function then
-                ml "(" @ ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
-                ml "| T => " @ ml_range range "raise" @
-                ml " Term.TYPE (" @ ml_string ("Type_fn " ^ quote c) @ ml ", [T], []))"
+                ml_enclose range
+                 (ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
+                  ml "| T => " @ ml_range range "raise" @
+                  ml " Term.TYPE (" @ ml_string ("Type_fn " ^ quote c) @ ml ", [T], [])")
               else ml1;
           in (flat (ml_args_env @ ml_fn_env), ml2) end;
       in (decl', ctxt2) end);
@@ -358,12 +361,13 @@ fun const_antiquotation binding {pattern, function} =
               | ml_app (u :: us) = ml "Term.$ " @ ml_pair (ml_app us, u);
 
             val ml_env = flat (ml_args_env1 @ ml_args_env2 @ ml_fn_env);
-            val ml1 = ml_parens (ml_app (rev ml_args_body2));
+            val ml1 = ml_enclose range (ml_app (rev ml_args_body2));
             val ml2 =
               if function then
-                ml "(" @ ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
-                ml "| t => " @ ml_range range "raise" @
-                ml " Term.TERM (" @ ml_string ("Const_fn " ^ quote c) @ ml ", [t]))"
+                ml_enclose range
+                 (ml_range range "fn " @ ml1 @ ml "=> " @ flat ml_fn_body @
+                  ml "| t => " @ ml_range range "raise" @
+                  ml " Term.TERM (" @ ml_string ("Const_fn " ^ quote c) @ ml ", [t])")
               else ml1;
           in (ml_env, ml2) end;
       in (decl', ctxt3) end);
