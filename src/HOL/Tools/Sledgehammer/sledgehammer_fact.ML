@@ -78,10 +78,10 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
 
 fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
 
-fun is_rec_def (\<^const>\<open>Trueprop\<close> $ t) = is_rec_def t
-  | is_rec_def (\<^const>\<open>Pure.imp\<close> $ _ $ t2) = is_rec_def t2
-  | is_rec_def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2) = is_rec_eq t1 t2
-  | is_rec_def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) = is_rec_eq t1 t2
+fun is_rec_def \<^Const_>\<open>Trueprop for t\<close> = is_rec_def t
+  | is_rec_def \<^Const_>\<open>Pure.imp for _ t2\<close> = is_rec_def t2
+  | is_rec_def \<^Const_>\<open>Pure.eq _ for t1 t2\<close> = is_rec_eq t1 t2
+  | is_rec_def \<^Const_>\<open>HOL.eq _ for t1 t2\<close> = is_rec_eq t1 t2
   | is_rec_def _ = false
 
 fun is_assum assms th = exists (fn ct => Thm.prop_of th aconv Thm.term_of ct) assms
@@ -249,8 +249,8 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       else
         Interesting
 
-    fun interest_of_prop _ (\<^const>\<open>Trueprop\<close> $ t) = interest_of_bool t
-      | interest_of_prop Ts (\<^const>\<open>Pure.imp\<close> $ t $ u) =
+    fun interest_of_prop _ \<^Const_>\<open>Trueprop for t\<close> = interest_of_bool t
+      | interest_of_prop Ts \<^Const_>\<open>Pure.imp for t u\<close> =
         combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
       | interest_of_prop Ts (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T, t)) =
         if type_has_top_sort T then Deal_Breaker else interest_of_prop (T :: Ts) t
@@ -331,9 +331,9 @@ fun clasimpset_rule_table_of ctxt =
       end
   end
 
-fun normalize_eq (\<^const>\<open>Trueprop\<close> $ (t as (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2)) =
+fun normalize_eq (\<^Const_>\<open>Trueprop\<close> $ (t as (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2)) =
     if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else t0 $ t2 $ t1
-  | normalize_eq (\<^const>\<open>Trueprop\<close> $ (t as \<^const>\<open>Not\<close>
+  | normalize_eq (\<^Const_>\<open>Trueprop\<close> $ (t as \<^Const_>\<open>Not\<close>
       $ ((t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2))) =
     if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else HOLogic.mk_not (t0 $ t2 $ t1)
   | normalize_eq (Const (\<^const_name>\<open>Pure.eq\<close>, Type (_, [T, _])) $ t1 $ t2) =
@@ -376,7 +376,7 @@ fun fact_distinct eq facts =
 
 fun struct_induct_rule_on th =
   (case Logic.strip_horn (Thm.prop_of th) of
-    (prems, \<^const>\<open>Trueprop\<close> $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
+    (prems, \<^Const_>\<open>Trueprop\<close> $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
     if not (is_TVar ind_T) andalso length prems > 1 andalso
        exists (exists_subterm (curry (op aconv) p)) prems andalso
        not (exists (exists_subterm (curry (op aconv) a)) prems) then

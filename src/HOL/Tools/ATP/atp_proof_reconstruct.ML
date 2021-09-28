@@ -127,7 +127,7 @@ fun simplify_bool ((all as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s
     | (u, Const (\<^const_name>\<open>True\<close>, _)) => u
     | (Const (\<^const_name>\<open>False\<close>, _), v) => s_not v
     | (u, Const (\<^const_name>\<open>False\<close>, _)) => s_not u
-    | _ => if u aconv v then \<^const>\<open>True\<close> else t $ simplify_bool u $ simplify_bool v)
+    | _ => if u aconv v then \<^Const>\<open>True\<close> else t $ simplify_bool u $ simplify_bool v)
   | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
   | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
   | simplify_bool t = t
@@ -351,7 +351,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
           error "Isar proof reconstruction failed because the ATP proof contains unparsable \
             \material"
         else if String.isPrefix native_type_prefix s then
-          \<^const>\<open>True\<close> (* ignore TPTP type information (needed?) *)
+          \<^Const>\<open>True\<close> (* ignore TPTP type information (needed?) *)
         else if s = tptp_equal then
           list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term [] NONE) us)
@@ -372,7 +372,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                     (nth us (length us - 2))
                 end
               else if s' = type_guard_name then
-                \<^const>\<open>True\<close> (* ignore type predicates *)
+                \<^Const>\<open>True\<close> (* ignore type predicates *)
               else
                 let
                   val new_skolem = String.isPrefix new_skolem_const_prefix s''
@@ -436,7 +436,7 @@ fun term_of_atp ctxt (ATP_Problem.THF _) type_enc =
 fun term_of_atom ctxt format type_enc textual sym_tab pos (u as ATerm ((s, _), _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint pos (type_constraint_of_term ctxt u)
-    #> pair \<^const>\<open>True\<close>
+    #> pair \<^Const>\<open>True\<close>
   else
     pair (term_of_atp ctxt format type_enc textual sym_tab (SOME \<^typ>\<open>bool\<close>) u)
 
@@ -617,8 +617,8 @@ val waldmeister_conjecture_num = "1.0.0.0"
 
 fun repair_waldmeister_endgame proof =
   let
-    fun repair_tail (name, _, \<^const>\<open>Trueprop\<close> $ t, rule, deps) =
-      (name, Negated_Conjecture, \<^const>\<open>Trueprop\<close> $ s_not t, rule, deps)
+    fun repair_tail (name, _, \<^Const>\<open>Trueprop for t\<close>, rule, deps) =
+      (name, Negated_Conjecture, \<^Const>\<open>Trueprop for \<open>s_not t\<close>\<close>, rule, deps)
     fun repair_body [] = []
       | repair_body ((line as ((num, _), _, _, _, _)) :: lines) =
         if num = waldmeister_conjecture_num then map repair_tail (line :: lines)
