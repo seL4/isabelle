@@ -105,7 +105,7 @@ fun mir_tac ctxt q =
     (* The result of the quantifier elimination *)
     val (th, tac) =
       case Thm.prop_of pre_thm of
-        Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t1) $ _ =>
+        \<^Const_>\<open>Pure.imp for \<^Const_>\<open>Trueprop for t1\<close> _\<close> =>
     let
       val pth = mirfr_oracle (ctxt, Envir.eta_long [] t1)
     in 

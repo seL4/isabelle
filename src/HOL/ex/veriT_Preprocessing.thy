@@ -42,12 +42,10 @@ fun mk_let_iffNI ctxt n =
     val tuple_T = fastype_of tuple_t;
 
     val lambda_t = HOLogic.tupled_lambda tuple_t (list_comb (p, ts));
-    val lambda_T = fastype_of lambda_t;
 
     val left_prems = map2 (curry Ctr_Sugar_Util.mk_Trueprop_eq) ts us;
     val right_prem = Ctr_Sugar_Util.mk_Trueprop_eq (list_comb (p, us), q);
-    val concl = Ctr_Sugar_Util.mk_Trueprop_eq
-      (Const (\<^const_name>\<open>Let\<close>, tuple_T --> lambda_T --> B) $ tuple_t $ lambda_t, q);
+    val concl = Ctr_Sugar_Util.mk_Trueprop_eq (\<^Const>\<open>Let tuple_T B for tuple_t lambda_t\<close>, q);
 
     val goal = Logic.list_implies (left_prems @ [right_prem], concl);
     val vars = Variable.add_free_names ctxt goal [];
@@ -82,8 +80,8 @@ datatype node = N of rule_name * node list;
 
 fun lambda_count (Abs (_, _, t)) = lambda_count t + 1
   | lambda_count ((t as Abs _) $ _) = lambda_count t - 1
-  | lambda_count ((t as Const (\<^const_name>\<open>case_prod\<close>, _) $ _) $ _) = lambda_count t - 1
-  | lambda_count (Const (\<^const_name>\<open>case_prod\<close>, _) $ t) = lambda_count t - 1
+  | lambda_count ((t as \<^Const_>\<open>case_prod _ _ _\<close> $ _) $ _) = lambda_count t - 1
+  | lambda_count \<^Const_>\<open>case_prod _ _ _ for t\<close> = lambda_count t - 1
   | lambda_count _ = 0;
 
 fun zoom apply =
@@ -96,20 +94,16 @@ fun zoom apply =
         let val (t', u') = zo 1 (T :: bound_Ts) (t, u) in
           (t' $ arg, u')
         end
-      | zo 0 bound_Ts ((t as Const (\<^const_name>\<open>case_prod\<close>, _) $ _) $ arg, u) =
+      | zo 0 bound_Ts ((t as \<^Const_>\<open>case_prod _ _ _\<close> $ _) $ arg, u) =
         let val (t', u') = zo 1 bound_Ts (t, u) in
           (t' $ arg, u')
         end
       | zo 0 bound_Ts tu = apply bound_Ts tu
-      | zo n bound_Ts (Const (\<^const_name>\<open>case_prod\<close>,
-          Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>fun\<close>, [A, Type (\<^type_name>\<open>fun\<close>, [B, _])]),
-            Type (\<^type_name>\<open>fun\<close>, [AB, _])])) $ t, u) =
+      | zo n bound_Ts (\<^Const_>\<open>case_prod A B _ for t\<close>, u) =
         let
           val (t', u') = zo (n + 1) bound_Ts (t, u);
           val C = range_type (range_type (fastype_of t'));
-        in
-          (Const (\<^const_name>\<open>case_prod\<close>, (A --> B --> C) --> AB --> C) $ t', u')
-        end
+        in (\<^Const>\<open>case_prod A B C for t'\<close>, u') end
       | zo n bound_Ts (Abs (s, T, t), u) =
         let val (t', u') = zo (n - 1) (T :: bound_Ts) (t, u) in
           (Abs (s, T, t'), u')
@@ -130,26 +124,26 @@ fun apply_Cong ary j (lhs, rhs) =
 
 fun apply_Bind (lhs, rhs) =
   (case (lhs, rhs) of
-    (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, T, t), Const (\<^const_name>\<open>All\<close>, _) $ Abs (s, U, u)) =>
+    (\<^Const_>\<open>All _ for \<open>Abs (_, T, t)\<close>\<close>, \<^Const_>\<open>All _ for \<open>Abs (s, U, u)\<close>\<close>) =>
     (Abs (s, T, t), Abs (s, U, u))
-  | (Const (\<^const_name>\<open>Ex\<close>, _) $ t, Const (\<^const_name>\<open>Ex\<close>, _) $ u) => (t, u)
+  | (\<^Const_>\<open>Ex _ for t\<close>, \<^Const_>\<open>Ex _ for u\<close>) => (t, u)
   | _ => raise TERM ("apply_Bind", [lhs, rhs]));
 
 fun apply_Sko_Ex (lhs, rhs) =
   (case lhs of
-    Const (\<^const_name>\<open>Ex\<close>, _) $ (t as Abs (_, T, _)) =>
+    \<^Const_>\<open>Ex _ for \<open>t as Abs (_, T, _)\<close>\<close> =>
     (t $ (HOLogic.choice_const T $ t), rhs)
   | _ => raise TERM ("apply_Sko_Ex", [lhs]));
 
 fun apply_Sko_All (lhs, rhs) =
   (case lhs of
-    Const (\<^const_name>\<open>All\<close>, _) $ (t as Abs (s, T, body)) =>
+    \<^Const_>\<open>All _ for \<open>t as Abs (s, T, body)\<close>\<close> =>
     (t $ (HOLogic.choice_const T $ Abs (s, T, HOLogic.mk_not body)), rhs)
   | _ => raise TERM ("apply_Sko_All", [lhs]));
 
 fun apply_Let_left ts j (lhs, _) =
   (case lhs of
-    Const (\<^const_name>\<open>Let\<close>, _) $ t $ _ =>
+    \<^Const_>\<open>Let _ _ for t _\<close> =>
     let val ts0 = HOLogic.strip_tuple t in
       (nth ts0 j, nth ts j)
     end
@@ -158,7 +152,7 @@ fun apply_Let_left ts j (lhs, _) =
 fun apply_Let_right ts bound_Ts (lhs, rhs) =
   let val t' = mk_tuple1 bound_Ts ts in
     (case lhs of
-      Const (\<^const_name>\<open>Let\<close>, _) $ _ $ u => (u $ t', rhs)
+      \<^Const_>\<open>Let _ _ for _ u\<close> => (u $ t', rhs)
     | _ => raise TERM ("apply_Let_right", [lhs, rhs]))
   end;
 

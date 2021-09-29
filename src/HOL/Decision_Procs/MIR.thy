@@ -5581,92 +5581,92 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (=) vs t
   | num_of_term vs \<^term>\<open>1::real\<close> = mk_C 1
   | num_of_term vs \<^term>\<open>- 1::real\<close> = mk_C (~ 1)
   | num_of_term vs (Bound i) = mk_Bound i
-  | num_of_term vs (\<^term>\<open>uminus :: real \<Rightarrow> real\<close> $ t') = @{code Neg} (num_of_term vs t')
-  | num_of_term vs (\<^term>\<open>(+) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
+  | num_of_term vs \<^Const_>\<open>uminus \<^Type>\<open>real\<close> for t'\<close> = @{code Neg} (num_of_term vs t')
+  | num_of_term vs \<^Const_>\<open>plus \<^Type>\<open>real\<close> for t1 t2\<close> =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (\<^term>\<open>(-) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
+  | num_of_term vs \<^Const_>\<open>minus \<^Type>\<open>real\<close> for t1 t2\<close> =
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (\<^term>\<open>(*) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
-      (case (num_of_term vs t1)
-       of @{code C} i => @{code Mul} (i, num_of_term vs t2)
-        | _ => error "num_of_term: unsupported Multiplication")
-  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>numeral :: _ \<Rightarrow> int\<close> $ t')) =
+  | num_of_term vs \<^Const_>\<open>times \<^Type>\<open>real\<close> for t1 t2\<close> =
+      (case num_of_term vs t1 of
+        @{code C} i => @{code Mul} (i, num_of_term vs t2)
+      | _ => error "num_of_term: unsupported Multiplication")
+  | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t'\<close>\<close> =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t')) =
+  | num_of_term vs (\<^Const_>\<open>of_int \<^Type>\<open>real\<close>\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t')) =  (* FIXME !? *)
       mk_C (~ (HOLogic.dest_numeral t'))
-  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>floor :: real \<Rightarrow> int\<close> $ t')) =
+  | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>floor \<^Type>\<open>real\<close> for t'\<close>\<close> =
       @{code Floor} (num_of_term vs t')
-  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>ceiling :: real \<Rightarrow> int\<close> $ t')) =
+  | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>ceiling \<^Type>\<open>real\<close> for t'\<close>\<close> =
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
-  | num_of_term vs (\<^term>\<open>numeral :: _ \<Rightarrow> real\<close> $ t') =
+  | num_of_term vs \<^Const_>\<open>numeral \<^Type>\<open>real\<close> for t'\<close> =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (\<^term>\<open>- numeral :: _ \<Rightarrow> real\<close> $ t') =
+  | num_of_term vs (\<^term>\<open>- numeral :: _ \<Rightarrow> real\<close> $ t') =  (* FIXME !? *)
       mk_C (~ (HOLogic.dest_numeral t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term \<^context> t);
 
-fun fm_of_term vs \<^term>\<open>True\<close> = @{code T}
-  | fm_of_term vs \<^term>\<open>False\<close> = @{code F}
-  | fm_of_term vs (\<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
+fun fm_of_term vs \<^Const_>\<open>True\<close> = @{code T}
+  | fm_of_term vs \<^Const_>\<open>False\<close> = @{code F}
+  | fm_of_term vs \<^Const_>\<open>less \<^Type>\<open>real\<close> for t1 t2\<close> =
       @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (\<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>less_eq \<^Type>\<open>real\<close> for t1 t2\<close> =
       @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (\<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>HOL.eq \<^Type>\<open>real\<close> for t1 t2\<close> =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (\<^term>\<open>(rdvd)\<close> $ (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>numeral :: _ \<Rightarrow> int\<close> $ t1)) $ t2) =
+  | fm_of_term vs \<^Const_>\<open>rdvd for \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t1\<close>\<close> t2\<close> =
       mk_Dvd (HOLogic.dest_numeral t1, num_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>(rdvd)\<close> $ (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t1)) $ t2) =
+  | fm_of_term vs \<^Const_>\<open>rdvd for \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<open>(\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t1)\<close>\<close> t2\<close> =  (* FIXME !? *)
       mk_Dvd (~ (HOLogic.dest_numeral t1), num_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>(=) :: bool \<Rightarrow> bool \<Rightarrow> bool\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>HOL.eq \<^Type>\<open>bool\<close> for t1 t2\<close> =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>HOL.conj\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>HOL.conj for t1 t2\<close> =
       @{code And} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>HOL.disj\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>HOL.disj for t1 t2\<close> =
       @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>HOL.implies\<close> $ t1 $ t2) =
+  | fm_of_term vs \<^Const_>\<open>HOL.implies for t1 t2\<close> =
       @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (\<^term>\<open>HOL.Not\<close> $ t') =
+  | fm_of_term vs \<^Const_>\<open>HOL.Not for t'\<close> =
       @{code Not} (fm_of_term vs t')
-  | fm_of_term vs (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs \<^Const_>\<open>Ex _ for \<open>Abs (xn, xT, p)\<close>\<close> =
       @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
-  | fm_of_term vs (Const (\<^const_name>\<open>All\<close>, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs \<^Const_>\<open>All _ for \<open>Abs (xn, xT, p)\<close>\<close> =
       @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term \<^context> t);
 
-fun term_of_num vs (@{code C} i) = \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $
-      HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
+fun term_of_num vs (@{code C} i) =
+      \<^Const>\<open>of_int \<^Type>\<open>real\<close> for \<open>HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)\<close>\<close>
   | term_of_num vs (@{code Bound} n) =
       let
         val m = @{code integer_of_nat} n;
       in fst (the (find_first (fn (_, q) => m = q) vs)) end
   | term_of_num vs (@{code Neg} (@{code Floor} (@{code Neg} t'))) =
-      \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>ceiling :: real \<Rightarrow> int\<close> $ term_of_num vs t')
-  | term_of_num vs (@{code Neg} t') = \<^term>\<open>uminus :: real \<Rightarrow> real\<close> $ term_of_num vs t'
-  | term_of_num vs (@{code Add} (t1, t2)) = \<^term>\<open>(+) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
-      term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Sub} (t1, t2)) = \<^term>\<open>(-) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
-      term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Mul} (i, t2)) = \<^term>\<open>(*) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
-      term_of_num vs (@{code C} i) $ term_of_num vs t2
-  | term_of_num vs (@{code Floor} t) = \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>floor :: real \<Rightarrow> int\<close> $ term_of_num vs t)
+      \<^Const>\<open>of_int \<^Type>\<open>real\<close> for \<^Const>\<open>ceiling \<^Type>\<open>real\<close> for \<open>term_of_num vs t'\<close>\<close>\<close>
+  | term_of_num vs (@{code Neg} t') = \<^Const>\<open>uminus \<^Type>\<open>real\<close> for \<open>term_of_num vs t'\<close>\<close>
+  | term_of_num vs (@{code Add} (t1, t2)) =
+      \<^Const>\<open>plus \<^Type>\<open>real\<close> for \<open>term_of_num vs t1\<close> \<open>term_of_num vs t2\<close>\<close>
+  | term_of_num vs (@{code Sub} (t1, t2)) =
+      \<^Const>\<open>minus \<^Type>\<open>real\<close> for \<open>term_of_num vs t1\<close> \<open>term_of_num vs t2\<close>\<close>
+  | term_of_num vs (@{code Mul} (i, t2)) =
+      \<^Const>\<open>times \<^Type>\<open>real\<close> for \<open>term_of_num vs (@{code C} i)\<close> \<open>term_of_num vs t2\<close>\<close>
+  | term_of_num vs (@{code Floor} t) = \<^Const>\<open>of_int \<^Type>\<open>real\<close> for \<^Const>\<open>floor \<^Type>\<open>real\<close> for \<open>term_of_num vs t\<close>\<close>\<close>
   | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
   | term_of_num vs (@{code CF} (c, t, s)) = term_of_num vs (@{code Add} (@{code Mul} (c, @{code Floor} t), s));
 
-fun term_of_fm vs @{code T} = \<^term>\<open>True\<close>
-  | term_of_fm vs @{code F} = \<^term>\<open>False\<close>
+fun term_of_fm vs @{code T} = \<^Const>\<open>True\<close>
+  | term_of_fm vs @{code F} = \<^Const>\<open>False\<close>
   | term_of_fm vs (@{code Lt} t) =
-      \<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
+      \<^Const>\<open>less \<^Type>\<open>real\<close> for \<open>term_of_num vs t\<close> \<^term>\<open>0::real\<close>\<close>
   | term_of_fm vs (@{code Le} t) =
-      \<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
+      \<^Const>\<open>less_eq \<^Type>\<open>real\<close> for \<open>term_of_num vs t\<close> \<^term>\<open>0::real\<close>\<close>
   | term_of_fm vs (@{code Gt} t) =
-      \<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ \<^term>\<open>0::real\<close> $ term_of_num vs t
+      \<^Const>\<open>less \<^Type>\<open>real\<close> for \<^term>\<open>0::real\<close> \<open>term_of_num vs t\<close>\<close>
   | term_of_fm vs (@{code Ge} t) =
-      \<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ \<^term>\<open>0::real\<close> $ term_of_num vs t
+      \<^Const>\<open>less_eq \<^Type>\<open>real\<close> for \<^term>\<open>0::real\<close> \<open>term_of_num vs t\<close>\<close>
   | term_of_fm vs (@{code Eq} t) =
-      \<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
+      \<^Const>\<open>HOL.eq \<^Type>\<open>real\<close> for \<open>term_of_num vs t\<close> \<^term>\<open>0::real\<close>\<close>
   | term_of_fm vs (@{code NEq} t) =
       term_of_fm vs (@{code Not} (@{code Eq} t))
   | term_of_fm vs (@{code Dvd} (i, t)) =
-      \<^term>\<open>(rdvd)\<close> $ term_of_num vs (@{code C} i) $ term_of_num vs t
+      \<^Const>\<open>rdvd for \<open>term_of_num vs (@{code C} i)\<close> \<open>term_of_num vs t\<close>\<close>
   | term_of_fm vs (@{code NDvd} (i, t)) =
       term_of_fm vs (@{code Not} (@{code Dvd} (i, t)))
   | term_of_fm vs (@{code Not} t') =
@@ -5678,7 +5678,7 @@ fun term_of_fm vs @{code T} = \<^term>\<open>True\<close>
   | term_of_fm vs (@{code Imp}  (t1, t2)) =
       HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Iff} (t1, t2)) =
-      \<^term>\<open>(=) :: bool \<Rightarrow> bool \<Rightarrow> bool\<close> $ term_of_fm vs t1 $ term_of_fm vs t2;
+      \<^Const>\<open>HOL.eq \<^Type>\<open>bool\<close> for \<open>term_of_fm vs t1\<close> \<open>term_of_fm vs t2\<close>\<close>;
 
 in
   fn (ctxt, t) =>
