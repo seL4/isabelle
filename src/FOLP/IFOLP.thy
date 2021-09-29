@@ -612,7 +612,7 @@ ML \<open>
 structure Hypsubst = Hypsubst
 (
   (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq \<^Const_>\<open>Proof for \<open>\<^Const_>\<open>eq _ for t u\<close>\<close> _\<close> = (t, u);
+  fun dest_eq \<^Const_>\<open>Proof for \<^Const_>\<open>eq _ for t u\<close> _\<close> = (t, u);
 
   val imp_intr = @{thm impI}
 

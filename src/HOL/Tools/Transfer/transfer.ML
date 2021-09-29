@@ -550,8 +550,8 @@ fun bool_insts p (t, u) =
           Symtab.join (K or3) (tab1, tab2)
         end
     val tab = go [] p (t, u) Symtab.empty
-    fun f (a, (true, false, false)) = SOME (a, \<^const>\<open>implies\<close>)
-      | f (a, (false, true, false)) = SOME (a, \<^const>\<open>rev_implies\<close>)
+    fun f (a, (true, false, false)) = SOME (a, \<^Const>\<open>implies\<close>)
+      | f (a, (false, true, false)) = SOME (a, \<^Const>\<open>rev_implies\<close>)
       | f (a, (true, true, _))      = SOME (a, HOLogic.eq_const HOLogic.boolT)
       | f _                         = NONE
   in

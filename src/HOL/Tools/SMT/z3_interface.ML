@@ -38,8 +38,8 @@ local
      fp_kinds = [BNF_Util.Least_FP],
      serialize = #serialize (SMTLIB_Interface.translate_config SMT_Util.First_Order ctxt)}
 
-  fun is_div_mod @{const divide (int)} = true
-    | is_div_mod @{const modulo (int)} = true
+  fun is_div_mod \<^Const_>\<open>divide \<^Type>\<open>int\<close>\<close> = true
+    | is_div_mod \<^Const>\<open>modulo \<^Type>\<open>int\<close>\<close> = true
     | is_div_mod _ = false
 
   val have_int_div_mod = exists (Term.exists_subterm is_div_mod o Thm.prop_of)
@@ -50,9 +50,9 @@ local
     else (thms, extra_thms)
 
   val setup_builtins =
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^const>\<open>z3div\<close>, "div") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^const>\<open>z3mod\<close>, "mod")
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^Const>\<open>times \<^Type>\<open>int\<close>\<close>, "*") #>
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^Const>\<open>z3div\<close>, "div") #>
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^Const>\<open>z3mod\<close>, "mod")
 in
 
 val _ = Theory.setup (Context.theory_map (
@@ -116,13 +116,13 @@ fun mk_builtin_num _ i \<^typ>\<open>int\<close> = SOME (Numeral.mk_cnumber \<^c
   | mk_builtin_num ctxt i T =
       chained_mk_builtin_num ctxt (get_mk_builtins ctxt) i T
 
-val mk_true = Thm.cterm_of \<^context> (\<^const>\<open>Not\<close> $ \<^const>\<open>False\<close>)
-val mk_false = Thm.cterm_of \<^context> \<^const>\<open>False\<close>
-val mk_not = Thm.apply (Thm.cterm_of \<^context> \<^const>\<open>Not\<close>)
-val mk_implies = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>HOL.implies\<close>)
-val mk_iff = Thm.mk_binop (Thm.cterm_of \<^context> @{const HOL.eq (bool)})
-val conj = Thm.cterm_of \<^context> \<^const>\<open>HOL.conj\<close>
-val disj = Thm.cterm_of \<^context> \<^const>\<open>HOL.disj\<close>
+val mk_true = \<^cterm>\<open>\<not> False\<close>
+val mk_false = \<^cterm>\<open>False\<close>
+val mk_not = Thm.apply \<^cterm>\<open>HOL.Not\<close>
+val mk_implies = Thm.mk_binop \<^cterm>\<open>HOL.implies\<close>
+val mk_iff = Thm.mk_binop \<^cterm>\<open>(=) :: bool \<Rightarrow> _\<close>
+val conj = \<^cterm>\<open>HOL.conj\<close>
+val disj = \<^cterm>\<open>HOL.disj\<close>
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
@@ -143,15 +143,15 @@ fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_cterm array)
   in Thm.apply (Thm.mk_binop (SMT_Util.instTs cTs update) array index) value end
 
-val mk_uminus = Thm.apply (Thm.cterm_of \<^context> @{const uminus (int)})
-val add = Thm.cterm_of \<^context> @{const plus (int)}
+val mk_uminus = Thm.apply \<^cterm>\<open>uminus :: int \<Rightarrow> _\<close>
+val add = \<^cterm>\<open>(+) :: int \<Rightarrow> _\<close>
 val int0 = Numeral.mk_cnumber \<^ctyp>\<open>int\<close> 0
-val mk_sub = Thm.mk_binop (Thm.cterm_of \<^context> @{const minus (int)})
-val mk_mul = Thm.mk_binop (Thm.cterm_of \<^context> @{const times (int)})
-val mk_div = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>z3div\<close>)
-val mk_mod = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>z3mod\<close>)
-val mk_lt = Thm.mk_binop (Thm.cterm_of \<^context> @{const less (int)})
-val mk_le = Thm.mk_binop (Thm.cterm_of \<^context> @{const less_eq (int)})
+val mk_sub = Thm.mk_binop \<^cterm>\<open>(-) :: int \<Rightarrow> _\<close>
+val mk_mul = Thm.mk_binop \<^cterm>\<open>(*) :: int \<Rightarrow> _\<close>
+val mk_div = Thm.mk_binop \<^cterm>\<open>z3div\<close>
+val mk_mod = Thm.mk_binop \<^cterm>\<open>z3mod\<close>
+val mk_lt = Thm.mk_binop \<^cterm>\<open>(<) :: int \<Rightarrow> _\<close>
+val mk_le = Thm.mk_binop \<^cterm>\<open>(\<le>) :: int \<Rightarrow> _\<close>
 
 fun mk_builtin_fun ctxt sym cts =
   (case (sym, cts) of

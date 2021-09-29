@@ -182,8 +182,7 @@ fun unsound_delay_for_timeout timeout =
 
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
-fun has_lonely_bool_var (\<^const>\<open>Pure.conjunction\<close>
-                         $ (\<^const>\<open>Trueprop\<close> $ Free _) $ _) = true
+fun has_lonely_bool_var \<^Const_>\<open>Pure.conjunction for \<^Const_>\<open>Trueprop for \<open>Free _\<close>\<close> _\<close> = true
   | has_lonely_bool_var _ = false
 
 val syntactic_sorts =

@@ -2215,7 +2215,7 @@ fun derive_coinduct_corecs_thms_for_types ctxt pre_bnfs
       let
         fun mk_goal c cps gcorec n k disc =
           mk_Trueprop_eq (disc $ (gcorec $ c),
-            if n = 1 then \<^const>\<open>True\<close>
+            if n = 1 then \<^Const>\<open>True\<close>
             else Library.foldr1 HOLogic.mk_conj (seq_conds mk_maybe_not n k cps));
 
         val goalss = @{map 6} (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;

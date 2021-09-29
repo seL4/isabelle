@@ -25,9 +25,9 @@ val ndisj2_rule = @{lemma "\<not>(P \<or> Q) \<Longrightarrow> \<not>Q" by auto}
 
 fun explode_thm thm =
   (case HOLogic.dest_Trueprop (Thm.prop_of thm) of
-    \<^const>\<open>HOL.conj\<close> $ _ $ _ => explode_conj_thm @{thm conjunct1} @{thm conjunct2} thm
-  | \<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.disj\<close> $ _ $ _) => explode_conj_thm ndisj1_rule ndisj2_rule thm
-  | \<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.Not\<close> $ _) => explode_thm (thm RS @{thm notnotD})
+    \<^Const_>\<open>conj for _ _\<close> => explode_conj_thm @{thm conjunct1} @{thm conjunct2} thm
+  | \<^Const_>\<open>Not for \<^Const_>\<open>disj for _ _\<close>\<close> => explode_conj_thm ndisj1_rule ndisj2_rule thm
+  | \<^Const_>\<open>Not for \<^Const_>\<open>Not for _\<close>\<close> => explode_thm (thm RS @{thm notnotD})
   | _ => add_lit thm)
 
 and explode_conj_thm rule1 rule2 thm lits =
@@ -36,7 +36,7 @@ and explode_conj_thm rule1 rule2 thm lits =
 val not_false_rule = @{lemma "\<not>False" by auto}
 fun explode thm = explode_thm thm (add_lit not_false_rule (add_lit @{thm TrueI} Termtab.empty))
 
-fun find_dual_lit lits (\<^const>\<open>HOL.Not\<close> $ t, thm) = Termtab.lookup lits t |> Option.map (pair thm)
+fun find_dual_lit lits (\<^Const_>\<open>Not for t\<close>, thm) = Termtab.lookup lits t |> Option.map (pair thm)
   | find_dual_lit _ _ = NONE
 
 fun find_dual_lits lits = Termtab.get_first (find_dual_lit lits) lits
@@ -49,10 +49,10 @@ fun join lits t =
     SOME thm => thm
   | NONE => join_term lits t)
 
-and join_term lits (\<^const>\<open>HOL.conj\<close> $ t $ u) = @{thm conjI} OF (map (join lits) [t, u])
-  | join_term lits (\<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.disj\<close> $ t $ u)) =
+and join_term lits \<^Const_>\<open>conj for t u\<close> = @{thm conjI} OF (map (join lits) [t, u])
+  | join_term lits \<^Const_>\<open>Not for \<^Const_>\<open>HOL.disj for t u\<close>\<close> =
       ndisj_rule OF (map (join lits o HOLogic.mk_not) [t, u])
-  | join_term lits (\<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.Not\<close> $ t)) = join lits t RS not_not_rule
+  | join_term lits \<^Const_>\<open>Not for \<^Const>\<open>Not for t\<close>\<close> = join lits t RS not_not_rule
   | join_term _ t = raise TERM ("join_term", [t])
 
 fun prove_conj_disj_imp ct cu = with_assumption ct (fn thm => join (explode thm) (Thm.term_of cu))
@@ -68,19 +68,19 @@ val not_true_rule = @{lemma "\<not>True \<Longrightarrow> P" by auto}
 
 fun prove_any_imp ct =
   (case Thm.term_of ct of
-    \<^const>\<open>HOL.False\<close> => @{thm FalseE}
-  | \<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.Not\<close> $ \<^const>\<open>HOL.False\<close>) => not_not_false_rule
-  | \<^const>\<open>HOL.Not\<close> $ \<^const>\<open>HOL.True\<close> => not_true_rule
+    \<^Const_>\<open>False\<close> => @{thm FalseE}
+  | \<^Const_>\<open>Not for \<^Const>\<open>Not for \<^Const>\<open>False\<close>\<close>\<close> => not_not_false_rule
+  | \<^Const_>\<open>Not for \<^Const>\<open>True\<close>\<close> => not_true_rule
   | _ => raise CTERM ("prove_any_imp", [ct]))
 
 fun prove_contradiction_imp ct =
   with_assumption ct (fn thm =>
     let val lits = explode thm
     in
-      (case Termtab.lookup lits \<^const>\<open>HOL.False\<close> of
+      (case Termtab.lookup lits \<^Const>\<open>False\<close> of
         SOME thm' => thm' RS @{thm FalseE}
       | NONE =>
-          (case Termtab.lookup lits (\<^const>\<open>HOL.Not\<close> $ \<^const>\<open>HOL.True\<close>) of
+          (case Termtab.lookup lits \<^Const>\<open>Not for \<^Const>\<open>True\<close>\<close> of
             SOME thm' => thm' RS not_true_rule
           | NONE =>
               (case find_dual_lits lits of
@@ -99,13 +99,13 @@ fun contrapos prove cp = contrapos_rule OF [prove (apply2 (Thm.apply \<^cterm>\<
 
 datatype kind = True | False | Conj | Disj | Other
 
-fun choose t _ _ _ \<^const>\<open>HOL.True\<close> = t
-  | choose _ f _ _ \<^const>\<open>HOL.False\<close> = f
-  | choose _ _ c _ (\<^const>\<open>HOL.conj\<close> $ _ $ _) = c
-  | choose _ _ _ d (\<^const>\<open>HOL.disj\<close> $ _ $ _) = d
+fun choose t _ _ _ \<^Const_>\<open>True\<close> = t
+  | choose _ f _ _ \<^Const_>\<open>False\<close> = f
+  | choose _ _ c _ \<^Const_>\<open>conj for _ _\<close> = c
+  | choose _ _ _ d \<^Const_>\<open>disj for _ _\<close> = d
   | choose _ _ _ _ _ = Other
 
-fun kind_of (\<^const>\<open>HOL.Not\<close> $ t) = choose False True Disj Conj t
+fun kind_of \<^Const_>\<open>Not for t\<close> = choose False True Disj Conj t
   | kind_of t = choose True False Conj Disj t
 
 fun prove_conj_disj_perm ct cp =
@@ -120,7 +120,7 @@ fun prove_conj_disj_perm ct cp =
 
 fun conj_disj_perm_tac ctxt = CSUBGOAL (fn (ct, i) => 
   (case Thm.term_of ct of
-    \<^const>\<open>HOL.Trueprop\<close> $ (@{const HOL.eq(bool)} $ _ $ _) =>
+    \<^Const_>\<open>Trueprop for \<^Const>\<open>HOL.eq \<^Type>\<open>bool\<close> for _ _\<close>\<close> =>
       resolve_tac ctxt [prove_conj_disj_perm ct (Thm.dest_binop (Thm.dest_arg ct))] i
   | _ => no_tac))
 

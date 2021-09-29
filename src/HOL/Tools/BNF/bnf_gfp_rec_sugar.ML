@@ -189,22 +189,22 @@ fun curried_type (Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<o
 
 fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
 
-val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default \<^const>\<open>True\<close>;
-val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default \<^const>\<open>False\<close>;
+val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default \<^Const>\<open>True\<close>;
+val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default \<^Const>\<open>False\<close>;
 val mk_dnf = mk_disjs o map mk_conjs;
 
-val conjuncts_s = filter_out (curry (op aconv) \<^const>\<open>True\<close>) o HOLogic.conjuncts;
+val conjuncts_s = filter_out (curry (op aconv) \<^Const>\<open>True\<close>) o HOLogic.conjuncts;
 
-fun s_not \<^const>\<open>True\<close> = \<^const>\<open>False\<close>
-  | s_not \<^const>\<open>False\<close> = \<^const>\<open>True\<close>
-  | s_not (\<^const>\<open>Not\<close> $ t) = t
-  | s_not (\<^const>\<open>conj\<close> $ t $ u) = \<^const>\<open>disj\<close> $ s_not t $ s_not u
-  | s_not (\<^const>\<open>disj\<close> $ t $ u) = \<^const>\<open>conj\<close> $ s_not t $ s_not u
-  | s_not t = \<^const>\<open>Not\<close> $ t;
+fun s_not \<^Const_>\<open>True\<close> = \<^Const>\<open>False\<close>
+  | s_not \<^Const_>\<open>False\<close> = \<^Const>\<open>True\<close>
+  | s_not \<^Const_>\<open>Not for t\<close> = t
+  | s_not \<^Const_>\<open>conj for t u\<close> = \<^Const>\<open>disj for \<open>s_not t\<close> \<open>s_not u\<close>\<close>
+  | s_not \<^Const_>\<open>disj for t u\<close> = \<^Const>\<open>conj for \<open>s_not t\<close> \<open>s_not u\<close>\<close>
+  | s_not t = \<^Const>\<open>Not for t\<close>;
 
 val s_not_conj = conjuncts_s o s_not o mk_conjs;
 
-fun propagate_unit_pos u cs = if member (op aconv) cs u then [\<^const>\<open>False\<close>] else cs;
+fun propagate_unit_pos u cs = if member (op aconv) cs u then [\<^Const>\<open>False\<close>] else cs;
 fun propagate_unit_neg not_u cs = remove (op aconv) not_u cs;
 
 fun propagate_units css =
@@ -215,17 +215,17 @@ fun propagate_units css =
       (map (propagate_unit_pos u) (uss @ css'))));
 
 fun s_conjs cs =
-  if member (op aconv) cs \<^const>\<open>False\<close> then \<^const>\<open>False\<close>
-  else mk_conjs (remove (op aconv) \<^const>\<open>True\<close> cs);
+  if member (op aconv) cs \<^Const>\<open>False\<close> then \<^Const>\<open>False\<close>
+  else mk_conjs (remove (op aconv) \<^Const>\<open>True\<close> cs);
 
 fun s_disjs ds =
-  if member (op aconv) ds \<^const>\<open>True\<close> then \<^const>\<open>True\<close>
-  else mk_disjs (remove (op aconv) \<^const>\<open>False\<close> ds);
+  if member (op aconv) ds \<^Const>\<open>True\<close> then \<^Const>\<open>True\<close>
+  else mk_disjs (remove (op aconv) \<^Const>\<open>False\<close> ds);
 
 fun s_dnf css0 =
   let val css = propagate_units css0 in
     if null css then
-      [\<^const>\<open>False\<close>]
+      [\<^Const>\<open>False\<close>]
     else if exists null css then
       []
     else

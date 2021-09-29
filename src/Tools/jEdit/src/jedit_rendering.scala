@@ -72,6 +72,7 @@ object JEdit_Rendering
       Token.Kind.ALT_STRING -> LITERAL2,
       Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.CARTOUCHE -> COMMENT3,
+      Token.Kind.CONTROL -> COMMENT3,
       Token.Kind.INFORMAL_COMMENT -> COMMENT1,
       Token.Kind.FORMAL_COMMENT -> COMMENT1,
       Token.Kind.ERROR -> INVALID

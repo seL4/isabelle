@@ -298,7 +298,7 @@ let
      (*Used to make induction rules;
         ind_alist = [(rec_tm1,pred1),...] associates predicates with rec ops
         prem is a premise of an intr rule*)
-     fun add_induct_prem ind_alist (prem as \<^Const_>\<open>Trueprop for \<open>\<^Const_>\<open>mem for t X\<close>\<close>\<close>, iprems) =
+     fun add_induct_prem ind_alist (prem as \<^Const_>\<open>Trueprop for \<^Const_>\<open>mem for t X\<close>\<close>, iprems) =
           (case AList.lookup (op aconv) ind_alist X of
                SOME pred => prem :: \<^make_judgment> (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)
@@ -391,7 +391,7 @@ let
                             elem_factors ---> \<^Type>\<open>o\<close>)
            val qconcl =
              fold_rev (FOLogic.mk_all o Term.dest_Free) elem_frees
-               \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for elem_tuple rec_tm\<close>\<close> \<open>list_comb (pfree, elem_frees)\<close>\<close>
+               \<^Const>\<open>imp for \<^Const>\<open>mem for elem_tuple rec_tm\<close> \<open>list_comb (pfree, elem_frees)\<close>\<close>
        in  (CP.ap_split elem_type \<^Type>\<open>o\<close> pfree,
             qconcl)
        end;
@@ -400,7 +400,7 @@ let
 
      (*Used to form simultaneous induction lemma*)
      fun mk_rec_imp (rec_tm,pred) =
-         \<^Const>\<open>imp for \<open>\<^Const>\<open>mem for \<open>Bound 0\<close> rec_tm\<close>\<close> \<open>pred $ Bound 0\<close>\<close>;
+         \<^Const>\<open>imp for \<^Const>\<open>mem for \<open>Bound 0\<close> rec_tm\<close> \<open>pred $ Bound 0\<close>\<close>;
 
      (*To instantiate the main induction rule*)
      val induct_concl =

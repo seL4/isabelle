@@ -250,8 +250,8 @@ fun merge_union vs (pats1, fm1) (pats2, fm2) =
     (map Pattern pats, Un (fm1', fm2'))
   end;
 
-fun mk_formula vs (\<^const>\<open>HOL.conj\<close> $ t1 $ t2) = merge_inter vs (mk_formula vs t1) (mk_formula vs t2)
-  | mk_formula vs (\<^const>\<open>HOL.disj\<close> $ t1 $ t2) = merge_union vs (mk_formula vs t1) (mk_formula vs t2)
+fun mk_formula vs \<^Const_>\<open>conj for t1 t2\<close> = merge_inter vs (mk_formula vs t1) (mk_formula vs t2)
+  | mk_formula vs \<^Const_>\<open>disj for t1 t2\<close> = merge_union vs (mk_formula vs t1) (mk_formula vs t2)
   | mk_formula vs t = apfst single (mk_atom vs t)
 
 fun strip_Int (Int (fm1, fm2)) = fm1 :: (strip_Int fm2) 

@@ -150,8 +150,8 @@ fun mk_binary_pred n S t1 t2 =
 fun mk_less t1 t2 = mk_binary_pred \<^const_name>\<open>ord_class.less\<close> \<^sort>\<open>linorder\<close> t1 t2
 fun mk_less_eq t1 t2 = mk_binary_pred \<^const_name>\<open>ord_class.less_eq\<close> \<^sort>\<open>linorder\<close> t1 t2
 
-fun core_term_parser (SMTLIB.Sym "true", _) = SOME \<^const>\<open>HOL.True\<close>
-  | core_term_parser (SMTLIB.Sym "false", _) = SOME \<^const>\<open>HOL.False\<close>
+fun core_term_parser (SMTLIB.Sym "true", _) = SOME \<^Const>\<open>True\<close>
+  | core_term_parser (SMTLIB.Sym "false", _) = SOME \<^Const>\<open>False\<close>
   | core_term_parser (SMTLIB.Sym "not", [t]) = SOME (HOLogic.mk_not t)
   | core_term_parser (SMTLIB.Sym "and", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_conj) t ts)
   | core_term_parser (SMTLIB.Sym "or", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_disj) t ts)

@@ -331,16 +331,16 @@ fun original_name s =
   else
     s
 
-fun s_conj (t1, \<^const>\<open>True\<close>) = t1
-  | s_conj (\<^const>\<open>True\<close>, t2) = t2
+fun s_conj (t1, \<^Const_>\<open>True\<close>) = t1
+  | s_conj (\<^Const_>\<open>True\<close>, t2) = t2
   | s_conj (t1, t2) =
-    if t1 = \<^const>\<open>False\<close> orelse t2 = \<^const>\<open>False\<close> then \<^const>\<open>False\<close>
+    if t1 = \<^Const>\<open>False\<close> orelse t2 = \<^Const>\<open>False\<close> then \<^Const>\<open>False\<close>
     else HOLogic.mk_conj (t1, t2)
 
-fun s_disj (t1, \<^const>\<open>False\<close>) = t1
-  | s_disj (\<^const>\<open>False\<close>, t2) = t2
+fun s_disj (t1, \<^Const_>\<open>False\<close>) = t1
+  | s_disj (\<^Const_>\<open>False\<close>, t2) = t2
   | s_disj (t1, t2) =
-    if t1 = \<^const>\<open>True\<close> orelse t2 = \<^const>\<open>True\<close> then \<^const>\<open>True\<close>
+    if t1 = \<^Const>\<open>True\<close> orelse t2 = \<^Const>\<open>True\<close> then \<^Const>\<open>True\<close>
     else HOLogic.mk_disj (t1, t2)
 
 fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
@@ -348,13 +348,13 @@ fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
   | strip_connective _ t = [t]
 
 fun strip_any_connective (t as (t0 $ _ $ _)) =
-    if t0 = \<^const>\<open>HOL.conj\<close> orelse t0 = \<^const>\<open>HOL.disj\<close> then
+    if t0 = \<^Const>\<open>conj\<close> orelse t0 = \<^Const>\<open>disj\<close> then
       (strip_connective t0 t, t0)
     else
-      ([t], \<^const>\<open>Not\<close>)
-  | strip_any_connective t = ([t], \<^const>\<open>Not\<close>)
-val conjuncts_of = strip_connective \<^const>\<open>HOL.conj\<close>
-val disjuncts_of = strip_connective \<^const>\<open>HOL.disj\<close>
+      ([t], \<^Const>\<open>Not\<close>)
+  | strip_any_connective t = ([t], \<^Const>\<open>Not\<close>)
+val conjuncts_of = strip_connective \<^Const>\<open>conj\<close>
+val disjuncts_of = strip_connective \<^Const>\<open>disj\<close>
 
 (* When you add constants to these lists, make sure to handle them in
    "Nitpick_Nut.nut_from_term", and perhaps in "Nitpick_Mono.consider_term" as
@@ -797,8 +797,8 @@ fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
         the (Quotient_Info.lookup_quotients thy s)
       val partial =
         case Thm.prop_of equiv_thm of
-          \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>equivp\<close>, _) $ _) => false
-        | \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>part_equivp\<close>, _) $ _) => true
+          \<^Const_>\<open>Trueprop for \<^Const_>\<open>equivp _ for _\<close>\<close> => false
+        | \<^Const_>\<open>Trueprop for \<^Const_>\<open>part_equivp _ for _\<close>\<close> => true
         | _ => raise NOT_SUPPORTED "Ill-formed quotient type equivalence \
                                    \relation theorem"
       val Ts' = qtyp |> dest_Type |> snd
@@ -948,7 +948,7 @@ val close_form =
       fold (fn (z as ((s, _), T)) => fn t' =>
                Logic.all_const T $ Abs (s, T, abstract_over (Var z, t')))
            (take (length zs' - length zs) zs')
-    fun aux zs (\<^const>\<open>Pure.imp\<close> $ t1 $ t2) =
+    fun aux zs \<^Const>\<open>Pure.imp for t1 t2\<close> =
         let val zs' = Term.add_vars t1 zs in
           close_up zs zs' (Logic.mk_implies (t1, aux zs' t2))
         end
@@ -957,8 +957,8 @@ val close_form =
 
 fun distinctness_formula T =
   all_distinct_unordered_pairs_of
-  #> map (fn (t1, t2) => \<^const>\<open>Not\<close> $ (HOLogic.eq_const T $ t1 $ t2))
-  #> List.foldr (s_conj o swap) \<^const>\<open>True\<close>
+  #> map (fn (t1, t2) => \<^Const>\<open>Not\<close> $ (HOLogic.eq_const T $ t1 $ t2))
+  #> List.foldr (s_conj o swap) \<^Const>\<open>True\<close>
 
 fun zero_const T = Const (\<^const_name>\<open>zero_class.zero\<close>, T)
 fun suc_const T = Const (\<^const_name>\<open>Suc\<close>, T --> T)
@@ -986,7 +986,7 @@ fun uncached_data_type_constrs ({ctxt, ...} : hol_context) (T as Type (s, _)) =
                SOME {abs_type, rep_type, Abs_name, ...} =>
                [(Abs_name, varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
              | NONE =>
-               if T = \<^typ>\<open>ind\<close> then [dest_Const \<^const>\<open>Zero_Rep\<close>, dest_Const \<^const>\<open>Suc_Rep\<close>]
+               if T = \<^typ>\<open>ind\<close> then [dest_Const \<^Const>\<open>Zero_Rep\<close>, dest_Const \<^Const>\<open>Suc_Rep\<close>]
                else [])
   | uncached_data_type_constrs _ _ = []
 
@@ -1145,8 +1145,8 @@ fun s_betapply _ (t1 as Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1', t
     if t1' aconv t2 then \<^prop>\<open>True\<close> else t1 $ t2
   | s_betapply _ (t1 as Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1', t2) =
     if t1' aconv t2 then \<^term>\<open>True\<close> else t1 $ t2
-  | s_betapply _ (Const (\<^const_name>\<open>If\<close>, _) $ \<^const>\<open>True\<close> $ t1', _) = t1'
-  | s_betapply _ (Const (\<^const_name>\<open>If\<close>, _) $ \<^const>\<open>False\<close> $ _, t2) = t2
+  | s_betapply _ (Const (\<^const_name>\<open>If\<close>, _) $ \<^Const_>\<open>True\<close> $ t1', _) = t1'
+  | s_betapply _ (Const (\<^const_name>\<open>If\<close>, _) $ \<^Const_>\<open>False\<close> $ _, t2) = t2
   | s_betapply Ts (Const (\<^const_name>\<open>Let\<close>,
                           Type (_, [bound_T, Type (_, [_, body_T])]))
                    $ t12 $ Abs (s, T, t13'), t2) =
@@ -1181,18 +1181,18 @@ fun s_beta_norm Ts t =
 fun discr_term_for_constr hol_ctxt (x as (s, T)) =
   let val dataT = body_type T in
     if s = \<^const_name>\<open>Suc\<close> then
-      Abs (Name.uu, dataT, \<^const>\<open>Not\<close> $ HOLogic.mk_eq (zero_const dataT, Bound 0))
+      Abs (Name.uu, dataT, \<^Const>\<open>Not\<close> $ HOLogic.mk_eq (zero_const dataT, Bound 0))
     else if length (data_type_constrs hol_ctxt dataT) >= 2 then
       Const (discr_for_constr x)
     else
-      Abs (Name.uu, dataT, \<^const>\<open>True\<close>)
+      Abs (Name.uu, dataT, \<^Const>\<open>True\<close>)
   end
 
 fun discriminate_value (hol_ctxt as {ctxt, ...}) x t =
   case head_of t of
     Const x' =>
-    if x = x' then \<^const>\<open>True\<close>
-    else if is_nonfree_constr ctxt x' then \<^const>\<open>False\<close>
+    if x = x' then \<^Const>\<open>True\<close>
+    else if is_nonfree_constr ctxt x' then \<^Const>\<open>False\<close>
     else s_betapply [] (discr_term_for_constr hol_ctxt x, t)
   | _ => s_betapply [] (discr_term_for_constr hol_ctxt x, t)
 
@@ -1379,10 +1379,10 @@ val is_built_in_const = is_some o arity_of_built_in_const
    simplification rules (equational specifications). *)
 fun term_under_def t =
   case t of
-    \<^const>\<open>Pure.imp\<close> $ _ $ t2 => term_under_def t2
-  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ _ => term_under_def t1
-  | \<^const>\<open>Trueprop\<close> $ t1 => term_under_def t1
-  | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ _ => term_under_def t1
+    \<^Const_>\<open>Pure.imp for _ t2\<close> => term_under_def t2
+  | \<^Const_>\<open>Pure.eq _ for t1 _\<close> => term_under_def t1
+  | \<^Const_>\<open>Trueprop for t1\<close> => term_under_def t1
+  | \<^Const_>\<open>HOL.eq _ for t1 _\<close> => term_under_def t1
   | Abs (_, _, t') => term_under_def t'
   | t1 $ _ => term_under_def t1
   | _ => t
@@ -1405,9 +1405,8 @@ fun normalized_rhs_of t =
       | aux _ _ = NONE
     val (lhs, rhs) =
       case t of
-        Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 => (t1, t2)
-      | \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =>
-        (t1, t2)
+        \<^Const_>\<open>Pure.eq _ for t1 t2\<close> => (t1, t2)
+      | \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for t1 t2\<close>\<close> => (t1, t2)
       | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val args = strip_comb lhs |> snd
   in fold_rev aux args (SOME rhs) end
@@ -1482,13 +1481,13 @@ fun is_inductive_pred hol_ctxt (x as (s, _)) =
 
 fun lhs_of_equation t =
   case t of
-    Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t1) => lhs_of_equation t1
-  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ _ => SOME t1
-  | \<^const>\<open>Pure.imp\<close> $ _ $ t2 => lhs_of_equation t2
-  | \<^const>\<open>Trueprop\<close> $ t1 => lhs_of_equation t1
-  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t1) => lhs_of_equation t1
-  | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ _ => SOME t1
-  | \<^const>\<open>HOL.implies\<close> $ _ $ t2 => lhs_of_equation t2
+    \<^Const_>\<open>Pure.all _ for \<open>Abs (_, _, t1)\<close>\<close> => lhs_of_equation t1
+  | \<^Const_>\<open>Pure.eq _ for t1 _\<close> => SOME t1
+  | \<^Const_>\<open>Pure.imp for _ t2\<close> => lhs_of_equation t2
+  | \<^Const_>\<open>Trueprop for t1\<close> => lhs_of_equation t1
+  | \<^Const_>\<open>All _ for \<open>Abs (_, _, t1)\<close>\<close> => lhs_of_equation t1
+  | \<^Const_>\<open>HOL.eq _ for t1 _\<close> => SOME t1
+  | \<^Const_>\<open>implies for _ t2\<close> => lhs_of_equation t2
   | _ => NONE
 
 fun is_constr_pattern _ (Bound _) = true
@@ -1598,19 +1597,19 @@ fun optimized_case_def (hol_ctxt as {ctxt, ...}) Ts dataT res_T func_ts =
                                    (incr_boundvars 1 func_t, x),
                   discriminate_value hol_ctxt x (Bound 0)))
       |> AList.group (op aconv)
-      |> map (apsnd (List.foldl s_disj \<^const>\<open>False\<close>))
+      |> map (apsnd (List.foldl s_disj \<^Const>\<open>False\<close>))
       |> sort (int_ord o apply2 (size_of_term o snd))
       |> rev
   in
     if res_T = bool_T then
-      if forall (member (op =) [\<^const>\<open>False\<close>, \<^const>\<open>True\<close>] o fst) cases then
+      if forall (member (op =) [\<^Const>\<open>False\<close>, \<^Const>\<open>True\<close>] o fst) cases then
         case cases of
           [(body_t, _)] => body_t
-        | [_, (\<^const>\<open>True\<close>, head_t2)] => head_t2
-        | [_, (\<^const>\<open>False\<close>, head_t2)] => \<^const>\<open>Not\<close> $ head_t2
+        | [_, (\<^Const>\<open>True\<close>, head_t2)] => head_t2
+        | [_, (\<^Const>\<open>False\<close>, head_t2)] => \<^Const>\<open>Not for head_t2\<close>
         | _ => raise BAD ("Nitpick_HOL.optimized_case_def", "impossible cases")
       else
-        \<^const>\<open>True\<close> |> fold_rev (add_constr_case res_T) cases
+        \<^Const>\<open>True\<close> |> fold_rev (add_constr_case res_T) cases
     else
       fst (hd cases) |> fold_rev (add_constr_case res_T) (tl cases)
   end
@@ -1895,13 +1894,12 @@ fun equationalize_term ctxt tag t =
   in
     Logic.list_implies (prems,
         case concl of
-          \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _]))
-                               $ t1 $ t2) =>
-          \<^const>\<open>Trueprop\<close> $ extensional_equal j T t1 t2
-        | \<^const>\<open>Trueprop\<close> $ t' =>
-          \<^const>\<open>Trueprop\<close> $ HOLogic.mk_eq (t', \<^const>\<open>True\<close>)
-        | Const (\<^const_name>\<open>Pure.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
-          \<^const>\<open>Trueprop\<close> $ extensional_equal j T t1 t2
+          \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq T for t1 t2\<close>\<close> =>
+          \<^Const>\<open>Trueprop for \<open>extensional_equal j T t1 t2\<close>\<close>
+        | \<^Const_>\<open>Trueprop for t'\<close> =>
+          \<^Const>\<open>Trueprop for \<open>HOLogic.mk_eq (t', \<^Const>\<open>True\<close>)\<close>\<close>
+        | \<^Const_>\<open>Pure.eq T for t1 t2\<close> =>
+          \<^Const>\<open>Trueprop for \<open>extensional_equal j T t1 t2\<close>\<close>
         | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation " ^
                          quote (Syntax.string_of_term ctxt t));
                 raise SAME ()))
@@ -1951,7 +1949,7 @@ fun inductive_intro_table ctxt subst def_tables =
   end
 
 fun ground_theorem_table thy =
-  fold ((fn \<^const>\<open>Trueprop\<close> $ t1 =>
+  fold ((fn \<^Const_>\<open>Trueprop for t1\<close> =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
           | _ => I) o Thm.prop_of o snd) (Global_Theory.all_thms_of thy true) Inttab.empty
 
@@ -2016,13 +2014,13 @@ fun optimized_quot_type_axioms ctxt abs_z =
   in
     [Logic.mk_equals (normal_fun $ sel_a_t, sel_a_t),
      Logic.list_implies
-         ([\<^const>\<open>Not\<close> $ (is_unknown_t $ normal_x),
-           \<^const>\<open>Not\<close> $ (is_unknown_t $ normal_y),
+         ([\<^Const>\<open>Not\<close> $ (is_unknown_t $ normal_x),
+           \<^Const>\<open>Not\<close> $ (is_unknown_t $ normal_y),
            equiv_rel $ x_var $ y_var] |> map HOLogic.mk_Trueprop,
            Logic.mk_equals (normal_x, normal_y)),
      Logic.list_implies
-         ([HOLogic.mk_Trueprop (\<^const>\<open>Not\<close> $ (is_unknown_t $ normal_x)),
-           HOLogic.mk_Trueprop (\<^const>\<open>Not\<close> $ HOLogic.mk_eq (normal_x, x_var))],
+         ([HOLogic.mk_Trueprop (\<^Const>\<open>Not\<close> $ (is_unknown_t $ normal_x)),
+           HOLogic.mk_Trueprop (\<^Const>\<open>Not\<close> $ HOLogic.mk_eq (normal_x, x_var))],
           HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
     |> partial ? cons (HOLogic.mk_Trueprop (equiv_rel $ sel_a_t $ sel_a_t))
   end
@@ -2031,8 +2029,8 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
   let
     val xs = data_type_constrs hol_ctxt T
     val pred_T = T --> bool_T
-    val iter_T = \<^typ>\<open>bisim_iterator\<close>
-    val bisim_max = \<^const>\<open>bisim_iterator_max\<close>
+    val iter_T = \<^Type>\<open>bisim_iterator\<close>
+    val bisim_max = \<^Const>\<open>bisim_iterator_max\<close>
     val n_var = Var (("n", 0), iter_T)
     val n_var_minus_1 =
       Const (\<^const_name>\<open>safe_The\<close>, (iter_T --> bool_T) --> iter_T)
@@ -2214,8 +2212,8 @@ val linear_pred_base_and_step_rhss =
           fun repair_rec j (Const (\<^const_name>\<open>Ex\<close>, T1) $ Abs (s2, T2, t2')) =
               Const (\<^const_name>\<open>Ex\<close>, T1)
               $ Abs (s2, T2, repair_rec (j + 1) t2')
-            | repair_rec j (\<^const>\<open>HOL.conj\<close> $ t1 $ t2) =
-              \<^const>\<open>HOL.conj\<close> $ repair_rec j t1 $ repair_rec j t2
+            | repair_rec j \<^Const_>\<open>conj for t1 t2\<close> =
+              \<^Const>\<open>conj for \<open>repair_rec j t1\<close> \<open>repair_rec j t2\<close>\<close>
             | repair_rec j t =
               let val (head, args) = strip_comb t in
                 if head = Bound j then
@@ -2227,9 +2225,9 @@ val linear_pred_base_and_step_rhss =
           val (nonrecs, recs) =
             List.partition (curry (op =) 0 o num_occs_of_bound_in_term j)
                            (disjuncts_of body)
-          val base_body = nonrecs |> List.foldl s_disj \<^const>\<open>False\<close>
+          val base_body = nonrecs |> List.foldl s_disj \<^Const>\<open>False\<close>
           val step_body = recs |> map (repair_rec j)
-                               |> List.foldl s_disj \<^const>\<open>False\<close>
+                               |> List.foldl s_disj \<^Const>\<open>False\<close>
         in
           (fold_rev Term.abs (tl xs) (incr_bv (~1, j, base_body))
            |> ap_n_split (length arg_Ts) tuple_T bool_T,
@@ -2241,11 +2239,7 @@ val linear_pred_base_and_step_rhss =
   in aux end
 
 fun predicatify T t =
-  let val set_T = HOLogic.mk_setT T in
-    Abs (Name.uu, T,
-         Const (\<^const_name>\<open>Set.member\<close>, T --> set_T --> bool_T)
-         $ Bound 0 $ incr_boundvars 1 t)
-  end
+  Abs (Name.uu, T, \<^Const>\<open>Set.member T for \<open>Bound 0\<close> \<open>incr_boundvars 1 t\<close>\<close>)
 
 fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
   let
@@ -2365,7 +2359,7 @@ fun equational_fun_axioms (hol_ctxt as {thy, ctxt, def_tables, simp_table,
                       [inductive_pred_axiom hol_ctxt x]
                     else case def_of_const thy def_tables x of
                       SOME def =>
-                      \<^const>\<open>Trueprop\<close> $ HOLogic.mk_eq (Const x, def)
+                      \<^Const>\<open>Trueprop\<close> $ HOLogic.mk_eq (Const x, def)
                       |> equationalize_term ctxt "" |> the |> single
                     | NONE => [])
            | psimps => psimps)
@@ -2373,7 +2367,7 @@ fun equational_fun_axioms (hol_ctxt as {thy, ctxt, def_tables, simp_table,
 
 fun is_equational_fun_surely_complete hol_ctxt x =
   case equational_fun_axioms hol_ctxt x of
-    [\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ _)] =>
+    [\<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for t1 _\<close>\<close>] =>
     strip_comb t1 |> snd |> forall is_Var
   | _ => false
 

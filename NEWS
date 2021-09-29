@@ -279,12 +279,20 @@ context. This supersedes older mk_Trueprop / dest_Trueprop operations.
 
     \<^Type>\<open>c\<close>
     \<^Type>\<open>c T \<dots>\<close>       \<comment> \<open>same with type arguments\<close>
-    \<^Type>_fn\<open>c T \<dots>\<close>    \<comment> \<open>fn abstraction, failure via exception TYPE\<close>
+    \<^Type_fn>\<open>c T \<dots>\<close>    \<comment> \<open>fn abstraction, failure via exception TYPE\<close>
     \<^Const>\<open>c\<close>
     \<^Const>\<open>c T \<dots>\<close>      \<comment> \<open>same with type arguments\<close>
     \<^Const>\<open>c for t \<dots>\<close>  \<comment> \<open>same with term arguments\<close>
     \<^Const_>\<open>c \<dots>\<close>       \<comment> \<open>same for patterns: case, let, fn\<close>
-    \<^Const>_fn\<open>c T \<dots>\<close>   \<comment> \<open>fn abstraction, failure via exception TERM\<close>
+    \<^Const_fn>\<open>c T \<dots>\<close>   \<comment> \<open>fn abstraction, failure via exception TERM\<close>
+
+The type/term arguments refer to nested ML source, which may contain
+antiquotations recursively. The following argument syntax is supported:
+
+  - an underscore (dummy pattern)
+  - an atomic item of "embedded" syntax, e.g. identifier or cartouche
+  - an antiquotation in control-symbol/cartouche form, e.g. \<^Type>\<open>c\<close>
+    as short form of \<open>\<^Type>\<open>c\<close>\<close>.
 
 Examples in HOL:
 
