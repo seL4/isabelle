@@ -222,9 +222,9 @@ lemma
       val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
       (* Note that the pattern order is reversed *)
       val pat = [
-        Rewrite.For [(x, SOME \<^typ>\<open>nat\<close>)],
+        Rewrite.For [(x, SOME \<^Type>\<open>nat\<close>)],
         Rewrite.In,
-        Rewrite.Term (@{const plus(nat)} $ Free (x, \<^typ>\<open>nat\<close>) $ \<^term>\<open>1 :: nat\<close>, [])]
+        Rewrite.Term (\<^Const>\<open>plus \<^Type>\<open>nat\<close> for \<open>Free (x, \<^Type>\<open>nat\<close>)\<close> \<^term>\<open>1 :: nat\<close>\<close>, [])]
       val to = NONE
     in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
   \<close>)
@@ -240,10 +240,10 @@ lemma
       val pat = [
         Rewrite.Concl,
         Rewrite.In,
-        Rewrite.Term (Free ("Q", (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) --> \<^typ>\<open>bool\<close>)
-          $ Abs ("x", \<^typ>\<open>int\<close>, Rewrite.mk_hole 1 (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) $ Bound 0), [(x, \<^typ>\<open>int\<close>)]),
+        Rewrite.Term (Free ("Q", (\<^Type>\<open>int\<close> --> TVar (("'b",0), [])) --> \<^Type>\<open>bool\<close>)
+          $ Abs ("x", \<^Type>\<open>int\<close>, Rewrite.mk_hole 1 (\<^Type>\<open>int\<close> --> TVar (("'b",0), [])) $ Bound 0), [(x, \<^Type>\<open>int\<close>)]),
         Rewrite.In,
-        Rewrite.Term (@{const plus(int)} $ Free (x, \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
+        Rewrite.Term (\<^Const>\<open>plus \<^Type>\<open>int\<close> for \<open>Free (x, \<^Type>\<open>int\<close>)\<close> \<open>Var (("c", 0), \<^Type>\<open>int\<close>)\<close>\<close>, [])
         ]
       val to = NONE
     in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
@@ -261,7 +261,7 @@ ML \<open>
     Rewrite.Term (Free ("Q", (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) --> \<^typ>\<open>bool\<close>)
       $ Abs ("x", \<^typ>\<open>int\<close>, Rewrite.mk_hole 1 (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) $ Bound 0), [(x, \<^typ>\<open>int\<close>)]),
     Rewrite.In,
-    Rewrite.Term (@{const plus(int)} $ Free (x, \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
+    Rewrite.Term (\<^Const>\<open>plus \<^Type>\<open>int\<close> for \<open>Free (x, \<^Type>\<open>int\<close>)\<close> \<open>Var (("c", 0), \<^Type>\<open>int\<close>)\<close>\<close>, [])
     ]
   val to = NONE
   val th = Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute} ct
@@ -274,7 +274,7 @@ ML \<open>
   val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
   val pat = [
     Rewrite.In,
-    Rewrite.Term (@{const plus(int)} $ Var (("c", 0), \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
+    Rewrite.Term (\<^Const>\<open>plus \<^Type>\<open>int\<close> for \<open>Var (("c", 0), \<^Type>\<open>int\<close>)\<close> \<open>Var (("c", 0), \<^Type>\<open>int\<close>)\<close>\<close>, [])
     ]
   val to = NONE
   val _ =
