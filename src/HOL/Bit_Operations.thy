@@ -3509,7 +3509,7 @@ text \<open>
 \<close>
 
 no_notation
-  not  (\<open>NOT"\<close>)
+  not  (\<open>NOT\<close>)
     and "and"  (infixr \<open>AND\<close> 64)
     and or  (infixr \<open>OR\<close>  59)
     and xor  (infixr \<open>XOR\<close> 59)
@@ -3518,7 +3518,7 @@ bundle bit_operations_syntax
 begin
 
 notation
-  not  (\<open>NOT"\<close>)
+  not  (\<open>NOT\<close>)
     and "and"  (infixr \<open>AND\<close> 64)
     and or  (infixr \<open>OR\<close>  59)
     and xor  (infixr \<open>XOR\<close> 59)
