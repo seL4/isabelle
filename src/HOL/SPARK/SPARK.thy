@@ -37,7 +37,7 @@ lemmas [simp] =
   XOR_upper [of _ 64, simplified]
 
 lemma bit_not_spark_eq:
-  "NOT (word_of_int x :: ('a::len) word) =
+  "Bit_Operations.not (word_of_int x :: ('a::len) word) =
   word_of_int (2 ^ LENGTH('a) - 1 - x)"
   by (simp flip: mask_eq_exp_minus_1 add: of_int_mask_eq not_eq_complement)
 

@@ -1014,14 +1014,14 @@ lemma [code_abbrev]:
   \<open>push_bit n 1 = (2 :: 'a::len word) ^ n\<close>
   by (fact push_bit_of_1)
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma [code]:
   \<open>NOT w = Word.of_int (NOT (Word.the_int w))\<close>
   for w :: \<open>'a::len word\<close>
   by transfer (simp add: take_bit_not_take_bit) 
-
-context
-  includes bit_operations_syntax
-begin
 
 lemma [code]:
   \<open>Word.the_int (v AND w) = Word.the_int v AND Word.the_int w\<close>
@@ -1244,15 +1244,15 @@ lemma signed_take_bit_eq:
   by (transfer fixing: take_bit; cases \<open>LENGTH('b)\<close>)
     (auto simp add: Bit_Operations.signed_take_bit_take_bit Bit_Operations.take_bit_signed_take_bit take_bit_of_int min_def less_Suc_eq)
 
+context
+  includes bit_operations_syntax
+begin
+
 lemma signed_not_eq:
   \<open>signed (NOT w) = signed_take_bit LENGTH('b) (NOT (signed w))\<close>
   for w :: \<open>'b::len word\<close>
   by (simp add: bit_eq_iff bit_simps possible_bit_min possible_bit_less_imp min_less_iff_disj)
     (auto simp: min_def)
-
-context
-  includes bit_operations_syntax
-begin
 
 lemma signed_and_eq:
   \<open>signed (v AND w) = signed v AND signed w\<close>
