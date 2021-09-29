@@ -137,7 +137,7 @@ fun my_int_postproc _ _ _ T (Const _ $ (Const _ $ t1 $ t2)) =
 \<close>
 
 declaration \<open>
-Nitpick_Model.register_term_postprocessor \<^typ>\<open>my_int\<close> my_int_postproc
+Nitpick_Model.register_term_postprocessor \<^Type>\<open>my_int\<close> my_int_postproc
 \<close>
 
 lemma "add x y = add x x"

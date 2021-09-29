@@ -54,7 +54,7 @@ fun is_mono t =
 
 fun is_const t =
   let val T = fastype_of t in
-    Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t), \<^const>\<open>False\<close>)
+    Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t), \<^Const>\<open>False\<close>)
     |> is_mono
   end
 

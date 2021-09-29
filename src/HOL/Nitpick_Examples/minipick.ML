@@ -24,11 +24,11 @@ datatype rep =
   S_Rep |
   R_Rep of bool
 
-fun check_type ctxt raw_infinite (Type (\<^type_name>\<open>fun\<close>, Ts)) =
-    List.app (check_type ctxt raw_infinite) Ts
-  | check_type ctxt raw_infinite (Type (\<^type_name>\<open>prod\<close>, Ts)) =
-    List.app (check_type ctxt raw_infinite) Ts
-  | check_type _ _ \<^typ>\<open>bool\<close> = ()
+fun check_type ctxt raw_infinite \<^Type>\<open>fun T1 T2\<close> =
+    List.app (check_type ctxt raw_infinite) [T1, T2]
+  | check_type ctxt raw_infinite \<^Type>\<open>prod T1 T2\<close> =
+    List.app (check_type ctxt raw_infinite) [T1, T2]
+  | check_type _ _ \<^Type>\<open>bool\<close> = ()
   | check_type _ _ (TFree (_, \<^sort>\<open>{}\<close>)) = ()
   | check_type _ _ (TFree (_, \<^sort>\<open>HOL.type\<close>)) = ()
   | check_type ctxt raw_infinite T =
@@ -37,15 +37,14 @@ fun check_type ctxt raw_infinite (Type (\<^type_name>\<open>fun\<close>, Ts)) =
     else
       error ("Not supported: Type " ^ quote (Syntax.string_of_typ ctxt T) ^ ".")
 
-fun atom_schema_of S_Rep card (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
+fun atom_schema_of S_Rep card \<^Type>\<open>fun T1 T2\<close> =
     replicate_list (card T1) (atom_schema_of S_Rep card T2)
-  | atom_schema_of (R_Rep true) card
-                   (Type (\<^type_name>\<open>fun\<close>, [T1, \<^typ>\<open>bool\<close>])) =
+  | atom_schema_of (R_Rep true) card \<^Type>\<open>fun T1 \<^Type>\<open>bool\<close>\<close> =
     atom_schema_of S_Rep card T1
-  | atom_schema_of (rep as R_Rep _) card (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
+  | atom_schema_of (rep as R_Rep _) card \<^Type>\<open>fun T1 T2\<close> =
     atom_schema_of S_Rep card T1 @ atom_schema_of rep card T2
-  | atom_schema_of _ card (Type (\<^type_name>\<open>prod\<close>, Ts)) =
-    maps (atom_schema_of S_Rep card) Ts
+  | atom_schema_of _ card \<^Type>\<open>prod T1 T2\<close> =
+    maps (atom_schema_of S_Rep card) [T1, T2]
   | atom_schema_of _ card T = [card T]
 val arity_of = length ooo atom_schema_of
 val atom_seqs_of = map (AtomSeq o rpair 0) ooo atom_schema_of
@@ -79,7 +78,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
     fun S_rep_from_F NONE f = RelIf (f, true_atom, false_atom)
       | S_rep_from_F (SOME true) f = RelIf (f, true_atom, None)
       | S_rep_from_F (SOME false) f = RelIf (Not f, false_atom, None)
-    fun R_rep_from_S_rep (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) r =
+    fun R_rep_from_S_rep \<^Type>\<open>fun T1 T2\<close> r =
         if total andalso T2 = bool_T then
           let
             val jss = atom_schema_of S_Rep card T1 |> map (rpair 0)
@@ -109,12 +108,12 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
             |> foldl1 Union
           end
       | R_rep_from_S_rep _ r = r
-    fun S_rep_from_R_rep Ts (T as Type (\<^type_name>\<open>fun\<close>, _)) r =
+    fun S_rep_from_R_rep Ts (T as \<^Type>\<open>fun _ _\<close>) r =
         Comprehension (decls_for S_Rep card Ts T,
             RelEq (R_rep_from_S_rep T
                        (rel_expr_for_bound_var card S_Rep (T :: Ts) 0), r))
       | S_rep_from_R_rep _ _ r = r
-    fun partial_eq pos Ts (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) t1 t2 =
+    fun partial_eq pos Ts \<^Type>\<open>fun T1 T2\<close> t1 t2 =
         HOLogic.mk_all ("x", T1,
                         HOLogic.eq_const T2 $ (incr_boundvars 1 t1 $ Bound 0)
                         $ (incr_boundvars 1 t2 $ Bound 0))
@@ -127,27 +126,24 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
                    |> (if pos then Some o Intersect else Lone o Union)
     and to_F pos Ts t =
       (case t of
-         \<^const>\<open>Not\<close> $ t1 => Not (to_F (Option.map not pos) Ts t1)
-       | \<^const>\<open>False\<close> => False
-       | \<^const>\<open>True\<close> => True
-       | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, T, t') =>
+         \<^Const_>\<open>Not for t1\<close> => Not (to_F (Option.map not pos) Ts t1)
+       | \<^Const_>\<open>False\<close> => False
+       | \<^Const_>\<open>True\<close> => True
+       | \<^Const_>\<open>All _ for \<open>Abs (_, T, t')\<close>\<close> =>
          if pos = SOME true andalso not (complete T) then False
          else All (decls_for S_Rep card Ts T, to_F pos (T :: Ts) t')
-       | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
+       | (t0 as \<^Const_>\<open>All _\<close>) $ t1 =>
          to_F pos Ts (t0 $ eta_expand Ts t1 1)
-       | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, T, t') =>
+       | \<^Const_>\<open>Ex _ for \<open>Abs (_, T, t')\<close>\<close> =>
          if pos = SOME false andalso not (complete T) then True
          else Exist (decls_for S_Rep card Ts T, to_F pos (T :: Ts) t')
-       | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
+       | (t0 as \<^Const_>\<open>Ex _\<close>) $ t1 =>
          to_F pos Ts (t0 $ eta_expand Ts t1 1)
-       | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
+       | \<^Const_>\<open>HOL.eq T for t1 t2\<close> =>
          (case pos of
             NONE => RelEq (to_R_rep Ts t1, to_R_rep Ts t2)
           | SOME pos => partial_eq pos Ts T t1 t2)
-       | Const (\<^const_name>\<open>ord_class.less_eq\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [T', \<^typ>\<open>bool\<close>]), _]))
-         $ t1 $ t2 =>
+       | \<^Const_>\<open>less_eq \<^Type>\<open>fun T' \<^Type>\<open>bool\<close>\<close> for t1 t2\<close> =>
          (case pos of
             NONE => Subset (to_R_rep Ts t1, to_R_rep Ts t2)
           | SOME true =>
@@ -158,11 +154,11 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
             Subset (Join (to_R_rep Ts t1, true_atom),
                     Difference (atom_seq_product_of S_Rep card T',
                                 Join (to_R_rep Ts t2, false_atom))))
-       | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => And (to_F pos Ts t1, to_F pos Ts t2)
-       | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => Or (to_F pos Ts t1, to_F pos Ts t2)
-       | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 =>
+       | \<^Const_>\<open>conj for t1 t2\<close> => And (to_F pos Ts t1, to_F pos Ts t2)
+       | \<^Const_>\<open>disj for t1 t2\<close> => Or (to_F pos Ts t1, to_F pos Ts t2)
+       | \<^Const_>\<open>implies for t1 t2\<close> =>
          Implies (to_F (Option.map not pos) Ts t1, to_F pos Ts t2)
-       | Const (\<^const_name>\<open>Set.member\<close>, _) $ t1 $ t2 => to_F pos Ts (t2 $ t1)
+       | \<^Const_>\<open>Set.member _ for t1 t2\<close> => to_F pos Ts (t2 $ t1)
        | t1 $ t2 =>
          (case pos of
             NONE => Subset (to_S_rep Ts t2, to_R_rep Ts t1)
@@ -181,22 +177,21 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
       handle SAME () => F_from_S_rep pos (to_R_rep Ts t)
     and to_S_rep Ts t =
       case t of
-        Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2 =>
-        Product (to_S_rep Ts t1, to_S_rep Ts t2)
-      | Const (\<^const_name>\<open>Pair\<close>, _) $ _ => to_S_rep Ts (eta_expand Ts t 1)
-      | Const (\<^const_name>\<open>Pair\<close>, _) => to_S_rep Ts (eta_expand Ts t 2)
-      | Const (\<^const_name>\<open>fst\<close>, _) $ t1 =>
+        \<^Const_>\<open>Pair _ _ for t1 t2\<close> => Product (to_S_rep Ts t1, to_S_rep Ts t2)
+      | \<^Const_>\<open>Pair _ _ for _\<close> => to_S_rep Ts (eta_expand Ts t 1)
+      | \<^Const_>\<open>Pair _ _\<close> => to_S_rep Ts (eta_expand Ts t 2)
+      | \<^Const_>\<open>fst _ _ for t1\<close> =>
         let val fst_arity = arity_of S_Rep card (fastype_of1 (Ts, t)) in
           Project (to_S_rep Ts t1, num_seq 0 fst_arity)
         end
-      | Const (\<^const_name>\<open>fst\<close>, _) => to_S_rep Ts (eta_expand Ts t 1)
-      | Const (\<^const_name>\<open>snd\<close>, _) $ t1 =>
+      | \<^Const_>\<open>fst _ _\<close> => to_S_rep Ts (eta_expand Ts t 1)
+      | \<^Const_>\<open>snd _ _ for t1\<close> =>
         let
           val pair_arity = arity_of S_Rep card (fastype_of1 (Ts, t1))
           val snd_arity = arity_of S_Rep card (fastype_of1 (Ts, t))
           val fst_arity = pair_arity - snd_arity
         in Project (to_S_rep Ts t1, num_seq fst_arity snd_arity) end
-      | Const (\<^const_name>\<open>snd\<close>, _) => to_S_rep Ts (eta_expand Ts t 1)
+      | \<^Const_>\<open>snd _ _\<close> => to_S_rep Ts (eta_expand Ts t 1)
       | Bound j => rel_expr_for_bound_var card S_Rep Ts j
       | _ => S_rep_from_R_rep Ts (fastype_of1 (Ts, t)) (to_R_rep Ts t)
     and partial_set_op swap1 swap2 op1 op2 Ts t1 t2 =
@@ -211,37 +206,30 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
       end
     and to_R_rep Ts t =
       (case t of
-         \<^const>\<open>Not\<close> => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>All\<close>, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>Ex\<close>, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>HOL.eq\<close>, _) => to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>ord_class.less_eq\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _])) $ _ =>
-         to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>ord_class.less_eq\<close>, _) =>
-         to_R_rep Ts (eta_expand Ts t 2)
-       | \<^const>\<open>HOL.conj\<close> $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | \<^const>\<open>HOL.conj\<close> => to_R_rep Ts (eta_expand Ts t 2)
-       | \<^const>\<open>HOL.disj\<close> $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | \<^const>\<open>HOL.disj\<close> => to_R_rep Ts (eta_expand Ts t 2)
-       | \<^const>\<open>HOL.implies\<close> $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | \<^const>\<open>HOL.implies\<close> => to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>Set.member\<close>, _) $ _ =>
-         to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>Set.member\<close>, _) => to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>Collect\<close>, _) $ t' => to_R_rep Ts t'
-       | Const (\<^const_name>\<open>Collect\<close>, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>bot_class.bot\<close>,
-                T as Type (\<^type_name>\<open>fun\<close>, [T', \<^typ>\<open>bool\<close>])) =>
+         \<^Const_>\<open>Not\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>All _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>Ex _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>HOL.eq _ for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>HOL.eq _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>less_eq \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close> for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>less_eq _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>conj for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>conj\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>disj for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>disj\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>implies for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>implies\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>Set.member _ for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>Set.member _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>Collect _ for t'\<close> => to_R_rep Ts t'
+       | \<^Const_>\<open>Collect _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>bot \<open>T as \<^Type>\<open>fun T' \<^Type>\<open>bool\<close>\<close>\<close>\<close> =>
          if total then empty_n_ary_rel (arity_of (R_Rep total) card T)
          else Product (atom_seq_product_of (R_Rep total) card T', false_atom)
-       | Const (\<^const_name>\<open>top_class.top\<close>,
-                T as Type (\<^type_name>\<open>fun\<close>, [T', \<^typ>\<open>bool\<close>])) =>
+       | \<^Const_>\<open>top \<open>T as \<^Type>\<open>fun T' \<^Type>\<open>bool\<close>\<close>\<close>\<close> =>
          if total then atom_seq_product_of (R_Rep total) card T
          else Product (atom_seq_product_of (R_Rep total) card T', true_atom)
-       | Const (\<^const_name>\<open>insert\<close>, Type (_, [T, _])) $ t1 $ t2 =>
+       | \<^Const_>\<open>insert T for t1 t2\<close> =>
          if total then
            Union (to_S_rep Ts t1, to_R_rep Ts t2)
          else
@@ -258,9 +246,9 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
                     Difference (kt2, Product (atom_seq_product_of S_Rep card T,
                                               false_atom)))
            end
-       | Const (\<^const_name>\<open>insert\<close>, _) $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>insert\<close>, _) => to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>trancl\<close>,
+       | \<^Const_>\<open>insert _ for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>insert _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | Const (\<^const_name>\<open>trancl\<close>,  (* FIXME proper type!? *)
                 Type (_, [Type (_, [Type (_, [T', _]), _]), _])) $ t1 =>
          if arity_of S_Rep card T' = 1 then
            if total then
@@ -281,57 +269,38 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
              end
          else
            error "Not supported: Transitive closure for function or pair type."
-       | Const (\<^const_name>\<open>trancl\<close>, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>inf_class.inf\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _]))
-         $ t1 $ t2 =>
+       | \<^Const_>\<open>trancl _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>inf \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close> for t1 t2\<close> =>
          if total then Intersect (to_R_rep Ts t1, to_R_rep Ts t2)
          else partial_set_op true true Intersect Union Ts t1 t2
-       | Const (\<^const_name>\<open>inf_class.inf\<close>, _) $ _ =>
-         to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>inf_class.inf\<close>, _) =>
-         to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>sup_class.sup\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _]))
-         $ t1 $ t2 =>
+       | \<^Const_>\<open>inf _ for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>inf _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>sup \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close> for t1 t2\<close> =>
          if total then Union (to_R_rep Ts t1, to_R_rep Ts t2)
          else partial_set_op true true Union Intersect Ts t1 t2
-       | Const (\<^const_name>\<open>sup_class.sup\<close>, _) $ _ =>
-         to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>sup_class.sup\<close>, _) =>
-         to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>minus_class.minus\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _]))
-         $ t1 $ t2 =>
+       | \<^Const_>\<open>sup _ for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>sup _\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>minus \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close> for t1 t2\<close> =>
          if total then Difference (to_R_rep Ts t1, to_R_rep Ts t2)
          else partial_set_op true false Intersect Union Ts t1 t2
-       | Const (\<^const_name>\<open>minus_class.minus\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _])) $ _ =>
-         to_R_rep Ts (eta_expand Ts t 1)
-       | Const (\<^const_name>\<open>minus_class.minus\<close>,
-                Type (\<^type_name>\<open>fun\<close>,
-                      [Type (\<^type_name>\<open>fun\<close>, [_, \<^typ>\<open>bool\<close>]), _])) =>
-         to_R_rep Ts (eta_expand Ts t 2)
-       | Const (\<^const_name>\<open>Pair\<close>, _) $ _ $ _ => to_S_rep Ts t
-       | Const (\<^const_name>\<open>Pair\<close>, _) $ _ => to_S_rep Ts t
-       | Const (\<^const_name>\<open>Pair\<close>, _) => to_S_rep Ts t
-       | Const (\<^const_name>\<open>fst\<close>, _) $ _ => raise SAME ()
-       | Const (\<^const_name>\<open>fst\<close>, _) => raise SAME ()
-       | Const (\<^const_name>\<open>snd\<close>, _) $ _ => raise SAME ()
-       | Const (\<^const_name>\<open>snd\<close>, _) => raise SAME ()
-       | \<^const>\<open>False\<close> => false_atom
-       | \<^const>\<open>True\<close> => true_atom
+       | \<^Const_>\<open>minus \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close> for _\<close> => to_R_rep Ts (eta_expand Ts t 1)
+       | \<^Const_>\<open>minus \<^Type>\<open>fun _ \<^Type>\<open>bool\<close>\<close>\<close> => to_R_rep Ts (eta_expand Ts t 2)
+       | \<^Const_>\<open>Pair _ _ for _ _\<close> => to_S_rep Ts t
+       | \<^Const_>\<open>Pair _ _ for _\<close> => to_S_rep Ts t
+       | \<^Const_>\<open>Pair _ _\<close> => to_S_rep Ts t
+       | \<^Const_>\<open>fst _ _ for _\<close> => raise SAME ()
+       | \<^Const_>\<open>fst _ _\<close> => raise SAME ()
+       | \<^Const_>\<open>snd _ _ for _\<close> => raise SAME ()
+       | \<^Const_>\<open>snd _ _\<close> => raise SAME ()
+       | \<^Const_>\<open>False\<close> => false_atom
+       | \<^Const_>\<open>True\<close> => true_atom
        | Free (x as (_, T)) =>
          Rel (arity_of (R_Rep total) card T, find_index (curry (op =) x) frees)
        | Term.Var _ => error "Not supported: Schematic variables."
        | Bound _ => raise SAME ()
        | Abs (_, T, t') =>
          (case (total, fastype_of1 (T :: Ts, t')) of
-            (true, \<^typ>\<open>bool\<close>) =>
+            (true, \<^Type>\<open>bool\<close>) =>
             Comprehension (decls_for S_Rep card Ts T, to_F NONE (T :: Ts) t')
           | (_, T') =>
             Comprehension (decls_for S_Rep card Ts T @
@@ -341,7 +310,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
                                    to_R_rep (T :: Ts) t')))
        | t1 $ t2 =>
          (case fastype_of1 (Ts, t) of
-            \<^typ>\<open>bool\<close> =>
+            \<^Type>\<open>bool\<close> =>
             if total then
               S_rep_from_F NONE (to_F NONE Ts t)
             else
@@ -373,8 +342,7 @@ fun bound_for_free total card i (s, T) =
                    |> tuple_set_from_atom_schema])
   end
 
-fun declarative_axiom_for_rel_expr total card Ts
-                                   (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) r =
+fun declarative_axiom_for_rel_expr total card Ts \<^Type>\<open>fun T1 T2\<close> r =
     if total andalso body_type T2 = bool_T then
       True
     else
@@ -388,28 +356,25 @@ fun declarative_axiom_for_free total card i (_, T) =
       (Rel (arity_of (R_Rep total) card T, i))
 
 (* Hack to make the old code work as is with sets. *)
-fun unsetify_type (Type (\<^type_name>\<open>set\<close>, [T])) = unsetify_type T --> bool_T
+fun unsetify_type \<^Type>\<open>set T\<close> = unsetify_type T --> bool_T
   | unsetify_type (Type (s, Ts)) = Type (s, map unsetify_type Ts)
   | unsetify_type T = T
 
 fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
   let
     val thy = Proof_Context.theory_of ctxt
-    fun card (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
-        reasonable_power (card T2) (card T1)
-      | card (Type (\<^type_name>\<open>prod\<close>, [T1, T2])) = card T1 * card T2
-      | card \<^typ>\<open>bool\<close> = 2
+    fun card \<^Type>\<open>fun T1 T2\<close> = reasonable_power (card T2) (card T1)
+      | card \<^Type>\<open>prod T1 T2\<close> = card T1 * card T2
+      | card \<^Type>\<open>bool\<close> = 2
       | card T = Int.max (1, raw_card T)
-    fun complete (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
-        concrete T1 andalso complete T2
-      | complete (Type (\<^type_name>\<open>prod\<close>, Ts)) = forall complete Ts
+    fun complete \<^Type>\<open>fun T1 T2\<close> = concrete T1 andalso complete T2
+      | complete \<^Type>\<open>prod T1 T2\<close> = complete T1 andalso complete T2
       | complete T = not (raw_infinite T)
-    and concrete (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
-        complete T1 andalso concrete T2
-      | concrete (Type (\<^type_name>\<open>prod\<close>, Ts)) = forall concrete Ts
+    and concrete \<^Type>\<open>fun T1 T2\<close> = complete T1 andalso concrete T2
+      | concrete \<^Type>\<open>prod T1 T2\<close> = concrete T1 andalso concrete T2
       | concrete _ = true
     val neg_t =
-      \<^const>\<open>Not\<close> $ Object_Logic.atomize_term ctxt t
+      \<^Const>\<open>Not\<close> $ Object_Logic.atomize_term ctxt t
       |> map_types unsetify_type
     val _ = fold_types (K o check_type ctxt raw_infinite) neg_t ()
     val frees = Term.add_frees neg_t []
@@ -442,7 +407,7 @@ fun solve_any_kodkod_problem thy problems =
     | Error (s, _) => error ("Kodkod error: " ^ s)
   end
 
-val default_raw_infinite = member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>]
+val default_raw_infinite = member (op =) [\<^Type>\<open>nat\<close>, \<^Type>\<open>int\<close>]
 
 fun minipick ctxt n t =
   let
