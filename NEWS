@@ -298,11 +298,11 @@ Examples in HOL:
 
   val natT = \<^Type>\<open>nat\<close>;
   fun mk_funT (A, B) = \<^Type>\<open>fun A B\<close>;
-  val dest_funT = fn \<^Type>\<open>fun A B\<close> => (A, B);
+  val dest_funT = \<^Type_fn>\<open>fun A B => \<open>(A, B)\<close>\<close>;
   fun mk_conj (A, B) = \<^Const>\<open>conj for A B\<close>;
-  val dest_conj = fn \<^Const_>\<open>conj for A B\<close> => (A, B);
+  val dest_conj = \<^Const_fn>\<open>conj for A B => \<open>(A, B)\<close>\<close>;
   fun mk_eq T (t, u) = \<^Const>\<open>HOL.eq T for t u\<close>;
-  val dest_eq = fn \<^Const_>\<open>HOL.eq T for t u\<close> => (T, (t, u));
+  val dest_eq = \<^Const_fn>\<open>HOL.eq T for t u => \<open>(T, (t, u))\<close>\<close>;
 
 * The "build" combinators of various data structures help to build
 content from bottom-up, by applying an "add" function the "empty" value.
