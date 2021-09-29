@@ -210,6 +210,9 @@ fun run_atp mode name
             |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
+        val real_ms = Real.fromInt o Time.toMilliseconds
+        val slices_timeout = real_ms timeout
+
         fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
             (key as ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
                best_uncurried_aliases),
@@ -220,15 +223,12 @@ fun run_atp mode name
             val num_facts =
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
               |> Integer.min (length facts)
-            val generate_info = (case format of DFG _ => true | _ => false)
             val strictness = if strict then Strict else Non_Strict
             val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
-            val sound = is_type_enc_sound type_enc
-            val real_ms = Real.fromInt o Time.toMilliseconds
             val slice_timeout =
               (real_ms time_left
                |> (if slice < num_actual_slices - 1 then
-                     curry Real.min (time_frac * real_ms timeout)
+                     curry Real.min (time_frac * slices_timeout)
                    else
                      I))
               * 0.001
@@ -243,20 +243,25 @@ fun run_atp mode name
                 |> writeln
               else
                 ()
-            val readable_names = not (Config.get ctxt atp_full_names)
-            val lam_trans = lam_trans |> the_default best_lam_trans
-            val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
             val value as (atp_problem, _, _, _) =
               if cache_key = SOME key then
                 cache_value
               else
-                facts
-                |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
-                |> take num_facts
-                |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
-                |> map (apsnd Thm.prop_of)
-                |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
-                  lam_trans uncurried_aliases readable_names true hyp_ts concl_t
+                let
+                  val sound = is_type_enc_sound type_enc
+                  val generate_info = (case format of DFG _ => true | _ => false)
+                  val readable_names = not (Config.get ctxt atp_full_names)
+                  val lam_trans = lam_trans |> the_default best_lam_trans
+                  val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
+                in
+                  facts
+                  |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
+                  |> take num_facts
+                  |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
+                  |> map (apsnd Thm.prop_of)
+                  |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
+                    lam_trans uncurried_aliases readable_names true hyp_ts concl_t
+                end
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
