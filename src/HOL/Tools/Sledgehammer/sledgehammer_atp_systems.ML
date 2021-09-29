@@ -139,6 +139,11 @@ structure Data = Theory_Data
 
 fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 
+fun normalize_weights xs =
+  let val total_weight = real (fold (curry op + o fst) xs 0) in
+    map (apfst (fn weight => real weight / total_weight)) xs
+  end
+
 val sosN = "sos"
 val no_sosN = "no_sos"
 
@@ -521,13 +526,10 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 (* Zipperposition *)
 
-val zipperposition_blsimp = "--mode ho-pragmatic --max-inferences 3 --ho-max-app-projections 0 --ho-max-elims 0 --ho-max-rigid-imitations 2 --ho-max-identifications 0 --ho-unif-max-depth 2 --boolean-reasoning simpl-only --ext-rules ext-family --ext-rules-max-depth 1 --kbo-weight-fun invdocc --ho-prim-enum tf --ho-prim-enum-early-bird true --tptp-def-as-rewrite --ho-unif-level pragmatic-framework -q '1|const|conjecture-relative-var(1,s,f)' -q '1|prefer-processed|pnrefined(1,1,1,2,2,2,0.5)' -q '1|prefer-sos|staggered(1)' -q '2|prefer-fo|default' -q '1|prefer-neg-unit|orient-lmax(2,1,2,1,1)' -q '2|prefer-easy-ho|conjecture-relative-struct(1.5,3.5,2,3)' --ho-elim-leibniz 2 --ho-fixpoint-decider true --ho-pattern-decider false --ho-solid-decider true --ho-max-solidification 12  --select e-selection11 --solve-formulas true --sup-at-vars false --sup-at-var-headed false --lazy-cnf true --lazy-cnf-kind simp --lazy-cnf-renaming-threshold 4 --sine 50 --sine-tolerance 1.7 --sine-depth-max 3 --sine-depth-min 1 --sine-trim-implications true --ho-selection-restriction none --sup-from-var-headed false --sine-trim-implications true"
-val zipperposition_s6 = "--tptp-def-as-rewrite --rewrite-before-cnf true --mode ho-competitive --boolean-reasoning simpl-only --ext-rules off --ho-prim-enum none --recognize-injectivity true --ho-elim-leibniz off --ho-unif-level full-framework --no-max-vars -q '3|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-ho-steps|conjecture-relative-var(1,s,f)' -q '1|prefer-processed|fifo' -q '3|by-app-var-num|pnrefined(2,1,1,1,2,2,2)' --select ho-selection5 --prec-gen-fun unary_first --solid-subsumption false --ignore-orphans false --ho-solid-decider true --ho-fixpoint-decider true --ho-pattern-decider true --sup-at-vars false --sup-at-var-headed false --sup-from-var-headed false --ho-neg-ext-simpl true"
-val zipperposition_cdots = "--mode ho-competitive --boolean-reasoning simpl-only --ext-rules ext-family --ext-rules-max-depth 1 --ho-prim-enum pragmatic --ho-prim-max 1 --avatar off --recognize-injectivity true --ho-elim-leibniz 1 --ho-unif-level full-framework --no-max-vars -q '6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)' -q '6|const|conjecture-relative-var(1.02,l,f)' -q '1|prefer-processed|fifo' -q '1|prefer-non-goals|conjecture-relative-var(1,l,f)' -q '4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)' --select e-selection7 --ho-choice-inst true --sine 50 --sine-tolerance 2 --sine-depth-max 4 --sine-depth-min 1 --scan-clause-ac true --lambdasup 0 --kbo-weight-fun invfreqrank"
-
 val zipperposition_config : atp_config =
   let
     val format = THF (Without_FOOL, Polymorphic, THF_Without_Choice)
+    val enc = ((512, "meshN"), format, "mono_native_higher", keep_lamsN, false)
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
      arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
@@ -539,10 +541,13 @@ val zipperposition_config : atp_config =
        known_szs_status_failures,
      prem_role = Hypothesis,
      best_slices = fn _ =>
-       (* FUDGE *)
-       [(0.333, (((128, "meshN"), format, "mono_native_higher", keep_lamsN, false), zipperposition_blsimp)),
-        (0.333, (((32, "meshN"), format, "poly_native_higher", keep_lamsN, false), zipperposition_s6)),
-        (0.334, (((512, "meshN"), format, "mono_native_higher", keep_lamsN, false), zipperposition_cdots))],
+       [(1, (enc, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --max-inferences=1 --ho-unif-max-depth=1 --ho-max-elims=0 --ho-max-app-projections=0 --ho-max-rigid-imitations=1 --ho-max-identifications=0 --boolean-reasoning=bool-hoist --bool-hoist-simpl=true --bool-select=LI --recognize-injectivity=true --ext-rules=ext-family --ext-rules-max-depth=1 --ho-choice-inst=true --ho-prim-enum=none --ho-elim-leibniz=0 --interpret-bool-funs=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --ho-unif-level=pragmatic-framework --select=bb+e-selection2 --post-cnf-lambda-lifting=true -q \"4|prefer-sos|pnrefined(2,1,1,1,2,2,2)\" -q \"6|prefer-processed|conjecture-relative-struct(1.5,3.5,2,3)\" -q \"1|const|fifo\" -q \"4|prefer-ground|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-struct(1,5,2,3)\" --avatar=off --recognize-injectivity=true --ho-neg-ext=true --e-timeout=2 --ho-pattern-decider=true --ho-fixpoint-decider=true --e-max-derived=50 --ignore-orphans=true --e-auto=true --presaturate=true --e-call-point=0.1")),
+        (1, (enc, "--mode=ho-pragmatic --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=2 --ho-unif-max-depth=1 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection16 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --sine=50 --sine-tolerance=1.0 --sine-depth-max=3 --sine-depth-min=1 --sine-trim-implications=true --ho-unif-level=pragmatic-framework --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=lambda-def-invfreqrank --e-call-point=0.1")),
+        (1, (enc, "-nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=off --ho-prim-enum=full --ho-prim-max=1 --avatar=off --recognize-injectivity=true --ho-elim-leibniz=4 --ho-unif-level=full-framework --no-max-vars -q \"2|prefer-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1)\" -q \"4|const|conjecture-relative-e(0.1,1,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-e(0.5,1,100,100,100,100,1.5,1.5,1.5)\" -q \"4|prefer-sos|pnrefined(1,1,1,1,2,1.5,2)\" --select=ho-selection5 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=5 --e-call-point=0.25 --e-auto=true --sine=50 --sine-tolerance=2 --sine-depth-max=4 --sine-depth-min=1 --e-max-derived=96 --e-encode-lambdas=lift --scan-clause-ac=false --kbo-weight-fun=arity0 --prec-gen-fun=invfreq_conj")),
+        (1, (enc, "--mode=ho-pragmatic -nc --tptp-def-as-rewrite --rewrite-before-cnf=true --mode=ho-competitive --boolean-reasoning=simpl-only --ext-rules=ext-family --ext-rules-max-depth=1 --ho-prim-enum=none --avatar=off --recognize-injectivity=true --ho-elim-leibniz=1 --ho-unif-level=pragmatic-framework --no-max-vars --max-inferences=4 --ho-max-app-projections=1 --ho-max-elims=0 --ho-max-rigid-imitations=2 --ho-max-identifications=0 --ho-unif-max-depth=3 -q \"6|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"6|const|conjecture-relative-var(1.02,l,f)\" -q \"1|prefer-processed|fifo\" -q \"1|prefer-non-goals|conjecture-relative-var(1,l,f)\" -q \"4|prefer-easy-ho|conjecture-relative-var(1.01,s,f)\" --select=e-selection7 --ho-choice-inst=true --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=7 --sine=50 --sine-tolerance=1 --sine-depth-max=2 --sine-depth-min=1 --e-max-derived=64 --sine-ignore-k-most-common-syms=2 --sine-trim-implications=true --e-encode-lambdas=lift --scan-clause-ac=false --lambdasup=0 --kbo-weight-fun=lambda-def-invfreqrank --demod-in-var-args=true --bool-demod=true --lambda-demod=true --e-call-point=0.1")),
+        (1, (enc, "--mode=ho-comb-complete --boolean-reasoning=simpl-only --ext-rules=off --kbo-weight-fun=lambda-def-sqarity --ho-prim-enum=none --tptp-def-as-rewrite -q \"4|prefer-sos|orient-lmax(2,1,2,1,1)\" -q \"4|defer-sos|conjecture-relative-var(1,s,f)\" -q \"3|const|default\" -q \"1|prefer-processed|fifo\" --ho-elim-leibniz=1 --select=NoSelection --solve-formulas=true --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=8 --sine=60 --sine-tolerance=2 --sine-depth-max=5 --sine-depth-min=1 --try-e=\"$E_HOME/eprover\" --tmp-dir=\"$ISABELLE_TMP_PREFIX\" --e-timeout=3 --e-auto=true --e-max-derived=50 --e-encode-lambdas=ignore --scan-clause-ac=false --presaturate=true --comb-b-penalty=3 --comb-c-penalty=3 --comb-k-penalty=1 --comb-s-penalty=5 --subvarsup=false --e-call-point=0.15")),
+        (1, (enc, "--mode=ho-pragmatic --boolean-reasoning=simpl-only --ho-unif-max-depth=0 --ho-prim-enum=none -q \"2|prefer-ho-steps|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-sos|pnrefined(1,1,1,2,2,2,0.5)\" -q \"2|prefer-ground|default\" -q \"2|prefer-empty-trail|conjecture-relative-e(0.1,0.5,100,100,100,100,1.5,1.5,1.5)\" -q \"1|prefer-processed|fifo\" --select=bb+e-selection7 --ho-pattern-decider=false --ho-fixpoint-decider=true --ho-solid-decider=false --sine=150 --sine-tolerance=2 --sine-depth-max=3 --sine-depth-min=1 --prec-gen-fun=invfreqhack --lazy-cnf=true --lazy-cnf-kind=simp --lazy-cnf-renaming-threshold=2 --fluid-log-hoist=false --tptp-def-as-rewrite --rewrite-before-cnf=true --ho-prim-enum=eq --ho-prim-enum-add-var=true --ho-prim-max=1 --ho-prim-enum-early-bird=true -o tptp --avatar=eager --split-only-ground=true"))]
+       |> normalize_weights,
      best_max_mono_iters = default_max_mono_iters,
      best_max_new_mono_instances = default_max_new_mono_instances}
   end
@@ -641,7 +646,7 @@ val remote_leo3 =
     (K (((150, ""), THF (Without_FOOL, Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
-  remotify_atp zipperposition "Zipperpin" ["2.0"]
+  remotify_atp zipperposition "Zipperpin" ["2.1", "2.0"]
     (K (((512, ""), THF (Without_FOOL, Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 
 
