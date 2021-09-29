@@ -1033,24 +1033,24 @@ structure Approximation_Computation : APPROXIMATION_COMPUTATION = struct
         form
     } ctxt ct
 
-  fun term_of_bool true = \<^term>\<open>True\<close>
-    | term_of_bool false = \<^term>\<open>False\<close>;
+  fun term_of_bool true = \<^Const>\<open>True\<close>
+    | term_of_bool false = \<^Const>\<open>False\<close>;
 
-  val mk_int = HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int};
+  val mk_int = HOLogic.mk_number \<^Type>\<open>int\<close> o @{code integer_of_int};
 
   fun term_of_float (@{code Float} (k, l)) =
-    \<^term>\<open>Float\<close> $ mk_int k $ mk_int l;
+    \<^Const>\<open>Float for \<open>mk_int k\<close> \<open>mk_int l\<close>\<close>;
 
   fun term_of_float_interval x = @{term "Interval::_\<Rightarrow>float interval"} $
     HOLogic.mk_prod
       (apply2 term_of_float (@{code lowerF} x, @{code upperF} x))
 
-  fun term_of_float_interval_option NONE = \<^term>\<open>None :: (float interval) option\<close>
-    | term_of_float_interval_option (SOME ff) = \<^term>\<open>Some :: float interval \<Rightarrow> _\<close>
-        $ (term_of_float_interval ff);
+  fun term_of_float_interval_option NONE = \<^Const>\<open>None \<^typ>\<open>float interval option\<close>\<close>
+    | term_of_float_interval_option (SOME ff) =
+        \<^Const>\<open>Some \<^typ>\<open>float interval\<close> for \<open>term_of_float_interval ff\<close>\<close>;
 
   val term_of_float_interval_option_list =
-    HOLogic.mk_list \<^typ>\<open>(float interval) option\<close> o map term_of_float_interval_option;
+    HOLogic.mk_list \<^typ>\<open>float interval option\<close> o map term_of_float_interval_option;
 
   val approx_bool = @{computation bool}
     (fn _ => fn x => case x of SOME b => term_of_bool b

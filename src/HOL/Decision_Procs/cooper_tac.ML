@@ -26,7 +26,7 @@ fun prepare_for_linz q fm =
     val np = length ps
     val (fm',np) = List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (List.foldr HOLogic.mk_imp c rhs, np) ps
-    val (vs, _) = List.partition (fn t => q orelse (type_of t) = \<^typ>\<open>nat\<close>)
+    val (vs, _) = List.partition (fn t => q orelse (type_of t) = \<^Type>\<open>nat\<close>)
       (Misc_Legacy.term_frees fm' @ Misc_Legacy.term_vars fm');
     val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
@@ -84,7 +84,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     (* The result of the quantifier elimination *)
     val (th, tac) =
       (case Thm.prop_of pre_thm of
-        Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t1) $ _ =>
+        \<^Const_>\<open>Pure.imp for \<^Const_>\<open>Trueprop for t1\<close> _\<close> =>
           let
             val pth = linzqe_oracle (ctxt, Envir.eta_long [] t1)
           in

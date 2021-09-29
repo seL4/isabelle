@@ -33,12 +33,12 @@ fun ferrack_conv ctxt
              {isolate_conv = icv, whatis = wi, simpset = simpset}):entry) =
 let
  fun uset (vars as (x::vs)) p = case Thm.term_of p of
-   Const(\<^const_name>\<open>HOL.conj\<close>, _)$ _ $ _ =>
+   \<^Const_>\<open>HOL.conj for _ _\<close> =>
      let
        val ((b,l),r) = Thm.dest_comb p |>> Thm.dest_comb
        val (lS,lth) = uset vars l  val (rS, rth) = uset vars r
      in (lS@rS, Drule.binop_cong_rule b lth rth) end
- |  Const(\<^const_name>\<open>HOL.disj\<close>, _)$ _ $ _ =>
+ | \<^Const_>\<open>HOL.disj for _ _\<close> =>
      let
        val ((b,l),r) = Thm.dest_comb p |>> Thm.dest_comb
        val (lS,lth) = uset vars l  val (rS, rth) = uset vars r
@@ -78,7 +78,7 @@ let
  fun main vs p =
   let
    val ((xn,ce),(x,fm)) = (case Thm.term_of p of
-                   Const(\<^const_name>\<open>Ex\<close>,_)$Abs(xn,xT,_) =>
+                   \<^Const_>\<open>Ex _ for \<open>Abs(xn,xT,_)\<close>\<close> =>
                         Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
    val cT = Thm.ctyp_of_cterm x
@@ -99,8 +99,8 @@ let
    in
     fun provein x S =
      case Thm.term_of S of
-        Const(\<^const_name>\<open>Orderings.bot\<close>, _) => raise CTERM ("provein : not a member!", [S])
-      | Const(\<^const_name>\<open>insert\<close>, _) $ y $_ =>
+        \<^Const_>\<open>Orderings.bot _\<close> => raise CTERM ("provein : not a member!", [S])
+      | \<^Const_>\<open>insert _ for y _\<close> =>
          let val (cy,S') = Thm.dest_binop S
          in if Thm.term_of x aconv y then Thm.instantiate' [] [SOME x, SOME S'] insI1
          else Thm.implies_elim (Thm.instantiate' [] [SOME x, SOME S', SOME cy] insI2)
@@ -123,12 +123,12 @@ let
 
    fun decomp_mpinf fm =
      case Thm.term_of fm of
-       Const(\<^const_name>\<open>HOL.conj\<close>,_)$_$_ =>
+       \<^Const_>\<open>HOL.conj for _ _\<close> =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q], myfwd (minf_conj,pinf_conj, nmi_conj, npi_conj,ld_conj)
                          (Thm.lambda x p) (Thm.lambda x q))
         end
-     | Const(\<^const_name>\<open>HOL.disj\<close>,_)$_$_ =>
+     | \<^Const_>\<open>HOL.disj for _ _\<close> =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q],myfwd (minf_disj, pinf_disj, nmi_disj, npi_disj,ld_disj)
                          (Thm.lambda x p) (Thm.lambda x q))
@@ -176,19 +176,17 @@ val grab_atom_bop =
  let
   fun h bounds tm =
    (case Thm.term_of tm of
-     Const (\<^const_name>\<open>HOL.eq\<close>, T) $ _ $ _ =>
-       if domain_type T = HOLogic.boolT then find_args bounds tm
-       else Thm.dest_fun2 tm
-   | Const (\<^const_name>\<open>Not\<close>, _) $ _ => h bounds (Thm.dest_arg tm)
-   | Const (\<^const_name>\<open>All\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (\<^const_name>\<open>Ex\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ => find_args bounds tm
-   | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args bounds tm
-   | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args bounds tm
-   | Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ _ => find_args bounds tm
-   | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ => find_args bounds tm
-   | Const (\<^const_name>\<open>Pure.all\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => h bounds (Thm.dest_arg tm)
+     \<^Const_>\<open>HOL.eq \<^Type>\<open>bool\<close> for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>Not for _\<close> => h bounds (Thm.dest_arg tm)
+   | \<^Const_>\<open>All _ for _\<close> => find_body bounds (Thm.dest_arg tm)
+   | \<^Const_>\<open>Ex _ for _\<close> => find_body bounds (Thm.dest_arg tm)
+   | \<^Const_>\<open>conj for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>disj for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>implies for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>Pure.imp for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>Pure.eq _ for _ _\<close> => find_args bounds tm
+   | \<^Const_>\<open>Pure.all _ for _\<close> => find_body bounds (Thm.dest_arg tm)
+   | \<^Const_>\<open>Trueprop for _\<close> => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
            (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)

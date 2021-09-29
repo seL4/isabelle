@@ -649,13 +649,13 @@ lemma in_carrier_trivial: "cring_class.in_carrier l"
   by (induct l) (simp_all add: cring_class.in_carrier_def carrier_class)
 
 ML \<open>
-val term_of_nat = HOLogic.mk_number \<^typ>\<open>nat\<close> o @{code integer_of_nat};
+val term_of_nat = HOLogic.mk_number \<^Type>\<open>nat\<close> o @{code integer_of_nat};
 
-val term_of_int = HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int};
+val term_of_int = HOLogic.mk_number \<^Type>\<open>int\<close> o @{code integer_of_int};
 
-fun term_of_pol (@{code Pc} k) = \<^term>\<open>Pc\<close> $ term_of_int k
-  | term_of_pol (@{code Pinj} (n, p)) = \<^term>\<open>Pinj\<close> $ term_of_nat n $ term_of_pol p
-  | term_of_pol (@{code PX} (p, n, q)) = \<^term>\<open>PX\<close> $ term_of_pol p $ term_of_nat n $ term_of_pol q;
+fun term_of_pol (@{code Pc} k) = \<^Const>\<open>Pc\<close> $ term_of_int k
+  | term_of_pol (@{code Pinj} (n, p)) = \<^Const>\<open>Pinj\<close> $ term_of_nat n $ term_of_pol p
+  | term_of_pol (@{code PX} (p, n, q)) = \<^Const>\<open>PX\<close> $ term_of_pol p $ term_of_nat n $ term_of_pol q;
 
 local
 
@@ -742,53 +742,43 @@ fun get_ring_simps ctxt optcT t =
        in (map tr ths1, map tr ths2, map tr ths3, map tr ths4, tr th5, tr th) end
    | NONE => error "get_ring_simps: lookup failed");
 
-fun ring_struct (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ R $ _) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Group.pow\<close>, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ R) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ R) = SOME R
-  | ring_struct (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ R $ _) = SOME R
+fun ring_struct \<^Const_>\<open>Ring.ring.add _ _ for R _ _\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Ring.a_minus _ _ for R _ _\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Group.monoid.mult _ _ for R _ _\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Ring.a_inv _ _ for R _\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Group.pow _ _ _ for R _ _\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Ring.ring.zero _ _ for R\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Group.monoid.one _ _ for R\<close> = SOME R
+  | ring_struct \<^Const_>\<open>Algebra_Aux.of_integer _ _ for R _\<close> = SOME R
   | ring_struct _ = NONE;
 
-fun reif_polex vs (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>Add\<close> $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>Sub\<close> $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>Mul\<close> $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ _ $ a) =
-      \<^const>\<open>Neg\<close> $ reif_polex vs a
-  | reif_polex vs (Const (\<^const_name>\<open>Group.pow\<close>, _) $ _ $ a $ n) =
-      \<^const>\<open>Pow\<close> $ reif_polex vs a $ n
+fun reif_polex vs \<^Const_>\<open>Ring.ring.add _ _ for _ a b\<close> =
+      \<^Const>\<open>Add for \<open>reif_polex vs a\<close> \<open>reif_polex vs b\<close>\<close>
+  | reif_polex vs \<^Const_>\<open>Ring.a_minus _ _ for _ a b\<close> =
+      \<^Const>\<open>Sub for \<open>reif_polex vs a\<close> \<open>reif_polex vs b\<close>\<close>
+  | reif_polex vs \<^Const_>\<open>Group.monoid.mult _ _ for _ a b\<close> =
+      \<^Const>\<open>Mul for \<open>reif_polex vs a\<close> \<open>reif_polex vs b\<close>\<close>
+  | reif_polex vs \<^Const_>\<open>Ring.a_inv _ _ for _ a\<close> =
+      \<^Const>\<open>Neg for \<open>reif_polex vs a\<close>\<close>
+  | reif_polex vs \<^Const_>\<open>Group.pow _ _ _ for _ a n\<close> =
+      \<^Const>\<open>Pow for \<open>reif_polex vs a\<close> n\<close>
   | reif_polex vs (Free x) =
-      \<^const>\<open>Var\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_polex vs (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ _) =
-      \<^term>\<open>Const 0\<close>
-  | reif_polex vs (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ _) =
-      \<^term>\<open>Const 1\<close>
-  | reif_polex vs (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ _ $ n) =
-      \<^const>\<open>Const\<close> $ n
+      \<^Const>\<open>Var for \<open>HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)\<close>\<close>
+  | reif_polex _ \<^Const_>\<open>Ring.ring.zero _ _ for _\<close> = \<^term>\<open>Const 0\<close>
+  | reif_polex _ \<^Const_>\<open>Group.monoid.one _ _ for _\<close> = \<^term>\<open>Const 1\<close>
+  | reif_polex _ \<^Const_>\<open>Algebra_Aux.of_integer _ _ for _ n\<close> = \<^Const>\<open>Const for n\<close>
   | reif_polex _ _ = error "reif_polex: bad expression";
 
-fun reif_polex' vs (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b) =
-      \<^const>\<open>Add\<close> $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b) =
-      \<^const>\<open>Sub\<close> $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (\<^const_name>\<open>Groups.times\<close>, _) $ a $ b) =
-      \<^const>\<open>Mul\<close> $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ a) =
-      \<^const>\<open>Neg\<close> $ reif_polex' vs a
-  | reif_polex' vs (Const (\<^const_name>\<open>Power.power\<close>, _) $ a $ n) =
-      \<^const>\<open>Pow\<close> $ reif_polex' vs a $ n
-  | reif_polex' vs (Free x) =
-      \<^const>\<open>Var\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_polex' vs (Const (\<^const_name>\<open>numeral\<close>, _) $ b) =
-      \<^const>\<open>Const\<close> $ (@{const numeral (int)} $ b)
-  | reif_polex' vs (Const (\<^const_name>\<open>zero_class.zero\<close>, _)) = \<^term>\<open>Const 0\<close>
-  | reif_polex' vs (Const (\<^const_name>\<open>one_class.one\<close>, _)) = \<^term>\<open>Const 1\<close>
-  | reif_polex' vs t = error "reif_polex: bad expression";
+fun reif_polex' vs \<^Const_>\<open>plus _ for a b\<close> = \<^Const>\<open>Add for \<open>reif_polex' vs a\<close> \<open>reif_polex' vs b\<close>\<close>
+  | reif_polex' vs \<^Const_>\<open>minus _ for a b\<close> = \<^Const>\<open>Sub for \<open>reif_polex' vs a\<close> \<open>reif_polex' vs b\<close>\<close>
+  | reif_polex' vs \<^Const_>\<open>times _ for a b\<close> = \<^Const>\<open>Mul for \<open>reif_polex' vs a\<close> \<open>reif_polex' vs b\<close>\<close>
+  | reif_polex' vs \<^Const_>\<open>uminus _ for a\<close> = \<^Const>\<open>Neg for \<open>reif_polex' vs a\<close>\<close>
+  | reif_polex' vs \<^Const_>\<open>power _ for a n\<close> = \<^Const>\<open>Pow for \<open>reif_polex' vs a\<close> n\<close>
+  | reif_polex' vs (Free x) = \<^Const>\<open>Var for \<open>HOLogic.mk_number \<^Type>\<open>nat\<close> (find_index (equal x) vs)\<close>\<close>
+  | reif_polex' _ \<^Const_>\<open>numeral _ for b\<close> = \<^Const>\<open>Const for \<^Const>\<open>numeral \<^Type>\<open>int\<close> for b\<close>\<close>
+  | reif_polex' _ \<^Const_>\<open>zero_class.zero _\<close> = \<^term>\<open>Const 0\<close>
+  | reif_polex' _ \<^Const_>\<open>one_class.one _\<close> = \<^term>\<open>Const 1\<close>
+  | reif_polex' _ t = error "reif_polex: bad expression";
 
 fun head_conv (_, _, _, _, head_simp, _) ys =
   (case strip_app ys of
@@ -892,9 +882,8 @@ fun mk_in_carrier ctxt R prems xs =
     val props = map fst (Facts.props (Proof_Context.facts_of ctxt)) @ maps dest_conj prems;
     val ths = map (fn p as (x, _) =>
       (case find_first
-         ((fn Const (\<^const_name>\<open>Trueprop\<close>, _) $
-                (Const (\<^const_name>\<open>Set.member\<close>, _) $
-                   Free (y, _) $ (Const (\<^const_name>\<open>carrier\<close>, _) $ S)) =>
+         ((fn \<^Const_>\<open>Trueprop
+              for \<^Const_>\<open>Set.member _ for \<open>Free (y, _)\<close> \<^Const_>\<open>carrier _ _ for S\<close>\<close>\<close> =>
                 x = y andalso R aconv S
             | _ => false) o Thm.prop_of) props of
          SOME th => th
@@ -905,11 +894,7 @@ fun mk_in_carrier ctxt R prems xs =
        ths in_carrier_Nil
   end;
 
-fun mk_ring T =
-  Const (\<^const_name>\<open>cring_class_ops\<close>,
-    Type (\<^type_name>\<open>partial_object_ext\<close>, [T,
-      Type (\<^type_name>\<open>monoid_ext\<close>, [T,
-        Type (\<^type_name>\<open>ring_ext\<close>, [T, \<^typ>\<open>unit\<close>])])]));
+fun mk_ring T = \<^Const>\<open>cring_class_ops T\<close>;
 
 val iterations = \<^cterm>\<open>1000::nat\<close>;
 val Trueprop_cong = Thm.combination (Thm.reflexive \<^cterm>\<open>Trueprop\<close>);
@@ -926,7 +911,7 @@ fun commutative_ring_conv ctxt prems eqs ct =
       | NONE => (mk_ring T, SOME cT, @{thm in_carrier_trivial}, reif_polex' xs));
     val rls as (_, _, _, _, _, norm_subst_correct) = get_ring_simps ctxt optcT R;
     val cxs = Thm.cterm_of ctxt (HOLogic.mk_list T (map Free xs));
-    val ceqs = Thm.cterm_of ctxt (HOLogic.mk_list \<^typ>\<open>polex * polex\<close>
+    val ceqs = Thm.cterm_of ctxt (HOLogic.mk_list \<^typ>\<open>polex \<times> polex\<close>
       (map (HOLogic.mk_prod o apply2 reif) eqs'));
     val cp = Thm.cterm_of ctxt (reif (Thm.term_of ct));
     val prem = Thm.equal_elim

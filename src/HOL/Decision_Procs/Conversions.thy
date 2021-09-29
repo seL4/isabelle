@@ -257,13 +257,12 @@ fun expand1 a =
   in
     fn n =>
       case Thm.term_of n of
-        Const (\<^const_name>\<open>one_class.one\<close>, _) => numeral_1_eq_1_a
-      | Const (\<^const_name>\<open>uminus\<close>, _) $ Const (\<^const_name>\<open>one_class.one\<close>, _) =>
+        \<^Const_>\<open>one_class.one _\<close> => numeral_1_eq_1_a
+      | \<^Const_>\<open>uminus _ for \<^Const_>\<open>one_class.one _\<close>\<close> =>
           Thm.combination (Thm.reflexive (Thm.dest_fun n)) numeral_1_eq_1_a
-      | Const (\<^const_name>\<open>zero_class.zero\<close>, _) => Thm.reflexive n
-      | Const (\<^const_name>\<open>numeral\<close>, _) $ _ => Thm.reflexive n
-      | Const (\<^const_name>\<open>uminus\<close>, _) $
-          (Const (\<^const_name>\<open>numeral\<close>, _) $ _) => Thm.reflexive n
+      | \<^Const_>\<open>zero_class.zero _\<close> => Thm.reflexive n
+      | \<^Const_>\<open>numeral _ for _\<close> => Thm.reflexive n
+      | \<^Const_>\<open>uminus _ for \<^Const_>\<open>numeral _ for _\<close>\<close> => Thm.reflexive n
       | _ => err "expand1" n
   end;
 
@@ -272,10 +271,8 @@ fun norm1_eq a =
   in
     fn eq =>
       case Thm.term_of (Thm.rhs_of eq) of
-        Const (\<^const_name>\<open>Num.numeral\<close>, _) $ Const (\<^const_name>\<open>Num.One\<close>, _) =>
-          Thm.transitive eq numeral_1_eq_1_a
-      | Const (\<^const_name>\<open>uminus\<close>, _) $
-          (Const (\<^const_name>\<open>Num.numeral\<close>, _) $ Const (\<^const_name>\<open>Num.One\<close>, _)) =>
+        \<^Const_>\<open>Num.numeral _ for \<^Const_>\<open>Num.One\<close>\<close> => Thm.transitive eq numeral_1_eq_1_a
+      | \<^Const_>\<open>uminus _ for \<^Const_>\<open>Num.numeral _ for \<^Const_>\<open>Num.One\<close>\<close>\<close> =>
             Thm.transitive eq
               (Thm.combination (Thm.reflexive (Thm.dest_fun (Thm.rhs_of eq)))
                  numeral_1_eq_1_a)
@@ -777,7 +774,7 @@ fun If_conv a =
             val eq = Thm.combination (Thm.reflexive (Thm.dest_fun (Thm.dest_fun2 ct))) p_eq
           in
             case Thm.term_of (Thm.rhs_of p_eq) of
-              Const (\<^const_name>\<open>True\<close>, _) =>
+              \<^Const_>\<open>True\<close> =>
                 let
                   val x_eq = x cx;
                   val cx = Thm.rhs_of x_eq;
@@ -788,7 +785,7 @@ fun If_conv a =
                        (Thm.reflexive cy))
                     (inst [] [cx, cy] if_True)
                 end
-            | Const (\<^const_name>\<open>False\<close>, _) =>
+            | \<^Const_>\<open>False\<close> =>
                 let
                   val y_eq = y cy;
                   val cy = Thm.rhs_of y_eq;
@@ -812,7 +809,7 @@ fun drop_conv a =
     val If_conv_a = If_conv (type_of_eqn drop_0_a);
 
     fun conv n ys = (case Thm.term_of n of
-        Const (\<^const_name>\<open>zero_class.zero\<close>, _) => inst [] [ys] drop_0_a
+        \<^Const_>\<open>zero_class.zero _\<close> => inst [] [ys] drop_0_a
       | _ => (case strip_app ys of
           (\<^const_name>\<open>Cons\<close>, [x, xs]) =>
             transitive'

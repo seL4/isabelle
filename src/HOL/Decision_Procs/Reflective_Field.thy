@@ -619,23 +619,23 @@ proof -
 qed
 
 ML \<open>
-val term_of_nat = HOLogic.mk_number \<^typ>\<open>nat\<close> o @{code integer_of_nat};
+val term_of_nat = HOLogic.mk_number \<^Type>\<open>nat\<close> o @{code integer_of_nat};
 
-val term_of_int = HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int};
+val term_of_int = HOLogic.mk_number \<^Type>\<open>int\<close> o @{code integer_of_int};
 
-fun term_of_pexpr (@{code PExpr1} x) = \<^term>\<open>PExpr1\<close> $ term_of_pexpr1 x
-  | term_of_pexpr (@{code PExpr2} x) = \<^term>\<open>PExpr2\<close> $ term_of_pexpr2 x
-and term_of_pexpr1 (@{code PCnst} k) = \<^term>\<open>PCnst\<close> $ term_of_int k
-  | term_of_pexpr1 (@{code PVar} n) = \<^term>\<open>PVar\<close> $ term_of_nat n
-  | term_of_pexpr1 (@{code PAdd} (x, y)) = \<^term>\<open>PAdd\<close> $ term_of_pexpr x $ term_of_pexpr y
-  | term_of_pexpr1 (@{code PSub} (x, y)) = \<^term>\<open>PSub\<close> $ term_of_pexpr x $ term_of_pexpr y
-  | term_of_pexpr1 (@{code PNeg} x) = \<^term>\<open>PNeg\<close> $ term_of_pexpr x
-and term_of_pexpr2 (@{code PMul} (x, y)) = \<^term>\<open>PMul\<close> $ term_of_pexpr x $ term_of_pexpr y
-  | term_of_pexpr2 (@{code PPow} (x, n)) = \<^term>\<open>PPow\<close> $ term_of_pexpr x $ term_of_nat n
+fun term_of_pexpr (@{code PExpr1} x) = \<^Const>\<open>PExpr1\<close> $ term_of_pexpr1 x
+  | term_of_pexpr (@{code PExpr2} x) = \<^Const>\<open>PExpr2\<close> $ term_of_pexpr2 x
+and term_of_pexpr1 (@{code PCnst} k) = \<^Const>\<open>PCnst\<close> $ term_of_int k
+  | term_of_pexpr1 (@{code PVar} n) = \<^Const>\<open>PVar\<close> $ term_of_nat n
+  | term_of_pexpr1 (@{code PAdd} (x, y)) = \<^Const>\<open>PAdd\<close> $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr1 (@{code PSub} (x, y)) = \<^Const>\<open>PSub\<close> $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr1 (@{code PNeg} x) = \<^Const>\<open>PNeg\<close> $ term_of_pexpr x
+and term_of_pexpr2 (@{code PMul} (x, y)) = \<^Const>\<open>PMul\<close> $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr2 (@{code PPow} (x, n)) = \<^Const>\<open>PPow\<close> $ term_of_pexpr x $ term_of_nat n
 
 fun term_of_result (x, (y, zs)) =
   HOLogic.mk_prod (term_of_pexpr x, HOLogic.mk_prod
-    (term_of_pexpr y, HOLogic.mk_list \<^typ>\<open>pexpr\<close> (map term_of_pexpr zs)));
+    (term_of_pexpr y, HOLogic.mk_list \<^Type>\<open>pexpr\<close> (map term_of_pexpr zs)));
 
 local
 
@@ -680,59 +680,47 @@ struct
 
 open Ring_Tac;
 
-fun field_struct (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ R $ _ $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ R $ _ $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ R $ _ $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ R $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Group.pow\<close>, _) $ R $ _ $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Algebra_Aux.m_div\<close>, _) $ R $ _ $ _) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ R) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ R) = SOME R
-  | field_struct (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ R $ _) = SOME R
+fun field_struct \<^Const_>\<open>Ring.ring.add _ _ for R _ _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Ring.a_minus _ _ for R _ _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Group.monoid.mult _ _ for R _ _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Ring.a_inv _ _ for R _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Group.pow _ _ _ for R _ _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Algebra_Aux.m_div _ _for R _ _\<close> = SOME R
+  | field_struct \<^Const_>\<open>Ring.ring.zero _ _ for R\<close> = SOME R
+  | field_struct \<^Const_>\<open>Group.monoid.one _ _ for R\<close> = SOME R
+  | field_struct \<^Const_>\<open>Algebra_Aux.of_integer _ _ for R _\<close> = SOME R
   | field_struct _ = NONE;
 
-fun reif_fexpr vs (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>FAdd\<close> $ reif_fexpr vs a $ reif_fexpr vs b
-  | reif_fexpr vs (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>FSub\<close> $ reif_fexpr vs a $ reif_fexpr vs b
-  | reif_fexpr vs (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>FMul\<close> $ reif_fexpr vs a $ reif_fexpr vs b
-  | reif_fexpr vs (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ _ $ a) =
-      \<^const>\<open>FNeg\<close> $ reif_fexpr vs a
-  | reif_fexpr vs (Const (\<^const_name>\<open>Group.pow\<close>, _) $ _ $ a $ n) =
-      \<^const>\<open>FPow\<close> $ reif_fexpr vs a $ n
-  | reif_fexpr vs (Const (\<^const_name>\<open>Algebra_Aux.m_div\<close>, _) $ _ $ a $ b) =
-      \<^const>\<open>FDiv\<close> $ reif_fexpr vs a $ reif_fexpr vs b
+fun reif_fexpr vs \<^Const_>\<open>Ring.ring.add _ _ for _ a b\<close> =
+      \<^Const>\<open>FAdd for \<open>reif_fexpr vs a\<close> \<open>reif_fexpr vs b\<close>\<close>
+  | reif_fexpr vs \<^Const_>\<open>Ring.a_minus _ _ for _ a b\<close> =
+      \<^Const>\<open>FSub for \<open>reif_fexpr vs a\<close> \<open>reif_fexpr vs b\<close>\<close>
+  | reif_fexpr vs \<^Const_>\<open>Group.monoid.mult _ _ for _ a b\<close> =
+      \<^Const>\<open>FMul for \<open>reif_fexpr vs a\<close> \<open>reif_fexpr vs b\<close>\<close>
+  | reif_fexpr vs \<^Const_>\<open>Ring.a_inv _ _ for _ a\<close> =
+      \<^Const>\<open>FNeg for \<open>reif_fexpr vs a\<close>\<close>
+  | reif_fexpr vs \<^Const>\<open>Group.pow _ _ _ for _ a n\<close> =
+      \<^Const>\<open>FPow for \<open>reif_fexpr vs a\<close> n\<close>
+  | reif_fexpr vs \<^Const_>\<open>Algebra_Aux.m_div _ _ for _ a b\<close> =
+      \<^Const>\<open>FDiv for \<open>reif_fexpr vs a\<close> \<open>reif_fexpr vs b\<close>\<close>
   | reif_fexpr vs (Free x) =
-      \<^const>\<open>FVar\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_fexpr vs (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ _) =
-      \<^term>\<open>FCnst 0\<close>
-  | reif_fexpr vs (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ _) =
-      \<^term>\<open>FCnst 1\<close>
-  | reif_fexpr vs (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ _ $ n) =
-      \<^const>\<open>FCnst\<close> $ n
+      \<^Const>\<open>FVar for \<open>HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)\<close>\<close>
+  | reif_fexpr vs \<^Const_>\<open>Ring.ring.zero _ _ for _\<close> = \<^term>\<open>FCnst 0\<close>
+  | reif_fexpr vs \<^Const_>\<open>Group.monoid.one _ _ for _\<close> = \<^term>\<open>FCnst 1\<close>
+  | reif_fexpr vs \<^Const_>\<open>Algebra_Aux.of_integer _ _ for _ n\<close> = \<^Const>\<open>FCnst for n\<close>
   | reif_fexpr _ _ = error "reif_fexpr: bad expression";
 
-fun reif_fexpr' vs (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b) =
-      \<^const>\<open>FAdd\<close> $ reif_fexpr' vs a $ reif_fexpr' vs b
-  | reif_fexpr' vs (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b) =
-      \<^const>\<open>FSub\<close> $ reif_fexpr' vs a $ reif_fexpr' vs b
-  | reif_fexpr' vs (Const (\<^const_name>\<open>Groups.times\<close>, _) $ a $ b) =
-      \<^const>\<open>FMul\<close> $ reif_fexpr' vs a $ reif_fexpr' vs b
-  | reif_fexpr' vs (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ a) =
-      \<^const>\<open>FNeg\<close> $ reif_fexpr' vs a
-  | reif_fexpr' vs (Const (\<^const_name>\<open>Power.power\<close>, _) $ a $ n) =
-      \<^const>\<open>FPow\<close> $ reif_fexpr' vs a $ n
-  | reif_fexpr' vs (Const (\<^const_name>\<open>divide\<close>, _) $ a $ b) =
-      \<^const>\<open>FDiv\<close> $ reif_fexpr' vs a $ reif_fexpr' vs b
+fun reif_fexpr' vs \<^Const_>\<open>plus _ for a b\<close> = \<^Const>\<open>FAdd for \<open>reif_fexpr' vs a\<close> \<open>reif_fexpr' vs b\<close>\<close>
+  | reif_fexpr' vs \<^Const_>\<open>minus _ for a b\<close> = \<^Const>\<open>FSub for \<open>reif_fexpr' vs a\<close> \<open>reif_fexpr' vs b\<close>\<close>
+  | reif_fexpr' vs \<^Const_>\<open>times _ for a b\<close> = \<^Const>\<open>FMul for \<open>reif_fexpr' vs a\<close> \<open>reif_fexpr' vs b\<close>\<close>
+  | reif_fexpr' vs \<^Const_>\<open>uminus _ for a\<close> = \<^Const>\<open>FNeg for \<open>reif_fexpr' vs a\<close>\<close>
+  | reif_fexpr' vs \<^Const_>\<open>power _ for a n\<close> = \<^Const>\<open>FPow for \<open>reif_fexpr' vs a\<close> n\<close>
+  | reif_fexpr' vs \<^Const_>\<open>divide _ for a b\<close> = \<^Const>\<open>FDiv for \<open>reif_fexpr' vs a\<close> \<open>reif_fexpr' vs b\<close>\<close>
   | reif_fexpr' vs (Free x) =
-      \<^const>\<open>FVar\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_fexpr' vs (Const (\<^const_name>\<open>zero_class.zero\<close>, _)) =
-      \<^term>\<open>FCnst 0\<close>
-  | reif_fexpr' vs (Const (\<^const_name>\<open>one_class.one\<close>, _)) =
-      \<^term>\<open>FCnst 1\<close>
-  | reif_fexpr' vs (Const (\<^const_name>\<open>numeral\<close>, _) $ b) =
-      \<^const>\<open>FCnst\<close> $ (@{const numeral (int)} $ b)
+      \<^Const>\<open>FVar for \<open>HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)\<close>\<close>
+  | reif_fexpr' vs \<^Const_>\<open>zero_class.zero _\<close> = \<^term>\<open>FCnst 0\<close>
+  | reif_fexpr' vs \<^Const_>\<open>one_class.one _\<close> = \<^term>\<open>FCnst 1\<close>
+  | reif_fexpr' vs \<^Const_>\<open>numeral _ for b\<close> = \<^Const>\<open>FCnst for \<^Const>\<open>numeral \<^Type>\<open>int\<close> for b\<close>\<close>
   | reif_fexpr' _ _ = error "reif_fexpr: bad expression";
 
 fun eq_field_simps
@@ -861,7 +849,7 @@ fun nonzero_conv (rls as
     fun conv xs qs = (case strip_app qs of
         (\<^const_name>\<open>Nil\<close>, []) => inst [] [xs] nonzero_Nil
       | (\<^const_name>\<open>Cons\<close>, [p, ps]) => (case Thm.term_of ps of
-            Const (\<^const_name>\<open>Nil\<close>, _) =>
+            \<^Const_>\<open>Nil _\<close> =>
               transitive' (inst [] [xs, p] nonzero_singleton)
                 (cong1 (cong2 (args2 peval_conv') Thm.reflexive))
           | _ => transitive' (inst [] [xs, p, ps] nonzero_Cons)
@@ -873,7 +861,7 @@ fun field_tac in_prem ctxt =
     let
       val (prems, concl) = Logic.strip_horn g;
       fun find_eq s = (case s of
-          (_ $ (Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ t $ u)) =>
+          (_ $ \<^Const_>\<open>HOL.eq T for t u\<close>) =>
             (case (field_struct t, field_struct u) of
                (SOME R, _) => SOME ((t, u), R, T, NONE, mk_in_carrier ctxt R [], reif_fexpr)
              | (_, SOME R) => SOME ((t, u), R, T, NONE, mk_in_carrier ctxt R [], reif_fexpr)
