@@ -13,7 +13,7 @@ imports Complex_Main
 begin
 
 external_file \<open>SMT_Examples_Verit.certs\<close>
- 
+
 declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
 declare [[smt_read_only_certificates = true]]
 
