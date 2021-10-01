@@ -68,15 +68,15 @@ fun lookup_func (_, fds, _, _) name =
 
 fun mk_var name T = Free ("V_" ^ isabelle_name name, T)
 
-fun mk_arrayT (Ts, T) = Type (\<^type_name>\<open>fun\<close>, [HOLogic.mk_tupleT Ts, T])
+fun mk_arrayT (Ts, T) = \<^Type>\<open>fun \<open>HOLogic.mk_tupleT Ts\<close> T\<close>
 
 fun mk_binary t (t1, t2) = t $ t1 $ t2
 
 fun mk_nary _ t [] = t
   | mk_nary f _ ts = uncurry (fold_rev f) (split_last ts)
 
-fun mk_distinct [] = \<^const>\<open>HOL.True\<close>
-  | mk_distinct [_] = \<^const>\<open>HOL.True\<close>
+fun mk_distinct [] = \<^Const>\<open>True\<close>
+  | mk_distinct [_] = \<^Const>\<open>True\<close>
   | mk_distinct (t :: ts) =
       let
         fun mk_noteq u u' =
@@ -85,24 +85,23 @@ fun mk_distinct [] = \<^const>\<open>HOL.True\<close>
 
 fun mk_store m k v =
   let
-    val mT = Term.fastype_of m and kT = Term.fastype_of k
+    val kT = Term.fastype_of k
     val vT = Term.fastype_of v
-  in Const (\<^const_name>\<open>fun_upd\<close>, mT --> kT --> vT --> mT) $ m $ k $ v end
+  in \<^Const>\<open>fun_upd kT vT for m k v\<close> end
 
 fun mk_quant q (Free (x, T)) t = q T $ absfree (x, T) t
   | mk_quant _ t _ = raise TERM ("bad variable", [t])
 
-val patternT = \<^typ>\<open>SMT.pattern\<close>
+val patternT = \<^Type>\<open>SMT.pattern\<close>
 
-fun mk_pat t =
-  Const (\<^const_name>\<open>SMT.pat\<close>, Term.fastype_of t --> patternT) $ t
+fun mk_pat t = \<^Const>\<open>SMT.pat \<open>Term.fastype_of t\<close> for t\<close>
 
 fun mk_pattern [] = raise TERM ("mk_pattern", [])
   | mk_pattern ts = SMT_Util.mk_symb_list patternT (map mk_pat ts)
 
 fun mk_trigger [] t = t
   | mk_trigger pss t =
-      \<^term>\<open>SMT.trigger\<close> $
+      \<^Const>\<open>SMT.trigger\<close> $
         SMT_Util.mk_symb_list \<^typ>\<open>SMT.pattern SMT.symb_list\<close> (map mk_pattern pss) $ t
 
 
@@ -112,36 +111,35 @@ fun repeat f n ls =
   let fun apply (xs, ls) = f ls |>> (fn x => x :: xs)
   in funpow (as_int n) apply ([], ls) |>> rev end
 
-fun parse_type _ (["bool"] :: ls) = (\<^typ>\<open>bool\<close>, ls)
-  | parse_type _ (["int"] :: ls) = (\<^typ>\<open>int\<close>, ls)
+fun parse_type _ (["bool"] :: ls) = (\<^Type>\<open>bool\<close>, ls)
+  | parse_type _ (["int"] :: ls) = (\<^Type>\<open>int\<close>, ls)
   | parse_type cx (["array", arity] :: ls) =
       repeat (parse_type cx) arity ls |>> mk_arrayT o split_last
   | parse_type cx (("type-con" :: name :: _) :: ls) = (lookup_type cx name, ls)
   | parse_type _ _ = error "Bad type"
 
-fun parse_expr _ (["true"] :: ls) = (\<^term>\<open>True\<close>, ls)
-  | parse_expr _ (["false"] :: ls) = (\<^term>\<open>False\<close>, ls)
+fun parse_expr _ (["true"] :: ls) = (\<^Const>\<open>True\<close>, ls)
+  | parse_expr _ (["false"] :: ls) = (\<^Const>\<open>False\<close>, ls)
   | parse_expr cx (["not"] :: ls) = parse_expr cx ls |>> HOLogic.mk_not
-  | parse_expr cx (["and", n] :: ls) = parse_nary_expr cx n HOLogic.mk_conj \<^term>\<open>True\<close> ls
-  | parse_expr cx (["or", n] :: ls) = parse_nary_expr cx n HOLogic.mk_disj \<^term>\<open>False\<close> ls
-  | parse_expr cx (["implies"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>HOL.implies\<close>) ls
+  | parse_expr cx (["and", n] :: ls) = parse_nary_expr cx n HOLogic.mk_conj \<^Const>\<open>True\<close> ls
+  | parse_expr cx (["or", n] :: ls) = parse_nary_expr cx n HOLogic.mk_disj \<^Const>\<open>False\<close> ls
+  | parse_expr cx (["implies"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>implies\<close>) ls
   | parse_expr cx (["="] :: ls) = parse_bin_expr cx HOLogic.mk_eq ls
   | parse_expr cx (["var", name] :: ls) = parse_type cx ls |>> mk_var name
   | parse_expr cx (["fun", name, n] :: ls) =
       let val (t, _) = lookup_func cx name
       in repeat (parse_expr cx) n ls |>> curry Term.list_comb t end
   | parse_expr cx (("label" :: _) :: ls) = parse_expr cx ls
-  | parse_expr _ (["int-num", n] :: ls) = (HOLogic.mk_number \<^typ>\<open>int\<close> (as_int n), ls)
-  | parse_expr cx (["<"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(<) :: int => _\<close>) ls
-  | parse_expr cx (["<="] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(<=) :: int => _\<close>) ls
-  | parse_expr cx ([">"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(<) :: int => _\<close>o swap) ls
-  | parse_expr cx ([">="] :: ls) =
-      parse_bin_expr cx (mk_binary \<^term>\<open>(<=) :: int => _\<close> o swap) ls
-  | parse_expr cx (["+"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(+) :: int => _\<close>) ls
-  | parse_expr cx (["-"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(-) :: int => _\<close>) ls
-  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>(*) :: int => _\<close>) ls
-  | parse_expr cx (["/"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>boogie_div\<close>) ls
-  | parse_expr cx (["%"] :: ls) = parse_bin_expr cx (mk_binary \<^term>\<open>boogie_mod\<close>) ls
+  | parse_expr _ (["int-num", n] :: ls) = (HOLogic.mk_number \<^Type>\<open>int\<close> (as_int n), ls)
+  | parse_expr cx (["<"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>less \<^Type>\<open>int\<close>\<close>) ls
+  | parse_expr cx (["<="] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>less_eq \<^Type>\<open>int\<close>\<close>) ls
+  | parse_expr cx ([">"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>less \<^Type>\<open>int\<close>\<close> o swap) ls
+  | parse_expr cx ([">="] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>less_eq \<^Type>\<open>int\<close>\<close> o swap) ls
+  | parse_expr cx (["+"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>plus \<^Type>\<open>int\<close>\<close>) ls
+  | parse_expr cx (["-"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>minus \<^Type>\<open>int\<close>\<close>) ls
+  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>times \<^Type>\<open>int\<close>\<close>) ls
+  | parse_expr cx (["/"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>boogie_div\<close>) ls
+  | parse_expr cx (["%"] :: ls) = parse_bin_expr cx (mk_binary \<^Const>\<open>boogie_mod\<close>) ls
   | parse_expr cx (["select", n] :: ls) =
       repeat (parse_expr cx) n ls
       |>> (fn ts => hd ts $ HOLogic.mk_tuple (tl ts))
