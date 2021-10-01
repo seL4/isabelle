@@ -61,11 +61,11 @@ fun read_tptp_file thy postproc file_name =
 
 (** Nitpick **)
 
-fun aptrueprop f ((t0 as \<^const>\<open>Trueprop\<close>) $ t1) = t0 $ f t1
+fun aptrueprop f ((t0 as \<^Const_>\<open>Trueprop\<close>) $ t1) = t0 $ f t1
   | aptrueprop f t = f t
 
-fun is_legitimate_tptp_def (\<^const>\<open>Trueprop\<close> $ t) = is_legitimate_tptp_def t
-  | is_legitimate_tptp_def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
+fun is_legitimate_tptp_def \<^Const_>\<open>Trueprop for t\<close> = is_legitimate_tptp_def t
+  | is_legitimate_tptp_def \<^Const_>\<open>HOL.eq _ for t u\<close> =
     (is_Const t orelse is_Free t) andalso not (exists_subterm (curry (op =) t) u)
   | is_legitimate_tptp_def _ = false
 
