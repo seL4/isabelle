@@ -32,8 +32,8 @@ Checklist for official releases
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
 - check versions:
-    src/Tools/jEdit/src/Isabelle.props
-    src/Tools/jEdit/src-base/Isabelle_Base.props
+    src/Tools/jEdit/jedit_base/plugin.props
+    src/Tools/jEdit/jedit_main/plugin.props
 
 - check Isabelle version:
     src/Tools/VSCode/extension/README.md
@@ -71,20 +71,17 @@ Repository fork
 Packaging
 =========
 
-- macOS: provide "gnutar" executable via shell PATH
-  (e.g. copy of /usr/bin/gnutar from Mountain Lion)
-
 - fully-automated packaging (e.g. on lxcisa0):
 
-  hg up -r DISTNAME && Admin/build_release -D /home/isabelle/dist -b HOL -l -R DISTNAME
+  hg up -r DISTNAME && Admin/build_release -J .../java11 -D /home/isabelle/dist -b HOL -l -R DISTNAME
 
 - Docker image:
 
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2021 Isabelle2021_linux.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2021-1 Isabelle2021-1_linux.tar.gz
 
   docker login
 
-  docker push makarius/isabelle:Isabelle2021
+  docker push makarius/isabelle:Isabelle2021-1
 
   docker tag ... latest
   docker push makarius/isabelle:latest
