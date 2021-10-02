@@ -4,16 +4,16 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2021 (December 2021)
+-----------------------------------
 
 *** General ***
 
 * Commands 'syntax' and 'no_syntax' now work in a local theory context,
-but there is no proper way to refer to local entities --- in contrast to
-'notation' and 'no_notation'. Local syntax works well with 'bundle',
-e.g. see "lattice_syntax" vs. "no_lattice_syntax" in theory Main of
-Isabelle/HOL.
+but in contrast to 'notation' and 'no_notation' there is no proper way
+to refer to local entities. Note that local syntax works well with
+'bundle', e.g. see "lattice_syntax" vs. "no_lattice_syntax" in theory
+Main of Isabelle/HOL.
 
 * Configuration option "show_results" controls output of final results
 in commands like 'definition' or 'theorem'. Output is normally enabled
@@ -25,19 +25,6 @@ slowdown. It can be disabled like this:
     definition "test = True"
     theorem test by (simp add: test_def)
   end
-
-* Timeouts for Isabelle/ML tools are subject to system option
-"timeout_scale" --- this already used for the overall session build
-process before, and allows to adapt to slow machines. The underlying
-Timeout.apply in Isabelle/ML treats an original timeout specification 0
-as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
-in boundary cases.
-
-* Remote provers from SystemOnTPTP (notably for Sledgehammer) are now
-managed via Isabelle/Scala instead of perl; the dependency on
-libwww-perl has been eliminated (notably on Linux). Rare
-INCOMPATIBILITY: HTTP proxy configuration now works via JVM properties
-https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/doc-files/net-properties.html
 
 * More symbol definitions for the Z Notation (Isabelle fonts and LaTeX).
 See also the group "Z Notation" in the Symbols dockable of
@@ -143,47 +130,6 @@ targets and in any nested target built on top of a target supporting
 
 *** HOL ***
 
-* Theory HOL-Library.Lattice_Syntax has been superseded by bundle
-"lattice_syntax": it can be used in a local context via 'include' or in
-a global theory via 'unbundle'. The opposite declarations are bundled as
-"no_lattice_syntax". Minor INCOMPATIBILITY.
-
-* Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
-use explict expression instead. Minor INCOMPATIBILITY.
-
-* Theory "HOL-Library.Multiset": consolidated abbreviations Mempty,
-Melem, not_Melem to empty_mset, member_mset, not_member_mset
-respectively. Minor INCOMPATIBILITY.
-
-* Theory "HOL-Library.Multiset": consolidated operation and fact names:
-    inf_subset_mset ~> inter_mset
-    sup_subset_mset ~> union_mset
-    multiset_inter_def ~> inter_mset_def
-    sup_subset_mset_def ~> union_mset_def
-    multiset_inter_count ~> count_inter_mset
-    sup_subset_mset_count ~> count_union_mset
-
-* Theory "HOL-Library.Multiset": syntax precendence for membership
-operations has been adjusted to match the corresponding precendences on
-sets. Rare INCOMPATIBILITY.
-
-* Theory "HOL-Library.Cardinality": code generator setup based on the
-type classes finite_UNIV and card_UNIV has been moved to
-"HOL-Library.Code_Cardinality", to avoid incompatibilities with
-other code setups for sets in AFP/Containers. Applications relying on
-this code setup should import "HOL-Library.Code_Cardinality". Minor
-INCOMPATIBILITY.
-
-* Session "HOL-Analysis" and "HOL-Probability": indexed products of
-discrete distributions, negative binomial distribution, Hoeffding's
-inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
-and some more small lemmas. Some theorems that were stated awkwardly
-before were corrected. Minor INCOMPATIBILITY.
-
-* Session "HOL-Analysis": the complex Arg function has been identified
-with the function "arg" of Complex_Main, renaming arg->Arg also in the
-names of arg_bounded. Minor INCOMPATIBILITY.
-
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
 and "eq_iff" from locale "ordering". INCOMPATIBILITY: significant
@@ -194,19 +140,6 @@ potential for change can be avoided if interpretations of type class
 * Theorem "swap_def" now is always qualified as "Fun.swap_def". Minor
 INCOMPATIBILITY; note that for most applications less elementary lemmas
 exists.
-
-* Theory "HOL-Library.Permutation" has been renamed to the more specific
-"HOL-Library.List_Permutation". Note that most notions from that theory
-are already present in theory "HOL-Combinatorics.Permutations".
-INCOMPATIBILITY.
-
-* Dedicated session "HOL-Combinatorics". INCOMPATIBILITY: theories
-"Permutations", "List_Permutation" (formerly "Permutation"), "Stirling",
-"Multiset_Permutations", "Perm" have been moved there from session
-HOL-Library.
-
-* Theory "HOL-Combinatorics.Transposition" provides elementary swap
-operation "transpose".
 
 * Lemma "permutes_induct" has been given stronger hypotheses and named
 premises. INCOMPATIBILITY.
@@ -245,14 +178,68 @@ INCOMPATIBILITY.
 * Sledgehammer:
  - Removed legacy "lam_lifting" (synonym for "lifting") from option
    "lam_trans". Minor INCOMPATIBILITY.
- - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans".
-   Minor INCOMPATIBILITY.
- - Added "opaque_combs" to option "lam_trans": lambda expressions are rewritten
-   using combinators, but the combinators are kept opaque, i.e. without
-   definitions.
+ - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans". Minor
+   INCOMPATIBILITY.
+ - Added "opaque_combs" to option "lam_trans": lambda expressions are
+   rewritten using combinators, but the combinators are kept opaque,
+   i.e. without definitions.
 
-* Metis:
- - Renamed option "hide_lams" to "opaque_lifting". Minor INCOMPATIBILITY.
+* Metis: Renamed option "hide_lams" to "opaque_lifting". Minor
+INCOMPATIBILITY.
+
+* Theory HOL-Library.Lattice_Syntax has been superseded by bundle
+"lattice_syntax": it can be used in a local context via 'include' or in
+a global theory via 'unbundle'. The opposite declarations are bundled as
+"no_lattice_syntax". Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Multiset": dedicated predicate "multiset" is gone,
+use explict expression instead. Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Multiset": consolidated abbreviations Mempty,
+Melem, not_Melem to empty_mset, member_mset, not_member_mset
+respectively. Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Multiset": consolidated operation and fact names:
+    inf_subset_mset ~> inter_mset
+    sup_subset_mset ~> union_mset
+    multiset_inter_def ~> inter_mset_def
+    sup_subset_mset_def ~> union_mset_def
+    multiset_inter_count ~> count_inter_mset
+    sup_subset_mset_count ~> count_union_mset
+
+* Theory "HOL-Library.Multiset": syntax precendence for membership
+operations has been adjusted to match the corresponding precendences on
+sets. Rare INCOMPATIBILITY.
+
+* Theory "HOL-Library.Cardinality": code generator setup based on the
+type classes finite_UNIV and card_UNIV has been moved to
+"HOL-Library.Code_Cardinality", to avoid incompatibilities with
+other code setups for sets in AFP/Containers. Applications relying on
+this code setup should import "HOL-Library.Code_Cardinality". Minor
+INCOMPATIBILITY.
+
+* Session "HOL-Analysis" and "HOL-Probability": indexed products of
+discrete distributions, negative binomial distribution, Hoeffding's
+inequality, Chernoff bounds, Cauchy–Schwarz inequality for nn_integral,
+and some more small lemmas. Some theorems that were stated awkwardly
+before were corrected. Minor INCOMPATIBILITY.
+
+* Session "HOL-Analysis": the complex Arg function has been identified
+with the function "arg" of Complex_Main, renaming arg ~> Arg also in the
+names of arg_bounded. Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Permutation" has been renamed to the more specific
+"HOL-Library.List_Permutation". Note that most notions from that theory
+are already present in theory "HOL-Combinatorics.Permutations".
+INCOMPATIBILITY.
+
+* Dedicated session "HOL-Combinatorics". INCOMPATIBILITY: theories
+"Permutations", "List_Permutation" (formerly "Permutation"), "Stirling",
+"Multiset_Permutations", "Perm" have been moved there from session
+HOL-Library.
+
+* Theory "HOL-Combinatorics.Transposition" provides elementary swap
+operation "transpose".
 
 
 *** ML ***
@@ -380,6 +367,17 @@ context of Isabelle/Scala:
   - Isabelle_System.rm_tree
   - Isabelle_System.download
 
+* ML profiling has been updated and reactivated, after some degration in
+Isabelle2021:
+
+  - "isabelle build -o threads=1 -o profiling=..." works properly
+    within the PIDE session context;
+
+  - "isabelle profiling_report" now uses the session build database
+    (like "isabelle log");
+
+  - output uses non-intrusive tracing messages, instead of warnings.
+
 
 *** System ***
 
@@ -406,16 +404,18 @@ plugins that are produced in $JEDIT_SETTINGS/jars on demand. The main
 isabelle.jedit module is now part of Isabelle/Scala (as one big
 $ISABELLE_SCALA_JAR).
 
-* ML profiling has been updated and reactivated, after some degration in
-Isabelle2021:
+* Timeouts for Isabelle/ML tools are subject to system option
+"timeout_scale" --- this already used for the overall session build
+process before, and allows to adapt to slow machines. The underlying
+Timeout.apply in Isabelle/ML treats an original timeout specification 0
+as no timeout; before it meant immediate timeout. Rare INCOMPATIBILITY
+in boundary cases.
 
-  - "isabelle build -o threads=1 -o profiling=..." works properly
-    within the PIDE session context;
-
-  - "isabelle profiling_report" now uses the session build database
-    (like "isabelle log");
-
-  - output uses non-intrusive tracing messages, instead of warnings.
+* Remote provers from SystemOnTPTP (notably for Sledgehammer) are now
+managed via Isabelle/Scala instead of perl; the dependency on
+libwww-perl has been eliminated (notably on Linux). Rare
+INCOMPATIBILITY: HTTP proxy configuration now works via JVM properties
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/doc-files/net-properties.html
 
 * System option "system_log" specifies an optional log file for internal
 messages produced by Output.system_message in Isabelle/ML; the value
@@ -429,7 +429,7 @@ notation of type bool. E.g. "isabelle build -o system_log".
 can be used in the short form. E.g. "isabelle build -o document".
 
 * Command-line tool "isabelle version" supports repository archives
-(without full .hg directory). More options.
+(without full .hg directory). It also provides more options.
 
 * Obsolete settings variable ISABELLE_PLATFORM32 has been discontinued.
 Note that only Windows supports old 32 bit executables, via settings
