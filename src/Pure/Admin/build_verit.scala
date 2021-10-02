@@ -9,7 +9,7 @@ package isabelle
 
 object Build_VeriT
 {
-  val default_download_url = "https://verit.loria.fr/rmx/2020.10/verit-2020.10-rmx.tar.gz"
+  val default_download_url = "https://verit.loria.fr/rmx/2021.06/verit-2021.06-rmx.tar.gz"
 
 
   /* build veriT */
