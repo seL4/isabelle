@@ -80,10 +80,8 @@ fun conjuncts ct =
     \<^Const>\<open>HOL.conj for _ _\<close> => Thm.dest_arg1 ct :: conjuncts (Thm.dest_arg ct)
   | _ => [ct]);
 
-fun fold1 f = foldr1 (uncurry f);  (* FIXME !? *)
-
 val list_conj =
-  fold1 (fn c => fn c' => Thm.apply (Thm.apply \<^cterm>\<open>HOL.conj\<close> c) c');
+  foldr1 (fn (c, c') => Thm.apply (Thm.apply \<^cterm>\<open>HOL.conj\<close> c) c');
 
 fun mk_conj_tab th =
   let
