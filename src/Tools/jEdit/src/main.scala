@@ -82,7 +82,7 @@ object Main
 </PERSPECTIVE>""")
           }
 
-          Scala_Project.plugin_contexts().foreach(_.build())
+          for (plugin <- Scala_Project.plugins) { plugin.context().build() }
 
 
           /* args */

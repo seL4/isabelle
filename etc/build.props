@@ -242,6 +242,7 @@ sources = \
   src/Tools/jEdit/src/jedit_editor.scala \
   src/Tools/jEdit/src/jedit_lib.scala \
   src/Tools/jEdit/src/jedit_options.scala \
+  src/Tools/jEdit/src/jedit_plugins.scala \
   src/Tools/jEdit/src/jedit_rendering.scala \
   src/Tools/jEdit/src/jedit_resources.scala \
   src/Tools/jEdit/src/jedit_sessions.scala \
@@ -287,6 +288,8 @@ services = \
   isabelle.Sessions$File_Format \
   isabelle.Simplifier_Trace$Handler \
   isabelle.Tools \
+  isabelle.jedit.JEdit_Plugin0 \
+  isabelle.jedit.JEdit_Plugin1 \
   isabelle.nitpick.Kodkod$Handler \
   isabelle.nitpick.Scala_Functions \
   isabelle.spark.SPARK$Load_Command1 \

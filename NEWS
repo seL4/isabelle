@@ -49,6 +49,13 @@ command, using explicit 'obtain' instead.
 * The main plugin for Isabelle/jEdit can be deactivated and reactivated
 as documented --- was broken at least since Isabelle2018.
 
+* Add-on components may provide their own jEdit plugins, via the new
+Scala/Java module concept: instances of class
+isabelle.Scala_Project.Plugin that are declared as "services" within
+etc/build.props are activated on Isabelle/jEdit startup. E.g. see
+existing isabelle.jedit.JEdit_Plugin0 (for isabelle_jedit_base.jar) and
+isabelle.jedit.JEdit_Plugin1 (for isabelle_jedit_main.jar).
+
 
 *** Document preparation ***
 

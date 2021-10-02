@@ -22,15 +22,21 @@ object Scala_Project
   }
 
 
-  /* file and directories */
+  /* plugins: modules with dynamic build */
 
-  def plugin_contexts(): List[Scala_Build.Context] =
-    for (plugin <- List("jedit_base", "jedit_main"))
-    yield Scala_Build.context(Path.explode("$ISABELLE_HOME/src/Tools/jEdit") + Path.basic(plugin))
+  class Plugin(dir: Path) extends Isabelle_System.Service
+  {
+    def context(): Scala_Build.Context = Scala_Build.context(dir)
+  }
+
+  lazy val plugins: List[Plugin] = Isabelle_System.make_services(classOf[Plugin])
+
+
+  /* file and directories */
 
   lazy val isabelle_files: (List[Path], List[Path]) =
   {
-    val contexts = Scala_Build.component_contexts() ::: plugin_contexts()
+    val contexts = Scala_Build.component_contexts() ::: plugins.map(_.context())
 
     val jars1 = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH"))
     val jars2 = contexts.flatMap(_.requirements)
