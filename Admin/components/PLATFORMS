@@ -43,7 +43,7 @@ Official platforms:
   arm64-darwin      macOS 11 Big Sur
 
   x86_64-windows    Windows 10
-  x86_64-cygwin     Cygwin 3.1.x https://isabelle.sketis.net/cygwin_2021 (x86_64/release)
+  x86_64-cygwin     Cygwin 3.2.x https://isabelle.sketis.net/cygwin_2021-1 (x86_64/release)
 
 Experimental platforms:
 
