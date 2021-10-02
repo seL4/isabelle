@@ -371,7 +371,7 @@ context linorder
 begin
 
 abbreviation sorted :: "'a list \<Rightarrow> bool" where
-  "sorted \<equiv> sorted_wrt (\<le>)" 
+  "sorted \<equiv> sorted_wrt (\<le>)"
 
 lemma sorted_simps: "sorted [] = True" "sorted (x # ys) = ((\<forall>y \<in> set ys. x\<le>y) \<and> sorted ys)"
   by auto
@@ -1499,7 +1499,7 @@ fun len (Const(\<^const_name>\<open>Nil\<close>,_)) acc = acc
   | len (Const(\<^const_name>\<open>rev\<close>,_) $ xs) acc = len xs acc
   | len (Const(\<^const_name>\<open>map\<close>,_) $ _ $ xs) acc = len xs acc
   | len (Const(\<^const_name>\<open>concat\<close>,T) $ (Const(\<^const_name>\<open>rev\<close>,_) $ xss)) acc
-    = len (Const(\<^const_name>\<open>concat\<close>,T) $ xss) acc 
+    = len (Const(\<^const_name>\<open>concat\<close>,T) $ xss) acc
   | len t (ts,n) = (t::ts,n);
 
 val ss = simpset_of \<^context>;
@@ -3128,7 +3128,7 @@ lemma (in comp_fun_commute_on) fold_set_fold_remdups:
   assumes "set xs \<subseteq> S"
   shows "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
   by (rule sym, use assms in \<open>induct xs arbitrary: y\<close>)
-     (simp_all add: insert_absorb fold_fun_left_comm) 
+     (simp_all add: insert_absorb fold_fun_left_comm)
 
 lemma (in comp_fun_idem_on) fold_set_fold:
   assumes "set xs \<subseteq> S"
@@ -3510,7 +3510,7 @@ lemma successively_cong [cong]:
 
 lemma successively_append_iff:
   "successively P (xs @ ys) \<longleftrightarrow>
-     successively P xs \<and> successively P ys \<and> 
+     successively P xs \<and> successively P ys \<and>
      (xs = [] \<or> ys = [] \<or> P (last xs) (hd ys))"
 by (induction xs) (auto simp: successively_Cons)
 
@@ -4141,7 +4141,7 @@ proof -
       by (metis (full_types) dropWhile_eq_self_iff last_snoc remdups_adj_append_dropWhile)
     thus ?thesis by (simp add: xs)
   qed
-  thus ?thesis using assms 
+  thus ?thesis using assms
     by (cases "xs = []"; cases "ys = []") auto
 qed
 
@@ -4425,7 +4425,7 @@ lemma length_removeAll_less [termination_simp]:
   by (auto dest: length_filter_less simp add: removeAll_filter_not_eq)
 
 lemma distinct_concat_iff: "distinct (concat xs) \<longleftrightarrow>
-  distinct (removeAll [] xs) \<and> 
+  distinct (removeAll [] xs) \<and>
   (\<forall>ys. ys \<in> set xs \<longrightarrow> distinct ys) \<and>
   (\<forall>ys zs. ys \<in> set xs \<and> zs \<in> set xs \<and> ys \<noteq> zs \<longrightarrow> set ys \<inter> set zs = {})"
 apply (induct xs)
@@ -4993,7 +4993,7 @@ lemma split_Nil_iff[simp]: "splice xs ys = [] \<longleftrightarrow> xs = [] \<an
 lemma splice_replicate[simp]: "splice (replicate m x) (replicate n x) = replicate (m+n) x"
 proof (induction "replicate m x" "replicate n x" arbitrary: m n rule: splice.induct)
   case (2 x xs)
-  then show ?case 
+  then show ?case
     by (auto simp add: Cons_replicate_eq dest: gr0_implies_Suc)
 qed auto
 
@@ -5360,7 +5360,7 @@ qed
 lemma infinite_UNIV_listI: "\<not> finite(UNIV::'a list set)"
   by (metis UNIV_I finite_maxlen length_replicate less_irrefl)
 
-lemma same_length_different: 
+lemma same_length_different:
   assumes "xs \<noteq> ys" and "length xs = length ys"
   shows "\<exists>pre x xs' y ys'. x\<noteq>y \<and> xs = pre @ [x] @ xs' \<and> ys = pre @ [y] @ ys'"
   using assms
@@ -5462,7 +5462,7 @@ lemma sorted_wrt_iff_nth_Suc_transp: assumes "transp P"
 proof
   assume ?L
   thus ?R
-    by (simp add: sorted_wrt_iff_nth_less) 
+    by (simp add: sorted_wrt_iff_nth_less)
 next
   assume ?R
   have "i < j \<Longrightarrow> j < length xs \<Longrightarrow> P (xs ! i) (xs ! j)" for i j
@@ -5545,7 +5545,7 @@ lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
   by (auto simp: sorted_iff_nth_mono)
 
-lemma sorted_iff_nth_Suc: 
+lemma sorted_iff_nth_Suc:
   "sorted xs \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> xs!i \<le> xs!(Suc i))"
   by(simp add: sorted_wrt_iff_nth_Suc_transp)
 
@@ -5573,13 +5573,13 @@ next
   thus ?L by (simp add: sorted_iff_nth_mono)
 qed
 
-lemma sorted_rev_iff_nth_Suc: 
+lemma sorted_rev_iff_nth_Suc:
   "sorted (rev xs) \<longleftrightarrow> (\<forall>i.  Suc i < length xs \<longrightarrow> xs!(Suc i) \<le> xs!i)"
 proof-
   interpret dual: linorder "(\<lambda>x y. y \<le> x)" "(\<lambda>x y. y < x)"
     using dual_linorder .
   show ?thesis
-    using dual_linorder dual.sorted_iff_nth_Suc dual.sorted_iff_nth_mono 
+    using dual_linorder dual.sorted_iff_nth_Suc dual.sorted_iff_nth_mono
     unfolding sorted_rev_iff_nth_mono by simp
 qed
 
@@ -6244,7 +6244,7 @@ proof (induction xs arbitrary: ys)
   proof (cases ys)
     case Nil
     then show ?thesis
-      using Cons.prems by auto 
+      using Cons.prems by auto
   next
     case (Cons y ys')
     then have "xs = ys'"
@@ -6255,13 +6255,13 @@ proof (induction xs arbitrary: ys)
       using local.Cons by blast
   qed
 qed auto
-	
+
 lemma (in linorder) strict_sorted_equal_Uniq: "\<exists>\<^sub>\<le>\<^sub>1xs. sorted_wrt (<) xs \<and> set xs = A"
   by (simp add: Uniq_def strict_sorted_equal)
 
 lemma sorted_key_list_of_set_inject:
   assumes "A \<subseteq> S" "B \<subseteq> S"
-  assumes "sorted_key_list_of_set f A = sorted_key_list_of_set f B" "finite A" "finite B" 
+  assumes "sorted_key_list_of_set f A = sorted_key_list_of_set f B" "finite A" "finite B"
   shows "A = B"
   using assms set_sorted_key_list_of_set by metis
 
@@ -6326,7 +6326,7 @@ lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
 by (rule sorted_distinct_set_unique) simp_all
 
-lemma sorted_list_of_set_lessThan_Suc [simp]: 
+lemma sorted_list_of_set_lessThan_Suc [simp]:
   "sorted_list_of_set {..<Suc k} = sorted_list_of_set {..<k} @ [k]"
   using le0 lessThan_atLeast0 sorted_list_of_set_range upt_Suc_append by presburger
 
@@ -6341,7 +6341,7 @@ lemma sorted_list_of_set_nonempty:
   by (auto simp: less_le simp flip: sorted_list_of_set.sorted_key_list_of_set_unique intro: Min_in)
 
 lemma sorted_list_of_set_greaterThanLessThan:
-  assumes "Suc i < j" 
+  assumes "Suc i < j"
     shows "sorted_list_of_set {i<..<j} = Suc i # sorted_list_of_set {Suc i<..<j}"
 proof -
   have "{i<..<j} = insert (Suc i) {Suc i<..<j}"
@@ -6351,16 +6351,16 @@ proof -
 qed
 
 lemma sorted_list_of_set_greaterThanAtMost:
-  assumes "Suc i \<le> j" 
+  assumes "Suc i \<le> j"
     shows "sorted_list_of_set {i<..j} = Suc i # sorted_list_of_set {Suc i<..j}"
   using sorted_list_of_set_greaterThanLessThan [of i "Suc j"]
   by (metis assms greaterThanAtMost_def greaterThanLessThan_eq le_imp_less_Suc lessThan_Suc_atMost)
 
-lemma nth_sorted_list_of_set_greaterThanLessThan: 
+lemma nth_sorted_list_of_set_greaterThanLessThan:
   "n < j - Suc i \<Longrightarrow> sorted_list_of_set {i<..<j} ! n = Suc (i+n)"
   by (induction n arbitrary: i) (auto simp: sorted_list_of_set_greaterThanLessThan)
 
-lemma nth_sorted_list_of_set_greaterThanAtMost: 
+lemma nth_sorted_list_of_set_greaterThanAtMost:
   "n < j - i \<Longrightarrow> sorted_list_of_set {i<..j} ! n = Suc (i+n)"
   using nth_sorted_list_of_set_greaterThanLessThan [of n "Suc j" i]
   by (simp add: greaterThanAtMost_def greaterThanLessThan_eq lessThan_Suc_atMost)
@@ -6515,7 +6515,7 @@ lemma lexn_length:
   "(xs, ys) \<in> lexn r n \<Longrightarrow> length xs = n \<and> length ys = n"
   by (induct n arbitrary: xs ys) auto
 
-lemma wf_lex [intro!]: 
+lemma wf_lex [intro!]:
   assumes "wf r" shows "wf (lex r)"
   unfolding lex_def
 proof (rule wf_UN)
@@ -6631,7 +6631,7 @@ proof -
     if "xs \<noteq> ys" and len: "length xs = length ys" for xs ys
   proof -
     obtain pre x xs' y ys' where "x\<noteq>y" and xs: "xs = pre @ [x] @ xs'" and ys: "ys = pre @ [y] @ys'"
-      by (meson len \<open>xs \<noteq> ys\<close> same_length_different) 
+      by (meson len \<open>xs \<noteq> ys\<close> same_length_different)
     then consider "(x,y) \<in> r" | "(y,x) \<in> r"
       by (meson UNIV_I assms total_on_def)
     then show ?thesis
@@ -6662,14 +6662,14 @@ next
     by (simp add: lex_conv) (blast intro: Cons_eq_appendI)
 qed
 
-lemma Nil_lenlex_iff1 [simp]: "([], ns) \<in> lenlex r \<longleftrightarrow> ns \<noteq> []" 
+lemma Nil_lenlex_iff1 [simp]: "([], ns) \<in> lenlex r \<longleftrightarrow> ns \<noteq> []"
   and Nil_lenlex_iff2 [simp]: "(ns,[]) \<notin> lenlex r"
   by (auto simp: lenlex_def)
 
-lemma Cons_lenlex_iff: 
-  "((m # ms, n # ns) \<in> lenlex r) \<longleftrightarrow> 
-    length ms < length ns 
-  \<or> length ms = length ns \<and> (m,n) \<in> r 
+lemma Cons_lenlex_iff:
+  "((m # ms, n # ns) \<in> lenlex r) \<longleftrightarrow>
+    length ms < length ns
+  \<or> length ms = length ns \<and> (m,n) \<in> r
   \<or> (m = n \<and> (ms,ns) \<in> lenlex r)"
   by (auto simp: lenlex_def)
 
@@ -6797,19 +6797,19 @@ lemma lexord_sufI:
 proof-
   from leD[OF assms(2)] assms(1)[unfolded lexord_take_index_conv[of u w r] min_absorb2[OF assms(2)]]
   obtain i where "take i u = take i w" and "(u!i,w!i) \<in> r" and "i < length w"
-    by blast   
+    by blast
   hence "((u@v)!i, (w@z)!i) \<in> r"
     unfolding nth_append using less_le_trans[OF \<open>i < length w\<close> assms(2)] \<open>(u!i,w!i) \<in> r\<close>
     by presburger
   moreover have "i < min (length (u@v)) (length (w@z))"
     using assms(2) \<open>i < length w\<close> by simp
   moreover have "take i (u@v) = take i (w@z)"
-    using assms(2) \<open>i < length w\<close> \<open>take i u = take i w\<close> by simp 
+    using assms(2) \<open>i < length w\<close> \<open>take i u = take i w\<close> by simp
   ultimately show ?thesis
     using lexord_take_index_conv by blast
 qed
 
-lemma lexord_sufE: 
+lemma lexord_sufE:
   assumes "(xs@zs,ys@qs) \<in> lexord r" "xs \<noteq> ys" "length xs = length ys" "length zs = length qs"
   shows "(xs,ys) \<in> lexord r"
 proof-
@@ -6893,7 +6893,7 @@ proof clarsimp
 qed
 
 corollary lexord_linear: "(\<forall>a b. (a,b) \<in> r \<or> a = b \<or> (b,a) \<in> r) \<Longrightarrow> (x,y) \<in> lexord r \<or> x = y \<or> (y,x) \<in> lexord r"
-  using total_lexord by (metis UNIV_I total_on_def) 
+  using total_lexord by (metis UNIV_I total_on_def)
 
 lemma lexord_irrefl:
   "irrefl R \<Longrightarrow> irrefl (lexord R)"
@@ -6902,7 +6902,7 @@ by (simp add: irrefl_def lexord_irreflexive)
 lemma lexord_asym:
   assumes "asym R"
   shows "asym (lexord R)"
-proof 
+proof
   fix xs ys
   assume "(xs, ys) \<in> lexord R"
   then show "(ys, xs) \<notin> lexord R"
@@ -6932,12 +6932,12 @@ lemma asym_lenlex: "asym R \<Longrightarrow> asym (lenlex R)"
   by (simp add: lenlex_def asym_inv_image asym_less_than asym_lex asym_lex_prod)
 
 lemma lenlex_append1:
-  assumes len: "(us,xs) \<in> lenlex R" and eq: "length vs = length ys" 
+  assumes len: "(us,xs) \<in> lenlex R" and eq: "length vs = length ys"
   shows "(us @ vs, xs @ ys) \<in> lenlex R"
   using len
 proof (induction us)
   case Nil
-  then show ?case 
+  then show ?case
     by (simp add: lenlex_def eq)
 next
   case (Cons u us)
@@ -6950,7 +6950,7 @@ lemma lenlex_append2 [simp]:
   shows "(us @ xs, us @ ys) \<in> lenlex R \<longleftrightarrow> (xs, ys) \<in> lenlex R"
 proof (induction us)
   case Nil
-  then show ?case 
+  then show ?case
     by (simp add: lenlex_def)
 next
   case (Cons u us)
