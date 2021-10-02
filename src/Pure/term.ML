@@ -964,17 +964,19 @@ fun could_beta_eta_contract (Abs _ $ _) = true
 
 (* dest abstraction *)
 
-fun dest_abs (x, T, body) =
+fun used_free x =
   let
-    fun name_clash (Free (y, _)) = (x = y)
-      | name_clash (t $ u) = name_clash t orelse name_clash u
-      | name_clash (Abs (_, _, t)) = name_clash t
-      | name_clash _ = false;
-  in
-    if name_clash body then
-      dest_abs (singleton (Name.variant_list [x]) x, T, body)    (*potentially slow*)
-    else (x, subst_bound (Free (x, T), body))
-  end;
+    fun used (Free (y, _)) = (x = y)
+      | used (t $ u) = used t orelse used u
+      | used (Abs (_, _, t)) = used t
+      | used _ = false;
+  in used end;
+
+fun dest_abs (x, T, b) =
+  if used_free x b then
+    let val (x', _) = Name.variant x (declare_term_names b Name.context)
+    in (x', subst_bound (Free (x', T), b)) end
+  else (x, subst_bound (Free (x, T), b));
 
 
 (* dummy patterns *)
