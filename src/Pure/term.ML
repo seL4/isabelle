@@ -974,7 +974,7 @@ fun used_free x =
 
 fun dest_abs (x, T, b) =
   if used_free x b then
-    let val (x', _) = Name.variant x (declare_term_names b Name.context)
+    let val (x', _) = Name.variant x (declare_term_frees b Name.context);
     in (x', subst_bound (Free (x', T), b)) end
   else (x, subst_bound (Free (x, T), b));
 
