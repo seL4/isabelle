@@ -599,13 +599,12 @@ fun add_bools t =
               else insert (op aconv) t
     | f $ a => if skip orelse is_op f then add_bools a o add_bools f
               else insert (op aconv) t
-    | Abs p => add_bools (snd (Syntax_Trans.variant_abs p))  (* FIXME !? *)
+    | Abs p => add_bools (snd (Term.dest_abs p))
     | _ => if skip orelse is_op t then I else insert (op aconv) t
   end;
 
 fun descend vs (abs as (_, xT, _)) =
-  let
-    val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
+  let val (xn', p') = Term.dest_abs abs
   in ((xn', xT) :: vs, p') end;
 
 local structure Proc = Cooper_Procedure in

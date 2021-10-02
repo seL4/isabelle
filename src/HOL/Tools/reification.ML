@@ -139,7 +139,7 @@ fun decomp_reify da cgns (ct, ctxt) bds =
         Abs (_, xT, ta) =>
           let
             val ([raw_xn], ctxt') = Variable.variant_fixes ["x"] ctxt;
-            val (xn, ta) = Syntax_Trans.variant_abs (raw_xn, xT, ta);  (* FIXME !? *)
+            val (xn, ta) = Term.dest_abs (raw_xn, xT, ta);
             val x = Free (xn, xT);
             val cx = Thm.cterm_of ctxt' x;
             val cta = Thm.cterm_of ctxt' ta;

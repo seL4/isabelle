@@ -3975,12 +3975,10 @@ fun fm_of_term fs ps \<^Const_>\<open>True\<close> = @{code T}
   | fm_of_term fs ps \<^Const_>\<open>less_eq _ for p q\<close> =
       @{code Le} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
   | fm_of_term fs ps (\<^Const_>\<open>Ex _\<close> $ Abs (abs as (_, xT, _))) =
-      let
-        val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
+      let val (xn', p') = Term.dest_abs abs
       in @{code E} (fm_of_term (Free (xn', xT) :: fs) ps p') end
   | fm_of_term fs ps (\<^Const_>\<open>All _\<close> $ Abs (abs as (_, xT, _))) =
-      let
-        val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
+      let val (xn', p') = Term.dest_abs abs
       in @{code A} (fm_of_term (Free (xn', xT) :: fs) ps p') end
   | fm_of_term fs ps _ = error "fm_of_term";
 

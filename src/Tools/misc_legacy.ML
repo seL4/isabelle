@@ -127,7 +127,7 @@ local
 fun strip_context_aux (params, Hs, \<^Const_>\<open>Pure.imp for H B\<close>) =
       strip_context_aux (params, H :: Hs, B)
   | strip_context_aux (params, Hs, \<^Const_>\<open>Pure.all _ for \<open>Abs (a, T, t)\<close>\<close>) =
-      let val (b, u) = Syntax_Trans.variant_abs (a, T, t)
+      let val (b, u) = Term.dest_abs (a, T, t)
       in strip_context_aux ((b, T) :: params, Hs, u) end
   | strip_context_aux (params, Hs, B) = (rev params, rev Hs, B);
 
