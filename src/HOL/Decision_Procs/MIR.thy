@@ -5592,7 +5592,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (=) vs t
       | _ => error "num_of_term: unsupported Multiplication")
   | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t'\<close>\<close> =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (\<^Const_>\<open>of_int \<^Type>\<open>real\<close>\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t')) =  (* FIXME !? *)
+  | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>uminus \<^Type>\<open>int\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t'\<close>\<close>\<close> =
       mk_C (~ (HOLogic.dest_numeral t'))
   | num_of_term vs \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>floor \<^Type>\<open>real\<close> for t'\<close>\<close> =
       @{code Floor} (num_of_term vs t')
@@ -5600,7 +5600,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (=) vs t
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
   | num_of_term vs \<^Const_>\<open>numeral \<^Type>\<open>real\<close> for t'\<close> =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (\<^term>\<open>- numeral :: _ \<Rightarrow> real\<close> $ t') =  (* FIXME !? *)
+  | num_of_term vs \<^Const_>\<open>uminus \<^Type>\<open>real\<close> for \<^Const_>\<open>numeral \<^Type>\<open>real\<close> for t'\<close>\<close> =
       mk_C (~ (HOLogic.dest_numeral t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term \<^context> t);
 
@@ -5614,7 +5614,7 @@ fun fm_of_term vs \<^Const_>\<open>True\<close> = @{code T}
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term vs \<^Const_>\<open>rdvd for \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t1\<close>\<close> t2\<close> =
       mk_Dvd (HOLogic.dest_numeral t1, num_of_term vs t2)
-  | fm_of_term vs \<^Const_>\<open>rdvd for \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<open>(\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t1)\<close>\<close> t2\<close> =  (* FIXME !? *)
+  | fm_of_term vs \<^Const_>\<open>rdvd for \<^Const_>\<open>of_int \<^Type>\<open>real\<close> for \<^Const_>\<open>uminus \<^Type>\<open>int\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t1\<close>\<close>\<close> t2\<close> =
       mk_Dvd (~ (HOLogic.dest_numeral t1), num_of_term vs t2)
   | fm_of_term vs \<^Const_>\<open>HOL.eq \<^Type>\<open>bool\<close> for t1 t2\<close> =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)

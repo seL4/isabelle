@@ -2388,7 +2388,7 @@ fun num_of_term vs (t as Free (xn, xT)) =
   | num_of_term vs \<^term>\<open>- 1::int\<close> = @{code C} (@{code int_of_integer} (~ 1))
   | num_of_term vs \<^Const_>\<open>numeral _ for t\<close> =
       @{code C} (@{code int_of_integer} (HOLogic.dest_numeral t))
-  | num_of_term vs (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t) =  (* FIXME !? *)
+  | num_of_term vs \<^Const_>\<open>uminus \<^Type>\<open>int\<close> for \<^Const_>\<open>numeral \<^Type>\<open>int\<close> for t\<close>\<close> =
       @{code C} (@{code int_of_integer} (~(HOLogic.dest_numeral t)))
   | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs \<^Const_>\<open>uminus \<^Type>\<open>int\<close> for t'\<close> = @{code Neg} (num_of_term vs t')
