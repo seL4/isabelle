@@ -23,6 +23,7 @@ sig
   val clean: string -> string
   type context
   val context: context
+  val build_context: (context -> context) -> context
   val make_context: string list -> context
   val declare: string -> context -> context
   val is_declared: context -> string -> bool
@@ -104,7 +105,10 @@ fun is_declared (Context tab) = Symtab.defined tab;
 fun declared (Context tab) = Symtab.lookup tab;
 
 val context = Context Symtab.empty |> fold declare ["", "'"];
-fun make_context used = fold declare used context;
+
+fun build_context (f: context -> context) = f context;
+
+val make_context = build_context o fold declare;
 
 
 (* invent names *)

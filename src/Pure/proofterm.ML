@@ -904,8 +904,9 @@ fun varify_proof t fixed prf =
     val fs =
       build (t |> (Term.fold_types o Term.fold_atyps)
         (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
-    val used = Name.context
-      |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
+    val used =
+      Name.build_context (t |>
+        (fold_types o fold_atyps) (fn TVar ((a, _), _) => Name.declare a | _ => I));
     val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
     fun thaw (a, S) =
       (case AList.lookup (op =) fmap (a, S) of

@@ -72,7 +72,8 @@ fun thm_of_proof thy =
   let val lookup = lookup_thm thy in
     fn prf =>
       let
-        val prf_names = Proofterm.fold_proof_terms Term.declare_term_frees prf Name.context;
+        val prf_names =
+          Name.build_context (prf |> Proofterm.fold_proof_terms Term.declare_term_frees);
 
         fun thm_of_atom thm Ts =
           let

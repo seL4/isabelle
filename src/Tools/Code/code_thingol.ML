@@ -746,7 +746,7 @@ and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num
     let
       val k = length ts;
       val tys = (take (num_args - k) o drop k o fst o strip_type) ty;
-      val names = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
+      val names = Name.build_context (ts |> (fold o fold_aterms) Term.declare_term_frees);
       val vs = Name.invent_names names "a" tys;
     in
       fold_map (translate_typ ctxt algbr eqngr permissive) tys
