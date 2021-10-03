@@ -5,7 +5,7 @@
 #identification
 plugin.isabelle.jedit_main.Plugin.name=Isabelle
 plugin.isabelle.jedit_main.Plugin.author=Johannes H\u00F6lzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
-plugin.isabelle.jedit_main.Plugin.version=11.2
+plugin.isabelle.jedit_main.Plugin.version=11.3
 plugin.isabelle.jedit_main.Plugin.description=Isabelle/jEdit main plugin
 
 #system parameters
@@ -14,7 +14,7 @@ plugin.isabelle.jedit_main.Plugin.usePluginHome=false
 
 #dependencies
 plugin.isabelle.jedit_main.Plugin.depend.0=jdk 11
-plugin.isabelle.jedit_main.Plugin.depend.1=jedit 05.05.00.00
+plugin.isabelle.jedit_main.Plugin.depend.1=jedit 05.06.00.00
 plugin.isabelle.jedit_main.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit_main.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.4.0
 plugin.isabelle.jedit_main.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
