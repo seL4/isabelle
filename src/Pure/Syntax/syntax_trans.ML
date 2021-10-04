@@ -129,8 +129,7 @@ fun absfree_proper (x, T) t =
 
 fun abs_tr [Free x, t] = absfree_proper x t
   | abs_tr [Const ("_idtdummy", T), t] = absdummy T t
-  | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
-      Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
@@ -140,9 +139,7 @@ fun mk_binder_tr (syn, name) =
   let
     fun err ts = raise TERM ("binder_tr: " ^ syn, ts)
     fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
-      | binder_tr [x, t] =
-          let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
-          in Syntax.const name $ abs end
+      | binder_tr [x, t] = Syntax.const name $ (abs_tr [x, t] handle TERM _ => err [x, t])
       | binder_tr ts = err ts;
   in (syn, fn _ => binder_tr) end;
 
