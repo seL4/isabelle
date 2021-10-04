@@ -211,7 +211,9 @@ fun run_atp mode name
           end
 
         val real_ms = Real.fromInt o Time.toMilliseconds
-        val slices_timeout = real_ms timeout
+        (* TODO: replace this seems-to-work per-slice overhead with actually-measured value *)
+        val slices_overhead_ms = Int.max (0, num_actual_slices * 25)
+        val slices_timeout_ms = real (Time.toMilliseconds timeout - slices_overhead_ms)
 
         fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
             (key as ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
@@ -228,7 +230,7 @@ fun run_atp mode name
             val slice_timeout =
               (real_ms time_left
                |> (if slice < num_actual_slices - 1 then
-                     curry Real.min (time_frac * slices_timeout)
+                     curry Real.min (time_frac * slices_timeout_ms)
                    else
                      I))
               * 0.001
