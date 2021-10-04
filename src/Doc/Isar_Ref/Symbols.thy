@@ -37,4 +37,6 @@ text \<open>
   \end{center}
 \<close>
 
+external_file %invisible \<open>~~/lib/texinputs/isabellesym.sty\<close>
+
 end
