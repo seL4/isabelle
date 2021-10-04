@@ -46,14 +46,11 @@ definition ncase :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
   where "ncase(n,b,c) == when(n, \<lambda>x. b, \<lambda>y. c(y))"
 
 
-no_syntax
-  "_Let" :: "[letbinds, 'a] => 'a"  ("(let (_)/ in (_))" 10)
+definition "let1" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
+  where let_def: "let1(t, f) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
 
-definition "let" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
-  where "let(t, f) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
-
-syntax
-  "_Let" :: "[letbinds, 'a] => 'a"  ("(let (_)/ in (_))" 10)
+syntax "_let1" :: "[idt,i,i]\<Rightarrow>i"  ("(3let _ be _/ in _)" [0,0,60] 60)
+translations "let x be a in e" == "CONST let1(a, \<lambda>x. e)"
 
 definition letrec :: "[[i,i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
   where "letrec(h, b) == b(\<lambda>x. fix(\<lambda>f. lam x. h(x,\<lambda>y. f`y))`x)"
@@ -68,7 +65,6 @@ definition letrec3 :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rig
       \<lambda>g'. f(\<lambda>x y z. g'(<x,<y,z>>)))"
 
 syntax
-  "_let" :: "[id,i,i]\<Rightarrow>i"  ("(3let _ be _/ in _)" [0,0,60] 60)
   "_letrec" :: "[id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ be _/ in _)" [0,0,0,60] 60)
   "_letrec2" :: "[id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ be _/ in _)" [0,0,0,0,60] 60)
   "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ _ be _/ in _)" [0,0,0,0,0,60] 60)
@@ -78,11 +74,6 @@ ML \<open>
 
 (* FIXME does not handle "_idtdummy" *)
 (* FIXME should use Syntax_Trans.mark_bound, Syntax_Trans.variant_abs' *)
-
-fun let_tr [Free x, a, b] = Syntax.const \<^const_syntax>\<open>let\<close> $ a $ absfree x b;
-fun let_tr' [a,Abs(id,T,b)] =
-  let val (id',b') = Syntax_Trans.variant_abs(id,T,b)
-  in Syntax.const \<^syntax_const>\<open>_let\<close> $ Free(id',T) $ a $ b' end;
 
 fun letrec_tr [Free f, Free x, a, b] =
   Syntax.const \<^const_syntax>\<open>letrec\<close> $ absfree x (absfree f a) $ absfree f b;
@@ -121,15 +112,13 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
 \<close>
 
 parse_translation \<open>
- [(\<^syntax_const>\<open>_let\<close>, K let_tr),
-  (\<^syntax_const>\<open>_letrec\<close>, K letrec_tr),
-  (\<^syntax_const>\<open>_letrec2\<close>, K letrec2_tr),
-  (\<^syntax_const>\<open>_letrec3\<close>, K letrec3_tr)]
+  [(\<^syntax_const>\<open>_letrec\<close>, K letrec_tr),
+   (\<^syntax_const>\<open>_letrec2\<close>, K letrec2_tr),
+   (\<^syntax_const>\<open>_letrec3\<close>, K letrec3_tr)]
 \<close>
 
 print_translation \<open>
- [(\<^const_syntax>\<open>let\<close>, K let_tr'),
-  (\<^const_syntax>\<open>letrec\<close>, K letrec_tr'),
+ [(\<^const_syntax>\<open>letrec\<close>, K letrec_tr'),
   (\<^const_syntax>\<open>letrec2\<close>, K letrec2_tr'),
   (\<^const_syntax>\<open>letrec3\<close>, K letrec3_tr')]
 \<close>
