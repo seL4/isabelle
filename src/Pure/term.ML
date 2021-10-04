@@ -165,6 +165,7 @@ sig
   val could_beta_contract: term -> bool
   val could_eta_contract: term -> bool
   val could_beta_eta_contract: term -> bool
+  val used_free: string -> term -> bool
   val dest_abs: string * typ * term -> string * term
   val dummy_pattern: typ -> term
   val dummy: term
