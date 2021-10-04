@@ -4,8 +4,8 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in Isabelle2021 (December 2021)
------------------------------------
+New in Isabelle2021-1 (December 2021)
+-------------------------------------
 
 *** General ***
 
@@ -190,13 +190,20 @@ min.absorb4, max.absorb1, max.absorb2, max.absorb3, max.absorb4. Minor
 INCOMPATIBILITY.
 
 * Sledgehammer:
- - Removed legacy "lam_lifting" (synonym for "lifting") from option
-   "lam_trans". Minor INCOMPATIBILITY.
- - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans". Minor
-   INCOMPATIBILITY.
- - Added "opaque_combs" to option "lam_trans": lambda expressions are
-   rewritten using combinators, but the combinators are kept opaque,
-   i.e. without definitions.
+  - Update of bundled provers:
+      E 2.6
+      Vampire 4.5.1 (with Open Source license)
+      veriT 2021.06-rmx
+      Zipperposition 2.1
+  - Adjusted default provers:
+      cvc4 vampire verit e spass z3 zipperposition
+  - Removed legacy "lam_lifting" (synonym for "lifting") from option
+    "lam_trans". Minor INCOMPATIBILITY.
+  - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans". Minor
+    INCOMPATIBILITY.
+  - Added "opaque_combs" to option "lam_trans": lambda expressions are
+    rewritten using combinators, but the combinators are kept opaque,
+    i.e. without definitions.
 
 * Metis: Renamed option "hide_lams" to "opaque_lifting". Minor
 INCOMPATIBILITY.
@@ -336,8 +343,11 @@ Silicon.
 The main Isabelle/ML interface is Isabelle_System.bash_process with
 result type Process_Result.T (resembling class Process_Result in Scala);
 derived operations Isabelle_System.bash and Isabelle_System.bash_output
-provide similar functionality as before. Rare INCOMPATIBILITY due to
-subtle semantic differences:
+provide similar functionality as before. The underlying TCP/IP server
+within Isabelle/Scala is available to other programming languages as
+well, notably Isabelle/Haskell.
+
+Rare INCOMPATIBILITY due to subtle semantic differences:
 
   - Processes invoked from Isabelle/ML actually run in the context of
     the Java VM of Isabelle/Scala. The settings environment and current
@@ -359,20 +369,19 @@ subtle semantic differences:
     like Isabelle_System.with_tmp_file to create a file name and
     File.read to retrieve its content.
 
-  - Just like any other Scala function invoked from ML,
-    Isabelle_System.bash_process requires a proper PIDE session context.
-    This could be a regular batch session (e.g. "isabelle build"), a
-    PIDE editor session (e.g. "isabelle jedit"), or headless PIDE (e.g.
-    "isabelle dump" or "isabelle server"). Note that old "isabelle
-    console" or raw "isabelle process" don't have that.
+  - The Isabelle/Scala "bash_process" server requires a PIDE session
+    context. This could be a regular batch session (e.g. "isabelle
+    build"), a PIDE editor session (e.g. "isabelle jedit"), or headless
+    PIDE (e.g. "isabelle dump" or "isabelle server"). Note that old
+    "isabelle console" or raw "isabelle process" don't have that.
 
 New Process_Result.timing works as in Isabelle/Scala, based on direct
 measurements of the bash_process wrapper in C: elapsed time is always
 available, CPU time is only available on Linux and macOS, GC time is
 unavailable.
 
-* Likewise, the following Isabelle/ML system operations are run in the
-context of Isabelle/Scala:
+* The following Isabelle/ML system operations are run in the context of
+Isabelle/Scala, within a PIDE session context:
 
   - Isabelle_System.make_directory
   - Isabelle_System.copy_dir
@@ -394,6 +403,8 @@ Isabelle2021:
 
 
 *** System ***
+
+* Update to OpenJDK 17: the current long-term support version of Java.
 
 * Each Isabelle component may specify a Scala/Java jar module
 declaratively via etc/build.props (file names are relative to the
