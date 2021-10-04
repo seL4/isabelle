@@ -533,8 +533,8 @@ val zipperposition_config : atp_config =
   in
     {exec = (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
      arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem => fn _ =>
-       ["--input tptp --output tptp --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^ File.bash_path problem
-        |> extra_options <> "" ? prefix (extra_options ^ " ")],
+       ["--input tptp", "--output tptp", "--timeout " ^ Time.toString timeout, extra_options,
+        File.bash_path problem],
      proof_delims = tstp_proof_delims,
      known_failures =
        [(TimedOut, "SZS status ResourceOut")] @   (* odd way of timing out *)
