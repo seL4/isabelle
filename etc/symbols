@@ -301,6 +301,7 @@
 \<preceq>               code: 0x00227c  group: relation
 \<succeq>               code: 0x00227d  group: relation
 \<parallel>             code: 0x002225  group: relation  abbrev: ||
+\<Parallel>             code: 0x002016  group: relation  abbrev: ||
 \<interleave>           code: 0x002af4  group: relation  abbrev: ||
 \<sslash>               code: 0x002afd  group: relation  abbrev: ||
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
