@@ -406,6 +406,12 @@ Isabelle2021:
 
 * Update to OpenJDK 17: the current long-term support version of Java.
 
+* Perl is no longer required by Isabelle proper, and longer provided by
+specific Isabelle execution environments (Docker, Cygwin on Windows).
+Minor INCOMPATIBILITY, add-on applications involving perl need to
+provide it by different means. (Note that proper Isabelle systems
+programming works via Scala/Java, without perl, python, ruby etc.).
+
 * Each Isabelle component may specify a Scala/Java jar module
 declaratively via etc/build.props (file names are relative to the
 component directory). E.g. see $ISABELLE_HOME/etc/build.props with
