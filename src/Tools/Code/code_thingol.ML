@@ -622,7 +622,7 @@ and translate_term ctxt algbr eqngr permissive some_thm (Const (c, ty), some_abs
       pair (IVar (SOME v))
   | translate_term ctxt algbr eqngr permissive some_thm (Abs (v, ty, t), some_abs) =
       let
-        val (v', t') = Syntax_Trans.variant_abs (Name.desymbolize (SOME false) v, ty, t);
+        val (v', t') = Term.dest_abs (Name.desymbolize (SOME false) v, ty, t);
         val v'' = if Term.used_free v' t' then SOME v' else NONE
       in
         translate_typ ctxt algbr eqngr permissive ty
