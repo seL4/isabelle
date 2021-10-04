@@ -88,30 +88,30 @@ print_translation \<open>
 
     fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
       let
-        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
-        val (_,a'') = Syntax_Trans.variant_abs'(f,S,a)
-        val (x',a') = Syntax_Trans.variant_abs'(x,T,a'')
+        val (f',b') = Syntax_Trans.print_abs(ff,SS,b)
+        val (_,a'') = Syntax_Trans.print_abs(f,S,a)
+        val (x',a') = Syntax_Trans.print_abs(x,T,a'')
       in
         Syntax.const \<^syntax_const>\<open>_letrec\<close> $ bound(f',SS) $ bound(x',T) $ a' $ b'
       end;
 
     fun letrec2_tr' [Abs(x,T,Abs(y,U,Abs(f,S,a))),Abs(ff,SS,b)] =
       let
-        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
-        val ( _,a1) = Syntax_Trans.variant_abs'(f,S,a)
-        val (y',a2) = Syntax_Trans.variant_abs'(y,U,a1)
-        val (x',a') = Syntax_Trans.variant_abs'(x,T,a2)
+        val (f',b') = Syntax_Trans.print_abs(ff,SS,b)
+        val ( _,a1) = Syntax_Trans.print_abs(f,S,a)
+        val (y',a2) = Syntax_Trans.print_abs(y,U,a1)
+        val (x',a') = Syntax_Trans.print_abs(x,T,a2)
       in
         Syntax.const \<^syntax_const>\<open>_letrec2\<close> $ bound(f',SS) $ bound(x',T) $ bound(y',U) $ a' $ b'
       end;
 
     fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
       let
-        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
-        val ( _,a1) = Syntax_Trans.variant_abs'(f,S,a)
-        val (z',a2) = Syntax_Trans.variant_abs'(z,V,a1)
-        val (y',a3) = Syntax_Trans.variant_abs'(y,U,a2)
-        val (x',a') = Syntax_Trans.variant_abs'(x,T,a3)
+        val (f',b') = Syntax_Trans.print_abs(ff,SS,b)
+        val ( _,a1) = Syntax_Trans.print_abs(f,S,a)
+        val (z',a2) = Syntax_Trans.print_abs(z,V,a1)
+        val (y',a3) = Syntax_Trans.print_abs(y,U,a2)
+        val (x',a') = Syntax_Trans.print_abs(x,T,a3)
       in
         Syntax.const \<^syntax_const>\<open>_letrec3\<close> $
           bound(f',SS) $ bound(x',T) $ bound(y',U) $ bound(z',V) $ a' $ b'
