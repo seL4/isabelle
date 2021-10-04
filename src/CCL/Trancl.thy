@@ -66,7 +66,6 @@ lemma compEpair: "\<lbrakk><a,c> : r O s; \<And>y. \<lbrakk><a,y>:s; <y,c>:r\<rb
 
 lemmas [intro] = compI idI
   and [elim] = compE idE
-  and [elim!] = pair_inject
 
 lemma comp_mono: "\<lbrakk>r'<=r; s'<=s\<rbrakk> \<Longrightarrow> (r' O s') <= (r O s)"
   by blast
@@ -202,8 +201,6 @@ lemma trans_trancl: "trans(r^+)"
   done
 
 lemma trancl_into_trancl2: "\<lbrakk><a,b> : r; <b,c> : r^+\<rbrakk> \<Longrightarrow> <a,c> : r^+"
-  apply (rule r_into_trancl [THEN trans_trancl [THEN transD]])
-   apply assumption+
-  done
+  by (rule r_into_trancl [THEN trans_trancl [THEN transD]])
 
 end

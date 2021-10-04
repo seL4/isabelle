@@ -159,38 +159,31 @@ lemma letB: "\<not> t=bot \<Longrightarrow> let x be t in f(x) = f(t)"
   apply (unfold let_def)
   apply (erule rev_mp)
   apply (rule_tac t = "t" in term_case)
-      apply (simp_all add: caseBtrue caseBfalse caseBpair caseBlam)
+      apply simp_all
   done
 
 lemma letBabot: "let x be bot in f(x) = bot"
-  apply (unfold let_def)
-  apply (rule caseBbot)
-  done
+  unfolding let_def by (rule caseBbot)
 
 lemma letBbbot: "let x be t in bot = bot"
   apply (unfold let_def)
   apply (rule_tac t = t in term_case)
       apply (rule caseBbot)
-     apply (simp_all add: caseBtrue caseBfalse caseBpair caseBlam)
+     apply simp_all
   done
 
 lemma applyB: "(lam x. b(x)) ` a = b(a)"
-  apply (unfold apply_def)
-  apply (simp add: caseBtrue caseBfalse caseBpair caseBlam)
-  done
+  by (simp add: apply_def)
 
 lemma applyBbot: "bot ` a = bot"
-  apply (unfold apply_def)
-  apply (rule caseBbot)
-  done
+  unfolding apply_def by (rule caseBbot)
 
 lemma fixB: "fix(f) = f(fix(f))"
   apply (unfold fix_def)
   apply (rule applyB [THEN ssubst], rule refl)
   done
 
-lemma letrecB:
-    "letrec g x be h(x,g) in g(a) = h(a,\<lambda>y. letrec g x be h(x,g) in g(y))"
+lemma letrecB: "letrec g x be h(x,g) in g(a) = h(a,\<lambda>y. letrec g x be h(x,g) in g(y))"
   apply (unfold letrec_def)
   apply (rule fixB [THEN ssubst], rule applyB [THEN ssubst], rule refl)
   done
@@ -199,8 +192,10 @@ lemmas rawBs = caseBs applyB applyBbot
 
 method_setup beta_rl = \<open>
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (CHANGED o
-      simp_tac (ctxt addsimps @{thms rawBs} setloop (fn _ => stac ctxt @{thm letrecB}))))
+    let val ctxt' = Context_Position.set_visible false ctxt in
+      SIMPLE_METHOD' (CHANGED o
+        simp_tac (ctxt' addsimps @{thms rawBs} setloop (fn _ => stac ctxt @{thm letrecB})))
+    end)
 \<close>
 
 lemma ifBtrue: "if true then t else u = t"
