@@ -315,7 +315,7 @@ object Isabelle_Cronjob
     List(
       List(Remote_Build("Linux A", "augsburg1",
           options = "-m32 -B -M1x2,2,4" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind -e ISABELLE_OCAML_SETUP=true" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_SMLNJ=sml" +
