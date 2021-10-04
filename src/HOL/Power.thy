@@ -810,6 +810,10 @@ next
     by (auto intro!: power2_le_imp_le [OF _ abs_ge_zero])
 qed
 
+lemma power2_le_iff_abs_le:
+  "y \<ge> 0 \<Longrightarrow> x\<^sup>2 \<le> y\<^sup>2 \<longleftrightarrow> \<bar>x\<bar> \<le> y"
+  by (metis abs_le_square_iff abs_of_nonneg)
+
 lemma abs_square_le_1:"x\<^sup>2 \<le> 1 \<longleftrightarrow> \<bar>x\<bar> \<le> 1"
   using abs_le_square_iff [of x 1] by simp
 
