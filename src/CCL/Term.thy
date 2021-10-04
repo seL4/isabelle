@@ -45,7 +45,6 @@ definition succ :: "i\<Rightarrow>i"
 definition ncase :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
   where "ncase(n,b,c) == when(n, \<lambda>x. b, \<lambda>y. c(y))"
 
-
 definition "let1" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
   where let_def: "let1(t, f) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
 
@@ -65,64 +64,64 @@ definition letrec3 :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rig
       \<lambda>g'. f(\<lambda>x y z. g'(<x,<y,z>>)))"
 
 syntax
-  "_letrec" :: "[id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ be _/ in _)" [0,0,0,60] 60)
-  "_letrec2" :: "[id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ be _/ in _)" [0,0,0,0,60] 60)
-  "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ _ be _/ in _)" [0,0,0,0,0,60] 60)
-
-ML \<open>
-(** Quantifier translations: variable binding **)
-
-(* FIXME does not handle "_idtdummy" *)
-(* FIXME should use Syntax_Trans.mark_bound, Syntax_Trans.variant_abs' *)
-
-fun letrec_tr [Free f, Free x, a, b] =
-  Syntax.const \<^const_syntax>\<open>letrec\<close> $ absfree x (absfree f a) $ absfree f b;
-fun letrec2_tr [Free f, Free x, Free y, a, b] =
-  Syntax.const \<^const_syntax>\<open>letrec2\<close> $ absfree x (absfree y (absfree f a)) $ absfree f b;
-fun letrec3_tr [Free f, Free x, Free y, Free z, a, b] =
-  Syntax.const \<^const_syntax>\<open>letrec3\<close> $
-    absfree x (absfree y (absfree z (absfree f a))) $ absfree f b;
-
-fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
-  let
-    val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
-    val (_,a'') = Syntax_Trans.variant_abs(f,S,a)
-    val (x',a') = Syntax_Trans.variant_abs(x,T,a'')
-  in Syntax.const \<^syntax_const>\<open>_letrec\<close> $ Free(f',SS) $ Free(x',T) $ a' $ b' end;
-
-fun letrec2_tr' [Abs(x,T,Abs(y,U,Abs(f,S,a))),Abs(ff,SS,b)] =
-  let
-    val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
-    val ( _,a1) = Syntax_Trans.variant_abs(f,S,a)
-    val (y',a2) = Syntax_Trans.variant_abs(y,U,a1)
-    val (x',a') = Syntax_Trans.variant_abs(x,T,a2)
-  in Syntax.const \<^syntax_const>\<open>_letrec2\<close> $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ a' $ b' end;
-
-fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
-  let
-    val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
-    val ( _,a1) = Syntax_Trans.variant_abs(f,S,a)
-    val (z',a2) = Syntax_Trans.variant_abs(z,V,a1)
-    val (y',a3) = Syntax_Trans.variant_abs(y,U,a2)
-    val (x',a') = Syntax_Trans.variant_abs(x,T,a3)
-  in
-    Syntax.const \<^syntax_const>\<open>_letrec3\<close> $
-      Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
-  end;
-\<close>
-
+  "_letrec" :: "[idt,idt,i,i]\<Rightarrow>i"  ("(3letrec _ _ be _/ in _)" [0,0,0,60] 60)
+  "_letrec2" :: "[idt,idt,idt,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ be _/ in _)" [0,0,0,0,60] 60)
+  "_letrec3" :: "[idt,idt,idt,idt,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ _ be _/ in _)" [0,0,0,0,0,60] 60)
 parse_translation \<open>
-  [(\<^syntax_const>\<open>_letrec\<close>, K letrec_tr),
-   (\<^syntax_const>\<open>_letrec2\<close>, K letrec2_tr),
-   (\<^syntax_const>\<open>_letrec3\<close>, K letrec3_tr)]
+  let
+    fun abs_tr t u = Syntax_Trans.abs_tr [t, u];
+    fun letrec_tr [f, x, a, b] =
+      Syntax.const \<^const_syntax>\<open>letrec\<close> $ abs_tr x (abs_tr f a) $ abs_tr f b;
+    fun letrec2_tr [f, x, y, a, b] =
+      Syntax.const \<^const_syntax>\<open>letrec2\<close> $ abs_tr x (abs_tr y (abs_tr f a)) $ abs_tr f b;
+    fun letrec3_tr [f, x, y, z, a, b] =
+      Syntax.const \<^const_syntax>\<open>letrec3\<close> $ abs_tr x (abs_tr y (abs_tr z (abs_tr f a))) $ abs_tr f b;
+  in
+    [(\<^syntax_const>\<open>_letrec\<close>, K letrec_tr),
+     (\<^syntax_const>\<open>_letrec2\<close>, K letrec2_tr),
+     (\<^syntax_const>\<open>_letrec3\<close>, K letrec3_tr)]
+  end
 \<close>
-
 print_translation \<open>
- [(\<^const_syntax>\<open>letrec\<close>, K letrec_tr'),
-  (\<^const_syntax>\<open>letrec2\<close>, K letrec2_tr'),
-  (\<^const_syntax>\<open>letrec3\<close>, K letrec3_tr')]
-\<close>
+  let
+    val bound = Syntax_Trans.mark_bound_abs;
 
+    fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
+      let
+        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
+        val (_,a'') = Syntax_Trans.variant_abs'(f,S,a)
+        val (x',a') = Syntax_Trans.variant_abs'(x,T,a'')
+      in
+        Syntax.const \<^syntax_const>\<open>_letrec\<close> $ bound(f',SS) $ bound(x',T) $ a' $ b'
+      end;
+
+    fun letrec2_tr' [Abs(x,T,Abs(y,U,Abs(f,S,a))),Abs(ff,SS,b)] =
+      let
+        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
+        val ( _,a1) = Syntax_Trans.variant_abs'(f,S,a)
+        val (y',a2) = Syntax_Trans.variant_abs'(y,U,a1)
+        val (x',a') = Syntax_Trans.variant_abs'(x,T,a2)
+      in
+        Syntax.const \<^syntax_const>\<open>_letrec2\<close> $ bound(f',SS) $ bound(x',T) $ bound(y',U) $ a' $ b'
+      end;
+
+    fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
+      let
+        val (f',b') = Syntax_Trans.variant_abs'(ff,SS,b)
+        val ( _,a1) = Syntax_Trans.variant_abs'(f,S,a)
+        val (z',a2) = Syntax_Trans.variant_abs'(z,V,a1)
+        val (y',a3) = Syntax_Trans.variant_abs'(y,U,a2)
+        val (x',a') = Syntax_Trans.variant_abs'(x,T,a3)
+      in
+        Syntax.const \<^syntax_const>\<open>_letrec3\<close> $
+          bound(f',SS) $ bound(x',T) $ bound(y',U) $ bound(z',V) $ a' $ b'
+      end;
+  in
+    [(\<^const_syntax>\<open>letrec\<close>, K letrec_tr'),
+     (\<^const_syntax>\<open>letrec2\<close>, K letrec2_tr'),
+     (\<^const_syntax>\<open>letrec3\<close>, K letrec3_tr')]
+  end
+\<close>
 
 definition nrec :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
   where "nrec(n,b,c) == letrec g x be ncase(x, b, \<lambda>y. c(y,g(y))) in g(n)"
