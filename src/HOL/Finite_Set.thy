@@ -373,6 +373,17 @@ lemma finite_vimageD: "finite (h -` F) \<Longrightarrow> surj h \<Longrightarrow
 lemma finite_vimage_iff: "bij h \<Longrightarrow> finite (h -` F) \<longleftrightarrow> finite F"
   unfolding bij_def by (auto elim: finite_vimageD finite_vimageI)
 
+lemma finite_inverse_image_gen:
+  assumes "finite A" "inj_on f D"
+  shows "finite {j\<in>D. f j \<in> A}"
+  using finite_vimage_IntI [OF assms]
+  by (simp add: Collect_conj_eq inf_commute vimage_def)
+
+lemma finite_inverse_image:
+  assumes "finite A" "inj f"
+  shows "finite {j. f j \<in> A}"
+  using finite_inverse_image_gen [OF assms] by simp
+
 lemma finite_Collect_bex [simp]:
   assumes "finite A"
   shows "finite {x. \<exists>y\<in>A. Q x y} \<longleftrightarrow> (\<forall>y\<in>A. finite {x. Q x y})"

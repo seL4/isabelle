@@ -110,6 +110,25 @@ lemma bij_betw_from_nat_into: "countable S \<Longrightarrow> infinite S \<Longri
   using to_nat_on_infinite[of S, unfolded bij_betw_def]
   by (auto cong: bij_betw_cong intro: bij_betw_inv_into to_nat_on_infinite)
 
+text \<open>
+  The sum/product over the enumeration of a finite set equals simply the sum/product over the set
+\<close>
+context comm_monoid_set
+begin
+
+lemma card_from_nat_into:
+  "F (\<lambda>i. h (from_nat_into A i)) {..<card A} = F h A"
+proof (cases "finite A")
+  case True
+  have "F (\<lambda>i. h (from_nat_into A i)) {..<card A} = F h (from_nat_into A ` {..<card A})"
+    by (metis True bij_betw_def bij_betw_from_nat_into_finite reindex_cong)
+  also have "... = F h A"
+    by (metis True bij_betw_def bij_betw_from_nat_into_finite)
+  finally show ?thesis .
+qed auto
+
+end
+
 lemma countable_as_injective_image:
   assumes "countable A" "infinite A"
   obtains f :: "nat \<Rightarrow> 'a" where "A = range f" "inj f"
