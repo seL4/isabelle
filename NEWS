@@ -30,6 +30,13 @@ slowdown. It can be disabled like this:
 See also the group "Z Notation" in the Symbols dockable of
 Isabelle/jEdit.
 
+* The Isabelle/Haskell library ($ISABELLE_HOME/src/Tools/Haskell) has
+been significantly improved. In particular, module Isabelle.Bytes
+provides type Bytes for light-weight byte strings (with optional UTF8
+interpretation), similar to type string in Isabelle/ML. Isabelle symbols
+now work uniformly in Isabelle/Haskell vs. Isabelle/ML vs.
+Isabelle/Scala/PIDE.
+
 
 *** Isar ***
 
