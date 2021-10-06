@@ -10,7 +10,7 @@ sig
   type state
   val init_toplevel: unit -> state
   val theory_toplevel: theory -> state
-  val get_prev_theory: generic_theory -> serial
+  val get_prev_theory: theory -> serial
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -148,7 +148,7 @@ fun init_toplevel () = State (node_presentation Toplevel, NONE);
 fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), NONE);
 
 val prev_theory = Config.declare_int ("prev_theory", Position.none) (K 0);
-fun get_prev_theory gthy = Config.get_global (Context.theory_of gthy) prev_theory;
+fun get_prev_theory thy = Config.get_global thy prev_theory;
 fun set_prev_theory (State (_, SOME prev_thy)) (Theory gthy) =
       let
         val put = Config.put_global prev_theory (Context.theory_identifier prev_thy);
