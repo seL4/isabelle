@@ -1000,7 +1000,7 @@ lemma tendsto_of_real_iff:
   unfolding tendsto_iff by simp
 
 lemma tendsto_add_const_iff:
-  "((\<lambda>x. c + f x :: 'a::real_normed_vector) \<longlongrightarrow> c + d) F \<longleftrightarrow> (f \<longlongrightarrow> d) F"
+  "((\<lambda>x. c + f x :: 'a::topological_group_add) \<longlongrightarrow> c + d) F \<longleftrightarrow> (f \<longlongrightarrow> d) F"
   using tendsto_add[OF tendsto_const[of c], of f d]
     and tendsto_add[OF tendsto_const[of "-c"], of "\<lambda>x. c + f x" "c + d"] by auto
 

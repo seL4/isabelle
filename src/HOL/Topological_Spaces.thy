@@ -788,6 +788,11 @@ lemma tendsto_bot [simp]: "(f \<longlongrightarrow> a) bot"
 lemma tendsto_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> ((\<lambda>x. f x) \<longlongrightarrow> l) net"
   by (rule topological_tendstoI) (auto elim: eventually_mono)
 
+(* Contributed by Dominique Unruh *)
+lemma tendsto_principal_singleton[simp]:
+  shows "(f \<longlongrightarrow> f x) (principal {x})"
+  unfolding tendsto_def eventually_principal by simp
+
 end
 
 lemma (in topological_space) filterlim_within_subset:
@@ -3437,7 +3442,6 @@ definition complete :: "'a set \<Rightarrow> bool"
     (\<forall>F \<le> principal S. F \<noteq> bot \<longrightarrow> cauchy_filter F \<longrightarrow> (\<exists>x\<in>S. F \<le> nhds x))"
 
 end
-
 
 subsubsection \<open>Uniformly continuous functions\<close>
 
