@@ -18,9 +18,7 @@ struct
 open Kodkod
 
 datatype sink = ToStdout | ToFile
-datatype availability =
-  Java |
-  JNI of int list
+datatype availability = Java | JNI of int list
 datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
@@ -35,8 +33,7 @@ val static_list =
   [("Lingeling_JNI", Internal (JNI [1, 5], Batch, ["Lingeling"])),
    ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
    ("CryptoMiniSat_JNI", Internal (JNI [1, 5], Batch, ["CryptoMiniSat"])),
-   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
-                           "UNSAT")),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "", "UNSAT")),
    ("MiniSat_JNI", Internal (JNI [], Incremental, ["MiniSat"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
@@ -77,21 +74,17 @@ fun dynamic_entry_for_external name dev home exec args markers =
 
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info incremental
-        (name, Internal (JNI from_version, mode, ss)) =
+  | dynamic_entry_for_info incremental (name, Internal (JNI from_version, mode, ss)) =
     if (incremental andalso mode = Batch) orelse
-       is_less (dict_ord int_ord (kodkodi_version (), from_version)) then
-      NONE
+       is_less (dict_ord int_ord (kodkodi_version (), from_version))
+    then NONE
     else
       let
-        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH"
-                        |> space_explode ":"
+        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH" |> space_explode ":"
       in
-        if exists (fn path => File.exists (Path.explode (path ^ "/")))
-                  lib_paths then
-          SOME (name, K ss)
-        else
-          NONE
+        if exists (fn path => File.exists (Path.explode (path ^ "/"))) lib_paths
+        then SOME (name, K ss)
+        else NONE
       end
   | dynamic_entry_for_info false (name, External (home, exec, args)) =
     dynamic_entry_for_external name ToStdout home exec args []
