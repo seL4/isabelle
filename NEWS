@@ -192,7 +192,7 @@ INCOMPATIBILITY.
 * Sledgehammer:
   - Update of bundled provers:
       E 2.6
-      Vampire 4.5.1 (with Open Source license)
+      Vampire 4.6 (with Open Source license)
       veriT 2021.06-rmx
       Zipperposition 2.1
   - Adjusted default provers:
