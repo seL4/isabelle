@@ -167,6 +167,20 @@ proof (intro ballI impI)
     by (intro disjointD[OF d]) auto
 qed
 
+lemma disjoint_family_on_iff_disjoint_image:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> A i \<noteq> {}"
+  shows "disjoint_family_on A I \<longleftrightarrow> disjoint (A ` I) \<and> inj_on A I"
+proof
+  assume "disjoint_family_on A I"
+  then show "disjoint (A ` I) \<and> inj_on A I"
+    by (metis (mono_tags, lifting) assms disjoint_family_onD disjoint_family_on_disjoint_image inf.idem inj_onI)
+qed (use disjoint_image_disjoint_family_on in metis)
+
+lemma card_UN_disjoint':
+  assumes "disjoint_family_on A I" "\<And>i. i \<in> I \<Longrightarrow> finite (A i)" "finite I"
+  shows "card (\<Union>i\<in>I. A i) = (\<Sum>i\<in>I. card (A i))"
+  using assms   by (simp add: card_UN_disjoint disjoint_family_on_def)
+
 lemma disjoint_UN:
   assumes F: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)" and *: "disjoint_family_on (\<lambda>i. \<Union>(F i)) I"
   shows "disjoint (\<Union>i\<in>I. F i)"
@@ -215,6 +229,25 @@ qed
 
 lemma disjoint_union: "disjoint C \<Longrightarrow> disjoint B \<Longrightarrow> \<Union>C \<inter> \<Union>B = {} \<Longrightarrow> disjoint (C \<union> B)"
   using disjoint_UN[of "{C, B}" "\<lambda>x. x"] by (auto simp add: disjoint_family_on_def)
+
+text \<open>
+  Sum/product of the union of a finite disjoint family
+\<close>
+context comm_monoid_set
+begin
+
+lemma UNION_disjoint_family:
+  assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
+    and "disjoint_family_on A I"
+  shows "F g (\<Union>(A ` I)) = F (\<lambda>x. F g (A x)) I"
+  using assms unfolding disjoint_family_on_def  by (rule UNION_disjoint)
+
+lemma Union_disjoint_sets:
+  assumes "\<forall>A\<in>C. finite A" and "disjoint C"
+  shows "F g (\<Union>C) = (F \<circ> F) g C"
+  using assms unfolding disjoint_def  by (rule Union_disjoint)
+
+end
 
 text \<open>
   The union of an infinite disjoint family of non-empty sets is infinite.
@@ -352,6 +385,11 @@ qed
 
 lemma finite_elements: "finite A \<Longrightarrow> partition_on A P \<Longrightarrow> finite P"
   using partition_onD1[of A P] by (simp add: finite_UnionD)
+
+lemma product_partition:
+  assumes "partition_on A P" and "\<And>p. p \<in> P \<Longrightarrow> finite p" 
+  shows "card A = (\<Sum>p\<in>P. card p)"
+  using assms unfolding partition_on_def  by (meson card_Union_disjoint)
 
 subsection \<open>Equivalence of partitions and equivalence classes\<close>
 

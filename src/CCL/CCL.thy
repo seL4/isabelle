@@ -232,15 +232,15 @@ lemma lem: "t=t' \<Longrightarrow> case(t,b,c,d,e) = case(t',b,c,d,e)"
 
 ML \<open>
 local
-  fun pairs_of f x [] = []
+  fun pairs_of _ _ [] = []
     | pairs_of f x (y::ys) = (f x y) :: (f y x) :: (pairs_of f x ys)
 
-  fun mk_combs ff [] = []
+  fun mk_combs _ [] = []
     | mk_combs ff (x::xs) = (pairs_of ff x xs) @ mk_combs ff xs
 
   (* Doesn't handle binder types correctly *)
   fun saturate thy sy name =
-       let fun arg_str 0 a s = s
+       let fun arg_str 0 _ s = s
          | arg_str 1 a s = "(" ^ a ^ "a" ^ s ^ ")"
          | arg_str n a s = arg_str (n-1) a ("," ^ a ^ (chr((ord "a")+n-1)) ^ s)
            val T = Sign.the_const_type thy (Sign.intern_const thy sy);

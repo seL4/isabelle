@@ -39,6 +39,7 @@ sig
   val theory_long_name: theory -> string
   val theory_name: theory -> string
   val theory_name': {long: bool} -> theory -> string
+  val theory_identifier: theory -> serial
   val PureN: string
   val pretty_thy: theory -> Pretty.T
   val pretty_abbrev_thy: theory -> Pretty.T
@@ -155,7 +156,6 @@ fun rep_theory (Theory args) = args;
 
 val theory_identity = #1 o rep_theory;
 val theory_id = #theory_id o theory_identity;
-
 val identity_of_id = #1 o rep_theory_id;
 val identity_of = identity_of_id o theory_id;
 val history_of_id = #2 o rep_theory_id;
@@ -173,6 +173,7 @@ val theory_id_name = Long_Name.base_name o theory_id_long_name;
 val theory_long_name = #name o history_of;
 val theory_name = Long_Name.base_name o theory_long_name;
 fun theory_name' {long} = if long then theory_long_name else theory_name;
+val theory_identifier = #id o identity_of_id o theory_id;
 
 val parents_of = #parents o ancestry_of;
 val ancestors_of = #ancestors o ancestry_of;

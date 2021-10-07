@@ -57,6 +57,7 @@ object Build_Fonts
         0x2013,  // dash
         0x2014,  // dash
         0x2015,  // dash
+        0x2016,  // big parallel
         0x2020,  // dagger
         0x2021,  // double dagger
         0x2022,  // bullet

@@ -38,8 +38,7 @@ sig
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs_tr': string -> string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs2_tr': string -> string -> string * (Proof.context -> term list -> term)
-  val variant_abs: string * typ * term -> string * term
-  val variant_abs': string * typ * term -> string * term
+  val print_abs: string * typ * term -> string * term
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
@@ -129,8 +128,7 @@ fun absfree_proper (x, T) t =
 
 fun abs_tr [Free x, t] = absfree_proper x t
   | abs_tr [Const ("_idtdummy", T), t] = absdummy T t
-  | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
-      Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
@@ -140,9 +138,7 @@ fun mk_binder_tr (syn, name) =
   let
     fun err ts = raise TERM ("binder_tr: " ^ syn, ts)
     fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
-      | binder_tr [x, t] =
-          let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
-          in Syntax.const name $ abs end
+      | binder_tr [x, t] = Syntax.const name $ (abs_tr [x, t] handle TERM _ => err [x, t])
       | binder_tr ts = err ts;
   in (syn, fn _ => binder_tr) end;
 
@@ -392,16 +388,13 @@ fun impl_ast_tr' asts =
 
 (* dependent / nondependent quantifiers *)
 
-fun var_abs mark (x, T, b) =
+fun print_abs (x, T, b) =
   let val (x', _) = Name.variant x (Term.declare_term_names b Name.context)
-  in (x', subst_bound (mark (x', T), b)) end;
-
-val variant_abs = var_abs Free;
-val variant_abs' = var_abs mark_bound_abs;
+  in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
-        let val (x', B') = variant_abs' (x, dummyT, B);
+        let val (x', B') = print_abs (x, dummyT, B);
         in Term.list_comb (Syntax.const q $ mark_bound_abs (x', T) $ A $ B', ts) end
       else Term.list_comb (Syntax.const r $ A $ incr_boundvars ~1 B, ts)
   | dependent_tr' _ _ = raise Match;

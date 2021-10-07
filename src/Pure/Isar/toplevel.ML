@@ -10,6 +10,7 @@ sig
   type state
   val init_toplevel: unit -> state
   val theory_toplevel: theory -> state
+  val get_prev_theory: theory -> serial
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -146,6 +147,14 @@ fun previous_theory_of (State (_, prev_thy)) = prev_thy;
 fun init_toplevel () = State (node_presentation Toplevel, NONE);
 fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), NONE);
 
+val prev_theory = Config.declare_int ("prev_theory", Position.none) (K 0);
+fun get_prev_theory thy = Config.get_global thy prev_theory;
+fun set_prev_theory (State (_, SOME prev_thy)) (Theory gthy) =
+      let
+        val put = Config.put_global prev_theory (Context.theory_identifier prev_thy);
+        val gthy' = gthy |> Context.mapping put (Local_Theory.raw_theory put);
+      in Theory gthy' end
+  | set_prev_theory _ node = node;
 
 fun level state =
   (case node_of state of
@@ -302,7 +311,7 @@ fun apply_tr int trans state =
       Runtime.controlled_execution (try generic_theory_of state)
         (fn () => (f int state; State (node_presentation node, previous_theory_of state))) ()
   | (Transaction _, Toplevel) => raise UNDEF
-  | (Transaction (f, g), node) => apply (fn x => f int x) g node
+  | (Transaction (f, g), node) => apply (fn x => f int x) g (set_prev_theory state node)
   | _ => raise UNDEF);
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)

@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2021-1
 -------------------------------
 
+* July .. September 2021: Makarius Wenzel
+  Significantly improved Isabelle/Haskell library.
+
 * July 2021: Florian Haftmann
   Further consolidation of bit operations and word types.
 

@@ -1560,6 +1560,20 @@ next
   then show ?case by (force intro: mult_strict_mono' prod_nonneg)
 qed
 
+lemma prod_le_power:
+  assumes A: "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> n" "card A \<le> k" and "n \<ge> 1"
+  shows "prod f A \<le> n ^ k"
+  using A
+proof (induction A arbitrary: k rule: infinite_finite_induct)
+  case (insert i A)
+  then obtain k' where k': "card A \<le> k'" "k = Suc k'"
+    using Suc_le_D by force
+  have "f i * prod f A \<le> n * n ^ k'"
+    using insert \<open>n \<ge> 1\<close> k' by (intro prod_nonneg mult_mono; force)
+  then show ?case 
+    by (auto simp: \<open>k = Suc k'\<close> insert.hyps)
+qed (use \<open>n \<ge> 1\<close> in auto)
+
 end
 
 lemma prod_mono2:

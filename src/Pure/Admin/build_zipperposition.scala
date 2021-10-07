@@ -22,7 +22,7 @@ object Build_Zipperposition
   {
     Isabelle_System.with_tmp_dir("build")(build_dir =>
     {
-      if (!Platform.is_windows) Isabelle_System.require_command("patchelf")
+      if (Platform.is_linux) Isabelle_System.require_command("patchelf")
 
 
       /* component */

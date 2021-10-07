@@ -4,10 +4,10 @@ bash_process-1.2.4-2
 bib2xhtml-20190409
 csdp-6.1.1
 cvc4-1.8
-e-2.6
+e-2.6-1
 flatlaf-1.6
 idea-icons-20210508
-isabelle_fonts-20210322
+isabelle_fonts-20211004
 isabelle_setup-20210922
 jdk-17+35
 jedit-20210802
@@ -24,8 +24,8 @@ spass-3.8ds-2
 sqlite-jdbc-3.36.0.3
 ssh-java-20190323
 stack-2.7.3
-vampire-4.5.1
-verit-2021.06-rmx
+vampire-4.6
+verit-2021.06-rmx-1
 xz-java-1.9
 z3-4.4.0pre-3
-zipperposition-2.1
+zipperposition-2.1-1

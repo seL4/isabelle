@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_vampire.scala
     Author:     Makarius
 
-Build Isabelle Vampire component from repository.
+Build Isabelle Vampire component from official download.
 */
 
 package isabelle
@@ -9,80 +9,92 @@ package isabelle
 
 object Build_Vampire
 {
-  val default_repository = "https://github.com/vprover/vampire.git"
-  val default_version1 = "4.5.1"
-  val default_version2 = "df87588848db"
+  val default_download_url = "https://github.com/vprover/vampire/archive/refs/tags/v4.6.tar.gz"
   val default_jobs = 1
 
-  def make_component_name(version: String): String = "vampire-" + version
+  def make_component_name(version: String): String =
+    "vampire-" + Library.try_unprefix("v", version).getOrElse(version)
 
 
   /* build Vampire */
 
   def build_vampire(
-    repository: String = default_repository,
-    version1: String = default_version1,
-    version2: String = default_version2,
+    download_url: String = default_download_url,
     jobs: Int = default_jobs,
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current): Unit =
   {
-    Isabelle_System.require_command("git")
     Isabelle_System.require_command("cmake")
 
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
-      /* component and platform */
+      /* component */
 
-      val component = proper_string(component_name) getOrElse make_component_name(version1)
+      val Archive_Name = """^.*?([^/]+)$""".r
+      val Version = """^v?([0-9.]+)\.tar.gz$""".r
+
+      val archive_name =
+        download_url match {
+          case Archive_Name(name) => name
+          case _ => error("Failed to determine source archive name from " + quote(download_url))
+        }
+
+      val version =
+        archive_name match {
+          case Version(version) => version
+          case _ => error("Failed to determine component version from " + quote(archive_name))
+        }
+
+      val component = proper_string(component_name) getOrElse make_component_name(version)
       val component_dir = Isabelle_System.new_directory(target_dir + Path.basic(component))
       progress.echo("Component " + component_dir)
+
+
+      /* platform */
 
       val platform_name =
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
           error("No 64bit platform")
+
       val platform_dir = Isabelle_System.make_directory(component_dir + Path.basic(platform_name))
 
 
-      /* clone repository */
+      /* download source */
 
-      progress.echo("Cloning repository " + repository)
-      progress.bash("git clone " + Bash.string(repository) + " vampire",
-        cwd = tmp_dir.file, echo = verbose).check
+      val archive_path = tmp_dir + Path.basic(archive_name)
+      Isabelle_System.download_file(download_url, archive_path, progress = progress)
 
-      val source_dir = tmp_dir + Path.explode("vampire")
+      Isabelle_System.bash("tar xzf " + File.bash_path(archive_path), cwd = tmp_dir.file).check
+      val source_name = File.get_dir(tmp_dir)
 
-      Isabelle_System.copy_file(source_dir + Path.explode("LICENCE"), component_dir)
+      Isabelle_System.bash(
+        "tar xzf " + archive_path + " && mv " + Bash.string(source_name) + " src",
+        cwd = component_dir.file).check
 
 
-      /* build versions */
+      /* build */
 
-      for { (rev, exe) <- List(version1 -> "vampire", version2 -> "vampire_polymorphic") } {
-        progress.echo("Building " + exe + " (rev " + rev + ")")
-        progress.bash("git checkout --quiet --detach " + Bash.string(rev),
-          cwd = source_dir.file, echo = verbose).check
+      progress.echo("Building Vampire for " + platform_name + " ...")
 
-        val build_dir = source_dir + Path.explode("build")
-        Isabelle_System.rm_tree(build_dir)
-        Isabelle_System.make_directory(build_dir)
+      val build_dir = tmp_dir + Path.basic(source_name)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENCE"), component_dir)
 
-        val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
-        val cmake_out =
-          progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" ..""",
-            cwd = build_dir.file, echo = verbose).check.out
+      val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
+      val cmake_out =
+        progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
+          cwd = build_dir.file, echo = verbose).check.out
 
-        val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
-        val binary =
-          split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
-            .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
+      val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
+      val binary =
+        split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
+          .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
 
-        progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
+      progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
 
-        Isabelle_System.copy_file(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
-          platform_dir + Path.basic(exe).platform_exe)
-      }
+      Isabelle_System.copy_file(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
+        platform_dir + Path.basic("vampire").platform_exe)
 
 
       /* settings */
@@ -94,26 +106,16 @@ object Build_Vampire
 VAMPIRE_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
 ISABELLE_VAMPIRE="$VAMPIRE_HOME/vampire"
-ISABELLE_VAMPIRE_POLYMORPHIC="$VAMPIRE_HOME/vampire_polymorphic"
 """)
 
 
       /* README */
 
       File.write(component_dir + Path.basic("README"),
-        "This Isabelle component provides two versions of Vampire from\n" + repository + """
+        "This Isabelle component provides Vampire " + version + """using the
+original sources from """.stripMargin + download_url + """
 
-  * vampire: standard version (regular stable release)
-  * vampire_polymorphic: special version for polymorphic FOL and HOL
-    (intermediate repository version)
-
-The executables have been built like this:
-
-    git checkout COMMIT
-    cmake .
-    make
-
-The precise commit id is revealed by executing "vampire --version".
+The executables have been built via "cmake . && make"
 
 
         Makarius
@@ -129,9 +131,7 @@ The precise commit id is revealed by executing "vampire --version".
     args =>
     {
       var target_dir = Path.current
-      var repository = default_repository
-      var version1 = default_version1
-      var version2 = default_version2
+      var download_url = default_download_url
       var jobs = default_jobs
       var component_name = ""
       var verbose = false
@@ -141,19 +141,16 @@ Usage: isabelle build_vampire [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -U URL       repository (default: """" + default_repository + """")
-    -V REV1      standard version (default: """" + default_version1 + """")
-    -W REV2      polymorphic version (default: """" + default_version2 + """")
+    -U URL       download URL
+                 (default: """" + default_download_url + """")
     -j NUMBER    parallel jobs for make (default: """ + default_jobs + """)
-    -n NAME      component name (default: """" + make_component_name("REV1") + """")
+    -n NAME      component name (default: """" + make_component_name("VERSION") + """")
     -v           verbose
 
   Build prover component from official download.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "U:" -> (arg => repository = arg),
-        "V:" -> (arg => version1 = arg),
-        "W:" -> (arg => version2 = arg),
+        "U:" -> (arg => download_url = arg),
         "j:" -> (arg => jobs = Value.Nat.parse(arg)),
         "n:" -> (arg => component_name = arg),
         "v" -> (_ => verbose = true))
@@ -163,8 +160,7 @@ Usage: isabelle build_vampire [OPTIONS]
 
       val progress = new Console_Progress()
 
-      build_vampire(repository = repository, version1 = version1, version2 = version2,
-        component_name = component_name, jobs = jobs, verbose = verbose, progress = progress,
-        target_dir = target_dir)
+      build_vampire(download_url = download_url, component_name = component_name,
+        jobs = jobs, verbose = verbose, progress = progress, target_dir = target_dir)
     })
 }

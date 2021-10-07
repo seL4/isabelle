@@ -15,7 +15,7 @@ object Build_Docker
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux\.tar\.gz$""".r
 
   val packages: List[String] =
-    List("curl", "less", "libfontconfig1", "libgomp1", "perl", "pwgen", "rlwrap", "unzip")
+    List("curl", "less", "libfontconfig1", "libgomp1", "pwgen", "rlwrap", "unzip")
 
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
