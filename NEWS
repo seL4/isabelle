@@ -144,6 +144,15 @@ targets and in any nested target built on top of a target supporting
 
 *** HOL ***
 
+* Theory "HOL-Analysis.Infinite_Sum": new theory for infinite sums with
+a more general definition than the existing theory Infinite_Set_Sum.
+(Infinite_Set_Sum contains theorems relating the two definitions.)
+
+* Theory "HOL-Analysis.Product_Vector": Instantiation of the product of
+uniform spaces as a uniform space. Minor INCOMPATIBILITY: the old
+definition "uniformity_prod_def" is available as a derived fact
+"uniformity_dist".
+
 * Theorems "antisym" and "eq_iff" in class "order" have been renamed to
 "order.antisym" and "order.eq_iff", to coexist locally with "antisym"
 and "eq_iff" from locale "ordering". INCOMPATIBILITY: significant
@@ -231,6 +240,9 @@ respectively. Minor INCOMPATIBILITY.
     sup_subset_mset_def ~> union_mset_def
     multiset_inter_count ~> count_inter_mset
     sup_subset_mset_count ~> count_union_mset
+
+* Theory "HOL-Library.Complex_Order": Defines less, less_eq on complex
+numbers. Not imported by default.
 
 * Theory "HOL-Library.Multiset": syntax precendence for membership
 operations has been adjusted to match the corresponding precendences on

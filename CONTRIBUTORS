@@ -16,6 +16,11 @@ Contributions to Isabelle2021-1
 * July .. September 2021: Jasmin Blanchette, Martin Desharnais
   Various improvements to Sledgehammer.
 
+* September 2021: Dominique Unruh
+  New theory of infinite sums (HOL-Analysis/Infinite_Sum), 
+  ordering of complex numbers (HOL-Library/Complex_Order),
+  and products of uniform spaces (in HOL-Analysis/Product_Vector).
+
 * July 2021: Florian Haftmann
   Further consolidation of bit operations and word types.
 

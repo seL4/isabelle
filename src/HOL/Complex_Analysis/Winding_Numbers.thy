@@ -529,7 +529,7 @@ lemma winding_number_pos_meets:
   fixes z::complex
   assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and 1: "Re (winding_number \<gamma> z) \<ge> 1"
       and w: "w \<noteq> z"
-  shows "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image \<gamma>"
+  shows "\<exists>a::real. 0 < a \<and> z + of_real a * (w - z) \<in> path_image \<gamma>"
 proof -
   have [simp]: "\<And>x. 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> \<gamma> x \<noteq> z"
     using z by (auto simp: path_image_def)
@@ -582,7 +582,7 @@ lemma winding_number_big_meets:
   fixes z::complex
   assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "\<bar>Re (winding_number \<gamma> z)\<bar> \<ge> 1"
       and w: "w \<noteq> z"
-  shows "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image \<gamma>"
+  shows "\<exists>a::real. 0 < a \<and> z + of_real a * (w - z) \<in> path_image \<gamma>"
 proof -
   { assume "Re (winding_number \<gamma> z) \<le> - 1"
     then have "Re (winding_number (reversepath \<gamma>) z) \<ge> 1"
@@ -591,7 +591,7 @@ proof -
       using \<gamma> valid_path_imp_reverse by auto
     moreover have "z \<notin> path_image (reversepath \<gamma>)"
       by (simp add: z)
-    ultimately have "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image (reversepath \<gamma>)"
+    ultimately have "\<exists>a::real. 0 < a \<and> z + of_real a * (w - z) \<in> path_image (reversepath \<gamma>)"
       using winding_number_pos_meets w by blast
     then have ?thesis
       by simp
@@ -605,7 +605,7 @@ lemma winding_number_less_1:
   fixes z::complex
   shows
   "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>; w \<noteq> z;
-    \<And>a::real. 0 < a \<Longrightarrow> z + a*(w - z) \<notin> path_image \<gamma>\<rbrakk>
+    \<And>a::real. 0 < a \<Longrightarrow> z + of_real a * (w - z) \<notin> path_image \<gamma>\<rbrakk>
    \<Longrightarrow> Re(winding_number \<gamma> z) < 1"
    by (auto simp: not_less dest: winding_number_big_meets)
 
@@ -1736,7 +1736,7 @@ proof -
   ultimately
   have pa_subset_pm_kde: "path_image ?q \<inter> closed_segment (a - kde) (a + kde) \<subseteq> {a - kde, a + kde}"
     by (auto simp: path_image_join assms)
-  have ge_kde1: "\<exists>y. x = a + y \<and> y \<ge> kde" if x: "x \<in> closed_segment (a + kde) (a + e)" for x
+  have ge_kde1: "\<exists>y. x = a + of_real y \<and> y \<ge> kde" if x: "x \<in> closed_segment (a + kde) (a + e)" for x
   proof -
     obtain u where "0 \<le> u" "u \<le> 1" and u: "x = (1 - u) *\<^sub>R (a + kde) + u *\<^sub>R (a + e)"
       using x by (auto simp: in_segment)
@@ -1747,7 +1747,7 @@ proof -
     ultimately
     show ?thesis by blast
   qed
-  have ge_kde2: "\<exists>y. x = a + y \<and> y \<le> -kde" if x: "x \<in> closed_segment (a - d) (a - kde)" for x
+  have ge_kde2: "\<exists>y. x = a + of_real y \<and> y \<le> -kde" if x: "x \<in> closed_segment (a - d) (a - kde)" for x
   proof -
     obtain u where "0 \<le> u" "u \<le> 1" and u: "x = (1 - u) *\<^sub>R (a - d) + u *\<^sub>R (a - kde)"
       using x by (auto simp: in_segment)

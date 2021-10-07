@@ -1,5 +1,6 @@
 (*  Title:      HOL/Analysis/Product_Vector.thy
     Author:     Brian Huffman
+                Dominique Unruh, University of Tartu
 *)
 
 section \<open>Cartesian Products as Vector Spaces\<close>
@@ -122,15 +123,149 @@ definition dist_prod_def[code del]:
 instance ..
 end
 
-instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) uniformity_dist
-begin
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniformity, uniformity) uniformity begin
 
-definition [code del]:
-  "(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) =
-    (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
+definition [code del]: \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
+        filtermap (\<lambda>((x1,x2),(y1,y2)). ((x1,y1),(x2,y2))) (uniformity \<times>\<^sub>F uniformity)\<close>
 
+instance..
+end
+
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniform_space, uniform_space) uniform_space begin
+instance 
+proof standard
+  fix U :: \<open>('a \<times> 'b) set\<close>
+  show \<open>open U \<longleftrightarrow> (\<forall>x\<in>U. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> U)\<close>
+  proof (intro iffI ballI)
+    fix x assume \<open>open U\<close> and \<open>x \<in> U\<close>
+    then obtain A B where \<open>open A\<close> \<open>open B\<close> \<open>x \<in> A\<times>B\<close> \<open>A\<times>B \<subseteq> U\<close>
+      by (metis open_prod_elim)
+    define UA where \<open>UA = (\<lambda>(x'::'a,y). x' = fst x \<longrightarrow> y \<in> A)\<close>
+    from \<open>open A\<close> \<open>x \<in> A\<times>B\<close>
+    have \<open>eventually UA uniformity\<close>
+      unfolding open_uniformity UA_def by auto
+    define UB where \<open>UB = (\<lambda>(x'::'b,y). x' = snd x \<longrightarrow> y \<in> B)\<close>
+    from \<open>open A\<close> \<open>open B\<close> \<open>x \<in> A\<times>B\<close>
+    have \<open>eventually UA uniformity\<close> \<open>eventually UB uniformity\<close>
+      unfolding open_uniformity UA_def UB_def by auto
+    then have \<open>\<forall>\<^sub>F ((x'1, y1), (x'2, y2)) in uniformity \<times>\<^sub>F uniformity. (x'1,x'2) = x \<longrightarrow> (y1,y2) \<in> U\<close>
+      apply (auto intro!: exI[of _ UA] exI[of _ UB] simp add: eventually_prod_filter)
+      using \<open>A\<times>B \<subseteq> U\<close> by (auto simp: UA_def UB_def)
+    then show \<open>\<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> U\<close>
+      by (simp add: uniformity_prod_def eventually_filtermap case_prod_unfold)
+  next
+    assume asm: \<open>\<forall>x\<in>U. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> U\<close>
+    show \<open>open U\<close>
+    proof (unfold open_prod_def, intro ballI)
+      fix x assume \<open>x \<in> U\<close>
+      with asm have \<open>\<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> U\<close>
+        by auto
+      then have \<open>\<forall>\<^sub>F ((x'1, y1), (x'2, y2)) in uniformity \<times>\<^sub>F uniformity. (x'1,x'2) = x \<longrightarrow> (y1,y2) \<in> U\<close>
+        by (simp add: uniformity_prod_def eventually_filtermap case_prod_unfold)
+      then obtain UA UB where \<open>eventually UA uniformity\<close> and \<open>eventually UB uniformity\<close>
+               and UA_UB_U: \<open>UA (a1, a2) \<Longrightarrow> UB (b1, b2) \<Longrightarrow> (a1, b1) = x \<Longrightarrow> (a2, b2) \<in> U\<close> for a1 a2 b1 b2
+        apply atomize_elim by (simp add: case_prod_beta eventually_prod_filter)
+      have \<open>eventually (\<lambda>a. UA (fst x, a)) (nhds (fst x))\<close>
+        using \<open>eventually UA uniformity\<close> eventually_mono eventually_nhds_uniformity by fastforce
+      then obtain A where \<open>open A\<close> and A_UA: \<open>A \<subseteq> {a. UA (fst x, a)}\<close> and \<open>fst x \<in> A\<close>
+        by (metis (mono_tags, lifting) eventually_nhds mem_Collect_eq subsetI)
+      have \<open>eventually (\<lambda>b. UB (snd x, b)) (nhds (snd x))\<close>
+        using \<open>eventually UB uniformity\<close> eventually_mono eventually_nhds_uniformity by fastforce
+      then obtain B where \<open>open B\<close> and B_UB: \<open>B \<subseteq> {b. UB (snd x, b)}\<close> and \<open>snd x \<in> B\<close>
+        by (metis (mono_tags, lifting) eventually_nhds mem_Collect_eq subsetI)
+      have \<open>x \<in> A \<times> B\<close>
+        by (simp add: \<open>fst x \<in> A\<close> \<open>snd x \<in> B\<close> mem_Times_iff)
+      have \<open>A \<times> B \<subseteq> U\<close>
+        using A_UA B_UB UA_UB_U by fastforce
+      show \<open>\<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> U\<close>
+        using \<open>A \<times> B \<subseteq> U\<close> \<open>open A\<close> \<open>open B\<close> \<open>x \<in> A \<times> B\<close> by auto
+    qed
+  qed
+next
+  show \<open>eventually E uniformity \<Longrightarrow> E (x, x)\<close> for E and x :: \<open>'a \<times> 'b\<close> 
+    apply (simp add: uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter)
+    by (metis surj_pair uniformity_refl)
+next
+  show \<open>eventually E uniformity \<Longrightarrow> \<forall>\<^sub>F (x::'a\<times>'b, y) in uniformity. E (y, x)\<close> for E
+    apply (simp only: uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter)
+    apply (erule exE, erule exE, rename_tac Pf Pg)
+    apply (rule_tac x=\<open>\<lambda>(x,y). Pf (y,x)\<close> in exI)
+    apply (rule_tac x=\<open>\<lambda>(x,y). Pg (y,x)\<close> in exI)
+    by (auto simp add: uniformity_sym)
+next
+  show \<open>\<exists>D. eventually D uniformity \<and> (\<forall>x y z. D (x::'a\<times>'b, y) \<longrightarrow> D (y, z) \<longrightarrow> E (x, z))\<close> 
+    if \<open>eventually E uniformity\<close> for E
+  proof -
+    from that
+    obtain EA EB where \<open>eventually EA uniformity\<close> and \<open>eventually EB uniformity\<close>
+               and EA_EB_E: \<open>EA (a1, a2) \<Longrightarrow> EB (b1, b2) \<Longrightarrow> E ((a1, b1), (a2, b2))\<close> for a1 a2 b1 b2
+      by (auto simp add: uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter)
+    obtain DA where \<open>eventually DA uniformity\<close> and DA_EA: \<open>DA (x,y) \<Longrightarrow> DA (y,z) \<Longrightarrow> EA (x,z)\<close> for x y z
+      using \<open>eventually EA uniformity\<close> uniformity_transE by blast
+    obtain DB where \<open>eventually DB uniformity\<close> and DB_EB: \<open>DB (x,y) \<Longrightarrow> DB (y,z) \<Longrightarrow> EB (x,z)\<close> for x y z
+      using \<open>eventually EB uniformity\<close> uniformity_transE by blast
+    define D where \<open>D = (\<lambda>((a1,b1),(a2,b2)). DA (a1,a2) \<and> DB (b1,b2))\<close>
+    have \<open>eventually D uniformity\<close>
+      using \<open>eventually DA uniformity\<close> \<open>eventually DB uniformity\<close>
+      by (auto simp add: uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter D_def)
+    moreover have \<open>D ((a1, b1), (a2, b2)) \<Longrightarrow> D ((a2, b2), (a3, b3)) \<Longrightarrow> E ((a1, b1), (a3, b3))\<close> for a1 b1 a2 b2 a3 b3
+      using DA_EA DB_EB D_def EA_EB_E by blast
+    ultimately show ?thesis
+      by auto
+  qed
+qed
+end
+
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) uniformity_dist begin
 instance
-  by standard (rule uniformity_prod_def)
+proof
+  show \<open>uniformity = (INF e\<in>{0 <..}. principal {(x::'a\<times>'b, y). dist x y < e})\<close>
+  proof (subst filter_eq_iff, intro allI iffI)
+    fix P :: \<open>('a \<times> 'b) \<times> ('a \<times> 'b) \<Rightarrow> bool\<close>
+
+    have 1: \<open>\<exists>e\<in>{0<..}.
+              {(x,y). dist x y < e} \<subseteq> {(x,y). dist x y < a} \<and>
+              {(x,y). dist x y < e} \<subseteq> {(x,y). dist x y < b}\<close> if \<open>a>0\<close> \<open>b>0\<close> for a b
+      apply (rule bexI[of _ \<open>min a b\<close>])
+      using that by auto
+    have 2: \<open>mono (\<lambda>P. eventually (\<lambda>x. P (Q x)) F)\<close> for F :: \<open>'z filter\<close> and Q :: \<open>'z \<Rightarrow> 'y\<close>
+      unfolding mono_def using eventually_mono le_funD by fastforce
+    have \<open>\<forall>\<^sub>F ((x1::'a,y1),(x2::'b,y2)) in uniformity \<times>\<^sub>F uniformity. dist x1 y1 < e/2 \<and> dist x2 y2 < e/2\<close> if \<open>e>0\<close> for e
+      by (auto intro!: eventually_prodI exI[of _ \<open>e/2\<close>] simp: case_prod_unfold eventually_uniformity_metric that)
+    then have 3: \<open>\<forall>\<^sub>F ((x1::'a,y1),(x2::'b,y2)) in uniformity \<times>\<^sub>F uniformity. dist (x1,x2) (y1,y2) < e\<close> if \<open>e>0\<close> for e
+      apply (rule eventually_rev_mp)
+      by (auto intro!: that eventuallyI simp: case_prod_unfold dist_prod_def sqrt_sum_squares_half_less)
+    show \<open>eventually P (INF e\<in>{0<..}. principal {(x, y). dist x y < e}) \<Longrightarrow> eventually P uniformity\<close>
+      apply (subst (asm) eventually_INF_base)
+      using 1 3 apply (auto simp: uniformity_prod_def case_prod_unfold eventually_filtermap 2 eventually_principal)
+      by (smt (verit, best) eventually_mono)
+  next
+    fix P :: \<open>('a \<times> 'b) \<times> ('a \<times> 'b) \<Rightarrow> bool\<close>
+    assume \<open>eventually P uniformity\<close>
+    then obtain P1 P2 where \<open>eventually P1 uniformity\<close> \<open>eventually P2 uniformity\<close>
+      and P1P2P: \<open>P1 (x1, y1) \<Longrightarrow> P2 (x2, y2) \<Longrightarrow> P ((x1, x2), (y1, y2))\<close> for x1 y1 x2 y2
+      by (auto simp: eventually_filtermap case_prod_beta eventually_prod_filter uniformity_prod_def)
+    from \<open>eventually P1 uniformity\<close> obtain e1 where \<open>e1>0\<close> and e1P1: \<open>dist x y < e1 \<Longrightarrow> P1 (x,y)\<close> for x y
+      using eventually_uniformity_metric by blast
+    from \<open>eventually P2 uniformity\<close> obtain e2 where \<open>e2>0\<close> and e2P2: \<open>dist x y < e2 \<Longrightarrow> P2 (x,y)\<close> for x y
+      using eventually_uniformity_metric by blast
+    define e where \<open>e = min e1 e2\<close>
+    have \<open>e > 0\<close>
+      using \<open>0 < e1\<close> \<open>0 < e2\<close> e_def by auto
+    have \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> dist x1 y1 < e1\<close> for x1 y1 :: 'a and x2 y2 :: 'b
+      unfolding dist_prod_def e_def apply auto
+      by (smt (verit, best) real_sqrt_sum_squares_ge1)
+    moreover have \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> dist x2 y2 < e2\<close> for x1 y1 :: 'a and x2 y2 :: 'b
+      unfolding dist_prod_def e_def apply auto
+      by (smt (verit, best) real_sqrt_sum_squares_ge1)
+    ultimately have *: \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> P ((x1, x2), (y1, y2))\<close> for x1 y1 x2 y2
+      using e1P1 e2P2 P1P2P by auto
+
+    show \<open>eventually P (INF e\<in>{0<..}. principal {(x, y). dist x y < e})\<close>
+       apply (rule eventually_INF1[where i=e])
+      using \<open>e > 0\<close> * by (auto simp: eventually_principal)
+  qed
+qed
 end
 
 declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_space", code]
@@ -221,24 +356,21 @@ next
       ultimately show "\<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S" by fast
     qed
   qed
-  show "open S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
-    unfolding * eventually_uniformity_metric
-    by (simp del: split_paired_All add: dist_prod_def dist_commute)
 qed
 
 end
 
 declare [[code abort: "dist::('a::metric_space*'b::metric_space)\<Rightarrow>('a*'b) \<Rightarrow> real"]]
 
-lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
+lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n :: 'a::metric_space \<times> 'b::metric_space))"
   unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
 
-lemma Cauchy_snd: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. snd (X n))"
+lemma Cauchy_snd: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. snd (X n :: 'a::metric_space \<times> 'b::metric_space))"
   unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_snd_le])
 
 lemma Cauchy_Pair:
   assumes "Cauchy X" and "Cauchy Y"
-  shows "Cauchy (\<lambda>n. (X n, Y n))"
+  shows "Cauchy (\<lambda>n. (X n :: 'a::metric_space, Y n :: 'a::metric_space))"
 proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
   hence "0 < r / sqrt 2" (is "0 < ?s") by simp
@@ -249,6 +381,56 @@ proof (rule metric_CauchyI)
   have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
     using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
   then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
+qed
+
+text \<open>Analogue to @{thm [source] uniformly_continuous_on_def} for two-argument functions.\<close>
+lemma uniformly_continuous_on_prod_metric:
+  fixes f :: \<open>('a::metric_space \<times> 'b::metric_space) \<Rightarrow> 'c::metric_space\<close>
+  shows \<open>uniformly_continuous_on (S\<times>T) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>S. \<forall>x'\<in>T. \<forall>y'\<in>T. dist x y < d \<longrightarrow> dist x' y' < d \<longrightarrow> dist (f (x, x')) (f (y, y')) < e)\<close>
+proof (unfold uniformly_continuous_on_def, intro iffI impI allI)
+  fix e :: real 
+  assume \<open>e > 0\<close> and \<open>\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>S. \<forall>x'\<in>T. \<forall>y'\<in>T. dist x y < d \<longrightarrow> dist x' y' < d \<longrightarrow> dist (f (x, x')) (f (y, y')) < e\<close>
+  then obtain d where \<open>d > 0\<close>
+    and d: \<open>\<forall>x\<in>S. \<forall>y\<in>S. \<forall>x'\<in>T. \<forall>y'\<in>T. dist x y < d \<longrightarrow> dist x' y' < d \<longrightarrow> dist (f (x, x')) (f (y, y')) < e\<close>
+    by auto
+  show \<open>\<exists>d>0. \<forall>x\<in>S\<times>T. \<forall>y\<in>S\<times>T. dist y x < d \<longrightarrow> dist (f y) (f x) < e\<close>
+    apply (rule exI[of _ d])
+    using \<open>d>0\<close> d[rule_format] apply auto
+    by (smt (verit, del_insts) dist_fst_le dist_snd_le fst_conv snd_conv)
+next
+  fix e :: real 
+  assume \<open>e > 0\<close> and \<open>\<forall>e>0. \<exists>d>0. \<forall>x\<in>S\<times>T. \<forall>x'\<in>S\<times>T. dist x' x < d \<longrightarrow> dist (f x') (f x) < e\<close>
+  then obtain d where \<open>d > 0\<close> and d: \<open>\<forall>x\<in>S\<times>T. \<forall>x'\<in>S\<times>T. dist x' x < d \<longrightarrow> dist (f x') (f x) < e\<close>
+    by auto
+  show \<open>\<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>S. \<forall>x'\<in>T. \<forall>y'\<in>T. dist x y < d \<longrightarrow> dist x' y' < d \<longrightarrow> dist (f (x, x')) (f (y, y')) < e\<close>
+  proof (intro exI conjI impI ballI)
+    from \<open>d > 0\<close> show \<open>d / 2 > 0\<close> by auto
+    fix x y x' y'
+    assume [simp]: \<open>x \<in> S\<close> \<open>y \<in> S\<close> \<open>x' \<in> T\<close> \<open>y' \<in> T\<close>
+    assume \<open>dist x y < d / 2\<close> and \<open>dist x' y' < d / 2\<close>
+    then have \<open>dist (x, x') (y, y') < d\<close>
+      by (simp add: dist_Pair_Pair sqrt_sum_squares_half_less)
+    with d show \<open>dist (f (x, x')) (f (y, y')) < e\<close>
+      by auto
+  qed
+qed
+
+text \<open>Analogue to @{thm [source] isUCont_def} for two-argument functions.\<close>
+lemma isUCont_prod_metric:
+  fixes f :: \<open>('a::metric_space \<times> 'b::metric_space) \<Rightarrow> 'c::metric_space\<close>
+  shows \<open>isUCont f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x. \<forall>y. \<forall>x'. \<forall>y'. dist x y < d \<longrightarrow> dist x' y' < d \<longrightarrow> dist (f (x, x')) (f (y, y')) < e)\<close>
+  using uniformly_continuous_on_prod_metric[of UNIV UNIV]
+  by auto
+
+text \<open>This logically belong with the real vector spaces by we only have the necessary lemmas now.\<close>
+lemma isUCont_plus[simp]:
+  shows \<open>isUCont (\<lambda>(x::'a::real_normed_vector,y). x+y)\<close>
+proof (rule isUCont_prod_metric[THEN iffD2], intro allI impI, simp)
+  fix e :: real assume \<open>0 < e\<close>
+  show \<open>\<exists>d>0. \<forall>x y :: 'a. dist x y < d \<longrightarrow> (\<forall>x' y'. dist x' y' < d \<longrightarrow> dist (x + x') (y + y') < e)\<close>
+    apply (rule exI[of _ \<open>e/2\<close>])
+    using \<open>0 < e\<close> apply auto
+    by (smt (verit, ccfv_SIG) dist_add_cancel dist_add_cancel2 dist_commute dist_triangle_lt)
 qed
 
 subsection \<open>Product is a Complete Metric Space\<close>

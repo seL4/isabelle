@@ -34,6 +34,7 @@ theory Analysis
   Product_Topology
   Lindelof_Spaces
   Infinite_Products
+  Infinite_Sum
   Infinite_Set_Sum
   Polytope
   Jordan_Curve

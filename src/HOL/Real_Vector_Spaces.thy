@@ -1781,6 +1781,38 @@ proof (safe intro!: INF_eq)
     by auto
 qed (auto intro!: exI[of _ "{y. dist x y < e}" for e] open_ball simp: dist_commute)
 
+(* Contributed by Dominique Unruh *)
+lemma tendsto_iff_uniformity:
+    \<comment> \<open>More general analogus of \<open>tendsto_iff\<close> below. Applies to all uniform spaces, not just metric ones.\<close>
+  fixes l :: \<open>'b :: uniform_space\<close>
+  shows \<open>(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>E. eventually E uniformity \<longrightarrow> (\<forall>\<^sub>F x in F. E (f x, l)))\<close>
+proof (intro iffI allI impI)
+  fix E :: \<open>('b \<times> 'b) \<Rightarrow> bool\<close>
+  assume \<open>(f \<longlongrightarrow> l) F\<close> and \<open>eventually E uniformity\<close>
+  from \<open>eventually E uniformity\<close>
+  have \<open>eventually (\<lambda>(x, y). E (y, x)) uniformity\<close>
+    by (simp add: uniformity_sym)
+  then have \<open>\<forall>\<^sub>F (y, x) in uniformity. y = l \<longrightarrow> E (x, y)\<close>
+    using eventually_mono by fastforce
+  with \<open>(f \<longlongrightarrow> l) F\<close> have \<open>eventually (\<lambda>x. E (x ,l)) (filtermap f F)\<close>
+    by (simp add: filterlim_def le_filter_def eventually_nhds_uniformity)
+  then show \<open>\<forall>\<^sub>F x in F. E (f x, l)\<close>
+    by (simp add: eventually_filtermap)
+next
+  assume assm: \<open>\<forall>E. eventually E uniformity \<longrightarrow> (\<forall>\<^sub>F x in F. E (f x, l))\<close>
+  have \<open>eventually P (filtermap f F)\<close> if \<open>\<forall>\<^sub>F (x, y) in uniformity. x = l \<longrightarrow> P y\<close> for P
+  proof -
+    from that have \<open>\<forall>\<^sub>F (y, x) in uniformity. x = l \<longrightarrow> P y\<close> 
+      using uniformity_sym[where E=\<open>\<lambda>(x,y). x=l \<longrightarrow> P y\<close>] by auto
+    with assm have \<open>\<forall>\<^sub>F x in F. P (f x)\<close>
+      by auto
+    then show ?thesis
+      by (auto simp: eventually_filtermap)
+  qed
+  then show \<open>(f \<longlongrightarrow> l) F\<close>
+    by (simp add: filterlim_def le_filter_def eventually_nhds_uniformity)
+qed
+
 lemma (in metric_space) tendsto_iff: "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   unfolding nhds_metric filterlim_INF filterlim_principal by auto
 
@@ -2185,6 +2217,52 @@ lemma (in metric_space) totally_bounded_metric:
     done
   done
 
+
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>dist\<close>, SOME \<^typ>\<open>'a::dist \<Rightarrow> 'a \<Rightarrow> real\<close>)\<close>
+
+(* Contributed by Dominique Unruh *)
+lemma cauchy_filter_metric:
+  fixes F :: "'a::{uniformity_dist,uniform_space} filter"
+  shows "cauchy_filter F \<longleftrightarrow> (\<forall>e. e>0 \<longrightarrow> (\<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist x y < e)))"
+proof (unfold cauchy_filter_def le_filter_def, auto)
+  assume assm: \<open>\<forall>e>0. \<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist x y < e)\<close>
+  then show \<open>eventually P uniformity \<Longrightarrow> eventually P (F \<times>\<^sub>F F)\<close> for P
+    apply (auto simp: eventually_uniformity_metric)
+    using eventually_prod_same by blast
+next
+  fix e :: real
+  assume \<open>e > 0\<close>
+  assume asm: \<open>\<forall>P. eventually P uniformity \<longrightarrow> eventually P (F \<times>\<^sub>F F)\<close>
+
+  define P where \<open>P \<equiv> \<lambda>(x,y :: 'a). dist x y < e\<close>
+  with asm \<open>e > 0\<close> have \<open>eventually P (F \<times>\<^sub>F F)\<close>
+    by (metis case_prod_conv eventually_uniformity_metric)
+  then
+  show \<open>\<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist x y < e)\<close>
+    by (auto simp add: eventually_prod_same P_def)
+qed
+
+(* Contributed by Dominique Unruh *)
+lemma cauchy_filter_metric_filtermap:
+  fixes f :: "'a \<Rightarrow> 'b::{uniformity_dist,uniform_space}"
+  shows "cauchy_filter (filtermap f F) \<longleftrightarrow> (\<forall>e. e>0 \<longrightarrow> (\<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist (f x) (f y) < e)))"
+proof (subst cauchy_filter_metric, intro iffI allI impI)
+  assume \<open>\<forall>e>0. \<exists>P. eventually P (filtermap f F) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist x y < e)\<close>
+  then show \<open>e>0 \<Longrightarrow> \<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist (f x) (f y) < e)\<close> for e
+    unfolding eventually_filtermap by blast
+next
+  assume asm: \<open>\<forall>e>0. \<exists>P. eventually P F \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist (f x) (f y) < e)\<close>
+  fix e::real assume \<open>e > 0\<close>
+  then obtain P where \<open>eventually P F\<close> and PPe: \<open>P x \<and> P y \<longrightarrow> dist (f x) (f y) < e\<close> for x y
+    using asm by blast
+
+  show \<open>\<exists>P. eventually P (filtermap f F) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist x y < e)\<close>
+    apply (rule exI[of _ \<open>\<lambda>x. \<exists>y. P y \<and> x = f y\<close>])
+    using PPe \<open>eventually P F\<close> apply (auto simp: eventually_filtermap)
+    by (smt (verit, ccfv_SIG) eventually_elim2)
+qed
+
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>dist\<close>, SOME \<^typ>\<open>'a::metric_space \<Rightarrow> 'a \<Rightarrow> real\<close>)\<close>
 
 subsubsection \<open>Cauchy Sequences are Convergent\<close>
 

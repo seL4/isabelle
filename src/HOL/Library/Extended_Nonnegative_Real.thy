@@ -1173,6 +1173,17 @@ qed
 lemma ennreal_of_enat_eSuc[simp]: "ennreal_of_enat (eSuc x) = 1 + ennreal_of_enat x"
   by (cases x) (auto simp: eSuc_enat)
 
+(* Contributed by Dominique Unruh *)
+lemma ennreal_of_enat_plus[simp]: \<open>ennreal_of_enat (a+b) = ennreal_of_enat a + ennreal_of_enat b\<close>
+  apply (induction a)
+  apply auto
+  by (smt (z3) add.commute add.right_neutral enat.exhaust enat.simps(4) enat.simps(5) ennreal_add_left_cancel ennreal_of_enat_def infinity_ennreal_def of_nat_add of_nat_eq_enat plus_enat_simps(2))
+
+(* Contributed by Dominique Unruh *)
+lemma sum_ennreal_of_enat[simp]: "(\<Sum>i\<in>I. ennreal_of_enat (f i)) = ennreal_of_enat (sum f I)"
+  apply (induction I rule: infinite_finite_induct) 
+  by (auto simp: sum_nonneg)
+
 subsection \<open>Topology on \<^typ>\<open>ennreal\<close>\<close>
 
 lemma enn2ereal_Iio: "enn2ereal -` {..<a} = (if 0 \<le> a then {..< e2ennreal a} else {})"
@@ -1656,6 +1667,60 @@ lemma ennreal_SUP_const_minus:
   apply (subst INF_ereal_minus_right[symmetric])
   apply (auto simp del: sup_ereal_def simp add: sup_INF)
   done
+
+(* Contributed by Dominique Unruh *)
+lemma isCont_ennreal[simp]: \<open>isCont ennreal x\<close>
+  apply (auto intro!: sequentially_imp_eventually_within simp: continuous_within tendsto_def)
+  by (metis tendsto_def tendsto_ennrealI)
+
+(* Contributed by Dominique Unruh *)
+lemma isCont_ennreal_of_enat[simp]: \<open>isCont ennreal_of_enat x\<close>
+proof -
+  have continuous_at_open:
+    \<comment> \<open>Copied lemma from \<^session>\<open>HOL-Analysis\<close> to avoid dependency.\<close>
+      "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))" for f :: \<open>enat \<Rightarrow> 'z::topological_space\<close>
+    unfolding continuous_within_topological [of x UNIV f]
+    unfolding imp_conjL
+    by (intro all_cong imp_cong ex_cong conj_cong refl) auto
+  show ?thesis
+  proof (subst continuous_at_open, intro allI impI, cases \<open>x = \<infinity>\<close>)
+    case True
+
+    fix t assume \<open>open t \<and> ennreal_of_enat x \<in> t\<close>
+    then have \<open>\<exists>y<\<infinity>. {y <.. \<infinity>} \<subseteq> t\<close>
+      apply (rule_tac open_left[where y=0])
+      by (auto simp: True)
+    then obtain y where \<open>{y<..} \<subseteq> t\<close> and \<open>y \<noteq> \<infinity>\<close>
+      apply atomize_elim
+      apply (auto simp: greaterThanAtMost_def)
+      by (metis atMost_iff inf.orderE subsetI top.not_eq_extremum top_greatest)
+
+    from \<open>y \<noteq> \<infinity>\<close>
+    obtain x' where x'y: \<open>ennreal_of_enat x' > y\<close> and \<open>x' \<noteq> \<infinity>\<close>
+      by (metis enat.simps(3) ennreal_Ex_less_of_nat ennreal_of_enat_enat infinity_ennreal_def top.not_eq_extremum)
+    define s where \<open>s = {x'<..}\<close>
+    have \<open>open s\<close>
+      by (simp add: s_def)
+    moreover have \<open>x \<in> s\<close>
+      by (simp add: \<open>x' \<noteq> \<infinity>\<close> s_def True)
+    moreover have \<open>ennreal_of_enat z \<in> t\<close> if \<open>z \<in> s\<close> for z
+      by (metis x'y \<open>{y<..} \<subseteq> t\<close> ennreal_of_enat_le_iff greaterThan_iff le_less_trans less_imp_le not_less s_def subsetD that)
+    ultimately show \<open>\<exists>s. open s \<and> x \<in> s \<and> (\<forall>z\<in>s. ennreal_of_enat z \<in> t)\<close>
+      by auto
+  next
+    case False
+    fix t assume asm: \<open>open t \<and> ennreal_of_enat x \<in> t\<close>
+    define s where \<open>s = {x}\<close>
+    have \<open>open s\<close>
+      using False open_enat_iff s_def by blast
+    moreover have \<open>x \<in> s\<close>
+      using s_def by auto
+    moreover have \<open>ennreal_of_enat z \<in> t\<close> if \<open>z \<in> s\<close> for z
+      using asm s_def that by blast
+    ultimately show \<open>\<exists>s. open s \<and> x \<in> s \<and> (\<forall>z\<in>s. ennreal_of_enat z \<in> t)\<close>
+      by auto
+  qed
+qed
 
 subsection \<open>Approximation lemmas\<close>
 
