@@ -127,8 +127,8 @@ The executables have been built via "cmake . && make"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vampire", "build prover component from repository", Scala_Project.here,
-    args =>
+    Isabelle_Tool("build_vampire", "build prover component from official download",
+    Scala_Project.here, args =>
     {
       var target_dir = Path.current
       var download_url = default_download_url
