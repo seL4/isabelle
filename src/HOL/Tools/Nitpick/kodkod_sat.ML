@@ -51,22 +51,19 @@ val static_list =
 
 fun dynamic_entry_for_external name dev home exec args markers =
   let
-    fun make_args dir () =
+    fun make_args () =
       let
         val serial_str = serial_string ()
         val base = name ^ serial_str
         val out_file = base ^ ".out"
-        val dir_sep =
-          if String.isSubstring "\\" dir andalso not (String.isSubstring "/" dir)
-          then "\\" else "/"
+        val exe = Path.variable home + Path.platform_exe (Path.basic exec)
       in
-       [if null markers then "External" else "ExternalV2",
-        dir ^ dir_sep ^ exec, base ^ ".cnf"] @
-        (if null markers then []
-         else [if dev = ToFile then out_file else ""]) @ markers @
+       [if null markers then "External" else "ExternalV2"] @
+       [File.platform_path exe, base ^ ".cnf"] @
+       (if null markers then [] else [if dev = ToFile then out_file else ""]) @ markers @
        (if dev = ToFile then [out_file] else []) @ args
       end
-  in case getenv home of "" => NONE | dir => SOME (name, make_args dir) end
+  in if getenv home = "" then NONE else SOME (name, make_args) end
 
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
