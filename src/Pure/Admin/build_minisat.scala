@@ -1,33 +1,28 @@
-/*  Title:      Pure/Admin/build_vampire.scala
+/*  Title:      Pure/Admin/build_minisat.scala
     Author:     Makarius
 
-Build Isabelle Vampire component from official download.
+Build Isabelle Minisat from sources.
 */
 
 package isabelle
 
 
-object Build_Vampire
+object Build_Minisat
 {
-  val default_download_url = "https://github.com/vprover/vampire/archive/refs/tags/v4.6.tar.gz"
-  val default_jobs = 1
+  val default_download_url = "https://github.com/stp/minisat/archive/releases/2.2.1.tar.gz"
 
-  def make_component_name(version: String): String =
-    "vampire-" + Library.try_unprefix("v", version).getOrElse(version)
+  def make_component_name(version: String): String = "minisat-" + version
 
 
-  /* build Vampire */
+  /* build Minisat */
 
-  def build_vampire(
+  def build_minisat(
     download_url: String = default_download_url,
-    jobs: Int = default_jobs,
     component_name: String = "",
     verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current): Unit =
   {
-    Isabelle_System.require_command("cmake")
-
     Isabelle_System.with_tmp_dir("build")(tmp_dir =>
     {
       /* component */
@@ -76,25 +71,19 @@ object Build_Vampire
 
       /* build */
 
-      progress.echo("Building Vampire for " + platform_name + " ...")
+      progress.echo("Building Minisat for " + platform_name + " ...")
 
       val build_dir = tmp_dir + Path.basic(source_name)
-      Isabelle_System.copy_file(build_dir + Path.explode("LICENCE"), component_dir)
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
 
-      val cmake_opts = if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else ""
-      val cmake_out =
-        progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
-          cwd = build_dir.file, echo = verbose).check.out
+      if (Platform.is_macos) {
+        File.change(build_dir + Path.explode("Makefile"),
+          _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", ""))
+      }
+      progress.bash("make r", build_dir.file, echo = verbose).check
 
-      val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
-      val binary =
-        split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
-          .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
-
-      progress.bash("make -j" + jobs, cwd = build_dir.file, echo = verbose).check
-
-      Isabelle_System.copy_file(build_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
-        platform_dir + Path.basic("vampire").platform_exe)
+      Isabelle_System.copy_file(
+        build_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)
 
 
       /* settings */
@@ -103,19 +92,20 @@ object Build_Vampire
       File.write(etc_dir + Path.basic("settings"),
         """# -*- shell-script -*- :mode=shellscript:
 
-VAMPIRE_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
+MINISAT_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
 
-ISABELLE_VAMPIRE="$VAMPIRE_HOME/vampire"
+ISABELLE_MINISAT="$MINISAT_HOME/minisat"
 """)
 
 
       /* README */
 
       File.write(component_dir + Path.basic("README"),
-        "This Isabelle component provides Vampire " + version + """using the
-original sources from """.stripMargin + download_url + """
+        "This Isabelle component provides Minisat " + version + """ using the
+sources from """.stripMargin + download_url + """
 
-The executables have been built via "cmake . && make"
+The executables have been built via "make r"; macOS requires to
+remove options "--static" and "-Wl,-soname,..." from the Makefile.
 
 
         Makarius
@@ -127,23 +117,21 @@ The executables have been built via "cmake . && make"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vampire", "build prover component from official download",
-    Scala_Project.here, args =>
+    Isabelle_Tool("build_minisat", "build prover component from sources", Scala_Project.here,
+    args =>
     {
       var target_dir = Path.current
       var download_url = default_download_url
-      var jobs = default_jobs
       var component_name = ""
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle build_vampire [OPTIONS]
+Usage: isabelle build_minisat [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
     -U URL       download URL
                  (default: """" + default_download_url + """")
-    -j NUMBER    parallel jobs for make (default: """ + default_jobs + """)
     -n NAME      component name (default: """" + make_component_name("VERSION") + """")
     -v           verbose
 
@@ -151,7 +139,6 @@ Usage: isabelle build_vampire [OPTIONS]
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "U:" -> (arg => download_url = arg),
-        "j:" -> (arg => jobs = Value.Nat.parse(arg)),
         "n:" -> (arg => component_name = arg),
         "v" -> (_ => verbose = true))
 
@@ -160,7 +147,7 @@ Usage: isabelle build_vampire [OPTIONS]
 
       val progress = new Console_Progress()
 
-      build_vampire(download_url = download_url, component_name = component_name,
-        jobs = jobs, verbose = verbose, progress = progress, target_dir = target_dir)
+      build_minisat(download_url = download_url, component_name = component_name,
+        verbose = verbose, progress = progress, target_dir = target_dir)
     })
 }

@@ -11,7 +11,7 @@ import isabelle._
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue, ThreadPoolExecutor}
 
 import org.antlr.runtime.{ANTLRInputStream, RecognitionException}
-import de.tum.in.isabelle.Kodkodi.{Context, KodkodiLexer, KodkodiParser}
+import isabelle.kodkodi.{Context, KodkodiLexer, KodkodiParser}
 
 
 object Kodkod

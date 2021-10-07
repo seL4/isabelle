@@ -18,9 +18,7 @@ struct
 open Kodkod
 
 datatype sink = ToStdout | ToFile
-datatype availability =
-  Java |
-  JNI of int list
+datatype availability = Java | JNI of int list
 datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
@@ -35,8 +33,7 @@ val static_list =
   [("Lingeling_JNI", Internal (JNI [1, 5], Batch, ["Lingeling"])),
    ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
    ("CryptoMiniSat_JNI", Internal (JNI [1, 5], Batch, ["CryptoMiniSat"])),
-   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
-                           "UNSAT")),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "", "UNSAT")),
    ("MiniSat_JNI", Internal (JNI [], Incremental, ["MiniSat"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
@@ -53,45 +50,29 @@ val static_list =
    ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"]))]
 
 fun dynamic_entry_for_external name dev home exec args markers =
-  case getenv home of
-    "" => NONE
-  | dir =>
-    SOME (name, fn () =>
-                   let
-                     val serial_str = serial_string ()
-                     val base = name ^ serial_str
-                     val out_file = base ^ ".out"
-                     val dir_sep =
-                       if String.isSubstring "\\" dir andalso
-                          not (String.isSubstring "/" dir) then
-                         "\\"
-                       else
-                         "/"
-                   in
-                     [if null markers then "External" else "ExternalV2",
-                      dir ^ dir_sep ^ exec, base ^ ".cnf"] @
-                      (if null markers then []
-                       else [if dev = ToFile then out_file else ""]) @ markers @
-                     (if dev = ToFile then [out_file] else []) @ args
-                   end)
+  let
+    fun make_args () =
+      let val inpath = name ^ serial_string () ^ ".cnf" in
+        [if null markers then "External" else "ExternalV2"] @
+        [File.platform_path (Path.variable home + Path.platform_exe (Path.basic exec))] @
+        [inpath] @ (if null markers then [] else [if dev = ToFile then "out" else ""]) @
+        markers @ args
+      end
+  in if getenv home = "" then NONE else SOME (name, make_args) end
 
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info incremental
-        (name, Internal (JNI from_version, mode, ss)) =
+  | dynamic_entry_for_info incremental (name, Internal (JNI from_version, mode, ss)) =
     if (incremental andalso mode = Batch) orelse
-       is_less (dict_ord int_ord (kodkodi_version (), from_version)) then
-      NONE
+       is_less (dict_ord int_ord (kodkodi_version (), from_version))
+    then NONE
     else
       let
-        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH"
-                        |> space_explode ":"
+        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH" |> space_explode ":"
       in
-        if exists (fn path => File.exists (Path.explode (path ^ "/")))
-                  lib_paths then
-          SOME (name, K ss)
-        else
-          NONE
+        if exists (fn path => File.exists (Path.explode (path ^ "/"))) lib_paths
+        then SOME (name, K ss)
+        else NONE
       end
   | dynamic_entry_for_info false (name, External (home, exec, args)) =
     dynamic_entry_for_external name ToStdout home exec args []
