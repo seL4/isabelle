@@ -6,20 +6,21 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2021-1
 -------------------------------
 
-* September .. October 2021: Jasmin Blanchette, Martin Desharnais,
+* September / October 2021: Jasmin Blanchette, Martin Desharnais,
     Mathias Fleury, Makarius Wenzel
-  Upgrade of automatic theorem provers in Sledgehammer and the smt tactic.
+  Upgrade of automatic theorem provers in Sledgehammer and the "smt" proof
+  method.
 
-* July .. September 2021: Makarius Wenzel
+* July - September 2021: Makarius Wenzel
   Significantly improved Isabelle/Haskell library.
 
-* July .. September 2021: Jasmin Blanchette, Martin Desharnais
+* July - September 2021: Jasmin Blanchette, Martin Desharnais
   Various improvements to Sledgehammer.
 
 * September 2021: Dominique Unruh
-  New theory of infinite sums (HOL-Analysis/Infinite_Sum), 
-  ordering of complex numbers (HOL-Library/Complex_Order),
-  and products of uniform spaces (in HOL-Analysis/Product_Vector).
+  New theory of infinite sums (theory HOL-Analysis.Infinite_Sum), ordering of
+  complex numbers (theory HOL-Library.Complex_Order), and products of uniform
+  spaces (theory HOL-Analysis.Product_Vector).
 
 * July 2021: Florian Haftmann
   Further consolidation of bit operations and word types.
@@ -37,8 +38,8 @@ Contributions to Isabelle2021-1
   More symbol definitions for Z Notation: Isabelle fonts and LaTeX macros.
 
 * February 2021: Manuel Eberl
-  New material in HOL-Analysis/HOL-Probability, most notably Hoeffding's
-  inequality and the negative binomial distribution
+  New material in sessions HOL-Analysis and HOL-Probability, most notably
+  Hoeffding's inequality and the negative binomial distribution
 
 * January 2021: Jakub Kądziołka
   Some lemmas for HOL-Computational_Algebra.
