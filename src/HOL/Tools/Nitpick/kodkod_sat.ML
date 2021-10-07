@@ -66,14 +66,8 @@ fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if (incremental andalso mode = Batch) orelse
        is_less (dict_ord int_ord (kodkodi_version (), from_version))
     then NONE
-    else
-      let
-        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH" |> space_explode ":"
-      in
-        if exists (fn path => File.exists (Path.explode (path ^ "/"))) lib_paths
-        then SOME (name, K ss)
-        else NONE
-      end
+    else if exists File.is_dir (Path.split (getenv "KODKODI_JAVA_LIBRARY_PATH"))
+    then SOME (name, K ss) else NONE
   | dynamic_entry_for_info false (name, External (home, exec, args)) =
     dynamic_entry_for_external name ToStdout home exec args []
   | dynamic_entry_for_info false
