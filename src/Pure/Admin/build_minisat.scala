@@ -76,6 +76,10 @@ object Build_Minisat
       val build_dir = tmp_dir + Path.basic(source_name)
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir)
 
+      if (Platform.is_macos) {
+        File.change(build_dir + Path.explode("Makefile"),
+          _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", ""))
+      }
       progress.bash("make r", build_dir.file, echo = verbose).check
 
       Isabelle_System.copy_file(
@@ -100,7 +104,8 @@ ISABELLE_MINISAT="$MINISAT_HOME/minisat"
         "This Isabelle component provides Minisat " + version + """using the
 sources from """.stripMargin + download_url + """
 
-The executables have been built via "make r".
+The executables have been built via "make r"; macOS requires to
+remove options "--static" and "-Wl,-soname,..." from the Makefile.
 
 
         Makarius
