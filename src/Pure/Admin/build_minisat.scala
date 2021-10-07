@@ -101,7 +101,7 @@ ISABELLE_MINISAT="$MINISAT_HOME/minisat"
       /* README */
 
       File.write(component_dir + Path.basic("README"),
-        "This Isabelle component provides Minisat " + version + """using the
+        "This Isabelle component provides Minisat " + version + """ using the
 sources from """.stripMargin + download_url + """
 
 The executables have been built via "make r"; macOS requires to
