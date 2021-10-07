@@ -215,6 +215,11 @@ INCOMPATIBILITY.
     rewritten using combinators, but the combinators are kept opaque,
     i.e. without definitions.
 
+* Nitpick:
+  - External solver "MiniSat" is available for all supported Isabelle
+    platforms (including Windows and ARM); while "MiniSat_JNI" only
+    works for Intel Linux and macOS.
+
 * Metis:
   - Renamed option "hide_lams" to "opaque_lifting". Minor INCOMPATIBILITY.
   - Updated the Metis prover underlying the "metis" proof method to
