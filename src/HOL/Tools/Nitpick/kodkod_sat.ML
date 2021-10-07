@@ -52,16 +52,11 @@ val static_list =
 fun dynamic_entry_for_external name dev home exec args markers =
   let
     fun make_args () =
-      let
-        val serial_str = serial_string ()
-        val base = name ^ serial_str
-        val out_file = base ^ ".out"
-        val exe = Path.variable home + Path.platform_exe (Path.basic exec)
-      in
-       [if null markers then "External" else "ExternalV2"] @
-       [File.platform_path exe, base ^ ".cnf"] @
-       (if null markers then [] else [if dev = ToFile then out_file else ""]) @ markers @
-       (if dev = ToFile then [out_file] else []) @ args
+      let val inpath = name ^ serial_string () ^ ".cnf" in
+        [if null markers then "External" else "ExternalV2"] @
+        [File.platform_path (Path.variable home + Path.platform_exe (Path.basic exec))] @
+        [inpath] @ (if null markers then [] else [if dev = ToFile then "out" else ""]) @
+        markers @ args
       end
   in if getenv home = "" then NONE else SOME (name, make_args) end
 
