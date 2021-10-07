@@ -197,6 +197,7 @@ INCOMPATIBILITY.
       Zipperposition 2.1
   - Adjusted default provers:
       cvc4 vampire verit e spass z3 zipperposition
+  - Adjusted Zipperposition's slicing.
   - Removed legacy "lam_lifting" (synonym for "lifting") from option
     "lam_trans". Minor INCOMPATIBILITY.
   - Renamed "hide_lams" to "opaque_lifting" in option "lam_trans". Minor
@@ -205,8 +206,11 @@ INCOMPATIBILITY.
     rewritten using combinators, but the combinators are kept opaque,
     i.e. without definitions.
 
-* Metis: Renamed option "hide_lams" to "opaque_lifting". Minor
-INCOMPATIBILITY.
+* Metis:
+  - Renamed option "hide_lams" to "opaque_lifting". Minor INCOMPATIBILITY.
+  - Updated the Metis prover underlying the "metis" proof method to
+    version 2.4 (release 20200713). The new version fixes one
+    implementation defect. Very slight INCOMPATIBILITY.
 
 * Theory HOL-Library.Lattice_Syntax has been superseded by bundle
 "lattice_syntax": it can be used in a local context via 'include' or in

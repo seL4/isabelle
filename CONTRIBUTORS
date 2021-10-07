@@ -6,14 +6,18 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2021-1
 -------------------------------
 
+* September .. October 2021: Jasmin Blanchette, Martin Desharnais,
+    Mathias Fleury, Makarius Wenzel
+  Upgrade of automatic theorem provers in Sledgehammer and the smt tactic.
+
 * July .. September 2021: Makarius Wenzel
   Significantly improved Isabelle/Haskell library.
 
+* July .. September 2021: Jasmin Blanchette, Martin Desharnais
+  Various improvements to Sledgehammer.
+
 * July 2021: Florian Haftmann
   Further consolidation of bit operations and word types.
-
-* July 2021: Jasmin Blanchette and Martin Desharnais
-  Various improvements to Sledgehammer.
 
 * June 2021: Florian Haftmann
   More context situations susceptible to global_interpretation.
