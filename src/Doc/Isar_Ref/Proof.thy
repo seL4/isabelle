@@ -391,9 +391,8 @@ text \<open>
   available as @{fact_ref assms} in the proof. Moreover, there are two kinds
   of conclusions: @{element_def "shows"} states several simultaneous
   propositions (essentially a big conjunction), while @{element_def "obtains"}
-  claims several simultaneous simultaneous contexts of (essentially a big
-  disjunction of eliminated parameters and assumptions, cf.\
-  \secref{sec:obtain}).
+  claims several simultaneous contexts --- essentially a big disjunction of
+  eliminated parameters and assumptions (see \secref{sec:obtain}).
 
   \<^rail>\<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
