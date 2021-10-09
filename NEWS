@@ -182,10 +182,6 @@ operations. INCOMPATIBILITY.
 in classes (semi)ring_bit_operations, class semiring_bit_shifts is
 gone.
 
-* Expressions of the form "NOT (numeral _)" are not simplified by
-default any longer.  INCOMPATIBILITY, use not_one_eq and not_numeral_eq
-as simp rule explicitly if needed.
-
 * Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
 as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
 "setBit", "clearBit". See there further the changelog in theory Guide.

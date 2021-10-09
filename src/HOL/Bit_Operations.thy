@@ -1287,7 +1287,7 @@ lemma bit_minus_2_iff [simp]:
   \<open>bit (- 2) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n > 0\<close>
   by (simp add: bit_minus_iff bit_1_iff)
 
-lemma not_one_eq:
+lemma not_one_eq [simp]:
   \<open>NOT 1 = - 2\<close>
   by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
 
@@ -2170,7 +2170,28 @@ lemma [code]:
   \<open>unset_bit 0 m = 2 * (m div 2)\<close>
   \<open>unset_bit (Suc n) m = m mod 2 + 2 * unset_bit n (m div 2)\<close> for m n :: nat
   by (simp_all add: unset_bit_Suc)
-  
+
+context semiring_bit_operations
+begin
+
+lemma push_bit_of_nat:
+  \<open>push_bit n (of_nat m) = of_nat (push_bit n m)\<close>
+  by (simp add: push_bit_eq_mult Bit_Operations.push_bit_eq_mult)
+
+lemma of_nat_push_bit:
+  \<open>of_nat (push_bit m n) = push_bit m (of_nat n)\<close>
+  by (simp add: push_bit_eq_mult Bit_Operations.push_bit_eq_mult)
+
+lemma take_bit_of_nat:
+  \<open>take_bit n (of_nat m) = of_nat (take_bit n m)\<close>
+  by (rule bit_eqI) (simp add: bit_take_bit_iff Bit_Operations.bit_take_bit_iff bit_of_nat_iff)
+
+lemma of_nat_take_bit:
+  \<open>of_nat (take_bit n m) = take_bit n (of_nat m)\<close>
+  by (rule bit_eqI) (simp add: bit_take_bit_iff Bit_Operations.bit_take_bit_iff bit_of_nat_iff)
+
+end
+
 
 subsection \<open>Common algebraic structure\<close>
 
@@ -2418,6 +2439,31 @@ lemma xor_num_eq_Some_iff:
 
 end
 
+lemma bit_Suc_0_iff [bit_simps]:
+  \<open>bit (Suc 0) n \<longleftrightarrow> n = 0\<close>
+  using bit_1_iff [of n, where ?'a = nat] by simp
+
+lemma and_nat_numerals [simp]:
+  \<open>Suc 0 AND numeral (Num.Bit0 y) = 0\<close>
+  \<open>Suc 0 AND numeral (Num.Bit1 y) = 1\<close>
+  \<open>numeral (Num.Bit0 x) AND Suc 0 = 0\<close>
+  \<open>numeral (Num.Bit1 x) AND Suc 0 = 1\<close>
+  by (simp_all only: and_numerals flip: One_nat_def)
+
+lemma or_nat_numerals [simp]:
+  \<open>Suc 0 OR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)\<close>
+  \<open>Suc 0 OR numeral (Num.Bit1 y) = numeral (Num.Bit1 y)\<close>
+  \<open>numeral (Num.Bit0 x) OR Suc 0 = numeral (Num.Bit1 x)\<close>
+  \<open>numeral (Num.Bit1 x) OR Suc 0 = numeral (Num.Bit1 x)\<close>
+  by (simp_all only: or_numerals flip: One_nat_def)
+
+lemma xor_nat_numerals [simp]:
+  \<open>Suc 0 XOR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)\<close>
+  \<open>Suc 0 XOR numeral (Num.Bit1 y) = numeral (Num.Bit0 y)\<close>
+  \<open>numeral (Num.Bit0 x) XOR Suc 0 = numeral (Num.Bit1 x)\<close>
+  \<open>numeral (Num.Bit1 x) XOR Suc 0 = numeral (Num.Bit0 x)\<close>
+  by (simp_all only: xor_numerals flip: One_nat_def)
+
 context ring_bit_operations
 begin
 
@@ -2433,7 +2479,7 @@ lemma minus_numeral_eq_not_sub_one:
   \<open>- numeral n = NOT (Num.sub n num.One)\<close>
   by (simp add: not_eq_complement)
 
-lemma not_numeral_eq:
+lemma not_numeral_eq [simp]:
   \<open>NOT (numeral n) = - numeral (Num.inc n)\<close>
   by (simp add: minus_numeral_inc_eq)
 
@@ -2443,7 +2489,15 @@ lemma not_minus_numeral_eq [simp]:
 
 lemma minus_not_numeral_eq [simp]:
   \<open>- (NOT (numeral n)) = numeral (Num.inc n)\<close>
-  by (simp add: not_numeral_eq)
+  by simp
+
+lemma not_numeral_BitM_eq:
+  \<open>NOT (numeral (Num.BitM n)) =  - numeral (num.Bit0 n)\<close>
+  by (simp add: inc_BitM_eq) 
+
+lemma not_numeral_Bit0_eq:
+  \<open>NOT (numeral (Num.Bit0 n)) =  - numeral (num.Bit1 n)\<close>
+  by simp
 
 end
 
@@ -2452,7 +2506,7 @@ lemma bit_minus_numeral_int [simp]:
   \<open>bit (- numeral (num.Bit1 w) :: int) (numeral n) \<longleftrightarrow> \<not> bit (numeral w :: int) (pred_numeral n)\<close>
   by (simp_all add: bit_minus_iff bit_not_iff numeral_eq_Suc bit_Suc add_One sub_inc_One_eq)
 
-lemma and_not_numerals [simp]:
+lemma and_not_numerals:
   \<open>1 AND NOT 1 = (0 :: int)\<close>
   \<open>1 AND NOT (numeral (Num.Bit0 n)) = (1 :: int)\<close>
   \<open>1 AND NOT (numeral (Num.Bit1 n)) = (0 :: int)\<close>
@@ -2462,21 +2516,7 @@ lemma and_not_numerals [simp]:
   \<open>numeral (Num.Bit1 m) AND NOT (1 :: int) = numeral (Num.Bit0 m)\<close>
   \<open>numeral (Num.Bit1 m) AND NOT (numeral (Num.Bit0 n)) = 1 + (2 :: int) * (numeral m AND NOT (numeral n))\<close>
   \<open>numeral (Num.Bit1 m) AND NOT (numeral (Num.Bit1 n)) = (2 :: int) * (numeral m AND NOT (numeral n))\<close>
-  by (simp_all add: bit_eq_iff) (auto simp add: bit_simps bit_Suc bit_numeral_rec BitM_inc_eq split: nat.splits)
-
-lemma and_not_not_numerals [simp]:
-  \<open>NOT 1 AND NOT 1 = NOT (1 :: int)\<close>
-  \<open>NOT 1 AND NOT (numeral n) = NOT (1 OR numeral n :: int)\<close>
-  \<open>NOT (numeral m) AND NOT 1 = NOT (numeral m OR 1 :: int)\<close>
-  \<open>NOT (numeral m) AND NOT (numeral n) = NOT (numeral m OR numeral n :: int)\<close>
-  by simp_all
-
-lemma and_minus_numerals [simp]:
-  \<open>- 1 AND k = k\<close>
-  \<open>k AND - 1 = k\<close>
-  \<open>- numeral n AND k = NOT (neg_numeral_class.sub n num.One) AND k\<close>
-  \<open>k AND - numeral n = k AND NOT (neg_numeral_class.sub n num.One)\<close> for k :: int
-  by (simp_all add: minus_numeral_eq_not_sub_one)
+  by (simp_all add: bit_eq_iff) (auto simp add: bit_simps bit_Suc bit_numeral_rec BitM_inc_eq sub_inc_One_eq split: nat.split)
 
 fun and_not_num :: \<open>num \<Rightarrow> num \<Rightarrow> num option\<close> \<^marker>\<open>contributor \<open>Andreas Lochbihler\<close>\<close>
 where
@@ -2492,7 +2532,7 @@ where
 
 lemma int_numeral_and_not_num:
   \<open>numeral m AND NOT (numeral n) = (case and_not_num m n of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
-  by (induction m n rule: and_not_num.induct) (simp_all split: option.split)
+  by (induction m n rule: and_not_num.induct) (simp_all del: not_numeral_eq not_one_eq add: and_not_numerals split: option.splits)
 
 lemma int_numeral_not_and_num:
   \<open>NOT (numeral m) AND numeral n = (case and_not_num n m of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
@@ -2500,13 +2540,29 @@ lemma int_numeral_not_and_num:
 
 lemma and_not_num_eq_None_iff:
   \<open>and_not_num m n = None \<longleftrightarrow> numeral m AND NOT (numeral n) = (0 :: int)\<close>
-  by (simp add: int_numeral_and_not_num split: option.split)
+  by (simp del: not_numeral_eq add: int_numeral_and_not_num split: option.split)
 
 lemma and_not_num_eq_Some_iff:
   \<open>and_not_num m n = Some q \<longleftrightarrow> numeral m AND NOT (numeral n) = (numeral q :: int)\<close>
-  by (simp add: int_numeral_and_not_num split: option.split)
+  by (simp del: not_numeral_eq add: int_numeral_and_not_num split: option.split)
 
-lemma or_not_numerals [simp]:
+lemma and_minus_numerals [simp]:
+  \<open>1 AND - (numeral (num.Bit0 n)) = (0::int)\<close>
+  \<open>1 AND - (numeral (num.Bit1 n)) = (1::int)\<close>
+  \<open>numeral m AND - (numeral (num.Bit0 n)) = (case and_not_num m (Num.BitM n) of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
+  \<open>numeral m AND - (numeral (num.Bit1 n)) = (case and_not_num m (Num.Bit0 n) of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
+  \<open>- (numeral (num.Bit0 n)) AND 1 = (0::int)\<close>
+  \<open>- (numeral (num.Bit1 n)) AND 1 = (1::int)\<close>
+  \<open>- (numeral (num.Bit0 n)) AND numeral m = (case and_not_num m (Num.BitM n) of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
+  \<open>- (numeral (num.Bit1 n)) AND numeral m = (case and_not_num m (Num.Bit0 n) of None \<Rightarrow> 0 :: int | Some n' \<Rightarrow> numeral n')\<close>
+  by (simp_all del: not_numeral_eq add: ac_simps
+    and_not_numerals one_and_eq not_numeral_BitM_eq not_numeral_Bit0_eq and_not_num_eq_None_iff and_not_num_eq_Some_iff split: option.split)
+
+lemma and_minus_minus_numerals [simp]:
+  \<open>- (numeral m :: int) AND - (numeral n :: int) = NOT ((numeral m - 1) OR (numeral n - 1))\<close>
+  by (simp add: minus_numeral_eq_not_sub_one)
+
+lemma or_not_numerals:
   \<open>1 OR NOT 1 = NOT (0 :: int)\<close>
   \<open>1 OR NOT (numeral (Num.Bit0 n)) = NOT (numeral (Num.Bit0 n) :: int)\<close>
   \<open>1 OR NOT (numeral (Num.Bit1 n)) = NOT (numeral (Num.Bit0 n) :: int)\<close>
@@ -2516,28 +2572,8 @@ lemma or_not_numerals [simp]:
   \<open>numeral (Num.Bit1 m) OR NOT (1 :: int) = NOT (0 :: int)\<close>
   \<open>numeral (Num.Bit1 m) OR NOT (numeral (Num.Bit0 n)) = 1 + (2 :: int) * (numeral m OR NOT (numeral n))\<close>
   \<open>numeral (Num.Bit1 m) OR NOT (numeral (Num.Bit1 n)) = 1 + (2 :: int) * (numeral m OR NOT (numeral n))\<close>
-  by (simp_all add: bit_eq_iff) (simp_all add: bit_simps bit_Suc bit_numeral_rec split: nat.splits)
-
-lemma or_and_numerals [simp]:
-  \<open>NOT 1 OR 1 = NOT (0 :: int)\<close>
-  \<open>NOT 1 OR numeral n = numeral n OR NOT (1 :: int)\<close>
-  \<open>NOT (numeral m) OR 1 = 1 OR NOT (numeral m :: int)\<close>
-  \<open>NOT (numeral m) OR (numeral n) = numeral n OR NOT (numeral m :: int)\<close>
-  by (simp_all add: ac_simps)
-
-lemma or_not_not_numerals [simp]:
-  \<open>NOT 1 OR NOT 1 = NOT (1 :: int)\<close>
-  \<open>NOT 1 OR NOT (numeral n) = NOT (1 AND numeral n :: int)\<close>
-  \<open>NOT (numeral m) OR NOT 1 = NOT (numeral m AND 1 :: int)\<close>
-  \<open>NOT (numeral m) OR NOT (numeral n) = NOT (numeral m AND numeral n :: int)\<close>
-  by simp_all
-
-lemma or_minus_numerals [simp]:
-  \<open>- 1 OR k = - 1\<close>
-  \<open>k OR - 1 = - 1\<close>
-  \<open>- numeral n OR k = NOT (neg_numeral_class.sub n num.One) OR k\<close>
-  \<open>k OR - numeral n = k OR NOT (neg_numeral_class.sub n num.One)\<close> for k :: int
-  by (simp_all add: minus_numeral_eq_not_sub_one)
+  by (simp_all add: bit_eq_iff)
+    (auto simp add: bit_simps bit_Suc bit_numeral_rec sub_inc_One_eq split: nat.split)
 
 fun or_not_num_neg :: \<open>num \<Rightarrow> num \<Rightarrow> num\<close> \<^marker>\<open>contributor \<open>Andreas Lochbihler\<close>\<close>
 where
@@ -2553,10 +2589,7 @@ where
 
 lemma int_numeral_or_not_num_neg:
   \<open>numeral m OR NOT (numeral n :: int) = - numeral (or_not_num_neg m n)\<close>
-  apply (induction m n rule: or_not_num_neg.induct)
-  apply simp_all
-    apply (simp_all add: not_one_eq not_numeral_eq)
-  done
+  by (induction m n rule: or_not_num_neg.induct) (simp_all del: not_numeral_eq not_one_eq add: or_not_numerals, simp_all)
 
 lemma int_numeral_not_or_num_neg:
   \<open>NOT (numeral m) OR (numeral n :: int) = - numeral (or_not_num_neg n m)\<close>
@@ -2566,9 +2599,24 @@ lemma numeral_or_not_num_eq:
   \<open>numeral (or_not_num_neg m n) = - (numeral m OR NOT (numeral n :: int))\<close>
   using int_numeral_or_not_num_neg [of m n] by simp
 
+lemma or_minus_numerals [simp]:
+  \<open>1 OR - (numeral (num.Bit0 n)) = - (numeral (or_not_num_neg num.One (Num.BitM n)) :: int)\<close>
+  \<open>1 OR - (numeral (num.Bit1 n)) = - (numeral (num.Bit1 n) :: int)\<close>
+  \<open>numeral m OR - (numeral (num.Bit0 n)) = - (numeral (or_not_num_neg m (Num.BitM n)) :: int)\<close>
+  \<open>numeral m OR - (numeral (num.Bit1 n)) = - (numeral (or_not_num_neg m (Num.Bit0 n)) :: int)\<close>
+  \<open>- (numeral (num.Bit0 n)) OR 1 = - (numeral (or_not_num_neg num.One (Num.BitM n)) :: int)\<close>
+  \<open>- (numeral (num.Bit1 n)) OR 1 = - (numeral (num.Bit1 n) :: int)\<close>
+  \<open>- (numeral (num.Bit0 n)) OR numeral m = - (numeral (or_not_num_neg m (Num.BitM n)) :: int)\<close>
+  \<open>- (numeral (num.Bit1 n)) OR numeral m = - (numeral (or_not_num_neg m (Num.Bit0 n)) :: int)\<close>
+  by (simp_all only: or.commute [of _ 1] or.commute [of _ \<open>numeral m\<close>]
+    minus_numeral_eq_not_sub_one or_not_numerals
+    numeral_or_not_num_eq arith_simps minus_minus numeral_One)
+
+lemma or_minus_minus_numerals [simp]:
+  \<open>- (numeral m :: int) OR - (numeral n :: int) = NOT ((numeral m - 1) AND (numeral n - 1))\<close>
+  by (simp add: minus_numeral_eq_not_sub_one)
+
 lemma xor_minus_numerals [simp]:
-  \<open>- 1 XOR k = NOT k\<close>
-  \<open>k XOR - 1 = NOT k\<close>
   \<open>- numeral n XOR k = NOT (neg_numeral_class.sub n num.One XOR k)\<close>
   \<open>k XOR - numeral n = NOT (k XOR (neg_numeral_class.sub n num.One))\<close> for k :: int
   by (simp_all add: minus_numeral_eq_not_sub_one)
@@ -2786,28 +2834,6 @@ lemma take_bit_int_greater_eq_self_iff:
   for k :: int
   by (auto simp add: le_less take_bit_int_greater_self_iff take_bit_int_eq_self_iff
     dest: sym not_sym intro: less_trans [of k 0 \<open>2 ^ n\<close>])
-
-(* FIXME: why is this here? *)
-context semiring_bit_operations
-begin
-
-lemma push_bit_of_nat:
-  \<open>push_bit n (of_nat m) = of_nat (push_bit n m)\<close>
-  by (simp add: push_bit_eq_mult Bit_Operations.push_bit_eq_mult)
-
-lemma of_nat_push_bit:
-  \<open>of_nat (push_bit m n) = push_bit m (of_nat n)\<close>
-  by (simp add: push_bit_eq_mult Bit_Operations.push_bit_eq_mult)
-
-lemma take_bit_of_nat:
-  \<open>take_bit n (of_nat m) = of_nat (take_bit n m)\<close>
-  by (rule bit_eqI) (simp add: bit_take_bit_iff Bit_Operations.bit_take_bit_iff bit_of_nat_iff)
-
-lemma of_nat_take_bit:
-  \<open>of_nat (take_bit n m) = take_bit n (of_nat m)\<close>
-  by (rule bit_eqI) (simp add: bit_take_bit_iff Bit_Operations.bit_take_bit_iff bit_of_nat_iff)
-
-end
 
 lemma push_bit_nat_eq:
   \<open>push_bit n (nat k) = nat (push_bit n k)\<close>
@@ -3136,7 +3162,7 @@ qed
 
 lemma signed_take_bit_signed_take_bit [simp]:
   \<open>signed_take_bit m (signed_take_bit n a) = signed_take_bit (min m n) a\<close>
-  by (auto simp add: bit_eq_iff bit_simps ac_simps possible_bit_min)
+  by (auto simp add: bit_eq_iff bit_simps ac_simps)
 
 lemma signed_take_bit_take_bit:
   \<open>signed_take_bit m (take_bit n a) = (if n \<le> m then take_bit n else signed_take_bit m) a\<close>
