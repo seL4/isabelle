@@ -310,10 +310,6 @@ lemma bit_mask_sub_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n < m\<close>
   by (simp add: bit_iff_odd even_mask_div_iff not_le possible_bit_def)
 
-lemma bit_Numeral1_iff [simp]:
-  \<open>bit (numeral Num.One) n \<longleftrightarrow> n = 0\<close>
-  by (simp add: bit_rec)
-
 lemma exp_add_not_zero_imp:
   \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close> if \<open>2 ^ (m + n) \<noteq> 0\<close>
 proof -
@@ -473,6 +469,14 @@ end
 lemma possible_bit_nat[simp]:
   "possible_bit TYPE(nat) n"
   by (simp add: possible_bit_def)
+
+lemma not_bit_Suc_0_Suc [simp]:
+  \<open>\<not> bit (Suc 0) (Suc n)\<close>
+  by (simp add: bit_Suc)
+
+lemma not_bit_Suc_0_numeral [simp]:
+  \<open>\<not> bit (Suc 0) (numeral n)\<close>
+  by (simp add: numeral_eq_Suc)
 
 lemma int_bit_induct [case_names zero minus even odd]:
   "P k" if zero_int: "P 0"
@@ -1234,6 +1238,14 @@ lemma take_bit_flip_bit_eq:
   \<open>take_bit n (flip_bit m a) = (if n \<le> m then take_bit n a else flip_bit m (take_bit n a))\<close>
   by (rule bit_eqI) (auto simp add: bit_take_bit_iff bit_flip_bit_iff)
 
+lemma not_bit_1_Suc [simp]:
+  \<open>\<not> bit 1 (Suc n)\<close>
+  by (simp add: bit_Suc)
+
+lemma push_bit_Suc_numeral [simp]:
+  \<open>push_bit (Suc n) (numeral k) = push_bit n (numeral (Num.Bit0 k))\<close>
+  by (simp add: numeral_eq_Suc mult_2_right) (simp add: numeral_Bit0)
+
 end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
@@ -1388,6 +1400,17 @@ lemma unset_bit_eq_and_not:
   by (rule bit_eqI) (auto simp add: bit_simps)
 
 lemmas unset_bit_def = unset_bit_eq_and_not
+
+lemma push_bit_Suc_minus_numeral [simp]:
+  \<open>push_bit (Suc n) (- numeral k) = push_bit n (- numeral (Num.Bit0 k))\<close>
+  apply (simp only: numeral_Bit0)
+  apply simp
+  apply (simp only: numeral_mult mult_2_right numeral_add)
+  done
+
+lemma push_bit_minus_numeral [simp]:
+  \<open>push_bit (numeral l) (- numeral k) = push_bit (pred_numeral l) (- numeral (Num.Bit0 k))\<close>
+  by (simp only: numeral_eq_Suc push_bit_Suc_minus_numeral)
 
 end
 
@@ -2223,6 +2246,22 @@ lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
   by (simp add: take_bit_eq_mod)
 
+lemma drop_bit_Suc_bit0 [simp]:
+  \<open>drop_bit (Suc n) (numeral (Num.Bit0 k)) = drop_bit n (numeral k)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_Suc_bit1 [simp]:
+  \<open>drop_bit (Suc n) (numeral (Num.Bit1 k)) = drop_bit n (numeral k)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit1_div_2)
+
+lemma drop_bit_numeral_bit0 [simp]:
+  \<open>drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
+  by (simp add: drop_bit_rec numeral_Bit0_div_2)
+
+lemma drop_bit_numeral_bit1 [simp]:
+  \<open>drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
+  by (simp add: drop_bit_rec numeral_Bit1_div_2)
+
 lemma take_bit_Suc_1 [simp]:
   \<open>take_bit (Suc n) 1 = 1\<close>
   by (simp add: take_bit_Suc)
@@ -2247,26 +2286,6 @@ lemma take_bit_numeral_bit1 [simp]:
   \<open>take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1\<close>
   by (simp add: take_bit_rec numeral_Bit1_div_2 mod_2_eq_odd)
 
-lemma drop_bit_Suc_bit0 [simp]:
-  \<open>drop_bit (Suc n) (numeral (Num.Bit0 k)) = drop_bit n (numeral k)\<close>
-  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
-
-lemma drop_bit_Suc_bit1 [simp]:
-  \<open>drop_bit (Suc n) (numeral (Num.Bit1 k)) = drop_bit n (numeral k)\<close>
-  by (simp add: drop_bit_Suc numeral_Bit1_div_2)
-
-lemma drop_bit_numeral_bit0 [simp]:
-  \<open>drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
-  by (simp add: drop_bit_rec numeral_Bit0_div_2)
-
-lemma drop_bit_numeral_bit1 [simp]:
-  \<open>drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)\<close>
-  by (simp add: drop_bit_rec numeral_Bit1_div_2)
-
-lemma drop_bit_of_nat:
-  "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
-  by (simp add: drop_bit_eq_div Bit_Operations.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
-
 lemma bit_of_nat_iff_bit [bit_simps]:
   \<open>bit (of_nat m) n \<longleftrightarrow> bit m n\<close>
 proof -
@@ -2277,6 +2296,10 @@ proof -
   finally show ?thesis
     by (simp add: bit_iff_odd semiring_bits_class.bit_iff_odd)
 qed
+
+lemma drop_bit_of_nat:
+  "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
+  by (simp add: drop_bit_eq_div Bit_Operations.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
 
 lemma of_nat_drop_bit:
   \<open>of_nat (drop_bit m n) = drop_bit m (of_nat n)\<close>
@@ -2306,6 +2329,38 @@ end
 instance nat :: unique_euclidean_semiring_with_bit_operations ..
 
 instance int :: unique_euclidean_semiring_with_bit_operations ..
+
+lemma drop_bit_Suc_minus_bit0 [simp]:
+  \<open>drop_bit (Suc n) (- numeral (Num.Bit0 k)) = drop_bit n (- numeral k :: int)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_Suc_minus_bit1 [simp]:
+  \<open>drop_bit (Suc n) (- numeral (Num.Bit1 k)) = drop_bit n (- numeral (Num.inc k) :: int)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit1_div_2 add_One)
+
+lemma drop_bit_numeral_minus_bit0 [simp]:
+  \<open>drop_bit (numeral l) (- numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (- numeral k :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_numeral_minus_bit1 [simp]:
+  \<open>drop_bit (numeral l) (- numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (- numeral (Num.inc k) :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit1_div_2)
+
+lemma take_bit_Suc_minus_bit0 [simp]:
+  \<open>take_bit (Suc n) (- numeral (Num.Bit0 k)) = take_bit n (- numeral k) * (2 :: int)\<close>
+  by (simp add: take_bit_Suc numeral_Bit0_div_2)
+
+lemma take_bit_Suc_minus_bit1 [simp]:
+  \<open>take_bit (Suc n) (- numeral (Num.Bit1 k)) = take_bit n (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
+  by (simp add: take_bit_Suc numeral_Bit1_div_2 add_One)
+
+lemma take_bit_numeral_minus_bit0 [simp]:
+  \<open>take_bit (numeral l) (- numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (- numeral k) * (2 :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit0_div_2)
+
+lemma take_bit_numeral_minus_bit1 [simp]:
+  \<open>take_bit (numeral l) (- numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit1_div_2)
 
 
 subsection \<open>Symbolic computations on numeral expressions\<close>
@@ -3145,6 +3200,10 @@ lemma signed_take_bit_of_minus_1 [simp]:
 lemma signed_take_bit_Suc_1 [simp]:
   \<open>signed_take_bit (Suc n) 1 = 1\<close>
   by (simp add: signed_take_bit_Suc)
+
+lemma signed_take_bit_numeral_of_1 [simp]:
+  \<open>signed_take_bit (numeral k) 1 = 1\<close>
+  by (simp add: bit_1_iff signed_take_bit_eq_if_positive)
 
 lemma signed_take_bit_rec:
   \<open>signed_take_bit n a = (if n = 0 then - (a mod 2) else a mod 2 + 2 * signed_take_bit (n - 1) (a div 2))\<close>
