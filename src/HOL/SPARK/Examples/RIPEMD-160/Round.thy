@@ -54,7 +54,7 @@ lemma uint_word_of_int_id:
   assumes "0 <= (x::int)"
   assumes "x <= 4294967295"
   shows"uint(word_of_int x::word32) = x"
-  using assms by (simp add: take_bit_int_eq_self)
+  using assms by (simp add: take_bit_int_eq_self unsigned_of_int)
 
 lemma steps_step: "steps X cc (Suc i) = step_both X (steps X cc i) i"
   unfolding steps_def

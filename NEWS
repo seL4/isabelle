@@ -170,17 +170,22 @@ premises. INCOMPATIBILITY.
 * Combinator "Fun.swap" resolved into a mere input abbreviation in
 separate theory "Transposition" in HOL-Combinatorics. INCOMPATIBILITY.
 
+* Theory Bit_Operations is now part of HOL-Main. Minor INCOMPATIBILITY.
+
 * Infix syntax for bit operations AND, OR, XOR, NOT is now organized in
 bundle bit_operations_syntax. INCOMPATIBILITY.
 
 * Bit operations set_bit, unset_bit and flip_bit are now class
 operations. INCOMPATIBILITY.
 
-* Theory Bit_Operations is now part of HOL-Main. Minor INCOMPATIBILITY.
-
 * Simplified class hierarchy for bit operations: bit operations reside
 in classes (semi)ring_bit_operations, class semiring_bit_shifts is
 gone.
+
+* Consecutive conversions to and from words are not collapsed in any
+case: rules unsigned_of_nat, unsigned_of_int, signed_of_int,
+signed_of_nat, word_of_nat_eq_0_iff, word_of_int_eq_0_iff are not simp
+by default any longer.  INCOMPATIBILITY.
 
 * Abbreviation "max_word" has been moved to session Word_Lib in the AFP,
 as also have constants "shiftl1", "shiftr1", "sshiftr1", "bshiftr1",
