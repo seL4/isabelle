@@ -1412,6 +1412,14 @@ lemma push_bit_minus_numeral [simp]:
   \<open>push_bit (numeral l) (- numeral k) = push_bit (pred_numeral l) (- numeral (Num.Bit0 k))\<close>
   by (simp only: numeral_eq_Suc push_bit_Suc_minus_numeral)
 
+lemma take_bit_Suc_1:
+  \<open>take_bit (Suc n) (- 1) = 2 ^ Suc n - 1\<close>
+  by (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1)
+
+lemma take_bit_numeral_1 [simp]:
+  \<open>take_bit (numeral k) (- 1) = 2 ^ numeral k - 1\<close>
+  by (simp add: take_bit_minus_one_eq_mask mask_eq_exp_minus_1)
+
 end
 
 

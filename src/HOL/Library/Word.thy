@@ -3508,17 +3508,85 @@ lemma word_of_int_2p: "(word_of_int (2 ^ n) :: 'a::len word) = 2 ^ n"
 
 subsubsection \<open>shift functions in terms of lists of bools\<close>
 
-text \<open>TODO: rules for \<^term>\<open>- (numeral n)\<close>\<close>
-
 lemma drop_bit_word_numeral [simp]:
   \<open>drop_bit (numeral n) (numeral k) =
     (word_of_int (drop_bit (numeral n) (take_bit LENGTH('a) (numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma drop_bit_word_Suc_numeral [simp]:
+  \<open>drop_bit (Suc n) (numeral k) =
+    (word_of_int (drop_bit (Suc n) (take_bit LENGTH('a) (numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma drop_bit_word_minus_numeral [simp]:
+  \<open>drop_bit (numeral n) (- numeral k) =
+    (word_of_int (drop_bit (numeral n) (take_bit LENGTH('a) (- numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma drop_bit_word_Suc_minus_numeral [simp]:
+  \<open>drop_bit (Suc n) (- numeral k) =
+    (word_of_int (drop_bit (Suc n) (take_bit LENGTH('a) (- numeral k))) :: 'a::len word)\<close>
   by transfer simp
 
 lemma signed_drop_bit_word_numeral [simp]:
   \<open>signed_drop_bit (numeral n) (numeral k) =
     (word_of_int (drop_bit (numeral n) (signed_take_bit (LENGTH('a) - 1) (numeral k))) :: 'a::len word)\<close>
   by transfer simp
+
+lemma signed_drop_bit_word_Suc_numeral [simp]:
+  \<open>signed_drop_bit (Suc n) (numeral k) =
+    (word_of_int (drop_bit (Suc n) (signed_take_bit (LENGTH('a) - 1) (numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma signed_drop_bit_word_minus_numeral [simp]:
+  \<open>signed_drop_bit (numeral n) (- numeral k) =
+    (word_of_int (drop_bit (numeral n) (signed_take_bit (LENGTH('a) - 1) (- numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma signed_drop_bit_word_Suc_minus_numeral [simp]:
+  \<open>signed_drop_bit (Suc n) (- numeral k) =
+    (word_of_int (drop_bit (Suc n) (signed_take_bit (LENGTH('a) - 1) (- numeral k))) :: 'a::len word)\<close>
+  by transfer simp
+
+lemma take_bit_word_numeral [simp]:
+  \<open>take_bit (numeral n) (numeral k) =
+    (word_of_int (take_bit (min LENGTH('a) (numeral n)) (numeral k)) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma take_bit_word_Suc_numeral [simp]:
+  \<open>take_bit (Suc n) (numeral k) =
+    (word_of_int (take_bit (min LENGTH('a) (Suc n)) (numeral k)) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma take_bit_word_minus_numeral [simp]:
+  \<open>take_bit (numeral n) (- numeral k) =
+    (word_of_int (take_bit (min LENGTH('a) (numeral n)) (- numeral k)) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma take_bit_word_Suc_minus_numeral [simp]:
+  \<open>take_bit (Suc n) (- numeral k) =
+    (word_of_int (take_bit (min LENGTH('a) (Suc n)) (- numeral k)) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma signed_take_bit_word_numeral [simp]:
+  \<open>signed_take_bit (numeral n) (numeral k) =
+    (word_of_int (signed_take_bit (numeral n) (take_bit LENGTH('a) (numeral k))) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma signed_take_bit_word_Suc_numeral [simp]:
+  \<open>signed_take_bit (Suc n) (numeral k) =
+    (word_of_int (signed_take_bit (Suc n) (take_bit LENGTH('a) (numeral k))) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma signed_take_bit_word_minus_numeral [simp]:
+  \<open>signed_take_bit (numeral n) (- numeral k) =
+    (word_of_int (signed_take_bit (numeral n) (take_bit LENGTH('a) (- numeral k))) :: 'a::len word)\<close>
+  by transfer rule
+
+lemma signed_take_bit_word_Suc_minus_numeral [simp]:
+  \<open>signed_take_bit (Suc n) (- numeral k) =
+    (word_of_int (signed_take_bit (Suc n) (take_bit LENGTH('a) (- numeral k))) :: 'a::len word)\<close>
+  by transfer rule
 
 lemma False_map2_or: "\<lbrakk>set xs \<subseteq> {False}; length ys = length xs\<rbrakk> \<Longrightarrow> map2 (\<or>) xs ys = ys"
   by (induction xs arbitrary: ys) (auto simp: length_Suc_conv)
