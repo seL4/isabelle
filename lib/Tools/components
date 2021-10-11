@@ -148,7 +148,16 @@ else
         type -p curl > /dev/null || fail "Cannot download files: missing curl"
         echo "Getting \"$REMOTE\""
         mkdir -p "$(dirname "$FULL_NAME")"
-        if curl --fail --silent --location "$REMOTE" > "${FULL_NAME}.tar.gz.part"
+
+        CURL_OPTIONS="--fail --silent --location"
+        if [ "$ISABELLE_PLATFORM_FAMILY" = "macos" ]; then
+          case $(sw_vers -productVersion) in
+            10.*)
+              CURL_OPTIONS="$CURL_OPTIONS --insecure"
+              ;;
+          esac
+        fi
+        if curl $CURL_OPTIONS "$REMOTE" > "${FULL_NAME}.tar.gz.part"
         then
           mv -f "${FULL_NAME}.tar.gz.part" "${FULL_NAME}.tar.gz"
         else
