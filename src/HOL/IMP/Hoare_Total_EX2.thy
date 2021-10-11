@@ -190,4 +190,43 @@ apply(rule strengthen_pre[OF _ wpt_is_pre])
 apply(auto simp: hoare_tvalid_def wpt_def)
 done
 
+
+text \<open>Two examples:\<close>
+
+lemma "\<turnstile>\<^sub>t 
+{\<lambda>l s. l ''x'' = nat(s ''x'')}
+ WHILE Less (N 0) (V ''x'') DO ''x'' ::= Plus (V ''x'') (N (-1))
+{\<lambda>l s. s ''x'' \<le> 0}"
+apply(rule conseq)
+prefer 2
+ apply(rule While[where P = "\<lambda>l s. l ''x'' = nat(s ''x'')" and x = "''x''"])
+   apply(rule Assign')
+   apply auto
+done
+
+lemma "\<turnstile>\<^sub>t 
+{\<lambda>l s. l ''x'' = nat(s ''x'')}
+ WHILE Less (N 0) (V ''x'')
+ DO (''x'' ::= Plus (V ''x'') (N (-1));;
+    (''y'' ::= V ''x'';;
+     WHILE Less (N 0) (V ''y'') DO ''y'' ::= Plus (V ''y'') (N (-1))))
+{\<lambda>l s. s ''x'' \<le> 0}"
+apply(rule conseq)
+prefer 2
+ apply(rule While[where P = "\<lambda>l s. l ''x'' = nat(s ''x'')" and x = "''x''"])
+   defer
+   apply auto
+apply(rule Seq)
+ prefer 2
+ apply(rule Seq)
+  prefer 2
+  apply(rule weaken_post)
+   apply(rule_tac P = "\<lambda>l s. l ''x'' = nat(s ''x'') \<and> l ''y'' = nat(s ''y'')" and x = "''y''" in While)
+     apply(rule Assign')
+     apply auto[4]
+ apply(rule Assign)
+apply(rule Assign')
+apply auto
+done
+
 end

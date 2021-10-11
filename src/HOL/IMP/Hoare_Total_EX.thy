@@ -139,4 +139,40 @@ done
 corollary hoaret_sound_complete: "\<turnstile>\<^sub>t {P}c{Q} \<longleftrightarrow> \<Turnstile>\<^sub>t {P}c{Q}"
 by (metis hoaret_sound hoaret_complete)
 
+text \<open>Two examples:\<close>
+
+lemma "\<turnstile>\<^sub>t 
+{\<lambda>s. \<exists>n. n = nat(s ''x'')}
+ WHILE Less (N 0) (V ''x'') DO ''x'' ::= Plus (V ''x'') (N (-1))
+{\<lambda>s. s ''x'' \<le> 0}"
+apply(rule weaken_post)
+ apply(rule While)
+   apply(rule Assign')
+   apply auto
+done
+
+lemma "\<turnstile>\<^sub>t 
+{\<lambda>s. \<exists>n. n = nat(s ''x'')}
+ WHILE Less (N 0) (V ''x'')
+ DO (''x'' ::= Plus (V ''x'') (N (-1));;
+    (''y'' ::= V ''x'';;
+     WHILE Less (N 0) (V ''y'') DO ''y'' ::= Plus (V ''y'') (N (-1))))
+{\<lambda>s. s ''x'' \<le> 0}"
+apply(rule weaken_post)
+ apply(rule While)
+   defer
+   apply auto[3]
+apply(rule Seq)
+ prefer 2
+ apply(rule Seq)
+  prefer 2
+  apply(rule weaken_post)
+   apply(rule_tac P = "\<lambda>m s. n = nat(s ''x'') \<and> m = nat(s ''y'')" in While)
+     apply(rule Assign')
+     apply auto[4]
+ apply(rule Assign)
+apply(rule Assign')
+apply auto
+done
+
 end

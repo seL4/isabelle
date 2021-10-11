@@ -131,4 +131,25 @@ next
   case conseq thus ?case by(fast elim!: pre_mono vc_mono)
 qed
 
+
+text \<open>Two examples:\<close>
+
+lemma vc1: "vc
+ ({\<lambda>l s. l ''x'' = nat(s ''x'') / ''x''} WHILE Less (N 0) (V ''x'') DO ''x'' ::= Plus (V ''x'') (N (-1)))
+ (\<lambda>l s. s ''x'' \<le> 0)"
+by auto
+
+thm vc_sound[OF vc1, simplified]
+
+lemma vc2: "vc 
+ ({\<lambda>l s. l ''x'' = nat(s ''x'') / ''x''} WHILE Less (N 0) (V ''x'')
+ DO (''x'' ::= Plus (V ''x'') (N (-1));;
+    (''y'' ::= V ''x'';;
+     {\<lambda>l s. l ''x'' = nat(s ''x'') \<and> l ''y'' = nat(s ''y'') / ''y''}
+     WHILE Less (N 0) (V ''y'') DO ''y'' ::= Plus (V ''y'') (N (-1)))))
+(\<lambda>l s. s ''x'' \<le> 0)"
+by auto
+
+thm vc_sound[OF vc2, simplified]
+
 end
