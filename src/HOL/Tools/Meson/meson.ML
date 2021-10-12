@@ -183,7 +183,7 @@ fun quant_resolve_tac ctxt th i st =
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
   e.g. from conj_forward, should have the form
-    "[| P' ==> ?P; Q' ==> ?Q |] ==> ?P & ?Q"
+    "\<lbrakk>P' \<Longrightarrow> ?P; Q' \<Longrightarrow> ?Q\<rbrakk> \<Longrightarrow> ?P \<and> ?Q"
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res ctxt nf st =
   let
@@ -293,7 +293,7 @@ fun forward_res2 ctxt nf hyps st =
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
 
-(*Remove duplicates in P|Q by assuming ~P in Q
+(*Remove duplicates in P\<or>Q by assuming \<not>P in Q
   rls (initially []) accumulates assumptions of the form P==>False*)
 fun nodups_aux ctxt rls th = nodups_aux ctxt rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
@@ -617,7 +617,7 @@ fun get_F_pattern T t u =
 
 val ext_cong_neq = @{thm ext_cong_neq}
 
-(* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
+(* Strengthens "f g \<noteq> f h" to "f g \<noteq> f h \<and> (\<exists>x. g x \<noteq> h x)". *)
 fun cong_extensionalize_thm ctxt th =
   (case Thm.concl_of th of
     \<^Const_>\<open>Trueprop for \<^Const_>\<open>Not for \<^Const_>\<open>HOL.eq T for \<open>t as _ $ _\<close> \<open>u as _ $ _\<close>\<close>\<close>\<close> =>

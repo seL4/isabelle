@@ -183,7 +183,7 @@ fun c_variant_abs_multi (ct0, vars) =
 
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
-   Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
+   Example: "\<exists>x. x \<in> A \<and> x \<notin> B \<Longrightarrow> sko A B \<in> A \<and> sko A B \<notin> B" *)
 fun old_skolem_theorem_of_def ctxt rhs0 =
   let
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of ctxt
