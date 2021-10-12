@@ -1,6 +1,7 @@
 (*  Title:      HOL/Hoare/hoare_syntax.ML
     Author:     Leonor Prensa Nieto & Tobias Nipkow
-    Author:     Walter Guttmann (extension to total-correctness proofs)
+    Author:     Walter Guttmann (initial extension to total-correctness proofs)
+    Author:     Tobias Nipkow (complete version of total correctness with separate anno type)
 
 Syntax translations for Hoare logic.
 *)
@@ -84,14 +85,34 @@ fun var_tr v xs = mk_abstuple xs v;
 fun com_tr ctxt =
   let
     fun tr (Const (\<^syntax_const>\<open>_assign\<close>, _) $ x $ e) xs =
-          syntax_const ctxt #Basic $ mk_fexp x e xs
+          (syntax_const ctxt #Basic $ mk_fexp x e xs, Syntax.const \<^const_syntax>\<open>Abasic\<close>)
       | tr (Const (\<^syntax_const>\<open>_Seq\<close>,_) $ c1 $ c2) xs =
-          syntax_const ctxt #Seq $ tr c1 xs $ tr c2 xs
+          let val (c1',a1) = tr c1 xs;
+              val (c2',a2) = tr c2 xs
+          in (syntax_const ctxt #Seq $ c1' $ c2', Syntax.const \<^const_syntax>\<open>Aseq\<close> $ a1 $ a2) end
       | tr (Const (\<^syntax_const>\<open>_Cond\<close>,_) $ b $ c1 $ c2) xs =
-          syntax_const ctxt #Cond $ bexp_tr b xs $ tr c1 xs $ tr c2 xs
-      | tr (Const (\<^syntax_const>\<open>_While\<close>,_) $ b $ I $ V $ c) xs =
-          syntax_const ctxt #While $ bexp_tr b xs $ assn_tr I xs $ var_tr V xs $ tr c xs
-      | tr t _ = t;
+          let val (c1',a1) = tr c1 xs;
+              val (c2',a2) = tr c2 xs
+          in (syntax_const ctxt #Cond $ bexp_tr b xs $ c1' $ c2',
+              Syntax.const \<^const_syntax>\<open>Acond\<close> $ a1 $ a2)
+          end
+      | tr (Const (\<^syntax_const>\<open>_While\<close>,_) $ b $ i $ v $ c) xs =
+          let val (c',a) = tr c xs
+              val (v',A) = case v of
+                Const (\<^const_syntax>\<open>HOL.eq\<close>, _) $ z $ t => (t, Syntax_Trans.abs_tr [z, a]) |
+                t => (t, absdummy dummyT a)
+          in (syntax_const ctxt #While $ bexp_tr b xs $ c',
+              Syntax.const \<^const_syntax>\<open>Awhile\<close>
+                $ assn_tr i xs $ var_tr v' xs $ A)
+          end
+      | tr (Const (\<^syntax_const>\<open>_While0\<close>,_) $ b $ I $ c) xs =
+          let val (c',a) = tr c xs
+          in (syntax_const ctxt #While $ bexp_tr b xs $ c',
+              Syntax.const \<^const_syntax>\<open>Awhile\<close>
+                $ assn_tr I xs $ var_tr (Syntax.const \<^const_syntax>\<open>zero_class.zero\<close>) xs
+                $ absdummy dummyT a)
+          end
+      | tr t _ = (t, Syntax.const \<^const_syntax>\<open>Abasic\<close>)
   in tr end;
 
 fun vars_tr (Const (\<^syntax_const>\<open>_idts\<close>, _) $ idt $ vars) = idt :: vars_tr vars
@@ -101,12 +122,14 @@ in
 
 fun hoare_vars_tr ctxt [vars, pre, prg, post] =
       let val xs = vars_tr vars
-      in syntax_const ctxt #Valid $ assn_tr pre xs $ com_tr ctxt prg xs $ assn_tr post xs end
+          val (c',a) = com_tr ctxt prg xs
+      in syntax_const ctxt #Valid $ assn_tr pre xs $ c' $ a $ assn_tr post xs end
   | hoare_vars_tr _ ts = raise TERM ("hoare_vars_tr", ts);
 
 fun hoare_tc_vars_tr ctxt [vars, pre, prg, post] =
       let val xs = vars_tr vars
-      in syntax_const ctxt #ValidTC $ assn_tr pre xs $ com_tr ctxt prg xs $ assn_tr post xs end
+          val (c',a) = com_tr ctxt prg xs
+      in syntax_const ctxt #ValidTC $ assn_tr pre xs $ c' $ a $ assn_tr post xs end
   | hoare_tc_vars_tr _ ts = raise TERM ("hoare_tc_vars_tr", ts);
 
 end;
@@ -158,8 +181,9 @@ fun assn_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abst
 fun bexp_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abstuple T
   | bexp_tr' t = t;
 
-fun var_tr' (Const (\<^const_syntax>\<open>Collect\<close>, _) $ T) = dest_abstuple T
-  | var_tr' t = t;
+fun var_tr' xo T =
+  let val n = dest_abstuple T
+  in case xo of NONE => n | SOME x => Syntax.const \<^const_syntax>\<open>HOL.eq\<close> $ Syntax.free x $ n end
 
 
 (* com_tr' *)
@@ -174,32 +198,40 @@ fun mk_assign ctxt f =
     else syntax_const ctxt #Skip
   end;
 
-fun com_tr' ctxt t =
+fun com_tr' ctxt (t,a) =
   let
     val (head, args) = apfst (try (#1 o Term.dest_Const)) (Term.strip_comb t);
     fun arg k = nth args (k - 1);
     val n = length args;
+    val (_, args_a) = apfst (try (#1 o Term.dest_Const)) (Term.strip_comb a);
+    fun arg_a k = nth args_a (k - 1)
   in
-    (case head of
+    case head of
       NONE => t
     | SOME c =>
         if c = const_syntax ctxt #Basic andalso n = 1 andalso is_f (arg 1) then
           mk_assign ctxt (arg 1)
         else if c = const_syntax ctxt #Seq andalso n = 2 then
-          Syntax.const \<^syntax_const>\<open>_Seq\<close> $ com_tr' ctxt (arg 1) $ com_tr' ctxt (arg 2)
+          Syntax.const \<^syntax_const>\<open>_Seq\<close>
+            $ com_tr' ctxt (arg 1, arg_a 1) $ com_tr' ctxt (arg 2, arg_a 2)
         else if c = const_syntax ctxt #Cond andalso n = 3 then
           Syntax.const \<^syntax_const>\<open>_Cond\<close> $
-            bexp_tr' (arg 1) $ com_tr' ctxt (arg 2) $ com_tr' ctxt (arg 3)
-        else if c = const_syntax ctxt #While andalso n = 4 then
-          Syntax.const \<^syntax_const>\<open>_While\<close> $
-            bexp_tr' (arg 1) $ assn_tr' (arg 2) $ var_tr' (arg 3) $ com_tr' ctxt (arg 4)
-        else t)
+            bexp_tr' (arg 1) $ com_tr' ctxt (arg 2, arg_a 1) $ com_tr' ctxt (arg 3, arg_a 2)
+        else if c = const_syntax ctxt #While andalso n = 2 then
+               let val (xo,a') = case arg_a 3 of
+                     Abs(x,_,a) => (if loose_bvar1(a,0) then SOME x else NONE,
+                                    subst_bound (Syntax.free x, a)) |
+                     t => (NONE,t)
+               in Syntax.const \<^syntax_const>\<open>_While\<close>
+                 $ bexp_tr' (arg 1) $ assn_tr' (arg_a 1) $ var_tr' xo (arg_a 2) $ com_tr' ctxt (arg 2, a')
+               end
+        else t
   end;
 
 in
 
-fun spec_tr' syn ctxt [p, c, q] =
-  Syntax.const syn $ assn_tr' p $ com_tr' ctxt c $ assn_tr' q;
+fun spec_tr' syn ctxt [p, c, a, q] =
+  Syntax.const syn $ assn_tr' p $ com_tr' ctxt (c,a) $ assn_tr' q;
 
 end;
 

@@ -27,7 +27,7 @@ text \<open>
 Here is the total-correctness proof for the same program.
 It needs the additional invariant \<open>m \<le> a\<close>.
 \<close>
-
+ML \<open>\<^const_syntax>\<open>HOL.eq\<close>\<close>
 lemma multiply_by_add_tc: "VARS m s a b
   [a=A \<and> b=B]
   m := 0; s := 0;
@@ -84,7 +84,7 @@ lemma sqrt_tc: "VARS r
   r := 0;
   WHILE (r+1)*(r+1) <= x
   INV {r*r \<le> x}
-  VAR {nat (x-r)}
+  VAR { nat (x-r)}
   DO r := r+1 OD
   [r*r \<le> x \<and> x < (r+1)*(r+1)]"
   apply vcg_tc_simp
@@ -112,5 +112,22 @@ proof -
   thus ?thesis
     using assms(2) sqrt_def by auto
 qed
+
+text \<open>Nested loops!\<close>
+
+lemma "VARS (i::nat) j
+  [ True ]
+  WHILE 0 < i
+    INV { True }
+    VAR { z = i }
+     DO i := i - 1; j := i;
+        WHILE 0 < j
+        INV { z = i+1 }
+        VAR { j }
+        DO j := j - 1 OD
+     OD
+  [ i \<le> 0 ]"
+  apply vcg_tc
+  by auto
 
 end

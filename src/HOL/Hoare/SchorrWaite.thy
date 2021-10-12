@@ -219,10 +219,11 @@ theorem SchorrWaiteAlgorithm:
       ELSE q := p; p := t; t := t^.l; p^.l := q;                        \<comment> \<open>\<open>push\<close>\<close>
                p^.m := True; p^.c := False            FI       OD
  {(\<forall>x. (x \<in> R) = m x) \<and> (r = iR \<and> l = iL) }"
-  (is "VARS c m l r t p q root {?Pre c m l r root} (?c1; ?c2; ?c3) {?Post c m l r}")
+  (is "Valid
+         {(c, m, l, r, t, p, q, root). ?Pre c m l r root}
+         (Seq _ (Seq _ (While {(c, m, l, r, t, p, q, root). ?whileB m t p} _)))
+         (Aseq _ (Aseq _ (Awhile {(c, m, l, r, t, p, q, root). ?inv c m l r t p} _ _))) _")
 proof (vcg)
-  let "While {(c, m, l, r, t, p, q, root). ?whileB m t p}
-    {(c, m, l, r, t, p, q, root). ?inv c m l r t p} _ ?body" = ?c3
   {
 
     fix c m l r t p q root
@@ -252,8 +253,8 @@ proof (vcg)
       let "?ifB1"  =  "(t = Null \<or> t^.m)"
       let "?ifB2"  =  "p^.c" 
 
-      assume "(\<exists>stack.?Inv stack) \<and> (p \<noteq> Null \<or> t \<noteq> Null \<and> \<not> t^.m)" (is "_ \<and> ?whileB")
-      then obtain stack where inv: "?Inv stack" and whileB: "?whileB" by blast
+      assume "(\<exists>stack.?Inv stack) \<and> ?whileB m t p"
+      then obtain stack where inv: "?Inv stack" and whileB: "?whileB m t p" by blast
       let "?I1 \<and> ?I2 \<and> ?I3 \<and> ?I4 \<and> ?I5 \<and> ?I6 \<and> ?I7" = "?Inv stack"
       from inv have i1: "?I1" and i2: "?I2" and i3: "?I3" and i4: "?I4"
                   and i5: "?I5" and i6: "?I6" and i7: "?I7" by simp+        
