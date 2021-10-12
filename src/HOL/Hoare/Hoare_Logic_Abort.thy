@@ -19,7 +19,7 @@ datatype 'a com =
 | Abort
 | Seq "'a com" "'a com"
 | Cond "'a bexp" "'a com" "'a com"
-| While "'a bexp" "'a assn" "'a var" "'a com"
+| While "'a bexp" "'a com"
 
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
@@ -34,10 +34,10 @@ where
 | "Sem (Cond b c1 c2) None None"
 | "s \<in> b \<Longrightarrow> Sem c1 (Some s) s' \<Longrightarrow> Sem (Cond b c1 c2) (Some s) s'"
 | "s \<notin> b \<Longrightarrow> Sem c2 (Some s) s' \<Longrightarrow> Sem (Cond b c1 c2) (Some s) s'"
-| "Sem (While b x y c) None None"
-| "s \<notin> b \<Longrightarrow> Sem (While b x y c) (Some s) (Some s)"
-| "s \<in> b \<Longrightarrow> Sem c (Some s) s'' \<Longrightarrow> Sem (While b x y c) s'' s' \<Longrightarrow>
-   Sem (While b x y c) (Some s) s'"
+| "Sem (While b c) None None"
+| "s \<notin> b \<Longrightarrow> Sem (While b c) (Some s) (Some s)"
+| "s \<in> b \<Longrightarrow> Sem c (Some s) s'' \<Longrightarrow> Sem (While b c) s'' s' \<Longrightarrow>
+   Sem (While b c) (Some s) s'"
 
 inductive_cases [elim!]:
   "Sem (Basic f) s s'" "Sem (Seq c1 c2) s s'"
@@ -54,45 +54,45 @@ proof -
     using assms by simp
 qed
 
-definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
-  where "Valid p c q \<equiv> \<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` p \<longrightarrow> s' \<in> Some ` q"
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a anno \<Rightarrow> 'a bexp \<Rightarrow> bool"
+  where "Valid p c a q \<equiv> \<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` p \<longrightarrow> s' \<in> Some ` q"
 
-definition ValidTC :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
-  where "ValidTC p c q \<equiv> \<forall>s . s \<in> p \<longrightarrow> (\<exists>t . Sem c (Some s) (Some t) \<and> t \<in> q)"
+definition ValidTC :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a anno \<Rightarrow> 'a bexp \<Rightarrow> bool"
+  where "ValidTC p c a q \<equiv> \<forall>s . s \<in> p \<longrightarrow> (\<exists>t . Sem c (Some s) (Some t) \<and> t \<in> q)"
 
 lemma tc_implies_pc:
-  "ValidTC p c q \<Longrightarrow> Valid p c q"
+  "ValidTC p c a q \<Longrightarrow> Valid p c a q"
   by (smt (verit) Sem_deterministic ValidTC_def Valid_def image_iff)
 
 lemma tc_extract_function:
-  "ValidTC p c q \<Longrightarrow> \<exists>f . \<forall>s . s \<in> p \<longrightarrow> f s \<in> q"
+  "ValidTC p c a q \<Longrightarrow> \<exists>f . \<forall>s . s \<in> p \<longrightarrow> f s \<in> q"
   by (meson ValidTC_def)
 
 text \<open>The proof rules for partial correctness\<close>
 
-lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
+lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) a q"
 by (auto simp:Valid_def)
 
-lemma BasicRule: "p \<subseteq> {s. f s \<in> q} \<Longrightarrow> Valid p (Basic f) q"
+lemma BasicRule: "p \<subseteq> {s. f s \<in> q} \<Longrightarrow> Valid p (Basic f) a q"
 by (auto simp:Valid_def)
 
-lemma SeqRule: "Valid P c1 Q \<Longrightarrow> Valid Q c2 R \<Longrightarrow> Valid P (Seq c1 c2) R"
+lemma SeqRule: "Valid P c1 a1 Q \<Longrightarrow> Valid Q c2 a2 R \<Longrightarrow> Valid P (Seq c1 c2) (Aseq a1 a2) R"
 by (auto simp:Valid_def)
 
 lemma CondRule:
  "p \<subseteq> {s. (s \<in> b \<longrightarrow> s \<in> w) \<and> (s \<notin> b \<longrightarrow> s \<in> w')}
-  \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
+  \<Longrightarrow> Valid w c1 a1 q \<Longrightarrow> Valid w' c2 a2 q \<Longrightarrow> Valid p (Cond b c1 c2) (Acond a1 a2) q"
 by (fastforce simp:Valid_def image_def)
 
 lemma While_aux:
-  assumes "Sem (While b i v c) s s'"
+  assumes "Sem (While b c) s s'"
   shows "\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` (I \<inter> b) \<longrightarrow> s' \<in> Some ` I \<Longrightarrow>
     s \<in> Some ` I \<Longrightarrow> s' \<in> Some ` (I \<inter> -b)"
   using assms
-  by (induct "While b i v c" s s') auto
+  by (induct "While b c" s s') auto
 
 lemma WhileRule:
- "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i v c) q"
+ "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c (A 0) i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b c) (Awhile i v A) q"
 apply (clarsimp simp:Valid_def)
 apply(drule While_aux)
   apply assumption
@@ -100,32 +100,32 @@ apply(drule While_aux)
 apply blast
 done
 
-lemma AbortRule: "p \<subseteq> {s. False} \<Longrightarrow> Valid p Abort q"
+lemma AbortRule: "p \<subseteq> {s. False} \<Longrightarrow> Valid p Abort a q"
 by(auto simp:Valid_def)
 
 text \<open>The proof rules for total correctness\<close>
 
 lemma SkipRuleTC:
   assumes "p \<subseteq> q"
-    shows "ValidTC p (Basic id) q"
+    shows "ValidTC p (Basic id) a q"
   by (metis Sem.intros(2) ValidTC_def assms id_def subsetD)
 
 lemma BasicRuleTC:
   assumes "p \<subseteq> {s. f s \<in> q}"
-    shows "ValidTC p (Basic f) q"
+    shows "ValidTC p (Basic f) a q"
   by (metis Ball_Collect Sem.intros(2) ValidTC_def assms)
 
 lemma SeqRuleTC:
-  assumes "ValidTC p c1 q"
-      and "ValidTC q c2 r"
-    shows "ValidTC p (Seq c1 c2) r"
+  assumes "ValidTC p c1 a1 q"
+      and "ValidTC q c2 a2 r"
+    shows "ValidTC p (Seq c1 c2) (Aseq a1 a2) r"
   by (meson assms Sem.intros(4) ValidTC_def)
 
 lemma CondRuleTC:
  assumes "p \<subseteq> {s. (s \<in> b \<longrightarrow> s \<in> w) \<and> (s \<notin> b \<longrightarrow> s \<in> w')}"
-     and "ValidTC w c1 q"
-     and "ValidTC w' c2 q"
-   shows "ValidTC p (Cond b c1 c2) q"
+     and "ValidTC w c1 a1 q"
+     and "ValidTC w' c2 a2 q"
+   shows "ValidTC p (Cond b c1 c2) (Acons a1 a2)  q"
 proof (unfold ValidTC_def, rule allI)
   fix s
   show "s \<in> p \<longrightarrow> (\<exists>t . Sem (Cond b c1 c2) (Some s) (Some t) \<and> t \<in> q)"
@@ -136,18 +136,18 @@ qed
 
 lemma WhileRuleTC:
   assumes "p \<subseteq> i"
-      and "\<And>n::nat . ValidTC (i \<inter> b \<inter> {s . v s = n}) c (i \<inter> {s . v s < n})"
+      and "\<And>n::nat . ValidTC (i \<inter> b \<inter> {s . v s = n}) c (A n) (i \<inter> {s . v s < n})"
       and "i \<inter> uminus b \<subseteq> q"
-    shows "ValidTC p (While b i v c) q"
+    shows "ValidTC p (While b c) (Awhile i v A) q"
 proof -
   {
     fix s n
-    have "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b i v c) (Some s) (Some t) \<and> t \<in> q)"
+    have "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
     proof (induction "n" arbitrary: s rule: less_induct)
       fix n :: nat
       fix s :: 'a
-      assume 1: "\<And>(m::nat) s::'a . m < n \<Longrightarrow> s \<in> i \<and> v s = m \<longrightarrow> (\<exists>t . Sem (While b i v c) (Some s) (Some t) \<and> t \<in> q)"
-      show "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b i v c) (Some s) (Some t) \<and> t \<in> q)"
+      assume 1: "\<And>(m::nat) s::'a . m < n \<Longrightarrow> s \<in> i \<and> v s = m \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
+      show "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
       proof (rule impI, cases "s \<in> b")
         assume 2: "s \<in> b" and "s \<in> i \<and> v s = n"
         hence "s \<in> i \<inter> b \<inter> {s . v s = n}"
@@ -156,13 +156,13 @@ proof -
           by (metis assms(2) ValidTC_def)
         from this obtain t where 3: "Sem c (Some s) (Some t) \<and> t \<in> i \<inter> {s . v s < n}"
           by auto
-        hence "\<exists>u . Sem (While b i v c) (Some t) (Some u) \<and> u \<in> q"
+        hence "\<exists>u . Sem (While b c) (Some t) (Some u) \<and> u \<in> q"
           using 1 by auto
-        thus "\<exists>t . Sem (While b i v c) (Some s) (Some t) \<and> t \<in> q"
+        thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
           using 2 3 Sem.intros(10) by force
       next
         assume "s \<notin> b" and "s \<in> i \<and> v s = n"
-        thus "\<exists>t . Sem (While b i v c) (Some s) (Some t) \<and> t \<in> q"
+        thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
           using Sem.intros(9) assms(3) by fastforce
       qed
     qed
