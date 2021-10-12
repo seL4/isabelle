@@ -71,7 +71,10 @@ fun mk_bodyC [] = \<^Const>\<open>Unity\<close>
 fun get_vars c =
   let
     val d = Logic.strip_assums_concl c;
-    val Const _ $ pre $ _ $ _ $ _ = HOLogic.dest_Trueprop d;
+    val pre =
+      case HOLogic.dest_Trueprop d of
+        Const _ $ pre $ _ $ _ $ _ => pre
+      | Const _ $ pre $ _ $ _ => pre   \<comment> \<open>support for \<^file>\<open>~~/src/HOL/Isar_Examples/Hoare.thy\<close>\<close>
   in mk_vars pre end;
 
 fun mk_CollectC tm =
