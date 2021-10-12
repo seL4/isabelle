@@ -71,10 +71,7 @@ fun old_skolem_defs th =
             |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
-      | dec_sko \<^Const_>\<open>All _ for \<open>Abs (a, T, p)\<close>\<close> rhss =
-        (*Universal quant: insert a free variable into body and continue*)
-        let val fname = singleton (Name.variant_list (Misc_Legacy.add_term_names (p, []))) a
-        in dec_sko (subst_bound (Free(fname,T), p)) rhss end
+      | dec_sko \<^Const_>\<open>All _ for \<open>Abs abs\<close>\<close> rhss = dec_sko (#2 (Term.dest_abs abs)) rhss
       | dec_sko \<^Const_>\<open>conj for p q\<close> rhss = rhss |> dec_sko p |> dec_sko q
       | dec_sko \<^Const_>\<open>disj for p q\<close> rhss = rhss |> dec_sko p |> dec_sko q
       | dec_sko \<^Const_>\<open>Trueprop for p\<close> rhss = dec_sko p rhss
