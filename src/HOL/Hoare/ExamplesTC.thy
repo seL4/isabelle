@@ -27,7 +27,7 @@ text \<open>
 Here is the total-correctness proof for the same program.
 It needs the additional invariant \<open>m \<le> a\<close>.
 \<close>
-ML \<open>\<^const_syntax>\<open>HOL.eq\<close>\<close>
+
 lemma multiply_by_add_tc: "VARS m s a b
   [a=A \<and> b=B]
   m := 0; s := 0;
