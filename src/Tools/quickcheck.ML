@@ -538,32 +538,32 @@ val _ =
       (fn (args, i) => Toplevel.keep_proof (quickcheck_cmd args i)));
 
 
-(* automatic testing *)
+(* 'try' setup *)
 
-fun try_quickcheck auto state =
-  let
-    val ctxt = Proof.context_of state;
-    val i = 1;
-    val res =
-      state
-      |> Proof.map_context (Config.put report false #> Config.put quiet true)
-      |> try (test_goal (false, false) ([], []) i);
-  in
-    (case res of
-      NONE => (unknownN, [])
-    | SOME results =>
-        let
-          val msg =
-            Pretty.string_of
-              (pretty_counterex ctxt auto (Option.map (the o get_first response_of) results))
-        in
-          if is_some results then (genuineN, if auto then [msg] else (writeln msg; []))
-          else (noneN, [])
-        end)
-  end
-  |> `(fn (outcome_code, _) => outcome_code = genuineN);
-
-val _ = Try.tool_setup (quickcheckN, (20, \<^system_option>\<open>auto_quickcheck\<close>, try_quickcheck));
+val _ =
+  Try.tool_setup
+   {name = quickcheckN, weight = 20, auto_option = \<^system_option>\<open>auto_quickcheck\<close>,
+    body = fn auto => fn state =>
+      let
+        val ctxt = Proof.context_of state;
+        val i = 1;
+        val res =
+          state
+          |> Proof.map_context (Config.put report false #> Config.put quiet true)
+          |> try (test_goal (false, false) ([], []) i);
+      in
+        (case res of
+          NONE => (unknownN, [])
+        | SOME results =>
+            let
+              val msg =
+                Pretty.string_of
+                  (pretty_counterex ctxt auto (Option.map (the o get_first response_of) results))
+            in
+              if is_some results then (genuineN, if auto then [msg] else (writeln msg; []))
+              else (noneN, [])
+            end)
+      end
+      |> `(fn (outcome_code, _) => outcome_code = genuineN)};
 
 end;
-
