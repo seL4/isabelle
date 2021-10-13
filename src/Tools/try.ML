@@ -8,7 +8,6 @@ Manager for tools that should be tried on conjectures.
 signature TRY =
 sig
   val serial_commas: string -> string list -> string list
-  val subgoal_count: Proof.state -> int
   type body = bool -> Proof.state -> bool * (string * string list)
   type tool = {name: string, weight: int, auto_option: string, body: body}
   val get_tools: theory -> tool list
@@ -26,8 +25,6 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2] = [s1, conj, s2]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss;
-
-val subgoal_count = Logic.count_prems o Thm.prop_of o #goal o Proof.goal;
 
 
 (* configuration *)
@@ -54,7 +51,7 @@ val register_tool = Data.map o Ord_List.insert tool_ord;
 (* try command *)
 
 fun try_tools state =
-  if subgoal_count state = 0 then
+  if Proof.goal_finished state then
     (writeln "No subgoal!"; NONE)
   else
     get_tools (Proof.theory_of state)

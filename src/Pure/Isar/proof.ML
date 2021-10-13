@@ -40,6 +40,7 @@ sig
   val refine_singleton: Method.text -> state -> state
   val refine_insert: thm list -> state -> state
   val refine_primitive: (Proof.context -> thm -> thm) -> state -> state
+  val goal_finished: state -> bool
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
@@ -531,6 +532,8 @@ fun finished_goal pos state =
 
 
 (* goal views -- corresponding to methods *)
+
+val goal_finished = Thm.no_prems o #goal o #2 o find_goal;
 
 fun raw_goal state =
   let val (ctxt, (using, goal)) = get_goal state

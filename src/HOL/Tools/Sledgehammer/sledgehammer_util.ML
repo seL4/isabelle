@@ -72,7 +72,7 @@ fun parse_time name s =
       seconds (the secs)
   end
 
-val subgoal_count = Try.subgoal_count
+val subgoal_count = Logic.count_prems o Thm.prop_of o #goal o Proof.goal;
 
 exception TOO_MANY of unit
 
