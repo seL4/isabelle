@@ -1,5 +1,6 @@
 (*  Title:      Tools/try.ML
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Makarius
 
 Manager for tools that should be tried on conjectures.
 *)
@@ -78,19 +79,7 @@ val _ =
     (Scan.succeed (Toplevel.keep_proof (ignore o try_tools o Toplevel.proof_of)));
 
 
-(* automatic try (TTY) *)
-
-fun auto_try state =
-  get_tools (Proof.theory_of state)
-  |> map_filter (fn (_, (_, auto, tool)) => if Options.default_bool auto then SOME tool else NONE)
-  |> Par_List.get_some (fn tool =>
-    (case try (tool true) state of
-      SOME (true, (_, outcome)) => SOME outcome
-    | _ => NONE))
-  |> the_default [];
-
-
-(* asynchronous print function (PIDE) *)
+(* asynchronous print function *)
 
 fun print_function ((name, (weight, auto, tool)): tool) =
   Command.print_function ("auto_" ^ name)
