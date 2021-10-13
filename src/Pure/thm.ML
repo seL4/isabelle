@@ -495,7 +495,7 @@ val tpairs_of = #tpairs o rep_thm;
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
 val nprems_of = Logic.count_prems o prop_of;
-fun no_prems th = nprems_of th = 0;
+val no_prems = Logic.no_prems o prop_of;
 
 fun major_prem_of th =
   (case prems_of th of

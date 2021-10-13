@@ -390,7 +390,7 @@ fun eq_term_morphism _ [] = NONE
         fun decomp_simp prop =
           let
             val ctxt = Proof_Context.init_global thy;
-            val _ = Logic.count_prems prop = 0 orelse
+            val _ = Logic.no_prems prop orelse
               error ("Bad conditional rewrite rule " ^ Syntax.string_of_term ctxt prop);
             val lhsrhs = Logic.dest_equals prop
               handle TERM _ => error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop);
