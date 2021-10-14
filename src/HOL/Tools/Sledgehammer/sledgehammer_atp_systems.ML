@@ -467,7 +467,7 @@ val vampire_full_proof_options =
 
 val vampire_config : atp_config =
   let
-    val format = TFF (With_FOOL, Monomorphic)
+    val format = TFF (With_FOOL, Polymorphic)
   in
     {exec = (["VAMPIRE_HOME"], ["vampire"]),
      arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn problem => fn _ =>
@@ -488,9 +488,9 @@ val vampire_config : atp_config =
      prem_role = Hypothesis,
      best_slices = fn ctxt =>
        (* FUDGE *)
-       [(0.333, (((500, meshN), format, "mono_native", combs_or_liftingN, false), sosN)),
-        (0.333, (((150, meshN), format, "poly_tags??", combs_or_liftingN, false), sosN)),
-        (0.334, (((50, meshN), format, "mono_native", combs_or_liftingN, false), no_sosN))]
+       [(0.333, (((500, meshN), format, "mono_native_fool", combs_or_liftingN, false), sosN)),
+        (0.333, (((150, meshN), format, "poly_native_fool", combs_or_liftingN, false), sosN)),
+        (0.334, (((50, meshN), format, "mono_native_fool", combs_or_liftingN, false), no_sosN))]
        |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
      best_max_mono_iters = default_max_mono_iters,
      best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
