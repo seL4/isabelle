@@ -339,7 +339,7 @@ local
 fun dest_all ct =
   (case Thm.term_of ct of
     Const ("Pure.all", _) $ Abs (a, _, _) =>
-      let val (x, ct') = Thm.dest_abs NONE (Thm.dest_arg ct)
+      let val (x, ct') = Thm.dest_abs (Thm.dest_arg ct)
       in SOME ((a, Thm.ctyp_of_cterm x), ct') end
   | _ => NONE);
 

@@ -1134,7 +1134,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                 let
                     val (v, ctxt') = Variable.next_bound (a, T) ctxt;
                     val b = #1 (Term.dest_Free v);
-                    val (v', t') = Thm.dest_abs (SOME b) t0;
+                    val (v', t') = Thm.dest_abs_name b t0;
                     val b' = #1 (Term.dest_Free (Thm.term_of v'));
                     val _ =
                       if b <> b' then

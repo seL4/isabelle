@@ -48,7 +48,8 @@ sig
   val dest_arg: cterm -> cterm
   val dest_fun2: cterm -> cterm
   val dest_arg1: cterm -> cterm
-  val dest_abs: string option -> cterm -> cterm * cterm
+  val dest_abs_name: string -> cterm -> cterm * cterm
+  val dest_abs: cterm -> cterm * cterm
   val rename_tvar: indexname -> ctyp -> ctyp
   val var: indexname * ctyp -> cterm
   val apply: cterm -> cterm -> cterm
@@ -304,12 +305,15 @@ fun dest_arg1 (Cterm {t = c $ a $ _, T = _, cert, maxidx, sorts}) =
       in Cterm {t = a, T = A, cert = cert, maxidx = maxidx, sorts = sorts} end
   | dest_arg1 ct = raise CTERM ("dest_arg1", [ct]);
 
-fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), cert, maxidx, sorts}) =
-      let val (y', t') = Term.dest_abs (the_default x a, T, t) in
+fun dest_abs_name x (Cterm {t = Abs (_, T, t), T = Type ("fun", [_, U]), cert, maxidx, sorts}) =
+      let val (y', t') = Term.dest_abs (x, T, t) in
         (Cterm {t = Free (y', T), T = T, cert = cert, maxidx = maxidx, sorts = sorts},
           Cterm {t = t', T = U, cert = cert, maxidx = maxidx, sorts = sorts})
       end
-  | dest_abs _ ct = raise CTERM ("dest_abs", [ct]);
+  | dest_abs_name _ ct = raise CTERM ("dest_abs_name", [ct]);
+
+fun dest_abs (ct as Cterm {t = Abs (x, _, _), ...}) = dest_abs_name x ct
+  | dest_abs ct = raise CTERM ("dest_abs", [ct]);
 
 
 (* constructors *)

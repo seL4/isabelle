@@ -110,7 +110,7 @@ end;
 signature DCTERM =
 sig
   val dest_comb: cterm -> cterm * cterm
-  val dest_abs: string option -> cterm -> cterm * cterm
+  val dest_abs: cterm -> cterm * cterm
   val capply: cterm -> cterm -> cterm
   val cabs: cterm -> cterm -> cterm
   val mk_conj: cterm * cterm -> cterm
@@ -774,7 +774,7 @@ fun ERR func mesg = Utils.ERR {module = "Dcterm", func = func, mesg = mesg};
 fun dest_comb t = Thm.dest_comb t
   handle CTERM (msg, _) => raise ERR "dest_comb" msg;
 
-fun dest_abs a t = Thm.dest_abs a t
+fun dest_abs t = Thm.dest_abs t
   handle CTERM (msg, _) => raise ERR "dest_abs" msg;
 
 fun capply t u = Thm.apply t u
@@ -838,7 +838,7 @@ fun dest_binop expected tm =
  in (dest_monop expected M, N) handle Utils.ERR _ => err () end;
 
 fun dest_binder expected tm =
-  dest_abs NONE (dest_monop expected tm)
+  dest_abs (dest_monop expected tm)
   handle Utils.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
 
 
@@ -883,7 +883,7 @@ fun rev2swap (x,l) = (rev l, x);
 
 val strip_comb   = strip (Library.swap o dest_comb)  (* Goes to the "left" *)
 val strip_imp    = rev2swap o strip dest_imp
-val strip_abs    = rev2swap o strip (dest_abs NONE)
+val strip_abs    = rev2swap o strip dest_abs
 val strip_forall = rev2swap o strip dest_forall
 val strip_exists = rev2swap o strip dest_exists
 

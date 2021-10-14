@@ -41,7 +41,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
           simplify (put_simpset HOL_basic_ss ctxt addsimps gather)
             (Thm.instantiate' [] [SOME p] stupid)
         val (L, U) =
-          let val (_, q) = Thm.dest_abs NONE (Thm.dest_arg (Thm.rhs_of ths))
+          let val (_, q) = Thm.dest_abs (Thm.dest_arg (Thm.rhs_of ths))
           in (Thm.dest_arg1 q |> Thm.dest_arg1, Thm.dest_arg q |> Thm.dest_arg1) end
         fun proveneF S =
           let
@@ -131,7 +131,7 @@ fun proc ctxt ct =
     \<^Const_>\<open>Ex _ for \<open>Abs (xn, _, _)\<close>\<close> =>
       let
         val e = Thm.dest_fun ct
-        val (x,p) = Thm.dest_abs (SOME xn) (Thm.dest_arg ct)
+        val (x,p) = Thm.dest_abs_name xn (Thm.dest_arg ct)
         val Pp = Thm.apply \<^cterm>\<open>Trueprop\<close> p
         val (eqs,neqs) = List.partition (is_eqx x) (all_conjuncts p)
       in
@@ -210,7 +210,7 @@ val grab_atom_bop =
     and find_args bounds tm =
       (h bounds (Thm.dest_arg tm) handle CTERM _ => h bounds (Thm.dest_arg1 tm))
     and find_body bounds b =
-      let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
+      let val (_, b') = Thm.dest_abs_name (Name.bound bounds) b
       in h (bounds + 1) b' end;
   in h end;
 
@@ -240,7 +240,7 @@ fun cfrees ats ct =
           then ins (Thm.dest_arg t) (ins (Thm.dest_arg1 t) acc)
           else h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
       | _ $ _ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
-      | Abs _ => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
+      | Abs _ => Thm.dest_abs t ||> h acc |> uncurry (remove (op aconvc))
       | Free _ => if member (op aconvc) ats t then acc else ins t acc
       | Var _ => if member (op aconvc) ats t then acc else ins t acc
       | _ => acc)

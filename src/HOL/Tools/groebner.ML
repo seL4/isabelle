@@ -386,7 +386,7 @@ val strip_exists =
  let fun h (acc, t) =
       case Thm.term_of t of
        Const (\<^const_name>\<open>Ex\<close>, _) $ Abs _ =>
-        h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+        h (Thm.dest_abs (Thm.dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
  in fn t => h ([],t)
  end;
@@ -904,7 +904,7 @@ and find_args bounds tm =
   let val (t, u) = Thm.dest_binop tm
   in (find_term bounds t handle TERM _ => find_term bounds u) end
 and find_body bounds b =
-  let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
+  let val (_, b') = Thm.dest_abs_name (Name.bound bounds) b
   in find_term (bounds + 1) b' end;
 
 

@@ -90,7 +90,7 @@ fun is_quasi_lambda_free \<^Const_>\<open>Meson.skolem _ for _\<close> = true
 fun abstract ctxt ct =
   let
       val Abs (_, _, body) = Thm.term_of ct
-      val (x, cbody) = Thm.dest_abs NONE ct
+      val (x, cbody) = Thm.dest_abs ct
       val (A, cbodyT) = Thm.dest_funT (Thm.ctyp_of_cterm ct)
       fun makeK () = Thm.instantiate' [SOME A, SOME cbodyT] [SOME cbody] @{thm abs_K}
   in
@@ -142,7 +142,7 @@ fun introduce_combinators_in_cterm ctxt ct =
   else case Thm.term_of ct of
     Abs _ =>
     let
-      val (cv, cta) = Thm.dest_abs NONE ct
+      val (cv, cta) = Thm.dest_abs ct
       val (v, _) = dest_Free (Thm.term_of cv)
       val u_th = introduce_combinators_in_cterm ctxt cta
       val cu = Thm.rhs_of u_th
@@ -174,7 +174,7 @@ val cTrueprop = Thm.cterm_of \<^theory_context>\<open>HOL\<close> HOLogic.Truepr
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
 fun c_variant_abs_multi (ct0, vars) =
-      let val (cv,ct) = Thm.dest_abs NONE ct0
+      let val (cv,ct) = Thm.dest_abs ct0
       in  c_variant_abs_multi (ct, cv::vars)  end
       handle CTERM _ => (ct0, rev vars);
 
@@ -266,7 +266,7 @@ fun zap pos ct =
         Const (s, _) $ Abs (s', _, _) =>
         if s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close> orelse
            s = \<^const_name>\<open>Ex\<close> then
-          Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
+          Thm.dest_comb #> snd #> Thm.dest_abs_name s' #> snd #> zap pos
         else
           Conv.all_conv
       | Const (s, _) $ _ $ _ =>

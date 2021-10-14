@@ -24,7 +24,7 @@ type entry = {minf: thm list, pinf: thm list, nmi: thm list, npi: thm list,
                  simpset : simpset};
 
 fun get_p1 th =
-  funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
+  funpow 2 (Thm.dest_arg o snd o Thm.dest_abs)
     (funpow 2 Thm.dest_arg (Thm.cprop_of th)) |> Thm.dest_arg
 
 fun ferrack_conv ctxt
@@ -55,7 +55,7 @@ let
     in (S,th) end
 
  val ((p1_v,p2_v),(mp1_v,mp2_v)) =
-   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
+   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs)
      (funpow 4 Thm.dest_arg (Thm.cprop_of (hd minf)))
    |> Thm.dest_binop |> apply2 Thm.dest_binop |> apfst (apply2 Thm.dest_fun)
    |> apply2 (apply2 (dest_Var o Thm.term_of))
@@ -79,7 +79,7 @@ let
   let
    val ((xn,ce),(x,fm)) = (case Thm.term_of p of
                    \<^Const_>\<open>Ex _ for \<open>Abs(xn,xT,_)\<close>\<close> =>
-                        Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
+                        Thm.dest_comb p ||> Thm.dest_abs_name xn |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
    val cT = Thm.ctyp_of_cterm x
    val (u,nth) = uset (x::vs) fm |>> distinct (op aconvc)
@@ -191,7 +191,7 @@ val grab_atom_bop =
   and find_args bounds tm =
            (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)
  and find_body bounds b =
-   let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
+   let val (_, b') = Thm.dest_abs_name (Name.bound bounds) b
    in h (bounds + 1) b' end;
 in h end;
 
