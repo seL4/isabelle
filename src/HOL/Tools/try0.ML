@@ -6,9 +6,7 @@ Try a combination of proof methods.
 
 signature TRY0 =
 sig
-  val try0N : string
   val noneN : string
-
   val silence_methods : bool -> Proof.context -> Proof.context
   val try0 : Time.time option -> string list * string list * string list * string list ->
     Proof.state -> bool
@@ -17,7 +15,6 @@ end;
 structure Try0 : TRY0 =
 struct
 
-val try0N = "try0";
 val noneN = "none";
 
 datatype mode = Auto_Try | Try | Normal;
@@ -191,8 +188,9 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
     (Scan.optional parse_attrs ([], [], [], []) #>> try0_trans);
 
-fun try_try0 auto = generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], []);
-
-val _ = Try.tool_setup (try0N, (30, \<^system_option>\<open>auto_methods\<close>, try_try0));
+val _ =
+  Try.tool_setup
+   {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
+    body = fn auto => generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])};
 
 end;

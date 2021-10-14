@@ -375,8 +375,9 @@ val _ =
     "set and display the default parameters for Nitpick"
     (parse_params #>> nitpick_params_trans)
 
-fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
-
-val _ = Try.tool_setup (nitpickN, (50, \<^system_option>\<open>auto_nitpick\<close>, try_nitpick))
+val _ =
+  Try.tool_setup
+   {name = nitpickN, weight = 50, auto_option = \<^system_option>\<open>auto_nitpick\<close>,
+    body = fn auto => pick_nits [] (if auto then Auto_Try else Try) 1 0}
 
 end;

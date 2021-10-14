@@ -1201,7 +1201,7 @@ fun refute_goal ctxt params th i =
   let
     val t = th |> Thm.prop_of
   in
-    if Logic.count_prems t = 0 then
+    if Logic.no_prems t then
       (writeln "No subgoal!"; "none")
     else
       let

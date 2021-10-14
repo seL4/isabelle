@@ -326,7 +326,7 @@ fun run_chaku_on_subgoal state params mode i =
     val ctxt = Proof.context_of state;
     val goal = Thm.prop_of (#goal (Proof.raw_goal state));
   in
-    if Logic.count_prems goal = 0 then
+    if Logic.no_prems goal then
       (writeln "No subgoal!"; (noneN, NONE))
     else
       let

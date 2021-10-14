@@ -95,11 +95,11 @@ val _ =
     (Scan.succeed (Toplevel.keep_proof (ignore o solve_direct o Toplevel.proof_of)));
 
 
-(* hook *)
-
-fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
+(* 'try' setup *)
 
 val _ =
-  Try.tool_setup (solve_directN, (10, \<^system_option>\<open>auto_solve_direct\<close>, try_solve_direct));
+  Try.tool_setup
+   {name = solve_directN, weight = 10, auto_option = \<^system_option>\<open>auto_solve_direct\<close>,
+    body = fn auto => do_solve_direct (if auto then Auto_Try else Try)};
 
 end;
