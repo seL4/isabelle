@@ -123,8 +123,8 @@ fun regroup_conv ctxt neu cn ac is ct =
           else if null js
             then mk (foldr1 mk (map (nth xs) is), Const (neu, ty))
             else mk (foldr1 mk (map (nth xs) is), foldr1 mk (map (nth xs) js)))))
-     (K (rewrite_goals_tac ctxt ac
-         THEN resolve_tac ctxt [Drule.reflexive_thm] 1))
+     (fn {context = goal_ctxt, ...} =>
+       rewrite_goals_tac goal_ctxt ac THEN resolve_tac goal_ctxt [Drule.reflexive_thm] 1)
  end
 
 (* instance for unions *)

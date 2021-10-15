@@ -130,7 +130,8 @@ fun refute_tptp_file thy timeout file_name =
 (** Sledgehammer and Isabelle (combination of provers) **)
 
 fun can_tac ctxt tactic conj =
-  can (Goal.prove_internal ctxt [] (Thm.cterm_of ctxt conj)) (fn [] => tactic ctxt)
+  \<^can>\<open>Goal.prove_internal ctxt [] (Thm.cterm_of ctxt conj)
+    (fn {context = goal_ctxt, prems = []} => tactic goal_ctxt)\<close>
 
 fun SOLVE_TIMEOUT seconds name tac st =
   let

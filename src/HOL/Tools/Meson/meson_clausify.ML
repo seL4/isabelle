@@ -183,6 +183,7 @@ fun c_variant_abs_multi (ct0, vars) =
    Example: "\<exists>x. x \<in> A \<and> x \<notin> B \<Longrightarrow> sko A B \<in> A \<and> sko A B \<notin> B" *)
 fun old_skolem_theorem_of_def ctxt rhs0 =
   let
+    val thy = Proof_Context.theory_of ctxt
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of ctxt
     val rhs' = rhs |> Thm.dest_comb |> snd
     val (ch, frees) = c_variant_abs_multi (rhs', [])
@@ -196,13 +197,13 @@ fun old_skolem_theorem_of_def ctxt rhs0 =
     val conc =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.apply cTrueprop
-    fun tacf [prem] =
-      rewrite_goals_tac ctxt @{thms skolem_def [abs_def]}
-      THEN resolve_tac ctxt
-        [(prem |> rewrite_rule ctxt @{thms skolem_def [abs_def]})
-          RS Global_Theory.get_thm (Proof_Context.theory_of ctxt) "Hilbert_Choice.someI_ex"] 1
   in
-    Goal.prove_internal ctxt [ex_tm] conc tacf
+    Goal.prove_internal ctxt [ex_tm] conc
+      (fn {context = goal_ctxt, prems = [prem]} =>
+        rewrite_goals_tac goal_ctxt @{thms skolem_def [abs_def]} THEN
+        resolve_tac goal_ctxt
+          [(prem |> rewrite_rule goal_ctxt @{thms skolem_def [abs_def]})
+            RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex"] 1)
     |> forall_intr_list frees
     |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
     |> Thm.varifyT_global

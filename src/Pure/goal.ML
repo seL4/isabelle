@@ -24,22 +24,23 @@ sig
   val norm_result: Proof.context -> thm -> thm
   val skip_proofs_enabled: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
-  val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
+  type goal_context = {prems: thm list, context: Proof.context}
+  val prove_internal: Proof.context -> cterm list -> cterm -> (goal_context -> tactic) -> thm
   val is_schematic: term -> bool
   val prove_common: Proof.context -> int option -> string list -> term list -> term list ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm list
+    (goal_context -> tactic) -> thm list
   val prove_future: Proof.context -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val prove: Proof.context -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val prove_global_future: theory -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val prove_sorry: Proof.context -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val prove_sorry_global: theory -> string list -> term list -> term ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+    (goal_context -> tactic) -> thm
   val restrict: int -> int -> thm -> thm
   val unrestrict: int -> thm -> thm
   val conjunction_tac: int -> tactic
@@ -152,12 +153,21 @@ fun future_result ctxt result prop =
 
 (** tactical theorem proving **)
 
+type goal_context = {prems: thm list, context: Proof.context};
+
+
 (* prove_internal -- minimal checks, no normalization of result! *)
 
 fun prove_internal ctxt casms cprop tac =
-  (case SINGLE (tac (map (Assumption.assume ctxt) casms)) (init cprop) of
-    SOME th => Drule.implies_intr_list casms (finish ctxt th)
-  | NONE => error "Tactic failed");
+  let
+    val (prems, ctxt') = ctxt
+      |> fold (Variable.declare_term o Thm.term_of) (casms @ [cprop])
+      |> fold_map Thm.assume_hyps casms;
+  in
+    (case SINGLE (tac {prems = prems, context = ctxt'}) (init cprop) of
+      SOME th => Drule.implies_intr_list casms (finish ctxt' th)
+    | NONE => error "Tactic failed")
+  end;
 
 
 (* prove variations *)

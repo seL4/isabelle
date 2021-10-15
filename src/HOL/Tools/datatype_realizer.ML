@@ -112,14 +112,14 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 
     val thm =
       Goal.prove_internal ctxt (map (Thm.cterm_of ctxt) prems) (Thm.cterm_of ctxt concl)
-        (fn prems =>
+        (fn {context = goal_ctxt, prems} =>
            EVERY [
-            rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
-            resolve_tac ctxt [infer_instantiate ctxt inst induct] 1,
-            ALLGOALS (Object_Logic.atomize_prems_tac ctxt),
-            rewrite_goals_tac ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
-            REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW (fn i =>
-              REPEAT (eresolve_tac ctxt [allE] i) THEN assume_tac ctxt i)) 1)])
+            rewrite_goals_tac goal_ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
+            resolve_tac goal_ctxt [infer_instantiate goal_ctxt inst induct] 1,
+            ALLGOALS (Object_Logic.atomize_prems_tac goal_ctxt),
+            rewrite_goals_tac goal_ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
+            REPEAT ((resolve_tac goal_ctxt prems THEN_ALL_NEW (fn i =>
+              REPEAT (eresolve_tac goal_ctxt [allE] i) THEN assume_tac goal_ctxt i)) 1)])
       |> Drule.export_without_context;
 
     val ind_name = Thm.derivation_name induct;
@@ -190,12 +190,13 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
       Goal.prove_internal ctxt (map (Thm.cterm_of ctxt) prems)
         (Thm.cterm_of ctxt
           (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
-        (fn prems =>
-           EVERY [
-            resolve_tac ctxt [infer_instantiate ctxt [(#1 (dest_Var y), Thm.cterm_of ctxt y')] exhaust] 1,
+        (fn {context = goal_ctxt, prems} =>
+          EVERY [
+            resolve_tac goal_ctxt
+              [infer_instantiate goal_ctxt [(#1 (dest_Var y), Thm.cterm_of goal_ctxt y')] exhaust] 1,
             ALLGOALS (EVERY'
-              [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
-               resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])
+              [asm_simp_tac (put_simpset HOL_basic_ss goal_ctxt addsimps case_rewrites),
+               resolve_tac goal_ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss goal_ctxt)])])
       |> Drule.export_without_context;
 
     val exh_name = Thm.derivation_name exhaust;
