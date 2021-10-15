@@ -146,23 +146,23 @@ fun first_order_matchs pats objs = Thm.first_order_match
 fun first_order_mrs ths th = ths MRS
   Thm.instantiate (first_order_matchs (cprems_of th) (map Thm.cprop_of ths)) th;
 
-fun prove_strong_ind s avoids ctxt =
+fun prove_strong_ind s avoids lthy =
   let
-    val thy = Proof_Context.theory_of ctxt;
+    val thy = Proof_Context.theory_of lthy;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
-      Inductive.the_inductive_global ctxt (Sign.intern_const thy s);
+      Inductive.the_inductive_global lthy (Sign.intern_const thy s);
     val ind_params = Inductive.params_of raw_induct;
-    val raw_induct = atomize_induct ctxt raw_induct;
-    val elims = map (atomize_induct ctxt) elims;
-    val monos = Inductive.get_monos ctxt;
-    val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
+    val raw_induct = atomize_induct lthy raw_induct;
+    val elims = map (atomize_induct lthy) elims;
+    val monos = Inductive.get_monos lthy;
+    val eqvt_thms = NominalThmDecls.get_eqvt_thms lthy;
     val _ = (case subtract (op =) (fold (Term.add_const_names o Thm.prop_of) eqvt_thms []) names of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
     val induct_cases = map (fst o fst) (fst (Rule_Cases.get (the
-      (Induct.lookup_inductP ctxt (hd names)))));
-    val (raw_induct', ctxt') = ctxt
+      (Induct.lookup_inductP lthy (hd names)))));
+    val (raw_induct', ctxt') = lthy
       |> yield_singleton (Variable.import_terms false) (Thm.prop_of raw_induct);
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
@@ -409,13 +409,13 @@ fun prove_strong_ind s avoids ctxt =
             eresolve_tac ctxt [impE] 1 THEN assume_tac ctxt 1 THEN
             REPEAT (eresolve_tac ctxt @{thms allE_Nil} 1) THEN
             asm_full_simp_tac ctxt 1)
-        end) |> singleton (Proof_Context.export ctxt' ctxt);
+        end) |> singleton (Proof_Context.export ctxt' lthy);
 
     (** strong case analysis rule **)
 
     val cases_prems = map (fn ((name, avoids), rule) =>
       let
-        val ([rule'], ctxt') = Variable.import_terms false [Thm.prop_of rule] ctxt;
+        val ([rule'], ctxt') = Variable.import_terms false [Thm.prop_of rule] lthy;
         val prem :: prems = Logic.strip_imp_prems rule';
         val concl = Logic.strip_imp_concl rule'
       in
@@ -545,22 +545,22 @@ fun prove_strong_ind s avoids ctxt =
                   val final = Proof_Context.export ctxt3 ctxt2 [th]
                 in resolve_tac ctxt2 final 1 end) ctxt1 1)
                   (thss ~~ hyps ~~ prems))) |>
-                  singleton (Proof_Context.export ctxt' ctxt))
+                  singleton (Proof_Context.export ctxt' lthy))
 
   in
     ctxt'' |>
-    Proof.theorem NONE (fn thss => fn ctxt => (* FIXME ctxt/ctxt' should be called lthy/lthy' *)
+    Proof.theorem NONE (fn thss => fn lthy1 =>
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
-        val thss' = map (map (atomize_intr ctxt)) thss;
+        val thss' = map (map (atomize_intr lthy1)) thss;
         val thsss = Inductive.partition_rules' raw_induct (intrs ~~ thss');
         val strong_raw_induct =
-          mk_ind_proof ctxt thss' |> Inductive.rulify ctxt;
-        val strong_cases = map (mk_cases_proof ##> Inductive.rulify ctxt)
+          mk_ind_proof lthy1 thss' |> Inductive.rulify lthy1;
+        val strong_cases = map (mk_cases_proof ##> Inductive.rulify lthy1)
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
         val strong_induct_atts =
           map (Attrib.internal o K)
@@ -568,12 +568,12 @@ fun prove_strong_ind s avoids ctxt =
         val strong_induct =
           if length names > 1 then strong_raw_induct
           else strong_raw_induct RSN (2, rev_mp);
-        val ((_, [strong_induct']), ctxt') = ctxt |> Local_Theory.note
+        val ((_, [strong_induct']), lthy2) = lthy1 |> Local_Theory.note
           ((rec_qualified (Binding.name "strong_induct"), strong_induct_atts), [strong_induct]);
         val strong_inducts =
-          Project_Rule.projects ctxt (1 upto length names) strong_induct';
+          Project_Rule.projects lthy1 (1 upto length names) strong_induct';
       in
-        ctxt' |>
+        lthy2 |>
         Local_Theory.notes
           [((rec_qualified (Binding.name "strong_inducts"), []),
             strong_inducts |> map (fn th => ([th],

@@ -449,17 +449,17 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
   in
     ctxt'' |>
-    Proof.theorem NONE (fn thss => fn ctxt =>  (* FIXME ctxt/ctxt' should be called lthy/lthy' *)
+    Proof.theorem NONE (fn thss => fn lthy1 =>
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
-        val thss' = map (map (atomize_intr ctxt)) thss;
+        val thss' = map (map (atomize_intr lthy1)) thss;
         val thsss = Inductive.partition_rules' raw_induct (intrs ~~ thss');
         val strong_raw_induct =
-          mk_ind_proof ctxt thss' |> Inductive.rulify ctxt;
+          mk_ind_proof lthy1 thss' |> Inductive.rulify lthy1;
         val strong_induct_atts =
           map (Attrib.internal o K)
             [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of strong_raw_induct))];
@@ -471,12 +471,12 @@ fun prove_strong_ind s alt_name avoids ctxt =
             NONE => (rec_qualified (Binding.name "strong_induct"),
                      rec_qualified (Binding.name "strong_inducts"))
           | SOME s => (Binding.name s, Binding.name (s ^ "s"));
-        val ((_, [strong_induct']), ctxt') = ctxt |> Local_Theory.note
+        val ((_, [strong_induct']), lthy2) = lthy1 |> Local_Theory.note
           ((induct_name, strong_induct_atts), [strong_induct]);
         val strong_inducts =
-          Project_Rule.projects ctxt' (1 upto length names) strong_induct'
+          Project_Rule.projects lthy2 (1 upto length names) strong_induct'
       in
-        ctxt' |>
+        lthy2 |>
         Local_Theory.notes [((inducts_name, []),
           strong_inducts |> map (fn th => ([th],
             [Attrib.internal (K ind_case_names),
