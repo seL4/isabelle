@@ -135,7 +135,7 @@ fun abstract ctxt ct =
         | _ => raise Fail "abstract: Bad term"
   end;
 
-(* Traverse a theorem, remplacing lambda-abstractions with combinators. *)
+(* Traverse a theorem, replacing lambda-abstractions with combinators. *)
 fun introduce_combinators_in_cterm ctxt ct =
   if is_quasi_lambda_free (Thm.term_of ct) then
     Thm.reflexive ct
