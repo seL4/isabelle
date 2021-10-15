@@ -774,7 +774,7 @@ fun ERR func mesg = Utils.ERR {module = "Dcterm", func = func, mesg = mesg};
 fun dest_comb t = Thm.dest_comb t
   handle CTERM (msg, _) => raise ERR "dest_comb" msg;
 
-fun dest_abs t = Thm.dest_abs t
+fun dest_abs t = Thm.dest_abs_global t
   handle CTERM (msg, _) => raise ERR "dest_abs" msg;
 
 fun capply t u = Thm.apply t u

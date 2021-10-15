@@ -3974,12 +3974,12 @@ fun fm_of_term fs ps \<^Const_>\<open>True\<close> = @{code T}
       @{code Lt} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
   | fm_of_term fs ps \<^Const_>\<open>less_eq _ for p q\<close> =
       @{code Le} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
-  | fm_of_term fs ps (\<^Const_>\<open>Ex _\<close> $ Abs (abs as (_, xT, _))) =
-      let val (xn', p') = Term.dest_abs abs
-      in @{code E} (fm_of_term (Free (xn', xT) :: fs) ps p') end
-  | fm_of_term fs ps (\<^Const_>\<open>All _\<close> $ Abs (abs as (_, xT, _))) =
-      let val (xn', p') = Term.dest_abs abs
-      in @{code A} (fm_of_term (Free (xn', xT) :: fs) ps p') end
+  | fm_of_term fs ps \<^Const_>\<open>Ex _ for \<open>p as Abs _\<close>\<close> =
+      let val (x', p') = Term.dest_abs_global p
+      in @{code E} (fm_of_term (Free x' :: fs) ps p') end
+  | fm_of_term fs ps \<^Const_>\<open>All _ for \<open>p as Abs _\<close>\<close> =
+      let val (x', p') = Term.dest_abs_global p
+      in @{code A} (fm_of_term (Free x' :: fs) ps p') end
   | fm_of_term fs ps _ = error "fm_of_term";
 
 fun term_of_num T ps (@{code poly.C} (a, b)) =

@@ -126,9 +126,9 @@ local
     it replaces the bound variables by free variables.  *)
 fun strip_context_aux (params, Hs, \<^Const_>\<open>Pure.imp for H B\<close>) =
       strip_context_aux (params, H :: Hs, B)
-  | strip_context_aux (params, Hs, \<^Const_>\<open>Pure.all _ for \<open>Abs (a, T, t)\<close>\<close>) =
-      let val (b, u) = Term.dest_abs (a, T, t)
-      in strip_context_aux ((b, T) :: params, Hs, u) end
+  | strip_context_aux (params, Hs, \<^Const_>\<open>Pure.all _ for \<open>t as Abs _\<close>\<close>) =
+      let val (v, u) = Term.dest_abs_global t
+      in strip_context_aux (v :: params, Hs, u) end
   | strip_context_aux (params, Hs, B) = (rev params, rev Hs, B);
 
 fun strip_context A = strip_context_aux ([], [], A);

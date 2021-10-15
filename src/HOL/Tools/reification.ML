@@ -136,13 +136,10 @@ fun decomp_reify da cgns (ct, ctxt) bds =
     val thy = Proof_Context.theory_of ctxt;
     fun tryabsdecomp (ct, ctxt) bds =
       (case Thm.term_of ct of
-        Abs (_, xT, ta) =>
+        Abs (_, xT, _) =>
           let
-            val ([raw_xn], ctxt') = Variable.variant_fixes ["x"] ctxt;
-            val (xn, ta) = Term.dest_abs (raw_xn, xT, ta);
-            val x = Free (xn, xT);
-            val cx = Thm.cterm_of ctxt' x;
-            val cta = Thm.cterm_of ctxt' ta;
+            val ((cx, cta), ctxt') = Variable.dest_abs_cterm ct ctxt;
+            val x = Thm.term_of cx;
             val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT) of
                 NONE => error "tryabsdecomp: Type not found in the Environement"
               | SOME (bsT, atsT) => AList.update Type.could_unify (HOLogic.listT xT,

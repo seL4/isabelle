@@ -145,7 +145,7 @@ fun whatis x ct =
 
 fun get_pmi_term t =
   let val (x,eq) =
-     (Thm.dest_abs o Thm.dest_arg o snd o Thm.dest_abs o Thm.dest_arg)
+     (Thm.dest_abs_global o Thm.dest_arg o snd o Thm.dest_abs_global o Thm.dest_arg)
         (Thm.dest_arg t)
 in (Thm.lambda x o Thm.dest_arg o Thm.dest_arg) eq end;
 
@@ -348,7 +348,7 @@ val dvdc = \<^cterm>\<open>(dvd) :: int => _\<close>;
 
 fun unify ctxt q =
  let
-  val (e,(cx,p)) = q |> Thm.dest_comb ||> Thm.dest_abs
+  val (e,(cx,p)) = q |> Thm.dest_comb ||> Thm.dest_abs_global
   val x = Thm.term_of cx
   val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t =
@@ -436,8 +436,8 @@ fun mkISet cts = fold_rev (Thm.apply insert_tm #> Thm.apply) cts emptyIS;
 val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
 val [A_v,B_v] =
   map (fn th => Thm.cprop_of th |> funpow 2 Thm.dest_arg
-    |> Thm.dest_abs |> snd |> Thm.dest_arg1 |> Thm.dest_arg
-    |> Thm.dest_abs |> snd |> Thm.dest_fun |> Thm.dest_arg
+    |> Thm.dest_abs_global |> snd |> Thm.dest_arg1 |> Thm.dest_arg
+    |> Thm.dest_abs_global |> snd |> Thm.dest_fun |> Thm.dest_arg
     |> Thm.term_of |> dest_Var) [asetP, bsetP];
 
 val D_v = (("D", 0), \<^typ>\<open>int\<close>);
@@ -446,7 +446,7 @@ fun cooperex_conv ctxt vs q =
 let
 
  val uth = unify ctxt q
- val (x,p) = Thm.dest_abs (Thm.dest_arg (Thm.rhs_of uth))
+ val (x,p) = Thm.dest_abs_global (Thm.dest_arg (Thm.rhs_of uth))
  val ins = insert (op aconvc)
  fun h t (bacc,aacc,dacc) =
   case (whatis x t) of
@@ -599,12 +599,12 @@ fun add_bools t =
               else insert (op aconv) t
     | f $ a => if skip orelse is_op f then add_bools a o add_bools f
               else insert (op aconv) t
-    | Abs p => add_bools (snd (Term.dest_abs p))
+    | Abs _ => add_bools (snd (Term.dest_abs_global t))
     | _ => if skip orelse is_op t then I else insert (op aconv) t
   end;
 
 fun descend vs (abs as (_, xT, _)) =
-  let val (xn', p') = Term.dest_abs abs
+  let val ((xn', _), p') = Term.dest_abs_global (Abs abs)
   in ((xn', xT) :: vs, p') end;
 
 local structure Proc = Cooper_Procedure in
@@ -716,8 +716,8 @@ fun strip_objimp ct =
 
 fun strip_objall ct =
  case Thm.term_of ct of
-  Const (\<^const_name>\<open>All\<close>, _) $ Abs (xn,_,_) =>
-   let val (a,(v,t')) = (apsnd (Thm.dest_abs_name xn) o Thm.dest_comb) ct
+  Const (\<^const_name>\<open>All\<close>, _) $ Abs _ =>
+   let val (a,(v,t')) = (apsnd Thm.dest_abs_global o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end
 | _ => ([],ct);
@@ -798,7 +798,7 @@ fun int_nat_terms ctxt ct =
   fun h acc t = if ty cts t then insert (op aconvc) t acc else
    case Thm.term_of t of
     _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
-  | Abs(_,_,_) => Thm.dest_abs t ||> h acc |> uncurry (remove (op aconvc))
+  | Abs _ => Thm.dest_abs_global t ||> h acc |> uncurry (remove (op aconvc))
   | _ => acc
  in h [] ct end
 end;

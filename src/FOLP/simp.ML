@@ -366,7 +366,7 @@ val tracing = Unsynchronized.ref false;
 (*Replace parameters by Free variables in P*)
 fun variants_abs ([],P) = P
   | variants_abs ((a,T)::aTs, P) =
-      variants_abs (aTs, #2 (Term.dest_abs(a,T,P)));
+      variants_abs (aTs, #2 (Term.dest_abs_global (Abs (a,T,P))));
 
 (*Select subgoal i from proof state; substitute parameters, for printing*)
 fun prepare_goal i st =

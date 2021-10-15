@@ -451,9 +451,9 @@ fun check_case ctxt =
           make_case ctxt (if b = \<^term>\<open>True\<close> then Error else Warning)
             Name.context (decode_case u) (decode_cases t)
       | decode_case (t $ u) = decode_case t $ decode_case u
-      | decode_case (Abs (x, T, u)) =
-          let val (x', u') = Term.dest_abs (x, T, u);
-          in Term.absfree (x', T) (decode_case u') end
+      | decode_case (t as Abs _) =
+          let val (v, t') = Term.dest_abs_global t;
+          in Term.absfree v (decode_case t') end
       | decode_case t = t;
   in
     map decode_case
@@ -587,9 +587,9 @@ fun strip_case_full ctxt d t =
   | NONE =>
       (case t of
         t $ u => strip_case_full ctxt d t $ strip_case_full ctxt d u
-      | Abs (x, T, u) =>
-          let val (x', u') = Term.dest_abs (x, T, u);
-          in Term.absfree (x', T) (strip_case_full ctxt d u') end
+      | Abs _ =>
+          let val (v, t') = Term.dest_abs_global t;
+          in Term.absfree v (strip_case_full ctxt d t') end
       | _ => t));
 
 

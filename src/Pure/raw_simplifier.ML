@@ -1130,21 +1130,13 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
     and subc skel ctxt t0 =
         let val Simpset (_, {congs, ...}) = simpset_of ctxt in
           (case Thm.term_of t0 of
-              Abs (a, T, _) =>
+              Abs (a, _, _) =>
                 let
-                    val (v, ctxt') = Variable.next_bound (a, T) ctxt;
-                    val b = #1 (Term.dest_Free v);
-                    val (v', t') = Thm.dest_abs_name b t0;
-                    val b' = #1 (Term.dest_Free (Thm.term_of v'));
-                    val _ =
-                      if b <> b' then
-                        warning ("Bad Simplifier context: renamed bound variable " ^
-                          quote b ^ " to " ^ quote b' ^ Position.here (Position.thread_data ()))
-                      else ();
-                    val skel' = (case skel of Abs (_, _, sk) => sk | _ => skel0);
+                  val ((v, t'), ctxt') = Variable.dest_abs_cterm t0 ctxt;
+                  val skel' = (case skel of Abs (_, _, sk) => sk | _ => skel0);
                 in
                   (case botc skel' ctxt' t' of
-                    SOME thm => SOME (Thm.abstract_rule a v' thm)
+                    SOME thm => SOME (Thm.abstract_rule a v thm)
                   | NONE => NONE)
                 end
             | t $ _ =>

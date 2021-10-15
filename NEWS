@@ -287,6 +287,38 @@ operation "transpose".
 
 *** ML ***
 
+* Term operations under abstractions are now more robust (and more
+strict) by using the formal proof context in subsequent operations:
+
+  Variable.dest_abs
+  Variable.dest_abs_cterm
+  Variable.dest_all
+  Variable.dest_all_cterm
+
+This works under the assumption that terms are always properly declared
+to the proof context (e.g. via Variable.declare_term). Failure to do so,
+or working with the wrong context, will cause an error (exception Fail,
+based on Term.USED_FREE from Term.dest_abs_fresh).
+
+The Simplifier and equational conversions now use the above operations
+routinely, and thus require user-space tools to be serious about the
+proof context (notably in their use of Goal.prove, SUBPROOF etc.).
+INCOMPATIBILITY in add-on tools is to be expected occasionally: a proper
+context discipline needs to be followed.
+
+* Former operations Term.dest_abs and Logic.dest_all (without a proper
+context) have been discontinued. INCOMPATIBILITY, either use
+Variable.dest_abs etc. above, or the following operations that imitate
+the old behavior to a great extent:
+
+  Term.dest_abs_global
+  Logic.dest_all_global
+
+This works under the assumption that the given (sub-)term directly shows
+all free variables that need to be avoided when generating a fresh name.
+A violation of the assumption are variables stemming from the enclosing
+context that get involved in a proof only later.
+
 * ML structures TFrees, TVars, Frees, Vars, Names provide scalable
 operations to accumulate items from types and terms, using a fast
 syntactic order. The original order of occurrences may be recovered as

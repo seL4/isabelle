@@ -152,8 +152,7 @@ fun abs_cconv cv ctxt ct =
            end
 
          (* Destruct the abstraction and apply the conversion. *)
-         val (u, ctxt') = yield_singleton Variable.variant_fixes Name.uu ctxt
-         val (v, ct') = Thm.dest_abs_name u ct
+         val ((v, ct'), ctxt') = Variable.dest_abs_cterm ct ctxt
          val eq = cv (v, ctxt') ct'
        in
          if Thm.is_reflexive eq

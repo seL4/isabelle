@@ -91,12 +91,11 @@ fun cache_conv (cv: conv) = Ctermtab.cterm_cache cv;
 
 fun abs_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Abs (x, _, _) =>
+    Abs (a, _, _) =>
       let
-        val (u, ctxt') = yield_singleton Variable.variant_fixes Name.uu ctxt;
-        val (v, ct') = Thm.dest_abs_name u ct;
+        val ((v, ct'), ctxt') = Variable.dest_abs_cterm ct ctxt;
         val eq = cv (v, ctxt') ct';
-      in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end
+      in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule a v eq end
   | _ => raise CTERM ("abs_conv", [ct]));
 
 fun combination_conv cv1 cv2 ct =

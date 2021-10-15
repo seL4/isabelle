@@ -29,10 +29,10 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
        then Conv.binop_conv (conv env) p
        else atcv env p
   | Const(\<^const_name>\<open>Not\<close>,_)$_ => Conv.arg_conv (conv env) p
-  | Const(\<^const_name>\<open>Ex\<close>,_)$Abs(s,_,_) =>
+  | Const(\<^const_name>\<open>Ex\<close>,_)$Abs (s, _, _) =>
     let
      val (e,p0) = Thm.dest_comb p
-     val (x,p') = Thm.dest_abs_name s p0
+     val (x,p') = Thm.dest_abs_global p0
      val env' = ins x env
      val th = Thm.abstract_rule s x ((conv env' then_conv ncv env') p')
                    |> Drule.arg_cong_rule e

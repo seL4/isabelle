@@ -166,7 +166,9 @@ sig
   val could_eta_contract: term -> bool
   val could_beta_eta_contract: term -> bool
   val used_free: string -> term -> bool
-  val dest_abs: string * typ * term -> string * term
+  exception USED_FREE of string * term
+  val dest_abs_fresh: string -> term -> (string * typ) * term
+  val dest_abs_global: term -> (string * typ) * term
   val dummy_pattern: typ -> term
   val dummy: term
   val dummy_prop: term
@@ -965,6 +967,9 @@ fun could_beta_eta_contract (Abs _ $ _) = true
 
 (* dest abstraction *)
 
+(*ASSUMPTION: x is fresh wrt. the current context, but the check
+  of used_free merely guards against gross mistakes*)
+
 fun used_free x =
   let
     fun used (Free (y, _)) = (x = y)
@@ -973,11 +978,27 @@ fun used_free x =
       | used _ = false;
   in used end;
 
-fun dest_abs (x, T, b) =
-  if used_free x b then
-    let val (x', _) = Name.variant x (declare_term_frees b Name.context);
-    in (x', subst_bound (Free (x', T), b)) end
-  else (x, subst_bound (Free (x, T), b));
+exception USED_FREE of string * term;
+
+fun subst_abs v b = (v, subst_bound (Free v, b));
+
+fun dest_abs_fresh x t =
+  (case t of
+    Abs (_, T, b) =>
+      if used_free x b then raise USED_FREE (x, t)
+      else subst_abs (x, T) b
+  | _ => raise TERM ("dest_abs", [t]));
+
+fun dest_abs_global t =
+  (case t of
+    Abs (x, T, b) =>
+      if used_free x b then
+        let
+          val used = Name.build_context (declare_term_frees b);
+          val x' = #1 (Name.variant x used);
+        in subst_abs (x', T) b end
+      else subst_abs (x, T) b
+  | _ => raise TERM ("dest_abs", [t]));
 
 
 (* dummy patterns *)

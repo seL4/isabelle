@@ -12,7 +12,7 @@ begin
 ML \<open>
 fun split_clause t =
   let
-    val (fixes, horn) = funpow_yield (length (Term.strip_all_vars t)) Logic.dest_all t;
+    val (fixes, horn) = funpow_yield (length (Term.strip_all_vars t)) Logic.dest_all_global t;
     val assms = Logic.strip_imp_prems horn;
     val concl = Logic.strip_imp_concl horn;
   in (fixes, assms, concl) end;

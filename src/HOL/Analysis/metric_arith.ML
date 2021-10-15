@@ -92,7 +92,7 @@ fun find_points ctxt metric_ty ct =
           app_union_ct_pair find (Thm.dest_comb ct)
         | Abs (_, _, _) =>
           (* ensure the point doesn't contain the bound variable *)
-          let val (var, bod) = Thm.dest_abs ct in
+          let val (var, bod) = Thm.dest_abs_global ct in
             filter (free_in var #> not) (find bod)
           end
         | _ => [])
@@ -120,7 +120,7 @@ fun find_dist metric_ty ct =
       | _ $ _ =>
         app_union_ct_pair find (Thm.dest_comb ct)
       | Abs (_, _, _) =>
-        let val (var, bod) = Thm.dest_abs ct in
+        let val (var, bod) = Thm.dest_abs_global ct in
           filter (free_in var #> not) (find bod)
         end
       | _ => []
@@ -139,7 +139,7 @@ fun find_eq metric_ty ct =
           else app_union_ct_pair find (Thm.dest_binop ct)
       | _ $ _ => app_union_ct_pair find (Thm.dest_comb ct)
       | Abs (_, _, _) =>
-        let val (var, bod) = Thm.dest_abs ct in
+        let val (var, bod) = Thm.dest_abs_global ct in
           filter (free_in var #> not) (find bod)
         end
       | _ => []
@@ -255,7 +255,7 @@ let
       let val (s, t) = Thm.dest_comb ct in
         default (find_dist t) (find_dist s)
       end
-    | Abs (_, _, _) => find_dist (snd (Thm.dest_abs ct))
+    | Abs (_, _, _) => find_dist (snd (Thm.dest_abs_global ct))
     | _ => NONE
   fun find_eq ct =
     case Thm.term_of ct of
@@ -269,7 +269,7 @@ let
       let val (s, t) = Thm.dest_comb ct in
         default (find_eq t) (find_eq s)
       end
-    | Abs (_, _, _) => find_eq (snd (Thm.dest_abs ct))
+    | Abs (_, _, _) => find_eq (snd (Thm.dest_abs_global ct))
     | _ => NONE
   in
     case default (find_eq ct) (find_dist ct) of

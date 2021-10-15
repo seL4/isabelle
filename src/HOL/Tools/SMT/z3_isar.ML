@@ -62,10 +62,9 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-fun dest_alls (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (abs as (_, T, _))) =
-    let val (s', t') = Term.dest_abs abs in
-      dest_alls t' |>> cons (s', T)
-    end
+fun dest_alls \<^Const_>\<open>Pure.all _ for \<open>t as Abs _\<close>\<close> =
+    let val (v, t') = Term.dest_abs_global t
+    in dest_alls t' |>> cons v end
   | dest_alls t = ([], t)
 
 val reorder_foralls =
