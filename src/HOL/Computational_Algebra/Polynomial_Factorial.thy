@@ -525,7 +525,7 @@ next
   qed
 qed
 
-private lemma irreducible_imp_prime_poly:
+lemma irreducible_imp_prime_poly:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "irreducible p"
   shows   "prime_elem p"
@@ -615,7 +615,7 @@ lemma prime_elem_linear_poly:
  
 subsection \<open>Prime factorisation of polynomials\<close>   
 
-private lemma poly_prime_factorization_exists_content_1:
+lemma poly_prime_factorization_exists_content_1:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "p \<noteq> 0" "content p = 1"
   shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize p"
