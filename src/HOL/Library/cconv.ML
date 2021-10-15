@@ -132,22 +132,19 @@ fun abs_cconv cv ctxt ct =
                   \<And>v. (\<lambda>x. L x) v \<equiv> (\<lambda>x. R x) v *)
              fun mk_concl eq =
                let
-                 val certify = Thm.cterm_of ctxt
-                 fun abs term = (Term.lambda v term) $ v
-                 fun equals_cong f t =
-                   Logic.dest_equals t
-                   |> (fn (a, b) => (f a, f b))
-                   |> Logic.mk_equals
+                 fun abs t = lambda v t $ v
+                 fun equals_cong f = Logic.dest_equals #> apply2 f #> Logic.mk_equals
                in
                  Thm.concl_of eq
                  |> equals_cong abs
-                 |> Logic.all v |> certify
+                 |> Logic.all v
+                 |> Thm.cterm_of ctxt
                end
              val rule = abstract_rule_thm x
-             val inst = Thm.match (Drule.cprems_of rule |> hd, mk_concl eq)
+             val inst = Thm.match (hd (Drule.cprems_of rule), mk_concl eq)
+             val gen = (Names.empty, Names.make_set [#1 (dest_Free v)])
            in
-             (Drule.instantiate_normalize inst rule OF
-               [Drule.generalize (Names.empty, Names.make_set [#1 (dest_Free v)]) eq])
+             (Drule.instantiate_normalize inst rule OF [Drule.generalize gen eq])
              |> Drule.zero_var_indexes
            end
 
@@ -172,8 +169,7 @@ fun params_cconv n cv ctxt ct =
   then arg_cconv (abs_cconv (params_cconv (n - 1) cv o #2) ctxt) ct
   else cv ctxt ct
 
-(* TODO: This code behaves not exactly like Conv.prems_cconv does.
-         Fix this! *)
+(* FIXME: This code behaves not exactly like Conv.prems_cconv does. *)
 (*rewrite the A's in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =
