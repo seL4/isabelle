@@ -2427,16 +2427,16 @@ fun fm_of_term ps vs \<^Const_>\<open>True\<close> = @{code T}
       @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs \<^Const_>\<open>HOL.Not for t'\<close> =
       @{code Not} (fm_of_term ps vs t')
-  | fm_of_term ps vs \<^Const_>\<open>Ex _ for \<open>t as Abs (_, _, p)\<close>\<close> =
+  | fm_of_term ps vs \<^Const_>\<open>Ex _ for \<open>t as Abs _\<close>\<close> =
       let
         val (x', p') = Term.dest_abs_global t;
         val vs' = (Free x', 0) :: map (fn (v, n) => (v, n + 1)) vs;
-      in @{code E} (fm_of_term ps vs' p) end
-  | fm_of_term ps vs \<^Const_>\<open>All _ for \<open>t as Abs (_, _, p)\<close>\<close> =
+      in @{code E} (fm_of_term ps vs' p') end
+  | fm_of_term ps vs \<^Const_>\<open>All _ for \<open>t as Abs _\<close>\<close> =
       let
         val (x', p') = Term.dest_abs_global t;
         val vs' = (Free x', 0) :: map (fn (v, n) => (v, n + 1)) vs;
-      in @{code A} (fm_of_term ps vs' p) end
+      in @{code A} (fm_of_term ps vs' p') end
   | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term \<^context> t);
 
 fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
