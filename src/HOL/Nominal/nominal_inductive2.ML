@@ -153,25 +153,25 @@ fun inst_params thy (vs, p) th cts =
     Thm.instantiate (TVars.empty, Vars.make (map (dest_Var o Envir.subst_term env) vs ~~ cts)) th
   end;
 
-fun prove_strong_ind s alt_name avoids ctxt =
+fun prove_strong_ind s alt_name avoids lthy =
   let
-    val thy = Proof_Context.theory_of ctxt;
+    val thy = Proof_Context.theory_of lthy;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
-      Inductive.the_inductive_global ctxt (Sign.intern_const thy s);
+      Inductive.the_inductive_global lthy (Sign.intern_const thy s);
     val ind_params = Inductive.params_of raw_induct;
-    val raw_induct = atomize_induct ctxt raw_induct;
-    val elims = map (atomize_induct ctxt) elims;
-    val monos = Inductive.get_monos ctxt;
-    val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
+    val raw_induct = atomize_induct lthy raw_induct;
+    val elims = map (atomize_induct lthy) elims;
+    val monos = Inductive.get_monos lthy;
+    val eqvt_thms = NominalThmDecls.get_eqvt_thms lthy;
     val _ = (case subtract (op =) (fold (Term.add_const_names o Thm.prop_of) eqvt_thms []) names of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
     val induct_cases = map (fst o fst) (fst (Rule_Cases.get (the
-      (Induct.lookup_inductP ctxt (hd names)))));
+      (Induct.lookup_inductP lthy (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;
-    val (raw_induct', ctxt') = ctxt
+    val (raw_induct', ctxt') = lthy
       |> yield_singleton (Variable.import_terms false) (Thm.prop_of raw_induct);
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
@@ -186,7 +186,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     fun mk_avoids params name sets =
       let
         val (_, ctxt') = Proof_Context.add_fixes
-          (map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params) ctxt;
+          (map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params) lthy;
         fun mk s =
           let
             val t = Syntax.read_term ctxt' s;
@@ -445,7 +445,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
             asm_full_simp_tac ctxt 1)
         end) |>
         fresh_postprocess ctxt' |>
-        singleton (Proof_Context.export ctxt' ctxt);
+        singleton (Proof_Context.export ctxt' lthy);
 
   in
     ctxt'' |>
