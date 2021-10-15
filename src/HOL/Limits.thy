@@ -2849,9 +2849,8 @@ lemma Bolzano[consumes 1, case_names trans local]:
     and local: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<exists>d>0. \<forall>a b. a \<le> x \<and> x \<le> b \<and> b - a < d \<longrightarrow> P a b"
   shows "P a b"
 proof -
-  define bisect where "bisect =
-    rec_nat (a, b) (\<lambda>n (x, y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2))"
-  define l u where "l n = fst (bisect n)" and "u n = snd (bisect n)" for n
+  define bisect where "bisect \<equiv> \<lambda>(x,y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2)"
+  define l u where "l n \<equiv> fst ((bisect^^n)(a,b))" and "u n \<equiv> snd ((bisect^^n)(a,b))" for n
   have l[simp]: "l 0 = a" "\<And>n. l (Suc n) = (if P (l n) ((l n + u n) / 2) then (l n + u n) / 2 else l n)"
     and u[simp]: "u 0 = b" "\<And>n. u (Suc n) = (if P (l n) ((l n + u n) / 2) then u n else (l n + u n) / 2)"
     by (simp_all add: l_def u_def bisect_def split: prod.split)

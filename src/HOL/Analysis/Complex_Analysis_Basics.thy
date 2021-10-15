@@ -144,6 +144,25 @@ lemma holomorphic_on_open:
     "open s \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>f'. DERIV f x :> f')"
   by (auto simp: holomorphic_on_def field_differentiable_def has_field_derivative_def at_within_open [of _ s])
 
+lemma holomorphic_on_UN_open:
+  assumes "\<And>n. n \<in> I \<Longrightarrow> f holomorphic_on A n" "\<And>n. n \<in> I \<Longrightarrow> open (A n)"
+  shows   "f holomorphic_on (\<Union>n\<in>I. A n)"
+proof -
+  have "f field_differentiable at z within (\<Union>n\<in>I. A n)" if "z \<in> (\<Union>n\<in>I. A n)" for z
+  proof -
+    from that obtain n where "n \<in> I" "z \<in> A n"
+      by blast
+    hence "f holomorphic_on A n" "open (A n)"
+      by (simp add: assms)+
+    with \<open>z \<in> A n\<close> have "f field_differentiable at z"
+      by (auto simp: holomorphic_on_open field_differentiable_def)
+    thus ?thesis
+      by (meson field_differentiable_at_within)
+  qed
+  thus ?thesis
+    by (auto simp: holomorphic_on_def)
+qed
+
 lemma holomorphic_on_imp_continuous_on:
     "f holomorphic_on s \<Longrightarrow> continuous_on s f"
   by (metis field_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def)
@@ -180,6 +199,18 @@ lemma holomorphic_on_ident [simp, holomorphic_intros]: "(\<lambda>x. x) holomorp
 
 lemma holomorphic_on_id [simp, holomorphic_intros]: "id holomorphic_on s"
   unfolding id_def by (rule holomorphic_on_ident)
+
+lemma constant_on_imp_holomorphic_on:
+  assumes "f constant_on A"
+  shows   "f holomorphic_on A"
+proof -
+  from assms obtain c where c: "\<forall>x\<in>A. f x = c"
+    unfolding constant_on_def by blast
+  have "f holomorphic_on A \<longleftrightarrow> (\<lambda>_. c) holomorphic_on A"
+    by (intro holomorphic_cong) (use c in auto)
+  thus ?thesis
+    by simp
+qed
 
 lemma holomorphic_on_compose:
   "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s) \<Longrightarrow> (g o f) holomorphic_on s"

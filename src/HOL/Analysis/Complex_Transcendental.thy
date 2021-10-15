@@ -2258,8 +2258,8 @@ lemma powr_complexpow [simp]:
   by (induct n) (auto simp: ac_simps powr_add)
 
 lemma powr_complexnumeral [simp]:
-  fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (numeral n) = x ^ (numeral n)"
-  by (metis of_nat_numeral powr_complexpow)
+  fixes x::complex shows "x powr (numeral n) = x ^ (numeral n)"
+  by (metis of_nat_numeral power_zero_numeral powr_nat)
 
 lemma cnj_powr:
   assumes "Im a = 0 \<Longrightarrow> Re a \<ge> 0"

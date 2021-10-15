@@ -434,11 +434,10 @@ proof (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le
   then obtain c where c:
        "\<And>F'. \<lbrakk>finite F'; F' \<subseteq> T; card F' \<le> DIM('a) + 2\<rbrakk> \<Longrightarrow> c F' \<in> T \<and> c F' \<inter> (\<Inter>F') \<subset> (\<Inter>F')"
     by metis
-  define d where "d = rec_nat {c{}} (\<lambda>n r. insert (c r) r)"
-  have [simp]: "d 0 = {c {}}"
-    by (simp add: d_def)
-  have dSuc [simp]: "\<And>n. d (Suc n) = insert (c (d n)) (d n)"
-    by (simp add: d_def)
+  define d where "d \<equiv> \<lambda>n. ((\<lambda>r. insert (c r) r)^^n) {c{}}"
+  note d_def [simp]
+  have dSuc: "\<And>n. d (Suc n) = insert (c (d n)) (d n)"
+    by simp
   have dn_notempty: "d n \<noteq> {}" for n
     by (induction n) auto
   have dn_le_Suc: "d n \<subseteq> T \<and> finite(d n) \<and> card(d n) \<le> Suc n" if "n \<le> DIM('a) + 2" for n

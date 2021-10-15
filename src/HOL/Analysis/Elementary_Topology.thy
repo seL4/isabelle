@@ -1597,11 +1597,20 @@ qed
 lemma closure_insert:
   fixes x :: "'a::t1_space"
   shows "closure (insert x s) = insert x (closure s)"
-  apply (rule closure_unique)
-  apply (rule insert_mono [OF closure_subset])
-  apply (rule closed_insert [OF closed_closure])
-  apply (simp add: closure_minimal)
-  done
+  by (meson closed_closure closed_insert closure_minimal closure_subset dual_order.antisym insert_mono insert_subset)
+
+lemma finite_not_islimpt_in_compact:
+  assumes "compact A" "\<And>z. z \<in> A \<Longrightarrow> \<not>z islimpt B"
+  shows   "finite (A \<inter> B)"
+proof (rule ccontr)
+  assume "infinite (A \<inter> B)"
+  have "\<exists>z\<in>A. z islimpt A \<inter> B"
+    by (rule Heine_Borel_imp_Bolzano_Weierstrass) (use assms \<open>infinite _\<close> in auto)
+  hence "\<exists>z\<in>A. z islimpt B"
+    using islimpt_subset by blast
+  thus False using assms(2)
+    by simp
+qed
 
 
 text\<open>In particular, some common special cases.\<close>
