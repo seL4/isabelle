@@ -124,16 +124,16 @@ fun abs_cconv cv ctxt ct =
      Abs (x, _, _) =>
        let
          (* Instantiate the rule properly and apply it to the eq theorem. *)
-         fun abstract_rule u v eq =
+         fun abstract_rule v eq =
            let
              (* Take a variable v and an equality theorem of form:
                   P1 \<Longrightarrow> ... \<Longrightarrow> Pn \<Longrightarrow> L v \<equiv> R v
                 And build a term of form:
                   \<And>v. (\<lambda>x. L x) v \<equiv> (\<lambda>x. R x) v *)
-             fun mk_concl var eq =
+             fun mk_concl eq =
                let
                  val certify = Thm.cterm_of ctxt
-                 fun abs term = (Term.lambda var term) $ var
+                 fun abs term = (Term.lambda v term) $ v
                  fun equals_cong f t =
                    Logic.dest_equals t
                    |> (fn (a, b) => (f a, f b))
@@ -141,13 +141,13 @@ fun abs_cconv cv ctxt ct =
                in
                  Thm.concl_of eq
                  |> equals_cong abs
-                 |> Logic.all var |> certify
+                 |> Logic.all v |> certify
                end
              val rule = abstract_rule_thm x
-             val inst = Thm.match (Drule.cprems_of rule |> hd, mk_concl (Thm.term_of v) eq)
+             val inst = Thm.match (Drule.cprems_of rule |> hd, mk_concl eq)
            in
              (Drule.instantiate_normalize inst rule OF
-               [Drule.generalize (Names.empty, Names.make_set [u]) eq])
+               [Drule.generalize (Names.empty, Names.make_set [#1 (dest_Free v)]) eq])
              |> Drule.zero_var_indexes
            end
 
@@ -158,7 +158,7 @@ fun abs_cconv cv ctxt ct =
        in
          if Thm.is_reflexive eq
          then all_cconv ct
-         else abstract_rule u v eq
+         else abstract_rule (Thm.term_of v) eq
        end
    | _ => raise CTERM ("abs_cconv", [ct]))
 
