@@ -708,12 +708,12 @@ fun transferred ctxt extra_rules thm =
   in
     Goal.prove_internal ctxt' []
       (Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), \<^typ>\<open>bool\<close>))))
-      (fn {context = goal_ctxt, ...} =>
-        resolve_tac goal_ctxt [thm2 RS @{thm transfer_start'}, thm2 RS @{thm transfer_start}] 1 THEN
-        (resolve_tac goal_ctxt [rule]
+      (fn _ =>
+        resolve_tac ctxt' [thm2 RS @{thm transfer_start'}, thm2 RS @{thm transfer_start}] 1 THEN
+        (resolve_tac ctxt' [rule]
           THEN_ALL_NEW
-            (SOLVED' (REPEAT_ALL_NEW (resolve_tac goal_ctxt rules)
-              THEN_ALL_NEW (DETERM o eq_rules_tac goal_ctxt eq_rules)))) 1
+            (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
+              THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
           handle TERM (_, ts) =>
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
     |> Raw_Simplifier.rewrite_rule ctxt' post_simps
@@ -744,12 +744,12 @@ fun untransferred ctxt extra_rules thm =
   in
     Goal.prove_internal ctxt' []
       (Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), \<^typ>\<open>bool\<close>))))
-      (fn {context = goal_ctxt, ...} =>
-        resolve_tac goal_ctxt [thm2 RS @{thm untransfer_start}] 1 THEN
-        (resolve_tac goal_ctxt [rule]
+      (fn _ =>
+        resolve_tac ctxt' [thm2 RS @{thm untransfer_start}] 1 THEN
+        (resolve_tac ctxt' [rule]
           THEN_ALL_NEW
-            (SOLVED' (REPEAT_ALL_NEW (resolve_tac goal_ctxt rules)
-              THEN_ALL_NEW (DETERM o eq_rules_tac goal_ctxt eq_rules)))) 1
+            (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
+              THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
           handle TERM (_, ts) =>
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
     |> Raw_Simplifier.rewrite_rule ctxt' post_simps

@@ -61,13 +61,11 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
 
 fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
+    val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
   in
-    Goal.prove_internal ctxt [] ct
-      (fn {context = goal_ctxt, ...} =>
-        rewrite_goals_tac goal_ctxt @{thms lambda_def [abs_def]} THEN
-        resolve_tac goal_ctxt [refl] 1)
+    Goal.prove_internal ctxt [] ct (K tac)
     |> Meson.make_meta_clause ctxt
   end
 
@@ -103,9 +101,7 @@ fun introduce_lam_wrappers ctxt th =
          so that "Thm.equal_elim" works below. *)
       val t0 $ _ $ t2 = Thm.prop_of eq_th
       val eq_ct = t0 $ Thm.prop_of th $ t2 |> Thm.cterm_of ctxt
-      val eq_th' =
-        Goal.prove_internal ctxt [] eq_ct
-          (fn {context = goal_ctxt, ...} => resolve_tac goal_ctxt [eq_th] 1)
+      val eq_th' = Goal.prove_internal ctxt [] eq_ct (K (resolve_tac ctxt [eq_th] 1))
     in Thm.equal_elim eq_th' th end
 
 fun clause_params ordering =

@@ -260,9 +260,8 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> HOLogic.mk_Trueprop
       |> Logic.all x_uc;
 
-    val mono_thm =
-      Goal.prove_internal lthy [] (Thm.cterm_of lthy mono_goal)
-        (fn {context = goal_ctxt, ...} => mono_tac goal_ctxt 1)
+    val mono_thm = Goal.prove_internal lthy [] (Thm.cterm_of lthy mono_goal)
+        (K (mono_tac lthy 1))
     val inst_mono_thm = Thm.forall_elim (Thm.cterm_of lthy x_uc) mono_thm
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
