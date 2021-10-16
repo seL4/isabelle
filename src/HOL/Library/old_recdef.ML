@@ -1692,14 +1692,6 @@ val concl = #2 o Rules.dest_thm;
 
 val list_mk_type = Utils.end_itlist (curry (op -->));
 
-fun front_last [] = raise TFL_ERR "front_last" "empty list"
-  | front_last [x] = ([],x)
-  | front_last (h::t) =
-     let val (pref,x) = front_last t
-     in
-        (h::pref,x)
-     end;
-
 
 (*---------------------------------------------------------------------------
  * The next function is common to pattern-match translation and
@@ -2056,8 +2048,6 @@ in
   pass (TCs, map (fn p => (p,[])) full_pats)
 end;
 
-
-fun givens pats = map pat_of (filter given pats);
 
 fun post_definition ctxt meta_tflCongs (def, pats) =
  let val thy = Proof_Context.theory_of ctxt
